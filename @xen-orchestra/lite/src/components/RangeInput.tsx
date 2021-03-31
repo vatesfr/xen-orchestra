@@ -1,5 +1,5 @@
-import { withState } from 'reaclette'
 import React from 'react'
+import { withState } from 'reaclette'
 
 interface ParentState {}
 
