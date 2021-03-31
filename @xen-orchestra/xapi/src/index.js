@@ -1,5 +1,6 @@
 const assert = require('assert')
 const defer = require('promise-toolbox/defer')
+const pRetry = require('promise-toolbox/retry')
 const { utcFormat, utcParse } = require('d3-time-format')
 const { Xapi: Base } = require('xen-api')
 
@@ -34,10 +35,22 @@ const hasProps = o => {
 }
 
 class Xapi extends Base {
-  constructor({ ignoreNobakVdis, maxUncoalescedVdis, vdiDestroyRetryWhenInUse, ...opts }) {
+  constructor({
+    callRetryWhenTooManyPendingTasks,
+    ignoreNobakVdis,
+    maxUncoalescedVdis,
+    vdiDestroyRetryWhenInUse,
+    ...opts
+  }) {
     assert.notStrictEqual(ignoreNobakVdis, undefined)
 
     super(opts)
+    this._callRetryWhenTooManyPendingTasks = {
+      delay: 5e3,
+      tries: 10,
+      ...callRetryWhenTooManyPendingTasks,
+      when: { code: 'TOO_MANY_PENDING_TASKS' },
+    }
     this._ignoreNobakVdis = ignoreNobakVdis
     this._maxUncoalescedVdis = maxUncoalescedVdis
     this._vdiDestroyRetryWhenInUse = {
@@ -124,3 +137,17 @@ mixin({
   VM: require('./vm'),
 })
 exports.Xapi = Xapi
+
+// TODO: remove once using next promise-toolbox
+function pRetryWrap(fn, options) {
+  const getOptions = typeof options !== 'function' ? () => options : options
+  return function () {
+    return pRetry(() => fn.apply(this, arguments), getOptions.apply(this, arguments))
+  }
+}
+
+function getCallRetryOpts() {
+  return this._callRetryWhenTooManyPendingTasks
+}
+Xapi.prototype.call = pRetryWrap(Xapi.prototype.call, getCallRetryOpts)
+Xapi.prototype.callAsync = pRetryWrap(Xapi.prototype.callAsync, getCallRetryOpts)
