@@ -20,7 +20,7 @@ interface Props {
 interface ParentEffects {}
 
 interface Effects {
-  _scaleConsole: (value: number) => void
+  scaleConsole: (value: number) => void
 }
 
 interface Computed {}
@@ -34,7 +34,7 @@ const TabConsole = withState<State, Props, Effects, Computed, ParentState, Paren
       },
     }),
     effects: {
-      _scaleConsole: function (value) {
+      scaleConsole: function (value) {
         this.state.consoleSize = {
           height: 768 * value,
           width: 1024 * value,
@@ -52,7 +52,7 @@ const TabConsole = withState<State, Props, Effects, Computed, ParentState, Paren
   ({ effects, vmId }) => {
     return (
       <>
-        <RangeInput defaultValue={1} max={3} min={0.1} onChange={effects._scaleConsole} step={0.1} />
+        <RangeInput defaultValue={1} max={3} min={0.1} onChange={effects.scaleConsole} step={0.1} />
         <Console vmId={vmId} />
       </>
     )
