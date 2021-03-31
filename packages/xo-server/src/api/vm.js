@@ -1027,11 +1027,12 @@ rollingDrCopy.description =
 
 // -------------------------------------------------------------------
 
-export function start({ vm, force, host }) {
-  return this.getXapi(vm).startVm(vm._xapiId, host?._xapiId, force)
+export function start({ vm, bypassMacAddressesCheck, force, host }) {
+  return this.getXapi(vm).startVm(vm._xapiId, host?._xapiId, { bypassMacAddressesCheck, force })
 }
 
 start.params = {
+  bypassMacAddressesCheck: { type: 'boolean', optional: true },
   force: { type: 'boolean', optional: true },
   host: { type: 'string', optional: true },
   id: { type: 'string' },

@@ -8,6 +8,7 @@
 - [Host/Load-balancer] Add a new anti-affinity mode (PR [#5652](https://github.com/vatesfr/xen-orchestra/pull/5652))
 - [Plugins/perf-alert] Ability to choose all hosts, VMs and SRs [#2987](https://github.com/vatesfr/xen-orchestra/issues/2987) (PR [#5692](https://github.com/vatesfr/xen-orchestra/pull/5692))
 - [Backup restore] Ability to generate new MAC addresses (PR [#5697](https://github.com/vatesfr/xen-orchestra/pull/5697))
+- [Home/VM, VM] Start: show confirmation modal when the VMs contain duplicate MAC addresses or have the same MAC addresses as other running VMs [#5601](https://github.com/vatesfr/xen-orchestra/issues/5601) (PR [#5655](https://github.com/vatesfr/xen-orchestra/pull/5655))
 
 ### Bug fixes
 
