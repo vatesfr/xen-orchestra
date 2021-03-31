@@ -1371,7 +1371,10 @@ export default class Xapi extends XapiBase {
       }
 
       const existingMacAddresses = new Set(
-        filter(this.objects.all, { $type: 'VM', power_state: 'Running' }).flatMap(vm => vm.$VIFs.map(vif => vif.MAC))
+        filter(
+          this.objects.all,
+          obj => obj.id !== vm.id && obj.$type === 'VM' && obj.power_state === 'Running'
+        ).flatMap(vm => vm.$VIFs.map(vif => vif.MAC))
       )
       if (vmMacAddresses.some(mac => existingMacAddresses.has(mac))) {
         throw operationFailed({ objectId: vm.id, code: 'DUPLICATED_MAC_ADDRESS' })
