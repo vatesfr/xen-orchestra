@@ -1793,6 +1793,10 @@ const messages = {
   forgetSrsFromHostModalMessage:
     'Are you sure you want to forget {nPbds, number} SR{nPbds, plural, one {} other {s}}? This will disconnect the SRs from the host by removing the links between the host and the SRs (PBDs).',
   optionalEntry: '* optional',
+  vmWithDuplicatedMacAddressesMessage:
+    'This VM contains a duplicate MAC address or has the same MAC address as another running VM. Do you want to continue?',
+  vmsWithDuplicatedMacAddressesMessage:
+    '{nVms, number} VM{nVms, plural, one {} other {s}} contain{nVms, plural, one {s} other {}} duplicate MAC addresses or {nVms, plural, one {has} other {have}} the same MAC addresses as other running VMs. Do you want to continue?',
 
   // ----- Servers -----
   enableServerErrorTitle: 'Enable server',
