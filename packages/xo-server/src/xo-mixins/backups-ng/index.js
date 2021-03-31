@@ -275,7 +275,7 @@ export default class BackupNg {
                     app.getBackupsRemoteAdapter(await app.getRemoteWithCredentials(remoteId)),
 
                   // `@xen-orchestra/backups/Backup` expect that `getConnectedRecord` returns a promise
-                  getConnectedRecord: async (type, uuid) => app.getXapiObject(uuid, type),
+                  getConnectedRecord: async (xapiType, uuid) => app.getXapiObject(uuid),
                   job,
                   schedule,
                 }).run()
