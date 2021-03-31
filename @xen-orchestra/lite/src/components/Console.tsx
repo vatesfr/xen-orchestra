@@ -79,10 +79,12 @@ const Console = withState<State, Props, Effects, Computed, ParentState, ParentEf
       window.dispatchEvent(resizeEvent)
     },[])
 
-    return <>
-    <RangeInput defaultValue={1} max={3} min={0.1} onChange={_scaleConsole} step={0.1} />
-    <div ref={state.container} style={consoleSize}/>
-  </>
+    return (
+    <>
+      <RangeInput defaultValue={1} max={3} min={0.1} onChange={_scaleConsole} step={0.1} />
+      <div ref={state.container} style={consoleSize}/>
+    </>
+    )
 
   }
 )
