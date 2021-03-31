@@ -2,6 +2,8 @@ import React from 'react'
 import RFB from '@novnc/novnc/lib/rfb'
 import { withState } from 'reaclette'
 
+import RangeInput from './RangeInput'
+
 import XapiConnection, { ObjectsByType, Vm } from '../libs/xapi'
 
 interface ParentState {
@@ -50,13 +52,39 @@ const Console = withState<State, Props, Effects, Computed, ParentState, ParentEf
         url.searchParams.set('session_id', xapi.sessionId)
 
         // eslint-disable-next-line no-new
-        new RFB(this.state.container.current, url, {
+        const rfb = new RFB(this.state.container.current, url, {
           wsProtocols: ['binary'],
         })
-      },
+        rfb.scaleViewport = true
+      }
     },
   },
-  ({ state }) => <div ref={state.container} />
+  ({ state }) => {
+    const [consoleSize, setConsoleSize] = React.useState({
+      height: 768,
+      width: 1024
+    })
+
+    const resizeEvent = React.useMemo(() => new UIEvent('resize')
+    ,[])
+
+    const _scaleConsole = React.useCallback((value: number) => {
+      setConsoleSize({
+        height: 768 * value,
+        width: 1024 * value
+      })
+
+      // To resize the console automatically
+      // rfb.resizeSession not working
+      window.dispatchEvent(resizeEvent)
+    },[])
+
+    return <>
+    <RangeInput defaultValue={1} max={3} min={0.1} onChange={_scaleConsole} step={0.1} />
+    <div ref={state.container} style={consoleSize}/>
+  </>
+
+  }
 )
 
 export default Console
