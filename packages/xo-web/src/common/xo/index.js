@@ -1018,7 +1018,7 @@ export const startVms = vms =>
     await Promise.all(
       map(vms, id =>
         _startVm(id).catch(reason => {
-          if (reason.data.code === 'DUPLICATED_MAC_ADDRESS') {
+          if (reason.data !== undefined && reason.data.code === 'DUPLICATED_MAC_ADDRESS') {
             vmsWithduplicatedMacAddresses.push(id)
           } else if (forbiddenOperation.is(reason)) {
             forbiddenStart.push(id)
