@@ -1,6 +1,6 @@
 {
   "name": "xo-server-load-balancer",
-  "version": "0.3.3",
+  "version": "0.4.0",
   "license": "AGPL-3.0-or-later",
   "description": "Load balancer for XO-Server",
   "keywords": [
