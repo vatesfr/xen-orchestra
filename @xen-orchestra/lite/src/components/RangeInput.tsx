@@ -7,7 +7,7 @@ interface PropsRangeInput {
   onChange: (value: number) => void
   step: number
 }
-const RangeInput: React.FC<PropsRangeInput> = ({defaultValue, max,min, onChange, step}) => {
+const RangeInput: React.FC<PropsRangeInput> = ({ defaultValue, max, min, onChange, step }) => {
   const [currentValue, setCurrentValue] = React.useState(defaultValue)
   const input = React.createRef<HTMLInputElement>()
 
