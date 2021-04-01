@@ -30,9 +30,9 @@
 - xo-server-transport-email 0.6.0
 - @xen-orchestra/fs 0.14.0
 - @xen-orchestra/xapi 0.6.0
-- @xen-orchestra/backups 0.9.0
+- @xen-orchestra/backups 0.9.1
 - @xen-orchestra/backups-cli 0.5.0
-- xo-server 5.78.1
+- xo-server 5.78.2
 - xo-web 5.80.0
 
 ## **5.56.2** (2021-03-22)
