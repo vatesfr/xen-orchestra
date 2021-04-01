@@ -1,5 +1,6 @@
 import aws from '@sullux/aws-sdk'
 import assert from 'assert'
+import http from 'http'
 import { parse } from 'xo-remote-parser'
 
 import RemoteHandlerAbstract from './abstract'
@@ -16,9 +17,8 @@ const IDEAL_FRAGMENT_SIZE = Math.ceil(MAX_OBJECT_SIZE / MAX_PARTS_COUNT) // the 
 export default class S3Handler extends RemoteHandlerAbstract {
   constructor(remote, _opts) {
     super(remote)
-    const { host, path, username, password } = parse(remote.url)
-    // https://www.zenko.io/blog/first-things-first-getting-started-scality-s3-server/
-    this._s3 = aws({
+    const { host, path, username, password, protocol, region } = parse(remote.url)
+    const params = {
       accessKeyId: username,
       apiVersion: '2006-03-01',
       endpoint: host,
@@ -28,7 +28,16 @@ export default class S3Handler extends RemoteHandlerAbstract {
       httpOptions: {
         timeout: 600000,
       },
-    }).s3
+    }
+    if (protocol === 'http') {
+      params.httpOptions.agent = new http.Agent()
+      params.sslEnabled = false
+    }
+    if (region !== undefined) {
+      params.region = region
+    }
+
+    this._s3 = aws(params).s3
 
     const splitPath = path.split('/').filter(s => s.length)
     this._bucket = splitPath.shift()
@@ -54,20 +63,10 @@ export default class S3Handler extends RemoteHandlerAbstract {
       input.on('error', forwardError)
       inputStream = checksumStream
     }
-    await this._s3.upload(
-      {
-        ...this._createParams(path),
-        Body: inputStream,
-      },
-      { partSize: IDEAL_FRAGMENT_SIZE, queueSize: 1 }
-    )
+    await this._s3.putObject({ ...this._createParams(path), Body: inputStream })
     if (checksum) {
       const checksum = await inputStream.checksum
-      const params = {
-        ...this._createParams(path + '.checksum'),
-        Body: checksum,
-      }
-      await this._s3.upload(params)
+      await this._s3.putObject({ ...this._createParams(path + '.checksum'), Body: checksum })
     }
     await input.task
   }

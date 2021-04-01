@@ -7,6 +7,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [Backup/S3] Add provision for http protocol and choice of region (PR [#5658](https://github.com/vatesfr/xen-orchestra/pull/5658))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -27,3 +29,8 @@
 > - major: if the change breaks compatibility
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
+
+- @xen-orchestra/fs minor
+- xo-remote-parser minor
+- xo-server minor
+- xo-web minor
