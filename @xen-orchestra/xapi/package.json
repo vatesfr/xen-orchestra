@@ -12,6 +12,9 @@
   "files": [
     "dist/"
   ],
+  "bin": {
+    "xo-xapi": "./dist/cli.js"
+  },
   "engines": {
     "node": ">=8.10"
   },
