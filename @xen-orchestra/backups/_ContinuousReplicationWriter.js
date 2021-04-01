@@ -25,8 +25,6 @@ exports.ContinuousReplicationWriter = class ContinuousReplicationWriter {
       },
       this.transfer
     )
-
-    this[settings.deleteFirst ? 'prepare' : 'cleanup'] = this._deleteOld
   }
 
   async checkBaseVdis(baseUuidToSrcVdi, baseVm) {
@@ -53,13 +51,22 @@ exports.ContinuousReplicationWriter = class ContinuousReplicationWriter {
     }
   }
 
-  async _deleteOld() {
+  async prepare() {
+    const settings = this._settings
     const { uuid: srUuid, $xapi: xapi } = this._sr
     const { scheduleId, vm } = this._backup
 
-    const oldVms = getOldEntries(this._settings.copyRetention - 1, listReplicatedVms(xapi, scheduleId, srUuid, vm.uuid))
+    this._oldEntries = getOldEntries(settings.copyRetention - 1, listReplicatedVms(xapi, scheduleId, srUuid, vm.uuid))
 
-    return asyncMapSettled(oldVms, vm => xapi.VM_destroy(vm.$ref))
+    if (settings.deleteFirst) {
+      await this._deleteOldEntries()
+    } else {
+      this.cleanup = this._deleteOldEntries
+    }
+  }
+
+  async _deleteOldEntries() {
+    return asyncMapSettled(this._oldEntries, vm => vm.$destroy())
   }
 
   async transfer({ timestamp, deltaExport, sizeContainers }) {
