@@ -5,10 +5,6 @@ import { withState } from 'reaclette'
 import XapiConnection, { ObjectsByType, Vm } from '../libs/xapi'
 
 interface ParentState {
-  consoleSize: {
-    height: number
-    width: number
-  }
   objectsByType: ObjectsByType
   xapi: XapiConnection
 }
@@ -61,7 +57,11 @@ const Console = withState<State, Props, Effects, Computed, ParentState, ParentEf
       }
     },
   },
-  ({ state }) => <div ref={state.container} style={state.consoleSize} />
+  ({ scale, state }) => (
+    <>
+      <div ref={state.container} style={{ margin: 'auto', height: `${scale.height}%`, width: `${scale.width}%` }} />
+    </>
+  )
 )
 
 export default Console
