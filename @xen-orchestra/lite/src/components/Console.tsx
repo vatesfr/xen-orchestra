@@ -5,10 +5,6 @@ import { withState } from 'reaclette'
 import XapiConnection, { ObjectsByType, Vm } from '../libs/xapi'
 
 interface ParentState {
-  consoleSize: {
-    height: number
-    width: number
-  }
   objectsByType: ObjectsByType
   xapi: XapiConnection
 }
@@ -19,6 +15,10 @@ interface State {
 
 interface Props {
   vmId: string
+  scale: {
+    height: number
+    width: number
+  }
 }
 
 interface ParentEffects {}
@@ -53,7 +53,6 @@ const Console = withState<State, Props, Effects, Computed, ParentState, ParentEf
         url.protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
         url.searchParams.set('session_id', xapi.sessionId)
 
-        // eslint-disable-next-line no-new
         const rfb = new RFB(this.state.container.current, url, {
           wsProtocols: ['binary'],
         })
@@ -61,7 +60,11 @@ const Console = withState<State, Props, Effects, Computed, ParentState, ParentEf
       },
     },
   },
-  ({ state }) => <div ref={state.container} style={state.consoleSize} />
+  ({ scale, state }) => (
+    <>
+      <div ref={state.container} style={{ margin: 'auto', height: `${scale.height}%`, width: `${scale.width}%` }} />
+    </>
+  )
 )
 
 export default Console
