@@ -19,7 +19,7 @@ interface Props {
 interface ParentEffects {}
 
 interface Effects {
-  _onChange: () => void
+  _onChange: React.ChangeEventHandler<HTMLInputElement>
 }
 
 interface Computed {}
@@ -31,29 +31,25 @@ const RangeInput = withState<State, Props, Effects, Computed, ParentState, Paren
       input: React.createRef(),
     }),
     effects: {
-      _onChange: function () {
-        const { current } = this.state.input
-        if (current === null) {
-          return
-        }
-        this.state.currentValue = +current.value
-        this.props.onChange(this.state.currentValue)
+      _onChange: function (e) {
+        const { value } = e.currentTarget
+
+        this.state.currentValue = +value
+        this.props.onChange(+value)
       },
     },
   },
-  ({ effects, max, min, state, step }) => {
-    return (
-      <input
-        max={max}
-        min={min}
-        onChange={effects._onChange}
-        ref={state.input}
-        step={step}
-        type='range'
-        value={state.currentValue}
-      />
-    )
-  }
+  ({ effects, max, min, state, step }) => (
+    <input
+      max={max}
+      min={min}
+      onChange={effects._onChange}
+      ref={state.input}
+      step={step}
+      type='range'
+      value={state.currentValue}
+    />
+  )
 )
 
 export default RangeInput
