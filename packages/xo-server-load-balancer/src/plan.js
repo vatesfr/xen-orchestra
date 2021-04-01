@@ -95,7 +95,7 @@ function setRealCpuAverageOfVms(vms, vmsAverages, nCpus) {
 // ===================================================================
 
 export default class Plan {
-  constructor(xo, name, poolIds, { excludedHosts, thresholds, antiAffinityTags } = {}) {
+  constructor(xo, name, poolIds, { excludedHosts, thresholds, antiAffinityTags }, globalOptions) {
     this.xo = xo
     this._name = name
     this._poolIds = poolIds
@@ -109,6 +109,7 @@ export default class Plan {
       },
     }
     this._antiAffinityTags = antiAffinityTags
+    this._globalOptions = globalOptions
 
     for (const key in this._thresholds) {
       const attr = this._thresholds[key]
@@ -199,7 +200,13 @@ export default class Plan {
   }
 
   _getAllRunningVms() {
-    return filter(this.xo.getObjects(), object => object.type === 'VM' && object.power_state === 'Running')
+    return filter(
+      this.xo.getObjects(),
+      object =>
+        object.type === 'VM' &&
+        object.power_state === 'Running' &&
+        !object.tags.some(tag => this._globalOptions.ignoredVmTags.has(tag))
+    )
   }
 
   // ===================================================================
@@ -432,7 +439,7 @@ export default class Plan {
       // Hide properties when util.inspect is used.
       Object.defineProperties(taggedHost, {
         poolId: { enumerable: false },
-        vms: { enumerable: false }
+        vms: { enumerable: false },
       })
     }
 

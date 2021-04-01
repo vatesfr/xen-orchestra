@@ -94,6 +94,16 @@ export const configurationSchema = {
 
       minItems: 1,
     },
+    ignoredVmTags: {
+      type: 'array',
+      title: 'Ignored VM tags',
+      description: 'list of VM tags to never migrate specific VMs',
+
+      items: {
+        type: 'string',
+        $type: 'Tag',
+      },
+    },
   },
 
   additionalProperties: false,
@@ -114,9 +124,10 @@ class LoadBalancerPlugin {
     })
   }
 
-  async configure({ plans }) {
+  async configure({ plans, ignoredVmTags = [] }) {
     this._plans = []
     this._poolIds = [] // Used pools.
+    this._globalOptions = { ignoredVmTags: new Set(ignoredVmTags) }
 
     if (plans) {
       for (const plan of plans) {
@@ -144,11 +155,11 @@ class LoadBalancerPlugin {
     this._poolIds = this._poolIds.concat(pools)
     let plan
     if (mode === PERFORMANCE_MODE) {
-      plan = new PerformancePlan(this.xo, name, pools, options)
+      plan = new PerformancePlan(this.xo, name, pools, options, this._globalOptions)
     } else if (mode === DENSITY_MODE) {
-      plan = new DensityPlan(this.xo, name, pools, options)
+      plan = new DensityPlan(this.xo, name, pools, options, this._globalOptions)
     } else {
-      plan = new SimplePlan(this.xo, name, pools, options)
+      plan = new SimplePlan(this.xo, name, pools, options, this._globalOptions)
     }
     this._plans.push(plan)
   }
