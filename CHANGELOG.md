@@ -2,6 +2,8 @@
 
 ## **5.57.0** (2021-04-01)
 
+### Highlights
+
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
 
 - [Backup] Run backup jobs on different system processes (PR [#5660](https://github.com/vatesfr/xen-orchestra/pull/5660))
