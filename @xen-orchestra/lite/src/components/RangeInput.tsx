@@ -45,17 +45,9 @@ const RangeInput = withState<State, Props, Effects, Computed, ParentState, Paren
       },
     },
   },
-  ({ effects, inputAttribues, state }) => {
-    return (
-      <input
-        onChange={effects._onChange}
-        ref={state.input}
-        type='range'
-        value={state.currentValue}
-        {...inputAttribues}
-      />
-    )
-  }
+  ({ effects, inputAttribues, state }) => (
+    <input onChange={effects._onChange} ref={state.input} type='range' value={state.currentValue} {...inputAttribues} />
+  )
 )
 
 export default RangeInput
