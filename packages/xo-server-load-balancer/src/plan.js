@@ -432,7 +432,7 @@ export default class Plan {
       // Hide properties when util.inspect is used.
       Object.defineProperties(taggedHost, {
         poolId: { enumerable: false },
-        vms: { enumerable: false }
+        vms: { enumerable: false },
       })
     }
 
