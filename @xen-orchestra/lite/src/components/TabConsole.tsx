@@ -16,6 +16,7 @@ interface State {
     height: number
     width: number
   }
+  defaultValue: number
 }
 
 interface Props {
