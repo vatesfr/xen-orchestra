@@ -4,6 +4,12 @@ import { withState } from 'reaclette'
 import Console from './Console'
 import RangeInput from './RangeInput'
 
+const INPUTATTRIBUTES = {
+  max: 100,
+  min: 1,
+  step: 1,
+}
+
 interface ParentState {}
 
 interface State {
