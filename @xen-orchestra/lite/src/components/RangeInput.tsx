@@ -1,6 +1,14 @@
 import React from 'react'
 import { withState } from 'reaclette'
 
+type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>
+
+interface InputAttributes extends React.AllHTMLAttributes<HTMLInputElement> {
+  max: number
+  min: number
+  step: number
+}
+
 interface ParentState {}
 
 interface State {
@@ -10,10 +18,8 @@ interface State {
 
 interface Props {
   defaultValue: number
-  max: number
-  min: number
+  inputAttribues: Omit<InputAttributes, 'onChange'>
   onChange: (value: number) => void
-  step: number
 }
 
 interface ParentEffects {}
@@ -39,17 +45,17 @@ const RangeInput = withState<State, Props, Effects, Computed, ParentState, Paren
       },
     },
   },
-  ({ effects, max, min, state, step }) => (
-    <input
-      max={max}
-      min={min}
-      onChange={effects._onChange}
-      ref={state.input}
-      step={step}
-      type='range'
-      value={state.currentValue}
-    />
-  )
+  ({ effects, inputAttribues, state }) => {
+    return (
+      <input
+        onChange={effects._onChange}
+        ref={state.input}
+        type='range'
+        value={state.currentValue}
+        {...inputAttribues}
+      />
+    )
+  }
 )
 
 export default RangeInput

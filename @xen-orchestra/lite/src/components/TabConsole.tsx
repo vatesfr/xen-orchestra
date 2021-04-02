@@ -53,7 +53,7 @@ const TabConsole = withState<State, Props, Effects, Computed, ParentState, Paren
   ({ state, effects, vmId }) => {
     return (
       <div style={{ height: '100vh' }}>
-        <RangeInput defaultValue={100} max={100} min={1} onChange={effects.scaleConsole} step={1} />
+        <RangeInput defaultValue={100} inputAttribues={{ max: 100, min: 1, step: 1 }} onChange={effects.scaleConsole} />
         <Console vmId={vmId} scale={state.consoleSize} />
       </div>
     )
