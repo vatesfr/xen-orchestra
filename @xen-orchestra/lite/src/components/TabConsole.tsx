@@ -4,6 +4,12 @@ import { withState } from 'reaclette'
 import Console from './Console'
 import RangeInput from './RangeInput'
 
+const INPUTATTRIBUTES = {
+  max: 100,
+  min: 1,
+  step: 1,
+}
+
 interface ParentState {}
 
 interface State {
@@ -34,7 +40,7 @@ const TabConsole = withState<State, Props, Effects, Computed, ParentState, Paren
         height: 100,
         width: 100,
       },
-      defaultValue: 100
+      defaultValue: 100,
     }),
     effects: {
       scaleConsole: function (value) {
@@ -52,14 +58,12 @@ const TabConsole = withState<State, Props, Effects, Computed, ParentState, Paren
       },
     },
   },
-  ({ state, effects, vmId }) => {
-    return (
-      <div style={{ height: '100vh' }}>
-        <RangeInput defaultValue={state.defaultValue} inputAttribues={{ max: 100, min: 1, step: 1 }} onChange={effects.scaleConsole} />
-        <Console vmId={vmId} scale={state.consoleSize} />
-      </div>
-    )
-  }
+  ({ state, effects, vmId }) => (
+    <div style={{ height: '100vh' }}>
+      <RangeInput defaultValue={state.defaultValue} inputAttribues={INPUTATTRIBUTES} onChange={effects.scaleConsole} />
+      <Console vmId={vmId} scale={state.consoleSize} />
+    </div>
+  )
 )
 
 export default TabConsole
