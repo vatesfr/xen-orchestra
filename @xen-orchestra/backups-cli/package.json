@@ -7,12 +7,12 @@
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "dependencies": {
     "@xen-orchestra/async-map": "^0.1.2",
-    "@xen-orchestra/backups": "^0.8.0",
+    "@xen-orchestra/backups": "^0.9.1",
     "@xen-orchestra/fs": "^0.14.0",
     "filenamify": "^4.1.0",
     "getopts": "^2.2.5",
     "lodash": "^4.17.15",
-    "promise-toolbox": "^0.17.0",
+    "promise-toolbox": "^0.18.0",
     "vhd-lib": "^1.0.0"
   },
   "engines": {

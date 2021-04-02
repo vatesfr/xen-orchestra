@@ -34,7 +34,7 @@ exports.DeltaBackupWriter = class DeltaBackupWriter {
       this.transfer
     )
 
-    this[settings.deleteFirst ? 'prepare' : 'cleanup'] = this._deleteOld
+    this[settings.deleteFirst ? 'prepare' : 'cleanup'] = this._deleteOldEntries
   }
 
   async checkBaseVdis(baseUuidToSrcVdi) {
@@ -72,14 +72,16 @@ exports.DeltaBackupWriter = class DeltaBackupWriter {
     })
   }
 
-  async _deleteOld() {
+  async prepare() {
     const adapter = this._adapter
+    const settings = this._settings
     const { scheduleId, vm } = this._backup
 
-    const oldBackups = getOldEntries(
-      this._settings.exportRetention - 1,
+    const oldEntries = getOldEntries(
+      settings.exportRetention - 1,
       await adapter.listVmBackups(vm.uuid, _ => _.mode === 'delta' && _.scheduleId === scheduleId)
     )
+    this._oldEntries = oldEntries
 
     // FIXME: implement optimized multiple VHDs merging with synthetic
     // delta
@@ -91,15 +93,26 @@ exports.DeltaBackupWriter = class DeltaBackupWriter {
     // The old backups will be eventually merged in future runs of the
     // job.
     const { maxMergedDeltasPerRun } = this._settings
-    if (oldBackups.length > maxMergedDeltasPerRun) {
-      oldBackups.length = maxMergedDeltasPerRun
+    if (oldEntries.length > maxMergedDeltasPerRun) {
+      oldEntries.length = maxMergedDeltasPerRun
     }
 
+    if (settings.deleteFirst) {
+      await this._deleteOldEntries()
+    } else {
+      this.cleanup = this._deleteOldEntries
+    }
+  }
+
+  async _deleteOldEntries() {
     return Task.run({ name: 'merge' }, async () => {
+      const adapter = this._adapter
+      const oldEntries = this._oldEntries
+
       let size = 0
       // delete sequentially from newest to oldest to avoid unnecessary merges
-      for (let i = oldBackups.length; i-- > 0; ) {
-        size += await adapter.deleteDeltaVmBackups([oldBackups[i]])
+      for (let i = oldEntries.length; i-- > 0; ) {
+        size += await adapter.deleteDeltaVmBackups([oldEntries[i]])
       }
       return {
         size,
