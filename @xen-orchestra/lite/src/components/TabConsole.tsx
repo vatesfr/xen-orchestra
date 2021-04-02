@@ -11,6 +11,7 @@ interface State {
     height: number
     width: number
   }
+  defaultValue: number
 }
 
 interface Props {
@@ -33,6 +34,7 @@ const TabConsole = withState<State, Props, Effects, Computed, ParentState, Paren
         height: 100,
         width: 100,
       },
+      defaultValue: 100
     }),
     effects: {
       scaleConsole: function (value) {
@@ -53,7 +55,7 @@ const TabConsole = withState<State, Props, Effects, Computed, ParentState, Paren
   ({ state, effects, vmId }) => {
     return (
       <div style={{ height: '100vh' }}>
-        <RangeInput defaultValue={100} inputAttribues={{ max: 100, min: 1, step: 1 }} onChange={effects.scaleConsole} />
+        <RangeInput defaultValue={state.defaultValue} inputAttribues={{ max: 100, min: 1, step: 1 }} onChange={effects.scaleConsole} />
         <Console vmId={vmId} scale={state.consoleSize} />
       </div>
     )
