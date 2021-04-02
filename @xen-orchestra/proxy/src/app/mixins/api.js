@@ -8,7 +8,7 @@ import getStream from 'get-stream'
 import helmet from 'koa-helmet'
 import Koa from 'koa'
 import once from 'lodash/once'
-import Router from 'koa-router'
+import Router from '@koa/router'
 import Zone from 'node-zone'
 import { createLogger } from '@xen-orchestra/log'
 

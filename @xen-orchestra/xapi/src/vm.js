@@ -453,12 +453,12 @@ module.exports = class Vm {
       if (!vm.tags.includes('xo-disable-quiesce')) {
         try {
           ref = await pRetry(
-            async bail => {
+            async () => {
               try {
                 return await this.callAsync(cancelToken, 'VM.snapshot_with_quiesce', vmRef, name_label)
               } catch (error) {
                 if (error == null || error.code !== 'VM_SNAPSHOT_WITH_QUIESCE_FAILED') {
-                  throw bail(error)
+                  throw pRetry.bail(error)
                 }
                 // detect and remove new broken snapshots
                 //
