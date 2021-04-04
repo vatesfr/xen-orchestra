@@ -11,7 +11,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [Backup restore] Generate new MAC addresses is disable by default (PR [#5707](https://github.com/vatesfr/xen-orchestra/pull/5707))
+- [Backup restore] Generate new MAC addresses is disabled by default (PR [#5707](https://github.com/vatesfr/xen-orchestra/pull/5707))
 
 ### Packages to release
 
