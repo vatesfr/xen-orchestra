@@ -9,7 +9,7 @@ import { SelectSr } from 'select-objects'
 const BACKUP_RENDERER = getRenderXoItemOfType('backup')
 
 export default class RestoreBackupsModalBody extends Component {
-  state = { generateNewMacAddresses: true }
+  state = { generateNewMacAddresses: false }
 
   get value() {
     return this.state
@@ -45,7 +45,7 @@ export default class RestoreBackupsModalBody extends Component {
 }
 
 export class RestoreBackupsBulkModalBody extends Component {
-  state = { generateNewMacAddresses: true, latest: true }
+  state = { generateNewMacAddresses: false, latest: true }
 
   get value() {
     return this.state
