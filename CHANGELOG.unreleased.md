@@ -14,6 +14,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [Backup restore] Generate new MAC addresses is disabled by default (PR [#5707](https://github.com/vatesfr/xen-orchestra/pull/5707))
+- [Backup] Fix `vm.refresh_snapshots is not a function` error
 
 ### Packages to release
 
@@ -32,5 +33,7 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
+- @xen-orchestra/xapi patch
 - xo-server-load-balancer minor
+- xo-server patch
 - xo-web patch
