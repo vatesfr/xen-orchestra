@@ -32,5 +32,5 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
-xo-server-load-balancer minor
+- xo-server-load-balancer minor
 - xo-web patch
