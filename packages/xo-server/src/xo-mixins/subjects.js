@@ -1,4 +1,4 @@
-import createLogger from '@xen-orchestra/log'
+import { createLogger } from '@xen-orchestra/log'
 import { filter } from 'lodash'
 import { ignoreErrors } from 'promise-toolbox'
 import { hash, needsRehash, verify } from 'hashy'
@@ -7,7 +7,7 @@ import { invalidCredentials, noSuchObject } from 'xo-common/api-errors'
 import * as XenStore from '../_XenStore'
 import { Groups } from '../models/group'
 import { Users } from '../models/user'
-import { forEach, isEmpty, lightSet, mapToArray } from '../utils'
+import { forEach, isEmpty, lightSet } from '../utils'
 
 // ===================================================================
 
@@ -39,7 +39,7 @@ export default class {
       xo.addConfigManager(
         'groups',
         () => groupsDb.get(),
-        groups => Promise.all(mapToArray(groups, group => groupsDb.save(group))),
+        groups => Promise.all(groups.map(group => groupsDb.save(group))),
         ['users']
       )
       xo.addConfigManager(
@@ -47,11 +47,11 @@ export default class {
         () => usersDb.get(),
         users =>
           Promise.all(
-            mapToArray(users, async user => {
+            users.map(async user => {
               const userId = user.id
               const conflictUsers = await usersDb.get({ email: user.email })
               if (!isEmpty(conflictUsers)) {
-                await Promise.all(mapToArray(conflictUsers, ({ id }) => id !== userId && this.deleteUser(id)))
+                await Promise.all(conflictUsers.map(({ id }) => id !== userId && this.deleteUser(id)))
               }
               return usersDb.save(user)
             })
@@ -425,8 +425,8 @@ export default class {
 
     const saveUser = ::this._users.save
     await Promise.all([
-      Promise.all(mapToArray(newUsers, saveUser)),
-      Promise.all(mapToArray(oldUsers, saveUser)),
+      Promise.all(newUsers.map(saveUser)),
+      Promise.all(oldUsers.map(saveUser)),
       this._groups.save(group),
     ])
   }

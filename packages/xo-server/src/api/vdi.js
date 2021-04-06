@@ -15,7 +15,7 @@ export async function delete_({ vdi }) {
     undefined
   )
 
-  await this.getXapi(vdi).deleteVdi(vdi._xapiId)
+  await this.getXapiObject(vdi).$destroy()
 
   if (resourceSet !== undefined) {
     await this.releaseLimitsInResourceSet({ disk: vdi.size }, resourceSet)

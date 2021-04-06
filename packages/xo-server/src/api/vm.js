@@ -1,5 +1,5 @@
 import * as multiparty from 'multiparty'
-import asyncMap from '@xen-orchestra/async-map'
+import asyncMapSettled from '@xen-orchestra/async-map/legacy'
 import defer from 'golike-defer'
 import getStream from 'get-stream'
 import { createLogger } from '@xen-orchestra/log'
@@ -152,7 +152,7 @@ export const create = defer(async function ($defer, params) {
   }
 
   const xapiVm = await xapi.createVm(template._xapiId, params, checkLimits)
-  $defer.onFailure(() => xapi.deleteVm(xapiVm.$id, true, true))
+  $defer.onFailure(() => xapi.VM_destroy(xapiVm.$ref, true, true))
 
   const vm = xapi.xo.addObject(xapiVm)
 
@@ -377,7 +377,7 @@ const delete_ = defer(async function (
     $defer.onFailure(() => this.setVmResourceSet(vm._xapiId, resourceSet, true)::ignoreErrors())
   }
 
-  await asyncMap(vm.snapshots, async id => {
+  await asyncMapSettled(vm.snapshots, async id => {
     const { resourceSet } = this.getObject(id)
     if (resourceSet !== undefined) {
       await this.setVmResourceSet(id, null)
@@ -385,7 +385,7 @@ const delete_ = defer(async function (
     }
   })
 
-  return xapi.deleteVm(vm._xapiId, deleteDisks, force, forceDeleteDefaultTemplate)
+  return xapi.VM_destroy(vm._xapiRef, deleteDisks, force, forceDeleteDefaultTemplate)
 })
 
 delete_.params = {
@@ -454,7 +454,7 @@ export async function migrate({ vm, host, sr, mapVdisSrs, mapVifsNetworks, migra
   if (mapVdisSrs) {
     mapVdisSrsXapi = {}
     forEach(mapVdisSrs, (srId, vdiId) => {
-      const vdiXapiId = this.getObject(vdiId, ['VDI', 'VDI-snapshot'])._xapiId
+      const vdiXapiId = this.getObject(vdiId, 'VDI')._xapiId
       mapVdisSrsXapi[vdiXapiId] = this.getObject(srId, 'SR')._xapiId
       return permissions.push([srId, 'administrate'])
     })
@@ -664,11 +664,11 @@ export const clone = defer(async function ($defer, { vm, name, full_copy: fullCo
   await checkPermissionOnSrs.call(this, vm)
   const xapi = this.getXapi(vm)
 
-  const { $id: cloneId } = await xapi.cloneVm(vm._xapiRef, {
+  const { $id: cloneId, $ref: cloneRef } = await xapi.cloneVm(vm._xapiRef, {
     nameLabel: name,
     fast: !fullCopy,
   })
-  $defer.onFailure(() => xapi.deleteVm(cloneId))
+  $defer.onFailure(() => xapi.VM_destroy(cloneRef))
 
   const isAdmin = this.user.permission === 'admin'
   if (!isAdmin) {
@@ -786,10 +786,10 @@ export const snapshot = defer(async function (
   }
 
   const xapi = this.getXapi(vm)
-  const { $id: snapshotId } = await (saveMemory
+  const { $id: snapshotId, $ref: snapshotRef } = await (saveMemory
     ? xapi.checkpointVm(vm._xapiRef, name)
     : xapi.snapshotVm(vm._xapiRef, name))
-  $defer.onFailure(() => xapi.deleteVm(snapshotId))
+  $defer.onFailure(() => xapi.VM_destroy(snapshotRef))
 
   if (description !== undefined) {
     await xapi.editVm(snapshotId, { name_description: description })
@@ -1027,11 +1027,12 @@ rollingDrCopy.description =
 
 // -------------------------------------------------------------------
 
-export function start({ vm, force, host }) {
-  return this.getXapi(vm).startVm(vm._xapiId, host?._xapiId, force)
+export function start({ vm, bypassMacAddressesCheck, force, host }) {
+  return this.getXapi(vm).startVm(vm._xapiId, host?._xapiId, { bypassMacAddressesCheck, force })
 }
 
 start.params = {
+  bypassMacAddressesCheck: { type: 'boolean', optional: true },
   force: { type: 'boolean', optional: true },
   host: { type: 'string', optional: true },
   id: { type: 'string' },

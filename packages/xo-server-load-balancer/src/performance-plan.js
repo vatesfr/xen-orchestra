@@ -1,4 +1,4 @@
-import { filter, find, map as mapToArray } from 'lodash'
+import { filter, find } from 'lodash'
 
 import Plan from './plan'
 import { debug } from './utils'
@@ -19,7 +19,7 @@ function searchBestObject(objects, fun) {
 // ===================================================================
 
 export default class PerformancePlan extends Plan {
-  _checkRessourcesThresholds(objects, averages) {
+  _checkResourcesThresholds(objects, averages) {
     return filter(objects, object => {
       const objectAverages = averages[object.id]
 
@@ -33,26 +33,28 @@ export default class PerformancePlan extends Plan {
     // Try to power on a hosts set.
     try {
       await Promise.all(
-        mapToArray(
-          filter(this._getHosts({ powerState: 'Halted' }), host => host.powerOnMode !== ''),
-          host => {
-            const { id } = host
-            return this.xo.getXapi(id).powerOnHost(id)
-          }
-        )
+        filter(this._getHosts({ powerState: 'Halted' }), host => host.powerOnMode !== '').map(host => {
+          const { id } = host
+          return this.xo.getXapi(id).powerOnHost(id)
+        })
       )
     } catch (error) {
       console.error(error)
     }
 
-    const results = await this._findHostsToOptimize()
+    await this._processAntiAffinity()
+
+    const hosts = this._getHosts()
+    const results = await this._getHostStatsAverages({
+      hosts,
+      toOptimizeOnly: true,
+    })
 
     if (!results) {
       return
     }
 
     const { averages, toOptimize } = results
-    const { hosts } = results
 
     toOptimize.sort((a, b) => {
       a = averages[a.id]
@@ -78,8 +80,8 @@ export default class PerformancePlan extends Plan {
   }
 
   async _optimize({ exceededHost, hosts, hostsAverages }) {
-    const vms = await this._getVms(exceededHost.id)
-    const vmsAverages = await this._getVmsAverages(vms, exceededHost)
+    const vms = filter(this._getAllRunningVms(), vm => vm.$container === exceededHost.id)
+    const vmsAverages = await this._getVmsAverages(vms, { [exceededHost.id]: exceededHost })
 
     // Sort vms by cpu usage. (lower to higher)
     vms.sort((a, b) => vmsAverages[b.id].cpu - vmsAverages[a.id].cpu)
@@ -122,6 +124,25 @@ export default class PerformancePlan extends Plan {
         )
         debug(`Dest Host free RAM=${destinationAverages.memoryFree}, VM used RAM=${vmAverages.memory})`)
         continue
+      }
+
+      if (!vm.xenTools) {
+        debug(`VM (${vm.id}) of Host (${exceededHost.id}) does not support pool migration.`)
+        continue
+      }
+
+      for (const tag of vm.tags) {
+        // TODO: Improve this piece of code. We could compute variance to check if the VM
+        // is migratable. But the code must be rewritten:
+        // - All VMs, hosts and stats must be fetched at one place.
+        // - It's necessary to maintain a dictionary of tags for each host.
+        // - ...
+        if (this._antiAffinityTags.includes(tag)) {
+          debug(
+            `VM (${vm.id}) of Host (${exceededHost.id}) cannot be migrated. It contains anti-affinity tag '${tag}'.`
+          )
+          continue
+        }
       }
 
       exceededAverages.cpu -= vmAverages.cpu

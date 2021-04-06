@@ -61,7 +61,6 @@ declare export class Vm extends XapiObject {
 declare export class Xapi {
   objects: { all: $Dict<Object> };
 
-  _assertHealthyVdiChains(vm: Vm): void;
   _importVm(
     cancelToken: mixed,
     stream: AugmentedReadable,
@@ -76,7 +75,6 @@ declare export class Xapi {
 
   barrier(): Promise<void>;
   barrier(ref: string): Promise<XapiObject>;
-  deleteVm(vm: Id): Promise<void>;
   editVm(vm: Id, $Dict<mixed>): Promise<void>;
   exportDeltaVm(
     cancelToken: mixed,

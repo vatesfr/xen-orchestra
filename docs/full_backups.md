@@ -7,6 +7,7 @@ You can schedule full backups of your VMs, by exporting them to the local XOA fi
 :::tip
 Full backups are space consuming! But they allow a very simple restoration without anything to think of (the file will contain all the VM disks and information). To use less space and data transferred, take a look at the [delta backups](delta_backups.md) feature.
 :::
+
 ## Backup without snapshot
 
 In some cases you will need to do a backup without doing a snapshot.

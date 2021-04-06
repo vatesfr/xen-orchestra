@@ -10,7 +10,7 @@ When you are working on your virtualized infrastructure, you might need a very d
 This feature will be only available in XCP-ng+XOA. If you are a hardcore Citrix Hypervisor user, let us know if you want this.
 :::
 
-### Enable Advanced Live Telemtry for a host
+### Enable Advanced Live Telemetry for a host
 
 Go into the Advanced host view:
 

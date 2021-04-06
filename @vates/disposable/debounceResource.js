@@ -1,6 +1,5 @@
-const { createLogger } = require('@xen-orchestra/log/dist')
-
-const asyncMap = (arrayLike, mapFn, thisArg) => Promise.all(Array.from(arrayLike, mapFn, thisArg))
+const { asyncMap } = require('@xen-orchestra/async-map')
+const { createLogger } = require('@xen-orchestra/log')
 
 const { warn } = createLogger('vates:disposable:debounceResource')
 

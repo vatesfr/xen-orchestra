@@ -1,16 +1,16 @@
-import asyncMap from '@xen-orchestra/async-map'
-import createLogger from '@xen-orchestra/log'
+import asyncMapSettled from '@xen-orchestra/async-map/legacy'
 import deferrable from 'golike-defer'
 import execa from 'execa'
 import splitLines from 'split-lines'
-import { CancelToken, fromEvent, ignoreErrors } from 'promise-toolbox'
+import { CancelToken, fromEvent, ignoreErrors, pReflect } from 'promise-toolbox'
+import { createLogger } from '@xen-orchestra/log'
 import { createParser as createPairsParser } from 'parse-pairs'
 import { createReadStream, readdir, stat } from 'fs'
 import { decorateWith } from '@vates/decorate-with'
 import { satisfies as versionSatisfies } from 'semver'
 import { utcFormat } from 'd3-time-format'
 import { basename, dirname } from 'path'
-import { escapeRegExp, filter, find, includes, once, range, sortBy } from 'lodash'
+import { escapeRegExp, filter, find, includes, map as mapToArray, once, range, sortBy } from 'lodash'
 import { chainVhd, createSyntheticStream as createVhdReadStream, mergeVhd } from 'vhd-lib'
 
 import createSizeStream from '../size-stream'
@@ -21,10 +21,7 @@ import {
   forEach,
   getFirstPropertyName,
   mapFilter,
-  mapToArray,
-  pFinally,
   pFromCallback,
-  pSettle,
   resolveSubpath,
   safeDateFormat,
   safeDateParse,
@@ -161,7 +158,7 @@ const listPartitions2 = device =>
                 })
               })
             })
-            promise::pFinally(device.unmount)
+            promise.finally(device.unmount)
             return promise
           })
         )
@@ -286,7 +283,7 @@ export default class {
       const deltaBackups = filter(files, isDeltaBackup)
 
       backups.push(
-        ...mapToArray(deltaBackups, deltaBackup => {
+        ...deltaBackups.map(deltaBackup => {
           return `${deltaDir}/${getDeltaBackupNameWithoutExt(deltaBackup)}`
         })
       )
@@ -303,12 +300,12 @@ export default class {
 
     const backups = []
 
-    await asyncMap(handler.list('.'), entry => {
+    await asyncMapSettled(handler.list('.'), entry => {
       if (entry.endsWith('.xva')) {
         backups.push(parseVmBackupPath(entry))
       } else if (entry.startsWith('vm_delta_')) {
         return handler.list(entry).then(children =>
-          asyncMap(children, child => {
+          asyncMapSettled(children, child => {
             if (child.endsWith('.json')) {
               const path = `${entry}/${child}`
 
@@ -377,7 +374,7 @@ export default class {
         bypassVdiChainsCheck: force,
         snapshotNameLabel: `XO_DELTA_EXPORT: ${targetSr.name_label} (${targetSr.uuid})`,
       })
-      $defer.onFailure(() => srcXapi.deleteVm(delta.vm.uuid))
+      $defer.onFailure(() => this._xo.getXapiObject(delta.vm.uuid).$destroy())
       $defer.onFailure(cancel)
 
       const date = safeDateFormat(Date.now())
@@ -403,11 +400,11 @@ export default class {
       // Once done, (asynchronously) remove the (now obsolete) local
       // base.
       if (localBaseUuid) {
-        promise.then(() => srcXapi.deleteVm(localBaseUuid))::ignoreErrors()
+        promise.then(() => this._xo.getXapiObject(localBaseUuid).$destroy())::ignoreErrors()
       }
 
       if (toRemove !== undefined) {
-        promise.then(() => asyncMap(toRemove, _ => targetXapi.deleteVm(_.$id)))::ignoreErrors()
+        promise.then(() => asyncMapSettled(toRemove, _ => targetXapi.VM_destroy(_.$ref)))::ignoreErrors()
       }
 
       // (Asynchronously) Identify snapshot as future base.
@@ -435,7 +432,7 @@ export default class {
 
     const getPath = (file, dir) => (dir ? `${dir}/${file}` : file)
 
-    await asyncMap(backups.slice(0, n), backup => handler.unlink(getPath(backup, dir)))
+    await asyncMapSettled(backups.slice(0, n), backup => handler.unlink(getPath(backup, dir)))
   }
 
   // -----------------------------------------------------------------
@@ -489,7 +486,7 @@ export default class {
     const fullBackupId = j
 
     // Remove old backups before the most recent full.
-    await asyncMap(range(0, j), i => handler.unlink(`${dir}/${backups[i]}`))
+    await asyncMapSettled(range(0, j), i => handler.unlink(`${dir}/${backups[i]}`))
 
     const parent = `${dir}/${backups[fullBackupId]}`
 
@@ -537,8 +534,8 @@ export default class {
       }),
       base => base.snapshot_time
     )
-    forEach(bases, base => {
-      xapi.deleteVdi(base.$id)::ignoreErrors()
+    forEach(bases, baseVdi => {
+      baseVdi.$destroy()::ignoreErrors()
     })
 
     // Export full or delta backup.
@@ -572,7 +569,7 @@ export default class {
     const nOldBackups = backups.length - retention
 
     if (nOldBackups > 0) {
-      await asyncMap(backups.slice(0, nOldBackups), backup =>
+      await asyncMapSettled(backups.slice(0, nOldBackups), backup =>
         // Remove json file.
         handler.unlink(`${dir}/${backup}`)
       )
@@ -594,7 +591,7 @@ export default class {
     )
     const baseVm = bases.pop()
     forEach(bases, base => {
-      xapi.deleteVm(base.$id)::ignoreErrors()
+      xapi.VM_destroy(base.$ref)::ignoreErrors()
     })
 
     // Check backup dirs.
@@ -602,7 +599,7 @@ export default class {
     const fullVdisRequired = []
 
     await Promise.all(
-      mapToArray(vm.$VBDs, async vbd => {
+      vm.$VBDs.map(async vbd => {
         if (!vbd.VDI || vbd.type !== 'Disk') {
           return
         }
@@ -624,22 +621,25 @@ export default class {
       fullVdisRequired,
       disableBaseTags: true,
     })
-    $defer.onFailure(() => xapi.deleteVm(delta.vm.uuid))
+    const exportedVmRef = await xapi.call('VM.get_by_uuid', delta.vm.uuid)
+    $defer.onFailure(() => xapi.VM_destroy(exportedVmRef))
     $defer.onFailure(cancel)
 
     // Save vdis.
-    const vdiBackups = await pSettle(
-      mapToArray(delta.vdis, async (vdi, key) => {
-        const vdiParent = xapi.getObject(vdi.snapshot_of)
+    const vdiBackups = await Promise.all(
+      Object.keys(delta.vdis)
+        .map(async ([key, vdi]) => {
+          const vdiParent = xapi.getObject(vdi.snapshot_of)
 
-        return this._saveDeltaVdiBackup(xapi, {
-          vdiParent,
-          isFull: !baseVm || find(fullVdisRequired, id => vdiParent.$id === id),
-          handler,
-          stream: delta.streams[`${key}.vhd`],
-          dir,
-          retention,
-        }).then(data => {
+          const data = await this._saveDeltaVdiBackup(xapi, {
+            vdiParent,
+            isFull: !baseVm || find(fullVdisRequired, id => vdiParent.$id === id),
+            handler,
+            stream: delta.streams[`${key}.vhd`],
+            dir,
+            retention,
+          })
+
           delta.vdis[key] = {
             ...delta.vdis[key],
             xoPath: data.path,
@@ -647,7 +647,7 @@ export default class {
 
           return data
         })
-      })
+        .map(promise => pReflect.call(promise))
     )
 
     const fulFilledVdiBackups = []
@@ -664,7 +664,7 @@ export default class {
     }
 
     $defer.onFailure(() =>
-      asyncMap(fulFilledVdiBackups, vdiBackup => handler.unlink(`${dir}/${vdiBackup.value()}`)::ignoreErrors())
+      asyncMapSettled(fulFilledVdiBackups, vdiBackup => handler.unlink(`${dir}/${vdiBackup.value()}`)::ignoreErrors())
     )
 
     if (error) {
@@ -686,7 +686,7 @@ export default class {
 
     // Here we have a completed backup. We can merge old vdis.
     await Promise.all(
-      mapToArray(vdiBackups, vdiBackup => {
+      vdiBackups.map(vdiBackup => {
         const backupName = vdiBackup.value().path
         const backupDirectory = backupName.slice(0, backupName.lastIndexOf('/'))
         const backupDir = `${dir}/${backupDirectory}`
@@ -712,7 +712,7 @@ export default class {
     await this._removeOldDeltaVmBackups(xapi, { vm, handler, dir, retention })
 
     if (baseVm) {
-      xapi.deleteVm(baseVm.$id)::ignoreErrors()
+      xapi.VM_destroy(baseVm.$ref)::ignoreErrors()
     }
 
     return {
@@ -824,7 +824,7 @@ export default class {
     const xapi = this._xo.getXapi(vm)
     vm = xapi.getObject(vm._xapiId)
 
-    xapi._assertHealthyVdiChains(vm)
+    await xapi.VM_assertHealthyVdiChains(vm.$ref)
 
     const reg = new RegExp('^rollingSnapshot_[^_]+_' + escapeRegExp(tag) + '_')
     const snapshots = sortBy(
@@ -838,7 +838,7 @@ export default class {
     const promises = []
     for (let surplus = snapshots.length - (retention - 1); surplus > 0; surplus--) {
       const oldSnap = snapshots.shift()
-      promises.push(xapi.deleteVm(oldSnap.uuid))
+      promises.push(xapi.VM_destroy(oldSnap.$ref))
     }
     await Promise.all(promises)
   }
@@ -847,7 +847,7 @@ export default class {
     return Promise.all(
       mapToArray(vms, vm =>
         // Do not consider a failure to delete an old copy as a fatal error.
-        xapi.deleteVm(vm.$id)::ignoreErrors()
+        xapi.VM_destroy(vm.$ref)::ignoreErrors()
       )
     )
   }
@@ -996,7 +996,7 @@ export default class {
 
     const entriesMap = {}
     await Promise.all(
-      mapToArray(entries, async name => {
+      entries.map(async name => {
         const stats = await pFromCallback(cb => stat(`${path}/${name}`, cb))::ignoreErrors()
         if (stats) {
           entriesMap[stats.isDirectory() ? `${name}/` : name] = {}
@@ -1015,7 +1015,7 @@ export default class {
         partition.unmount()
       }
     }
-    return mapToArray(paths, path => {
+    return paths.map(path => {
       ++i
       return createReadStream(resolveSubpath(partition.path, path)).once('end', onEnd)
     })

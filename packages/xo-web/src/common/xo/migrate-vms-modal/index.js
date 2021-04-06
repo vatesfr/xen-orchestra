@@ -6,7 +6,6 @@ import filter from 'lodash/filter'
 import find from 'lodash/find'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
-import mapValues from 'lodash/mapValues'
 import React from 'react'
 import some from 'lodash/some'
 import store from 'store'
@@ -165,6 +164,7 @@ export default class MigrateVmsModalBody extends BaseComponent {
       mapVmsMapVdisSrs,
       mapVmsMapVifsNetworks,
       migrationNetwork: migrationNetworkId,
+      sr: srId,
       targetHost: host.id,
       vms,
     }

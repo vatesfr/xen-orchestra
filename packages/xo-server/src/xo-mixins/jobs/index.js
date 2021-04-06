@@ -2,12 +2,12 @@
 
 import type { Pattern } from 'value-matcher'
 
-import asyncMap from '@xen-orchestra/async-map'
-import createLogger from '@xen-orchestra/log'
+import asyncMapSettled from '@xen-orchestra/async-map/legacy'
 import emitAsync from '@xen-orchestra/emit-async'
+import { createLogger } from '@xen-orchestra/log'
 
 import { CancelToken, ignoreErrors } from 'promise-toolbox'
-import { map as mapToArray } from 'lodash'
+import { defer } from 'golike-defer'
 import { noSuchObject } from 'xo-common/api-errors'
 
 import Collection from '../../collection/redis'
@@ -155,13 +155,13 @@ export default class Jobs {
       xo.addConfigManager(
         'jobs',
         () => jobsDb.get(),
-        jobs => Promise.all(mapToArray(jobs, job => jobsDb.save(job))),
+        jobs => Promise.all(jobs.map(job => jobsDb.save(job))),
         ['users']
       )
     })
     // it sends a report for the interrupted backup jobs
     xo.on('plugins:registered', () =>
-      asyncMap(this._jobs.get(), job => {
+      asyncMapSettled(this._jobs.get(), job => {
         // only the interrupted backup jobs have the runId property
         if (job.runId === undefined) {
           return
@@ -244,9 +244,11 @@ export default class Jobs {
     return Promise.all(promises)
   }
 
-  async _runJob(job: Job, schedule?: Schedule, data_?: any) {
+  @defer
+  async _runJob($defer, job: Job, schedule?: Schedule, data_?: any) {
     const logger = this._logger
     const { id, type } = job
+
     const runJobId = logger.notice(`Starting execution of ${id}.`, {
       data:
         type === 'backup' || type === 'metadataBackup'
@@ -268,104 +270,114 @@ export default class Jobs {
     })
 
     const app = this._app
-    const user = await app.getUser(job.userId).catch(error => {
-      if (!noSuchObject.is(error)) {
-        throw error
-      }
-    })
-    const data = {
-      callId: Math.random().toString(36).slice(2),
-      method: 'backupNg.runJob',
-      params: {
-        id: job.id,
-        proxy: job.proxy,
-        schedule: schedule?.id,
-        settings: job.settings,
-        vms: job.vms,
-      },
-      timestamp: Date.now(),
-      userId: job.userId,
-      userName: user?.name ?? '(unknown user)',
-    }
     try {
+      let executor = this._executors[type]
+      if (executor === undefined) {
+        throw new Error(`cannot run job (${id}): no executor for type ${type}`)
+      }
+
       const runningJobs = this._runningJobs
 
       if (id in runningJobs) {
         throw new Error(`the job (${id}) is already running`)
       }
 
-      const executor = this._executors[type]
-      if (executor === undefined) {
-        throw new Error(`cannot run job (${id}): no executor for type ${type}`)
-      }
-
       // runId is a temporary property used to check if the report is sent after the server interruption
       this.updateJob({ id, runId: runJobId })::ignoreErrors()
       runningJobs[id] = runJobId
 
-      const runs = this._runs
-      let session
-      try {
-        const { cancel, token } = CancelToken.source()
-        runs[runJobId] = { cancel }
-
-        session = app.createUserConnection()
-        session.set('user_id', job.userId)
-        if (type === 'backup') {
-          await emitAsync.call(
-            app,
-            {
-              onError(error) {
-                log.warn('backup:preCall listener failure', { error })
-              },
-            },
-            'backup:preCall',
-            data
-          )
-        }
-
-        const status = await executor({
-          app,
-          cancelToken: token,
-          data: data_,
-          job,
-          logger,
-          runJobId,
-          schedule,
-          session,
-        })
-
-        await logger.notice(
-          `Execution terminated for ${job.id}.`,
-          {
-            event: 'job.end',
-            runJobId,
-          },
-          true
-        )
-
-        const now = Date.now()
-        type === 'backup' &&
-          app.emit('backup:postCall', {
-            ...data,
-            duration: now - data.timestamp,
-            // Result of runJobSequence()
-            result: true,
-            timestamp: now,
-          })
-
-        app.emit('job:terminated', runJobId, {
-          type: job.type,
-          status,
-        })
-      } finally {
+      $defer(() => {
         this.updateJob({ id, runId: null })::ignoreErrors()
         delete runningJobs[id]
-        delete runs[runJobId]
-        if (session !== undefined) {
-          session.close()
+      })
+
+      if (type === 'backup') {
+        const hookData = {
+          callId: Math.random().toString(36).slice(2),
+          method: 'backupNg.runJob',
+          params: {
+            id: job.id,
+            proxy: job.proxy,
+            schedule: schedule?.id,
+            settings: job.settings,
+            vms: job.vms,
+          },
+          timestamp: Date.now(),
+          userId: job.userId,
+          userName:
+            (
+              await app.getUser(job.userId).catch(error => {
+                if (!noSuchObject.is(error)) {
+                  throw error
+                }
+              })
+            )?.name ?? '(unknown user)',
         }
+
+        executor = (executor =>
+          async function () {
+            await emitAsync.call(
+              app,
+              {
+                onError(error) {
+                  log.warn('backup:preCall listener failure', { error })
+                },
+              },
+              'backup:preCall',
+              hookData
+            )
+
+            try {
+              const result = await executor.apply(this, arguments)
+
+              // Result of runJobSequence()
+              hookData.result = true
+
+              return result
+            } catch (error) {
+              hookData.error = serializeError(error)
+
+              throw error
+            } finally {
+              const now = Date.now()
+              hookData.duration = now - hookData.timestamp
+              hookData.timestamp = now
+              app.emit('backup:postCall', hookData)
+            }
+          })(executor)
       }
+
+      const session = app.createUserConnection()
+      $defer.call(session, 'close')
+      session.set('user_id', job.userId)
+
+      const { cancel, token } = CancelToken.source()
+
+      const runs = this._runs
+      runs[runJobId] = { cancel }
+      $defer(() => delete runs[runJobId])
+
+      const status = await executor({
+        app,
+        cancelToken: token,
+        data: data_,
+        job,
+        logger,
+        runJobId,
+        schedule,
+        session,
+      })
+
+      await logger.notice(
+        `Execution terminated for ${job.id}.`,
+        {
+          event: 'job.end',
+          runJobId,
+        },
+        true
+      )
+
+      app.emit('job:terminated', runJobId, { status, type })
     } catch (error) {
       await logger.error(
         `The execution of ${id} has failed.`,
@@ -376,23 +388,13 @@ export default class Jobs {
         },
         true
       )
-      const now = Date.now()
-      type === 'backup' &&
-        app.emit('backup:postCall', {
-          ...data,
-          duration: now - data.timestamp,
-          error: serializeError(error),
-          timestamp: now,
-        })
-      app.emit('job:terminated', runJobId, {
-        type: job.type,
-      })
+      app.emit('job:terminated', runJobId, { type })
       throw error
     }
   }
 
   async runJobSequence(idSequence: Array<string>, schedule?: Schedule, data?: any) {
-    const jobs = await Promise.all(mapToArray(idSequence, id => this.getJob(id)))
+    const jobs = await Promise.all(idSequence.map(id => this.getJob(id)))
 
     for (const job of jobs) {
       await this._runJob(job, schedule, data)

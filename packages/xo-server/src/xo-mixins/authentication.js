@@ -1,4 +1,4 @@
-import createLogger from '@xen-orchestra/log'
+import { createLogger } from '@xen-orchestra/log'
 import { createPredicate } from 'value-matcher'
 import { ignoreErrors } from 'promise-toolbox'
 import { invalidCredentials, noSuchObject } from 'xo-common/api-errors'
@@ -161,11 +161,16 @@ export default class {
 
   // -----------------------------------------------------------------
 
-  async createAuthenticationToken({ expiresIn = this._defaultTokenValidity, userId }) {
+  async createAuthenticationToken({ expiresIn, userId }) {
     const token = new Token({
       id: await generateToken(),
       user_id: userId,
-      expiration: Date.now() + Math.min(expiresIn, this._maxTokenValidity),
+      expiration:
+        Date.now() +
+        Math.min(
+          expiresIn !== undefined ? parseDuration(expiresIn) : this._defaultTokenValidity,
+          this._maxTokenValidity
+        ),
     })
 
     await this._tokens.add(token)

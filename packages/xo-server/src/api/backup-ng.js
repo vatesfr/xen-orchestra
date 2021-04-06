@@ -247,8 +247,8 @@ listVmBackups.params = {
   },
 }
 
-export function importVmBackup({ id, sr }) {
-  return this.importVmBackupNg(id, sr)
+export function importVmBackup({ id, settings, sr }) {
+  return this.importVmBackupNg(id, sr, settings)
 }
 
 importVmBackup.permission = 'admin'
@@ -256,6 +256,9 @@ importVmBackup.permission = 'admin'
 importVmBackup.params = {
   id: {
     type: 'string',
+  },
+  settings: {
+    type: 'object',
   },
   sr: {
     type: 'string',

@@ -1,0 +1,34 @@
+#!/usr/bin/env sh
+
+set -eu
+
+if [ "$(id -u)" -ne 0 ]
+then
+  exit
+fi
+
+# $npm_package_name is not good enough here because it's a scoped package
+NAME=xo-proxy
+
+SERVICE_FILE=$(pwd)/$NAME.service
+
+if [ "$npm_lifecycle_event" = postinstall ]
+then
+  printf %s "[Unit]
+Description=$NAME
+After=network-online.target
+
+[Service]
+ExecStart=$npm_config_prefix/bin/$NAME
+Restart=always
+SyslogIdentifier=$NAME
+
+[Install]
+WantedBy=multi-user.target
+" > "$SERVICE_FILE"
+  systemctl enable --now "$SERVICE_FILE"
+elif [ "$npm_lifecycle_event" = "preuninstall" ]
+then
+  systemctl disable --now "$SERVICE_FILE"
+  rm -f "$SERVICE_FILE"
+fi

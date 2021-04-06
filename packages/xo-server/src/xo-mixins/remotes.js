@@ -1,4 +1,4 @@
-import asyncMap from '@xen-orchestra/async-map'
+import asyncMapSettled from '@xen-orchestra/async-map/legacy'
 import synchronized from 'decorator-synchronized'
 import { format, parse } from 'xo-remote-parser'
 import { getHandler } from '@xen-orchestra/fs'
@@ -7,7 +7,6 @@ import { noSuchObject } from 'xo-common/api-errors'
 
 import * as sensitiveValues from '../sensitive-values'
 import patch from '../patch'
-import { mapToArray } from '../utils'
 import { Remotes } from '../models/remote'
 
 // ===================================================================
@@ -34,7 +33,7 @@ export default class {
       xo.addConfigManager(
         'remotes',
         () => this._remotes.get(),
-        remotes => Promise.all(mapToArray(remotes, remote => this._remotes.update(remote)))
+        remotes => Promise.all(remotes.map(remote => this._remotes.update(remote)))
       )
 
       const remotes = await this._remotes.get()
@@ -120,7 +119,7 @@ export default class {
 
   async getAllRemotesInfo() {
     const remotesInfo = this._remotesInfo
-    await asyncMap(this._remotes.get(), async remote => {
+    await asyncMapSettled(this._remotes.get(), async remote => {
       if (!remote.enabled) {
         return
       }

@@ -1,8 +1,8 @@
 import * as multiparty from 'multiparty'
-import createLogger from '@xen-orchestra/log'
 import defer from 'golike-defer'
 import getStream from 'get-stream'
 import pump from 'pump'
+import { createLogger } from '@xen-orchestra/log'
 import { format } from 'json-rpc-peer'
 import { noSuchObject } from 'xo-common/api-errors'
 import { peekFooterFromVhdStream } from 'vhd-lib'
@@ -27,7 +27,7 @@ export const create = defer(async function ($defer, { name, size, sr, vm, bootab
 
         break
       } catch (error) {
-        if (!noSuchObject.is(error, { data: { id: resourceSet } })) {
+        if (!noSuchObject.is(error, { id: resourceSet })) {
           throw error
         }
       }
@@ -44,7 +44,7 @@ export const create = defer(async function ($defer, { name, size, sr, vm, bootab
     size,
     sr: sr._xapiId,
   })
-  $defer.onFailure(() => xapi.deleteVdi(vdi.$id))
+  $defer.onFailure(() => vdi.$destroy())
 
   if (attach) {
     await xapi.createVbd({
@@ -195,7 +195,7 @@ async function handleImport(req, res, { type, name, description, vmdkData, srId,
           await xapi.importVdiContent(vdi, vhdStream, VDI_FORMAT_VHD)
           res.end(format.response(0, vdi.$id))
         } catch (e) {
-          await xapi.deleteVdi(vdi)
+          await vdi.$destroy()
           throw e
         }
         resolve()

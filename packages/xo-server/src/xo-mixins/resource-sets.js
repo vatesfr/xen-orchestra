@@ -1,4 +1,4 @@
-import asyncMap from '@xen-orchestra/async-map'
+import asyncMapSettled from '@xen-orchestra/async-map/legacy'
 import deferrable from 'golike-defer'
 import synchronized from 'decorator-synchronized'
 import { difference, every, forEach, isObject, keyBy, map as mapToArray, remove, some } from 'lodash'
@@ -70,7 +70,7 @@ export default class {
       xo.addConfigManager(
         'resourceSets',
         () => this.getAllResourceSets(),
-        resourceSets => Promise.all(mapToArray(resourceSets, resourceSet => this._save(resourceSet))),
+        resourceSets => Promise.all(resourceSets.map(resourceSet => this._save(resourceSet))),
         ['groups', 'users']
       )
 
@@ -414,6 +414,6 @@ export default class {
     }
 
     const { subjects } = await this.getResourceSet(resourceSetId)
-    await asyncMap(subjects, subject => this._xo.addAcl(subject, vmId, 'admin'))
+    await asyncMapSettled(subjects, subject => this._xo.addAcl(subject, vmId, 'admin'))
   }
 }

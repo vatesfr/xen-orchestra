@@ -12,8 +12,8 @@ import { createLogger } from '@xen-orchestra/log'
 import { format, parse } from 'json-rpc-peer'
 import { incorrectState, noSuchObject } from 'xo-common/api-errors'
 import { isEmpty, mapValues, some, omit } from 'lodash'
-import { NULL_REF } from 'xen-api'
 import { parseDuration } from '@vates/parse-duration'
+import { Ref } from 'xen-api'
 import { timeout } from 'promise-toolbox'
 
 import Collection from '../collection/redis'
@@ -107,7 +107,7 @@ export default class Proxy {
     const { vmUuid } = await this._getProxy(id)
     if (vmUuid !== undefined) {
       try {
-        await this._app.getXapi(vmUuid).deleteVm(vmUuid)
+        await this._app.getXapiObject(vmUuid).$destroy()
       } catch (error) {
         if (!noSuchObject.is(error)) {
           throw error
@@ -208,7 +208,7 @@ export default class Proxy {
       }),
       { srId }
     )
-    $defer.onFailure(() => xapi._deleteVm(vm))
+    $defer.onFailure(() => xapi.VM_destroy(vm.$ref))
 
     const arg = { licenseId, boundObjectId: vm.uuid }
     await app.bindLicense(arg)
@@ -267,7 +267,13 @@ export default class Proxy {
     if (redeploy) {
       const { vmUuid } = await this._getProxy(proxyId)
       if (vmUuid !== undefined) {
-        await app.getXapi(vmUuid).deleteVm(vmUuid)
+        try {
+          await app.getXapiObject(vmUuid).$destroy()
+        } catch (error) {
+          if (!noSuchObject.is(error)) {
+            throw error
+          }
+        }
         await Promise.all([
           app
             .unbindLicense({
@@ -308,7 +314,7 @@ export default class Proxy {
     // ensure appliance has an IP address
     const vmNetworksTimeout = parseDuration(xoProxyConf.vmNetworksTimeout)
     vm = await timeout.call(
-      xapi._waitObjectState(vm.$id, _ => _.guest_metrics !== NULL_REF),
+      xapi._waitObjectState(vm.$id, _ => Ref.isNotEmpty(_.guest_metrics)),
       vmNetworksTimeout
     )
     await timeout.call(

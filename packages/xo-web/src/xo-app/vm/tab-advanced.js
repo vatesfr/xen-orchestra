@@ -20,7 +20,7 @@ import { injectState, provideState } from 'reaclette'
 import { Number, Select as EditableSelect, Size, Text, XoSelect } from 'editable'
 import { Select, Toggle } from 'form'
 import { SelectResourceSet, SelectRole, SelectSubject, SelectVgpuType } from 'select-objects'
-import { addSubscriptions, connectStore, formatSize, getVirtualizationModeLabel, noop, osFamily } from 'utils'
+import { addSubscriptions, connectStore, formatSize, getVirtualizationModeLabel, osFamily } from 'utils'
 import { every, filter, find, isEmpty, keyBy, map, times, some, uniq } from 'lodash'
 import {
   addAcl,
@@ -316,7 +316,7 @@ const Acls = decorate([
               return error(_('addAclsErrorTitle'), _('addAclsErrorMessage'))
             }
 
-            return Promise.all(map(subjects, subject => addAcl({ subject, object: vm, action }))), noop
+            return Promise.all(map(subjects, subject => addAcl({ subject, object: vm, action })))
           })
           .catch(err => err && error(_('addAclsErrorTitle'), err.message || String(err))),
       removeAcl: (_, { currentTarget: { dataset } }) => (_, { vm: object }) =>
@@ -332,10 +332,12 @@ const Acls = decorate([
         if (users === undefined || groups === undefined) {
           return []
         }
-        return rawAcls.map(({ subject, ...acl }) => ({
-          ...acl,
-          subject: defined(users[subject], groups[subject]),
-        }))
+        return rawAcls
+          .map(({ subject, ...acl }) => ({
+            ...acl,
+            subject: defined(users[subject], groups[subject]),
+          }))
+          .filter(({ subject }) => subject !== undefined)
       },
     },
   }),
@@ -372,7 +374,7 @@ const Acls = decorate([
 
 const NIC_TYPE_OPTIONS = [
   {
-    label: 'Realtek RTL819',
+    label: 'Realtek RTL8139',
     value: '',
   },
   {

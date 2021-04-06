@@ -1,9 +1,9 @@
 import deferrable from 'golike-defer'
-import { find, gte, includes, isEmpty, lte, mapValues, noop } from 'lodash'
+import { find, gte, includes, isEmpty, lte, map as mapToArray, mapValues, noop } from 'lodash'
 import { cancelable, ignoreErrors, pCatch } from 'promise-toolbox'
-import { NULL_REF } from 'xen-api'
+import { Ref } from 'xen-api'
 
-import { forEach, mapToArray, parseSize } from '../../utils'
+import { forEach, parseSize } from '../../utils'
 
 import { extractOpaqueRef, isVmHvm, isVmRunning, makeEditObject } from '../utils'
 
@@ -79,7 +79,7 @@ export default {
 
     // Clones the template.
     const vmRef = await this[clone ? '_cloneVm' : '_copyVm'](template, nameLabel)
-    $defer.onFailure(() => this.deleteVm(vmRef))
+    $defer.onFailure(() => this.VM_destroy(vmRef))
 
     // Copy BIOS strings
     // https://support.citrix.com/article/CTX230618
@@ -195,7 +195,7 @@ export default {
     }
 
     // Destroys the VIFs cloned from the template.
-    await Promise.all(mapToArray(vm.$VIFs, vif => this._deleteVif(vif)))
+    await Promise.all(vm.$VIFs.map(vif => this._deleteVif(vif)))
 
     // Creates the VIFs specified by the user.
     if (vifs) {
@@ -250,7 +250,7 @@ export default {
   _editVm: makeEditObject({
     affinityHost: {
       get: 'affinity',
-      set: (value, vm) => vm.set_affinity(value ? vm.$xapi.getObject(value).$ref : NULL_REF),
+      set: (value, vm) => vm.set_affinity(value ? vm.$xapi.getObject(value).$ref : Ref.EMPTY),
     },
 
     autoPoweron: {

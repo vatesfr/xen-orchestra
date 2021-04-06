@@ -1,5 +1,5 @@
-import createLogger from '@xen-orchestra/log'
 import { BaseError } from 'make-error'
+import { createLogger } from '@xen-orchestra/log'
 import { fibonacci } from 'iterable-backoff'
 import { findKey } from 'lodash'
 import { noSuchObject } from 'xo-common/api-errors'
@@ -55,37 +55,39 @@ export default class {
 
     xo.on('clean', () => serversDb.rebuildIndexes())
     xo.on('start', async () => {
+      const connectServers = async () => {
+        // Connects to existing servers.
+        for (const server of await serversDb.get()) {
+          if (server.enabled) {
+            this.connectXenServer(server.id).catch(error => {
+              log.warn('failed to connect to XenServer', {
+                host: server.host,
+                error,
+              })
+            })
+          }
+        }
+      }
+
       xo.addConfigManager(
         'xenServers',
         () => serversDb.get(),
-        servers => serversDb.update(servers)
+        servers => serversDb.update(servers).then(connectServers)
       )
 
-      const servers = await serversDb.get()
-
       // Add servers in XenStore
-      if (servers.length === 0) {
+      if (!(await serversDb.exists())) {
         const key = 'vm-data/xen-servers'
         const xenStoreServers = await XenStore.read(key)
           .then(JSON.parse)
           .catch(() => [])
         for (const server of xenStoreServers) {
-          servers.push(await this.registerXenServer(server))
+          await this.registerXenServer(server)
         }
         ignoreErrors.call(XenStore.rm(key))
       }
 
-      // Connects to existing servers.
-      for (const server of servers) {
-        if (server.enabled) {
-          this.connectXenServer(server.id).catch(error => {
-            log.warn('failed to connect to XenServer', {
-              host: server.host,
-              error,
-            })
-          })
-        }
-      }
+      await connectServers()
     })
 
     // TODO: disconnect servers on stop.
@@ -444,8 +446,8 @@ export default class {
   }
 
   // returns the XAPI object corresponding to an XO object/ID
-  getXapiObject(xoObjectOrId, type) {
-    const xoObject = typeof xoObjectOrId === 'string' ? this._xo.getObject(xoObjectOrId, type) : xoObjectOrId
+  getXapiObject(xoObjectOrId, xoType) {
+    const xoObject = typeof xoObjectOrId === 'string' ? this._xo.getObject(xoObjectOrId, xoType) : xoObjectOrId
     return this.getXapi(xoObject).getObjectByRef(xoObject._xapiRef)
   }
 
