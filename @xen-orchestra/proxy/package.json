@@ -54,7 +54,7 @@
     "json-rpc-protocol": "^0.13.1",
     "jsonrpc-websocket-client": "^0.5.0",
     "koa": "^2.5.1",
-    "koa-compress": "^4.0.0",
+    "koa-compress": "^5.0.1",
     "koa-helmet": "^5.1.0",
     "lodash": "^4.17.10",
     "ms": "^2.1.2",
