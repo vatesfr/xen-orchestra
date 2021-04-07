@@ -3,7 +3,7 @@
   "name": "@xen-orchestra/emit-async",
   "version": "0.0.0",
   "license": "ISC",
-  "description": "",
+  "description": "Emit an event for async listeners to settle",
   "keywords": [],
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/emit-async",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",

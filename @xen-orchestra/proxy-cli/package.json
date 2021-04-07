@@ -3,7 +3,7 @@
   "name": "@xen-orchestra/proxy-cli",
   "version": "0.2.0",
   "license": "AGPL-3.0-or-later",
-  "description": "",
+  "description": "CLI for @xen-orchestra/proxy",
   "keywords": [
     "backup",
     "proxy",
