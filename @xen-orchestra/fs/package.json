@@ -4,7 +4,6 @@
   "version": "0.14.0",
   "license": "AGPL-3.0-or-later",
   "description": "The File System for Xen Orchestra backups.",
-  "keywords": [],
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/fs",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "repository": {
