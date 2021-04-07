@@ -252,3 +252,17 @@ installSupplementalPack.params = {
 installSupplementalPack.resolve = {
   pool: ['pool', 'pool', 'admin'],
 }
+
+// -------------------------------------------------------------------
+
+export async function listMatchingCriteria({ cpusCount, memorySize, poolTag, srSize, srTag }) {
+  return this.listMatchingCriteria({ cpusCount, memorySize, poolTag, srSize, srTag })
+}
+
+listMatchingCriteria.params = {
+  cpusCount: { type: 'number', optional: true },
+  memorySize: { type: 'number', optional: true },
+  poolTag: { type: 'string', optional: true },
+  srSize: { type: 'number', optional: true },
+  srTag: { type: 'string', optional: true },
+}

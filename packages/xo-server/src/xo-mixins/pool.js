@@ -1,4 +1,4 @@
-import { difference, flatten, isEmpty, uniq } from 'lodash'
+import { difference, filter, flatten, groupBy, isEmpty, some, uniq } from 'lodash'
 
 export default class Pools {
   constructor(xo) {
@@ -80,5 +80,19 @@ export default class Pools {
     for (const source of sources) {
       await _xo.mergeXenPools(source._xapiId, target._xapiId, force)
     }
+  }
+
+  async listMatchingCriteria({ cpusCount = 0, memorySize = 0, poolTag, srSize = 0, srTag }) {
+    const { _xo } = this
+    const hostsByPool = groupBy(_xo.getObjects({ filter: { type: 'host' } }), '$pool')
+    const srsByPool = groupBy(_xo.getObjects({ filter: { type: 'SR' } }), '$pool')
+    return filter(
+      _xo.getObjects({ filter: { type: 'pool' } }),
+      pool =>
+        (poolTag !== undefined ? pool.tags.includes(poolTag) : true) &&
+        pool.cpus.cores >= cpusCount &&
+        some(hostsByPool[pool.id], host => host.memory.size >= memorySize) &&
+        some(srsByPool[pool.id], sr => (srTag !== undefined ? sr.tags.includes(srTag) : true) && sr.size >= srSize)
+    )
   }
 }
