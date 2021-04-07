@@ -215,7 +215,7 @@ export default class BackupNg {
     return this._runningRestores
   }
 
-  constructor(app: any, config) {
+  constructor(app: any, { config }) {
     this._app = app
     this._logger = undefined
     this._runningRestores = new Set()

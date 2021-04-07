@@ -39,7 +39,7 @@ const assertProxyAddress = (proxy, address) => {
 }
 
 export default class Proxy {
-  constructor(app, conf) {
+  constructor(app, { config: conf }) {
     this._app = app
     const xoProxyConf = (this._xoProxyConf = conf['xo-proxy'])
     const rules = {

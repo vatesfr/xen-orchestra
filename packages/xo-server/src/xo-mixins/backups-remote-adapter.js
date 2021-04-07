@@ -6,7 +6,7 @@ import { deduped } from '@vates/disposable/deduped'
 import { RemoteAdapter } from '@xen-orchestra/backups/RemoteAdapter'
 
 export default class BackupsRemoteAdapter {
-  constructor(app, { backups }) {
+  constructor(app, { config: { backups } }) {
     this._app = app
     this._config = backups
   }
