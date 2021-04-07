@@ -4,6 +4,8 @@
 
 [![Package Version](https://badgen.net/npm/v/vhd-cli)](https://npmjs.org/package/vhd-cli) ![License](https://badgen.net/npm/license/vhd-cli) [![PackagePhobia](https://badgen.net/bundlephobia/minzip/vhd-cli)](https://bundlephobia.com/result?p=vhd-cli) [![Node compatibility](https://badgen.net/npm/node/vhd-cli)](https://npmjs.org/package/vhd-cli)
 
+> Tools to read/create and merge VHD files
+
 ## Install
 
 Installation of the [npm package](https://npmjs.org/package/vhd-cli):

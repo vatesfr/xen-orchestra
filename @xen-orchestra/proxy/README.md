@@ -2,6 +2,8 @@
 
 # @xen-orchestra/proxy
 
+> XO Proxy used to remotely execute backup jobs
+
 ## Contributions
 
 Contributions are _very_ welcomed, either on the documentation or on
