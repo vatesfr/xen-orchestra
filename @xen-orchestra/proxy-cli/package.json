@@ -30,7 +30,7 @@
   },
   "dependencies": {
     "@iarna/toml": "^2.2.0",
-    "@vates/read-chunk": "^0.1.1",
+    "@vates/read-chunk": "^0.1.2",
     "ansi-colors": "^4.1.1",
     "app-conf": "^0.9.0",
     "content-type": "^1.0.4",
