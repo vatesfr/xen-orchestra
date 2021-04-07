@@ -1,4 +1,5 @@
-import readChunk from './_readChunk'
+import { readChunk } from '@vates/read-chunk'
+
 import { FOOTER_SIZE } from './_constants'
 import { fuFooter } from './_structs'
 

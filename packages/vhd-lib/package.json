@@ -20,6 +20,7 @@
     "node": ">=8.10"
   },
   "dependencies": {
+    "@vates/read-chunk": "^0.1.2",
     "@xen-orchestra/log": "^0.2.0",
     "async-iterator-to-stream": "^1.0.2",
     "core-js": "^3.0.0",
