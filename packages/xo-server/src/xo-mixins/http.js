@@ -1,7 +1,6 @@
 import hrp from 'http-request-plus'
 import ProxyAgent from 'proxy-agent'
-
-import { firstDefined } from '../utils'
+import firstDefined from '@xen-orchestra/defined'
 
 export default class Http {
   // whether XO has a proxy set from its own config/environment
