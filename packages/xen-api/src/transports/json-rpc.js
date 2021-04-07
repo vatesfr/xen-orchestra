@@ -12,9 +12,9 @@ export default ({ secureOptions, url, httpProxy }) => {
   if (httpProxy !== undefined) {
     agent = new ProxyAgent(httpProxy)
   }
-  return (method, args) =>
+  return (method, args, cancelToken) =>
     httpRequestPlus
-      .post(url, {
+      .post(cancelToken, url, {
         ...secureOptions,
         body: format.request(0, method, args),
         headers: {

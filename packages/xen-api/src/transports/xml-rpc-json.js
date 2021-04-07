@@ -86,5 +86,5 @@ export default ({ secureOptions, url: { hostname, port, protocol }, httpProxy })
   })
   const call = promisify(client.methodCall, client)
 
-  return (method, args) => call(method, prepareXmlRpcParams(args)).then(parseResult, logError)
+  return (method, args, cancelToken) => call(method, prepareXmlRpcParams(args), cancelToken).then(parseResult, logError)
 }
