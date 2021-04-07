@@ -717,8 +717,10 @@ export default async function main(args) {
     log.warn('Failed to change user/group:', { error })
   }
 
+  const safeMode = includes(args, '--safe-mode')
+
   // Creates main object.
-  const xo = new Xo({ config })
+  const xo = new Xo({ config, safeMode })
 
   // Register web server close on XO stop.
   xo.on('stop', () => fromCallback.call(webServer, 'stop'))
@@ -777,7 +779,7 @@ export default async function main(args) {
 
   setUpStaticFiles(express, config.http.mounts)
 
-  if (!includes(args, '--safe-mode')) {
+  if (!safeMode) {
     await registerPlugins(xo)
     xo.emit('plugins:registered')
   }
