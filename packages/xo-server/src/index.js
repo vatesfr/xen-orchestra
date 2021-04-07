@@ -67,13 +67,14 @@ const log = createLogger('xo:main')
 
 // ===================================================================
 
+const APP_DIR = joinPath(__dirname, '..')
 const APP_NAME = 'xo-server'
 
 const DEPRECATED_ENTRIES = ['users', 'servers']
 
 async function loadConfiguration() {
   const config = await appConf.load(APP_NAME, {
-    appDir: joinPath(__dirname, '..'),
+    appDir: APP_DIR,
     ignoreUnknownFormats: true,
   })
 
@@ -720,7 +721,13 @@ export default async function main(args) {
   const safeMode = includes(args, '--safe-mode')
 
   // Creates main object.
-  const xo = new Xo({ config, safeMode })
+  const xo = new Xo({
+    appDir: APP_DIR,
+    appName: APP_NAME,
+    config,
+    httpServer: webServer,
+    safeMode,
+  })
 
   // Register web server close on XO stop.
   xo.on('stop', () => fromCallback.call(webServer, 'stop'))
