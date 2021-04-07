@@ -23,6 +23,9 @@
   "engines": {
     "node": ">=8.10"
   },
+  "files": [
+    "index.js"
+  ],
   "scripts": {
     "postversion": "npm publish --access public"
   },
