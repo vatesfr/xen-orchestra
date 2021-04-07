@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 
-const get = require('lodash/get')
 const isEmpty = require('lodash/isEmpty')
 const sortedObject = require('sorted-object')
 const { getPackages, readFile, writeFile, unlink } = require('./utils')
