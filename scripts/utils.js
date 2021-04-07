@@ -39,6 +39,8 @@ const noop = (exports.noop = () => {})
 
 const readFile = (exports.readFile = file => fromCallback(fs.readFile, file, 'utf8'))
 
+exports.symlink = (target, path) => fromCallback(fs.symlink, target, path)
+
 exports.unlink = path =>
   fromCallback(fs.unlink, path).catch(error => {
     if (error.code !== 'ENOENT') {
