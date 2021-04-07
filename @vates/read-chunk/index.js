@@ -1,4 +1,4 @@
-exports.readChunk = (stream, size) =>
+const readChunk = (stream, size) =>
   size === 0
     ? Promise.resolve(Buffer.alloc(0))
     : new Promise((resolve, reject) => {
@@ -27,3 +27,4 @@ exports.readChunk = (stream, size) =>
         stream.on('readable', onReadable)
         onReadable()
       })
+exports.readChunk = readChunk
