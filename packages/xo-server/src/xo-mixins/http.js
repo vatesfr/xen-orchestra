@@ -13,7 +13,7 @@ export default class Http {
     return this._agent
   }
 
-  constructor(_, { httpProxy = firstDefined(process.env.http_proxy, process.env.HTTP_PROXY) }) {
+  constructor(_, { config: { httpProxy = firstDefined(process.env.http_proxy, process.env.HTTP_PROXY) } }) {
     this._hasOwnHttpProxy = httpProxy != null
 
     this.setHttpProxy(httpProxy)

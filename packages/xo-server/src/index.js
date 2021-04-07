@@ -718,7 +718,7 @@ export default async function main(args) {
   }
 
   // Creates main object.
-  const xo = new Xo(config)
+  const xo = new Xo({ config })
 
   // Register web server close on XO stop.
   xo.on('stop', () => fromCallback.call(webServer, 'stop'))

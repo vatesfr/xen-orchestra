@@ -17,7 +17,7 @@ const obfuscateRemote = ({ url, ...remote }) => {
 }
 
 export default class {
-  constructor(xo, { remoteOptions }) {
+  constructor(xo, { config: { remoteOptions } }) {
     this._handlers = { __proto__: null }
     this._remoteOptions = remoteOptions
     this._remotes = new Remotes({
