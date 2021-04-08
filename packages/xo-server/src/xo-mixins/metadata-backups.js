@@ -94,7 +94,7 @@ export default class metadataBackup {
     return this._runningMetadataRestores
   }
 
-  constructor(app: any, { backups }) {
+  constructor(app: any, { config: { backups } }) {
     this._app = app
     this._backupOptions = backups
     this._logger = undefined

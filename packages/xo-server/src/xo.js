@@ -19,7 +19,7 @@ const log = createLogger('xo:xo')
 
 @mixin(Object.values(mixins))
 export default class Xo extends EventEmitter {
-  constructor(config) {
+  constructor({ config }) {
     super()
 
     // a lot of mixins adds listener for start/stop/… events

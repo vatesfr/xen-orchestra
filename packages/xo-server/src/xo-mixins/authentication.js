@@ -14,7 +14,7 @@ const log = createLogger('xo:authentification')
 const noSuchAuthenticationToken = id => noSuchObject(id, 'authenticationToken')
 
 export default class {
-  constructor(xo, { authentication: config }) {
+  constructor(xo, { config: { authentication: config } }) {
     this._defaultTokenValidity = parseDuration(config.defaultTokenValidity)
     this._maxTokenValidity = parseDuration(config.maxTokenValidity)
     this._throttlingDelay = parseDuration(config.throttlingDelay)

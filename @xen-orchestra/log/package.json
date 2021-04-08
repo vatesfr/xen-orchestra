@@ -3,8 +3,7 @@
   "name": "@xen-orchestra/log",
   "version": "0.2.0",
   "license": "ISC",
-  "description": "",
-  "keywords": [],
+  "description": "Logging system with decoupled producers/consumer",
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/log",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "repository": {

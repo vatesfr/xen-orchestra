@@ -1,11 +1,11 @@
 import assert from 'assert'
 import { pipeline, Transform } from 'readable-stream'
+import { readChunk } from '@vates/read-chunk'
 
 import checkFooter from './_checkFooter'
 import checkHeader from './_checkHeader'
 import noop from './_noop'
 import getFirstAndLastBlocks from './_getFirstAndLastBlocks'
-import readChunk from './_readChunk'
 import { FOOTER_SIZE, HEADER_SIZE, SECTOR_SIZE } from './_constants'
 import { fuFooter, fuHeader } from './_structs'
 
