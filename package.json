@@ -64,10 +64,7 @@
       "/xo-web/"
     ],
     "testRegex": "\\.spec\\.js$",
-    "timers": "fake",
-    "transform": {
-      "\\.jsx?$": "babel-jest"
-    }
+    "timers": "fake"
   },
   "lint-staged": {
     "*.{md,ts,ts}": "prettier --write"
