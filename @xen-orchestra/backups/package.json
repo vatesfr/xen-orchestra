@@ -18,7 +18,6 @@
   "dependencies": {
     "@vates/compose": "^2.0.0",
     "@vates/disposable": "^0.1.1",
-    "@vates/multi-key-map": "^0.1.0",
     "@vates/parse-duration": "^0.1.0",
     "@xen-orchestra/async-map": "^0.1.2",
     "@xen-orchestra/fs": "^0.14.0",
@@ -27,7 +26,6 @@
     "compare-versions": "^3.6.0",
     "d3-time-format": "^3.0.0",
     "end-of-stream": "^1.4.4",
-    "ensure-array": "^1.0.0",
     "fs-extra": "^9.0.0",
     "golike-defer": "^0.5.1",
     "limit-concurrency-decorator": "^0.4.0",
