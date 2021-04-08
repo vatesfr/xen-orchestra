@@ -6,6 +6,7 @@ import Copiable from 'copiable'
 import decorate from 'apply-decorators'
 import defined, { get } from '@xen-orchestra/defined'
 import Icon from 'icon'
+import Link from 'link'
 import React from 'react'
 import Tooltip from 'tooltip'
 import xoaUpdater, { exposeTrial, isTrialRunning } from 'xoa-updater'
@@ -15,7 +16,13 @@ import { confirm } from 'modal'
 import { Container, Row, Col } from 'grid'
 import { error } from 'notification'
 import { generateId, linkState, toggleState } from 'reaclette-utils'
-import { getApplianceInfo, subscribeBackupNgJobs, subscribeJobs } from 'xo'
+import {
+  getApplianceInfo,
+  getProxyApplianceUpdaterState,
+  subscribeBackupNgJobs,
+  subscribeJobs,
+  subscribeProxies,
+} from 'xo'
 import { injectIntl } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
 import { Input as DebounceInput } from 'debounce-input-decorator'
@@ -87,6 +94,7 @@ const Updates = decorate([
   addSubscriptions({
     backupNgJobs: subscribeBackupNgJobs,
     jobs: subscribeJobs,
+    proxyIds: cb => subscribeProxies(proxies => cb(map(proxies, 'id'))),
   }),
   connectStore(['xoaConfiguration', 'xoaRegisterState', 'xoaTrialState', 'xoaUpdaterLog', 'xoaUpdaterState']),
   provideState({
@@ -106,7 +114,7 @@ const Updates = decorate([
         const { effects } = this
         await Promise.all([effects.resetChannel(), effects.resetProxyConfig(), effects.update()])
       },
-      initialize() {
+      async initialize({ fetchProxyUpgrades }) {
         if (!COMMUNITY) {
           return this.effects.update()
         }
@@ -182,6 +190,17 @@ const Updates = decorate([
         jobs !== undefined &&
         backupNgJobs !== undefined &&
         some(jobs.concat(backupNgJobs), job => job.runId !== undefined),
+      areProxiesNeedUpdated: async (_, { proxyIds = [] }) => {
+        let areProxiesNeedUpdated = false
+        for (const proxy of proxyIds) {
+          const { state = '' } = await getProxyApplianceUpdaterState(proxy)
+          if (state.endsWith('-upgrade-needed')) {
+            areProxiesNeedUpdated = true
+            break
+          }
+        }
+        return areProxiesNeedUpdated
+      },
       changelogUrl: ({ consolidatedChannel }) =>
         `https://github.com/vatesfr/xen-orchestra/blob/master/CHANGELOG.md#${encodeURIComponent(consolidatedChannel)}`,
       channelsFormId: generateId,
@@ -267,6 +286,15 @@ const Updates = decorate([
             <Col>
               <p className='text-info'>{_('updaterCommunity')}</p>
               <TryXoa page='updater' />
+            </Col>
+          </Row>
+        )}
+        {state.areProxiesNeedUpdated && (
+          <Row className='mb-1'>
+            <Col>
+              <Link className='text-info' to='/proxies'>
+                {_('upgradeNeededForProxies')}
+              </Link>
             </Col>
           </Row>
         )}
