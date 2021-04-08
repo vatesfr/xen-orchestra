@@ -36,7 +36,6 @@
     }
   },
   "jest": {
-    "collectCoverage": true,
     "moduleNameMapper": {
       "^(@vates/[^/]+)$": [
         "$1/src",
