@@ -333,7 +333,7 @@ exports.importDeltaVm = defer(async function importDeltaVm(
             VM: vmRef,
           },
           {
-            MAC: newMacAddresses ? vif.MAC : undefined,
+            MAC: newMacAddresses ? undefined : vif.MAC,
           }
         )
       }

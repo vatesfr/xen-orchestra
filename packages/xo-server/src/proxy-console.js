@@ -1,6 +1,6 @@
-import createLogger from '@xen-orchestra/log'
 import partialStream from 'partial-stream'
 import { connect } from 'tls'
+import { createLogger } from '@xen-orchestra/log'
 import { parse } from 'url'
 
 const log = createLogger('xo:proxy-console')

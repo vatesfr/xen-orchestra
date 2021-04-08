@@ -4,6 +4,8 @@
 
 [![Package Version](https://badgen.net/npm/v/complex-matcher)](https://npmjs.org/package/complex-matcher) ![License](https://badgen.net/npm/license/complex-matcher) [![PackagePhobia](https://badgen.net/bundlephobia/minzip/complex-matcher)](https://bundlephobia.com/result?p=complex-matcher) [![Node compatibility](https://badgen.net/npm/node/complex-matcher)](https://npmjs.org/package/complex-matcher)
 
+> Advanced search syntax used in XO
+
 ## Install
 
 Installation of the [npm package](https://npmjs.org/package/complex-matcher):

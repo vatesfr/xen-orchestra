@@ -2,10 +2,10 @@
 
 // $FlowFixMe
 import asyncMapSettled from '@xen-orchestra/async-map/legacy'
-import createLogger from '@xen-orchestra/log'
 import type RemoteHandler from '@xen-orchestra/fs'
 import Disposable from 'promise-toolbox/Disposable'
 import { Backup } from '@xen-orchestra/backups/Backup'
+import { createLogger } from '@xen-orchestra/log'
 import { decorateWith } from '@vates/decorate-with'
 import { formatVmBackups } from '@xen-orchestra/backups/formatVmBackups'
 import { forOwn, merge } from 'lodash'
@@ -215,7 +215,7 @@ export default class BackupNg {
     return this._runningRestores
   }
 
-  constructor(app: any, config) {
+  constructor(app: any, { config }) {
     this._app = app
     this._logger = undefined
     this._runningRestores = new Set()
@@ -275,7 +275,7 @@ export default class BackupNg {
                     app.getBackupsRemoteAdapter(await app.getRemoteWithCredentials(remoteId)),
 
                   // `@xen-orchestra/backups/Backup` expect that `getConnectedRecord` returns a promise
-                  getConnectedRecord: async (type, uuid) => app.getXapiObject(uuid, type),
+                  getConnectedRecord: async (xapiType, uuid) => app.getXapiObject(uuid),
                   job,
                   schedule,
                 }).run()
@@ -447,7 +447,7 @@ export default class BackupNg {
   // ├─ task.start(message: 'transfer')
   // │  └─ task.end(result: { id: string, size: number })
   // └─ task.end
-  async importVmBackupNg(id: string, srId: string): Promise<string> {
+  async importVmBackupNg(id: string, srId: string, settings): Promise<string> {
     const app = this._app
     const xapi = app.getXapi(srId)
     const sr = xapi.getObject(srId)
@@ -469,6 +469,7 @@ export default class BackupNg {
             url: remote.url,
             options: remote.options,
           },
+          settings,
           srUuid: sr.uuid,
           streamLogs: true,
           xapi: {
@@ -530,6 +531,7 @@ export default class BackupNg {
               new ImportVmBackup({
                 adapter,
                 metadata,
+                settings,
                 srUuid: srId,
                 xapi: await app.getXapi(srId),
               }).run()

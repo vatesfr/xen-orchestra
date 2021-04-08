@@ -2,7 +2,6 @@
 /* eslint-disable camelcase */
 import asyncMapSettled from '@xen-orchestra/async-map/legacy'
 import concurrency from 'limit-concurrency-decorator'
-import createLogger from '@xen-orchestra/log'
 import deferrable from 'golike-defer'
 import fatfs from 'fatfs'
 import mapToArray from 'lodash/map'
@@ -13,9 +12,10 @@ import tarStream from 'tar-stream'
 import { asyncMap } from '@xen-orchestra/async-map'
 import { vmdkToVhd } from 'xo-vmdk-to-vhd'
 import { cancelable, defer, fromEvents, ignoreErrors, pCatch, pRetry } from 'promise-toolbox'
+import { createLogger } from '@xen-orchestra/log'
 import { parseDuration } from '@vates/parse-duration'
 import { PassThrough } from 'stream'
-import { forbiddenOperation } from 'xo-common/api-errors'
+import { forbiddenOperation, operationFailed } from 'xo-common/api-errors'
 import { Xapi as XapiBase } from '@xen-orchestra/xapi'
 import { filter, find, flatMap, flatten, groupBy, identity, includes, isEmpty, noop, omit, once, uniq } from 'lodash'
 import { Ref } from 'xen-api'
@@ -124,20 +124,6 @@ export default class Xapi extends XapiBase {
     }
     this.objects.on('add', onAddOrUpdate)
     this.objects.on('update', onAddOrUpdate)
-  }
-
-  call(...args) {
-    const fn = super.call
-
-    const loop = () =>
-      fn.apply(this, args)::pCatch(
-        {
-          code: 'TOO_MANY_PENDING_TASKS',
-        },
-        () => pDelay(5e3).then(loop)
-      )
-
-    return loop()
   }
 
   // =================================================================
@@ -664,7 +650,7 @@ export default class Xapi extends XapiBase {
         //
         // The snapshot must not exist otherwise it could break the
         // next export.
-        this._deleteVdi(vdi.$ref)::ignoreErrors()
+        vdi.$destroy()::ignoreErrors()
         return
       }
 
@@ -794,7 +780,7 @@ export default class Xapi extends XapiBase {
         },
         sr: mapVdisSrs[vdi.uuid] || srId,
       })
-      $defer.onFailure.call(this, '_deleteVdi', suspendVdi.$ref)
+      $defer.onFailure.call(this, 'VDI_destroy', suspendVdi.$ref)
     }
 
     // 1. Create the VMs.
@@ -838,7 +824,7 @@ export default class Xapi extends XapiBase {
         }
 
         newVdi = await this._getOrWaitObject(await this._cloneVdi(baseVdi))
-        $defer.onFailure(() => this._deleteVdi(newVdi.$ref))
+        $defer.onFailure(() => newVdi.$destroy())
 
         await newVdi.update_other_config(TAG_COPY_SRC, vdi.uuid)
       } else if (vdiRef === delta.vm.suspend_VDI) {
@@ -854,7 +840,7 @@ export default class Xapi extends XapiBase {
           },
           sr: mapVdisSrs[vdi.uuid] || srId,
         })
-        $defer.onFailure(() => this._deleteVdi(newVdi.$ref))
+        $defer.onFailure(() => newVdi.$destroy())
       }
 
       await asyncMapSettled(vbds[vdiRef], vbd =>
@@ -1066,7 +1052,7 @@ export default class Xapi extends XapiBase {
       '[XO] Supplemental pack ISO',
       'small temporary VDI to store a supplemental pack ISO'
     )
-    $defer(() => this._deleteVdi(vdi.$ref))
+    $defer(() => vdi.$destroy())
 
     await this._callInstallationPlugin(this.getObject(hostId).$ref, vdi.uuid)
   }
@@ -1092,7 +1078,7 @@ export default class Xapi extends XapiBase {
         '[XO] Supplemental pack ISO',
         'small temporary VDI to store a supplemental pack ISO'
       )
-      $defer(() => this._deleteVdi(vdi.$ref))
+      $defer(() => vdi.$destroy())
 
       // Install pack sequentially to prevent concurrent access to the unique VDI
       for (const host of hosts) {
@@ -1125,7 +1111,7 @@ export default class Xapi extends XapiBase {
             '[XO] Supplemental pack ISO',
             'small temporary VDI to store a supplemental pack ISO'
           )
-          $defer(() => this._deleteVdi(vdi.$ref))
+          $defer(() => vdi.$destroy())
 
           await this._callInstallationPlugin(host.$ref, vdi.uuid)
         })
@@ -1197,7 +1183,7 @@ export default class Xapi extends XapiBase {
           size: disk.capacity,
           sr: sr.$ref,
         }))
-        $defer.onFailure(() => this._deleteVdi(vdi.$ref))
+        $defer.onFailure(() => vdi.$destroy())
         compression[disk.path] = disk.compression
         return this.createVbd({
           userdevice: String(disk.position),
@@ -1363,7 +1349,24 @@ export default class Xapi extends XapiBase {
     return /* await */ this._snapshotVm(this.getObject(vmId), nameLabel)
   }
 
-  async _startVm(vm, host, force) {
+  async _startVm(vm, host, { force = false, bypassMacAddressesCheck = force } = {}) {
+    if (!bypassMacAddressesCheck) {
+      const vmMacAddresses = vm.$VIFs.map(vif => vif.MAC)
+      if (new Set(vmMacAddresses).size !== vmMacAddresses.length) {
+        throw operationFailed({ objectId: vm.id, code: 'DUPLICATED_MAC_ADDRESS' })
+      }
+
+      const existingMacAddresses = new Set(
+        filter(
+          this.objects.all,
+          obj => obj.id !== vm.id && obj.$type === 'VM' && obj.power_state === 'Running'
+        ).flatMap(vm => vm.$VIFs.map(vif => vif.MAC))
+      )
+      if (vmMacAddresses.some(mac => existingMacAddresses.has(mac))) {
+        throw operationFailed({ objectId: vm.id, code: 'DUPLICATED_MAC_ADDRESS' })
+      }
+    }
+
     log.debug(`Starting VM ${vm.name_label}`)
 
     if (force) {
@@ -1380,9 +1383,9 @@ export default class Xapi extends XapiBase {
       : this.callAsync('VM.start_on', vm.$ref, host.$ref, false, false)
   }
 
-  async startVm(vmId, hostId, force) {
+  async startVm(vmId, hostId, { bypassMacAddressesCheck, force }) {
     try {
-      await this._startVm(this.getObject(vmId), hostId && this.getObject(hostId), force)
+      await this._startVm(this.getObject(vmId), hostId && this.getObject(hostId), { bypassMacAddressesCheck, force })
     } catch (e) {
       if (e.code === 'OPERATION_BLOCKED') {
         throw forbiddenOperation('Start', e.params[1])
@@ -1596,22 +1599,9 @@ export default class Xapi extends XapiBase {
           vdi: newVdi,
         })
       })
-      await this._deleteVdi(vdi.$ref)
+      await vdi.$destroy()
 
       return newVdi
-    }
-  }
-
-  // TODO: check whether the VDI is attached.
-  async _deleteVdi(vdiRef) {
-    log.debug(`Deleting VDI ${vdiRef}`)
-
-    try {
-      await this.callAsync('VDI.destroy', vdiRef)
-    } catch (error) {
-      if (error?.code !== 'HANDLE_INVALID') {
-        throw error
-      }
     }
   }
 
@@ -1703,10 +1693,6 @@ export default class Xapi extends XapiBase {
         return this.call('VBD.destroy', vbd.$ref)
       })
     )
-  }
-
-  async deleteVdi(vdiId) {
-    await this._deleteVdi(this.getObject(vdiId).$ref)
   }
 
   async resizeVdi(vdiId, size) {
@@ -2028,7 +2014,7 @@ export default class Xapi extends XapiBase {
       size: buffer.length,
       sr: sr.$ref,
     })
-    $defer.onFailure(() => this._deleteVdi(vdi.$ref))
+    $defer.onFailure(() => vdi.$destroy())
 
     // Then, generate a FAT fs
     const { mkdir, writeFile } = promisifyAll(fatfs.createFileSystem(fatfsBuffer(buffer)))
@@ -2071,7 +2057,7 @@ export default class Xapi extends XapiBase {
       size: stream.length,
       sr: sr.$ref,
     })
-    $defer.onFailure(() => this._deleteVdi(vdi.$ref))
+    $defer.onFailure(() => vdi.$destroy())
 
     await this.importVdiContent(vdi.$id, stream, { format: VDI_FORMAT_RAW })
 

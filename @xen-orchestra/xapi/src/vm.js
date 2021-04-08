@@ -452,24 +452,25 @@ module.exports = class Vm {
     do {
       if (!vm.tags.includes('xo-disable-quiesce')) {
         try {
+          let { snapshots } = vm
           ref = await pRetry(
-            async bail => {
+            async () => {
               try {
                 return await this.callAsync(cancelToken, 'VM.snapshot_with_quiesce', vmRef, name_label)
               } catch (error) {
                 if (error == null || error.code !== 'VM_SNAPSHOT_WITH_QUIESCE_FAILED') {
-                  throw bail(error)
+                  throw pRetry.bail(error)
                 }
                 // detect and remove new broken snapshots
                 //
                 // see https://github.com/vatesfr/xen-orchestra/issues/3936
-                const prevSnapshotRefs = new Set(vm.snapshots)
+                const prevSnapshotRefs = new Set(snapshots)
                 const snapshotNameLabelPrefix = `Snapshot of ${vm.uuid} [`
-                await vm.refresh_snapshots()
+                snapshots = await this.getField('VM', vm.$ref, 'snapshots')
                 const createdSnapshots = (
                   await this.getRecords(
                     'VM',
-                    vm.snapshots.filter(_ => !prevSnapshotRefs.has(_))
+                    snapshots.filter(_ => !prevSnapshotRefs.has(_))
                   )
                 ).filter(_ => _.name_label.startsWith(snapshotNameLabelPrefix))
                 // be safe: only delete if there was a single match

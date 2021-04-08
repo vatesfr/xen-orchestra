@@ -3,8 +3,6 @@
   "name": "@xen-orchestra/mixin",
   "version": "0.0.0",
   "license": "ISC",
-  "description": "",
-  "keywords": [],
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/mixin",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "repository": {

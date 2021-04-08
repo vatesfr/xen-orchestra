@@ -1,9 +1,9 @@
 // @flow
 import asyncMapSettled from '@xen-orchestra/async-map/legacy'
 import cloneDeep from 'lodash/cloneDeep'
-import createLogger from '@xen-orchestra/log'
 import Disposable from 'promise-toolbox/Disposable'
 import { Backup } from '@xen-orchestra/backups/Backup'
+import { createLogger } from '@xen-orchestra/log'
 import { parseDuration } from '@vates/parse-duration'
 import { parseMetadataBackupId } from '@xen-orchestra/backups/parseMetadataBackupId'
 import { RestoreMetadataBackup } from '@xen-orchestra/backups/RestoreMetadataBackup'
@@ -94,7 +94,7 @@ export default class metadataBackup {
     return this._runningMetadataRestores
   }
 
-  constructor(app: any, { backups }) {
+  constructor(app: any, { config: { backups } }) {
     this._app = app
     this._backupOptions = backups
     this._logger = undefined
@@ -208,7 +208,7 @@ export default class metadataBackup {
               getAdapter: async remoteId => app.getBackupsRemoteAdapter(await app.getRemoteWithCredentials(remoteId)),
 
               // `@xen-orchestra/backups/Backup` expect that `getConnectedRecord` returns a promise
-              getConnectedRecord: async (type, uuid) => app.getXapiObject(uuid, type),
+              getConnectedRecord: async (xapiType, uuid) => app.getXapiObject(uuid),
               job,
               schedule,
             }).run()

@@ -1,6 +1,6 @@
 {
   "name": "@xen-orchestra/xapi",
-  "version": "0.4.5",
+  "version": "0.6.0",
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/xapi",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "repository": {
@@ -12,6 +12,9 @@
   "files": [
     "dist/"
   ],
+  "bin": {
+    "xo-xapi": "./dist/cli.js"
+  },
   "engines": {
     "node": ">=8.10"
   },
@@ -22,7 +25,7 @@
     "@babel/preset-env": "^7.3.1",
     "cross-env": "^7.0.2",
     "rimraf": "^3.0.0",
-    "xo-common": "^0.6.0"
+    "xo-common": "^0.7.0"
   },
   "peerDependencies": {
     "xen-api": "^0.31.0"
@@ -40,11 +43,11 @@
   "dependencies": {
     "@xen-orchestra/async-map": "^0.1.2",
     "@xen-orchestra/log": "^0.2.0",
-    "d3-time-format": "^2.2.3",
+    "d3-time-format": "^3.0.0",
     "golike-defer": "^0.5.1",
     "lodash": "^4.17.15",
     "make-error": "^1.3.5",
-    "promise-toolbox": "^0.17.0"
+    "promise-toolbox": "^0.18.0"
   },
   "private": false,
   "license": "AGPL-3.0-or-later",

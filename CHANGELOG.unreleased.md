@@ -7,19 +7,14 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [Backup] Run backup jobs on different system processes (PR [#5660](https://github.com/vatesfr/xen-orchestra/pull/5660))
-- [VM] Display the full driver version in the general and advanced tab instead of `major.minor` [#5680](https://github.com/vatesfr/xen-orchestra/issues/5680) (PR [#5691](https://github.com/vatesfr/xen-orchestra/pull/5691))
-- [Usage report] Add VM IP addresses to the report (PR [#5696](https://github.com/vatesfr/xen-orchestra/pull/5696))
+[Host/Load-balancer] Add option to disable migration (PR [#5706](https://github.com/vatesfr/xen-orchestra/pull/5706))
 
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [Proxy] _Force upgrade_ no longer fails on broken proxy
-- [Proxy] _Redeploy_ now works when the bound VM is missing
-- [VM template] Fix confirmation modal doesn't appear on deleting a default template (PR [#5644](https://github.com/vatesfr/xen-orchestra/pull/5644))
-- [OVA VM Import] Fix imported VMs all having the same MAC addresses
-- [Disk import] Fix `an error has occurred` when importing wrong format or corrupted files [#5663](https://github.com/vatesfr/xen-orchestra/issues/5663) (PR [#5683](https://github.com/vatesfr/xen-orchestra/pull/5683))
+- [Backup restore] Generate new MAC addresses is disabled by default (PR [#5707](https://github.com/vatesfr/xen-orchestra/pull/5707))
+- [Backup] Fix `vm.refresh_snapshots is not a function` error
 
 ### Packages to release
 
@@ -38,13 +33,7 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
-- xo-server-usage-report minor
-- xo-server-backup-reports patch
-- @vates/disposable patch
-- xo-server-transport-email minor
-- @xen-orchestra/fs minor
-- @xen-orchestra/xapi minor
-- @xen-orchestra/backups minor
-- @xen-orchestra/backups-cli minor
-- xo-server minor
+- @xen-orchestra/xapi patch
+- xo-server-load-balancer minor
+- xo-server patch
 - xo-web patch

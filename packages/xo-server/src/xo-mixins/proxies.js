@@ -13,12 +13,12 @@ import { format, parse } from 'json-rpc-peer'
 import { incorrectState, noSuchObject } from 'xo-common/api-errors'
 import { isEmpty, mapValues, some, omit } from 'lodash'
 import { parseDuration } from '@vates/parse-duration'
+import { readChunk } from '@vates/read-chunk'
 import { Ref } from 'xen-api'
 import { timeout } from 'promise-toolbox'
 
 import Collection from '../collection/redis'
 import patch from '../patch'
-import readChunk from '../_readStreamChunk'
 import { extractIpFromVmNetworks } from '../_extractIpFromVmNetworks'
 import { generateToken } from '../utils'
 
@@ -39,7 +39,7 @@ const assertProxyAddress = (proxy, address) => {
 }
 
 export default class Proxy {
-  constructor(app, conf) {
+  constructor(app, { config: conf }) {
     this._app = app
     const xoProxyConf = (this._xoProxyConf = conf['xo-proxy'])
     const rules = {

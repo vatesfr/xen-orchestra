@@ -14,7 +14,7 @@ exports.ContinuousReplicationWriter = class ContinuousReplicationWriter {
     this._settings = settings
     this._sr = sr
 
-    this.run = Task.wrapFn(
+    this.transfer = Task.wrapFn(
       {
         name: 'export',
         data: ({ deltaExport }) => ({
@@ -23,7 +23,7 @@ exports.ContinuousReplicationWriter = class ContinuousReplicationWriter {
           type: 'SR',
         }),
       },
-      this.run
+      this.transfer
     )
   }
 
@@ -51,25 +51,32 @@ exports.ContinuousReplicationWriter = class ContinuousReplicationWriter {
     }
   }
 
-  async run({ timestamp, deltaExport, sizeContainers }) {
-    const sr = this._sr
+  async prepare() {
     const settings = this._settings
+    const { uuid: srUuid, $xapi: xapi } = this._sr
+    const { scheduleId, vm } = this._backup
+
+    // delete previous interrupted copies
+    ignoreErrors.call(asyncMapSettled(listReplicatedVms(xapi, scheduleId, undefined, vm.uuid), vm => vm.$destroy))
+
+    this._oldEntries = getOldEntries(settings.copyRetention - 1, listReplicatedVms(xapi, scheduleId, srUuid, vm.uuid))
+
+    if (settings.deleteFirst) {
+      await this._deleteOldEntries()
+    } else {
+      this.cleanup = this._deleteOldEntries
+    }
+  }
+
+  async _deleteOldEntries() {
+    return asyncMapSettled(this._oldEntries, vm => vm.$destroy())
+  }
+
+  async transfer({ timestamp, deltaExport, sizeContainers }) {
+    const sr = this._sr
     const { job, scheduleId, vm } = this._backup
 
     const { uuid: srUuid, $xapi: xapi } = sr
-
-    // delete previous interrupted copies
-    ignoreErrors.call(
-      asyncMapSettled(listReplicatedVms(xapi, scheduleId, undefined, vm.uuid), vm => xapi.VM_destroy(vm.$ref))
-    )
-
-    const oldVms = getOldEntries(settings.copyRetention - 1, listReplicatedVms(xapi, scheduleId, srUuid, vm.uuid))
-
-    const deleteOldBackups = () => asyncMapSettled(oldVms, vm => xapi.VM_destroy(vm.$ref))
-    const { deleteFirst } = settings
-    if (deleteFirst) {
-      await deleteOldBackups()
-    }
 
     let targetVmRef
     await Task.run({ name: 'transfer' }, async () => {
@@ -108,9 +115,5 @@ exports.ContinuousReplicationWriter = class ContinuousReplicationWriter {
         'xo:backup:vm': vm.uuid,
       }),
     ])
-
-    if (!deleteFirst) {
-      await deleteOldBackups()
-    }
   }
 }

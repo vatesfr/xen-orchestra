@@ -1,9 +1,9 @@
 import asyncMapSettled from '@xen-orchestra/async-map/legacy'
-import createLogger from '@xen-orchestra/log'
 import deferrable from 'golike-defer'
 import execa from 'execa'
 import splitLines from 'split-lines'
 import { CancelToken, fromEvent, ignoreErrors, pReflect } from 'promise-toolbox'
+import { createLogger } from '@xen-orchestra/log'
 import { createParser as createPairsParser } from 'parse-pairs'
 import { createReadStream, readdir, stat } from 'fs'
 import { decorateWith } from '@vates/decorate-with'
@@ -534,8 +534,8 @@ export default class {
       }),
       base => base.snapshot_time
     )
-    forEach(bases, base => {
-      xapi.deleteVdi(base.$id)::ignoreErrors()
+    forEach(bases, baseVdi => {
+      baseVdi.$destroy()::ignoreErrors()
     })
 
     // Export full or delta backup.

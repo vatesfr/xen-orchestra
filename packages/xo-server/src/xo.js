@@ -1,9 +1,9 @@
-import createLogger from '@xen-orchestra/log'
 import XoCollection from 'xo-collection'
 import XoUniqueIndex from 'xo-collection/unique-index'
 import mixin from '@xen-orchestra/mixin'
 import { createClient as createRedisClient } from 'redis'
 import { createDebounceResource } from '@vates/disposable/debounceResource'
+import { createLogger } from '@xen-orchestra/log'
 import { EventEmitter } from 'events'
 import { noSuchObject } from 'xo-common/api-errors'
 import { forEach, includes, isEmpty, iteratee, stubTrue } from 'lodash'
@@ -19,7 +19,7 @@ const log = createLogger('xo:xo')
 
 @mixin(Object.values(mixins))
 export default class Xo extends EventEmitter {
-  constructor(config) {
+  constructor({ config }) {
     super()
 
     // a lot of mixins adds listener for start/stop/… events

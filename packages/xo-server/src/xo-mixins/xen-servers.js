@@ -1,5 +1,5 @@
-import createLogger from '@xen-orchestra/log'
 import { BaseError } from 'make-error'
+import { createLogger } from '@xen-orchestra/log'
 import { fibonacci } from 'iterable-backoff'
 import { findKey } from 'lodash'
 import { noSuchObject } from 'xo-common/api-errors'
@@ -36,7 +36,7 @@ const log = createLogger('xo:xo-mixins:xen-servers')
 // - _xapis[server.id] id defined
 // - _serverIdsByPool[xapi.pool.$id] is server.id
 export default class {
-  constructor(xo, { guessVhdSizeOnImport, xapiMarkDisconnectedDelay, xapiOptions }) {
+  constructor(xo, { config: { guessVhdSizeOnImport, xapiMarkDisconnectedDelay, xapiOptions }, safeMode }) {
     this._objectConflicts = { __proto__: null } // TODO: clean when a server is disconnected.
     const serversDb = (this._servers = new Servers({
       connection: xo._redis,
@@ -87,7 +87,9 @@ export default class {
         ignoreErrors.call(XenStore.rm(key))
       }
 
-      await connectServers()
+      if (!safeMode) {
+        await connectServers()
+      }
     })
 
     // TODO: disconnect servers on stop.
@@ -446,8 +448,8 @@ export default class {
   }
 
   // returns the XAPI object corresponding to an XO object/ID
-  getXapiObject(xoObjectOrId, type) {
-    const xoObject = typeof xoObjectOrId === 'string' ? this._xo.getObject(xoObjectOrId, type) : xoObjectOrId
+  getXapiObject(xoObjectOrId, xoType) {
+    const xoObject = typeof xoObjectOrId === 'string' ? this._xo.getObject(xoObjectOrId, xoType) : xoObjectOrId
     return this.getXapi(xoObject).getObjectByRef(xoObject._xapiRef)
   }
 

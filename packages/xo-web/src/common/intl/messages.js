@@ -12,6 +12,7 @@ const messages = {
   errorPageNotFound: 'Page not found',
   errorNoSuchItem: 'No such item',
   errorUnknownItem: 'Unknown {type}',
+  generateNewMacAddress: 'Generate new MAC addresses',
   memoryFree: '{memoryFree} RAM free',
   utcDate: 'UTC date',
   utcTime: 'UTC time',
@@ -785,7 +786,7 @@ const messages = {
   srNoVdis: 'No VDIs in this storage',
   // ----- Pool general -----
   poolTitleRamUsage: 'Pool RAM usage:',
-  poolRamUsage: '{used} used on {total} ({free} free)',
+  poolRamUsage: '{used} used of {total} ({free} free)',
   poolMaster: 'Master:',
   displayAllHosts: 'Display all hosts of this pool',
   displayAllStorages: 'Display all storages of this pool',
@@ -879,7 +880,7 @@ const messages = {
     'Are you sure you want to enter maintenance mode? This will migrate all the VMs running on this host to other hosts of the pool.',
   maintenanceHostModalTitle: 'Maintenance mode',
   maintenanceHostTooltip: 'Evacuate and disable the host',
-  memoryHostState: 'RAM: {memoryUsed} used on {memoryTotal} ({memoryFree} free)',
+  memoryHostState: 'RAM: {memoryUsed} used of {memoryTotal} ({memoryFree} free)',
   hardwareHostSettingsLabel: 'Hardware',
   hyperThreading: 'Hyper-threading (SMT)',
   hyperThreadingNotAvailable: 'HT detection is only available on XCP-ng 7.6 and higher',
@@ -1414,11 +1415,11 @@ const messages = {
   copyHostBiosStrings: 'Copy host BIOS strings to VM',
   newVmCreateNewVmOn: 'Create a new VM on {select}',
   newVmCreateNewVmNoPermission: 'You have no permission to create a VM',
-  newVmInfoPanel: 'Infos',
+  newVmInfoPanel: 'Info',
   newVmNameLabel: 'Name',
   newVmTemplateLabel: 'Template',
   newVmDescriptionLabel: 'Description',
-  newVmPerfPanel: 'Performances',
+  newVmPerfPanel: 'Performance',
   newVmVcpusLabel: 'vCPUs',
   newVmRamLabel: 'RAM',
   newVmRamWarning: 'The memory is below the threshold ({threshold})',
@@ -1792,6 +1793,10 @@ const messages = {
   forgetSrsFromHostModalMessage:
     'Are you sure you want to forget {nPbds, number} SR{nPbds, plural, one {} other {s}}? This will disconnect the SRs from the host by removing the links between the host and the SRs (PBDs).',
   optionalEntry: '* optional',
+  vmWithDuplicatedMacAddressesMessage:
+    'This VM contains a duplicate MAC address or has the same MAC address as another running VM. Do you want to continue?',
+  vmsWithDuplicatedMacAddressesMessage:
+    '{nVms, number} VM{nVms, plural, one {} other {s}} contain{nVms, plural, one {s} other {}} duplicate MAC addresses or {nVms, plural, one {has} other {have}} the same MAC addresses as other running VMs. Do you want to continue?',
 
   // ----- Servers -----
   enableServerErrorTitle: 'Enable server',

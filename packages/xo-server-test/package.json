@@ -4,7 +4,6 @@
   "version": "0.0.0",
   "license": "AGPL-3.0-or-later",
   "description": "Test client for Xo-Server",
-  "keywords": [],
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/packages/xo-server-test",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "repository": {
@@ -36,7 +35,7 @@
     "golike-defer": "^0.5.1",
     "jest": "^24.8.0",
     "lodash": "^4.17.11",
-    "promise-toolbox": "^0.17.0",
+    "promise-toolbox": "^0.18.0",
     "xo-collection": "^0.4.1",
     "xo-common": "^0.7.0",
     "xo-lib": "^0.10.1"

@@ -4,6 +4,8 @@
 
 [![Package Version](https://badgen.net/npm/v/@xen-orchestra/proxy-cli)](https://npmjs.org/package/@xen-orchestra/proxy-cli) ![License](https://badgen.net/npm/license/@xen-orchestra/proxy-cli) [![PackagePhobia](https://badgen.net/bundlephobia/minzip/@xen-orchestra/proxy-cli)](https://bundlephobia.com/result?p=@xen-orchestra/proxy-cli) [![Node compatibility](https://badgen.net/npm/node/@xen-orchestra/proxy-cli)](https://npmjs.org/package/@xen-orchestra/proxy-cli)
 
+> CLI for @xen-orchestra/proxy
+
 ## Install
 
 Installation of the [npm package](https://npmjs.org/package/@xen-orchestra/proxy-cli):
