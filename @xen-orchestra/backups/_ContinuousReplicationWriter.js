@@ -13,18 +13,6 @@ exports.ContinuousReplicationWriter = class ContinuousReplicationWriter {
     this._backup = backup
     this._settings = settings
     this._sr = sr
-
-    this.transfer = Task.wrapFn(
-      {
-        name: 'export',
-        data: ({ deltaExport }) => ({
-          id: sr.uuid,
-          isFull: Object.values(deltaExport.vdis).some(vdi => vdi.other_config['xo:base_delta'] === undefined),
-          type: 'SR',
-        }),
-      },
-      this.transfer
-    )
   }
 
   async checkBaseVdis(baseUuidToSrcVdi, baseVm) {
@@ -51,7 +39,23 @@ exports.ContinuousReplicationWriter = class ContinuousReplicationWriter {
     }
   }
 
-  async prepare() {
+  prepare({ isFull }) {
+    // create the task related to this export and ensure all methods are called in this context
+    const task = new Task({
+      name: 'export',
+      data: {
+        id: this._sr.uuid,
+        isFull,
+        type: 'SR',
+      },
+    })
+    this.transfer = task.wrapFn(this.transfer)
+    this.cleanup = task.wrapFn(this.cleanup, true)
+
+    return task.run(() => this._prepare())
+  }
+
+  async _prepare() {
     const settings = this._settings
     const { uuid: srUuid, $xapi: xapi } = this._sr
     const { scheduleId, vm } = this._backup
@@ -63,8 +67,12 @@ exports.ContinuousReplicationWriter = class ContinuousReplicationWriter {
 
     if (settings.deleteFirst) {
       await this._deleteOldEntries()
-    } else {
-      this.cleanup = this._deleteOldEntries
+    }
+  }
+
+  async cleanup() {
+    if (!this._settings.deleteFirst) {
+      await this._deleteOldEntries()
     }
   }
 
