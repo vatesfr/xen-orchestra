@@ -114,7 +114,7 @@ const Updates = decorate([
         const { effects } = this
         await Promise.all([effects.resetChannel(), effects.resetProxyConfig(), effects.update()])
       },
-      async initialize({ fetchProxyUpgrades }) {
+      initialize() {
         if (!COMMUNITY) {
           return this.effects.update()
         }
