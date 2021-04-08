@@ -1209,7 +1209,6 @@ const messages = {
 
   // ----- VM backup tab -----
   goToBackupPage: 'Go to the backup page.',
-  vmInLegacyBackup: 'This VM may be backed up by the legacy backup system. See legacy jobs.',
 
   // ----- VM log tab -----
   logRemoveAll: 'Remove all logs',
@@ -1597,8 +1596,6 @@ const messages = {
   importBackupMessage: 'Starting your backup import',
   vmsToBackup: 'VMs to backup',
   refreshBackupList: 'Refresh backup list',
-  restoreLegacy: 'Legacy restore',
-  restoreFileLegacy: 'Legacy file restore',
   restoreVmBackups: 'Restore',
   restoreVmBackupsTitle: 'Restore {vm}',
   restoreVmBackupsBulkTitle: 'Restore {nVms, number} VM{nVms, plural, one {} other {s}}',

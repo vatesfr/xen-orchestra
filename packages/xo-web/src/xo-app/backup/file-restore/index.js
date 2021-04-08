@@ -15,8 +15,6 @@ import { filter, find, flatMap, forEach, keyBy, map, orderBy, reduce, toArray } 
 import DeleteBackupsModalBody from '../restore/delete-backups-modal-body'
 import RestoreFileModalBody from './restore-file-modal'
 
-import RestoreFileLegacy from '../file-restore-legacy'
-
 // -----------------------------------------------------------------------------
 
 const BACKUPS_COLUMNS = [
@@ -198,7 +196,6 @@ export default class Restore extends Component {
     return (
       <Upgrade place='restoreBackup' available={4}>
         <div>
-          <RestoreFileLegacy />
           <div className='mt-1 mb-1'>
             <h3>{_('backupFileRestorePage')}</h3>
             <ActionButton btnStyle='primary' handler={this._refreshBackupList} icon='refresh'>
