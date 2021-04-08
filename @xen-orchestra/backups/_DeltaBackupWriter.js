@@ -33,8 +33,6 @@ exports.DeltaBackupWriter = class DeltaBackupWriter {
       },
       this.transfer
     )
-
-    this[settings.deleteFirst ? 'prepare' : 'cleanup'] = this._deleteOldEntries
   }
 
   async checkBaseVdis(baseUuidToSrcVdi) {
