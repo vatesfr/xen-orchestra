@@ -528,7 +528,7 @@ class RemoteAdapter {
     const dir = dirname(metadata._filename)
 
     const streams = {}
-    await asyncMapSettled(Object.entries(vdis), async ([id, vdi]) => {
+    await asyncMapSettled(Object.keys(vdis), async id => {
       streams[`${id}.vhd`] = await createSyntheticStream(handler, join(dir, vhds[id]))
     })
 
