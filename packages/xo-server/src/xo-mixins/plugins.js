@@ -15,7 +15,7 @@ export default class {
     this._ajv = new Ajv({
       strict: 'log',
       useDefaults: true,
-    })
+    }).addVocabulary(['$type', 'enumNames'])
     this._plugins = { __proto__: null }
 
     this._pluginsMetadata = new PluginsMetadata({
