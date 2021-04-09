@@ -13,6 +13,7 @@ const log = createLogger('xo:xo-mixins:plugins')
 export default class {
   constructor(xo) {
     this._ajv = new Ajv({
+      strict: 'log',
       useDefaults: true,
     })
     this._plugins = { __proto__: null }
