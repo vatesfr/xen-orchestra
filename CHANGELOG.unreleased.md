@@ -18,6 +18,7 @@
 - [Backup] Fix `cannot read property "length" of undefined` when using _delete first_ [Forum post](https://xcp-ng.org/forum/topic/4440/error-on-delta-backup-cannot-read-property-length-of-undefined)
 - [Delta backup] Fix merge task not under corresponding remote and missing merge size in summary [#5708](https://github.com/vatesfr/xen-orchestra/issues/5708)
 - [Settings/Logs] Correctly hide `pool.listMissingPatches` and `host.stats` errors
+- [Plugins] Fix `strict mode: unknown keyword` when configuring some plugins
 
 ### Packages to release
 
