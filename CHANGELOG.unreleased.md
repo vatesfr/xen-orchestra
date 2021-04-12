@@ -20,6 +20,7 @@
 - [Delta backup restore] Fix incorrect reported size (and speed)
 - [Settings/Logs] Correctly hide `pool.listMissingPatches` and `host.stats` errors
 - [Plugins] Fix `strict mode: unknown keyword` when configuring some plugins
+- Fix `Cannot destructure property 'bypassMacAddressesCheck' of 'undefined'` error which happens on various actions deploying a proxy
 
 ### Packages to release
 
