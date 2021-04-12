@@ -4,20 +4,10 @@ import { withState } from 'reaclette'
 import Console from './Console'
 import RangeInput from './RangeInput'
 
-const INPUTATTRIBUTES = {
-  max: 100,
-  min: 1,
-  step: 1,
-}
-
 interface ParentState {}
 
 interface State {
-  consoleSize: {
-    height: number
-    width: number
-  }
-  defaultValue: number
+  consoleScale: number
 }
 
 interface Props {
@@ -27,7 +17,7 @@ interface Props {
 interface ParentEffects {}
 
 interface Effects {
-  scaleConsole: (value: number) => void
+  scaleConsole: React.ChangeEventHandler<HTMLInputElement>
 }
 
 interface Computed {}
@@ -35,19 +25,13 @@ interface Computed {}
 const TabConsole = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
   {
     initialState: () => ({
-      consoleSize: {
-        // Value in percent
-        height: 100,
-        width: 100,
-      },
-      defaultValue: 100,
+      // Value in percent
+      consoleScale: 100,
     }),
     effects: {
-      scaleConsole: function (value) {
-        this.state.consoleSize = {
-          height: value,
-          width: value,
-        }
+      scaleConsole: function (e) {
+        this.state.consoleScale = +e.currentTarget.value
+
         // With "scaleViewport", the canvas occupies all
         // available space of its container.
         // But when the size of the container is changed,
@@ -60,8 +44,8 @@ const TabConsole = withState<State, Props, Effects, Computed, ParentState, Paren
   },
   ({ state, effects, vmId }) => (
     <div style={{ height: '100vh' }}>
-      <RangeInput defaultValue={state.defaultValue} inputAttribues={INPUTATTRIBUTES} onChange={effects.scaleConsole} />
-      <Console vmId={vmId} scale={state.consoleSize} />
+      <RangeInput max={100} min={1} onChange={effects.scaleConsole} step={1} value={state.consoleScale} />
+      <Console vmId={vmId} scale={state.consoleScale} />
     </div>
   )
 )
