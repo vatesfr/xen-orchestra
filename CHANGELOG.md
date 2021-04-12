@@ -25,7 +25,7 @@
 
 ### Released packages
 
-- @xen-orchestra/xapi patch
+- @xen-orchestra/xapi 0.6.1
 - @xen-orchestra/backups patch
 - xo-server-load-balancer minor
 - xo-server patch
