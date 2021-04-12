@@ -16,6 +16,11 @@ import { confirm } from 'modal'
 import { Container, Row, Col } from 'grid'
 import { error } from 'notification'
 import { generateId, linkState, toggleState } from 'reaclette-utils'
+import { injectIntl } from 'react-intl'
+import { injectState, provideState } from 'reaclette'
+import { Input as DebounceInput } from 'debounce-input-decorator'
+import { isEmpty, map, pick, some, zipObject } from 'lodash'
+import { Password, Select } from 'form'
 import {
   getApplianceInfo,
   getProxyApplianceUpdaterState,
@@ -23,11 +28,6 @@ import {
   subscribeJobs,
   subscribeProxies,
 } from 'xo'
-import { injectIntl } from 'react-intl'
-import { injectState, provideState } from 'reaclette'
-import { Input as DebounceInput } from 'debounce-input-decorator'
-import { isEmpty, map, pick, some, zipObject } from 'lodash'
-import { Password, Select } from 'form'
 
 import { getXoaPlan, TryXoa } from '../../../common/utils'
 
