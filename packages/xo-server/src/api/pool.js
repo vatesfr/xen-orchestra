@@ -255,8 +255,8 @@ installSupplementalPack.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function listMatchingCriteria({ cpusCount, memorySize, poolTag, srSize, srTag }) {
-  return this.listMatchingCriteria({ cpusCount, memorySize, poolTag, srSize, srTag })
+export async function listMatchingCriteria(params) {
+  return this.listMatchingCriteria(params)
 }
 
 listMatchingCriteria.params = {

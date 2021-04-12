@@ -1,4 +1,4 @@
-import { difference, filter, flatten, groupBy, isEmpty, some, uniq } from 'lodash'
+import { difference, flatten, isEmpty, some, uniq } from 'lodash'
 
 export default class Pools {
   constructor(xo) {
@@ -84,15 +84,33 @@ export default class Pools {
 
   async listMatchingCriteria({ cpusCount = 0, memorySize = 0, poolTag, srSize = 0, srTag }) {
     const { _xo } = this
-    const hostsByPool = groupBy(_xo.getObjects({ filter: { type: 'host' } }), '$pool')
-    const srsByPool = groupBy(_xo.getObjects({ filter: { type: 'SR' } }), '$pool')
-    return filter(
-      _xo.getObjects({ filter: { type: 'pool' } }),
+    const allObjects = _xo.getObjects()
+    const hostsByPool = {}
+    const srsByPool = {}
+    const pools = []
+    for (const obj of allObjects) {
+      if (obj.type === 'host') {
+        if (hostsByPool[obj.$pool] === undefined) {
+          hostsByPool[obj.$pool] = []
+        }
+        hostsByPool[obj.$pool].push(obj)
+      } else if (obj.type === 'SR') {
+        if (srsByPool[obj.$pool] === undefined) {
+          srsByPool[obj.$pool] = []
+        }
+        srsByPool[obj.$pool].push(obj)
+      } else if (obj.type === 'pool') {
+        pools.push(obj)
+      } else {
+        continue
+      }
+    }
+    return pools.filter(
       pool =>
-        (poolTag !== undefined ? pool.tags.includes(poolTag) : true) &&
+        (poolTag === undefined || pool.tags.includes(poolTag)) &&
         pool.cpus.cores >= cpusCount &&
         some(hostsByPool[pool.id], host => host.memory.size >= memorySize) &&
-        some(srsByPool[pool.id], sr => (srTag !== undefined ? sr.tags.includes(srTag) : true) && sr.size >= srSize)
+        some(srsByPool[pool.id], sr => (srTag === undefined || sr.tags.includes(srTag)) && sr.size >= srSize)
     )
   }
 }
