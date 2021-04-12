@@ -21,6 +21,7 @@
 - [Settings/Logs] Correctly hide `pool.listMissingPatches` and `host.stats` errors
 - [Plugins] Fix `strict mode: unknown keyword` when configuring some plugins
 - Fix `Cannot destructure property 'bypassMacAddressesCheck' of 'undefined'` error which happens on various actions deploying a proxy
+- [Proxies] Fix _Force upgrade_ `expect the result to be iterator` error
 
 ### Packages to release
 
