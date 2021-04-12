@@ -83,12 +83,11 @@ export default class Pools {
   }
 
   async listMatchingCriteria({ cpusCount = 0, memorySize = 0, poolTag, srSize = 0, srTag }) {
-    const { _xo } = this
-    const allObjects = _xo.getObjects()
+    const objects = this._xo.getObjects()
     const hostsByPool = {}
     const srsByPool = {}
     const pools = []
-    for (const obj of allObjects) {
+    for (const obj of objects) {
       if (obj.type === 'host') {
         if (hostsByPool[obj.$pool] === undefined) {
           hostsByPool[obj.$pool] = []
