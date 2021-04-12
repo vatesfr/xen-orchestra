@@ -340,7 +340,24 @@ export default {
       set: 'memory_dynamic_min',
     },
 
-    memory: 'memoryMax',
+    _memory: {
+      addToLimits: true,
+      get: vm => +vm.memory_dynamic_max,
+      preprocess: parseSize,
+      set(memory, vm) {
+        return vm.$call('set_memory_limits', vm.memory_static_min, memory, memory, memory)
+      },
+    },
+
+    memory: {
+      dispatch(vm) {
+        const dynamicMin = vm.memory_dynamic_min
+        const useDmc = dynamicMin !== vm.memory_dynamic_max || dynamicMin !== vm.memory_static_max
+
+        return useDmc ? 'memoryMax' : '_memory'
+      },
+    },
+
     memoryMax: {
       addToLimits: true,
       limitName: 'memory',
