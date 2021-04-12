@@ -28,7 +28,7 @@
 - @xen-orchestra/xapi 0.6.1
 - @xen-orchestra/backups 0.9.3
 - xo-server-load-balancer 0.5.0
-- xo-server 5.78.3
+- xo-server 5.78.4
 - xo-web 5.80.1
 
 ## **5.57.0** (2021-04-01)
