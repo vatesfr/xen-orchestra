@@ -2,12 +2,16 @@ import React from 'react'
 import { withState } from 'reaclette'
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 import Button from './Button'
 
 import Console, { IConsole } from './Console'
 =======
 import Console from './Console'
+=======
+>>>>>>> sort
 import Button from './Button'
+import Console from './Console'
 
 interface RFB {
   sendCtrlAltDel: () => void
