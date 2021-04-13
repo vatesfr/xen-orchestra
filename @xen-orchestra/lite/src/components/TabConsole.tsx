@@ -73,8 +73,12 @@ const TabConsole = withState<State, Props, Effects, Computed, ParentState, Paren
   ({ effects, vmId }) => (
     <div style={{ height: '100vh' }}>
       <Button label='CTRL+ALT+DEL' onClick={effects.sendCtrlAltDel} />
+<<<<<<< HEAD
       <Console vmId={vmId} setRFB={effects.setRFB} />
 >>>>>>> TabConsole
+=======
+      <Console setRFB={effects.setRFB} vmId={vmId} />
+>>>>>>> sort
     </div>
   )
 )
