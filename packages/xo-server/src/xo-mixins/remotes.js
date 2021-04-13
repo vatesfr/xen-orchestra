@@ -17,9 +17,8 @@ const obfuscateRemote = ({ url, ...remote }) => {
 }
 
 export default class {
-  constructor(app, { config: { remoteOptions } }) {
+  constructor(app) {
     this._handlers = { __proto__: null }
-    this._remoteOptions = remoteOptions
     this._remotes = new Remotes({
       connection: app._redis,
       prefix: 'xo:remote',
@@ -69,7 +68,7 @@ export default class {
     const handlers = this._handlers
     let handler = handlers[id]
     if (handler === undefined) {
-      handler = getHandler(remote, this._remoteOptions)
+      handler = getHandler(remote, this._app.config.get('remoteOptions'))
 
       try {
         await handler.sync()

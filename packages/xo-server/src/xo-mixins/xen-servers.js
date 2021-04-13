@@ -3,7 +3,6 @@ import { createLogger } from '@xen-orchestra/log'
 import { fibonacci } from 'iterable-backoff'
 import { findKey } from 'lodash'
 import { noSuchObject } from 'xo-common/api-errors'
-import { parseDuration } from '@vates/parse-duration'
 import { pDelay, ignoreErrors } from 'promise-toolbox'
 
 import * as XenStore from '../_XenStore'
@@ -36,7 +35,7 @@ const log = createLogger('xo:xo-mixins:xen-servers')
 // - _xapis[server.id] id defined
 // - _serverIdsByPool[xapi.pool.$id] is server.id
 export default class {
-  constructor(app, { config: { guessVhdSizeOnImport, xapiMarkDisconnectedDelay, xapiOptions }, safeMode }) {
+  constructor(app, { safeMode }) {
     this._objectConflicts = { __proto__: null } // TODO: clean when a server is disconnected.
     const serversDb = (this._servers = new Servers({
       connection: app._redis,
@@ -45,13 +44,12 @@ export default class {
     }))
     this._serverIdsByPool = { __proto__: null }
     this._stats = new XapiStats()
-    this._xapiOptions = {
-      guessVhdSizeOnImport,
-      ...xapiOptions,
-    }
     this._xapis = { __proto__: null }
     this._app = app
-    this._xapiMarkDisconnectedDelay = parseDuration(xapiMarkDisconnectedDelay)
+
+    app.config.watchDuration('xapiMarkDisconnectedDelay', xapiMarkDisconnectedDelay => {
+      this._xapiMarkDisconnectedDelay = xapiMarkDisconnectedDelay
+    })
 
     app.hooks.on('clean', () => serversDb.rebuildIndexes())
     app.hooks.on('start', async () => {
@@ -272,11 +270,14 @@ export default class {
       throw new Error('the server is already connected')
     }
 
+    const { config } = this._app
+
     const xapi = (this._xapis[server.id] = new Xapi({
       allowUnauthorized: server.allowUnauthorized,
       readOnly: server.readOnly,
 
-      ...this._xapiOptions,
+      ...config.get('xapiOptions'),
+      guessVhdSizeOnImport: config.get('guessVhdSizeOnImport'),
 
       auth: {
         user: server.username,

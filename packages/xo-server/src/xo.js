@@ -1,3 +1,4 @@
+import Config from '@xen-orchestra/mixins/Config'
 import Hooks from '@xen-orchestra/mixins/Hooks'
 import mixin from '@xen-orchestra/mixin'
 import mixinLegacy from '@xen-orchestra/mixin/legacy'
@@ -24,14 +25,12 @@ export default class Xo extends EventEmitter {
   constructor(opts) {
     super()
 
-    mixin(this, { Hooks }, [opts])
+    mixin(this, { Config, Hooks }, [opts])
 
     // a lot of mixins adds listener for start/stop/… events
     this.hooks.setMaxListeners(0)
 
     const { config } = opts
-
-    this._config = config
 
     this._objects = new XoCollection()
     this._objects.createIndex('byRef', new XoUniqueIndex('_xapiRef'))

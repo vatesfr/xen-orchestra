@@ -262,7 +262,7 @@ async function setUpPassport(express, xo, { authentication: authCfg, http: { coo
       next()
     } else {
       req.flash('return-url', url)
-      res.redirect(authCfg.defaultSignInPage)
+      res.redirect(xo.config.get('authentication.defaultSignInPage'))
     }
   })
 
@@ -295,14 +295,15 @@ async function registerPlugin(pluginPath, pluginName) {
   let { default: factory = plugin, configurationSchema, configurationPresets, testSchema } = plugin
   let instance
 
-  const config = this._config
+  const datadir = this.config.get('datadir')
+  const pluginsConfig = this.config.get('plugins')
   const handleFactory = factory =>
     typeof factory === 'function'
       ? factory({
-          staticConfig: config.plugins?.[pluginName] ?? {},
+          staticConfig: pluginsConfig[pluginName] ?? {},
           xo: this,
           getDataDir: () => {
-            const dir = `${config.datadir}/${pluginName}`
+            const dir = `${datadir}/${pluginName}`
             return ensureDir(dir).then(() => dir)
           },
         })
