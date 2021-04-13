@@ -7,6 +7,10 @@ import { confirm } from './Modal'
 
 import XapiConnection, { ObjectsByType, Vm } from '../libs/xapi'
 
+interface RFB {
+  sendCtrlAltDel: () => void
+}
+
 interface ParentState {
   objectsByType: ObjectsByType
   xapi: XapiConnection
@@ -20,6 +24,7 @@ interface State {
 }
 
 interface Props {
+  setRFB: (RFB: RFB) => void
   vmId: string
   scale: number
   setCtrlAltDel: (fn: () => void) => void
@@ -43,7 +48,7 @@ const Console = withState<State, Props, Effects, Computed, ParentState, ParentEf
     }),
     effects: {
       initialize: async function () {
-        const { vmId } = this.props
+        const { setRFB, vmId } = this.props
         const { objectsByType, xapi } = this.state
         const consoles = (objectsByType.get('VM')?.get(vmId) as Vm)?.$consoles.filter(
           vmConsole => vmConsole.protocol === 'rfb'
