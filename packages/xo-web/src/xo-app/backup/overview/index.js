@@ -30,7 +30,7 @@ const Overview = decorate([
   injectState,
   ({ effects, state: { scrollIntoJobs, scrollIntoLogs } }) => (
     <div>
-      <div className='mt-2 mb-1'>
+      <div className='mb-1'>
         <Card>
           <CardHeader>
             <Icon icon='backup' /> {_('backupJobs')}
