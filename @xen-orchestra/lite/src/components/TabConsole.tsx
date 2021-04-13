@@ -1,8 +1,8 @@
 import React from 'react'
 import { withState } from 'reaclette'
 
-import Console from './Console'
 import Button from './Button'
+import Console from './Console'
 
 interface RFB {
   sendCtrlAltDel: () => void
