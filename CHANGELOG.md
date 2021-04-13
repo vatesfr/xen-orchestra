@@ -1,9 +1,10 @@
 # ChangeLog
 
-## **next**
+## **5.57.1** (2021-04-13)
+
+<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
 
 ### Enhancements
-
 
 - [Host/Load-balancer] Add option to disable migration (PR [#5706](https://github.com/vatesfr/xen-orchestra/pull/5706))
 - [VM] Don't switch a VM to use [DMC](https://docs.citrix.com/en-us/xencenter/7-1/dmc-about.html) when changing the memory [#4983](https://github.com/vatesfr/xen-orchestra/issues/4983)
@@ -29,8 +30,6 @@
 - xo-web 5.80.1
 
 ## **5.57.0** (2021-04-01)
-
-<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
 
 ### Highlights
 
