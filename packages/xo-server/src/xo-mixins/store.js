@@ -48,7 +48,7 @@ const valueEncoding = {
 }
 
 export default class {
-  constructor(xo, { config }) {
+  constructor(app, { config }) {
     const dir = `${config.datadir}/leveldb`
     this._db = ensureDir(dir).then(() => levelup(dir))
   }
