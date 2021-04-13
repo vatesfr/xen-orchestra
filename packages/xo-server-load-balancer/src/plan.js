@@ -105,7 +105,8 @@ export default class Plan {
         critical: numberOrDefault(thresholds && thresholds.cpu, DEFAULT_CRITICAL_THRESHOLD_CPU),
       },
       memoryFree: {
-        critical: numberOrDefault(thresholds && thresholds.memoryFree, DEFAULT_CRITICAL_THRESHOLD_MEMORY_FREE) * 1024,
+        critical:
+          numberOrDefault(thresholds && thresholds.memoryFree, DEFAULT_CRITICAL_THRESHOLD_MEMORY_FREE) * 1024 * 1024,
       },
     }
     this._antiAffinityTags = antiAffinityTags
