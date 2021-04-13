@@ -82,7 +82,7 @@ export default class Pools {
     }
   }
 
-  async listMatchingCriteria({ cpusCount = 0, memorySize = 0, poolTag, srSize = 0, srTag }) {
+  async listPoolsMatchingCriteria({ minCpus = 0, minMemory = 0, poolTag, minSrSize = 0, srTag }) {
     const hostsByPool = {}
     const srsByPool = {}
     const pools = []
@@ -107,9 +107,9 @@ export default class Pools {
     return pools.filter(
       pool =>
         (poolTag === undefined || pool.tags.includes(poolTag)) &&
-        pool.cpus.cores >= cpusCount &&
-        some(hostsByPool[pool.id], host => host.memory.size >= memorySize) &&
-        some(srsByPool[pool.id], sr => (srTag === undefined || sr.tags.includes(srTag)) && sr.size >= srSize)
+        pool.cpus.cores >= minCpus &&
+        some(hostsByPool[pool.id], host => host.memory.size >= minMemory) &&
+        some(srsByPool[pool.id], sr => (srTag === undefined || sr.tags.includes(srTag)) && sr.size >= minSrSize)
     )
   }
 }

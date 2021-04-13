@@ -255,14 +255,14 @@ installSupplementalPack.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function listMatchingCriteria(params) {
-  return this.listMatchingCriteria(params)
+export async function listPoolsMatchingCriteria(params) {
+  return this.listPoolsMatchingCriteria(params)
 }
 
-listMatchingCriteria.params = {
-  cpusCount: { type: 'number', optional: true },
-  memorySize: { type: 'number', optional: true },
+listPoolsMatchingCriteria.params = {
+  minCpus: { type: 'number', optional: true },
+  minMemory: { type: 'number', optional: true },
+  minSrSize: { type: 'number', optional: true },
   poolTag: { type: 'string', optional: true },
-  srSize: { type: 'number', optional: true },
   srTag: { type: 'string', optional: true },
 }
