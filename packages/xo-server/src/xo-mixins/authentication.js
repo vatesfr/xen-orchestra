@@ -63,7 +63,7 @@ export default class {
       } catch (error) {}
     })
 
-    xo.on('clean', async () => {
+    xo.hooks.on('clean', async () => {
       const tokens = await tokensDb.get()
       const toRemove = []
       const now = Date.now()
@@ -76,7 +76,7 @@ export default class {
       return tokensDb.rebuildIndexes()
     })
 
-    xo.on('start', () => {
+    xo.hooks.on('start', () => {
       xo.addConfigManager(
         'authTokens',
         () => tokensDb.get(),

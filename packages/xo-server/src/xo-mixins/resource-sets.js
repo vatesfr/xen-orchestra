@@ -66,7 +66,7 @@ export default class {
     this._xo = xo
 
     this._store = null
-    xo.on('start', async () => {
+    xo.hooks.on('start', async () => {
       xo.addConfigManager(
         'resourceSets',
         () => this.getAllResourceSets(),

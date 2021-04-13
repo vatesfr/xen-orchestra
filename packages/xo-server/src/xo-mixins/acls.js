@@ -16,7 +16,7 @@ export default class {
       indexes: ['subject', 'object'],
     }))
 
-    xo.on('start', () => {
+    xo.hooks.on('start', () => {
       xo.addConfigManager(
         'acls',
         () => aclsDb.get(),
@@ -25,7 +25,7 @@ export default class {
       )
     })
 
-    xo.on('clean', async () => {
+    xo.hooks.on('clean', async () => {
       const acls = await aclsDb.get()
       const toRemove = []
       forEach(acls, ({ subject, object, action, id }) => {

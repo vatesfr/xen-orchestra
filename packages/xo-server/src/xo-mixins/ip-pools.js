@@ -39,7 +39,7 @@ export default class IpPools {
     this._store = null
     this._xo = xo
 
-    xo.on('start', async () => {
+    xo.hooks.on('start', async () => {
       this._store = await xo.getStore('ipPools')
 
       xo.addConfigManager(

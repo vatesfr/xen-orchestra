@@ -53,8 +53,8 @@ export default class {
     this._xo = xo
     this._xapiMarkDisconnectedDelay = parseDuration(xapiMarkDisconnectedDelay)
 
-    xo.on('clean', () => serversDb.rebuildIndexes())
-    xo.on('start', async () => {
+    xo.hooks.on('clean', () => serversDb.rebuildIndexes())
+    xo.hooks.on('start', async () => {
       const connectServers = async () => {
         // Connects to existing servers.
         for (const server of await serversDb.get()) {

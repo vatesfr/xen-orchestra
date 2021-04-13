@@ -148,8 +148,8 @@ export default class Jobs {
 
     executors.call = executeCall
 
-    xo.on('clean', () => jobsDb.rebuildIndexes())
-    xo.on('start', async () => {
+    xo.hooks.on('clean', () => jobsDb.rebuildIndexes())
+    xo.hooks.on('start', async () => {
       this._logger = await xo.getLogger('jobs')
 
       xo.addConfigManager(

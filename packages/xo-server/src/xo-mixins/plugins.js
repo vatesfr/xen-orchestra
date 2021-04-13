@@ -23,7 +23,7 @@ export default class {
       prefix: 'xo:plugin-metadata',
     })
 
-    xo.on('start', () => {
+    xo.hooks.on('start', () => {
       xo.addConfigManager(
         'plugins',
         () => this._pluginsMetadata.get(),

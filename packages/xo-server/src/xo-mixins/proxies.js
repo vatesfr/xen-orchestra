@@ -53,8 +53,8 @@ export default class Proxy {
       prefix: 'xo:proxy',
     }))
 
-    app.on('clean', () => db.rebuildIndexes())
-    app.on('start', () =>
+    app.hooks.on('clean', () => db.rebuildIndexes())
+    app.hooks.on('start', () =>
       app.addConfigManager(
         'proxies',
         () => db.get(),

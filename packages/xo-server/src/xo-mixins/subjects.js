@@ -34,8 +34,8 @@ export default class {
       indexes: ['email'],
     }))
 
-    xo.on('clean', () => Promise.all([groupsDb.rebuildIndexes(), usersDb.rebuildIndexes()]))
-    xo.on('start', async () => {
+    xo.hooks.on('clean', () => Promise.all([groupsDb.rebuildIndexes(), usersDb.rebuildIndexes()]))
+    xo.hooks.on('start', async () => {
       xo.addConfigManager(
         'groups',
         () => groupsDb.get(),
