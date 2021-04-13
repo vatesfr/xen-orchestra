@@ -30,7 +30,7 @@ import { createDebounceResource } from '@vates/disposable/debounceResource'
 const debounceResource = createDebounceResource()
 
 // it will wait for 10 seconds before calling the disposer
-using(debounceResource(getConnection(host), 10e3), connection => {})
+Disposable.use(debounceResource(getConnection(host), 10e3), connection => {})
 ```
 
 ### `debounceResource.flushAll()`
