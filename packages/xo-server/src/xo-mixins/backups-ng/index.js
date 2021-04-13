@@ -221,7 +221,7 @@ export default class BackupNg {
     this._runningRestores = new Set()
     this._backupOptions = config.backups
 
-    app.on('start', async () => {
+    app.hooks.on('start', async () => {
       this._logger = await app.getLogger('restore')
 
       const executor: Executor = async ({ cancelToken, data, job: job_, logger, runJobId, schedule }) => {

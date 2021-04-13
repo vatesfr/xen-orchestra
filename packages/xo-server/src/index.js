@@ -493,7 +493,7 @@ const setUpProxies = (express, opts, xo) => {
   const webSocketServer = new WebSocket.Server({
     noServer: true,
   })
-  xo.on('stop', () => fromCallback.call(webSocketServer, 'close'))
+  xo.hooks.on('stop', () => fromCallback.call(webSocketServer, 'close'))
 
   express.on('upgrade', (req, socket, head) => {
     const { url } = req
@@ -533,7 +533,7 @@ const setUpApi = (webServer, xo, config) => {
 
     noServer: true,
   })
-  xo.on('stop', () => fromCallback.call(webSocketServer, 'close'))
+  xo.hooks.on('stop', () => fromCallback.call(webSocketServer, 'close'))
 
   const onConnection = (socket, upgradeReq) => {
     const { remoteAddress } = upgradeReq.socket
@@ -601,7 +601,7 @@ const setUpConsoleProxy = (webServer, xo) => {
   const webSocketServer = new WebSocket.Server({
     noServer: true,
   })
-  xo.on('stop', () => fromCallback.call(webSocketServer, 'close'))
+  xo.hooks.on('stop', () => fromCallback.call(webSocketServer, 'close'))
 
   webServer.on('upgrade', async (req, socket, head) => {
     const matches = CONSOLE_PROXY_PATH_RE.exec(req.url)
@@ -730,13 +730,13 @@ export default async function main(args) {
   })
 
   // Register web server close on XO stop.
-  xo.on('stop', () => fromCallback.call(webServer, 'stop'))
+  xo.hooks.on('stop', () => fromCallback.call(webServer, 'stop'))
 
   // Connects to all registered servers.
-  await xo.start()
+  await xo.hooks.start()
 
   // Trigger a clean job.
-  await xo.clean()
+  await xo.hooks.clean()
 
   // Express is used to manage non WebSocket connections.
   const express = await createExpressApp(config)
@@ -806,11 +806,11 @@ export default async function main(args) {
       alreadyCalled = true
 
       log.info(`${signal} caught, closing…`)
-      xo.stop()
+      xo.hooks.stop()
     })
   })
 
-  await fromEvent(xo, 'stopped')
+  await fromEvent(xo.hooks, 'stopped')
 
   log.info('bye :-)')
 }

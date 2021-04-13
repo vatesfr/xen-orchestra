@@ -33,8 +33,8 @@ export default class {
       prefix: 'xo:cloudConfig',
     }))
 
-    app.on('clean', () => db.rebuildIndexes())
-    app.on('start', () =>
+    app.hooks.on('clean', () => db.rebuildIndexes())
+    app.hooks.on('start', () =>
       app.addConfigManager(
         'cloudConfigs',
         () => db.get(),
