@@ -1,14 +1,17 @@
 import React from 'react'
 import { withState } from 'reaclette'
 
+import Console from './Console'
 import Button from './Button'
 
-import Console, { IConsole } from './Console'
+interface RFB {
+  sendCtrlAltDel: () => void
+}
 
 interface ParentState {}
 
 interface State {
-  console: React.RefObject<IConsole>
+  RFB: RFB | null
 }
 
 interface Props {
@@ -17,22 +20,31 @@ interface Props {
 
 interface ParentEffects {}
 
-interface Effects {}
+interface Effects {
+  sendCtrlAltDel: () => void
+  setRFB: (RFB: RFB) => void
+}
 
 interface Computed {}
 
 const TabConsole = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
   {
     initialState: () => ({
-      console: React.createRef(),
+      RFB: null,
     }),
+    effects: {
+      sendCtrlAltDel: function () {
+        this.state.RFB?.sendCtrlAltDel()
+      },
+      setRFB: function (RFB) {
+        this.state.RFB = RFB
+      },
+    },
   },
-  ({ state, vmId }) => (
+  ({ effects, vmId }) => (
     <div style={{ height: '100vh' }}>
-      {state.console.current !== null &&
-        <Button label='CTRL+ALT+DEL' onClick={state.console.current._effects.sendCtrlAltDel} />
-      }
-      <Console vmId={vmId} ref={state.console} />
+      <Button label='CTRL+ALT+DEL' onClick={effects.sendCtrlAltDel} />
+      <Console vmId={vmId} setRFB={effects.setRFB} />
     </div>
   )
 )
