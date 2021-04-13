@@ -9,7 +9,7 @@ import { addSubscriptions, noop } from 'utils'
 import { confirm } from 'modal'
 import { error } from 'notification'
 import { FormattedDate } from 'react-intl'
-import { deleteBackups, fetchFilesNg as fetchFiles, listVmBackups, subscribeBackupNgJobs, subscribeRemotes } from 'xo'
+import { deleteBackups, fetchFiles, listVmBackups, subscribeBackupNgJobs, subscribeRemotes } from 'xo'
 import { filter, find, flatMap, forEach, keyBy, map, orderBy, reduce, toArray } from 'lodash'
 
 import DeleteBackupsModalBody from '../restore/delete-backups-modal-body'
