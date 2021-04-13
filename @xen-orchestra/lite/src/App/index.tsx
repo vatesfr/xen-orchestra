@@ -7,7 +7,7 @@ import { Map } from 'immutable'
 import './style.css'
 import messagesEn from '../lang/en.json'
 import Signin from './Signin/index'
-import Console from '../components/Console'
+import TabConsole from '../components/TabConsole'
 import XapiConnection, { ObjectsByType, Vm } from '../libs/xapi'
 
 interface ParentState {
@@ -97,7 +97,7 @@ const App = withState<State, Props, Effects, Computed, ParentState, ParentEffect
                 </>
               )}
             </Route>
-            <Route path='/:id' render={({ match }) => <Console vmId={match.params.id} />} />
+            <Route path='/:id' render={({ match }) => <TabConsole vmId={match.params.id} />} />
           </Switch>
         </Router>
       )}
