@@ -1,4 +1,4 @@
-import { getBoundPropertyDescriptor } from 'bind-property-descriptor'
+const { getBoundPropertyDescriptor } = require('bind-property-descriptor')
 
 // ===================================================================
 
@@ -25,7 +25,7 @@ const ownKeys =
 // -------------------------------------------------------------------
 
 const mixin = Mixins => Class => {
-  if (__DEV__ && !Array.isArray(Mixins)) {
+  if (!Array.isArray(Mixins)) {
     throw new TypeError('Mixins should be an array')
   }
 
@@ -44,7 +44,7 @@ const mixin = Mixins => Class => {
       }
 
       for (const prop of ownKeys(Mixin)) {
-        if (__DEV__ && prop in prototype) {
+        if (prop in prototype) {
           throw new Error(`${name}#${prop} is already defined`)
         }
 
@@ -106,7 +106,7 @@ const mixin = Mixins => Class => {
         return
       }
 
-      if (__DEV__ && prop in descriptors) {
+      if (prop in descriptors) {
         throw new Error(`${name}.${prop} is already defined`)
       }
 
@@ -117,4 +117,4 @@ const mixin = Mixins => Class => {
 
   return DecoratedClass
 }
-export { mixin as default }
+module.exports = mixin
