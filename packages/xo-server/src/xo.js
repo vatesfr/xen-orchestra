@@ -1,6 +1,6 @@
 import XoCollection from 'xo-collection'
 import XoUniqueIndex from 'xo-collection/unique-index'
-import mixin from '@xen-orchestra/mixin'
+import mixin from '@xen-orchestra/mixin/legacy'
 import { createClient as createRedisClient } from 'redis'
 import { createDebounceResource } from '@vates/disposable/debounceResource'
 import { createLogger } from '@xen-orchestra/log'
