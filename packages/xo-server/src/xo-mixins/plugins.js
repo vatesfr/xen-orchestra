@@ -11,7 +11,7 @@ import { PluginsMetadata } from '../models/plugin-metadata'
 const log = createLogger('xo:xo-mixins:plugins')
 
 export default class {
-  constructor(xo) {
+  constructor(app) {
     this._ajv = new Ajv({
       strict: 'log',
       useDefaults: true,
@@ -19,12 +19,12 @@ export default class {
     this._plugins = { __proto__: null }
 
     this._pluginsMetadata = new PluginsMetadata({
-      connection: xo._redis,
+      connection: app._redis,
       prefix: 'xo:plugin-metadata',
     })
 
-    xo.hooks.on('start', () => {
-      xo.addConfigManager(
+    app.hooks.on('start', () => {
+      app.addConfigManager(
         'plugins',
         () => this._pluginsMetadata.get(),
         plugins => Promise.all(plugins.map(plugin => this._pluginsMetadata.save(plugin)))

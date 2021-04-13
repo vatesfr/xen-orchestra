@@ -1,13 +1,13 @@
 import { differenceBy } from 'lodash'
 
 export default class {
-  constructor(xo) {
-    this._xo = xo
+  constructor(app) {
+    this._app = app
   }
 
   getPatchesDifference(hostA, hostB) {
-    const patchesA = this._xo.getObject(hostA).patches.map(patchId => this._xo.getObject(patchId))
-    const patchesB = this._xo.getObject(hostB).patches.map(patchId => this._xo.getObject(patchId))
+    const patchesA = this._app.getObject(hostA).patches.map(patchId => this._app.getObject(patchId))
+    const patchesB = this._app.getObject(hostB).patches.map(patchId => this._app.getObject(patchId))
 
     return differenceBy(patchesA, patchesB, 'name').map(patch => patch.name)
   }
