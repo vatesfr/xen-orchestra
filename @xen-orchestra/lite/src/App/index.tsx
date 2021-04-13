@@ -6,7 +6,7 @@ import { Map } from 'immutable'
 
 import messagesEn from '../lang/en.json'
 import Signin from './Signin/index'
-import TabConsole from './TabConsole'
+import TabConsole from '../components/TabConsole'
 import XapiConnection, { ObjectsByType, Vm } from '../libs/xapi'
 
 interface ParentState {
