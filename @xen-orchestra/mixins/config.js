@@ -1,12 +1,12 @@
-import get from 'lodash/get'
-import identity from 'lodash/identity'
-import { createLogger } from '@xen-orchestra/log'
-import { parseDuration } from '@vates/parse-duration'
-import { watch } from 'app-conf'
+const get = require('lodash/get')
+const identity = require('lodash/identity')
+const { createLogger } = require('@xen-orchestra/log')
+const { parseDuration } = require('@vates/parse-duration')
+const { watch } = require('app-conf')
 
-const { warn } = createLogger('xo:proxy:config')
+const { warn } = createLogger('xo:mixins:config')
 
-export default class Config {
+module.exports = class Config {
   constructor(app, { appDir, appName, config }) {
     this._config = config
     const watchers = (this._watchers = new Set())
