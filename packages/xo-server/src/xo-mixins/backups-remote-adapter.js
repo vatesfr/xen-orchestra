@@ -6,9 +6,8 @@ import { deduped } from '@vates/disposable/deduped'
 import { RemoteAdapter } from '@xen-orchestra/backups/RemoteAdapter'
 
 export default class BackupsRemoteAdapter {
-  constructor(app, { config: { backups } }) {
+  constructor(app) {
     this._app = app
-    this._config = backups
   }
 
   // FIXME: invalidate cache on remote option change
@@ -21,7 +20,7 @@ export default class BackupsRemoteAdapter {
     const app = this._app
     return new RemoteAdapter(await app.getRemoteHandler(remote), {
       debounceResource: app.debounceResource.bind(app),
-      dirMode: this._config.dirMode,
+      dirMode: app.config.get('backups.dirMode'),
     })
   }
 }

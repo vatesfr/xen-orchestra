@@ -11,7 +11,6 @@ import { formatVmBackups } from '@xen-orchestra/backups/formatVmBackups'
 import { forOwn, merge } from 'lodash'
 import { ImportVmBackup } from '@xen-orchestra/backups/ImportVmBackup'
 import { invalidParameters } from 'xo-common/api-errors'
-import { parseDuration } from '@vates/parse-duration'
 import { runBackupWorker } from '@xen-orchestra/backups/runBackupWorker'
 import { Task } from '@xen-orchestra/backups/Task'
 import { type Pattern, createPredicate } from 'value-matcher'
@@ -215,16 +214,17 @@ export default class BackupNg {
     return this._runningRestores
   }
 
-  constructor(app: any, { config }) {
+  constructor(app: any) {
     this._app = app
     this._logger = undefined
     this._runningRestores = new Set()
-    this._backupOptions = config.backups
 
     app.hooks.on('start', async () => {
       this._logger = await app.getLogger('restore')
 
       const executor: Executor = async ({ cancelToken, data, job: job_, logger, runJobId, schedule }) => {
+        const backupsConfig = app.config.get('backups')
+
         let job: BackupJob = (job_: any)
 
         const vmsPattern = job.vms
@@ -256,7 +256,7 @@ export default class BackupNg {
         const proxyId = job.proxy
         const remoteIds = unboxIdsFromPattern(job.remotes)
         try {
-          if (proxyId === undefined && config.backups.disableWorkers) {
+          if (proxyId === undefined && backupsConfig.disableWorkers) {
             const localTaskIds = { __proto__: null }
             return await Task.run(
               {
@@ -270,7 +270,7 @@ export default class BackupNg {
               },
               () =>
                 new Backup({
-                  config: config.backups,
+                  config: backupsConfig,
                   getAdapter: async remoteId =>
                     app.getBackupsRemoteAdapter(await app.getRemoteWithCredentials(remoteId)),
 
@@ -363,10 +363,10 @@ export default class BackupNg {
             const localTaskIds = { __proto__: null }
             return await runBackupWorker(
               {
-                config: config.backups,
-                remoteOptions: config.remoteOptions,
-                resourceCacheDelay: parseDuration(config.resourceCacheDelay),
-                xapiOptions: config.xapiOptions,
+                config: backupsConfig,
+                remoteOptions: app.config.get('remoteOptions'),
+                resourceCacheDelay: app.config.getDuration('resourceCacheDelay'),
+                xapiOptions: app.config.get('xapiOptions'),
                 ...params,
               },
               log =>
@@ -546,7 +546,7 @@ export default class BackupNg {
   @decorateWith(
     debounceWithKey,
     function () {
-      return parseDuration(this._backupOptions.listingDebounce)
+      return this._app.config.getDuration('backups.listingDebounce')
     },
     function keyFn(remoteId) {
       return [this, remoteId]

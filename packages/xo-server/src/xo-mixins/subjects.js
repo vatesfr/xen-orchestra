@@ -222,7 +222,7 @@ export default class {
       return user
     }
 
-    if (!this._app._config.createUserOnFirstSignin) {
+    if (!this._app.config.get('createUserOnFirstSignin')) {
       throw new Error(`registering ${name} user is forbidden`)
     }
 
@@ -251,7 +251,7 @@ export default class {
       conflictingUser = users.find(user => user.email === name)
 
       if (conflictingUser !== undefined) {
-        if (!this._app._config.authentication.mergeProvidersUsers) {
+        if (!this._app.config.get('authentication.mergeProvidersUsers')) {
           throw new Error(`User with username ${name} already exists`)
         }
         if (user !== undefined) {
@@ -269,7 +269,7 @@ export default class {
     }
 
     if (user === undefined) {
-      if (!this._app._config.createUserOnFirstSignin) {
+      if (!this._app.config.get('createUserOnFirstSignin')) {
         throw new Error(`registering ${name} user is forbidden`)
       }
       user = await this.createUser({
