@@ -44,7 +44,7 @@ const TabConsole = withState<State, Props, Effects, Computed, ParentState, Paren
   ({ effects, vmId }) => (
     <div style={{ height: '100vh' }}>
       <Button label='CTRL+ALT+DEL' onClick={effects.sendCtrlAltDel} />
-      <Console vmId={vmId} setRFB={effects.setRFB} />
+      <Console setRFB={effects.setRFB} vmId={vmId} />
     </div>
   )
 )
