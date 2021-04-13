@@ -7,19 +7,9 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-[Host/Load-balancer] Add option to disable migration (PR [#5706](https://github.com/vatesfr/xen-orchestra/pull/5706))
-
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
-
-- [Backup restore] Generate new MAC addresses is disabled by default (PR [#5707](https://github.com/vatesfr/xen-orchestra/pull/5707))
-- [Backup] Fix `vm.refresh_snapshots is not a function` error
-- [Backup] Fix `cannot read property "length" of undefined` when using _delete first_ [Forum post](https://xcp-ng.org/forum/topic/4440/error-on-delta-backup-cannot-read-property-length-of-undefined)
-- [Delta backup] Fix merge task not under corresponding remote and missing merge size in summary [#5708](https://github.com/vatesfr/xen-orchestra/issues/5708)
-- [Delta backup restore] Fix incorrect reported size (and speed)
-- [Settings/Logs] Correctly hide `pool.listMissingPatches` and `host.stats` errors
-- [Plugins] Fix `strict mode: unknown keyword` when configuring some plugins
 
 ### Packages to release
 
@@ -38,8 +28,5 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
-- @xen-orchestra/xapi patch
-- @xen-orchestra/backups patch
-- xo-server-load-balancer minor
-- xo-server patch
-- xo-web patch
+- @xen-orchestra/mixins minor
+- xo-server minor

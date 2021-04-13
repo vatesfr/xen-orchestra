@@ -6,7 +6,7 @@ export default class Logs {
   constructor(app) {
     this._app = app
 
-    app.on('clean', () => this._gc())
+    app.hooks.on('clean', () => this._gc())
   }
 
   async _gc(keep = 2e4) {

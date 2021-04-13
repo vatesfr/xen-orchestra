@@ -5,7 +5,7 @@ import concurrency from 'limit-concurrency-decorator'
 import deferrable from 'golike-defer'
 import fatfs from 'fatfs'
 import mapToArray from 'lodash/map'
-import mixin from '@xen-orchestra/mixin'
+import mixin from '@xen-orchestra/mixin/legacy'
 import ms from 'ms'
 import synchronized from 'decorator-synchronized'
 import tarStream from 'tar-stream'
@@ -1349,7 +1349,7 @@ export default class Xapi extends XapiBase {
     return /* await */ this._snapshotVm(this.getObject(vmId), nameLabel)
   }
 
-  async _startVm(vm, host, { force = false, bypassMacAddressesCheck = force } = {}) {
+  async _startVm(vm, { force = false, bypassMacAddressesCheck = force, hostId } = {}) {
     if (!bypassMacAddressesCheck) {
       const vmMacAddresses = vm.$VIFs.map(vif => vif.MAC)
       if (new Set(vmMacAddresses).size !== vmMacAddresses.length) {
@@ -1373,19 +1373,19 @@ export default class Xapi extends XapiBase {
       await vm.update_blocked_operations('start', null)
     }
 
-    return host === undefined
+    return hostId === undefined
       ? this.call(
           'VM.start',
           vm.$ref,
           false, // Start paused?
           false // Skip pre-boot checks?
         )
-      : this.callAsync('VM.start_on', vm.$ref, host.$ref, false, false)
+      : this.callAsync('VM.start_on', vm.$ref, this.getObject(hostId).$ref, false, false)
   }
 
-  async startVm(vmId, hostId, { bypassMacAddressesCheck, force }) {
+  async startVm(vmId, options) {
     try {
-      await this._startVm(this.getObject(vmId), hostId && this.getObject(hostId), { bypassMacAddressesCheck, force })
+      await this._startVm(this.getObject(vmId), options)
     } catch (e) {
       if (e.code === 'OPERATION_BLOCKED') {
         throw forbiddenOperation('Start', e.params[1])

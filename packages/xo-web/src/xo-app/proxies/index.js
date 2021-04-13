@@ -206,9 +206,9 @@ const Proxies = decorate([
       async deployProxy({ fetchProxyUpgrades }, proxy) {
         return fetchProxyUpgrades([await deployProxy(proxy)])
       },
-      async upgradeAppliance({ fetchProxyUpgrades }, id) {
+      async upgradeAppliance({ fetchProxyUpgrades }, id, options) {
         try {
-          await upgradeProxyAppliance(id)
+          await upgradeProxyAppliance(id, options)
         } catch (error) {
           if (!incorrectState.is(error)) {
             throw error

@@ -155,7 +155,7 @@ exports.VmBackup = class VmBackup {
     const deltaExport = await exportDeltaVm(exportedVm, baseVm, {
       fullVdisRequired,
     })
-    const sizeContainers = mapValues(deltaExport.streams, watchStreamSize)
+    const sizeContainers = mapValues(deltaExport.streams, stream => watchStreamSize(stream))
 
     const timestamp = Date.now()
 

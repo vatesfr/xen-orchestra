@@ -104,7 +104,7 @@ export default class metadataBackup {
     this._listXoMetadataBackups = debounceWithKey(this._listXoMetadataBackups, debounceDelay, remoteId => remoteId)
     this._listPoolMetadataBackups = debounceWithKey(this._listPoolMetadataBackups, debounceDelay, remoteId => remoteId)
 
-    app.on('start', async () => {
+    app.hooks.on('start', async () => {
       this._logger = await app.getLogger('metadataRestore')
 
       app.registerJobExecutor(METADATA_BACKUP_JOB_TYPE, this._executor.bind(this))

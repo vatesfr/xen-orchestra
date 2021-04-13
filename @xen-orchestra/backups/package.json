@@ -8,7 +8,7 @@
     "type": "git",
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },
-  "version": "0.9.1",
+  "version": "0.9.3",
   "engines": {
     "node": ">=14.6"
   },
@@ -37,7 +37,7 @@
     "yazl": "^2.5.1"
   },
   "peerDependencies": {
-    "@xen-orchestra/xapi": "^0.6.0"
+    "@xen-orchestra/xapi": "^0.6.1"
   },
   "license": "AGPL-3.0-or-later",
   "author": {

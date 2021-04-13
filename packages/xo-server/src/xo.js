@@ -1,6 +1,8 @@
+import hooks from '@xen-orchestra/mixins/hooks'
+import mixin from '@xen-orchestra/mixin'
+import mixinLegacy from '@xen-orchestra/mixin/legacy'
 import XoCollection from 'xo-collection'
 import XoUniqueIndex from 'xo-collection/unique-index'
-import mixin from '@xen-orchestra/mixin'
 import { createClient as createRedisClient } from 'redis'
 import { createDebounceResource } from '@vates/disposable/debounceResource'
 import { createLogger } from '@xen-orchestra/log'
@@ -17,13 +19,17 @@ import { generateToken, noop } from './utils'
 
 const log = createLogger('xo:xo')
 
-@mixin(Object.values(mixins))
+@mixinLegacy(Object.values(mixins))
 export default class Xo extends EventEmitter {
-  constructor({ config }) {
+  constructor(opts) {
     super()
 
+    mixin(this, { hooks }, [opts])
+
     // a lot of mixins adds listener for start/stop/… events
-    this.setMaxListeners(0)
+    this.hooks.setMaxListeners(0)
+
+    const { config } = opts
 
     this._config = config
 
@@ -47,11 +53,11 @@ export default class Xo extends EventEmitter {
       })
     }
 
-    this.on('start', () => this._watchObjects())
+    this.hooks.on('start', () => this._watchObjects())
 
     const debounceResource = createDebounceResource()
     debounceResource.defaultDelay = parseDuration(config.resourceCacheDelay)
-    this.once('stop', debounceResource.flushAll)
+    this.hooks.on('stop', debounceResource.flushAll)
 
     this.debounceResource = debounceResource
   }

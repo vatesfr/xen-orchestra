@@ -1,8 +1,35 @@
 # ChangeLog
 
-## **5.57.0** (2021-04-01)
+## **5.57.1** (2021-04-13)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
+### Enhancements
+
+- [Host/Load-balancer] Add option to disable migration (PR [#5706](https://github.com/vatesfr/xen-orchestra/pull/5706))
+- [VM] Don't switch a VM to use [DMC](https://docs.citrix.com/en-us/xencenter/7-1/dmc-about.html) when changing the memory [#4983](https://github.com/vatesfr/xen-orchestra/issues/4983)
+
+### Bug fixes
+
+- [Backup restore] Generate new MAC addresses is disabled by default (PR [#5707](https://github.com/vatesfr/xen-orchestra/pull/5707))
+- [Backup] Fix `vm.refresh_snapshots is not a function` error
+- [Backup] Fix `cannot read property "length" of undefined` when using _delete first_ [Forum post](https://xcp-ng.org/forum/topic/4440/error-on-delta-backup-cannot-read-property-length-of-undefined)
+- [Delta backup] Fix merge task not under corresponding remote and missing merge size in summary [#5708](https://github.com/vatesfr/xen-orchestra/issues/5708)
+- [Delta backup restore] Fix incorrect reported size (and speed)
+- [Settings/Logs] Correctly hide `pool.listMissingPatches` and `host.stats` errors
+- [Plugins] Fix `strict mode: unknown keyword` when configuring some plugins
+- Fix `Cannot destructure property 'bypassMacAddressesCheck' of 'undefined'` error which happens on various actions deploying a proxy
+- [Proxies] Fix _Force upgrade_ `expect the result to be iterator` error
+
+### Released packages
+
+- @xen-orchestra/xapi 0.6.1
+- @xen-orchestra/backups 0.9.3
+- xo-server-load-balancer 0.5.0
+- xo-server 5.78.4
+- xo-web 5.80.1
+
+## **5.57.0** (2021-04-01)
 
 ### Highlights
 

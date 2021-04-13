@@ -149,7 +149,7 @@ export default class Api {
     this._xo = xo
 
     this.addApiMethods(methods)
-    xo.on('start', async () => {
+    xo.hooks.on('start', async () => {
       this._logger = await xo.getLogger('api')
     })
   }

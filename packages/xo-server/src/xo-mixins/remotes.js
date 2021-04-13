@@ -28,8 +28,8 @@ export default class {
     this._remotesInfo = {}
     this._xo = xo
 
-    xo.on('clean', () => this._remotes.rebuildIndexes())
-    xo.on('start', async () => {
+    xo.hooks.on('clean', () => this._remotes.rebuildIndexes())
+    xo.hooks.on('start', async () => {
       xo.addConfigManager(
         'remotes',
         () => this._remotes.get(),
@@ -41,7 +41,7 @@ export default class {
         ignoreErrors.call(this.updateRemote(remote.id, {}))
       })
     })
-    xo.on('stop', async () => {
+    xo.hooks.on('stop', async () => {
       const handlers = this._handlers
       for (const id in handlers) {
         try {
