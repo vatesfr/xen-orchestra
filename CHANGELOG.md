@@ -4,14 +4,11 @@
 
 ### Enhancements
 
-> Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [Host/Load-balancer] Add option to disable migration (PR [#5706](https://github.com/vatesfr/xen-orchestra/pull/5706))
 - [VM] Don't switch a VM to use [DMC](https://docs.citrix.com/en-us/xencenter/7-1/dmc-about.html) when changing the memory [#4983](https://github.com/vatesfr/xen-orchestra/issues/4983)
 
 ### Bug fixes
-
-> Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [Backup restore] Generate new MAC addresses is disabled by default (PR [#5707](https://github.com/vatesfr/xen-orchestra/pull/5707))
 - [Backup] Fix `vm.refresh_snapshots is not a function` error
