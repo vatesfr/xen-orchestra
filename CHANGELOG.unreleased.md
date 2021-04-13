@@ -7,6 +7,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [NFS remotes] Don't force version 3 by default
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -28,6 +30,7 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
+- @xen-orchestra/fs minor
 - @xen-orchestra/backups patch
 - @xen-orchestra/backups-cli patch
 - @xen-orchestra/mixins minor
