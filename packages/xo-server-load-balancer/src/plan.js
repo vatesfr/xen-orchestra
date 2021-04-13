@@ -95,7 +95,7 @@ function setRealCpuAverageOfVms(vms, vmsAverages, nCpus) {
 // ===================================================================
 
 export default class Plan {
-  constructor(xo, name, poolIds, { excludedHosts, thresholds, antiAffinityTags }, globalOptions) {
+  constructor(xo, name, poolIds, { excludedHosts, thresholds, antiAffinityTags = [] }, globalOptions) {
     this.xo = xo
     this._name = name
     this._poolIds = poolIds
