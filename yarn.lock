@@ -15969,10 +15969,17 @@ promise-toolbox@^0.16.0:
   dependencies:
     make-error "^1.3.2"
 
-promise-toolbox@^0.18.0, promise-toolbox@^0.18.1:
+promise-toolbox@^0.18.1:
   version "0.18.1"
   resolved "https://registry.yarnpkg.com/promise-toolbox/-/promise-toolbox-0.18.1.tgz#8070b959ba7d56359e5baaed4c4232af43b6f164"
   integrity sha512-oN3ZwiTqdygp78fpTyqcASKtbfuTx6ijWX+Vr7LXoW7l2ACxyyzHPYtO3R8wUOW84FxbzxBQ+XtCJjyEdCIY0Q==
+  dependencies:
+    make-error "^1.3.2"
+
+promise-toolbox@^0.19.0:
+  version "0.19.0"
+  resolved "https://registry.yarnpkg.com/promise-toolbox/-/promise-toolbox-0.19.0.tgz#a9b85e45c4d97d3f58d08ef66fc1eb7d0f482c40"
+  integrity sha512-lqdgHxDTvjhnfVAaCdC1hcx3Esdby17Xltw95dxeIENUxFXpV0Y92xmhvGVqZcPf8O9MyqL/ENZ0slW/0whLCA==
   dependencies:
     make-error "^1.3.2"
 

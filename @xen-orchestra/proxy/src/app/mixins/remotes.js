@@ -49,6 +49,6 @@ export default class Remotes {
     }
 
     await handler.sync()
-    return new Disposable(handler, () => handler.forget())
+    return new Disposable(() => handler.forget(), handler)
   }
 }

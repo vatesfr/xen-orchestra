@@ -138,16 +138,8 @@ mixin({
 })
 exports.Xapi = Xapi
 
-// TODO: remove once using next promise-toolbox
-function pRetryWrap(fn, options) {
-  const getOptions = typeof options !== 'function' ? () => options : options
-  return function () {
-    return pRetry(() => fn.apply(this, arguments), getOptions.apply(this, arguments))
-  }
-}
-
 function getCallRetryOpts() {
   return this._callRetryWhenTooManyPendingTasks
 }
-Xapi.prototype.call = pRetryWrap(Xapi.prototype.call, getCallRetryOpts)
-Xapi.prototype.callAsync = pRetryWrap(Xapi.prototype.callAsync, getCallRetryOpts)
+Xapi.prototype.call = pRetry.wrap(Xapi.prototype.call, getCallRetryOpts)
+Xapi.prototype.callAsync = pRetry.wrap(Xapi.prototype.callAsync, getCallRetryOpts)
