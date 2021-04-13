@@ -1,13 +1,8 @@
 import React from 'react'
-import { withState } from 'reaclette'
 
-interface ParentState {}
+type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>
 
-interface State {
-  input: React.RefObject<HTMLInputElement>
-}
-
-interface Props extends React.AllHTMLAttributes<HTMLInputElement> {
+interface Props extends Omit<React.ComponentPropsWithoutRef<'input'>, 'type'> {
   max: number
   min: number
   onChange: React.ChangeEventHandler<HTMLInputElement>
@@ -15,19 +10,6 @@ interface Props extends React.AllHTMLAttributes<HTMLInputElement> {
   value: number
 }
 
-interface ParentEffects {}
-
-interface Effects {}
-
-interface Computed {}
-
-const RangeInput = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
-  {
-    initialState: () => ({
-      input: React.createRef(),
-    }),
-  },
-  ({ effects, resetState, state, ...props }) => <input ref={state.input} type='range' {...props} />
-)
+const RangeInput: React.FC<Props> = React.memo(props => <input {...props} type='range' />)
 
 export default RangeInput
