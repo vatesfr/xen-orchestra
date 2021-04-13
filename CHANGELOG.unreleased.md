@@ -22,6 +22,7 @@
 
 - [Backup] Don't unnecessarily snapshot the VM when using _offline backup_ (PR [#5739](https://github.com/vatesfr/xen-orchestra/pull/5739))
 - [Backup] Fix `ENOENT` error on deleting an existing VM backup (PR [#5744](https://github.com/vatesfr/xen-orchestra/pull/5744))
+- [Host/Load-balancer] Fix error(s) that prevents the load balancer from running (PR [#5734](https://github.com/vatesfr/xen-orchestra/pull/5734))
 
 ### Dropped features
 
@@ -52,5 +53,6 @@
 - @xen-orchestra/backups-cli patch
 - @xen-orchestra/mixins minor
 - xen-api patch
+- xo-server-load-balancer minor
 - xo-server minor
 - xo-web minor
