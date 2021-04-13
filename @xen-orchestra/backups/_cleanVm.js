@@ -84,12 +84,11 @@ const listVhds = async (handler, vmDir) => {
           prependDir: true,
         }),
         async vdiDir =>
-          asyncMap(
-            await handler.list(vdiDir, {
+          vhds.push(
+            ...(await handler.list(vdiDir, {
               filter: isVhdFile,
               prependDir: true,
-            }),
-            vhd => vhds.push(vhd)
+            }))
           )
       )
   )
