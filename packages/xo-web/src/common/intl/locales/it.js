@@ -2967,6 +2967,9 @@ export default {
   // Original text: 'Go to the backup page.'
   goToBackupPage: 'Vai alla pagina di backup.',
 
+  // Original text: 'This VM may be backed up by the legacy backup system. See legacy jobs.'
+  vmInLegacyBackup: 'Vedi i lavori legacy.',
+
   // Original text: 'Remove all logs'
   logRemoveAll: 'Rimuovi tutti i registri',
 

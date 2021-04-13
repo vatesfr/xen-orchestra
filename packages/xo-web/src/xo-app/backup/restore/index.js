@@ -257,8 +257,7 @@ export default class Restore extends Component {
   render() {
     return (
       <div>
-        <div className='mt-1 mb-1'>
-          <h3>{_('restore')}</h3>
+        <div className='mb-1'>
           <ActionButton btnStyle='primary' handler={this._refreshBackupList} icon='refresh'>
             {_('refreshBackupList')}
           </ActionButton>{' '}

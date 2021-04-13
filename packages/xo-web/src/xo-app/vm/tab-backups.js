@@ -25,7 +25,7 @@ const BackupTab = decorate([
   ({ state: { jobIds, predicate } }) => {
     return (
       <div>
-        <div className='mt-1'>
+        <div>
           <a href={`#/backup/overview?s=${encodeURIComponent(`id: |(${jobIds.join(' ')})`)}`}>{_('goToBackupPage')}</a>
         </div>
         <div className='mt-2'>

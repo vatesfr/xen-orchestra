@@ -2217,18 +2217,6 @@ export const testRemote = remote =>
 
 // File restore  ----------------------------------------------------
 
-export const scanDisk = (remote, disk) => _call('backup.scanDisk', resolveIds({ remote, disk }))
-
-export const scanFiles = (remote, disk, path, partition) =>
-  _call('backup.scanFiles', resolveIds({ remote, disk, path, partition }))
-
-export const fetchFiles = (remote, disk, partition, paths, format) =>
-  _call('backup.fetchFiles', resolveIds({ remote, disk, partition, paths, format })).then(({ $getFrom: url }) => {
-    window.open(`.${url}`)
-  })
-
-// File restore NG  ----------------------------------------------------
-
 export const listPartitions = (remote, disk) => _call('backupNg.listPartitions', resolveIds({ remote, disk }))
 
 export const listFiles = (remote, disk, path, partition) =>
