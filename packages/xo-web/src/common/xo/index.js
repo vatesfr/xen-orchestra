@@ -1914,12 +1914,6 @@ export const deleteBackupSchedule = async schedule => {
   subscribeJobs.forceRefresh()
 }
 
-export const migrateBackupSchedule = id =>
-  confirm({
-    title: _('migrateBackupSchedule'),
-    body: _('migrateBackupScheduleMessage'),
-  }).then(() => _call('backupNg.migrateLegacyJob', { id: resolveId(id) }))
-
 export const deleteSchedule = schedule =>
   _call('schedule.delete', { id: resolveId(schedule) })::tap(subscribeSchedules.forceRefresh)
 
