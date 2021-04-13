@@ -82,7 +82,7 @@ export default class Pools {
     }
   }
 
-  async listPoolsMatchingCriteria({ minCpus = 0, minMemory = 0, poolTag, minSrSize = 0, srTag }) {
+  async listPoolsMatchingCriteria({ minCpus = 0, minMemory = 0, minSrSize = 0, poolTag, srTag }) {
     const hostsByPool = {}
     const srsByPool = {}
     const pools = []
