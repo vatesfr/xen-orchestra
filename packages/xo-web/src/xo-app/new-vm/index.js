@@ -429,6 +429,15 @@ export default class NewVm extends BaseComponent {
     const resourceSet = this._getResourceSet()
     const { template } = this.props
 
+    // Either use `memory` OR `memory*` params
+    let { memory, memoryStaticMax, memoryDynamicMin, memoryDynamicMax } = state
+    if ((state.memoryStaticMax != null || state.memoryDynamicMin != null) && memoryDynamicMax == null) {
+      memoryDynamicMax = memory
+    }
+    if (memoryDynamicMax != null) {
+      memory = undefined
+    }
+
     const data = {
       affinityHost: state.affinityHost && state.affinityHost.id,
       clone: !this.isDiskTemplate && state.fastClone,
@@ -446,9 +455,10 @@ export default class NewVm extends BaseComponent {
       cpuWeight: state.cpuWeight === '' ? null : state.cpuWeight,
       cpuCap: state.cpuCap === '' ? null : state.cpuCap,
       name_description: state.name_description,
-      memoryStaticMax: state.memoryStaticMax,
-      memoryMin: state.memoryDynamicMin,
-      memoryMax: state.memoryDynamicMax,
+      memory,
+      memoryStaticMax,
+      memoryMin: memoryDynamicMin,
+      memoryMax: memoryDynamicMax,
       pv_args: state.pv_args,
       autoPoweron: state.autoPoweron,
       bootAfterCreate: state.bootAfterCreate,
@@ -537,7 +547,7 @@ export default class NewVm extends BaseComponent {
       cpuCap: '',
       cpuWeight: '',
       hvmBootFirmware: defined(() => template.boot.firmware, ''),
-      memoryDynamicMax: template.memory.dynamic[1],
+      memory: template.memory.dynamic[1],
       // installation
       installMethod: (template.install_methods != null && template.install_methods[0]) || 'noConfigDrive',
       sshKeys: this.props.userSshKeys && this.props.userSshKeys.length && [0],
@@ -966,7 +976,7 @@ export default class NewVm extends BaseComponent {
   )
 
   _renderPerformances = () => {
-    const { coresPerSocket, CPUs, memoryDynamicMax } = this.state.state
+    const { coresPerSocket, CPUs, memory, memoryDynamicMax } = this.state.state
     const { template } = this.props
     const { pool } = this.props
     const memoryThreshold = get(() => template.memory.static[0])
@@ -995,10 +1005,10 @@ export default class NewVm extends BaseComponent {
           <Item label={_('newVmRamLabel')}>
             <SizeInput
               className={styles.sizeInput}
-              onChange={this._linkState('memoryDynamicMax')}
-              value={defined(memoryDynamicMax, null)}
+              onChange={this._linkState('memory')}
+              value={defined(memory, null)}
             />{' '}
-            {memoryDynamicMax < memoryThreshold && (
+            {memoryDynamicMax == null && memory != null && memory < memoryThreshold && (
               <Tooltip
                 content={_('newVmRamWarning', {
                   threshold: formatSize(memoryThreshold),
@@ -1020,8 +1030,8 @@ export default class NewVm extends BaseComponent {
     )
   }
   _isPerformancesDone = () => {
-    const { CPUs, memoryDynamicMax } = this.state.state
-    return CPUs && memoryDynamicMax != null
+    const { CPUs, memory, memoryDynamicMax } = this.state.state
+    return CPUs && (memory != null || memoryDynamicMax != null)
   }
 
   // INSTALL SETTINGS ------------------------------------------------------------
@@ -1720,12 +1730,10 @@ export default class NewVm extends BaseComponent {
     )
   }
   _isAdvancedDone = () => {
+    const lowerThan = (small, big) => small == null || big == null || small <= big
     const { memoryDynamicMin, memoryDynamicMax, memoryStaticMax } = this.state.state
-    return (
-      memoryDynamicMax != null &&
-      (memoryDynamicMin == null || memoryDynamicMin <= memoryDynamicMax) &&
-      (memoryStaticMax == null || memoryDynamicMax <= memoryStaticMax)
-    )
+
+    return lowerThan(memoryDynamicMin, memoryDynamicMax) && lowerThan(memoryDynamicMax, memoryStaticMax)
   }
 
   // SUMMARY ---------------------------------------------------------------------
@@ -1816,12 +1824,13 @@ export default class NewVm extends BaseComponent {
       return true
     }
 
-    const { CPUs, existingDisks, memoryDynamicMax, VDIs, multipleVms, nameLabels } = this.state.state
+    const { CPUs, existingDisks, memory, memoryDynamicMax, VDIs, multipleVms, nameLabels } = this.state.state
+    const _memory = memoryDynamicMax == null ? memory : memoryDynamicMax
     const factor = multipleVms ? nameLabels.length : 1
 
     return !(
       CPUs * factor > get(() => resourceSet.limits.cpus.available) ||
-      memoryDynamicMax * factor > get(() => resourceSet.limits.memory.available) ||
+      _memory * factor > get(() => resourceSet.limits.memory.available) ||
       (sumBy(VDIs, 'size') + sum(map(existingDisks, disk => disk.size))) * factor >
         get(() => resourceSet.limits.disk.available)
     )
