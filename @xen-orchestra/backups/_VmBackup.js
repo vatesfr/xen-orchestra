@@ -6,15 +6,17 @@ const { asyncMap } = require('@xen-orchestra/async-map')
 const { createLogger } = require('@xen-orchestra/log')
 const { formatDateTime } = require('@xen-orchestra/xapi')
 
-const { ContinuousReplicationWriter } = require('./_ContinuousReplicationWriter')
-const { DeltaBackupWriter } = require('./_DeltaBackupWriter')
-const { DisasterRecoveryWriter } = require('./_DisasterRecoveryWriter')
 const { exportDeltaVm } = require('./_deltaVm')
 const { forkStreamUnpipe } = require('./_forkStreamUnpipe')
-const { FullBackupWriter } = require('./_FullBackupWriter')
 const { getOldEntries } = require('./_getOldEntries')
 const { Task } = require('./Task')
 const { watchStreamSize } = require('./_watchStreamSize')
+const {
+  ContinuousReplicationWriter,
+  DeltaBackupWriter,
+  DisasterRecoveryWriter,
+  FullBackupWriter,
+} = require('./writers')
 
 const { debug, warn } = createLogger('xo:backups:VmBackup')
 

@@ -1,7 +1,7 @@
 const { asyncMap } = require('@xen-orchestra/async-map')
 const { createLogger } = require('@xen-orchestra/log')
 
-const { BACKUP_DIR } = require('./_getVmBackupDir')
+const { BACKUP_DIR } = require('../_getVmBackupDir')
 
 const { debug } = createLogger('xo:backups:AbstractWriter')
 

@@ -2,12 +2,13 @@ const { asyncMap, asyncMapSettled } = require('@xen-orchestra/async-map')
 const ignoreErrors = require('promise-toolbox/ignoreErrors')
 const { formatDateTime } = require('@xen-orchestra/xapi')
 
+const { formatFilenameDate } = require('../_filenameDate')
+const { getOldEntries } = require('../_getOldEntries')
+const { importDeltaVm, TAG_COPY_SRC } = require('../_deltaVm')
+const { Task } = require('../Task')
+
 const { AbstractDeltaWriter } = require('./_AbstractDeltaWriter')
-const { formatFilenameDate } = require('./_filenameDate')
-const { getOldEntries } = require('./_getOldEntries')
-const { importDeltaVm, TAG_COPY_SRC } = require('./_deltaVm')
 const { listReplicatedVms } = require('./_listReplicatedVms')
-const { Task } = require('./Task')
 
 exports.ContinuousReplicationWriter = class ContinuousReplicationWriter extends AbstractDeltaWriter {
   constructor(backup, sr, settings) {
