@@ -1,4 +1,7 @@
-exports.ContinuousReplicationWriter = require('./_ContinuousReplicationWriter').ContinuousReplicationWriter
-exports.DeltaBackupWriter = require('./_DeltaBackupWriter').DeltaBackupWriter
-exports.DisasterRecoveryWriter = require('./_DisasterRecoveryWriter').DisasterRecoveryWriter
-exports.FullBackupWriter = require('./_FullBackupWriter').FullBackupWriter
+Object.assign(
+  exports,
+  require('./_ContinuousReplicationWriter'),
+  require('./_DeltaBackupWriter'),
+  require('./_DisasterRecoveryWriter'),
+  require('./_FullBackupWriter')
+ )
