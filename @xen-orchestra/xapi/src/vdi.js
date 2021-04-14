@@ -15,7 +15,7 @@ module.exports = class Vdi {
     await pCatch.call(
       // work around a race condition in XCP-ng/XenServer where the disk is not fully unmounted yet
       pRetry(() => this.callAsync('VDI.destroy', vdiRef), {
-        ...this._vdiDestroyRetry,
+        ...this._vdiDestroyRetryWhenInUse,
         when: { code: 'VDI_IN_USE' },
       }),
       // if this VDI is not found, consider it destroyed
