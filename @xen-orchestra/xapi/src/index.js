@@ -57,6 +57,7 @@ class Xapi extends Base {
       delay: 5e3,
       retries: 10,
       ...vdiDestroyRetryWhenInUse,
+      when: { code: 'VDI_IN_USE' },
     }
 
     const genericWatchers = (this._genericWatchers = new Set())
