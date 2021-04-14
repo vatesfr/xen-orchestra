@@ -15,6 +15,7 @@
 - [XOA] Notify user when proxies need to be upgraded (PR [#5717](https://github.com/vatesfr/xen-orchestra/pull/5717))
 - [Host/network] Identify the management network [#5731](https://github.com/vatesfr/xen-orchestra/issues/5731) (PR [#5743](https://github.com/vatesfr/xen-orchestra/pull/5743))
 - [Backup/S3] Support for HTTP protocol and choice of region (PR [#5658](https://github.com/vatesfr/xen-orchestra/pull/5658))
+- [Host/Load-balancer] Improve migration (perf mode) regarding memory and cpu usage (PR [#5734](https://github.com/vatesfr/xen-orchestra/pull/5734))
 
 ### Bug fixes
 
