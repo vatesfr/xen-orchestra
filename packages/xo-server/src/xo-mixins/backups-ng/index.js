@@ -576,7 +576,7 @@ export default class BackupNg {
       // inject the remote id on the backup which is needed for importVmBackupNg()
       forOwn(backupsByVm, backups =>
         backups.forEach(backup => {
-          backup.id = `${remoteId}${backup.id}`
+          backup.id = `${remoteId}/${backup.id}`
         })
       )
       return backupsByVm
