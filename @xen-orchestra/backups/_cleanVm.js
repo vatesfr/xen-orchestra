@@ -72,6 +72,29 @@ const mergeVhdChain = limitConcurrency(1)(async function mergeVhdChain(chain, { 
 
 const noop = Function.prototype
 
+const listVhds = async (handler, vmDir) => {
+  const vhds = []
+  await asyncMap(
+    await handler.list(`${vmDir}/vdis`, {
+      prependDir: true,
+    }),
+    async jobDir =>
+      asyncMap(
+        await handler.list(jobDir, {
+          prependDir: true,
+        }),
+        async vdiDir =>
+          vhds.push(
+            ...(await handler.list(vdiDir, {
+              filter: isVhdFile,
+              prependDir: true,
+            }))
+          )
+      )
+  )
+  return vhds
+}
+
 exports.cleanVm = async function cleanVm(vmDir, { remove, merge, onLog = noop }) {
   const handler = this._handler
 
@@ -80,36 +103,30 @@ exports.cleanVm = async function cleanVm(vmDir, { remove, merge, onLog = noop })
   const vhdChildren = { __proto__: null }
 
   // remove broken VHDs
-  await asyncMap(
-    await handler.list(`${vmDir}/vdis`, {
-      filter: isVhdFile,
-      prependDir: true,
-    }),
-    async path => {
-      try {
-        const vhd = new Vhd(handler, path)
-        await vhd.readHeaderAndFooter()
-        vhds.add(path)
-        if (vhd.footer.diskType === DISK_TYPE_DIFFERENCING) {
-          const parent = resolve(dirname(path), vhd.header.parentUnicodeName)
-          vhdParents[path] = parent
-          if (parent in vhdChildren) {
-            const error = new Error('this script does not support multiple VHD children')
-            error.parent = parent
-            error.child1 = vhdChildren[parent]
-            error.child2 = path
-            throw error // should we throw?
-          }
-          vhdChildren[parent] = path
+  await asyncMap(await listVhds(handler, vmDir), async path => {
+    try {
+      const vhd = new Vhd(handler, path)
+      await vhd.readHeaderAndFooter()
+      vhds.add(path)
+      if (vhd.footer.diskType === DISK_TYPE_DIFFERENCING) {
+        const parent = resolve(dirname(path), vhd.header.parentUnicodeName)
+        vhdParents[path] = parent
+        if (parent in vhdChildren) {
+          const error = new Error('this script does not support multiple VHD children')
+          error.parent = parent
+          error.child1 = vhdChildren[parent]
+          error.child2 = path
+          throw error // should we throw?
         }
-      } catch (error) {
-        onLog(`error while checking the VHD with path ${path}`)
-        if (error?.code === 'ERR_ASSERTION' && remove) {
-          await handler.unlink(path)
-        }
+        vhdChildren[parent] = path
+      }
+    } catch (error) {
+      onLog(`error while checking the VHD with path ${path}`)
+      if (error?.code === 'ERR_ASSERTION' && remove) {
+        await handler.unlink(path)
       }
     }
-  )
+  })
 
   // remove VHDs with missing ancestors
   {

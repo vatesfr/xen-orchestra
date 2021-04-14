@@ -39,22 +39,23 @@ const assertProxyAddress = (proxy, address) => {
 }
 
 export default class Proxy {
-  constructor(app, { config: conf }) {
+  constructor(app) {
     this._app = app
-    const xoProxyConf = (this._xoProxyConf = conf['xo-proxy'])
     const rules = {
       '{date}': (date = new Date()) => date.toISOString(),
     }
-    this._generateDefaultProxyName = compileTemplate(xoProxyConf.proxyName, rules)
-    this._generateDefaultVmName = compileTemplate(xoProxyConf.vmName, rules)
+    app.config.watch('xo-proxy', xoProxyConf => {
+      this._generateDefaultProxyName = compileTemplate(xoProxyConf.proxyName, rules)
+      this._generateDefaultVmName = compileTemplate(xoProxyConf.vmName, rules)
+    })
     const db = (this._db = new Collection({
       connection: app._redis,
       indexes: ['address', 'vmUuid'],
       prefix: 'xo:proxy',
     }))
 
-    app.on('clean', () => db.rebuildIndexes())
-    app.on('start', () =>
+    app.hooks.on('clean', () => db.rebuildIndexes())
+    app.hooks.on('start', () =>
       app.addConfigManager(
         'proxies',
         () => db.get(),
@@ -97,7 +98,7 @@ export default class Proxy {
       await this._app
         .unbindLicense({
           boundObjectId: vmUuid,
-          productId: this._xoProxyConf.licenseProductId,
+          productId: this._app.config.get('xo-proxy.licenseProductId'),
         })
         .catch(log.warn)
     }
@@ -166,7 +167,7 @@ export default class Proxy {
       xenstoreData['vm-data/xoa-updater-proxy-url'] = JSON.stringify(httpProxy)
     }
     if (upgrade) {
-      xenstoreData['vm-data/xoa-updater-channel'] = JSON.stringify(this._xoProxyConf.channel)
+      xenstoreData['vm-data/xoa-updater-channel'] = JSON.stringify(this._app.config.get('xo-proxy.channel'))
     }
 
     const { vmUuid } = await this._getProxy(id)
@@ -193,7 +194,7 @@ export default class Proxy {
   @defer
   async _createProxyVm($defer, srId, licenseId, { httpProxy, networkId, networkConfiguration }) {
     const app = this._app
-    const xoProxyConf = this._xoProxyConf
+    const xoProxyConf = app.config.get('xo-proxy')
 
     const namespace = xoProxyConf.namespace
     const {
@@ -261,7 +262,7 @@ export default class Proxy {
 
   async deployProxy(srId, licenseId, { httpProxy, networkConfiguration, networkId, proxyId } = {}) {
     const app = this._app
-    const xoProxyConf = this._xoProxyConf
+    const xoProxyConf = app.config.get('xo-proxy')
 
     const redeploy = proxyId !== undefined
     if (redeploy) {
@@ -356,7 +357,7 @@ export default class Proxy {
       pathname: '/api/v1',
       protocol: 'https:',
       rejectUnauthorized: false,
-      timeout: parseDuration(this._xoProxyConf.callTimeout),
+      timeout: this._app.config.getDuration('xo-proxy.callTimeout'),
     }
 
     if (proxy.vmUuid !== undefined) {

@@ -130,6 +130,8 @@ port = 80
 [http.mounts]
 '/' = '../xo-web/dist'
 
+[plugins]
+
 [remoteOptions]
 mountsDir = '/run/xo-server/mounts'
 
