@@ -74,9 +74,7 @@ const Console = withState<State, Props, Effects, Computed, ParentState, ParentEf
       },
     },
   },
-  ({ state }) => {
-    return <div ref={state.container} />
-  }
+  ({ state }) => <div ref={state.container} />
 )
 
 export default Console
