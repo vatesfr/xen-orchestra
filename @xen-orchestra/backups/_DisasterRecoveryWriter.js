@@ -1,4 +1,5 @@
 const ignoreErrors = require('promise-toolbox/ignoreErrors')
+const { AbstractFullWriter } = require('./_AbstractFullWriter')
 const { asyncMapSettled } = require('@xen-orchestra/async-map')
 const { formatDateTime } = require('@xen-orchestra/xapi')
 
@@ -7,8 +8,10 @@ const { getOldEntries } = require('./_getOldEntries')
 const { listReplicatedVms } = require('./_listReplicatedVms')
 const { Task } = require('./Task')
 
-exports.DisasterRecoveryWriter = class DisasterRecoveryWriter {
+exports.DisasterRecoveryWriter = class DisasterRecoveryWriter extends AbstractFullWriter {
   constructor(backup, sr, settings) {
+    super()
+
     this._backup = backup
     this._settings = settings
     this._sr = sr

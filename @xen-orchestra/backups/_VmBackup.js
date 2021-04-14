@@ -150,7 +150,7 @@ exports.VmBackup = class VmBackup {
 
     const isFull = fullVdisRequired === undefined || fullVdisRequired.size !== 0
 
-    await asyncMap(this._writers, writer => writer.prepare && writer.prepare({ isFull }))
+    await asyncMap(this._writers, writer => writer.prepare({ isFull }))
 
     const deltaExport = await exportDeltaVm(exportedVm, baseVm, {
       fullVdisRequired,
@@ -198,7 +198,7 @@ exports.VmBackup = class VmBackup {
       size,
     })
 
-    await asyncMap(this._writers, writer => writer.cleanup && writer.cleanup())
+    await asyncMap(this._writers, writer => writer.cleanup())
   }
 
   async _copyFull() {
@@ -320,6 +320,8 @@ exports.VmBackup = class VmBackup {
   }
 
   async run() {
+    await asyncMap(this._writers, writer => writer.cleanCorruptedBackups())
+
     await this._fetchJobSnapshots()
 
     if (this._isDelta) {

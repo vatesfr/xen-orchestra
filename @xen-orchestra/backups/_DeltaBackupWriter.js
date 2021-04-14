@@ -7,6 +7,7 @@ const { chainVhd, checkVhdChain, default: Vhd } = require('vhd-lib')
 const { createLogger } = require('@xen-orchestra/log')
 const { dirname } = require('path')
 
+const { AbstractDeltaWriter } = require('./_AbstractDeltaWriter')
 const { checkVhd } = require('./_checkVhd')
 const { formatFilenameDate } = require('./_filenameDate')
 const { getOldEntries } = require('./_getOldEntries')
@@ -16,9 +17,12 @@ const { Task } = require('./Task')
 
 const { warn } = createLogger('xo:backups:DeltaBackupWriter')
 
-exports.DeltaBackupWriter = class DeltaBackupWriter {
+exports.DeltaBackupWriter = class DeltaBackupWriter extends AbstractDeltaWriter {
   constructor(backup, remoteId, settings) {
-    this._adapter = backup.remoteAdapters[remoteId]
+    const adapter = backup.remoteAdapters[remoteId]
+    super({ adapter })
+
+    this._adapter = adapter
     this._backup = backup
     this._remoteId = remoteId
     this._settings = settings
