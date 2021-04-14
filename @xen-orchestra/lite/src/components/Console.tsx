@@ -11,6 +11,7 @@ interface ParentState {
 
 interface State {
   container: React.RefObject<HTMLDivElement>
+  isConnected: boolean
 }
 
 interface Props {
@@ -20,7 +21,9 @@ interface Props {
 
 interface ParentEffects {}
 
-interface Effects {}
+interface Effects {
+  _connect: () => void
+}
 
 interface Computed {}
 
@@ -29,9 +32,13 @@ const Console = withState<State, Props, Effects, Computed, ParentState, ParentEf
   {
     initialState: () => ({
       container: React.createRef(),
+      isConnected: false,
     }),
     effects: {
-      initialize: async function () {
+      initialize: function () {
+        this.effects._connect()
+      },
+      _connect: async function () {
         const { vmId } = this.props
         const { objectsByType, xapi } = this.state
         const consoles = (objectsByType.get('VM')?.get(vmId) as Vm)?.$consoles.filter(
@@ -54,12 +61,14 @@ const Console = withState<State, Props, Effects, Computed, ParentState, ParentEf
           wsProtocols: ['binary'],
         })
         rfb.scaleViewport = true
+        rfb.addEventListener('disconnect', this.effects._connect)
       },
     },
   },
-  ({ scale, state }) => (
-    <div ref={state.container} style={{ margin: 'auto', height: `${scale}%`, width: `${scale}%` }} />
-  )
+  ({ scale, state }) => {
+    return <div ref={state.container} style={{ margin: 'auto', height: `${scale}%`, width: `${scale}%` }} />
+
+  }
 )
 
 export default Console
