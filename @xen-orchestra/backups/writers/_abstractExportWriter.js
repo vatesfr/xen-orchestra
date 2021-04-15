@@ -3,7 +3,7 @@ const { createLogger } = require('@xen-orchestra/log')
 
 const { BACKUP_DIR } = require('../_getVmBackupDir')
 
-const { debug } = createLogger('xo:backups:AbstractWriter')
+const { debug } = createLogger('xo:backups:abstractExportWriter')
 
 exports.abstractExportWriter = {
   async cleanCorruptedBackups() {
