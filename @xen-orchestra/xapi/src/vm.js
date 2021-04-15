@@ -330,7 +330,7 @@ module.exports = class Vm {
             // Dont destroy if attached to other (non control domain) VMs
             for (const vbdRef of await this.getField('VDI', vdiRef, 'VBDs')) {
               const vmRef2 = await this.getField('VBD', vbdRef, 'VM')
-              if (vmRef2 !== vmRef && !(await this.getField('VM', vmRef, 'is_control_domain'))) {
+              if (vmRef2 !== vmRef && !(await this.getField('VM', vmRef2, 'is_control_domain'))) {
                 return
               }
             }
