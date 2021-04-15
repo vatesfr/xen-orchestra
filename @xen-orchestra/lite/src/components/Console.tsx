@@ -19,12 +19,8 @@ interface ParentState {
 interface State {
   confirmCtrlAltDel: boolean
   container: React.RefObject<HTMLDivElement>
-<<<<<<< HEAD
   // unknown type throw an error
   rfb?: any
-=======
-  RFB: any // had to be change when novnc type work
->>>>>>> use ref
 }
 
 interface Props {
