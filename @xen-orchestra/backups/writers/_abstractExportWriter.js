@@ -8,7 +8,7 @@ const { debug } = createLogger('xo:backups:abstractExportWriter')
 exports.abstractExportWriter = {
   async cleanCorruptedBackups() {
     const adapter = this._adapter
-    await asyncMap(await adapter.handler.list(BACKUP_DIR, { prependDir: true }), async vmDir =>
+    await asyncMap(await adapter.handler.list(BACKUP_DIR, { prependDir: true }), vmDir =>
       adapter.cleanVm(vmDir, { remove: true, merge: true, onLog: debug })
     )
   },
