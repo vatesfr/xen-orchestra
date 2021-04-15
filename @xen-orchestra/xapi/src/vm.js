@@ -143,8 +143,8 @@ module.exports = class Vm {
   async create(
     $defer,
     {
-      actions_after_crash = 'reboot',
-      actions_after_reboot = 'reboot',
+      actions_after_crash = 'restart',
+      actions_after_reboot = 'restart',
       actions_after_shutdown = 'destroy',
       affinity = Ref.EMPTY,
       appliance,
