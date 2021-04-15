@@ -7,6 +7,11 @@ import { confirm } from './Modal'
 
 import XapiConnection, { ObjectsByType, Vm } from '../libs/xapi'
 
+// Remove when "novnc" types work
+interface RFB {
+  sendCtrlAltDel: () => void
+}
+
 export interface IConsole {
   _effects: Effects
 }

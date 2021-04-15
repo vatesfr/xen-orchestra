@@ -77,16 +77,10 @@ const TabConsole = withState<State, Props, Effects, Computed, ParentState, Paren
       console: React.createRef(),
 >>>>>>> use ref
     }),
-    effects: {
-      initialize: function () {
-        if (this.state.console.current !== null) {
-          console.log(this.state.console.current)
-        }
-      },
-    },
   },
   ({ state, vmId }) => (
     <div style={{ height: '100vh' }}>
+<<<<<<< HEAD
 <<<<<<< HEAD
       <Button label='CTRL+ALT+DEL' onClick={effects.sendCtrlAltDel} />
 <<<<<<< HEAD
@@ -97,6 +91,11 @@ const TabConsole = withState<State, Props, Effects, Computed, ParentState, Paren
 >>>>>>> sort
 =======
       <Button label='CTRL+ALT+DEL' onClick={state.console.current?._effects.sendCtrlAltDel} />
+=======
+      {state.console.current !== null &&
+        <Button label='CTRL+ALT+DEL' onClick={state.console.current._effects.sendCtrlAltDel} />
+      }
+>>>>>>> remove useless code
       <Console vmId={vmId} ref={state.console} />
 >>>>>>> use ref
     </div>
