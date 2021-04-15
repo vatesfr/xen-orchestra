@@ -4,4 +4,4 @@ Object.assign(
   require('./_DeltaBackupWriter'),
   require('./_DisasterRecoveryWriter'),
   require('./_FullBackupWriter')
- )
+)

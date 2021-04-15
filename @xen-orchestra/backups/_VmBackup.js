@@ -322,7 +322,7 @@ exports.VmBackup = class VmBackup {
   }
 
   async run() {
-    await asyncMap(this._writers, writer => writer.cleanCorruptedBackups())
+    await asyncMap(this._writers, writer => writer.cleanCorruptedBackups?.())
 
     await this._fetchJobSnapshots()
 
