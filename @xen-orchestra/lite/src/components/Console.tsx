@@ -4,8 +4,8 @@ import { withState } from 'reaclette'
 
 import XapiConnection, { ObjectsByType, Vm } from '../libs/xapi'
 
-interface RFB {
-  sendCtrlAltDel: () => void
+export interface IConsole {
+  _effects: Effects
 }
 
 interface ParentState {
@@ -15,11 +15,11 @@ interface ParentState {
 
 interface State {
   container: React.RefObject<HTMLDivElement>
-  RFB: RFB | null
+  RFB: any // had to be change when novnc type work
 }
 
 interface Props {
-  setRFB: (RFB: RFB) => void
+  ref: React.RefObject<IConsole>
   vmId: string
   scale: number
 }
@@ -41,7 +41,7 @@ const Console = withState<State, Props, Effects, Computed, ParentState, ParentEf
     }),
     effects: {
       initialize: async function () {
-        const { setRFB, vmId } = this.props
+        const { vmId } = this.props
         const { objectsByType, xapi } = this.state
         const consoles = (objectsByType.get('VM')?.get(vmId) as Vm)?.$consoles.filter(
           vmConsole => vmConsole.protocol === 'rfb'
@@ -59,11 +59,12 @@ const Console = withState<State, Props, Effects, Computed, ParentState, ParentEf
         url.protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
         url.searchParams.set('session_id', xapi.sessionId)
 
-        setRFB(
-          new RFB(this.state.container.current, url, {
-            wsProtocols: ['binary'],
-          })
-        )
+        this.state.RFB = new RFB(this.state.container.current, url, {
+          wsProtocols: ['binary'],
+        })
+      },
+      sendCtrlAltDel: function () {
+          confirm('Are you sure you want to send CtrlAltDel ?') && this.state.RFB.sendCtrlAltDel()
       },
       sendCtrlAltDel: function () {
         confirm('Send Ctrl+Alt+Del to VM?') && this.state.RFB?.sendCtrlAltDel()
