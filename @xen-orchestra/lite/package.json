@@ -6,7 +6,6 @@
     "@fortawesome/free-solid-svg-icons": "^5.15.2",
     "@fortawesome/react-fontawesome": "^0.1.14",
     "@novnc/novnc": "^1.2.0",
-    "@types/novnc-core": "^0.1.2",
     "immutable": "^4.0.0-rc.12",
     "json-rpc-protocol": "^0.13.1",
     "node-polyfill-webpack-plugin": "^1.0.3",
