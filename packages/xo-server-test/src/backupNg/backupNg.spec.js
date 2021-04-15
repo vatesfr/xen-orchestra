@@ -223,6 +223,7 @@ describe('backupNg', () => {
           mode: jobInput.mode,
           reportWhen: jobInput.settings[''].reportWhen,
         },
+        infos: [{ data: { vms: [jobInput.vms.id] }, message: 'vms' }],
         jobId,
         jobName: jobInput.name,
         scheduleId: schedule.id,
@@ -233,8 +234,6 @@ describe('backupNg', () => {
         status: 'failure',
         result: expect.any(Object),
       })
-
-      expect(noSuchObject.is(vmTask.result)).toBe(true)
     })
 
     it('fails trying to run a backup job with a VM without disks', async () => {
