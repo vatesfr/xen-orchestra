@@ -11,21 +11,29 @@ import Console from './Console'
 =======
 >>>>>>> sort
 import Button from './Button'
+<<<<<<< HEAD
 import Console from './Console'
 
 interface RFB {
   sendCtrlAltDel: () => void
 }
 >>>>>>> TabConsole
+=======
+import Console, { IConsole } from './Console'
+>>>>>>> use ref
 
 interface ParentState {}
 
 interface State {
 <<<<<<< HEAD
+<<<<<<< HEAD
   console: React.RefObject<IConsole>
 =======
   RFB: RFB | null
 >>>>>>> TabConsole
+=======
+  console: React.RefObject<IConsole>
+>>>>>>> use ref
 }
 
 interface Props {
@@ -35,6 +43,7 @@ interface Props {
 interface ParentEffects {}
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 interface Effects {}
 =======
 interface Effects {
@@ -42,12 +51,16 @@ interface Effects {
   setRFB: (RFB: RFB) => void
 }
 >>>>>>> TabConsole
+=======
+interface Effects {}
+>>>>>>> use ref
 
 interface Computed {}
 
 const TabConsole = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
   {
     initialState: () => ({
+<<<<<<< HEAD
 <<<<<<< HEAD
       console: React.createRef(),
     }),
@@ -60,18 +73,21 @@ const TabConsole = withState<State, Props, Effects, Computed, ParentState, Paren
       <Console vmId={vmId} ref={state.console} />
 =======
       RFB: null,
+=======
+      console: React.createRef(),
+>>>>>>> use ref
     }),
     effects: {
-      sendCtrlAltDel: function () {
-        this.state.RFB?.sendCtrlAltDel()
-      },
-      setRFB: function (RFB) {
-        this.state.RFB = RFB
+      initialize: function () {
+        if (this.state.console.current !== null) {
+          console.log(this.state.console.current)
+        }
       },
     },
   },
-  ({ effects, vmId }) => (
+  ({ state, vmId }) => (
     <div style={{ height: '100vh' }}>
+<<<<<<< HEAD
       <Button label='CTRL+ALT+DEL' onClick={effects.sendCtrlAltDel} />
 <<<<<<< HEAD
       <Console vmId={vmId} setRFB={effects.setRFB} />
@@ -79,6 +95,10 @@ const TabConsole = withState<State, Props, Effects, Computed, ParentState, Paren
 =======
       <Console setRFB={effects.setRFB} vmId={vmId} />
 >>>>>>> sort
+=======
+      <Button label='CTRL+ALT+DEL' onClick={state.console.current?._effects.sendCtrlAltDel} />
+      <Console vmId={vmId} ref={state.console} />
+>>>>>>> use ref
     </div>
   )
 )
