@@ -7,8 +7,8 @@ import { confirm } from './Modal'
 
 import XapiConnection, { ObjectsByType, Vm } from '../libs/xapi'
 
-interface RFB {
-  sendCtrlAltDel: () => void
+export interface IConsole {
+  _effects: Effects
 }
 
 interface ParentState {
@@ -19,12 +19,16 @@ interface ParentState {
 interface State {
   confirmCtrlAltDel: boolean
   container: React.RefObject<HTMLDivElement>
+<<<<<<< HEAD
   // unknown type throw an error
   rfb?: any
+=======
+  RFB: any // had to be change when novnc type work
+>>>>>>> use ref
 }
 
 interface Props {
-  setRFB: (RFB: RFB) => void
+  ref: React.RefObject<IConsole>
   vmId: string
   scale: number
   setCtrlAltDel: (fn: () => void) => void
@@ -48,7 +52,7 @@ const Console = withState<State, Props, Effects, Computed, ParentState, ParentEf
     }),
     effects: {
       initialize: async function () {
-        const { setRFB, vmId } = this.props
+        const { vmId } = this.props
         const { objectsByType, xapi } = this.state
         const consoles = (objectsByType.get('VM')?.get(vmId) as Vm)?.$consoles.filter(
           vmConsole => vmConsole.protocol === 'rfb'
