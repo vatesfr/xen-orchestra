@@ -4,6 +4,11 @@ import { withState } from 'reaclette'
 
 import XapiConnection, { ObjectsByType, Vm } from '../libs/xapi'
 
+// Remove when "novnc" types work
+interface RFB {
+  sendCtrlAltDel: () => void
+}
+
 export interface IConsole {
   _effects: Effects
 }
@@ -15,7 +20,7 @@ interface ParentState {
 
 interface State {
   container: React.RefObject<HTMLDivElement>
-  RFB: any // had to be change when novnc type work
+  RFB: RFB | null
 }
 
 interface Props {
@@ -64,7 +69,7 @@ const Console = withState<State, Props, Effects, Computed, ParentState, ParentEf
         })
       },
       sendCtrlAltDel: function () {
-          confirm('Are you sure you want to send CtrlAltDel ?') && this.state.RFB.sendCtrlAltDel()
+        confirm('Send Ctrl+Alt+Del to VM?') && this.state.RFB?.sendCtrlAltDel()
       },
       sendCtrlAltDel: function () {
         confirm('Send Ctrl+Alt+Del to VM?') && this.state.RFB?.sendCtrlAltDel()
