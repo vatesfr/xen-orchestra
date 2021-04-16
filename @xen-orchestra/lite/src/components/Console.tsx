@@ -54,7 +54,7 @@ const Console = withState<State, Props, Effects, Computed, ParentState, ParentEf
           wsProtocols: ['binary'],
         })
         rfb.scaleViewport = true
-      }
+      },
     },
   },
   ({ scale, state }) => (
