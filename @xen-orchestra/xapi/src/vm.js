@@ -325,7 +325,7 @@ module.exports = class Vm {
     return Promise.all([
       asyncMap(vm.snapshots, snapshotRef =>
         this.VM_destroy(snapshotRef).catch(error => {
-          warn('VM_destroy: failed to delete snapshot', {
+          warn('VM_destroy: failed to destroy snapshot', {
             error,
             snapshotRef,
             vmRef,
@@ -343,7 +343,7 @@ module.exports = class Vm {
           }
 
           await this.VDI_destroy(vdiRef).catch(error => {
-            warn('VM_destroy: failed to delete VDI', {
+            warn('VM_destroy: failed to destroy VDI', {
               error,
               vdiRef,
               vmRef,
@@ -496,7 +496,7 @@ module.exports = class Vm {
                 if (createdSnapshots.length === 1) {
                   const snapshotRef = createdSnapshots[0]
                   this.VM_destroy(_).catch(error => {
-                    warn('VM_sapshot: failed to delete broken snapshot', {
+                    warn('VM_sapshot: failed to destroy broken snapshot', {
                       error,
                       snapshotRef,
                       vmRef,
