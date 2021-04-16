@@ -236,7 +236,8 @@ describe('backupNg', () => {
       })
     })
 
-    it('fails trying to run a backup job with a VM without disks', async () => {
+    // Not handled by the new backup implementation.
+    it.skip('fails trying to run a backup job with a VM without disks', async () => {
       jest.setTimeout(8e3)
       await xo.createTempServer(config.servers.default)
       const { id: vmIdWithoutDisks } = await xo.createTempVm({
@@ -299,7 +300,8 @@ describe('backupNg', () => {
       expect(vmTask.data.id).toBe(vmIdWithoutDisks)
     })
 
-    it('fails trying to run backup job without retentions', async () => {
+    // Not handled by the new backup implementation.
+    it.skip('fails trying to run backup job without retentions', async () => {
       jest.setTimeout(7e3)
       const scheduleTempId = randomId()
       await xo.createTempServer(config.servers.default)
@@ -436,6 +438,7 @@ describe('backupNg', () => {
         mode: jobInput.mode,
         reportWhen: jobInput.settings[''].reportWhen,
       },
+      infos: [{ data: { vms: [jobInput.vms.id] }, message: 'vms' }],
       jobId,
       jobName: jobInput.name,
       scheduleId: schedule.id,
@@ -657,6 +660,7 @@ describe('backupNg', () => {
         mode: backupInput.mode,
         reportWhen: backupInput.settings[''].reportWhen,
       },
+      infos: [{ data: { vms: [backupInput.vms.id] }, message: 'vms' }],
       jobId: backup.id,
       jobName: backupInput.name,
       scheduleId: schedule.id,
