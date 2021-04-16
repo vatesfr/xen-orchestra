@@ -431,7 +431,7 @@ export default class NewVm extends BaseComponent {
 
     // Either use `memory` OR `memory*` params
     let { memory, memoryStaticMax, memoryDynamicMin, memoryDynamicMax } = state
-    if ((state.memoryStaticMax != null || state.memoryDynamicMin != null) && memoryDynamicMax == null) {
+    if ((memoryStaticMax != null || memoryDynamicMin != null) && memoryDynamicMax == null) {
       memoryDynamicMax = memory
     }
     if (memoryDynamicMax != null) {
@@ -456,9 +456,9 @@ export default class NewVm extends BaseComponent {
       cpuCap: state.cpuCap === '' ? null : state.cpuCap,
       name_description: state.name_description,
       memory,
-      memoryStaticMax,
-      memoryMin: memoryDynamicMin,
       memoryMax: memoryDynamicMax,
+      memoryMin: memoryDynamicMin,
+      memoryStaticMax,
       pv_args: state.pv_args,
       autoPoweron: state.autoPoweron,
       bootAfterCreate: state.bootAfterCreate,
