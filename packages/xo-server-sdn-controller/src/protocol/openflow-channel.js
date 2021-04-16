@@ -1,9 +1,9 @@
-import createLogger from '@xen-orchestra/log'
 import ipaddr from 'ipaddr.js'
 import openflow from '@xen-orchestra/openflow'
 import parse from '@xen-orchestra/openflow/parse-socket'
 
 import { coalesceCalls } from '@vates/coalesce-calls'
+import { createLogger } from '@xen-orchestra/log'
 import { EventEmitter } from 'events'
 import { fromEvent } from 'promise-toolbox'
 

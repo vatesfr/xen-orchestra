@@ -6,7 +6,6 @@ import filter from 'lodash/filter'
 import find from 'lodash/find'
 import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
-import mapValues from 'lodash/mapValues'
 import React from 'react'
 import some from 'lodash/some'
 import store from 'store'
@@ -121,16 +120,16 @@ export default class MigrateVmsModalBody extends BaseComponent {
     const { doNotMigrateVdi, doNotMigrateVmVdis, migrationNetworkId, networkId, smartVifMapping, srId } = this.state
 
     // Map VM --> ( Map VDI --> SR )
+    // 2021-02-16: Fill the map (VDI -> SR) with *all* the VDIs to avoid unexpectedly migrating them to the wrong SRs:
+    // - Intra-pool: a VDI will only be migrated to the selected SR if the VDI was on a local SR.
+    // - Inter-pool: all VDIs will be migrated to the selected SR.
     const mapVmsMapVdisSrs = {}
     forEach(vbdsByVm, (vbds, vm) => {
-      if (doNotMigrateVmVdis[vm]) {
-        return
-      }
       const mapVdisSrs = {}
       forEach(vbds, vbd => {
         const vdi = vbd.VDI
         if (!vbd.is_cd_drive && vdi) {
-          mapVdisSrs[vdi] = doNotMigrateVdi[vdi] ? this._getObject(vdi).SR : srId
+          mapVdisSrs[vdi] = doNotMigrateVmVdis[vm] || doNotMigrateVdi[vdi] ? this._getObject(vdi).$SR : srId
         }
       })
       mapVmsMapVdisSrs[vm] = mapVdisSrs
@@ -165,6 +164,7 @@ export default class MigrateVmsModalBody extends BaseComponent {
       mapVmsMapVdisSrs,
       mapVmsMapVifsNetworks,
       migrationNetwork: migrationNetworkId,
+      sr: srId,
       targetHost: host.id,
       vms,
     }
@@ -180,11 +180,11 @@ export default class MigrateVmsModalBody extends BaseComponent {
       return
     }
     const { pools, pifs } = this.props
-    const defaultMigrationNetworkId = getDefaultMigrationNetwork(host, pools, pifs)
+    const intraPool = every(this.props.vms, vm => vm.$pool === host.$pool)
+    const defaultMigrationNetworkId = getDefaultMigrationNetwork(intraPool, host, pools, pifs)
     const defaultSrId = pools[host.$pool].default_SR
     const defaultSrConnectedToHost = some(host.$PBDs, pbd => this._getObject(pbd).SR === defaultSrId)
 
-    const intraPool = every(this.props.vms, vm => vm.$pool === host.$pool)
     const doNotMigrateVmVdis = {}
     const doNotMigrateVdi = {}
     let noVdisMigration = false

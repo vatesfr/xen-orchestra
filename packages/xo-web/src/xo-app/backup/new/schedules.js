@@ -78,6 +78,14 @@ export default decorate([
           },
         ]
 
+        if (state.isDelta) {
+          columns.push({
+            itemRenderer: schedule => (schedule.fullInterval === 1 ? _('stateEnabled') : _('stateDisabled')),
+            sortCriteria: 'fullInterval',
+            name: _('forceFullBackup'),
+          })
+        }
+
         if (state.exportMode) {
           columns.push({
             itemRenderer: _ => _.exportRetention,

@@ -27,11 +27,11 @@ The objectives are to:
 
 To deploy XOSAN, please follow the rest of the documentation:
 
-- [XOSAN Requirements](xosan_requirements.md)
-- [Types of XOSAN](xosan_types.md)
-- [How to create a new XOSAN Storage](xosan_create.md)
-- [XOSAN management](xosan_management.md)
-- [Get a free XOSAN trial](xosan_trial.md)
+- [XOSAN Requirements](xosan.md#requirements))
+- [Types of XOSAN](xosan.md#xosan-types)
+- [How to create a new XOSAN Storage](xosan.md#creation))
+- [XOSAN management](xosan.md#advanced-options)
+- [Get a free XOSAN trial](xosan.md#try-it)
 
 ## Requirements
 
@@ -318,7 +318,7 @@ XOSAN is a 100% software defined solution for XenServer hyperconvergence. You ca
 
 You will need to be registered on our website in order to use Xen Orchestra. If you are not yet registered, [here is the way](https://xen-orchestra.com/#!/signup)
 
-SSH in your XenServer and use the command line `curl -sS https://xoa.io/deploy | bash` - it will deploy Xen Orchestra Appliance on your XenServer infrastructure which is required to use XOSAN.
+SSH in your XenServer and use the command line `bash -c "$(curl -sS https://xoa.io/deploy)"` - it will deploy Xen Orchestra Appliance on your XenServer infrastructure which is required to use XOSAN.
 
 > Note: You can also download the XVA file and follow [these instructions](https://xen-orchestra.com/docs/xoa.html#the-alternative).
 

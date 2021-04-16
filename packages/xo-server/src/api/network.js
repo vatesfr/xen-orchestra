@@ -1,5 +1,4 @@
 import xapiObjectToXo from '../xapi-object-to-xo'
-import { mapToArray } from '../utils'
 
 export function getBondModes() {
   return ['balance-slb', 'active-backup', 'lacp']
@@ -37,7 +36,7 @@ export async function createBonded({ pool, name, description, pifs, mtu = 1500, 
   return this.getXapi(pool).createBondedNetwork({
     name,
     description,
-    pifIds: mapToArray(pifs, pif => this.getObject(pif, 'PIF')._xapiId),
+    pifIds: pifs.map(pif => this.getObject(pif, 'PIF')._xapiId),
     mtu: +mtu,
     bondMode,
   })

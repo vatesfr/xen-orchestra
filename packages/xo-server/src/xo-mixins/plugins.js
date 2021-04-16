@@ -1,32 +1,33 @@
 import Ajv from 'ajv'
-import createLogger from '@xen-orchestra/log'
+import mapToArray from 'lodash/map'
+import { createLogger } from '@xen-orchestra/log'
 import { invalidParameters, noSuchObject } from 'xo-common/api-errors'
 
 import * as sensitiveValues from '../sensitive-values'
 import { PluginsMetadata } from '../models/plugin-metadata'
-import { mapToArray } from '../utils'
 
 // ===================================================================
 
 const log = createLogger('xo:xo-mixins:plugins')
 
 export default class {
-  constructor(xo) {
+  constructor(app) {
     this._ajv = new Ajv({
+      strict: 'log',
       useDefaults: true,
-    })
+    }).addVocabulary(['$type', 'enumNames'])
     this._plugins = { __proto__: null }
 
     this._pluginsMetadata = new PluginsMetadata({
-      connection: xo._redis,
+      connection: app._redis,
       prefix: 'xo:plugin-metadata',
     })
 
-    xo.on('start', () => {
-      xo.addConfigManager(
+    app.hooks.on('start', () => {
+      app.addConfigManager(
         'plugins',
         () => this._pluginsMetadata.get(),
-        plugins => Promise.all(mapToArray(plugins, plugin => this._pluginsMetadata.save(plugin)))
+        plugins => Promise.all(plugins.map(plugin => this._pluginsMetadata.save(plugin)))
       )
     })
   }

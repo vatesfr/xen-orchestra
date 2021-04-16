@@ -1,10 +1,9 @@
 {
   "private": false,
   "name": "xo-common",
-  "version": "0.5.0",
+  "version": "0.7.0",
   "license": "AGPL-3.0-or-later",
   "description": "Code shared between [XO](https://xen-orchestra.com) server and clients",
-  "keywords": [],
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/packages/xo-common",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "repository": {
@@ -17,7 +16,6 @@
     "url": "https://vates.fr"
   },
   "preferGlobal": false,
-  "bin": {},
   "files": [
     "dist/",
     "*.js"

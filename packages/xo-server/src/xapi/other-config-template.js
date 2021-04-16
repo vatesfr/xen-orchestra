@@ -1,4 +1,4 @@
-import { NULL_REF } from 'xen-api'
+import { Ref } from 'xen-api'
 
 const OTHER_CONFIG_TEMPLATE = {
   actions_after_crash: 'restart',
@@ -21,8 +21,9 @@ const OTHER_CONFIG_TEMPLATE = {
   other_config: {
     vgpu_pci: '',
     base_template_name: 'Other install media',
-    mac_seed: '5e88eb6a-d680-c47f-a94a-028886971ba4',
     'install-methods': 'cdrom',
+
+    // mac_seed should not be passed to VM.create so that a new one is generated
   },
   PCI_bus: '',
   platform: {
@@ -34,7 +35,7 @@ const OTHER_CONFIG_TEMPLATE = {
     hpet: 'true',
     viridian: 'true',
   },
-  protection_policy: NULL_REF,
+  protection_policy: Ref.EMPTY,
   PV_args: '',
   PV_bootloader: '',
   PV_bootloader_args: '',

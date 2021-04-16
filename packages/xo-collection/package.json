@@ -4,7 +4,6 @@
   "version": "0.4.1",
   "license": "AGPL-3.0-or-later",
   "description": "Generic in-memory collection with events",
-  "keywords": [],
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/packages/xo-collection",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "repository": {
@@ -18,7 +17,6 @@
   },
   "preferGlobal": false,
   "main": "dist/collection",
-  "bin": {},
   "files": [
     "dist/",
     "*.js"

@@ -3,16 +3,12 @@
 import blocked from 'blocked'
 import createDebug from 'debug'
 import diff from 'jest-diff'
-import eventToPromise from 'event-to-promise'
-import execPromise from 'exec-promise'
 import minimist from 'minimist'
 import pw from 'pw'
-import { asCallback, fromCallback } from 'promise-toolbox'
+import { asCallback, fromCallback, fromEvent } from 'promise-toolbox'
 import { filter, find } from 'lodash'
 import { getBoundPropertyDescriptor } from 'bind-property-descriptor'
 import { start as createRepl } from 'repl'
-
-import { createClient } from './'
 
 // ===================================================================
 
@@ -44,8 +40,8 @@ function getAllBoundDescriptors(object) {
 
 const usage = 'Usage: xen-api <url> [<user> [<password>]]'
 
-const main = async args => {
-  const opts = minimist(args, {
+async function main(createClient) {
+  const opts = minimist(process.argv.slice(2), {
     boolean: ['allow-unauthorized', 'help', 'read-only', 'verbose'],
 
     alias: {
@@ -116,7 +112,7 @@ const main = async args => {
     )
   })(repl.eval)
 
-  await eventToPromise(repl, 'exit')
+  await fromEvent(repl, 'exit')
 
   try {
     await xapi.disconnect()
@@ -125,5 +121,5 @@ const main = async args => {
 export default main
 
 if (!module.parent) {
-  execPromise(main)
+  main(require('./').createClient).catch(console.error.bind(console, 'FATAL'))
 }

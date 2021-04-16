@@ -3,7 +3,7 @@
 // $FlowFixMe
 import getStream from 'get-stream'
 
-import asyncMap from '@xen-orchestra/async-map'
+import asyncMapSettled from '@xen-orchestra/async-map/legacy'
 import limit from 'limit-concurrency-decorator'
 import path, { basename } from 'path'
 import synchronized from 'decorator-synchronized'
@@ -18,6 +18,7 @@ import { createChecksumStream, validChecksumOfReadStream } from './checksum'
 const { dirname } = path.posix
 
 type Data = Buffer | Readable | string
+type Disposable<T> = {| dispose: () => void | Promise<void>, value?: T |}
 type FileDescriptor = {| fd: mixed, path: string |}
 type LaxReadable = Readable & Object
 type LaxWritable = Writable & Object
@@ -72,6 +73,7 @@ class PrefixWrapper {
 }
 
 export default class RemoteHandlerAbstract {
+  _highWaterMark: number
   _remote: Object
   _timeout: number
 
@@ -84,7 +86,7 @@ export default class RemoteHandlerAbstract {
         throw new Error('Incorrect remote type')
       }
     }
-    ;({ timeout: this._timeout = DEFAULT_TIMEOUT } = options)
+    ;({ highWaterMark: this._highWaterMark, timeout: this._timeout = DEFAULT_TIMEOUT } = options)
 
     const sharedLimit = limit(options.maxParallelOperations ?? DEFAULT_MAX_PARALLEL_OPERATIONS)
     this.closeFile = sharedLimit(this.closeFile)
@@ -163,24 +165,26 @@ export default class RemoteHandlerAbstract {
       file = normalizePath(file)
     }
     const path = typeof file === 'string' ? file : file.path
-    const streamP = timeout.call(this._createReadStream(file, options), this._timeout).then(stream => {
-      // detect early errors
-      let promise = fromEvent(stream, 'readable')
+    const streamP = timeout
+      .call(this._createReadStream(file, { ...options, highWaterMark: this._highWaterMark }), this._timeout)
+      .then(stream => {
+        // detect early errors
+        let promise = fromEvent(stream, 'readable')
 
-      // try to add the length prop if missing and not a range stream
-      if (stream.length === undefined && options.end === undefined && options.start === undefined) {
-        promise = Promise.all([
-          promise,
-          ignoreErrors.call(
-            this._getSize(file).then(size => {
-              stream.length = size
-            })
-          ),
-        ])
-      }
+        // try to add the length prop if missing and not a range stream
+        if (stream.length === undefined && options.end === undefined && options.start === undefined) {
+          promise = Promise.all([
+            promise,
+            ignoreErrors.call(
+              this._getSize(file).then(size => {
+                stream.length = size
+              })
+            ),
+          ])
+        }
 
-      return promise.then(() => stream)
-    })
+        return promise.then(() => stream)
+      })
 
     if (!checksum) {
       return streamP
@@ -209,12 +213,11 @@ export default class RemoteHandlerAbstract {
 
   // write a stream to a file using a temporary file
   async outputStream(
-    input: Readable | Promise<Readable>,
     path: string,
+    input: Readable | Promise<Readable>,
     { checksum = true, dirMode }: { checksum?: boolean, dirMode?: number } = {}
   ): Promise<void> {
-    path = normalizePath(path)
-    return this._outputStream(await input, normalizePath(path), {
+    return this._outputStream(normalizePath(path), await input, {
       checksum,
       dirMode,
     })
@@ -258,6 +261,11 @@ export default class RemoteHandlerAbstract {
     }
 
     return entries
+  }
+
+  async lock(path: string): Promise<Disposable> {
+    path = normalizePath(path)
+    return { dispose: await this._lock(path) }
   }
 
   async mkdir(dir: string, { mode }: { mode?: number } = {}): Promise<void> {
@@ -409,7 +417,7 @@ export default class RemoteHandlerAbstract {
 
   async _createOutputStream(file: File, { dirMode, ...options }: Object = {}): Promise<LaxWritable> {
     try {
-      return await this._createWriteStream(file, options)
+      return await this._createWriteStream(file, { ...options, highWaterMark: this._highWaterMark })
     } catch (error) {
       if (typeof file !== 'string' || error.code !== 'ENOENT') {
         throw error
@@ -424,6 +432,8 @@ export default class RemoteHandlerAbstract {
     throw new Error('Not implemented')
   }
 
+  // createWriteStream takes highWaterMark as option even if it's not documented.
+  // Source: https://stackoverflow.com/questions/55026306/how-to-set-writeable-highwatermark
   async _createWriteStream(file: File, options: Object): Promise<LaxWritable> {
     throw new Error('Not implemented')
   }
@@ -433,6 +443,10 @@ export default class RemoteHandlerAbstract {
 
   async _getInfo(): Promise<Object> {
     return {}
+  }
+
+  async _lock(path: string): Promise<Function> {
+    return () => Promise.resolve()
   }
 
   async _getSize(file: File): Promise<number> {
@@ -477,7 +491,7 @@ export default class RemoteHandlerAbstract {
     return this._outputFile(file, data, { flags })
   }
 
-  async _outputStream(input: Readable, path: string, { checksum, dirMode }: { checksum?: boolean, dirMode?: number }) {
+  async _outputStream(path: string, input: Readable, { checksum, dirMode }: { checksum?: boolean, dirMode?: number }) {
     const tmpPath = `${dirname(path)}/.${basename(path)}`
     const output = await this.createOutputStream(tmpPath, {
       checksum,
@@ -501,7 +515,7 @@ export default class RemoteHandlerAbstract {
   }
 
   _readFile(file: string, options?: Object): Promise<Buffer> {
-    return this._createReadStream(file, options).then(getStream.buffer)
+    return this._createReadStream(file, { ...options, highWaterMark: this._highWaterMark }).then(getStream.buffer)
   }
 
   async _rename(oldPath: string, newPath: string) {
@@ -522,7 +536,7 @@ export default class RemoteHandlerAbstract {
     }
 
     const files = await this._list(dir)
-    await asyncMap(files, file =>
+    await asyncMapSettled(files, file =>
       this._unlink(`${dir}/${file}`).catch(error => {
         if (error.code === 'EISDIR') {
           return this._rmtree(`${dir}/${file}`)

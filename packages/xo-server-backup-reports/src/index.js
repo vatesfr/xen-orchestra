@@ -1,6 +1,6 @@
-import createLogger from '@xen-orchestra/log'
 import humanFormat from 'human-format'
 import moment from 'moment-timezone'
+import { createLogger } from '@xen-orchestra/log'
 import { forEach, groupBy, startCase } from 'lodash'
 import { get } from '@xen-orchestra/defined'
 import pkg from '../package'
@@ -403,17 +403,53 @@ class BackupReportsXoPlugin {
         continue
       }
 
-      const vmId = taskLog.data.id
+      const { type, id } = taskLog.data ?? {}
+      if (taskLog.message === 'get SR record' || taskLog.message === 'get remote adapter') {
+        ++nFailures
+        failedVmsText.push(
+          // It will ensure that it will never be in a nested list
+          ''
+        )
+
+        try {
+          if (type === 'SR') {
+            const { name_label: name, uuid } = xo.getObject(id)
+            failedVmsText.push(`### ${name}`, '', `- **UUID**: ${uuid}`)
+            nagiosText.push(`[(${type} failed) ${name} : ${taskLog.result.message} ]`)
+          } else {
+            const { name } = await xo.getRemote(id)
+            failedVmsText.push(`### ${name}`, '', `- **UUID**: ${id}`)
+            nagiosText.push(`[(${type} failed) ${name} : ${taskLog.result.message} ]`)
+          }
+        } catch (error) {
+          logger.warn(error)
+          failedVmsText.push(`### ${UNKNOWN_ITEM}`, '', `- **UUID**: ${id}`)
+          nagiosText.push(`[(${type} failed) ${id} : ${taskLog.result.message} ]`)
+        }
+
+        failedVmsText.push(
+          `- **Type**: ${type}`,
+          ...getTemporalDataMarkdown(taskLog.end, taskLog.start, formatDate),
+          ...getWarningsMarkdown(taskLog.warnings),
+          `- **Error**: ${taskLog.result.message}`
+        )
+        continue
+      }
+
+      if (type !== 'VM') {
+        continue
+      }
+
       let vm
       try {
-        vm = xo.getObject(vmId)
+        vm = xo.getObject(id)
       } catch (e) {}
       const text = [
         // It will ensure that it will never be in a nested list
         '',
         `### ${vm !== undefined ? vm.name_label : 'VM not found'}`,
         '',
-        `- **UUID**: ${vm !== undefined ? vm.uuid : vmId}`,
+        `- **UUID**: ${vm !== undefined ? vm.uuid : id}`,
         ...getTemporalDataMarkdown(taskLog.end, taskLog.start, formatDate),
         ...getWarningsMarkdown(taskLog.warnings),
       ]
@@ -550,8 +586,8 @@ class BackupReportsXoPlugin {
       }
     }
 
-    const nVms = log.tasks.length
-    const nSuccesses = nVms - nFailures - nSkipped - nInterrupted
+    const nTasks = log.tasks.length
+    const nSuccesses = nTasks - nFailures - nSkipped - nInterrupted
     const markdown = [
       `##  Global status: ${log.status}`,
       '',
@@ -559,7 +595,7 @@ class BackupReportsXoPlugin {
       `- **Run ID**: ${log.id}`,
       `- **mode**: ${mode}`,
       ...getTemporalDataMarkdown(log.end, log.start, formatDate),
-      `- **Successes**: ${nSuccesses} / ${nVms}`,
+      `- **Successes**: ${nSuccesses} / ${nTasks}`,
       globalTransferSize !== 0 && `- **Transfer size**: ${formatSize(globalTransferSize)}`,
       globalMergeSize !== 0 && `- **Merge size**: ${formatSize(globalMergeSize)}`,
       ...getWarningsMarkdown(log.warnings),

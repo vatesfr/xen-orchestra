@@ -1,5 +1,3 @@
-// @flow
-
 // Usage:
 //
 // ```js
@@ -41,7 +39,7 @@ export default function defined() {
 // const getFriendName = _ => _.friends[0].name
 // const friendName = get(getFriendName, props.user)
 // ```
-export const get = (accessor: (input: ?any) => any, arg: ?any) => {
+export const get = (accessor, arg) => {
   try {
     return accessor(arg)
   } catch (error) {
@@ -60,4 +58,4 @@ export const get = (accessor: (input: ?any) => any, arg: ?any) => {
 //   _ => new ProxyAgent(_)
 // )
 // ```
-export const ifDef = (value: ?any, thenFn: (value: any) => any) => (value !== undefined ? thenFn(value) : value)
+export const ifDef = (value, thenFn) => (value !== undefined ? thenFn(value) : value)

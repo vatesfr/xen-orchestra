@@ -1,4 +1,4 @@
-import createLogger from '@xen-orchestra/log'
+import { createLogger } from '@xen-orchestra/log'
 import { filter } from 'lodash'
 import { ignoreErrors } from 'promise-toolbox'
 import { hash, needsRehash, verify } from 'hashy'
@@ -7,7 +7,7 @@ import { invalidCredentials, noSuchObject } from 'xo-common/api-errors'
 import * as XenStore from '../_XenStore'
 import { Groups } from '../models/group'
 import { Users } from '../models/user'
-import { forEach, isEmpty, lightSet, mapToArray } from '../utils'
+import { forEach, isEmpty, lightSet } from '../utils'
 
 // ===================================================================
 
@@ -19,10 +19,10 @@ const removeFromArraySet = (set, value) => set && filter(set, current => current
 // ===================================================================
 
 export default class {
-  constructor(xo) {
-    this._xo = xo
+  constructor(app) {
+    this._app = app
 
-    const redis = xo._redis
+    const redis = app._redis
 
     const groupsDb = (this._groups = new Groups({
       connection: redis,
@@ -34,24 +34,24 @@ export default class {
       indexes: ['email'],
     }))
 
-    xo.on('clean', () => Promise.all([groupsDb.rebuildIndexes(), usersDb.rebuildIndexes()]))
-    xo.on('start', async () => {
-      xo.addConfigManager(
+    app.hooks.on('clean', () => Promise.all([groupsDb.rebuildIndexes(), usersDb.rebuildIndexes()]))
+    app.hooks.on('start', async () => {
+      app.addConfigManager(
         'groups',
         () => groupsDb.get(),
-        groups => Promise.all(mapToArray(groups, group => groupsDb.save(group))),
+        groups => Promise.all(groups.map(group => groupsDb.save(group))),
         ['users']
       )
-      xo.addConfigManager(
+      app.addConfigManager(
         'users',
         () => usersDb.get(),
         users =>
           Promise.all(
-            mapToArray(users, async user => {
+            users.map(async user => {
               const userId = user.id
               const conflictUsers = await usersDb.get({ email: user.email })
               if (!isEmpty(conflictUsers)) {
-                await Promise.all(mapToArray(conflictUsers, ({ id }) => id !== userId && this.deleteUser(id)))
+                await Promise.all(conflictUsers.map(({ id }) => id !== userId && this.deleteUser(id)))
               }
               return usersDb.save(user)
             })
@@ -94,19 +94,19 @@ export default class {
     await this._users.remove(id)
 
     // Remove tokens of user.
-    this._xo
+    this._app
       .getAuthenticationTokensForUser(id)
       .then(tokens => {
         forEach(tokens, token => {
-          this._xo.deleteAuthenticationToken(id)::ignoreErrors()
+          this._app.deleteAuthenticationToken(id)::ignoreErrors()
         })
       })
       ::ignoreErrors()
 
     // Remove ACLs for this user.
-    this._xo.getAclsForSubject(id).then(acls => {
+    this._app.getAclsForSubject(id).then(acls => {
       forEach(acls, acl => {
-        this._xo.removeAcl(id, acl.object, acl.action)::ignoreErrors()
+        this._app.removeAcl(id, acl.object, acl.action)::ignoreErrors()
       })
     })
 
@@ -222,7 +222,7 @@ export default class {
       return user
     }
 
-    if (!this._xo._config.createUserOnFirstSignin) {
+    if (!this._app.config.get('createUserOnFirstSignin')) {
       throw new Error(`registering ${name} user is forbidden`)
     }
 
@@ -251,7 +251,7 @@ export default class {
       conflictingUser = users.find(user => user.email === name)
 
       if (conflictingUser !== undefined) {
-        if (!this._xo._config.authentication.mergeProvidersUsers) {
+        if (!this._app.config.get('authentication.mergeProvidersUsers')) {
           throw new Error(`User with username ${name} already exists`)
         }
         if (user !== undefined) {
@@ -269,7 +269,7 @@ export default class {
     }
 
     if (user === undefined) {
-      if (!this._xo._config.createUserOnFirstSignin) {
+      if (!this._app.config.get('createUserOnFirstSignin')) {
         throw new Error(`registering ${name} user is forbidden`)
       }
       user = await this.createUser({
@@ -334,9 +334,9 @@ export default class {
     await this._groups.remove(id)
 
     // Remove ACLs for this group.
-    this._xo.getAclsForSubject(id).then(acls => {
+    this._app.getAclsForSubject(id).then(acls => {
       forEach(acls, acl => {
-        this._xo.removeAcl(id, acl.object, acl.action)::ignoreErrors()
+        this._app.removeAcl(id, acl.object, acl.action)::ignoreErrors()
       })
     })
 
@@ -425,8 +425,8 @@ export default class {
 
     const saveUser = ::this._users.save
     await Promise.all([
-      Promise.all(mapToArray(newUsers, saveUser)),
-      Promise.all(mapToArray(oldUsers, saveUser)),
+      Promise.all(newUsers.map(saveUser)),
+      Promise.all(oldUsers.map(saveUser)),
       this._groups.save(group),
     ])
   }

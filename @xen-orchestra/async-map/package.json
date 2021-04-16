@@ -1,10 +1,17 @@
 {
   "private": false,
   "name": "@xen-orchestra/async-map",
-  "version": "0.0.0",
+  "version": "0.1.2",
   "license": "ISC",
-  "description": "Similar to Promise.all + lodash.map but wait for all promises to be settled",
-  "keywords": [],
+  "description": "Promise.all + map for all iterables",
+  "keywords": [
+    "array",
+    "async",
+    "iterable",
+    "map",
+    "settled",
+    "typescript"
+  ],
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/async-map",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "repository": {
@@ -17,13 +24,9 @@
     "url": "https://vates.fr"
   },
   "preferGlobal": false,
-  "main": "dist/",
-  "bin": {},
   "files": [
-    "dist/"
-  ],
-  "browserslist": [
-    ">2%"
+    "index.js",
+    "legacy.js"
   ],
   "engines": {
     "node": ">=6"
@@ -31,22 +34,7 @@
   "dependencies": {
     "lodash": "^4.17.4"
   },
-  "devDependencies": {
-    "@babel/cli": "^7.0.0",
-    "@babel/core": "^7.0.0",
-    "@babel/preset-env": "^7.0.0",
-    "@babel/preset-flow": "^7.0.0",
-    "babel-plugin-lodash": "^3.3.2",
-    "cross-env": "^7.0.2",
-    "rimraf": "^3.0.0"
-  },
   "scripts": {
-    "build": "cross-env NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
-    "clean": "rimraf dist/",
-    "dev": "cross-env NODE_ENV=development babel --watch --source-maps --out-dir=dist/ src/",
-    "prebuild": "yarn run clean",
-    "predev": "yarn run prebuild",
-    "prepublishOnly": "yarn run build",
     "postversion": "npm publish"
   }
 }

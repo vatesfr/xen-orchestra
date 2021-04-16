@@ -1,9 +1,17 @@
 #!/usr/bin/env node
 
-const get = require('lodash/get')
 const isEmpty = require('lodash/isEmpty')
 const sortedObject = require('sorted-object')
-const { getPackages, readFile, writeFile, unlink } = require('./utils')
+const { dirname, relative } = require('path')
+const { getPackages, noop, readFile, symlink, writeFile, unlink } = require('./utils')
+
+const NPMIGNORE_PATH = `${__dirname}/npmignore`
+
+const deleteIfEmpty = (object, property) => {
+  if (isEmpty(object[property])) {
+    delete object[property]
+  }
+}
 
 const deleteProperties = (object, property, properties) => {
   const nestedObject = object[property]
@@ -13,12 +21,15 @@ const deleteProperties = (object, property, properties) => {
   properties.forEach(property => {
     delete nestedObject[property]
   })
-  if (isEmpty(object[property])) {
-    delete object[property]
-  }
+  deleteIfEmpty(object, property)
 }
 
 const generateReadme = require('handlebars').compile(require('fs').readFileSync(`${__dirname}/README.md.tpl`, 'utf8'))
+
+const forceRelativeSymlink = async (target, path) => {
+  await unlink(path).catch(noop)
+  return symlink(relative(dirname(path), target), path)
+}
 
 require('exec-promise')(() =>
   getPackages(true).map(({ dir, name, package: pkg, relativeDir }) => {
@@ -57,6 +68,10 @@ require('exec-promise')(() =>
     delete pkg.standard
     delete pkg['lint-staged']
 
+    deleteIfEmpty(pkg, 'bin')
+    deleteIfEmpty(pkg, 'dependencies')
+    deleteIfEmpty(pkg, 'description')
+    deleteIfEmpty(pkg, 'keywords')
     deleteProperties(pkg, 'config', ['commitizen'])
     deleteProperties(pkg, 'devDependencies', [
       'babel-7-jest',
@@ -103,6 +118,7 @@ require('exec-promise')(() =>
     }
 
     return Promise.all([
+      forceRelativeSymlink(NPMIGNORE_PATH, `${dir}/.npmignore`),
       readFile(`${dir}/USAGE.md`, 'utf8')
         .then(content =>
           writeFile(

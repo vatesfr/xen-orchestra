@@ -7,17 +7,17 @@ import { Acls } from '../models/acl'
 // ===================================================================
 
 export default class {
-  constructor(xo) {
-    this._xo = xo
+  constructor(app) {
+    this._app = app
 
     const aclsDb = (this._acls = new Acls({
-      connection: xo._redis,
+      connection: app._redis,
       prefix: 'xo:acl',
       indexes: ['subject', 'object'],
     }))
 
-    xo.on('start', () => {
-      xo.addConfigManager(
+    app.hooks.on('start', () => {
+      app.addConfigManager(
         'acls',
         () => aclsDb.get(),
         acls => aclsDb.update(acls),
@@ -25,7 +25,7 @@ export default class {
       )
     })
 
-    xo.on('clean', async () => {
+    app.hooks.on('clean', async () => {
       const acls = await aclsDb.get()
       const toRemove = []
       forEach(acls, ({ subject, object, action, id }) => {
@@ -39,7 +39,7 @@ export default class {
   }
 
   async _getAclsForUser(userId) {
-    const user = await this._xo.getUser(userId)
+    const user = await this._app.getUser(userId)
     const { groups } = user
 
     const subjects = groups ? groups.concat(userId) : [userId]
@@ -97,25 +97,25 @@ export default class {
   }
 
   async checkPermissions(userId, permissions) {
-    const user = await this._xo.getUser(userId)
+    const user = await this._app.getUser(userId)
 
     // Special case for super XO administrators.
     if (user.permission === 'admin') {
       return true
     }
 
-    aclResolver.assert(await this.getPermissionsForUser(userId), id => this._xo.getObject(id), permissions)
+    aclResolver.assert(await this.getPermissionsForUser(userId), id => this._app.getObject(id), permissions)
   }
 
   async hasPermissions(userId, permissions) {
-    const user = await this._xo.getUser(userId)
+    const user = await this._app.getUser(userId)
 
     // Special case for super XO administrators.
     if (user.permission === 'admin') {
       return true
     }
 
-    return aclResolver.check(await this.getPermissionsForUser(userId), id => this._xo.getObject(id), permissions)
+    return aclResolver.check(await this.getPermissionsForUser(userId), id => this._app.getObject(id), permissions)
   }
 
   async removeAclsForObject(objectId) {

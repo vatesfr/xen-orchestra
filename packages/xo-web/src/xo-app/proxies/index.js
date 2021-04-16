@@ -7,6 +7,8 @@ import NoObjects from 'no-objects'
 import React from 'react'
 import SortedTable from 'sorted-table'
 import { adminOnly } from 'utils'
+import { confirm } from 'modal'
+import { incorrectState } from 'xo-common/api-errors'
 import { provideState, injectState } from 'reaclette'
 import { Text } from 'editable'
 import { Vm } from 'render-xo-item'
@@ -36,12 +38,14 @@ const HEADER = (
 
 const ACTIONS = [
   {
+    collapsed: true,
     handler: forgetProxyAppliances,
     icon: 'forget',
     label: _('forgetProxies'),
     level: 'danger',
   },
   {
+    collapsed: true,
     handler: destroyProxyAppliances,
     icon: 'destroy',
     label: _('destroyProxies'),
@@ -51,6 +55,7 @@ const ACTIONS = [
 
 const INDIVIDUAL_ACTIONS = [
   {
+    collapsed: true,
     handler: (proxy, { deployProxy }) =>
       deployProxy({
         proxy,
@@ -76,7 +81,7 @@ const INDIVIDUAL_ACTIONS = [
   {
     collapsed: true,
     disabled: ({ vmUuid }) => vmUuid === undefined,
-    handler: (proxy, { upgradeAppliance }) => upgradeAppliance(proxy.id),
+    handler: (proxy, { upgradeAppliance }) => upgradeAppliance(proxy.id, { ignoreRunningJobs: true }),
     icon: 'upgrade',
     label: _('forceUpgrade'),
     level: 'primary',
@@ -201,8 +206,27 @@ const Proxies = decorate([
       async deployProxy({ fetchProxyUpgrades }, proxy) {
         return fetchProxyUpgrades([await deployProxy(proxy)])
       },
-      async upgradeAppliance({ fetchProxyUpgrades }, id) {
-        await upgradeProxyAppliance(id)
+      async upgradeAppliance({ fetchProxyUpgrades }, id, options) {
+        try {
+          await upgradeProxyAppliance(id, options)
+        } catch (error) {
+          if (!incorrectState.is(error)) {
+            throw error
+          }
+
+          try {
+            await confirm({
+              title: _('upgrade'),
+              body: _('proxyRunningBackupsMessage', {
+                nJobs: error.data.actual.length,
+              }),
+            })
+          } catch (_) {
+            return
+          }
+
+          await upgradeProxyAppliance(id, { ignoreRunningJobs: true })
+        }
         return fetchProxyUpgrades([id])
       },
     },

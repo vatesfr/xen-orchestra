@@ -1,8 +1,8 @@
 const filenamify = require('filenamify')
 const get = require('lodash/get')
+const { asyncMap } = require('@xen-orchestra/async-map')
 const { dirname, join, relative } = require('path')
 
-const asyncMap = require('../_asyncMap')
 const { mktree, readdir2, readFile, symlink2 } = require('../_fs')
 
 module.exports = async function createSymlinkIndex([backupDir, fieldPath]) {

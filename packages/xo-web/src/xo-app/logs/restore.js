@@ -79,19 +79,21 @@ const COLUMNS = [
       return (
         <div>
           <span className={`tag tag-${className}`}>{_(label)}</span>{' '}
-          {task.status === 'failure' && (
-            <Tooltip content={_('logsFailedRestoreError')}>
-              <a
-                className='text-danger'
-                onClick={showRestoreError}
-                data-message={task.result.message}
-                data-error={JSON.stringify(task.result)}
-                style={{ cursor: 'pointer' }}
-              >
-                <Icon icon='alarm' />
-              </a>
-            </Tooltip>
-          )}
+          {task.status === 'failure' &&
+            // 2021-03-19 - JFT: can be undefined due to bug, see a95b10239
+            task.result !== undefined && (
+              <Tooltip content={_('logsFailedRestoreError')}>
+                <a
+                  className='text-danger'
+                  onClick={showRestoreError}
+                  data-message={task.result.message}
+                  data-error={JSON.stringify(task.result)}
+                  style={{ cursor: 'pointer' }}
+                >
+                  <Icon icon='alarm' />
+                </a>
+              </Tooltip>
+            )}
         </div>
       )
     },

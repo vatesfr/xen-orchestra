@@ -5,7 +5,6 @@ import Component from 'base-component'
 import Icon from 'icon'
 import React from 'react'
 import SortedTable from 'sorted-table'
-import Upgrade from 'xoa-upgrade'
 import { addSubscriptions, formatSize, noop } from 'utils'
 import { confirm } from 'modal'
 import { error } from 'notification'
@@ -187,13 +186,13 @@ export default class Restore extends Component {
       body: <RestoreBackupsModalBody data={data} />,
       icon: 'restore',
     })
-      .then(({ backup, sr, start }) => {
+      .then(({ backup, generateNewMacAddresses, sr, start }) => {
         if (backup == null || sr == null) {
           error(_('backupRestoreErrorTitle'), _('backupRestoreErrorMessage'))
           return
         }
 
-        return restoreBackup(backup, sr, start)
+        return restoreBackup(backup, sr, { generateNewMacAddresses, startOnRestore: start })
       }, noop)
       .then(() => this._refreshBackupList())
 
@@ -212,14 +211,16 @@ export default class Restore extends Component {
       body: <RestoreBackupsBulkModalBody datas={datas} />,
       icon: 'restore',
     })
-      .then(({ sr, latest, start }) => {
+      .then(({ sr, generateNewMacAddresses, latest, start }) => {
         if (sr == null) {
           error(_('restoreVmBackupsBulkErrorTitle', 'restoreVmBackupsBulkErrorMessage'))
           return
         }
 
         const prop = latest ? 'last' : 'first'
-        return Promise.all(map(datas, data => restoreBackup(data[prop], sr, start)))
+        return Promise.all(
+          map(datas, data => restoreBackup(data[prop], sr, { generateNewMacAddresses, startOnRestore: start }))
+        )
       }, noop)
       .then(() => this._refreshBackupList())
 
@@ -259,28 +260,26 @@ export default class Restore extends Component {
 
   render() {
     return (
-      <Upgrade place='restoreBackup' available={2}>
-        <div>
-          <RestoreLegacy />
-          <div className='mt-1 mb-1'>
-            <h3>{_('restore')}</h3>
-            <ActionButton btnStyle='primary' handler={this._refreshBackupList} icon='refresh'>
-              {_('refreshBackupList')}
-            </ActionButton>{' '}
-            <ButtonLink to='backup/restore/metadata'>
-              <Icon icon='database' /> {_('metadata')}
-            </ButtonLink>
-          </div>
-          <SortedTable
-            actions={this._actions}
-            collection={this.state.backupDataByVm}
-            columns={BACKUPS_COLUMNS}
-            stateUrlParam='s'
-          />
-          <br />
-          <Logs />
+      <div>
+        <RestoreLegacy />
+        <div className='mt-1 mb-1'>
+          <h3>{_('restore')}</h3>
+          <ActionButton btnStyle='primary' handler={this._refreshBackupList} icon='refresh'>
+            {_('refreshBackupList')}
+          </ActionButton>{' '}
+          <ButtonLink to='backup/restore/metadata'>
+            <Icon icon='database' /> {_('metadata')}
+          </ButtonLink>
         </div>
-      </Upgrade>
+        <SortedTable
+          actions={this._actions}
+          collection={this.state.backupDataByVm}
+          columns={BACKUPS_COLUMNS}
+          stateUrlParam='s'
+        />
+        <br />
+        <Logs />
+      </div>
     )
   }
 }

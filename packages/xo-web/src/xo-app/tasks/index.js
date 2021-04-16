@@ -7,7 +7,7 @@ import Link from 'link'
 import React from 'react'
 import renderXoItem, { Pool } from 'render-xo-item'
 import SortedTable from 'sorted-table'
-import { FormattedDate, injectIntl } from 'react-intl'
+import { FormattedDate, FormattedRelative, injectIntl } from 'react-intl'
 import { SelectPool } from 'select-objects'
 import { connectStore, resolveIds } from 'utils'
 import { Col, Container, Row } from 'grid'
@@ -89,7 +89,6 @@ const COMMON = [
 
 const COLUMNS = [
   {
-    default: true,
     itemRenderer: ({ $poolId }) => <Pool id={$poolId} link />,
     name: _('pool'),
     sortCriteria: (task, userData) => {
@@ -104,6 +103,25 @@ const COLUMNS = [
     ),
     name: _('progress'),
     sortCriteria: 'progress',
+  },
+  {
+    default: true,
+    itemRenderer: task => <FormattedRelative value={task.created * 1000} />,
+    name: _('taskStarted'),
+    sortCriteria: 'created',
+    sortOrder: 'desc',
+  },
+  {
+    itemRenderer: task => {
+      const started = task.created * 1000
+      const { progress } = task
+
+      if (progress === 0 || progress === 1) {
+        return // not yet started or already finished
+      }
+      return <FormattedRelative value={started + (Date.now() - started) / progress} />
+    },
+    name: _('taskEstimatedEnd'),
   },
 ]
 
@@ -259,6 +277,10 @@ export default class Tasks extends Component {
     )
   )
 
+  _getItemsPerPageContainer = () => this.state.itemsPerPageContainer
+
+  _setItemsPerPageContainer = itemsPerPageContainer => this.setState({ itemsPerPageContainer })
+
   render() {
     const { props } = this
     const { intl, nTasks, pools } = props
@@ -268,11 +290,14 @@ export default class Tasks extends Component {
       <Page header={HEADER} title={`(${nTasks}) ${formatMessage(messages.taskPage)}`}>
         <Container>
           <Row className='mb-1'>
-            <Col mediumSize={8}>
+            <Col mediumSize={7}>
               <SelectPool multi onChange={this.linkState('pools')} />
             </Col>
             <Col mediumSize={4}>
               <div ref={container => this.setState({ container })} />
+            </Col>
+            <Col mediumSize={1}>
+              <div ref={this._setItemsPerPageContainer} />
             </Col>
           </Row>
           <Row>
@@ -281,6 +306,7 @@ export default class Tasks extends Component {
                 collection={this._getTasks()}
                 columns={COLUMNS}
                 filterContainer={() => this.state.container}
+                itemsPerPageContainer={this._getItemsPerPageContainer}
                 groupedActions={GROUPED_ACTIONS}
                 individualActions={INDIVIDUAL_ACTIONS}
                 stateUrlParam='s'

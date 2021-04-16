@@ -1,18 +1,183 @@
 # ChangeLog
 
-## **next**
+## **5.57.1** (2021-04-13)
+
+<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
 
 ### Enhancements
+
+- [Host/Load-balancer] Add option to disable migration (PR [#5706](https://github.com/vatesfr/xen-orchestra/pull/5706))
+- [VM] Don't switch a VM to use [DMC](https://docs.citrix.com/en-us/xencenter/7-1/dmc-about.html) when changing the memory [#4983](https://github.com/vatesfr/xen-orchestra/issues/4983)
+
+### Bug fixes
+
+- [Backup restore] Generate new MAC addresses is disabled by default (PR [#5707](https://github.com/vatesfr/xen-orchestra/pull/5707))
+- [Backup] Fix `vm.refresh_snapshots is not a function` error
+- [Backup] Fix `cannot read property "length" of undefined` when using _delete first_ [Forum post](https://xcp-ng.org/forum/topic/4440/error-on-delta-backup-cannot-read-property-length-of-undefined)
+- [Delta backup] Fix merge task not under corresponding remote and missing merge size in summary [#5708](https://github.com/vatesfr/xen-orchestra/issues/5708)
+- [Delta backup restore] Fix incorrect reported size (and speed)
+- [Settings/Logs] Correctly hide `pool.listMissingPatches` and `host.stats` errors
+- [Plugins] Fix `strict mode: unknown keyword` when configuring some plugins
+- Fix `Cannot destructure property 'bypassMacAddressesCheck' of 'undefined'` error which happens on various actions deploying a proxy
+- [Proxies] Fix _Force upgrade_ `expect the result to be iterator` error
+
+### Released packages
+
+- @xen-orchestra/xapi 0.6.1
+- @xen-orchestra/backups 0.9.3
+- xo-server-load-balancer 0.5.0
+- xo-server 5.78.4
+- xo-web 5.80.1
+
+## **5.57.0** (2021-04-01)
+
+### Highlights
+
+- [Backup] Run backup jobs on different system processes (PR [#5660](https://github.com/vatesfr/xen-orchestra/pull/5660))
+- [Home/VM, VM] Start: show confirmation modal when the VMs contain duplicate MAC addresses or have the same MAC addresses as other running VMs [#5601](https://github.com/vatesfr/xen-orchestra/issues/5601) (PR [#5655](https://github.com/vatesfr/xen-orchestra/pull/5655))
+- [Host/Load-balancer] Add a new anti-affinity mode (PR [#5652](https://github.com/vatesfr/xen-orchestra/pull/5652))
+
+### Enhancements
+
+- [VM] Display the full driver version in the general and advanced tab instead of `major.minor` [#5680](https://github.com/vatesfr/xen-orchestra/issues/5680) (PR [#5691](https://github.com/vatesfr/xen-orchestra/pull/5691))
+- [Usage report] Add VM IP addresses to the report (PR [#5696](https://github.com/vatesfr/xen-orchestra/pull/5696))
+- [Plugins/perf-alert] Ability to choose all hosts, VMs and SRs [#2987](https://github.com/vatesfr/xen-orchestra/issues/2987) (PR [#5692](https://github.com/vatesfr/xen-orchestra/pull/5692))
+- [Backup restore] Ability to generate new MAC addresses (PR [#5697](https://github.com/vatesfr/xen-orchestra/pull/5697))
+
+### Bug fixes
+
+- [Proxy] _Force upgrade_ no longer fails on broken proxy
+- [Proxy] _Redeploy_ now works when the bound VM is missing
+- [VM template] Fix confirmation modal doesn't appear on deleting a default template (PR [#5644](https://github.com/vatesfr/xen-orchestra/pull/5644))
+- [OVA VM Import] Fix imported VMs all having the same MAC addresses
+- [Disk import] Fix `an error has occurred` when importing wrong format or corrupted files [#5663](https://github.com/vatesfr/xen-orchestra/issues/5663) (PR [#5683](https://github.com/vatesfr/xen-orchestra/pull/5683))
+
+### Released packages
+
+- xo-server-load-balancer 0.4.0
+- xo-server-perf-alert 0.3.0
+- xo-server-usage-report 0.10.0
+- xo-server-backup-reports 0.16.9
+- @vates/disposable 0.1.1
+- xo-server-transport-email 0.6.0
+- @xen-orchestra/fs 0.14.0
+- @xen-orchestra/xapi 0.6.0
+- @xen-orchestra/backups 0.9.1
+- @xen-orchestra/backups-cli 0.5.0
+- xo-server 5.78.2
+- xo-web 5.80.0
+
+## **5.56.2** (2021-03-22)
+
+<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
+
+### Bug fixes
+
+- [Pool] Fix `an error has occurred` when using the "Disconnect" button from the pool page [#5669](https://github.com/vatesfr/xen-orchestra/issues/5669) (PR [#5671](https://github.com/vatesfr/xen-orchestra/pull/5671))
+- [Configuration] Automatically connect enabled servers after import [#5660](https://github.com/vatesfr/xen-orchestra/issues/5660) (PR [#5672](https://github.com/vatesfr/xen-orchestra/pull/5672))
+- Work-around some `ECONNRESET` errors when connecting to XEN-API (PR [#5674](https://github.com/vatesfr/xen-orchestra/pull/5674))
+- [Backup] Retry automatically on `resource temporarily unavailable` error (PR [#5612](https://github.com/vatesfr/xen-orchestra/pull/5612))
+- [Backup Restore] Don't break in case of malformed logs
+- [Backup Restore] Fix `MESSAGE_METHOD_UNKNOWN(VM.set_bios_strings)` with XenServer < 7.3
+
+### Released packages
+
+- xo-common 0.7.0
+- xen-api 0.31.0
+- @xen-orchestra/xapi 0.4.5
+- @xen-orchestra/fs 0.13.1
+- @xen-orchestra/backups 0.7.1
+- xo-server 5.77.1
+- xo-web 5.79.1
+
+## **5.56.1** (2021-03-10)
+
+### Enhancements
+
+- [VIF] To edit MAC address on a VIF, user has to be operator of the VIF and administrator of its network [#4700](https://github.com/vatesfr/xen-orchestra/issues/4700) (PR [#5631](https://github.com/vatesfr/xen-orchestra/pull/5631))
+- [Backup/CR] Ability to set a specific schedule to always run full backups [#5541](https://github.com/vatesfr/xen-orchestra/issues/5541) (PR [#5648](https://github.com/vatesfr/xen-orchestra/pull/5648))
+
+### Bug fixes
+
+- [Editable number] When you are trying to edit a number and it's failing, display an error (PR [#5634](https://github.com/vatesfr/xen-orchestra/pull/5634))
+- [VM/Network] Fix `an error has occurred` when trying to sort the table by the network's name (PR [#5639](https://github.com/vatesfr/xen-orchestra/pull/5639))
+- [Backup] Try harder to avoid orphan VDI snapshots, especially with iSCSI SRs [#4926](https://github.com/vatesfr/xen-orchestra/issues/4926)
+- [Backup] Disabled or unavailable remotes and SRs don't prevent job from running [#5353](https://github.com/vatesfr/xen-orchestra/issues/5353) (PR [#5651](https://github.com/vatesfr/xen-orchestra/pull/5651))
+
+### Released packages
+
+- xen-api 0.30.0
+- @xen-orchestra/xapi 0.4.4
+- @xen-orchestra/backups 0.7.0
+- xo-server 5.77.0
+- xo-web 5.79.0
+
+## **5.56.0** (2021-02-26)
+
+### Highlights
+
+- [Task] Display age and estimated duration (PR [#5530](https://github.com/vatesfr/xen-orchestra/pull/5530))
+- [Backup] Ability to set a specific schedule to always run full backups [#5541](https://github.com/vatesfr/xen-orchestra/issues/5541) (PR [#5546](https://github.com/vatesfr/xen-orchestra/pull/5546))
+- [XOA] Add warning message in the menu if "XOA check" reports any problems (PR [#5534](https://github.com/vatesfr/xen-orchestra/pull/5534))
+
+### Enhancements
+
+- [Proxy] Ask for a confirmation before upgrading a proxy with running backups (PR [#5533](https://github.com/vatesfr/xen-orchestra/pull/5533))
+- [Backup/restore] Allow backup restore to any licence even if XOA isn't registered (PR [#5547](https://github.com/vatesfr/xen-orchestra/pull/5547))
+- [Import] Ignore case when detecting file type (PR [#5574](https://github.com/vatesfr/xen-orchestra/pull/5574))
+- [Proxy] Log VM backup restoration (PR [#5576](https://github.com/vatesfr/xen-orchestra/pull/5576))
+- [Backup] During CR/delta backups, bios_strings are restored similarly to DR/full backups
+
+### Bug fixes
+
+- [VM/Snapshot export] Fix `Error: no available place in queue` on canceling an export via browser then starting a new one when the concurrency threshold is reached [#5535](https://github.com/vatesfr/xen-orchestra/issues/5535) (PR [#5538](https://github.com/vatesfr/xen-orchestra/pull/5538))
+- [Servers] Hide pool's objects if its master is unreachable [#5475](https://github.com/vatesfr/xen-orchestra/issues/5475) (PR [#5526](https://github.com/vatesfr/xen-orchestra/pull/5526))
+- [Host] Restart toolstack: fix `ECONNREFUSED` error (PR [#5553](https://github.com/vatesfr/xen-orchestra/pull/5553))
+- [VM migration] Intra-pool: don't automatically select migration network if no default migration network is defined on the pool (PR [#5564](https://github.com/vatesfr/xen-orchestra/pull/5564))
+- [New SR] Fix `lun.LUNid.trim is not a function` error [#5497](https://github.com/vatesfr/xen-orchestra/issues/5497) (PR [#5581](https://github.com/vatesfr/xen-orchestra/pull/5581))
+- [Home/vm] Bulk intra pool migration: fix VM VDIs on a shared SR wrongly migrated to the default SR (PR [#3987](https://github.com/vatesfr/xen-orchestra/pull/3987))
+- [Select] Display the option on multiple lines if needed (PR [#5580](https://github.com/vatesfr/xen-orchestra/pull/5580))
+- [VM/advanced] Fix `an error has occurred` in `Misc` section [#5592](https://github.com/vatesfr/xen-orchestra/issues/5592) (PR [#5604](https://github.com/vatesfr/xen-orchestra/pull/5604))
+- [Task] Fix the items-per-page dropdown position (PR [#5584](https://github.com/vatesfr/xen-orchestra/pull/5584))
+
+### Released packages
+
+- @vates/disposable 0.1.0
+- @xen-orchestra/fs 0.13.0
+- @xen-orchestra/backups 0.5.0
+- xen-api 0.29.1
+- xo-common 0.6.0
+- xo-server 5.76.0
+- xo-web 5.78.1
+
+## **5.55.1** (2021-02-05)
+
+### Bug fixes
+
+- [LDAP] "Synchronize LDAP groups" button: fix imported LDAP users not being correctly added or removed from groups in some cases (PR [#5545](https://github.com/vatesfr/xen-orchestra/pull/5545))
+- [VM migration] Fix `VIF_NOT_IN_MAP` error (PR [#5544](https://github.com/vatesfr/xen-orchestra/pull/5544))
+
+### Released packages
+
+- xo-server-auth-ldap 0.10.2
+- xo-server 5.74.1
+
+## **5.55.0** (2021-01-29)
+
+### Highlights
 
 - [Web hooks] Possibility to wait a response from the server before continuing [#4948](https://github.com/vatesfr/xen-orchestra/issues/4948) (PR [#5420](https://github.com/vatesfr/xen-orchestra/pull/5420))
 - [XOA/update] Add a link to the channel's changelog (PR [#5494](https://github.com/vatesfr/xen-orchestra/pull/5494))
 - Assign custom date-time fields on pools, hosts, SRs, and VMs in advanced tab [#4730](https://github.com/vatesfr/xen-orchestra/issues/4730) (PR [#5473](https://github.com/vatesfr/xen-orchestra/pull/5473))
 - [Health] Show duplicated MAC addresses with their VIFs, VMs and networks [#5448](https://github.com/vatesfr/xen-orchestra/issues/5448) (PR [#5468](https://github.com/vatesfr/xen-orchestra/pull/5468))
-- [Host/stats] Show interfaces' names in graph "Network throughput" instead of PIFs' indices (PR [#5483](https://github.com/vatesfr/xen-orchestra/pull/5483))
 - [Pool/advanced] Ability to define default migration network [#3788](https://github.com/vatesfr/xen-orchestra/issues/3788#issuecomment-743207834) (PR [#5465](https://github.com/vatesfr/xen-orchestra/pull/5465))
-- [Metadata backups] Ability to link a backup to a proxy (PR [#4206](https://github.com/vatesfr/xen-orchestra/pull/4206))
 - [Proxy] Support metadata backups (PRs [#5499](https://github.com/vatesfr/xen-orchestra/pull/5499) [#5517](https://github.com/vatesfr/xen-orchestra/pull/5517) [#5519](https://github.com/vatesfr/xen-orchestra/pull/5519) [#5520](https://github.com/vatesfr/xen-orchestra/pull/5520))
 - [VM/console] Add button to connect to the VM via the local RDP client [#5495](https://github.com/vatesfr/xen-orchestra/issues/5495) (PR [#5523](https://github.com/vatesfr/xen-orchestra/pull/5523))
+
+### Enhancements
+
+- [Host/stats] Show interfaces' names in graph "Network throughput" instead of PIFs' indices (PR [#5483](https://github.com/vatesfr/xen-orchestra/pull/5483))
+- [Metadata backups] Ability to link a backup to a proxy (PR [#4206](https://github.com/vatesfr/xen-orchestra/pull/4206))
 - [VM] Ability to set guest secure boot (guest secure boot is available soon in XCP-ng) [#5502](https://github.com/vatesfr/xen-orchestra/issues/5502) (PR [#5527](https://github.com/vatesfr/xen-orchestra/pull/5527))
 - [Proxy] Improve upgrade feedback (PR [#5525](https://github.com/vatesfr/xen-orchestra/pull/5525))
 
@@ -40,8 +205,6 @@
 
 ## **5.54.0** (2020-12-29)
 
-<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
-
 ### Highlights
 
 - [Home] Ability to sort VMs by total disks physical usage (PR [#5418](https://github.com/vatesfr/xen-orchestra/pull/5418))
@@ -68,8 +231,6 @@
 - xo-server 5.73.0
 
 ## **5.53.1** (2020-12-10)
-
-<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Bug fixes
 

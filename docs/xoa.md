@@ -61,7 +61,7 @@ Please only use this if you have issues with [the default way to deploy XOA](ins
 Alternatively, you can deploy it by connecting to your XenServer host and executing the following:
 
 ```
-curl -sS https://xoa.io/deploy | bash
+bash -c "$(curl -sS https://xoa.io/deploy)"
 ```
 
 :::tip
@@ -78,7 +78,7 @@ curl: (35) error:1407742E:SSL routines:SSL23_GET_SERVER_HELLO:tlsv1 alert protoc
 It means that the secure HTTPS protocol is not supported, you can bypass this using the unsecure command instead:
 
 ```
-curl -sS http://xoa.io/deploy | bash
+bash -c "$(curl -sS http://xoa.io/deploy)"
 ```
 
 :::
@@ -186,6 +186,18 @@ Xen Orchestra is now accessible in your browser at `https://your-vm-ip`.
 You can access the VM console through XenCenter or using VNC through a SSH tunnel.
 
 If you want to go back in DHCP, just run `xoa network dhcp`
+
+### Other interfaces
+
+If you need to configure other interfaces than `eth0`, you can use the same commands with the name of the interface to configure as supplementary argument:
+
+```
+$ xoa network static eth1
+? Static IP for this machine 192.168.100.120
+? Network mask (eg 255.255.255.0) 255.255.255.0
+
+$ xoa network dhcp eth1
+```
 
 ## Firewall
 

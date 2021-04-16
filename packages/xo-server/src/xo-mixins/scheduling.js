@@ -1,6 +1,6 @@
 // @flow
 
-import asyncMap from '@xen-orchestra/async-map'
+import asyncMapSettled from '@xen-orchestra/async-map/legacy'
 import { createSchedule } from '@xen-orchestra/cron'
 import { ignoreErrors } from 'promise-toolbox'
 import { keyBy } from 'lodash'
@@ -60,7 +60,7 @@ export default class Scheduling {
 
     this._runs = { __proto__: null }
 
-    app.on('clean', async () => {
+    app.hooks.on('clean', async () => {
       const [jobsById, schedules] = await Promise.all([
         app.getAllJobs().then(_ => keyBy(_, 'id')),
         app.getAllSchedules(),
@@ -70,12 +70,12 @@ export default class Scheduling {
 
       return db.rebuildIndexes()
     })
-    app.on('start', async () => {
+    app.hooks.on('start', async () => {
       app.addConfigManager(
         'schedules',
         () => db.get(),
         schedules =>
-          asyncMap(schedules, async schedule => {
+          asyncMapSettled(schedules, async schedule => {
             await db.update(normalize(schedule))
             this._start(schedule.id)
           }),
@@ -85,7 +85,7 @@ export default class Scheduling {
       const schedules = await this.getAllSchedules()
       schedules.forEach(schedule => this._start(schedule))
     })
-    app.on('stop', () => {
+    app.hooks.on('stop', () => {
       const runs = this._runs
       Object.keys(runs).forEach(id => {
         runs[id]()
