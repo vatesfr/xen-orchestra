@@ -8,7 +8,7 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [Backup] Run backup jobs on different system processes (PR [#5660](https://github.com/vatesfr/xen-orchestra/pull/5660))
-- [XOA] Notify user when proxies need to be upgrated (PR [#5717](https://github.com/vatesfr/xen-orchestra/pull/5717))
+- [XOA] Notify user when proxies need to be upgraded (PR [#5717](https://github.com/vatesfr/xen-orchestra/pull/5717))
 
 ### Bug fixes
 

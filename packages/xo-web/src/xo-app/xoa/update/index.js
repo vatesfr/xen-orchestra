@@ -94,7 +94,7 @@ const Updates = decorate([
   addSubscriptions({
     backupNgJobs: subscribeBackupNgJobs,
     jobs: subscribeJobs,
-    proxyIds: cb => subscribeProxies(proxies => cb(map(proxies, 'id'))),
+    proxyIds: cb => subscribeProxies(proxies => cb(proxies.map(({ id }) => id))),
   }),
   connectStore(['xoaConfiguration', 'xoaRegisterState', 'xoaTrialState', 'xoaUpdaterLog', 'xoaUpdaterState']),
   provideState({
@@ -190,17 +190,14 @@ const Updates = decorate([
         jobs !== undefined &&
         backupNgJobs !== undefined &&
         some(jobs.concat(backupNgJobs), job => job.runId !== undefined),
-      areProxiesNeedUpdated: async (_, { proxyIds = [] }) => {
-        let areProxiesNeedUpdated = false
-        for (const proxy of proxyIds) {
-          const { state = '' } = await getProxyApplianceUpdaterState(proxy)
-          if (state.endsWith('-upgrade-needed')) {
-            areProxiesNeedUpdated = true
-            break
-          }
-        }
-        return areProxiesNeedUpdated
-      },
+      areProxiesOutOfDate: async (_, { proxyIds = [] }) => (await Promise.all(
+          proxyIds.map(id => getProxyApplianceUpdaterState(id).catch(e => ({
+              state: 'error',
+              message: _('proxyUpgradesError'),
+            }))
+          })
+        )).some({ state = '' } => state.endsWith('-upgrade-needed'))
+      ,
       changelogUrl: ({ consolidatedChannel }) =>
         `https://github.com/vatesfr/xen-orchestra/blob/master/CHANGELOG.md#${encodeURIComponent(consolidatedChannel)}`,
       channelsFormId: generateId,
@@ -289,7 +286,7 @@ const Updates = decorate([
             </Col>
           </Row>
         )}
-        {state.areProxiesNeedUpdated && (
+        {state.areProxiesOutOfDate && (
           <Row className='mb-1'>
             <Col>
               <Link className='text-info' to='/proxies'>
