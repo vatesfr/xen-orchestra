@@ -323,21 +323,33 @@ module.exports = class Vm {
     await this.call('VM.destroy', vmRef)
 
     return Promise.all([
-      ignoreErrors.call(asyncMap(vm.snapshots, _ => this.VM_destroy(_))),
-      deleteDisks &&
-        ignoreErrors.call(
-          asyncMap(disks, async vdiRef => {
-            // Dont destroy if attached to other (non control domain) VMs
-            for (const vbdRef of await this.getField('VDI', vdiRef, 'VBDs')) {
-              const vmRef2 = await this.getField('VBD', vbdRef, 'VM')
-              if (vmRef2 !== vmRef && !(await this.getField('VM', vmRef2, 'is_control_domain'))) {
-                return
-              }
-            }
-
-            await this.VDI_destroy(vdiRef)
+      asyncMap(vm.snapshots, snapshotRef =>
+        this.VM_destroy(snapshotRef).catch(error => {
+          warn('VM_destroy: failed to delete snapshot', {
+            error,
+            snapshotRef,
+            vmRef,
           })
-        ),
+        })
+      ),
+      deleteDisks &&
+        asyncMap(disks, async vdiRef => {
+          // Dont destroy if attached to other (non control domain) VMs
+          for (const vbdRef of await this.getField('VDI', vdiRef, 'VBDs')) {
+            const vmRef2 = await this.getField('VBD', vbdRef, 'VM')
+            if (vmRef2 !== vmRef && !(await this.getField('VM', vmRef2, 'is_control_domain'))) {
+              return
+            }
+          }
+
+          await this.VDI_destroy(vdiRef).catch(error => {
+            warn('VM_destroy: failed to delete VDI', {
+              error,
+              vdiRef,
+              vmRef,
+            })
+          })
+        }),
     ])
   }
 
@@ -352,7 +364,14 @@ module.exports = class Vm {
     let exportedVmRef, destroySnapshot
     if (useSnapshot) {
       exportedVmRef = await this.VM_snapshot(vmRef, { cancelToken, name_label: `[XO Export] ${vm.name_label}` })
-      destroySnapshot = () => ignoreErrors.call(this.VM_destroy(exportedVmRef))
+      destroySnapshot = () =>
+        this.VM_destroy(exportedVmRef).catch(error => {
+          warn('VM_export: failed to destroy snapshots', {
+            error,
+            snapshotRef: exportedVmRef,
+            vmRef,
+          })
+        })
       $defer.onFailure(destroySnapshot)
     } else {
       exportedVmRef = vmRef
@@ -475,7 +494,14 @@ module.exports = class Vm {
                 ).filter(_ => _.name_label.startsWith(snapshotNameLabelPrefix))
                 // be safe: only delete if there was a single match
                 if (createdSnapshots.length === 1) {
-                  ignoreErrors.call(this.VM_destroy(createdSnapshots[0]))
+                  const snapshotRef = createdSnapshots[0]
+                  this.VM_destroy(_).catch(error => {
+                    warn('VM_sapshot: failed to delete broken snapshot', {
+                      error,
+                      snapshotRef,
+                      vmRef,
+                    })
+                  })
                 }
                 throw error
               }
@@ -485,7 +511,13 @@ module.exports = class Vm {
               tries: 3,
             }
           ).then(extractOpaqueRef)
-          ignoreErrors.call(this.call('VM.add_tags', ref, 'quiesce'))
+          this.call('VM.add_tags', ref, 'quiesce').catch(error => {
+            warn('VM_snapshot: failed to add quiesce tag', {
+              vmRef,
+              snapshotRef: ref,
+              error,
+            })
+          })
           break
         } catch (error) {
           const { code } = error
