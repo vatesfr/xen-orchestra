@@ -66,7 +66,7 @@ const vmActionBarByState = {
         <Action
           handler={cloneToTemplate}
           icon='template'
-          label={_('vmConvertToTemplateButton')}
+          label={_('cloneAsTemplate')}
           pending={includes(vm.current_operations, 'clone_to_template')}
         />
       )}
@@ -124,7 +124,7 @@ const vmActionBarByState = {
         <Action
           handler={cloneToTemplate}
           icon='template'
-          label={_('vmConvertToTemplateButton')}
+          label={_('cloneAsTemplate')}
           pending={includes(vm.current_operations, 'clone_to_template')}
         />
       )}

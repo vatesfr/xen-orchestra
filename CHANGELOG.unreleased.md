@@ -7,6 +7,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [Template] Ability to create a template from a snapshot or VM [#4891](https://github.com/vatesfr/xen-orchestra/issues/4891) (PR [#5736](https://github.com/vatesfr/xen-orchestra/pull/5736))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -34,3 +36,4 @@
 - @xen-orchestra/backups-cli patch
 - @xen-orchestra/mixins minor
 - xo-server minor
+- xo-web minor

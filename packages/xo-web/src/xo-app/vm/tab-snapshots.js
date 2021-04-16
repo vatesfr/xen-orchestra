@@ -93,6 +93,11 @@ const INDIVIDUAL_ACTIONS = [
     label: _('exportSnapshot'),
   },
   {
+    handler: cloneToTemplate,
+    icon: 'template',
+    label: _('cloneAsTemplate'),
+  },
+  {
     handler: revertSnapshot,
     icon: 'snapshot-revert',
     label: _('revertSnapshot'),
@@ -102,12 +107,6 @@ const INDIVIDUAL_ACTIONS = [
     handler: snapshot => copy(snapshot.uuid),
     icon: 'clipboard',
     label: snapshot => _('copyUuid', { uuid: snapshot.uuid }),
-  },
-  {
-    handler: cloneToTemplate,
-    icon: 'template',
-    label: _('vmConvertToTemplateButton'),
-    level: 'danger',
   },
   {
     handler: deleteSnapshot,

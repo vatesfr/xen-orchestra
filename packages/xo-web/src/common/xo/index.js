@@ -1163,10 +1163,10 @@ export const convertVmToTemplate = vm =>
 export const cloneToTemplate = async vm => {
   const vmType = vm.type === 'VM-snapshot' ? 'snapshot' : 'VM'
   await confirm({
-    title: _('vmConvertToTemplateButton'),
+    title: _('cloneAsTemplate'),
     body: (
       <div>
-        <p>{_('convertToTemplateMessage', { type: vmType })}</p>
+        <p>{_('cloneAsTemplateMessage', { type: vmType })}</p>
       </div>
     ),
   })
