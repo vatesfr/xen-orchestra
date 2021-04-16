@@ -11,7 +11,16 @@ import { createGetObjectsOfType } from 'selectors'
 import { FormattedRelative, FormattedTime } from 'react-intl'
 import { includes, isEmpty } from 'lodash'
 import { Container, Row, Col } from 'grid'
-import { copyVm, deleteSnapshot, deleteSnapshots, exportVm, editVm, revertSnapshot, snapshotVm } from 'xo'
+import {
+  cloneToTemplate,
+  copyVm,
+  deleteSnapshot,
+  deleteSnapshots,
+  exportVm,
+  editVm,
+  revertSnapshot,
+  snapshotVm,
+} from 'xo'
 
 const COLUMNS = [
   {
@@ -93,6 +102,12 @@ const INDIVIDUAL_ACTIONS = [
     handler: snapshot => copy(snapshot.uuid),
     icon: 'clipboard',
     label: snapshot => _('copyUuid', { uuid: snapshot.uuid }),
+  },
+  {
+    handler: cloneToTemplate,
+    icon: 'template',
+    label: _('vmConvertToTemplateButton'),
+    level: 'danger',
   },
   {
     handler: deleteSnapshot,

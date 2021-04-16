@@ -9,6 +9,7 @@ import { ignoreErrors } from 'promise-toolbox'
 import { assignWith, concat } from 'lodash'
 import {
   forbiddenOperation,
+  incorrectState,
   invalidParameters,
   noSuchObject,
   operationFailed,
@@ -753,6 +754,30 @@ convertToTemplate.resolve = {
 
 // TODO: remove when no longer used.
 export { convertToTemplate as convert }
+
+// -------------------------------------------------------------------
+
+export async function cloneToTemplate({ vm }) {
+  if (vm.power_state === 'Running') {
+    throw incorrectState({
+      actual: 'Running',
+      expected: 'Halted',
+      object: vm.$id,
+      property: 'power_state',
+    })
+  }
+  const clonedVm = await this.getXapi(vm).copyVm(vm._xapiId, vm._xapiId, {
+    nameLabel: vm.name_label,
+  })
+  await clonedVm.set_is_a_template(true)
+}
+
+cloneToTemplate.params = {
+  id: { type: 'string' },
+}
+cloneToTemplate.resolve = {
+  vm: ['id', ['VM', 'VM-snapshot'], 'administrate'],
+}
 
 // -------------------------------------------------------------------
 

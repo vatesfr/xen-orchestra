@@ -4,7 +4,18 @@ import React from 'react'
 import { addSubscriptions, connectStore } from 'utils'
 import { find, includes } from 'lodash'
 import { createSelector, getCheckPermissions, getUser } from 'selectors'
-import { cloneVm, copyVm, exportVm, migrateVm, restartVm, snapshotVm, startVm, stopVm, subscribeResourceSets } from 'xo'
+import {
+  cloneToTemplate,
+  cloneVm,
+  copyVm,
+  exportVm,
+  migrateVm,
+  restartVm,
+  snapshotVm,
+  startVm,
+  stopVm,
+  subscribeResourceSets,
+} from 'xo'
 
 const vmActionBarByState = {
   Running: ({ vm, isSelfUser, canAdministrate }) => (
@@ -49,6 +60,14 @@ const vmActionBarByState = {
           icon='vm-copy'
           label={_('copyVmLabel')}
           pending={includes(vm.current_operations, 'copy')}
+        />
+      )}
+      {!isSelfUser && canAdministrate && (
+        <Action
+          handler={cloneToTemplate}
+          icon='template'
+          label={_('vmConvertToTemplateButton')}
+          pending={includes(vm.current_operations, 'clone_to_template')}
         />
       )}
     </ActionBar>
@@ -99,6 +118,14 @@ const vmActionBarByState = {
           icon='vm-copy'
           label={_('copyVmLabel')}
           pending={includes(vm.current_operations, 'copy')}
+        />
+      )}
+      {!isSelfUser && canAdministrate && (
+        <Action
+          handler={cloneToTemplate}
+          icon='template'
+          label={_('vmConvertToTemplateButton')}
+          pending={includes(vm.current_operations, 'clone_to_template')}
         />
       )}
     </ActionBar>
