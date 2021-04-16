@@ -8,7 +8,6 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [Backup] Run backup jobs on different system processes (PR [#5660](https://github.com/vatesfr/xen-orchestra/pull/5660))
-- [Backup] Remove legacy backup support (PR [#5718](https://github.com/vatesfr/xen-orchestra/pull/5718))
 
 ### Bug fixes
 
@@ -17,6 +16,10 @@
 - [Proxy] _Force upgrade_ no longer fails on broken proxy
 - [Proxy] _Redeploy_ now works when the bound VM is missing
 - [VM template] Fix confirmation modal doesn't appear on deleting a default template (PR [#5644](https://github.com/vatesfr/xen-orchestra/pull/5644))
+
+### Dropped features
+
+- [Backup] Remove legacy backup support (PR [#5718](https://github.com/vatesfr/xen-orchestra/pull/5718))
 
 ### Packages to release
 
