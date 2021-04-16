@@ -405,8 +405,10 @@ class BackupReportsXoPlugin {
 
       const { type, id } = taskLog.data ?? {}
       if (taskLog.message === 'get SR record' || taskLog.message === 'get remote adapter') {
+        const text = []
+
         ++nFailures
-        failedVmsText.push(
+        text.push(
           // It will ensure that it will never be in a nested list
           ''
         )
@@ -414,25 +416,29 @@ class BackupReportsXoPlugin {
         try {
           if (type === 'SR') {
             const { name_label: name, uuid } = xo.getObject(id)
-            failedVmsText.push(`### ${name}`, '', `- **UUID**: ${uuid}`)
+            text.push(`### ${name}`, '', `- **UUID**: ${uuid}`)
             nagiosText.push(`[(${type} failed) ${name} : ${taskLog.result.message} ]`)
           } else {
             const { name } = await xo.getRemote(id)
-            failedVmsText.push(`### ${name}`, '', `- **UUID**: ${id}`)
+            text.push(`### ${name}`, '', `- **UUID**: ${id}`)
             nagiosText.push(`[(${type} failed) ${name} : ${taskLog.result.message} ]`)
           }
         } catch (error) {
           logger.warn(error)
-          failedVmsText.push(`### ${UNKNOWN_ITEM}`, '', `- **UUID**: ${id}`)
+          text.push(`### ${UNKNOWN_ITEM}`, '', `- **UUID**: ${id}`)
           nagiosText.push(`[(${type} failed) ${id} : ${taskLog.result.message} ]`)
         }
 
-        failedVmsText.push(
+        text.push(
           `- **Type**: ${type}`,
           ...getTemporalDataMarkdown(taskLog.end, taskLog.start, formatDate),
           ...getWarningsMarkdown(taskLog.warnings),
           `- **Error**: ${taskLog.result.message}`
         )
+
+        failedVmsText.default.push(...text)
+        failedVmsText.compact.push(...text)
+
         continue
       }
 
