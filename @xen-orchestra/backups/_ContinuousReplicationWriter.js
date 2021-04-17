@@ -13,6 +13,18 @@ exports.ContinuousReplicationWriter = class ContinuousReplicationWriter {
     this._backup = backup
     this._settings = settings
     this._sr = sr
+
+    this.run = Task.wrapFn(
+      {
+        name: 'export',
+        data: ({ deltaExport }) => ({
+          id: sr.uuid,
+          isFull: Object.values(deltaExport.vdis).some(vdi => vdi.other_config['xo:base_delta'] === undefined),
+          type: 'SR',
+        }),
+      },
+      this.run
+    )
   }
 
   async checkBaseVdis(baseUuidToSrcVdi, baseVm) {
@@ -39,52 +51,25 @@ exports.ContinuousReplicationWriter = class ContinuousReplicationWriter {
     }
   }
 
-  prepare({ isFull }) {
-    // create the task related to this export and ensure all methods are called in this context
-    const task = new Task({
-      name: 'export',
-      data: {
-        id: this._sr.uuid,
-        isFull,
-        type: 'SR',
-      },
-    })
-    this.transfer = task.wrapFn(this.transfer)
-    this.cleanup = task.wrapFn(this.cleanup, true)
-
-    return task.run(() => this._prepare())
-  }
-
-  async _prepare() {
-    const settings = this._settings
-    const { uuid: srUuid, $xapi: xapi } = this._sr
-    const { scheduleId, vm } = this._backup
-
-    // delete previous interrupted copies
-    ignoreErrors.call(asyncMapSettled(listReplicatedVms(xapi, scheduleId, undefined, vm.uuid), vm => vm.$destroy))
-
-    this._oldEntries = getOldEntries(settings.copyRetention - 1, listReplicatedVms(xapi, scheduleId, srUuid, vm.uuid))
-
-    if (settings.deleteFirst) {
-      await this._deleteOldEntries()
-    }
-  }
-
-  async cleanup() {
-    if (!this._settings.deleteFirst) {
-      await this._deleteOldEntries()
-    }
-  }
-
-  async _deleteOldEntries() {
-    return asyncMapSettled(this._oldEntries, vm => vm.$destroy())
-  }
-
-  async transfer({ timestamp, deltaExport, sizeContainers }) {
+  async run({ timestamp, deltaExport, sizeContainers }) {
     const sr = this._sr
+    const settings = this._settings
     const { job, scheduleId, vm } = this._backup
 
     const { uuid: srUuid, $xapi: xapi } = sr
+
+    // delete previous interrupted copies
+    ignoreErrors.call(
+      asyncMapSettled(listReplicatedVms(xapi, scheduleId, undefined, vm.uuid), vm => xapi.VM_destroy(vm.$ref))
+    )
+
+    const oldVms = getOldEntries(settings.copyRetention - 1, listReplicatedVms(xapi, scheduleId, srUuid, vm.uuid))
+
+    const deleteOldBackups = () => asyncMapSettled(oldVms, vm => xapi.VM_destroy(vm.$ref))
+    const { deleteFirst } = settings
+    if (deleteFirst) {
+      await deleteOldBackups()
+    }
 
     let targetVmRef
     await Task.run({ name: 'transfer' }, async () => {
@@ -123,5 +108,9 @@ exports.ContinuousReplicationWriter = class ContinuousReplicationWriter {
         'xo:backup:vm': vm.uuid,
       }),
     ])
+
+    if (!deleteFirst) {
+      await deleteOldBackups()
+    }
   }
 }

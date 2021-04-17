@@ -20,8 +20,19 @@ exports.DeltaBackupWriter = class DeltaBackupWriter {
   constructor(backup, remoteId, settings) {
     this._adapter = backup.remoteAdapters[remoteId]
     this._backup = backup
-    this._remoteId = remoteId
     this._settings = settings
+
+    this.run = Task.wrapFn(
+      {
+        name: 'export',
+        data: ({ deltaExport }) => ({
+          id: remoteId,
+          isFull: Object.values(deltaExport.vdis).some(vdi => vdi.other_config['xo:base_delta'] === undefined),
+          type: 'remote',
+        }),
+      },
+      this.run
+    )
   }
 
   async checkBaseVdis(baseUuidToSrcVdi) {
@@ -59,32 +70,23 @@ exports.DeltaBackupWriter = class DeltaBackupWriter {
     })
   }
 
-  prepare({ isFull }) {
-    // create the task related to this export and ensure all methods are called in this context
-    const task = new Task({
-      name: 'export',
-      data: {
-        id: this._remoteId,
-        isFull,
-        type: 'remote',
-      },
-    })
-    this.transfer = task.wrapFn(this.transfer)
-    this.cleanup = task.wrapFn(this.cleanup, true)
-
-    return task.run(() => this._prepare())
-  }
-
-  async _prepare() {
+  async run({ timestamp, deltaExport, sizeContainers }) {
     const adapter = this._adapter
+    const backup = this._backup
     const settings = this._settings
-    const { scheduleId, vm } = this._backup
 
-    const oldEntries = getOldEntries(
+    const { job, scheduleId, vm } = backup
+
+    const jobId = job.id
+    const handler = adapter.handler
+    const backupDir = getVmBackupDir(vm.uuid)
+
+    // TODO: clean VM backup directory
+
+    const oldBackups = getOldEntries(
       settings.exportRetention - 1,
       await adapter.listVmBackups(vm.uuid, _ => _.mode === 'delta' && _.scheduleId === scheduleId)
     )
-    this._oldEntries = oldEntries
 
     // FIXME: implement optimized multiple VHDs merging with synthetic
     // delta
@@ -96,48 +98,21 @@ exports.DeltaBackupWriter = class DeltaBackupWriter {
     // The old backups will be eventually merged in future runs of the
     // job.
     const { maxMergedDeltasPerRun } = this._settings
-    if (oldEntries.length > maxMergedDeltasPerRun) {
-      oldEntries.length = maxMergedDeltasPerRun
+    if (oldBackups.length > maxMergedDeltasPerRun) {
+      oldBackups.length = maxMergedDeltasPerRun
     }
 
-    if (settings.deleteFirst) {
-      await this._deleteOldEntries()
-    }
-  }
-
-  async cleanup() {
-    if (!this._settings.deleteFirst) {
-      await this._deleteOldEntries()
-    }
-  }
-
-  async _deleteOldEntries() {
-    return Task.run({ name: 'merge' }, async () => {
-      const adapter = this._adapter
-      const oldEntries = this._oldEntries
-
-      let size = 0
-      // delete sequentially from newest to oldest to avoid unnecessary merges
-      for (let i = oldEntries.length; i-- > 0; ) {
-        size += await adapter.deleteDeltaVmBackups([oldEntries[i]])
-      }
-      return {
-        size,
-      }
-    })
-  }
-
-  async transfer({ timestamp, deltaExport, sizeContainers }) {
-    const adapter = this._adapter
-    const backup = this._backup
-
-    const { job, scheduleId, vm } = backup
-
-    const jobId = job.id
-    const handler = adapter.handler
-    const backupDir = getVmBackupDir(vm.uuid)
-
-    // TODO: clean VM backup directory
+    const deleteOldBackups = () =>
+      Task.run({ name: 'merge' }, async () => {
+        let size = 0
+        // delete sequentially from newest to oldest to avoid unnecessary merges
+        for (let i = oldBackups.length; i-- > 0; ) {
+          size += await adapter.deleteDeltaVmBackups([oldBackups[i]])
+        }
+        return {
+          size,
+        }
+      })
 
     const basename = formatFilenameDate(timestamp)
     const vhds = mapValues(
@@ -165,6 +140,11 @@ exports.DeltaBackupWriter = class DeltaBackupWriter {
       vhds,
       vm,
       vmSnapshot: this._backup.exportedVm,
+    }
+
+    const { deleteFirst } = settings
+    if (deleteFirst) {
+      await deleteOldBackups()
     }
 
     const { size } = await Task.run({ name: 'transfer' }, async () => {
@@ -220,6 +200,10 @@ exports.DeltaBackupWriter = class DeltaBackupWriter {
     await handler.outputFile(metadataFilename, JSON.stringify(metadataContent), {
       dirMode: backup.config.dirMode,
     })
+
+    if (!deleteFirst) {
+      await deleteOldBackups()
+    }
 
     // TODO: run cleanup?
   }

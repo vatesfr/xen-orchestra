@@ -21,7 +21,7 @@ exports.PoolMetadataBackup = class PoolMetadataBackup {
   _exportPoolMetadata() {
     const xapi = this._pool.$xapi
     return xapi.getResource(PATH_DB_DUMP, {
-      task: xapi.task_create('Export pool metadata'),
+      task: xapi.createTask('Export pool metadata'),
     })
   }
 

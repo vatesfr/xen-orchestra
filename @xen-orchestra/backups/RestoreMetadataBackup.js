@@ -15,7 +15,7 @@ exports.RestoreMetadataBackup = class RestoreMetadataBackup {
 
     if (backupId.split('/')[0] === DIR_XO_POOL_METADATA_BACKUPS) {
       return xapi.putResource(await handler.createReadStream(`${backupId}/data`), PATH_DB_DUMP, {
-        task: xapi.task_create('Import pool metadata'),
+        task: xapi.createTask('Import pool metadata'),
       })
     } else {
       return String(await handler.readFile(`${backupId}/data.json`))

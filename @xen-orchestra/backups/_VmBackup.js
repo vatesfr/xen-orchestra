@@ -146,22 +146,17 @@ exports.VmBackup = class VmBackup {
   async _copyDelta() {
     const { exportedVm } = this
     const baseVm = this._baseVm
-    const fullVdisRequired = this._fullVdisRequired
-
-    const isFull = fullVdisRequired === undefined || fullVdisRequired.size !== 0
-
-    await asyncMap(this._writers, writer => writer.prepare && writer.prepare({ isFull }))
 
     const deltaExport = await exportDeltaVm(exportedVm, baseVm, {
-      fullVdisRequired,
+      fullVdisRequired: this._fullVdisRequired,
     })
-    const sizeContainers = mapValues(deltaExport.streams, stream => watchStreamSize(stream))
+    const sizeContainers = mapValues(deltaExport.streams, watchStreamSize)
 
     const timestamp = Date.now()
 
     await asyncMap(this._writers, async writer => {
       try {
-        await writer.transfer({
+        await writer.run({
           deltaExport: forkDeltaExport(deltaExport),
           sizeContainers,
           timestamp,
@@ -197,8 +192,6 @@ exports.VmBackup = class VmBackup {
       speed: duration !== 0 ? (size * 1e3) / 1024 / 1024 / duration : 0,
       size,
     })
-
-    await asyncMap(this._writers, writer => writer.cleanup && writer.cleanup())
   }
 
   async _copyFull() {

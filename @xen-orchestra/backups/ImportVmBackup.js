@@ -3,12 +3,10 @@ const assert = require('assert')
 const { formatFilenameDate } = require('./_filenameDate')
 const { importDeltaVm } = require('./_deltaVm')
 const { Task } = require('./Task')
-const { watchStreamSize } = require('./_watchStreamSize')
 
 exports.ImportVmBackup = class ImportVmBackup {
-  constructor({ adapter, metadata, srUuid, xapi, settings: { newMacAddresses } = {} }) {
+  constructor({ adapter, metadata, srUuid, xapi }) {
     this._adapter = adapter
-    this._importDeltaVmSettings = { newMacAddresses }
     this._metadata = metadata
     this._srUuid = srUuid
     this._xapi = xapi
@@ -19,17 +17,13 @@ exports.ImportVmBackup = class ImportVmBackup {
     const metadata = this._metadata
     const isFull = metadata.mode === 'full'
 
-    const sizeContainer = { size: 0 }
-
     let backup
     if (isFull) {
       backup = await adapter.readFullVmBackup(metadata)
-      watchStreamSize(backup, sizeContainer)
     } else {
       assert.strictEqual(metadata.mode, 'delta')
 
       backup = await adapter.readDeltaVmBackup(metadata)
-      Object.values(backup.streams).forEach(stream => watchStreamSize(stream, sizeContainer))
     }
 
     return Task.run(
@@ -43,7 +37,6 @@ exports.ImportVmBackup = class ImportVmBackup {
         const vmRef = isFull
           ? await xapi.VM_import(backup, srRef)
           : await importDeltaVm(backup, await xapi.getRecord('SR', srRef), {
-              ...this._importDeltaVmSettings,
               detectBase: false,
             })
 
@@ -57,7 +50,7 @@ exports.ImportVmBackup = class ImportVmBackup {
         ])
 
         return {
-          size: sizeContainer.size,
+          size: metadata.size,
           id: await xapi.getField('VM', vmRef, 'uuid'),
         }
       }

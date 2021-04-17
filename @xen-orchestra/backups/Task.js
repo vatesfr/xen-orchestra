@@ -1,11 +1,10 @@
-const CancelToken = require('promise-toolbox/CancelToken')
 const Zone = require('node-zone')
+
+const { SyncThenable } = require('./_syncThenable')
 
 const logAfterEnd = () => {
   throw new Error('task has already ended')
 }
-
-const noop = Function.prototype
 
 // Create a serializable object from an error.
 //
@@ -20,132 +19,156 @@ const serializeError = error =>
         stack: error.stack,
       }
     : error
+exports.serializeError = serializeError
 
-const $$task = Symbol('@xen-orchestra/backups/Task')
-
-class Task {
-  static get cancelToken() {
-    const task = Zone.current.data[$$task]
-    return task !== undefined ? task.#cancelToken : CancelToken.none
+class TaskLogger {
+  constructor(logFn, parentId) {
+    this._log = logFn
+    this._parentId = parentId
+    this._taskId = undefined
   }
 
-  static run(opts, fn) {
-    return new this(opts).run(fn, true)
-  }
-
-  static wrapFn(opts, fn) {
-    // compatibility with @decorateWith
-    if (typeof fn !== 'function') {
-      ;[fn, opts] = [opts, fn]
+  get taskId() {
+    const taskId = this._taskId
+    if (taskId === undefined) {
+      throw new Error('start the task first')
     }
-
-    return function () {
-      return Task.run(typeof opts === 'function' ? opts.apply(this, arguments) : opts, () => fn.apply(this, arguments))
-    }
+    return taskId
   }
 
-  #cancelToken
-  #id = Math.random().toString(36).slice(2)
-  #onLog
-  #zone
-
-  constructor({ name, data, onLog }) {
-    let parentCancelToken, parentId
-    if (onLog === undefined) {
-      const parent = Zone.current.data[$$task]
-      if (parent === undefined) {
-        onLog = noop
-      } else {
-        onLog = log => parent.#onLog(log)
-        parentCancelToken = parent.#cancelToken
-        parentId = parent.#id
-      }
-    }
-
-    const zone = Zone.current.fork('@xen-orchestra/backups/Task')
-    zone.data[$$task] = this
-    this.#zone = zone
-
-    const { cancel, token } = CancelToken.source(parentCancelToken && [parentCancelToken])
-    this.#cancelToken = token
-    this.cancel = cancel
-
-    this.#onLog = onLog
-
-    this.#log('start', {
-      data,
-      message: name,
-      parentId,
-    })
-  }
-
-  failure(error) {
-    this.#end('failure', serializeError(error))
+  // create a subtask
+  fork() {
+    return new TaskLogger(this._log, this.taskId)
   }
 
   info(message, data) {
-    this.#log('info', { data, message })
-  }
-
-  /**
-   * Run a function in the context of this task
-   *
-   * In case of error, the task will be failed.
-   *
-   * @typedef Result
-   * @param {() => Result)} fn
-   * @param {boolean} last - Whether the task should succeed if there is no error
-   * @returns Result
-   */
-  run(fn, last = false) {
-    return this.#zone.run(() => {
-      try {
-        const result = fn()
-        let then
-        if (result != null && typeof (then = result.then) === 'function') {
-          then.call(result, last && (value => this.success(value)), error => this.failure(error))
-        } else if (last) {
-          this.success(result)
-        }
-        return result
-      } catch (error) {
-        this.failure(error)
-        throw error
-      }
-    })
-  }
-
-  success(value) {
-    this.#end('success', value)
-  }
-
-  warning(message, data) {
-    this.#log('warning', { data, message })
-  }
-
-  wrapFn(fn, last) {
-    const task = this
-    return function () {
-      return task.run(() => fn.apply(this, arguments), last)
-    }
-  }
-
-  #end(status, result) {
-    this.#log('end', { result, status })
-    this.#onLog = logAfterEnd
-  }
-
-  #log(event, props) {
-    this.#onLog({
-      ...props,
-      event,
-      taskId: this.#id,
+    return this._log({
+      data,
+      event: 'info',
+      message,
+      taskId: this.taskId,
       timestamp: Date.now(),
     })
   }
+
+  run(message, data, fn) {
+    if (arguments.length === 2) {
+      fn = data
+      data = undefined
+    }
+
+    return SyncThenable.tryUnwrap(
+      SyncThenable.fromFunction(() => {
+        if (this._taskId !== undefined) {
+          throw new Error('task has already started')
+        }
+
+        this._taskId = Math.random().toString(36).slice(2)
+
+        return this._log({
+          data,
+          event: 'start',
+          message,
+          parentId: this._parentId,
+          taskId: this.taskId,
+          timestamp: Date.now(),
+        })
+      })
+        .then(fn)
+        .then(
+          result => {
+            const log = this._log
+            this._log = logAfterEnd
+            return SyncThenable.resolve(
+              log({
+                event: 'end',
+                result,
+                status: 'success',
+                taskId: this.taskId,
+                timestamp: Date.now(),
+              })
+            ).then(() => result)
+          },
+          error => {
+            const log = this._log
+            this._log = logAfterEnd
+            return SyncThenable.resolve(
+              log({
+                event: 'end',
+                result: serializeError(error),
+                status: 'failure',
+                taskId: this.taskId,
+                timestamp: Date.now(),
+              })
+            ).then(() => {
+              throw error
+            })
+          }
+        )
+    )
+  }
+
+  warning(message, data) {
+    return this._log({
+      data,
+      event: 'warning',
+      message,
+      taskId: this.taskId,
+      timestamp: Date.now(),
+    })
+  }
+
+  wrapFn(fn, message, data) {
+    const logger = this
+    return function () {
+      const evaluate = v => (typeof v === 'function' ? v.apply(this, arguments) : v)
+
+      return logger.run(evaluate(message), evaluate(data), () => fn.apply(this, arguments))
+    }
+  }
+}
+
+const $$task = Symbol('current task logger')
+
+const getCurrent = () => Zone.current.data[$$task]
+
+const Task = {
+  info(message, data) {
+    const task = getCurrent()
+    if (task !== undefined) {
+      return task.info(message, data)
+    }
+  },
+
+  run({ name, data, onLog }, fn) {
+    let parentId
+    if (onLog === undefined) {
+      const parent = getCurrent()
+      if (parent === undefined) {
+        return fn()
+      }
+      onLog = parent._log
+      parentId = parent.taskId
+    }
+
+    const task = new TaskLogger(onLog, parentId)
+    const zone = Zone.current.fork('task')
+    zone.data[$$task] = task
+    return task.run(name, data, zone.wrap(fn))
+  },
+
+  warning(message, data) {
+    const task = getCurrent()
+    if (task !== undefined) {
+      return task.warning(message, data)
+    }
+  },
+
+  wrapFn({ name, data, onLog }, fn) {
+    return function () {
+      const evaluate = v => (typeof v === 'function' ? v.apply(this, arguments) : v)
+      return Task.run({ name: evaluate(name), data: evaluate(data), onLog }, () => fn.apply(this, arguments))
+    }
+  },
 }
 exports.Task = Task
-
-for (const method of ['info', 'warning']) {
-  Task[method] = (...args) => Zone.current.data[$$task]?.[method](...args)
-}
