@@ -2,9 +2,9 @@
 import 'core-js/features/symbol/async-iterator'
 
 import assert from 'assert'
+import { createLogger } from '@xen-orchestra/log'
 import defer from 'golike-defer'
 import hash from 'object-hash'
-import { createLogger } from '@xen-orchestra/log'
 
 const log = createLogger('xo:audit-core')
 

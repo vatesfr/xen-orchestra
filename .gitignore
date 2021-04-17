@@ -4,8 +4,6 @@
 /lerna-debug.log
 /lerna-debug.log.*
 
-/@vates/*/dist/
-/@vates/*/node_modules/
 /@xen-orchestra/*/dist/
 /@xen-orchestra/*/node_modules/
 /packages/*/dist/

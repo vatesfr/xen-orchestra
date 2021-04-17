@@ -1,5 +1,13 @@
 module.exports = {
-  extends: ['plugin:eslint-comments/recommended', 'standard', 'standard-jsx', 'prettier'],
+  extends: [
+    'plugin:eslint-comments/recommended',
+
+    'standard',
+    'standard-jsx',
+    'prettier',
+    'prettier/standard',
+    'prettier/react',
+  ],
   globals: {
     __DEV__: true,
     $Dict: true,
@@ -20,7 +28,7 @@ module.exports = {
     },
   ],
 
-  parser: '@babel/eslint-parser',
+  parser: 'babel-eslint',
   parserOptions: {
     ecmaFeatures: {
       legacyDecorators: true,

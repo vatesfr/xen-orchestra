@@ -22,6 +22,3 @@ example.js.map
 *.spec.js.map
 
 __snapshots__/
-
-/src/
-/USAGE.md
