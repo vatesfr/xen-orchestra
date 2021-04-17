@@ -1,6 +1,6 @@
+import createLogger from '@xen-orchestra/log'
 import humanFormat from 'human-format'
 import moment from 'moment-timezone'
-import { createLogger } from '@xen-orchestra/log'
 import { forEach, groupBy, startCase } from 'lodash'
 import { get } from '@xen-orchestra/defined'
 import pkg from '../package'

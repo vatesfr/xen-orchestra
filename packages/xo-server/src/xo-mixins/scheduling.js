@@ -60,7 +60,7 @@ export default class Scheduling {
 
     this._runs = { __proto__: null }
 
-    app.hooks.on('clean', async () => {
+    app.on('clean', async () => {
       const [jobsById, schedules] = await Promise.all([
         app.getAllJobs().then(_ => keyBy(_, 'id')),
         app.getAllSchedules(),
@@ -70,7 +70,7 @@ export default class Scheduling {
 
       return db.rebuildIndexes()
     })
-    app.hooks.on('start', async () => {
+    app.on('start', async () => {
       app.addConfigManager(
         'schedules',
         () => db.get(),
@@ -85,7 +85,7 @@ export default class Scheduling {
       const schedules = await this.getAllSchedules()
       schedules.forEach(schedule => this._start(schedule))
     })
-    app.hooks.on('stop', () => {
+    app.on('stop', () => {
       const runs = this._runs
       Object.keys(runs).forEach(id => {
         runs[id]()

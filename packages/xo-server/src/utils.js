@@ -56,6 +56,19 @@ export function extractProperty(obj, prop) {
 
 // -------------------------------------------------------------------
 
+// Returns the first defined (non-undefined) value.
+export const firstDefined = function () {
+  const n = arguments.length
+  for (let i = 0; i < n; ++i) {
+    const arg = arguments[i]
+    if (arg !== undefined) {
+      return arg
+    }
+  }
+}
+
+// -------------------------------------------------------------------
+
 export const getUserPublicProperties = user =>
   pick(user.properties || user, 'authProviders', 'id', 'email', 'groups', 'permission', 'preferences')
 
@@ -297,6 +310,11 @@ export const throwFn = error => () => {
 // -------------------------------------------------------------------
 
 export const tmpDir = () => fromCallback(tmp.dir)
+
+// -------------------------------------------------------------------
+
+// Wrap a value in a function.
+export const wrap = value => () => value
 
 // -------------------------------------------------------------------
 

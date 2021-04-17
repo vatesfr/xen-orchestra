@@ -3,7 +3,8 @@
   "name": "complex-matcher",
   "version": "0.7.0",
   "license": "ISC",
-  "description": "Advanced search syntax used in XO",
+  "description": "",
+  "keywords": [],
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/packages/complex-matcher",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "repository": {

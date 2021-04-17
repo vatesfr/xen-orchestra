@@ -42,19 +42,14 @@ export default class PerformancePlan extends Plan {
       console.error(error)
     }
 
-    await this._processAntiAffinity()
-
-    const hosts = this._getHosts()
-    const results = await this._getHostStatsAverages({
-      hosts,
-      toOptimizeOnly: true,
-    })
+    const results = await this._findHostsToOptimize()
 
     if (!results) {
       return
     }
 
     const { averages, toOptimize } = results
+    const { hosts } = results
 
     toOptimize.sort((a, b) => {
       a = averages[a.id]
@@ -80,8 +75,8 @@ export default class PerformancePlan extends Plan {
   }
 
   async _optimize({ exceededHost, hosts, hostsAverages }) {
-    const vms = filter(this._getAllRunningVms(), vm => vm.$container === exceededHost.id)
-    const vmsAverages = await this._getVmsAverages(vms, { [exceededHost.id]: exceededHost })
+    const vms = await this._getVms(exceededHost.id)
+    const vmsAverages = await this._getVmsAverages(vms, exceededHost)
 
     // Sort vms by cpu usage. (lower to higher)
     vms.sort((a, b) => vmsAverages[b.id].cpu - vmsAverages[a.id].cpu)
@@ -124,25 +119,6 @@ export default class PerformancePlan extends Plan {
         )
         debug(`Dest Host free RAM=${destinationAverages.memoryFree}, VM used RAM=${vmAverages.memory})`)
         continue
-      }
-
-      if (!vm.xenTools) {
-        debug(`VM (${vm.id}) of Host (${exceededHost.id}) does not support pool migration.`)
-        continue
-      }
-
-      for (const tag of vm.tags) {
-        // TODO: Improve this piece of code. We could compute variance to check if the VM
-        // is migratable. But the code must be rewritten:
-        // - All VMs, hosts and stats must be fetched at one place.
-        // - It's necessary to maintain a dictionary of tags for each host.
-        // - ...
-        if (this._antiAffinityTags.includes(tag)) {
-          debug(
-            `VM (${vm.id}) of Host (${exceededHost.id}) cannot be migrated. It contains anti-affinity tag '${tag}'.`
-          )
-          continue
-        }
       }
 
       exceededAverages.cpu -= vmAverages.cpu

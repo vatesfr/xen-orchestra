@@ -152,7 +152,7 @@ export const create = defer(async function ($defer, params) {
   }
 
   const xapiVm = await xapi.createVm(template._xapiId, params, checkLimits)
-  $defer.onFailure(() => xapi.VM_destroy(xapiVm.$ref, true, true))
+  $defer.onFailure(() => xapi.deleteVm(xapiVm.$id, true, true))
 
   const vm = xapi.xo.addObject(xapiVm)
 
@@ -385,7 +385,7 @@ const delete_ = defer(async function (
     }
   })
 
-  return xapi.VM_destroy(vm._xapiRef, deleteDisks, force, forceDeleteDefaultTemplate)
+  return xapi.deleteVm(vm._xapiId, deleteDisks, force, forceDeleteDefaultTemplate)
 })
 
 delete_.params = {
@@ -664,11 +664,11 @@ export const clone = defer(async function ($defer, { vm, name, full_copy: fullCo
   await checkPermissionOnSrs.call(this, vm)
   const xapi = this.getXapi(vm)
 
-  const { $id: cloneId, $ref: cloneRef } = await xapi.cloneVm(vm._xapiRef, {
+  const { $id: cloneId } = await xapi.cloneVm(vm._xapiRef, {
     nameLabel: name,
     fast: !fullCopy,
   })
-  $defer.onFailure(() => xapi.VM_destroy(cloneRef))
+  $defer.onFailure(() => xapi.deleteVm(cloneId))
 
   const isAdmin = this.user.permission === 'admin'
   if (!isAdmin) {
@@ -786,10 +786,10 @@ export const snapshot = defer(async function (
   }
 
   const xapi = this.getXapi(vm)
-  const { $id: snapshotId, $ref: snapshotRef } = await (saveMemory
+  const { $id: snapshotId } = await (saveMemory
     ? xapi.checkpointVm(vm._xapiRef, name)
     : xapi.snapshotVm(vm._xapiRef, name))
-  $defer.onFailure(() => xapi.VM_destroy(snapshotRef))
+  $defer.onFailure(() => xapi.deleteVm(snapshotId))
 
   if (description !== undefined) {
     await xapi.editVm(snapshotId, { name_description: description })
@@ -1027,12 +1027,11 @@ rollingDrCopy.description =
 
 // -------------------------------------------------------------------
 
-export function start({ vm, bypassMacAddressesCheck, force, host }) {
-  return this.getXapi(vm).startVm(vm._xapiId, { bypassMacAddressesCheck, force, hostId: host?._xapiId })
+export function start({ vm, force, host }) {
+  return this.getXapi(vm).startVm(vm._xapiId, host?._xapiId, force)
 }
 
 start.params = {
-  bypassMacAddressesCheck: { type: 'boolean', optional: true },
   force: { type: 'boolean', optional: true },
   host: { type: 'string', optional: true },
   id: { type: 'string' },

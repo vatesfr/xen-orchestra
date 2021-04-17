@@ -213,7 +213,6 @@ exports.importDeltaVm = defer(async function importDeltaVm(
     },
     {
       bios_strings: vmRecord.bios_strings,
-      generateMacSeed: newMacAddresses,
       suspend_VDI: suspendVdi?.$ref,
     }
   )

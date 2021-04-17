@@ -7,7 +7,7 @@ import createNdJsonStream from '../_createNdJsonStream'
 // ===================================================================
 
 export function clean() {
-  return this.hooks.clean()
+  return this.clean()
 }
 
 clean.permission = 'admin'

@@ -1,20 +1,20 @@
 import { difference, flatten, isEmpty, uniq } from 'lodash'
 
 export default class Pools {
-  constructor(app) {
-    this._app = app
+  constructor(xo) {
+    this._xo = xo
   }
 
   async mergeInto({ sources: sourceIds, target, force }) {
-    const { _app } = this
-    const targetHost = _app.getObject(target.master)
+    const { _xo } = this
+    const targetHost = _xo.getObject(target.master)
     const sources = []
     const sourcePatches = {}
 
     // Check hosts compatibility.
     for (const sourceId of sourceIds) {
-      const source = _app.getObject(sourceId)
-      const sourceHost = _app.getObject(source.master)
+      const source = _xo.getObject(sourceId)
+      const sourceHost = _xo.getObject(source.master)
       if (sourceHost.productBrand !== targetHost.productBrand) {
         throw new Error(`a ${sourceHost.productBrand} pool cannot be merged into a ${targetHost.productBrand} pool`)
       }
@@ -27,16 +27,16 @@ export default class Pools {
 
     // Find missing patches on the target.
     const targetRequiredPatches = uniq(
-      flatten(await Promise.all(sources.map(({ master }) => _app.getPatchesDifference(master, target.master))))
+      flatten(await Promise.all(sources.map(({ master }) => _xo.getPatchesDifference(master, target.master))))
     )
 
     // Find missing patches on the sources.
     const allRequiredPatches = targetRequiredPatches.concat(
-      targetHost.patches.map(patchId => _app.getObject(patchId).name)
+      targetHost.patches.map(patchId => _xo.getObject(patchId).name)
     )
     const sourceRequiredPatches = {}
     for (const sourceId of sourceIds) {
-      const _sourcePatches = sourcePatches[sourceId].map(patchId => _app.getObject(patchId).name)
+      const _sourcePatches = sourcePatches[sourceId].map(patchId => _xo.getObject(patchId).name)
       const requiredPatches = difference(allRequiredPatches, _sourcePatches)
       if (requiredPatches.length > 0) {
         sourceRequiredPatches[sourceId] = requiredPatches
@@ -50,9 +50,9 @@ export default class Pools {
       // Find patches in parallel.
       const findPatchesPromises = []
       const sourceXapis = {}
-      const targetXapi = _app.getXapi(target)
+      const targetXapi = _xo.getXapi(target)
       for (const sourceId of sourceIds) {
-        const sourceXapi = (sourceXapis[sourceId] = _app.getXapi(sourceId))
+        const sourceXapi = (sourceXapis[sourceId] = _xo.getXapi(sourceId))
         findPatchesPromises.push(sourceXapi.findPatches(sourceRequiredPatches[sourceId] ?? []))
       }
       const patchesName = await Promise.all([targetXapi.findPatches(targetRequiredPatches), ...findPatchesPromises])
@@ -78,7 +78,7 @@ export default class Pools {
 
     // Merge the sources into the target sequentially to be safe.
     for (const source of sources) {
-      await _app.mergeXenPools(source._xapiId, target._xapiId, force)
+      await _xo.mergeXenPools(source._xapiId, target._xapiId, force)
     }
   }
 }

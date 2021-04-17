@@ -25,12 +25,12 @@ xo-server-recover-account <user name or email>
     console.log('The generated password is', password)
   }
 
-  const xo = new Xo({
-    config: await appConf.load('xo-server', {
+  const xo = new Xo(
+    await appConf.load('xo-server', {
       appDir: joinPath(__dirname, '..'),
       ignoreUnknownFormats: true,
-    }),
-  })
+    })
+  )
 
   const user = await xo.getUserByName(name, true)
   if (user !== null) {

@@ -1,5 +1,5 @@
+import createLogger from '@xen-orchestra/log'
 import emitAsync from '@xen-orchestra/emit-async'
-import { createLogger } from '@xen-orchestra/log'
 
 import kindOf from 'kindof'
 import ms from 'ms'
@@ -143,14 +143,14 @@ async function resolveParams(method, params) {
 // -------------------------------------------------------------------
 
 export default class Api {
-  constructor(app) {
+  constructor(xo) {
     this._logger = null
     this._methods = { __proto__: null }
-    this._app = app
+    this._xo = xo
 
     this.addApiMethods(methods)
-    app.hooks.on('start', async () => {
-      this._logger = await app.getLogger('api')
+    xo.on('start', async () => {
+      this._logger = await xo.getLogger('api')
     })
   }
 
@@ -216,7 +216,7 @@ export default class Api {
   }
 
   async callApiMethod(session, name, params = {}) {
-    const app = this._app
+    const xo = this._xo
     const startTime = Date.now()
 
     const method = this._methods[name]
@@ -236,11 +236,11 @@ export default class Api {
         },
       }
 
-      let obj = app
+      let obj = xo
       do {
         Object.getOwnPropertyNames(obj).forEach(name => {
           if (!(name in descriptors)) {
-            descriptors[name] = getBoundPropertyDescriptor(obj, name, app)
+            descriptors[name] = getBoundPropertyDescriptor(obj, name, xo)
           }
         })
       } while ((obj = Reflect.getPrototypeOf(obj)) !== null)
@@ -250,7 +250,7 @@ export default class Api {
 
     // Fetch and inject the current user.
     const userId = session.get('user_id', undefined)
-    context.user = userId && (await app.getUser(userId))
+    context.user = userId && (await xo.getUser(userId))
     const userName = context.user ? context.user.email : '(unknown user)'
 
     const data = {
@@ -264,7 +264,7 @@ export default class Api {
     }
 
     await emitAsync.call(
-      app,
+      xo,
       {
         onError(error) {
           log.warn('xo:preCall listener failure', { error })
@@ -313,13 +313,13 @@ export default class Api {
 
       // it's a special case in which the user is defined at the end of the call
       if (data.method === 'session.signIn') {
-        const { id, email } = await app.getUser(session.get('user_id'))
+        const { id, email } = await xo.getUser(session.get('user_id'))
         data.userId = id
         data.userName = email
       }
 
       const now = Date.now()
-      app.emit('xo:postCall', {
+      xo.emit('xo:postCall', {
         ...data,
         duration: now - data.timestamp,
         result,
@@ -331,7 +331,7 @@ export default class Api {
       const serializedError = serializeError(error)
 
       const now = Date.now()
-      app.emit('xo:postCall', {
+      xo.emit('xo:postCall', {
         ...data,
         duration: now - data.timestamp,
         error: serializedError,
@@ -348,7 +348,7 @@ export default class Api {
       // 2021-02-11: Work-around: ECONNREFUSED error can be triggered by
       // 'host.stats' method because there is no connection to the host during a
       // toolstack restart and xo-web may call it often
-      if (name !== 'pool.listMissingPatches' && name !== 'host.stats') {
+      if (name !== 'pool.listMissingPatches' || name !== 'host.stats') {
         this._logger.error(message, {
           ...data,
           duration: Date.now() - startTime,
@@ -356,7 +356,7 @@ export default class Api {
         })
       }
 
-      if (app.config.get('verboseApiLogsOnErrors')) {
+      if (xo._config.verboseLogsOnErrors) {
         log.warn(message, { error })
       } else {
         log.warn(`${userName} | ${name}(...) [${ms(Date.now() - startTime)}] =!> ${error}`)
@@ -366,7 +366,7 @@ export default class Api {
       if (xoError) {
         throw xoError(error.params, ref => {
           try {
-            return app.getObject(ref).id
+            return xo.getObject(ref).id
           } catch (e) {
             return ref
           }

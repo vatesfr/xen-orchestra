@@ -1,6 +1,6 @@
 {
   "name": "xo-server-transport-email",
-  "version": "0.6.0",
+  "version": "0.5.0",
   "license": "AGPL-3.0-or-later",
   "description": "xo-server plugin to send emails",
   "keywords": [
@@ -33,7 +33,7 @@
   "dependencies": {
     "nodemailer": "^6.1.0",
     "nodemailer-markdown": "^1.0.1",
-    "promise-toolbox": "^0.19.0"
+    "promise-toolbox": "^0.17.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.0.0",

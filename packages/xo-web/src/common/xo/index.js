@@ -950,9 +950,6 @@ const chooseActionToUnblockForbiddenStartVm = props =>
 
 const cloneAndStartVm = async (vm, host) => _call('vm.start', { id: await cloneVm(vm), host: resolveId(host) })
 
-const _startVm = (id, host, { force = false, bypassMacAddressesCheck = force } = {}) =>
-  _call('vm.start', { id, bypassMacAddressesCheck, force, host })
-
 export const startVm = async (vm, host) => {
   if (host === true) {
     host = await confirm({
@@ -968,41 +965,28 @@ export const startVm = async (vm, host) => {
 
   const id = resolveId(vm)
   const hostId = resolveId(host)
-  return _startVm(id, hostId).catch(async reason => {
-    const isDuplicatedMacAddressError = reason.data !== undefined && reason.data.code === 'DUPLICATED_MAC_ADDRESS'
-    if (!isDuplicatedMacAddressError && !forbiddenOperation.is(reason)) {
+  return _call('vm.start', {
+    id,
+    host: hostId,
+  }).catch(async reason => {
+    if (!forbiddenOperation.is(reason)) {
       throw reason
     }
 
-    if (isDuplicatedMacAddressError) {
-      // Retry without checking MAC addresses
-      await confirm({
-        title: _('forceStartVm'),
-        body: _('vmWithDuplicatedMacAddressesMessage'),
-      })
-      try {
-        await _startVm(id, hostId, { bypassMacAddressesCheck: true })
-      } catch (error) {
-        if (!forbiddenOperation.is(error)) {
-          throw error
-        }
-        reason = error
-      }
+    const choice = await chooseActionToUnblockForbiddenStartVm({
+      body: _('blockedStartVmModalMessage'),
+      title: _('forceStartVmModalTitle'),
+    })
+
+    if (choice === 'clone') {
+      return cloneAndStartVm(vm, host)
     }
 
-    if (forbiddenOperation.is(reason)) {
-      // Clone or retry with force
-      const choice = await chooseActionToUnblockForbiddenStartVm({
-        body: _('blockedStartVmModalMessage'),
-        title: _('forceStartVmModalTitle'),
-      })
-
-      if (choice === 'clone') {
-        return cloneAndStartVm(vm, host)
-      }
-
-      return _startVm(id, hostId, { force: true })
-    }
+    return _call('vm.start', {
+      id,
+      force: true,
+      host: hostId,
+    })
   })
 }
 
@@ -1011,16 +995,13 @@ export const startVms = vms =>
     title: _('startVmsModalTitle', { vms: vms.length }),
     body: _('startVmsModalMessage', { vms: vms.length }),
   }).then(async () => {
-    const vmsWithduplicatedMacAddresses = []
     const forbiddenStart = []
     let nErrors = 0
 
     await Promise.all(
       map(vms, id =>
-        _startVm(id).catch(reason => {
-          if (reason.data !== undefined && reason.data.code === 'DUPLICATED_MAC_ADDRESS') {
-            vmsWithduplicatedMacAddresses.push(id)
-          } else if (forbiddenOperation.is(reason)) {
+        _call('vm.start', { id }).catch(reason => {
+          if (forbiddenOperation.is(reason)) {
             forbiddenStart.push(id)
           } else {
             nErrors++
@@ -1029,7 +1010,7 @@ export const startVms = vms =>
       )
     )
 
-    if (forbiddenStart.length === 0 && vmsWithduplicatedMacAddresses.length === 0) {
+    if (forbiddenStart.length === 0) {
       if (nErrors === 0) {
         return
       }
@@ -1037,43 +1018,21 @@ export const startVms = vms =>
       return error(_('failedVmsErrorTitle'), _('failedVmsErrorMessage', { nVms: nErrors }))
     }
 
-    if (vmsWithduplicatedMacAddresses.length > 0) {
-      // Retry without checking MAC addresses
-      await confirm({
-        title: _('forceStartVm'),
-        body: _('vmsWithDuplicatedMacAddressesMessage', { nVms: vmsWithduplicatedMacAddresses.length }),
-      })
-      await Promise.all(
-        map(vmsWithduplicatedMacAddresses, id =>
-          _startVm(id, undefined, { bypassMacAddressesCheck: true }).catch(reason => {
-            if (forbiddenOperation.is(reason)) {
-              forbiddenStart.push(id)
-            } else {
-              nErrors++
-            }
-          })
-        )
-      )
+    const choice = await chooseActionToUnblockForbiddenStartVm({
+      body: _('blockedStartVmsModalMessage', { nVms: forbiddenStart.length }),
+      title: _('forceStartVmModalTitle'),
+    }).catch(noop)
+
+    if (nErrors !== 0) {
+      error(_('failedVmsErrorTitle'), _('failedVmsErrorMessage', { nVms: nErrors }))
     }
 
-    if (forbiddenStart.length > 0) {
-      // Clone or retry with force
-      const choice = await chooseActionToUnblockForbiddenStartVm({
-        body: _('blockedStartVmsModalMessage', { nVms: forbiddenStart.length }),
-        title: _('forceStartVmModalTitle'),
-      }).catch(noop)
+    if (choice === 'clone') {
+      return Promise.all(map(forbiddenStart, async id => cloneAndStartVm(getObject(store.getState(), id))))
+    }
 
-      if (nErrors !== 0) {
-        error(_('failedVmsErrorTitle'), _('failedVmsErrorMessage', { nVms: nErrors }))
-      }
-
-      if (choice === 'clone') {
-        return Promise.all(map(forbiddenStart, async id => cloneAndStartVm(getObject(store.getState(), id))))
-      }
-
-      if (choice === 'force') {
-        return Promise.all(map(forbiddenStart, id => _startVm(id, undefined, { force: true })))
-      }
+    if (choice === 'force') {
+      return Promise.all(map(forbiddenStart, id => _call('vm.start', { id, force: true })))
     }
   }, noop)
 
@@ -2058,10 +2017,9 @@ export const runBackupNgJob = ({ force, ...params }) => {
 
 export const listVmBackups = remotes => _call('backupNg.listVmBackups', { remotes: resolveIds(remotes) })
 
-export const restoreBackup = (backup, sr, { generateNewMacAddresses = false, startOnRestore = false } = {}) => {
+export const restoreBackup = (backup, sr, startOnRestore) => {
   const promise = _call('backupNg.importVmBackup', {
     id: resolveId(backup),
-    settings: { newMacAddresses: generateNewMacAddresses },
     sr: resolveId(sr),
   })
 

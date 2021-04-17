@@ -8,7 +8,7 @@ import getStream from 'get-stream'
 import helmet from 'koa-helmet'
 import Koa from 'koa'
 import once from 'lodash/once'
-import Router from '@koa/router'
+import Router from 'koa-router'
 import Zone from 'node-zone'
 import { createLogger } from '@xen-orchestra/log'
 
@@ -19,11 +19,7 @@ const { debug, warn } = createLogger('xo:proxy:api')
 const ndJsonStream = asyncIteratorToStream(async function* (responseId, iterable) {
   yield format.response(responseId, { $responseType: 'ndjson' }) + '\n'
   for await (const data of iterable) {
-    try {
-      yield JSON.stringify(data) + '\n'
-    } catch (error) {
-      warn('ndJsonStream', { error })
-    }
+    yield JSON.stringify(data) + '\n'
   }
 })
 

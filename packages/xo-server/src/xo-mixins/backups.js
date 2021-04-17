@@ -1,9 +1,9 @@
 import asyncMapSettled from '@xen-orchestra/async-map/legacy'
+import createLogger from '@xen-orchestra/log'
 import deferrable from 'golike-defer'
 import execa from 'execa'
 import splitLines from 'split-lines'
 import { CancelToken, fromEvent, ignoreErrors, pReflect } from 'promise-toolbox'
-import { createLogger } from '@xen-orchestra/log'
 import { createParser as createPairsParser } from 'parse-pairs'
 import { createReadStream, readdir, stat } from 'fs'
 import { decorateWith } from '@vates/decorate-with'
@@ -259,15 +259,15 @@ const mountLvmPv = (device, partition) => {
 // ===================================================================
 
 export default class {
-  constructor(app) {
-    this._app = app
+  constructor(xo) {
+    this._xo = xo
   }
 
   @decorateWith(debounceWithKey, DEBOUNCE_DELAY, function keyFn(remoteId) {
     return [this, remoteId]
   })
   async listRemoteBackups(remoteId) {
-    const handler = await this._app.getRemoteHandler(remoteId)
+    const handler = await this._xo.getRemoteHandler(remoteId)
 
     // List backups. (No delta)
     const backupFilter = file => file.endsWith('.xva')
@@ -296,7 +296,7 @@ export default class {
     return [this, remoteId]
   })
   async listVmBackups(remoteId) {
-    const handler = await this._app.getRemoteHandler(remoteId)
+    const handler = await this._xo.getRemoteHandler(remoteId)
 
     const backups = []
 
@@ -329,9 +329,9 @@ export default class {
   }
 
   async importVmBackup(remoteId, file, sr) {
-    const handler = await this._app.getRemoteHandler(remoteId)
+    const handler = await this._xo.getRemoteHandler(remoteId)
     const stream = await handler.createReadStream(file)
-    const xapi = this._app.getXapi(sr)
+    const xapi = this._xo.getXapi(sr)
 
     const vm = await xapi.importVm(stream, { srId: sr._xapiId })
 
@@ -351,8 +351,8 @@ export default class {
   @deferrable
   async deltaCopyVm($defer, srcVm, targetSr, force = false, retention = 1) {
     const transferStart = Date.now()
-    const srcXapi = this._app.getXapi(srcVm)
-    const targetXapi = this._app.getXapi(targetSr)
+    const srcXapi = this._xo.getXapi(srcVm)
+    const targetXapi = this._xo.getXapi(targetSr)
 
     // Get Xen objects from XO objects.
     const { uuid } = (srcVm = srcXapi.getObject(srcVm._xapiId))
@@ -374,7 +374,7 @@ export default class {
         bypassVdiChainsCheck: force,
         snapshotNameLabel: `XO_DELTA_EXPORT: ${targetSr.name_label} (${targetSr.uuid})`,
       })
-      $defer.onFailure(() => this._app.getXapiObject(delta.vm.uuid).$destroy())
+      $defer.onFailure(() => srcXapi.deleteVm(delta.vm.uuid))
       $defer.onFailure(cancel)
 
       const date = safeDateFormat(Date.now())
@@ -400,11 +400,11 @@ export default class {
       // Once done, (asynchronously) remove the (now obsolete) local
       // base.
       if (localBaseUuid) {
-        promise.then(() => this._app.getXapiObject(localBaseUuid).$destroy())::ignoreErrors()
+        promise.then(() => srcXapi.deleteVm(localBaseUuid))::ignoreErrors()
       }
 
       if (toRemove !== undefined) {
-        promise.then(() => asyncMapSettled(toRemove, _ => targetXapi.VM_destroy(_.$ref)))::ignoreErrors()
+        promise.then(() => asyncMapSettled(toRemove, _ => targetXapi.deleteVm(_.$id)))::ignoreErrors()
       }
 
       // (Asynchronously) Identify snapshot as future base.
@@ -534,8 +534,8 @@ export default class {
       }),
       base => base.snapshot_time
     )
-    forEach(bases, baseVdi => {
-      baseVdi.$destroy()::ignoreErrors()
+    forEach(bases, base => {
+      xapi.deleteVdi(base.$id)::ignoreErrors()
     })
 
     // Export full or delta backup.
@@ -579,8 +579,8 @@ export default class {
   @deferrable
   async rollingDeltaVmBackup($defer, { vm, remoteId, tag, retention }) {
     const transferStart = Date.now()
-    const handler = await this._app.getRemoteHandler(remoteId)
-    const xapi = this._app.getXapi(vm)
+    const handler = await this._xo.getRemoteHandler(remoteId)
+    const xapi = this._xo.getXapi(vm)
 
     vm = xapi.getObject(vm._xapiId)
 
@@ -591,7 +591,7 @@ export default class {
     )
     const baseVm = bases.pop()
     forEach(bases, base => {
-      xapi.VM_destroy(base.$ref)::ignoreErrors()
+      xapi.deleteVm(base.$id)::ignoreErrors()
     })
 
     // Check backup dirs.
@@ -621,8 +621,7 @@ export default class {
       fullVdisRequired,
       disableBaseTags: true,
     })
-    const exportedVmRef = await xapi.call('VM.get_by_uuid', delta.vm.uuid)
-    $defer.onFailure(() => xapi.VM_destroy(exportedVmRef))
+    $defer.onFailure(() => xapi.deleteVm(delta.vm.uuid))
     $defer.onFailure(cancel)
 
     // Save vdis.
@@ -712,7 +711,7 @@ export default class {
     await this._removeOldDeltaVmBackups(xapi, { vm, handler, dir, retention })
 
     if (baseVm) {
-      xapi.VM_destroy(baseVm.$ref)::ignoreErrors()
+      xapi.deleteVm(baseVm.$id)::ignoreErrors()
     }
 
     return {
@@ -729,8 +728,8 @@ export default class {
     filePath = `${filePath}${DELTA_BACKUP_EXT}`
     const { datetime } = parseVmBackupPath(filePath)
 
-    const handler = await this._app.getRemoteHandler(remoteId)
-    const xapi = this._app.getXapi(sr || mapVdisSrs[getFirstPropertyName(mapVdisSrs)])
+    const handler = await this._xo.getRemoteHandler(remoteId)
+    const xapi = this._xo.getXapi(sr || mapVdisSrs[getFirstPropertyName(mapVdisSrs)])
 
     const delta = JSON.parse(await handler.readFile(filePath))
     let vm
@@ -776,7 +775,7 @@ export default class {
   // -----------------------------------------------------------------
 
   async backupVm({ vm, remoteId, file, compress }) {
-    const handler = await this._app.getRemoteHandler(remoteId)
+    const handler = await this._xo.getRemoteHandler(remoteId)
     return this._backupVm(vm, handler, file, { compress })
   }
 
@@ -786,7 +785,7 @@ export default class {
     $defer.onFailure.call(handler, 'unlink', file)
     $defer.onFailure.call(targetStream, 'close')
 
-    const sourceStream = await this._app.getXapi(vm).exportVm(vm._xapiId, {
+    const sourceStream = await this._xo.getXapi(vm).exportVm(vm._xapiId, {
       compress,
     })
 
@@ -803,7 +802,7 @@ export default class {
 
   async rollingBackupVm({ vm, remoteId, tag, retention, compress }) {
     const transferStart = Date.now()
-    const handler = await this._app.getRemoteHandler(remoteId)
+    const handler = await this._xo.getRemoteHandler(remoteId)
 
     const files = await handler.list('.')
 
@@ -821,7 +820,7 @@ export default class {
   }
 
   async rollingSnapshotVm(vm, tag, retention) {
-    const xapi = this._app.getXapi(vm)
+    const xapi = this._xo.getXapi(vm)
     vm = xapi.getObject(vm._xapiId)
 
     await xapi.VM_assertHealthyVdiChains(vm.$ref)
@@ -838,7 +837,7 @@ export default class {
     const promises = []
     for (let surplus = snapshots.length - (retention - 1); surplus > 0; surplus--) {
       const oldSnap = snapshots.shift()
-      promises.push(xapi.VM_destroy(oldSnap.$ref))
+      promises.push(xapi.deleteVm(oldSnap.uuid))
     }
     await Promise.all(promises)
   }
@@ -847,7 +846,7 @@ export default class {
     return Promise.all(
       mapToArray(vms, vm =>
         // Do not consider a failure to delete an old copy as a fatal error.
-        xapi.VM_destroy(vm.$ref)::ignoreErrors()
+        xapi.deleteVm(vm.$id)::ignoreErrors()
       )
     )
   }
@@ -857,9 +856,9 @@ export default class {
     tag = 'DR_' + tag
     const reg = new RegExp('^' + escapeRegExp(`${vm.name_label}_${tag}_`) + '[0-9]{8}T[0-9]{6}Z$')
 
-    const targetXapi = this._app.getXapi(sr)
+    const targetXapi = this._xo.getXapi(sr)
     sr = targetXapi.getObject(sr._xapiId)
-    const sourceXapi = this._app.getXapi(vm)
+    const sourceXapi = this._xo.getXapi(vm)
     vm = sourceXapi.getObject(vm._xapiId)
 
     const vms = {}
@@ -907,7 +906,7 @@ export default class {
   // -----------------------------------------------------------------
 
   _mountVhd(remoteId, vhdPath) {
-    return Promise.all([this._app.getRemoteHandler(remoteId), tmpDir()]).then(([handler, mountDir]) => {
+    return Promise.all([this._xo.getRemoteHandler(remoteId), tmpDir()]).then(([handler, mountDir]) => {
       if (!handler._getRealPath) {
         throw new Error(`this remote is not supported`)
       }

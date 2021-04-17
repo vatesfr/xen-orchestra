@@ -9,11 +9,6 @@ interface ParentState {}
 interface State {
   consoleScale: number
 }
-interface ParentState {}
-
-interface State {
-  consoleScale: number
-}
 
 interface Props {
   vmId: string

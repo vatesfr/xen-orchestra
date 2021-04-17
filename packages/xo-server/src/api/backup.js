@@ -1,6 +1,6 @@
 import archiver from 'archiver'
+import createLogger from '@xen-orchestra/log'
 import { basename } from 'path'
-import { createLogger } from '@xen-orchestra/log'
 import { format } from 'json-rpc-peer'
 import { forEach } from 'lodash'
 

@@ -177,10 +177,10 @@ export default class Backups {
           },
         ],
         importVmBackup: [
-          defer(($defer, { backupId, remote, srUuid, settings, streamLogs = false, xapi: xapiOpts }) =>
+          defer(($defer, { backupId, remote, srUuid, streamLogs = false, xapi: xapiOpts }) =>
             Disposable.use(this.getAdapter(remote), this.getXapi(xapiOpts), async (adapter, xapi) => {
               const metadata = await adapter.readVmBackupMetadata(backupId)
-              const run = () => new ImportVmBackup({ adapter, metadata, settings, srUuid, xapi }).run()
+              const run = () => new ImportVmBackup({ adapter, metadata, srUuid, xapi }).run()
               return streamLogs
                 ? runWithLogs(
                     async (args, onLog) =>
@@ -205,7 +205,6 @@ export default class Backups {
             params: {
               backupId: { type: 'string' },
               remote: { type: 'object' },
-              settings: { type: 'object', optional: true },
               srUuid: { type: 'string' },
               streamLogs: { type: 'boolean', optional: true },
               xapi: { type: 'object' },

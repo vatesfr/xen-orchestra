@@ -17,19 +17,20 @@ const obfuscateRemote = ({ url, ...remote }) => {
 }
 
 export default class {
-  constructor(app) {
+  constructor(xo, { remoteOptions }) {
     this._handlers = { __proto__: null }
+    this._remoteOptions = remoteOptions
     this._remotes = new Remotes({
-      connection: app._redis,
+      connection: xo._redis,
       prefix: 'xo:remote',
       indexes: ['enabled'],
     })
     this._remotesInfo = {}
-    this._app = app
+    this._xo = xo
 
-    app.hooks.on('clean', () => this._remotes.rebuildIndexes())
-    app.hooks.on('start', async () => {
-      app.addConfigManager(
+    xo.on('clean', () => this._remotes.rebuildIndexes())
+    xo.on('start', async () => {
+      xo.addConfigManager(
         'remotes',
         () => this._remotes.get(),
         remotes => Promise.all(remotes.map(remote => this._remotes.update(remote)))
@@ -40,7 +41,7 @@ export default class {
         ignoreErrors.call(this.updateRemote(remote.id, {}))
       })
     })
-    app.hooks.on('stop', async () => {
+    xo.on('stop', async () => {
       const handlers = this._handlers
       for (const id in handlers) {
         try {
@@ -68,7 +69,7 @@ export default class {
     const handlers = this._handlers
     let handler = handlers[id]
     if (handler === undefined) {
-      handler = getHandler(remote, this._app.config.get('remoteOptions'))
+      handler = getHandler(remote, this._remoteOptions)
 
       try {
         await handler.sync()
@@ -89,7 +90,7 @@ export default class {
 
     const { readRate, writeRate, ...answer } =
       remote.proxy !== undefined
-        ? await this._app.callProxyMethod(remote.proxy, 'remote.test', {
+        ? await this._xo.callProxyMethod(remote.proxy, 'remote.test', {
             remote,
           })
         : await this.getRemoteHandler(remoteId).then(handler => handler.test())
@@ -125,7 +126,7 @@ export default class {
 
       const promise =
         remote.proxy !== undefined
-          ? this._app.callProxyMethod(remote.proxy, 'remote.getInfo', {
+          ? this._xo.callProxyMethod(remote.proxy, 'remote.getInfo', {
               remote,
             })
           : this.getRemoteHandler(remote.id).then(handler => handler.getInfo())

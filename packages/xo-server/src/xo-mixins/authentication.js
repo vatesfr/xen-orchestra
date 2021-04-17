@@ -1,4 +1,4 @@
-import { createLogger } from '@xen-orchestra/log'
+import createLogger from '@xen-orchestra/log'
 import { createPredicate } from 'value-matcher'
 import { ignoreErrors } from 'promise-toolbox'
 import { invalidCredentials, noSuchObject } from 'xo-common/api-errors'
@@ -14,15 +14,13 @@ const log = createLogger('xo:authentification')
 const noSuchAuthenticationToken = id => noSuchObject(id, 'authenticationToken')
 
 export default class {
-  constructor(app) {
-    app.config.watch('authentication', config => {
-      this._defaultTokenValidity = parseDuration(config.defaultTokenValidity)
-      this._maxTokenValidity = parseDuration(config.maxTokenValidity)
-      this._throttlingDelay = parseDuration(config.throttlingDelay)
-    })
+  constructor(xo, { authentication: config }) {
+    this._defaultTokenValidity = parseDuration(config.defaultTokenValidity)
+    this._maxTokenValidity = parseDuration(config.maxTokenValidity)
+    this._throttlingDelay = parseDuration(config.throttlingDelay)
 
     this._providers = new Set()
-    this._app = app
+    this._xo = xo
 
     // Store last failures by user to throttle tries (slow bruteforce
     // attacks).
@@ -30,7 +28,7 @@ export default class {
 
     // Creates persistent collections.
     const tokensDb = (this._tokens = new Tokens({
-      connection: app._redis,
+      connection: xo._redis,
       prefix: 'xo:token',
       indexes: ['user_id'],
     }))
@@ -41,12 +39,12 @@ export default class {
         return
       }
 
-      const user = await app.getUserByName(username, true)
-      if (user && (await app.checkUserPassword(user.id, password))) {
+      const user = await xo.getUserByName(username, true)
+      if (user && (await xo.checkUserPassword(user.id, password))) {
         return { userId: user.id }
       }
 
-      app.emit('xo:audit', 'signInFailed', {
+      xo.emit('xo:audit', 'signInFailed', {
         userId: user?.id,
         userName: username,
         userIp: ip,
@@ -60,12 +58,12 @@ export default class {
       }
 
       try {
-        const token = await app.getAuthenticationToken(tokenId)
+        const token = await xo.getAuthenticationToken(tokenId)
         return { expiration: token.expiration, userId: token.user_id }
       } catch (error) {}
     })
 
-    app.hooks.on('clean', async () => {
+    xo.on('clean', async () => {
       const tokens = await tokensDb.get()
       const toRemove = []
       const now = Date.now()
@@ -78,8 +76,8 @@ export default class {
       return tokensDb.rebuildIndexes()
     })
 
-    app.hooks.on('start', () => {
-      app.addConfigManager(
+    xo.on('start', () => {
+      xo.addConfigManager(
         'authTokens',
         () => tokensDb.get(),
         tokens => tokensDb.update(tokens)
@@ -116,7 +114,7 @@ export default class {
         const { userId, username, expiration } = result
 
         return {
-          user: await (userId !== undefined ? this._app.getUser(userId) : this._app.registerUser(undefined, username)),
+          user: await (userId !== undefined ? this._xo.getUser(userId) : this._xo.registerUser(undefined, username)),
           expiration,
         }
       } catch (error) {

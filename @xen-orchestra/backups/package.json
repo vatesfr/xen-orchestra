@@ -8,36 +8,38 @@
     "type": "git",
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },
-  "version": "0.9.3",
+  "version": "0.7.1",
   "engines": {
-    "node": ">=14.6"
+    "node": ">=14.5"
   },
   "scripts": {
     "postversion": "npm publish --access public"
   },
   "dependencies": {
     "@vates/compose": "^2.0.0",
-    "@vates/disposable": "^0.1.1",
+    "@vates/disposable": "^0.1.0",
+    "@vates/multi-key-map": "^0.1.0",
     "@vates/parse-duration": "^0.1.0",
     "@xen-orchestra/async-map": "^0.1.2",
-    "@xen-orchestra/fs": "^0.14.0",
+    "@xen-orchestra/fs": "^0.13.0",
     "@xen-orchestra/log": "^0.2.0",
     "@xen-orchestra/template": "^0.1.0",
     "compare-versions": "^3.6.0",
     "d3-time-format": "^3.0.0",
     "end-of-stream": "^1.4.4",
+    "ensure-array": "^1.0.0",
     "fs-extra": "^9.0.0",
     "golike-defer": "^0.5.1",
     "limit-concurrency-decorator": "^0.4.0",
     "lodash": "^4.17.20",
     "node-zone": "^0.4.0",
     "parse-pairs": "^1.1.0",
-    "promise-toolbox": "^0.19.0",
+    "promise-toolbox": "^0.17.0",
     "vhd-lib": "^1.0.0",
     "yazl": "^2.5.1"
   },
   "peerDependencies": {
-    "@xen-orchestra/xapi": "^0.6.1"
+    "@xen-orchestra/xapi": "^0.4.5"
   },
   "license": "AGPL-3.0-or-later",
   "author": {

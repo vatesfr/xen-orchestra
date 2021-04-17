@@ -4,6 +4,7 @@ import authenticator from 'otplib/authenticator'
 import blocked from 'blocked-at'
 import compression from 'compression'
 import createExpress from 'express'
+import createLogger from '@xen-orchestra/log'
 import crypto from 'crypto'
 import has from 'lodash/has'
 import helmet from 'helmet'
@@ -17,7 +18,6 @@ import stoppable from 'stoppable'
 import WebServer from 'http-server-plus'
 import WebSocket from 'ws'
 import xdg from 'xdg-basedir'
-import { createLogger } from '@xen-orchestra/log'
 import { forOwn, map, merge, once } from 'lodash'
 import { genSelfSignedCert } from '@xen-orchestra/self-signed'
 import { parseDuration } from '@vates/parse-duration'
@@ -67,14 +67,13 @@ const log = createLogger('xo:main')
 
 // ===================================================================
 
-const APP_DIR = joinPath(__dirname, '..')
 const APP_NAME = 'xo-server'
 
 const DEPRECATED_ENTRIES = ['users', 'servers']
 
 async function loadConfiguration() {
   const config = await appConf.load(APP_NAME, {
-    appDir: APP_DIR,
+    appDir: joinPath(__dirname, '..'),
     ignoreUnknownFormats: true,
   })
 
@@ -262,7 +261,7 @@ async function setUpPassport(express, xo, { authentication: authCfg, http: { coo
       next()
     } else {
       req.flash('return-url', url)
-      res.redirect(xo.config.get('authentication.defaultSignInPage'))
+      res.redirect(authCfg.defaultSignInPage)
     }
   })
 
@@ -295,15 +294,14 @@ async function registerPlugin(pluginPath, pluginName) {
   let { default: factory = plugin, configurationSchema, configurationPresets, testSchema } = plugin
   let instance
 
-  const datadir = this.config.get('datadir')
-  const pluginsConfig = this.config.get('plugins')
+  const config = this._config
   const handleFactory = factory =>
     typeof factory === 'function'
       ? factory({
-          staticConfig: pluginsConfig[pluginName] ?? {},
+          staticConfig: config.plugins?.[pluginName] ?? {},
           xo: this,
           getDataDir: () => {
-            const dir = `${datadir}/${pluginName}`
+            const dir = `${config.datadir}/${pluginName}`
             return ensureDir(dir).then(() => dir)
           },
         })
@@ -494,7 +492,7 @@ const setUpProxies = (express, opts, xo) => {
   const webSocketServer = new WebSocket.Server({
     noServer: true,
   })
-  xo.hooks.on('stop', () => fromCallback.call(webSocketServer, 'close'))
+  xo.on('stop', () => fromCallback.call(webSocketServer, 'close'))
 
   express.on('upgrade', (req, socket, head) => {
     const { url } = req
@@ -534,7 +532,7 @@ const setUpApi = (webServer, xo, config) => {
 
     noServer: true,
   })
-  xo.hooks.on('stop', () => fromCallback.call(webSocketServer, 'close'))
+  xo.on('stop', () => fromCallback.call(webSocketServer, 'close'))
 
   const onConnection = (socket, upgradeReq) => {
     const { remoteAddress } = upgradeReq.socket
@@ -602,7 +600,7 @@ const setUpConsoleProxy = (webServer, xo) => {
   const webSocketServer = new WebSocket.Server({
     noServer: true,
   })
-  xo.hooks.on('stop', () => fromCallback.call(webSocketServer, 'close'))
+  xo.on('stop', () => fromCallback.call(webSocketServer, 'close'))
 
   webServer.on('upgrade', async (req, socket, head) => {
     const matches = CONSOLE_PROXY_PATH_RE.exec(req.url)
@@ -719,25 +717,17 @@ export default async function main(args) {
     log.warn('Failed to change user/group:', { error })
   }
 
-  const safeMode = includes(args, '--safe-mode')
-
   // Creates main object.
-  const xo = new Xo({
-    appDir: APP_DIR,
-    appName: APP_NAME,
-    config,
-    httpServer: webServer,
-    safeMode,
-  })
+  const xo = new Xo(config)
 
   // Register web server close on XO stop.
-  xo.hooks.on('stop', () => fromCallback.call(webServer, 'stop'))
+  xo.on('stop', () => fromCallback.call(webServer, 'stop'))
 
   // Connects to all registered servers.
-  await xo.hooks.start()
+  await xo.start()
 
   // Trigger a clean job.
-  await xo.hooks.clean()
+  await xo.clean()
 
   // Express is used to manage non WebSocket connections.
   const express = await createExpressApp(config)
@@ -787,7 +777,7 @@ export default async function main(args) {
 
   setUpStaticFiles(express, config.http.mounts)
 
-  if (!safeMode) {
+  if (!includes(args, '--safe-mode')) {
     await registerPlugins(xo)
     xo.emit('plugins:registered')
   }
@@ -807,11 +797,11 @@ export default async function main(args) {
       alreadyCalled = true
 
       log.info(`${signal} caught, closing…`)
-      xo.hooks.stop()
+      xo.stop()
     })
   })
 
-  await fromEvent(xo.hooks, 'stopped')
+  await fromEvent(xo, 'stopped')
 
   log.info('bye :-)')
 }

@@ -28,7 +28,7 @@ export default class BackupNgFileRestore {
 
     // clean any LVM volumes that might have not been properly
     // unmounted
-    app.hooks.on('start', async () => {
+    app.on('start', async () => {
       await Promise.all([execa('losetup', ['-D']), execa('vgchange', ['-an'])])
       await execa('pvscan', ['--cache'])
     })

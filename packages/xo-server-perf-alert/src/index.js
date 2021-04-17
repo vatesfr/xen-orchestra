@@ -157,12 +157,6 @@ export const configurationSchema = {
       items: {
         type: 'object',
         properties: {
-          smartMode: {
-            title: 'All hosts',
-            type: 'boolean',
-            description: 'When enabled, all hosts will be considered for the alert.',
-            default: 'false',
-          },
           uuids: {
             title: 'Hosts',
             type: 'array',
@@ -196,13 +190,6 @@ export const configurationSchema = {
             enum: [60, 600],
           },
         },
-        oneOf: [
-          { required: ['uuids'] },
-          {
-            properties: { smartMode: { const: true } },
-            required: ['smartMode'],
-          },
-        ],
       },
     },
     vmMonitors: {
@@ -214,12 +201,6 @@ export const configurationSchema = {
       items: {
         type: 'object',
         properties: {
-          smartMode: {
-            title: 'All VMs',
-            type: 'boolean',
-            description: 'When enabled, all VMs will be considered for the alert.',
-            default: 'false',
-          },
           uuids: {
             title: 'Virtual Machines',
             type: 'array',
@@ -253,13 +234,7 @@ export const configurationSchema = {
             enum: [60, 600],
           },
         },
-        oneOf: [
-          { required: ['uuids'] },
-          {
-            properties: { smartMode: { const: true } },
-            required: ['smartMode'],
-          },
-        ],
+        required: ['uuids'],
       },
     },
     srMonitors: {
@@ -271,12 +246,6 @@ export const configurationSchema = {
       items: {
         type: 'object',
         properties: {
-          smartMode: {
-            title: 'All SRs',
-            type: 'boolean',
-            description: 'When enabled, all SRs will be considered for the alert.',
-            default: 'false',
-          },
           uuids: {
             title: 'SRs',
             type: 'array',
@@ -302,13 +271,7 @@ export const configurationSchema = {
             default: 80,
           },
         },
-        oneOf: [
-          { required: ['uuids'] },
-          {
-            properties: { smartMode: { const: true } },
-            required: ['smartMode'],
-          },
-        ],
+        required: ['uuids'],
       },
     },
     toEmails: {
@@ -410,9 +373,8 @@ ${monitorBodies.join('\n')}`
   }
 
   _parseDefinition(definition) {
-    const lcObjectType = definition.objectType.toLowerCase()
-    const alarmId = `${lcObjectType}|${definition.variableName}|${definition.alarmTriggerLevel}`
-    const typeFunction = TYPE_FUNCTION_MAP[lcObjectType][definition.variableName]
+    const alarmId = `${definition.objectType}|${definition.variableName}|${definition.alarmTriggerLevel}`
+    const typeFunction = TYPE_FUNCTION_MAP[definition.objectType][definition.variableName]
     const parseData = (result, uuid) => {
       const parsedLegend = result.meta.legend.map((l, index) => {
         const [operation, type, uuid, name] = l.split(':')
@@ -459,65 +421,63 @@ ${monitorBodies.join('\n')}`
       title: `${typeFunction.name} ${definition.comparator} ${definition.alarmTriggerLevel}${typeFunction.unit}`,
       snapshot: async () => {
         return Promise.all(
-          map(
-            definition.smartMode
-              ? map(this._xo.getObjects({ filter: { type: definition.objectType } }), obj => obj.uuid)
-              : definition.uuids,
-            async uuid => {
-              try {
-                const result = {
-                  uuid,
-                  object: this._xo.getXapi(uuid).getObject(uuid),
-                }
+          map(definition.uuids, async uuid => {
+            try {
+              const result = {
+                uuid,
+                object: this._xo.getXapi(uuid).getObject(uuid),
+              }
 
-                if (result.object === undefined) {
-                  throw new Error('object not found')
-                }
+              if (result.object === undefined) {
+                throw new Error('object not found')
+              }
 
-                result.objectLink = `[${result.object.name_label}](${this._generateUrl(lcObjectType, result.object)})`
+              result.objectLink = `[${result.object.name_label}](${this._generateUrl(
+                definition.objectType,
+                result.object
+              )})`
 
-                if (typeFunction.createGetter === undefined) {
-                  // Stats via RRD
-                  result.rrd = await this.getRrd(result.object, observationPeriod)
-                  if (result.rrd !== null) {
-                    const data = parseData(result.rrd, result.object.uuid)
-                    Object.assign(result, {
-                      data,
-                      value: data.getDisplayableValue(),
-                      shouldAlarm: data.shouldAlarm(),
-                      threshold: data.threshold,
-                      observationPeriod,
-                    })
-                  }
-                } else {
-                  // Stats via XAPI
-                  const getter = typeFunction.createGetter(definition.comparator, definition.alarmTriggerLevel)
-                  const data = getter(result.object)
+              if (typeFunction.createGetter === undefined) {
+                // Stats via RRD
+                result.rrd = await this.getRrd(result.object, observationPeriod)
+                if (result.rrd !== null) {
+                  const data = parseData(result.rrd, result.object.uuid)
                   Object.assign(result, {
+                    data,
                     value: data.getDisplayableValue(),
                     shouldAlarm: data.shouldAlarm(),
                     threshold: data.threshold,
                     observationPeriod,
                   })
                 }
+              } else {
+                // Stats via XAPI
+                const getter = typeFunction.createGetter(definition.comparator, definition.alarmTriggerLevel)
+                const data = getter(result.object)
+                Object.assign(result, {
+                  value: data.getDisplayableValue(),
+                  shouldAlarm: data.shouldAlarm(),
+                  threshold: data.threshold,
+                  observationPeriod,
+                })
+              }
 
-                result.listItem = `  * ${result.objectLink}: ${
-                  result.value === undefined
-                    ? "**Can't read performance counters**"
-                    : result.value.toFixed(1) + typeFunction.unit
-                }\n`
+              result.listItem = `  * ${result.objectLink}: ${
+                result.value === undefined
+                  ? "**Can't read performance counters**"
+                  : result.value.toFixed(1) + typeFunction.unit
+              }\n`
 
-                return result
-              } catch (_) {
-                return {
-                  uuid,
-                  object: null,
-                  objectLink: `cannot find object ${uuid}`,
-                  listItem: `  * ${uuid}: **Can't read performance counters**\n`,
-                }
+              return result
+            } catch (_) {
+              return {
+                uuid,
+                object: null,
+                objectLink: `cannot find object ${uuid}`,
+                listItem: `  * ${uuid}: **Can't read performance counters**\n`,
               }
             }
-          )
+          })
         )
       },
     }
@@ -525,8 +485,8 @@ ${monitorBodies.join('\n')}`
 
   _getMonitors() {
     return map(this._configuration.hostMonitors, def => this._parseDefinition({ ...def, objectType: 'host' }))
-      .concat(map(this._configuration.vmMonitors, def => this._parseDefinition({ ...def, objectType: 'VM' })))
-      .concat(map(this._configuration.srMonitors, def => this._parseDefinition({ ...def, objectType: 'SR' })))
+      .concat(map(this._configuration.vmMonitors, def => this._parseDefinition({ ...def, objectType: 'vm' })))
+      .concat(map(this._configuration.srMonitors, def => this._parseDefinition({ ...def, objectType: 'sr' })))
   }
 
   // Sample of a monitor

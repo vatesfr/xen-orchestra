@@ -49,7 +49,7 @@ createJob.params = {
 }
 
 export function getSuggestedExcludedTags() {
-  return ['Continuous Replication', 'Disaster Recovery', 'XOSAN', this.config.get('xo-proxy.vmTag')]
+  return ['Continuous Replication', 'Disaster Recovery', 'XOSAN', this._config['xo-proxy'].vmTag]
 }
 
 export function migrateLegacyJob({ id }) {
@@ -247,8 +247,8 @@ listVmBackups.params = {
   },
 }
 
-export function importVmBackup({ id, settings, sr }) {
-  return this.importVmBackupNg(id, sr, settings)
+export function importVmBackup({ id, sr }) {
+  return this.importVmBackupNg(id, sr)
 }
 
 importVmBackup.permission = 'admin'
@@ -256,9 +256,6 @@ importVmBackup.permission = 'admin'
 importVmBackup.params = {
   id: {
     type: 'string',
-  },
-  settings: {
-    type: 'object',
   },
   sr: {
     type: 'string',

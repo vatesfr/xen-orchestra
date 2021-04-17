@@ -520,7 +520,6 @@
             <tr>
               <th>UUID</th>
               <th>Name</th>
-              <th>IP addresses</th>
               <th>CPU</th>
               <th>RAM (GiB)</th>
               <th>Disk read (MiB)</th>
@@ -535,7 +534,6 @@
               <tr>
                 <td>{{shortUUID this.uuid}}</td>
                 <td>{{this.name}}</td>
-                <td>{{formatAddresses this.addresses}}</td>
                 <td>{{normaliseValue this.cpu}} % {{normaliseEvolution this.evolution.cpu}}</td>
                 <td>{{normaliseValue this.ram}} {{normaliseEvolution this.evolution.ram}}</td>
                 <td>{{normaliseValue this.diskRead}} {{normaliseEvolution this.evolution.diskRead}}</td>

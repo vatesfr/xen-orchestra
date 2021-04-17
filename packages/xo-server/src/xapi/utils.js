@@ -192,10 +192,6 @@ export const makeEditObject = specs => {
       }
     })
 
-    if ('dispatch' in spec) {
-      return spec
-    }
-
     const { get } = spec
     if (get) {
       spec.get = normalizeGet(get, name)
@@ -237,11 +233,6 @@ export const makeEditObject = specs => {
       const spec = specs[name]
       if (!spec) {
         return
-      }
-
-      const { dispatch } = spec
-      if (dispatch) {
-        return set(value, dispatch(object))
       }
 
       const { preprocess } = spec

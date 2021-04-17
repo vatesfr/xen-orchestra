@@ -1,9 +1,10 @@
 {
   "private": false,
   "name": "@xen-orchestra/fs",
-  "version": "0.14.0",
+  "version": "0.13.1",
   "license": "AGPL-3.0-or-later",
   "description": "The File System for Xen Orchestra backups.",
+  "keywords": [],
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/fs",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "repository": {
@@ -31,7 +32,7 @@
     "get-stream": "^6.0.0",
     "limit-concurrency-decorator": "^0.4.0",
     "lodash": "^4.17.4",
-    "promise-toolbox": "^0.19.0",
+    "promise-toolbox": "^0.17.0",
     "proper-lockfile": "^4.1.2",
     "readable-stream": "^3.0.6",
     "through2": "^4.0.2",

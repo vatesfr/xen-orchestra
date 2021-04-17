@@ -3,7 +3,8 @@
   "name": "value-matcher",
   "version": "0.2.0",
   "license": "ISC",
-  "description": "Simple pattern matching for plain values and objects",
+  "description": "",
+  "keywords": [],
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/packages/value-matcher",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "repository": {
@@ -26,6 +27,7 @@
   "engines": {
     "node": ">=6"
   },
+  "dependencies": {},
   "devDependencies": {
     "@babel/cli": "^7.0.0",
     "@babel/core": "^7.0.0",

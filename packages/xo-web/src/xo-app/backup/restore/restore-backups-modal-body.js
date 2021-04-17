@@ -9,8 +9,6 @@ import { SelectSr } from 'select-objects'
 const BACKUP_RENDERER = getRenderXoItemOfType('backup')
 
 export default class RestoreBackupsModalBody extends Component {
-  state = { generateNewMacAddresses: false }
-
   get value() {
     return this.state
   }
@@ -31,21 +29,13 @@ export default class RestoreBackupsModalBody extends Component {
         <div>
           <Toggle iconSize={1} onChange={this.linkState('start')} /> {_('restoreVmBackupsStart', { nVms: 1 })}
         </div>
-        <div>
-          <Toggle
-            iconSize={1}
-            value={this.state.generateNewMacAddresses}
-            onChange={this.toggleState('generateNewMacAddresses')}
-          />{' '}
-          {_('generateNewMacAddress')}
-        </div>
       </div>
     )
   }
 }
 
 export class RestoreBackupsBulkModalBody extends Component {
-  state = { generateNewMacAddresses: false, latest: true }
+  state = { latest: true }
 
   get value() {
     return this.state
@@ -74,14 +64,6 @@ export class RestoreBackupsBulkModalBody extends Component {
         <div>
           <Toggle iconSize={1} onChange={this.linkState('start')} />{' '}
           {_('restoreVmBackupsStart', { nVms: datas.length })}
-        </div>
-        <div>
-          <Toggle
-            iconSize={1}
-            value={this.state.generateNewMacAddresses}
-            onChange={this.toggleState('generateNewMacAddresses')}
-          />{' '}
-          {_('generateNewMacAddress')}
         </div>
       </div>
     )

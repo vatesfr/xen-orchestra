@@ -3,8 +3,8 @@
 import type { Pattern } from 'value-matcher'
 
 import asyncMapSettled from '@xen-orchestra/async-map/legacy'
+import createLogger from '@xen-orchestra/log'
 import emitAsync from '@xen-orchestra/emit-async'
-import { createLogger } from '@xen-orchestra/log'
 
 import { CancelToken, ignoreErrors } from 'promise-toolbox'
 import { defer } from 'golike-defer'
@@ -134,11 +134,11 @@ export default class Jobs {
     return this._runningJobs
   }
 
-  constructor(app: any) {
-    this._app = app
+  constructor(xo: any) {
+    this._app = xo
     const executors = (this._executors = { __proto__: null })
     const jobsDb = (this._jobs = new JobsDb({
-      connection: app._redis,
+      connection: xo._redis,
       prefix: 'xo:job',
       indexes: ['user_id', 'key'],
     }))
@@ -148,11 +148,11 @@ export default class Jobs {
 
     executors.call = executeCall
 
-    app.hooks.on('clean', () => jobsDb.rebuildIndexes())
-    app.hooks.on('start', async () => {
-      this._logger = await app.getLogger('jobs')
+    xo.on('clean', () => jobsDb.rebuildIndexes())
+    xo.on('start', async () => {
+      this._logger = await xo.getLogger('jobs')
 
-      app.addConfigManager(
+      xo.addConfigManager(
         'jobs',
         () => jobsDb.get(),
         jobs => Promise.all(jobs.map(job => jobsDb.save(job))),
@@ -160,14 +160,14 @@ export default class Jobs {
       )
     })
     // it sends a report for the interrupted backup jobs
-    app.on('plugins:registered', () =>
+    xo.on('plugins:registered', () =>
       asyncMapSettled(this._jobs.get(), job => {
         // only the interrupted backup jobs have the runId property
         if (job.runId === undefined) {
           return
         }
 
-        app.emit(
+        xo.emit(
           'job:terminated',
           // This cast can be removed after merging the PR: https://github.com/vatesfr/xen-orchestra/pull/3209
           String(job.runId),

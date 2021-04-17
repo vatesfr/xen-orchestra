@@ -1,6 +1,7 @@
 import hrp from 'http-request-plus'
 import ProxyAgent from 'proxy-agent'
-import firstDefined from '@xen-orchestra/defined'
+
+import { firstDefined } from '../utils'
 
 export default class Http {
   // whether XO has a proxy set from its own config/environment
@@ -12,7 +13,7 @@ export default class Http {
     return this._agent
   }
 
-  constructor(_, { config: { httpProxy = firstDefined(process.env.http_proxy, process.env.HTTP_PROXY) } }) {
+  constructor(_, { httpProxy = firstDefined(process.env.http_proxy, process.env.HTTP_PROXY) }) {
     this._hasOwnHttpProxy = httpProxy != null
 
     this.setHttpProxy(httpProxy)

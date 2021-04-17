@@ -15,7 +15,7 @@ const { debug, warn } = createLogger('xo:proxy:appliance')
 const getUpdater = deduped(async function () {
   const updater = new JsonRpcWebsocketClient('ws://localhost:9001')
   await updater.open()
-  return new Disposable(() => updater.close(), updater)
+  return new Disposable(updater, () => updater.close())
 })
 
 const callUpdate = params =>

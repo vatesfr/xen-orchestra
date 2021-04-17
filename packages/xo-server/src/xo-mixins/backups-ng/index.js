@@ -2,15 +2,16 @@
 
 // $FlowFixMe
 import asyncMapSettled from '@xen-orchestra/async-map/legacy'
+import createLogger from '@xen-orchestra/log'
 import type RemoteHandler from '@xen-orchestra/fs'
 import Disposable from 'promise-toolbox/Disposable'
 import { Backup } from '@xen-orchestra/backups/Backup'
-import { createLogger } from '@xen-orchestra/log'
 import { decorateWith } from '@vates/decorate-with'
 import { formatVmBackups } from '@xen-orchestra/backups/formatVmBackups'
 import { forOwn, merge } from 'lodash'
 import { ImportVmBackup } from '@xen-orchestra/backups/ImportVmBackup'
 import { invalidParameters } from 'xo-common/api-errors'
+import { parseDuration } from '@vates/parse-duration'
 import { runBackupWorker } from '@xen-orchestra/backups/runBackupWorker'
 import { Task } from '@xen-orchestra/backups/Task'
 import { type Pattern, createPredicate } from 'value-matcher'
@@ -214,17 +215,16 @@ export default class BackupNg {
     return this._runningRestores
   }
 
-  constructor(app: any) {
+  constructor(app: any, config) {
     this._app = app
     this._logger = undefined
     this._runningRestores = new Set()
+    this._backupOptions = config.backups
 
-    app.hooks.on('start', async () => {
+    app.on('start', async () => {
       this._logger = await app.getLogger('restore')
 
       const executor: Executor = async ({ cancelToken, data, job: job_, logger, runJobId, schedule }) => {
-        const backupsConfig = app.config.get('backups')
-
         let job: BackupJob = (job_: any)
 
         const vmsPattern = job.vms
@@ -256,7 +256,7 @@ export default class BackupNg {
         const proxyId = job.proxy
         const remoteIds = unboxIdsFromPattern(job.remotes)
         try {
-          if (proxyId === undefined && backupsConfig.disableWorkers) {
+          if (proxyId === undefined && config.backups.disableWorkers) {
             const localTaskIds = { __proto__: null }
             return await Task.run(
               {
@@ -270,12 +270,12 @@ export default class BackupNg {
               },
               () =>
                 new Backup({
-                  config: backupsConfig,
+                  config: config.backups,
                   getAdapter: async remoteId =>
                     app.getBackupsRemoteAdapter(await app.getRemoteWithCredentials(remoteId)),
 
                   // `@xen-orchestra/backups/Backup` expect that `getConnectedRecord` returns a promise
-                  getConnectedRecord: async (xapiType, uuid) => app.getXapiObject(uuid),
+                  getConnectedRecord: async (type, uuid) => app.getXapiObject(uuid, type),
                   job,
                   schedule,
                 }).run()
@@ -363,10 +363,10 @@ export default class BackupNg {
             const localTaskIds = { __proto__: null }
             return await runBackupWorker(
               {
-                config: backupsConfig,
-                remoteOptions: app.config.get('remoteOptions'),
-                resourceCacheDelay: app.config.getDuration('resourceCacheDelay'),
-                xapiOptions: app.config.get('xapiOptions'),
+                config: config.backups,
+                remoteOptions: config.remoteOptions,
+                resourceCacheDelay: parseDuration(config.resourceCacheDelay),
+                xapiOptions: config.xapiOptions,
                 ...params,
               },
               log =>
@@ -447,7 +447,7 @@ export default class BackupNg {
   // ├─ task.start(message: 'transfer')
   // │  └─ task.end(result: { id: string, size: number })
   // └─ task.end
-  async importVmBackupNg(id: string, srId: string, settings): Promise<string> {
+  async importVmBackupNg(id: string, srId: string): Promise<string> {
     const app = this._app
     const xapi = app.getXapi(srId)
     const sr = xapi.getObject(srId)
@@ -469,7 +469,6 @@ export default class BackupNg {
             url: remote.url,
             options: remote.options,
           },
-          settings,
           srUuid: sr.uuid,
           streamLogs: true,
           xapi: {
@@ -531,7 +530,6 @@ export default class BackupNg {
               new ImportVmBackup({
                 adapter,
                 metadata,
-                settings,
                 srUuid: srId,
                 xapi: await app.getXapi(srId),
               }).run()
@@ -546,7 +544,7 @@ export default class BackupNg {
   @decorateWith(
     debounceWithKey,
     function () {
-      return this._app.config.getDuration('backups.listingDebounce')
+      return parseDuration(this._backupOptions.listingDebounce)
     },
     function keyFn(remoteId) {
       return [this, remoteId]
@@ -576,7 +574,7 @@ export default class BackupNg {
       // inject the remote id on the backup which is needed for importVmBackupNg()
       forOwn(backupsByVm, backups =>
         backups.forEach(backup => {
-          backup.id = `${remoteId}/${backup.id}`
+          backup.id = `${remoteId}${backup.id}`
         })
       )
       return backupsByVm

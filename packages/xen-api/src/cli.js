@@ -3,12 +3,15 @@
 import blocked from 'blocked'
 import createDebug from 'debug'
 import diff from 'jest-diff'
+import execPromise from 'exec-promise'
 import minimist from 'minimist'
 import pw from 'pw'
 import { asCallback, fromCallback, fromEvent } from 'promise-toolbox'
 import { filter, find } from 'lodash'
 import { getBoundPropertyDescriptor } from 'bind-property-descriptor'
 import { start as createRepl } from 'repl'
+
+import { createClient } from './'
 
 // ===================================================================
 
@@ -40,8 +43,8 @@ function getAllBoundDescriptors(object) {
 
 const usage = 'Usage: xen-api <url> [<user> [<password>]]'
 
-async function main(createClient) {
-  const opts = minimist(process.argv.slice(2), {
+const main = async args => {
+  const opts = minimist(args, {
     boolean: ['allow-unauthorized', 'help', 'read-only', 'verbose'],
 
     alias: {
@@ -121,5 +124,5 @@ async function main(createClient) {
 export default main
 
 if (!module.parent) {
-  main(require('./').createClient).catch(console.error.bind(console, 'FATAL'))
+  execPromise(main)
 }

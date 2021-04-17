@@ -3,7 +3,8 @@
   "name": "xo-remote-parser",
   "version": "0.6.0",
   "license": "AGPL-3.0-or-later",
-  "description": "Parse and format XO remote URLs",
+  "description": "",
+  "keywords": [],
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/packages/xo-remote-parser",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "repository": {

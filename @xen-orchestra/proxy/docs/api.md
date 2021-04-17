@@ -140,7 +140,6 @@ declare namespace backup {
   function importVmBackup(_: {
     backupId: string
     remote: Remote
-    settings?: { newMacAddresses?: boolean }
     srUuid: string
     xapi: Xapi
     streamLogs: boolean = false

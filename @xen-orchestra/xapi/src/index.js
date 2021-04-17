@@ -1,10 +1,7 @@
 const assert = require('assert')
 const defer = require('promise-toolbox/defer')
-const pRetry = require('promise-toolbox/retry')
 const { utcFormat, utcParse } = require('d3-time-format')
 const { Xapi: Base } = require('xen-api')
-
-const { warn } = require('@xen-orchestra/log').createLogger('xo:xapi')
 
 exports.isDefaultTemplate = require('./isDefaultTemplate')
 
@@ -36,50 +33,17 @@ const hasProps = o => {
   return false
 }
 
-const getPoolInfo = ({ pool } = {}) =>
-  pool && {
-    uuid: pool.uuid,
-    name_label: pool.name_label,
-  }
-
-function onRetry(error) {
-  try {
-    warn('retry', {
-      attemptNumber: this.attemptNumber,
-      delay: this.delay,
-      error,
-      fn: this.fn.name,
-      arguments: this.arguments,
-      pool: getPoolInfo(this.this),
-    })
-  } catch (error) {}
-}
 class Xapi extends Base {
-  constructor({
-    callRetryWhenTooManyPendingTasks,
-    ignoreNobakVdis,
-    maxUncoalescedVdis,
-    vdiDestroyRetryWhenInUse,
-    ...opts
-  }) {
+  constructor({ ignoreNobakVdis, maxUncoalescedVdis, vdiDestroyRetryWhenInUse, ...opts }) {
     assert.notStrictEqual(ignoreNobakVdis, undefined)
 
     super(opts)
-    this._callRetryWhenTooManyPendingTasks = {
-      delay: 5e3,
-      tries: 10,
-      ...callRetryWhenTooManyPendingTasks,
-      onRetry,
-      when: { code: 'TOO_MANY_PENDING_TASKS' },
-    }
     this._ignoreNobakVdis = ignoreNobakVdis
     this._maxUncoalescedVdis = maxUncoalescedVdis
     this._vdiDestroyRetryWhenInUse = {
       delay: 5e3,
       retries: 10,
       ...vdiDestroyRetryWhenInUse,
-      onRetry,
-      when: { code: 'VDI_IN_USE' },
     }
 
     const genericWatchers = (this._genericWatchers = new Set())
@@ -160,9 +124,3 @@ mixin({
   VM: require('./vm'),
 })
 exports.Xapi = Xapi
-
-function getCallRetryOpts() {
-  return this._callRetryWhenTooManyPendingTasks
-}
-Xapi.prototype.call = pRetry.wrap(Xapi.prototype.call, getCallRetryOpts)
-Xapi.prototype.callAsync = pRetry.wrap(Xapi.prototype.callAsync, getCallRetryOpts)
