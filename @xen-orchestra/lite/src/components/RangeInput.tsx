@@ -1,9 +1,7 @@
 import React from 'react'
 
-type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>
+type Props = Omit<React.ComponentPropsWithoutRef<'input'>, 'type'>
 
-interface Props extends Omit<React.ComponentPropsWithoutRef<'input'>, 'type'> {}
-
-const RangeInput: React.FC<Props> = React.memo(props => <input {...props} type='range' />)
+const RangeInput = React.memo((props: Props) => <input {...props} type='range' />)
 
 export default RangeInput
