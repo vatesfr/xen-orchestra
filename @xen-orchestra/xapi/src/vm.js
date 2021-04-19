@@ -497,7 +497,7 @@ module.exports = class Vm {
                 // be safe: only delete if there was a single match
                 if (createdSnapshots.length === 1) {
                   const snapshotRef = createdSnapshots[0]
-                  this.VM_destroy(_).catch(error => {
+                  this.VM_destroy(snapshotRef).catch(error => {
                     warn('VM_sapshot: failed to destroy broken snapshot', {
                       error,
                       snapshotRef,
