@@ -322,7 +322,7 @@ exports.VmBackup = class VmBackup {
   }
 
   async run() {
-    await asyncMap(this._writers, writer => writer.beforeBackup())
+    await asyncMap(this._writers, writer => writer.beforeBackup(this.vm.uuid))
 
     await this._fetchJobSnapshots()
 
