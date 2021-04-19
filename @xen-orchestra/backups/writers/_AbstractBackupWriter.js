@@ -7,10 +7,10 @@ const { debug } = createLogger('xo:backups:AbstractBackupWriter')
 
 exports.AbstractBackupWriter = Sup =>
   class AbstractBackupWriter extends Sup {
-    constructor({ adapter }) {
-      super()
+    constructor(props) {
+      super(props)
 
-      this._adapter = adapter
+      this._adapter = props.adapter
     }
 
     async cleanCorruptedBackups() {
