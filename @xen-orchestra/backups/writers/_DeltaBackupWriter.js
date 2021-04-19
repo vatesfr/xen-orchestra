@@ -22,7 +22,7 @@ const { warn } = createLogger('xo:backups:DeltaBackupWriter')
 exports.DeltaBackupWriter = class DeltaBackupWriter extends AbstractBackupWriter(AbstractDeltaWriter) {
   constructor(backup, remoteId, settings) {
     const adapter = backup.remoteAdapters[remoteId]
-    super(adapter)
+    super({ adapter })
 
     this._adapter = adapter
     this._backup = backup
