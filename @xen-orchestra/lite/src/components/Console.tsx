@@ -12,10 +12,6 @@ interface RFB {
   sendCtrlAltDel: () => void
 }
 
-export interface IConsole {
-  _effects: Effects
-}
-
 interface ParentState {
   objectsByType: ObjectsByType
   xapi: XapiConnection
@@ -29,7 +25,6 @@ interface State {
 }
 
 interface Props {
-  ref: React.RefObject<IConsole>
   vmId: string
   scale: number
   setCtrlAltDel: (fn: () => void) => void

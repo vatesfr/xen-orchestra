@@ -4,6 +4,7 @@ import { withState } from 'reaclette'
 <<<<<<< HEAD
 <<<<<<< HEAD
 import Button from './Button'
+<<<<<<< HEAD
 
 import Console, { IConsole } from './Console'
 =======
@@ -21,10 +22,14 @@ interface RFB {
 =======
 import Console, { IConsole } from './Console'
 >>>>>>> use ref
+=======
+import Console from './Console'
+>>>>>>> remove ref
 
 interface ParentState {}
 
 interface State {
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
   console: React.RefObject<IConsole>
@@ -34,6 +39,9 @@ interface State {
 =======
   console: React.RefObject<IConsole>
 >>>>>>> use ref
+=======
+  ctrlAltDel: Function | null
+>>>>>>> remove ref
 }
 
 interface Props {
@@ -42,6 +50,7 @@ interface Props {
 
 interface ParentEffects {}
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 interface Effects {}
@@ -54,6 +63,12 @@ interface Effects {
 =======
 interface Effects {}
 >>>>>>> use ref
+=======
+interface Effects {
+  sendCtrlAltDel: React.MouseEventHandler<HTMLButtonElement>
+  setCtrlAltDel: (fn: () => void) => void
+}
+>>>>>>> remove ref
 
 interface Computed {}
 
@@ -75,11 +90,25 @@ const TabConsole = withState<State, Props, Effects, Computed, ParentState, Paren
       RFB: null,
 =======
       console: React.createRef(),
+<<<<<<< HEAD
 >>>>>>> use ref
+=======
+      ctrlAltDel: null,
+>>>>>>> remove ref
     }),
+    effects: {
+      sendCtrlAltDel: function () {
+        const { ctrlAltDel } = this.state
+        ctrlAltDel !== null && ctrlAltDel()
+      },
+      setCtrlAltDel: function (fn) {
+        this.state.ctrlAltDel = fn
+      },
+    },
   },
-  ({ state, vmId }) => (
+  ({ effects, vmId }) => (
     <div style={{ height: '100vh' }}>
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
       <Button label='CTRL+ALT+DEL' onClick={effects.sendCtrlAltDel} />
@@ -98,6 +127,10 @@ const TabConsole = withState<State, Props, Effects, Computed, ParentState, Paren
 >>>>>>> remove useless code
       <Console vmId={vmId} ref={state.console} />
 >>>>>>> use ref
+=======
+      <Button label='CTRL+ALT+DEL' onClick={effects.sendCtrlAltDel} />
+      <Console vmId={vmId} setCtrlAltDel={effects.setCtrlAltDel} />
+>>>>>>> remove ref
     </div>
   )
 )
