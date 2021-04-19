@@ -492,7 +492,7 @@ If you are behind a proxy, please update your `xo-server` configuration to add a
 As specified in the [documentation](https://xcp-ng.org/docs/requirements.html#pool-requirements) your pool shouldn't consist of hosts from different CPU vendors.
 :::
 ::: warning
-- Even with matching CPU vendors, in the case of different CPU models XCP-ng will scale the pool CPU ability to the CPU having the least instructions. 
+- Even with matching CPU vendors, in the case of different CPU models XCP-ng will scale the pool CPU ability to the CPU having the least instructions.
 - All the hosts in a pool must run the same XCP-ng version.
 :::
 ### Creating a pool
