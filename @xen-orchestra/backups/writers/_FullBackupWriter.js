@@ -4,14 +4,15 @@ const { getVmBackupDir } = require('../_getVmBackupDir')
 const { isValidXva } = require('../isValidXva')
 const { Task } = require('../Task')
 
-const { abstractExportWriter } = require('./_abstractExportWriter')
+const { AbstractBackupWriter } = require('./_AbstractBackupWriter')
 const { AbstractFullWriter } = require('./_AbstractFullWriter')
 
-class FullBackupWriter extends AbstractFullWriter {
+exports.FullBackupWriter = class FullBackupWriter extends AbstractBackupWriter(AbstractFullWriter) {
   constructor(backup, remoteId, settings) {
-    super()
+    const adapter = backup.remoteAdapters[remoteId]
+    super({ adapter })
 
-    this._adapter = backup.remoteAdapters[remoteId]
+    this._adapter = adapter
     this._backup = backup
     this._settings = settings
 
@@ -92,7 +93,3 @@ class FullBackupWriter extends AbstractFullWriter {
     // TODO: run cleanup?
   }
 }
-
-Object.assign(FullBackupWriter.prototype, abstractExportWriter)
-
-exports.FullBackupWriter = FullBackupWriter

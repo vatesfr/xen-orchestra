@@ -1,6 +1,4 @@
-const { AbstractWriter } = require('./_AbstractWriter')
-
-exports.AbstractFullWriter = class AbstractFullWriter extends AbstractWriter {
+exports.AbstractFullWriter = class AbstractFullWriter {
   run() {
     throw new Error('Not implemented')
   }

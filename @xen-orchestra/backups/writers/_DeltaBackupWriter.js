@@ -12,18 +12,19 @@ const { getOldEntries } = require('../_getOldEntries')
 const { getVmBackupDir } = require('../_getVmBackupDir')
 const { Task } = require('../Task')
 
+const { AbstractBackupWriter } = require('./_AbstractBackupWriter')
 const { AbstractDeltaWriter } = require('./_AbstractDeltaWriter')
-const { abstractExportWriter } = require('./_abstractExportWriter')
 const { checkVhd } = require('./_checkVhd')
 const { packUuid } = require('./_packUuid')
 
 const { warn } = createLogger('xo:backups:DeltaBackupWriter')
 
-class DeltaBackupWriter extends AbstractDeltaWriter {
+exports.DeltaBackupWriter = class DeltaBackupWriter extends AbstractBackupWriter(AbstractDeltaWriter) {
   constructor(backup, remoteId, settings) {
-    super()
+    const adapter = backup.remoteAdapters[remoteId]
+    super(adapter)
 
-    this._adapter = backup.remoteAdapters[remoteId]
+    this._adapter = adapter
     this._backup = backup
     this._remoteId = remoteId
     this._settings = settings
@@ -229,7 +230,3 @@ class DeltaBackupWriter extends AbstractDeltaWriter {
     // TODO: run cleanup?
   }
 }
-
-Object.assign(DeltaBackupWriter.prototype, abstractExportWriter)
-
-exports.DeltaBackupWriter = DeltaBackupWriter
