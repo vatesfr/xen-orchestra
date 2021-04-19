@@ -481,7 +481,7 @@ If you are behind a proxy, please update your `xo-server` configuration to add a
 ### Notes on patching
 
 - Xen Orchestra won't reboot your hosts automatically. That's your call to choose when to do it.
-- Patching doesn't always require rebooting. Check in the host view if the reboot warning is displayed, it means you need to reboot to have the patch fully applied (see screenshot below)
+- Patching doesn't always require rebooting. Check the "Guidance" row: if "restartHost" is displayed, it means you need to reboot to have the patch fully applied (see screenshot below)
 - XO will install all patches without rebooting: that's not an issue. Even applying patches manually, **it's not mandatory to reboot after each patch**.
 
 ![](./assets/xo5patching.png)
@@ -492,7 +492,7 @@ If you are behind a proxy, please update your `xo-server` configuration to add a
 As specified in the [documentation](https://xcp-ng.org/docs/requirements.html#pool-requirements) your pool shouldn't consist of hosts from different CPU vendors.
 :::
 ::: warning
-- Even with matching CPU vendors, in the case of different CPU models XCP-ng will scale the pool CPU ability to the CPU having the least instructions.
+- Even with matching CPU vendors, in the case of different CPU models XCP-ng will scale the pool CPU ability to the CPU having the least instructions. 
 - All the hosts in a pool must run the same XCP-ng version.
 :::
 ### Creating a pool
