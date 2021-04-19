@@ -49,7 +49,7 @@ createJob.params = {
 }
 
 export function getSuggestedExcludedTags() {
-  return ['Continuous Replication', 'Disaster Recovery', 'XOSAN', this._config['xo-proxy'].vmTag]
+  return ['Continuous Replication', 'Disaster Recovery', 'XOSAN', this.config.get('xo-proxy.vmTag')]
 }
 
 export function migrateLegacyJob({ id }) {

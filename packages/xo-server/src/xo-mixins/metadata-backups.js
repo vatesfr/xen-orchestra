@@ -4,7 +4,6 @@ import cloneDeep from 'lodash/cloneDeep'
 import Disposable from 'promise-toolbox/Disposable'
 import { Backup } from '@xen-orchestra/backups/Backup'
 import { createLogger } from '@xen-orchestra/log'
-import { parseDuration } from '@vates/parse-duration'
 import { parseMetadataBackupId } from '@xen-orchestra/backups/parseMetadataBackupId'
 import { RestoreMetadataBackup } from '@xen-orchestra/backups/RestoreMetadataBackup'
 import { Task } from '@xen-orchestra/backups/Task'
@@ -94,13 +93,12 @@ export default class metadataBackup {
     return this._runningMetadataRestores
   }
 
-  constructor(app: any, { config: { backups } }) {
+  constructor(app: any) {
     this._app = app
-    this._backupOptions = backups
     this._logger = undefined
     this._runningMetadataRestores = new Set()
 
-    const debounceDelay = parseDuration(backups.listingDebounce)
+    const debounceDelay = app.config.getDuration('backups.listingDebounce')
     this._listXoMetadataBackups = debounceWithKey(this._listXoMetadataBackups, debounceDelay, remoteId => remoteId)
     this._listPoolMetadataBackups = debounceWithKey(this._listPoolMetadataBackups, debounceDelay, remoteId => remoteId)
 
@@ -204,7 +202,7 @@ export default class metadataBackup {
           },
           () =>
             new Backup({
-              config: this._backupOptions,
+              config: this._app.config.get('backups'),
               getAdapter: async remoteId => app.getBackupsRemoteAdapter(await app.getRemoteWithCredentials(remoteId)),
 
               // `@xen-orchestra/backups/Backup` expect that `getConnectedRecord` returns a promise

@@ -62,19 +62,19 @@ const normalize = set => ({
 // ===================================================================
 
 export default class {
-  constructor(xo) {
-    this._xo = xo
+  constructor(app) {
+    this._app = app
 
     this._store = null
-    xo.hooks.on('start', async () => {
-      xo.addConfigManager(
+    app.hooks.on('start', async () => {
+      app.addConfigManager(
         'resourceSets',
         () => this.getAllResourceSets(),
         resourceSets => Promise.all(resourceSets.map(resourceSet => this._save(resourceSet))),
         ['groups', 'users']
       )
 
-      this._store = await xo.getStore('resourceSets')
+      this._store = await app.getStore('resourceSets')
     })
   }
 
@@ -93,7 +93,7 @@ export default class {
   async checkResourceSetConstraints(id, userId, objectIds) {
     const set = await this.getResourceSet(id)
 
-    const user = await this._xo.getUser(userId)
+    const user = await this._app.getUser(userId)
     if (
       (user.permission !== 'admin' &&
         // The set does not contains ANY subjects related to this user
@@ -109,13 +109,13 @@ export default class {
 
   async computeVmResourcesUsage(vm) {
     return Object.assign(
-      computeVmXapiResourcesUsage(this._xo.getXapi(vm).getObject(vm._xapiId)),
-      await this._xo.computeVmIpPoolsUsage(vm)
+      computeVmXapiResourcesUsage(this._app.getXapi(vm).getObject(vm._xapiId)),
+      await this._app.computeVmIpPoolsUsage(vm)
     )
   }
 
   async computeVmSnapshotResourcesUsage(snapshot) {
-    if (this._xo._config.selfService?.ignoreVmSnapshotResources) {
+    if (this._app.config.get('selfService.ignoreVmSnapshotResources')) {
       return {}
     }
     return this.computeVmResourcesUsage(snapshot)
@@ -145,7 +145,9 @@ export default class {
 
     if (await store.has(id)) {
       await Promise.all(
-        mapToArray(this._xo.getObjects({ filter: { resourceSet: id } }), vm => this.setVmResourceSet(vm.id, null, true))
+        mapToArray(this._app.getObjects({ filter: { resourceSet: id } }), vm =>
+          this.setVmResourceSet(vm.id, null, true)
+        )
       )
       return store.del(id)
     }
@@ -167,12 +169,12 @@ export default class {
       await Promise.all(
         difference(set.subjects, subjects).map(async subjectId =>
           Promise.all(
-            (await this._xo.getAclsForSubject(subjectId)).map(async acl => {
+            (await this._app.getAclsForSubject(subjectId)).map(async acl => {
               try {
-                const object = this._xo.getObject(acl.object)
+                const object = this._app.getObject(acl.object)
                 if ((object.type === 'VM' || object.type === 'VM-snapshot') && object.resourceSet === id) {
-                  await this._xo.removeAcl(subjectId, acl.object, acl.action)
-                  $defer.onFailure(() => this._xo.addAcl(subjectId, acl.object, acl.action))
+                  await this._app.removeAcl(subjectId, acl.object, acl.action)
+                  $defer.onFailure(() => this._app.addAcl(subjectId, acl.object, acl.action))
                 }
               } catch (error) {
                 if (!noSuchObject.is(error)) {
@@ -219,7 +221,7 @@ export default class {
   async getAllResourceSets(userId = undefined) {
     let filter
     if (userId != null) {
-      const user = await this._xo.getUser(userId)
+      const user = await this._app.getUser(userId)
       if (user.permission !== 'admin') {
         const userHasSubject = lightSet(user.groups).add(user.id).has
         filter = set => some(set.subjects, userHasSubject)
@@ -341,7 +343,7 @@ export default class {
     })
 
     await Promise.all(
-      mapToArray(this._xo.getAllXapis(), xapi =>
+      mapToArray(this._app.getAllXapis(), xapi =>
         Promise.all(
           mapToArray(xapi.objects.all, async object => {
             let id
@@ -358,7 +360,7 @@ export default class {
             }
 
             const { limits } = set
-            forEach(await this.computeResourcesUsage(this._xo.getObject(object.$id)), (usage, resource) => {
+            forEach(await this.computeResourcesUsage(this._app.getObject(object.$id)), (usage, resource) => {
               const limit = limits[resource]
               if (limit) {
                 limit.available -= usage
@@ -374,14 +376,14 @@ export default class {
 
   @deferrable
   async setVmResourceSet($defer, vmId, resourceSetId, force = false) {
-    const xapi = this._xo.getXapi(vmId)
+    const xapi = this._app.getXapi(vmId)
     const previousResourceSetId = xapi.xo.getData(vmId, 'resourceSet')
 
     if (resourceSetId === previousResourceSetId || (previousResourceSetId === undefined && resourceSetId === null)) {
       return
     }
 
-    const resourcesUsage = await this.computeResourcesUsage(this._xo.getObject(vmId))
+    const resourcesUsage = await this.computeResourcesUsage(this._app.getObject(vmId))
 
     if (resourceSetId != null) {
       await this.allocateLimitsInResourceSet(resourcesUsage, resourceSetId, force)
@@ -399,7 +401,7 @@ export default class {
     )
 
     if (previousResourceSetId !== undefined) {
-      await this._xo.removeAclsForObject(vmId)
+      await this._app.removeAclsForObject(vmId)
     }
     if (resourceSetId != null) {
       await this.shareVmResourceSet(vmId)
@@ -407,13 +409,13 @@ export default class {
   }
 
   async shareVmResourceSet(vmId) {
-    const xapi = this._xo.getXapi(vmId)
+    const xapi = this._app.getXapi(vmId)
     const resourceSetId = xapi.xo.getData(vmId, 'resourceSet')
     if (resourceSetId === undefined) {
       throw new Error('the vm is not in a resource set')
     }
 
     const { subjects } = await this.getResourceSet(resourceSetId)
-    await asyncMapSettled(subjects, subject => this._xo.addAcl(subject, vmId, 'admin'))
+    await asyncMapSettled(subjects, subject => this._app.addAcl(subject, vmId, 'admin'))
   }
 }

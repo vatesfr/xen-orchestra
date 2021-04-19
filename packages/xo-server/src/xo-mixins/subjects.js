@@ -19,10 +19,10 @@ const removeFromArraySet = (set, value) => set && filter(set, current => current
 // ===================================================================
 
 export default class {
-  constructor(xo) {
-    this._xo = xo
+  constructor(app) {
+    this._app = app
 
-    const redis = xo._redis
+    const redis = app._redis
 
     const groupsDb = (this._groups = new Groups({
       connection: redis,
@@ -34,15 +34,15 @@ export default class {
       indexes: ['email'],
     }))
 
-    xo.hooks.on('clean', () => Promise.all([groupsDb.rebuildIndexes(), usersDb.rebuildIndexes()]))
-    xo.hooks.on('start', async () => {
-      xo.addConfigManager(
+    app.hooks.on('clean', () => Promise.all([groupsDb.rebuildIndexes(), usersDb.rebuildIndexes()]))
+    app.hooks.on('start', async () => {
+      app.addConfigManager(
         'groups',
         () => groupsDb.get(),
         groups => Promise.all(groups.map(group => groupsDb.save(group))),
         ['users']
       )
-      xo.addConfigManager(
+      app.addConfigManager(
         'users',
         () => usersDb.get(),
         users =>
@@ -94,19 +94,19 @@ export default class {
     await this._users.remove(id)
 
     // Remove tokens of user.
-    this._xo
+    this._app
       .getAuthenticationTokensForUser(id)
       .then(tokens => {
         forEach(tokens, token => {
-          this._xo.deleteAuthenticationToken(id)::ignoreErrors()
+          this._app.deleteAuthenticationToken(id)::ignoreErrors()
         })
       })
       ::ignoreErrors()
 
     // Remove ACLs for this user.
-    this._xo.getAclsForSubject(id).then(acls => {
+    this._app.getAclsForSubject(id).then(acls => {
       forEach(acls, acl => {
-        this._xo.removeAcl(id, acl.object, acl.action)::ignoreErrors()
+        this._app.removeAcl(id, acl.object, acl.action)::ignoreErrors()
       })
     })
 
@@ -222,7 +222,7 @@ export default class {
       return user
     }
 
-    if (!this._xo._config.createUserOnFirstSignin) {
+    if (!this._app.config.get('createUserOnFirstSignin')) {
       throw new Error(`registering ${name} user is forbidden`)
     }
 
@@ -251,7 +251,7 @@ export default class {
       conflictingUser = users.find(user => user.email === name)
 
       if (conflictingUser !== undefined) {
-        if (!this._xo._config.authentication.mergeProvidersUsers) {
+        if (!this._app.config.get('authentication.mergeProvidersUsers')) {
           throw new Error(`User with username ${name} already exists`)
         }
         if (user !== undefined) {
@@ -269,7 +269,7 @@ export default class {
     }
 
     if (user === undefined) {
-      if (!this._xo._config.createUserOnFirstSignin) {
+      if (!this._app.config.get('createUserOnFirstSignin')) {
         throw new Error(`registering ${name} user is forbidden`)
       }
       user = await this.createUser({
@@ -334,9 +334,9 @@ export default class {
     await this._groups.remove(id)
 
     // Remove ACLs for this group.
-    this._xo.getAclsForSubject(id).then(acls => {
+    this._app.getAclsForSubject(id).then(acls => {
       forEach(acls, acl => {
-        this._xo.removeAcl(id, acl.object, acl.action)::ignoreErrors()
+        this._app.removeAcl(id, acl.object, acl.action)::ignoreErrors()
       })
     })
 

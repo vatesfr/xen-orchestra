@@ -7,6 +7,7 @@ import asyncMapSettled from '@xen-orchestra/async-map/legacy'
 import limit from 'limit-concurrency-decorator'
 import path, { basename } from 'path'
 import synchronized from 'decorator-synchronized'
+import { coalesceCalls } from '@vates/coalesce-calls'
 import { fromCallback, fromEvent, ignoreErrors, timeout } from 'promise-toolbox'
 import { parse } from 'xo-remote-parser'
 import { randomBytes } from 'crypto'
@@ -104,6 +105,9 @@ export default class RemoteHandlerAbstract {
     this.unlink = sharedLimit(this.unlink)
     this.write = sharedLimit(this.write)
     this.writeFile = sharedLimit(this.writeFile)
+
+    this._forget = coalesceCalls(this._forget)
+    this._sync = coalesceCalls(this._sync)
   }
 
   // Public members
