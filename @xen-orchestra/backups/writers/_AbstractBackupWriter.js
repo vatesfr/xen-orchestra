@@ -16,14 +16,14 @@ exports.AbstractBackupWriter = Sup =>
     async cleanCorruptedBackups() {
       const adapter = this._adapter
 
-      try {
-        await asyncMap(await adapter.handler.list(BACKUP_DIR, { prependDir: true }), vmDir =>
-          adapter.cleanVm(vmDir, { remove: true, merge: true, onLog: debug })
-        )
-      } catch (error) {
-        if (error?.code !== 'ENOENT') {
-          throw error
-        }
-      }
+      await asyncMap(
+        await adapter.handler.list(BACKUP_DIR, { prependDir: true }).catch(error => {
+          if (error?.code !== 'ENOENT') {
+            throw error
+          }
+          return []
+        }),
+        vmDir => adapter.cleanVm(vmDir, { remove: true, merge: true, onLog: debug })
+      )
     }
   }
