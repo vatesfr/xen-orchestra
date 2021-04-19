@@ -7,9 +7,10 @@ const { getOldEntries } = require('../_getOldEntries')
 const { Task } = require('../Task')
 
 const { AbstractFullWriter } = require('./_AbstractFullWriter')
+const { AbstractReplicationWriter } = require('./_AbstractReplicationWriter')
 const { listReplicatedVms } = require('./_listReplicatedVms')
 
-exports.DisasterRecoveryWriter = class DisasterRecoveryWriter extends AbstractFullWriter {
+exports.DisasterRecoveryWriter = class DisasterRecoveryWriter extends AbstractReplicationWriter(AbstractFullWriter) {
   constructor(backup, sr, settings) {
     super()
 

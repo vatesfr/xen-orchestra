@@ -1,4 +1,3 @@
-const { asyncMap } = require('@xen-orchestra/async-map')
 const { createLogger } = require('@xen-orchestra/log')
 
 const { BACKUP_DIR } = require('../_getVmBackupDir')
@@ -13,17 +12,13 @@ exports.AbstractBackupWriter = (BaseClass = Object) =>
       this._adapter = props.adapter
     }
 
-    async cleanCorruptedBackups() {
-      const adapter = this._adapter
-
-      await asyncMap(
-        await adapter.handler.list(BACKUP_DIR, { prependDir: true }).catch(error => {
-          if (error?.code !== 'ENOENT') {
-            throw error
-          }
-          return []
-        }),
-        vmDir => adapter.cleanVm(vmDir, { remove: true, merge: true, onLog: debug })
-      )
+    async beforeBackup(vmUuid) {
+      try {
+        await this._adapter.cleanVm(`${BACKUP_DIR}/${vmUuid}`, { remove: true, merge: true, onLog: debug })
+      } catch (error) {
+        if (error?.code !== 'ENOENT') {
+          throw error
+        }
+      }
     }
   }

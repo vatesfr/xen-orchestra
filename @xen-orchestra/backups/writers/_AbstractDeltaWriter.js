@@ -1,4 +1,6 @@
-exports.AbstractDeltaWriter = class AbstractDeltaWriter {
+const { AbstractWriter } = require('./_AbstractWriter')
+
+exports.AbstractDeltaWriter = class AbstractDeltaWriter extends AbstractWriter {
   checkBaseVdis() {
     throw new Error('Not implemented')
   }
