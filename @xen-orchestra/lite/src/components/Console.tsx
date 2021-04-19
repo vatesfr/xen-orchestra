@@ -9,10 +9,6 @@ interface RFB {
   sendCtrlAltDel: () => void
 }
 
-export interface IConsole {
-  _effects: Effects
-}
-
 interface ParentState {
   objectsByType: ObjectsByType
   xapi: XapiConnection
@@ -24,9 +20,8 @@ interface State {
 }
 
 interface Props {
-  ref: React.RefObject<IConsole>
   vmId: string
-  scale: number
+  setCtrlAltDel: (fn: () => void) => void
 }
 
 interface ParentEffects {}
@@ -67,6 +62,7 @@ const Console = withState<State, Props, Effects, Computed, ParentState, ParentEf
         this.state.RFB = new RFB(this.state.container.current, url, {
           wsProtocols: ['binary'],
         })
+        this.props.setCtrlAltDel(this.effects.sendCtrlAltDel)
       },
       sendCtrlAltDel: function () {
         confirm('Send Ctrl+Alt+Del to VM?') && this.state.RFB?.sendCtrlAltDel()
