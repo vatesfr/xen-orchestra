@@ -134,11 +134,11 @@ export default class Jobs {
     return this._runningJobs
   }
 
-  constructor(xo: any) {
-    this._app = xo
+  constructor(app: any) {
+    this._app = app
     const executors = (this._executors = { __proto__: null })
     const jobsDb = (this._jobs = new JobsDb({
-      connection: xo._redis,
+      connection: app._redis,
       prefix: 'xo:job',
       indexes: ['user_id', 'key'],
     }))
@@ -148,11 +148,11 @@ export default class Jobs {
 
     executors.call = executeCall
 
-    xo.on('clean', () => jobsDb.rebuildIndexes())
-    xo.on('start', async () => {
-      this._logger = await xo.getLogger('jobs')
+    app.hooks.on('clean', () => jobsDb.rebuildIndexes())
+    app.hooks.on('start', async () => {
+      this._logger = await app.getLogger('jobs')
 
-      xo.addConfigManager(
+      app.addConfigManager(
         'jobs',
         () => jobsDb.get(),
         jobs => Promise.all(jobs.map(job => jobsDb.save(job))),
@@ -160,14 +160,14 @@ export default class Jobs {
       )
     })
     // it sends a report for the interrupted backup jobs
-    xo.on('plugins:registered', () =>
+    app.on('plugins:registered', () =>
       asyncMapSettled(this._jobs.get(), job => {
         // only the interrupted backup jobs have the runId property
         if (job.runId === undefined) {
           return
         }
 
-        xo.emit(
+        app.emit(
           'job:terminated',
           // This cast can be removed after merging the PR: https://github.com/vatesfr/xen-orchestra/pull/3209
           String(job.runId),

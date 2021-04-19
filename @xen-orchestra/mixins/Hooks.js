@@ -1,9 +1,9 @@
-import assert from 'assert'
-import emitAsync from '@xen-orchestra/emit-async'
-import EventEmitter from 'events'
-import { createLogger } from '@xen-orchestra/log'
+const assert = require('assert')
+const emitAsync = require('@xen-orchestra/emit-async').default
+const EventEmitter = require('events')
+const { createLogger } = require('@xen-orchestra/log')
 
-const { debug, warn } = createLogger('xo:proxy:hooks')
+const { debug, warn } = createLogger('xo:mixins:hooks')
 
 const runHook = async (emitter, hook) => {
   debug(`${hook} start…`)
@@ -17,7 +17,7 @@ const runHook = async (emitter, hook) => {
   debug(`${hook} finished`)
 }
 
-export default class Hooks extends EventEmitter {
+module.exports = class Hooks extends EventEmitter {
   // Run *clean* async listeners.
   //
   // They normalize existing data, clear invalid entries, etc.

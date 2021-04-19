@@ -20,21 +20,8 @@ exports.DeltaBackupWriter = class DeltaBackupWriter {
   constructor(backup, remoteId, settings) {
     this._adapter = backup.remoteAdapters[remoteId]
     this._backup = backup
+    this._remoteId = remoteId
     this._settings = settings
-
-    this.transfer = Task.wrapFn(
-      {
-        name: 'export',
-        data: ({ deltaExport }) => ({
-          id: remoteId,
-          isFull: Object.values(deltaExport.vdis).some(vdi => vdi.other_config['xo:base_delta'] === undefined),
-          type: 'remote',
-        }),
-      },
-      this.transfer
-    )
-
-    this[settings.deleteFirst ? 'prepare' : 'cleanup'] = this._deleteOldEntries
   }
 
   async checkBaseVdis(baseUuidToSrcVdi) {
@@ -72,7 +59,23 @@ exports.DeltaBackupWriter = class DeltaBackupWriter {
     })
   }
 
-  async prepare() {
+  prepare({ isFull }) {
+    // create the task related to this export and ensure all methods are called in this context
+    const task = new Task({
+      name: 'export',
+      data: {
+        id: this._remoteId,
+        isFull,
+        type: 'remote',
+      },
+    })
+    this.transfer = task.wrapFn(this.transfer)
+    this.cleanup = task.wrapFn(this.cleanup, true)
+
+    return task.run(() => this._prepare())
+  }
+
+  async _prepare() {
     const adapter = this._adapter
     const settings = this._settings
     const { scheduleId, vm } = this._backup
@@ -99,8 +102,12 @@ exports.DeltaBackupWriter = class DeltaBackupWriter {
 
     if (settings.deleteFirst) {
       await this._deleteOldEntries()
-    } else {
-      this.cleanup = this._deleteOldEntries
+    }
+  }
+
+  async cleanup() {
+    if (!this._settings.deleteFirst) {
+      await this._deleteOldEntries()
     }
   }
 
