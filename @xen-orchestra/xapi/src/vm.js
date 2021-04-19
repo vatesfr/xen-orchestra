@@ -334,21 +334,23 @@ module.exports = class Vm {
       ),
       deleteDisks &&
         asyncMap(disks, async vdiRef => {
-          // Dont destroy if attached to other (non control domain) VMs
-          for (const vbdRef of await this.getField('VDI', vdiRef, 'VBDs')) {
-            const vmRef2 = await this.getField('VBD', vbdRef, 'VM')
-            if (vmRef2 !== vmRef && !(await this.getField('VM', vmRef2, 'is_control_domain'))) {
-              return
+          try {
+            // Dont destroy if attached to other (non control domain) VMs
+            for (const vbdRef of await this.getField('VDI', vdiRef, 'VBDs')) {
+              const vmRef2 = await this.getField('VBD', vbdRef, 'VM')
+              if (vmRef2 !== vmRef && !(await this.getField('VM', vmRef2, 'is_control_domain'))) {
+                return
+              }
             }
-          }
 
-          await this.VDI_destroy(vdiRef).catch(error => {
+            await this.VDI_destroy(vdiRef)
+          } catch (error) {
             warn('VM_destroy: failed to destroy VDI', {
               error,
               vdiRef,
               vmRef,
             })
-          })
+          }
         }),
     ])
   }
