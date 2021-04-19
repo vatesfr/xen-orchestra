@@ -237,6 +237,7 @@ describe('backupNg', () => {
     })
 
     // Not handled by the new backup implementation.
+    // See https://github.com/vatesfr/xen-orchestra/commit/0811da90146647aa2c0894d39b4bc41e39859453
     it.skip('fails trying to run a backup job with a VM without disks', async () => {
       jest.setTimeout(8e3)
       await xo.createTempServer(config.servers.default)
@@ -301,6 +302,7 @@ describe('backupNg', () => {
     })
 
     // Not handled by the new backup implementation.
+    // See https://github.com/vatesfr/xen-orchestra/commit/0811da90146647aa2c0894d39b4bc41e39859453
     it.skip('fails trying to run backup job without retentions', async () => {
       jest.setTimeout(7e3)
       const scheduleTempId = randomId()
