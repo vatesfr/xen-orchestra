@@ -398,15 +398,17 @@ export default class Xapi extends XapiBase {
     return /* await */ this._getOrWaitObject(cloneRef)
   }
 
-  async copyVm(vmId, srId, { nameLabel = undefined } = {}) {
-    return /* await */ this._getOrWaitObject(await this._copyVm(this.getObject(vmId), nameLabel, this.getObject(srId)))
+  async copyVm(vmId, { nameLabel = undefined, srId = undefined } = {}) {
+    return /* await */ this._getOrWaitObject(
+      await this._copyVm(this.getObject(vmId), nameLabel, srId ?? this.getObject(srId))
+    )
   }
 
   async remoteCopyVm(vmId, targetXapi, targetSrId, { compress, nameLabel = undefined } = {}) {
     // Fall back on local copy if possible.
     if (targetXapi === this) {
       return {
-        vm: await this.copyVm(vmId, targetSrId, { nameLabel }),
+        vm: await this.copyVm(vmId, { nameLabel, srId: targetSrId }),
       }
     }
 
