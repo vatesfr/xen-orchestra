@@ -32,10 +32,9 @@ const TabConsole = withState<State, Props, Effects, Computed, ParentState, Paren
       scaleConsole: function (e) {
         this.state.consoleScale = +e.currentTarget.value
 
-        // With "scaleViewport", the canvas occupies all
-        // available space of its container.
-        // But when the size of the container is changed,
-        // the canvas size isn't updated
+        // With "scaleViewport", the canvas occupies all available space of its
+        // container. But when the size of the container is changed, the canvas
+        // size isn't updated
         // Issue https://github.com/novnc/noVNC/issues/1364
         // PR https://github.com/novnc/noVNC/pull/1365
         window.dispatchEvent(new UIEvent('resize'))
