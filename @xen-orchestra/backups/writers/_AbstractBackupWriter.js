@@ -5,8 +5,8 @@ const { BACKUP_DIR } = require('../_getVmBackupDir')
 
 const { debug } = createLogger('xo:backups:AbstractBackupWriter')
 
-exports.AbstractBackupWriter = (Sub = Object) =>
-  class AbstractBackupWriter extends Sup {
+exports.AbstractBackupWriter = (BaseClass = Object) =>
+  class AbstractBackupWriter extends BaseClass {
     constructor(props) {
       super(props)
 
