@@ -200,7 +200,7 @@ exports.VmBackup = class VmBackup {
       size,
     })
 
-    await asyncMap(this._writers, writer => writer && writer.cleanup())
+    await asyncMap(this._writers, writer => writer.cleanup && writer.cleanup())
   }
 
   async _copyFull() {
