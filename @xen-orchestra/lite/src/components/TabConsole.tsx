@@ -7,7 +7,7 @@ import Console from './Console'
 interface ParentState {}
 
 interface State {
-  ctrlAltDel: Function | null
+  ctrlAltDel: () => void
 }
 
 interface Props {
@@ -17,7 +17,6 @@ interface Props {
 interface ParentEffects {}
 
 interface Effects {
-  sendCtrlAltDel: React.MouseEventHandler<HTMLButtonElement>
   setCtrlAltDel: (fn: () => void) => void
 }
 
@@ -26,22 +25,17 @@ interface Computed {}
 const TabConsole = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
   {
     initialState: () => ({
-      console: React.createRef(),
-      ctrlAltDel: null,
+      ctrlAltDel: () => {},
     }),
     effects: {
-      sendCtrlAltDel: function () {
-        const { ctrlAltDel } = this.state
-        ctrlAltDel !== null && ctrlAltDel()
-      },
       setCtrlAltDel: function (fn) {
         this.state.ctrlAltDel = fn
       },
     },
   },
-  ({ effects, vmId }) => (
+  ({ effects, state, vmId }) => (
     <div style={{ height: '100vh' }}>
-      <Button label='CTRL+ALT+DEL' onClick={effects.sendCtrlAltDel} />
+      <Button label='CTRL+ALT+DEL' onClick={state.ctrlAltDel} />
       <Console vmId={vmId} setCtrlAltDel={effects.setCtrlAltDel} />
     </div>
   )
