@@ -1,13 +1,11 @@
 import React from 'react'
 import RFB from '@novnc/novnc/lib/rfb'
+import { FormattedMessage } from 'react-intl'
 import { withState } from 'reaclette'
 
-import XapiConnection, { ObjectsByType, Vm } from '../libs/xapi'
+import Confirm from './Confirm'
 
-// Remove when "novnc" types work
-interface RFB {
-  sendCtrlAltDel: () => void
-}
+import XapiConnection, { ObjectsByType, Vm } from '../libs/xapi'
 
 interface ParentState {
   objectsByType: ObjectsByType
@@ -15,8 +13,10 @@ interface ParentState {
 }
 
 interface State {
+  confirmCtrlAltDel: boolean
   container: React.RefObject<HTMLDivElement>
-  RFB: RFB | null
+  // unknown type throw an error
+  RFB: any
 }
 
 interface Props {
@@ -28,6 +28,7 @@ interface ParentEffects {}
 
 interface Effects {
   sendCtrlAltDel: () => void
+  toggleCtrlAltDel: () => void
 }
 
 interface Computed {}
@@ -36,6 +37,7 @@ interface Computed {}
 const Console = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
   {
     initialState: () => ({
+      confirmCtrlAltDel: false,
       container: React.createRef(),
       RFB: null,
     }),
@@ -62,18 +64,31 @@ const Console = withState<State, Props, Effects, Computed, ParentState, ParentEf
         this.state.RFB = new RFB(this.state.container.current, url, {
           wsProtocols: ['binary'],
         })
-        this.props.setCtrlAltDel(this.effects.sendCtrlAltDel)
+        this.props.setCtrlAltDel(this.effects.toggleCtrlAltDel)
       },
       sendCtrlAltDel: function () {
-        confirm('Send Ctrl+Alt+Del to VM?') && this.state.RFB?.sendCtrlAltDel()
+        this.state.RFB!.sendCtrlAltDel()
+      },
+      toggleCtrlAltDel: function () {
+        this.state.confirmCtrlAltDel = !this.state.confirmCtrlAltDel
       },
       sendCtrlAltDel: function () {
         confirm('Send Ctrl+Alt+Del to VM?') && this.state.RFB?.sendCtrlAltDel()
       },
     },
   },
-  ({ scale, state }) => (
-    <div ref={state.container} style={{ margin: 'auto', height: `${scale}%`, width: `${scale}%` }} />
+  ({ effects, state }) => (
+    <>
+      {state.confirmCtrlAltDel && state.RFB !== null ? (
+        <Confirm
+          confirm={effects.sendCtrlAltDel}
+          message={<FormattedMessage id='confirmCtrlAltDel' />}
+          title={<FormattedMessage id='ctrlAltDel' />}
+          toggle={effects.toggleCtrlAltDel}
+        />
+      ) : null}
+      <div ref={state.container} />
+    </>
   )
 )
 
