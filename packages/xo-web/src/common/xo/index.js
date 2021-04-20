@@ -1161,31 +1161,11 @@ export const convertVmToTemplate = vm =>
   }).then(() => _call('vm.convert', { id: resolveId(vm) }), noop)
 
 export const cloneToTemplate = async vm => {
-  const vmType = vm.type === 'VM-snapshot' ? 'snapshot' : 'VM'
   await confirm({
     title: _('cloneAsTemplate'),
-    body: (
-      <div>
-        <p>{_('cloneAsTemplateMessage', { type: vmType })}</p>
-      </div>
-    ),
+    body: <p>{_('cloneSnapshotAsTemplateMessage', { type: vmType })}</p>,
   })
-  try {
-    await _call('vm.cloneToTemplate', { id: resolveId(vm) }, noop)
-  } catch (reason) {
-    if (
-      (incorrectState.is(reason),
-      {
-        data: {
-          expected: 'Halted',
-          property: 'power_state',
-        },
-      })
-    ) {
-      await stopVm(vm)
-      _call('vm.cloneToTemplate', { id: resolveId(vm) }, noop)
-    }
-  }
+  await _call('vm.cloneToTemplate', { id: resolveId(vm) })
 }
 
 export const changeVirtualizationMode = vm =>

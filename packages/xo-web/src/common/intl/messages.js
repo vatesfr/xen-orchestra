@@ -1296,7 +1296,7 @@ const messages = {
   // ----- Templates -----
 
   cloneAsTemplate: 'Clone as template',
-  cloneAsTemplateMessage: 'Are you sure you want to clone this {type} as template?',
+  cloneSnapshotAsTemplateMessage: 'Are you sure you want to clone this snapshot as template?',
   templateHomeNamePlaceholder: 'Click to add a name',
   templateHomeDescriptionPlaceholder: 'Click to add a description',
   templateDelete: 'Delete template',

@@ -93,6 +93,7 @@ const INDIVIDUAL_ACTIONS = [
     label: _('exportSnapshot'),
   },
   {
+    collapsed: true,
     handler: cloneToTemplate,
     icon: 'template',
     label: _('cloneAsTemplate'),
