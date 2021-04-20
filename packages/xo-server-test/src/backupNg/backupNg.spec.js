@@ -532,6 +532,7 @@ describe('backupNg', () => {
           mode: jobInput.mode,
           reportWhen: jobInput.settings[''].reportWhen,
         },
+        infos: [{ data: { vms: [jobInput.vms.id] }, message: 'vms' }],
         jobId,
         jobName: jobInput.name,
         scheduleId: schedule.id,
