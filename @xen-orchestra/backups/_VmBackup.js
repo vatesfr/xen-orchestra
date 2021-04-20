@@ -1,3 +1,4 @@
+const assert = require('assert')
 const findLast = require('lodash/findLast')
 const ignoreErrors = require('promise-toolbox/ignoreErrors')
 const keyBy = require('lodash/keyBy')
@@ -321,6 +322,12 @@ exports.VmBackup = class VmBackup {
   }
 
   async run() {
+    const settings = this._settings
+    assert(
+      !settings.offlineBackup || settings.snapshotRetention === 0,
+      'offlineBackup is not compatible with snapshotRetention'
+    )
+
     await this._fetchJobSnapshots()
 
     if (this._isDelta) {
@@ -330,7 +337,7 @@ exports.VmBackup = class VmBackup {
     await this._cleanMetadata()
     await this._removeUnusedSnapshots()
 
-    const { _settings: settings, vm } = this
+    const { vm } = this
     const isRunning = vm.power_state === 'Running'
     const startAfter = isRunning && (settings.offlineBackup ? 'backup' : settings.offlineSnapshot && 'snapshot')
     if (startAfter) {
