@@ -11,7 +11,6 @@ interface ParentState {
 
 interface State {
   container: React.RefObject<HTMLDivElement>
-  isConnected: boolean
 }
 
 interface Props {
@@ -32,7 +31,6 @@ const Console = withState<State, Props, Effects, Computed, ParentState, ParentEf
   {
     initialState: () => ({
       container: React.createRef(),
-      isConnected: false,
     }),
     effects: {
       initialize: function () {
