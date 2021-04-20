@@ -285,9 +285,13 @@ export default class BackupNg {
           const recordToXapi = {}
           const servers = new Set()
           const handleRecord = uuid => {
-            const serverId = app.getXenServerIdByObject(uuid)
-            recordToXapi[uuid] = serverId
-            servers.add(serverId)
+            try {
+              const serverId = app.getXenServerIdByObject(uuid)
+              recordToXapi[uuid] = serverId
+              servers.add(serverId)
+            } catch (error) {
+              log.warn(error)
+            }
           }
           vmIds.forEach(handleRecord)
           unboxIdsFromPattern(job.srs).forEach(handleRecord)

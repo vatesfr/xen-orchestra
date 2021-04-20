@@ -1,3 +1,7 @@
+require('@xen-orchestra/log/configure').catchGlobalErrors(
+  require('@xen-orchestra/log').createLogger('xo:backups:worker')
+)
+
 const Disposable = require('promise-toolbox/Disposable')
 const ignoreErrors = require('promise-toolbox/ignoreErrors')
 const { compose } = require('@vates/compose')

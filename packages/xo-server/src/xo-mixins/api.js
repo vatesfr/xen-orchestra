@@ -356,7 +356,7 @@ export default class Api {
         })
       }
 
-      if (app.config.get('verboseLogsOnErrors')) {
+      if (app.config.get('verboseApiLogsOnErrors')) {
         log.warn(message, { error })
       } else {
         log.warn(`${userName} | ${name}(...) [${ms(Date.now() - startTime)}] =!> ${error}`)

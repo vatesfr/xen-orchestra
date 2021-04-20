@@ -109,7 +109,7 @@ exports.cleanVm = async function cleanVm(vmDir, { remove, merge, onLog = noop })
       await vhd.readHeaderAndFooter()
       vhds.add(path)
       if (vhd.footer.diskType === DISK_TYPE_DIFFERENCING) {
-        const parent = resolve(dirname(path), vhd.header.parentUnicodeName)
+        const parent = resolve('/', dirname(path), vhd.header.parentUnicodeName)
         vhdParents[path] = parent
         if (parent in vhdChildren) {
           const error = new Error('this script does not support multiple VHD children')
@@ -198,7 +198,7 @@ exports.cleanVm = async function cleanVm(vmDir, { remove, merge, onLog = noop })
     const metadata = JSON.parse(await handler.readFile(json))
     const { mode } = metadata
     if (mode === 'full') {
-      const linkedXva = resolve(vmDir, metadata.xva)
+      const linkedXva = resolve('/', vmDir, metadata.xva)
 
       if (xvas.has(linkedXva)) {
         unusedXvas.delete(linkedXva)
@@ -211,7 +211,7 @@ exports.cleanVm = async function cleanVm(vmDir, { remove, merge, onLog = noop })
     } else if (mode === 'delta') {
       const linkedVhds = (() => {
         const { vhds } = metadata
-        return Object.keys(vhds).map(key => resolve(vmDir, vhds[key]))
+        return Object.keys(vhds).map(key => resolve('/', vmDir, vhds[key]))
       })()
 
       // FIXME: find better approach by keeping as much of the backup as
