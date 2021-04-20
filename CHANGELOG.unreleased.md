@@ -14,7 +14,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [Backup] Fix snapshot created in case of a backup job with offline backup enabled and containing running VM (PR [#5739](https://github.com/vatesfr/xen-orchestra/pull/5739))
+- [Backup] Don't unnecessarily snapshot the VM when using *offline backup* (PR [#5739](https://github.com/vatesfr/xen-orchestra/pull/5739))
 
 ### Packages to release
 
