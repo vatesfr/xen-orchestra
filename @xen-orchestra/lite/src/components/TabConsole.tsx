@@ -32,6 +32,7 @@ interface State {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
   console: React.RefObject<IConsole>
 =======
   RFB: RFB | null
@@ -42,6 +43,9 @@ interface State {
 =======
   ctrlAltDel: Function | null
 >>>>>>> remove ref
+=======
+  ctrlAltDel: () => void
+>>>>>>> create small minimal modal
 }
 
 interface Props {
@@ -65,7 +69,6 @@ interface Effects {}
 >>>>>>> use ref
 =======
 interface Effects {
-  sendCtrlAltDel: React.MouseEventHandler<HTMLButtonElement>
   setCtrlAltDel: (fn: () => void) => void
 }
 >>>>>>> remove ref
@@ -75,6 +78,7 @@ interface Computed {}
 const TabConsole = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
   {
     initialState: () => ({
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
       console: React.createRef(),
@@ -95,19 +99,19 @@ const TabConsole = withState<State, Props, Effects, Computed, ParentState, Paren
 =======
       ctrlAltDel: null,
 >>>>>>> remove ref
+=======
+      ctrlAltDel: () => {},
+>>>>>>> create small minimal modal
     }),
     effects: {
-      sendCtrlAltDel: function () {
-        const { ctrlAltDel } = this.state
-        ctrlAltDel !== null && ctrlAltDel()
-      },
       setCtrlAltDel: function (fn) {
         this.state.ctrlAltDel = fn
       },
     },
   },
-  ({ effects, vmId }) => (
+  ({ effects, state, vmId }) => (
     <div style={{ height: '100vh' }}>
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -129,6 +133,9 @@ const TabConsole = withState<State, Props, Effects, Computed, ParentState, Paren
 >>>>>>> use ref
 =======
       <Button label='CTRL+ALT+DEL' onClick={effects.sendCtrlAltDel} />
+=======
+      <Button label='CTRL+ALT+DEL' onClick={state.ctrlAltDel} />
+>>>>>>> create small minimal modal
       <Console vmId={vmId} setCtrlAltDel={effects.setCtrlAltDel} />
 >>>>>>> remove ref
     </div>

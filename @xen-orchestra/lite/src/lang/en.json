@@ -1,7 +1,13 @@
 {
+<<<<<<< HEAD
   "cancel": "Cancel",
   "confirmCtrlAltDel": "Send Ctrl+Alt+Del to VM?",
   "connect": "Connect",
   "ctrlAltDel": "Ctrl+Alt+Del",
   "ok": "Ok"
+=======
+  "confirmCtrlAltDel": "Send Ctrl+Alt+Del to VM?",
+  "connect": "Connect",
+  "ctrlAltDel": "Ctrl + Alt + Del",
+>>>>>>> create small minimal modal
 }

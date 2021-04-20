@@ -7,11 +7,6 @@ import { confirm } from './Modal'
 
 import XapiConnection, { ObjectsByType, Vm } from '../libs/xapi'
 
-// Remove when "novnc" types work
-interface RFB {
-  sendCtrlAltDel: () => void
-}
-
 interface ParentState {
   objectsByType: ObjectsByType
   xapi: XapiConnection
@@ -34,6 +29,7 @@ interface ParentEffects {}
 
 interface Effects {
   sendCtrlAltDel: () => void
+  toggleCtrlAltDel: () => void
 }
 
 interface Computed {}
