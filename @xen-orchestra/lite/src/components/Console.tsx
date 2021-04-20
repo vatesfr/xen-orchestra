@@ -11,7 +11,6 @@ interface ParentState {
 
 interface State {
   container: React.RefObject<HTMLDivElement>
-  isConnected: boolean
 }
 
 interface Props {
@@ -21,7 +20,6 @@ interface Props {
 interface ParentEffects {}
 
 interface Effects {
-  _attemptToReconnect: () => void
   _connect: () => void
 }
 
@@ -32,20 +30,10 @@ const Console = withState<State, Props, Effects, Computed, ParentState, ParentEf
   {
     initialState: () => ({
       container: React.createRef(),
-      isConnected: false,
     }),
     effects: {
       initialize: function () {
         this.effects._connect()
-      },
-      _attemptToReconnect: function () {
-        this.state.isConnected = false
-        const attemptInterval = setInterval(() => {
-          this.effects._connect()
-          if (this.state.isConnected) {
-            clearInterval(attemptInterval)
-          }
-        }, 1000)
       },
       _connect: async function () {
         const { vmId } = this.props
@@ -69,8 +57,7 @@ const Console = withState<State, Props, Effects, Computed, ParentState, ParentEf
         // eslint-disable-next-line no-new
         new RFB(this.state.container.current, url, {
           wsProtocols: ['binary'],
-        }).addEventListener('disconnect', this.effects._attemptToReconnect)
-        this.state.isConnected = true
+        }).addEventListener('disconnect', this.effects._connect)
       },
     },
   },
