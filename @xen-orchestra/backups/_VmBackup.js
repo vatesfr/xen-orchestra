@@ -1,3 +1,4 @@
+const assert = require('assert')
 const findLast = require('lodash/findLast')
 const ignoreErrors = require('promise-toolbox/ignoreErrors')
 const keyBy = require('lodash/keyBy')
@@ -114,7 +115,10 @@ exports.VmBackup = class VmBackup {
 
     const settings = this._settings
 
-    const doSnapshot = this._isDelta || vm.power_state === 'Running' || settings.snapshotRetention !== 0
+    assert.notStrictEqual(settings.offlineBackup, settings.snapshotRetention !== 0)
+
+    const doSnapshot =
+      this._isDelta || (!settings.offlineBackup && vm.power_state === 'Running') || settings.snapshotRetention !== 0
     if (doSnapshot) {
       await Task.run({ name: 'snapshot' }, async () => {
         if (!settings.bypassVdiChainsCheck) {
