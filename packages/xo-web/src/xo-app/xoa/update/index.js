@@ -27,7 +27,6 @@ import {
   getProxyApplianceUpdaterState,
   subscribeBackupNgJobs,
   subscribeJobs,
-  subscribeProxies,
 } from 'xo'
 
 import { getXoaPlan, TryXoa } from '../../../common/utils'
@@ -95,7 +94,6 @@ const Updates = decorate([
   addSubscriptions({
     backupNgJobs: subscribeBackupNgJobs,
     jobs: subscribeJobs,
-    proxyIds: cb => subscribeProxies(proxies => cb(proxies.map(({ id }) => id))),
   }),
   connectStore(['xoaConfiguration', 'xoaRegisterState', 'xoaTrialState', 'xoaUpdaterLog', 'xoaUpdaterState']),
   provideState({
@@ -194,7 +192,7 @@ const Updates = decorate([
       areProxiesOutOfDate: async () =>
         (
           await Promise.all(
-            map(await getAllProxies(), ({ id }) => getProxyApplianceUpdaterState(id).catch(e => ({ state: 'error' })))
+            (await getAllProxies()).map(({ id }) => getProxyApplianceUpdaterState(id).catch(e => ({ state: 'error' })))
           )
         ).some(({ state = '' }) => state.endsWith('-upgrade-needed')),
       changelogUrl: ({ consolidatedChannel }) =>
