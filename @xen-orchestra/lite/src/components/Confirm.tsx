@@ -2,7 +2,7 @@ import React from 'react'
 
 import Button from './Button'
 
-const STYLEMODAL: React.CSSProperties = {
+const STYLES_MODAL: React.CSSProperties = {
   backgroundColor: 'lightgrey',
   border: '1px solid black',
   left: '50%',
@@ -23,7 +23,7 @@ const Confirm = React.memo(({ confirm, message, title, toggle }: PropsConfirm) =
   }
 
   return (
-    <div style={{ ...STYLEMODAL }}>
+    <div style={{ ...STYLES_MODAL }}>
       <p>{title}</p>
       <p>{message}</p>
       <footer>
