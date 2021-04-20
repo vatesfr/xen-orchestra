@@ -1,3 +1,4 @@
 {
-  "connect": "Connect"
+  "connect": "Connect",
+  "consoleNotAvailable": "Console is only available for running VMs"
 }
