@@ -22,6 +22,7 @@ import { Input as DebounceInput } from 'debounce-input-decorator'
 import { isEmpty, map, pick, some, zipObject } from 'lodash'
 import { Password, Select } from 'form'
 import {
+  getAllProxies,
   getApplianceInfo,
   getProxyApplianceUpdaterState,
   subscribeBackupNgJobs,
@@ -190,14 +191,12 @@ const Updates = decorate([
         jobs !== undefined &&
         backupNgJobs !== undefined &&
         some(jobs.concat(backupNgJobs), job => job.runId !== undefined),
-      areProxiesOutOfDate: async (_, { proxyIds = [] }) => (await Promise.all(
-          proxyIds.map(id => getProxyApplianceUpdaterState(id).catch(e => ({
-              state: 'error',
-              message: _('proxyUpgradesError'),
-            }))
-          })
-        )).some({ state = '' } => state.endsWith('-upgrade-needed'))
-      ,
+      areProxiesOutOfDate: async () =>
+        (
+          await Promise.all(
+            map(await getAllProxies(), ({ id }) => getProxyApplianceUpdaterState(id).catch(e => ({ state: 'error' })))
+          )
+        ).some(({ state = '' }) => state.endsWith('-upgrade-needed')),
       changelogUrl: ({ consolidatedChannel }) =>
         `https://github.com/vatesfr/xen-orchestra/blob/master/CHANGELOG.md#${encodeURIComponent(consolidatedChannel)}`,
       channelsFormId: generateId,
