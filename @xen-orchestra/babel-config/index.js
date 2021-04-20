@@ -14,25 +14,13 @@ const configs = {
   '@babel/plugin-proposal-pipeline-operator': {
     proposal: 'minimal',
   },
-  '@babel/preset-env'(pkg) {
-    return {
-      debug: !__TEST__,
+  '@babel/preset-env': {
+    debug: !__TEST__,
 
-      // disabled until https://github.com/babel/babel/issues/8323 is resolved
-      // loose: true,
+    // disabled until https://github.com/babel/babel/issues/8323 is resolved
+    // loose: true,
 
-      shippedProposals: true,
-      targets: (() => {
-        let node = (pkg.engines || {}).node
-        if (node !== undefined) {
-          const trimChars = '^=>~'
-          while (trimChars.includes(node[0])) {
-            node = node.slice(1)
-          }
-        }
-        return { browsers: pkg.browserslist, node }
-      })(),
-    }
+    shippedProposals: true,
   },
 }
 
@@ -67,5 +55,15 @@ module.exports = function (pkg, plugins, presets) {
         return oA !== -1 && oB !== -1 ? oA - oB : a < b ? -1 : 1
       }),
     presets: Object.keys(presets).map(preset => [preset, presets[preset]]),
+    targets: (() => {
+      let node = (pkg.engines || {}).node
+      if (node !== undefined) {
+        const trimChars = '^=>~'
+        while (trimChars.includes(node[0])) {
+          node = node.slice(1)
+        }
+      }
+      return { browsers: pkg.browserslist, node }
+    })(),
   }
 }
