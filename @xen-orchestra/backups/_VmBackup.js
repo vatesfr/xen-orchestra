@@ -117,8 +117,6 @@ exports.VmBackup = class VmBackup {
 
     const settings = this._settings
 
-    assert.notStrictEqual(settings.offlineBackup, settings.snapshotRetention !== 0)
-
     const doSnapshot =
       this._isDelta || (!settings.offlineBackup && vm.power_state === 'Running') || settings.snapshotRetention !== 0
     if (doSnapshot) {
@@ -326,6 +324,12 @@ exports.VmBackup = class VmBackup {
   }
 
   async run() {
+    const settings = this._settings
+    assert(
+      !settings.offlineBackup || settings.snapshotRetention === 0,
+      'offlineBackup is not compatible with snapshotRetention'
+    )
+
     await asyncMap(this._writers, writer => writer.beforeBackup(this.vm.uuid))
 
     await this._fetchJobSnapshots()
@@ -337,7 +341,7 @@ exports.VmBackup = class VmBackup {
     await this._cleanMetadata()
     await this._removeUnusedSnapshots()
 
-    const { _settings: settings, vm } = this
+    const { vm } = this
     const isRunning = vm.power_state === 'Running'
     const startAfter = isRunning && (settings.offlineBackup ? 'backup' : settings.offlineSnapshot && 'snapshot')
     if (startAfter) {
