@@ -1,4 +1,3 @@
-const assert = require('assert')
 const findLast = require('lodash/findLast')
 const ignoreErrors = require('promise-toolbox/ignoreErrors')
 const keyBy = require('lodash/keyBy')
@@ -114,8 +113,6 @@ exports.VmBackup = class VmBackup {
     const xapi = this._xapi
 
     const settings = this._settings
-
-    assert.notStrictEqual(settings.offlineBackup, settings.snapshotRetention !== 0)
 
     const doSnapshot =
       this._isDelta || (!settings.offlineBackup && vm.power_state === 'Running') || settings.snapshotRetention !== 0
