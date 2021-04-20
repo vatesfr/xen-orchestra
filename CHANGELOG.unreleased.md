@@ -14,6 +14,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Backup] Don't unnecessarily snapshot the VM when using *offline backup* (PR [#5739](https://github.com/vatesfr/xen-orchestra/pull/5739))
+
 ### Packages to release
 
 > Packages will be released in the order they are here, therefore, they should
