@@ -12,7 +12,7 @@ const { listReplicatedVms } = require('./_listReplicatedVms')
 
 exports.DisasterRecoveryWriter = class DisasterRecoveryWriter extends AbstractReplicationWriter(AbstractFullWriter) {
   constructor(backup, sr, settings) {
-    super()
+    super({ backup, settings, sr })
 
     this._backup = backup
     this._settings = settings

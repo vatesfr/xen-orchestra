@@ -9,11 +9,10 @@ const { AbstractFullWriter } = require('./_AbstractFullWriter')
 
 exports.FullBackupWriter = class FullBackupWriter extends AbstractBackupWriter(AbstractFullWriter) {
   constructor(backup, remoteId, settings) {
-    const adapter = backup.remoteAdapters[remoteId]
-    super({ adapter })
+    super({ backup, remoteId, settings })
 
-    this._adapter = adapter
     this._backup = backup
+    this._remoteId = remoteId
     this._settings = settings
 
     this.run = Task.wrapFn(
@@ -33,11 +32,12 @@ exports.FullBackupWriter = class FullBackupWriter extends AbstractBackupWriter(A
 
   async run({ timestamp, sizeContainer, stream }) {
     const backup = this._backup
+    const remoteId = this._remoteId
     const settings = this._settings
 
     const { job, scheduleId, vm } = backup
 
-    const adapter = this._adapter
+    const adapter = backup.remoteAdapters[remoteId]
     const handler = adapter.handler
     const backupDir = getVmBackupDir(vm.uuid)
 

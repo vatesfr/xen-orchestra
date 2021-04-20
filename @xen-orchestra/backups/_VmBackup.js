@@ -330,7 +330,7 @@ exports.VmBackup = class VmBackup {
       'offlineBackup is not compatible with snapshotRetention'
     )
 
-    await asyncMap(this._writers, writer => writer.beforeBackup(this.vm.uuid))
+    await asyncMap(this._writers, writer => writer.beforeBackup())
 
     await this._fetchJobSnapshots()
 

@@ -15,7 +15,7 @@ exports.ContinuousReplicationWriter = class ContinuousReplicationWriter extends 
   AbstractReplicationWriter(AbstractDeltaWriter)
 ) {
   constructor(backup, sr, settings) {
-    super()
+    super({ backup, settings, sr })
 
     this._backup = backup
     this._settings = settings

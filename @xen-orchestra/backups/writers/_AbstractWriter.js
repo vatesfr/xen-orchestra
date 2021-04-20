@@ -1,5 +1,10 @@
 exports.AbstractWriter = class AbstractWriter {
-  beforeBackup() {
-    throw new Error('Not implemented')
+  constructor({ backup, remoteId, settings, sr }) {
+    this._backup = backup
+    this._remoteId = remoteId
+    this._settings = settings
+    this._sr = sr
   }
+
+  beforeBackup() {}
 }
