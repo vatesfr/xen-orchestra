@@ -1,3 +1,4 @@
+const assert = require('assert')
 const findLast = require('lodash/findLast')
 const ignoreErrors = require('promise-toolbox/ignoreErrors')
 const keyBy = require('lodash/keyBy')
@@ -114,9 +115,7 @@ exports.VmBackup = class VmBackup {
 
     const settings = this._settings
 
-    if (settings.offlineBackup && settings.snapshotRetention !== 0) {
-      throw new Error('offline backup is not compatible with rolling snapshot')
-    }
+    assert(!settings.offlineBackup || settings.snapshotRetention === 0)
 
     const doSnapshot =
       this._isDelta || (!settings.offlineBackup && vm.power_state === 'Running') || settings.snapshotRetention !== 0
