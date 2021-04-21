@@ -1,7 +1,7 @@
 Object.assign(
   exports,
-  require('./_ContinuousReplicationWriter'),
   require('./_DeltaBackupWriter'),
-  require('./_DisasterRecoveryWriter'),
-  require('./_FullBackupWriter')
+  require('./_DeltaReplicationWriter'),
+  require('./_FullBackupWriter'),
+  require('./_FullReplicationWriter')
 )

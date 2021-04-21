@@ -12,14 +12,14 @@ const { getOldEntries } = require('../_getOldEntries')
 const { getVmBackupDir } = require('../_getVmBackupDir')
 const { Task } = require('../Task')
 
-const { AbstractBackupWriter } = require('./_AbstractBackupWriter')
+const { MixinBackupWriter } = require('./_MixinBackupWriter')
 const { AbstractDeltaWriter } = require('./_AbstractDeltaWriter')
 const { checkVhd } = require('./_checkVhd')
 const { packUuid } = require('./_packUuid')
 
 const { warn } = createLogger('xo:backups:DeltaBackupWriter')
 
-exports.DeltaBackupWriter = class DeltaBackupWriter extends AbstractBackupWriter(AbstractDeltaWriter) {
+exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(AbstractDeltaWriter) {
   constructor(backup, remoteId, settings) {
     super({ backup, remoteId, settings })
   }

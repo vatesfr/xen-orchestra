@@ -2,10 +2,10 @@ const { createLogger } = require('@xen-orchestra/log')
 
 const { getVmBackupDir } = require('../_getVmBackupDir')
 
-const { debug } = createLogger('xo:backups:AbstractBackupWriter')
+const { debug } = createLogger('xo:backups:MixinBackupWriter')
 
-exports.AbstractBackupWriter = (BaseClass = Object) =>
-  class AbstractBackupWriter extends BaseClass {
+exports.MixinBackupWriter = (BaseClass = Object) =>
+  class MixinBackupWriter extends BaseClass {
     constructor({ remoteId, ...rest }) {
       super(rest)
 

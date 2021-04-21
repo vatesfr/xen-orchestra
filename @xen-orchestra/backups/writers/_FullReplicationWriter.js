@@ -7,10 +7,10 @@ const { getOldEntries } = require('../_getOldEntries')
 const { Task } = require('../Task')
 
 const { AbstractFullWriter } = require('./_AbstractFullWriter')
-const { AbstractReplicationWriter } = require('./_AbstractReplicationWriter')
+const { MixinReplicationWriter } = require('./_MixinReplicationWriter')
 const { listReplicatedVms } = require('./_listReplicatedVms')
 
-exports.DisasterRecoveryWriter = class DisasterRecoveryWriter extends AbstractReplicationWriter(AbstractFullWriter) {
+exports.FullReplicationWriter = class FullReplicationWriter extends MixinReplicationWriter(AbstractFullWriter) {
   constructor(backup, sr, settings) {
     super({ backup, settings, sr })
 

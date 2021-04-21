@@ -12,12 +12,7 @@ const { forkStreamUnpipe } = require('./_forkStreamUnpipe')
 const { getOldEntries } = require('./_getOldEntries')
 const { Task } = require('./Task')
 const { watchStreamSize } = require('./_watchStreamSize')
-const {
-  ContinuousReplicationWriter,
-  DeltaBackupWriter,
-  DisasterRecoveryWriter,
-  FullBackupWriter,
-} = require('./writers')
+const { DeltaReplicationWriter, DeltaBackupWriter, FullReplicationWriter, FullBackupWriter } = require('./writers')
 
 const { debug, warn } = createLogger('xo:backups:VmBackup')
 
@@ -69,8 +64,8 @@ exports.VmBackup = class VmBackup {
       this._writers = writers
 
       const [BackupWriter, ReplicationWriter] = this._isDelta
-        ? [DeltaBackupWriter, ContinuousReplicationWriter]
-        : [FullBackupWriter, DisasterRecoveryWriter]
+        ? [DeltaBackupWriter, DeltaReplicationWriter]
+        : [FullBackupWriter, FullReplicationWriter]
 
       const allSettings = job.settings
 

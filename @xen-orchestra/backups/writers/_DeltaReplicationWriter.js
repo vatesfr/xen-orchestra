@@ -8,12 +8,10 @@ const { importDeltaVm, TAG_COPY_SRC } = require('../_deltaVm')
 const { Task } = require('../Task')
 
 const { AbstractDeltaWriter } = require('./_AbstractDeltaWriter')
-const { AbstractReplicationWriter } = require('./_AbstractReplicationWriter')
+const { MixinReplicationWriter } = require('./_MixinReplicationWriter')
 const { listReplicatedVms } = require('./_listReplicatedVms')
 
-exports.ContinuousReplicationWriter = class ContinuousReplicationWriter extends (
-  AbstractReplicationWriter(AbstractDeltaWriter)
-) {
+exports.DeltaReplicationWriter = class DeltaReplicationWriter extends MixinReplicationWriter(AbstractDeltaWriter) {
   constructor(backup, sr, settings) {
     super({ backup, settings, sr })
   }

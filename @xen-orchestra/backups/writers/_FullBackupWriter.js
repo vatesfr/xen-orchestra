@@ -4,10 +4,10 @@ const { getVmBackupDir } = require('../_getVmBackupDir')
 const { isValidXva } = require('../isValidXva')
 const { Task } = require('../Task')
 
-const { AbstractBackupWriter } = require('./_AbstractBackupWriter')
+const { MixinBackupWriter } = require('./_MixinBackupWriter')
 const { AbstractFullWriter } = require('./_AbstractFullWriter')
 
-exports.FullBackupWriter = class FullBackupWriter extends AbstractBackupWriter(AbstractFullWriter) {
+exports.FullBackupWriter = class FullBackupWriter extends MixinBackupWriter(AbstractFullWriter) {
   constructor(backup, remoteId, settings) {
     super({ backup, remoteId, settings })
 
