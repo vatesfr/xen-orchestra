@@ -16,6 +16,7 @@ const { BACKUP_DIR } = require('./_getVmBackupDir')
 const { cleanVm } = require('./_cleanVm')
 const { getTmpDir } = require('./_getTmpDir')
 const { isMetadataFile, isVhdFile } = require('./_backupType')
+const { isValidXva } = require('./_isValidXva')
 const { listPartitions, LVM_PARTITION_TYPE } = require('./_listPartitions')
 const { lvs, pvs } = require('./_lvm')
 
@@ -551,8 +552,11 @@ class RemoteAdapter {
   }
 }
 
-RemoteAdapter.prototype.cleanVm = function (vmDir) {
-  return Disposable.use(this._handler.lock(vmDir), () => cleanVm.apply(this, arguments))
-}
+Object.assign(RemoteAdapter.prototype, {
+  cleanVm(vmDir) {
+    return Disposable.use(this._handler.lock(vmDir), () => cleanVm.apply(this, arguments))
+  },
+  isValidXva,
+})
 
 exports.RemoteAdapter = RemoteAdapter

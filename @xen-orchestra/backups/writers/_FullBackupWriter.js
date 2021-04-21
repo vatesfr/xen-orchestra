@@ -1,7 +1,6 @@
 const { formatFilenameDate } = require('../_filenameDate')
 const { getOldEntries } = require('../_getOldEntries')
 const { getVmBackupDir } = require('../_getVmBackupDir')
-const { isValidXva } = require('../isValidXva')
 const { Task } = require('../Task')
 
 const { MixinBackupWriter } = require('./_MixinBackupWriter')
@@ -70,7 +69,7 @@ exports.FullBackupWriter = class FullBackupWriter extends MixinBackupWriter(Abst
       await adapter.outputStream(dataFilename, stream, {
         validator: tmpPath => {
           if (handler._getFilePath !== undefined) {
-            return isValidXva(handler._getFilePath('/' + tmpPath))
+            return adapter.isValidXva(tmpPath)
           }
         },
       })

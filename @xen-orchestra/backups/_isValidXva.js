@@ -1,10 +1,10 @@
 const assert = require('assert')
-const fs = require('fs-extra')
 
-const isGzipFile = async fd => {
+const isGzipFile = async (handler, fd) => {
   // https://tools.ietf.org/html/rfc1952.html#page-5
   const magicNumber = Buffer.allocUnsafe(2)
-  assert.strictEqual((await fs.read(fd, magicNumber, 0, magicNumber.length, 0)).bytesRead, magicNumber.length)
+
+  assert.strictEqual((await handler.read(fd, magicNumber, 0)).bytesRead, magicNumber.length)
   return magicNumber[0] === 31 && magicNumber[1] === 139
 }
 
@@ -21,32 +21,33 @@ const isGzipFile = async fd => {
 // /^Ref:\d+/\d+\.checksum$/ and then validating the tar structure from it
 //
 // https://github.com/npm/node-tar/issues/234#issuecomment-538190295
-const isValidTar = async (size, fd) => {
+const isValidTar = async (handler, size, fd) => {
   if (size <= 1024 || size % 512 !== 0) {
     return false
   }
 
   const buf = Buffer.allocUnsafe(1024)
-  assert.strictEqual((await fs.read(fd, buf, 0, buf.length, size - buf.length)).bytesRead, buf.length)
+  assert.strictEqual((await handler.read(fd, buf, size - buf.length)).bytesRead, buf.length)
   return buf.every(_ => _ === 0)
 }
 
 // TODO: find an heuristic for compressed files
-const isValidXva = async path => {
+async function isValidXva(path) {
+  const handler = this._handler
   try {
-    const fd = await fs.open(path, 'r')
+    const fd = await handler.openFile(path, 'r')
     try {
-      const { size } = await fs.fstat(fd)
+      const size = await handler.getSize(fd)
       if (size < 20) {
         // neither a valid gzip not tar
         return false
       }
 
-      return (await isGzipFile(fd))
+      return (await isGzipFile(handler, fd))
         ? true // gzip files cannot be validated at this time
-        : await isValidTar(size, fd)
+        : await isValidTar(handler, size, fd)
     } finally {
-      fs.close(fd).catch(noop)
+      handler.closeFile(fd).catch(noop)
     }
   } catch (error) {
     // never throw, log and report as valid to avoid side effects
