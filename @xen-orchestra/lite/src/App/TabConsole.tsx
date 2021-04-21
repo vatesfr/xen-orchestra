@@ -1,8 +1,8 @@
 import React from 'react'
 import { withState } from 'reaclette'
 
-import Console from './Console'
-import RangeInput from './RangeInput'
+import Console from '../components/Console'
+import RangeInput from '../components/RangeInput'
 
 interface ParentState {}
 
