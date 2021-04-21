@@ -1,8 +1,8 @@
 import React from 'react'
 import { withState } from 'reaclette'
 
-import Button from './Button'
-import Console from './Console'
+import Button from '../components/Button'
+import Console from '../components/Console'
 
 interface ParentState {}
 
