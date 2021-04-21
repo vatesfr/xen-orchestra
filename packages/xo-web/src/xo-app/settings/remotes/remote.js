@@ -63,8 +63,8 @@ export default decorate([
           proxyId = remote.proxy,
           type = remote.type,
           username = remote.username,
-          region = remote.region,
           protocol = remote.protocol || 'https',
+          region = remote.region,
         } = state
         let { path = remote.path } = state
         if (type === 's3') {
@@ -81,8 +81,8 @@ export default decorate([
             port: port || undefined,
             type,
             username,
-            region,
             protocol,
+            region,
           }),
           options: options !== '' ? options : null,
           proxy: proxyId,
@@ -159,8 +159,8 @@ export default decorate([
       name = remote.name || '',
       options = remote.options || '',
       password = remote.password || '',
-      region = remote.region || '',
       protocol = remote.protocol || 'https',
+      region = remote.region || '',
       parsedPath,
       path = parsedPath || '',
       parsedBucket = parsedPath != null && parsedPath.split('/')[0],
