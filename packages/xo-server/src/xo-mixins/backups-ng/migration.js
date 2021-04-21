@@ -1,15 +1,9 @@
-// @flow
-
 import assert from 'assert'
 
-import { type BackupJob } from '../backups-ng'
-import { type CallJob } from '../jobs'
-import { type Schedule } from '../scheduling'
-
-const createOr = (children: Array<any>): any => (children.length === 1 ? children[0] : { __or: children })
+const createOr = children => (children.length === 1 ? children[0] : { __or: children })
 
 const methods = {
-  'vm.deltaCopy': (job: CallJob, { _reportWhen: reportWhen, retention = 1, sr, vms }, schedule: Schedule) => ({
+  'vm.deltaCopy': (job, { _reportWhen: reportWhen, retention = 1, sr, vms }, schedule) => ({
     mode: 'delta',
     settings: {
       '': reportWhen === undefined ? undefined : { reportWhen },
@@ -22,11 +16,7 @@ const methods = {
     userId: job.userId,
     vms,
   }),
-  'vm.rollingDeltaBackup': (
-    job: CallJob,
-    { _reportWhen: reportWhen, depth = 1, retention = depth, remote, vms },
-    schedule: Schedule
-  ) => ({
+  'vm.rollingDeltaBackup': (job, { _reportWhen: reportWhen, depth = 1, retention = depth, remote, vms }, schedule) => ({
     mode: 'delta',
     remotes: { id: remote },
     settings: {
@@ -39,9 +29,9 @@ const methods = {
     vms,
   }),
   'vm.rollingDrCopy': (
-    job: CallJob,
+    job,
     { _reportWhen: reportWhen, deleteOldBackupsFirst, depth = 1, retention = depth, sr, vms },
-    schedule: Schedule
+    schedule
   ) => ({
     mode: 'full',
     settings: {
@@ -56,9 +46,9 @@ const methods = {
     vms,
   }),
   'vm.rollingBackup': (
-    job: CallJob,
+    job,
     { _reportWhen: reportWhen, compress, depth = 1, retention = depth, remoteId, vms },
-    schedule: Schedule
+    schedule
   ) => ({
     compression: compress ? 'native' : undefined,
     mode: 'full',
@@ -72,11 +62,7 @@ const methods = {
     },
     vms,
   }),
-  'vm.rollingSnapshot': (
-    job: CallJob,
-    { _reportWhen: reportWhen, depth = 1, retention = depth, vms },
-    schedule: Schedule
-  ) => ({
+  'vm.rollingSnapshot': (job, { _reportWhen: reportWhen, depth = 1, retention = depth, vms }, schedule) => ({
     mode: 'full',
     settings: {
       '': reportWhen === undefined ? undefined : { reportWhen },
@@ -89,7 +75,7 @@ const methods = {
   }),
 }
 
-const parseParamsVector = (vector: any) => {
+const parseParamsVector = vector => {
   assert.strictEqual(vector.type, 'crossProduct')
   const { items } = vector
   assert.strictEqual(items.length, 2)
@@ -120,7 +106,7 @@ const parseParamsVector = (vector: any) => {
   return { ...params, vms }
 }
 
-export const translateLegacyJob = (job: CallJob, schedules: Schedule[]): BackupJob => {
+export const translateLegacyJob = (job, schedules) => {
   const { id } = job
   let method, schedule
   if (
@@ -138,7 +124,6 @@ export const translateLegacyJob = (job: CallJob, schedules: Schedule[]): BackupJ
     name: params.tag || job.name,
     type: 'backup',
     userId: job.userId,
-    // $FlowFixMe `method` is initialized but Flow fails to see this
     ...method(job, params, schedule),
   }
 }

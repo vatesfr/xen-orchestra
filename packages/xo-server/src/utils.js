@@ -14,8 +14,6 @@ import { resolve } from 'path'
 import { utcFormat, utcParse } from 'd3-time-format'
 import { fromCallback, promisify } from 'promise-toolbox'
 
-import { type SimpleIdPattern } from './utils'
-
 const log = createLogger('xo:server:utils')
 
 // ===================================================================
@@ -330,7 +328,7 @@ export const getFirstPropertyName = object => {
 
 // -------------------------------------------------------------------
 
-export const unboxIdsFromPattern = (pattern?: SimpleIdPattern): string[] => {
+export const unboxIdsFromPattern = pattern => {
   if (pattern === undefined) {
     return []
   }

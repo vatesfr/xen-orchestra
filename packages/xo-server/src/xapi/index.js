@@ -29,7 +29,6 @@ import { camelToSnakeCase, forEach, map, parseSize, pDelay, promisifyAll } from 
 
 import mixins from './mixins'
 import OTHER_CONFIG_TEMPLATE from './other-config-template'
-import { type DeltaVmExport } from './'
 import {
   asBoolean,
   asInteger,
@@ -592,8 +591,8 @@ export default class Xapi extends XapiBase {
   async exportDeltaVm(
     $defer,
     $cancelToken,
-    vmId: string,
-    baseVmId?: string,
+    vmId,
+    baseVmId,
     {
       bypassVdiChainsCheck = false,
 
@@ -603,7 +602,7 @@ export default class Xapi extends XapiBase {
       disableBaseTags = false,
       snapshotNameLabel = undefined,
     } = {}
-  ): Promise<DeltaVmExport> {
+  ) {
     let vm = this.getObject(vmId)
 
     // do not use the snapshot name in the delta export
@@ -730,7 +729,7 @@ export default class Xapi extends XapiBase {
   @deferrable
   async importDeltaVm(
     $defer,
-    delta: DeltaVmExport,
+    delta,
     {
       deleteBase = false,
       detectBase = true,

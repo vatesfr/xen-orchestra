@@ -128,7 +128,7 @@ export default class {
     }
   }
 
-  async authenticateUser(credentials, userData): Promise<{| user: Object, expiration?: number |}> {
+  async authenticateUser(credentials, userData) {
     // don't even attempt to authenticate with empty password
     const { password } = credentials
     if (password === '') {

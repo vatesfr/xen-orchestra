@@ -1,4 +1,3 @@
-// @flow
 import asyncMapSettled from '@xen-orchestra/async-map/legacy'
 import cloneDeep from 'lodash/cloneDeep'
 import Disposable from 'promise-toolbox/Disposable'
@@ -11,33 +10,11 @@ import { Task } from '@xen-orchestra/backups/Task'
 import { debounceWithKey, REMOVE_CACHE_ENTRY } from '../_pDebounceWithKey'
 import { handleBackupLog } from '../_handleBackupLog'
 import { waitAll } from '../_waitAll'
-import { type Xapi } from '../xapi'
-import { serializeError, type SimpleIdPattern, unboxIdsFromPattern } from '../utils'
-
-import { type Executor, type Job } from './jobs'
-import { type Schedule } from './scheduling'
+import { serializeError, unboxIdsFromPattern } from '../utils'
 
 const log = createLogger('xo:xo-mixins:metadata-backups')
 
 const METADATA_BACKUP_JOB_TYPE = 'metadataBackup'
-
-type ReportWhen = 'always' | 'failure' | 'never'
-
-type Settings = {|
-  reportWhen?: ReportWhen,
-  retentionPoolMetadata?: number,
-  retentionXoMetadata?: number,
-|}
-
-type MetadataBackupJob = {
-  ...$Exact<Job>,
-  pools?: SimpleIdPattern,
-  proxy?: string,
-  remotes: SimpleIdPattern,
-  settings: $Dict<Settings>,
-  type: METADATA_BACKUP_JOB_TYPE,
-  xoMetadata?: boolean,
-}
 
 // metadata.json
 //
@@ -79,21 +56,11 @@ type MetadataBackupJob = {
 // │  └─ task.end
 // └─ job.end
 export default class metadataBackup {
-  _app: {
-    createJob: ($Diff<MetadataBackupJob, {| id: string |}>) => Promise<MetadataBackupJob>,
-    createSchedule: ($Diff<Schedule, {| id: string |}>) => Promise<Schedule>,
-    deleteSchedule: (id: string) => Promise<void>,
-    getXapi: (id: string) => Xapi,
-    getJob: (id: string, ?METADATA_BACKUP_JOB_TYPE) => Promise<MetadataBackupJob>,
-    updateJob: ($Shape<MetadataBackupJob>, ?boolean) => Promise<MetadataBackupJob>,
-    removeJob: (id: string) => Promise<void>,
-  }
-
   get runningMetadataRestores() {
     return this._runningMetadataRestores
   }
 
-  constructor(app: any) {
+  constructor(app) {
     this._app = app
     this._logger = undefined
     this._runningMetadataRestores = new Set()
@@ -109,8 +76,8 @@ export default class metadataBackup {
     })
   }
 
-  async _executor({ cancelToken, job: job_, logger, runJobId, schedule }): Executor {
-    const job: MetadataBackupJob = cloneDeep((job_: any))
+  async _executor({ cancelToken, job: job_, logger, runJobId, schedule }) {
+    const job = cloneDeep(job_)
     const scheduleSettings = job.settings[schedule.id]
 
     // it also replaces null retentions introduced by the commit
@@ -220,13 +187,10 @@ export default class metadataBackup {
     }
   }
 
-  async createMetadataBackupJob(
-    props: $Diff<MetadataBackupJob, {| id: string |}>,
-    schedules: $Dict<$Diff<Schedule, {| id: string |}>>
-  ): Promise<MetadataBackupJob> {
+  async createMetadataBackupJob(props, schedules) {
     const app = this._app
 
-    const job: MetadataBackupJob = await app.createJob({
+    const job = await app.createJob({
       ...props,
       type: METADATA_BACKUP_JOB_TYPE,
     })
@@ -245,7 +209,7 @@ export default class metadataBackup {
     return job
   }
 
-  async deleteMetadataBackupJob(id: string): Promise<void> {
+  async deleteMetadataBackupJob(id) {
     const app = this._app
     const [schedules] = await Promise.all([
       app.getAllSchedules(),
@@ -349,7 +313,7 @@ export default class metadataBackup {
   //      [remote ID]: poolBackups
   //    }
   //  }
-  async listMetadataBackups(remoteIds: string[]) {
+  async listMetadataBackups(remoteIds) {
     const xo = {}
     const pool = {}
     await Promise.all(
@@ -381,7 +345,7 @@ export default class metadataBackup {
   //
   // task.start(message: 'restore', data: <Metadata />)
   // └─ task.end
-  async restoreMetadataBackup(id: string) {
+  async restoreMetadataBackup(id) {
     const app = this._app
     const logger = this._logger
     const [remoteId, ...path] = id.split('/')
@@ -468,7 +432,7 @@ export default class metadataBackup {
     }
   }
 
-  async deleteMetadataBackup(id: string) {
+  async deleteMetadataBackup(id) {
     const app = this._app
     const [remoteId, ...path] = id.split('/')
     const backupId = path.join('/')
