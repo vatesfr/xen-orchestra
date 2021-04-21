@@ -1,14 +1,22 @@
 import React from 'react'
+import { FormattedMessage } from 'react-intl'
 import { withState } from 'reaclette'
 
 import Console from '../components/Console'
 import RangeInput from '../components/RangeInput'
+import { ObjectsByType, Vm } from '../libs/xapi'
 
 interface ParentState {}
 
 interface State {
   consoleScale: number
 }
+
+interface ParentState {
+  objectsByType: ObjectsByType
+}
+
+interface State {}
 
 interface Props {
   vmId: string
@@ -20,7 +28,9 @@ interface Effects {
   scaleConsole: React.ChangeEventHandler<HTMLInputElement>
 }
 
-interface Computed {}
+interface Computed {
+  vm: Vm
+}
 
 const TabConsole = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
   {
@@ -40,11 +50,22 @@ const TabConsole = withState<State, Props, Effects, Computed, ParentState, Paren
         window.dispatchEvent(new UIEvent('resize'))
       },
     },
+    computed: {
+      vm: (state, { vmId }) => state.objectsByType.get('VM')?.get(vmId) as Vm,
+    },
   },
   ({ state, effects, vmId }) => (
     <div style={{ height: '100vh' }}>
-      <RangeInput max={100} min={1} onChange={effects.scaleConsole} step={1} value={state.consoleScale} />
-      <Console vmId={vmId} scale={state.consoleScale} />
+      {state.vm.power_state !== 'Running' ? (
+        <p>
+          <FormattedMessage id='consoleNotAvailable' />
+        </p>
+      ) : (
+        <>
+          <RangeInput max={100} min={1} onChange={effects.scaleConsole} step={1} value={state.consoleScale} />
+          <Console vmId={vmId} scale={state.consoleScale} />
+        </>
+      )}
     </div>
   )
 )
