@@ -5,7 +5,6 @@ const { default: Vhd, mergeVhd } = require('vhd-lib')
 const { dirname, resolve } = require('path')
 const { DISK_TYPE_DIFFERENCING } = require('vhd-lib/dist/_constants')
 const { isMetadataFile, isVhdFile, isXvaFile, isXvaSumFile } = require('./_backupType')
-const { isValidXva } = require('./isValidXva')
 
 // chain is an array of VHDs from child to parent
 //
@@ -184,7 +183,7 @@ exports.cleanVm = async function cleanVm(vmDir, { remove, merge, onLog = noop })
   await asyncMap(xvas, async path => {
     // check is not good enough to delete the file, the best we can do is report
     // it
-    if (!(await isValidXva(path))) {
+    if (!(await this.isValidXva(path))) {
       onLog(`the XVA with path ${path} is potentially broken`)
     }
   })
