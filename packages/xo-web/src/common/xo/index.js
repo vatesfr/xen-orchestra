@@ -1163,7 +1163,7 @@ export const convertVmToTemplate = vm =>
 export const cloneToTemplate = async vm => {
   await confirm({
     title: _('cloneAsTemplate'),
-    body: <p>{_('cloneSnapshotAsTemplateMessage', { type: vmType })}</p>,
+    body: <p>{_('cloneSnapshotAsTemplateMessage')}</p>,
   })
   await _call('vm.cloneToTemplate', { id: resolveId(vm) })
 }

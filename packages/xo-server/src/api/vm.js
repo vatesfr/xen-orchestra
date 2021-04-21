@@ -764,8 +764,9 @@ export async function cloneToTemplate({ vm }) {
   })
   try {
     await clonedVm.set_is_a_template(true)
-  } catch (e) {
-    await xapi.VM_destroy(clonedVm.$ref)
+  } catch (error) {
+    ignoreErrors.call(xapi.VM_destroy(clonedVm.$ref))
+    throw error
   }
 }
 
