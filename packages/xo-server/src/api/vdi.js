@@ -1,6 +1,6 @@
 // FIXME: rename to disk.*
 
-import defer from 'golike-defer'
+import { defer } from 'golike-defer'
 import { invalidParameters } from 'xo-common/api-errors'
 import { reduce } from 'lodash'
 

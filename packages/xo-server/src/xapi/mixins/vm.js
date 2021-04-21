@@ -1,4 +1,4 @@
-import deferrable from 'golike-defer'
+import { defer as deferrable } from 'golike-defer'
 import { find, gte, includes, isEmpty, lte, map as mapToArray, mapValues, noop } from 'lodash'
 import { cancelable, ignoreErrors, pCatch } from 'promise-toolbox'
 import { Ref } from 'xen-api'

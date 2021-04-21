@@ -1,8 +1,8 @@
 /* eslint-env jest */
-import defer from 'golike-defer'
 import Xo from 'xo-lib'
 import XoCollection from 'xo-collection'
 import { defaultsDeep, find, forOwn, iteratee, pick } from 'lodash'
+import { defer } from 'golike-defer'
 import { fromEvent } from 'promise-toolbox'
 import { parseDuration } from '@vates/parse-duration'
 

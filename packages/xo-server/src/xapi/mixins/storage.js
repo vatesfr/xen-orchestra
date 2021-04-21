@@ -1,4 +1,4 @@
-import defer from 'golike-defer'
+import { defer } from 'golike-defer'
 import { createLogger } from '@xen-orchestra/log'
 import { filter, forEach, groupBy } from 'lodash'
 

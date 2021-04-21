@@ -1,7 +1,7 @@
-import deferrable from 'golike-defer'
 import unzip from 'unzipper'
 import { createLogger } from '@xen-orchestra/log'
 import { decorateWith } from '@vates/decorate-with'
+import { defer as deferrable } from 'golike-defer'
 import { filter, find, groupBy, mapValues, pickBy, some } from 'lodash'
 import { timeout } from 'promise-toolbox'
 

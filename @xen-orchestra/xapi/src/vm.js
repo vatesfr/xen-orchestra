@@ -1,5 +1,4 @@
 const CancelToken = require('promise-toolbox/CancelToken')
-const defer = require('golike-defer').default
 const groupBy = require('lodash/groupBy')
 const pickBy = require('lodash/pickBy')
 const ignoreErrors = require('promise-toolbox/ignoreErrors')
@@ -8,6 +7,7 @@ const pCatch = require('promise-toolbox/catch')
 const pRetry = require('promise-toolbox/retry')
 const { asyncMap } = require('@xen-orchestra/async-map')
 const { createLogger } = require('@xen-orchestra/log')
+const { defer } = require('golike-defer')
 const { incorrectState } = require('xo-common/api-errors')
 const { Ref } = require('xen-api')
 
