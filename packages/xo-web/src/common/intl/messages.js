@@ -598,7 +598,7 @@ const messages = {
   remoteSmbPlaceHolderAddressShare: '<address>\\\\<share>',
   remoteSmbPlaceHolderOptions: 'Custom mount options',
   remoteS3PlaceHolderBucket: 'AWS S3 bucket name',
-  remoteS3PlaceHolderDirectory: 'directory',
+  remoteS3PlaceHolderDirectory: 'Directory',
   remoteS3TooltipProtocol: 'Check if you want HTTP instead of HTTPS',
   remoteS3Region: 'Region, leave blank for default',
   remotePlaceHolderPassword: 'Password(fill to edit)',
