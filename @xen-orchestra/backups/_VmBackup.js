@@ -75,7 +75,7 @@ exports.VmBackup = class VmBackup {
           ...allSettings[remoteId],
         }
         if (targetSettings.exportRetention !== 0) {
-          writers.push(new BackupWriter(this, remoteId, targetSettings))
+          writers.push(new BackupWriter({ backup: this, remoteId, settings: targetSettings }))
         }
       })
       srs.forEach(sr => {
@@ -84,7 +84,7 @@ exports.VmBackup = class VmBackup {
           ...allSettings[sr.uuid],
         }
         if (targetSettings.copyRetention !== 0) {
-          writers.push(new ReplicationWriter(this, sr, targetSettings))
+          writers.push(new ReplicationWriter({ backup: this, sr, settings: targetSettings }))
         }
       })
     }

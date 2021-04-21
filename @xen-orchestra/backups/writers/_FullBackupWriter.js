@@ -8,14 +8,14 @@ const { MixinBackupWriter } = require('./_MixinBackupWriter')
 const { AbstractFullWriter } = require('./_AbstractFullWriter')
 
 exports.FullBackupWriter = class FullBackupWriter extends MixinBackupWriter(AbstractFullWriter) {
-  constructor(backup, remoteId, settings) {
-    super({ backup, remoteId, settings })
+  constructor(props) {
+    super(props)
 
     this.run = Task.wrapFn(
       {
         name: 'export',
         data: {
-          id: remoteId,
+          id: props.remoteId,
           type: 'remote',
 
           // necessary?

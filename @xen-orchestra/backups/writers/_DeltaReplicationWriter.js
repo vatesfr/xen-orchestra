@@ -12,10 +12,6 @@ const { MixinReplicationWriter } = require('./_MixinReplicationWriter')
 const { listReplicatedVms } = require('./_listReplicatedVms')
 
 exports.DeltaReplicationWriter = class DeltaReplicationWriter extends MixinReplicationWriter(AbstractDeltaWriter) {
-  constructor(backup, sr, settings) {
-    super({ backup, settings, sr })
-  }
-
   async checkBaseVdis(baseUuidToSrcVdi, baseVm) {
     const sr = this._sr
     const replicatedVm = listReplicatedVms(sr.$xapi, this._backup.job.id, sr.uuid, this._backup.vm.uuid).find(

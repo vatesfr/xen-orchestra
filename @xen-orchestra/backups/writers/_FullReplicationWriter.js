@@ -11,14 +11,14 @@ const { MixinReplicationWriter } = require('./_MixinReplicationWriter')
 const { listReplicatedVms } = require('./_listReplicatedVms')
 
 exports.FullReplicationWriter = class FullReplicationWriter extends MixinReplicationWriter(AbstractFullWriter) {
-  constructor(backup, sr, settings) {
-    super({ backup, settings, sr })
+  constructor(props) {
+    super(props)
 
     this.run = Task.wrapFn(
       {
         name: 'export',
         data: {
-          id: sr.uuid,
+          id: props.sr.uuid,
           type: 'SR',
 
           // necessary?

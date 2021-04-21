@@ -20,10 +20,6 @@ const { packUuid } = require('./_packUuid')
 const { warn } = createLogger('xo:backups:DeltaBackupWriter')
 
 exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(AbstractDeltaWriter) {
-  constructor(backup, remoteId, settings) {
-    super({ backup, remoteId, settings })
-  }
-
   async checkBaseVdis(baseUuidToSrcVdi) {
     const { handler } = this._adapter
     const backup = this._backup
