@@ -29,6 +29,7 @@
     "@babel/plugin-proposal-decorators": "^7.4.0",
     "@babel/preset-env": "^7.1.6",
     "@iarna/toml": "^2.2.1",
+    "@vates/decorate-with": "^0.0.1",
     "@vates/parse-duration": "^0.1.0",
     "app-conf": "^0.9.0",
     "babel-plugin-lodash": "^3.2.11",

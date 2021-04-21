@@ -7,6 +7,7 @@ const pCatch = require('promise-toolbox/catch')
 const pRetry = require('promise-toolbox/retry')
 const { asyncMap } = require('@xen-orchestra/async-map')
 const { createLogger } = require('@xen-orchestra/log')
+const { decorateWith } = require('@vates/decorate-with')
 const { defer } = require('golike-defer')
 const { incorrectState } = require('xo-common/api-errors')
 const { Ref } = require('xen-api')
@@ -139,7 +140,7 @@ module.exports = class Vm {
     }
   }
 
-  @defer
+  @decorateWith(defer)
   async create(
     $defer,
     {
@@ -355,7 +356,7 @@ module.exports = class Vm {
     ])
   }
 
-  @defer
+  @decorateWith(defer)
   async export($defer, vmRef, { cancelToken = CancelToken.none, compress = false, useSnapshot } = {}) {
     const vm = await this.getRecord('VM', vmRef)
     const taskRef = await this.task_create('VM export', vm.name_label)
@@ -448,7 +449,7 @@ module.exports = class Vm {
     }
   }
 
-  @defer
+  @decorateWith(defer)
   async snapshot($defer, vmRef, { cancelToken = CancelToken.none, name_label } = {}) {
     const vm = await this.getRecord('VM', vmRef)
     // cannot unplug VBDs on Running, Paused and Suspended VMs

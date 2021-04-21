@@ -1,3 +1,4 @@
+import { decorateWith } from '@vates/decorate-with'
 import { defer as deferrable } from 'golike-defer'
 import { find, gte, includes, isEmpty, lte, map as mapToArray, mapValues, noop } from 'lodash'
 import { cancelable, ignoreErrors, pCatch } from 'promise-toolbox'
@@ -36,7 +37,7 @@ export default {
   },
 
   // TODO: clean up on error.
-  @deferrable
+  @decorateWith(deferrable)
   async createVm(
     $defer,
     templateId,

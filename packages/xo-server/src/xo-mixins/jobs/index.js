@@ -1,6 +1,7 @@
 import asyncMapSettled from '@xen-orchestra/async-map/legacy'
 import emitAsync from '@xen-orchestra/emit-async'
 import { createLogger } from '@xen-orchestra/log'
+import { decorateWith } from '@vates/decorate-with'
 
 import { CancelToken, ignoreErrors } from 'promise-toolbox'
 import { defer } from 'golike-defer'
@@ -178,7 +179,7 @@ export default class Jobs {
     return Promise.all(promises)
   }
 
-  @defer
+  @decorateWith(defer)
   async _runJob($defer, job, schedule, data_) {
     const logger = this._logger
     const { id, type } = job

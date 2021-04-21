@@ -348,7 +348,7 @@ export default class {
 
   // -----------------------------------------------------------------
 
-  @deferrable
+  @decorateWith(deferrable)
   async deltaCopyVm($defer, srcVm, targetSr, force = false, retention = 1) {
     const transferStart = Date.now()
     const srcXapi = this._app.getXapi(srcVm)
@@ -576,7 +576,7 @@ export default class {
     }
   }
 
-  @deferrable
+  @decorateWith(deferrable)
   async rollingDeltaVmBackup($defer, { vm, remoteId, tag, retention }) {
     const transferStart = Date.now()
     const handler = await this._app.getRemoteHandler(remoteId)
@@ -780,7 +780,7 @@ export default class {
     return this._backupVm(vm, handler, file, { compress })
   }
 
-  @deferrable
+  @decorateWith(deferrable)
   async _backupVm($defer, vm, handler, file, { compress }) {
     const targetStream = await handler.createOutputStream(file)
     $defer.onFailure.call(handler, 'unlink', file)
@@ -975,7 +975,7 @@ export default class {
     )
   }
 
-  @deferrable
+  @decorateWith(deferrable)
   async scanDiskBackup($defer, remoteId, vhdPath) {
     const device = await this._mountVhd(remoteId, vhdPath)
     $defer(device.unmount)
@@ -985,7 +985,7 @@ export default class {
     }
   }
 
-  @deferrable
+  @decorateWith(deferrable)
   async scanFilesInDiskBackup($defer, remoteId, vhdPath, partitionId, path) {
     const partition = await this._mountPartition(remoteId, vhdPath, partitionId)
     $defer(partition.unmount)

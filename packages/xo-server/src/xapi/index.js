@@ -12,6 +12,7 @@ import { asyncMap } from '@xen-orchestra/async-map'
 import { vmdkToVhd } from 'xo-vmdk-to-vhd'
 import { cancelable, defer, fromEvents, ignoreErrors, pCatch, pRetry } from 'promise-toolbox'
 import { createLogger } from '@xen-orchestra/log'
+import { decorateWith } from '@vates/decorate-with'
 import { defer as deferrable } from 'golike-defer'
 import { parseDuration } from '@vates/parse-duration'
 import { PassThrough } from 'stream'
@@ -292,7 +293,7 @@ export default class Xapi extends XapiBase {
   // - Citrix XenServer ® 7.0 Administrator's Guide ch. 5.4
   // - https://github.com/xcp-ng/xenadmin/blob/60dd70fc36faa0ec91654ec97e24b7af36acff9f/XenModel/Actions/Host/EditMultipathAction.cs
   // - https://github.com/serencorbett1/xenadmin/blob/1c3fb0c1112e4e316423afc6a028066001d3dea1/XenModel/XenAPI-Extensions/SR.cs
-  @deferrable.onError(log.warn)
+  @decorateWith(deferrable.onError(log.warn))
   async setHostMultipathing($defer, hostId, multipathing) {
     const host = this.getObject(hostId)
 
@@ -587,7 +588,7 @@ export default class Xapi extends XapiBase {
   // Create a snapshot (if necessary) of the VM and returns a delta export
   // object.
   @cancelable
-  @deferrable
+  @decorateWith(deferrable)
   async exportDeltaVm(
     $defer,
     $cancelToken,
@@ -726,7 +727,7 @@ export default class Xapi extends XapiBase {
     )
   }
 
-  @deferrable
+  @decorateWith(deferrable)
   async importDeltaVm(
     $defer,
     delta,
@@ -1039,7 +1040,7 @@ export default class Xapi extends XapiBase {
     })
   }
 
-  @deferrable
+  @decorateWith(deferrable)
   async installSupplementalPack($defer, stream, { hostId }) {
     if (!stream.length) {
       throw new Error('stream must have a length')
@@ -1056,7 +1057,7 @@ export default class Xapi extends XapiBase {
     await this._callInstallationPlugin(this.getObject(hostId).$ref, vdi.uuid)
   }
 
-  @deferrable
+  @decorateWith(deferrable)
   async installSupplementalPackOnAllHosts($defer, stream) {
     if (!stream.length) {
       throw new Error('stream must have a length')
@@ -1147,7 +1148,7 @@ export default class Xapi extends XapiBase {
     return vmRef
   }
 
-  @deferrable
+  @decorateWith(deferrable)
   async _importOvaVm($defer, stream, { descriptionLabel, disks, memory, nameLabel, networks, nCpus, tables }, sr) {
     // 1. Create VM.
     const vm = await this._getOrWaitObject(
@@ -1842,7 +1843,7 @@ export default class Xapi extends XapiBase {
     )
   }
 
-  @deferrable
+  @decorateWith(deferrable)
   async createNetwork($defer, { name, description = 'Created with Xen Orchestra', pifId, mtu, vlan }) {
     const networkRef = await this.call('network.create', {
       name_label: name,
@@ -1893,7 +1894,7 @@ export default class Xapi extends XapiBase {
     )
   }
 
-  @deferrable
+  @decorateWith(deferrable)
   async createBondedNetwork($defer, { bondMode, pifIds: masterPifIds, ...params }) {
     const network = await this.createNetwork(params)
     $defer.onFailure(() => this.deleteNetwork(network))
@@ -2001,7 +2002,7 @@ export default class Xapi extends XapiBase {
   }
 
   // Generic Config Drive
-  @deferrable
+  @decorateWith(deferrable)
   async createCloudInitConfigDrive($defer, vmId, srId, userConfig, networkConfig) {
     const vm = this.getObject(vmId)
     const sr = this.getObject(srId)
@@ -2048,7 +2049,7 @@ export default class Xapi extends XapiBase {
     await this.createVbd({ vdi, vm })
   }
 
-  @deferrable
+  @decorateWith(deferrable)
   async createTemporaryVdiOnSr($defer, stream, sr, name_label, name_description) {
     const vdi = await this.createVdi({
       name_description,

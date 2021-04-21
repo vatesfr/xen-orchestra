@@ -8,6 +8,7 @@ import split2 from 'split2'
 import synchronized from 'decorator-synchronized'
 import { compileTemplate } from '@xen-orchestra/template'
 import { createLogger } from '@xen-orchestra/log'
+import { decorateWith } from '@vates/decorate-with'
 import { defer } from 'golike-defer'
 import { format, parse } from 'json-rpc-peer'
 import { incorrectState, noSuchObject } from 'xo-common/api-errors'
@@ -191,7 +192,7 @@ export default class Proxy {
     return this.callProxyMethod(id, 'appliance.updater.getState')
   }
 
-  @defer
+  @decorateWith(defer)
   async _createProxyVm($defer, srId, licenseId, { httpProxy, networkId, networkConfiguration }) {
     const app = this._app
     const xoProxyConf = app.config.get('xo-proxy')
