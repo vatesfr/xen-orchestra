@@ -67,11 +67,7 @@ exports.FullBackupWriter = class FullBackupWriter extends MixinBackupWriter(Abst
 
     await Task.run({ name: 'transfer' }, async () => {
       await adapter.outputStream(dataFilename, stream, {
-        validator: tmpPath => {
-          if (handler._getFilePath !== undefined) {
-            return adapter.isValidXva(tmpPath)
-          }
-        },
+        validator: tmpPath => adapter.isValidXva(tmpPath),
       })
       return { size: sizeContainer.size }
     })
