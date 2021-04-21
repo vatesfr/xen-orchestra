@@ -9,8 +9,8 @@ exports.AbstractBackupWriter = (BaseClass = Object) =>
     constructor({ remoteId, ...rest }) {
       super(rest)
 
-      this._remoteId = remoteId
       this._adapter = rest.backup.remoteAdapters[remoteId]
+      this._remoteId = remoteId
     }
 
     async beforeBackup() {
