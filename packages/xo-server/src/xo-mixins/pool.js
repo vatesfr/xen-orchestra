@@ -1,3 +1,4 @@
+import { satisfies as versionSatisfies } from 'semver'
 import { difference, flatten, isEmpty, some, uniq } from 'lodash'
 
 export default class Pools {
@@ -82,12 +83,19 @@ export default class Pools {
     }
   }
 
-  async listPoolsMatchingCriteria({ minCpus = 0, minMemory = 0, minSrSize = 0, poolTag, srTag }) {
+  async listPoolsMatchingCriteria({
+    hostVersion,
+    minHostCpus = 0,
+    minHostMemory = 0,
+    minPoolCpus = 0,
+    minSrSize = 0,
+    poolName,
+    srName,
+  }) {
     const hostsByPool = {}
     const srsByPool = {}
     const pools = []
-    const objects = this._xo.getObjects()
-    for (const obj of objects) {
+    for (const [, obj] of Object.entries(this._xo._objects.all)) {
       if (obj.type === 'host') {
         if (hostsByPool[obj.$pool] === undefined) {
           hostsByPool[obj.$pool] = []
@@ -104,12 +112,22 @@ export default class Pools {
         continue
       }
     }
+
     return pools.filter(
       pool =>
-        (poolTag === undefined || pool.tags.includes(poolTag)) &&
-        pool.cpus.cores >= minCpus &&
-        some(hostsByPool[pool.id], host => host.memory.size >= minMemory) &&
-        some(srsByPool[pool.id], sr => (srTag === undefined || sr.tags.includes(srTag)) && sr.size >= minSrSize)
+        (poolName === undefined || new RegExp(poolName).test(pool.name_label)) &&
+        pool.cpus.cores >= minPoolCpus &&
+        some(
+          hostsByPool[pool.id],
+          host =>
+            (hostVersion === undefined || versionSatisfies(host.version, `=${hostVersion}`)) &&
+            host.cpus.cores >= minHostCpus &&
+            host.memory.size >= minHostMemory
+        ) &&
+        some(
+          srsByPool[pool.id],
+          sr => (poolName === undefined || new RegExp(srName).test(sr.name_label)) && sr.size >= minSrSize
+        )
     )
   }
 }

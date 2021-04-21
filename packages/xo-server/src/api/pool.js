@@ -260,9 +260,11 @@ export async function listPoolsMatchingCriteria(params) {
 }
 
 listPoolsMatchingCriteria.params = {
-  minCpus: { type: 'number', optional: true },
-  minMemory: { type: 'number', optional: true },
+  hostVersion: { type: 'string', optional: true },
+  minHostCpus: { type: 'number', optional: true },
+  minHostMemory: { type: 'number', optional: true },
+  minPoolCpus: { type: 'number', optional: true },
   minSrSize: { type: 'number', optional: true },
-  poolTag: { type: 'string', optional: true },
-  srTag: { type: 'string', optional: true },
+  poolName: { type: 'string', optional: true },
+  srName: { type: 'string', optional: true },
 }
