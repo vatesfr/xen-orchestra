@@ -2,8 +2,7 @@ import React from 'react'
 import { FormattedMessage } from 'react-intl'
 import { withState } from 'reaclette'
 
-import Console from './Console'
-
+import Console from '../components/Console'
 import { ObjectsByType, Vm } from '../libs/xapi'
 
 interface ParentState {

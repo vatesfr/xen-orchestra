@@ -7,7 +7,7 @@ import { Map } from 'immutable'
 import './style.css'
 import messagesEn from '../lang/en.json'
 import Signin from './Signin/index'
-import TabConsole from '../components/TabConsole'
+import TabConsole from './TabConsole'
 import XapiConnection, { ObjectsByType, Vm } from '../libs/xapi'
 
 interface ParentState {
