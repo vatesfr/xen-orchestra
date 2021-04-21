@@ -6,12 +6,10 @@ const { debug } = createLogger('xo:backups:AbstractBackupWriter')
 
 exports.AbstractBackupWriter = (BaseClass = Object) =>
   class AbstractBackupWriter extends BaseClass {
-    constructor(props) {
-      super(props)
+    constructor({ remoteId, ...rest }) {
+      super(rest)
 
-      this._backup = props.backup
-      this._remoteId = props.remoteId
-      this._settings = props.settings
+      this._remoteId = remoteId
     }
 
     async beforeBackup() {

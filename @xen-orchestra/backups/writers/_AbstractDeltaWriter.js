@@ -1,16 +1,7 @@
 const { AbstractWriter } = require('./_AbstractWriter')
 
 exports.AbstractDeltaWriter = class AbstractDeltaWriter extends AbstractWriter {
-  constructor(props) {
-    super(props)
-
-    this._backup = props.backup
-    this._remoteId = props.remoteId
-    this._settings = props.settings
-    this._sr = props.sr
-  }
-
-  checkBaseVdis() {
+  checkBaseVdis(baseUuidToSrcVdi, baseVm) {
     throw new Error('Not implemented')
   }
 
@@ -18,11 +9,11 @@ exports.AbstractDeltaWriter = class AbstractDeltaWriter extends AbstractWriter {
     throw new Error('Not implemented')
   }
 
-  prepare() {
+  prepare({ isFull }) {
     throw new Error('Not implemented')
   }
 
-  transfer() {
+  transfer({ timestamp, deltaExport, sizeContainers }) {
     throw new Error('Not implemented')
   }
 }
