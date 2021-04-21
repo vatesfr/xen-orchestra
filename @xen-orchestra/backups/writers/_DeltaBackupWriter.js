@@ -22,11 +22,6 @@ const { warn } = createLogger('xo:backups:DeltaBackupWriter')
 exports.DeltaBackupWriter = class DeltaBackupWriter extends AbstractBackupWriter(AbstractDeltaWriter) {
   constructor(backup, remoteId, settings) {
     super({ backup, remoteId, settings })
-
-    this._adapter = backup.remoteAdapters[remoteId]
-    this._backup = backup
-    this._remoteId = remoteId
-    this._settings = settings
   }
 
   async checkBaseVdis(baseUuidToSrcVdi) {

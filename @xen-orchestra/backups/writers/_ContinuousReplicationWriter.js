@@ -16,10 +16,6 @@ exports.ContinuousReplicationWriter = class ContinuousReplicationWriter extends 
 ) {
   constructor(backup, sr, settings) {
     super({ backup, settings, sr })
-
-    this._backup = backup
-    this._settings = settings
-    this._sr = sr
   }
 
   async checkBaseVdis(baseUuidToSrcVdi, baseVm) {

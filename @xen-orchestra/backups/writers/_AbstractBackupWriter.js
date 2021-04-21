@@ -9,14 +9,12 @@ exports.AbstractBackupWriter = (BaseClass = Object) =>
     constructor({ remoteId, ...rest }) {
       super(rest)
 
-      this._remoteId = remoteId
+      this._adapter = rest.backup.remoteAdapters[remoteId]
     }
 
     async beforeBackup() {
-      const backup = this._backup
-      const adapter = backup.remoteAdapters[this._remoteId]
       try {
-        await adapter.cleanVm(getVmBackupDir(backup.vm.uuid), { remove: true, merge: true, onLog: debug })
+        await this._adapter.cleanVm(getVmBackupDir(this._backup.vm.uuid), { remove: true, merge: true, onLog: debug })
       } catch (error) {
         if (error?.code !== 'ENOENT') {
           throw error

@@ -14,10 +14,6 @@ exports.DisasterRecoveryWriter = class DisasterRecoveryWriter extends AbstractRe
   constructor(backup, sr, settings) {
     super({ backup, settings, sr })
 
-    this._backup = backup
-    this._settings = settings
-    this._sr = sr
-
     this.run = Task.wrapFn(
       {
         name: 'export',
