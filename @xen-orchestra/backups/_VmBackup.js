@@ -7,15 +7,12 @@ const { asyncMap } = require('@xen-orchestra/async-map')
 const { createLogger } = require('@xen-orchestra/log')
 const { formatDateTime } = require('@xen-orchestra/xapi')
 
-const { ContinuousReplicationWriter } = require('./_ContinuousReplicationWriter')
-const { DeltaBackupWriter } = require('./_DeltaBackupWriter')
-const { DisasterRecoveryWriter } = require('./_DisasterRecoveryWriter')
 const { exportDeltaVm } = require('./_deltaVm')
 const { forkStreamUnpipe } = require('./_forkStreamUnpipe')
-const { FullBackupWriter } = require('./_FullBackupWriter')
 const { getOldEntries } = require('./_getOldEntries')
 const { Task } = require('./Task')
 const { watchStreamSize } = require('./_watchStreamSize')
+const { DeltaReplicationWriter, DeltaBackupWriter, FullReplicationWriter, FullBackupWriter } = require('./writers')
 
 const { debug, warn } = createLogger('xo:backups:VmBackup')
 
@@ -67,8 +64,8 @@ exports.VmBackup = class VmBackup {
       this._writers = writers
 
       const [BackupWriter, ReplicationWriter] = this._isDelta
-        ? [DeltaBackupWriter, ContinuousReplicationWriter]
-        : [FullBackupWriter, DisasterRecoveryWriter]
+        ? [DeltaBackupWriter, DeltaReplicationWriter]
+        : [FullBackupWriter, FullReplicationWriter]
 
       const allSettings = job.settings
 
@@ -78,7 +75,7 @@ exports.VmBackup = class VmBackup {
           ...allSettings[remoteId],
         }
         if (targetSettings.exportRetention !== 0) {
-          writers.push(new BackupWriter(this, remoteId, targetSettings))
+          writers.push(new BackupWriter({ backup: this, remoteId, settings: targetSettings }))
         }
       })
       srs.forEach(sr => {
@@ -87,7 +84,7 @@ exports.VmBackup = class VmBackup {
           ...allSettings[sr.uuid],
         }
         if (targetSettings.copyRetention !== 0) {
-          writers.push(new ReplicationWriter(this, sr, targetSettings))
+          writers.push(new ReplicationWriter({ backup: this, sr, settings: targetSettings }))
         }
       })
     }
@@ -327,6 +324,8 @@ exports.VmBackup = class VmBackup {
       !settings.offlineBackup || settings.snapshotRetention === 0,
       'offlineBackup is not compatible with snapshotRetention'
     )
+
+    await asyncMap(this._writers, writer => writer.beforeBackup())
 
     await this._fetchJobSnapshots()
 

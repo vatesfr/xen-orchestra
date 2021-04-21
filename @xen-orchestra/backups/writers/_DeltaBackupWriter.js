@@ -7,23 +7,19 @@ const { chainVhd, checkVhdChain, default: Vhd } = require('vhd-lib')
 const { createLogger } = require('@xen-orchestra/log')
 const { dirname } = require('path')
 
+const { formatFilenameDate } = require('../_filenameDate')
+const { getOldEntries } = require('../_getOldEntries')
+const { getVmBackupDir } = require('../_getVmBackupDir')
+const { Task } = require('../Task')
+
+const { MixinBackupWriter } = require('./_MixinBackupWriter')
+const { AbstractDeltaWriter } = require('./_AbstractDeltaWriter')
 const { checkVhd } = require('./_checkVhd')
-const { formatFilenameDate } = require('./_filenameDate')
-const { getOldEntries } = require('./_getOldEntries')
-const { getVmBackupDir } = require('./_getVmBackupDir')
 const { packUuid } = require('./_packUuid')
-const { Task } = require('./Task')
 
 const { warn } = createLogger('xo:backups:DeltaBackupWriter')
 
-exports.DeltaBackupWriter = class DeltaBackupWriter {
-  constructor(backup, remoteId, settings) {
-    this._adapter = backup.remoteAdapters[remoteId]
-    this._backup = backup
-    this._remoteId = remoteId
-    this._settings = settings
-  }
-
+exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(AbstractDeltaWriter) {
   async checkBaseVdis(baseUuidToSrcVdi) {
     const { handler } = this._adapter
     const backup = this._backup

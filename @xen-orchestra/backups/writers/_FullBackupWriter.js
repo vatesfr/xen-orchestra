@@ -1,20 +1,21 @@
-const { formatFilenameDate } = require('./_filenameDate')
-const { getOldEntries } = require('./_getOldEntries')
-const { getVmBackupDir } = require('./_getVmBackupDir')
-const { isValidXva } = require('./isValidXva')
-const { Task } = require('./Task')
+const { formatFilenameDate } = require('../_filenameDate')
+const { getOldEntries } = require('../_getOldEntries')
+const { getVmBackupDir } = require('../_getVmBackupDir')
+const { isValidXva } = require('../isValidXva')
+const { Task } = require('../Task')
 
-exports.FullBackupWriter = class FullBackupWriter {
-  constructor(backup, remoteId, settings) {
-    this._backup = backup
-    this._remoteId = remoteId
-    this._settings = settings
+const { MixinBackupWriter } = require('./_MixinBackupWriter')
+const { AbstractFullWriter } = require('./_AbstractFullWriter')
+
+exports.FullBackupWriter = class FullBackupWriter extends MixinBackupWriter(AbstractFullWriter) {
+  constructor(props) {
+    super(props)
 
     this.run = Task.wrapFn(
       {
         name: 'export',
         data: {
-          id: remoteId,
+          id: props.remoteId,
           type: 'remote',
 
           // necessary?
@@ -27,12 +28,11 @@ exports.FullBackupWriter = class FullBackupWriter {
 
   async run({ timestamp, sizeContainer, stream }) {
     const backup = this._backup
-    const remoteId = this._remoteId
     const settings = this._settings
 
     const { job, scheduleId, vm } = backup
 
-    const adapter = backup.remoteAdapters[remoteId]
+    const adapter = this._adapter
     const handler = adapter.handler
     const backupDir = getVmBackupDir(vm.uuid)
 

@@ -2,22 +2,23 @@ const ignoreErrors = require('promise-toolbox/ignoreErrors')
 const { asyncMapSettled } = require('@xen-orchestra/async-map')
 const { formatDateTime } = require('@xen-orchestra/xapi')
 
-const { formatFilenameDate } = require('./_filenameDate')
-const { getOldEntries } = require('./_getOldEntries')
-const { listReplicatedVms } = require('./_listReplicatedVms')
-const { Task } = require('./Task')
+const { formatFilenameDate } = require('../_filenameDate')
+const { getOldEntries } = require('../_getOldEntries')
+const { Task } = require('../Task')
 
-exports.DisasterRecoveryWriter = class DisasterRecoveryWriter {
-  constructor(backup, sr, settings) {
-    this._backup = backup
-    this._settings = settings
-    this._sr = sr
+const { AbstractFullWriter } = require('./_AbstractFullWriter')
+const { MixinReplicationWriter } = require('./_MixinReplicationWriter')
+const { listReplicatedVms } = require('./_listReplicatedVms')
+
+exports.FullReplicationWriter = class FullReplicationWriter extends MixinReplicationWriter(AbstractFullWriter) {
+  constructor(props) {
+    super(props)
 
     this.run = Task.wrapFn(
       {
         name: 'export',
         data: {
-          id: sr.uuid,
+          id: props.sr.uuid,
           type: 'SR',
 
           // necessary?

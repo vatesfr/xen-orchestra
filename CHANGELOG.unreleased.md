@@ -35,7 +35,7 @@
 
 - @xen-orchestra/fs minor
 - @xen-orchestra/xapi patch
-- @xen-orchestra/backups patch
+- @xen-orchestra/backups minor
 - @xen-orchestra/backups-cli patch
 - @xen-orchestra/mixins minor
 - xo-server minor

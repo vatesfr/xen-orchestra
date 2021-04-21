@@ -2,19 +2,16 @@ const { asyncMap, asyncMapSettled } = require('@xen-orchestra/async-map')
 const ignoreErrors = require('promise-toolbox/ignoreErrors')
 const { formatDateTime } = require('@xen-orchestra/xapi')
 
-const { formatFilenameDate } = require('./_filenameDate')
-const { getOldEntries } = require('./_getOldEntries')
-const { importDeltaVm, TAG_COPY_SRC } = require('./_deltaVm')
+const { formatFilenameDate } = require('../_filenameDate')
+const { getOldEntries } = require('../_getOldEntries')
+const { importDeltaVm, TAG_COPY_SRC } = require('../_deltaVm')
+const { Task } = require('../Task')
+
+const { AbstractDeltaWriter } = require('./_AbstractDeltaWriter')
+const { MixinReplicationWriter } = require('./_MixinReplicationWriter')
 const { listReplicatedVms } = require('./_listReplicatedVms')
-const { Task } = require('./Task')
 
-exports.ContinuousReplicationWriter = class ContinuousReplicationWriter {
-  constructor(backup, sr, settings) {
-    this._backup = backup
-    this._settings = settings
-    this._sr = sr
-  }
-
+exports.DeltaReplicationWriter = class DeltaReplicationWriter extends MixinReplicationWriter(AbstractDeltaWriter) {
   async checkBaseVdis(baseUuidToSrcVdi, baseVm) {
     const sr = this._sr
     const replicatedVm = listReplicatedVms(sr.$xapi, this._backup.job.id, sr.uuid, this._backup.vm.uuid).find(
