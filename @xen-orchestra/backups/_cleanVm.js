@@ -184,7 +184,7 @@ exports.cleanVm = async function cleanVm(vmDir, { remove, merge, onLog = noop })
   await asyncMap(xvas, async path => {
     // check is not good enough to delete the file, the best we can do is report
     // it
-    if (!(await isValidXva(path))) {
+    if (!(await isValidXva(handler._getFilePath('/' + path)))) {
       onLog(`the XVA with path ${path} is potentially broken`)
     }
   })
