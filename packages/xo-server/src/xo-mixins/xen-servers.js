@@ -2,7 +2,7 @@ import { BaseError } from 'make-error'
 import { createLogger } from '@xen-orchestra/log'
 import { fibonacci } from 'iterable-backoff'
 import { findKey } from 'lodash'
-import { noSuchObject } from 'xo-common/api-errors'
+import { noSuchObject } from 'xo-common/api-errors.js'
 import { pDelay, ignoreErrors } from 'promise-toolbox'
 
 import * as XenStore from '../_XenStore.js'

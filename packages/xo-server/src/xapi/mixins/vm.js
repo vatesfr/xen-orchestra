@@ -4,7 +4,7 @@ import { find, gte, includes, isEmpty, lte, map as mapToArray, mapValues, noop }
 import { cancelable, ignoreErrors, pCatch } from 'promise-toolbox'
 import { Ref } from 'xen-api'
 
-import { forEach, parseSize } from '../../utils'
+import { forEach, parseSize } from '../../utils.js'
 
 import { extractOpaqueRef, isVmHvm, isVmRunning, makeEditObject } from '../utils.js'
 

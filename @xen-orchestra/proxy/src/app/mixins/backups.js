@@ -1,5 +1,5 @@
-import Disposable from 'promise-toolbox/Disposable'
-import fromCallback from 'promise-toolbox/fromCallback'
+import Disposable from 'promise-toolbox/Disposable.js'
+import fromCallback from 'promise-toolbox/fromCallback.js'
 import { asyncMap } from '@xen-orchestra/async-map'
 import { Backup } from '@xen-orchestra/backups/Backup.js'
 import { compose } from '@vates/compose'

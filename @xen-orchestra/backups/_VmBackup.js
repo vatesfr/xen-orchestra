@@ -1,8 +1,8 @@
 const assert = require('assert')
-const findLast = require('lodash/findLast')
-const ignoreErrors = require('promise-toolbox/ignoreErrors')
-const keyBy = require('lodash/keyBy')
-const mapValues = require('lodash/mapValues')
+const findLast = require('lodash/findLast.js')
+const ignoreErrors = require('promise-toolbox/ignoreErrors.js')
+const keyBy = require('lodash/keyBy.js')
+const mapValues = require('lodash/mapValues.js')
 const { asyncMap } = require('@xen-orchestra/async-map')
 const { createLogger } = require('@xen-orchestra/log')
 const { formatDateTime } = require('@xen-orchestra/xapi')
@@ -12,7 +12,12 @@ const { forkStreamUnpipe } = require('./_forkStreamUnpipe.js')
 const { getOldEntries } = require('./_getOldEntries.js')
 const { Task } = require('./Task.js')
 const { watchStreamSize } = require('./_watchStreamSize.js')
-const { DeltaReplicationWriter, DeltaBackupWriter, FullReplicationWriter, FullBackupWriter } = require('./writers')
+const {
+  DeltaReplicationWriter,
+  DeltaBackupWriter,
+  FullReplicationWriter,
+  FullBackupWriter,
+} = require('./writers/index.js')
 
 const { debug, warn } = createLogger('xo:backups:VmBackup')
 

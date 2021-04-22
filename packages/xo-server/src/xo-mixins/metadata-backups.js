@@ -1,6 +1,6 @@
 import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
-import cloneDeep from 'lodash/cloneDeep'
-import Disposable from 'promise-toolbox/Disposable'
+import cloneDeep from 'lodash/cloneDeep.js'
+import Disposable from 'promise-toolbox/Disposable.js'
 import { Backup } from '@xen-orchestra/backups/Backup.js'
 import { createLogger } from '@xen-orchestra/log'
 import { parseMetadataBackupId } from '@xen-orchestra/backups/parseMetadataBackupId.js'

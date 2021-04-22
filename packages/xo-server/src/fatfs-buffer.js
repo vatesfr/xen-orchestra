@@ -17,7 +17,7 @@
 // })
 
 import assert from 'assert'
-import { boot16 as fat16 } from 'fatfs/structs'
+import { boot16 as fat16 } from 'fatfs/structs.js'
 
 const SECTOR_SIZE = 512
 

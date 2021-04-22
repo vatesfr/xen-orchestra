@@ -12,7 +12,7 @@ import * as methods from '../api/index.js'
 import * as sensitiveValues from '../sensitive-values.js'
 import { noop, serializeError } from '../utils.js'
 
-import * as errors from 'xo-common/api-errors'
+import * as errors from 'xo-common/api-errors.js'
 
 // ===================================================================
 

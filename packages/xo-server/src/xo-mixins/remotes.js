@@ -3,7 +3,7 @@ import synchronized from 'decorator-synchronized'
 import { format, parse } from 'xo-remote-parser'
 import { getHandler } from '@xen-orchestra/fs'
 import { ignoreErrors, timeout } from 'promise-toolbox'
-import { noSuchObject } from 'xo-common/api-errors'
+import { noSuchObject } from 'xo-common/api-errors.js'
 
 import * as sensitiveValues from '../sensitive-values.js'
 import patch from '../patch.js'

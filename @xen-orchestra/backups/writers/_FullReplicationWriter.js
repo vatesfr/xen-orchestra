@@ -1,4 +1,4 @@
-const ignoreErrors = require('promise-toolbox/ignoreErrors')
+const ignoreErrors = require('promise-toolbox/ignoreErrors.js')
 const { asyncMapSettled } = require('@xen-orchestra/async-map')
 const { formatDateTime } = require('@xen-orchestra/xapi')
 

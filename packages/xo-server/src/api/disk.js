@@ -4,7 +4,7 @@ import pump from 'pump'
 import { createLogger } from '@xen-orchestra/log'
 import { defer } from 'golike-defer'
 import { format } from 'json-rpc-peer'
-import { noSuchObject } from 'xo-common/api-errors'
+import { noSuchObject } from 'xo-common/api-errors.js'
 import { peekFooterFromVhdStream } from 'vhd-lib'
 import { vmdkToVhd } from 'xo-vmdk-to-vhd'
 

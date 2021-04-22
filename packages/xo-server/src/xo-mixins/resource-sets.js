@@ -3,7 +3,7 @@ import synchronized from 'decorator-synchronized'
 import { decorateWith } from '@vates/decorate-with'
 import { defer as deferrable } from 'golike-defer'
 import { difference, every, forEach, isObject, keyBy, map as mapToArray, remove, some } from 'lodash'
-import { noSuchObject, notEnoughResources, unauthorized } from 'xo-common/api-errors'
+import { noSuchObject, notEnoughResources, unauthorized } from 'xo-common/api-errors.js'
 
 import { generateUnsecureToken, lightSet, map, streamToArray } from '../utils.js'
 

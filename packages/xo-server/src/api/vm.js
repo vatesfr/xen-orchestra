@@ -13,7 +13,7 @@ import {
   noSuchObject,
   operationFailed,
   unauthorized,
-} from 'xo-common/api-errors'
+} from 'xo-common/api-errors.js'
 
 import { forEach, map, mapFilter, parseSize, safeDateFormat } from '../utils.js'
 

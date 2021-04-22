@@ -3,7 +3,7 @@
 import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
 import concurrency from 'limit-concurrency-decorator'
 import fatfs from 'fatfs'
-import mapToArray from 'lodash/map'
+import mapToArray from 'lodash/map.js'
 import mixin from '@xen-orchestra/mixin/legacy.js'
 import ms from 'ms'
 import synchronized from 'decorator-synchronized'
@@ -16,7 +16,7 @@ import { decorateWith } from '@vates/decorate-with'
 import { defer as deferrable } from 'golike-defer'
 import { parseDuration } from '@vates/parse-duration'
 import { PassThrough } from 'stream'
-import { forbiddenOperation, operationFailed } from 'xo-common/api-errors'
+import { forbiddenOperation, operationFailed } from 'xo-common/api-errors.js'
 import { Xapi as XapiBase } from '@xen-orchestra/xapi'
 import { filter, find, flatMap, flatten, groupBy, identity, includes, isEmpty, noop, omit, once, uniq } from 'lodash'
 import { Ref } from 'xen-api'
@@ -55,7 +55,7 @@ export const TAG_COPY_SRC = 'xo:copy_of'
 
 // FIXME: remove this work around when fixed, https://phabricator.babeljs.io/T2877
 //  export * from './utils.js'
-Object.assign(module.exports, require('./utils'))
+Object.assign(module.exports, require('./utils.js'))
 
 // VDI formats. (Raw is not available for delta vdi.)
 export const VDI_FORMAT_VHD = 'vhd'

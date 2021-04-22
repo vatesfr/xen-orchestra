@@ -2,7 +2,7 @@ import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
 import { createSchedule } from '@xen-orchestra/cron'
 import { ignoreErrors } from 'promise-toolbox'
 import { keyBy } from 'lodash'
-import { noSuchObject } from 'xo-common/api-errors'
+import { noSuchObject } from 'xo-common/api-errors.js'
 
 import Collection from '../collection/redis.js'
 import patch from '../patch.js'

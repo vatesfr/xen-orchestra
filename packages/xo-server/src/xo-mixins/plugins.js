@@ -1,7 +1,7 @@
 import Ajv from 'ajv'
-import mapToArray from 'lodash/map'
+import mapToArray from 'lodash/map.js'
 import { createLogger } from '@xen-orchestra/log'
-import { invalidParameters, noSuchObject } from 'xo-common/api-errors'
+import { invalidParameters, noSuchObject } from 'xo-common/api-errors.js'
 
 import * as sensitiveValues from '../sensitive-values.js'
 import { PluginsMetadata } from '../models/plugin-metadata.js'

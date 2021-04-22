@@ -3,7 +3,7 @@ import { ignoreErrors } from 'promise-toolbox'
 
 import AbstractLogger from './abstract.js'
 
-import { forEach, noop } from '../../../utils'
+import { forEach, noop } from '../../../utils.js'
 
 let lastDate = 0
 let increment = 0

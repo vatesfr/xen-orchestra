@@ -5,11 +5,11 @@ import { decorateWith } from '@vates/decorate-with'
 
 import { CancelToken, ignoreErrors } from 'promise-toolbox'
 import { defer } from 'golike-defer'
-import { noSuchObject } from 'xo-common/api-errors'
+import { noSuchObject } from 'xo-common/api-errors.js'
 
-import Collection from '../../collection/redis'
-import patch from '../../patch'
-import { serializeError } from '../../utils'
+import Collection from '../../collection/redis.js'
+import patch from '../../patch.js'
+import { serializeError } from '../../utils.js'
 
 import executeCall from './execute-call.js'
 

@@ -1,5 +1,5 @@
 import appConf from 'app-conf'
-import get from 'lodash/get'
+import get from 'lodash/get.js'
 import highland from 'highland'
 import levelup from 'level-party'
 import ndjson from 'ndjson'

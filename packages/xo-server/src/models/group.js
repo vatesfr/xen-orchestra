@@ -1,4 +1,4 @@
-import isEmpty from 'lodash/isEmpty'
+import isEmpty from 'lodash/isEmpty.js'
 
 import Collection from '../collection/redis.js'
 import Model from '../model.js'

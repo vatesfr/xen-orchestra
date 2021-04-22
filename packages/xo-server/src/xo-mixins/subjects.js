@@ -2,7 +2,7 @@ import { createLogger } from '@xen-orchestra/log'
 import { filter } from 'lodash'
 import { ignoreErrors } from 'promise-toolbox'
 import { hash, needsRehash, verify } from 'hashy'
-import { invalidCredentials, noSuchObject } from 'xo-common/api-errors'
+import { invalidCredentials, noSuchObject } from 'xo-common/api-errors.js'
 
 import * as XenStore from '../_XenStore.js'
 import { Groups } from '../models/group.js'

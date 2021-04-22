@@ -1,6 +1,6 @@
 const { asyncMap, asyncMapSettled } = require('@xen-orchestra/async-map')
-const Disposable = require('promise-toolbox/Disposable')
-const ignoreErrors = require('promise-toolbox/ignoreErrors')
+const Disposable = require('promise-toolbox/Disposable.js')
+const ignoreErrors = require('promise-toolbox/ignoreErrors.js')
 const limitConcurrency = require('limit-concurrency-decorator').default
 const { compileTemplate } = require('@xen-orchestra/template')
 
