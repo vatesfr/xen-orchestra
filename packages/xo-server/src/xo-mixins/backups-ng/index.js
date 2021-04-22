@@ -1,22 +1,22 @@
-import asyncMapSettled from '@xen-orchestra/async-map/legacy'
+import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
 import Disposable from 'promise-toolbox/Disposable'
-import { Backup } from '@xen-orchestra/backups/Backup'
+import { Backup } from '@xen-orchestra/backups/Backup.js'
 import { createLogger } from '@xen-orchestra/log'
 import { createPredicate } from 'value-matcher'
 import { decorateWith } from '@vates/decorate-with'
-import { formatVmBackups } from '@xen-orchestra/backups/formatVmBackups'
+import { formatVmBackups } from '@xen-orchestra/backups/formatVmBackups.js'
 import { forOwn, merge } from 'lodash'
-import { ImportVmBackup } from '@xen-orchestra/backups/ImportVmBackup'
+import { ImportVmBackup } from '@xen-orchestra/backups/ImportVmBackup.js'
 import { invalidParameters } from 'xo-common/api-errors'
-import { runBackupWorker } from '@xen-orchestra/backups/runBackupWorker'
-import { Task } from '@xen-orchestra/backups/Task'
+import { runBackupWorker } from '@xen-orchestra/backups/runBackupWorker.js'
+import { Task } from '@xen-orchestra/backups/Task.js'
 
 import { debounceWithKey, REMOVE_CACHE_ENTRY } from '../../_pDebounceWithKey'
 import { handleBackupLog } from '../../_handleBackupLog'
 import { unboxIdsFromPattern } from '../../utils'
 import { waitAll } from '../../_waitAll'
 
-import { translateLegacyJob } from './migration'
+import { translateLegacyJob } from './migration.js'
 
 const log = createLogger('xo:xo-mixins:backups-ng')
 

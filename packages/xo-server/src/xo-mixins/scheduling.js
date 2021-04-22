@@ -1,11 +1,11 @@
-import asyncMapSettled from '@xen-orchestra/async-map/legacy'
+import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
 import { createSchedule } from '@xen-orchestra/cron'
 import { ignoreErrors } from 'promise-toolbox'
 import { keyBy } from 'lodash'
 import { noSuchObject } from 'xo-common/api-errors'
 
-import Collection from '../collection/redis'
-import patch from '../patch'
+import Collection from '../collection/redis.js'
+import patch from '../patch.js'
 
 const normalize = schedule => {
   const { enabled } = schedule

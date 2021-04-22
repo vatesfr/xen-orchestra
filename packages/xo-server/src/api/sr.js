@@ -1,9 +1,9 @@
-import asyncMapSettled from '@xen-orchestra/async-map/legacy'
+import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
 import { some } from 'lodash'
 
-import ensureArray from '../_ensureArray'
-import { asInteger } from '../xapi/utils'
-import { forEach, parseXml } from '../utils'
+import ensureArray from '../_ensureArray.js'
+import { asInteger } from '../xapi/utils.js'
+import { forEach, parseXml } from '../utils.js'
 
 // ===================================================================
 

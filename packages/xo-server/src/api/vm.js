@@ -1,5 +1,5 @@
 import * as multiparty from 'multiparty'
-import asyncMapSettled from '@xen-orchestra/async-map/legacy'
+import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
 import getStream from 'get-stream'
 import { createLogger } from '@xen-orchestra/log'
 import { defer } from 'golike-defer'
@@ -15,7 +15,7 @@ import {
   unauthorized,
 } from 'xo-common/api-errors'
 
-import { forEach, map, mapFilter, parseSize, safeDateFormat } from '../utils'
+import { forEach, map, mapFilter, parseSize, safeDateFormat } from '../utils.js'
 
 const log = createLogger('xo:vm')
 

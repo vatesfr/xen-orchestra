@@ -1,10 +1,10 @@
 /* eslint eslint-comments/disable-enable-pair: [error, {allowWholeFile: true}] */
 /* eslint-disable camelcase */
-import asyncMapSettled from '@xen-orchestra/async-map/legacy'
+import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
 import concurrency from 'limit-concurrency-decorator'
 import fatfs from 'fatfs'
 import mapToArray from 'lodash/map'
-import mixin from '@xen-orchestra/mixin/legacy'
+import mixin from '@xen-orchestra/mixin/legacy.js'
 import ms from 'ms'
 import synchronized from 'decorator-synchronized'
 import tarStream from 'tar-stream'
@@ -22,14 +22,14 @@ import { filter, find, flatMap, flatten, groupBy, identity, includes, isEmpty, n
 import { Ref } from 'xen-api'
 import { satisfies as versionSatisfies } from 'semver'
 
-import createSizeStream from '../size-stream'
-import ensureArray from '../_ensureArray'
-import fatfsBuffer, { init as fatfsBufferInit } from '../fatfs-buffer'
-import { asyncMapValues } from '../_asyncMapValues'
-import { camelToSnakeCase, forEach, map, parseSize, pDelay, promisifyAll } from '../utils'
+import createSizeStream from '../size-stream.js'
+import ensureArray from '../_ensureArray.js'
+import fatfsBuffer, { init as fatfsBufferInit } from '../fatfs-buffer.js'
+import { asyncMapValues } from '../_asyncMapValues.js'
+import { camelToSnakeCase, forEach, map, parseSize, pDelay, promisifyAll } from '../utils.js'
 
-import mixins from './mixins'
-import OTHER_CONFIG_TEMPLATE from './other-config-template'
+import mixins from './mixins/index.js'
+import OTHER_CONFIG_TEMPLATE from './other-config-template.js'
 import {
   asBoolean,
   asInteger,
@@ -41,7 +41,7 @@ import {
   optional,
   parseDateTime,
   prepareXapiParam,
-} from './utils'
+} from './utils.js'
 import { createVhdStreamWithLength } from 'vhd-lib'
 
 const log = createLogger('xo:xapi')
@@ -54,7 +54,7 @@ export const TAG_COPY_SRC = 'xo:copy_of'
 // ===================================================================
 
 // FIXME: remove this work around when fixed, https://phabricator.babeljs.io/T2877
-//  export * from './utils'
+//  export * from './utils.js'
 Object.assign(module.exports, require('./utils'))
 
 // VDI formats. (Raw is not available for delta vdi.)

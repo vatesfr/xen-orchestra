@@ -1,6 +1,6 @@
 import { EventEmitter } from 'events'
 
-import { forEach, isEmpty } from './utils'
+import { forEach, isEmpty } from './utils.js'
 
 // ===================================================================
 

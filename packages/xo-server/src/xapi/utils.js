@@ -6,7 +6,7 @@ import pickBy from 'lodash/pickBy'
 import { utcParse } from 'd3-time-format'
 import { satisfies as versionSatisfies } from 'semver'
 
-import { camelToSnakeCase, forEach, isInteger, map, mapFilter, noop } from '../utils'
+import { camelToSnakeCase, forEach, isInteger, map, mapFilter, noop } from '../utils.js'
 
 // ===================================================================
 

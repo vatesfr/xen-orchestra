@@ -8,7 +8,7 @@ import { noSuchObject } from 'xo-common/api-errors'
 import { peekFooterFromVhdStream } from 'vhd-lib'
 import { vmdkToVhd } from 'xo-vmdk-to-vhd'
 
-import { VDI_FORMAT_VHD } from '../xapi'
+import { VDI_FORMAT_VHD } from '../xapi/index.js'
 
 const log = createLogger('xo:disk')
 

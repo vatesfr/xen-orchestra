@@ -8,8 +8,8 @@ import sublevel from 'subleveldown'
 import util from 'util'
 import { join as joinPath } from 'path'
 
-import { forEach } from './utils'
-import globMatcher from './glob-matcher'
+import { forEach } from './utils.js'
+import globMatcher from './glob-matcher.js'
 
 // ===================================================================
 

@@ -4,7 +4,7 @@ import { defer } from 'golike-defer'
 import { invalidParameters } from 'xo-common/api-errors'
 import { reduce } from 'lodash'
 
-import { parseSize } from '../utils'
+import { parseSize } from '../utils.js'
 
 // ====================================================================
 

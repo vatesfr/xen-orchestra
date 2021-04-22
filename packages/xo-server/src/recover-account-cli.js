@@ -2,8 +2,8 @@ import appConf from 'app-conf'
 import pw from 'pw'
 import { join as joinPath } from 'path'
 
-import Xo from './xo'
-import { generateToken } from './utils'
+import Xo from './xo.js'
+import { generateToken } from './utils.js'
 
 const recoverAccount = async ([name]) => {
   if (name === undefined || name === '--help' || name === '-h') {

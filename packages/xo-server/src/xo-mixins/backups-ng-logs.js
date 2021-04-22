@@ -1,7 +1,7 @@
 import ms from 'ms'
 import { forEach, isEmpty, iteratee, sortedIndexBy } from 'lodash'
 
-import { debounceWithKey } from '../_pDebounceWithKey'
+import { debounceWithKey } from '../_pDebounceWithKey.js'
 
 const isSkippedError = error =>
   error != null &&

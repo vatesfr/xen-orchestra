@@ -1,7 +1,7 @@
 import highland from 'highland'
 import { ignoreErrors } from 'promise-toolbox'
 
-import AbstractLogger from './abstract'
+import AbstractLogger from './abstract.js'
 
 import { forEach, noop } from '../../../utils'
 

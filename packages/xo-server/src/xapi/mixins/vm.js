@@ -6,7 +6,7 @@ import { Ref } from 'xen-api'
 
 import { forEach, parseSize } from '../../utils'
 
-import { extractOpaqueRef, isVmHvm, isVmRunning, makeEditObject } from '../utils'
+import { extractOpaqueRef, isVmHvm, isVmRunning, makeEditObject } from '../utils.js'
 
 // According to: https://xenserver.org/blog/entry/vga-over-cirrus-in-xenserver-6-2.html.
 const XEN_VGA_VALUES = ['std', 'cirrus']

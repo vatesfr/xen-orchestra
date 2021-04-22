@@ -9,7 +9,7 @@ import ensureArray from '../../_ensureArray'
 import { debounceWithKey } from '../../_pDebounceWithKey'
 import { forEach, mapFilter, parseXml } from '../../utils'
 
-import { extractOpaqueRef, parseDateTime, useUpdateSystem } from '../utils'
+import { extractOpaqueRef, parseDateTime, useUpdateSystem } from '../utils.js'
 
 // TOC -------------------------------------------------------------------------
 

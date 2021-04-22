@@ -1,5 +1,5 @@
 import assert from 'assert'
-import asyncMapSettled from '@xen-orchestra/async-map/legacy'
+import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
 import execa from 'execa'
 import fs from 'fs-extra'
 import map from 'lodash/map'
@@ -10,8 +10,8 @@ import { invalidParameters } from 'xo-common/api-errors'
 import { includes, remove, filter, find, range } from 'lodash'
 import { Ref } from 'xen-api'
 
-import ensureArray from '../_ensureArray'
-import { parseXml } from '../utils'
+import ensureArray from '../_ensureArray.js'
+import { parseXml } from '../utils.js'
 
 const log = createLogger('xo:xosan')
 

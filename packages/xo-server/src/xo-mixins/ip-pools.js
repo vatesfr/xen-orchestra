@@ -15,7 +15,7 @@ import synchronized from 'decorator-synchronized'
 import { noSuchObject } from 'xo-common/api-errors'
 import { fromCallback } from 'promise-toolbox'
 
-import { forEach, generateUnsecureToken, isEmpty, lightSet, streamToArray, throwFn } from '../utils'
+import { forEach, generateUnsecureToken, isEmpty, lightSet, streamToArray, throwFn } from '../utils.js'
 
 // ===================================================================
 

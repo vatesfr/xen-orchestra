@@ -18,10 +18,10 @@ import { readChunk } from '@vates/read-chunk'
 import { Ref } from 'xen-api'
 import { timeout } from 'promise-toolbox'
 
-import Collection from '../collection/redis'
-import patch from '../patch'
-import { extractIpFromVmNetworks } from '../_extractIpFromVmNetworks'
-import { generateToken } from '../utils'
+import Collection from '../collection/redis.js'
+import patch from '../patch.js'
+import { extractIpFromVmNetworks } from '../_extractIpFromVmNetworks.js'
+import { generateToken } from '../utils.js'
 
 const extractProperties = _ => _.properties
 const omitToken = proxy => omit(proxy, 'authenticationToken')

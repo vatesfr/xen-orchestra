@@ -3,8 +3,8 @@ import mapToArray from 'lodash/map'
 import { createLogger } from '@xen-orchestra/log'
 import { invalidParameters, noSuchObject } from 'xo-common/api-errors'
 
-import * as sensitiveValues from '../sensitive-values'
-import { PluginsMetadata } from '../models/plugin-metadata'
+import * as sensitiveValues from '../sensitive-values.js'
+import { PluginsMetadata } from '../models/plugin-metadata.js'
 
 // ===================================================================
 

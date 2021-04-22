@@ -4,7 +4,7 @@ import synchronized from 'decorator-synchronized'
 import { BaseError } from 'make-error'
 import { defaults, findKey, forEach, identity, map, mapValues, mean, sum, uniq, zipWith } from 'lodash'
 
-import { parseDateTime } from './xapi'
+import { parseDateTime } from './xapi/index.js'
 
 export class FaultyGranularity extends BaseError {}
 

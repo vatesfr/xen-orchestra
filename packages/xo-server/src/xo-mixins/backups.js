@@ -1,4 +1,4 @@
-import asyncMapSettled from '@xen-orchestra/async-map/legacy'
+import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
 import execa from 'execa'
 import splitLines from 'split-lines'
 import { CancelToken, fromEvent, ignoreErrors, pReflect } from 'promise-toolbox'
@@ -13,10 +13,10 @@ import { basename, dirname } from 'path'
 import { escapeRegExp, filter, find, includes, map as mapToArray, once, range, sortBy } from 'lodash'
 import { chainVhd, createSyntheticStream as createVhdReadStream, mergeVhd } from 'vhd-lib'
 
-import createSizeStream from '../size-stream'
-import xapiObjectToXo from '../xapi-object-to-xo'
-import { debounceWithKey } from '../_pDebounceWithKey'
-import { lvs, pvs } from '../lvm'
+import createSizeStream from '../size-stream.js'
+import xapiObjectToXo from '../xapi-object-to-xo.js'
+import { debounceWithKey } from '../_pDebounceWithKey.js'
+import { lvs, pvs } from '../lvm.js'
 import {
   forEach,
   getFirstPropertyName,
@@ -26,7 +26,7 @@ import {
   safeDateFormat,
   safeDateParse,
   tmpDir,
-} from '../utils'
+} from '../utils.js'
 
 // ===================================================================
 

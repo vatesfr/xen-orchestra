@@ -8,9 +8,9 @@ import { forEach } from 'lodash'
 import { getBoundPropertyDescriptor } from 'bind-property-descriptor'
 import { MethodNotFound } from 'json-rpc-peer'
 
-import * as methods from '../api'
-import * as sensitiveValues from '../sensitive-values'
-import { noop, serializeError } from '../utils'
+import * as methods from '../api/index.js'
+import * as sensitiveValues from '../sensitive-values.js'
+import { noop, serializeError } from '../utils.js'
 
 import * as errors from 'xo-common/api-errors'
 

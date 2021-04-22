@@ -4,10 +4,10 @@ import { ignoreErrors } from 'promise-toolbox'
 import { hash, needsRehash, verify } from 'hashy'
 import { invalidCredentials, noSuchObject } from 'xo-common/api-errors'
 
-import * as XenStore from '../_XenStore'
-import { Groups } from '../models/group'
-import { Users } from '../models/user'
-import { forEach, isEmpty, lightSet } from '../utils'
+import * as XenStore from '../_XenStore.js'
+import { Groups } from '../models/group.js'
+import { Users } from '../models/user.js'
+import { forEach, isEmpty, lightSet } from '../utils.js'
 
 // ===================================================================
 

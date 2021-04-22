@@ -10,7 +10,7 @@ import helmet from 'helmet'
 import includes from 'lodash/includes'
 import memoryStoreFactory from 'memorystore'
 import ms from 'ms'
-import proxyConsole from './proxy-console'
+import proxyConsole from './proxy-console.js'
 import pw from 'pw'
 import serveStatic from 'serve-static'
 import stoppable from 'stoppable'
@@ -33,8 +33,8 @@ import JsonRpcPeer from 'json-rpc-peer'
 import { invalidCredentials } from 'xo-common/api-errors'
 import { ensureDir, outputFile, readdir, readFile } from 'fs-extra'
 
-import ensureArray from './_ensureArray'
-import Xo from './xo'
+import ensureArray from './_ensureArray.js'
+import Xo from './xo.js'
 
 import bodyParser from 'body-parser'
 import connectFlash from 'connect-flash'
@@ -44,9 +44,9 @@ import passport from 'passport'
 import { parse as parseCookies } from 'cookie'
 import { Strategy as LocalStrategy } from 'passport-local'
 
-import transportConsole from '@xen-orchestra/log/transports/console'
-import { configure } from '@xen-orchestra/log/configure'
-import { generateToken } from './utils'
+import transportConsole from '@xen-orchestra/log/transports/console.js'
+import { configure } from '@xen-orchestra/log/configure.js'
+import { generateToken } from './utils.js'
 
 // ===================================================================
 

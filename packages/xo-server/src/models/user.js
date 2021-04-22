@@ -1,9 +1,9 @@
 import isEmpty from 'lodash/isEmpty'
 
-import Collection from '../collection/redis'
-import Model from '../model'
+import Collection from '../collection/redis.js'
+import Model from '../model.js'
 
-import { parseProp } from './utils'
+import { parseProp } from './utils.js'
 
 // ===================================================================
 

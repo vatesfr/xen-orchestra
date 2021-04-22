@@ -1,8 +1,8 @@
 import aclResolver from 'xo-acl-resolver'
 import { forEach, includes, map } from 'lodash'
 
-import { ModelAlreadyExists } from '../collection'
-import { Acls } from '../models/acl'
+import { ModelAlreadyExists } from '../collection.js'
+import { Acls } from '../models/acl.js'
 
 // ===================================================================
 

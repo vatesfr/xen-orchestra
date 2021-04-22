@@ -1,6 +1,6 @@
 import { forbiddenOperation, invalidParameters } from 'xo-common/api-errors'
 import { isEmpty } from 'lodash'
-import { getUserPublicProperties } from '../utils'
+import { getUserPublicProperties } from '../utils.js'
 
 // ===================================================================
 

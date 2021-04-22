@@ -5,12 +5,12 @@ import { findKey } from 'lodash'
 import { noSuchObject } from 'xo-common/api-errors'
 import { pDelay, ignoreErrors } from 'promise-toolbox'
 
-import * as XenStore from '../_XenStore'
-import Xapi from '../xapi'
-import xapiObjectToXo from '../xapi-object-to-xo'
-import XapiStats from '../xapi-stats'
-import { camelToSnakeCase, forEach, isEmpty, popProperty } from '../utils'
-import { Servers } from '../models/server'
+import * as XenStore from '../_XenStore.js'
+import Xapi from '../xapi/index.js'
+import xapiObjectToXo from '../xapi-object-to-xo.js'
+import XapiStats from '../xapi-stats.js'
+import { camelToSnakeCase, forEach, isEmpty, popProperty } from '../utils.js'
+import { Servers } from '../models/server.js'
 
 // ===================================================================
 

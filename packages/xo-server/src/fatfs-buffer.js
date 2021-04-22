@@ -4,7 +4,7 @@
 //
 // ```js
 // import fatfs from 'fatfs'
-// import fatfsBuffer, { init as fatfsBufferInit } from './fatfs-buffer'
+// import fatfsBuffer, { init as fatfsBufferInit } from './fatfs-buffer.js'
 //
 // const buffer = fatfsBufferinit()
 //

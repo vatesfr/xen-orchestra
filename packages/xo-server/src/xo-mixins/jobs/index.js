@@ -1,4 +1,4 @@
-import asyncMapSettled from '@xen-orchestra/async-map/legacy'
+import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
 import emitAsync from '@xen-orchestra/emit-async'
 import { createLogger } from '@xen-orchestra/log'
 import { decorateWith } from '@vates/decorate-with'
@@ -11,7 +11,7 @@ import Collection from '../../collection/redis'
 import patch from '../../patch'
 import { serializeError } from '../../utils'
 
-import executeCall from './execute-call'
+import executeCall from './execute-call.js'
 
 // ===================================================================
 
