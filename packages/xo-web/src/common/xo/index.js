@@ -1160,12 +1160,12 @@ export const convertVmToTemplate = vm =>
     ),
   }).then(() => _call('vm.convert', { id: resolveId(vm) }), noop)
 
-export const cloneToTemplate = async vm => {
+export const copyToTemplate = async vm => {
   await confirm({
-    title: _('cloneAsTemplate'),
-    body: <p>{_('cloneSnapshotAsTemplateMessage')}</p>,
+    title: _('copyToTemplate'),
+    body: <p>{_('copyToTemplateMessage')}</p>,
   })
-  await _call('vm.cloneToTemplate', { id: resolveId(vm) })
+  await _call('vm.copyToTemplate', { id: resolveId(vm) })
 }
 
 export const changeVirtualizationMode = vm =>

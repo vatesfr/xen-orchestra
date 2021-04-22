@@ -12,7 +12,7 @@ import { FormattedRelative, FormattedTime } from 'react-intl'
 import { includes, isEmpty } from 'lodash'
 import { Container, Row, Col } from 'grid'
 import {
-  cloneToTemplate,
+  copyToTemplate,
   copyVm,
   deleteSnapshot,
   deleteSnapshots,
@@ -94,9 +94,9 @@ const INDIVIDUAL_ACTIONS = [
   },
   {
     collapsed: true,
-    handler: cloneToTemplate,
+    handler: copyToTemplate,
     icon: 'template',
-    label: _('cloneAsTemplate'),
+    label: _('copyToTemplate'),
   },
   {
     handler: revertSnapshot,

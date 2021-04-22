@@ -704,7 +704,7 @@ export async function copy({ compress, name: nameLabel, sr, vm }) {
     return this.getXapi(vm)
       .copyVm(vm._xapiId, {
         nameLabel,
-        srId: sr._xapiId,
+        srOrSrId: sr._xapiId,
       })
       .then(vm => vm.$id)
   }
@@ -757,7 +757,7 @@ export { convertToTemplate as convert }
 
 // -------------------------------------------------------------------
 
-export async function cloneToTemplate({ vm }) {
+export async function copyToTemplate({ vm }) {
   const xapi = await this.getXapi(vm)
   const clonedVm = await xapi.copyVm(vm._xapiId, {
     nameLabel: vm.name_label,
@@ -770,10 +770,10 @@ export async function cloneToTemplate({ vm }) {
   }
 }
 
-cloneToTemplate.params = {
+copyToTemplate.params = {
   id: { type: 'string' },
 }
-cloneToTemplate.resolve = {
+copyToTemplate.resolve = {
   vm: ['id', ['VM-snapshot'], 'administrate'],
 }
 
