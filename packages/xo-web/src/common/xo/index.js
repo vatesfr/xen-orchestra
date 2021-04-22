@@ -2192,18 +2192,6 @@ export const editRemote = (remote, { name, options, proxy, url }) =>
     testRemote(remote).catch(noop)
   })
 
-export const listRemote = async remote =>
-  remote.proxy === undefined
-    ? _call('remote.list', {
-        id: remote.id,
-      })::tap(subscribeRemotes.forceRefresh, err => error(_('listRemote'), err.message || String(err)))
-    : []
-
-export const listRemoteBackups = async remote =>
-  remote.proxy === undefined
-    ? _call('backup.list', { remote: remote.id })::tap(null, err => error(_('listRemote'), err.message || String(err)))
-    : []
-
 export const testRemote = remote =>
   _call('remote.test', resolveIds({ id: remote }))
     ::tap(null, err => error(_('testRemote'), err.message || String(err)))

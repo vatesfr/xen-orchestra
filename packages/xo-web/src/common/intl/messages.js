@@ -1607,7 +1607,6 @@ const messages = {
   remoteLoadBackupsFailureMessage: 'Failed to load backups from {name}.',
 
   // ----- Restore files view -----
-  listRemoteBackups: 'List remote backups',
   restoreFiles: 'Restore backup files',
   restoreFilesError: 'Invalid options',
   restoreFilesFromBackup: 'Restore file from {name}',
