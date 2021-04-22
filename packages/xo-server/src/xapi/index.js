@@ -400,7 +400,7 @@ export default class Xapi extends XapiBase {
 
   async copyVm(vmId, { nameLabel = undefined, srId = undefined } = {}) {
     return /* await */ this._getOrWaitObject(
-      await this._copyVm(this.getObject(vmId), nameLabel, srId !== undefined ? this.getObject(srId) : srId)
+      await this._copyVm(this.getObject(vmId), nameLabel, srId !== undefined ? this.getObject(srId) : undefined)
     )
   }
 
