@@ -4,11 +4,11 @@ const ignoreErrors = require('promise-toolbox/ignoreErrors')
 const limitConcurrency = require('limit-concurrency-decorator').default
 const { compileTemplate } = require('@xen-orchestra/template')
 
-const { extractIdsFromSimplePattern } = require('./_extractIdsFromSimplePattern')
-const { PoolMetadataBackup } = require('./_PoolMetadataBackup')
-const { Task } = require('./Task')
-const { VmBackup } = require('./_VmBackup')
-const { XoMetadataBackup } = require('./_XoMetadataBackup')
+const { extractIdsFromSimplePattern } = require('./_extractIdsFromSimplePattern.js')
+const { PoolMetadataBackup } = require('./_PoolMetadataBackup.js')
+const { Task } = require('./Task.js')
+const { VmBackup } = require('./_VmBackup.js')
+const { XoMetadataBackup } = require('./_XoMetadataBackup.js')
 
 const noop = Function.prototype
 

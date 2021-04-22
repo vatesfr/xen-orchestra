@@ -1,10 +1,10 @@
-const { formatFilenameDate } = require('../_filenameDate')
-const { getOldEntries } = require('../_getOldEntries')
-const { getVmBackupDir } = require('../_getVmBackupDir')
-const { Task } = require('../Task')
+const { formatFilenameDate } = require('../_filenameDate.js')
+const { getOldEntries } = require('../_getOldEntries.js')
+const { getVmBackupDir } = require('../_getVmBackupDir.js')
+const { Task } = require('../Task.js')
 
-const { MixinBackupWriter } = require('./_MixinBackupWriter')
-const { AbstractFullWriter } = require('./_AbstractFullWriter')
+const { MixinBackupWriter } = require('./_MixinBackupWriter.js')
+const { AbstractFullWriter } = require('./_AbstractFullWriter.js')
 
 exports.FullBackupWriter = class FullBackupWriter extends MixinBackupWriter(AbstractFullWriter) {
   constructor(props) {

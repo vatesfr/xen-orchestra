@@ -2,13 +2,13 @@ const ignoreErrors = require('promise-toolbox/ignoreErrors')
 const { asyncMapSettled } = require('@xen-orchestra/async-map')
 const { formatDateTime } = require('@xen-orchestra/xapi')
 
-const { formatFilenameDate } = require('../_filenameDate')
-const { getOldEntries } = require('../_getOldEntries')
-const { Task } = require('../Task')
+const { formatFilenameDate } = require('../_filenameDate.js')
+const { getOldEntries } = require('../_getOldEntries.js')
+const { Task } = require('../Task.js')
 
-const { AbstractFullWriter } = require('./_AbstractFullWriter')
-const { MixinReplicationWriter } = require('./_MixinReplicationWriter')
-const { listReplicatedVms } = require('./_listReplicatedVms')
+const { AbstractFullWriter } = require('./_AbstractFullWriter.js')
+const { MixinReplicationWriter } = require('./_MixinReplicationWriter.js')
+const { listReplicatedVms } = require('./_listReplicatedVms.js')
 
 exports.FullReplicationWriter = class FullReplicationWriter extends MixinReplicationWriter(AbstractFullWriter) {
   constructor(props) {

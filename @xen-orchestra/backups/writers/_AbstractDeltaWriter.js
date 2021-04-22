@@ -1,4 +1,4 @@
-const { AbstractWriter } = require('./_AbstractWriter')
+const { AbstractWriter } = require('./_AbstractWriter.js')
 
 exports.AbstractDeltaWriter = class AbstractDeltaWriter extends AbstractWriter {
   checkBaseVdis(baseUuidToSrcVdi, baseVm) {

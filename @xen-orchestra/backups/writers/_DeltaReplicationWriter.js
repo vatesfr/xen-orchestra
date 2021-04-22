@@ -2,14 +2,14 @@ const { asyncMap, asyncMapSettled } = require('@xen-orchestra/async-map')
 const ignoreErrors = require('promise-toolbox/ignoreErrors')
 const { formatDateTime } = require('@xen-orchestra/xapi')
 
-const { formatFilenameDate } = require('../_filenameDate')
-const { getOldEntries } = require('../_getOldEntries')
-const { importDeltaVm, TAG_COPY_SRC } = require('../_deltaVm')
-const { Task } = require('../Task')
+const { formatFilenameDate } = require('../_filenameDate.js')
+const { getOldEntries } = require('../_getOldEntries.js')
+const { importDeltaVm, TAG_COPY_SRC } = require('../_deltaVm.js')
+const { Task } = require('../Task.js')
 
-const { AbstractDeltaWriter } = require('./_AbstractDeltaWriter')
-const { MixinReplicationWriter } = require('./_MixinReplicationWriter')
-const { listReplicatedVms } = require('./_listReplicatedVms')
+const { AbstractDeltaWriter } = require('./_AbstractDeltaWriter.js')
+const { MixinReplicationWriter } = require('./_MixinReplicationWriter.js')
+const { listReplicatedVms } = require('./_listReplicatedVms.js')
 
 exports.DeltaReplicationWriter = class DeltaReplicationWriter extends MixinReplicationWriter(AbstractDeltaWriter) {
   async checkBaseVdis(baseUuidToSrcVdi, baseVm) {

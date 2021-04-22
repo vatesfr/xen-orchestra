@@ -7,15 +7,15 @@ const { chainVhd, checkVhdChain, default: Vhd } = require('vhd-lib')
 const { createLogger } = require('@xen-orchestra/log')
 const { dirname } = require('path')
 
-const { formatFilenameDate } = require('../_filenameDate')
-const { getOldEntries } = require('../_getOldEntries')
-const { getVmBackupDir } = require('../_getVmBackupDir')
-const { Task } = require('../Task')
+const { formatFilenameDate } = require('../_filenameDate.js')
+const { getOldEntries } = require('../_getOldEntries.js')
+const { getVmBackupDir } = require('../_getVmBackupDir.js')
+const { Task } = require('../Task.js')
 
-const { MixinBackupWriter } = require('./_MixinBackupWriter')
-const { AbstractDeltaWriter } = require('./_AbstractDeltaWriter')
-const { checkVhd } = require('./_checkVhd')
-const { packUuid } = require('./_packUuid')
+const { MixinBackupWriter } = require('./_MixinBackupWriter.js')
+const { AbstractDeltaWriter } = require('./_AbstractDeltaWriter.js')
+const { checkVhd } = require('./_checkVhd.js')
+const { packUuid } = require('./_packUuid.js')
 
 const { warn } = createLogger('xo:backups:DeltaBackupWriter')
 
