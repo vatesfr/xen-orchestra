@@ -354,7 +354,7 @@ export default class BackupNg {
         },
       })
     } else {
-      await Disposable.use(app.getBackupsRemoteAdapter(remoteId), adapter => adapter.deleteVmBackup(metadataFilename))
+      await Disposable.use(app.getBackupsRemoteAdapter(remote), adapter => adapter.deleteVmBackup(metadataFilename))
     }
 
     this._listVmBackupsOnRemote(REMOVE_CACHE_ENTRY, remoteId)
