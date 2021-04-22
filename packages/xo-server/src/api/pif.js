@@ -13,6 +13,20 @@ export function getIpv6ConfigurationModes() {
 }
 
 // ===================================================================
+
+export async function managementReconfigure({ pif }) {
+  await this.getXapi(pif).call('host.management_reconfigure', pif._xapiRef)
+}
+
+managementReconfigure.params = {
+  id: { type: 'string' },
+}
+
+managementReconfigure.resolve = {
+  pif: ['id', 'PIF', 'administrate'],
+}
+
+// ===================================================================
 // Delete
 
 async function delete_({ pif }) {
