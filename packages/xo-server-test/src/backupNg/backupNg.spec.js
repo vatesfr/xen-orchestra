@@ -369,7 +369,7 @@ describe('backupNg', () => {
   })
 
   test('execute three times a rolling snapshot with 2 as retention & revert to an old state', async () => {
-    jest.setTimeout(6e4)
+    jest.setTimeout(18e4)
     await xo.createTempServer(config.servers.default)
     let vm = await xo.createTempVm({
       name_description: 'Creating a temporary vm',
