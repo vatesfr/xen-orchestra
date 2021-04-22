@@ -13,20 +13,6 @@ export function getIpv6ConfigurationModes() {
 }
 
 // ===================================================================
-
-export async function managementReconfigure({ pif }) {
-  await this.getXapi(pif).call('host.management_reconfigure', pif._xapiRef)
-}
-
-managementReconfigure.params = {
-  id: { type: 'string' },
-}
-
-managementReconfigure.resolve = {
-  pif: ['id', 'PIF', 'administrate'],
-}
-
-// ===================================================================
 // Delete
 
 async function delete_({ pif }) {
@@ -87,7 +73,9 @@ connect.resolve = {
 // Reconfigure IP
 
 export async function reconfigureIp({ pif, mode = 'DHCP', ip = '', netmask = '', gateway = '', dns = '' }) {
-  await this.getXapi(pif).call('PIF.reconfigure_ip', pif._xapiRef, mode, ip, netmask, gateway, dns)
+  const xapi = this.getXapi(pif)
+  await xapi.call('PIF.reconfigure_ip', pif._xapiRef, mode, ip, netmask, gateway, dns)
+  pif.management && (await xapi.call('host.management_reconfigure', pif._xapiRef))
 }
 
 reconfigureIp.params = {

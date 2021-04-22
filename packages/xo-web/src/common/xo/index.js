@@ -1787,7 +1787,7 @@ export const reconfigurePifIp = (pif, { mode, ip, netmask, gateway, dns }) =>
     netmask,
     gateway,
     dns,
-  }).then(() => (pif.management ? _call('pif.managementReconfigure', { pif: resolveId(pif) }) : noop))
+  })
 
 export const getIpv4ConfigModes = () => _call('pif.getIpv4ConfigurationModes')
 
