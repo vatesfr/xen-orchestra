@@ -4,7 +4,7 @@ import fromEvent from 'promise-toolbox/fromEvent'
 import JsonRpcWebsocketClient from 'jsonrpc-websocket-client'
 import parsePairs from 'parse-pairs'
 import { createLogger } from '@xen-orchestra/log'
-import { deduped } from '@vates/disposable/deduped'
+import { deduped } from '@vates/disposable/deduped.js'
 import { execFile, spawn } from 'child_process'
 import { readFile } from 'fs-extra'
 
