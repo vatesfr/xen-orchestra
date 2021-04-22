@@ -1554,7 +1554,6 @@ const messages = {
   poolMetadataRetention: 'Pool retention',
   xoMetadataRetention: 'XO retention',
   getRemote: 'Get remote',
-  listRemote: 'List Remote',
   noBackups: 'There are no backups!',
   restoreBackupsInfo: 'Click on a VM to display restore options',
   restoreDeltaBackupsInfo: 'Only the files of Delta Backup which are not on a SMB remote can be restored',
