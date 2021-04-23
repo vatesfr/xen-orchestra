@@ -65,7 +65,6 @@ const Console = withState<State, Props, Effects, Computed, ParentState, ParentEf
   },
   ({ scale, state }) => {
     return <div ref={state.container} style={{ margin: 'auto', height: `${scale}%`, width: `${scale}%` }} />
-
   }
 )
 

@@ -6,17 +6,13 @@ import Console from '../components/Console'
 import RangeInput from '../components/RangeInput'
 import { ObjectsByType, Vm } from '../libs/xapi'
 
-interface ParentState {}
-
-interface State {
-  consoleScale: number
-}
-
 interface ParentState {
   objectsByType: ObjectsByType
 }
 
-interface State {}
+interface State {
+  consoleScale: number
+}
 
 interface Props {
   vmId: string
