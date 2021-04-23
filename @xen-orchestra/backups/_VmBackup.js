@@ -322,6 +322,7 @@ exports.VmBackup = class VmBackup {
     this._fullVdisRequired = fullVdisRequired
   }
 
+  run = defer(this.run)
   async run($defer) {
     const settings = this._settings
     assert(
@@ -369,6 +370,3 @@ exports.VmBackup = class VmBackup {
     }
   }
 }
-
-const { prototype } = exports.VmBackup
-prototype.run = defer(prototype.run)
