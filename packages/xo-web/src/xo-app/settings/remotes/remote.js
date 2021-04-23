@@ -338,10 +338,10 @@ export default decorate([
           )}
           {type === 's3' && (
             <fieldset className='form-group form-group'>
-              <div className='input-group '>
+              <div className='input-group form-group'>
                 <span className='input-group-addon'>
                   <Tooltip content={formatMessage(messages.remoteS3TooltipProtocol)}>
-                    <Toggle onChange={effects.setInsecure} value={protocol === 'http'} />
+                    <Toggle iconSize={1} onChange={effects.setInsecure} value={protocol === 'http'} />
                   </Tooltip>
                 </span>
                 <input
@@ -355,18 +355,18 @@ export default decorate([
                   value={host}
                 />
               </div>
-              <div className='input-group '>
+              <div className='input-group form-group'>
                 <input
                   className='form-control'
                   name='region'
                   onChange={effects.linkState}
-                  pattern='[a-z0-9-]'
+                  pattern='[a-z0-9-]+'
                   placeholder={formatMessage(messages.remoteS3Region)}
                   type='text'
                   value={region}
                 />
               </div>
-              <div className='input-group '>
+              <div className='input-group form-group'>
                 <input
                   className='form-control'
                   name='bucket'
@@ -391,7 +391,7 @@ export default decorate([
                   value={directory}
                 />
               </div>
-              <div className='input-group'>
+              <div className='input-group form-group'>
                 <input
                   className='form-control'
                   name='username'
@@ -402,7 +402,7 @@ export default decorate([
                   value={username}
                 />
               </div>
-              <div className='input-group'>
+              <div className='input-group form-group'>
                 <input
                   className='form-control'
                   name='password'
