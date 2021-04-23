@@ -25,5 +25,6 @@ example.js.map
 
 __snapshots__/
 
+/docs/
 /src/
 /USAGE.md
