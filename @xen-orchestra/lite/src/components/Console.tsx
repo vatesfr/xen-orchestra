@@ -15,6 +15,7 @@ interface State {
 
 interface Props {
   vmId: string
+  scale: number
 }
 
 interface ParentEffects {}
@@ -49,14 +50,16 @@ const Console = withState<State, Props, Effects, Computed, ParentState, ParentEf
         url.protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
         url.searchParams.set('session_id', xapi.sessionId)
 
-        // eslint-disable-next-line no-new
-        new RFB(this.state.container.current, url, {
+        const rfb = new RFB(this.state.container.current, url, {
           wsProtocols: ['binary'],
         })
+        rfb.scaleViewport = true
       },
     },
   },
-  ({ state }) => <div ref={state.container} />
+  ({ scale, state }) => (
+    <div ref={state.container} style={{ margin: 'auto', height: `${scale}%`, width: `${scale}%` }} />
+  )
 )
 
 export default Console
