@@ -203,13 +203,12 @@ const PIF_COLUMNS = [
     sortCriteria: 'device',
   },
   {
-    itemRenderer: (pif, userData) =>
-      get(() => (
-        <span>
-          {userData.networks[pif.$network].name_label}
-          {pif.management ? <span className='tag tag-pill tag-info'>{_('networkManagement')}</span> : ''}
-        </span>
-      )),
+    itemRenderer: (pif, userData) => (
+      <span>
+        {get(() => userData.networks[pif.$network].name_label)}
+        {pif.management ? <span className='tag tag-pill tag-info'>{_('networkManagement')}</span> : ''}
+      </span>
+    ),
     name: _('pifNetworkLabel'),
     sortCriteria: (pif, userData) => get(() => userData.networks[pif.$network].name_label),
   },
