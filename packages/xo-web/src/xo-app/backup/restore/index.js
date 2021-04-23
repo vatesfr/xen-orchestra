@@ -15,8 +15,6 @@ import { deleteBackups, listVmBackups, restoreBackup, subscribeBackupNgJobs, sub
 import RestoreBackupsModalBody, { RestoreBackupsBulkModalBody } from './restore-backups-modal-body'
 import DeleteBackupsModalBody from './delete-backups-modal-body'
 
-import RestoreLegacy from '../restore-legacy'
-
 import Logs from '../../logs/restore'
 
 export RestoreMetadata from './metadata'
@@ -261,9 +259,7 @@ export default class Restore extends Component {
   render() {
     return (
       <div>
-        <RestoreLegacy />
-        <div className='mt-1 mb-1'>
-          <h3>{_('restore')}</h3>
+        <div className='mb-1'>
           <ActionButton btnStyle='primary' handler={this._refreshBackupList} icon='refresh'>
             {_('refreshBackupList')}
           </ActionButton>{' '}

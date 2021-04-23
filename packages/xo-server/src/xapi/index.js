@@ -22,7 +22,6 @@ import { filter, find, flatMap, flatten, groupBy, identity, includes, isEmpty, n
 import { Ref } from 'xen-api'
 import { satisfies as versionSatisfies } from 'semver'
 
-import createSizeStream from '../size-stream.js'
 import ensureArray from '../_ensureArray.js'
 import fatfsBuffer, { init as fatfsBufferInit } from '../fatfs-buffer.js'
 import { asyncMapValues } from '../_asyncMapValues.js'
@@ -398,32 +397,30 @@ export default class Xapi extends XapiBase {
     return /* await */ this._getOrWaitObject(cloneRef)
   }
 
-  async copyVm(vmId, srId, { nameLabel = undefined } = {}) {
-    return /* await */ this._getOrWaitObject(await this._copyVm(this.getObject(vmId), nameLabel, this.getObject(srId)))
+  async copyVm(vmId, { nameLabel = undefined, srOrSrId = undefined } = {}) {
+    return /* await */ this._getOrWaitObject(
+      await this._copyVm(this.getObject(vmId), nameLabel, srOrSrId !== undefined ? this.getObject(srOrSrId) : undefined)
+    )
   }
 
   async remoteCopyVm(vmId, targetXapi, targetSrId, { compress, nameLabel = undefined } = {}) {
     // Fall back on local copy if possible.
     if (targetXapi === this) {
       return {
-        vm: await this.copyVm(vmId, targetSrId, { nameLabel }),
+        vm: await this.copyVm(vmId, { nameLabel, srOrSrId: targetSrId }),
       }
     }
 
     const sr = targetXapi.getObject(targetSrId)
-    let stream = await this.exportVm(vmId, {
+    const stream = await this.exportVm(vmId, {
       compress,
     })
-
-    const sizeStream = createSizeStream()
-    stream = stream.pipe(sizeStream)
 
     const onVmCreation = nameLabel !== undefined ? vm => vm.set_name_label(nameLabel) : null
 
     const vm = await targetXapi._getOrWaitObject(await targetXapi._importVm(stream, sr, onVmCreation))
 
     return {
-      size: sizeStream.size,
       vm,
     }
   }
