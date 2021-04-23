@@ -5,4 +5,6 @@ exports.AbstractWriter = class AbstractWriter {
   }
 
   beforeBackup() {}
+
+  afterBackup() {}
 }
