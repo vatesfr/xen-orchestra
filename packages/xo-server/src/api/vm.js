@@ -1,8 +1,8 @@
 import * as multiparty from 'multiparty'
-import asyncMapSettled from '@xen-orchestra/async-map/legacy'
-import defer from 'golike-defer'
+import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
 import getStream from 'get-stream'
 import { createLogger } from '@xen-orchestra/log'
+import { defer } from 'golike-defer'
 import { FAIL_ON_QUEUE } from 'limit-concurrency-decorator'
 import { format } from 'json-rpc-peer'
 import { ignoreErrors } from 'promise-toolbox'
@@ -13,9 +13,9 @@ import {
   noSuchObject,
   operationFailed,
   unauthorized,
-} from 'xo-common/api-errors'
+} from 'xo-common/api-errors.js'
 
-import { forEach, map, mapFilter, parseSize, safeDateFormat } from '../utils'
+import { forEach, map, mapFilter, parseSize, safeDateFormat } from '../utils.js'
 
 const log = createLogger('xo:vm')
 

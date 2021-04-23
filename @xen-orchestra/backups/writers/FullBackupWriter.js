@@ -1,20 +1,20 @@
-const { formatFilenameDate } = require('./_filenameDate')
-const { getOldEntries } = require('./_getOldEntries')
-const { getVmBackupDir } = require('./_getVmBackupDir')
-const { isValidXva } = require('./isValidXva')
-const { Task } = require('./Task')
+const { formatFilenameDate } = require('../_filenameDate.js')
+const { getOldEntries } = require('../_getOldEntries.js')
+const { getVmBackupDir } = require('../_getVmBackupDir.js')
+const { Task } = require('../Task.js')
 
-exports.FullBackupWriter = class FullBackupWriter {
-  constructor(backup, remoteId, settings) {
-    this._backup = backup
-    this._remoteId = remoteId
-    this._settings = settings
+const { MixinBackupWriter } = require('./_MixinBackupWriter.js')
+const { AbstractFullWriter } = require('./_AbstractFullWriter.js')
+
+exports.FullBackupWriter = class FullBackupWriter extends MixinBackupWriter(AbstractFullWriter) {
+  constructor(props) {
+    super(props)
 
     this.run = Task.wrapFn(
       {
         name: 'export',
         data: {
-          id: remoteId,
+          id: props.remoteId,
           type: 'remote',
 
           // necessary?
@@ -27,12 +27,11 @@ exports.FullBackupWriter = class FullBackupWriter {
 
   async run({ timestamp, sizeContainer, stream }) {
     const backup = this._backup
-    const remoteId = this._remoteId
     const settings = this._settings
 
     const { job, scheduleId, vm } = backup
 
-    const adapter = backup.remoteAdapters[remoteId]
+    const adapter = this._adapter
     const handler = adapter.handler
     const backupDir = getVmBackupDir(vm.uuid)
 
@@ -68,11 +67,7 @@ exports.FullBackupWriter = class FullBackupWriter {
 
     await Task.run({ name: 'transfer' }, async () => {
       await adapter.outputStream(dataFilename, stream, {
-        validator: tmpPath => {
-          if (handler._getFilePath !== undefined) {
-            return isValidXva(handler._getFilePath('/' + tmpPath))
-          }
-        },
+        validator: tmpPath => adapter.isValidXva(tmpPath),
       })
       return { size: sizeContainer.size }
     })

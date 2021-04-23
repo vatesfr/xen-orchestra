@@ -1,10 +1,10 @@
-import asyncMapSettled from '@xen-orchestra/async-map/legacy'
+import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
 import { createPredicate } from 'value-matcher'
 import { timeout } from 'promise-toolbox'
 import { filter, isEmpty, map, mapValues } from 'lodash'
 
-import { crossProduct } from '../../math'
-import { serializeError, thunkToArray } from '../../utils'
+import { crossProduct } from '../../math.js'
+import { serializeError, thunkToArray } from '../../utils.js'
 
 // ===================================================================
 

@@ -1,7 +1,7 @@
 import ms from 'ms'
 import { forEach, isEmpty, iteratee, sortedIndexBy } from 'lodash'
 
-import { debounceWithKey } from '../_pDebounceWithKey'
+import { debounceWithKey } from '../_pDebounceWithKey.js'
 
 const isSkippedError = error =>
   error != null &&
@@ -67,7 +67,7 @@ const taskTimeComparator = ({ start: s1, end: e1 }, { start: s2, end: e2 }) => {
 // }
 export default {
   getBackupNgLogs: debounceWithKey(
-    async function getBackupNgLogs(runId?: string) {
+    async function getBackupNgLogs(runId) {
       const [jobLogs, restoreLogs, restoreMetadataLogs] = await Promise.all([
         this.getLogs('jobs'),
         this.getLogs('restore'),

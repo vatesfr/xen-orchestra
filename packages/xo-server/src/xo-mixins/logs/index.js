@@ -1,6 +1,6 @@
 import { defer, fromEvent } from 'promise-toolbox'
 
-import LevelDbLogger from './loggers/leveldb'
+import LevelDbLogger from './loggers/leveldb.js'
 
 export default class Logs {
   constructor(app) {

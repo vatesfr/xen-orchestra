@@ -2,7 +2,7 @@
 
 import { filter, find } from 'lodash'
 
-import { IPV4_CONFIG_MODES, IPV6_CONFIG_MODES } from '../xapi'
+import { IPV4_CONFIG_MODES, IPV6_CONFIG_MODES } from '../xapi/index.js'
 
 export function getIpv4ConfigurationModes() {
   return IPV4_CONFIG_MODES

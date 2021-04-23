@@ -1,4 +1,4 @@
-import xapiObjectToXo from '../xapi-object-to-xo'
+import xapiObjectToXo from '../xapi-object-to-xo.js'
 
 export function getBondModes() {
   return ['balance-slb', 'active-backup', 'lacp']

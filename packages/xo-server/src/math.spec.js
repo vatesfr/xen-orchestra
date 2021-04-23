@@ -1,8 +1,8 @@
 /* eslint-env jest */
 
 import { forEach } from 'lodash'
-import { thunkToArray } from './utils'
-import { crossProduct, mergeObjects } from './math'
+import { thunkToArray } from './utils.js'
+import { crossProduct, mergeObjects } from './math.js'
 
 describe('mergeObjects', function () {
   forEach(

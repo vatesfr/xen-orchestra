@@ -1,6 +1,6 @@
 import { MultiKeyMap } from '@vates/multi-key-map'
 
-import ensureArray from './_ensureArray'
+import ensureArray from './_ensureArray.js'
 
 function removeCacheEntry(cache, keys) {
   cache.delete(keys)

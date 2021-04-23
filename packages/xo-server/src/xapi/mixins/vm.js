@@ -1,11 +1,12 @@
-import deferrable from 'golike-defer'
+import { decorateWith } from '@vates/decorate-with'
+import { defer as deferrable } from 'golike-defer'
 import { find, gte, includes, isEmpty, lte, map as mapToArray, mapValues, noop } from 'lodash'
 import { cancelable, ignoreErrors, pCatch } from 'promise-toolbox'
 import { Ref } from 'xen-api'
 
-import { forEach, parseSize } from '../../utils'
+import { forEach, parseSize } from '../../utils.js'
 
-import { extractOpaqueRef, isVmHvm, isVmRunning, makeEditObject } from '../utils'
+import { extractOpaqueRef, isVmHvm, isVmRunning, makeEditObject } from '../utils.js'
 
 // According to: https://xenserver.org/blog/entry/vga-over-cirrus-in-xenserver-6-2.html.
 const XEN_VGA_VALUES = ['std', 'cirrus']
@@ -36,7 +37,7 @@ export default {
   },
 
   // TODO: clean up on error.
-  @deferrable
+  @decorateWith(deferrable)
   async createVm(
     $defer,
     templateId,

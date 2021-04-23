@@ -1,5 +1,5 @@
-import Collection from '../collection/redis'
-import Model from '../model'
+import Collection from '../collection/redis.js'
+import Model from '../model.js'
 
 // ===================================================================
 

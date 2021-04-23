@@ -1,7 +1,6 @@
 import assert from 'assert'
 import contentType from 'content-type'
 import cookie from 'cookie'
-import defer from 'golike-defer'
 import hrp from 'http-request-plus'
 import parseSetCookie from 'set-cookie-parser'
 import pumpify from 'pumpify'
@@ -9,18 +8,20 @@ import split2 from 'split2'
 import synchronized from 'decorator-synchronized'
 import { compileTemplate } from '@xen-orchestra/template'
 import { createLogger } from '@xen-orchestra/log'
+import { decorateWith } from '@vates/decorate-with'
+import { defer } from 'golike-defer'
 import { format, parse } from 'json-rpc-peer'
-import { incorrectState, noSuchObject } from 'xo-common/api-errors'
+import { incorrectState, noSuchObject } from 'xo-common/api-errors.js'
 import { isEmpty, mapValues, some, omit } from 'lodash'
 import { parseDuration } from '@vates/parse-duration'
 import { readChunk } from '@vates/read-chunk'
 import { Ref } from 'xen-api'
 import { timeout } from 'promise-toolbox'
 
-import Collection from '../collection/redis'
-import patch from '../patch'
-import { extractIpFromVmNetworks } from '../_extractIpFromVmNetworks'
-import { generateToken } from '../utils'
+import Collection from '../collection/redis.js'
+import patch from '../patch.js'
+import { extractIpFromVmNetworks } from '../_extractIpFromVmNetworks.js'
+import { generateToken } from '../utils.js'
 
 const extractProperties = _ => _.properties
 const omitToken = proxy => omit(proxy, 'authenticationToken')
@@ -191,7 +192,7 @@ export default class Proxy {
     return this.callProxyMethod(id, 'appliance.updater.getState')
   }
 
-  @defer
+  @decorateWith(defer)
   async _createProxyVm($defer, srId, licenseId, { httpProxy, networkId, networkConfiguration }) {
     const app = this._app
     const xoProxyConf = app.config.get('xo-proxy')

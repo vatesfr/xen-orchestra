@@ -1,5 +1,4 @@
 const CancelToken = require('promise-toolbox/CancelToken')
-const defer = require('golike-defer').default
 const groupBy = require('lodash/groupBy')
 const pickBy = require('lodash/pickBy')
 const ignoreErrors = require('promise-toolbox/ignoreErrors')
@@ -8,6 +7,8 @@ const pCatch = require('promise-toolbox/catch')
 const pRetry = require('promise-toolbox/retry')
 const { asyncMap } = require('@xen-orchestra/async-map')
 const { createLogger } = require('@xen-orchestra/log')
+const { decorateWith } = require('@vates/decorate-with')
+const { defer } = require('golike-defer')
 const { incorrectState } = require('xo-common/api-errors')
 const { Ref } = require('xen-api')
 
@@ -139,7 +140,7 @@ module.exports = class Vm {
     }
   }
 
-  @defer
+  @decorateWith(defer)
   async create(
     $defer,
     {
@@ -323,10 +324,18 @@ module.exports = class Vm {
     await this.call('VM.destroy', vmRef)
 
     return Promise.all([
-      ignoreErrors.call(asyncMap(vm.snapshots, _ => this.VM_destroy(_))),
+      asyncMap(vm.snapshots, snapshotRef =>
+        this.VM_destroy(snapshotRef).catch(error => {
+          warn('VM_destroy: failed to destroy snapshot', {
+            error,
+            snapshotRef,
+            vmRef,
+          })
+        })
+      ),
       deleteDisks &&
-        ignoreErrors.call(
-          asyncMap(disks, async vdiRef => {
+        asyncMap(disks, async vdiRef => {
+          try {
             // Dont destroy if attached to other (non control domain) VMs
             for (const vbdRef of await this.getField('VDI', vdiRef, 'VBDs')) {
               const vmRef2 = await this.getField('VBD', vbdRef, 'VM')
@@ -336,12 +345,18 @@ module.exports = class Vm {
             }
 
             await this.VDI_destroy(vdiRef)
-          })
-        ),
+          } catch (error) {
+            warn('VM_destroy: failed to destroy VDI', {
+              error,
+              vdiRef,
+              vmRef,
+            })
+          }
+        }),
     ])
   }
 
-  @defer
+  @decorateWith(defer)
   async export($defer, vmRef, { cancelToken = CancelToken.none, compress = false, useSnapshot } = {}) {
     const vm = await this.getRecord('VM', vmRef)
     const taskRef = await this.task_create('VM export', vm.name_label)
@@ -352,7 +367,14 @@ module.exports = class Vm {
     let exportedVmRef, destroySnapshot
     if (useSnapshot) {
       exportedVmRef = await this.VM_snapshot(vmRef, { cancelToken, name_label: `[XO Export] ${vm.name_label}` })
-      destroySnapshot = () => ignoreErrors.call(this.VM_destroy(exportedVmRef))
+      destroySnapshot = () =>
+        this.VM_destroy(exportedVmRef).catch(error => {
+          warn('VM_export: failed to destroy snapshots', {
+            error,
+            snapshotRef: exportedVmRef,
+            vmRef,
+          })
+        })
       $defer.onFailure(destroySnapshot)
     } else {
       exportedVmRef = vmRef
@@ -427,7 +449,7 @@ module.exports = class Vm {
     }
   }
 
-  @defer
+  @decorateWith(defer)
   async snapshot($defer, vmRef, { cancelToken = CancelToken.none, name_label } = {}) {
     const vm = await this.getRecord('VM', vmRef)
     // cannot unplug VBDs on Running, Paused and Suspended VMs
@@ -475,7 +497,14 @@ module.exports = class Vm {
                 ).filter(_ => _.name_label.startsWith(snapshotNameLabelPrefix))
                 // be safe: only delete if there was a single match
                 if (createdSnapshots.length === 1) {
-                  ignoreErrors.call(this.VM_destroy(createdSnapshots[0]))
+                  const snapshotRef = createdSnapshots[0]
+                  this.VM_destroy(snapshotRef).catch(error => {
+                    warn('VM_sapshot: failed to destroy broken snapshot', {
+                      error,
+                      snapshotRef,
+                      vmRef,
+                    })
+                  })
                 }
                 throw error
               }
@@ -485,7 +514,13 @@ module.exports = class Vm {
               tries: 3,
             }
           ).then(extractOpaqueRef)
-          ignoreErrors.call(this.call('VM.add_tags', ref, 'quiesce'))
+          this.call('VM.add_tags', ref, 'quiesce').catch(error => {
+            warn('VM_snapshot: failed to add quiesce tag', {
+              vmRef,
+              snapshotRef: ref,
+              error,
+            })
+          })
           break
         } catch (error) {
           const { code } = error

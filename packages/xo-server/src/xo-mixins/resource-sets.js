@@ -1,10 +1,11 @@
-import asyncMapSettled from '@xen-orchestra/async-map/legacy'
-import deferrable from 'golike-defer'
+import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
 import synchronized from 'decorator-synchronized'
+import { decorateWith } from '@vates/decorate-with'
+import { defer as deferrable } from 'golike-defer'
 import { difference, every, forEach, isObject, keyBy, map as mapToArray, remove, some } from 'lodash'
-import { noSuchObject, notEnoughResources, unauthorized } from 'xo-common/api-errors'
+import { noSuchObject, notEnoughResources, unauthorized } from 'xo-common/api-errors.js'
 
-import { generateUnsecureToken, lightSet, map, streamToArray } from '../utils'
+import { generateUnsecureToken, lightSet, map, streamToArray } from '../utils.js'
 
 // ===================================================================
 
@@ -155,7 +156,7 @@ export default class {
     throw noSuchObject(id, 'resourceSet')
   }
 
-  @deferrable
+  @decorateWith(deferrable)
   async updateResourceSet(
     $defer,
     id,
@@ -374,7 +375,7 @@ export default class {
     await Promise.all(mapToArray(sets, set => this._save(set)))
   }
 
-  @deferrable
+  @decorateWith(deferrable)
   async setVmResourceSet($defer, vmId, resourceSetId, force = false) {
     const xapi = this._app.getXapi(vmId)
     const previousResourceSetId = xapi.xo.getData(vmId, 'resourceSet')

@@ -1,5 +1,5 @@
-const cancelable = require('promise-toolbox/cancelable')
-const CancelToken = require('promise-toolbox/CancelToken')
+const cancelable = require('promise-toolbox/cancelable.js')
+const CancelToken = require('promise-toolbox/CancelToken.js')
 
 // Similar to `Promise.all` + `map` but pass a cancel token to the callback
 //
