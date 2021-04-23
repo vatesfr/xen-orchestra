@@ -1,16 +1,16 @@
-import asyncMapSettled from '@xen-orchestra/async-map/legacy'
-import cloneDeep from 'lodash/cloneDeep'
-import Disposable from 'promise-toolbox/Disposable'
-import { Backup } from '@xen-orchestra/backups/Backup'
+import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
+import cloneDeep from 'lodash/cloneDeep.js'
+import Disposable from 'promise-toolbox/Disposable.js'
+import { Backup } from '@xen-orchestra/backups/Backup.js'
 import { createLogger } from '@xen-orchestra/log'
-import { parseMetadataBackupId } from '@xen-orchestra/backups/parseMetadataBackupId'
-import { RestoreMetadataBackup } from '@xen-orchestra/backups/RestoreMetadataBackup'
-import { Task } from '@xen-orchestra/backups/Task'
+import { parseMetadataBackupId } from '@xen-orchestra/backups/parseMetadataBackupId.js'
+import { RestoreMetadataBackup } from '@xen-orchestra/backups/RestoreMetadataBackup.js'
+import { Task } from '@xen-orchestra/backups/Task.js'
 
-import { debounceWithKey, REMOVE_CACHE_ENTRY } from '../_pDebounceWithKey'
-import { handleBackupLog } from '../_handleBackupLog'
-import { waitAll } from '../_waitAll'
-import { serializeError, unboxIdsFromPattern } from '../utils'
+import { debounceWithKey, REMOVE_CACHE_ENTRY } from '../_pDebounceWithKey.js'
+import { handleBackupLog } from '../_handleBackupLog.js'
+import { waitAll } from '../_waitAll.js'
+import { serializeError, unboxIdsFromPattern } from '../utils.js'
 
 const log = createLogger('xo:xo-mixins:metadata-backups')
 

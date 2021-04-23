@@ -1,9 +1,9 @@
-import Disposable from 'promise-toolbox/Disposable'
+import Disposable from 'promise-toolbox/Disposable.js'
 
 import { compose } from '@vates/compose'
 import { decorateWith } from '@vates/decorate-with'
-import { deduped } from '@vates/disposable/deduped'
-import { RemoteAdapter } from '@xen-orchestra/backups/RemoteAdapter'
+import { deduped } from '@vates/disposable/deduped.js'
+import { RemoteAdapter } from '@xen-orchestra/backups/RemoteAdapter.js'
 
 export default class BackupsRemoteAdapter {
   constructor(app) {

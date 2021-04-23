@@ -1,7 +1,7 @@
-import { noSuchObject } from 'xo-common/api-errors'
+import { noSuchObject } from 'xo-common/api-errors.js'
 
-import Collection from '../collection/redis'
-import patch from '../patch'
+import Collection from '../collection/redis.js'
+import patch from '../patch.js'
 
 class CloudConfigs extends Collection {
   get(properties) {

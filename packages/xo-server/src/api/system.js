@@ -1,8 +1,8 @@
-import forEach from 'lodash/forEach'
-import getKeys from 'lodash/keys'
+import forEach from 'lodash/forEach.js'
+import getKeys from 'lodash/keys.js'
 import moment from 'moment-timezone'
 
-import { noSuchObject } from 'xo-common/api-errors'
+import { noSuchObject } from 'xo-common/api-errors.js'
 import { version as xoServerVersion } from '../../package.json'
 
 // ===================================================================

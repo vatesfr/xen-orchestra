@@ -5,6 +5,7 @@ const sortedObject = require('sorted-object')
 const { dirname, relative } = require('path')
 const { getPackages, noop, readFile, symlink, writeFile, unlink } = require('./utils')
 
+const BABEL_ESLINTRC_PATH = `${__dirname}/babel-eslintrc.js`
 const NPMIGNORE_PATH = `${__dirname}/npmignore`
 
 const deleteIfEmpty = (object, property) => {
@@ -64,6 +65,7 @@ require('exec-promise')(() =>
       ...pkg.engines,
     }
 
+    delete pkg.files
     delete pkg.husky
     delete pkg.standard
     delete pkg['lint-staged']
@@ -134,9 +136,11 @@ require('exec-promise')(() =>
             console.error('Error while handling README', error)
           }
         }),
+      pkg.devDependencies?.['@babel/core'] !== undefined
+        ? forceRelativeSymlink(BABEL_ESLINTRC_PATH, `${dir}/.eslintrc.js`)
+        : unlink(`${dir}/.eslintrc.js`),
       writeFile(`${dir}/package.json`, JSON.stringify(pkg, null, 2) + '\n'),
       unlink(`${dir}/.editorconfig`),
-      unlink(`${dir}/.eslintrc.js`),
       unlink(`${dir}/.flowconfig`),
       unlink(`${dir}/.gitignore`),
       unlink(`${dir}/.jshintrc`),

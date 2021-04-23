@@ -1,4 +1,4 @@
-const CancelToken = require('promise-toolbox/CancelToken')
+const CancelToken = require('promise-toolbox/CancelToken.js')
 const Zone = require('node-zone')
 
 const logAfterEnd = () => {

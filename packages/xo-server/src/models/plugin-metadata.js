@@ -1,7 +1,7 @@
-import Collection from '../collection/redis'
-import Model from '../model'
+import Collection from '../collection/redis.js'
+import Model from '../model.js'
 import { createLogger } from '@xen-orchestra/log'
-import { forEach } from '../utils'
+import { forEach } from '../utils.js'
 
 const log = createLogger('xo:plugin-metadata')
 

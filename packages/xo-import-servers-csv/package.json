@@ -30,9 +30,6 @@
     "xo-import-servers-csv": "dist/index.js"
   },
   "preferGlobal": true,
-  "files": [
-    "dist/"
-  ],
   "engines": {
     "node": ">=10"
   },

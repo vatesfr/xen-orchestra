@@ -1,4 +1,4 @@
-const fromCallback = require('promise-toolbox/fromCallback')
+const fromCallback = require('promise-toolbox/fromCallback.js')
 const { createLogger } = require('@xen-orchestra/log')
 const { createParser } = require('parse-pairs')
 const { execFile } = require('child_process')

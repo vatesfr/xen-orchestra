@@ -1,22 +1,20 @@
-import asyncMapSettled from '@xen-orchestra/async-map/legacy'
-import Disposable from 'promise-toolbox/Disposable'
-import { Backup } from '@xen-orchestra/backups/Backup'
+import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
+import Disposable from 'promise-toolbox/Disposable.js'
+import { Backup } from '@xen-orchestra/backups/Backup.js'
 import { createLogger } from '@xen-orchestra/log'
 import { createPredicate } from 'value-matcher'
 import { decorateWith } from '@vates/decorate-with'
-import { formatVmBackups } from '@xen-orchestra/backups/formatVmBackups'
+import { formatVmBackups } from '@xen-orchestra/backups/formatVmBackups.js'
 import { forOwn, merge } from 'lodash'
-import { ImportVmBackup } from '@xen-orchestra/backups/ImportVmBackup'
-import { invalidParameters } from 'xo-common/api-errors'
-import { runBackupWorker } from '@xen-orchestra/backups/runBackupWorker'
-import { Task } from '@xen-orchestra/backups/Task'
+import { ImportVmBackup } from '@xen-orchestra/backups/ImportVmBackup.js'
+import { invalidParameters } from 'xo-common/api-errors.js'
+import { runBackupWorker } from '@xen-orchestra/backups/runBackupWorker.js'
+import { Task } from '@xen-orchestra/backups/Task.js'
 
-import { debounceWithKey, REMOVE_CACHE_ENTRY } from '../../_pDebounceWithKey'
-import { handleBackupLog } from '../../_handleBackupLog'
-import { unboxIdsFromPattern } from '../../utils'
-import { waitAll } from '../../_waitAll'
-
-import { translateLegacyJob } from './migration'
+import { debounceWithKey, REMOVE_CACHE_ENTRY } from '../../_pDebounceWithKey.js'
+import { handleBackupLog } from '../../_handleBackupLog.js'
+import { unboxIdsFromPattern } from '../../utils.js'
+import { waitAll } from '../../_waitAll.js'
 
 const log = createLogger('xo:xo-mixins:backups-ng')
 
@@ -518,10 +516,5 @@ export default class BackupNg {
     )
 
     return backupsByVmByRemote
-  }
-
-  async migrateLegacyBackupJob(jobId) {
-    const [job, schedules] = await Promise.all([this._app.getJob(jobId, 'call'), this._app.getAllSchedules()])
-    await this._app.updateJob(translateLegacyJob(job, schedules), false)
   }
 }

@@ -3,7 +3,7 @@
 import { createReadStream, readFile } from 'fs'
 import { fromCallback } from 'promise-toolbox'
 
-import streamToExistingBuffer from './stream-to-existing-buffer'
+import streamToExistingBuffer from './stream-to-existing-buffer.js'
 
 describe('streamToExistingBuffer()', () => {
   it('read the content of a stream in a buffer', async () => {

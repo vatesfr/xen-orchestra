@@ -27,9 +27,6 @@
   "bin": {
     "xo-server-auth-ldap": "dist/test-cli.js"
   },
-  "files": [
-    "dist/"
-  ],
   "engines": {
     "node": ">=10"
   },

@@ -31,9 +31,6 @@
   "engines": {
     "node": ">=6"
   },
-  "files": [
-    "index.js"
-  ],
   "bin": "./index.js",
   "scripts": {
     "postversion": "npm publish --access public"

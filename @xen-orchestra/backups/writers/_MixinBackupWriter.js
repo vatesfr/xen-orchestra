@@ -1,6 +1,6 @@
 const { createLogger } = require('@xen-orchestra/log')
 
-const { getVmBackupDir } = require('../_getVmBackupDir')
+const { getVmBackupDir } = require('../_getVmBackupDir.js')
 
 const { debug } = createLogger('xo:backups:MixinBackupWriter')
 

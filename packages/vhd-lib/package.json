@@ -12,9 +12,6 @@
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },
   "main": "dist/",
-  "files": [
-    "dist/"
-  ],
   "engines": {
     "node": ">=8.10"
   },

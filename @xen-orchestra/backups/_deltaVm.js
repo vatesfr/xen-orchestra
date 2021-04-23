@@ -1,14 +1,14 @@
 const compareVersions = require('compare-versions')
-const find = require('lodash/find')
-const groupBy = require('lodash/groupBy')
-const ignoreErrors = require('promise-toolbox/ignoreErrors')
-const omit = require('lodash/omit')
+const find = require('lodash/find.js')
+const groupBy = require('lodash/groupBy.js')
+const ignoreErrors = require('promise-toolbox/ignoreErrors.js')
+const omit = require('lodash/omit.js')
 const { asyncMap } = require('@xen-orchestra/async-map')
 const { CancelToken } = require('promise-toolbox')
 const { createVhdStreamWithLength } = require('vhd-lib')
 const { defer } = require('golike-defer')
 
-const { cancelableMap } = require('./_cancelableMap')
+const { cancelableMap } = require('./_cancelableMap.js')
 
 const TAG_BASE_DELTA = 'xo:base_delta'
 exports.TAG_BASE_DELTA = TAG_BASE_DELTA

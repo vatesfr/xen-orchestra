@@ -1,6 +1,6 @@
 import { deprecate } from 'util'
 
-import { getUserPublicProperties } from '../utils'
+import { getUserPublicProperties } from '../utils.js'
 
 // ===================================================================
 
