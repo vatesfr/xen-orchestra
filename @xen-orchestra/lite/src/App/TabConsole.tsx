@@ -54,7 +54,7 @@ const TabConsole = withState<State, Props, Effects, Computed, ParentState, Paren
       vm: (state, { vmId }) => state.objectsByType.get('VM')?.get(vmId) as Vm,
     },
   },
-  ({ state, effects, vmId }) => (
+  ({ effects, state, vmId }) => (
     <div style={{ height: '100vh' }}>
       {state.vm.power_state !== 'Running' ? (
         <p>
@@ -63,7 +63,7 @@ const TabConsole = withState<State, Props, Effects, Computed, ParentState, Paren
       ) : (
         <>
           <RangeInput max={100} min={1} onChange={effects.scaleConsole} step={1} value={state.consoleScale} />
-          <Console vmId={vmId} scale={state.consoleScale} />
+          <Console scale={state.consoleScale} vmId={vmId} />
         </>
       )}
     </div>

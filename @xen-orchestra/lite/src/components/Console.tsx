@@ -14,8 +14,8 @@ interface State {
 }
 
 interface Props {
-  vmId: string
   scale: number
+  vmId: string
 }
 
 interface ParentEffects {}
