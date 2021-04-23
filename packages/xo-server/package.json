@@ -18,13 +18,6 @@
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },
   "preferGlobal": true,
-  "files": [
-    "bin/",
-    "dist/",
-    "config.toml",
-    "index.js",
-    "signin.pug"
-  ],
   "directories": {
     "bin": "bin"
   },

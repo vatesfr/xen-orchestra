@@ -17,11 +17,6 @@
   },
   "preferGlobal": false,
   "main": "dist/",
-  "files": [
-    "configure.js",
-    "dist/",
-    "transports/"
-  ],
   "browserslist": [
     ">2%"
   ],

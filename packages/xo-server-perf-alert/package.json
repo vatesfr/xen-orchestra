@@ -12,9 +12,6 @@
   },
   "preferGlobal": true,
   "main": "dist/",
-  "files": [
-    "dist/"
-  ],
   "engines": {
     "node": ">=6"
   },

@@ -65,6 +65,7 @@ require('exec-promise')(() =>
       ...pkg.engines,
     }
 
+    delete pkg.files
     delete pkg.husky
     delete pkg.standard
     delete pkg['lint-staged']

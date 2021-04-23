@@ -16,9 +16,6 @@
     "url": "https://vates.fr"
   },
   "preferGlobal": false,
-  "files": [
-    "index.js"
-  ],
   "engines": {
     "node": ">=6"
   },

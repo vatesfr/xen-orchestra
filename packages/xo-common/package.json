@@ -16,10 +16,6 @@
     "url": "https://vates.fr"
   },
   "preferGlobal": false,
-  "files": [
-    "dist/",
-    "*.js"
-  ],
   "browserslist": [
     "> 1%"
   ],
