@@ -1160,6 +1160,14 @@ export const convertVmToTemplate = vm =>
     ),
   }).then(() => _call('vm.convert', { id: resolveId(vm) }), noop)
 
+export const copyToTemplate = async vm => {
+  await confirm({
+    title: _('copyToTemplate'),
+    body: <p>{_('copyToTemplateMessage')}</p>,
+  })
+  await _call('vm.copyToTemplate', { id: resolveId(vm) })
+}
+
 export const changeVirtualizationMode = vm =>
   confirm({
     title: _('vmVirtualizationModeModalTitle'),

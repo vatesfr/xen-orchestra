@@ -702,8 +702,9 @@ export async function copy({ compress, name: nameLabel, sr, vm }) {
     }
 
     return this.getXapi(vm)
-      .copyVm(vm._xapiId, sr._xapiId, {
+      .copyVm(vm._xapiId, {
         nameLabel,
+        srOrSrId: sr._xapiId,
       })
       .then(vm => vm.$id)
   }
@@ -753,6 +754,28 @@ convertToTemplate.resolve = {
 
 // TODO: remove when no longer used.
 export { convertToTemplate as convert }
+
+// -------------------------------------------------------------------
+
+export async function copyToTemplate({ vm }) {
+  const xapi = await this.getXapi(vm)
+  const clonedVm = await xapi.copyVm(vm._xapiId, {
+    nameLabel: vm.name_label,
+  })
+  try {
+    await clonedVm.set_is_a_template(true)
+  } catch (error) {
+    ignoreErrors.call(clonedVm.$destroy())
+    throw error
+  }
+}
+
+copyToTemplate.params = {
+  id: { type: 'string' },
+}
+copyToTemplate.resolve = {
+  vm: ['id', ['VM-snapshot'], 'administrate'],
+}
 
 // -------------------------------------------------------------------
 
