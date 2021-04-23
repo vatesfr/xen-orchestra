@@ -1,4 +1,5 @@
 {
   "connect": "Connect",
-  "consoleNotAvailable": "Console is only available for running VMs"
+  "consoleNotAvailable": "Console is only available for running VMs",
+  "reconnectionAttempt": "Reconnection attempt ..."
 }
