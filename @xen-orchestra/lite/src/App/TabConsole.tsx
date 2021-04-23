@@ -3,7 +3,6 @@ import { FormattedMessage } from 'react-intl'
 import { withState } from 'reaclette'
 
 import Console from '../components/Console'
-<<<<<<< HEAD
 import RangeInput from '../components/RangeInput'
 import { ObjectsByType, Vm } from '../libs/xapi'
 
@@ -13,10 +12,6 @@ interface State {
   consoleScale: number
 }
 
-=======
-import { ObjectsByType, Vm } from '../libs/xapi'
-
->>>>>>> love tabConsole to App/
 interface ParentState {
   objectsByType: ObjectsByType
 }
@@ -29,13 +24,9 @@ interface Props {
 
 interface ParentEffects {}
 
-<<<<<<< HEAD
 interface Effects {
   scaleConsole: React.ChangeEventHandler<HTMLInputElement>
 }
-=======
-interface Effects {}
->>>>>>> love tabConsole to App/
 
 interface Computed {
   vm: Vm
@@ -43,7 +34,6 @@ interface Computed {
 
 const TabConsole = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
   {
-<<<<<<< HEAD
     initialState: () => ({
       // Value in percent
       consoleScale: 100,
@@ -60,31 +50,21 @@ const TabConsole = withState<State, Props, Effects, Computed, ParentState, Paren
         window.dispatchEvent(new UIEvent('resize'))
       },
     },
-=======
->>>>>>> love tabConsole to App/
     computed: {
       vm: (state, { vmId }) => state.objectsByType.get('VM')?.get(vmId) as Vm,
     },
   },
-<<<<<<< HEAD
   ({ effects, state, vmId }) => (
-=======
-  ({ state, vmId }) => (
->>>>>>> love tabConsole to App/
     <div style={{ height: '100vh' }}>
       {state.vm.power_state !== 'Running' ? (
         <p>
           <FormattedMessage id='consoleNotAvailable' />
         </p>
       ) : (
-<<<<<<< HEAD
         <>
           <RangeInput max={100} min={1} onChange={effects.scaleConsole} step={1} value={state.consoleScale} />
           <Console scale={state.consoleScale} vmId={vmId} />
         </>
-=======
-        <Console vmId={vmId} />
->>>>>>> love tabConsole to App/
       )}
     </div>
   )
