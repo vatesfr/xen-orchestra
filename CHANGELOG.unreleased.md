@@ -16,6 +16,10 @@
 
 - [Backup] Don't unnecessarily snapshot the VM when using *offline backup* (PR [#5739](https://github.com/vatesfr/xen-orchestra/pull/5739))
 
+### Dropped features
+
+- [Backup] Remove legacy backup support (PR [#5718](https://github.com/vatesfr/xen-orchestra/pull/5718))
+
 ### Packages to release
 
 > Packages will be released in the order they are here, therefore, they should

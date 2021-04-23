@@ -5,36 +5,27 @@ import React from 'react'
 import { adminOnly } from 'utils'
 import { createPredicate } from 'value-matcher'
 import { injectState, provideState } from 'reaclette'
-import { filter, omit, some } from 'lodash'
-import { subscribeBackupNgJobs, subscribeJobs } from 'xo'
+import { filter, omit } from 'lodash'
+import { subscribeBackupNgJobs } from 'xo'
 
 import JobsTable from '../backup/overview/tab-jobs'
-
-const legacyJobKey = ['continuousReplication', 'deltaBackup', 'disasterRecovery', 'backup', 'rollingSnapshot']
 
 const BackupTab = decorate([
   adminOnly,
   addSubscriptions({
-    legacyJobs: subscribeJobs,
     jobs: subscribeBackupNgJobs,
   }),
   provideState({
     computed: {
-      haveLegacyBackups: (_, { legacyJobs }) => some(legacyJobs, job => legacyJobKey.includes(job.key)),
       jobIds: ({ predicate }, { jobs }) => filter(jobs, predicate).map(_ => _.id),
       predicate: (_, { vm }) => ({ vms }) => vms !== undefined && createPredicate(omit(vms, 'power_state'))(vm),
     },
   }),
   injectState,
-  ({ state: { haveLegacyBackups, jobIds, predicate } }) => {
+  ({ state: { jobIds, predicate } }) => {
     return (
       <div>
-        {haveLegacyBackups && (
-          <div className='alert alert-warning'>
-            <a href='#/backup'>{_('vmInLegacyBackup')}</a>
-          </div>
-        )}
-        <div className='mt-1'>
+        <div>
           <a href={`#/backup/overview?s=${encodeURIComponent(`id: |(${jobIds.join(' ')})`)}`}>{_('goToBackupPage')}</a>
         </div>
         <div className='mt-2'>
