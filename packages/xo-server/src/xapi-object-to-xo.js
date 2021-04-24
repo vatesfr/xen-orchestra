@@ -1,11 +1,11 @@
 import { isDefaultTemplate } from '@xen-orchestra/xapi'
 
-import * as sensitiveValues from './sensitive-values'
-import ensureArray from './_ensureArray'
-import { extractIpFromVmNetworks } from './_extractIpFromVmNetworks'
-import { extractProperty, forEach, isEmpty, mapFilter, parseXml } from './utils'
-import { getVmDomainType, isHostRunning, isVmRunning, parseDateTime } from './xapi'
-import { useUpdateSystem } from './xapi/utils'
+import * as sensitiveValues from './sensitive-values.js'
+import ensureArray from './_ensureArray.js'
+import { extractIpFromVmNetworks } from './_extractIpFromVmNetworks.js'
+import { extractProperty, forEach, isEmpty, mapFilter, parseXml } from './utils.js'
+import { getVmDomainType, isHostRunning, isVmRunning, parseDateTime } from './xapi/index.js'
+import { useUpdateSystem } from './xapi/utils.js'
 
 // ===================================================================
 

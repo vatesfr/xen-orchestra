@@ -1,12 +1,12 @@
-// import isFinite from 'lodash/isFinite'
-import camelCase from 'lodash/camelCase'
-import isEqual from 'lodash/isEqual'
-import isPlainObject from 'lodash/isPlainObject'
-import pickBy from 'lodash/pickBy'
+// import isFinite from 'lodash/isFinite.js'
+import camelCase from 'lodash/camelCase.js'
+import isEqual from 'lodash/isEqual.js'
+import isPlainObject from 'lodash/isPlainObject.js'
+import pickBy from 'lodash/pickBy.js'
 import { utcParse } from 'd3-time-format'
 import { satisfies as versionSatisfies } from 'semver'
 
-import { camelToSnakeCase, forEach, isInteger, map, mapFilter, noop } from '../utils'
+import { camelToSnakeCase, forEach, isInteger, map, mapFilter, noop } from '../utils.js'
 
 // ===================================================================
 

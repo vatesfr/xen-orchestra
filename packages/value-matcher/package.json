@@ -17,9 +17,6 @@
   },
   "preferGlobal": false,
   "main": "dist/",
-  "files": [
-    "dist/"
-  ],
   "browserslist": [
     ">2%"
   ],
@@ -30,7 +27,6 @@
     "@babel/cli": "^7.0.0",
     "@babel/core": "^7.0.0",
     "@babel/preset-env": "^7.0.0",
-    "@babel/preset-flow": "^7.0.0",
     "cross-env": "^7.0.2",
     "rimraf": "^3.0.0"
   },

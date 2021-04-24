@@ -18,10 +18,6 @@
   "engines": {
     "node": ">=7.10.1"
   },
-  "files": [
-    "commands",
-    "*.js"
-  ],
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/backups-cli",
   "name": "@xen-orchestra/backups-cli",
   "repository": {

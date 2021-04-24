@@ -1,8 +1,9 @@
 /* eslint-env jest */
-import defer from 'golike-defer'
 import Xo from 'xo-lib'
 import XoCollection from 'xo-collection'
+import { decorateWith } from '@vates/decorate-with'
 import { defaultsDeep, find, forOwn, iteratee, pick } from 'lodash'
+import { defer } from 'golike-defer'
 import { fromEvent } from 'promise-toolbox'
 import { parseDuration } from '@vates/parse-duration'
 
@@ -68,7 +69,7 @@ class XoConnection extends Xo {
     return this.waitObject(id)
   }
 
-  @defer
+  @decorateWith(defer)
   async connect($defer, credentials = pick(config.xoConnection, 'email', 'password')) {
     await this.open()
     $defer.onFailure(() => this.close())

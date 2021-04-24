@@ -1,20 +1,21 @@
-const findLast = require('lodash/findLast')
-const ignoreErrors = require('promise-toolbox/ignoreErrors')
-const keyBy = require('lodash/keyBy')
-const mapValues = require('lodash/mapValues')
+const assert = require('assert')
+const findLast = require('lodash/findLast.js')
+const ignoreErrors = require('promise-toolbox/ignoreErrors.js')
+const keyBy = require('lodash/keyBy.js')
+const mapValues = require('lodash/mapValues.js')
 const { asyncMap } = require('@xen-orchestra/async-map')
 const { createLogger } = require('@xen-orchestra/log')
 const { formatDateTime } = require('@xen-orchestra/xapi')
 
-const { ContinuousReplicationWriter } = require('./_ContinuousReplicationWriter')
-const { DeltaBackupWriter } = require('./_DeltaBackupWriter')
-const { DisasterRecoveryWriter } = require('./_DisasterRecoveryWriter')
-const { exportDeltaVm } = require('./_deltaVm')
-const { forkStreamUnpipe } = require('./_forkStreamUnpipe')
-const { FullBackupWriter } = require('./_FullBackupWriter')
-const { getOldEntries } = require('./_getOldEntries')
-const { Task } = require('./Task')
-const { watchStreamSize } = require('./_watchStreamSize')
+const { DeltaBackupWriter } = require('./writers/DeltaBackupWriter.js')
+const { DeltaReplicationWriter } = require('./writers/DeltaReplicationWriter.js')
+const { exportDeltaVm } = require('./_deltaVm.js')
+const { forkStreamUnpipe } = require('./_forkStreamUnpipe.js')
+const { FullBackupWriter } = require('./writers/FullBackupWriter.js')
+const { FullReplicationWriter } = require('./writers/FullReplicationWriter.js')
+const { getOldEntries } = require('./_getOldEntries.js')
+const { Task } = require('./Task.js')
+const { watchStreamSize } = require('./_watchStreamSize.js')
 
 const { debug, warn } = createLogger('xo:backups:VmBackup')
 
@@ -66,8 +67,8 @@ exports.VmBackup = class VmBackup {
       this._writers = writers
 
       const [BackupWriter, ReplicationWriter] = this._isDelta
-        ? [DeltaBackupWriter, ContinuousReplicationWriter]
-        : [FullBackupWriter, DisasterRecoveryWriter]
+        ? [DeltaBackupWriter, DeltaReplicationWriter]
+        : [FullBackupWriter, FullReplicationWriter]
 
       const allSettings = job.settings
 
@@ -77,7 +78,7 @@ exports.VmBackup = class VmBackup {
           ...allSettings[remoteId],
         }
         if (targetSettings.exportRetention !== 0) {
-          writers.push(new BackupWriter(this, remoteId, targetSettings))
+          writers.push(new BackupWriter({ backup: this, remoteId, settings: targetSettings }))
         }
       })
       srs.forEach(sr => {
@@ -86,7 +87,7 @@ exports.VmBackup = class VmBackup {
           ...allSettings[sr.uuid],
         }
         if (targetSettings.copyRetention !== 0) {
-          writers.push(new ReplicationWriter(this, sr, targetSettings))
+          writers.push(new ReplicationWriter({ backup: this, sr, settings: targetSettings }))
         }
       })
     }
@@ -114,7 +115,8 @@ exports.VmBackup = class VmBackup {
 
     const settings = this._settings
 
-    const doSnapshot = this._isDelta || vm.power_state === 'Running' || settings.snapshotRetention !== 0
+    const doSnapshot =
+      this._isDelta || (!settings.offlineBackup && vm.power_state === 'Running') || settings.snapshotRetention !== 0
     if (doSnapshot) {
       await Task.run({ name: 'snapshot' }, async () => {
         if (!settings.bypassVdiChainsCheck) {
@@ -320,6 +322,14 @@ exports.VmBackup = class VmBackup {
   }
 
   async run() {
+    const settings = this._settings
+    assert(
+      !settings.offlineBackup || settings.snapshotRetention === 0,
+      'offlineBackup is not compatible with snapshotRetention'
+    )
+
+    await asyncMap(this._writers, writer => writer.beforeBackup())
+
     await this._fetchJobSnapshots()
 
     if (this._isDelta) {
@@ -329,7 +339,7 @@ exports.VmBackup = class VmBackup {
     await this._cleanMetadata()
     await this._removeUnusedSnapshots()
 
-    const { _settings: settings, vm } = this
+    const { vm } = this
     const isRunning = vm.power_state === 'Running'
     const startAfter = isRunning && (settings.offlineBackup ? 'backup' : settings.offlineSnapshot && 'snapshot')
     if (startAfter) {

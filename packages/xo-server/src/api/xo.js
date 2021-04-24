@@ -2,7 +2,7 @@ import getStream from 'get-stream'
 import { fromCallback } from 'promise-toolbox'
 import { pipeline } from 'readable-stream'
 
-import createNdJsonStream from '../_createNdJsonStream'
+import createNdJsonStream from '../_createNdJsonStream.js'
 
 // ===================================================================
 

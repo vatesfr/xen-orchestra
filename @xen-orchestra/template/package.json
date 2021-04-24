@@ -16,9 +16,6 @@
   },
   "preferGlobal": false,
   "main": "dist/",
-  "files": [
-    "dist/"
-  ],
   "browserslist": [
     ">2%"
   ],

@@ -1,9 +1,9 @@
 const assert = require('assert')
 
-const { formatFilenameDate } = require('./_filenameDate')
-const { importDeltaVm } = require('./_deltaVm')
-const { Task } = require('./Task')
-const { watchStreamSize } = require('./_watchStreamSize')
+const { formatFilenameDate } = require('./_filenameDate.js')
+const { importDeltaVm } = require('./_deltaVm.js')
+const { Task } = require('./Task.js')
+const { watchStreamSize } = require('./_watchStreamSize.js')
 
 exports.ImportVmBackup = class ImportVmBackup {
   constructor({ adapter, metadata, srUuid, xapi, settings: { newMacAddresses } = {} }) {

@@ -1,15 +1,10 @@
-// @flow
 import execa from 'execa'
 
-import type RemoteHandler from './abstract'
 import RemoteHandlerLocal from './local'
 import RemoteHandlerNfs from './nfs'
 import RemoteHandlerS3 from './s3'
 import RemoteHandlerSmb from './smb'
 import RemoteHandlerSmbMount from './smb-mount'
-
-export type { default as RemoteHandler } from './abstract'
-export type Remote = { url: string }
 
 const HANDLERS = {
   file: RemoteHandlerLocal,
@@ -24,7 +19,7 @@ try {
   HANDLERS.smb = RemoteHandlerSmb
 }
 
-export const getHandler = (remote: Remote, ...rest: any): RemoteHandler => {
+export const getHandler = (remote, ...rest) => {
   // FIXME: should be done in xo-remote-parser.
   const type = remote.url.split('://')[0]
 

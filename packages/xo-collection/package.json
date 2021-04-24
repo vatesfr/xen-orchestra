@@ -17,10 +17,6 @@
   },
   "preferGlobal": false,
   "main": "dist/collection",
-  "files": [
-    "dist/",
-    "*.js"
-  ],
   "engines": {
     "node": ">=6"
   },

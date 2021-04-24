@@ -1,9 +1,5 @@
-// @flow
-
-// $FlowFixMe
-import getStream from 'get-stream'
-
 import asyncMapSettled from '@xen-orchestra/async-map/legacy'
+import getStream from 'get-stream'
 import limit from 'limit-concurrency-decorator'
 import path, { basename } from 'path'
 import synchronized from 'decorator-synchronized'
@@ -11,24 +7,14 @@ import { coalesceCalls } from '@vates/coalesce-calls'
 import { fromCallback, fromEvent, ignoreErrors, timeout } from 'promise-toolbox'
 import { parse } from 'xo-remote-parser'
 import { randomBytes } from 'crypto'
-import { type Readable, type Writable } from 'stream'
 
 import normalizePath from './_normalizePath'
 import { createChecksumStream, validChecksumOfReadStream } from './checksum'
 
 const { dirname } = path.posix
 
-type Data = Buffer | Readable | string
-type Disposable<T> = {| dispose: () => void | Promise<void>, value?: T |}
-type FileDescriptor = {| fd: mixed, path: string |}
-type LaxReadable = Readable & Object
-type LaxWritable = Writable & Object
-type RemoteInfo = { used?: number, size?: number }
-
-type File = FileDescriptor | string
-
 const checksumFile = file => file + '.checksum'
-const computeRate = (hrtime: number[], size: number) => {
+const computeRate = (hrtime, size) => {
   const seconds = hrtime[0] + hrtime[1] / 1e9
   return size / seconds
 }
@@ -74,11 +60,7 @@ class PrefixWrapper {
 }
 
 export default class RemoteHandlerAbstract {
-  _highWaterMark: number
-  _remote: Object
-  _timeout: number
-
-  constructor(remote: any, options: Object = {}) {
+  constructor(remote, options = {}) {
     if (remote.url === 'test://') {
       this._remote = remote
     } else {
@@ -112,21 +94,21 @@ export default class RemoteHandlerAbstract {
 
   // Public members
 
-  get type(): string {
+  get type() {
     throw new Error('Not implemented')
   }
 
-  addPrefix(prefix: string) {
+  addPrefix(prefix) {
     prefix = normalizePath(prefix)
     return prefix === '/' ? this : new PrefixWrapper(this, prefix)
   }
 
-  async closeFile(fd: FileDescriptor): Promise<void> {
+  async closeFile(fd) {
     await this.__closeFile(fd)
   }
 
   // TODO: remove method
-  async createOutputStream(file: File, { checksum = false, dirMode, ...options }: Object = {}): Promise<LaxWritable> {
+  async createOutputStream(file, { checksum = false, dirMode, ...options } = {}) {
     if (typeof file === 'string') {
       file = normalizePath(file)
     }
@@ -153,7 +135,6 @@ export default class RemoteHandlerAbstract {
     stream.on('error', forwardError)
     checksumStream.pipe(stream)
 
-    // $FlowFixMe
     checksumStream.checksumWritten = checksumStream.checksum
       .then(value => this._outputFile(checksumFile(path), value, { flags: 'wx' }))
       .catch(forwardError)
@@ -161,10 +142,7 @@ export default class RemoteHandlerAbstract {
     return checksumStream
   }
 
-  createReadStream(
-    file: File,
-    { checksum = false, ignoreMissingChecksum = false, ...options }: Object = {}
-  ): Promise<LaxReadable> {
+  createReadStream(file, { checksum = false, ignoreMissingChecksum = false, ...options } = {}) {
     if (typeof file === 'string') {
       file = normalizePath(file)
     }
@@ -201,7 +179,7 @@ export default class RemoteHandlerAbstract {
       checksum =>
         streamP.then(stream => {
           const { length } = stream
-          stream = (validChecksumOfReadStream(stream, String(checksum).trim()): LaxReadable)
+          stream = validChecksumOfReadStream(stream, String(checksum).trim())
           stream.length = length
 
           return stream
@@ -216,11 +194,7 @@ export default class RemoteHandlerAbstract {
   }
 
   // write a stream to a file using a temporary file
-  async outputStream(
-    path: string,
-    input: Readable | Promise<Readable>,
-    { checksum = true, dirMode }: { checksum?: boolean, dirMode?: number } = {}
-  ): Promise<void> {
+  async outputStream(path, input, { checksum = true, dirMode } = {}) {
     return this._outputStream(normalizePath(path), await input, {
       checksum,
       dirMode,
@@ -234,22 +208,19 @@ export default class RemoteHandlerAbstract {
   // as mount), forgetting them might breaking other processes using the same
   // remote.
   @synchronized()
-  async forget(): Promise<void> {
+  async forget() {
     await this._forget()
   }
 
-  async getInfo(): Promise<RemoteInfo> {
+  async getInfo() {
     return timeout.call(this._getInfo(), this._timeout)
   }
 
-  async getSize(file: File): Promise<number> {
+  async getSize(file) {
     return timeout.call(this._getSize(typeof file === 'string' ? normalizePath(file) : file), this._timeout)
   }
 
-  async list(
-    dir: string,
-    { filter, prependDir = false }: { filter?: (name: string) => boolean, prependDir?: boolean } = {}
-  ): Promise<string[]> {
+  async list(dir, { filter, prependDir = false } = {}) {
     const virtualDir = normalizePath(dir)
     dir = normalizePath(dir)
 
@@ -267,40 +238,36 @@ export default class RemoteHandlerAbstract {
     return entries
   }
 
-  async lock(path: string): Promise<Disposable> {
+  async lock(path) {
     path = normalizePath(path)
     return { dispose: await this._lock(path) }
   }
 
-  async mkdir(dir: string, { mode }: { mode?: number } = {}): Promise<void> {
+  async mkdir(dir, { mode } = {}) {
     await this.__mkdir(normalizePath(dir), { mode })
   }
 
-  async mktree(dir: string, { mode }: { mode?: number } = {}): Promise<void> {
+  async mktree(dir, { mode } = {}) {
     await this._mktree(normalizePath(dir), { mode })
   }
 
-  openFile(path: string, flags: string): Promise<FileDescriptor> {
+  openFile(path, flags) {
     return this.__openFile(path, flags)
   }
 
-  async outputFile(
-    file: string,
-    data: Data,
-    { dirMode, flags = 'wx' }: { dirMode?: number, flags?: string } = {}
-  ): Promise<void> {
+  async outputFile(file, data, { dirMode, flags = 'wx' } = {}) {
     await this._outputFile(normalizePath(file), data, { dirMode, flags })
   }
 
-  async read(file: File, buffer: Buffer, position?: number): Promise<{| bytesRead: number, buffer: Buffer |}> {
+  async read(file, buffer, position) {
     return this._read(typeof file === 'string' ? normalizePath(file) : file, buffer, position)
   }
 
-  async readFile(file: string, { flags = 'r' }: { flags?: string } = {}): Promise<Buffer> {
+  async readFile(file, { flags = 'r' } = {}) {
     return this._readFile(normalizePath(file), { flags })
   }
 
-  async rename(oldPath: string, newPath: string, { checksum = false }: Object = {}) {
+  async rename(oldPath, newPath, { checksum = false } = {}) {
     oldPath = normalizePath(oldPath)
     newPath = normalizePath(newPath)
 
@@ -311,11 +278,11 @@ export default class RemoteHandlerAbstract {
     return p
   }
 
-  async rmdir(dir: string): Promise<void> {
+  async rmdir(dir) {
     await timeout.call(this._rmdir(normalizePath(dir)).catch(ignoreEnoent), this._timeout)
   }
 
-  async rmtree(dir: string): Promise<void> {
+  async rmtree(dir) {
     await this._rmtree(normalizePath(dir))
   }
 
@@ -324,11 +291,11 @@ export default class RemoteHandlerAbstract {
   //
   // This method MUST ALWAYS be called before using the handler.
   @synchronized()
-  async sync(): Promise<void> {
+  async sync() {
     await this._sync()
   }
 
-  async test(): Promise<Object> {
+  async test() {
     const SIZE = 1024 * 1024 * 10
     const testFileName = normalizePath(`${Date.now()}.test`)
     const data = await fromCallback(randomBytes, SIZE)
@@ -363,11 +330,11 @@ export default class RemoteHandlerAbstract {
     }
   }
 
-  async truncate(file: string, len: number): Promise<void> {
+  async truncate(file, len) {
     await this._truncate(file, len)
   }
 
-  async unlink(file: string, { checksum = true }: Object = {}): Promise<void> {
+  async unlink(file, { checksum = true } = {}) {
     file = normalizePath(file)
 
     if (checksum) {
@@ -377,21 +344,21 @@ export default class RemoteHandlerAbstract {
     await this._unlink(file).catch(ignoreEnoent)
   }
 
-  async write(file: File, buffer: Buffer, position: number): Promise<{| bytesWritten: number, buffer: Buffer |}> {
+  async write(file, buffer, position) {
     await this._write(typeof file === 'string' ? normalizePath(file) : file, buffer, position)
   }
 
-  async writeFile(file: string, data: Data, { flags = 'wx' }: { flags?: string } = {}): Promise<void> {
+  async writeFile(file, data, { flags = 'wx' } = {}) {
     await this._writeFile(normalizePath(file), data, { flags })
   }
 
   // Methods that can be called by private methods to avoid parallel limit on public methods
 
-  async __closeFile(fd: FileDescriptor): Promise<void> {
+  async __closeFile(fd) {
     await timeout.call(this._closeFile(fd.fd), this._timeout)
   }
 
-  async __mkdir(dir: string, { mode }: { mode?: number } = {}): Promise<void> {
+  async __mkdir(dir, { mode } = {}) {
     try {
       await this._mkdir(dir, { mode })
     } catch (error) {
@@ -404,7 +371,7 @@ export default class RemoteHandlerAbstract {
     }
   }
 
-  async __openFile(path: string, flags: string): Promise<FileDescriptor> {
+  async __openFile(path, flags) {
     path = normalizePath(path)
 
     return {
@@ -415,11 +382,11 @@ export default class RemoteHandlerAbstract {
 
   // Methods that can be implemented by inheriting classes
 
-  async _closeFile(fd: mixed): Promise<void> {
+  async _closeFile(fd) {
     throw new Error('Not implemented')
   }
 
-  async _createOutputStream(file: File, { dirMode, ...options }: Object = {}): Promise<LaxWritable> {
+  async _createOutputStream(file, { dirMode, ...options } = {}) {
     try {
       return await this._createWriteStream(file, { ...options, highWaterMark: this._highWaterMark })
     } catch (error) {
@@ -432,40 +399,40 @@ export default class RemoteHandlerAbstract {
     return this._createOutputStream(file, options)
   }
 
-  async _createReadStream(file: File, options?: Object): Promise<LaxReadable> {
+  async _createReadStream(file, options) {
     throw new Error('Not implemented')
   }
 
   // createWriteStream takes highWaterMark as option even if it's not documented.
   // Source: https://stackoverflow.com/questions/55026306/how-to-set-writeable-highwatermark
-  async _createWriteStream(file: File, options: Object): Promise<LaxWritable> {
+  async _createWriteStream(file, options) {
     throw new Error('Not implemented')
   }
 
   // called to finalize the remote
-  async _forget(): Promise<void> {}
+  async _forget() {}
 
-  async _getInfo(): Promise<Object> {
+  async _getInfo() {
     return {}
   }
 
-  async _lock(path: string): Promise<Function> {
+  async _lock(path) {
     return () => Promise.resolve()
   }
 
-  async _getSize(file: File): Promise<number> {
+  async _getSize(file) {
     throw new Error('Not implemented')
   }
 
-  async _list(dir: string): Promise<string[]> {
+  async _list(dir) {
     throw new Error('Not implemented')
   }
 
-  async _mkdir(dir: string): Promise<void> {
+  async _mkdir(dir) {
     throw new Error('Not implemented')
   }
 
-  async _mktree(dir: string, { mode }: { mode?: number } = {}): Promise<void> {
+  async _mktree(dir, { mode } = {}) {
     try {
       return await this.__mkdir(dir, { mode })
     } catch (error) {
@@ -478,11 +445,11 @@ export default class RemoteHandlerAbstract {
     return this._mktree(dir, { mode })
   }
 
-  async _openFile(path: string, flags: string): Promise<mixed> {
+  async _openFile(path, flags) {
     throw new Error('Not implemented')
   }
 
-  async _outputFile(file: string, data: Data, { dirMode, flags }: { dirMode?: number, flags?: string }): Promise<void> {
+  async _outputFile(file, data, { dirMode, flags }) {
     try {
       return await this._writeFile(file, data, { flags })
     } catch (error) {
@@ -495,7 +462,7 @@ export default class RemoteHandlerAbstract {
     return this._outputFile(file, data, { flags })
   }
 
-  async _outputStream(path: string, input: Readable, { checksum, dirMode }: { checksum?: boolean, dirMode?: number }) {
+  async _outputStream(path, input, { checksum, dirMode }) {
     const tmpPath = `${dirname(path)}/.${basename(path)}`
     const output = await this.createOutputStream(tmpPath, {
       checksum,
@@ -505,7 +472,6 @@ export default class RemoteHandlerAbstract {
       input.pipe(output)
       await fromEvent(output, 'finish')
       await output.checksumWritten
-      // $FlowFixMe
       await input.task
       await this.rename(tmpPath, path, { checksum })
     } catch (error) {
@@ -514,23 +480,23 @@ export default class RemoteHandlerAbstract {
     }
   }
 
-  _read(file: File, buffer: Buffer, position?: number): Promise<{| bytesRead: number, buffer: Buffer |}> {
+  _read(file, buffer, position) {
     throw new Error('Not implemented')
   }
 
-  _readFile(file: string, options?: Object): Promise<Buffer> {
+  _readFile(file, options) {
     return this._createReadStream(file, { ...options, highWaterMark: this._highWaterMark }).then(getStream.buffer)
   }
 
-  async _rename(oldPath: string, newPath: string) {
+  async _rename(oldPath, newPath) {
     throw new Error('Not implemented')
   }
 
-  async _rmdir(dir: string) {
+  async _rmdir(dir) {
     throw new Error('Not implemented')
   }
 
-  async _rmtree(dir: string) {
+  async _rmtree(dir) {
     try {
       return await this._rmdir(dir)
     } catch (error) {
@@ -552,13 +518,13 @@ export default class RemoteHandlerAbstract {
   }
 
   // called to initialize the remote
-  async _sync(): Promise<void> {}
+  async _sync() {}
 
-  async _unlink(file: string): Promise<void> {
+  async _unlink(file) {
     throw new Error('Not implemented')
   }
 
-  async _write(file: File, buffer: Buffer, position: number): Promise<void> {
+  async _write(file, buffer, position) {
     const isPath = typeof file === 'string'
     if (isPath) {
       file = await this.__openFile(file, 'r+')
@@ -572,11 +538,11 @@ export default class RemoteHandlerAbstract {
     }
   }
 
-  async _writeFd(fd: FileDescriptor, buffer: Buffer, position: number): Promise<void> {
+  async _writeFd(fd, buffer, position) {
     throw new Error('Not implemented')
   }
 
-  async _writeFile(file: string, data: Data, options: { flags?: string }): Promise<void> {
+  async _writeFile(file, data, options) {
     throw new Error('Not implemented')
   }
 }

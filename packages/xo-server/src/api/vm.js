@@ -1,8 +1,8 @@
 import * as multiparty from 'multiparty'
-import asyncMapSettled from '@xen-orchestra/async-map/legacy'
-import defer from 'golike-defer'
+import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
 import getStream from 'get-stream'
 import { createLogger } from '@xen-orchestra/log'
+import { defer } from 'golike-defer'
 import { FAIL_ON_QUEUE } from 'limit-concurrency-decorator'
 import { format } from 'json-rpc-peer'
 import { ignoreErrors } from 'promise-toolbox'
@@ -13,9 +13,9 @@ import {
   noSuchObject,
   operationFailed,
   unauthorized,
-} from 'xo-common/api-errors'
+} from 'xo-common/api-errors.js'
 
-import { forEach, map, mapFilter, parseSize, safeDateFormat } from '../utils'
+import { forEach, map, mapFilter, parseSize, safeDateFormat } from '../utils.js'
 
 const log = createLogger('xo:vm')
 
@@ -702,8 +702,9 @@ export async function copy({ compress, name: nameLabel, sr, vm }) {
     }
 
     return this.getXapi(vm)
-      .copyVm(vm._xapiId, sr._xapiId, {
+      .copyVm(vm._xapiId, {
         nameLabel,
+        srOrSrId: sr._xapiId,
       })
       .then(vm => vm.$id)
   }
@@ -753,6 +754,28 @@ convertToTemplate.resolve = {
 
 // TODO: remove when no longer used.
 export { convertToTemplate as convert }
+
+// -------------------------------------------------------------------
+
+export async function copyToTemplate({ vm }) {
+  const xapi = await this.getXapi(vm)
+  const clonedVm = await xapi.copyVm(vm._xapiId, {
+    nameLabel: vm.name_label,
+  })
+  try {
+    await clonedVm.set_is_a_template(true)
+  } catch (error) {
+    ignoreErrors.call(clonedVm.$destroy())
+    throw error
+  }
+}
+
+copyToTemplate.params = {
+  id: { type: 'string' },
+}
+copyToTemplate.resolve = {
+  vm: ['id', ['VM-snapshot'], 'administrate'],
+}
 
 // -------------------------------------------------------------------
 

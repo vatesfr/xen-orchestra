@@ -20,12 +20,6 @@ module.exports = {
     },
   ],
 
-  parser: '@babel/eslint-parser',
-  parserOptions: {
-    ecmaFeatures: {
-      legacyDecorators: true,
-    },
-  },
   rules: {
     // disabled because XAPI objects are using camel case
     camelcase: ['off'],

@@ -1,11 +1,10 @@
 /* eslint eslint-comments/disable-enable-pair: [error, {allowWholeFile: true}] */
 /* eslint-disable camelcase */
-import asyncMapSettled from '@xen-orchestra/async-map/legacy'
+import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
 import concurrency from 'limit-concurrency-decorator'
-import deferrable from 'golike-defer'
 import fatfs from 'fatfs'
-import mapToArray from 'lodash/map'
-import mixin from '@xen-orchestra/mixin/legacy'
+import mapToArray from 'lodash/map.js'
+import mixin from '@xen-orchestra/mixin/legacy.js'
 import ms from 'ms'
 import synchronized from 'decorator-synchronized'
 import tarStream from 'tar-stream'
@@ -13,23 +12,23 @@ import { asyncMap } from '@xen-orchestra/async-map'
 import { vmdkToVhd } from 'xo-vmdk-to-vhd'
 import { cancelable, defer, fromEvents, ignoreErrors, pCatch, pRetry } from 'promise-toolbox'
 import { createLogger } from '@xen-orchestra/log'
+import { decorateWith } from '@vates/decorate-with'
+import { defer as deferrable } from 'golike-defer'
 import { parseDuration } from '@vates/parse-duration'
 import { PassThrough } from 'stream'
-import { forbiddenOperation, operationFailed } from 'xo-common/api-errors'
+import { forbiddenOperation, operationFailed } from 'xo-common/api-errors.js'
 import { Xapi as XapiBase } from '@xen-orchestra/xapi'
 import { filter, find, flatMap, flatten, groupBy, identity, includes, isEmpty, noop, omit, once, uniq } from 'lodash'
 import { Ref } from 'xen-api'
 import { satisfies as versionSatisfies } from 'semver'
 
-import createSizeStream from '../size-stream'
-import ensureArray from '../_ensureArray'
-import fatfsBuffer, { init as fatfsBufferInit } from '../fatfs-buffer'
-import { asyncMapValues } from '../_asyncMapValues'
-import { camelToSnakeCase, forEach, map, parseSize, pDelay, promisifyAll } from '../utils'
+import ensureArray from '../_ensureArray.js'
+import fatfsBuffer, { init as fatfsBufferInit } from '../fatfs-buffer.js'
+import { asyncMapValues } from '../_asyncMapValues.js'
+import { camelToSnakeCase, forEach, map, parseSize, pDelay, promisifyAll } from '../utils.js'
 
-import mixins from './mixins'
-import OTHER_CONFIG_TEMPLATE from './other-config-template'
-import { type DeltaVmExport } from './'
+import mixins from './mixins/index.js'
+import OTHER_CONFIG_TEMPLATE from './other-config-template.js'
 import {
   asBoolean,
   asInteger,
@@ -41,7 +40,7 @@ import {
   optional,
   parseDateTime,
   prepareXapiParam,
-} from './utils'
+} from './utils.js'
 import { createVhdStreamWithLength } from 'vhd-lib'
 
 const log = createLogger('xo:xapi')
@@ -54,8 +53,8 @@ export const TAG_COPY_SRC = 'xo:copy_of'
 // ===================================================================
 
 // FIXME: remove this work around when fixed, https://phabricator.babeljs.io/T2877
-//  export * from './utils'
-Object.assign(module.exports, require('./utils'))
+//  export * from './utils.js'
+Object.assign(module.exports, require('./utils.js'))
 
 // VDI formats. (Raw is not available for delta vdi.)
 export const VDI_FORMAT_VHD = 'vhd'
@@ -293,7 +292,7 @@ export default class Xapi extends XapiBase {
   // - Citrix XenServer ® 7.0 Administrator's Guide ch. 5.4
   // - https://github.com/xcp-ng/xenadmin/blob/60dd70fc36faa0ec91654ec97e24b7af36acff9f/XenModel/Actions/Host/EditMultipathAction.cs
   // - https://github.com/serencorbett1/xenadmin/blob/1c3fb0c1112e4e316423afc6a028066001d3dea1/XenModel/XenAPI-Extensions/SR.cs
-  @deferrable.onError(log.warn)
+  @decorateWith(deferrable.onError(log.warn))
   async setHostMultipathing($defer, hostId, multipathing) {
     const host = this.getObject(hostId)
 
@@ -398,32 +397,30 @@ export default class Xapi extends XapiBase {
     return /* await */ this._getOrWaitObject(cloneRef)
   }
 
-  async copyVm(vmId, srId, { nameLabel = undefined } = {}) {
-    return /* await */ this._getOrWaitObject(await this._copyVm(this.getObject(vmId), nameLabel, this.getObject(srId)))
+  async copyVm(vmId, { nameLabel = undefined, srOrSrId = undefined } = {}) {
+    return /* await */ this._getOrWaitObject(
+      await this._copyVm(this.getObject(vmId), nameLabel, srOrSrId !== undefined ? this.getObject(srOrSrId) : undefined)
+    )
   }
 
   async remoteCopyVm(vmId, targetXapi, targetSrId, { compress, nameLabel = undefined } = {}) {
     // Fall back on local copy if possible.
     if (targetXapi === this) {
       return {
-        vm: await this.copyVm(vmId, targetSrId, { nameLabel }),
+        vm: await this.copyVm(vmId, { nameLabel, srOrSrId: targetSrId }),
       }
     }
 
     const sr = targetXapi.getObject(targetSrId)
-    let stream = await this.exportVm(vmId, {
+    const stream = await this.exportVm(vmId, {
       compress,
     })
-
-    const sizeStream = createSizeStream()
-    stream = stream.pipe(sizeStream)
 
     const onVmCreation = nameLabel !== undefined ? vm => vm.set_name_label(nameLabel) : null
 
     const vm = await targetXapi._getOrWaitObject(await targetXapi._importVm(stream, sr, onVmCreation))
 
     return {
-      size: sizeStream.size,
       vm,
     }
   }
@@ -588,12 +585,12 @@ export default class Xapi extends XapiBase {
   // Create a snapshot (if necessary) of the VM and returns a delta export
   // object.
   @cancelable
-  @deferrable
+  @decorateWith(deferrable)
   async exportDeltaVm(
     $defer,
     $cancelToken,
-    vmId: string,
-    baseVmId?: string,
+    vmId,
+    baseVmId,
     {
       bypassVdiChainsCheck = false,
 
@@ -603,7 +600,7 @@ export default class Xapi extends XapiBase {
       disableBaseTags = false,
       snapshotNameLabel = undefined,
     } = {}
-  ): Promise<DeltaVmExport> {
+  ) {
     let vm = this.getObject(vmId)
 
     // do not use the snapshot name in the delta export
@@ -727,10 +724,10 @@ export default class Xapi extends XapiBase {
     )
   }
 
-  @deferrable
+  @decorateWith(deferrable)
   async importDeltaVm(
     $defer,
-    delta: DeltaVmExport,
+    delta,
     {
       deleteBase = false,
       detectBase = true,
@@ -1040,7 +1037,7 @@ export default class Xapi extends XapiBase {
     })
   }
 
-  @deferrable
+  @decorateWith(deferrable)
   async installSupplementalPack($defer, stream, { hostId }) {
     if (!stream.length) {
       throw new Error('stream must have a length')
@@ -1057,7 +1054,7 @@ export default class Xapi extends XapiBase {
     await this._callInstallationPlugin(this.getObject(hostId).$ref, vdi.uuid)
   }
 
-  @deferrable
+  @decorateWith(deferrable)
   async installSupplementalPackOnAllHosts($defer, stream) {
     if (!stream.length) {
       throw new Error('stream must have a length')
@@ -1148,7 +1145,7 @@ export default class Xapi extends XapiBase {
     return vmRef
   }
 
-  @deferrable
+  @decorateWith(deferrable)
   async _importOvaVm($defer, stream, { descriptionLabel, disks, memory, nameLabel, networks, nCpus, tables }, sr) {
     // 1. Create VM.
     const vm = await this._getOrWaitObject(
@@ -1843,7 +1840,7 @@ export default class Xapi extends XapiBase {
     )
   }
 
-  @deferrable
+  @decorateWith(deferrable)
   async createNetwork($defer, { name, description = 'Created with Xen Orchestra', pifId, mtu, vlan }) {
     const networkRef = await this.call('network.create', {
       name_label: name,
@@ -1894,7 +1891,7 @@ export default class Xapi extends XapiBase {
     )
   }
 
-  @deferrable
+  @decorateWith(deferrable)
   async createBondedNetwork($defer, { bondMode, pifIds: masterPifIds, ...params }) {
     const network = await this.createNetwork(params)
     $defer.onFailure(() => this.deleteNetwork(network))
@@ -2002,7 +1999,7 @@ export default class Xapi extends XapiBase {
   }
 
   // Generic Config Drive
-  @deferrable
+  @decorateWith(deferrable)
   async createCloudInitConfigDrive($defer, vmId, srId, userConfig, networkConfig) {
     const vm = this.getObject(vmId)
     const sr = this.getObject(srId)
@@ -2049,7 +2046,7 @@ export default class Xapi extends XapiBase {
     await this.createVbd({ vdi, vm })
   }
 
-  @deferrable
+  @decorateWith(deferrable)
   async createTemporaryVdiOnSr($defer, stream, sr, name_label, name_description) {
     const vdi = await this.createVdi({
       name_description,

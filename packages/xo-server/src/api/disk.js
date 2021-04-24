@@ -1,14 +1,14 @@
 import * as multiparty from 'multiparty'
-import defer from 'golike-defer'
 import getStream from 'get-stream'
 import pump from 'pump'
 import { createLogger } from '@xen-orchestra/log'
+import { defer } from 'golike-defer'
 import { format } from 'json-rpc-peer'
-import { noSuchObject } from 'xo-common/api-errors'
+import { noSuchObject } from 'xo-common/api-errors.js'
 import { peekFooterFromVhdStream } from 'vhd-lib'
 import { vmdkToVhd } from 'xo-vmdk-to-vhd'
 
-import { VDI_FORMAT_VHD } from '../xapi'
+import { VDI_FORMAT_VHD } from '../xapi/index.js'
 
 const log = createLogger('xo:disk')
 

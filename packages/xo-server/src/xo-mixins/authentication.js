@@ -1,11 +1,11 @@
 import { createLogger } from '@xen-orchestra/log'
 import { createPredicate } from 'value-matcher'
 import { ignoreErrors } from 'promise-toolbox'
-import { invalidCredentials, noSuchObject } from 'xo-common/api-errors'
+import { invalidCredentials, noSuchObject } from 'xo-common/api-errors.js'
 import { parseDuration } from '@vates/parse-duration'
 
-import Token, { Tokens } from '../models/token'
-import { forEach, generateToken } from '../utils'
+import Token, { Tokens } from '../models/token.js'
+import { forEach, generateToken } from '../utils.js'
 
 // ===================================================================
 
@@ -128,7 +128,7 @@ export default class {
     }
   }
 
-  async authenticateUser(credentials, userData): Promise<{| user: Object, expiration?: number |}> {
+  async authenticateUser(credentials, userData) {
     // don't even attempt to authenticate with empty password
     const { password } = credentials
     if (password === '') {

@@ -1,4 +1,4 @@
-const mapValues = require('lodash/mapValues')
+const mapValues = require('lodash/mapValues.js')
 const { dirname } = require('path')
 
 function formatVmBackup(backup) {

@@ -9,9 +9,6 @@
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },
   "main": "dist/",
-  "files": [
-    "dist/"
-  ],
   "bin": {
     "xo-xapi": "./dist/cli.js"
   },
@@ -41,6 +38,7 @@
     "prepublishOnly": "yarn run build"
   },
   "dependencies": {
+    "@vates/decorate-with": "^0.0.1",
     "@xen-orchestra/async-map": "^0.1.2",
     "@xen-orchestra/log": "^0.2.0",
     "d3-time-format": "^3.0.0",

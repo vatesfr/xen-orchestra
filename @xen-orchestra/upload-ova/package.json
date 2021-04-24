@@ -26,9 +26,6 @@
   "bin": {
     "xo-upload-ova": "dist/index.js"
   },
-  "files": [
-    "dist/"
-  ],
   "engines": {
     "node": ">=8.10"
   },
@@ -56,7 +53,6 @@
     "@babel/cli": "^7.0.0",
     "@babel/core": "^7.0.0",
     "@babel/preset-env": "^7.0.0",
-    "@babel/preset-flow": "^7.0.0",
     "babel-plugin-lodash": "^3.3.2",
     "cross-env": "^7.0.2",
     "rimraf": "^3.0.0"

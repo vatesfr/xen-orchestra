@@ -1160,6 +1160,14 @@ export const convertVmToTemplate = vm =>
     ),
   }).then(() => _call('vm.convert', { id: resolveId(vm) }), noop)
 
+export const copyToTemplate = async vm => {
+  await confirm({
+    title: _('copyToTemplate'),
+    body: <p>{_('copyToTemplateMessage')}</p>,
+  })
+  await _call('vm.copyToTemplate', { id: resolveId(vm) })
+}
+
 export const changeVirtualizationMode = vm =>
   confirm({
     title: _('vmVirtualizationModeModalTitle'),
@@ -1955,12 +1963,6 @@ export const deleteBackupSchedule = async schedule => {
   subscribeJobs.forceRefresh()
 }
 
-export const migrateBackupSchedule = id =>
-  confirm({
-    title: _('migrateBackupSchedule'),
-    body: _('migrateBackupScheduleMessage'),
-  }).then(() => _call('backupNg.migrateLegacyJob', { id: resolveId(id) }))
-
 export const deleteSchedule = schedule =>
   _call('schedule.delete', { id: resolveId(schedule) })::tap(subscribeSchedules.forceRefresh)
 
@@ -2240,18 +2242,6 @@ export const editRemote = (remote, { name, options, proxy, url }) =>
     testRemote(remote).catch(noop)
   })
 
-export const listRemote = async remote =>
-  remote.proxy === undefined
-    ? _call('remote.list', {
-        id: remote.id,
-      })::tap(subscribeRemotes.forceRefresh, err => error(_('listRemote'), err.message || String(err)))
-    : []
-
-export const listRemoteBackups = async remote =>
-  remote.proxy === undefined
-    ? _call('backup.list', { remote: remote.id })::tap(null, err => error(_('listRemote'), err.message || String(err)))
-    : []
-
 export const testRemote = remote =>
   _call('remote.test', resolveIds({ id: remote }))
     ::tap(null, err => error(_('testRemote'), err.message || String(err)))
@@ -2259,24 +2249,12 @@ export const testRemote = remote =>
 
 // File restore  ----------------------------------------------------
 
-export const scanDisk = (remote, disk) => _call('backup.scanDisk', resolveIds({ remote, disk }))
-
-export const scanFiles = (remote, disk, path, partition) =>
-  _call('backup.scanFiles', resolveIds({ remote, disk, path, partition }))
-
-export const fetchFiles = (remote, disk, partition, paths, format) =>
-  _call('backup.fetchFiles', resolveIds({ remote, disk, partition, paths, format })).then(({ $getFrom: url }) => {
-    window.open(`.${url}`)
-  })
-
-// File restore NG  ----------------------------------------------------
-
 export const listPartitions = (remote, disk) => _call('backupNg.listPartitions', resolveIds({ remote, disk }))
 
 export const listFiles = (remote, disk, path, partition) =>
   _call('backupNg.listFiles', resolveIds({ remote, disk, path, partition }))
 
-export const fetchFilesNg = (remote, disk, partition, paths) =>
+export const fetchFiles = (remote, disk, partition, paths) =>
   _call('backupNg.fetchFiles', resolveIds({ remote, disk, partition, paths })).then(({ $getFrom: url }) => {
     window.open(`.${url}`)
   })
