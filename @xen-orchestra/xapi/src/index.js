@@ -113,25 +113,44 @@ class Xapi extends Base {
     this.objects.on('update', onAddOrUpdate)
   }
 
-  _waitObject(predicate) {
+  _waitObject(predicate, { cancelToken } = {}) {
     if (typeof predicate === 'function') {
       const genericWatchers = this._genericWatchers
 
       const { promise, resolve } = defer()
-      genericWatchers.add(function watcher(obj) {
+      const watcher = obj => {
         if (predicate(obj)) {
           genericWatchers.delete(watcher)
           resolve(obj)
         }
-      })
+      }
+      if (cancelToken !== undefined) {
+        const removeHandler = cancelToken.addHandler(() => genericWatchers.delete(watcher))
+        promise.then(removeHandler)
+      }
+      genericWatchers.add(watcher)
       return promise
     }
 
-    let watcher = this._objectWatchers[predicate]
+    const watchers = this._objectWatchers
+    let watcher = watchers[predicate]
     if (watcher === undefined) {
-      watcher = this._objectWatchers[predicate] = defer()
+      watcher = watchers[predicate] = defer()
+      watcher.refs = 1
+      watcher.unref = () => {
+        if (--watcher.refs === 0) {
+          delete watchers[predicate]
+        }
+      }
+    } else {
+      ++watcher.refs
     }
-    return watcher.promise
+    const { promise } = watcher
+    if (cancelToken !== undefined) {
+      const removeHandler = cancelToken.addHandler(watcher.unref)
+      promise.then(removeHandler)
+    }
+    return promise
   }
 }
 function mixin(mixins) {
