@@ -1,8 +1,8 @@
-const CancelToken = require('promise-toolbox/CancelToken')
-const pCatch = require('promise-toolbox/catch')
-const pRetry = require('promise-toolbox/retry')
+const CancelToken = require('promise-toolbox/CancelToken.js')
+const pCatch = require('promise-toolbox/catch.js')
+const pRetry = require('promise-toolbox/retry.js')
 
-const extractOpaqueRef = require('./_extractOpaqueRef')
+const extractOpaqueRef = require('./_extractOpaqueRef.js')
 
 const noop = Function.prototype
 

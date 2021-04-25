@@ -1,12 +1,12 @@
 const assert = require('assert')
-const defer = require('promise-toolbox/defer')
-const pRetry = require('promise-toolbox/retry')
+const defer = require('promise-toolbox/defer.js')
+const pRetry = require('promise-toolbox/retry.js')
 const { utcFormat, utcParse } = require('d3-time-format')
 const { Xapi: Base } = require('xen-api')
 
 const { warn } = require('@xen-orchestra/log').createLogger('xo:xapi')
 
-exports.isDefaultTemplate = require('./isDefaultTemplate')
+exports.isDefaultTemplate = require('./isDefaultTemplate.js')
 
 // VDI formats. (Raw is not available for delta vdi.)
 exports.VDI_FORMAT_RAW = 'raw'
@@ -153,11 +153,11 @@ function mixin(mixins) {
   defineProperties(xapiProto, descriptors)
 }
 mixin({
-  task: require('./task'),
-  VBD: require('./vbd'),
-  VDI: require('./vdi'),
-  VIF: require('./vif'),
-  VM: require('./vm'),
+  task: require('./task.js'),
+  VBD: require('./vbd.js'),
+  VDI: require('./vdi.js'),
+  VIF: require('./vif.js'),
+  VM: require('./vm.js'),
 })
 exports.Xapi = Xapi
 

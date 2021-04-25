@@ -1,4 +1,4 @@
-const isVmRunning = require('./_isVmRunning')
+const isVmRunning = require('./_isVmRunning.js')
 
 module.exports = class Vif {
   async create(
