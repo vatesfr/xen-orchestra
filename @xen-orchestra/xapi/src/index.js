@@ -113,6 +113,12 @@ class Xapi extends Base {
     this.objects.on('update', onAddOrUpdate)
   }
 
+  // Wait for an object to appear or to be updated.
+  //
+  // Predicate can be either an id, a UUID, an opaque reference or a
+  // function.
+  //
+  // TODO: implements a timeout.
   _waitObject(predicate, { cancelToken } = {}) {
     if (typeof predicate === 'function') {
       const genericWatchers = this._genericWatchers

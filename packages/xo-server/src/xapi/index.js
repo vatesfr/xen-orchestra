@@ -10,7 +10,7 @@ import synchronized from 'decorator-synchronized'
 import tarStream from 'tar-stream'
 import { asyncMap } from '@xen-orchestra/async-map'
 import { vmdkToVhd } from 'xo-vmdk-to-vhd'
-import { cancelable, defer, fromEvents, ignoreErrors, pCatch, pRetry } from 'promise-toolbox'
+import { cancelable, fromEvents, ignoreErrors, pCatch, pRetry } from 'promise-toolbox'
 import { createLogger } from '@xen-orchestra/log'
 import { decorateWith } from '@vates/decorate-with'
 import { defer as deferrable } from 'golike-defer'
@@ -97,80 +97,6 @@ export default class Xapi extends XapiBase {
       }
       return getObject.apply(this, args)
     })(this.getObject)
-
-    const genericWatchers = (this._genericWatchers = { __proto__: null })
-    const objectsWatchers = (this._objectWatchers = { __proto__: null })
-
-    const onAddOrUpdate = objects => {
-      forEach(objects, object => {
-        const { $id: id, $ref: ref } = object
-
-        // Run generic watchers.
-        for (const watcherId in genericWatchers) {
-          genericWatchers[watcherId](object)
-        }
-
-        // Watched object.
-        if (id in objectsWatchers) {
-          objectsWatchers[id].resolve(object)
-          delete objectsWatchers[id]
-        }
-        if (ref in objectsWatchers) {
-          objectsWatchers[ref].resolve(object)
-          delete objectsWatchers[ref]
-        }
-      })
-    }
-    this.objects.on('add', onAddOrUpdate)
-    this.objects.on('update', onAddOrUpdate)
-  }
-
-  // =================================================================
-
-  _registerGenericWatcher(fn) {
-    const watchers = this._genericWatchers
-    const id = String(Math.random())
-
-    watchers[id] = fn
-
-    return () => {
-      delete watchers[id]
-    }
-  }
-
-  // Wait for an object to appear or to be updated.
-  //
-  // Predicate can be either an id, a UUID, an opaque reference or a
-  // function.
-  //
-  // TODO: implements a timeout.
-  _waitObject(predicate) {
-    if (typeof predicate === 'function') {
-      const { promise, resolve } = defer()
-
-      const unregister = this._registerGenericWatcher(obj => {
-        if (predicate(obj)) {
-          unregister()
-
-          resolve(obj)
-        }
-      })
-
-      return promise
-    }
-
-    let watcher = this._objectWatchers[predicate]
-    if (!watcher) {
-      const { promise, resolve } = defer()
-
-      // Register the watcher.
-      watcher = this._objectWatchers[predicate] = {
-        promise,
-        resolve,
-      }
-    }
-
-    return watcher.promise
   }
 
   // Wait for an object to be in a given state.
