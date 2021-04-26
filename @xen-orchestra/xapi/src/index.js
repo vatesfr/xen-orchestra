@@ -119,7 +119,7 @@ class Xapi extends Base {
   // function.
   //
   // TODO: implements a timeout.
-  _waitObject(predicate, { cancelToken } = {}) {
+  waitObject(predicate, { cancelToken } = {}) {
     if (typeof predicate === 'function') {
       const genericWatchers = this._genericWatchers
 

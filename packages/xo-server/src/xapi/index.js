@@ -101,21 +101,21 @@ export default class Xapi extends XapiBase {
 
   // Wait for an object to be in a given state.
   //
-  // Faster than _waitObject() with a function.
+  // Faster than waitObject() with a function.
   async _waitObjectState(idOrUuidOrRef, predicate) {
     const object = this.getObject(idOrUuidOrRef, null)
     if (object && predicate(object)) {
       return object
     }
 
-    const loop = () => this._waitObject(idOrUuidOrRef).then(object => (predicate(object) ? object : loop()))
+    const loop = () => this.waitObject(idOrUuidOrRef).then(object => (predicate(object) ? object : loop()))
 
     return loop()
   }
 
   // Returns the objects if already presents or waits for it.
   async _getOrWaitObject(idOrUuidOrRef) {
-    return this.getObject(idOrUuidOrRef, null) || this._waitObject(idOrUuidOrRef)
+    return this.getObject(idOrUuidOrRef, null) || this.waitObject(idOrUuidOrRef)
   }
 
   // =================================================================
@@ -1046,7 +1046,7 @@ export default class Xapi extends XapiBase {
     }
 
     if (onVmCreation != null) {
-      this._waitObject(obj => obj != null && obj.current_operations != null && taskRef in obj.current_operations)
+      this.waitObject(obj => obj != null && obj.current_operations != null && taskRef in obj.current_operations)
         .then(onVmCreation)
         ::ignoreErrors()
     }

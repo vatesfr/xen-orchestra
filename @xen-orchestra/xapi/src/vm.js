@@ -427,9 +427,9 @@ module.exports = class Vm {
     }
     if (onVmCreation != null) {
       ignoreErrors.call(
-        this._waitObject(
-          obj => obj != null && obj.current_operations != null && taskRef in obj.current_operations
-        ).then(onVmCreation)
+        this.waitObject(obj => obj != null && obj.current_operations != null && taskRef in obj.current_operations).then(
+          onVmCreation
+        )
       )
     }
     try {
