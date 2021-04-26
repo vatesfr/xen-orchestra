@@ -152,16 +152,17 @@ class Xapi extends Base {
   // function.
   //
   // TODO: implements a timeout.
-  waitObject(predicate, { cancelToken } = {}) {
-    let stopWatch
-    const promise = new Promise(resolve => {
-      stopWatch = this.watchObject(predicate, resolve)
-    })
-    if (cancelToken !== undefined) {
-      const removeHandler = cancelToken.addHandler(stopWatch)
-      promise.then(removeHandler)
+  waitObject(predicate, cb) {
+    // backward compatibility
+    if (cb === undefined) {
+      return new Promise(resolve => this.waitObject(predicate, resolve))
     }
-    return promise
+
+    const stopWatch = this.watchObject(predicate, object => {
+      stopWatch()
+      return cb(object)
+    })
+    return stopWatch
   }
 
   watchObject(predicate, cb) {

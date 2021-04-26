@@ -1046,9 +1046,10 @@ export default class Xapi extends XapiBase {
     }
 
     if (onVmCreation != null) {
-      this.waitObject(obj => obj != null && obj.current_operations != null && taskRef in obj.current_operations)
-        .then(onVmCreation)
-        ::ignoreErrors()
+      this.waitObject(
+        obj => obj != null && obj.current_operations != null && taskRef in obj.current_operations,
+        onVmCreation
+      )
     }
 
     const vmRef = await this.putResource($cancelToken, stream, '/import/', {

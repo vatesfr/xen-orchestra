@@ -1,7 +1,6 @@
 const CancelToken = require('promise-toolbox/CancelToken.js')
 const groupBy = require('lodash/groupBy.js')
 const pickBy = require('lodash/pickBy.js')
-const ignoreErrors = require('promise-toolbox/ignoreErrors.js')
 const omit = require('lodash/omit.js')
 const pCatch = require('promise-toolbox/catch.js')
 const pRetry = require('promise-toolbox/retry.js')
@@ -426,10 +425,9 @@ module.exports = class Vm {
       query.sr_id = srRef
     }
     if (onVmCreation != null) {
-      ignoreErrors.call(
-        this.waitObject(obj => obj != null && obj.current_operations != null && taskRef in obj.current_operations).then(
-          onVmCreation
-        )
+      this.waitObject(
+        obj => obj != null && obj.current_operations != null && taskRef in obj.current_operations,
+        onVmCreation
       )
     }
     try {
