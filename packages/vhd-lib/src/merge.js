@@ -2,11 +2,15 @@
 
 import assert from 'assert'
 import concurrency from 'limit-concurrency-decorator'
+import ignoreErrors from 'promise-toolbox/ignoreErrors'
 import noop from './_noop'
+import { createLogger } from '@xen-orchestra/log'
 
 import Vhd from './vhd'
 import { basename, dirname } from 'path'
 import { DISK_TYPE_DIFFERENCING, DISK_TYPE_DYNAMIC } from './_constants'
+
+const { warn } = createLogger('vhd-lib:merge')
 
 // Merge vhd child into vhd parent.
 //
@@ -45,21 +49,17 @@ export default concurrency(2)(async function merge(
       ])
 
       if (mergeState !== undefined) {
+        mergeState = JSON.parse(mergeState)
+
         // ensure the correct merge will be continued
-        assert.strictEqual(parentVhd.header.checksum, mergeState.parent.header.checksum)
-        assert.strictEqual(childVhd.header.checksum, mergeState.child.header.checksum)
+        assert.strictEqual(parentVhd.header.checksum, mergeState.parent.header)
+        assert.strictEqual(childVhd.header.checksum, mergeState.child.header)
       } else {
         assert.strictEqual(childVhd.header.blockSize, parentVhd.header.blockSize)
 
         const parentDiskType = parentVhd.footer.diskType
         assert(parentDiskType === DISK_TYPE_DIFFERENCING || parentDiskType === DISK_TYPE_DYNAMIC)
         assert.strictEqual(childVhd.footer.diskType, DISK_TYPE_DIFFERENCING)
-
-        mergeState = {
-          child: { header: childVhd.header.checksum },
-          parent: { header: parentVhd.header.checksum },
-          currentBlock: 0,
-        }
       }
 
       // Read allocation table of child/parent.
@@ -67,12 +67,23 @@ export default concurrency(2)(async function merge(
 
       const { maxTableEntries } = childVhd.header
 
-      await parentVhd.ensureBatSize(childVhd.header.maxTableEntries)
+      let firstBlock
+      if (mergeState === undefined) {
+        await parentVhd.ensureBatSize(childVhd.header.maxTableEntries)
 
-      // finds first allocated block for the 2 following loops
-      let firstBlock = 0
-      while (firstBlock < maxTableEntries && !childVhd.containsBlock(firstBlock)) {
-        ++firstBlock
+        // finds first allocated block for the 2 following loops
+        firstBlock = 0
+        while (firstBlock < maxTableEntries && !childVhd.containsBlock(firstBlock)) {
+          ++firstBlock
+        }
+
+        mergeState = {
+          child: { header: childVhd.header.checksum },
+          parent: { header: parentVhd.header.checksum },
+          currentBlock: 0,
+        }
+      } else {
+        firstBlock = mergeState.currentBlock
       }
 
       // counts number of allocated blocks
@@ -91,6 +102,9 @@ export default concurrency(2)(async function merge(
         while (!childVhd.containsBlock(block)) {
           ++block
         }
+
+        mergeState.currentBlock = block
+        await parentHandler.writeFile(mergeStatePath, JSON.stringify(mergeState), { flags: 'w' }).catch(warn)
 
         mergedDataSize += await parentVhd.coalesceBlock(childVhd, block)
         onProgress({
@@ -117,6 +131,7 @@ export default concurrency(2)(async function merge(
       await childHandler.closeFile(childFd)
     }
   } finally {
+    ignoreErrors.call(parentHandler.unlink(mergeStatePath))
     await parentHandler.closeFile(parentFd)
   }
 })
