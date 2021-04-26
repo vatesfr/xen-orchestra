@@ -1,44 +1,20 @@
-// @flow
-import asyncMapSettled from '@xen-orchestra/async-map/legacy'
-import cloneDeep from 'lodash/cloneDeep'
-import createLogger from '@xen-orchestra/log'
-import Disposable from 'promise-toolbox/Disposable'
-import { Backup } from '@xen-orchestra/backups/Backup'
-import { parseDuration } from '@vates/parse-duration'
-import { parseMetadataBackupId } from '@xen-orchestra/backups/parseMetadataBackupId'
-import { RestoreMetadataBackup } from '@xen-orchestra/backups/RestoreMetadataBackup'
-import { Task } from '@xen-orchestra/backups/Task'
+import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
+import cloneDeep from 'lodash/cloneDeep.js'
+import Disposable from 'promise-toolbox/Disposable.js'
+import { Backup } from '@xen-orchestra/backups/Backup.js'
+import { createLogger } from '@xen-orchestra/log'
+import { parseMetadataBackupId } from '@xen-orchestra/backups/parseMetadataBackupId.js'
+import { RestoreMetadataBackup } from '@xen-orchestra/backups/RestoreMetadataBackup.js'
+import { Task } from '@xen-orchestra/backups/Task.js'
 
-import { debounceWithKey, REMOVE_CACHE_ENTRY } from '../_pDebounceWithKey'
-import { handleBackupLog } from '../_handleBackupLog'
-import { waitAll } from '../_waitAll'
-import { type Xapi } from '../xapi'
-import { serializeError, type SimpleIdPattern, unboxIdsFromPattern } from '../utils'
-
-import { type Executor, type Job } from './jobs'
-import { type Schedule } from './scheduling'
+import { debounceWithKey, REMOVE_CACHE_ENTRY } from '../_pDebounceWithKey.js'
+import { handleBackupLog } from '../_handleBackupLog.js'
+import { waitAll } from '../_waitAll.js'
+import { serializeError, unboxIdsFromPattern } from '../utils.js'
 
 const log = createLogger('xo:xo-mixins:metadata-backups')
 
 const METADATA_BACKUP_JOB_TYPE = 'metadataBackup'
-
-type ReportWhen = 'always' | 'failure' | 'never'
-
-type Settings = {|
-  reportWhen?: ReportWhen,
-  retentionPoolMetadata?: number,
-  retentionXoMetadata?: number,
-|}
-
-type MetadataBackupJob = {
-  ...$Exact<Job>,
-  pools?: SimpleIdPattern,
-  proxy?: string,
-  remotes: SimpleIdPattern,
-  settings: $Dict<Settings>,
-  type: METADATA_BACKUP_JOB_TYPE,
-  xoMetadata?: boolean,
-}
 
 // metadata.json
 //
@@ -80,39 +56,28 @@ type MetadataBackupJob = {
 // │  └─ task.end
 // └─ job.end
 export default class metadataBackup {
-  _app: {
-    createJob: ($Diff<MetadataBackupJob, {| id: string |}>) => Promise<MetadataBackupJob>,
-    createSchedule: ($Diff<Schedule, {| id: string |}>) => Promise<Schedule>,
-    deleteSchedule: (id: string) => Promise<void>,
-    getXapi: (id: string) => Xapi,
-    getJob: (id: string, ?METADATA_BACKUP_JOB_TYPE) => Promise<MetadataBackupJob>,
-    updateJob: ($Shape<MetadataBackupJob>, ?boolean) => Promise<MetadataBackupJob>,
-    removeJob: (id: string) => Promise<void>,
-  }
-
   get runningMetadataRestores() {
     return this._runningMetadataRestores
   }
 
-  constructor(app: any, { backups }) {
+  constructor(app) {
     this._app = app
-    this._backupOptions = backups
     this._logger = undefined
     this._runningMetadataRestores = new Set()
 
-    const debounceDelay = parseDuration(backups.listingDebounce)
+    const debounceDelay = app.config.getDuration('backups.listingDebounce')
     this._listXoMetadataBackups = debounceWithKey(this._listXoMetadataBackups, debounceDelay, remoteId => remoteId)
     this._listPoolMetadataBackups = debounceWithKey(this._listPoolMetadataBackups, debounceDelay, remoteId => remoteId)
 
-    app.on('start', async () => {
+    app.hooks.on('start', async () => {
       this._logger = await app.getLogger('metadataRestore')
 
       app.registerJobExecutor(METADATA_BACKUP_JOB_TYPE, this._executor.bind(this))
     })
   }
 
-  async _executor({ cancelToken, job: job_, logger, runJobId, schedule }): Executor {
-    const job: MetadataBackupJob = cloneDeep((job_: any))
+  async _executor({ cancelToken, job: job_, logger, runJobId, schedule }) {
+    const job = cloneDeep(job_)
     const scheduleSettings = job.settings[schedule.id]
 
     // it also replaces null retentions introduced by the commit
@@ -204,11 +169,11 @@ export default class metadataBackup {
           },
           () =>
             new Backup({
-              config: this._backupOptions,
+              config: this._app.config.get('backups'),
               getAdapter: async remoteId => app.getBackupsRemoteAdapter(await app.getRemoteWithCredentials(remoteId)),
 
               // `@xen-orchestra/backups/Backup` expect that `getConnectedRecord` returns a promise
-              getConnectedRecord: async (type, uuid) => app.getXapiObject(uuid, type),
+              getConnectedRecord: async (xapiType, uuid) => app.getXapiObject(uuid),
               job,
               schedule,
             }).run()
@@ -222,13 +187,10 @@ export default class metadataBackup {
     }
   }
 
-  async createMetadataBackupJob(
-    props: $Diff<MetadataBackupJob, {| id: string |}>,
-    schedules: $Dict<$Diff<Schedule, {| id: string |}>>
-  ): Promise<MetadataBackupJob> {
+  async createMetadataBackupJob(props, schedules) {
     const app = this._app
 
-    const job: MetadataBackupJob = await app.createJob({
+    const job = await app.createJob({
       ...props,
       type: METADATA_BACKUP_JOB_TYPE,
     })
@@ -247,7 +209,7 @@ export default class metadataBackup {
     return job
   }
 
-  async deleteMetadataBackupJob(id: string): Promise<void> {
+  async deleteMetadataBackupJob(id) {
     const app = this._app
     const [schedules] = await Promise.all([
       app.getAllSchedules(),
@@ -351,7 +313,7 @@ export default class metadataBackup {
   //      [remote ID]: poolBackups
   //    }
   //  }
-  async listMetadataBackups(remoteIds: string[]) {
+  async listMetadataBackups(remoteIds) {
     const xo = {}
     const pool = {}
     await Promise.all(
@@ -383,7 +345,7 @@ export default class metadataBackup {
   //
   // task.start(message: 'restore', data: <Metadata />)
   // └─ task.end
-  async restoreMetadataBackup(id: string) {
+  async restoreMetadataBackup(id) {
     const app = this._app
     const logger = this._logger
     const [remoteId, ...path] = id.split('/')
@@ -470,7 +432,7 @@ export default class metadataBackup {
     }
   }
 
-  async deleteMetadataBackup(id: string) {
+  async deleteMetadataBackup(id) {
     const app = this._app
     const [remoteId, ...path] = id.split('/')
     const backupId = path.join('/')

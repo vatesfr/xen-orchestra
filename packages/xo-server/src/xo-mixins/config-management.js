@@ -1,8 +1,8 @@
 import * as openpgp from 'openpgp'
-import createLogger from '@xen-orchestra/log'
 import DepTree from 'deptree'
+import { createLogger } from '@xen-orchestra/log'
 
-import { asyncMapValues } from '../_asyncMapValues'
+import { asyncMapValues } from '../_asyncMapValues.js'
 
 const log = createLogger('xo:config-management')
 

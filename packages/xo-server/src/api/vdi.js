@@ -1,10 +1,10 @@
 // FIXME: rename to disk.*
 
-import defer from 'golike-defer'
-import { invalidParameters } from 'xo-common/api-errors'
+import { defer } from 'golike-defer'
+import { invalidParameters } from 'xo-common/api-errors.js'
 import { reduce } from 'lodash'
 
-import { parseSize } from '../utils'
+import { parseSize } from '../utils.js'
 
 // ====================================================================
 
@@ -15,7 +15,7 @@ export async function delete_({ vdi }) {
     undefined
   )
 
-  await this.getXapi(vdi).deleteVdi(vdi._xapiId)
+  await this.getXapiObject(vdi).$destroy()
 
   if (resourceSet !== undefined) {
     await this.releaseLimitsInResourceSet({ disk: vdi.size }, resourceSet)

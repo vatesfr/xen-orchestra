@@ -1,78 +1,21 @@
-// @flow
-
-import type { Pattern } from 'value-matcher'
-
-import asyncMapSettled from '@xen-orchestra/async-map/legacy'
-import createLogger from '@xen-orchestra/log'
+import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
 import emitAsync from '@xen-orchestra/emit-async'
+import { createLogger } from '@xen-orchestra/log'
+import { decorateWith } from '@vates/decorate-with'
 
 import { CancelToken, ignoreErrors } from 'promise-toolbox'
 import { defer } from 'golike-defer'
-import { noSuchObject } from 'xo-common/api-errors'
+import { noSuchObject } from 'xo-common/api-errors.js'
 
-import Collection from '../../collection/redis'
-import patch from '../../patch'
-import { serializeError } from '../../utils'
+import Collection from '../../collection/redis.js'
+import patch from '../../patch.js'
+import { serializeError } from '../../utils.js'
 
-import type Logger from '../logs/loggers/abstract'
-import { type Schedule } from '../scheduling'
-
-import executeCall from './execute-call'
+import executeCall from './execute-call.js'
 
 // ===================================================================
 
 const log = createLogger('xo:jobs')
-
-export type Job = {
-  id: string,
-  name: string,
-  type: string,
-  userId: string,
-}
-
-type ParamsVector =
-  | {|
-      items: Array<Object>,
-      type: 'crossProduct',
-    |}
-  | {|
-      mapping: Object,
-      type: 'extractProperties',
-      value: Object,
-    |}
-  | {|
-      pattern: Pattern,
-      type: 'fetchObjects',
-    |}
-  | {|
-      collection: Object,
-      iteratee: Function,
-      paramName?: string,
-      type: 'map',
-    |}
-  | {|
-      type: 'set',
-      values: any,
-    |}
-
-export type CallJob = {|
-  ...$Exact<Job>,
-  method: string,
-  paramsVector: ParamsVector,
-  timeout?: number,
-  type: 'call',
-|}
-
-export type Executor = ({|
-  app: Object,
-  cancelToken: any,
-  data: any,
-  job: Job,
-  logger: Logger,
-  runJobId: string,
-  schedule?: Schedule,
-  session: Object,
-|}) => Promise<any>
 
 // -----------------------------------------------------------------------------
 
@@ -94,7 +37,7 @@ const normalize = job => {
   return job
 }
 
-const serialize = (job: {| [string]: any |}) => {
+const serialize = job => {
   Object.keys(job).forEach(key => {
     const value = job[key]
     if (typeof value !== 'string') {
@@ -105,15 +48,15 @@ const serialize = (job: {| [string]: any |}) => {
 }
 
 class JobsDb extends Collection {
-  async create(job): Promise<Job> {
-    return normalize((await this.add(serialize((job: any)))).properties)
+  async create(job) {
+    return normalize((await this.add(serialize(job))).properties)
   }
 
-  async save(job): Promise<void> {
-    await this.update(serialize((job: any)))
+  async save(job) {
+    await this.update(serialize(job))
   }
 
-  async get(properties): Promise<Array<Job>> {
+  async get(properties) {
     const jobs = await super.get(properties)
     jobs.forEach(normalize)
     return jobs
@@ -123,22 +66,15 @@ class JobsDb extends Collection {
 // -----------------------------------------------------------------------------
 
 export default class Jobs {
-  _app: any
-  _executors: { __proto__: null, [string]: Executor }
-  _jobs: JobsDb
-  _logger: Logger
-  _runningJobs: { __proto__: null, [string]: string }
-  _runs: { __proto__: null, [string]: () => void }
-
   get runningJobs() {
     return this._runningJobs
   }
 
-  constructor(xo: any) {
-    this._app = xo
+  constructor(app) {
+    this._app = app
     const executors = (this._executors = { __proto__: null })
     const jobsDb = (this._jobs = new JobsDb({
-      connection: xo._redis,
+      connection: app._redis,
       prefix: 'xo:job',
       indexes: ['user_id', 'key'],
     }))
@@ -148,11 +84,11 @@ export default class Jobs {
 
     executors.call = executeCall
 
-    xo.on('clean', () => jobsDb.rebuildIndexes())
-    xo.on('start', async () => {
-      this._logger = await xo.getLogger('jobs')
+    app.hooks.on('clean', () => jobsDb.rebuildIndexes())
+    app.hooks.on('start', async () => {
+      this._logger = await app.getLogger('jobs')
 
-      xo.addConfigManager(
+      app.addConfigManager(
         'jobs',
         () => jobsDb.get(),
         jobs => Promise.all(jobs.map(job => jobsDb.save(job))),
@@ -160,14 +96,14 @@ export default class Jobs {
       )
     })
     // it sends a report for the interrupted backup jobs
-    xo.on('plugins:registered', () =>
+    app.on('plugins:registered', () =>
       asyncMapSettled(this._jobs.get(), job => {
         // only the interrupted backup jobs have the runId property
         if (job.runId === undefined) {
           return
         }
 
-        xo.emit(
+        app.emit(
           'job:terminated',
           // This cast can be removed after merging the PR: https://github.com/vatesfr/xen-orchestra/pull/3209
           String(job.runId),
@@ -180,15 +116,14 @@ export default class Jobs {
     )
   }
 
-  cancelJobRun(id: string) {
+  cancelJobRun(id) {
     const run = this._runs[id]
     if (run !== undefined) {
       return run.cancel()
     }
   }
 
-  async getAllJobs(type?: string): Promise<Array<Job>> {
-    // $FlowFixMe don't know what is the problem (JFT)
+  async getAllJobs(type) {
     const jobs = await this._jobs.get()
     const runningJobs = this._runningJobs
     const result = []
@@ -201,7 +136,7 @@ export default class Jobs {
     return result
   }
 
-  async getJob(id: string, type?: string): Promise<Job> {
+  async getJob(id, type) {
     let job = await this._jobs.first(id)
     if (job === undefined || (type !== undefined && job.properties.type !== type)) {
       throw noSuchObject(id, 'job')
@@ -213,11 +148,11 @@ export default class Jobs {
     return job
   }
 
-  createJob(job: $Diff<Job, {| id: string |}>): Promise<Job> {
+  createJob(job) {
     return this._jobs.create(job)
   }
 
-  async updateJob(job: $Shape<Job>, merge: boolean = true) {
+  async updateJob(job, merge = true) {
     if (merge) {
       const { id, ...props } = job
       job = await this.getJob(id)
@@ -226,7 +161,7 @@ export default class Jobs {
     return /* await */ this._jobs.save(job)
   }
 
-  registerJobExecutor(type: string, executor: Executor): void {
+  registerJobExecutor(type, executor) {
     const executors = this._executors
     if (type in executors) {
       throw new Error(`there is already a job executor for type ${type}`)
@@ -234,7 +169,7 @@ export default class Jobs {
     executors[type] = executor
   }
 
-  async removeJob(id: string) {
+  async removeJob(id) {
     const promises = [this._jobs.remove(id)]
     ;(await this._app.getAllSchedules()).forEach(schedule => {
       if (schedule.jobId === id) {
@@ -244,8 +179,8 @@ export default class Jobs {
     return Promise.all(promises)
   }
 
-  @defer
-  async _runJob($defer, job: Job, schedule?: Schedule, data_?: any) {
+  @decorateWith(defer)
+  async _runJob($defer, job, schedule, data_) {
     const logger = this._logger
     const { id, type } = job
 
@@ -253,7 +188,6 @@ export default class Jobs {
       data:
         type === 'backup' || type === 'metadataBackup'
           ? {
-              // $FlowFixMe only defined for BackupJob
               mode: job.mode,
               reportWhen: job.settings['']?.reportWhen ?? 'failure',
             }
@@ -264,7 +198,6 @@ export default class Jobs {
       jobName: job.name,
       proxyId: job.proxy,
       scheduleId: schedule?.id,
-      // $FlowFixMe only defined for CallJob
       key: job.key,
       type,
     })
@@ -393,7 +326,7 @@ export default class Jobs {
     }
   }
 
-  async runJobSequence(idSequence: Array<string>, schedule?: Schedule, data?: any) {
+  async runJobSequence(idSequence, schedule, data) {
     const jobs = await Promise.all(idSequence.map(id => this.getJob(id)))
 
     for (const job of jobs) {

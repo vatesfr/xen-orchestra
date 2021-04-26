@@ -1,7 +1,6 @@
 import assert from 'assert'
 import contentType from 'content-type'
 import cookie from 'cookie'
-import defer from 'golike-defer'
 import hrp from 'http-request-plus'
 import parseSetCookie from 'set-cookie-parser'
 import pumpify from 'pumpify'
@@ -9,18 +8,20 @@ import split2 from 'split2'
 import synchronized from 'decorator-synchronized'
 import { compileTemplate } from '@xen-orchestra/template'
 import { createLogger } from '@xen-orchestra/log'
+import { decorateWith } from '@vates/decorate-with'
+import { defer } from 'golike-defer'
 import { format, parse } from 'json-rpc-peer'
-import { incorrectState, noSuchObject } from 'xo-common/api-errors'
+import { incorrectState, noSuchObject } from 'xo-common/api-errors.js'
 import { isEmpty, mapValues, some, omit } from 'lodash'
 import { parseDuration } from '@vates/parse-duration'
+import { readChunk } from '@vates/read-chunk'
 import { Ref } from 'xen-api'
 import { timeout } from 'promise-toolbox'
 
-import Collection from '../collection/redis'
-import patch from '../patch'
-import readChunk from '../_readStreamChunk'
-import { extractIpFromVmNetworks } from '../_extractIpFromVmNetworks'
-import { generateToken } from '../utils'
+import Collection from '../collection/redis.js'
+import patch from '../patch.js'
+import { extractIpFromVmNetworks } from '../_extractIpFromVmNetworks.js'
+import { generateToken } from '../utils.js'
 
 const extractProperties = _ => _.properties
 const omitToken = proxy => omit(proxy, 'authenticationToken')
@@ -39,22 +40,23 @@ const assertProxyAddress = (proxy, address) => {
 }
 
 export default class Proxy {
-  constructor(app, conf) {
+  constructor(app) {
     this._app = app
-    const xoProxyConf = (this._xoProxyConf = conf['xo-proxy'])
     const rules = {
       '{date}': (date = new Date()) => date.toISOString(),
     }
-    this._generateDefaultProxyName = compileTemplate(xoProxyConf.proxyName, rules)
-    this._generateDefaultVmName = compileTemplate(xoProxyConf.vmName, rules)
+    app.config.watch('xo-proxy', xoProxyConf => {
+      this._generateDefaultProxyName = compileTemplate(xoProxyConf.proxyName, rules)
+      this._generateDefaultVmName = compileTemplate(xoProxyConf.vmName, rules)
+    })
     const db = (this._db = new Collection({
       connection: app._redis,
       indexes: ['address', 'vmUuid'],
       prefix: 'xo:proxy',
     }))
 
-    app.on('clean', () => db.rebuildIndexes())
-    app.on('start', () =>
+    app.hooks.on('clean', () => db.rebuildIndexes())
+    app.hooks.on('start', () =>
       app.addConfigManager(
         'proxies',
         () => db.get(),
@@ -97,7 +99,7 @@ export default class Proxy {
       await this._app
         .unbindLicense({
           boundObjectId: vmUuid,
-          productId: this._xoProxyConf.licenseProductId,
+          productId: this._app.config.get('xo-proxy.licenseProductId'),
         })
         .catch(log.warn)
     }
@@ -107,7 +109,7 @@ export default class Proxy {
     const { vmUuid } = await this._getProxy(id)
     if (vmUuid !== undefined) {
       try {
-        await this._app.getXapi(vmUuid).deleteVm(vmUuid)
+        await this._app.getXapiObject(vmUuid).$destroy()
       } catch (error) {
         if (!noSuchObject.is(error)) {
           throw error
@@ -166,7 +168,7 @@ export default class Proxy {
       xenstoreData['vm-data/xoa-updater-proxy-url'] = JSON.stringify(httpProxy)
     }
     if (upgrade) {
-      xenstoreData['vm-data/xoa-updater-channel'] = JSON.stringify(this._xoProxyConf.channel)
+      xenstoreData['vm-data/xoa-updater-channel'] = JSON.stringify(this._app.config.get('xo-proxy.channel'))
     }
 
     const { vmUuid } = await this._getProxy(id)
@@ -190,10 +192,10 @@ export default class Proxy {
     return this.callProxyMethod(id, 'appliance.updater.getState')
   }
 
-  @defer
+  @decorateWith(defer)
   async _createProxyVm($defer, srId, licenseId, { httpProxy, networkId, networkConfiguration }) {
     const app = this._app
-    const xoProxyConf = this._xoProxyConf
+    const xoProxyConf = app.config.get('xo-proxy')
 
     const namespace = xoProxyConf.namespace
     const {
@@ -208,7 +210,7 @@ export default class Proxy {
       }),
       { srId }
     )
-    $defer.onFailure(() => xapi._deleteVm(vm))
+    $defer.onFailure(() => xapi.VM_destroy(vm.$ref))
 
     const arg = { licenseId, boundObjectId: vm.uuid }
     await app.bindLicense(arg)
@@ -261,14 +263,14 @@ export default class Proxy {
 
   async deployProxy(srId, licenseId, { httpProxy, networkConfiguration, networkId, proxyId } = {}) {
     const app = this._app
-    const xoProxyConf = this._xoProxyConf
+    const xoProxyConf = app.config.get('xo-proxy')
 
     const redeploy = proxyId !== undefined
     if (redeploy) {
       const { vmUuid } = await this._getProxy(proxyId)
       if (vmUuid !== undefined) {
         try {
-          await app.getXapi(vmUuid).deleteVm(vmUuid)
+          await app.getXapiObject(vmUuid).$destroy()
         } catch (error) {
           if (!noSuchObject.is(error)) {
             throw error
@@ -356,7 +358,7 @@ export default class Proxy {
       pathname: '/api/v1',
       protocol: 'https:',
       rejectUnauthorized: false,
-      timeout: parseDuration(this._xoProxyConf.callTimeout),
+      timeout: this._app.config.getDuration('xo-proxy.callTimeout'),
     }
 
     if (proxy.vmUuid !== undefined) {

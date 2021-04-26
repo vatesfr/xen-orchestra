@@ -1,4 +1,4 @@
-import Disposable from 'promise-toolbox/Disposable'
+import Disposable from 'promise-toolbox/Disposable.js'
 import execa from 'execa'
 
 // - [x] list partitions
@@ -28,7 +28,7 @@ export default class BackupNgFileRestore {
 
     // clean any LVM volumes that might have not been properly
     // unmounted
-    app.on('start', async () => {
+    app.hooks.on('start', async () => {
       await Promise.all([execa('losetup', ['-D']), execa('vgchange', ['-an'])])
       await execa('pvscan', ['--cache'])
     })

@@ -1,14 +1,7 @@
-// @flow
-import { noSuchObject } from 'xo-common/api-errors'
+import { noSuchObject } from 'xo-common/api-errors.js'
 
-import Collection from '../collection/redis'
-import patch from '../patch'
-
-type CloudConfig = {|
-  id: string,
-  name: string,
-  template: string,
-|}
+import Collection from '../collection/redis.js'
+import patch from '../patch.js'
 
 class CloudConfigs extends Collection {
   get(properties) {
@@ -17,24 +10,15 @@ class CloudConfigs extends Collection {
 }
 
 export default class {
-  _app: any
-  _db: {|
-    add: Function,
-    first: Function,
-    get: Function,
-    remove: Function,
-    update: Function,
-  |}
-
-  constructor(app: any) {
+  constructor(app) {
     this._app = app
     const db = (this._db = new CloudConfigs({
       connection: app._redis,
       prefix: 'xo:cloudConfig',
     }))
 
-    app.on('clean', () => db.rebuildIndexes())
-    app.on('start', () =>
+    app.hooks.on('clean', () => db.rebuildIndexes())
+    app.hooks.on('start', () =>
       app.addConfigManager(
         'cloudConfigs',
         () => db.get(),
@@ -43,25 +27,25 @@ export default class {
     )
   }
 
-  createCloudConfig(cloudConfig: $Diff<CloudConfig, {| id: string |}>) {
+  createCloudConfig(cloudConfig) {
     return this._db.add(cloudConfig).properties
   }
 
-  async updateCloudConfig({ id, name, template }: $Shape<CloudConfig>) {
+  async updateCloudConfig({ id, name, template }) {
     const cloudConfig = await this.getCloudConfig(id)
     patch(cloudConfig, { name, template })
     return this._db.update(cloudConfig)
   }
 
-  deleteCloudConfig(id: string) {
+  deleteCloudConfig(id) {
     return this._db.remove(id)
   }
 
-  getAllCloudConfigs(): Promise<Array<CloudConfig>> {
+  getAllCloudConfigs() {
     return this._db.get()
   }
 
-  async getCloudConfig(id: string): Promise<CloudConfig> {
+  async getCloudConfig(id) {
     const cloudConfig = await this._db.first(id)
     if (cloudConfig === undefined) {
       throw noSuchObject(id, 'cloud config')

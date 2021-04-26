@@ -3,8 +3,7 @@
   "name": "@xen-orchestra/emit-async",
   "version": "0.0.0",
   "license": "ISC",
-  "description": "",
-  "keywords": [],
+  "description": "Emit an event for async listeners to settle",
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/emit-async",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "repository": {
@@ -18,16 +17,12 @@
   },
   "preferGlobal": false,
   "main": "dist/",
-  "files": [
-    "dist/"
-  ],
   "browserslist": [
     ">2%"
   ],
   "engines": {
     "node": ">=6"
   },
-  "dependencies": {},
   "devDependencies": {
     "@babel/cli": "^7.0.0",
     "@babel/core": "^7.0.0",

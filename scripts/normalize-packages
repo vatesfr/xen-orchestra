@@ -1,9 +1,12 @@
 #!/usr/bin/env node
 
-const get = require('lodash/get')
 const isEmpty = require('lodash/isEmpty')
 const sortedObject = require('sorted-object')
-const { getPackages, readFile, writeFile, unlink } = require('./utils')
+const { dirname, relative } = require('path')
+const { getPackages, noop, readFile, symlink, writeFile, unlink } = require('./utils')
+
+const BABEL_ESLINTRC_PATH = `${__dirname}/babel-eslintrc.js`
+const NPMIGNORE_PATH = `${__dirname}/npmignore`
 
 const deleteIfEmpty = (object, property) => {
   if (isEmpty(object[property])) {
@@ -23,6 +26,11 @@ const deleteProperties = (object, property, properties) => {
 }
 
 const generateReadme = require('handlebars').compile(require('fs').readFileSync(`${__dirname}/README.md.tpl`, 'utf8'))
+
+const forceRelativeSymlink = async (target, path) => {
+  await unlink(path).catch(noop)
+  return symlink(relative(dirname(path), target), path)
+}
 
 require('exec-promise')(() =>
   getPackages(true).map(({ dir, name, package: pkg, relativeDir }) => {
@@ -57,11 +65,15 @@ require('exec-promise')(() =>
       ...pkg.engines,
     }
 
+    delete pkg.files
     delete pkg.husky
     delete pkg.standard
     delete pkg['lint-staged']
 
     deleteIfEmpty(pkg, 'bin')
+    deleteIfEmpty(pkg, 'dependencies')
+    deleteIfEmpty(pkg, 'description')
+    deleteIfEmpty(pkg, 'keywords')
     deleteProperties(pkg, 'config', ['commitizen'])
     deleteProperties(pkg, 'devDependencies', [
       'babel-7-jest',
@@ -108,6 +120,7 @@ require('exec-promise')(() =>
     }
 
     return Promise.all([
+      forceRelativeSymlink(NPMIGNORE_PATH, `${dir}/.npmignore`),
       readFile(`${dir}/USAGE.md`, 'utf8')
         .then(content =>
           writeFile(
@@ -123,9 +136,11 @@ require('exec-promise')(() =>
             console.error('Error while handling README', error)
           }
         }),
+      pkg.devDependencies?.['@babel/core'] !== undefined
+        ? forceRelativeSymlink(BABEL_ESLINTRC_PATH, `${dir}/.eslintrc.js`)
+        : unlink(`${dir}/.eslintrc.js`),
       writeFile(`${dir}/package.json`, JSON.stringify(pkg, null, 2) + '\n'),
       unlink(`${dir}/.editorconfig`),
-      unlink(`${dir}/.eslintrc.js`),
       unlink(`${dir}/.flowconfig`),
       unlink(`${dir}/.gitignore`),
       unlink(`${dir}/.jshintrc`),

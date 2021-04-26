@@ -2,9 +2,10 @@
 import 'core-js/features/symbol/async-iterator'
 
 import assert from 'assert'
-import createLogger from '@xen-orchestra/log'
-import defer from 'golike-defer'
 import hash from 'object-hash'
+import { createLogger } from '@xen-orchestra/log'
+import { decorateWith } from '@vates/decorate-with'
+import { defer } from 'golike-defer'
 
 const log = createLogger('xo:audit-core')
 
@@ -65,7 +66,7 @@ export class AuditCore {
     this._storage = storage
   }
 
-  @defer
+  @decorateWith(defer)
   async add($defer, subject, event, data) {
     const time = Date.now()
     $defer(await this._storage.acquireLock())
@@ -150,7 +151,7 @@ export class AuditCore {
     }
   }
 
-  @defer
+  @decorateWith(defer)
   async deleteRangeAndRewrite($defer, newest, oldest) {
     assert.notStrictEqual(newest, undefined)
     assert.notStrictEqual(oldest, undefined)

@@ -33,7 +33,6 @@ import Jobs from './jobs'
 import Menu from './menu'
 import Modal, { alert, FormModal } from 'modal'
 import New from './new'
-import NewLegacyBackup from './backup/new-legacy-backup'
 import NewVm from './new-vm'
 import Pool from './pool'
 import Proxies from './proxies'
@@ -87,13 +86,6 @@ const BODY_STYLE = {
   home: Home,
   'hosts/:id': Host,
   jobs: Jobs,
-  // 2019-10-03
-  // For test/development purposes. It can be removed after a while.
-  // To remove it, it's necessary to remove
-  //   - all messages only used in 'xo-app/backup/new-legacy-backup/index.js'
-  //      from 'common/intl/messages'.
-  //   - folder 'xo-app/backup/new-legacy-backup'.
-  'legacy-backup/new': NewLegacyBackup,
   new: New,
   'pools/:id': Pool,
   self: Self,

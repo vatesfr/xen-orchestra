@@ -1,7 +1,7 @@
-import Disposable from 'promise-toolbox/Disposable'
+import Disposable from 'promise-toolbox/Disposable.js'
 import { compose } from '@vates/compose'
 import { decorateWith } from '@vates/decorate-with'
-import { deduped } from '@vates/disposable/deduped'
+import { deduped } from '@vates/disposable/deduped.js'
 import { getHandler } from '@xen-orchestra/fs'
 
 export default class Remotes {
@@ -49,6 +49,6 @@ export default class Remotes {
     }
 
     await handler.sync()
-    return new Disposable(handler, () => handler.forget())
+    return new Disposable(() => handler.forget(), handler)
   }
 }

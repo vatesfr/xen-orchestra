@@ -1,12 +1,12 @@
-// import isFinite from 'lodash/isFinite'
-import camelCase from 'lodash/camelCase'
-import isEqual from 'lodash/isEqual'
-import isPlainObject from 'lodash/isPlainObject'
-import pickBy from 'lodash/pickBy'
+// import isFinite from 'lodash/isFinite.js'
+import camelCase from 'lodash/camelCase.js'
+import isEqual from 'lodash/isEqual.js'
+import isPlainObject from 'lodash/isPlainObject.js'
+import pickBy from 'lodash/pickBy.js'
 import { utcParse } from 'd3-time-format'
 import { satisfies as versionSatisfies } from 'semver'
 
-import { camelToSnakeCase, forEach, isInteger, map, mapFilter, noop } from '../utils'
+import { camelToSnakeCase, forEach, isInteger, map, mapFilter, noop } from '../utils.js'
 
 // ===================================================================
 
@@ -192,6 +192,10 @@ export const makeEditObject = specs => {
       }
     })
 
+    if ('dispatch' in spec) {
+      return spec
+    }
+
     const { get } = spec
     if (get) {
       spec.get = normalizeGet(get, name)
@@ -233,6 +237,11 @@ export const makeEditObject = specs => {
       const spec = specs[name]
       if (!spec) {
         return
+      }
+
+      const { dispatch } = spec
+      if (dispatch) {
+        return set(value, dispatch(object))
       }
 
       const { preprocess } = spec

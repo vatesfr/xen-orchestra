@@ -1,15 +1,15 @@
-import createLogger from '@xen-orchestra/log'
-import deferrable from 'golike-defer'
 import unzip from 'unzipper'
+import { createLogger } from '@xen-orchestra/log'
 import { decorateWith } from '@vates/decorate-with'
+import { defer as deferrable } from 'golike-defer'
 import { filter, find, groupBy, mapValues, pickBy, some } from 'lodash'
 import { timeout } from 'promise-toolbox'
 
-import ensureArray from '../../_ensureArray'
-import { debounceWithKey } from '../../_pDebounceWithKey'
-import { forEach, mapFilter, parseXml } from '../../utils'
+import ensureArray from '../../_ensureArray.js'
+import { debounceWithKey } from '../../_pDebounceWithKey.js'
+import { forEach, mapFilter, parseXml } from '../../utils.js'
 
-import { extractOpaqueRef, parseDateTime, useUpdateSystem } from '../utils'
+import { extractOpaqueRef, parseDateTime, useUpdateSystem } from '../utils.js'
 
 // TOC -------------------------------------------------------------------------
 
@@ -354,7 +354,7 @@ export default {
     })
 
     const patchRef = await this.putResource(stream, '/pool_patch_upload', {
-      task: this.createTask('Patch upload', patchInfo.name),
+      task: this.task_create('Patch upload', patchInfo.name),
     }).then(extractOpaqueRef)
 
     return this._getOrWaitObject(patchRef)
@@ -392,7 +392,7 @@ export default {
       '[XO] Patch ISO',
       'small temporary VDI to store a patch ISO'
     )
-    $defer(() => this._deleteVdi(vdi.$ref))
+    $defer(() => vdi.$destroy())
 
     return vdi
   },

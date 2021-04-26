@@ -32,7 +32,7 @@ Functions may also be passed in an array:
 const f = compose([add2, mul3])
 ```
 
-Options can be passed as first parameters:
+Options can be passed as first parameter:
 
 ```js
 const f = compose(

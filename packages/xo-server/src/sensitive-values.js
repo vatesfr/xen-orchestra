@@ -1,4 +1,4 @@
-import mapValues from 'lodash/mapValues'
+import mapValues from 'lodash/mapValues.js'
 
 // this random value is used to obfuscate real data
 const OBFUSCATED_VALUE = 'obfuscated-q3oi6d9X8uenGvdLnHk2'

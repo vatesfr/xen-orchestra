@@ -1,11 +1,12 @@
-import deferrable from 'golike-defer'
+import { decorateWith } from '@vates/decorate-with'
+import { defer as deferrable } from 'golike-defer'
 import { find, gte, includes, isEmpty, lte, map as mapToArray, mapValues, noop } from 'lodash'
 import { cancelable, ignoreErrors, pCatch } from 'promise-toolbox'
 import { Ref } from 'xen-api'
 
-import { forEach, parseSize } from '../../utils'
+import { forEach, parseSize } from '../../utils.js'
 
-import { extractOpaqueRef, isVmHvm, isVmRunning, makeEditObject } from '../utils'
+import { extractOpaqueRef, isVmHvm, isVmRunning, makeEditObject } from '../utils.js'
 
 // According to: https://xenserver.org/blog/entry/vga-over-cirrus-in-xenserver-6-2.html.
 const XEN_VGA_VALUES = ['std', 'cirrus']
@@ -36,7 +37,7 @@ export default {
   },
 
   // TODO: clean up on error.
-  @deferrable
+  @decorateWith(deferrable)
   async createVm(
     $defer,
     templateId,
@@ -79,7 +80,7 @@ export default {
 
     // Clones the template.
     const vmRef = await this[clone ? '_cloneVm' : '_copyVm'](template, nameLabel)
-    $defer.onFailure(() => this.deleteVm(vmRef))
+    $defer.onFailure(() => this.VM_destroy(vmRef))
 
     // Copy BIOS strings
     // https://support.citrix.com/article/CTX230618
@@ -340,7 +341,24 @@ export default {
       set: 'memory_dynamic_min',
     },
 
-    memory: 'memoryMax',
+    _memory: {
+      addToLimits: true,
+      get: vm => +vm.memory_dynamic_max,
+      preprocess: parseSize,
+      set(memory, vm) {
+        return vm.$call('set_memory_limits', vm.memory_static_min, memory, memory, memory)
+      },
+    },
+
+    memory: {
+      dispatch(vm) {
+        const dynamicMin = vm.memory_dynamic_min
+        const useDmc = dynamicMin !== vm.memory_dynamic_max || dynamicMin !== vm.memory_static_max
+
+        return useDmc ? 'memoryMax' : '_memory'
+      },
+    },
+
     memoryMax: {
       addToLimits: true,
       limitName: 'memory',

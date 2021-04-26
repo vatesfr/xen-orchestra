@@ -1,14 +1,14 @@
 const compareVersions = require('compare-versions')
-const defer = require('golike-defer').default
-const find = require('lodash/find')
-const groupBy = require('lodash/groupBy')
-const ignoreErrors = require('promise-toolbox/ignoreErrors')
-const omit = require('lodash/omit')
+const find = require('lodash/find.js')
+const groupBy = require('lodash/groupBy.js')
+const ignoreErrors = require('promise-toolbox/ignoreErrors.js')
+const omit = require('lodash/omit.js')
 const { asyncMap } = require('@xen-orchestra/async-map')
 const { CancelToken } = require('promise-toolbox')
 const { createVhdStreamWithLength } = require('vhd-lib')
+const { defer } = require('golike-defer')
 
-const { cancelableMap } = require('./_cancelableMap')
+const { cancelableMap } = require('./_cancelableMap.js')
 
 const TAG_BASE_DELTA = 'xo:base_delta'
 exports.TAG_BASE_DELTA = TAG_BASE_DELTA
@@ -143,7 +143,7 @@ exports.importDeltaVm = defer(async function importDeltaVm(
   $defer,
   deltaVm,
   sr,
-  { cancelToken = CancelToken.none, detectBase = true, mapVdisSrs = {} } = {}
+  { cancelToken = CancelToken.none, detectBase = true, mapVdisSrs = {}, newMacAddresses = false } = {}
 ) {
   const { version } = deltaVm
   if (compareVersions(version, '1.0.0') < 0) {
@@ -213,6 +213,7 @@ exports.importDeltaVm = defer(async function importDeltaVm(
     },
     {
       bios_strings: vmRecord.bios_strings,
+      generateMacSeed: newMacAddresses,
       suspend_VDI: suspendVdi?.$ref,
     }
   )
@@ -325,11 +326,16 @@ exports.importDeltaVm = defer(async function importDeltaVm(
       }
 
       if (network) {
-        return xapi.VIF_create({
-          ...vif,
-          network: network.$ref,
-          VM: vmRef,
-        })
+        return xapi.VIF_create(
+          {
+            ...vif,
+            network: network.$ref,
+            VM: vmRef,
+          },
+          {
+            MAC: newMacAddresses ? undefined : vif.MAC,
+          }
+        )
       }
     }),
   ])

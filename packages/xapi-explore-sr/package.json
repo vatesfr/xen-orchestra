@@ -29,9 +29,6 @@
   "bin": {
     "xapi-explore-sr": "dist/index.js"
   },
-  "files": [
-    "dist/"
-  ],
   "engines": {
     "node": ">=8"
   },

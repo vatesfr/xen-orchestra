@@ -1,15 +1,19 @@
-const Disposable = require('promise-toolbox/Disposable')
-const ignoreErrors = require('promise-toolbox/ignoreErrors')
+require('@xen-orchestra/log/configure.js').catchGlobalErrors(
+  require('@xen-orchestra/log').createLogger('xo:backups:worker')
+)
+
+const Disposable = require('promise-toolbox/Disposable.js')
+const ignoreErrors = require('promise-toolbox/ignoreErrors.js')
 const { compose } = require('@vates/compose')
-const { createDebounceResource } = require('@vates/disposable/debounceResource')
-const { deduped } = require('@vates/disposable/deduped')
+const { createDebounceResource } = require('@vates/disposable/debounceResource.js')
+const { deduped } = require('@vates/disposable/deduped.js')
 const { getHandler } = require('@xen-orchestra/fs')
 const { parseDuration } = require('@vates/parse-duration')
 const { Xapi } = require('@xen-orchestra/xapi')
 
-const { Backup } = require('./Backup')
-const { RemoteAdapter } = require('./RemoteAdapter')
-const { Task } = require('./Task')
+const { Backup } = require('./Backup.js')
+const { RemoteAdapter } = require('./RemoteAdapter.js')
+const { Task } = require('./Task.js')
 
 class BackupWorker {
   #config

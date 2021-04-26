@@ -1,17 +1,16 @@
-import createLogger from '@xen-orchestra/log'
 import { BaseError } from 'make-error'
+import { createLogger } from '@xen-orchestra/log'
 import { fibonacci } from 'iterable-backoff'
 import { findKey } from 'lodash'
-import { noSuchObject } from 'xo-common/api-errors'
-import { parseDuration } from '@vates/parse-duration'
+import { noSuchObject } from 'xo-common/api-errors.js'
 import { pDelay, ignoreErrors } from 'promise-toolbox'
 
-import * as XenStore from '../_XenStore'
-import Xapi from '../xapi'
-import xapiObjectToXo from '../xapi-object-to-xo'
-import XapiStats from '../xapi-stats'
-import { camelToSnakeCase, forEach, isEmpty, popProperty } from '../utils'
-import { Servers } from '../models/server'
+import * as XenStore from '../_XenStore.js'
+import Xapi from '../xapi/index.js'
+import xapiObjectToXo from '../xapi-object-to-xo.js'
+import XapiStats from '../xapi-stats.js'
+import { camelToSnakeCase, forEach, isEmpty, popProperty } from '../utils.js'
+import { Servers } from '../models/server.js'
 
 // ===================================================================
 
@@ -36,25 +35,24 @@ const log = createLogger('xo:xo-mixins:xen-servers')
 // - _xapis[server.id] id defined
 // - _serverIdsByPool[xapi.pool.$id] is server.id
 export default class {
-  constructor(xo, { guessVhdSizeOnImport, xapiMarkDisconnectedDelay, xapiOptions }) {
+  constructor(app, { safeMode }) {
     this._objectConflicts = { __proto__: null } // TODO: clean when a server is disconnected.
     const serversDb = (this._servers = new Servers({
-      connection: xo._redis,
+      connection: app._redis,
       prefix: 'xo:server',
       indexes: ['host'],
     }))
     this._serverIdsByPool = { __proto__: null }
     this._stats = new XapiStats()
-    this._xapiOptions = {
-      guessVhdSizeOnImport,
-      ...xapiOptions,
-    }
     this._xapis = { __proto__: null }
-    this._xo = xo
-    this._xapiMarkDisconnectedDelay = parseDuration(xapiMarkDisconnectedDelay)
+    this._app = app
 
-    xo.on('clean', () => serversDb.rebuildIndexes())
-    xo.on('start', async () => {
+    app.config.watchDuration('xapiMarkDisconnectedDelay', xapiMarkDisconnectedDelay => {
+      this._xapiMarkDisconnectedDelay = xapiMarkDisconnectedDelay
+    })
+
+    app.hooks.on('clean', () => serversDb.rebuildIndexes())
+    app.hooks.on('start', async () => {
       const connectServers = async () => {
         // Connects to existing servers.
         for (const server of await serversDb.get()) {
@@ -69,7 +67,7 @@ export default class {
         }
       }
 
-      xo.addConfigManager(
+      app.addConfigManager(
         'xenServers',
         () => serversDb.get(),
         servers => serversDb.update(servers).then(connectServers)
@@ -87,7 +85,9 @@ export default class {
         ignoreErrors.call(XenStore.rm(key))
       }
 
-      await connectServers()
+      if (!safeMode) {
+        await connectServers()
+      }
     })
 
     // TODO: disconnect servers on stop.
@@ -172,7 +172,7 @@ export default class {
 
   getXenServerIdByObject(object, type) {
     if (typeof object === 'string') {
-      object = this._xo.getObject(object, type)
+      object = this._app.getObject(object, type)
     }
     const { $pool: poolId } = object
     if (!poolId) {
@@ -188,7 +188,7 @@ export default class {
 
   _onXenAdd(newXapiObjects, xapiIdsToXo, toRetry, conId, dependents, xapiObjects) {
     const conflicts = this._objectConflicts
-    const objects = this._xo._objects
+    const objects = this._app._objects
 
     const serverIdsByPool = this._serverIdsByPool
     forEach(newXapiObjects, function handleObject(xapiObject, xapiId) {
@@ -233,7 +233,7 @@ export default class {
 
   _onXenRemove(xapiObjects, xapiIdsToXo, toRetry, conId) {
     const conflicts = this._objectConflicts
-    const objects = this._xo._objects
+    const objects = this._app._objects
 
     forEach(xapiObjects, (_, xapiId) => {
       toRetry && delete toRetry[xapiId]
@@ -270,11 +270,14 @@ export default class {
       throw new Error('the server is already connected')
     }
 
+    const { config } = this._app
+
     const xapi = (this._xapis[server.id] = new Xapi({
       allowUnauthorized: server.allowUnauthorized,
       readOnly: server.readOnly,
 
-      ...this._xapiOptions,
+      ...config.get('xapiOptions'),
+      guessVhdSizeOnImport: config.get('guessVhdSizeOnImport'),
 
       auth: {
         user: server.username,
@@ -345,7 +348,7 @@ export default class {
         }
 
         return {
-          httpRequest: this._xo.httpRequest.bind(this),
+          httpRequest: this._app.httpRequest.bind(this),
 
           install() {
             objects.on('add', onAddOrUpdate)
@@ -381,7 +384,7 @@ export default class {
             await object.update_other_config(key, value)
 
             // Register the updated object.
-            addObject(await xapi._waitObject(id))
+            xapi.waitObject(id, addObject)
           },
         }
       })()
@@ -413,9 +416,9 @@ export default class {
         xapi.xo.uninstall()
         delete this._xapis[server.id]
         delete this._serverIdsByPool[poolId]
-        this._xo.emit('server:disconnected', { server, xapi })
+        this._app.emit('server:disconnected', { server, xapi })
       })
-      this._xo.emit('server:connected', { server, xapi })
+      this._app.emit('server:connected', { server, xapi })
     } catch (error) {
       delete this._xapis[server.id]
       xapi.disconnect()::ignoreErrors()
@@ -446,8 +449,8 @@ export default class {
   }
 
   // returns the XAPI object corresponding to an XO object/ID
-  getXapiObject(xoObjectOrId, type) {
-    const xoObject = typeof xoObjectOrId === 'string' ? this._xo.getObject(xoObjectOrId, type) : xoObjectOrId
+  getXapiObject(xoObjectOrId, xoType) {
+    const xoObject = typeof xoObjectOrId === 'string' ? this._app.getObject(xoObjectOrId, xoType) : xoObjectOrId
     return this.getXapi(xoObject).getObjectByRef(xoObject._xapiRef)
   }
 

@@ -3,8 +3,7 @@
   "name": "@xen-orchestra/log",
   "version": "0.2.0",
   "license": "ISC",
-  "description": "",
-  "keywords": [],
+  "description": "Logging system with decoupled producers/consumer",
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/log",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "repository": {
@@ -18,11 +17,6 @@
   },
   "preferGlobal": false,
   "main": "dist/",
-  "files": [
-    "configure.js",
-    "dist/",
-    "transports/"
-  ],
   "browserslist": [
     ">2%"
   ],
@@ -31,7 +25,7 @@
   },
   "dependencies": {
     "lodash": "^4.17.4",
-    "promise-toolbox": "^0.17.0"
+    "promise-toolbox": "^0.19.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.0.0",

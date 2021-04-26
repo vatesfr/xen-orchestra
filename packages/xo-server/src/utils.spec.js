@@ -1,6 +1,6 @@
 /* eslint-env jest */
 
-import { camelToSnakeCase, diffItems, extractProperty, generateToken, parseSize, parseXml } from './utils'
+import { camelToSnakeCase, diffItems, extractProperty, generateToken, parseSize, parseXml } from './utils.js'
 
 // ===================================================================
 

@@ -2,9 +2,9 @@ import { basename } from 'path'
 import { fromCallback } from 'promise-toolbox'
 import { pipeline } from 'readable-stream'
 
-import createNdJsonStream from '../_createNdJsonStream'
-import { REMOVE_CACHE_ENTRY } from '../_pDebounceWithKey'
-import { safeDateFormat } from '../utils'
+import createNdJsonStream from '../_createNdJsonStream.js'
+import { REMOVE_CACHE_ENTRY } from '../_pDebounceWithKey.js'
+import { safeDateFormat } from '../utils.js'
 
 export function createJob({ schedules, ...job }) {
   job.userId = this.user.id
@@ -49,17 +49,7 @@ createJob.params = {
 }
 
 export function getSuggestedExcludedTags() {
-  return ['Continuous Replication', 'Disaster Recovery', 'XOSAN', this._config['xo-proxy'].vmTag]
-}
-
-export function migrateLegacyJob({ id }) {
-  return this.migrateLegacyBackupJob(id)
-}
-migrateLegacyJob.permission = 'admin'
-migrateLegacyJob.params = {
-  id: {
-    type: 'string',
-  },
+  return ['Continuous Replication', 'Disaster Recovery', 'XOSAN', this.config.get('xo-proxy.vmTag')]
 }
 
 export function deleteJob({ id }) {
@@ -247,8 +237,8 @@ listVmBackups.params = {
   },
 }
 
-export function importVmBackup({ id, sr }) {
-  return this.importVmBackupNg(id, sr)
+export function importVmBackup({ id, settings, sr }) {
+  return this.importVmBackupNg(id, sr, settings)
 }
 
 importVmBackup.permission = 'admin'
@@ -256,6 +246,9 @@ importVmBackup.permission = 'admin'
 importVmBackup.params = {
   id: {
     type: 'string',
+  },
+  settings: {
+    type: 'object',
   },
   sr: {
     type: 'string',

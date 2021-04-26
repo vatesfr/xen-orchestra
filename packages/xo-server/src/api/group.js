@@ -1,4 +1,4 @@
-import { forbiddenOperation } from 'xo-common/api-errors'
+import { forbiddenOperation } from 'xo-common/api-errors.js'
 
 export async function create({ name }) {
   return (await this.createGroup({ name })).id
