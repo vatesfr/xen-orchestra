@@ -793,7 +793,6 @@ export default class Xapi extends XapiBase {
     })
 
     const { streams } = delta
-    let transferSize = 0
 
     await Promise.all([
       // Import VDI contents.
@@ -802,12 +801,7 @@ export default class Xapi extends XapiBase {
           if (typeof stream === 'function') {
             stream = await stream()
           }
-          const sizeStream = stream.pipe(createSizeStream()).once('finish', () => {
-            transferSize += sizeStream.size
-          })
-          sizeStream.task = stream.task
-          sizeStream.length = stream.length
-          await this._importVdiContent(vdi, sizeStream, VDI_FORMAT_VHD)
+          await this._importVdiContent(vdi, stream, VDI_FORMAT_VHD)
         }
       }),
 
@@ -851,7 +845,7 @@ export default class Xapi extends XapiBase {
       ),
     ])
 
-    return { transferSize, vm }
+    return { vm }
   }
 
   async _migrateVmWithStorageMotion(
