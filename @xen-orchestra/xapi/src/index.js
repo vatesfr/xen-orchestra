@@ -174,6 +174,7 @@ class Xapi extends Base {
           cb(obj)
         }
       }
+      genericWatchers.add(watcher)
       return () => genericWatchers.delete(watcher)
     }
 
