@@ -1,5 +1,6 @@
 const CancelToken = require('promise-toolbox/CancelToken.js')
 const groupBy = require('lodash/groupBy.js')
+const ignoreErrors = require('promise-toolbox/ignoreErrors')
 const pickBy = require('lodash/pickBy.js')
 const omit = require('lodash/omit.js')
 const pCatch = require('promise-toolbox/catch.js')
@@ -425,19 +426,20 @@ module.exports = class Vm {
       query.sr_id = srRef
     }
 
-    let cancel
     if (onVmCreation != null) {
-      const ct = CancelToken.source()
-      cancel = ct.cancel
+      const original = onVmCreation
+      onVmCreation = vm => {
+        if (onVmCreation === undefined) {
+          return
+        }
+        onVmCreation = undefined
+        stopWatch()
+        return original(vm)
+      }
 
-      ignoreErrors.call(
-        this._waitObject(obj => obj != null && obj.current_operations != null && taskRef in obj.current_operations, {
-          cancelToken: ct.token,
-        }).then(vm => {
-          const onCreation = onVmCreation
-          onVmCreation = undefined
-          return onCreation(vm)
-        })
+      const stopWatch = this.waitObject(
+        obj => obj != null && obj.current_operations != null && taskRef in obj.current_operations,
+        onVmCreation
       )
     }
     try {
@@ -445,10 +447,7 @@ module.exports = class Vm {
         query,
         task: taskRef,
       }).then(extractOpaqueRef)
-      if (onVmCreation != null) {
-        cancel()
-        ignoreErrors.call(onVmCreation(await this.getRecord('VM', ref)))
-      }
+      ignoreErrors.call(this.getRecord('VM', ref).then(onVmCreation))
       return ref
     } catch (error) {
       // augment the error with as much relevant info as possible
