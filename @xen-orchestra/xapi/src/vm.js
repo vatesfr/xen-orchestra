@@ -428,12 +428,11 @@ module.exports = class Vm {
     if (onVmCreation != null) {
       const original = onVmCreation
       onVmCreation = vm => {
-        if (onVmCreation === undefined) {
-          return
+        if (onVmCreation !== undefined) {
+          onVmCreation = undefined
+          stopWatch()
+          return original(vm)
         }
-        onVmCreation = undefined
-        stopWatch()
-        return original(vm)
       }
 
       const stopWatch = this.waitObject(
@@ -446,7 +445,9 @@ module.exports = class Vm {
         query,
         task: taskRef,
       }).then(extractOpaqueRef)
-      ignoreErrors.call(this.getRecord('VM', ref).then(onVmCreation))
+      if (onVmCreation != null) {
+        ignoreErrors.call(this.getRecord('VM', ref).then(onVmCreation))
+      }
       return ref
     } catch (error) {
       // augment the error with as much relevant info as possible
