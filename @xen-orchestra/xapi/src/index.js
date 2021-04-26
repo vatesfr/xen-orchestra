@@ -171,7 +171,7 @@ class Xapi extends Base {
 
       const watcher = obj => {
         if (predicate(obj)) {
-          cb(obj)
+          return cb(obj)
         }
       }
       genericWatchers.add(watcher)
