@@ -1,5 +1,5 @@
-import { satisfies as versionSatisfies } from 'semver'
 import { difference, flatten, isEmpty, some, uniq } from 'lodash'
+import { satisfies as versionSatisfies } from 'semver'
 
 export default class Pools {
   constructor(xo) {
