@@ -1,5 +1,4 @@
 const assert = require('assert')
-const defer = require('promise-toolbox/defer.js')
 const pRetry = require('promise-toolbox/retry.js')
 const { utcFormat, utcParse } = require('d3-time-format')
 const { Xapi: Base } = require('xen-api')
@@ -54,6 +53,49 @@ function onRetry(error) {
     })
   } catch (error) {}
 }
+
+const logWatcherError = error => warn('error in watcher', { error })
+
+function callWatcher(watcher) {
+  try {
+    const result = watcher(this)
+    let then
+    if (result != null && typeof (then = result.then) === 'function') {
+      then.call(result, null, logWatcherError)
+    }
+  } catch (error) {
+    logWatcherError(error)
+  }
+}
+
+function callWatchers(watchers, object) {
+  if (watchers !== undefined) {
+    if (Array.isArray(watchers)) {
+      watchers.forEach(callWatcher, object)
+    } else {
+      callWatcher.call(object, watchers)
+    }
+  }
+}
+
+function removeWatcher(predicate, cb) {
+  const watcher = this[predicate]
+  if (watcher !== undefined) {
+    if (watcher === cb) {
+      delete this[predicate]
+    } else if (Array.isArray(watcher)) {
+      const i = watcher.indexOf(cb)
+      if (i !== -1) {
+        if (watcher.length === 1) {
+          delete this[predicate]
+        } else {
+          watcher.splice(i, 1)
+        }
+      }
+    }
+  }
+}
+
 class Xapi extends Base {
   constructor({
     callRetryWhenTooManyPendingTasks,
@@ -94,19 +136,10 @@ class Xapi extends Base {
       Object.keys(records).forEach(id => {
         const object = records[id]
 
-        genericWatchers.forEach(watcher => {
-          watcher(object)
-        })
+        genericWatchers.forEach(callWatcher, object)
 
-        if (id in objectWatchers) {
-          objectWatchers[id].resolve(object)
-          delete objectWatchers[id]
-        }
-        const ref = object.$ref
-        if (ref in objectWatchers) {
-          objectWatchers[ref].resolve(object)
-          delete objectWatchers[ref]
-        }
+        callWatchers(objectWatchers[id], object)
+        callWatchers(objectWatchers[object.$ref], object)
       })
     }
     this.objects.on('add', onAddOrUpdate)
@@ -120,43 +153,39 @@ class Xapi extends Base {
   //
   // TODO: implements a timeout.
   waitObject(predicate, { cancelToken } = {}) {
-    if (typeof predicate === 'function') {
-      const genericWatchers = this._genericWatchers
-
-      const { promise, resolve } = defer()
-      const watcher = obj => {
-        if (predicate(obj)) {
-          genericWatchers.delete(watcher)
-          resolve(obj)
-        }
-      }
-      if (cancelToken !== undefined) {
-        const removeHandler = cancelToken.addHandler(() => genericWatchers.delete(watcher))
-        promise.then(removeHandler)
-      }
-      genericWatchers.add(watcher)
-      return promise
-    }
-
-    const watchers = this._objectWatchers
-    let watcher = watchers[predicate]
-    if (watcher === undefined) {
-      watcher = watchers[predicate] = defer()
-      watcher.refs = 1
-      watcher.unref = () => {
-        if (--watcher.refs === 0) {
-          delete watchers[predicate]
-        }
-      }
-    } else {
-      ++watcher.refs
-    }
-    const { promise } = watcher
+    let stopWatch
+    const promise = new Promise(resolve => {
+      stopWatch = this.watchObject(predicate, resolve)
+    })
     if (cancelToken !== undefined) {
-      const removeHandler = cancelToken.addHandler(watcher.unref)
+      const removeHandler = cancelToken.addHandler(stopWatch)
       promise.then(removeHandler)
     }
     return promise
+  }
+
+  watchObject(predicate, cb) {
+    if (typeof predicate === 'function') {
+      const genericWatchers = this._genericWatchers
+
+      const watcher = obj => {
+        if (predicate(obj)) {
+          cb(obj)
+        }
+      }
+      return () => genericWatchers.delete(watcher)
+    }
+
+    const watchers = this._objectWatchers
+    const watcher = watchers[predicate]
+    if (watcher === undefined) {
+      watchers[predicate] = cb
+    } else if (Array.isArray(watcher)) {
+      watcher.push(cb)
+    } else {
+      watchers[predicate] = [watcher, cb]
+    }
+    return removeWatcher.bind(watchers, predicate, cb)
   }
 }
 function mixin(mixins) {
