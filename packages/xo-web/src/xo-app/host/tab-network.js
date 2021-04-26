@@ -206,7 +206,7 @@ const PIF_COLUMNS = [
     itemRenderer: (pif, userData) => (
       <span>
         {get(() => userData.networks[pif.$network].name_label)}
-        {pif.management ? <span className='tag tag-pill tag-info'>{_('networkManagement')}</span> : ''}
+        {pif.management && (<span className='tag tag-pill tag-info'>{_('networkManagement')}</span>)}
       </span>
     ),
     name: _('pifNetworkLabel'),
