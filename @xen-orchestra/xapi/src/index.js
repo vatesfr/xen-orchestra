@@ -1,12 +1,12 @@
 const assert = require('assert')
-const defer = require('promise-toolbox/defer')
-const pRetry = require('promise-toolbox/retry')
+const defer = require('promise-toolbox/defer.js')
+const pRetry = require('promise-toolbox/retry.js')
 const { utcFormat, utcParse } = require('d3-time-format')
 const { Xapi: Base } = require('xen-api')
 
 const { warn } = require('@xen-orchestra/log').createLogger('xo:xapi')
 
-exports.isDefaultTemplate = require('./isDefaultTemplate')
+exports.isDefaultTemplate = require('./isDefaultTemplate.js')
 
 // VDI formats. (Raw is not available for delta vdi.)
 exports.VDI_FORMAT_RAW = 'raw'
@@ -113,25 +113,44 @@ class Xapi extends Base {
     this.objects.on('update', onAddOrUpdate)
   }
 
-  _waitObject(predicate) {
+  _waitObject(predicate, { cancelToken } = {}) {
     if (typeof predicate === 'function') {
       const genericWatchers = this._genericWatchers
 
       const { promise, resolve } = defer()
-      genericWatchers.add(function watcher(obj) {
+      const watcher = obj => {
         if (predicate(obj)) {
           genericWatchers.delete(watcher)
           resolve(obj)
         }
-      })
+      }
+      if (cancelToken !== undefined) {
+        const removeHandler = cancelToken.addHandler(() => genericWatchers.delete(watcher))
+        promise.then(removeHandler)
+      }
+      genericWatchers.add(watcher)
       return promise
     }
 
-    let watcher = this._objectWatchers[predicate]
+    const watchers = this._objectWatchers
+    let watcher = watchers[predicate]
     if (watcher === undefined) {
-      watcher = this._objectWatchers[predicate] = defer()
+      watcher = watchers[predicate] = defer()
+      watcher.refs = 1
+      watcher.unref = () => {
+        if (--watcher.refs === 0) {
+          delete watchers[predicate]
+        }
+      }
+    } else {
+      ++watcher.refs
     }
-    return watcher.promise
+    const { promise } = watcher
+    if (cancelToken !== undefined) {
+      const removeHandler = cancelToken.addHandler(watcher.unref)
+      promise.then(removeHandler)
+    }
+    return promise
   }
 }
 function mixin(mixins) {
@@ -153,11 +172,11 @@ function mixin(mixins) {
   defineProperties(xapiProto, descriptors)
 }
 mixin({
-  task: require('./task'),
-  VBD: require('./vbd'),
-  VDI: require('./vdi'),
-  VIF: require('./vif'),
-  VM: require('./vm'),
+  task: require('./task.js'),
+  VBD: require('./vbd.js'),
+  VDI: require('./vdi.js'),
+  VIF: require('./vif.js'),
+  VM: require('./vm.js'),
 })
 exports.Xapi = Xapi
 
