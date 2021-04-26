@@ -95,7 +95,7 @@ export default class Pools {
     const hostsByPool = {}
     const srsByPool = {}
     const pools = []
-    for (const [, obj] of Object.entries(this._xo._objects.all)) {
+    for (const obj of this._xo._objects.values()) {
       if (obj.type === 'host') {
         if (hostsByPool[obj.$pool] === undefined) {
           hostsByPool[obj.$pool] = []
