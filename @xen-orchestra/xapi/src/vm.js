@@ -425,7 +425,6 @@ module.exports = class Vm {
     if (srRef !== undefined) {
       query.sr_id = srRef
     }
-
     if (onVmCreation != null) {
       const original = onVmCreation
       onVmCreation = vm => {
