@@ -1,7 +1,6 @@
 const CancelToken = require('promise-toolbox/CancelToken.js')
 const groupBy = require('lodash/groupBy.js')
 const pickBy = require('lodash/pickBy.js')
-const ignoreErrors = require('promise-toolbox/ignoreErrors.js')
 const omit = require('lodash/omit.js')
 const pCatch = require('promise-toolbox/catch.js')
 const pRetry = require('promise-toolbox/retry.js')

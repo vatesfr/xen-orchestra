@@ -33,7 +33,7 @@ const runWithLogs = (runner, args) =>
         error => this.emit('error', error)
       )
     },
-  })
+  })[Symbol.asyncIterator]()
 
 export default class Backups {
   constructor(app) {

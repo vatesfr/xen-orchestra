@@ -384,7 +384,7 @@ export default class {
             await object.update_other_config(key, value)
 
             // Register the updated object.
-            addObject(await xapi._waitObject(id))
+            xapi.waitObject(id, addObject)
           },
         }
       })()
