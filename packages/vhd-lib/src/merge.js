@@ -80,7 +80,7 @@ export default concurrency(2)(async function merge(
         mergeState = {
           child: { header: childVhd.header.checksum },
           parent: { header: parentVhd.header.checksum },
-          currentBlock: 0,
+          currentBlock: firstBlock,
         }
       } else {
         firstBlock = mergeState.currentBlock
