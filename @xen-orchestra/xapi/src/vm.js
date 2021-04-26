@@ -425,18 +425,32 @@ module.exports = class Vm {
     if (srRef !== undefined) {
       query.sr_id = srRef
     }
+
+    let cancel
     if (onVmCreation != null) {
+      const ct = CancelToken.source()
+      cancel = ct.cancel
+
       ignoreErrors.call(
-        this._waitObject(
-          obj => obj != null && obj.current_operations != null && taskRef in obj.current_operations
-        ).then(onVmCreation)
+        this._waitObject(obj => obj != null && obj.current_operations != null && taskRef in obj.current_operations, {
+          cancelToken: ct.token,
+        }).then(vm => {
+          const onCreation = onVmCreation
+          onVmCreation = undefined
+          return onCreation(vm)
+        })
       )
     }
     try {
-      return await this.putResource(stream, '/import/', {
+      const ref = await this.putResource(stream, '/import/', {
         query,
         task: taskRef,
       }).then(extractOpaqueRef)
+      if (onVmCreation != null) {
+        cancel()
+        ignoreErrors.call(onVmCreation(await this.getRecord('VM', ref)))
+      }
+      return ref
     } catch (error) {
       // augment the error with as much relevant info as possible
       const [poolMaster, sr] = await Promise.all([
