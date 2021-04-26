@@ -81,6 +81,7 @@ export default concurrency(2)(async function merge(
           child: { header: childVhd.header.checksum },
           parent: { header: parentVhd.header.checksum },
           currentBlock: firstBlock,
+          mergedDataSize: 0,
         }
       } else {
         firstBlock = mergeState.currentBlock
@@ -97,7 +98,6 @@ export default concurrency(2)(async function merge(
       onProgress({ total: nBlocks, done: 0 })
 
       // merges blocks
-      let mergedDataSize = 0
       for (let i = 0, block = firstBlock; i < nBlocks; ++i, ++block) {
         while (!childVhd.containsBlock(block)) {
           ++block
@@ -106,7 +106,7 @@ export default concurrency(2)(async function merge(
         mergeState.currentBlock = block
         await parentHandler.writeFile(mergeStatePath, JSON.stringify(mergeState), { flags: 'w' }).catch(warn)
 
-        mergedDataSize += await parentVhd.coalesceBlock(childVhd, block)
+        mergeState.mergedDataSize += await parentVhd.coalesceBlock(childVhd, block)
         onProgress({
           total: nBlocks,
           done: i + 1,
@@ -126,7 +126,7 @@ export default concurrency(2)(async function merge(
       // creation
       await parentVhd.writeFooter()
 
-      return mergedDataSize
+      return mergeState.mergedDataSize
     } finally {
       await childHandler.closeFile(childFd)
     }
