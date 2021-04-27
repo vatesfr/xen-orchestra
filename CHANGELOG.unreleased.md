@@ -13,6 +13,7 @@
 - [PIF] Automatically reconfigure management PIF on host case of IP address change to avoid connection loss [#5730](https://github.com/vatesfr/xen-orchestra/issues/5730) (PR [#5745](https://github.com/vatesfr/xen-orchestra/pull/5745))
 - [Backup] Lock VM directory during backup to avoid race conditions (PR [#5746](https://github.com/vatesfr/xen-orchestra/pull/5746))
 - [XOA] Notify user when proxies need to be upgraded (PR [#5717](https://github.com/vatesfr/xen-orchestra/pull/5717))
+- [Host/network] Identify the management network [#5731](https://github.com/vatesfr/xen-orchestra/issues/5731) (PR [#5743](https://github.com/vatesfr/xen-orchestra/pull/5743))
 
 ### Bug fixes
 

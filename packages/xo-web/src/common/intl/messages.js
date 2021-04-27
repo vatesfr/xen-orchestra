@@ -1837,6 +1837,7 @@ const messages = {
   setPoolMasterModalMessage: 'This operation may take several minutes. Do you want to continue?',
 
   // ----- Network -----
+  networkManagement: 'Management',
   newNetworkCreate: 'Create network',
   newNetworkInterface: 'Interface',
   newNetworkName: 'Name',
