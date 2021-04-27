@@ -47,5 +47,6 @@
 - @xen-orchestra/backups minor
 - @xen-orchestra/backups-cli patch
 - @xen-orchestra/mixins minor
+- xen-api patch
 - xo-server minor
 - xo-web minor
