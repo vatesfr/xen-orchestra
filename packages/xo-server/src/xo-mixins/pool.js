@@ -126,7 +126,7 @@ export default class Pools {
           srsByPool[pool.id],
           sr =>
             sr.size - sr.physical_usage >= minAvailableSrSize &&
-            (poolName === undefined || new RegExp(srName).test(sr.name_label))
+            (srName === undefined || new RegExp(srName).test(sr.name_label))
         )
     )
   }
