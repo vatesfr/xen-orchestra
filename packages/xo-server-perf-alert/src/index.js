@@ -197,7 +197,10 @@ export const configurationSchema = {
           },
         },
         oneOf: [
-          { required: ['uuids'] },
+          {
+            properties: { uuids: {} },
+            required: ['uuids'],
+          },
           {
             properties: { smartMode: { const: true } },
             required: ['smartMode'],
@@ -254,7 +257,10 @@ export const configurationSchema = {
           },
         },
         oneOf: [
-          { required: ['uuids'] },
+          {
+            properties: { uuids: {} },
+            required: ['uuids'],
+          },
           {
             properties: { smartMode: { const: true } },
             required: ['smartMode'],
@@ -303,7 +309,10 @@ export const configurationSchema = {
           },
         },
         oneOf: [
-          { required: ['uuids'] },
+          {
+            properties: { uuids: {} },
+            required: ['uuids'],
+          },
           {
             properties: { smartMode: { const: true } },
             required: ['smartMode'],
