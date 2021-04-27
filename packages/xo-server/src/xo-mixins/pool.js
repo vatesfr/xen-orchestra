@@ -85,9 +85,9 @@ export default class Pools {
 
   async listPoolsMatchingCriteria({
     hostVersion,
+    minAvailableHostMemory = 0,
+    minAvailableSrSize = 0,
     minHostCpus = 0,
-    minHostMemory = 0,
-    minSrSize = 0,
     poolName,
     srName,
   }) {
@@ -120,13 +120,13 @@ export default class Pools {
           host =>
             (hostVersion === undefined || versionSatisfies(host.version, `=${hostVersion}`)) &&
             host.cpus.cores >= minHostCpus &&
-            host.memory.size - host.memory.usage >= minHostMemory
+            host.memory.size - host.memory.usage >= minAvailableHostMemory
         ) &&
         some(
           srsByPool[pool.id],
           sr =>
-            (poolName === undefined || new RegExp(srName).test(sr.name_label)) &&
-            sr.size - sr.physical_usage >= minSrSize
+            sr.size - sr.physical_usage >= minAvailableSrSize &&
+            (poolName === undefined || new RegExp(srName).test(sr.name_label))
         )
     )
   }
