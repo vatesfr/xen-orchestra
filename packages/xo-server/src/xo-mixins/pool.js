@@ -87,7 +87,6 @@ export default class Pools {
     hostVersion,
     minHostCpus = 0,
     minHostMemory = 0,
-    minPoolCpus = 0,
     minSrSize = 0,
     poolName,
     srName,
@@ -95,7 +94,7 @@ export default class Pools {
     const hostsByPool = {}
     const srsByPool = {}
     const pools = []
-    for (const obj of this._xo._objects.values()) {
+    for (const obj of this._xo.objects.values()) {
       if (obj.type === 'host') {
         if (hostsByPool[obj.$pool] === undefined) {
           hostsByPool[obj.$pool] = []
@@ -116,17 +115,18 @@ export default class Pools {
     return pools.filter(
       pool =>
         (poolName === undefined || new RegExp(poolName).test(pool.name_label)) &&
-        pool.cpus.cores >= minPoolCpus &&
         some(
           hostsByPool[pool.id],
           host =>
             (hostVersion === undefined || versionSatisfies(host.version, `=${hostVersion}`)) &&
             host.cpus.cores >= minHostCpus &&
-            host.memory.size >= minHostMemory
+            host.memory.size - host.memory.usage >= minHostMemory
         ) &&
         some(
           srsByPool[pool.id],
-          sr => (poolName === undefined || new RegExp(srName).test(sr.name_label)) && sr.size >= minSrSize
+          sr =>
+            (poolName === undefined || new RegExp(srName).test(sr.name_label)) &&
+            sr.size - sr.physical_usage >= minSrSize
         )
     )
   }
