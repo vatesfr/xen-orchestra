@@ -84,12 +84,12 @@ export default class Pools {
   }
 
   async listPoolsMatchingCriteria({
-    hostVersion,
     minAvailableHostMemory = 0,
     minAvailableSrSize = 0,
     minHostCpus = 0,
-    poolName,
-    srName,
+    minHostVersion,
+    poolNameRegExp,
+    srNameRegExp,
   }) {
     const hostsByPool = {}
     const srsByPool = {}
@@ -114,11 +114,11 @@ export default class Pools {
 
     return pools.filter(
       pool =>
-        (poolName === undefined || new RegExp(poolName).test(pool.name_label)) &&
+        (poolNameRegExp === undefined || new RegExp(poolNameRegExp).test(pool.name_label)) &&
         some(
           hostsByPool[pool.id],
           host =>
-            (hostVersion === undefined || versionSatisfies(host.version, `=${hostVersion}`)) &&
+            (minHostVersion === undefined || versionSatisfies(host.version, `>=${minHostVersion}`)) &&
             host.cpus.cores >= minHostCpus &&
             host.memory.size - host.memory.usage >= minAvailableHostMemory
         ) &&
@@ -126,7 +126,7 @@ export default class Pools {
           srsByPool[pool.id],
           sr =>
             sr.size - sr.physical_usage >= minAvailableSrSize &&
-            (srName === undefined || new RegExp(srName).test(sr.name_label))
+            (srNameRegExp === undefined || new RegExp(srNameRegExp).test(sr.name_label))
         )
     )
   }

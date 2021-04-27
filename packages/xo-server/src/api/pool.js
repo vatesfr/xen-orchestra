@@ -260,10 +260,10 @@ export async function listPoolsMatchingCriteria(params) {
 }
 
 listPoolsMatchingCriteria.params = {
-  hostVersion: { type: 'string', optional: true },
   minAvailableHostMemory: { type: 'number', optional: true },
   minAvailableSrSize: { type: 'number', optional: true },
   minHostCpus: { type: 'number', optional: true },
-  poolName: { type: 'string', optional: true },
-  srName: { type: 'string', optional: true },
+  minHostVersion: { type: 'string', optional: true },
+  poolNameRegExp: { type: 'string', optional: true },
+  srNameRegExp: { type: 'string', optional: true },
 }
