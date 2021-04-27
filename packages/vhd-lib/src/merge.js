@@ -2,7 +2,6 @@
 
 import assert from 'assert'
 import concurrency from 'limit-concurrency-decorator'
-import ignoreErrors from 'promise-toolbox/ignoreErrors'
 import noop from './_noop'
 import { createLogger } from '@xen-orchestra/log'
 
@@ -126,7 +125,7 @@ export default concurrency(2)(async function merge(
       await childHandler.closeFile(childFd)
     }
   } finally {
-    ignoreErrors.call(parentHandler.unlink(mergeStatePath))
+    parentHandler.unlink(mergeStatePath).catch(warn)
     await parentHandler.closeFile(parentFd)
   }
 })
