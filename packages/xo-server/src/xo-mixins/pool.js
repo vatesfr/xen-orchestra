@@ -1,4 +1,4 @@
-import { difference, flatten, isEmpty, some, uniq } from 'lodash'
+import { difference, flatten, isEmpty, uniq } from 'lodash'
 import { satisfies as versionSatisfies } from 'semver'
 
 export default class Pools {
@@ -115,15 +115,13 @@ export default class Pools {
     return pools.filter(
       pool =>
         (poolNameRegExp === undefined || new RegExp(poolNameRegExp).test(pool.name_label)) &&
-        some(
-          hostsByPool[pool.id],
+        hostsByPool[pool.id].some(
           host =>
             (minHostVersion === undefined || versionSatisfies(host.version, `>=${minHostVersion}`)) &&
             host.cpus.cores >= minHostCpus &&
             host.memory.size - host.memory.usage >= minAvailableHostMemory
         ) &&
-        some(
-          srsByPool[pool.id],
+        srsByPool[pool.id].some(
           sr =>
             sr.size - sr.physical_usage >= minAvailableSrSize &&
             (srNameRegExp === undefined || new RegExp(srNameRegExp).test(sr.name_label))
