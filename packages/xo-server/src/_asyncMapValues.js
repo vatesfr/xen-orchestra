@@ -1,4 +1,4 @@
-import zipObject from 'lodash/zipObject'
+import zipObject from 'lodash/zipObject.js'
 
 export const asyncMapValues = async (object, iteratee) => {
   const keys = Object.keys(object)

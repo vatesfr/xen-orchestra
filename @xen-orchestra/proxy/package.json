@@ -22,11 +22,6 @@
   "bin": {
     "xo-proxy": "dist/index.js"
   },
-  "files": [
-    "config.toml",
-    "dist/",
-    "scripts/"
-  ],
   "engines": {
     "node": ">=12"
   },

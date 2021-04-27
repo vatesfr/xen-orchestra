@@ -1,18 +1,22 @@
 const assert = require('assert')
-const findLast = require('lodash/findLast')
-const ignoreErrors = require('promise-toolbox/ignoreErrors')
-const keyBy = require('lodash/keyBy')
-const mapValues = require('lodash/mapValues')
-const { asyncMap } = require('@xen-orchestra/async-map')
+const findLast = require('lodash/findLast.js')
+const ignoreErrors = require('promise-toolbox/ignoreErrors.js')
+const keyBy = require('lodash/keyBy.js')
+const mapValues = require('lodash/mapValues.js')
+const { asyncMap, asyncMapSettled } = require('@xen-orchestra/async-map')
 const { createLogger } = require('@xen-orchestra/log')
+const { defer } = require('golike-defer')
 const { formatDateTime } = require('@xen-orchestra/xapi')
 
-const { exportDeltaVm } = require('./_deltaVm')
-const { forkStreamUnpipe } = require('./_forkStreamUnpipe')
-const { getOldEntries } = require('./_getOldEntries')
-const { Task } = require('./Task')
-const { watchStreamSize } = require('./_watchStreamSize')
-const { DeltaReplicationWriter, DeltaBackupWriter, FullReplicationWriter, FullBackupWriter } = require('./writers')
+const { DeltaBackupWriter } = require('./writers/DeltaBackupWriter.js')
+const { DeltaReplicationWriter } = require('./writers/DeltaReplicationWriter.js')
+const { exportDeltaVm } = require('./_deltaVm.js')
+const { forkStreamUnpipe } = require('./_forkStreamUnpipe.js')
+const { FullBackupWriter } = require('./writers/FullBackupWriter.js')
+const { FullReplicationWriter } = require('./writers/FullReplicationWriter.js')
+const { getOldEntries } = require('./_getOldEntries.js')
+const { Task } = require('./Task.js')
+const { watchStreamSize } = require('./_watchStreamSize.js')
 
 const { debug, warn } = createLogger('xo:backups:VmBackup')
 
@@ -318,14 +322,18 @@ exports.VmBackup = class VmBackup {
     this._fullVdisRequired = fullVdisRequired
   }
 
-  async run() {
+  run = defer(this.run)
+  async run($defer) {
     const settings = this._settings
     assert(
       !settings.offlineBackup || settings.snapshotRetention === 0,
       'offlineBackup is not compatible with snapshotRetention'
     )
 
-    await asyncMap(this._writers, writer => writer.beforeBackup())
+    await asyncMapSettled(this._writers, async writer => {
+      await writer.beforeBackup()
+      $defer(() => writer.afterBackup())
+    })
 
     await this._fetchJobSnapshots()
 

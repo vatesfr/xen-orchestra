@@ -3,7 +3,7 @@ import { createLogger } from '@xen-orchestra/log'
 import { execFileSync } from 'child_process'
 import { outputFileSync } from 'fs-extra'
 
-import { Profile } from '../_Profile'
+import { Profile } from '../_Profile.js'
 
 const { warn } = createLogger('xo:proxy:authentication')
 

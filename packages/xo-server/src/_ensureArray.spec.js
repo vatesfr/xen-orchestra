@@ -1,6 +1,6 @@
 /* eslint-env jest */
 
-import ensureArray from './_ensureArray'
+import ensureArray from './_ensureArray.js'
 
 describe('ensureArray()', function () {
   it('wrap the value in an array', function () {

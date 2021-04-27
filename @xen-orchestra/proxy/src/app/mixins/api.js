@@ -1,13 +1,13 @@
 import { format, parse, MethodNotFound } from 'json-rpc-protocol'
-import * as errors from 'xo-common/api-errors'
+import * as errors from 'xo-common/api-errors.js'
 import Ajv from 'ajv'
 import asyncIteratorToStream from 'async-iterator-to-stream'
 import compress from 'koa-compress'
-import forOwn from 'lodash/forOwn'
+import forOwn from 'lodash/forOwn.js'
 import getStream from 'get-stream'
 import helmet from 'koa-helmet'
 import Koa from 'koa'
-import once from 'lodash/once'
+import once from 'lodash/once.js'
 import Router from '@koa/router'
 import Zone from 'node-zone'
 import { createLogger } from '@xen-orchestra/log'
@@ -67,7 +67,7 @@ export default class Api {
         return
       }
 
-      if (typeof result?.pipe === 'function' && !result._readableState?.objectMode) {
+      if (typeof result?.pipe === 'function') {
         ctx.body = result
         return
       }

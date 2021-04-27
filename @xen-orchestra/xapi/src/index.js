@@ -1,12 +1,11 @@
 const assert = require('assert')
-const defer = require('promise-toolbox/defer')
-const pRetry = require('promise-toolbox/retry')
+const pRetry = require('promise-toolbox/retry.js')
 const { utcFormat, utcParse } = require('d3-time-format')
 const { Xapi: Base } = require('xen-api')
 
 const { warn } = require('@xen-orchestra/log').createLogger('xo:xapi')
 
-exports.isDefaultTemplate = require('./isDefaultTemplate')
+exports.isDefaultTemplate = require('./isDefaultTemplate.js')
 
 // VDI formats. (Raw is not available for delta vdi.)
 exports.VDI_FORMAT_RAW = 'raw'
@@ -54,6 +53,49 @@ function onRetry(error) {
     })
   } catch (error) {}
 }
+
+const logWatcherError = error => warn('error in watcher', { error })
+
+function callWatcher(watcher) {
+  try {
+    const result = watcher(this)
+    let then
+    if (result != null && typeof (then = result.then) === 'function') {
+      then.call(result, null, logWatcherError)
+    }
+  } catch (error) {
+    logWatcherError(error)
+  }
+}
+
+function callWatchers(watchers, object) {
+  if (watchers !== undefined) {
+    if (Array.isArray(watchers)) {
+      watchers.forEach(callWatcher, object)
+    } else {
+      callWatcher.call(object, watchers)
+    }
+  }
+}
+
+function removeWatcher(predicate, cb) {
+  const watcher = this[predicate]
+  if (watcher !== undefined) {
+    if (watcher === cb) {
+      delete this[predicate]
+    } else if (Array.isArray(watcher)) {
+      const i = watcher.indexOf(cb)
+      if (i !== -1) {
+        if (watcher.length === 1) {
+          delete this[predicate]
+        } else {
+          watcher.splice(i, 1)
+        }
+      }
+    }
+  }
+}
+
 class Xapi extends Base {
   constructor({
     callRetryWhenTooManyPendingTasks,
@@ -94,44 +136,58 @@ class Xapi extends Base {
       Object.keys(records).forEach(id => {
         const object = records[id]
 
-        genericWatchers.forEach(watcher => {
-          watcher(object)
-        })
+        genericWatchers.forEach(callWatcher, object)
 
-        if (id in objectWatchers) {
-          objectWatchers[id].resolve(object)
-          delete objectWatchers[id]
-        }
-        const ref = object.$ref
-        if (ref in objectWatchers) {
-          objectWatchers[ref].resolve(object)
-          delete objectWatchers[ref]
-        }
+        callWatchers(objectWatchers[id], object)
+        callWatchers(objectWatchers[object.$ref], object)
       })
     }
     this.objects.on('add', onAddOrUpdate)
     this.objects.on('update', onAddOrUpdate)
   }
 
-  _waitObject(predicate) {
+  // Wait for an object to appear or to be updated.
+  //
+  // Predicate can be either an id, a UUID, an opaque reference or a
+  // function.
+  //
+  // TODO: implements a timeout.
+  waitObject(predicate, cb) {
+    // backward compatibility
+    if (cb === undefined) {
+      return new Promise(resolve => this.waitObject(predicate, resolve))
+    }
+
+    const stopWatch = this.watchObject(predicate, object => {
+      stopWatch()
+      return cb(object)
+    })
+    return stopWatch
+  }
+
+  watchObject(predicate, cb) {
     if (typeof predicate === 'function') {
       const genericWatchers = this._genericWatchers
 
-      const { promise, resolve } = defer()
-      genericWatchers.add(function watcher(obj) {
+      const watcher = obj => {
         if (predicate(obj)) {
-          genericWatchers.delete(watcher)
-          resolve(obj)
+          return cb(obj)
         }
-      })
-      return promise
+      }
+      genericWatchers.add(watcher)
+      return () => genericWatchers.delete(watcher)
     }
 
-    let watcher = this._objectWatchers[predicate]
+    const watchers = this._objectWatchers
+    const watcher = watchers[predicate]
     if (watcher === undefined) {
-      watcher = this._objectWatchers[predicate] = defer()
+      watchers[predicate] = cb
+    } else if (Array.isArray(watcher)) {
+      watcher.push(cb)
+    } else {
+      watchers[predicate] = [watcher, cb]
     }
-    return watcher.promise
+    return removeWatcher.bind(watchers, predicate, cb)
   }
 }
 function mixin(mixins) {
@@ -153,11 +209,11 @@ function mixin(mixins) {
   defineProperties(xapiProto, descriptors)
 }
 mixin({
-  task: require('./task'),
-  VBD: require('./vbd'),
-  VDI: require('./vdi'),
-  VIF: require('./vif'),
-  VM: require('./vm'),
+  task: require('./task.js'),
+  VBD: require('./vbd.js'),
+  VDI: require('./vdi.js'),
+  VIF: require('./vif.js'),
+  VM: require('./vm.js'),
 })
 exports.Xapi = Xapi
 

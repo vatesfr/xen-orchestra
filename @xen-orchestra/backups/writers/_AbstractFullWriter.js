@@ -1,4 +1,4 @@
-const { AbstractWriter } = require('./_AbstractWriter')
+const { AbstractWriter } = require('./_AbstractWriter.js')
 
 exports.AbstractFullWriter = class AbstractFullWriter extends AbstractWriter {
   run({ timestamp, sizeContainer, stream }) {

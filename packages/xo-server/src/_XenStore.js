@@ -1,4 +1,4 @@
-import fromCallback from 'promise-toolbox/fromCallback'
+import fromCallback from 'promise-toolbox/fromCallback.js'
 import { execFile } from 'child_process'
 
 export const read = key => fromCallback(execFile, 'xenstore-read', [key])

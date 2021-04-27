@@ -1,7 +1,7 @@
-import Model from './model'
+import Model from './model.js'
 import { BaseError } from 'make-error'
 import { EventEmitter } from 'events'
-import { isObject, map } from './utils'
+import { isObject, map } from './utils.js'
 
 // ===================================================================
 

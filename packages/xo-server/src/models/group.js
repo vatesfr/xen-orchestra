@@ -1,11 +1,11 @@
-import isEmpty from 'lodash/isEmpty'
+import isEmpty from 'lodash/isEmpty.js'
 
-import Collection from '../collection/redis'
-import Model from '../model'
+import Collection from '../collection/redis.js'
+import Model from '../model.js'
 
-import { forEach } from '../utils'
+import { forEach } from '../utils.js'
 
-import { parseProp } from './utils'
+import { parseProp } from './utils.js'
 
 // ===================================================================
 

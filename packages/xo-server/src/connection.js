@@ -1,6 +1,6 @@
 import { EventEmitter } from 'events'
 
-import { noop } from './utils'
+import { noop } from './utils.js'
 
 // ===================================================================
 
