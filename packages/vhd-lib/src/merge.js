@@ -67,29 +67,25 @@ export default concurrency(2)(async function merge(
 
       const { maxTableEntries } = childVhd.header
 
-      let firstBlock
       if (mergeState === undefined) {
         await parentVhd.ensureBatSize(childVhd.header.maxTableEntries)
-
-        // finds first allocated block for the 2 following loops
-        firstBlock = 0
-        while (firstBlock < maxTableEntries && !childVhd.containsBlock(firstBlock)) {
-          ++firstBlock
-        }
 
         mergeState = {
           child: { header: childVhd.header.checksum },
           parent: { header: parentVhd.header.checksum },
-          currentBlock: firstBlock,
+          currentBlock: 0,
           mergedDataSize: 0,
         }
-      } else {
-        firstBlock = mergeState.currentBlock
+
+        // finds first allocated block for the 2 following loops
+        while (mergeState.currentBlock < maxTableEntries && !childVhd.containsBlock(mergeState.currentBlock)) {
+          ++mergeState.currentBlock
+        }
       }
 
       // counts number of allocated blocks
       let nBlocks = 0
-      for (let block = firstBlock; block < maxTableEntries; block++) {
+      for (let block = mergeState.currentBlock; block < maxTableEntries; block++) {
         if (childVhd.containsBlock(block)) {
           nBlocks += 1
         }
@@ -98,15 +94,14 @@ export default concurrency(2)(async function merge(
       onProgress({ total: nBlocks, done: 0 })
 
       // merges blocks
-      for (let i = 0, block = firstBlock; i < nBlocks; ++i, ++block) {
-        while (!childVhd.containsBlock(block)) {
-          ++block
+      for (let i = 0; i < nBlocks; ++i, ++mergeState.currentBlock) {
+        while (!childVhd.containsBlock(mergeState.currentBlock)) {
+          ++mergeState.currentBlock
         }
 
-        mergeState.currentBlock = block
         await parentHandler.writeFile(mergeStatePath, JSON.stringify(mergeState), { flags: 'w' }).catch(warn)
 
-        mergeState.mergedDataSize += await parentVhd.coalesceBlock(childVhd, block)
+        mergeState.mergedDataSize += await parentVhd.coalesceBlock(childVhd, mergeState.currentBlock)
         onProgress({
           total: nBlocks,
           done: i + 1,
