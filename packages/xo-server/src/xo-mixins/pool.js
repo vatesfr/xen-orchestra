@@ -1,4 +1,5 @@
-import { difference, flatten, isEmpty, uniq } from 'lodash'
+import { difference, flatten, isEmpty, stubTrue, uniq } from 'lodash'
+import { satisfies as versionSatisfies } from 'semver'
 
 export default class Pools {
   constructor(app) {
@@ -80,5 +81,49 @@ export default class Pools {
     for (const source of sources) {
       await _app.mergeXenPools(source._xapiId, target._xapiId, force)
     }
+  }
+
+  async listPoolsMatchingCriteria({
+    minAvailableHostMemory = 0,
+    minAvailableSrSize = 0,
+    minHostCpus = 0,
+    minHostVersion,
+    poolNameRegExp,
+    srNameRegExp,
+  }) {
+    const hostsByPool = {}
+    const srsByPool = {}
+    const pools = []
+    for (const obj of this._xo.objects.values()) {
+      if (obj.type === 'host') {
+        if (hostsByPool[obj.$pool] === undefined) {
+          hostsByPool[obj.$pool] = []
+        }
+        hostsByPool[obj.$pool].push(obj)
+      } else if (obj.type === 'SR') {
+        if (srsByPool[obj.$pool] === undefined) {
+          srsByPool[obj.$pool] = []
+        }
+        srsByPool[obj.$pool].push(obj)
+      } else if (obj.type === 'pool') {
+        pools.push(obj)
+      }
+    }
+
+    const checkPoolName =
+      poolNameRegExp === undefined ? stubTrue() : RegExp.prototype.test.bind(new RegExp(poolNameRegExp))
+    const checkSrName = srNameRegExp === undefined ? stubTrue() : RegExp.prototype.test.bind(new RegExp(srNameRegExp))
+
+    return pools.filter(
+      pool =>
+        checkPoolName(pool.name_label) &&
+        hostsByPool[pool.id].some(
+          host =>
+            (minHostVersion === undefined || versionSatisfies(host.version, `>=${minHostVersion}`)) &&
+            host.cpus.cores >= minHostCpus &&
+            host.memory.size - host.memory.usage >= minAvailableHostMemory
+        ) &&
+        srsByPool[pool.id].some(sr => sr.size - sr.physical_usage >= minAvailableSrSize && checkSrName(sr.name_label))
+    )
   }
 }

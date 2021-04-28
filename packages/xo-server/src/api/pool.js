@@ -252,3 +252,18 @@ installSupplementalPack.params = {
 installSupplementalPack.resolve = {
   pool: ['pool', 'pool', 'admin'],
 }
+
+// -------------------------------------------------------------------
+
+export async function listPoolsMatchingCriteria(params) {
+  return this.listPoolsMatchingCriteria(params)
+}
+
+listPoolsMatchingCriteria.params = {
+  minAvailableHostMemory: { type: 'number', optional: true },
+  minAvailableSrSize: { type: 'number', optional: true },
+  minHostCpus: { type: 'number', optional: true },
+  minHostVersion: { type: 'string', optional: true },
+  poolNameRegExp: { type: 'string', optional: true },
+  srNameRegExp: { type: 'string', optional: true },
+}
