@@ -1,8 +1,8 @@
 import * as multiparty from 'multiparty'
-import asyncMapSettled from '@xen-orchestra/async-map/legacy'
-import defer from 'golike-defer'
+import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
 import getStream from 'get-stream'
 import { createLogger } from '@xen-orchestra/log'
+import { defer } from 'golike-defer'
 import { FAIL_ON_QUEUE } from 'limit-concurrency-decorator'
 import { format } from 'json-rpc-peer'
 import { ignoreErrors } from 'promise-toolbox'
@@ -13,9 +13,9 @@ import {
   noSuchObject,
   operationFailed,
   unauthorized,
-} from 'xo-common/api-errors'
+} from 'xo-common/api-errors.js'
 
-import { forEach, map, mapFilter, parseSize, safeDateFormat } from '../utils'
+import { forEach, map, mapFilter, parseSize, safeDateFormat } from '../utils.js'
 
 const log = createLogger('xo:vm')
 
@@ -152,7 +152,7 @@ export const create = defer(async function ($defer, params) {
   }
 
   const xapiVm = await xapi.createVm(template._xapiId, params, checkLimits)
-  $defer.onFailure(() => xapi.deleteVm(xapiVm.$id, true, true))
+  $defer.onFailure(() => xapi.VM_destroy(xapiVm.$ref, true, true))
 
   const vm = xapi.xo.addObject(xapiVm)
 
@@ -385,7 +385,7 @@ const delete_ = defer(async function (
     }
   })
 
-  return xapi.deleteVm(vm._xapiId, deleteDisks, force, forceDeleteDefaultTemplate)
+  return xapi.VM_destroy(vm._xapiRef, deleteDisks, force, forceDeleteDefaultTemplate)
 })
 
 delete_.params = {
@@ -664,11 +664,11 @@ export const clone = defer(async function ($defer, { vm, name, full_copy: fullCo
   await checkPermissionOnSrs.call(this, vm)
   const xapi = this.getXapi(vm)
 
-  const { $id: cloneId } = await xapi.cloneVm(vm._xapiRef, {
+  const { $id: cloneId, $ref: cloneRef } = await xapi.cloneVm(vm._xapiRef, {
     nameLabel: name,
     fast: !fullCopy,
   })
-  $defer.onFailure(() => xapi.deleteVm(cloneId))
+  $defer.onFailure(() => xapi.VM_destroy(cloneRef))
 
   const isAdmin = this.user.permission === 'admin'
   if (!isAdmin) {
@@ -702,8 +702,9 @@ export async function copy({ compress, name: nameLabel, sr, vm }) {
     }
 
     return this.getXapi(vm)
-      .copyVm(vm._xapiId, sr._xapiId, {
+      .copyVm(vm._xapiId, {
         nameLabel,
+        srOrSrId: sr._xapiId,
       })
       .then(vm => vm.$id)
   }
@@ -756,6 +757,28 @@ export { convertToTemplate as convert }
 
 // -------------------------------------------------------------------
 
+export async function copyToTemplate({ vm }) {
+  const xapi = await this.getXapi(vm)
+  const clonedVm = await xapi.copyVm(vm._xapiId, {
+    nameLabel: vm.name_label,
+  })
+  try {
+    await clonedVm.set_is_a_template(true)
+  } catch (error) {
+    ignoreErrors.call(clonedVm.$destroy())
+    throw error
+  }
+}
+
+copyToTemplate.params = {
+  id: { type: 'string' },
+}
+copyToTemplate.resolve = {
+  vm: ['id', ['VM-snapshot'], 'administrate'],
+}
+
+// -------------------------------------------------------------------
+
 export const snapshot = defer(async function (
   $defer,
   { vm, name = `${vm.name_label}_${new Date().toISOString()}`, saveMemory = false, description }
@@ -786,10 +809,10 @@ export const snapshot = defer(async function (
   }
 
   const xapi = this.getXapi(vm)
-  const { $id: snapshotId } = await (saveMemory
+  const { $id: snapshotId, $ref: snapshotRef } = await (saveMemory
     ? xapi.checkpointVm(vm._xapiRef, name)
     : xapi.snapshotVm(vm._xapiRef, name))
-  $defer.onFailure(() => xapi.deleteVm(snapshotId))
+  $defer.onFailure(() => xapi.VM_destroy(snapshotRef))
 
   if (description !== undefined) {
     await xapi.editVm(snapshotId, { name_description: description })
@@ -1027,11 +1050,12 @@ rollingDrCopy.description =
 
 // -------------------------------------------------------------------
 
-export function start({ vm, force, host }) {
-  return this.getXapi(vm).startVm(vm._xapiId, host?._xapiId, force)
+export function start({ vm, bypassMacAddressesCheck, force, host }) {
+  return this.getXapi(vm).startVm(vm._xapiId, { bypassMacAddressesCheck, force, hostId: host?._xapiId })
 }
 
 start.params = {
+  bypassMacAddressesCheck: { type: 'boolean', optional: true },
   force: { type: 'boolean', optional: true },
   host: { type: 'string', optional: true },
   id: { type: 'string' },

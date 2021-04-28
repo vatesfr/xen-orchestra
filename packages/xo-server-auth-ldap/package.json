@@ -27,17 +27,14 @@
   "bin": {
     "xo-server-auth-ldap": "dist/test-cli.js"
   },
-  "files": [
-    "dist/"
-  ],
   "engines": {
     "node": ">=10"
   },
   "dependencies": {
     "exec-promise": "^0.7.0",
-    "inquirer": "^7.0.0",
+    "inquirer": "^8.0.0",
     "ldapts": "^2.2.1",
-    "promise-toolbox": "^0.17.0"
+    "promise-toolbox": "^0.19.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.0.0",

@@ -37,9 +37,11 @@ export const parse = string => {
     object.domain = domain
     object.username = username
     object.password = password
-  } else if (type === 's3') {
+  } else if (type === 's3' || type === 's3+http') {
     const parsed = new Url(string)
+    object.protocol = parsed.protocol === 's3:' ? 'https' : 'http'
     object.type = 's3'
+    object.region = parsed.hash.length === 0 ? undefined : parsed.hash.slice(1) // remove '#'
     object.host = parsed.host
     object.path = parsed.pathname
     object.username = parsed.username
@@ -48,7 +50,7 @@ export const parse = string => {
   return object
 }
 
-export const format = ({ type, host, path, port, username, password, domain }) => {
+export const format = ({ type, host, path, port, username, password, domain, protocol = type, region }) => {
   type === 'local' && (type = 'file')
   let string = `${type}://`
   if (type === 'nfs') {
@@ -58,6 +60,7 @@ export const format = ({ type, host, path, port, username, password, domain }) =
     string += `${username}:${password}@${domain}\\\\${host}`
   }
   if (type === 's3') {
+    string = protocol === 'https' ? 's3://' : 's3+http://'
     string += `${username}:${encodeURIComponent(password)}@${host}`
   }
   path = sanitizePath(path)
@@ -68,5 +71,8 @@ export const format = ({ type, host, path, port, username, password, domain }) =
     path = `/${path}`
   }
   string += path
+  if (type === 's3' && region !== undefined) {
+    string += `#${region}`
+  }
   return string
 }

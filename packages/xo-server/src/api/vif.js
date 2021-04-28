@@ -1,6 +1,6 @@
 import { ignoreErrors } from 'promise-toolbox'
 
-import { diffItems } from '../utils'
+import { diffItems } from '../utils.js'
 
 // ===================================================================
 

@@ -4,6 +4,8 @@
 
 [![Package Version](https://badgen.net/npm/v/@xen-orchestra/emit-async)](https://npmjs.org/package/@xen-orchestra/emit-async) ![License](https://badgen.net/npm/license/@xen-orchestra/emit-async) [![PackagePhobia](https://badgen.net/bundlephobia/minzip/@xen-orchestra/emit-async)](https://bundlephobia.com/result?p=@xen-orchestra/emit-async) [![Node compatibility](https://badgen.net/npm/node/@xen-orchestra/emit-async)](https://npmjs.org/package/@xen-orchestra/emit-async)
 
+> Emit an event for async listeners to settle
+
 ## Install
 
 Installation of the [npm package](https://npmjs.org/package/@xen-orchestra/emit-async):

@@ -11,7 +11,16 @@ import { createGetObjectsOfType } from 'selectors'
 import { FormattedRelative, FormattedTime } from 'react-intl'
 import { includes, isEmpty } from 'lodash'
 import { Container, Row, Col } from 'grid'
-import { copyVm, deleteSnapshot, deleteSnapshots, exportVm, editVm, revertSnapshot, snapshotVm } from 'xo'
+import {
+  copyToTemplate,
+  copyVm,
+  deleteSnapshot,
+  deleteSnapshots,
+  exportVm,
+  editVm,
+  revertSnapshot,
+  snapshotVm,
+} from 'xo'
 
 const COLUMNS = [
   {
@@ -82,6 +91,12 @@ const INDIVIDUAL_ACTIONS = [
     handler: exportVm,
     icon: 'export',
     label: _('exportSnapshot'),
+  },
+  {
+    collapsed: true,
+    handler: copyToTemplate,
+    icon: 'template',
+    label: _('copyToTemplate'),
   },
   {
     handler: revertSnapshot,

@@ -30,7 +30,7 @@
     "rimraf": "^3.0.0"
   },
   "dependencies": {
-    "@vates/read-chunk": "^0.1.0"
+    "@vates/read-chunk": "^0.1.2"
   },
   "author": {
     "name": "Vates SAS",

@@ -4,7 +4,6 @@
   "version": "0.4.1",
   "license": "AGPL-3.0-or-later",
   "description": "Xen-Orchestra internal: do ACLs resolution",
-  "keywords": [],
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/packages/xo-acl-resolver",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "repository": {
@@ -17,9 +16,6 @@
     "url": "https://vates.fr"
   },
   "preferGlobal": false,
-  "files": [
-    "index.js"
-  ],
   "engines": {
     "node": ">=6"
   },

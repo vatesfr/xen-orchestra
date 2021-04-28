@@ -1,91 +1,24 @@
-// @flow
-
-// $FlowFixMe
-import asyncMapSettled from '@xen-orchestra/async-map/legacy'
-import createLogger from '@xen-orchestra/log'
-import type RemoteHandler from '@xen-orchestra/fs'
-import Disposable from 'promise-toolbox/Disposable'
-import { Backup } from '@xen-orchestra/backups/Backup'
+import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
+import Disposable from 'promise-toolbox/Disposable.js'
+import { Backup } from '@xen-orchestra/backups/Backup.js'
+import { createLogger } from '@xen-orchestra/log'
+import { createPredicate } from 'value-matcher'
 import { decorateWith } from '@vates/decorate-with'
-import { formatVmBackups } from '@xen-orchestra/backups/formatVmBackups'
+import { formatVmBackups } from '@xen-orchestra/backups/formatVmBackups.js'
 import { forOwn, merge } from 'lodash'
-import { ImportVmBackup } from '@xen-orchestra/backups/ImportVmBackup'
-import { invalidParameters } from 'xo-common/api-errors'
-import { parseDuration } from '@vates/parse-duration'
-import { runBackupWorker } from '@xen-orchestra/backups/runBackupWorker'
-import { Task } from '@xen-orchestra/backups/Task'
-import { type Pattern, createPredicate } from 'value-matcher'
+import { ImportVmBackup } from '@xen-orchestra/backups/ImportVmBackup.js'
+import { invalidParameters } from 'xo-common/api-errors.js'
+import { runBackupWorker } from '@xen-orchestra/backups/runBackupWorker.js'
+import { Task } from '@xen-orchestra/backups/Task.js'
 
-import type Logger from '../logs/loggers/abstract'
-import { type CallJob, type Executor, type Job } from '../jobs'
-import { type Schedule } from '../scheduling'
-
-import { debounceWithKey, REMOVE_CACHE_ENTRY } from '../../_pDebounceWithKey'
-import { handleBackupLog } from '../../_handleBackupLog'
-import { waitAll } from '../../_waitAll'
-import { type DeltaVmExport, type Xapi } from '../../xapi'
-import { type SimpleIdPattern, unboxIdsFromPattern } from '../../utils'
-
-import { translateLegacyJob } from './migration'
+import { debounceWithKey, REMOVE_CACHE_ENTRY } from '../../_pDebounceWithKey.js'
+import { handleBackupLog } from '../../_handleBackupLog.js'
+import { unboxIdsFromPattern } from '../../utils.js'
+import { waitAll } from '../../_waitAll.js'
 
 const log = createLogger('xo:xo-mixins:backups-ng')
 
-export type Mode = 'full' | 'delta'
-export type ReportWhen = 'always' | 'failure' | 'never'
-
-type Settings = {|
-  bypassVdiChainsCheck?: boolean,
-  checkpointSnapshot?: boolean,
-  concurrency?: number,
-  deleteFirst?: boolean,
-  copyRetention?: number,
-  exportRetention?: number,
-  offlineBackup?: boolean,
-  offlineSnapshot?: boolean,
-  reportRecipients?: Array<string>,
-  reportWhen?: ReportWhen,
-  snapshotRetention?: number,
-  timeout?: number,
-  vmTimeout?: number,
-|}
-
-export type BackupJob = {|
-  ...$Exact<Job>,
-  compression?: 'native' | 'zstd' | '',
-  mode: Mode,
-  proxy?: string,
-  remotes?: SimpleIdPattern,
-  settings: $Dict<Settings>,
-  srs?: SimpleIdPattern,
-  type: 'backup',
-  vms: Pattern,
-|}
-
-type MetadataBase = {|
-  _filename?: string,
-  jobId: string,
-  scheduleId: string,
-  timestamp: number,
-  version: '2.0.0',
-  vm: Object,
-  vmSnapshot: Object,
-|}
-type MetadataDelta = {|
-  ...MetadataBase,
-  mode: 'delta',
-  vdis: $PropertyType<DeltaVmExport, 'vdis'>,
-  vbds: $PropertyType<DeltaVmExport, 'vbds'>,
-  vhds: { [vdiId: string]: string },
-  vifs: $PropertyType<DeltaVmExport, 'vifs'>,
-|}
-type MetadataFull = {|
-  ...MetadataBase,
-  mode: 'full',
-  xva: string,
-|}
-type Metadata = MetadataDelta | MetadataFull
-
-const parseVmBackupId = (id: string) => {
+const parseVmBackupId = id => {
   const i = id.indexOf('/')
   return {
     metadataFilename: id.slice(i + 1),
@@ -93,7 +26,7 @@ const parseVmBackupId = (id: string) => {
   }
 }
 
-const extractIdsFromSimplePattern = (pattern: mixed) => {
+const extractIdsFromSimplePattern = pattern => {
   if (pattern === null || typeof pattern !== 'object') {
     return
   }
@@ -194,38 +127,22 @@ const extractIdsFromSimplePattern = (pattern: mixed) => {
 // │  └─ task.end
 // └─ job.end
 export default class BackupNg {
-  _app: {
-    createJob: ($Diff<BackupJob, {| id: string |}>) => Promise<BackupJob>,
-    createSchedule: ($Diff<Schedule, {| id: string |}>) => Promise<Schedule>,
-    deleteSchedule: (id: string) => Promise<void>,
-    getAllSchedules: () => Promise<Schedule[]>,
-    getRemoteHandler: (id: string) => Promise<RemoteHandler>,
-    getXapi: (id: string) => Xapi,
-    getJob: ((id: string, 'backup') => Promise<BackupJob>) & ((id: string, 'call') => Promise<CallJob>),
-    getLogs: (namespace: string) => Promise<{ [id: string]: Object }>,
-    updateJob: (($Shape<BackupJob>, ?boolean) => Promise<BackupJob>) &
-      (($Shape<CallJob>, ?boolean) => Promise<CallJob>),
-    removeJob: (id: string) => Promise<void>,
-    worker: $Dict<any>,
-  }
-  _logger: Logger
-  _runningRestores: Set<string>
-
   get runningRestores() {
     return this._runningRestores
   }
 
-  constructor(app: any, config) {
+  constructor(app) {
     this._app = app
     this._logger = undefined
     this._runningRestores = new Set()
-    this._backupOptions = config.backups
 
-    app.on('start', async () => {
+    app.hooks.on('start', async () => {
       this._logger = await app.getLogger('restore')
 
-      const executor: Executor = async ({ cancelToken, data, job: job_, logger, runJobId, schedule }) => {
-        let job: BackupJob = (job_: any)
+      const executor = async ({ cancelToken, data, job: job_, logger, runJobId, schedule }) => {
+        const backupsConfig = app.config.get('backups')
+
+        let job = job_
 
         const vmsPattern = job.vms
 
@@ -256,7 +173,7 @@ export default class BackupNg {
         const proxyId = job.proxy
         const remoteIds = unboxIdsFromPattern(job.remotes)
         try {
-          if (proxyId === undefined && config.backups.disableWorkers) {
+          if (proxyId === undefined && backupsConfig.disableWorkers) {
             const localTaskIds = { __proto__: null }
             return await Task.run(
               {
@@ -270,12 +187,12 @@ export default class BackupNg {
               },
               () =>
                 new Backup({
-                  config: config.backups,
+                  config: backupsConfig,
                   getAdapter: async remoteId =>
                     app.getBackupsRemoteAdapter(await app.getRemoteWithCredentials(remoteId)),
 
                   // `@xen-orchestra/backups/Backup` expect that `getConnectedRecord` returns a promise
-                  getConnectedRecord: async (type, uuid) => app.getXapiObject(uuid, type),
+                  getConnectedRecord: async (xapiType, uuid) => app.getXapiObject(uuid),
                   job,
                   schedule,
                 }).run()
@@ -285,9 +202,13 @@ export default class BackupNg {
           const recordToXapi = {}
           const servers = new Set()
           const handleRecord = uuid => {
-            const serverId = app.getXenServerIdByObject(uuid)
-            recordToXapi[uuid] = serverId
-            servers.add(serverId)
+            try {
+              const serverId = app.getXenServerIdByObject(uuid)
+              recordToXapi[uuid] = serverId
+              servers.add(serverId)
+            } catch (error) {
+              log.warn(error)
+            }
           }
           vmIds.forEach(handleRecord)
           unboxIdsFromPattern(job.srs).forEach(handleRecord)
@@ -363,10 +284,10 @@ export default class BackupNg {
             const localTaskIds = { __proto__: null }
             return await runBackupWorker(
               {
-                config: config.backups,
-                remoteOptions: config.remoteOptions,
-                resourceCacheDelay: parseDuration(config.resourceCacheDelay),
-                xapiOptions: config.xapiOptions,
+                config: backupsConfig,
+                remoteOptions: app.config.get('remoteOptions'),
+                resourceCacheDelay: app.config.getDuration('resourceCacheDelay'),
+                xapiOptions: app.config.get('xapiOptions'),
                 ...params,
               },
               log =>
@@ -385,19 +306,15 @@ export default class BackupNg {
     })
   }
 
-  async createBackupNgJob(
-    props: $Diff<BackupJob, {| id: string |}>,
-    schedules?: $Dict<$Diff<Schedule, {| id: string |}>>
-  ): Promise<BackupJob> {
+  async createBackupNgJob(props, schedules) {
     const app = this._app
     props.type = 'backup'
-    const job: BackupJob = await app.createJob(props)
+    const job = await app.createJob(props)
 
     if (schedules !== undefined) {
       const { id, settings } = job
       const tmpIds = Object.keys(schedules)
-      await asyncMapSettled(tmpIds, async (tmpId: string) => {
-        // $FlowFixMe don't know what is the problem (JFT)
+      await asyncMapSettled(tmpIds, async tmpId => {
         const schedule = schedules[tmpId]
         schedule.jobId = id
         settings[(await app.createSchedule(schedule)).id] = settings[tmpId]
@@ -409,7 +326,7 @@ export default class BackupNg {
     return job
   }
 
-  async deleteBackupNgJob(id: string): Promise<void> {
+  async deleteBackupNgJob(id) {
     const app = this._app
     const [schedules] = await Promise.all([app.getAllSchedules(), app.getJob(id, 'backup')])
     await Promise.all([
@@ -422,7 +339,7 @@ export default class BackupNg {
     ])
   }
 
-  async deleteVmBackupNg(id: string): Promise<void> {
+  async deleteVmBackupNg(id) {
     const app = this._app
     const { metadataFilename, remoteId } = parseVmBackupId(id)
     const remote = await app.getRemoteWithCredentials(remoteId)
@@ -435,7 +352,7 @@ export default class BackupNg {
         },
       })
     } else {
-      await Disposable.use(app.getBackupsRemoteAdapter(remoteId), adapter => adapter.deleteVmBackup(metadataFilename))
+      await Disposable.use(app.getBackupsRemoteAdapter(remote), adapter => adapter.deleteVmBackup(metadataFilename))
     }
 
     this._listVmBackupsOnRemote(REMOVE_CACHE_ENTRY, remoteId)
@@ -447,7 +364,7 @@ export default class BackupNg {
   // ├─ task.start(message: 'transfer')
   // │  └─ task.end(result: { id: string, size: number })
   // └─ task.end
-  async importVmBackupNg(id: string, srId: string): Promise<string> {
+  async importVmBackupNg(id, srId, settings) {
     const app = this._app
     const xapi = app.getXapi(srId)
     const sr = xapi.getObject(srId)
@@ -469,6 +386,7 @@ export default class BackupNg {
             url: remote.url,
             options: remote.options,
           },
+          settings,
           srUuid: sr.uuid,
           streamLogs: true,
           xapi: {
@@ -506,7 +424,7 @@ export default class BackupNg {
         }
       } else {
         await Disposable.use(app.getBackupsRemoteAdapter(remote), async adapter => {
-          const metadata: Metadata = await adapter.readVmBackupMetadata(metadataFilename)
+          const metadata = await adapter.readVmBackupMetadata(metadataFilename)
           const localTaskIds = { __proto__: null }
           return Task.run(
             {
@@ -530,6 +448,7 @@ export default class BackupNg {
               new ImportVmBackup({
                 adapter,
                 metadata,
+                settings,
                 srUuid: srId,
                 xapi: await app.getXapi(srId),
               }).run()
@@ -544,13 +463,13 @@ export default class BackupNg {
   @decorateWith(
     debounceWithKey,
     function () {
-      return parseDuration(this._backupOptions.listingDebounce)
+      return this._app.config.getDuration('backups.listingDebounce')
     },
     function keyFn(remoteId) {
       return [this, remoteId]
     }
   )
-  async _listVmBackupsOnRemote(remoteId: string) {
+  async _listVmBackupsOnRemote(remoteId) {
     const app = this._app
     try {
       const remote = await app.getRemoteWithCredentials(remoteId)
@@ -574,7 +493,7 @@ export default class BackupNg {
       // inject the remote id on the backup which is needed for importVmBackupNg()
       forOwn(backupsByVm, backups =>
         backups.forEach(backup => {
-          backup.id = `${remoteId}${backup.id}`
+          backup.id = `${remoteId}/${backup.id}`
         })
       )
       return backupsByVm
@@ -583,8 +502,8 @@ export default class BackupNg {
     }
   }
 
-  async listVmBackupsNg(remotes: string[], _forceRefresh = false) {
-    const backupsByVmByRemote: $Dict<$Dict<Metadata[]>> = {}
+  async listVmBackupsNg(remotes, _forceRefresh = false) {
+    const backupsByVmByRemote = {}
 
     await Promise.all(
       remotes.map(async remoteId => {
@@ -597,10 +516,5 @@ export default class BackupNg {
     )
 
     return backupsByVmByRemote
-  }
-
-  async migrateLegacyBackupJob(jobId: string) {
-    const [job, schedules] = await Promise.all([this._app.getJob(jobId, 'call'), this._app.getAllSchedules()])
-    await this._app.updateJob(translateLegacyJob(job, schedules), false)
   }
 }

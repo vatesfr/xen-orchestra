@@ -1,8 +1,8 @@
-const identity = require('lodash/identity')
-const ignoreErrors = require('promise-toolbox/ignoreErrors')
+const identity = require('lodash/identity.js')
+const ignoreErrors = require('promise-toolbox/ignoreErrors.js')
 const { Ref } = require('xen-api')
 
-const isVmRunning = require('./_isVmRunning')
+const isVmRunning = require('./_isVmRunning.js')
 
 const noop = Function.prototype
 

@@ -223,6 +223,7 @@ describe('backupNg', () => {
           mode: jobInput.mode,
           reportWhen: jobInput.settings[''].reportWhen,
         },
+        infos: [{ data: { vms: [jobInput.vms.id] }, message: 'vms' }],
         jobId,
         jobName: jobInput.name,
         scheduleId: schedule.id,
@@ -233,135 +234,6 @@ describe('backupNg', () => {
         status: 'failure',
         result: expect.any(Object),
       })
-
-      expect(noSuchObject.is(vmTask.result)).toBe(true)
-    })
-
-    it('fails trying to run a backup job with a VM without disks', async () => {
-      jest.setTimeout(8e3)
-      await xo.createTempServer(config.servers.default)
-      const { id: vmIdWithoutDisks } = await xo.createTempVm({
-        name_description: 'Creating a vm without disks',
-        template: config.templates.templateWithoutDisks,
-      })
-
-      const scheduleTempId = randomId()
-      const jobInput = {
-        schedules: {
-          [scheduleTempId]: getDefaultSchedule(),
-        },
-        settings: {
-          [scheduleTempId]: { snapshotRetention: 1 },
-        },
-        vms: {
-          id: vmIdWithoutDisks,
-        },
-      }
-      const { id: jobId } = await xo.createTempBackupNgJob(jobInput)
-
-      const schedule = await xo.getSchedule({ jobId })
-      expect(typeof schedule).toBe('object')
-      await xo.call('backupNg.runJob', { id: jobId, schedule: schedule.id })
-
-      const [
-        {
-          tasks: [vmTask],
-          ...log
-        },
-      ] = await xo.getBackupLogs({
-        jobId,
-        scheduleId: schedule.id,
-      })
-
-      validateRootTask(log, {
-        data: {
-          mode: jobInput.mode,
-          reportWhen: jobInput.settings[''].reportWhen,
-        },
-        jobId,
-        jobName: jobInput.name,
-        scheduleId: schedule.id,
-        status: 'skipped',
-      })
-
-      expect(vmTask).toMatchSnapshot({
-        end: expect.any(Number),
-        data: {
-          id: expect.any(String),
-        },
-        id: expect.any(String),
-        message: expect.any(String),
-        result: {
-          stack: expect.any(String),
-        },
-        start: expect.any(Number),
-      })
-
-      expect(vmTask.data.id).toBe(vmIdWithoutDisks)
-    })
-
-    it('fails trying to run backup job without retentions', async () => {
-      jest.setTimeout(7e3)
-      const scheduleTempId = randomId()
-      await xo.createTempServer(config.servers.default)
-      const { id: remoteId } = await xo.createTempRemote(config.remotes.default)
-      const jobInput = {
-        remotes: {
-          id: remoteId,
-        },
-        schedules: {
-          [scheduleTempId]: getDefaultSchedule(),
-        },
-        settings: {
-          [scheduleTempId]: {},
-        },
-        srs: {
-          id: config.srs.default,
-        },
-        vms: {
-          id: config.vms.default,
-        },
-      }
-      const { id: jobId } = await xo.createTempBackupNgJob(jobInput)
-
-      const schedule = await xo.getSchedule({ jobId })
-      expect(typeof schedule).toBe('object')
-      await xo.call('backupNg.runJob', { id: jobId, schedule: schedule.id })
-
-      const [
-        {
-          tasks: [task],
-          ...log
-        },
-      ] = await xo.getBackupLogs({
-        jobId,
-        scheduleId: schedule.id,
-      })
-
-      validateRootTask(log, {
-        data: {
-          mode: jobInput.mode,
-          reportWhen: jobInput.settings[''].reportWhen,
-        },
-        jobId,
-        jobName: jobInput.name,
-        scheduleId: schedule.id,
-        status: 'failure',
-      })
-
-      expect(task).toMatchSnapshot({
-        data: {
-          id: expect.any(String),
-        },
-        end: expect.any(Number),
-        id: expect.any(String),
-        message: expect.any(String),
-        result: {
-          stack: expect.any(String),
-        },
-        start: expect.any(Number),
-      })
-      expect(task.data.id).toBe(config.vms.default)
     })
   })
 
@@ -437,6 +309,7 @@ describe('backupNg', () => {
         mode: jobInput.mode,
         reportWhen: jobInput.settings[''].reportWhen,
       },
+      infos: [{ data: { vms: [jobInput.vms.id] }, message: 'vms' }],
       jobId,
       jobName: jobInput.name,
       scheduleId: schedule.id,
@@ -528,6 +401,7 @@ describe('backupNg', () => {
           mode: jobInput.mode,
           reportWhen: jobInput.settings[''].reportWhen,
         },
+        infos: [{ data: { vms: [jobInput.vms.id] }, message: 'vms' }],
         jobId,
         jobName: jobInput.name,
         scheduleId: schedule.id,
@@ -658,6 +532,7 @@ describe('backupNg', () => {
         mode: backupInput.mode,
         reportWhen: backupInput.settings[''].reportWhen,
       },
+      infos: [{ data: { vms: [backupInput.vms.id] }, message: 'vms' }],
       jobId: backup.id,
       jobName: backupInput.name,
       scheduleId: schedule.id,

@@ -1,6 +1,6 @@
 import assert from 'assert'
-import createLogger from '@xen-orchestra/log'
 import fromEvent from 'promise-toolbox/fromEvent'
+import { createLogger } from '@xen-orchestra/log'
 import { forOwn, toPairs } from 'lodash'
 
 // =============================================================================

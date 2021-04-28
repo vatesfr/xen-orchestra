@@ -950,6 +950,9 @@ const chooseActionToUnblockForbiddenStartVm = props =>
 
 const cloneAndStartVm = async (vm, host) => _call('vm.start', { id: await cloneVm(vm), host: resolveId(host) })
 
+const _startVm = (id, host, { force = false, bypassMacAddressesCheck = force } = {}) =>
+  _call('vm.start', { id, bypassMacAddressesCheck, force, host })
+
 export const startVm = async (vm, host) => {
   if (host === true) {
     host = await confirm({
@@ -965,28 +968,41 @@ export const startVm = async (vm, host) => {
 
   const id = resolveId(vm)
   const hostId = resolveId(host)
-  return _call('vm.start', {
-    id,
-    host: hostId,
-  }).catch(async reason => {
-    if (!forbiddenOperation.is(reason)) {
+  return _startVm(id, hostId).catch(async reason => {
+    const isDuplicatedMacAddressError = reason.data !== undefined && reason.data.code === 'DUPLICATED_MAC_ADDRESS'
+    if (!isDuplicatedMacAddressError && !forbiddenOperation.is(reason)) {
       throw reason
     }
 
-    const choice = await chooseActionToUnblockForbiddenStartVm({
-      body: _('blockedStartVmModalMessage'),
-      title: _('forceStartVmModalTitle'),
-    })
-
-    if (choice === 'clone') {
-      return cloneAndStartVm(vm, host)
+    if (isDuplicatedMacAddressError) {
+      // Retry without checking MAC addresses
+      await confirm({
+        title: _('forceStartVm'),
+        body: _('vmWithDuplicatedMacAddressesMessage'),
+      })
+      try {
+        await _startVm(id, hostId, { bypassMacAddressesCheck: true })
+      } catch (error) {
+        if (!forbiddenOperation.is(error)) {
+          throw error
+        }
+        reason = error
+      }
     }
 
-    return _call('vm.start', {
-      id,
-      force: true,
-      host: hostId,
-    })
+    if (forbiddenOperation.is(reason)) {
+      // Clone or retry with force
+      const choice = await chooseActionToUnblockForbiddenStartVm({
+        body: _('blockedStartVmModalMessage'),
+        title: _('forceStartVmModalTitle'),
+      })
+
+      if (choice === 'clone') {
+        return cloneAndStartVm(vm, host)
+      }
+
+      return _startVm(id, hostId, { force: true })
+    }
   })
 }
 
@@ -995,13 +1011,16 @@ export const startVms = vms =>
     title: _('startVmsModalTitle', { vms: vms.length }),
     body: _('startVmsModalMessage', { vms: vms.length }),
   }).then(async () => {
+    const vmsWithduplicatedMacAddresses = []
     const forbiddenStart = []
     let nErrors = 0
 
     await Promise.all(
       map(vms, id =>
-        _call('vm.start', { id }).catch(reason => {
-          if (forbiddenOperation.is(reason)) {
+        _startVm(id).catch(reason => {
+          if (reason.data !== undefined && reason.data.code === 'DUPLICATED_MAC_ADDRESS') {
+            vmsWithduplicatedMacAddresses.push(id)
+          } else if (forbiddenOperation.is(reason)) {
             forbiddenStart.push(id)
           } else {
             nErrors++
@@ -1010,7 +1029,7 @@ export const startVms = vms =>
       )
     )
 
-    if (forbiddenStart.length === 0) {
+    if (forbiddenStart.length === 0 && vmsWithduplicatedMacAddresses.length === 0) {
       if (nErrors === 0) {
         return
       }
@@ -1018,21 +1037,43 @@ export const startVms = vms =>
       return error(_('failedVmsErrorTitle'), _('failedVmsErrorMessage', { nVms: nErrors }))
     }
 
-    const choice = await chooseActionToUnblockForbiddenStartVm({
-      body: _('blockedStartVmsModalMessage', { nVms: forbiddenStart.length }),
-      title: _('forceStartVmModalTitle'),
-    }).catch(noop)
-
-    if (nErrors !== 0) {
-      error(_('failedVmsErrorTitle'), _('failedVmsErrorMessage', { nVms: nErrors }))
+    if (vmsWithduplicatedMacAddresses.length > 0) {
+      // Retry without checking MAC addresses
+      await confirm({
+        title: _('forceStartVm'),
+        body: _('vmsWithDuplicatedMacAddressesMessage', { nVms: vmsWithduplicatedMacAddresses.length }),
+      })
+      await Promise.all(
+        map(vmsWithduplicatedMacAddresses, id =>
+          _startVm(id, undefined, { bypassMacAddressesCheck: true }).catch(reason => {
+            if (forbiddenOperation.is(reason)) {
+              forbiddenStart.push(id)
+            } else {
+              nErrors++
+            }
+          })
+        )
+      )
     }
 
-    if (choice === 'clone') {
-      return Promise.all(map(forbiddenStart, async id => cloneAndStartVm(getObject(store.getState(), id))))
-    }
+    if (forbiddenStart.length > 0) {
+      // Clone or retry with force
+      const choice = await chooseActionToUnblockForbiddenStartVm({
+        body: _('blockedStartVmsModalMessage', { nVms: forbiddenStart.length }),
+        title: _('forceStartVmModalTitle'),
+      }).catch(noop)
 
-    if (choice === 'force') {
-      return Promise.all(map(forbiddenStart, id => _call('vm.start', { id, force: true })))
+      if (nErrors !== 0) {
+        error(_('failedVmsErrorTitle'), _('failedVmsErrorMessage', { nVms: nErrors }))
+      }
+
+      if (choice === 'clone') {
+        return Promise.all(map(forbiddenStart, async id => cloneAndStartVm(getObject(store.getState(), id))))
+      }
+
+      if (choice === 'force') {
+        return Promise.all(map(forbiddenStart, id => _startVm(id, undefined, { force: true })))
+      }
     }
   }, noop)
 
@@ -1118,6 +1159,14 @@ export const convertVmToTemplate = vm =>
       </div>
     ),
   }).then(() => _call('vm.convert', { id: resolveId(vm) }), noop)
+
+export const copyToTemplate = async vm => {
+  await confirm({
+    title: _('copyToTemplate'),
+    body: <p>{_('copyToTemplateMessage')}</p>,
+  })
+  await _call('vm.copyToTemplate', { id: resolveId(vm) })
+}
 
 export const changeVirtualizationMode = vm =>
   confirm({
@@ -1914,12 +1963,6 @@ export const deleteBackupSchedule = async schedule => {
   subscribeJobs.forceRefresh()
 }
 
-export const migrateBackupSchedule = id =>
-  confirm({
-    title: _('migrateBackupSchedule'),
-    body: _('migrateBackupScheduleMessage'),
-  }).then(() => _call('backupNg.migrateLegacyJob', { id: resolveId(id) }))
-
 export const deleteSchedule = schedule =>
   _call('schedule.delete', { id: resolveId(schedule) })::tap(subscribeSchedules.forceRefresh)
 
@@ -2017,9 +2060,10 @@ export const runBackupNgJob = ({ force, ...params }) => {
 
 export const listVmBackups = remotes => _call('backupNg.listVmBackups', { remotes: resolveIds(remotes) })
 
-export const restoreBackup = (backup, sr, startOnRestore) => {
+export const restoreBackup = (backup, sr, { generateNewMacAddresses = false, startOnRestore = false } = {}) => {
   const promise = _call('backupNg.importVmBackup', {
     id: resolveId(backup),
+    settings: { newMacAddresses: generateNewMacAddresses },
     sr: resolveId(sr),
   })
 
@@ -2198,18 +2242,6 @@ export const editRemote = (remote, { name, options, proxy, url }) =>
     testRemote(remote).catch(noop)
   })
 
-export const listRemote = async remote =>
-  remote.proxy === undefined
-    ? _call('remote.list', {
-        id: remote.id,
-      })::tap(subscribeRemotes.forceRefresh, err => error(_('listRemote'), err.message || String(err)))
-    : []
-
-export const listRemoteBackups = async remote =>
-  remote.proxy === undefined
-    ? _call('backup.list', { remote: remote.id })::tap(null, err => error(_('listRemote'), err.message || String(err)))
-    : []
-
 export const testRemote = remote =>
   _call('remote.test', resolveIds({ id: remote }))
     ::tap(null, err => error(_('testRemote'), err.message || String(err)))
@@ -2217,24 +2249,12 @@ export const testRemote = remote =>
 
 // File restore  ----------------------------------------------------
 
-export const scanDisk = (remote, disk) => _call('backup.scanDisk', resolveIds({ remote, disk }))
-
-export const scanFiles = (remote, disk, path, partition) =>
-  _call('backup.scanFiles', resolveIds({ remote, disk, path, partition }))
-
-export const fetchFiles = (remote, disk, partition, paths, format) =>
-  _call('backup.fetchFiles', resolveIds({ remote, disk, partition, paths, format })).then(({ $getFrom: url }) => {
-    window.open(`.${url}`)
-  })
-
-// File restore NG  ----------------------------------------------------
-
 export const listPartitions = (remote, disk) => _call('backupNg.listPartitions', resolveIds({ remote, disk }))
 
 export const listFiles = (remote, disk, path, partition) =>
   _call('backupNg.listFiles', resolveIds({ remote, disk, path, partition }))
 
-export const fetchFilesNg = (remote, disk, partition, paths) =>
+export const fetchFiles = (remote, disk, partition, paths) =>
   _call('backupNg.fetchFiles', resolveIds({ remote, disk, partition, paths })).then(({ $getFrom: url }) => {
     window.open(`.${url}`)
   })
@@ -2869,6 +2889,8 @@ export const subscribeTunnelState = createSubscription(() => _call('xoa.supportT
 export const getApplianceInfo = () => _call('xoa.getApplianceInfo')
 
 // Proxy --------------------------------------------------------------------
+
+export const getAllProxies = () => _call('proxy.getAll')
 
 export const createProxyTrialLicense = () => _call('xoa.licenses.createProxyTrial')
 

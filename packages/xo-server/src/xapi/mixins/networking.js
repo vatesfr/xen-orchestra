@@ -1,4 +1,4 @@
-import { makeEditObject } from '../utils'
+import { makeEditObject } from '../utils.js'
 
 export default {
   async _connectVif(vif) {

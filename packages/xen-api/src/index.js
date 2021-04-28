@@ -742,7 +742,12 @@ export class Xapi extends EventEmitter {
     )
 
     const oldPoolRef = this._pool?.$ref
-    this._pool = (await this.getAllRecords('pool'))[0]
+
+    // Similar to `(await this.getAllRecords('pool'))[0]` but prevents a
+    // deadlock in case of error due to a pRetry calling _sessionOpen again
+    const pools = await this._call('pool.get_all_records', [this._sessionId])
+    const poolRef = Object.keys(pools)[0]
+    this._pool = this._wrapRecord('pool', poolRef, pools[poolRef])
 
     // if the pool ref has changed, it means that the XAPI has been restarted or
     // it's not the same XAPI, we need to refetch the available types and reset

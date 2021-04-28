@@ -38,12 +38,14 @@ const HEADER = (
 
 const ACTIONS = [
   {
+    collapsed: true,
     handler: forgetProxyAppliances,
     icon: 'forget',
     label: _('forgetProxies'),
     level: 'danger',
   },
   {
+    collapsed: true,
     handler: destroyProxyAppliances,
     icon: 'destroy',
     label: _('destroyProxies'),
@@ -53,6 +55,7 @@ const ACTIONS = [
 
 const INDIVIDUAL_ACTIONS = [
   {
+    collapsed: true,
     handler: (proxy, { deployProxy }) =>
       deployProxy({
         proxy,
@@ -203,9 +206,9 @@ const Proxies = decorate([
       async deployProxy({ fetchProxyUpgrades }, proxy) {
         return fetchProxyUpgrades([await deployProxy(proxy)])
       },
-      async upgradeAppliance({ fetchProxyUpgrades }, id) {
+      async upgradeAppliance({ fetchProxyUpgrades }, id, options) {
         try {
-          await upgradeProxyAppliance(id)
+          await upgradeProxyAppliance(id, options)
         } catch (error) {
           if (!incorrectState.is(error)) {
             throw error

@@ -3,8 +3,7 @@
   "name": "@xen-orchestra/defined",
   "version": "0.0.0",
   "license": "ISC",
-  "description": "",
-  "keywords": [],
+  "description": "Utilities to help handling (possibly) undefined values",
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/defined",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "repository": {
@@ -18,16 +17,12 @@
   },
   "preferGlobal": false,
   "main": "dist/",
-  "files": [
-    "dist/"
-  ],
   "browserslist": [
     ">2%"
   ],
   "engines": {
     "node": ">=6"
   },
-  "dependencies": {},
   "devDependencies": {
     "@babel/cli": "^7.0.0",
     "@babel/core": "^7.0.0",

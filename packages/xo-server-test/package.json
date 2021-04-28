@@ -4,7 +4,6 @@
   "version": "0.0.0",
   "license": "AGPL-3.0-or-later",
   "description": "Test client for Xo-Server",
-  "keywords": [],
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/packages/xo-server-test",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "repository": {
@@ -18,9 +17,6 @@
   },
   "preferGlobal": false,
   "main": "dist/",
-  "files": [
-    "dist/"
-  ],
   "engines": {
     "node": ">=6"
   },
@@ -30,13 +26,14 @@
     "@babel/plugin-proposal-decorators": "^7.4.0",
     "@babel/preset-env": "^7.1.6",
     "@iarna/toml": "^2.2.1",
+    "@vates/decorate-with": "^0.0.1",
     "@vates/parse-duration": "^0.1.0",
     "app-conf": "^0.9.0",
     "babel-plugin-lodash": "^3.2.11",
     "golike-defer": "^0.5.1",
-    "jest": "^24.8.0",
+    "jest": "^26.6.3",
     "lodash": "^4.17.11",
-    "promise-toolbox": "^0.17.0",
+    "promise-toolbox": "^0.19.0",
     "xo-collection": "^0.4.1",
     "xo-common": "^0.7.0",
     "xo-lib": "^0.10.1"

@@ -186,13 +186,14 @@ const CollapsedActions = decorate([
     computed: {
       dropdownId: generateId,
       actions: (_, { actions, items, userData }) =>
-        actions.map(({ disabled, grouped, handler, icon, label, redirectOnSuccess }) => {
+        actions.map(({ disabled, grouped, handler, icon, label, level, redirectOnSuccess }) => {
           const actionItems = Array.isArray(items) || !grouped ? items : [items]
           return {
             disabled: handleFnProps(disabled, actionItems, userData),
             handler: () => handler(actionItems, userData),
             icon: handleFnProps(icon, actionItems, userData),
             label: handleFnProps(label, actionItems, userData),
+            level: handleFnProps(level, actionItems, userData),
             redirectOnSuccess: handleFnProps(redirectOnSuccess, actionItems, userData),
           }
         }),
@@ -204,7 +205,12 @@ const CollapsedActions = decorate([
       <DropdownToggle bsSize='small' bsStyle='secondary' />
       <DropdownMenu className='dropdown-menu-right'>
         {state.actions.map((action, key) => (
-          <MenuItem disabled={action.disabled} key={key} onClick={() => effects.execute(action)}>
+          <MenuItem
+            className={action.level !== undefined ? `text-${action.level}` : ''}
+            disabled={action.disabled}
+            key={key}
+            onClick={() => effects.execute(action)}
+          >
             <Icon icon={action.icon} /> {action.label}
           </MenuItem>
         ))}

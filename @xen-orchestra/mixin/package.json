@@ -1,10 +1,8 @@
 {
   "private": false,
   "name": "@xen-orchestra/mixin",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "license": "ISC",
-  "description": "",
-  "keywords": [],
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/mixin",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "repository": {
@@ -17,34 +15,14 @@
     "url": "https://vates.fr"
   },
   "preferGlobal": false,
-  "main": "dist/",
-  "files": [
-    "dist/"
-  ],
-  "browserslist": [
-    ">2%"
-  ],
   "engines": {
     "node": ">=6"
   },
   "dependencies": {
-    "bind-property-descriptor": "^1.0.0"
-  },
-  "devDependencies": {
-    "@babel/cli": "^7.0.0",
-    "@babel/core": "^7.0.0",
-    "@babel/preset-env": "^7.0.0",
-    "babel-plugin-dev": "^1.0.0",
-    "cross-env": "^7.0.2",
-    "rimraf": "^3.0.0"
+    "bind-property-descriptor": "^1.0.0",
+    "lodash": "^4.17.21"
   },
   "scripts": {
-    "build": "cross-env NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
-    "clean": "rimraf dist/",
-    "dev": "cross-env NODE_ENV=development babel --watch --source-maps --out-dir=dist/ src/",
-    "prebuild": "yarn run clean",
-    "predev": "yarn run prebuild",
-    "prepublishOnly": "yarn run build",
     "postversion": "npm publish"
   }
 }

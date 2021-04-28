@@ -60,7 +60,7 @@ export async function copyVm({ vm, sr }) {
     console.log('export full VM...')
     const input = await srcXapi.exportVm(vm)
     console.log('import full VM...')
-    await tgtXapi.deleteVm(await tgtXapi.importVm(input, { srId: sr }))
+    await tgtXapi.VM_destroy((await tgtXapi.importVm(input, { srId: sr })).$ref)
   }
 
   // delta
@@ -68,11 +68,10 @@ export async function copyVm({ vm, sr }) {
     console.log('export delta VM...')
     const input = await srcXapi.exportDeltaVm(vm)
     console.log('import delta VM...')
-    const { transferSize, vm: copyVm } = await tgtXapi.importDeltaVm(input, {
+    const { vm: copyVm } = await tgtXapi.importDeltaVm(input, {
       srId: sr,
     })
-    console.log('transfered size:', transferSize)
-    await tgtXapi.deleteVm(copyVm)
+    await tgtXapi.VM_destroy(copyVm.$ref)
   }
 }
 

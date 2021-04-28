@@ -2,7 +2,7 @@
 
 import { filter, find } from 'lodash'
 
-import { IPV4_CONFIG_MODES, IPV6_CONFIG_MODES } from '../xapi'
+import { IPV4_CONFIG_MODES, IPV6_CONFIG_MODES } from '../xapi/index.js'
 
 export function getIpv4ConfigurationModes() {
   return IPV4_CONFIG_MODES
@@ -73,7 +73,11 @@ connect.resolve = {
 // Reconfigure IP
 
 export async function reconfigureIp({ pif, mode = 'DHCP', ip = '', netmask = '', gateway = '', dns = '' }) {
-  await this.getXapi(pif).call('PIF.reconfigure_ip', pif._xapiRef, mode, ip, netmask, gateway, dns)
+  const xapi = this.getXapi(pif)
+  await xapi.call('PIF.reconfigure_ip', pif._xapiRef, mode, ip, netmask, gateway, dns)
+  if (pif.management) {
+    await xapi.call('host.management_reconfigure', pif._xapiRef)
+  }
 }
 
 reconfigureIp.params = {

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
-const defer = require('golike-defer').default
 const { Ref, Xapi } = require('xen-api')
+const { defer } = require('golike-defer')
 
 const pkg = require('./package.json')
 

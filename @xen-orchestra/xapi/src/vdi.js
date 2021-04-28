@@ -1,7 +1,10 @@
-const CancelToken = require('promise-toolbox/CancelToken')
-const pRetry = require('promise-toolbox/retry')
+const CancelToken = require('promise-toolbox/CancelToken.js')
+const pCatch = require('promise-toolbox/catch.js')
+const pRetry = require('promise-toolbox/retry.js')
 
-const extractOpaqueRef = require('./_extractOpaqueRef')
+const extractOpaqueRef = require('./_extractOpaqueRef.js')
+
+const noop = Function.prototype
 
 module.exports = class Vdi {
   async clone(vdiRef) {
@@ -9,11 +12,13 @@ module.exports = class Vdi {
   }
 
   async destroy(vdiRef) {
-    // work around a race condition in XCP-ng/XenServer where the disk is not fully unmounted yet
-    await pRetry(() => this.callAsync('VDI.destroy', vdiRef), {
-      ...this._vdiDestroyRetry,
-      when: { code: 'VDI_IN_USE' },
-    })
+    await pCatch.call(
+      // work around a race condition in XCP-ng/XenServer where the disk is not fully unmounted yet
+      pRetry(() => this.callAsync('VDI.destroy', vdiRef), this._vdiDestroyRetryWhenInUse),
+      // if this VDI is not found, consider it destroyed
+      { code: 'HANDLE_INVALID' },
+      noop
+    )
   }
 
   async create(

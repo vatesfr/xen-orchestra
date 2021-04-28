@@ -9,13 +9,11 @@ import { addSubscriptions, noop } from 'utils'
 import { confirm } from 'modal'
 import { error } from 'notification'
 import { FormattedDate } from 'react-intl'
-import { deleteBackups, fetchFilesNg as fetchFiles, listVmBackups, subscribeBackupNgJobs, subscribeRemotes } from 'xo'
+import { deleteBackups, fetchFiles, listVmBackups, subscribeBackupNgJobs, subscribeRemotes } from 'xo'
 import { filter, find, flatMap, forEach, keyBy, map, orderBy, reduce, toArray } from 'lodash'
 
 import DeleteBackupsModalBody from '../restore/delete-backups-modal-body'
 import RestoreFileModalBody from './restore-file-modal'
-
-import RestoreFileLegacy from '../file-restore-legacy'
 
 // -----------------------------------------------------------------------------
 
@@ -198,9 +196,7 @@ export default class Restore extends Component {
     return (
       <Upgrade place='restoreBackup' available={4}>
         <div>
-          <RestoreFileLegacy />
-          <div className='mt-1 mb-1'>
-            <h3>{_('backupFileRestorePage')}</h3>
+          <div className='mb-1'>
             <ActionButton btnStyle='primary' handler={this._refreshBackupList} icon='refresh'>
               {_('refreshBackupList')}
             </ActionButton>

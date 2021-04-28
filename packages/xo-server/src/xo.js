@@ -1,31 +1,36 @@
-import createLogger from '@xen-orchestra/log'
-import XoCollection from 'xo-collection'
-import XoUniqueIndex from 'xo-collection/unique-index'
+import Config from '@xen-orchestra/mixins/Config.js'
+import Hooks from '@xen-orchestra/mixins/Hooks.js'
 import mixin from '@xen-orchestra/mixin'
+import mixinLegacy from '@xen-orchestra/mixin/legacy.js'
+import XoCollection from 'xo-collection'
+import XoUniqueIndex from 'xo-collection/unique-index.js'
 import { createClient as createRedisClient } from 'redis'
-import { createDebounceResource } from '@vates/disposable/debounceResource'
+import { createDebounceResource } from '@vates/disposable/debounceResource.js'
+import { createLogger } from '@xen-orchestra/log'
 import { EventEmitter } from 'events'
-import { noSuchObject } from 'xo-common/api-errors'
+import { noSuchObject } from 'xo-common/api-errors.js'
 import { forEach, includes, isEmpty, iteratee, stubTrue } from 'lodash'
 import { parseDuration } from '@vates/parse-duration'
 
-import mixins from './xo-mixins'
-import Connection from './connection'
-import { generateToken, noop } from './utils'
+import mixins from './xo-mixins/index.js'
+import Connection from './connection.js'
+import { generateToken, noop } from './utils.js'
 
 // ===================================================================
 
 const log = createLogger('xo:xo')
 
-@mixin(Object.values(mixins))
+@mixinLegacy(Object.values(mixins))
 export default class Xo extends EventEmitter {
-  constructor(config) {
+  constructor(opts) {
     super()
 
-    // a lot of mixins adds listener for start/stop/… events
-    this.setMaxListeners(0)
+    mixin(this, { Config, Hooks }, [opts])
 
-    this._config = config
+    // a lot of mixins adds listener for start/stop/… events
+    this.hooks.setMaxListeners(0)
+
+    const { config } = opts
 
     this._objects = new XoCollection()
     this._objects.createIndex('byRef', new XoUniqueIndex('_xapiRef'))
@@ -47,11 +52,11 @@ export default class Xo extends EventEmitter {
       })
     }
 
-    this.on('start', () => this._watchObjects())
+    this.hooks.on('start', () => this._watchObjects())
 
     const debounceResource = createDebounceResource()
     debounceResource.defaultDelay = parseDuration(config.resourceCacheDelay)
-    this.once('stop', debounceResource.flushAll)
+    this.hooks.on('stop', debounceResource.flushAll)
 
     this.debounceResource = debounceResource
   }

@@ -1,19 +1,12 @@
-import { filter, find } from 'lodash'
+import { filter } from 'lodash'
 
 import Plan from './plan'
 import { debug } from './utils'
 
-// Compare a list of objects and give the best.
-function searchBestObject(objects, fun) {
-  let object = objects[0]
-
-  for (let i = 1; i < objects.length; i++) {
-    if (fun(object, objects[i]) > 0) {
-      object = objects[i]
-    }
-  }
-
-  return object
+function epsiEqual(a, b, epsi = 0.001) {
+  const absA = Math.abs(a)
+  const absB = Math.abs(b)
+  return Math.abs(a - b) <= Math.min(absA, absB) * epsi || (absA <= epsi && absB <= epsi)
 }
 
 // ===================================================================
@@ -42,22 +35,20 @@ export default class PerformancePlan extends Plan {
       console.error(error)
     }
 
-    const results = await this._findHostsToOptimize()
+    await this._processAntiAffinity()
+
+    const hosts = this._getHosts()
+    const results = await this._getHostStatsAverages({
+      hosts,
+      toOptimizeOnly: true,
+    })
 
     if (!results) {
       return
     }
 
     const { averages, toOptimize } = results
-    const { hosts } = results
-
-    toOptimize.sort((a, b) => {
-      a = averages[a.id]
-      b = averages[b.id]
-
-      return b.cpu - a.cpu || a.memoryFree - b.memoryFree
-    })
-
+    toOptimize.sort((a, b) => -this._sortHosts(a, b))
     for (const exceededHost of toOptimize) {
       const { id } = exceededHost
 
@@ -74,50 +65,129 @@ export default class PerformancePlan extends Plan {
     }
   }
 
-  async _optimize({ exceededHost, hosts, hostsAverages }) {
-    const vms = await this._getVms(exceededHost.id)
-    const vmsAverages = await this._getVmsAverages(vms, exceededHost)
+  _getThresholdState(averages) {
+    return {
+      cpu: averages.cpu >= this._thresholds.cpu.high,
+      mem: averages.memoryFree <= this._thresholds.memoryFree.high,
+    }
+  }
 
-    // Sort vms by cpu usage. (lower to higher)
-    vms.sort((a, b) => vmsAverages[b.id].cpu - vmsAverages[a.id].cpu)
+  _sortHosts(aAverages, bAverages) {
+    const aState = this._getThresholdState(aAverages)
+    const bState = this._getThresholdState(bAverages)
+
+    // A. Same state.
+    if (aState.mem === bState.mem && aState.cpu === bState.cpu) {
+      if (epsiEqual(aAverages.cpu, bAverages.cpu)) {
+        return bAverages.memoryFree - aAverages.memoryFree
+      }
+      return aAverages.cpu - bAverages.cpu
+    }
+
+    // B. No limit reached on A OR both limits reached on B.
+    if ((!aState.mem && !aState.cpu) || (bState.mem && bState.cpu)) {
+      return -1
+    }
+
+    // C. No limit reached on B OR both limits reached on A.
+    if ((!bState.mem && !bState.cpu) || (aState.mem && aState.cpu)) {
+      return 1
+    }
+
+    // D. If only one limit is reached on A AND B, we prefer to migrate on the host with the lowest CPU usage.
+    return !aState.cpu ? -1 : 1
+  }
+
+  async _optimize({ exceededHost, hosts, hostsAverages }) {
+    const vms = filter(this._getAllRunningVms(), vm => vm.$container === exceededHost.id)
+    const vmsAverages = await this._getVmsAverages(vms, { [exceededHost.id]: exceededHost })
+
+    // Sort vms by cpu usage. (higher to lower) + use memory otherwise.
+    vms.sort((a, b) => {
+      const aAverages = vmsAverages[a.id]
+      const bAverages = vmsAverages[b.id]
+
+      // We use a tolerance to migrate VM with the most memory used.
+      if (epsiEqual(aAverages.cpu, bAverages.cpu, 3)) {
+        return bAverages.memory - aAverages.memory
+      }
+      return bAverages.cpu - aAverages.cpu
+    })
 
     const exceededAverages = hostsAverages[exceededHost.id]
     const promises = []
 
     const xapiSrc = this.xo.getXapi(exceededHost)
-    let optimizationsCount = 0
-
-    const searchFunction = (a, b) => hostsAverages[b.id].cpu - hostsAverages[a.id].cpu
+    let optimizationCount = 0
 
     for (const vm of vms) {
-      debug(`Trying to migrate ${vm.id}...`)
-
-      // Search host with lower cpu usage in the same pool first. In other pool if necessary.
-      let destination = searchBestObject(
-        find(hosts, host => host.$poolId === vm.$poolId),
-        searchFunction
-      )
-
-      if (!destination) {
-        debug('No destination host found in the current VM pool. Trying in all pools.')
-        destination = searchBestObject(hosts, searchFunction)
+      // Stop migration if we are below low threshold.
+      if (
+        exceededAverages.cpu <= this._thresholds.cpu.low &&
+        exceededAverages.memoryFree >= this._thresholds.memoryFree.low
+      ) {
+        return
       }
+
+      if (!vm.xenTools) {
+        debug(`VM (${vm.id}) of Host (${exceededHost.id}) does not support pool migration.`)
+        continue
+      }
+
+      for (const tag of vm.tags) {
+        // TODO: Improve this piece of code. We could compute variance to check if the VM
+        // is migratable. But the code must be rewritten:
+        // - All VMs, hosts and stats must be fetched at one place.
+        // - It's necessary to maintain a dictionary of tags for each host.
+        // - ...
+        if (this._antiAffinityTags.includes(tag)) {
+          debug(
+            `VM (${vm.id}) of Host (${exceededHost.id}) cannot be migrated. It contains anti-affinity tag '${tag}'.`
+          )
+          continue
+        }
+      }
+
+      hosts.sort((a, b) => {
+        if (a.$poolId !== b.$poolId) {
+          // Use host in the same pool first. In other pool if necessary.
+          if (a.$poolId === vm.$poolId) {
+            return -1
+          }
+          if (b.$poolId === vm.$poolId) {
+            return 1
+          }
+        }
+
+        return this._sortHosts(hostsAverages[a.id], hostsAverages[b.id])
+      })
+
+      const destination = hosts[0]
 
       const destinationAverages = hostsAverages[destination.id]
       const vmAverages = vmsAverages[vm.id]
 
-      debug(`Trying to migrate VM (${vm.id}) to Host (${destination.id}) from Host (${exceededHost.id})...`)
-
       // Unable to move the vm.
+      // Because the performance mode is focused on the CPU usage, we can't migrate if the low threshold
+      // is reached on the destination.
+      // It's not the same idea regarding the memory usage, we can migrate if the low threshold is reached,
+      // but we avoid the migration in the critical (high) threshold case.
+      const state = this._getThresholdState(exceededAverages)
       if (
-        exceededAverages.cpu - vmAverages.cpu < destinationAverages.cpu + vmAverages.cpu ||
-        destinationAverages.memoryFree < vmAverages.memory
+        destinationAverages.cpu + vmAverages.cpu >= this._thresholds.cpu.low ||
+        destinationAverages.memoryFree - vmAverages.memory <= this._thresholds.cpu.high ||
+        (!state.cpu &&
+          !state.memory &&
+          (exceededAverages.cpu - vmAverages.cpu < destinationAverages.cpu + vmAverages.cpu ||
+            exceededAverages.memoryFree + vmAverages.memory > destinationAverages.memoryFree - vmAverages.memory))
       ) {
         debug(`Cannot migrate VM (${vm.id}) to Host (${destination.id}).`)
         debug(
           `Src Host CPU=${exceededAverages.cpu}, Dest Host CPU=${destinationAverages.cpu}, VM CPU=${vmAverages.cpu}`
         )
-        debug(`Dest Host free RAM=${destinationAverages.memoryFree}, VM used RAM=${vmAverages.memory})`)
+        debug(
+          `Src Host free RAM=${exceededAverages.memoryFree}, Dest Host free RAM=${destinationAverages.memoryFree}, VM used RAM=${vmAverages.memory})`
+        )
         continue
       }
 
@@ -128,12 +198,12 @@ export default class PerformancePlan extends Plan {
       destinationAverages.memoryFree -= vmAverages.memory
 
       debug(`Migrate VM (${vm.id}) to Host (${destination.id}) from Host (${exceededHost.id}).`)
-      optimizationsCount++
+      optimizationCount++
 
       promises.push(xapiSrc.migrateVm(vm._xapiId, this.xo.getXapi(destination), destination._xapiId))
     }
 
     await Promise.all(promises)
-    debug(`Performance mode: ${optimizationsCount} optimizations for Host (${exceededHost.id}).`)
+    debug(`Performance mode: ${optimizationCount} optimizations for Host (${exceededHost.id}).`)
   }
 }

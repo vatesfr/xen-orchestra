@@ -1,12 +1,12 @@
 import { defer, fromEvent } from 'promise-toolbox'
 
-import LevelDbLogger from './loggers/leveldb'
+import LevelDbLogger from './loggers/leveldb.js'
 
 export default class Logs {
   constructor(app) {
     this._app = app
 
-    app.on('clean', () => this._gc())
+    app.hooks.on('clean', () => this._gc())
   }
 
   async _gc(keep = 2e4) {

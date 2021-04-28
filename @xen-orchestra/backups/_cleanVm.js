@@ -3,9 +3,8 @@ const limitConcurrency = require('limit-concurrency-decorator').default
 const { asyncMap } = require('@xen-orchestra/async-map')
 const { default: Vhd, mergeVhd } = require('vhd-lib')
 const { dirname, resolve } = require('path')
-const { DISK_TYPE_DIFFERENCING } = require('vhd-lib/dist/_constants')
-const { isMetadataFile, isVhdFile, isXvaFile, isXvaSumFile } = require('./_backupType')
-const { isValidXva } = require('./isValidXva')
+const { DISK_TYPE_DIFFERENCING } = require('vhd-lib/dist/_constants.js')
+const { isMetadataFile, isVhdFile, isXvaFile, isXvaSumFile } = require('./_backupType.js')
 
 // chain is an array of VHDs from child to parent
 //
@@ -35,6 +34,8 @@ const mergeVhdChain = limitConcurrency(1)(async function mergeVhdChain(chain, { 
       child = children[0]
     }
 
+    onLog(`merging ${child} into ${parent}`)
+
     let done, total
     const handle = setInterval(() => {
       if (done !== undefined) {
@@ -59,18 +60,44 @@ const mergeVhdChain = limitConcurrency(1)(async function mergeVhdChain(chain, { 
     )
 
     clearInterval(handle)
-  }
 
-  await Promise.all([
-    remove && handler.rename(parent, child),
-    asyncMap(children.slice(0, -1), child => {
-      onLog(`the VHD ${child} is unused`)
-      return remove && handler.unlink(child)
-    }),
-  ])
+    await Promise.all([
+      handler.rename(parent, child),
+      asyncMap(children.slice(0, -1), child => {
+        onLog(`the VHD ${child} is unused`)
+        if (remove) {
+          onLog(`deleting unused VHD ${child}`)
+          return handler.unlink(child)
+        }
+      }),
+    ])
+  }
 })
 
 const noop = Function.prototype
+
+const listVhds = async (handler, vmDir) => {
+  const vhds = []
+  await asyncMap(
+    await handler.list(`${vmDir}/vdis`, {
+      prependDir: true,
+    }),
+    async jobDir =>
+      asyncMap(
+        await handler.list(jobDir, {
+          prependDir: true,
+        }),
+        async vdiDir =>
+          vhds.push(
+            ...(await handler.list(vdiDir, {
+              filter: isVhdFile,
+              prependDir: true,
+            }))
+          )
+      )
+  )
+  return vhds
+}
 
 exports.cleanVm = async function cleanVm(vmDir, { remove, merge, onLog = noop }) {
   const handler = this._handler
@@ -80,36 +107,31 @@ exports.cleanVm = async function cleanVm(vmDir, { remove, merge, onLog = noop })
   const vhdChildren = { __proto__: null }
 
   // remove broken VHDs
-  await asyncMap(
-    await handler.list(`${vmDir}/vdis`, {
-      filter: isVhdFile,
-      prependDir: true,
-    }),
-    async path => {
-      try {
-        const vhd = new Vhd(handler, path)
-        await vhd.readHeaderAndFooter()
-        vhds.add(path)
-        if (vhd.footer.diskType === DISK_TYPE_DIFFERENCING) {
-          const parent = resolve(dirname(path), vhd.header.parentUnicodeName)
-          vhdParents[path] = parent
-          if (parent in vhdChildren) {
-            const error = new Error('this script does not support multiple VHD children')
-            error.parent = parent
-            error.child1 = vhdChildren[parent]
-            error.child2 = path
-            throw error // should we throw?
-          }
-          vhdChildren[parent] = path
+  await asyncMap(await listVhds(handler, vmDir), async path => {
+    try {
+      const vhd = new Vhd(handler, path)
+      await vhd.readHeaderAndFooter()
+      vhds.add(path)
+      if (vhd.footer.diskType === DISK_TYPE_DIFFERENCING) {
+        const parent = resolve('/', dirname(path), vhd.header.parentUnicodeName)
+        vhdParents[path] = parent
+        if (parent in vhdChildren) {
+          const error = new Error('this script does not support multiple VHD children')
+          error.parent = parent
+          error.child1 = vhdChildren[parent]
+          error.child2 = path
+          throw error // should we throw?
         }
-      } catch (error) {
-        onLog(`error while checking the VHD with path ${path}`)
-        if (error?.code === 'ERR_ASSERTION' && remove) {
-          await handler.unlink(path)
-        }
+        vhdChildren[parent] = path
+      }
+    } catch (error) {
+      onLog(`error while checking the VHD with path ${path}`, { error })
+      if (error?.code === 'ERR_ASSERTION' && remove) {
+        onLog(`deleting broken ${path}`)
+        await handler.unlink(path)
       }
     }
-  )
+  })
 
   // remove VHDs with missing ancestors
   {
@@ -132,6 +154,7 @@ exports.cleanVm = async function cleanVm(vmDir, { remove, merge, onLog = noop })
 
         onLog(`the parent ${parent} of the VHD ${vhd} is missing`)
         if (remove) {
+          onLog(`deleting orphan VHD ${vhd}`)
           deletions.push(handler.unlink(vhd))
         }
       }
@@ -167,7 +190,7 @@ exports.cleanVm = async function cleanVm(vmDir, { remove, merge, onLog = noop })
   await asyncMap(xvas, async path => {
     // check is not good enough to delete the file, the best we can do is report
     // it
-    if (!(await isValidXva(path))) {
+    if (!(await this.isValidXva(path))) {
       onLog(`the XVA with path ${path} is potentially broken`)
     }
   })
@@ -181,20 +204,21 @@ exports.cleanVm = async function cleanVm(vmDir, { remove, merge, onLog = noop })
     const metadata = JSON.parse(await handler.readFile(json))
     const { mode } = metadata
     if (mode === 'full') {
-      const linkedXva = resolve(vmDir, metadata.xva)
+      const linkedXva = resolve('/', vmDir, metadata.xva)
 
       if (xvas.has(linkedXva)) {
         unusedXvas.delete(linkedXva)
       } else {
         onLog(`the XVA linked to the metadata ${json} is missing`)
         if (remove) {
+          onLog(`deleting incomplete backup ${json}`)
           await handler.unlink(json)
         }
       }
     } else if (mode === 'delta') {
       const linkedVhds = (() => {
         const { vhds } = metadata
-        return Object.keys(vhds).map(key => resolve(vmDir, vhds[key]))
+        return Object.keys(vhds).map(key => resolve('/', vmDir, vhds[key]))
       })()
 
       // FIXME: find better approach by keeping as much of the backup as
@@ -204,6 +228,7 @@ exports.cleanVm = async function cleanVm(vmDir, { remove, merge, onLog = noop })
       } else {
         onLog(`Some VHDs linked to the metadata ${json} are missing`)
         if (remove) {
+          onLog(`deleting incomplete backup ${json}`)
           await handler.unlink(json)
         }
       }
@@ -244,6 +269,7 @@ exports.cleanVm = async function cleanVm(vmDir, { remove, merge, onLog = noop })
 
       onLog(`the VHD ${vhd} is unused`)
       if (remove) {
+        onLog(`deleting unused VHD ${vhd}`)
         unusedVhdsDeletion.push(handler.unlink(vhd))
       }
     }
@@ -264,13 +290,19 @@ exports.cleanVm = async function cleanVm(vmDir, { remove, merge, onLog = noop })
     unusedVhdsDeletion,
     asyncMap(unusedXvas, path => {
       onLog(`the XVA ${path} is unused`)
-      return remove && handler.unlink(path)
+      if (remove) {
+        onLog(`deleting unused XVA ${path}`)
+        return handler.unlink(path)
+      }
     }),
     asyncMap(xvaSums, path => {
       // no need to handle checksums for XVAs deleted by the script, they will be handled by `unlink()`
       if (!xvas.has(path.slice(0, -'.checksum'.length))) {
         onLog(`the XVA checksum ${path} is unused`)
-        return remove && handler.unlink(path)
+        if (remove) {
+          onLog(`deleting unused XVA checksum ${path}`)
+          return handler.unlink(path)
+        }
       }
     }),
   ])

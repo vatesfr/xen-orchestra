@@ -8,7 +8,6 @@ export default class NfsHandler extends MountHandler {
     super(remote, opts, {
       type: 'nfs',
       device: `${host}${port !== undefined ? ':' + port : ''}:${path}`,
-      defaultOptions: 'vers=3',
     })
   }
 

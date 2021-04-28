@@ -84,7 +84,7 @@ export default class LocalHandler extends RemoteHandlerAbstract {
   }
 
   _lock(path) {
-    return lockfile.lock(path)
+    return lockfile.lock(this._getFilePath(path))
   }
 
   _mkdir(dir, { mode }) {
