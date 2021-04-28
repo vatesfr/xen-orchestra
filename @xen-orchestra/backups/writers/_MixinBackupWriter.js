@@ -2,7 +2,7 @@ const { createLogger } = require('@xen-orchestra/log')
 
 const { getVmBackupDir } = require('../_getVmBackupDir.js')
 
-const { debug } = createLogger('xo:backups:MixinBackupWriter')
+const { warn } = createLogger('xo:backups:MixinBackupWriter')
 
 exports.MixinBackupWriter = (BaseClass = Object) =>
   class MixinBackupWriter extends BaseClass {
@@ -19,7 +19,7 @@ exports.MixinBackupWriter = (BaseClass = Object) =>
       const vmBackupDir = getVmBackupDir(this._backup.vm.uuid)
 
       try {
-        await adapter.cleanVm(vmBackupDir, { remove: true, merge: true, onLog: debug })
+        await adapter.cleanVm(getVmBackupDir(this._backup.vm.uuid), { remove: true, merge: true, onLog: warn })
       } catch (error) {
         if (error?.code !== 'ENOENT') {
           throw error
