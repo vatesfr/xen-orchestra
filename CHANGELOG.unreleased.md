@@ -14,6 +14,7 @@
 - [Backup] Lock VM directory during backup to avoid race conditions (PR [#5746](https://github.com/vatesfr/xen-orchestra/pull/5746))
 - [XOA] Notify user when proxies need to be upgraded (PR [#5717](https://github.com/vatesfr/xen-orchestra/pull/5717))
 - [Host/network] Identify the management network [#5731](https://github.com/vatesfr/xen-orchestra/issues/5731) (PR [#5743](https://github.com/vatesfr/xen-orchestra/pull/5743))
+- [Backup/S3] Support for HTTP protocol and choice of region (PR [#5658](https://github.com/vatesfr/xen-orchestra/pull/5658))
 
 ### Bug fixes
 
@@ -44,6 +45,7 @@
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
 - xo-server-perf-alert patch
+- xo-remote-parser minor
 - @xen-orchestra/fs minor
 - @xen-orchestra/xapi patch
 - @xen-orchestra/backups minor
