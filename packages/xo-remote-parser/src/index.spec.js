@@ -48,10 +48,12 @@ const data = deepFreeze({
     string: 's3://AKIAS:XSuBupZ0mJlu%2B@s3-us-west-2.amazonaws.com/test-bucket/dir',
     object: {
       type: 's3',
+      protocol: 'https',
       host: 's3-us-west-2.amazonaws.com',
       path: '/test-bucket/dir',
       username: 'AKIAS',
       password: 'XSuBupZ0mJlu+',
+      region: undefined,
     },
   },
 })
@@ -83,6 +85,18 @@ const parseData = deepFreeze({
       domain: 'toto',
       username: 'Administrator',
       password: 'pas:sw@ord',
+    },
+  },
+  'S3 with http and region': {
+    string: 's3+http://Administrator:password@192.168.100.225/bucket/dir#reg1',
+    object: {
+      type: 's3',
+      host: '192.168.100.225',
+      protocol: 'http',
+      path: '/bucket/dir',
+      region: 'reg1',
+      username: 'Administrator',
+      password: 'password',
     },
   },
 })

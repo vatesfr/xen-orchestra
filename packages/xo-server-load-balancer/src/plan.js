@@ -9,14 +9,14 @@ const MINUTES_OF_HISTORICAL_DATA = 30
 export const DEFAULT_CRITICAL_THRESHOLD_CPU = 90.0
 
 // Memory threshold in MB.
-export const DEFAULT_CRITICAL_THRESHOLD_MEMORY_FREE = 64.0
+export const DEFAULT_CRITICAL_THRESHOLD_MEMORY_FREE = 1000.0
 
 // Thresholds factors.
 const HIGH_THRESHOLD_FACTOR = 0.85
-const LOW_THRESHOLD_FACTOR = 0.25
+const LOW_THRESHOLD_FACTOR = 0.65
 
-const HIGH_THRESHOLD_MEMORY_FREE_FACTOR = 1.25
-const LOW_THRESHOLD_MEMORY_FREE_FACTOR = 20.0
+const HIGH_THRESHOLD_MEMORY_FREE_FACTOR = 1.2
+const LOW_THRESHOLD_MEMORY_FREE_FACTOR = 1.5
 
 const numberOrDefault = (value, def) => (value >= 0 ? value : def)
 
@@ -95,7 +95,7 @@ function setRealCpuAverageOfVms(vms, vmsAverages, nCpus) {
 // ===================================================================
 
 export default class Plan {
-  constructor(xo, name, poolIds, { excludedHosts, thresholds, antiAffinityTags }, globalOptions) {
+  constructor(xo, name, poolIds, { excludedHosts, thresholds, antiAffinityTags = [] }, globalOptions) {
     this.xo = xo
     this._name = name
     this._poolIds = poolIds
@@ -105,7 +105,8 @@ export default class Plan {
         critical: numberOrDefault(thresholds && thresholds.cpu, DEFAULT_CRITICAL_THRESHOLD_CPU),
       },
       memoryFree: {
-        critical: numberOrDefault(thresholds && thresholds.memoryFree, DEFAULT_CRITICAL_THRESHOLD_MEMORY_FREE) * 1024,
+        critical:
+          numberOrDefault(thresholds && thresholds.memoryFree, DEFAULT_CRITICAL_THRESHOLD_MEMORY_FREE) * 1024 * 1024,
       },
     }
     this._antiAffinityTags = antiAffinityTags
