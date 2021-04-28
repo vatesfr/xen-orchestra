@@ -7,7 +7,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [Backup/S3] Add provision for http protocol and choice of region (PR [#5658](https://github.com/vatesfr/xen-orchestra/pull/5658))
+- [Backup/S3] Support for HTTP protocol and choice of region (PR [#5658](https://github.com/vatesfr/xen-orchestra/pull/5658))
 
 ### Bug fixes
 
