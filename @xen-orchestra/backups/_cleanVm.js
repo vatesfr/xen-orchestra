@@ -287,15 +287,15 @@ exports.cleanVm = async function cleanVm(vmDir, { remove, merge, onLog = noop })
   }
 
   await Promise.all([
-    unusedVhdsDeletion,
-    asyncMap(unusedXvas, path => {
+    ...unusedVhdsDeletion,
+    ...asyncMap(unusedXvas, path => {
       onLog(`the XVA ${path} is unused`)
       if (remove) {
         onLog(`deleting unused XVA ${path}`)
         return handler.unlink(path)
       }
     }),
-    asyncMap(xvaSums, path => {
+    ...asyncMap(xvaSums, path => {
       // no need to handle checksums for XVAs deleted by the script, they will be handled by `unlink()`
       if (!xvas.has(path.slice(0, -'.checksum'.length))) {
         onLog(`the XVA checksum ${path} is unused`)
