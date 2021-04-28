@@ -1,4 +1,4 @@
-import { difference, flatten, isEmpty, uniq } from 'lodash'
+import { difference, flatten, isEmpty, stubTrue, uniq } from 'lodash'
 import { satisfies as versionSatisfies } from 'semver'
 
 export default class Pools {
@@ -107,25 +107,23 @@ export default class Pools {
         srsByPool[obj.$pool].push(obj)
       } else if (obj.type === 'pool') {
         pools.push(obj)
-      } else {
-        continue
       }
     }
 
+    const checkPoolName =
+      poolNameRegExp === undefined ? stubTrue() : RegExp.prototype.test.bind(new RegExp(poolNameRegExp))
+    const checkSrName = srNameRegExp === undefined ? stubTrue() : RegExp.prototype.test.bind(new RegExp(srNameRegExp))
+
     return pools.filter(
       pool =>
-        (poolNameRegExp === undefined || new RegExp(poolNameRegExp).test(pool.name_label)) &&
+        checkPoolName(pool.name_label) &&
         hostsByPool[pool.id].some(
           host =>
             (minHostVersion === undefined || versionSatisfies(host.version, `>=${minHostVersion}`)) &&
             host.cpus.cores >= minHostCpus &&
             host.memory.size - host.memory.usage >= minAvailableHostMemory
         ) &&
-        srsByPool[pool.id].some(
-          sr =>
-            sr.size - sr.physical_usage >= minAvailableSrSize &&
-            (srNameRegExp === undefined || new RegExp(srNameRegExp).test(sr.name_label))
-        )
+        srsByPool[pool.id].some(sr => sr.size - sr.physical_usage >= minAvailableSrSize && checkSrName(sr.name_label))
     )
   }
 }
