@@ -698,25 +698,32 @@ export class Xapi extends EventEmitter {
 
   _sessionCallRetryOptions = {
     tries: 2,
-    when: error => this._status !== DISCONNECTED && error?.code === 'SESSION_INVALID',
+    when: error =>
+      this._status !== DISCONNECTED && error?.code === 'SESSION_INVALID' && this._auth.password !== undefined,
     onRetry: () => this._sessionOpen(),
   }
-  _sessionCall(method, args, timeout) {
+  async _sessionCall(method, args, timeout) {
     if (method.startsWith('session.')) {
       return Promise.reject(new Error('session.*() methods are disabled from this interface'))
     }
 
-    return pRetry(() => {
-      const sessionId = this._sessionId
-      assert.notStrictEqual(sessionId, undefined)
+    try {
+      return await pRetry(() => {
+        const sessionId = this._sessionId
+        assert.notStrictEqual(sessionId, undefined)
 
-      const newArgs = [sessionId]
-      if (args !== undefined) {
-        newArgs.push.apply(newArgs, args)
-      }
+        const newArgs = [sessionId]
+        if (args !== undefined) {
+          newArgs.push.apply(newArgs, args)
+        }
 
-      return this._call(method, newArgs, timeout)
-    }, this._sessionCallRetryOptions)
+        return this._call(method, newArgs, timeout)
+      }, this._sessionCallRetryOptions)
+    } catch (error) {
+      await ignoreErrors.call(this.disconnect())
+
+      throw error
+    }
   }
 
   // FIXME: (probably rare) race condition leading to unnecessary login when:
@@ -726,28 +733,39 @@ export class Xapi extends EventEmitter {
   // 3. the session is renewed
   // 4. the second call fails with SESSION_INVALID which leads to a new
   //    unnecessary renewal
+  _sessionOpenRetryOptions = {
+    tries: 2,
+    when: { code: 'HOST_IS_SLAVE' },
+    onRetry: error => {
+      this._setUrl({ ...this._url, hostname: error.params[0] })
+    },
+  }
   _sessionOpen = coalesceCalls(this._sessionOpen)
   async _sessionOpen() {
-    const { user, password } = this._auth
-    const params = [user, password]
-    this._sessionId = await pRetry(
-      () => this._interruptOnDisconnect(this._call('session.login_with_password', params)),
-      {
-        tries: 2,
-        when: { code: 'HOST_IS_SLAVE' },
-        onRetry: error => {
-          this._setUrl({ ...this._url, hostname: error.params[0] })
-        },
-      }
-    )
+    const { user, password, sessionId } = this._auth
+
+    this._sessionId = sessionId
+
+    if (sessionId === undefined) {
+      const params = [user, password]
+      this._sessionId = await pRetry(
+        () => this._interruptOnDisconnect(this._call('session.login_with_password', params)),
+        this._sessionOpenRetryOptions
+      )
+    }
 
     const oldPoolRef = this._pool?.$ref
 
     // Similar to `(await this.getAllRecords('pool'))[0]` but prevents a
     // deadlock in case of error due to a pRetry calling _sessionOpen again
-    const pools = await this._call('pool.get_all_records', [this._sessionId])
+    const pools = await pRetry(
+      () => this._call('pool.get_all_records', [this._sessionId]),
+      this._sessionOpenRetryOptions
+    )
     const poolRef = Object.keys(pools)[0]
     this._pool = this._wrapRecord('pool', poolRef, pools[poolRef])
+
+    this.emit('sessionId', this._sessionId)
 
     // if the pool ref has changed, it means that the XAPI has been restarted or
     // it's not the same XAPI, we need to refetch the available types and reset
@@ -768,7 +786,7 @@ export class Xapi extends EventEmitter {
   }
 
   _setUrl(url) {
-    this._humanId = `${this._auth.user}@${url.hostname}`
+    this._humanId = `${this._auth.user ?? 'unknown'}@${url.hostname}`
     this._transport = autoTransport({
       secureOptions: {
         minVersion: 'TLSv1',
