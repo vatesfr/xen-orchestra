@@ -21,7 +21,7 @@
 
 - [Backup] Don't unnecessarily snapshot the VM when using _offline backup_ (PR [#5739](https://github.com/vatesfr/xen-orchestra/pull/5739))
 - [Backup] Fix `ENOENT` error on deleting an existing VM backup (PR [#5744](https://github.com/vatesfr/xen-orchestra/pull/5744))
-- [Plugins/perf-alert] Fix `invalid parameters` error (PR [#5755](https://github.com/vatesfr/xen-orchestra/pull/5755))
+- [Plugins/perf-alert] Fix impossibility to configure when not using smart mode (PR [#5755](https://github.com/vatesfr/xen-orchestra/pull/5755))
 
 ### Dropped features
 
