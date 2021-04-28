@@ -1,6 +1,6 @@
 /* eslint-env jest */
 
-import { debounceWithKey, REMOVE_CACHE_ENTRY } from './_pDebounceWithKey'
+import { debounceWithKey, REMOVE_CACHE_ENTRY } from './_pDebounceWithKey.js'
 
 describe('REMOVE_CACHE_ENTRY', () => {
   it('clears the cache', async () => {

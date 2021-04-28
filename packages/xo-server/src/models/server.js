@@ -1,8 +1,8 @@
-import Collection from '../collection/redis'
-import Model from '../model'
-import { forEach, serializeError } from '../utils'
+import Collection from '../collection/redis.js'
+import Model from '../model.js'
+import { forEach, serializeError } from '../utils.js'
 
-import { parseProp } from './utils'
+import { parseProp } from './utils.js'
 
 // ===================================================================
 

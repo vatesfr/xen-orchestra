@@ -1,22 +1,24 @@
 const { asyncMap, asyncMapSettled } = require('@xen-orchestra/async-map')
-const Disposable = require('promise-toolbox/Disposable')
-const fromCallback = require('promise-toolbox/fromCallback')
-const fromEvent = require('promise-toolbox/fromEvent')
-const pDefer = require('promise-toolbox/defer')
+const Disposable = require('promise-toolbox/Disposable.js')
+const fromCallback = require('promise-toolbox/fromCallback.js')
+const fromEvent = require('promise-toolbox/fromEvent.js')
+const pDefer = require('promise-toolbox/defer.js')
 const pump = require('pump')
-const using = require('promise-toolbox/using')
 const { basename, dirname, join, normalize, resolve } = require('path')
 const { createLogger } = require('@xen-orchestra/log')
 const { createSyntheticStream, mergeVhd, default: Vhd } = require('vhd-lib')
-const { deduped } = require('@vates/disposable/deduped')
+const { deduped } = require('@vates/disposable/deduped.js')
 const { execFile } = require('child_process')
 const { readdir, stat } = require('fs-extra')
 const { ZipFile } = require('yazl')
 
-const { BACKUP_DIR } = require('./_getVmBackupDir')
-const { getTmpDir } = require('./_getTmpDir')
-const { listPartitions, LVM_PARTITION_TYPE } = require('./_listPartitions')
-const { lvs, pvs } = require('./_lvm')
+const { BACKUP_DIR } = require('./_getVmBackupDir.js')
+const { cleanVm } = require('./_cleanVm.js')
+const { getTmpDir } = require('./_getTmpDir.js')
+const { isMetadataFile, isVhdFile } = require('./_backupType.js')
+const { isValidXva } = require('./_isValidXva.js')
+const { listPartitions, LVM_PARTITION_TYPE } = require('./_listPartitions.js')
+const { lvs, pvs } = require('./_lvm.js')
 
 const DIR_XO_CONFIG_BACKUPS = 'xo-config-backups'
 exports.DIR_XO_CONFIG_BACKUPS = DIR_XO_CONFIG_BACKUPS
@@ -24,12 +26,9 @@ exports.DIR_XO_CONFIG_BACKUPS = DIR_XO_CONFIG_BACKUPS
 const DIR_XO_POOL_METADATA_BACKUPS = 'xo-pool-metadata-backups'
 exports.DIR_XO_POOL_METADATA_BACKUPS = DIR_XO_POOL_METADATA_BACKUPS
 
-const { warn } = createLogger('xo:proxy:backups:RemoteAdapter')
+const { warn } = createLogger('xo:backups:RemoteAdapter')
 
 const compareTimestamp = (a, b) => a.timestamp - b.timestamp
-
-const isMetadataFile = filename => filename.endsWith('.json')
-const isVhdFile = filename => filename.endsWith('.vhd')
 
 const noop = Function.prototype
 
@@ -67,8 +66,8 @@ const debounceResourceFactory = factory =>
     return this._debounceResource(factory.apply(this, arguments))
   }
 
-exports.RemoteAdapter = class RemoteAdapter {
-  constructor(handler, { debounceResource, dirMode }) {
+class RemoteAdapter {
+  constructor(handler, { debounceResource = res => res, dirMode } = {}) {
     this._debounceResource = debounceResource
     this._dirMode = dirMode
     this._handler = handler
@@ -204,7 +203,7 @@ exports.RemoteAdapter = class RemoteAdapter {
   }
 
   _listLvmLogicalVolumes(devicePath, partition, results = []) {
-    return using(this._getLvmPhysicalVolume(devicePath, partition), async path => {
+    return Disposable.use(this._getLvmPhysicalVolume(devicePath, partition), async path => {
       const lvs = await pvs(['lv_name', 'lv_path', 'lv_size', 'vg_name'], path)
       const partitionId = partition !== undefined ? partition.id : ''
       lvs.forEach((lv, i) => {
@@ -235,7 +234,7 @@ exports.RemoteAdapter = class RemoteAdapter {
 
   fetchPartitionFiles(diskId, partitionId, paths) {
     const { promise, reject, resolve } = pDefer()
-    using(
+    Disposable.use(
       async function* () {
         const files = yield this._usePartitionFiles(diskId, partitionId, paths)
         const zip = new ZipFile()
@@ -375,7 +374,7 @@ exports.RemoteAdapter = class RemoteAdapter {
   }
 
   listPartitionFiles(diskId, partitionId, path) {
-    return using(this.getPartition(diskId, partitionId), async rootPath => {
+    return Disposable.use(this.getPartition(diskId, partitionId), async rootPath => {
       path = resolveSubpath(rootPath, path)
 
       const entriesMap = {}
@@ -395,7 +394,7 @@ exports.RemoteAdapter = class RemoteAdapter {
   }
 
   listPartitions(diskId) {
-    return using(this.getDisk(diskId), async devicePath => {
+    return Disposable.use(this.getDisk(diskId), async devicePath => {
       const partitions = await listPartitions(devicePath)
 
       if (partitions.length === 0) {
@@ -530,7 +529,7 @@ exports.RemoteAdapter = class RemoteAdapter {
     const dir = dirname(metadata._filename)
 
     const streams = {}
-    await asyncMapSettled(Object.entries(vdis), async ([id, vdi]) => {
+    await asyncMapSettled(Object.keys(vdis), async id => {
       streams[`${id}.vhd`] = await createSyntheticStream(handler, join(dir, vhds[id]))
     })
 
@@ -552,3 +551,12 @@ exports.RemoteAdapter = class RemoteAdapter {
     return Object.defineProperty(JSON.parse(await this._handler.readFile(path)), '_filename', { value: path })
   }
 }
+
+Object.assign(RemoteAdapter.prototype, {
+  cleanVm(vmDir) {
+    return Disposable.use(this._handler.lock(vmDir), () => cleanVm.apply(this, arguments))
+  },
+  isValidXva,
+})
+
+exports.RemoteAdapter = RemoteAdapter

@@ -15,8 +15,6 @@ import { deleteBackups, listVmBackups, restoreBackup, subscribeBackupNgJobs, sub
 import RestoreBackupsModalBody, { RestoreBackupsBulkModalBody } from './restore-backups-modal-body'
 import DeleteBackupsModalBody from './delete-backups-modal-body'
 
-import RestoreLegacy from '../restore-legacy'
-
 import Logs from '../../logs/restore'
 
 export RestoreMetadata from './metadata'
@@ -186,13 +184,13 @@ export default class Restore extends Component {
       body: <RestoreBackupsModalBody data={data} />,
       icon: 'restore',
     })
-      .then(({ backup, sr, start }) => {
+      .then(({ backup, generateNewMacAddresses, sr, start }) => {
         if (backup == null || sr == null) {
           error(_('backupRestoreErrorTitle'), _('backupRestoreErrorMessage'))
           return
         }
 
-        return restoreBackup(backup, sr, start)
+        return restoreBackup(backup, sr, { generateNewMacAddresses, startOnRestore: start })
       }, noop)
       .then(() => this._refreshBackupList())
 
@@ -211,14 +209,16 @@ export default class Restore extends Component {
       body: <RestoreBackupsBulkModalBody datas={datas} />,
       icon: 'restore',
     })
-      .then(({ sr, latest, start }) => {
+      .then(({ sr, generateNewMacAddresses, latest, start }) => {
         if (sr == null) {
           error(_('restoreVmBackupsBulkErrorTitle', 'restoreVmBackupsBulkErrorMessage'))
           return
         }
 
         const prop = latest ? 'last' : 'first'
-        return Promise.all(map(datas, data => restoreBackup(data[prop], sr, start)))
+        return Promise.all(
+          map(datas, data => restoreBackup(data[prop], sr, { generateNewMacAddresses, startOnRestore: start }))
+        )
       }, noop)
       .then(() => this._refreshBackupList())
 
@@ -259,9 +259,7 @@ export default class Restore extends Component {
   render() {
     return (
       <div>
-        <RestoreLegacy />
-        <div className='mt-1 mb-1'>
-          <h3>{_('restore')}</h3>
+        <div className='mb-1'>
           <ActionButton btnStyle='primary' handler={this._refreshBackupList} icon='refresh'>
             {_('refreshBackupList')}
           </ActionButton>{' '}

@@ -30,6 +30,7 @@
     "rimraf": "^3.0.0"
   },
   "dependencies": {
+    "@vates/decorate-with": "^0.0.1",
     "@xen-orchestra/log": "^0.2.0",
     "core-js": "^3.6.4",
     "golike-defer": "^0.5.1",

@@ -1,22 +1,24 @@
-const findLast = require('lodash/findLast')
-const ignoreErrors = require('promise-toolbox/ignoreErrors')
-const keyBy = require('lodash/keyBy')
-const mapValues = require('lodash/mapValues')
-const { asyncMap } = require('@xen-orchestra/async-map')
+const assert = require('assert')
+const findLast = require('lodash/findLast.js')
+const ignoreErrors = require('promise-toolbox/ignoreErrors.js')
+const keyBy = require('lodash/keyBy.js')
+const mapValues = require('lodash/mapValues.js')
+const { asyncMap, asyncMapSettled } = require('@xen-orchestra/async-map')
 const { createLogger } = require('@xen-orchestra/log')
+const { defer } = require('golike-defer')
 const { formatDateTime } = require('@xen-orchestra/xapi')
 
-const { ContinuousReplicationWriter } = require('./_ContinuousReplicationWriter')
-const { DeltaBackupWriter } = require('./_DeltaBackupWriter')
-const { DisasterRecoveryWriter } = require('./_DisasterRecoveryWriter')
-const { exportDeltaVm } = require('./_deltaVm')
-const { forkStreamUnpipe } = require('./_forkStreamUnpipe')
-const { FullBackupWriter } = require('./_FullBackupWriter')
-const { getOldEntries } = require('./_getOldEntries')
-const { Task } = require('./Task')
-const { watchStreamSize } = require('./_watchStreamSize')
+const { DeltaBackupWriter } = require('./writers/DeltaBackupWriter.js')
+const { DeltaReplicationWriter } = require('./writers/DeltaReplicationWriter.js')
+const { exportDeltaVm } = require('./_deltaVm.js')
+const { forkStreamUnpipe } = require('./_forkStreamUnpipe.js')
+const { FullBackupWriter } = require('./writers/FullBackupWriter.js')
+const { FullReplicationWriter } = require('./writers/FullReplicationWriter.js')
+const { getOldEntries } = require('./_getOldEntries.js')
+const { Task } = require('./Task.js')
+const { watchStreamSize } = require('./_watchStreamSize.js')
 
-const { debug, warn } = createLogger('xo:proxy:backups:VmBackup')
+const { debug, warn } = createLogger('xo:backups:VmBackup')
 
 const forkDeltaExport = deltaExport =>
   Object.create(deltaExport, {
@@ -66,8 +68,8 @@ exports.VmBackup = class VmBackup {
       this._writers = writers
 
       const [BackupWriter, ReplicationWriter] = this._isDelta
-        ? [DeltaBackupWriter, ContinuousReplicationWriter]
-        : [FullBackupWriter, DisasterRecoveryWriter]
+        ? [DeltaBackupWriter, DeltaReplicationWriter]
+        : [FullBackupWriter, FullReplicationWriter]
 
       const allSettings = job.settings
 
@@ -77,7 +79,7 @@ exports.VmBackup = class VmBackup {
           ...allSettings[remoteId],
         }
         if (targetSettings.exportRetention !== 0) {
-          writers.push(new BackupWriter(this, remoteId, targetSettings))
+          writers.push(new BackupWriter({ backup: this, remoteId, settings: targetSettings }))
         }
       })
       srs.forEach(sr => {
@@ -86,7 +88,7 @@ exports.VmBackup = class VmBackup {
           ...allSettings[sr.uuid],
         }
         if (targetSettings.copyRetention !== 0) {
-          writers.push(new ReplicationWriter(this, sr, targetSettings))
+          writers.push(new ReplicationWriter({ backup: this, sr, settings: targetSettings }))
         }
       })
     }
@@ -114,16 +116,17 @@ exports.VmBackup = class VmBackup {
 
     const settings = this._settings
 
-    const doSnapshot = this._isDelta || vm.power_state === 'Running' || settings.snapshotRetention !== 0
+    const doSnapshot =
+      this._isDelta || (!settings.offlineBackup && vm.power_state === 'Running') || settings.snapshotRetention !== 0
     if (doSnapshot) {
       await Task.run({ name: 'snapshot' }, async () => {
         if (!settings.bypassVdiChainsCheck) {
           await vm.$assertHealthyVdiChains()
         }
 
-        const snapshotRef = await vm[settings.checkpointSnapshot ? '$checkpoint' : '$snapshot'](
-          this._getSnapshotNameLabel(vm)
-        )
+        const snapshotRef = await vm[settings.checkpointSnapshot ? '$checkpoint' : '$snapshot']({
+          name_label: this._getSnapshotNameLabel(vm),
+        })
         this.timestamp = Date.now()
 
         await xapi.setFieldEntries('VM', snapshotRef, 'other_config', {
@@ -146,17 +149,22 @@ exports.VmBackup = class VmBackup {
   async _copyDelta() {
     const { exportedVm } = this
     const baseVm = this._baseVm
+    const fullVdisRequired = this._fullVdisRequired
+
+    const isFull = fullVdisRequired === undefined || fullVdisRequired.size !== 0
+
+    await asyncMap(this._writers, writer => writer.prepare && writer.prepare({ isFull }))
 
     const deltaExport = await exportDeltaVm(exportedVm, baseVm, {
-      fullVdisRequired: this._fullVdisRequired,
+      fullVdisRequired,
     })
-    const sizeContainers = mapValues(deltaExport.streams, watchStreamSize)
+    const sizeContainers = mapValues(deltaExport.streams, stream => watchStreamSize(stream))
 
     const timestamp = Date.now()
 
     await asyncMap(this._writers, async writer => {
       try {
-        await writer.run({
+        await writer.transfer({
           deltaExport: forkDeltaExport(deltaExport),
           sizeContainers,
           timestamp,
@@ -192,6 +200,8 @@ exports.VmBackup = class VmBackup {
       speed: duration !== 0 ? (size * 1e3) / 1024 / 1024 / duration : 0,
       size,
     })
+
+    await asyncMap(this._writers, writer => writer.cleanup && writer.cleanup())
   }
 
   async _copyFull() {
@@ -312,7 +322,19 @@ exports.VmBackup = class VmBackup {
     this._fullVdisRequired = fullVdisRequired
   }
 
-  async run() {
+  run = defer(this.run)
+  async run($defer) {
+    const settings = this._settings
+    assert(
+      !settings.offlineBackup || settings.snapshotRetention === 0,
+      'offlineBackup is not compatible with snapshotRetention'
+    )
+
+    await asyncMapSettled(this._writers, async writer => {
+      await writer.beforeBackup()
+      $defer(() => writer.afterBackup())
+    })
+
     await this._fetchJobSnapshots()
 
     if (this._isDelta) {
@@ -322,7 +344,7 @@ exports.VmBackup = class VmBackup {
     await this._cleanMetadata()
     await this._removeUnusedSnapshots()
 
-    const { _settings: settings, vm } = this
+    const { vm } = this
     const isRunning = vm.power_state === 'Running'
     const startAfter = isRunning && (settings.offlineBackup ? 'backup' : settings.offlineSnapshot && 'snapshot')
     if (startAfter) {

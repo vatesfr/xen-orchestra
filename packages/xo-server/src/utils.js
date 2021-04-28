@@ -1,20 +1,18 @@
 import base64url from 'base64url'
 import fastXmlParser from 'fast-xml-parser'
-import forEach from 'lodash/forEach'
-import has from 'lodash/has'
+import forEach from 'lodash/forEach.js'
+import has from 'lodash/has.js'
 import highland from 'highland'
 import humanFormat from 'human-format'
-import keys from 'lodash/keys'
+import keys from 'lodash/keys.js'
 import multiKeyHashInt from 'multikey-hash'
-import pick from 'lodash/pick'
+import pick from 'lodash/pick.js'
 import tmp from 'tmp'
 import { createLogger } from '@xen-orchestra/log'
 import { randomBytes } from 'crypto'
 import { resolve } from 'path'
 import { utcFormat, utcParse } from 'd3-time-format'
-import { fromCallback, pAll, pReflect, promisify } from 'promise-toolbox'
-
-import { type SimpleIdPattern } from './utils'
+import { fromCallback, promisify } from 'promise-toolbox'
 
 const log = createLogger('xo:server:utils')
 
@@ -52,19 +50,6 @@ export function extractProperty(obj, prop) {
   const value = obj[prop]
   delete obj[prop]
   return value
-}
-
-// -------------------------------------------------------------------
-
-// Returns the first defined (non-undefined) value.
-export const firstDefined = function () {
-  const n = arguments.length
-  for (let i = 0; i < n; ++i) {
-    const arg = arguments[i]
-    if (arg !== undefined) {
-      return arg
-    }
-  }
 }
 
 // -------------------------------------------------------------------
@@ -159,21 +144,7 @@ export const noop = () => {}
 
 // -------------------------------------------------------------------
 
-// Given a collection (array or object) which contains promises,
-// return a promise that is fulfilled when all the items in the
-// collection are either fulfilled or rejected.
-//
-// This promise will be fulfilled with a collection (of the same type,
-// array or object) containing promise inspections.
-//
-// Usage: pSettle(promises) or promises::pSettle()
-export function pSettle(promises) {
-  return (this || promises)::pAll(p => Promise.resolve(p)::pReflect())
-}
-
-// -------------------------------------------------------------------
-
-export { pAll, pDelay, pFinally, pFromCallback, pReflect, promisify, promisifyAll } from 'promise-toolbox'
+export { pDelay, pFromCallback, pReflect, promisify, promisifyAll } from 'promise-toolbox'
 
 // -------------------------------------------------------------------
 
@@ -219,10 +190,10 @@ export const safeDateParse = utcParse('%Y%m%dT%H%M%SZ')
 // This functions are often used throughout xo-server.
 //
 // Exports them from here to avoid direct dependencies on lodash/
-export { default as forEach } from 'lodash/forEach'
-export { default as isEmpty } from 'lodash/isEmpty'
-export { default as isInteger } from 'lodash/isInteger'
-export { default as isObject } from 'lodash/isObject'
+export { default as forEach } from 'lodash/forEach.js'
+export { default as isEmpty } from 'lodash/isEmpty.js'
+export { default as isInteger } from 'lodash/isInteger.js'
+export { default as isObject } from 'lodash/isObject.js'
 
 // -------------------------------------------------------------------
 
@@ -327,11 +298,6 @@ export const tmpDir = () => fromCallback(tmp.dir)
 
 // -------------------------------------------------------------------
 
-// Wrap a value in a function.
-export const wrap = value => () => value
-
-// -------------------------------------------------------------------
-
 export const mapFilter = (collection, iteratee) => {
   const result = []
   forEach(collection, (...args) => {
@@ -362,7 +328,7 @@ export const getFirstPropertyName = object => {
 
 // -------------------------------------------------------------------
 
-export const unboxIdsFromPattern = (pattern?: SimpleIdPattern): string[] => {
+export const unboxIdsFromPattern = pattern => {
   if (pattern === undefined) {
     return []
   }

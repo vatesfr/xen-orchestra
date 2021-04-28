@@ -1,21 +1,21 @@
-import concat from 'lodash/concat'
-import countBy from 'lodash/countBy'
-import diff from 'lodash/difference'
-import findIndex from 'lodash/findIndex'
-import flatten from 'lodash/flatten'
+import concat from 'lodash/concat.js'
+import countBy from 'lodash/countBy.js'
+import diff from 'lodash/difference.js'
+import findIndex from 'lodash/findIndex.js'
+import flatten from 'lodash/flatten.js'
 import highland from 'highland'
-import includes from 'lodash/includes'
-import isObject from 'lodash/isObject'
-import keys from 'lodash/keys'
-import mapToArray from 'lodash/map'
-import mapValues from 'lodash/mapValues'
-import pick from 'lodash/pick'
-import remove from 'lodash/remove'
+import includes from 'lodash/includes.js'
+import isObject from 'lodash/isObject.js'
+import keys from 'lodash/keys.js'
+import mapToArray from 'lodash/map.js'
+import mapValues from 'lodash/mapValues.js'
+import pick from 'lodash/pick.js'
+import remove from 'lodash/remove.js'
 import synchronized from 'decorator-synchronized'
-import { noSuchObject } from 'xo-common/api-errors'
+import { noSuchObject } from 'xo-common/api-errors.js'
 import { fromCallback } from 'promise-toolbox'
 
-import { forEach, generateUnsecureToken, isEmpty, lightSet, streamToArray, throwFn } from '../utils'
+import { forEach, generateUnsecureToken, isEmpty, lightSet, streamToArray, throwFn } from '../utils.js'
 
 // ===================================================================
 
@@ -35,14 +35,14 @@ const _isAddressInIpPool = (address, network, ipPool) =>
 // Note: an address cannot be in two different pools sharing a
 // network.
 export default class IpPools {
-  constructor(xo) {
+  constructor(app) {
     this._store = null
-    this._xo = xo
+    this._app = app
 
-    xo.on('start', async () => {
-      this._store = await xo.getStore('ipPools')
+    app.hooks.on('start', async () => {
+      this._store = await app.getStore('ipPools')
 
-      xo.addConfigManager(
+      app.addConfigManager(
         'ipPools',
         () => this.getAllIpPools(),
         ipPools => Promise.all(ipPools.map(ipPool => this._save(ipPool)))
@@ -68,9 +68,9 @@ export default class IpPools {
 
     if (await store.has(id)) {
       await Promise.all(
-        (await this._xo.getAllResourceSets()).map(async set => {
-          await this._xo.removeLimitFromResourceSet(`ipPool:${id}`, set.id)
-          return this._xo.removeIpPoolFromResourceSet(id, set.id)
+        (await this._app.getAllResourceSets()).map(async set => {
+          await this._app.removeLimitFromResourceSet(`ipPool:${id}`, set.id)
+          return this._app.removeIpPoolFromResourceSet(id, set.id)
         })
       )
       await this._removeIpAddressesFromVifs(mapValues((await this.getIpPool(id)).addresses, 'vifs'))
@@ -91,9 +91,9 @@ export default class IpPools {
   async getAllIpPools(userId) {
     let filter
     if (userId != null) {
-      const user = await this._xo.getUser(userId)
+      const user = await this._app.getUser(userId)
       if (user.permission !== 'admin') {
-        const resourceSets = await this._xo.getAllResourceSets(userId)
+        const resourceSets = await this._app.getAllResourceSets(userId)
         const ipPools = lightSet(flatten(resourceSets.map(_ => _.ipPools)))
         filter = ({ id }) => ipPools.has(id)
       }
@@ -120,7 +120,7 @@ export default class IpPools {
     const vifs = vm.VIFs
     const ipPools = []
     for (const vifId of vifs) {
-      const { allowedIpv4Addresses, allowedIpv6Addresses, $network } = this._xo.getObject(vifId)
+      const { allowedIpv4Addresses, allowedIpv6Addresses, $network } = this._app.getObject(vifId)
 
       for (const address of concat(allowedIpv4Addresses, allowedIpv6Addresses)) {
         const ipPool = await this._getAddressIpPool(address, $network)
@@ -136,8 +136,8 @@ export default class IpPools {
     const updatedIpPools = {}
     const limits = {}
 
-    const xoVif = this._xo.getObject(vifId)
-    const xapi = this._xo.getXapi(xoVif)
+    const xoVif = this._app.getObject(vifId)
+    const xapi = this._app.getXapi(xoVif)
     const vif = xapi.getObject(xoVif._xapiId)
 
     const allocAndSave = (() => {
@@ -146,7 +146,7 @@ export default class IpPools {
       return () => {
         const saveIpPools = () => Promise.all(mapToArray(updatedIpPools, ipPool => this._save(ipPool)))
         return resourseSetId
-          ? this._xo.allocateLimitsInResourceSet(limits, resourseSetId).then(saveIpPools)
+          ? this._app.allocateLimitsInResourceSet(limits, resourseSetId).then(saveIpPools)
           : saveIpPools()
       }
     })()
@@ -209,13 +209,13 @@ export default class IpPools {
       })
     })
 
-    const { getXapi } = this._xo
+    const { getXapi } = this._app
     return Promise.all(
       mapToArray(mapVifAddresses, (addresses, vifId) => {
         let vif
         try {
           // The IP may not have been correctly deallocated from the IP pool when the VIF was deleted
-          vif = this._xo.getObject(vifId)
+          vif = this._app.getObject(vifId)
         } catch (error) {
           return
         }

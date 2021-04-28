@@ -1,5 +1,6 @@
-import createLogger from '@xen-orchestra/log'
-import defer from 'golike-defer'
+import { decorateWith } from '@vates/decorate-with'
+import { defer } from 'golike-defer'
+import { createLogger } from '@xen-orchestra/log'
 import { filter, forEach, groupBy } from 'lodash'
 
 const log = createLogger('xo:storage')
@@ -113,7 +114,7 @@ export default {
   },
 
   // This function helps to reattach a forgotten NFS/iSCSI/HBA SR
-  @defer
+  @decorateWith(defer)
   async reattachSr($defer, { uuid, nameLabel, nameDescription, type, deviceConfig }) {
     const srRef = await this.call('SR.introduce', uuid, nameLabel, nameDescription, type, 'user', true, {})
     $defer.onFailure(() => this.forgetSr(srRef))

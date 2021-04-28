@@ -6,7 +6,7 @@ const APP_DIR = require('path').join(__dirname, '..')
 // -------------------------------------------------------------------
 
 {
-  const { catchGlobalErrors } = require('@xen-orchestra/log/configure')
+  const { catchGlobalErrors } = require('@xen-orchestra/log/configure.js')
 
   catchGlobalErrors(require('@xen-orchestra/log').createLogger('xo:proxy'))
 }
@@ -43,16 +43,15 @@ ${name} v${version}
   })
 
   let httpServer = new (require('http-server-plus'))({
-    createSecureServer:
-      require('compare-versions')(process.version, '10.10.0') >= 0
-        ? (({ createSecureServer }) => opts => createSecureServer({ ...opts, allowHTTP1: true }))(require('http2'))
-        : undefined,
+    createSecureServer: (({ createSecureServer }) => opts => createSecureServer({ ...opts, allowHTTP1: true }))(
+      require('http2')
+    ),
   })
 
   const { readFileSync, outputFileSync, unlinkSync } = require('fs-extra')
-  const retry = require('promise-toolbox/retry')
+  const retry = require('promise-toolbox/retry.js')
 
-  require('lodash/forOwn')(config.http.listen, async ({ autoCert, cert, key, ...opts }) => {
+  require('lodash/forOwn.js')(config.http.listen, async ({ autoCert, cert, key, ...opts }) => {
     try {
       const niceAddress = await retry(
         async () => {
@@ -113,14 +112,14 @@ ${name} v${version}
     // The default value of 10 appears to be too small for interesting traces in xo-proxy.
     Error.stackTraceLimit = 20
 
-    require('source-map-support/register')
+    require('source-map-support/register.js')
   } catch (error) {
     warn(error)
   }
 
   httpServer = require('stoppable')(httpServer)
 
-  const App = require('./app').default
+  const App = require('./app/index.js').default
   const app = new App({
     appDir: APP_DIR,
     appName: APP_NAME,
@@ -130,7 +129,7 @@ ${name} v${version}
   })
 
   // dont delay require to stopping phase because deps may no longer be there (eg on uninstall)
-  const fromCallback = require('promise-toolbox/fromCallback')
+  const fromCallback = require('promise-toolbox/fromCallback.js')
   app.hooks.on('stop', () => fromCallback(cb => httpServer.stop(cb)))
 
   await app.hooks.start()
@@ -150,7 +149,7 @@ ${name} v${version}
     })
   })
 
-  return require('promise-toolbox/fromEvent')(app.hooks, 'stopped')
+  return require('promise-toolbox/fromEvent.js')(app.hooks, 'stopped')
 }
 main(process.argv.slice(2)).then(
   () => {

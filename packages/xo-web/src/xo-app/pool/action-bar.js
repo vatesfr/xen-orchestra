@@ -5,7 +5,7 @@ import React from 'react'
 import { createGetObjectsOfType, createSelector, isAdmin } from 'selectors'
 import { find } from 'lodash'
 import { addSubscriptions, connectStore, noop } from 'utils'
-import { addHostsToPool, disconnectServer, subscribeServers } from 'xo'
+import { addHostsToPool, disableServer, subscribeServers } from 'xo'
 
 @connectStore({
   hosts: createGetObjectsOfType('host'),
@@ -34,7 +34,7 @@ export default class PoolActionBar extends Component {
     (masterAddress, servers) => find(servers, { host: masterAddress })
   )
 
-  _disconnectServer = () => disconnectServer(this._getServer())
+  _disconnectServer = () => disableServer(this._getServer())
 
   render() {
     const { pool } = this.props

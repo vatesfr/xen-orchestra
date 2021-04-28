@@ -1,5 +1,5 @@
 import appConf from 'app-conf'
-import get from 'lodash/get'
+import get from 'lodash/get.js'
 import highland from 'highland'
 import levelup from 'level-party'
 import ndjson from 'ndjson'
@@ -8,8 +8,8 @@ import sublevel from 'subleveldown'
 import util from 'util'
 import { join as joinPath } from 'path'
 
-import { forEach } from './utils'
-import globMatcher from './glob-matcher'
+import { forEach } from './utils.js'
+import globMatcher from './glob-matcher.js'
 
 // ===================================================================
 

@@ -12,7 +12,7 @@ var writeFile = require('fs').writeFileSync
 //
 // Note: must be done after all other requires to avoid impacting too
 // much the perfs.
-require('babel-register')
+require('@babel/register')
 
 // ===================================================================
 

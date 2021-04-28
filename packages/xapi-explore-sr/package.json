@@ -29,9 +29,6 @@
   "bin": {
     "xapi-explore-sr": "dist/index.js"
   },
-  "files": [
-    "dist/"
-  ],
   "engines": {
     "node": ">=8"
   },
@@ -42,7 +39,7 @@
     "human-format": "^0.11.0",
     "lodash": "^4.17.4",
     "pw": "^0.0.4",
-    "xen-api": "^0.30.0"
+    "xen-api": "^0.31.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.1.5",

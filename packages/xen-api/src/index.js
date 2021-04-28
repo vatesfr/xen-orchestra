@@ -86,6 +86,13 @@ export class Xapi extends EventEmitter {
     this._readOnly = Boolean(opts.readOnly)
     this._RecordsByType = { __proto__: null }
 
+    this._roCallRetryOptions = {
+      delay: 1e3,
+      tries: 10,
+      ...opts.roCallRetryOptions,
+      when: { code: 'ECONNRESET' },
+    }
+
     this._auth = opts.auth
     const url = parseUrl(opts.url)
     if (this._auth === undefined) {
@@ -231,7 +238,9 @@ export class Xapi extends EventEmitter {
 
   // this should be used for instantaneous calls, otherwise use `callAsync`
   call(method, ...args) {
-    return this._readOnly && !isReadOnlyCall(method, args)
+    return isReadOnlyCall(method, args)
+      ? this._roCall(method, args)
+      : this._readOnly
       ? Promise.reject(new Error(`cannot call ${method}() in read only mode`))
       : this._sessionCall(method, args)
   }
@@ -261,15 +270,15 @@ export class Xapi extends EventEmitter {
   // ===========================================================================
 
   async getAllRecords(type) {
-    return map(await this._sessionCall(`${type}.get_all_records`), (record, ref) => this._wrapRecord(type, ref, record))
+    return map(await this._roCall(`${type}.get_all_records`), (record, ref) => this._wrapRecord(type, ref, record))
   }
 
   async getRecord(type, ref) {
-    return this._wrapRecord(type, ref, await this._sessionCall(`${type}.get_record`, [ref]))
+    return this._wrapRecord(type, ref, await this._roCall(`${type}.get_record`, [ref]))
   }
 
   async getRecordByUuid(type, uuid) {
-    return this.getRecord(type, await this._sessionCall(`${type}.get_by_uuid`, [uuid]))
+    return this.getRecord(type, await this._roCall(`${type}.get_by_uuid`, [uuid]))
   }
 
   getRecords(type, refs) {
@@ -277,7 +286,7 @@ export class Xapi extends EventEmitter {
   }
 
   getField(type, ref, field) {
-    return this._sessionCall(`${type}.get_${field}`, [ref])
+    return this._roCall(`${type}.get_${field}`, [ref])
   }
 
   setField(type, ref, field, value) {
@@ -733,7 +742,12 @@ export class Xapi extends EventEmitter {
     )
 
     const oldPoolRef = this._pool?.$ref
-    this._pool = (await this.getAllRecords('pool'))[0]
+
+    // Similar to `(await this.getAllRecords('pool'))[0]` but prevents a
+    // deadlock in case of error due to a pRetry calling _sessionOpen again
+    const pools = await this._call('pool.get_all_records', [this._sessionId])
+    const poolRef = Object.keys(pools)[0]
+    this._pool = this._wrapRecord('pool', poolRef, pools[poolRef])
 
     // if the pool ref has changed, it means that the XAPI has been restarted or
     // it's not the same XAPI, we need to refetch the available types and reset
@@ -849,7 +863,7 @@ export class Xapi extends EventEmitter {
       types.map(async type => {
         try {
           const toRemove = toRemoveByType[type]
-          const records = await this._sessionCall(`${type}.get_all_records`)
+          const records = await this._roCall(`${type}.get_all_records`)
           const refs = getKeys(records)
           refs.forEach(ref => {
             toRemove.delete(ref)
@@ -898,6 +912,11 @@ export class Xapi extends EventEmitter {
       taskWatcher.reject(error)
       delete taskWatchers[ref]
     }
+  }
+
+  // read-only call, automatically retry in case of connection issues
+  _roCall(method, args) {
+    return pRetry(() => this._sessionCall(method, args), this._roCallRetryOptions)
   }
 
   _watchEvents = coalesceCalls(this._watchEvents)
@@ -1015,7 +1034,7 @@ export class Xapi extends EventEmitter {
 
       try {
         await this._connected
-        this._processEvents(await this._sessionCall('event.next', undefined, EVENT_TIMEOUT * 1e3))
+        this._processEvents(await this._roCall('event.next', undefined, EVENT_TIMEOUT * 1e3))
       } catch (error) {
         if (error?.code === 'EVENTS_LOST') {
           await ignoreErrors.call(this._sessionCall('event.unregister', [types]))

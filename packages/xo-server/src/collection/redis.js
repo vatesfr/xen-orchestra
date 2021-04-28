@@ -1,10 +1,10 @@
-import asyncMapSettled from '@xen-orchestra/async-map/legacy'
+import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
 import { createClient as createRedisClient } from 'redis'
 import { difference, filter, forEach, isEmpty, keys as getKeys, map } from 'lodash'
 import { ignoreErrors, promisifyAll } from 'promise-toolbox'
 import { v4 as generateUuid } from 'uuid'
 
-import Collection, { ModelAlreadyExists } from '../collection'
+import Collection, { ModelAlreadyExists } from '../collection.js'
 
 // ===================================================================
 

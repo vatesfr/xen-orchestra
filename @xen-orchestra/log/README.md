@@ -4,6 +4,8 @@
 
 [![Package Version](https://badgen.net/npm/v/@xen-orchestra/log)](https://npmjs.org/package/@xen-orchestra/log) ![License](https://badgen.net/npm/license/@xen-orchestra/log) [![PackagePhobia](https://badgen.net/bundlephobia/minzip/@xen-orchestra/log)](https://bundlephobia.com/result?p=@xen-orchestra/log) [![Node compatibility](https://badgen.net/npm/node/@xen-orchestra/log)](https://npmjs.org/package/@xen-orchestra/log)
 
+> Logging system with decoupled producers/consumer
+
 ## Install
 
 Installation of the [npm package](https://npmjs.org/package/@xen-orchestra/log):

@@ -1,15 +1,14 @@
 const { asyncMap, asyncMapSettled } = require('@xen-orchestra/async-map')
-const Disposable = require('promise-toolbox/Disposable')
-const ignoreErrors = require('promise-toolbox/ignoreErrors')
+const Disposable = require('promise-toolbox/Disposable.js')
+const ignoreErrors = require('promise-toolbox/ignoreErrors.js')
 const limitConcurrency = require('limit-concurrency-decorator').default
-const using = require('promise-toolbox/using')
 const { compileTemplate } = require('@xen-orchestra/template')
 
-const { extractIdsFromSimplePattern } = require('./_extractIdsFromSimplePattern')
-const { PoolMetadataBackup } = require('./_PoolMetadataBackup')
-const { Task } = require('./Task')
-const { VmBackup } = require('./_VmBackup')
-const { XoMetadataBackup } = require('./_XoMetadataBackup')
+const { extractIdsFromSimplePattern } = require('./_extractIdsFromSimplePattern.js')
+const { PoolMetadataBackup } = require('./_PoolMetadataBackup.js')
+const { Task } = require('./Task.js')
+const { VmBackup } = require('./_VmBackup.js')
+const { XoMetadataBackup } = require('./_XoMetadataBackup.js')
 
 const noop = Function.prototype
 
@@ -87,7 +86,7 @@ exports.Backup = class Backup {
       throw new Error('no retentions corresponding to the metadata modes found')
     }
 
-    await using(
+    await Disposable.use(
       Disposable.all(
         poolIds.map(id =>
           this._getRecord('pool', id).catch(error => {
@@ -196,7 +195,7 @@ exports.Backup = class Backup {
       ...settings[schedule.id],
     }
 
-    await using(
+    await Disposable.use(
       Disposable.all(
         extractIdsFromSimplePattern(job.srs).map(id =>
           this._getRecord('SR', id).catch(error => {
@@ -242,7 +241,7 @@ exports.Backup = class Backup {
 
         const handleVm = vmUuid =>
           runTask({ name: 'backup VM', data: { type: 'VM', id: vmUuid } }, () =>
-            using(this._getRecord('VM', vmUuid), vm =>
+            Disposable.use(this._getRecord('VM', vmUuid), vm =>
               new VmBackup({
                 config,
                 getSnapshotNameLabel,

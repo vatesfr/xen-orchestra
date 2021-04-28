@@ -15,13 +15,19 @@ export default class DensityPlan extends Plan {
   }
 
   async execute() {
-    const results = await this._findHostsToOptimize()
+    await this._processAntiAffinity()
+
+    const hosts = this._getHosts()
+    const results = await this._getHostStatsAverages({
+      hosts,
+      toOptimizeOnly: true,
+    })
 
     if (!results) {
       return
     }
 
-    const { hosts, toOptimize } = results
+    const { toOptimize } = results
 
     let { averages: hostsAverages } = results
 
@@ -94,13 +100,25 @@ export default class DensityPlan extends Plan {
 
     debug(`Try to optimize Host (${hostId}).`)
 
-    const vms = await this._getVms(hostId)
-    const vmsAverages = await this._getVmsAverages(vms, host)
+    const vms = filter(this._getAllRunningVms(), vm => vm.$container === hostId)
+    const vmsAverages = await this._getVmsAverages(vms, { [host.id]: host })
 
     for (const vm of vms) {
       if (!vm.xenTools) {
         debug(`VM (${vm.id}) of Host (${hostId}) does not support pool migration.`)
         return
+      }
+
+      for (const tag of vm.tags) {
+        // TODO: Improve this piece of code. We could compute variance to check if the VM
+        // is migratable. But the code must be rewritten:
+        // - All VMs, hosts and stats must be fetched at one place.
+        // - It's necessary to maintain a dictionary of tags for each host.
+        // - ...
+        if (this._antiAffinityTags.includes(tag)) {
+          debug(`VM (${vm.id}) of Host (${hostId}) cannot be migrated. It contains anti-affinity tag '${tag}'.`)
+          return
+        }
       }
     }
 

@@ -1,11 +1,10 @@
-import Disposable from 'promise-toolbox/Disposable'
-import fromCallback from 'promise-toolbox/fromCallback'
-import fromEvent from 'promise-toolbox/fromEvent'
+import Disposable from 'promise-toolbox/Disposable.js'
+import fromCallback from 'promise-toolbox/fromCallback.js'
+import fromEvent from 'promise-toolbox/fromEvent.js'
 import JsonRpcWebsocketClient from 'jsonrpc-websocket-client'
 import parsePairs from 'parse-pairs'
-import using from 'promise-toolbox/using'
-import { createLogger } from '@xen-orchestra/log/dist'
-import { deduped } from '@vates/disposable/deduped'
+import { createLogger } from '@xen-orchestra/log'
+import { deduped } from '@vates/disposable/deduped.js'
 import { execFile, spawn } from 'child_process'
 import { readFile } from 'fs-extra'
 
@@ -16,11 +15,11 @@ const { debug, warn } = createLogger('xo:proxy:appliance')
 const getUpdater = deduped(async function () {
   const updater = new JsonRpcWebsocketClient('ws://localhost:9001')
   await updater.open()
-  return new Disposable(updater, () => updater.close())
+  return new Disposable(() => updater.close(), updater)
 })
 
 const callUpdate = params =>
-  using(
+  Disposable.use(
     getUpdater(),
     updater =>
       new Promise((resolve, reject) => {
@@ -144,7 +143,7 @@ export default class Appliance {
           ],
         },
         updater: {
-          getLocalManifest: () => using(getUpdater(), _ => _.call('getLocalManifest')),
+          getLocalManifest: () => Disposable.use(getUpdater(), _ => _.call('getLocalManifest')),
           getState: () => callUpdate(),
           upgrade: () => callUpdate({ upgrade: true }),
         },
@@ -154,6 +153,6 @@ export default class Appliance {
 
   // A proxy can be bound to a unique license
   getSelfLicense() {
-    return using(getUpdater(), _ => _.call('getSelfLicenses').then(licenses => licenses[0]))
+    return Disposable.use(getUpdater(), _ => _.call('getSelfLicenses').then(licenses => licenses[0]))
   }
 }

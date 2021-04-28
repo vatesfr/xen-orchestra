@@ -3,6 +3,7 @@ import { intersection, uniq } from 'lodash'
 
 import DensityPlan from './density-plan'
 import PerformancePlan from './performance-plan'
+import SimplePlan from './simple-plan'
 import { DEFAULT_CRITICAL_THRESHOLD_CPU, DEFAULT_CRITICAL_THRESHOLD_MEMORY_FREE } from './plan'
 import { EXECUTION_DELAY, debug } from './utils'
 
@@ -33,7 +34,7 @@ export const configurationSchema = {
           },
 
           mode: {
-            enum: ['Performance mode', 'Density mode'],
+            enum: ['Performance mode', 'Density mode', 'Simple mode'],
             title: 'Mode',
           },
 
@@ -75,12 +76,33 @@ export const configurationSchema = {
               $type: 'Host',
             },
           },
+
+          antiAffinityTags: {
+            type: 'array',
+            title: 'Anti-affinity tags',
+            description: 'list of VM tags to force place VMs on different hosts',
+
+            items: {
+              type: 'string',
+              $type: 'Tag',
+            },
+          },
         },
 
         required: ['name', 'mode', 'pools'],
       },
 
       minItems: 1,
+    },
+    ignoredVmTags: {
+      type: 'array',
+      title: 'Ignored VM tags',
+      description: 'list of VM tags to never migrate specific VMs',
+
+      items: {
+        type: 'string',
+        $type: 'Tag',
+      },
     },
   },
 
@@ -102,9 +124,10 @@ class LoadBalancerPlugin {
     })
   }
 
-  async configure({ plans }) {
+  async configure({ plans, ignoredVmTags = [] }) {
     this._plans = []
     this._poolIds = [] // Used pools.
+    this._globalOptions = { ignoredVmTags: new Set(ignoredVmTags) }
 
     if (plans) {
       for (const plan of plans) {
@@ -130,11 +153,15 @@ class LoadBalancerPlugin {
     }
 
     this._poolIds = this._poolIds.concat(pools)
-    this._plans.push(
-      mode === PERFORMANCE_MODE
-        ? new PerformancePlan(this.xo, name, pools, options)
-        : new DensityPlan(this.xo, name, pools, options)
-    )
+    let plan
+    if (mode === PERFORMANCE_MODE) {
+      plan = new PerformancePlan(this.xo, name, pools, options, this._globalOptions)
+    } else if (mode === DENSITY_MODE) {
+      plan = new DensityPlan(this.xo, name, pools, options, this._globalOptions)
+    } else {
+      plan = new SimplePlan(this.xo, name, pools, options, this._globalOptions)
+    }
+    this._plans.push(plan)
   }
 
   _executePlans() {

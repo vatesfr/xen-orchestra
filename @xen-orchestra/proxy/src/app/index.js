@@ -1,45 +1,13 @@
-import camelCase from 'lodash/camelCase'
-import { createDebounceResource } from '@vates/disposable/debounceResource'
+import Config from '@xen-orchestra/mixins/Config.js'
+import Hooks from '@xen-orchestra/mixins/Hooks.js'
+import mixin from '@xen-orchestra/mixin'
+import { createDebounceResource } from '@vates/disposable/debounceResource.js'
 
-import mixins from './mixins'
-
-const { defineProperties, defineProperty, keys } = Object
-const noop = Function.prototype
-
-const MIXIN_CYCLIC_DESCRIPTOR = {
-  configurable: true,
-  get() {
-    throw new Error('cyclic dependency')
-  },
-}
+import mixins from './mixins/index.js'
 
 export default class App {
   constructor(opts) {
-    // add lazy property for each of the mixin, this allows mixins to depend on
-    // one another without any special ordering
-    const descriptors = {}
-    keys(mixins).forEach(name => {
-      const Mixin = mixins[name]
-      name = camelCase(name)
-
-      descriptors[name] = {
-        configurable: true,
-        get: () => {
-          defineProperty(this, name, MIXIN_CYCLIC_DESCRIPTOR)
-          const instance = new Mixin(this, opts)
-          defineProperty(this, name, {
-            value: instance,
-          })
-          return instance
-        },
-      }
-    })
-    defineProperties(this, descriptors)
-
-    // access all mixin properties to trigger their creation
-    keys(descriptors).forEach(name => {
-      noop(this[name])
-    })
+    mixin(this, { Config, Hooks, ...mixins }, [opts])
 
     const debounceResource = createDebounceResource()
     this.config.watchDuration('resourceCacheDelay', delay => {

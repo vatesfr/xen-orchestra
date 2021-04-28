@@ -38,7 +38,7 @@ Let's take a quick tour:
 You can edit a VM name, description and even current host by long clicking on the field
 :::
 
-## Bulk actions
+### Bulk actions
 
 You can select multiple objects (eg VMs) at once to perform a bulk action. The master checkbox will select all, or you can select anything yourself.
 
@@ -285,7 +285,7 @@ These templates will use PV configuration in order to boot: either from the righ
 
 Because there is already disks installed, you shouldn't have "Install settings" _per se_. But you can use our `config drive` setup if your template already has CloudInit installed!
 
-Please refer to the [XenServer CloudInit section](cloudinit.md) for more.
+Please refer to the [XCP-ng CloudInit section](advanced.md#cloud-init) for more.
 
 #### Interfaces
 
@@ -316,8 +316,10 @@ In the advanced tab, you have extra options:
 - Each VM has a maximum vCPU number. This value can't be changed while the VM is running. You can reduce the number of vCPUs, but you can't assign more than the set max. In XO, while your VM is halted, set the max vCPUs you would need, then boot it. Now you can reduce it and then expand it later to this maximum.
 - The same limitation applies to static RAM.
 
-You can learn more about XenServer [resource management on the Citrix Website](https://docs.citrix.com/de-de/xencenter/6-5/xs-xc-vms-configuring/xs-xc-vms-memory/xs-xc-dmc-about.html).
-
+You can learn more about XenServer [resource management on the Citrix Website](https://docs.citrix.com/en-us/citrix-hypervisor/system-requirements/configuration-limits.html).
+:::tip
+XCP-ng doesn't limit VMs to 32 vCPU
+:::
 ### VDI live migration
 
 Thanks to Xen Storage Motion, it's easy to move a VM disk from one storage location to another, while the VM is running! This feature can help you migrate from your local storage to a SAN, or just upgrade your SAN without any downtime.
@@ -349,7 +351,7 @@ If you pool supports HA (must have shared storage), you can activate "HA". Read 
 #### Docker management
 
 :::tip
-Please [read the dedicated section](docker_support.md) to install a Docker Ready VM.
+Please [read the dedicated section](manage_infrastructure.md#docker-support) to install a Docker Ready VM.
 :::
 
 ### VM CPU priority
@@ -479,10 +481,40 @@ If you are behind a proxy, please update your `xo-server` configuration to add a
 ### Notes on patching
 
 - Xen Orchestra won't reboot your hosts automatically. That's your call to choose when to do it.
-- Patching doesn't always require rebooting. Check the "Guidance" row: if "restartHost" is displayed, it means you need to reboot to have the patch fully applied (see screenshot below)
+- Patching doesn't always require rebooting. Check in the host view if the reboot warning is displayed, it means you need to reboot to have the patch fully applied (see screenshot below)
 - XO will install all patches without rebooting: that's not an issue. Even applying patches manually, **it's not mandatory to reboot after each patch**.
 
 ![](./assets/xo5patching.png)
+
+## Pool Management
+
+::: danger
+As specified in the [documentation](https://xcp-ng.org/docs/requirements.html#pool-requirements) your pool shouldn't consist of hosts from different CPU vendors.
+:::
+::: warning
+- Even with matching CPU vendors, in the case of different CPU models XCP-ng will scale the pool CPU ability to the CPU having the least instructions.
+- All the hosts in a pool must run the same XCP-ng version.
+:::
+### Creating a pool
+
+First you should add your new host to XOA by going to New > Server as described in [the relevant chapter](manage_infrastructure.md#add-a-host).
+
+When you add your host to XOA a pool will automatically be created for it, taking the host name as the default pool name. The pool name can be edited to match your needs.
+
+To edit the name of your pool go to Home > Pools and long click on the pool name to edit it.
+
+### Adding a host to an existing pool
+
+If you need to add a new host to a pool, first you need to add your new host to your XOA by going to New > Server as described in [the relevant chapter](manage_infrastructure.md#add-a-host).
+
+Then you need to add the new host to the desired pool. Navigate to Home > Pools, and click on the desired pool. Then in the top right, click the Add Hosts button and select your new host.
+
+### Adding an existing pool
+
+If your hosts are already in a pool you only need to add your pool master host to XOA, the slaves will be added automatically.
+::: danger
+Don't add pool slaves to your XOA server list! XOA will automatically find them from the master you add.
+:::
 
 ## Visualizations
 

@@ -1,8 +1,7 @@
-import Disposable from 'promise-toolbox/Disposable'
-import using from 'promise-toolbox/using'
+import Disposable from 'promise-toolbox/Disposable.js'
 import { compose } from '@vates/compose'
 import { decorateWith } from '@vates/decorate-with'
-import { deduped } from '@vates/disposable/deduped'
+import { deduped } from '@vates/disposable/deduped.js'
 import { getHandler } from '@xen-orchestra/fs'
 
 export default class Remotes {
@@ -12,7 +11,7 @@ export default class Remotes {
     app.api.addMethods({
       remote: {
         getInfo: [
-          ({ remote }) => using(this.getHandler(remote), handler => handler.getInfo()),
+          ({ remote }) => Disposable.use(this.getHandler(remote), handler => handler.getInfo()),
           {
             params: {
               remote: { type: 'object' },
@@ -22,7 +21,7 @@ export default class Remotes {
 
         test: [
           ({ remote }) =>
-            using(this.getHandler(remote), handler => handler.test()).catch(error => ({
+            Disposable.use(this.getHandler(remote), handler => handler.test()).catch(error => ({
               success: false,
               error: error.message ?? String(error),
             })),
@@ -50,6 +49,6 @@ export default class Remotes {
     }
 
     await handler.sync()
-    return new Disposable(handler, () => handler.forget())
+    return new Disposable(() => handler.forget(), handler)
   }
 }

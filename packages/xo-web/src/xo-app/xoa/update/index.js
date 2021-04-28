@@ -6,6 +6,7 @@ import Copiable from 'copiable'
 import decorate from 'apply-decorators'
 import defined, { get } from '@xen-orchestra/defined'
 import Icon from 'icon'
+import Link from 'link'
 import React from 'react'
 import Tooltip from 'tooltip'
 import xoaUpdater, { exposeTrial, isTrialRunning } from 'xoa-updater'
@@ -15,12 +16,18 @@ import { confirm } from 'modal'
 import { Container, Row, Col } from 'grid'
 import { error } from 'notification'
 import { generateId, linkState, toggleState } from 'reaclette-utils'
-import { getApplianceInfo, subscribeBackupNgJobs, subscribeJobs } from 'xo'
 import { injectIntl } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
 import { Input as DebounceInput } from 'debounce-input-decorator'
 import { isEmpty, map, pick, some, zipObject } from 'lodash'
 import { Password, Select } from 'form'
+import {
+  getAllProxies,
+  getApplianceInfo,
+  getProxyApplianceUpdaterState,
+  subscribeBackupNgJobs,
+  subscribeJobs,
+} from 'xo'
 
 import { getXoaPlan, TryXoa } from '../../../common/utils'
 
@@ -182,6 +189,12 @@ const Updates = decorate([
         jobs !== undefined &&
         backupNgJobs !== undefined &&
         some(jobs.concat(backupNgJobs), job => job.runId !== undefined),
+      areProxiesOutOfDate: async () =>
+        (
+          await Promise.all(
+            (await getAllProxies()).map(({ id }) => getProxyApplianceUpdaterState(id).catch(e => ({ state: 'error' })))
+          )
+        ).some(({ state = '' }) => state.endsWith('-upgrade-needed')),
       changelogUrl: ({ consolidatedChannel }) =>
         `https://github.com/vatesfr/xen-orchestra/blob/master/CHANGELOG.md#${encodeURIComponent(consolidatedChannel)}`,
       channelsFormId: generateId,
@@ -267,6 +280,15 @@ const Updates = decorate([
             <Col>
               <p className='text-info'>{_('updaterCommunity')}</p>
               <TryXoa page='updater' />
+            </Col>
+          </Row>
+        )}
+        {state.areProxiesOutOfDate && (
+          <Row className='mb-1'>
+            <Col>
+              <Link className='text-info' to='/proxies'>
+                {_('upgradeNeededForProxies')}
+              </Link>
             </Col>
           </Row>
         )}

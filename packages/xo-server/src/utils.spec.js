@@ -1,6 +1,6 @@
 /* eslint-env jest */
 
-import { camelToSnakeCase, diffItems, extractProperty, generateToken, parseSize, parseXml, pSettle } from './utils'
+import { camelToSnakeCase, diffItems, extractProperty, generateToken, parseSize, parseXml } from './utils.js'
 
 // ===================================================================
 
@@ -173,56 +173,5 @@ describe('parseSize()', function () {
 
   it('supports the B unit as suffix', function () {
     expect(parseSize('3MB')).toBe(3e6)
-  })
-})
-
-// -------------------------------------------------------------------
-
-describe('pSettle()', () => {
-  it('works with arrays', async () => {
-    const rejection = 'fatality'
-    const [status1, status2, status3] = await pSettle([Promise.resolve(42), Math.PI, Promise.reject(rejection)])
-
-    expect(status1.isRejected()).toBe(false)
-    expect(status2.isRejected()).toBe(false)
-    expect(status3.isRejected()).toBe(true)
-
-    expect(status1.isFulfilled()).toBe(true)
-    expect(status2.isFulfilled()).toBe(true)
-    expect(status3.isFulfilled()).toBe(false)
-
-    expect(status1.value()).toBe(42)
-    expect(status2.value()).toBe(Math.PI)
-    expect(::status3.value).toThrow()
-
-    expect(::status1.reason).toThrow()
-    expect(::status2.reason).toThrow()
-    expect(status3.reason()).toBe(rejection)
-  })
-
-  it('works with objects', async () => {
-    const rejection = 'fatality'
-
-    const { a: status1, b: status2, c: status3 } = await pSettle({
-      a: Promise.resolve(42),
-      b: Math.PI,
-      c: Promise.reject(rejection),
-    })
-
-    expect(status1.isRejected()).toBe(false)
-    expect(status2.isRejected()).toBe(false)
-    expect(status3.isRejected()).toBe(true)
-
-    expect(status1.isFulfilled()).toBe(true)
-    expect(status2.isFulfilled()).toBe(true)
-    expect(status3.isFulfilled()).toBe(false)
-
-    expect(status1.value()).toBe(42)
-    expect(status2.value()).toBe(Math.PI)
-    expect(::status3.value).toThrow()
-
-    expect(::status1.reason).toThrow()
-    expect(::status2.reason).toThrow()
-    expect(status3.reason()).toBe(rejection)
   })
 })

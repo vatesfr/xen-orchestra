@@ -31,17 +31,6 @@ test.description = 'Performs a read/write matching test on a remote point'
 test.params = {
   id: { type: 'string' },
 }
-
-export async function list({ id }) {
-  return this.listRemoteBackups(id)
-}
-
-list.permission = 'admin'
-list.description = 'Lists the files found in a remote point'
-list.params = {
-  id: { type: 'string' },
-}
-
 export function create(props) {
   return this.createRemote(props)
 }

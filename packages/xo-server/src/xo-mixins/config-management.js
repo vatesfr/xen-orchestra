@@ -1,9 +1,8 @@
 import * as openpgp from 'openpgp'
-import createLogger from '@xen-orchestra/log'
 import DepTree from 'deptree'
+import { createLogger } from '@xen-orchestra/log'
 
-import { mapValues } from 'lodash'
-import { pAll } from 'promise-toolbox'
+import { asyncMapValues } from '../_asyncMapValues.js'
 
 const log = createLogger('xo:config-management')
 
@@ -38,7 +37,7 @@ export default class ConfigManagement {
       managers = subset
     }
 
-    let config = JSON.stringify(await mapValues(managers, ({ exporter }, key) => exporter())::pAll())
+    let config = JSON.stringify(await asyncMapValues(managers, ({ exporter }) => exporter()))
 
     if (passphrase !== undefined) {
       config = Buffer.from(

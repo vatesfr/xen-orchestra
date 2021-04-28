@@ -4,6 +4,8 @@
 
 [![Package Version](https://badgen.net/npm/v/@xen-orchestra/defined)](https://npmjs.org/package/@xen-orchestra/defined) ![License](https://badgen.net/npm/license/@xen-orchestra/defined) [![PackagePhobia](https://badgen.net/bundlephobia/minzip/@xen-orchestra/defined)](https://bundlephobia.com/result?p=@xen-orchestra/defined) [![Node compatibility](https://badgen.net/npm/node/@xen-orchestra/defined)](https://npmjs.org/package/@xen-orchestra/defined)
 
+> Utilities to help handling (possibly) undefined values
+
 ## Install
 
 Installation of the [npm package](https://npmjs.org/package/@xen-orchestra/defined):

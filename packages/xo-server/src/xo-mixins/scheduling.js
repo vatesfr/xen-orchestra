@@ -1,23 +1,11 @@
-// @flow
-
-import asyncMapSettled from '@xen-orchestra/async-map/legacy'
+import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
 import { createSchedule } from '@xen-orchestra/cron'
 import { ignoreErrors } from 'promise-toolbox'
 import { keyBy } from 'lodash'
-import { noSuchObject } from 'xo-common/api-errors'
+import { noSuchObject } from 'xo-common/api-errors.js'
 
-import Collection from '../collection/redis'
-import patch from '../patch'
-
-export type Schedule = {|
-  cron: string,
-  enabled: boolean,
-  id: string,
-  jobId: string,
-  name: string,
-  timezone?: string,
-  userId: string,
-|}
+import Collection from '../collection/redis.js'
+import patch from '../patch.js'
 
 const normalize = schedule => {
   const { enabled } = schedule
@@ -40,17 +28,7 @@ class Schedules extends Collection {
 }
 
 export default class Scheduling {
-  _app: any
-  _db: {|
-    add: Function,
-    first: Function,
-    get: Function,
-    remove: Function,
-    update: Function,
-  |}
-  _runs: { __proto__: null, [string]: () => void }
-
-  constructor(app: any) {
+  constructor(app) {
     this._app = app
 
     const db = (this._db = new Schedules({
@@ -60,7 +38,7 @@ export default class Scheduling {
 
     this._runs = { __proto__: null }
 
-    app.on('clean', async () => {
+    app.hooks.on('clean', async () => {
       const [jobsById, schedules] = await Promise.all([
         app.getAllJobs().then(_ => keyBy(_, 'id')),
         app.getAllSchedules(),
@@ -70,7 +48,7 @@ export default class Scheduling {
 
       return db.rebuildIndexes()
     })
-    app.on('start', async () => {
+    app.hooks.on('start', async () => {
       app.addConfigManager(
         'schedules',
         () => db.get(),
@@ -85,7 +63,7 @@ export default class Scheduling {
       const schedules = await this.getAllSchedules()
       schedules.forEach(schedule => this._start(schedule))
     })
-    app.on('stop', () => {
+    app.hooks.on('stop', () => {
       const runs = this._runs
       Object.keys(runs).forEach(id => {
         runs[id]()
@@ -94,7 +72,7 @@ export default class Scheduling {
     })
   }
 
-  async createSchedule({ cron, enabled, jobId, name = '', timezone, userId }: $Diff<Schedule, {| id: string |}>) {
+  async createSchedule({ cron, enabled, jobId, name = '', timezone, userId }) {
     const schedule = (
       await this._db.add({
         cron,
@@ -109,7 +87,7 @@ export default class Scheduling {
     return schedule
   }
 
-  async getSchedule(id: string): Promise<Schedule> {
+  async getSchedule(id) {
     const schedule = await this._db.first(id)
     if (schedule === undefined) {
       throw noSuchObject(id, 'schedule')
@@ -117,16 +95,16 @@ export default class Scheduling {
     return schedule.properties
   }
 
-  async getAllSchedules(): Promise<Array<Schedule>> {
+  async getAllSchedules() {
     return this._db.get()
   }
 
-  async deleteSchedule(id: string) {
+  async deleteSchedule(id) {
     this._stop(id)
     await this._db.remove(id)
   }
 
-  async updateSchedule({ cron, enabled, id, jobId, name, timezone, userId }: $Shape<Schedule>) {
+  async updateSchedule({ cron, enabled, id, jobId, name, timezone, userId }) {
     const schedule = await this.getSchedule(id)
     patch(schedule, { cron, enabled, jobId, name, timezone, userId })
 
@@ -135,7 +113,7 @@ export default class Scheduling {
     await this._db.update(schedule)
   }
 
-  _start(schedule: Schedule) {
+  _start(schedule) {
     const { id } = schedule
 
     this._stop(id)
@@ -147,7 +125,7 @@ export default class Scheduling {
     }
   }
 
-  _stop(id: string) {
+  _stop(id) {
     const runs = this._runs
     if (id in runs) {
       runs[id]()

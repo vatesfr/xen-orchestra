@@ -26,9 +26,6 @@
   },
   "preferGlobal": false,
   "main": "dist/",
-  "files": [
-    "dist/"
-  ],
   "engines": {
     "node": ">=6"
   },
@@ -53,9 +50,9 @@
     "@xen-orchestra/log": "^0.2.0",
     "async-iterator-to-stream": "^1.1.0",
     "lodash": "^4.17.19",
-    "promise-toolbox": "^0.17.0",
+    "promise-toolbox": "^0.19.0",
     "readable-stream": "^3.5.0",
-    "xo-common": "^0.6.0"
+    "xo-common": "^0.7.0"
   },
   "private": true
 }

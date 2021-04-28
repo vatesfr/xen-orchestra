@@ -1,9 +1,11 @@
-import * as sensitiveValues from './sensitive-values'
-import ensureArray from './_ensureArray'
-import { extractIpFromVmNetworks } from './_extractIpFromVmNetworks'
-import { extractProperty, forEach, isEmpty, mapFilter, parseXml } from './utils'
-import { getVmDomainType, isHostRunning, isVmRunning, parseDateTime } from './xapi'
-import { useUpdateSystem } from './xapi/utils'
+import { isDefaultTemplate } from '@xen-orchestra/xapi'
+
+import * as sensitiveValues from './sensitive-values.js'
+import ensureArray from './_ensureArray.js'
+import { extractIpFromVmNetworks } from './_extractIpFromVmNetworks.js'
+import { extractProperty, forEach, isEmpty, mapFilter, parseXml } from './utils.js'
+import { getVmDomainType, isHostRunning, isVmRunning, parseDateTime } from './xapi/index.js'
+import { useUpdateSystem } from './xapi/utils.js'
 
 // ===================================================================
 
@@ -81,7 +83,7 @@ const getVmGuestToolsProps = vm => {
     return {}
   }
 
-  const { major, minor } = guestMetrics.PV_drivers_version
+  const { build, major, micro, minor } = guestMetrics.PV_drivers_version
   const hasPvVersion = major !== undefined && minor !== undefined
 
   // "PV_drivers_detected" field doesn't exist on XS < 7
@@ -91,7 +93,7 @@ const getVmGuestToolsProps = vm => {
     // Linux VMs don't have the flag "feature-static-ip-setting"
     managementAgentDetected: hasPvVersion || guestMetrics.other['feature-static-ip-setting'] === '1',
     pvDriversDetected,
-    pvDriversVersion: hasPvVersion ? `${major}.${minor}` : undefined,
+    pvDriversVersion: hasPvVersion ? `${major}.${minor}.${micro}-${build}` : undefined,
     pvDriversUpToDate: pvDriversDetected ? guestMetrics.PV_drivers_up_to_date : undefined,
   }
 }
@@ -445,13 +447,14 @@ const TRANSFORMS = {
       vm.snapshot_time = toTimestamp(obj.snapshot_time)
       vm.$snapshot_of = link(obj, 'snapshot_of')
     } else if (obj.is_a_template) {
+      const defaultTemplate = isDefaultTemplate(obj)
       vm.type += '-template'
-
-      if (obj.other_config.default_template === 'true') {
+      if (defaultTemplate) {
         vm.id = obj.$ref // use refs for templates as they
       }
 
       vm.CPUs.number = +obj.VCPUs_at_startup
+      vm.isDefaultTemplate = defaultTemplate
       vm.template_info = {
         arch: otherConfig['install-arch'],
         disks: (function () {
