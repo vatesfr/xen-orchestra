@@ -13,9 +13,6 @@
   },
   "preferGlobal": true,
   "main": "dist/",
-  "files": [
-    "dist/"
-  ],
   "engines": {
     "node": ">=8.10"
   },

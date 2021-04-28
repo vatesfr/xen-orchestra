@@ -10,7 +10,7 @@ import synchronized from 'decorator-synchronized'
 import tarStream from 'tar-stream'
 import { asyncMap } from '@xen-orchestra/async-map'
 import { vmdkToVhd } from 'xo-vmdk-to-vhd'
-import { cancelable, defer, fromEvents, ignoreErrors, pCatch, pRetry } from 'promise-toolbox'
+import { cancelable, fromEvents, ignoreErrors, pCatch, pRetry } from 'promise-toolbox'
 import { createLogger } from '@xen-orchestra/log'
 import { decorateWith } from '@vates/decorate-with'
 import { defer as deferrable } from 'golike-defer'
@@ -22,7 +22,6 @@ import { filter, find, flatMap, flatten, groupBy, identity, includes, isEmpty, n
 import { Ref } from 'xen-api'
 import { satisfies as versionSatisfies } from 'semver'
 
-import createSizeStream from '../size-stream.js'
 import ensureArray from '../_ensureArray.js'
 import fatfsBuffer, { init as fatfsBufferInit } from '../fatfs-buffer.js'
 import { asyncMapValues } from '../_asyncMapValues.js'
@@ -98,99 +97,25 @@ export default class Xapi extends XapiBase {
       }
       return getObject.apply(this, args)
     })(this.getObject)
-
-    const genericWatchers = (this._genericWatchers = { __proto__: null })
-    const objectsWatchers = (this._objectWatchers = { __proto__: null })
-
-    const onAddOrUpdate = objects => {
-      forEach(objects, object => {
-        const { $id: id, $ref: ref } = object
-
-        // Run generic watchers.
-        for (const watcherId in genericWatchers) {
-          genericWatchers[watcherId](object)
-        }
-
-        // Watched object.
-        if (id in objectsWatchers) {
-          objectsWatchers[id].resolve(object)
-          delete objectsWatchers[id]
-        }
-        if (ref in objectsWatchers) {
-          objectsWatchers[ref].resolve(object)
-          delete objectsWatchers[ref]
-        }
-      })
-    }
-    this.objects.on('add', onAddOrUpdate)
-    this.objects.on('update', onAddOrUpdate)
-  }
-
-  // =================================================================
-
-  _registerGenericWatcher(fn) {
-    const watchers = this._genericWatchers
-    const id = String(Math.random())
-
-    watchers[id] = fn
-
-    return () => {
-      delete watchers[id]
-    }
-  }
-
-  // Wait for an object to appear or to be updated.
-  //
-  // Predicate can be either an id, a UUID, an opaque reference or a
-  // function.
-  //
-  // TODO: implements a timeout.
-  _waitObject(predicate) {
-    if (typeof predicate === 'function') {
-      const { promise, resolve } = defer()
-
-      const unregister = this._registerGenericWatcher(obj => {
-        if (predicate(obj)) {
-          unregister()
-
-          resolve(obj)
-        }
-      })
-
-      return promise
-    }
-
-    let watcher = this._objectWatchers[predicate]
-    if (!watcher) {
-      const { promise, resolve } = defer()
-
-      // Register the watcher.
-      watcher = this._objectWatchers[predicate] = {
-        promise,
-        resolve,
-      }
-    }
-
-    return watcher.promise
   }
 
   // Wait for an object to be in a given state.
   //
-  // Faster than _waitObject() with a function.
+  // Faster than waitObject() with a function.
   async _waitObjectState(idOrUuidOrRef, predicate) {
     const object = this.getObject(idOrUuidOrRef, null)
     if (object && predicate(object)) {
       return object
     }
 
-    const loop = () => this._waitObject(idOrUuidOrRef).then(object => (predicate(object) ? object : loop()))
+    const loop = () => this.waitObject(idOrUuidOrRef).then(object => (predicate(object) ? object : loop()))
 
     return loop()
   }
 
   // Returns the objects if already presents or waits for it.
   async _getOrWaitObject(idOrUuidOrRef) {
-    return this.getObject(idOrUuidOrRef, null) || this._waitObject(idOrUuidOrRef)
+    return this.getObject(idOrUuidOrRef, null) || this.waitObject(idOrUuidOrRef)
   }
 
   // =================================================================
@@ -398,32 +323,30 @@ export default class Xapi extends XapiBase {
     return /* await */ this._getOrWaitObject(cloneRef)
   }
 
-  async copyVm(vmId, srId, { nameLabel = undefined } = {}) {
-    return /* await */ this._getOrWaitObject(await this._copyVm(this.getObject(vmId), nameLabel, this.getObject(srId)))
+  async copyVm(vmId, { nameLabel = undefined, srOrSrId = undefined } = {}) {
+    return /* await */ this._getOrWaitObject(
+      await this._copyVm(this.getObject(vmId), nameLabel, srOrSrId !== undefined ? this.getObject(srOrSrId) : undefined)
+    )
   }
 
   async remoteCopyVm(vmId, targetXapi, targetSrId, { compress, nameLabel = undefined } = {}) {
     // Fall back on local copy if possible.
     if (targetXapi === this) {
       return {
-        vm: await this.copyVm(vmId, targetSrId, { nameLabel }),
+        vm: await this.copyVm(vmId, { nameLabel, srOrSrId: targetSrId }),
       }
     }
 
     const sr = targetXapi.getObject(targetSrId)
-    let stream = await this.exportVm(vmId, {
+    const stream = await this.exportVm(vmId, {
       compress,
     })
-
-    const sizeStream = createSizeStream()
-    stream = stream.pipe(sizeStream)
 
     const onVmCreation = nameLabel !== undefined ? vm => vm.set_name_label(nameLabel) : null
 
     const vm = await targetXapi._getOrWaitObject(await targetXapi._importVm(stream, sr, onVmCreation))
 
     return {
-      size: sizeStream.size,
       vm,
     }
   }
@@ -870,7 +793,6 @@ export default class Xapi extends XapiBase {
     })
 
     const { streams } = delta
-    let transferSize = 0
 
     await Promise.all([
       // Import VDI contents.
@@ -879,12 +801,7 @@ export default class Xapi extends XapiBase {
           if (typeof stream === 'function') {
             stream = await stream()
           }
-          const sizeStream = stream.pipe(createSizeStream()).once('finish', () => {
-            transferSize += sizeStream.size
-          })
-          sizeStream.task = stream.task
-          sizeStream.length = stream.length
-          await this._importVdiContent(vdi, sizeStream, VDI_FORMAT_VHD)
+          await this._importVdiContent(vdi, stream, VDI_FORMAT_VHD)
         }
       }),
 
@@ -928,7 +845,7 @@ export default class Xapi extends XapiBase {
       ),
     ])
 
-    return { transferSize, vm }
+    return { vm }
   }
 
   async _migrateVmWithStorageMotion(
@@ -1129,9 +1046,10 @@ export default class Xapi extends XapiBase {
     }
 
     if (onVmCreation != null) {
-      this._waitObject(obj => obj != null && obj.current_operations != null && taskRef in obj.current_operations)
-        .then(onVmCreation)
-        ::ignoreErrors()
+      this.waitObject(
+        obj => obj != null && obj.current_operations != null && taskRef in obj.current_operations,
+        onVmCreation
+      )
     }
 
     const vmRef = await this.putResource($cancelToken, stream, '/import/', {

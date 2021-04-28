@@ -16,8 +16,6 @@ import { handleBackupLog } from '../../_handleBackupLog.js'
 import { unboxIdsFromPattern } from '../../utils.js'
 import { waitAll } from '../../_waitAll.js'
 
-import { translateLegacyJob } from './migration.js'
-
 const log = createLogger('xo:xo-mixins:backups-ng')
 
 const parseVmBackupId = id => {
@@ -354,7 +352,7 @@ export default class BackupNg {
         },
       })
     } else {
-      await Disposable.use(app.getBackupsRemoteAdapter(remoteId), adapter => adapter.deleteVmBackup(metadataFilename))
+      await Disposable.use(app.getBackupsRemoteAdapter(remote), adapter => adapter.deleteVmBackup(metadataFilename))
     }
 
     this._listVmBackupsOnRemote(REMOVE_CACHE_ENTRY, remoteId)
@@ -518,10 +516,5 @@ export default class BackupNg {
     )
 
     return backupsByVmByRemote
-  }
-
-  async migrateLegacyBackupJob(jobId) {
-    const [job, schedules] = await Promise.all([this._app.getJob(jobId, 'call'), this._app.getAllSchedules()])
-    await this._app.updateJob(translateLegacyJob(job, schedules), false)
   }
 }

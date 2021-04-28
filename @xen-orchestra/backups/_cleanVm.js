@@ -34,6 +34,8 @@ const mergeVhdChain = limitConcurrency(1)(async function mergeVhdChain(chain, { 
       child = children[0]
     }
 
+    onLog(`merging ${child} into ${parent}`)
+
     let done, total
     const handle = setInterval(() => {
       if (done !== undefined) {
@@ -58,15 +60,18 @@ const mergeVhdChain = limitConcurrency(1)(async function mergeVhdChain(chain, { 
     )
 
     clearInterval(handle)
-  }
 
-  await Promise.all([
-    remove && handler.rename(parent, child),
-    asyncMap(children.slice(0, -1), child => {
-      onLog(`the VHD ${child} is unused`)
-      return remove && handler.unlink(child)
-    }),
-  ])
+    await Promise.all([
+      handler.rename(parent, child),
+      asyncMap(children.slice(0, -1), child => {
+        onLog(`the VHD ${child} is unused`)
+        if (remove) {
+          onLog(`deleting unused VHD ${child}`)
+          return handler.unlink(child)
+        }
+      }),
+    ])
+  }
 })
 
 const noop = Function.prototype
@@ -120,8 +125,9 @@ exports.cleanVm = async function cleanVm(vmDir, { remove, merge, onLog = noop })
         vhdChildren[parent] = path
       }
     } catch (error) {
-      onLog(`error while checking the VHD with path ${path}`)
+      onLog(`error while checking the VHD with path ${path}`, { error })
       if (error?.code === 'ERR_ASSERTION' && remove) {
+        onLog(`deleting broken ${path}`)
         await handler.unlink(path)
       }
     }
@@ -148,6 +154,7 @@ exports.cleanVm = async function cleanVm(vmDir, { remove, merge, onLog = noop })
 
         onLog(`the parent ${parent} of the VHD ${vhd} is missing`)
         if (remove) {
+          onLog(`deleting orphan VHD ${vhd}`)
           deletions.push(handler.unlink(vhd))
         }
       }
@@ -204,6 +211,7 @@ exports.cleanVm = async function cleanVm(vmDir, { remove, merge, onLog = noop })
       } else {
         onLog(`the XVA linked to the metadata ${json} is missing`)
         if (remove) {
+          onLog(`deleting incomplete backup ${json}`)
           await handler.unlink(json)
         }
       }
@@ -220,6 +228,7 @@ exports.cleanVm = async function cleanVm(vmDir, { remove, merge, onLog = noop })
       } else {
         onLog(`Some VHDs linked to the metadata ${json} are missing`)
         if (remove) {
+          onLog(`deleting incomplete backup ${json}`)
           await handler.unlink(json)
         }
       }
@@ -260,6 +269,7 @@ exports.cleanVm = async function cleanVm(vmDir, { remove, merge, onLog = noop })
 
       onLog(`the VHD ${vhd} is unused`)
       if (remove) {
+        onLog(`deleting unused VHD ${vhd}`)
         unusedVhdsDeletion.push(handler.unlink(vhd))
       }
     }
@@ -280,13 +290,19 @@ exports.cleanVm = async function cleanVm(vmDir, { remove, merge, onLog = noop })
     unusedVhdsDeletion,
     asyncMap(unusedXvas, path => {
       onLog(`the XVA ${path} is unused`)
-      return remove && handler.unlink(path)
+      if (remove) {
+        onLog(`deleting unused XVA ${path}`)
+        return handler.unlink(path)
+      }
     }),
     asyncMap(xvaSums, path => {
       // no need to handle checksums for XVAs deleted by the script, they will be handled by `unlink()`
       if (!xvas.has(path.slice(0, -'.checksum'.length))) {
         onLog(`the XVA checksum ${path} is unused`)
-        return remove && handler.unlink(path)
+        if (remove) {
+          onLog(`deleting unused XVA checksum ${path}`)
+          return handler.unlink(path)
+        }
       }
     }),
   ])

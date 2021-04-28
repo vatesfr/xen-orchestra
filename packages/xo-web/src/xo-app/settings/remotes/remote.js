@@ -3,6 +3,7 @@ import ActionButton from 'action-button'
 import decorate from 'apply-decorators'
 import Icon from 'icon'
 import React from 'react'
+import Tooltip from 'tooltip'
 import { addSubscriptions, resolveId } from 'utils'
 import { alert, confirm } from 'modal'
 import { createRemote, editRemote, subscribeRemotes } from 'xo'
@@ -11,7 +12,7 @@ import { format } from 'xo-remote-parser'
 import { generateId, linkState } from 'reaclette-utils'
 import { injectState, provideState } from 'reaclette'
 import { map, some, trimStart } from 'lodash'
-import { Password, Number } from 'form'
+import { Password, Number, Toggle } from 'form'
 import { SelectProxy } from 'select-objects'
 
 const remoteTypes = {
@@ -39,6 +40,8 @@ export default decorate([
       username: undefined,
       directory: undefined,
       bucket: undefined,
+      protocol: undefined,
+      region: undefined,
     }),
     effects: {
       linkState,
@@ -60,6 +63,8 @@ export default decorate([
           proxyId = remote.proxy,
           type = remote.type,
           username = remote.username,
+          protocol = remote.protocol || 'https',
+          region = remote.region,
         } = state
         let { path = remote.path } = state
         if (type === 's3') {
@@ -76,6 +81,8 @@ export default decorate([
             port: port || undefined,
             type,
             username,
+            protocol,
+            region,
           }),
           options: options !== '' ? options : null,
           proxy: proxyId,
@@ -133,6 +140,9 @@ export default decorate([
       setSecretKey(_, { target: { value } }) {
         this.state.password = value
       },
+      setInsecure(_, value) {
+        this.state.protocol = value ? 'http' : 'https'
+      },
     },
     computed: {
       formId: generateId,
@@ -149,6 +159,8 @@ export default decorate([
       name = remote.name || '',
       options = remote.options || '',
       password = remote.password || '',
+      protocol = remote.protocol || 'https',
+      region = remote.region || '',
       parsedPath,
       path = parsedPath || '',
       parsedBucket = parsedPath != null && parsedPath.split('/')[0],
@@ -326,7 +338,12 @@ export default decorate([
           )}
           {type === 's3' && (
             <fieldset className='form-group form-group'>
-              <div className='input-group '>
+              <div className='input-group form-group'>
+                <span className='input-group-addon'>
+                  <Tooltip content={formatMessage(messages.remoteS3TooltipProtocol)}>
+                    <Toggle iconSize={1} onChange={effects.setInsecure} value={protocol === 'http'} />
+                  </Tooltip>
+                </span>
                 <input
                   className='form-control'
                   name='host'
@@ -338,7 +355,18 @@ export default decorate([
                   value={host}
                 />
               </div>
-              <div className='input-group '>
+              <div className='input-group form-group'>
+                <input
+                  className='form-control'
+                  name='region'
+                  onChange={effects.linkState}
+                  pattern='[a-z0-9-]+'
+                  placeholder={formatMessage(messages.remoteS3Region)}
+                  type='text'
+                  value={region}
+                />
+              </div>
+              <div className='input-group form-group'>
                 <input
                   className='form-control'
                   name='bucket'
@@ -363,7 +391,7 @@ export default decorate([
                   value={directory}
                 />
               </div>
-              <div className='input-group'>
+              <div className='input-group form-group'>
                 <input
                   className='form-control'
                   name='username'
@@ -374,14 +402,13 @@ export default decorate([
                   value={username}
                 />
               </div>
-              <div className='input-group'>
+              <div className='input-group form-group'>
                 <input
                   className='form-control'
                   name='password'
                   onChange={effects.setSecretKey}
                   placeholder='Paste secret here to change it'
                   autoComplete='off'
-                  required
                   type='text'
                 />
               </div>

@@ -3,8 +3,9 @@ const findLast = require('lodash/findLast.js')
 const ignoreErrors = require('promise-toolbox/ignoreErrors.js')
 const keyBy = require('lodash/keyBy.js')
 const mapValues = require('lodash/mapValues.js')
-const { asyncMap } = require('@xen-orchestra/async-map')
+const { asyncMap, asyncMapSettled } = require('@xen-orchestra/async-map')
 const { createLogger } = require('@xen-orchestra/log')
+const { defer } = require('golike-defer')
 const { formatDateTime } = require('@xen-orchestra/xapi')
 
 const { DeltaBackupWriter } = require('./writers/DeltaBackupWriter.js')
@@ -321,14 +322,18 @@ exports.VmBackup = class VmBackup {
     this._fullVdisRequired = fullVdisRequired
   }
 
-  async run() {
+  run = defer(this.run)
+  async run($defer) {
     const settings = this._settings
     assert(
       !settings.offlineBackup || settings.snapshotRetention === 0,
       'offlineBackup is not compatible with snapshotRetention'
     )
 
-    await asyncMap(this._writers, writer => writer.beforeBackup())
+    await asyncMapSettled(this._writers, async writer => {
+      await writer.beforeBackup()
+      $defer(() => writer.afterBackup())
+    })
 
     await this._fetchJobSnapshots()
 

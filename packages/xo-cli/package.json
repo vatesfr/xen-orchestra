@@ -26,9 +26,6 @@
   "bin": {
     "xo-cli": "dist/index.js"
   },
-  "files": [
-    "dist/"
-  ],
   "engines": {
     "node": ">=8.10"
   },

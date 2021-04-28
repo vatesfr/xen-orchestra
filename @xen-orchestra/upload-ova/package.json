@@ -26,9 +26,6 @@
   "bin": {
     "xo-upload-ova": "dist/index.js"
   },
-  "files": [
-    "dist/"
-  ],
   "engines": {
     "node": ">=8.10"
   },

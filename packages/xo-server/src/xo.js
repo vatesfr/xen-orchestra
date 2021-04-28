@@ -61,6 +61,10 @@ export default class Xo extends EventEmitter {
     this.debounceResource = debounceResource
   }
 
+  get objects() {
+    return this._objects
+  }
+
   // -----------------------------------------------------------------
 
   // Returns an object from its key or UUID.

@@ -1,4 +1,5 @@
 import execa from 'execa'
+import { parse } from 'xo-remote-parser'
 
 import RemoteHandlerLocal from './local'
 import RemoteHandlerNfs from './nfs'
@@ -20,10 +21,7 @@ try {
 }
 
 export const getHandler = (remote, ...rest) => {
-  // FIXME: should be done in xo-remote-parser.
-  const type = remote.url.split('://')[0]
-
-  const Handler = HANDLERS[type]
+  const Handler = HANDLERS[parse(remote.url).type]
   if (!Handler) {
     throw new Error('Unhandled remote type')
   }

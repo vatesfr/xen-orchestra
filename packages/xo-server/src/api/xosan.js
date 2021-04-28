@@ -284,7 +284,7 @@ function floor2048(value) {
 }
 
 async function copyVm(xapi, originalVm, sr) {
-  return { sr, vm: await xapi.copyVm(originalVm, sr) }
+  return { sr, vm: await xapi.copyVm(originalVm, { srOrSrId: sr }) }
 }
 
 async function callPlugin(xapi, host, command, params) {
@@ -601,7 +601,7 @@ export const createSR = defer(async function (
     if (srs.length === 2) {
       const sr = firstSr
       const arbiterIP = networkPrefix + vmIpLastNumber++
-      const arbiterVm = await xapi.copyVm(firstVM, sr)
+      const arbiterVm = await xapi.copyVm(firstVM, { srOrSrId: sr })
       $defer.onFailure(() => xapi.VM_destroy(arbiterVm.$ref, true))
       arbiter = await _prepareGlusterVm(xapi, sr, arbiterVm, xosanNetwork, arbiterIP, {
         labelSuffix: '_arbiter',

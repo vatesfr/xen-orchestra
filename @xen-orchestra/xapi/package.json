@@ -9,9 +9,6 @@
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },
   "main": "dist/",
-  "files": [
-    "dist/"
-  ],
   "bin": {
     "xo-xapi": "./dist/cli.js"
   },
