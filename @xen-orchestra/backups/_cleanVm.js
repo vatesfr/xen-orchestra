@@ -60,18 +60,18 @@ const mergeVhdChain = limitConcurrency(1)(async function mergeVhdChain(chain, { 
     )
 
     clearInterval(handle)
-  }
 
-  await Promise.all([
-    remove && handler.rename(parent, child),
-    asyncMap(children.slice(0, -1), child => {
-      onLog(`the VHD ${child} is unused`)
-      if (remove) {
-        onLog(`deleting unused VHD ${child}`)
-        return handler.unlink(child)
-      }
-    }),
-  ])
+    await Promise.all([
+      handler.rename(parent, child),
+      asyncMap(children.slice(0, -1), child => {
+        onLog(`the VHD ${child} is unused`)
+        if (remove) {
+          onLog(`deleting unused VHD ${child}`)
+          return handler.unlink(child)
+        }
+      }),
+    ])
+  }
 })
 
 const noop = Function.prototype
