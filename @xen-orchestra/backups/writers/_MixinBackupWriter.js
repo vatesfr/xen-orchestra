@@ -15,7 +15,10 @@ exports.MixinBackupWriter = (BaseClass = Object) =>
     }
 
     async beforeBackup() {
-      this._lock = await this._adapter.handler.lock(getVmBackupDir(this._backup.vm.uuid))
+      const { handler } = this._adapter
+      const vmBackupDir = getVmBackupDir(this._backup.vm.uuid)
+      await handler.mktree(vmBackupDir)
+      this._lock = await handler.lock(vmBackupDir)
     }
 
     async afterBackup() {
