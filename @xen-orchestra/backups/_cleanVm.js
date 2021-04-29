@@ -281,13 +281,13 @@ exports.cleanVm = async function cleanVm(vmDir, { remove, merge, onLog = noop })
     Object.keys(vhdChainsToMerge).forEach(key => {
       const chain = vhdChainsToMerge[key]
       if (chain !== undefined) {
-        unusedVhdsDeletion.push(mergeVhdChain(chain, { onLog, remove, merge }))
+        unusedVhdsDeletion.push(mergeVhdChain(chain, { handler, onLog, remove, merge }))
       }
     })
   }
 
   await Promise.all([
-    unusedVhdsDeletion,
+    ...unusedVhdsDeletion,
     asyncMap(unusedXvas, path => {
       onLog(`the XVA ${path} is unused`)
       if (remove) {
