@@ -32,7 +32,7 @@
     "@vates/decorate-with": "^0.0.1",
     "@vates/disposable": "^0.1.1",
     "@vates/parse-duration": "^0.1.0",
-    "@xen-orchestra/backups": "^0.9.3",
+    "@xen-orchestra/backups": "^0.10.0",
     "@xen-orchestra/emit-async": "^0.0.0",
     "@xen-orchestra/fs": "^0.15.0",
     "@xen-orchestra/log": "^0.2.0",
