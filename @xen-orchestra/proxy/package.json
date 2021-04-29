@@ -34,7 +34,7 @@
     "@vates/parse-duration": "^0.1.0",
     "@xen-orchestra/backups": "^0.9.3",
     "@xen-orchestra/emit-async": "^0.0.0",
-    "@xen-orchestra/fs": "^0.14.0",
+    "@xen-orchestra/fs": "^0.15.0",
     "@xen-orchestra/log": "^0.2.0",
     "@xen-orchestra/mixin": "^0.1.0",
     "@xen-orchestra/mixins": "^0.0.0",
