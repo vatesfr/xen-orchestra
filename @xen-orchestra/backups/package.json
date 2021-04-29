@@ -37,7 +37,7 @@
     "yazl": "^2.5.1"
   },
   "peerDependencies": {
-    "@xen-orchestra/xapi": "^0.6.1"
+    "@xen-orchestra/xapi": "^0.6.2"
   },
   "license": "AGPL-3.0-or-later",
   "author": {
