@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "xo-web",
-  "version": "5.80.1",
+  "version": "5.81.0",
   "license": "AGPL-3.0-or-later",
   "description": "Web interface client for Xen-Orchestra",
   "keywords": [
@@ -138,7 +138,7 @@
     "xo-acl-resolver": "^0.4.1",
     "xo-common": "^0.7.0",
     "xo-lib": "^0.10.1",
-    "xo-remote-parser": "^0.6.0",
+    "xo-remote-parser": "^0.7.0",
     "xo-vmdk-to-vhd": "^2.0.0"
   },
   "scripts": {

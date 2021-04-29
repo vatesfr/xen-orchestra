@@ -8,7 +8,7 @@
     "type": "git",
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },
-  "version": "0.9.3",
+  "version": "0.10.0",
   "engines": {
     "node": ">=14.6"
   },
@@ -20,7 +20,7 @@
     "@vates/disposable": "^0.1.1",
     "@vates/parse-duration": "^0.1.0",
     "@xen-orchestra/async-map": "^0.1.2",
-    "@xen-orchestra/fs": "^0.14.0",
+    "@xen-orchestra/fs": "^0.15.0",
     "@xen-orchestra/log": "^0.2.0",
     "@xen-orchestra/template": "^0.1.0",
     "compare-versions": "^3.6.0",
@@ -37,7 +37,7 @@
     "yazl": "^2.5.1"
   },
   "peerDependencies": {
-    "@xen-orchestra/xapi": "^0.6.1"
+    "@xen-orchestra/xapi": "^0.6.2"
   },
   "license": "AGPL-3.0-or-later",
   "author": {

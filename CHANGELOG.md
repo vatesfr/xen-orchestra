@@ -1,5 +1,45 @@
 # ChangeLog
 
+## **next**
+
+### Enhancements
+
+- [VM] Don't make a VM use [DMC](https://docs.citrix.com/en-us/xencenter/7-1/dmc-about.html) on creation by default [#5729](https://github.com/vatesfr/xen-orchestra/issues/5729)
+- [NFS remotes] Don't force version 3 by default (PR [#5725](https://github.com/vatesfr/xen-orchestra/pull/5725))
+- [Template] Ability to create a template from a snapshot [#4891](https://github.com/vatesfr/xen-orchestra/issues/4891) (PR [#5736](https://github.com/vatesfr/xen-orchestra/pull/5736))
+- [PIF] Automatically reconfigure management PIF on host case of IP address change to avoid connection loss [#5730](https://github.com/vatesfr/xen-orchestra/issues/5730) (PR [#5745](https://github.com/vatesfr/xen-orchestra/pull/5745))
+- [Backup] Lock VM directory during backup to avoid race conditions (PR [#5746](https://github.com/vatesfr/xen-orchestra/pull/5746))
+- [XOA] Notify user when proxies need to be upgraded (PR [#5717](https://github.com/vatesfr/xen-orchestra/pull/5717))
+- [Host/network] Identify the management network [#5731](https://github.com/vatesfr/xen-orchestra/issues/5731) (PR [#5743](https://github.com/vatesfr/xen-orchestra/pull/5743))
+- [Backup/S3] Support for HTTP protocol and choice of region (PR [#5658](https://github.com/vatesfr/xen-orchestra/pull/5658))
+- [Host/Load-balancer] Improve migration (perf mode) regarding memory and cpu usage (PR [#5734](https://github.com/vatesfr/xen-orchestra/pull/5734))
+- [API/pool] Add listPoolsMatchingCriteria method that lists the pools matching certain criteria (PR [#5715](https://github.com/vatesfr/xen-orchestra/pull/5715))
+
+### Bug fixes
+
+- [Backup] Don't unnecessarily snapshot the VM when using _offline backup_ (PR [#5739](https://github.com/vatesfr/xen-orchestra/pull/5739))
+- [Backup] Fix `ENOENT` error on deleting an existing VM backup (PR [#5744](https://github.com/vatesfr/xen-orchestra/pull/5744))
+- [Host/Load-balancer] Fix error(s) that prevents the load balancer from running (PR [#5734](https://github.com/vatesfr/xen-orchestra/pull/5734))
+- [Plugins/perf-alert] Fix impossibility to configure when not using smart mode (PR [#5755](https://github.com/vatesfr/xen-orchestra/pull/5755))
+
+### Dropped features
+
+- [Backup] Remove legacy backup support (PR [#5718](https://github.com/vatesfr/xen-orchestra/pull/5718))
+
+### Packages to release
+
+- xo-server-perf-alert 0.3.1
+- xo-remote-parser 0.7.0
+- @xen-orchestra/fs 0.15.0
+- @xen-orchestra/xapi 0.6.2
+- @xen-orchestra/backups 0.10.0
+- @xen-orchestra/backups-cli 0.5.1
+- @xen-orchestra/mixins 0.1.0
+- xen-api 0.31.1
+- xo-server-load-balancer 0.6.0
+- xo-server 5.79.0
+- xo-web 5.81.0
+
 ## **5.57.1** (2021-04-13)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
