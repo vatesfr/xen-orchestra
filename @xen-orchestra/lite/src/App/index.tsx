@@ -4,7 +4,6 @@ import { HashRouter as Router, Switch, Route, Link } from 'react-router-dom'
 import { IntlProvider } from 'react-intl'
 import { Map } from 'immutable'
 
-import './style.css'
 import messagesEn from '../lang/en.json'
 import Signin from './Signin/index'
 import TabConsole from './TabConsole'
