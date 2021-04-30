@@ -171,8 +171,7 @@ export default class S3Handler extends RemoteHandlerAbstract {
   }
 
   async _rmdir(path) {
-    const entries = await this._list(path)
-    if (entries.length !== 0) {
+    if (await this._isNotEmptyDir(path)) {
       const error = new Error(`ENOTEMPTY: directory not empty, rmdir '${path}`)
       error.code = 'ENOTEMPTY'
       error.path = path
