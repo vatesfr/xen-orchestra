@@ -196,7 +196,15 @@ export default class RemoteHandlerAbstract {
     )
   }
 
-  // write a stream to a file using a temporary file
+  /**
+   * write a stream to a file using a temporary file
+   *
+   * @param {string} path
+   * @param {ReadableStream} input
+   * @param {object} [options]
+   * @param {boolean} [options.checksum]
+   * @param {number} [options.dirMode]
+   */
   async outputStream(path, input, { checksum = true, dirMode } = {}) {
     path = normalizePath(path)
     let checksumStream
