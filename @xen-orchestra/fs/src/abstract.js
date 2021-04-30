@@ -482,7 +482,6 @@ export default class RemoteHandlerAbstract {
     })
     try {
       await fromCallback(pipeline, input, output)
-      await input.task
       await this.rename(tmpPath, path)
     } catch (error) {
       await this.unlink(tmpPath)

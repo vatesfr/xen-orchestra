@@ -59,7 +59,6 @@ export default class S3Handler extends RemoteHandlerAbstract {
       },
       { partSize: IDEAL_FRAGMENT_SIZE, queueSize: 1 }
     )
-    await input.task
   }
 
   async _writeFile(file, data, options) {
