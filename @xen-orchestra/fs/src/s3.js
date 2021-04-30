@@ -60,6 +60,18 @@ export default class S3Handler extends RemoteHandlerAbstract {
     return result.Contents.length !== 0
   }
 
+  async _isFile(path) {
+    try {
+      await this._s3.headObject(this._createParams(path))
+      return true
+    } catch (error) {
+      if (error.code === 'NotFound') {
+        return false
+      }
+      throw error
+    }
+  }
+
   async _outputStream(path, input, { validator }) {
     await this._s3.upload(
       {
@@ -125,7 +137,13 @@ export default class S3Handler extends RemoteHandlerAbstract {
     return [...uniq]
   }
 
-  _mkdir() {
+  async _mkdir(path) {
+    if (await this._isFile(path)) {
+      const error = new Error(`ENOTDIR: file already exists, mkdir '${path}'`)
+      error.code = 'ENOTDIR'
+      error.path = path
+      throw error
+    }
     // nothing to do, directories do not exist, they are part of the files' path
   }
 
