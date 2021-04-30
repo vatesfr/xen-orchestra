@@ -506,21 +506,14 @@ class RemoteAdapter {
   }
 
   async outputStream(path, input, { checksum = true, validator = noop } = {}) {
-    const handler = this._handler
-    input = await input
-    const tmpPath = `${dirname(path)}/.${basename(path)}`
-    const output = await handler.createOutputStream(tmpPath, {
+    await this._handler.outputStream(path, input, {
       checksum,
       dirMode: this._dirMode,
+      async validator() {
+        await input.task
+        return validator.apply(this, arguments)
+      },
     })
-    try {
-      await Promise.all([fromCallback(pump, input, output), output.checksumWritten, input.task])
-      await validator(tmpPath)
-      await handler.rename(tmpPath, path, { checksum })
-    } catch (error) {
-      await handler.unlink(tmpPath, { checksum })
-      throw error
-    }
   }
 
   async readDeltaVmBackup(metadata) {
