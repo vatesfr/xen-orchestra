@@ -51,6 +51,15 @@ export default class S3Handler extends RemoteHandlerAbstract {
     return { Bucket: this._bucket, Key: this._dir + file }
   }
 
+  async _isNotEmptyDir(path) {
+    const result = await this._s3.listObjectsV2({
+      Bucket: this._bucket,
+      MaxKeys: 1,
+      Prefix: this._dir + path + '/',
+    })
+    return result.Contents.length !== 0
+  }
+
   async _outputStream(path, input, { validator }) {
     await this._s3.upload(
       {
@@ -85,8 +94,14 @@ export default class S3Handler extends RemoteHandlerAbstract {
     return this._s3.getObject.raw(this._createParams(path)).createReadStream()
   }
 
-  async _unlink(file) {
-    return this._s3.deleteObject(this._createParams(file))
+  async _unlink(path) {
+    await this._s3.deleteObject(this._createParams(path))
+    if (await this._isNotEmptyDir(path)) {
+      const error = new Error(`EISDIR: illegal operation on a directory, unlink '${path}'`)
+      error.code = 'EISDIR'
+      error.path = path
+      throw error
+    }
   }
 
   async _list(dir) {
