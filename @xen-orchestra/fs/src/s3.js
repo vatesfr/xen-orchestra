@@ -4,7 +4,6 @@ import http from 'http'
 import { parse } from 'xo-remote-parser'
 
 import RemoteHandlerAbstract from './abstract'
-import { createChecksumStream } from './checksum'
 
 // endpoints https://docs.aws.amazon.com/general/latest/gr/s3.html
 
@@ -52,32 +51,14 @@ export default class S3Handler extends RemoteHandlerAbstract {
     return { Bucket: this._bucket, Key: this._dir + file }
   }
 
-  async _outputStream(path, input, { checksum }) {
-    let inputStream = input
-    if (checksum) {
-      const checksumStream = createChecksumStream()
-      const forwardError = error => {
-        checksumStream.emit('error', error)
-      }
-      input.pipe(checksumStream)
-      input.on('error', forwardError)
-      inputStream = checksumStream
-    }
+  async _outputStream(path, input) {
     await this._s3.upload(
       {
         ...this._createParams(path),
-        Body: inputStream,
+        Body: input,
       },
       { partSize: IDEAL_FRAGMENT_SIZE, queueSize: 1 }
     )
-    if (checksum) {
-      const checksum = await inputStream.checksum
-      const params = {
-        ...this._createParams(path + '.checksum'),
-        Body: checksum,
-      }
-      await this._s3.upload(params)
-    }
     await input.task
   }
 

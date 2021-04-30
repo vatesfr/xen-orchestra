@@ -29,6 +29,8 @@ const ignoreEnoent = error => {
   }
 }
 
+const noop = Function.prototype
+
 class PrefixWrapper {
   constructor(handler, prefix) {
     this._prefix = prefix
@@ -196,10 +198,20 @@ export default class RemoteHandlerAbstract {
 
   // write a stream to a file using a temporary file
   async outputStream(path, input, { checksum = true, dirMode } = {}) {
-    return this._outputStream(normalizePath(path), await input, {
-      checksum,
+    path = normalizePath(path)
+    input = await input
+    let checksumStream
+    if (checksum) {
+      checksumStream = createChecksumStream()
+      pipeline(input, checksumStream, noop)
+      input = checksumStream
+    }
+    await this._outputStream(path, await input, {
       dirMode,
     })
+    if (checksum) {
+      await this._outputFile(checksumFile(path), await checksumStream.checksum, { dirMode, flags: 'wx' })
+    }
   }
 
   // Free the resources possibly dedicated to put the remote at work, when it
@@ -463,19 +475,17 @@ export default class RemoteHandlerAbstract {
     return this._outputFile(file, data, { flags })
   }
 
-  async _outputStream(path, input, { checksum, dirMode }) {
+  async _outputStream(path, input, { dirMode }) {
     const tmpPath = `${dirname(path)}/.${basename(path)}`
     const output = await this.createOutputStream(tmpPath, {
-      checksum,
       dirMode,
     })
     try {
       await fromCallback(pipeline, input, output)
-      await output.checksumWritten
       await input.task
-      await this.rename(tmpPath, path, { checksum })
+      await this.rename(tmpPath, path)
     } catch (error) {
-      await this.unlink(tmpPath, { checksum })
+      await this.unlink(tmpPath)
       throw error
     }
   }
