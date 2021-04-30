@@ -242,22 +242,29 @@ export default class RemoteHandlerAbstract {
     return timeout.call(this._getSize(typeof file === 'string' ? normalizePath(file) : file), this._timeout)
   }
 
-  async list(dir, { filter, prependDir = false } = {}) {
-    const virtualDir = normalizePath(dir)
-    dir = normalizePath(dir)
+  async list(dir, { filter, ignoreEnoentError: ignoreMissing = false, prependDir = false } = {}) {
+    try {
+      const virtualDir = normalizePath(dir)
+      dir = normalizePath(dir)
 
-    let entries = await timeout.call(this._list(dir), this._timeout)
-    if (filter !== undefined) {
-      entries = entries.filter(filter)
+      let entries = await timeout.call(this._list(dir), this._timeout)
+      if (filter !== undefined) {
+        entries = entries.filter(filter)
+      }
+
+      if (prependDir) {
+        entries.forEach((entry, i) => {
+          entries[i] = virtualDir + '/' + entry
+        })
+      }
+
+      return entries
+    } catch (error) {
+      if (ignoreMissing && error?.code === 'ENOENT') {
+        return []
+      }
+      throw error
     }
-
-    if (prependDir) {
-      entries.forEach((entry, i) => {
-        entries[i] = virtualDir + '/' + entry
-      })
-    }
-
-    return entries
   }
 
   async lock(path) {
