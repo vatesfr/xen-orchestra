@@ -1,6 +1,8 @@
 # ChangeLog
 
-## **next**
+## **5.58.0** (2021-04-30)
+
+<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
 
 ### Enhancements
 
@@ -21,6 +23,7 @@
 - [Backup] Fix `ENOENT` error on deleting an existing VM backup (PR [#5744](https://github.com/vatesfr/xen-orchestra/pull/5744))
 - [Host/Load-balancer] Fix error(s) that prevents the load balancer from running (PR [#5734](https://github.com/vatesfr/xen-orchestra/pull/5734))
 - [Plugins/perf-alert] Fix impossibility to configure when not using smart mode (PR [#5755](https://github.com/vatesfr/xen-orchestra/pull/5755))
+- [S3 Remotes] Fix `Not implemented` errors
 
 ### Dropped features
 
@@ -42,7 +45,7 @@
 
 ## **5.57.1** (2021-04-13)
 
-<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Enhancements
 
@@ -108,8 +111,6 @@
 - xo-web 5.80.0
 
 ## **5.56.2** (2021-03-22)
-
-<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Bug fixes
 
