@@ -214,7 +214,7 @@ export default class RemoteHandlerAbstract {
       pipeline(input, checksumStream, noop)
       input = checksumStream
     }
-    await this._outputStream(path, await input, {
+    await this._outputStream(path, input, {
       dirMode,
       validator,
     })
