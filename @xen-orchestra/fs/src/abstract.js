@@ -6,6 +6,7 @@ import synchronized from 'decorator-synchronized'
 import { coalesceCalls } from '@vates/coalesce-calls'
 import { fromCallback, fromEvent, ignoreErrors, timeout } from 'promise-toolbox'
 import { parse } from 'xo-remote-parser'
+import { pipeline } from 'stream'
 import { randomBytes } from 'crypto'
 
 import normalizePath from './_normalizePath'
@@ -469,8 +470,7 @@ export default class RemoteHandlerAbstract {
       dirMode,
     })
     try {
-      input.pipe(output)
-      await fromEvent(output, 'finish')
+      await fromCallback(pipeline, input, output)
       await output.checksumWritten
       await input.task
       await this.rename(tmpPath, path, { checksum })
