@@ -32,7 +32,7 @@
 - xo-remote-parser 0.7.0
 - @xen-orchestra/fs 0.16.0
 - @xen-orchestra/xapi 0.6.2
-- @xen-orchestra/backups 0.10.0
+- @xen-orchestra/backups 0.10.1
 - @xen-orchestra/backups-cli 0.5.1
 - @xen-orchestra/mixins 0.1.0
 - xen-api 0.31.1

@@ -32,7 +32,7 @@
     "@vates/decorate-with": "^0.0.1",
     "@vates/disposable": "^0.1.1",
     "@xen-orchestra/async-map": "^0.1.2",
-    "@xen-orchestra/backups": "^0.10.0",
+    "@xen-orchestra/backups": "^0.10.1",
     "@xen-orchestra/fs": "^0.16.0",
     "@xen-orchestra/log": "^0.2.0",
     "@xen-orchestra/mixin": "^0.1.0",
