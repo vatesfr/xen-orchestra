@@ -28,7 +28,6 @@
     "cli-progress": "^3.1.0",
     "exec-promise": "^0.7.0",
     "getopts": "^2.2.3",
-    "struct-fu": "^1.2.0",
     "vhd-lib": "^1.0.0"
   },
   "devDependencies": {
