@@ -73,9 +73,16 @@ export default class S3Handler extends RemoteHandlerAbstract {
     return this._s3.putObject({ ...this._createParams(file), Body: data })
   }
 
-  async _createReadStream(file, options) {
+  async _createReadStream(path, options) {
+    if (!(await this._isFile(path))) {
+      const error = new Error(`ENOENT: no such file '${path}'`)
+      error.code = 'ENOENT'
+      error.path = path
+      throw error
+    }
+
     // https://github.com/Sullux/aws-sdk/issues/11
-    return this._s3.getObject.raw(this._createParams(file)).createReadStream()
+    return this._s3.getObject.raw(this._createParams(path)).createReadStream()
   }
 
   async _unlink(file) {
