@@ -51,7 +51,7 @@ export default class S3Handler extends RemoteHandlerAbstract {
     return { Bucket: this._bucket, Key: this._dir + file }
   }
 
-  async _outputStream(path, input) {
+  async _outputStream(path, input, { validator }) {
     await this._s3.upload(
       {
         ...this._createParams(path),
@@ -59,6 +59,14 @@ export default class S3Handler extends RemoteHandlerAbstract {
       },
       { partSize: IDEAL_FRAGMENT_SIZE, queueSize: 1 }
     )
+    if (validator !== undefined) {
+      try {
+        await validator.call(this, path)
+      } catch (error) {
+        await this.unlink(path)
+        throw error
+      }
+    }
   }
 
   async _writeFile(file, data, options) {
