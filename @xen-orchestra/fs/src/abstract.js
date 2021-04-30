@@ -492,7 +492,7 @@ export default class RemoteHandlerAbstract {
     try {
       await fromCallback(pipeline, input, output)
       if (validator !== undefined) {
-        await validator.call(this, path)
+        await validator.call(this, tmpPath)
       }
       await this.rename(tmpPath, path)
     } catch (error) {
