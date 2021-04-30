@@ -27,3 +27,7 @@
 > - major: if the change breaks compatibility
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
+
+- @xen-orchestra/fs patch
+- @xen-orchestra/backups patch
+- xo-server patch

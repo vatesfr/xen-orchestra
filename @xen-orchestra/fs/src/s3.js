@@ -115,6 +115,10 @@ export default class S3Handler extends RemoteHandlerAbstract {
     return [...uniq]
   }
 
+  _mkdir() {
+    // nothing to do, directories do not exist, they are part of the files' path
+  }
+
   async _rename(oldPath, newPath) {
     const size = await this._getSize(oldPath)
     const multipartParams = await this._s3.createMultipartUpload({ ...this._createParams(newPath) })
