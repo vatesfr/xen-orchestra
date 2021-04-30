@@ -33,7 +33,7 @@
 
 - xo-server-perf-alert 0.3.1
 - xo-remote-parser 0.7.0
-- @xen-orchestra/fs 0.16.0
+- @xen-orchestra/fs 0.16.1
 - @xen-orchestra/xapi 0.6.2
 - @xen-orchestra/backups 0.10.1
 - @xen-orchestra/backups-cli 0.5.1
