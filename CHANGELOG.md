@@ -40,7 +40,7 @@
 - @xen-orchestra/mixins 0.1.0
 - xen-api 0.31.1
 - xo-server-load-balancer 0.6.0
-- xo-server 5.79.1
+- xo-server 5.79.2
 - xo-web 5.81.0
 
 ## **5.57.1** (2021-04-13)
