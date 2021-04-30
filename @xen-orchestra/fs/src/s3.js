@@ -148,6 +148,18 @@ export default class S3Handler extends RemoteHandlerAbstract {
     return { bytesRead: result.Body.length, buffer }
   }
 
+  async _rmdir(path) {
+    const entries = await this._list(path)
+    if (entries.length !== 0) {
+      const error = new Error(`ENOTEMPTY: directory not empty, rmdir '${path}`)
+      error.code = 'ENOTEMPTY'
+      error.path = path
+      throw error
+    }
+
+    // nothing to do, directories do not exist, they are part of the files' path
+  }
+
   async _write(file, buffer, position) {
     if (typeof file !== 'string') {
       file = file.fd
