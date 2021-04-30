@@ -29,9 +29,7 @@
     "node": ">=8.10"
   },
   "dependencies": {
-    "@xen-orchestra/log": "^0.2.0",
-    "http-request-plus": "^0.9.1",
-    "lodash": "^4.17.15"
+    "@xen-orchestra/log": "^0.2.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.7.0",
