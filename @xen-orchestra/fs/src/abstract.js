@@ -199,7 +199,6 @@ export default class RemoteHandlerAbstract {
   // write a stream to a file using a temporary file
   async outputStream(path, input, { checksum = true, dirMode } = {}) {
     path = normalizePath(path)
-    input = await input
     let checksumStream
     if (checksum) {
       checksumStream = createChecksumStream()
