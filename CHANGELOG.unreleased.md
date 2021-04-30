@@ -11,6 +11,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [S3 Remotes] Fix `Not implemented errors`
+
 ### Packages to release
 
 > Packages will be released in the order they are here, therefore, they should
