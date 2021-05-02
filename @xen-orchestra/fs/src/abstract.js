@@ -242,7 +242,7 @@ export default class RemoteHandlerAbstract {
     return timeout.call(this._getSize(typeof file === 'string' ? normalizePath(file) : file), this._timeout)
   }
 
-  async list(dir, { filter, ignoreEnoentError: ignoreMissing = false, prependDir = false } = {}) {
+  async list(dir, { filter, ignoreMissing = false, prependDir = false } = {}) {
     try {
       const virtualDir = normalizePath(dir)
       dir = normalizePath(dir)
