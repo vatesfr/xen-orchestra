@@ -80,6 +80,7 @@ const listVhds = async (handler, vmDir) => {
   const vhds = []
   await asyncMap(
     await handler.list(`${vmDir}/vdis`, {
+      ignoreMissing: true,
       prependDir: true,
     }),
     async jobDir =>
