@@ -9,6 +9,7 @@ import Signin from './Signin/index'
 import StyleGuide from './StyleGuide/index'
 import TabConsole from './TabConsole'
 import XapiConnection, { ObjectsByType, Vm } from '../libs/xapi'
+import Modal from '../components/Modal'
 
 interface ParentState {
   objectsByType: ObjectsByType
@@ -78,6 +79,7 @@ const App = withState<State, Props, Effects, Computed, ParentState, ParentEffect
         <Signin />
       ) : (
         <Router>
+          <Modal />
           <Switch>
             <Route exact path='/styleguide'><StyleGuide /></Route>
             <Route exact path='/'>

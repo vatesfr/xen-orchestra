@@ -3,7 +3,7 @@ import RFB from '@novnc/novnc/lib/rfb'
 import { FormattedMessage } from 'react-intl'
 import { withState } from 'reaclette'
 
-import Confirm from './Confirm'
+import { confirm } from './Modal'
 
 import XapiConnection, { ObjectsByType, Vm } from '../libs/xapi'
 
@@ -28,7 +28,6 @@ interface ParentEffects {}
 
 interface Effects {
   sendCtrlAltDel: () => void
-  toggleCtrlAltDel: () => void
 }
 
 interface Computed {}
@@ -64,32 +63,19 @@ const Console = withState<State, Props, Effects, Computed, ParentState, ParentEf
         this.state.RFB = new RFB(this.state.container.current, url, {
           wsProtocols: ['binary'],
         })
-        this.props.setCtrlAltDel(this.effects.toggleCtrlAltDel)
+        this.props.setCtrlAltDel(this.effects.sendCtrlAltDel)
       },
-      sendCtrlAltDel: function () {
+      sendCtrlAltDel: async function () {
+        await confirm({
+          aze: <p></p>,
+          message: <p></p>,
+          title:<p></p>
+        })
         this.state.RFB!.sendCtrlAltDel()
-      },
-      toggleCtrlAltDel: function () {
-        this.state.confirmCtrlAltDel = !this.state.confirmCtrlAltDel
-      },
-      sendCtrlAltDel: function () {
-        confirm('Send Ctrl+Alt+Del to VM?') && this.state.RFB?.sendCtrlAltDel()
       },
     },
   },
-  ({ effects, state }) => (
-    <>
-      {state.confirmCtrlAltDel && state.RFB !== null ? (
-        <Confirm
-          confirm={effects.sendCtrlAltDel}
-          message={<FormattedMessage id='confirmCtrlAltDel' />}
-          title={<FormattedMessage id='ctrlAltDel' />}
-          toggle={effects.toggleCtrlAltDel}
-        />
-      ) : null}
-      <div ref={state.container} />
-    </>
-  )
+  ({ state }) => <div ref={state.container} />
 )
 
 export default Console
