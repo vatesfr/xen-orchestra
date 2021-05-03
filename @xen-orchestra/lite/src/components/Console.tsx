@@ -29,7 +29,6 @@ interface ParentEffects {}
 
 interface Effects {
   sendCtrlAltDel: () => void
-  toggleCtrlAltDel: () => void
 }
 
 interface Computed {}

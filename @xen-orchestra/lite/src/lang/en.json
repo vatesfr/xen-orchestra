@@ -1,7 +1,7 @@
 {
   "cancel": "Cancel",
-  "ok": "Ok",
   "confirmCtrlAltDel": "Send Ctrl + Alt + Del to VM?",
   "connect": "Connect",
-  "ctrlAltDel": "Ctrl + Alt + Del"
+  "ctrlAltDel": "Ctrl+Alt+Del",
+  "ok": "Ok"
 }
