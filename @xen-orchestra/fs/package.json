@@ -29,7 +29,7 @@
     "get-stream": "^6.0.0",
     "limit-concurrency-decorator": "^0.4.0",
     "lodash": "^4.17.4",
-    "promise-toolbox": "^0.19.0",
+    "promise-toolbox": "^0.19.2",
     "proper-lockfile": "^4.1.2",
     "readable-stream": "^3.0.6",
     "through2": "^4.0.2",
