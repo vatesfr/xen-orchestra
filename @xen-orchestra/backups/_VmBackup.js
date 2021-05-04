@@ -64,7 +64,7 @@ exports.VmBackup = class VmBackup {
 
     // Create writers
     {
-      const writers = []
+      const writers = new Set()
       this._writers = writers
 
       const [BackupWriter, ReplicationWriter] = this._isDelta
@@ -79,7 +79,7 @@ exports.VmBackup = class VmBackup {
           ...allSettings[remoteId],
         }
         if (targetSettings.exportRetention !== 0) {
-          writers.push(new BackupWriter({ backup: this, remoteId, settings: targetSettings }))
+          writers.add(new BackupWriter({ backup: this, remoteId, settings: targetSettings }))
         }
       })
       srs.forEach(sr => {
@@ -88,7 +88,7 @@ exports.VmBackup = class VmBackup {
           ...allSettings[sr.uuid],
         }
         if (targetSettings.copyRetention !== 0) {
-          writers.push(new ReplicationWriter({ backup: this, sr, settings: targetSettings }))
+          writers.add(new ReplicationWriter({ backup: this, sr, settings: targetSettings }))
         }
       })
     }
@@ -303,8 +303,11 @@ exports.VmBackup = class VmBackup {
 
     const presentBaseVdis = new Map(baseUuidToSrcVdi)
     const writers = this._writers
-    for (let i = 0, n = writers.length; presentBaseVdis.size !== 0 && i < n; ++i) {
-      await writers[i].checkBaseVdis(presentBaseVdis, baseVm)
+    for (const writer of this._writers) {
+      if (parentBaseVdis.size === 0) {
+        break
+      }
+      await writer.checkBaseVdis(presentBaseVdis, baseVm)
     }
 
     if (presentBaseVdis.size === 0) {
@@ -357,7 +360,7 @@ exports.VmBackup = class VmBackup {
         ignoreErrors.call(vm.$callAsync('start', false, false))
       }
 
-      if (this._writers.length !== 0) {
+      if (this._writers.size !== 0) {
         await (this._isDelta ? this._copyDelta() : this._copyFull())
       }
     } finally {
