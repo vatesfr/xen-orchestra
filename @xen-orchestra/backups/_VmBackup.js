@@ -292,7 +292,7 @@ exports.VmBackup = class VmBackup {
     const presentBaseVdis = new Map(baseUuidToSrcVdi)
     const writers = this._writers
     for (const writer of this._writers) {
-      if (parentBaseVdis.size === 0) {
+      if (presentBaseVdis.size === 0) {
         break
       }
       await writer.checkBaseVdis(presentBaseVdis, baseVm)
