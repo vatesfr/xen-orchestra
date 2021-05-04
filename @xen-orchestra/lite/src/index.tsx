@@ -7,6 +7,8 @@ const GlobalStyle = createGlobalStyle`
   body {
     margin: 0;
     font-family: Arial, Verdana, Helvetica, Ubuntu, sans-serif;
+    box-sizing: border-box;
+    color: #212529;
   }
 `
 
