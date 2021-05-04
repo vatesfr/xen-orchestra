@@ -103,7 +103,7 @@ interface Effects {}
 >>>>>>> use ref
 =======
 interface Effects {
-  sendCtrlAltDel: React.MouseEventHandler
+  noop: () => void
   setCtrlAltDel: (sendCtrlAltDel: State['sendCtrlAltDel']) => void
 }
 >>>>>>> remove ref
@@ -168,18 +168,16 @@ const TabConsole = withState<State, Props, Effects, Computed, ParentState, Paren
       sendCtrlAltDel: undefined,
     }),
     effects: {
-      sendCtrlAltDel: function () {
-        const { sendCtrlAltDel } = this.state
-        sendCtrlAltDel !== undefined && sendCtrlAltDel
-      },
+      noop: function () {},
       setCtrlAltDel: function (sendCtrlAltDel) {
         this.state.sendCtrlAltDel = sendCtrlAltDel
 >>>>>>> fixes
       },
     },
   },
-  ({ effects, vmId }) => (
+  ({ effects, state, vmId }) => (
     <div style={{ height: '100vh' }}>
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
       <RangeInput max={100} min={1} onChange={effects.scaleConsole} step={1} value={state.consoleScale} />
@@ -217,6 +215,9 @@ const TabConsole = withState<State, Props, Effects, Computed, ParentState, Paren
 =======
       <Button label={<FormattedMessage id='ctrlAltDel' />} onClick={effects.sendCtrlAltDel} />
 >>>>>>> fixes
+=======
+      <Button label={<FormattedMessage id='ctrlAltDel' />} onClick={state.sendCtrlAltDel !== undefined ? state.sendCtrlAltDel : effects.noop}/>
+>>>>>>> noop if sndCtrlAltDel undefined
       <Console vmId={vmId} setCtrlAltDel={effects.setCtrlAltDel} />
 >>>>>>> remove ref
 >>>>>>> move tabConsole into App/
