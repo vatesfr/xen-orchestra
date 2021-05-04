@@ -83,7 +83,6 @@ interface ParentEffects {}
 
 <<<<<<< HEAD
 interface Effects {
-  noop: () => void
   scaleConsole: React.ChangeEventHandler<HTMLInputElement>
   setCtrlAltDel: (sendCtrlAltDel: State['sendCtrlAltDel']) => void
 }
@@ -121,7 +120,6 @@ const TabConsole = withState<State, Props, Effects, Computed, ParentState, Paren
       sendCtrlAltDel: undefined,
     }),
     effects: {
-      noop: function () {},
       scaleConsole: function (e) {
         this.state.consoleScale = +e.currentTarget.value
 

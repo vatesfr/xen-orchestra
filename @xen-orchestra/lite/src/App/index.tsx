@@ -8,8 +8,9 @@ import messagesEn from '../lang/en.json'
 import Signin from './Signin/index'
 import StyleGuide from './StyleGuide/index'
 import TabConsole from './TabConsole'
-import XapiConnection, { ObjectsByType, Vm } from '../libs/xapi'
+
 import Modal from '../components/Modal'
+import XapiConnection, { ObjectsByType, Vm } from '../libs/xapi'
 
 interface ParentState {
   objectsByType: ObjectsByType

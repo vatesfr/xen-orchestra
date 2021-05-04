@@ -22,7 +22,7 @@ interface State {
 interface Props {
   vmId: string
   scale: number
-  setCtrlAltDel: (fn: () => void) => void
+  setCtrlAltDel: (sendCtrlAltDel: Effects['sendCtrlAltDel']) => void
 }
 
 interface ParentEffects {}
