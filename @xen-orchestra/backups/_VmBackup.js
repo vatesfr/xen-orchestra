@@ -169,13 +169,7 @@ exports.VmBackup = class VmBackup {
           sizeContainers,
           timestamp,
         })
-      } catch (error) {
-        warn('copy failure', {
-          error,
-          target: writer.target,
-          vm: this.vm,
-        })
-      }
+      } catch (error) {}
     })
 
     this._baseVm = exportedVm
@@ -221,13 +215,7 @@ exports.VmBackup = class VmBackup {
           stream: forkStreamUnpipe(stream),
           timestamp,
         })
-      } catch (error) {
-        warn('copy failure', {
-          error,
-          target: writer.target,
-          vm: this.vm,
-        })
-      }
+      } catch (error) {}
     })
 
     const { size } = sizeContainer
