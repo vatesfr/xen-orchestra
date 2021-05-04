@@ -1,11 +1,11 @@
 import React from 'react'
+import styled from 'styled-components'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { materialDark as codeStyle } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import { withState } from 'reaclette'
 
 import Button from '../../components/Button'
 import Icon from '../../components/Icon'
-import styled from 'styled-components'
 
 interface ParentState {}
 
