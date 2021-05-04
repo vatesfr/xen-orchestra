@@ -18,7 +18,7 @@ interface Props {
 interface ParentEffects {}
 
 interface Effects {
-  sendCtrlAltDel: React.MouseEventHandler
+  noop: () => void
   setCtrlAltDel: (sendCtrlAltDel: State['sendCtrlAltDel']) => void
 }
 
@@ -30,18 +30,15 @@ const TabConsole = withState<State, Props, Effects, Computed, ParentState, Paren
       sendCtrlAltDel: undefined,
     }),
     effects: {
-      sendCtrlAltDel: function () {
-        const { sendCtrlAltDel } = this.state
-        sendCtrlAltDel !== undefined && sendCtrlAltDel
-      },
+      noop: function () {},
       setCtrlAltDel: function (sendCtrlAltDel) {
         this.state.sendCtrlAltDel = sendCtrlAltDel
       },
     },
   },
-  ({ effects, vmId }) => (
+  ({ effects, state, vmId }) => (
     <div style={{ height: '100vh' }}>
-      <Button label={<FormattedMessage id='ctrlAltDel' />} onClick={effects.sendCtrlAltDel} />
+      <Button label={<FormattedMessage id='ctrlAltDel' />} onClick={state.sendCtrlAltDel !== undefined ? state.sendCtrlAltDel : effects.noop}/>
       <Console vmId={vmId} setCtrlAltDel={effects.setCtrlAltDel} />
     </div>
   )
