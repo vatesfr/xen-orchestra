@@ -16,7 +16,7 @@ interface State {
   confirmCtrlAltDel: boolean
   container: React.RefObject<HTMLDivElement>
   // unknown type throw an error
-  RFB: any
+  rfb?: any
 }
 
 interface Props {
@@ -38,7 +38,7 @@ const Console = withState<State, Props, Effects, Computed, ParentState, ParentEf
     initialState: () => ({
       confirmCtrlAltDel: false,
       container: React.createRef(),
-      RFB: null,
+      rfb: undefined,
     }),
     effects: {
       initialize: async function () {
@@ -60,18 +60,17 @@ const Console = withState<State, Props, Effects, Computed, ParentState, ParentEf
         url.protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
         url.searchParams.set('session_id', xapi.sessionId)
 
-        this.state.RFB = new RFB(this.state.container.current, url, {
+        this.state.rfb = new RFB(this.state.container.current, url, {
           wsProtocols: ['binary'],
         })
         this.props.setCtrlAltDel(this.effects.sendCtrlAltDel)
       },
       sendCtrlAltDel: async function () {
         await confirm({
-          aze: <p></p>,
-          message: <p></p>,
-          title:<p></p>
+          message: <FormattedMessage id='sendCtrlAltDel'/>,
+          title: <FormattedMessage id='ctrlAltDel'/>
         })
-        this.state.RFB!.sendCtrlAltDel()
+        this.state.rfb!.sendCtrlAltDel()
       },
     },
   },

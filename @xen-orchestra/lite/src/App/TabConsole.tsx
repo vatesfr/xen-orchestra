@@ -3,11 +3,12 @@ import { withState } from 'reaclette'
 
 import Button from '../components/Button'
 import Console from '../components/Console'
+import { FormattedMessage } from 'react-intl'
 
 interface ParentState {}
 
 interface State {
-  ctrlAltDel: () => void
+  sendCtrlAltDel?: () => void
 }
 
 interface Props {
@@ -17,7 +18,8 @@ interface Props {
 interface ParentEffects {}
 
 interface Effects {
-  setCtrlAltDel: (fn: () => void) => void
+  sendCtrlAltDel: React.MouseEventHandler
+  setCtrlAltDel: (sendCtrlAltDel: State['sendCtrlAltDel']) => void
 }
 
 interface Computed {}
@@ -25,17 +27,21 @@ interface Computed {}
 const TabConsole = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
   {
     initialState: () => ({
-      ctrlAltDel: () => {},
+      sendCtrlAltDel: undefined,
     }),
     effects: {
-      setCtrlAltDel: function (fn) {
-        this.state.ctrlAltDel = fn
+      sendCtrlAltDel: function () {
+        const { sendCtrlAltDel } = this.state
+        sendCtrlAltDel !== undefined && sendCtrlAltDel
+      },
+      setCtrlAltDel: function (sendCtrlAltDel) {
+        this.state.sendCtrlAltDel = sendCtrlAltDel
       },
     },
   },
-  ({ effects, state, vmId }) => (
+  ({ effects, vmId }) => (
     <div style={{ height: '100vh' }}>
-      <Button label='CTRL+ALT+DEL' onClick={state.ctrlAltDel} />
+      <Button label={<FormattedMessage id='ctrlAltDel' />} onClick={effects.sendCtrlAltDel} />
       <Console vmId={vmId} setCtrlAltDel={effects.setCtrlAltDel} />
     </div>
   )

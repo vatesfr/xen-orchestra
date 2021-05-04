@@ -6,7 +6,7 @@ interface ParentState {}
 interface State {}
 
 interface Props {
-  label: string
+  label: string | JSX.Element
   onClick: (event: React.MouseEvent<HTMLButtonElement>) => void
 }
 
