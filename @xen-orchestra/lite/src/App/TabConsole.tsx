@@ -181,10 +181,9 @@ const TabConsole = withState<State, Props, Effects, Computed, ParentState, Paren
 <<<<<<< HEAD
 <<<<<<< HEAD
       <RangeInput max={100} min={1} onChange={effects.scaleConsole} step={1} value={state.consoleScale} />
-      <Button
-        label={<FormattedMessage id='ctrlAltDel' />}
-        onClick={state.sendCtrlAltDel !== undefined ? state.sendCtrlAltDel : effects.noop}
-      />
+      <Button onClick={state.sendCtrlAltDel}>
+        <FormattedMessage id='ctrlAltDel' />
+      </Button>
       <Console vmId={vmId} scale={state.consoleScale} setCtrlAltDel={effects.setCtrlAltDel} />
 =======
 <<<<<<< HEAD
