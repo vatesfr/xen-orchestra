@@ -2,6 +2,8 @@ import React from 'react'
 import { FormattedMessage } from 'react-intl'
 import { withState } from 'reaclette'
 
+import Button from './Button'
+
 interface GeneralPropsModal {
   message: JSX.Element
   title: JSX.Element
@@ -99,12 +101,12 @@ const Modal = withState<State, Props, Effects, Computed, ParentState, ParentEffe
         <p>{title}</p>
         <p>{message}</p>
         <footer>
-          <button onClick={_success}>
+          <Button onClick={_success}>
             <FormattedMessage id='ok' />
-          </button>
-          <button onClick={_reject}>
+          </Button>
+          <Button onClick={_reject}>
             <FormattedMessage id='cancel' />
-          </button>
+          </Button>
         </footer>
       </div>
     ) : null
