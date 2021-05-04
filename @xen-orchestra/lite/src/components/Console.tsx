@@ -21,6 +21,7 @@ interface State {
 
 interface Props {
   vmId: string
+  scale: number
   setCtrlAltDel: (fn: () => void) => void
 }
 
@@ -63,18 +64,22 @@ const Console = withState<State, Props, Effects, Computed, ParentState, ParentEf
         this.state.rfb = new RFB(this.state.container.current, url, {
           wsProtocols: ['binary'],
         })
+        this.state.rfb.scaleViewport = true
+
         this.props.setCtrlAltDel(this.effects.sendCtrlAltDel)
       },
       sendCtrlAltDel: async function () {
         await confirm({
-          message: <FormattedMessage id='confirmCtrlAltDel'/>,
-          title: <FormattedMessage id='ctrlAltDel'/>
+          message: <FormattedMessage id='confirmCtrlAltDel' />,
+          title: <FormattedMessage id='ctrlAltDel' />,
         })
         this.state.rfb!.sendCtrlAltDel()
       },
     },
   },
-  ({ state }) => <div ref={state.container} />
+  ({ scale, state }) => (
+    <div ref={state.container} style={{ margin: 'auto', height: `${scale}%`, width: `${scale}%` }} />
+  )
 )
 
 export default Console
