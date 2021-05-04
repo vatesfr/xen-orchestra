@@ -13,7 +13,8 @@ interface ParentState {
 interface State {
   container: React.RefObject<HTMLDivElement>
   // See https://github.com/vatesfr/xen-orchestra/pull/5722#discussion_r619296074
-  rfb: any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  rfb?: any
   rfbConnected: boolean
 }
 
@@ -37,7 +38,7 @@ const Console = withState<State, Props, Effects, Computed, ParentState, ParentEf
   {
     initialState: () => ({
       container: React.createRef(),
-      rfb: null,
+      rfb: undefined,
       rfbConnected: false,
     }),
     effects: {
