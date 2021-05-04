@@ -13,7 +13,6 @@
     "@fortawesome/react-fontawesome": "^0.1.14",
     "@novnc/novnc": "^1.2.0",
     "@types/immutable": "^3.8.7",
-    "@types/lodash": "4.14.168",
     "@types/node": "^14.14.21",
     "@types/react": "^17.0.0",
     "@types/react-dom": "^17.0.0",
@@ -28,7 +27,6 @@
     "eslint": "^7.21.0",
     "eslint-plugin-react": "^7.22.0",
     "html-webpack-plugin": "^5.2.0",
-<<<<<<< HEAD
     "immutable": "^4.0.0-rc.12",
     "json-rpc-protocol": "^0.13.1",
     "node-polyfill-webpack-plugin": "^1.0.3",
@@ -42,9 +40,7 @@
     "react-syntax-highlighter": "^15.4.3",
     "styled-components": "^5.2.1",
     "typescript": "^4.1.3",
-=======
     "lodash": "^4.17.21",
->>>>>>> df02b138b... typeError
     "webpack": "^5.24.2",
     "webpack-cli": "^4.5.0",
     "xen-api": "^0.32.0"

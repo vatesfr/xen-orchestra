@@ -1,10 +1,8 @@
 import React from 'react'
-import { forEach } from 'lodash'
 import { FormattedMessage } from 'react-intl'
 import { withState } from 'reaclette'
 
 interface GeneralPropsModal {
-  [key: string]: JSX.Element | { (arg: unknown): void }
   message: JSX.Element
   title: JSX.Element
 }
@@ -17,14 +15,16 @@ interface PropsModal extends GeneralPropsModal {
 export const confirm = ({ message, title }: GeneralPropsModal) =>
   new Promise((resolve, reject) => modal({ message, onReject: reject, onSuccess: resolve, title }))
 
-const modal = (args: PropsModal) => {
+const modal = ({ message, onReject, onSuccess, title }: PropsModal) => {
   if (instance === undefined) {
     throw new Error('No modal instance')
   }
 
-  forEach(args, (value: any, key: any) => (instance!.state[key] = value))
+  instance.state.message = message
+  instance.state.onReject = onReject
+  instance.state.onSuccess = onSuccess
   instance.state.showModal = true
-
+  instance.state.title = title
 }
 
 const STYLES_MODAL: React.CSSProperties = {
@@ -38,8 +38,12 @@ const STYLES_MODAL: React.CSSProperties = {
 
 interface ParentState {}
 
-interface State extends PropsModal {
+interface State {
+  message?: JSX.Element
+  onReject?: (reason: unknown) => void
+  onSuccess?: (value: unknown) => void
   showModal: boolean
+  title?: JSX.Element
 }
 
 interface Props {}
@@ -58,11 +62,11 @@ let instance: EffectContext<State, Props, Effects, Computed, ParentState, Parent
 const Modal = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
   {
     initialState: () => ({
-      message: <p></p>,
-      onReject: () => {},
-      onSuccess: () => {},
+      message: undefined,
+      onReject: undefined,
+      onSuccess: undefined,
       showModal: false,
-      title: <p></p>,
+      title: undefined,
     }),
     effects: {
       initialize: function () {
@@ -78,11 +82,11 @@ const Modal = withState<State, Props, Effects, Computed, ParentState, ParentEffe
         this.state.showModal = false
       },
       _reject: function () {
-        this.state.onReject('Normal reject')
+        this.state.onReject!('Normal reject')
         this.effects._closeModal()
       },
       _success: function () {
-        this.state.onSuccess('Success')
+        this.state!.onSuccess!('Success')
         this.effects._closeModal()
       },
     },
