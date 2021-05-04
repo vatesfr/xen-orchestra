@@ -15,7 +15,7 @@ interface ParentState {
 interface State {
   confirmCtrlAltDel: boolean
   container: React.RefObject<HTMLDivElement>
-  // unknown type throw an error
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   rfb?: any
 }
 
