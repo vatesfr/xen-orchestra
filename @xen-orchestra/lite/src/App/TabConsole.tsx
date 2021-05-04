@@ -5,6 +5,7 @@ import { withState } from 'reaclette'
 
 import Button from '../components/Button'
 import Console from '../components/Console'
+<<<<<<< HEAD
 import RangeInput from '../components/RangeInput'
 =======
 import { withState } from 'reaclette'
@@ -39,10 +40,14 @@ import Console from './Console'
 >>>>>>> remove ref
 >>>>>>>> move tabConsole into App/:@xen-orchestra/lite/src/components/TabConsole.tsx
 >>>>>>> move tabConsole into App/
+=======
+import { FormattedMessage } from 'react-intl'
+>>>>>>> fixes
 
 interface ParentState {}
 
 interface State {
+<<<<<<< HEAD
 <<<<<<< HEAD
   consoleScale: number
   sendCtrlAltDel?: () => void
@@ -65,6 +70,9 @@ interface State {
   ctrlAltDel: () => void
 >>>>>>> create small minimal modal
 >>>>>>> move tabConsole into App/
+=======
+  sendCtrlAltDel?: () => void
+>>>>>>> fixes
 }
 
 interface Props {
@@ -95,7 +103,8 @@ interface Effects {}
 >>>>>>> use ref
 =======
 interface Effects {
-  setCtrlAltDel: (fn: () => void) => void
+  sendCtrlAltDel: React.MouseEventHandler
+  setCtrlAltDel: (sendCtrlAltDel: State['sendCtrlAltDel']) => void
 }
 >>>>>>> remove ref
 >>>>>>> move tabConsole into App/
@@ -105,6 +114,7 @@ interface Computed {}
 const TabConsole = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
   {
     initialState: () => ({
+<<<<<<< HEAD
 <<<<<<< HEAD
       // Value in percent
       consoleScale: 100,
@@ -154,11 +164,23 @@ const TabConsole = withState<State, Props, Effects, Computed, ParentState, Paren
       setCtrlAltDel: function (fn) {
         this.state.ctrlAltDel = fn
 >>>>>>> move tabConsole into App/
+=======
+      sendCtrlAltDel: undefined,
+    }),
+    effects: {
+      sendCtrlAltDel: function () {
+        const { sendCtrlAltDel } = this.state
+        sendCtrlAltDel !== undefined && sendCtrlAltDel
+      },
+      setCtrlAltDel: function (sendCtrlAltDel) {
+        this.state.sendCtrlAltDel = sendCtrlAltDel
+>>>>>>> fixes
       },
     },
   },
-  ({ effects, state, vmId }) => (
+  ({ effects, vmId }) => (
     <div style={{ height: '100vh' }}>
+<<<<<<< HEAD
 <<<<<<< HEAD
       <RangeInput max={100} min={1} onChange={effects.scaleConsole} step={1} value={state.consoleScale} />
       <Button
@@ -192,6 +214,9 @@ const TabConsole = withState<State, Props, Effects, Computed, ParentState, Paren
 =======
       <Button label='CTRL+ALT+DEL' onClick={state.ctrlAltDel} />
 >>>>>>> create small minimal modal
+=======
+      <Button label={<FormattedMessage id='ctrlAltDel' />} onClick={effects.sendCtrlAltDel} />
+>>>>>>> fixes
       <Console vmId={vmId} setCtrlAltDel={effects.setCtrlAltDel} />
 >>>>>>> remove ref
 >>>>>>> move tabConsole into App/
