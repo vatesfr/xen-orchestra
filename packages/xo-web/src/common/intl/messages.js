@@ -1590,6 +1590,8 @@ const messages = {
     'Restore {nMetadataBackups, number} metadata backup{nMetadataBackups, plural, one {} other {s}}',
   bulkRestoreMetadataBackupMessage:
     'Restore {nMetadataBackups, number} metadata backup{nMetadataBackups, plural, one {} other {s}} from {nMetadataBackups, plural, one {its} other {their}} {oldestOrLatest} backup',
+  metadataRestorationWarning:
+    'This operation will overwrites the XAPI database of the host. Only perform a metadata restore if it is a new server with nothing running on it.',
   deleteMetadataBackupTitle: 'Delete {item} backup',
   restoreVmBackupsBulkErrorMessage: 'You need to select a destination SR',
   deleteVmBackups: 'Delete backups…',
