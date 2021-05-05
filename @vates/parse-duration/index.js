@@ -6,7 +6,7 @@ exports.parseDuration = value => {
   }
   const duration = ms(value)
   if (duration === undefined) {
-    throw new TypeError(`not a valid duration: ${duration}`)
+    throw new TypeError(`not a valid duration: ${value}`)
   }
   return duration
 }
