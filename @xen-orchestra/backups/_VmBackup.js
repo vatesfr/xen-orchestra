@@ -20,6 +20,12 @@ const { watchStreamSize } = require('./_watchStreamSize.js')
 
 const { debug, warn } = createLogger('xo:backups:VmBackup')
 
+const asyncEach = async (iterable, fn, thisArg = iterable) => {
+  for (const item of iterable) {
+    await fn.call(thisArg, item)
+  }
+}
+
 const forkDeltaExport = deltaExport =>
   Object.create(deltaExport, {
     streams: {
@@ -94,6 +100,25 @@ exports.VmBackup = class VmBackup {
     }
   }
 
+  // calls fn for each function, warns of any errors, and throws only if there are no writers left
+  async _callWriters(fn, warnMessage, parallel = true) {
+    const writers = this._writers
+    if (writers.size === 0) {
+      return
+    }
+    await (parallel ? asyncMap : asyncEach)(writers, async function (writer) {
+      try {
+        await fn(writer)
+      } catch (error) {
+        this.delete(writer)
+        warn(warnMessage, { error, writer: writer.constructor.name })
+      }
+    })
+    if (writers.size === 0) {
+      throw new Error('no writers left')
+    }
+  }
+
   // ensure the VM itself does not have any backup metadata which would be
   // copied on manual snapshots and interfere with the backup jobs
   async _cleanMetadata() {
@@ -153,7 +178,7 @@ exports.VmBackup = class VmBackup {
 
     const isFull = fullVdisRequired === undefined || fullVdisRequired.size !== 0
 
-    await asyncMap(this._writers, writer => writer.prepare({ isFull }))
+    await this._callWriters(writer => writer.prepare({ isFull }), 'writer.prepare()')
 
     const deltaExport = await exportDeltaVm(exportedVm, baseVm, {
       fullVdisRequired,
@@ -162,15 +187,15 @@ exports.VmBackup = class VmBackup {
 
     const timestamp = Date.now()
 
-    await asyncMap(this._writers, async writer => {
-      try {
-        await writer.transfer({
+    await this._callWriters(
+      writer =>
+        writer.transfer({
           deltaExport: forkDeltaExport(deltaExport),
           sizeContainers,
           timestamp,
-        })
-      } catch (error) {}
-    })
+        }),
+      'writer.transfer()'
+    )
 
     this._baseVm = exportedVm
 
@@ -195,7 +220,7 @@ exports.VmBackup = class VmBackup {
       size,
     })
 
-    await asyncMap(this._writers, writer => writer.cleanup && writer.cleanup())
+    await this._callWriters(writer => writer.cleanup(), 'writer.cleanup()')
   }
 
   async _copyFull() {
@@ -208,15 +233,15 @@ exports.VmBackup = class VmBackup {
 
     const timestamp = Date.now()
 
-    await asyncMap(this._writers, async writer => {
-      try {
-        await writer.run({
+    await this._callWriters(
+      writer =>
+        writer.run({
           sizeContainer,
           stream: forkStreamUnpipe(stream),
           timestamp,
-        })
-      } catch (error) {}
-    })
+        }),
+      'writer.run()'
+    )
 
     const { size } = sizeContainer
     const end = Date.now()
@@ -290,17 +315,11 @@ exports.VmBackup = class VmBackup {
     })
 
     const presentBaseVdis = new Map(baseUuidToSrcVdi)
-    const writers = this._writers
-    for (const writer of this._writers) {
-      if (presentBaseVdis.size === 0) {
-        break
-      }
-      await writer.checkBaseVdis(presentBaseVdis, baseVm)
-    }
-
-    if (presentBaseVdis.size === 0) {
-      return
-    }
+    await this._callWriters(
+      writer => presentBaseVdis.size !== 0 && writer.checkBaseVdis(presentBaseVdis, baseVm),
+      'writer.checkBaseVdis()',
+      false
+    )
 
     const fullVdisRequired = new Set()
     baseUuidToSrcVdi.forEach((srcVdi, baseUuid) => {
@@ -321,10 +340,10 @@ exports.VmBackup = class VmBackup {
       'offlineBackup is not compatible with snapshotRetention'
     )
 
-    await asyncMapSettled(this._writers, async writer => {
+    await this._callWriters(async writer => {
       await writer.beforeBackup()
       $defer(() => writer.afterBackup())
-    })
+    }, 'writer.beforeBackup()')
 
     await this._fetchJobSnapshots()
 
