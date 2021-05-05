@@ -30,7 +30,7 @@
     "@vates/decorate-with": "^0.0.1",
     "@vates/disposable": "^0.1.1",
     "@vates/multi-key-map": "^0.1.0",
-    "@vates/parse-duration": "0.1.0",
+    "@vates/parse-duration": "^0.1.1",
     "@vates/read-chunk": "^0.1.2",
     "@xen-orchestra/async-map": "^0.1.2",
     "@xen-orchestra/backups": "^0.10.1",
