@@ -386,6 +386,9 @@ class BackupReportsXoPlugin {
     let nFailures = 0
     let nSkipped = 0
     let nInterrupted = 0
+
+    let nTasks = log.tasks.length
+
     for (const taskLog of log.tasks) {
       if (!force && taskLog.status === 'success' && reportWhen === 'failure') {
         continue
@@ -425,6 +428,7 @@ class BackupReportsXoPlugin {
       }
 
       if (type !== 'VM') {
+        --nTasks
         continue
       }
 
@@ -567,7 +571,6 @@ class BackupReportsXoPlugin {
       }
     }
 
-    const nTasks = log.tasks.length
     const nSuccesses = nTasks - nFailures - nSkipped - nInterrupted
     const markdown = [
       `##  Global status: ${log.status}`,
