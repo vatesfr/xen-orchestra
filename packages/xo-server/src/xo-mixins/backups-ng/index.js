@@ -169,7 +169,6 @@ export default class BackupNg {
               try {
                 app.getObject(id)
               } catch (error) {
-                // log failure task in case of missing pool
                 const taskId = logger.notice('missing pool', {
                   data: {
                     type: 'pool',
