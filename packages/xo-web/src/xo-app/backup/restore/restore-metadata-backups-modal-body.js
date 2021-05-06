@@ -11,7 +11,7 @@ import { Select } from 'form'
 
 const restorationWarning = (
   <p className='text-warning mt-1'>
-    <Icon icon='alarm' /> {_('metadataRestorationWarning')}
+    <Icon icon='alarm' /> {_('restoreMetadataBackupWarning')}
   </p>
 )
 
