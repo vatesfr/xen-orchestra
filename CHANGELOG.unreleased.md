@@ -11,6 +11,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Backups] Better handling of errors in remotes, fix `task has already ended`
 - [Metadata Backup] Fix `Cannot read property 'constructor' of null` when editing job [Forum post](https://xcp-ng.org/forum/topic/4556/can-t-edit-xo-metatata-backup-config)
 
 ### Packages to release
