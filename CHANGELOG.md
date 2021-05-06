@@ -2,6 +2,8 @@
 
 ## **5.58.1** (2021-05-06)
 
+<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
 ### Bug fixes
 
 - [Backups] Better handling of errors in remotes, fix `task has already ended`
@@ -14,8 +16,6 @@
 - xo-server 5.79.3
 
 ## **5.58.0** (2021-04-30)
-
-<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
 
 ### Enhancements
 
