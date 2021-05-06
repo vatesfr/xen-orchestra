@@ -29,7 +29,7 @@
 
 - [Backup] Remove legacy backup support (PR [#5718](https://github.com/vatesfr/xen-orchestra/pull/5718))
 
-### Packages to release
+### Released packages
 
 - xo-server-perf-alert 0.3.1
 - xo-remote-parser 0.7.0
