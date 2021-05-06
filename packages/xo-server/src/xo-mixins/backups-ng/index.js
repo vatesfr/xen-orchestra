@@ -13,7 +13,7 @@ import { Task } from '@xen-orchestra/backups/Task.js'
 
 import { debounceWithKey, REMOVE_CACHE_ENTRY } from '../../_pDebounceWithKey.js'
 import { handleBackupLog } from '../../_handleBackupLog.js'
-import { unboxIdsFromPattern } from '../../utils.js'
+import { serializeError, unboxIdsFromPattern } from '../../utils.js'
 import { waitAll } from '../../_waitAll.js'
 
 const log = createLogger('xo:xo-mixins:backups-ng')
@@ -150,6 +150,44 @@ export default class BackupNg {
         // different than the VMs in the job itself.
         let vmIds = data?.vms ?? extractIdsFromSimplePattern(vmsPattern)
         if (vmIds === undefined) {
+          const poolPattern = vmsPattern.$pool
+
+          // Log a failure task when a pool contained in the smart backup
+          // pattern doesn't exist
+          if (poolPattern !== undefined) {
+            let poolIds = extractIdsFromSimplePattern({ id: poolPattern })
+            if (poolIds === undefined && Array.isArray(poolPattern.__and)) {
+              poolIds = []
+              poolPattern.__and.forEach(pattern => {
+                const ids = extractIdsFromSimplePattern({ id: pattern })
+                if (ids !== undefined) {
+                  poolIds = [...poolIds, ids]
+                }
+              })
+            }
+            poolIds?.forEach(id => {
+              try {
+                app.getObject(id)
+              } catch (error) {
+                // log failure task in case of missing pool
+                const taskId = logger.notice('missing pool', {
+                  data: {
+                    type: 'pool',
+                    id,
+                  },
+                  event: 'task.start',
+                  parentId: runJobId,
+                })
+                logger.error(`missing pool`, {
+                  event: 'task.end',
+                  result: serializeError(error),
+                  status: 'failure',
+                  taskId,
+                })
+              }
+            })
+          }
+
           vmIds = Object.keys(
             app.getObjects({
               filter: createPredicate({
