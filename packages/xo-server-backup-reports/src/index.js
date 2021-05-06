@@ -385,15 +385,10 @@ class BackupReportsXoPlugin {
     let globalTransferSize = 0
     let nFailures = 0
     let nSkipped = 0
+    let nSuccesses = 0
     let nInterrupted = 0
 
-    let nTasks = log.tasks.length
-
     for (const taskLog of log.tasks) {
-      if (!force && taskLog.status === 'success' && reportWhen === 'failure') {
-        continue
-      }
-
       const { type, id } = taskLog.data ?? {}
       if (taskLog.message === 'get SR record' || taskLog.message === 'get remote adapter') {
         ++nFailures
@@ -428,7 +423,11 @@ class BackupReportsXoPlugin {
       }
 
       if (type !== 'VM') {
-        --nTasks
+        continue
+      }
+
+      if (!force && taskLog.status === 'success' && reportWhen === 'failure') {
+        ++nSuccesses
         continue
       }
 
@@ -566,12 +565,14 @@ class BackupReportsXoPlugin {
           interruptedVmsText.push(...text, ...subText)
           nagiosText.push(`[(Interrupted) ${vm !== undefined ? vm.name_label : 'undefined'}]`)
         } else {
+          ++nSuccesses
           successfulVmsText.push(...text, ...subText)
         }
       }
     }
 
-    const nSuccesses = nTasks - nFailures - nSkipped - nInterrupted
+    const nVmTasks = nSuccesses + nFailures + nSkipped + nInterrupted
+
     const markdown = [
       `##  Global status: ${log.status}`,
       '',
@@ -579,7 +580,7 @@ class BackupReportsXoPlugin {
       `- **Run ID**: ${log.id}`,
       `- **mode**: ${mode}`,
       ...getTemporalDataMarkdown(log.end, log.start, formatDate),
-      `- **Successes**: ${nSuccesses} / ${nTasks}`,
+      `- **Successes**: ${nSuccesses} / ${nVmTasks}`,
       globalTransferSize !== 0 && `- **Transfer size**: ${formatSize(globalTransferSize)}`,
       globalMergeSize !== 0 && `- **Merge size**: ${formatSize(globalMergeSize)}`,
       ...getWarningsMarkdown(log.warnings),
