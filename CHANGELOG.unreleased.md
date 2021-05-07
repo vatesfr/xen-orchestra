@@ -13,6 +13,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Smart backup] Report missing pools [#2844](https://github.com/vatesfr/xen-orchestra/issues/2844) (PR [#5768](https://github.com/vatesfr/xen-orchestra/pull/5768))
+
 ### Packages to release
 
 > Packages will be released in the order they are here, therefore, they should
@@ -32,3 +34,4 @@
 
 - xo-server-backup-reports patch
 - xo-web minor
+- xo-server patch
