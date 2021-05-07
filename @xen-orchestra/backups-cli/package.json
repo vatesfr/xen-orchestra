@@ -7,8 +7,8 @@
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "dependencies": {
     "@xen-orchestra/async-map": "^0.1.2",
-    "@xen-orchestra/backups": "^0.10.1",
-    "@xen-orchestra/fs": "^0.16.1",
+    "@xen-orchestra/backups": "^0.11.0",
+    "@xen-orchestra/fs": "^0.17.0",
     "filenamify": "^4.1.0",
     "getopts": "^2.2.5",
     "lodash": "^4.17.15",

@@ -11,8 +11,6 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [Metadata Backup] Fix `Cannot read property 'constructor' of null` when editing job [Forum post](https://xcp-ng.org/forum/topic/4556/can-t-edit-xo-metatata-backup-config)
-
 ### Packages to release
 
 > Packages will be released in the order they are here, therefore, they should
@@ -31,6 +29,3 @@
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
 - xo-server-backup-reports patch
-- @xen-orchestra/fs minor
-- @xen-orchestra/backups minor
-- xo-server patch
