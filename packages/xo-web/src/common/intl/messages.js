@@ -1581,6 +1581,8 @@ const messages = {
   restoreVmBackupsBulkTitle: 'Restore {nVms, number} VM{nVms, plural, one {} other {s}}',
   restoreVmBackupsBulkMessage:
     'Restore {nVms, number} VM{nVms, plural, one {} other {s}} from {nVms, plural, one {its} other {their}} {oldestOrLatest} backup.',
+  restoreMetadataBackupWarning:
+    'This operation will overwrite the host metadata. Only perform a metadata restore if it is a new server with nothing running on it.',
   oldest: 'oldest',
   latest: 'latest',
   restoreVmBackupsStart: 'Start VM{nVms, plural, one {} other {s}} after restore',
