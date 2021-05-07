@@ -546,8 +546,12 @@ class RemoteAdapter {
 }
 
 Object.assign(RemoteAdapter.prototype, {
-  cleanVm(vmDir) {
-    return Disposable.use(this._handler.lock(vmDir), () => cleanVm.apply(this, arguments))
+  cleanVm(vmDir, { lock = true } = {}) {
+    if (lock) {
+      return Disposable.use(this._handler.lock(vmDir), () => cleanVm.apply(this, arguments))
+    } else {
+      return cleanVm.apply(this, arguments)
+    }
   },
   isValidXva,
 })

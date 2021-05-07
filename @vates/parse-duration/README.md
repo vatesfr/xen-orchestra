@@ -44,4 +44,4 @@ You may:
 
 ## License
 
-[AGPL-3.0-or-later](https://spdx.org/licenses/AGPL-3.0-or-later) © [Vates SAS](https://vates.fr)
+[ISC](https://spdx.org/licenses/ISC) © [Vates SAS](https://vates.fr)

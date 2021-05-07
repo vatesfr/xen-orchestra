@@ -55,6 +55,11 @@ exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(Ab
     })
   }
 
+  async beforeBackup() {
+    await super.beforeBackup()
+    return this._cleanVm({ merge: true })
+  }
+
   prepare({ isFull }) {
     // create the task related to this export and ensure all methods are called in this context
     const task = new Task({

@@ -14,6 +14,12 @@ exports.MixinBackupWriter = (BaseClass = Object) =>
       this._lock = undefined
     }
 
+    _cleanVm(options) {
+      return this._adapter
+        .cleanVm(getVmBackupDir(this._backup.vm.uuid), { ...options, onLog: warn, lock: false })
+        .catch(warn)
+    }
+
     async beforeBackup() {
       const { handler } = this._adapter
       const vmBackupDir = getVmBackupDir(this._backup.vm.uuid)
@@ -22,14 +28,7 @@ exports.MixinBackupWriter = (BaseClass = Object) =>
     }
 
     async afterBackup() {
+      await this._cleanVm({ remove: true, merge: true })
       await this._lock.dispose()
-
-      try {
-        await this._adapter.cleanVm(getVmBackupDir(this._backup.vm.uuid), { remove: true, merge: true, onLog: warn })
-      } catch (error) {
-        if (error?.code !== 'ENOENT') {
-          throw error
-        }
-      }
     }
   }
