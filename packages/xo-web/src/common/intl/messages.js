@@ -794,6 +794,8 @@ const messages = {
   setpoolMaster: 'Master',
   syslogRemoteHost: 'Remote syslog host',
   defaultMigrationNetwork: 'Default migration network',
+  syncNetbox: 'Synchronize with Netbox',
+  syncNetboxWarning: 'Are you sure you want to synchronize with Netbox?',
   // ----- Pool host tab -----
   hostNameLabel: 'Name',
   hostDescription: 'Description',
