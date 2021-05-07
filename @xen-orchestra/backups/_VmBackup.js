@@ -115,7 +115,7 @@ exports.VmBackup = class VmBackup {
       }
     })
     if (writers.size === 0) {
-      throw new Error('no writers left')
+      throw new Error('all targets have failed, step: ' + warnMessage)
     }
   }
 
