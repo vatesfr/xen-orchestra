@@ -1,5 +1,6 @@
 import _ from 'intl'
 import Component from 'base-component'
+import Icon from 'icon'
 import PropTypes from 'prop-types'
 import React from 'react'
 import SingleLineRow from 'single-line-row'
@@ -7,6 +8,12 @@ import StateButton from 'state-button'
 import { Container, Col } from 'grid'
 import { FormattedDate } from 'react-intl'
 import { Select } from 'form'
+
+const restorationWarning = (
+  <p className='text-warning mt-1'>
+    <Icon icon='alarm' /> {_('restoreMetadataBackupWarning')}
+  </p>
+)
 
 export default class RestoreMetadataBackupModalBody extends Component {
   static propTypes = {
@@ -46,6 +53,7 @@ export default class RestoreMetadataBackupModalBody extends Component {
             />
           </Col>
         </SingleLineRow>
+        <SingleLineRow>{restorationWarning}</SingleLineRow>
       </Container>
     )
   }
@@ -76,6 +84,7 @@ export class RestoreMetadataBackupsBulkModalBody extends Component {
             />
           ),
         })}
+        {restorationWarning}
       </div>
     )
   }
