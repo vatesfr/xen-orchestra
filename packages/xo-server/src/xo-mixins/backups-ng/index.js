@@ -155,17 +155,10 @@ export default class BackupNg {
           // Log a failure task when a pool contained in the smart backup
           // pattern doesn't exist
           if (poolPattern !== undefined) {
-            let poolIds = extractIdsFromSimplePattern({ id: poolPattern })
-            if (poolIds === undefined && Array.isArray(poolPattern.__and)) {
-              poolIds = []
-              poolPattern.__and.forEach(pattern => {
-                const ids = extractIdsFromSimplePattern({ id: pattern })
-                if (ids !== undefined) {
-                  poolIds = [...poolIds, ...ids]
-                }
-              })
-            }
-            poolIds?.forEach(id => {
+            const poolIds =
+              extractIdsFromSimplePattern({ id: poolPattern }) ??
+              poolPattern.__and?.flatMap?.(pattern => extractIdsFromSimplePattern({ id: pattern }) ?? [])
+            poolIds.forEach(id => {
               try {
                 app.getObject(id)
               } catch (error) {
@@ -177,7 +170,7 @@ export default class BackupNg {
                   event: 'task.start',
                   parentId: runJobId,
                 })
-                logger.error(`missing pool`, {
+                logger.error('missing pool', {
                   event: 'task.end',
                   result: serializeError(error),
                   status: 'failure',
