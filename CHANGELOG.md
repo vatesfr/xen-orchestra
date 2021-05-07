@@ -1,8 +1,21 @@
 # ChangeLog
 
-## **5.58.0** (2021-04-30)
+## **5.58.1** (2021-05-06)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
+### Bug fixes
+
+- [Backups] Better handling of errors in remotes, fix `task has already ended`
+- [Metadata Backup] Fix `Cannot read property 'constructor' of null` when editing job [Forum post](https://xcp-ng.org/forum/topic/4556/can-t-edit-xo-metatata-backup-config)
+
+### Released packages
+
+- @xen-orchestra/fs 0.17.0
+- @xen-orchestra/backups 0.11.0
+- xo-server 5.79.3
+
+## **5.58.0** (2021-04-30)
 
 ### Enhancements
 
@@ -29,7 +42,7 @@
 
 - [Backup] Remove legacy backup support (PR [#5718](https://github.com/vatesfr/xen-orchestra/pull/5718))
 
-### Packages to release
+### Released packages
 
 - xo-server-perf-alert 0.3.1
 - xo-remote-parser 0.7.0

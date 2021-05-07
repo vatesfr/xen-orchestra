@@ -134,11 +134,11 @@ handlers.forEach(url => {
         expect(await handler.list('dir', { prependDir: true })).toEqual(['/dir/file'])
       })
 
-      it.only('throws ENOENT if no such directory', async () => {
+      it('throws ENOENT if no such directory', async () => {
         expect((await rejectionOf(handler.list('dir'))).code).toBe('ENOENT')
       })
 
-      it.only('can returns empty for missing directory', async () => {
+      it('can returns empty for missing directory', async () => {
         expect(await handler.list('dir', { ignoreMissing: true })).toEqual([])
       })
     })
