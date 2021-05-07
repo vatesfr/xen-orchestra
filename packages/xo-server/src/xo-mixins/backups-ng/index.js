@@ -161,7 +161,7 @@ export default class BackupNg {
               poolPattern.__and.forEach(pattern => {
                 const ids = extractIdsFromSimplePattern({ id: pattern })
                 if (ids !== undefined) {
-                  poolIds = [...poolIds, ids]
+                  poolIds = [...poolIds, ...ids]
                 }
               })
             }
