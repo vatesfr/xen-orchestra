@@ -1,10 +1,10 @@
 import React from 'react'
 import styled from 'styled-components'
+import { FormattedMessage } from 'react-intl'
 import { Map } from 'immutable'
 import { withState } from 'reaclette'
 
 import { Network, ObjectsByType, Pif } from '../../libs/xapi'
-import { FormattedMessage } from 'react-intl'
 
 interface ParentState {
   objectsByType: ObjectsByType
