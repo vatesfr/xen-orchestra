@@ -73,17 +73,14 @@
     "@vates/toggle-scripts": "^1.0.0",
     "babel-plugin-transform-dev": "^2.0.1",
     "cross-env": "^7.0.2",
-    "index-modules": "^0.3.0",
-    "rimraf": "^3.0.0"
+    "index-modules": "^0.3.0"
   },
   "scripts": {
-    "build": "cross-env NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
-    "clean": "rimraf dist/",
-    "dev": "cross-env NODE_ENV=development babel --watch --source-maps --out-dir=dist/ src/",
+    "_build": "index-modules --cjs-lazy src/app/mixins && babel --delete-dir-on-start --source-maps --out-dir=dist/ src/",
+    "build": "cross-env NODE_ENV=production yarn run _build",
+    "dev": "cross-env NODE_ENV=development yarn run _build --watch",
     "_postinstall": "./scripts/systemd-service-installer",
     "postpack": "toggle-scripts -postinstall -preuninstall",
-    "prebuild": "yarn run clean && index-modules --cjs-lazy src/app/mixins",
-    "predev": "yarn run prebuild",
     "prepack": "toggle-scripts +postinstall +preuninstall",
     "prepublishOnly": "yarn run build",
     "_preuninstall": "./scripts/systemd-service-installer",
