@@ -29,20 +29,20 @@ interface Computed {
 
 const COLUMNS: TableColumn[] = [
   {
-    name: <FormattedMessage id='device' />,
     itemRenderer: (pif: Pif) => pif.device,
+    name: <FormattedMessage id='device' />,
   },
   {
-    name: <FormattedMessage id='DNS' />,
     itemRenderer: (pif: Pif) => pif.DNS,
+    name: <FormattedMessage id='DNS' />,
   },
   {
-    name: <FormattedMessage id='gateway' />,
     itemRenderer: (pif: Pif) => pif.gateway,
+    name: <FormattedMessage id='gateway' />,
   },
   {
-    name: <FormattedMessage id='IP' />,
     itemRenderer: (pif: Pif) => pif.IP,
+    name: <FormattedMessage id='IP' />,
   },
 ]
 

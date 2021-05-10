@@ -8,8 +8,9 @@ import { withState } from 'reaclette'
 type Collections = Dictionary<unknown> | unknown[]
 
 export type TableColumn = {
-  name: JSX.Element
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   itemRenderer: { (item: any): string | JSX.Element }
+  name: JSX.Element
 }
 
 interface ParentState {}
