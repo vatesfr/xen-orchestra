@@ -21,6 +21,7 @@ interface ParentEffects {}
 interface Effects {}
 
 interface Computed {
+  managementPIFs?: Map<string, Pif>
   networks?: Map<string, Network>
   objectsFetched: boolean
   PIFs?: Map<string, Pif>
@@ -40,6 +41,7 @@ const Table = styled.table`
 const PoolNetwork = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
   {
     computed: {
+      managementPIFs: state => state.PIFs?.filter(pif => pif.management),
       networks: (state, props) =>
         state.objectsFetched
           ? state.objectsByType.get('network')?.filter(network => network.$pool.$id === props.poolId)
@@ -68,17 +70,14 @@ const PoolNetwork = withState<State, Props, Effects, Computed, ParentState, Pare
         </tr>
       </thead>
       <tbody>
-        {state.PIFs?.valueSeq().map(
-          pif =>
-            pif.management && (
-              <tr key={pif.$id}>
-                <td>{pif.device}</td>
-                <td>{pif.DNS}</td>
-                <td>{pif.gateway}</td>
-                <td>{pif.IP}</td>
-              </tr>
-            )
-        )}
+        {state.managementPIFs?.valueSeq().map(pif => (
+          <tr key={pif.$id}>
+            <td>{pif.device}</td>
+            <td>{pif.DNS}</td>
+            <td>{pif.gateway}</td>
+            <td>{pif.IP}</td>
+          </tr>
+        ))}
       </tbody>
     </Table>
   )
