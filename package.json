@@ -75,7 +75,7 @@
     "dev-test": "jest --bail --watch \"^(?!.*\\.integ\\.spec\\.js$)\"",
     "docs:dev": "vuepress dev docs",
     "docs:build": "vuepress build docs",
-    "prettify": "prettier --ignore-path .gitignore --write '**/*.{js,jsx,md,mjs,ts,tsx}'",
+    "prettify": "prettier --ignore-path .gitignore --write '**/*.{cjs,js,jsx,md,mjs,ts,tsx}'",
     "test": "npm run test-lint && npm run test-unit",
     "test-integration": "jest \".integ\\.spec\\.js$\"",
     "test-lint": "eslint --ignore-path .gitignore .",
