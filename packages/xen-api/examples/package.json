@@ -5,7 +5,7 @@
     "human-format": "^0.11.0",
     "process-top": "^1.0.0",
     "progress-stream": "^2.0.0",
-    "promise-toolbox": "^0.13.0",
+    "promise-toolbox": "^0.19.2",
     "readable-stream": "^3.1.1",
     "throttle": "^1.0.3",
     "vhd-lib": "^1.0.0"

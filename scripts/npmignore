@@ -5,6 +5,8 @@
 *.bench.js
 *.bench.js.map
 
+/coverage/
+
 /examples/
 example.js
 example.js.map

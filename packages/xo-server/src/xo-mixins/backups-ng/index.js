@@ -13,7 +13,7 @@ import { Task } from '@xen-orchestra/backups/Task.js'
 
 import { debounceWithKey, REMOVE_CACHE_ENTRY } from '../../_pDebounceWithKey.js'
 import { handleBackupLog } from '../../_handleBackupLog.js'
-import { unboxIdsFromPattern } from '../../utils.js'
+import { serializeError, unboxIdsFromPattern } from '../../utils.js'
 import { waitAll } from '../../_waitAll.js'
 
 const log = createLogger('xo:xo-mixins:backups-ng')
@@ -150,6 +150,36 @@ export default class BackupNg {
         // different than the VMs in the job itself.
         let vmIds = data?.vms ?? extractIdsFromSimplePattern(vmsPattern)
         if (vmIds === undefined) {
+          const poolPattern = vmsPattern.$pool
+
+          // Log a failure task when a pool contained in the smart backup
+          // pattern doesn't exist
+          if (poolPattern !== undefined) {
+            const poolIds =
+              extractIdsFromSimplePattern({ id: poolPattern }) ??
+              poolPattern.__and?.flatMap?.(pattern => extractIdsFromSimplePattern({ id: pattern }) ?? [])
+            poolIds.forEach(id => {
+              try {
+                app.getObject(id)
+              } catch (error) {
+                const taskId = logger.notice('missing pool', {
+                  data: {
+                    type: 'pool',
+                    id,
+                  },
+                  event: 'task.start',
+                  parentId: runJobId,
+                })
+                logger.error('missing pool', {
+                  event: 'task.end',
+                  result: serializeError(error),
+                  status: 'failure',
+                  taskId,
+                })
+              }
+            })
+          }
+
           vmIds = Object.keys(
             app.getObjects({
               filter: createPredicate({

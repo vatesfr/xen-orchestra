@@ -354,12 +354,12 @@ export default class Api {
           duration: Date.now() - startTime,
           error: serializedError,
         })
-      }
 
-      if (app.config.get('verboseApiLogsOnErrors')) {
-        log.warn(message, { error })
-      } else {
-        log.warn(`${userName} | ${name}(...) [${ms(Date.now() - startTime)}] =!> ${error}`)
+        if (app.config.get('verboseApiLogsOnErrors')) {
+          log.warn(message, { error })
+        } else {
+          log.warn(`${userName} | ${name}(...) [${ms(Date.now() - startTime)}] =!> ${error}`)
+        }
       }
 
       const xoError = XAPI_ERROR_TO_XO_ERROR[error.code]

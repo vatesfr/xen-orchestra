@@ -46,7 +46,7 @@ function link(obj, prop, idField = '$id') {
   }
 
   if (Array.isArray(dynamicValue)) {
-    return dynamicValue.map(_ => _[idField])
+    return dynamicValue.map(_ => _?.[idField])
   }
 
   return dynamicValue[idField]

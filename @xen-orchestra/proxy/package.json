@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "@xen-orchestra/proxy",
-  "version": "0.13.0",
+  "version": "0.13.1",
   "license": "AGPL-3.0-or-later",
   "description": "XO Proxy used to remotely execute backup jobs",
   "keywords": [
@@ -23,7 +23,7 @@
     "xo-proxy": "dist/index.js"
   },
   "engines": {
-    "node": ">=12"
+    "node": ">=14.13"
   },
   "dependencies": {
     "@iarna/toml": "^2.2.0",
@@ -32,8 +32,8 @@
     "@vates/decorate-with": "^0.0.1",
     "@vates/disposable": "^0.1.1",
     "@xen-orchestra/async-map": "^0.1.2",
-    "@xen-orchestra/backups": "^0.10.1",
-    "@xen-orchestra/fs": "^0.16.1",
+    "@xen-orchestra/backups": "^0.11.0",
+    "@xen-orchestra/fs": "^0.17.0",
     "@xen-orchestra/log": "^0.2.0",
     "@xen-orchestra/mixin": "^0.1.0",
     "@xen-orchestra/mixins": "^0.1.0",
@@ -55,7 +55,7 @@
     "lodash": "^4.17.10",
     "node-zone": "^0.4.0",
     "parse-pairs": "^1.0.0",
-    "promise-toolbox": "^0.19.0",
+    "promise-toolbox": "^0.19.2",
     "source-map-support": "^0.5.16",
     "stoppable": "^1.0.6",
     "xdg-basedir": "^4.0.0",
@@ -73,17 +73,15 @@
     "@vates/toggle-scripts": "^1.0.0",
     "babel-plugin-transform-dev": "^2.0.1",
     "cross-env": "^7.0.2",
-    "index-modules": "^0.3.0",
+    "index-modules": "^0.4.0",
     "rimraf": "^3.0.0"
   },
   "scripts": {
-    "build": "cross-env NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
-    "clean": "rimraf dist/",
-    "dev": "cross-env NODE_ENV=development babel --watch --source-maps --out-dir=dist/ src/",
+    "_build": "index-modules --index-file index.mjs src/app/mixins && babel --delete-dir-on-start --keep-file-extension --source-maps --out-dir=dist/ src/",
+    "build": "cross-env NODE_ENV=production yarn run _build",
+    "dev": "cross-env NODE_ENV=development yarn run _build --watch",
     "_postinstall": "./scripts/systemd-service-installer",
     "postpack": "toggle-scripts -postinstall -preuninstall",
-    "prebuild": "yarn run clean && index-modules --cjs-lazy src/app/mixins",
-    "predev": "yarn run prebuild",
     "prepack": "toggle-scripts +postinstall +preuninstall",
     "prepublishOnly": "yarn run build",
     "_preuninstall": "./scripts/systemd-service-installer",
