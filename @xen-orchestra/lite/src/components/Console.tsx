@@ -14,7 +14,7 @@ interface State {
   container: React.RefObject<HTMLDivElement>
   // See https://github.com/vatesfr/xen-orchestra/pull/5722#discussion_r619296074
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  rfb?: any
+  rfb: any
   rfbConnected: boolean
 }
 
@@ -58,7 +58,7 @@ const Console = withState<State, Props, Effects, Computed, ParentState, ParentEf
           vmConsole => vmConsole.protocol === 'rfb'
         )
 
-        if (rfb !== null) {
+        if (rfb !== undefined) {
           rfb.removeEventListener('connect', this.effects._displayConsole)
           rfb.removeEventListener('disconnect', this.effects._attemptToReconnect)
         }
