@@ -99,7 +99,7 @@ const Console = withState<State, Props, Effects, Computed, ParentState, ParentEf
   },
   ({ scale, state }) => (
     <>
-      {state.rfb !== null && !state.rfbConnected && (
+      {state.rfb !== undefined && !state.rfbConnected && (
         <p>
           <FormattedMessage id='reconnectionAttempt' />
         </p>
