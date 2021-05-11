@@ -7,9 +7,8 @@ import { withState } from 'reaclette'
 
 type Collections = Dictionary<unknown> | unknown[]
 
-export type TableColumn = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  itemRenderer: { (item: any): string | JSX.Element }
+export type TableColumn<Type> = {
+  itemRenderer: { (item: Type): string | JSX.Element }
   name: JSX.Element
 }
 
@@ -19,7 +18,7 @@ interface State {}
 
 interface Props {
   collections: Collections | Map<string, unknown> | undefined
-  columns: TableColumn[]
+  columns: TableColumn<never>[]
 }
 
 interface ParentEffects {}
@@ -30,13 +29,13 @@ interface Computed {
   collections: Collections
 }
 
-const _Table = styled.table`
-  thead  {
+const StyledTable = styled.table`
+  thead {
     background-color: #2d83c3;
     color: #fff;
   }
   td,
-  th  {
+  th {
     padding: 1em;
   }
   tbody tr:nth-child(even) {
@@ -51,8 +50,7 @@ const _Table = styled.table`
 const Table = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
   {
     computed: {
-      collections: (_, props) => {
-        const { collections } = props
+      collections: (_, { collections }) => {
         if (collections === undefined) {
           return []
         }
@@ -65,7 +63,7 @@ const Table = withState<State, Props, Effects, Computed, ParentState, ParentEffe
   },
   ({ columns, state }) =>
     !isEmpty(state.collections) ? (
-      <_Table>
+      <StyledTable>
         <thead>
           <tr>
             {columns.map((col, index) => (
@@ -74,7 +72,7 @@ const Table = withState<State, Props, Effects, Computed, ParentState, ParentEffe
           </tr>
         </thead>
         <tbody>
-          {map(state.collections, (item, index) => (
+          {map(state.collections, (item: never, index) => (
             <tr key={index}>
               {columns.map((col, index) => (
                 <td key={index}>{col.itemRenderer(item)}</td>
@@ -82,7 +80,7 @@ const Table = withState<State, Props, Effects, Computed, ParentState, ParentEffe
             </tr>
           ))}
         </tbody>
-      </_Table>
+      </StyledTable>
     ) : (
       <FormattedMessage id='noData' />
     )

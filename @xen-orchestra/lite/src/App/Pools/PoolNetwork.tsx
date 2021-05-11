@@ -1,5 +1,4 @@
 import React from 'react'
-import styled from 'styled-components'
 import { FormattedMessage } from 'react-intl'
 import { Map } from 'immutable'
 import { withState } from 'reaclette'
@@ -28,21 +27,21 @@ interface Computed {
   PIFs?: Map<string, Pif>
 }
 
-const COLUMNS: TableColumn[] = [
+const COLUMNS: TableColumn<Pif>[] = [
   {
-    itemRenderer: (pif: Pif) => pif.device,
+    itemRenderer: pif => pif.device,
     name: <FormattedMessage id='device' />,
   },
   {
-    itemRenderer: (pif: Pif) => pif.DNS,
+    itemRenderer: pif => pif.DNS,
     name: <FormattedMessage id='DNS' />,
   },
   {
-    itemRenderer: (pif: Pif) => pif.gateway,
+    itemRenderer: pif => pif.gateway,
     name: <FormattedMessage id='gateway' />,
   },
   {
-    itemRenderer: (pif: Pif) => pif.IP,
+    itemRenderer: pif => pif.IP,
     name: <FormattedMessage id='IP' />,
   },
 ]
