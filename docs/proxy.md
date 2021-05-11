@@ -54,3 +54,36 @@ Once a proxy is deployed in your infrastructure, you can create a proxy remote u
 While creating a standard backup job from your main Xen Orchestra appliance, you will have the ability to select a proxy on which you want to execute the job.
 
 ![](https://user-images.githubusercontent.com/21563339/80116365-29b41100-8586-11ea-9746-e01ca3e53996.png)
+
+## Enabling login to a proxy appliance
+
+Login is disabled by default on proxy appliance.
+To be able to login, you need to set a password for the xoa user via the XenStore of the VM:
+```
+xe vm-param-set uuid=<UUID> xenstore-data:vm-data/system-account-xoa-password=<password>
+```
+Where UUID is the uuid of your proxy VM.
+
+Then you need to restart your VM.
+You can now login through SSH.
+
+## Adding a network card to a Proxy
+
+First you will need to add a VIF to your Proxy VM. This can be done in the Network tab of the VM in XOA.
+
+After adding the VIF you will need to set an IP for the new NIC, for that you will first need to SSH to the VM [as describe before](/proxy.md#enabling-login-to-proxy-appliance).
+
+Then set the new IP:
+```
+$ xoa network static eth1
+? Static IP for this machine 192.168.100.120
+? Network mask (eg 255.255.255.0) 255.255.255.0
+```
+If you want to set a static address.
+```
+$ xoa network dhcp eth1
+```
+If you prefere using DHCP.
+:::tip
+As XO use the first IP address reported by XAPI to contact the proxy appliance, you may have to switch the network card if you want your proxy to be connected through a specific IP address.
+:::
