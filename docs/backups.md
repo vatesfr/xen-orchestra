@@ -287,7 +287,6 @@ Concurrency is a parameter that let you define how many VMs your backup job will
 
 :::tip
 - Default concurrency value is 2 if left empty.
-- Xen Orchestra can be connected to multiple pools at once. So the concurrency number applies **per pool**.
 :::
 
 Let's say you want to backup 50 VMs (each with 1x disk) at 3:00 AM. There are **2 different strategies**:
