@@ -1,9 +1,9 @@
 import React from 'react'
 import RFB from '@novnc/novnc/lib/rfb'
+import { FormattedMessage } from 'react-intl'
 import { withState } from 'reaclette'
 
 import XapiConnection, { ObjectsByType, Vm } from '../libs/xapi'
-import { FormattedMessage } from 'react-intl'
 
 import { confirm } from './Modal'
 
