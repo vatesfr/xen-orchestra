@@ -17,7 +17,7 @@ interface State {
   confirmCtrlAltDel: boolean
   container: React.RefObject<HTMLDivElement>
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  rfb?: any
+  rfb: any
 }
 
 interface Props {
