@@ -3,6 +3,9 @@ import RFB from '@novnc/novnc/lib/rfb'
 import { withState } from 'reaclette'
 
 import XapiConnection, { ObjectsByType, Vm } from '../libs/xapi'
+import { FormattedMessage } from 'react-intl'
+
+import { confirm } from './Modal'
 
 interface ParentState {
   objectsByType: ObjectsByType
@@ -66,9 +69,11 @@ const Console = withState<State, Props, Effects, Computed, ParentState, ParentEf
         this.props.setCtrlAltDel(this.effects.sendCtrlAltDel)
       },
       sendCtrlAltDel: async function () {
-        if(confirm('Send Ctrl+Alt+Del to VM?')){
-          this.state.rfb!.sendCtrlAltDel()
-        }
+        await confirm({
+          message: <FormattedMessage id='confirmCtrlAltDel' />,
+          title: <FormattedMessage id='ctrlAltDel'/>
+        })
+        this.state.rfb.sendCtrlAltDel()
       },
     },
   },
