@@ -8,7 +8,9 @@ import PoolNetwork from './PoolNetwork'
 
 import { ObjectsByType, Pool } from '../../libs/xapi'
 
-interface ParentState {}
+interface ParentState {
+  objectsFetched: boolean
+}
 
 interface State {
   objectsByType: ObjectsByType
@@ -21,14 +23,12 @@ interface ParentEffects {}
 interface Effects {}
 
 interface Computed {
-  objectsFetched: boolean
   pools?: Map<string, Pool>
 }
 
 const Pools = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
   {
     computed: {
-      objectsFetched: state => state.objectsByType !== undefined,
       pools: state => (state.objectsFetched ? state.objectsByType?.get('pool') : undefined),
     },
   },
