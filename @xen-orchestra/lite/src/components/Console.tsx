@@ -3,9 +3,10 @@ import RFB from '@novnc/novnc/lib/rfb'
 import { FormattedMessage } from 'react-intl'
 import { withState } from 'reaclette'
 
+import { confirm } from './Modal'
+
 import XapiConnection, { ObjectsByType, Vm } from '../libs/xapi'
 
-import { confirm } from './Modal'
 
 interface ParentState {
   objectsByType: ObjectsByType
