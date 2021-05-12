@@ -1,11 +1,12 @@
 import assert from 'assert'
 import Collection from 'xo-collection'
+import dns from 'dns'
 import kindOf from 'kindof'
 import ms from 'ms'
 import httpRequest from 'http-request-plus'
 import { EventEmitter } from 'events'
 import { map, noop, omit } from 'lodash'
-import { cancelable, defer, fromEvents, ignoreErrors, pDelay, pRetry, pTimeout } from 'promise-toolbox'
+import { cancelable, defer, fromCallback, fromEvents, ignoreErrors, pDelay, pRetry, pTimeout } from 'promise-toolbox'
 
 import autoTransport from './transports/auto'
 import coalesceCalls from './_coalesceCalls'
@@ -85,6 +86,7 @@ export class Xapi extends EventEmitter {
     this._pool = null
     this._readOnly = Boolean(opts.readOnly)
     this._RecordsByType = { __proto__: null }
+    this._reverseHostIpAddresses = opts.reverseHostIpAddresses ?? false
 
     this._roCallRetryOptions = {
       delay: 1e3,
@@ -358,7 +360,7 @@ export class Xapi extends EventEmitter {
       $cancelToken,
       this._url,
       host !== undefined && {
-        hostname: this.getObject(host).address,
+        hostname: await this._getHostAddress(this.getObject(host)),
       },
       {
         pathname,
@@ -421,7 +423,7 @@ export class Xapi extends EventEmitter {
       $cancelToken,
       this._url,
       host !== undefined && {
-        hostname: this.getObject(host).address,
+        hostname: await this._getHostAddress(this.getObject(host)),
       },
       {
         body,
@@ -765,6 +767,17 @@ export class Xapi extends EventEmitter {
         }
       })
     }
+  }
+
+  async _getHostAddress({ address }) {
+    if (this._reverseHostIpAddresses) {
+      try {
+        ;[address] = await fromCallback(dns.reverse, address)
+      } catch (error) {
+        console.warn('reversing host address', address, error)
+      }
+    }
+    return address
   }
 
   _setUrl(url) {
