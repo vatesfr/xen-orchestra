@@ -123,7 +123,7 @@
     "vhd-lib": "^1.0.0",
     "ws": "^7.1.2",
     "xdg-basedir": "^4.0.0",
-    "xen-api": "^0.31.1",
+    "xen-api": "^0.32.0",
     "xo-acl-resolver": "^0.4.1",
     "xo-collection": "^0.4.1",
     "xo-common": "^0.7.0",
