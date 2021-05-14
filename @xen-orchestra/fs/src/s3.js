@@ -1,6 +1,7 @@
 import aws from '@sullux/aws-sdk'
 import assert from 'assert'
 import http from 'http'
+import { readChunk } from '@vates/read-chunk'
 import { parse } from 'xo-remote-parser'
 
 import RemoteHandlerAbstract from './abstract'
@@ -73,6 +74,31 @@ export default class S3Handler extends RemoteHandlerAbstract {
   }
 
   async _outputStream(path, input, { validator }) {
+    const multipartParams = await this._s3.createMultipartUpload({ ...this._createParams(path) })
+    let partNumber = 0
+    const parts = []
+    try {
+      while (true) {
+        // do not parallelize the readchunk() and the uploadPart(), the chunks are huge and we might get an OOME
+        const chunk = await readChunk(input, IDEAL_FRAGMENT_SIZE)
+        if (chunk.length > 0) {
+          const editPart = await this._s3.uploadPart({
+            ...multipartParams,
+            ContentLength: chunk.length,
+            Body: chunk,
+            PartNumber: partNumber,
+          })
+          parts.push({ ETag: editPart.ETag, PartNumber: partNumber })
+          partNumber++
+        } else {
+          break
+        }
+      }
+      await this._s3.completeMultipartUpload({ ...multipartParams, MultipartUpload: { Parts: parts } })
+    } catch (e) {
+      await this._s3.abortMultipartUpload(multipartParams)
+      throw e
+    }
     await this._s3.upload(
       {
         ...this._createParams(path),
