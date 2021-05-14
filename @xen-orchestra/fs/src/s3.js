@@ -99,13 +99,6 @@ export default class S3Handler extends RemoteHandlerAbstract {
       await this._s3.abortMultipartUpload(multipartParams)
       throw e
     }
-    await this._s3.upload(
-      {
-        ...this._createParams(path),
-        Body: input,
-      },
-      { partSize: IDEAL_FRAGMENT_SIZE, queueSize: 1 }
-    )
     if (validator !== undefined) {
       try {
         await validator.call(this, path)
