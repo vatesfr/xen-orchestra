@@ -81,7 +81,7 @@
     "index-modules": "^0.3.0",
     "is-ip": "^3.1.0",
     "js-cookie": "2.2.1",
-    "jsonrpc-websocket-client": "^0.5.0",
+    "jsonrpc-websocket-client": "^0.6.0",
     "kindof": "^2.0.0",
     "lodash": "^4.6.1",
     "loose-envify": "^1.1.0",

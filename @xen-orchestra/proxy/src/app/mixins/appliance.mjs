@@ -2,11 +2,11 @@ import Disposable from 'promise-toolbox/Disposable.js'
 import fromCallback from 'promise-toolbox/fromCallback.js'
 import fromEvent from 'promise-toolbox/fromEvent.js'
 import fse from 'fs-extra'
-import JsonRpcWebsocketClient from 'jsonrpc-websocket-client'
 import parsePairs from 'parse-pairs'
 import { createLogger } from '@xen-orchestra/log'
 import { deduped } from '@vates/disposable/deduped.js'
 import { execFile, spawn } from 'child_process'
+import { JsonRpcWebsocketClient } from 'jsonrpc-websocket-client'
 
 const TUNNEL_SERVICE = 'xoa-support-tunnel.service'
 
