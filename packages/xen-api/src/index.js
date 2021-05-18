@@ -720,7 +720,9 @@ export class Xapi extends EventEmitter {
         return this._call(method, newArgs, timeout)
       }, this._sessionCallRetryOptions)
     } catch (error) {
-      await ignoreErrors.call(this.disconnect())
+      if (error?.code === 'SESSION_INVALID') {
+        await ignoreErrors.call(this.disconnect())
+      }
 
       throw error
     }
