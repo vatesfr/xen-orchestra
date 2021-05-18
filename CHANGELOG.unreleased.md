@@ -8,7 +8,7 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [Metadata Backup] Add a warning on restoring a metadata backup (PR [#5769](https://github.com/vatesfr/xen-orchestra/pull/5769))
-- [SAML] Logging in with SAML no longer fails when a user with the same username already exists
+- [SAML] Logging in with SAML no longer fails when a user with the same username already exists (PR [#5781](https://github.com/vatesfr/xen-orchestra/pull/5781))
 
 ### Bug fixes
 
