@@ -22,7 +22,7 @@
     "bin": "bin"
   },
   "engines": {
-    "node": ">=11"
+    "node": ">=14.13"
   },
   "dependencies": {
     "@iarna/toml": "^2.2.1",
@@ -58,7 +58,7 @@
     "cookie": "^0.4.0",
     "cookie-parser": "^1.4.3",
     "d3-time-format": "^3.0.0",
-    "decorator-synchronized": "^0.5.0",
+    "decorator-synchronized": "^0.6.0",
     "deptree": "^1.0.0",
     "exec-promise": "^0.7.0",
     "execa": "^5.0.0",
@@ -142,17 +142,16 @@
     "@babel/plugin-proposal-pipeline-operator": "^7.0.0",
     "@babel/plugin-proposal-throw-expressions": "^7.0.0",
     "@babel/preset-env": "^7.0.0",
-    "babel-plugin-lodash": "^3.3.2",
     "babel-plugin-transform-dev": "^2.0.1",
     "cross-env": "^7.0.2",
-    "index-modules": "^0.3.0",
+    "index-modules": "^0.4.2",
     "rimraf": "^3.0.0"
   },
   "scripts": {
-    "build": "cross-env NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
+    "build": "cross-env NODE_ENV=production babel --keep-file-extension --source-maps --out-dir=dist/ src/",
     "clean": "rimraf dist/",
-    "dev": "cross-env NODE_ENV=development babel --watch --source-maps --out-dir=dist/ src/",
-    "prebuild": "index-modules src/api src/xapi/mixins src/xo-mixins && yarn run clean",
+    "dev": "cross-env NODE_ENV=development babel --watch --keep-file-extension --source-maps --out-dir=dist/ src/",
+    "prebuild": "index-modules --index-file index.mjs src/api src/xapi/mixins src/xo-mixins && yarn run clean",
     "predev": "yarn run prebuild",
     "prepublishOnly": "yarn run build",
     "start": "node bin/xo-server"

@@ -5284,6 +5284,11 @@ decorator-synchronized@^0.5.0:
   resolved "https://registry.yarnpkg.com/decorator-synchronized/-/decorator-synchronized-0.5.0.tgz#0d457bafa0685f30e8a796941da512587feecb2c"
   integrity sha512-PAs5w8+d5TlrvkuEWSAHJ9DJc0I8ElH5F23F+hhUUbK/EUmApG/ZqqYF/+AwExaALI+LxzhBWMH5xVpvsmVFeQ==
 
+decorator-synchronized@^0.6.0:
+  version "0.6.0"
+  resolved "https://registry.yarnpkg.com/decorator-synchronized/-/decorator-synchronized-0.6.0.tgz#797321196021b358d31c98780b595112e81b6c56"
+  integrity sha512-BcJJEuyzjCH2I8/Y1xlnQ8s6AWDFD7+1h6MFamTln8JROeYRrAF+nifscQRHPYs4J4G0lb+LWG5nODLj6m4KFw==
+
 dedent@^0.7.0:
   version "0.7.0"
   resolved "https://registry.yarnpkg.com/dedent/-/dedent-0.7.0.tgz#2495ddbaf6eb874abb0e1be9df22d2e5a544326c"
@@ -8580,6 +8585,15 @@ index-modules@^0.4.0:
     lodash "^4.17.4"
     promise-toolbox "^0.19.0"
 
+index-modules@^0.4.2:
+  version "0.4.2"
+  resolved "https://registry.yarnpkg.com/index-modules/-/index-modules-0.4.2.tgz#22199097b5362a11858737541c999fb7fb1b77f3"
+  integrity sha512-LpnQTsCgdsT0RhfwECfHsnW1CW+j6w/epH4MWskNTXfbXGn/A7766q0ZVKgsxzk52h9RIUkvzbOuXEWQdqfXsQ==
+  dependencies:
+    getopts "^2.3.0"
+    lodash "^4.17.4"
+    promise-toolbox "^0.19.0"
+
 indexes-of@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/indexes-of/-/indexes-of-1.0.1.tgz#f30f716c8e2bd346c7b67d3df3915566a7c05607"
@@ -10329,6 +10343,11 @@ liftoff@^3.1.0:
     object.map "^1.0.0"
     rechoir "^0.6.2"
     resolve "^1.1.7"
+
+limit-concurrency-decorator@^0.5.0:
+  version "0.5.0"
+  resolved "https://registry.yarnpkg.com/limit-concurrency-decorator/-/limit-concurrency-decorator-0.5.0.tgz#7455fc7c8d12e93ce725cb98dc18b861397dd726"
+  integrity sha512-s5HqdnTpRJhvK/vleMY3qJ3yEfIQ1BUCUqbBJwtXCKngMSc+qpS1Rl6/rxdhr1Z/oQz3keYho6G4XCFSHb7nbA==
 
 limit-concurrency-decorator@^0.5.0:
   version "0.5.0"
