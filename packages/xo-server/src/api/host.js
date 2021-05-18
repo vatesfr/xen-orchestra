@@ -288,7 +288,7 @@ isHostServerTimeConsistent.params = {
 }
 
 isHostServerTimeConsistent.resolve = {
-  host: ['host', 'host', 'administrate'],
+  host: ['host', 'host', 'view'],
 }
 
 // -------------------------------------------------------------------
