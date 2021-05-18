@@ -8,6 +8,7 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [Metadata Backup] Add a warning on restoring a metadata backup (PR [#5769](https://github.com/vatesfr/xen-orchestra/pull/5769))
+- [SAML] Logging in with SAML no longer fails when a user with the same username already exists
 
 ### Bug fixes
 
@@ -32,6 +33,7 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
+- xo-server-auth-saml minor
 - xo-server-backup-reports patch
 - xo-web minor
 - xo-server patch
