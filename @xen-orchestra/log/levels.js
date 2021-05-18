@@ -1,5 +1,5 @@
 const LEVELS = Object.create(null)
-export { LEVELS as default }
+exports.LEVELS = LEVELS
 
 // https://github.com/trentm/node-bunyan#levels
 LEVELS.FATAL = 60 // service/app is going down
@@ -8,7 +8,8 @@ LEVELS.WARN = 40 // something went wrong but it's not fatal
 LEVELS.INFO = 30 // detail on unusual but normal operation
 LEVELS.DEBUG = 20
 
-export const NAMES = Object.create(null)
+const NAMES = Object.create(null)
+exports.NAMES = NAMES
 for (const name in LEVELS) {
   NAMES[LEVELS[name]] = name
 }
@@ -16,7 +17,7 @@ for (const name in LEVELS) {
 // resolves to the number representation of a level
 //
 // returns `defaultLevel` if invalid
-export const resolve = (level, defaultLevel) => {
+const resolve = (level, defaultLevel) => {
   const type = typeof level
   if (type === 'number') {
     if (level in NAMES) {
@@ -30,6 +31,7 @@ export const resolve = (level, defaultLevel) => {
   }
   return defaultLevel
 }
+exports.resolve = resolve
 
 Object.freeze(LEVELS)
 Object.freeze(NAMES)

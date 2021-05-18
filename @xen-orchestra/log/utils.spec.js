@@ -1,6 +1,6 @@
 /* eslint-env jest */
 
-import { compileGlobPattern } from './utils'
+const { compileGlobPattern } = require('./utils')
 
 describe('compileGlobPattern()', () => {
   it('works', () => {

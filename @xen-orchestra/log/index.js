@@ -1,5 +1,5 @@
-import createTransport from './transports/console'
-import LEVELS, { resolve } from './levels'
+const createTransport = require('./transports/console')
+const { LEVELS, resolve } = require('./levels')
 
 const symbol = typeof Symbol !== 'undefined' ? Symbol.for('@xen-orchestra/log') : '@@@xen-orchestra/log'
 if (!(symbol in global)) {
@@ -68,5 +68,7 @@ prototype.wrap = function (message, fn) {
   }
 }
 
-export const createLogger = namespace => new Logger(namespace)
-export { createLogger as default }
+const createLogger = namespace => new Logger(namespace)
+
+module.exports = exports = createLogger
+exports.createLogger = createLogger

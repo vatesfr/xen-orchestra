@@ -33,6 +33,7 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
+- @xen-orchestra/log patch
 - xen-api minor
 - xo-server-auth-saml minor
 - xo-server-backup-reports patch

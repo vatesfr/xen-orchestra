@@ -1,19 +1,20 @@
-import escapeRegExp from 'lodash/escapeRegExp'
+const escapeRegExp = require('lodash/escapeRegExp')
 
 // ===================================================================
 
 const TPL_RE = /\{\{(.+?)\}\}/g
-export const evalTemplate = (tpl, data) => {
+const evalTemplate = (tpl, data) => {
   const getData = typeof data === 'function' ? (_, key) => data(key) : (_, key) => data[key]
 
   return tpl.replace(TPL_RE, getData)
 }
+exports.evalTemplate = evalTemplate
 
 // -------------------------------------------------------------------
 
 const compileGlobPatternFragment = pattern => pattern.split('*').map(escapeRegExp).join('.*')
 
-export const compileGlobPattern = pattern => {
+const compileGlobPattern = pattern => {
   const no = []
   const yes = []
   pattern.split(/[\s,]+/).forEach(pattern => {
@@ -40,19 +41,22 @@ export const compileGlobPattern = pattern => {
 
   return new RegExp(raw.join(''))
 }
+exports.compileGlobPattern = compileGlobPattern
 
 // -------------------------------------------------------------------
 
-export const required = name => {
+const required = name => {
   throw new Error(`missing required arg ${name}`)
 }
+exports.required = required
 
 // -------------------------------------------------------------------
 
-export const serializeError = error => ({
+const serializeError = error => ({
   ...error, // Copy enumerable properties.
   code: error.code,
   message: error.message,
   name: error.name,
   stack: error.stack,
 })
+exports.serializeError = serializeError

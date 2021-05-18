@@ -1,8 +1,8 @@
 /* eslint-env jest */
 
-import { forEach, isInteger } from 'lodash'
+const { forEach, isInteger } = require('lodash')
 
-import LEVELS, { NAMES, resolve } from './levels'
+const { LEVELS, NAMES, resolve } = require('./levels')
 
 describe('LEVELS', () => {
   it('maps level names to their integer values', () => {
