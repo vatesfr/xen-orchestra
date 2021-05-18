@@ -6,14 +6,14 @@ import parsePairs from 'parse-pairs'
 import { createLogger } from '@xen-orchestra/log'
 import { deduped } from '@vates/disposable/deduped.js'
 import { execFile, spawn } from 'child_process'
-import { JsonRpcWebsocketClient } from 'jsonrpc-websocket-client'
+import { JsonRpcWebSocketClient } from 'jsonrpc-websocket-client'
 
 const TUNNEL_SERVICE = 'xoa-support-tunnel.service'
 
 const { debug, warn } = createLogger('xo:proxy:appliance')
 
 const getUpdater = deduped(async function () {
-  const updater = new JsonRpcWebsocketClient('ws://localhost:9001')
+  const updater = new JsonRpcWebSocketClient('ws://localhost:9001')
   await updater.open()
   return new Disposable(() => updater.close(), updater)
 })
