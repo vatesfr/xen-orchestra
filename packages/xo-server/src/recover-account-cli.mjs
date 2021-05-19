@@ -1,6 +1,5 @@
 import appConf from 'app-conf'
 import pw from 'pw'
-import { join as joinPath } from 'path'
 
 import Xo from './xo.mjs'
 import { generateToken } from './utils.mjs'
