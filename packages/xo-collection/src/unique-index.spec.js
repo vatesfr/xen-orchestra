@@ -3,8 +3,8 @@
 import fromEvent from 'promise-toolbox/fromEvent'
 import { forEach } from 'lodash'
 
-import Collection from './collection'
-import Index from './unique-index'
+import { Collection } from './collection'
+import { UniqueIndex } from './unique-index'
 
 // ===================================================================
 
@@ -45,7 +45,7 @@ describe('UniqueIndex', function () {
       col.add(item)
     })
 
-    byKey = new Index('key')
+    byKey = new UniqueIndex('key')
 
     col.createIndex('byKey', byKey)
 

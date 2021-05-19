@@ -1,5 +1,5 @@
 ```javascript
-var Collection = require('xo-collection')
+var { Collection } = require('xo-collection')
 ```
 
 ### Creation
@@ -200,7 +200,7 @@ for (const value of col.values()) {
 ### Views
 
 ```javascript
-const View = require('xo-collection/view')
+const { View } = require('xo-collection/view')
 ```
 
 > A view is a read-only collection which contains only the items of a

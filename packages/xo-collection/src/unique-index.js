@@ -6,7 +6,7 @@ import { ACTION_ADD, ACTION_UPDATE, ACTION_REMOVE } from './collection'
 
 // ===================================================================
 
-export default class UniqueIndex {
+export class UniqueIndex {
   constructor(computeHash) {
     if (computeHash) {
       this.computeHash = iteratee(computeHash)

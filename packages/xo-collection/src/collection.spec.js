@@ -3,7 +3,7 @@
 import fromEvent from 'promise-toolbox/fromEvent'
 import { forEach } from 'lodash'
 
-import Collection, { DuplicateItem, NoSuchItem } from './collection'
+import { Collection, DuplicateItem, NoSuchItem } from './collection'
 
 // ===================================================================
 

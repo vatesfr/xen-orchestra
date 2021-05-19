@@ -1,6 +1,6 @@
 /* eslint-env jest */
 import Xo from 'xo-lib'
-import XoCollection from 'xo-collection'
+import { Collection as XoCollection } from 'xo-collection'
 import { decorateWith } from '@vates/decorate-with'
 import { defaultsDeep, find, forOwn, iteratee, pick } from 'lodash'
 import { defer } from 'golike-defer'
