@@ -1,10 +1,13 @@
+#!/usr/bin/env node
+
 import appConf from 'app-conf'
+import execPromise from 'exec-promise'
 import pw from 'pw'
 
 import Xo from './xo.mjs'
 import { generateToken } from './utils.mjs'
 
-const recoverAccount = async ([name]) => {
+execPromise(async ([name]) => {
   if (name === undefined || name === '--help' || name === '-h') {
     return `
 xo-server-recover-account <user name or email>
@@ -43,5 +46,4 @@ xo-server-recover-account <user name or email>
     await xo.createUser({ name, password, permission: 'admin' })
     console.log(`user ${name} has been successfully created`)
   }
-}
-export { recoverAccount as default }
+})

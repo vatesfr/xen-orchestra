@@ -1,4 +1,7 @@
+#!/usr/bin/env node
+
 import appConf from 'app-conf'
+import execPromise from 'exec-promise'
 import get from 'lodash/get.js'
 import highland from 'highland'
 import levelup from 'level-party'
@@ -265,7 +268,7 @@ function getArgs() {
 
 // ===================================================================
 
-export default async function main() {
+execPromise(async function main() {
   const args = getArgs()
 
   if (args.help) {
@@ -304,4 +307,4 @@ export default async function main() {
   })
 
   return args.delete ? deleteLogs(db, args) : args.gc ? gc(db) : printLogs(db, args)
-}
+})
