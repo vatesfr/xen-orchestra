@@ -11,7 +11,7 @@
 //   process.env.http_proxy
 // ])
 // ```
-export default function defined() {
+function defined() {
   let args = arguments
   let n = args.length
   if (n === 1) {
@@ -29,6 +29,7 @@ export default function defined() {
     }
   }
 }
+module.exports = exports = defined
 
 // Usage:
 //
@@ -39,7 +40,7 @@ export default function defined() {
 // const getFriendName = _ => _.friends[0].name
 // const friendName = get(getFriendName, props.user)
 // ```
-export const get = (accessor, arg) => {
+function get(accessor, arg) {
   try {
     return accessor(arg)
   } catch (error) {
@@ -49,6 +50,7 @@ export const get = (accessor, arg) => {
     }
   }
 }
+exports.get = get
 
 // Usage:
 //
@@ -58,4 +60,6 @@ export const get = (accessor, arg) => {
 //   _ => new ProxyAgent(_)
 // )
 // ```
-export const ifDef = (value, thenFn) => (value !== undefined ? thenFn(value) : value)
+exports.ifDef = function ifDef(value, thenFn) {
+  return value !== undefined ? thenFn(value) : value
+}
