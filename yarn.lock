@@ -10330,10 +10330,10 @@ liftoff@^3.1.0:
     rechoir "^0.6.2"
     resolve "^1.1.7"
 
-limit-concurrency-decorator@^0.4.0:
-  version "0.4.0"
-  resolved "https://registry.yarnpkg.com/limit-concurrency-decorator/-/limit-concurrency-decorator-0.4.0.tgz#d79c4e97b6ef547df2d905cc3acaabbae1bfeed6"
-  integrity sha512-hXGTuCkYjosfHT1D7dcPKzPHSGwBtZfN0wummzDwxi5A3ZUNBB75qM8phKEjQGlQGAfYrMW/JqhbaljO3xOH0A==
+limit-concurrency-decorator@^0.5.0:
+  version "0.5.0"
+  resolved "https://registry.yarnpkg.com/limit-concurrency-decorator/-/limit-concurrency-decorator-0.5.0.tgz#7455fc7c8d12e93ce725cb98dc18b861397dd726"
+  integrity sha512-s5HqdnTpRJhvK/vleMY3qJ3yEfIQ1BUCUqbBJwtXCKngMSc+qpS1Rl6/rxdhr1Z/oQz3keYho6G4XCFSHb7nbA==
 
 lines-and-columns@^1.1.6:
   version "1.1.6"

@@ -1,9 +1,9 @@
 // TODO: remove once completely merged in vhd.js
 
 import assert from 'assert'
-import concurrency from 'limit-concurrency-decorator'
 import noop from './_noop'
 import { createLogger } from '@xen-orchestra/log'
+import { limitConcurrency } from 'limit-concurrency-decorator'
 
 import Vhd from './vhd'
 import { basename, dirname } from 'path'
@@ -14,7 +14,7 @@ const { warn } = createLogger('vhd-lib:merge')
 // Merge vhd child into vhd parent.
 //
 // TODO: rename the VHD file during the merge
-export default concurrency(2)(async function merge(
+export default limitConcurrency(2)(async function merge(
   parentHandler,
   parentPath,
   childHandler,
