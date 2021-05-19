@@ -146,17 +146,14 @@
     "@babel/preset-env": "^7.0.0",
     "babel-plugin-transform-dev": "^2.0.1",
     "cross-env": "^7.0.2",
-    "index-modules": "^0.4.2",
-    "rimraf": "^3.0.0"
+    "index-modules": "^0.4.2"
   },
   "scripts": {
-    "build": "cross-env NODE_ENV=production babel --keep-file-extension --source-maps --out-dir=dist/ src/",
-    "clean": "rimraf dist/",
-    "dev": "cross-env NODE_ENV=development babel --watch --keep-file-extension --source-maps --out-dir=dist/ src/",
-    "prebuild": "index-modules --index-file index.mjs src/api src/xapi/mixins src/xo-mixins && yarn run clean",
-    "predev": "yarn run prebuild",
+    "_build": "index-modules --index-file index.mjs src/api src/xapi/mixins src/xo-mixins && babel --delete-dir-on-start --keep-file-extension --source-maps --out-dir=dist/ src/",
+    "build": "cross-env NODE_ENV=production yarn run _build",
+    "dev": "cross-env NODE_ENV=development yarn run _build --watch",
     "prepublishOnly": "yarn run build",
-    "start": "node bin/xo-server"
+    "start": "node dist/cli.mjs"
   },
   "author": {
     "name": "Vates SAS",
