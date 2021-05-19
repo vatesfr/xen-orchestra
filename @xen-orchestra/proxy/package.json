@@ -73,8 +73,7 @@
     "@vates/toggle-scripts": "^1.0.0",
     "babel-plugin-transform-dev": "^2.0.1",
     "cross-env": "^7.0.2",
-    "index-modules": "^0.4.0",
-    "rimraf": "^3.0.0"
+    "index-modules": "^0.4.0"
   },
   "scripts": {
     "_build": "index-modules --index-file index.mjs src/app/mixins && babel --delete-dir-on-start --keep-file-extension --source-maps --out-dir=dist/ src/",
