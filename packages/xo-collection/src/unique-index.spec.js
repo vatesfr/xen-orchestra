@@ -1,6 +1,6 @@
 /* eslint-env jest */
 
-import eventToPromise from 'event-to-promise'
+import fromEvent from 'promise-toolbox/fromEvent'
 import { forEach } from 'lodash'
 
 import Collection from './collection'
@@ -119,7 +119,7 @@ describe('UniqueIndex', function () {
 
     col.update(item1bis)
 
-    return eventToPromise(col, 'finish').then(() => {
+    return fromEvent(col, 'finish').then(() => {
       expect(col.indexes).toEqual({
         byKey: {
           [item1.key]: item1bis,
