@@ -529,7 +529,8 @@ class Netbox {
 }
 
 export const configurationSchema = ({ xo: { apiMethods } }) => ({
-  description: 'Synchronize pools managed by Xen Orchestra with Netbox.',
+  description:
+    'Synchronize pools managed by Xen Orchestra with Netbox. Configuration steps: https://xen-orchestra.com/docs/advanced.html#netbox.',
   type: 'object',
   properties: {
     endpoint: {
