@@ -24,6 +24,7 @@ import WebServer from 'http-server-plus'
 import WebSocket from 'ws'
 import xdg from 'xdg-basedir'
 import { createLogger } from '@xen-orchestra/log'
+import { createRequire } from 'module'
 import { genSelfSignedCert } from '@xen-orchestra/self-signed'
 import { parseDuration } from '@vates/parse-duration'
 import { URL } from 'url'
@@ -289,8 +290,11 @@ async function setUpPassport(express, xo, { authentication: authCfg, http: { coo
 
 // ===================================================================
 
+// See https://github.com/nodejs/help/issues/3380
+const requireResolve = createRequire(import.meta.url).resolve
+
 async function registerPlugin(pluginPath, pluginName) {
-  const plugin = (await import(pluginPath)).default
+  const plugin = (await import(requireResolve(pluginPath))).default
   const { description, version = 'unknown' } = await fse
     .readFile(pluginPath + '/package.json')
     .then(JSON.stringify, error => ({}))
