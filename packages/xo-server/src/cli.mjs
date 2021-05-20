@@ -6,7 +6,7 @@ import execPromise from 'exec-promise'
 import { catchGlobalErrors } from '@xen-orchestra/log/configure.js'
 import { createLogger } from '@xen-orchestra/log'
 
-import boostrap from '../index.mjs'
+import main from './index.mjs'
 
 // ===================================================================
 
@@ -33,4 +33,4 @@ global.Promise = Bluebird
 
 catchGlobalErrors(createLogger('xo:xo-server'))
 
-execPromise(boostrap)
+execPromise(main)
