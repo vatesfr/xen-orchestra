@@ -31,7 +31,6 @@ import { URL } from 'url'
 import { compile as compilePug } from 'pug'
 import { fromCallback, fromEvent } from 'promise-toolbox'
 import { ifDef } from '@xen-orchestra/defined'
-import { join as joinPath } from 'path'
 
 import fse from 'fs-extra'
 import { invalidCredentials } from 'xo-common/api-errors.js'

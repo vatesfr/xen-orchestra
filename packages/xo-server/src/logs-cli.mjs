@@ -9,7 +9,6 @@ import ndjson from 'ndjson'
 import parseArgs from 'minimist'
 import sublevel from 'subleveldown'
 import util from 'util'
-import { join as joinPath } from 'path'
 
 import { forEach } from './utils.mjs'
 import globMatcher from './glob-matcher.mjs'
