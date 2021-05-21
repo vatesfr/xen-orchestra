@@ -460,6 +460,7 @@ export default class BackupNg {
           return Task.run(
             {
               data: {
+                backupId: id,
                 jobId: metadata.jobId,
                 srId,
                 time: metadata.timestamp,

@@ -187,6 +187,7 @@ export default class Backups {
                       Task.run(
                         {
                           data: {
+                            backupId,
                             jobId: metadata.jobId,
                             srId: srUuid,
                             time: metadata.timestamp,
