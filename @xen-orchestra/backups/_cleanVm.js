@@ -1,10 +1,10 @@
 const assert = require('assert')
-const limitConcurrency = require('limit-concurrency-decorator').default
 const { asyncMap } = require('@xen-orchestra/async-map')
 const { default: Vhd, mergeVhd } = require('vhd-lib')
 const { dirname, resolve } = require('path')
 const { DISK_TYPE_DIFFERENCING } = require('vhd-lib/dist/_constants.js')
 const { isMetadataFile, isVhdFile, isXvaFile, isXvaSumFile } = require('./_backupType.js')
+const { limitConcurrency } = require('limit-concurrency-decorator')
 
 // chain is an array of VHDs from child to parent
 //

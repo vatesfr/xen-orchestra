@@ -5,7 +5,7 @@ import Collection, { ACTION_ADD, ACTION_UPDATE, ACTION_REMOVE } from './collecti
 
 // ===================================================================
 
-export default class View extends Collection {
+export class View extends Collection {
   constructor(collection, predicate) {
     super()
 

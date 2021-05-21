@@ -1,9 +1,9 @@
 /* eslint-env jest */
 
-import eventToPromise from 'event-to-promise'
+import fromEvent from 'promise-toolbox/fromEvent'
 import { forEach } from 'lodash'
 
-import Collection, { DuplicateItem, NoSuchItem } from './collection'
+import { Collection, DuplicateItem, NoSuchItem } from './collection'
 
 // ===================================================================
 
@@ -69,7 +69,7 @@ describe('Collection', function () {
       expect(spy).not.toHaveBeenCalled()
 
       // Async event.
-      return eventToPromise(col, 'add').then(function (added) {
+      return fromEvent(col, 'add').then(function (added) {
         expect(Object.keys(added)).toEqual(['foo'])
         expect(added.foo).toBe(true)
       })
@@ -102,7 +102,7 @@ describe('Collection', function () {
       expect(spy).not.toHaveBeenCalled()
 
       // Async event.
-      return eventToPromise(col, 'update').then(function (updated) {
+      return fromEvent(col, 'update').then(function (updated) {
         expect(Object.keys(updated)).toEqual(['bar'])
         expect(updated.bar).toBe(2)
       })
@@ -134,7 +134,7 @@ describe('Collection', function () {
       expect(spy).not.toHaveBeenCalled()
 
       // Async event.
-      return eventToPromise(col, 'remove').then(function (removed) {
+      return fromEvent(col, 'remove').then(function (removed) {
         expect(Object.keys(removed)).toEqual(['bar'])
         expect(removed.bar).toBeUndefined()
       })
@@ -166,7 +166,7 @@ describe('Collection', function () {
       expect(spy).not.toHaveBeenCalled()
 
       // Async events.
-      return eventToPromise(col, 'add').then(function (added) {
+      return fromEvent(col, 'add').then(function (added) {
         expect(Object.keys(added)).toEqual(['foo'])
         expect(added.foo).toBe(true)
       })
@@ -184,7 +184,7 @@ describe('Collection', function () {
       expect(spy).not.toHaveBeenCalled()
 
       // Async events.
-      return eventToPromise(col, 'update').then(function (updated) {
+      return fromEvent(col, 'update').then(function (updated) {
         expect(Object.keys(updated)).toEqual(['bar'])
         expect(updated.bar).toBe(1)
       })
@@ -205,7 +205,7 @@ describe('Collection', function () {
 
       expect(col.has('bar')).toBe(false)
 
-      return eventToPromise(col, 'remove').then(function (removed) {
+      return fromEvent(col, 'remove').then(function (removed) {
         expect(Object.keys(removed)).toEqual(['bar'])
         expect(removed.bar).toBeUndefined()
       })
@@ -220,7 +220,7 @@ describe('Collection', function () {
 
       expect(col.has('bar')).toBe(false)
 
-      return eventToPromise(col, 'remove').then(function (removed) {
+      return fromEvent(col, 'remove').then(function (removed) {
         expect(Object.keys(removed)).toEqual(['bar'])
         expect(removed.bar).toBeUndefined()
       })
@@ -235,7 +235,7 @@ describe('Collection', function () {
       return waitTicks().then(() => {
         col.touch(foo)
 
-        return eventToPromise(col, 'update', items => {
+        return fromEvent(col, 'update', items => {
           expect(Object.keys(items)).toEqual(['foo'])
           expect(items.foo).toBe(foo)
         })
@@ -249,7 +249,7 @@ describe('Collection', function () {
 
       expect(col.size).toBe(0)
 
-      return eventToPromise(col, 'remove').then(items => {
+      return fromEvent(col, 'remove').then(items => {
         expect(Object.keys(items)).toEqual(['bar'])
         expect(items.bar).toBeUndefined()
       })

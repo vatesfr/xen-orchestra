@@ -1,10 +1,10 @@
 import asyncMapSettled from '@xen-orchestra/async-map/legacy'
 import getStream from 'get-stream'
-import limit from 'limit-concurrency-decorator'
 import path, { basename } from 'path'
 import synchronized from 'decorator-synchronized'
 import { coalesceCalls } from '@vates/coalesce-calls'
 import { fromCallback, fromEvent, ignoreErrors, timeout } from 'promise-toolbox'
+import { limitConcurrency } from 'limit-concurrency-decorator'
 import { parse } from 'xo-remote-parser'
 import { pipeline } from 'stream'
 import { randomBytes } from 'crypto'
@@ -74,7 +74,7 @@ export default class RemoteHandlerAbstract {
     }
     ;({ highWaterMark: this._highWaterMark, timeout: this._timeout = DEFAULT_TIMEOUT } = options)
 
-    const sharedLimit = limit(options.maxParallelOperations ?? DEFAULT_MAX_PARALLEL_OPERATIONS)
+    const sharedLimit = limitConcurrency(options.maxParallelOperations ?? DEFAULT_MAX_PARALLEL_OPERATIONS)
     this.closeFile = sharedLimit(this.closeFile)
     this.getInfo = sharedLimit(this.getInfo)
     this.getSize = sharedLimit(this.getSize)

@@ -1,5 +1,5 @@
 const assert = require('assert')
-const emitAsync = require('@xen-orchestra/emit-async').default
+const emitAsync = require('@xen-orchestra/emit-async')
 const EventEmitter = require('events')
 const { createLogger } = require('@xen-orchestra/log')
 

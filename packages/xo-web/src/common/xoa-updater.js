@@ -1,8 +1,8 @@
-import Client, { AbortedConnection, ConnectionError } from 'jsonrpc-websocket-client'
 import eventToPromise from 'event-to-promise'
 import forEach from 'lodash/forEach'
 import makeError from 'make-error'
 import map from 'lodash/map'
+import { AbortedConnection, ConnectionError, JsonRpcWebSocketClient as Client } from 'jsonrpc-websocket-client'
 import { EventEmitter } from 'events'
 import {
   setXoaConfiguration,

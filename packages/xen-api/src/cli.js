@@ -42,6 +42,7 @@ const usage = 'Usage: xen-api <url> [<user> [<password>]]'
 
 async function main(createClient) {
   const opts = minimist(process.argv.slice(2), {
+    string: ['session-id'],
     boolean: ['allow-unauthorized', 'help', 'read-only', 'verbose'],
 
     alias: {
@@ -68,6 +69,8 @@ async function main(createClient) {
   if (opts._.length > 1) {
     const [, user, password = await askPassword()] = opts._
     auth = { user, password }
+  } else if (opts['session-id'] !== undefined) {
+    auth = { sessionId: opts['session-id'] }
   }
 
   {

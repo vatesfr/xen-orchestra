@@ -190,7 +190,7 @@ Then restart Xen Orchestra if it was running.
 ```
 yarn global add forever
 # Run the below as the user owning XO
-forever start bin/xo-server
+forever start dist/cli.mjs
 ```
 
 - Or you can use [forever-service](https://github.com/zapty/forever-service) to install XO as a system service, so it starts automatically at boot. Run the following as root:

@@ -19,9 +19,9 @@
 /packages/xen-api/plot.dat
 
 /packages/xo-server/.xo-server.*
-/packages/xo-server/src/api/index.js
-/packages/xo-server/src/xapi/mixins/index.js
-/packages/xo-server/src/xo-mixins/index.js
+/packages/xo-server/src/api/index.mjs
+/packages/xo-server/src/xapi/mixins/index.mjs
+/packages/xo-server/src/xo-mixins/index.mjs
 
 /packages/xo-server-auth-ldap/ldap.cache.conf
 

@@ -2,18 +2,18 @@ import Disposable from 'promise-toolbox/Disposable.js'
 import fromCallback from 'promise-toolbox/fromCallback.js'
 import fromEvent from 'promise-toolbox/fromEvent.js'
 import fse from 'fs-extra'
-import JsonRpcWebsocketClient from 'jsonrpc-websocket-client'
 import parsePairs from 'parse-pairs'
 import { createLogger } from '@xen-orchestra/log'
 import { deduped } from '@vates/disposable/deduped.js'
 import { execFile, spawn } from 'child_process'
+import { JsonRpcWebSocketClient } from 'jsonrpc-websocket-client'
 
 const TUNNEL_SERVICE = 'xoa-support-tunnel.service'
 
 const { debug, warn } = createLogger('xo:proxy:appliance')
 
 const getUpdater = deduped(async function () {
-  const updater = new JsonRpcWebsocketClient('ws://localhost:9001')
+  const updater = new JsonRpcWebSocketClient('ws://localhost:9001')
   await updater.open()
   return new Disposable(() => updater.close(), updater)
 })
@@ -153,6 +153,10 @@ export default class Appliance {
 
   // A proxy can be bound to a unique license
   getSelfLicense() {
-    return Disposable.use(getUpdater(), _ => _.call('getSelfLicenses').then(licenses => licenses[0]))
+    return Disposable.use(getUpdater(), async updater => {
+      const licenses = await updater.call('getSelfLicenses')
+      const now = Date.now()
+      return licenses.find(({ expires }) => expires === undefined || expires > now)
+    })
   }
 }
