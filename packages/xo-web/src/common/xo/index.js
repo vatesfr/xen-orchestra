@@ -3001,3 +3001,12 @@ export const synchronizeLdapGroups = () =>
     body: _('syncLdapGroupsWarning'),
     icon: 'refresh',
   }).then(() => _call('ldap.synchronizeGroups')::tap(subscribeGroups.forceRefresh), noop)
+
+// Netbox plugin ---------------------------------------------------------------
+
+export const synchronizeNetbox = pools =>
+  confirm({
+    title: _('syncNetbox'),
+    body: _('syncNetboxWarning'),
+    icon: 'refresh',
+  }).then(() => _call('netbox.synchronize', { pools: resolveIds(pools) }))

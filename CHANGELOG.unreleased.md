@@ -9,6 +9,7 @@
 
 - [Metadata Backup] Add a warning on restoring a metadata backup (PR [#5769](https://github.com/vatesfr/xen-orchestra/pull/5769))
 - [SAML] Compatible with users created with other authentication providers (PR [#5781](https://github.com/vatesfr/xen-orchestra/pull/5781))
+- [Netbox] [Plugin](https://xen-orchestra.com/docs/advanced.html#netbox) to synchronize pools, VMs and IPs with [Netbox](https://netbox.readthedocs.io/en/stable/) (PR [#5783](https://github.com/vatesfr/xen-orchestra/pull/5783))
 
 ### Bug fixes
 
@@ -40,5 +41,6 @@
 - xen-api minor
 - xo-server-auth-saml minor
 - xo-server-backup-reports patch
+- xo-server-netbox minor
 - xo-web minor
 - xo-server patch
