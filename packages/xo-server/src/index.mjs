@@ -290,6 +290,8 @@ async function setUpPassport(express, xo, { authentication: authCfg, http: { coo
 
 // ===================================================================
 
+const logPlugin = createLogger('xo:plugin')
+
 // See https://github.com/nodejs/help/issues/3380
 const requireResolve = createRequire(import.meta.url).resolve
 
@@ -298,7 +300,10 @@ async function registerPlugin(pluginPath, pluginName) {
   const { description, version = 'unknown' } = await fse
     .readFile(pluginPath + '/package.json')
     .then(JSON.parse)
-    .catch(error => ({}))
+    .catch(error => {
+      logPlugin.warn('reading package.json', { error })
+      return {}
+    })
 
   // Supports both “normal” CommonJS and Babel's ES2015 modules.
   let { default: factory = plugin, configurationSchema, configurationPresets, testSchema } = plugin
@@ -334,8 +339,6 @@ async function registerPlugin(pluginPath, pluginName) {
     version
   )
 }
-
-const logPlugin = createLogger('xo:plugin')
 
 function registerPluginWrapper(pluginPath, pluginName) {
   logPlugin.info(`register ${pluginName}`)
