@@ -46,6 +46,9 @@ module.exports = {
     ],
   },
   resolve: {
+    alias: {
+      dns: false,
+    },
     extensions: ['.tsx', '.ts', '.js'],
   },
   devtool: __PROD__ ? 'source-map' : 'eval-cheap-module-source-map',
