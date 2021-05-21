@@ -297,7 +297,8 @@ async function registerPlugin(pluginPath, pluginName) {
   const plugin = (await import(requireResolve(pluginPath))).default
   const { description, version = 'unknown' } = await fse
     .readFile(pluginPath + '/package.json')
-    .then(JSON.parse, error => ({}))
+    .then(JSON.parse)
+    .catch(error => ({}))
 
   // Supports both “normal” CommonJS and Babel's ES2015 modules.
   let { default: factory = plugin, configurationSchema, configurationPresets, testSchema } = plugin
