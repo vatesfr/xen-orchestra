@@ -281,13 +281,20 @@ class Netbox {
         vcpus: vm.CPUs.number,
         disk,
         memory: Math.floor(vm.memory.dynamic[1] / M),
+        status: vm.power_state === 'Running' ? 'active' : 'offline',
         custom_fields: { uuid: vm.uuid },
       }
 
       if (oldNetboxVm === undefined) {
         vmsToCreate.push(updatedVm)
       } else {
-        let patch = diff(updatedVm, { ...oldNetboxVm, cluster: oldNetboxVm.cluster.id })
+        // Some properties need to be flattened to match the expected POST
+        // request objects
+        let patch = diff(updatedVm, {
+          ...oldNetboxVm,
+          cluster: oldNetboxVm.cluster.id,
+          status: oldNetboxVm.status?.value,
+        })
 
         // Check if a name mismatch is due to a name deduplication
         if (patch?.name !== undefined) {
@@ -318,8 +325,10 @@ class Netbox {
       let nameIndex = 1
       while (
         find(netboxVms, netboxVm => netboxVm.cluster.id === vm.cluster && netboxVm.name === vm.name) !== undefined ||
-        find(vmsToCreate, vmToCreate => vmToCreate.cluster === vm.cluster && vmToCreate.name === vm.name, i + 1) !==
-          undefined
+        find(
+          vmsToCreate,
+          (vmToCreate, j) => vmToCreate.cluster === vm.cluster && vmToCreate.name === vm.name && i !== j
+        ) !== undefined
       ) {
         if (nameIndex >= 1e3) {
           throw new Error(`Cannot deduplicate name of VM ${name}`)
@@ -329,13 +338,19 @@ class Netbox {
     })
     vmsToUpdate.forEach((vm, i) => {
       const name = vm.name
+      if (name === undefined) {
+        delete vm.$cluster
+        return
+      }
       let nameIndex = 1
       while (
         find(netboxVms, netboxVm => netboxVm.cluster.id === vm.$cluster && netboxVm.name === vm.name) !== undefined ||
         find(vmsToCreate, vmToCreate => vmToCreate.cluster === vm.$cluster && vmToCreate.name === vm.name) !==
           undefined ||
-        find(vmsToUpdate, vmToUpdate => vmToUpdate.$cluster === vm.$cluster && vmToUpdate.name === vm.name, i + 1) !==
-          undefined
+        find(
+          vmsToUpdate,
+          (vmToUpdate, j) => vmToUpdate.$cluster === vm.$cluster && vmToUpdate.name === vm.name && i !== j
+        ) !== undefined
       ) {
         if (nameIndex >= 1e3) {
           throw new Error(`Cannot deduplicate name of VM ${name}`)
