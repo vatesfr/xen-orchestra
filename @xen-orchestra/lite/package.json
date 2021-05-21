@@ -43,7 +43,7 @@
     "typescript": "^4.1.3",
     "webpack": "^5.24.2",
     "webpack-cli": "^4.5.0",
-    "xen-api": "^0.31.0"
+    "xen-api": "^0.32.0"
   },
   "resolutions": {
     "styled-components": "^5"
