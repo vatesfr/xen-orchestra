@@ -1142,7 +1142,7 @@ export default class NewVm extends BaseComponent {
                   {_('newVmUserConfigLabel')}
                   <br />
                   <DebounceTextarea
-                    className='form-control'
+                    className='form-control text-monospace'
                     disabled={installMethod !== 'customConfig'}
                     onChange={this._linkState('customConfig')}
                     rows={7}
@@ -1156,7 +1156,7 @@ export default class NewVm extends BaseComponent {
                     {_('newVmNetworkConfigLabel')} <NetworkConfigInfo />
                     <br />
                     <DebounceTextarea
-                      className='form-control'
+                      className='form-control text-monospace'
                       disabled={installMethod !== 'customConfig'}
                       onChange={this._linkState('networkConfig')}
                       rows={7}
@@ -1246,7 +1246,7 @@ export default class NewVm extends BaseComponent {
             <label>{_('newVmCloudConfig')}</label>{' '}
             {!coreOsDefaultTemplateError ? (
               <DebounceTextarea
-                className='form-control'
+                className='form-control text-monospace'
                 onChange={this._linkState('cloudConfig')}
                 rows={7}
                 value={cloudConfig}

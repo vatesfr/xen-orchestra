@@ -13,6 +13,11 @@ $brand-info: #044b7f;
 
 @import "../../../node_modules/bootstrap/scss/bootstrap";
 
+// imported from https://github.com/twbs/bootstrap/blob/d64466a2488bbaac9a1005db3a199a8bc6846e3e/scss/_variables.scss#L420
+.text-monospace {
+  font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
 // -------------------------------------------------------------------
 
 $fa-font-path: "./";

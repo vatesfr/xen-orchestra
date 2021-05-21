@@ -119,7 +119,7 @@ export default decorate([
             </label>{' '}
             <AvailableTemplateVars />
             <DebounceTextarea
-              className='form-control'
+              className='form-control text-monospace'
               id={state.inputTemplateId}
               name='template'
               onChange={effects.setInputValue}
