@@ -34,7 +34,7 @@ class SendToClipboard extends Component {
     return (
       <div>
         <textarea
-          className='form-control'
+          className='form-control text-monospace'
           onChange={this.linkState('value')}
           ref={this._selectContent}
           rows={10}
