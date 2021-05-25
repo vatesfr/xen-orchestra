@@ -8451,22 +8451,13 @@ http-proxy@^1.16.2, http-proxy@^1.17.0:
     follow-redirects "^1.0.0"
     requires-port "^1.0.0"
 
-http-request-plus@^0.8.0:
-  version "0.8.0"
-  resolved "https://registry.yarnpkg.com/http-request-plus/-/http-request-plus-0.8.0.tgz#9d883be7122c96124eb5e5c96bee9dfba8abc338"
-  integrity sha512-nSx7ebXOnHFgwi67YgkdEoHpjx/OH4wOkiHgqUnLsqTRlCu1DDeE+QLRiOI1XnSkqk2Y0Srmg5b1P9ckAPuETw==
+http-request-plus@^0.10.0:
+  version "0.10.0"
+  resolved "https://registry.yarnpkg.com/http-request-plus/-/http-request-plus-0.10.0.tgz#1cdf07c9c7d7742a6ca5aa279333187983ec632f"
+  integrity sha512-iWU3gGjhHUtC2QjzEvy4fEdVSeeQ9jVZ0cNl6WItgJTAo8xnVHUQqKE0ke12Momc5OZitvRj/RpB55LbIt3+fA==
   dependencies:
     is-redirect "^1.0.0"
-    lodash "^4.17.4"
-    promise-toolbox "^0.12.1"
-
-http-request-plus@^0.9.1:
-  version "0.9.1"
-  resolved "https://registry.yarnpkg.com/http-request-plus/-/http-request-plus-0.9.1.tgz#ba724da3dabb48eb7962e83aec5f5b3cd7291166"
-  integrity sha512-T1fKx7VukMoBUagokUpvFxrX2CWAOCavfG0UD7nG430Vp3JlSyu9plrS4V9ZLFUvm/Dtw/Q2GJZhZDEcjh2H0g==
-  dependencies:
-    is-redirect "^1.0.0"
-    promise-toolbox "^0.14.0"
+    promise-toolbox "^0.19.2"
     pump "^3.0.0"
 
 http-server-plus@^0.11.0:
@@ -13386,20 +13377,6 @@ promise-polyfill@^6.0.1:
   version "6.1.0"
   resolved "https://registry.yarnpkg.com/promise-polyfill/-/promise-polyfill-6.1.0.tgz#dfa96943ea9c121fca4de9b5868cb39d3472e057"
   integrity sha1-36lpQ+qcEh/KTem1hoyznTRy4Fc=
-
-promise-toolbox@^0.12.1:
-  version "0.12.1"
-  resolved "https://registry.yarnpkg.com/promise-toolbox/-/promise-toolbox-0.12.1.tgz#bc3bf55928070b9d2fa28c6f4b20b9876cd11e80"
-  integrity sha512-fvsSG1kxs+xDJFwmN3WgPpAdikJvaoYkcLs1xrLRHYE2luzNVfroLrx2WzIhhsGjLsbNBu+983503IRf/n9MWA==
-  dependencies:
-    make-error "^1.3.2"
-
-promise-toolbox@^0.14.0:
-  version "0.14.0"
-  resolved "https://registry.yarnpkg.com/promise-toolbox/-/promise-toolbox-0.14.0.tgz#b2f8bd90fce6709b290b58fc06d89280375a98b4"
-  integrity sha512-VV5lXK4lXaPB9oBO50ope1qd0AKN8N3nK14jYvV9/qFmfZW2Px/bJjPZBniGjXcIJf6J5Y/coNgJtPHDyiUV/g==
-  dependencies:
-    make-error "^1.3.2"
 
 promise-toolbox@^0.15.0:
   version "0.15.1"

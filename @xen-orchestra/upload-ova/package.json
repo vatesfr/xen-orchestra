@@ -36,7 +36,7 @@
     "fs-extra": "^9.0.0",
     "fs-promise": "^2.0.3",
     "get-stream": "^6.0.0",
-    "http-request-plus": "^0.8.0",
+    "http-request-plus": "^0.10.0",
     "human-format": "^0.11.0",
     "l33teral": "^3.0.3",
     "lodash": "^4.17.4",
