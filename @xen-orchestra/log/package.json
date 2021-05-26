@@ -1,7 +1,7 @@
 {
   "private": false,
   "name": "@xen-orchestra/log",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "license": "ISC",
   "description": "Logging system with decoupled producers/consumer",
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/log",

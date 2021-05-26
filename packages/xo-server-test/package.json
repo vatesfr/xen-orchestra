@@ -34,7 +34,7 @@
     "jest": "^26.6.3",
     "lodash": "^4.17.11",
     "promise-toolbox": "^0.19.2",
-    "xo-collection": "^0.4.1",
+    "xo-collection": "^0.5.0",
     "xo-common": "^0.7.0",
     "xo-lib": "^0.10.1"
   },

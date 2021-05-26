@@ -1,7 +1,7 @@
 {
   "private": false,
   "name": "@xen-orchestra/emit-async",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "license": "ISC",
   "description": "Emit an event for async listeners to settle",
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/emit-async",

@@ -21,7 +21,7 @@
     "@vates/parse-duration": "^0.1.1",
     "@xen-orchestra/async-map": "^0.1.2",
     "@xen-orchestra/fs": "^0.17.0",
-    "@xen-orchestra/log": "^0.2.0",
+    "@xen-orchestra/log": "^0.2.1",
     "@xen-orchestra/template": "^0.1.0",
     "compare-versions": "^3.6.0",
     "d3-time-format": "^3.0.0",

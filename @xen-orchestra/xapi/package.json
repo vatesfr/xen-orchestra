@@ -25,7 +25,7 @@
     "xo-common": "^0.7.0"
   },
   "peerDependencies": {
-    "xen-api": "^0.32.0"
+    "xen-api": "^0.33.0"
   },
   "scripts": {
     "build": "cross-env NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
@@ -40,7 +40,7 @@
   "dependencies": {
     "@vates/decorate-with": "^0.0.1",
     "@xen-orchestra/async-map": "^0.1.2",
-    "@xen-orchestra/log": "^0.2.0",
+    "@xen-orchestra/log": "^0.2.1",
     "d3-time-format": "^3.0.0",
     "golike-defer": "^0.5.1",
     "lodash": "^4.17.15",
