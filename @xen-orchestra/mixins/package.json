@@ -20,7 +20,7 @@
   },
   "dependencies": {
     "@vates/parse-duration": "^0.1.1",
-    "@xen-orchestra/emit-async": "^0.0.0",
+    "@xen-orchestra/emit-async": "^0.1.0",
     "@xen-orchestra/log": "^0.2.0",
     "app-conf": "^0.9.0",
     "lodash": "^4.17.21"
