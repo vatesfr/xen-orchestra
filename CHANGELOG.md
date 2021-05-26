@@ -23,7 +23,7 @@
 - xo-server-backup-reports 0.16.10
 - xo-server-netbox 0.1.0
 - xo-web 5.82.0
-- xo-server 5.79.4
+- xo-server 5.79.5
 
 ## **5.58.1** (2021-05-06)
 
