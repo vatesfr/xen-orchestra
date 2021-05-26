@@ -2,9 +2,28 @@
 
 ## **next**
 
+### Enhancements
+
+- [Metadata Backup] Add a warning on restoring a metadata backup (PR [#5769](https://github.com/vatesfr/xen-orchestra/pull/5769))
+- [SAML] Compatible with users created with other authentication providers (PR [#5781](https://github.com/vatesfr/xen-orchestra/pull/5781))
+- [Netbox] [Plugin](https://xen-orchestra.com/docs/advanced.html#netbox) to synchronize pools, VMs and IPs with [Netbox](https://netbox.readthedocs.io/en/stable/) (PR [#5783](https://github.com/vatesfr/xen-orchestra/pull/5783))
+
+### Bug fixes
+
+- [Smart backup] Report missing pools [#2844](https://github.com/vatesfr/xen-orchestra/issues/2844) (PR [#5768](https://github.com/vatesfr/xen-orchestra/pull/5768))
+
 ### Released packages
 
-- xen-api 0.32
+- @xen-orchestra/emit-async 0.1.0
+- @xen-orchestra/defined 0.0.1
+- xo-collection 0.5.0
+- @xen-orchestra/log 0.2.1
+- xen-api 0.33.0
+- xo-server-auth-saml 0.9.0
+- xo-server-backup-reports 0.16.10
+- xo-server-netbox 0.1.0
+- xo-web 5.82.0
+- xo-server 5.79.4
 
 ## **5.58.1** (2021-05-06)
 
