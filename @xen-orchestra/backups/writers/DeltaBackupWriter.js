@@ -128,7 +128,7 @@ exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(Ab
     })
   }
 
-  async transfer({ timestamp, deltaExport, sizeContainers }) {
+  async _transfer({ timestamp, deltaExport, sizeContainers }) {
     const adapter = this._adapter
     const backup = this._backup
 

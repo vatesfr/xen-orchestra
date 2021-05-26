@@ -77,7 +77,7 @@ exports.DeltaReplicationWriter = class DeltaReplicationWriter extends MixinRepli
     return asyncMapSettled(this._oldEntries, vm => vm.$destroy())
   }
 
-  async transfer({ timestamp, deltaExport, sizeContainers }) {
+  async _transfer({ timestamp, deltaExport, sizeContainers }) {
     const sr = this._sr
     const { job, scheduleId, vm } = this._backup
 

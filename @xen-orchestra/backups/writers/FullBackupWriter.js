@@ -25,7 +25,7 @@ exports.FullBackupWriter = class FullBackupWriter extends MixinBackupWriter(Abst
     )
   }
 
-  async run({ timestamp, sizeContainer, stream }) {
+  async _run({ timestamp, sizeContainer, stream }) {
     const backup = this._backup
     const settings = this._settings
 
