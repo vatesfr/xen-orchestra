@@ -18,7 +18,6 @@
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },
   "preferGlobal": true,
-  "main": "dist/",
   "bin": {
     "xo-proxy": "dist/index.js"
   },
