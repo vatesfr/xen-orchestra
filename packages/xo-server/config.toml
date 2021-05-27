@@ -162,7 +162,7 @@ vdiExportConcurrency = 12
 vmExportConcurrency = 2
 vmSnapshotConcurrency = 2
 
-["xo-proxy"]
+[xo-proxy]
 callTimeout = '1 min'
 
 channel = 'xo-proxy-appliance'
