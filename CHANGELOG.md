@@ -19,6 +19,7 @@
 - xo-collection 0.5.0
 - @xen-orchestra/log 0.2.1
 - xen-api 0.33.0
+- @xen-orchestra/xapi 0.6.3
 - xo-server-auth-saml 0.9.0
 - xo-server-backup-reports 0.16.10
 - xo-server-netbox 0.1.1
