@@ -19,7 +19,7 @@
   },
   "preferGlobal": true,
   "bin": {
-    "xo-proxy": "dist/index.js"
+    "xo-proxy": "dist/index.mjs"
   },
   "engines": {
     "node": ">=14.13"
@@ -83,7 +83,7 @@
     "prepack": "toggle-scripts +postinstall +preuninstall",
     "prepublishOnly": "yarn run build",
     "_preuninstall": "./scripts/systemd-service-installer",
-    "start": "./dist/index.js"
+    "start": "./dist/index.mjs"
   },
   "author": {
     "name": "Vates SAS",
