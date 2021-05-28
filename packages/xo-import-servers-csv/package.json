@@ -42,15 +42,11 @@
   "devDependencies": {
     "@types/node": "^14.0.9",
     "@types/through2": "^2.0.31",
-    "tslint": "^5.9.1",
-    "tslint-config-standard": "^9.0.0",
     "typescript": "^3.1.6"
   },
   "scripts": {
     "build": "tsc",
     "dev": "tsc -w",
-    "lint": "tslint 'src/*.ts'",
-    "posttest": "yarn run lint",
     "prepublishOnly": "yarn run build",
     "start": "node dist/index.js",
     "postversion": "npm publish"
