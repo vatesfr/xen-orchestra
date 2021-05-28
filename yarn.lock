@@ -11586,11 +11586,6 @@ next-tick@~1.0.0:
   resolved "https://registry.yarnpkg.com/next-tick/-/next-tick-1.0.0.tgz#ca86d1fe8828169b0120208e3dc8424b9db8342c"
   integrity sha1-yobR/ogoFpsBICCOPchCS524NCw=
 
-nice-pipe@0.0.0:
-  version "0.0.0"
-  resolved "https://registry.yarnpkg.com/nice-pipe/-/nice-pipe-0.0.0.tgz#0e2069551244d64ce686a716511892fe4fb1d63a"
-  integrity sha1-DiBpVRJE1kzmhqcWURiS/k+x1jo=
-
 nice-try@^1.0.4:
   version "1.0.5"
   resolved "https://registry.yarnpkg.com/nice-try/-/nice-try-1.0.5.tgz#a3378a7696ce7d223e88fc9b764bd7ef1089e366"
