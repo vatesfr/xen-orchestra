@@ -35,10 +35,10 @@
     "@babel/preset-env": "^7.0.0",
     "babel-plugin-lodash": "^3.3.2",
     "cross-env": "^7.0.2",
-    "event-to-promise": "^0.8.0",
     "execa": "^5.0.0",
     "fs-extra": "^9.0.0",
     "get-stream": "^6.0.0",
+    "promise-toolbox": "^0.19.2",
     "rimraf": "^3.0.0",
     "tmp": "^0.2.1"
   },

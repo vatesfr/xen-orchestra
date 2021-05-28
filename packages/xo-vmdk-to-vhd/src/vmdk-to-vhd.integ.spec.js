@@ -1,7 +1,7 @@
 /* eslint-env jest */
 
 import execa from 'execa'
-import eventToPromise from 'event-to-promise'
+import fromEvent from 'promise-toolbox/fromEvent'
 import getStream from 'get-stream'
 import rimraf from 'rimraf'
 import tmp from 'tmp'
@@ -54,7 +54,7 @@ test('VMDK to VHD can convert a random data file with VMDKDirectParser', async (
     const pipe = (
       await vmdkToVhd(createReadStream(vmdkFileName), result.grainLogicalAddressList, result.grainFileOffsetList)
     ).pipe(createWriteStream(vhdFileName))
-    await eventToPromise(pipe, 'finish')
+    await fromEvent(pipe, 'finish')
     await execa('vhd-util', ['check', '-p', '-b', '-t', '-n', vhdFileName])
     await execa('qemu-img', ['convert', '-fvmdk', '-Oraw', vmdkFileName, reconvertedFromVmdk])
     await execa('qemu-img', ['convert', '-fvpc', '-Oraw', vhdFileName, reconvertedFromVhd])

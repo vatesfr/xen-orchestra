@@ -5,9 +5,9 @@ import expect from 'must'
 
 // ===================================================================
 
+import fromEvent from 'promise-toolbox/fromEvent'
 import { getConfig, getMainConnection, getSrId, waitObjectState } from './util'
 import { map } from 'lodash'
-import eventToPromise from 'event-to-promise'
 
 // ===================================================================
 
@@ -27,7 +27,7 @@ describe('disk', () => {
     const config = await getConfig()
     serverId = await xo.call('server.add', Object.assign({ autoConnect: false }, config.xenServer1))
     await xo.call('server.connect', { id: serverId })
-    await eventToPromise(xo.objects, 'finish')
+    await fromEvent(xo.objects, 'finish')
     srId = await getSrId(xo)
   })
 

@@ -5,6 +5,7 @@ import expect from 'must'
 
 // ===================================================================
 
+import fromEvent from 'promise-toolbox/fromEvent'
 import {
   almostEqual,
   getAllHosts,
@@ -18,7 +19,6 @@ import {
   waitObjectState,
 } from './util'
 import { map, find } from 'lodash'
-import eventToPromise from 'event-to-promise'
 
 // ===================================================================
 
@@ -35,7 +35,7 @@ describe('vm', () => {
     jest.setTimeout(10e3)
     ;[xo, config] = await Promise.all([getMainConnection(), getConfig()])
     serverId = await xo.call('server.add', config.xenServer1).catch(() => {})
-    await eventToPromise(xo.objects, 'finish')
+    await fromEvent(xo.objects, 'finish')
   })
 
   // ----------------------------------------------------------------------
@@ -347,7 +347,7 @@ describe('vm', () => {
 
     beforeAll(async () => {
       secondServerId = await xo.call('server.add', config.xenServer2).catch(() => {})
-      await eventToPromise(xo.objects, 'finish')
+      await fromEvent(xo.objects, 'finish')
 
       vmId = await getVmToMigrateId(xo)
 
@@ -393,7 +393,7 @@ describe('vm', () => {
 
     beforeAll(async () => {
       secondServerId = await xo.call('server.add', config.xenServer2).catch(() => {})
-      await eventToPromise(xo.objects, 'finish')
+      await fromEvent(xo.objects, 'finish')
 
       vmId = await getVmToMigrateId(xo)
 

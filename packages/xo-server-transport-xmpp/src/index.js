@@ -1,4 +1,4 @@
-import eventToPromise from 'event-to-promise'
+import fromEvent from 'promise-toolbox/fromEvent'
 import XmppClient from 'node-xmpp-client'
 
 // ===================================================================
@@ -55,8 +55,8 @@ class TransportXmppPlugin {
     this._client = new XmppClient(this._conf)
     this._client.on('error', () => {})
 
-    await eventToPromise(this._client.connection.socket, 'data')
-    await eventToPromise(this._client, 'online')
+    await fromEvent(this._client.connection.socket, 'data')
+    await fromEvent(this._client, 'online')
 
     this._unset = this._set('sendToXmppClient', this._sendToXmppClient)
   }

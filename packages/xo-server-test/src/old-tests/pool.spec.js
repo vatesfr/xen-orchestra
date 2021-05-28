@@ -5,8 +5,8 @@ import expect from 'must'
 
 // ===================================================================
 
+import fromEvent from 'promise-toolbox/fromEvent'
 import { getConfig, getMainConnection, waitObjectState } from './util'
-import eventToPromise from 'event-to-promise'
 import { find } from 'lodash'
 
 // ===================================================================
@@ -21,7 +21,7 @@ describe('pool', () => {
     jest.setTimeout(10e3)
     ;[xo, config] = await Promise.all([getMainConnection(), getConfig()])
     serverId = await xo.call('server.add', config.xenServer1).catch(() => {})
-    await eventToPromise(xo.objects, 'finish')
+    await fromEvent(xo.objects, 'finish')
     poolId = getPoolId()
   })
 

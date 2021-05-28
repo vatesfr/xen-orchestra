@@ -5,8 +5,8 @@ import expect from 'must'
 
 // ===================================================================
 
+import fromEvent from 'promise-toolbox/fromEvent'
 import { getConfig, getMainConnection, getNetworkId, waitObjectState, getVmXoTestPvId } from './util'
-import eventToPromise from 'event-to-promise'
 import { map } from 'lodash'
 
 // ===================================================================
@@ -24,7 +24,7 @@ describe('vif', () => {
     ;[xo, config] = await Promise.all([getMainConnection(), getConfig()])
 
     serverId = await xo.call('server.add', config.xenServer1).catch(() => {})
-    await eventToPromise(xo.objects, 'finish')
+    await fromEvent(xo.objects, 'finish')
 
     vmId = await getVmXoTestPvId(xo)
     try {

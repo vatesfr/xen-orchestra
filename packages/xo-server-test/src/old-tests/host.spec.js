@@ -3,7 +3,7 @@
 // Doc: https://github.com/moll/js-must/blob/master/doc/API.md#must
 
 import expect from 'must'
-import eventToPromise from 'event-to-promise'
+import fromEvent from 'promise-toolbox/fromEvent'
 import { getAllHosts, getConfig, getMainConnection, getVmToMigrateId, waitObjectState } from './util'
 import { find, forEach } from 'lodash'
 
@@ -21,7 +21,7 @@ describe('host', () => {
     let config
     ;[xo, config] = await Promise.all([getMainConnection(), getConfig()])
     serverId = await xo.call('server.add', config.xenServer2).catch(() => {})
-    await eventToPromise(xo.objects, 'finish')
+    await fromEvent(xo.objects, 'finish')
 
     hostId = getHost(config.host1)
   })
