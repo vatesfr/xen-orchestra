@@ -31,6 +31,34 @@ class Foo {
 }
 ```
 
+### `decorateMethodsWith(class, map)`
+
+Decorates a number of methods directly, without using the decorator syntax:
+
+```js
+import { decorateMethodsWith } from '@vates/decorate-with'
+
+class Foo {
+  bar() {
+    // body
+  }
+
+  baz() {
+    // body
+  }
+}
+
+decorateMethodsWith(Foo, {
+  // without arguments
+  bar: lodash.curry,
+
+  // with arguments
+  baz: [lodash.debounce, 150],
+})
+```
+
+The decorated class is returned, so you can export it directly.
+
 ## Contributions
 
 Contributions are _very_ welcomed, either on the documentation or on
