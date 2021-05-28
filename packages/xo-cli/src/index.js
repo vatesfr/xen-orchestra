@@ -8,7 +8,7 @@ Bluebird.longStackTraces()
 const createReadStream = require('fs').createReadStream
 const createWriteStream = require('fs').createWriteStream
 const resolveUrl = require('url').resolve
-const stat = require('fs-promise').stat
+const stat = require('fs-extra').stat
 
 const chalk = require('chalk')
 const forEach = require('lodash/forEach')

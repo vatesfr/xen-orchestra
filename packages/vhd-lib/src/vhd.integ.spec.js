@@ -2,7 +2,7 @@
 import execa from 'execa'
 import rimraf from 'rimraf'
 import tmp from 'tmp'
-import { createWriteStream, readFile } from 'fs-promise'
+import { createWriteStream, readFile } from 'fs-extra'
 import { fromEvent, pFromCallback } from 'promise-toolbox'
 import { pipeline } from 'readable-stream'
 

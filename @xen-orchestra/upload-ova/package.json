@@ -34,7 +34,6 @@
     "exec-promise": "^0.7.0",
     "form-data": "^4.0.0",
     "fs-extra": "^9.0.0",
-    "fs-promise": "^2.0.3",
     "get-stream": "^6.0.0",
     "http-request-plus": "^0.10.0",
     "human-format": "^0.11.0",
