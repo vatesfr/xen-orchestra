@@ -62,8 +62,10 @@ export class PrivateNetwork {
     const hostPif = hostClient.host.$PIFs.find(
       pif => pif?.device === pifDevice && pif.VLAN === pifVlan && pif.ip_configuration_mode !== 'None'
     )
+    const centerDevice = centerNetwork.other_config['xo:sdn-controller:pif-device']
+    const centerVlan = +centerNetwork.other_config['xo:sdn-controller:vlan']
     const centerPif = centerClient.host.$PIFs.find(
-      pif => pif?.device === pifDevice && pif.VLAN === pifVlan && pif.ip_configuration_mode !== 'None'
+      pif => pif?.device === centerDevice && pif.VLAN === centerVlan && pif.ip_configuration_mode !== 'None'
     )
     assert(hostPif !== undefined, 'No PIF found', {
       privateNetwork: this.uuid,
