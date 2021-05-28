@@ -1,6 +1,3 @@
-// see https://github.com/babel/babel/issues/8450
-import 'core-js/features/symbol/async-iterator'
-
 import assert from 'assert'
 import zlib from 'zlib'
 
