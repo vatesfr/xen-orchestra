@@ -4,6 +4,7 @@ import { Map } from 'immutable'
 
 export interface XapiObject {
   $pool: Pool
+  $ref: string
   $type: keyof types
   $id: string
 }
@@ -143,7 +144,7 @@ export default class XapiConnection {
     }
   }
 
-  call(method: string, ...args: string[]): void {
+  call(method: string, ...args: string[]): Promise<never> {
     const { _xapi, connected } = this
     if (!connected || _xapi === undefined) {
       throw new Error('Not connected to XAPI')
