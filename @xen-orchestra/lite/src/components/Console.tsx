@@ -14,7 +14,6 @@ interface ParentState {
 }
 
 interface State {
-  confirmCtrlAltDel: boolean
   container: React.RefObject<HTMLDivElement>
   // See https://github.com/vatesfr/xen-orchestra/pull/5722#discussion_r619296074
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -39,7 +38,6 @@ interface Computed {}
 const Console = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
   {
     initialState: () => ({
-      confirmCtrlAltDel: false,
       container: React.createRef(),
       rfb: undefined,
     }),
