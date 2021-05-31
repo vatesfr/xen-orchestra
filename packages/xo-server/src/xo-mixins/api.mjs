@@ -6,7 +6,7 @@ import kindOf from 'kindof'
 import ms from 'ms'
 import schemaInspector from 'schema-inspector'
 import { getBoundPropertyDescriptor } from 'bind-property-descriptor'
-import { MethodNotFound } from 'json-rpc-peer'
+import { format, JsonRpcError, MethodNotFound } from 'json-rpc-peer'
 
 import * as methods from '../api/index.mjs'
 import * as sensitiveValues from '../sensitive-values.mjs'
@@ -375,5 +375,47 @@ export default class Api {
 
       throw error
     }
+  }
+
+  registerApiHttpRequest(method, session, fn, data, { exposeAllErrors = false, ...opts } = {}) {
+    return this.registerApiHttpRequest(
+      async function (req, res) {
+        const timestamp = Date.now()
+        try {
+          return await fn.apply(this, arguments)
+        } catch (error) {
+          const userId = session.get('user_id', undefined)
+          const user = userId && (await this._app.get(userId))
+
+          this._logger.error({
+            callId: Math.random().toString(36).slice(2),
+            userId,
+            userName: user?.email ?? '(unknown user)',
+            userIp: session.get('user_ip', undefined),
+            method: `HTTP handler of ${method}`,
+            timestamp,
+            duration: Date.now() - timestamp,
+            error: serializeError(error),
+          })
+
+          if (!res.headersSent) {
+            res.statusCode = 500
+            res.setHeader('Content-Type', 'application/json')
+
+            res.write(
+              format.error(
+                0,
+                exposeAllErrors && error != null && typeof error.toJsonRpcError !== 'function'
+                  ? new JsonRpcError(error.message, error.code, error.data)
+                  : error
+              )
+            )
+          }
+          res.end()
+        }
+      },
+      data,
+      opts
+    )
   }
 }
