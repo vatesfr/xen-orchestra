@@ -20,6 +20,10 @@
 
 - [SAML] Compatible with users created with other authentication providers (PR [#5781](https://github.com/vatesfr/xen-orchestra/pull/5781))
 
+### Bug fixes
+
+- [SDN Controller] Private network creation failure when the tunnels were created on different devices [Forum #4620](https://xcp-ng.org/forum/topic/4620/no-pif-found-in-center) (PR [#5793](https://github.com/vatesfr/xen-orchestra/pull/5793))
+
 ### Released packages
 
 - @xen-orchestra/emit-async 0.1.0
@@ -31,6 +35,7 @@
 - xo-server-auth-saml 0.9.0
 - xo-server-backup-reports 0.16.10
 - xo-server-netbox 0.1.1
+- xo-server-sdn-controller 1.0.5
 - xo-web 5.82.0
 - xo-server 5.79.5
 

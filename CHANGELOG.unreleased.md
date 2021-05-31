@@ -11,8 +11,6 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [SDN Controller] Private network creation failure when the tunnels were created on different devices [Forum #4620](https://xcp-ng.org/forum/topic/4620/no-pif-found-in-center) (PR [#5793](https://github.com/vatesfr/xen-orchestra/pull/5793))
-
 ### Packages to release
 
 > Packages will be released in the order they are here, therefore, they should
@@ -29,5 +27,3 @@
 > - major: if the change breaks compatibility
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
-
-- xo-server-sdn-controller patch
