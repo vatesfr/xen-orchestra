@@ -1,5 +1,11 @@
 # ChangeLog
 
+## **next**
+
+### Released packages
+
+- @vates/decorate-with 0.1.0
+
 ## **5.59.0** (2021-05-31)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
