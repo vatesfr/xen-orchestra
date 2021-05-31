@@ -13,9 +13,11 @@
     "@fortawesome/react-fontawesome": "^0.1.14",
     "@novnc/novnc": "^1.2.0",
     "@types/immutable": "^3.8.7",
+    "@types/lodash": "^4.14.170",
     "@types/node": "^14.14.21",
     "@types/react": "^17.0.0",
     "@types/react-dom": "^17.0.0",
+    "@types/react-intl": "^3.0.0",
     "@types/react-router-dom": "^5.1.7",
     "@types/react-syntax-highlighter": "^13.5.0",
     "@types/styled-components": "^5.1.9",
@@ -52,5 +54,8 @@
     "start": "cross-env NODE_ENV=development webpack serve",
     "start:open": "npm run start -- --open"
   },
-  "browserslist": "> 0.5%, last 2 versions, Firefox ESR, not dead"
+  "browserslist": "> 0.5%, last 2 versions, Firefox ESR, not dead",
+  "dependencies": {
+    "lodash": "^4.17.21"
+  }
 }

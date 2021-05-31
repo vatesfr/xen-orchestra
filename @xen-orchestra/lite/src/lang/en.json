@@ -1,12 +1,8 @@
 {
-<<<<<<< HEAD
-  "connect": "Connect"
-=======
   "connect": "Connect",
   "device": "Device",
   "DNS": "DNS",
   "gateway": "Gateway",
   "IP": "IP",
   "noData": "No data"
->>>>>>> manage other type of collections
 }

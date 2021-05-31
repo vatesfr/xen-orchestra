@@ -3,20 +3,43 @@ import { EventEmitter } from 'events'
 import { Map } from 'immutable'
 
 export interface XapiObject {
+  $pool: Pool
+  $ref: string
   $type: keyof types
   $id: string
 }
 
 // Dictionary of XAPI types and their corresponding TypeScript types
 interface types {
+  network: Network
+  PIF: Pif
+  pool: Pool
   VM: Vm
   host: Host
 }
 
 // Types ---
 
+export interface Network extends XapiObject {
+  name_label: string
+}
+
+export interface Pif extends XapiObject {
+  device: string
+  DNS: string
+  gateway: string
+  IP: string
+  management: boolean
+  network: string
+}
+
+type _Pool = Omit<XapiObject, '$pool'>
+export interface Pool extends _Pool {
+  name_label: string
+}
+
 export interface Vm extends XapiObject {
-  $consoles: Array<{ protocol: string, location: string }>
+  $consoles: Array<{ protocol: string; location: string }>
   is_a_snapshot: boolean
   is_a_template: boolean
   is_control_domain: boolean
