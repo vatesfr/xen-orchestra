@@ -1,16 +1,18 @@
 # ChangeLog
 
-## **next**
+## **5.59.0** (2021-05-31)
+
+<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
+### Highlights
+
+- [Smart backup] Report missing pools [#2844](https://github.com/vatesfr/xen-orchestra/issues/2844) (PR [#5768](https://github.com/vatesfr/xen-orchestra/pull/5768))
+- [Metadata Backup] Add a warning on restoring a metadata backup (PR [#5769](https://github.com/vatesfr/xen-orchestra/pull/5769))
+- [Netbox] [Plugin](https://xen-orchestra.com/docs/advanced.html#netbox) to synchronize pools, VMs and IPs with [Netbox](https://netbox.readthedocs.io/en/stable/) (PR [#5783](https://github.com/vatesfr/xen-orchestra/pull/5783))
 
 ### Enhancements
 
-- [Metadata Backup] Add a warning on restoring a metadata backup (PR [#5769](https://github.com/vatesfr/xen-orchestra/pull/5769))
 - [SAML] Compatible with users created with other authentication providers (PR [#5781](https://github.com/vatesfr/xen-orchestra/pull/5781))
-- [Netbox] [Plugin](https://xen-orchestra.com/docs/advanced.html#netbox) to synchronize pools, VMs and IPs with [Netbox](https://netbox.readthedocs.io/en/stable/) (PR [#5783](https://github.com/vatesfr/xen-orchestra/pull/5783))
-
-### Bug fixes
-
-- [Smart backup] Report missing pools [#2844](https://github.com/vatesfr/xen-orchestra/issues/2844) (PR [#5768](https://github.com/vatesfr/xen-orchestra/pull/5768))
 
 ### Released packages
 
@@ -28,7 +30,7 @@
 
 ## **5.58.1** (2021-05-06)
 
-<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Bug fixes
 
@@ -83,8 +85,6 @@
 - xo-web 5.81.0
 
 ## **5.57.1** (2021-04-13)
-
-<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Enhancements
 
