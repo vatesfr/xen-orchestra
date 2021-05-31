@@ -16,6 +16,7 @@ interface ParentState {
 interface State {
   confirmCtrlAltDel: boolean
   container: React.RefObject<HTMLDivElement>
+  // See https://github.com/vatesfr/xen-orchestra/pull/5722#discussion_r619296074
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   rfb: any
 }
