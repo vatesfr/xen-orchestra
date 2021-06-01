@@ -16,6 +16,16 @@ It means you don't have a default SR set on the pool you are importing XOA on. T
 
 XOA uses HVM mode. If your physical host doesn't support virtualization extensions, XOA won't work. To check if your XenServer supports hardware assisted virtualization (HVM), you can enter this command in your host: `grep --color vmx /proc/cpuinfo`. If you don't have any result, it means XOA won't work on this hardware.
 
+## Set or recover XOA VM password
+
+If you need for some reason to recover your XOA VM password, this can be done by setting xoa user password via the XenStore of the VM. The following is to be ran on your XCP-ng host:
+```
+xe vm-param-set uuid=<UUID> xenstore-data:vm-data/system-account-xoa-password=<password>
+```
+Where UUID is the uuid of your proxy VM.
+
+Then you need to restart the VM.
+
 ## Recover web login password
 
 If you have lost your password to log in to the XOA webpage, you can reset it. From the XOA CLI (for login/access info for the CLI, [see here](xoa.md#first-console-connection)), use the following command and insert the email/account you wish to recover:
