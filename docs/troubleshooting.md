@@ -22,7 +22,7 @@ If you need for some reason to recover your XOA VM password, this can be done by
 ```
 xe vm-param-set uuid=<UUID> xenstore-data:vm-data/system-account-xoa-password=<password>
 ```
-Where UUID is the uuid of your proxy VM.
+Where UUID is the uuid of your XOA VM.
 
 Then you need to restart the VM.
 
