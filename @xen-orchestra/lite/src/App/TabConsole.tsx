@@ -25,7 +25,7 @@ interface Effects {
 }
 
 interface Computed {
-  vm: Vm
+  vm?: Vm
 }
 
 const TabConsole = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
@@ -47,12 +47,12 @@ const TabConsole = withState<State, Props, Effects, Computed, ParentState, Paren
       },
     },
     computed: {
-      vm: (state, { vmId }) => state.objectsByType.get('VM')?.get(vmId) as Vm,
+      vm: (state, { vmId }) => state.objectsByType.get('VM')?.get(vmId),
     },
   },
   ({ effects, state, vmId }) => (
     <div style={{ height: '100vh' }}>
-      {state.vm.power_state !== 'Running' ? (
+      {state.vm?.power_state !== 'Running' ? (
         <p>
           <FormattedMessage id='consoleNotAvailable' />
         </p>

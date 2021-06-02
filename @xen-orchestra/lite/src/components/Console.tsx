@@ -26,9 +26,9 @@ interface Props {
 interface ParentEffects {}
 
 interface Effects {
-  _attemptToReconnect: () => void
   _connect: () => void
   _displayConsole: () => void
+  _handleDisconnect: () => void
 }
 
 interface Computed {}
@@ -45,7 +45,7 @@ const Console = withState<State, Props, Effects, Computed, ParentState, ParentEf
       initialize: function () {
         this.effects._connect()
       },
-      _attemptToReconnect: function () {
+      _handleDisconnect: function () {
         this.state.rfbConnected = false
         setTimeout(() => {
           this.effects._connect()
@@ -60,7 +60,7 @@ const Console = withState<State, Props, Effects, Computed, ParentState, ParentEf
 
         if (rfb !== undefined) {
           rfb.removeEventListener('connect', this.effects._displayConsole)
-          rfb.removeEventListener('disconnect', this.effects._attemptToReconnect)
+          rfb.removeEventListener('disconnect', this.effects._handleDisconnect)
         }
 
         if (consoles === undefined || consoles.length === 0) {
@@ -79,7 +79,7 @@ const Console = withState<State, Props, Effects, Computed, ParentState, ParentEf
           wsProtocols: ['binary'],
         })
         this.state.rfb.addEventListener('connect', this.effects._displayConsole)
-        this.state.rfb.addEventListener('disconnect', this.effects._attemptToReconnect)
+        this.state.rfb.addEventListener('disconnect', this.effects._handleDisconnect)
         this.state.rfb.scaleViewport = true
       },
       _displayConsole: function () {
@@ -93,7 +93,7 @@ const Console = withState<State, Props, Effects, Computed, ParentState, ParentEf
       },
       finalize: function () {
         this.state.rfb.removeEventListener('connect', this.effects._displayConsole)
-        this.state.rfb.removeEventListener('disconnect', this.effects._attemptToReconnect)
+        this.state.rfb.removeEventListener('disconnect', this.effects._handleDisconnect)
       },
     },
   },
