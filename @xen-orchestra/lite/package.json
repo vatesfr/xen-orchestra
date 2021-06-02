@@ -55,5 +55,9 @@
     "start": "cross-env NODE_ENV=development webpack serve",
     "start:open": "npm run start -- --open"
   },
-  "browserslist": "> 0.5%, last 2 versions, Firefox ESR, not dead"
+  "browserslist": "> 0.5%, last 2 versions, Firefox ESR, not dead",
+  "dependencies": {
+    "@material-ui/core": "^4.12.2",
+    "@material-ui/lab": "^4.0.0-alpha.60"
+  }
 }
