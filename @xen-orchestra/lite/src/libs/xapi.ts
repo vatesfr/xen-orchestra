@@ -18,8 +18,19 @@ interface types {
 
 // Types ---
 
-export interface PoolUpdate extends XapiObject {
-  name_label: string
+export interface PoolUpdate {
+  changelog: {
+    author: string
+    date: Date
+    description: string
+  }
+  description: string
+  license: string
+  name: string
+  release: string
+  size: number
+  url: string
+  version: string
 }
 
 type _Pool = Omit<XapiObject, '$pool'>

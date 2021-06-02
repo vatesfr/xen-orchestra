@@ -41,7 +41,7 @@ const Pools = withState<State, Props, Effects, Computed, ParentState, ParentEffe
               <ul>
                 {state.pools.valueSeq().map(pool => (
                   <li key={pool.$id}>
-                    <Link to={location => `${location.pathname}/${pool.$id}`}>{pool.name_label}</Link>
+                    <Link to={location => `${location.pathname}/${pool.$id}`}>{pool.$id}</Link>
                   </li>
                 ))}
               </ul>
