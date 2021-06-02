@@ -3,7 +3,10 @@ import RFB from '@novnc/novnc/lib/rfb'
 import { FormattedMessage } from 'react-intl'
 import { withState } from 'reaclette'
 
+import { confirm } from './Modal'
+
 import XapiConnection, { ObjectsByType, Vm } from '../libs/xapi'
+
 
 interface ParentState {
   objectsByType: ObjectsByType
@@ -20,6 +23,7 @@ interface State {
 
 interface Props {
   scale: number
+  setCtrlAltDel: (sendCtrlAltDel: Effects['sendCtrlAltDel']) => void
   vmId: string
 }
 
@@ -29,6 +33,7 @@ interface Effects {
   _connect: () => void
   _displayConsole: () => void
   _handleDisconnect: () => void
+  sendCtrlAltDel: () => void
 }
 
 interface Computed {}
@@ -81,6 +86,8 @@ const Console = withState<State, Props, Effects, Computed, ParentState, ParentEf
         this.state.rfb.addEventListener('connect', this.effects._displayConsole)
         this.state.rfb.addEventListener('disconnect', this.effects._handleDisconnect)
         this.state.rfb.scaleViewport = true
+        this.props.setCtrlAltDel(this.effects.sendCtrlAltDel)
+
       },
       _displayConsole: function () {
         this.state.rfbConnected = true
@@ -94,6 +101,13 @@ const Console = withState<State, Props, Effects, Computed, ParentState, ParentEf
       finalize: function () {
         this.state.rfb.removeEventListener('connect', this.effects._displayConsole)
         this.state.rfb.removeEventListener('disconnect', this.effects._handleDisconnect)
+      },
+      sendCtrlAltDel: async function () {
+        await confirm({
+          message: <FormattedMessage id='confirmCtrlAltDel' />,
+          title: <FormattedMessage id='ctrlAltDel'/>
+        })
+        this.state.rfb.sendCtrlAltDel()
       },
     },
   },

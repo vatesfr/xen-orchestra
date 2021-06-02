@@ -1,5 +1,7 @@
 {
+  "confirmCtrlAltDel": "Send Ctrl+Alt+Del to VM?",
   "connect": "Connect",
   "consoleNotAvailable": "Console is only available for running VMs",
+  "ctrlAltDel": "Ctrl+Alt+Del",
   "reconnectionAttempt": "Trying to reconnect…"
 }
