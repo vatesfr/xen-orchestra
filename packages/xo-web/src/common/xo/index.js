@@ -1465,21 +1465,16 @@ export const importVm = async (file, type = 'xva', data = undefined, sr) => {
       }
     }
   }
-  return _call('vm.import', { type, data, sr: resolveId(sr) }).then(async ({ $sendTo }) => {
-    formData.append('file', file)
-    return post($sendTo, formData)
-      .then(res => {
-        if (res.status !== 200) {
-          throw res.status
-        }
-        success(_('vmImportSuccess'), name)
-        return res.json().then(body => body.result)
-      })
-      .catch(err => {
-        error(_('vmImportFailed'), name)
-        throw err
-      })
-  })
+  const result = await _call('vm.import', { type, data, sr: resolveId(sr) })
+  formData.append('file', file)
+  const res = await post(result.$sendTo, formData)
+  const json = await res.json()
+  if (res.status !== 200) {
+    error(_('vmImportFailed'), name)
+    throw json.error
+  }
+  success(_('vmImportSuccess'), name)
+  return json.result
 }
 
 import ImportVdiModalBody from './import-vdi-modal' // eslint-disable-line import/first

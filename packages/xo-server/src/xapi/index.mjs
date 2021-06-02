@@ -1102,6 +1102,9 @@ export default class Xapi extends XapiBase {
     const vdis = {}
     const compression = {}
     const vifDevices = await this.call('VM.get_allowed_VIF_devices', vm.$ref)
+    if (networks.length > vifDevices.length) {
+      throw operationFailed({ objectId: vm.id, code: 'TOO_MANY_VIFs' })
+    }
     await Promise.all(
       map(disks, async disk => {
         const vdi = (vdis[disk.path] = await this.createVdi({

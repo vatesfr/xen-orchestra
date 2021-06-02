@@ -1256,38 +1256,42 @@ async function handleVmImport(req, res, { data, srId, type, xapi }) {
   // Timeout seems to be broken in Node 4.
   // See https://github.com/nodejs/node/issues/3319
   req.setTimeout(43200000) // 12 hours
-  await new Promise((resolve, reject) => {
+  const vm = await new Promise((resolve, reject) => {
     const form = new multiparty.Form()
     const promises = []
     const tables = {}
     form.on('error', reject)
     form.on('part', async part => {
-      if (part.name !== 'file') {
-        promises.push(
-          (async () => {
-            if (!(part.filename in tables)) {
-              tables[part.filename] = {}
-            }
-            const view = new DataView((await getStream.buffer(part)).buffer)
-            const result = new Uint32Array(view.byteLength / 4)
-            for (const i in result) {
-              result[i] = view.getUint32(i * 4, true)
-            }
-            tables[part.filename][part.name] = result
-            data.tables = tables
-          })()
-        )
-      } else {
-        await Promise.all(promises)
-        // XVA files are directly sent to xcp-ng who wants a content-length
-        part.length = part.byteCount
-        const vm = await xapi.importVm(part, { data, srId, type })
-        res.end(format.response(0, vm.$id))
-        resolve()
+      try {
+        if (part.name !== 'file') {
+          promises.push(
+            (async () => {
+              if (!(part.filename in tables)) {
+                tables[part.filename] = {}
+              }
+              const view = new DataView((await getStream.buffer(part)).buffer)
+              const result = new Uint32Array(view.byteLength / 4)
+              for (const i in result) {
+                result[i] = view.getUint32(i * 4, true)
+              }
+              tables[part.filename][part.name] = result
+              data.tables = tables
+            })()
+          )
+        } else {
+          await Promise.all(promises)
+          // XVA files are directly sent to xcp-ng who wants a content-length
+          part.length = part.byteCount
+          resolve(xapi.importVm(part, { data, srId, type }))
+        }
+      } catch (e) {
+        // multiparty is not promise-aware, we have to chain errors ourselves.
+        reject(e)
       }
     })
     form.parse(req)
   })
+  res.end(format.response(0, vm.$id))
 }
 
 // TODO: "sr_id" can be passed in URL to target a specific SR
@@ -1297,12 +1301,18 @@ async function import_({ data, sr, type }) {
   }
 
   return {
-    $sendTo: await this.registerHttpRequest(handleVmImport, {
-      data,
-      srId: sr._xapiId,
-      type,
-      xapi: this.getXapi(sr),
-    }),
+    $sendTo: await this.registerApiHttpRequest(
+      'vm.import',
+      this.session,
+      handleVmImport,
+      {
+        data,
+        srId: sr._xapiId,
+        type,
+        xapi: this.getXapi(sr),
+      },
+      { exposeAllErrors: true }
+    ),
   }
 }
 
