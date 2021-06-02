@@ -1,6 +1,8 @@
 import React from 'react'
+import { FormattedMessage } from 'react-intl'
 import { withState } from 'reaclette'
 
+import Button from '../components/Button'
 import Console from '../components/Console'
 import RangeInput from '../components/RangeInput'
 
@@ -8,6 +10,7 @@ interface ParentState {}
 
 interface State {
   consoleScale: number
+  sendCtrlAltDel?: () => void
 }
 
 interface Props {
@@ -18,6 +21,7 @@ interface ParentEffects {}
 
 interface Effects {
   scaleConsole: React.ChangeEventHandler<HTMLInputElement>
+  setCtrlAltDel: (sendCtrlAltDel: State['sendCtrlAltDel']) => void
 }
 
 interface Computed {}
@@ -27,6 +31,7 @@ const TabConsole = withState<State, Props, Effects, Computed, ParentState, Paren
     initialState: () => ({
       // Value in percent
       consoleScale: 100,
+      sendCtrlAltDel: undefined,
     }),
     effects: {
       scaleConsole: function (e) {
@@ -39,12 +44,20 @@ const TabConsole = withState<State, Props, Effects, Computed, ParentState, Paren
         // PR https://github.com/novnc/noVNC/pull/1365
         window.dispatchEvent(new UIEvent('resize'))
       },
+      setCtrlAltDel: function (sendCtrlAltDel) {
+        this.state.sendCtrlAltDel = sendCtrlAltDel
+      },
     },
   },
-  ({ state, effects, vmId }) => (
+  ({ effects, state, vmId }) => (
     <div style={{ height: '100vh' }}>
       <RangeInput max={100} min={1} onChange={effects.scaleConsole} step={1} value={state.consoleScale} />
-      <Console vmId={vmId} scale={state.consoleScale} />
+      {state.sendCtrlAltDel !== undefined && (
+        <Button onClick={state.sendCtrlAltDel}>
+          <FormattedMessage id='ctrlAltDel' />
+        </Button>
+      )}
+      <Console vmId={vmId} scale={state.consoleScale} setCtrlAltDel={effects.setCtrlAltDel} />
     </div>
   )
 )

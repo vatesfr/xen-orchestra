@@ -1,8 +1,12 @@
 import React from 'react'
 import RFB from '@novnc/novnc/lib/rfb'
+import { FormattedMessage } from 'react-intl'
 import { withState } from 'reaclette'
 
+import { confirm } from './Modal'
+
 import XapiConnection, { ObjectsByType, Vm } from '../libs/xapi'
+
 
 interface ParentState {
   objectsByType: ObjectsByType
@@ -11,16 +15,22 @@ interface ParentState {
 
 interface State {
   container: React.RefObject<HTMLDivElement>
+  // See https://github.com/vatesfr/xen-orchestra/pull/5722#discussion_r619296074
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  rfb: any
 }
 
 interface Props {
   vmId: string
   scale: number
+  setCtrlAltDel: (sendCtrlAltDel: Effects['sendCtrlAltDel']) => void
 }
 
 interface ParentEffects {}
 
-interface Effects {}
+interface Effects {
+  sendCtrlAltDel: () => void
+}
 
 interface Computed {}
 
@@ -29,6 +39,7 @@ const Console = withState<State, Props, Effects, Computed, ParentState, ParentEf
   {
     initialState: () => ({
       container: React.createRef(),
+      rfb: undefined,
     }),
     effects: {
       initialize: async function () {
@@ -50,10 +61,19 @@ const Console = withState<State, Props, Effects, Computed, ParentState, ParentEf
         url.protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
         url.searchParams.set('session_id', xapi.sessionId)
 
-        const rfb = new RFB(this.state.container.current, url, {
+        this.state.rfb = new RFB(this.state.container.current, url, {
           wsProtocols: ['binary'],
         })
-        rfb.scaleViewport = true
+        this.state.rfb.scaleViewport = true
+
+        this.props.setCtrlAltDel(this.effects.sendCtrlAltDel)
+      },
+      sendCtrlAltDel: async function () {
+        await confirm({
+          message: <FormattedMessage id='confirmCtrlAltDel' />,
+          title: <FormattedMessage id='ctrlAltDel'/>
+        })
+        this.state.rfb.sendCtrlAltDel()
       },
     },
   },
