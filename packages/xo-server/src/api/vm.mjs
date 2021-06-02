@@ -1252,7 +1252,7 @@ export { export_ as export }
  *    - grainFileOffsetList : uint32 LE in sectors, limits the biggest VMDK size to 2^41B (2^32 * 512B)
  *  - the last part is the ova file.
  */
-async function handleVmImport(req, res, { data, srId, type, xapi, session }) {
+async function handleVmImport(req, res, { data, srId, type, xapi }) {
   // Timeout seems to be broken in Node 4.
   // See https://github.com/nodejs/node/issues/3319
   req.setTimeout(43200000) // 12 hours
