@@ -1310,7 +1310,6 @@ async function import_({ data, sr, type }) {
         srId: sr._xapiId,
         type,
         xapi: this.getXapi(sr),
-        session: this,
       },
       { exposeAllErrors: true }
     ),
