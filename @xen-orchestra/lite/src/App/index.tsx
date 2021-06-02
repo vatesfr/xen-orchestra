@@ -105,7 +105,7 @@ const App = withState<State, Props, Effects, Computed, ParentState, ParentEffect
       url: state => `${window.location.protocol}//${state.xapiHostname}`,
     },
   },
-  ({ state }) => (
+  ({ effects, state }) => (
     <IntlProvider messages={messagesEn} locale='en'>
       {!state.connected ? (
         <Signin />
@@ -113,7 +113,7 @@ const App = withState<State, Props, Effects, Computed, ParentState, ParentEffect
         <FormattedMessage id='loading' />
       ) : (
         <>
-          <Button onClick={() => state.xapi.disconnect()}>
+          <Button onClick={() => effects.disconnect()}>
             <FormattedMessage id='disconnect' />
           </Button>
           <Router>

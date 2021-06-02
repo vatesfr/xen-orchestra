@@ -79,7 +79,7 @@ export default class XapiConnection extends EventEmitter {
     user = 'root',
     password,
     sessionId,
-    rememberMe = Cookies.get('rememberMe') === 'true' ?? false,
+    rememberMe = Cookies.get('rememberMe') === 'true',
   }: {
     url: string
     user?: string
