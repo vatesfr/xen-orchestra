@@ -37,7 +37,7 @@ const PoolUpdates = withState<State, Props, Effects, Computed, ParentState, Pare
     },
     computed: {
       availableUpdates: async function (state) {
-        const promises: Promise<string>[] = []
+        const promises: Promise<unknown>[] = []
         state.hosts?.valueSeq().forEach(({ $ref }) => {
           promises.push(
             state.xapi.call(
@@ -52,9 +52,10 @@ const PoolUpdates = withState<State, Props, Effects, Computed, ParentState, Pare
         })
 
         const poolUpdates: PoolUpdate[] = []
-        ;(await Promise.all(promises)).forEach((stringifiedPoolUpdates: string) =>
+        ;(await Promise.all(promises)).forEach((stringifiedPoolUpdates) => {
+          if (typeof stringifiedPoolUpdates !== 'string') return
           poolUpdates.push(...JSON.parse(stringifiedPoolUpdates))
-        )
+        })
         return poolUpdates
       },
     },

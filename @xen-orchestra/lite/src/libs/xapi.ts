@@ -155,14 +155,12 @@ export default class XapiConnection {
     }
   }
 
-  call(method: string, ...args: string[]): Promise<never> {
+  call(method: string, ...args: string[]): Promise<unknown> {
     const { _xapi, connected } = this
     if (!connected || _xapi === undefined) {
       throw new Error('Not connected to XAPI')
     }
 
-    console.log('args:', args)
-    console.log('method:', method)
     return _xapi.call(method, ...args)
   }
 }
