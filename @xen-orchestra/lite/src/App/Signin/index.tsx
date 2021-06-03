@@ -1,10 +1,11 @@
 import React from 'react'
 import styled from 'styled-components'
 import { withState } from 'reaclette'
-import { FormattedMessage } from 'react-intl'
 
 import Button from '../../components/Button'
 import Input from '../../components/Input'
+import IntlMessage from '../../components/IntlMessage'
+
 
 interface ParentState {
   error: string
@@ -83,23 +84,23 @@ const Signin = withState<State, Props, Effects, Computed, ParentState, ParentEff
         <img src='./public/logo.png' />
         <h1>Xen Orchestra Lite</h1>
         <Fieldset>
-          <Label><FormattedMessage id='login' /></Label>
+          <Label><IntlMessage id='login' /></Label>
           <Input disabled value='root' />
         </Fieldset>
         <Fieldset>
-          <Label><FormattedMessage id='password' /></Label>
+          <Label><IntlMessage id='password' /></Label>
           <Input autoFocus onChange={effects.setPassword} type='password' value={state.password} />
         </Fieldset>
         <RememberMe>
           <label>
             <Input onChange={effects.setRememberMe} type='checkbox' checked={state.rememberMe} />
             &nbsp;
-            <FormattedMessage id='rememberMe' />
+            <IntlMessage id='rememberMe' />
           </label>
         </RememberMe>
         <Error>{state.error}</Error>
         <Button type='submit' onClick={effects.submit}>
-          <FormattedMessage id='connect' />
+          <IntlMessage id='connect' />
         </Button>
       </Form>
     </Wrapper>
