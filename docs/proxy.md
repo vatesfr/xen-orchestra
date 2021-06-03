@@ -59,9 +59,11 @@ While creating a standard backup job from your main Xen Orchestra appliance, you
 
 Login is disabled by default on proxy appliances.
 If you need to login for some reason, you need to set a password for the xoa user via the XenStore of the VM. The following is to be ran on your XCP-ng host:
+
 ```
 xe vm-param-set uuid=<UUID> xenstore-data:vm-data/system-account-xoa-password=<password>
 ```
+
 Where UUID is the uuid of your proxy VM.
 
 Then you need to restart the proxy VM.
@@ -74,15 +76,19 @@ First you will need to add a second VIF to your Proxy VM. This can be done in th
 After adding the VIF you will need to set an IP for the new NIC, for that you will first need to SSH to the VM [as describe before](/proxy.md#enabling-login-to-proxy-appliance).
 
 Then set the new IP:
+
 ```
 $ xoa network static eth1
 ? Static IP for this machine 192.168.100.120
 ? Network mask (eg 255.255.255.0) 255.255.255.0
 ```
+
 If you want to set a static address.
+
 ```
 $ xoa network dhcp eth1
 ```
+
 If you prefer using DHCP.
 :::tip
 As XOA uses the first IP address reported by XAPI to contact the proxy appliance, you may have to switch the network card order if you want your proxy to be connected through a specific IP address.

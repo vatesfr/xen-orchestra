@@ -61,7 +61,12 @@ class PoolMaster extends Component {
     .sort()
   return {
     hosts: getHosts,
-    hostsByMultipathing: createGroupBy(getHosts, () => ({ multipathing }) => (multipathing ? 'enabled' : 'disabled')),
+    hostsByMultipathing: createGroupBy(
+      getHosts,
+      () =>
+        ({ multipathing }) =>
+          multipathing ? 'enabled' : 'disabled'
+    ),
     gpuGroups: createGetObjectsOfType('gpuGroup')
       .filter((_, { pool }) => ({ $pool: pool.id }))
       .sort(),

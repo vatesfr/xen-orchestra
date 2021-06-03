@@ -35,23 +35,56 @@ import TabPatches from './tab-patches'
   const getMaster = createGetObject((state, props) => getPool(state, props).master)
 
   const getNetworks = createGetObjectsOfType('network')
-    .filter(createSelector(getPool, ({ id }) => network => network.$pool === id))
+    .filter(
+      createSelector(
+        getPool,
+        ({ id }) =>
+          network =>
+            network.$pool === id
+      )
+    )
     .sort()
 
   const getPifs = createGetObjectsOfType('PIF')
-    .filter(createSelector(getPool, ({ id }) => pif => pif.$pool === id))
+    .filter(
+      createSelector(
+        getPool,
+        ({ id }) =>
+          pif =>
+            pif.$pool === id
+      )
+    )
     .sort()
 
   const getHosts = createGetObjectsOfType('host')
-    .filter(createSelector(getPool, ({ id }) => obj => obj.$pool === id))
+    .filter(
+      createSelector(
+        getPool,
+        ({ id }) =>
+          obj =>
+            obj.$pool === id
+      )
+    )
     .sort()
 
   const getPoolSrs = createGetObjectsOfType('SR')
-    .filter(createSelector(getPool, ({ id }) => sr => sr.$pool === id))
+    .filter(
+      createSelector(
+        getPool,
+        ({ id }) =>
+          sr =>
+            sr.$pool === id
+      )
+    )
     .sort()
 
   const getNumberOfVms = createGetObjectsOfType('VM').count(
-    createSelector(getPool, ({ id }) => obj => obj.$pool === id)
+    createSelector(
+      getPool,
+      ({ id }) =>
+        obj =>
+          obj.$pool === id
+    )
   )
 
   const getLogs = createGetObjectMessages(getPool)

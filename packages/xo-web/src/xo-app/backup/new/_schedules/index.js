@@ -93,65 +93,73 @@ const Schedules = decorate([
         delete settings[id]
         props.handlerSettings(settings)
       },
-      showModal: (effects, { id = generateRandomId(), name, cron, timezone } = DEFAULT_SCHEDULE) => async (
-        state,
-        props
-      ) => {
-        const schedule = get(() => props.schedules[id])
-        const setting = get(() => props.settings[id])
+      showModal:
+        (effects, { id = generateRandomId(), name, cron, timezone } = DEFAULT_SCHEDULE) =>
+        async (state, props) => {
+          const schedule = get(() => props.schedules[id])
+          const setting = get(() => props.settings[id])
 
-        const { cron: newCron, name: newName, timezone: newTimezone, ...newSetting } = await form({
-          defaultValue: setDefaultRetentions({ cron, name, timezone, ...setting }, state.retentions),
-          render: props => <NewSchedule retentions={state.retentions} {...props} />,
-          header: (
-            <span>
-              <Icon icon='schedule' /> {_('schedule')}
-            </span>
-          ),
-          size: 'large',
-          handler: value => {
-            if (areRetentionsMissing(value, state.retentions)) {
-              throw new UserError(_('newScheduleError'), _('retentionNeeded'))
-            }
-            return value
-          },
-        })
-
-        props.handlerSchedules({
-          ...props.schedules,
-          [id]: {
-            ...schedule,
+          const {
             cron: newCron,
-            id,
             name: newName,
             timezone: newTimezone,
-          },
-        })
-        props.handlerSettings({
-          ...props.settings,
-          [id]: {
-            ...setting,
-            ...newSetting,
-          },
-        })
-      },
-      toggleScheduleState: (_, id) => (state, { handlerSchedules, schedules }) => {
-        const schedule = schedules[id]
-        handlerSchedules({
-          ...schedules,
-          [id]: {
-            ...schedule,
-            enabled: !schedule.enabled,
-          },
-        })
-      },
+            ...newSetting
+          } = await form({
+            defaultValue: setDefaultRetentions({ cron, name, timezone, ...setting }, state.retentions),
+            render: props => <NewSchedule retentions={state.retentions} {...props} />,
+            header: (
+              <span>
+                <Icon icon='schedule' /> {_('schedule')}
+              </span>
+            ),
+            size: 'large',
+            handler: value => {
+              if (areRetentionsMissing(value, state.retentions)) {
+                throw new UserError(_('newScheduleError'), _('retentionNeeded'))
+              }
+              return value
+            },
+          })
+
+          props.handlerSchedules({
+            ...props.schedules,
+            [id]: {
+              ...schedule,
+              cron: newCron,
+              id,
+              name: newName,
+              timezone: newTimezone,
+            },
+          })
+          props.handlerSettings({
+            ...props.settings,
+            [id]: {
+              ...setting,
+              ...newSetting,
+            },
+          })
+        },
+      toggleScheduleState:
+        (_, id) =>
+        (state, { handlerSchedules, schedules }) => {
+          const schedule = schedules[id]
+          handlerSchedules({
+            ...schedules,
+            [id]: {
+              ...schedule,
+              enabled: !schedule.enabled,
+            },
+          })
+        },
     },
     computed: {
       columns: (_, { retentions }) => [...COLUMNS, ...retentions.map(({ defaultValue, ...props }) => props)],
-      rowTransform: (_, { settings = {}, retentions }) => schedule => {
-        schedule = { ...schedule, ...settings[schedule.id] }
-        return setDefaultRetentions(schedule, retentions)
-      },
+      rowTransform:
+        (_, { settings = {}, retentions }) =>
+        schedule => {
+          schedule = { ...schedule, ...settings[schedule.id] }
+          return setDefaultRetentions(schedule, retentions)
+        },
     },
   }),
   injectState,

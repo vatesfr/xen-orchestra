@@ -20,38 +20,50 @@ const New = decorate([
       idInputName: generateId,
     },
     effects: {
-      setSchedule: (_, params) => (_, { value, onChange }) => {
-        onChange({
-          ...value,
-          ...params,
-        })
-      },
-      setExportRetention: ({ setSchedule }, exportRetention) => () => {
-        setSchedule({
-          exportRetention,
-        })
-      },
-      setCopyRetention: ({ setSchedule }, copyRetention) => () => {
-        setSchedule({
-          copyRetention,
-        })
-      },
-      setSnapshotRetention: ({ setSchedule }, snapshotRetention) => () => {
-        setSchedule({
-          snapshotRetention,
-        })
-      },
-      setCronTimezone: ({ setSchedule }, { cronPattern: cron, timezone }) => () => {
-        setSchedule({
-          cron,
-          timezone,
-        })
-      },
-      setName: ({ setSchedule }, { target: { value } }) => () => {
-        setSchedule({
-          name: value.trim() === '' ? null : value,
-        })
-      },
+      setSchedule:
+        (_, params) =>
+        (_, { value, onChange }) => {
+          onChange({
+            ...value,
+            ...params,
+          })
+        },
+      setExportRetention:
+        ({ setSchedule }, exportRetention) =>
+        () => {
+          setSchedule({
+            exportRetention,
+          })
+        },
+      setCopyRetention:
+        ({ setSchedule }, copyRetention) =>
+        () => {
+          setSchedule({
+            copyRetention,
+          })
+        },
+      setSnapshotRetention:
+        ({ setSchedule }, snapshotRetention) =>
+        () => {
+          setSchedule({
+            snapshotRetention,
+          })
+        },
+      setCronTimezone:
+        ({ setSchedule }, { cronPattern: cron, timezone }) =>
+        () => {
+          setSchedule({
+            cron,
+            timezone,
+          })
+        },
+      setName:
+        ({ setSchedule }, { target: { value } }) =>
+        () => {
+          setSchedule({
+            name: value.trim() === '' ? null : value,
+          })
+        },
       toggleForceFullBackup({ setSchedule }) {
         setSchedule({
           fullInterval: this.state.forceFullBackup ? undefined : 1,

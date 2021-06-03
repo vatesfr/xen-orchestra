@@ -237,8 +237,10 @@ const XOSAN_INDIVIDUAL_ACTIONS = [
     return hostsNeedRestartByPool
   })
 
-  const getPoolPredicate = createSelector(getXosanSrs, getHosts, (srs, hosts) => pool =>
-    hosts[pool.master].productBrand !== 'XCP-ng' && every(srs, sr => sr.$pool !== pool.id)
+  const getPoolPredicate = createSelector(
+    getXosanSrs,
+    getHosts,
+    (srs, hosts) => pool => hosts[pool.master].productBrand !== 'XCP-ng' && every(srs, sr => sr.$pool !== pool.id)
   )
 
   return {

@@ -99,13 +99,16 @@ export default class Xapi extends XapiBase {
     this._snapshotVm = limitConcurrency(vmSnapshotConcurrency)(this._snapshotVm)
 
     // Patch getObject to resolve _xapiId property.
-    this.getObject = (getObject => (...args) => {
-      let tmp
-      if ((tmp = args[0]) != null && (tmp = tmp._xapiId) != null) {
-        args[0] = tmp
+    this.getObject = (
+      getObject =>
+      (...args) => {
+        let tmp
+        if ((tmp = args[0]) != null && (tmp = tmp._xapiId) != null) {
+          args[0] = tmp
+        }
+        return getObject.apply(this, args)
       }
-      return getObject.apply(this, args)
-    })(this.getObject)
+    )(this.getObject)
   }
 
   // Wait for an object to be in a given state.

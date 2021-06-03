@@ -238,21 +238,23 @@ const AttachedVdisTable = decorate([
     vdis: createGetObjectsOfType('VDI'),
     vdiSnapshots: createGetObjectsOfType('VDI-snapshot'),
   }),
-  ({ columns, rowTransform }) => ({ pools, srs, vbds, vdis, vdiSnapshots }) => (
-    <NoObjects
-      actions={CONTROL_DOMAIN_VDIS_ACTIONS}
-      collection={vbds}
-      columns={columns}
-      component={SortedTable}
-      data-pools={pools}
-      data-srs={srs}
-      data-vdis={vdis}
-      data-vdiSnapshots={vdiSnapshots}
-      emptyMessage={_('noControlDomainVdis')}
-      rowTransform={rowTransform}
-      stateUrlParam='s_controldomain'
-    />
-  ),
+  ({ columns, rowTransform }) =>
+    ({ pools, srs, vbds, vdis, vdiSnapshots }) =>
+      (
+        <NoObjects
+          actions={CONTROL_DOMAIN_VDIS_ACTIONS}
+          collection={vbds}
+          columns={columns}
+          component={SortedTable}
+          data-pools={pools}
+          data-srs={srs}
+          data-vdis={vdis}
+          data-vdiSnapshots={vdiSnapshots}
+          emptyMessage={_('noControlDomainVdis')}
+          rowTransform={rowTransform}
+          stateUrlParam='s_controldomain'
+        />
+      ),
   {
     columns: [
       {

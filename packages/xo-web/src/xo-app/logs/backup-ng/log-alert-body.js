@@ -307,14 +307,16 @@ export default decorate([
         this.state._status = status
         this.state.page = 1
       },
-      restartVmJob: (_, params) => async (_, { log: { scheduleId, jobId } }) => {
-        await runBackupNgJob({
-          force: get(() => params.force),
-          id: jobId,
-          schedule: scheduleId,
-          vm: get(() => params.vm),
-        })
-      },
+      restartVmJob:
+        (_, params) =>
+        async (_, { log: { scheduleId, jobId } }) => {
+          await runBackupNgJob({
+            force: get(() => params.force),
+            id: jobId,
+            schedule: scheduleId,
+            vm: get(() => params.vm),
+          })
+        },
     },
     computed: {
       log: (_, { log, pools, vms }) => {
@@ -361,11 +363,14 @@ export default decorate([
         const start = (page - 1) * ITEMS_PER_PAGE
         return tasksFilteredByStatus.slice(start, start + ITEMS_PER_PAGE)
       },
-      optionRenderer: ({ countByStatus }) => ({ label, value }) => (
-        <span>
-          {_(label)} ({countByStatus[value] || 0})
-        </span>
-      ),
+      optionRenderer:
+        ({ countByStatus }) =>
+        ({ label, value }) =>
+          (
+            <span>
+              {_(label)} ({countByStatus[value] || 0})
+            </span>
+          ),
       countByStatus: ({ preFilteredTasksLogs }) => ({
         all: get(() => preFilteredTasksLogs.length),
         ...countBy(preFilteredTasksLogs, 'status'),

@@ -524,13 +524,15 @@ export const SelectTag = decorate([
       editing: false,
     }),
     effects: {
-      addTag: (effects, newTag) => ({ value }, { multi, onChange }) => {
-        if (newTag === value || (multi && includes(value, newTag))) {
-          return
-        }
-        const _newTag = { id: newTag, type: 'tag', value: newTag }
-        onChange(multi ? [...map(value, tag => ({ id: tag, type: 'tag', value: tag })), _newTag] : _newTag)
-      },
+      addTag:
+        (effects, newTag) =>
+        ({ value }, { multi, onChange }) => {
+          if (newTag === value || (multi && includes(value, newTag))) {
+            return
+          }
+          const _newTag = { id: newTag, type: 'tag', value: newTag }
+          onChange(multi ? [...map(value, tag => ({ id: tag, type: 'tag', value: tag })), _newTag] : _newTag)
+        },
       closeEdition: () => ({ editing: false }),
       toggleState,
     },

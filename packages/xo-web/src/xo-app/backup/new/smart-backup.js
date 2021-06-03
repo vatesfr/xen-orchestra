@@ -27,28 +27,32 @@ const SmartBackup = decorate([
   }),
   provideState({
     effects: {
-      setPattern: (_, value) => (_, { pattern, onChange }) => {
-        onChange({
-          ...pattern,
-          ...value,
-        })
-      },
+      setPattern:
+        (_, value) =>
+        (_, { pattern, onChange }) => {
+          onChange({
+            ...pattern,
+            ...value,
+          })
+        },
       setPowerState({ setPattern }, powerState) {
         setPattern({
           power_state: powerState === 'All' ? undefined : powerState,
         })
       },
-      setPoolPattern: ({ setPattern }, { values, notValues }) => ({ pools }) => {
-        setPattern({
-          $pool: constructSmartPattern(
-            {
-              values: values || pools.values,
-              notValues: notValues || pools.notValues,
-            },
-            resolveIds
-          ),
-        })
-      },
+      setPoolPattern:
+        ({ setPattern }, { values, notValues }) =>
+        ({ pools }) => {
+          setPattern({
+            $pool: constructSmartPattern(
+              {
+                values: values || pools.values,
+                notValues: notValues || pools.notValues,
+              },
+              resolveIds
+            ),
+          })
+        },
       setPoolValues({ setPoolPattern }, values) {
         setPoolPattern({ values })
       },
@@ -57,8 +61,10 @@ const SmartBackup = decorate([
       },
     },
     computed: {
-      poolPredicate: (_, { deltaMode, hosts }) => pool =>
-        !deltaMode || canDeltaBackup(get(() => hosts[pool.master].version)),
+      poolPredicate:
+        (_, { deltaMode, hosts }) =>
+        pool =>
+          !deltaMode || canDeltaBackup(get(() => hosts[pool.master].version)),
       pools: (_, { pattern }) => (pattern.$pool !== undefined ? destructSmartPattern(pattern.$pool) : {}),
     },
   }),

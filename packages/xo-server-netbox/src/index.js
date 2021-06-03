@@ -445,18 +445,14 @@ class Netbox {
           this.#makeRequest('/virtualization/interfaces/', 'DELETE', interfacesToDelete),
         isEmpty(interfacesToCreateByVif)
           ? {}
-          : this.#makeRequest(
-              '/virtualization/interfaces/',
-              'POST',
-              Object.values(interfacesToCreateByVif)
-            ).then(interfaces => zipObject(Object.keys(interfacesToCreateByVif), interfaces)),
+          : this.#makeRequest('/virtualization/interfaces/', 'POST', Object.values(interfacesToCreateByVif)).then(
+              interfaces => zipObject(Object.keys(interfacesToCreateByVif), interfaces)
+            ),
         isEmpty(interfacesToUpdateByVif)
           ? {}
-          : this.#makeRequest(
-              '/virtualization/interfaces/',
-              'PATCH',
-              Object.values(interfacesToUpdateByVif)
-            ).then(interfaces => zipObject(Object.keys(interfacesToUpdateByVif), interfaces)),
+          : this.#makeRequest('/virtualization/interfaces/', 'PATCH', Object.values(interfacesToUpdateByVif)).then(
+              interfaces => zipObject(Object.keys(interfacesToUpdateByVif), interfaces)
+            ),
       ])
     )
       .slice(1)

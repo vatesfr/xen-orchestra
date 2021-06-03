@@ -260,7 +260,7 @@ export default class NewVm extends BaseComponent {
     () => this.props.resourceSets,
     createSelector(
       () => this.props.location.query.resourceSet,
-      resourceSetId => resourceSet => (resourceSet !== undefined ? resourceSetId === resourceSet.id : undefined)
+      resourceSetId => resourceSet => resourceSet !== undefined ? resourceSetId === resourceSet.id : undefined
     )
   )
 
@@ -582,7 +582,9 @@ export default class NewVm extends BaseComponent {
       const { pool } = this.props
       return pool && pool.id
     },
-    poolId => ({ $pool }) => $pool === poolId
+    poolId =>
+      ({ $pool }) =>
+        $pool === poolId
   )
   _getIsInResourceSet = createSelector(
     () => {
@@ -592,8 +594,10 @@ export default class NewVm extends BaseComponent {
     objectsIds => id => includes(objectsIds, id)
   )
 
-  _getVmPredicate = createSelector(this._getIsInPool, this._getIsInResourceSet, (isInPool, isInResourceSet) => vm =>
-    isInResourceSet(vm.id) || isInPool(vm)
+  _getVmPredicate = createSelector(
+    this._getIsInPool,
+    this._getIsInResourceSet,
+    (isInPool, isInResourceSet) => vm => isInResourceSet(vm.id) || isInPool(vm)
   )
   _getSrPredicate = createSelector(
     this._getIsInPool,

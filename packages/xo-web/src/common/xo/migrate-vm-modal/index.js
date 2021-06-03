@@ -70,7 +70,9 @@ export default class MigrateVmModalBody extends BaseComponent {
 
     this._getHostPredicate = createSelector(
       () => this.props.vm,
-      ({ $container }) => host => host.id !== $container
+      ({ $container }) =>
+        host =>
+          host.id !== $container
     )
 
     this._getSrPredicate = createSelector(

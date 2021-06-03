@@ -18,7 +18,10 @@ const BackupTab = decorate([
   provideState({
     computed: {
       jobIds: ({ predicate }, { jobs }) => filter(jobs, predicate).map(_ => _.id),
-      predicate: (_, { vm }) => ({ vms }) => vms !== undefined && createPredicate(omit(vms, 'power_state'))(vm),
+      predicate:
+        (_, { vm }) =>
+        ({ vms }) =>
+          vms !== undefined && createPredicate(omit(vms, 'power_state'))(vm),
     },
   }),
   injectState,

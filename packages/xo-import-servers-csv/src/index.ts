@@ -7,10 +7,7 @@ import execPromise = require('exec-promise')
 import through2 = require('through2')
 import Xo from 'xo-lib'
 
-const parseBoolean = (
-  value: string,
-  defaultValue?: boolean
-): boolean | undefined => {
+const parseBoolean = (value: string, defaultValue?: boolean): boolean | undefined => {
   if (value === undefined || value === '') {
     return defaultValue
   }
@@ -49,30 +46,24 @@ execPromise(
     const errors: any[] = []
 
     const stream = process.stdin.pipe(csvParser()).pipe(
-      through2.obj(
-        (
-          { allowUnauthorized, autoConnect, host, label, password, username },
-          _,
-          next
-        ) => {
-          console.log('server', host)
+      through2.obj(({ allowUnauthorized, autoConnect, host, label, password, username }, _, next) => {
+        console.log('server', host)
 
-          xo.call('server.add', {
-            allowUnauthorized: parseBoolean(allowUnauthorized),
-            autoConnect: parseBoolean(autoConnect, false),
-            host,
-            label,
-            password,
-            username,
-          }).then(
-            () => next(),
-            (error: any) => {
-              errors.push({ host, error })
-              return next()
-            }
-          )
-        }
-      )
+        xo.call('server.add', {
+          allowUnauthorized: parseBoolean(allowUnauthorized),
+          autoConnect: parseBoolean(autoConnect, false),
+          host,
+          label,
+          password,
+          username,
+        }).then(
+          () => next(),
+          (error: any) => {
+            errors.push({ host, error })
+            return next()
+          }
+        )
+      })
     )
 
     await new Promise((resolve, reject) => {

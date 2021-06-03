@@ -928,14 +928,8 @@ export default class Home extends Component {
     } = this.state
 
     const options = OPTIONS[type]
-    const {
-      filters,
-      mainActions,
-      otherActions,
-      showHostsSelector,
-      showPoolsSelector,
-      showResourceSetsSelector,
-    } = options
+    const { filters, mainActions, otherActions, showHostsSelector, showPoolsSelector, showResourceSetsSelector } =
+      options
 
     return (
       <Container>

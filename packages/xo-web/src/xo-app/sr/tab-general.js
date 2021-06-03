@@ -210,16 +210,18 @@ export default class TabGeneral extends Component {
     }
   )
 
-  _getGenerateLink = createSelector(this._getDiskGroups, diskGroups => ids =>
-    `#/srs/${this.props.sr.id}/disks?s=${encodeURIComponent(
-      `id:|(${flattenDeep(
-        map(pick(keyBy(diskGroups, 'id'), ids), ({ id, baseCopies, vdis, snapshots, type }) =>
-          type === 'orphanedSnapshot' ? id : [map(baseCopies, 'id'), map(vdis, 'id'), map(snapshots, 'id')]
+  _getGenerateLink = createSelector(
+    this._getDiskGroups,
+    diskGroups => ids =>
+      `#/srs/${this.props.sr.id}/disks?s=${encodeURIComponent(
+        `id:|(${flattenDeep(
+          map(pick(keyBy(diskGroups, 'id'), ids), ({ id, baseCopies, vdis, snapshots, type }) =>
+            type === 'orphanedSnapshot' ? id : [map(baseCopies, 'id'), map(vdis, 'id'), map(snapshots, 'id')]
+          )
         )
-      )
-        .sort()
-        .join(' ')})`
-    )}`
+          .sort()
+          .join(' ')})`
+      )}`
   )
 
   render() {

@@ -44,8 +44,14 @@ export default decorate([
       },
     },
     computed: {
-      networkPredicate: (_, { value: { pool } }) => network => pool.id === network.$pool,
-      srPredicate: (_, { value }) => sr => sr.$pool === get(() => value.pool.id) && isSrWritable(sr),
+      networkPredicate:
+        (_, { value: { pool } }) =>
+        network =>
+          pool.id === network.$pool,
+      srPredicate:
+        (_, { value }) =>
+        sr =>
+          sr.$pool === get(() => value.pool.id) && isSrWritable(sr),
     },
   }),
   injectState,

@@ -7,19 +7,21 @@ import * as actions from './actions'
 
 // ===================================================================
 
-const createAsyncHandler = ({ error, next }) => (state, payload, action) => {
-  if (action.error) {
-    if (error) {
-      return error(state, payload, action)
+const createAsyncHandler =
+  ({ error, next }) =>
+  (state, payload, action) => {
+    if (action.error) {
+      if (error) {
+        return error(state, payload, action)
+      }
+    } else {
+      if (next) {
+        return next(state, payload, action)
+      }
     }
-  } else {
-    if (next) {
-      return next(state, payload, action)
-    }
-  }
 
-  return state
-}
+    return state
+  }
 
 // Action handlers are reducers but bound to a specific action.
 const combineActionHandlers = invoke(

@@ -40,7 +40,9 @@ export const mergeObjects = objects => Object.assign({}, ...objects)
 //
 // Ex: crossProduct([ [ { a: 2 }, { b: 3 } ], [ { c: 5 }, { d: 7 } ] ] )
 // => [ { a: 2, c: 5 }, { b: 3, c: 5 }, { a: 2, d: 7 }, { b: 3, d: 7 } ]
-export const crossProduct = (vectors, mergeFn = mergeObjects) => cb =>
-  combine(vectors)(vector => {
-    cb(mergeFn(vector))
-  })
+export const crossProduct =
+  (vectors, mergeFn = mergeObjects) =>
+  cb =>
+    combine(vectors)(vector => {
+      cb(mergeFn(vector))
+    })

@@ -24,7 +24,10 @@ getMethodsInfo.permission = null // user does not need to be authenticated
 
 // -------------------------------------------------------------------
 
-export const getServerTimezone = (tz => () => tz)(moment.tz.guess())
+export const getServerTimezone = (
+  tz => () =>
+    tz
+)(moment.tz.guess())
 getServerTimezone.description = 'return the timezone server'
 
 // -------------------------------------------------------------------

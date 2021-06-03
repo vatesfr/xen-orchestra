@@ -53,19 +53,33 @@ const isRunning = host => host && host.power_state === 'Running'
   const getPool = createGetObject((state, props) => getHost(state, props).$pool)
 
   const getVmController = createGetObjectsOfType('VM-controller').find(
-    createSelector(getHost, ({ id }) => obj => obj.$container === id)
+    createSelector(
+      getHost,
+      ({ id }) =>
+        obj =>
+          obj.$container === id
+    )
   )
 
   const getHostVms = createGetObjectsOfType('VM').filter(
-    createSelector(getHost, ({ id }) => obj => obj.$container === id)
+    createSelector(
+      getHost,
+      ({ id }) =>
+        obj =>
+          obj.$container === id
+    )
   )
 
   const getNumberOfVms = getHostVms.count()
 
   const getLogs = createGetObjectsOfType('message')
     .filter(
-      createSelector(getHost, getVmController, (host, controller) => ({ $object }) =>
-        $object === host.id || $object === (controller !== undefined && controller.id)
+      createSelector(
+        getHost,
+        getVmController,
+        (host, controller) =>
+          ({ $object }) =>
+            $object === host.id || $object === (controller !== undefined && controller.id)
       )
     )
     .sort()

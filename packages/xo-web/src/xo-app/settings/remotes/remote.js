@@ -51,92 +51,96 @@ export default decorate([
       setProxy(_, proxy) {
         this.state.proxyId = resolveId(proxy)
       },
-      editRemote: ({ reset }) => state => {
-        const {
-          remote,
-          domain = remote.domain || '',
-          host = remote.host,
-          name,
-          options = remote.options || '',
-          password = remote.password,
-          port = remote.port,
-          proxyId = remote.proxy,
-          type = remote.type,
-          username = remote.username,
-          protocol = remote.protocol || 'https',
-          region = remote.region,
-        } = state
-        let { path = remote.path } = state
-        if (type === 's3') {
-          const { parsedPath, bucket = parsedPath.split('/')[0], directory = parsedPath.split('/')[1] } = state
-          path = bucket + '/' + directory
-        }
-        return editRemote(remote, {
-          name,
-          url: format({
-            domain,
+      editRemote:
+        ({ reset }) =>
+        state => {
+          const {
+            remote,
+            domain = remote.domain || '',
+            host = remote.host,
+            name,
+            options = remote.options || '',
+            password = remote.password,
+            port = remote.port,
+            proxyId = remote.proxy,
+            type = remote.type,
+            username = remote.username,
+            protocol = remote.protocol || 'https',
+            region = remote.region,
+          } = state
+          let { path = remote.path } = state
+          if (type === 's3') {
+            const { parsedPath, bucket = parsedPath.split('/')[0], directory = parsedPath.split('/')[1] } = state
+            path = bucket + '/' + directory
+          }
+          return editRemote(remote, {
+            name,
+            url: format({
+              domain,
+              host,
+              password,
+              path,
+              port: port || undefined,
+              type,
+              username,
+              protocol,
+              region,
+            }),
+            options: options !== '' ? options : null,
+            proxy: proxyId,
+          }).then(reset)
+        },
+      createRemote:
+        ({ reset }) =>
+        async (state, { remotes }) => {
+          if (some(remotes, { name: state.name })) {
+            return alert(
+              <span>
+                <Icon icon='error' /> {_('remoteTestName')}
+              </span>,
+              <p>{_('remoteTestNameFailure')}</p>
+            )
+          }
+
+          const {
+            domain = 'WORKGROUP',
             host,
+            name,
+            options,
             password,
             path,
-            port: port || undefined,
-            type,
+            port,
+            proxyId,
+            type = 'nfs',
             username,
-            protocol,
-            region,
-          }),
-          options: options !== '' ? options : null,
-          proxy: proxyId,
-        }).then(reset)
-      },
-      createRemote: ({ reset }) => async (state, { remotes }) => {
-        if (some(remotes, { name: state.name })) {
-          return alert(
-            <span>
-              <Icon icon='error' /> {_('remoteTestName')}
-            </span>,
-            <p>{_('remoteTestNameFailure')}</p>
-          )
-        }
+          } = state
 
-        const {
-          domain = 'WORKGROUP',
-          host,
-          name,
-          options,
-          password,
-          path,
-          port,
-          proxyId,
-          type = 'nfs',
-          username,
-        } = state
+          const urlParams = {
+            host,
+            path,
+            port,
+            type,
+          }
+          if (type === 's3') {
+            const { bucket, directory } = state
+            urlParams.path = bucket + '/' + directory
+          }
+          username && (urlParams.username = username)
+          password && (urlParams.password = password)
+          domain && (urlParams.domain = domain)
 
-        const urlParams = {
-          host,
-          path,
-          port,
-          type,
-        }
-        if (type === 's3') {
-          const { bucket, directory } = state
-          urlParams.path = bucket + '/' + directory
-        }
-        username && (urlParams.username = username)
-        password && (urlParams.password = password)
-        domain && (urlParams.domain = domain)
+          if (type === 'file') {
+            await confirm({
+              title: _('localRemoteWarningTitle'),
+              body: _('localRemoteWarningMessage'),
+            })
+          }
 
-        if (type === 'file') {
-          await confirm({
-            title: _('localRemoteWarningTitle'),
-            body: _('localRemoteWarningMessage'),
-          })
-        }
-
-        const url = format(urlParams)
-        return createRemote(name, url, options !== '' ? options : undefined, proxyId === null ? undefined : proxyId)
-          .then(reset)
-          .catch(err => error('Create Remote', err.message || String(err)))
-      },
+          const url = format(urlParams)
+          return createRemote(name, url, options !== '' ? options : undefined, proxyId === null ? undefined : proxyId)
+            .then(reset)
+            .catch(err => error('Create Remote', err.message || String(err)))
+        },
       setSecretKey(_, { target: { value } }) {
         this.state.password = value
       },

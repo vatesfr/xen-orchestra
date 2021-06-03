@@ -87,8 +87,9 @@ const shareVmProxy = vm => shareVm(vm, vm.resourceSet)
   const getSrs = createGetObjectsOfType('SR').pick(createSelector(getVdis, vdis => uniq(map(vdis, '$SR'))))
   const getSrsContainers = createSelector(getSrs, srs => uniq(map(srs, '$container')))
 
-  const getAffinityHostPredicate = createSelector(getSrsContainers, containers => host =>
-    every(containers, container => container === host.$pool || container === host.id)
+  const getAffinityHostPredicate = createSelector(
+    getSrsContainers,
+    containers => host => every(containers, container => container === host.$pool || container === host.id)
   )
 
   return {
@@ -275,7 +276,9 @@ class AddAclsModal extends Component {
   _getPredicate = createSelector(
     () => this.props.acls,
     () => this.props.vm,
-    (acls, object) => ({ id: subject, permission }) => permission !== 'admin' && !some(acls, { object, subject })
+    (acls, object) =>
+      ({ id: subject, permission }) =>
+        permission !== 'admin' && !some(acls, { object, subject })
   )
 
   render() {
@@ -306,25 +309,29 @@ const Acls = decorate([
   }),
   provideState({
     effects: {
-      addAcls: () => (state, { acls, vm }) =>
-        confirm({
-          title: _('vmAddAcls'),
-          body: <AddAclsModal acls={acls} vm={vm} />,
-        })
-          .then(({ action, subjects }) => {
-            if (action == null || isEmpty(subjects)) {
-              return error(_('addAclsErrorTitle'), _('addAclsErrorMessage'))
-            }
-
-            return Promise.all(map(subjects, subject => addAcl({ subject, object: vm, action })))
+      addAcls:
+        () =>
+        (state, { acls, vm }) =>
+          confirm({
+            title: _('vmAddAcls'),
+            body: <AddAclsModal acls={acls} vm={vm} />,
           })
-          .catch(err => err && error(_('addAclsErrorTitle'), err.message || String(err))),
-      removeAcl: (_, { currentTarget: { dataset } }) => (_, { vm: object }) =>
-        removeAcl({
-          action: dataset.action,
-          object,
-          subject: dataset.subject,
-        }),
+            .then(({ action, subjects }) => {
+              if (action == null || isEmpty(subjects)) {
+                return error(_('addAclsErrorTitle'), _('addAclsErrorMessage'))
+              }
+
+              return Promise.all(map(subjects, subject => addAcl({ subject, object: vm, action })))
+            })
+            .catch(err => err && error(_('addAclsErrorTitle'), err.message || String(err))),
+      removeAcl:
+        (_, { currentTarget: { dataset } }) =>
+        (_, { vm: object }) =>
+          removeAcl({
+            action: dataset.action,
+            object,
+            subject: dataset.subject,
+          }),
     },
     computed: {
       rawAcls: (_, { acls, vm }) => filter(acls, { object: vm }),

@@ -177,7 +177,9 @@ export default class {
       await Promise.all(
         difference(set.subjects, subjects).map(async subjectId =>
           Promise.all(
-            (await this._app.getAclsForSubject(subjectId)).map(async acl => {
+            (
+              await this._app.getAclsForSubject(subjectId)
+            ).map(async acl => {
               try {
                 const object = this._app.getObject(acl.object)
                 if ((object.type === 'VM' || object.type === 'VM-snapshot') && object.resourceSet === id) {

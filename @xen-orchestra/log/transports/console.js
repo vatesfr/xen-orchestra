@@ -20,36 +20,8 @@ if (process.stdout !== undefined && process.stdout.isTTY && process.stderr !== u
   }
 
   const NAMESPACE_COLORS = [
-    196,
-    202,
-    208,
-    214,
-    220,
-    226,
-    190,
-    154,
-    118,
-    82,
-    46,
-    47,
-    48,
-    49,
-    50,
-    51,
-    45,
-    39,
-    33,
-    27,
-    21,
-    57,
-    93,
-    129,
-    165,
-    201,
-    200,
-    199,
-    198,
-    197,
+    196, 202, 208, 214, 220, 226, 190, 154, 118, 82, 46, 47, 48, 49, 50, 51, 45, 39, 33, 27, 21, 57, 93, 129, 165, 201,
+    200, 199, 198, 197,
   ]
   formatNamespace = namespace => {
     // https://werxltd.com/wp/2010/05/13/javascript-implementation-of-javas-string-hashcode-method/

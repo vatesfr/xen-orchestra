@@ -19,9 +19,11 @@ XOA uses HVM mode. If your physical host doesn't support virtualization extensio
 ## Set or recover XOA VM password
 
 As no password is set for the xoa system user by default, you will need to set your own. This can be done via the XenStore data of the VM. The following is to be ran on your XCP-ng host:
+
 ```
 xe vm-param-set uuid=<UUID> xenstore-data:vm-data/system-account-xoa-password=<password>
 ```
+
 Where UUID is the uuid of your XOA VM.
 
 Then you need to restart the VM.

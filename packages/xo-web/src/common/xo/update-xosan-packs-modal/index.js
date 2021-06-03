@@ -8,7 +8,11 @@ import { isLatestXosanPackInstalled, connectStore, findLatestPack } from 'utils'
 
 @connectStore(
   {
-    hosts: createGetObjectsOfType('host').filter((_, { pool }) => host => host.$pool === pool.id),
+    hosts: createGetObjectsOfType('host').filter(
+      (_, { pool }) =>
+        host =>
+          host.$pool === pool.id
+    ),
   },
   { withRef: true }
 )

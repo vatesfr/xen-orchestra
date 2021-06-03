@@ -635,7 +635,10 @@ const renderXoItem = (item, { className, type: xoType, ...props } = {}) => {
 
 export { renderXoItem as default }
 
-export const getRenderXoItemOfType = type => (item, options = {}) => renderXoItem(item, { ...options, type })
+export const getRenderXoItemOfType =
+  type =>
+  (item, options = {}) =>
+    renderXoItem(item, { ...options, type })
 
 const GenericXoItem = connectStore(() => {
   const getObject = createGetObject()

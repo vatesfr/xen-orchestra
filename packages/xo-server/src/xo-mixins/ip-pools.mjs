@@ -68,7 +68,9 @@ export default class IpPools {
 
     if (await store.has(id)) {
       await Promise.all(
-        (await this._app.getAllResourceSets()).map(async set => {
+        (
+          await this._app.getAllResourceSets()
+        ).map(async set => {
           await this._app.removeLimitFromResourceSet(`ipPool:${id}`, set.id)
           return this._app.removeIpPoolFromResourceSet(id, set.id)
         })

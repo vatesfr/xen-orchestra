@@ -25,7 +25,14 @@ import { ejectCd, isSrWritable, setDefaultSr } from 'xo'
     return {
       pool: getPool,
       poolMaster: createGetObject(createSelector(getPool, ({ master }) => master)),
-      vbds: createGetObjectsOfType('VBD').filter(createSelector(getPool, ({ id }) => vbd => vbd.$pool === id)),
+      vbds: createGetObjectsOfType('VBD').filter(
+        createSelector(
+          getPool,
+          ({ id }) =>
+            vbd =>
+              vbd.$pool === id
+        )
+      ),
     }
   },
   { withRef: true }

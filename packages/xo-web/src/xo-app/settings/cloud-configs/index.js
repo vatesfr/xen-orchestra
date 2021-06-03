@@ -62,31 +62,39 @@ export default decorate([
   provideState({
     initialState: () => initialParams,
     effects: {
-      setInputValue: (_, { target: { name, value } }) => state => ({
-        ...state,
-        [name]: value,
-      }),
+      setInputValue:
+        (_, { target: { name, value } }) =>
+        state => ({
+          ...state,
+          [name]: value,
+        }),
       reset: () => state => ({
         ...state,
         ...initialParams,
       }),
-      createCloudConfig: ({ reset }) => async ({ name, template = DEFAULT_CLOUD_CONFIG_TEMPLATE }) => {
-        await createCloudConfig({ name, template })
-        reset()
-      },
-      editCloudConfig: ({ reset }) => async ({ name, template, cloudConfigToEditId }, { cloudConfigs }) => {
-        const oldCloudConfig = find(cloudConfigs, { id: cloudConfigToEditId })
-        if (oldCloudConfig.name !== name || oldCloudConfig.template !== template) {
-          await editCloudConfig(cloudConfigToEditId, { name, template })
-        }
-        reset()
-      },
-      populateForm: (_, { id, name, template }) => state => ({
-        ...state,
-        name,
-        cloudConfigToEditId: id,
-        template,
-      }),
+      createCloudConfig:
+        ({ reset }) =>
+        async ({ name, template = DEFAULT_CLOUD_CONFIG_TEMPLATE }) => {
+          await createCloudConfig({ name, template })
+          reset()
+        },
+      editCloudConfig:
+        ({ reset }) =>
+        async ({ name, template, cloudConfigToEditId }, { cloudConfigs }) => {
+          const oldCloudConfig = find(cloudConfigs, { id: cloudConfigToEditId })
+          if (oldCloudConfig.name !== name || oldCloudConfig.template !== template) {
+            await editCloudConfig(cloudConfigToEditId, { name, template })
+          }
+          reset()
+        },
+      populateForm:
+        (_, { id, name, template }) =>
+        state => ({
+          ...state,
+          name,
+          cloudConfigToEditId: id,
+          template,
+        }),
     },
     computed: {
       formId: generateId,
