@@ -13,7 +13,6 @@ import StyleGuide from './StyleGuide/index'
 import TabConsole from './TabConsole'
 import XapiConnection, { ObjectsByType, Vm } from '../libs/xapi'
 
-
 interface ParentState {
   objectsByType: ObjectsByType
   xapi: XapiConnection

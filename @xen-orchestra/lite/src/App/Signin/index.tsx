@@ -6,7 +6,6 @@ import Button from '../../components/Button'
 import Input from '../../components/Input'
 import IntlMessage from '../../components/IntlMessage'
 
-
 interface ParentState {
   error: string
 }
