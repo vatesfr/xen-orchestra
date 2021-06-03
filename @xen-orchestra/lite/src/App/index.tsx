@@ -99,9 +99,7 @@ const App = withState<State, Props, Effects, Computed, ParentState, ParentEffect
                 </>
               )}
             </Route>
-            <Route path='/pools/'>
-              <Pools />
-            </Route>
+            <Route path='/pools/' render={() => <Pools />} />
             <Route exact path='/:id' render={({ match }) => <TabConsole vmId={match.params.id} />} />
           </Switch>
         </Router>
