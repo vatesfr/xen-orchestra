@@ -11,4 +11,4 @@ interface Props extends MessageDescriptor {
 }
 const IntlMessage = (props: Props): JSX.Element => <FormattedMessage {...props} />
 
-export default IntlMessage
+export default React.memo(IntlMessage)
