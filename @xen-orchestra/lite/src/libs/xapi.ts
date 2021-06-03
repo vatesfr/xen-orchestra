@@ -38,7 +38,7 @@ export interface Pool extends XapiObject {
 }
 
 export interface Vm extends XapiObject {
-  $consoles: Array<{ protocol: string; location: string }>
+  $consoles: Array<{ protocol: string, location: string }>
   is_a_snapshot: boolean
   is_a_template: boolean
   is_control_domain: boolean

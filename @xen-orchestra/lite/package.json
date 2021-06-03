@@ -55,6 +55,5 @@
     "start": "cross-env NODE_ENV=development webpack serve",
     "start:open": "npm run start -- --open"
   },
-  "browserslist": "> 0.5%, last 2 versions, Firefox ESR, not dead",
-  "dependencies": {}
+  "browserslist": "> 0.5%, last 2 versions, Firefox ESR, not dead"
 }
