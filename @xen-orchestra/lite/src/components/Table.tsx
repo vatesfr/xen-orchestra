@@ -70,7 +70,8 @@ const Table = withState<State, Props, Effects, Computed, ParentState, ParentEffe
         </thead>
         <tbody>
           {map(state.collection, (item, index) => (
-            <tr key={index}>
+            // @ts-expect-error object-is-of-type-unknown
+            <tr key={item.$id ?? index}>
               {columns.map((col, index) => (
                 <td key={index}>{col.render(item)}</td>
               ))}
