@@ -1,6 +1,7 @@
-import { Xapi } from 'xen-api'
+import Cookies from 'js-cookie'
 import { EventEmitter } from 'events'
 import { Map } from 'immutable'
+import { Xapi } from 'xen-api'
 
 export interface XapiObject {
   $type: keyof types
@@ -13,10 +14,10 @@ interface types {
   host: Host
 }
 
-// Types ---
+// XAPI types ---
 
 export interface Vm extends XapiObject {
-  $consoles: Array<{ protocol: string, location: string }>
+  $consoles: Array<{ protocol: string; location: string }>
   is_a_snapshot: boolean
   is_a_template: boolean
   is_control_domain: boolean
@@ -36,15 +37,11 @@ export interface ObjectsByType extends Map<string, Map<string, XapiObject>> {
   get<T extends keyof types>(key: T): Map<string, types[T]> | undefined
 }
 
-export default class XapiConnection {
+export default class XapiConnection extends EventEmitter {
   areObjectsFetched: Promise<void>
   connected: boolean
   objectsByType: ObjectsByType
   sessionId?: string
-
-  _connectSubscribers: Set<(status: boolean) => void>
-
-  _objectsSubscribers: Set<(objects: ObjectsByType) => void>
 
   _resolveObjectsFetched!: () => void
 
@@ -53,32 +50,45 @@ export default class XapiConnection {
       all: { [id: string]: XapiObject }
     }
     connect(): Promise<void>
+    disconnect(): Promise<void>
+    call: (method: string, ...args: string[]) => Promise<unknown>
     _objectsFetched: Promise<void>
   }
 
   constructor() {
+    super()
+
     this.objectsByType = Map() as ObjectsByType
     this.connected = false
     this.areObjectsFetched = new Promise(resolve => {
       this._resolveObjectsFetched = resolve
     })
-    this._objectsSubscribers = new Set()
-    this._connectSubscribers = new Set()
   }
 
-  onObjects(cb: (objects: ObjectsByType) => void): () => void {
-    this._objectsSubscribers.add(cb)
-    return () => this._objectsSubscribers.delete(cb)
+  async reattachSession(url: string): Promise<void> {
+    const sessionId = Cookies.get('sessionId')
+    if (sessionId === undefined) {
+      return
+    }
+
+    return this.connect({ url, sessionId })
   }
 
-  onConnect(cb: (status: boolean) => void): () => void {
-    this._connectSubscribers.add(cb)
-    return () => this._connectSubscribers.delete(cb)
-  }
-
-  async connect({ url, user = 'root', password }: { url: string; user: string; password: string }): Promise<void> {
+  async connect({
+    url,
+    user = 'root',
+    password,
+    sessionId,
+    rememberMe = Cookies.get('rememberMe') === 'true',
+  }: {
+    url: string
+    user?: string
+    password?: string
+    sessionId?: string
+    rememberMe?: boolean
+  }): Promise<void> {
     const xapi = (this._xapi = new Xapi({
-      auth: { user, password },
+      auth: { user, password, sessionId },
       url,
       watchEvents: true,
       readonly: false,
@@ -101,45 +111,56 @@ export default class XapiConnection {
           })
         })
 
-        this._objectsSubscribers.forEach(subscriber => {
-          subscriber(this.objectsByType)
-        })
+        this.emit('objects', this.objectsByType)
       } catch (err) {
         console.error(err)
       }
     }
 
-    try {
-      xapi.on('connected', () => {
-        console.log('CONNECTED')
-        this.sessionId = xapi.sessionId
-        this.connected = true
-        this._connectSubscribers.forEach(subscriber => {
-          subscriber(this.connected)
-        })
-      })
-      await xapi.connect()
-      await xapi._objectsFetched
+    xapi.on('connected', () => {
+      this.sessionId = xapi.sessionId
+      this.connected = true
+      this.emit('connected')
+    })
 
-      updateObjects(xapi.objects.all)
-      this._resolveObjectsFetched()
+    xapi.on('disconnected', () => {
+      Cookies.remove('sessionId')
+      this.emit('disconnected')
+    })
 
-      xapi.objects.on('add', updateObjects)
-      xapi.objects.on('update', updateObjects)
-      xapi.objects.on('remove', updateObjects)
-    } catch (err) {
-      console.error(err)
+    xapi.on('sessionId', (sessionId: string) => {
+      if (rememberMe) {
+        Cookies.set('rememberMe', 'true', { expires: 7 })
+      }
+      Cookies.set('sessionId', sessionId, rememberMe ? { expires: 7 } : undefined)
+    })
+
+    await xapi.connect()
+    await xapi._objectsFetched
+
+    updateObjects(xapi.objects.all)
+    this._resolveObjectsFetched()
+
+    xapi.objects.on('add', updateObjects)
+    xapi.objects.on('update', updateObjects)
+    xapi.objects.on('remove', updateObjects)
+  }
+
+  disconnect(): Promise<void> | undefined {
+    Cookies.remove('rememberMe')
+    Cookies.remove('sessionId')
+    const { _xapi } = this
+    if (_xapi !== undefined) {
+      return _xapi.disconnect()
     }
   }
 
-  call(method: string, ...args: string[]): void {
+  call(method: string, ...args: string[]): Promise<unknown> {
     const { _xapi, connected } = this
     if (!connected || _xapi === undefined) {
       throw new Error('Not connected to XAPI')
     }
 
-    console.log('args:', args)
-    console.log('method:', method)
     return _xapi.call(method, ...args)
   }
 }
