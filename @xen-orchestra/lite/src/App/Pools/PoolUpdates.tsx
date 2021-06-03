@@ -9,9 +9,7 @@ interface ParentState {
   xapi: XapiConnection
 }
 
-interface State {
-  hosts?: Map<string, Host>
-}
+interface State {}
 
 interface Props {
   poolId: string
@@ -22,19 +20,12 @@ interface ParentEffects {}
 interface Effects {}
 
 interface Computed {
-  availableUpdates?: PoolUpdate[] | Promise<PoolUpdate[]>
+  availableUpdates?: PoolUpdate[]
+  hosts?: Map<string, Host>
 }
 
 const PoolUpdates = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
   {
-    initialState: () => ({
-      hosts: undefined,
-    }),
-    effects: {
-      initialize: async function () {
-        this.state.hosts = this.state.objectsByType.get('host')?.filter(host => host.$pool.$id === this.props.poolId)
-      },
-    },
     computed: {
       availableUpdates: async function (state) {
         const promises: Promise<unknown>[] = []
@@ -52,19 +43,20 @@ const PoolUpdates = withState<State, Props, Effects, Computed, ParentState, Pare
         })
 
         const poolUpdates: PoolUpdate[] = []
-        ;(await Promise.all(promises)).forEach((stringifiedPoolUpdates) => {
+        ;(await Promise.all(promises)).forEach(stringifiedPoolUpdates => {
           if (typeof stringifiedPoolUpdates !== 'string') return
           poolUpdates.push(...JSON.parse(stringifiedPoolUpdates))
         })
         return poolUpdates
       },
+      hosts: function(state){
+        return state.objectsByType.get('host')
+      }
     },
   },
   ({ state }) => (
     <>
-      {state.availableUpdates !== undefined &&
-      Array.isArray(state.availableUpdates) &&
-      state.availableUpdates.length !== 0 ? (
+      {state.availableUpdates !== undefined && state.availableUpdates.length !== 0 ? (
         <>
           <p>
             {state.availableUpdates.length} Available update{state.availableUpdates.length > 1 && 's'}

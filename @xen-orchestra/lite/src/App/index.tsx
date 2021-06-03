@@ -1,9 +1,11 @@
+import Cookies from 'js-cookie'
 import React from 'react'
-import { withState } from 'reaclette'
+import { FormattedMessage, IntlProvider } from 'react-intl'
 import { HashRouter as Router, Switch, Route, Link } from 'react-router-dom'
-import { IntlProvider } from 'react-intl'
 import { Map } from 'immutable'
+import { withState } from 'reaclette'
 
+import Button from '../components/Button'
 import messagesEn from '../lang/en.json'
 import Pools from './Pools'
 import Signin from './Signin/index'
@@ -18,6 +20,7 @@ interface ParentState {
 
 interface State {
   connected: boolean
+  error: JSX.Element
   xapiHostname: string
 }
 
@@ -26,41 +29,70 @@ interface Props {}
 interface ParentEffects {}
 
 interface Effects {
-  connectToXapi: (password: string) => void
+  connectToXapi: (password: string, rememberMe: boolean) => void
+  disconnect: () => void
 }
 
 interface Computed {
   objectsFetched: boolean
+  url: string
   vms?: Map<string, Vm>
 }
 
 const App = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
   {
     initialState: () => ({
-      connected: false,
+      connected: Cookies.get('sessionId') !== undefined,
+      error: '',
       objectsByType: undefined,
-      xapiHostname: process.env.XAPI_HOST || window.location.host,
       xapi: undefined,
+      xapiHostname: process.env.XAPI_HOST || window.location.host,
     }),
     effects: {
-      connectToXapi: function (password) {
-        const xapi = new XapiConnection()
-        this.state.xapi = xapi
+      initialize: async function () {
+        const xapi = (this.state.xapi = new XapiConnection())
 
-        xapi.onConnect(status => {
+        xapi.on('connected', () => {
           this.state.connected = true
-          console.log('Connected to XAPI!', status)
         })
 
-        xapi.onObjects((objectsByType: ObjectsByType) => {
+        xapi.on('disconnected', () => {
+          this.state.connected = false
+        })
+
+        xapi.on('objects', (objectsByType: ObjectsByType) => {
           this.state.objectsByType = objectsByType
         })
 
-        xapi.connect({
-          url: `${window.location.protocol}//${this.state.xapiHostname}`,
-          user: 'root',
-          password,
-        })
+        try {
+          await xapi.reattachSession(this.state.url)
+        } catch (err) {
+          if (err.code !== 'SESSION_INVALID') {
+            throw err
+          }
+
+          console.log('Session ID is invalid. Asking for credentials.')
+        }
+      },
+      connectToXapi: async function (password, rememberMe = false) {
+        try {
+          await this.state.xapi.connect({
+            url: this.state.url,
+            user: 'root',
+            password,
+            rememberMe,
+          })
+        } catch (err) {
+          if (err.code !== 'SESSION_AUTHENTICATION_FAILED') {
+            throw err
+          }
+
+          this.state.error = <FormattedMessage id='badCredentials' />
+        }
+      },
+      disconnect: async function () {
+        await this.state.xapi.disconnect()
+        this.state.connected = false
       },
     },
     computed: {
@@ -71,42 +103,48 @@ const App = withState<State, Props, Effects, Computed, ParentState, ParentEffect
               ?.get('VM')
               ?.filter((vm: Vm) => !vm.is_control_domain && !vm.is_a_snapshot && !vm.is_a_template)
           : undefined,
+      url: state => `${window.location.protocol}//${state.xapiHostname}`,
     },
   },
-  ({ state }) => (
+  ({ effects, state }) => (
     <IntlProvider messages={messagesEn} locale='en'>
-      {!state.connected || !state.objectsFetched ? (
+      {!state.connected ? (
         <Signin />
+      ) : !state.objectsFetched ? (
+        <FormattedMessage id='loading' />
       ) : (
-        <Router>
-          <Switch>
-            <Route exact path='/styleguide'>
-              <StyleGuide />
-            </Route>
-            <Route exact path='/'>
-              <p>There are {state.objectsByType?.size || 0} types!</p>
-              <Link to='/pools'>Pools list</Link>
-              {state.vms !== undefined && (
-                <>
-                  <p>There are {state.vms.size} VMs!</p>
-                  <ul>
-                    {state.vms.valueSeq().map((vm: Vm) => (
-                      <li key={vm.$id}>
-                        <Link to={vm.$id}>
-                          {vm.name_label} - {vm.name_description} ({vm.power_state})
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                </>
-              )}
-            </Route>
-            <Route path='/pools/'>
+        <>
+          <Button onClick={() => effects.disconnect()}>
+            <FormattedMessage id='disconnect' />
+          </Button>
+          <Router>
+            <Switch>
+              <Route exact path='/styleguide'><StyleGuide /></Route>
+              <Route exact path='/'>
+                <p>There are {state.objectsByType?.size || 0} types!</p>
+                <Link to='/pools'>Pools list</Link>
+                {state.vms !== undefined && (
+                  <>
+                    <p>There are {state.vms.size} VMs!</p>
+                    <ul>
+                      {state.vms.valueSeq().map((vm: Vm) => (
+                        <li key={vm.$id}>
+                          <Link to={vm.$id}>
+                            {vm.name_label} - {vm.name_description} ({vm.power_state})
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </>
+                )}
+              </Route>
+              <Route path='/pools/'>
               <Pools />
             </Route>
             <Route exact path='/:id' render={({ match }) => <TabConsole vmId={match.params.id} />} />{' '}
-          </Switch>
-        </Router>
+            </Switch>
+          </Router>
+        </>
       )}
     </IntlProvider>
   )
