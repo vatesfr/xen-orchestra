@@ -28,19 +28,20 @@ interface Computed {
 
 const COLUMNS: Column<Pif>[] = [
   {
-    formattedMessageId: 'device',
-    propertyToDisplay: 'device',
+    messageId: 'device',
+    render: pif => pif.device,
   },
   {
-    formattedMessageId: 'DNS',
-    propertyToDisplay: 'DNS',
+    messageId: 'DNS',
+    render: pif => pif.DNS,
   },
   {
-    formattedMessageId: 'gateway',
-    propertyToDisplay: 'gateway',
-  },{
-    formattedMessageId: 'IP',
-    propertyToDisplay: 'IP',
+    messageId: 'gateway',
+    render: pif => pif.gateway,
+  },
+  {
+    messageId: 'IP',
+    render: pif => pif.IP,
   },
 ]
 
@@ -56,7 +57,7 @@ const PoolNetwork = withState<State, Props, Effects, Computed, ParentState, Pare
         state.objectsByType.get('PIF')?.filter(pif => state.networks?.find(network => network.$ref === pif.network)),
     },
   },
-  ({ state }) => <Table collections={state.managementPifs} columns={COLUMNS} />
+  ({ state }) => <Table collection={state.managementPifs} columns={COLUMNS} />
 )
 
 export default PoolNetwork

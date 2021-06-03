@@ -33,8 +33,7 @@ export interface Pif extends XapiObject {
   network: string
 }
 
-type _Pool = Omit<XapiObject, '$pool'>
-export interface Pool extends _Pool {
+export interface Pool extends XapiObject {
   name_label: string
 }
 

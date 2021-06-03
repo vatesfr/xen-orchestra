@@ -7,11 +7,11 @@ import { withState } from 'reaclette'
 
 import intlMessage from '../lang/en.json'
 
-type Collections = Dictionary<unknown> | unknown[]
+type Collection = Dictionary<unknown> | unknown[]
 
 export type Column<Type> = {
-  formattedMessageId: keyof typeof intlMessage
-  propertyToDisplay: keyof Type
+  messageId: keyof typeof intlMessage
+  render: {(item: Type): string | JSX.Element}
 }
 
 interface ParentState {}
@@ -19,8 +19,9 @@ interface ParentState {}
 interface State {}
 
 interface Props {
-  collections: Collections | Map<string, unknown> | undefined
-  columns: Column<never>[]
+  collection: Collection | Map<string, unknown> | undefined
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  columns: Column<any>[]
 }
 
 interface ParentEffects {}
@@ -28,7 +29,7 @@ interface ParentEffects {}
 interface Effects {}
 
 interface Computed {
-  collections: Collections
+  collection: Collection
 }
 
 const StyledTable = styled.table`
@@ -44,35 +45,34 @@ const StyledTable = styled.table`
 const Table = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
   {
     computed: {
-      collections: (_, { collections }) => {
-        if (collections === undefined) {
+      collection: (_, { collection }) => {
+        if (collection === undefined) {
           return []
         }
-        if (Map.isMap(collections)) {
-          return collections.toArray().map(item => item[1])
+        if (Map.isMap(collection)) {
+          return collection.toArray().map(item => item[1])
         }
-        return collections
+        return collection
       },
     },
   },
   ({ columns, state }) =>
-    !isEmpty(state.collections) ? (
+    !isEmpty(state.collection) ? (
       <StyledTable>
         <thead>
           <tr>
             {columns.map((col, index) => (
               <td key={index}>
-                <FormattedMessage id={col.formattedMessageId} />
+                <FormattedMessage id={col.messageId} />
               </td>
             ))}
           </tr>
         </thead>
         <tbody>
-          {map(state.collections, (item, index) => (
+          {map(state.collection, (item, index) => (
             <tr key={index}>
               {columns.map((col, index) => (
-                // @ts-expect-error object-type-unknown
-                <td key={index}>{item[col.propertyToDisplay]}</td>
+                <td key={index}>{col.render(item)}</td>
               ))}
             </tr>
           ))}
