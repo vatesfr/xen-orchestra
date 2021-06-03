@@ -1,6 +1,8 @@
 {
   "badCredentials": "Bad credentials",
+  "confirmCtrlAltDel": "Send Ctrl+Alt+Del to VM?",
   "connect": "Connect",
+  "ctrlAltDel": "Ctrl+Alt+Del",
   "disconnect": "Disconnect",
   "loading": "Loading…",
   "login": "Login",
