@@ -8377,10 +8377,10 @@ http-proxy@^1.16.2, http-proxy@^1.17.0:
     follow-redirects "^1.0.0"
     requires-port "^1.0.0"
 
-http-request-plus@^0.10.0:
-  version "0.10.0"
-  resolved "https://registry.yarnpkg.com/http-request-plus/-/http-request-plus-0.10.0.tgz#1cdf07c9c7d7742a6ca5aa279333187983ec632f"
-  integrity sha512-iWU3gGjhHUtC2QjzEvy4fEdVSeeQ9jVZ0cNl6WItgJTAo8xnVHUQqKE0ke12Momc5OZitvRj/RpB55LbIt3+fA==
+http-request-plus@^0.11.1:
+  version "0.11.1"
+  resolved "https://registry.yarnpkg.com/http-request-plus/-/http-request-plus-0.11.1.tgz#792fbc907e05218f9aafcc9455a0b487722874db"
+  integrity sha512-FOS0BfygS2Ac66m1AUPS+Mj/seNqHA0aZTR/2U1Tkg7t//L1LNsNZb+9YMotfEgULhuQEd2N8kHI7OsZmOIYEA==
   dependencies:
     is-redirect "^1.0.0"
     promise-toolbox "^0.19.2"

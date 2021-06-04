@@ -8,6 +8,7 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [OVA import] improve OVA import error reporting (PR [#5797](https://github.com/vatesfr/xen-orchestra/pull/5797))
+- [Backup] Distinguish error messages between cancelation and interrupted HTTP connection
 
 ### Bug fixes
 
@@ -32,5 +33,9 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
+- xen-api patch
+- @xen-orchestra/xapi patch
+- @xen-orchestra/backups patch
+- @xen-orchestra/proxy patch
 - xo-server patch
 - xo-web patch

@@ -34,7 +34,7 @@
     "chalk": "^4.1.0",
     "exec-promise": "^0.7.0",
     "fs-extra": "^9.0.0",
-    "http-request-plus": "^0.10.0",
+    "http-request-plus": "^0.11.1",
     "human-format": "^0.11.0",
     "l33teral": "^3.0.3",
     "lodash": "^4.17.4",
