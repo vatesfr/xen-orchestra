@@ -328,8 +328,17 @@ const TRANSFORMS = {
     // See: https://github.com/xapi-project/xen-api/blob/324bc6ee6664dd915c0bbe57185f1d6243d9ed7e/ocaml/xapi/xapi_guest_agent.ml#L59-L81
     const addresses = {}
     for (const key in networks) {
-      const [, i] = /^(\d+)\/ip$/.exec(key) ?? []
-      addresses[i !== undefined ? `${i}/ipv4/0` : key] = networks[key]
+      const [, device] = /^(\d+)\/ip$/.exec(key) ?? []
+      if (device !== undefined) {
+        // Old protocol: when there's more than 1 IP on an interface, the IPs
+        // are space-delimited in the same field
+        // See https://github.com/vatesfr/xen-orchestra/issues/5801#issuecomment-854337568
+        networks[key].split(' ').forEach((ip, i) => {
+          addresses[`${device}/ipv4/${i}`] = ip
+        })
+      } else {
+        addresses[key] = networks[key]
+      }
     }
 
     const vm = {

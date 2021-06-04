@@ -13,6 +13,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [IPs] Handle space-delimited IP address format provided by outdated guest tools
+
 ### Packages to release
 
 > Packages will be released in the order they are here, therefore, they should
