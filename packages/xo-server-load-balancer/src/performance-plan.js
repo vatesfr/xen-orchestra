@@ -1,7 +1,9 @@
 import { filter } from 'lodash'
 
 import Plan from './plan'
-import { debug } from './utils'
+import { debug as debugP } from './utils'
+
+export const debug = str => debugP(`performance: ${str}`)
 
 function epsiEqual(a, b, epsi = 0.001) {
   const absA = Math.abs(a)
@@ -120,6 +122,7 @@ export default class PerformancePlan extends Plan {
     const xapiSrc = this.xo.getXapi(exceededHost)
     let optimizationCount = 0
 
+    const fmtSrcHost = `${exceededHost.id} "${exceededHost.name_label}"`
     for (const vm of vms) {
       // Stop migration if we are below low threshold.
       if (
@@ -197,13 +200,15 @@ export default class PerformancePlan extends Plan {
       exceededAverages.memoryFree += vmAverages.memory
       destinationAverages.memoryFree -= vmAverages.memory
 
-      debug(`Migrate VM (${vm.id}) to Host (${destination.id}) from Host (${exceededHost.id}).`)
+      debug(
+        `Migrate VM (${vm.id} "${vm.name_label}") to Host (${destination.id} "${destination.name_label}") from Host (${fmtSrcHost}).`
+      )
       optimizationCount++
 
       promises.push(xapiSrc.migrateVm(vm._xapiId, this.xo.getXapi(destination), destination._xapiId))
     }
 
     await Promise.all(promises)
-    debug(`Performance mode: ${optimizationCount} optimizations for Host (${exceededHost.id}).`)
+    debug(`Performance mode: ${optimizationCount} optimizations for Host (${fmtSrcHost}).`)
   }
 }

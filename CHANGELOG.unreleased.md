@@ -10,6 +10,7 @@
 - [OVA import] improve OVA import error reporting (PR [#5797](https://github.com/vatesfr/xen-orchestra/pull/5797))
 - [Backup] Distinguish error messages between cancelation and interrupted HTTP connection
 - [Jobs] Add `host.emergencyShutdownHost` to the list of methods that jobs can call (PR [#5818](https://github.com/vatesfr/xen-orchestra/pull/5818))
+- [Host/Load-balancer] Log vm and host names when a VM is migrated + category (density, performance, ...) (PR [#5808](https://github.com/vatesfr/xen-orchestra/pull/5808))
 
 ### Bug fixes
 
@@ -39,5 +40,6 @@
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
 - xo-server-perf-alert patch
+- xo-server-load-balancer minor
 - xo-server patch
 - xo-web minor
