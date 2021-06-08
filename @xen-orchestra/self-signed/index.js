@@ -8,7 +8,21 @@ exports.genSelfSignedCert = async ({ days = 360 } = {}) =>
   new Promise((resolve, reject) => {
     execFile(
       'openssl',
-      ['req', '-batch', '-new', '-x509', '-days', String(days), '-nodes', '-newkey', 'rsa:2048', '-keyout', '-'],
+      [
+        'req',
+        '-batch',
+        '-new',
+        '-x509',
+        '-days',
+        String(days),
+        '-nodes',
+        '-newkey',
+        'ec',
+        '-pkeyopt',
+        'ec_paramgen_curve:secp384r1',
+        '-keyout',
+        '-',
+      ],
       (error, stdout) => {
         if (error != null) {
           return reject(error)
