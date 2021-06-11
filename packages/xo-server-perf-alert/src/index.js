@@ -419,7 +419,8 @@ ${monitorBodies.join('\n')}`
   }
 
   _parseDefinition(definition) {
-    const lcObjectType = definition.objectType.toLowerCase()
+    const { objectType } = definition
+    const lcObjectType = objectType.toLowerCase()
     const alarmId = `${lcObjectType}|${definition.variableName}|${definition.alarmTriggerLevel}`
     const typeFunction = TYPE_FUNCTION_MAP[lcObjectType][definition.variableName]
     const parseData = (result, uuid) => {
@@ -467,15 +468,14 @@ ${monitorBodies.join('\n')}`
       vmFunction: typeFunction,
       title: `${typeFunction.name} ${definition.comparator} ${definition.alarmTriggerLevel}${typeFunction.unit}`,
       snapshot: async () => {
-        const type = definition.objectType
         return Promise.all(
           map(
             definition.smartMode
               ? map(
                   this._xo.getObjects({
                     filter: {
-                      type,
-                      power_state: type === 'VM' || type === 'host' ? 'Running' : undefined,
+                      type: objectType,
+                      power_state: objectType === 'VM' || objectType === 'host' ? 'Running' : undefined,
                     },
                   }),
                   obj => obj.uuid
