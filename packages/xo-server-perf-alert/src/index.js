@@ -152,13 +152,13 @@ export const configurationSchema = {
       type: 'array',
       title: 'Host Monitors',
       description:
-        'Alarms checking hosts on all pools. The selected performance counter is sampled regularly and averaged. ' +
+        'Alarms checking running hosts on all pools. The selected performance counter is sampled regularly and averaged. ' +
         'The Average is compared to the threshold and an alarm is raised upon crossing',
       items: {
         type: 'object',
         properties: {
           smartMode: {
-            title: 'All hosts',
+            title: 'All running hosts',
             type: 'boolean',
             description: 'When enabled, all hosts will be considered for the alert.',
             default: false,
@@ -212,15 +212,15 @@ export const configurationSchema = {
       type: 'array',
       title: 'VM Monitors',
       description:
-        'Alarms checking all VMs on all pools. The selected performance counter is sampled regularly and averaged. ' +
+        'Alarms checking all running VMs on all pools. The selected performance counter is sampled regularly and averaged. ' +
         'The Average is compared to the threshold and an alarm is raised upon crossing',
       items: {
         type: 'object',
         properties: {
           smartMode: {
-            title: 'All VMs',
+            title: 'All running VMs',
             type: 'boolean',
-            description: 'When enabled, all VMs will be considered for the alert.',
+            description: 'When enabled, all running VMs will be considered for the alert.',
             default: false,
           },
           uuids: {
@@ -467,10 +467,19 @@ ${monitorBodies.join('\n')}`
       vmFunction: typeFunction,
       title: `${typeFunction.name} ${definition.comparator} ${definition.alarmTriggerLevel}${typeFunction.unit}`,
       snapshot: async () => {
+        const type = definition.objectType
         return Promise.all(
           map(
             definition.smartMode
-              ? map(this._xo.getObjects({ filter: { type: definition.objectType } }), obj => obj.uuid)
+              ? map(
+                  this._xo.getObjects({
+                    filter: {
+                      type,
+                      power_state: type === 'VM' || type === 'host' ? 'Running' : undefined,
+                    },
+                  }),
+                  obj => obj.uuid
+                )
               : definition.uuids,
             async uuid => {
               try {
