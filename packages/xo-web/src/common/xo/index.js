@@ -97,14 +97,15 @@ const _signIn = new Promise(resolve => xo.once('authenticated', resolve))
 const _call = new URLSearchParams(window.location.search.slice(1)).has('debug')
   ? async (method, params) => {
       await _signIn
+      const now = Date.now()
       return tap.call(
         xo.call(method, params),
         result => {
           // eslint-disable-next-line no-console
-          console.debug('API call', method, params, result)
+          console.debug('API call (%d ms)', Date.now() - now, method, params, result)
         },
         error => {
-          console.error('API call error', method, params, error)
+          console.error('API call (%d ms) error', Date.now() - now, method, params, error)
         }
       )
     }
