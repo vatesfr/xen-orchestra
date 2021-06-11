@@ -152,7 +152,7 @@ export const configurationSchema = {
       type: 'array',
       title: 'Host Monitors',
       description:
-        'Alarms checking running hosts on all pools. The selected performance counter is sampled regularly and averaged. ' +
+        'Alarms checking hosts on all pools. The selected performance counter is sampled regularly and averaged. ' +
         'The Average is compared to the threshold and an alarm is raised upon crossing',
       items: {
         type: 'object',
@@ -160,7 +160,7 @@ export const configurationSchema = {
           smartMode: {
             title: 'All running hosts',
             type: 'boolean',
-            description: 'When enabled, all hosts will be considered for the alert.',
+            description: 'When enabled, all running hosts will be considered for the alert.',
             default: false,
           },
           uuids: {
@@ -212,7 +212,7 @@ export const configurationSchema = {
       type: 'array',
       title: 'VM Monitors',
       description:
-        'Alarms checking all running VMs on all pools. The selected performance counter is sampled regularly and averaged. ' +
+        'Alarms checking all VMs on all pools. The selected performance counter is sampled regularly and averaged. ' +
         'The Average is compared to the threshold and an alarm is raised upon crossing',
       items: {
         type: 'object',
