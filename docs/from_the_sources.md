@@ -46,7 +46,7 @@ apt-get install build-essential redis-server libpng-dev git python-minimal libvh
 You need to use the `git` source code manager to fetch the code. Ideally, you should run XO as a non-root user, and if you choose to, you need to set up `sudo` to be able to mount NFS remotes. As your chosen non-root (or root) user, run the following:
 
 ```
-git clone -b master http://github.com/vatesfr/xen-orchestra
+git clone -b master https://github.com/vatesfr/xen-orchestra
 ```
 
 > Note: xo-server and xo-web have been migrated to the [xen-orchestra](https://github.com/vatesfr/xen-orchestra) mono-repository - so you only need the single clone command above
