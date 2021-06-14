@@ -614,9 +614,8 @@ export default class TabDisks extends Component {
   )
 
   _rescanIsoSrs = async () => {
-    const srs = this.props.srs
     this.setState({ isScanningIsoSr: true })
-    const isoSrs = filter(srs, ({ SR_type }) => SR_type === 'iso')
+    const isoSrs = filter(this.props.srs, ({ SR_type }) => SR_type === 'iso')
     if (isEmpty(isoSrs)) {
       await alert(_('rescanIsoSr'), _('noIsoSrs'))
     } else {
