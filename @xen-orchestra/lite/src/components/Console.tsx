@@ -7,6 +7,7 @@ import { confirm } from './Modal'
 
 import XapiConnection, { ObjectsByType, Vm } from '../libs/xapi'
 
+
 interface ParentState {
   objectsByType: ObjectsByType
   xapi: XapiConnection
