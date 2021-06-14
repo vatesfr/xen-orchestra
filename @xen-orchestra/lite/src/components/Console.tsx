@@ -7,7 +7,6 @@ import { confirm } from './Modal'
 
 import XapiConnection, { ObjectsByType, Vm } from '../libs/xapi'
 
-
 interface ParentState {
   objectsByType: ObjectsByType
   xapi: XapiConnection
@@ -30,7 +29,7 @@ interface Props {
 interface ParentEffects {}
 
 interface Effects {
-  _connect: () => void
+  _connect: () => Promise<void>
   _displayConsole: () => void
   _handleDisconnect: () => void
   sendCtrlAltDel: () => void
@@ -52,8 +51,19 @@ const Console = withState<State, Props, Effects, Computed, ParentState, ParentEf
       },
       _handleDisconnect: function () {
         this.state.rfbConnected = false
-        setTimeout(() => {
-          this.effects._connect()
+        let tries = 0
+        const intVal = setInterval(() => {
+          if (this.state.rfbConnected) {
+            clearInterval(intVal)
+            return
+          }
+          if (++tries === 10) {
+            clearInterval(intVal)
+            throw new Error('Unable to connect to the VM console. Too much attempts')
+          }
+          this.effects._connect().catch(({ message }) => {
+            if (message === 'Could not find VM console' || message === 'Not connected to XAPI') clearInterval(intVal)
+          })
         }, 1000)
       },
       _connect: async function () {
@@ -87,7 +97,6 @@ const Console = withState<State, Props, Effects, Computed, ParentState, ParentEf
         this.state.rfb.addEventListener('disconnect', this.effects._handleDisconnect)
         this.state.rfb.scaleViewport = true
         this.props.setCtrlAltDel(this.effects.sendCtrlAltDel)
-
       },
       _displayConsole: function () {
         this.state.rfbConnected = true
@@ -105,7 +114,7 @@ const Console = withState<State, Props, Effects, Computed, ParentState, ParentEf
       sendCtrlAltDel: async function () {
         await confirm({
           message: <FormattedMessage id='confirmCtrlAltDel' />,
-          title: <FormattedMessage id='ctrlAltDel'/>
+          title: <FormattedMessage id='ctrlAltDel' />,
         })
         this.state.rfb.sendCtrlAltDel()
       },
