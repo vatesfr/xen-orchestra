@@ -313,9 +313,8 @@ The best way to define the best concurrency for you is by increasing it slowly a
 
 So to summarize, if you set your concurrency at 6 and you have 20 Vms to backup the process will be the following:
 - We start the backup of the first 6 VMs.
-- When one VM backup as ended we will launch the 7th VM backup.
-- During the 7th VM backup, we will also delete the snapshot for the 1th Vm.
-- We repeat the last 2 steps until the 20 VMs are backuped, keeping 6 backups running.
+- When one VM backup as ended we will launch the next VM backup.
+- Where keep launching new VM backup until the 20 VMs are finished, keeping 6 backups running.
 
 Removing the snapshot will trigger the coalesce process for the first VM, this is an automated action not triggered directly by the backup job.
 
