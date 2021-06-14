@@ -312,11 +312,10 @@ You should be aware of your hardware limitation when defining the best concurren
 The best way to define the best concurrency for you is by increasing it slowly and watching the result on backup time.
 
 So to summarize, if you set your concurrency at 6 and you have 20 Vms to backup the process will be the following:
-- First we snapshot the 6 VMs.
-- We start the 6 export job.
-- When the first export job as ended we will snapshot the 7th VM.
-- We start exporting the 7th VM, in the same time we will delete the snapshot for the 1th Vm.
-- We repeat the last 2 steps until the 20 VMs are backuped, keeping 6 jobs running.
+- We start the backup of the first 6 VMs.
+- When one VM backup as ended we will launch the 7th VM backup.
+- During the 7th VM backup, we will also delete the snapshot for the 1th Vm.
+- We repeat the last 2 steps until the 20 VMs are backuped, keeping 6 backups running.
 
 Removing the snapshot will trigger the coalesce process for the first VM, this is an automated action not triggered directly by the backup job.
 
