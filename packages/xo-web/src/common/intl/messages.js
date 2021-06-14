@@ -1073,6 +1073,8 @@ const messages = {
   containerRestart: 'Restart this container',
 
   // ----- VM disk tab -----
+  noIsoSrs: 'No iso srs found',
+  rescanIsoSr: 'Rescan all iso disks',
   vbdCreateDeviceButton: 'New disk',
   vdiAttachDevice: 'Attach disk',
   vdiAttachDeviceConfirm: 'The selected VDI is already attached to this VM. Are you sure you want to continue?',

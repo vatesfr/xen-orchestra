@@ -1,5 +1,6 @@
 import _, { messages } from 'intl'
 import ActionButton from 'action-button'
+import Button from 'button'
 import Component from 'base-component'
 import copy from 'copy-to-clipboard'
 import defined, { get as getDefined } from '@xen-orchestra/defined'
@@ -11,6 +12,7 @@ import React from 'react'
 import StateButton from 'state-button'
 import SortedTable from 'sorted-table'
 import TabButton from 'tab-button'
+import Tooltip from 'tooltip'
 import { Sr } from 'render-xo-item'
 import { Container, Row, Col } from 'grid'
 import {
@@ -34,9 +36,9 @@ import {
 } from 'utils'
 import { SizeInput, Toggle } from 'form'
 import { XoSelect, Size, Text } from 'editable'
-import { confirm } from 'modal'
+import { alert, confirm } from 'modal'
 import { error } from 'notification'
-import { compact, every, filter, find, forEach, get, map, some, sortedUniq, uniq } from 'lodash'
+import { compact, every, filter, find, forEach, get, isEmpty, map, some, sortedUniq, uniq } from 'lodash'
 import {
   attachDiskToVm,
   createDisk,
@@ -53,6 +55,7 @@ import {
   isSrWritable,
   isVmRunning,
   migrateVdi,
+  rescanSrs,
   setBootableVbd,
   subscribeResourceSets,
 } from 'xo'
@@ -462,6 +465,7 @@ export default class TabDisks extends Component {
     super(props)
     this.state = {
       attachDisk: false,
+      isScanningIsoSr: false,
       newDisk: false,
     }
   }
@@ -609,6 +613,18 @@ export default class TabDisks extends Component {
       )
   )
 
+  _rescanIsoSrs = async () => {
+    const srs = this.props.srs
+    this.setState({ isScanningIsoSr: true })
+    const isoSrs = filter(srs, ({ SR_type }) => SR_type === 'iso')
+    if (isEmpty(isoSrs)) {
+      await alert(_('rescanIsoSr'), _('noIsoSrs'))
+    } else {
+      await rescanSrs(isoSrs)
+    }
+    this.setState({ isScanningIsoSr: false })
+  }
+
   actions = [
     {
       disabled: selectedVbds => some(selectedVbds, 'attached'),
@@ -641,7 +657,7 @@ export default class TabDisks extends Component {
   render() {
     const { allVbds, resolvedResourceSet, vm } = this.props
 
-    const { attachDisk, newDisk } = this.state
+    const { attachDisk, isScanningIsoSr, newDisk } = this.state
 
     return (
       <Container>
@@ -703,6 +719,19 @@ export default class TabDisks extends Component {
         <Row>
           <Col mediumSize={5}>
             <IsoDevice vm={vm} />
+          </Col>
+          <Col mediumSize={1}>
+            <Tooltip content={_('rescanIsoSr')}>
+              <Button
+                disabled={isScanningIsoSr}
+                icon='refresh'
+                name='rescan srs'
+                onClick={this._rescanIsoSrs}
+                size='medium'
+              >
+                <Icon icon={isScanningIsoSr ? 'loading' : 'refresh'} />
+              </Button>
+            </Tooltip>
           </Col>
         </Row>
       </Container>
