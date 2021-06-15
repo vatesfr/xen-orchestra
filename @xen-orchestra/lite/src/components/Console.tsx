@@ -1,12 +1,12 @@
 import React from 'react'
 import RFB from '@novnc/novnc/lib/rfb'
+import { linear } from 'iterable-backoff'
 import { FormattedMessage } from 'react-intl'
 import { withState } from 'reaclette'
 
 import { confirm } from './Modal'
 
 import XapiConnection, { ObjectsByType, Vm } from '../libs/xapi'
-
 
 interface ParentState {
   objectsByType: ObjectsByType
@@ -50,22 +50,21 @@ const Console = withState<State, Props, Effects, Computed, ParentState, ParentEf
       initialize: function () {
         this.effects._connect()
       },
-      _handleDisconnect: function () {
+      _handleDisconnect: async function () {
         this.state.rfbConnected = false
-        let tries = 0
-        const intVal = setInterval(() => {
-          if (this.state.rfbConnected) {
-            clearInterval(intVal)
-            return
+
+        for (const delay of linear().toMs().take(5)) {
+          try {
+            return await this.effects._connect()
+          } catch ({ message }) {
+            if (message === 'Could not find VM console' || message === 'Not connected to XAPI') {
+              return
+            }
+            await new Promise(resolve => setTimeout(() => resolve(''), delay))
           }
-          if (++tries === 10) {
-            clearInterval(intVal)
-            throw new Error('Unable to connect to the VM console. Too much attempts')
-          }
-          this.effects._connect().catch(({ message }) => {
-            if (message === 'Could not find VM console' || message === 'Not connected to XAPI') clearInterval(intVal)
-          })
-        }, 1000)
+        }
+
+        throw new Error('Unable to connect to the VM console. Too many attempts')
       },
       _connect: async function () {
         const { vmId } = this.props
@@ -131,7 +130,7 @@ const Console = withState<State, Props, Effects, Computed, ParentState, ParentEf
       <div
         ref={state.container}
         style={{
-          display: `${state.rfbConnected ? 'block' : 'none'}`,
+          visibility: `${state.rfbConnected ? 'visible' : 'hidden'}`,
           margin: 'auto',
           height: `${scale}%`,
           width: `${scale}%`,
