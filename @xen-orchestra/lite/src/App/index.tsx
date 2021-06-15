@@ -113,7 +113,7 @@ const App = withState<State, Props, Effects, Computed, ParentState, ParentEffect
       ) : !state.objectsFetched ? (
         <FormattedMessage id='loading' />
       ) : (
-      <>
+        <>
           <Button onClick={() => effects.disconnect()}>
             <FormattedMessage id='disconnect' />
           </Button>
