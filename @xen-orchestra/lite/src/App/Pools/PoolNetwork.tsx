@@ -1,4 +1,5 @@
 import React from 'react'
+import { FormattedMessage } from 'react-intl'
 import { Map } from 'immutable'
 import { withState } from 'reaclette'
 
@@ -21,26 +22,26 @@ interface ParentEffects {}
 interface Effects {}
 
 interface Computed {
-  managementPifs?: Map<string, Pif>
+  managementPifs?: Pif[]
   networks?: Map<string, Network>
   pifs?: Map<string, Pif>
 }
 
 const COLUMNS: Column<Pif>[] = [
   {
-    messageId: 'device',
+    header: <FormattedMessage id='device' />,
     render: pif => pif.device,
   },
   {
-    messageId: 'DNS',
+    header: <FormattedMessage id='DNS' />,
     render: pif => pif.DNS,
   },
   {
-    messageId: 'gateway',
+    header: <FormattedMessage id='gateway' />,
     render: pif => pif.gateway,
   },
   {
-    messageId: 'IP',
+    header: <FormattedMessage id='IP' />,
     render: pif => pif.IP,
   },
 ]
@@ -48,7 +49,11 @@ const COLUMNS: Column<Pif>[] = [
 const PoolNetwork = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
   {
     computed: {
-      managementPifs: state => state.pifs?.filter(pif => pif.management),
+      managementPifs: state =>
+        state.pifs
+          ?.filter(pif => pif.management)
+          .toArray()
+          .map(item => item[1]),
       networks: (state, props) =>
         state.objectsFetched
           ? state.objectsByType.get('network')?.filter(network => network.$pool.$id === props.poolId)

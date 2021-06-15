@@ -1,8 +1,16 @@
 {
+  "badCredentials": "Bad credentials",
+  "confirmCtrlAltDel": "Send Ctrl+Alt+Del to VM?",
   "connect": "Connect",
+  "ctrlAltDel": "Ctrl+Alt+Del",
   "device": "Device",
+  "disconnect": "Disconnect",
   "DNS": "DNS",
   "gateway": "Gateway",
   "IP": "IP",
-  "noData": "No data"
+  "loading": "Loading…",
+  "login": "Login",
+  "noData": "No data",
+  "password": "Password",
+  "rememberMe": "Remember me"
 }

@@ -1,7 +1,5 @@
 import React from 'react'
-import { Link } from 'react-router-dom'
 import { Map } from 'immutable'
-import { Route, Switch } from 'react-router'
 import { withState } from 'reaclette'
 
 import PoolNetwork from './PoolNetwork'
@@ -34,24 +32,9 @@ const Pools = withState<State, Props, Effects, Computed, ParentState, ParentEffe
   },
   ({ state }) => (
     <>
-      <Switch>
-        <Route exact path='/pools/'>
-          <div>
-            {state.pools !== undefined ? (
-              <ul>
-                {state.pools.valueSeq().map(pool => (
-                  <li key={pool.$id}>
-                    <Link to={location => `${location.pathname}/${pool.$id}`}>{pool.name_label}</Link>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p>Loading objects ...</p>
-            )}
-          </div>
-        </Route>
-        <Route exact path='/pools/:id' render={({ match }) => <PoolNetwork poolId={match.params.id} />} />
-      </Switch>
+      {state.pools?.valueSeq().map(pool => (
+        <PoolNetwork key={pool.$id} poolId={pool.$id} />
+      ))}
     </>
   )
 )
