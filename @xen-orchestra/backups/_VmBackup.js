@@ -103,9 +103,19 @@ exports.VmBackup = class VmBackup {
   // calls fn for each function, warns of any errors, and throws only if there are no writers left
   async _callWriters(fn, warnMessage, parallel = true) {
     const writers = this._writers
-    if (writers.size === 0) {
+    const n = writers.size
+    if (n === 0) {
       return
     }
+    if (n === 1) {
+      try {
+        await fn(writer)
+      } catch (error) {
+        this.delete(writer)
+        throw error
+      }
+    }
+
     await (parallel ? asyncMap : asyncEach)(writers, async function (writer) {
       try {
         await fn(writer)
