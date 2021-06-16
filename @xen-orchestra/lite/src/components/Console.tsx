@@ -1,6 +1,6 @@
 import React from 'react'
 import RFB from '@novnc/novnc/lib/rfb'
-import { linear } from 'iterable-backoff'
+import { fibonacci } from 'iterable-backoff'
 import { FormattedMessage } from 'react-intl'
 import { withState } from 'reaclette'
 
@@ -14,6 +14,7 @@ interface ParentState {
 }
 
 interface State {
+  _timeout?: NodeJS.Timeout
   container: React.RefObject<HTMLDivElement>
   // See https://github.com/vatesfr/xen-orchestra/pull/5722#discussion_r619296074
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -42,6 +43,7 @@ interface Computed {}
 const Console = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
   {
     initialState: () => ({
+      _timeout: undefined,
       container: React.createRef(),
       rfb: undefined,
       rfbConnected: false,
@@ -50,66 +52,62 @@ const Console = withState<State, Props, Effects, Computed, ParentState, ParentEf
       initialize: function () {
         this.effects._connect()
       },
-      _handleDisconnect: async function () {
+      _handleDisconnect: function () {
         this.state.rfbConnected = false
-
-        for (const delay of linear().toMs().take(5)) {
-          try {
-            return await this.effects._connect()
-          } catch ({ message }) {
-            if (message === 'Could not find VM console' || message === 'Not connected to XAPI') {
-              return
-            }
-            await new Promise(resolve => setTimeout(() => resolve(''), delay))
-          }
-        }
-
-        throw new Error('Unable to connect to the VM console. Too many attempts')
+        this.effects._connect()
       },
       _connect: async function () {
         const { vmId } = this.props
         const { objectsByType, rfb, xapi } = this.state
-        const consoles = (objectsByType.get('VM')?.get(vmId) as Vm)?.$consoles.filter(
-          vmConsole => vmConsole.protocol === 'rfb'
-        )
 
-        if (rfb !== undefined) {
-          rfb.removeEventListener('connect', this.effects._displayConsole)
-          rfb.removeEventListener('disconnect', this.effects._handleDisconnect)
+        // 8 sequences mean 54S
+        for (const delay of fibonacci().toMs().take(8)) {
+          try {
+            const consoles = (objectsByType.get('VM')?.get(vmId) as Vm)?.$consoles.filter(
+              vmConsole => vmConsole.protocol === 'rfb'
+            )
+
+            if (rfb !== undefined) {
+              rfb.removeEventListener('connect', this.effects._displayConsole)
+              rfb.removeEventListener('disconnect', this.effects._handleDisconnect)
+            }
+
+            if (consoles === undefined || consoles.length === 0) {
+              throw new Error('Could not find VM console')
+            }
+
+            if (xapi.sessionId === undefined) {
+              throw new Error('Not connected to XAPI')
+            }
+
+            const url = new URL(consoles[0].location)
+            url.protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+            url.searchParams.set('session_id', xapi.sessionId)
+
+            this.state.rfb = new RFB(this.state.container.current, url, {
+              wsProtocols: ['binary'],
+            })
+            this.state.rfb.addEventListener('connect', this.effects._displayConsole)
+            this.state.rfb.addEventListener('disconnect', this.effects._handleDisconnect)
+            this.state.rfb.scaleViewport = true
+            this.props.setCtrlAltDel(this.effects.sendCtrlAltDel)
+            return
+          } catch (error) {
+            await new Promise(resolve => (this.state._timeout = setTimeout(() => resolve(''), delay)))
+          }
         }
-
-        if (consoles === undefined || consoles.length === 0) {
-          throw new Error('Could not find VM console')
-        }
-
-        if (xapi.sessionId === undefined) {
-          throw new Error('Not connected to XAPI')
-        }
-
-        const url = new URL(consoles[0].location)
-        url.protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-        url.searchParams.set('session_id', xapi.sessionId)
-
-        this.state.rfb = new RFB(this.state.container.current, url, {
-          wsProtocols: ['binary'],
-        })
-        this.state.rfb.addEventListener('connect', this.effects._displayConsole)
-        this.state.rfb.addEventListener('disconnect', this.effects._handleDisconnect)
-        this.state.rfb.scaleViewport = true
-        this.props.setCtrlAltDel(this.effects.sendCtrlAltDel)
+        throw new Error('Unable to connect to the VM console. Too many attempts')
       },
       _displayConsole: function () {
         this.state.rfbConnected = true
-
-        // Need to trigger a resize event to take as consideration
-        // the updated css property (display)
-        // Issue https://github.com/novnc/noVNC/issues/1364
-        // PR https://github.com/novnc/noVNC/pull/1365
-        window.dispatchEvent(new UIEvent('resize'))
       },
       finalize: function () {
-        this.state.rfb.removeEventListener('connect', this.effects._displayConsole)
-        this.state.rfb.removeEventListener('disconnect', this.effects._handleDisconnect)
+        const { rfb, _timeout } = this.state
+        rfb.removeEventListener('connect', this.effects._displayConsole)
+        rfb.removeEventListener('disconnect', this.effects._handleDisconnect)
+        if (_timeout !== undefined) {
+          clearTimeout(_timeout)
+        }
       },
       sendCtrlAltDel: async function () {
         await confirm({
@@ -130,6 +128,7 @@ const Console = withState<State, Props, Effects, Computed, ParentState, ParentEf
       <div
         ref={state.container}
         style={{
+          // Hides the mount/unmount of the console as long as the connection aren't establish
           visibility: `${state.rfbConnected ? 'visible' : 'hidden'}`,
           margin: 'auto',
           height: `${scale}%`,
