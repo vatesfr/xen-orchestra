@@ -5,6 +5,7 @@
 ### Released packages
 
 - @vates/decorate-with 0.1.0
+- xen-api 0.33.1
 
 ## **5.59.0** (2021-05-31)
 

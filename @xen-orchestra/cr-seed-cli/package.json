@@ -18,7 +18,7 @@
   "preferGlobal": true,
   "dependencies": {
     "golike-defer": "^0.5.1",
-    "xen-api": "^0.33.0"
+    "xen-api": "^0.33.1"
   },
   "scripts": {
     "postversion": "npm publish"
