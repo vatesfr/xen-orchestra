@@ -164,6 +164,7 @@ export default class Jobs extends Component {
       'acl.remove',
       'host.detach',
       'host.disable',
+      'host.emergencyShutdownHost',
       'host.enable',
       'host.installAllPatches',
       'host.restart',
