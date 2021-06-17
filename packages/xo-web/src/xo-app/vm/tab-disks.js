@@ -1,6 +1,5 @@
 import _, { messages } from 'intl'
 import ActionButton from 'action-button'
-import Button from 'button'
 import Component from 'base-component'
 import copy from 'copy-to-clipboard'
 import defined, { get as getDefined } from '@xen-orchestra/defined'
@@ -12,7 +11,6 @@ import React from 'react'
 import StateButton from 'state-button'
 import SortedTable from 'sorted-table'
 import TabButton from 'tab-button'
-import Tooltip from 'tooltip'
 import { Sr } from 'render-xo-item'
 import { Container, Row, Col } from 'grid'
 import {
@@ -36,7 +34,7 @@ import {
 } from 'utils'
 import { SizeInput, Toggle } from 'form'
 import { XoSelect, Size, Text } from 'editable'
-import { alert, confirm } from 'modal'
+import { confirm } from 'modal'
 import { error } from 'notification'
 import { compact, every, filter, find, forEach, get, isEmpty, map, some, sortedUniq, uniq } from 'lodash'
 import {
@@ -452,8 +450,14 @@ class AttachDisk extends Component {
 }))
 @connectStore(() => {
   const getAllVbds = createGetObjectsOfType('VBD')
+  const getIsoSrs = createGetObjectsOfType('SR').filter(
+    (_, { pool: { $poolId } }) =>
+      sr =>
+        sr.$poolId === $poolId && sr.SR_type === 'iso'
+  )
 
   return (state, props) => ({
+    isoSrs: getIsoSrs(state, props),
     allVbds: getAllVbds(state, props),
     checkPermissions: getCheckPermissions(state, props),
     isAdmin: isAdmin(state, props),
@@ -613,16 +617,7 @@ export default class TabDisks extends Component {
       )
   )
 
-  _rescanIsoSrs = async () => {
-    this.setState({ isScanningIsoSr: true })
-    const isoSrs = filter(this.props.srs, ({ SR_type }) => SR_type === 'iso')
-    if (isEmpty(isoSrs)) {
-      await alert(_('rescanIsoSr'), _('noIsoSrs'))
-    } else {
-      await rescanSrs(isoSrs)
-    }
-    this.setState({ isScanningIsoSr: false })
-  }
+  _rescanIsoSrs = () => rescanSrs(this.props.isoSrs)
 
   actions = [
     {
@@ -654,9 +649,9 @@ export default class TabDisks extends Component {
   ]
 
   render() {
-    const { allVbds, resolvedResourceSet, vm } = this.props
+    const { allVbds, isoSrs, resolvedResourceSet, vm } = this.props
 
-    const { attachDisk, isScanningIsoSr, newDisk } = this.state
+    const { attachDisk, newDisk } = this.state
 
     return (
       <Container>
@@ -720,17 +715,12 @@ export default class TabDisks extends Component {
             <IsoDevice vm={vm} />
           </Col>
           <Col mediumSize={1}>
-            <Tooltip content={_('rescanIsoSr')}>
-              <Button
-                disabled={isScanningIsoSr}
-                icon='refresh'
-                name='rescan srs'
-                onClick={this._rescanIsoSrs}
-                size='medium'
-              >
-                <Icon icon={isScanningIsoSr ? 'loading' : 'refresh'} />
-              </Button>
-            </Tooltip>
+            <ActionButton
+              disabled={isEmpty(isoSrs)}
+              handler={this._rescanIsoSrs}
+              icon='refresh'
+              tooltip={_('rescanIsoSr')}
+            />
           </Col>
         </Row>
       </Container>
