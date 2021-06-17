@@ -474,8 +474,8 @@ ${monitorBodies.join('\n')}`
               ? filter(
                   this._xo.getObjects(),
                   obj =>
-                    (obj.type === objectType && objectType !== 'VM' && objectType !== 'host') ||
-                    obj.power_state === 'Running'
+                    obj.type === objectType &&
+                    ((objectType !== 'VM' && objectType !== 'host') || obj.power_state === 'Running')
                 ).map(obj => obj.uuid)
               : definition.uuids,
             async uuid => {
