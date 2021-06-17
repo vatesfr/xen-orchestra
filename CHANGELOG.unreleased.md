@@ -9,7 +9,7 @@
 
 - [OVA import] improve OVA import error reporting (PR [#5797](https://github.com/vatesfr/xen-orchestra/pull/5797))
 - [Backup] Distinguish error messages between cancelation and interrupted HTTP connection
-- [Jobs] Add `host.emergencyShutdownHost` to the list of methods that jobs can call
+- [Jobs] Add `host.emergencyShutdownHost` to the list of methods that jobs can call (PR [#5818](https://github.com/vatesfr/xen-orchestra/pull/5818))
 
 ### Bug fixes
 
