@@ -35,7 +35,7 @@
     "@vates/parse-duration": "^0.1.1",
     "@vates/read-chunk": "^0.1.2",
     "@xen-orchestra/async-map": "^0.1.2",
-    "@xen-orchestra/backups": "^0.11.0",
+    "@xen-orchestra/backups": "^0.11.1",
     "@xen-orchestra/cron": "^1.0.6",
     "@xen-orchestra/defined": "^0.0.1",
     "@xen-orchestra/emit-async": "^0.1.0",
