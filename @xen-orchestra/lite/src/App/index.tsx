@@ -1,11 +1,12 @@
 import Cookies from 'js-cookie'
 import React from 'react'
-import { FormattedMessage, IntlProvider } from 'react-intl'
+import { IntlProvider } from 'react-intl'
 import { HashRouter as Router, Switch, Route, Link } from 'react-router-dom'
 import { Map } from 'immutable'
 import { withState } from 'reaclette'
 
 import Button from '../components/Button'
+import IntlMessage from '../components/IntlMessage'
 import messagesEn from '../lang/en.json'
 import Signin from './Signin/index'
 import StyleGuide from './StyleGuide/index'
@@ -86,7 +87,7 @@ const App = withState<State, Props, Effects, Computed, ParentState, ParentEffect
             throw err
           }
 
-          this.state.error = <FormattedMessage id='badCredentials' />
+          this.state.error = <IntlMessage id='badCredentials' />
         }
       },
       disconnect: async function () {
@@ -110,11 +111,11 @@ const App = withState<State, Props, Effects, Computed, ParentState, ParentEffect
       {!state.connected ? (
         <Signin />
       ) : !state.objectsFetched ? (
-        <FormattedMessage id='loading' />
+        <IntlMessage id='loading' />
       ) : (
         <>
           <Button onClick={() => effects.disconnect()}>
-            <FormattedMessage id='disconnect' />
+            <IntlMessage id='disconnect' />
           </Button>
           <Router>
             <Switch>
