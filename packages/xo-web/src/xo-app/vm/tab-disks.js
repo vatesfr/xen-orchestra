@@ -457,10 +457,10 @@ class AttachDisk extends Component {
   )
 
   return (state, props) => ({
-    isoSrs: getIsoSrs(state, props),
     allVbds: getAllVbds(state, props),
     checkPermissions: getCheckPermissions(state, props),
     isAdmin: isAdmin(state, props),
+    isoSrs: getIsoSrs(state, props),
     resolvedResourceSet: getResolvedResourceSet(state, props, !props.isAdmin && props.resourceSet !== undefined),
   })
 })
@@ -469,7 +469,6 @@ export default class TabDisks extends Component {
     super(props)
     this.state = {
       attachDisk: false,
-      isScanningIsoSr: false,
       newDisk: false,
     }
   }
