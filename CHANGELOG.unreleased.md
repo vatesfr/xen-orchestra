@@ -9,7 +9,7 @@
 
 - [OVA import] improve OVA import error reporting (PR [#5797](https://github.com/vatesfr/xen-orchestra/pull/5797))
 - [Backup] Distinguish error messages between cancelation and interrupted HTTP connection
-- [VM/disks] Ability to rescan iso srs directly for the VM/disks view (PR [#5814](https://github.com/vatesfr/xen-orchestra/pull/5814))
+- [VM/disks] Ability to rescan ISO SRs (PR [#5814](https://github.com/vatesfr/xen-orchestra/pull/5814))
 
 ### Bug fixes
 
