@@ -11,8 +11,8 @@ import React from 'react'
 import StateButton from 'state-button'
 import SortedTable from 'sorted-table'
 import TabButton from 'tab-button'
-import { Sr } from 'render-xo-item'
 import { compact, every, filter, find, forEach, get, isEmpty, map, some, sortedUniq, uniq } from 'lodash'
+import { Sr } from 'render-xo-item'
 import { Container, Row, Col } from 'grid'
 import {
   createCollectionWrapper,
