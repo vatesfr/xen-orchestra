@@ -1743,7 +1743,8 @@ export default class NewVm extends BaseComponent {
   // SUMMARY ---------------------------------------------------------------------
 
   _renderSummary = () => {
-    const { CPUs, existingDisks, fastClone, memoryDynamicMax, multipleVms, nameLabels, VDIs, VIFs } = this.state.state
+    const { CPUs, existingDisks, fastClone, memory, memoryDynamicMax, multipleVms, nameLabels, VDIs, VIFs } =
+      this.state.state
 
     const factor = multipleVms ? nameLabels.length : 1
     const resourceSet = this._getResourceSet()
@@ -1751,6 +1752,8 @@ export default class NewVm extends BaseComponent {
     const cpusLimits = limits && limits.cpus
     const memoryLimits = limits && limits.memory
     const diskLimits = limits && limits.disk
+
+    const _memory = memoryDynamicMax || memory || 0
 
     return (
       <Section icon='new-vm-summary' title='newVmSummaryPanel' summary>
@@ -1763,7 +1766,7 @@ export default class NewVm extends BaseComponent {
             </Col>
             <Col size={3} className='text-xs-center'>
               <h2>
-                {memoryDynamicMax ? formatSize(memoryDynamicMax) : '0 B'} <Icon icon='memory' />
+                {_memory ? formatSize(_memory) : '0 B'} <Icon icon='memory' />
               </h2>
             </Col>
             <Col size={3} className='text-xs-center'>
@@ -1792,7 +1795,7 @@ export default class NewVm extends BaseComponent {
                 {memoryLimits && (
                   <Limits
                     limit={memoryLimits.total}
-                    toBeUsed={memoryDynamicMax * factor}
+                    toBeUsed={_memory * factor}
                     used={memoryLimits.total - memoryLimits.available}
                   />
                 )}
@@ -1829,7 +1832,7 @@ export default class NewVm extends BaseComponent {
     }
 
     const { CPUs, existingDisks, memory, memoryDynamicMax, VDIs, multipleVms, nameLabels } = this.state.state
-    const _memory = memoryDynamicMax == null ? memory : memoryDynamicMax
+    const _memory = memoryDynamicMax || memory || 0
     const factor = multipleVms ? nameLabels.length : 1
 
     return !(
