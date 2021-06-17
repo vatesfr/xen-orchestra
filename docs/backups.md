@@ -283,39 +283,40 @@ When it's done exporting, we'll remove the snapshot. Note: this operation will t
 
 ### Concurrency
 
+Concurrency is a parameter that let you define how many VMs your backup job will manage simultaneously.
+
+:::tip
+- Default concurrency value is 2 if left empty.
+:::
+
 Let's say you want to backup 50 VMs (each with 1x disk) at 3:00 AM. There are **2 different strategies**:
 
 1. backup VM #1 (snapshot, export, delete snapshots) **then** backup VM #2 -> _fully sequential strategy_
 2. snapshot all VMs, **then** export all snapshots, **then** delete all snapshots for finished exports -> _fully parallel strategy_
 
-The first purely sequential strategy will lead to a big problem: **you can't predict when a snapshot of your data will occur**. Because you can't predict the first VM export time (let's say 3 hours), then your second VM will have its snapshot taken 3 hours later, at 6 AM. We assume that's not what you meant when you specified "backup everything at 3 AM". You would end up with data from 6 AM (and later) for other VMs.
-
-Strategy number 2 is better in this aspect: all the snapshots will be taken at 3 AM. However **it's risky without limits**: it means potentially doing 50 snapshots or more at once on the same storage. **Since XenServer doesn't have a queue**, it will try to do all of them at once. This is also prone to race conditions and could cause crashes on your storage.
-
-So what's the best choice? Continue below to learn how to best configure concurrency for your needs.
-
-#### Best choice
-
-By default the _parallel strategy_ is, on paper, the most logical one. But we need to give it some limits on concurrency.
+The first purely sequential strategy will lead to the fact that: **you can't predict when a snapshot of your data will occur**. Because you can't predict the first VM export time (let's say 3 hours), then your second VM will have its snapshot taken 3 hours later, at 6 AM.
 
 :::tip
-Xen Orchestra can be connected to multiple pools at once. So the concurrency number applies **per pool**.
+If you need your backup to be done at a specific time  you should consider creating a specific backup task for this VM.
 :::
 
-Each step has its own concurrency to fit its requirements:
+Strategy number 2 is to parallelise: all the snapshots will be taken at 3 AM. However **it's risky without limits**: it means potentially doing 50 snapshots or more at once on the same storage. **Since XenServer doesn't have a queue**, it will try to do all of them at once. This is also prone to race conditions and could cause crashes on your storage.
 
-- **snapshot process** needs to be performed with the lowest concurrency possible. 2 is a good compromise: one snapshot is fast, but a stuck snapshot won't block the whole job. That's why a concurrency of 2 is not too bad on your storage. Basically, at 3 AM, we'll do all the VM snapshots needed, 2 at a time.
-- **disk export process** is bottlenecked by XCP-ng/XenServer - so to get the most of it, you can use up to 12 in parallel. As soon a snapshot is done, the export process will start, until reaching 12 at once. Then as soon as one in those 12 is finished, another one will appear until there is nothing more to export.
-- **VM export process:** the 12 disk export limit mentioned above applies to VDI exports, which happen during delta exports. For full VM exports (for example, for full backup job types), there is a built in limit of 2. This means if you have a full backup job of 6 VMs, only 2 will be exported at once.
-- **snapshot deletion** can't happen all at once because the previous step durations are random - no need to implement concurrency on this one.
+By default the _parallel strategy_ is, on paper, the most logical one. But you need to be careful and give it some limits on concurrency.
 
-This is how it currently works in Xen Orchestra. But sometimes, you also want to have _sequential_ backups combined with the _parallel strategy_. That's why we introduced a sequential option in the advanced section of backup-ng:
-
-:::tip
-0 means it will be fully **parallel** for all VMs.
+:::danger
+High concurrency could impact your dom0 and network performances.
 :::
 
-If you job contains 50 VMs for example, you could specify a sequential backup with a limit of "25 at once" (enter 25 in the concurrency field). This means at 3 AM, we'll do 25 snapshots (2 at a time), then exports. As soon as the first VM backup is completely finished (snapshot removed), then we'll start the 26th and so on, to always keep a max of 25x VM backups going in parallel.
+You should be aware of your hardware limitation when defining the best concurrency for your XCP-ng infrastructure, never put concurrency too high or you could impact your VMs performances.
+The best way to define the best concurrency for you is by increasing it slowly and watching the result on backup time.
+
+So to summarize, if you set your concurrency at 6 and you have 20 Vms to backup the process will be the following:
+- We start the backup of the first 6 VMs.
+- When one VM backup as ended we will launch the next VM backup.
+- We're keep launching new VM backup until the 20 VMs are finished, keeping 6 backups running.
+
+Removing the snapshot will trigger the coalesce process for the first VM, this is an automated action not triggered directly by the backup job.
 
 ## Backup modifier tags
 

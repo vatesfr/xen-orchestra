@@ -224,7 +224,13 @@ export default class {
           objects.set(xoId, xoObject)
         }
       } catch (error) {
-        log.error('xapiObjectToXo', { error })
+        // only log the error if the object was already in `toRetry`
+        //
+        // otherwise there will be too many logs, some of them irrelevant (transient
+        // and simply due to the order objects are processed)
+        if (xapiId in toRetry) {
+          log.error('xapiObjectToXo', { error })
+        }
 
         toRetry[xapiId] = xapiObject
       }

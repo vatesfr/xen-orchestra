@@ -174,9 +174,9 @@ Connect to your appliance via SSH, then as root execute these commands:
 
 ```
 $ cd /etc/ssl
-$ cp server.crt server.crt.old
-$ cp server.key server.key.old
-$ openssl req -x509 -newkey rsa:2048 -keyout server.key -out server.crt -nodes -days 360
+$ cp cert.pem cert.pem-old
+$ cp key.pem key.pem-old
+$ openssl req -x509 -newkey rsa:2048 -keyout key.pem -out cert.pem -nodes -days 360
 $ systemctl restart xo-server.service
 ```
 
