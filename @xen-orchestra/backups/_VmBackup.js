@@ -115,6 +115,7 @@ exports.VmBackup = class VmBackup {
         this.delete(writer)
         throw error
       }
+      return
     }
 
     await (parallel ? asyncMap : asyncEach)(writers, async function (writer) {
