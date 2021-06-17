@@ -1753,7 +1753,7 @@ export default class NewVm extends BaseComponent {
     const memoryLimits = limits && limits.memory
     const diskLimits = limits && limits.disk
 
-    const _memory = Math.max(memoryDynamicMax || 0, memory || 0)
+    const _memory = memoryDynamicMax || memory || 0
 
     return (
       <Section icon='new-vm-summary' title='newVmSummaryPanel' summary>
@@ -1832,7 +1832,7 @@ export default class NewVm extends BaseComponent {
     }
 
     const { CPUs, existingDisks, memory, memoryDynamicMax, VDIs, multipleVms, nameLabels } = this.state.state
-    const _memory = Math.max(memoryDynamicMax || 0, memory || 0)
+    const _memory = memoryDynamicMax || memory || 0
     const factor = multipleVms ? nameLabels.length : 1
 
     return !(
