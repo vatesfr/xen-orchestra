@@ -108,6 +108,7 @@ exports.VmBackup = class VmBackup {
       return
     }
     if (n === 1) {
+      const [writer] = writers
       try {
         await fn(writer)
       } catch (error) {
