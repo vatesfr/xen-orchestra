@@ -9,12 +9,16 @@ export type Column<Type> = {
   render: { (item: Type): string | JSX.Element }
 }
 
+export type Item<T> = T & {
+  id?: string
+}
+
 interface ParentState {}
 
 interface State {}
 
 interface Props {
-  collection: any[] | undefined
+  collection: Item<unknown>[] | undefined
   columns: Column<any>[]
 }
 

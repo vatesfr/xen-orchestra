@@ -3,7 +3,7 @@ import { FormattedMessage } from 'react-intl'
 import { Map } from 'immutable'
 import { withState } from 'reaclette'
 
-import Table, { Column } from '../../components/Table'
+import Table, { Column, Item } from '../../components/Table'
 import { Network, ObjectsByType, Pif } from '../../libs/xapi'
 
 interface ParentState {
@@ -22,7 +22,7 @@ interface ParentEffects {}
 interface Effects {}
 
 interface Computed {
-  managementPifs?: Pif[]
+  managementPifs?: Item<Pif>[]
   networks?: Map<string, Network>
   pifs?: Map<string, Pif>
 }
@@ -53,7 +53,10 @@ const PoolNetwork = withState<State, Props, Effects, Computed, ParentState, Pare
         state.pifs
           ?.filter(pif => pif.management)
           .toArray()
-          .map(item => item[1]),
+          .map(item => {
+            const pif = item[1]
+            return { id: pif.$id, ...pif }
+          }),
       networks: (state, props) =>
         state.objectsFetched
           ? state.objectsByType.get('network')?.filter(network => network.$pool.$id === props.poolId)
