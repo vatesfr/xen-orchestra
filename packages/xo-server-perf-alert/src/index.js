@@ -475,7 +475,7 @@ ${monitorBodies.join('\n')}`
                   this._xo.getObjects(),
                   obj =>
                     obj.type === objectType &&
-                    (objectType === 'VM' || objectType === 'host' ? obj.power_state === 'Running' : stubTrue())
+                    (objectType !== 'VM' && objectType !== 'host') || obj.power_state === 'Running'
                 ).map(obj => obj.uuid)
               : definition.uuids,
             async uuid => {
