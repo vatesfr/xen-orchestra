@@ -1,7 +1,8 @@
 import React from 'react'
 import styled from 'styled-components'
-import { FormattedMessage } from 'react-intl'
 import { withState } from 'reaclette'
+
+import IntlMessage from './IntlMessage'
 
 export type Column<Type> = {
   header: React.ReactNode
@@ -59,7 +60,7 @@ const Table = withState<State, Props, Effects, Computed, ParentState, ParentEffe
       </tbody>
     </StyledTable>
   ) : (
-    <FormattedMessage id='noData' />
+    <IntlMessage id='noData' />
   )
 )
 

@@ -1,8 +1,8 @@
 import React from 'react'
-import { FormattedMessage } from 'react-intl'
 import { Map } from 'immutable'
 import { withState } from 'reaclette'
 
+import IntlMessage from '../../components/IntlMessage'
 import Table, { Column, Item } from '../../components/Table'
 import { Network, ObjectsByType, Pif } from '../../libs/xapi'
 
@@ -29,19 +29,19 @@ interface Computed {
 
 const COLUMNS: Column<Pif>[] = [
   {
-    header: <FormattedMessage id='device' />,
+    header: <IntlMessage id='device' />,
     render: pif => pif.device,
   },
   {
-    header: <FormattedMessage id='DNS' />,
+    header: <IntlMessage id='DNS' />,
     render: pif => pif.DNS,
   },
   {
-    header: <FormattedMessage id='gateway' />,
+    header: <IntlMessage id='gateway' />,
     render: pif => pif.gateway,
   },
   {
-    header: <FormattedMessage id='IP' />,
+    header: <IntlMessage id='IP' />,
     render: pif => pif.IP,
   },
 ]
