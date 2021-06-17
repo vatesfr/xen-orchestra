@@ -1,6 +1,6 @@
 import JSON5 from 'json5'
 import { createSchedule } from '@xen-orchestra/cron'
-import { forOwn, map, mean } from 'lodash'
+import { filter, forOwn, map, mean, stubTrue } from 'lodash'
 import { utcParse } from 'd3-time-format'
 
 const XAPI_TO_XENCENTER = {
@@ -471,15 +471,12 @@ ${monitorBodies.join('\n')}`
         return Promise.all(
           map(
             definition.smartMode
-              ? map(
-                  this._xo.getObjects({
-                    filter: {
-                      type: objectType,
-                      power_state: objectType === 'VM' || objectType === 'host' ? 'Running' : undefined,
-                    },
-                  }),
-                  obj => obj.uuid
-                )
+              ? filter(
+                  this._xo.getObjects(),
+                  obj =>
+                    obj.type === objectType &&
+                    (objectType === 'VM' || objectType === 'host' ? obj.power_state === 'Running' : stubTrue())
+                ).map(obj => obj.uuid)
               : definition.uuids,
             async uuid => {
               try {
