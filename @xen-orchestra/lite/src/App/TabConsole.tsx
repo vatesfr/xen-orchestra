@@ -1,9 +1,9 @@
 import React from 'react'
-import { FormattedMessage } from 'react-intl'
 import { withState } from 'reaclette'
 
 import Button from '../components/Button'
 import Console from '../components/Console'
+import IntlMessage from '../components/IntlMessage'
 import RangeInput from '../components/RangeInput'
 import { ObjectsByType, Vm } from '../libs/xapi'
 
@@ -61,14 +61,14 @@ const TabConsole = withState<State, Props, Effects, Computed, ParentState, Paren
     <div style={{ height: '100vh' }}>
       {state.vm?.power_state !== 'Running' ? (
         <p>
-          <FormattedMessage id='consoleNotAvailable' />
+          <IntlMessage id='consoleNotAvailable' />
         </p>
       ) : (
         <>
           <RangeInput max={100} min={1} onChange={effects.scaleConsole} step={1} value={state.consoleScale} />
           {state.sendCtrlAltDel !== undefined && (
             <Button onClick={state.sendCtrlAltDel}>
-              <FormattedMessage id='ctrlAltDel' />
+              <IntlMessage id='ctrlAltDel' />
             </Button>
           )}
           <Console vmId={vmId} scale={state.consoleScale} setCtrlAltDel={effects.setCtrlAltDel} />

@@ -1,7 +1,13 @@
 {
+  "badCredentials": "Bad credentials",
   "confirmCtrlAltDel": "Send Ctrl+Alt+Del to VM?",
   "connect": "Connect",
   "consoleNotAvailable": "Console is only available for running VMs",
   "ctrlAltDel": "Ctrl+Alt+Del",
-  "reconnectionAttempt": "Trying to reconnect…"
+  "disconnect": "Disconnect",
+  "loading": "Loading…",
+  "login": "Login",
+  "password": "Password",
+  "reconnectionAttempt": "Trying to reconnect…",
+  "rememberMe": "Remember me"
 }

@@ -18,7 +18,10 @@ interface StateSpec<State, Props, Effects, Computed, ParentState, ParentEffects>
   } & Effects &
     ThisType<EffectContext<State, Props, Effects, Computed, ParentState, ParentEffects>>
   computed?: {
-    [ComputedName in keyof Computed]: (state: State & ParentState & Computed, props: Props) => Computed[ComputedName]
+    [ComputedName in keyof Computed]: (
+      state: State & ParentState & Computed,
+      props: Props
+    ) => Computed[ComputedName] | Promise<Computed[ComputedName]>
   }
 }
 
