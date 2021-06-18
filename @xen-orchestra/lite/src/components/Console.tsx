@@ -14,12 +14,12 @@ interface ParentState {
 }
 
 interface State {
-  _timeout?: NodeJS.Timeout
   container: React.RefObject<HTMLDivElement>
   // See https://github.com/vatesfr/xen-orchestra/pull/5722#discussion_r619296074
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   rfb: any
   rfbConnected: boolean
+  timeout?: NodeJS.Timeout
 }
 
 interface Props {
@@ -32,7 +32,7 @@ interface ParentEffects {}
 
 interface Effects {
   _connect: () => Promise<void>
-  _displayConsole: () => void
+  _handleConnect: () => void
   _handleDisconnect: () => void
   sendCtrlAltDel: () => void
 }
@@ -43,10 +43,10 @@ interface Computed {}
 const Console = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
   {
     initialState: () => ({
-      _timeout: undefined,
       container: React.createRef(),
       rfb: undefined,
       rfbConnected: false,
+      timeout: undefined,
     }),
     effects: {
       initialize: function () {
@@ -59,6 +59,7 @@ const Console = withState<State, Props, Effects, Computed, ParentState, ParentEf
       _connect: async function () {
         const { vmId } = this.props
         const { objectsByType, rfb, xapi } = this.state
+        let lastError: unknown
 
         // 8 tries mean 54s
         for (const delay of fibonacci().toMs().take(8)) {
@@ -68,7 +69,7 @@ const Console = withState<State, Props, Effects, Computed, ParentState, ParentEf
             )
 
             if (rfb !== undefined) {
-              rfb.removeEventListener('connect', this.effects._displayConsole)
+              rfb.removeEventListener('connect', this.effects._handleConnect)
               rfb.removeEventListener('disconnect', this.effects._handleDisconnect)
             }
 
@@ -87,26 +88,27 @@ const Console = withState<State, Props, Effects, Computed, ParentState, ParentEf
             this.state.rfb = new RFB(this.state.container.current, url, {
               wsProtocols: ['binary'],
             })
-            this.state.rfb.addEventListener('connect', this.effects._displayConsole)
+            this.state.rfb.addEventListener('connect', this.effects._handleConnect)
             this.state.rfb.addEventListener('disconnect', this.effects._handleDisconnect)
             this.state.rfb.scaleViewport = true
             this.props.setCtrlAltDel(this.effects.sendCtrlAltDel)
             return
           } catch (error) {
-            await new Promise(resolve => (this.state._timeout = setTimeout(resolve, delay)))
+            lastError = error
+            await new Promise(resolve => (this.state.timeout = setTimeout(resolve, delay)))
           }
         }
-        throw new Error('Unable to connect to the VM console. Too many attempts')
+        throw lastError
       },
-      _displayConsole: function () {
+      _handleConnect: function () {
         this.state.rfbConnected = true
       },
       finalize: function () {
-        const { rfb, _timeout } = this.state
-        rfb.removeEventListener('connect', this.effects._displayConsole)
+        const { rfb, timeout } = this.state
+        rfb.removeEventListener('connect', this.effects._handleConnect)
         rfb.removeEventListener('disconnect', this.effects._handleDisconnect)
-        if (_timeout !== undefined) {
-          clearTimeout(_timeout)
+        if (timeout !== undefined) {
+          clearTimeout(timeout)
         }
       },
       sendCtrlAltDel: async function () {
