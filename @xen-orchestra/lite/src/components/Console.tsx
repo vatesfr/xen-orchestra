@@ -93,7 +93,7 @@ const Console = withState<State, Props, Effects, Computed, ParentState, ParentEf
             this.props.setCtrlAltDel(this.effects.sendCtrlAltDel)
             return
           } catch (error) {
-            await new Promise(resolve => (this.state._timeout = setTimeout(() => resolve(''), delay)))
+            await new Promise(resolve => (this.state._timeout = setTimeout(resolve, delay)))
           }
         }
         throw new Error('Unable to connect to the VM console. Too many attempts')
