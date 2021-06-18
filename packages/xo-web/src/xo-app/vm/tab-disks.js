@@ -450,10 +450,8 @@ class AttachDisk extends Component {
 }))
 @connectStore(() => {
   const getAllVbds = createGetObjectsOfType('VBD')
-  const getIsoSrs = createGetObjectsOfType('SR').filter(
-    (_, { pool: { $poolId } }) =>
-      sr =>
-        sr.$poolId === $poolId && sr.SR_type === 'iso'
+  const getIsoSrs = createGetObjectsOfType('SR').filter((_, { pool: { $pool } }) => sr =>
+    sr.$pool === $pool && sr.SR_type === 'iso'
   )
 
   return (state, props) => ({
@@ -572,10 +570,8 @@ export default class TabDisks extends Component {
     }
   )
 
-  _getCheckSr = createSelector(
-    this._getRequiredHost,
-    requiredHost => sr =>
-      sr === undefined || isSrShared(sr) || requiredHost === undefined || sr.$container === requiredHost
+  _getCheckSr = createSelector(this._getRequiredHost, requiredHost => sr =>
+    sr === undefined || isSrShared(sr) || requiredHost === undefined || sr.$container === requiredHost
   )
 
   _getVbds = createSelector(
@@ -606,14 +602,12 @@ export default class TabDisks extends Component {
       )
   )
 
-  _getGenerateWarningBeforeMigrate = createSelector(
-    this._getCheckSr,
-    check => sr =>
-      check(sr) ? null : (
-        <span className='text-warning'>
-          <Icon icon='alarm' /> {_('warningVdiSr')}
-        </span>
-      )
+  _getGenerateWarningBeforeMigrate = createSelector(this._getCheckSr, check => sr =>
+    check(sr) ? null : (
+      <span className='text-warning'>
+        <Icon icon='alarm' /> {_('warningVdiSr')}
+      </span>
+    )
   )
 
   _rescanIsoSrs = () => rescanSrs(this.props.isoSrs)
@@ -718,7 +712,7 @@ export default class TabDisks extends Component {
               disabled={isEmpty(isoSrs)}
               handler={this._rescanIsoSrs}
               icon='refresh'
-              tooltip={_('rescanIsoSr')}
+              tooltip={_('rescanIsoSrs')}
             />
           </Col>
         </Row>

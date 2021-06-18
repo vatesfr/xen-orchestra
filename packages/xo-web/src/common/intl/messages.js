@@ -1073,7 +1073,7 @@ const messages = {
   containerRestart: 'Restart this container',
 
   // ----- VM disk tab -----
-  rescanIsoSr: 'Rescan all ISO SRs',
+  rescanIsoSrs: 'Rescan all ISO SRs',
   vbdCreateDeviceButton: 'New disk',
   vdiAttachDevice: 'Attach disk',
   vdiAttachDeviceConfirm: 'The selected VDI is already attached to this VM. Are you sure you want to continue?',
