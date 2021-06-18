@@ -11,6 +11,7 @@ import React from 'react'
 import StateButton from 'state-button'
 import SortedTable from 'sorted-table'
 import TabButton from 'tab-button'
+import { compact, every, filter, find, forEach, get, isEmpty, map, some, sortedUniq, uniq } from 'lodash'
 import { Sr } from 'render-xo-item'
 import { Container, Row, Col } from 'grid'
 import {
@@ -36,7 +37,6 @@ import { SizeInput, Toggle } from 'form'
 import { XoSelect, Size, Text } from 'editable'
 import { confirm } from 'modal'
 import { error } from 'notification'
-import { compact, every, filter, find, forEach, get, map, some, sortedUniq, uniq } from 'lodash'
 import {
   attachDiskToVm,
   createDisk,
@@ -53,6 +53,7 @@ import {
   isSrWritable,
   isVmRunning,
   migrateVdi,
+  rescanSrs,
   setBootableVbd,
   subscribeResourceSets,
 } from 'xo'
@@ -449,11 +450,15 @@ class AttachDisk extends Component {
 }))
 @connectStore(() => {
   const getAllVbds = createGetObjectsOfType('VBD')
+  const getIsoSrs = createGetObjectsOfType('SR').filter((_, { pool: { $pool } }) => sr =>
+    sr.$pool === $pool && sr.SR_type === 'iso'
+  )
 
   return (state, props) => ({
     allVbds: getAllVbds(state, props),
     checkPermissions: getCheckPermissions(state, props),
     isAdmin: isAdmin(state, props),
+    isoSrs: getIsoSrs(state, props),
     resolvedResourceSet: getResolvedResourceSet(state, props, !props.isAdmin && props.resourceSet !== undefined),
   })
 })
@@ -609,6 +614,8 @@ export default class TabDisks extends Component {
       )
   )
 
+  _rescanIsoSrs = () => rescanSrs(this.props.isoSrs)
+
   actions = [
     {
       disabled: selectedVbds => some(selectedVbds, 'attached'),
@@ -639,7 +646,7 @@ export default class TabDisks extends Component {
   ]
 
   render() {
-    const { allVbds, resolvedResourceSet, vm } = this.props
+    const { allVbds, isoSrs, resolvedResourceSet, vm } = this.props
 
     const { attachDisk, newDisk } = this.state
 
@@ -703,6 +710,14 @@ export default class TabDisks extends Component {
         <Row>
           <Col mediumSize={5}>
             <IsoDevice vm={vm} />
+          </Col>
+          <Col mediumSize={1}>
+            <ActionButton
+              disabled={isEmpty(isoSrs)}
+              handler={this._rescanIsoSrs}
+              icon='refresh'
+              tooltip={_('rescanIsoSrs')}
+            />
           </Col>
         </Row>
       </Container>
