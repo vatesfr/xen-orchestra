@@ -114,17 +114,18 @@ We need your feedback on this feature!
 
 The plugin "web-hooks" needs to be installed and loaded for this feature to work.
 
-You can trigger an HTTP POST request to a URL when a Xen Orchestra API method is called.
+You can trigger an HTTP POST request to a URL when a Xen Orchestra API method is called or when a backup job runs.
 
 - Go to Settings > Plugins > Web hooks
 - Add new hooks
 - For each hook, configure:
-  - Method: the XO API method that will trigger the HTTP request when called
+  - Method: the XO API method that will trigger the HTTP request when called. For backup jobs, choose `backupNg.runJob`.
   - Type:
     - pre: the request will be sent when the method is called
     - post: the request will be sent after the method action is completed
     - pre/post: both
   - URL: the full URL which the requests will be sent to
+  - Wait for response: you can choose to wait for the web hook response before the method is actually called ("pre" hooks only). This can be useful if you need to automatically run some tasks before a certain method is called.
 - Save the plugin configuration
 
 From now on, a request will be sent to the corresponding URLs when a configured method is called by an XO client.

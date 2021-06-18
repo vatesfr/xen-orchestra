@@ -7,6 +7,7 @@ import { Collection } from 'xo-collection'
 import { EventEmitter } from 'events'
 import { map, noop, omit } from 'lodash'
 import { cancelable, defer, fromCallback, fromEvents, ignoreErrors, pDelay, pRetry, pTimeout } from 'promise-toolbox'
+import { limitConcurrency } from 'limit-concurrency-decorator'
 
 import autoTransport from './transports/auto'
 import coalesceCalls from './_coalesceCalls'
@@ -87,6 +88,8 @@ export class Xapi extends EventEmitter {
     this._readOnly = Boolean(opts.readOnly)
     this._RecordsByType = { __proto__: null }
     this._reverseHostIpAddresses = opts.reverseHostIpAddresses ?? false
+
+    this._call = limitConcurrency(opts.callConcurrency ?? 20)(this._call)
 
     this._roCallRetryOptions = {
       delay: 1e3,

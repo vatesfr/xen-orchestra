@@ -962,10 +962,10 @@ export default class Xapi extends XapiBase {
   @synchronized()
   _callInstallationPlugin(hostRef, vdi) {
     return this.call('host.call_plugin', hostRef, 'install-supp-pack', 'install', { vdi }).catch(error => {
-      if (error.code !== 'XENAPI_PLUGIN_FAILURE') {
-        log.warn('_callInstallationPlugin', { error })
+      if (error.code !== 'XENAPI_PLUGIN_FAILURE' || !error.params?.[2]?.includes?.('UPDATE_ALREADY_APPLIED')) {
         throw error
       }
+      log.warn('_callInstallationPlugin', { error })
     })
   }
 
