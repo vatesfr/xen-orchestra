@@ -5,6 +5,7 @@ import { withState } from 'reaclette'
 
 import PoolUpdates from './PoolUpdates'
 
+import IntlMessage from '../../components/IntlMessage'
 import { ObjectsByType, Pool } from '../../libs/xapi'
 
 interface ParentState {
@@ -37,13 +38,7 @@ const Pools = withState<State, Props, Effects, Computed, ParentState, ParentEffe
       <>
         <Switch>
           <Route exact path='/pool'>
-            <div>
-              {pool !== undefined ? (
-                <PoolUpdates poolId={pool.$id}/>
-              ) : (
-                <p>Loading objects ...</p>
-              )}
-            </div>
+            {pool !== undefined ? <PoolUpdates poolId={pool.$id} /> : <IntlMessage id='loading' />}
           </Route>
         </Switch>
       </>

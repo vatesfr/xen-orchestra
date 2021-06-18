@@ -1,4 +1,5 @@
 {
+  "availableUpdates": "{ nUpdates } available update{nUpdates, plural, one {} other {s}}",
   "badCredentials": "Bad credentials",
   "confirmCtrlAltDel": "Send Ctrl+Alt+Del to VM?",
   "connect": "Connect",
@@ -6,6 +7,7 @@
   "disconnect": "Disconnect",
   "loading": "Loading…",
   "login": "Login",
+  "noUpdatesAvailable": "No updates available",
   "password": "Password",
   "rememberMe": "Remember me"
 }

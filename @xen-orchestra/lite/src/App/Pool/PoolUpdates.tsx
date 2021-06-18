@@ -3,6 +3,7 @@ import { forEach } from 'lodash'
 import { Map } from 'immutable'
 import { withState } from 'reaclette'
 
+import IntlMessage from '../../components/IntlMessage'
 import XapiConnection, { Host, ObjectsByType, PoolUpdate } from '../../libs/xapi'
 
 interface ParentState {
@@ -57,18 +58,16 @@ const PoolUpdates = withState<State, Props, Effects, Computed, ParentState, Pare
     availableUpdates !== undefined ? (
       availableUpdates.size !== 0 ? (
         <>
-          <p>
-            {availableUpdates.size} Available update{availableUpdates.size > 1 && 's'}
-          </p>
+          <IntlMessage id='availableUpdates' values={{ nUpdates: availableUpdates.size }} />
           {availableUpdates.valueSeq().map(update => (
             <p key={update.name}>{update.name}</p>
           ))}
         </>
       ) : (
-        <p>No updates available</p>
+        <IntlMessage id='noUpdatesAvailable' />
       )
     ) : (
-      <p>Loading...</p>
+      <IntlMessage id='loading' />
     )
 )
 
