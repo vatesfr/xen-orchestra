@@ -20,6 +20,8 @@ const LOW_THRESHOLD_MEMORY_FREE_FACTOR = 1.5
 
 const numberOrDefault = (value, def) => (value >= 0 ? value : def)
 
+export const debugAffinity = str => debug(`anti-affinity: ${str}`)
+
 // ===================================================================
 // Averages.
 // ===================================================================
@@ -299,14 +301,14 @@ export default class Plan {
     }
 
     // 2. Migrate!
-    debug('Try to apply anti-affinity policy.')
-    debug(`VM tag count per host: ${inspect(taggedHosts, { depth: null })}.`)
-    debug(`Tags diff: ${inspect(tagsDiff, { depth: null })}.`)
+    debugAffinity('Try to apply anti-affinity policy.')
+    debugAffinity(`VM tag count per host: ${inspect(taggedHosts, { depth: null })}.`)
+    debugAffinity(`Tags diff: ${inspect(tagsDiff, { depth: null })}.`)
 
     const vmsAverages = await this._getVmsAverages(allVms, idToHost)
     const { averages: hostsAverages } = await this._getHostStatsAverages({ hosts: allHosts })
 
-    debug(`Hosts averages: ${inspect(hostsAverages, { depth: null })}.`)
+    debugAffinity(`Hosts averages: ${inspect(hostsAverages, { depth: null })}.`)
 
     const promises = []
     for (const tag in tagsDiff) {
@@ -314,7 +316,7 @@ export default class Plan {
     }
 
     // 3. Done!
-    debug(`VM tag count per host after migration: ${inspect(taggedHosts, { depth: null })}.`)
+    debugAffinity(`VM tag count per host after migration: ${inspect(taggedHosts, { depth: null })}.`)
     return Promise.all(promises)
   }
 
@@ -362,11 +364,11 @@ export default class Plan {
         let vm
         for (const destination of destinations) {
           destinationHost = destination
-          debug(`Host candidate: ${sourceHost.id} -> ${destinationHost.id}.`)
+          debugAffinity(`Host candidate: ${sourceHost.id} -> ${destinationHost.id}.`)
 
           const vms = filter(sourceVms, vm => hostsAverages[destinationHost.id].memoryFree >= vmsAverages[vm.id].memory)
 
-          debug(
+          debugAffinity(
             `Tagged VM ("${tag}") candidates to migrate from host ${sourceHost.id}: ${inspect(mapToArray(vms, 'id'))}.`
           )
           vm = this._getAntiAffinityVmToMigrate({
@@ -385,7 +387,12 @@ export default class Plan {
         if (!vm) {
           continue // If we can't find a VM to migrate, we must try with another source!
         }
-        debug(`Migrate VM (${vm.id}) to Host (${destinationHost.id}) from Host (${sourceHost.id}).`)
+
+        const source = idToHost[sourceHost.id]
+        const destination = idToHost[destinationHost.id]
+        debugAffinity(
+          `Migrate VM (${vm.id} "${vm.name_label}") to Host (${destinationHost.id} "${destination.name_label}") from Host (${sourceHost.id} "${source.name_label}").`
+        )
 
         // 3. Update tags and averages.
         // This update can change the source host for the next migration.
@@ -405,12 +412,7 @@ export default class Plan {
         delete sourceHost.vms[vm.id]
 
         // 4. Migrate.
-        const destination = idToHost[destinationHost.id]
-        promises.push(
-          this.xo
-            .getXapi(idToHost[sourceHost.id])
-            .migrateVm(vm._xapiId, this.xo.getXapi(destination), destination._xapiId)
-        )
+        promises.push(this.xo.getXapi(source).migrateVm(vm._xapiId, this.xo.getXapi(destination), destination._xapiId))
 
         break // Continue with the same tag, the source can be different.
       }
@@ -513,7 +515,7 @@ export default class Plan {
           bestVariance = variance
           bestVm = vm
         } else {
-          debug(`VM (${vm.id}) of Host (${sourceHost.id}) does not support pool migration.`)
+          debugAffinity(`VM (${vm.id}) of Host (${sourceHost.id}) does not support pool migration.`)
         }
       }
     }
