@@ -570,8 +570,10 @@ export default class TabDisks extends Component {
     }
   )
 
-  _getCheckSr = createSelector(this._getRequiredHost, requiredHost => sr =>
-    sr === undefined || isSrShared(sr) || requiredHost === undefined || sr.$container === requiredHost
+  _getCheckSr = createSelector(
+    this._getRequiredHost,
+    requiredHost => sr =>
+      sr === undefined || isSrShared(sr) || requiredHost === undefined || sr.$container === requiredHost
   )
 
   _getVbds = createSelector(
@@ -602,8 +604,10 @@ export default class TabDisks extends Component {
       )
   )
 
-  _getGenerateWarningBeforeMigrate = createSelector(this._getCheckSr, check => sr =>
-    check(sr) ? null : (
+  _getGenerateWarningBeforeMigrate = createSelector(
+    this._getCheckSr,
+    check => sr =>
+      check(sr) ? null : (
       <span className='text-warning'>
         <Icon icon='alarm' /> {_('warningVdiSr')}
       </span>
