@@ -611,7 +611,7 @@ export default class TabDisks extends Component {
         <span className='text-warning'>
           <Icon icon='alarm' /> {_('warningVdiSr')}
         </span>
-    )
+      )
   )
 
   _rescanIsoSrs = () => rescanSrs(this.props.isoSrs)
