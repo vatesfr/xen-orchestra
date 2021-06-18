@@ -608,9 +608,9 @@ export default class TabDisks extends Component {
     this._getCheckSr,
     check => sr =>
       check(sr) ? null : (
-      <span className='text-warning'>
-        <Icon icon='alarm' /> {_('warningVdiSr')}
-      </span>
+        <span className='text-warning'>
+          <Icon icon='alarm' /> {_('warningVdiSr')}
+        </span>
     )
   )
 
