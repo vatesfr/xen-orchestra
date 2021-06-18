@@ -212,7 +212,7 @@ export default class DensityPlan extends Plan {
     try {
       await xapiSrc.shutdownHost(hostId)
     } catch (error) {
-      debug(`Unable to shutdown Host (${hostId}).`, error)
+      debug(`Unable to shutdown Host (${hostId}).`, { error })
     }
   }
 }
