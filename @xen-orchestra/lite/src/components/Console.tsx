@@ -128,7 +128,7 @@ const Console = withState<State, Props, Effects, Computed, ParentState, ParentEf
       <div
         ref={state.container}
         style={{
-          // Hides the mount/unmount of the console as long as the connection aren't establish
+          // Prevent canvas from flashing while noVNC is still trying to connect
           visibility: `${state.rfbConnected ? 'visible' : 'hidden'}`,
           margin: 'auto',
           height: `${scale}%`,
