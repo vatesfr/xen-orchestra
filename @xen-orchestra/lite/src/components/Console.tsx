@@ -60,7 +60,7 @@ const Console = withState<State, Props, Effects, Computed, ParentState, ParentEf
         const { vmId } = this.props
         const { objectsByType, rfb, xapi } = this.state
 
-        // 8 sequences mean 54S
+        // 8 tries mean 54s
         for (const delay of fibonacci().toMs().take(8)) {
           try {
             const consoles = (objectsByType.get('VM')?.get(vmId) as Vm)?.$consoles.filter(
