@@ -34,8 +34,7 @@ export interface PoolUpdate {
   version: string
 }
 
-type _Pool = Omit<XapiObject, '$pool'>
-export interface Pool extends _Pool {
+export interface Pool extends XapiObject {
   name_label: string
 }
 
@@ -74,7 +73,7 @@ export default class XapiConnection extends EventEmitter {
     }
     connect(): Promise<void>
     disconnect(): Promise<void>
-    call: (method: string, ...args: string[]) => Promise<unknown>
+    call: (method: string, ...args: unknown[]) => Promise<unknown>
     _objectsFetched: Promise<void>
   }
 
@@ -178,7 +177,7 @@ export default class XapiConnection extends EventEmitter {
     }
   }
 
-  call(method: string, ...args: string[]): Promise<unknown> {
+  call(method: string, ...args: unknown[]): Promise<unknown> {
     const { _xapi, connected } = this
     if (!connected || _xapi === undefined) {
       throw new Error('Not connected to XAPI')
