@@ -114,7 +114,7 @@ const Console = withState<State, Props, Effects, Computed, ParentState, ParentEf
       sendCtrlAltDel: async function () {
         await confirm({
           message: <IntlMessage id='confirmCtrlAltDel' />,
-          title: <IntlMessage id='ctrlAltDel'/>
+          title: <IntlMessage id='ctrlAltDel' />,
         })
         this.state.rfb.sendCtrlAltDel()
       },
