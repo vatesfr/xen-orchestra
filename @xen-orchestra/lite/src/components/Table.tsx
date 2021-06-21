@@ -6,8 +6,8 @@ import IntlMessage from './IntlMessage'
 
 export type Column<Type> = {
   header: React.ReactNode
-  id?: string | number
-  render: { (item: Type): string | JSX.Element }
+  id?: string
+  render: { (item: Type): React.ReactNode }
 }
 
 type Item = {
