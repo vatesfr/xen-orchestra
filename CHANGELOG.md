@@ -7,7 +7,7 @@
 - @vates/decorate-with 0.1.0
 - xen-api 0.33.1
 - @xen-orchestra/xapi 0.6.4
-- @xen-orchestra/backups 0.11.1
+- @xen-orchestra/backups 0.11.2
 - @xen-orchestra/proxy 0.14.2
 
 ## **5.59.0** (2021-05-31)
