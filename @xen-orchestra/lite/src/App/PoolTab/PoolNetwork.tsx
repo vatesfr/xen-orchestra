@@ -3,7 +3,7 @@ import { Map } from 'immutable'
 import { withState } from 'reaclette'
 
 import IntlMessage from '../../components/IntlMessage'
-import Table, { Column, Item } from '../../components/Table'
+import Table, { Column } from '../../components/Table'
 import { Network, ObjectsByType, Pif } from '../../libs/xapi'
 
 interface ParentState {
@@ -22,7 +22,7 @@ interface ParentEffects {}
 interface Effects {}
 
 interface Computed {
-  managementPifs?: Item<Pif>[]
+  managementPifs?: Pif[]
   networks?: Map<string, Network>
   pifs?: Map<string, Pif>
 }
@@ -33,7 +33,7 @@ const COLUMNS: Column<Pif>[] = [
     render: pif => pif.device,
   },
   {
-    header: <IntlMessage id='DNS' />,
+    header: <IntlMessage id='dns' />,
     render: pif => pif.DNS,
   },
   {
@@ -41,7 +41,7 @@ const COLUMNS: Column<Pif>[] = [
     render: pif => pif.gateway,
   },
   {
-    header: <IntlMessage id='IP' />,
+    header: <IntlMessage id='ip' />,
     render: pif => pif.IP,
   },
 ]
@@ -52,11 +52,12 @@ const PoolNetwork = withState<State, Props, Effects, Computed, ParentState, Pare
       managementPifs: state =>
         state.pifs
           ?.filter(pif => pif.management)
-          .toArray()
-          .map(item => {
-            const pif = item[1]
+          .map(pif => {
             return { id: pif.$id, ...pif }
-          }),
+          })
+          .valueSeq()
+          .toArray(),
+
       networks: (state, props) =>
         state.objectsFetched
           ? state.objectsByType.get('network')?.filter(network => network.$pool.$id === props.poolId)

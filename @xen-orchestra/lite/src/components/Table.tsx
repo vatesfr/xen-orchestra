@@ -10,8 +10,9 @@ export type Column<Type> = {
   render: { (item: Type): string | JSX.Element }
 }
 
-export type Item<T> = T & {
+type Item = {
   id?: string
+  [key: string]: any
 }
 
 interface ParentState {}
@@ -19,7 +20,7 @@ interface ParentState {}
 interface State {}
 
 interface Props {
-  collection: Item<unknown>[] | undefined
+  collection: Item[] | undefined
   columns: Column<any>[]
 }
 
@@ -40,27 +41,31 @@ const StyledTable = styled.table`
   }
 `
 const Table = withState<State, Props, Effects, Computed, ParentState, ParentEffects>({}, ({ collection, columns }) =>
-  collection !== undefined && collection.length !== 0 ? (
-    <StyledTable>
-      <thead>
-        <tr>
-          {columns.map((col, index) => (
-            <td key={col.id ?? index}>{col.header}</td>
-          ))}
-        </tr>
-      </thead>
-      <tbody>
-        {collection.map((item, index) => (
-          <tr key={item.id ?? index}>
+  collection !== undefined ? (
+    collection.length !== 0 ? (
+      <StyledTable>
+        <thead>
+          <tr>
             {columns.map((col, index) => (
-              <td key={col.id ?? index}>{col.render(item)}</td>
+              <td key={col.id ?? index}>{col.header}</td>
             ))}
           </tr>
-        ))}
-      </tbody>
-    </StyledTable>
+        </thead>
+        <tbody>
+          {collection.map((item, index) => (
+            <tr key={item.id ?? index}>
+              {columns.map((col, index) => (
+                <td key={col.id ?? index}>{col.render(item)}</td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </StyledTable>
+    ) : (
+      <IntlMessage id='noData' />
+    )
   ) : (
-    <IntlMessage id='noData' />
+    <IntlMessage id='loading' />
   )
 )
 
