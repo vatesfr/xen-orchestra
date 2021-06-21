@@ -22,6 +22,7 @@ interface State {}
 interface Props {
   collection: Item[] | undefined
   columns: Column<any>[]
+  placeholder?: JSX.Element
 }
 
 interface ParentEffects {}
@@ -40,7 +41,7 @@ const StyledTable = styled.table`
     color: #fff;
   }
 `
-const Table = withState<State, Props, Effects, Computed, ParentState, ParentEffects>({}, ({ collection, columns }) =>
+const Table = withState<State, Props, Effects, Computed, ParentState, ParentEffects>({}, ({ collection, columns, placeholder }) =>
   collection !== undefined ? (
     collection.length !== 0 ? (
       <StyledTable>
@@ -62,7 +63,7 @@ const Table = withState<State, Props, Effects, Computed, ParentState, ParentEffe
         </tbody>
       </StyledTable>
     ) : (
-      <IntlMessage id='noData' />
+      placeholder ?? <IntlMessage id='noData' />
     )
   ) : (
     <IntlMessage id='loading' />

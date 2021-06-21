@@ -66,7 +66,9 @@ const PoolNetwork = withState<State, Props, Effects, Computed, ParentState, Pare
         state.objectsByType.get('PIF')?.filter(pif => state.networks?.find(network => network.$ref === pif.network)),
     },
   },
-  ({ state }) => <Table collection={state.managementPifs} columns={COLUMNS} />
+  ({ state }) => (
+    <Table collection={state.managementPifs} columns={COLUMNS} placeholder={<IntlMessage id='noManagementPif' />} />
+  )
 )
 
 export default PoolNetwork
