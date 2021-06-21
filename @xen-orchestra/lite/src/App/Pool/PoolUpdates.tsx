@@ -42,6 +42,8 @@ const PoolUpdates = withState<State, Props, Effects, Computed, ParentState, Pare
         ;(await Promise.all(promises)).forEach(stringifiedPoolUpdates => {
           if (typeof stringifiedPoolUpdates !== 'string') return
           forEach(JSON.parse(stringifiedPoolUpdates), (update: PoolUpdate) => {
+            // To avoid "The updater plugin is busy" to be push in poolUpdates
+            if (typeof update === 'string') return
             if (!poolUpdates.has(update.name)) {
               poolUpdates = poolUpdates.set(update.name, update)
             }
