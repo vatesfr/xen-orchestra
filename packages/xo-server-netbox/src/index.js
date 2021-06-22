@@ -460,7 +460,12 @@ class Netbox {
 
     // IPs
     const [oldNetboxIps, prefixes] = await Promise.all([
-      this.#makeRequest('/ipam/ip-addresses/', 'GET').then(addresses => groupBy(addresses, 'assigned_object_id')),
+      this.#makeRequest('/ipam/ip-addresses/', 'GET').then(addresses =>
+        groupBy(
+          addresses.filter(address => address.assigned_object_type === 'virtualization.vminterface'),
+          'assigned_object_id'
+        )
+      ),
       this.#makeRequest('/ipam/prefixes/', 'GET'),
     ])
 
