@@ -22,7 +22,7 @@
 - [Backup] Limit number of connections to hosts, which should reduce the occurences of `ECONNRESET`
 - [Plugins/perf-alert] All mode: only selects running hosts and VMs (PR [5811](https://github.com/vatesfr/xen-orchestra/pull/5811))
 - [New VM] Fix summary section always showing "0 B" for RAM (PR [#5817](https://github.com/vatesfr/xen-orchestra/pull/5817))
-- [Netbox] Fix a bug where some devices' IPs would get deleted from Netbox
+- [Netbox] Fix a bug where some devices' IPs would get deleted from Netbox (PR [#5821](https://github.com/vatesfr/xen-orchestra/pull/5821))
 
 ### Packages to release
 
