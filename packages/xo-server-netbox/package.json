@@ -30,7 +30,7 @@
   },
   "dependencies": {
     "@xen-orchestra/log": "^0.2.1",
-    "is-in-subnet": "^4.0.1",
+    "ipaddr.js": "^2.0.1",
     "lodash": "^4.17.21"
   },
   "devDependencies": {
