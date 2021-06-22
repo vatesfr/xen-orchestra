@@ -22,6 +22,7 @@
 - [Backup] Limit number of connections to hosts, which should reduce the occurences of `ECONNRESET`
 - [Plugins/perf-alert] All mode: only selects running hosts and VMs (PR [5811](https://github.com/vatesfr/xen-orchestra/pull/5811))
 - [New VM] Fix summary section always showing "0 B" for RAM (PR [#5817](https://github.com/vatesfr/xen-orchestra/pull/5817))
+- [Backup/Restore] Fix _start VM after restore_ [5820](https://github.com/vatesfr/xen-orchestra/issues/5820)
 
 ### Packages to release
 

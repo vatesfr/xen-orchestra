@@ -406,6 +406,7 @@ export default class BackupNg {
     let rootTaskId
     const logger = this._logger
     try {
+      let result
       if (remote.proxy !== undefined) {
         const { allowUnauthorized, host, password, username } = await app.getXenServer(
           app.getXenServerIdByObject(sr.$id)
@@ -437,7 +438,7 @@ export default class BackupNg {
 
           const localTaskIds = { __proto__: null }
           for await (const log of logsStream) {
-            handleBackupLog(log, {
+            result = handleBackupLog(log, {
               logger,
               localTaskIds,
               handleRootTaskId: id => {
@@ -454,7 +455,7 @@ export default class BackupNg {
           throw error
         }
       } else {
-        await Disposable.use(app.getBackupsRemoteAdapter(remote), async adapter => {
+        result = await Disposable.use(app.getBackupsRemoteAdapter(remote), async adapter => {
           const metadata = await adapter.readVmBackupMetadata(metadataFilename)
           const localTaskIds = { __proto__: null }
           return Task.run(
@@ -487,6 +488,7 @@ export default class BackupNg {
           )
         })
       }
+      return result.id
     } finally {
       this._runningRestores.delete(rootTaskId)
     }
