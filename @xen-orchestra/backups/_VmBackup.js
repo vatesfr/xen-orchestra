@@ -112,7 +112,7 @@ exports.VmBackup = class VmBackup {
       try {
         await fn(writer)
       } catch (error) {
-        this.delete(writer)
+        writers.delete(writer)
         throw error
       }
       return

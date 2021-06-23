@@ -442,6 +442,12 @@ export default class {
     const xapi = this._xapis[id]
     delete this._xapis[id]
 
+    const serverIdsByPool = this._serverIdsByPool
+    const poolId = findKey(serverIdsByPool, _ => _ === xapi)
+    if (poolId !== undefined) {
+      delete serverIdsByPool[id]
+    }
+
     return xapi.disconnect()
   }
 
