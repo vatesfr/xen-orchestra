@@ -1,7 +1,7 @@
 import assert from 'assert'
+import ipaddr from 'ipaddr.js'
 import { createLogger } from '@xen-orchestra/log'
 import { find, flatten, forEach, groupBy, isEmpty, keyBy, mapValues, trimEnd, zipObject } from 'lodash'
-import ipaddr from 'ipaddr.js'
 
 const log = createLogger('xo:netbox')
 
