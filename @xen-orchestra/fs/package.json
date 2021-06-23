@@ -29,6 +29,7 @@
     "get-stream": "^6.0.0",
     "limit-concurrency-decorator": "^0.5.0",
     "lodash": "^4.17.4",
+    "minio": "^7.0.18",
     "promise-toolbox": "^0.19.2",
     "proper-lockfile": "^4.1.2",
     "readable-stream": "^3.0.6",

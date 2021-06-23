@@ -1,7 +1,8 @@
 import aws from '@sullux/aws-sdk'
 import assert from 'assert'
 import http from 'http'
-import { readChunk } from '@vates/read-chunk'
+import https from 'https'
+import { Client as Minio } from 'minio'
 import { parse } from 'xo-remote-parser'
 
 import RemoteHandlerAbstract from './abstract'
@@ -32,13 +33,26 @@ export default class S3Handler extends RemoteHandlerAbstract {
     if (protocol === 'http') {
       params.httpOptions.agent = new http.Agent()
       params.sslEnabled = false
+    } else {
+      params.httpOptions.agent = new https.Agent({
+        rejectUnauthorized: false,
+      })
     }
     if (region !== undefined) {
       params.region = region
     }
 
     this._s3 = aws(params).s3
-
+    // PLEASE DO NOT MERGE TO MASTER
+    process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
+    const [hostname, port] = host.split(':')
+    this._minioClient = new Minio({
+      endPoint: hostname,
+      port: port ? +port : port,
+      useSSL: protocol !== 'http',
+      accessKey: username,
+      secretKey: password,
+    })
     const splitPath = path.split('/').filter(s => s.length)
     this._bucket = splitPath.shift()
     this._dir = splitPath.join('/')
@@ -74,31 +88,8 @@ export default class S3Handler extends RemoteHandlerAbstract {
   }
 
   async _outputStream(path, input, { validator }) {
-    const multipartParams = await this._s3.createMultipartUpload({ ...this._createParams(path) })
-    let partNumber = 0
-    const parts = []
-    try {
-      while (true) {
-        // do not parallelize the readchunk() and the uploadPart(), the chunks are huge and we might get an OOME
-        const chunk = await readChunk(input, IDEAL_FRAGMENT_SIZE)
-        if (chunk.length > 0) {
-          const editPart = await this._s3.uploadPart({
-            ...multipartParams,
-            ContentLength: chunk.length,
-            Body: chunk,
-            PartNumber: partNumber,
-          })
-          parts.push({ ETag: editPart.ETag, PartNumber: partNumber })
-          partNumber++
-        } else {
-          break
-        }
-      }
-      await this._s3.completeMultipartUpload({ ...multipartParams, MultipartUpload: { Parts: parts } })
-    } catch (e) {
-      await this._s3.abortMultipartUpload(multipartParams)
-      throw e
-    }
+    console.log('s3._outputStream', path)
+    await this._minioClient.putObject(this._bucket, this._dir + path, input)
     if (validator !== undefined) {
       try {
         await validator.call(this, path)
