@@ -23,6 +23,7 @@
 - [Plugins/perf-alert] All mode: only selects running hosts and VMs (PR [5811](https://github.com/vatesfr/xen-orchestra/pull/5811))
 - [New VM] Fix summary section always showing "0 B" for RAM (PR [#5817](https://github.com/vatesfr/xen-orchestra/pull/5817))
 - [Backup/Restore] Fix _start VM after restore_ [5820](https://github.com/vatesfr/xen-orchestra/issues/5820)
+- [Netbox] Fix a bug where some devices' IPs would get deleted from Netbox (PR [#5821](https://github.com/vatesfr/xen-orchestra/pull/5821))
 
 ### Packages to release
 
@@ -44,6 +45,7 @@
 - vhd-lib feat
 - vhd-cli feat
 - @xen-orchestra/backups feat
+- xo-server-netbox patch
 - xo-server-perf-alert patch
 - xo-server-load-balancer minor
 - xo-server patch

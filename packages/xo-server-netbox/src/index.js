@@ -460,7 +460,16 @@ class Netbox {
 
     // IPs
     const [oldNetboxIps, prefixes] = await Promise.all([
-      this.#makeRequest('/ipam/ip-addresses/', 'GET').then(addresses => groupBy(addresses, 'assigned_object_id')),
+      this.#makeRequest('/ipam/ip-addresses/', 'GET').then(addresses =>
+        groupBy(
+          // In Netbox, a device interface and a VM interface can have the same
+          // ID and an IP address can be assigned to both types of interface, so
+          // we need to make sure that we only get IPs that are assigned to a VM
+          // interface before grouping them by their `assigned_object_id`
+          addresses.filter(address => address.assigned_object_type === 'virtualization.vminterface'),
+          'assigned_object_id'
+        )
+      ),
       this.#makeRequest('/ipam/prefixes/', 'GET'),
     ])
 
