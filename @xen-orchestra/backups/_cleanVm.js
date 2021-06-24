@@ -1,4 +1,5 @@
 const assert = require('assert')
+const sum = require('lodash/sum')
 const { asyncMap } = require('@xen-orchestra/async-map')
 const { default: Vhd, mergeVhd } = require('vhd-lib')
 const { dirname, resolve } = require('path')
@@ -113,7 +114,7 @@ const listVhds = async (handler, vmDir) => {
   return { vhds, interruptedVhds }
 }
 
-exports.cleanVm = async function cleanVm(vmDir, { remove, merge, onLog = noop }) {
+exports.cleanVm = async function cleanVm(vmDir, { fixMetadata, remove, merge, onLog = noop }) {
   const handler = this._handler
 
   const vhds = new Set()
@@ -219,11 +220,16 @@ exports.cleanVm = async function cleanVm(vmDir, { remove, merge, onLog = noop })
   await asyncMap(jsons, async json => {
     const metadata = JSON.parse(await handler.readFile(json))
     const { mode } = metadata
+    let size
     if (mode === 'full') {
       const linkedXva = resolve('/', vmDir, metadata.xva)
 
       if (xvas.has(linkedXva)) {
         unusedXvas.delete(linkedXva)
+
+        size = await handler.getSize(linkedXva).catch(error => {
+          onLog(`failed to get size of ${json}`, { error })
+        })
       } else {
         onLog(`the XVA linked to the metadata ${json} is missing`)
         if (remove) {
@@ -241,11 +247,31 @@ exports.cleanVm = async function cleanVm(vmDir, { remove, merge, onLog = noop })
       // possible (existing disks) even if one disk is missing
       if (linkedVhds.every(_ => vhds.has(_))) {
         linkedVhds.forEach(_ => unusedVhds.delete(_))
+
+        size = await asyncMap(linkedVhds, vhd => handler.getSize(vhd)).then(sum, error => {
+          onLog(`failed to get size of ${json}`, { error })
+        })
       } else {
         onLog(`Some VHDs linked to the metadata ${json} are missing`)
         if (remove) {
           onLog(`deleting incomplete backup ${json}`)
           await handler.unlink(json)
+        }
+      }
+    }
+
+    const metadataSize = metadata.size
+    if (size !== undefined && metadataSize !== size) {
+      onLog(`incorrect size in metadata: ${metadataSize ?? 'none'} instead of ${size}`)
+
+      // don't update if the the stored size is greater than found files,
+      // it can indicates a problem
+      if (fixMetadata && (metadataSize === undefined || metadataSize < size)) {
+        try {
+          metadata.size = size
+          await handler.writeFile(json, JSON.stringify(metadata), { flags: 'w' })
+        } catch (error) {
+          onLog(`failed to update size in backup metadata ${json}`, { error })
         }
       }
     }
