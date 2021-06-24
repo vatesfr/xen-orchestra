@@ -12,7 +12,7 @@
 - [Jobs] Add `host.emergencyShutdownHost` to the list of methods that jobs can call (PR [#5818](https://github.com/vatesfr/xen-orchestra/pull/5818))
 - [Host/Load-balancer] Log vm and host names when a VM is migrated + category (density, performance, ...) (PR [#5808](https://github.com/vatesfr/xen-orchestra/pull/5808))
 - [VM/disks] Ability to rescan ISO SRs (PR [#5814](https://github.com/vatesfr/xen-orchestra/pull/5814))
-- [VM/snapshots] Identify VM's current snapshot with an icon next to the snapshot's name
+- [VM/snapshots] Identify VM's current snapshot with an icon next to the snapshot's name (PR [#5824](https://github.com/vatesfr/xen-orchestra/pull/5824))
 
 ### Bug fixes
 
