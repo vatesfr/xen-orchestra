@@ -1,7 +1,7 @@
 import assert from 'assert'
+import ipaddr from 'ipaddr.js'
 import { createLogger } from '@xen-orchestra/log'
 import { find, flatten, forEach, groupBy, isEmpty, keyBy, mapValues, trimEnd, zipObject } from 'lodash'
-import { isInSubnet } from 'is-in-subnet'
 
 const log = createLogger('xo:netbox')
 
@@ -492,13 +492,22 @@ class Netbox {
         const interfaceOldIps = oldNetboxIps[interface_.id] ?? []
 
         for (const ip of vifIps) {
+          const parsedIp = ipaddr.parse(ip)
+          const ipKind = parsedIp.kind()
+          const ipCompactNotation = parsedIp.toString()
           // FIXME: Should we compare the IPs with their range? ie: can 2 IPs
           // look identical but belong to 2 different ranges?
-          const netboxIpIndex = interfaceOldIps.findIndex(netboxIp => netboxIp.address.split('/')[0] === ip)
+          const netboxIpIndex = interfaceOldIps.findIndex(
+            netboxIp => ipaddr.parse(netboxIp.address.split('/')[0]).toString() === ipCompactNotation
+          )
           if (netboxIpIndex >= 0) {
             interfaceOldIps.splice(netboxIpIndex, 1)
           } else {
-            const prefix = prefixes.find(({ prefix }) => isInSubnet(ip, prefix))
+            const prefix = prefixes.find(({ prefix }) => {
+              const [range, bits] = prefix.split('/')
+              const parsedRange = ipaddr.parse(range)
+              return parsedRange.kind() === ipKind && parsedIp.match(parsedRange, bits)
+            })
             if (prefix === undefined) {
               ignoredIps.push(ip)
               continue
