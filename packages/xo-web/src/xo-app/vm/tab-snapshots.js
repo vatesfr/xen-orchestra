@@ -24,7 +24,7 @@ import {
 
 const COLUMNS = [
   {
-    itemRenderer: snapshot => (
+    itemRenderer: (snapshot, { parent }) => (
       <div>
         <FormattedTime
           value={snapshot.snapshot_time * 1000}
@@ -38,6 +38,11 @@ const COLUMNS = [
         {includes(snapshot.tags, 'quiesce') && (
           <Tooltip content={_('snapshotQuiesce')}>
             <Icon icon='info' />
+          </Tooltip>
+        )}
+        {snapshot.id === parent && (
+          <Tooltip content={_('currentSnapshot')}>
+            <Icon icon='snapshot-current-state' />
           </Tooltip>
         )}
       </div>
@@ -168,6 +173,7 @@ export default class TabSnapshot extends Component {
               <SortedTable
                 collection={snapshots}
                 columns={COLUMNS}
+                data-parent={vm.parent}
                 groupedActions={GROUPED_ACTIONS}
                 individualActions={INDIVIDUAL_ACTIONS}
                 stateUrlParam='s'
