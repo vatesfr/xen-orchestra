@@ -5,8 +5,11 @@ import Button from '../components/Button'
 import Console from '../components/Console'
 import IntlMessage from '../components/IntlMessage'
 import RangeInput from '../components/RangeInput'
+import { ObjectsByType, Vm } from '../libs/xapi'
 
-interface ParentState {}
+interface ParentState {
+  objectsByType: ObjectsByType
+}
 
 interface State {
   consoleScale: number
@@ -24,7 +27,9 @@ interface Effects {
   setCtrlAltDel: (sendCtrlAltDel: State['sendCtrlAltDel']) => void
 }
 
-interface Computed {}
+interface Computed {
+  vm?: Vm
+}
 
 const TabConsole = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
   {
@@ -48,16 +53,27 @@ const TabConsole = withState<State, Props, Effects, Computed, ParentState, Paren
         this.state.sendCtrlAltDel = sendCtrlAltDel
       },
     },
+    computed: {
+      vm: (state, { vmId }) => state.objectsByType.get('VM')?.get(vmId),
+    },
   },
   ({ effects, state, vmId }) => (
     <div style={{ height: '100vh' }}>
-      <RangeInput max={100} min={1} onChange={effects.scaleConsole} step={1} value={state.consoleScale} />
-      {state.sendCtrlAltDel !== undefined && (
-        <Button onClick={state.sendCtrlAltDel}>
-          <IntlMessage id='ctrlAltDel' />
-        </Button>
+      {state.vm?.power_state !== 'Running' ? (
+        <p>
+          <IntlMessage id='consoleNotAvailable' />
+        </p>
+      ) : (
+        <>
+          <RangeInput max={100} min={1} onChange={effects.scaleConsole} step={1} value={state.consoleScale} />
+          {state.sendCtrlAltDel !== undefined && (
+            <Button onClick={state.sendCtrlAltDel}>
+              <IntlMessage id='ctrlAltDel' />
+            </Button>
+          )}
+          <Console vmId={vmId} scale={state.consoleScale} setCtrlAltDel={effects.setCtrlAltDel} />
+        </>
       )}
-      <Console vmId={vmId} scale={state.consoleScale} setCtrlAltDel={effects.setCtrlAltDel} />
     </div>
   )
 )
