@@ -52,6 +52,9 @@ const Console = withState<State, Props, Effects, Computed, ParentState, ParentEf
       initialize: function () {
         this.effects._connect()
       },
+      _handleConnect: function () {
+        this.state.rfbConnected = true
+      },
       _handleDisconnect: function () {
         this.state.rfbConnected = false
         this.effects._connect()
@@ -99,9 +102,6 @@ const Console = withState<State, Props, Effects, Computed, ParentState, ParentEf
           }
         }
         throw lastError
-      },
-      _handleConnect: function () {
-        this.state.rfbConnected = true
       },
       finalize: function () {
         const { rfb, timeout } = this.state
