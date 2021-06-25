@@ -1,6 +1,6 @@
 {
   "name": "xo-server-netbox",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "license": "AGPL-3.0-or-later",
   "description": "Synchronizes pools managed by Xen Orchestra with Netbox",
   "keywords": [
@@ -30,7 +30,7 @@
   },
   "dependencies": {
     "@xen-orchestra/log": "^0.2.1",
-    "is-in-subnet": "^4.0.1",
+    "ipaddr.js": "^2.0.1",
     "lodash": "^4.17.21"
   },
   "devDependencies": {
