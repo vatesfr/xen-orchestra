@@ -46,24 +46,21 @@ const COLUMNS: Column<Pif>[] = [
   },
 ]
 
-const PoolNetwork = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
+const PoolNetworks = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
   {
     computed: {
       managementPifs: state =>
         state.pifs
           ?.filter(pif => pif.management)
-          .map(pif => {
-            return { id: pif.$id, ...pif }
-          })
+          .map(pif => ({ ...pif, id: pif.$id }))
           .valueSeq()
           .toArray(),
-
       networks: (state, props) =>
         state.objectsFetched
           ? state.objectsByType.get('network')?.filter(network => network.$pool.$id === props.poolId)
           : undefined,
       pifs: state =>
-        state.objectsByType.get('PIF')?.filter(pif => state.networks?.find(network => network.$ref === pif.network)),
+        state.objectsByType.get('PIF')?.filter(pif => state.networks?.some(network => network.$ref === pif.network)),
     },
   },
   ({ state }) => (
@@ -71,4 +68,4 @@ const PoolNetwork = withState<State, Props, Effects, Computed, ParentState, Pare
   )
 )
 
-export default PoolNetwork
+export default PoolNetworks
