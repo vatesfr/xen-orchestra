@@ -11,7 +11,7 @@
   "loading": "Loading…",
   "login": "Login",
   "noData": "No data",
-  "noManagementPif": "No management PIF found",
+  "noManagementPifs": "No management PIFs found",
   "password": "Password",
   "rememberMe": "Remember me"
 }

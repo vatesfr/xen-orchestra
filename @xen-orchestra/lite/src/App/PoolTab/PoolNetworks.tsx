@@ -4,7 +4,7 @@ import { withState } from 'reaclette'
 
 import IntlMessage from '../../components/IntlMessage'
 import Table, { Column } from '../../components/Table'
-import { Network, ObjectsByType, Pif } from '../../libs/xapi'
+import { ObjectsByType, Pif } from '../../libs/xapi'
 
 interface ParentState {
   objectsByType: ObjectsByType
@@ -23,7 +23,6 @@ interface Effects {}
 
 interface Computed {
   managementPifs?: Pif[]
-  networks?: Map<string, Network>
   pifs?: Map<string, Pif>
 }
 
@@ -55,16 +54,11 @@ const PoolNetworks = withState<State, Props, Effects, Computed, ParentState, Par
           .map(pif => ({ ...pif, id: pif.$id }))
           .valueSeq()
           .toArray(),
-      networks: (state, props) =>
-        state.objectsFetched
-          ? state.objectsByType.get('network')?.filter(network => network.$pool.$id === props.poolId)
-          : undefined,
-      pifs: state =>
-        state.objectsByType.get('PIF')?.filter(pif => state.networks?.some(network => network.$ref === pif.network)),
+      pifs: state => state.objectsByType.get('PIF'),
     },
   },
   ({ state }) => (
-    <Table collection={state.managementPifs} columns={COLUMNS} placeholder={<IntlMessage id='noManagementPif' />} />
+    <Table collection={state.managementPifs} columns={COLUMNS} placeholder={<IntlMessage id='noManagementPifs' />} />
   )
 )
 
