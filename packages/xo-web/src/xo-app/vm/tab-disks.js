@@ -30,6 +30,7 @@ import {
   createCompare,
   createCompareContainers,
   formatSize,
+  generateReadableRandomString,
   noop,
   resolveResourceSet,
 } from 'utils'
@@ -203,6 +204,10 @@ class NewDisk extends Component {
     checkSr: PropTypes.func.isRequired,
     onClose: PropTypes.func,
     vm: PropTypes.object.isRequired,
+  }
+
+  state = {
+    name: `${this.props.vm.name_label}_${generateReadableRandomString(5)}`,
   }
 
   _createDisk = () => {
