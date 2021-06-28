@@ -1,5 +1,4 @@
 import React from 'react'
-import { forEach } from 'lodash'
 import { Map } from 'immutable'
 import { withState } from 'reaclette'
 
@@ -32,19 +31,16 @@ const PoolUpdates = withState<State, Props, Effects, Computed, ParentState, Pare
     computed: {
       availableUpdates: async function (state) {
         const promises: Promise<unknown>[] = []
-        state.hosts
-          ?.valueSeq()
-          .forEach(({ $ref }) =>
-            promises.push(state.xapi.call('host.call_plugin', $ref, 'updater.py', 'check_update', {}))
-          )
+        state.hosts?.forEach(({ $ref }) =>
+          promises.push(state.xapi.call('host.call_plugin', $ref, 'updater.py', 'check_update', {}))
+        )
 
         let poolUpdates: Map<string, PoolUpdate> = Map()
         ;(await Promise.all(promises)).forEach(stringifiedPoolUpdates => {
           if (typeof stringifiedPoolUpdates !== 'string') return
-          forEach(JSON.parse(stringifiedPoolUpdates), (update: PoolUpdate | string) => {
-            // To avoid "The updater plugin is busy" to be push in poolUpdates
-            if (typeof update === 'string') return
-            if (!poolUpdates.has(update.name)) {
+          JSON.parse(stringifiedPoolUpdates).forEach((update: PoolUpdate | string) => {
+            // update variable can be a string that contain: "The updater plugin is busy"
+            if (typeof update !== 'string' && !poolUpdates.has(update.name)) {
               poolUpdates = poolUpdates.set(update.name, update)
             }
           })

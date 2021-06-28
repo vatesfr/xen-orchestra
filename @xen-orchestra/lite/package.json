@@ -31,7 +31,6 @@
     "html-webpack-plugin": "^5.2.0",
     "immutable": "^4.0.0-rc.12",
     "json-rpc-protocol": "^0.13.1",
-    "lodash": "^4.17.21",
     "node-polyfill-webpack-plugin": "^1.0.3",
     "process": "^0.11.10",
     "promise-toolbox": "^0.16.0",
