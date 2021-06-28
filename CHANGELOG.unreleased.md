@@ -12,7 +12,7 @@
 - [Jobs] Add `host.emergencyShutdownHost` to the list of methods that jobs can call (PR [#5818](https://github.com/vatesfr/xen-orchestra/pull/5818))
 - [Host/Load-balancer] Log vm and host names when a VM is migrated + category (density, performance, ...) (PR [#5808](https://github.com/vatesfr/xen-orchestra/pull/5808))
 - [VM/disks] Ability to rescan ISO SRs (PR [#5814](https://github.com/vatesfr/xen-orchestra/pull/5814))
-- [SR/disks] Display the active VDI of the basecopy (PR [#5826](https://github.com/vatesfr/xen-orchestra/pull/5826))
+- [SR/disks] Display base copies' active VDIs (PR [#5826](https://github.com/vatesfr/xen-orchestra/pull/5826))
 
 ### Bug fixes
 
