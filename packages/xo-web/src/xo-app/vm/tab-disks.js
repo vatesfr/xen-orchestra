@@ -30,6 +30,7 @@ import {
   createCompare,
   createCompareContainers,
   formatSize,
+  generateReadableRandomString,
   noop,
   resolveResourceSet,
 } from 'utils'
@@ -203,6 +204,10 @@ class NewDisk extends Component {
     checkSr: PropTypes.func.isRequired,
     onClose: PropTypes.func,
     vm: PropTypes.object.isRequired,
+  }
+
+  state = {
+    name: `${this.props.vm.name_label}_${generateReadableRandomString(5)}`,
   }
 
   _createDisk = () => {
@@ -450,8 +455,10 @@ class AttachDisk extends Component {
 }))
 @connectStore(() => {
   const getAllVbds = createGetObjectsOfType('VBD')
-  const getIsoSrs = createGetObjectsOfType('SR').filter((_, { pool: { $pool } }) => sr =>
-    sr.$pool === $pool && sr.SR_type === 'iso'
+  const getIsoSrs = createGetObjectsOfType('SR').filter(
+    (_, { pool: { $pool } }) =>
+      sr =>
+        sr.$pool === $pool && sr.SR_type === 'iso'
   )
 
   return (state, props) => ({
