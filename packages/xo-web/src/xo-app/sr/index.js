@@ -53,9 +53,7 @@ import TabXosan from './tab-xosan'
 
   const getVdis = createGetObjectsOfType('VDI').pick(getVdiIds).sort()
   const getVdiSnapshots = createGetObjectsOfType('VDI-snapshot').pick(getVdiIds).sort()
-  const getUnmanagedVdis = createGetObjectsOfType('VDI-unmanaged')
-    .pick(createSelector(getSr, sr => sr.VDIs))
-    .sort()
+  const getUnmanagedVdis = createGetObjectsOfType('VDI-unmanaged').pick(createSelector(getSr, sr => sr.VDIs))
 
   // -----------------------------------------------------------------
 

@@ -18,7 +18,7 @@ import { Text } from 'editable'
 import { SizeInput, Toggle } from 'form'
 import { Container, Row, Col } from 'grid'
 import { connectStore, formatSize, noop } from 'utils'
-import { concat, every, groupBy, isEmpty, map, mapValues, pick, some } from 'lodash'
+import { concat, every, groupBy, isEmpty, map, mapValues, pick, some, sortBy } from 'lodash'
 import { createCollectionWrapper, createGetObjectsOfType, createSelector, getCheckPermissions } from 'selectors'
 import {
   connectVbd,
@@ -37,13 +37,12 @@ import {
 import { error } from 'notification'
 
 // ===================================================================
-const VDIS_BY_BASE_COPY = {}
 
 const COLUMNS = [
   {
     name: _('vdiNameLabel'),
-    itemRenderer: vdi => {
-      const baseCopy = VDIS_BY_BASE_COPY[vdi.uuid]
+    itemRenderer: (vdi, { vdisByBaseCopy }) => {
+      const baseCopy = vdisByBaseCopy[vdi.uuid]
       let numberOfActiveVdis
       if (baseCopy !== undefined) {
         numberOfActiveVdis = baseCopy.length
@@ -66,7 +65,7 @@ const COLUMNS = [
                   )}`}
                 >
                   <Vdi id={baseCopy[0].id} showSize={numberOfActiveVdis === 1} />
-                  {`${numberOfActiveVdis > 1 ? ` and ${numberOfActiveVdis - 1} more` : ''}`}
+                  {numberOfActiveVdis > 1 && _('multipleActiveVdis', { nVdis: numberOfActiveVdis - 1 })}
                 </Link>
                 )
               </span>
@@ -310,7 +309,7 @@ export default class SrDisks extends Component {
     () => this.props.vdis,
     () => this.props.vdiSnapshots,
     () => this.props.unmanagedVdis,
-    concat
+    (vdis, vdiSnapshots, unmanagedVdis) => concat(vdis, vdiSnapshots, sortBy(unmanagedVdis, ['uuid']))
   )
 
   _getIsSrAdmin = createSelector(
@@ -374,44 +373,43 @@ export default class SrDisks extends Component {
     },
   ]
 
-  _setVdisByBaseCopy = createSelector(
+  _getVdisByBaseCopy = createSelector(
     () => this.props.vdis,
     () => this.props.unmanagedVdis,
     (vdis, unmanagedVdis) => {
-      Object.keys(VDIS_BY_BASE_COPY).map(k => delete VDIS_BY_BASE_COPY[k])
+      const vdisByBaseCopy = {}
 
       vdis.forEach(activeVdi => {
         if (activeVdi.parent === undefined) {
           return
         }
 
-        let baseCopy = unmanagedVdis.find(vdi => activeVdi.parent === vdi.uuid)
+        let baseCopy = unmanagedVdis[activeVdi.parent]
         let iterate = true
         while (iterate) {
           const baseCopyUuid = baseCopy.uuid
-          const currentBaseCopy = VDIS_BY_BASE_COPY[baseCopyUuid]
+          const currentBaseCopy = vdisByBaseCopy[baseCopyUuid]
 
           if (currentBaseCopy !== undefined) {
-            VDIS_BY_BASE_COPY[baseCopyUuid] = [...currentBaseCopy, activeVdi]
+            vdisByBaseCopy[baseCopyUuid] = [...currentBaseCopy, activeVdi]
           } else {
-            VDIS_BY_BASE_COPY[baseCopyUuid] = [activeVdi]
+            vdisByBaseCopy[baseCopyUuid] = [activeVdi]
           }
 
           if (baseCopy.parent !== undefined) {
-            baseCopy = unmanagedVdis.find(vdi => baseCopy.parent === vdi.uuid)
+            baseCopy = unmanagedVdis[baseCopy.parent]
           } else {
             iterate = false
           }
         }
       })
+      return vdisByBaseCopy
     }
   )
 
   render() {
     const vdis = this._getAllVdis()
     const { newDisk } = this.state
-
-    this._setVdisByBaseCopy()
 
     return (
       <Container>
@@ -443,6 +441,7 @@ export default class SrDisks extends Component {
                 collection={vdis}
                 columns={COLUMNS}
                 data-isVdiAttached={this._getIsVdiAttached()}
+                data-vdisByBaseCopy={this._getVdisByBaseCopy()}
                 defaultFilter='filterOnlyManaged'
                 filters={FILTERS}
                 groupedActions={GROUPED_ACTIONS}
