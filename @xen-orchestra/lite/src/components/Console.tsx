@@ -16,7 +16,7 @@ interface ParentState {
 
 interface State {
   // Type error with HTMLDivElement.
-  // See https://github.com/styled-components/styled-components/issues/2202
+  // See https://github.com/DefinitelyTyped/DefinitelyTyped/issues/30451
   container: React.RefObject<any>
   // See https://github.com/vatesfr/xen-orchestra/pull/5722#discussion_r619296074
   rfb: any
