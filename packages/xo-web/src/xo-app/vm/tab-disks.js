@@ -450,8 +450,10 @@ class AttachDisk extends Component {
 }))
 @connectStore(() => {
   const getAllVbds = createGetObjectsOfType('VBD')
-  const getIsoSrs = createGetObjectsOfType('SR').filter((_, { pool: { $pool } }) => sr =>
-    sr.$pool === $pool && sr.SR_type === 'iso'
+  const getIsoSrs = createGetObjectsOfType('SR').filter(
+    (_, { pool: { $pool } }) =>
+      sr =>
+        sr.$pool === $pool && sr.SR_type === 'iso'
   )
 
   return (state, props) => ({
