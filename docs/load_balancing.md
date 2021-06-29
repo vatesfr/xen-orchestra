@@ -97,15 +97,15 @@ TODO: more details to come here
 
 ## VM anti-affinity
 
-VM anti-affinity is a feature that prevents VMs with the same user tags to run on the same host. This functionality is available directly in the load-balancer plugin.
-This way, you will avoid having pairs of redundant VMs or similar put on the same host.
+VM anti-affinity is a feature that prevents VMs with the same user tags from running on the same host. This functionality is available directly in the load-balancer plugin.
+This way, you can avoid having pairs of redundant VMs or similar running on the same host.
 
-Let's see a simple example: you have multiple VMs using MySQL and Postgresql with high availability/replication. Obviously, you don't want to lose the replicated database inside VMs on the same physical host. Just create your plan like this:
+Let's look at a simple example: you have multiple VMs running MySQL and PostgreSQL with high availability/replication. Obviously, you don't want to lose the replicated database inside the VMs on the same physical host. Just create your plan like this:
 
 ![](./assets/antiaffinity.png)
 
-- Simple plan: means no active load balancing mechanism here
-- Anti-affinity: we added our 2x tags, meaning any VMs with one of these tags will never run on the same host (as possible) with another VM having the same tag
+- Simple plan: means no active load balancing mechanism used
+- Anti-affinity: we added our 2x tags, meaning any VMs with one of these tags will never run on the same host (if possible) with another VM having the same tag
 
 You can also use the performance plan with the anti-affinity mode activated to continue to migrate non-tagged VMs.
 
