@@ -31,10 +31,10 @@ export default class S3Handler extends RemoteHandlerAbstract {
       },
     }
     if (protocol === 'http') {
-      params.httpOptions.agent = new http.Agent()
-      params.sslEnabled = false
+      throw new Error('HTTP no longer supported, please use HTTPS')
     } else {
       params.httpOptions.agent = new https.Agent({
+        // TODO : UI checkbox
         rejectUnauthorized: false,
       })
     }
@@ -43,8 +43,7 @@ export default class S3Handler extends RemoteHandlerAbstract {
     }
 
     this._s3 = aws(params).s3
-    // PLEASE DO NOT MERGE TO MASTER
-    process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
+
     const [hostname, port] = host.split(':')
     this._minioClient = new Minio({
       endPoint: hostname,
@@ -53,6 +52,8 @@ export default class S3Handler extends RemoteHandlerAbstract {
       accessKey: username,
       secretKey: password,
     })
+    // TODO : UI checkbox
+    this._minioClient.setRequestOptions({ rejectUnauthorized: false });
     const splitPath = path.split('/').filter(s => s.length)
     this._bucket = splitPath.shift()
     this._dir = splitPath.join('/')
