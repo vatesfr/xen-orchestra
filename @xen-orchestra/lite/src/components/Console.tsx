@@ -1,5 +1,6 @@
 import React from 'react'
 import RFB from '@novnc/novnc/lib/rfb'
+import styled from 'styled-components'
 import { fibonacci } from 'iterable-backoff'
 import { withState } from 'reaclette'
 
@@ -14,9 +15,10 @@ interface ParentState {
 }
 
 interface State {
-  container: React.RefObject<HTMLDivElement>
+  // Type error with HTMLDivElement.
+  // See https://github.com/DefinitelyTyped/DefinitelyTyped/issues/30451
+  container: React.RefObject<any>
   // See https://github.com/vatesfr/xen-orchestra/pull/5722#discussion_r619296074
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   rfb: any
   rfbConnected: boolean
   timeout?: NodeJS.Timeout
@@ -38,6 +40,17 @@ interface Effects {
 }
 
 interface Computed {}
+
+interface PropsStyledConsole {
+  scale: number
+  visible: boolean
+}
+const StyledConsole = styled.div<PropsStyledConsole>`
+  height: ${props => props.scale}%;
+  margin: auto;
+  visibility: ${props => (props.visible ? 'visible' : 'hidden')};
+  width: ${props => props.scale}%;
+`
 
 // https://github.com/novnc/noVNC/blob/master/docs/API.md
 const Console = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
@@ -127,16 +140,7 @@ const Console = withState<State, Props, Effects, Computed, ParentState, ParentEf
           <IntlMessage id='reconnectionAttempt' />
         </p>
       )}
-      <div
-        ref={state.container}
-        style={{
-          // Prevent canvas from flashing while noVNC is still trying to connect
-          visibility: `${state.rfbConnected ? 'visible' : 'hidden'}`,
-          margin: 'auto',
-          height: `${scale}%`,
-          width: `${scale}%`,
-        }}
-      />
+      <StyledConsole ref={state.container} scale={scale} visible={state.rfbConnected} />
     </>
   )
 )
