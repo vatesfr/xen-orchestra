@@ -9,6 +9,8 @@
 - [Jobs] Add `host.emergencyShutdownHost` to the list of methods that jobs can call (PR [#5818](https://github.com/vatesfr/xen-orchestra/pull/5818))
 - [Host/Load-balancer] Log vm and host names when a VM is migrated + category (density, performance, ...) (PR [#5808](https://github.com/vatesfr/xen-orchestra/pull/5808))
 - [VM/disks] Ability to rescan ISO SRs (PR [#5814](https://github.com/vatesfr/xen-orchestra/pull/5814))
+- [VM/snapshots] Identify VM's current snapshot with an icon next to the snapshot's name (PR [#5824](https://github.com/vatesfr/xen-orchestra/pull/5824))
+- [VM/new disk] Auto-fill disk name input with generated unique name (PR [#5828](https://github.com/vatesfr/xen-orchestra/pull/5828))
 
 ### Bug fixes
 
@@ -33,8 +35,8 @@
 - xo-server-netbox 0.1.2
 - xo-server-perf-alert 0.3.2
 - xo-server-load-balancer 0.7.0
-- xo-server 5.79.6
-- xo-web 5.83.0
+- xo-server 5.80.0
+- xo-web 5.84.0
 
 ## **5.59.0** (2021-05-31)
 
