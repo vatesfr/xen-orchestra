@@ -1,6 +1,8 @@
 import aws from '@sullux/aws-sdk'
 import assert from 'assert'
 import http from 'http'
+import https from 'https'
+import { Client as Minio } from 'minio'
 import { parse } from 'xo-remote-parser'
 
 import RemoteHandlerAbstract from './abstract'
@@ -29,8 +31,12 @@ export default class S3Handler extends RemoteHandlerAbstract {
       },
     }
     if (protocol === 'http') {
-      params.httpOptions.agent = new http.Agent()
-      params.sslEnabled = false
+      throw new Error('HTTP no longer supported, please use HTTPS')
+    } else {
+      params.httpOptions.agent = new https.Agent({
+        // TODO : UI checkbox
+        rejectUnauthorized: false,
+      })
     }
     if (region !== undefined) {
       params.region = region
@@ -38,6 +44,16 @@ export default class S3Handler extends RemoteHandlerAbstract {
 
     this._s3 = aws(params).s3
 
+    const [hostname, port] = host.split(':')
+    this._minioClient = new Minio({
+      endPoint: hostname,
+      port: port ? +port : port,
+      useSSL: protocol !== 'http',
+      accessKey: username,
+      secretKey: password,
+    })
+    // TODO : UI checkbox
+    this._minioClient.setRequestOptions({ rejectUnauthorized: false });
     const splitPath = path.split('/').filter(s => s.length)
     this._bucket = splitPath.shift()
     this._dir = splitPath.join('/')
@@ -73,13 +89,8 @@ export default class S3Handler extends RemoteHandlerAbstract {
   }
 
   async _outputStream(path, input, { validator }) {
-    await this._s3.upload(
-      {
-        ...this._createParams(path),
-        Body: input,
-      },
-      { partSize: IDEAL_FRAGMENT_SIZE, queueSize: 1 }
-    )
+    console.log('s3._outputStream', path)
+    await this._minioClient.putObject(this._bucket, this._dir + path, input)
     if (validator !== undefined) {
       try {
         await validator.call(this, path)
