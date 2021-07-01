@@ -769,7 +769,7 @@ const messages = {
   srNoVdis: 'No VDIs in this storage',
 
   // ----- SR disks tab -----
-  multipleActiveVdis: ' and {nVdis} more',
+  multipleActiveVdis: '{firstVdi} and {nVdis} more',
   noActiveVdi: 'No active VDI',
 
   // ----- Pool general -----

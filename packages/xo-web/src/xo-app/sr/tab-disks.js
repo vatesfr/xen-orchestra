@@ -61,11 +61,14 @@ const COLUMNS = [
                 (
                 <Link
                   to={`/srs/${baseCopy[0].$SR}/disks?s=${encodeURIComponent(
-                    `uuid:|(${baseCopy.map(activeVdi => activeVdi.uuid).join(' ')})`
+                    `id:|(${baseCopy.map(activeVdi => activeVdi.id).join(' ')})`
                   )}`}
                 >
-                  <Vdi id={baseCopy[0].id} showSize={numberOfActiveVdis === 1} />
-                  {numberOfActiveVdis > 1 && _('multipleActiveVdis', { nVdis: numberOfActiveVdis - 1 })}
+                  {numberOfActiveVdis > 1 ? (
+                    _('multipleActiveVdis', { firstVdi: <Vdi id={baseCopy[0].id} />, nVdis: numberOfActiveVdis - 1 })
+                  ) : (
+                    <Vdi id={baseCopy[0].id} showSize />
+                  )}
                 </Link>
                 )
               </span>
@@ -309,7 +312,7 @@ export default class SrDisks extends Component {
     () => this.props.vdis,
     () => this.props.vdiSnapshots,
     () => this.props.unmanagedVdis,
-    (vdis, vdiSnapshots, unmanagedVdis) => concat(vdis, vdiSnapshots, sortBy(unmanagedVdis, ['uuid']))
+    (vdis, vdiSnapshots, unmanagedVdis) => concat(vdis, vdiSnapshots, sortBy(unmanagedVdis, 'id'))
   )
 
   _getIsSrAdmin = createSelector(
@@ -380,21 +383,19 @@ export default class SrDisks extends Component {
       const vdisByBaseCopy = {}
 
       vdis.forEach(activeVdi => {
-        if (activeVdi.parent === undefined) {
+        let baseCopy = unmanagedVdis[activeVdi.parent]
+        if (baseCopy === undefined) {
           return
         }
 
-        let baseCopy = unmanagedVdis[activeVdi.parent]
         let iterate = true
         while (iterate) {
-          const baseCopyUuid = baseCopy.uuid
-          const currentBaseCopy = vdisByBaseCopy[baseCopyUuid]
+          const baseCopyId = baseCopy.id
 
-          if (currentBaseCopy !== undefined) {
-            vdisByBaseCopy[baseCopyUuid] = [...currentBaseCopy, activeVdi]
-          } else {
-            vdisByBaseCopy[baseCopyUuid] = [activeVdi]
+          if (vdisByBaseCopy[baseCopyId] === undefined) {
+            vdisByBaseCopy[baseCopyId] = []
           }
+          vdisByBaseCopy[baseCopyId].push(activeVdi)
 
           if (baseCopy.parent !== undefined) {
             baseCopy = unmanagedVdis[baseCopy.parent]
