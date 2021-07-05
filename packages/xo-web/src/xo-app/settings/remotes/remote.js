@@ -3,7 +3,6 @@ import ActionButton from 'action-button'
 import decorate from 'apply-decorators'
 import Icon from 'icon'
 import React from 'react'
-import Tooltip from 'tooltip'
 import { addSubscriptions, resolveId } from 'utils'
 import { alert, confirm } from 'modal'
 import { createRemote, editRemote, subscribeRemotes } from 'xo'
@@ -12,7 +11,7 @@ import { format } from 'xo-remote-parser'
 import { generateId, linkState } from 'reaclette-utils'
 import { injectState, provideState } from 'reaclette'
 import { map, some, trimStart } from 'lodash'
-import { Password, Number, Toggle } from 'form'
+import { Password, Number } from 'form'
 import { SelectProxy } from 'select-objects'
 
 const remoteTypes = {
@@ -40,7 +39,6 @@ export default decorate([
       username: undefined,
       directory: undefined,
       bucket: undefined,
-      protocol: undefined,
       region: undefined,
     }),
     effects: {
@@ -63,7 +61,6 @@ export default decorate([
           proxyId = remote.proxy,
           type = remote.type,
           username = remote.username,
-          protocol = remote.protocol || 'https',
           region = remote.region,
         } = state
         let { path = remote.path } = state
@@ -81,7 +78,7 @@ export default decorate([
             port: port || undefined,
             type,
             username,
-            protocol,
+            protocol: 'https',
             region,
           }),
           options: options !== '' ? options : null,
@@ -140,9 +137,6 @@ export default decorate([
       setSecretKey(_, { target: { value } }) {
         this.state.password = value
       },
-      setInsecure(_, value) {
-        this.state.protocol = value ? 'http' : 'https'
-      },
     },
     computed: {
       formId: generateId,
@@ -159,7 +153,6 @@ export default decorate([
       name = remote.name || '',
       options = remote.options || '',
       password = remote.password || '',
-      protocol = remote.protocol || 'https',
       region = remote.region || '',
       parsedPath,
       path = parsedPath || '',
@@ -339,11 +332,7 @@ export default decorate([
           {type === 's3' && (
             <fieldset className='form-group form-group'>
               <div className='input-group form-group'>
-                <span className='input-group-addon'>
-                  <Tooltip content={formatMessage(messages.remoteS3TooltipProtocol)}>
-                    <Toggle iconSize={1} onChange={effects.setInsecure} value={protocol === 'http'} />
-                  </Tooltip>
-                </span>
+                <em className='text-warning'>HTTP support has been removed, only HTTPS is supported</em>
                 <input
                   className='form-control'
                   name='host'
