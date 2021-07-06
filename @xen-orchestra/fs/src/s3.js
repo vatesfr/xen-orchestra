@@ -1,6 +1,5 @@
 import aws from '@sullux/aws-sdk'
 import assert from 'assert'
-import http from 'http'
 import https from 'https'
 import { Client as Minio } from 'minio'
 import { parse } from 'xo-remote-parser'
@@ -12,13 +11,10 @@ import RemoteHandlerAbstract from './abstract'
 // limits: https://docs.aws.amazon.com/AmazonS3/latest/dev/qfacts.html
 const MIN_PART_SIZE = 1024 * 1024 * 5 // 5MB
 const MAX_PART_SIZE = 1024 * 1024 * 1024 * 5 // 5GB
-const MAX_PARTS_COUNT = 10000
-const MAX_OBJECT_SIZE = 1024 * 1024 * 1024 * 1024 * 5 // 5TB
-const IDEAL_FRAGMENT_SIZE = Math.ceil(MAX_OBJECT_SIZE / MAX_PARTS_COUNT) // the smallest fragment size that still allows a 5TB upload in 10000 fragments, about 524MB
 export default class S3Handler extends RemoteHandlerAbstract {
   constructor(remote, _opts) {
     super(remote)
-    const { host, path, username, password, protocol, region } = parse(remote.url)
+    const { host, hostname, port, path, username, password, protocol, region } = parse(remote.url)
     const params = {
       accessKeyId: username,
       apiVersion: '2006-03-01',
@@ -44,16 +40,15 @@ export default class S3Handler extends RemoteHandlerAbstract {
 
     this._s3 = aws(params).s3
 
-    const [hostname, port] = host.split(':')
     this._minioClient = new Minio({
       endPoint: hostname,
-      port: port ? +port : port,
+      port: port !== undefined ? +port : undefined,
       useSSL: protocol !== 'http',
       accessKey: username,
       secretKey: password,
     })
     // TODO : UI checkbox
-    this._minioClient.setRequestOptions({ rejectUnauthorized: false });
+    this._minioClient.setRequestOptions({ rejectUnauthorized: false })
     const splitPath = path.split('/').filter(s => s.length)
     this._bucket = splitPath.shift()
     this._dir = splitPath.join('/')
@@ -89,7 +84,6 @@ export default class S3Handler extends RemoteHandlerAbstract {
   }
 
   async _outputStream(path, input, { validator }) {
-    console.log('s3._outputStream', path)
     await this._minioClient.putObject(this._bucket, this._dir + path, input)
     if (validator !== undefined) {
       try {

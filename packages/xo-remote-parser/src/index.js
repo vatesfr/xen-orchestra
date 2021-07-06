@@ -43,6 +43,8 @@ export const parse = string => {
     object.type = 's3'
     object.region = parsed.hash.length === 0 ? undefined : parsed.hash.slice(1) // remove '#'
     object.host = parsed.host
+    object.port = parsed.port
+    object.hostname = parsed.hostname
     object.path = parsed.pathname
     object.username = parsed.username
     object.password = decodeURIComponent(parsed.password)
