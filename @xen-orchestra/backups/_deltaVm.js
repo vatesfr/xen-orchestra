@@ -305,9 +305,6 @@ exports.importDeltaVm = defer(async function importDeltaVm(
       }
     }),
 
-    // Wait for VDI export tasks (if any) termination.
-    Promise.all(Object.values(streams).map(stream => stream.task)),
-
     // Create VIFs.
     asyncMap(Object.values(deltaVm.vifs), vif => {
       let network = vif.$network$uuid && xapi.getObjectByUuid(vif.$network$uuid, undefined)
