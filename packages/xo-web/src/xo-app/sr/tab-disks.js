@@ -41,8 +41,8 @@ import { error } from 'notification'
 const COLUMNS = [
   {
     name: _('vdiNameLabel'),
-    itemRenderer: (vdi, { vdisByBaseCopy }) => {
-      const baseCopy = vdisByBaseCopy[vdi.uuid]
+    itemRenderer: (vdi, { baseCopiesByVdi }) => {
+      const baseCopy = baseCopiesByVdi[vdi.id]
       let numberOfActiveVdis
       if (baseCopy !== undefined) {
         numberOfActiveVdis = baseCopy.length
@@ -376,7 +376,7 @@ export default class SrDisks extends Component {
     },
   ]
 
-  _getVdisByBaseCopy = createSelector(
+  _getBaseCopiesByVdi = createSelector(
     () => this.props.vdis,
     () => this.props.unmanagedVdis,
     (vdis, unmanagedVdis) => {
@@ -442,7 +442,7 @@ export default class SrDisks extends Component {
                 collection={vdis}
                 columns={COLUMNS}
                 data-isVdiAttached={this._getIsVdiAttached()}
-                data-vdisByBaseCopy={this._getVdisByBaseCopy()}
+                data-baseCopiesByVdi={this._getBaseCopiesByVdi()}
                 defaultFilter='filterOnlyManaged'
                 filters={FILTERS}
                 groupedActions={GROUPED_ACTIONS}
