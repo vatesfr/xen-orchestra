@@ -7,7 +7,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [Netbox] Add information about a failed request to the error log to help better understand what happened [#5834](https://github.com/vatesfr/xen-orchestra/issues/5834)
+- [Netbox] Add information about a failed request to the error log to help better understand what happened [#5834](https://github.com/vatesfr/xen-orchestra/issues/5834) (PR [#5842](https://github.com/vatesfr/xen-orchestra/pull/5842))
 
 ### Bug fixes
 
