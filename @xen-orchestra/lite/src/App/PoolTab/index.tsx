@@ -2,10 +2,10 @@ import React from 'react'
 import { withState } from 'reaclette'
 
 import PoolNetworks from './PoolNetworks'
+import PoolUpdates from './PoolUpdates'
 
 import IntlMessage from '../../components/IntlMessage'
 import { ObjectsByType, Pool } from '../../libs/xapi'
-import PoolUpdates from './PoolUpdates'
 
 interface ParentState {
   objectsFetched: boolean
