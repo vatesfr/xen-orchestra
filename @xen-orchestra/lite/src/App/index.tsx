@@ -21,7 +21,7 @@ interface ParentState {
 
 interface State {
   connected: boolean
-  error: JSX.Element
+  error: React.ReactNode
   xapiHostname: string
 }
 
