@@ -4,17 +4,34 @@ import { Map } from 'immutable'
 import { Xapi } from 'xen-api'
 
 export interface XapiObject {
+  $pool: Pool
+  $ref: string
   $type: keyof types
   $id: string
 }
 
 // Dictionary of XAPI types and their corresponding TypeScript types
 interface types {
+  PIF: Pif
+  pool: Pool
   VM: Vm
   host: Host
 }
 
 // XAPI types ---
+
+export interface Pif extends XapiObject {
+  device: string
+  DNS: string
+  gateway: string
+  IP: string
+  management: boolean
+  network: string
+}
+
+export interface Pool extends XapiObject {
+  name_label: string
+}
 
 export interface Vm extends XapiObject {
   $consoles: Array<{ protocol: string; location: string }>
