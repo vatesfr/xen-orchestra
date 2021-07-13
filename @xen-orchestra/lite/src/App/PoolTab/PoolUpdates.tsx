@@ -9,23 +9,23 @@ import { formatSize } from '../../helpers/format'
 
 const COLUMN: Column<PoolUpdate>[] = [
   {
-    header: 'Name',
+    header: <IntlMessage id='name' />,
     render: update => update.name,
   },
   {
-    header: 'Description',
+    header: <IntlMessage id='description' />,
     render: update => update.description,
   },
   {
-    header: 'Version',
+    header: <IntlMessage id='version' />,
     render: update => update.version,
   },
   {
-    header: 'Release',
+    header: <IntlMessage id='release' />,
     render: update => update.release,
   },
   {
-    header: 'Size',
+    header: <IntlMessage id='size' />,
     render: update => formatSize(update.size),
   },
 ]
