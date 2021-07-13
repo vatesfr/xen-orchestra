@@ -8,7 +8,7 @@ import { withState } from 'reaclette'
 import Button from '../components/Button'
 import IntlMessage from '../components/IntlMessage'
 import messagesEn from '../lang/en.json'
-import Pool from './Pool'
+import PoolTab from './PoolTab'
 import Signin from './Signin/index'
 import StyleGuide from './StyleGuide/index'
 import TabConsole from './TabConsole'
@@ -139,10 +139,10 @@ const App = withState<State, Props, Effects, Computed, ParentState, ParentEffect
                   </>
                 )}
               </Route>
-              <Route path='/pool'>
-                <Pool />
+              <Route exact path='/pool'>
+                <PoolTab />
               </Route>
-              <Route exact path='/:id' render={({ match }) => <TabConsole vmId={match.params.id} />} />{' '}
+              <Route path='/:id' render={({ match }) => <TabConsole vmId={match.params.id} />} />
             </Switch>
           </Router>
         </>

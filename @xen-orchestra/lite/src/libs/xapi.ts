@@ -12,12 +12,26 @@ export interface XapiObject {
 
 // Dictionary of XAPI types and their corresponding TypeScript types
 interface types {
+  PIF: Pif
   pool: Pool
   VM: Vm
   host: Host
 }
 
 // XAPI types ---
+
+export interface Pif extends XapiObject {
+  device: string
+  DNS: string
+  gateway: string
+  IP: string
+  management: boolean
+  network: string
+}
+
+export interface Pool extends XapiObject {
+  name_label: string
+}
 
 export interface PoolUpdate {
   changelog: {
@@ -32,10 +46,6 @@ export interface PoolUpdate {
   size: number
   url: string
   version: string
-}
-
-export interface Pool extends XapiObject {
-  name_label: string
 }
 
 export interface Vm extends XapiObject {

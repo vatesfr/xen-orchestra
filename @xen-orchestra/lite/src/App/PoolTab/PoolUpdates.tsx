@@ -4,6 +4,31 @@ import { withState } from 'reaclette'
 
 import IntlMessage from '../../components/IntlMessage'
 import XapiConnection, { Host, ObjectsByType, PoolUpdate } from '../../libs/xapi'
+import Table, { Column } from '../../components/Table'
+import { formatSize } from '../../helpers/format'
+
+const COLUMN: Column<PoolUpdate>[] = [
+  {
+    header: 'Name',
+    render: update => update.name,
+  },
+  {
+    header: 'Description',
+    render: update => update.description,
+  },
+  {
+    header: 'Version',
+    render: update => update.version,
+  },
+  {
+    header: 'Release',
+    render: update => update.release,
+  },
+  {
+    header: 'Size',
+    render: update => formatSize(update.size),
+  },
+]
 
 interface ParentState {
   objectsByType: ObjectsByType
@@ -22,7 +47,7 @@ interface ParentEffects {}
 interface Effects {}
 
 interface Computed {
-  availableUpdates?: Map<string, PoolUpdate>
+  availableUpdates?: PoolUpdate[]
   hosts?: Map<string, Host>
 }
 
@@ -46,27 +71,23 @@ const PoolUpdates = withState<State, Props, Effects, Computed, ParentState, Pare
           })
         })
         return poolUpdates
+          .map(update => ({ id: update.name, ...update }))
+          .valueSeq()
+          .toArray()
       },
       hosts: function (state) {
         return state.objectsByType.get('host')
       },
     },
   },
-  ({ state: { availableUpdates } }) =>
-    availableUpdates !== undefined ? (
-      availableUpdates.size !== 0 ? (
-        <>
-          <IntlMessage id='availableUpdates' values={{ nUpdates: availableUpdates.size }} />
-          {availableUpdates.valueSeq().map(update => (
-            <p key={update.name}>{update.name}</p>
-          ))}
-        </>
-      ) : (
-        <IntlMessage id='noUpdatesAvailable' />
-      )
-    ) : (
-      <IntlMessage id='loading' />
-    )
+  ({ state: { availableUpdates } }) => (
+    <>
+      {availableUpdates !== undefined && availableUpdates.length !== 0 && (
+        <IntlMessage id='availableUpdates' values={{ nUpdates: availableUpdates.length }} />
+      )}
+      <Table collection={availableUpdates} columns={COLUMN} placeholder={<IntlMessage id='noUpdatesAvailable' />} />
+    </>
+  )
 )
 
 export default PoolUpdates
