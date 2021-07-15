@@ -380,31 +380,22 @@ export default class SrDisks extends Component {
     () => this.props.vdis,
     () => this.props.unmanagedVdis,
     (vdis, unmanagedVdis) => {
-      const vdisByBaseCopy = {}
+      const baseCopiesByVdi = {}
 
-      vdis.forEach(activeVdi => {
-        let baseCopy = unmanagedVdis[activeVdi.parent]
-        if (baseCopy === undefined) {
-          return
-        }
+      vdis.forEach(vdi => {
+        let baseCopy = unmanagedVdis[vdi.parent]
 
-        let iterate = true
-        while (iterate) {
+        while (baseCopy !== undefined) {
           const baseCopyId = baseCopy.id
 
-          if (vdisByBaseCopy[baseCopyId] === undefined) {
-            vdisByBaseCopy[baseCopyId] = []
+          if (baseCopiesByVdi[baseCopyId] === undefined) {
+            baseCopiesByVdi[baseCopyId] = []
           }
-          vdisByBaseCopy[baseCopyId].push(activeVdi)
-
-          if (baseCopy.parent !== undefined) {
-            baseCopy = unmanagedVdis[baseCopy.parent]
-          } else {
-            iterate = false
-          }
+          baseCopiesByVdi[baseCopyId].push(vdi)
+          baseCopy = unmanagedVdis[baseCopy.parent]
         }
       })
-      return vdisByBaseCopy
+      return baseCopiesByVdi
     }
   )
 
