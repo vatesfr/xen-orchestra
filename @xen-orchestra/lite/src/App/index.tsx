@@ -1,5 +1,6 @@
 import Cookies from 'js-cookie'
 import React from 'react'
+import styled from 'styled-components'
 import { IntlProvider } from 'react-intl'
 import { HashRouter as Router, Switch, Route, Link } from 'react-router-dom'
 import { Map } from 'immutable'
@@ -13,6 +14,13 @@ import Signin from './Signin/index'
 import StyleGuide from './StyleGuide/index'
 import TabConsole from './TabConsole'
 import XapiConnection, { ObjectsByType, Vm } from '../libs/xapi'
+
+const Version = styled.div`
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  opacity: .5;
+`
 
 interface ParentState {
   objectsByType: ObjectsByType
@@ -147,6 +155,7 @@ const App = withState<State, Props, Effects, Computed, ParentState, ParentEffect
           </Router>
         </>
       )}
+      <Version>v{process.env.NPM_VERSION}</Version>
     </IntlProvider>
   )
 )
