@@ -3,8 +3,8 @@ import { Map } from 'immutable'
 import { withState } from 'reaclette'
 
 import IntlMessage from '../../components/IntlMessage'
-import XapiConnection, { Host, ObjectsByType, PoolUpdate } from '../../libs/xapi'
 import Table, { Column } from '../../components/Table'
+import XapiConnection, { Host, ObjectsByType, PoolUpdate } from '../../libs/xapi'
 import { formatSize } from '../../helpers/format'
 
 const COLUMN: Column<PoolUpdate>[] = [
