@@ -42,11 +42,7 @@ const COLUMNS = [
   {
     name: _('vdiNameLabel'),
     itemRenderer: (vdi, { baseCopiesByVdi }) => {
-      const baseCopy = baseCopiesByVdi[vdi.id]
-      let numberOfActiveVdis
-      if (baseCopy !== undefined) {
-        numberOfActiveVdis = baseCopy.length
-      }
+      const baseCopies = baseCopiesByVdi[vdi.id]
       return (
         <span>
           <Text value={vdi.name_label} onChange={value => editVdi(vdi, { name_label: value })} />{' '}
@@ -56,18 +52,18 @@ const COLUMNS = [
             </span>
           )}
           {vdi.type === 'VDI-unmanaged' &&
-            (baseCopy !== undefined ? (
+            (baseCopies !== undefined ? (
               <span>
                 (
                 <Link
-                  to={`/srs/${baseCopy[0].$SR}/disks?s=${encodeURIComponent(
-                    `id:|(${baseCopy.map(activeVdi => activeVdi.id).join(' ')})`
+                  to={`/srs/${baseCopies[0].$SR}/disks?s=${encodeURIComponent(
+                    `id:|(${baseCopies.map(activeVdi => activeVdi.id).join(' ')})`
                   )}`}
                 >
-                  {numberOfActiveVdis > 1 ? (
-                    _('multipleActiveVdis', { firstVdi: <Vdi id={baseCopy[0].id} />, nVdis: numberOfActiveVdis - 1 })
+                  {baseCopies.length > 1 ? (
+                    _('multipleActiveVdis', { firstVdi: <Vdi id={baseCopies[0].id} />, nVdis: baseCopies.length - 1 })
                   ) : (
-                    <Vdi id={baseCopy[0].id} showSize />
+                    <Vdi id={baseCopies[0].id} showSize />
                   )}
                 </Link>
                 )
