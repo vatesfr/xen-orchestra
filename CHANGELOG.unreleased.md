@@ -7,7 +7,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [VM] Rescan ISO SRs button is also avaible on the console view
+- [VM/console] Ability to rescan ISO SRs. (PR [#5841](https://github.com/vatesfr/xen-orchestra/pull/5841))
 
 ### Bug fixes
 
