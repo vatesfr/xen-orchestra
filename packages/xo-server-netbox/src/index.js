@@ -97,10 +97,9 @@ class Netbox {
   }
 
   async #makeRequest(path, method, data) {
-    log.debug(
-      `${method} ${path}`,
+    const dataDebug =
       Array.isArray(data) && data.length > 2 ? [...data.slice(0, 2), `and ${data.length - 2} others`] : data
-    )
+    log.debug(`${method} ${path}`, dataDebug)
     let url = this.#endpoint + '/api' + path
     const options = {
       headers: { 'Content-Type': 'application/json', Authorization: `Token ${this.#token}` },
@@ -116,10 +115,15 @@ class Netbox {
           return JSON.parse(body)
         }
       } catch (error) {
+        error.data = {
+          method,
+          path,
+          body: dataDebug,
+        }
         try {
           const body = await error.response.readAll()
           if (body.length > 0) {
-            log.error(body.toString())
+            error.data.error = JSON.parse(body)
           }
         } catch {
           throw error
