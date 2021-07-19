@@ -97,6 +97,12 @@ export default class HostItem extends Component {
                   </Tooltip>
                 )}
                 &nbsp;
+                {!host.maintained && (
+                  <Tooltip content={_('noMoreMaintained')}>
+                    <Icon icon='alarm' className='text-warning' />
+                  </Tooltip>
+                )}
+                &nbsp;
                 <InconsistentHostTimeWarning host={host} />
                 &nbsp;
                 {hasLicenseRestrictions(host) && <LicenseWarning />}

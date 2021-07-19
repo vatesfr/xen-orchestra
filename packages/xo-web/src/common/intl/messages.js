@@ -833,6 +833,9 @@ const messages = {
   addHostNotHomogeneousErrorMessage: 'Host patches could not be homogenized.',
   disconnectServer: 'Disconnect',
 
+  // ----- Host item ------
+  noMoreMaintained: 'The current version of this host is no more maintained.',
+
   // ----- Host actions ------
   disableMaintenanceMode: 'Disable maintenance mode',
   enableMaintenanceMode: 'Enable maintenance mode',

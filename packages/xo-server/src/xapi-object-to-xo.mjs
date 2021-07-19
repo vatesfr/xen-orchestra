@@ -1,4 +1,6 @@
+import fs from 'fs'
 import { isDefaultTemplate } from '@xen-orchestra/xapi'
+import { URL } from 'url'
 
 import * as sensitiveValues from './sensitive-values.mjs'
 import ensureArray from './_ensureArray.mjs'
@@ -6,6 +8,8 @@ import { extractIpFromVmNetworks } from './_extractIpFromVmNetworks.mjs'
 import { extractProperty, forEach, isEmpty, mapFilter, parseXml } from './utils.mjs'
 import { getVmDomainType, isHostRunning, isVmRunning, parseDateTime } from './xapi/index.mjs'
 import { useUpdateSystem } from './xapi/utils.mjs'
+
+const MAINTAINED_VERSION = JSON.parse(fs.readFileSync(new URL('../maintainedVersion.json', import.meta.url)))
 
 // ===================================================================
 
@@ -193,6 +197,9 @@ const TRANSFORMS = {
       logging: obj.logging,
       name_description: obj.name_description,
       name_label: obj.name_label,
+      maintained: MAINTAINED_VERSION[softwareVersion.product_brand === 'XCP-ng' ? 'XCP' : 'CH'].some(
+        v => v === softwareVersion.product_version_text_short
+      ),
       memory: (function () {
         if (metrics) {
           const free = +metrics.memory_free
