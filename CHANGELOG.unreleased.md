@@ -9,6 +9,7 @@
 
 - [Netbox] Add information about a failed request to the error log to help better understand what happened [#5834](https://github.com/vatesfr/xen-orchestra/issues/5834) (PR [#5842](https://github.com/vatesfr/xen-orchestra/pull/5842))
 - [VM/console] Ability to rescan ISO SRs (PR [#5841](https://github.com/vatesfr/xen-orchestra/pull/5841))
+- [Host] Add warning in case of no maintained host version [#5840](https://github.com/vatesfr/xen-orchestra/issues/5840) (PR [#5847](https://github.com/vatesfr/xen-orchestra/pull/5847))
 
 ### Bug fixes
 
@@ -33,5 +34,6 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
+- xo-server minor
 - xo-server-netbox minor
 - xo-web minor

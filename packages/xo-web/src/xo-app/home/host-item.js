@@ -99,7 +99,7 @@ export default class HostItem extends Component {
                 &nbsp;
                 {!host.maintained && (
                   <Tooltip content={_('noMoreMaintained')}>
-                    <Icon icon='alarm' className='text-warning' />
+                    <Icon className='text-warning' icon='alarm' />
                   </Tooltip>
                 )}
                 &nbsp;
