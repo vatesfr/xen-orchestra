@@ -68,7 +68,6 @@ const STOP_OPERATIONS = [
   'hard_reboot',
   'hard_shutdown',
   'pause',
-  'shutdown',
   'suspend',
 ]
 
