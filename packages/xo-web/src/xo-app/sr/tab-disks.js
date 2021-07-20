@@ -41,8 +41,8 @@ import { error } from 'notification'
 const COLUMNS = [
   {
     name: _('vdiNameLabel'),
-    itemRenderer: (vdi, { baseCopiesByVdi }) => {
-      const baseCopies = baseCopiesByVdi[vdi.id]
+    itemRenderer: (vdi, { vdisByBaseCopy }) => {
+      const activeVdis = vdisByBaseCopy[vdi.id]
       return (
         <span>
           <Text value={vdi.name_label} onChange={value => editVdi(vdi, { name_label: value })} />{' '}
@@ -52,18 +52,18 @@ const COLUMNS = [
             </span>
           )}
           {vdi.type === 'VDI-unmanaged' &&
-            (baseCopies !== undefined ? (
+            (activeVdis !== undefined ? (
               <span>
                 (
                 <Link
-                  to={`/srs/${baseCopies[0].$SR}/disks?s=${encodeURIComponent(
-                    `id:|(${baseCopies.map(activeVdi => activeVdi.id).join(' ')})`
+                  to={`/srs/${activeVdis[0].$SR}/disks?s=${encodeURIComponent(
+                    `id:|(${activeVdis.map(activeVdi => activeVdi.id).join(' ')})`
                   )}`}
                 >
-                  {baseCopies.length > 1 ? (
-                    _('multipleActiveVdis', { firstVdi: <Vdi id={baseCopies[0].id} />, nVdis: baseCopies.length - 1 })
+                  {activeVdis.length > 1 ? (
+                    _('multipleActiveVdis', { firstVdi: <Vdi id={activeVdis[0].id} />, nVdis: activeVdis.length - 1 })
                   ) : (
-                    <Vdi id={baseCopies[0].id} showSize />
+                    <Vdi id={activeVdis[0].id} showSize />
                   )}
                 </Link>
                 )
@@ -372,11 +372,11 @@ export default class SrDisks extends Component {
     },
   ]
 
-  _getBaseCopiesByVdi = createSelector(
+  _getVdisByBaseCopy = createSelector(
     () => this.props.vdis,
     () => this.props.unmanagedVdis,
     (vdis, unmanagedVdis) => {
-      const baseCopiesByVdi = {}
+      const vdisByBaseCopy = {}
 
       vdis.forEach(vdi => {
         let baseCopy = unmanagedVdis[vdi.parent]
@@ -384,14 +384,14 @@ export default class SrDisks extends Component {
         while (baseCopy !== undefined) {
           const baseCopyId = baseCopy.id
 
-          if (baseCopiesByVdi[baseCopyId] === undefined) {
-            baseCopiesByVdi[baseCopyId] = []
+          if (vdisByBaseCopy[baseCopyId] === undefined) {
+            vdisByBaseCopy[baseCopyId] = []
           }
-          baseCopiesByVdi[baseCopyId].push(vdi)
+          vdisByBaseCopy[baseCopyId].push(vdi)
           baseCopy = unmanagedVdis[baseCopy.parent]
         }
       })
-      return baseCopiesByVdi
+      return vdisByBaseCopy
     }
   )
 
@@ -429,7 +429,7 @@ export default class SrDisks extends Component {
                 collection={vdis}
                 columns={COLUMNS}
                 data-isVdiAttached={this._getIsVdiAttached()}
-                data-baseCopiesByVdi={this._getBaseCopiesByVdi()}
+                data-vdisByBaseCopy={this._getVdisByBaseCopy()}
                 defaultFilter='filterOnlyManaged'
                 filters={FILTERS}
                 groupedActions={GROUPED_ACTIONS}
