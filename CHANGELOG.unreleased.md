@@ -15,6 +15,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [VM/disks] Fix `an error has occured` when self service user was on VM disk view (PR [#5841](https://github.com/vatesfr/xen-orchestra/pull/5841))
+- [VM/advanced] Fix list of blocked operations set by XOA when toggling "Protect from accidental shutdown"
 
 ### Packages to release
 
