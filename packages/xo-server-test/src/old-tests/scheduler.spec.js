@@ -5,8 +5,8 @@ import expect from 'must'
 
 // ===================================================================
 
+import fromEvent from 'promise-toolbox/fromEvent'
 import { jobTest, scheduleTest, getConfig, getMainConnection, getSchedule } from './util'
-import eventToPromise from 'event-to-promise'
 
 // ===================================================================
 
@@ -22,7 +22,7 @@ describe('scheduler', () => {
     ;[xo, config] = await Promise.all([getMainConnection(), getConfig()])
 
     serverId = await xo.call('server.add', config.xenServer1).catch(() => {})
-    await eventToPromise(xo.objects, 'finish')
+    await fromEvent(xo.objects, 'finish')
 
     jobId = await jobTest(xo)
     scheduleId = (await scheduleTest(xo, jobId)).id

@@ -212,11 +212,12 @@ const DeleteOldBackupsFirst = ({ handler, handlerParam, value }) => (
 )
 
 const New = decorate([
-  New => props => (
-    <Upgrade place='newBackup' required={2}>
-      <New {...props} />
-    </Upgrade>
-  ),
+  New => props =>
+    (
+      <Upgrade place='newBackup' required={2}>
+        <New {...props} />
+      </Upgrade>
+    ),
   connectStore(() => ({
     hostsById: createGetObjectsOfType('host'),
     poolsById: createGetObjectsOfType('pool'),
@@ -349,14 +350,18 @@ const New = decorate([
           vms: state.smartMode ? state.vmsSmartPattern : constructPattern(state.vms),
         })
       },
-      toggleMode: (_, { mode }) => state => ({
-        ...state,
-        [mode]: !state[mode],
-      }),
-      setCheckboxValue: (_, { target: { checked, name } }) => state => ({
-        ...state,
-        [name]: checked,
-      }),
+      toggleMode:
+        (_, { mode }) =>
+        state => ({
+          ...state,
+          [mode]: !state[mode],
+        }),
+      setCheckboxValue:
+        (_, { target: { checked, name } }) =>
+        state => ({
+          ...state,
+          [name]: checked,
+        }),
       toggleScheduleState: (_, id) => state => ({
         ...state,
         schedules: {
@@ -367,15 +372,19 @@ const New = decorate([
           },
         },
       }),
-      setName: (_, { target: { value } }) => state => ({
-        ...state,
-        name: value,
-      }),
-      setTargetDeleteFirst: (_, id) => ({ propSettings, settings = propSettings }) => ({
-        settings: settings.set(id, {
-          deleteFirst: !settings.getIn([id, 'deleteFirst']),
+      setName:
+        (_, { target: { value } }) =>
+        state => ({
+          ...state,
+          name: value,
         }),
-      }),
+      setTargetDeleteFirst:
+        (_, id) =>
+        ({ propSettings, settings = propSettings }) => ({
+          settings: settings.set(id, {
+            deleteFirst: !settings.getIn([id, 'deleteFirst']),
+          }),
+        }),
       addRemote: (_, remote) => state => {
         return {
           ...state,
@@ -403,95 +412,103 @@ const New = decorate([
         }
       },
       setVms: (_, vms) => state => ({ ...state, vms }),
-      updateParams: () => (_, { job, schedules }) => {
-        const remotes = job.remotes !== undefined ? destructPattern(job.remotes) : []
-        const srs = job.srs !== undefined ? destructPattern(job.srs) : []
+      updateParams:
+        () =>
+        (_, { job, schedules }) => {
+          const remotes = job.remotes !== undefined ? destructPattern(job.remotes) : []
+          const srs = job.srs !== undefined ? destructPattern(job.srs) : []
 
-        return {
-          name: job.name,
-          smartMode: job.vms.id === undefined,
-          snapshotMode: some(job.settings, ({ snapshotRetention }) => snapshotRetention > 0),
-          backupMode: job.mode === 'full' && !isEmpty(remotes),
-          deltaMode: job.mode === 'delta' && !isEmpty(remotes),
-          drMode: job.mode === 'full' && !isEmpty(srs),
-          crMode: job.mode === 'delta' && !isEmpty(srs),
-          remotes,
-          srs,
-          schedules,
-          ...destructVmsPattern(job.vms),
-        }
-      },
-      showScheduleModal: ({ saveSchedule }, storedSchedule = DEFAULT_SCHEDULE) => async (
-        { copyMode, exportMode, deltaMode, isDelta, propSettings, settings = propSettings, snapshotMode },
-        { intl: { formatMessage } }
-      ) => {
-        const modes = { copyMode, isDelta, exportMode, snapshotMode }
-        const schedule = await form({
-          defaultValue: storedSchedule,
-          render: props => (
-            <NewSchedule
-              missingRetentions={!checkRetentions(props.value, modes)}
-              modes={modes}
-              showRetentionWarning={
-                deltaMode &&
-                !isRetentionLow(
-                  defined(props.value.fullInterval, settings.getIn(['', 'fullInterval'])),
-                  props.value.exportRetention
-                )
-              }
-              {...props}
-            />
-          ),
-          header: (
-            <span>
-              <Icon icon='schedule' /> {_('schedule')}
-            </span>
-          ),
-          size: 'large',
-          handler: value => {
-            if (!checkRetentions(value, modes)) {
-              throw new UserError(_('newScheduleError'), _('retentionNeeded'))
-            }
-            return value
-          },
-        })
-
-        saveSchedule({
-          ...schedule,
-          id: storedSchedule.id || generateRandomId(),
-        })
-      },
-      deleteSchedule: (_, schedule) => ({ schedules: oldSchedules, propSettings, settings = propSettings }) => {
-        const id = resolveId(schedule)
-        const schedules = { ...oldSchedules }
-        delete schedules[id]
-        return {
-          schedules,
-          settings: settings.delete(id),
-        }
-      },
-      saveSchedule: (
-        _,
-        { copyRetention, cron, enabled = true, exportRetention, fullInterval, id, name, snapshotRetention, timezone }
-      ) => ({ propSettings, schedules, settings = propSettings }) => ({
-        schedules: {
-          ...schedules,
-          [id]: {
-            ...schedules[id],
-            cron,
-            enabled,
-            id,
-            name,
-            timezone,
-          },
+          return {
+            name: job.name,
+            smartMode: job.vms.id === undefined,
+            snapshotMode: some(job.settings, ({ snapshotRetention }) => snapshotRetention > 0),
+            backupMode: job.mode === 'full' && !isEmpty(remotes),
+            deltaMode: job.mode === 'delta' && !isEmpty(remotes),
+            drMode: job.mode === 'full' && !isEmpty(srs),
+            crMode: job.mode === 'delta' && !isEmpty(srs),
+            remotes,
+            srs,
+            schedules,
+            ...destructVmsPattern(job.vms),
+          }
         },
-        settings: settings.set(id, {
-          copyRetention,
-          exportRetention,
-          fullInterval,
-          snapshotRetention,
+      showScheduleModal:
+        ({ saveSchedule }, storedSchedule = DEFAULT_SCHEDULE) =>
+        async (
+          { copyMode, exportMode, deltaMode, isDelta, propSettings, settings = propSettings, snapshotMode },
+          { intl: { formatMessage } }
+        ) => {
+          const modes = { copyMode, isDelta, exportMode, snapshotMode }
+          const schedule = await form({
+            defaultValue: storedSchedule,
+            render: props => (
+              <NewSchedule
+                missingRetentions={!checkRetentions(props.value, modes)}
+                modes={modes}
+                showRetentionWarning={
+                  deltaMode &&
+                  !isRetentionLow(
+                    defined(props.value.fullInterval, settings.getIn(['', 'fullInterval'])),
+                    props.value.exportRetention
+                  )
+                }
+                {...props}
+              />
+            ),
+            header: (
+              <span>
+                <Icon icon='schedule' /> {_('schedule')}
+              </span>
+            ),
+            size: 'large',
+            handler: value => {
+              if (!checkRetentions(value, modes)) {
+                throw new UserError(_('newScheduleError'), _('retentionNeeded'))
+              }
+              return value
+            },
+          })
+
+          saveSchedule({
+            ...schedule,
+            id: storedSchedule.id || generateRandomId(),
+          })
+        },
+      deleteSchedule:
+        (_, schedule) =>
+        ({ schedules: oldSchedules, propSettings, settings = propSettings }) => {
+          const id = resolveId(schedule)
+          const schedules = { ...oldSchedules }
+          delete schedules[id]
+          return {
+            schedules,
+            settings: settings.delete(id),
+          }
+        },
+      saveSchedule:
+        (
+          _,
+          { copyRetention, cron, enabled = true, exportRetention, fullInterval, id, name, snapshotRetention, timezone }
+        ) =>
+        ({ propSettings, schedules, settings = propSettings }) => ({
+          schedules: {
+            ...schedules,
+            [id]: {
+              ...schedules[id],
+              cron,
+              enabled,
+              id,
+              name,
+              timezone,
+            },
+          },
+          settings: settings.set(id, {
+            copyRetention,
+            exportRetention,
+            fullInterval,
+            snapshotRetention,
+          }),
         }),
-      }),
       onVmsPatternChange: (_, _vmsPattern) => ({
         _vmsPattern,
       }),
@@ -509,26 +526,32 @@ const New = decorate([
           notValues,
         },
       }),
-      resetJob: ({ updateParams }) => (state, { job }) => {
-        if (job !== undefined) {
-          updateParams()
-        }
+      resetJob:
+        ({ updateParams }) =>
+        (state, { job }) => {
+          if (job !== undefined) {
+            updateParams()
+          }
 
-        return getInitialState()
-      },
+          return getInitialState()
+        },
       setCompression: (_, compression) => ({ compression }),
       setProxy(_, id) {
         this.state._proxyId = id
       },
-      toggleDisplayAdvancedSettings: () => ({ displayAdvancedSettings }) => ({
-        _displayAdvancedSettings: !displayAdvancedSettings,
-      }),
-      setGlobalSettings: (_, globalSettings) => ({ propSettings, settings = propSettings }) => ({
-        settings: settings.update('', setting => ({
-          ...setting,
-          ...globalSettings,
-        })),
-      }),
+      toggleDisplayAdvancedSettings:
+        () =>
+        ({ displayAdvancedSettings }) => ({
+          _displayAdvancedSettings: !displayAdvancedSettings,
+        }),
+      setGlobalSettings:
+        (_, globalSettings) =>
+        ({ propSettings, settings = propSettings }) => ({
+          settings: settings.update('', setting => ({
+            ...setting,
+            ...globalSettings,
+          })),
+        }),
       addReportRecipient({ setGlobalSettings }, value) {
         const { propSettings, settings = propSettings } = this.state
         const reportRecipients = defined(settings.getIn(['', 'reportRecipients']), [])
@@ -545,31 +568,39 @@ const New = decorate([
           reportRecipients: (reportRecipients.splice(key, 1), reportRecipients),
         })
       },
-      setReportWhen: ({ setGlobalSettings }, { value }) => () => {
-        setGlobalSettings({
-          reportWhen: value,
-        })
-      },
-      setConcurrency: ({ setGlobalSettings }, concurrency) => () => {
-        setGlobalSettings({
-          concurrency,
-        })
-      },
-      setTimeout: ({ setGlobalSettings }, value) => () => {
-        setGlobalSettings({
-          timeout: value && value * 3600e3,
-        })
-      },
+      setReportWhen:
+        ({ setGlobalSettings }, { value }) =>
+        () => {
+          setGlobalSettings({
+            reportWhen: value,
+          })
+        },
+      setConcurrency:
+        ({ setGlobalSettings }, concurrency) =>
+        () => {
+          setGlobalSettings({
+            concurrency,
+          })
+        },
+      setTimeout:
+        ({ setGlobalSettings }, value) =>
+        () => {
+          setGlobalSettings({
+            timeout: value && value * 3600e3,
+          })
+        },
       setFullInterval({ setGlobalSettings }, fullInterval) {
         setGlobalSettings({
           fullInterval,
         })
       },
-      setOfflineBackup: ({ setGlobalSettings }, { target: { checked: offlineBackup } }) => () => {
-        setGlobalSettings({
-          offlineBackup,
-        })
-      },
+      setOfflineBackup:
+        ({ setGlobalSettings }, { target: { checked: offlineBackup } }) =>
+        () => {
+          setGlobalSettings({
+            offlineBackup,
+          })
+        },
     },
     computed: {
       compressionId: generateId,
@@ -618,11 +649,13 @@ const New = decorate([
         ...vmsPattern,
         tags: constructSmartPattern(tags, normalizeTagValues),
       }),
-      vmPredicate: ({ isDelta }, { hostsById, poolsById }) => ({ $container }) =>
-        !isDelta ||
-        canDeltaBackup(
-          get(() => hostsById[$container].version) || get(() => hostsById[poolsById[$container].master].version)
-        ),
+      vmPredicate:
+        ({ isDelta }, { hostsById, poolsById }) =>
+        ({ $container }) =>
+          !isDelta ||
+          canDeltaBackup(
+            get(() => hostsById[$container].version) || get(() => hostsById[poolsById[$container].master].version)
+          ),
       selectedVmIds: state => resolveIds(state.vms),
       showRetentionWarning: ({ deltaMode, propSettings, settings = propSettings, schedules }) => {
         if (!deltaMode) {
@@ -639,13 +672,18 @@ const New = decorate([
             )
         )
       },
-      srPredicate: ({ srs }) => sr => isSrWritable(sr) && !includes(srs, sr.id),
-      remotePredicate: ({ proxyId, remotes }) => remote => {
-        if (proxyId === null) {
-          proxyId = undefined
-        }
-        return !remotes.includes(remote.id) && remote.value.proxy === proxyId
-      },
+      srPredicate:
+        ({ srs }) =>
+        sr =>
+          isSrWritable(sr) && !includes(srs, sr.id),
+      remotePredicate:
+        ({ proxyId, remotes }) =>
+        remote => {
+          if (proxyId === null) {
+            proxyId = undefined
+          }
+          return !remotes.includes(remote.id) && remote.value.proxy === proxyId
+        },
       propSettings: (_, { job }) =>
         Map(get(() => job.settings)).map(setting =>
           defined(setting.copyRetention, setting.exportRetention, setting.snapshotRetention)

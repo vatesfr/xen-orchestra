@@ -7,8 +7,9 @@ import Component from 'base-component'
 import Icon from 'icon'
 import renderXoItem, { Network } from 'render-xo-item'
 import SelectFiles from 'select-files'
+import TabButton from 'tab-button'
 import Upgrade from 'xoa-upgrade'
-import { connectStore } from 'utils'
+import { addSubscriptions, connectStore } from 'utils'
 import { Container, Row, Col } from 'grid'
 import { CustomFields } from 'custom-fields'
 import { injectIntl } from 'react-intl'
@@ -28,6 +29,8 @@ import {
   setPoolMaster,
   setRemoteSyslogHost,
   setRemoteSyslogHosts,
+  subscribePlugins,
+  synchronizeNetbox,
 } from 'xo'
 
 @connectStore(() => ({
@@ -58,12 +61,20 @@ class PoolMaster extends Component {
     .sort()
   return {
     hosts: getHosts,
-    hostsByMultipathing: createGroupBy(getHosts, () => ({ multipathing }) => (multipathing ? 'enabled' : 'disabled')),
+    hostsByMultipathing: createGroupBy(
+      getHosts,
+      () =>
+        ({ multipathing }) =>
+          multipathing ? 'enabled' : 'disabled'
+    ),
     gpuGroups: createGetObjectsOfType('gpuGroup')
       .filter((_, { pool }) => ({ $pool: pool.id }))
       .sort(),
     migrationNetwork: createGetObject((_, { pool }) => pool.otherConfig['xo:migrationNetwork']),
   }
+})
+@addSubscriptions({
+  plugins: subscribePlugins,
 })
 export default class TabAdvanced extends Component {
   _getMigrationNetworkPredicate = createSelector(
@@ -84,6 +95,11 @@ export default class TabAdvanced extends Component {
     networkIds => network => networkIds.has(network.id)
   )
 
+  _isNetboxPluginLoaded = createSelector(
+    () => this.props.plugins,
+    plugins => plugins !== undefined && plugins.some(plugin => plugin.name === 'netbox' && plugin.loaded)
+  )
+
   _onChangeMigrationNetwork = migrationNetwork => editPool(this.props.pool, { migrationNetwork: migrationNetwork.id })
 
   _removeMigrationNetwork = () => editPool(this.props.pool, { migrationNetwork: null })
@@ -101,6 +117,19 @@ export default class TabAdvanced extends Component {
     return (
       <div>
         <Container>
+          {this._isNetboxPluginLoaded() && (
+            <Row>
+              <Col className='text-xs-right'>
+                <TabButton
+                  btnStyle='primary'
+                  handler={synchronizeNetbox}
+                  handlerParam={[pool]}
+                  icon='refresh'
+                  labelId='syncNetbox'
+                />
+              </Col>
+            </Row>
+          )}
           <Row>
             <Col>
               <h3>{_('xenSettingsLabel')}</h3>

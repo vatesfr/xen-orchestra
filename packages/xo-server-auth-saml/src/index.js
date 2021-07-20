@@ -85,7 +85,7 @@ class AuthSamlXoPlugin {
         }
 
         try {
-          done(null, await xo.registerUser('saml', name))
+          done(null, await xo.registerUser2('saml', { user: { id: name, name } }))
         } catch (error) {
           done(error.message)
         }

@@ -1,8 +1,8 @@
-import Client, { AbortedConnection, ConnectionError } from 'jsonrpc-websocket-client'
-import eventToPromise from 'event-to-promise'
 import forEach from 'lodash/forEach'
+import fromEvents from 'promise-toolbox/fromEvents'
 import makeError from 'make-error'
 import map from 'lodash/map'
+import { AbortedConnection, ConnectionError, JsonRpcWebSocketClient as Client } from 'jsonrpc-websocket-client'
 import { EventEmitter } from 'events'
 import {
   setXoaConfiguration,
@@ -191,7 +191,7 @@ class XoaUpdater extends EventEmitter {
     if (c.status === 'open') {
       return c
     } else {
-      return eventToPromise.multi(c, ['open'], ['closed', 'error']).then(() => c)
+      return fromEvents(c, ['open'], ['closed', 'error']).then(() => c)
     }
   }
 

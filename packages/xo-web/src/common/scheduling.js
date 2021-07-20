@@ -193,23 +193,27 @@ class ToggleTd extends Component {
 const TableSelect = decorate([
   provideState({
     effects: {
-      onChange: (_, tdId, add) => (_, { value, onChange, options }) => {
-        let newValue = [...value]
-        const index = sortedIndex(newValue, tdId)
-        if (add) {
-          newValue[index] !== tdId && newValue.splice(index, 0, tdId)
-        } else if (newValue[index] === tdId) {
-          if (newValue.length > 1) {
-            newValue.splice(index, 1)
-          } else {
-            newValue = [options[0][0]]
+      onChange:
+        (_, tdId, add) =>
+        (_, { value, onChange, options }) => {
+          let newValue = [...value]
+          const index = sortedIndex(newValue, tdId)
+          if (add) {
+            newValue[index] !== tdId && newValue.splice(index, 0, tdId)
+          } else if (newValue[index] === tdId) {
+            if (newValue.length > 1) {
+              newValue.splice(index, 1)
+            } else {
+              newValue = [options[0][0]]
+            }
           }
-        }
-        onChange(newValue)
-      },
-      selectAll: () => ({ optionsValues }, { onChange }) => {
-        onChange(optionsValues)
-      },
+          onChange(newValue)
+        },
+      selectAll:
+        () =>
+        ({ optionsValues }, { onChange }) => {
+          onChange(optionsValues)
+        },
     },
     computed: {
       optionsValues: (_, { options }) => flatten(options),
@@ -258,15 +262,17 @@ TableSelect.propTypes = {
 const TimePicker = decorate([
   provideState({
     effects: {
-      onChange: (_, value) => ({ optionsValues }, { onChange }) => {
-        if (Array.isArray(value)) {
-          value = value.length === optionsValues.length ? '*' : value.join(',')
-        } else {
-          value = `*/${value}`
-        }
+      onChange:
+        (_, value) =>
+        ({ optionsValues }, { onChange }) => {
+          if (Array.isArray(value)) {
+            value = value.length === optionsValues.length ? '*' : value.join(',')
+          } else {
+            value = `*/${value}`
+          }
 
-        onChange(value)
-      },
+          onChange(value)
+        },
     },
     computed: {
       maxStep: ({ optionsValues }) => Math.floor(optionsValues.length / 2),

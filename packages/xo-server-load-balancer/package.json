@@ -1,6 +1,6 @@
 {
   "name": "xo-server-load-balancer",
-  "version": "0.5.0",
+  "version": "0.7.0",
   "license": "AGPL-3.0-or-later",
   "description": "Load balancer for XO-Server",
   "keywords": [
@@ -28,6 +28,7 @@
   },
   "dependencies": {
     "@xen-orchestra/cron": "^1.0.6",
+    "@xen-orchestra/log": "^0.2.1",
     "lodash": "^4.16.2"
   },
   "devDependencies": {

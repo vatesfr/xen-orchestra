@@ -79,8 +79,10 @@ const Modal = decorate([
       idSelectSr: generateId,
 
       isStaticMode: (state, { value }) => value.networkMode === 'static',
-      srPredicate: (state, { pbds, hosts }) => sr =>
-        isSrWritable(sr) && sr.$PBDs.some(pbd => get(() => hosts[pbds[pbd].host].hvmCapable)),
+      srPredicate:
+        (state, { pbds, hosts }) =>
+        sr =>
+          isSrWritable(sr) && sr.$PBDs.some(pbd => get(() => hosts[pbds[pbd].host].hvmCapable)),
       networkPredicate: (state, { value }) => value.sr && (network => value.sr.$pool === network.$pool),
     },
   }),

@@ -27,33 +27,37 @@ export default decorate([
   })),
   provideState({
     effects: {
-      _downloadLog: () => ({ formattedLog }, { log }) =>
-        downloadLog({ log: formattedLog, date: log.start, type: 'backup NG' }),
-      restartFailedVms: (_, params) => async (_, { log: { jobId: id, scheduleId: schedule, tasks, infos } }) => {
-        let vms
-        if (tasks !== undefined) {
-          const scheduledVms = get(() => infos.find(({ message }) => message === 'vms').data.vms)
+      _downloadLog:
+        () =>
+        ({ formattedLog }, { log }) =>
+          downloadLog({ log: formattedLog, date: log.start, type: 'backup NG' }),
+      restartFailedVms:
+        (_, params) =>
+        async (_, { log: { jobId: id, scheduleId: schedule, tasks, infos } }) => {
+          let vms
+          if (tasks !== undefined) {
+            const scheduledVms = get(() => infos.find(({ message }) => message === 'vms').data.vms)
 
-          if (scheduledVms !== undefined) {
-            vms = new Set(scheduledVms)
-            tasks.forEach(({ status, data: { id } }) => {
-              status === 'success' && vms.delete(id)
-            })
-            vms = Array.from(vms)
-          } else {
-            vms = []
-            tasks.forEach(({ status, data: { id } }) => {
-              status !== 'success' && vms.push(id)
-            })
+            if (scheduledVms !== undefined) {
+              vms = new Set(scheduledVms)
+              tasks.forEach(({ status, data: { id } }) => {
+                status === 'success' && vms.delete(id)
+              })
+              vms = Array.from(vms)
+            } else {
+              vms = []
+              tasks.forEach(({ status, data: { id } }) => {
+                status !== 'success' && vms.push(id)
+              })
+            }
           }
-        }
-        await runBackupNgJob({
-          force: get(() => params.force),
-          id,
-          schedule,
-          vms,
-        })
-      },
+          await runBackupNgJob({
+            force: get(() => params.force),
+            id,
+            schedule,
+            vms,
+          })
+        },
     },
     computed: {
       formattedLog: (_, { log }) => JSON.stringify(log, null, 2),

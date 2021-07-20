@@ -11,6 +11,7 @@ import React from 'react'
 import StateButton from 'state-button'
 import SortedTable from 'sorted-table'
 import TabButton from 'tab-button'
+import { compact, every, filter, find, forEach, get, map, some, sortedUniq, uniq } from 'lodash'
 import { Sr } from 'render-xo-item'
 import { Container, Row, Col } from 'grid'
 import {
@@ -29,6 +30,7 @@ import {
   createCompare,
   createCompareContainers,
   formatSize,
+  generateReadableRandomString,
   noop,
   resolveResourceSet,
 } from 'utils'
@@ -36,7 +38,6 @@ import { SizeInput, Toggle } from 'form'
 import { XoSelect, Size, Text } from 'editable'
 import { confirm } from 'modal'
 import { error } from 'notification'
-import { compact, every, filter, find, forEach, get, map, some, sortedUniq, uniq } from 'lodash'
 import {
   attachDiskToVm,
   createDisk,
@@ -202,6 +203,10 @@ class NewDisk extends Component {
     checkSr: PropTypes.func.isRequired,
     onClose: PropTypes.func,
     vm: PropTypes.object.isRequired,
+  }
+
+  state = {
+    name: `${this.props.vm.name_label}_${generateReadableRandomString(5)}`,
   }
 
   _createDisk = () => {
@@ -565,8 +570,10 @@ export default class TabDisks extends Component {
     }
   )
 
-  _getCheckSr = createSelector(this._getRequiredHost, requiredHost => sr =>
-    sr === undefined || isSrShared(sr) || requiredHost === undefined || sr.$container === requiredHost
+  _getCheckSr = createSelector(
+    this._getRequiredHost,
+    requiredHost => sr =>
+      sr === undefined || isSrShared(sr) || requiredHost === undefined || sr.$container === requiredHost
   )
 
   _getVbds = createSelector(
@@ -597,12 +604,14 @@ export default class TabDisks extends Component {
       )
   )
 
-  _getGenerateWarningBeforeMigrate = createSelector(this._getCheckSr, check => sr =>
-    check(sr) ? null : (
-      <span className='text-warning'>
-        <Icon icon='alarm' /> {_('warningVdiSr')}
-      </span>
-    )
+  _getGenerateWarningBeforeMigrate = createSelector(
+    this._getCheckSr,
+    check => sr =>
+      check(sr) ? null : (
+        <span className='text-warning'>
+          <Icon icon='alarm' /> {_('warningVdiSr')}
+        </span>
+      )
   )
 
   actions = [

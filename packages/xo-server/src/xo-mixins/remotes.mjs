@@ -1,0 +1,223 @@
+import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
+import { format, parse } from 'xo-remote-parser'
+import { getHandler } from '@xen-orchestra/fs'
+import { ignoreErrors, timeout } from 'promise-toolbox'
+import { noSuchObject } from 'xo-common/api-errors.js'
+import { synchronized } from 'decorator-synchronized'
+
+import * as sensitiveValues from '../sensitive-values.mjs'
+import patch from '../patch.mjs'
+import { Remotes } from '../models/remote.mjs'
+
+// ===================================================================
+
+const obfuscateRemote = ({ url, ...remote }) => {
+  remote.url = format(sensitiveValues.obfuscate(parse(url)))
+  return remote
+}
+
+export default class {
+  constructor(app) {
+    this._handlers = { __proto__: null }
+    this._remotes = new Remotes({
+      connection: app._redis,
+      prefix: 'xo:remote',
+      indexes: ['enabled'],
+    })
+    this._remotesInfo = {}
+    this._app = app
+
+    app.hooks.on('clean', () => this._remotes.rebuildIndexes())
+    app.hooks.on('start', async () => {
+      app.addConfigManager(
+        'remotes',
+        () => this._remotes.get(),
+        remotes => Promise.all(remotes.map(remote => this._remotes.update(remote)))
+      )
+
+      const remotes = await this._remotes.get()
+      remotes.forEach(remote => {
+        ignoreErrors.call(this.updateRemote(remote.id, {}))
+      })
+    })
+    app.hooks.on('stop', async () => {
+      const handlers = this._handlers
+      for (const id in handlers) {
+        try {
+          await handlers[id].forget()
+        } catch (_) {}
+      }
+    })
+  }
+
+  @synchronized
+  async getRemoteHandler(remote) {
+    if (typeof remote === 'string') {
+      remote = await this._getRemote(remote)
+    }
+
+    if (remote.proxy !== undefined) {
+      throw new Error('cannot get handler to proxy remote')
+    }
+
+    if (!remote.enabled) {
+      throw new Error('remote is disabled')
+    }
+
+    const { id } = remote
+    const handlers = this._handlers
+    let handler = handlers[id]
+    if (handler === undefined) {
+      handler = getHandler(remote, this._app.config.get('remoteOptions'))
+
+      try {
+        await handler.sync()
+        ignoreErrors.call(this._updateRemote(id, { error: '' }))
+      } catch (error) {
+        ignoreErrors.call(this._updateRemote(id, { error: error.message }))
+        throw error
+      }
+
+      handlers[id] = handler
+    }
+
+    return handler
+  }
+
+  async testRemote(remoteId) {
+    const remote = await this.getRemoteWithCredentials(remoteId)
+
+    const { readRate, writeRate, ...answer } =
+      remote.proxy !== undefined
+        ? await this._app.callProxyMethod(remote.proxy, 'remote.test', {
+            remote,
+          })
+        : await this.getRemoteHandler(remoteId).then(handler => handler.test())
+
+    if (answer.success) {
+      const benchmark = {
+        readRate,
+        timestamp: Date.now(),
+        writeRate,
+      }
+      await this._updateRemote(remoteId, {
+        error: '',
+        benchmarks:
+          remote.benchmarks !== undefined
+            ? [...remote.benchmarks.slice(-49), benchmark] // store 50 benchmarks
+            : [benchmark],
+      })
+    } else {
+      await this._updateRemote(remoteId, {
+        error: answer.error,
+      })
+    }
+
+    return answer
+  }
+
+  async getAllRemotesInfo() {
+    const remotesInfo = this._remotesInfo
+    await asyncMapSettled(this._remotes.get(), async remote => {
+      if (!remote.enabled) {
+        return
+      }
+
+      const promise =
+        remote.proxy !== undefined
+          ? this._app.callProxyMethod(remote.proxy, 'remote.getInfo', {
+              remote,
+            })
+          : this.getRemoteHandler(remote.id).then(handler => handler.getInfo())
+
+      try {
+        await timeout.call(
+          promise.then(info => {
+            remotesInfo[remote.id] = info
+          }),
+          5e3
+        )
+      } catch (_) {}
+    })
+    return remotesInfo
+  }
+
+  async getAllRemotes() {
+    return (await this._remotes.get()).map(_ => obfuscateRemote(_))
+  }
+
+  async _getRemote(id) {
+    const remote = await this._remotes.first(id)
+    if (remote === undefined) {
+      throw noSuchObject(id, 'remote')
+    }
+    return remote.properties
+  }
+
+  async getRemoteWithCredentials(id) {
+    const remote = await this._getRemote(id)
+    if (!remote.enabled) {
+      throw new Error('remote is disabled')
+    }
+    return remote
+  }
+
+  getRemote(id) {
+    return this._getRemote(id).then(obfuscateRemote)
+  }
+
+  async createRemote({ name, options, proxy, url }) {
+    const params = {
+      enabled: false,
+      error: '',
+      name,
+      proxy,
+      url,
+    }
+    if (options !== undefined) {
+      params.options = options
+    }
+    const remote = await this._remotes.add(params)
+    return /* await */ this.updateRemote(remote.get('id'), { enabled: true })
+  }
+
+  updateRemote(id, { enabled, name, options, proxy, url }) {
+    const handlers = this._handlers
+    const handler = handlers[id]
+    if (handler !== undefined) {
+      delete this._handlers[id]
+      ignoreErrors.call(handler.forget())
+    }
+
+    return this._updateRemote(id, {
+      enabled,
+      name,
+      options,
+      proxy,
+      url,
+    })
+  }
+
+  @synchronized()
+  async _updateRemote(id, { url, ...props }) {
+    const remote = await this._getRemote(id)
+
+    // url is handled separately to take care of obfuscated values
+    if (typeof url === 'string') {
+      remote.url = format(sensitiveValues.merge(parse(url), parse(remote.url)))
+    }
+
+    patch(remote, props)
+
+    return (await this._remotes.update(remote)).properties
+  }
+
+  async removeRemote(id) {
+    const handler = this._handlers[id]
+    if (handler !== undefined) {
+      ignoreErrors.call(handler.forget())
+    }
+
+    await this._remotes.remove(id)
+  }
+}

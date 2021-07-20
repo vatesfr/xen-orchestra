@@ -695,6 +695,10 @@
       @extend .fa;
       @extend .fa-trash;
     }
+    &-current-state {
+      @extend .fa;
+      @extend .fa-check;
+    }
   }
 
   &-filters {

@@ -580,7 +580,9 @@ const messages = {
   remoteSmbPlaceHolderAddressShare: '<address>\\\\<share>',
   remoteSmbPlaceHolderOptions: 'Custom mount options',
   remoteS3PlaceHolderBucket: 'AWS S3 bucket name',
-  remoteS3PlaceHolderDirectory: 'directory',
+  remoteS3PlaceHolderDirectory: 'Directory',
+  remoteS3Region: 'Region, leave blank for default',
+  remoteS3TooltipProtocol: 'Check if you want HTTP instead of HTTPS',
   remotePlaceHolderPassword: 'Password(fill to edit)',
 
   // ------ New Storage -----
@@ -792,6 +794,8 @@ const messages = {
   setpoolMaster: 'Master',
   syslogRemoteHost: 'Remote syslog host',
   defaultMigrationNetwork: 'Default migration network',
+  syncNetbox: 'Synchronize with Netbox',
+  syncNetboxWarning: 'Are you sure you want to synchronize with Netbox?',
   // ----- Pool host tab -----
   hostNameLabel: 'Name',
   hostDescription: 'Description',
@@ -1069,6 +1073,7 @@ const messages = {
   containerRestart: 'Restart this container',
 
   // ----- VM disk tab -----
+  rescanIsoSrs: 'Rescan all ISO SRs',
   vbdCreateDeviceButton: 'New disk',
   vdiAttachDevice: 'Attach disk',
   vdiAttachDeviceConfirm: 'The selected VDI is already attached to this VM. Are you sure you want to continue?',
@@ -1188,6 +1193,7 @@ const messages = {
   snapshotQuiesce: 'Quiesced snapshot',
   vmRevertSuccessfulTitle: 'Revert successful',
   vmRevertSuccessfulMessage: 'VM successfully reverted',
+  currentSnapshot: 'Current snapshot',
 
   // ----- VM backup tab -----
   goToBackupPage: 'Go to the backup page.',
@@ -1579,6 +1585,8 @@ const messages = {
   restoreVmBackupsBulkTitle: 'Restore {nVms, number} VM{nVms, plural, one {} other {s}}',
   restoreVmBackupsBulkMessage:
     'Restore {nVms, number} VM{nVms, plural, one {} other {s}} from {nVms, plural, one {its} other {their}} {oldestOrLatest} backup.',
+  restoreMetadataBackupWarning:
+    'This operation will overwrite the host metadata. Only perform a metadata restore if it is a new server with nothing running on it.',
   oldest: 'oldest',
   latest: 'latest',
   restoreVmBackupsStart: 'Start VM{nVms, plural, one {} other {s}} after restore',
@@ -1837,6 +1845,7 @@ const messages = {
   setPoolMasterModalMessage: 'This operation may take several minutes. Do you want to continue?',
 
   // ----- Network -----
+  networkManagement: 'Management',
   newNetworkCreate: 'Create network',
   newNetworkInterface: 'Interface',
   newNetworkName: 'Name',
@@ -2348,6 +2357,7 @@ const messages = {
   proxyUpToDate: 'Your proxy is up-to-date',
   proxyRunningBackupsMessage:
     'The upgrade will interrupt {nJobs, number} running backup job{nJobs, plural, one {} other {s}}. Do you want to continue?',
+  upgradeNeededForProxies: 'Some proxies need to be upgraded. Click here to get more information.',
 
   // ----- Utils -----
   secondsFormat: '{seconds, plural, one {# second} other {# seconds}}',

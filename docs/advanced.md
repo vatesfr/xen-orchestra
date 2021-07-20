@@ -114,17 +114,18 @@ We need your feedback on this feature!
 
 The plugin "web-hooks" needs to be installed and loaded for this feature to work.
 
-You can trigger an HTTP POST request to a URL when a Xen Orchestra API method is called.
+You can trigger an HTTP POST request to a URL when a Xen Orchestra API method is called or when a backup job runs.
 
 - Go to Settings > Plugins > Web hooks
 - Add new hooks
 - For each hook, configure:
-  - Method: the XO API method that will trigger the HTTP request when called
+  - Method: the XO API method that will trigger the HTTP request when called. For backup jobs, choose `backupNg.runJob`.
   - Type:
     - pre: the request will be sent when the method is called
     - post: the request will be sent after the method action is completed
     - pre/post: both
   - URL: the full URL which the requests will be sent to
+  - Wait for response: you can choose to wait for the web hook response before the method is actually called ("pre" hooks only). This can be useful if you need to automatically run some tasks before a certain method is called.
 - Save the plugin configuration
 
 From now on, a request will be sent to the corresponding URLs when a configured method is called by an XO client.
@@ -319,6 +320,39 @@ It works with few steps:
 3. Provision the VM with terraform and its XO provider
 
 From there, you can even manage your existing resources with Terraform!
+
+## Netbox
+
+Synchronize your pools, VMs, network interfaces and IP addresses with your [Netbox](https://netbox.readthedocs.io/en/stable/) instance.
+
+![](./assets/netbox.png)
+
+- Go to your Netbox interface
+- Configure prefixes:
+  - Go to IPAM > Prefixes > Add
+  - Manually create as many prefixes as needed for your infrastructure's IP addresses
+
+:::warning
+XO will try to find the right prefix for each IP address. If it can't find a prefix that fits, the IP address won't be synchronized.
+:::
+
+- Generate a token:
+  - Go to Admin > Tokens > Add token
+  - Create a token with "Write enabled"
+- Add a UUID custom field:
+  - Got to Admin > Custom fields > Add custom field
+  - Create a custom field called "uuid" (lower case!)
+  - Assign it to object types `virtualization > cluster` and `virtualization > virtual machine`
+
+![](./assets/customfield.png)
+
+- Go to Xen Orchestra > Settings > Plugins > Netbox and fill out the configuration:
+  - Endpoint: the URL of your Netbox instance (e.g.: `https://netbox.company.net`)
+  - Token: the token you generated earlier
+  - Pools: the pools you wish to automatically synchronize with Netbox
+  - Interval: the time interval (in hours) between 2 auto-synchronizations. Leave empty if you don't want to synchronize automatically.
+- Load the plugin (button next to the plugin's name)
+- Manual synchronization: if you correctly configured and loaded the plugin, a "Synchronize with Netbox" button will appear in every pool's Advanced tab, which allows you to manually synchronize it with Netbox
 
 ## Recipes
 

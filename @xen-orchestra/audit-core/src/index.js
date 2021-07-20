@@ -1,6 +1,3 @@
-// see https://github.com/babel/babel/issues/8450
-import 'core-js/features/symbol/async-iterator'
-
 import assert from 'assert'
 import hash from 'object-hash'
 import { createLogger } from '@xen-orchestra/log'

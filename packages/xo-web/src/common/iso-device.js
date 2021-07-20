@@ -8,8 +8,9 @@ import Icon from 'icon'
 import Tooltip from 'tooltip'
 import { alert } from 'modal'
 import { isAdmin } from 'selectors'
+import { isEmpty } from 'lodash'
 import { addSubscriptions, connectStore, resolveResourceSet } from './utils'
-import { ejectCd, insertCd, subscribeResourceSets } from './xo'
+import { ejectCd, insertCd, rescanSrs, subscribeResourceSets } from './xo'
 import { createGetObjectsOfType, createFinder, createGetObject, createSelector } from './selectors'
 import { SelectResourceSetsVdi, SelectVdi as SelectAnyVdi } from './select-objects'
 
@@ -24,6 +25,12 @@ const vdiPredicate = vdi => !vdi.missing
     [vbd => vbd.is_cd_drive]
   )
 
+  const getIsoSrs = createGetObjectsOfType('SR').filter(
+    (_, { vm: { $pool } }) =>
+      sr =>
+        sr.$pool === $pool && sr.SR_type === 'iso'
+  )
+
   const getMountedIso = createGetObject((state, props) => {
     const cdDrive = getCdDrive(state, props)
     if (cdDrive) {
@@ -34,6 +41,7 @@ const vdiPredicate = vdi => !vdi.missing
   return {
     cdDrive: getCdDrive,
     isAdmin,
+    isoSrs: getIsoSrs,
     mountedIso: getMountedIso,
   }
 })
@@ -81,10 +89,12 @@ export default class IsoDevice extends Component {
 
   _handleEject = () => ejectCd(this.props.vm)
 
+  _rescanIsoSrs = () => rescanSrs(this.props.isoSrs)
+
   _showWarning = () => alert(_('cdDriveNotInstalled'), _('cdDriveInstallation'))
 
   render() {
-    const { cdDrive, isAdmin, mountedIso } = this.props
+    const { cdDrive, isAdmin, isoSrs, mountedIso } = this.props
     const resourceSet = this._getResolvedResourceSet()
     const useResourceSet = !(isAdmin || resourceSet === undefined)
     const SelectVdi = useResourceSet ? SelectResourceSetsVdi : SelectAnyVdi
@@ -98,6 +108,16 @@ export default class IsoDevice extends Component {
           srPredicate={this._getSrPredicate()}
           value={mountedIso}
         />
+        {!useResourceSet && (
+          <span className='input-group-btn'>
+            <ActionButton
+              disabled={isEmpty(isoSrs)}
+              handler={this._rescanIsoSrs}
+              icon='refresh'
+              tooltip={_('rescanIsoSrs')}
+            />
+          </span>
+        )}
         <span className='input-group-btn'>
           <ActionButton disabled={!mountedIso} handler={this._handleEject} icon='vm-eject' />
         </span>

@@ -28,9 +28,10 @@ export default {
     buffer.toString('hex', offset + 5, offset + 6),
 
   stringToEth: (string, buffer, offset) => {
-    const eth = /^([0-9A-Fa-f]{2}):([0-9A-Fa-f]{2}):([0-9A-Fa-f]{2}):([0-9A-Fa-f]{2}):([0-9A-Fa-f]{2}):([0-9A-Fa-f]{2})$/.exec(
-      string
-    )
+    const eth =
+      /^([0-9A-Fa-f]{2}):([0-9A-Fa-f]{2}):([0-9A-Fa-f]{2}):([0-9A-Fa-f]{2}):([0-9A-Fa-f]{2}):([0-9A-Fa-f]{2})$/.exec(
+        string
+      )
     assert(eth !== null)
     buffer.writeUInt8(parseInt(eth[1], 16), offset)
     buffer.writeUInt8(parseInt(eth[2], 16), offset + 1)
@@ -50,9 +51,10 @@ export default {
     ),
 
   stringToip4: (string, buffer, offset) => {
-    const ip = /^([1-9]?\d|1\d\d|2[0-4]\d|25[0-5])\.([1-9]?\d|1\d\d|2[0-4]\d|25[0-5])\.([1-9]?\d|1\d\d|2[0-4]\d|25[0-5])\.([1-9]?\d|1\d\d|2[0-4]\d|25[0-5])$/.exec(
-      string
-    )
+    const ip =
+      /^([1-9]?\d|1\d\d|2[0-4]\d|25[0-5])\.([1-9]?\d|1\d\d|2[0-4]\d|25[0-5])\.([1-9]?\d|1\d\d|2[0-4]\d|25[0-5])\.([1-9]?\d|1\d\d|2[0-4]\d|25[0-5])$/.exec(
+        string
+      )
     assert(ip !== null)
     buffer.writeUInt8(parseInt(ip[1], 10), offset)
     buffer.writeUInt8(parseInt(ip[2], 10), offset + 1)

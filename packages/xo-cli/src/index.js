@@ -8,7 +8,7 @@ Bluebird.longStackTraces()
 const createReadStream = require('fs').createReadStream
 const createWriteStream = require('fs').createWriteStream
 const resolveUrl = require('url').resolve
-const stat = require('fs-promise').stat
+const stat = require('fs-extra').stat
 
 const chalk = require('chalk')
 const forEach = require('lodash/forEach')
@@ -19,7 +19,6 @@ const humanFormat = require('human-format')
 const identity = require('lodash/identity')
 const isObject = require('lodash/isObject')
 const micromatch = require('micromatch')
-const nicePipe = require('nice-pipe')
 const pairs = require('lodash/toPairs')
 const pick = require('lodash/pick')
 const pump = require('pump')
@@ -27,7 +26,7 @@ const prettyMs = require('pretty-ms')
 const progressStream = require('progress-stream')
 const pw = require('pw')
 const Xo = require('xo-lib').default
-const { PassThrough } = require('stream')
+const { PassThrough, pipeline } = require('stream')
 
 // -------------------------------------------------------------------
 
@@ -79,6 +78,8 @@ function extractFlags(args) {
 
   return flags
 }
+
+const noop = Function.prototype
 
 const PARAM_RE = /^([^=]+)=([^]*)$/
 function parseParameters(args) {
@@ -395,7 +396,7 @@ async function call(args) {
       url = resolveUrl(baseUrl, result[key])
 
       const { size: length } = await stat(file)
-      const input = nicePipe([
+      const input = pipeline(
         createReadStream(file),
         progressStream(
           {
@@ -404,7 +405,8 @@ async function call(args) {
           },
           printProgress
         ),
-      ])
+        noop
+      )
 
       return hrp
         .post(url, {

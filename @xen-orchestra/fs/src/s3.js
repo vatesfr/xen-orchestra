@@ -1,9 +1,9 @@
 import aws from '@sullux/aws-sdk'
 import assert from 'assert'
+import http from 'http'
 import { parse } from 'xo-remote-parser'
 
 import RemoteHandlerAbstract from './abstract'
-import { createChecksumStream } from './checksum'
 
 // endpoints https://docs.aws.amazon.com/general/latest/gr/s3.html
 
@@ -16,9 +16,8 @@ const IDEAL_FRAGMENT_SIZE = Math.ceil(MAX_OBJECT_SIZE / MAX_PARTS_COUNT) // the 
 export default class S3Handler extends RemoteHandlerAbstract {
   constructor(remote, _opts) {
     super(remote)
-    const { host, path, username, password } = parse(remote.url)
-    // https://www.zenko.io/blog/first-things-first-getting-started-scality-s3-server/
-    this._s3 = aws({
+    const { host, path, username, password, protocol, region } = parse(remote.url)
+    const params = {
       accessKeyId: username,
       apiVersion: '2006-03-01',
       endpoint: host,
@@ -28,7 +27,16 @@ export default class S3Handler extends RemoteHandlerAbstract {
       httpOptions: {
         timeout: 600000,
       },
-    }).s3
+    }
+    if (protocol === 'http') {
+      params.httpOptions.agent = new http.Agent()
+      params.sslEnabled = false
+    }
+    if (region !== undefined) {
+      params.region = region
+    }
+
+    this._s3 = aws(params).s3
 
     const splitPath = path.split('/').filter(s => s.length)
     this._bucket = splitPath.shift()
@@ -43,46 +51,69 @@ export default class S3Handler extends RemoteHandlerAbstract {
     return { Bucket: this._bucket, Key: this._dir + file }
   }
 
-  async _outputStream(path, input, { checksum }) {
-    let inputStream = input
-    if (checksum) {
-      const checksumStream = createChecksumStream()
-      const forwardError = error => {
-        checksumStream.emit('error', error)
+  async _isNotEmptyDir(path) {
+    const result = await this._s3.listObjectsV2({
+      Bucket: this._bucket,
+      MaxKeys: 1,
+      Prefix: this._dir + path + '/',
+    })
+    return result.Contents.length !== 0
+  }
+
+  async _isFile(path) {
+    try {
+      await this._s3.headObject(this._createParams(path))
+      return true
+    } catch (error) {
+      if (error.code === 'NotFound') {
+        return false
       }
-      input.pipe(checksumStream)
-      input.on('error', forwardError)
-      inputStream = checksumStream
+      throw error
     }
+  }
+
+  async _outputStream(path, input, { validator }) {
     await this._s3.upload(
       {
         ...this._createParams(path),
-        Body: inputStream,
+        Body: input,
       },
       { partSize: IDEAL_FRAGMENT_SIZE, queueSize: 1 }
     )
-    if (checksum) {
-      const checksum = await inputStream.checksum
-      const params = {
-        ...this._createParams(path + '.checksum'),
-        Body: checksum,
+    if (validator !== undefined) {
+      try {
+        await validator.call(this, path)
+      } catch (error) {
+        await this.unlink(path)
+        throw error
       }
-      await this._s3.upload(params)
     }
-    await input.task
   }
 
   async _writeFile(file, data, options) {
     return this._s3.putObject({ ...this._createParams(file), Body: data })
   }
 
-  async _createReadStream(file, options) {
+  async _createReadStream(path, options) {
+    if (!(await this._isFile(path))) {
+      const error = new Error(`ENOENT: no such file '${path}'`)
+      error.code = 'ENOENT'
+      error.path = path
+      throw error
+    }
+
     // https://github.com/Sullux/aws-sdk/issues/11
-    return this._s3.getObject.raw(this._createParams(file)).createReadStream()
+    return this._s3.getObject.raw(this._createParams(path)).createReadStream()
   }
 
-  async _unlink(file) {
-    return this._s3.deleteObject(this._createParams(file))
+  async _unlink(path) {
+    await this._s3.deleteObject(this._createParams(path))
+    if (await this._isNotEmptyDir(path)) {
+      const error = new Error(`EISDIR: illegal operation on a directory, unlink '${path}'`)
+      error.code = 'EISDIR'
+      error.path = path
+      throw error
+    }
   }
 
   async _list(dir) {
@@ -104,6 +135,16 @@ export default class S3Handler extends RemoteHandlerAbstract {
       }
     }
     return [...uniq]
+  }
+
+  async _mkdir(path) {
+    if (await this._isFile(path)) {
+      const error = new Error(`ENOTDIR: file already exists, mkdir '${path}'`)
+      error.code = 'ENOTDIR'
+      error.path = path
+      throw error
+    }
+    // nothing to do, directories do not exist, they are part of the files' path
   }
 
   async _rename(oldPath, newPath) {
@@ -145,6 +186,17 @@ export default class S3Handler extends RemoteHandlerAbstract {
     const result = await this._s3.getObject(params)
     result.Body.copy(buffer)
     return { bytesRead: result.Body.length, buffer }
+  }
+
+  async _rmdir(path) {
+    if (await this._isNotEmptyDir(path)) {
+      const error = new Error(`ENOTEMPTY: directory not empty, rmdir '${path}`)
+      error.code = 'ENOTEMPTY'
+      error.path = path
+      throw error
+    }
+
+    // nothing to do, directories do not exist, they are part of the files' path
   }
 
   async _write(file, buffer, position) {

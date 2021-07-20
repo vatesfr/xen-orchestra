@@ -97,14 +97,15 @@ const _signIn = new Promise(resolve => xo.once('authenticated', resolve))
 const _call = new URLSearchParams(window.location.search.slice(1)).has('debug')
   ? async (method, params) => {
       await _signIn
+      const now = Date.now()
       return tap.call(
         xo.call(method, params),
         result => {
           // eslint-disable-next-line no-console
-          console.debug('API call', method, params, result)
+          console.debug('API call (%d ms)', Date.now() - now, method, params, result)
         },
         error => {
-          console.error('API call error', method, params, error)
+          console.error('API call (%d ms) error', Date.now() - now, method, params, error)
         }
       )
     }
@@ -1368,15 +1369,17 @@ export const createVms = (args, nameLabels, cloudConfigs) =>
     body: _('newVmCreateVmsConfirm', { nbVms: nameLabels.length }),
   }).then(() =>
     Promise.all(
-      map(nameLabels, (
-        name_label, // eslint-disable-line camelcase
-        i
-      ) =>
-        _call('vm.create', {
-          ...args,
-          name_label,
-          cloudConfig: get(cloudConfigs, i),
-        })
+      map(
+        nameLabels,
+        (
+          name_label, // eslint-disable-line camelcase
+          i
+        ) =>
+          _call('vm.create', {
+            ...args,
+            name_label,
+            cloudConfig: get(cloudConfigs, i),
+          })
       )
     )
   )
@@ -1465,21 +1468,16 @@ export const importVm = async (file, type = 'xva', data = undefined, sr) => {
       }
     }
   }
-  return _call('vm.import', { type, data, sr: resolveId(sr) }).then(async ({ $sendTo }) => {
-    formData.append('file', file)
-    return post($sendTo, formData)
-      .then(res => {
-        if (res.status !== 200) {
-          throw res.status
-        }
-        success(_('vmImportSuccess'), name)
-        return res.json().then(body => body.result)
-      })
-      .catch(err => {
-        error(_('vmImportFailed'), name)
-        throw err
-      })
-  })
+  const result = await _call('vm.import', { type, data, sr: resolveId(sr) })
+  formData.append('file', file)
+  const res = await post(result.$sendTo, formData)
+  const json = await res.json()
+  if (res.status !== 200) {
+    error(_('vmImportFailed'), name)
+    throw json.error
+  }
+  success(_('vmImportSuccess'), name)
+  return json.result
 }
 
 import ImportVdiModalBody from './import-vdi-modal' // eslint-disable-line import/first
@@ -2890,6 +2888,8 @@ export const getApplianceInfo = () => _call('xoa.getApplianceInfo')
 
 // Proxy --------------------------------------------------------------------
 
+export const getAllProxies = () => _call('proxy.getAll')
+
 export const createProxyTrialLicense = () => _call('xoa.licenses.createProxyTrial')
 
 export const deployProxyAppliance = (license, sr, { network, proxy, ...props } = {}) =>
@@ -2999,3 +2999,12 @@ export const synchronizeLdapGroups = () =>
     body: _('syncLdapGroupsWarning'),
     icon: 'refresh',
   }).then(() => _call('ldap.synchronizeGroups')::tap(subscribeGroups.forceRefresh), noop)
+
+// Netbox plugin ---------------------------------------------------------------
+
+export const synchronizeNetbox = pools =>
+  confirm({
+    title: _('syncNetbox'),
+    body: _('syncNetboxWarning'),
+    icon: 'refresh',
+  }).then(() => _call('netbox.synchronize', { pools: resolveIds(pools) }))

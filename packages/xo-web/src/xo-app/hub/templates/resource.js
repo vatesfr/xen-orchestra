@@ -47,15 +47,8 @@ export default decorate([
     }),
     effects: {
       async install() {
-        const {
-          id,
-          name,
-          namespace,
-          markHubResourceAsInstalled,
-          markHubResourceAsInstalling,
-          templates,
-          version,
-        } = this.props
+        const { id, name, namespace, markHubResourceAsInstalled, markHubResourceAsInstalling, templates, version } =
+          this.props
         const { isTemplateInstalled } = this.state
         const resourceParams = await form({
           defaultValue: {
@@ -227,10 +220,14 @@ export default decorate([
       isTemplateInstalledOnAllPools: ({ installedTemplates }, { pools }) =>
         installedTemplates.length > 0 &&
         pools.every(pool => installedTemplates.find(template => template.$pool === pool.id) !== undefined),
-      isTemplateInstalled: ({ installedTemplates }) => pool =>
-        installedTemplates.find(template => template.$pool === pool.id) === undefined,
-      isPoolCreated: ({ installedTemplates }) => pool =>
-        installedTemplates.find(template => template.$pool === pool.id) !== undefined,
+      isTemplateInstalled:
+        ({ installedTemplates }) =>
+        pool =>
+          installedTemplates.find(template => template.$pool === pool.id) === undefined,
+      isPoolCreated:
+        ({ installedTemplates }) =>
+        pool =>
+          installedTemplates.find(template => template.$pool === pool.id) !== undefined,
     },
   }),
   injectState,

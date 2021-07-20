@@ -1,24 +1,5 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`backupNg .runJob() : fails trying to run a backup job with a VM without disks 1`] = `
-Object {
-  "data": Object {
-    "id": Any<String>,
-    "type": "VM",
-  },
-  "end": Any<Number>,
-  "id": Any<String>,
-  "message": Any<String>,
-  "result": Object {
-    "message": "no disks found",
-    "name": "Error",
-    "stack": Any<String>,
-  },
-  "start": Any<Number>,
-  "status": "skipped",
-}
-`;
-
 exports[`backupNg .runJob() : fails trying to run a backup job with no matching VMs 1`] = `[JsonRpcError: unknown error from the peer]`;
 
 exports[`backupNg .runJob() : fails trying to run a backup job with non-existent vm 1`] = `
@@ -37,25 +18,6 @@ Object {
 `;
 
 exports[`backupNg .runJob() : fails trying to run a backup job without schedule 1`] = `[JsonRpcError: invalid parameters]`;
-
-exports[`backupNg .runJob() : fails trying to run backup job without retentions 1`] = `
-Object {
-  "data": Object {
-    "id": Any<String>,
-    "type": "VM",
-  },
-  "end": Any<Number>,
-  "id": Any<String>,
-  "message": Any<String>,
-  "result": Object {
-    "message": "copy, export and snapshot retentions cannot both be 0",
-    "name": "Error",
-    "stack": Any<String>,
-  },
-  "start": Any<Number>,
-  "status": "failure",
-}
-`;
 
 exports[`backupNg create and execute backup with enabled offline backup 1`] = `
 Object {

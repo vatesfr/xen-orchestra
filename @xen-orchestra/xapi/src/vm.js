@@ -1,7 +1,7 @@
 const CancelToken = require('promise-toolbox/CancelToken.js')
 const groupBy = require('lodash/groupBy.js')
+const ignoreErrors = require('promise-toolbox/ignoreErrors')
 const pickBy = require('lodash/pickBy.js')
-const ignoreErrors = require('promise-toolbox/ignoreErrors.js')
 const omit = require('lodash/omit.js')
 const pCatch = require('promise-toolbox/catch.js')
 const pRetry = require('promise-toolbox/retry.js')
@@ -426,17 +426,29 @@ module.exports = class Vm {
       query.sr_id = srRef
     }
     if (onVmCreation != null) {
-      ignoreErrors.call(
-        this._waitObject(
-          obj => obj != null && obj.current_operations != null && taskRef in obj.current_operations
-        ).then(onVmCreation)
+      const original = onVmCreation
+      onVmCreation = vm => {
+        if (onVmCreation !== undefined) {
+          onVmCreation = undefined
+          stopWatch()
+          return original(vm)
+        }
+      }
+
+      const stopWatch = this.waitObject(
+        obj => obj != null && obj.current_operations != null && taskRef in obj.current_operations,
+        onVmCreation
       )
     }
     try {
-      return await this.putResource(stream, '/import/', {
+      const ref = await this.putResource(stream, '/import/', {
         query,
         task: taskRef,
       }).then(extractOpaqueRef)
+      if (onVmCreation != null) {
+        ignoreErrors.call(this.getRecord('VM', ref).then(onVmCreation))
+      }
+      return ref
     } catch (error) {
       // augment the error with as much relevant info as possible
       const [poolMaster, sr] = await Promise.all([

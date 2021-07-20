@@ -47,10 +47,9 @@
   "dependencies": {
     "@xen-orchestra/audit-core": "^0.2.0",
     "@xen-orchestra/cron": "^1.0.6",
-    "@xen-orchestra/log": "^0.2.0",
+    "@xen-orchestra/log": "^0.2.1",
     "async-iterator-to-stream": "^1.1.0",
-    "lodash": "^4.17.19",
-    "promise-toolbox": "^0.19.0",
+    "promise-toolbox": "^0.19.2",
     "readable-stream": "^3.5.0",
     "xo-common": "^0.7.0"
   },

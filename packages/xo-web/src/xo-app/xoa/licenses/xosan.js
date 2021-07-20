@@ -129,9 +129,10 @@ export default class Xosan extends Component {
     }
   )
 
-  _getAvailableLicenses = createFilter(() => this.props.xosanLicenses, [
-    ({ boundObjectId, expires }) => boundObjectId === undefined && (expires === undefined || expires > Date.now()),
-  ])
+  _getAvailableLicenses = createFilter(
+    () => this.props.xosanLicenses,
+    [({ boundObjectId, expires }) => boundObjectId === undefined && (expires === undefined || expires > Date.now())]
+  )
 
   _getKnownXosans = createSelector(
     createSelector(

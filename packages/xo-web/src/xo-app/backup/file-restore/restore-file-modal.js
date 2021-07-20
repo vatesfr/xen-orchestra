@@ -264,17 +264,8 @@ export default class RestoreFileModalBody extends Component {
 
   render() {
     const { backups } = this.props
-    const {
-      backup,
-      disk,
-      partition,
-      partitions,
-      path,
-      scanDiskError,
-      listFilesError,
-      scanningFiles,
-      selectedFiles,
-    } = this.state
+    const { backup, disk, partition, partitions, path, scanDiskError, listFilesError, scanningFiles, selectedFiles } =
+      this.state
     const noPartitions = isEmpty(partitions)
     const redundantFiles = this._getRedundantFiles()
 

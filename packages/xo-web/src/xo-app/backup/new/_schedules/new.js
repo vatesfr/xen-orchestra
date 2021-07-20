@@ -14,23 +14,29 @@ import { areRetentionsMissing } from '.'
 export default decorate([
   provideState({
     effects: {
-      setSchedule: (_, params) => (_, { value, onChange }) => {
-        onChange({
-          ...value,
-          ...params,
-        })
-      },
-      setCronTimezone: ({ setSchedule }, { cronPattern: cron, timezone }) => () => {
-        setSchedule({
-          cron,
-          timezone,
-        })
-      },
-      setName: ({ setSchedule }, { target: { value } }) => () => {
-        setSchedule({
-          name: value.trim() === '' ? null : value,
-        })
-      },
+      setSchedule:
+        (_, params) =>
+        (_, { value, onChange }) => {
+          onChange({
+            ...value,
+            ...params,
+          })
+        },
+      setCronTimezone:
+        ({ setSchedule }, { cronPattern: cron, timezone }) =>
+        () => {
+          setSchedule({
+            cron,
+            timezone,
+          })
+        },
+      setName:
+        ({ setSchedule }, { target: { value } }) =>
+        () => {
+          setSchedule({
+            name: value.trim() === '' ? null : value,
+          })
+        },
       setRetention({ setSchedule }, value, { name }) {
         setSchedule({
           [name]: value,

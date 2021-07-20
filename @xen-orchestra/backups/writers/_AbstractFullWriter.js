@@ -1,7 +1,12 @@
 const { AbstractWriter } = require('./_AbstractWriter.js')
 
 exports.AbstractFullWriter = class AbstractFullWriter extends AbstractWriter {
-  run({ timestamp, sizeContainer, stream }) {
-    throw new Error('Not implemented')
+  async run({ timestamp, sizeContainer, stream }) {
+    try {
+      return await this._run({ timestamp, sizeContainer, stream })
+    } finally {
+      // ensure stream is properly closed
+      stream.destroy()
+    }
   }
 }

@@ -5,9 +5,9 @@ import expect from 'must'
 
 // ===================================================================
 
+import fromEvent from 'promise-toolbox/fromEvent'
 import { getConfig, getMainConnection, getVmXoTestPvId, getOneHost, waitObjectState } from './util'
 import { map } from 'lodash'
-import eventToPromise from 'event-to-promise'
 
 // ===================================================================
 
@@ -27,7 +27,7 @@ describe('vbd', () => {
 
     serverId = await xo.call('server.add', Object.assign({ autoConnect: false }, config.xenServer1))
     await xo.call('server.connect', { id: serverId })
-    await eventToPromise(xo.objects, 'finish')
+    await fromEvent(xo.objects, 'finish')
 
     vmId = await getVmXoTestPvId(xo)
     try {

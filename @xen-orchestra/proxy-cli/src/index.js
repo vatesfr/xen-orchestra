@@ -36,7 +36,14 @@ async function main(argv) {
 
   const { hostname = 'localhost', port } = config?.http?.listen?.https ?? {}
 
-  const { _: args, file, help, host, raw, token } = getopts(argv, {
+  const {
+    _: args,
+    file,
+    help,
+    host,
+    raw,
+    token,
+  } = getopts(argv, {
     alias: { file: 'f', help: 'h' },
     boolean: ['help', 'raw'],
     default: {

@@ -71,25 +71,31 @@ const DiskImport = decorate([
         )
         return { disks: disks.filter(disk => disk !== undefined), loadingDisks: false }
       },
-      import: () => async ({ disks, mapDescriptions, mapNames, sr }) => {
-        await importDisks(
-          disks.map(({ id, name, ...disk }) => ({
-            ...disk,
-            name: mapNames[id] || name,
-            description: mapDescriptions[id],
-          })),
-          sr
-        )
-      },
+      import:
+        () =>
+        async ({ disks, mapDescriptions, mapNames, sr }) => {
+          await importDisks(
+            disks.map(({ id, name, ...disk }) => ({
+              ...disk,
+              name: mapNames[id] || name,
+              description: mapDescriptions[id],
+            })),
+            sr
+          )
+        },
       linkState,
-      onChangeDescription: (_, { target: { name, value } }) => ({ mapDescriptions }) => {
-        mapDescriptions[name] = value
-        return { mapDescriptions }
-      },
-      onChangeName: (_, { target: { name, value } }) => ({ mapNames }) => {
-        mapNames[name] = value
-        return { mapNames }
-      },
+      onChangeDescription:
+        (_, { target: { name, value } }) =>
+        ({ mapDescriptions }) => {
+          mapDescriptions[name] = value
+          return { mapDescriptions }
+        },
+      onChangeName:
+        (_, { target: { name, value } }) =>
+        ({ mapNames }) => {
+          mapNames[name] = value
+          return { mapNames }
+        },
       onChangeSr: (_, sr) => ({ sr }),
       reset: getInitialState,
     },

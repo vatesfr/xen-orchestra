@@ -79,7 +79,11 @@ const Field = ({ title, children }) => (
 })
 class Node extends Component {
   _replaceBrick = async ({ brick, vm }) => {
-    const { sr, brickSize, onSameVm = false } = await confirm({
+    const {
+      sr,
+      brickSize,
+      onSameVm = false,
+    } = await confirm({
       icon: 'refresh',
       title: _('xosanReplace'),
       body: <ReplaceBrickModalBody vm={vm} />,

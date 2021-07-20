@@ -1,8 +1,136 @@
 # ChangeLog
 
-## **5.57.1** (2021-04-13)
+## **5.60.0** (2021-06-30)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
+### Highlights
+
+- [VM/disks] Ability to rescan ISO SRs (PR [#5814](https://github.com/vatesfr/xen-orchestra/pull/5814))
+- [VM/snapshots] Identify VM's current snapshot with an icon next to the snapshot's name (PR [#5824](https://github.com/vatesfr/xen-orchestra/pull/5824))
+
+### Enhancements
+
+- [OVA import] improve OVA import error reporting (PR [#5797](https://github.com/vatesfr/xen-orchestra/pull/5797))
+- [Backup] Distinguish error messages between cancelation and interrupted HTTP connection
+- [Jobs] Add `host.emergencyShutdownHost` to the list of methods that jobs can call (PR [#5818](https://github.com/vatesfr/xen-orchestra/pull/5818))
+- [Host/Load-balancer] Log VM and host names when a VM is migrated + category (density, performance, ...) (PR [#5808](https://github.com/vatesfr/xen-orchestra/pull/5808))
+- [VM/new disk] Auto-fill disk name input with generated unique name (PR [#5828](https://github.com/vatesfr/xen-orchestra/pull/5828))
+
+### Bug fixes
+
+- [IPs] Handle space-delimited IP address format provided by outdated guest tools [5801](https://github.com/vatesfr/xen-orchestra/issues/5801) (PR [5805](https://github.com/vatesfr/xen-orchestra/pull/5805))
+- [API/pool.listPoolsMatchingCriteria] fix `unknown error from the peer` error (PR [5807](https://github.com/vatesfr/xen-orchestra/pull/5807))
+- [Backup] Limit number of connections to hosts, which should reduce the occurences of `ECONNRESET`
+- [Plugins/perf-alert] All mode: only selects running hosts and VMs (PR [5811](https://github.com/vatesfr/xen-orchestra/pull/5811))
+- [New VM] Fix summary section always showing "0 B" for RAM (PR [#5817](https://github.com/vatesfr/xen-orchestra/pull/5817))
+- [Backup/Restore] Fix _start VM after restore_ [5820](https://github.com/vatesfr/xen-orchestra/issues/5820)
+- [Netbox] Fix a bug where some devices' IPs would get deleted from Netbox (PR [#5821](https://github.com/vatesfr/xen-orchestra/pull/5821))
+- [Netbox] Fix an issue where some IPv6 would be deleted just to be immediately created again (PR [#5822](https://github.com/vatesfr/xen-orchestra/pull/5822))
+
+### Released packages
+
+- @vates/decorate-with 0.1.0
+- xen-api 0.33.1
+- @xen-orchestra/xapi 0.6.4
+- @xen-orchestra/backups 0.12.0
+- @xen-orchestra/proxy 0.14.3
+- vhd-lib 1.1.0
+- vhd-cli 0.4.0
+- xo-server-netbox 0.1.2
+- xo-server-perf-alert 0.3.2
+- xo-server-load-balancer 0.7.0
+- xo-server 5.80.0
+- xo-web 5.84.0
+
+## **5.59.0** (2021-05-31)
+
+<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
+
+### Highlights
+
+- [Smart backup] Report missing pools [#2844](https://github.com/vatesfr/xen-orchestra/issues/2844) (PR [#5768](https://github.com/vatesfr/xen-orchestra/pull/5768))
+- [Metadata Backup] Add a warning on restoring a metadata backup (PR [#5769](https://github.com/vatesfr/xen-orchestra/pull/5769))
+- [Netbox] [Plugin](https://xen-orchestra.com/docs/advanced.html#netbox) to synchronize pools, VMs and IPs with [Netbox](https://netbox.readthedocs.io/en/stable/) (PR [#5783](https://github.com/vatesfr/xen-orchestra/pull/5783))
+
+### Enhancements
+
+- [SAML] Compatible with users created with other authentication providers (PR [#5781](https://github.com/vatesfr/xen-orchestra/pull/5781))
+
+### Bug fixes
+
+- [SDN Controller] Private network creation failure when the tunnels were created on different devices [Forum #4620](https://xcp-ng.org/forum/topic/4620/no-pif-found-in-center) (PR [#5793](https://github.com/vatesfr/xen-orchestra/pull/5793))
+
+### Released packages
+
+- @xen-orchestra/emit-async 0.1.0
+- @xen-orchestra/defined 0.0.1
+- xo-collection 0.5.0
+- @xen-orchestra/log 0.2.1
+- xen-api 0.33.0
+- @xen-orchestra/xapi 0.6.3
+- xo-server-auth-saml 0.9.0
+- xo-server-backup-reports 0.16.10
+- xo-server-netbox 0.1.1
+- xo-server-sdn-controller 1.0.5
+- xo-web 5.82.0
+- xo-server 5.79.5
+
+## **5.58.1** (2021-05-06)
+
+### Bug fixes
+
+- [Backups] Better handling of errors in remotes, fix `task has already ended`
+- [Metadata Backup] Fix `Cannot read property 'constructor' of null` when editing job [Forum post](https://xcp-ng.org/forum/topic/4556/can-t-edit-xo-metatata-backup-config)
+
+### Released packages
+
+- @xen-orchestra/fs 0.17.0
+- @xen-orchestra/backups 0.11.0
+- xo-server 5.79.3
+
+## **5.58.0** (2021-04-30)
+
+### Enhancements
+
+- [VM] Don't make a VM use [DMC](https://docs.citrix.com/en-us/xencenter/7-1/dmc-about.html) on creation by default [#5729](https://github.com/vatesfr/xen-orchestra/issues/5729)
+- [NFS remotes] Don't force version 3 by default (PR [#5725](https://github.com/vatesfr/xen-orchestra/pull/5725))
+- [Template] Ability to create a template from a snapshot [#4891](https://github.com/vatesfr/xen-orchestra/issues/4891) (PR [#5736](https://github.com/vatesfr/xen-orchestra/pull/5736))
+- [PIF] Automatically reconfigure management PIF on host case of IP address change to avoid connection loss [#5730](https://github.com/vatesfr/xen-orchestra/issues/5730) (PR [#5745](https://github.com/vatesfr/xen-orchestra/pull/5745))
+- [Backup] Lock VM directory during backup to avoid race conditions (PR [#5746](https://github.com/vatesfr/xen-orchestra/pull/5746))
+- [XOA] Notify user when proxies need to be upgraded (PR [#5717](https://github.com/vatesfr/xen-orchestra/pull/5717))
+- [Host/network] Identify the management network [#5731](https://github.com/vatesfr/xen-orchestra/issues/5731) (PR [#5743](https://github.com/vatesfr/xen-orchestra/pull/5743))
+- [Backup/S3] Support for HTTP protocol and choice of region (PR [#5658](https://github.com/vatesfr/xen-orchestra/pull/5658))
+- [Host/Load-balancer] Improve migration (perf mode) regarding memory and cpu usage (PR [#5734](https://github.com/vatesfr/xen-orchestra/pull/5734))
+- [API/pool] Add listPoolsMatchingCriteria method that lists the pools matching certain criteria (PR [#5715](https://github.com/vatesfr/xen-orchestra/pull/5715))
+
+### Bug fixes
+
+- [Backup] Don't unnecessarily snapshot the VM when using _offline backup_ (PR [#5739](https://github.com/vatesfr/xen-orchestra/pull/5739))
+- [Backup] Fix `ENOENT` error on deleting an existing VM backup (PR [#5744](https://github.com/vatesfr/xen-orchestra/pull/5744))
+- [Host/Load-balancer] Fix error(s) that prevents the load balancer from running (PR [#5734](https://github.com/vatesfr/xen-orchestra/pull/5734))
+- [Plugins/perf-alert] Fix impossibility to configure when not using smart mode (PR [#5755](https://github.com/vatesfr/xen-orchestra/pull/5755))
+- [S3 Remotes] Fix `Not implemented` errors
+
+### Dropped features
+
+- [Backup] Remove legacy backup support (PR [#5718](https://github.com/vatesfr/xen-orchestra/pull/5718))
+
+### Released packages
+
+- xo-server-perf-alert 0.3.1
+- xo-remote-parser 0.7.0
+- @xen-orchestra/fs 0.16.1
+- @xen-orchestra/xapi 0.6.2
+- @xen-orchestra/backups 0.10.1
+- @xen-orchestra/backups-cli 0.5.1
+- @xen-orchestra/mixins 0.1.0
+- xen-api 0.31.1
+- xo-server-load-balancer 0.6.0
+- xo-server 5.79.2
+- xo-web 5.81.0
+
+## **5.57.1** (2021-04-13)
 
 ### Enhancements
 
@@ -68,8 +196,6 @@
 - xo-web 5.80.0
 
 ## **5.56.2** (2021-03-22)
-
-<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Bug fixes
 

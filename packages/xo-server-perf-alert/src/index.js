@@ -1,6 +1,6 @@
 import JSON5 from 'json5'
 import { createSchedule } from '@xen-orchestra/cron'
-import { forOwn, map, mean } from 'lodash'
+import { filter, forOwn, map, mean } from 'lodash'
 import { utcParse } from 'd3-time-format'
 
 const XAPI_TO_XENCENTER = {
@@ -158,10 +158,10 @@ export const configurationSchema = {
         type: 'object',
         properties: {
           smartMode: {
-            title: 'All hosts',
+            title: 'All running hosts',
             type: 'boolean',
-            description: 'When enabled, all hosts will be considered for the alert.',
-            default: 'false',
+            description: 'When enabled, all running hosts will be considered for the alert.',
+            default: false,
           },
           uuids: {
             title: 'Hosts',
@@ -197,7 +197,10 @@ export const configurationSchema = {
           },
         },
         oneOf: [
-          { required: ['uuids'] },
+          {
+            properties: { uuids: {} },
+            required: ['uuids'],
+          },
           {
             properties: { smartMode: { const: true } },
             required: ['smartMode'],
@@ -215,10 +218,10 @@ export const configurationSchema = {
         type: 'object',
         properties: {
           smartMode: {
-            title: 'All VMs',
+            title: 'All running VMs',
             type: 'boolean',
-            description: 'When enabled, all VMs will be considered for the alert.',
-            default: 'false',
+            description: 'When enabled, all running VMs will be considered for the alert.',
+            default: false,
           },
           uuids: {
             title: 'Virtual Machines',
@@ -254,7 +257,10 @@ export const configurationSchema = {
           },
         },
         oneOf: [
-          { required: ['uuids'] },
+          {
+            properties: { uuids: {} },
+            required: ['uuids'],
+          },
           {
             properties: { smartMode: { const: true } },
             required: ['smartMode'],
@@ -275,7 +281,7 @@ export const configurationSchema = {
             title: 'All SRs',
             type: 'boolean',
             description: 'When enabled, all SRs will be considered for the alert.',
-            default: 'false',
+            default: false,
           },
           uuids: {
             title: 'SRs',
@@ -303,7 +309,10 @@ export const configurationSchema = {
           },
         },
         oneOf: [
-          { required: ['uuids'] },
+          {
+            properties: { uuids: {} },
+            required: ['uuids'],
+          },
           {
             properties: { smartMode: { const: true } },
             required: ['smartMode'],
@@ -410,7 +419,8 @@ ${monitorBodies.join('\n')}`
   }
 
   _parseDefinition(definition) {
-    const lcObjectType = definition.objectType.toLowerCase()
+    const { objectType } = definition
+    const lcObjectType = objectType.toLowerCase()
     const alarmId = `${lcObjectType}|${definition.variableName}|${definition.alarmTriggerLevel}`
     const typeFunction = TYPE_FUNCTION_MAP[lcObjectType][definition.variableName]
     const parseData = (result, uuid) => {
@@ -461,7 +471,12 @@ ${monitorBodies.join('\n')}`
         return Promise.all(
           map(
             definition.smartMode
-              ? map(this._xo.getObjects({ filter: { type: definition.objectType } }), obj => obj.uuid)
+              ? filter(
+                  this._xo.getObjects(),
+                  obj =>
+                    obj.type === objectType &&
+                    ((objectType !== 'VM' && objectType !== 'host') || obj.power_state === 'Running')
+                ).map(obj => obj.uuid)
               : definition.uuids,
             async uuid => {
               try {

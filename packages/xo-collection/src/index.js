@@ -7,7 +7,7 @@ import { ACTION_ADD, ACTION_UPDATE, ACTION_REMOVE } from './collection'
 
 // ===================================================================
 
-export default class Index {
+export class Index {
   constructor(computeHash) {
     if (computeHash) {
       this.computeHash = iteratee(computeHash)

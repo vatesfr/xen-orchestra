@@ -9,7 +9,7 @@
   },
   "version": "0.2.0",
   "engines": {
-    "node": ">=8.10"
+    "node": ">=10"
   },
   "main": "dist/",
   "scripts": {
@@ -26,15 +26,13 @@
     "@babel/plugin-proposal-decorators": "^7.8.0",
     "@babel/plugin-proposal-nullish-coalescing-operator": "^7.8.0",
     "@babel/preset-env": "^7.7.4",
-    "cross": "^1.0.0",
+    "cross-env": "^7.0.2",
     "rimraf": "^3.0.0"
   },
   "dependencies": {
-    "@vates/decorate-with": "^0.0.1",
-    "@xen-orchestra/log": "^0.2.0",
-    "core-js": "^3.6.4",
+    "@vates/decorate-with": "^0.1.0",
+    "@xen-orchestra/log": "^0.2.1",
     "golike-defer": "^0.5.1",
-    "lodash": "^4.17.15",
     "object-hash": "^2.0.1"
   },
   "private": false,

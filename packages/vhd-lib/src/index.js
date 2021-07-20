@@ -1,6 +1,3 @@
-// see https://github.com/babel/babel/issues/8450
-import 'core-js/features/symbol/async-iterator'
-
 export { default } from './vhd'
 export { default as chainVhd } from './chain'
 export { default as checkVhdChain } from './checkChain'

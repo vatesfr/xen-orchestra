@@ -1,11 +1,12 @@
 import asyncMapSettled from '@xen-orchestra/async-map/legacy'
 import getStream from 'get-stream'
-import limit from 'limit-concurrency-decorator'
 import path, { basename } from 'path'
 import synchronized from 'decorator-synchronized'
 import { coalesceCalls } from '@vates/coalesce-calls'
 import { fromCallback, fromEvent, ignoreErrors, timeout } from 'promise-toolbox'
+import { limitConcurrency } from 'limit-concurrency-decorator'
 import { parse } from 'xo-remote-parser'
+import { pipeline } from 'stream'
 import { randomBytes } from 'crypto'
 
 import normalizePath from './_normalizePath'
@@ -27,6 +28,8 @@ const ignoreEnoent = error => {
     throw error
   }
 }
+
+const noop = Function.prototype
 
 class PrefixWrapper {
   constructor(handler, prefix) {
@@ -71,7 +74,7 @@ export default class RemoteHandlerAbstract {
     }
     ;({ highWaterMark: this._highWaterMark, timeout: this._timeout = DEFAULT_TIMEOUT } = options)
 
-    const sharedLimit = limit(options.maxParallelOperations ?? DEFAULT_MAX_PARALLEL_OPERATIONS)
+    const sharedLimit = limitConcurrency(options.maxParallelOperations ?? DEFAULT_MAX_PARALLEL_OPERATIONS)
     this.closeFile = sharedLimit(this.closeFile)
     this.getInfo = sharedLimit(this.getInfo)
     this.getSize = sharedLimit(this.getSize)
@@ -193,12 +196,31 @@ export default class RemoteHandlerAbstract {
     )
   }
 
-  // write a stream to a file using a temporary file
-  async outputStream(path, input, { checksum = true, dirMode } = {}) {
-    return this._outputStream(normalizePath(path), await input, {
-      checksum,
+  /**
+   * write a stream to a file using a temporary file
+   *
+   * @param {string} path
+   * @param {ReadableStream} input
+   * @param {object} [options]
+   * @param {boolean} [options.checksum]
+   * @param {number} [options.dirMode]
+   * @param {(this: RemoteHandlerAbstract, path: string) => Promise<undefined>} [options.validator] Function that will be called before the data is commited to the remote, if it fails, file should not exist
+   */
+  async outputStream(path, input, { checksum = true, dirMode, validator } = {}) {
+    path = normalizePath(path)
+    let checksumStream
+    if (checksum) {
+      checksumStream = createChecksumStream()
+      pipeline(input, checksumStream, noop)
+      input = checksumStream
+    }
+    await this._outputStream(path, input, {
       dirMode,
+      validator,
     })
+    if (checksum) {
+      await this._outputFile(checksumFile(path), await checksumStream.checksum, { dirMode, flags: 'wx' })
+    }
   }
 
   // Free the resources possibly dedicated to put the remote at work, when it
@@ -220,22 +242,29 @@ export default class RemoteHandlerAbstract {
     return timeout.call(this._getSize(typeof file === 'string' ? normalizePath(file) : file), this._timeout)
   }
 
-  async list(dir, { filter, prependDir = false } = {}) {
-    const virtualDir = normalizePath(dir)
-    dir = normalizePath(dir)
+  async list(dir, { filter, ignoreMissing = false, prependDir = false } = {}) {
+    try {
+      const virtualDir = normalizePath(dir)
+      dir = normalizePath(dir)
 
-    let entries = await timeout.call(this._list(dir), this._timeout)
-    if (filter !== undefined) {
-      entries = entries.filter(filter)
+      let entries = await timeout.call(this._list(dir), this._timeout)
+      if (filter !== undefined) {
+        entries = entries.filter(filter)
+      }
+
+      if (prependDir) {
+        entries.forEach((entry, i) => {
+          entries[i] = virtualDir + '/' + entry
+        })
+      }
+
+      return entries
+    } catch (error) {
+      if (ignoreMissing && error?.code === 'ENOENT') {
+        return []
+      }
+      throw error
     }
-
-    if (prependDir) {
-      entries.forEach((entry, i) => {
-        entries[i] = virtualDir + '/' + entry
-      })
-    }
-
-    return entries
   }
 
   async lock(path) {
@@ -462,20 +491,19 @@ export default class RemoteHandlerAbstract {
     return this._outputFile(file, data, { flags })
   }
 
-  async _outputStream(path, input, { checksum, dirMode }) {
+  async _outputStream(path, input, { dirMode, validator }) {
     const tmpPath = `${dirname(path)}/.${basename(path)}`
     const output = await this.createOutputStream(tmpPath, {
-      checksum,
       dirMode,
     })
     try {
-      input.pipe(output)
-      await fromEvent(output, 'finish')
-      await output.checksumWritten
-      await input.task
-      await this.rename(tmpPath, path, { checksum })
+      await fromCallback(pipeline, input, output)
+      if (validator !== undefined) {
+        await validator.call(this, tmpPath)
+      }
+      await this.rename(tmpPath, path)
     } catch (error) {
-      await this.unlink(tmpPath, { checksum })
+      await this.unlink(tmpPath)
       throw error
     }
   }

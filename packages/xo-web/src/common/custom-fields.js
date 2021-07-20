@@ -131,50 +131,56 @@ const CustomFields = decorate([
   }),
   provideState({
     effects: {
-      addCustomField: () => (state, { object: { id } }) => {
-        const dateTimeUtc = moment.utc()
-        return form({
-          component: CustomFieldModal,
-          defaultValue: {
-            date: dateTimeUtc.format(DATE_FORMAT),
-            isDate: false,
-            name: '',
-            text: '',
-            time: dateTimeUtc.format(TIME_FORMAT),
-          },
-          header: (
-            <span>
-              <Icon icon='add' /> {_('addCustomField')}
-            </span>
-          ),
-        }).then(params => checkParamsAndCallMethod(addCustomField, id, params))
-      },
-      removeCustomField: (_, { currentTarget: { dataset } }) => (_, { object: { id } }) =>
-        removeCustomField(id, dataset.name),
-      setCustomField: (effects, { name, value }) => (state, { object: { id } }) => {
-        const isDate = PATTERN_DATE_TIME_UTC.test(value)
-        const dateTimeUtc = isDate ? moment(value).utc() : undefined
-        return form({
-          render: props => <CustomFieldModal {...props} update />,
-          defaultValue: isDate
-            ? {
-                date: dateTimeUtc.format(DATE_FORMAT),
-                isDate,
-                name,
-                time: dateTimeUtc.format(TIME_FORMAT),
-              }
-            : {
-                isDate,
-                name,
-                text: value,
-              },
-          header: (
-            <span>
-              <Icon icon='edit' /> {_('editCustomField')}
-            </span>
-          ),
-        }).then(params => checkParamsAndCallMethod(setCustomField, id, params))
-      },
+      addCustomField:
+        () =>
+        (state, { object: { id } }) => {
+          const dateTimeUtc = moment.utc()
+          return form({
+            component: CustomFieldModal,
+            defaultValue: {
+              date: dateTimeUtc.format(DATE_FORMAT),
+              isDate: false,
+              name: '',
+              text: '',
+              time: dateTimeUtc.format(TIME_FORMAT),
+            },
+            header: (
+              <span>
+                <Icon icon='add' /> {_('addCustomField')}
+              </span>
+            ),
+          }).then(params => checkParamsAndCallMethod(addCustomField, id, params))
+        },
+      removeCustomField:
+        (_, { currentTarget: { dataset } }) =>
+        (_, { object: { id } }) =>
+          removeCustomField(id, dataset.name),
+      setCustomField:
+        (effects, { name, value }) =>
+        (state, { object: { id } }) => {
+          const isDate = PATTERN_DATE_TIME_UTC.test(value)
+          const dateTimeUtc = isDate ? moment(value).utc() : undefined
+          return form({
+            render: props => <CustomFieldModal {...props} update />,
+            defaultValue: isDate
+              ? {
+                  date: dateTimeUtc.format(DATE_FORMAT),
+                  isDate,
+                  name,
+                  time: dateTimeUtc.format(TIME_FORMAT),
+                }
+              : {
+                  isDate,
+                  name,
+                  text: value,
+                },
+            header: (
+              <span>
+                <Icon icon='edit' /> {_('editCustomField')}
+              </span>
+            ),
+          }).then(params => checkParamsAndCallMethod(setCustomField, id, params))
+        },
     },
     computed: {
       customFields: (_, { object }) =>

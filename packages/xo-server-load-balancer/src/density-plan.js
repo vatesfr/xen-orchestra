@@ -1,7 +1,9 @@
 import { clone, filter, map as mapToArray } from 'lodash'
 
 import Plan from './plan'
-import { debug } from './utils'
+import { debug as debugP } from './utils'
+
+export const debug = str => debugP(`density: ${str}`)
 
 // ===================================================================
 
@@ -87,7 +89,7 @@ export default class DensityPlan extends Plan {
         hostsAverages = simulResults.hostsAverages
 
         // Migrate.
-        await this._migrate(hostId, simulResults.moves)
+        await this._migrate(hostToOptimize, simulResults.moves)
         optimizationsCount++
       }
     }
@@ -195,24 +197,27 @@ export default class DensityPlan extends Plan {
 
   // Migrate the VMs of one host.
   // Try to shutdown the VMs host.
-  async _migrate(hostId, moves) {
-    const xapiSrc = this.xo.getXapi(hostId)
+  async _migrate(srcHost, moves) {
+    const xapiSrc = this.xo.getXapi(srcHost.id)
 
+    const fmtSrcHost = `${srcHost.id} "${srcHost.name_label}"`
     await Promise.all(
       mapToArray(moves, move => {
         const { vm, destination } = move
         const xapiDest = this.xo.getXapi(destination)
-        debug(`Migrate VM (${vm.id}) to Host (${destination.id}) from Host (${vm.$container}).`)
+        debug(
+          `Migrate VM (${vm.id} "${vm.name_label}") to Host (${destination.id} "${destination.name_label}") from Host (${fmtSrcHost}).`
+        )
         return xapiDest.migrateVm(vm._xapiId, this.xo.getXapi(destination), destination._xapiId)
       })
     )
 
-    debug(`Shutdown Host (${hostId}).`)
+    debug(`Shutdown Host (${fmtSrcHost}).`)
 
     try {
-      await xapiSrc.shutdownHost(hostId)
+      await xapiSrc.shutdownHost(srcHost.id)
     } catch (error) {
-      debug(`Unable to shutdown Host (${hostId}).`, error)
+      debug(`Unable to shutdown Host (${fmtSrcHost}).`, { error })
     }
   }
 }

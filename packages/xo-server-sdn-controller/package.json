@@ -16,7 +16,7 @@
     "predev": "yarn run prebuild",
     "prepublishOnly": "yarn run build"
   },
-  "version": "1.0.4",
+  "version": "1.0.5",
   "engines": {
     "node": ">=8.10"
   },
@@ -29,13 +29,13 @@
     "cross-env": "^7.0.2"
   },
   "dependencies": {
-    "@xen-orchestra/log": "^0.2.0",
+    "@xen-orchestra/log": "^0.2.1",
     "@xen-orchestra/openflow": "^0.1.1",
     "@vates/coalesce-calls": "^0.1.0",
     "ipaddr.js": "^1.9.1",
     "lodash": "^4.17.11",
     "node-openssl-cert": "^0.0.117",
-    "promise-toolbox": "^0.19.0",
+    "promise-toolbox": "^0.19.2",
     "uuid": "^8.3.1"
   },
   "private": true,

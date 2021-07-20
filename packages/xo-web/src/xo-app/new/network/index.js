@@ -102,7 +102,10 @@ const NewNetwork = decorate([
       initialize: async () => ({ bondModes: await getBondModes() }),
       linkState,
       onChangeMode: (_, bondMode) => ({ bondMode }),
-      onChangePif: (_, value) => ({ bonded }) => (bonded ? { pifs: value } : { pif: value }),
+      onChangePif:
+        (_, value) =>
+        ({ bonded }) =>
+          bonded ? { pifs: value } : { pif: value },
       onChangeEncapsulation(_, encapsulation) {
         return { encapsulation: encapsulation.value }
       },
@@ -144,16 +147,29 @@ const NewNetwork = decorate([
               value: mode,
             }))
           : [],
-      hostPredicate: ({ networks }, { pool }) => host =>
-        host.$pool === pool.id || networks.some(({ pool }) => pool !== undefined && pool.id === host.$pool),
-      pifPredicate: (_, { pool }) => pif => !pif.isBondSlave && pif.vlan === -1 && pif.$host === (pool && pool.master),
-      pifPredicateSdnController: (_, { pool }) => pif => canSupportPrivateNetwork(pool, pif),
-      networkPifPredicate: ({ networks }) => (pif, key) => canSupportPrivateNetwork(networks[key].pool, pif),
-      networkPoolPredicate: ({ networks }, { pool: rootPool }) => (pool, index) =>
-        pool.id !== rootPool.id &&
-        !networks.some(
-          ({ pool: networksPool = {} }, networksIndex) => pool.id === networksPool.id && index !== networksIndex
-        ),
+      hostPredicate:
+        ({ networks }, { pool }) =>
+        host =>
+          host.$pool === pool.id || networks.some(({ pool }) => pool !== undefined && pool.id === host.$pool),
+      pifPredicate:
+        (_, { pool }) =>
+        pif =>
+          !pif.isBondSlave && pif.vlan === -1 && pif.$host === (pool && pool.master),
+      pifPredicateSdnController:
+        (_, { pool }) =>
+        pif =>
+          canSupportPrivateNetwork(pool, pif),
+      networkPifPredicate:
+        ({ networks }) =>
+        (pif, key) =>
+          canSupportPrivateNetwork(networks[key].pool, pif),
+      networkPoolPredicate:
+        ({ networks }, { pool: rootPool }) =>
+        (pool, index) =>
+          pool.id !== rootPool.id &&
+          !networks.some(
+            ({ pool: networksPool = {} }, networksIndex) => pool.id === networksPool.id && index !== networksIndex
+          ),
       isSdnControllerLoaded: (state, { plugins = [] }) =>
         plugins.some(plugin => plugin.name === 'sdn-controller' && plugin.loaded),
     },

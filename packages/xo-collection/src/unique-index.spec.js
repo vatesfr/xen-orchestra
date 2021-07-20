@@ -1,10 +1,10 @@
 /* eslint-env jest */
 
-import eventToPromise from 'event-to-promise'
+import fromEvent from 'promise-toolbox/fromEvent'
 import { forEach } from 'lodash'
 
-import Collection from './collection'
-import Index from './unique-index'
+import { Collection } from './collection'
+import { UniqueIndex } from './unique-index'
 
 // ===================================================================
 
@@ -45,7 +45,7 @@ describe('UniqueIndex', function () {
       col.add(item)
     })
 
-    byKey = new Index('key')
+    byKey = new UniqueIndex('key')
 
     col.createIndex('byKey', byKey)
 
@@ -119,7 +119,7 @@ describe('UniqueIndex', function () {
 
     col.update(item1bis)
 
-    return eventToPromise(col, 'finish').then(() => {
+    return fromEvent(col, 'finish').then(() => {
       expect(col.indexes).toEqual({
         byKey: {
           [item1.key]: item1bis,

@@ -287,31 +287,33 @@ export const isAdmin = (...args) => {
 // Common selector creators.
 
 // Creates an object selector from an id selector.
-export const createGetObject = (idSelector = _getId) => (state, props, useResourceSet) => {
-  const object = state.objects.all[idSelector(state, props)]
-  if (!object) {
-    return
-  }
-
-  if (useResourceSet) {
-    return object
-  }
-
-  const predicate = _getPermissionsPredicate(state)
-
-  if (!predicate) {
-    if (predicate == null) {
-      return object // no filtering
+export const createGetObject =
+  (idSelector = _getId) =>
+  (state, props, useResourceSet) => {
+    const object = state.objects.all[idSelector(state, props)]
+    if (!object) {
+      return
     }
 
-    // predicate is false.
-    return
-  }
+    if (useResourceSet) {
+      return object
+    }
 
-  if (predicate(object)) {
-    return object
+    const predicate = _getPermissionsPredicate(state)
+
+    if (!predicate) {
+      if (predicate == null) {
+        return object // no filtering
+      }
+
+      // predicate is false.
+      return
+    }
+
+    if (predicate(object)) {
+      return object
+    }
   }
-}
 
 // Specialized createSort() configured for a given type.
 export const createSortForType = invoke(() => {
@@ -462,9 +464,12 @@ export const createDoesHostNeedRestart = hostSelector => {
   const patchRequiresReboot = createGetObjectsOfType('patch')
     .pick(create(hostSelector, host => host.patches))
     .find(
-      create(hostSelector, host => ({ guidance, time, upgrade }) =>
-        time > host.startTime &&
-        (upgrade || some(guidance, action => action === 'restartHost' || action === 'restartXapi'))
+      create(
+        hostSelector,
+        host =>
+          ({ guidance, time, upgrade }) =>
+            time > host.startTime &&
+            (upgrade || some(guidance, action => action === 'restartHost' || action === 'restartXapi'))
       )
     )
 

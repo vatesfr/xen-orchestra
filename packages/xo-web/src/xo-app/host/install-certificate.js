@@ -38,7 +38,7 @@ const InstallCertificateModal = decorate([
         </Col>
         <Col mediumSize={8}>
           <DebounceTextarea
-            className='form-control'
+            className='form-control text-monospace'
             id={state.inputCertificateId}
             name='certificate'
             onChange={effects.onChange}
@@ -55,7 +55,7 @@ const InstallCertificateModal = decorate([
         </Col>
         <Col mediumSize={8}>
           <DebounceTextarea
-            className='form-control'
+            className='form-control text-monospace'
             id={state.inputPrivateKeyId}
             name='privateKey'
             onChange={effects.onChange}
@@ -72,7 +72,7 @@ const InstallCertificateModal = decorate([
         </Col>
         <Col mediumSize={8}>
           <DebounceTextarea
-            className='form-control'
+            className='form-control text-monospace'
             id={state.inputCertificateChainId}
             name='certificateChain'
             onChange={effects.onChange}

@@ -320,6 +320,7 @@ You can learn more about XenServer [resource management on the Citrix Website](h
 :::tip
 XCP-ng doesn't limit VMs to 32 vCPU
 :::
+
 ### VDI live migration
 
 Thanks to Xen Storage Motion, it's easy to move a VM disk from one storage location to another, while the VM is running! This feature can help you migrate from your local storage to a SAN, or just upgrade your SAN without any downtime.
@@ -491,10 +492,12 @@ If you are behind a proxy, please update your `xo-server` configuration to add a
 ::: danger
 As specified in the [documentation](https://xcp-ng.org/docs/requirements.html#pool-requirements) your pool shouldn't consist of hosts from different CPU vendors.
 :::
+
 ::: warning
 - Even with matching CPU vendors, in the case of different CPU models XCP-ng will scale the pool CPU ability to the CPU having the least instructions.
 - All the hosts in a pool must run the same XCP-ng version.
 :::
+
 ### Creating a pool
 
 First you should add your new host to XOA by going to New > Server as described in [the relevant chapter](manage_infrastructure.md#add-a-host).

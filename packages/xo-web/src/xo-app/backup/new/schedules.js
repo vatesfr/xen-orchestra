@@ -39,10 +39,12 @@ export default decorate([
           level: 'danger',
         },
       ],
-      rowTransform: ({ propSettings, settings = propSettings }) => schedule => ({
-        ...schedule,
-        ...settings.get(schedule.id),
-      }),
+      rowTransform:
+        ({ propSettings, settings = propSettings }) =>
+        schedule => ({
+          ...schedule,
+          ...settings.get(schedule.id),
+        }),
       schedulesColumns: (state, { effects: { toggleScheduleState } }) => {
         const columns = [
           {

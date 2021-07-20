@@ -1,7 +1,7 @@
 {
   "private": false,
   "name": "@xen-orchestra/fs",
-  "version": "0.14.0",
+  "version": "0.17.0",
   "license": "AGPL-3.0-or-later",
   "description": "The File System for Xen Orchestra backups.",
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/fs",
@@ -14,7 +14,7 @@
   "preferGlobal": true,
   "main": "dist/",
   "engines": {
-    "node": ">=8.10"
+    "node": ">=14"
   },
   "dependencies": {
     "@marsaud/smb2": "^0.17.2",
@@ -27,14 +27,13 @@
     "execa": "^5.0.0",
     "fs-extra": "^9.0.0",
     "get-stream": "^6.0.0",
-    "limit-concurrency-decorator": "^0.4.0",
+    "limit-concurrency-decorator": "^0.5.0",
     "lodash": "^4.17.4",
-    "promise-toolbox": "^0.19.0",
+    "promise-toolbox": "^0.19.2",
     "proper-lockfile": "^4.1.2",
     "readable-stream": "^3.0.6",
     "through2": "^4.0.2",
-    "tmp": "^0.2.1",
-    "xo-remote-parser": "^0.6.0"
+    "xo-remote-parser": "^0.7.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.0.0",
@@ -47,7 +46,6 @@
     "babel-plugin-lodash": "^3.3.2",
     "cross-env": "^7.0.2",
     "dotenv": "^8.0.0",
-    "index-modules": "^0.3.0",
     "rimraf": "^3.0.0"
   },
   "scripts": {

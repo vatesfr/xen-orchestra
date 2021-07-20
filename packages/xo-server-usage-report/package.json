@@ -31,13 +31,13 @@
   "dependencies": {
     "@xen-orchestra/async-map": "^0.1.2",
     "@xen-orchestra/cron": "^1.0.6",
-    "@xen-orchestra/log": "^0.2.0",
+    "@xen-orchestra/log": "^0.2.1",
     "csv-stringify": "^5.5.0",
     "handlebars": "^4.0.6",
     "html-minifier": "^4.0.0",
     "human-format": "^0.11.0",
     "lodash": "^4.17.4",
-    "promise-toolbox": "^0.19.0"
+    "promise-toolbox": "^0.19.2"
   },
   "devDependencies": {
     "@babel/cli": "^7.0.0",

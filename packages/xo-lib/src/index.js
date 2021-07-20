@@ -1,6 +1,6 @@
-import JsonRpcWebSocketClient, { OPEN, CLOSED } from 'jsonrpc-websocket-client'
 import trimEnd from 'lodash/trimEnd'
 import { BaseError } from 'make-error'
+import { JsonRpcWebSocketClient, OPEN, CLOSED } from 'jsonrpc-websocket-client'
 
 // ===================================================================
 

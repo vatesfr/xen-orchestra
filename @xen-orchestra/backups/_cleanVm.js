@@ -1,10 +1,11 @@
 const assert = require('assert')
-const limitConcurrency = require('limit-concurrency-decorator').default
+const sum = require('lodash/sum')
 const { asyncMap } = require('@xen-orchestra/async-map')
 const { default: Vhd, mergeVhd } = require('vhd-lib')
 const { dirname, resolve } = require('path')
 const { DISK_TYPE_DIFFERENCING } = require('vhd-lib/dist/_constants.js')
 const { isMetadataFile, isVhdFile, isXvaFile, isXvaSumFile } = require('./_backupType.js')
+const { limitConcurrency } = require('limit-concurrency-decorator')
 
 // chain is an array of VHDs from child to parent
 //
@@ -34,6 +35,8 @@ const mergeVhdChain = limitConcurrency(1)(async function mergeVhdChain(chain, { 
       child = children[0]
     }
 
+    onLog(`merging ${child} into ${parent}`)
+
     let done, total
     const handle = setInterval(() => {
       if (done !== undefined) {
@@ -58,23 +61,30 @@ const mergeVhdChain = limitConcurrency(1)(async function mergeVhdChain(chain, { 
     )
 
     clearInterval(handle)
-  }
 
-  await Promise.all([
-    remove && handler.rename(parent, child),
-    asyncMap(children.slice(0, -1), child => {
-      onLog(`the VHD ${child} is unused`)
-      return remove && handler.unlink(child)
-    }),
-  ])
+    await Promise.all([
+      handler.rename(parent, child),
+      asyncMap(children.slice(0, -1), child => {
+        onLog(`the VHD ${child} is unused`)
+        if (remove) {
+          onLog(`deleting unused VHD ${child}`)
+          return handler.unlink(child)
+        }
+      }),
+    ])
+  }
 })
 
 const noop = Function.prototype
 
+const INTERRUPTED_VHDS_REG = /^(?:(.+)\/)?\.(.+)\.merge.json$/
 const listVhds = async (handler, vmDir) => {
   const vhds = []
+  const interruptedVhds = new Set()
+
   await asyncMap(
     await handler.list(`${vmDir}/vdis`, {
+      ignoreMissing: true,
       prependDir: true,
     }),
     async jobDir =>
@@ -82,30 +92,42 @@ const listVhds = async (handler, vmDir) => {
         await handler.list(jobDir, {
           prependDir: true,
         }),
-        async vdiDir =>
-          vhds.push(
-            ...(await handler.list(vdiDir, {
-              filter: isVhdFile,
-              prependDir: true,
-            }))
-          )
+        async vdiDir => {
+          const list = await handler.list(vdiDir, {
+            filter: file => isVhdFile(file) || INTERRUPTED_VHDS_REG.test(file),
+            prependDir: true,
+          })
+
+          list.forEach(file => {
+            const res = INTERRUPTED_VHDS_REG.exec(file)
+            if (res === null) {
+              vhds.push(file)
+            } else {
+              const [, dir, file] = res
+              interruptedVhds.add(`${dir}/${file}`)
+            }
+          })
+        }
       )
   )
-  return vhds
+
+  return { vhds, interruptedVhds }
 }
 
-exports.cleanVm = async function cleanVm(vmDir, { remove, merge, onLog = noop }) {
+exports.cleanVm = async function cleanVm(vmDir, { fixMetadata, remove, merge, onLog = noop }) {
   const handler = this._handler
 
   const vhds = new Set()
   const vhdParents = { __proto__: null }
   const vhdChildren = { __proto__: null }
 
+  const vhdsList = await listVhds(handler, vmDir)
+
   // remove broken VHDs
-  await asyncMap(await listVhds(handler, vmDir), async path => {
+  await asyncMap(vhdsList.vhds, async path => {
     try {
       const vhd = new Vhd(handler, path)
-      await vhd.readHeaderAndFooter()
+      await vhd.readHeaderAndFooter(!vhdsList.interruptedVhds.has(path))
       vhds.add(path)
       if (vhd.footer.diskType === DISK_TYPE_DIFFERENCING) {
         const parent = resolve('/', dirname(path), vhd.header.parentUnicodeName)
@@ -120,8 +142,9 @@ exports.cleanVm = async function cleanVm(vmDir, { remove, merge, onLog = noop })
         vhdChildren[parent] = path
       }
     } catch (error) {
-      onLog(`error while checking the VHD with path ${path}`)
+      onLog(`error while checking the VHD with path ${path}`, { error })
       if (error?.code === 'ERR_ASSERTION' && remove) {
+        onLog(`deleting broken ${path}`)
         await handler.unlink(path)
       }
     }
@@ -148,6 +171,7 @@ exports.cleanVm = async function cleanVm(vmDir, { remove, merge, onLog = noop })
 
         onLog(`the parent ${parent} of the VHD ${vhd} is missing`)
         if (remove) {
+          onLog(`deleting orphan VHD ${vhd}`)
           deletions.push(handler.unlink(vhd))
         }
       }
@@ -196,14 +220,20 @@ exports.cleanVm = async function cleanVm(vmDir, { remove, merge, onLog = noop })
   await asyncMap(jsons, async json => {
     const metadata = JSON.parse(await handler.readFile(json))
     const { mode } = metadata
+    let size
     if (mode === 'full') {
       const linkedXva = resolve('/', vmDir, metadata.xva)
 
       if (xvas.has(linkedXva)) {
         unusedXvas.delete(linkedXva)
+
+        size = await handler.getSize(linkedXva).catch(error => {
+          onLog(`failed to get size of ${json}`, { error })
+        })
       } else {
         onLog(`the XVA linked to the metadata ${json} is missing`)
         if (remove) {
+          onLog(`deleting incomplete backup ${json}`)
           await handler.unlink(json)
         }
       }
@@ -217,10 +247,31 @@ exports.cleanVm = async function cleanVm(vmDir, { remove, merge, onLog = noop })
       // possible (existing disks) even if one disk is missing
       if (linkedVhds.every(_ => vhds.has(_))) {
         linkedVhds.forEach(_ => unusedVhds.delete(_))
+
+        size = await asyncMap(linkedVhds, vhd => handler.getSize(vhd)).then(sum, error => {
+          onLog(`failed to get size of ${json}`, { error })
+        })
       } else {
         onLog(`Some VHDs linked to the metadata ${json} are missing`)
         if (remove) {
+          onLog(`deleting incomplete backup ${json}`)
           await handler.unlink(json)
+        }
+      }
+    }
+
+    const metadataSize = metadata.size
+    if (size !== undefined && metadataSize !== size) {
+      onLog(`incorrect size in metadata: ${metadataSize ?? 'none'} instead of ${size}`)
+
+      // don't update if the the stored size is greater than found files,
+      // it can indicates a problem
+      if (fixMetadata && (metadataSize === undefined || metadataSize < size)) {
+        try {
+          metadata.size = size
+          await handler.writeFile(json, JSON.stringify(metadata), { flags: 'w' })
+        } catch (error) {
+          onLog(`failed to update size in backup metadata ${json}`, { error })
         }
       }
     }
@@ -260,6 +311,7 @@ exports.cleanVm = async function cleanVm(vmDir, { remove, merge, onLog = noop })
 
       onLog(`the VHD ${vhd} is unused`)
       if (remove) {
+        onLog(`deleting unused VHD ${vhd}`)
         unusedVhdsDeletion.push(handler.unlink(vhd))
       }
     }
@@ -268,25 +320,38 @@ exports.cleanVm = async function cleanVm(vmDir, { remove, merge, onLog = noop })
       vhdChainsToMerge[vhd] = getUsedChildChainOrDelete(vhd)
     })
 
+    // merge interrupted VHDs
+    if (merge) {
+      vhdsList.interruptedVhds.forEach(parent => {
+        vhdChainsToMerge[parent] = [vhdChildren[parent], parent]
+      })
+    }
+
     Object.keys(vhdChainsToMerge).forEach(key => {
       const chain = vhdChainsToMerge[key]
       if (chain !== undefined) {
-        unusedVhdsDeletion.push(mergeVhdChain(chain, { onLog, remove, merge }))
+        unusedVhdsDeletion.push(mergeVhdChain(chain, { handler, onLog, remove, merge }))
       }
     })
   }
 
   await Promise.all([
-    unusedVhdsDeletion,
+    ...unusedVhdsDeletion,
     asyncMap(unusedXvas, path => {
       onLog(`the XVA ${path} is unused`)
-      return remove && handler.unlink(path)
+      if (remove) {
+        onLog(`deleting unused XVA ${path}`)
+        return handler.unlink(path)
+      }
     }),
     asyncMap(xvaSums, path => {
       // no need to handle checksums for XVAs deleted by the script, they will be handled by `unlink()`
       if (!xvas.has(path.slice(0, -'.checksum'.length))) {
         onLog(`the XVA checksum ${path} is unused`)
-        return remove && handler.unlink(path)
+        if (remove) {
+          onLog(`deleting unused XVA checksum ${path}`)
+          return handler.unlink(path)
+        }
       }
     }),
   ])

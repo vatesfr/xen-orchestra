@@ -74,7 +74,7 @@ const isValidKey = key => typeof key === 'number' || typeof key === 'string'
 
 // -------------------------------------------------------------------
 
-export default class Collection extends EventEmitter {
+export class Collection extends EventEmitter {
   constructor() {
     super()
 

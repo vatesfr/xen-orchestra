@@ -14,13 +14,13 @@ As you may have seen in other parts of the documentation, XO is composed of two 
 
 ### NodeJS
 
-XO needs Node.js. **Please use Node LTS version 14**.
+XO needs Node.js. **Please always use latest Node LTS**.
 
 We'll consider at this point that you've got a working node on your box. E.g:
 
 ```
 $ node -v
-v14.16.0
+v14.17.0
 ```
 
 If not, see [this page](https://nodejs.org/en/download/package-manager/) for instructions on how to install Node.
@@ -46,7 +46,7 @@ apt-get install build-essential redis-server libpng-dev git python-minimal libvh
 You need to use the `git` source code manager to fetch the code. Ideally, you should run XO as a non-root user, and if you choose to, you need to set up `sudo` to be able to mount NFS remotes. As your chosen non-root (or root) user, run the following:
 
 ```
-git clone -b master http://github.com/vatesfr/xen-orchestra
+git clone -b master https://github.com/vatesfr/xen-orchestra
 ```
 
 > Note: xo-server and xo-web have been migrated to the [xen-orchestra](https://github.com/vatesfr/xen-orchestra) mono-repository - so you only need the single clone command above
@@ -113,7 +113,7 @@ Then restart Xen Orchestra if it was running.
 ```
 yarn global add forever
 # Run the below as the user owning XO
-forever start bin/xo-server
+forever start dist/cli.mjs
 ```
 
 - Or you can use [forever-service](https://github.com/zapty/forever-service) to install XO as a system service, so it starts automatically at boot. Run the following as root:
@@ -122,9 +122,9 @@ forever start bin/xo-server
 yarn global add forever
 yarn global add forever-service
 # Be sure to edit the path below to where your install is located!
-cd /home/username/xen-orchestra/packages/xo-server/bin/
+cd /home/username/xen-orchestra/packages/xo-server/
 # Change the username below to the user owning XO
-forever-service install orchestra -r username -s xo-server
+forever-service install orchestra -r username -s dist/cli.mjs
 ```
 
 The forever-service command above must be run in the xo-server bin directory. Now you can manage the service, and it will start on boot with the machine:

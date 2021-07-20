@@ -13,7 +13,14 @@ exports.AbstractDeltaWriter = class AbstractDeltaWriter extends AbstractWriter {
     throw new Error('Not implemented')
   }
 
-  transfer({ timestamp, deltaExport, sizeContainers }) {
-    throw new Error('Not implemented')
+  async transfer({ timestamp, deltaExport, sizeContainers }) {
+    try {
+      return await this._transfer({ timestamp, deltaExport, sizeContainers })
+    } finally {
+      // ensure all streams are properly closed
+      for (const stream of Object.values(deltaExport.streams)) {
+        stream.destroy()
+      }
+    }
   }
 }

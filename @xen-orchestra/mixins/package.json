@@ -14,14 +14,14 @@
     "url": "https://vates.fr"
   },
   "license": "AGPL-3.0-or-later",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "engines": {
     "node": ">=12"
   },
   "dependencies": {
-    "@vates/parse-duration": "^0.1.0",
-    "@xen-orchestra/emit-async": "^0.0.0",
-    "@xen-orchestra/log": "^0.2.0",
+    "@vates/parse-duration": "^0.1.1",
+    "@xen-orchestra/emit-async": "^0.1.0",
+    "@xen-orchestra/log": "^0.2.1",
     "app-conf": "^0.9.0",
     "lodash": "^4.17.21"
   },

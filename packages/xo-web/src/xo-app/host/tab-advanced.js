@@ -88,8 +88,10 @@ const SetControlDomainMemory = ({ value, onChange }) => (
 
 const MultipathableSrs = decorate([
   connectStore({
-    pbds: createGetObjectsOfType('PBD').filter((_, { hostId }) => pbd =>
-      pbd.host === hostId && Boolean(pbd.otherConfig.multipathed)
+    pbds: createGetObjectsOfType('PBD').filter(
+      (_, { hostId }) =>
+        pbd =>
+          pbd.host === hostId && Boolean(pbd.otherConfig.multipathed)
     ),
   }),
   ({ pbds }) =>

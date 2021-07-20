@@ -72,11 +72,12 @@ const getInitialState = () => ({
 })
 
 export default decorate([
-  New => props => (
-    <Upgrade place='newMetadataBackup' required={3}>
-      <New {...props} />
-    </Upgrade>
-  ),
+  New => props =>
+    (
+      <Upgrade place='newMetadataBackup' required={3}>
+        <New {...props} />
+      </Upgrade>
+    ),
   addSubscriptions({
     remotes: subscribeRemotes,
   }),
@@ -166,24 +167,30 @@ export default decorate([
       setSettings: (_, _settings) => () => ({
         _settings,
       }),
-      setGlobalSettings: ({ setSettings }, name, value) => ({ settings = {} }) => {
-        setSettings({
-          ...settings,
-          [GLOBAL_SETTING_KEY]: {
-            ...settings[GLOBAL_SETTING_KEY],
-            [name]: value,
-          },
-        })
-      },
+      setGlobalSettings:
+        ({ setSettings }, name, value) =>
+        ({ settings = {} }) => {
+          setSettings({
+            ...settings,
+            [GLOBAL_SETTING_KEY]: {
+              ...settings[GLOBAL_SETTING_KEY],
+              [name]: value,
+            },
+          })
+        },
       setReportWhen({ setGlobalSettings }, { value }) {
         setGlobalSettings('reportWhen', value)
       },
-      toggleMode: (_, { mode }) => state => ({
-        [`_${mode}`]: !state[mode],
-      }),
-      addRemote: (_, { id }) => state => ({
-        _remotes: [...state.remotes, id],
-      }),
+      toggleMode:
+        (_, { mode }) =>
+        state => ({
+          [`_${mode}`]: !state[mode],
+        }),
+      addRemote:
+        (_, { id }) =>
+        state => ({
+          _remotes: [...state.remotes, id],
+        }),
       deleteRemote: (_, key) => state => {
         const _remotes = [...state.remotes]
         _remotes.splice(key, 1)
@@ -227,12 +234,14 @@ export default decorate([
           })
         ),
       remotes: ({ _remotes }, { job }) => defined(_remotes, () => destructPattern(job.remotes), []),
-      remotesPredicate: ({ proxyId, remotes }) => remote => {
-        if (proxyId === null) {
-          proxyId = undefined
-        }
-        return !remotes.includes(remote.id) && remote.value.proxy === proxyId
-      },
+      remotesPredicate:
+        ({ proxyId, remotes }) =>
+        remote => {
+          if (proxyId === null) {
+            proxyId = undefined
+          }
+          return !remotes.includes(remote.id) && remote.value.proxy === proxyId
+        },
 
       isJobInvalid: state =>
         state.missingModes ||

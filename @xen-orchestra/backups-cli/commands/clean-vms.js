@@ -10,12 +10,13 @@ const { resolve } = require('path')
 const adapter = new RemoteAdapter(require('@xen-orchestra/fs').getHandler({ url: 'file://' }))
 
 module.exports = async function main(args) {
-  const { _, remove, merge } = getopts(args, {
+  const { _, fix, remove, merge } = getopts(args, {
     alias: {
+      fix: 'f',
       remove: 'r',
       merge: 'm',
     },
-    boolean: ['merge', 'remove'],
+    boolean: ['fix', 'merge', 'remove'],
     default: {
       merge: false,
       remove: false,
@@ -25,7 +26,7 @@ module.exports = async function main(args) {
   await asyncMap(_, async vmDir => {
     vmDir = resolve(vmDir)
     try {
-      await adapter.cleanVm(vmDir, { remove, merge, onLog: log => console.warn(log) })
+      await adapter.cleanVm(vmDir, { fixMetadata: fix, remove, merge, onLog: (...args) => console.warn(...args) })
     } catch (error) {
       console.error('adapter.cleanVm', vmDir, error)
     }

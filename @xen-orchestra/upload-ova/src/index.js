@@ -6,7 +6,7 @@ import chalk from 'chalk'
 import execPromise from 'exec-promise'
 import FormData from 'form-data'
 import { createReadStream } from 'fs'
-import { stat } from 'fs-promise'
+import { stat } from 'fs-extra'
 import getStream from 'get-stream'
 import hrp from 'http-request-plus'
 import humanFormat from 'human-format'
@@ -14,7 +14,6 @@ import l33t from 'l33teral'
 import isObject from 'lodash/isObject'
 import getKeys from 'lodash/keys'
 import startsWith from 'lodash/startsWith'
-import nicePipe from 'nice-pipe'
 import prettyMs from 'pretty-ms'
 import progressStream from 'progress-stream'
 import pw from 'pw'
@@ -22,9 +21,12 @@ import stripIndent from 'strip-indent'
 import { URL } from 'url'
 import Xo from 'xo-lib'
 import { parseOVAFile } from 'xo-vmdk-to-vhd'
+import { pipeline } from 'stream'
 
 import pkg from '../package'
 import { load as loadConfig, set as setConfig, unset as unsetConfig } from './config'
+
+const noop = Function.prototype
 
 function help() {
   return stripIndent(
@@ -206,7 +208,7 @@ export async function upload(args) {
       url = new URL(result[key], baseUrl)
 
       const { size: length } = await stat(file)
-      const input = nicePipe([
+      const input = pipeline(
         createReadStream(file),
         progressStream(
           {
@@ -215,7 +217,8 @@ export async function upload(args) {
           },
           printProgress
         ),
-      ])
+        noop
+      )
       formData.append('file', input, { filename: 'file', knownLength: length })
       try {
         return await hrp.post(url.toString(), { body: formData, headers: formData.getHeaders() }).readAll('utf-8')

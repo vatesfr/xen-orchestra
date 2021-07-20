@@ -1,10 +1,10 @@
 /* eslint-env jest */
 
-import eventToPromise from 'event-to-promise'
+import fromEvent from 'promise-toolbox/fromEvent'
 import { forEach } from 'lodash'
 
-import Collection from './collection'
-import Index from './index'
+import { Collection } from './collection'
+import { Index } from './index'
 
 // ===================================================================
 
@@ -144,7 +144,7 @@ describe('Index', function () {
 
     col.update(item1bis)
 
-    return eventToPromise(col, 'finish').then(() => {
+    return fromEvent(col, 'finish').then(() => {
       expect(col.indexes).toEqual({
         byGroup: {
           foo: {

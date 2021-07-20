@@ -17,10 +17,10 @@ interface Record {
 }
 
 export class AuditCore {
-  constructor(storage: Storage) { }
-  public add(subject: any, event: string, data: any): Promise<Record> { }
-  public checkIntegrity(oldest: string, newest: string): Promise<number> { }
-  public getFrom(newest?: string): AsyncIterator { }
-  public deleteFrom(newest: string): Promise<void> { }
-  public deleteRangeAndRewrite(newest: string, oldest: string): Promise<void> { }
+  constructor(storage: Storage) {}
+  public add(subject: any, event: string, data: any): Promise<Record> {}
+  public checkIntegrity(oldest: string, newest: string): Promise<number> {}
+  public getFrom(newest?: string): AsyncIterator {}
+  public deleteFrom(newest: string): Promise<void> {}
+  public deleteRangeAndRewrite(newest: string, oldest: string): Promise<void> {}
 }

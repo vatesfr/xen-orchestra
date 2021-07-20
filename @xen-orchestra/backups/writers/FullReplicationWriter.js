@@ -29,7 +29,7 @@ exports.FullReplicationWriter = class FullReplicationWriter extends MixinReplica
     )
   }
 
-  async run({ timestamp, sizeContainer, stream }) {
+  async _run({ timestamp, sizeContainer, stream }) {
     const sr = this._sr
     const settings = this._settings
     const { job, scheduleId, vm } = this._backup

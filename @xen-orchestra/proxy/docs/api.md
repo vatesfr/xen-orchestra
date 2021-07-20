@@ -93,10 +93,7 @@ declare namespace event {
     snapshot: Task
   }
 
-  function from(_: {
-    token: string = ''
-    timeout?: number
-  }): {
+  function from(_: { token: string = ''; timeout?: number }): {
     events: Event[]
     token: string
   }
@@ -146,13 +143,13 @@ declare namespace backup {
     streamLogs: boolean = false
   }): string
 
-  function listPoolMetadataBackups(_: {
-    remotes: { [id: string]: Remote }
-  }): { [remoteId: string]: { [poolUuid: string]: object[] } }
+  function listPoolMetadataBackups(_: { remotes: { [id: string]: Remote } }): {
+    [remoteId: string]: { [poolUuid: string]: object[] }
+  }
 
-  function listVmBackups(_: {
-    remotes: { [remoteId: string]: Remote }
-  }): { [remoteId: string]: { [vmUuid: string]: object[] } }
+  function listVmBackups(_: { remotes: { [remoteId: string]: Remote } }): {
+    [remoteId: string]: { [vmUuid: string]: object[] }
+  }
 
   function listXoMetadataBackups(_: { remotes: { [id: string]: Remote } }): { [remoteId: string]: object[] }
 
