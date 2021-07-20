@@ -33,7 +33,7 @@
     "content-type": "^1.0.4",
     "cson-parser": "^4.0.7",
     "getopts": "^2.2.3",
-    "http-request-plus": "^0.11.2",
+    "http-request-plus": "^0.12",
     "json-rpc-protocol": "^0.13.1",
     "promise-toolbox": "^0.19.2",
     "pump": "^3.0.0",
