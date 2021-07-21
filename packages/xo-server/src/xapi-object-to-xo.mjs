@@ -414,6 +414,7 @@ const TRANSFORMS = {
       name_label: obj.name_label,
       other: otherConfig,
       os_version: (guestMetrics && guestMetrics.os_version) || null,
+      parent: link(obj, 'parent'),
       power_state: obj.power_state,
       hasVendorDevice: obj.has_vendor_device,
       resourceSet,

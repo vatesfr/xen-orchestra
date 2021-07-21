@@ -12,6 +12,8 @@ const { MixinReplicationWriter } = require('./_MixinReplicationWriter.js')
 const { listReplicatedVms } = require('./_listReplicatedVms.js')
 
 exports.DeltaReplicationWriter = class DeltaReplicationWriter extends MixinReplicationWriter(AbstractDeltaWriter) {
+  #baseVm
+
   async checkBaseVdis(baseUuidToSrcVdi, baseVm) {
     const sr = this._sr
     const replicatedVm = listReplicatedVms(sr.$xapi, this._backup.job.id, sr.uuid, this._backup.vm.uuid).find(
@@ -20,6 +22,8 @@ exports.DeltaReplicationWriter = class DeltaReplicationWriter extends MixinRepli
     if (replicatedVm === undefined) {
       return baseUuidToSrcVdi.clear()
     }
+
+    this.#baseVm = replicatedVm
 
     const xapi = replicatedVm.$xapi
     const replicatedVdis = new Set(
@@ -88,6 +92,7 @@ exports.DeltaReplicationWriter = class DeltaReplicationWriter extends MixinRepli
       targetVmRef = await importDeltaVm(
         {
           __proto__: deltaExport,
+          baseVm: this.#baseVm,
           vm: {
             ...deltaExport.vm,
             tags: [...deltaExport.vm.tags, 'Continuous Replication'],

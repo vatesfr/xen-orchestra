@@ -1,18 +1,51 @@
 # ChangeLog
 
-## **next**
+## **5.60.0** (2021-06-30)
+
+<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
+### Highlights
+
+- [VM/disks] Ability to rescan ISO SRs (PR [#5814](https://github.com/vatesfr/xen-orchestra/pull/5814))
+- [VM/snapshots] Identify VM's current snapshot with an icon next to the snapshot's name (PR [#5824](https://github.com/vatesfr/xen-orchestra/pull/5824))
+
+### Enhancements
+
+- [OVA import] improve OVA import error reporting (PR [#5797](https://github.com/vatesfr/xen-orchestra/pull/5797))
+- [Backup] Distinguish error messages between cancelation and interrupted HTTP connection
+- [Jobs] Add `host.emergencyShutdownHost` to the list of methods that jobs can call (PR [#5818](https://github.com/vatesfr/xen-orchestra/pull/5818))
+- [Host/Load-balancer] Log VM and host names when a VM is migrated + category (density, performance, ...) (PR [#5808](https://github.com/vatesfr/xen-orchestra/pull/5808))
+- [VM/new disk] Auto-fill disk name input with generated unique name (PR [#5828](https://github.com/vatesfr/xen-orchestra/pull/5828))
+
+### Bug fixes
+
+- [IPs] Handle space-delimited IP address format provided by outdated guest tools [5801](https://github.com/vatesfr/xen-orchestra/issues/5801) (PR [5805](https://github.com/vatesfr/xen-orchestra/pull/5805))
+- [API/pool.listPoolsMatchingCriteria] fix `unknown error from the peer` error (PR [5807](https://github.com/vatesfr/xen-orchestra/pull/5807))
+- [Backup] Limit number of connections to hosts, which should reduce the occurences of `ECONNRESET`
+- [Plugins/perf-alert] All mode: only selects running hosts and VMs (PR [5811](https://github.com/vatesfr/xen-orchestra/pull/5811))
+- [New VM] Fix summary section always showing "0 B" for RAM (PR [#5817](https://github.com/vatesfr/xen-orchestra/pull/5817))
+- [Backup/Restore] Fix _start VM after restore_ [5820](https://github.com/vatesfr/xen-orchestra/issues/5820)
+- [Netbox] Fix a bug where some devices' IPs would get deleted from Netbox (PR [#5821](https://github.com/vatesfr/xen-orchestra/pull/5821))
+- [Netbox] Fix an issue where some IPv6 would be deleted just to be immediately created again (PR [#5822](https://github.com/vatesfr/xen-orchestra/pull/5822))
 
 ### Released packages
 
 - @vates/decorate-with 0.1.0
 - xen-api 0.33.1
 - @xen-orchestra/xapi 0.6.4
-- @xen-orchestra/backups 0.11.2
+- @xen-orchestra/backups 0.12.0
 - @xen-orchestra/proxy 0.14.3
+- vhd-lib 1.1.0
+- vhd-cli 0.4.0
+- xo-server-netbox 0.1.2
+- xo-server-perf-alert 0.3.2
+- xo-server-load-balancer 0.7.0
+- xo-server 5.80.0
+- xo-web 5.84.0
 
 ## **5.59.0** (2021-05-31)
 
-<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Highlights
 
@@ -44,8 +77,6 @@
 - xo-server 5.79.5
 
 ## **5.58.1** (2021-05-06)
-
-<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Bug fixes
 

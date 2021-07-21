@@ -1198,6 +1198,7 @@ const messages = {
   snapshotQuiesce: 'Quiesced snapshot',
   vmRevertSuccessfulTitle: 'Revert successful',
   vmRevertSuccessfulMessage: 'VM successfully reverted',
+  currentSnapshot: 'Current snapshot',
 
   // ----- VM backup tab -----
   goToBackupPage: 'Go to the backup page.',

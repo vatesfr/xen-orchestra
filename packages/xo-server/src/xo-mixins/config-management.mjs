@@ -77,6 +77,6 @@ export default class ConfigManagement {
         await manager.importer(data)
       }
     }
-    await this._app.clean()
+    await this._app.hooks.clean()
   }
 }

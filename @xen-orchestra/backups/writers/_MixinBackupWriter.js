@@ -16,7 +16,7 @@ exports.MixinBackupWriter = (BaseClass = Object) =>
 
     _cleanVm(options) {
       return this._adapter
-        .cleanVm(getVmBackupDir(this._backup.vm.uuid), { ...options, onLog: warn, lock: false })
+        .cleanVm(getVmBackupDir(this._backup.vm.uuid), { ...options, fixMetadata: true, onLog: warn, lock: false })
         .catch(warn)
     }
 

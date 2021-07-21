@@ -1,7 +1,7 @@
 import assert from 'assert'
+import ipaddr from 'ipaddr.js'
 import { createLogger } from '@xen-orchestra/log'
 import { find, flatten, forEach, groupBy, isEmpty, keyBy, mapValues, trimEnd, zipObject } from 'lodash'
-import { isInSubnet } from 'is-in-subnet'
 
 const log = createLogger('xo:netbox')
 
@@ -97,10 +97,9 @@ class Netbox {
   }
 
   async #makeRequest(path, method, data) {
-    log.debug(
-      `${method} ${path}`,
+    const dataDebug =
       Array.isArray(data) && data.length > 2 ? [...data.slice(0, 2), `and ${data.length - 2} others`] : data
-    )
+    log.debug(`${method} ${path}`, dataDebug)
     let url = this.#endpoint + '/api' + path
     const options = {
       headers: { 'Content-Type': 'application/json', Authorization: `Token ${this.#token}` },
@@ -116,10 +115,15 @@ class Netbox {
           return JSON.parse(body)
         }
       } catch (error) {
+        error.data = {
+          method,
+          path,
+          body: dataDebug,
+        }
         try {
           const body = await error.response.readAll()
           if (body.length > 0) {
-            log.error(body.toString())
+            error.data.error = JSON.parse(body)
           }
         } catch {
           throw error
@@ -460,7 +464,16 @@ class Netbox {
 
     // IPs
     const [oldNetboxIps, prefixes] = await Promise.all([
-      this.#makeRequest('/ipam/ip-addresses/', 'GET').then(addresses => groupBy(addresses, 'assigned_object_id')),
+      this.#makeRequest('/ipam/ip-addresses/', 'GET').then(addresses =>
+        groupBy(
+          // In Netbox, a device interface and a VM interface can have the same
+          // ID and an IP address can be assigned to both types of interface, so
+          // we need to make sure that we only get IPs that are assigned to a VM
+          // interface before grouping them by their `assigned_object_id`
+          addresses.filter(address => address.assigned_object_type === 'virtualization.vminterface'),
+          'assigned_object_id'
+        )
+      ),
       this.#makeRequest('/ipam/prefixes/', 'GET'),
     ])
 
@@ -483,13 +496,22 @@ class Netbox {
         const interfaceOldIps = oldNetboxIps[interface_.id] ?? []
 
         for (const ip of vifIps) {
+          const parsedIp = ipaddr.parse(ip)
+          const ipKind = parsedIp.kind()
+          const ipCompactNotation = parsedIp.toString()
           // FIXME: Should we compare the IPs with their range? ie: can 2 IPs
           // look identical but belong to 2 different ranges?
-          const netboxIpIndex = interfaceOldIps.findIndex(netboxIp => netboxIp.address.split('/')[0] === ip)
+          const netboxIpIndex = interfaceOldIps.findIndex(
+            netboxIp => ipaddr.parse(netboxIp.address.split('/')[0]).toString() === ipCompactNotation
+          )
           if (netboxIpIndex >= 0) {
             interfaceOldIps.splice(netboxIpIndex, 1)
           } else {
-            const prefix = prefixes.find(({ prefix }) => isInSubnet(ip, prefix))
+            const prefix = prefixes.find(({ prefix }) => {
+              const [range, bits] = prefix.split('/')
+              const parsedRange = ipaddr.parse(range)
+              return parsedRange.kind() === ipKind && parsedIp.match(parsedRange, bits)
+            })
             if (prefix === undefined) {
               ignoredIps.push(ip)
               continue
