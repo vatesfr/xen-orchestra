@@ -140,7 +140,6 @@ export default class TabGeneral extends Component {
     (vdis, vdiSnapshots, unmanagedVdis) => {
       const groups = []
       const snapshotsByVdi = groupBy(vdiSnapshots, '$snapshot_of')
-      const unmanagedVdisById = keyBy(unmanagedVdis, 'id')
 
       let orphanedVdiSnapshots
       if ((orphanedVdiSnapshots = snapshotsByVdi[undefined]) !== undefined) {
@@ -158,7 +157,7 @@ export default class TabGeneral extends Component {
         const baseCopies = new Set()
         let baseCopy
         let root = id
-        while ((baseCopy = unmanagedVdisById[parent]) !== undefined) {
+        while ((baseCopy = unmanagedVdis[parent]) !== undefined) {
           root = baseCopy.id
           parent = baseCopy.parent
           baseCopies.add(baseCopy)
@@ -167,7 +166,7 @@ export default class TabGeneral extends Component {
         if ((snapshots = snapshotsByVdi[id]) !== undefined) {
           // snapshot can have base copy without active VDI
           snapshots.forEach(({ parent }) => {
-            while ((baseCopy = unmanagedVdisById[parent]) !== undefined && !baseCopies.has(baseCopy)) {
+            while ((baseCopy = unmanagedVdis[parent]) !== undefined && !baseCopies.has(baseCopy)) {
               parent = baseCopy.parent
               baseCopies.add(baseCopy)
             }
