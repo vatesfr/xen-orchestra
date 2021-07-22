@@ -1,5 +1,5 @@
 {
-  "availableUpdates": "{ nUpdates } available update{nUpdates, plural, one {} other {s}}",
+  "availableUpdates": "{nUpdates} available update{nUpdates, plural, one {} other {s}}",
   "badCredentials": "Bad credentials",
   "confirmCtrlAltDel": "Send Ctrl+Alt+Del to VM?",
   "connect": "Connect",
@@ -9,6 +9,7 @@
   "device": "Device",
   "disconnect": "Disconnect",
   "dns": "DNS",
+  "errorOccurred": "An error has occurred. Please ty again later.",
   "gateway": "Gateway",
   "ip": "IP",
   "loading": "Loading…",
