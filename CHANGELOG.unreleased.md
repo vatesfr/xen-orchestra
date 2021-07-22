@@ -33,6 +33,7 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
+- @xen-orchestra/human-format minor
 - @xen-orchestra/emit-async minor
 - @xen-orchestra/defined patch
 - xo-collection minor
