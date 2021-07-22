@@ -10,7 +10,7 @@
 - [Netbox] Add information about a failed request to the error log to help better understand what happened [#5834](https://github.com/vatesfr/xen-orchestra/issues/5834) (PR [#5842](https://github.com/vatesfr/xen-orchestra/pull/5842))
 - [VM/console] Ability to rescan ISO SRs (PR [#5841](https://github.com/vatesfr/xen-orchestra/pull/5841))
 - [SR/disks] Display base copies' active VDIs (PR [#5826](https://github.com/vatesfr/xen-orchestra/pull/5826))
-- [Host] When supported, use pool's default migration network to evacuate host [#5802](https://github.com/vatesfr/xen-orchestra/issues/5802)
+- [Host] When supported, use pool's default migration network to evacuate host [#5802](https://github.com/vatesfr/xen-orchestra/issues/5802) (PR [#5851](https://github.com/vatesfr/xen-orchestra/pull/5851))
 
 ### Bug fixes
 
