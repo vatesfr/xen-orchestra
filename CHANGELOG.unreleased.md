@@ -8,6 +8,7 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [New network] Ability for pool's admin to create a new network within the pool (PR [#5873](https://github.com/vatesfr/xen-orchestra/pull/5873))
+- [Netbox] Synchronize primary IPv4 and IPv6 addresses
 
 ### Bug fixes
 
@@ -38,5 +39,6 @@
 - @xen-orchestra/log minor
 - @xen-orchestra/mixins patch
 - xo-server-auth-ldap patch
+- xo-server-netbox minor
 - xo-server minor
 - xo-web minor
