@@ -1,10 +1,10 @@
 import React from 'react'
+import { formatSize } from '@xen-orchestra/human-format'
 import { withState } from 'reaclette'
 
 import IntlMessage from '../../components/IntlMessage'
 import Table, { Column } from '../../components/Table'
 import XapiConnection, { ObjectsByType, PoolUpdate } from '../../libs/xapi'
-import { formatSize } from '../../helpers/format'
 
 const COLUMN: Column<PoolUpdate>[] = [
   {

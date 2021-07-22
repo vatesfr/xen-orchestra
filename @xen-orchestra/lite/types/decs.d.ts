@@ -1,4 +1,5 @@
 declare module '@novnc/novnc/lib/rfb'
+declare module '@xen-orchestra/human-format'
 declare module 'human-format'
 declare module 'iterable-backoff'
 declare module 'json-rpc-protocol'
