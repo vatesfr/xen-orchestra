@@ -68,8 +68,10 @@ const STOP_OPERATIONS = [
   'hard_reboot',
   'hard_shutdown',
   'pause',
-  'shutdown',
   'suspend',
+
+  // Even though it's not recognized by `xe (as of 2021-08), it's a valid operation
+  'shutdown',
 ]
 
 const forceReboot = vm => restartVm(vm, true)
