@@ -197,9 +197,9 @@ const TRANSFORMS = {
       logging: obj.logging,
       name_description: obj.name_description,
       name_label: obj.name_label,
-      maintained: MAINTAINED_HOST_VERSION[softwareVersion.product_brand === 'XCP-ng' ? 'XCP-ng' : 'CH'].some(
-        v => v === softwareVersion.product_version
-      ),
+      maintained:
+        MAINTAINED_HOST_VERSION[softwareVersion.product_brand]?.some(v => v === softwareVersion.product_version) ??
+        false,
       memory: (function () {
         if (metrics) {
           const free = +metrics.memory_free
