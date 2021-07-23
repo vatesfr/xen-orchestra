@@ -77,7 +77,11 @@ ${cliName} v${pkg.version}
       'xo:backup:sr': tgtSr.uuid,
       'xo:copy_of': srcSnapshotUuid,
     }),
-    tgtVm.update_blocked_operations('start', 'Start operation for this vm is blocked, clone it if you want to use it.'),
+    Promise.all(
+      ['start', 'start_on'].map(op =>
+        tgtVm.update_blocked_operations(op, 'Start operation for this vm is blocked, clone it if you want to use it.')
+      )
+    ),
     Promise.all(
       userDevices.map(userDevice => {
         const srcDisk = srcDisks[userDevice]
