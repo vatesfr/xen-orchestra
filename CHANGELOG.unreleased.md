@@ -16,7 +16,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [VM/disks] Fix `an error has occured` when self service user was on VM disk view (PR [#5841](https://github.com/vatesfr/xen-orchestra/pull/5841))
-- [Backup] Protect replicated VMs from being started on specific hosts (PR [#5852](https://github.com/vatesfr/xen-orchestra/pull/5852)
+- [Backup] Protect replicated VMs from being started on specific hosts (PR [#5852](https://github.com/vatesfr/xen-orchestra/pull/5852))
 
 ### Packages to release
 
