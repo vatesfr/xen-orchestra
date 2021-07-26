@@ -10,7 +10,7 @@ import { get as getDefined } from '@xen-orchestra/defined'
 import { pFinally, reflect, tap, tapCatch } from 'promise-toolbox'
 import { SelectHost } from 'select-objects'
 import { filter, forEach, get, includes, isEmpty, isEqual, map, once, size, sortBy, throttle } from 'lodash'
-import { forbiddenOperation, incorrectState, noHostsAvailable } from 'xo-common/api-errors'
+import { forbiddenOperation, incorrectState, noHostsAvailable, vmLacksFeature } from 'xo-common/api-errors'
 
 import _ from '../intl'
 import fetch, { post } from '../fetch'
@@ -1084,31 +1084,35 @@ export const stopVm = async (vm, force = false) => {
       title: _('stopVmModalTitle'),
       body: _('stopVmModalMessage', { name: vm.name_label }),
     })
-  } catch {
-    return
-  }
 
-  try {
-    if (
-      !vm.pvDriversDetected &&
-      !force &&
-      (await chooseAction({
-        title: _('vmHasNoTools'),
-        body: _('vmHasNoToolsMessage'),
-        icon: 'alarm',
-        buttons: [
-          { label: _('tryShutdown'), value: 'clean', btnStyle: 'success' },
-          { label: _('forceShutdownVmLabel'), value: 'force', btnStyle: 'danger' },
-        ],
-      })) === 'force'
-    ) {
-      force = true
+    return await _call('vm.stop', { id: resolveId(vm), force })
+  } catch (error) {
+    if (error === undefined) {
+      return
     }
-  } catch {
-    return
-  }
 
-  return await _call('vm.stop', { id: resolveId(vm), force })
+    if (!vmLacksFeature.is(error) || force) {
+      throw error
+    }
+
+    try {
+      await confirm({
+        title: _('vmHasNoTools'),
+        body: (
+          <div>
+            <p>{_('vmHasNoToolsMessage')}</p>
+            <p>
+              <strong>{_('confirmForceShutdown')}</strong>
+            </p>
+          </div>
+        ),
+      })
+    } catch {
+      return
+    }
+
+    return await _call('vm.stop', { id: resolveId(vm), force: true })
+  }
 }
 
 export const stopVms = (vms, force = false) =>
@@ -1141,31 +1145,35 @@ export const restartVm = async (vm, force = false) => {
       title: _('restartVmModalTitle'),
       body: _('restartVmModalMessage', { name: vm.name_label }),
     })
-  } catch {
-    return
-  }
 
-  try {
-    if (
-      !vm.pvDriversDetected &&
-      !force &&
-      (await chooseAction({
-        title: _('vmHasNoTools'),
-        body: _('vmHasNoToolsMessage'),
-        icon: 'alarm',
-        buttons: [
-          { label: _('tryReboot'), value: 'clean', btnStyle: 'success' },
-          { label: _('forceRebootVmLabel'), value: 'force', btnStyle: 'danger' },
-        ],
-      })) === 'force'
-    ) {
-      force = true
+    return await _call('vm.restart', { id: resolveId(vm), force })
+  } catch (error) {
+    if (error === undefined) {
+      return
     }
-  } catch {
-    return
-  }
 
-  return await _call('vm.restart', { id: resolveId(vm), force })
+    if (!vmLacksFeature.is(error) || force) {
+      throw error
+    }
+
+    try {
+      await confirm({
+        title: _('vmHasNoTools'),
+        body: (
+          <div>
+            <p>{_('vmHasNoToolsMessage')}</p>
+            <p>
+              <strong>{_('confirmForceReboot')}</strong>
+            </p>
+          </div>
+        ),
+      })
+    } catch {
+      return
+    }
+
+    return await _call('vm.restart', { id: resolveId(vm), force: true })
+  }
 }
 
 export const restartVms = (vms, force = false) =>
