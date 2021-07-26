@@ -1,8 +1,4 @@
 {
-  "Citrix Hypervisor": [
-    "8.2.0"
-  ],
-  "XCP-ng": [
-    "8.2.0"
-  ]
+  "Citrix Hypervisor": ">=8.2.0",
+  "XCP-ng": ">=8.2.0"
 }
