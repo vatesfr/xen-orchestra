@@ -10,7 +10,7 @@ import { get as getDefined } from '@xen-orchestra/defined'
 import { pFinally, reflect, tap, tapCatch } from 'promise-toolbox'
 import { SelectHost } from 'select-objects'
 import { filter, forEach, get, includes, isEmpty, isEqual, map, once, size, sortBy, throttle } from 'lodash'
-import { forbiddenOperation, incorrectState, noHostsAvailable } from 'xo-common/api-errors'
+import { forbiddenOperation, incorrectState, noHostsAvailable, vmLacksFeature } from 'xo-common/api-errors'
 
 import _ from '../intl'
 import fetch, { post } from '../fetch'
@@ -1078,11 +1078,42 @@ export const startVms = vms =>
     }
   }, noop)
 
-export const stopVm = (vm, force = false) =>
-  confirm({
-    title: _('stopVmModalTitle'),
-    body: _('stopVmModalMessage', { name: vm.name_label }),
-  }).then(() => _call('vm.stop', { id: resolveId(vm), force }), noop)
+export const stopVm = async (vm, force = false) => {
+  try {
+    await confirm({
+      title: _('stopVmModalTitle'),
+      body: _('stopVmModalMessage', { name: vm.name_label }),
+    })
+
+    return await _call('vm.stop', { id: resolveId(vm), force })
+  } catch (error) {
+    if (error === undefined) {
+      return
+    }
+
+    if (!vmLacksFeature.is(error) || force) {
+      throw error
+    }
+
+    try {
+      await confirm({
+        title: _('vmHasNoTools'),
+        body: (
+          <div>
+            <p>{_('vmHasNoToolsMessage')}</p>
+            <p>
+              <strong>{_('confirmForceShutdown')}</strong>
+            </p>
+          </div>
+        ),
+      })
+    } catch {
+      return
+    }
+
+    return await _call('vm.stop', { id: resolveId(vm), force: true })
+  }
+}
 
 export const stopVms = (vms, force = false) =>
   confirm({
@@ -1108,11 +1139,42 @@ export const pauseVms = vms =>
 
 export const recoveryStartVm = vm => _call('vm.recoveryStart', { id: resolveId(vm) })
 
-export const restartVm = (vm, force = false) =>
-  confirm({
-    title: _('restartVmModalTitle'),
-    body: _('restartVmModalMessage', { name: vm.name_label }),
-  }).then(() => _call('vm.restart', { id: resolveId(vm), force }), noop)
+export const restartVm = async (vm, force = false) => {
+  try {
+    await confirm({
+      title: _('restartVmModalTitle'),
+      body: _('restartVmModalMessage', { name: vm.name_label }),
+    })
+
+    return await _call('vm.restart', { id: resolveId(vm), force })
+  } catch (error) {
+    if (error === undefined) {
+      return
+    }
+
+    if (!vmLacksFeature.is(error) || force) {
+      throw error
+    }
+
+    try {
+      await confirm({
+        title: _('vmHasNoTools'),
+        body: (
+          <div>
+            <p>{_('vmHasNoToolsMessage')}</p>
+            <p>
+              <strong>{_('confirmForceReboot')}</strong>
+            </p>
+          </div>
+        ),
+      })
+    } catch {
+      return
+    }
+
+    return await _call('vm.restart', { id: resolveId(vm), force: true })
+  }
+}
 
 export const restartVms = (vms, force = false) =>
   confirm({

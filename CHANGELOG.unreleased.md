@@ -11,6 +11,7 @@
 - [VM/console] Ability to rescan ISO SRs (PR [#5841](https://github.com/vatesfr/xen-orchestra/pull/5841))
 - [SR/disks] Display base copies' active VDIs (PR [#5826](https://github.com/vatesfr/xen-orchestra/pull/5826))
 - [Netbox] Optionally allow self-signed certificates (PR [#5850](https://github.com/vatesfr/xen-orchestra/pull/5850))
+- [VM] shutdown/reboot: offer to force shutdown/reboot the VM if no Xen tools were detected [#5838](https://github.com/vatesfr/xen-orchestra/issues/5838) (PR [#5855](https://github.com/vatesfr/xen-orchestra/pull/5855))
 
 ### Bug fixes
 
