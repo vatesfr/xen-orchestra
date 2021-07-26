@@ -1673,6 +1673,11 @@ const messages = {
   restartVmModalMessage: 'Are you sure you want to restart {name}?',
   stopVmModalTitle: 'Stop VM',
   stopVmModalMessage: 'Are you sure you want to stop {name}?',
+  vmHasNoTools: 'No guest tools detected',
+  vmHasNoToolsMessage:
+    'No Xen tools were detected on this VM. Xen tools are required to properly shutdown or reboot a VM from the API.',
+  tryShutdown: 'Try clean shutdown anyway',
+  tryReboot: 'Try clean reboot anyway',
   suspendVmsModalTitle: 'Suspend VM{vms, plural, one {} other {s}}',
   suspendVmsModalMessage: 'Are you sure you want to suspend {vms, number} VM{vms, plural, one {} other {s}}?',
   pauseVmsModalTitle: 'Pause VM{vms, plural, one {} other {s}}',

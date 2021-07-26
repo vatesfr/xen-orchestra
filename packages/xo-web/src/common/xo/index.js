@@ -1078,11 +1078,38 @@ export const startVms = vms =>
     }
   }, noop)
 
-export const stopVm = (vm, force = false) =>
-  confirm({
-    title: _('stopVmModalTitle'),
-    body: _('stopVmModalMessage', { name: vm.name_label }),
-  }).then(() => _call('vm.stop', { id: resolveId(vm), force }), noop)
+export const stopVm = async (vm, force = false) => {
+  try {
+    await confirm({
+      title: _('stopVmModalTitle'),
+      body: _('stopVmModalMessage', { name: vm.name_label }),
+    })
+  } catch {
+    return
+  }
+
+  try {
+    if (
+      !vm.pvDriversDetected &&
+      !force &&
+      (await chooseAction({
+        title: _('vmHasNoTools'),
+        body: _('vmHasNoToolsMessage'),
+        icon: 'alarm',
+        buttons: [
+          { label: _('tryShutdown'), value: 'clean', btnStyle: 'success' },
+          { label: _('forceShutdownVmLabel'), value: 'force', btnStyle: 'danger' },
+        ],
+      })) === 'force'
+    ) {
+      force = true
+    }
+  } catch {
+    return
+  }
+
+  return await _call('vm.stop', { id: resolveId(vm), force })
+}
 
 export const stopVms = (vms, force = false) =>
   confirm({
@@ -1108,11 +1135,38 @@ export const pauseVms = vms =>
 
 export const recoveryStartVm = vm => _call('vm.recoveryStart', { id: resolveId(vm) })
 
-export const restartVm = (vm, force = false) =>
-  confirm({
-    title: _('restartVmModalTitle'),
-    body: _('restartVmModalMessage', { name: vm.name_label }),
-  }).then(() => _call('vm.restart', { id: resolveId(vm), force }), noop)
+export const restartVm = async (vm, force = false) => {
+  try {
+    await confirm({
+      title: _('restartVmModalTitle'),
+      body: _('restartVmModalMessage', { name: vm.name_label }),
+    })
+  } catch {
+    return
+  }
+
+  try {
+    if (
+      !vm.pvDriversDetected &&
+      !force &&
+      (await chooseAction({
+        title: _('vmHasNoTools'),
+        body: _('vmHasNoToolsMessage'),
+        icon: 'alarm',
+        buttons: [
+          { label: _('tryReboot'), value: 'clean', btnStyle: 'success' },
+          { label: _('forceRebootVmLabel'), value: 'force', btnStyle: 'danger' },
+        ],
+      })) === 'force'
+    ) {
+      force = true
+    }
+  } catch {
+    return
+  }
+
+  return await _call('vm.restart', { id: resolveId(vm), force })
+}
 
 export const restartVms = (vms, force = false) =>
   confirm({
