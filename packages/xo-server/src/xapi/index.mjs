@@ -185,14 +185,26 @@ export default class Xapi extends XapiBase {
   //
   // If `force` is false and the evacuation failed, the host is re-
   // enabled and the error is thrown.
-  async clearHost({ $ref: ref }, force) {
-    await this.call('host.disable', ref)
+  async clearHost({ $ref: hostRef, $pool: pool }, force) {
+    await this.call('host.disable', hostRef)
 
+    const migrationNetworkId = pool.other_config['xo:migrationNetwork']
+    const migrationNetworkRef = migrationNetworkId && this.getObject(migrationNetworkId).$ref
     try {
-      await this.callAsync('host.evacuate', ref)
+      try {
+        await (migrationNetworkRef === undefined
+          ? this.callAsync('host.evacuate', hostRef)
+          : this.callAsync('host.evacuate', hostRef, migrationNetworkRef))
+      } catch (error) {
+        if (error.code === 'MESSAGE_PARAMETER_COUNT_MISMATCH') {
+          await this.callAsync('host.evacuate', hostRef)
+        } else {
+          throw error
+        }
+      }
     } catch (error) {
       if (!force) {
-        await this.call('host.enable', ref)
+        await this.call('host.enable', hostRef)
 
         throw error
       }

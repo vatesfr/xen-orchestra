@@ -12,6 +12,7 @@
 - [SR/disks] Display base copies' active VDIs (PR [#5826](https://github.com/vatesfr/xen-orchestra/pull/5826))
 - [Netbox] Optionally allow self-signed certificates (PR [#5850](https://github.com/vatesfr/xen-orchestra/pull/5850))
 - [VM] shutdown/reboot: offer to force shutdown/reboot the VM if no Xen tools were detected [#5838](https://github.com/vatesfr/xen-orchestra/issues/5838) (PR [#5855](https://github.com/vatesfr/xen-orchestra/pull/5855))
+- [Host] When supported, use pool's default migration network to evacuate host [#5802](https://github.com/vatesfr/xen-orchestra/issues/5802) (PR [#5851](https://github.com/vatesfr/xen-orchestra/pull/5851))
 
 ### Bug fixes
 
@@ -42,3 +43,4 @@
 - xo-server-netbox minor
 - xo-server patch
 - xo-web minor
+- xo-server minor
