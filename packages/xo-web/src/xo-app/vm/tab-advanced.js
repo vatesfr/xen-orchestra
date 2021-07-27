@@ -585,7 +585,7 @@ export default class TabAdvanced extends Component {
                 <tr>
                   <th>{_('virtualizationMode')}</th>
                   <td>
-                    {_(getVirtualizationModeLabel(vm))}{' '}
+                    {getVirtualizationModeLabel(vm)}{' '}
                     {(vm.virtualizationMode === 'pv' || vm.virtualizationMode === 'hvm') && (
                       <ActionButton
                         btnStyle='danger'
