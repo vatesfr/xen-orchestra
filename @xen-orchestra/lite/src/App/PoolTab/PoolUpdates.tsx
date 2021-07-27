@@ -1,5 +1,5 @@
 import React from 'react'
-import { formatSize } from '@xen-orchestra/human-format'
+import humanFormat from 'human-format'
 import { withState } from 'reaclette'
 
 import IntlMessage from '../../components/IntlMessage'
@@ -25,7 +25,7 @@ const COLUMN: Column<PoolUpdate>[] = [
   },
   {
     header: <IntlMessage id='size' />,
-    render: update => formatSize(update.size),
+    render: update => humanFormat.bytes(update.size),
   },
 ]
 
