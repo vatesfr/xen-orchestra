@@ -192,7 +192,9 @@ export default class Xapi extends XapiBase {
     const migrationNetworkRef = migrationNetworkId && this.getObject(migrationNetworkId).$ref
     try {
       try {
-        await this.callAsync('host.evacuate', hostRef, migrationNetworkRef)
+        await (migrationNetworkRef === undefined
+          ? this.callAsync('host.evacuate', hostRef)
+          : this.callAsync('host.evacuate', hostRef, migrationNetworkRef))
       } catch (error) {
         if (error.code === 'MESSAGE_PARAMETER_COUNT_MISMATCH') {
           await this.callAsync('host.evacuate', hostRef)
