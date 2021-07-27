@@ -158,7 +158,8 @@ export default class BackupNg {
           if (poolPattern !== undefined) {
             const poolIds =
               extractIdsFromSimplePattern({ id: poolPattern }) ??
-              poolPattern.__and?.flatMap?.(pattern => extractIdsFromSimplePattern({ id: pattern }) ?? [])
+              poolPattern.__and?.flatMap?.(pattern => extractIdsFromSimplePattern({ id: pattern }) ?? []) ??
+              []
             poolIds.forEach(id => {
               try {
                 app.getObject(id)

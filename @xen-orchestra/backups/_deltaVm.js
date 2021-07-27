@@ -201,6 +201,7 @@ exports.importDeltaVm = defer(async function importDeltaVm(
       blocked_operations: {
         ...vmRecord.blocked_operations,
         start: 'Importing…',
+        start_on: 'Importing…',
       },
       ha_always_run: false,
       is_a_template: false,

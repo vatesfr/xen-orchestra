@@ -40,6 +40,7 @@ const onRequest = req => {
 }
 
 class Netbox {
+  #allowUnauthorized
   #endpoint
   #intervalToken
   #loaded
@@ -58,6 +59,7 @@ class Netbox {
     if (!/^https?:\/\//.test(this.#endpoint)) {
       this.#endpoint = 'http://' + this.#endpoint
     }
+    this.#allowUnauthorized = configuration.allowUnauthorized ?? false
     this.#token = configuration.token
     this.#pools = configuration.pools
     this.#syncInterval = configuration.syncInterval && configuration.syncInterval * 60 * 60 * 1e3
@@ -105,6 +107,7 @@ class Netbox {
       headers: { 'Content-Type': 'application/json', Authorization: `Token ${this.#token}` },
       method,
       onRequest,
+      rejectUnauthorized: !this.#allowUnauthorized,
     }
 
     const httpRequest = async () => {
@@ -571,6 +574,11 @@ export const configurationSchema = ({ xo: { apiMethods } }) => ({
       type: 'string',
       title: 'Endpoint',
       description: 'Netbox URI',
+    },
+    allowUnauthorized: {
+      type: 'boolean',
+      title: 'Unauthorized certificates',
+      description: 'Enable this if your Netbox instance uses a self-signed SSL certificate',
     },
     token: {
       type: 'string',
