@@ -326,18 +326,33 @@ const TRANSFORMS = {
 
     // Merge old ipv4 protocol with the new protocol
     // See: https://github.com/xapi-project/xen-api/blob/324bc6ee6664dd915c0bbe57185f1d6243d9ed7e/ocaml/xapi/xapi_guest_agent.ml#L59-L81
+
+    // Old protocol: when there's more than 1 IP on an interface, the IPs
+    // are space-delimited in the same `x/ip` field
+    // See https://github.com/vatesfr/xen-orchestra/issues/5801#issuecomment-854337568
+
+    // The `x/ip` field may have a `x/ipv4/0` alias
+    // e.g:
+    // {
+    //   '1/ip': '<IP1> <IP2>',
+    //   '1/ipv4/0': '<IP1> <IP2>',
+    // }
+    // See https://xcp-ng.org/forum/topic/4810
     const addresses = {}
     for (const key in networks) {
-      const [, device] = /^(\d+)\/ip$/.exec(key) ?? []
-      if (device !== undefined) {
-        // Old protocol: when there's more than 1 IP on an interface, the IPs
-        // are space-delimited in the same field
-        // See https://github.com/vatesfr/xen-orchestra/issues/5801#issuecomment-854337568
-        networks[key].split(' ').forEach((ip, i) => {
+      const [, device, index] = /^(\d+)\/ip(?:v[46]\/(\d))?$/.exec(key) ?? []
+      const ips = networks[key].split(' ')
+      if (ips.length === 1 && index !== undefined) {
+        // New protocol or alias
+        addresses[key] = networks[key]
+      } else if (index !== '0' && index !== undefined) {
+        // Should never happen (alias with index >0)
+        return
+      } else {
+        // Old protocol
+        ips.forEach((ip, i) => {
           addresses[`${device}/ipv4/${i}`] = ip
         })
-      } else {
-        addresses[key] = networks[key]
       }
     }
 
