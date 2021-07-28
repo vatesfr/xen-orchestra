@@ -1,5 +1,5 @@
 import findKey from 'lodash/findKey.js'
-import pick from 'lodash/pick'
+import pick from 'lodash/pick.js'
 import { BaseError } from 'make-error'
 import { createLogger } from '@xen-orchestra/log'
 import { fibonacci } from 'iterable-backoff'
