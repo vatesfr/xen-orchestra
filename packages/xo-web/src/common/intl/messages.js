@@ -1032,6 +1032,7 @@ const messages = {
   paraVirtualizedMode: 'Paravirtualization (PV)',
   hardwareVirtualizedMode: 'Hardware virtualization (HVM)',
   hvmModeWithPvDriversEnabled: 'Hardware virtualization with paravirtualization drivers enabled (PVHVM)',
+  pvInPvhMode: 'PV inside a PVH container (PV in PVH)',
   windowsUpdateTools: 'Windows Update tools',
 
   // ----- VM stat tab -----
