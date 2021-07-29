@@ -53,21 +53,17 @@ const PoolUpdates = withState<State, Props, Effects, Computed, ParentState, Pare
   {
     computed: {
       availableUpdates: async function (state, { hostRef }) {
-        const error = <IntlMessage id='errorOccurred' />
         try {
-          const stringifiedPoolUpdates = await state.xapi.call(
+          const stringifiedPoolUpdates = (await state.xapi.call(
             'host.call_plugin',
             hostRef,
             'updater.py',
             'check_update',
             {}
-          )
-          if (typeof stringifiedPoolUpdates !== 'string') {
-            return error
-          }
+          )) as string
           return JSON.parse(stringifiedPoolUpdates)
         } catch (err) {
-          return error
+          return <IntlMessage id='errorOccurred' />
         }
       },
     },

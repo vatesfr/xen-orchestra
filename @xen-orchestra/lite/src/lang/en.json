@@ -9,7 +9,7 @@
   "device": "Device",
   "disconnect": "Disconnect",
   "dns": "DNS",
-  "errorOccurred": "An error has occurred. Please try again later.",
+  "errorOccurred": "An error has occurred.",
   "gateway": "Gateway",
   "ip": "IP",
   "loading": "Loading…",
