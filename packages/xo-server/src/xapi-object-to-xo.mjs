@@ -347,7 +347,7 @@ const TRANSFORMS = {
         addresses[key] = networks[key]
       } else if (index !== '0' && index !== undefined) {
         // Should never happen (alias with index >0)
-        return
+        continue
       } else {
         // Old protocol
         ips.forEach((ip, i) => {
