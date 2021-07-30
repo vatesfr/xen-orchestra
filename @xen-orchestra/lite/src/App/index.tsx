@@ -147,7 +147,7 @@ const App = withState<State, Props, Effects, Computed, ParentState, ParentEffect
                   </>
                 )}
               </Route>
-              <Route exact path='/pool'>
+              <Route path='/pool'>
                 <PoolTab />
               </Route>
               <Route path='/:id' render={({ match }) => <TabConsole vmId={match.params.id} />} />

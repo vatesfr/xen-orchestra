@@ -13,6 +13,7 @@ export interface XapiObject {
 // Dictionary of XAPI types and their corresponding TypeScript types
 interface types {
   PIF: Pif
+  PIF_metrics: PifMetrics
   pool: Pool
   VM: Vm
   host: Host
@@ -20,16 +21,30 @@ interface types {
 
 // XAPI types ---
 
+export interface Network extends XapiObject {
+  PIFs: string[]
+}
+
+export interface PifMetrics extends XapiObject {
+  device_name: string
+}
+
 export interface Pif extends XapiObject {
+  $network: Network
+  metrics: string
+  bond_slave_of: string
   device: string
   DNS: string
   gateway: string
+  host: string
   IP: string
   management: boolean
   network: string
+  VLAN: number
 }
 
 export interface Pool extends XapiObject {
+  master: string
   name_label: string
 }
 
@@ -68,7 +83,7 @@ export default class XapiConnection extends EventEmitter {
     }
     connect(): Promise<void>
     disconnect(): Promise<void>
-    call: (method: string, ...args: string[]) => Promise<unknown>
+    call: (method: string, ...args: unknown[]) => Promise<unknown>
     _objectsFetched: Promise<void>
   }
 
@@ -172,7 +187,7 @@ export default class XapiConnection extends EventEmitter {
     }
   }
 
-  call(method: string, ...args: string[]): Promise<unknown> {
+  call(method: string, ...args: unknown[]): Promise<unknown> {
     const { _xapi, connected } = this
     if (!connected || _xapi === undefined) {
       throw new Error('Not connected to XAPI')
