@@ -143,14 +143,7 @@ exports.importDeltaVm = defer(async function importDeltaVm(
   $defer,
   deltaVm,
   sr,
-  {
-    // can be set to a specific VM
-    baseVm = false,
-
-    cancelToken = CancelToken.none,
-    mapVdisSrs = {},
-    newMacAddresses = false,
-  } = {}
+  { cancelToken = CancelToken.none, detectBase = true, mapVdisSrs = {}, newMacAddresses = false } = {}
 ) {
   const { version } = deltaVm
   if (compareVersions(version, '1.0.0') < 0) {
@@ -160,8 +153,16 @@ exports.importDeltaVm = defer(async function importDeltaVm(
   const vmRecord = deltaVm.vm
   const xapi = sr.$xapi
 
-  if (!(baseVm === false || TAG_BASE_DELTA in vmRecord.other_config)) {
-    baseVm = undefined
+  let baseVm
+  if (detectBase) {
+    const remoteBaseVmUuid = vmRecord.other_config[TAG_BASE_DELTA]
+    if (remoteBaseVmUuid) {
+      baseVm = find(xapi.objects.all, obj => (obj = obj.other_config) && obj[TAG_COPY_SRC] === remoteBaseVmUuid)
+
+      if (!baseVm) {
+        throw new Error(`could not find the base VM (copy of ${remoteBaseVmUuid})`)
+      }
+    }
   }
 
   const baseVdis = {}
@@ -230,7 +231,7 @@ exports.importDeltaVm = defer(async function importDeltaVm(
     const vdi = vdiRecords[vdiRef]
     let newVdi
 
-    const remoteBaseVdiUuid = baseVm && vdi.other_config[TAG_BASE_DELTA]
+    const remoteBaseVdiUuid = detectBase && vdi.other_config[TAG_BASE_DELTA]
     if (remoteBaseVdiUuid) {
       const baseVdi = find(baseVdis, vdi => vdi.other_config[TAG_COPY_SRC] === remoteBaseVdiUuid)
       if (!baseVdi) {

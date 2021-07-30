@@ -44,6 +44,7 @@ exports.ImportVmBackup = class ImportVmBackup {
           ? await xapi.VM_import(backup, srRef)
           : await importDeltaVm(backup, await xapi.getRecord('SR', srRef), {
               ...this._importDeltaVmSettings,
+              detectBase: false,
             })
 
         await Promise.all([
