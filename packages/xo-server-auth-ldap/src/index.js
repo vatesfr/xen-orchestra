@@ -2,8 +2,11 @@
 
 import fromCallback from 'promise-toolbox/fromCallback'
 import { Client } from 'ldapts'
+import { createLogger } from '@xen-orchestra/log'
 import { Filter } from 'ldapts/filters/Filter'
 import { readFile } from 'fs'
+
+const logger = createLogger('xo:xo-server-backup-reports')
 
 // ===================================================================
 
@@ -25,8 +28,6 @@ const evalFilter = (filter, vars) =>
 
     return escape(value)
   })
-
-const noop = Function.prototype
 
 export const configurationSchema = {
   type: 'object',
@@ -183,8 +184,7 @@ export const testSchema = {
 // ===================================================================
 
 class AuthLdap {
-  constructor({ logger = noop, xo }) {
-    this._logger = logger
+  constructor({ xo }) {
     this._xo = xo
 
     this._authenticate = this._authenticate.bind(this)
@@ -256,10 +256,8 @@ class AuthLdap {
   }
 
   async _authenticate({ username, password }) {
-    const logger = this._logger
-
     if (username === undefined || password === undefined) {
-      logger('require `username` and `password` to authenticate!')
+      logger.error('require `username` and `password` to authenticate!')
 
       return null
     }
@@ -275,29 +273,29 @@ class AuthLdap {
       {
         const { _credentials: credentials } = this
         if (credentials) {
-          logger(`attempting to bind with as ${credentials.dn}...`)
+          logger.debug(`attempting to bind with as ${credentials.dn}...`)
           await client.bind(credentials.dn, credentials.password)
-          logger(`successfully bound as ${credentials.dn}`)
+          logger.debug(`successfully bound as ${credentials.dn}`)
         }
       }
 
       // Search for the user.
-      logger('searching for entries...')
+      logger.debug('searching for entries...')
       const { searchEntries: entries } = await client.search(this._searchBase, {
         scope: 'sub',
         filter: evalFilter(this._searchFilter, {
           name: username,
         }),
       })
-      logger(`${entries.length} entries found`)
+      logger.debug(`${entries.length} entries found`)
 
       // Try to find an entry which can be bind with the given password.
       for (const entry of entries) {
         try {
-          logger(`attempting to bind as ${entry.dn}`)
+          logger.debug(`attempting to bind as ${entry.dn}`)
           await client.bind(entry.dn, password)
-          logger(`successfully bound as ${entry.dn} => ${username} authenticated`)
-          logger(JSON.stringify(entry, null, 2))
+          logger.info(`successfully bound as ${entry.dn} => ${username} authenticated`)
+          logger.debug(JSON.stringify(entry, null, 2))
 
           let user
           if (this._userIdAttribute === undefined) {
@@ -314,18 +312,18 @@ class AuthLdap {
               try {
                 await this._synchronizeGroups(user, entry[groupsConfig.membersMapping.userAttribute])
               } catch (error) {
-                logger(`failed to synchronize groups: ${error.message}`)
+                logger.error(`failed to synchronize groups: ${error.message}`)
               }
             }
           }
 
           return { userId: user.id }
         } catch (error) {
-          logger(`failed to bind as ${entry.dn}: ${error.message}`)
+          logger.error(`failed to bind as ${entry.dn}: ${error.message}`)
         }
       }
 
-      logger(`could not authenticate ${username}`)
+      logger.error(`could not authenticate ${username}`)
       return null
     } finally {
       await client.unbind()
@@ -334,7 +332,6 @@ class AuthLdap {
 
   // Synchronize user's groups OR all groups if no user is passed
   async _synchronizeGroups(user, memberId) {
-    const logger = this._logger
     const client = new Client(this._clientOpts)
 
     try {
@@ -346,12 +343,12 @@ class AuthLdap {
       {
         const { _credentials: credentials } = this
         if (credentials) {
-          logger(`attempting to bind with as ${credentials.dn}...`)
+          logger.debug(`attempting to bind with as ${credentials.dn}...`)
           await client.bind(credentials.dn, credentials.password)
-          logger(`successfully bound as ${credentials.dn}`)
+          logger.debug(`successfully bound as ${credentials.dn}`)
         }
       }
-      logger('syncing groups...')
+      logger.info('syncing groups...')
       const { base, displayNameAttribute, filter, idAttribute, membersMapping } = this._groupsConfig
       const { searchEntries: ldapGroups } = await client.search(base, {
         scope: 'sub',
@@ -373,7 +370,7 @@ class AuthLdap {
 
         // Empty or undefined names/IDs are invalid
         if (!groupLdapId || !groupLdapName) {
-          logger(`Invalid group ID (${groupLdapId}) or name (${groupLdapName})`)
+          logger.error(`Invalid group ID (${groupLdapId}) or name (${groupLdapName})`)
           continue
         }
 
@@ -393,7 +390,7 @@ class AuthLdap {
         if (xoGroupIndex === -1) {
           if (xoGroups.find(group => group.name === groupLdapName) !== undefined) {
             // TODO: check against LDAP groups that are being created as well
-            logger(`A group called ${groupLdapName} already exists`)
+            logger.error(`A group called ${groupLdapName} already exists`)
             continue
           }
           xoGroup = await this._xo.createGroup({
@@ -459,6 +456,8 @@ class AuthLdap {
           xoGroups.filter(group => group.provider === 'ldap').map(group => this._xo.deleteGroup(group.id))
         )
       }
+
+      logger.info('done syncing groups')
     } finally {
       await client.unbind()
     }

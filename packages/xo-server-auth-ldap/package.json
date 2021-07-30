@@ -31,6 +31,7 @@
     "node": ">=10"
   },
   "dependencies": {
+    "@xen-orchestra/log": "^0.2.1",
     "exec-promise": "^0.7.0",
     "inquirer": "^8.0.0",
     "ldapts": "^2.2.1",
