@@ -378,7 +378,8 @@ class AuthLdap {
         }
 
         let ldapGroupMembers = ldapGroup[membersMapping.groupAttribute]
-        ldapGroupMembers = Array.isArray(ldapGroupMembers) ? ldapGroupMembers : [ldapGroupMembers]
+        ldapGroupMembers =
+          ldapGroupMembers === undefined ? [] : Array.isArray(ldapGroupMembers) ? ldapGroupMembers : [ldapGroupMembers]
 
         // If a user was passed, only update the user's groups
         if (user !== undefined && !ldapGroupMembers.includes(memberId)) {
