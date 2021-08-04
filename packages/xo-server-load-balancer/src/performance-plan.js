@@ -1,9 +1,9 @@
 import { filter } from 'lodash'
 
 import Plan from './plan'
-import { debug as debugP } from './utils'
+import { log as logP } from './utils'
 
-export const debug = str => debugP(`performance: ${str}`)
+export const log = str => logP(`performance: ${str}`)
 
 function epsiEqual(a, b, epsi = 0.001) {
   const absA = Math.abs(a)
@@ -54,9 +54,9 @@ export default class PerformancePlan extends Plan {
     for (const exceededHost of toOptimize) {
       const { id } = exceededHost
 
-      debug(`Try to optimize Host (${exceededHost.id}).`)
+      log(`Try to optimize Host (${exceededHost.id}).`)
       const availableHosts = filter(hosts, host => host.id !== id)
-      debug(`Available destinations: ${availableHosts.map(host => host.id)}.`)
+      log(`Available destinations: ${availableHosts.map(host => host.id)}.`)
 
       // Search bests combinations for the worst host.
       await this._optimize({
@@ -133,7 +133,7 @@ export default class PerformancePlan extends Plan {
       }
 
       if (!vm.xenTools) {
-        debug(`VM (${vm.id}) of Host (${exceededHost.id}) does not support pool migration.`)
+        log(`VM (${vm.id}) of Host (${exceededHost.id}) does not support pool migration.`)
         continue
       }
 
@@ -144,9 +144,7 @@ export default class PerformancePlan extends Plan {
         // - It's necessary to maintain a dictionary of tags for each host.
         // - ...
         if (this._antiAffinityTags.includes(tag)) {
-          debug(
-            `VM (${vm.id}) of Host (${exceededHost.id}) cannot be migrated. It contains anti-affinity tag '${tag}'.`
-          )
+          log(`VM (${vm.id}) of Host (${exceededHost.id}) cannot be migrated. It contains anti-affinity tag '${tag}'.`)
           continue
         }
       }
@@ -184,11 +182,9 @@ export default class PerformancePlan extends Plan {
           (exceededAverages.cpu - vmAverages.cpu < destinationAverages.cpu + vmAverages.cpu ||
             exceededAverages.memoryFree + vmAverages.memory > destinationAverages.memoryFree - vmAverages.memory))
       ) {
-        debug(`Cannot migrate VM (${vm.id}) to Host (${destination.id}).`)
-        debug(
-          `Src Host CPU=${exceededAverages.cpu}, Dest Host CPU=${destinationAverages.cpu}, VM CPU=${vmAverages.cpu}`
-        )
-        debug(
+        log(`Cannot migrate VM (${vm.id}) to Host (${destination.id}).`)
+        log(`Src Host CPU=${exceededAverages.cpu}, Dest Host CPU=${destinationAverages.cpu}, VM CPU=${vmAverages.cpu}`)
+        log(
           `Src Host free RAM=${exceededAverages.memoryFree}, Dest Host free RAM=${destinationAverages.memoryFree}, VM used RAM=${vmAverages.memory})`
         )
         continue
@@ -200,7 +196,7 @@ export default class PerformancePlan extends Plan {
       exceededAverages.memoryFree += vmAverages.memory
       destinationAverages.memoryFree -= vmAverages.memory
 
-      debug(
+      log(
         `Migrate VM (${vm.id} "${vm.name_label}") to Host (${destination.id} "${destination.name_label}") from Host (${fmtSrcHost}).`
       )
       optimizationCount++
@@ -209,6 +205,6 @@ export default class PerformancePlan extends Plan {
     }
 
     await Promise.all(promises)
-    debug(`Performance mode: ${optimizationCount} optimizations for Host (${fmtSrcHost}).`)
+    log(`Performance mode: ${optimizationCount} optimizations for Host (${fmtSrcHost}).`)
   }
 }

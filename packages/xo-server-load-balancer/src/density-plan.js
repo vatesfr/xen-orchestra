@@ -1,9 +1,9 @@
 import { clone, filter, map as mapToArray } from 'lodash'
 
 import Plan from './plan'
-import { debug as debugP } from './utils'
+import { log as logP } from './utils'
 
-export const debug = str => debugP(`density: ${str}`)
+export const log = str => logP(`density: ${str}`)
 
 // ===================================================================
 
@@ -48,7 +48,7 @@ export default class DensityPlan extends Plan {
 
       // A host to optimize needs the ability to be restarted.
       if (hostToOptimize.powerOnMode === '') {
-        debug(`Host (${hostId}) does not have a power on mode.`)
+        log(`Host (${hostId}) does not have a power on mode.`)
         continue
       }
 
@@ -94,20 +94,20 @@ export default class DensityPlan extends Plan {
       }
     }
 
-    debug(`Density mode: ${optimizationsCount} optimizations.`)
+    log(`Density mode: ${optimizationsCount} optimizations.`)
   }
 
   async _simulate({ host, destinations, hostsAverages }) {
     const { id: hostId } = host
 
-    debug(`Try to optimize Host (${hostId}).`)
+    log(`Try to optimize Host (${hostId}).`)
 
     const vms = filter(this._getAllRunningVms(), vm => vm.$container === hostId)
     const vmsAverages = await this._getVmsAverages(vms, { [host.id]: host })
 
     for (const vm of vms) {
       if (!vm.xenTools) {
-        debug(`VM (${vm.id}) of Host (${hostId}) does not support pool migration.`)
+        log(`VM (${vm.id}) of Host (${hostId}) does not support pool migration.`)
         return
       }
 
@@ -118,7 +118,7 @@ export default class DensityPlan extends Plan {
         // - It's necessary to maintain a dictionary of tags for each host.
         // - ...
         if (this._antiAffinityTags.includes(tag)) {
-          debug(`VM (${vm.id}) of Host (${hostId}) cannot be migrated. It contains anti-affinity tag '${tag}'.`)
+          log(`VM (${vm.id}) of Host (${hostId}) cannot be migrated. It contains anti-affinity tag '${tag}'.`)
           return
         }
       }
@@ -205,19 +205,19 @@ export default class DensityPlan extends Plan {
       mapToArray(moves, move => {
         const { vm, destination } = move
         const xapiDest = this.xo.getXapi(destination)
-        debug(
+        log(
           `Migrate VM (${vm.id} "${vm.name_label}") to Host (${destination.id} "${destination.name_label}") from Host (${fmtSrcHost}).`
         )
         return xapiDest.migrateVm(vm._xapiId, this.xo.getXapi(destination), destination._xapiId)
       })
     )
 
-    debug(`Shutdown Host (${fmtSrcHost}).`)
+    log(`Shutdown Host (${fmtSrcHost}).`)
 
     try {
       await xapiSrc.shutdownHost(srcHost.id)
     } catch (error) {
-      debug(`Unable to shutdown Host (${fmtSrcHost}).`, { error })
+      log(`Unable to shutdown Host (${fmtSrcHost}).`, { error })
     }
   }
 }

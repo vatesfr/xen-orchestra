@@ -5,7 +5,7 @@ import DensityPlan from './density-plan'
 import PerformancePlan from './performance-plan'
 import SimplePlan from './simple-plan'
 import { DEFAULT_CRITICAL_THRESHOLD_CPU, DEFAULT_CRITICAL_THRESHOLD_MEMORY_FREE } from './plan'
-import { EXECUTION_DELAY, debug } from './utils'
+import { EXECUTION_DELAY, log } from './utils'
 
 // ===================================================================
 
@@ -165,7 +165,7 @@ class LoadBalancerPlugin {
   }
 
   _executePlans() {
-    debug('Execute plans!')
+    log('Execute plans!')
 
     return Promise.all(this._plans.map(plan => plan.execute()))
   }

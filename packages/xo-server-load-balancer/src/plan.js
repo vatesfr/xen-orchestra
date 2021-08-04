@@ -1,7 +1,7 @@
 import { filter, groupBy, includes, isEmpty, keyBy, map as mapToArray, maxBy, minBy, size, sortBy } from 'lodash'
 import { inspect } from 'util'
 
-import { EXECUTION_DELAY, debug } from './utils'
+import { EXECUTION_DELAY, log } from './utils'
 
 const MINUTES_OF_HISTORICAL_DATA = 30
 
@@ -20,7 +20,7 @@ const LOW_THRESHOLD_MEMORY_FREE_FACTOR = 1.5
 
 const numberOrDefault = (value, def) => (value >= 0 ? value : def)
 
-export const debugAffinity = str => debug(`anti-affinity: ${str}`)
+export const logAffinity = str => log(`anti-affinity: ${str}`)
 
 // ===================================================================
 // Averages.
@@ -145,7 +145,7 @@ export default class Plan {
       // Check if a resource utilization exceeds threshold.
       toOptimize = this._checkResourcesThresholds(hosts, avgNow)
       if (toOptimize.length === 0) {
-        debug('No hosts to optimize.')
+        log('No hosts to optimize.')
         return
       }
     }
@@ -157,7 +157,7 @@ export default class Plan {
       // Check in the last 30 min interval with ratio.
       toOptimize = this._checkResourcesThresholds(toOptimize, avgWithRatio)
       if (toOptimize.length === 0) {
-        debug('No hosts to optimize.')
+        log('No hosts to optimize.')
         return
       }
     }
@@ -301,14 +301,14 @@ export default class Plan {
     }
 
     // 2. Migrate!
-    debugAffinity('Try to apply anti-affinity policy.')
-    debugAffinity(`VM tag count per host: ${inspect(taggedHosts, { depth: null })}.`)
-    debugAffinity(`Tags diff: ${inspect(tagsDiff, { depth: null })}.`)
+    logAffinity('Try to apply anti-affinity policy.')
+    logAffinity(`VM tag count per host: ${inspect(taggedHosts, { depth: null })}.`)
+    logAffinity(`Tags diff: ${inspect(tagsDiff, { depth: null })}.`)
 
     const vmsAverages = await this._getVmsAverages(allVms, idToHost)
     const { averages: hostsAverages } = await this._getHostStatsAverages({ hosts: allHosts })
 
-    debugAffinity(`Hosts averages: ${inspect(hostsAverages, { depth: null })}.`)
+    logAffinity(`Hosts averages: ${inspect(hostsAverages, { depth: null })}.`)
 
     const promises = []
     for (const tag in tagsDiff) {
@@ -316,7 +316,7 @@ export default class Plan {
     }
 
     // 3. Done!
-    debugAffinity(`VM tag count per host after migration: ${inspect(taggedHosts, { depth: null })}.`)
+    logAffinity(`VM tag count per host after migration: ${inspect(taggedHosts, { depth: null })}.`)
     return Promise.all(promises)
   }
 
@@ -364,11 +364,11 @@ export default class Plan {
         let vm
         for (const destination of destinations) {
           destinationHost = destination
-          debugAffinity(`Host candidate: ${sourceHost.id} -> ${destinationHost.id}.`)
+          logAffinity(`Host candidate: ${sourceHost.id} -> ${destinationHost.id}.`)
 
           const vms = filter(sourceVms, vm => hostsAverages[destinationHost.id].memoryFree >= vmsAverages[vm.id].memory)
 
-          debugAffinity(
+          logAffinity(
             `Tagged VM ("${tag}") candidates to migrate from host ${sourceHost.id}: ${inspect(mapToArray(vms, 'id'))}.`
           )
           vm = this._getAntiAffinityVmToMigrate({
@@ -390,7 +390,7 @@ export default class Plan {
 
         const source = idToHost[sourceHost.id]
         const destination = idToHost[destinationHost.id]
-        debugAffinity(
+        logAffinity(
           `Migrate VM (${vm.id} "${vm.name_label}") to Host (${destinationHost.id} "${destination.name_label}") from Host (${sourceHost.id} "${source.name_label}").`
         )
 
@@ -515,7 +515,7 @@ export default class Plan {
           bestVariance = variance
           bestVm = vm
         } else {
-          debugAffinity(`VM (${vm.id}) of Host (${sourceHost.id}) does not support pool migration.`)
+          logAffinity(`VM (${vm.id}) of Host (${sourceHost.id}) does not support pool migration.`)
         }
       }
     }
