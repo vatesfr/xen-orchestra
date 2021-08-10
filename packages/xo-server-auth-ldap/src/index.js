@@ -257,7 +257,7 @@ class AuthLdap {
 
   async _authenticate({ username, password }) {
     if (username === undefined || password === undefined) {
-      logger.error('require `username` and `password` to authenticate!')
+      logger.debug('require `username` and `password` to authenticate!')
 
       return null
     }
@@ -319,11 +319,11 @@ class AuthLdap {
 
           return { userId: user.id }
         } catch (error) {
-          logger.error(`failed to bind as ${entry.dn}: ${error.message}`)
+          logger.debug(`failed to bind as ${entry.dn}: ${error.message}`)
         }
       }
 
-      logger.error(`could not authenticate ${username}`)
+      logger.debug(`could not authenticate ${username}`)
       return null
     } finally {
       await client.unbind()
