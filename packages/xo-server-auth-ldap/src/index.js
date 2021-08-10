@@ -6,13 +6,13 @@ import { createLogger } from '@xen-orchestra/log'
 import { Filter } from 'ldapts/filters/Filter'
 import { readFile } from 'fs'
 
-const logger = createLogger('xo:xo-server-backup-reports')
+const logger = createLogger('xo:xo-server-auth-ldap')
 
 // ===================================================================
 
 const DEFAULTS = {
   checkCertificate: true,
-  filter: '(uid={{name}})',
+  filter: '(uid={{name}})'
 }
 
 const { escape } = Filter.prototype
@@ -35,7 +35,7 @@ export const configurationSchema = {
     uri: {
       title: 'URI',
       description: 'URI of the LDAP server.',
-      type: 'string',
+      type: 'string'
     },
     certificateAuthorities: {
       title: 'Certificate Authorities',
@@ -46,24 +46,24 @@ If not specified, it will use a default set of well-known CAs.
 `.trim(),
       type: 'array',
       items: {
-        type: 'string',
-      },
+        type: 'string'
+      }
     },
     checkCertificate: {
       title: 'Check certificate',
       description:
         "Enforce the validity of the server's certificates. You can disable it when connecting to servers that use a self-signed certificate.",
       type: 'boolean',
-      default: DEFAULTS.checkCertificate,
+      default: DEFAULTS.checkCertificate
     },
     startTls: {
       title: 'Use StartTLS',
-      type: 'boolean',
+      type: 'boolean'
     },
     base: {
       title: 'Base',
       description: 'The base is the part of the description tree where the users and groups are looked for.',
-      type: 'string',
+      type: 'string'
     },
     bind: {
       title: 'Credentials',
@@ -78,14 +78,14 @@ Example: uid=xoa-auth,ou=people,dc=company,dc=net
 
 For Microsoft Active Directory, it can also be \`<user>@<domain>\`.
 `.trim(),
-          type: 'string',
+          type: 'string'
         },
         password: {
           description: 'Password of the user permitted of search the LDAP directory.',
-          type: 'string',
-        },
+          type: 'string'
+        }
       },
-      required: ['dn', 'password'],
+      required: ['dn', 'password']
     },
     filter: {
       title: 'User filter',
@@ -109,12 +109,12 @@ Or something like this if you also want to filter by group:
 - \`(&(sAMAccountName={{name}})(memberOf=<group DN>))\`
 `.trim(),
       type: 'string',
-      default: DEFAULTS.filter,
+      default: DEFAULTS.filter
     },
     userIdAttribute: {
       title: 'ID attribute',
       description: 'Attribute used to map LDAP user to XO user. Must be unique. e.g.: `dn`',
-      type: 'string',
+      type: 'string'
     },
     groups: {
       title: 'Synchronize groups',
@@ -124,22 +124,22 @@ Or something like this if you also want to filter by group:
         base: {
           title: 'Base',
           description: 'Where to look for the groups.',
-          type: 'string',
+          type: 'string'
         },
         filter: {
           title: 'Filter',
           description: 'Filter used to find the groups. e.g.: `(objectClass=groupOfNames)`',
-          type: 'string',
+          type: 'string'
         },
         idAttribute: {
           title: 'ID attribute',
           description: 'Attribute used to map LDAP group to XO group. Must be unique. e.g.: `gid`',
-          type: 'string',
+          type: 'string'
         },
         displayNameAttribute: {
           title: 'Display name attribute',
           description: "Attribute used to determine the group's name in XO. e.g.: `cn`",
-          type: 'string',
+          type: 'string'
         },
         membersMapping: {
           title: 'Members mapping',
@@ -149,21 +149,21 @@ Or something like this if you also want to filter by group:
               title: 'Group attribute',
               description:
                 'Attribute used to find the members of a group. e.g.: `memberUid`. The values must reference the user IDs (cf. user ID attribute)',
-              type: 'string',
+              type: 'string'
             },
             userAttribute: {
               title: 'User attribute',
               description: 'User attribute used to match group members to the users. e.g.: `uidNumber`',
-              type: 'string',
-            },
+              type: 'string'
+            }
           },
-          required: ['groupAttribute', 'userAttribute'],
-        },
+          required: ['groupAttribute', 'userAttribute']
+        }
       },
-      required: ['base', 'filter', 'idAttribute', 'displayNameAttribute', 'membersMapping'],
-    },
+      required: ['base', 'filter', 'idAttribute', 'displayNameAttribute', 'membersMapping']
+    }
   },
-  required: ['uri', 'base'],
+  required: ['uri', 'base']
 }
 
 export const testSchema = {
@@ -171,20 +171,20 @@ export const testSchema = {
   properties: {
     username: {
       description: 'LDAP username',
-      type: 'string',
+      type: 'string'
     },
     password: {
       description: 'LDAP password',
-      type: 'string',
-    },
+      type: 'string'
+    }
   },
-  required: ['username', 'password'],
+  required: ['username', 'password']
 }
 
 // ===================================================================
 
 class AuthLdap {
-  constructor({ xo }) {
+  constructor({ xo } = {}) {
     this._xo = xo
 
     this._authenticate = this._authenticate.bind(this)
@@ -193,7 +193,7 @@ class AuthLdap {
   async configure(conf) {
     const clientOpts = (this._clientOpts = {
       url: conf.uri,
-      maxConnections: 5,
+      maxConnections: 5
     })
 
     {
@@ -218,7 +218,7 @@ class AuthLdap {
       startTls = false,
       groups,
       uri,
-      userIdAttribute,
+      userIdAttribute
     } = conf
 
     this._credentials = credentials
@@ -234,8 +234,8 @@ class AuthLdap {
     this._xo.registerAuthenticationProvider(this._authenticate)
     this._removeApiMethods = this._xo.addApiMethods({
       ldap: {
-        synchronizeGroups: () => this._synchronizeGroups(),
-      },
+        synchronizeGroups: () => this._synchronizeGroups()
+      }
     })
   }
 
@@ -247,7 +247,7 @@ class AuthLdap {
   test({ username, password }) {
     return this._authenticate({
       username,
-      password,
+      password
     }).then(result => {
       if (result === null) {
         throw new Error('could not authenticate user')
@@ -284,8 +284,8 @@ class AuthLdap {
       const { searchEntries: entries } = await client.search(this._searchBase, {
         scope: 'sub',
         filter: evalFilter(this._searchFilter, {
-          name: username,
-        }),
+          name: username
+        })
       })
       logger.debug(`${entries.length} entries found`)
 
@@ -304,7 +304,7 @@ class AuthLdap {
           } else {
             const ldapId = entry[this._userIdAttribute]
             user = await this._xo.registerUser2('ldap', {
-              user: { id: ldapId, name: username },
+              user: { id: ldapId, name: username }
             })
 
             const groupsConfig = this._groupsConfig
@@ -352,7 +352,7 @@ class AuthLdap {
       const { base, displayNameAttribute, filter, idAttribute, membersMapping } = this._groupsConfig
       const { searchEntries: ldapGroups } = await client.search(base, {
         scope: 'sub',
-        filter: filter || '', // may be undefined
+        filter: filter || '' // may be undefined
       })
 
       const xoUsers =
@@ -396,7 +396,7 @@ class AuthLdap {
           xoGroup = await this._xo.createGroup({
             name: groupLdapName,
             provider: 'ldap',
-            providerGroupId: groupLdapId,
+            providerGroupId: groupLdapId
           })
         } else {
           // Remove it from xoGroups as we will then delete all the remaining
@@ -417,11 +417,11 @@ class AuthLdap {
 
         for (const memberId of ldapGroupMembers) {
           const {
-            searchEntries: [ldapUser],
+            searchEntries: [ldapUser]
           } = await client.search(this._searchBase, {
             scope: 'sub',
             filter: `(${escape(membersMapping.userAttribute)}=${escape(memberId)})`,
-            sizeLimit: 1,
+            sizeLimit: 1
           })
           if (ldapUser === undefined) {
             continue
