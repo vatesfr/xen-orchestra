@@ -11,6 +11,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [VM/network] Fix an issue where multiple IPs would be displayed in the same tag when using old Xen tools. This also fixes Netbox's IP synchronization for the affected VMs. (PR [#5860](https://github.com/vatesfr/xen-orchestra/pull/5860))
 - [LDAP] Handle groups with no members (PR [#5862](https://github.com/vatesfr/xen-orchestra/pull/5862))
 
 ### Packages to release
@@ -31,4 +32,5 @@
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
 - xo-server-auth-ldap patch
+- xo-server patch
 - xo-web minor
