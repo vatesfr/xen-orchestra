@@ -1,10 +1,10 @@
 import React from 'react'
 import Icon from '../components/Icon'
-import { Map as immutableMap, Seq, Collection } from 'immutable'
+import { Collection, Map as immutableMap, Seq } from 'immutable'
 import { withState } from 'reaclette'
 
 import Tree from '../components/Tree'
-import { Vm, Host, Pool } from '../libs/xapi'
+import { Host, Vm, Pool } from '../libs/xapi'
 
 interface ParentState {}
 
