@@ -7,12 +7,13 @@ import isEmpty from 'lodash/isEmpty'
 import Link, { BlockLink } from 'link'
 import map from 'lodash/map'
 import React from 'react'
+import semver from 'semver'
 import SingleLineRow from 'single-line-row'
 import HomeTags from 'home-tags'
 import Tooltip from 'tooltip'
 import { Row, Col } from 'grid'
 import { Text } from 'editable'
-import { addTag, editHost, fetchHostStats, removeTag, startHost, stopHost } from 'xo'
+import { addTag, editHost, fetchHostStats, getHVSupportedVersions, removeTag, startHost, stopHost } from 'xo'
 import { connectStore, formatSizeShort, hasLicenseRestrictions, osFamily } from 'utils'
 import {
   createDoesHostNeedRestart,
@@ -41,6 +42,11 @@ export default class HostItem extends Component {
   get _isRunning() {
     const host = this.props.item
     return host && host.power_state === 'Running'
+  }
+
+  async componentDidMount() {
+    const { version, productBrand } = this.props.item
+    this.setState({ isMaintained: semver.satisfies(version, (await getHVSupportedVersions())[productBrand]) })
   }
 
   _addTag = tag => addTag(this.props.item.id, tag)
@@ -97,7 +103,7 @@ export default class HostItem extends Component {
                   </Tooltip>
                 )}
                 &nbsp;
-                {!host.maintained && (
+                {!this.state.isMaintained && (
                   <Tooltip content={_('noMoreMaintained')}>
                     <Icon className='text-warning' icon='alarm' />
                   </Tooltip>

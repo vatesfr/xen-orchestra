@@ -1,7 +1,4 @@
-import fs from 'fs'
-import semver from 'semver'
 import { isDefaultTemplate } from '@xen-orchestra/xapi'
-import { URL } from 'url'
 
 import * as sensitiveValues from './sensitive-values.mjs'
 import ensureArray from './_ensureArray.mjs'
@@ -9,8 +6,6 @@ import { extractIpFromVmNetworks } from './_extractIpFromVmNetworks.mjs'
 import { extractProperty, forEach, isEmpty, mapFilter, parseXml } from './utils.mjs'
 import { getVmDomainType, isHostRunning, isVmRunning, parseDateTime } from './xapi/index.mjs'
 import { useUpdateSystem } from './xapi/utils.mjs'
-
-const MAINTAINED_HOST_VERSION = JSON.parse(fs.readFileSync(new URL('../maintainedVersion.json', import.meta.url)))
 
 // ===================================================================
 
@@ -198,10 +193,6 @@ const TRANSFORMS = {
       logging: obj.logging,
       name_description: obj.name_description,
       name_label: obj.name_label,
-      maintained: semver.satisfies(
-        softwareVersion.product_version,
-        MAINTAINED_HOST_VERSION[softwareVersion.product_brand]
-      ),
       memory: (function () {
         if (metrics) {
           const free = +metrics.memory_free

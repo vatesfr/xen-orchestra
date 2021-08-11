@@ -684,6 +684,8 @@ export const setPoolMaster = host =>
 
 // Host --------------------------------------------------------------
 
+export const getHVSupportedVersions = () => _call('xoa.getHVSupportedVersions')
+
 export const setSchedulerGranularity = (host, schedulerGranularity) =>
   _call('host.setSchedulerGranularity', {
     host,
@@ -1369,17 +1371,15 @@ export const createVms = (args, nameLabels, cloudConfigs) =>
     body: _('newVmCreateVmsConfirm', { nbVms: nameLabels.length }),
   }).then(() =>
     Promise.all(
-      map(
-        nameLabels,
-        (
-          name_label, // eslint-disable-line camelcase
-          i
-        ) =>
-          _call('vm.create', {
-            ...args,
-            name_label,
-            cloudConfig: get(cloudConfigs, i),
-          })
+      map(nameLabels, (
+        name_label, // eslint-disable-line camelcase
+        i
+      ) =>
+        _call('vm.create', {
+          ...args,
+          name_label,
+          cloudConfig: get(cloudConfigs, i),
+        })
       )
     )
   )

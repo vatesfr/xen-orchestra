@@ -834,7 +834,7 @@ const messages = {
   disconnectServer: 'Disconnect',
 
   // ----- Host item ------
-  noMoreMaintained: 'This host version is no more maintained.',
+  noMoreMaintained: 'This host version is no longer maintained',
 
   // ----- Host actions ------
   disableMaintenanceMode: 'Disable maintenance mode',
