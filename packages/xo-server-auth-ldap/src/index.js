@@ -1,5 +1,6 @@
 /* eslint no-throw-literal: 0 */
 
+import ensureArray from 'ensure-array'
 import fromCallback from 'promise-toolbox/fromCallback'
 import { Client } from 'ldapts'
 import { createLogger } from '@xen-orchestra/log'
@@ -379,8 +380,7 @@ class AuthLdap {
           continue
         }
 
-        let ldapGroupMembers = ldapGroup[membersMapping.groupAttribute]
-        ldapGroupMembers = Array.isArray(ldapGroupMembers) ? ldapGroupMembers : [ldapGroupMembers]
+        const ldapGroupMembers = ensureArray(ldapGroup[membersMapping.groupAttribute])
 
         // If a user was passed, only update the user's groups
         if (user !== undefined && !ldapGroupMembers.includes(memberId)) {
