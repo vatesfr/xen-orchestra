@@ -18,7 +18,7 @@ const restorationWarning = (
 export default class RestoreMetadataBackupModalBody extends Component {
   static propTypes = {
     backups: PropTypes.array,
-    type: PropTypes.sring,
+    type: PropTypes.string,
   }
 
   get value() {
