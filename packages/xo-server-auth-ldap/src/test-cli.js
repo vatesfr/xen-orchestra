@@ -34,8 +34,8 @@ execPromise(async args => {
     {
       filter: process.env.DEBUG ?? 'xo:xo-server-auth-ldap',
       level: 'debug',
-      transport: transportConsole()
-    }
+      transport: transportConsole(),
+    },
   ])
 
   const plugin = createPlugin()
@@ -43,8 +43,8 @@ execPromise(async args => {
 
   await plugin._authenticate({
     username: await input('Username', {
-      validate: input => !!input.length
+      validate: input => !!input.length,
     }),
-    password: await password('Password')
+    password: await password('Password'),
   })
 })
