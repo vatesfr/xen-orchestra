@@ -33,7 +33,6 @@ execPromise(async args => {
   configure([
     {
       filter: process.env.DEBUG ?? 'xo:xo-server-auth-ldap',
-      level: 'debug',
       transport: transportConsole(),
     },
   ])
