@@ -63,6 +63,7 @@ const PoolUpdates = withState<State, Props, Effects, Computed, ParentState, Pare
           )) as string
           return JSON.parse(stringifiedPoolUpdates)
         } catch (err) {
+          console.error(err)
           return <IntlMessage id='errorOccurred' />
         }
       },
