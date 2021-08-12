@@ -1,5 +1,6 @@
 const get = require('lodash/get')
 const identity = require('lodash/identity')
+const isEqual = require('lodash/isEqual')
 const { createLogger } = require('@xen-orchestra/log')
 const { parseDuration } = require('@vates/parse-duration')
 const { watch } = require('app-conf')
@@ -48,7 +49,7 @@ module.exports = class Config {
     const watcher = config => {
       try {
         const value = processor(get(config, path))
-        if (value !== prev) {
+        if (!isEqual(value, prev)) {
           prev = value
           cb(value)
         }
