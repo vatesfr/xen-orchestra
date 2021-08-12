@@ -7,7 +7,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [ACL/network] Ability to create network for administator users on the pool.
+- [ACL/network] Ability to create network for administator users on the pool. (PR [#5873](https://github.com/vatesfr/xen-orchestra/pull/5873))
 
 ### Bug fixes
 
