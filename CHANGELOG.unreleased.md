@@ -13,7 +13,7 @@
 
 - [VM/network] Fix an issue where multiple IPs would be displayed in the same tag when using old Xen tools. This also fixes Netbox's IP synchronization for the affected VMs. (PR [#5860](https://github.com/vatesfr/xen-orchestra/pull/5860))
 - [LDAP] Handle groups with no members (PR [#5862](https://github.com/vatesfr/xen-orchestra/pull/5862))
-- Fix empty button on small size screen
+- Fix empty button on small size screen (PR [#5874](https://github.com/vatesfr/xen-orchestra/pull/5874))
 
 ### Packages to release
 
