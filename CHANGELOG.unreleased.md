@@ -34,5 +34,5 @@
 - @xen-orchestra/log minor
 - @xen-orchestra/mixins patch
 - xo-server-auth-ldap patch
-- xo-server patch
+- xo-server minor
 - xo-web minor

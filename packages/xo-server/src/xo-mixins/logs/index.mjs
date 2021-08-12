@@ -1,3 +1,5 @@
+import transportConsole from '@xen-orchestra/log/transports/console.js'
+import { configure } from '@xen-orchestra/log/configure.js'
 import { defer, fromEvent } from 'promise-toolbox'
 
 import LevelDbLogger from './loggers/leveldb.mjs'
@@ -7,6 +9,17 @@ export default class Logs {
     this._app = app
 
     app.hooks.on('clean', () => this._gc())
+
+    const transport = transportConsole()
+    app.config.watch('logs', ({ filter, level }) => {
+      configure([
+        {
+          filter: [process.env.DEBUG, filter],
+          level,
+          transport,
+        },
+      ])
+    })
   }
 
   async _gc(keep = 2e4) {

@@ -131,6 +131,13 @@ port = 80
 [http.mounts]
 '/' = '../xo-web/dist'
 
+[logs]
+# Display all logs matching this filter, regardless of their level
+#filter = 'xo:load-balancer'
+
+# Display all logs with level >=, regardless of their namespace
+level = 'info'
+
 [plugins]
 
 [remoteOptions]
