@@ -7,6 +7,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [ACL/network] Ability to create network for administator users on the pool.
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -33,5 +35,5 @@
 
 - @xen-orchestra/log minor
 - xo-server-auth-ldap patch
-- xo-server patch
+- xo-server minor
 - xo-web minor
