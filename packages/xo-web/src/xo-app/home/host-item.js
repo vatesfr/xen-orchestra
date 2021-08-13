@@ -13,8 +13,8 @@ import HomeTags from 'home-tags'
 import Tooltip from 'tooltip'
 import { Row, Col } from 'grid'
 import { Text } from 'editable'
-import { addTag, editHost, fetchHostStats, getHVSupportedVersions, removeTag, startHost, stopHost } from 'xo'
-import { connectStore, formatSizeShort, hasLicenseRestrictions, osFamily } from 'utils'
+import { addTag, editHost, fetchHostStats, removeTag, startHost, stopHost, subscribeHVSupportedVersions } from 'xo'
+import { addSubscriptions, connectStore, formatSizeShort, hasLicenseRestrictions, osFamily } from 'utils'
 import {
   createDoesHostNeedRestart,
   createGetHostState,
@@ -27,6 +27,9 @@ import MiniStats from './mini-stats'
 import LicenseWarning from '../host/license-warning'
 import styles from './index.css'
 
+@addSubscriptions({
+  HVSupportedVersions: subscribeHVSupportedVersions,
+})
 @connectStore(() => ({
   container: createGetObject((_, props) => props.item.$pool),
   needsRestart: createDoesHostNeedRestart((_, props) => props.item),
@@ -44,10 +47,11 @@ export default class HostItem extends Component {
     return host && host.power_state === 'Running'
   }
 
-  async componentDidMount() {
-    const { version, productBrand } = this.props.item
-    this.setState({ isMaintained: semver.satisfies(version, (await getHVSupportedVersions())[productBrand]) })
-  }
+  _isMaintained = createSelector(
+    () => this.props.HVSupportedVersions,
+    () => this.props.item,
+    (supportedVersions, host) => semver.satisfies(host.version, supportedVersions?.[host.productBrand])
+  )
 
   _addTag = tag => addTag(this.props.item.id, tag)
   _fetchStats = () => fetchHostStats(this.props.item.id)
@@ -61,6 +65,7 @@ export default class HostItem extends Component {
 
   render() {
     const { container, expandAll, item: host, nVms, selected, state } = this.props
+    const isMaintained = this._isMaintained()
 
     return (
       <div className={styles.item}>
@@ -103,7 +108,7 @@ export default class HostItem extends Component {
                   </Tooltip>
                 )}
                 &nbsp;
-                {!this.state.isMaintained && (
+                {!isMaintained && (
                   <Tooltip content={_('noMoreMaintained')}>
                     <Icon className='text-warning' icon='alarm' />
                   </Tooltip>

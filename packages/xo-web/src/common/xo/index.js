@@ -300,6 +300,8 @@ export const subscribeCurrentUser = createSubscription(() => xo.refreshUser())
 
 export const subscribeAcls = createSubscription(() => _call('acl.get'))
 
+export const subscribeHVSupportedVersions = createSubscription(() => _call('xoa.getHVSupportedVersions'))
+
 export const subscribeJobs = createSubscription(() => _call('job.getAll'))
 
 export const subscribeJobsLogs = createSubscription(() => _call('log.get', { namespace: 'jobs' }))
@@ -683,8 +685,6 @@ export const setPoolMaster = host =>
   }).then(() => _call('pool.setPoolMaster', { host: resolveId(host) }), noop)
 
 // Host --------------------------------------------------------------
-
-export const getHVSupportedVersions = () => _call('xoa.getHVSupportedVersions')
 
 export const setSchedulerGranularity = (host, schedulerGranularity) =>
   _call('host.setSchedulerGranularity', {
