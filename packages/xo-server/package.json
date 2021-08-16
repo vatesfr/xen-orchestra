@@ -68,7 +68,7 @@
     "express-session": "^1.15.6",
     "fast-xml-parser": "^3.17.4",
     "fatfs": "^0.10.4",
-    "fs-extra": "^9.0.0",
+    "fs-extra": "^10.0.0",
     "get-stream": "^6.0.0",
     "golike-defer": "^0.5.1",
     "hashy": "^0.10.0",
