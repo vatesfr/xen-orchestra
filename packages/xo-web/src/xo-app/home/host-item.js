@@ -65,7 +65,6 @@ export default class HostItem extends Component {
 
   render() {
     const { container, expandAll, item: host, nVms, selected, state } = this.props
-    const isMaintained = this._isMaintained()
 
     return (
       <div className={styles.item}>
@@ -108,7 +107,7 @@ export default class HostItem extends Component {
                   </Tooltip>
                 )}
                 &nbsp;
-                {!isMaintained && (
+                {!this._isMaintained() && (
                   <Tooltip content={_('noMoreMaintained')}>
                     <Icon className='text-warning' icon='alarm' />
                   </Tooltip>
