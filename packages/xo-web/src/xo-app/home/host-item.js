@@ -13,7 +13,7 @@ import HomeTags from 'home-tags'
 import Tooltip from 'tooltip'
 import { Row, Col } from 'grid'
 import { Text } from 'editable'
-import { addTag, editHost, fetchHostStats, removeTag, startHost, stopHost, subscribeHVSupportedVersions } from 'xo'
+import { addTag, editHost, fetchHostStats, removeTag, startHost, stopHost, subscribeHvSupportedVersions } from 'xo'
 import { addSubscriptions, connectStore, formatSizeShort, hasLicenseRestrictions, osFamily } from 'utils'
 import {
   createDoesHostNeedRestart,
@@ -28,7 +28,7 @@ import LicenseWarning from '../host/license-warning'
 import styles from './index.css'
 
 @addSubscriptions({
-  HVSupportedVersions: subscribeHVSupportedVersions,
+  hvSupportedVersions: subscribeHvSupportedVersions,
 })
 @connectStore(() => ({
   container: createGetObject((_, props) => props.item.$pool),
@@ -48,7 +48,7 @@ export default class HostItem extends Component {
   }
 
   _isMaintained = createSelector(
-    () => this.props.HVSupportedVersions,
+    () => this.props.hvSupportedVersions,
     () => this.props.item,
     (supportedVersions, host) => semver.satisfies(host.version, supportedVersions?.[host.productBrand])
   )

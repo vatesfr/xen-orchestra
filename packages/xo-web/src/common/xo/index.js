@@ -300,7 +300,7 @@ export const subscribeCurrentUser = createSubscription(() => xo.refreshUser())
 
 export const subscribeAcls = createSubscription(() => _call('acl.get'))
 
-export const subscribeHVSupportedVersions = createSubscription(() => _call('xoa.getHVSupportedVersions'))
+export const subscribeHvSupportedVersions = createSubscription(() => _call('xoa.getHVSupportedVersions'))
 
 export const subscribeJobs = createSubscription(() => _call('job.getAll'))
 
@@ -1371,17 +1371,15 @@ export const createVms = (args, nameLabels, cloudConfigs) =>
     body: _('newVmCreateVmsConfirm', { nbVms: nameLabels.length }),
   }).then(() =>
     Promise.all(
-      map(
-        nameLabels,
-        (
-          name_label, // eslint-disable-line camelcase
-          i
-        ) =>
-          _call('vm.create', {
-            ...args,
-            name_label,
-            cloudConfig: get(cloudConfigs, i),
-          })
+      map(nameLabels, (
+        name_label, // eslint-disable-line camelcase
+        i
+      ) =>
+        _call('vm.create', {
+          ...args,
+          name_label,
+          cloudConfig: get(cloudConfigs, i),
+        })
       )
     )
   )
