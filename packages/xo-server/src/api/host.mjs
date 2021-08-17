@@ -6,7 +6,7 @@ import { format } from 'json-rpc-peer'
 export function setMaintenanceMode({ host, maintenance }) {
   const xapi = this.getXapi(host)
 
-  return maintenance ? xapi.clearHost({ $ref: host._xapiRef }) : xapi.enableHost(host._xapiId)
+  return maintenance ? xapi.clearHost(xapi.getObject(host)) : xapi.enableHost(host._xapiId)
 }
 
 setMaintenanceMode.description = 'manage the maintenance mode'
