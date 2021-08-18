@@ -8,7 +8,7 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [New network] Ability for pool's admin to create a new network within the pool (PR [#5873](https://github.com/vatesfr/xen-orchestra/pull/5873))
-- [Netbox] Synchronize primary IPv4 and IPv6 addresses
+- [Netbox] Synchronize primary IPv4 and IPv6 addresses (PR [#5879](https://github.com/vatesfr/xen-orchestra/pull/5879))
 
 ### Bug fixes
 
