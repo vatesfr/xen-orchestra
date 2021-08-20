@@ -303,11 +303,7 @@ export const subscribeAcls = createSubscription(() => _call('acl.get'))
 
 export const subscribeHvSupportedVersions =
   xoaPlans.CURRENT !== xoaPlans.SOURCES && xoaPlans.CURRENT !== xoaPlans.UNKNOWN
-    ? createSubscription(() =>
-        _call('xoa.getHVSupportedVersions')::tapCatch(err => {
-          error(_('pluginError'), err.message)
-        })
-      )
+    ? createSubscription(() => _call('xoa.getHVSupportedVersions'))
     : noop
 
 export const subscribeJobs = createSubscription(() => _call('job.getAll'))

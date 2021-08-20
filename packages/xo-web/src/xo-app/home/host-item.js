@@ -50,7 +50,7 @@ export default class HostItem extends Component {
   _isMaintained = createSelector(
     () => this.props.hvSupportedVersions,
     () => this.props.item,
-    (supportedVersions, host) => semver.satisfies(host.version, supportedVersions?.[host.productBrand])
+    (supportedVersions, host) => semver.satisfies(host.version, supportedVersions?.[host.productBrand] ?? host.version)
   )
 
   _addTag = tag => addTag(this.props.item.id, tag)
