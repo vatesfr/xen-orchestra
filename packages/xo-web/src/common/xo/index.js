@@ -4,6 +4,7 @@ import fpSortBy from 'lodash/fp/sortBy'
 import React from 'react'
 import updater from 'xoa-updater'
 import URL from 'url-parse'
+import * as xoaPlans from 'xoa-plans'
 import Xo from 'xo-lib'
 import { createBackoff } from 'jsonrpc-websocket-client'
 import { get as getDefined } from '@xen-orchestra/defined'
@@ -300,7 +301,14 @@ export const subscribeCurrentUser = createSubscription(() => xo.refreshUser())
 
 export const subscribeAcls = createSubscription(() => _call('acl.get'))
 
-export const subscribeHvSupportedVersions = createSubscription(() => _call('xoa.getHVSupportedVersions'))
+export const subscribeHvSupportedVersions =
+  xoaPlans.CURRENT !== xoaPlans.SOURCES && xoaPlans.CURRENT !== xoaPlans.UNKNOWN
+    ? createSubscription(() =>
+        _call('xoa.getHVSupportedVersions')::tapCatch(err => {
+          error(_('pluginError'), err.message)
+        })
+      )
+    : noop
 
 export const subscribeJobs = createSubscription(() => _call('job.getAll'))
 
