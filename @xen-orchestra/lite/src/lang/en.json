@@ -1,6 +1,7 @@
 {
   "availableUpdates": "{nUpdates} available update{nUpdates, plural, one {} other {s}}",
   "badCredentials": "Bad credentials",
+  "cancel": "Cancel",
   "confirmCtrlAltDel": "Send Ctrl+Alt+Del to VM?",
   "connect": "Connect",
   "consoleNotAvailable": "Console is only available for running VMs",
@@ -18,6 +19,7 @@
   "noData": "No data",
   "noManagementPifs": "No management PIFs found",
   "noUpdatesAvailable": "No updates available",
+  "ok": "Ok",
   "password": "Password",
   "reconnectionAttempt": "Trying to reconnect…",
   "release": "Release",
