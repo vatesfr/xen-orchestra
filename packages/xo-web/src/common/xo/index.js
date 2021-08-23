@@ -301,10 +301,11 @@ export const subscribeCurrentUser = createSubscription(() => xo.refreshUser())
 
 export const subscribeAcls = createSubscription(() => _call('acl.get'))
 
-export const subscribeHvSupportedVersions =
-  xoaPlans.CURRENT !== xoaPlans.SOURCES && xoaPlans.CURRENT !== xoaPlans.UNKNOWN
-    ? createSubscription(() => _call('xoa.getHVSupportedVersions'))
-    : noop
+export const subscribeHvSupportedVersions = createSubscription(() => {
+  if (xoaPlans.CURRENT !== xoaPlans.SOURCES && xoaPlans.CURRENT !== xoaPlans.UNKNOWN) {
+    return _call('xoa.getHVSupportedVersions')
+  }
+})
 
 export const subscribeJobs = createSubscription(() => _call('job.getAll'))
 
