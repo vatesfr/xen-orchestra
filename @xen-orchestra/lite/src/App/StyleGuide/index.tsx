@@ -6,16 +6,20 @@ import { withState } from 'reaclette'
 
 import Button from '../../components/Button'
 import Icon from '../../components/Icon'
+import Select from '../../components/Select'
 
 interface ParentState {}
 
-interface State {}
+interface State {
+  selectValue: unknown
+}
 
 interface Props {}
 
 interface ParentEffects {}
 
 interface Effects {
+  onChangeSelect: (e: React.ChangeEvent<{ value: unknown }>) => void
   sayHello: () => void
 }
 
@@ -48,11 +52,17 @@ const Code = styled(SyntaxHighlighter).attrs(() => ({
 
 const App = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
   {
+    initialState: () => ({
+      selectValue: '',
+    }),
     effects: {
+      onChangeSelect: function (e) {
+        this.state.selectValue = e.target.value
+      },
       sayHello: () => alert('hello'),
     },
   },
-  ({ effects }) => (
+  ({ effects, state }) => (
     <Page>
       <h2>Button</h2>
       <Container>
@@ -72,6 +82,37 @@ const App = withState<State, Props, Effects, Computed, ParentState, ParentEffect
         <Code>{`// https://fontawesome.com/icons
 <Icon icon='truck' />
 <Icon icon='truck' size='2x' />`}</Code>
+      </Container>
+      <h2>Select</h2>
+      <Container>
+        <Render>
+          <Select
+            displayEmpty
+            onChange={effects.onChangeSelect}
+            options={[
+              { name: 'Toto', value: 1 },
+              { name: 'OtherToto', value: 2 },
+            ]}
+            optionsRender={{ render: item => item.name, value: item => item.value }}
+            value={state.selectValue}
+          />
+        </Render>
+        <Code>
+          {`const optionsRender: Options<{ name: string; value: number; }> = {
+  render: item => item.name
+  value: item => item.value
+}
+<Select
+  displayEmpty
+  onChange={effects.onChangeSelect}
+  options={[
+    { name: 'Toto', value: 1 },
+    { name: 'OtherToto', value: 2 },
+  ]}
+  optionsRender={optionsRender}
+  value={state.selectValue}
+/>`}
+        </Code>
       </Container>
     </Page>
   )
