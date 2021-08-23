@@ -51,7 +51,7 @@ export default class HostItem extends Component {
     () => this.props.hvSupportedVersions,
     () => this.props.item,
     (supportedVersions, host) =>
-      // In case the xoa plugin is not reachable we don't want to trigger a warning in the UI
+      // If could not fetch the list of maintained versions, consider this host up to date
       supportedVersions?.[host.productBrand] === undefined
         ? true
         : semver.satisfies(host.version, supportedVersions[host.productBrand])
