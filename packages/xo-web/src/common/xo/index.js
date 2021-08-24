@@ -4,6 +4,7 @@ import fpSortBy from 'lodash/fp/sortBy'
 import React from 'react'
 import updater from 'xoa-updater'
 import URL from 'url-parse'
+import * as xoaPlans from 'xoa-plans'
 import Xo from 'xo-lib'
 import { createBackoff } from 'jsonrpc-websocket-client'
 import { get as getDefined } from '@xen-orchestra/defined'
@@ -166,9 +167,9 @@ export const resolveUrl = invoke(
 )
 
 // -------------------------------------------------------------------
-
-const createSubscription = cb => {
-  const delay = 5e3 // 5s
+// Default subscription 5s
+const createSubscription = (cb, { polling = 5e3 } = {}) => {
+  const delay = polling
   const clearCacheDelay = 6e5 // 10m
 
   // contains active and lazy subscribers
@@ -299,6 +300,17 @@ const createSubscription = cb => {
 export const subscribeCurrentUser = createSubscription(() => xo.refreshUser())
 
 export const subscribeAcls = createSubscription(() => _call('acl.get'))
+
+export const subscribeHvSupportedVersions = createSubscription(
+  async () => {
+    try {
+      return await _call('xoa.getHVSupportedVersions')
+    } catch (error) {
+      console.error(error)
+    }
+  },
+  { polling: 1e3 * 60 * 60 } // 1h
+)
 
 export const subscribeJobs = createSubscription(() => _call('job.getAll'))
 

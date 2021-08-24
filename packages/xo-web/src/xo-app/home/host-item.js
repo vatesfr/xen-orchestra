@@ -7,13 +7,14 @@ import isEmpty from 'lodash/isEmpty'
 import Link, { BlockLink } from 'link'
 import map from 'lodash/map'
 import React from 'react'
+import semver from 'semver'
 import SingleLineRow from 'single-line-row'
 import HomeTags from 'home-tags'
 import Tooltip from 'tooltip'
 import { Row, Col } from 'grid'
 import { Text } from 'editable'
-import { addTag, editHost, fetchHostStats, removeTag, startHost, stopHost } from 'xo'
-import { connectStore, formatSizeShort, hasLicenseRestrictions, osFamily } from 'utils'
+import { addTag, editHost, fetchHostStats, removeTag, startHost, stopHost, subscribeHvSupportedVersions } from 'xo'
+import { addSubscriptions, connectStore, formatSizeShort, hasLicenseRestrictions, osFamily } from 'utils'
 import {
   createDoesHostNeedRestart,
   createGetHostState,
@@ -26,6 +27,9 @@ import MiniStats from './mini-stats'
 import LicenseWarning from '../host/license-warning'
 import styles from './index.css'
 
+@addSubscriptions({
+  hvSupportedVersions: subscribeHvSupportedVersions,
+})
 @connectStore(() => ({
   container: createGetObject((_, props) => props.item.$pool),
   needsRestart: createDoesHostNeedRestart((_, props) => props.item),
@@ -42,6 +46,16 @@ export default class HostItem extends Component {
     const host = this.props.item
     return host && host.power_state === 'Running'
   }
+
+  _isMaintained = createSelector(
+    () => this.props.hvSupportedVersions,
+    () => this.props.item,
+    (supportedVersions, host) =>
+      // If could not fetch the list of maintained versions, consider this host up to date
+      supportedVersions?.[host.productBrand] === undefined
+        ? true
+        : semver.satisfies(host.version, supportedVersions[host.productBrand])
+  )
 
   _addTag = tag => addTag(this.props.item.id, tag)
   _fetchStats = () => fetchHostStats(this.props.item.id)
@@ -94,6 +108,12 @@ export default class HostItem extends Component {
                     <Link to={`/hosts/${host.id}/patches`}>
                       <Icon icon='alarm' />
                     </Link>
+                  </Tooltip>
+                )}
+                &nbsp;
+                {!this._isMaintained() && (
+                  <Tooltip content={_('noMoreMaintained')}>
+                    <Icon className='text-warning' icon='alarm' />
                   </Tooltip>
                 )}
                 &nbsp;
