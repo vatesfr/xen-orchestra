@@ -66,6 +66,10 @@ configure([
     // if filter is a string, then it is pattern
     // (https://github.com/visionmedia/debug#wildcards) which is
     // matched against the namespace of the logs
+    //
+    // If it's an array, it will be handled as an array of filters
+    // and the transport will be used if any one of them match the
+    // current log
     filter: process.env.DEBUG,
 
     transport: transportConsole(),

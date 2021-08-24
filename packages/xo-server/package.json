@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "xo-server",
-  "version": "5.80.0",
+  "version": "5.81.2",
   "license": "AGPL-3.0-or-later",
   "description": "Server part of Xen-Orchestra",
   "keywords": [
@@ -35,7 +35,7 @@
     "@vates/parse-duration": "^0.1.1",
     "@vates/read-chunk": "^0.1.2",
     "@xen-orchestra/async-map": "^0.1.2",
-    "@xen-orchestra/backups": "^0.12.0",
+    "@xen-orchestra/backups": "^0.12.2",
     "@xen-orchestra/cron": "^1.0.6",
     "@xen-orchestra/defined": "^0.0.1",
     "@xen-orchestra/emit-async": "^0.1.0",
@@ -68,14 +68,14 @@
     "express-session": "^1.15.6",
     "fast-xml-parser": "^3.17.4",
     "fatfs": "^0.10.4",
-    "fs-extra": "^9.0.0",
+    "fs-extra": "^10.0.0",
     "get-stream": "^6.0.0",
     "golike-defer": "^0.5.1",
     "hashy": "^0.10.0",
     "helmet": "^3.9.0",
     "highland": "^2.11.1",
     "http-proxy": "^1.16.2",
-    "http-request-plus": "^0.11.2",
+    "http-request-plus": "^0.12",
     "http-server-plus": "^0.11.0",
     "human-format": "^0.11.0",
     "iterable-backoff": "^0.1.0",
@@ -146,7 +146,7 @@
     "@babel/preset-env": "^7.0.0",
     "babel-plugin-transform-dev": "^2.0.1",
     "cross-env": "^7.0.2",
-    "index-modules": "^0.4.2"
+    "index-modules": "^0.4.3"
   },
   "scripts": {
     "_build": "index-modules --index-file index.mjs src/api src/xapi/mixins src/xo-mixins && babel --delete-dir-on-start --keep-file-extension --source-maps --out-dir=dist/ src/",

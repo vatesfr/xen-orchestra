@@ -767,6 +767,11 @@ const messages = {
   srsForget: 'Forget SRs',
   srRemoveButton: 'Remove this SR',
   srNoVdis: 'No VDIs in this storage',
+
+  // ----- SR disks tab -----
+  multipleActiveVdis: '{firstVdi} and {nVdis} more',
+  noActiveVdi: 'No active VDI',
+
   // ----- Pool general -----
   poolTitleRamUsage: 'Pool RAM usage:',
   poolRamUsage: '{used} used of {total} ({free} free)',
@@ -1030,6 +1035,7 @@ const messages = {
   paraVirtualizedMode: 'Paravirtualization (PV)',
   hardwareVirtualizedMode: 'Hardware virtualization (HVM)',
   hvmModeWithPvDriversEnabled: 'Hardware virtualization with paravirtualization drivers enabled (PVHVM)',
+  pvInPvhMode: 'PV inside a PVH container (PV in PVH)',
   windowsUpdateTools: 'Windows Update tools',
 
   // ----- VM stat tab -----
@@ -1671,6 +1677,10 @@ const messages = {
   restartVmModalMessage: 'Are you sure you want to restart {name}?',
   stopVmModalTitle: 'Stop VM',
   stopVmModalMessage: 'Are you sure you want to stop {name}?',
+  vmHasNoTools: 'No guest tools',
+  vmHasNoToolsMessage: "The VM doesn't have Xen tools installed, which are required to properly stop or reboot it.",
+  confirmForceShutdown: 'Would you like to force shutdown the VM?',
+  confirmForceReboot: 'Would you like to force reboot the VM?',
   suspendVmsModalTitle: 'Suspend VM{vms, plural, one {} other {s}}',
   suspendVmsModalMessage: 'Are you sure you want to suspend {vms, number} VM{vms, plural, one {} other {s}}?',
   pauseVmsModalTitle: 'Pause VM{vms, plural, one {} other {s}}',

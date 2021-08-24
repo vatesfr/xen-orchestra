@@ -185,14 +185,26 @@ export default class Xapi extends XapiBase {
   //
   // If `force` is false and the evacuation failed, the host is re-
   // enabled and the error is thrown.
-  async clearHost({ $ref: ref }, force) {
-    await this.call('host.disable', ref)
+  async clearHost({ $ref: hostRef, $pool: pool }, force) {
+    await this.call('host.disable', hostRef)
 
+    const migrationNetworkId = pool.other_config['xo:migrationNetwork']
+    const migrationNetworkRef = migrationNetworkId && this.getObject(migrationNetworkId).$ref
     try {
-      await this.callAsync('host.evacuate', ref)
+      try {
+        await (migrationNetworkRef === undefined
+          ? this.callAsync('host.evacuate', hostRef)
+          : this.callAsync('host.evacuate', hostRef, migrationNetworkRef))
+      } catch (error) {
+        if (error.code === 'MESSAGE_PARAMETER_COUNT_MISMATCH') {
+          await this.callAsync('host.evacuate', hostRef)
+        } else {
+          throw error
+        }
+      }
     } catch (error) {
       if (!force) {
-        await this.call('host.enable', ref)
+        await this.call('host.enable', hostRef)
 
         throw error
       }
@@ -727,6 +739,7 @@ export default class Xapi extends XapiBase {
           blocked_operations: {
             ...delta.vm.blocked_operations,
             start: 'Importing…',
+            start_on: 'Importing…',
           },
           ha_always_run: false,
           is_a_template: false,
@@ -851,9 +864,11 @@ export default class Xapi extends XapiBase {
       delta.vm.ha_always_run && vm.set_ha_always_run(true),
       vm.set_name_label(name_label),
       // FIXME: move
-      vm.update_blocked_operations(
-        'start',
-        disableStartAfterImport ? 'Do not start this VM, clone it if you want to use it.' : null
+      asyncMap(['start', 'start_on'], op =>
+        vm.update_blocked_operations(
+          op,
+          disableStartAfterImport ? 'Do not start this VM, clone it if you want to use it.' : null
+        )
       ),
     ])
 
@@ -1097,7 +1112,7 @@ export default class Xapi extends XapiBase {
     $defer.onFailure(() => this.VM_destroy(vm.$ref))
     // Disable start and change the VM name label during import.
     await Promise.all([
-      vm.update_blocked_operations('start', 'OVA import in progress...'),
+      asyncMapSettled(['start', 'start_on'], op => vm.update_blocked_operations(op, 'OVA import in progress...')),
       vm.set_name_label(`[Importing...] ${nameLabel}`),
     ])
 
@@ -1169,7 +1184,7 @@ export default class Xapi extends XapiBase {
     })
 
     // Enable start and restore the VM name label after import.
-    await Promise.all([vm.update_blocked_operations('start', null), vm.set_name_label(nameLabel)])
+    await Promise.all([vm.update_blocked_operations({ start: null, start_on: null }), vm.set_name_label(nameLabel)])
     return vm
   }
 
@@ -1303,7 +1318,7 @@ export default class Xapi extends XapiBase {
     log.debug(`Starting VM ${vm.name_label}`)
 
     if (force) {
-      await vm.update_blocked_operations('start', null)
+      await vm.update_blocked_operations({ start: null, start_on: null })
     }
 
     return hostId === undefined

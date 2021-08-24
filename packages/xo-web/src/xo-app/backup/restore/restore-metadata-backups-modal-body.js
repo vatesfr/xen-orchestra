@@ -18,6 +18,7 @@ const restorationWarning = (
 export default class RestoreMetadataBackupModalBody extends Component {
   static propTypes = {
     backups: PropTypes.array,
+    type: PropTypes.string,
   }
 
   get value() {
@@ -53,7 +54,7 @@ export default class RestoreMetadataBackupModalBody extends Component {
             />
           </Col>
         </SingleLineRow>
-        <SingleLineRow>{restorationWarning}</SingleLineRow>
+        {this.props.type !== 'XO' && <SingleLineRow>{restorationWarning}</SingleLineRow>}
       </Container>
     )
   }

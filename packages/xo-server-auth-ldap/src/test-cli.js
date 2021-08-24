@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 
 import execPromise from 'exec-promise'
+import transportConsole from '@xen-orchestra/log/transports/console'
+import { configure } from '@xen-orchestra/log/configure.js'
 import { fromCallback } from 'promise-toolbox'
 import { readFile, writeFile } from 'fs'
 
@@ -28,9 +30,14 @@ execPromise(async args => {
     }
   )
 
-  const plugin = createPlugin({
-    logger: console.log.bind(console),
-  })
+  configure([
+    {
+      filter: process.env.DEBUG ?? 'xo:xo-server-auth-ldap',
+      transport: transportConsole(),
+    },
+  ])
+
+  const plugin = createPlugin()
   await plugin.configure(config)
 
   await plugin._authenticate({

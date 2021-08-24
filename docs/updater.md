@@ -10,7 +10,7 @@ By design, the updater is only available in XOA. If you are using XO from the so
 
 ## Requirements
 
-In order to work, the updater needs access to `xen-orchestra.com` (port 443).
+In order to work, the updater needs access to `xen-orchestra.com` (port 443) and `nodejs.org` (port 443).
 
 ## Usage
 

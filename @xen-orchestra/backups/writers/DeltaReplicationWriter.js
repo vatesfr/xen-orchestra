@@ -12,8 +12,6 @@ const { MixinReplicationWriter } = require('./_MixinReplicationWriter.js')
 const { listReplicatedVms } = require('./_listReplicatedVms.js')
 
 exports.DeltaReplicationWriter = class DeltaReplicationWriter extends MixinReplicationWriter(AbstractDeltaWriter) {
-  #baseVm
-
   async checkBaseVdis(baseUuidToSrcVdi, baseVm) {
     const sr = this._sr
     const replicatedVm = listReplicatedVms(sr.$xapi, this._backup.job.id, sr.uuid, this._backup.vm.uuid).find(
@@ -22,8 +20,6 @@ exports.DeltaReplicationWriter = class DeltaReplicationWriter extends MixinRepli
     if (replicatedVm === undefined) {
       return baseUuidToSrcVdi.clear()
     }
-
-    this.#baseVm = replicatedVm
 
     const xapi = replicatedVm.$xapi
     const replicatedVdis = new Set(
@@ -92,7 +88,6 @@ exports.DeltaReplicationWriter = class DeltaReplicationWriter extends MixinRepli
       targetVmRef = await importDeltaVm(
         {
           __proto__: deltaExport,
-          baseVm: this.#baseVm,
           vm: {
             ...deltaExport.vm,
             tags: [...deltaExport.vm.tags, 'Continuous Replication'],
@@ -111,9 +106,11 @@ exports.DeltaReplicationWriter = class DeltaReplicationWriter extends MixinRepli
       targetVm.ha_restart_priority !== '' &&
         Promise.all([targetVm.set_ha_restart_priority(''), targetVm.add_tags('HA disabled')]),
       targetVm.set_name_label(`${vm.name_label} - ${job.name} - (${formatFilenameDate(timestamp)})`),
-      targetVm.update_blocked_operations(
-        'start',
-        'Start operation for this vm is blocked, clone it if you want to use it.'
+      asyncMap(['start', 'start_on'], op =>
+        targetVm.update_blocked_operations(
+          op,
+          'Start operation for this vm is blocked, clone it if you want to use it.'
+        )
       ),
       targetVm.update_other_config({
         'xo:backup:sr': srUuid,

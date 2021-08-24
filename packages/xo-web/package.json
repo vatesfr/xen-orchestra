@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "xo-web",
-  "version": "5.84.0",
+  "version": "5.86.0",
   "license": "AGPL-3.0-or-later",
   "description": "Web interface client for Xen-Orchestra",
   "keywords": [
@@ -77,7 +77,7 @@
     "gulp-watch": "^5.0.0",
     "human-format": "^0.11.0",
     "immutable": "^4.0.0-rc.9",
-    "index-modules": "^0.3.0",
+    "index-modules": "^0.4.3",
     "is-ip": "^3.1.0",
     "js-cookie": "2.2.1",
     "jsonrpc-websocket-client": "^0.6.0",

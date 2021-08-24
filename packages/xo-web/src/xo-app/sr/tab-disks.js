@@ -9,16 +9,16 @@ import Link from 'link'
 import MigrateVdiModalBody from 'xo/migrate-vdi-modal'
 import PropTypes from 'prop-types'
 import React from 'react'
-import renderXoItem from 'render-xo-item'
 import SortedTable from 'sorted-table'
 import TabButton from 'tab-button'
+import renderXoItem, { Vdi } from 'render-xo-item'
 import { confirm } from 'modal'
 import { injectIntl } from 'react-intl'
 import { Text } from 'editable'
 import { SizeInput, Toggle } from 'form'
 import { Container, Row, Col } from 'grid'
 import { connectStore, formatSize, noop } from 'utils'
-import { concat, every, groupBy, isEmpty, map, mapValues, pick, some } from 'lodash'
+import { concat, every, groupBy, isEmpty, map, mapValues, pick, some, sortBy } from 'lodash'
 import { createCollectionWrapper, createGetObjectsOfType, createSelector, getCheckPermissions } from 'selectors'
 import {
   connectVbd,
@@ -41,16 +41,39 @@ import { error } from 'notification'
 const COLUMNS = [
   {
     name: _('vdiNameLabel'),
-    itemRenderer: vdi => (
-      <span>
-        <Text value={vdi.name_label} onChange={value => editVdi(vdi, { name_label: value })} />{' '}
-        {vdi.type === 'VDI-snapshot' && (
-          <span className='tag tag-info'>
-            <Icon icon='vm-snapshot' />
-          </span>
-        )}
-      </span>
-    ),
+    itemRenderer: (vdi, { vdisByBaseCopy }) => {
+      const activeVdis = vdisByBaseCopy[vdi.id]
+      return (
+        <span>
+          <Text value={vdi.name_label} onChange={value => editVdi(vdi, { name_label: value })} />{' '}
+          {vdi.type === 'VDI-snapshot' && (
+            <span className='tag tag-info'>
+              <Icon icon='vm-snapshot' />
+            </span>
+          )}
+          {vdi.type === 'VDI-unmanaged' &&
+            (activeVdis !== undefined ? (
+              <span>
+                (
+                <Link
+                  to={`/srs/${activeVdis[0].$SR}/disks?s=${encodeURIComponent(
+                    `id:|(${activeVdis.map(activeVdi => activeVdi.id).join(' ')})`
+                  )}`}
+                >
+                  {activeVdis.length > 1 ? (
+                    _('multipleActiveVdis', { firstVdi: <Vdi id={activeVdis[0].id} />, nVdis: activeVdis.length - 1 })
+                  ) : (
+                    <Vdi id={activeVdis[0].id} showSize />
+                  )}
+                </Link>
+                )
+              </span>
+            ) : (
+              <span>({_('noActiveVdi')})</span>
+            ))}
+        </span>
+      )
+    },
     sortCriteria: vdi => vdi.name_label,
   },
   {
@@ -285,7 +308,7 @@ export default class SrDisks extends Component {
     () => this.props.vdis,
     () => this.props.vdiSnapshots,
     () => this.props.unmanagedVdis,
-    concat
+    (vdis, vdiSnapshots, unmanagedVdis) => concat(vdis, vdiSnapshots, sortBy(unmanagedVdis, 'id'))
   )
 
   _getIsSrAdmin = createSelector(
@@ -349,6 +372,29 @@ export default class SrDisks extends Component {
     },
   ]
 
+  _getVdisByBaseCopy = createSelector(
+    () => this.props.vdis,
+    () => this.props.unmanagedVdis,
+    (vdis, unmanagedVdis) => {
+      const vdisByBaseCopy = {}
+
+      vdis.forEach(vdi => {
+        let baseCopy = unmanagedVdis[vdi.parent]
+
+        while (baseCopy !== undefined) {
+          const baseCopyId = baseCopy.id
+
+          if (vdisByBaseCopy[baseCopyId] === undefined) {
+            vdisByBaseCopy[baseCopyId] = []
+          }
+          vdisByBaseCopy[baseCopyId].push(vdi)
+          baseCopy = unmanagedVdis[baseCopy.parent]
+        }
+      })
+      return vdisByBaseCopy
+    }
+  )
+
   render() {
     const vdis = this._getAllVdis()
     const { newDisk } = this.state
@@ -383,6 +429,7 @@ export default class SrDisks extends Component {
                 collection={vdis}
                 columns={COLUMNS}
                 data-isVdiAttached={this._getIsVdiAttached()}
+                data-vdisByBaseCopy={this._getVdisByBaseCopy()}
                 defaultFilter='filterOnlyManaged'
                 filters={FILTERS}
                 groupedActions={GROUPED_ACTIONS}

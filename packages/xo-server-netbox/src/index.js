@@ -1,7 +1,7 @@
 import assert from 'assert'
 import ipaddr from 'ipaddr.js'
 import { createLogger } from '@xen-orchestra/log'
-import { find, flatten, forEach, groupBy, isEmpty, keyBy, mapValues, trimEnd, zipObject } from 'lodash'
+import { find, flatten, forEach, groupBy, isEmpty, keyBy, mapValues, omit, trimEnd, zipObject } from 'lodash'
 
 const log = createLogger('xo:netbox')
 
@@ -40,6 +40,7 @@ const onRequest = req => {
 }
 
 class Netbox {
+  #allowUnauthorized
   #endpoint
   #intervalToken
   #loaded
@@ -58,6 +59,7 @@ class Netbox {
     if (!/^https?:\/\//.test(this.#endpoint)) {
       this.#endpoint = 'http://' + this.#endpoint
     }
+    this.#allowUnauthorized = configuration.allowUnauthorized ?? false
     this.#token = configuration.token
     this.#pools = configuration.pools
     this.#syncInterval = configuration.syncInterval && configuration.syncInterval * 60 * 60 * 1e3
@@ -105,6 +107,7 @@ class Netbox {
       headers: { 'Content-Type': 'application/json', Authorization: `Token ${this.#token}` },
       method,
       onRequest,
+      rejectUnauthorized: !this.#allowUnauthorized,
     }
 
     const httpRequest = async () => {
@@ -250,14 +253,26 @@ class Netbox {
 
     // Build collections for later
     const netboxVms = {} // VM UUID → Netbox VM
-    const vifsByVm = {} // VM UUID → VIF
+    const vifsByVm = {} // VM UUID → VIF UUID[]
     const ipsByDeviceByVm = {} // VM UUID → (VIF device → IP)
+    const primaryIpsByVm = {} // VM UUID → { ipv4, ipv6 }
 
     const vmsToCreate = []
-    const vmsToUpdate = []
+    let vmsToUpdate = [] // will be reused for primary IPs
     for (const vm of Object.values(vms)) {
       vifsByVm[vm.uuid] = vm.VIFs
       const vmIpsByDevice = (ipsByDeviceByVm[vm.uuid] = {})
+
+      if (primaryIpsByVm[vm.uuid] === undefined) {
+        primaryIpsByVm[vm.uuid] = {}
+      }
+      if (vm.addresses['0/ipv4/0'] !== undefined) {
+        primaryIpsByVm[vm.uuid].ipv4 = vm.addresses['0/ipv4/0']
+      }
+      if (vm.addresses['0/ipv6/0'] !== undefined) {
+        primaryIpsByVm[vm.uuid].ipv6 = ipaddr.parse(vm.addresses['0/ipv6/0']).toString()
+      }
+
       forEach(vm.addresses, (address, key) => {
         const device = key.split('/')[0]
         if (vmIpsByDevice[device] === undefined) {
@@ -480,6 +495,7 @@ class Netbox {
     const ipsToDelete = []
     const ipsToCreate = []
     const ignoredIps = []
+    const netboxIpsByVif = {}
     for (const [vmUuid, vifs] of Object.entries(vifsByVm)) {
       const vmIpsByDevice = ipsByDeviceByVm[vmUuid]
       if (vmIpsByDevice === undefined) {
@@ -491,6 +507,8 @@ class Netbox {
         if (vifIps === undefined) {
           continue
         }
+
+        netboxIpsByVif[vifId] = []
 
         const interface_ = interfaces[vif.uuid]
         const interfaceOldIps = oldNetboxIps[interface_.id] ?? []
@@ -505,6 +523,7 @@ class Netbox {
             netboxIp => ipaddr.parse(netboxIp.address.split('/')[0]).toString() === ipCompactNotation
           )
           if (netboxIpIndex >= 0) {
+            netboxIpsByVif[vifId].push(interfaceOldIps[netboxIpIndex])
             interfaceOldIps.splice(netboxIpIndex, 1)
           } else {
             const prefix = prefixes.find(({ prefix }) => {
@@ -521,6 +540,7 @@ class Netbox {
               address: `${ip}/${prefix.prefix.split('/')[1]}`,
               assigned_object_type: 'virtualization.vminterface',
               assigned_object_id: interface_.id,
+              vifId, // needed to populate netboxIpsByVif with newly created IPs
             })
           }
         }
@@ -534,8 +554,60 @@ class Netbox {
 
     await Promise.all([
       ipsToDelete.length !== 0 && this.#makeRequest('/ipam/ip-addresses/', 'DELETE', ipsToDelete),
-      ipsToCreate.length !== 0 && this.#makeRequest('/ipam/ip-addresses/', 'POST', ipsToCreate),
+      ipsToCreate.length !== 0 &&
+        this.#makeRequest(
+          '/ipam/ip-addresses/',
+          'POST',
+          ipsToCreate.map(ip => omit(ip, 'vifId'))
+        ).then(newNetboxIps => {
+          newNetboxIps.forEach((newNetboxIp, i) => {
+            const { vifId } = ipsToCreate[i]
+            if (netboxIpsByVif[vifId] === undefined) {
+              netboxIpsByVif[vifId] = []
+            }
+            netboxIpsByVif[vifId].push(newNetboxIp)
+          })
+        }),
     ])
+
+    // Primary IPs
+    vmsToUpdate = []
+    Object.entries(netboxVms).forEach(([vmId, netboxVm]) => {
+      if (netboxVm.primary_ip4 !== null && netboxVm.primary_ip6 !== null) {
+        return
+      }
+      const newNetboxVm = { id: netboxVm.id }
+      const vifs = vifsByVm[vmId]
+      vifs.forEach(vifId => {
+        const netboxIps = netboxIpsByVif[vifId]
+        const vmMainIps = primaryIpsByVm[vmId]
+
+        netboxIps?.forEach(netboxIp => {
+          const address = netboxIp.address.split('/')[0]
+          if (
+            newNetboxVm.primary_ip4 === undefined &&
+            address === vmMainIps.ipv4 &&
+            netboxVm.primary_ip4?.address !== netboxIp.address
+          ) {
+            newNetboxVm.primary_ip4 = netboxIp.id
+          }
+          if (
+            newNetboxVm.primary_ip6 === undefined &&
+            address === vmMainIps.ipv6 &&
+            netboxVm.primary_ip6?.address !== netboxIp.address
+          ) {
+            newNetboxVm.primary_ip6 = netboxIp.id
+          }
+        })
+      })
+      if (newNetboxVm.primary_ip4 !== undefined || newNetboxVm.primary_ip6 !== undefined) {
+        vmsToUpdate.push(newNetboxVm)
+      }
+    })
+
+    if (vmsToUpdate.length > 0) {
+      await this.#makeRequest('/virtualization/virtual-machines/', 'PATCH', vmsToUpdate)
+    }
 
     log.debug('synchronized')
   }
@@ -571,6 +643,11 @@ export const configurationSchema = ({ xo: { apiMethods } }) => ({
       type: 'string',
       title: 'Endpoint',
       description: 'Netbox URI',
+    },
+    allowUnauthorized: {
+      type: 'boolean',
+      title: 'Unauthorized certificates',
+      description: 'Enable this if your Netbox instance uses a self-signed SSL certificate',
     },
     token: {
       type: 'string',

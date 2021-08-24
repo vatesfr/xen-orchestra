@@ -1,8 +1,37 @@
 # ChangeLog
 
-## **5.60.0** (2021-06-30)
+## **5.61.0** (2021-07-30)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
+### Highlights
+
+- [SR/disks] Display base copies' active VDIs (PR [#5826](https://github.com/vatesfr/xen-orchestra/pull/5826))
+- [Netbox] Optionally allow self-signed certificates (PR [#5850](https://github.com/vatesfr/xen-orchestra/pull/5850))
+- [Host] When supported, use pool's default migration network to evacuate host [#5802](https://github.com/vatesfr/xen-orchestra/issues/5802) (PR [#5851](https://github.com/vatesfr/xen-orchestra/pull/5851))
+- [VM] shutdown/reboot: offer to force shutdown/reboot the VM if no Xen tools were detected [#5838](https://github.com/vatesfr/xen-orchestra/issues/5838) (PR [#5855](https://github.com/vatesfr/xen-orchestra/pull/5855))
+
+### Enhancements
+
+- [Netbox] Add information about a failed request to the error log to help better understand what happened [#5834](https://github.com/vatesfr/xen-orchestra/issues/5834) (PR [#5842](https://github.com/vatesfr/xen-orchestra/pull/5842))
+- [VM/console] Ability to rescan ISO SRs (PR [#5841](https://github.com/vatesfr/xen-orchestra/pull/5841))
+
+### Bug fixes
+
+- [VM/disks] Fix `an error has occured` when self service user was on VM disk view (PR [#5841](https://github.com/vatesfr/xen-orchestra/pull/5841))
+- [Backup] Protect replicated VMs from being started on specific hosts (PR [#5852](https://github.com/vatesfr/xen-orchestra/pull/5852))
+
+### Released packages
+
+- @xen-orchestra/backups 0.12.2
+- @xen-orchestra/proxy 0.14.4
+- xo-server-netbox 0.2.0
+- xo-web 5.86.0
+- xo-server 5.81.2
+
+## **5.60.0** (2021-06-30)
+
+<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Highlights
 
@@ -44,8 +73,6 @@
 - xo-web 5.84.0
 
 ## **5.59.0** (2021-05-31)
-
-<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Highlights
 
