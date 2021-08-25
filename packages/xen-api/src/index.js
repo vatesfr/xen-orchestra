@@ -395,6 +395,14 @@ export class Xapi extends EventEmitter {
 
     query = { ...query, session_id: this.sessionId }
 
+    let localAddress
+    if (this._pool.other_config['xo:migrationNetwork'] !== undefined) {
+      const network = await this.getRecordByUuid('network', this._pool.other_config['xo:migrationNetwork'])
+      const PIF = await this.getRecord('PIF', network.PIFs[0])
+      localAddress = PIF.IP
+    }
+    console.log(localAddress)
+
     let pTaskResult
     if (taskRef !== undefined) {
       query.task_id = taskRef
@@ -431,6 +439,7 @@ export class Xapi extends EventEmitter {
       {
         body,
         headers,
+        localAddress: localAddress !== undefined && localAddress,
         pathname,
         query,
         rejectUnauthorized: !this._allowUnauthorized,
