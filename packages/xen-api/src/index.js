@@ -399,6 +399,7 @@ export class Xapi extends EventEmitter {
     if (this._pool.other_config['xo:migrationNetwork'] !== undefined) {
       const network = await this.getRecordByUuid('network', this._pool.other_config['xo:migrationNetwork'])
       const PIF = await this.getRecord('PIF', network.PIFs[0])
+      // localAddress https://nodejs.org/api/http.html#http_http_request_url_options_callback
       localAddress = PIF.IP
     }
     console.log(localAddress)
