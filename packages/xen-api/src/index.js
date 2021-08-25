@@ -359,24 +359,23 @@ export class Xapi extends EventEmitter {
       }
     }
 
-    const response = await httpRequest(
-      $cancelToken,
-      this._url,
-      host !== undefined && {
-        hostname: await this._getHostAddress(this.getObject(host)),
-      },
-      {
-        pathname,
-        query,
-        rejectUnauthorized: !this._allowUnauthorized,
+    console.log(await this.getObject(host))
+    const _host = await this.getRecord('host', host ?? this._pool.master)
 
-        // this is an inactivity timeout (unclear in Node doc)
-        timeout: this._httpInactivityTimeout,
+    console.log(await this._getHostAddress(_host))
 
-        // Support XS <= 6.5 with Node => 12
-        minVersion: 'TLSv1',
-      }
-    )
+    const response = await httpRequest($cancelToken, this._url, {
+      hostname: await this._getHostAddress(_host),
+      pathname,
+      query,
+      rejectUnauthorized: !this._allowUnauthorized,
+
+      // this is an inactivity timeout (unclear in Node doc)
+      timeout: this._httpInactivityTimeout,
+
+      // Support XS <= 6.5 with Node => 12
+      minVersion: 'TLSv1',
+    })
 
     if (pTaskResult !== undefined) {
       response.task = pTaskResult
@@ -394,14 +393,6 @@ export class Xapi extends EventEmitter {
     const taskRef = await this._autoTask(task, `Xapi#putResource ${pathname}`)
 
     query = { ...query, session_id: this.sessionId }
-
-    let localAddress
-    if (this._pool.other_config['xo:migrationNetwork'] !== undefined) {
-      const network = await this.getRecordByUuid('network', this._pool.other_config['xo:migrationNetwork'])
-      const PIF = await this.getRecord('PIF', network.PIFs[0])
-      localAddress = PIF.IP
-    }
-    console.log(localAddress)
 
     let pTaskResult
     if (taskRef !== undefined) {
@@ -429,28 +420,30 @@ export class Xapi extends EventEmitter {
       headers['content-length'] = '1125899906842624'
     }
 
-    const doRequest = httpRequest.put.bind(
-      undefined,
-      $cancelToken,
-      this._url,
-      host !== undefined && {
-        hostname: await this._getHostAddress(this.getObject(host)),
-      },
-      {
-        body,
-        headers,
-        localAddress: localAddress !== undefined && localAddress,
-        pathname,
-        query,
-        rejectUnauthorized: !this._allowUnauthorized,
+    // error Error: no object with UUID or opaque ref:
+    // console.log(await this.getObjectByRef(this._pool.master))
+    // console.log(await this.getObject(this._pool.master))
 
-        // this is an inactivity timeout (unclear in Node doc)
-        timeout: this._httpInactivityTimeout,
+    // host = "OpaqueRef:8721adb9-b62e-4703-a9e6-00524901f6ce"
+    // host = "708f9675-b9ba-4372-846f-4a0324a24227"
+    const _host = await this.getRecord('host', host ?? this._pool.master)
 
-        // Support XS <= 6.5 with Node => 12
-        minVersion: 'TLSv1',
-      }
-    )
+    console.log(await this._getHostAddress(_host))
+
+    const doRequest = httpRequest.put.bind(undefined, $cancelToken, this._url, {
+      body,
+      headers,
+      hostname: await this._getHostAddress(_host),
+      pathname,
+      query,
+      rejectUnauthorized: !this._allowUnauthorized,
+
+      // this is an inactivity timeout (unclear in Node doc)
+      timeout: this._httpInactivityTimeout,
+
+      // Support XS <= 6.5 with Node => 12
+      minVersion: 'TLSv1',
+    })
 
     // if body is a stream, sends a dummy request to probe for a redirection
     // before consuming body
@@ -801,7 +794,15 @@ export class Xapi extends EventEmitter {
     }
   }
 
-  async _getHostAddress({ address }) {
+  async _getHostAddress({ address, $pool }) {
+    const poolMigrationNetwork = $pool.other_config['xo:migrationNetwork']
+    if (poolMigrationNetwork !== undefined) {
+      const defaultMigrationNetwork = await this.getRecordByUuid('network', poolMigrationNetwork)
+      return (await Promise.all(defaultMigrationNetwork.PIFs.map(pif => this.getRecord('PIF', pif)))).find(
+        pif => pif.host === $pool.master
+      ).IP
+    }
+
     if (this._reverseHostIpAddresses) {
       try {
         ;[address] = await fromCallback(dns.reverse, address)
