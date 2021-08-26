@@ -420,15 +420,10 @@ export class Xapi extends EventEmitter {
       headers['content-length'] = '1125899906842624'
     }
 
-    // error Error: no object with UUID or opaque ref:
-    // console.log(await this.getObjectByRef(this._pool.master))
-    // console.log(await this.getObject(this._pool.master))
-
-    // host = "OpaqueRef:8721adb9-b62e-4703-a9e6-00524901f6ce"
-    // host = "708f9675-b9ba-4372-846f-4a0324a24227"
+    // R620-L3 (172.16.210.13)
+    // to trigger a redirection
+    host = 'OpaqueRef:a2a527da-a4af-4239-8d37-e8f146714d68'
     const _host = await this.getRecord('host', host ?? this._pool.master)
-
-    console.log(await this._getHostAddress(_host))
 
     const doRequest = httpRequest.put.bind(undefined, $cancelToken, this._url, {
       body,
@@ -457,10 +452,12 @@ export class Xapi extends EventEmitter {
           maxRedirects: 0,
         }).then(
           response => {
+            console.log('No redirection')
             response.cancel()
             return doRequest()
           },
           error => {
+            console.log('Redirection')
             let response
             if (error != null && (response = error.response) != null) {
               response.cancel()
@@ -471,7 +468,9 @@ export class Xapi extends EventEmitter {
               } = response
               if (statusCode === 302 && location !== undefined) {
                 // ensure the original query is sent
-                return doRequest(location, { query })
+                const hostname = location.match(/\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/)[0]
+                console.log(hostname)
+                return doRequest(location, { query, hostname })
               }
             }
 
@@ -794,13 +793,13 @@ export class Xapi extends EventEmitter {
     }
   }
 
-  async _getHostAddress({ address, $pool }) {
+  async _getHostAddress({ address, PIFs, $pool }) {
     const poolMigrationNetwork = $pool.other_config['xo:migrationNetwork']
     if (poolMigrationNetwork !== undefined) {
-      const defaultMigrationNetwork = await this.getRecordByUuid('network', poolMigrationNetwork)
-      return (await Promise.all(defaultMigrationNetwork.PIFs.map(pif => this.getRecord('PIF', pif)))).find(
-        pif => pif.host === $pool.master
-      ).IP
+      const migrationNetworkPifRef = (await this.getRecordByUuid('network', poolMigrationNetwork)).PIFs.filter(pifRef =>
+        PIFs.includes(pifRef)
+      )
+      return (await this.getRecord('PIF', migrationNetworkPifRef[0])).IP
     }
 
     if (this._reverseHostIpAddresses) {
