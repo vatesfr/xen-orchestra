@@ -456,7 +456,7 @@ export class Xapi extends EventEmitter {
             response.cancel()
             return doRequest()
           },
-          error => {
+          async error => {
             console.log('Redirection')
             let response
             if (error != null && (response = error.response) != null) {
@@ -468,9 +468,10 @@ export class Xapi extends EventEmitter {
               } = response
               if (statusCode === 302 && location !== undefined) {
                 // ensure the original query is sent
-                const hostname = location.match(/\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/)[0]
-                console.log(hostname)
-                return doRequest(location, { query, hostname })
+                const [hostAddress] = location.match(/\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/)
+                const host = (await this.getAllRecords('host')).find(host => host.address === hostAddress)
+
+                return doRequest(location, { query, hostname: await this._getHostAddress(host) })
               }
             }
 
