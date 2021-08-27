@@ -3,6 +3,7 @@ import dns from 'dns'
 import kindOf from 'kindof'
 import ms from 'ms'
 import httpRequest from 'http-request-plus'
+import url from 'url'
 import { Collection } from 'xo-collection'
 import { EventEmitter } from 'events'
 import { map, noop, omit } from 'lodash'
@@ -391,15 +392,14 @@ export class Xapi extends EventEmitter {
         when: { code: 302 },
         onRetry: async error => {
           const response = error.response
-          if (response !== undefined) {
-            response.cancel()
-            const {
-              headers: { location },
-            } = response
-            _host = await this._extractHostFromString(location)
-            return
+          if (response === undefined) {
+            throw error
           }
-          throw error
+          response.cancel()
+          const {
+            headers: { location },
+          } = response
+          _host = await this._extractHostFromUrl(location)
         },
       }
     )
@@ -490,7 +490,7 @@ export class Xapi extends EventEmitter {
               } = response
               if (statusCode === 302 && location !== undefined) {
                 // ensure the original query is sent
-                const redirectedHost = await this._extractHostFromString(location)
+                const redirectedHost = await this._extractHostFromUrl(location)
                 return doRequest(this._url, {
                   hostname: await this._getHostAddress(redirectedHost),
                   ...query,
@@ -820,10 +820,10 @@ export class Xapi extends EventEmitter {
   async _getHostAddress({ address, PIFs, $pool }) {
     const poolMigrationNetwork = $pool.other_config['xo:migrationNetwork']
     if (poolMigrationNetwork !== undefined) {
-      const migrationNetworkPifRef = (await this.getRecordByUuid('network', poolMigrationNetwork)).PIFs.filter(pifRef =>
+      const migrationNetworkPifRef = (await this.getRecordByUuid('network', poolMigrationNetwork)).PIFs.find(pifRef =>
         PIFs.includes(pifRef)
       )
-      address = await this.getField('PIF', migrationNetworkPifRef[0], 'IP')
+      address = await this.getField('PIF', migrationNetworkPifRef, 'IP')
     }
 
     if (this._reverseHostIpAddresses) {
@@ -895,9 +895,9 @@ export class Xapi extends EventEmitter {
     }
   }
 
-  async _extractHostFromString(string) {
-    const [hostAddress] = string.match(/\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/)
-    return (await this.getAllRecords('host')).find(host => host.address === hostAddress)
+  async _extractHostFromUrl(string) {
+    const { hostname } = new url.URL(string)
+    return (await this.getAllRecords('host')).find(host => host.address === hostname)
   }
 
   _processEvents(events) {
