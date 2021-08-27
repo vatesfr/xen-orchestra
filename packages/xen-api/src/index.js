@@ -353,11 +353,6 @@ export class Xapi extends EventEmitter {
   // HTTP requests
   // ===========================================================================
 
-  async extractHostFromString(string) {
-    const [hostAddress] = string.match(/\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/)
-    return (await this.getAllRecords('host')).find(host => host.address === hostAddress)
-  }
-
   @cancelable
   async getResource($cancelToken, pathname, { host, query, task } = {}) {
     const taskRef = await this._autoTask(task, `Xapi#getResource ${pathname}`)
@@ -402,7 +397,7 @@ export class Xapi extends EventEmitter {
             const {
               headers: { location },
             } = response
-            _host = await this.extractHostFromString(location)
+            _host = await this._extractHostFromString(location)
             return
           }
           throw error
@@ -495,7 +490,7 @@ export class Xapi extends EventEmitter {
               } = response
               if (statusCode === 302 && location !== undefined) {
                 // ensure the original query is sent
-                const redirectedHost = await this.extractHostFromString(location)
+                const redirectedHost = await this._extractHostFromString(location)
                 return doRequest(this._url, {
                   hostname: await this._getHostAddress(redirectedHost),
                   ...query,
@@ -898,6 +893,11 @@ export class Xapi extends EventEmitter {
         }
       }
     }
+  }
+
+  async _extractHostFromString(string) {
+    const [hostAddress] = string.match(/\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/)
+    return (await this.getAllRecords('host')).find(host => host.address === hostAddress)
   }
 
   _processEvents(events) {
