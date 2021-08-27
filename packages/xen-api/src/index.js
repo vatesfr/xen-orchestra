@@ -497,6 +497,11 @@ export class Xapi extends EventEmitter {
               if (statusCode === 302 && location !== undefined) {
                 // ensure the original query is sent
                 const redirectedHost = await this._extractHostFromUrl(location)
+                if (typeof redirectedHost === 'string') {
+                  return doRequest(redirectedHost, {
+                    ...query,
+                  })
+                }
                 return doRequest(this._url, {
                   hostname: await this._getHostAddress(redirectedHost),
                   ...query,
