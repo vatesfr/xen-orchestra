@@ -820,10 +820,14 @@ export class Xapi extends EventEmitter {
   async _getHostAddress({ address, PIFs, $pool }) {
     const poolMigrationNetwork = $pool.other_config['xo:migrationNetwork']
     if (poolMigrationNetwork !== undefined) {
-      const migrationNetworkPifRef = (await this.getRecordByUuid('network', poolMigrationNetwork)).PIFs.find(pifRef =>
-        PIFs.includes(pifRef)
-      )
-      address = await this.getField('PIF', migrationNetworkPifRef, 'IP')
+      try {
+        const migrationNetworkPifRef = (await this.getRecordByUuid('network', poolMigrationNetwork)).PIFs.find(pifRef =>
+          PIFs.includes(pifRef)
+        )
+        address = await this.getField('PIF', migrationNetworkPifRef, 'IP')
+      } catch (error) {
+        console.warn('unable to get the host address linked to the pool migration network', poolMigrationNetwork, error)
+      }
     }
 
     if (this._reverseHostIpAddresses) {
