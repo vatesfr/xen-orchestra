@@ -2,6 +2,7 @@ import assert from 'assert'
 import dns from 'dns'
 import kindOf from 'kindof'
 import ms from 'ms'
+import querystring from 'querystring'
 import httpRequest from 'http-request-plus'
 import { Collection } from 'xo-collection'
 import { EventEmitter } from 'events'
@@ -370,15 +371,14 @@ export class Xapi extends EventEmitter {
       }
     }
 
-    let url = {
-      hostname: await this._getHostAddress(await this.getRecord('host', host ?? this._pool.master)),
-      pathname,
-      query,
-    }
+    let url = new URL('http://localhost')
+    url.hostname = await this._getHostAddress(await this.getRecord('host', host ?? this._pool.master))
+    url.pathname = pathname
+    url.search = querystring.stringify(query)
 
     const response = await retry(
       async () =>
-        httpRequest($cancelToken, url, {
+        httpRequest($cancelToken, url.href, {
           rejectUnauthorized: !this._allowUnauthorized,
 
           // this is an inactivity timeout (unclear in Node doc)
@@ -445,11 +445,10 @@ export class Xapi extends EventEmitter {
       headers['content-length'] = '1125899906842624'
     }
 
-    const url = {
-      hostname: await this._getHostAddress(await this.getRecord('host', host ?? this._pool.master)),
-      pathname,
-      query,
-    }
+    const url = new URL('http://localhost')
+    url.hostname = await this._getHostAddress(await this.getRecord('host', host ?? this._pool.master))
+    url.pathname = pathname
+    url.search = querystring.stringify(query)
 
     const doRequest = httpRequest.put.bind(undefined, $cancelToken, {
       body,
@@ -466,7 +465,7 @@ export class Xapi extends EventEmitter {
     // if body is a stream, sends a dummy request to probe for a redirection
     // before consuming body
     const response = await (isStream
-      ? doRequest(url, {
+      ? doRequest(url.href, {
           body: '',
 
           // omit task_id because this request will fail on purpose
@@ -476,7 +475,7 @@ export class Xapi extends EventEmitter {
         }).then(
           response => {
             response.cancel()
-            return doRequest(url)
+            return doRequest(url.href)
           },
           async error => {
             let response
@@ -489,7 +488,11 @@ export class Xapi extends EventEmitter {
               } = response
               if (statusCode === 302 && location !== undefined) {
                 // ensure the original query is sent
-                return doRequest(await this._replaceHostAddressInUrl(new URL(location, url)))
+                const newUrl = new URL(location, url)
+                const _query = querystring.parse(newUrl.search)
+                _query.task_id = query.task_id
+                newUrl.search = querystring.stringify(_query)
+                return doRequest(await this._replaceHostAddressInUrl(newUrl.href))
               }
             }
 
@@ -815,9 +818,10 @@ export class Xapi extends EventEmitter {
   async _getHostAddress({ address, PIFs, $pool }) {
     const poolMigrationNetwork = $pool.other_config['xo:migrationNetwork']
     if (poolMigrationNetwork !== undefined) {
+      const _PIFs = new Set(PIFs)
       try {
         const migrationNetworkPifRef = (await this.getRecordByUuid('network', poolMigrationNetwork)).PIFs.find(pifRef =>
-          PIFs.includes(pifRef)
+          _PIFs.has(pifRef)
         )
         address = await this.getField('PIF', migrationNetworkPifRef, 'IP')
       } catch (error) {
