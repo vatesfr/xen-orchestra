@@ -910,6 +910,7 @@ export class Xapi extends EventEmitter {
     const host = (await this.getAllRecords('host')).find(host => host.address === hostname)
     if (host === undefined) {
       console.warn(`Unable to extract an host from the url: ${_url}`)
+      return _url
     }
     return host
   }
