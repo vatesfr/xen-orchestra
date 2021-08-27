@@ -269,7 +269,7 @@ gulp.task(function buildScripts() {
 gulp.task(function buildStyles() {
   return pipe(
     src('index.scss', { sourcemaps: true }),
-    require('gulp-sass')(),
+    require('gulp-sass')(require('sass'))(),
     require('gulp-autoprefixer')(['last 1 version', '> 1%']),
     PRODUCTION && require('gulp-csso')(),
     dest()
