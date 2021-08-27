@@ -478,7 +478,7 @@ export class Xapi extends EventEmitter {
             response.cancel()
             return doRequest()
           },
-          async error => {
+          error => {
             let response
             if (error != null && (response = error.response) != null) {
               response.cancel()
@@ -818,7 +818,7 @@ export class Xapi extends EventEmitter {
       const migrationNetworkPifRef = (await this.getRecordByUuid('network', poolMigrationNetwork)).PIFs.filter(pifRef =>
         PIFs.includes(pifRef)
       )
-      return (await this.getRecord('PIF', migrationNetworkPifRef[0])).IP
+      address = (await this.getRecord('PIF', migrationNetworkPifRef[0])).IP
     }
 
     if (this._reverseHostIpAddresses) {
