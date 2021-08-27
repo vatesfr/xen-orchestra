@@ -6,7 +6,17 @@ import httpRequest from 'http-request-plus'
 import { Collection } from 'xo-collection'
 import { EventEmitter } from 'events'
 import { map, noop, omit } from 'lodash'
-import { cancelable, defer, fromCallback, fromEvents, ignoreErrors, pDelay, pRetry, pTimeout } from 'promise-toolbox'
+import {
+  cancelable,
+  defer,
+  fromCallback,
+  fromEvents,
+  ignoreErrors,
+  pDelay,
+  pRetry,
+  pTimeout,
+  retry,
+} from 'promise-toolbox'
 import { limitConcurrency } from 'limit-concurrency-decorator'
 
 import autoTransport from './transports/auto'
@@ -343,14 +353,9 @@ export class Xapi extends EventEmitter {
   // HTTP requests
   // ===========================================================================
 
-  async doRedirection(location, cb, opts) {
-    const [hostAddress] = location.match(/\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/)
-    const host = (await this.getAllRecords('host')).find(host => host.address === hostAddress)
-
-    return cb(location, {
-      ...opts,
-      hostname: await this._getHostAddress(host),
-    })
+  async extractHostFromString(string) {
+    const [hostAddress] = string.match(/\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/)
+    return (await this.getAllRecords('host')).find(host => host.address === hostAddress)
   }
 
   @cancelable
@@ -369,45 +374,46 @@ export class Xapi extends EventEmitter {
       }
     }
 
-    const _host = await this.getRecord('host', host ?? this._pool.master)
+    let _host = await this.getRecord('host', host ?? this._pool.master)
 
-    const doRequest = httpRequest.bind(undefined, $cancelToken, this._url, {
-      hostname: await this._getHostAddress(_host),
-      pathname,
-      query,
-      rejectUnauthorized: !this._allowUnauthorized,
+    const response = await retry(
+      async () => {
+        return await httpRequest($cancelToken, this.url, {
+          hostname: await this._getHostAddress(_host),
+          pathname,
+          query,
+          rejectUnauthorized: !this._allowUnauthorized,
 
-      // this is an inactivity timeout (unclear in Node doc)
-      timeout: this._httpInactivityTimeout,
+          // this is an inactivity timeout (unclear in Node doc)
+          timeout: this._httpInactivityTimeout,
 
-      maxRedirects: 0,
+          maxRedirects: 0,
 
-      // Support XS <= 6.5 with Node => 12
-      minVersion: 'TLSv1',
-    })
-
-    try {
-      const response = await doRequest()
-
-      if (pTaskResult !== undefined) {
-        response.task = pTaskResult
+          // Support XS <= 6.5 with Node => 12
+          minVersion: 'TLSv1',
+        })
+      },
+      {
+        when: { code: 302 },
+        onRetry: async error => {
+          const response = error.response
+          if (response !== undefined) {
+            response.cancel()
+            const {
+              headers: { location },
+            } = response
+            _host = await this.extractHostFromString(location)
+            return
+          }
+          throw error
+        },
       }
-      return response
-    } catch (error) {
-      const response = error.response
-      if (response != null) {
-        response.cancel()
+    )
 
-        const {
-          headers: { location },
-          statusCode,
-        } = response
-        if (statusCode === 302 && location !== undefined) {
-          return this.doRedirection(location, doRequest, { query })
-        }
-      }
-      throw error
+    if (pTaskResult !== undefined) {
+      response.task = pTaskResult
     }
+    return response
   }
 
   @cancelable
@@ -478,7 +484,7 @@ export class Xapi extends EventEmitter {
             response.cancel()
             return doRequest()
           },
-          error => {
+          async error => {
             let response
             if (error != null && (response = error.response) != null) {
               response.cancel()
@@ -489,7 +495,11 @@ export class Xapi extends EventEmitter {
               } = response
               if (statusCode === 302 && location !== undefined) {
                 // ensure the original query is sent
-                return this.doRedirection(location, doRequest, { query })
+                const redirectedHost = await this.extractHostFromString(location)
+                return doRequest(this._url, {
+                  hostname: await this._getHostAddress(redirectedHost),
+                  ...query,
+                })
               }
             }
 
@@ -818,7 +828,7 @@ export class Xapi extends EventEmitter {
       const migrationNetworkPifRef = (await this.getRecordByUuid('network', poolMigrationNetwork)).PIFs.filter(pifRef =>
         PIFs.includes(pifRef)
       )
-      address = (await this.getRecord('PIF', migrationNetworkPifRef[0])).IP
+      address = await this.getField('PIF', migrationNetworkPifRef[0], 'IP')
     }
 
     if (this._reverseHostIpAddresses) {
