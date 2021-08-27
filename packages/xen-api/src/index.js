@@ -3,10 +3,10 @@ import dns from 'dns'
 import kindOf from 'kindof'
 import ms from 'ms'
 import httpRequest from 'http-request-plus'
-import url from 'url'
 import { Collection } from 'xo-collection'
 import { EventEmitter } from 'events'
 import { map, noop, omit } from 'lodash'
+import { URL } from 'url'
 import {
   cancelable,
   defer,
@@ -370,14 +370,15 @@ export class Xapi extends EventEmitter {
       }
     }
 
-    let _host = await this.getRecord('host', host ?? this._pool.master)
+    let url = {
+      hostname: await this._getHostAddress(await this.getRecord('host', host ?? this._pool.master)),
+      pathname,
+      query,
+    }
 
     const response = await retry(
       async () =>
-        httpRequest($cancelToken, this.url, {
-          hostname: _host && (await this._getHostAddress(_host)),
-          pathname,
-          query,
+        httpRequest($cancelToken, url, {
           rejectUnauthorized: !this._allowUnauthorized,
 
           // this is an inactivity timeout (unclear in Node doc)
@@ -396,16 +397,7 @@ export class Xapi extends EventEmitter {
             throw error
           }
           response.cancel()
-          const {
-            headers: { location },
-          } = response
-          const host = await this._extractHostFromUrl(location)
-          if (typeof host === 'string') {
-            _host = undefined
-            this.url = host
-            return
-          }
-          _host = host
+          url = await this._replaceHostAddressInUrl(new URL(response.headers.location, url))
         },
       }
     )
@@ -453,14 +445,15 @@ export class Xapi extends EventEmitter {
       headers['content-length'] = '1125899906842624'
     }
 
-    const _host = await this.getRecord('host', host ?? this._pool.master)
-
-    const doRequest = httpRequest.put.bind(undefined, $cancelToken, this._url, {
-      body,
-      headers,
-      hostname: await this._getHostAddress(_host),
+    const url = {
+      hostname: await this._getHostAddress(await this.getRecord('host', host ?? this._pool.master)),
       pathname,
       query,
+    }
+
+    const doRequest = httpRequest.put.bind(undefined, $cancelToken, {
+      body,
+      headers,
       rejectUnauthorized: !this._allowUnauthorized,
 
       // this is an inactivity timeout (unclear in Node doc)
@@ -473,7 +466,7 @@ export class Xapi extends EventEmitter {
     // if body is a stream, sends a dummy request to probe for a redirection
     // before consuming body
     const response = await (isStream
-      ? doRequest({
+      ? doRequest(url, {
           body: '',
 
           // omit task_id because this request will fail on purpose
@@ -483,7 +476,7 @@ export class Xapi extends EventEmitter {
         }).then(
           response => {
             response.cancel()
-            return doRequest()
+            return doRequest(url)
           },
           async error => {
             let response
@@ -496,16 +489,7 @@ export class Xapi extends EventEmitter {
               } = response
               if (statusCode === 302 && location !== undefined) {
                 // ensure the original query is sent
-                const redirectedHost = await this._extractHostFromUrl(location)
-                if (typeof redirectedHost === 'string') {
-                  return doRequest(redirectedHost, {
-                    ...query,
-                  })
-                }
-                return doRequest(this._url, {
-                  hostname: await this._getHostAddress(redirectedHost),
-                  ...query,
-                })
+                return doRequest(await this._replaceHostAddressInUrl(new URL(location, url)))
               }
             }
 
@@ -910,14 +894,17 @@ export class Xapi extends EventEmitter {
     }
   }
 
-  async _extractHostFromUrl(_url) {
-    const { hostname } = new url.URL(_url)
-    const host = (await this.getAllRecords('host')).find(host => host.address === hostname)
-    if (host === undefined) {
-      console.warn(`Unable to extract an host from the url: ${_url}`)
-      return _url
+  async _replaceHostAddressInUrl(url) {
+    try {
+      // TODO: look for hostname in all addresses of this host (including all its PIFs)
+      const host = (await this.getAllRecords('host')).find(host => host.address === url.hostname)
+      if (host !== undefined) {
+        url.hostname = await this._getHostAddress(host)
+      }
+    } catch (error) {
+      console.warn('_replaceHostAddressInUrl', url, error)
     }
-    return host
+    return url
   }
 
   _processEvents(events) {
