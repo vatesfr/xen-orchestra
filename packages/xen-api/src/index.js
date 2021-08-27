@@ -343,6 +343,16 @@ export class Xapi extends EventEmitter {
   // HTTP requests
   // ===========================================================================
 
+  async doRedirection(location, cb, opts) {
+    const [hostAddress] = location.match(/\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/)
+    const host = (await this.getAllRecords('host')).find(host => host.address === hostAddress)
+
+    return cb(location, {
+      ...opts,
+      hostname: await this._getHostAddress(host),
+    })
+  }
+
   @cancelable
   async getResource($cancelToken, pathname, { host, query, task } = {}) {
     const taskRef = await this._autoTask(task, `Xapi#getResource ${pathname}`)
@@ -359,12 +369,9 @@ export class Xapi extends EventEmitter {
       }
     }
 
-    console.log(await this.getObject(host))
     const _host = await this.getRecord('host', host ?? this._pool.master)
 
-    console.log(await this._getHostAddress(_host))
-
-    const response = await httpRequest($cancelToken, this._url, {
+    const doRequest = httpRequest.bind(undefined, $cancelToken, this._url, {
       hostname: await this._getHostAddress(_host),
       pathname,
       query,
@@ -375,13 +382,31 @@ export class Xapi extends EventEmitter {
 
       // Support XS <= 6.5 with Node => 12
       minVersion: 'TLSv1',
+      maxRedirects: 0,
     })
 
-    if (pTaskResult !== undefined) {
-      response.task = pTaskResult
-    }
+    try {
+      const response = await doRequest()
 
-    return response
+      if (pTaskResult !== undefined) {
+        response.task = pTaskResult
+      }
+      return response
+    } catch (error) {
+      const response = error.response
+      if (response != null) {
+        response.cancel()
+
+        const {
+          headers: { location },
+          statusCode,
+        } = response
+        if (statusCode === 302 && location !== undefined) {
+          return this.doRedirection(location, doRequest, { query })
+        }
+      }
+      throw error
+    }
   }
 
   @cancelable
@@ -420,9 +445,6 @@ export class Xapi extends EventEmitter {
       headers['content-length'] = '1125899906842624'
     }
 
-    // R620-L3 (172.16.210.13)
-    // to trigger a redirection
-    host = 'OpaqueRef:a2a527da-a4af-4239-8d37-e8f146714d68'
     const _host = await this.getRecord('host', host ?? this._pool.master)
 
     const doRequest = httpRequest.put.bind(undefined, $cancelToken, this._url, {
@@ -452,12 +474,10 @@ export class Xapi extends EventEmitter {
           maxRedirects: 0,
         }).then(
           response => {
-            console.log('No redirection')
             response.cancel()
             return doRequest()
           },
           async error => {
-            console.log('Redirection')
             let response
             if (error != null && (response = error.response) != null) {
               response.cancel()
@@ -468,10 +488,7 @@ export class Xapi extends EventEmitter {
               } = response
               if (statusCode === 302 && location !== undefined) {
                 // ensure the original query is sent
-                const [hostAddress] = location.match(/\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b/)
-                const host = (await this.getAllRecords('host')).find(host => host.address === hostAddress)
-
-                return doRequest(location, { query, hostname: await this._getHostAddress(host) })
+                return this.doRedirection(location, doRequest, { query })
               }
             }
 
