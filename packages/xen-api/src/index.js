@@ -408,6 +408,7 @@ export class Xapi extends EventEmitter {
     if (pTaskResult !== undefined) {
       response.task = pTaskResult
     }
+
     return response
   }
 
