@@ -380,9 +380,10 @@ export class Xapi extends EventEmitter {
       // this is an inactivity timeout (unclear in Node doc)
       timeout: this._httpInactivityTimeout,
 
+      maxRedirects: 0,
+
       // Support XS <= 6.5 with Node => 12
       minVersion: 'TLSv1',
-      maxRedirects: 0,
     })
 
     try {
