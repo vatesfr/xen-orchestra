@@ -372,8 +372,8 @@ export class Xapi extends EventEmitter {
     let _host = await this.getRecord('host', host ?? this._pool.master)
 
     const response = await retry(
-      async () => {
-        return await httpRequest($cancelToken, this.url, {
+      async () =>
+        httpRequest($cancelToken, this.url, {
           hostname: await this._getHostAddress(_host),
           pathname,
           query,
@@ -386,8 +386,7 @@ export class Xapi extends EventEmitter {
 
           // Support XS <= 6.5 with Node => 12
           minVersion: 'TLSv1',
-        })
-      },
+        }),
       {
         when: { code: 302 },
         onRetry: async error => {
