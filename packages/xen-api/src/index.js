@@ -375,7 +375,7 @@ export class Xapi extends EventEmitter {
     const response = await retry(
       async () =>
         httpRequest($cancelToken, this.url, {
-          hostname: await this._getHostAddress(_host),
+          hostname: _host && (await this._getHostAddress(_host)),
           pathname,
           query,
           rejectUnauthorized: !this._allowUnauthorized,
@@ -399,7 +399,13 @@ export class Xapi extends EventEmitter {
           const {
             headers: { location },
           } = response
-          _host = await this._extractHostFromUrl(location)
+          const host = await this._extractHostFromUrl(location)
+          if (typeof host === 'string') {
+            _host = undefined
+            this.url = host
+            return
+          }
+          _host = host
         },
       }
     )
@@ -899,9 +905,13 @@ export class Xapi extends EventEmitter {
     }
   }
 
-  async _extractHostFromUrl(string) {
-    const { hostname } = new url.URL(string)
-    return (await this.getAllRecords('host')).find(host => host.address === hostname)
+  async _extractHostFromUrl(_url) {
+    const { hostname } = new url.URL(_url)
+    const host = (await this.getAllRecords('host')).find(host => host.address === hostname)
+    if (host === undefined) {
+      console.warn(`Unable to extract an host from the url: ${_url}`)
+    }
+    return host
   }
 
   _processEvents(events) {
