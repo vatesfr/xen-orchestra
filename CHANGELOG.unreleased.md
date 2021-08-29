@@ -40,6 +40,7 @@
 
 - xen-api minor
 - @xen-orchestra/xapi minor
+- @xen-orchestra/backups minor
 - @xen-orchestra/fs minor
 - @xen-orchestra/log minor
 - @xen-orchestra/mixins patch
