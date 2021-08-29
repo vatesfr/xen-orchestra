@@ -2,7 +2,6 @@ import assert from 'assert'
 import dns from 'dns'
 import kindOf from 'kindof'
 import ms from 'ms'
-import querystring from 'querystring'
 import httpRequest from 'http-request-plus'
 import { Collection } from 'xo-collection'
 import { EventEmitter } from 'events'
@@ -373,7 +372,7 @@ export class Xapi extends EventEmitter {
     let url = new URL('http://localhost')
     url.hostname = await this._getHostAddress(await this.getRecord('host', host ?? this._pool.master))
     url.pathname = pathname
-    url.search = querystring.stringify(query)
+    url.search = new URLSearchParams(query)
 
     const response = await retry(
       async () =>
@@ -447,7 +446,7 @@ export class Xapi extends EventEmitter {
     const url = new URL('http://localhost')
     url.hostname = await this._getHostAddress(await this.getRecord('host', host ?? this._pool.master))
     url.pathname = pathname
-    url.search = querystring.stringify(query)
+    url.search = new URLSearchParams(query)
 
     const doRequest = httpRequest.put.bind(undefined, $cancelToken, {
       body,
@@ -488,9 +487,7 @@ export class Xapi extends EventEmitter {
               if (statusCode === 302 && location !== undefined) {
                 // ensure the original query is sent
                 const newUrl = new URL(location, url)
-                const _query = querystring.parse(newUrl.search)
-                _query.task_id = query.task_id
-                newUrl.search = querystring.stringify(_query)
+                newUrl.searchParams.set('task_id', query.task_id)
                 return doRequest(await this._replaceHostAddressInUrl(newUrl.href))
               }
             }
