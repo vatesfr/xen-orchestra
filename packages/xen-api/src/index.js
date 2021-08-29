@@ -490,7 +490,7 @@ export class Xapi extends EventEmitter {
                 // ensure the original query is sent
                 const newUrl = new URL(location, url)
                 newUrl.searchParams.set('task_id', query.task_id)
-                return doRequest(await this._replaceHostAddressInUrl(newUrl.href))
+                return doRequest((await this._replaceHostAddressInUrl(newUrl)).href)
               }
             }
 
