@@ -10,6 +10,7 @@
 - [New network] Ability for pool's admin to create a new network within the pool (PR [#5873](https://github.com/vatesfr/xen-orchestra/pull/5873))
 - [Netbox] Synchronize primary IPv4 and IPv6 addresses [#5633](https://github.com/vatesfr/xen-orchestra/issues/5633) (PR [#5879](https://github.com/vatesfr/xen-orchestra/pull/5879))
 - [Host] Add warning in case of unmaintained host version [#5840](https://github.com/vatesfr/xen-orchestra/issues/5840) (PR [#5847](https://github.com/vatesfr/xen-orchestra/pull/5847))
+- [Backup] Use default migration network if set when importing/exporting VMs/VDIs (PR [#5883](https://github.com/vatesfr/xen-orchestra/pull/5883))
 
 ### Bug fixes
 
@@ -37,6 +38,9 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
+- xen-api minor
+- @xen-orchestra/xapi minor
+- @xen-orchestra/backups minor
 - @xen-orchestra/fs minor
 - @xen-orchestra/log minor
 - @xen-orchestra/mixins patch
