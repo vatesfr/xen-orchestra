@@ -7,7 +7,6 @@ import httpRequest from 'http-request-plus'
 import { Collection } from 'xo-collection'
 import { EventEmitter } from 'events'
 import { map, noop, omit } from 'lodash'
-import { URL } from 'url'
 import {
   cancelable,
   defer,
