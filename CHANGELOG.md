@@ -18,7 +18,7 @@
 
 ### Released packages
 
-- xen-api 0.34.0
+- xen-api 0.34.1
 - @xen-orchestra/xapi 0.7.0
 - @xen-orchestra/backups 0.13.0
 - @xen-orchestra/fs 0.18.0
@@ -26,7 +26,7 @@
 - @xen-orchestra/mixins 0.1.1
 - xo-server-auth-ldap 0.10.4
 - xo-server-netbox 0.3.0
-- xo-server 5.82.0
+- xo-server 5.82.1
 - xo-web 5.87.0
 
 ## **5.61.0** (2021-07-30)
