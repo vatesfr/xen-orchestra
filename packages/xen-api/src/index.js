@@ -371,7 +371,7 @@ export class Xapi extends EventEmitter {
 
     let url = new URL('http://localhost')
     url.protocol = this._url.protocol
-    url.hostname = await this._getHostAddress(await this.getRecord('host', host ?? this._pool.master))
+    url.hostname = await this._getHostAddress(host ?? (await this.getRecord('host', this._pool.master)))
     url.pathname = pathname
     url.search = new URLSearchParams(query)
 
@@ -446,7 +446,7 @@ export class Xapi extends EventEmitter {
 
     const url = new URL('http://localhost')
     url.protocol = this._url.protocol
-    url.hostname = await this._getHostAddress(await this.getRecord('host', host ?? this._pool.master))
+    url.hostname = await this._getHostAddress(host ?? (await this.getRecord('host', this._pool.master)))
     url.pathname = pathname
     url.search = new URLSearchParams(query)
 
