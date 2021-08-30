@@ -17,7 +17,7 @@
   },
   "dependencies": {
     "@vates/read-chunk": "^0.1.2",
-    "@xen-orchestra/log": "^0.2.1",
+    "@xen-orchestra/log": "^0.3.0",
     "async-iterator-to-stream": "^1.0.2",
     "fs-extra": "^10.0.0",
     "limit-concurrency-decorator": "^0.5.0",
@@ -30,7 +30,7 @@
     "@babel/cli": "^7.0.0",
     "@babel/core": "^7.0.0",
     "@babel/preset-env": "^7.0.0",
-    "@xen-orchestra/fs": "^0.17.0",
+    "@xen-orchestra/fs": "^0.18.0",
     "babel-plugin-lodash": "^3.3.2",
     "cross-env": "^7.0.2",
     "execa": "^5.0.0",
