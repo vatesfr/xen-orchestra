@@ -1,5 +1,34 @@
 # ChangeLog
 
+## **next**
+
+### Enhancements
+
+- [New network] Ability for pool's admin to create a new network within the pool (PR [#5873](https://github.com/vatesfr/xen-orchestra/pull/5873))
+- [Netbox] Synchronize primary IPv4 and IPv6 addresses [#5633](https://github.com/vatesfr/xen-orchestra/issues/5633) (PR [#5879](https://github.com/vatesfr/xen-orchestra/pull/5879))
+- [Host] Add warning in case of unmaintained host version [#5840](https://github.com/vatesfr/xen-orchestra/issues/5840) (PR [#5847](https://github.com/vatesfr/xen-orchestra/pull/5847))
+- [Backup] Use default migration network if set when importing/exporting VMs/VDIs (PR [#5883](https://github.com/vatesfr/xen-orchestra/pull/5883))
+
+### Bug fixes
+
+- [VM/network] Fix an issue where multiple IPs would be displayed in the same tag when using old Xen tools. This also fixes Netbox's IP synchronization for the affected VMs. (PR [#5860](https://github.com/vatesfr/xen-orchestra/pull/5860))
+- [LDAP] Handle groups with no members (PR [#5862](https://github.com/vatesfr/xen-orchestra/pull/5862))
+- Fix empty button on small size screen (PR [#5874](https://github.com/vatesfr/xen-orchestra/pull/5874))
+- [Host] Fix `Cannot read property 'other_config' of undefined` error when enabling maintenance mode (PR [#5875](https://github.com/vatesfr/xen-orchestra/pull/5875))
+
+### Released packages
+
+- xen-api 0.34.0
+- @xen-orchestra/xapi 0.7.0
+- @xen-orchestra/backups 0.13.0
+- @xen-orchestra/fs 0.18.0
+- @xen-orchestra/log 0.3.0
+- @xen-orchestra/mixins 0.1.1
+- xo-server-auth-ldap 0.10.3
+- xo-server-netbox 0.3.0
+- xo-server 5.82.0
+- xo-web 5.87.0
+
 ## **5.61.0** (2021-07-30)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
