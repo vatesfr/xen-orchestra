@@ -24,7 +24,7 @@
 - @xen-orchestra/fs 0.18.0
 - @xen-orchestra/log 0.3.0
 - @xen-orchestra/mixins 0.1.1
-- xo-server-auth-ldap 0.10.3
+- xo-server-auth-ldap 0.10.4
 - xo-server-netbox 0.3.0
 - xo-server 5.82.0
 - xo-web 5.87.0
