@@ -32,6 +32,7 @@
   },
   "dependencies": {
     "@xen-orchestra/log": "^0.3.0",
+    "ensure-array": "^1.0.0",
     "exec-promise": "^0.7.0",
     "inquirer": "^8.0.0",
     "ldapts": "^2.2.1",
@@ -42,7 +43,6 @@
     "@babel/core": "^7.0.0",
     "@babel/preset-env": "^7.0.0",
     "cross-env": "^7.0.2",
-    "ensure-array": "^1.0.0",
     "rimraf": "^3.0.0"
   },
   "scripts": {
