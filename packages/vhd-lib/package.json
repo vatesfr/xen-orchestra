@@ -17,7 +17,7 @@
   },
   "dependencies": {
     "@vates/read-chunk": "^0.1.2",
-    "@xen-orchestra/log": "^0.2.1",
+    "@xen-orchestra/log": "^0.3.0",
     "async-iterator-to-stream": "^1.0.2",
     "fs-extra": "^10.0.0",
     "limit-concurrency-decorator": "^0.5.0",

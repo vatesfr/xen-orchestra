@@ -29,7 +29,7 @@
     "node": ">=14.6"
   },
   "dependencies": {
-    "@xen-orchestra/log": "^0.2.1",
+    "@xen-orchestra/log": "^0.3.0",
     "ipaddr.js": "^2.0.1",
     "lodash": "^4.17.21"
   },
