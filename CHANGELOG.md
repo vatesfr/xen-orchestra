@@ -1,13 +1,18 @@
 # ChangeLog
 
-## **next**
+## **5.62.0** (2021-08-31)
+
+<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
+### Highlights
+
+- [Host] Add warning in case of unmaintained host version [#5840](https://github.com/vatesfr/xen-orchestra/issues/5840) (PR [#5847](https://github.com/vatesfr/xen-orchestra/pull/5847))
+- [Backup] Use default migration network if set when importing/exporting VMs/VDIs (PR [#5883](https://github.com/vatesfr/xen-orchestra/pull/5883))
 
 ### Enhancements
 
 - [New network] Ability for pool's admin to create a new network within the pool (PR [#5873](https://github.com/vatesfr/xen-orchestra/pull/5873))
 - [Netbox] Synchronize primary IPv4 and IPv6 addresses [#5633](https://github.com/vatesfr/xen-orchestra/issues/5633) (PR [#5879](https://github.com/vatesfr/xen-orchestra/pull/5879))
-- [Host] Add warning in case of unmaintained host version [#5840](https://github.com/vatesfr/xen-orchestra/issues/5840) (PR [#5847](https://github.com/vatesfr/xen-orchestra/pull/5847))
-- [Backup] Use default migration network if set when importing/exporting VMs/VDIs (PR [#5883](https://github.com/vatesfr/xen-orchestra/pull/5883))
 
 ### Bug fixes
 
@@ -31,7 +36,7 @@
 
 ## **5.61.0** (2021-07-30)
 
-<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Highlights
 
@@ -59,8 +64,6 @@
 - xo-server 5.81.2
 
 ## **5.60.0** (2021-06-30)
-
-<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Highlights
 
