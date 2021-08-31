@@ -6,17 +6,7 @@ import httpRequest from 'http-request-plus'
 import { Collection } from 'xo-collection'
 import { EventEmitter } from 'events'
 import { map, noop, omit } from 'lodash'
-import {
-  cancelable,
-  defer,
-  fromCallback,
-  fromEvents,
-  ignoreErrors,
-  pDelay,
-  pRetry,
-  pTimeout,
-  retry,
-} from 'promise-toolbox'
+import { cancelable, defer, fromCallback, fromEvents, ignoreErrors, pDelay, pRetry, pTimeout } from 'promise-toolbox'
 import { limitConcurrency } from 'limit-concurrency-decorator'
 
 import autoTransport from './transports/auto'
@@ -375,7 +365,7 @@ export class Xapi extends EventEmitter {
     url.pathname = pathname
     url.search = new URLSearchParams(query)
 
-    const response = await retry(
+    const response = await pRetry(
       async () =>
         httpRequest($cancelToken, url.href, {
           rejectUnauthorized: !this._allowUnauthorized,
