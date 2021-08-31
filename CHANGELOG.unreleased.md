@@ -11,6 +11,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [SSH keys] Allow SSH key to be broken anywhere to avoid breaking page formatting (Thanks @tstivers1990!) [#5891](https://github.com/vatesfr/xen-orchestra/issues/5891) (PR [#5892](https://github.com/vatesfr/xen-orchestra/pull/5892))
+
 ### Packages to release
 
 > Packages will be released in the order they are here, therefore, they should
@@ -27,3 +29,5 @@
 > - major: if the change breaks compatibility
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
+
+- xo-web patch
