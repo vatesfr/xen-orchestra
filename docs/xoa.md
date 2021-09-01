@@ -111,10 +111,10 @@ xe vm-param-set uuid=<UUID> xenstore-data:vm-data/system-account-xoa-password=<p
 ```
 
 :::tip
-Don't forget to use double quotes for your password, eg: `xenstore-data:vm-data/system-account-xoa-password="MyPassW0rd!"`
+Don't forget to use quotes for your password, eg: `xenstore-data:vm-data/system-account-xoa-password='MyPassW0rd!'`
 :::
 
-Then, you could connect with `xoa` username and the password you defined in the previous command, eg with `ssh xoa@<XOA IP ADDRESS`.
+Then, you could connect with `xoa` username and the password you defined in the previous command, eg with `ssh xoa@<XOA IP ADDRESS>`.
 
 ### Using sudo
 
