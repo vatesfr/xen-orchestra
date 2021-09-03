@@ -328,7 +328,7 @@ const TRANSFORMS = {
     // See: https://github.com/xapi-project/xen-api/blob/324bc6ee6664dd915c0bbe57185f1d6243d9ed7e/ocaml/xapi/xapi_guest_agent.ml#L59-L81
 
     // Old protocol: when there's more than 1 IP on an interface, the IPs
-    // are space-delimited in the same `x/ip` field
+    // are space or newline delimited in the same `x/ip` field
     // See https://github.com/vatesfr/xen-orchestra/issues/5801#issuecomment-854337568
 
     // The `x/ip` field may have a `x/ipv4/0` alias
@@ -341,7 +341,7 @@ const TRANSFORMS = {
     const addresses = {}
     for (const key in networks) {
       const [, device, index] = /^(\d+)\/ip(?:v[46]\/(\d))?$/.exec(key) ?? []
-      const ips = networks[key].split(' ')
+      const ips = networks[key].split(/\s+/)
       if (ips.length === 1 && index !== undefined) {
         // New protocol or alias
         addresses[key] = networks[key]
