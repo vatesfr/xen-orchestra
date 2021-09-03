@@ -341,10 +341,7 @@ const TRANSFORMS = {
     const addresses = {}
     for (const key in networks) {
       const [, device, index] = /^(\d+)\/ip(?:v[46]\/(\d))?$/.exec(key) ?? []
-      let ips = networks[key].split(' ')
-      if (ips.length === 1) {
-        ips = networks[key].split('\n')
-      }
+      const ips = networks[key].split(/\s+/)
       if (ips.length === 1 && index !== undefined) {
         // New protocol or alias
         addresses[key] = networks[key]
