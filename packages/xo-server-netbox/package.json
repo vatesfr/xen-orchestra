@@ -31,7 +31,8 @@
   "dependencies": {
     "@xen-orchestra/log": "^0.3.0",
     "ipaddr.js": "^2.0.1",
-    "lodash": "^4.17.21"
+    "lodash": "^4.17.21",
+    "semver": "^7.3.5"
   },
   "devDependencies": {
     "@babel/cli": "^7.13.16",
