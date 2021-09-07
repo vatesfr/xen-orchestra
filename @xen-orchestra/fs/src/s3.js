@@ -294,8 +294,8 @@ export default class S3Handler extends RemoteHandlerAbstract {
           let suffixFragmentOffset = suffixOffset
           for (let i = 0; i < suffixFragments; i++) {
             const fragmentEnd = suffixFragmentOffset + MAX_PART_SIZE
-            assert.strictEqual(Math.min(fileSize, fragmentEnd) - suffixFragmentOffset <= MAX_PART_SIZE, true)
-            const suffixRange = `bytes=${suffixFragmentOffset}-${Math.min(fileSize, fragmentEnd) - 1}`
+            assert.strictEqual(Math.min(fileSize - 1 , fragmentEnd) - suffixFragmentOffset <= MAX_PART_SIZE, true)
+            const suffixRange = `bytes=${suffixFragmentOffset}-${Math.min(fileSize -1, fragmentEnd)}`
             const copySuffixParams = { ...copyMultipartParams, PartNumber: partNumber++, CopySourceRange: suffixRange }
             const suffixPart = (await this._s3.uploadPartCopy(copySuffixParams)).CopyPartResult
             parts.push({ ETag: suffixPart.ETag, PartNumber: copySuffixParams.PartNumber })
