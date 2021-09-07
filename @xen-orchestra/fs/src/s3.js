@@ -267,7 +267,7 @@ export default class S3Handler extends RemoteHandlerAbstract {
         if (prefixLastFragmentSize) {
           // grab everything from the prefix that was too small to be copied, download and merge to the edit buffer.
           const downloadParams = { ...uploadParams, Range: `bytes=${prefixPosition}-${prefixSize - 1}` }
-          const prefixBuffer = prefixSize > 0 ? (await this._s3.getObject(downloadParams)).Body : Buffer.alloc(0)
+          const prefixBuffer = await this._s3.getObject(downloadParams)
           editBuffer = Buffer.concat([prefixBuffer, buffer])
           editBufferOffset -= prefixLastFragmentSize
         }
@@ -294,8 +294,8 @@ export default class S3Handler extends RemoteHandlerAbstract {
           let suffixFragmentOffset = suffixOffset
           for (let i = 0; i < suffixFragments; i++) {
             const fragmentEnd = suffixFragmentOffset + MAX_PART_SIZE
-            assert.strictEqual(Math.min(fileSize - 1 , fragmentEnd) - suffixFragmentOffset <= MAX_PART_SIZE, true)
-            const suffixRange = `bytes=${suffixFragmentOffset}-${Math.min(fileSize -1, fragmentEnd)}`
+            assert.strictEqual(Math.min(fileSize - 1, fragmentEnd) - suffixFragmentOffset <= MAX_PART_SIZE, true)
+            const suffixRange = `bytes=${suffixFragmentOffset}-${Math.min(fileSize - 1, fragmentEnd)}`
             const copySuffixParams = { ...copyMultipartParams, PartNumber: partNumber++, CopySourceRange: suffixRange }
             const suffixPart = (await this._s3.uploadPartCopy(copySuffixParams)).CopyPartResult
             parts.push({ ETag: suffixPart.ETag, PartNumber: copySuffixParams.PartNumber })
