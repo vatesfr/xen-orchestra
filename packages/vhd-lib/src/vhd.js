@@ -60,7 +60,7 @@ BUF_BLOCK_UNUSED.writeUInt32BE(BLOCK_UNUSED, 0)
 //
 // Variables:
 //
-// - batSize = min(1, ceil(header.maxTableEntries * 4 / sectorSize)) * sectorSize
+// - batSize = max(1, ceil(header.maxTableEntries * 4 / sectorSize)) * sectorSize
 // - blockBitmapSize = ceil(header.blockSize / sectorSize / 8 / sectorSize) * sectorSize
 // - blockOffset(i) = bat[i] * sectorSize
 // - nBlocks = ceil(footer.currentSize / header.blockSize)
