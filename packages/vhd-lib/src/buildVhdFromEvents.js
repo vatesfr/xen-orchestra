@@ -1,8 +1,4 @@
 import assert from 'assert'
-import { gzip, ungzip } from 'node-gzip'
-import { off } from 'process'
-
-import { fuHeader } from './_structs'
 
 class VhdOutputStreamCreator {
   constructor(outputStream) {
@@ -23,7 +19,7 @@ class VhdOutputStreamCreator {
   }
 
   async write(data, offset = null) {
-    if (null === offset) {
+    if (offset === null) {
       offset = this.currentOffset
     }
 
@@ -39,21 +35,35 @@ class VhdOutputStreamCreator {
   }
 
   async pad(length, fill = 0) {
-    if (0 === length) {
+    if (!length) {
       return
     }
     await this.write(Buffer.alloc(length, fill))
   }
   async end() {
-    console.log('end', this.currentOffset)
     await this.outputStream.end()
+  }
+
+  writeStream(stream, offset, size) {
+    this.pad(offset - this.currentOffset)
+    return new Promise((resolve, reject) => {
+      let length = 0
+      stream.on('data', chunk => {
+        length += chunk.length
+        this.outputStream.write(chunk)
+      })
+      stream.on('error', e => reject(e))
+      stream.on('end', chunk => {
+        this.currentOffset += length
+        resolve()
+      })
+    })
   }
 }
 
 export function eventsToStream(outputStream, eventEmitter) {
   return new Promise((resolve, reject) => {
     const creator = new VhdOutputStreamCreator(outputStream)
-    let header = null
     let footerBuf = null
     eventEmitter.on('footer', footer => {
       footerBuf = footer
@@ -61,16 +71,14 @@ export function eventsToStream(outputStream, eventEmitter) {
     })
 
     eventEmitter.on('header', async bufHeader => {
-      header = fuHeader.unpack(bufHeader)
       await creator.writeHeader(bufHeader)
     })
 
-    eventEmitter.on('bat', async bat => {
-      assert(!!header, 'header must be before BAT')
-      await creator.write(bat, header.tableOffset)
+    eventEmitter.on('bat', async (bat, batOffset) => {
+      await creator.write(bat, batOffset)
     })
-    eventEmitter.on('block', async (block, offset) => {
-      await creator.write(block, offset)
+    eventEmitter.on('block', async (block, offset, size) => {
+      await creator.writeStream(block, offset, size)
     })
     eventEmitter.on('parentLocator', async (parentLocator, offset) => {
       await creator.write(parentLocator, offset)
@@ -95,13 +103,11 @@ export function eventsToS3(s3, eventEmitter, bucket, dir) {
       const stringOffset = '' + offset
       const fileMask = '000000000000'
       const fileName = fileMask.substring(0, fileMask.length - stringOffset.length) + stringOffset + '/' + type
-      console.log('send ', fileName, data.length)
       await s3.putObject({
         Bucket: bucket,
         Body: data,
         Key: dir + fileName,
       })
-      console.log('sent')
     }
 
     eventEmitter.on('footer', async (footer, offset) => {

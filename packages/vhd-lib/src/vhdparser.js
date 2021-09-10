@@ -4,6 +4,8 @@ import emitAsync from '@xen-orchestra/emit-async'
 import { readChunk } from '@vates/read-chunk'
 import { SECTOR_SIZE, BLOCK_UNUSED } from './_constants'
 import { fuHeader } from './_structs'
+import { Readable } from 'stream'
+import { fromEvent } from 'promise-toolbox'
 
 const cappedBufferConcat = (buffers, maxSize) => {
   let buffer = Buffer.concat(buffers)
@@ -46,15 +48,13 @@ export class S3VhdParser extends Parser {
         const path = Key.split('/')
         const type = path.pop()
         const offset = parseInt(path.pop())
-        console.log(Key)
         const fileContent = await this.getFile(Key)
         this.emit(type, fileContent.Body, offset)
       }
-    } while (!!params.ContinuationToken)
+    } while (params.ContinuationToken)
     this.emit('end')
   }
 }
-
 export class InputStreamVhdParser extends Parser {
   constructor(stream) {
     super()
@@ -101,7 +101,7 @@ export class InputStreamVhdParser extends Parser {
 
     const index = []
     for (let blockCounter = 0; blockCounter < header.maxTableEntries; blockCounter++) {
-      let batEntrySector = bat.readUInt32BE(blockCounter * 4)
+      const batEntrySector = bat.readUInt32BE(blockCounter * 4)
       // unallocated block, no need to export it
       if (batEntrySector === BLOCK_UNUSED) {
         continue
@@ -119,7 +119,7 @@ export class InputStreamVhdParser extends Parser {
 
     for (const parentLocatorEntry of header.parentLocatorEntry) {
       // empty parent locator entry, does not exist in the content
-      if (0 === parentLocatorEntry.platformDataSpace) {
+      if (parentLocatorEntry.platformDataSpace === 0) {
         continue
       }
       assert.ok(parentLocatorEntry.platformDataOffset * SECTOR_SIZE >= batOffset + batSize)
@@ -133,9 +133,41 @@ export class InputStreamVhdParser extends Parser {
 
     index.sort((a, b) => a.offset - b.offset)
 
+    let nextObjectBuffer = Buffer.alloc(0)
+
     for (const { type, offset, size } of index) {
-      const nextObject = await readChunk(stream, size)
-      await this.emitAsync(type, nextObject, offset)
+      const blockStream = Readable.from(
+        (async function* () {
+          let i = nextObjectBuffer.length
+          if (nextObjectBuffer.length > size) {
+            yield nextObjectBuffer.slice(0, size)
+            nextObjectBuffer = nextObjectBuffer.slice(size)
+            return
+          }
+
+          if (nextObjectBuffer.length > 0) {
+            yield nextObjectBuffer
+            nextObjectBuffer = Buffer.alloc(0)
+          }
+          while (i < size) {
+            await fromEvent(stream, 'readable')
+            const bytesRead = stream.read()
+            const bytesReadLength = bytesRead.length
+            // we got data from the next object
+            if (i + bytesReadLength > size) {
+              const overflow = i + bytesReadLength - size
+              nextObjectBuffer = bytesRead.slice(bytesReadLength - overflow)
+              i = size
+              yield bytesRead.slice(0, bytesReadLength - overflow)
+            } else {
+              // still in the current object
+              i += bytesReadLength
+              yield bytesRead
+            }
+          }
+        })(stream, size)
+      )
+      await this.emitAsync(type, blockStream, offset, size)
     }
     /**
      * the second footer is at filesize - 512 , there can be empty spaces between last block
@@ -143,26 +175,23 @@ export class InputStreamVhdParser extends Parser {
      *
      * we read till the end of the stream, and use the last 512 bytes as the footer
      */
-    const bufFooterEnd = await this.readLastSector(stream)
+    const bufFooterEnd = await this.readLastSector(nextObjectBuffer)
     assert(bufFooter.equals(bufFooterEnd), 'footer1 !== footer2')
 
     await this.emitAsync('end')
   }
 
-  readLastSector() {
+  readLastSector(startingBuffer) {
     return new Promise(resolve => {
-      let bufFooterEnd = Buffer.alloc(0)
-      let size = 0
+      let bufFooterEnd = startingBuffer
       this.stream.on('data', chunk => {
         if (chunk) {
-          size += chunk.length
           bufFooterEnd = cappedBufferConcat([bufFooterEnd, chunk], SECTOR_SIZE)
         }
       })
 
       this.stream.on('end', chunk => {
         if (chunk) {
-          size += chunk.length
           bufFooterEnd = cappedBufferConcat([bufFooterEnd, chunk], SECTOR_SIZE)
         }
         resolve(bufFooterEnd)
@@ -170,5 +199,4 @@ export class InputStreamVhdParser extends Parser {
     })
   }
 }
-
 export default { InputStreamVhdParser }
