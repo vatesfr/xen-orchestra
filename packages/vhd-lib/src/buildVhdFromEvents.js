@@ -99,7 +99,7 @@ export function eventsToStream(outputStream, eventEmitter) {
 
 export function eventsToS3(s3, eventEmitter, bucket, dir) {
   return new Promise((resolve, reject) => {
-    const saveBlock = async (data, offset, type) => {
+    const saveBlock = async (data, offset, type, size) => {
       const stringOffset = '' + offset
       const fileMask = '000000000000'
       const fileName = fileMask.substring(0, fileMask.length - stringOffset.length) + stringOffset + '/' + type
@@ -107,6 +107,7 @@ export function eventsToS3(s3, eventEmitter, bucket, dir) {
         Bucket: bucket,
         Body: data,
         Key: dir + fileName,
+        ContentLength: size,
       })
     }
 
@@ -121,11 +122,11 @@ export function eventsToS3(s3, eventEmitter, bucket, dir) {
     eventEmitter.on('bat', async (bat, offset) => {
       await saveBlock(bat, offset, 'bat')
     })
-    eventEmitter.on('block', async (block, offset) => {
-      await saveBlock(block, offset, 'block')
+    eventEmitter.on('block', async (block, offset, size) => {
+      await saveBlock(block, offset, 'block', size)
     })
-    eventEmitter.on('parentLocator', async (parentLocator, offset) => {
-      await saveBlock(parentLocator, offset, 'parentLocator')
+    eventEmitter.on('parentLocator', async (parentLocator, offset, size) => {
+      await saveBlock(parentLocator, offset, 'parentLocator', size)
     })
     eventEmitter.on('end', () => {
       resolve()
