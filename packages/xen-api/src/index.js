@@ -487,7 +487,7 @@ export class Xapi extends EventEmitter {
             throw error
           }
         )
-      : doRequest())
+      : doRequest(url.href))
 
     if (pTaskResult !== undefined) {
       pTaskResult = pTaskResult.catch(error => {
