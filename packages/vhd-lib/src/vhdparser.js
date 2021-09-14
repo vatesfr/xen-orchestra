@@ -4,8 +4,8 @@ import emitAsync from '@xen-orchestra/emit-async'
 import { readChunk } from '@vates/read-chunk'
 import { SECTOR_SIZE, BLOCK_UNUSED } from './_constants'
 import { fuHeader } from './_structs'
-import { Readable } from 'stream'
-import { fromEvent } from 'promise-toolbox'
+import { gunzip } from 'zlib'
+import * as Cppzst from '@fstnetwork/cppzst'
 
 const cappedBufferConcat = (buffers, maxSize) => {
   let buffer = Buffer.concat(buffers)
@@ -21,19 +21,51 @@ class Parser extends EventEmitter {
   }
 }
 
+const uncompress = (buffer, extension) => {
+  switch (extension) {
+    case 'gz':
+      return new Promise((resolve, reject) => {
+        gunzip(buffer, (err, compressed) => {
+          if (err) {
+            reject(err)
+          } else {
+            resolve(compressed)
+          }
+        })
+      })
+    case 'zstd':
+      return Cppzst.decompress(buffer)
+    default:
+      throw new Error(extension + ' inconnue')
+  }
+}
+
 export class S3VhdParser extends Parser {
-  constructor(s3, bucket, prefix) {
-    super()
+  constructor(opts = {}) {
+    super(opts)
+    const { s3, bucket, dir, compressed } = opts
     this.s3 = s3
     this.bucket = bucket
-    this.prefix = prefix
+    this.prefix = dir
+    this.compressed = compressed
+    this.emitAsync = emitAsync
   }
 
-  getFile(fileId) {
-    return this.s3.getObject({
+  async getBuffer(fileId) {
+    const response = await this.s3.getObject({
       Bucket: this.bucket,
       Key: fileId,
     })
+    return response.Body
+  }
+
+  getStream(fileId) {
+    return this.s3.getObject
+      .raw({
+        Bucket: this.bucket,
+        Key: fileId,
+      })
+      .createReadStream()
   }
   async parse() {
     const params = {
@@ -43,23 +75,28 @@ export class S3VhdParser extends Parser {
     do {
       const { NextContinuationToken, Contents } = await this.s3.listObjectsV2(params)
       params.ContinuationToken = NextContinuationToken
-
       for (const { Key } of Contents) {
         const path = Key.split('/')
-        const type = path.pop()
+        const [type, extension] = path.pop().split('.')
         const offset = parseInt(path.pop())
-        const fileContent = await this.getFile(Key)
-        this.emit(type, fileContent.Body, offset)
+        let content = null
+        content = await this.getBuffer(Key)
+        if (extension) {
+          content = await uncompress(content, extension)
+        }
+        await this.emitAsync(type, content, offset)
       }
     } while (params.ContinuationToken)
-    this.emit('end')
+    await this.emitAsync('end')
   }
 }
 export class InputStreamVhdParser extends Parser {
-  constructor(stream) {
+  constructor(opts = {}) {
     super()
-    this.emitAsync = emitAsync
+    const { stream, compress } = opts
     this.stream = stream
+    this.compress = compress
+    this.emitAsync = emitAsync
   }
 
   async parse() {
@@ -133,41 +170,9 @@ export class InputStreamVhdParser extends Parser {
 
     index.sort((a, b) => a.offset - b.offset)
 
-    let nextObjectBuffer = Buffer.alloc(0)
-
     for (const { type, offset, size } of index) {
-      const blockStream = Readable.from(
-        (async function* () {
-          let i = nextObjectBuffer.length
-          if (nextObjectBuffer.length > size) {
-            yield nextObjectBuffer.slice(0, size)
-            nextObjectBuffer = nextObjectBuffer.slice(size)
-            return
-          }
-
-          if (nextObjectBuffer.length > 0) {
-            yield nextObjectBuffer
-            nextObjectBuffer = Buffer.alloc(0)
-          }
-          while (i < size) {
-            await fromEvent(stream, 'readable')
-            const bytesRead = stream.read()
-            const bytesReadLength = bytesRead.length
-            // we got data from the next object
-            if (i + bytesReadLength > size) {
-              const overflow = i + bytesReadLength - size
-              nextObjectBuffer = bytesRead.slice(bytesReadLength - overflow)
-              i = size
-              yield bytesRead.slice(0, bytesReadLength - overflow)
-            } else {
-              // still in the current object
-              i += bytesReadLength
-              yield bytesRead
-            }
-          }
-        })(stream, size)
-      )
-      await this.emitAsync(type, blockStream, offset, size)
+      const buffer = await await readChunk(stream, size)
+      await this.emitAsync(type, buffer, offset, size)
     }
     /**
      * the second footer is at filesize - 512 , there can be empty spaces between last block
@@ -175,7 +180,7 @@ export class InputStreamVhdParser extends Parser {
      *
      * we read till the end of the stream, and use the last 512 bytes as the footer
      */
-    const bufFooterEnd = await this.readLastSector(nextObjectBuffer)
+    const bufFooterEnd = await this.readLastSector()
     assert(bufFooter.equals(bufFooterEnd), 'footer1 !== footer2')
 
     await this.emitAsync('end')
@@ -183,7 +188,7 @@ export class InputStreamVhdParser extends Parser {
 
   readLastSector(startingBuffer) {
     return new Promise(resolve => {
-      let bufFooterEnd = startingBuffer
+      let bufFooterEnd = Buffer.alloc(0)
       this.stream.on('data', chunk => {
         if (chunk) {
           bufFooterEnd = cappedBufferConcat([bufFooterEnd, chunk], SECTOR_SIZE)
@@ -199,4 +204,16 @@ export class InputStreamVhdParser extends Parser {
     })
   }
 }
-export default { InputStreamVhdParser }
+
+export const instantiateParser = (type, opts) => {
+  switch (type) {
+    case 'stream':
+      return new InputStreamVhdParser(opts)
+    case 's3':
+      return new S3VhdParser(opts)
+    default:
+      throw new Error(`type ${type} is not supported in vhdparser`)
+  }
+}
+
+export default { InputStreamVhdParser, S3VhdParser, instantiateParser }
