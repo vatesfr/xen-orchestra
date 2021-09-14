@@ -1,11 +1,12 @@
 import * as multiparty from 'multiparty'
+import assert from 'assert'
 import getStream from 'get-stream'
 import pump from 'pump'
 import { createLogger } from '@xen-orchestra/log'
 import { defer } from 'golike-defer'
 import { format } from 'json-rpc-peer'
 import { noSuchObject } from 'xo-common/api-errors.js'
-import { peekFooterFromVhdStream } from 'vhd-lib'
+import { checkFooter, peekFooterFromVhdStream } from 'vhd-lib'
 import { vmdkToVhd } from 'xo-vmdk-to-vhd'
 
 import { VDI_FORMAT_VHD } from '../xapi/index.mjs'
@@ -181,6 +182,13 @@ async function handleImport(req, res, { type, name, description, vmdkData, srId,
         } else if (type === 'vhd') {
           vhdStream = part
           const footer = await peekFooterFromVhdStream(vhdStream)
+          try {
+            checkFooter(footer)
+          } catch (e) {
+            if (e instanceof assert.AssertionError) {
+              throw new Error(`Vhd file had an invalid header ${e}`)
+            }
+          }
           size = footer.currentSize
         } else {
           throw new Error(`Unknown disk type, expected "vhd" or "vmdk", got ${type}`)

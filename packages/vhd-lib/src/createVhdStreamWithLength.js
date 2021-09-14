@@ -2,7 +2,7 @@ import assert from 'assert'
 import { pipeline, Transform } from 'readable-stream'
 import { readChunk } from '@vates/read-chunk'
 
-import checkFooter from './_checkFooter'
+import checkFooter from './checkFooter'
 import checkHeader from './_checkHeader'
 import noop from './_noop'
 import getFirstAndLastBlocks from './_getFirstAndLastBlocks'
