@@ -5,6 +5,9 @@ import aws from '@sullux/aws-sdk'
 import https from 'https'
 import { exec } from 'child_process'
 import fs from 'fs'
+import { createLogger } from '@xen-orchestra/log'
+
+const { debug } = createLogger('vhd-lib:test-emitter')
 
 const params = {
   accessKeyId: 'MINIO LOGIN',
@@ -72,21 +75,34 @@ function checkFile() {
   })
 }
 
-function format(stat) {
-  const formatted = {}
-  for (const key in stat) {
-    if (key.indexOf('Size') > 0) {
-      formatted[key] = Math.round((10 * stat[key]) / 1024 / 1024 / 1024) / 10
-      continue
-    }
-    if (key.indexOf('Duration') > 0) {
-      formatted[key] = Math.round(stat[key] / 1000)
-      continue
-    }
-    formatted[key] = stat[key]
+function format(stats) {
+  if (!stats) {
+    return
   }
-  formatted.backupSpeed = Math.round(((stat.contentSize / 1024 / 1024) * 1000) / stat.totalDuration)
-  return formatted
+
+  const titles = []
+  for (const key in stats[0]) {
+    titles.push(key)
+  }
+  debug(titles.join('\t|'))
+  for (const stat of stats) {
+    let line = ''
+
+    for (const key of titles) {
+      let formatted = ''
+      if (key.indexOf('Size') > 0) {
+        formatted = '' + Math.round((10 * stat[key]) / 1024 / 1024 / 1024) / 10
+      } else {
+        if (key.indexOf('Duration') > 0) {
+          formatted = '' + Math.round(stat[key] / 1000)
+        } else {
+          formatted = stat[key] ?? ''
+        }
+      }
+      line += (formatted.length < 3 ? '\t' : '') + formatted + '\t|'
+    }
+    debug(line)
+  }
 }
 
 /**
@@ -98,11 +114,9 @@ async function bench() {
   for (let i = 16; i > 0; i -= 4) {
     for (const compression of ['zstd', 'gz', null]) {
       const res = await fromLocalToS3(i, compression)
-      stats.push(format({ compression, parallel: i, ...res }))
+      stats.push({ compression, parallel: i, ...res })
     }
-
-    // eslint-disable-next-line no-console
-    console.table(stats)
+    format(stats)
   }
 }
 
@@ -121,8 +135,7 @@ async function check(parallel) {
     const downloaded = new Date()
     await checkFile()
     const checked = new Date()
-    // eslint-disable-next-line no-console
-    console.log(
+    debug(
       compression,
       '\t',
       Math.round(size / ((sent - start) / 1000)),
