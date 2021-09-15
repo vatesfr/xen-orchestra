@@ -1,0 +1,9 @@
+
+[s3]
+accessKeyId = ""
+endpoint = ""
+secretAccessKey = ""
+
+[fs]
+src = ''
+dest = ''

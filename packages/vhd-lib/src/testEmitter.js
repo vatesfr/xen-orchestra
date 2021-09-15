@@ -6,29 +6,11 @@ import https from 'https'
 import { exec } from 'child_process'
 import fs from 'fs'
 import { createLogger } from '@xen-orchestra/log'
+import { load as loadConfig } from 'app-conf'
 
 const { debug } = createLogger('vhd-lib:test-emitter')
 
-const params = {
-  accessKeyId: 'MINIO LOGIN',
-  apiVersion: '2006-03-01',
-  endpoint: 'MINIO IP',
-  s3ForcePathStyle: true,
-  secretAccessKey: 'MINIO PASSWORD',
-  signatureVersion: 'v4',
-  httpOptions: {
-    timeout: 600000,
-
-    agent: new https.Agent({
-      rejectUnauthorized: false,
-      keepAlive: true,
-    }),
-  },
-}
-const s3 = aws(params).s3
-
-const src = 'ADD YOUR SRC '
-const dest = 'A TEMP FILE '
+let src, dest, s3
 
 function fromLocalToS3(maxConcurrency, compressed) {
   const parser = instantiateParser('stream', {
@@ -148,4 +130,24 @@ async function check(parallel) {
   }
 }
 
-bench()
+loadConfig('test-emitter').then(function (config) {
+  let params = {
+    apiVersion: '2006-03-01',
+    s3ForcePathStyle: true,
+    signatureVersion: 'v4',
+    httpOptions: {
+      timeout: 600000,
+
+      agent: new https.Agent({
+        rejectUnauthorized: false,
+        keepAlive: true,
+      }),
+    },
+  }
+  params = { ...params, ...config.s3 }
+  s3 = aws({ ...params, ...config }).s3
+
+  src = config.fs.src
+  dest = config.fs.dest
+  bench()
+})
