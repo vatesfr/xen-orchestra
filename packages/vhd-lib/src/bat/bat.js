@@ -46,5 +46,8 @@ export default class BAT {
     return this.bat[blockIndex] * 512 + 1024 + 512
   }
 
+  /**
+   * @returns {Block}
+   */
   createBlock() {}
 }

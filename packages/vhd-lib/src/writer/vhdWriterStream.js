@@ -1,7 +1,9 @@
 import VHDWriter from './writer'
 
 class VHDWriterStream extends VHDWriter {
-  constructor(path) {}
+  constructor(vhd, writableStream) {
+    super(vhd)
+  }
   write() {
     // write footer
     // write header

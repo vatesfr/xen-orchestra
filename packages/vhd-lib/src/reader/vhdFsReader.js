@@ -50,4 +50,8 @@ export default class VHDFsReader extends VHDReader {
    * @returns {Stream | Buffer}
    */
   getBlockData(block) {}
+
+  supportPartialBlockRead(){
+    return false
+  }
 }

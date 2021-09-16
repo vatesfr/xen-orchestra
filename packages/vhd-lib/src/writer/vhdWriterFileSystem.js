@@ -1,8 +1,8 @@
 import VHDWriter from './writer'
 
 class VHDWriterFileSystem extends VHDWriter {
-  constructor(vhd) {
-    super()
+  constructor(vhd, path) {
+    super(vhd)
   }
   _writeBlock(streamOrBuffer, offset) {}
 

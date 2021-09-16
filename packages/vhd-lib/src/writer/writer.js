@@ -2,5 +2,10 @@
 
 export default class VHDWriter {
   constructor(vhd) {}
-  async write() {} //write all the vhd
+  /**
+   * Write all the VHD to the destination
+   */
+  async write() {
+    throw new Error('Not implemented')
+  }
 }

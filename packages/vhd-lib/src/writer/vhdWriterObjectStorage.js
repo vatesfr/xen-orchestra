@@ -1,7 +1,9 @@
 import VHDWriter from './writer'
 
 export default class VHDWriterObjectStorage extends VHDWriter {
-  constructor(vhd, s3) {}
+  constructor(vhd, s3) {
+    super(vhd)
+  }
   write(bucket, path) {
     Promise
       .concurrencyLimited
