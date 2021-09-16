@@ -15,6 +15,7 @@
 - [VM/Advanced] Fix conversion from UEFI to BIOS boot firmware (PR [#5895](https://github.com/vatesfr/xen-orchestra/pull/5895))
 - [VM/network] Support newline-delimited IP addresses reported by some guest tools
 - Fix VM/host stats, VM creation with Cloud-init, and VM backups, with NATted hosts [#5896](https://github.com/vatesfr/xen-orchestra/issues/5896)
+- [Netbox] Better handling and error messages when encountering issues due to UUID custom field not being configured correctly [#5905](https://github.com/vatesfr/xen-orchestra/issues/5905) [#5806](https://github.com/vatesfr/xen-orchestra/issues/5806) [#5834](https://github.com/vatesfr/xen-orchestra/issues/5834)
 
 ### Packages to release
 
@@ -34,6 +35,7 @@
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
 - xen-api patch
+- xo-server-netbox patch
 - @xen-orchestra/proxy patch
 - xo-server patch
 - xo-web patch
