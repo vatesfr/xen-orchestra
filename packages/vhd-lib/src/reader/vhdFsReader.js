@@ -30,28 +30,7 @@ export default class VHDFsReader extends VHDReader {
    */
   getBAT() {}
 
-  /**
-   * @param {Block} block
-   *
-   * @returns {Stream | Buffer}
-   */
-  getBlockDataAndBitmap(block) {}
-
-  /**
-   * @param {Block} block
-   *
-   * @returns {Stream | Buffer}
-   */
-  getBlockBitmap(block) {}
-
-  /**
-   * @param {Block} block
-   *
-   * @returns {Stream | Buffer}
-   */
-  getBlockData(block) {}
-
   supportPartialBlockRead(){
-    return false
+    return true
   }
 }

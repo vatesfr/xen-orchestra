@@ -22,30 +22,14 @@ export default class VHDReader {
   async getBAT() {}
 
   /**
-   * @param {Int} blockIndex
-   * @returns {Block|null}
+   *
+   * @param {Int} address
+   * @param {Int} length
+   * @returns {Buffer|Stream|null}
    */
-  async getBlockData(blockIndex) {}
+  async _getRawData(address, length){ }
 
-  /**
-   *
-   * @param {Int} blockIndex
-   * @returns {Buffer|Stream|null}
-   */
-  async getBlockBitmap(blockIndex) {}
-  /**
-   *
-   * @param {Int} blockIndex
-   * @returns {Buffer|Stream|null}
-   */
-  async getBlockDataAndBitmap(blockIndex) {}
-
-  /**
-   *
-   * @param {Int} blockIndex
-   * @returns {Buffer|Stream|null}
-   */
-  async _getRawData(address, length) {}
+  supportPartialBlockRead(){}
 }
 
 export const VHDREADER_TYPE_UNDEFINED = 1
