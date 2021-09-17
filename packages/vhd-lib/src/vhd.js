@@ -69,18 +69,19 @@ BUF_BLOCK_UNUSED.writeUInt32BE(BLOCK_UNUSED, 0)
 // - sectorSize = 512
 
 export default class Vhd {
-  async open(flags) {
-    this._fd = await this._handler.openFile(this._path, flags)
+  async open(handler, path, flags) {
+    const fd = await handler.openFile(path, flags)
+    const vhd = new Vhd(handler, fd)
     return {
       dispose: () => {
-        this.close()
+        return vhd.close()
       },
-      value: this._fd,
+      value: vhd,
     }
   }
 
   close() {
-    this._handler.close(this._fd)
+    return this._handler.closeFile(this.path)
   }
 
   get batSize() {
@@ -97,7 +98,7 @@ export default class Vhd {
   // =================================================================
 
   async _read(start, n) {
-    const { bytesRead, buffer } = await this._handler.read(this._fd ?? this._path, Buffer.alloc(n), start)
+    const { bytesRead, buffer } = await this._handler.read(this._path, Buffer.alloc(n), start)
     assert.strictEqual(bytesRead, n)
     return buffer
   }
@@ -224,7 +225,7 @@ export default class Vhd {
   async _write(data, offset) {
     assert(Buffer.isBuffer(data))
     debug(`_write offset=${offset} size=${data.length}`)
-    return this._handler.write(this._fd ?? this._path, data, offset)
+    return this._handler.write(this._path, data, offset)
   }
 
   async _freeFirstBlockSpace(spaceNeededBytes) {
