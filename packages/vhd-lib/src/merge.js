@@ -22,12 +22,10 @@ export default limitConcurrency(2)(async function merge(
   childPath,
   { onProgress = noop } = {}
 ) {
-  const parentVhd = new Vhd(parentHandler, parentPath)
-  const childVhd = new Vhd(childHandler, childPath)
   await Disposable.use(
     Disposable.all(
-      [Vhd.open(parentHandler, parentPath, 'r+'), Vhd.open(parentHandler, parentPath, 'r+'), childVhd.open('r')],
-      async () => {
+      [Vhd.open(parentHandler, parentPath, 'r+'), Vhd.open(childHandler, childPath, 'r')],
+      async ([parentVhd, childVhd]) => {
         const mergeStatePath = dirname(parentPath) + '/' + '.' + basename(parentPath) + '.merge.json'
 
         try {
