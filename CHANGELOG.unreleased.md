@@ -30,7 +30,6 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
-- xen-api patch
 - @xen-orchestra/proxy patch
 - xo-server patch
 - xo-web patch

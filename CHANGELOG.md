@@ -9,6 +9,10 @@
 - Fix VM/host stats, VM creation with Cloud-init, and VM backups, with NATted hosts [#5896](https://github.com/vatesfr/xen-orchestra/issues/5896)
 - [VM/import] Very small VMDK and OVA files were mangled upon import (PR [#5903](https://github.com/vatesfr/xen-orchestra/pull/5903))
 
+### Released packages
+
+- xen-api 0.34.2
+
 ## **5.62.0** (2021-08-31)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
