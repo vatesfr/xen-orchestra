@@ -112,4 +112,13 @@ export default class VHD {
   getBlocksIterator(sortBlocksByAddress) {
     return this.getBAT().getIterator(sortBlocksByAddress)
   }
+
+  /**
+   * returns true if the underlying system allows reading of a part of a block
+   *
+   * @returns {Boolean}
+   */
+  supportPartialBlockRead() {
+    return this.reader.supportPartialBlockRead()
+  }
 }
