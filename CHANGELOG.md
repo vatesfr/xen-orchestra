@@ -1,5 +1,14 @@
 # ChangeLog
 
+## **next**
+
+### Bug fixes
+
+- [VM/Advanced] Fix conversion from UEFI to BIOS boot firmware (PR [#5895](https://github.com/vatesfr/xen-orchestra/pull/5895))
+- [VM/network] Support newline-delimited IP addresses reported by some guest tools
+- Fix VM/host stats, VM creation with Cloud-init, and VM backups, with NATted hosts [#5896](https://github.com/vatesfr/xen-orchestra/issues/5896)
+- [VM/import] Very small VMDK and OVA files were mangled upon import (PR [#5903](https://github.com/vatesfr/xen-orchestra/pull/5903))
+
 ## **5.62.0** (2021-08-31)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
