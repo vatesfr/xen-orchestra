@@ -1,25 +1,35 @@
 import { Stream } from 'readable-stream'
 import BAT from '../bat/bat'
-import Block from '../block/block'
 import Footer from '../footer'
 import Header from '../header'
 
 export default class VHDReader {
-  uncompress(streamOrBuffer) {}
-  decrypt(streamOrBuffer) {}
+  uncompress(streamOrBuffer) {
+    return streamOrBuffer
+  }
+  decrypt(streamOrBuffer) {
+    return streamOrBuffer
+  }
   /**
    * @returns {Header}
    */
-  async getHeader() {}
+  async getHeader() {
+    return new Header(await this._getRawData(512, 1024))
+  }
 
   /**
    * @returns {Footer}
    */
-  async getFooter() {}
+  async getFooter() {
+    return new Footer(await this._getRawData(0, 512))
+  }
+
   /**
    * @returns {BAT}
    */
-  async getBAT() {}
+  async getBAT(start, size) {
+    return new BAT(await this._getRawData(start, size))
+  }
 
   /**
    *
@@ -27,9 +37,18 @@ export default class VHDReader {
    * @param {Int} length
    * @returns {Buffer|Stream|null}
    */
-  async _getRawData(address, length){ }
+  async _getRawData(address, length) {
+    throw new Error(`Reading ${length} bytes from ${address} is not implemented`)
+  }
 
-  supportPartialBlockRead(){}
+  /**
+   * returns true if the underlying system allows reading of a part of a block
+   *
+   * @returns {Boolean}
+   */
+  supportPartialBlockRead() {
+    return false
+  }
 }
 
 export const VHDREADER_TYPE_UNDEFINED = 1
