@@ -1,4 +1,6 @@
 import MergedBAT from '../bat/mergedBAT'
+import MergedFooter from '../footer/mergedFooter'
+import MergedHeader from '../header/mergedHeader'
 import VHDReader, { VHDREADER_TYPE_MULTIPLE } from './vhdReader'
 
 export default class VHDFsReader extends VHDReader {
@@ -12,17 +14,13 @@ export default class VHDFsReader extends VHDReader {
    * @returns {Footer}
    */
   getFooter() {
-    // if the first one is DISK_TYPE_DYNAMIC, result type is  DISK_TYPE_DYNAMIC
-    // if they are all DISK_TYPE_DIFFERENCING result type is DISK_TYPE_DIFFERENCING
-    // other cases raise an error
-    // other data comes from last vhd
+    return new MergedFooter(this.vhds)
   }
   /**
    * @returns {Header}
    */
   getHeader() {
-    // reference to parent is the reference of the first vhd
-    // other data comes from last vhd
+    return new MergedHeader(this.vhds)
   }
 
   getType() {
