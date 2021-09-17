@@ -361,9 +361,9 @@ export class Xapi extends EventEmitter {
 
     let url = new URL('http://localhost')
     url.protocol = this._url.protocol
-    url.hostname = await this._getHostAddress(host ?? (await this.getRecord('host', this._pool.master)))
     url.pathname = pathname
     url.search = new URLSearchParams(query)
+    await this._setHostAddressInUrl(url, host)
 
     const response = await pRetry(
       async () =>
@@ -436,9 +436,9 @@ export class Xapi extends EventEmitter {
 
     const url = new URL('http://localhost')
     url.protocol = this._url.protocol
-    url.hostname = await this._getHostAddress(host ?? (await this.getRecord('host', this._pool.master)))
     url.pathname = pathname
     url.search = new URLSearchParams(query)
+    await this._setHostAddressInUrl(url, host)
 
     const doRequest = httpRequest.put.bind(undefined, $cancelToken, {
       body,
@@ -487,7 +487,7 @@ export class Xapi extends EventEmitter {
             throw error
           }
         )
-      : doRequest())
+      : doRequest(url.href))
 
     if (pTaskResult !== undefined) {
       pTaskResult = pTaskResult.catch(error => {
@@ -803,14 +803,29 @@ export class Xapi extends EventEmitter {
     }
   }
 
-  async _getHostAddress({ address, PIFs, $pool }) {
-    const poolMigrationNetwork = $pool.other_config['xo:migrationNetwork']
+  async _setHostAddressInUrl(url, host) {
+    const pool = this._pool
+
+    const poolMigrationNetwork = pool.other_config['xo:migrationNetwork']
+    if (host === undefined) {
+      if (poolMigrationNetwork === undefined) {
+        const xapiUrl = this._url
+        url.hostname = xapiUrl.hostname
+        url.port = xapiUrl.port
+        return
+      }
+
+      host = await this.getRecord('host', pool.master)
+    }
+
+    let { address } = host
     if (poolMigrationNetwork !== undefined) {
-      const _PIFs = new Set(PIFs)
+      const hostPifs = new Set(host.PIFs)
       try {
-        const migrationNetworkPifRef = (await this.getRecordByUuid('network', poolMigrationNetwork)).PIFs.find(pifRef =>
-          _PIFs.has(pifRef)
-        )
+        const networkRef = await this._roCall('network.get_by_uuid', poolMigrationNetwork)
+        const networkPifs = await this.getField('network', networkRef, 'PIFs')
+
+        const migrationNetworkPifRef = networkPifs.find(hostPifs.has, hostPifs)
         address = await this.getField('PIF', migrationNetworkPifRef, 'IP')
       } catch (error) {
         console.warn('unable to get the host address linked to the pool migration network', poolMigrationNetwork, error)
@@ -824,7 +839,8 @@ export class Xapi extends EventEmitter {
         console.warn('reversing host address', address, error)
       }
     }
-    return address
+
+    url.hostname = address
   }
 
   _setUrl(url) {
@@ -891,7 +907,7 @@ export class Xapi extends EventEmitter {
       // TODO: look for hostname in all addresses of this host (including all its PIFs)
       const host = (await this.getAllRecords('host')).find(host => host.address === url.hostname)
       if (host !== undefined) {
-        url.hostname = await this._getHostAddress(host)
+        await this._setHostAddressInUrl(url, host)
       }
     } catch (error) {
       console.warn('_replaceHostAddressInUrl', url, error)
