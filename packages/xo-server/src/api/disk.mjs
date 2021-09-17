@@ -164,12 +164,12 @@ async function handleImport(req, res, { type, name, description, vmdkData, srId,
       if (part.name !== 'file') {
         promises.push(
           (async () => {
-            const view = new DataView((await getStream.buffer(part)).buffer)
-            const result = new Uint32Array(view.byteLength / 4)
-            for (const i in result) {
-              result[i] = view.getUint32(i * 4, true)
-            }
-            vmdkData[part.name] = result
+            const buffer = await getStream.buffer(part)
+            vmdkData[part.name] = new Uint32Array(
+              buffer.buffer,
+              buffer.byteOffset,
+              buffer.length / Uint32Array.BYTES_PER_ELEMENT
+            )
           })()
         )
       } else {

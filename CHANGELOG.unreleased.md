@@ -15,6 +15,7 @@
 - [VM/Advanced] Fix conversion from UEFI to BIOS boot firmware (PR [#5895](https://github.com/vatesfr/xen-orchestra/pull/5895))
 - [VM/network] Support newline-delimited IP addresses reported by some guest tools
 - Fix VM/host stats, VM creation with Cloud-init, and VM backups, with NATted hosts [#5896](https://github.com/vatesfr/xen-orchestra/issues/5896)
+- [VM/import] Very small VMDK and OVA files were mangled upon import (PR [#5903](https://github.com/vatesfr/xen-orchestra/pull/5903))
 
 ### Packages to release
 
