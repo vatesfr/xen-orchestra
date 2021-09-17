@@ -69,7 +69,7 @@ BUF_BLOCK_UNUSED.writeUInt32BE(BLOCK_UNUSED, 0)
 // - sectorSize = 512
 
 export default class Vhd {
-  async open(handler, path, flags) {
+  static async open(handler, path, flags) {
     const fd = await handler.openFile(path, flags)
     const vhd = new Vhd(handler, fd)
     return {
@@ -81,7 +81,7 @@ export default class Vhd {
   }
 
   close() {
-    return this._handler.closeFile(this.path)
+    return this._handler.closeFile(this._path)
   }
 
   get batSize() {
