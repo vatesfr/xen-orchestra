@@ -1,6 +1,6 @@
 import BAT from '../bat/bat'
-import Footer from '../footer'
-import Header from '../header'
+import Footer from '../footer/footer'
+import Header from '../header/header'
 import instantiateReader from '../reader/instantiateReader'
 import { SECTOR_SIZE } from '../_constants'
 

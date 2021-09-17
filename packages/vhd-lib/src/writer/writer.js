@@ -8,4 +8,13 @@ export default class VHDWriter {
   async write() {
     throw new Error('Not implemented')
   }
+
+  /**
+   *
+   * @param {Block} sourceBlock
+   * @returns {Boolean}
+   */
+  canDirectCopy(sourceBlock){
+    return false
+  }
 }

@@ -1,7 +1,7 @@
 import { Stream } from 'readable-stream'
 import BAT from '../bat/bat'
-import Footer from '../footer'
-import Header from '../header'
+import Footer from '../footer/footer'
+import Header from '../header/header'
 
 export default class VHDReader {
   uncompress(streamOrBuffer) {
