@@ -13,6 +13,7 @@
 
 - xen-api 0.34.2
 - @xen-orchestra/proxy 0.14.6
+- xo-server 5.82.2
 
 ## **5.62.0** (2021-08-31)
 
