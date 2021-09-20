@@ -73,9 +73,7 @@ export default class Vhd {
     const fd = await handler.openFile(path, flags)
     const vhd = new Vhd(handler, fd)
     return {
-      dispose: () => {
-        return vhd.close()
-      },
+      dispose: () => vhd.close(),
       value: vhd,
     }
   }
