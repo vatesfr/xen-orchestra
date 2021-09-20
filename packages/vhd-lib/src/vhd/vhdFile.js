@@ -1,11 +1,9 @@
 import assert from 'assert'
 import { createLogger } from '@xen-orchestra/log'
 
-import checkFooter from './checkFooter'
-import checkHeader from './_checkHeader'
-import getFirstAndLastBlocks from './_getFirstAndLastBlocks'
-import { fuFooter, fuHeader, checksumStruct, unpackField } from './_structs'
-import { set as mapSetBit, test as mapTestBit } from './_bitmap'
+import getFirstAndLastBlocks from '../_getFirstAndLastBlocks'
+import { fuFooter, fuHeader, checksumStruct } from '../_structs'
+import { set as mapSetBit, test as mapTestBit } from '../_bitmap'
 import {
   BLOCK_UNUSED,
   FOOTER_SIZE,
@@ -14,8 +12,16 @@ import {
   PLATFORM_NONE,
   PLATFORM_W2KU,
   SECTOR_SIZE,
-} from './_constants'
+} from '../_constants'
 import { AbstractVhd } from './abstractVhd'
+import {
+  computeBatSize,
+  sectorsRoundUpNoZero,
+  sectorsToBytes,
+  buildHeader,
+  buildFooter,
+  BUF_BLOCK_UNUSED,
+} from './_utils'
 
 const { debug } = createLogger('vhd-lib:Vhd')
 
@@ -28,22 +34,6 @@ const { debug } = createLogger('vhd-lib:Vhd')
 // https://github.com/rubiojr/vhd-util-convert
 //
 // ===================================================================
-
-const computeBatSize = entries => sectorsToBytes(sectorsRoundUpNoZero(entries * 4))
-
-// Sectors conversions.
-const sectorsRoundUpNoZero = bytes => Math.ceil(bytes / SECTOR_SIZE) || 1
-const sectorsToBytes = sectors => sectors * SECTOR_SIZE
-
-const assertChecksum = (name, buf, struct) => {
-  const actual = unpackField(struct.fields.checksum, buf)
-  const expected = checksumStruct(buf, struct)
-  assert.strictEqual(actual, expected, `invalid ${name} checksum ${actual}, expected ${expected}`)
-}
-
-// unused block as buffer containing a uint32BE
-const BUF_BLOCK_UNUSED = Buffer.allocUnsafe(4)
-BUF_BLOCK_UNUSED.writeUInt32BE(BLOCK_UNUSED, 0)
 
 // ===================================================================
 
@@ -144,7 +134,7 @@ export class Vhd extends AbstractVhd {
     return sectorsToBytes(end)
   }
 
-  // TODO: extract the checks into reusable functions:
+  // TODO:
   // - better human reporting
   // - auto repair if possible
   async readHeaderAndFooter(checkSecondFooter = true) {
@@ -152,19 +142,16 @@ export class Vhd extends AbstractVhd {
     const bufFooter = buf.slice(0, FOOTER_SIZE)
     const bufHeader = buf.slice(FOOTER_SIZE)
 
-    assertChecksum('footer', bufFooter, fuFooter)
-    assertChecksum('header', bufHeader, fuHeader)
+    const footer = buildFooter(bufFooter)
+    const header = buildHeader(bufHeader, footer)
 
     if (checkSecondFooter) {
       const size = await this._handler.getSize(this._path)
       assert(bufFooter.equals(await this._read(size - FOOTER_SIZE, FOOTER_SIZE)), 'footer1 !== footer2')
     }
 
-    const footer = (this.footer = fuFooter.unpack(bufFooter))
-    checkFooter(footer)
-
-    const header = (this.header = fuHeader.unpack(bufHeader))
-    checkHeader(header, footer)
+    this.footer = footer
+    this.header = header
 
     // Compute the number of sectors in one block.
     // Default: One block contains 4096 sectors of 512 bytes.
