@@ -73,13 +73,9 @@ export default class Vhd {
     const fd = await handler.openFile(path, flags)
     const vhd = new Vhd(handler, fd)
     return {
-      dispose: () => vhd.close(),
+      dispose: () => handler.closeFile(fd),
       value: vhd,
     }
-  }
-
-  close() {
-    return this._handler.closeFile(this._path)
   }
 
   get batSize() {
