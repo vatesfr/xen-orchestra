@@ -52,7 +52,7 @@ export default class ActionButton extends Component {
     //
     // if a function, it will be called with the result of the action to
     // compute the path
-    redirectOnSuccess: PropTypes.oneOfType([PropTypes.func, PropTypes.string, PropTypes.number]),
+    redirectOnSuccess: PropTypes.oneOfType([PropTypes.func, PropTypes.string, PropTypes.oneOf([this.GO_BACK])]),
 
     // React element to use tooltip for the component
     tooltip: PropTypes.node,
@@ -94,18 +94,22 @@ export default class ActionButton extends Component {
 
       const { redirectOnSuccess } = props
       if (redirectOnSuccess !== undefined) {
+        if (redirectOnSuccess === ActionButton.GO_BACK) {
+          return this.context.router.goBack()
+        }
+        let to
         switch (typeof redirectOnSuccess) {
-          case 'number':
-            if (redirectOnSuccess === ActionButton.GO_BACK) {
-              return this.context.router.goBack()
-            }
-            throw new Error(`Redirect on success action code unknown ${redirectOnSuccess}`)
           case 'string':
-            return this.context.router.push(redirectOnSuccess)
+            to = redirectOnSuccess
+            break
           case 'function':
-            return this.context.router.push(redirectOnSuccess(result, handlerParam))
+            to = redirectOnSuccess(result, handlerParam)
+            break
           default:
-            throw new Error(`Redirect on success type unknown ${typeof redirectOnSuccess}`)
+            throw new Error(`Redirect on success ${redirectOnSuccess} type unknown ${typeof redirectOnSuccess}`)
+        }
+        if (to !== undefined) {
+          return this.context.router.push(to)
         }
       }
 
