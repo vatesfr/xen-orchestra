@@ -1,5 +1,6 @@
 {
-  "availableUpdates": "{nUpdates} available update{nUpdates, plural, one {} other {s}}",
+  "about": "About",
+  "availableUpdates": "{nUpdates, number} available update{nUpdates, plural, one {} other {s}}",
   "badCredentials": "Bad credentials",
   "confirmCtrlAltDel": "Send Ctrl+Alt+Del to VM?",
   "connect": "Connect",
@@ -12,12 +13,15 @@
   "errorOccurred": "An error has occurred.",
   "gateway": "Gateway",
   "halted": "Halted",
+  "infrastructure": "Infrastructure",
   "ip": "IP",
   "loading": "Loading…",
   "login": "Login",
   "name": "Name",
   "noData": "No data",
   "noManagementPifs": "No management PIFs found",
+  "notFound": "Not Found",
+  "pageNotFound": "This page doesn't exist.",
   "noUpdatesAvailable": "No updates available",
   "password": "Password",
   "paused": "Paused",
@@ -26,6 +30,7 @@
   "rememberMe": "Remember me",
   "running": "Running",
   "size": "Size",
-  "suspended": "Suspended"
-  "version": "Version"
+  "suspended": "Suspended",
+  "version": "Version",
+  "versionValue": "Version {version}"
 }

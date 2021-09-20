@@ -58,19 +58,20 @@ const TabConsole = withState<State, Props, Effects, Computed, ParentState, Paren
     },
   },
   ({ effects, state, vmId }) => (
-    <div style={{ height: '100vh' }}>
+    <div style={{ height: '100%' }}>
       {state.vm?.power_state !== 'Running' ? (
         <p>
           <IntlMessage id='consoleNotAvailable' />
         </p>
       ) : (
         <>
-          <RangeInput max={100} min={1} onChange={effects.scaleConsole} step={1} value={state.consoleScale} />
+          {/* Hide scaling and Ctrl+Alt+Del button temporarily */}
+          {/* <RangeInput max={100} min={1} onChange={effects.scaleConsole} step={1} value={state.consoleScale} />
           {state.sendCtrlAltDel !== undefined && (
             <Button onClick={state.sendCtrlAltDel}>
               <IntlMessage id='ctrlAltDel' />
             </Button>
-          )}
+          )} */}
           <Console vmId={vmId} scale={state.consoleScale} setCtrlAltDel={effects.setCtrlAltDel} />
         </>
       )}

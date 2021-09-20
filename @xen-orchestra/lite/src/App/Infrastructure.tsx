@@ -1,15 +1,17 @@
 import React from 'react'
 import styled from 'styled-components'
 import { withState } from 'reaclette'
+import { Switch, Route } from 'react-router-dom'
 
 import TabConsole from './TabConsole'
 import TreeView from './TreeView'
 
 const Container = styled.div`
-  height: 100vh;
+  flex-grow: 1;
+  min-width: 0;
+  overflow: hidden;
   display: grid;
   grid-template-columns: 1fr 3fr;
-  grid-template-rows: 100vh;
   grid-template-areas: 'sideBar main';
 `
 const LeftPanel = styled.div`
@@ -19,7 +21,6 @@ const LeftPanel = styled.div`
 `
 const MainPanel = styled.div`
   grid-area: main;
-  overflow-y: scroll;
 `
 
 interface ParentState {}
@@ -40,7 +41,19 @@ const Infrastructure = withState<State, Props, Effects, Computed, ParentState, P
       <TreeView />
     </LeftPanel>
     <MainPanel>
-      <TabConsole key={vmId} vmId={vmId} />
+      <Switch>
+        <Route exact path='/infrastructure'>
+          Select a VM
+        </Route>
+        <Route
+          path='/infrastructure/vms/:id/console'
+          render={({
+            match: {
+              params: { id },
+            },
+          }) => <TabConsole key={id} vmId={id} />}
+        />
+      </Switch>
     </MainPanel>
   </Container>
 ))
