@@ -1,3 +1,5 @@
+import { computeBatSize } from './_utils'
+
 export class AbstractVhd {
   header
   footer
@@ -89,5 +91,10 @@ export class AbstractVhd {
 
   setUniqueParentLocator(fileNameString) {
     throw new Error(`setting unique parent locator from file name ${fileNameString} is not implemented`)
+  }
+
+  // common
+  get batSize() {
+    return computeBatSize(this.header.maxTableEntries)
   }
 }
