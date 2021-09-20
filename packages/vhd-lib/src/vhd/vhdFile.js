@@ -15,6 +15,7 @@ import {
   PLATFORM_W2KU,
   SECTOR_SIZE,
 } from './_constants'
+import { AbstractVhd } from './abstractVhd'
 
 const { debug } = createLogger('vhd-lib:Vhd')
 
@@ -68,7 +69,7 @@ BUF_BLOCK_UNUSED.writeUInt32BE(BLOCK_UNUSED, 0)
 // - parentLocatorSize(i) = header.parentLocatorEntry[i].platformDataSpace * sectorSize
 // - sectorSize = 512
 
-export default class Vhd {
+export class Vhd extends AbstractVhd {
   static async open(handler, path, flags) {
     const fd = await handler.openFile(path, flags)
     const vhd = new Vhd(handler, fd)
@@ -83,6 +84,7 @@ export default class Vhd {
   }
 
   constructor(handler, path) {
+    super()
     this._handler = handler
     this._path = path
   }
