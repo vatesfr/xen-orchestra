@@ -106,13 +106,23 @@ export default class S3Handler extends RemoteHandlerAbstract {
     return this._s3.getObject.raw(this._createParams(path)).createReadStream()
   }
 
-  async _unlink(path) {
+  async _unlinkFile(path) {
     await this._s3.deleteObject(this._createParams(path))
     if (await this._isNotEmptyDir(path)) {
       const error = new Error(`EISDIR: illegal operation on a directory, unlink '${path}'`)
       error.code = 'EISDIR'
       error.path = path
       throw error
+    }
+  }
+
+  async _unlink(path) {
+    if (await this._isFile(path)) {
+      return this._unlinkFile(path)
+    }
+    const files = await this._list(path) // should be optimized if there is a few millions of blocks
+    for (const file of files) {
+      await this._unlinkFile(path + '/' + file)
     }
   }
 
@@ -123,17 +133,23 @@ export default class S3Handler extends RemoteHandlerAbstract {
 
     const prefix = [this._dir, dir].join('/')
     const splitPrefix = splitPath(prefix)
-    const result = await this._s3.listObjectsV2({
+    const params = {
       Bucket: this._bucket,
       Prefix: splitPrefix.join('/'),
-    })
-    const uniq = new Set()
-    for (const entry of result.Contents) {
-      const line = splitPath(entry.Key)
-      if (line.length > splitPrefix.length) {
-        uniq.add(line[splitPrefix.length])
-      }
     }
+    const uniq = new Set()
+    // handle more than 1000
+    do {
+      const { NextContinuationToken, Contents } = await this.s3.listObjectsV2(params)
+      params.ContinuationToken = NextContinuationToken
+      for (const entry of Contents) {
+        const line = splitPath(entry.Key)
+        if (line.length > splitPrefix.length) {
+          uniq.add(line[splitPrefix.length])
+        }
+      }
+    } while (params.ContinuationToken)
+
     return [...uniq]
   }
 
@@ -147,7 +163,7 @@ export default class S3Handler extends RemoteHandlerAbstract {
     // nothing to do, directories do not exist, they are part of the files' path
   }
 
-  async _copy(oldPath, newPath) {
+  async _copyFile(oldPath, newPath) {
     const size = await this._getSize(oldPath)
     const multipartParams = await this._s3.createMultipartUpload({ ...this._createParams(newPath) })
     const param2 = { ...multipartParams, CopySource: `/${this._bucket}/${this._dir}${oldPath}` }
@@ -168,9 +184,29 @@ export default class S3Handler extends RemoteHandlerAbstract {
     }
   }
 
-  async _rename(oldPath, newPath) {
+  async _copy(oldPath, newPath) {
+    if (await this._isFile(oldPath)) {
+      return this._copyFile(oldPath, newPath)
+    }
+    const files = await this._list(oldPath) // should be optimized if there is a few millions of blocks
+    for (const file of files) {
+      await this._copyFile(oldPath + '/' + file, newPath + '/' + file)
+    }
+  }
+
+  async _renameFile(oldPath, newPath) {
     await this._copy(oldPath, newPath)
     await this._s3.deleteObject(this._createParams(oldPath))
+  }
+
+  async _rename(oldPath, newPath) {
+    if (await this._isFile(oldPath)) {
+      return this._copyFile(oldPath, newPath)
+    }
+    const files = await this._list(newPath) // should be optimized if there is a few millions of blocks
+    for (const file of files) {
+      await this._renameFile(newPath + '/' + file, newPath + '/' + file)
+    }
   }
 
   async _getSize(file) {
