@@ -53,6 +53,10 @@ class PrefixWrapper {
     return entries
   }
 
+  copy(oldPath, newPath) {
+    return this._handler.copy(this._resolve(oldPath), this._resolve(newPath))
+  }
+
   rename(oldPath, newPath) {
     return this._handler.rename(this._resolve(oldPath), this._resolve(newPath))
   }

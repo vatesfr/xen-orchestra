@@ -147,7 +147,7 @@ export default class S3Handler extends RemoteHandlerAbstract {
     // nothing to do, directories do not exist, they are part of the files' path
   }
 
-  async _rename(oldPath, newPath) {
+  async _copy(oldPath, newPath) {
     const size = await this._getSize(oldPath)
     const multipartParams = await this._s3.createMultipartUpload({ ...this._createParams(newPath) })
     const param2 = { ...multipartParams, CopySource: `/${this._bucket}/${this._dir}${oldPath}` }
@@ -166,6 +166,10 @@ export default class S3Handler extends RemoteHandlerAbstract {
       await this._s3.abortMultipartUpload(multipartParams)
       throw e
     }
+  }
+
+  async _rename(oldPath, newPath) {
+    await this._copy(oldPath, newPath)
     await this._s3.deleteObject(this._createParams(oldPath))
   }
 

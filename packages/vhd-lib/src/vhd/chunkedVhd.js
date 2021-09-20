@@ -113,7 +113,6 @@ export class ChunkedVhd extends AbstractVhd {
   // and if the full block is modified in child ( which is the case whit xcp)
 
   coalesceBlock(child, blockId) {
-    // should implement a copy operator on handler to preserve the child
-    this._handler.rename(child._path + '/' + blockId, this._path + '/' + blockId)
+    this._handler.copy(child._path + '/' + blockId, this._path + '/' + blockId)
   }
 }

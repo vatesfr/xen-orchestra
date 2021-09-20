@@ -112,6 +112,10 @@ export default class LocalHandler extends RemoteHandlerAbstract {
     return await retry(() => fs.readFile(filePath, options), this._retriesOnEagain)
   }
 
+  async _copy(oldPath, newPath) {
+    return fs.copy(this._getFilePath(oldPath), this._getFilePath(newPath))
+  }
+
   async _rename(oldPath, newPath) {
     return fs.rename(this._getFilePath(oldPath), this._getFilePath(newPath))
   }
