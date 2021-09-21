@@ -12,6 +12,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [SSH keys] Allow SSH key to be broken anywhere to avoid breaking page formatting (Thanks @tstivers1990!) [#5891](https://github.com/vatesfr/xen-orchestra/issues/5891) (PR [#5892](https://github.com/vatesfr/xen-orchestra/pull/5892))
+- [Netbox] Handle nested prefixes by always assigning an IP to the smallest prefix it matches (PR [#5908](https://github.com/vatesfr/xen-orchestra/pull/5908))
 
 ### Packages to release
 
@@ -31,5 +32,6 @@
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
 - vhd-lib minor
+- xo-server-netbox patch
 - xo-server patch
 - xo-web patch
