@@ -5,7 +5,7 @@ import { fas } from '@fortawesome/free-solid-svg-icons'
 
 library.add(fas)
 
-const Icon = ({ icon, size, color }: { icon: _IconName; size?: SizeProp; color: string }): JSX.Element => (
+const Icon = ({ icon, size, color }: { icon: _IconName; size?: SizeProp; color?: string }): JSX.Element => (
   <FontAwesomeIcon icon={icon} size={size} color={color} />
 )
 

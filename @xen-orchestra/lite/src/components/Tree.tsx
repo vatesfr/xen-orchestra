@@ -2,10 +2,9 @@ import React from 'react'
 import { Tooltip } from '@material-ui/core'
 import { TreeItem, TreeView } from '@material-ui/lab'
 import { withState } from 'reaclette'
-import { Seq } from 'immutable'
 
-import Icon from '../components/Icon'
 import LinkWrapper from './LinkWrapper'
+import Icon from '../components/Icon'
 
 interface ParentState {}
 
@@ -21,9 +20,37 @@ interface Effects {}
 
 interface Computed {}
 
-const renderItem = ({ children, icon, id, label, link, tooltip, to }) => {
+const renderItem = ({
+  children,
+  icon,
+  id,
+  label,
+  link,
+  tooltip,
+  to,
+}: {
+  children: any
+  icon: any
+  id: string
+  label: any
+  link: boolean
+  tooltip: any
+  to: string | object
+}) => {
   const item = (
-    <TreeItem icon={icon} key={id} label={label} nodeId={id}>
+    <TreeItem
+      key={id}
+      label={
+        icon ? (
+          <span>
+            {icon} {label}
+          </span>
+        ) : (
+          label
+        )
+      }
+      nodeId={id}
+    >
       {Array.isArray(children) ? children.map(renderItem) : null}
     </TreeItem>
   )

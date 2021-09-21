@@ -61,13 +61,9 @@ const Infrastructure = withState<State, Props, Effects, Computed, ParentState, P
                 let vm
                 if ((vm = state.vmsByRef?.get(vmRef)) !== undefined) {
                   runningVms.push({
+                    icon: <Icon icon='desktop' color={getIconColor(vm)} />,
                     id: vm.$id,
-                    label: (
-                      <span>
-                        <Icon icon='desktop' color={getIconColor(vm)} />
-                        {vm.name_label}
-                      </span>
-                    ),
+                    label: vm.name_label,
                     link: true,
                     to: `/vms/${vm.$id}/console`,
                     tooltip: <IntlMessage id={vm.power_state.toLowerCase()} />,
@@ -77,13 +73,9 @@ const Infrastructure = withState<State, Props, Effects, Computed, ParentState, P
 
               poolChildren.push({
                 children: runningVms,
+                icon: <Icon icon='server' color={getIconColor(host)} />,
                 id: host.$id,
-                label: (
-                  <span>
-                    <Icon icon='server' color={getIconColor(host)} />
-                    {host.name_label}
-                  </span>
-                ),
+                label: host.name_label,
                 tooltip: <IntlMessage id={getHostPowerState(host).toLowerCase()} />,
               })
             })
@@ -93,13 +85,9 @@ const Infrastructure = withState<State, Props, Effects, Computed, ParentState, P
             ?.valueSeq()
             .forEach((vm: Vm) => {
               poolChildren.push({
+                icon: <Icon icon='desktop' color={getIconColor(vm)} />,
                 id: vm.$id,
-                label: (
-                  <span>
-                    <Icon icon='desktop' color={getIconColor(vm)} />
-                    {vm.name_label}
-                  </span>
-                ),
+                label: vm.name_label,
                 link: true,
                 tooltip: <IntlMessage id='halted' />,
                 to: `/vms/${vm.$id}/console`,
@@ -107,13 +95,9 @@ const Infrastructure = withState<State, Props, Effects, Computed, ParentState, P
             })
 
           return {
+            icon: <Icon icon='cloud' />,
             id: pool.$id,
-            label: (
-              <span>
-                <Icon icon='cloud' />
-                {pool.name_label}
-              </span>
-            ),
+            label: pool.name_label,
             children: poolChildren,
           }
         })
