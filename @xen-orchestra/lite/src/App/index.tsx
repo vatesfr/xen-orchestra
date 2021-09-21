@@ -7,32 +7,39 @@ import { withState } from 'reaclette'
 
 import Button from '../components/Button'
 import IntlMessage from '../components/IntlMessage'
-import ListObjects from './ListObjects'
+import Infrastructure from './Infrastructure'
 import messagesEn from '../lang/en.json'
+import XapiConnection, { ObjectsByType } from '../libs/xapi'
 import Signin from './Signin/index'
 import StyleGuide from './StyleGuide/index'
 import TabConsole from './TabConsole'
-import XapiConnection, { ObjectsByType } from '../libs/xapi'
 
-const LeftView = styled.div`
-  background: #f5f5f5;
-  float: left;
-  height: ${props => props.height + 'px'};
-  overflow-y: scroll;
-  width: 24%;
+const Container = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 3fr;
+  grid-template-rows: auto;
+  grid-template-areas:
+    'header header'
+    'sideBar main'
+    'version .';
+`
+const Header = styled.div`
+  grid-area: header;
 `
 
-const RightView = styled.div`
-  float: left;
-  height: ${props => props.height + 'px'};
+const SideBar = styled.div`
+  grid-area: sideBar;
+  background: #f5f5f5;
   overflow-y: scroll;
-  width: 75%;
+`
+
+const MainPanel = styled.div`
+  grid-area: main;
+  overflow-y: scroll;
 `
 
 const Version = styled.div`
-  position: fixed;
-  right: 0;
-  bottom: 0;
+  grid-area: version;
   opacity: 0.5;
 `
 
@@ -45,7 +52,6 @@ interface State {
   connected: boolean
   error: React.ReactNode
   xapiHostname: string
-  windowHeight: number
 }
 
 interface Props {}
@@ -55,7 +61,6 @@ interface ParentEffects {}
 interface Effects {
   connectToXapi: (password: string, rememberMe: boolean) => void
   disconnect: () => void
-  resizeWindow: () => void
 }
 
 interface Computed {
@@ -69,15 +74,11 @@ const App = withState<State, Props, Effects, Computed, ParentState, ParentEffect
       connected: Cookies.get('sessionId') !== undefined,
       error: '',
       objectsByType: undefined,
-      windowHeight: window.innerHeight,
       xapi: undefined,
       xapiHostname: process.env.XAPI_HOST || window.location.host,
     }),
     effects: {
       initialize: async function () {
-        window.addEventListener('resize', this.effects.resizeWindow)
-        this.effects.resizeWindow()
-
         const xapi = (this.state.xapi = new XapiConnection())
 
         xapi.on('connected', () => {
@@ -102,9 +103,6 @@ const App = withState<State, Props, Effects, Computed, ParentState, ParentEffect
           console.log('Session ID is invalid. Asking for credentials.')
         }
       },
-      finalize: function () {
-        window.removeEventListener('resize', this.effects.resizeWindow)
-      },
       connectToXapi: async function (password, rememberMe = false) {
         try {
           await this.state.xapi.connect({
@@ -125,9 +123,6 @@ const App = withState<State, Props, Effects, Computed, ParentState, ParentEffect
         await this.state.xapi.disconnect()
         this.state.connected = false
       },
-      resizeWindow() {
-        this.state.windowHeight = window.innerHeight
-      },
     },
     computed: {
       objectsFetched: state => state.objectsByType !== undefined,
@@ -135,40 +130,42 @@ const App = withState<State, Props, Effects, Computed, ParentState, ParentEffect
     },
   },
   ({ effects, state }) => {
-    const _listObjects = (
-      <LeftView height={state.windowHeight}>
-        <ListObjects />
-      </LeftView>
+    const sideBar = (
+      <SideBar>
+        <Infrastructure />
+      </SideBar>
     )
 
     return (
-      <>
+      <Container>
         <IntlProvider messages={messagesEn} locale='en'>
           {!state.connected ? (
             <Signin />
           ) : !state.objectsFetched ? (
-            <FormattedMessage id='loading' />
+            <IntlMessage id='loading' />
           ) : (
             <>
-              <Button onClick={() => effects.disconnect()}>
-                <FormattedMessage id='disconnect' />
-              </Button>
+              <Header>
+                <Button onClick={() => effects.disconnect()}>
+                  <FormattedMessage id='disconnect' />
+                </Button>
+              </Header>
               <Router>
                 <Switch>
                   <Route exact path='/styleguide'>
                     <StyleGuide />
                   </Route>
                   <Route exact path='/'>
-                    {_listObjects}
+                    {sideBar}
                   </Route>
                   <Route
                     path='/vms/:id/console'
                     render={({ match }) => (
                       <>
-                        {_listObjects}
-                        <RightView height={state.windowHeight}>
+                        {sideBar}
+                        <MainPanel>
                           <TabConsole vmId={match.params.id} />
-                        </RightView>
+                        </MainPanel>
                       </>
                     )}
                   />
@@ -178,7 +175,7 @@ const App = withState<State, Props, Effects, Computed, ParentState, ParentEffect
           )}
           <Version>v{process.env.NPM_VERSION}</Version>
         </IntlProvider>
-      </>
+      </Container>
     )
   }
 )

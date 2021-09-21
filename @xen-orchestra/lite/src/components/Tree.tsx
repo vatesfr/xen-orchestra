@@ -12,7 +12,7 @@ interface ParentState {}
 interface State {}
 
 interface Props {
-  collection: Seq<string, object>
+  collection: Array
 }
 
 interface ParentEffects {}

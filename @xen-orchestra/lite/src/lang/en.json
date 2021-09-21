@@ -7,6 +7,7 @@
   "device": "Device",
   "disconnect": "Disconnect",
   "dns": "DNS",
+  "halted": "Halted",
   "gateway": "Gateway",
   "ip": "IP",
   "loading": "Loading…",
@@ -14,6 +15,9 @@
   "noData": "No data",
   "noManagementPifs": "No management PIFs found",
   "password": "Password",
+  "paused": "Paused",
   "reconnectionAttempt": "Trying to reconnect…",
-  "rememberMe": "Remember me"
+  "rememberMe": "Remember me",
+  "running": "Running",
+  "suspended": "Suspended"
 }

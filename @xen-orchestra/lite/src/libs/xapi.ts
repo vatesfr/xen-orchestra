@@ -8,7 +8,6 @@ export interface XapiObject {
   $ref: string
   $type: keyof types
   $id: string
-  $ref: string
 }
 
 // Dictionary of XAPI types and their corresponding TypeScript types
@@ -17,7 +16,6 @@ interface types {
   pool: Pool
   VM: Vm
   host: Host
-  pool: Pool
 }
 
 // XAPI types ---
@@ -50,10 +48,6 @@ export interface Host extends XapiObject {
   name_label: string
   power_state: string
   resident_VMs: Array<string>
-}
-
-export interface Pool extends XapiObject {
-  name_label: string
 }
 
 // --------
