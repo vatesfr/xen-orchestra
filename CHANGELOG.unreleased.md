@@ -7,6 +7,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [Tables] Move the filters to the top of the table (PR [#5914](https://github.com/vatesfr/xen-orchestra/pull/5914))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -35,4 +37,4 @@
 - vhd-lib minor
 - xo-server-netbox patch
 - xo-server patch
-- xo-web patch
+- xo-web minor
