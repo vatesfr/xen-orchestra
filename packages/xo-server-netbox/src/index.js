@@ -510,7 +510,7 @@ class Netbox {
       .forEach(newInterfaces => Object.assign(interfaces, newInterfaces))
 
     // IPs
-    const [oldNetboxIps, prefixes] = await Promise.all([
+    const [oldNetboxIps, netboxPrefixes] = await Promise.all([
       this.#makeRequest('/ipam/ip-addresses/', 'GET').then(addresses =>
         groupBy(
           // In Netbox, a device interface and a VM interface can have the same
@@ -549,27 +549,33 @@ class Netbox {
           const parsedIp = ipaddr.parse(ip)
           const ipKind = parsedIp.kind()
           const ipCompactNotation = parsedIp.toString()
-          // FIXME: Should we compare the IPs with their range? ie: can 2 IPs
-          // look identical but belong to 2 different ranges?
-          const netboxIpIndex = interfaceOldIps.findIndex(
-            netboxIp => ipaddr.parse(netboxIp.address.split('/')[0]).toString() === ipCompactNotation
-          )
+
+          let smallestPrefix
+          let highestBits = 0
+          netboxPrefixes.forEach(({ prefix }) => {
+            const [range, bits] = prefix.split('/')
+            const parsedRange = ipaddr.parse(range)
+            if (parsedRange.kind() === ipKind && parsedIp.match(parsedRange, bits) && bits > highestBits) {
+              smallestPrefix = prefix
+              highestBits = bits
+            }
+          })
+          if (smallestPrefix === undefined) {
+            ignoredIps.push(ip)
+            continue
+          }
+
+          const netboxIpIndex = interfaceOldIps.findIndex(netboxIp => {
+            const [ip, bits] = netboxIp.address.split('/')
+            return ipaddr.parse(ip).toString() === ipCompactNotation && bits === highestBits
+          })
+
           if (netboxIpIndex >= 0) {
             netboxIpsByVif[vifId].push(interfaceOldIps[netboxIpIndex])
             interfaceOldIps.splice(netboxIpIndex, 1)
           } else {
-            const prefix = prefixes.find(({ prefix }) => {
-              const [range, bits] = prefix.split('/')
-              const parsedRange = ipaddr.parse(range)
-              return parsedRange.kind() === ipKind && parsedIp.match(parsedRange, bits)
-            })
-            if (prefix === undefined) {
-              ignoredIps.push(ip)
-              continue
-            }
-
             ipsToCreate.push({
-              address: `${ip}/${prefix.prefix.split('/')[1]}`,
+              address: `${ip}/${smallestPrefix.split('/')[1]}`,
               assigned_object_type: 'virtualization.vminterface',
               assigned_object_id: interface_.id,
               vifId, // needed to populate netboxIpsByVif with newly created IPs

@@ -1,7 +1,7 @@
 import assert from 'assert'
 import { createLogger } from '@xen-orchestra/log'
 
-import checkFooter from './_checkFooter'
+import checkFooter from './checkFooter'
 import checkHeader from './_checkHeader'
 import getFirstAndLastBlocks from './_getFirstAndLastBlocks'
 import { fuFooter, fuHeader, checksumStruct, unpackField } from './_structs'
