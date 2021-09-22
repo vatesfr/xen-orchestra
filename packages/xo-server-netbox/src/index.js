@@ -167,7 +167,23 @@ class Netbox {
     return results
   }
 
+  async #checkCustomFields() {
+    const customFields = await this.#makeRequest('/extras/custom-fields/', 'GET')
+    const uuidCustomField = customFields.find(field => field.name === 'uuid')
+    if (uuidCustomField === undefined) {
+      throw new Error('UUID custom field was not found. Please create it manually from your Netbox interface.')
+    }
+    const { content_types: types } = uuidCustomField
+    if (!types.includes('virtualization.cluster') || !types.includes('virtualization.virtualmachine')) {
+      throw new Error(
+        'UUID custom field must be assigned to types virtualization.cluster and virtualization.virtualmachine'
+      )
+    }
+  }
+
   async #synchronize(pools = this.#pools) {
+    await this.#checkCustomFields()
+
     const xo = this.#xo
     log.debug('synchronizing')
     // Cluster type
@@ -218,6 +234,10 @@ class Netbox {
       }
     }
 
+    // FIXME: Should we deduplicate cluster names even though it also fails when
+    // a cluster within another cluster type has the same name?
+    // FIXME: Should we delete clusters from this cluster type that don't have a
+    // UUID?
     Object.assign(
       clusters,
       keyBy(
@@ -237,19 +257,31 @@ class Netbox {
 
     // VMs
     const vms = xo.getObjects({ filter: object => object.type === 'VM' && pools.includes(object.$pool) })
-    const oldNetboxVms = keyBy(
-      flatten(
-        // FIXME: It should be doable with one request:
-        // `cluster_id=1&cluster_id=2` but it doesn't work
-        // https://netbox.readthedocs.io/en/stable/rest-api/filtering/#filtering-objects
-        await Promise.all(
-          pools.map(poolId =>
-            this.#makeRequest(`/virtualization/virtual-machines/?cluster_id=${clusters[poolId].id}`, 'GET')
-          )
+    let oldNetboxVms = flatten(
+      // FIXME: It should be doable with one request:
+      // `cluster_id=1&cluster_id=2` but it doesn't work
+      // https://netbox.readthedocs.io/en/stable/rest-api/filtering/#filtering-objects
+      await Promise.all(
+        pools.map(poolId =>
+          this.#makeRequest(`/virtualization/virtual-machines/?cluster_id=${clusters[poolId].id}`, 'GET')
         )
-      ),
-      'custom_fields.uuid'
+      )
     )
+
+    const vmsWithNoUuid = oldNetboxVms.filter(vm => vm.custom_fields.uuid === null)
+    oldNetboxVms = omit(keyBy(oldNetboxVms, 'custom_fields.uuid'), null)
+
+    // Delete VMs that don't have a UUID custom field. This can happen if they
+    // were created manually or if the custom field config was changed after
+    // their creation
+    if (vmsWithNoUuid !== undefined) {
+      log.warn(`Found ${vmsWithNoUuid.length} VMs with no UUID. Deleting them.`)
+      await this.#makeRequest(
+        '/virtualization/virtual-machines/',
+        'DELETE',
+        vmsWithNoUuid.map(vm => ({ id: vm.id }))
+      )
+    }
 
     // Build collections for later
     const netboxVms = {} // VM UUID → Netbox VM
@@ -631,6 +663,8 @@ class Netbox {
       `/virtualization/cluster-types/?name=${encodeURIComponent(name)}`,
       'GET'
     )
+
+    await this.#checkCustomFields()
 
     if (clusterTypes.length !== 1) {
       throw new Error('Could not properly write and read Netbox')
