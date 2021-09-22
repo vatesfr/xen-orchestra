@@ -72,6 +72,19 @@ export default class S3Handler extends RemoteHandlerAbstract {
     }
   }
 
+  async _isAlias(path) {
+    const isFile = await this._isFile(path)
+    const size = await this._getSize(path)
+    return isFile && size > 0 && size < 1024
+  }
+
+  async resolveAlias(path) {
+    if (!(await this._isAlias(path))) {
+      return null
+    }
+    return this._read(path, Buffer.alloc(1024, 0, 'utf-8'))
+  }
+
   async _outputStream(path, input, { validator }) {
     await this._s3.upload(
       {
@@ -108,22 +121,36 @@ export default class S3Handler extends RemoteHandlerAbstract {
 
   async _unlinkFile(path) {
     await this._s3.deleteObject(this._createParams(path))
-    if (await this._isNotEmptyDir(path)) {
-      const error = new Error(`EISDIR: illegal operation on a directory, unlink '${path}'`)
-      error.code = 'EISDIR'
-      error.path = path
-      throw error
+  }
+
+  async _unlinkDirContent(path) {
+    const params = {
+      Bucket: this._bucket,
+      Prefix: path,
     }
+    do {
+      const { NextContinuationToken, Contents } = await this.s3.listObjectsV2(params)
+      params.ContinuationToken = NextContinuationToken
+      const deleteParams = {
+        Bucket: this._bucket,
+        Delete: Contents,
+      }
+      // list object returns at most 1 000 entry and
+      // delete can be made by 1 000
+      await this.s3.deleteObjects(deleteParams)
+    } while (params.ContinuationToken)
   }
 
   async _unlink(path) {
     if (await this._isFile(path)) {
+      const resolved = this._resolveAlias(path)
+      if (resolved) {
+        return this._unlinkDirContent(resolved)
+      }
       return this._unlinkFile(path)
     }
-    const files = await this._list(path) // should be optimized if there is a few millions of blocks
-    for (const file of files) {
-      await this._unlinkFile(path + '/' + file)
-    }
+
+    throw new Error(`Can't delete non empty  directory ${path}`)
   }
 
   async _list(dir) {
@@ -139,16 +166,16 @@ export default class S3Handler extends RemoteHandlerAbstract {
     }
     const uniq = new Set()
     // handle more than 1000
-    do {
-      const { NextContinuationToken, Contents } = await this.s3.listObjectsV2(params)
-      params.ContinuationToken = NextContinuationToken
-      for (const entry of Contents) {
-        const line = splitPath(entry.Key)
-        if (line.length > splitPrefix.length) {
-          uniq.add(line[splitPrefix.length])
-        }
+    const { NextContinuationToken, Contents } = await this.s3.listObjectsV2(params)
+    if (NextContinuationToken) {
+      throw new Error(`path ${dir} has more than 1000 children`)
+    }
+    for (const entry of Contents) {
+      const line = splitPath(entry.Key)
+      if (line.length > splitPrefix.length) {
+        uniq.add(line[splitPrefix.length])
       }
-    } while (params.ContinuationToken)
+    }
 
     return [...uniq]
   }
@@ -185,13 +212,16 @@ export default class S3Handler extends RemoteHandlerAbstract {
   }
 
   async _copy(oldPath, newPath) {
-    if (await this._isFile(oldPath)) {
-      return this._copyFile(oldPath, newPath)
+    if (!(await this._isFile(oldPath))) {
+      throw new Error(`S3 directory copy of ${oldPath} to ${newPath} is not implemented`)
     }
-    const files = await this._list(oldPath) // should be optimized if there is a few millions of blocks
-    for (const file of files) {
-      await this._copyFile(oldPath + '/' + file, newPath + '/' + file)
+    if (await this._isAlias(oldPath)) {
+      throw new Error(`copy of alias ${oldPath} is not implemented`)
     }
+    if (await this._isAlias(newPath)) {
+      throw new Error(`copy ${oldPath} toward an alias ${newPath} is not implemented`)
+    }
+    return this._copyFile(oldPath, newPath)
   }
 
   async _renameFile(oldPath, newPath) {
@@ -200,13 +230,17 @@ export default class S3Handler extends RemoteHandlerAbstract {
   }
 
   async _rename(oldPath, newPath) {
-    if (await this._isFile(oldPath)) {
-      return this._copyFile(oldPath, newPath)
+    if (!(await this._isFile(oldPath))) {
+      throw new Error('S3 directory renaming is not implemented')
     }
-    const files = await this._list(newPath) // should be optimized if there is a few millions of blocks
-    for (const file of files) {
-      await this._renameFile(newPath + '/' + file, newPath + '/' + file)
+    // if destination is an alias, we need to ensure we don't let
+    // the directory data alone
+    if (await this._isAlias(newPath)) {
+      await this._unlink(newPath)
     }
+
+    // really rename the file ( which can be an alias)
+    return this._renameFile(oldPath, newPath)
   }
 
   async _getSize(file) {

@@ -3,22 +3,54 @@ import { AbstractVhd } from './abstractVhd'
 import { sectorsRoundUpNoZero, sectorsToBytes, buildHeader, buildFooter } from './_utils'
 import { fuFooter, fuHeader, checksumStruct } from '../_structs'
 import { test } from '../_bitmap'
-import { SECTOR_SIZE } from '../_constants'
+import { FOOTER_SIZE, HEADER_SIZE, SECTOR_SIZE } from '../_constants'
 import { createLogger } from '@xen-orchestra/log'
 
 const { debug } = createLogger('vhd-lib:ChunkedVhd')
+// File structure on remotes:
+//
+// <remote>
+// └─ xo-vm-backups
+//   ├─ index.json // TODO
+//   └─ <VM UUID>
+//      ├─ index.json // TODO
+//      ├─ vdis
+//      │  └─ <job UUID>
+//      │     └─ <VDI UUID>
+//      │        ├─ index.json // TODO
+//      │        ├─ <YYYYMMDD>T<HHmmss>.vhd // a text file containing the path of the folder storing the chuncked vhd
+//      |        └─ <uid>
+//      |           ├─ footer
+//      |           ├─ header
+//      |           ├─ bat // a bits array where a 1 at index i indicate that the block i is present
+//      |           └─ <index> // block with id 'index'
+//      ├─ <YYYYMMDD>T<HHmmss>.json // backup metadata
+//      ├─ <YYYYMMDD>T<HHmmss>.xva
+//      └─ <YYYYMMDD>T<HHmmss>.xva.checksum
 
 export class ChunkedVhd extends AbstractVhd {
-  static open(handler, path) {
-    const vhd = new ChunkedVhd(handler, path)
+  static async open(handler, path) {
+    let resolved = null
+    if (typeof handler.resolveAlias === 'function') {
+      resolved = handler.resolveAlias(path)
+    }
+    const vhd = new ChunkedVhd(handler, resolved || path)
     return {
       dispose: () => {},
       value: vhd,
     }
   }
 
+  constructor(handler, path) {
+    super()
+    this._handler = handler
+    this._path = path
+  }
+
   async readBlockAllocationTable() {
-    const { buffer } = await this._readChunk('bat')
+    assert(this.header, 'Header must not be empty to access bat')
+
+    const { buffer } = await this._readChunk('bat', this.header.maxTableEntries)
     /**
      * In chunked mode, the bat is a sequence of bits
      * A zero bit indicates that the block is not present
@@ -31,20 +63,24 @@ export class ChunkedVhd extends AbstractVhd {
     return test(this.blockTable, blockId)
   }
 
-  async _readChunk(partName) {
+  getChunkPath(partName) {
+    return this._path + '/' + partName
+  }
+
+  async _readChunk(partName, maxLength) {
     // here we can implement compression and / or crypto
-    return this._handler.read(this._path + '/' + partName)
+    return this._handler.read(this.getChunkPath(partName), Buffer.alloc(maxLength))
   }
 
   async _writeChunk(partName, buffer) {
     assert(Buffer.isBuffer(buffer))
     // here we can implement compression and / or crypto
-    return this._handler.write(this._path + '/' + partName, buffer, 0)
+    return this._handler.write(this.getChunkPath(partName), buffer, 0)
   }
 
   async readHeaderAndFooter() {
-    const { bufHeader } = await this._readChunk('header')
-    const { bufFooter } = await this._readChunk('footer')
+    const { bufHeader } = await this._readChunk('header', HEADER_SIZE)
+    const { bufFooter } = await this._readChunk('footer', FOOTER_SIZE)
 
     const footer = buildFooter(bufFooter)
     const header = buildHeader(bufHeader, footer)
@@ -73,7 +109,7 @@ export class ChunkedVhd extends AbstractVhd {
       throw new Error(`reading 'bitmap of block' ${blockId} in a ChunkedVhd is not implemented`)
     }
 
-    const { buffer } = this._readChunk(blockId)
+    const { buffer } = this._readChunk(blockId, this.fullBlockSize)
     return {
       id: blockId,
       bitmap: buffer.slice(0, this.bitmapSize),
@@ -113,6 +149,6 @@ export class ChunkedVhd extends AbstractVhd {
   // and if the full block is modified in child ( which is the case whit xcp)
 
   coalesceBlock(child, blockId) {
-    this._handler.copy(child._path + '/' + blockId, this._path + '/' + blockId)
+    this._handler.copy(child.getChunkPath(blockId), this.getChunkPath(blockId))
   }
 }
