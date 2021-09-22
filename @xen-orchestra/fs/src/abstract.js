@@ -32,6 +32,7 @@ const ignoreEnoent = error => {
 const noop = Function.prototype
 
 class PrefixWrapper {
+  // add option : compression, encryption
   constructor(handler, prefix) {
     this._prefix = prefix
     this._handler = handler

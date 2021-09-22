@@ -1,7 +1,9 @@
 import aws from '@sullux/aws-sdk'
 import assert from 'assert'
 import http from 'http'
+import https from 'https'
 import { parse } from 'xo-remote-parser'
+import { getChunkIterator } from 'vhd-lib'
 
 import RemoteHandlerAbstract from './abstract'
 
@@ -13,6 +15,7 @@ const MAX_PART_SIZE = 1024 * 1024 * 1024 * 5 // 5GB
 const MAX_PARTS_COUNT = 10000
 const MAX_OBJECT_SIZE = 1024 * 1024 * 1024 * 1024 * 5 // 5TB
 const IDEAL_FRAGMENT_SIZE = Math.ceil(MAX_OBJECT_SIZE / MAX_PARTS_COUNT) // the smallest fragment size that still allows a 5TB upload in 10000 fragments, about 524MB
+
 export default class S3Handler extends RemoteHandlerAbstract {
   constructor(remote, _opts) {
     super(remote)
@@ -26,6 +29,10 @@ export default class S3Handler extends RemoteHandlerAbstract {
       signatureVersion: 'v4',
       httpOptions: {
         timeout: 600000,
+        agent: new https.Agent({
+          rejectUnauthorized: false,
+          keepAlive: true,
+        }),
       },
     }
     if (protocol === 'http') {
@@ -85,14 +92,50 @@ export default class S3Handler extends RemoteHandlerAbstract {
     return this._read(path, Buffer.alloc(1024, 0, 'utf-8'))
   }
 
+  async _outputStreamChunked(path, input) {
+    // @TODO: use parallel writing
+    const iterator = getChunkIterator(input)
+    for await (const chunk of iterator) {
+      const { type } = chunk
+      switch (type) {
+        case 'footer':
+          await this._writeFile(path + '/footer', chunk.buffer)
+          break
+        case 'header':
+          await this._writeFile(path + '/header', chunk.buffer)
+          break
+        case 'bat':
+          // raw BAT is not used in this upload type
+          break
+        case 'bytesBat':
+          await this._writeFile(path + '/bat', chunk.buffer)
+          break
+        case 'block':
+          await this._writeFile(path + '/' + chunk.index, chunk.buffer)
+          break
+        case 'parentLocator':
+          await this._writeFile(path + '/parentLocator' + chunk.index, chunk.buffer)
+          break
+        default:
+          throw new Error(`Chunk of type ${type} can't be writtent to ${path}`)
+      }
+    }
+  }
+
   async _outputStream(path, input, { validator }) {
-    await this._s3.upload(
-      {
-        ...this._createParams(path),
-        Body: input,
-      },
-      { partSize: IDEAL_FRAGMENT_SIZE, queueSize: 1 }
-    )
+    if (path.endsWith('.vhd')) {
+      await this._outputStreamChunked(path, input)
+    } else {
+      await this._s3.upload(
+        {
+          ...this._createParams(path),
+          Body: input,
+        },
+        { partSize: IDEAL_FRAGMENT_SIZE, queueSize: 1 }
+      )
+    }
+
+    // @TODO: is it possible to validate an exploded file ?
     if (validator !== undefined) {
       try {
         await validator.call(this, path)
@@ -129,7 +172,7 @@ export default class S3Handler extends RemoteHandlerAbstract {
       Prefix: path,
     }
     do {
-      const { NextContinuationToken, Contents } = await this.s3.listObjectsV2(params)
+      const { NextContinuationToken, Contents } = await this._s3.listObjectsV2(params)
       params.ContinuationToken = NextContinuationToken
       const deleteParams = {
         Bucket: this._bucket,
@@ -166,7 +209,7 @@ export default class S3Handler extends RemoteHandlerAbstract {
     }
     const uniq = new Set()
     // handle more than 1000
-    const { NextContinuationToken, Contents } = await this.s3.listObjectsV2(params)
+    const { NextContinuationToken, Contents } = await this._s3.listObjectsV2(params)
     if (NextContinuationToken) {
       throw new Error(`path ${dir} has more than 1000 children`)
     }

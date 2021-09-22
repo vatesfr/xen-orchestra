@@ -153,7 +153,8 @@
     "build": "cross-env NODE_ENV=production yarn run _build",
     "dev": "cross-env NODE_ENV=development yarn run _build --watch",
     "prepublishOnly": "yarn run build",
-    "start": "node dist/cli.mjs"
+    "start": "node dist/cli.mjs",
+    "start:debug": "node --inspect-brk=5858 dist/cli.mjs"
   },
   "author": {
     "name": "Vates SAS",
