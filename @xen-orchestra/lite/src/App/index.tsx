@@ -15,9 +15,10 @@ import StyleGuide from './StyleGuide/index'
 import TabConsole from './TabConsole'
 
 const Container = styled.div`
+  height: 100vh;
   display: grid;
   grid-template-columns: 1fr 3fr;
-  grid-template-rows: auto;
+  grid-template-rows: 4vh 93vh 3vh;
   grid-template-areas:
     'header header'
     'sideBar main'

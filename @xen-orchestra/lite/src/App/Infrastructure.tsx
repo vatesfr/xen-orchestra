@@ -38,7 +38,7 @@ const getIconColor = (obj: Object) => {
   if (obj.$type === 'host') {
     powerState = getHostPowerState(obj)
   }
-  return powerState === 'Running' ? 'green' : powerState === 'Halted' ? 'red' : 'grey'
+  return powerState === 'Running' ? '#198754' : powerState === 'Halted' ? '#dc3545' : '#6c757d'
 }
 
 const Infrastructure = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
@@ -48,8 +48,8 @@ const Infrastructure = withState<State, Props, Effects, Computed, ParentState, P
         if (state.pools === undefined) {
           return
         }
-
-        return state.pools.valueSeq().map((pool: Pool) => {
+        const collection = []
+        state.pools.valueSeq().forEach((pool: Pool) => {
           const poolChildren = []
           state.hostsByPool
             ?.get(pool.$id)
@@ -57,7 +57,7 @@ const Infrastructure = withState<State, Props, Effects, Computed, ParentState, P
             .forEach((host: Host) => {
               const runningVms = []
 
-              host.resident_VMs.map(vmRef => {
+              host.resident_VMs.forEach(vmRef => {
                 let vm
                 if ((vm = state.vmsByRef?.get(vmRef)) !== undefined) {
                   runningVms.push({
@@ -94,13 +94,15 @@ const Infrastructure = withState<State, Props, Effects, Computed, ParentState, P
               })
             })
 
-          return {
+          collection.push({
             icon: <Icon icon='cloud' />,
             id: pool.$id,
             label: pool.name_label,
             children: poolChildren,
-          }
+          })
         })
+
+        return collection
       },
       haltedVmsByPool: state => state.vms?.filter((vm: Vm) => vm.power_state === 'Halted').groupBy(vm => vm.$pool.$id),
       hostsByPool: state => state.objectsByType?.get('host')?.groupBy(host => host.$pool.$id),
