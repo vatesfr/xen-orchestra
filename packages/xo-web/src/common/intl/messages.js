@@ -117,6 +117,7 @@ const messages = {
   filterOnlyManaged: 'Managed disks',
   filterOnlyOrphaned: 'Orphaned disks',
   filterOnlyRegular: 'Normal disks',
+  filterOnlyRunningVms: 'Running VMs',
   filterOnlySnapshots: 'Snapshot disks',
   filterOnlyUnmanaged: 'Unmanaged disks',
   filterSaveAs: 'Save…',
