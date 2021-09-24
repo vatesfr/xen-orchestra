@@ -15,7 +15,7 @@ import { SelectPool } from 'select-objects'
 import { Container, Row, Col } from 'grid'
 import { Card, CardHeader, CardBlock } from 'card'
 import { FormattedRelative, FormattedTime } from 'react-intl'
-import { flatMap, flatten, get, includes, isEmpty, map, mapValues } from 'lodash'
+import { filter, flatMap, flatten, get, includes, isEmpty, map, mapValues } from 'lodash'
 import { connectStore, formatSize, noop, resolveIds } from 'utils'
 import {
   deleteMessage,
@@ -510,8 +510,11 @@ const HANDLED_VDI_TYPES = new Set(['system', 'user', 'ephemeral'])
   const getVifsByMac = createGetObjectsOfType('VIF')
     .pick(
       createCollectionWrapper(
-        createSelector(getVms.filter([({ blockedOperations: ops }) => !('start' in ops || 'start_on' in ops)]), vms =>
-          flatMap(vms, 'VIFs').sort()
+        createSelector(getVms, vms =>
+          flatMap(
+            filter(vms, ({ blockedOperations: ops }) => !('start' in ops || 'start_on' in ops)),
+            'VIFs'
+          ).sort()
         )
       )
     )
