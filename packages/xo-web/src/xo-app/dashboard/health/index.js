@@ -80,14 +80,14 @@ const AlarmColPool = connectStore(() => ({
 const DUPLICATED_MAC_ADDRESSES_COLUMNS = [
   {
     name: _('vifMacLabel'),
-    itemRenderer: ({ MAC }) => <pre>{MAC}</pre>,
-    sortCriteria: ({ MAC }) => MAC,
+    itemRenderer: ({ mac }) => <pre>{mac}</pre>,
+    sortCriteria: ({ mac }) => mac,
   },
   {
     name: _('vifs'),
-    itemRenderer: ({ VIFs }) => (
+    itemRenderer: ({ vifs }) => (
       <div>
-        {VIFs.map(vif => (
+        {vifs.map(vif => (
           <Row key={vif.id}>
             <Col>
               {_('vifOnVmWithNetwork', {
@@ -595,9 +595,9 @@ export default class Health extends Component {
         for (const [macAddress, vifs] of Object.entries(vifsByMac)) {
           if (vifs.length > 1) {
             duplicatedMacAddresses.push({
-              MAC: macAddress,
+              mac: macAddress,
               nRunningVms: vifs.filter(vif => vms[vif.$VM].power_state === 'Running').length,
-              VIFs: vifs,
+              vifs,
             })
           }
         }
@@ -762,15 +762,11 @@ export default class Health extends Component {
               <CardBlock>
                 <NoObjects
                   collection={props.areObjectsFetched ? duplicatedMacAddresses : null}
-                  component={() => (
-                    <SortedTable
-                      collection={duplicatedMacAddresses}
-                      columns={DUPLICATED_MAC_ADDRESSES_COLUMNS}
-                      filters={DUPLICATED_MAC_ADDRESSES_FILTERS}
-                      stateUrlParam='s_duplicated_mac_addresses'
-                    />
-                  )}
+                  columns={DUPLICATED_MAC_ADDRESSES_COLUMNS}
+                  component={SortedTable}
                   emptyMessage={_('noDuplicatedMacAddresses')}
+                  filters={DUPLICATED_MAC_ADDRESSES_FILTERS}
+                  stateUrlParam='s_duplicated_mac_addresses'
                 />
               </CardBlock>
             </Card>
