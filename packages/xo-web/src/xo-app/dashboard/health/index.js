@@ -594,18 +594,11 @@ export default class Health extends Component {
         const duplicatedMacAddresses = []
         for (const [macAddress, vifs] of Object.entries(vifsByMac)) {
           if (vifs.length > 1) {
-            let nRunningVms = 0
-            vifs.forEach(vif => {
-              if (vms[vif.$VM].power_state === 'Running') {
-                nRunningVms++
-              }
-            })
-            const duplicatedMacAddress = {
+            duplicatedMacAddresses.push({
               MAC: macAddress,
-              nRunningVms,
+              nRunningVms: vifs.filter(vif => vms[vif.$VM].power_state === 'Running').length,
               VIFs: vifs,
-            }
-            duplicatedMacAddresses.push(duplicatedMacAddress)
+            })
           }
         }
         return duplicatedMacAddresses.sort()
