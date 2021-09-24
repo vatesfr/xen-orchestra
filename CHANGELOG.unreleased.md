@@ -36,5 +36,6 @@
 
 - vhd-lib minor
 - xo-server-netbox patch
+- @xen-orchestra/proxy patch
 - xo-server patch
 - xo-web minor
