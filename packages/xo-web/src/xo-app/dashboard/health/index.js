@@ -80,14 +80,14 @@ const AlarmColPool = connectStore(() => ({
 const DUPLICATED_MAC_ADDRESSES_COLUMNS = [
   {
     name: _('vifMacLabel'),
-    itemRenderer: macAddress => <pre>{macAddress}</pre>,
-    sortCriteria: macAddress => macAddress,
+    itemRenderer: ({ MAC }) => <pre>{MAC}</pre>,
+    sortCriteria: ({ MAC }) => MAC,
   },
   {
     name: _('vifs'),
-    itemRenderer: (macAddress, { vifsByMac }) => (
+    itemRenderer: ({ VIFs }) => (
       <div>
-        {vifsByMac[macAddress].map(vif => (
+        {VIFs.map(vif => (
           <Row key={vif.id}>
             <Col>
               {_('vifOnVmWithNetwork', {
@@ -102,6 +102,10 @@ const DUPLICATED_MAC_ADDRESSES_COLUMNS = [
     ),
   },
 ]
+
+const DUPLICATED_MAC_ADDRESSES_FILTERS = {
+  filterOnlyRunningVms: 'nRunningVms:>1',
+}
 
 const SR_COLUMNS = [
   {
@@ -532,6 +536,7 @@ const HANDLED_VDI_TYPES = new Set(['system', 'user', 'ephemeral'])
     guestToolsVms: getGuestToolsVms,
     userSrs: getUserSrs,
     vifsByMac: getVifsByMac,
+    vms: getVms,
   }
 })
 export default class Health extends Component {
@@ -584,11 +589,23 @@ export default class Health extends Component {
   _getDuplicatedMacAddresses = createCollectionWrapper(
     createSelector(
       () => this._getVifsByMac(),
-      vifsByMac => {
+      () => this.props.vms,
+      (vifsByMac, vms) => {
         const duplicatedMacAddresses = []
         for (const [macAddress, vifs] of Object.entries(vifsByMac)) {
           if (vifs.length > 1) {
-            duplicatedMacAddresses.push(macAddress)
+            let nRunningVms = 0
+            vifs.forEach(vif => {
+              if (vms[vif.$VM].power_state === 'Running') {
+                nRunningVms++
+              }
+            })
+            const duplicatedMacAddress = {
+              MAC: macAddress,
+              nRunningVms,
+              VIFs: vifs,
+            }
+            duplicatedMacAddresses.push(duplicatedMacAddress)
           }
         }
         return duplicatedMacAddresses.sort()
@@ -752,11 +769,15 @@ export default class Health extends Component {
               <CardBlock>
                 <NoObjects
                   collection={props.areObjectsFetched ? duplicatedMacAddresses : null}
-                  columns={DUPLICATED_MAC_ADDRESSES_COLUMNS}
-                  component={SortedTable}
-                  data-vifsByMac={this.props.vifsByMac}
+                  component={() => (
+                    <SortedTable
+                      collection={duplicatedMacAddresses}
+                      columns={DUPLICATED_MAC_ADDRESSES_COLUMNS}
+                      filters={DUPLICATED_MAC_ADDRESSES_FILTERS}
+                      stateUrlParam='s_duplicated_mac_addresses'
+                    />
+                  )}
                   emptyMessage={_('noDuplicatedMacAddresses')}
-                  stateUrlParam='s_duplicated_mac_addresses'
                 />
               </CardBlock>
             </Card>
