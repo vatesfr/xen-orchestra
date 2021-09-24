@@ -512,7 +512,7 @@ const HANDLED_VDI_TYPES = new Set(['system', 'user', 'ephemeral'])
       createCollectionWrapper(
         createSelector(
           getVms.filter([
-            vm => !Object.keys(vm.blockedOperations).some(operation => operation === 'start' || 'start_on'),
+            ({ blockedOperations: ops }) => 'start' in ops || 'start_on' in ops,
           ]),
           vms => flatMap(vms, 'VIFs').sort()
         )
