@@ -510,11 +510,8 @@ const HANDLED_VDI_TYPES = new Set(['system', 'user', 'ephemeral'])
   const getVifsByMac = createGetObjectsOfType('VIF')
     .pick(
       createCollectionWrapper(
-        createSelector(
-          getVms.filter([
-            ({ blockedOperations: ops }) => 'start' in ops || 'start_on' in ops,
-          ]),
-          vms => flatMap(vms, 'VIFs').sort()
+        createSelector(getVms.filter([({ blockedOperations: ops }) => !('start' in ops || 'start_on' in ops)]), vms =>
+          flatMap(vms, 'VIFs').sort()
         )
       )
     )
