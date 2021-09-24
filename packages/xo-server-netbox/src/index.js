@@ -167,7 +167,23 @@ class Netbox {
     return results
   }
 
+  async #checkCustomFields() {
+    const customFields = await this.#makeRequest('/extras/custom-fields/', 'GET')
+    const uuidCustomField = customFields.find(field => field.name === 'uuid')
+    if (uuidCustomField === undefined) {
+      throw new Error('UUID custom field was not found. Please create it manually from your Netbox interface.')
+    }
+    const { content_types: types } = uuidCustomField
+    if (!types.includes('virtualization.cluster') || !types.includes('virtualization.virtualmachine')) {
+      throw new Error(
+        'UUID custom field must be assigned to types virtualization.cluster and virtualization.virtualmachine'
+      )
+    }
+  }
+
   async #synchronize(pools = this.#pools) {
+    await this.#checkCustomFields()
+
     const xo = this.#xo
     log.debug('synchronizing')
     // Cluster type
@@ -218,6 +234,10 @@ class Netbox {
       }
     }
 
+    // FIXME: Should we deduplicate cluster names even though it also fails when
+    // a cluster within another cluster type has the same name?
+    // FIXME: Should we delete clusters from this cluster type that don't have a
+    // UUID?
     Object.assign(
       clusters,
       keyBy(
@@ -237,19 +257,31 @@ class Netbox {
 
     // VMs
     const vms = xo.getObjects({ filter: object => object.type === 'VM' && pools.includes(object.$pool) })
-    const oldNetboxVms = keyBy(
-      flatten(
-        // FIXME: It should be doable with one request:
-        // `cluster_id=1&cluster_id=2` but it doesn't work
-        // https://netbox.readthedocs.io/en/stable/rest-api/filtering/#filtering-objects
-        await Promise.all(
-          pools.map(poolId =>
-            this.#makeRequest(`/virtualization/virtual-machines/?cluster_id=${clusters[poolId].id}`, 'GET')
-          )
+    let oldNetboxVms = flatten(
+      // FIXME: It should be doable with one request:
+      // `cluster_id=1&cluster_id=2` but it doesn't work
+      // https://netbox.readthedocs.io/en/stable/rest-api/filtering/#filtering-objects
+      await Promise.all(
+        pools.map(poolId =>
+          this.#makeRequest(`/virtualization/virtual-machines/?cluster_id=${clusters[poolId].id}`, 'GET')
         )
-      ),
-      'custom_fields.uuid'
+      )
     )
+
+    const vmsWithNoUuid = oldNetboxVms.filter(vm => vm.custom_fields.uuid === null)
+    oldNetboxVms = omit(keyBy(oldNetboxVms, 'custom_fields.uuid'), null)
+
+    // Delete VMs that don't have a UUID custom field. This can happen if they
+    // were created manually or if the custom field config was changed after
+    // their creation
+    if (vmsWithNoUuid !== undefined) {
+      log.warn(`Found ${vmsWithNoUuid.length} VMs with no UUID. Deleting them.`)
+      await this.#makeRequest(
+        '/virtualization/virtual-machines/',
+        'DELETE',
+        vmsWithNoUuid.map(vm => ({ id: vm.id }))
+      )
+    }
 
     // Build collections for later
     const netboxVms = {} // VM UUID → Netbox VM
@@ -478,7 +510,7 @@ class Netbox {
       .forEach(newInterfaces => Object.assign(interfaces, newInterfaces))
 
     // IPs
-    const [oldNetboxIps, prefixes] = await Promise.all([
+    const [oldNetboxIps, netboxPrefixes] = await Promise.all([
       this.#makeRequest('/ipam/ip-addresses/', 'GET').then(addresses =>
         groupBy(
           // In Netbox, a device interface and a VM interface can have the same
@@ -517,27 +549,33 @@ class Netbox {
           const parsedIp = ipaddr.parse(ip)
           const ipKind = parsedIp.kind()
           const ipCompactNotation = parsedIp.toString()
-          // FIXME: Should we compare the IPs with their range? ie: can 2 IPs
-          // look identical but belong to 2 different ranges?
-          const netboxIpIndex = interfaceOldIps.findIndex(
-            netboxIp => ipaddr.parse(netboxIp.address.split('/')[0]).toString() === ipCompactNotation
-          )
+
+          let smallestPrefix
+          let highestBits = 0
+          netboxPrefixes.forEach(({ prefix }) => {
+            const [range, bits] = prefix.split('/')
+            const parsedRange = ipaddr.parse(range)
+            if (parsedRange.kind() === ipKind && parsedIp.match(parsedRange, bits) && bits > highestBits) {
+              smallestPrefix = prefix
+              highestBits = bits
+            }
+          })
+          if (smallestPrefix === undefined) {
+            ignoredIps.push(ip)
+            continue
+          }
+
+          const netboxIpIndex = interfaceOldIps.findIndex(netboxIp => {
+            const [ip, bits] = netboxIp.address.split('/')
+            return ipaddr.parse(ip).toString() === ipCompactNotation && bits === highestBits
+          })
+
           if (netboxIpIndex >= 0) {
             netboxIpsByVif[vifId].push(interfaceOldIps[netboxIpIndex])
             interfaceOldIps.splice(netboxIpIndex, 1)
           } else {
-            const prefix = prefixes.find(({ prefix }) => {
-              const [range, bits] = prefix.split('/')
-              const parsedRange = ipaddr.parse(range)
-              return parsedRange.kind() === ipKind && parsedIp.match(parsedRange, bits)
-            })
-            if (prefix === undefined) {
-              ignoredIps.push(ip)
-              continue
-            }
-
             ipsToCreate.push({
-              address: `${ip}/${prefix.prefix.split('/')[1]}`,
+              address: `${ip}/${smallestPrefix.split('/')[1]}`,
               assigned_object_type: 'virtualization.vminterface',
               assigned_object_id: interface_.id,
               vifId, // needed to populate netboxIpsByVif with newly created IPs
@@ -625,6 +663,8 @@ class Netbox {
       `/virtualization/cluster-types/?name=${encodeURIComponent(name)}`,
       'GET'
     )
+
+    await this.#checkCustomFields()
 
     if (clusterTypes.length !== 1) {
       throw new Error('Could not properly write and read Netbox')
