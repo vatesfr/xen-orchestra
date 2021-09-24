@@ -511,10 +511,10 @@ const HANDLED_VDI_TYPES = new Set(['system', 'user', 'ephemeral'])
     .pick(
       createCollectionWrapper(
         createSelector(getVms, vms => {
-          let vifs = []
+          const vifs = []
           forEach(vms, ({ blockedOperations: ops, VIFs }) => {
-            if (!('start' in ops || 'start_on' in ops)) {
-              vifs = [...vifs, ...VIFs]
+            if (!('start' in ops && 'start_on' in ops)) {
+              Array.prototype.push.apply(vifs, VIFs)
             }
           })
           return vifs.sort()
