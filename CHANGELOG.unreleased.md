@@ -7,7 +7,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [Health] Do not take as consideration duplicated mac address from CR VM's (PR [#5916](https://github.com/vatesfr/xen-orchestra/pull/5916))
+- [Health] Do not take into consideration duplicated MAC addresses from CR VMs (PR [#5916](https://github.com/vatesfr/xen-orchestra/pull/5916))
 
 ### Bug fixes
 
