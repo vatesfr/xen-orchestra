@@ -15,7 +15,7 @@ import { SelectPool } from 'select-objects'
 import { Container, Row, Col } from 'grid'
 import { Card, CardHeader, CardBlock } from 'card'
 import { FormattedRelative, FormattedTime } from 'react-intl'
-import { flatMap, flatten, get, includes, isEmpty, map, mapValues } from 'lodash'
+import { flatten, forEach, get, includes, isEmpty, map, mapValues } from 'lodash'
 import { connectStore, formatSize, noop, resolveIds } from 'utils'
 import {
   deleteMessage,
@@ -508,7 +508,19 @@ const HANDLED_VDI_TYPES = new Set(['system', 'user', 'ephemeral'])
   const getUserSrs = getSrs.filter([isSrWritable])
   const getAlertMessages = createGetObjectsOfType('message').filter([message => message.name === 'ALARM'])
   const getVifsByMac = createGetObjectsOfType('VIF')
-    .pick(createCollectionWrapper(createSelector(getVms, vms => flatMap(vms, 'VIFs').sort())))
+    .pick(
+      createCollectionWrapper(
+        createSelector(getVms, vms => {
+          const vifs = []
+          forEach(vms, ({ blockedOperations: ops, VIFs }) => {
+            if (!('start' in ops && 'start_on' in ops)) {
+              Array.prototype.push.apply(vifs, VIFs)
+            }
+          })
+          return vifs.sort()
+        })
+      )
+    )
     .groupBy('MAC')
 
   return {
