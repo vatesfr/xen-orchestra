@@ -7,6 +7,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [Backup] Go back to previous page instead of going to the overview after editing a job: keeps current filters and page (PR [#5913](https://github.com/vatesfr/xen-orchestra/pull/5913))
 - [Health] Do not take into consideration duplicated MAC addresses from CR VMs (PR [#5916](https://github.com/vatesfr/xen-orchestra/pull/5916))
 
 ### Bug fixes
@@ -36,5 +37,6 @@
 
 - vhd-lib minor
 - xo-server-netbox patch
+- @xen-orchestra/proxy patch
 - xo-server patch
-- xo-web patch
+- xo-web minor
