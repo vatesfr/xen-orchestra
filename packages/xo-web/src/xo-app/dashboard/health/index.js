@@ -508,7 +508,16 @@ const HANDLED_VDI_TYPES = new Set(['system', 'user', 'ephemeral'])
   const getUserSrs = getSrs.filter([isSrWritable])
   const getAlertMessages = createGetObjectsOfType('message').filter([message => message.name === 'ALARM'])
   const getVifsByMac = createGetObjectsOfType('VIF')
-    .pick(createCollectionWrapper(createSelector(getVms, vms => flatMap(vms, 'VIFs').sort())))
+    .pick(
+      createCollectionWrapper(
+        createSelector(
+          getVms.filter([
+            vm => !Object.keys(vm.blockedOperations).some(operation => operation === 'start' || 'start_on'),
+          ]),
+          vms => flatMap(vms, 'VIFs').sort()
+        )
+      )
+    )
     .groupBy('MAC')
 
   return {
