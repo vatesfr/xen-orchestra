@@ -318,4 +318,20 @@ export default class S3Handler extends RemoteHandlerAbstract {
   }
 
   async _closeFile(fd) {}
+
+  async _isDirectory(path) {
+    return !(await this._isFile(path))
+  }
+
+  async _exists(path) {
+    try {
+      await this._s3.headObject(this._createParams(path))
+      return true
+    } catch (error) {
+      if (error.code === 'NotFound') {
+        return false
+      }
+      throw error
+    }
+  }
 }
