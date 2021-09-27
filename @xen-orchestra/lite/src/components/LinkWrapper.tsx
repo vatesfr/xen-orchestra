@@ -7,7 +7,7 @@ const LinkWrapper = ({
   to,
   style,
 }: {
-  children: any
+  children: React.ReactNode
   link?: boolean
   to?: string | object
   style?: object

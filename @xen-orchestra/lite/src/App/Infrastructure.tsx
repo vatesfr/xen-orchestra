@@ -6,7 +6,6 @@ import { withState } from 'reaclette'
 import IntlMessage from '../components/IntlMessage'
 import Tree from '../components/Tree'
 import { Host, Vm, Pool } from '../libs/xapi'
-import { stringify } from 'querystring'
 
 interface ParentState {}
 
@@ -19,9 +18,9 @@ interface ParentEffects {}
 interface Effects {}
 
 interface Computed {
-  collection?: Seq<string, object>
+  collection?: Array<object>
   haltedVmsByPool?: Collection.Keyed<string, Collection<string, Vm>>
-  hostsByPool?: Collection.Keyed<string, Collection<string, Host>>
+  hostsByPool?: Map<string, Map<string, Host>>
   pools?: Map<string, Pool>
   vms?: Map<string, Vm>
   vmsByPool?: Collection.Keyed<string, Collection<string, Vm>>

@@ -84,7 +84,7 @@ const renderCustomItem = ({
   to,
 }: {
   children?: Array<object>
-  icon?: any
+  icon?: React.ReactNode
   id: string
   label: React.ReactNode
   link?: boolean
