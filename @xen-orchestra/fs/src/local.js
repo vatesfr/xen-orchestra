@@ -142,4 +142,20 @@ export default class LocalHandler extends RemoteHandlerAbstract {
   _writeFile(file, data, { flags }) {
     return fs.writeFile(this._getFilePath(file), data, { flag: flags })
   }
+
+  async _isDirectory(filePath) {
+    return (await fs.lstat(filePath)).isDirectory()
+  }
+
+  async _exists(filePath) {
+    try {
+      await fs.stat(filePath)
+      return true
+    } catch (e) {
+      if (e.code === 'ENOENT') {
+        return false
+      }
+      throw e
+    }
+  }
 }

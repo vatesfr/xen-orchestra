@@ -1,9 +1,0 @@
-
-[s3]
-accessKeyId = "minioadmin"
-endpoint = "https://172.16.211.150:9000"
-secretAccessKey = "minioadmin"
-
-[fs]
-src = '/home/florent/Téléchargements/Debian Buster 10_akipu.vhd'
-dest = '/home/florent/Téléchargements/Debianout.vhd'
