@@ -18,7 +18,7 @@ const Container = styled.div`
   height: 100vh;
   display: grid;
   grid-template-columns: 1fr 3fr;
-  grid-template-rows: 4vh 93vh 3vh;
+  grid-template-rows: 5vh 92vh 3vh;
   grid-template-areas:
     'header header'
     'sideBar main'
@@ -161,11 +161,11 @@ const App = withState<State, Props, Effects, Computed, ParentState, ParentEffect
                   </Route>
                   <Route
                     path='/vms/:id/console'
-                    render={({ match }) => (
+                    render={({ match: { params } }) => (
                       <>
                         {sideBar}
                         <MainPanel>
-                          <TabConsole vmId={match.params.id} />
+                          <TabConsole key={params.id} vmId={params.id} />
                         </MainPanel>
                       </>
                     )}
