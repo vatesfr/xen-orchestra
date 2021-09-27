@@ -1,4 +1,4 @@
-export { default } from './vhd'
+export { Vhd, ChunkedVhd, VhdFile } from './vhd'
 export { default as chainVhd } from './chain'
 export { default as checkVhdChain } from './checkChain'
 export { default as createContentStream } from './createContentStream'
