@@ -11,6 +11,7 @@
   "dns": "DNS",
   "errorOccurred": "An error has occurred.",
   "gateway": "Gateway",
+  "halted": "Halted",
   "ip": "IP",
   "loading": "Loading…",
   "login": "Login",
@@ -19,9 +20,12 @@
   "noManagementPifs": "No management PIFs found",
   "noUpdatesAvailable": "No updates available",
   "password": "Password",
+  "paused": "Paused",
   "reconnectionAttempt": "Trying to reconnect…",
   "release": "Release",
   "rememberMe": "Remember me",
+  "running": "Running",
   "size": "Size",
+  "suspended": "Suspended"
   "version": "Version"
 }

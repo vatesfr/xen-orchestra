@@ -59,7 +59,10 @@ export interface Vm extends XapiObject {
 }
 
 export interface Host extends XapiObject {
+  $pool: string
   name_label: string
+  power_state: string
+  resident_VMs: Array<string>
 }
 
 // --------
