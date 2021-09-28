@@ -5,7 +5,7 @@ import noop from './_noop'
 import { createLogger } from '@xen-orchestra/log'
 import { limitConcurrency } from 'limit-concurrency-decorator'
 
-import Vhd from './vhd'
+import { Vhd } from '.'
 import { basename, dirname } from 'path'
 import { DISK_TYPE_DIFFERENCING, DISK_TYPE_DYNAMIC } from './_constants'
 

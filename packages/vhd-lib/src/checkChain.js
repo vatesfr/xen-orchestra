@@ -1,4 +1,4 @@
-import Vhd from './vhd'
+import { Vhd } from '.'
 import resolveRelativeFromFile from './_resolveRelativeFromFile'
 import { DISK_TYPE_DYNAMIC } from './_constants'
 

@@ -1,53 +1,33 @@
-'use strict'
-import assert from 'assert'
-import { AbstractVhd } from './abstractVhd'
-import { sectorsRoundUpNoZero, sectorsToBytes, buildHeader, buildFooter, computeBatSize } from './_utils'
-import { fuFooter, fuHeader, checksumStruct } from '../_structs'
-import { test, set as setBitmap } from '../_bitmap'
-import { SECTOR_SIZE } from '../_constants'
-import { createLogger } from '@xen-orchestra/log'
 import { BLOCK_UNUSED } from '../../dist/_constants'
+import { createLogger } from '@xen-orchestra/log'
+import { fuFooter, fuHeader, checksumStruct } from '../_structs'
+import { SECTOR_SIZE } from '../_constants'
+import { sectorsRoundUpNoZero, sectorsToBytes, buildHeader, buildFooter, computeBatSize } from './_utils'
+import { test, set as setBitmap } from '../_bitmap'
+import { VhdAbstract } from './VhdAbstract'
+import assert from 'assert'
 
 const { debug } = createLogger('vhd-lib:ChunkedVhd')
-// File structure on remotes:
-//
-// <remote>
-// └─ xo-vm-backups
-//   ├─ index.json // TODO
-//   └─ <VM UUID>
-//      ├─ index.json // TODO
-//      ├─ vdis
-//      │  └─ <job UUID>
-//      │     └─ <VDI UUID>
-//      │        ├─ index.json // TODO
-//      │        ├─ <YYYYMMDD>T<HHmmss>.vhd // a text file containing the path of the folder storing the chuncked vhd
-//      |        └─ <uid>
-//      |           ├─ footer
-//      |           ├─ header
-//      |           ├─ bat // a bits array where a 1 at index i indicate that the block i is present
-//      |           └─ <index> // block with id 'index'
-//      ├─ <YYYYMMDD>T<HHmmss>.json // backup metadata
-//      ├─ <YYYYMMDD>T<HHmmss>.xva
-//      └─ <YYYYMMDD>T<HHmmss>.xva.checksum
 
-export class ChunkedVhd extends AbstractVhd {
-  static async open(handler, path) {
+export class VhdDirectory extends VhdAbstract {
+  static async open(handler, path, flags) {
     await handler.mkdir(path)
-    const vhd = new ChunkedVhd(handler, path)
+    const vhd = new VhdDirectory(handler, path, flags)
     return {
       dispose: () => {},
       value: vhd,
     }
   }
 
-  constructor(handler, path) {
+  constructor(handler, path, flags) {
     super()
     this._handler = handler
     this._path = path
+    this._flags = flags
   }
 
   async readBlockAllocationTable() {
-    assert(this.header, 'Header must not be empty to access bat')
+    assert(this.header !== undefined, `header must be read before it's used`)
 
     const { buffer } = await this._readChunk('bat')
     /**
@@ -69,7 +49,7 @@ export class ChunkedVhd extends AbstractVhd {
   }
 
   containsBlock(blockId) {
-    assert(this.blockTable, 'Block table must not be empty to access a block address')
+    assert(this.blockTable !== undefined, 'Block table must not be empty to access a block address')
 
     return this.blockTable.readUInt32BE(blockId * 4) !== BLOCK_UNUSED
   }
@@ -90,7 +70,7 @@ export class ChunkedVhd extends AbstractVhd {
   async _writeChunk(partName, buffer) {
     assert(Buffer.isBuffer(buffer))
     // here we can implement compression and / or crypto
-    return this._handler.writeFile(this.getChunkPath(partName), buffer, { flags: 'w' })
+    return this._handler.writeFile(this.getChunkPath(partName), buffer, { flags: this._flags })
   }
 
   async readHeaderAndFooter() {
@@ -118,7 +98,7 @@ export class ChunkedVhd extends AbstractVhd {
     this.bitmapSize = sectorsToBytes(sectorsOfBitmap)
   }
 
-  async _readBlock(blockId, onlyBitmap = false) {
+  async readBlock(blockId, onlyBitmap = false) {
     if (onlyBitmap) {
       throw new Error(`reading 'bitmap of block' ${blockId} in a ChunkedVhd is not implemented`)
     }
@@ -154,8 +134,9 @@ export class ChunkedVhd extends AbstractVhd {
   }
 
   writeBlockAllocationTable() {
-    assert(this.blockTable && this.blockTable.length)
-    assert(this.blockTable.length % 4 === 0)
+    assert(this.blockTable !== undefined, 'Block allocation table has not been read')
+    assert(this.blockTable.length, 'Block allocation table is empty')
+    assert(this.blockTable.length % 4 === 0, 'Block allocation table size is incorrect')
 
     const { blockTable } = this
 
@@ -184,8 +165,32 @@ export class ChunkedVhd extends AbstractVhd {
     this._handler.copy(child.getChunkPath(blockId), this.getChunkPath(blockId))
   }
 
-  async _writeEntireBlock(block) {
+  async writeEntireBlock(block) {
     // @todo should check if bat should be updated
     await this._writeChunk(block.id, block.buffer)
+  }
+
+  readParentLocatorData(parentLocatorId) {
+    assert(parentLocatorId >= 0, 'parent Locator id must be a positive number')
+    assert(parentLocatorId < 8, 'parent Locator id  must be less than 8')
+    assert(this.header !== undefined, `header must be read before it's used`)
+    const { platformDataSpace } = this.header.parentLocatorEntry[parentLocatorId]
+    if (!platformDataSpace) {
+      return null
+    }
+    return this._readChunk('parentLocator' + parentLocatorId)
+  }
+
+  writeParentLocator(parentLocatorId, data) {
+    assert(parentLocatorId >= 0, 'parent Locator id must be a positive number')
+    assert(parentLocatorId < 8, 'parent Locator id  must be less than 8')
+    assert(this.header !== undefined, `header must be read before it's used`)
+
+    const { platformDataSpace } = this.header.parentLocatorEntry[parentLocatorId]
+    if (!platformDataSpace) {
+      return null
+    }
+    assert(data.length <= platformDataSpace)
+    return this._writeChunk('parentLocator' + parentLocatorId, data)
   }
 }

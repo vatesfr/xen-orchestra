@@ -90,8 +90,6 @@ export default class RemoteHandlerAbstract {
     this.unlink = sharedLimit(this.unlink)
     this.write = sharedLimit(this.write)
     this.writeFile = sharedLimit(this.writeFile)
-    this.exists = sharedLimit(this.exists)
-    this.isDirectory = sharedLimit(this.isDirectory)
 
     this._forget = coalesceCalls(this._forget)
     this._sync = coalesceCalls(this._sync)
@@ -383,14 +381,6 @@ export default class RemoteHandlerAbstract {
     await this._writeFile(normalizePath(file), data, { flags })
   }
 
-  async isDirectory(filePath) {
-    return await this._isDirectory(filePath)
-  }
-
-  async exists(filePath) {
-    return await this._exists(filePath)
-  }
-
   // Methods that can be called by private methods to avoid parallel limit on public methods
 
   async __closeFile(fd) {
@@ -581,14 +571,6 @@ export default class RemoteHandlerAbstract {
   }
 
   async _writeFile(file, data, options) {
-    throw new Error('Not implemented')
-  }
-
-  async _isDirectory(file) {
-    throw new Error('Not implemented')
-  }
-
-  async _exists(file) {
     throw new Error('Not implemented')
   }
 }

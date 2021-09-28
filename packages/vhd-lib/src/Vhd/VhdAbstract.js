@@ -1,18 +1,35 @@
-import { computeBatSize } from './_utils'
-
-export class AbstractVhd {
-  header
-  footer
-  blockTable
-  fullBlockSize
+import { computeBatSize, sectorsRoundUpNoZero, sectorsToBytes } from './_utils'
+import { SECTOR_SIZE } from '../_constants'
+export class VhdAbstract {
   bitmapSize
+
+  blockTable
+  #header
+  footer
+
+  fullBlockSize
+  sectorsOfBitmap
+  sectorsPerBlock
+
+  get header() {
+    return this.#header
+  }
+
+  set header(header) {
+    this.#header = header
+    this.sectorsPerBlock = this.header.blockSize / SECTOR_SIZE
+    this.sectorsOfBitmap = sectorsRoundUpNoZero(this.sectorsPerBlock >> 3)
+    this.fullBlockSize = this.sectorsOfBitmap + this.sectorsPerBlock
+    this.bitmapSize = sectorsToBytes(this.sectorsOfBitmap)
+  }
+
   /**
    * instantiate a Vhd
    *
    * @returns {AbstractVhd}
    */
-  static async open(handler, path) {
-    throw new Error(`open is not implemented`)
+  static async open(opts = {}) {
+    throw new Error('open not implemented')
   }
 
   /**
@@ -42,7 +59,7 @@ export class AbstractVhd {
   }
 
   readBlockAllocationTable() {
-    throw new Error(`reading $block allocation table is not implemented`)
+    throw new Error(`reading block allocation table is not implemented`)
   }
 
   /**
@@ -51,7 +68,7 @@ export class AbstractVhd {
    * @param {Boolean} onlyBitmap
    * @returns {Buffer}
    */
-  _readBlock(blockId, onlyBitmap = false) {
+  readBlock(blockId, onlyBitmap = false) {
     throw new Error(`reading  ${onlyBitmap ? 'bitmap of block' : 'block'} ${blockId} is not implemented`)
   }
 
@@ -85,9 +102,6 @@ export class AbstractVhd {
   writeHeader() {
     throw new Error(`writing header is not implemented`)
   }
-
-  // never called outside
-  // writeData(offsetSectors, buffer) { }
 
   setUniqueParentLocator(fileNameString) {
     throw new Error(`setting unique parent locator from file name ${fileNameString} is not implemented`)

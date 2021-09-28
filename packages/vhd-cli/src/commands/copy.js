@@ -1,86 +1,80 @@
-import { VhdFile, ChunkedVhd } from 'vhd-lib'
-
-import { getHandler } from '@xen-orchestra/fs'
-import getopts from 'getopts'
+import { getSyncedHandler } from '@xen-orchestra/fs'
 import { resolve } from 'path'
+import { VhdDirectory, VhdFile } from 'vhd-lib'
 import Disposable from 'promise-toolbox/Disposable'
+import getopts from 'getopts'
 
 export default async rawArgs => {
   const {
-    chunk,
+    directory,
     force,
+    help,
     _: args,
   } = getopts(rawArgs, {
     alias: {
-      chunk: 'c',
+      directory: 'd',
       force: 'f',
+      help: 'h',
     },
-    boolean: ['chunk', 'force'],
+    boolean: ['directory', 'force'],
     default: {
-      chunk: false,
+      directory: false,
       force: false,
+      help: false,
     },
   })
-  if (args.length < 2 || args.some(_ => _ === '-h' || _ === '--help')) {
-    return `Usage: ${this.command} <source VHD> <destination> --chunk --force`
+  if (args.length < 2 || help) {
+    return `Usage: index.js copy <source VHD> <destination> --directory --force`
   }
-  const source = args[0]
-  const dest = args[1]
-  const handler = getHandler({ url: 'file:///' })
+  const [sourcePath, destPath] = args
 
-  const sourceIsDirectory = await handler.isDirectory(source)
-
-  const destExists = await handler.exists(dest)
-  if (destExists && !force) {
-    throw new Error(`${dest} already exists, use --force to overwrite`)
-  }
-  if (destExists) {
-    const destIsDirectory = await handler.isDirectory(dest)
-
-    if (destIsDirectory && !chunk) {
-      throw new Error(`${dest} is a file, can't write in chunk mode `)
+  await Disposable.use(async function* () {
+    const handler = yield getSyncedHandler({ url: 'file://' })
+    const resolvedSourcePath = resolve(sourcePath)
+    let src
+    try {
+      src = yield VhdFile.open(handler, resolvedSourcePath, 'r')
+      // openning a file for reading does not trigger EISDIR as long as we don't really read from it :
+      // https://man7.org/linux/man-pages/man2/open.2.html
+      // EISDIR pathname refers to a directory and the access requested
+      // involved writing (that is, O_WRONLY or O_RDWR is set).
+      await src.readHeaderAndFooter()
+    } catch (e) {
+      if (e.code === 'EISDIR') {
+        src = yield VhdDirectory.open(handler, resolvedSourcePath, 'r')
+        await src.readHeaderAndFooter()
+      } else {
+        throw e
+      }
     }
 
-    if (!destIsDirectory && chunk) {
-      throw new Error(`${dest} already is a directory, can't write in non chunk mode `)
-    }
-  }
-
-  const sourceVhd = sourceIsDirectory
-    ? ChunkedVhd.open(handler, resolve(source))
-    : VhdFile.open(handler, resolve(source))
-  const destVhd = chunk ? ChunkedVhd.open(handler, resolve(dest), 'w') : VhdFile.open(handler, resolve(dest), 'w')
-
-  await Disposable.use(await sourceVhd, await destVhd, async (src, dest) => {
-    await src.readHeaderAndFooter()
     await src.readBlockAllocationTable()
+    const resolvedDestPath = resolve(destPath)
+    const destFlags = force ? 'w' : 'wx'
+    const dest = yield directory
+      ? VhdDirectory.open(handler, resolvedDestPath, destFlags)
+      : VhdFile.open(handler, resolvedDestPath, destFlags)
     // copy data
     dest.header = src.header
     dest.footer = src.footer
     dest.blockTable = Buffer.from(src.blockTable)
-    // computed data from src.readBlockAllocationTable, needed for dest._writeEntireBlock
-    dest.fullBlockSize = src.fullBlockSize
-    dest.bitmapSize = src.bitmapSize
-    dest.sectorsOfBitmap = src.sectorsOfBitmap
-    dest.sectorsPerBlock = src.sectorsPerBlock
-
-    await dest.writeFooter()
-    await dest.writeHeader()
-    await dest.writeBlockAllocationTable()
 
     for (let i = 0; i < src.header.maxTableEntries; i++) {
       if (src.containsBlock(i)) {
-        const block = await src._readBlock(i)
-        await dest._writeEntireBlock(block)
+        const block = await src.readBlock(i)
+        await dest.writeEntireBlock(block)
       }
     }
 
-    // copy parent Locator
-    for (let i = 0; i < 8; i++) {
-      if (src.header.parentLocatorEntry[i].platformDataOffset) {
-        const { platformDataOffset, platformDataSpace } = src.header.parentLocatorEntry[i]
-        await src._write(platformDataOffset, await src._read(platformDataOffset, platformDataSpace))
+    // copy parent locators
+    for (let parentLocatorId = 0; parentLocatorId < 8; parentLocatorId++) {
+      const parentLocatorData = src.readParentLocatorData(parentLocatorId)
+      if (parentLocatorData) {
+        dest.writeParentLocator(parentLocatorId, parentLocatorData)
       }
     }
+    await dest.writeFooter()
+    await dest.writeHeader()
+    await dest.writeBlockAllocationTable()
   })
 }

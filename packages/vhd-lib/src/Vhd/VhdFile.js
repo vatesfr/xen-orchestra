@@ -13,15 +13,8 @@ import {
   PLATFORM_W2KU,
   SECTOR_SIZE,
 } from '../_constants'
-import { AbstractVhd } from './abstractVhd'
-import {
-  computeBatSize,
-  sectorsRoundUpNoZero,
-  sectorsToBytes,
-  buildHeader,
-  buildFooter,
-  BUF_BLOCK_UNUSED,
-} from './_utils'
+import { VhdAbstract } from './VhdAbstract'
+import { computeBatSize, sectorsToBytes, buildHeader, buildFooter, BUF_BLOCK_UNUSED } from './_utils'
 
 const { debug } = createLogger('vhd-lib:Vhd')
 
@@ -59,7 +52,7 @@ const { debug } = createLogger('vhd-lib:Vhd')
 // - parentLocatorSize(i) = header.parentLocatorEntry[i].platformDataSpace * sectorSize
 // - sectorSize = 512
 
-export class VhdFile extends AbstractVhd {
+export class VhdFile extends VhdAbstract {
   static async open(handler, path, flags) {
     const fd = await handler.openFile(path, flags)
     const vhd = new VhdFile(handler, fd)
@@ -152,21 +145,6 @@ export class VhdFile extends AbstractVhd {
 
     this.footer = footer
     this.header = header
-
-    // Compute the number of sectors in one block.
-    // Default: One block contains 4096 sectors of 512 bytes.
-    const sectorsPerBlock = (this.sectorsPerBlock = header.blockSize / SECTOR_SIZE)
-
-    // Compute bitmap size in sectors.
-    // Default: 1.
-    const sectorsOfBitmap = (this.sectorsOfBitmap = sectorsRoundUpNoZero(sectorsPerBlock >> 3))
-
-    // Full block size => data block size + bitmap size.
-    this.fullBlockSize = sectorsToBytes(sectorsPerBlock + sectorsOfBitmap)
-
-    // In bytes.
-    // Default: 512.
-    this.bitmapSize = sectorsToBytes(sectorsOfBitmap)
   }
 
   // Returns a buffer that contains the block allocation table of a vhd file.
@@ -182,7 +160,7 @@ export class VhdFile extends AbstractVhd {
     return i < blockTable.length ? blockTable.readUInt32BE(i) : BLOCK_UNUSED
   }
 
-  _readBlock(blockId, onlyBitmap = false) {
+  readBlock(blockId, onlyBitmap = false) {
     const blockAddr = this._getBatEntry(blockId)
     if (blockAddr === BLOCK_UNUSED) {
       throw new Error(`no such block ${blockId}`)
@@ -296,7 +274,7 @@ export class VhdFile extends AbstractVhd {
     await this._write(bitmap, sectorsToBytes(blockAddr))
   }
 
-  async _writeEntireBlock(block) {
+  async writeEntireBlock(block) {
     let blockAddr = this._getBatEntry(block.id)
 
     if (blockAddr === BLOCK_UNUSED) {
@@ -312,7 +290,7 @@ export class VhdFile extends AbstractVhd {
       blockAddr = await this._createBlock(block.id)
       parentBitmap = Buffer.alloc(this.bitmapSize, 0)
     } else if (parentBitmap === undefined) {
-      parentBitmap = (await this._readBlock(block.id, true)).bitmap
+      parentBitmap = (await this.readBlock(block.id, true)).bitmap
     }
 
     const offset = blockAddr + this.sectorsOfBitmap + beginSectorId
@@ -331,7 +309,7 @@ export class VhdFile extends AbstractVhd {
   }
 
   async coalesceBlock(child, blockId) {
-    const block = await child._readBlock(blockId)
+    const block = await child.readBlock(blockId)
     const { bitmap, data } = block
 
     debug(`coalesceBlock block=${blockId}`)
@@ -356,10 +334,10 @@ export class VhdFile extends AbstractVhd {
 
       const isFullBlock = i === 0 && endSector === sectorsPerBlock
       if (isFullBlock) {
-        await this._writeEntireBlock(block)
+        await this.writeEntireBlock(block)
       } else {
         if (parentBitmap === null) {
-          parentBitmap = (await this._readBlock(blockId, true)).bitmap
+          parentBitmap = (await this.readBlock(blockId, true)).bitmap
         }
         await this._writeBlockSectors(block, i, endSector, parentBitmap)
       }
@@ -461,5 +439,29 @@ export class VhdFile extends AbstractVhd {
       header.parentLocatorEntry[i].platformDataLength = 0
       header.parentLocatorEntry[i].platformDataOffset = 0
     }
+  }
+
+  readParentLocatorData(parentLocatorId) {
+    assert(parentLocatorId >= 0)
+    assert(parentLocatorId < 8)
+    assert(this.header)
+    const { platformDataOffset, platformDataSpace } = this.header.parentLocatorEntry[parentLocatorId]
+    if (platformDataSpace === 0) {
+      return null
+    }
+    return this._read(platformDataOffset, platformDataSpace)
+  }
+
+  writeParentLocator(parentLocatorId, data) {
+    assert(parentLocatorId >= 0)
+    assert(parentLocatorId < 8)
+    assert(this.header)
+
+    const { platformDataOffset, platformDataSpace } = this.header.parentLocatorEntry[parentLocatorId]
+    if (platformDataSpace === 0) {
+      return
+    }
+    assert(data.length <= platformDataSpace)
+    return this._write(platformDataOffset, data)
   }
 }
