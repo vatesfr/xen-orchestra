@@ -4,8 +4,8 @@ import TreeItem, { useTreeItem } from '@mui/lab/TreeItem'
 import { Tooltip } from '@material-ui/core'
 import { withState } from 'reaclette'
 
-import LinkWrapper from './LinkWrapper'
 import Icon from '../components/Icon'
+import LinkWrapper from './LinkWrapper'
 
 interface ParentState {}
 

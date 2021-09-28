@@ -1,8 +1,8 @@
 import React from 'react'
-import Icon from '../components/Icon'
-import { Collection, Map, Seq } from 'immutable'
+import { Collection, Map } from 'immutable'
 import { withState } from 'reaclette'
 
+import Icon from '../components/Icon'
 import IntlMessage from '../components/IntlMessage'
 import Tree from '../components/Tree'
 import { Host, Vm, Pool } from '../libs/xapi'
