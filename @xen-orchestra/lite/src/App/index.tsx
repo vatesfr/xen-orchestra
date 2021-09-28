@@ -5,14 +5,15 @@ import { FormattedMessage, IntlProvider } from 'react-intl'
 import { HashRouter as Router, Switch, Route } from 'react-router-dom'
 import { withState } from 'reaclette'
 
-import Button from '../components/Button'
 import Infrastructure from './Infrastructure'
-import IntlMessage from '../components/IntlMessage'
-import messagesEn from '../lang/en.json'
-import XapiConnection, { ObjectsByType } from '../libs/xapi'
 import PoolTab from './PoolTab'
 import Signin from './Signin/index'
 import StyleGuide from './StyleGuide/index'
+
+import Button from '../components/Button'
+import IntlMessage from '../components/IntlMessage'
+import messagesEn from '../lang/en.json'
+import XapiConnection, { ObjectsByType } from '../libs/xapi'
 
 const Version = styled.div`
   position: fixed;
