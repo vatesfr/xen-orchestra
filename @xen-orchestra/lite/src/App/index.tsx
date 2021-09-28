@@ -10,40 +10,16 @@ import IntlMessage from '../components/IntlMessage'
 import Infrastructure from './Infrastructure'
 import messagesEn from '../lang/en.json'
 import XapiConnection, { ObjectsByType } from '../libs/xapi'
+import PoolTab from './PoolTab'
 import Signin from './Signin/index'
 import StyleGuide from './StyleGuide/index'
-import TabConsole from './TabConsole'
-
-const Container = styled.div`
-  height: 100vh;
-  display: grid;
-  grid-template-columns: 1fr 3fr;
-  grid-template-rows: 5vh 92vh 3vh;
-  grid-template-areas:
-    'header header'
-    'sideBar main'
-    'version .';
-`
-const Header = styled.div`
-  grid-area: header;
-`
-
-const SideBar = styled.div`
-  grid-area: sideBar;
-  background: #f5f5f5;
-  overflow-y: scroll;
-`
-
-const MainPanel = styled.div`
-  grid-area: main;
-  overflow-y: scroll;
-`
 
 const Version = styled.div`
-  grid-area: version;
+  position: fixed;
+  right: 0;
+  bottom: 0;
   opacity: 0.5;
 `
-
 interface ParentState {
   objectsByType: ObjectsByType
   xapi: XapiConnection
@@ -131,14 +107,8 @@ const App = withState<State, Props, Effects, Computed, ParentState, ParentEffect
     },
   },
   ({ effects, state }) => {
-    const sideBar = (
-      <SideBar>
-        <Infrastructure />
-      </SideBar>
-    )
-
     return (
-      <Container>
+      <>
         <IntlProvider messages={messagesEn} locale='en'>
           {!state.connected ? (
             <Signin />
@@ -146,29 +116,23 @@ const App = withState<State, Props, Effects, Computed, ParentState, ParentEffect
             <IntlMessage id='loading' />
           ) : (
             <>
-              <Header>
-                <Button onClick={() => effects.disconnect()}>
-                  <FormattedMessage id='disconnect' />
-                </Button>
-              </Header>
+              <Button onClick={() => effects.disconnect()}>
+                <FormattedMessage id='disconnect' />
+              </Button>
               <Router>
                 <Switch>
                   <Route exact path='/styleguide'>
                     <StyleGuide />
                   </Route>
-                  <Route exact path='/'>
-                    {sideBar}
+                  <Route exact path='/pool'>
+                    <PoolTab />
+                  </Route>
+                  <Route exact path='/infrastructure'>
+                    <Infrastructure />
                   </Route>
                   <Route
-                    path='/vms/:id/console'
-                    render={({ match: { params } }) => (
-                      <>
-                        {sideBar}
-                        <MainPanel>
-                          <TabConsole key={params.id} vmId={params.id} />
-                        </MainPanel>
-                      </>
-                    )}
+                    path='/infrastructure/vms/:id/console'
+                    render={({ match: { params } }) => <Infrastructure vmId={params.id} />}
                   />
                 </Switch>
               </Router>
@@ -176,7 +140,7 @@ const App = withState<State, Props, Effects, Computed, ParentState, ParentEffect
           )}
           <Version>v{process.env.NPM_VERSION}</Version>
         </IntlProvider>
-      </Container>
+      </>
     )
   }
 )

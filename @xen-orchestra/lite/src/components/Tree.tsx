@@ -12,32 +12,37 @@ interface ParentState {}
 interface State {}
 
 interface Props {
-  /**
-   * collection = [
-   *   {
-   *     icon: <Icon icon='cloud' />,
-   *     id: 'idA',
-   *     label: 'labelA',
-   *     link: true,
-   *     to: '/routeA',
-   *     children: [
-   *       {
-   *         children,
-   *         icon: <Icon icon='server' />,
-   *         id: 'idChild',
-   *         label: 'labelChild',
-   *       },
-   *     ],
-   *   },
-   *   {
-   *     icon: <Icon icon='cloud' />,
-   *     id: 'idB',
-   *     label: 'labelB',
-   *     link: true,
-   *     to: '/routeB',
-   *   }
-   * ]
-   **/
+  // collection = [
+  //   {
+  //      id: 'idA',
+  //      label: (
+  //        <span>
+  //          <Icon icon='cloud' /> {labelA}
+  //        </span>
+  //      ),
+  //      to: '/routeA',
+  //      children: [
+  //        {
+  //          id: 'ida',
+  //          label: label: (
+  //            <span>
+  //              <Icon icon='server' /> {labela}
+  //            </span>
+  //          ),
+  //        },
+  //      ],
+  //   },
+  //   {
+  //      id: 'idB',
+  //      label: (
+  //        <span>
+  //          <Icon icon='cloud' /> {labelB}
+  //        </span>
+  //      ),
+  //      to: '/routeB',
+  //      tooltip: <IntlMessage id='tooltipB' />
+  //   }
+  // ]
   collection: Array<object>
 }
 
@@ -46,77 +51,55 @@ interface ParentEffects {}
 interface Effects {}
 
 interface Computed {}
+interface ItemType {
+  children?: Array<ItemType>
+  id: string
+  label: React.ReactNode
+  to?: string | object
+  tooltip?: React.ReactNode
+}
 
 const LINK_STYLE = {
   textDecoration: 'none',
   color: '#000',
 }
 
+// Inspired by https://mui.com/components/tree-view/#contentcomponent-prop.
 const CustomContent = React.forwardRef(function CustomContent(props, ref) {
   const { label, nodeId, expansionIcon } = props
-
-  const { handleExpansion, preventSelection } = useTreeItem(nodeId)
-
-  const handleMouseDown = event => {
-    preventSelection(event)
-  }
+  const { handleExpansion } = useTreeItem(nodeId)
 
   const handleExpansionClick = event => {
     handleExpansion(event)
   }
 
   return (
-    <span onMouseDown={handleMouseDown} ref={ref}>
+    <span ref={ref}>
       <span onClick={handleExpansionClick}>{expansionIcon}</span> {label}
     </span>
   )
 })
 
-const CustomTreeItem = props => <TreeItem ContentComponent={CustomContent} {...props} />
-
-const renderCustomItem = ({
-  children,
-  icon,
-  id,
-  label: labelProps,
-  link,
-  tooltip,
-  to,
-}: {
-  children?: Array<object>
-  icon?: React.ReactNode
-  id: string
-  label: React.ReactNode
-  link?: boolean
-  tooltip?: string
-  to?: string | object
-}) => {
-  const label = icon ? (
-    <span>
-      {icon} {labelProps}
-    </span>
-  ) : (
-    labelProps
-  )
-
+const renderItem = ({ children, id, label, to, tooltip }: { ItemType }) => {
   return (
-    <CustomTreeItem
+    <TreeItem
+      ContentComponent={CustomContent}
       label={
-        <LinkWrapper link={link} to={to} style={LINK_STYLE}>
+        <LinkWrapper to={to} style={LINK_STYLE}>
           {tooltip ? <Tooltip title={tooltip}>{label}</Tooltip> : label}
         </LinkWrapper>
       }
       key={id}
       nodeId={id}
     >
-      {Array.isArray(children) ? children.map(renderCustomItem) : null}
-    </CustomTreeItem>
+      {Array.isArray(children) ? children.map(renderItem) : null}
+    </TreeItem>
   )
 }
 
 const Tree = withState<State, Props, Effects, Computed, ParentState, ParentEffects>({}, ({ collection }) => (
   <TreeView defaultCollapseIcon={<Icon icon='chevron-up' />} defaultExpandIcon={<Icon icon='chevron-down' />}>
-    {collection.map(renderCustomItem)}
+    {collection.map(renderItem)}
   </TreeView>
 ))
 
