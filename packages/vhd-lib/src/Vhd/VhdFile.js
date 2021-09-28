@@ -485,4 +485,28 @@ export class VhdFile extends VhdAbstract {
       header.parentLocatorEntry[parentLocatorId].platformDataOffset = position
     }
   }
+
+  readParentLocatorData(parentLocatorId) {
+    assert(parentLocatorId >= 0)
+    assert(parentLocatorId < 8)
+    assert(this.header)
+    const { platformDataOffset, platformDataSpace } = this.header.parentLocatorEntry[parentLocatorId]
+    if (platformDataSpace === 0) {
+      return null
+    }
+    return this._read(platformDataOffset, platformDataSpace)
+  }
+
+  writeParentLocator(parentLocatorId, data) {
+    assert(parentLocatorId >= 0)
+    assert(parentLocatorId < 8)
+    assert(this.header)
+
+    const { platformDataOffset, platformDataSpace } = this.header.parentLocatorEntry[parentLocatorId]
+    if (platformDataSpace === 0) {
+      return
+    }
+    assert(data.length <= platformDataSpace)
+    return this._write(platformDataOffset, data)
+  }
 }
