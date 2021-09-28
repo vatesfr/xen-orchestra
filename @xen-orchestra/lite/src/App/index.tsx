@@ -106,43 +106,39 @@ const App = withState<State, Props, Effects, Computed, ParentState, ParentEffect
       url: state => `${window.location.protocol}//${state.xapiHostname}`,
     },
   },
-  ({ effects, state }) => {
-    return (
-      <>
-        <IntlProvider messages={messagesEn} locale='en'>
-          {!state.connected ? (
-            <Signin />
-          ) : !state.objectsFetched ? (
-            <IntlMessage id='loading' />
-          ) : (
-            <>
-              <Button onClick={() => effects.disconnect()}>
-                <FormattedMessage id='disconnect' />
-              </Button>
-              <Router>
-                <Switch>
-                  <Route exact path='/styleguide'>
-                    <StyleGuide />
-                  </Route>
-                  <Route exact path='/pool'>
-                    <PoolTab />
-                  </Route>
-                  <Route exact path='/infrastructure'>
-                    <Infrastructure />
-                  </Route>
-                  <Route
-                    path='/infrastructure/vms/:id/console'
-                    render={({ match: { params } }) => <Infrastructure vmId={params.id} />}
-                  />
-                </Switch>
-              </Router>
-            </>
-          )}
-          <Version>v{process.env.NPM_VERSION}</Version>
-        </IntlProvider>
-      </>
-    )
-  }
+  ({ effects, state }) => (
+    <IntlProvider messages={messagesEn} locale='en'>
+      {!state.connected ? (
+        <Signin />
+      ) : !state.objectsFetched ? (
+        <IntlMessage id='loading' />
+      ) : (
+        <>
+          <Button onClick={() => effects.disconnect()}>
+            <FormattedMessage id='disconnect' />
+          </Button>
+          <Router>
+            <Switch>
+              <Route exact path='/styleguide'>
+                <StyleGuide />
+              </Route>
+              <Route exact path='/pool'>
+                <PoolTab />
+              </Route>
+              <Route exact path='/infrastructure'>
+                <Infrastructure />
+              </Route>
+              <Route
+                path='/infrastructure/vms/:id/console'
+                render={({ match: { params } }) => <Infrastructure vmId={params.id} />}
+              />
+            </Switch>
+          </Router>
+        </>
+      )}
+      <Version>v{process.env.NPM_VERSION}</Version>
+    </IntlProvider>
+  )
 )
 
 export default App

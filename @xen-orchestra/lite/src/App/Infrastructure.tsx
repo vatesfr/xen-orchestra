@@ -2,8 +2,8 @@ import React from 'react'
 import styled from 'styled-components'
 import { withState } from 'reaclette'
 
-import TreeView from './TreeView'
 import TabConsole from './TabConsole'
+import TreeView from './TreeView'
 
 const Container = styled.div`
   height: 100vh;
@@ -12,13 +12,11 @@ const Container = styled.div`
   grid-template-rows: 100vh;
   grid-template-areas: 'sideBar main';
 `
-
 const LeftPanel = styled.div`
   grid-area: sideBar;
   background: #f5f5f5;
   overflow-y: scroll;
 `
-
 const MainPanel = styled.div`
   grid-area: main;
   overflow-y: scroll;

@@ -11,6 +11,14 @@ interface ParentState {}
 
 interface State {}
 
+interface ItemType {
+  children?: Array<ItemType>
+  id: string
+  label: React.ReactNode
+  to?: string | object
+  tooltip?: React.ReactNode
+}
+
 interface Props {
   // collection = [
   //   {
@@ -43,7 +51,7 @@ interface Props {
   //      tooltip: <IntlMessage id='tooltipB' />
   //   }
   // ]
-  collection: Array<object>
+  collection: Array<ItemType>
 }
 
 interface ParentEffects {}
@@ -51,13 +59,6 @@ interface ParentEffects {}
 interface Effects {}
 
 interface Computed {}
-interface ItemType {
-  children?: Array<ItemType>
-  id: string
-  label: React.ReactNode
-  to?: string | object
-  tooltip?: React.ReactNode
-}
 
 const LINK_STYLE = {
   textDecoration: 'none',
