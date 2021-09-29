@@ -47,6 +47,7 @@ const TASK_ITEM_STYLE = {
 const FILTERS = {
   filterOutSomeTasks: '!name_label: |(SR.scan host.call_plugin)',
 }
+
 @connectStore(() => ({
   host: createGetObject((_, props) => props.item.$host),
 }))
