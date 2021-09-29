@@ -492,7 +492,7 @@ export class VhdFile extends VhdAbstract {
     assert(this.header)
     const { platformDataOffset, platformDataSpace } = this.header.parentLocatorEntry[parentLocatorId]
     if (platformDataSpace === 0) {
-      return null
+      return
     }
     return this._read(platformDataOffset, platformDataSpace)
   }
