@@ -28,7 +28,7 @@ export class VhdAbstract {
    *
    * @returns {AbstractVhd}
    */
-  static async open(opts = {}) {
+  static async open() {
     throw new Error('open not implemented')
   }
 
@@ -36,8 +36,8 @@ export class VhdAbstract {
    * Check if this vhd contains a block with id blockId
    * Must be called after readBlockAllocationTable
    *
-   * @param {Number} blockId
-   * @returns {Boolean}
+   * @param {number} blockId
+   * @returns {boolean}
    *
    */
   containsBlock(blockId) {
@@ -50,7 +50,7 @@ export class VhdAbstract {
    * compute fullBlockSize and bitmapSize
    * if checkSecondFooter also checks that the footer at the end is equal to the one at the beginning
    *
-   * @param {Boolean} checkSecondFooter
+   * @param {boolean} checkSecondFooter
    */
   readHeaderAndFooter(checkSecondFooter = true) {
     throw new Error(
@@ -64,8 +64,8 @@ export class VhdAbstract {
 
   /**
    *
-   * @param {Number} blockId
-   * @param {Boolean} onlyBitmap
+   * @param {number} blockId
+   * @param {boolean} onlyBitmap
    * @returns {Buffer}
    */
   readBlock(blockId, onlyBitmap = false) {
@@ -77,9 +77,9 @@ export class VhdAbstract {
    * this vhd
    *
    * @param {AbstractVhd} child
-   * @param {Number} blockId
+   * @param {number} blockId
    *
-   * @returns {Number} the merged data size
+   * @returns {number} the merged data size
    */
   coalesceBlock(child, blockId) {
     throw new Error(`coalescing the block ${blockId} from ${child} is not implemented`)
@@ -88,7 +88,7 @@ export class VhdAbstract {
   /**
    * ensure the bat size can store at least entries block
    * move blocks if needed
-   * @param {Number} entries
+   * @param {number} entries
    */
   ensureBatSize(entries) {
     throw new Error(`ensuring batSize can store at least  ${entries} is not implemented`)

@@ -10,4 +10,3 @@ export { default as mergeVhd } from './merge'
 export { default as peekFooterFromVhdStream } from './peekFooterFromVhdStream'
 export { VhdDirectory } from './Vhd/VhdDirectory'
 export { VhdFile } from './Vhd/VhdFile'
-export { VhdFile as default } from './Vhd/VhdFile' // compatibilty export

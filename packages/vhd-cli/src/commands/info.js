@@ -1,4 +1,4 @@
-import Vhd from 'vhd-lib'
+import { Vhd } from 'vhd-lib'
 import { getHandler } from '@xen-orchestra/fs'
 import { resolve } from 'path'
 

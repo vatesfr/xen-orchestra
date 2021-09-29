@@ -27,7 +27,7 @@ export class VhdDirectory extends VhdAbstract {
   }
 
   async readBlockAllocationTable() {
-    assert(this.header !== undefined, `header must be read before it's used`)
+    assert.notStrictEqual(this.header, undefined, `header must be read before it's used`)
 
     const { buffer } = await this._readChunk('bat')
     /**
@@ -49,7 +49,7 @@ export class VhdDirectory extends VhdAbstract {
   }
 
   containsBlock(blockId) {
-    assert(this.blockTable !== undefined, 'Block table must not be empty to access a block address')
+    assert.notStrictEqual(this.blockTable, undefined, 'Block table must not be empty to access a block address')
 
     return this.blockTable.readUInt32BE(blockId * 4) !== BLOCK_UNUSED
   }
@@ -134,7 +134,7 @@ export class VhdDirectory extends VhdAbstract {
   }
 
   writeBlockAllocationTable() {
-    assert(this.blockTable !== undefined, 'Block allocation table has not been read')
+    assert.notStrictEqual(this.blockTable, undefined, 'Block allocation table has not been read')
     assert(this.blockTable.length, 'Block allocation table is empty')
     assert(this.blockTable.length % 4 === 0, 'Block allocation table size is incorrect')
 
@@ -173,10 +173,10 @@ export class VhdDirectory extends VhdAbstract {
   readParentLocatorData(parentLocatorId) {
     assert(parentLocatorId >= 0, 'parent Locator id must be a positive number')
     assert(parentLocatorId < 8, 'parent Locator id  must be less than 8')
-    assert(this.header !== undefined, `header must be read before it's used`)
+    assert.notStrictEqual(this.header, undefined, `header must be read before it's used`)
     const { platformDataSpace } = this.header.parentLocatorEntry[parentLocatorId]
     if (!platformDataSpace) {
-      return null
+      return
     }
     return this._readChunk('parentLocator' + parentLocatorId)
   }
@@ -184,11 +184,11 @@ export class VhdDirectory extends VhdAbstract {
   writeParentLocator(parentLocatorId, data) {
     assert(parentLocatorId >= 0, 'parent Locator id must be a positive number')
     assert(parentLocatorId < 8, 'parent Locator id  must be less than 8')
-    assert(this.header !== undefined, `header must be read before it's used`)
+    assert.notStrictEqual(this.header, undefined, `header must be read before it's used`)
 
     const { platformDataSpace } = this.header.parentLocatorEntry[parentLocatorId]
     if (!platformDataSpace) {
-      return null
+      return
     }
     assert(data.length <= platformDataSpace)
     return this._writeChunk('parentLocator' + parentLocatorId, data)

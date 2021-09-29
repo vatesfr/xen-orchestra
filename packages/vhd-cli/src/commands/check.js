@@ -1,4 +1,4 @@
-import Vhd, { checkVhdChain } from 'vhd-lib'
+import {VhdFile as Vhd, checkVhdChain } from 'vhd-lib'
 import getopts from 'getopts'
 import { getHandler } from '@xen-orchestra/fs'
 import { resolve } from 'path'
