@@ -10,6 +10,7 @@
 - [Backup] Go back to previous page instead of going to the overview after editing a job: keeps current filters and page (PR [#5913](https://github.com/vatesfr/xen-orchestra/pull/5913))
 - [Health] Do not take into consideration duplicated MAC addresses from CR VMs (PR [#5916](https://github.com/vatesfr/xen-orchestra/pull/5916))
 - [Health] Ability to filter duplicated MAC addresses by running VMs (PR [#5917](https://github.com/vatesfr/xen-orchestra/pull/5917))
+- [Tables] Move the search bar and pagination to the top of the table (PR [#5914](https://github.com/vatesfr/xen-orchestra/pull/5914))
 
 ### Bug fixes
 
