@@ -6,7 +6,7 @@ const pDefer = require('promise-toolbox/defer.js')
 const pump = require('pump')
 const { basename, dirname, join, normalize, resolve } = require('path')
 const { createLogger } = require('@xen-orchestra/log')
-const { createSyntheticStream, mergeVhd, default: Vhd } = require('vhd-lib')
+const { createSyntheticStream, mergeVhd, VhdFile } = require('vhd-lib')
 const { deduped } = require('@vates/disposable/deduped.js')
 const { execFile } = require('child_process')
 const { readdir, stat } = require('fs-extra')
@@ -86,7 +86,7 @@ class RemoteAdapter {
       }),
       async path => {
         try {
-          const vhd = new Vhd(handler, path)
+          const vhd = new VhdFile(handler, path)
           await vhd.readHeaderAndFooter()
           return {
             footer: vhd.footer,
