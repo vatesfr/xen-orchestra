@@ -45,7 +45,7 @@ const TASK_ITEM_STYLE = {
 }
 
 const FILTERS = {
-  filterHideSomeTasks: '!name_label: |(SR.scan host.call_plugin)',
+  filterOutSomeTasks: '!name_label: |(SR.scan host.call_plugin)',
 }
 @connectStore(() => ({
   host: createGetObject((_, props) => props.item.$host),
@@ -309,7 +309,7 @@ export default class Tasks extends Component {
               <SortedTable
                 collection={this._getTasks()}
                 columns={COLUMNS}
-                defaultFilter='filterHideSomeTasks'
+                defaultFilter='filterOutSomeTasks'
                 filterContainer={() => this.state.container}
                 filters={FILTERS}
                 itemsPerPageContainer={this._getItemsPerPageContainer}
@@ -326,7 +326,7 @@ export default class Tasks extends Component {
                 <SortedTable
                   collection={this._getFinishedTasks()}
                   columns={FINISHED_TASKS_COLUMNS}
-                  defaultFilter='filterHideSomeTasks'
+                  defaultFilter='filterOutSomeTasks'
                   filters={FILTERS}
                   stateUrlParam='s_previous'
                 />
