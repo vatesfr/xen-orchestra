@@ -10,9 +10,18 @@ import assert from 'assert'
 const { debug } = createLogger('vhd-lib:ChunkedVhd')
 
 export class VhdDirectory extends VhdAbstract {
-  static async open(handler, path, flags) {
+  static async open(handler, path) {
+    const vhd = new VhdDirectory(handler, path)
+    await vhd.readHeaderAndFooter()
+    return {
+      dispose: () => {},
+      value: vhd,
+    }
+  }
+
+  static async create(handler, path) {
     await handler.mkdir(path)
-    const vhd = new VhdDirectory(handler, path, flags)
+    const vhd = new VhdDirectory(handler, path)
     return {
       dispose: () => {},
       value: vhd,

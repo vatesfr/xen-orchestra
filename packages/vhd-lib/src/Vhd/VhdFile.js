@@ -53,8 +53,18 @@ const { debug } = createLogger('vhd-lib:Vhd')
 // - sectorSize = 512
 
 export class VhdFile extends VhdAbstract {
-  static async open(handler, path, flags) {
-    const fd = await handler.openFile(path, flags)
+  static async open(handler, path) {
+    const fd = await handler.openFile(path, 'r+')
+    const vhd = new VhdFile(handler, fd)
+    await vhd.readHeaderAndFooter()
+    return {
+      dispose: () => handler.closeFile(fd),
+      value: vhd,
+    }
+  }
+
+  static async create(handler, path) {
+    const fd = await handler.openFile(path, 'wx')
     const vhd = new VhdFile(handler, fd)
     return {
       dispose: () => handler.closeFile(fd),

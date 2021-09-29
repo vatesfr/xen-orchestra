@@ -7,19 +7,16 @@ import getopts from 'getopts'
 export default async rawArgs => {
   const {
     directory,
-    force,
     help,
     _: args,
   } = getopts(rawArgs, {
     alias: {
       directory: 'd',
-      force: 'f',
       help: 'h',
     },
     boolean: ['directory', 'force'],
     default: {
       directory: false,
-      force: false,
       help: false,
     },
   })
@@ -33,7 +30,7 @@ export default async rawArgs => {
     const resolvedSourcePath = resolve(sourcePath)
     let src
     try {
-      src = yield VhdFile.open(handler, resolvedSourcePath, 'r')
+      src = yield VhdFile.open(handler, resolvedSourcePath)
       // openning a file for reading does not trigger EISDIR as long as we don't really read from it :
       // https://man7.org/linux/man-pages/man2/open.2.html
       // EISDIR pathname refers to a directory and the access requested
@@ -41,8 +38,7 @@ export default async rawArgs => {
       await src.readHeaderAndFooter()
     } catch (e) {
       if (e.code === 'EISDIR') {
-        src = yield VhdDirectory.open(handler, resolvedSourcePath, 'r')
-        await src.readHeaderAndFooter()
+        src = yield VhdDirectory.open(handler, resolvedSourcePath)
       } else {
         throw e
       }
@@ -50,10 +46,9 @@ export default async rawArgs => {
 
     await src.readBlockAllocationTable()
     const resolvedDestPath = resolve(destPath)
-    const destFlags = force ? 'w' : 'wx'
     const dest = yield directory
-      ? VhdDirectory.open(handler, resolvedDestPath, destFlags)
-      : VhdFile.open(handler, resolvedDestPath, destFlags)
+      ? VhdDirectory.create(handler, resolvedDestPath)
+      : VhdFile.create(handler, resolvedDestPath)
     // copy data
     dest.header = src.header
     dest.footer = src.footer
