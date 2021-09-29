@@ -114,6 +114,7 @@ const messages = {
   // ----- Filters -----
   onError: 'On error',
   successful: 'Successful',
+  filterHideSomeTasks: 'Hide some tasks',
   filterOnlyManaged: 'Managed disks',
   filterOnlyOrphaned: 'Orphaned disks',
   filterOnlyRegular: 'Normal disks',
