@@ -15,7 +15,7 @@ import { SelectPool } from 'select-objects'
 import { Container, Row, Col } from 'grid'
 import { Card, CardHeader, CardBlock } from 'card'
 import { FormattedRelative, FormattedTime } from 'react-intl'
-import { flatMap, flatten, get, includes, isEmpty, map, mapValues } from 'lodash'
+import { flatten, forEach, get, includes, isEmpty, map, mapValues } from 'lodash'
 import { connectStore, formatSize, noop, resolveIds } from 'utils'
 import {
   deleteMessage,
@@ -80,14 +80,14 @@ const AlarmColPool = connectStore(() => ({
 const DUPLICATED_MAC_ADDRESSES_COLUMNS = [
   {
     name: _('vifMacLabel'),
-    itemRenderer: macAddress => <pre>{macAddress}</pre>,
-    sortCriteria: macAddress => macAddress,
+    itemRenderer: ({ mac }) => <pre>{mac}</pre>,
+    sortCriteria: ({ mac }) => mac,
   },
   {
     name: _('vifs'),
-    itemRenderer: (macAddress, { vifsByMac }) => (
+    itemRenderer: ({ vifs }) => (
       <div>
-        {vifsByMac[macAddress].map(vif => (
+        {vifs.map(vif => (
           <Row key={vif.id}>
             <Col>
               {_('vifOnVmWithNetwork', {
@@ -102,6 +102,10 @@ const DUPLICATED_MAC_ADDRESSES_COLUMNS = [
     ),
   },
 ]
+
+const DUPLICATED_MAC_ADDRESSES_FILTERS = {
+  filterOnlyRunningVms: 'nRunningVms:>1',
+}
 
 const SR_COLUMNS = [
   {
@@ -508,7 +512,19 @@ const HANDLED_VDI_TYPES = new Set(['system', 'user', 'ephemeral'])
   const getUserSrs = getSrs.filter([isSrWritable])
   const getAlertMessages = createGetObjectsOfType('message').filter([message => message.name === 'ALARM'])
   const getVifsByMac = createGetObjectsOfType('VIF')
-    .pick(createCollectionWrapper(createSelector(getVms, vms => flatMap(vms, 'VIFs').sort())))
+    .pick(
+      createCollectionWrapper(
+        createSelector(getVms, vms => {
+          const vifs = []
+          forEach(vms, ({ blockedOperations: ops, VIFs }) => {
+            if (!('start' in ops && 'start_on' in ops)) {
+              Array.prototype.push.apply(vifs, VIFs)
+            }
+          })
+          return vifs.sort()
+        })
+      )
+    )
     .groupBy('MAC')
 
   return {
@@ -520,6 +536,7 @@ const HANDLED_VDI_TYPES = new Set(['system', 'user', 'ephemeral'])
     guestToolsVms: getGuestToolsVms,
     userSrs: getUserSrs,
     vifsByMac: getVifsByMac,
+    vms: getVms,
   }
 })
 export default class Health extends Component {
@@ -572,11 +589,16 @@ export default class Health extends Component {
   _getDuplicatedMacAddresses = createCollectionWrapper(
     createSelector(
       () => this._getVifsByMac(),
-      vifsByMac => {
+      () => this.props.vms,
+      (vifsByMac, vms) => {
         const duplicatedMacAddresses = []
         for (const [macAddress, vifs] of Object.entries(vifsByMac)) {
           if (vifs.length > 1) {
-            duplicatedMacAddresses.push(macAddress)
+            duplicatedMacAddresses.push({
+              mac: macAddress,
+              nRunningVms: vifs.filter(vif => vms[vif.$VM].power_state === 'Running').length,
+              vifs,
+            })
           }
         }
         return duplicatedMacAddresses.sort()
@@ -742,8 +764,8 @@ export default class Health extends Component {
                   collection={props.areObjectsFetched ? duplicatedMacAddresses : null}
                   columns={DUPLICATED_MAC_ADDRESSES_COLUMNS}
                   component={SortedTable}
-                  data-vifsByMac={this.props.vifsByMac}
                   emptyMessage={_('noDuplicatedMacAddresses')}
+                  filters={DUPLICATED_MAC_ADDRESSES_FILTERS}
                   stateUrlParam='s_duplicated_mac_addresses'
                 />
               </CardBlock>

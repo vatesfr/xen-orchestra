@@ -10,6 +10,8 @@ import UserError from './user-error'
 import { error as _error } from './notification'
 
 export default class ActionButton extends Component {
+  static GO_BACK = 1
+
   static contextTypes = {
     router: PropTypes.object,
   }
@@ -50,7 +52,7 @@ export default class ActionButton extends Component {
     //
     // if a function, it will be called with the result of the action to
     // compute the path
-    redirectOnSuccess: PropTypes.oneOfType([PropTypes.func, PropTypes.string]),
+    redirectOnSuccess: PropTypes.oneOfType([PropTypes.func, PropTypes.string, PropTypes.oneOf([this.GO_BACK])]),
 
     // React element to use tooltip for the component
     tooltip: PropTypes.node,
@@ -92,7 +94,20 @@ export default class ActionButton extends Component {
 
       const { redirectOnSuccess } = props
       if (redirectOnSuccess !== undefined) {
-        const to = typeof redirectOnSuccess === 'function' ? redirectOnSuccess(result, handlerParam) : redirectOnSuccess
+        if (redirectOnSuccess === ActionButton.GO_BACK) {
+          return this.context.router.goBack()
+        }
+        let to
+        switch (typeof redirectOnSuccess) {
+          case 'string':
+            to = redirectOnSuccess
+            break
+          case 'function':
+            to = redirectOnSuccess(result, handlerParam)
+            break
+          default:
+            throw new Error(`Redirect on success ${redirectOnSuccess} type unknown ${typeof redirectOnSuccess}`)
+        }
         if (to !== undefined) {
           return this.context.router.push(to)
         }
