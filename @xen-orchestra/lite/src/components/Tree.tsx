@@ -4,7 +4,7 @@ import TreeItem, { useTreeItem } from '@mui/lab/TreeItem'
 import { Tooltip } from '@material-ui/core'
 import { withState } from 'reaclette'
 
-import LinkWrapper from './LinkWrapper'
+import Link from './Link'
 import Icon from '../components/Icon'
 
 interface ParentState {}
@@ -15,7 +15,7 @@ interface ItemType {
   children?: Array<ItemType>
   id: string
   label: React.ReactNode
-  to?: string | object
+  to?: string
   tooltip?: React.ReactNode
 }
 
@@ -60,11 +60,6 @@ interface Effects {}
 
 interface Computed {}
 
-const LINK_STYLE = {
-  textDecoration: 'none',
-  color: '#000',
-}
-
 // Inspired by https://mui.com/components/tree-view/#contentcomponent-prop.
 const CustomContent = React.forwardRef(function CustomContent(props, ref) {
   const { label, nodeId, expansionIcon } = props
@@ -81,14 +76,14 @@ const CustomContent = React.forwardRef(function CustomContent(props, ref) {
   )
 })
 
-const renderItem = ({ children, id, label, to, tooltip }: { ItemType }) => {
+const renderItem = ({ children, id, label, to, tooltip }: ItemType) => {
   return (
     <TreeItem
       ContentComponent={CustomContent}
       label={
-        <LinkWrapper to={to} style={LINK_STYLE}>
+        <Link decorated={false} to={to}>
           {tooltip ? <Tooltip title={tooltip}>{label}</Tooltip> : label}
-        </LinkWrapper>
+        </Link>
       }
       key={id}
       nodeId={id}
@@ -99,7 +94,7 @@ const renderItem = ({ children, id, label, to, tooltip }: { ItemType }) => {
 }
 
 const Tree = withState<State, Props, Effects, Computed, ParentState, ParentEffects>({}, ({ collection }) => (
-  <TreeView defaultCollapseIcon={<Icon icon='chevron-up' />} defaultExpandIcon={<Icon icon='chevron-down' />}>
+  <TreeView defaultExpanded={[collection[0].id]} defaultCollapseIcon={<Icon icon='chevron-up' />} defaultExpandIcon={<Icon icon='chevron-down' />}>
     {collection.map(renderItem)}
   </TreeView>
 ))
