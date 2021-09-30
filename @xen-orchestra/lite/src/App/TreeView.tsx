@@ -127,13 +127,12 @@ const TreeView = withState<State, Props, Effects, Computed, ParentState, ParentE
         }),
     },
   },
-  ({ state }) => {
-    if (state.collection === undefined) {
-      return null
-    } else {
-      return <div style={{ padding: '10px' }}><Tree collection={state.collection} /></div>
-    }
-  }
+({ state }) =>
+    state.collection === undefined ? null : (
+      <div style={{ padding: '10px' }}>
+        <Tree collection={state.collection} />
+      </div>
+    )
 )
 
 export default TreeView
