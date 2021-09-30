@@ -38,6 +38,7 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
+- xen-api patch
 - vhd-lib minor
 - xo-server-netbox patch
 - @xen-orchestra/proxy patch

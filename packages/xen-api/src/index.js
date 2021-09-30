@@ -822,7 +822,7 @@ export class Xapi extends EventEmitter {
     if (poolMigrationNetwork !== undefined) {
       const hostPifs = new Set(host.PIFs)
       try {
-        const networkRef = await this._roCall('network.get_by_uuid', poolMigrationNetwork)
+        const networkRef = await this._roCall('network.get_by_uuid', [poolMigrationNetwork])
         const networkPifs = await this.getField('network', networkRef, 'PIFs')
 
         const migrationNetworkPifRef = networkPifs.find(hostPifs.has, hostPifs)
