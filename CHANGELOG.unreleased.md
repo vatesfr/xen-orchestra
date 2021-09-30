@@ -7,19 +7,9 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [Backup] Go back to previous page instead of going to the overview after editing a job: keeps current filters and page (PR [#5913](https://github.com/vatesfr/xen-orchestra/pull/5913))
-- [Health] Do not take into consideration duplicated MAC addresses from CR VMs (PR [#5916](https://github.com/vatesfr/xen-orchestra/pull/5916))
-- [Health] Ability to filter duplicated MAC addresses by running VMs (PR [#5917](https://github.com/vatesfr/xen-orchestra/pull/5917))
-- [Tables] Move the search bar and pagination to the top of the table (PR [#5914](https://github.com/vatesfr/xen-orchestra/pull/5914))
-
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
-
-- [SSH keys] Allow SSH key to be broken anywhere to avoid breaking page formatting (Thanks @tstivers1990!) [#5891](https://github.com/vatesfr/xen-orchestra/issues/5891) (PR [#5892](https://github.com/vatesfr/xen-orchestra/pull/5892))
-- [Netbox] Handle nested prefixes by always assigning an IP to the smallest prefix it matches (PR [#5908](https://github.com/vatesfr/xen-orchestra/pull/5908))
-- [Netbox] Better handling and error messages when encountering issues due to UUID custom field not being configured correctly [#5905](https://github.com/vatesfr/xen-orchestra/issues/5905) [#5806](https://github.com/vatesfr/xen-orchestra/issues/5806) [#5834](https://github.com/vatesfr/xen-orchestra/issues/5834) (PR [#5909](https://github.com/vatesfr/xen-orchestra/pull/5909))
-- [New VM] Don't send network config if untouched as all commented config can make Cloud-init fail [#5918](https://github.com/vatesfr/xen-orchestra/issues/5918) (PR [#5923](https://github.com/vatesfr/xen-orchestra/pull/5923))
 
 ### Packages to release
 
@@ -37,10 +27,3 @@
 > - major: if the change breaks compatibility
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
-
-- xen-api patch
-- vhd-lib minor
-- xo-server-netbox patch
-- @xen-orchestra/proxy patch
-- xo-server patch
-- xo-web minor
