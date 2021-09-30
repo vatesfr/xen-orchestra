@@ -1,15 +1,16 @@
 import React from 'react'
-import { withState } from 'reaclette'
-import { Link as RouterLink } from 'react-router-dom'
 import MaterialLink from '@mui/material/Link'
+import { Link as RouterLink } from 'react-router-dom'
+import { withState } from 'reaclette'
 
 interface ParentState {}
 
 interface State {}
 
 interface Props {
-  to?: string
+  children: React.ReactNode
   decorated?: boolean
+  to?: string
 }
 
 interface ParentEffects {}

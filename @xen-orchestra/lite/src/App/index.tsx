@@ -42,6 +42,9 @@ interface AppBarProps extends MuiAppBarProps {
   open?: boolean
 }
 
+// -----------------------------------------------------------------------------
+// Provided by this template: https://github.com/mui-org/material-ui/tree/next/docs/src/pages/getting-started/templates/dashboard
+
 const AppBar = styled(MuiAppBar, {
   shouldForwardProp: prop => prop !== 'open',
 })<AppBarProps>(({ theme, open }) => ({
@@ -101,22 +104,30 @@ const MainListItems = (): JSX.Element => (
   </div>
 )
 
-interface ParentState {}
+interface SecondaryListItemsParentState {}
 
-interface State {}
+interface SecondaryListItemsState {}
 
-interface Props {}
+interface SecondaryListItemsProps {}
 
-interface ParentEffects {}
+interface SecondaryListItemsParentEffects {}
 
-interface Effects {
+interface SecondaryListItemsEffects {
   disconnect: () => void
 }
 
-interface Computed {}
+interface SecondaryListItemsComputed {}
 
 const ICON_STYLE = { fontSize: '1.5em' }
-const SecondaryListItems = withState<State, Props, Effects, Computed, ParentState, ParentEffects>({}, ({ effects }) => (
+
+const SecondaryListItems = withState<
+  SecondaryListItemsState,
+  SecondaryListItemsProps,
+  SecondaryListItemsEffects,
+  SecondaryListItemsComputed,
+  SecondaryListItemsParentState,
+  SecondaryListItemsParentEffects
+>({}, ({ effects }) => (
   <div>
     <ListItem button onClick={() => effects.disconnect()}>
       <ListItemIcon style={ICON_STYLE}>
@@ -126,6 +137,8 @@ const SecondaryListItems = withState<State, Props, Effects, Computed, ParentStat
     </ListItem>
   </div>
 ))
+
+// -----------------------------------------------------------------------------
 
 const mdTheme = createTheme()
 
