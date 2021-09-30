@@ -397,7 +397,7 @@ export default class NewVm extends BaseComponent {
           const seqStart = state.seqStart
           cloudConfigs = map(state.nameLabels, (_, i) => replacer(state, i + +seqStart))
         }
-        networkConfig = defined(state.networkConfig, DEFAULT_NETWORK_CONFIG_TEMPLATE)
+        networkConfig = state.networkConfig
       }
     } else if (this._isCoreOs()) {
       cloudConfig = state.cloudConfig
