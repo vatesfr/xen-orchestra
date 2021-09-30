@@ -34,7 +34,7 @@
     "parse-pairs": "^1.1.0",
     "promise-toolbox": "^0.19.2",
     "pump": "^3.0.0",
-    "vhd-lib": "^1.1.0",
+    "vhd-lib": "^1.2.0",
     "yazl": "^2.5.1"
   },
   "peerDependencies": {
