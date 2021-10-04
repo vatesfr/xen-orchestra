@@ -45,7 +45,7 @@ const TASK_ITEM_STYLE = {
 }
 
 const FILTERS = {
-  filterOutSomeTasks: '!name_label: |(SR.scan host.call_plugin)',
+  filterOutShortTasks: '!name_label: |(SR.scan host.call_plugin)',
 }
 
 @connectStore(() => ({
@@ -327,7 +327,7 @@ export default class Tasks extends Component {
                 <SortedTable
                   collection={this._getFinishedTasks()}
                   columns={FINISHED_TASKS_COLUMNS}
-                  defaultFilter='filterOutSomeTasks'
+                  defaultFilter='filterOutShortTasks'
                   filters={FILTERS}
                   stateUrlParam='s_previous'
                 />
