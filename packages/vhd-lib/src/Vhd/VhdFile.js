@@ -16,7 +16,7 @@ import {
 import { VhdAbstract } from './VhdAbstract'
 import { computeBatSize, sectorsToBytes, buildHeader, buildFooter, BUF_BLOCK_UNUSED } from './_utils'
 
-const { debug } = createLogger('vhd-lib:Vhd')
+const { debug } = createLogger('vhd-lib:VhdFile')
 
 // ===================================================================
 //

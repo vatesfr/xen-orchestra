@@ -7,7 +7,7 @@ import { test, set as setBitmap } from '../_bitmap'
 import { VhdAbstract } from './VhdAbstract'
 import assert from 'assert'
 
-const { debug } = createLogger('vhd-lib:ChunkedVhd')
+const { debug } = createLogger('vhd-lib:VhdDirectory')
 
 export class VhdDirectory extends VhdAbstract {
   static async open(handler, path) {
@@ -40,7 +40,7 @@ export class VhdDirectory extends VhdAbstract {
 
     const { buffer } = await this._readChunk('bat')
     /**
-     * In chunked mode, the bat is a sequence of bits
+     * In directory mode, the bat is a sequence of bits
      * A zero bit indicates that the block is not present
      */
     const batSize = this.header.maxTableEntries
@@ -109,7 +109,7 @@ export class VhdDirectory extends VhdAbstract {
 
   async readBlock(blockId, onlyBitmap = false) {
     if (onlyBitmap) {
-      throw new Error(`reading 'bitmap of block' ${blockId} in a ChunkedVhd is not implemented`)
+      throw new Error(`reading 'bitmap of block' ${blockId} in a VhdDIrecotry is not implemented`)
     }
     const { buffer } = await this._readChunk(blockId)
     return {
@@ -120,7 +120,7 @@ export class VhdDirectory extends VhdAbstract {
     }
   }
   ensureBatSize() {
-    // nothing to do in chunked mode
+    // nothing to do in directory mode
   }
 
   async writeFooter() {
@@ -150,7 +150,7 @@ export class VhdDirectory extends VhdAbstract {
     const { blockTable } = this
 
     /**
-     * In chunked mode, the bat is a sequence of bits
+     * In directory mode, the bat is a sequence of bits
      * A zero bit indicates that the block is not present
      */
     const buffer = Buffer.alloc(this.header.maxTableEntries, 0)
