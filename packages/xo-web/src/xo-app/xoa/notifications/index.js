@@ -118,9 +118,9 @@ export const NotificationTag = decorate([
   }),
   injectState,
   ({ state }) =>
-    state.nNewNotifications > 0 ? (
-      <span className={classNames('tag', 'tag-pill', state.someWarningNotifications ? 'tag-danger' : 'tag-warning')}>
-        {state.nNewNotifications}
-      </span>
-    ) : null,
+    state.collection === undefined ? null : (
+      <div style={{ padding: '10px' }}>
+        <Tree collection={state.collection} />
+      </div>
+    ),
 ])

@@ -355,7 +355,7 @@ class VifStatus extends BaseComponent {
           <StackedIcons
             icons={[
               { icon: 'vif-disable', size: 1 },
-              { icon: 'circle', size: 2 },
+              { icon: 'circle-thin', size: 2 },
             ]}
           />
         </Tooltip>
@@ -366,7 +366,7 @@ class VifStatus extends BaseComponent {
         <StackedIcons
           icons={[
             { icon: 'unlock', size: 1 },
-            { icon: 'circle', size: 2 },
+            { icon: 'circle-thin', size: 2 },
           ]}
         />
       </Tooltip>
