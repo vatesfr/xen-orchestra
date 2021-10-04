@@ -46,8 +46,8 @@ export class VhdDirectory extends VhdAbstract {
     const batSize = this.header.maxTableEntries
     this.blockTable = Buffer.alloc(batSize * 4)
     let start = this.header.tableOffset + computeBatSize(this.header.maxTableEntries)
-    start /= 512 // in sector
-    const blockSectorSize = this.fullBlockSize / 512
+    start /= SECTOR_SIZE // in sector
+    const blockSectorSize = this.fullBlockSize / SECTOR_SIZE
     for (let blockId = 0; blockId < this.header.maxTableEntries; blockId++) {
       if (test(buffer, blockId)) {
         this.blockTable.writeUInt32BE(start + blockId * blockSectorSize, blockId * 4)
