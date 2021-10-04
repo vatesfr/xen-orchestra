@@ -310,7 +310,7 @@ export default class Tasks extends Component {
               <SortedTable
                 collection={this._getTasks()}
                 columns={COLUMNS}
-                defaultFilter='filterOutSomeTasks'
+                defaultFilter='filterOutShortTasks'
                 filterContainer={() => this.state.container}
                 filters={FILTERS}
                 itemsPerPageContainer={this._getItemsPerPageContainer}
