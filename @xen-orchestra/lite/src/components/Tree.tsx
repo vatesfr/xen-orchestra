@@ -1,7 +1,7 @@
 import React from 'react'
+import Tooltip from '@mui/material/Tooltip'
 import TreeView from '@mui/lab/TreeView'
 import TreeItem, { useTreeItem } from '@mui/lab/TreeItem'
-import { Tooltip } from '@material-ui/core'
 import { withState } from 'reaclette'
 
 import Link from './Link'
