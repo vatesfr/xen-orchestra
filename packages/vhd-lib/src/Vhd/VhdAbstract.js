@@ -13,9 +13,9 @@ import assert from 'assert'
 const { debug } = createLogger('vhd-lib:VhdAbstract')
 
 export class VhdAbstract {
+  #header
   bitmapSize
   blockTable
-  #header
   footer
   fullBlockSize
   sectorsOfBitmap
