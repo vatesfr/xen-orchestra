@@ -403,7 +403,7 @@ export class VhdFile extends VhdAbstract {
     assert(parentLocatorId >= 0, 'parent Locator id must be a positive number')
     assert(parentLocatorId < 8, 'parent Locator id  must be less than 8')
     const { platformDataOffset, platformDataSpace } = this.header.parentLocatorEntry[parentLocatorId]
-    if (platformDataSpace === 0) {
+    if (platformDataSpace > 0) {
       return this._read(platformDataOffset, platformDataSpace)
     }
   }

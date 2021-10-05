@@ -175,10 +175,9 @@ export class VhdDirectory extends VhdAbstract {
     assert(parentLocatorId >= 0, 'parent Locator id must be a positive number')
     assert(parentLocatorId < 8, 'parent Locator id  must be less than 8')
     const { platformDataSpace } = this.header.parentLocatorEntry[parentLocatorId]
-    if (!platformDataSpace) {
-      return
+    if (platformDataSpace > 0) {
+      return this._readChunk('parentLocator' + parentLocatorId)
     }
-    return this._readChunk('parentLocator' + parentLocatorId)
   }
 
   _writeParentLocator(parentLocatorId, data) {
