@@ -492,9 +492,8 @@ export class VhdFile extends VhdAbstract {
     assert.notStrictEqual(this.header, undefined)
     const { platformDataOffset, platformDataSpace } = this.header.parentLocatorEntry[parentLocatorId]
     if (platformDataSpace === 0) {
-      return
+      return this._read(platformDataOffset, platformDataSpace)
     }
-    return this._read(platformDataOffset, platformDataSpace)
   }
 
   writeParentLocator(parentLocatorId, data) {
@@ -503,10 +502,10 @@ export class VhdFile extends VhdAbstract {
     assert.notStrictEqual(this.header, undefined)
 
     const { platformDataOffset, platformDataSpace } = this.header.parentLocatorEntry[parentLocatorId]
-    if (platformDataSpace === 0) {
-      return
+    if (platformDataSpace !== 0) {
+      assert(data.length <= platformDataSpace)
+      return this._write(platformDataOffset, data)
     }
-    assert(data.length <= platformDataSpace)
-    return this._write(platformDataOffset, data)
+    assert(data.length === 0)
   }
 }
