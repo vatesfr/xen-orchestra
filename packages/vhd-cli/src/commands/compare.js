@@ -31,15 +31,16 @@ const deepCompareObjects = function (src, dest, path) {
 }
 
 export default async args => {
-  if (args.length < 2 || args.some(_ => _ === '-h' || _ === '--help')) {
-    return `Usage: compare <source VHD> <destination> `
+  if (args.length < 4 || args.some(_ => _ === '-h' || _ === '--help')) {
+    return `Usage: compare <sourceRemoteUrl> <source VHD> <destionationRemoteUrl> <destination> `
   }
-  const [sourcePath, destPath] = args
+  const [sourceRemoteUrl, sourcePath, destRemoteUrl, destPath] = args
 
   await Disposable.use(async function* () {
-    const handler = yield getSyncedHandler({ url: 'file:///' })
-    const src = yield openVhd(handler, resolve(sourcePath))
-    const dest = yield openVhd(handler, resolve(destPath))
+    const sourceHandler = yield getSyncedHandler({ url: sourceRemoteUrl })
+    const src = yield openVhd(sourceHandler, resolve(sourcePath))
+    const destHandler = yield getSyncedHandler({ url: destRemoteUrl })
+    const dest = yield openVhd(destHandler, resolve(destPath))
 
     // parent locator entries contains offset that can be different without impacting the vhd
     // we'll compare them later
