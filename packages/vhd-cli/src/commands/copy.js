@@ -31,10 +31,6 @@ export default async rawArgs => {
     let src
     try {
       src = yield VhdFile.open(handler, resolvedSourcePath)
-      // openning a file for reading does not trigger EISDIR as long as we don't really read from it :
-      // https://man7.org/linux/man-pages/man2/open.2.html
-      // EISDIR pathname refers to a directory and the access requested
-      // involved writing (that is, O_WRONLY or O_RDWR is set).
     } catch (e) {
       if (e.code === 'EISDIR') {
         src = yield VhdDirectory.open(handler, resolvedSourcePath)
