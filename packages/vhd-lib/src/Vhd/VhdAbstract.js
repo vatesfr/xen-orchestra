@@ -1,3 +1,11 @@
+import {
+  BLOCK_UNUSED,
+  FOOTER_SIZE,
+  HEADER_SIZE,
+  PARENT_LOCATOR_ENTRIES,
+  PLATFORM_NONE,
+  SECTOR_SIZE,
+} from '../_constants'
 import { computeBatSize, sectorsRoundUpNoZero, sectorsToBytes } from './_utils'
 import { PLATFORM_NONE, SECTOR_SIZE, PLATFORM_W2KU, PARENT_LOCATOR_ENTRIES } from '../_constants'
 import assert from 'assert'
