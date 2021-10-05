@@ -1,5 +1,17 @@
+import {
+  BLOCK_UNUSED,
+  FOOTER_SIZE,
+  HEADER_SIZE,
+  PARENT_LOCATOR_ENTRIES,
+  PLATFORM_NONE,
+  SECTOR_SIZE,
+} from '../_constants'
 import { computeBatSize, sectorsRoundUpNoZero, sectorsToBytes } from './_utils'
-import { SECTOR_SIZE } from '../_constants'
+import { createLogger } from '@xen-orchestra/log'
+import assert from 'assert'
+
+const { debug } = createLogger('vhd-lib:VhdAbstract')
+
 export class VhdAbstract {
   bitmapSize
   blockTable
@@ -104,8 +116,82 @@ export class VhdAbstract {
     throw new Error(`setting unique parent locator from file name ${fileNameString} is not implemented`)
   }
 
+  _writeParentLocator(parentLocatorId, platformDataOffset, data) {
+    throw new Error(`write Parent locator ${parentLocatorId} is not implemented`)
+  }
   // common
   get batSize() {
     return computeBatSize(this.header.maxTableEntries)
+  }
+
+  // return the first sector (bitmap) of a block
+  _getBatEntry(blockId) {
+    const i = blockId * 4
+    const { blockTable } = this
+    return i < blockTable.length ? blockTable.readUInt32BE(i) : BLOCK_UNUSED
+  }
+
+  // Returns the first address after metadata. (In bytes)
+  _getEndOfHeaders() {
+    const { header } = this
+
+    let end = FOOTER_SIZE + HEADER_SIZE
+
+    // Max(end, block allocation table end)
+    end = Math.max(end, header.tableOffset + this.batSize)
+
+    for (let i = 0; i < PARENT_LOCATOR_ENTRIES; i++) {
+      const entry = header.parentLocatorEntry[i]
+
+      if (entry.platformCode !== PLATFORM_NONE) {
+        end = Math.max(end, entry.platformDataOffset + sectorsToBytes(entry.platformDataSpace))
+      }
+    }
+
+    debug(`End of headers: ${end}.`)
+
+    return end
+  }
+
+  // Returns the first sector after data.
+  _getEndOfData() {
+    let end = Math.ceil(this._getEndOfHeaders() / SECTOR_SIZE)
+
+    const sectorsOfFullBlock = this.sectorsOfBitmap + this.sectorsPerBlock
+    const { maxTableEntries } = this.header
+    for (let i = 0; i < maxTableEntries; i++) {
+      const blockAddr = this._getBatEntry(i)
+
+      if (blockAddr !== BLOCK_UNUSED) {
+        end = Math.max(end, blockAddr + sectorsOfFullBlock)
+      }
+    }
+
+    debug(`End of data: ${end}.`)
+
+    return sectorsToBytes(end)
+  }
+
+  writeParentLocator(parentLocatorId, data) {
+    assert(parentLocatorId >= 0, 'parent Locator id must be a positive number')
+    assert(parentLocatorId < 8, 'parent Locator id  must be less than 8')
+    assert.notStrictEqual(this.header, undefined, `header must be read before it's used`)
+
+    let { platformDataOffset, platformDataSpace } = this.header.parentLocatorEntry[parentLocatorId]
+    // ensure there is enough place to write it
+    if (platformDataSpace > data.length) {
+      // growing : put it at the end of the data
+      platformDataOffset = this._getEndOfData()
+    }
+    platformDataSpace = data.length
+
+    // update header data
+    this.header.parentLocatorEntry[parentLocatorId].platformDataSpace = platformDataSpace
+    this.header.parentLocatorEntry[parentLocatorId].platformDataOffset = platformDataOffset
+
+    if (platformDataSpace !== 0) {
+      assert(data.length <= platformDataSpace)
+      return this._writeParentLocator(parentLocatorId, platformDataOffset, data)
+    }
   }
 }

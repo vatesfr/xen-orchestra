@@ -1,20 +1,11 @@
-import assert from 'assert'
+import { BLOCK_UNUSED, FOOTER_SIZE, HEADER_SIZE, PLATFORM_NONE, PLATFORM_W2KU, SECTOR_SIZE } from '../_constants'
+import { computeBatSize, sectorsToBytes, buildHeader, buildFooter, BUF_BLOCK_UNUSED } from './_utils'
 import { createLogger } from '@xen-orchestra/log'
-
-import getFirstAndLastBlocks from '../_getFirstAndLastBlocks'
 import { fuFooter, fuHeader, checksumStruct } from '../_structs'
 import { set as mapSetBit, test as mapTestBit } from '../_bitmap'
-import {
-  BLOCK_UNUSED,
-  FOOTER_SIZE,
-  HEADER_SIZE,
-  PARENT_LOCATOR_ENTRIES,
-  PLATFORM_NONE,
-  PLATFORM_W2KU,
-  SECTOR_SIZE,
-} from '../_constants'
 import { VhdAbstract } from './VhdAbstract'
-import { computeBatSize, sectorsToBytes, buildHeader, buildFooter, BUF_BLOCK_UNUSED } from './_utils'
+import assert from 'assert'
+import getFirstAndLastBlocks from '../_getFirstAndLastBlocks'
 
 const { debug } = createLogger('vhd-lib:VhdFile')
 
@@ -101,47 +92,6 @@ export class VhdFile extends VhdAbstract {
     return this._getBatEntry(id) !== BLOCK_UNUSED
   }
 
-  // Returns the first address after metadata. (In bytes)
-  _getEndOfHeaders() {
-    const { header } = this
-
-    let end = FOOTER_SIZE + HEADER_SIZE
-
-    // Max(end, block allocation table end)
-    end = Math.max(end, header.tableOffset + this.batSize)
-
-    for (let i = 0; i < PARENT_LOCATOR_ENTRIES; i++) {
-      const entry = header.parentLocatorEntry[i]
-
-      if (entry.platformCode !== PLATFORM_NONE) {
-        end = Math.max(end, entry.platformDataOffset + sectorsToBytes(entry.platformDataSpace))
-      }
-    }
-
-    debug(`End of headers: ${end}.`)
-
-    return end
-  }
-
-  // Returns the first sector after data.
-  _getEndOfData() {
-    let end = Math.ceil(this._getEndOfHeaders() / SECTOR_SIZE)
-
-    const sectorsOfFullBlock = this.sectorsOfBitmap + this.sectorsPerBlock
-    const { maxTableEntries } = this.header
-    for (let i = 0; i < maxTableEntries; i++) {
-      const blockAddr = this._getBatEntry(i)
-
-      if (blockAddr !== BLOCK_UNUSED) {
-        end = Math.max(end, blockAddr + sectorsOfFullBlock)
-      }
-    }
-
-    debug(`End of data: ${end}.`)
-
-    return sectorsToBytes(end)
-  }
-
   // TODO:
   // - better human reporting
   // - auto repair if possible
@@ -166,13 +116,6 @@ export class VhdFile extends VhdAbstract {
   async readBlockAllocationTable() {
     const { header } = this
     this.blockTable = await this._read(header.tableOffset, header.maxTableEntries * 4)
-  }
-
-  // return the first sector (bitmap) of a block
-  _getBatEntry(blockId) {
-    const i = blockId * 4
-    const { blockTable } = this
-    return i < blockTable.length ? blockTable.readUInt32BE(i) : BLOCK_UNUSED
   }
 
   readBlock(blockId, onlyBitmap = false) {
@@ -457,25 +400,16 @@ export class VhdFile extends VhdAbstract {
   }
 
   readParentLocatorData(parentLocatorId) {
-    assert(parentLocatorId >= 0)
-    assert(parentLocatorId < 8)
-    assert.notStrictEqual(this.header, undefined)
+    assert(parentLocatorId >= 0, 'parent Locator id must be a positive number')
+    assert(parentLocatorId < 8, 'parent Locator id  must be less than 8')
+    assert.notStrictEqual(this.header, undefined, `header must be read before it's used`)
     const { platformDataOffset, platformDataSpace } = this.header.parentLocatorEntry[parentLocatorId]
     if (platformDataSpace === 0) {
       return this._read(platformDataOffset, platformDataSpace)
     }
   }
 
-  writeParentLocator(parentLocatorId, data) {
-    assert(parentLocatorId >= 0)
-    assert(parentLocatorId < 8)
-    assert.notStrictEqual(this.header, undefined)
-
-    const { platformDataOffset, platformDataSpace } = this.header.parentLocatorEntry[parentLocatorId]
-    if (platformDataSpace !== 0) {
-      assert(data.length <= platformDataSpace)
-      return this._write(platformDataOffset, data)
-    }
-    assert(data.length === 0)
+  _writeParentLocator(parentLocatorId, platformDataOffset, data) {
+    return this._write(platformDataOffset, data)
   }
 }

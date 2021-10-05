@@ -58,9 +58,9 @@ export default async rawArgs => {
 
     // copy parent locators
     for (let parentLocatorId = 0; parentLocatorId < 8; parentLocatorId++) {
-      const parentLocatorData = src.readParentLocatorData(parentLocatorId)
+      const parentLocatorData = await src.readParentLocatorData(parentLocatorId)
       if (parentLocatorData) {
-        dest.writeParentLocator(parentLocatorId, parentLocatorData)
+        await dest.writeParentLocator(parentLocatorId, parentLocatorData)
       }
     }
     await dest.writeFooter()
