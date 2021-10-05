@@ -42,7 +42,6 @@ export class VhdDirectory extends VhdAbstract {
   }
 
   async readBlockAllocationTable() {
-    assert.notStrictEqual(this.header, undefined, `header must be read before it's used`)
 
     const { buffer } = await this._readChunk('bat')
     /**
@@ -175,7 +174,6 @@ export class VhdDirectory extends VhdAbstract {
   readParentLocatorData(parentLocatorId) {
     assert(parentLocatorId >= 0, 'parent Locator id must be a positive number')
     assert(parentLocatorId < 8, 'parent Locator id  must be less than 8')
-    assert.notStrictEqual(this.header, undefined, `header must be read before it's used`)
     const { platformDataSpace } = this.header.parentLocatorEntry[parentLocatorId]
     if (!platformDataSpace) {
       return

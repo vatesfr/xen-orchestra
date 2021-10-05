@@ -22,6 +22,7 @@ export class VhdAbstract {
   sectorsPerBlock
 
   get header() {
+    assert.notStrictEqual(this.#header, undefined, `header must be read before it's used`)
     return this.#header
   }
 
