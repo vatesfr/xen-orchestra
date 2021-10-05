@@ -42,7 +42,6 @@ export class VhdDirectory extends VhdAbstract {
   }
 
   async readBlockAllocationTable() {
-
     const { buffer } = await this._readChunk('bat')
     /**
      * In directory mode, the bat is a sequence of bits
@@ -135,19 +134,22 @@ export class VhdDirectory extends VhdAbstract {
   }
 
   writeBlockAllocationTable() {
-    assert.notStrictEqual(this.blockTable, undefined, 'Block allocation table has not been read')
-    assert(this.blockTable.length, 'Block allocation table is empty')
-    assert(this.blockTable.length % 4 === 0, 'Block allocation table size is incorrect')
+    const { blockTable, header } = this
 
-    const { blockTable } = this
+    assert.notStrictEqual(blockTable, undefined, 'Block allocation table has not been read')
+    assert.strictEqual(blockTable.length, 0, 'Block allocation table is empty')
+    assert(
+      blockTable.length % 4 === 0,
+      `Block allocation table size is incorrect, not a multiple of 4  ${blockTable.length}`
+    )
 
     /**
      * In directory mode, the bat is a sequence of bits
      * A zero bit indicates that the block is not present
      */
-    const buffer = Buffer.alloc(this.header.maxTableEntries, 0)
+    const buffer = Buffer.alloc(header.maxTableEntries, 0)
     for (let blockId = 0; blockId < blockTable.length / 4; blockId++) {
-      if (this.blockTable.readUInt32BE(blockId * 4) !== BLOCK_UNUSED) {
+      if (blockTable.readUInt32BE(blockId * 4) !== BLOCK_UNUSED) {
         setBitmap(buffer, blockId)
       }
     }
@@ -171,13 +173,8 @@ export class VhdDirectory extends VhdAbstract {
     await this._writeChunk(block.id, block.buffer)
   }
 
-  readParentLocatorData(parentLocatorId) {
-    assert(parentLocatorId >= 0, 'parent Locator id must be a positive number')
-    assert(parentLocatorId < 8, 'parent Locator id  must be less than 8')
-    const { platformDataSpace } = this.header.parentLocatorEntry[parentLocatorId]
-    if (platformDataSpace > 0) {
-      return this._readChunk('parentLocator' + parentLocatorId)
-    }
+  _readParentLocatorData(parentLocatorId) {
+    return this._readChunk('parentLocator' + parentLocatorId)
   }
 
   _writeParentLocator(parentLocatorId, data) {
