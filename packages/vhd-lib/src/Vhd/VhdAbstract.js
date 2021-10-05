@@ -117,6 +117,10 @@ export class VhdAbstract {
   _readParentLocatorData(parentLocatorId, platformDataOffset, platformDataSpace) {
     throw new Error(`read Parent locator ${parentLocatorId} is not implemented`)
   }
+
+  _readParentLocatorData(parentLocatorId, platformDataOffset, platformDataSpace) {
+    throw new Error(`read Parent locator ${parentLocatorId} is not implemented`)
+  }
   // common
   get batSize() {
     return computeBatSize(this.header.maxTableEntries)
@@ -170,6 +174,15 @@ export class VhdAbstract {
       if (await this.containsBlock(blockId)) {
         yield await this.readBlock(blockId)
       }
+    }
+  }
+
+  readParentLocatorData(parentLocatorId) {
+    assert(parentLocatorId >= 0, 'parent Locator id must be a positive number')
+    assert(parentLocatorId < 8, 'parent Locator id  must be less than 8')
+    const { platformDataOffset, platformDataSpace } = this.header.parentLocatorEntry[parentLocatorId]
+    if (platformDataSpace > 0) {
+      return this._readParentLocatorData(parentLocatorId, platformDataOffset, platformDataSpace)
     }
   }
 }
