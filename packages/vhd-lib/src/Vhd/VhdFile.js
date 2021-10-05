@@ -489,7 +489,6 @@ export class VhdFile extends VhdAbstract {
   readParentLocatorData(parentLocatorId) {
     assert(parentLocatorId >= 0, 'parent Locator id must be a positive number')
     assert(parentLocatorId < 8, 'parent Locator id  must be less than 8')
-    assert.notStrictEqual(this.header, undefined, `header must be read before it's used`)
     const { platformDataOffset, platformDataSpace } = this.header.parentLocatorEntry[parentLocatorId]
     if (platformDataSpace === 0) {
       return this._read(platformDataOffset, platformDataSpace)
