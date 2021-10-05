@@ -1,6 +1,5 @@
 import { getSyncedHandler } from '@xen-orchestra/fs'
 import { openVhd, Constants } from 'vhd-lib'
-import { resolve } from 'path'
 import Disposable from 'promise-toolbox/Disposable'
 import omit from 'lodash/omit'
 
@@ -38,9 +37,9 @@ export default async args => {
 
   await Disposable.use(async function* () {
     const sourceHandler = yield getSyncedHandler({ url: sourceRemoteUrl })
-    const src = yield openVhd(sourceHandler, resolve(sourcePath))
+    const src = yield openVhd(sourceHandler, sourcePath)
     const destHandler = yield getSyncedHandler({ url: destRemoteUrl })
-    const dest = yield openVhd(destHandler, resolve(destPath))
+    const dest = yield openVhd(destHandler, destPath)
 
     // parent locator entries contains offset that can be different without impacting the vhd
     // we'll compare them later

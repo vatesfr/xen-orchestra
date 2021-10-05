@@ -22,16 +22,14 @@ export default async rawArgs => {
   if (args.length < 4 || help) {
     return `Usage: index.js copy <sourceRemoteUrl> <source VHD> <destionationRemoteUrl> <destination> --directory`
   }
-  const [sourceRemoteUrl,sourcePath, destRemoteUrl, destPath] = args
+  const [sourceRemoteUrl, sourcePath, destRemoteUrl, destPath] = args
 
   await Disposable.use(async function* () {
-    const sourceHandler = yield getSyncedHandler({url: sourceRemoteUrl})
-    let src = yield openVhd(sourceHandler, sourcePath)
+    const sourceHandler = yield getSyncedHandler({ url: sourceRemoteUrl })
+    const src = yield openVhd(sourceHandler, sourcePath)
     await src.readBlockAllocationTable()
-    const destHandler = yield getSyncedHandler({url: destRemoteUrl})
-    const dest = yield directory
-      ? VhdDirectory.create(destHandler, destPath)
-      : VhdFile.create(destHandler, destPath)
+    const destHandler = yield getSyncedHandler({ url: destRemoteUrl })
+    const dest = yield directory ? VhdDirectory.create(destHandler, destPath) : VhdFile.create(destHandler, destPath)
     // copy data
     dest.header = src.header
     dest.footer = src.footer
