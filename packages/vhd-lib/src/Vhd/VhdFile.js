@@ -56,6 +56,11 @@ export class VhdFile extends VhdAbstract {
   static async open(handler, path) {
     const fd = await handler.openFile(path, 'r+')
     const vhd = new VhdFile(handler, fd)
+    // openning a file for reading does not trigger EISDIR as long as we don't really read from it :
+    // https://man7.org/linux/man-pages/man2/open.2.html
+    // EISDIR pathname refers to a directory and the access requested
+    // involved writing (that is, O_WRONLY or O_RDWR is set).
+    // reading the header ensure we have a well formed file immediatly
     await vhd.readHeaderAndFooter()
     return {
       dispose: () => handler.closeFile(fd),
@@ -122,13 +127,13 @@ export class VhdFile extends VhdAbstract {
   _getEndOfData() {
     let end = Math.ceil(this._getEndOfHeaders() / SECTOR_SIZE)
 
-    const fullBlockSize = this.sectorsOfBitmap + this.sectorsPerBlock
+    const sectorsOfFullBlock = this.sectorsOfBitmap + this.sectorsPerBlock
     const { maxTableEntries } = this.header
     for (let i = 0; i < maxTableEntries; i++) {
       const blockAddr = this._getBatEntry(i)
 
       if (blockAddr !== BLOCK_UNUSED) {
-        end = Math.max(end, blockAddr + fullBlockSize)
+        end = Math.max(end, blockAddr + sectorsOfFullBlock)
       }
     }
 
@@ -457,9 +462,8 @@ export class VhdFile extends VhdAbstract {
     assert.notStrictEqual(this.header, undefined)
     const { platformDataOffset, platformDataSpace } = this.header.parentLocatorEntry[parentLocatorId]
     if (platformDataSpace === 0) {
-      return
+      return this._read(platformDataOffset, platformDataSpace)
     }
-    return this._read(platformDataOffset, platformDataSpace)
   }
 
   writeParentLocator(parentLocatorId, data) {
@@ -468,10 +472,10 @@ export class VhdFile extends VhdAbstract {
     assert.notStrictEqual(this.header, undefined)
 
     const { platformDataOffset, platformDataSpace } = this.header.parentLocatorEntry[parentLocatorId]
-    if (platformDataSpace === 0) {
-      return
+    if (platformDataSpace !== 0) {
+      assert(data.length <= platformDataSpace)
+      return this._write(platformDataOffset, data)
     }
-    assert(data.length <= platformDataSpace)
-    return this._write(platformDataOffset, data)
+    assert(data.length === 0)
   }
 }

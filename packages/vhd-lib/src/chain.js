@@ -1,11 +1,11 @@
 import { dirname, relative } from 'path'
 
-import { Vhd } from './'
+import { VhdFile } from './'
 import { DISK_TYPE_DIFFERENCING } from './_constants'
 
 export default async function chain(parentHandler, parentPath, childHandler, childPath, force = false) {
-  const parentVhd = new Vhd(parentHandler, parentPath)
-  const childVhd = new Vhd(childHandler, childPath)
+  const parentVhd = new VhdFile(parentHandler, parentPath)
+  const childVhd = new VhdFile(childHandler, childPath)
 
   await childVhd.readHeaderAndFooter()
   const { header, footer } = childVhd

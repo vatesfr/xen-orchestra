@@ -1,11 +1,11 @@
 import asyncIteratorToStream from 'async-iterator-to-stream'
 
-import { Vhd } from '.'
+import { VhdFile } from '.'
 
 export default asyncIteratorToStream(async function* (handler, path) {
   const fd = await handler.openFile(path, 'r')
   try {
-    const vhd = new Vhd(handler, fd)
+    const vhd = new VhdFile(handler, fd)
     await vhd.readHeaderAndFooter()
     await vhd.readBlockAllocationTable()
     const {

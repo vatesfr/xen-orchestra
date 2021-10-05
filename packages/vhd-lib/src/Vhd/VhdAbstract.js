@@ -2,11 +2,9 @@ import { computeBatSize, sectorsRoundUpNoZero, sectorsToBytes } from './_utils'
 import { SECTOR_SIZE } from '../_constants'
 export class VhdAbstract {
   bitmapSize
-
   blockTable
   #header
   footer
-
   fullBlockSize
   sectorsOfBitmap
   sectorsPerBlock
@@ -17,9 +15,9 @@ export class VhdAbstract {
 
   set header(header) {
     this.#header = header
-    this.sectorsPerBlock = this.header.blockSize / SECTOR_SIZE
+    this.sectorsPerBlock = header.blockSize / SECTOR_SIZE
     this.sectorsOfBitmap = sectorsRoundUpNoZero(this.sectorsPerBlock >> 3)
-    this.fullBlockSize = this.sectorsOfBitmap + this.sectorsPerBlock
+    this.fullBlockSize = sectorsToBytes(this.sectorsOfBitmap + this.sectorsPerBlock)
     this.bitmapSize = sectorsToBytes(this.sectorsOfBitmap)
   }
 
@@ -47,7 +45,6 @@ export class VhdAbstract {
   /**
    * Read the header and the footer
    * check their integrity
-   * compute fullBlockSize and bitmapSize
    * if checkSecondFooter also checks that the footer at the end is equal to the one at the beginning
    *
    * @param {boolean} checkSecondFooter

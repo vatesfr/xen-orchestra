@@ -11,7 +11,7 @@ import { pFromCallback } from 'promise-toolbox'
 import { pipeline } from 'readable-stream'
 import { randomBytes } from 'crypto'
 
-import {VhdFile as Vhd, chainVhd, createSyntheticStream, mergeVhd as vhdMerge } from './index'
+import { VhdFile, chainVhd, createSyntheticStream, mergeVhd as vhdMerge } from './index'
 
 import { SECTOR_SIZE } from './_constants'
 
@@ -61,7 +61,7 @@ test('blocks can be moved', async () => {
   await convertFromRawToVhd(rawFileName, vhdFileName)
   const handler = getHandler({ url: 'file://' })
   const originalSize = await handler.getSize(rawFileName)
-  const newVhd = new Vhd(handler, vhdFileName)
+  const newVhd = new VhdFile(handler, vhdFileName)
   await newVhd.readHeaderAndFooter()
   await newVhd.readBlockAllocationTable()
   await newVhd._freeFirstBlockSpace(8000000)
@@ -75,7 +75,7 @@ test('the BAT MSB is not used for sign', async () => {
   const emptyFileName = `${tempDir}/empty.vhd`
   await execa('qemu-img', ['create', '-fvpc', emptyFileName, '1.8T'])
   const handler = getHandler({ url: 'file://' })
-  const vhd = new Vhd(handler, emptyFileName)
+  const vhd = new VhdFile(handler, emptyFileName)
   await vhd.readHeaderAndFooter()
   await vhd.readBlockAllocationTable()
   // we want the bit 31 to be on, to prove it's not been used for sign
@@ -92,7 +92,7 @@ test('the BAT MSB is not used for sign', async () => {
   const recoveredFileName = `${tempDir}/recovered`
   const recoveredFile = await fs.open(recoveredFileName, 'w')
   try {
-    const vhd2 = new Vhd(handler, emptyFileName)
+    const vhd2 = new VhdFile(handler, emptyFileName)
     await vhd2.readHeaderAndFooter()
     await vhd2.readBlockAllocationTable()
     for (let i = 0; i < vhd.header.maxTableEntries; i++) {
@@ -123,7 +123,7 @@ test('writeData on empty file', async () => {
   const randomData = await fs.readFile(rawFileName)
   const handler = getHandler({ url: 'file://' })
   const originalSize = await handler.getSize(rawFileName)
-  const newVhd = new Vhd(handler, emptyFileName)
+  const newVhd = new VhdFile(handler, emptyFileName)
   await newVhd.readHeaderAndFooter()
   await newVhd.readBlockAllocationTable()
   await newVhd.writeData(0, randomData)
@@ -142,7 +142,7 @@ test('writeData in 2 non-overlaping operations', async () => {
   const randomData = await fs.readFile(rawFileName)
   const handler = getHandler({ url: 'file://' })
   const originalSize = await handler.getSize(rawFileName)
-  const newVhd = new Vhd(handler, emptyFileName)
+  const newVhd = new VhdFile(handler, emptyFileName)
   await newVhd.readHeaderAndFooter()
   await newVhd.readBlockAllocationTable()
   const splitPointSectors = 2
@@ -162,7 +162,7 @@ test('writeData in 2 overlaping operations', async () => {
   const randomData = await fs.readFile(rawFileName)
   const handler = getHandler({ url: 'file://' })
   const originalSize = await handler.getSize(rawFileName)
-  const newVhd = new Vhd(handler, emptyFileName)
+  const newVhd = new VhdFile(handler, emptyFileName)
   await newVhd.readHeaderAndFooter()
   await newVhd.readBlockAllocationTable()
   const endFirstWrite = 3
@@ -182,7 +182,7 @@ test('BAT can be extended and blocks moved', async () => {
   await convertFromRawToVhd(rawFileName, vhdFileName)
   const handler = getHandler({ url: 'file://' })
   const originalSize = await handler.getSize(rawFileName)
-  const newVhd = new Vhd(handler, vhdFileName)
+  const newVhd = new VhdFile(handler, vhdFileName)
   await newVhd.readHeaderAndFooter()
   await newVhd.readBlockAllocationTable()
   await newVhd.ensureBatSize(2000)
@@ -226,7 +226,7 @@ test('coalesce works in normal cases', async () => {
   await convertFromRawToVhd(randomFileName, child1FileName)
   const handler = getHandler({ url: 'file://' })
   await execa('vhd-util', ['snapshot', '-n', child2FileName, '-p', child1FileName])
-  const vhd = new Vhd(handler, child2FileName)
+  const vhd = new VhdFile(handler, child2FileName)
   await vhd.readHeaderAndFooter()
   await vhd.readBlockAllocationTable()
   vhd.footer.creatorApplication = 'xoa'
@@ -238,7 +238,7 @@ test('coalesce works in normal cases', async () => {
   await chainVhd(handler, child1FileName, handler, child2FileName, true)
   await execa('vhd-util', ['check', '-t', '-n', child2FileName])
   const smallRandom = await fs.readFile(smallRandomFileName)
-  const newVhd = new Vhd(handler, child2FileName)
+  const newVhd = new VhdFile(handler, child2FileName)
   await newVhd.readHeaderAndFooter()
   await newVhd.readBlockAllocationTable()
   await newVhd.writeData(5, smallRandom)

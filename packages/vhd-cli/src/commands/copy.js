@@ -35,7 +35,6 @@ export default async rawArgs => {
       // https://man7.org/linux/man-pages/man2/open.2.html
       // EISDIR pathname refers to a directory and the access requested
       // involved writing (that is, O_WRONLY or O_RDWR is set).
-      await src.readHeaderAndFooter()
     } catch (e) {
       if (e.code === 'EISDIR') {
         src = yield VhdDirectory.open(handler, resolvedSourcePath)

@@ -2,7 +2,7 @@ import { BLOCK_UNUSED } from '../../dist/_constants'
 import { createLogger } from '@xen-orchestra/log'
 import { fuFooter, fuHeader, checksumStruct } from '../_structs'
 import { SECTOR_SIZE } from '../_constants'
-import { sectorsRoundUpNoZero, sectorsToBytes, buildHeader, buildFooter, computeBatSize } from './_utils'
+import { buildHeader, buildFooter, computeBatSize } from './_utils'
 import { test, set as setBitmap } from '../_bitmap'
 import { VhdAbstract } from './VhdAbstract'
 import assert from 'assert'
@@ -12,6 +12,12 @@ const { debug } = createLogger('vhd-lib:VhdDirectory')
 export class VhdDirectory extends VhdAbstract {
   static async open(handler, path) {
     const vhd = new VhdDirectory(handler, path)
+
+    // openning a file for reading does not trigger EISDIR as long as we don't really read from it :
+    // https://man7.org/linux/man-pages/man2/open.2.html
+    // EISDIR pathname refers to a directory and the access requested
+    // involved writing (that is, O_WRONLY or O_RDWR is set).
+    // reading the header ensure we have a well formed directory immediatly
     await vhd.readHeaderAndFooter()
     return {
       dispose: () => {},
@@ -90,21 +96,6 @@ export class VhdDirectory extends VhdAbstract {
 
     this.footer = footer
     this.header = header
-
-    // Compute the number of sectors in one block.
-    // Default: One block contains 4096 sectors of 512 bytes.
-    const sectorsPerBlock = (this.sectorsPerBlock = header.blockSize / SECTOR_SIZE)
-
-    // Compute bitmap size in sectors.
-    // Default: 1.
-    const sectorsOfBitmap = (this.sectorsOfBitmap = sectorsRoundUpNoZero(sectorsPerBlock >> 3))
-
-    // Full block size => data block size + bitmap size.
-    this.fullBlockSize = sectorsToBytes(sectorsPerBlock + sectorsOfBitmap)
-
-    // In bytes.
-    // Default: 512.
-    this.bitmapSize = sectorsToBytes(sectorsOfBitmap)
   }
 
   async readBlock(blockId, onlyBitmap = false) {
