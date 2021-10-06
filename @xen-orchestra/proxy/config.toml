@@ -59,6 +59,13 @@ cert = '/var/lib/xo-proxy/certificate.pem'
 key = '/var/lib/xo-proxy/key.pem'
 port = 443
 
+[logs]
+# Display all logs matching this filter, regardless of their level
+#filter = 'xo:backups:*'
+
+# Display all logs with level >=, regardless of their namespace
+level = 'info'
+
 [remoteOptions]
 mountsDir = '/run/xo-proxy/mounts'
 
