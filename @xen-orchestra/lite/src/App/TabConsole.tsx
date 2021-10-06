@@ -35,7 +35,7 @@ const TabConsole = withState<State, Props, Effects, Computed, ParentState, Paren
   {
     initialState: () => ({
       // Value in percent
-      consoleScale: 99,
+      consoleScale: 100,
       sendCtrlAltDel: undefined,
     }),
     effects: {
@@ -66,7 +66,7 @@ const TabConsole = withState<State, Props, Effects, Computed, ParentState, Paren
       ) : (
         <>
           {/* Hide scaling and Ctrl+Alt+Del button temporarily */}
-          {/* <RangeInput max={99} min={1} onChange={effects.scaleConsole} step={1} value={state.consoleScale} />
+          {/* <RangeInput max={100} min={1} onChange={effects.scaleConsole} step={1} value={state.consoleScale} />
           {state.sendCtrlAltDel !== undefined && (
             <Button onClick={state.sendCtrlAltDel}>
               <IntlMessage id='ctrlAltDel' />
