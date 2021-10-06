@@ -165,6 +165,13 @@ export class VhdFile extends VhdAbstract {
     return sectorsToBytes(end)
   }
 
+  // return the first sector (bitmap) of a block
+  _getBatEntry(blockId) {
+    const i = blockId * 4
+    const blockTable = this.#blockTable
+    return i < blockTable.length ? blockTable.readUInt32BE(i) : BLOCK_UNUSED
+  }
+
   containsBlock(id) {
     return this._getBatEntry(id) !== BLOCK_UNUSED
   }
@@ -490,7 +497,17 @@ export class VhdFile extends VhdAbstract {
     return this._read(platformDataOffset, platformDataSpace)
   }
 
-  async _writeParentLocatorData(parentLocatorId, data, position) {
-    await this._write(position, data)
+  async _writeParentLocatorData(parentLocatorId, data) {
+    let position
+    const { header } = this
+    if (data.length <= header.parentLocatorEntry[parentLocatorId].platformDataSpace) {
+      // new parent locator length is smaller than available space : keep it in place
+      position = header.parentLocatorEntry[parentLocatorId].platformDataOffset
+    } else {
+      // new parent locator length is bigger than available space : move it to the end
+      position = this._getEndOfData()
+    }
+    await this._write(data, position)
+    header.parentLocatorEntry[parentLocatorId].platformDataOffset = position
   }
 }
