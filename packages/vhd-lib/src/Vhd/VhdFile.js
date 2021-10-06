@@ -1,4 +1,4 @@
-import { BLOCK_UNUSED, FOOTER_SIZE, HEADER_SIZE, PLATFORM_NONE, PLATFORM_W2KU, SECTOR_SIZE } from '../_constants'
+import { BLOCK_UNUSED, FOOTER_SIZE, HEADER_SIZE, SECTOR_SIZE } from '../_constants'
 import { computeBatSize, sectorsToBytes, buildHeader, buildFooter, BUF_BLOCK_UNUSED } from './_utils'
 import { createLogger } from '@xen-orchestra/log'
 import { fuFooter, fuHeader, checksumStruct } from '../_structs'
@@ -369,41 +369,12 @@ export class VhdFile extends VhdAbstract {
     await this.writeFooter()
   }
 
-  async _ensureSpaceForParentLocators(neededSectors) {
-    const firstLocatorOffset = FOOTER_SIZE + HEADER_SIZE
-    const currentSpace = Math.floor(this.header.tableOffset / SECTOR_SIZE) - firstLocatorOffset / SECTOR_SIZE
-    if (currentSpace < neededSectors) {
-      const deltaSectors = neededSectors - currentSpace
-      await this._freeFirstBlockSpace(sectorsToBytes(deltaSectors))
-      this.header.tableOffset += sectorsToBytes(deltaSectors)
-      await this._write(this.blockTable, this.header.tableOffset)
-    }
-    return firstLocatorOffset
+  _readParentLocatorData(parentLocatorId) {
+    const { platformDataOffset, platformDataLength } = this.header.parentLocatorEntry[parentLocatorId]
+    return this._read(platformDataOffset, platformDataLength)
   }
 
-  async setUniqueParentLocator(fileNameString) {
-    const { header } = this
-    header.parentLocatorEntry[0].platformCode = PLATFORM_W2KU
-    const encodedFilename = Buffer.from(fileNameString, 'utf16le')
-    const dataSpaceSectors = Math.ceil(encodedFilename.length / SECTOR_SIZE)
-    const position = await this._ensureSpaceForParentLocators(dataSpaceSectors)
-    await this._write(encodedFilename, position)
-    header.parentLocatorEntry[0].platformDataSpace = dataSpaceSectors * SECTOR_SIZE
-    header.parentLocatorEntry[0].platformDataLength = encodedFilename.length
-    header.parentLocatorEntry[0].platformDataOffset = position
-    for (let i = 1; i < 8; i++) {
-      header.parentLocatorEntry[i].platformCode = PLATFORM_NONE
-      header.parentLocatorEntry[i].platformDataSpace = 0
-      header.parentLocatorEntry[i].platformDataLength = 0
-      header.parentLocatorEntry[i].platformDataOffset = 0
-    }
-  }
-
-  _readParentLocatorData(parentLocatorId, platformDataOffset, platformDataSpace) {
-    return this._read(platformDataOffset, platformDataSpace)
-  }
-
-  _writeParentLocator(parentLocatorId, platformDataOffset, data) {
-    return this._write(platformDataOffset, data)
+  async _writeParentLocatorData(parentLocatorId, data, position) {
+    await this._write(position, data)
   }
 }

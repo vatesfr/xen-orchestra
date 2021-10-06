@@ -5,6 +5,7 @@ import {
   PARENT_LOCATOR_ENTRIES,
   PLATFORM_NONE,
   SECTOR_SIZE,
+  PLATFORM_W2KU,
 } from '../_constants'
 import { computeBatSize, sectorsRoundUpNoZero, sectorsToBytes } from './_utils'
 import { createLogger } from '@xen-orchestra/log'
@@ -113,10 +114,6 @@ export class VhdAbstract {
     throw new Error(`writing header is not implemented`)
   }
 
-  setUniqueParentLocator(fileNameString) {
-    throw new Error(`setting unique parent locator from file name ${fileNameString} is not implemented`)
-  }
-
   _writeParentLocator(parentLocatorId, platformDataOffset, data) {
     throw new Error(`write Parent locator ${parentLocatorId} is not implemented`)
   }
@@ -177,33 +174,60 @@ export class VhdAbstract {
     return sectorsToBytes(end)
   }
 
-  writeParentLocator(parentLocatorId, data) {
+  async writeParentLocator({
+    parentLocatorId,
+    platformCode = PLATFORM_NONE,
+    data = Buffer.alloc(0), // or undefined?
+  }) {
+    assert(parentLocatorId >= 0, 'parent Locator id must be a positive number')
+    assert(parentLocatorId < 8, 'parent Locator id  must be less than 8')
+    const { header } = this
+    let position
+    if (data.length <= header.parentLocatorEntry[parentLocatorId].platformDataSpace) {
+      // new parent locator length is smaller than available space : keep it in place
+      position = header.parentLocatorEntry[parentLocatorId].platformDataOffset
+    } else {
+      // new parent locator length is bigger than available space : move it to the end
+      position = this._getEndOfData()
+    }
+    await this._writeParentLocatorData(parentLocatorId, data, position)
+
+    const dataSpaceSectors = Math.ceil(data.length / SECTOR_SIZE)
+
+    header.parentLocatorEntry[parentLocatorId].platformCode = platformCode
+    header.parentLocatorEntry[parentLocatorId].platformDataSpace = dataSpaceSectors * SECTOR_SIZE
+    header.parentLocatorEntry[parentLocatorId].platformDataLength = data.length
+    header.parentLocatorEntry[parentLocatorId].platformDataOffset = position
+
+    // ensure the header is in sync with the data on disk
+    this.writeHeader({ allowOverwrite: true })
+  }
+
+  async readParentLocator(parentLocatorId) {
     assert(parentLocatorId >= 0, 'parent Locator id must be a positive number')
     assert(parentLocatorId < 8, 'parent Locator id  must be less than 8')
 
-    let { platformDataOffset, platformDataSpace } = this.header.parentLocatorEntry[parentLocatorId]
-    // ensure there is enough place to write it
-    if (platformDataSpace > data.length) {
-      // growing : put it at the end of the data
-      platformDataOffset = this._getEndOfData()
-    }
-    platformDataSpace = data.length
-
-    // update header data
-    this.header.parentLocatorEntry[parentLocatorId].platformDataSpace = platformDataSpace
-    this.header.parentLocatorEntry[parentLocatorId].platformDataOffset = platformDataOffset
-
-    if (platformDataSpace !== 0) {
-      return this._writeParentLocator(parentLocatorId, platformDataOffset, data)
+    const data = await this._readParentLocatorData(parentLocatorId)
+    return {
+      ...this.header.parentLocatorEntry[parentLocatorId],
+      parentLocatorId,
+      data,
     }
   }
 
-  readParentLocatorData(parentLocatorId) {
-    assert(parentLocatorId >= 0, 'parent Locator id must be a positive number')
-    assert(parentLocatorId < 8, 'parent Locator id  must be less than 8')
-    const { platformDataOffset, platformDataSpace } = this.header.parentLocatorEntry[parentLocatorId]
-    if (platformDataSpace > 0) {
-      return this._readParentLocatorData(parentLocatorId, platformDataOffset, platformDataSpace)
+  async setUniqueParentLocator(fileNameString) {
+    await this.writeParentLocator({
+      parentLocatorId: 0,
+      code: PLATFORM_W2KU,
+      data: Buffer.from(fileNameString, 'utf16le'),
+    })
+
+    for (let i = 1; i < 8; i++) {
+      await this.writeParentLocator({
+        parentLocatorId: i,
+        code: PLATFORM_NONE,
+        data: Buffer.alloc(0),
+      })
     }
   }
 }

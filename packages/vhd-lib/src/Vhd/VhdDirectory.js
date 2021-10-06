@@ -9,6 +9,15 @@ import assert from 'assert'
 
 const { debug } = createLogger('vhd-lib:VhdDirectory')
 
+// ===================================================================
+// Directory format
+// <path>
+// ├─ header // raw content of the header
+// ├─ footer // raw content of the footer
+// ├─ bat // bit array. A zero bit indicates at a position that this block is not present
+// ├─ parentLocator{0-7} // data of a parent locator
+// ├─ 1..n // block content. The filename is the position in the BAT
+
 export class VhdDirectory extends VhdAbstract {
   static async open(handler, path) {
     const vhd = new VhdDirectory(handler, path)
@@ -34,33 +43,52 @@ export class VhdDirectory extends VhdAbstract {
     }
   }
 
-  constructor(handler, path, flags) {
+  constructor(handler, path) {
     super()
     this._handler = handler
     this._path = path
-    this._flags = flags
   }
 
   async readBlockAllocationTable() {
     const { buffer } = await this._readChunk('bat')
+    const { header, fullBlockSize } = this
     /**
      * In directory mode, the bat is a sequence of bits
      * A zero bit indicates that the block is not present
      */
-    const batSize = this.header.maxTableEntries
-    this.blockTable = Buffer.alloc(batSize * 4)
-    let start = this.header.tableOffset + computeBatSize(this.header.maxTableEntries)
+    const batSize = header.maxTableEntries
+    const blockTable = Buffer.alloc(batSize * 4)
+    let start = header.tableOffset + computeBatSize(header.maxTableEntries)
     start /= SECTOR_SIZE // in sector
-    const blockSectorSize = this.fullBlockSize / SECTOR_SIZE
+    const blockSectorSize = fullBlockSize / SECTOR_SIZE
     let nbNonEmptyblock = 0
-    for (let blockId = 0; blockId < this.header.maxTableEntries; blockId++) {
+    let parentLocatorSectorOffset = 0
+
+    const getNextAvailableSectorForBlock = () => {
+      const currentSector = start + parentLocatorSectorOffset + nbNonEmptyblock * blockSectorSize
+      for (let i = 0; i < 8; i++) {
+        const p = header.parentLocatorEntry[i]
+        const pSectorSize = p.platformDataSpace / SECTOR_SIZE
+        const pSectorOffset = p.platformDataSpaceOffset / SECTOR_SIZE
+        // check if the block will overwrite a parent locator
+        if (pSectorOffset <= currentSector + blockSectorSize && pSectorOffset + pSectorSize >= currentSector) {
+          parentLocatorSectorOffset += pSectorSize
+          // moving the block can overwrite another parent locator , should check
+          return getNextAvailableSectorForBlock()
+        }
+      }
+      return currentSector
+    }
+
+    for (let blockId = 0; blockId < header.maxTableEntries; blockId++) {
       if (test(buffer, blockId)) {
-        this.blockTable.writeUInt32BE(start + nbNonEmptyblock * blockSectorSize, blockId * 4)
+        blockTable.writeUInt32BE(getNextAvailableSectorForBlock(), blockId * 4)
         nbNonEmptyblock++
       } else {
-        this.blockTable.writeUInt32BE(BLOCK_UNUSED, blockId * 4)
+        blockTable.writeUInt32BE(BLOCK_UNUSED, blockId * 4)
       }
     }
+    this.blockTable = blockTable
   }
 
   containsBlock(blockId) {
@@ -82,10 +110,11 @@ export class VhdDirectory extends VhdAbstract {
     }
   }
 
-  async _writeChunk(partName, buffer) {
+  async _writeChunk(partName, buffer, opts = { allowOverwrite: false }) {
     assert(Buffer.isBuffer(buffer))
+    const flags = opts.allowOverwrite ? 'w' : 'wx'
     // here we can implement compression and / or crypto
-    return this._handler.writeFile(this.getChunkPath(partName), buffer, { flags: this._flags })
+    return this._handler.writeFile(this.getChunkPath(partName), buffer, { flags })
   }
 
   async readHeaderAndFooter() {
@@ -100,7 +129,7 @@ export class VhdDirectory extends VhdAbstract {
 
   async readBlock(blockId, onlyBitmap = false) {
     if (onlyBitmap) {
-      throw new Error(`reading 'bitmap of block' ${blockId} in a VhdDIrecotry is not implemented`)
+      throw new Error(`reading 'bitmap of block' ${blockId} in a VhdDirectory is not implemented`)
     }
     const { buffer } = await this._readChunk(blockId)
     return {
@@ -125,19 +154,18 @@ export class VhdDirectory extends VhdAbstract {
     await this._writeChunk('footer', rawFooter)
   }
 
-  writeHeader() {
+  writeHeader(opts) {
     const { header } = this
     const rawHeader = fuHeader.pack(header)
     header.checksum = checksumStruct(rawHeader, fuHeader)
     debug(`Write header  (checksum=${header.checksum}). (data=${rawHeader.toString('hex')})`)
-    return this._writeChunk('header', rawHeader)
+    return this._writeChunk('header', rawHeader, opts)
   }
 
   writeBlockAllocationTable() {
     const { blockTable, header } = this
-
     assert.notStrictEqual(blockTable, undefined, 'Block allocation table has not been read')
-    assert.strictEqual(blockTable.length, 0, 'Block allocation table is empty')
+    assert.notStrictEqual(blockTable.length, 0, 'Block allocation table is empty')
     assert(
       blockTable.length % 4 === 0,
       `Block allocation table size is incorrect, not a multiple of 4  ${blockTable.length}`
@@ -156,11 +184,6 @@ export class VhdDirectory extends VhdAbstract {
     return this._writeChunk('bat', buffer)
   }
 
-  setUniqueParentLocator(fileNameString) {
-    const encodedFilename = Buffer.from(fileNameString, 'utf16le')
-    return this._write('parentLocator0', encodedFilename)
-  }
-
   // only works if data are in the same bucket
   // and if the full block is modified in child ( which is the case whit xcp)
 
@@ -177,7 +200,7 @@ export class VhdDirectory extends VhdAbstract {
     return this._readChunk('parentLocator' + parentLocatorId)
   }
 
-  _writeParentLocator(parentLocatorId, data) {
-    return this._writeChunk('parentLocator' + parentLocatorId, data)
+  async _writeParentLocatorData(parentLocatorId, data) {
+    await this._writeChunk('parentLocator' + parentLocatorId, data)
   }
 }

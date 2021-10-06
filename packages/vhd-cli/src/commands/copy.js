@@ -58,13 +58,13 @@ export default async rawArgs => {
 
     // copy parent locators
     for (let parentLocatorId = 0; parentLocatorId < 8; parentLocatorId++) {
-      const parentLocatorData = await src.readParentLocatorData(parentLocatorId)
-      if (parentLocatorData) {
-        await dest.writeParentLocator(parentLocatorId, parentLocatorData)
+      const parentLocator = await src.readParentLocator(parentLocatorId)
+      if (parentLocator) {
+        await dest.writeParentLocator(parentLocator)
       }
     }
     await dest.writeFooter()
-    await dest.writeHeader()
+    await dest.writeHeader({ allowOverwrite: true }) // header could have already be written by parentLocator
     await dest.writeBlockAllocationTable()
   })
 }
