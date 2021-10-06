@@ -197,4 +197,13 @@ export class VhdAbstract {
       })
     }
   }
+
+  async *blocks() {
+    const nBlocks = this.header.maxTableEntries
+    for (let blockId = 0; blockId < nBlocks; ++blockId) {
+      if (await this.containsBlock(blockId)) {
+        yield await this.readBlock(blockId)
+      }
+    }
+  }
 }
