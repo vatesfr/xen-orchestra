@@ -1,5 +1,5 @@
 import { getSyncedHandler } from '@xen-orchestra/fs'
-import { openVhd } from 'vhd-lib'
+import { openVhd, Constants } from 'vhd-lib'
 import { resolve } from 'path'
 import Disposable from 'promise-toolbox/Disposable'
 
@@ -64,7 +64,7 @@ export default async args => {
       }
     }
 
-    for (let parentLocatorId = 0; parentLocatorId < 8; parentLocatorId++) {
+    for (let parentLocatorId = 0; parentLocatorId < Constants.PARENT_LOCATOR_ENTRIES; parentLocatorId++) {
       const parentLocatorData = await src.readParentLocatorData(parentLocatorId)
       const destData = await dest.readParentLocatorData(parentLocatorId)
       if (parentLocatorData) {
