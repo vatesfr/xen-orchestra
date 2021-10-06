@@ -92,10 +92,10 @@ const reduceObject = (value, propertyName = 'id') => (value != null && value[pro
 /**
  * Adapts all data "arrayed" by UI-multiple-selectors to job's cross-product trick
  */
-const dataToParamVectorItems = function (params, data) {
+const dataToParamVectorItems = function (params, data, properties) {
   const items = []
   forEach(params, (param, name) => {
-    if (Array.isArray(data[name]) && param.items) {
+    if (properties[name].multi && param.items) {
       // We have an array for building cross product, the "real" type was $type
       const values = []
       if (data[name].length === 1) {
@@ -287,7 +287,8 @@ export default class Jobs extends Component {
   _handleSubmit = () => {
     const { name, method, params } = this.refs
 
-    const { job, owner, timeout } = this.state
+    const { actions, job, owner, timeout } = this.state
+    const action = find(actions, { method: job.method })
     const _job = {
       type: 'call',
       name: name.value,
@@ -295,7 +296,7 @@ export default class Jobs extends Component {
       method: method.value.method,
       paramsVector: {
         type: 'crossProduct',
-        items: dataToParamVectorItems(method.value.info.properties, params.value),
+        items: dataToParamVectorItems(method.value.info.properties, params.value, action.uiSchema.properties),
       },
       userId: owner !== undefined ? owner : this.props.currentUser.id,
       timeout: timeout ? timeout * 1e3 : undefined,
