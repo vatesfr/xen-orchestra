@@ -172,6 +172,25 @@ export class VhdFile extends VhdAbstract {
     return i < blockTable.length ? blockTable.readUInt32BE(i) : BLOCK_UNUSED
   }
 
+  // Returns the first sector after data.
+  _getEndOfData() {
+    let end = Math.ceil(this._getEndOfHeaders() / SECTOR_SIZE)
+
+    const sectorsOfFullBlock = this.sectorsOfBitmap + this.sectorsPerBlock
+    const { maxTableEntries } = this.header
+    for (let i = 0; i < maxTableEntries; i++) {
+      const blockAddr = this._getBatEntry(i)
+
+      if (blockAddr !== BLOCK_UNUSED) {
+        end = Math.max(end, blockAddr + sectorsOfFullBlock)
+      }
+    }
+
+    debug(`End of data: ${end}.`)
+
+    return sectorsToBytes(end)
+  }
+
   containsBlock(id) {
     return this._getBatEntry(id) !== BLOCK_UNUSED
   }
