@@ -47,19 +47,14 @@ export default async rawArgs => {
     dest.header = src.header
     dest.footer = src.footer
 
-    for (let i = 0; i < src.header.maxTableEntries; i++) {
-      if (src.containsBlock(i)) {
-        const block = await src.readBlock(i)
-        await dest.writeEntireBlock(block)
-      }
+    for await (const block of src.blocks()) {
+      await dest.writeEntireBlock(block)
     }
 
     // copy parent locators
     for (let parentLocatorId = 0; parentLocatorId < 8; parentLocatorId++) {
       const parentLocator = await src.readParentLocator(parentLocatorId)
-      if (parentLocator) {
-        await dest.writeParentLocator(parentLocator)
-      }
+      await dest.writeParentLocator(parentLocator)
     }
     await dest.writeFooter()
     await dest.writeHeader()
