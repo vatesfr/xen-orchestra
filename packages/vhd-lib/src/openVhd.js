@@ -1,15 +1,12 @@
 import { VhdFile, VhdDirectory } from './'
 
-export const openVhd = async (handler, path) => {
-  let src
+export const openVhd = async function (handler, path) {
   try {
-    src = await VhdFile.open(handler, path)
+    return await VhdFile.open(handler, path)
   } catch (e) {
-    if (e.code === 'EISDIR') {
-      src = await VhdDirectory.open(handler, path)
-    } else {
+    if (e.code !== 'EISDIR') {
       throw e
     }
+    return await VhdDirectory.open(handler, path)
   }
-  return src
 }
