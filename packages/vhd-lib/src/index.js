@@ -9,6 +9,8 @@ export { default as createVhdStreamWithLength } from './createVhdStreamWithLengt
 export { default as mergeVhd } from './merge'
 export { default as peekFooterFromVhdStream } from './peekFooterFromVhdStream'
 export { openVhd } from './openVhd'
+export { openVhd } from './openVhd'
+export { VhdAlias } from './Vhd/VhdAlias'
 export { VhdDirectory } from './Vhd/VhdDirectory'
 export { VhdFile } from './Vhd/VhdFile'
 export * as Constants from './_constants'

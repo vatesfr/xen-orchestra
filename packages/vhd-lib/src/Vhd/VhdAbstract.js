@@ -60,6 +60,9 @@ export class VhdAbstract {
   readBlockAllocationTable() {
     throw new Error(`reading block allocation table is not implemented`)
   }
+  writeBlockAllocationTable() {
+    throw new Error(`writing block allocation table is not implemented`)
+  }
 
   /**
    *
@@ -109,7 +112,6 @@ export class VhdAbstract {
   _readParentLocatorData(parentLocatorId, platformDataOffset, platformDataSpace) {
     throw new Error(`read Parent locator ${parentLocatorId} is not implemented`)
   }
-
 
   unlink() {
     throw new Error(`read unlink is not implemented`)
@@ -174,5 +176,4 @@ export class VhdAbstract {
       }
     }
   }
-
 }
