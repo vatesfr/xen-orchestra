@@ -1,29 +1,29 @@
-import { openVhd } from 'vhd-lib'
 import { getSyncedHandler } from '@xen-orchestra/fs'
+import { openVhd } from 'vhd-lib'
 import { resolve } from 'path'
 import Disposable from 'promise-toolbox/Disposable'
 
-const compareVhd = (src, dest, path) => {
+const deepCompareObjects = (src, dest, path) => {
   for (const key of Object.keys(src)) {
-    let same = false
-    if (typeof src[key] !== typeof dest[key]) {
+    const srcValue = src[key]
+    const destValue = dest[key]
+    if (typeof srcValue !== typeof destValue) {
       throw new Error(
-        `Error checking header : key ${path + '/' + key} is of type *${src[key]}* in source and *${dest[key]}* in dest`
+        `Error checking header : key ${path + '/' + key} is of type *${srcValue}* in source and *${destValue}* in dest`
       )
     }
 
     if (typeof src[key] === 'object') {
-      compareVhd(src[key], dest[key], path + '/' + key)
+      deepCompareObjects(src[key], dest[key], path + '/' + key)
     } else {
-      const srcValue = src[key]
-      const destValue = dest[key]
-      same =
-        srcValue === destValue ||
-        (Buffer.isBuffer(srcValue) && Buffer.isBuffer(destValue) && srcValue.equals(destValue))
-
-      if (!same) {
+      if (
+        srcValue !== destValue ||
+        (Buffer.isBuffer(srcValue) && Buffer.isBuffer(destValue) && !srcValue.equals(destValue))
+      ) {
         throw new Error(
-          `Error checking header : key ${path + '/' + key} is *${src[key]}* in source and *${dest[key]}* in dest`
+          `Error checking comparing objects : key ${
+            path + '/' + key
+          } is *${srcValue}* in source and *${destValue}* in dest`
         )
       }
     }
@@ -41,8 +41,8 @@ export default async args => {
     const src = yield openVhd(handler, resolve(sourcePath))
     const dest = yield openVhd(handler, resolve(destPath))
 
-    compareVhd(src.header, dest.header, 'header')
-    compareVhd(src.footer, dest.footer, 'footer')
+    deepCompareObjects(src.header, dest.header, 'header')
+    deepCompareObjects(src.footer, dest.footer, 'footer')
 
     await src.readBlockAllocationTable()
     await dest.readBlockAllocationTable()
@@ -59,10 +59,8 @@ export default async args => {
         } else {
           throw new Error(`Block  ${i} is present in source but not in dest `)
         }
-      } else {
-        if (dest.containsBlock(i)) {
-          throw new Error(`Block  ${i} is present in dest but not in source `)
-        }
+      } else if (dest.containsBlock(i)) {
+        throw new Error(`Block  ${i} is present in dest but not in source `)
       }
     }
 
