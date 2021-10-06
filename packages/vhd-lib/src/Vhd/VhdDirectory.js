@@ -1,6 +1,6 @@
+import { buildHeader, buildFooter } from './_utils'
 import { createLogger } from '@xen-orchestra/log'
 import { fuFooter, fuHeader, checksumStruct } from '../_structs'
-import { buildHeader, buildFooter } from './_utils'
 import { test, set as setBitmap } from '../_bitmap'
 import { VhdAbstract } from './VhdAbstract'
 import assert from 'assert'
