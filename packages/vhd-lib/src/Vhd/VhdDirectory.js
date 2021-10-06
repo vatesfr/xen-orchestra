@@ -91,8 +91,9 @@ export class VhdDirectory extends VhdAbstract {
     }
   }
 
-  async _writeChunk(partName, buffer) {
+  async _writeChunk(partName, buffer, opts = { allowOverwrite: false }) {
     assert(Buffer.isBuffer(buffer))
+    const flags = opts.allowOverwrite ? 'w' : 'wx'
     // here we can implement compression and / or crypto
 
     // chunks can be in sub directories :  create direcotries if necessary
@@ -152,12 +153,12 @@ export class VhdDirectory extends VhdAbstract {
     await this._writeChunk('footer', rawFooter)
   }
 
-  writeHeader() {
+  writeHeader(opts) {
     const { header } = this
     const rawHeader = fuHeader.pack(header)
     header.checksum = checksumStruct(rawHeader, fuHeader)
     debug(`Write header  (checksum=${header.checksum}). (data=${rawHeader.toString('hex')})`)
-    return this._writeChunk('header', rawHeader)
+    return this._writeChunk('header', rawHeader, opts)
   }
 
   writeBlockAllocationTable() {

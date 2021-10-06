@@ -57,7 +57,7 @@ export default async rawArgs => {
       await dest.writeParentLocator(parentLocator)
     }
     await dest.writeFooter()
-    await dest.writeHeader()
+    await dest.writeHeader({ allowOverwrite: true }) // header could have already be written by parentLocator
     await dest.writeBlockAllocationTable()
   })
 }

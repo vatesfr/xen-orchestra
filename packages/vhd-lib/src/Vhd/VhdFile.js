@@ -490,7 +490,7 @@ export class VhdFile extends VhdAbstract {
     return this._read(platformDataOffset, platformDataSpace)
   }
 
-  _writeParentLocator(parentLocatorId, platformDataOffset, data) {
-    return this._write(platformDataOffset, data)
+  async _writeParentLocatorData(parentLocatorId, data, position) {
+    await this._write(position, data)
   }
 }

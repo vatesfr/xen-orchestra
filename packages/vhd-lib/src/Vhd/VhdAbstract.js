@@ -5,6 +5,7 @@ import {
   PARENT_LOCATOR_ENTRIES,
   PLATFORM_NONE,
   SECTOR_SIZE,
+  PLATFORM_W2KU,
 } from '../_constants'
 import { computeBatSize, sectorsRoundUpNoZero, sectorsToBytes } from './_utils'
 import { PLATFORM_NONE, SECTOR_SIZE, PLATFORM_W2KU, PARENT_LOCATOR_ENTRIES } from '../_constants'
@@ -177,12 +178,31 @@ export class VhdAbstract {
     }
   }
 
-  readParentLocatorData(parentLocatorId) {
+  async readParentLocator(parentLocatorId) {
     assert(parentLocatorId >= 0, 'parent Locator id must be a positive number')
     assert(parentLocatorId < 8, 'parent Locator id  must be less than 8')
-    const { platformDataOffset, platformDataSpace } = this.header.parentLocatorEntry[parentLocatorId]
-    if (platformDataSpace > 0) {
-      return this._readParentLocatorData(parentLocatorId, platformDataOffset, platformDataSpace)
+
+    const data = await this._readParentLocatorData(parentLocatorId)
+    return {
+      ...this.header.parentLocatorEntry[parentLocatorId],
+      parentLocatorId,
+      data,
+    }
+  }
+
+  async setUniqueParentLocator(fileNameString) {
+    await this.writeParentLocator({
+      parentLocatorId: 0,
+      code: PLATFORM_W2KU,
+      data: Buffer.from(fileNameString, 'utf16le'),
+    })
+
+    for (let i = 1; i < 8; i++) {
+      await this.writeParentLocator({
+        parentLocatorId: i,
+        code: PLATFORM_NONE,
+        data: Buffer.alloc(0),
+      })
     }
   }
 }
