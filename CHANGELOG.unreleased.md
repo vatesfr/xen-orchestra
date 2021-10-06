@@ -13,7 +13,6 @@
 - [VM/export] Ability to copy the export URL (PR [#5948](https://github.com/vatesfr/xen-orchestra/pull/5948))
 - [Servers] Ability to use an HTTP proxy between XO and a server
 - [Menu] Notify user when proxies need to be upgraded (PR [#5930](https://github.com/vatesfr/xen-orchestra/pull/5930))
-- [Menu] Notify user when proxies need to be upgraded (PR [#5930](https://github.com/vatesfr/xen-orchestra/pull/5930))
 
 ### Bug fixes
 
@@ -48,7 +47,12 @@
 - xen-api minor
 - @xen-orchestra/backup minor
 - @xen-orchestra/proxy minor
+  <<<<<<< HEAD
 - vhd-cli minor
 - xapi-explore-sr minor
 - xo-server patch
 - xo-web minor
+  ||||||| constructed merge base
+  =======
+- xo-web minor
+  > > > > > > > add packages
