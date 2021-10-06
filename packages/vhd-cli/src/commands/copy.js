@@ -38,7 +38,6 @@ export default async rawArgs => {
         throw e
       }
     }
-
     await src.readBlockAllocationTable()
     const resolvedDestPath = resolve(destPath)
     const dest = yield directory
@@ -47,7 +46,6 @@ export default async rawArgs => {
     // copy data
     dest.header = src.header
     dest.footer = src.footer
-    dest.blockTable = Buffer.from(src.blockTable)
 
     for (let i = 0; i < src.header.maxTableEntries; i++) {
       if (src.containsBlock(i)) {
@@ -64,7 +62,7 @@ export default async rawArgs => {
       }
     }
     await dest.writeFooter()
-    await dest.writeHeader({ allowOverwrite: true }) // header could have already be written by parentLocator
+    await dest.writeHeader()
     await dest.writeBlockAllocationTable()
   })
 }

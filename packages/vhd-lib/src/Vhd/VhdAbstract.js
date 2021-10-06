@@ -16,7 +16,6 @@ const { debug } = createLogger('vhd-lib:VhdAbstract')
 export class VhdAbstract {
   #header
   bitmapSize
-  blockTable
   footer
   fullBlockSize
   sectorsOfBitmap
@@ -114,7 +113,7 @@ export class VhdAbstract {
     throw new Error(`writing header is not implemented`)
   }
 
-  _writeParentLocator(parentLocatorId, platformDataOffset, data) {
+  _writeParentLocatorData(parentLocatorId, platformDataOffset, data) {
     throw new Error(`write Parent locator ${parentLocatorId} is not implemented`)
   }
 
@@ -124,13 +123,6 @@ export class VhdAbstract {
   // common
   get batSize() {
     return computeBatSize(this.header.maxTableEntries)
-  }
-
-  // return the first sector (bitmap) of a block
-  _getBatEntry(blockId) {
-    const i = blockId * 4
-    const { blockTable } = this
-    return i < blockTable.length ? blockTable.readUInt32BE(i) : BLOCK_UNUSED
   }
 
   // Returns the first address after metadata. (In bytes)
@@ -174,33 +166,17 @@ export class VhdAbstract {
     return sectorsToBytes(end)
   }
 
-  async writeParentLocator({
-    parentLocatorId,
-    platformCode = PLATFORM_NONE,
-    data = Buffer.alloc(0), // or undefined?
-  }) {
+  async writeParentLocator({ parentLocatorId, platformCode = PLATFORM_NONE, data = Buffer.alloc(0) }) {
     assert(parentLocatorId >= 0, 'parent Locator id must be a positive number')
     assert(parentLocatorId < 8, 'parent Locator id  must be less than 8')
     const { header } = this
-    let position
-    if (data.length <= header.parentLocatorEntry[parentLocatorId].platformDataSpace) {
-      // new parent locator length is smaller than available space : keep it in place
-      position = header.parentLocatorEntry[parentLocatorId].platformDataOffset
-    } else {
-      // new parent locator length is bigger than available space : move it to the end
-      position = this._getEndOfData()
-    }
-    await this._writeParentLocatorData(parentLocatorId, data, position)
+
+    await this._writeParentLocatorData(parentLocatorId, data)
 
     const dataSpaceSectors = Math.ceil(data.length / SECTOR_SIZE)
-
     header.parentLocatorEntry[parentLocatorId].platformCode = platformCode
     header.parentLocatorEntry[parentLocatorId].platformDataSpace = dataSpaceSectors * SECTOR_SIZE
     header.parentLocatorEntry[parentLocatorId].platformDataLength = data.length
-    header.parentLocatorEntry[parentLocatorId].platformDataOffset = position
-
-    // ensure the header is in sync with the data on disk
-    this.writeHeader({ allowOverwrite: true })
   }
 
   async readParentLocator(parentLocatorId) {
@@ -208,8 +184,9 @@ export class VhdAbstract {
     assert(parentLocatorId < 8, 'parent Locator id  must be less than 8')
 
     const data = await this._readParentLocatorData(parentLocatorId)
+    // offset and size are only used internally, do not expose them
     return {
-      ...this.header.parentLocatorEntry[parentLocatorId],
+      platformCode: this.header.parentLocatorEntry[parentLocatorId].platformCode,
       parentLocatorId,
       data,
     }

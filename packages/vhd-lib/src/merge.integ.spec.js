@@ -96,8 +96,7 @@ test('the BAT MSB is not used for sign', async () => {
     await vhd2.readHeaderAndFooter()
     await vhd2.readBlockAllocationTable()
     for (let i = 0; i < vhd.header.maxTableEntries; i++) {
-      const entry = vhd._getBatEntry(i)
-      if (entry !== 0xffffffff) {
+      if (vhd.containsBlock(i)) {
         const block = (await vhd2.readBlock(i)).data
         await fs.write(recoveredFile, block, 0, block.length, vhd2.header.blockSize * i)
       }

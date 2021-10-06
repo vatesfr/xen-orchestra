@@ -1,4 +1,4 @@
-import { BLOCK_UNUSED, FOOTER_SIZE, HEADER_SIZE, SECTOR_SIZE } from '../_constants'
+import { BLOCK_UNUSED, FOOTER_SIZE, HEADER_SIZE, PLATFORM_NONE, PLATFORM_W2KU, SECTOR_SIZE } from '../_constants'
 import { computeBatSize, sectorsToBytes, buildHeader, buildFooter, BUF_BLOCK_UNUSED } from './_utils'
 import { createLogger } from '@xen-orchestra/log'
 import { fuFooter, fuHeader, checksumStruct } from '../_structs'
@@ -44,6 +44,24 @@ const { debug } = createLogger('vhd-lib:VhdFile')
 // - sectorSize = 512
 
 export class VhdFile extends VhdAbstract {
+  #blockTable
+
+  get batSize() {
+    return computeBatSize(this.header.maxTableEntries)
+  }
+
+  set header(header) {
+    super.header = header
+    const size = this.batSize
+    this.#blockTable = Buffer.alloc(size)
+    for (let i = 0; i < this.header.maxTableEntries; i++) {
+      this.#blockTable.writeUInt32BE(BLOCK_UNUSED, i * 4)
+    }
+  }
+  get header() {
+    return super.header
+  }
+
   static async open(handler, path) {
     const fd = await handler.openFile(path, 'r+')
     const vhd = new VhdFile(handler, fd)
@@ -68,10 +86,6 @@ export class VhdFile extends VhdAbstract {
     }
   }
 
-  get batSize() {
-    return computeBatSize(this.header.maxTableEntries)
-  }
-
   constructor(handler, path) {
     super()
     this._handler = handler
@@ -86,6 +100,13 @@ export class VhdFile extends VhdAbstract {
     const { bytesRead, buffer } = await this._handler.read(this._path, Buffer.alloc(n), start)
     assert.strictEqual(bytesRead, n)
     return buffer
+  }
+
+  // return the first sector (bitmap) of a block
+  _getBatEntry(blockId) {
+    const i = blockId * 4
+    const blockTable = this.#blockTable
+    return i < blockTable.length ? blockTable.readUInt32BE(i) : BLOCK_UNUSED
   }
 
   containsBlock(id) {
@@ -115,7 +136,7 @@ export class VhdFile extends VhdAbstract {
   // Returns a buffer that contains the block allocation table of a vhd file.
   async readBlockAllocationTable() {
     const { header } = this
-    this.blockTable = await this._read(header.tableOffset, header.maxTableEntries * 4)
+    this.#blockTable = await this._read(header.tableOffset, header.maxTableEntries * 4)
   }
 
   readBlock(blockId, onlyBitmap = false) {
@@ -148,7 +169,7 @@ export class VhdFile extends VhdAbstract {
   }
 
   async _freeFirstBlockSpace(spaceNeededBytes) {
-    const firstAndLastBlocks = getFirstAndLastBlocks(this.blockTable)
+    const firstAndLastBlocks = getFirstAndLastBlocks(this.#blockTable)
     if (firstAndLastBlocks === undefined) {
       return
     }
@@ -183,8 +204,8 @@ export class VhdFile extends VhdAbstract {
     const newBatSize = computeBatSize(entries)
     await this._freeFirstBlockSpace(newBatSize - this.batSize)
     const maxTableEntries = (header.maxTableEntries = entries)
-    const prevBat = this.blockTable
-    const bat = (this.blockTable = Buffer.allocUnsafe(newBatSize))
+    const prevBat = this.#blockTable
+    const bat = (this.#blockTable = Buffer.allocUnsafe(newBatSize))
     prevBat.copy(bat)
     bat.fill(BUF_BLOCK_UNUSED, prevMaxTableEntries * 4)
     debug(`ensureBatSize: extend BAT ${prevMaxTableEntries} -> ${maxTableEntries}`)
@@ -198,7 +219,7 @@ export class VhdFile extends VhdAbstract {
   // set the first sector (bitmap) of a block
   _setBatEntry(block, blockSector) {
     const i = block * 4
-    const { blockTable } = this
+    const blockTable = this.#blockTable
 
     blockTable.writeUInt32BE(blockSector, i)
 
@@ -334,7 +355,8 @@ export class VhdFile extends VhdAbstract {
   }
 
   writeBlockAllocationTable() {
-    const { blockTable, header } = this
+    const header = this.header
+    const blockTable = this.#blockTable
     debug(`Write BlockAllocationTable at: ${header.tableOffset} ). (data=${blockTable.toString('hex')})`)
     return this._write(blockTable, header.tableOffset)
   }
@@ -369,12 +391,54 @@ export class VhdFile extends VhdAbstract {
     await this.writeFooter()
   }
 
-  _readParentLocatorData(parentLocatorId) {
-    const { platformDataOffset, platformDataLength } = this.header.parentLocatorEntry[parentLocatorId]
-    return this._read(platformDataOffset, platformDataLength)
+  async _ensureSpaceForParentLocators(neededSectors) {
+    const firstLocatorOffset = FOOTER_SIZE + HEADER_SIZE
+    const currentSpace = Math.floor(this.header.tableOffset / SECTOR_SIZE) - firstLocatorOffset / SECTOR_SIZE
+    if (currentSpace < neededSectors) {
+      const deltaSectors = neededSectors - currentSpace
+      await this._freeFirstBlockSpace(sectorsToBytes(deltaSectors))
+      this.header.tableOffset += sectorsToBytes(deltaSectors)
+      await this._write(this.#blockTable, this.header.tableOffset)
+    }
+    return firstLocatorOffset
   }
 
-  async _writeParentLocatorData(parentLocatorId, data, position) {
-    await this._write(position, data)
+  async setUniqueParentLocator(fileNameString) {
+    const { header } = this
+    header.parentLocatorEntry[0].platformCode = PLATFORM_W2KU
+    const encodedFilename = Buffer.from(fileNameString, 'utf16le')
+    const dataSpaceSectors = Math.ceil(encodedFilename.length / SECTOR_SIZE)
+    const position = await this._ensureSpaceForParentLocators(dataSpaceSectors)
+    await this._write(encodedFilename, position)
+    header.parentLocatorEntry[0].platformDataSpace = dataSpaceSectors * SECTOR_SIZE
+    header.parentLocatorEntry[0].platformDataLength = encodedFilename.length
+    header.parentLocatorEntry[0].platformDataOffset = position
+    for (let i = 1; i < 8; i++) {
+      header.parentLocatorEntry[i].platformCode = PLATFORM_NONE
+      header.parentLocatorEntry[i].platformDataSpace = 0
+      header.parentLocatorEntry[i].platformDataLength = 0
+      header.parentLocatorEntry[i].platformDataOffset = 0
+    }
+  }
+
+  async _readParentLocatorData(parentLocatorId) {
+    const { platformDataOffset, platformDataLength } = this.header.parentLocatorEntry[parentLocatorId]
+    if (platformDataLength > 0) {
+      await this._read(platformDataOffset, platformDataLength)
+    }
+  }
+
+  async _writeParentLocatorData(parentLocatorId, data) {
+    let position
+    const { header } = this
+    if (data.length <= header.parentLocatorEntry[parentLocatorId].platformDataSpace) {
+      // new parent locator length is smaller than available space : keep it in place
+      position = header.parentLocatorEntry[parentLocatorId].platformDataOffset
+    } else {
+      // new parent locator length is bigger than available space : move it to the end
+      position = this._getEndOfData()
+    }
+    await this._write(data, position)
+    header.parentLocatorEntry[parentLocatorId].platformDataOffset = position
   }
 }
