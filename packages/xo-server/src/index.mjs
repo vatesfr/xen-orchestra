@@ -20,6 +20,7 @@ import proxyConsole from './proxy-console.mjs'
 import pw from 'pw'
 import serveStatic from 'serve-static'
 import stoppable from 'stoppable'
+import webpush from 'web-push'
 import WebServer from 'http-server-plus'
 import WebSocket from 'ws'
 import xdg from 'xdg-basedir'
@@ -71,8 +72,8 @@ configure([
   {
     filter: process.env.DEBUG,
     level: 'info',
-    transport: transportConsole(),
-  },
+    transport: transportConsole()
+  }
 ])
 
 const log = createLogger('xo:main')
@@ -84,7 +85,7 @@ const DEPRECATED_ENTRIES = ['users', 'servers']
 async function loadConfiguration() {
   const config = await appConf.load(APP_NAME, {
     appDir: APP_DIR,
-    ignoreUnknownFormats: true,
+    ignoreUnknownFormats: true
   })
 
   log.info('Configuration loaded.')
@@ -105,7 +106,7 @@ async function updateLocalConfig(diff) {
   const localConfig = await fse.readFile(LOCAL_CONFIG_FILE).then(JSON.parse, () => ({}))
   merge(localConfig, diff)
   await fse.outputFile(LOCAL_CONFIG_FILE, JSON.stringify(localConfig), {
-    mode: 0o600,
+    mode: 0o600
   })
 }
 
@@ -135,8 +136,8 @@ async function createExpressApp(config) {
       saveUninitialized: false,
       secret: sessionSecret,
       store: new MemoryStore({
-        checkPeriod: 24 * 3600 * 1e3,
-      }),
+        checkPeriod: 24 * 3600 * 1e3
+      })
     })
   )
 
@@ -174,7 +175,7 @@ async function setUpPassport(express, xo, { authentication: authCfg, http: { coo
     res.send(
       signInPage({
         error: req.flash('error')[0],
-        strategies,
+        strategies
       })
     )
   })
@@ -193,7 +194,7 @@ async function setUpPassport(express, xo, { authentication: authCfg, http: { coo
       signInPage({
         error: req.flash('error')[0],
         otp: true,
-        strategies,
+        strategies
       })
     )
   })
@@ -219,7 +220,7 @@ async function setUpPassport(express, xo, { authentication: authCfg, http: { coo
     const { user, isPersistent } = req.session
     const token = await xo.createAuthenticationToken({
       expiresIn: isPersistent ? PERMANENT_VALIDITY : SESSION_VALIDITY,
-      userId: user.id,
+      userId: user.id
     })
 
     res.cookie('token', token.id, {
@@ -227,7 +228,7 @@ async function setUpPassport(express, xo, { authentication: authCfg, http: { coo
 
       // a session (non-permanent) cookie must not have an expiration date
       // because it must not survive browser restart
-      ...(isPersistent ? { expires: new Date(token.expiration) } : undefined),
+      ...(isPersistent ? { expires: new Date(token.expiration) } : undefined)
     })
 
     delete req.session.isPersistent
@@ -286,6 +287,30 @@ async function setUpPassport(express, xo, { authentication: authCfg, http: { coo
       }
     })
   )
+
+  // ==============================================================
+  const publicVapidKey = 'BDAqBcWLLjbzGSMjVqlhZmU88uiAVascwXn5mbiuMVFpsXiJixtIxVpu06pIX1b8cjXKYawsv-FuGhp9oH_1dwc'
+  const privateVapidKey = 'b1QTbeDFOeu0th23w9bDEpLHfkSKGvXJ3VQq50gHEcQ'
+  webpush.setVapidDetails('mailto:example@yourdomain.org', publicVapidKey, privateVapidKey)
+
+  // subscribe route
+  express.use(createExpress.json())
+  express.post('/service-worker-subscribe', (req, res) => {
+    // get push subscription object from the request
+    const subscription = req.body
+
+    // send status 201 for the request
+    res.status(201).json({})
+    // create paylod: specified the detals of the push notification
+    const payload = JSON.stringify({
+      title: 'Titre de ma notification from server',
+      body: 'Contenu de ma notification',
+      url: 'https://www.vates.fr'
+    })
+
+    // pass the object into sendNotification fucntion and catch any error
+    webpush.sendNotification(subscription, payload).catch(err => console.error(err))
+  })
 }
 
 // ===================================================================
@@ -319,14 +344,14 @@ async function registerPlugin(pluginPath, pluginName) {
           getDataDir: () => {
             const dir = `${datadir}/${pluginName}`
             return fse.ensureDir(dir).then(() => dir)
-          },
+          }
         })
       : factory
   ;[instance, configurationSchema, configurationPresets, testSchema] = await Promise.all([
     handleFactory(factory),
     handleFactory(configurationSchema),
     handleFactory(configurationPresets),
-    handleFactory(testSchema),
+    handleFactory(testSchema)
   ])
 
   await this.registerPlugin(
@@ -363,11 +388,11 @@ async function registerPluginsInPath(path, prefix) {
   })
 
   await Promise.all(
-    files.map(name => {
-      if (name.startsWith(prefix)) {
+    files
+      .filter(name => name.startsWith(prefix))
+      .map(name => {
         return registerPluginWrapper.call(this, `${path}/${name}`, name.slice(prefix.length))
-      }
-    })
+      })
   )
 }
 
@@ -376,7 +401,7 @@ async function registerPlugins(xo) {
     [new URL('../node_modules', import.meta.url).pathname, '/usr/local/lib/node_modules'].map(path =>
       Promise.all([
         registerPluginsInPath.call(xo, path, 'xo-server-'),
-        registerPluginsInPath.call(xo, `${path}/@xen-orchestra`, 'server-'),
+        registerPluginsInPath.call(xo, `${path}/@xen-orchestra`, 'server-')
       ])
     )
   )
@@ -418,7 +443,7 @@ async function makeWebServerListen(
         const pems = await genSelfSignedCert()
         await Promise.all([
           fse.outputFile(cert, pems.cert, { flag: 'wx', mode: 0o400 }),
-          fse.outputFile(key, pems.key, { flag: 'wx', mode: 0o400 }),
+          fse.outputFile(key, pems.key, { flag: 'wx', mode: 0o400 })
         ])
         log.info('new certificate generated', { cert, key })
         opts.cert = pems.cert
@@ -464,7 +489,7 @@ const setUpProxies = (express, opts, xo) => {
     .createServer({
       changeOrigin: true,
       ignorePath: true,
-      xfwd: true,
+      xfwd: true
     })
     .on('error', (error, req, res) => {
       // `res` can be either a `ServerResponse` or a `Socket` (which does not have
@@ -478,7 +503,7 @@ const setUpProxies = (express, opts, xo) => {
       const { method, url } = req
       log.error('failed to proxy request', {
         error,
-        req: { method, url },
+        req: { method, url }
       })
     })
 
@@ -494,7 +519,7 @@ const setUpProxies = (express, opts, xo) => {
 
         proxy.web(req, res, {
           agent: new URL(target).hostname === 'localhost' ? undefined : xo.httpAgent,
-          target: target + url.slice(prefix.length),
+          target: target + url.slice(prefix.length)
         })
 
         return
@@ -506,7 +531,7 @@ const setUpProxies = (express, opts, xo) => {
 
   // WebSocket proxy.
   const webSocketServer = new WebSocket.Server({
-    noServer: true,
+    noServer: true
   })
   xo.hooks.on('stop', () => fromCallback.call(webSocketServer, 'close'))
 
@@ -519,7 +544,7 @@ const setUpProxies = (express, opts, xo) => {
 
         proxy.ws(req, socket, head, {
           agent: new URL(target).hostname === 'localhost' ? undefined : xo.httpAgent,
-          target: target + url.slice(prefix.length),
+          target: target + url.slice(prefix.length)
         })
 
         return
@@ -546,7 +571,7 @@ const setUpApi = (webServer, xo, config) => {
   const webSocketServer = new WebSocket.Server({
     ...config.apiWebSocketOptions,
 
-    noServer: true,
+    noServer: true
   })
   xo.hooks.on('stop', () => fromCallback.call(webSocketServer, 'close'))
 
@@ -614,7 +639,7 @@ const CONSOLE_PROXY_PATH_RE = /^\/api\/consoles\/(.*)$/
 
 const setUpConsoleProxy = (webServer, xo) => {
   const webSocketServer = new WebSocket.Server({
-    noServer: true,
+    noServer: true
   })
   xo.hooks.on('stop', () => fromCallback.call(webSocketServer, 'close'))
 
@@ -644,7 +669,7 @@ const setUpConsoleProxy = (webServer, xo) => {
           timestamp: Date.now(),
           userId: user.id,
           userIp: remoteAddress,
-          userName: user.name,
+          userName: user.name
         }
 
         if (vm.is_control_domain) {
@@ -663,7 +688,7 @@ const setUpConsoleProxy = (webServer, xo) => {
         socket.on('close', () => {
           xo.emit('xo:audit', 'consoleClosed', {
             ...data,
-            timestamp: Date.now(),
+            timestamp: Date.now()
           })
           log.info(`- Console proxy (${user.name} - ${remoteAddress})`)
         })
@@ -710,7 +735,7 @@ export default async function main(args) {
       blocked((time, stack) => {
         logPerf.info(`blocked for ${ms(time)}`, {
           time,
-          stack,
+          stack
         })
       }, options)
     }
@@ -742,7 +767,7 @@ export default async function main(args) {
     appVersion: APP_VERSION,
     config,
     httpServer: webServer,
-    safeMode,
+    safeMode
   })
 
   // Register web server close on XO stop.

@@ -123,6 +123,7 @@
     "uuid": "^8.3.1",
     "value-matcher": "^0.2.0",
     "vhd-lib": "^1.2.0",
+    "web-push": "^3.4.5",
     "ws": "^7.1.2",
     "xdg-basedir": "^4.0.0",
     "xen-api": "^0.34.3",
