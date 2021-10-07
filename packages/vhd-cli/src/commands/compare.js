@@ -3,7 +3,7 @@ import { openVhd, Constants } from 'vhd-lib'
 import { resolve } from 'path'
 import Disposable from 'promise-toolbox/Disposable'
 
-const deepCompareObjects = (src, dest, path) => {
+const deepCompareObjects = function(src, dest, path){
   for (const key of Object.keys(src)) {
     const srcValue = src[key]
     const destValue = dest[key]
@@ -41,7 +41,11 @@ export default async args => {
     const src = yield openVhd(handler, resolve(sourcePath))
     const dest = yield openVhd(handler, resolve(destPath))
 
-    deepCompareObjects(src.header, dest.header, 'header')
+    // parent locator entries contains offset that can be different without impacting the vhd
+    // we'll compare them later
+    const {parentLocatorEntry:_ , ...srcHeaderWithoutParentLocator} = src.header
+    const {parentLocatorEntry:__ , ...destHeaderWithoutParentLocator} = dest.header
+    deepCompareObjects(srcHeaderWithoutParentLocator, destHeaderWithoutParentLocator, 'header')
     deepCompareObjects(src.footer, dest.footer, 'footer')
 
     await src.readBlockAllocationTable()
@@ -65,14 +69,11 @@ export default async args => {
     }
 
     for (let parentLocatorId = 0; parentLocatorId < Constants.PARENT_LOCATOR_ENTRIES; parentLocatorId++) {
-      const parentLocatorData = await src.readParentLocatorData(parentLocatorId)
-      const destData = await dest.readParentLocatorData(parentLocatorId)
-      if (parentLocatorData) {
-        if (!destData || !parentLocatorData.equals(destData)) {
-          throw new Error(`Parent Locator  ${parentLocatorId} has different data in src and dest`)
-        }
-      } else if (destData) {
-        throw new Error(`Parent Locator  ${parentLocatorId} is present in dest but not in source `)
+      const srcParentLocator = await src.readParentLocator(parentLocatorId)
+      const destParentLocator = await dest.readParentLocator(parentLocatorId)
+      if (!srcParentLocator.data || !srcParentLocator.data.equals(destParentLocator.data)) {
+        console.log(srcParentLocator, destParentLocator)
+        throw new Error(`Parent Locator  ${parentLocatorId} has different data in src and dest`)
       }
     }
     console.log('there is no difference between theses vhd')
