@@ -479,14 +479,20 @@ export class VhdFile extends VhdAbstract {
   async _writeParentLocatorData(parentLocatorId, data) {
     let position
     const { header } = this
-    if (data.length <= header.parentLocatorEntry[parentLocatorId].platformDataSpace) {
-      // new parent locator length is smaller than available space : keep it in place
-      position = header.parentLocatorEntry[parentLocatorId].platformDataOffset
-    } else {
-      // new parent locator length is bigger than available space : move it to the end
-      position = this._getEndOfData()
+    if(data.length === 0){
+      //reset offset if data is empty
+      header.parentLocatorEntry[parentLocatorId].platformDataOffset = 0
     }
-    await this._write(data, position)
-    header.parentLocatorEntry[parentLocatorId].platformDataOffset = position
+    else {
+      if (data.length <= header.parentLocatorEntry[parentLocatorId].platformDataSpace) {
+        // new parent locator length is smaller than available space : keep it in place
+        position = header.parentLocatorEntry[parentLocatorId].platformDataOffset
+      } else {
+        // new parent locator length is bigger than available space : move it to the end
+        position = this._getEndOfData()
+      }
+      await this._write(data, position)
+      header.parentLocatorEntry[parentLocatorId].platformDataOffset = position
+    }
   }
 }
