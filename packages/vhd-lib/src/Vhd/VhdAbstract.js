@@ -132,7 +132,7 @@ export class VhdAbstract {
     assert(id < 8, 'parent Locator id  must be less than 8')
     const data = await this._readParentLocatorData(id)
     // offset is storage specific, don't expose it
-    const {platformCode, platformDataSpace, platformDataLength} = this.header.parentLocatorEntry[parentLocatorId]
+    const {platformCode, platformDataSpace, platformDataLength} = this.header.parentLocatorEntry[id]
     return {
       platformCode,
       platformDataSpace,

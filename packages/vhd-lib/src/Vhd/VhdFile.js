@@ -472,8 +472,9 @@ export class VhdFile extends VhdAbstract {
   async _readParentLocatorData(parentLocatorId) {
     const { platformDataOffset, platformDataLength } = this.header.parentLocatorEntry[parentLocatorId]
     if (platformDataLength > 0) {
-      await this._read(platformDataOffset, platformDataLength)
+      return (await this._read(platformDataOffset, platformDataLength)).buffer
     }
+    return Buffer.alloc(0)
   }
 
   async _writeParentLocatorData(parentLocatorId, data) {

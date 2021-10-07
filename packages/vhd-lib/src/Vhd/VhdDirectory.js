@@ -25,7 +25,7 @@ export class VhdDirectory extends VhdAbstract {
   }
 
   get header() {
-    return super.header()
+    return super.header
   }
 
   static async open(handler, path) {
@@ -153,8 +153,8 @@ export class VhdDirectory extends VhdAbstract {
     setBitmap(this.#blockTable, block.id)
   }
 
-  _readParentLocatorData(id) {
-    return this._readChunk('parentLocator' + id)
+  async _readParentLocatorData(id) {
+    return (await this._readChunk('parentLocator' + id)).buffer
   }
 
   async _writeParentLocatorData(id, data) {
