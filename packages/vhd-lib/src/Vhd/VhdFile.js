@@ -510,6 +510,7 @@ export class VhdFile extends VhdAbstract {
       await this._write(data, position)
       header.parentLocatorEntry[parentLocatorId].platformDataOffset = position
     }
+    return Buffer.alloc(0)
   }
 
   _readParentLocatorData(parentLocatorId, platformDataOffset, platformDataSpace) {
