@@ -14,7 +14,7 @@ const { debug } = createLogger('vhd-lib:VhdDirectory')
 // ├─ footer // raw content of the footer
 // ├─ bat // bit array. A zero bit indicates at a position that this block is not present
 // ├─ parentLocator{0-7} // data of a parent locator
-// ├─ 1..n // block content. The filename is the position in the BAT
+// ├─ 0..n-1 // block content. The filename is the position in the BAT
 
 export class VhdDirectory extends VhdAbstract {
   #blockTable
@@ -153,12 +153,12 @@ export class VhdDirectory extends VhdAbstract {
     setBitmap(this.#blockTable, block.id)
   }
 
-  _readParentLocatorData(parentLocatorId) {
-    return this._readChunk('parentLocator' + parentLocatorId)
+  _readParentLocatorData(id) {
+    return this._readChunk('parentLocator' + id)
   }
 
-  async _writeParentLocatorData(parentLocatorId, data) {
-    await this._writeChunk('parentLocator' + parentLocatorId, data)
+  async _writeParentLocatorData(id, data) {
+    await this._writeChunk('parentLocator' + id, data)
     this.header.parentLocatorEntry[parentLocatorId].platformDataOffset = 0
   }
 }

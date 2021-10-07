@@ -114,42 +114,44 @@ export class VhdAbstract {
     return computeBatSize(this.header.maxTableEntries)
   }
 
-  async writeParentLocator({ parentLocatorId, platformCode = PLATFORM_NONE, data = Buffer.alloc(0) }) {
-    assert(parentLocatorId >= 0, 'parent Locator id must be a positive number')
-    assert(parentLocatorId < 8, 'parent Locator id  must be less than 8')
-    const { header } = this
+  async writeParentLocator({ id, platformCode = PLATFORM_NONE, data = Buffer.alloc(0) }) {
+    assert(id >= 0, 'parent Locator id must be a positive number')
+    assert(id < 8, 'parent Locator id  must be less than 8')
 
-    await this._writeParentLocatorData(parentLocatorId, data)
+    await this._writeParentLocatorData(id, data)
 
+    const entry = this.header.parentLocatorEntry[id]
     const dataSpaceSectors = Math.ceil(data.length / SECTOR_SIZE)
-    header.parentLocatorEntry[parentLocatorId].platformCode = platformCode
-    header.parentLocatorEntry[parentLocatorId].platformDataSpace = dataSpaceSectors * SECTOR_SIZE
-    header.parentLocatorEntry[parentLocatorId].platformDataLength = data.length
+    entry.platformCode = platformCode
+    entry.platformDataSpace = dataSpaceSectors * SECTOR_SIZE
+    entry.platformDataLength = data.length
   }
 
-  async readParentLocator(parentLocatorId) {
-    assert(parentLocatorId >= 0, 'parent Locator id must be a positive number')
-    assert(parentLocatorId < 8, 'parent Locator id  must be less than 8')
-
-    const data = await this._readParentLocatorData(parentLocatorId)
-    // offset and size are only used internally, do not expose them
+  async readParentLocator(id) {
+    assert(id >= 0, 'parent Locator id must be a positive number')
+    assert(id < 8, 'parent Locator id  must be less than 8')
+    const data = await this._readParentLocatorData(id)
+    // offset is storage specific, don't expose it
+    const {platformCode, platformDataSpace, platformDataLength} = this.header.parentLocatorEntry[parentLocatorId]
     return {
-      platformCode: this.header.parentLocatorEntry[parentLocatorId].platformCode,
-      parentLocatorId,
+      platformCode,
+      platformDataSpace,
+      platformDataLength,
+      id,
       data,
     }
   }
 
   async setUniqueParentLocator(fileNameString) {
     await this.writeParentLocator({
-      parentLocatorId: 0,
+      id: 0,
       code: PLATFORM_W2KU,
       data: Buffer.from(fileNameString, 'utf16le'),
     })
 
     for (let i = 1; i < 8; i++) {
       await this.writeParentLocator({
-        parentLocatorId: i,
+        id: i,
         code: PLATFORM_NONE,
         data: Buffer.alloc(0),
       })
