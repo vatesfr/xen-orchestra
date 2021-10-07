@@ -13,7 +13,7 @@ const { debug } = createLogger('vhd-lib:VhdDirectory')
 // ├─ header // raw content of the header
 // ├─ footer // raw content of the footer
 // ├─ bat // bit array. A zero bit indicates at a position that this block is not present
-// ├─ parentLocator{0-7} // data of a parent locator
+// ├─ parentLocatorEntry{1-8} // data of a parent locator
 // ├─ 0..n-1 // block content. The filename is the position in the BAT
 
 export class VhdDirectory extends VhdAbstract {
