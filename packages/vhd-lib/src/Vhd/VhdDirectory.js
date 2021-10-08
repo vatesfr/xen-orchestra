@@ -6,7 +6,7 @@ import { VhdAbstract } from './VhdAbstract'
 import assert from 'assert'
 
 const { debug } = createLogger('vhd-lib:VhdDirectory')
-const BLOCKS_DIRECTORY_DEPTH = 5
+
 // ===================================================================
 // Directory format
 // <path>
@@ -14,12 +14,9 @@ const BLOCKS_DIRECTORY_DEPTH = 5
 // ├─ footer // raw content of the footer
 // ├─ bat // bit array. A zero bit indicates at a position that this block is not present
 // ├─ parentLocatorEntry{0-7} // data of a parent locator
-// ├─ blocks // blockId is the position in the BAT padded with 0 to be at least BLOCKS_DIRECTORY_DEPTH +1  char long
-//    └─ <first number of blockId>
-//        └─ <2nd number of blockId>
-//            ...
-//                └─ <BLOCKS_DIRECTORY_DEPTH -1 th number blockID>
-//                  └─ <the other numbers  of blockID >  // block content.
+// ├─ blocks // blockId is the position in the BAT
+//    └─ <the first to  {blockId.length -3} numbers of blockId >
+//         └─ <the three last numbers  of blockID >  // block content.
 
 export class VhdDirectory extends VhdAbstract {
   #blockTable
@@ -113,14 +110,9 @@ export class VhdDirectory extends VhdAbstract {
 
   // put block in subdirectories to limit impact when doing directory listing
   _getBlockPath(blockId) {
-    const padded = ('' + blockId).padStart(BLOCKS_DIRECTORY_DEPTH, '0')
-    const split = padded.split('')
-    let path = 'blocks'
-    for (let i = 0; i < BLOCKS_DIRECTORY_DEPTH; i++) {
-      path += '/' + split.shift()
-    }
-    path += split.join('')
-    return path
+    const blockPrefix = Math.floor(blockId / 1e3)
+    const blockSuffix = blockId - blockPrefix * 1e3
+    return `blocks/${blockPrefix}/${blockSuffix}`
   }
 
   async readHeaderAndFooter() {
