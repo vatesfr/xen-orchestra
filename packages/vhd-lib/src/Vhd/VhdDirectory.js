@@ -28,6 +28,15 @@ export class VhdDirectory extends VhdAbstract {
     return super.header
   }
 
+  get #blocktable() {
+    assert.notStrictEqual(this.#blockTable, undefined, 'Block table must be initialized before access')
+    return this.#blockTable
+  }
+
+  set #blocktable(blocktable) {
+    this.#blockTable = blocktable
+  }
+
   static async open(handler, path) {
     const vhd = new VhdDirectory(handler, path)
 
@@ -39,7 +48,7 @@ export class VhdDirectory extends VhdAbstract {
     await vhd.readHeaderAndFooter()
     return {
       dispose: () => {},
-      value: vhd,
+      value: vhd
     }
   }
 
@@ -48,7 +57,7 @@ export class VhdDirectory extends VhdAbstract {
     const vhd = new VhdDirectory(handler, path)
     return {
       dispose: () => {},
-      value: vhd,
+      value: vhd
     }
   }
 
@@ -64,8 +73,6 @@ export class VhdDirectory extends VhdAbstract {
   }
 
   containsBlock(blockId) {
-    assert.notStrictEqual(this.#blockTable, undefined, 'Block table must not be empty to access a block address')
-
     return test(this.#blockTable, blockId)
   }
 
@@ -78,7 +85,7 @@ export class VhdDirectory extends VhdAbstract {
     const buffer = await this._handler.readFile(this.getChunkPath(partName))
 
     return {
-      buffer: Buffer.from(buffer),
+      buffer: Buffer.from(buffer)
     }
   }
 
@@ -108,7 +115,7 @@ export class VhdDirectory extends VhdAbstract {
       id: blockId,
       bitmap: buffer.slice(0, this.bitmapSize),
       data: buffer.slice(this.bitmapSize),
-      buffer,
+      buffer
     }
   }
   ensureBatSize() {
@@ -159,6 +166,6 @@ export class VhdDirectory extends VhdAbstract {
 
   async _writeParentLocatorData(id, data) {
     await this._writeChunk('parentLocator' + id, data)
-    this.header.parentLocatorEntry[parentLocatorId].platformDataOffset = 0
+    this.header.parentLocatorEntry[id].platformDataOffset = 0
   }
 }

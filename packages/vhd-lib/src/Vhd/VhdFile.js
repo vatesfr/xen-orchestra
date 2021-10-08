@@ -3,9 +3,8 @@ import {
   FOOTER_SIZE,
   HEADER_SIZE,
   PLATFORM_NONE,
-  PLATFORM_W2KU,
   SECTOR_SIZE,
-  PARENT_LOCATOR_ENTRIES,
+  PARENT_LOCATOR_ENTRIES
 } from '../_constants'
 import { computeBatSize, sectorsToBytes, buildHeader, buildFooter, BUF_BLOCK_UNUSED } from './_utils'
 import { createLogger } from '@xen-orchestra/log'
@@ -54,6 +53,15 @@ const { debug } = createLogger('vhd-lib:VhdFile')
 export class VhdFile extends VhdAbstract {
   #blockTable
 
+  get #blocktable() {
+    assert.notStrictEqual(this.#blockTable, undefined, 'Block table must be initialized before access')
+    return this.#blockTable
+  }
+
+  set #blocktable(blocktable) {
+    this.#blockTable = blocktable
+  }
+
   get batSize() {
     return computeBatSize(this.header.maxTableEntries)
   }
@@ -81,7 +89,7 @@ export class VhdFile extends VhdAbstract {
     await vhd.readHeaderAndFooter()
     return {
       dispose: () => handler.closeFile(fd),
-      value: vhd,
+      value: vhd
     }
   }
 
@@ -90,7 +98,7 @@ export class VhdFile extends VhdAbstract {
     const vhd = new VhdFile(handler, fd)
     return {
       dispose: () => handler.closeFile(fd),
-      value: vhd,
+      value: vhd
     }
   }
 
@@ -200,7 +208,7 @@ export class VhdFile extends VhdAbstract {
             id: blockId,
             bitmap: buf.slice(0, this.bitmapSize),
             data: buf.slice(this.bitmapSize),
-            buffer: buf,
+            buffer: buf
           }
     )
   }
@@ -451,24 +459,6 @@ export class VhdFile extends VhdAbstract {
     return firstLocatorOffset
   }
 
-  async setUniqueParentLocator(fileNameString) {
-    const { header } = this
-    header.parentLocatorEntry[0].platformCode = PLATFORM_W2KU
-    const encodedFilename = Buffer.from(fileNameString, 'utf16le')
-    const dataSpaceSectors = Math.ceil(encodedFilename.length / SECTOR_SIZE)
-    const position = await this._ensureSpaceForParentLocators(dataSpaceSectors)
-    await this._write(encodedFilename, position)
-    header.parentLocatorEntry[0].platformDataSpace = dataSpaceSectors * SECTOR_SIZE
-    header.parentLocatorEntry[0].platformDataLength = encodedFilename.length
-    header.parentLocatorEntry[0].platformDataOffset = position
-    for (let i = 1; i < 8; i++) {
-      header.parentLocatorEntry[i].platformCode = PLATFORM_NONE
-      header.parentLocatorEntry[i].platformDataSpace = 0
-      header.parentLocatorEntry[i].platformDataLength = 0
-      header.parentLocatorEntry[i].platformDataOffset = 0
-    }
-  }
-
   async _readParentLocatorData(parentLocatorId) {
     const { platformDataOffset, platformDataLength } = this.header.parentLocatorEntry[parentLocatorId]
     if (platformDataLength > 0) {
@@ -480,11 +470,10 @@ export class VhdFile extends VhdAbstract {
   async _writeParentLocatorData(parentLocatorId, data) {
     let position
     const { header } = this
-    if(data.length === 0){
-      //reset offset if data is empty
+    if (data.length === 0) {
+      // reset offset if data is empty
       header.parentLocatorEntry[parentLocatorId].platformDataOffset = 0
-    }
-    else {
+    } else {
       if (data.length <= header.parentLocatorEntry[parentLocatorId].platformDataSpace) {
         // new parent locator length is smaller than available space : keep it in place
         position = header.parentLocatorEntry[parentLocatorId].platformDataOffset
