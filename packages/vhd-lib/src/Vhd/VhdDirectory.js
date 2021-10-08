@@ -6,7 +6,7 @@ import { VhdAbstract } from './VhdAbstract'
 import assert from 'assert'
 
 const { debug } = createLogger('vhd-lib:VhdDirectory')
-
+const BLOCKS_DIRECTORY_DEPTH = 5
 // ===================================================================
 // Directory format
 // <path>
@@ -91,9 +91,8 @@ export class VhdDirectory extends VhdAbstract {
     }
   }
 
-  async _writeChunk(partName, buffer, opts = { allowOverwrite: false }) {
+  async _writeChunk(partName, buffer) {
     assert(Buffer.isBuffer(buffer))
-    const flags = opts.allowOverwrite ? 'w' : 'wx'
     // here we can implement compression and / or crypto
 
     // chunks can be in sub directories :  create direcotries if necessary
