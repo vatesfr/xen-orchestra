@@ -6,7 +6,7 @@ import { VhdAbstract } from './VhdAbstract'
 import assert from 'assert'
 
 const { debug } = createLogger('vhd-lib:VhdDirectory')
-
+const BLOCKS_DIRECTORY_DEPTH = 5
 // ===================================================================
 // Directory format
 // <path>
@@ -14,7 +14,12 @@ const { debug } = createLogger('vhd-lib:VhdDirectory')
 // ├─ footer // raw content of the footer
 // ├─ bat // bit array. A zero bit indicates at a position that this block is not present
 // ├─ parentLocatorEntry{1-8} // data of a parent locator
-// ├─ 0..n-1 // block content. The filename is the position in the BAT
+// ├─ blocks // blockId is the position in the BAT padded with 0 to be at least BLOCKS_DIRECTORY_DEPTH +1  char long
+//    └─ <first number of blockId>
+//        └─ <2nd number of blockId>
+//            ...
+//                └─ <BLOCKS_DIRECTORY_DEPTH -1 th number blockID>
+//                  └─ <the other numbers  of blockID >  // block content.
 
 export class VhdDirectory extends VhdAbstract {
   #blockTable
@@ -89,11 +94,33 @@ export class VhdDirectory extends VhdAbstract {
     }
   }
 
-  async _writeChunk(partName, buffer, opts = { allowOverwrite: false }) {
+  async _writeChunk(partName, buffer) {
     assert(Buffer.isBuffer(buffer))
-    const flags = opts.allowOverwrite ? 'w' : 'wx'
     // here we can implement compression and / or crypto
-    return this._handler.writeFile(this.getChunkPath(partName), buffer, { flags })
+
+    // chunks can be in sub directories :  create direcotries if necessary
+    const pathParts = partName.split('/')
+    let currentPath = this._path
+
+    // the last one is the file name
+    for (let i = 0; i < pathParts.length - 1; i++) {
+      currentPath += '/' + pathParts[i]
+      await this._handler.mkdir(currentPath)
+    }
+
+    return this._handler.writeFile(this.getChunkPath(partName), buffer)
+  }
+
+  // put block in subdirectories to limit impact when doing directory listing
+  _getBlockPath(blockId) {
+    const padded = ('' + blockId).padStart(BLOCKS_DIRECTORY_DEPTH, '0')
+    const split = padded.split('')
+    let path = 'blocks'
+    for (let i = 0; i < BLOCKS_DIRECTORY_DEPTH; i++) {
+      path += '/' + split.shift()
+    }
+    path += split.join('')
+    return path
   }
 
   async readHeaderAndFooter() {
@@ -110,7 +137,7 @@ export class VhdDirectory extends VhdAbstract {
     if (onlyBitmap) {
       throw new Error(`reading 'bitmap of block' ${blockId} in a VhdDirectory is not implemented`)
     }
-    const { buffer } = await this._readChunk(blockId)
+    const { buffer } = await this._readChunk(this._getBlockPath(blockId))
     return {
       id: blockId,
       bitmap: buffer.slice(0, this.bitmapSize),
@@ -156,7 +183,7 @@ export class VhdDirectory extends VhdAbstract {
   }
 
   async writeEntireBlock(block) {
-    await this._writeChunk(block.id, block.buffer)
+    await this._writeChunk(this._getBlockPath(block.id), block.buffer)
     setBitmap(this.#blockTable, block.id)
   }
 
