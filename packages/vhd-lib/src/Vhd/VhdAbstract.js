@@ -135,8 +135,6 @@ export class VhdAbstract {
     const { platformCode, platformDataSpace, platformDataLength } = this.header.parentLocatorEntry[id]
     return {
       platformCode,
-      platformDataSpace,
-      platformDataLength,
       id,
       data
     }

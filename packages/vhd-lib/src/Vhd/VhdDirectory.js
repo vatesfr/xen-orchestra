@@ -161,11 +161,11 @@ export class VhdDirectory extends VhdAbstract {
   }
 
   async _readParentLocatorData(id) {
-    return (await this._readChunk('parentLocator' + id)).buffer
+    return (await this._readChunk('parentLocatorEntry' + id)).buffer
   }
 
   async _writeParentLocatorData(id, data) {
-    await this._writeChunk('parentLocator' + id, data)
+    await this._writeChunk('parentLocatorEntry' + id, data)
     this.header.parentLocatorEntry[id].platformDataOffset = 0
   }
 }
