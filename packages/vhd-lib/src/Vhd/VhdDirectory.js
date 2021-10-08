@@ -6,7 +6,7 @@ import { VhdAbstract } from './VhdAbstract'
 import assert from 'assert'
 
 const { debug } = createLogger('vhd-lib:VhdDirectory')
-const BLOCKS_DIRECTORY_DEPTH = 5
+
 // ===================================================================
 // Directory format
 // <path>
