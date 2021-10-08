@@ -43,6 +43,11 @@ const TASK_ITEM_STYLE = {
   // Remove all margin, otherwise it breaks vertical alignment.
   margin: 0,
 }
+
+const FILTERS = {
+  filterOutShortTasks: '!name_label: |(SR.scan host.call_plugin)',
+}
+
 @connectStore(() => ({
   host: createGetObject((_, props) => props.item.$host),
 }))
@@ -305,7 +310,9 @@ export default class Tasks extends Component {
               <SortedTable
                 collection={this._getTasks()}
                 columns={COLUMNS}
+                defaultFilter='filterOutShortTasks'
                 filterContainer={() => this.state.container}
+                filters={FILTERS}
                 itemsPerPageContainer={this._getItemsPerPageContainer}
                 groupedActions={GROUPED_ACTIONS}
                 individualActions={INDIVIDUAL_ACTIONS}
@@ -320,6 +327,7 @@ export default class Tasks extends Component {
                 <SortedTable
                   collection={this._getFinishedTasks()}
                   columns={FINISHED_TASKS_COLUMNS}
+                  filters={FILTERS}
                   stateUrlParam='s_previous'
                 />
               </Collapse>
