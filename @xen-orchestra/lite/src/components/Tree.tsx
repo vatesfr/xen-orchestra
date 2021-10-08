@@ -1,3 +1,4 @@
+import classNames from 'classnames'
 import React from 'react'
 import Tooltip from '@mui/material/Tooltip'
 import TreeView from '@mui/lab/TreeView'
@@ -62,16 +63,21 @@ interface Computed {}
 
 // Inspired by https://mui.com/components/tree-view/#contentcomponent-prop.
 const CustomContent = React.forwardRef(function CustomContent(props, ref) {
-  const { label, nodeId, expansionIcon } = props
-  const { handleExpansion } = useTreeItem(nodeId)
+  const { classes, className, label, nodeId, expansionIcon } = props
+  const { handleExpansion, handleSelection, selected } = useTreeItem(nodeId)
 
   const handleExpansionClick = event => {
     handleExpansion(event)
   }
 
+  const handleSelectionClick = event => {
+    handleSelection(event)
+  }
+
   return (
-    <span ref={ref}>
-      <span onClick={handleExpansionClick}>{expansionIcon}</span> {label}
+    <span className={classNames(className, { [classes.selected]: selected })} ref={ref}>
+      <span onClick={handleExpansionClick}>{expansionIcon}</span>
+      <span onClick={handleSelectionClick}>{label}</span>
     </span>
   )
 })
@@ -94,7 +100,11 @@ const renderItem = ({ children, id, label, to, tooltip }: ItemType) => {
 }
 
 const Tree = withState<State, Props, Effects, Computed, ParentState, ParentEffects>({}, ({ collection }) => (
-  <TreeView defaultExpanded={[collection[0].id]} defaultCollapseIcon={<Icon icon='chevron-up' />} defaultExpandIcon={<Icon icon='chevron-down' />}>
+  <TreeView
+    defaultExpanded={[collection[0].id]}
+    defaultCollapseIcon={<Icon icon='chevron-up' />}
+    defaultExpandIcon={<Icon icon='chevron-down' />}
+  >
     {collection.map(renderItem)}
   </TreeView>
 ))
