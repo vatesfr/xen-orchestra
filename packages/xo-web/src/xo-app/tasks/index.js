@@ -327,7 +327,6 @@ export default class Tasks extends Component {
                 <SortedTable
                   collection={this._getFinishedTasks()}
                   columns={FINISHED_TASKS_COLUMNS}
-                  defaultFilter='filterOutShortTasks'
                   filters={FILTERS}
                   stateUrlParam='s_previous'
                 />
