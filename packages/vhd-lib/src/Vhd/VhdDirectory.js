@@ -188,28 +188,28 @@ export class VhdDirectory extends VhdAbstract {
     this.header.parentLocatorEntry[id].platformDataOffset = 0
   }
 
-  async * #paths(){
-    yield this._path+'/header'
-    yield this._path+'/footer'
-    yield this._path+'/bat'
-    yield this._path+'/metadata.json'
+  async *#paths() {
+    yield this._path + '/header'
+    yield this._path + '/footer'
+    yield this._path + '/bat'
+    yield this._path + '/metadata.json'
     const nBlocks = this.header.maxTableEntries
     for (let blockId = 0; blockId < nBlocks; ++blockId) {
       if (await this.containsBlock(blockId)) {
-        yield this._getBlockPath(blockId)
+        yield this._path + '/' + this._getBlockPath(blockId)
       }
     }
     // @ todo if handler is not s3 we should also remove the directoryies
   }
 
-  async unlink(){
-    for await (let path of this.#paths()){
+  async unlink() {
+    for await (const path of this.#paths()) {
       await this._handler.unlink(path)
     }
   }
 
-  async rename(){
-    for await(let path of this.#paths()){
+  async rename() {
+    for await (const path of this.#paths()) {
       await this._handler.rename(path)
     }
   }

@@ -486,11 +486,13 @@ export class VhdFile extends VhdAbstract {
     }
   }
 
-  async unlink(){
-    await this._handler.unlink(this._path)
+  async unlink() {
+    const path = typeof this._path === 'string' ? this._path : this._path.path
+    await this._handler.unlink(path)
   }
 
-  async rename(path){
-    await this._handler.unlink(this._path, path)
+  async rename(path) {
+    const current = typeof this._path === 'string' ? this._path : this._path.path
+    await this._handler.unlink(current, path)
   }
 }
