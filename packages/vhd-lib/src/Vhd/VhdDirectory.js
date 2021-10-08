@@ -13,7 +13,7 @@ const BLOCKS_DIRECTORY_DEPTH = 5
 // ├─ header // raw content of the header
 // ├─ footer // raw content of the footer
 // ├─ bat // bit array. A zero bit indicates at a position that this block is not present
-// ├─ parentLocatorEntry{1-8} // data of a parent locator
+// ├─ parentLocatorEntry{0-7} // data of a parent locator
 // ├─ blocks // blockId is the position in the BAT padded with 0 to be at least BLOCKS_DIRECTORY_DEPTH +1  char long
 //    └─ <first number of blockId>
 //        └─ <2nd number of blockId>
