@@ -76,8 +76,12 @@ const CustomContent = React.forwardRef(function CustomContent(props, ref) {
 
   return (
     <span className={classNames(className, { [classes.selected]: selected })} ref={ref}>
-      <span onClick={handleExpansionClick}>{expansionIcon}</span>
-      <span onClick={handleSelectionClick}>{label}</span>
+      <span className={classes.iconContainer} onClick={handleExpansionClick}>
+        {expansionIcon}
+      </span>
+      <span className={classes.label} onClick={handleSelectionClick}>
+        {label}
+      </span>
     </span>
   )
 })
