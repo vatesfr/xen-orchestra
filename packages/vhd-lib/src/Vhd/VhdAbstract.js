@@ -109,6 +109,16 @@ export class VhdAbstract {
   _readParentLocatorData(parentLocatorId, platformDataOffset, platformDataSpace) {
     throw new Error(`read Parent locator ${parentLocatorId} is not implemented`)
   }
+
+
+  unlink() {
+    throw new Error(`read unlink is not implemented`)
+  }
+
+  rename(path) {
+    throw new Error(`rename unlink is not implemented`)
+  }
+
   // common
   get batSize() {
     return computeBatSize(this.header.maxTableEntries)
@@ -164,4 +174,5 @@ export class VhdAbstract {
       }
     }
   }
+
 }

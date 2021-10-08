@@ -485,4 +485,12 @@ export class VhdFile extends VhdAbstract {
       header.parentLocatorEntry[parentLocatorId].platformDataOffset = position
     }
   }
+
+  async unlink(){
+    await this._handler.unlink(this._path)
+  }
+
+  async rename(path){
+    await this._handler.unlink(this._path, path)
+  }
 }
