@@ -19,11 +19,11 @@ const { debug } = createLogger('vhd-lib:VhdDirectory')
 //         └─ <the three last numbers  of blockID >  // block content.
 
 export class VhdDirectory extends VhdAbstract {
-  #blockTable
+  #uncheckedBlockTable
 
   set header(header) {
     super.header = header
-    this.#blockTable = Buffer.alloc(header.maxTableEntries)
+    this.#blocktable = Buffer.alloc(header.maxTableEntries)
   }
 
   get header() {
@@ -32,11 +32,11 @@ export class VhdDirectory extends VhdAbstract {
 
   get #blocktable() {
     assert.notStrictEqual(this.#blockTable, undefined, 'Block table must be initialized before access')
-    return this.#blockTable
+    return this.#uncheckedBlockTable
   }
 
   set #blocktable(blocktable) {
-    this.#blockTable = blocktable
+    this.#uncheckedBlockTable = blocktable
   }
 
   static async open(handler, path) {

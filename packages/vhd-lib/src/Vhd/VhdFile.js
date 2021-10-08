@@ -51,15 +51,15 @@ const { debug } = createLogger('vhd-lib:VhdFile')
 // - sectorSize = 512
 
 export class VhdFile extends VhdAbstract {
-  #blockTable
+  #uncheckedBlockTable
 
   get #blocktable() {
     assert.notStrictEqual(this.#blockTable, undefined, 'Block table must be initialized before access')
-    return this.#blockTable
+    return this.#uncheckedBlockTable
   }
 
   set #blocktable(blocktable) {
-    this.#blockTable = blocktable
+    this.#uncheckedBlockTable = blocktable
   }
 
   get batSize() {
