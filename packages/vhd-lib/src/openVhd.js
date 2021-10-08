@@ -1,6 +1,6 @@
 import { VhdFile, VhdDirectory } from './'
 
-export const openVhd = async function (handler, path) {
+export async function openVhd(handler, path) {
   try {
     return await VhdFile.open(handler, path)
   } catch (e) {
