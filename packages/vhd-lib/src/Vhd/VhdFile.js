@@ -62,6 +62,15 @@ export class VhdFile extends VhdAbstract {
     this.#uncheckedBlockTable = blocktable
   }
 
+  get #blocktable() {
+    assert.notStrictEqual(this.#blockTable, undefined, 'Block table must be initialized before access')
+    return this.#blockTable
+  }
+
+  set #blocktable(blocktable) {
+    this.#blockTable = blocktable
+  }
+
   get batSize() {
     return computeBatSize(this.header.maxTableEntries)
   }
@@ -523,8 +532,7 @@ export class VhdFile extends VhdAbstract {
     if(data.length === 0){
       //reset offset if data is empty
       header.parentLocatorEntry[parentLocatorId].platformDataOffset = 0
-    }
-    else {
+    } else {
       if (data.length <= header.parentLocatorEntry[parentLocatorId].platformDataSpace) {
         // new parent locator length is smaller than available space : keep it in place
         position = header.parentLocatorEntry[parentLocatorId].platformDataOffset
