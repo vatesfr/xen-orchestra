@@ -3,28 +3,27 @@ import { openVhd, Constants } from 'vhd-lib'
 import { resolve } from 'path'
 import Disposable from 'promise-toolbox/Disposable'
 
-const deepCompareObjects = function(src, dest, path){
+const deepCompareObjects = function (src, dest, path) {
   for (const key of Object.keys(src)) {
     const srcValue = src[key]
     const destValue = dest[key]
-    if (typeof srcValue !== typeof destValue) {
-      throw new Error(
-        `Error checking header : key ${path + '/' + key} is of type *${srcValue}* in source and *${destValue}* in dest`
-      )
-    }
+    if (srcValue !== destValue) {
+      const srcType = typeof srcValue
+      const destType = typeof destValue
+      if (srcType !== destType) {
+        throw new Error(`key ${path + '/' + key} is of type *${srcType}* in source and *${destType}* in dest`)
+      }
 
-    if (typeof src[key] === 'object') {
-      deepCompareObjects(src[key], dest[key], path + '/' + key)
-    } else {
-      if (
-        srcValue !== destValue ||
-        (Buffer.isBuffer(srcValue) && Buffer.isBuffer(destValue) && !srcValue.equals(destValue))
-      ) {
-        throw new Error(
-          `Error checking comparing objects : key ${
-            path + '/' + key
-          } is *${srcValue}* in source and *${destValue}* in dest`
-        )
+      if (srcType !== 'object') {
+        throw new Error(`key ${path + '/' + key} is *${srcValue}* in source and *${destValue}* in dest`)
+      }
+
+      if (Buffer.isBuffer(srcValue)) {
+        if (!(Buffer.isBuffer(destValue) && srcValue.equals(destValue))) {
+          throw new Error(`key ${path + '/' + key} is buffer in source that does not equal dest`)
+        }
+      } else {
+        deepCompareObjects(src[key], dest[key], path + '/' + key)
       }
     }
   }
@@ -43,8 +42,8 @@ export default async args => {
 
     // parent locator entries contains offset that can be different without impacting the vhd
     // we'll compare them later
-    const {parentLocatorEntry:_ , ...srcHeaderWithoutParentLocator} = src.header
-    const {parentLocatorEntry:__ , ...destHeaderWithoutParentLocator} = dest.header
+    const { parentLocatorEntry: _, ...srcHeaderWithoutParentLocator } = src.header
+    const { parentLocatorEntry: __, ...destHeaderWithoutParentLocator } = dest.header
     deepCompareObjects(srcHeaderWithoutParentLocator, destHeaderWithoutParentLocator, 'header')
     deepCompareObjects(src.footer, dest.footer, 'footer')
 
