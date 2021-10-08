@@ -180,7 +180,7 @@ export default connectStore(() => {
           )}
         </Col>
         <Col mediumSize={3}>
-          <p>{_(getVirtualizationModeLabel(vm))}</p>
+          <p>{getVirtualizationModeLabel(vm)}</p>
           {vgpu !== undefined && <p>{renderXoItem(vgpuTypes[vgpu.vgpuType])}</p>}
         </Col>
         <Col mediumSize={3}>

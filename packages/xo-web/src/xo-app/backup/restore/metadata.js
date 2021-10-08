@@ -30,7 +30,7 @@ const restore = entry =>
     title: _('restoreMetadataBackupTitle', {
       item: `${entry.type} (${entry.label})`,
     }),
-    body: <RestoreMetadataBackupModalBody backups={entry.backups} />,
+    body: <RestoreMetadataBackupModalBody backups={entry.backups} type={entry.type} />,
     icon: 'restore',
   }).then(backup => {
     if (backup === undefined) {

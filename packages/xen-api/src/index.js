@@ -359,22 +359,35 @@ export class Xapi extends EventEmitter {
       }
     }
 
-    const response = await httpRequest(
-      $cancelToken,
-      this._url,
-      host !== undefined && {
-        hostname: await this._getHostAddress(this.getObject(host)),
-      },
+    let url = new URL('http://localhost')
+    url.protocol = this._url.protocol
+    url.pathname = pathname
+    url.search = new URLSearchParams(query)
+    await this._setHostAddressInUrl(url, host)
+
+    const response = await pRetry(
+      async () =>
+        httpRequest($cancelToken, url.href, {
+          rejectUnauthorized: !this._allowUnauthorized,
+
+          // this is an inactivity timeout (unclear in Node doc)
+          timeout: this._httpInactivityTimeout,
+
+          maxRedirects: 0,
+
+          // Support XS <= 6.5 with Node => 12
+          minVersion: 'TLSv1',
+        }),
       {
-        pathname,
-        query,
-        rejectUnauthorized: !this._allowUnauthorized,
-
-        // this is an inactivity timeout (unclear in Node doc)
-        timeout: this._httpInactivityTimeout,
-
-        // Support XS <= 6.5 with Node => 12
-        minVersion: 'TLSv1',
+        when: { code: 302 },
+        onRetry: async error => {
+          const response = error.response
+          if (response === undefined) {
+            throw error
+          }
+          response.cancel()
+          url = await this._replaceHostAddressInUrl(new URL(response.headers.location, url))
+        },
       }
     )
 
@@ -421,32 +434,28 @@ export class Xapi extends EventEmitter {
       headers['content-length'] = '1125899906842624'
     }
 
-    const doRequest = httpRequest.put.bind(
-      undefined,
-      $cancelToken,
-      this._url,
-      host !== undefined && {
-        hostname: await this._getHostAddress(this.getObject(host)),
-      },
-      {
-        body,
-        headers,
-        pathname,
-        query,
-        rejectUnauthorized: !this._allowUnauthorized,
+    const url = new URL('http://localhost')
+    url.protocol = this._url.protocol
+    url.pathname = pathname
+    url.search = new URLSearchParams(query)
+    await this._setHostAddressInUrl(url, host)
 
-        // this is an inactivity timeout (unclear in Node doc)
-        timeout: this._httpInactivityTimeout,
+    const doRequest = httpRequest.put.bind(undefined, $cancelToken, {
+      body,
+      headers,
+      rejectUnauthorized: !this._allowUnauthorized,
 
-        // Support XS <= 6.5 with Node => 12
-        minVersion: 'TLSv1',
-      }
-    )
+      // this is an inactivity timeout (unclear in Node doc)
+      timeout: this._httpInactivityTimeout,
+
+      // Support XS <= 6.5 with Node => 12
+      minVersion: 'TLSv1',
+    })
 
     // if body is a stream, sends a dummy request to probe for a redirection
     // before consuming body
     const response = await (isStream
-      ? doRequest({
+      ? doRequest(url.href, {
           body: '',
 
           // omit task_id because this request will fail on purpose
@@ -456,9 +465,9 @@ export class Xapi extends EventEmitter {
         }).then(
           response => {
             response.cancel()
-            return doRequest()
+            return doRequest(url.href)
           },
-          error => {
+          async error => {
             let response
             if (error != null && (response = error.response) != null) {
               response.cancel()
@@ -469,14 +478,16 @@ export class Xapi extends EventEmitter {
               } = response
               if (statusCode === 302 && location !== undefined) {
                 // ensure the original query is sent
-                return doRequest(location, { query })
+                const newUrl = new URL(location, url)
+                newUrl.searchParams.set('task_id', query.task_id)
+                return doRequest((await this._replaceHostAddressInUrl(newUrl)).href)
               }
             }
 
             throw error
           }
         )
-      : doRequest())
+      : doRequest(url.href))
 
     if (pTaskResult !== undefined) {
       pTaskResult = pTaskResult.catch(error => {
@@ -792,7 +803,35 @@ export class Xapi extends EventEmitter {
     }
   }
 
-  async _getHostAddress({ address }) {
+  async _setHostAddressInUrl(url, host) {
+    const pool = this._pool
+
+    const poolMigrationNetwork = pool.other_config['xo:migrationNetwork']
+    if (host === undefined) {
+      if (poolMigrationNetwork === undefined) {
+        const xapiUrl = this._url
+        url.hostname = xapiUrl.hostname
+        url.port = xapiUrl.port
+        return
+      }
+
+      host = await this.getRecord('host', pool.master)
+    }
+
+    let { address } = host
+    if (poolMigrationNetwork !== undefined) {
+      const hostPifs = new Set(host.PIFs)
+      try {
+        const networkRef = await this._roCall('network.get_by_uuid', [poolMigrationNetwork])
+        const networkPifs = await this.getField('network', networkRef, 'PIFs')
+
+        const migrationNetworkPifRef = networkPifs.find(hostPifs.has, hostPifs)
+        address = await this.getField('PIF', migrationNetworkPifRef, 'IP')
+      } catch (error) {
+        console.warn('unable to get the host address linked to the pool migration network', poolMigrationNetwork, error)
+      }
+    }
+
     if (this._reverseHostIpAddresses) {
       try {
         ;[address] = await fromCallback(dns.reverse, address)
@@ -800,7 +839,8 @@ export class Xapi extends EventEmitter {
         console.warn('reversing host address', address, error)
       }
     }
-    return address
+
+    url.hostname = address
   }
 
   _setUrl(url) {
@@ -860,6 +900,19 @@ export class Xapi extends EventEmitter {
         }
       }
     }
+  }
+
+  async _replaceHostAddressInUrl(url) {
+    try {
+      // TODO: look for hostname in all addresses of this host (including all its PIFs)
+      const host = (await this.getAllRecords('host')).find(host => host.address === url.hostname)
+      if (host !== undefined) {
+        await this._setHostAddressInUrl(url, host)
+      }
+    } catch (error) {
+      console.warn('_replaceHostAddressInUrl', url, error)
+    }
+    return url
   }
 
   _processEvents(events) {

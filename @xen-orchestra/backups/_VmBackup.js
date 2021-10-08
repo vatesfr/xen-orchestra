@@ -303,12 +303,14 @@ exports.VmBackup = class VmBackup {
 
     let baseVm = findLast(this._jobSnapshots, _ => 'xo:backup:exported' in _.other_config)
     if (baseVm === undefined) {
+      debug('no base VM found')
       return
     }
 
     const fullInterval = this._settings.fullInterval
     const deltaChainLength = +(baseVm.other_config['xo:backup:deltaChainLength'] ?? 0) + 1
     if (!(fullInterval === 0 || fullInterval > deltaChainLength)) {
+      debug('not using base VM becaust fullInterval reached')
       return
     }
 
@@ -323,6 +325,10 @@ exports.VmBackup = class VmBackup {
       const srcVdi = srcVdis[snapshotOf]
       if (srcVdi !== undefined) {
         baseUuidToSrcVdi.set(await xapi.getField('VDI', baseRef, 'uuid'), srcVdi)
+      } else {
+        debug('no base VDI found', {
+          vdi: srcVdi.uuid,
+        })
       }
     })
 
@@ -335,7 +341,16 @@ exports.VmBackup = class VmBackup {
 
     const fullVdisRequired = new Set()
     baseUuidToSrcVdi.forEach((srcVdi, baseUuid) => {
-      if (!presentBaseVdis.has(baseUuid)) {
+      if (presentBaseVdis.has(baseUuid)) {
+        debug('found base VDI', {
+          base: baseUuid,
+          vdi: srcVdi.uuid,
+        })
+      } else {
+        debug('missing base VDI', {
+          base: baseUuid,
+          vdi: srcVdi.uuid,
+        })
         fullVdisRequired.add(srcVdi.uuid)
       }
     })

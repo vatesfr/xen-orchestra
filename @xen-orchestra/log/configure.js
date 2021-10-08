@@ -4,6 +4,42 @@ const { compileGlobPattern } = require('./utils')
 
 // ===================================================================
 
+const compileFilter = filter => {
+  if (filter === undefined) {
+    return
+  }
+
+  const type = typeof filter
+  if (type === 'function') {
+    return filter
+  }
+  if (type === 'string') {
+    const re = compileGlobPattern(filter)
+    return log => re.test(log.namespace)
+  }
+
+  if (Array.isArray(filter)) {
+    const filters = filter.map(compileFilter).filter(_ => _ !== undefined)
+    const { length } = filters
+    if (length === 0) {
+      return
+    }
+    if (length === 1) {
+      return filters[0]
+    }
+    return log => {
+      for (let i = 0; i < length; ++i) {
+        if (filters[i](log)) {
+          return true
+        }
+      }
+      return false
+    }
+  }
+
+  throw new TypeError('unsupported `filter`')
+}
+
 const createTransport = config => {
   if (typeof config === 'function') {
     return config
@@ -19,26 +55,15 @@ const createTransport = config => {
     }
   }
 
-  let { filter } = config
-  let transport = createTransport(config.transport)
   const level = resolve(config.level)
+  const filter = compileFilter([config.filter, level === undefined ? undefined : log => log.level >= level])
+
+  let transport = createTransport(config.transport)
 
   if (filter !== undefined) {
-    if (typeof filter === 'string') {
-      const re = compileGlobPattern(filter)
-      filter = log => re.test(log.namespace)
-    }
-
     const orig = transport
     transport = function (log) {
-      if ((level !== undefined && log.level >= level) || filter(log)) {
-        return orig.apply(this, arguments)
-      }
-    }
-  } else if (level !== undefined) {
-    const orig = transport
-    transport = function (log) {
-      if (log.level >= level) {
+      if (filter(log)) {
         return orig.apply(this, arguments)
       }
     }

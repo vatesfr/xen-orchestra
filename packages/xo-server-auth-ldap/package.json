@@ -1,6 +1,6 @@
 {
   "name": "xo-server-auth-ldap",
-  "version": "0.10.2",
+  "version": "0.10.4",
   "license": "AGPL-3.0-or-later",
   "description": "LDAP authentication plugin for XO-Server",
   "keywords": [
@@ -31,6 +31,8 @@
     "node": ">=10"
   },
   "dependencies": {
+    "@xen-orchestra/log": "^0.3.0",
+    "ensure-array": "^1.0.0",
     "exec-promise": "^0.7.0",
     "inquirer": "^8.0.0",
     "ldapts": "^2.2.1",

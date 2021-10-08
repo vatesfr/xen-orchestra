@@ -70,7 +70,7 @@ mergeProvidersUsers = true
 # should be used by default.
 defaultSignInPage = '/signin'
 
-# Minimum delay between two password authentication attemps.
+# Minimum delay between two password authentication attempts for a specific user.
 #
 # This is used to mitigate bruteforce attacks without being visible to users.
 throttlingDelay = '2 seconds'
@@ -130,6 +130,13 @@ port = 80
 
 [http.mounts]
 '/' = '../xo-web/dist'
+
+[logs]
+# Display all logs matching this filter, regardless of their level
+#filter = 'xo:load-balancer'
+
+# Display all logs with level >=, regardless of their namespace
+level = 'info'
 
 [plugins]
 

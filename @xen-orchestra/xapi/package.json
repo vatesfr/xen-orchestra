@@ -1,6 +1,6 @@
 {
   "name": "@xen-orchestra/xapi",
-  "version": "0.6.4",
+  "version": "0.7.0",
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/xapi",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "repository": {
@@ -25,7 +25,7 @@
     "xo-common": "^0.7.0"
   },
   "peerDependencies": {
-    "xen-api": "^0.33.1"
+    "xen-api": "^0.34.3"
   },
   "scripts": {
     "build": "cross-env NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
@@ -40,7 +40,7 @@
   "dependencies": {
     "@vates/decorate-with": "^0.1.0",
     "@xen-orchestra/async-map": "^0.1.2",
-    "@xen-orchestra/log": "^0.2.1",
+    "@xen-orchestra/log": "^0.3.0",
     "d3-time-format": "^3.0.0",
     "golike-defer": "^0.5.1",
     "lodash": "^4.17.15",

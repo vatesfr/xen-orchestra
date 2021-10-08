@@ -286,8 +286,9 @@ When it's done exporting, we'll remove the snapshot. Note: this operation will t
 Concurrency is a parameter that let you define how many VMs your backup job will manage simultaneously.
 
 :::tip
+
 - Default concurrency value is 2 if left empty.
-:::
+  :::
 
 Let's say you want to backup 50 VMs (each with 1x disk) at 3:00 AM. There are **2 different strategies**:
 
@@ -297,7 +298,7 @@ Let's say you want to backup 50 VMs (each with 1x disk) at 3:00 AM. There are **
 The first purely sequential strategy will lead to the fact that: **you can't predict when a snapshot of your data will occur**. Because you can't predict the first VM export time (let's say 3 hours), then your second VM will have its snapshot taken 3 hours later, at 6 AM.
 
 :::tip
-If you need your backup to be done at a specific time  you should consider creating a specific backup task for this VM.
+If you need your backup to be done at a specific time you should consider creating a specific backup task for this VM.
 :::
 
 Strategy number 2 is to parallelise: all the snapshots will be taken at 3 AM. However **it's risky without limits**: it means potentially doing 50 snapshots or more at once on the same storage. **Since XenServer doesn't have a queue**, it will try to do all of them at once. This is also prone to race conditions and could cause crashes on your storage.
@@ -312,6 +313,7 @@ You should be aware of your hardware limitation when defining the best concurren
 The best way to define the best concurrency for you is by increasing it slowly and watching the result on backup time.
 
 So to summarize, if you set your concurrency at 6 and you have 20 Vms to backup the process will be the following:
+
 - We start the backup of the first 6 VMs.
 - When one VM backup as ended we will launch the next VM backup.
 - We're keep launching new VM backup until the 20 VMs are finished, keeping 6 backups running.

@@ -451,7 +451,11 @@ export default {
       set: (secureBoot, vm) => vm.update_platform('secureboot', secureBoot.toString()),
     },
     hvmBootFirmware: {
-      set: (firmware, vm) => vm.update_HVM_boot_params('firmware', firmware),
+      set: (firmware, vm) =>
+        Promise.all([
+          vm.update_HVM_boot_params('firmware', firmware),
+          vm.update_platform('device-model', 'qemu-upstream-' + (firmware === 'uefi' ? 'uefi' : 'compat')),
+        ]),
     },
   }),
 

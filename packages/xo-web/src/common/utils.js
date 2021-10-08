@@ -34,6 +34,7 @@ export const VIRTUALIZATION_MODE_LABEL = {
   hvm: 'hardwareVirtualizedMode',
   pv: 'paraVirtualizedMode',
   pvhvm: 'hvmModeWithPvDriversEnabled',
+  pv_in_pvh: 'pvInPvhMode',
 }
 
 // ===================================================================
@@ -44,8 +45,9 @@ export addSubscriptions from './add-subscriptions'
 
 export const getVirtualizationModeLabel = vm => {
   const virtualizationMode = vm.virtualizationMode === 'hvm' && vm.pvDriversDetected ? 'pvhvm' : vm.virtualizationMode
+  const messageId = VIRTUALIZATION_MODE_LABEL[virtualizationMode]
 
-  return VIRTUALIZATION_MODE_LABEL[virtualizationMode]
+  return messageId === undefined ? virtualizationMode : _(messageId)
 }
 
 // ===================================================================

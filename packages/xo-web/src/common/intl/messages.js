@@ -118,6 +118,7 @@ const messages = {
   filterOnlyManaged: 'Managed disks',
   filterOnlyOrphaned: 'Orphaned disks',
   filterOnlyRegular: 'Normal disks',
+  filterOnlyRunningVms: 'Running VMs',
   filterOnlySnapshots: 'Snapshot disks',
   filterOnlyUnmanaged: 'Unmanaged disks',
   filterSaveAs: 'Save…',
@@ -839,6 +840,9 @@ const messages = {
   addHostNotHomogeneousErrorMessage: 'Host patches could not be homogenized.',
   disconnectServer: 'Disconnect',
 
+  // ----- Host item ------
+  noMoreMaintained: 'This host version is no longer maintained',
+
   // ----- Host actions ------
   disableMaintenanceMode: 'Disable maintenance mode',
   enableMaintenanceMode: 'Enable maintenance mode',
@@ -1033,6 +1037,7 @@ const messages = {
   paraVirtualizedMode: 'Paravirtualization (PV)',
   hardwareVirtualizedMode: 'Hardware virtualization (HVM)',
   hvmModeWithPvDriversEnabled: 'Hardware virtualization with paravirtualization drivers enabled (PVHVM)',
+  pvInPvhMode: 'PV inside a PVH container (PV in PVH)',
   windowsUpdateTools: 'Windows Update tools',
 
   // ----- VM stat tab -----
@@ -1674,6 +1679,10 @@ const messages = {
   restartVmModalMessage: 'Are you sure you want to restart {name}?',
   stopVmModalTitle: 'Stop VM',
   stopVmModalMessage: 'Are you sure you want to stop {name}?',
+  vmHasNoTools: 'No guest tools',
+  vmHasNoToolsMessage: "The VM doesn't have Xen tools installed, which are required to properly stop or reboot it.",
+  confirmForceShutdown: 'Would you like to force shutdown the VM?',
+  confirmForceReboot: 'Would you like to force reboot the VM?',
   suspendVmsModalTitle: 'Suspend VM{vms, plural, one {} other {s}}',
   suspendVmsModalMessage: 'Are you sure you want to suspend {vms, number} VM{vms, plural, one {} other {s}}?',
   pauseVmsModalTitle: 'Pause VM{vms, plural, one {} other {s}}',

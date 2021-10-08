@@ -11,6 +11,7 @@ import { DurablePartition } from '@xen-orchestra/backups/DurablePartition.js'
 import { execFile } from 'child_process'
 import { formatVmBackups } from '@xen-orchestra/backups/formatVmBackups.js'
 import { ImportVmBackup } from '@xen-orchestra/backups/ImportVmBackup.js'
+import { JsonRpcError } from 'json-rpc-protocol'
 import { Readable } from 'stream'
 import { RemoteAdapter } from '@xen-orchestra/backups/RemoteAdapter.js'
 import { RestoreMetadataBackup } from '@xen-orchestra/backups/RestoreMetadataBackup.js'
@@ -108,7 +109,7 @@ export default class Backups {
         if (!__DEV__) {
           const license = await app.appliance.getSelfLicense()
           if (license === undefined) {
-            throw new Error('no valid proxy license')
+            throw new JsonRpcError('no valid proxy license')
           }
         }
         return run.apply(this, arguments)

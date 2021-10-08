@@ -1,11 +1,12 @@
 import * as multiparty from 'multiparty'
+import assert from 'assert'
 import getStream from 'get-stream'
 import pump from 'pump'
 import { createLogger } from '@xen-orchestra/log'
 import { defer } from 'golike-defer'
-import { format } from 'json-rpc-peer'
+import { format, JsonRpcError } from 'json-rpc-peer'
 import { noSuchObject } from 'xo-common/api-errors.js'
-import { peekFooterFromVhdStream } from 'vhd-lib'
+import { checkFooter, peekFooterFromVhdStream } from 'vhd-lib'
 import { vmdkToVhd } from 'xo-vmdk-to-vhd'
 
 import { VDI_FORMAT_VHD } from '../xapi/index.mjs'
@@ -161,44 +162,59 @@ async function handleImport(req, res, { type, name, description, vmdkData, srId,
     const form = new multiparty.Form()
     form.on('error', reject)
     form.on('part', async part => {
-      if (part.name !== 'file') {
-        promises.push(
-          (async () => {
-            const view = new DataView((await getStream.buffer(part)).buffer)
-            const result = new Uint32Array(view.byteLength / 4)
-            for (const i in result) {
-              result[i] = view.getUint32(i * 4, true)
-            }
-            vmdkData[part.name] = result
-          })()
-        )
-      } else {
-        await Promise.all(promises)
-        part.length = part.byteCount
-        if (type === 'vmdk') {
-          vhdStream = await vmdkToVhd(part, vmdkData.grainLogicalAddressList, vmdkData.grainFileOffsetList)
-          size = vmdkData.capacity
-        } else if (type === 'vhd') {
-          vhdStream = part
-          const footer = await peekFooterFromVhdStream(vhdStream)
-          size = footer.currentSize
+      try {
+        if (part.name !== 'file') {
+          promises.push(
+            (async () => {
+              const buffer = await getStream.buffer(part)
+              vmdkData[part.name] = new Uint32Array(
+                buffer.buffer,
+                buffer.byteOffset,
+                buffer.length / Uint32Array.BYTES_PER_ELEMENT
+              )
+            })()
+          )
         } else {
-          throw new Error(`Unknown disk type, expected "vhd" or "vmdk", got ${type}`)
+          await Promise.all(promises)
+          part.length = part.byteCount
+          if (type === 'vmdk') {
+            vhdStream = await vmdkToVhd(part, vmdkData.grainLogicalAddressList, vmdkData.grainFileOffsetList)
+            size = vmdkData.capacity
+          } else if (type === 'vhd') {
+            vhdStream = part
+            const footer = await peekFooterFromVhdStream(vhdStream)
+            try {
+              checkFooter(footer)
+            } catch (e) {
+              if (e instanceof assert.AssertionError) {
+                throw new JsonRpcError(`Vhd file had an invalid header ${e}`)
+              }
+            }
+            size = footer.currentSize
+          } else {
+            throw new JsonRpcError(`Unknown disk type, expected "vhd" or "vmdk", got ${type}`)
+          }
+          const vdi = await xapi.createVdi({
+            name_description: description,
+            name_label: name,
+            size,
+            sr: srId,
+          })
+          try {
+            await xapi.importVdiContent(vdi, vhdStream, VDI_FORMAT_VHD)
+            res.end(format.response(0, vdi.$id))
+          } catch (e) {
+            await vdi.$destroy()
+            throw e
+          }
+          resolve()
         }
-        const vdi = await xapi.createVdi({
-          name_description: description,
-          name_label: name,
-          size,
-          sr: srId,
-        })
-        try {
-          await xapi.importVdiContent(vdi, vhdStream, VDI_FORMAT_VHD)
-          res.end(format.response(0, vdi.$id))
-        } catch (e) {
-          await vdi.$destroy()
-          throw e
-        }
-        resolve()
+      } catch (e) {
+        res.writeHead(500)
+        res.end(format.error(0, new JsonRpcError(e.message)))
+        // destroy the reader to stop the file upload
+        req.destroy()
+        reject(e)
       }
     })
     form.parse(req)

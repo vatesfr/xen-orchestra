@@ -55,7 +55,7 @@ const FILTER_TYPE_TO_LABEL_ID = {
   'VM-template': 'homeTypeVmTemplate',
 }
 
-const SSH_KEY_STYLE = { wordWrap: 'break-word' }
+const SSH_KEY_STYLE = { wordWrap: 'anywhere' }
 
 const getDefaultFilter = (defaultFilters, type) => {
   if (defaultFilters == null) {

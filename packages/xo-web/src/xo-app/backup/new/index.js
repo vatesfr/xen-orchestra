@@ -1078,17 +1078,26 @@ const New = decorate([
             <Card>
               <CardBlock>
                 {state.edition ? (
+                  // editing a backup is done from /backup/overview
+                  // using GO_BACK on success allows the user to be redirected
+                  // to the overview with all the filters/page intact
+
                   <ActionButton
                     btnStyle='primary'
                     form={state.formId}
                     handler={effects.editJob}
                     icon='save'
-                    redirectOnSuccess={state.isJobInvalid ? undefined : '/backup'}
+                    redirectOnSuccess={state.isJobInvalid ? undefined : ActionButton.GO_BACK}
                     size='large'
                   >
                     {_('formSave')}
                   </ActionButton>
                 ) : (
+                  // creating a new backup can be initiated from the nav menu,
+                  // the user can be anywhere in xo-web
+                  // we force a redirection to /backup to ensure a consistent
+                  // browsing experience
+
                   <ActionButton
                     btnStyle='primary'
                     form={state.formId}

@@ -27,3 +27,12 @@ export const getHandler = (remote, ...rest) => {
   }
   return new Handler(remote, ...rest)
 }
+
+export const getSyncedHandler = async (...opts) => {
+  const handler = getHandler(...opts)
+  await handler.sync()
+  return {
+    dispose: () => handler.forget(),
+    value: handler,
+  }
+}

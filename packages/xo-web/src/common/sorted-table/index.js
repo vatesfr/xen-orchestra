@@ -800,6 +800,29 @@ class SortedTable extends Component {
             targetNodeSelector={shortcutsTarget}
           />
         )}
+        <Container className='mb-1 p-0'>
+          <SingleLineRow>
+            <Col mediumSize={7}>
+              {displayPagination &&
+                (paginationContainer !== undefined ? (
+                  // Rebuild container function to refresh Portal component.
+                  <Portal container={() => paginationContainer()}>{paginationInstance}</Portal>
+                ) : (
+                  paginationInstance
+                ))}
+            </Col>
+            <Col mediumSize={4}>
+              {filterContainer ? <Portal container={() => filterContainer()}>{filterInstance}</Portal> : filterInstance}
+            </Col>
+            <Col mediumSize={1} style={{ justifyContent: 'end', display: 'flex' }}>
+              {itemsPerPageContainer !== undefined ? (
+                <Portal container={() => itemsPerPageContainer()}>{dropdownItemsPerPage}</Portal>
+              ) : (
+                dropdownItemsPerPage
+              )}
+            </Col>
+          </SingleLineRow>
+        </Container>
         <table className='table'>
           <thead className='thead-default'>
             <tr>
@@ -885,29 +908,6 @@ class SortedTable extends Component {
             )}
           </tbody>
         </table>
-        <Container>
-          <SingleLineRow>
-            <Col mediumSize={7}>
-              {displayPagination &&
-                (paginationContainer !== undefined ? (
-                  // Rebuild container function to refresh Portal component.
-                  <Portal container={() => paginationContainer()}>{paginationInstance}</Portal>
-                ) : (
-                  paginationInstance
-                ))}
-            </Col>
-            <Col mediumSize={4}>
-              {filterContainer ? <Portal container={() => filterContainer()}>{filterInstance}</Portal> : filterInstance}
-            </Col>
-            <Col mediumSize={1} className='pull-right'>
-              {itemsPerPageContainer !== undefined ? (
-                <Portal container={() => itemsPerPageContainer()}>{dropdownItemsPerPage}</Portal>
-              ) : (
-                dropdownItemsPerPage
-              )}
-            </Col>
-          </SingleLineRow>
-        </Container>
       </div>
     )
   }

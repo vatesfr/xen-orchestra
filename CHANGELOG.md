@@ -1,8 +1,109 @@
 # ChangeLog
 
-## **5.60.0** (2021-06-30)
+## **5.63.0** (2021-09-30)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
+### Highlights
+
+- [Backup] Go back to previous page instead of going to the overview after editing a job: keeps current filters and page (PR [#5913](https://github.com/vatesfr/xen-orchestra/pull/5913))
+- [Health] Do not take into consideration duplicated MAC addresses from CR VMs (PR [#5916](https://github.com/vatesfr/xen-orchestra/pull/5916))
+- [Health] Ability to filter duplicated MAC addresses by running VMs (PR [#5917](https://github.com/vatesfr/xen-orchestra/pull/5917))
+- [Tables] Move the search bar and pagination to the top of the table (PR [#5914](https://github.com/vatesfr/xen-orchestra/pull/5914))
+- [Netbox] Handle nested prefixes by always assigning an IP to the smallest prefix it matches (PR [#5908](https://github.com/vatesfr/xen-orchestra/pull/5908))
+
+### Bug fixes
+
+- [SSH keys] Allow SSH key to be broken anywhere to avoid breaking page formatting (Thanks [@tstivers1990](https://github.com/tstivers1990)!) [#5891](https://github.com/vatesfr/xen-orchestra/issues/5891) (PR [#5892](https://github.com/vatesfr/xen-orchestra/pull/5892))
+- [Netbox] Better handling and error messages when encountering issues due to UUID custom field not being configured correctly [#5905](https://github.com/vatesfr/xen-orchestra/issues/5905) [#5806](https://github.com/vatesfr/xen-orchestra/issues/5806) [#5834](https://github.com/vatesfr/xen-orchestra/issues/5834) (PR [#5909](https://github.com/vatesfr/xen-orchestra/pull/5909))
+- [New VM] Don't send network config if untouched as all commented config can make Cloud-init fail [#5918](https://github.com/vatesfr/xen-orchestra/issues/5918) (PR [#5923](https://github.com/vatesfr/xen-orchestra/pull/5923))
+
+### Released packages
+
+- xen-api 0.34.3
+- vhd-lib 1.2.0
+- xo-server-netbox 0.3.1
+- @xen-orchestra/proxy 0.14.7
+- xo-server 5.82.3
+- xo-web 5.88.0
+
+## **5.62.1** (2021-09-17)
+
+### Bug fixes
+
+- [VM/Advanced] Fix conversion from UEFI to BIOS boot firmware (PR [#5895](https://github.com/vatesfr/xen-orchestra/pull/5895))
+- [VM/network] Support newline-delimited IP addresses reported by some guest tools
+- Fix VM/host stats, VM creation with Cloud-init, and VM backups, with NATted hosts [#5896](https://github.com/vatesfr/xen-orchestra/issues/5896)
+- [VM/import] Very small VMDK and OVA files were mangled upon import (PR [#5903](https://github.com/vatesfr/xen-orchestra/pull/5903))
+
+### Released packages
+
+- xen-api 0.34.2
+- @xen-orchestra/proxy 0.14.6
+- xo-server 5.82.2
+
+## **5.62.0** (2021-08-31)
+
+<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
+
+### Highlights
+
+- [Host] Add warning in case of unmaintained host version [#5840](https://github.com/vatesfr/xen-orchestra/issues/5840) (PR [#5847](https://github.com/vatesfr/xen-orchestra/pull/5847))
+- [Backup] Use default migration network if set when importing/exporting VMs/VDIs (PR [#5883](https://github.com/vatesfr/xen-orchestra/pull/5883))
+
+### Enhancements
+
+- [New network] Ability for pool's admin to create a new network within the pool (PR [#5873](https://github.com/vatesfr/xen-orchestra/pull/5873))
+- [Netbox] Synchronize primary IPv4 and IPv6 addresses [#5633](https://github.com/vatesfr/xen-orchestra/issues/5633) (PR [#5879](https://github.com/vatesfr/xen-orchestra/pull/5879))
+
+### Bug fixes
+
+- [VM/network] Fix an issue where multiple IPs would be displayed in the same tag when using old Xen tools. This also fixes Netbox's IP synchronization for the affected VMs. (PR [#5860](https://github.com/vatesfr/xen-orchestra/pull/5860))
+- [LDAP] Handle groups with no members (PR [#5862](https://github.com/vatesfr/xen-orchestra/pull/5862))
+- Fix empty button on small size screen (PR [#5874](https://github.com/vatesfr/xen-orchestra/pull/5874))
+- [Host] Fix `Cannot read property 'other_config' of undefined` error when enabling maintenance mode (PR [#5875](https://github.com/vatesfr/xen-orchestra/pull/5875))
+
+### Released packages
+
+- xen-api 0.34.1
+- @xen-orchestra/xapi 0.7.0
+- @xen-orchestra/backups 0.13.0
+- @xen-orchestra/fs 0.18.0
+- @xen-orchestra/log 0.3.0
+- @xen-orchestra/mixins 0.1.1
+- xo-server-auth-ldap 0.10.4
+- xo-server-netbox 0.3.0
+- xo-server 5.82.1
+- xo-web 5.87.0
+
+## **5.61.0** (2021-07-30)
+
+### Highlights
+
+- [SR/disks] Display base copies' active VDIs (PR [#5826](https://github.com/vatesfr/xen-orchestra/pull/5826))
+- [Netbox] Optionally allow self-signed certificates (PR [#5850](https://github.com/vatesfr/xen-orchestra/pull/5850))
+- [Host] When supported, use pool's default migration network to evacuate host [#5802](https://github.com/vatesfr/xen-orchestra/issues/5802) (PR [#5851](https://github.com/vatesfr/xen-orchestra/pull/5851))
+- [VM] shutdown/reboot: offer to force shutdown/reboot the VM if no Xen tools were detected [#5838](https://github.com/vatesfr/xen-orchestra/issues/5838) (PR [#5855](https://github.com/vatesfr/xen-orchestra/pull/5855))
+
+### Enhancements
+
+- [Netbox] Add information about a failed request to the error log to help better understand what happened [#5834](https://github.com/vatesfr/xen-orchestra/issues/5834) (PR [#5842](https://github.com/vatesfr/xen-orchestra/pull/5842))
+- [VM/console] Ability to rescan ISO SRs (PR [#5841](https://github.com/vatesfr/xen-orchestra/pull/5841))
+
+### Bug fixes
+
+- [VM/disks] Fix `an error has occured` when self service user was on VM disk view (PR [#5841](https://github.com/vatesfr/xen-orchestra/pull/5841))
+- [Backup] Protect replicated VMs from being started on specific hosts (PR [#5852](https://github.com/vatesfr/xen-orchestra/pull/5852))
+
+### Released packages
+
+- @xen-orchestra/backups 0.12.2
+- @xen-orchestra/proxy 0.14.4
+- xo-server-netbox 0.2.0
+- xo-web 5.86.0
+- xo-server 5.81.2
+
+## **5.60.0** (2021-06-30)
 
 ### Highlights
 
@@ -44,8 +145,6 @@
 - xo-web 5.84.0
 
 ## **5.59.0** (2021-05-31)
-
-<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Highlights
 

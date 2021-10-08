@@ -97,58 +97,25 @@ After the VM is imported, you just need to start it with `xe vm-start vm="XOA"` 
 
 ## First console connection
 
-If you connect via SSH or console, the default credentials are:
+### Deployed with the [web deploy form](https://xen-orchestra.com/#!/xoa)
 
-- user: xoa
-- password: xoa
+In that case, you already set the password for `xoa` user. If you forgot it, see below.
 
-During your first connection, the system will ask you to:
+### Manually deployed
 
-- enter the current password again (`xoa`)
-- enter your new password
-- retype your new password
+If you connect via SSH or console for the first time without using our [web deploy form](https://xen-orchestra.com/#!/xoa), be aware **there's NO default password set for security reasons**. To set it, you need to connect to your host to find the XOA VM UUID (eg via `xe vm-list`).
 
-When it's done, you'll be disconnected, so reconnect again with your new password.
-
-Here is an example when you connect via SSH for the first time:
+Then replace `<UUID>` with the previously find UUID, and `<password>` with your password:
 
 ```
-$ ssh xoa@192.168.100.146
-Warning: Permanently added '192.168.100.146' (ECDSA) to the list of known hosts.
-xoa@192.168.100.146's password:
-You are required to change your password immediately (root enforced)
- __   __             ____           _               _
- \ \ / /            / __ \         | |             | |
-  \ V / ___ _ __   | |  | |_ __ ___| |__   ___  ___| |_ _ __ __ _
-   > < / _ \ '_ \  | |  | | '__/ __| '_ \ / _ \/ __| __| '__/ _` |
-  / . \  __/ | | | | |__| | | | (__| | | |  __/\__ \ |_| | | (_| |
- /_/ \_\___|_| |_|  \____/|_|  \___|_| |_|\___||___/\__|_|  \__,_|
-
-Welcome to XOA Unified Edition, with Pro Support.
-
-* Restart XO: sudo systemctl restart xo-server.service
-* Display logs: sudo systemctl status xo-server.service
-* Register your XOA: sudo xoa-updater --register
-* Update your XOA: sudo xoa-updater --upgrade
-
-OFFICIAL XOA DOCUMENTATION HERE: https://xen-orchestra.com/docs/xoa.html
-
-Support available at https://xen-orchestra.com/#!/member/support
-
-Build number: 16.10.24
-
-Based on Debian GNU/Linux 8 (Stable) 64bits in PVHVM mode
-
-WARNING: Your password has expired.
-You must change your password now and login again!
-Changing password for xoa.
-(current) UNIX password:
-Enter new UNIX password:
-Retype new UNIX password:
-passwd: password updated successfully
-Connection to 192.168.100.146 closed.
-$
+xe vm-param-set uuid=<UUID> xenstore-data:vm-data/system-account-xoa-password=<password>
 ```
+
+:::tip
+Don't forget to use quotes for your password, eg: `xenstore-data:vm-data/system-account-xoa-password='MyPassW0rd!'`
+:::
+
+Then, you could connect with `xoa` username and the password you defined in the previous command, eg with `ssh xoa@<XOA IP ADDRESS>`.
 
 ### Using sudo
 
