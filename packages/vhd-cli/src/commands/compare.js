@@ -42,9 +42,9 @@ export default async args => {
 
     // parent locator entries contains offset that can be different without impacting the vhd
     // we'll compare them later
-    const { parentLocatorEntry: _, ...srcHeaderWithoutParentLocator } = src.header
-    const { parentLocatorEntry: __, ...destHeaderWithoutParentLocator } = dest.header
-    deepCompareObjects(srcHeaderWithoutParentLocator, destHeaderWithoutParentLocator, 'header')
+    const { parentLocatorEntry: srcParentLocatorEntry,tableOffset: srcTableOffset, checksum: srcChecksum,  ...srcHeaderWithoutOffsets } = src.header
+    const { parentLocatorEntry: destParentLocatorEntry,tableOffset: destTableOffset, checksum: destChecksum,  ...destHeaderWithoutOffsets } = dest.header
+    deepCompareObjects(srcHeaderWithoutOffsets, destHeaderWithoutOffsets, 'header')
     deepCompareObjects(src.footer, dest.footer, 'footer')
 
     await src.readBlockAllocationTable()
