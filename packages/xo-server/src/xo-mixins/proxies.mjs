@@ -23,8 +23,12 @@ import { timeout } from 'promise-toolbox'
 
 import Collection from '../collection/redis.mjs'
 import patch from '../patch.mjs'
+
+import { debounceWithKey } from '../_pDebounceWithKey.mjs'
 import { extractIpFromVmNetworks } from '../_extractIpFromVmNetworks.mjs'
 import { generateToken } from '../utils.mjs'
+
+const DEBOUNCE_TIME = 60000
 
 const extractProperties = _ => _.properties
 const omitToken = proxy => omit(proxy, 'authenticationToken')
@@ -192,7 +196,13 @@ export default class Proxy {
   }
 
   getProxyApplianceUpdaterState(id) {
-    return this.callProxyMethod(id, 'appliance.updater.getState')
+    return debounceWithKey(
+      function (id) {
+        return this.callProxyMethod(id, 'appliance.updater.getState')
+      },
+      DEBOUNCE_TIME,
+      id => id
+    )
   }
 
   @decorateWith(defer)
