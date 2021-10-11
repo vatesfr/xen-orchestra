@@ -98,39 +98,40 @@ export default class TabLogs extends Component {
   }
 
   _formatLogs = props => {
-    Promise.all(
-      map(props.logs, ({ body }, id) => {
-        const matches = /^value:\s*([0-9.]+)\s+config:\s*([^]*)$/.exec(body)
-        if (!matches) {
-          throw new Error('Invalid patern.')
-        }
-
-        const [, value, xml] = matches
-        return fromCallback(xml2js.parseString, xml).then(result => {
-          const object = mapValues(result && result.variable, value => get(value, '[0].$.value'))
-          if (!object || !object.name) {
-            return
+    try {
+      Promise.all(
+        map(props.logs, ({ body }, id) => {
+          const matches = /^value:\s*([0-9.]+)\s+config:\s*([^]*)$/.exec(body)
+          if (!matches) {
+            throw new Error('Invalid patern.')
           }
 
-          const { name, ...logAttributes } = object
+          const [, value, xml] = matches
+          return fromCallback(xml2js.parseString, xml).then(result => {
+            const object = mapValues(result && result.variable, value => get(value, '[0].$.value'))
+            if (!object || !object.name) {
+              return
+            }
 
-          return { name, value, logAttributes, id }
+            const { name, ...logAttributes } = object
+
+            return { name, value, logAttributes, id }
+          })
         })
-      })
-    ).then(
-      formattedLogs => {
+      ).then(formattedLogs => {
         this.setState({
           logs: map(formattedLogs, ({ id, ...formattedLogs }) => ({
             formatted: formattedLogs,
             ...props.logs[id],
           })),
         })
-      },
-      () =>
-        this.setState({
-          logs: this.props.logs,
-        })
-    )
+      })
+    } catch (error) {
+      console.error(error)
+      this.setState({
+        logs: this.props.logs,
+      })
+    }
   }
 
   _nextPage = () => this.setState({ page: this.state.page + 1 })
