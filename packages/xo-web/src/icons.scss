@@ -335,6 +335,7 @@
     @extend .fa-circle-thin;
   }
 
+
   // Backups
   &-backup {
     @extend .fa;
@@ -650,6 +651,7 @@
       @extend .fa-times;
     }
   }
+
 
   // Host and VM actions
   &-host,

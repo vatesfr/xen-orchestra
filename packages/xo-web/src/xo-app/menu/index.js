@@ -438,7 +438,7 @@ export default class Menu extends Component {
         label: 'proxies',
         extra: [
           this._areProxiesOutOfDate() ? (
-            <Tooltip content={_('notificationUpgradeNeededForProxies')}>
+            <Tooltip content={_('proxiesNeedUpgrade')}>
               <StackedIcons
                 icons={[
                   { color: 'text-success', icon: 'circle', size: 2 },
