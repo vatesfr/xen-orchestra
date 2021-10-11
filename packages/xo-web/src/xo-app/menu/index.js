@@ -179,11 +179,11 @@ export default class Menu extends Component {
     }))
 
     const unsubs = map(this.props.proxyIds, proxyId =>
-      subscribeProxiesApplianceUpdaterState((proxyId, { state = '' }) => {
+      subscribeProxiesApplianceUpdaterState(proxyId, ({ state = '' }) => {
         this.setState(state => ({
           proxyStates: {
             ...state.proxyStates,
-            [proxyId]: state,
+            [proxyId]: '-upgrade-needed', //state,
           },
         }))
       })
