@@ -1,12 +1,15 @@
 import _ from 'intl'
 import Component from 'base-component'
+import fromCallback from 'promise-toolbox/fromCallback'
 import isEmpty from 'lodash/isEmpty'
 import React from 'react'
 import SortedTable from 'sorted-table'
+import xml2js from 'xml2js'
 import { createPager } from 'selectors'
 import { Row, Col } from 'grid'
 import { deleteMessage, deleteMessages } from 'xo'
 import { FormattedRelative, FormattedTime } from 'react-intl'
+import { get, map, mapValues } from 'lodash'
 
 const LOG_COLUMNS = [
   {
@@ -34,7 +37,26 @@ const LOG_COLUMNS = [
   },
   {
     name: _('logContent'),
-    itemRenderer: log => log.body,
+    itemRenderer: ({ formatted, body }) =>
+      formatted !== undefined ? (
+        <div>
+          <Row>
+            <Col mediumSize={6}>
+              <strong>{formatted.name}</strong>
+            </Col>
+            <Col mediumSize={6}>{formatted.value}</Col>
+          </Row>
+          <br />
+          {map(formatted.logAttributes, (value, label) => (
+            <Row>
+              <Col mediumSize={6}>{label}</Col>
+              <Col mediumSize={6}>{value}</Col>
+            </Row>
+          ))}
+        </div>
+      ) : (
+        <pre style={{ whiteSpace: 'pre-wrap' }}>{body}</pre>
+      ),
     sortCriteria: log => log.body,
   },
 ]
@@ -55,7 +77,7 @@ export default class TabLogs extends Component {
     super()
 
     this.getLogs = createPager(
-      () => this.props.logs,
+      () => this.state.logs,
       () => this.state.page,
       10
     )
@@ -63,6 +85,52 @@ export default class TabLogs extends Component {
     this.state = {
       page: 1,
     }
+  }
+
+  componentDidMount() {
+    this._formatLogs(this.props)
+  }
+
+  componentDidUpdate(props) {
+    if (props.logs !== this.props.logs) {
+      this._formatLogs(this.props)
+    }
+  }
+
+  _formatLogs = props => {
+    Promise.all(
+      map(props.logs, ({ body }, id) => {
+        const matches = /^value:\s*([0-9.]+)\s+config:\s*([^]*)$/.exec(body)
+        if (!matches) {
+          throw new Error('Invalid patern.')
+        }
+
+        const [, value, xml] = matches
+        return fromCallback(xml2js.parseString, xml).then(result => {
+          const object = mapValues(result && result.variable, value => get(value, '[0].$.value'))
+          if (!object || !object.name) {
+            return
+          }
+
+          const { name, ...logAttributes } = object
+
+          return { name, value, logAttributes, id }
+        })
+      })
+    ).then(
+      formattedLogs => {
+        this.setState({
+          logs: map(formattedLogs, ({ id, ...formattedLogs }) => ({
+            formatted: formattedLogs,
+            ...props.logs[id],
+          })),
+        })
+      },
+      () =>
+        this.setState({
+          logs: this.props.logs,
+        })
+    )
   }
 
   _nextPage = () => this.setState({ page: this.state.page + 1 })
