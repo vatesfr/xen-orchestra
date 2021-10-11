@@ -13,7 +13,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [Jobs] Fix `job.runSequence` method
+- [Jobs] Fix `job.runSequence` method (PR [#5944](https://github.com/vatesfr/xen-orchestra/pull/5944))
 
 ### Packages to release
 
