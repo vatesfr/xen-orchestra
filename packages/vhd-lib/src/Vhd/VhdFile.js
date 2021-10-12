@@ -493,6 +493,6 @@ export class VhdFile extends VhdAbstract {
 
   async rename(path) {
     const current = typeof this._path === 'string' ? this._path : this._path.path
-    await this._handler.unlink(current, path)
+    await this._handler.rename(current, path)
   }
 }
