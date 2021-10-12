@@ -11,7 +11,7 @@ const { limitConcurrency } = require('limit-concurrency-decorator')
 //
 // the whole chain will be merged into parent, parent will be renamed to child
 // and all the others will deleted
-const mergeVhdChain = limitConcurrency(1)(async function mergeVhdChain(chain, { handler, onLog, remove, merge }) {
+async function mergeVhdChain(chain, { handler, onLog, remove, merge }) {
   assert(chain.length >= 2)
 
   let child = chain[0]
@@ -73,7 +73,7 @@ const mergeVhdChain = limitConcurrency(1)(async function mergeVhdChain(chain, { 
       }),
     ])
   }
-})
+}
 
 const noop = Function.prototype
 
@@ -114,7 +114,12 @@ const listVhds = async (handler, vmDir) => {
   return { vhds, interruptedVhds }
 }
 
-exports.cleanVm = async function cleanVm(vmDir, { fixMetadata, remove, merge, onLog = noop }) {
+const defaultMergeLimiter = limitConcurrency(1)
+
+exports.cleanVm = async function cleanVm(
+  vmDir,
+  { fixMetadata, remove, merge, mergeLimiter = defaultMergeLimiter, onLog = noop }
+) {
   const handler = this._handler
 
   const vhds = new Set()
