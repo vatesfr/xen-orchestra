@@ -2,6 +2,7 @@ import { getSyncedHandler } from '@xen-orchestra/fs'
 import { openVhd, Constants } from 'vhd-lib'
 import { resolve } from 'path'
 import Disposable from 'promise-toolbox/Disposable'
+import { omit } from 'lodash'
 
 const deepCompareObjects = function (src, dest, path) {
   for (const key of Object.keys(src)) {
@@ -42,9 +43,9 @@ export default async args => {
 
     // parent locator entries contains offset that can be different without impacting the vhd
     // we'll compare them later
-    const { parentLocatorEntry: srcParentLocatorEntry,tableOffset: srcTableOffset, checksum: srcChecksum,  ...srcHeaderWithoutOffsets } = src.header
-    const { parentLocatorEntry: destParentLocatorEntry,tableOffset: destTableOffset, checksum: destChecksum,  ...destHeaderWithoutOffsets } = dest.header
-    deepCompareObjects(srcHeaderWithoutOffsets, destHeaderWithoutOffsets, 'header')
+    // table offset and checksum are also implementation specific
+    const ignoredEntries = ['checksum', 'parentLocatorEntry', 'tableOffset']
+    deepCompareObjects(omit(src.header, ignoredEntries), omit(dest.header, ignoredEntries), 'header')
     deepCompareObjects(src.footer, dest.footer, 'footer')
 
     await src.readBlockAllocationTable()
