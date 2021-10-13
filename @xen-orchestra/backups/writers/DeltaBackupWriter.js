@@ -113,19 +113,13 @@ exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(Ab
   }
 
   async _deleteOldEntries() {
-    return Task.run({ name: 'merge' }, async () => {
-      const adapter = this._adapter
-      const oldEntries = this._oldEntries
+    const adapter = this._adapter
+    const oldEntries = this._oldEntries
 
-      let size = 0
-      // delete sequentially from newest to oldest to avoid unnecessary merges
-      for (let i = oldEntries.length; i-- > 0; ) {
-        size += await adapter.deleteDeltaVmBackups([oldEntries[i]])
-      }
-      return {
-        size,
-      }
-    })
+    // delete sequentially from newest to oldest to avoid unnecessary merges
+    for (let i = oldEntries.length; i-- > 0; ) {
+      await adapter.deleteDeltaVmBackups([oldEntries[i]])
+    }
   }
 
   async _transfer({ timestamp, deltaExport, sizeContainers }) {

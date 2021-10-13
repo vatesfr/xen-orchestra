@@ -7,6 +7,8 @@ const { DISK_TYPE_DIFFERENCING } = require('vhd-lib/dist/_constants.js')
 const { isMetadataFile, isVhdFile, isXvaFile, isXvaSumFile } = require('./_backupType.js')
 const { limitConcurrency } = require('limit-concurrency-decorator')
 
+const { Task } = require('./Task.js')
+
 // chain is an array of VHDs from child to parent
 //
 // the whole chain will be merged into parent, parent will be renamed to child
@@ -44,7 +46,7 @@ async function mergeVhdChain(chain, { handler, onLog, remove, merge }) {
       }
     }, 10e3)
 
-    await mergeVhd(
+    const mergedSize = await mergeVhd(
       handler,
       parent,
       handler,
@@ -72,6 +74,8 @@ async function mergeVhdChain(chain, { handler, onLog, remove, merge }) {
         }
       }),
     ])
+
+    return mergedSize
   }
 }
 
@@ -284,6 +288,7 @@ exports.cleanVm = async function cleanVm(
 
   // TODO: parallelize by vm/job/vdi
   const unusedVhdsDeletion = []
+  const toMerge = []
   {
     // VHD chains (as list from child to ancestor) to merge indexed by last
     // ancestor
@@ -326,22 +331,27 @@ exports.cleanVm = async function cleanVm(
     })
 
     // merge interrupted VHDs
-    if (merge) {
-      vhdsList.interruptedVhds.forEach(parent => {
-        vhdChainsToMerge[parent] = [vhdChildren[parent], parent]
-      })
-    }
+    vhdsList.interruptedVhds.forEach(parent => {
+      vhdChainsToMerge[parent] = [vhdChildren[parent], parent]
+    })
 
-    Object.keys(vhdChainsToMerge).forEach(key => {
-      const chain = vhdChainsToMerge[key]
+    Object.values(vhdChainsToMerge).forEach(chain => {
       if (chain !== undefined) {
-        unusedVhdsDeletion.push(mergeVhdChain(chain, { handler, onLog, remove, merge }))
+        toMerge.push(chain)
       }
     })
   }
 
+  const doMerge = () => {
+    const promise = asyncMap(toMerge, async chain => {
+      mergeVhdChain(chain, { handler, onLog, remove, merge })
+    })
+    return merge ? promise.then(sizes => ({ size: sum(sizes) })) : promise
+  }
+
   await Promise.all([
     ...unusedVhdsDeletion,
+    toMerge.length !== 0 && (merge ? Task.run({ name: 'merge' }, doMerge) : doMerge()),
     asyncMap(unusedXvas, path => {
       onLog(`the XVA ${path} is unused`)
       if (remove) {
