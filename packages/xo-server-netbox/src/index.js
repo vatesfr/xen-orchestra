@@ -339,6 +339,7 @@ class Netbox {
       }
 
       if (this.#netboxApiVersion !== undefined) {
+        // https://netbox.readthedocs.io/en/stable/release-notes/version-2.7/#api-choice-fields-now-use-string-values-3569
         if (semver.satisfies(semver.coerce(this.#netboxApiVersion).version, '>=2.7.0')) {
           updatedVm.status = vm.power_state === 'Running' ? 'active' : 'offline'
         } else {
