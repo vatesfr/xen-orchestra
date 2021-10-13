@@ -370,4 +370,9 @@ exports.cleanVm = async function cleanVm(
       }
     }),
   ])
+
+  return {
+    // boolean whether some VHDs were merged (or should be merged)
+    merge: toMerge.length !== 0,
+  }
 }
