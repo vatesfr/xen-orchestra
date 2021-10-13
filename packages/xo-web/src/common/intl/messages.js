@@ -714,6 +714,7 @@ const messages = {
 
   // ----- VM actions ------
   cantInterPoolCopy: 'Interpool copy requires at least Enterprise plan',
+  download: 'Download',
   startVmLabel: 'Start',
   startVmOnLabel: 'Start on…',
   startVmOnMissingHostTitle: 'No host selected',
@@ -735,6 +736,7 @@ const messages = {
   cloneVmLabel: 'Clone',
   fastCloneVmLabel: 'Fast clone',
   vmConsoleLabel: 'Console',
+  vmExportUrlValidity: 'Url only valid for a short period.',
   backupLabel: 'Backup',
 
   // ----- SR general tab -----

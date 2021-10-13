@@ -13,6 +13,7 @@ import { filter, forEach, get, includes, isEmpty, isEqual, map, once, size, sort
 import { forbiddenOperation, incorrectState, noHostsAvailable, vmLacksFeature } from 'xo-common/api-errors'
 
 import _ from '../intl'
+import Button from '../button'
 import fetch, { post } from '../fetch'
 import invoke from '../invoke'
 import Icon from '../icon'
@@ -1643,7 +1644,22 @@ export const exportVm = vm =>
     const id = resolveId(vm)
     info(_('startVmExport'), id)
     return _call('vm.export', { vm: id, compress }).then(({ $getFrom: url }) => {
-      window.open(`.${url}`)
+      const fullUrl = window.location.origin + url
+      const copyToClipboard = () => navigator.clipboard.writeText(fullUrl)
+      chooseAction({
+        body: (
+          <div>
+            <pre>{fullUrl}</pre>
+            <Button onClick={copyToClipboard}>
+              <Icon icon='clipboard' /> {_('copyToClipboardLabel')}
+            </Button>{' '}
+            <small>{_('vmExportUrlValidity')}</small>
+          </div>
+        ),
+        buttons: [{ btnStyle: 'primary', label: _('download') }],
+        icon: 'download',
+        title: _('download'),
+      }).then(() => window.open(`.${url}`))
     })
   })
 
