@@ -66,20 +66,12 @@ const CustomContent = React.forwardRef(function CustomContent(props, ref) {
   const { classes, className, label, nodeId, expansionIcon } = props
   const { handleExpansion, handleSelection, selected } = useTreeItem(nodeId)
 
-  const handleExpansionClick = event => {
-    handleExpansion(event)
-  }
-
-  const handleSelectionClick = event => {
-    handleSelection(event)
-  }
-
   return (
     <span className={classNames(className, { [classes.selected]: selected })} ref={ref}>
-      <span className={classes.iconContainer} onClick={handleExpansionClick}>
+      <span className={classes.iconContainer} onClick={handleExpansion}>
         {expansionIcon}
       </span>
-      <span className={classes.label} onClick={handleSelectionClick}>
+      <span className={classes.label} onClick={handleSelection}>
         {label}
       </span>
     </span>
