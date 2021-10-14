@@ -13,8 +13,6 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [Netbox] Support older versions of Netbox and prevent "active is not a valid choice" error [#5898](https://github.com/vatesfr/xen-orchestra/issues/5898) (PR [#5946](https://github.com/vatesfr/xen-orchestra/pull/5946))
-
 ### Packages to release
 
 > Packages will be released in the order they are here, therefore, they should
@@ -32,7 +30,6 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
-- xo-server-netbox patch
 - @xen-orchestra/backups minor
 - @xen-orchestra/proxy minor
 - xo-server patch
