@@ -11,6 +11,7 @@
 ### Released packages
 
 - xo-server-netbox 0.3.2
+- @xen-orchestra/backups 0.14.0
 
 ## **5.63.0** (2021-09-30)
 
