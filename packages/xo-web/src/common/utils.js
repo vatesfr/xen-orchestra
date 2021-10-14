@@ -227,9 +227,9 @@ export const formatAlarmLogs = async logs =>
       }
 
       const [, value, xml] = matches
-      return fromCallback(xml2js.parseString, xml).then(result => {
-        const object = mapValues(result !== undefined && result.variable, value => get(value, '[0].$.value'))
-        if (!object || !object.name) {
+      return fromCallback(xml2js.parseString, xml).then((result = {})=> {
+        const object = mapValues(result.variable, value => get(value, '[0].$.value'))
+        if (object.name === undefined) {
           return
         }
 
