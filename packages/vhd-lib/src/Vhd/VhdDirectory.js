@@ -167,11 +167,13 @@ export class VhdDirectory extends VhdAbstract {
     return this._writeChunk('bat', this.#blockTable)
   }
 
-  // only works if data are in the same bucket
+  // only works if data are in the same handler
   // and if the full block is modified in child ( which is the case whit xcp)
 
-  coalesceBlock(child, blockId) {
-    this._handler.copy(child.getChunkPath(blockId), this.getChunkPath(blockId))
+  async coalesceBlock(child, blockId) {
+    assert.strictEqual(this._handler, child._handler)
+    this._handler.copy(child._getBlockPath(blockId), this.getChunkPath(blockId))
+    return await this._handler.getSize(this.getChunkPath(blockId))
   }
 
   async writeEntireBlock(block) {
