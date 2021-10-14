@@ -89,6 +89,7 @@ export default class Menu extends Component {
   componentWillUnmount() {
     this._removeListener()
     this._unsubscribeMissingPatches()
+    this._unsubscribeProxiesApplianceUpdaterState()
   }
 
   componentDidUpdate(prevProps) {
@@ -183,17 +184,17 @@ export default class Menu extends Component {
         this.setState(state => ({
           proxyStates: {
             ...state.proxyStates,
-            [proxyId]: '-upgrade-needed', //state,
+            [proxyId]: state,
           },
         }))
       })
     )
 
-    if (this._unsubscribe !== undefined) {
-      this._unsubscribe()
+    if (this._unsubscribeProxiesApplianceUpdaterState !== undefined) {
+      this._unsubscribeProxiesApplianceUpdaterState()
     }
 
-    this._unsubscribe = () => forEach(unsubs, unsub => unsub())
+    this._unsubscribeProxiesApplianceUpdaterState = () => forEach(unsubs, unsub => unsub())
   }
 
   render() {
