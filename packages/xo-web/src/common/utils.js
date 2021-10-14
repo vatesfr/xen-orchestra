@@ -223,7 +223,7 @@ export const formatAlarmLogs = async logs =>
     map(logs, ({ body }, id) => {
       const matches = /^value:\s*([0-9.]+)\s+config:\s*([^]*)$/.exec(body)
       if (matches === null) {
-        throw new Error('Invalid patern.')
+        throw new Error('Invalid pattern.')
       }
 
       const [, value, xml] = matches
