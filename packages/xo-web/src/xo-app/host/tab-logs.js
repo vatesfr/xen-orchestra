@@ -1,15 +1,18 @@
 import _ from 'intl'
 import Component from 'base-component'
-import fromCallback from 'promise-toolbox/fromCallback'
 import isEmpty from 'lodash/isEmpty'
 import React from 'react'
 import SortedTable from 'sorted-table'
-import xml2js from 'xml2js'
 import { createPager } from 'selectors'
+import { map } from 'lodash'
 import { Row, Col } from 'grid'
 import { deleteMessage, deleteMessages } from 'xo'
+import { formatAlertLogs } from '../../common/utils'
 import { FormattedRelative, FormattedTime } from 'react-intl'
-import { get, map, mapValues } from 'lodash'
+
+const CSS_LOG_BODY = {
+  whiteSpace: 'pre-wrap',
+}
 
 const LOG_COLUMNS = [
   {
@@ -48,14 +51,14 @@ const LOG_COLUMNS = [
           </Row>
           <br />
           {map(formatted.logAttributes, (value, label) => (
-            <Row>
+            <Row key={label}>
               <Col mediumSize={6}>{label}</Col>
               <Col mediumSize={6}>{value}</Col>
             </Row>
           ))}
         </div>
       ) : (
-        <pre style={{ whiteSpace: 'pre-wrap' }}>{body}</pre>
+        <pre style={CSS_LOG_BODY}>{body}</pre>
       ),
     sortCriteria: log => log.body,
   },
@@ -98,27 +101,8 @@ export default class TabLogs extends Component {
   }
 
   _formatLogs = props => {
-    try {
-      Promise.all(
-        map(props.logs, ({ body }, id) => {
-          const matches = /^value:\s*([0-9.]+)\s+config:\s*([^]*)$/.exec(body)
-          if (!matches) {
-            throw new Error('Invalid patern.')
-          }
-
-          const [, value, xml] = matches
-          return fromCallback(xml2js.parseString, xml).then(result => {
-            const object = mapValues(result && result.variable, value => get(value, '[0].$.value'))
-            if (!object || !object.name) {
-              return
-            }
-
-            const { name, ...logAttributes } = object
-
-            return { name, value, logAttributes, id }
-          })
-        })
-      ).then(formattedLogs => {
+    formatAlertLogs(props.logs)
+      .then(formattedLogs => {
         this.setState({
           logs: map(formattedLogs, ({ id, ...formattedLogs }) => ({
             formatted: formattedLogs,
@@ -126,12 +110,12 @@ export default class TabLogs extends Component {
           })),
         })
       })
-    } catch (error) {
-      console.error(error)
-      this.setState({
-        logs: this.props.logs,
+      .catch(error => {
+        console.error(error)
+        this.setState({
+          logs: this.props.logs,
+        })
       })
-    }
   }
 
   _nextPage = () => this.setState({ page: this.state.page + 1 })

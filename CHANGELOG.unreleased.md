@@ -13,7 +13,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [Host/Logs] Logs are now correctly formatted (PR [#5943](https://github.com/vatesfr/xen-orchestra/pull/5943))
+- [Host/Logs] Improve the display of log content (PR [#5943](https://github.com/vatesfr/xen-orchestra/pull/5943))
 
 ### Packages to release
 
