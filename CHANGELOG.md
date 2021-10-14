@@ -12,6 +12,7 @@
 
 - xo-server-netbox 0.3.2
 - @xen-orchestra/backups 0.14.0
+- xo-server 5.82.4
 
 ## **5.63.0** (2021-09-30)
 
