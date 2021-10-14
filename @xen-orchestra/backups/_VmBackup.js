@@ -1,5 +1,6 @@
 const assert = require('assert')
 const findLast = require('lodash/findLast.js')
+const groupBy = require('lodash/groupBy.js')
 const ignoreErrors = require('promise-toolbox/ignoreErrors.js')
 const keyBy = require('lodash/keyBy.js')
 const mapValues = require('lodash/mapValues.js')
@@ -284,17 +285,28 @@ exports.VmBackup = class VmBackup {
   }
 
   async _removeUnusedSnapshots() {
-    // TODO: handle all schedules (no longer existing schedules default to 0 retention)
-
-    const { scheduleId } = this
-    const scheduleSnapshots = this._jobSnapshots.filter(_ => _.other_config['xo:backup:schedule'] === scheduleId)
-
+    const jobSettings = this.job.settings
     const baseVmRef = this._baseVm?.$ref
+    const { config } = this
+    const baseSettings = {
+      ...config.defaultSettings,
+      ...config.metadata.defaultSettings,
+      ...jobSettings[''],
+    }
+
+    const snapshotsPerSchedule = groupBy(this._jobSnapshots, _ => _.other_config['xo:backup:schedule'])
     const xapi = this._xapi
-    await asyncMap(getOldEntries(this._settings.snapshotRetention, scheduleSnapshots), ({ $ref }) => {
-      if ($ref !== baseVmRef) {
-        return xapi.VM_destroy($ref)
+    await asyncMap(Object.entries(snapshotsPerSchedule), ([scheduleId, snapshots]) => {
+      const settings = {
+        ...baseSettings,
+        ...jobSettings[scheduleId],
+        ...jobSettings[this.vm.uuid],
       }
+      return asyncMap(getOldEntries(settings.snapshotRetention, snapshots), ({ $ref }) => {
+        if ($ref !== baseVmRef) {
+          return xapi.VM_destroy($ref)
+        }
+      })
     })
   }
 
