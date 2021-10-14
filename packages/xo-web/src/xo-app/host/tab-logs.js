@@ -100,7 +100,7 @@ export default class TabLogs extends Component {
     }
   }
 
-  _formatLogs = props => {
+  _formatLogs = props =>
     formatAlertLogs(props.logs)
       .then(formattedLogs => {
         this.setState({
@@ -116,7 +116,6 @@ export default class TabLogs extends Component {
           logs: this.props.logs,
         })
       })
-  }
 
   _nextPage = () => this.setState({ page: this.state.page + 1 })
   _previousPage = () => this.setState({ page: this.state.page - 1 })
