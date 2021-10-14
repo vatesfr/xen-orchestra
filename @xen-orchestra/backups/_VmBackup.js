@@ -1,25 +1,23 @@
-const assert = require('assert')
-const findLast = require('lodash/findLast.js')
-const ignoreErrors = require('promise-toolbox/ignoreErrors.js')
-const keyBy = require('lodash/keyBy.js')
-const groupBy = require('lodash/groupBy.js')
-const mapValues = require('lodash/mapValues.js')
 const { asyncMap } = require('@xen-orchestra/async-map')
 const { createLogger } = require('@xen-orchestra/log')
+const { debug, warn } = createLogger('xo:backups:VmBackup')
 const { defer } = require('golike-defer')
-const { formatDateTime } = require('@xen-orchestra/xapi')
-
 const { DeltaBackupWriter } = require('./writers/DeltaBackupWriter.js')
 const { DeltaReplicationWriter } = require('./writers/DeltaReplicationWriter.js')
 const { exportDeltaVm } = require('./_deltaVm.js')
 const { forkStreamUnpipe } = require('./_forkStreamUnpipe.js')
+const { formatDateTime } = require('@xen-orchestra/xapi')
 const { FullBackupWriter } = require('./writers/FullBackupWriter.js')
 const { FullReplicationWriter } = require('./writers/FullReplicationWriter.js')
 const { getOldEntries } = require('./_getOldEntries.js')
 const { Task } = require('./Task.js')
 const { watchStreamSize } = require('./_watchStreamSize.js')
-
-const { debug, warn } = createLogger('xo:backups:VmBackup')
+const assert = require('assert')
+const findLast = require('lodash/findLast.js')
+const groupBy = require('lodash/groupBy.js')
+const ignoreErrors = require('promise-toolbox/ignoreErrors.js')
+const keyBy = require('lodash/keyBy.js')
+const mapValues = require('lodash/mapValues.js')
 
 const asyncEach = async (iterable, fn, thisArg = iterable) => {
   for (const item of iterable) {
@@ -295,24 +293,19 @@ exports.VmBackup = class VmBackup {
     }
 
     const snapshotsPerSchedule = groupBy(this._jobSnapshots, _ => _.other_config['xo:backup:schedule'])
-    const promises = []
     const xapi = this._xapi
-
-    for (const [scheduleId, snapshots] of Object.entries(snapshotsPerSchedule)) {
+    await asyncMap(Object.entries(snapshotsPerSchedule), ([scheduleId, snapshots]) => {
       const settings = {
         ...baseSettings,
         ...jobSettings[scheduleId],
-        ...jobSettings[this._jobSnapshots[0].other_config['xo:backup:vm']],
+        ...jobSettings[this.vm.uuid],
       }
-      promises.push(
-        asyncMap(getOldEntries(settings.snapshotRetention, snapshots), ({ $ref }) => {
-          if ($ref !== baseVmRef) {
-            return xapi.VM_destroy($ref)
-          }
-        })
-      )
-    }
-    await Promise.all(promises)
+      return asyncMap(getOldEntries(settings.snapshotRetention, snapshots), ({ $ref }) => {
+        if ($ref !== baseVmRef) {
+          return xapi.VM_destroy($ref)
+        }
+      })
+    })
   }
 
   async _selectBaseVm() {
