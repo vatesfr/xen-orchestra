@@ -7,7 +7,7 @@ import { createPager } from 'selectors'
 import { map } from 'lodash'
 import { Row, Col } from 'grid'
 import { deleteMessage, deleteMessages } from 'xo'
-import { formatAlertLogs } from '../../common/utils'
+import { formatAlarmLogs } from 'utils'
 import { FormattedRelative, FormattedTime } from 'react-intl'
 
 const CSS_LOG_BODY = {
@@ -50,7 +50,7 @@ const LOG_COLUMNS = [
             <Col mediumSize={6}>{formatted.value}</Col>
           </Row>
           <br />
-          {map(formatted.logAttributes, (value, label) => (
+          {map(formatted.alarmAttributes, (value, label) => (
             <Row key={label}>
               <Col mediumSize={6}>{label}</Col>
               <Col mediumSize={6}>{value}</Col>
@@ -101,7 +101,7 @@ export default class TabLogs extends Component {
   }
 
   _formatLogs = props =>
-    formatAlertLogs(props.logs)
+    formatAlarmLogs(props.logs)
       .then(formattedLogs => {
         this.setState({
           logs: map(formattedLogs, ({ id, ...formattedLogs }) => ({

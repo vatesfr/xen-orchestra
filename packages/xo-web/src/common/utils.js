@@ -218,7 +218,7 @@ function safeHumanFormat(value, opts) {
   }
 }
 
-export const formatAlertLogs = async logs =>
+export const formatAlarmLogs = async logs =>
   Promise.all(
     map(logs, ({ body }, id) => {
       const matches = /^value:\s*([0-9.]+)\s+config:\s*([^]*)$/.exec(body)
@@ -233,9 +233,9 @@ export const formatAlertLogs = async logs =>
           return
         }
 
-        const { name, ...logAttributes } = object
+        const { name, ...alarmAttributes } = object
 
-        return { name, value, logAttributes, id }
+        return { name, value, alarmAttributes, id }
       })
     })
   )
