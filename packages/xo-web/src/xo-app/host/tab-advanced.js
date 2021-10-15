@@ -23,6 +23,7 @@ import { Text } from 'editable'
 import { Toggle, Select, SizeInput } from 'form'
 import {
   detachHost,
+  disableHost,
   editHost,
   enableAdvancedLiveTelemetry,
   forgetHost,
@@ -278,6 +279,14 @@ export default class extends Component {
                 labelId='disableMaintenanceMode'
               />
             )}
+            <TabButton
+              btnStyle='warning'
+              disabled={!host.enabled}
+              handler={disableHost}
+              handlerParam={host}
+              icon='host-disable'
+              labelId='disableHostLabel'
+            />
             <TabButton
               btnStyle='danger'
               handler={detachHost}
