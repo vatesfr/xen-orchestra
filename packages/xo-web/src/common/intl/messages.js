@@ -1751,8 +1751,7 @@ const messages = {
   disconnectVbdsModalMessage:
     'Are you sure you want to disconnect {nVbds, number} VBD{nVbds, plural, one {} other {s}}?',
   disableHost: 'Disable host',
-  disableHostModalMessage:
-    'Are you sure you want to disable {host}? No new VMs can be started and the running VMs on the host continue to execute.',
+  disableHostModalMessage: 'Are you sure you want to disable {host}? This will prevent new VMs from starting.',
   revertVmModalMessage:
     'Are you sure you want to revert this VM to the snapshot state? This operation is irreversible.',
   revertVmModalSnapshotBefore: 'Snapshot before',
