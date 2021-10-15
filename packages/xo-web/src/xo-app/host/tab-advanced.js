@@ -284,7 +284,7 @@ export default class extends Component {
               disabled={!host.enabled}
               handler={disableHost}
               handlerParam={host}
-              icon='host-disable'
+              icon='host-forget'
               labelId='disableHostLabel'
             />
             <TabButton
