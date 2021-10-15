@@ -2,6 +2,7 @@ import _, { messages } from 'intl'
 import ActionButton from 'action-button'
 import Button from 'button'
 import Component from 'base-component'
+import copy from 'copy-to-clipboard'
 import defined from '@xen-orchestra/defined'
 import GenericInput from 'json-schema-input'
 import Icon from 'icon'
@@ -407,6 +408,12 @@ export default class Jobs extends Component {
       icon: 'edit',
       label: _('jobEdit'),
       level: 'primary',
+    },
+    {
+      handler: ({ id }) => copy(id),
+      icon: 'clipboard',
+      label: _('copyToClipboard'),
+      level: 'secondary',
     },
   ]
 
