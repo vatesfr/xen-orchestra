@@ -39,8 +39,8 @@ export class VhdDirectory extends VhdAbstract {
     this.#uncheckedBlockTable = blockTable
   }
 
-  static async open(handler, path) {
-    const vhd = new VhdDirectory(handler, path)
+  static async open(handler, path, opts) {
+    const vhd = new VhdDirectory(handler, path, { flags: 'r+', ...opts })
 
     // openning a file for reading does not trigger EISDIR as long as we don't really read from it :
     // https://man7.org/linux/man-pages/man2/open.2.html
@@ -54,19 +54,20 @@ export class VhdDirectory extends VhdAbstract {
     }
   }
 
-  static async create(handler, path) {
+  static async create(handler, path, opts = {}) {
     await handler.mkdir(path)
-    const vhd = new VhdDirectory(handler, path)
+    const vhd = new VhdDirectory(handler, path, { flags: 'wx', ...opts })
     return {
       dispose: () => {},
       value: vhd,
     }
   }
 
-  constructor(handler, path) {
+  constructor(handler, path, opts) {
     super()
     this._handler = handler
     this._path = path
+    this._opts = opts
   }
 
   async readBlockAllocationTable() {
@@ -92,7 +93,10 @@ export class VhdDirectory extends VhdAbstract {
   }
 
   async _writeChunk(partName, buffer) {
-    assert(Buffer.isBuffer(buffer))
+    if (!Buffer.isBuffer(buffer)) {
+      buffer = Buffer.from(buffer)
+    }
+    assert(Buffer.isBuffer(buffer), buffer.toString())
     // here we can implement compression and / or crypto
 
     // chunks can be in sub directories :  create direcotries if necessary
@@ -104,8 +108,7 @@ export class VhdDirectory extends VhdAbstract {
       currentPath += '/' + pathParts[i]
       await this._handler.mkdir(currentPath)
     }
-
-    return this._handler.writeFile(this.getChunkPath(partName), buffer)
+    return this._handler.writeFile(this.getChunkPath(partName), buffer, this._opts)
   }
 
   // put block in subdirectories to limit impact when doing directory listing
@@ -172,8 +175,8 @@ export class VhdDirectory extends VhdAbstract {
 
   async coalesceBlock(child, blockId) {
     assert.strictEqual(this._handler, child._handler)
-    this._handler.copy(child._getBlockPath(blockId), this.getChunkPath(blockId))
-    return await this._handler.getSize(this.getChunkPath(blockId))
+    this._handler.copy(child.getChunkPath(child._getBlockPath(blockId)), this.getChunkPath(this._getBlockPath(blockId)))
+    return await this._handler.getSize(this.getChunkPath(this._getBlockPath(blockId)))
   }
 
   async writeEntireBlock(block) {

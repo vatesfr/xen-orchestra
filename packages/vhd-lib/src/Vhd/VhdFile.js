@@ -78,8 +78,8 @@ export class VhdFile extends VhdAbstract {
     return super.header
   }
 
-  static async open(handler, path) {
-    const fd = await handler.openFile(path, 'r+')
+  static async open(handler, path, { flags } = {}) {
+    const fd = await handler.openFile(path, flags ?? 'r+')
     const vhd = new VhdFile(handler, fd)
     // openning a file for reading does not trigger EISDIR as long as we don't really read from it :
     // https://man7.org/linux/man-pages/man2/open.2.html
@@ -93,8 +93,8 @@ export class VhdFile extends VhdAbstract {
     }
   }
 
-  static async create(handler, path) {
-    const fd = await handler.openFile(path, 'wx')
+  static async create(handler, path, { flags } = {}) {
+    const fd = await handler.openFile(path, flags ?? 'wx')
     const vhd = new VhdFile(handler, fd)
     return {
       dispose: () => handler.closeFile(fd),
