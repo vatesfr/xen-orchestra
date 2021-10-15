@@ -99,7 +99,7 @@ export class VhdDirectory extends VhdAbstract {
     assert(Buffer.isBuffer(buffer), buffer.toString())
     // here we can implement compression and / or crypto
 
-    // chunks can be in sub directories :  create direcotries if necessary
+    // chunks can be in sub directories :  create directories if necessary
     const pathParts = partName.split('/')
     let currentPath = this._path
 
@@ -175,7 +175,10 @@ export class VhdDirectory extends VhdAbstract {
 
   async coalesceBlock(child, blockId) {
     assert.strictEqual(this._handler, child._handler)
-    this._handler.copy(child.getChunkPath(child._getBlockPath(blockId)), this.getChunkPath(this._getBlockPath(blockId)))
+    await this._handler.copy(
+      child.getChunkPath(child._getBlockPath(blockId)),
+      this.getChunkPath(this._getBlockPath(blockId))
+    )
     return await this._handler.getSize(this.getChunkPath(this._getBlockPath(blockId)))
   }
 

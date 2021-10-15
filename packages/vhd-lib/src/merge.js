@@ -105,6 +105,10 @@ export default limitConcurrency(2)(async function merge(
     // necessary to update values and to recreate the footer after block
     // creation
     await parentVhd.writeFooter()
+
+    // some blocks could have been created or moved in parent : write bat
+    await parentVhd.writeBlockAllocationTable()
+    // should be a disposable
     parentHandler.unlink(mergeStatePath).catch(warn)
 
     return mergeState.mergedDataSize
