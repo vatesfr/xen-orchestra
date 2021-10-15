@@ -12,7 +12,7 @@ const Container = styled.div`
 `
 const LeftPanel = styled.div`
   background: #f5f5f5;
-  min-width: min-content;
+  min-width: 15em;
   overflow-y: scroll;
   width: 20%;
 `
