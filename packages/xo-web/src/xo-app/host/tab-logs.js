@@ -4,13 +4,13 @@ import isEmpty from 'lodash/isEmpty'
 import React from 'react'
 import SortedTable from 'sorted-table'
 import { createPager } from 'selectors'
-import { map } from 'lodash'
 import { Row, Col } from 'grid'
 import { deleteMessage, deleteMessages } from 'xo'
 import { formatLogs } from 'utils'
 import { FormattedRelative, FormattedTime } from 'react-intl'
+import { map } from 'lodash'
 
-const CSS_LOG_BODY = {
+const LOG_BODY_STYLE = {
   whiteSpace: 'pre-wrap',
 }
 
@@ -58,7 +58,7 @@ const LOG_COLUMNS = [
           ))}
         </div>
       ) : (
-        <pre style={CSS_LOG_BODY}>{body}</pre>
+        <pre style={LOG_BODY_STYLE}>{body}</pre>
       ),
     sortCriteria: log => log.body,
   },
@@ -91,29 +91,29 @@ export default class TabLogs extends Component {
   }
 
   componentDidMount() {
-    this._formatLogs(this.props)
+    this._formatLogs(this.props.logs)
   }
 
   componentDidUpdate(props) {
     if (props.logs !== this.props.logs) {
-      this._formatLogs(this.props)
+      this._formatLogs(this.props.logs)
     }
   }
 
-  _formatLogs = props =>
-    formatLogs(props.logs)
+  _formatLogs = logs =>
+    formatLogs(logs)
       .then(formattedLogs => {
         this.setState({
           logs: map(formattedLogs, ({ id, ...formattedLogs }) => ({
             formatted: formattedLogs,
-            ...props.logs[id],
+            ...logs[id],
           })),
         })
       })
       .catch(error => {
         console.error(error)
         this.setState({
-          logs: this.props.logs,
+          logs,
         })
       })
 
