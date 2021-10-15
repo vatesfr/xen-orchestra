@@ -2,7 +2,7 @@ import _, { messages } from 'intl'
 import ActionButton from 'action-button'
 import Button from 'button'
 import Component from 'base-component'
-import CopyToClipboard from 'react-copy-to-clipboard'
+import copy from 'copy-to-clipboard'
 import defined from '@xen-orchestra/defined'
 import GenericInput from 'json-schema-input'
 import Icon from 'icon'
@@ -409,7 +409,7 @@ export default class Jobs extends Component {
       level: 'primary',
     },
     {
-      handler: ({ id }) => navigator.clipboard.writeText(id),
+      handler: ({ id }) => copy(id),
       icon: 'clipboard',
       label: _('copyToClipboard'),
       level: 'secondary',
