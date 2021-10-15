@@ -7,20 +7,22 @@ import TabConsole from './TabConsole'
 import TreeView from './TreeView'
 
 const Container = styled.div`
-  flex-grow: 1;
-  min-width: 0;
+  display: flex;
   overflow: hidden;
-  display: grid;
-  grid-template-columns: 1fr 3fr;
-  grid-template-areas: 'sideBar main';
 `
 const LeftPanel = styled.div`
-  grid-area: sideBar;
   background: #f5f5f5;
+  min-width: 15em;
   overflow-y: scroll;
+  width: 20%;
 `
+// FIXME: temporary work-around while investigating flew-grow issue:
+// `overflow: hidden` forces the console to shrink to the max available width
+// even when the tree component takes more than 20% of the width due to
+// `min-width`
 const MainPanel = styled.div`
-  grid-area: main;
+  overflow: hidden;
+  width: 80%;
 `
 
 interface ParentState {}
