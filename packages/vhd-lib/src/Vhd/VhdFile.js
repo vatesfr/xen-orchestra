@@ -62,10 +62,6 @@ export class VhdFile extends VhdAbstract {
     this.#uncheckedBlockTable = blockTable
   }
 
-  get batSize() {
-    return computeBatSize(this.header.maxTableEntries)
-  }
-
   set header(header) {
     super.header = header
     const size = this.batSize
@@ -195,22 +191,21 @@ export class VhdFile extends VhdAbstract {
     this.#blockTable = await this._read(header.tableOffset, header.maxTableEntries * 4)
   }
 
-  readBlock(blockId, onlyBitmap = false) {
+  async readBlock(blockId, onlyBitmap = false) {
     const blockAddr = this._getBatEntry(blockId)
     if (blockAddr === BLOCK_UNUSED) {
       throw new Error(`no such block ${blockId}`)
     }
 
-    return this._read(sectorsToBytes(blockAddr), onlyBitmap ? this.bitmapSize : this.fullBlockSize).then(buf =>
-      onlyBitmap
-        ? { id: blockId, bitmap: buf }
-        : {
-            id: blockId,
-            bitmap: buf.slice(0, this.bitmapSize),
-            data: buf.slice(this.bitmapSize),
-            buffer: buf,
-          }
-    )
+    const buf = await this._read(sectorsToBytes(blockAddr), onlyBitmap ? this.bitmapSize : this.fullBlockSize)
+    return onlyBitmap
+      ? { id: blockId, bitmap: buf }
+      : {
+          id: blockId,
+          bitmap: buf.slice(0, this.bitmapSize),
+          data: buf.slice(this.bitmapSize),
+          buffer: buf,
+        }
   }
 
   // =================================================================

@@ -24,6 +24,8 @@ afterEach(async () => {
   await pFromCallback(cb => rimraf(tempDir, cb))
 })
 
+async function prepareVhdsForMerge(parent, child) {}
+
 test('coalesce works in normal cases', async () => {
   const mbOfRandom = 5
   const randomFileName = `${tempDir}/randomfile`
@@ -60,7 +62,9 @@ test('coalesce works in normal cases', async () => {
   await checkFile(child2FileName)
   await checkFile(child1FileName)
   await checkFile(parentFileName)
+
   await vhdMerge(handler, parentFileName, handler, child1FileName)
+
   await checkFile(parentFileName)
   await chainVhd(handler, parentFileName, handler, child2FileName, true)
   await checkFile(child2FileName)

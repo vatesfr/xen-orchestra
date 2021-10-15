@@ -1,12 +1,11 @@
 import asyncIteratorToStream from 'async-iterator-to-stream'
+import Disposable from 'promise-toolbox/Disposable'
 
-import { VhdFile } from '.'
+import { openVhd } from '.'
 
 export default asyncIteratorToStream(async function* (handler, path) {
-  const fd = await handler.openFile(path, 'r')
-  try {
-    const vhd = new VhdFile(handler, fd)
-    await vhd.readHeaderAndFooter()
+  await Disposable.use(async function* () {
+    const vhd = yield openVhd(handler, path)
     await vhd.readBlockAllocationTable()
     const {
       footer: { currentSize },
@@ -25,7 +24,5 @@ export default asyncIteratorToStream(async function* (handler, path) {
         nLeftoverBytes
       )
     }
-  } finally {
-    await handler.closeFile(fd)
-  }
+  })
 })
