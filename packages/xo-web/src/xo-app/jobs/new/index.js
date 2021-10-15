@@ -2,6 +2,7 @@ import _, { messages } from 'intl'
 import ActionButton from 'action-button'
 import Button from 'button'
 import Component from 'base-component'
+import CopyToClipboard from 'react-copy-to-clipboard'
 import defined from '@xen-orchestra/defined'
 import GenericInput from 'json-schema-input'
 import Icon from 'icon'
@@ -38,7 +39,12 @@ const COLUMNS = [
 
       return (
         <div>
-          {job.name} <span className='text-muted'>({id.slice(4, 8)})</span>
+          {job.name} <span className='text-muted'>({id.slice(4, 8)})</span>{' '}
+          <CopyToClipboard text={id}>
+            <Button size='small'>
+              <Icon icon='clipboard' />
+            </Button>
+          </CopyToClipboard>
           {isJobUserMissing[id] && (
             <Tooltip content={_('jobUserNotFound')}>
               <Icon className='ml-1' icon='error' />
