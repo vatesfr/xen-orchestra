@@ -16,7 +16,10 @@ const LeftPanel = styled.div`
   overflow-y: scroll;
   width: 20%;
 `
-// WORKAROUND
+// FIXME: temporary work-around while investigating flew-grow issue:
+// `overflow: hidden` forces the console to shrink to the max available width
+// even when the tree component takes more than 20% of the width due to
+// `min-width`
 const MainPanel = styled.div`
   overflow: hidden;
   width: 80%;
