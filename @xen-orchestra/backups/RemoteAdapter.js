@@ -253,16 +253,9 @@ class RemoteAdapter {
 
   async deleteDeltaVmBackups(backups) {
     const handler = this._handler
-    let mergedDataSize = 0
-    await asyncMapSettled(backups, ({ _filename, vhds }) =>
-      Promise.all([
-        handler.unlink(_filename),
-        asyncMap(Object.values(vhds), async _ => {
-          mergedDataSize += await this._deleteVhd(resolveRelativeFromFile(_filename, _))
-        }),
-      ])
-    )
-    return mergedDataSize
+
+    // unused VHDs will be detected by `cleanVm`
+    await asyncMapSettled(backups, ({ _filename }) => handler.unlink(_filename))
   }
 
   async deleteMetadataBackup(backupId) {
