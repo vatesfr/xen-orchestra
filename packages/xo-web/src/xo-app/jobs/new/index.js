@@ -286,9 +286,9 @@ export default class Jobs extends Component {
 
   _handleSubmit = () => {
     const { name, method, params } = this.refs
+    const { action, actions, job, owner, timeout } = this.state
 
-    const { actions, job, owner, timeout } = this.state
-    const action = find(actions, { method: job.method })
+    const _action = job === undefined ? action : find(actions, { method: job.method })
     const _job = {
       type: 'call',
       name: name.value,
@@ -296,7 +296,7 @@ export default class Jobs extends Component {
       method: method.value.method,
       paramsVector: {
         type: 'crossProduct',
-        items: dataToParamVectorItems(method.value.info.properties, params.value, action.uiSchema.properties),
+        items: dataToParamVectorItems(method.value.info.properties, params.value, _action.uiSchema.properties),
       },
       userId: owner !== undefined ? owner : this.props.currentUser.id,
       timeout: timeout ? timeout * 1e3 : undefined,
