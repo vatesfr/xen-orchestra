@@ -18,7 +18,7 @@ const LeftPanel = styled.div`
 `
 // WORKAROUND
 const MainPanel = styled.div`
-  overflow:hidden;
+  overflow: hidden;
   width: 80%;
 `
 
