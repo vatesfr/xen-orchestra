@@ -39,12 +39,7 @@ const COLUMNS = [
 
       return (
         <div>
-          {job.name} <span className='text-muted'>({id.slice(4, 8)})</span>{' '}
-          <CopyToClipboard text={id}>
-            <Button size='small'>
-              <Icon icon='clipboard' />
-            </Button>
-          </CopyToClipboard>
+          {job.name} <span className='text-muted'>({id.slice(4, 8)})</span>
           {isJobUserMissing[id] && (
             <Tooltip content={_('jobUserNotFound')}>
               <Icon className='ml-1' icon='error' />
@@ -412,6 +407,12 @@ export default class Jobs extends Component {
       icon: 'edit',
       label: _('jobEdit'),
       level: 'primary',
+    },
+    {
+      handler: ({ id }) => navigator.clipboard.writeText(id),
+      icon: 'clipboard',
+      label: _('copyToClipboard'),
+      level: 'secondary',
     },
   ]
 
