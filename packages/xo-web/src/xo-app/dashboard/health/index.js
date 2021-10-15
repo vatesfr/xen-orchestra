@@ -14,7 +14,7 @@ import { Container, Row, Col } from 'grid'
 import { Card, CardHeader, CardBlock } from 'card'
 import { FormattedRelative, FormattedTime } from 'react-intl'
 import { flatten, forEach, includes, isEmpty, map } from 'lodash'
-import { connectStore, formatAlarmLogs, formatSize, noop, resolveIds } from 'utils'
+import { connectStore, formatLogs, formatSize, noop, resolveIds } from 'utils'
 import {
   deleteMessage,
   deleteMessages,
@@ -553,7 +553,7 @@ export default class Health extends Component {
   }
 
   _updateAlarms = props => {
-    formatAlarmLogs(props.alertMessages).then(formattedMessages => {
+    formatLogs(props.alertMessages).then(formattedMessages => {
       this.setState({
         messages: map(formattedMessages, ({ id, ...formattedMessage }) => ({
           formatted: formattedMessage,
