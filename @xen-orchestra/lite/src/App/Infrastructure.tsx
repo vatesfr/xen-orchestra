@@ -16,7 +16,9 @@ const LeftPanel = styled.div`
   overflow-y: scroll;
   width: 20%;
 `
+// WORKAROUND
 const MainPanel = styled.div`
+  overflow:hidden;
   width: 80%;
 `
 
