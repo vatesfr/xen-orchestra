@@ -112,9 +112,7 @@ export default class TabLogs extends Component {
       })
       .catch(error => {
         console.error(error)
-        this.setState({
-          logs,
-        })
+        this.setState({ logs })
       })
 
   _nextPage = () => this.setState({ page: this.state.page + 1 })
