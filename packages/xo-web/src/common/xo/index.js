@@ -692,6 +692,8 @@ export const forgetHost = host =>
     }),
   }).then(() => _call('host.forget', { host: resolveId(host) }))
 
+export const enableHost = host => _call('host.enable', { host: resolveId(host) })
+
 export const setDefaultSr = sr => _call('pool.setDefaultSr', { sr: resolveId(sr) })
 
 export const setPoolMaster = host =>
