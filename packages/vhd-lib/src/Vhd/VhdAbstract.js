@@ -109,10 +109,6 @@ export class VhdAbstract {
   _readParentLocatorData(parentLocatorId, platformDataOffset, platformDataSpace) {
     throw new Error(`read Parent locator ${parentLocatorId} is not implemented`)
   }
-
-  _readParentLocatorData(parentLocatorId, platformDataOffset, platformDataSpace) {
-    throw new Error(`read Parent locator ${parentLocatorId} is not implemented`)
-  }
   // common
   get batSize() {
     return computeBatSize(this.header.maxTableEntries)
@@ -137,44 +133,6 @@ export class VhdAbstract {
     const data = await this._readParentLocatorData(id)
     // offset is storage specific, don't expose it
     const { platformCode } = this.header.parentLocatorEntry[id]
-    return {
-      platformCode,
-      id,
-      data
-    }
-  }
-
-  async setUniqueParentLocator(fileNameString) {
-    await this.writeParentLocator({
-      id: 0,
-      code: PLATFORM_W2KU,
-      data: Buffer.from(fileNameString, 'utf16le')
-    })
-
-    for (let i = 1; i < PARENT_LOCATOR_ENTRIES; i++) {
-      await this.writeParentLocator({
-        id: i,
-        code: PLATFORM_NONE,
-        data: Buffer.alloc(0)
-      })
-    }
-  }
-
-  async *blocks() {
-    const nBlocks = this.header.maxTableEntries
-    for (let blockId = 0; blockId < nBlocks; ++blockId) {
-      if (await this.containsBlock(blockId)) {
-        yield await this.readBlock(blockId)
-      }
-    }
-  }
-
-  async readParentLocator(id) {
-    assert(id >= 0, 'parent Locator id must be a positive number')
-    assert(id < 8, 'parent Locator id  must be less than 8')
-    const data = await this._readParentLocatorData(id)
-    // offset is storage specific, don't expose it
-    const { platformCode, platformDataSpace, platformDataLength } = this.header.parentLocatorEntry[id]
     return {
       platformCode,
       id,

@@ -54,21 +54,12 @@ export class VhdFile extends VhdAbstract {
   #uncheckedBlockTable
 
   get #blocktable() {
-    assert.notStrictEqual(this.#blockTable, undefined, 'Block table must be initialized before access')
+    assert.notStrictEqual(this.#uncheckedBlockTable, undefined, 'Block table must be initialized before access')
     return this.#uncheckedBlockTable
   }
 
   set #blocktable(blocktable) {
     this.#uncheckedBlockTable = blocktable
-  }
-
-  get #blocktable() {
-    assert.notStrictEqual(this.#blockTable, undefined, 'Block table must be initialized before access')
-    return this.#blockTable
-  }
-
-  set #blocktable(blocktable) {
-    this.#blockTable = blocktable
   }
 
   get batSize() {
@@ -146,32 +137,6 @@ export class VhdFile extends VhdAbstract {
     debug(`End of headers: ${end}.`)
 
     return end
-  }
-
-  // return the first sector (bitmap) of a block
-  _getBatEntry(blockId) {
-    const i = blockId * 4
-    const blockTable = this.#blockTable
-    return i < blockTable.length ? blockTable.readUInt32BE(i) : BLOCK_UNUSED
-  }
-
-  // Returns the first sector after data.
-  _getEndOfData() {
-    let end = Math.ceil(this._getEndOfHeaders() / SECTOR_SIZE)
-
-    const sectorsOfFullBlock = this.sectorsOfBitmap + this.sectorsPerBlock
-    const { maxTableEntries } = this.header
-    for (let i = 0; i < maxTableEntries; i++) {
-      const blockAddr = this._getBatEntry(i)
-
-      if (blockAddr !== BLOCK_UNUSED) {
-        end = Math.max(end, blockAddr + sectorsOfFullBlock)
-      }
-    }
-
-    debug(`End of data: ${end}.`)
-
-    return sectorsToBytes(end)
   }
 
   // return the first sector (bitmap) of a block
@@ -507,30 +472,6 @@ export class VhdFile extends VhdAbstract {
     const { header } = this
     if (data.length === 0) {
       // reset offset if data is empty
-      header.parentLocatorEntry[parentLocatorId].platformDataOffset = 0
-    } else {
-      if (data.length <= header.parentLocatorEntry[parentLocatorId].platformDataSpace) {
-        // new parent locator length is smaller than available space : keep it in place
-        position = header.parentLocatorEntry[parentLocatorId].platformDataOffset
-      } else {
-        // new parent locator length is bigger than available space : move it to the end
-        position = this._getEndOfData()
-      }
-      await this._write(data, position)
-      header.parentLocatorEntry[parentLocatorId].platformDataOffset = position
-    }
-    return Buffer.alloc(0)
-  }
-
-  _readParentLocatorData(parentLocatorId, platformDataOffset, platformDataSpace) {
-    return this._read(platformDataOffset, platformDataSpace)
-  }
-
-  async _writeParentLocatorData(parentLocatorId, data) {
-    let position
-    const { header } = this
-    if(data.length === 0){
-      //reset offset if data is empty
       header.parentLocatorEntry[parentLocatorId].platformDataOffset = 0
     } else {
       if (data.length <= header.parentLocatorEntry[parentLocatorId].platformDataSpace) {
