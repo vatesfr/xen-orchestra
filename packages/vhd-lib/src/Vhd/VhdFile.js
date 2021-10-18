@@ -4,7 +4,7 @@ import {
   HEADER_SIZE,
   PLATFORM_NONE,
   SECTOR_SIZE,
-  PARENT_LOCATOR_ENTRIES
+  PARENT_LOCATOR_ENTRIES,
 } from '../_constants'
 import { computeBatSize, sectorsToBytes, buildHeader, buildFooter, BUF_BLOCK_UNUSED } from './_utils'
 import { createLogger } from '@xen-orchestra/log'
@@ -53,13 +53,13 @@ const { debug } = createLogger('vhd-lib:VhdFile')
 export class VhdFile extends VhdAbstract {
   #uncheckedBlockTable
 
-  get #blocktable() {
+  get #blockTable() {
     assert.notStrictEqual(this.#uncheckedBlockTable, undefined, 'Block table must be initialized before access')
     return this.#uncheckedBlockTable
   }
 
-  set #blocktable(blocktable) {
-    this.#uncheckedBlockTable = blocktable
+  set #blockTable(blockTable) {
+    this.#uncheckedBlockTable = blockTable
   }
 
   get batSize() {
@@ -89,7 +89,7 @@ export class VhdFile extends VhdAbstract {
     await vhd.readHeaderAndFooter()
     return {
       dispose: () => handler.closeFile(fd),
-      value: vhd
+      value: vhd,
     }
   }
 
@@ -98,7 +98,7 @@ export class VhdFile extends VhdAbstract {
     const vhd = new VhdFile(handler, fd)
     return {
       dispose: () => handler.closeFile(fd),
-      value: vhd
+      value: vhd,
     }
   }
 
@@ -208,7 +208,7 @@ export class VhdFile extends VhdAbstract {
             id: blockId,
             bitmap: buf.slice(0, this.bitmapSize),
             data: buf.slice(this.bitmapSize),
-            buffer: buf
+            buffer: buf,
           }
     )
   }

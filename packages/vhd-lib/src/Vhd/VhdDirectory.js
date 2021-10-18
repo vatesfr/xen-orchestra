@@ -23,20 +23,20 @@ export class VhdDirectory extends VhdAbstract {
 
   set header(header) {
     super.header = header
-    this.#blocktable = Buffer.alloc(header.maxTableEntries)
+    this.#blockTable = Buffer.alloc(header.maxTableEntries)
   }
 
   get header() {
     return super.header
   }
 
-  get #blocktable() {
-    assert.notStrictEqual(this.#blockTable, undefined, 'Block table must be initialized before access')
+  get #blockTable() {
+    assert.notStrictEqual(this.#uncheckedBlockTable, undefined, 'Block table must be initialized before access')
     return this.#uncheckedBlockTable
   }
 
-  set #blocktable(blocktable) {
-    this.#uncheckedBlockTable = blocktable
+  set #blockTable(blockTable) {
+    this.#uncheckedBlockTable = blockTable
   }
 
   static async open(handler, path) {
@@ -50,7 +50,7 @@ export class VhdDirectory extends VhdAbstract {
     await vhd.readHeaderAndFooter()
     return {
       dispose: () => {},
-      value: vhd
+      value: vhd,
     }
   }
 
@@ -59,7 +59,7 @@ export class VhdDirectory extends VhdAbstract {
     const vhd = new VhdDirectory(handler, path)
     return {
       dispose: () => {},
-      value: vhd
+      value: vhd,
     }
   }
 
@@ -87,7 +87,7 @@ export class VhdDirectory extends VhdAbstract {
     const buffer = await this._handler.readFile(this.getChunkPath(partName))
 
     return {
-      buffer: Buffer.from(buffer)
+      buffer: Buffer.from(buffer),
     }
   }
 
@@ -134,7 +134,7 @@ export class VhdDirectory extends VhdAbstract {
       id: blockId,
       bitmap: buffer.slice(0, this.bitmapSize),
       data: buffer.slice(this.bitmapSize),
-      buffer
+      buffer,
     }
   }
   ensureBatSize() {
