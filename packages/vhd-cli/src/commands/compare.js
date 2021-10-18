@@ -2,7 +2,7 @@ import { getSyncedHandler } from '@xen-orchestra/fs'
 import { openVhd, Constants } from 'vhd-lib'
 import { resolve } from 'path'
 import Disposable from 'promise-toolbox/Disposable'
-import { omit } from 'lodash'
+import omit from 'lodash/omit'
 
 const deepCompareObjects = function (src, dest, path) {
   for (const key of Object.keys(src)) {
