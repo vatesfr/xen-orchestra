@@ -54,7 +54,7 @@ export class VhdFile extends VhdAbstract {
   #uncheckedBlockTable
 
   get #blocktable() {
-    assert.notStrictEqual(this.#blockTable, undefined, 'Block table must be initialized before access')
+    assert.notStrictEqual(this.#uncheckedBlockTable, undefined, 'Block table must be initialized before access')
     return this.#uncheckedBlockTable
   }
 
