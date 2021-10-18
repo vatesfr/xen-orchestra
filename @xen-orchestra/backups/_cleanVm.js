@@ -1,7 +1,7 @@
 const assert = require('assert')
 const sum = require('lodash/sum')
 const { asyncMap } = require('@xen-orchestra/async-map')
-const { default: Vhd, mergeVhd } = require('vhd-lib')
+const { VhdFile, mergeVhd } = require('vhd-lib')
 const { dirname, resolve } = require('path')
 const { DISK_TYPE_DIFFERENCING } = require('vhd-lib/dist/_constants.js')
 const { isMetadataFile, isVhdFile, isXvaFile, isXvaSumFile } = require('./_backupType.js')
@@ -135,7 +135,7 @@ exports.cleanVm = async function cleanVm(
   // remove broken VHDs
   await asyncMap(vhdsList.vhds, async path => {
     try {
-      const vhd = new Vhd(handler, path)
+      const vhd = new VhdFile(handler, path)
       await vhd.readHeaderAndFooter(!vhdsList.interruptedVhds.has(path))
       vhds.add(path)
       if (vhd.footer.diskType === DISK_TYPE_DIFFERENCING) {

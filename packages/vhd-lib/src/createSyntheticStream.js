@@ -3,7 +3,7 @@ import { createLogger } from '@xen-orchestra/log'
 
 import resolveRelativeFromFile from './_resolveRelativeFromFile'
 
-import Vhd from './vhd'
+import { VhdFile } from '.'
 import { BLOCK_UNUSED, DISK_TYPE_DYNAMIC, FOOTER_SIZE, HEADER_SIZE, SECTOR_SIZE } from './_constants'
 import { fuFooter, fuHeader, checksumStruct } from './_structs'
 import { test as mapTestBit } from './_bitmap'
@@ -27,7 +27,7 @@ export default async function createSyntheticStream(handler, paths) {
     const open = async path => {
       const fd = await handler.openFile(path, 'r')
       fds.push(fd)
-      const vhd = new Vhd(handler, fd)
+      const vhd = new VhdFile(handler, fd)
       vhds.push(vhd)
       await vhd.readHeaderAndFooter()
       await vhd.readBlockAllocationTable()
@@ -126,7 +126,7 @@ export default async function createSyntheticStream(handler, paths) {
             }
             let block = blocksByVhd.get(vhd)
             if (block === undefined) {
-              block = yield vhd._readBlock(iBlock)
+              block = yield vhd.readBlock(iBlock)
               blocksByVhd.set(vhd, block)
             }
             const { bitmap, data } = block

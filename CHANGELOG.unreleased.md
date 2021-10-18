@@ -34,7 +34,9 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
+- vhd-lib minor
 - @xen-orchestra/backup minor
 - @xen-orchestra/proxy minor
+- vhd-cli minor
 - xo-server patch
 - xo-web minor
