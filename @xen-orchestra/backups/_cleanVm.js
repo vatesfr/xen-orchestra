@@ -7,11 +7,13 @@ const { DISK_TYPE_DIFFERENCING } = require('vhd-lib/dist/_constants.js')
 const { isMetadataFile, isVhdFile, isXvaFile, isXvaSumFile } = require('./_backupType.js')
 const { limitConcurrency } = require('limit-concurrency-decorator')
 
+const { Task } = require('./Task.js')
+
 // chain is an array of VHDs from child to parent
 //
 // the whole chain will be merged into parent, parent will be renamed to child
 // and all the others will deleted
-const mergeVhdChain = limitConcurrency(1)(async function mergeVhdChain(chain, { handler, onLog, remove, merge }) {
+async function mergeVhdChain(chain, { handler, onLog, remove, merge }) {
   assert(chain.length >= 2)
 
   let child = chain[0]
@@ -44,7 +46,7 @@ const mergeVhdChain = limitConcurrency(1)(async function mergeVhdChain(chain, { 
       }
     }, 10e3)
 
-    await mergeVhd(
+    const mergedSize = await mergeVhd(
       handler,
       parent,
       handler,
@@ -72,8 +74,10 @@ const mergeVhdChain = limitConcurrency(1)(async function mergeVhdChain(chain, { 
         }
       }),
     ])
+
+    return mergedSize
   }
-})
+}
 
 const noop = Function.prototype
 
@@ -114,7 +118,12 @@ const listVhds = async (handler, vmDir) => {
   return { vhds, interruptedVhds }
 }
 
-exports.cleanVm = async function cleanVm(vmDir, { fixMetadata, remove, merge, onLog = noop }) {
+const defaultMergeLimiter = limitConcurrency(1)
+
+exports.cleanVm = async function cleanVm(
+  vmDir,
+  { fixMetadata, remove, merge, mergeLimiter = defaultMergeLimiter, onLog = noop }
+) {
   const handler = this._handler
 
   const vhds = new Set()
@@ -279,6 +288,7 @@ exports.cleanVm = async function cleanVm(vmDir, { fixMetadata, remove, merge, on
 
   // TODO: parallelize by vm/job/vdi
   const unusedVhdsDeletion = []
+  const toMerge = []
   {
     // VHD chains (as list from child to ancestor) to merge indexed by last
     // ancestor
@@ -321,22 +331,27 @@ exports.cleanVm = async function cleanVm(vmDir, { fixMetadata, remove, merge, on
     })
 
     // merge interrupted VHDs
-    if (merge) {
-      vhdsList.interruptedVhds.forEach(parent => {
-        vhdChainsToMerge[parent] = [vhdChildren[parent], parent]
-      })
-    }
+    vhdsList.interruptedVhds.forEach(parent => {
+      vhdChainsToMerge[parent] = [vhdChildren[parent], parent]
+    })
 
-    Object.keys(vhdChainsToMerge).forEach(key => {
-      const chain = vhdChainsToMerge[key]
+    Object.values(vhdChainsToMerge).forEach(chain => {
       if (chain !== undefined) {
-        unusedVhdsDeletion.push(mergeVhdChain(chain, { handler, onLog, remove, merge }))
+        toMerge.push(chain)
       }
     })
   }
 
+  const doMerge = () => {
+    const promise = asyncMap(toMerge, async chain => {
+      mergeVhdChain(chain, { handler, onLog, remove, merge })
+    })
+    return merge ? promise.then(sizes => ({ size: sum(sizes) })) : promise
+  }
+
   await Promise.all([
     ...unusedVhdsDeletion,
+    toMerge.length !== 0 && (merge ? Task.run({ name: 'merge' }, doMerge) : doMerge()),
     asyncMap(unusedXvas, path => {
       onLog(`the XVA ${path} is unused`)
       if (remove) {
@@ -355,4 +370,9 @@ exports.cleanVm = async function cleanVm(vmDir, { fixMetadata, remove, merge, on
       }
     }),
   ])
+
+  return {
+    // boolean whether some VHDs were merged (or should be merged)
+    merge: toMerge.length !== 0,
+  }
 }

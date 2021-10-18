@@ -18,6 +18,7 @@ keepAliveInterval = 10e3
 #
 # https://en.wikipedia.org/wiki/File-system_permissions#Numeric_notation
 dirMode = 0o700
+disableMergeWorker = true
 snapshotNameLabelTpl = '[XO Backup {job.name}] {vm.name_label}'
 
 [backups.defaultSettings]
@@ -58,6 +59,13 @@ autoCert = true
 cert = '/var/lib/xo-proxy/certificate.pem'
 key = '/var/lib/xo-proxy/key.pem'
 port = 443
+
+[logs]
+# Display all logs matching this filter, regardless of their level
+#filter = 'xo:backups:*'
+
+# Display all logs with level >=, regardless of their namespace
+level = 'info'
 
 [remoteOptions]
 mountsDir = '/run/xo-proxy/mounts'

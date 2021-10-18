@@ -7,9 +7,15 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [Tasks] Filter out short tasks using a default filter (PR [#5921](https://github.com/vatesfr/xen-orchestra/pull/5921))
+- [Jobs] Ability to copy a job ID (PR [#5951](https://github.com/vatesfr/xen-orchestra/pull/5951))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
+
+- [Backups] Delete unused snapshots related to other schedules (even no longer existing) (PR [#5949](https://github.com/vatesfr/xen-orchestra/pull/5949))
+- [Jobs] Fix `job.runSequence` method (PR [#5944](https://github.com/vatesfr/xen-orchestra/pull/5944))
 
 ### Packages to release
 
@@ -29,4 +35,8 @@
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
 - vhd-lib minor
+- @xen-orchestra/backup minor
+- @xen-orchestra/proxy minor
 - vhd-cli minor
+- xo-server patch
+- xo-web minor

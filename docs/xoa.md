@@ -106,6 +106,7 @@ In that case, you already set the password for `xoa` user. If you forgot it, see
 If you connect via SSH or console for the first time without using our [web deploy form](https://xen-orchestra.com/#!/xoa), be aware **there's NO default password set for security reasons**. To set it, you need to connect to your host to find the XOA VM UUID (eg via `xe vm-list`).
 
 Then replace `<UUID>` with the previously find UUID, and `<password>` with your password:
+
 ```
 xe vm-param-set uuid=<UUID> xenstore-data:vm-data/system-account-xoa-password=<password>
 ```
