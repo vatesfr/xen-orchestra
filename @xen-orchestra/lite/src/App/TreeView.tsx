@@ -11,7 +11,10 @@ interface ParentState {}
 
 interface State {}
 
-interface Props {}
+interface Props {
+  multiSelect?: boolean
+  selected?: Array<string> | string
+}
 
 interface ParentEffects {}
 
@@ -127,10 +130,10 @@ const TreeView = withState<State, Props, Effects, Computed, ParentState, ParentE
         }),
     },
   },
-({ state }) =>
+  ({ state, multiSelect, selected }) =>
     state.collection === undefined ? null : (
       <div style={{ padding: '10px' }}>
-        <Tree collection={state.collection} />
+        <Tree collection={state.collection} multiSelect={multiSelect} selected={selected} />
       </div>
     )
 )

@@ -25,37 +25,56 @@ const MainPanel = styled.div`
 
 interface ParentState {}
 
-interface State {}
+interface State {
+  selectedItem?: string
+}
 
 interface Props {}
 
 interface ParentEffects {}
 
-interface Effects {}
+interface Effects {
+  setSelectedItem: (item: string) => void
+}
 
 interface Computed {}
 
-const Infrastructure = withState<State, Props, Effects, Computed, ParentState, ParentEffects>({}, ({ vmId }) => (
-  <Container>
-    <LeftPanel>
-      <TreeView />
-    </LeftPanel>
-    <MainPanel>
-      <Switch>
-        <Route exact path='/infrastructure'>
-          Select a VM
-        </Route>
-        <Route
-          path='/infrastructure/vms/:id/console'
-          render={({
-            match: {
-              params: { id },
-            },
-          }) => <TabConsole key={id} vmId={id} />}
-        />
-      </Switch>
-    </MainPanel>
-  </Container>
-))
+const Infrastructure = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
+  {
+    initialState: () => ({
+      selectedItem: undefined,
+    }),
+    effects: {
+      setSelectedItem: function (item) {
+        this.state.selectedItem = item
+      },
+    },
+  },
+  ({ effects, state }) => (
+    <Container>
+      <LeftPanel>
+        <TreeView multiSelect selected={[state.selectedItem]} />
+      </LeftPanel>
+      <MainPanel>
+        <Switch>
+          <Route exact path='/infrastructure'>
+            Select a VM
+          </Route>
+          <Route
+            path='/infrastructure/vms/:id/console'
+            render={({
+              match: {
+                params: { id },
+              },
+            }) => {
+              effects.setSelectedItem(id)
+              return <TabConsole key={id} vmId={id} />
+            }}
+          />
+        </Switch>
+      </MainPanel>
+    </Container>
+  )
+)
 
 export default Infrastructure

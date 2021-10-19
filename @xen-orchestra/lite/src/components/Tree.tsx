@@ -53,6 +53,8 @@ interface Props {
   //   }
   // ]
   collection: Array<ItemType>
+  multiSelect?: boolean
+  selected?: Array<string> | string
 }
 
 interface ParentEffects {}
@@ -95,14 +97,19 @@ const renderItem = ({ children, id, label, to, tooltip }: ItemType) => {
   )
 }
 
-const Tree = withState<State, Props, Effects, Computed, ParentState, ParentEffects>({}, ({ collection }) => (
-  <TreeView
-    defaultExpanded={[collection[0].id]}
-    defaultCollapseIcon={<Icon icon='chevron-up' />}
-    defaultExpandIcon={<Icon icon='chevron-down' />}
-  >
-    {collection.map(renderItem)}
-  </TreeView>
-))
+const Tree = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
+  {},
+  ({ state, collection, multiSelect, selected }) => (
+    <TreeView
+      defaultExpanded={[collection[0].id]}
+      defaultCollapseIcon={<Icon icon='chevron-up' />}
+      defaultExpandIcon={<Icon icon='chevron-down' />}
+      multiSelect={multiSelect}
+      selected={selected}
+    >
+      {collection.map(renderItem)}
+    </TreeView>
+  )
+)
 
 export default Tree
