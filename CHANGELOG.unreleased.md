@@ -7,6 +7,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [Pool/advanced] Ability to define network for importing/exporting VMs/VDIs
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -28,5 +30,7 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
+- xen-api patch
 - @xen-orchestra/proxy minor
-- xo-server patch
+- xo-server minor
+- xo-web minor

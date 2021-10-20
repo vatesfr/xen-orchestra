@@ -791,6 +791,7 @@ const messages = {
   vmsTabName: 'VMs',
   srsTabName: 'SRs',
   // ----- Pool advanced tab -----
+  defaultBackupNetwork: 'Default backup network',
   poolEditAll: 'Edit all',
   poolHaStatus: 'High Availability',
   poolHaEnabled: 'Enabled',
