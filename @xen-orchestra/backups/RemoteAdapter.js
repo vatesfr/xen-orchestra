@@ -6,7 +6,7 @@ const pDefer = require('promise-toolbox/defer.js')
 const pump = require('pump')
 const { basename, dirname, join, normalize, resolve } = require('path')
 const { createLogger } = require('@xen-orchestra/log')
-const { createSyntheticStream, mergeVhd, default: Vhd } = require('vhd-lib')
+const { createSyntheticStream, mergeVhd, VhdFile } = require('vhd-lib')
 const { deduped } = require('@vates/disposable/deduped.js')
 const { execFile } = require('child_process')
 const { readdir, stat } = require('fs-extra')
@@ -86,7 +86,7 @@ class RemoteAdapter {
       }),
       async path => {
         try {
-          const vhd = new Vhd(handler, path)
+          const vhd = new VhdFile(handler, path)
           await vhd.readHeaderAndFooter()
           return {
             footer: vhd.footer,
@@ -253,16 +253,9 @@ class RemoteAdapter {
 
   async deleteDeltaVmBackups(backups) {
     const handler = this._handler
-    let mergedDataSize = 0
-    await asyncMapSettled(backups, ({ _filename, vhds }) =>
-      Promise.all([
-        handler.unlink(_filename),
-        asyncMap(Object.values(vhds), async _ => {
-          mergedDataSize += await this._deleteVhd(resolveRelativeFromFile(_filename, _))
-        }),
-      ])
-    )
-    return mergedDataSize
+
+    // unused VHDs will be detected by `cleanVm`
+    await asyncMapSettled(backups, ({ _filename }) => handler.unlink(_filename))
   }
 
   async deleteMetadataBackup(backupId) {

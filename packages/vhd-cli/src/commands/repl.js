@@ -2,7 +2,7 @@ import { asCallback, fromCallback, fromEvent } from 'promise-toolbox'
 import { getHandler } from '@xen-orchestra/fs'
 import { relative } from 'path'
 import { start as createRepl } from 'repl'
-import Vhd, * as vhdLib from 'vhd-lib'
+import * as vhdLib from 'vhd-lib'
 
 export default async args => {
   const cwd = process.cwd()
@@ -14,7 +14,7 @@ export default async args => {
     })
     Object.assign(repl.context, vhdLib)
     repl.context.handler = handler
-    repl.context.open = path => new Vhd(handler, relative(cwd, path))
+    repl.context.open = path => new vhdLib.VhdFile(handler, relative(cwd, path))
 
     // Make the REPL waits for promise completion.
     repl.eval = (evaluate => (cmd, context, filename, cb) => {

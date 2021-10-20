@@ -1,9 +1,9 @@
-import Vhd from 'vhd-lib'
+import { VhdFile } from 'vhd-lib'
 import { getHandler } from '@xen-orchestra/fs'
 import { resolve } from 'path'
 
 export default async args => {
-  const vhd = new Vhd(getHandler({ url: 'file:///' }), resolve(args[0]))
+  const vhd = new VhdFile(getHandler({ url: 'file:///' }), resolve(args[0]))
 
   try {
     await vhd.readHeaderAndFooter()
