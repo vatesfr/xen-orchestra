@@ -52,6 +52,7 @@ Options:
 - `auth`: credentials used to sign in (can also be specified in the URL)
 - `readOnly = false`: if true, no methods with side-effects can be called
 - `callTimeout`: number of milliseconds after which a call is considered failed (can also be a map of timeouts by methods)
+- `httpProxy` : url of the http / https proxy used to reach the host. Can include the credentials
 
 ```js
 // Force connection.
