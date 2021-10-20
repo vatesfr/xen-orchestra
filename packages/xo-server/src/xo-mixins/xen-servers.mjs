@@ -119,7 +119,10 @@ export default class {
     }
   }
 
-  async updateXenServer(id, { allowUnauthorized, enabled, error, host, label, password, readOnly, username }) {
+  async updateXenServer(
+    id,
+    { allowUnauthorized, enabled, error, host, label, password, readOnly, username, httpProxy }
+  ) {
     const server = await this._getXenServer(id)
     const xapi = this._xapis[id]
     const requireDisconnected =
@@ -151,6 +154,10 @@ export default class {
 
     if (allowUnauthorized !== undefined) {
       server.set('allowUnauthorized', allowUnauthorized)
+    }
+
+    if (httpProxy !== undefined) {
+      server.set('httpProxy', httpProxy)
     }
 
     await this._servers.update(server)
@@ -288,6 +295,7 @@ export default class {
       readOnly: server.readOnly,
 
       ...config.get('xapiOptions'),
+      httpProxy: server.httpProxy,
       guessVhdSizeOnImport: config.get('guessVhdSizeOnImport'),
 
       auth: {

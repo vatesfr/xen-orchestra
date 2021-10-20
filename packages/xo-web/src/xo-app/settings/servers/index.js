@@ -132,6 +132,17 @@ const COLUMNS = [
     itemRenderer: ({ poolId }) => poolId !== undefined && <Pool id={poolId} link />,
     name: _('pool'),
   },
+  {
+    itemRenderer: (server, formatMessage) => (
+      <Text
+        value={server.httpProxy || ''}
+        onChange={httpProxy => editServer(server, { httpProxy })}
+        placeholder={formatMessage(messages.serverHttpProxyPlaceHolder)}
+      />
+    ),
+    name: _('serverHttpProxy'),
+    sortCriteria: _ => _.httpProxy,
+  },
 ]
 const INDIVIDUAL_ACTIONS = [
   {
@@ -152,9 +163,8 @@ export default class Servers extends Component {
   }
 
   _addServer = async () => {
-    const { label, host, password, username, allowUnauthorized } = this.state
-
-    await addServer(host, username, password, label, allowUnauthorized)
+    const { label, host, password, username, allowUnauthorized, httpProxy } = this.state
+    await addServer(host, username, password, label, allowUnauthorized, httpProxy)
 
     this.setState({
       allowUnauthorized: false,
@@ -162,6 +172,7 @@ export default class Servers extends Component {
       label: '',
       password: '',
       username: '',
+      httpProxy: '',
     })
   }
 
@@ -226,6 +237,15 @@ export default class Servers extends Component {
             <Tooltip content={_('serverAllowUnauthorizedCertificates')}>
               <Toggle onChange={this.linkState('allowUnauthorized')} value={state.allowUnauthorized} />
             </Tooltip>
+          </div>{' '}
+          <div className='form-group'>
+            <input
+              className='form-control'
+              onChange={this.linkState('httpProxy')}
+              placeholder={formatMessage(messages.serverHttpProxy)}
+              type='url'
+              value={state.httpProxy || ''}
+            />
           </div>{' '}
           <ActionButton btnStyle='primary' form='form-add-server' handler={this._addServer} icon='save'>
             {_('serverConnect')}

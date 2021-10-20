@@ -1826,6 +1826,8 @@ const messages = {
   serverEnabled: 'Enabled',
   serverDisabled: 'Disabled',
   serverDisable: 'Disable server',
+  serverHttpProxy: ' Http proxy Url',
+  serverHttpProxyPlaceHolder: ' Http proxy Url',
 
   // ----- Copy VM -----
   copyVm: 'Copy VM',

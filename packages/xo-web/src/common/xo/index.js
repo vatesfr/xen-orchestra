@@ -560,13 +560,14 @@ export const exportConfig = () =>
 
 // Server ------------------------------------------------------------
 
-export const addServer = (host, username, password, label, allowUnauthorized) =>
+export const addServer = (host, username, password, label, allowUnauthorized, httpProxy) =>
   _call('server.add', {
     allowUnauthorized,
     host,
     label,
     password,
     username,
+    httpProxy,
   })::tap(subscribeServers.forceRefresh, () => error(_('serverError'), _('serverAddFailed')))
 
 export const editServer = (server, props) =>
