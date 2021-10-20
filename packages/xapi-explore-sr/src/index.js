@@ -69,11 +69,13 @@ execPromise(async args => {
     url = required('Host URL'),
     user = required('Host user'),
     password = await askPassword('Host password'),
+    httpProxy = await askPassword('Http proxy'),
   ] = args
 
   const xapi = createClient({
     allowUnauthorized: true,
     auth: { user, password },
+    httpProxy,
     readOnly: true,
     url,
     watchEvents: false,

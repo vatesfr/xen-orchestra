@@ -46,6 +46,7 @@
 - @xen-orchestra/backup minor
 - @xen-orchestra/proxy minor
 - vhd-cli minor
+- xapi-explore-sr minor
 - xen-api minor
 - xo-server patch
 - xo-web minor
