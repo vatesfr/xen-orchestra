@@ -273,7 +273,7 @@ export default class TabAdvanced extends Component {
                     </td>
                   </tr>
                   <tr>
-                    <th>{_('defaultBackupNetwork')}</th>
+                    <th>{_('backupNetwork')}</th>
                     <td>
                       <XoSelect
                         onChange={this._onChangeBackupNetwork}
