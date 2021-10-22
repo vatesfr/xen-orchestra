@@ -659,22 +659,26 @@ export const clone = defer(async function ($defer, { vm, name, full_copy: fullCo
   await checkPermissionOnSrs.call(this, vm)
   const xapi = this.getXapi(vm)
 
-  const { $id: cloneId, $ref: cloneRef } = await xapi.cloneVm(vm._xapiRef, {
+  const newVm = await xapi.cloneVm(vm._xapiRef, {
     nameLabel: name,
     fast: !fullCopy,
   })
-  $defer.onFailure(() => xapi.VM_destroy(cloneRef))
+  $defer.onFailure(() => xapi.VM_destroy(newVm.$ref))
+
+  if (vm.type !== 'VM-template') {
+    await newVm.set_is_a_template(false)
+  }
 
   const isAdmin = this.user.permission === 'admin'
   if (!isAdmin) {
-    await this.addAcl(this.user.id, cloneId, 'admin')
+    await this.addAcl(this.user.id, newVm.$id, 'admin')
   }
 
   if (vm.resourceSet !== undefined) {
     await this.allocateLimitsInResourceSet(await this.computeVmResourcesUsage(vm), vm.resourceSet, isAdmin)
   }
 
-  return cloneId
+  return newVm.$id
 })
 
 clone.params = {
@@ -691,25 +695,30 @@ clone.resolve = {
 
 // TODO: implement resource sets
 export async function copy({ compress, name: nameLabel, sr, vm }) {
+  let newVm
   if (vm.$pool === sr.$pool) {
     if (vm.power_state === 'Running') {
       await checkPermissionOnSrs.call(this, vm)
     }
 
-    return this.getXapi(vm)
-      .copyVm(vm._xapiId, {
+    newVm = await this.getXapi(vm).copyVm(vm._xapiId, {
+      nameLabel,
+      srOrSrId: sr._xapiId,
+    })
+  } else {
+    newVm = (
+      await this.getXapi(vm).remoteCopyVm(vm._xapiId, this.getXapi(sr), sr._xapiId, {
+        compress,
         nameLabel,
-        srOrSrId: sr._xapiId,
       })
-      .then(vm => vm.$id)
+    ).vm
   }
 
-  return this.getXapi(vm)
-    .remoteCopyVm(vm._xapiId, this.getXapi(sr), sr._xapiId, {
-      compress,
-      nameLabel,
-    })
-    .then(({ vm }) => vm.$id)
+  if (vm.type !== 'VM-template') {
+    await newVm.set_is_a_template(false)
+  }
+
+  return newVm.$id
 }
 
 copy.params = {

@@ -308,13 +308,10 @@ export default class Xapi extends XapiBase {
 
   // Clone a VM: make a fast copy by fast copying each of its VDIs
   // (using snapshots where possible) on the same SRs.
-  async _cloneVm(vm, nameLabel = vm.name_label) {
+  _cloneVm(vm, nameLabel = vm.name_label) {
     log.debug(`Cloning VM ${vm.name_label}${nameLabel !== vm.name_label ? ` as ${nameLabel}` : ''}`)
 
-    const newVm = await this._getOrWaitObject(extractOpaqueRef(await this.callAsync('VM.clone', vm.$ref, nameLabel)))
-    await newVm.set_is_a_template(false)
-
-    return newVm.$ref
+    return this.callAsync('VM.clone', vm.$ref, nameLabel).then(extractOpaqueRef)
   }
 
   // Copy a VM: make a normal copy of a VM and all its VDIs.
@@ -334,12 +331,7 @@ export default class Xapi extends XapiBase {
     )
 
     try {
-      const newVm = await this._getOrWaitObject(
-        await this.call('VM.copy', snapshot ? snapshot.$ref : vm.$ref, nameLabel, sr ? sr.$ref : '')
-      )
-      await newVm.set_is_a_template(false)
-
-      return newVm.$ref
+      return await this.call('VM.copy', snapshot ? snapshot.$ref : vm.$ref, nameLabel, sr ? sr.$ref : '')
     } finally {
       if (snapshot) {
         await this.VM_destroy(snapshot.$ref)
