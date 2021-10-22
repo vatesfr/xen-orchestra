@@ -72,7 +72,7 @@ const TabConsole = withState<State, Props, Effects, Computed, ParentState, Paren
               className: "mui-btn--primary",
               title: "don't delete me, please"
             }
-          ]}>Title </TitleBar>
+          ]}>{state.vm?.name_label ?? 'loading'} </TitleBar>
           {/* Hide scaling and Ctrl+Alt+Del button temporarily */}
           {/* <RangeInput max={100} min={1} onChange={effects.scaleConsole} step={1} value={state.consoleScale} />
           {state.sendCtrlAltDel !== undefined && (
