@@ -83,7 +83,7 @@ export default class Menu extends Component {
     }
 
     this._updateMissingPatchesSubscriptions()
-    this._updateProxiesApplianceUpdaterStateSubscriptions()
+    this._updateProxiesSubscriptions()
   }
 
   componentWillUnmount() {
@@ -98,7 +98,7 @@ export default class Menu extends Component {
     }
 
     if (!isEqual(prevProps.proxyIds, this.props.proxyIds)) {
-      this._updateProxiesApplianceUpdaterStateSubscriptions()
+      this._updateProxiesSubscriptions()
     }
   }
 
@@ -174,17 +174,17 @@ export default class Menu extends Component {
     this._unsubscribeMissingPatches = () => forEach(unsubs, unsub => unsub())
   }
 
-  _updateProxiesApplianceUpdaterStateSubscriptions = () => {
+  _updateProxiesSubscriptions = () => {
     this.setState(({ proxyStates }) => ({
       proxyStates: pick(proxyStates, this.props.proxyIds),
     }))
 
     const unsubs = map(this.props.proxyIds, proxyId =>
-      subscribeProxiesApplianceUpdaterState(proxyId, ({ state = '' }) => {
+      subscribeProxiesApplianceUpdaterState(proxyId, ({ state: proxyState = '' }) => {
         this.setState(state => ({
           proxyStates: {
             ...state.proxyStates,
-            [proxyId]: state,
+            [proxyId]: proxyState,
           },
         }))
       })

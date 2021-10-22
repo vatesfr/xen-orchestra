@@ -195,13 +195,15 @@ export default class Proxy {
   }
 
   getProxyApplianceUpdaterState(id) {
+    const app = this._app
     return debounceWithKey(
       function (id) {
-        return this.callProxyMethod(id, 'appliance.updater.getState')
+        console.log('debounce !!!', id)
+        return app.callProxyMethod(id, 'appliance.updater.getState')
       },
       DEBOUNCE_TIME_PROXY_STATE,
       id => id
-    )
+    )(id)
   }
 
   @decorateWith(defer)
