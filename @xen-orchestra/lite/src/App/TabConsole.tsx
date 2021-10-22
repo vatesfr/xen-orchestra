@@ -6,6 +6,7 @@ import Console from '../components/Console'
 import IntlMessage from '../components/IntlMessage'
 import RangeInput from '../components/RangeInput'
 import { ObjectsByType, Vm } from '../libs/xapi'
+import TitleBar from '../components/TitleBar'
 
 interface ParentState {
   objectsByType: ObjectsByType
@@ -65,6 +66,13 @@ const TabConsole = withState<State, Props, Effects, Computed, ParentState, Paren
         </p>
       ) : (
         <>
+          <TitleBar actions={[
+            {
+              icon: 'trash',
+              className: "mui-btn--primary",
+              title: "don't delete me, please"
+            }
+          ]}>Title </TitleBar>
           {/* Hide scaling and Ctrl+Alt+Del button temporarily */}
           {/* <RangeInput max={100} min={1} onChange={effects.scaleConsole} step={1} value={state.consoleScale} />
           {state.sendCtrlAltDel !== undefined && (
