@@ -10,6 +10,7 @@ interface State {}
 
 interface Props extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   icon?: IconName
+  level?: keyof typeof level
 }
 
 interface ParentEffects {}
@@ -18,9 +19,18 @@ interface Effects {}
 
 interface Computed {}
 
-const StyledButton = styled.button`
+const level = {
+  danger: '#dc3545',
+  info: '#044b7f',
+  primary: '#366e98',
+  secondary: '#ffffff',
+  success: '#198754',
+  warning: '#eca649',
+}
+
+const StyledButton = styled.button<{ level: keyof typeof level }>`
   height: 2em;
-  background-color: white;
+  background-color: ${(props) => level[props.level]};
   border: 1px solid #ccc;
   border-radius: 3px;
   width: 100%;
@@ -29,8 +39,8 @@ const StyledButton = styled.button`
 
 const Button = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
   {},
-  ({ state, effects, resetState, icon, children, ...props }) => (
-    <StyledButton {...props}>
+  ({ state, effects, level = 'secondary', resetState, icon, children, ...props }) => (
+    <StyledButton level={level} {...props}>
       {icon !== undefined && <><Icon icon={icon} /> </>}
       {children}
     </StyledButton>
