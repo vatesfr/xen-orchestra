@@ -207,12 +207,13 @@ export default class S3Handler extends RemoteHandlerAbstract {
       const result = await this._s3.listObjectsV2({
         Bucket: this._bucket,
         Prefix: this._dir + path + '/',
+        ContinuationToken: NextContinuationToken,
       })
-      NextContinuationToken = result.NextContinuationToken
+      NextContinuationToken = result.isTruncated ? null : result.NextContinuationToken
       for (const path of result.Contents) {
         await this._unlink(path)
       }
-    } while (NextContinuationToken)
+    } while (NextContinuationToken !== null)
   }
 
   async _write(file, buffer, position) {

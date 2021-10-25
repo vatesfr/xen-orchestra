@@ -176,7 +176,15 @@ export class VhdAbstract {
       const aliasContent = buf.toString().trim()
       return VhdAbstract.unlink(handler, aliasContent)
     }
-    await handler.rmTree(path)
+    try {
+      await handler.unlink(path)
+    } catch (err) {
+      if (err.code === 'EISDIR') {
+        await handler.rmtree(path)
+      } else {
+        throw err
+      }
+    }
   }
 
   static createAlias(handler, aliasPath, targetPath) {
