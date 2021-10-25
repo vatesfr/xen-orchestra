@@ -199,6 +199,22 @@ export default class S3Handler extends RemoteHandlerAbstract {
     // nothing to do, directories do not exist, they are part of the files' path
   }
 
+  // reimplement _rmTree to handle efficiantly path with more than 1000 entries in trees
+  // @todo : use parallel processing for unlink
+  async _rmTree(path) {
+    let NextContinuationToken
+    do {
+      const result = await this._s3.listObjectsV2({
+        Bucket: this._bucket,
+        Prefix: this._dir + path + '/',
+      })
+      NextContinuationToken = result.NextContinuationToken
+      for (const path of result.Contents) {
+        await this._unlink(path)
+      }
+    } while (NextContinuationToken)
+  }
+
   async _write(file, buffer, position) {
     if (typeof file !== 'string') {
       file = file.fd

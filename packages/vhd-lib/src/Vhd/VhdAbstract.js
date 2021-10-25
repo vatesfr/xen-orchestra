@@ -164,4 +164,22 @@ export class VhdAbstract {
       }
     }
   }
+
+  static rename(handler, sourcePath, targetPath) {
+    return handler.rename(sourcePath, targetPath)
+  }
+
+  static async unlink(handler, path) {
+    if (path.endsWith('.alias.vhd')) {
+      // also delete alias target
+      const buf = Buffer.from(await handler.readFile(path), 'utf-8')
+      const aliasContent = buf.toString().trim()
+      return VhdAbstract.unlink(handler, aliasContent)
+    }
+    await handler.rmTree(path)
+  }
+
+  static createAlias(handler, aliasPath, targetPath) {
+    return handler.writeFile(aliasPath, Buffer.from(targetPath))
+  }
 }
