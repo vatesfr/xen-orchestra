@@ -731,12 +731,13 @@ const messages = {
   migrateVmLabel: 'Migrate',
   snapshotVmLabel: 'Snapshot',
   exportVmLabel: 'Export',
+  exportUrl: 'Export URL',
   resumeVmLabel: 'Resume',
   copyVmLabel: 'Copy',
   cloneVmLabel: 'Clone',
   fastCloneVmLabel: 'Fast clone',
   vmConsoleLabel: 'Console',
-  vmExportUrlValidity: 'the URL is valid for a short period of time.',
+  vmExportUrlValidity: 'The URL is valid for a short period of time.',
   backupLabel: 'Backup',
 
   // ----- SR general tab -----

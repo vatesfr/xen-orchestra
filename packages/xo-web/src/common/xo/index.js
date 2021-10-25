@@ -1,5 +1,6 @@
 import asap from 'asap'
 import cookies from 'js-cookie'
+import copy from 'copy-to-clipboard'
 import fpSortBy from 'lodash/fp/sortBy'
 import React from 'react'
 import updater from 'xoa-updater'
@@ -1645,15 +1646,17 @@ export const exportVm = vm =>
     info(_('startVmExport'), id)
     return _call('vm.export', { vm: id, compress }).then(({ $getFrom: url }) => {
       const fullUrl = window.location.origin + url
-      const copyToClipboard = () => navigator.clipboard.writeText(fullUrl)
+      const copyToClipboard = () => copy(fullUrl)
       chooseAction({
         body: (
           <div>
-            <pre>{fullUrl}</pre>
+            <a href={fullUrl}>{_('exportUrl')}</a>
+            <br />
             <Button onClick={copyToClipboard}>
               <Icon icon='clipboard' /> {_('copyToClipboardLabel')}
-            </Button>{' '}
-            <small>{_('vmExportUrlValidity')}</small>
+            </Button>
+            <br />
+            <Icon icon='info' /> <em>{_('vmExportUrlValidity')}</em>
           </div>
         ),
         buttons: [{ btnStyle: 'primary', label: _('download') }],
