@@ -1,6 +1,7 @@
 import aws from '@sullux/aws-sdk'
 import assert from 'assert'
 import http from 'http'
+import https from 'https'
 import { parse } from 'xo-remote-parser'
 
 import RemoteHandlerAbstract from './abstract'
@@ -16,7 +17,7 @@ const IDEAL_FRAGMENT_SIZE = Math.ceil(MAX_OBJECT_SIZE / MAX_PARTS_COUNT) // the 
 export default class S3Handler extends RemoteHandlerAbstract {
   constructor(remote, _opts) {
     super(remote)
-    const { host, path, username, password, protocol, region } = parse(remote.url)
+    const { host, path, username, password, protocol, region, acceptSelfSigned } = parse(remote.url)
     const params = {
       accessKeyId: username,
       apiVersion: '2006-03-01',
@@ -31,6 +32,11 @@ export default class S3Handler extends RemoteHandlerAbstract {
     if (protocol === 'http') {
       params.httpOptions.agent = new http.Agent()
       params.sslEnabled = false
+    } else if (protocol === 'https') {
+      params.httpOptions.agent = new https.Agent({
+        rejectUnauthorized: !acceptSelfSigned,
+        keepAlive: true,
+      })
     }
     if (region !== undefined) {
       params.region = region

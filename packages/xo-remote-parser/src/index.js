@@ -2,7 +2,7 @@ import filter from 'lodash/filter'
 import map from 'lodash/map'
 import trim from 'lodash/trim'
 import trimStart from 'lodash/trimStart'
-import Url from 'url-parse'
+import urlParser from 'url-parse'
 
 const NFS_RE = /^([^:]+):(?:(\d+):)?([^:]+)$/
 const SMB_RE = /^([^:]+):(.+)@([^@]+)\\\\([^\0]+)(?:\0(.*))?$/
@@ -38,7 +38,7 @@ export const parse = string => {
     object.username = username
     object.password = password
   } else if (type === 's3' || type === 's3+http') {
-    const parsed = new Url(string)
+    const parsed = urlParser(string, true)
     object.protocol = parsed.protocol === 's3:' ? 'https' : 'http'
     object.type = 's3'
     object.region = parsed.hash.length === 0 ? undefined : parsed.hash.slice(1) // remove '#'
@@ -46,11 +46,24 @@ export const parse = string => {
     object.path = parsed.pathname
     object.username = parsed.username
     object.password = decodeURIComponent(parsed.password)
+    const qs = parsed.query
+    object.acceptSelfSigned = qs.acceptSelfSigned === 'true'
   }
   return object
 }
 
-export const format = ({ type, host, path, port, username, password, domain, protocol = type, region }) => {
+export const format = ({
+  type,
+  host,
+  path,
+  port,
+  username,
+  password,
+  domain,
+  protocol = type,
+  region,
+  acceptSelfSigned = false,
+}) => {
   type === 'local' && (type = 'file')
   let string = `${type}://`
   if (type === 'nfs') {
@@ -71,6 +84,10 @@ export const format = ({ type, host, path, port, username, password, domain, pro
     path = `/${path}`
   }
   string += path
+
+  if (type === 's3') {
+    string += `?acceptSelfSigned=${acceptSelfSigned}`
+  }
   if (type === 's3' && region !== undefined) {
     string += `#${region}`
   }

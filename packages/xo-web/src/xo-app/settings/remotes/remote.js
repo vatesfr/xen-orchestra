@@ -42,6 +42,7 @@ export default decorate([
       bucket: undefined,
       protocol: undefined,
       region: undefined,
+      acceptSelfSigned: undefined,
     }),
     effects: {
       linkState,
@@ -67,6 +68,7 @@ export default decorate([
             username = remote.username,
             protocol = remote.protocol || 'https',
             region = remote.region,
+            acceptSelfSigned = remote.acceptSelfSigned,
           } = state
           let { path = remote.path } = state
           if (type === 's3') {
@@ -85,6 +87,7 @@ export default decorate([
               username,
               protocol,
               region,
+              acceptSelfSigned,
             }),
             options: options !== '' ? options : null,
             proxy: proxyId,
@@ -147,6 +150,9 @@ export default decorate([
       setInsecure(_, value) {
         this.state.protocol = value ? 'http' : 'https'
       },
+      setAcceptSelfSigned(_, value) {
+        this.state.acceptSelfSigned = value
+      },
     },
     computed: {
       formId: generateId,
@@ -175,6 +181,7 @@ export default decorate([
       proxyId = remote.proxy,
       type = remote.type || 'nfs',
       username = remote.username || '',
+      acceptSelfSigned = remote.acceptSelfSigned || false,
     } = state
     return (
       <div>
@@ -358,6 +365,13 @@ export default decorate([
                   type='text'
                   value={host}
                 />
+                {protocol === 'https' && (
+                  <span className='input-group-addon'>
+                    <Tooltip content={formatMessage(messages.remoteS3TooltipAcceptInsecure)}>
+                      <Toggle iconSize={1} onChange={effects.setAcceptSelfSigned} value={acceptSelfSigned} />
+                    </Tooltip>
+                  </span>
+                )}
               </div>
               <div className='input-group form-group'>
                 <input

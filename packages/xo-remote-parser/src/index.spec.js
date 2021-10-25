@@ -45,7 +45,7 @@ const data = deepFreeze({
     },
   },
   S3: {
-    string: 's3://AKIAS:XSuBupZ0mJlu%2B@s3-us-west-2.amazonaws.com/test-bucket/dir',
+    string: 's3://AKIAS:XSuBupZ0mJlu%2B@s3-us-west-2.amazonaws.com/test-bucket/dir?acceptSelfSigned=false',
     object: {
       type: 's3',
       protocol: 'https',
@@ -54,6 +54,20 @@ const data = deepFreeze({
       username: 'AKIAS',
       password: 'XSuBupZ0mJlu+',
       region: undefined,
+      acceptSelfSigned: false,
+    },
+  },
+  's3 accepting self signed ': {
+    string: 's3://AKIAS:XSuBupZ0mJlu%2B@s3-us-west-2.amazonaws.com/test-bucket/dir?acceptSelfSigned=true',
+    object: {
+      type: 's3',
+      protocol: 'https',
+      host: 's3-us-west-2.amazonaws.com',
+      path: '/test-bucket/dir',
+      username: 'AKIAS',
+      password: 'XSuBupZ0mJlu+',
+      region: undefined,
+      acceptSelfSigned: true,
     },
   },
 })
@@ -97,6 +111,20 @@ const parseData = deepFreeze({
       region: 'reg1',
       username: 'Administrator',
       password: 'password',
+      acceptSelfSigned: false,
+    },
+  },
+  'S3 accepting self signed certificate': {
+    string: 's3+http://Administrator:password@192.168.100.225/bucket/dir?acceptSelfSigned=true#reg1',
+    object: {
+      type: 's3',
+      host: '192.168.100.225',
+      protocol: 'http',
+      path: '/bucket/dir',
+      region: 'reg1',
+      username: 'Administrator',
+      password: 'password',
+      acceptSelfSigned: true,
     },
   },
 })

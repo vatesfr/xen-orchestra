@@ -585,6 +585,7 @@ const messages = {
   remoteS3PlaceHolderDirectory: 'Directory',
   remoteS3Region: 'Region, leave blank for default',
   remoteS3TooltipProtocol: 'Check if you want HTTP instead of HTTPS',
+  remoteS3TooltipAcceptInsecure: 'Check if you want to accept self signed certificates',
   remotePlaceHolderPassword: 'Password(fill to edit)',
 
   // ------ New Storage -----
