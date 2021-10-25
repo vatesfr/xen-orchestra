@@ -736,7 +736,7 @@ const messages = {
   cloneVmLabel: 'Clone',
   fastCloneVmLabel: 'Fast clone',
   vmConsoleLabel: 'Console',
-  vmExportUrlValidity: 'Url only valid for a short period.',
+  vmExportUrlValidity: 'the URL is valid for a short period of time.',
   backupLabel: 'Backup',
 
   // ----- SR general tab -----
