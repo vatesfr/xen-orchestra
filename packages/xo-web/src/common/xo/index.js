@@ -564,10 +564,10 @@ export const addServer = (host, username, password, label, allowUnauthorized, ht
   _call('server.add', {
     allowUnauthorized,
     host,
+    httpProxy,
     label,
     password,
     username,
-    httpProxy,
   })::tap(subscribeServers.forceRefresh, () => error(_('serverError'), _('serverAddFailed')))
 
 export const editServer = (server, props) =>

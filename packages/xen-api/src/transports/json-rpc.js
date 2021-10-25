@@ -8,7 +8,6 @@ import UnsupportedTransport from './_UnsupportedTransport'
 
 // https://github.com/xenserver/xenadmin/blob/0df39a9d83cd82713f32d24704852a0fd57b8a64/XenModel/XenAPI/Session.cs#L403-L433
 export default ({ secureOptions, url, httpProxy }) => {
-  // httpProxyUrl = 'http://172.16.210.156:3128'
   if (httpProxy) {
     secureOptions.agent = new ProxyAgent(httpProxy)
   }

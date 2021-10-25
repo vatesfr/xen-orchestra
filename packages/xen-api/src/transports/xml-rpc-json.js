@@ -73,16 +73,14 @@ const parseResult = result => {
 
 export default ({ secureOptions, url: { hostname, port, protocol }, httpProxy }) => {
   const secure = protocol === 'https:'
-  const { ...options } = secure ? secureOptions : {}
-  if (httpProxy) {
-    options.agent = new ProxyAgent(httpProxy)
-  }
   const client = (secure ? createSecureClient : createClient)({
-    ...options,
+    ...(secure ? secureOptions : undefined),
+    agent: httpProxy !== undefined ? new ProxyAgent(httpProxy) : undefined,
     host: hostname,
     path: '/json',
     port,
   })
   const call = promisify(client.methodCall, client)
+
   return (method, args) => call(method, prepareXmlRpcParams(args)).then(parseResult, logError)
 }

@@ -169,10 +169,10 @@ export default class Servers extends Component {
     this.setState({
       allowUnauthorized: false,
       host: '',
+      httpProxy: '',
       label: '',
       password: '',
       username: '',
-      httpProxy: '',
     })
   }
 
