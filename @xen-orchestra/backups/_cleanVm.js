@@ -345,9 +345,7 @@ exports.cleanVm = async function cleanVm(
   }
 
   const doMerge = () => {
-    const promise = asyncMap(toMerge, async chain => {
-      limitedMergeVhdChain(chain, { handler, onLog, remove, merge })
-    })
+    const promise = asyncMap(toMerge, async chain => limitedMergeVhdChain(chain, { handler, onLog, remove, merge }))
     return merge ? promise.then(sizes => ({ size: sum(sizes) })) : promise
   }
 
