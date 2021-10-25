@@ -68,10 +68,17 @@ const TabConsole = withState<State, Props, Effects, Computed, ParentState, Paren
         <>
           <TitleBar actions={[
             {
+              icon: 'pen',
+              color: "primary",
+              title: "edit",
+              variant:"contained"
+            },
+            {
               icon: 'trash',
-              className: "mui-btn--primary",
-              title: "don't delete me, please"
-            }
+              color: "warning",
+              title: "don't delete me, please",
+              variant:"outlined"
+            },
           ]}>{state.vm?.name_label ?? 'loading'} </TitleBar>
           {/* Hide scaling and Ctrl+Alt+Del button temporarily */}
           {/* <RangeInput max={100} min={1} onChange={effects.scaleConsole} step={1} value={state.consoleScale} />
