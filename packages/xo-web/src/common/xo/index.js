@@ -674,6 +674,15 @@ export const detachHost = host =>
     }),
   }).then(() => _call('host.detach', { host: host.id }))
 
+export const disableHost = host =>
+  confirm({
+    icon: 'host-disable',
+    title: _('disableHost'),
+    body: _('disableHostModalMessage', {
+      host: <strong>{host.name_label}</strong>,
+    }),
+  }).then(() => _call('host.disable', { host: resolveId(host) }))
+
 export const forgetHost = host =>
   confirm({
     icon: 'host-forget',
@@ -682,6 +691,8 @@ export const forgetHost = host =>
       host: <strong>{host.name_label}</strong>,
     }),
   }).then(() => _call('host.forget', { host: resolveId(host) }))
+
+export const enableHost = host => _call('host.enable', { host: resolveId(host) })
 
 export const setDefaultSr = sr => _call('pool.setDefaultSr', { sr: resolveId(sr) })
 

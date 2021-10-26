@@ -3,7 +3,7 @@ const map = require('lodash/map.js')
 const mapValues = require('lodash/mapValues.js')
 const ignoreErrors = require('promise-toolbox/ignoreErrors.js')
 const { asyncMap } = require('@xen-orchestra/async-map')
-const { chainVhd, checkVhdChain, default: Vhd } = require('vhd-lib')
+const { chainVhd, checkVhdChain, VhdFile } = require('vhd-lib')
 const { createLogger } = require('@xen-orchestra/log')
 const { dirname } = require('path')
 
@@ -38,7 +38,7 @@ exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(Ab
           try {
             await checkVhdChain(handler, path)
 
-            const vhd = new Vhd(handler, path)
+            const vhd = new VhdFile(handler, path)
             await vhd.readHeaderAndFooter()
             found = found || vhd.footer.uuid.equals(packUuid(baseUuid))
           } catch (error) {
@@ -200,7 +200,7 @@ exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(Ab
           }
 
           // set the correct UUID in the VHD
-          const vhd = new Vhd(handler, path)
+          const vhd = new VhdFile(handler, path)
           await vhd.readHeaderAndFooter()
           vhd.footer.uuid = packUuid(vdi.uuid)
           await vhd.readBlockAllocationTable() // required by writeFooter()
