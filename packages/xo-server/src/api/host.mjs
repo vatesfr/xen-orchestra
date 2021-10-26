@@ -183,14 +183,15 @@ start.resolve = {
 
 // -------------------------------------------------------------------
 
-export function stop({ host }) {
-  return this.getXapi(host).shutdownHost(host._xapiId)
+export function stop({ host, force }) {
+  return this.getXapi(host).shutdownHost(host._xapiId, force)
 }
 
 stop.description = 'stop the host'
 
 stop.params = {
   id: { type: 'string' },
+  force: { type: 'boolean' },
 }
 
 stop.resolve = {

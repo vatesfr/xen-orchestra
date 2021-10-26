@@ -785,11 +785,34 @@ export const restartHostsAgents = hosts => {
 
 export const startHost = host => _call('host.start', { id: resolveId(host) })
 
-export const stopHost = host =>
-  confirm({
-    title: _('stopHostModalTitle'),
-    body: _('stopHostModalMessage'),
-  }).then(() => _call('host.stop', { id: resolveId(host) }), noop)
+export const stopHost = async host => {
+  try {
+    confirm({
+      title: _('stopHostModalTitle'),
+      body: _('stopHostModalMessage'),
+    })
+  } catch (e) {
+    return
+  }
+
+  try {
+    await _call('host.stop', { id: resolveId(host) })
+  } catch (err) {
+    if (err != null && err.code === 'NO_HOSTS_AVAILABLE') {
+      // Retry with force.
+      try {
+        await confirm({
+          body: _('forceStopHost'),
+          title: _('forceStopHostMessage'),
+        })
+      } catch (error) {
+        return
+      }
+      return _call('vm.stop', { id: resolveId(host), force: true })
+    }
+    throw error
+  }
+}
 
 export const stopHosts = hosts => {
   const nHosts = size(hosts)
