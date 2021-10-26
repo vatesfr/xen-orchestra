@@ -1657,7 +1657,7 @@ export const exportVm = vm =>
           </div>
         ),
         icon: 'download',
-        title: _('download'),
+        title: _('downloadVm'),
       }).then(() => window.open(`.${url}`))
     })
   })
