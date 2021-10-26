@@ -57,10 +57,42 @@ const App = withState<State, Props, Effects, Computed, ParentState, ParentEffect
       <h2>Button</h2>
       <Container>
         <Render>
-          <Button onClick={effects.sayHello}>Button</Button>
+          <Button onClick={effects.sayHello} level='primary'>
+            Primary
+          </Button>
+          <Button onClick={effects.sayHello} level='secondary'>
+            Secondary
+          </Button>
+          <Button onClick={effects.sayHello} level='success'>
+            Success
+          </Button>
+          <Button onClick={effects.sayHello} level='warning'>
+            Warning
+          </Button>
+          <Button onClick={effects.sayHello} level='danger'>
+            Danger
+          </Button>
+          <Button onClick={effects.sayHello} level='info'>
+            Info
+          </Button>
         </Render>
-        <Code>{`<Button onClick={doSomething}>
-  Button
+        <Code>{`<Button onClick={doSomething} level='primary'>
+Primary
+</Button>
+<Button onClick={effects.sayHello} level='secondary'>
+Secondary
+</Button>
+<Button onClick={effects.sayHello} level='success'>
+Success
+</Button>
+<Button onClick={effects.sayHello} level='warning'>
+Warning
+</Button>
+<Button onClick={effects.sayHello} level='danger'>
+Danger
+</Button>
+<Button onClick={effects.sayHello} level='info'>
+Info
 </Button>`}</Code>
       </Container>
       <h2>Icon</h2>

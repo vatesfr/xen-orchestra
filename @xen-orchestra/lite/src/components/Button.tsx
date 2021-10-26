@@ -21,11 +21,11 @@ interface Computed {}
 
 const level = {
   danger: '#dc3545',
-  info: '#044b7f',
-  primary: '#366e98',
-  secondary: '#ffffff',
-  success: '#198754',
-  warning: '#eca649',
+  info: '#17a2b8',
+  primary: '#007bff',
+  secondary: '#6c757d',
+  success: '#28a745',
+  warning: '#ffc107',
 }
 
 const StyledButton = styled.button<{ level: keyof typeof level }>`
