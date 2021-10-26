@@ -3,7 +3,6 @@ import cookies from 'js-cookie'
 import copy from 'copy-to-clipboard'
 import fpSortBy from 'lodash/fp/sortBy'
 import React from 'react'
-import Tooltip from 'tooltip'
 import updater from 'xoa-updater'
 import URL from 'url-parse'
 import Xo from 'xo-lib'
@@ -15,7 +14,7 @@ import { filter, forEach, get, includes, isEmpty, isEqual, map, once, size, sort
 import { forbiddenOperation, incorrectState, noHostsAvailable, vmLacksFeature } from 'xo-common/api-errors'
 
 import _ from '../intl'
-import Button from '../button'
+import ActionButton from '../action-button'
 import fetch, { post } from '../fetch'
 import invoke from '../invoke'
 import Icon from '../icon'
@@ -1648,20 +1647,15 @@ export const exportVm = vm =>
     return _call('vm.export', { vm: id, compress }).then(({ $getFrom: url }) => {
       const fullUrl = window.location.origin + url
       const copyToClipboard = () => copy(fullUrl)
-      chooseAction({
+      confirm({
         body: (
           <div>
             <a href={fullUrl}>{_('downloadVm')}</a>{' '}
-            <Tooltip content={_('copyExportedUrl')}>
-              <Button onClick={copyToClipboard} tooltip={_('remove')}>
-                <Icon icon='clipboard' /> {_('copyUrl')}
-              </Button>
-            </Tooltip>
+            <ActionButton handler={copyToClipboard} icon='clipboard' tooltip={_('copyExportedUrl')} size='small' />
             <br />
             <Icon icon='info' /> <em>{_('vmExportUrlValidity')}</em>
           </div>
         ),
-        buttons: [{ btnStyle: 'primary', label: _('download') }],
         icon: 'download',
         title: _('download'),
       }).then(() => window.open(`.${url}`))
