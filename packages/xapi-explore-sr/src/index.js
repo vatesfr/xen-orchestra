@@ -3,6 +3,7 @@
 import archy from 'archy'
 import chalk from 'chalk'
 import execPromise from 'exec-promise'
+import firstDefined from '@xen-orchestra/defined'
 import humanFormat from 'human-format'
 import pw from 'pw'
 import { createClient } from 'xen-api'
@@ -69,7 +70,7 @@ execPromise(async args => {
     url = required('Host URL'),
     user = required('Host user'),
     password = await askPassword('Host password'),
-    httpProxy = await askPassword('Http proxy'),
+    httpProxy = firstDefined(process.env.http_proxy, process.env.HTTP_PROXY),
   ] = args
 
   const xapi = createClient({

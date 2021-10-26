@@ -94,7 +94,7 @@ export default class {
     // TODO: disconnect servers on stop.
   }
 
-  async registerXenServer({ allowUnauthorized = false, host, label, password, readOnly = false, username }) {
+  async registerXenServer({ allowUnauthorized = false, host, label, password, readOnly = false, username, httpProxy }) {
     // FIXME: We are storing passwords which is bad!
     //        Could we use tokens instead?
     // TODO: use plain objects
@@ -102,6 +102,7 @@ export default class {
       allowUnauthorized,
       enabled: true,
       host,
+      httpProxy,
       label: label || undefined,
       password,
       readOnly,
