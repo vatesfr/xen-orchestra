@@ -18,6 +18,7 @@
 - [Backups] Delete unused snapshots related to other schedules (even no longer existing) (PR [#5949](https://github.com/vatesfr/xen-orchestra/pull/5949))
 - [Jobs] Fix `job.runSequence` method (PR [#5944](https://github.com/vatesfr/xen-orchestra/pull/5944))
 - [Netbox] Fix error when testing plugin on versions older than 2.10 (PR [#5963](https://github.com/vatesfr/xen-orchestra/pull/5963))
+- [Snapshot] Fix "Create VM from snapshot" creating a template instead of a VM (PR [#5955](https://github.com/vatesfr/xen-orchestra/pull/5955))
 
 ### Packages to release
 
