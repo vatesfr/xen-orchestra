@@ -172,8 +172,7 @@ export class VhdAbstract {
   static async unlink(handler, path) {
     if (path.endsWith('.alias.vhd')) {
       // also delete alias target
-      const buf = Buffer.from(await handler.readFile(path), 'utf-8')
-      const aliasContent = buf.toString().trim()
+      const aliasContent = (await handler.readFile(path), 'utf-8').trim()
       return VhdAbstract.unlink(handler, aliasContent)
     }
     try {
