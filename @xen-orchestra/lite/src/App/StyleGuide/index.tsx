@@ -1,3 +1,6 @@
+// https://mui.com/components/material-icons/
+import AccountCircleIcon from '@mui/icons-material/AccountCircle'
+import DeleteIcon from '@mui/icons-material/Delete'
 import React from 'react'
 import styled from 'styled-components'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
@@ -57,42 +60,42 @@ const App = withState<State, Props, Effects, Computed, ParentState, ParentEffect
       <h2>Button</h2>
       <Container>
         <Render>
-          <Button onClick={effects.sayHello} level='primary'>
+          <Button color='primary' onClick={effects.sayHello} startIcon={<AccountCircleIcon />}>
             Primary
           </Button>
-          <Button onClick={effects.sayHello} level='secondary'>
+          <Button color='secondary' endIcon={<DeleteIcon />} onClick={effects.sayHello}>
             Secondary
           </Button>
-          <Button onClick={effects.sayHello} level='success'>
+          <Button color='success' onClick={effects.sayHello}>
             Success
           </Button>
-          <Button onClick={effects.sayHello} level='warning'>
+          <Button color='warning' onClick={effects.sayHello}>
             Warning
           </Button>
-          <Button onClick={effects.sayHello} level='danger'>
-            Danger
+          <Button color='error' onClick={effects.sayHello}>
+          Error
           </Button>
-          <Button onClick={effects.sayHello} level='info'>
+          <Button color='info' onClick={effects.sayHello}>
             Info
           </Button>
         </Render>
-        <Code>{`<Button onClick={doSomething} level='primary'>
-Primary
+        <Code>{`<Button onClick={sayHello} color='primary' startIcon={<AccountCircleIcon />}>
+  Primary
 </Button>
-<Button onClick={effects.sayHello} level='secondary'>
-Secondary
+<Button color='secondary' endIcon={<DeleteIcon />} onClick={sayHello}>
+  Secondary
 </Button>
-<Button onClick={effects.sayHello} level='success'>
-Success
+<Button color='success' onClick={sayHello}>
+  Success
 </Button>
-<Button onClick={effects.sayHello} level='warning'>
-Warning
+<Button color='warning' onClick={sayHello}>
+  Warning
 </Button>
-<Button onClick={effects.sayHello} level='danger'>
-Danger
+<Button color='error' onClick={sayHello}>
+  Error
 </Button>
-<Button onClick={effects.sayHello} level='info'>
-Info
+<Button color='info' onClick={sayHello}>
+  Info
 </Button>`}</Code>
       </Container>
       <h2>Icon</h2>
