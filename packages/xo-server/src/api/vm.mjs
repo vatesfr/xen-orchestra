@@ -665,6 +665,8 @@ export const clone = defer(async function ($defer, { vm, name, full_copy: fullCo
   })
   $defer.onFailure(() => xapi.VM_destroy(newVm.$ref))
 
+  // A snapshot may have its `is_a_template` flag set to true, which isn't
+  // automatically set to false when cloning it
   if (vm.type !== 'VM-template') {
     await newVm.set_is_a_template(false)
   }
@@ -714,6 +716,8 @@ export async function copy({ compress, name: nameLabel, sr, vm }) {
     ).vm
   }
 
+  // A snapshot may have its `is_a_template` flag set to true, which isn't
+  // automatically set to false when copying it
   if (vm.type !== 'VM-template') {
     await newVm.set_is_a_template(false)
   }
