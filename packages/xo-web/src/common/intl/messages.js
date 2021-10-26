@@ -714,7 +714,10 @@ const messages = {
 
   // ----- VM actions ------
   cantInterPoolCopy: 'Interpool copy requires at least Enterprise plan',
+  copyExportedUrl: 'Copy the export URL of the VM',
+  copyUrl: 'Copy URL',
   download: 'Download',
+  downloadVm: 'Download VM',
   startVmLabel: 'Start',
   startVmOnLabel: 'Start on…',
   startVmOnMissingHostTitle: 'No host selected',
@@ -730,7 +733,6 @@ const messages = {
   deleteSelectedVmsLabel: 'Delete selected VMs',
   migrateVmLabel: 'Migrate',
   snapshotVmLabel: 'Snapshot',
-  exportUrl: 'Export URL',
   exportVmLabel: 'Export',
   resumeVmLabel: 'Resume',
   copyVmLabel: 'Copy',

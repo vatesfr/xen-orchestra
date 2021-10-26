@@ -3,6 +3,7 @@ import cookies from 'js-cookie'
 import copy from 'copy-to-clipboard'
 import fpSortBy from 'lodash/fp/sortBy'
 import React from 'react'
+import Tooltip from 'tooltip'
 import updater from 'xoa-updater'
 import URL from 'url-parse'
 import Xo from 'xo-lib'
@@ -1650,11 +1651,12 @@ export const exportVm = vm =>
       chooseAction({
         body: (
           <div>
-            <a href={fullUrl}>{_('exportUrl')}</a>
-            <br />
-            <Button onClick={copyToClipboard}>
-              <Icon icon='clipboard' /> {_('copyToClipboardLabel')}
-            </Button>
+            <a href={fullUrl}>{_('downloadVm')}</a>{' '}
+            <Tooltip content={_('copyExportedUrl')}>
+              <Button onClick={copyToClipboard} tooltip={_('remove')}>
+                <Icon icon='clipboard' /> {_('copyUrl')}
+              </Button>
+            </Tooltip>
             <br />
             <Icon icon='info' /> <em>{_('vmExportUrlValidity')}</em>
           </div>
