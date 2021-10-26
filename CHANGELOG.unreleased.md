@@ -18,6 +18,7 @@
 - [Backups] Delete unused snapshots related to other schedules (even no longer existing) (PR [#5949](https://github.com/vatesfr/xen-orchestra/pull/5949))
 - [Jobs] Fix `job.runSequence` method (PR [#5944](https://github.com/vatesfr/xen-orchestra/pull/5944))
 - [Netbox] Fix error when testing plugin on versions older than 2.10 (PR [#5963](https://github.com/vatesfr/xen-orchestra/pull/5963))
+- [XOA licenses] Fix expiration date displaying "Invalid date" in some rare cases
 
 ### Packages to release
 
