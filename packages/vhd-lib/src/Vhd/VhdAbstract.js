@@ -1,5 +1,6 @@
 import { computeBatSize, sectorsRoundUpNoZero, sectorsToBytes } from './_utils'
 import { PLATFORM_NONE, SECTOR_SIZE, PLATFORM_W2KU, PARENT_LOCATOR_ENTRIES } from '../_constants'
+import { resolveAlias, isVhdAlias } from '../_resolveAlias'
 import assert from 'assert'
 
 export class VhdAbstract {
@@ -165,28 +166,35 @@ export class VhdAbstract {
     }
   }
 
-  static rename(handler, sourcePath, targetPath) {
-    return handler.rename(sourcePath, targetPath)
+  static async rename(handler, sourcePath, targetPath) {
+    await handler.rename(sourcePath, targetPath)
   }
 
   static async unlink(handler, path) {
-    if (path.endsWith('.alias.vhd')) {
-      // also delete alias target
-      const aliasContent = (await handler.readFile(path), 'utf-8').trim()
-      return VhdAbstract.unlink(handler, aliasContent)
-    }
+    const resolved = await resolveAlias(handler, path)
     try {
-      await handler.unlink(path)
+      await handler.unlink(resolved)
     } catch (err) {
       if (err.code === 'EISDIR') {
-        await handler.rmtree(path)
+        await handler.rmtree(resolved)
       } else {
         throw err
       }
     }
+
+    // also delete the alias file
+    if (path !== resolved) {
+      await handler.unlink(path)
+    }
   }
 
   static createAlias(handler, aliasPath, targetPath) {
+    if (!isVhdAlias(aliasPath)) {
+      throw new Error(`Alias must be named *.alias.vhd,  ${aliasPath} given`)
+    }
+    if (isVhdAlias(targetPath)) {
+      throw new Error(`Chaining alias is forbidden ${aliasPath} to ${targetPath}`)
+    }
     return handler.writeFile(aliasPath, Buffer.from(targetPath))
   }
 }
