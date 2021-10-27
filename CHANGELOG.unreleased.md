@@ -10,6 +10,7 @@
 - [Tasks] Filter out short tasks using a default filter (PR [#5921](https://github.com/vatesfr/xen-orchestra/pull/5921))
 - [Jobs] Ability to copy a job ID (PR [#5951](https://github.com/vatesfr/xen-orchestra/pull/5951))
 - [Host/advanced] Add button to enable/disable the host (PR [#5952](https://github.com/vatesfr/xen-orchestra/pull/5952))
+- [VM/export] Ability to copy the export URL (PR [#5948](https://github.com/vatesfr/xen-orchestra/pull/5948))
 
 ### Bug fixes
 
@@ -18,6 +19,8 @@
 - [Backups] Delete unused snapshots related to other schedules (even no longer existing) (PR [#5949](https://github.com/vatesfr/xen-orchestra/pull/5949))
 - [Jobs] Fix `job.runSequence` method (PR [#5944](https://github.com/vatesfr/xen-orchestra/pull/5944))
 - [Netbox] Fix error when testing plugin on versions older than 2.10 (PR [#5963](https://github.com/vatesfr/xen-orchestra/pull/5963))
+- [Snapshot] Fix "Create VM from snapshot" creating a template instead of a VM (PR [#5955](https://github.com/vatesfr/xen-orchestra/pull/5955))
+- [Host/Logs] Improve the display of log content (PR [#5943](https://github.com/vatesfr/xen-orchestra/pull/5943))
 - [XOA licenses] Fix expiration date displaying "Invalid date" in some rare cases (PR [#5967](https://github.com/vatesfr/xen-orchestra/pull/5967))
 
 ### Packages to release
