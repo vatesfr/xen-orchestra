@@ -1,7 +1,9 @@
+import fromCallback from 'promise-toolbox/fromCallback'
 import getStream from 'get-stream'
 import humanFormat from 'human-format'
 import React from 'react'
 import ReadableStream from 'readable-stream'
+import xml2js from 'xml2js'
 import { connect } from 'react-redux'
 import { createPredicate } from 'value-matcher'
 import { FormattedDate } from 'react-intl'
@@ -9,6 +11,7 @@ import {
   clone,
   every,
   forEach,
+  get,
   isEmpty,
   isFunction,
   isPlainObject,
@@ -214,6 +217,28 @@ function safeHumanFormat(value, opts) {
     return 'N/D'
   }
 }
+
+export const formatLogs = logs =>
+  Promise.all(
+    map(logs, ({ body }, id) => {
+      const matches = /^value:\s*([0-9.]+)\s+config:\s*([^]*)$/.exec(body)
+      if (matches === null) {
+        return
+      }
+
+      const [, value, xml] = matches
+      return fromCallback(xml2js.parseString, xml).then((result = {}) => {
+        const object = mapValues(result.variable, value => get(value, '[0].$.value'))
+        if (object.name === undefined) {
+          return
+        }
+
+        const { name, ...alarmAttributes } = object
+
+        return { name, value, alarmAttributes, id }
+      }, noop)
+    })
+  )
 
 export const formatSize = bytes => (bytes != null ? safeHumanFormat(bytes, { scale: 'binary', unit: 'B' }) : 'N/D')
 

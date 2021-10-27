@@ -1,7 +1,6 @@
 import _ from 'intl'
 import Component from 'base-component'
 import decorate from 'apply-decorators'
-import fromCallback from 'promise-toolbox/fromCallback'
 import { get as getDefined } from '@xen-orchestra/defined'
 import Icon from 'icon'
 import Link from 'link'
@@ -9,14 +8,13 @@ import NoObjects from 'no-objects'
 import React from 'react'
 import SortedTable from 'sorted-table'
 import Tooltip from 'tooltip'
-import xml2js from 'xml2js'
 import { Network, Sr, Vm } from 'render-xo-item'
 import { SelectPool } from 'select-objects'
 import { Container, Row, Col } from 'grid'
 import { Card, CardHeader, CardBlock } from 'card'
 import { FormattedRelative, FormattedTime } from 'react-intl'
-import { flatten, forEach, get, includes, isEmpty, map, mapValues } from 'lodash'
-import { connectStore, formatSize, noop, resolveIds } from 'utils'
+import { flatten, forEach, includes, isEmpty, map } from 'lodash'
+import { connectStore, formatLogs, formatSize, noop, resolveIds } from 'utils'
 import {
   deleteMessage,
   deleteMessages,
@@ -555,26 +553,7 @@ export default class Health extends Component {
   }
 
   _updateAlarms = props => {
-    Promise.all(
-      map(props.alertMessages, ({ body }, id) => {
-        const matches = /^value:\s*([0-9.]+)\s+config:\s*([^]*)$/.exec(body)
-        if (!matches) {
-          return
-        }
-
-        const [, value, xml] = matches
-        return fromCallback(xml2js.parseString, xml).then(result => {
-          const object = mapValues(result && result.variable, value => get(value, '[0].$.value'))
-          if (!object || !object.name) {
-            return
-          }
-
-          const { name, ...alarmAttributes } = object
-
-          return { name, value, alarmAttributes, id }
-        }, noop)
-      })
-    ).then(formattedMessages => {
+    formatLogs(props.alertMessages).then(formattedMessages => {
       this.setState({
         messages: map(formattedMessages, ({ id, ...formattedMessage }) => ({
           formatted: formattedMessage,
