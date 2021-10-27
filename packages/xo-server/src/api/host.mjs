@@ -184,7 +184,10 @@ start.resolve = {
 // -------------------------------------------------------------------
 
 export function stop({ host, force }) {
-  return this.getXapi(host).shutdownHost(host._xapiId, force)
+  if (force) {
+    return this.getXapi(host).forceShutdownHost(host._xapiId)
+  }
+  return this.getXapi(host).shutdownHost(host._xapiId)
 }
 
 stop.description = 'stop the host'

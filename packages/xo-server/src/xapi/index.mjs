@@ -297,12 +297,14 @@ export default class Xapi extends XapiBase {
     await this.call('host.syslog_reconfigure', host.$ref)
   }
 
-  // if force is 'true', only stops the host without evacuating its VMs.
+  async forceShutdownHost(hostId) {
+    const host = this.getObject(hostId)
+    await this.callAsync('host.shutdown', host.$ref)
+  }
+
   async shutdownHost(hostId, force = false) {
     const host = this.getObject(hostId)
-    if (!force) {
-      await this.clearHost(host, force)
-    }
+    await this.clearHost(host, force)
     await this.callAsync('host.shutdown', host.$ref)
   }
 
