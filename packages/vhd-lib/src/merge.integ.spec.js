@@ -1,6 +1,5 @@
 /* eslint-env jest */
 
-import asyncIteratorToStream from 'async-iterator-to-stream'
 import execa from 'execa'
 import fs from 'fs-extra'
 import getStream from 'get-stream'
@@ -14,6 +13,7 @@ import { randomBytes } from 'crypto'
 import { VhdFile, chainVhd, createSyntheticStream, mergeVhd as vhdMerge } from './index'
 
 import { SECTOR_SIZE } from './_constants'
+import { checkFile, createRandomFile, convertFromRawToVhd, recoverRawContent } from './_testUtils'
 
 let tempDir = null
 
@@ -26,32 +26,6 @@ beforeEach(async () => {
 afterEach(async () => {
   await pFromCallback(cb => rimraf(tempDir, cb))
 })
-
-async function createRandomFile(name, sizeMB) {
-  const createRandomStream = asyncIteratorToStream(function* (size) {
-    while (size-- > 0) {
-      yield Buffer.from([Math.floor(Math.random() * 256)])
-    }
-  })
-  const input = createRandomStream(sizeMB * 1024 * 1024)
-  await pFromCallback(cb => pipeline(input, fs.createWriteStream(name), cb))
-}
-
-async function checkFile(vhdName) {
-  await execa('vhd-util', ['check', '-p', '-b', '-t', '-n', vhdName])
-}
-
-async function recoverRawContent(vhdName, rawName, originalSize) {
-  await checkFile(vhdName)
-  await execa('qemu-img', ['convert', '-fvpc', '-Oraw', vhdName, rawName])
-  if (originalSize !== undefined) {
-    await execa('truncate', ['-s', originalSize, rawName])
-  }
-}
-
-async function convertFromRawToVhd(rawName, vhdName) {
-  await execa('qemu-img', ['convert', '-f', 'raw', '-Ovpc', rawName, vhdName])
-}
 
 test('blocks can be moved', async () => {
   const initalSize = 4

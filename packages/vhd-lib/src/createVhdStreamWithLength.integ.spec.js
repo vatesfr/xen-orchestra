@@ -1,6 +1,5 @@
 /* eslint-env jest */
 
-import asyncIteratorToStream from 'async-iterator-to-stream'
 import execa from 'execa'
 import fs from 'fs-extra'
 import rimraf from 'rimraf'
@@ -12,6 +11,7 @@ import { pipeline } from 'readable-stream'
 
 import { createVhdStreamWithLength } from '.'
 import { FOOTER_SIZE } from './_constants'
+import { createRandomFile, convertFromRawToVhd, convertFromVhdToRaw } from './_testUtils'
 
 let tempDir = null
 
@@ -22,27 +22,6 @@ beforeEach(async () => {
 afterEach(async () => {
   await pFromCallback(cb => rimraf(tempDir, cb))
 })
-
-const RAW = 'raw'
-const VHD = 'vpc'
-const convert = (inputFormat, inputFile, outputFormat, outputFile) =>
-  execa('qemu-img', ['convert', '-f', inputFormat, '-O', outputFormat, inputFile, outputFile])
-
-const createRandomStream = asyncIteratorToStream(function* (size) {
-  let requested = Math.min(size, yield)
-  while (size > 0) {
-    const buf = Buffer.allocUnsafe(requested)
-    for (let i = 0; i < requested; ++i) {
-      buf[i] = Math.floor(Math.random() * 256)
-    }
-    requested = Math.min((size -= requested), yield buf)
-  }
-})
-
-async function createRandomFile(name, size) {
-  const input = await createRandomStream(size)
-  await pFromCallback(cb => pipeline(input, fs.createWriteStream(name), cb))
-}
 
 const forOwn = (object, cb) => Object.keys(object).forEach(key => cb(object[key], key, object))
 
@@ -61,7 +40,7 @@ describe('createVhdStreamWithLength', () => {
         await createRandomFile(inputRaw, size)
 
         const inputVhd = `${tempDir}/input.vhd`
-        await convert(RAW, inputRaw, VHD, inputVhd)
+        await convertFromRawToVhd(inputRaw, inputVhd)
 
         const result = await createVhdStreamWithLength(await createReadStream(inputVhd))
         const { length } = result
@@ -75,7 +54,7 @@ describe('createVhdStreamWithLength', () => {
 
         // ensure the generated VHD is correct and contains the same data
         const outputRaw = `${tempDir}/output.raw`
-        await convert(VHD, outputVhd, RAW, outputRaw)
+        await convertFromVhdToRaw(outputVhd, outputRaw)
         await execa('cmp', [inputRaw, outputRaw])
       })
   )
@@ -86,7 +65,7 @@ describe('createVhdStreamWithLength', () => {
     const vhdName = `${tempDir}/randomfile.vhd`
     const outputVhdName = `${tempDir}/output.vhd`
     await createRandomFile(rawFileName, initialSize)
-    await convert(RAW, rawFileName, VHD, vhdName)
+    await convertFromRawToVhd(rawFileName, vhdName)
     const { size: vhdSize } = await fs.stat(vhdName)
     // read file footer
     const footer = await getStream.buffer(createReadStream(vhdName, { start: vhdSize - FOOTER_SIZE }))
