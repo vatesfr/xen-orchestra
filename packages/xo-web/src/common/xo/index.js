@@ -788,25 +788,25 @@ export const startHost = host => _call('host.start', { id: resolveId(host) })
 export const stopHost = async host => {
   try {
     await confirm({
-      title: _('stopHostModalTitle'),
       body: _('stopHostModalMessage'),
+      title: _('stopHostModalTitle'),
     })
     await _call('host.stop', { id: resolveId(host) })
   } catch (err) {
     if (err === undefined) {
       return
     }
-    if (err.code === 'NO_HOSTS_AVAILABLE') {
+    if (err.message === 'no hosts available') {
       // Retry with force.
       try {
         await confirm({
-          body: _('forceStopHost'),
-          title: _('forceStopHostMessage'),
+          body: _('forceStopHostMessage'),
+          title: _('forceStopHost'),
         })
       } catch (error) {
         return
       }
-      return _call('vm.stop', { id: resolveId(host), force: true })
+      return _call('host.stop', { id: resolveId(host), force: true })
     }
     throw error
   }

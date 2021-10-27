@@ -298,8 +298,9 @@ export default class Xapi extends XapiBase {
   }
 
   async forceShutdownHost(hostId) {
-    const host = this.getObject(hostId)
-    await this.callAsync('host.shutdown', host.$ref)
+    const hostRef = this.getObject(hostId).$ref
+    await this.call('host.disable', hostRef)
+    await this.callAsync('host.shutdown', hostRef)
   }
 
   async shutdownHost(hostId, force = false) {
