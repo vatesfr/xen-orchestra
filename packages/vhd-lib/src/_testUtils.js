@@ -3,11 +3,13 @@ import { pipeline } from 'readable-stream'
 import asyncIteratorToStream from 'async-iterator-to-stream'
 import execa from 'execa'
 import fs from 'fs-extra'
+import { randomBytes } from 'crypto'
 
 export async function createRandomFile(name, sizeMB) {
   const createRandomStream = asyncIteratorToStream(function* (size) {
-    while (size-- > 0) {
-      yield Buffer.from([Math.floor(Math.random() * 256)])
+    while (size > 0) {
+      yield randomBytes(Math.min(size, 1024))
+      size -= 1024
     }
   })
   const input = createRandomStream(sizeMB * 1024 * 1024)
@@ -20,14 +22,22 @@ export async function checkFile(vhdName) {
 
 const RAW = 'raw'
 const VHD = 'vpc'
-const convert = (inputFormat, inputFile, outputFormat, outputFile) =>
-  execa('qemu-img', ['convert', '-f', inputFormat, '-O', outputFormat, inputFile, outputFile])
+const VMDK = 'vmdk'
+
+export async function convert(inputFormat, inputFile, outputFormat, outputFile) {
+  await execa('qemu-img', ['convert', `-f${inputFormat}`, '-O', outputFormat, inputFile, outputFile])
+}
 
 export async function convertFromRawToVhd(rawName, vhdName) {
-  await await convert(RAW, rawName, VHD, vhdName)
+  await convert(RAW, rawName, VHD, vhdName)
 }
+
 export async function convertFromVhdToRaw(vhdName, rawName) {
   await convert(VHD, vhdName, RAW, rawName)
+}
+
+export async function convertFromVmdkToRaw(vmdkName, rawName) {
+  await convert(VMDK, vmdkName, RAW, rawName)
 }
 
 export async function createRandomVhdFile(path, sizeMB) {

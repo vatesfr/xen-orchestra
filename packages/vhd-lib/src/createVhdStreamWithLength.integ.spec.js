@@ -37,7 +37,7 @@ describe('createVhdStreamWithLength', () => {
     (size, title) =>
       it(title, async () => {
         const inputRaw = `${tempDir}/input.raw`
-        await createRandomFile(inputRaw, size)
+        await createRandomFile(inputRaw, size / 1024 / 1024)
 
         const inputVhd = `${tempDir}/input.vhd`
         await convertFromRawToVhd(inputRaw, inputVhd)
@@ -60,7 +60,7 @@ describe('createVhdStreamWithLength', () => {
   )
 
   it('can skip blank after the last block and before the footer', async () => {
-    const initialSize = 4 * 1024
+    const initialSize = 4
     const rawFileName = `${tempDir}/randomfile`
     const vhdName = `${tempDir}/randomfile.vhd`
     const outputVhdName = `${tempDir}/output.vhd`
