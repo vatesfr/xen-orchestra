@@ -48,6 +48,13 @@ const assertProxyAddress = (proxy, address) => {
 export default class Proxy {
   constructor(app) {
     this._app = app
+    this._getProxyApplianceUpdaterState = debounceWithKey(
+      function (id) {
+        return app.callProxyMethod(id, 'appliance.updater.getState')
+      },
+      DEBOUNCE_TIME_PROXY_STATE,
+      id => id
+    )
     const rules = {
       '{date}': (date = new Date()) => date.toISOString(),
     }
@@ -195,14 +202,7 @@ export default class Proxy {
   }
 
   getProxyApplianceUpdaterState(id) {
-    const app = this._app
-    return debounceWithKey(
-      function (id) {
-        return app.callProxyMethod(id, 'appliance.updater.getState')
-      },
-      DEBOUNCE_TIME_PROXY_STATE,
-      id => id
-    )(id)
+    return this._getProxyApplianceUpdaterState(id)
   }
 
   @decorateWith(defer)
