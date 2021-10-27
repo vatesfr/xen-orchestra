@@ -791,11 +791,13 @@ export const stopHost = async host => {
       body: _('stopHostModalMessage'),
       title: _('stopHostModalTitle'),
     })
+  } catch (e) {
+    return
+  }
+
+  try {
     await _call('host.stop', { id: resolveId(host) })
   } catch (err) {
-    if (err === undefined) {
-      return
-    }
     if (err.message === 'no hosts available') {
       // Retry with force.
       try {
@@ -803,7 +805,7 @@ export const stopHost = async host => {
           body: _('forceStopHostMessage'),
           title: _('forceStopHost'),
         })
-      } catch (error) {
+      } catch (e) {
         return
       }
       return _call('host.stop', { id: resolveId(host), force: true })
