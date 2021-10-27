@@ -76,7 +76,7 @@ defaultSignInPage = '/signin'
 throttlingDelay = '2 seconds'
 
 [backups]
-disableMergeWorker = true
+disableMergeWorker = false
 
 # Mode to use for newly created backup directories
 #
