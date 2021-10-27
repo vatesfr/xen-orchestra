@@ -1645,15 +1645,15 @@ export const exportVm = vm =>
     const id = resolveId(vm)
     return _call('vm.export', { vm: id, compress }).then(async ({ $getFrom: url }) => {
       const fullUrl = window.location.origin + url
-      const copyToClipboard = () => {
-        copy(fullUrl)
-        info(_('startVmExport'), id)
-      }
+      const copyToClipboard = () => copy(fullUrl)
+      const _info = () => info(_('startVmExport'), id)
       try {
         await confirm({
           body: (
             <div>
-              <a href={fullUrl}>{_('downloadVm')}</a>{' '}
+              <a href={fullUrl} onClick={_info}>
+                {_('downloadVm')}
+              </a>{' '}
               <ActionButton handler={copyToClipboard} icon='clipboard' tooltip={_('copyExportedUrl')} size='small' />
               <br />
               <Icon icon='info' /> <em>{_('vmExportUrlValidity')}</em>
@@ -1662,7 +1662,7 @@ export const exportVm = vm =>
           icon: 'download',
           title: _('downloadVm'),
         })
-        info(_('startVmExport'), id)
+        _info()
         window.open(`.${url}`)
       } catch (e) {}
     })
