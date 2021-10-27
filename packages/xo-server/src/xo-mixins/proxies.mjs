@@ -198,7 +198,6 @@ export default class Proxy {
     const app = this._app
     return debounceWithKey(
       function (id) {
-        console.log('debounce !!!', id)
         return app.callProxyMethod(id, 'appliance.updater.getState')
       },
       DEBOUNCE_TIME_PROXY_STATE,

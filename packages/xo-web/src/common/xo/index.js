@@ -480,9 +480,8 @@ subscribeHostMissingPatches.forceRefresh = host => {
 const proxiesApplianceUpdaterState = {}
 export const subscribeProxiesApplianceUpdaterState = (proxyId, cb) => {
   if (proxiesApplianceUpdaterState[proxyId] === undefined) {
-    proxiesApplianceUpdaterState[proxyId] = createSubscription(getProxyApplianceUpdaterState(proxyId))
+    proxiesApplianceUpdaterState[proxyId] = createSubscription(() => getProxyApplianceUpdaterState(proxyId))
   }
-
   return proxiesApplianceUpdaterState[proxyId](cb)
 }
 subscribeProxiesApplianceUpdaterState.forceRefresh = proxyId => {
