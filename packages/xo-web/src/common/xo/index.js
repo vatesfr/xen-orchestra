@@ -1643,22 +1643,28 @@ export const exportVm = vm =>
     title: _('exportVmLabel'),
   }).then(compress => {
     const id = resolveId(vm)
-    info(_('startVmExport'), id)
-    return _call('vm.export', { vm: id, compress }).then(({ $getFrom: url }) => {
+    return _call('vm.export', { vm: id, compress }).then(async ({ $getFrom: url }) => {
       const fullUrl = window.location.origin + url
-      const copyToClipboard = () => copy(fullUrl)
-      confirm({
-        body: (
-          <div>
-            <a href={fullUrl}>{_('downloadVm')}</a>{' '}
-            <ActionButton handler={copyToClipboard} icon='clipboard' tooltip={_('copyExportedUrl')} size='small' />
-            <br />
-            <Icon icon='info' /> <em>{_('vmExportUrlValidity')}</em>
-          </div>
-        ),
-        icon: 'download',
-        title: _('downloadVm'),
-      }).then(() => window.open(`.${url}`))
+      const copyToClipboard = () => {
+        copy(fullUrl)
+        info(_('startVmExport'), id)
+      }
+      try {
+        await confirm({
+          body: (
+            <div>
+              <a href={fullUrl}>{_('downloadVm')}</a>{' '}
+              <ActionButton handler={copyToClipboard} icon='clipboard' tooltip={_('copyExportedUrl')} size='small' />
+              <br />
+              <Icon icon='info' /> <em>{_('vmExportUrlValidity')}</em>
+            </div>
+          ),
+          icon: 'download',
+          title: _('downloadVm'),
+        })
+        info(_('startVmExport'), id)
+        window.open(`.${url}`)
+      } catch (e) {}
     })
   })
 
