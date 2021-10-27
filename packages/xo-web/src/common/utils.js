@@ -238,7 +238,7 @@ export const formatLogs = logs =>
         return { name, value, alarmAttributes, id }
       })
     })
-  )
+  ).catch(noop)
 
 export const formatSize = bytes => (bytes != null ? safeHumanFormat(bytes, { scale: 'binary', unit: 'B' }) : 'N/D')
 

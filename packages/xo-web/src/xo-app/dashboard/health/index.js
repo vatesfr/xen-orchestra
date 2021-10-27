@@ -14,7 +14,7 @@ import { Container, Row, Col } from 'grid'
 import { Card, CardHeader, CardBlock } from 'card'
 import { FormattedRelative, FormattedTime } from 'react-intl'
 import { flatten, forEach, includes, isEmpty, map } from 'lodash'
-import { connectStore, formatLogs, formatSize, noop, resolveIds } from 'utils'
+import { connectStore, formatLogs, formatSize, resolveIds } from 'utils'
 import {
   deleteMessage,
   deleteMessages,
@@ -560,7 +560,7 @@ export default class Health extends Component {
           ...props.alertMessages[id],
         })),
       })
-    }, noop)
+    })
   }
 
   _getSrUrl = sr => `srs/${sr.id}`

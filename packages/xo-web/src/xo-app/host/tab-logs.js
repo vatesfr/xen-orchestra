@@ -101,19 +101,14 @@ export default class TabLogs extends Component {
   }
 
   _formatLogs = logs =>
-    formatLogs(logs)
-      .then(formattedLogs => {
-        this.setState({
-          logs: map(formattedLogs, ({ id, ...formattedLogs }) => ({
-            formatted: formattedLogs,
-            ...logs[id],
-          })),
-        })
+    formatLogs(logs).then(formattedLogs => {
+      this.setState({
+        logs: map(formattedLogs, ({ id, ...formattedLogs }) => ({
+          formatted: formattedLogs,
+          ...logs[id],
+        })),
       })
-      .catch(error => {
-        console.error(error)
-        this.setState({ logs })
-      })
+    })
 
   _nextPage = () => this.setState({ page: this.state.page + 1 })
   _previousPage = () => this.setState({ page: this.state.page - 1 })
