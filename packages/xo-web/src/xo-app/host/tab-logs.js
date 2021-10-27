@@ -6,7 +6,13 @@ import SortedTable from 'sorted-table'
 import { createPager } from 'selectors'
 import { Row, Col } from 'grid'
 import { deleteMessage, deleteMessages } from 'xo'
+import { formatLogs } from 'utils'
 import { FormattedRelative, FormattedTime } from 'react-intl'
+import { map } from 'lodash'
+
+const LOG_BODY_STYLE = {
+  whiteSpace: 'pre-wrap',
+}
 
 const LOG_COLUMNS = [
   {
@@ -34,7 +40,26 @@ const LOG_COLUMNS = [
   },
   {
     name: _('logContent'),
-    itemRenderer: log => log.body,
+    itemRenderer: ({ formatted, body }) =>
+      formatted !== undefined ? (
+        <div>
+          <Row>
+            <Col mediumSize={6}>
+              <strong>{formatted.name}</strong>
+            </Col>
+            <Col mediumSize={6}>{formatted.value}</Col>
+          </Row>
+          <br />
+          {map(formatted.alarmAttributes, (value, label) => (
+            <Row key={label}>
+              <Col mediumSize={6}>{label}</Col>
+              <Col mediumSize={6}>{value}</Col>
+            </Row>
+          ))}
+        </div>
+      ) : (
+        <pre style={LOG_BODY_STYLE}>{body}</pre>
+      ),
     sortCriteria: log => log.body,
   },
 ]
@@ -55,7 +80,7 @@ export default class TabLogs extends Component {
     super()
 
     this.getLogs = createPager(
-      () => this.props.logs,
+      () => this.state.logs,
       () => this.state.page,
       10
     )
@@ -64,6 +89,26 @@ export default class TabLogs extends Component {
       page: 1,
     }
   }
+
+  componentDidMount() {
+    this._formatLogs(this.props.logs)
+  }
+
+  componentDidUpdate(props) {
+    if (props.logs !== this.props.logs) {
+      this._formatLogs(this.props.logs)
+    }
+  }
+
+  _formatLogs = logs =>
+    formatLogs(logs).then(formattedLogs => {
+      this.setState({
+        logs: map(formattedLogs, ({ id, ...formattedLogs }) => ({
+          formatted: formattedLogs,
+          ...logs[id],
+        })),
+      })
+    })
 
   _nextPage = () => this.setState({ page: this.state.page + 1 })
   _previousPage = () => this.setState({ page: this.state.page - 1 })
