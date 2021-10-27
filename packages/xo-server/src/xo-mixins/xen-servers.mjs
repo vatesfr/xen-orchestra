@@ -94,7 +94,7 @@ export default class {
     // TODO: disconnect servers on stop.
   }
 
-  async registerXenServer({ allowUnauthorized = false, host, label, password, readOnly = false, username }) {
+  async registerXenServer({ allowUnauthorized = false, host, label, password, readOnly = false, username, httpProxy }) {
     // FIXME: We are storing passwords which is bad!
     //        Could we use tokens instead?
     // TODO: use plain objects
@@ -102,6 +102,7 @@ export default class {
       allowUnauthorized,
       enabled: true,
       host,
+      httpProxy,
       label: label || undefined,
       password,
       readOnly,
@@ -119,11 +120,18 @@ export default class {
     }
   }
 
-  async updateXenServer(id, { allowUnauthorized, enabled, error, host, label, password, readOnly, username }) {
+  async updateXenServer(
+    id,
+    { allowUnauthorized, enabled, error, host, label, password, readOnly, username, httpProxy }
+  ) {
     const server = await this._getXenServer(id)
     const xapi = this._xapis[id]
     const requireDisconnected =
-      allowUnauthorized !== undefined || host !== undefined || password !== undefined || username !== undefined
+      allowUnauthorized !== undefined ||
+      host !== undefined ||
+      password !== undefined ||
+      username !== undefined ||
+      httpProxy !== undefined
 
     if (requireDisconnected && xapi !== undefined && xapi.status !== 'disconnected') {
       throw new Error('this entry require disconnecting the server to update it')
@@ -153,6 +161,10 @@ export default class {
       server.set('allowUnauthorized', allowUnauthorized)
     }
 
+    if (httpProxy !== undefined) {
+      // if value is null, pass undefined to the model , so it will delete this optionnal property from the Server object
+      server.set('httpProxy', httpProxy === null ? undefined : httpProxy)
+    }
     await this._servers.update(server)
   }
 
@@ -288,6 +300,7 @@ export default class {
       readOnly: server.readOnly,
 
       ...config.get('xapiOptions'),
+      httpProxy: server.httpProxy,
       guessVhdSizeOnImport: config.get('guessVhdSizeOnImport'),
 
       auth: {

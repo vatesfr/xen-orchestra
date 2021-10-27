@@ -560,10 +560,11 @@ export const exportConfig = () =>
 
 // Server ------------------------------------------------------------
 
-export const addServer = (host, username, password, label, allowUnauthorized) =>
+export const addServer = (host, username, password, label, allowUnauthorized, httpProxy) =>
   _call('server.add', {
     allowUnauthorized,
     host,
+    httpProxy,
     label,
     password,
     username,

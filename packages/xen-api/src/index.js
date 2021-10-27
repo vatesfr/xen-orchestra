@@ -115,6 +115,7 @@ export class Xapi extends EventEmitter {
     }
 
     this._allowUnauthorized = opts.allowUnauthorized
+    this._httpProxy = opts.httpProxy
     this._setUrl(url)
 
     this._connected = new Promise(resolve => {
@@ -851,6 +852,7 @@ export class Xapi extends EventEmitter {
         rejectUnauthorized: !this._allowUnauthorized,
       },
       url,
+      httpProxy: this._httpProxy,
     })
     this._url = url
   }

@@ -36,6 +36,10 @@ add.params = {
     optional: true,
     type: 'boolean',
   },
+  httpProxy: {
+    optional: true,
+    type: 'string',
+  },
 }
 
 // -------------------------------------------------------------------
@@ -103,6 +107,10 @@ set.params = {
   readOnly: {
     optional: true,
     type: 'boolean',
+  },
+  httpProxy: {
+    optional: true,
+    type: ['string', 'null'],
   },
 }
 
