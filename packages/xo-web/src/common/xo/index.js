@@ -1636,37 +1636,35 @@ export const importDisks = (disks, sr) =>
   )
 
 import ExportVmModalBody from './export-vm-modal' // eslint-disable-line import/first
-export const exportVm = vm =>
-  confirm({
+export const exportVm = async vm => {
+  const compress = await confirm({
     body: <ExportVmModalBody vm={vm} />,
     icon: 'export',
     title: _('exportVmLabel'),
-  }).then(compress => {
-    const id = resolveId(vm)
-    return _call('vm.export', { vm: id, compress }).then(async ({ $getFrom: url }) => {
-      const fullUrl = window.location.origin + url
-      const copyToClipboard = () => copy(fullUrl)
-      const _info = () => info(_('startVmExport'), id)
-      try {
-        await confirm({
-          body: (
-            <div>
-              <a href={fullUrl} onClick={_info}>
-                {_('downloadVm')}
-              </a>{' '}
-              <ActionButton handler={copyToClipboard} icon='clipboard' tooltip={_('copyExportedUrl')} size='small' />
-              <br />
-              <Icon icon='info' /> <em>{_('vmExportUrlValidity')}</em>
-            </div>
-          ),
-          icon: 'download',
-          title: _('downloadVm'),
-        })
-        _info()
-        window.open(`.${url}`)
-      } catch (e) {}
-    })
   })
+  const id = resolveId(vm)
+  const { $getFrom: url } = await _call('vm.export', { vm: id, compress })
+  const fullUrl = window.location.origin + url
+  const copytoClipboard = () => copy(fullUrl)
+  const _info = () => info(_('startVmExport'), id)
+
+  await confirm({
+    body: (
+      <div>
+        <a href={fullUrl} onClick={_info}>
+          {_('downloadVm')}
+        </a>{' '}
+        <ActionButton handler={copytoClipboard} icon='clipboard' tooltip={_('copyExportedUrl')} size='small' />
+        <br />
+        <Icon icon='info' /> <em>{_('vmExportUrlValidity')}</em>
+      </div>
+    ),
+    icon: 'download',
+    title: _('downloadVm'),
+  })
+  _info()
+  window.open(`.${url}`)
+}
 
 export const exportVdi = vdi => {
   info(_('startVdiExport'), vdi.id)
