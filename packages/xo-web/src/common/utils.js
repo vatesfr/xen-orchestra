@@ -223,7 +223,7 @@ export const formatLogs = logs =>
     map(logs, ({ body }, id) => {
       const matches = /^value:\s*([0-9.]+)\s+config:\s*([^]*)$/.exec(body)
       if (matches === null) {
-        throw new Error('Invalid pattern.')
+        return
       }
 
       const [, value, xml] = matches
@@ -236,9 +236,9 @@ export const formatLogs = logs =>
         const { name, ...alarmAttributes } = object
 
         return { name, value, alarmAttributes, id }
-      })
+      }, noop)
     })
-  ).catch(noop)
+  )
 
 export const formatSize = bytes => (bytes != null ? safeHumanFormat(bytes, { scale: 'binary', unit: 'B' }) : 'N/D')
 
