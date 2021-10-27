@@ -110,7 +110,7 @@ set.params = {
   },
   httpProxy: {
     optional: true,
-    type: 'string',
+    type: ['string', 'null'],
   },
 }
 

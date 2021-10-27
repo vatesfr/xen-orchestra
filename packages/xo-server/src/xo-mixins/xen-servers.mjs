@@ -127,7 +127,11 @@ export default class {
     const server = await this._getXenServer(id)
     const xapi = this._xapis[id]
     const requireDisconnected =
-      allowUnauthorized !== undefined || host !== undefined || password !== undefined || username !== undefined
+      allowUnauthorized !== undefined ||
+      host !== undefined ||
+      password !== undefined ||
+      username !== undefined ||
+      httpProxy !== undefined
 
     if (requireDisconnected && xapi !== undefined && xapi.status !== 'disconnected') {
       throw new Error('this entry require disconnecting the server to update it')
@@ -158,9 +162,9 @@ export default class {
     }
 
     if (httpProxy !== undefined) {
-      server.set('httpProxy', httpProxy)
+      // if value is null, pass undefined to the model , so it will delete this optionnal property from the Server object
+      server.set('httpProxy', httpProxy === null ? undefined : httpProxy)
     }
-
     await this._servers.update(server)
   }
 

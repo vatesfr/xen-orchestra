@@ -136,7 +136,8 @@ const COLUMNS = [
     itemRenderer: (server, formatMessage) => (
       <Text
         value={server.httpProxy || ''}
-        onChange={httpProxy => editServer(server, { httpProxy })}
+        // force a null value for falsish value to ensure the value is removed from object if set to ''
+        onChange={httpProxy => editServer(server, { httpProxy: httpProxy || null })}
         placeholder={formatMessage(messages.serverHttpProxyPlaceHolder)}
       />
     ),
@@ -243,7 +244,7 @@ export default class Servers extends Component {
               className='form-control'
               onChange={this.linkState('httpProxy')}
               placeholder={formatMessage(messages.serverHttpProxy)}
-              type='url'
+              type='text'
               value={state.httpProxy || ''}
             />
           </div>{' '}
