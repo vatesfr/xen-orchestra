@@ -10,7 +10,9 @@ import Icon from '../components/Icon'
 
 interface ParentState {}
 
-interface State {}
+interface State {
+  selected?: Array<string> | string
+}
 
 interface ItemType {
   children?: Array<ItemType>
@@ -59,7 +61,9 @@ interface Props {
 
 interface ParentEffects {}
 
-interface Effects {}
+interface Effects {
+  setSelectedNodeIds: (event: React.SyntheticEvent, nodeIds: Array<string> | string) => void
+}
 
 interface Computed {}
 
@@ -98,14 +102,24 @@ const renderItem = ({ children, id, label, to, tooltip }: ItemType) => {
 }
 
 const Tree = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
-  {},
-  ({ state, collection, multiSelect, selected }) => (
+  {
+    initialState: () => ({
+      selected: undefined,
+    }),
+    effects: {
+      setSelectedNodeIds: function (event, nodeIds) {
+        this.state.selected = nodeIds
+      },
+    },
+  },
+  ({ effects, state, collection, multiSelect, selected }) => (
     <TreeView
       defaultExpanded={[collection[0].id]}
       defaultCollapseIcon={<Icon icon='chevron-up' />}
       defaultExpandIcon={<Icon icon='chevron-down' />}
+      onNodeSelect={effects.setSelectedNodeIds}
       multiSelect={multiSelect}
-      selected={selected}
+      selected={state.selected || selected}
     >
       {collection.map(renderItem)}
     </TreeView>

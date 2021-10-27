@@ -1,6 +1,7 @@
 import React from 'react'
 import styled from 'styled-components'
 import { withState } from 'reaclette'
+import { withRouter } from 'react-router'
 import { Switch, Route } from 'react-router-dom'
 
 import TabConsole from './TabConsole'
@@ -26,7 +27,7 @@ const MainPanel = styled.div`
 interface ParentState {}
 
 interface State {
-  selectedItem?: string
+  selectedVm?: string
 }
 
 interface Props {}
@@ -34,7 +35,7 @@ interface Props {}
 interface ParentEffects {}
 
 interface Effects {
-  setSelectedItem: (item: string) => void
+  initialize: () => void
 }
 
 interface Computed {}
@@ -42,18 +43,18 @@ interface Computed {}
 const Infrastructure = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
   {
     initialState: () => ({
-      selectedItem: undefined,
+      selectedVm: undefined,
     }),
     effects: {
-      setSelectedItem: function (item) {
-        this.state.selectedItem = item
+      initialize: function () {
+        this.state.selectedVm = this.props.location.pathname.split('/')[3]
       },
     },
   },
-  ({ effects, state }) => (
+  ({ effects, state: { selectedVm } }) => (
     <Container>
       <LeftPanel>
-        <TreeView multiSelect selected={[state.selectedItem]} />
+        <TreeView multiSelect selected={[selectedVm]} />
       </LeftPanel>
       <MainPanel>
         <Switch>
@@ -66,10 +67,7 @@ const Infrastructure = withState<State, Props, Effects, Computed, ParentState, P
               match: {
                 params: { id },
               },
-            }) => {
-              effects.setSelectedItem(id)
-              return <TabConsole key={id} vmId={id} />
-            }}
+            }) => <TabConsole key={id} vmId={id} />}
           />
         </Switch>
       </MainPanel>
@@ -77,4 +75,4 @@ const Infrastructure = withState<State, Props, Effects, Computed, ParentState, P
   )
 )
 
-export default Infrastructure
+export default withRouter(Infrastructure)
