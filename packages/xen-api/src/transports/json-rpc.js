@@ -8,17 +8,21 @@ import UnsupportedTransport from './_UnsupportedTransport'
 
 // https://github.com/xenserver/xenadmin/blob/0df39a9d83cd82713f32d24704852a0fd57b8a64/XenModel/XenAPI/Session.cs#L403-L433
 export default ({ secureOptions, url, httpProxy }) => {
+  let agent
+  if (httpProxy !== undefined) {
+    agent = new ProxyAgent(httpProxy)
+  }
   return (method, args) =>
     httpRequestPlus
       .post(url, {
         ...secureOptions,
-        agent: httpProxy !== undefined ? new ProxyAgent(httpProxy) : undefined,
         body: format.request(0, method, args),
         headers: {
           Accept: 'application/json',
           'Content-Type': 'application/json',
         },
         path: '/jsonrpc',
+        agent,
       })
       .readAll('utf8')
       .then(

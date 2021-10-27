@@ -33,10 +33,13 @@ const parseResult = result => {
 
 export default ({ secureOptions, url: { hostname, port, protocol, httpProxy } }) => {
   const secure = protocol === 'https:'
-
+  let agent
+  if (httpProxy !== undefined) {
+    agent = new ProxyAgent(httpProxy)
+  }
   const client = (secure ? createSecureClient : createClient)({
     ...(secure ? secureOptions : undefined),
-    agent: httpProxy !== undefined ? new ProxyAgent(httpProxy) : undefined,
+    agent,
     host: hostname,
     port,
   })

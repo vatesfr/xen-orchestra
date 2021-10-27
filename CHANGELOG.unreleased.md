@@ -11,7 +11,7 @@
 - [Jobs] Ability to copy a job ID (PR [#5951](https://github.com/vatesfr/xen-orchestra/pull/5951))
 - [Host/advanced] Add button to enable/disable the host (PR [#5952](https://github.com/vatesfr/xen-orchestra/pull/5952))
 - [VM/export] Ability to copy the export URL (PR [#5948](https://github.com/vatesfr/xen-orchestra/pull/5948))
-- [XenApi] Ability to set a http proxy between XO and the server
+- [Servers] Ability to use an HTTP proxy between XO and a server
 
 ### Bug fixes
 
