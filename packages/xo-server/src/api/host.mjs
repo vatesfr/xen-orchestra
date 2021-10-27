@@ -194,7 +194,7 @@ stop.description = 'stop the host'
 
 stop.params = {
   id: { type: 'string' },
-  force: { type: 'boolean' },
+  force: { type: 'boolean', optional: true },
 }
 
 stop.resolve = {
