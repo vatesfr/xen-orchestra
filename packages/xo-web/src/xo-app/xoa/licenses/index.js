@@ -139,7 +139,7 @@ const PRODUCTS_COLUMNS = [
   },
   {
     name: _('licenseExpires'),
-    itemRenderer: ({ expires }) => (expires !== undefined ? <ShortDate timestamp={expires} /> : '-'),
+    itemRenderer: ({ expires }) => (expires !== undefined ? <ShortDate timestamp={+expires} /> : '-'),
     sortCriteria: 'expires',
     sortOrder: 'desc',
   },

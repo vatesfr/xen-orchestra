@@ -1,9 +1,9 @@
-import Vhd, { checkVhdChain } from 'vhd-lib'
+import { VhdFile, checkVhdChain } from 'vhd-lib'
 import getopts from 'getopts'
 import { getHandler } from '@xen-orchestra/fs'
 import { resolve } from 'path'
 
-const checkVhd = (handler, path) => new Vhd(handler, path).readHeaderAndFooter()
+const checkVhd = (handler, path) => new VhdFile(handler, path).readHeaderAndFooter()
 
 export default async rawArgs => {
   const { chain, _: args } = getopts(rawArgs, {

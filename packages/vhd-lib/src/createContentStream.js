@@ -1,11 +1,11 @@
 import asyncIteratorToStream from 'async-iterator-to-stream'
 
-import Vhd from './vhd'
+import { VhdFile } from '.'
 
 export default asyncIteratorToStream(async function* (handler, path) {
   const fd = await handler.openFile(path, 'r')
   try {
-    const vhd = new Vhd(handler, fd)
+    const vhd = new VhdFile(handler, fd)
     await vhd.readHeaderAndFooter()
     await vhd.readBlockAllocationTable()
     const {
@@ -17,10 +17,10 @@ export default asyncIteratorToStream(async function* (handler, path) {
 
     const emptyBlock = Buffer.alloc(blockSize)
     for (let i = 0; i < nFullBlocks; ++i) {
-      yield vhd.containsBlock(i) ? (await vhd._readBlock(i)).data : emptyBlock
+      yield vhd.containsBlock(i) ? (await vhd.readBlock(i)).data : emptyBlock
     }
     if (nLeftoverBytes !== 0) {
-      yield (vhd.containsBlock(nFullBlocks) ? (await vhd._readBlock(nFullBlocks)).data : emptyBlock).slice(
+      yield (vhd.containsBlock(nFullBlocks) ? (await vhd.readBlock(nFullBlocks)).data : emptyBlock).slice(
         0,
         nLeftoverBytes
       )

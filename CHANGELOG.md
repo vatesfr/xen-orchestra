@@ -1,5 +1,19 @@
 # ChangeLog
 
+## **next**
+
+### Bug fixes
+
+> Users must be able to say: “I had this issue, happy to know it's fixed”
+
+- [Netbox] Support older versions of Netbox and prevent "active is not a valid choice" error [#5898](https://github.com/vatesfr/xen-orchestra/issues/5898) (PR [#5946](https://github.com/vatesfr/xen-orchestra/pull/5946))
+
+### Released packages
+
+- xo-server-netbox 0.3.2
+- @xen-orchestra/backups 0.14.0
+- xo-server 5.82.4
+
 ## **5.63.0** (2021-09-30)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />

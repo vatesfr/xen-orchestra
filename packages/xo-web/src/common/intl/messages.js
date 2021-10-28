@@ -114,6 +114,7 @@ const messages = {
   // ----- Filters -----
   onError: 'On error',
   successful: 'Successful',
+  filterOutShortTasks: 'Hide short tasks',
   filterOnlyManaged: 'Managed disks',
   filterOnlyOrphaned: 'Orphaned disks',
   filterOnlyRegular: 'Normal disks',
@@ -713,6 +714,8 @@ const messages = {
 
   // ----- VM actions ------
   cantInterPoolCopy: 'Interpool copy requires at least Enterprise plan',
+  copyExportedUrl: 'Copy the export URL of the VM',
+  downloadVm: 'Download VM',
   startVmLabel: 'Start',
   startVmOnLabel: 'Start on…',
   startVmOnMissingHostTitle: 'No host selected',
@@ -734,6 +737,7 @@ const messages = {
   cloneVmLabel: 'Clone',
   fastCloneVmLabel: 'Fast clone',
   vmConsoleLabel: 'Console',
+  vmExportUrlValidity: 'The URL is valid once for a short period of time.',
   backupLabel: 'Backup',
 
   // ----- SR general tab -----
@@ -1751,6 +1755,8 @@ const messages = {
   disconnectVbdsModalTitle: 'Disconnect VBD{nVbds, plural, one {} other {s}}',
   disconnectVbdsModalMessage:
     'Are you sure you want to disconnect {nVbds, number} VBD{nVbds, plural, one {} other {s}}?',
+  disableHost: 'Disable host',
+  disableHostModalMessage: 'Are you sure you want to disable {host}? This will prevent new VMs from starting.',
   revertVmModalMessage:
     'Are you sure you want to revert this VM to the snapshot state? This operation is irreversible.',
   revertVmModalSnapshotBefore: 'Snapshot before',
@@ -1821,6 +1827,8 @@ const messages = {
   serverEnabled: 'Enabled',
   serverDisabled: 'Disabled',
   serverDisable: 'Disable server',
+  serverHttpProxy: ' HTTP proxy URL',
+  serverHttpProxyPlaceHolder: ' HTTP proxy URL',
 
   // ----- Copy VM -----
   copyVm: 'Copy VM',

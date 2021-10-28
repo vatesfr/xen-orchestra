@@ -5,7 +5,7 @@ import noop from './_noop'
 import { createLogger } from '@xen-orchestra/log'
 import { limitConcurrency } from 'limit-concurrency-decorator'
 
-import Vhd from './vhd'
+import { VhdFile } from '.'
 import { basename, dirname } from 'path'
 import { DISK_TYPE_DIFFERENCING, DISK_TYPE_DYNAMIC } from './_constants'
 
@@ -25,10 +25,10 @@ export default limitConcurrency(2)(async function merge(
 
   const parentFd = await parentHandler.openFile(parentPath, 'r+')
   try {
-    const parentVhd = new Vhd(parentHandler, parentFd)
+    const parentVhd = new VhdFile(parentHandler, parentFd)
     const childFd = await childHandler.openFile(childPath, 'r')
     try {
-      const childVhd = new Vhd(childHandler, childFd)
+      const childVhd = new VhdFile(childHandler, childFd)
 
       let mergeState = await parentHandler.readFile(mergeStatePath).catch(error => {
         if (error.code !== 'ENOENT') {

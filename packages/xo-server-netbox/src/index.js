@@ -1,5 +1,6 @@
 import assert from 'assert'
 import ipaddr from 'ipaddr.js'
+import semver from 'semver'
 import { createLogger } from '@xen-orchestra/log'
 import { find, flatten, forEach, groupBy, isEmpty, keyBy, mapValues, omit, trimEnd, zipObject } from 'lodash'
 
@@ -44,6 +45,7 @@ class Netbox {
   #endpoint
   #intervalToken
   #loaded
+  #netboxApiVersion
   #pools
   #removeApiMethods
   #syncInterval
@@ -113,6 +115,7 @@ class Netbox {
     const httpRequest = async () => {
       try {
         const response = await this.#xo.httpRequest(url, options)
+        this.#netboxApiVersion = response.headers['api-version']
         const body = await response.readAll()
         if (body.length > 0) {
           return JSON.parse(body)
@@ -332,8 +335,16 @@ class Netbox {
         vcpus: vm.CPUs.number,
         disk,
         memory: Math.floor(vm.memory.dynamic[1] / M),
-        status: vm.power_state === 'Running' ? 'active' : 'offline',
         custom_fields: { uuid: vm.uuid },
+      }
+
+      if (this.#netboxApiVersion !== undefined) {
+        // https://netbox.readthedocs.io/en/stable/release-notes/version-2.7/#api-choice-fields-now-use-string-values-3569
+        if (semver.satisfies(semver.coerce(this.#netboxApiVersion).version, '>=2.7.0')) {
+          updatedVm.status = vm.power_state === 'Running' ? 'active' : 'offline'
+        } else {
+          updatedVm.status = vm.power_state === 'Running' ? 1 : 0
+        }
       }
 
       if (oldNetboxVm === undefined) {
@@ -651,7 +662,7 @@ class Netbox {
   }
 
   async test() {
-    const randomSuffix = Math.random().toString(36).slice(2)
+    const randomSuffix = Math.random().toString(36).slice(2, 11)
     const name = '[TMP] Xen Orchestra Netbox plugin test - ' + randomSuffix
     await this.#makeRequest('/virtualization/cluster-types/', 'POST', {
       name,
