@@ -328,6 +328,10 @@
   }
   &-circle {
     @extend .fa;
+    @extend .fa-circle;
+  }
+  &-circle-thin {
+    @extend .fa;
     @extend .fa-circle-thin;
   }
 

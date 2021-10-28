@@ -477,6 +477,25 @@ subscribeHostMissingPatches.forceRefresh = host => {
   }
 }
 
+const proxiesApplianceUpdaterState = {}
+export const subscribeProxiesApplianceUpdaterState = (proxyId, cb) => {
+  if (proxiesApplianceUpdaterState[proxyId] === undefined) {
+    proxiesApplianceUpdaterState[proxyId] = createSubscription(() => getProxyApplianceUpdaterState(proxyId))
+  }
+  return proxiesApplianceUpdaterState[proxyId](cb)
+}
+subscribeProxiesApplianceUpdaterState.forceRefresh = proxyId => {
+  if (proxyId === undefined) {
+    forEach(proxiesApplianceUpdaterState, subscription => subscription.forceRefresh())
+    return
+  }
+
+  const subscription = proxiesApplianceUpdaterState[proxyId]
+  if (subscription !== undefined) {
+    subscription.forceRefresh()
+  }
+}
+
 const volumeInfoBySr = {}
 export const subscribeVolumeInfo = ({ sr, infoType }, cb) => {
   sr = resolveId(sr)

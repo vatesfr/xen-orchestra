@@ -1,7 +1,7 @@
 import _ from 'intl'
 import classNames from 'classnames'
 import Component from 'base-component'
-import Icon from 'icon'
+import Icon, { StackedIcons } from 'icon'
 import Link from 'link'
 import React from 'react'
 import Tooltip from 'tooltip'
@@ -15,6 +15,8 @@ import {
   subscribeHostMissingPatches,
   subscribeNotifications,
   subscribePermissions,
+  subscribeProxies,
+  subscribeProxiesApplianceUpdaterState,
   subscribeResourceSets,
 } from 'xo'
 import {
@@ -60,6 +62,10 @@ const returnTrue = () => true
 @addSubscriptions({
   notifications: subscribeNotifications,
   permissions: subscribePermissions,
+  proxyIds: cb =>
+    subscribeProxies(proxies => {
+      cb(map(proxies, 'id').sort())
+    }),
   resourceSets: subscribeResourceSets,
 })
 @injectState
@@ -77,18 +83,29 @@ export default class Menu extends Component {
     }
 
     this._updateMissingPatchesSubscriptions()
+    this._updateProxiesSubscriptions()
   }
 
   componentWillUnmount() {
     this._removeListener()
     this._unsubscribeMissingPatches()
+    this._unsubscribeProxiesApplianceUpdaterState()
   }
 
   componentDidUpdate(prevProps) {
     if (!isEqual(Object.keys(prevProps.hosts).sort(), Object.keys(this.props.hosts).sort())) {
       this._updateMissingPatchesSubscriptions()
     }
+
+    if (!isEqual(prevProps.proxyIds, this.props.proxyIds)) {
+      this._updateProxiesSubscriptions()
+    }
   }
+
+  _areProxiesOutOfDate = createSelector(
+    () => this.state.proxyStates,
+    proxyStates => some(proxyStates, state => state.endsWith('-upgrade-needed'))
+  )
 
   _checkPermissions = createSelector(
     () => this.props.isAdmin,
@@ -155,6 +172,29 @@ export default class Menu extends Component {
     }
 
     this._unsubscribeMissingPatches = () => forEach(unsubs, unsub => unsub())
+  }
+
+  _updateProxiesSubscriptions = () => {
+    this.setState(({ proxyStates }) => ({
+      proxyStates: pick(proxyStates, this.props.proxyIds),
+    }))
+
+    const unsubs = map(this.props.proxyIds, proxyId =>
+      subscribeProxiesApplianceUpdaterState(proxyId, ({ state: proxyState = '' }) => {
+        this.setState(state => ({
+          proxyStates: {
+            ...state.proxyStates,
+            [proxyId]: proxyState,
+          },
+        }))
+      })
+    )
+
+    if (this._unsubscribeProxiesApplianceUpdaterState !== undefined) {
+      this._unsubscribeProxiesApplianceUpdaterState()
+    }
+
+    this._unsubscribeProxiesApplianceUpdaterState = () => forEach(unsubs, unsub => unsub())
   }
 
   render() {
@@ -397,6 +437,18 @@ export default class Menu extends Component {
         to: '/proxies',
         icon: 'proxy',
         label: 'proxies',
+        extra: [
+          this._areProxiesOutOfDate() ? (
+            <Tooltip content={_('proxiesNeedUpgrade')}>
+              <StackedIcons
+                icons={[
+                  { color: 'text-success', icon: 'circle', size: 2 },
+                  { icon: 'menu-update', size: 1 },
+                ]}
+              />
+            </Tooltip>
+          ) : null,
+        ],
       },
       isAdmin && { to: '/about', icon: 'menu-about', label: 'aboutPage' },
       !noOperatablePools && {
