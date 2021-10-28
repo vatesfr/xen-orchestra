@@ -48,13 +48,6 @@ const assertProxyAddress = (proxy, address) => {
 export default class Proxy {
   constructor(app) {
     this._app = app
-    this._getProxyApplianceUpdaterState = debounceWithKey(
-      function (id) {
-        return app.callProxyMethod(id, 'appliance.updater.getState')
-      },
-      DEBOUNCE_TIME_PROXY_STATE,
-      id => id
-    )
     const rules = {
       '{date}': (date = new Date()) => date.toISOString(),
     }
@@ -201,8 +194,9 @@ export default class Proxy {
     await xapi._waitObjectState(vmUuid, vm => extractIpFromVmNetworks(vm.$guest_metrics?.networks) !== undefined)
   }
 
+  @decorateWith(debounceWithKey, DEBOUNCE_TIME_PROXY_STATE, id => id)
   getProxyApplianceUpdaterState(id) {
-    return this._getProxyApplianceUpdaterState(id)
+    return this.callProxyMethod(id, 'appliance.updater.getState')
   }
 
   @decorateWith(defer)
