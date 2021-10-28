@@ -60,6 +60,7 @@ class PoolMaster extends Component {
     .filter((_, { pool }) => ({ $pool: pool.id }))
     .sort()
   return {
+    backupNetwork: createGetObject((_, { pool }) => pool.otherConfig['xo:backupNetwork']),
     hosts: getHosts,
     hostsByMultipathing: createGroupBy(
       getHosts,
@@ -77,7 +78,7 @@ class PoolMaster extends Component {
   plugins: subscribePlugins,
 })
 export default class TabAdvanced extends Component {
-  _getMigrationNetworkPredicate = createSelector(
+  _getNetworkPredicate = createSelector(
     createCollectionWrapper(
       createSelector(
         () => this.props.pifs,
@@ -100,6 +101,10 @@ export default class TabAdvanced extends Component {
     plugins => plugins !== undefined && plugins.some(plugin => plugin.name === 'netbox' && plugin.loaded)
   )
 
+  _onChangeBackupNetwork = backupNetwork => editPool(this.props.pool, { backupNetwork: backupNetwork.id })
+
+  _removeBackupNetwork = () => editPool(this.props.pool, { backupNetwork: null })
+
   _onChangeMigrationNetwork = migrationNetwork => editPool(this.props.pool, { migrationNetwork: migrationNetwork.id })
 
   _removeMigrationNetwork = () => editPool(this.props.pool, { migrationNetwork: null })
@@ -110,7 +115,7 @@ export default class TabAdvanced extends Component {
     )
 
   render() {
-    const { hosts, gpuGroups, pool, hostsByMultipathing, migrationNetwork } = this.props
+    const { backupNetwork, hosts, gpuGroups, pool, hostsByMultipathing, migrationNetwork } = this.props
     const { state } = this
     const { editRemoteSyslog } = state
     const { enabled: hostsEnabledMultipathing, disabled: hostsDisabledMultipathing } = hostsByMultipathing
@@ -254,7 +259,7 @@ export default class TabAdvanced extends Component {
                     <td>
                       <XoSelect
                         onChange={this._onChangeMigrationNetwork}
-                        predicate={this._getMigrationNetworkPredicate()}
+                        predicate={this._getNetworkPredicate()}
                         value={migrationNetwork}
                         xoType='network'
                       >
@@ -262,6 +267,24 @@ export default class TabAdvanced extends Component {
                       </XoSelect>{' '}
                       {migrationNetwork !== undefined && (
                         <a role='button' onClick={this._removeMigrationNetwork}>
+                          <Icon icon='remove' />
+                        </a>
+                      )}
+                    </td>
+                  </tr>
+                  <tr>
+                    <th>{_('backupNetwork')}</th>
+                    <td>
+                      <XoSelect
+                        onChange={this._onChangeBackupNetwork}
+                        predicate={this._getNetworkPredicate()}
+                        value={backupNetwork}
+                        xoType='network'
+                      >
+                        {backupNetwork !== undefined ? <Network id={backupNetwork.id} /> : _('noValue')}
+                      </XoSelect>{' '}
+                      {backupNetwork !== undefined && (
+                        <a role='button' onClick={this._removeBackupNetwork}>
                           <Icon icon='remove' />
                         </a>
                       )}

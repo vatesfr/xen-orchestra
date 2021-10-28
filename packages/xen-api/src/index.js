@@ -807,9 +807,9 @@ export class Xapi extends EventEmitter {
   async _setHostAddressInUrl(url, host) {
     const pool = this._pool
 
-    const poolMigrationNetwork = pool.other_config['xo:migrationNetwork']
+    const poolBackupNetwork = pool.other_config['xo:backupNetwork']
     if (host === undefined) {
-      if (poolMigrationNetwork === undefined) {
+      if (poolBackupNetwork === undefined) {
         const xapiUrl = this._url
         url.hostname = xapiUrl.hostname
         url.port = xapiUrl.port
@@ -820,16 +820,16 @@ export class Xapi extends EventEmitter {
     }
 
     let { address } = host
-    if (poolMigrationNetwork !== undefined) {
+    if (poolBackupNetwork !== undefined) {
       const hostPifs = new Set(host.PIFs)
       try {
-        const networkRef = await this._roCall('network.get_by_uuid', [poolMigrationNetwork])
+        const networkRef = await this._roCall('network.get_by_uuid', [poolBackupNetwork])
         const networkPifs = await this.getField('network', networkRef, 'PIFs')
 
-        const migrationNetworkPifRef = networkPifs.find(hostPifs.has, hostPifs)
-        address = await this.getField('PIF', migrationNetworkPifRef, 'IP')
+        const backupNetworkPifRef = networkPifs.find(hostPifs.has, hostPifs)
+        address = await this.getField('PIF', backupNetworkPifRef, 'IP')
       } catch (error) {
-        console.warn('unable to get the host address linked to the pool migration network', poolMigrationNetwork, error)
+        console.warn('unable to get the host address linked to the pool backup network', poolBackupNetwork, error)
       }
     }
 
