@@ -1655,6 +1655,8 @@ const messages = {
   stopHostModalTitle: 'Shutdown host',
   stopHostModalMessage:
     "This will shutdown your host. Do you want to continue? If it's the pool master, your connection to the pool will be lost",
+  forceStopHost: 'Force shutdown host',
+  forceStopHostMessage: 'This will shutdown your host without evacuating its VMs. Do you want to continue?',
   addHostModalTitle: 'Add host',
   addHostModalMessage: 'Are you sure you want to add {host} to {pool}?',
   restartHostModalTitle: 'Restart host',

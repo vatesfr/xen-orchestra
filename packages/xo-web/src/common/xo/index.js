@@ -807,11 +807,26 @@ export const restartHostsAgents = hosts => {
 
 export const startHost = host => _call('host.start', { id: resolveId(host) })
 
-export const stopHost = host =>
-  confirm({
-    title: _('stopHostModalTitle'),
+export const stopHost = async host => {
+  await confirm({
     body: _('stopHostModalMessage'),
-  }).then(() => _call('host.stop', { id: resolveId(host) }), noop)
+    title: _('stopHostModalTitle'),
+  })
+
+  try {
+    await _call('host.stop', { id: resolveId(host) })
+  } catch (err) {
+    if (err.message === 'no hosts available') {
+      // Retry with bypassEvacuate.
+      await confirm({
+        body: _('forceStopHostMessage'),
+        title: _('forceStopHost'),
+      })
+      return _call('host.stop', { id: resolveId(host), bypassEvacuate: true })
+    }
+    throw error
+  }
+}
 
 export const stopHosts = hosts => {
   const nHosts = size(hosts)
