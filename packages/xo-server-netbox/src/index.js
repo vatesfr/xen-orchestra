@@ -662,7 +662,7 @@ class Netbox {
   }
 
   async test() {
-    const randomSuffix = Math.random().toString(36).slice(2)
+    const randomSuffix = Math.random().toString(36).slice(2, 11)
     const name = '[TMP] Xen Orchestra Netbox plugin test - ' + randomSuffix
     await this.#makeRequest('/virtualization/cluster-types/', 'POST', {
       name,

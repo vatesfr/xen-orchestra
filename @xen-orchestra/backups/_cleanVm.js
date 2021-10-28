@@ -124,6 +124,8 @@ exports.cleanVm = async function cleanVm(
   vmDir,
   { fixMetadata, remove, merge, mergeLimiter = defaultMergeLimiter, onLog = noop }
 ) {
+  const limitedMergeVhdChain = mergeLimiter(mergeVhdChain)
+
   const handler = this._handler
 
   const vhds = new Set()
@@ -343,9 +345,7 @@ exports.cleanVm = async function cleanVm(
   }
 
   const doMerge = () => {
-    const promise = asyncMap(toMerge, async chain => {
-      mergeVhdChain(chain, { handler, onLog, remove, merge })
-    })
+    const promise = asyncMap(toMerge, async chain => limitedMergeVhdChain(chain, { handler, onLog, remove, merge }))
     return merge ? promise.then(sizes => ({ size: sum(sizes) })) : promise
   }
 

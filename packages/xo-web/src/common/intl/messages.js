@@ -714,6 +714,8 @@ const messages = {
 
   // ----- VM actions ------
   cantInterPoolCopy: 'Interpool copy requires at least Enterprise plan',
+  copyExportedUrl: 'Copy the export URL of the VM',
+  downloadVm: 'Download VM',
   startVmLabel: 'Start',
   startVmOnLabel: 'Start on…',
   startVmOnMissingHostTitle: 'No host selected',
@@ -735,6 +737,7 @@ const messages = {
   cloneVmLabel: 'Clone',
   fastCloneVmLabel: 'Fast clone',
   vmConsoleLabel: 'Console',
+  vmExportUrlValidity: 'The URL is valid once for a short period of time.',
   backupLabel: 'Backup',
 
   // ----- SR general tab -----
@@ -792,6 +795,7 @@ const messages = {
   vmsTabName: 'VMs',
   srsTabName: 'SRs',
   // ----- Pool advanced tab -----
+  backupNetwork: 'Backup network',
   poolEditAll: 'Edit all',
   poolHaStatus: 'High Availability',
   poolHaEnabled: 'Enabled',
@@ -1825,6 +1829,8 @@ const messages = {
   serverEnabled: 'Enabled',
   serverDisabled: 'Disabled',
   serverDisable: 'Disable server',
+  serverHttpProxy: ' HTTP proxy URL',
+  serverHttpProxyPlaceHolder: ' HTTP proxy URL',
 
   // ----- Copy VM -----
   copyVm: 'Copy VM',
@@ -2376,6 +2382,7 @@ const messages = {
   proxyUpToDate: 'Your proxy is up-to-date',
   proxyRunningBackupsMessage:
     'The upgrade will interrupt {nJobs, number} running backup job{nJobs, plural, one {} other {s}}. Do you want to continue?',
+  proxiesNeedUpgrade: 'Some proxies need to be upgraded.',
   upgradeNeededForProxies: 'Some proxies need to be upgraded. Click here to get more information.',
 
   // ----- Utils -----

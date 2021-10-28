@@ -1,5 +1,6 @@
 import asap from 'asap'
 import cookies from 'js-cookie'
+import copy from 'copy-to-clipboard'
 import fpSortBy from 'lodash/fp/sortBy'
 import React from 'react'
 import updater from 'xoa-updater'
@@ -13,6 +14,7 @@ import { filter, forEach, get, includes, isEmpty, isEqual, map, once, size, sort
 import { forbiddenOperation, incorrectState, noHostsAvailable, vmLacksFeature } from 'xo-common/api-errors'
 
 import _ from '../intl'
+import ActionButton from '../action-button'
 import fetch, { post } from '../fetch'
 import invoke from '../invoke'
 import Icon from '../icon'
@@ -475,6 +477,25 @@ subscribeHostMissingPatches.forceRefresh = host => {
   }
 }
 
+const proxiesApplianceUpdaterState = {}
+export const subscribeProxiesApplianceUpdaterState = (proxyId, cb) => {
+  if (proxiesApplianceUpdaterState[proxyId] === undefined) {
+    proxiesApplianceUpdaterState[proxyId] = createSubscription(() => getProxyApplianceUpdaterState(proxyId))
+  }
+  return proxiesApplianceUpdaterState[proxyId](cb)
+}
+subscribeProxiesApplianceUpdaterState.forceRefresh = proxyId => {
+  if (proxyId === undefined) {
+    forEach(proxiesApplianceUpdaterState, subscription => subscription.forceRefresh())
+    return
+  }
+
+  const subscription = proxiesApplianceUpdaterState[proxyId]
+  if (subscription !== undefined) {
+    subscription.forceRefresh()
+  }
+}
+
 const volumeInfoBySr = {}
 export const subscribeVolumeInfo = ({ sr, infoType }, cb) => {
   sr = resolveId(sr)
@@ -558,10 +579,11 @@ export const exportConfig = () =>
 
 // Server ------------------------------------------------------------
 
-export const addServer = (host, username, password, label, allowUnauthorized) =>
+export const addServer = (host, username, password, label, allowUnauthorized, httpProxy) =>
   _call('server.add', {
     allowUnauthorized,
     host,
+    httpProxy,
     label,
     password,
     username,
@@ -1660,18 +1682,35 @@ export const importDisks = (disks, sr) =>
   )
 
 import ExportVmModalBody from './export-vm-modal' // eslint-disable-line import/first
-export const exportVm = vm =>
-  confirm({
+export const exportVm = async vm => {
+  const compress = await confirm({
     body: <ExportVmModalBody vm={vm} />,
     icon: 'export',
     title: _('exportVmLabel'),
-  }).then(compress => {
-    const id = resolveId(vm)
-    info(_('startVmExport'), id)
-    return _call('vm.export', { vm: id, compress }).then(({ $getFrom: url }) => {
-      window.open(`.${url}`)
-    })
   })
+  const id = resolveId(vm)
+  const { $getFrom: url } = await _call('vm.export', { vm: id, compress })
+  const fullUrl = window.location.origin + url
+  const copytoClipboard = () => copy(fullUrl)
+  const _info = () => info(_('startVmExport'), id)
+
+  await confirm({
+    body: (
+      <div>
+        <a href={fullUrl} onClick={_info}>
+          {_('downloadVm')}
+        </a>{' '}
+        <ActionButton handler={copytoClipboard} icon='clipboard' tooltip={_('copyExportedUrl')} size='small' />
+        <br />
+        <Icon icon='info' /> <em>{_('vmExportUrlValidity')}</em>
+      </div>
+    ),
+    icon: 'download',
+    title: _('downloadVm'),
+  })
+  _info()
+  window.open(`.${url}`)
+}
 
 export const exportVdi = vdi => {
   info(_('startVdiExport'), vdi.id)
