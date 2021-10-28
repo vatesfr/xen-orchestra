@@ -297,7 +297,7 @@ export default class Xapi extends XapiBase {
     await this.call('host.syslog_reconfigure', host.$ref)
   }
 
-  async shutdownHost(hostId, { force = false, bypassEvacuate = force }) {
+  async shutdownHost(hostId, { force = false, bypassEvacuate = false }) {
     const host = this.getObject(hostId)
     if (bypassEvacuate) {
       await this.call('host.disable', host.$ref)
