@@ -786,28 +786,20 @@ export const restartHostsAgents = hosts => {
 export const startHost = host => _call('host.start', { id: resolveId(host) })
 
 export const stopHost = async host => {
-  try {
-    await confirm({
-      body: _('stopHostModalMessage'),
-      title: _('stopHostModalTitle'),
-    })
-  } catch (e) {
-    return
-  }
+  await confirm({
+    body: _('stopHostModalMessage'),
+    title: _('stopHostModalTitle'),
+  })
 
   try {
     await _call('host.stop', { id: resolveId(host) })
   } catch (err) {
     if (err.message === 'no hosts available') {
       // Retry with bypassEvacuate.
-      try {
-        await confirm({
-          body: _('forceStopHostMessage'),
-          title: _('forceStopHost'),
-        })
-      } catch (e) {
-        return
-      }
+      await confirm({
+        body: _('forceStopHostMessage'),
+        title: _('forceStopHost'),
+      })
       return _call('host.stop', { id: resolveId(host), bypassEvacuate: true })
     }
     throw error
