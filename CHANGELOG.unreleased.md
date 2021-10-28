@@ -12,6 +12,7 @@
 - [Host/advanced] Add button to enable/disable the host (PR [#5952](https://github.com/vatesfr/xen-orchestra/pull/5952))
 - [VM/export] Ability to copy the export URL (PR [#5948](https://github.com/vatesfr/xen-orchestra/pull/5948))
 - [Servers] Ability to use an HTTP proxy between XO and a server
+- [Pool/advanced] Ability to define network for importing/exporting VMs/VDIs (PR [#5957](https://github.com/vatesfr/xen-orchestra/pull/5957))
 
 ### Bug fixes
 
@@ -48,5 +49,5 @@
 - @xen-orchestra/proxy minor
 - vhd-cli minor
 - xapi-explore-sr minor
-- xo-server patch
+- xo-server minor
 - xo-web minor
