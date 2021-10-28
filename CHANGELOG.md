@@ -8,14 +8,12 @@
 - [Jobs] Ability to copy a job ID (PR [#5951](https://github.com/vatesfr/xen-orchestra/pull/5951))
 - [Host/advanced] Add button to enable/disable the host (PR [#5952](https://github.com/vatesfr/xen-orchestra/pull/5952))
 - [VM/export] Ability to copy the export URL (PR [#5948](https://github.com/vatesfr/xen-orchestra/pull/5948))
-- [Servers] Ability to use an HTTP proxy between XO and a server
+- [Servers] Ability to use an HTTP proxy between XO and a server (PR [#5958](https://github.com/vatesfr/xen-orchestra/pull/5958))
 - [Pool/advanced] Ability to define network for importing/exporting VMs/VDIs (PR [#5957](https://github.com/vatesfr/xen-orchestra/pull/5957))
 - [Menu] Notify user when proxies need to be upgraded (PR [#5930](https://github.com/vatesfr/xen-orchestra/pull/5930))
 - [Host] Handle evacuation failure during host shutdown (PR [#5966](https://github.com/vatesfr/xen-orchestra/pull/#5966))
 
 ### Bug fixes
-
-> Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [Netbox] Support older versions of Netbox and prevent "active is not a valid choice" error [#5898](https://github.com/vatesfr/xen-orchestra/issues/5898) (PR [#5946](https://github.com/vatesfr/xen-orchestra/pull/5946))
 - [Backups] Delete unused snapshots related to other schedules (even no longer existing) (PR [#5949](https://github.com/vatesfr/xen-orchestra/pull/5949))
@@ -31,7 +29,8 @@
 - xo-server-netbox 0.3.3
 - vhd-lib 1.3.0
 - xen-api 0.35.0
-- @xen-orchestra/backups 0.15.0
+- @xen-orchestra/xapi 0.8.0
+- @xen-orchestra/backups 0.15.1
 - vhd-cli 0.5.0
 - xapi-explore-sr 0.4.0
 - xo-server 5.83.0
