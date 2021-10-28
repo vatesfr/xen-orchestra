@@ -5,13 +5,14 @@ import execa from 'execa'
 import fs from 'fs-extra'
 import { randomBytes } from 'crypto'
 
+const createRandomStream = asyncIteratorToStream(function* (size) {
+  while (size > 0) {
+    yield randomBytes(Math.min(size, 1024))
+    size -= 1024
+  }
+})
+
 export async function createRandomFile(name, sizeMB) {
-  const createRandomStream = asyncIteratorToStream(function* (size) {
-    while (size > 0) {
-      yield randomBytes(Math.min(size, 1024))
-      size -= 1024
-    }
-  })
   const input = createRandomStream(sizeMB * 1024 * 1024)
   await pFromCallback(cb => pipeline(input, fs.createWriteStream(name), cb))
 }
@@ -24,7 +25,7 @@ const RAW = 'raw'
 const VHD = 'vpc'
 const VMDK = 'vmdk'
 
-export async function convert(inputFormat, inputFile, outputFormat, outputFile) {
+async function convert(inputFormat, inputFile, outputFormat, outputFile) {
   await execa('qemu-img', ['convert', `-f${inputFormat}`, '-O', outputFormat, inputFile, outputFile])
 }
 
