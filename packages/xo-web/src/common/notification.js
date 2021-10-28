@@ -5,6 +5,7 @@ import React, { Component } from 'react'
 import ReactNotify from 'react-notify'
 import { connectStore } from 'utils'
 import { isAdmin } from 'selectors'
+import fetch from './fetch'
 
 let instance
 
@@ -12,8 +13,47 @@ export let error
 export let info
 export let success
 
+const publicVapidKey = 'BDAqBcWLLjbzGSMjVqlhZmU88uiAVascwXn5mbiuMVFpsXiJixtIxVpu06pIX1b8cjXKYawsv-FuGhp9oH_1dwc'
+
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - (base64String.length % 4)) % 4)
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/')
+
+  const rawData = window.atob(base64)
+  const outputArray = new Uint8Array(rawData.length)
+
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i)
+  }
+  return outputArray
+}
+
+// register the service worker, register our push api, send the notification
+async function registerNotificationServiceWorker() {
+  // register service worker
+  const register = await navigator.serviceWorker.register('/serviceworker.js', {
+    scope: '/'
+  })
+
+  // register push
+  const subscription = await register.pushManager.subscribe({
+    userVisibleOnly: true,
+
+    // public vapid key
+    applicationServerKey: urlBase64ToUint8Array(publicVapidKey)
+  })
+  // Send push notification
+  await fetch('/service-worker-subscribe', {
+    method: 'POST',
+    body: JSON.stringify(subscription),
+    headers: {
+      'content-type': 'application/json'
+    }
+  })
+}
+
 @connectStore({
-  isAdmin,
+  isAdmin
 })
 export class Notification extends Component {
   componentDidMount() {
@@ -21,6 +61,11 @@ export class Notification extends Component {
       throw new Error('Notification is a singleton!')
     }
     instance = this
+
+    // check if the serveice worker can work in the current browser
+    if ('serviceWorker' in navigator) {
+      registerNotificationServiceWorker()
+    }
   }
 
   componentWillUnmount() {

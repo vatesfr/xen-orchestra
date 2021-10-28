@@ -25,28 +25,28 @@ const gulp = require('gulp')
 // ===================================================================
 
 function lazyFn(factory) {
-  let fn = function () {
+  let fn = function() {
     fn = factory()
     return fn.apply(this, arguments)
   }
 
-  return function () {
+  return function() {
     return fn.apply(this, arguments)
   }
 }
 
 // -------------------------------------------------------------------
 
-const livereload = lazyFn(function () {
+const livereload = lazyFn(function() {
   const livereload = require('gulp-refresh')
   livereload.listen({
-    port: LIVERELOAD_PORT,
+    port: LIVERELOAD_PORT
   })
 
   return livereload
 })
 
-const pipe = lazyFn(function () {
+const pipe = lazyFn(function() {
   let current
   function pipeCore(streams) {
     let i, n, stream
@@ -63,7 +63,7 @@ const pipe = lazyFn(function () {
   }
 
   const push = Array.prototype.push
-  return function (streams) {
+  return function(streams) {
     try {
       if (!(streams instanceof Array)) {
         streams = []
@@ -79,7 +79,7 @@ const pipe = lazyFn(function () {
   }
 })
 
-const resolvePath = lazyFn(function () {
+const resolvePath = lazyFn(function() {
   return require('path').resolve
 })
 
@@ -87,7 +87,7 @@ const resolvePath = lazyFn(function () {
 
 // Similar to `gulp.src()` but the pattern is relative to `SRC_DIR`
 // and files are automatically watched when not in production mode.
-const src = lazyFn(function () {
+const src = lazyFn(function() {
   function resolve(path) {
     return path ? resolvePath(SRC_DIR, path) : SRC_DIR
   }
@@ -100,7 +100,7 @@ const src = lazyFn(function () {
           base: base,
           cwd: base,
           passthrough: opts && opts.passthrough,
-          sourcemaps: opts && opts.sourcemaps,
+          sourcemaps: opts && opts.sourcemaps
         })
       }
     : function src(pattern, opts) {
@@ -111,11 +111,11 @@ const src = lazyFn(function () {
             base: base,
             cwd: base,
             passthrough: opts && opts.passthrough,
-            sourcemaps: opts && opts.sourcemaps,
+            sourcemaps: opts && opts.sourcemaps
           }),
           require('gulp-watch')(pattern, {
             base: base,
-            cwd: base,
+            cwd: base
           }),
           require('gulp-plumber')()
         )
@@ -125,13 +125,13 @@ const src = lazyFn(function () {
 // Similar to `gulp.dest()` but the output directory is relative to
 // `DIST_DIR` and default to `./`, and files are automatically live-
 // reloaded when not in production mode.
-const dest = lazyFn(function () {
+const dest = lazyFn(function() {
   function resolve(path) {
     return path ? resolvePath(DIST_DIR, path) : DIST_DIR
   }
 
   const opts = {
-    sourcemaps: '.',
+    sourcemaps: '.'
   }
 
   return PRODUCTION
@@ -162,7 +162,7 @@ function browserify(path, opts) {
 
     // Required by Watchify.
     cache: {},
-    packageCache: {},
+    packageCache: {}
   })
 
   const plugins = opts.plugins
@@ -178,7 +178,7 @@ function browserify(path, opts) {
     bundler = require('watchify')(bundler, {
       // do not watch in `node_modules`
       // https://github.com/browserify/watchify#options
-      ignoreWatch: true,
+      ignoreWatch: true
     })
   }
 
@@ -189,7 +189,7 @@ function browserify(path, opts) {
   path = resolvePath(SRC_DIR, path)
 
   let stream = new (require('readable-stream'))({
-    objectMode: true,
+    objectMode: true
   })
 
   let write
@@ -204,28 +204,28 @@ function browserify(path, opts) {
         new (require('vinyl'))({
           base: SRC_DIR,
           contents: buffer,
-          path: path,
+          path: path
         })
       )
     })
   }
 
   if (PRODUCTION) {
-    write = function (data) {
+    write = function(data) {
       stream.push(data)
       stream.push(null)
     }
   } else {
     stream = require('gulp-plumber')().pipe(stream)
-    write = function (data) {
+    write = function(data) {
       stream.push(data)
     }
 
     bundler.on('update', bundle)
   }
 
-  stream._read = function () {
-    this._read = function () {}
+  stream._read = function() {
+    this._read = function() {}
     bundle()
   }
 
@@ -240,7 +240,7 @@ gulp.task(function buildPages() {
     require('gulp-pug')(),
     DEVELOPMENT &&
       require('gulp-embedlr')({
-        port: LIVERELOAD_PORT,
+        port: LIVERELOAD_PORT
       }),
     dest()
   )
@@ -255,10 +255,10 @@ gulp.task(function buildScripts() {
           'modular-cssify',
           {
             css: DIST_DIR + '/modules.css',
-            from: undefined,
-          },
-        ],
-      ],
+            from: undefined
+          }
+        ]
+      ]
     }),
     require('gulp-sourcemaps').init({ loadMaps: true }),
     PRODUCTION && require('gulp-terser')(),
@@ -275,18 +275,18 @@ gulp.task(function buildStyles() {
     dest()
   )
 })
-
 gulp.task(function copyAssets() {
   return pipe(
     src(['assets/**/*', 'favicon.*']),
     src('fontawesome-webfont.*', {
-      base: __dirname + '/../../node_modules/font-awesome/fonts', // eslint-disable-line no-path-concat
-      passthrough: true,
+      base: path.join(__dirname, '/../../node_modules/font-awesome/fonts'), // eslint-disable-line no-path-concat
+      passthrough: true
     }),
     src(['!*.css', 'font-mfizz.*'], {
       base: __dirname + '/../../node_modules/font-mfizz/dist', // eslint-disable-line no-path-concat
-      passthrough: true,
+      passthrough: true
     }),
+    src(['serviceworker.js']),
     dest()
   )
 })
