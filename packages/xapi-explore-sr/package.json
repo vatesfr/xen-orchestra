@@ -1,7 +1,7 @@
 {
   "private": false,
   "name": "xapi-explore-sr",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "license": "ISC",
   "description": "Display the list of VDIs (unmanaged and snapshots included) of a SR",
   "keywords": [
@@ -39,7 +39,7 @@
     "human-format": "^0.11.0",
     "lodash": "^4.17.4",
     "pw": "^0.0.4",
-    "xen-api": "^0.34.3"
+    "xen-api": "^0.35.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.1.5",
