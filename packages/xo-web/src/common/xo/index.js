@@ -799,7 +799,7 @@ export const stopHost = async host => {
     await _call('host.stop', { id: resolveId(host) })
   } catch (err) {
     if (err.message === 'no hosts available') {
-      // Retry with force.
+      // Retry with bypassEvacuate.
       try {
         await confirm({
           body: _('forceStopHostMessage'),
