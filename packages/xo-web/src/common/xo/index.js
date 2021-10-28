@@ -808,7 +808,7 @@ export const stopHost = async host => {
       } catch (e) {
         return
       }
-      return _call('host.stop', { id: resolveId(host), force: true })
+      return _call('host.stop', { id: resolveId(host), bypassEvacuate: true })
     }
     throw error
   }

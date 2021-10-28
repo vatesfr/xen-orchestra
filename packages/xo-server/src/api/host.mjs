@@ -183,18 +183,15 @@ start.resolve = {
 
 // -------------------------------------------------------------------
 
-export function stop({ host, force }) {
-  if (force) {
-    return this.getXapi(host).forceShutdownHost(host._xapiId)
-  }
-  return this.getXapi(host).shutdownHost(host._xapiId)
+export function stop({ host, bypassEvacuate }) {
+  return this.getXapi(host).shutdownHost(host._xapiId, { bypassEvacuate })
 }
 
 stop.description = 'stop the host'
 
 stop.params = {
   id: { type: 'string' },
-  force: { type: 'boolean', optional: true },
+  bypassEvacuate: { type: 'boolean', optional: true },
 }
 
 stop.resolve = {
