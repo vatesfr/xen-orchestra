@@ -25,6 +25,7 @@
 - [Snapshot] Fix "Create VM from snapshot" creating a template instead of a VM (PR [#5955](https://github.com/vatesfr/xen-orchestra/pull/5955))
 - [Host/Logs] Improve the display of log content (PR [#5943](https://github.com/vatesfr/xen-orchestra/pull/5943))
 - [XOA licenses] Fix expiration date displaying "Invalid date" in some rare cases (PR [#5967](https://github.com/vatesfr/xen-orchestra/pull/5967))
+- [API/pool.listPoolsMatchingCriteria] Fix `checkSrName`/`checkPoolName` `is not a function` error
 
 ### Packages to release
 

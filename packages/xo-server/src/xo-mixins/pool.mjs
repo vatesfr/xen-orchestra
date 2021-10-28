@@ -115,8 +115,8 @@ export default class Pools {
     }
 
     const checkPoolName =
-      poolNameRegExp === undefined ? stubTrue() : RegExp.prototype.test.bind(new RegExp(poolNameRegExp))
-    const checkSrName = srNameRegExp === undefined ? stubTrue() : RegExp.prototype.test.bind(new RegExp(srNameRegExp))
+      poolNameRegExp === undefined ? stubTrue : RegExp.prototype.test.bind(new RegExp(poolNameRegExp))
+    const checkSrName = srNameRegExp === undefined ? stubTrue : RegExp.prototype.test.bind(new RegExp(srNameRegExp))
 
     return pools.filter(
       pool =>
