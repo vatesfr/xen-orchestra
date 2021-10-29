@@ -34,7 +34,7 @@
 
 - xo-server-netbox 0.3.3
 - vhd-lib 1.3.0
-- xen-api 0.35.0
+- xen-api 0.35.1
 - @xen-orchestra/xapi 0.8.0
 - @xen-orchestra/backups 0.15.1
 - vhd-cli 0.5.0
@@ -190,7 +190,7 @@
 
 - [Smart backup] Report missing pools [#2844](https://github.com/vatesfr/xen-orchestra/issues/2844) (PR [#5768](https://github.com/vatesfr/xen-orchestra/pull/5768))
 - [Metadata Backup] Add a warning on restoring a metadata backup (PR [#5769](https://github.com/vatesfr/xen-orchestra/pull/5769))
-- [Netbox] [Plugin](https://xen-orchestra.com/docs/advanced.html#netbox) to synchronize pools, VMs and IPs with [Netbox](https://netbox.readthedocs.io/en/stable/) (PR [#5783](https://github.com/vatesfr/xen-orchestra/pull/5783))
+- [Netbox][plugin](https://xen-orchestra.com/docs/advanced.html#netbox) to synchronize pools, VMs and IPs with [Netbox](https://netbox.readthedocs.io/en/stable/) (PR [#5783](https://github.com/vatesfr/xen-orchestra/pull/5783))
 
 ### Enhancements
 
