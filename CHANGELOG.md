@@ -1,21 +1,27 @@
+## **5.64.0** (2021-10-29)
+
 # ChangeLog
 
-## **next**
+<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
+## Highlights
+
+- [Netbox] Support older versions of Netbox and prevent "active is not a valid choice" error [#5898](https://github.com/vatesfr/xen-orchestra/issues/5898) (PR [#5946](https://github.com/vatesfr/xen-orchestra/pull/5946))
+- [Tasks] Filter out short tasks using a default filter (PR [#5921](https://github.com/vatesfr/xen-orchestra/pull/5921))
+- [Host] Handle evacuation failure during host shutdown (PR [#5966](https://github.com/vatesfr/xen-orchestra/pull/#5966))
+- [Menu] Notify user when proxies need to be upgraded (PR [#5930](https://github.com/vatesfr/xen-orchestra/pull/5930))
+- [Servers] Ability to use an HTTP proxy between XO and a server (PR [#5958](https://github.com/vatesfr/xen-orchestra/pull/5958))
+- [VM/export] Ability to copy the export URL (PR [#5948](https://github.com/vatesfr/xen-orchestra/pull/5948))
+- [Pool/advanced] Ability to define network for importing/exporting VMs/VDIs (PR [#5957](https://github.com/vatesfr/xen-orchestra/pull/5957))
+- [Host/advanced] Add button to enable/disable the host (PR [#5952](https://github.com/vatesfr/xen-orchestra/pull/5952))
+- [Backups] Enable merge worker by default
 
 ### Enhancements
 
-- [Tasks] Filter out short tasks using a default filter (PR [#5921](https://github.com/vatesfr/xen-orchestra/pull/5921))
 - [Jobs] Ability to copy a job ID (PR [#5951](https://github.com/vatesfr/xen-orchestra/pull/5951))
-- [Host/advanced] Add button to enable/disable the host (PR [#5952](https://github.com/vatesfr/xen-orchestra/pull/5952))
-- [VM/export] Ability to copy the export URL (PR [#5948](https://github.com/vatesfr/xen-orchestra/pull/5948))
-- [Servers] Ability to use an HTTP proxy between XO and a server (PR [#5958](https://github.com/vatesfr/xen-orchestra/pull/5958))
-- [Pool/advanced] Ability to define network for importing/exporting VMs/VDIs (PR [#5957](https://github.com/vatesfr/xen-orchestra/pull/5957))
-- [Menu] Notify user when proxies need to be upgraded (PR [#5930](https://github.com/vatesfr/xen-orchestra/pull/5930))
-- [Host] Handle evacuation failure during host shutdown (PR [#5966](https://github.com/vatesfr/xen-orchestra/pull/#5966))
 
 ### Bug fixes
 
-- [Netbox] Support older versions of Netbox and prevent "active is not a valid choice" error [#5898](https://github.com/vatesfr/xen-orchestra/issues/5898) (PR [#5946](https://github.com/vatesfr/xen-orchestra/pull/5946))
 - [Backups] Delete unused snapshots related to other schedules (even no longer existing) (PR [#5949](https://github.com/vatesfr/xen-orchestra/pull/5949))
 - [Jobs] Fix `job.runSequence` method (PR [#5944](https://github.com/vatesfr/xen-orchestra/pull/5944))
 - [Netbox] Fix error when testing plugin on versions older than 2.10 (PR [#5963](https://github.com/vatesfr/xen-orchestra/pull/5963))
@@ -38,7 +44,7 @@
 
 ## **5.63.0** (2021-09-30)
 
-<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Highlights
 
@@ -79,8 +85,6 @@
 - xo-server 5.82.2
 
 ## **5.62.0** (2021-08-31)
-
-<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Highlights
 
