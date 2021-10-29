@@ -14,25 +14,30 @@ import { createLogger } from '@xen-orchestra/log'
 
 const { debug, warn } = createLogger('xo:proxy:api')
 
-const ndJsonStream = asyncIteratorToStream(async function* (responseId, iterable) {
-  let headerSent = false
+const ndJsonStream = asyncIteratorToStream(async function*(responseId, iterable) {
   try {
-    for await (const data of iterable) {
-      if (!headerSent) {
-        yield format.response(responseId, { $responseType: 'ndjson' }) + '\n'
-        headerSent = true
-      }
+    let cursor, iterator
+    try {
+      const getIterator = iterable[Symbol.iterator] ?? iterable[Symbol.asyncIterator]
+      iterator = getIterator.call(iterable)
+
+      cursor = await iterator.next()
+      yield format.response(responseId, { $responseType: 'ndjson' }) + '\n'
+    } catch (error) {
+      yield format.error(responseId, error)
+      throw error
+    }
+
+    while (!cursor.done) {
       try {
-        yield JSON.stringify(data) + '\n'
+        yield JSON.stringify(cursor.value) + '\n'
       } catch (error) {
         warn('ndJsonStream, item error', { error })
       }
+      cursor = await iterator.next()
     }
   } catch (error) {
     warn('ndJsonStream, fatal error', { error })
-    if (!headerSent) {
-      yield format.error(responseId, error)
-    }
   }
 })
 
@@ -47,7 +52,7 @@ export default class Api {
       ctx.req.setTimeout(0)
 
       const profile = await app.authentication.findProfile({
-        authenticationToken: ctx.cookies.get('authenticationToken'),
+        authenticationToken: ctx.cookies.get('authenticationToken')
       })
       if (profile === undefined) {
         ctx.status = 401
@@ -118,7 +123,7 @@ export default class Api {
     this.addMethods({
       system: {
         getMethodsInfo: [
-          function* () {
+          function*() {
             const methods = this._methods
             for (const name in methods) {
               const { description, params = {} } = methods[name]
@@ -126,25 +131,25 @@ export default class Api {
             }
           }.bind(this),
           {
-            description: 'returns the signatures of all available API methods',
-          },
+            description: 'returns the signatures of all available API methods'
+          }
         ],
         getServerVersion: [
           () => appVersion,
           {
-            description: 'returns the version of xo-server',
-          },
+            description: 'returns the version of xo-server'
+          }
         ],
         listMethods: [
-          function* () {
+          function*() {
             const methods = this._methods
             for (const name in methods) {
               yield name
             }
           }.bind(this),
           {
-            description: 'returns the name of all available API methods',
-          },
+            description: 'returns the name of all available API methods'
+          }
         ],
         methodSignature: [
           ({ method: name }) => {
@@ -159,14 +164,14 @@ export default class Api {
           {
             description: 'returns the signature of an API method',
             params: {
-              method: { type: 'string' },
-            },
-          },
-        ],
+              method: { type: 'string' }
+            }
+          }
+        ]
       },
       test: {
         range: [
-          function* ({ start = 0, stop, step }) {
+          function*({ start = 0, stop, step }) {
             if (step === undefined) {
               step = start > stop ? -1 : 1
             }
@@ -184,11 +189,11 @@ export default class Api {
             params: {
               start: { optional: true, type: 'number' },
               step: { optional: true, type: 'number' },
-              stop: { type: 'number' },
-            },
-          },
-        ],
-      },
+              stop: { type: 'number' }
+            }
+          }
+        ]
+      }
     })
   }
 
@@ -215,7 +220,7 @@ export default class Api {
         return required
       }),
 
-      type: 'object',
+      type: 'object'
     })
 
     const m = params => {
