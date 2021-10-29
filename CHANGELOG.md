@@ -37,6 +37,7 @@
 - xen-api 0.35.1
 - @xen-orchestra/xapi 0.8.0
 - @xen-orchestra/backups 0.15.1
+- @xen-orchestra/proxy 0.15.2
 - vhd-cli 0.5.0
 - xapi-explore-sr 0.4.0
 - xo-server 5.83.0
