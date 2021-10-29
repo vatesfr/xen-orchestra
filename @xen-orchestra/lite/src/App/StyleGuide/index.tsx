@@ -73,13 +73,13 @@ const App = withState<State, Props, Effects, Computed, ParentState, ParentEffect
             Warning
           </Button>
           <Button color='error' onClick={effects.sayHello}>
-          Error
+            Error
           </Button>
           <Button color='info' onClick={effects.sayHello}>
             Info
           </Button>
         </Render>
-        <Code>{`<Button onClick={sayHello} color='primary' startIcon={<AccountCircleIcon />}>
+        <Code>{`<Button color='primary' onClick={doSomething} startIcon={<AccountCircleIcon />}>
   Primary
 </Button>
 <Button color='secondary' endIcon={<DeleteIcon />} onClick={doSomething}>
