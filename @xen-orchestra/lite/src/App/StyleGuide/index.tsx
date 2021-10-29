@@ -82,19 +82,19 @@ const App = withState<State, Props, Effects, Computed, ParentState, ParentEffect
         <Code>{`<Button onClick={sayHello} color='primary' startIcon={<AccountCircleIcon />}>
   Primary
 </Button>
-<Button color='secondary' endIcon={<DeleteIcon />} onClick={sayHello}>
+<Button color='secondary' endIcon={<DeleteIcon />} onClick={doSomething}>
   Secondary
 </Button>
-<Button color='success' onClick={sayHello}>
+<Button color='success' onClick={doSomething}>
   Success
 </Button>
-<Button color='warning' onClick={sayHello}>
+<Button color='warning' onClick={doSomething}>
   Warning
 </Button>
-<Button color='error' onClick={sayHello}>
+<Button color='error' onClick={doSomething}>
   Error
 </Button>
-<Button color='info' onClick={sayHello}>
+<Button color='info' onClick={doSomething}>
   Info
 </Button>`}</Code>
       </Container>
