@@ -28,5 +28,5 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
-- minor fs
-- minor vhd-lib
+- @xen-orchestra/fs minor
+- vhd-lib minor
