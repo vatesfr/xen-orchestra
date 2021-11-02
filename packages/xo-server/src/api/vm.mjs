@@ -1050,8 +1050,9 @@ async function handleVmImport(req, res, { data, srId, type, xapi }) {
   // Timeout seems to be broken in Node 4.
   // See https://github.com/nodejs/node/issues/3319
   req.setTimeout(43200000) // 12 hours
-
-  const vm = await (req.headers['content-type'] === 'multipart/form-data'
+  // expect "multipart/form-data; boundary=something"
+  const contentType = req.headers['content-type']
+  const vm = await (contentType != undefined && contentType.startsWith('multipart/form-data')
     ? new Promise((resolve, reject) => {
         const form = new multiparty.Form()
         const promises = []
