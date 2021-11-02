@@ -9,6 +9,7 @@ import { pipeline } from 'readable-stream'
 import { createReadableRawStream, createReadableSparseStream } from './'
 
 import { createFooter } from './_createFooterHeader'
+import { checkFile, convertFromVhdToRaw } from './tests/utils'
 
 let tempDir = null
 
@@ -111,8 +112,8 @@ test('ReadableSparseVHDStream can handle a sparse file', async () => {
   expect(stream.length).toEqual(4197888)
   const pipe = stream.pipe(createWriteStream(`${tempDir}/output.vhd`))
   await fromEvent(pipe, 'finish')
-  await execa('vhd-util', ['check', '-t', '-i', '-n', `${tempDir}/output.vhd`])
-  await execa('qemu-img', ['convert', '-f', 'vpc', '-O', 'raw', `${tempDir}/output.vhd`, `${tempDir}/out1.raw`])
+  await checkFile(`${tempDir}/output.vhd`)
+  await convertFromVhdToRaw(`${tempDir}/output.vhd`, `${tempDir}/out1.raw`)
   const out1 = await readFile(`${tempDir}/out1.raw`)
   const expected = Buffer.alloc(fileSize)
   blocks.forEach(b => {

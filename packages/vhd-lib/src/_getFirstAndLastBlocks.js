@@ -6,7 +6,9 @@ import { BLOCK_UNUSED } from './_constants'
 // in the file
 export default bat => {
   const n = bat.length
-  assert.notStrictEqual(n, 0)
+  if (n === 0) {
+    return
+  }
   assert.strictEqual(n % 4, 0)
 
   let i = 0
