@@ -1051,7 +1051,8 @@ async function handleVmImport(req, res, { data, srId, type, xapi }) {
   // See https://github.com/nodejs/node/issues/3319
   req.setTimeout(43200000) // 12 hours
   // expect "multipart/form-data; boundary=something"
-  const vm = await (req.headers['content-type'] != undefined && req.headers['content-type'].startsWith('multipart/form-data')
+  const contentType = req.headers['content-type']
+  const vm = await (contentType != undefined && contentType.startsWith('multipart/form-data')
     ? new Promise((resolve, reject) => {
         const form = new multiparty.Form()
         const promises = []
