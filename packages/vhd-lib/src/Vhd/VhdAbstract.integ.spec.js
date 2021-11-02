@@ -72,11 +72,11 @@ test('It create , rename and unlink alias', async () => {
 
   await Disposable.use(async function* () {
     const handler = yield getSyncedHandler({ url: 'file:///' })
-    VhdAbstract.createAlias(handler, aliasFileName, vhdFileName)
+    await VhdAbstract.createAlias(handler, aliasFileName, vhdFileName)
     expect(await fs.exists(aliasFileName)).toEqual(true)
     expect(await fs.exists(vhdFileName)).toEqual(true)
 
-    VhdAbstract.rename(handler, aliasFileName, aliasFileNameRenamed)
+    await VhdAbstract.rename(handler, aliasFileName, aliasFileNameRenamed)
     expect(await fs.exists(aliasFileName)).toEqual(false)
     expect(await fs.exists(vhdFileName)).toEqual(true)
     expect(await fs.exists(aliasFileNameRenamed)).toEqual(true)
