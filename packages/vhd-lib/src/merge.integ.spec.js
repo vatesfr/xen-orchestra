@@ -13,7 +13,7 @@ import { randomBytes } from 'crypto'
 import { VhdFile, chainVhd, createSyntheticStream, mergeVhd as vhdMerge } from './index'
 
 import { SECTOR_SIZE } from './_constants'
-import { checkFile, createRandomFile, convertFromRawToVhd, recoverRawContent } from './_testUtils'
+import { checkFile, createRandomFile, convertFromRawToVhd, recoverRawContent } from './tests/utils'
 
 let tempDir = null
 

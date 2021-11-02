@@ -9,7 +9,7 @@ import { pipeline } from 'readable-stream'
 import { createReadableRawStream, createReadableSparseStream } from './'
 
 import { createFooter } from './_createFooterHeader'
-import { checkFile, convertFromVhdToRaw } from './_testUtils'
+import { checkFile, convertFromVhdToRaw } from './tests/utils'
 
 let tempDir = null
 

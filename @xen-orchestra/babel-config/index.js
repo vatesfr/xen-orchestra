@@ -46,7 +46,7 @@ module.exports = function (pkg, configs = {}) {
 
   return {
     comments: !__PROD__,
-    ignore: __PROD__ ? [/\.spec\.js$/] : undefined,
+    ignore: __PROD__ ? [/\btests?\//, /\.spec\.js$/] : undefined,
     plugins: Object.keys(plugins)
       .map(plugin => [plugin, plugins[plugin]])
       .sort(([a], [b]) => {

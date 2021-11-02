@@ -11,7 +11,7 @@ import { pipeline } from 'readable-stream'
 
 import { createVhdStreamWithLength } from '.'
 import { FOOTER_SIZE } from './_constants'
-import { createRandomFile, convertFromRawToVhd, convertFromVhdToRaw } from './_testUtils'
+import { createRandomFile, convertFromRawToVhd, convertFromVhdToRaw } from './tests/utils'
 
 let tempDir = null
 
