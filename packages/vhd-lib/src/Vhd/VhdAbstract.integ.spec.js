@@ -22,6 +22,53 @@ afterEach(async () => {
   await pFromCallback(cb => rimraf(tempDir, cb))
 })
 
+test('It creates an alias', async () => {
+  const initalSize = 4
+  const vhdDirectory = `${tempDir}/randomfile.dir`
+  await createRandomVhdDirectory(vhdDirectory, initalSize)
+
+  await Disposable.use(async function* () {
+    const handler = yield getSyncedHandler({ url: 'file:///' })
+    const aliasPath = `${tempDir}/alias.alias.vhd`
+    const targetPath = `${tempDir}/targets.vhd`
+    VhdAbstract.createAlias(handler, aliasPath, targetPath)
+    // alias file is created
+    expect(await fs.exists(aliasPath)).toEqual(true)
+    // content is the target path
+    const content = await fs.readFile(aliasPath, 'utf-8')
+    expect(targetPath).toEqual(content)
+  })
+})
+
+test('alias must have *.alias.vhd extension', async () => {
+  const initalSize = 4
+  const vhdDirectory = `${tempDir}/randomfile.dir`
+  await createRandomVhdDirectory(vhdDirectory, initalSize)
+
+  await Disposable.use(async function* () {
+    const handler = yield getSyncedHandler({ url: 'file:///' })
+    const aliasPath = `${tempDir}/invalidalias.vhd`
+    const targetPath = `${tempDir}/targets.vhd`
+    expect(async () => await VhdAbstract.createAlias(handler, aliasPath, targetPath)).rejects.toThrow()
+
+    expect(await fs.exists(aliasPath)).toEqual(false)
+  })
+})
+
+test('alias must not be chained', async () => {
+  const initalSize = 4
+  const vhdDirectory = `${tempDir}/randomfile.dir`
+  await createRandomVhdDirectory(vhdDirectory, initalSize)
+
+  await Disposable.use(async function* () {
+    const handler = yield getSyncedHandler({ url: 'file:///' })
+    const aliasPath = `${tempDir}/valid.alias.vhd`
+    const targetPath = `${tempDir}/an.other.valid.alias.vhd`
+    expect(async () => await VhdAbstract.createAlias(handler, aliasPath, targetPath)).rejects.toThrow()
+    expect(await fs.exists(aliasPath)).toEqual(false)
+  })
+})
+
 test('It rename and unlink a VHDFile', async () => {
   const initalSize = 4
   const rawFileName = `${tempDir}/randomfile`
