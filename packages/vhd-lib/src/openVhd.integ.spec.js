@@ -6,7 +6,7 @@ import { getSyncedHandler } from '@xen-orchestra/fs'
 import { Disposable, pFromCallback } from 'promise-toolbox'
 
 import { openVhd } from './index'
-import { createRandomFile, convertFromRawToVhd, createRandomVhdDirectory } from './_testUtils'
+import { createRandomFile, convertFromRawToVhd, createRandomVhdDirectory } from './tests/utils'
 
 import { VhdAbstract } from './Vhd/VhdAbstract'
 
