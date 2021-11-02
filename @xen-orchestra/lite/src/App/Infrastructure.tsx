@@ -30,7 +30,9 @@ interface State {
   selectedVm?: string
 }
 
-interface Props {}
+interface Props {
+  location: object
+}
 
 interface ParentEffects {}
 
@@ -42,19 +44,14 @@ interface Computed {}
 
 const Infrastructure = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
   {
-    initialState: () => ({
-      selectedVm: undefined,
+    initialState: props => ({
+      selectedVm: props.location.pathname.split('/')[3],
     }),
-    effects: {
-      initialize: function () {
-        this.state.selectedVm = this.props.location.pathname.split('/')[3]
-      },
-    },
   },
-  ({ effects, state: { selectedVm } }) => (
+  ({ state: { selectedVm } }) => (
     <Container>
       <LeftPanel>
-        <TreeView multiSelect selected={[selectedVm]} />
+        <TreeView selected={selectedVm === undefined ? undefined : [selectedVm]} />
       </LeftPanel>
       <MainPanel>
         <Switch>
