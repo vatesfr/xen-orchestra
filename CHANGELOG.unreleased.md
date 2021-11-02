@@ -27,3 +27,6 @@
 > - major: if the change breaks compatibility
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
+
+- minor fs
+- minor vhd-lib
