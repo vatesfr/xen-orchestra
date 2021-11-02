@@ -80,17 +80,15 @@ const Signin = withState<State, Props, Effects, Computed, ParentState, ParentEff
         <img src='//lite.xen-orchestra.com/dist/logo.png' />
         <h1>Xen Orchestra Lite</h1>
         <Fieldset>
-          <TextInput textField={{ disabled: true, label: <IntlMessage id='login' />, value: 'root' }} />
+          <TextInput disabled label={<IntlMessage id='login' />} value='root' />
         </Fieldset>
         <Fieldset>
           <TextInput
-            textField={{
-              autoFocus: true,
-              label: <IntlMessage id='password' />,
-              onChange: effects.setPassword,
-              type: 'password',
-              value: state.password,
-            }}
+            autoFocus
+            label={<IntlMessage id='password' />}
+            onChange={effects.setPassword}
+            type='password'
+            value={state.password}
           />
         </Fieldset>
         <RememberMe>

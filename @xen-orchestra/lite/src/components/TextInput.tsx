@@ -8,9 +8,9 @@ interface State {}
 
 // An interface can only extend an object type or intersection
 // of object types with statically known members.
-interface Props {
-  textField?: TextFieldProps
-}
+type Props = _Props & TextFieldProps
+
+interface _Props {}
 
 interface ParentEffects {}
 
@@ -18,8 +18,9 @@ interface Effects {}
 
 interface Computed {}
 
-const TextInput = withState<State, Props, Effects, Computed, ParentState, ParentEffects>({}, ({ textField }) => (
-  <TextField fullWidth {...textField} />
-))
+const TextInput = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
+  {},
+  ({ effects, resetState, state, ...props }) => <TextField fullWidth {...props} />
+)
 
 export default TextInput

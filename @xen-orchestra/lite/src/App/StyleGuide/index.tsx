@@ -77,9 +77,9 @@ const App = withState<State, Props, Effects, Computed, ParentState, ParentEffect
       <h2>Input</h2>
       <Container>
         <Render>
-          <TextInput textField={{ label: 'Input' }} />
+          <TextInput label='Input' />
         </Render>
-        <Code>{`<TextInput textField={{ label: 'Input' }} />`}</Code>
+        <Code>{`<TextInput label='Input' />`}</Code>
       </Container>
     </Page>
   )
