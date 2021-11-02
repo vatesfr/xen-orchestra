@@ -6,6 +6,7 @@ import { withState } from 'reaclette'
 
 import Button from '../../components/Button'
 import Icon from '../../components/Icon'
+import TextInput from '../../components/TextInput'
 
 interface ParentState {}
 
@@ -72,6 +73,13 @@ const App = withState<State, Props, Effects, Computed, ParentState, ParentEffect
         <Code>{`// https://fontawesome.com/icons
 <Icon icon='truck' />
 <Icon icon='truck' size='2x' />`}</Code>
+      </Container>
+      <h2>Input</h2>
+      <Container>
+        <Render>
+          <TextInput textField={{ label: 'Input' }} />
+        </Render>
+        <Code>{`<TextInput textField={{ label: 'Input' }} />`}</Code>
       </Container>
     </Page>
   )

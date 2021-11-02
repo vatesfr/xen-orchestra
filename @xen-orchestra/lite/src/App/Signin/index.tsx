@@ -5,6 +5,7 @@ import { withState } from 'reaclette'
 import Button from '../../components/Button'
 import Input from '../../components/Input'
 import IntlMessage from '../../components/IntlMessage'
+import TextInput from '../../components/TextInput'
 
 interface ParentState {
   error: string
@@ -46,10 +47,6 @@ const Fieldset = styled.fieldset`
   padding-right: 0;
 `
 
-const Label = styled.div`
-  margin-bottom: 3px;
-`
-
 const RememberMe = styled(Fieldset)`
   text-align: start;
   vertical-align: baseline;
@@ -83,12 +80,18 @@ const Signin = withState<State, Props, Effects, Computed, ParentState, ParentEff
         <img src='//lite.xen-orchestra.com/dist/logo.png' />
         <h1>Xen Orchestra Lite</h1>
         <Fieldset>
-          <Label><IntlMessage id='login' /></Label>
-          <Input disabled value='root' />
+          <TextInput textField={{ disabled: true, label: <IntlMessage id='login' />, value: 'root' }} />
         </Fieldset>
         <Fieldset>
-          <Label><IntlMessage id='password' /></Label>
-          <Input autoFocus onChange={effects.setPassword} type='password' value={state.password} />
+          <TextInput
+            textField={{
+              autoFocus: true,
+              label: <IntlMessage id='password' />,
+              onChange: effects.setPassword,
+              type: 'password',
+              value: state.password,
+            }}
+          />
         </Fieldset>
         <RememberMe>
           <label>
