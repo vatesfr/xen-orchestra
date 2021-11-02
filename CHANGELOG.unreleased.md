@@ -11,7 +11,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-[import/Vm] fix the import of OVA files (PR:[#5976](https://github.com/vatesfr/xen-orchestra/pull/5976) )
+[Import/VM] Fix the import of OVA files (PR [#5976](https://github.com/vatesfr/xen-orchestra/pull/5976))
 
 ### Packages to release
 
