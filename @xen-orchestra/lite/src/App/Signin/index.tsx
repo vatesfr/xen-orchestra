@@ -3,9 +3,9 @@ import styled from 'styled-components'
 import { withState } from 'reaclette'
 
 import Button from '../../components/Button'
+import Checkbox from '../../components/Checkbox'
 import Input from '../../components/Input'
 import IntlMessage from '../../components/IntlMessage'
-import TextInput from '../../components/TextInput'
 
 interface ParentState {
   error: string
@@ -80,10 +80,10 @@ const Signin = withState<State, Props, Effects, Computed, ParentState, ParentEff
         <img src='//lite.xen-orchestra.com/dist/logo.png' />
         <h1>Xen Orchestra Lite</h1>
         <Fieldset>
-          <TextInput disabled label={<IntlMessage id='login' />} value='root' />
+          <Input disabled label={<IntlMessage id='login' />} value='root' />
         </Fieldset>
         <Fieldset>
-          <TextInput
+          <Input
             autoFocus
             label={<IntlMessage id='password' />}
             onChange={effects.setPassword}
@@ -93,7 +93,7 @@ const Signin = withState<State, Props, Effects, Computed, ParentState, ParentEff
         </Fieldset>
         <RememberMe>
           <label>
-            <Input onChange={effects.setRememberMe} type='checkbox' checked={state.rememberMe} />
+            <Checkbox onChange={effects.setRememberMe} checked={state.rememberMe} />
             &nbsp;
             <IntlMessage id='rememberMe' />
           </label>
