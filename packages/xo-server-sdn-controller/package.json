@@ -18,7 +18,7 @@
   },
   "version": "1.0.5",
   "engines": {
-    "node": ">=8.10"
+    "node": ">=10"
   },
   "devDependencies": {
     "@babel/cli": "^7.4.4",
@@ -29,13 +29,13 @@
     "cross-env": "^7.0.2"
   },
   "dependencies": {
+    "@vates/coalesce-calls": "^0.1.0",
     "@xen-orchestra/log": "^0.3.0",
     "@xen-orchestra/openflow": "^0.1.1",
-    "@vates/coalesce-calls": "^0.1.0",
-    "ipaddr.js": "^1.9.1",
+    "ipaddr.js": "^2.0.1",
     "lodash": "^4.17.11",
-    "node-openssl-cert": "^0.0.117",
-    "promise-toolbox": "^0.19.2",
+    "node-openssl-cert": "^0.1.34",
+    "promise-toolbox": "^0.20.0",
     "uuid": "^8.3.1"
   },
   "private": true,

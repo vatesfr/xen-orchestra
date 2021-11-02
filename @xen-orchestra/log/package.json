@@ -24,7 +24,7 @@
   },
   "dependencies": {
     "lodash": "^4.17.4",
-    "promise-toolbox": "^0.19.2"
+    "promise-toolbox": "^0.20.0"
   },
   "scripts": {
     "postversion": "npm publish"
