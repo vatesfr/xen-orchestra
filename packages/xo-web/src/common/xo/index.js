@@ -2892,15 +2892,24 @@ export const deleteCloudConfigs = ids => {
     body: <p>{_('confirmDeleteCloudConfigsBody', vars)}</p>,
   }).then(
     () =>
-      Promise.all(ids.map(id => _call('cloudConfig.delete', { id: resolveId(id) })))::tap(
-        subscribeCloudConfigs.forceRefresh
-      ),
+      Promise.all(ids.map(id => _call('cloudConfig.delete', { id: resolveId(id) })))::tap(() => {
+        subscribeCloudConfigs.forceRefresh()
+        subscribeNetworkCloudConfigs.forceRefresh()
+      }),
     noop
   )
 }
 
 export const editCloudConfig = (cloudConfig, props) =>
-  _call('cloudConfig.update', { ...props, id: resolveId(cloudConfig) })::tap(subscribeCloudConfigs.forceRefresh)
+  _call('cloudConfig.update', { ...props, id: resolveId(cloudConfig) })::tap(() => {
+    subscribeCloudConfigs.forceRefresh()
+    subscribeNetworkCloudConfigs.forceRefresh()
+  })
+
+export const subscribeNetworkCloudConfigs = createSubscription(() => _call('cloudConfig.getAllNetwork'))
+
+export const createNetworkCloudConfig = props =>
+  _call('cloudConfig.createNetwork', props)::tap(subscribeNetworkCloudConfigs.forceRefresh)
 
 // XO SAN ----------------------------------------------------------------------
 

@@ -45,6 +45,10 @@ export default class {
     return this._db.get()
   }
 
+  async getAllNetworkCloudConfigs() {
+    return (await this._db.get()).filter(({ type }) => type === 'network')
+  }
+
   async getCloudConfig(id) {
     const cloudConfig = await this._db.first(id)
     if (cloudConfig === undefined) {
