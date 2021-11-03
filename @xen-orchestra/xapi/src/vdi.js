@@ -1,6 +1,7 @@
 const CancelToken = require('promise-toolbox/CancelToken.js')
 const pCatch = require('promise-toolbox/catch.js')
 const pRetry = require('promise-toolbox/retry.js')
+const { decorateWith } = require('@vates/decorate-with')
 
 const extractOpaqueRef = require('./_extractOpaqueRef.js')
 
@@ -11,10 +12,13 @@ module.exports = class Vdi {
     return extractOpaqueRef(await this.callAsync('VDI.clone', vdiRef))
   }
 
+  // work around a race condition in XCP-ng/XenServer where the disk is not fully unmounted yet
+  @decorateWith(pRetry.wrap, function () {
+    return this._vdiDestroyRetryWhenInUse
+  })
   async destroy(vdiRef) {
     await pCatch.call(
-      // work around a race condition in XCP-ng/XenServer where the disk is not fully unmounted yet
-      pRetry(() => this.callAsync('VDI.destroy', vdiRef), this._vdiDestroyRetryWhenInUse),
+      this.callAsync('VDI.destroy', vdiRef),
       // if this VDI is not found, consider it destroyed
       { code: 'HANDLE_INVALID' },
       noop
