@@ -1,7 +1,9 @@
 import { computeBatSize, sectorsRoundUpNoZero, sectorsToBytes } from './_utils'
 import { PLATFORM_NONE, SECTOR_SIZE, PLATFORM_W2KU, PARENT_LOCATOR_ENTRIES } from '../_constants'
 import { resolveAlias, isVhdAlias } from '../_resolveAlias'
+
 import assert from 'assert'
+import path from 'path'
 
 export class VhdAbstract {
   #header
@@ -195,6 +197,14 @@ export class VhdAbstract {
     if (isVhdAlias(targetPath)) {
       throw new Error(`Chaining alias is forbidden ${aliasPath} to ${targetPath}`)
     }
-    return handler.writeFile(aliasPath, Buffer.from(targetPath))
+    const aliasDir = path.resolve('/', path.dirname(aliasPath))
+
+    // handle case where target path is already a relative path from alis
+    const resolvedPathToTarget = path.resolve(aliasDir, targetPath)
+
+    // only store the relative path from alias to target
+    const relativePathToTarget = path.relative(aliasDir, resolvedPathToTarget)
+
+    return handler.writeFile(aliasPath, Buffer.from(relativePathToTarget))
   }
 }

@@ -10,7 +10,7 @@ import { openVhd } from '../index'
 import { createRandomFile, convertFromRawToVhd, createRandomVhdDirectory } from '../tests/utils'
 import { VhdAbstract } from './VhdAbstract'
 
-let tempDir = null
+let tempDir
 
 jest.setTimeout(60000)
 
@@ -23,28 +23,33 @@ afterEach(async () => {
 })
 
 test('It creates an alias', async () => {
-  const initalSize = 4
-  const vhdDirectory = `${tempDir}/randomfile.dir`
-  await createRandomVhdDirectory(vhdDirectory, initalSize)
-
   await Disposable.use(async function* () {
     const handler = yield getSyncedHandler({ url: 'file:///' })
     const aliasPath = `${tempDir}/alias.alias.vhd`
-    const targetPath = `${tempDir}/targets.vhd`
-    VhdAbstract.createAlias(handler, aliasPath, targetPath)
-    // alias file is created
-    expect(await fs.exists(aliasPath)).toEqual(true)
-    // content is the target path
-    const content = await fs.readFile(aliasPath, 'utf-8')
-    expect(targetPath).toEqual(content)
+
+    const testOneCombination = async ({ targetPath, targetContent }) => {
+      await VhdAbstract.createAlias(handler, aliasPath, targetPath)
+      // alias file is created
+      expect(await fs.exists(aliasPath)).toEqual(true)
+      // content is the target path relative to the alias location
+      const content = await fs.readFile(aliasPath, 'utf-8')
+      expect(content).toEqual(targetContent)
+      await fs.unlink(aliasPath)
+    }
+    const combinations = [
+      { targetPath: `targets.vhd`, targetContent: `targets.vhd` },
+      { targetPath: `${tempDir}/targets.vhd`, targetContent: `targets.vhd` },
+      { targetPath: `sub/targets.vhd`, targetContent: `sub/targets.vhd` },
+      { targetPath: `${tempDir}/sub/targets.vhd`, targetContent: `sub/targets.vhd` },
+    ]
+
+    for (const { targetPath, targetContent } of combinations) {
+      await testOneCombination({ targetPath, targetContent })
+    }
   })
 })
 
 test('alias must have *.alias.vhd extension', async () => {
-  const initalSize = 4
-  const vhdDirectory = `${tempDir}/randomfile.dir`
-  await createRandomVhdDirectory(vhdDirectory, initalSize)
-
   await Disposable.use(async function* () {
     const handler = yield getSyncedHandler({ url: 'file:///' })
     const aliasPath = `${tempDir}/invalidalias.vhd`
@@ -56,10 +61,6 @@ test('alias must have *.alias.vhd extension', async () => {
 })
 
 test('alias must not be chained', async () => {
-  const initalSize = 4
-  const vhdDirectory = `${tempDir}/randomfile.dir`
-  await createRandomVhdDirectory(vhdDirectory, initalSize)
-
   await Disposable.use(async function* () {
     const handler = yield getSyncedHandler({ url: 'file:///' })
     const aliasPath = `${tempDir}/valid.alias.vhd`

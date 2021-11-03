@@ -29,13 +29,19 @@ test('is vhd alias recognize only *.alias.vhd files', () => {
 test('resolve return the path in argument for a non alias file ', async () => {
   expect(await resolveAlias(null, 'filename.vhd')).toEqual('filename.vhd')
 })
-test('resolve get the real path for an alias to a path', async () => {
+test('resolve get the path of the target file for an alias', async () => {
   await Disposable.use(async function* () {
+    // same directory
     const handler = yield getSyncedHandler({ url: 'file:///' })
-    const alias = `${tempDir}/alias.alias.vhd`
-    const target = `${tempDir}/target.vhd`
-    await handler.writeFile(alias, target)
-    expect(await resolveAlias(handler, alias)).toEqual(target)
+    const tempDirFomRemoteUrl = tempDir.slice(1) // remove the / which is included in the remote url
+    const alias = `${tempDirFomRemoteUrl}/alias.alias.vhd`
+    await handler.writeFile(alias, 'target.vhd')
+    expect(await resolveAlias(handler, alias)).toEqual(`${tempDirFomRemoteUrl}/target.vhd`)
+
+    // different directory
+    await handler.mkdir(`${tempDirFomRemoteUrl}/sub/`)
+    await handler.writeFile(alias, 'sub/target.vhd', { flags: 'w' })
+    expect(await resolveAlias(handler, alias)).toEqual(`${tempDirFomRemoteUrl}/sub/target.vhd`)
   })
 })
 
