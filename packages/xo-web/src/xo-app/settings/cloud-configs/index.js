@@ -139,6 +139,7 @@ export default decorate([
     <div>
       <Container>
         <Col mediumSize={6}>
+          <h2>{_('usersTemplate')}</h2>
           <form id={state.formId}>
             <div className='form-group'>
               <label htmlFor={state.inputNameId}>
@@ -204,9 +205,9 @@ export default decorate([
           />
         </Col>
       </Container>
-      <Container>
+      <Container className='mt-2'>
         <Col mediumSize={6}>
-          <h2>Network template</h2>
+          <h2>{_('networksTemplate')}</h2>
           <form>
             <div className='form-group'>
               <label>

@@ -2125,6 +2125,8 @@ const messages = {
   deleteCloudConfig: 'Delete cloud config',
   editCloudConfig: 'Edit cloud config',
   deleteSelectedCloudConfigs: 'Delete selected cloud configs',
+  networksTemplate: 'Networks template',
+  usersTemplate: 'Users template',
 
   // ----- Config -----
   noConfigFile: 'No config file selected',
