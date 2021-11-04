@@ -47,7 +47,7 @@ export const parse = string => {
     object.username = parsed.username
     object.password = decodeURIComponent(parsed.password)
     const qs = parsed.query
-    object.acceptSelfSigned = qs.acceptSelfSigned === 'true'
+    object.allowUnauthorized = qs.allowUnauthorized === 'true'
   }
   return object
 }
@@ -62,7 +62,7 @@ export const format = ({
   domain,
   protocol = type,
   region,
-  acceptSelfSigned = false,
+  allowUnauthorized = false,
 }) => {
   type === 'local' && (type = 'file')
   let string = `${type}://`
@@ -85,8 +85,8 @@ export const format = ({
   }
   string += path
 
-  if (type === 's3') {
-    string += `?acceptSelfSigned=${acceptSelfSigned}`
+  if (type === 's3' && allowUnauthorized === true) {
+    string += `?allowUnauthorized=true`
   }
   if (type === 's3' && region !== undefined) {
     string += `#${region}`

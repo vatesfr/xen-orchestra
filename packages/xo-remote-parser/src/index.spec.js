@@ -45,7 +45,7 @@ const data = deepFreeze({
     },
   },
   S3: {
-    string: 's3://AKIAS:XSuBupZ0mJlu%2B@s3-us-west-2.amazonaws.com/test-bucket/dir?acceptSelfSigned=false',
+    string: 's3://AKIAS:XSuBupZ0mJlu%2B@s3-us-west-2.amazonaws.com/test-bucket/dir',
     object: {
       type: 's3',
       protocol: 'https',
@@ -54,11 +54,11 @@ const data = deepFreeze({
       username: 'AKIAS',
       password: 'XSuBupZ0mJlu+',
       region: undefined,
-      acceptSelfSigned: false,
+      allowUnauthorized: false,
     },
   },
   's3 accepting self signed ': {
-    string: 's3://AKIAS:XSuBupZ0mJlu%2B@s3-us-west-2.amazonaws.com/test-bucket/dir?acceptSelfSigned=true',
+    string: 's3://AKIAS:XSuBupZ0mJlu%2B@s3-us-west-2.amazonaws.com/test-bucket/dir?allowUnauthorized=true',
     object: {
       type: 's3',
       protocol: 'https',
@@ -67,7 +67,7 @@ const data = deepFreeze({
       username: 'AKIAS',
       password: 'XSuBupZ0mJlu+',
       region: undefined,
-      acceptSelfSigned: true,
+      allowUnauthorized: true,
     },
   },
 })
@@ -111,11 +111,11 @@ const parseData = deepFreeze({
       region: 'reg1',
       username: 'Administrator',
       password: 'password',
-      acceptSelfSigned: false,
+      allowUnauthorized: false,
     },
   },
   'S3 accepting self signed certificate': {
-    string: 's3+http://Administrator:password@192.168.100.225/bucket/dir?acceptSelfSigned=true#reg1',
+    string: 's3+http://Administrator:password@192.168.100.225/bucket/dir?allowUnauthorized=true#reg1',
     object: {
       type: 's3',
       host: '192.168.100.225',
@@ -124,7 +124,20 @@ const parseData = deepFreeze({
       region: 'reg1',
       username: 'Administrator',
       password: 'password',
-      acceptSelfSigned: true,
+      allowUnauthorized: true,
+    },
+    'S3 with broken allowUnauthorized': {
+      string: 's3+http://Administrator:password@192.168.100.225/bucket/dir?allowUnauthorized=notTrue#reg1',
+      object: {
+        type: 's3',
+        host: '192.168.100.225',
+        protocol: 'http',
+        path: '/bucket/dir',
+        region: 'reg1',
+        username: 'Administrator',
+        password: 'password',
+        allowUnauthorized: false,
+      },
     },
   },
 })
@@ -137,6 +150,19 @@ const formatData = deepFreeze({
     object: {
       type: 'local',
       path: '/var/lib/xoa/backup',
+    },
+  },
+  'S3 with broken allowUnauthorized': {
+    string: 's3+http://Administrator:password@192.168.100.225/bucket/dir#reg1',
+    object: {
+      type: 's3',
+      host: '192.168.100.225',
+      protocol: 'http',
+      path: '/bucket/dir',
+      region: 'reg1',
+      username: 'Administrator',
+      password: 'password',
+      allowUnauthorized: 'notTrue',
     },
   },
 })

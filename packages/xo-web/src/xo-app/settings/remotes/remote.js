@@ -42,7 +42,7 @@ export default decorate([
       bucket: undefined,
       protocol: undefined,
       region: undefined,
-      acceptSelfSigned: undefined,
+      allowUnauthorized: undefined,
     }),
     effects: {
       linkState,
@@ -68,7 +68,7 @@ export default decorate([
             username = remote.username,
             protocol = remote.protocol || 'https',
             region = remote.region,
-            acceptSelfSigned = remote.acceptSelfSigned,
+            allowUnauthorized = remote.allowUnauthorized,
           } = state
           let { path = remote.path } = state
           if (type === 's3') {
@@ -87,7 +87,7 @@ export default decorate([
               username,
               protocol,
               region,
-              acceptSelfSigned,
+              allowUnauthorized,
             }),
             options: options !== '' ? options : null,
             proxy: proxyId,
@@ -150,8 +150,8 @@ export default decorate([
       setInsecure(_, value) {
         this.state.protocol = value ? 'http' : 'https'
       },
-      setAcceptSelfSigned(_, value) {
-        this.state.acceptSelfSigned = value
+      setAllowUnauthorized(_, value) {
+        this.state.allowUnauthorized = value
       },
     },
     computed: {
@@ -181,7 +181,7 @@ export default decorate([
       proxyId = remote.proxy,
       type = remote.type || 'nfs',
       username = remote.username || '',
-      acceptSelfSigned = remote.acceptSelfSigned || false,
+      allowUnauthorized = remote.allowUnauthorized || false,
     } = state
     return (
       <div>
@@ -368,7 +368,7 @@ export default decorate([
                 {protocol === 'https' && (
                   <span className='input-group-addon'>
                     <Tooltip content={formatMessage(messages.remoteS3TooltipAcceptInsecure)}>
-                      <Toggle iconSize={1} onChange={effects.setAcceptSelfSigned} value={acceptSelfSigned} />
+                      <Toggle iconSize={1} onChange={effects.setAllowUnauthorized} value={allowUnauthorized} />
                     </Tooltip>
                   </span>
                 )}
