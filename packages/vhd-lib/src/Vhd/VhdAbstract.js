@@ -190,7 +190,7 @@ export class VhdAbstract {
     }
   }
 
-  static createAlias(handler, aliasPath, targetPath) {
+  static async createAlias(handler, aliasPath, targetPath) {
     if (!isVhdAlias(aliasPath)) {
       throw new Error(`Alias must be named *.alias.vhd,  ${aliasPath} given`)
     }
@@ -198,13 +198,9 @@ export class VhdAbstract {
       throw new Error(`Chaining alias is forbidden ${aliasPath} to ${targetPath}`)
     }
     const aliasDir = path.resolve('/', path.dirname(aliasPath))
-
-    // handle case where target path is already a relative path from alis
-    const resolvedPathToTarget = path.resolve(aliasDir, targetPath)
-
     // only store the relative path from alias to target
-    const relativePathToTarget = path.relative(aliasDir, resolvedPathToTarget)
+    const relativePathToTarget = path.relative(aliasDir, targetPath)
 
-    return handler.writeFile(aliasPath, Buffer.from(relativePathToTarget))
+    await handler.writeFile(aliasPath, relativePathToTarget)
   }
 }

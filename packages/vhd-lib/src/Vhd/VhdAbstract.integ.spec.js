@@ -37,9 +37,7 @@ test('It creates an alias', async () => {
       await fs.unlink(aliasPath)
     }
     const combinations = [
-      { targetPath: `targets.vhd`, targetContent: `targets.vhd` },
       { targetPath: `${tempDir}/targets.vhd`, targetContent: `targets.vhd` },
-      { targetPath: `sub/targets.vhd`, targetContent: `sub/targets.vhd` },
       { targetPath: `${tempDir}/sub/targets.vhd`, targetContent: `sub/targets.vhd` },
     ]
 

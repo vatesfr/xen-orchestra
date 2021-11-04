@@ -7,7 +7,7 @@ import { Disposable, pFromCallback } from 'promise-toolbox'
 
 import { isVhdAlias, resolveAlias } from './_resolveAlias'
 
-let tempDir = null
+let tempDir
 
 jest.setTimeout(60000)
 

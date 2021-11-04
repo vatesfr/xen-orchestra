@@ -10,7 +10,7 @@ import { createRandomFile, convertFromRawToVhd, createRandomVhdDirectory } from 
 
 import { VhdAbstract } from './Vhd/VhdAbstract'
 
-let tempDir = null
+let tempDir
 
 jest.setTimeout(60000)
 
