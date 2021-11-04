@@ -197,10 +197,11 @@ export class VhdAbstract {
     if (isVhdAlias(targetPath)) {
       throw new Error(`Chaining alias is forbidden ${aliasPath} to ${targetPath}`)
     }
-    const aliasDir = path.resolve('/', path.dirname(aliasPath))
+    // aliasPath and targetPath are absolute path from the root of the handler
+    // normalize them so they can't  escape this dir
+    const aliasDir = path.dirname(path.resolve('/', aliasPath))
     // only store the relative path from alias to target
-    const relativePathToTarget = path.relative(aliasDir, targetPath)
-
+    const relativePathToTarget = path.relative(aliasDir, path.resolve('/', targetPath))
     await handler.writeFile(aliasPath, relativePathToTarget)
   }
 }

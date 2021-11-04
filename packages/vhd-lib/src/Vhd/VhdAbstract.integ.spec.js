@@ -24,21 +24,26 @@ afterEach(async () => {
 
 test('It creates an alias', async () => {
   await Disposable.use(async function* () {
-    const handler = yield getSyncedHandler({ url: 'file:///' })
-    const aliasPath = `${tempDir}/alias.alias.vhd`
+    const handler = yield getSyncedHandler({ url: 'file:///tmp/' })
+    const tempDirFromRoot = tempDir.slice(5) // remove /tmp/
+    const aliasPath = `${tempDirFromRoot}/alias.alias.vhd`
 
     const testOneCombination = async ({ targetPath, targetContent }) => {
       await VhdAbstract.createAlias(handler, aliasPath, targetPath)
       // alias file is created
-      expect(await fs.exists(aliasPath)).toEqual(true)
+      expect(await fs.exists('/tmp/' + aliasPath)).toEqual(true)
       // content is the target path relative to the alias location
-      const content = await fs.readFile(aliasPath, 'utf-8')
+      const content = await fs.readFile('/tmp/' + aliasPath, 'utf-8')
       expect(content).toEqual(targetContent)
-      await fs.unlink(aliasPath)
+      // create alias fails if alias already exists, remove it before next loop step
+      await fs.unlink('/tmp/' + aliasPath)
     }
+
     const combinations = [
-      { targetPath: `${tempDir}/targets.vhd`, targetContent: `targets.vhd` },
-      { targetPath: `${tempDir}/sub/targets.vhd`, targetContent: `sub/targets.vhd` },
+      { targetPath: `${tempDirFromRoot}/targets.vhd`, targetContent: `targets.vhd` },
+      { targetPath: `${tempDirFromRoot}/sub/targets.vhd`, targetContent: `sub/targets.vhd` },
+      { targetPath: `targets.vhd`, targetContent: `../targets.vhd` },
+      { targetPath: `sibling/targets.vhd`, targetContent: `../sibling/targets.vhd` },
     ]
 
     for (const { targetPath, targetContent } of combinations) {
