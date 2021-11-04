@@ -7,6 +7,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+[Cloud config] Ability to create a network cloud config template and reuse it in the VM creation [#5931](https://github.com/vatesfr/xen-orchestra/issues/5931) (PR [#5979](https://github.com/vatesfr/xen-orchestra/pull/5979))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -30,4 +32,5 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
-- xo-server patch
+- xo-web minor
+- xo-server minor
