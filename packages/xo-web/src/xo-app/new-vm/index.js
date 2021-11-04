@@ -46,6 +46,7 @@ import {
   SelectHost,
   SelectIp,
   SelectNetwork,
+  SelectNetworkCloudConfig,
   SelectPool,
   SelectResourceSet,
   SelectResourceSetIp,
@@ -1046,6 +1047,12 @@ export default class NewVm extends BaseComponent {
     })
   }
 
+  _onChangeNetworkCloudConfig = cloudConfig => {
+    this._setState({
+      networkConfig: get(() => cloudConfig.template),
+    })
+  }
+
   _renderInstallSettings = () => {
     const { coreOsDefaultTemplateError } = this.state.state
     const { template } = this.props
@@ -1137,6 +1144,10 @@ export default class NewVm extends BaseComponent {
               &nbsp;
               <span className={styles.inlineSelect}>
                 <SelectCloudConfig disabled={installMethod !== 'customConfig'} onChange={this._onChangeCloudConfig} />
+                <SelectNetworkCloudConfig
+                  disabled={installMethod !== 'customConfig'}
+                  onChange={this._onChangeNetworkCloudConfig}
+                />
               </span>
             </LineItem>
             <br />

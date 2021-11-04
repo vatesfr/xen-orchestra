@@ -357,6 +357,7 @@ const messages = {
   fillOptionalInformations: 'Fill information (optional)',
   selectTableReset: 'Reset',
   selectCloudConfigs: 'Select cloud config(s)…',
+  selectNetworkCloudConfigs: 'Select network cloud config(s)…',
 
   // --- Dates/Scheduler ---
 
