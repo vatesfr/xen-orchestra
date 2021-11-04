@@ -478,8 +478,20 @@ export class VhdFile extends VhdAbstract {
         // new parent locator length is smaller than available space : keep it in place
         position = header.parentLocatorEntry[parentLocatorId].platformDataOffset
       } else {
-        // new parent locator length is bigger than available space : move it to the end
-        position = this._getEndOfData()
+        const firstAndLastBlocks = getFirstAndLastBlocks(this.#blockTable)
+        if (firstAndLastBlocks === undefined) {
+          // no block in data : put the parent locatorn entry at the end
+          position = this._getEndOfData()
+        } else {
+          // need more size
+
+          // since there can be multiple parent locator entry, we can't extend the entry in place
+          // move the first(s) block(s) at the end of the data
+          // move the parent locator to the  precedent position of the first block
+          const { firstSector } = firstAndLastBlocks
+          await this._freeFirstBlockSpace(header.parentLocatorEntry[parentLocatorId].platformDataSpace)
+          position = sectorsToBytes(firstSector)
+        }
       }
       await this._write(data, position)
       header.parentLocatorEntry[parentLocatorId].platformDataOffset = position
