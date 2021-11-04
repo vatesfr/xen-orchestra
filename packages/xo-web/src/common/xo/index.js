@@ -2876,11 +2876,7 @@ export const setIpPool = (ipPool, { name, addresses, networks }) =>
 
 // Cloud configs --------------------------------------------------------------------
 
-export const subscribeCloudConfigs = createSubscription(() => _call('cloudConfig.getAll'))
-
-export const createCloudConfig = props => _call('cloudConfig.create', props)::tap(subscribeCloudConfigs.forceRefresh)
-
-export const deleteCloudConfigs = ids => {
+const _deleteCloudConfigs = (ids, cb) => {
   const { length } = ids
   if (length === 0) {
     return
@@ -2890,14 +2886,14 @@ export const deleteCloudConfigs = ids => {
   return confirm({
     title: _('confirmDeleteCloudConfigsTitle', vars),
     body: <p>{_('confirmDeleteCloudConfigsBody', vars)}</p>,
-  }).then(
-    () =>
-      Promise.all(ids.map(id => _call('cloudConfig.delete', { id: resolveId(id) })))::tap(
-        subscribeCloudConfigs.forceRefresh
-      ),
-    noop
-  )
+  }).then(() => Promise.all(ids.map(id => _call('cloudConfig.delete', { id: resolveId(id) })))::tap(cb), noop)
 }
+
+export const subscribeCloudConfigs = createSubscription(() => _call('cloudConfig.getAll'))
+
+export const createCloudConfig = props => _call('cloudConfig.create', props)::tap(subscribeCloudConfigs.forceRefresh)
+
+export const deleteCloudConfigs = ids => _deleteCloudConfigs(ids, subscribeCloudConfigs.forceRefresh)
 
 export const editCloudConfig = (cloudConfig, props) =>
   _call('cloudConfig.update', { ...props, id: resolveId(cloudConfig) })::tap(subscribeCloudConfigs.forceRefresh)
@@ -2907,24 +2903,7 @@ export const subscribeNetworkCloudConfigs = createSubscription(() => _call('clou
 export const createNetworkCloudConfig = props =>
   _call('cloudConfig.createNetwork', props)::tap(subscribeNetworkCloudConfigs.forceRefresh)
 
-export const deleteNetworkCloudConfigs = ids => {
-  const { length } = ids
-  if (length === 0) {
-    return
-  }
-
-  const vars = { nCloudConfigs: length }
-  return confirm({
-    title: _('confirmDeleteCloudConfigsTitle', vars),
-    body: <p>{_('confirmDeleteCloudConfigsBody', vars)}</p>,
-  }).then(
-    () =>
-      Promise.all(ids.map(id => _call('cloudConfig.delete', { id: resolveId(id) })))::tap(
-        subscribeNetworkCloudConfigs.forceRefresh
-      ),
-    noop
-  )
-}
+export const deleteNetworkCloudConfigs = ids => _deleteCloudConfigs(ids, subscribeNetworkCloudConfigs.forceRefresh)
 
 export const editNetworkCloudConfig = (cloudConfig, props) =>
   _call('cloudConfig.update', { ...props, id: resolveId(cloudConfig) })::tap(subscribeNetworkCloudConfigs.forceRefresh)
