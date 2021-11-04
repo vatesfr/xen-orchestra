@@ -16,7 +16,9 @@ import {
   createCloudConfig,
   createNetworkCloudConfig,
   deleteCloudConfigs,
+  deleteNetworkCloudConfigs,
   editCloudConfig,
+  editNetworkCloudConfig,
   subscribeCloudConfigs,
   subscribeNetworkCloudConfigs,
 } from 'xo'
@@ -39,7 +41,7 @@ const COLUMNS = [
 
 const ACTIONS = [
   {
-    handler: deleteCloudConfigs,
+    handler: (ids, { type }) => (type === 'network' ? deleteNetworkCloudConfigs(ids) : deleteCloudConfigs(ids)),
     icon: 'delete',
     individualLabel: _('deleteCloudConfig'),
     label: _('deleteSelectedCloudConfigs'),
@@ -109,7 +111,7 @@ export default decorate([
         async ({ networkName, networkTemplate, networkCloudConfigToEditId }, { cloudConfigs }) => {
           const oldCloudConfig = find(cloudConfigs, { id: networkCloudConfigToEditId })
           if (oldCloudConfig.name !== networkName || oldCloudConfig.template !== networkTemplate) {
-            await editCloudConfig(networkCloudConfigToEditId, { name: networkName, template: networkTemplate })
+            await editNetworkCloudConfig(networkCloudConfigToEditId, { name: networkName, template: networkTemplate })
           }
           reset()
         },
@@ -258,6 +260,7 @@ export default decorate([
             collection={networkConfigs}
             columns={COLUMNS}
             data-populateForm={effects.populateForm}
+            data-type='network'
             individualActions={INDIVIDUAL_ACTIONS}
             stateUrlParam='s'
           />
