@@ -1047,11 +1047,10 @@ export default class NewVm extends BaseComponent {
     })
   }
 
-  _onChangeNetworkCloudConfig = cloudConfig => {
+  _onChangeNetworkCloudConfig = cloudConfig =>
     this._setState({
       networkConfig: get(() => cloudConfig.template),
     })
-  }
 
   _renderInstallSettings = () => {
     const { coreOsDefaultTemplateError } = this.state.state
