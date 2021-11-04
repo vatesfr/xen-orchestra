@@ -146,14 +146,14 @@ export class VhdAbstract {
   async setUniqueParentLocator(fileNameString) {
     await this.writeParentLocator({
       id: 0,
-      code: PLATFORM_W2KU,
+      platformCode: PLATFORM_W2KU,
       data: Buffer.from(fileNameString, 'utf16le'),
     })
 
     for (let i = 1; i < PARENT_LOCATOR_ENTRIES; i++) {
       await this.writeParentLocator({
         id: i,
-        code: PLATFORM_NONE,
+        platformCode: PLATFORM_NONE,
         data: Buffer.alloc(0),
       })
     }
