@@ -8,7 +8,6 @@ import { pipeline } from 'readable-stream'
 
 import { createReadableRawStream, createReadableSparseStream } from './'
 
-import { createFooter } from './_createFooterHeader'
 import { checkFile, convertFromVhdToRaw } from './tests/utils'
 
 let tempDir = null
@@ -19,14 +18,6 @@ beforeEach(async () => {
 
 afterEach(async () => {
   await pFromCallback(cb => rimraf(tempDir, cb))
-})
-
-test('createFooter() does not crash', () => {
-  createFooter(104448, Math.floor(Date.now() / 1000), {
-    cylinders: 3,
-    heads: 4,
-    sectorsPerTrack: 17,
-  })
 })
 
 test('ReadableRawVHDStream does not crash', async () => {
@@ -103,6 +94,7 @@ test('ReadableSparseVHDStream can handle a sparse file', async () => {
     },
   ]
   const fileSize = blockSize * 110
+
   const stream = await createReadableSparseStream(
     fileSize,
     blockSize,
@@ -111,6 +103,7 @@ test('ReadableSparseVHDStream can handle a sparse file', async () => {
   )
   expect(stream.length).toEqual(4197888)
   const pipe = stream.pipe(createWriteStream(`${tempDir}/output.vhd`))
+
   await fromEvent(pipe, 'finish')
   await checkFile(`${tempDir}/output.vhd`)
   await convertFromVhdToRaw(`${tempDir}/output.vhd`, `${tempDir}/out1.raw`)
