@@ -1,5 +1,6 @@
 /* eslint-env jest */
 
+import os from 'os'
 import rimraf from 'rimraf'
 import tmp from 'tmp'
 import fs from 'fs-extra'
@@ -24,8 +25,9 @@ afterEach(async () => {
 
 test('It creates an alias', async () => {
   await Disposable.use(async function* () {
-    const handler = yield getSyncedHandler({ url: 'file:///tmp/' })
-    const tempDirFromRoot = tempDir.slice(5) // remove /tmp/
+    const osTmpDir = os.tmpdir()
+    const handler = yield getSyncedHandler({ url: 'file://' + os.tmpdir() })
+    const tempDirFromRoot = tempDir.slice(osTmpDir.length) // remove /tmp/
     const aliasPath = `${tempDirFromRoot}/alias.alias.vhd`
 
     const testOneCombination = async ({ targetPath, targetContent }) => {
