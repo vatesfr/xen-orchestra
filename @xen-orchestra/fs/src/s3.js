@@ -35,7 +35,6 @@ export default class S3Handler extends RemoteHandlerAbstract {
     } else if (protocol === 'https') {
       params.httpOptions.agent = new https.Agent({
         rejectUnauthorized: !allowUnauthorized,
-        keepAlive: true,
       })
     }
     if (region !== undefined) {
