@@ -61,8 +61,7 @@
       "/xo-server-test/",
       "/xo-web/"
     ],
-    "testRegex": "\\.spec\\.js$",
-    "timers": "fake"
+    "testRegex": "\\.spec\\.js$"
   },
   "lint-staged": {
     "*.{md,ts,ts}": "prettier --write"
