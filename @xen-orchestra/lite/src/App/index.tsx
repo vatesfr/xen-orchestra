@@ -140,7 +140,30 @@ const SecondaryListItems = withState<
 
 // -----------------------------------------------------------------------------
 
-const mdTheme = createTheme()
+// Default bootstrap 4 colors
+// https://github.com/twbs/bootstrap/blob/v4-dev/scss/_variables.scss#L67-L74
+const mdTheme = createTheme({
+  palette: {
+    error: {
+      main: '#dc3545',
+    },
+    info: {
+      main: '#17a2b8',
+    },
+    primary: {
+      main: '#007bff',
+    },
+    secondary: {
+      main: '#6c757d',
+    },
+    success: {
+      main: '#28a745',
+    },
+    warning: {
+      main: '#ffc107',
+    },
+  },
+})
 
 const FullPage = styledComponent.div`
   height: 100vh;
@@ -249,42 +272,42 @@ const App = withState<State, Props, Effects, Computed, ParentState, ParentEffect
   },
   ({ effects, state }) => (
     <IntlProvider messages={messagesEn} locale='en'>
-      {!state.connected ? (
-        <Signin />
-      ) : !state.objectsFetched ? (
-        <IntlMessage id='loading' />
-      ) : (
-        <>
-          <Router>
-            <Switch>
-              <Route exact path='/'>
-                <Redirect to='/infrastructure' />
-              </Route>
-              <Route exact path='/vm-list'>
-                {state.vms !== undefined && (
-                  <>
-                    <p>There are {state.vms.size} VMs!</p>
-                    <ul>
-                      {state.vms.valueSeq().map((vm: Vm) => (
-                        <li key={vm.$id}>
-                          <Link to={vm.$id}>
-                            {vm.name_label} - {vm.name_description} ({vm.power_state})
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  </>
-                )}
-              </Route>
-              <Route exact path='/styleguide'>
-                <StyleGuide />
-              </Route>
-              <Route exact path='/pool'>
-                <PoolTab />
-              </Route>
-              <Route path='/'>
-                {/* Provided by this template: https://github.com/mui-org/material-ui/tree/next/docs/src/pages/getting-started/templates/dashboard */}
-                <ThemeProvider theme={mdTheme}>
+      {/* Provided by this template: https://github.com/mui-org/material-ui/tree/next/docs/src/pages/getting-started/templates/dashboard */}
+      <ThemeProvider theme={mdTheme}>
+        {!state.connected ? (
+          <Signin />
+        ) : !state.objectsFetched ? (
+          <IntlMessage id='loading' />
+        ) : (
+          <>
+            <Router>
+              <Switch>
+                <Route exact path='/'>
+                  <Redirect to='/infrastructure' />
+                </Route>
+                <Route exact path='/vm-list'>
+                  {state.vms !== undefined && (
+                    <>
+                      <p>There are {state.vms.size} VMs!</p>
+                      <ul>
+                        {state.vms.valueSeq().map((vm: Vm) => (
+                          <li key={vm.$id}>
+                            <Link to={vm.$id}>
+                              {vm.name_label} - {vm.name_description} ({vm.power_state})
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    </>
+                  )}
+                </Route>
+                <Route exact path='/styleguide'>
+                  <StyleGuide />
+                </Route>
+                <Route exact path='/pool'>
+                  <PoolTab />
+                </Route>
+                <Route path='/'>
                   <Box sx={{ display: 'flex' }}>
                     <CssBaseline />
                     <AppBar position='absolute' open={state.drawerOpen}>
@@ -384,12 +407,12 @@ const App = withState<State, Props, Effects, Computed, ParentState, ParentEffect
                       </Switch>
                     </Box>
                   </Box>
-                </ThemeProvider>
-              </Route>
-            </Switch>
-          </Router>
-        </>
-      )}
+                </Route>
+              </Switch>
+            </Router>
+          </>
+        )}
+      </ThemeProvider>
     </IntlProvider>
   )
 )

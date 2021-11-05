@@ -1,16 +1,12 @@
 import React from 'react'
-import styled from 'styled-components'
+import { Button as MuiButton, ButtonProps } from '@mui/material'
 import { withState } from 'reaclette'
-
-import Icon, { IconName } from '../components/Icon'
 
 interface ParentState {}
 
 interface State {}
 
-interface Props extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  icon?: IconName
-}
+interface Props extends ButtonProps {}
 
 interface ParentEffects {}
 
@@ -18,22 +14,12 @@ interface Effects {}
 
 interface Computed {}
 
-const StyledButton = styled.button`
-  height: 2em;
-  background-color: white;
-  border: 1px solid #ccc;
-  border-radius: 3px;
-  width: 100%;
-  cursor: pointer;
-`
-
 const Button = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
   {},
-  ({ state, effects, resetState, icon, children, ...props }) => (
-    <StyledButton {...props}>
-      {icon !== undefined && <><Icon icon={icon} /> </>}
+  ({ children, color = 'secondary', effects, resetState, state, variant = 'contained', ...props }) => (
+    <MuiButton color={color} fullWidth variant={variant} {...props}>
       {children}
-    </StyledButton>
+    </MuiButton>
   )
 )
 
