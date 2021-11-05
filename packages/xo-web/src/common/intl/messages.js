@@ -581,6 +581,8 @@ const messages = {
   remoteSmbPlaceHolderDomain: 'Domain',
   remoteSmbPlaceHolderAddressShare: '<address>\\\\<share>',
   remoteSmbPlaceHolderOptions: 'Custom mount options',
+  remoteS3HttpColumnName: 'use Http',
+  remoteS3AllowInsecure: 'allow unauthorized',
   remoteS3PlaceHolderBucket: 'AWS S3 bucket name',
   remoteS3PlaceHolderDirectory: 'Directory',
   remoteS3Region: 'Region, leave blank for default',

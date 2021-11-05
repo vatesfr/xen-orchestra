@@ -350,11 +350,30 @@ export default decorate([
           {type === 's3' && (
             <fieldset className='form-group form-group'>
               <div className='input-group form-group'>
-                <span className='input-group-addon'>
-                  <Tooltip content={formatMessage(messages.remoteS3TooltipProtocol)}>
-                    <Toggle iconSize={1} onChange={effects.setInsecure} value={protocol === 'http'} />
+                <label for='s3-protocol'>
+                  {_('remoteS3HttpColumnName')}{' '}
+                  <Tooltip content={_('remoteS3TooltipProtocol')}>
+                    <Icon icon='info' size='lg' />
                   </Tooltip>
-                </span>
+                </label>
+                <Toggle id='s3-protocol' onChange={effects.setInsecure} value={protocol === 'http'} />
+              </div>
+
+              <div className='input-group form-group'>
+                <label for='s3-unauthorized'>
+                  {_('remoteS3AllowInsecure')}{' '}
+                  <Tooltip content={_('remoteS3TooltipAcceptInsecure')}>
+                    <Icon icon='info' size='lg' />
+                  </Tooltip>
+                </label>
+                <Toggle
+                  disabled={protocol !== 'https'}
+                  onChange={effects.setAllowUnauthorized}
+                  value={allowUnauthorized}
+                />
+              </div>
+
+              <div className='input-group form-group'>
                 <input
                   className='form-control'
                   name='host'
@@ -367,15 +386,13 @@ export default decorate([
                 />
                 {protocol === 'https' && (
                   <span className='input-group-addon'>
-                    <Tooltip content={formatMessage(messages.remoteS3TooltipAcceptInsecure)}>
-                      <Toggle iconSize={1} onChange={effects.setAllowUnauthorized} value={allowUnauthorized} />
-                    </Tooltip>
+                    <Tooltip content={formatMessage(messages.remoteS3TooltipAcceptInsecure)} />
                   </span>
                 )}
               </div>
               <div className='input-group form-group'>
                 <input
-                  className='form-control'
+                  className=''
                   name='region'
                   onChange={effects.linkState}
                   pattern='[a-z0-9-]+'
