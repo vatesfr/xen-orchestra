@@ -272,6 +272,7 @@ const App = withState<State, Props, Effects, Computed, ParentState, ParentEffect
   },
   ({ effects, state }) => (
     <IntlProvider messages={messagesEn} locale='en'>
+      {/* Provided by this template: https://github.com/mui-org/material-ui/tree/next/docs/src/pages/getting-started/templates/dashboard */}
       <ThemeProvider theme={mdTheme}>
         {!state.connected ? (
           <Signin />
