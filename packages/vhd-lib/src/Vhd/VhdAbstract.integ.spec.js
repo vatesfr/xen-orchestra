@@ -1,6 +1,5 @@
 /* eslint-env jest */
 
-import os from 'os'
 import rimraf from 'rimraf'
 import tmp from 'tmp'
 import fs from 'fs-extra'
@@ -25,26 +24,26 @@ afterEach(async () => {
 
 test('It creates an alias', async () => {
   await Disposable.use(async function* () {
-    const osTmpDir = os.tmpdir()
-    const handler = yield getSyncedHandler({ url: 'file://' + os.tmpdir() })
-    const tempDirFromRoot = tempDir.slice(osTmpDir.length) // remove /tmp/
-    const aliasPath = `${tempDirFromRoot}/alias.alias.vhd`
+    const handler = yield getSyncedHandler({ url: 'file://' + tempDir })
+    const aliasPath = `alias/alias.alias.vhd`
+    const aliasFsPath = `${tempDir}/${aliasPath}`
+    await fs.mkdirp(`${tempDir}/alias`)
 
     const testOneCombination = async ({ targetPath, targetContent }) => {
       await VhdAbstract.createAlias(handler, aliasPath, targetPath)
       // alias file is created
-      expect(await fs.exists('/tmp/' + aliasPath)).toEqual(true)
+      expect(await fs.exists(aliasFsPath)).toEqual(true)
       // content is the target path relative to the alias location
-      const content = await fs.readFile('/tmp/' + aliasPath, 'utf-8')
+      const content = await fs.readFile(aliasFsPath, 'utf-8')
       expect(content).toEqual(targetContent)
       // create alias fails if alias already exists, remove it before next loop step
-      await fs.unlink('/tmp/' + aliasPath)
+      await fs.unlink(aliasFsPath)
     }
 
     const combinations = [
-      { targetPath: `${tempDirFromRoot}/targets.vhd`, targetContent: `targets.vhd` },
-      { targetPath: `${tempDirFromRoot}/sub/targets.vhd`, targetContent: `sub/targets.vhd` },
       { targetPath: `targets.vhd`, targetContent: `../targets.vhd` },
+      { targetPath: `alias/targets.vhd`, targetContent: `targets.vhd` },
+      { targetPath: `alias/sub/targets.vhd`, targetContent: `sub/targets.vhd` },
       { targetPath: `sibling/targets.vhd`, targetContent: `../sibling/targets.vhd` },
     ]
 
