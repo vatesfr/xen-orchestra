@@ -1,0 +1,34 @@
+{
+  "private": false,
+  "name": "@vates/async-each",
+  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@vates/async-each",
+  "description": "Run async fn for each item in (async) iterable",
+  "keywords": [
+    "array",
+    "async",
+    "collection",
+    "each",
+    "for",
+    "foreach",
+    "iterable",
+    "iterator"
+  ],
+  "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
+  "repository": {
+    "directory": "@vates/async-each",
+    "type": "git",
+    "url": "https://github.com/vatesfr/xen-orchestra.git"
+  },
+  "author": {
+    "name": "Vates SAS",
+    "url": "https://vates.fr"
+  },
+  "license": "ISC",
+  "version": "0.0.0",
+  "engines": {
+    "node": ">=8.10"
+  },
+  "scripts": {
+    "postversion": "npm publish --access public"
+  }
+}
