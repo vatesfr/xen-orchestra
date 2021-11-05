@@ -1,12 +1,16 @@
 import React from 'react'
-import styled from 'styled-components'
+import { TextField, TextFieldProps } from '@mui/material'
 import { withState } from 'reaclette'
 
 interface ParentState {}
 
 interface State {}
 
-interface Props extends React.InputHTMLAttributes<HTMLInputElement> {}
+// An interface can only extend an object type or intersection
+// of object types with statically known members.
+type Props = _Props & TextFieldProps
+
+interface _Props {}
 
 interface ParentEffects {}
 
@@ -14,17 +18,9 @@ interface Effects {}
 
 interface Computed {}
 
-const StyledInput = styled.input`
-  height: ${props => props.type === 'checkbox' ? 'unset' : '2em'};
-  background-color: white;
-  border: 1px solid #ccc;
-  border-radius: 3px;
-  width: ${props => props.type === 'checkbox' ? 'unset' : '100%'};
-`
-
 const Input = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
   {},
-  ({ state, effects, resetState, ...props }) => <StyledInput {...props} />
+  ({ effects, resetState, state, ...props }) => <TextField fullWidth {...props} />
 )
 
 export default Input

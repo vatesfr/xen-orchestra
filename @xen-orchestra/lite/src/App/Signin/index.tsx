@@ -3,6 +3,7 @@ import styled from 'styled-components'
 import { withState } from 'reaclette'
 
 import Button from '../../components/Button'
+import Checkbox from '../../components/Checkbox'
 import Input from '../../components/Input'
 import IntlMessage from '../../components/IntlMessage'
 
@@ -46,10 +47,6 @@ const Fieldset = styled.fieldset`
   padding-right: 0;
 `
 
-const Label = styled.div`
-  margin-bottom: 3px;
-`
-
 const RememberMe = styled(Fieldset)`
   text-align: start;
   vertical-align: baseline;
@@ -83,16 +80,20 @@ const Signin = withState<State, Props, Effects, Computed, ParentState, ParentEff
         <img src='//lite.xen-orchestra.com/dist/logo.png' />
         <h1>Xen Orchestra Lite</h1>
         <Fieldset>
-          <Label><IntlMessage id='login' /></Label>
-          <Input disabled value='root' />
+          <Input disabled label={<IntlMessage id='login' />} value='root' />
         </Fieldset>
         <Fieldset>
-          <Label><IntlMessage id='password' /></Label>
-          <Input autoFocus onChange={effects.setPassword} type='password' value={state.password} />
+          <Input
+            autoFocus
+            label={<IntlMessage id='password' />}
+            onChange={effects.setPassword}
+            type='password'
+            value={state.password}
+          />
         </Fieldset>
         <RememberMe>
           <label>
-            <Input onChange={effects.setRememberMe} type='checkbox' checked={state.rememberMe} />
+            <Checkbox onChange={effects.setRememberMe} checked={state.rememberMe} />
             &nbsp;
             <IntlMessage id='rememberMe' />
           </label>
