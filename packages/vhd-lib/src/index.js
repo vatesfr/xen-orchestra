@@ -6,6 +6,7 @@ export { default as createReadableSparseStream } from './createReadableSparseStr
 export { default as createSyntheticStream } from './createSyntheticStream'
 export { default as createVhdStreamWithLength } from './createVhdStreamWithLength'
 export { default as mergeVhd } from './merge'
+export { default as parseVhdToBlocks } from './parseVhdToBlocks'
 export { default as peekFooterFromVhdStream } from './peekFooterFromVhdStream'
 export { openVhd } from './openVhd'
 export { VhdDirectory } from './Vhd/VhdDirectory'
