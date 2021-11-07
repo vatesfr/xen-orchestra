@@ -339,10 +339,8 @@ XO will try to find the right prefix for each IP address. If it can't find a pre
 :::
 
 - Generate a token:
-
   - Go to Admin > Tokens > Add token
   - Create a token with "Write enabled"
-
 - Add a UUID custom field (for **Netbox 2.x**):
   - Got to Admin > Custom fields > Add custom field
   - Create a custom field called "uuid" (lower case!)
