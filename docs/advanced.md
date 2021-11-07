@@ -327,6 +327,8 @@ Synchronize your pools, VMs, network interfaces and IP addresses with your [Netb
 
 ![](./assets/netbox.png)
 
+### Netbox side
+
 - Go to your Netbox interface
 - Configure prefixes:
   - Go to IPAM > Prefixes > Add
@@ -337,14 +339,22 @@ XO will try to find the right prefix for each IP address. If it can't find a pre
 :::
 
 - Generate a token:
+
   - Go to Admin > Tokens > Add token
   - Create a token with "Write enabled"
-- Add a UUID custom field:
+
+- Add a UUID custom field (for Netbox 2.x):
   - Got to Admin > Custom fields > Add custom field
   - Create a custom field called "uuid" (lower case!)
   - Assign it to object types `virtualization > cluster` and `virtualization > virtual machine`
 
 ![](./assets/customfield.png)
+
+:::tip
+In Netbox 3.x, custom fields can be found directly in the site (no need to go in the admin section). It's available in "Other/Customization/Custom Fields". After creation of the `uuid` field, assign it to the object types `virtualization > cluster` and `virtualization > virtual machine`.
+:::
+
+### In Xen Orchestra
 
 - Go to Xen Orchestra > Settings > Plugins > Netbox and fill out the configuration:
   - Endpoint: the URL of your Netbox instance (e.g.: `https://netbox.company.net`)
