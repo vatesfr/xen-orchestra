@@ -21,7 +21,7 @@ import pw from 'pw'
 import serveStatic from 'serve-static'
 import stoppable from 'stoppable'
 import WebServer from 'http-server-plus'
-import WebSocket from 'ws'
+import WebSocket, { WebSocketServer } from 'ws'
 import xdg from 'xdg-basedir'
 import { createLogger } from '@xen-orchestra/log'
 import { createRequire } from 'module'
@@ -505,7 +505,7 @@ const setUpProxies = (express, opts, xo) => {
   })
 
   // WebSocket proxy.
-  const webSocketServer = new WebSocket.Server({
+  const webSocketServer = new WebSocketServer({
     noServer: true,
   })
   xo.hooks.on('stop', () => fromCallback.call(webSocketServer, 'close'))
@@ -543,7 +543,7 @@ const setUpStaticFiles = (express, opts) => {
 // ===================================================================
 
 const setUpApi = (webServer, xo, config) => {
-  const webSocketServer = new WebSocket.Server({
+  const webSocketServer = new WebSocketServer({
     ...config.apiWebSocketOptions,
 
     noServer: true,
@@ -613,7 +613,7 @@ const setUpApi = (webServer, xo, config) => {
 const CONSOLE_PROXY_PATH_RE = /^\/api\/consoles\/(.*)$/
 
 const setUpConsoleProxy = (webServer, xo) => {
-  const webSocketServer = new WebSocket.Server({
+  const webSocketServer = new WebSocketServer({
     noServer: true,
   })
   xo.hooks.on('stop', () => fromCallback.call(webSocketServer, 'close'))

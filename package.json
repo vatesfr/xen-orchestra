@@ -3,7 +3,7 @@
     "@babel/core": "^7.0.0",
     "@babel/eslint-parser": "^7.13.8",
     "@babel/register": "^7.0.0",
-    "babel-jest": "^26.0.1",
+    "babel-jest": "^27.3.1",
     "benchmark": "^2.1.4",
     "eslint": "^7.6.0",
     "eslint-config-prettier": "^8.1.0",
@@ -18,11 +18,11 @@
     "globby": "^11.0.1",
     "handlebars": "^4.7.6",
     "husky": "^4.2.5",
-    "jest": "^26.0.1",
+    "jest": "^27.3.1",
     "lint-staged": "^11.1.2",
     "lodash": "^4.17.4",
     "prettier": "^2.0.5",
-    "promise-toolbox": "^0.19.2",
+    "promise-toolbox": "^0.20.0",
     "sorted-object": "^2.0.1",
     "vuepress": "^1.4.1"
   },
@@ -61,8 +61,7 @@
       "/xo-server-test/",
       "/xo-web/"
     ],
-    "testRegex": "\\.spec\\.js$",
-    "timers": "fake"
+    "testRegex": "\\.spec\\.js$"
   },
   "lint-staged": {
     "*.{md,ts,ts}": "prettier --write"

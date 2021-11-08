@@ -11,6 +11,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+[Import/VM] Fix the import of OVA files (PR [#5976](https://github.com/vatesfr/xen-orchestra/pull/5976))
+
 ### Packages to release
 
 > Packages will be released in the order they are here, therefore, they should
@@ -30,3 +32,5 @@
 
 - @xen-orchestra/fs minor
 - vhd-lib minor
+- xo-server patch
+- vhd-cli minor

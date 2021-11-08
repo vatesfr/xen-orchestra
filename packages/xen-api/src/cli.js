@@ -2,10 +2,10 @@
 
 import blocked from 'blocked'
 import createDebug from 'debug'
-import diff from 'jest-diff'
 import minimist from 'minimist'
 import pw from 'pw'
 import { asCallback, fromCallback, fromEvent } from 'promise-toolbox'
+import { diff } from 'jest-diff'
 import { filter, find } from 'lodash'
 import { getBoundPropertyDescriptor } from 'bind-property-descriptor'
 import { start as createRepl } from 'repl'

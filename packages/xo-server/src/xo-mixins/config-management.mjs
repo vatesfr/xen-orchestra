@@ -41,13 +41,11 @@ export default class ConfigManagement {
 
     if (passphrase !== undefined) {
       config = Buffer.from(
-        (
-          await openpgp.encrypt({
-            armor: false,
-            message: openpgp.message.fromText(config),
-            passwords: passphrase,
-          })
-        ).message.packets.write()
+        await openpgp.encrypt({
+          format: 'binary',
+          message: await openpgp.createMessage({ text: config }),
+          passwords: passphrase,
+        })
       )
     }
 
@@ -58,8 +56,7 @@ export default class ConfigManagement {
     if (passphrase !== undefined) {
       config = (
         await openpgp.decrypt({
-          format: 'utf8',
-          message: await openpgp.message.read(config),
+          message: await openpgp.readMessage({ binaryMessage: config }),
           passwords: passphrase,
         })
       ).data

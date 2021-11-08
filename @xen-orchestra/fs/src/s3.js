@@ -183,9 +183,21 @@ export default class S3Handler extends RemoteHandlerAbstract {
     }
     const params = this._createParams(file)
     params.Range = `bytes=${position}-${position + buffer.length - 1}`
-    const result = await this._s3.getObject(params)
-    result.Body.copy(buffer)
-    return { bytesRead: result.Body.length, buffer }
+    try {
+      const result = await this._s3.getObject(params)
+      result.Body.copy(buffer)
+      return { bytesRead: result.Body.length, buffer }
+    } catch (e) {
+      if (e.code === 'NoSuchKey') {
+        if (await this._isNotEmptyDir(file)) {
+          const error = new Error(`${file} is a directory`)
+          error.code = 'EISDIR'
+          error.path = file
+          throw error
+        }
+      }
+      throw e
+    }
   }
 
   async _rmdir(path) {

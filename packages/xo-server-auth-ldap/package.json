@@ -28,15 +28,15 @@
     "xo-server-auth-ldap": "dist/test-cli.js"
   },
   "engines": {
-    "node": ">=10"
+    "node": ">=12"
   },
   "dependencies": {
     "@xen-orchestra/log": "^0.3.0",
     "ensure-array": "^1.0.0",
     "exec-promise": "^0.7.0",
     "inquirer": "^8.0.0",
-    "ldapts": "^2.2.1",
-    "promise-toolbox": "^0.19.2"
+    "ldapts": "^3.1.1",
+    "promise-toolbox": "^0.20.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.0.0",
