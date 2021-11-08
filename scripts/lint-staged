@@ -34,7 +34,7 @@ const gitDiffIndex = () => gitDiff('index', ['--cached', 'HEAD'])
 
 // -----------------------------------------------------------------------------
 
-const files = gitDiffIndex().filter(_ => _.endsWith('.cjs') || _.endsWith('.js') || _.endsWith('.mjs'))
+const files = gitDiffIndex().filter(_ => _.endsWith('.cjs') || _.endsWith('.js') || _.endsWith('.mjs') || _.endsWith('.tsx') || _.endsWith('.ts'))
 if (files.length === 0) {
   return
 }
