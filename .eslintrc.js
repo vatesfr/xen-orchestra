@@ -19,6 +19,7 @@ module.exports = {
       },
     },
   ],
+  plugins: ['simple-import-sort'],
 
   rules: {
     // disabled because XAPI objects are using camel case
@@ -34,5 +35,7 @@ module.exports = {
     'lines-between-class-members': 'off',
 
     'no-console': ['error', { allow: ['warn', 'error'] }],
+
+    'simple-import-sort/imports': 'error',
   },
 }
