@@ -1,6 +1,9 @@
 import { computeBatSize, sectorsRoundUpNoZero, sectorsToBytes } from './_utils'
 import { PLATFORM_NONE, SECTOR_SIZE, PLATFORM_W2KU, PARENT_LOCATOR_ENTRIES } from '../_constants'
+import { resolveAlias, isVhdAlias } from '../_resolveAlias'
+
 import assert from 'assert'
+import path from 'path'
 
 export class VhdAbstract {
   #header
@@ -163,5 +166,42 @@ export class VhdAbstract {
         yield await this.readBlock(blockId)
       }
     }
+  }
+
+  static async rename(handler, sourcePath, targetPath) {
+    await handler.rename(sourcePath, targetPath)
+  }
+
+  static async unlink(handler, path) {
+    const resolved = await resolveAlias(handler, path)
+    try {
+      await handler.unlink(resolved)
+    } catch (err) {
+      if (err.code === 'EISDIR') {
+        await handler.rmtree(resolved)
+      } else {
+        throw err
+      }
+    }
+
+    // also delete the alias file
+    if (path !== resolved) {
+      await handler.unlink(path)
+    }
+  }
+
+  static async createAlias(handler, aliasPath, targetPath) {
+    if (!isVhdAlias(aliasPath)) {
+      throw new Error(`Alias must be named *.alias.vhd,  ${aliasPath} given`)
+    }
+    if (isVhdAlias(targetPath)) {
+      throw new Error(`Chaining alias is forbidden ${aliasPath} to ${targetPath}`)
+    }
+    // aliasPath and targetPath are absolute path from the root of the handler
+    // normalize them so they can't  escape this dir
+    const aliasDir = path.dirname(path.resolve('/', aliasPath))
+    // only store the relative path from alias to target
+    const relativePathToTarget = path.relative(aliasDir, path.resolve('/', targetPath))
+    await handler.writeFile(aliasPath, relativePathToTarget)
   }
 }
