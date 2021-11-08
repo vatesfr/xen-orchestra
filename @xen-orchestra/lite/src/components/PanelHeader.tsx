@@ -1,7 +1,7 @@
 import React from 'react'
 import { withState } from 'reaclette'
 
-import Icon, { IconName } from '../components/Icon'
+import Icon, { IconName } from './Icon'
 
 import Button, {ButtonProps} from '@mui/material/Button';
 import ButtonGroup, {ButtonGroupClassKey}  from '@mui/material/ButtonGroup';
@@ -26,15 +26,15 @@ const DEFAULT_H1_STYLE = {flex: 1}
 const DEFAULT_BUTTONGROUP_STYLE = {margin: '0.5em', flex: 0}
 
 interface Props extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  // accept an array of Action. An action accept all the props of a Button + an icon
+  // Accepts an array of Actions. An action accepts all the props of a Button + an icon
   actions?: Array<Action>,
-  // the props passed to the title , accept all the keys of Typography
+  // the props passed to the title, accepts all the keys of Typography
   titleProps?: TypographyClassKey,
-  // the props passed to the button group , accept all the keys of a ButtonGroup
+  // the props passed to the button group, accepts all the keys of a ButtonGroup
   buttonGroupProps?: ButtonGroupClassKey
 }
 
-const TitleBar = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
+const PanelHeader = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
   {},
   ({ actions=[], titleProps = {}, buttonGroupProps={}, children=null }) => (
     <Stack direction='row' alignItems='start'>
@@ -49,4 +49,4 @@ const TitleBar = withState<State, Props, Effects, Computed, ParentState, ParentE
 )
 
 
-export default TitleBar
+export default PanelHeader

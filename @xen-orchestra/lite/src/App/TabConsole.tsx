@@ -1,12 +1,10 @@
 import React from 'react'
 import { withState } from 'reaclette'
 
-import Button from '../components/Button'
 import Console from '../components/Console'
 import IntlMessage from '../components/IntlMessage'
-import RangeInput from '../components/RangeInput'
 import { ObjectsByType, Vm } from '../libs/xapi'
-import TitleBar from '../components/TitleBar'
+import PanelHeader from '../components/PanelHeader'
 
 interface ParentState {
   objectsByType: ObjectsByType
@@ -26,6 +24,7 @@ interface ParentEffects {}
 interface Effects {
   scaleConsole: React.ChangeEventHandler<HTMLInputElement>
   setCtrlAltDel: (sendCtrlAltDel: State['sendCtrlAltDel']) => void
+  showNotImplemented: () => void
 }
 
 interface Computed {
@@ -53,6 +52,9 @@ const TabConsole = withState<State, Props, Effects, Computed, ParentState, Paren
       setCtrlAltDel: function (sendCtrlAltDel) {
         this.state.sendCtrlAltDel = sendCtrlAltDel
       },
+      showNotImplemented: function () {
+        alert('Not Implemented')
+      },
     },
     computed: {
       vm: (state, { vmId }) => state.objectsByType.get('VM')?.get(vmId),
@@ -66,20 +68,27 @@ const TabConsole = withState<State, Props, Effects, Computed, ParentState, Paren
         </p>
       ) : (
         <>
-          <TitleBar actions={[
-            {
-              icon: 'pen',
-              color: "primary",
-              title: "edit",
-              variant:"contained"
-            },
-            {
-              icon: 'trash',
-              color: "warning",
-              title: "don't delete me, please",
-              variant:"outlined"
-            },
-          ]}>{state.vm?.name_label ?? 'loading'} </TitleBar>
+          <IntlMessage id='VmStartLabel' defaultMessage='loading'>
+            {VmStartLabel => (
+              <PanelHeader
+                actions={[
+                  {
+                    icon: 'play',
+                    color: 'primary',
+                    title:
+                      Array.isArray(VmStartLabel) && typeof VmStartLabel[0] === 'string'
+                        ? VmStartLabel[0]
+                        : typeof VmStartLabel,
+                    variant: 'contained',
+                    onClick: effects.showNotImplemented,
+                  },
+                ]}
+              >
+                {state.vm?.name_label ?? 'loading'}{' '}
+              </PanelHeader>
+            )}
+          </IntlMessage>
+
           {/* Hide scaling and Ctrl+Alt+Del button temporarily */}
           {/* <RangeInput max={100} min={1} onChange={effects.scaleConsole} step={1} value={state.consoleScale} />
           {state.sendCtrlAltDel !== undefined && (

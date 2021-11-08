@@ -21,6 +21,7 @@
   "login": "Login",
   "name": "Name",
   "noData": "No data",
+  "noImplemented": "Not implemented",
   "noManagementPifs": "No management PIFs found",
   "none": "None",
   "notFound": "Not Found",
@@ -36,5 +37,6 @@
   "size": "Size",
   "suspended": "Suspended",
   "version": "Version",
-  "versionValue": "Version {version}"
+  "versionValue": "Version {version}",
+  "VmStartLabel": "Start"
 }

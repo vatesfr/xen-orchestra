@@ -23,5 +23,4 @@ const Button = withState<State, Props, Effects, Computed, ParentState, ParentEff
   )
 )
 
-
 export default Button
