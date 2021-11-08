@@ -350,23 +350,28 @@ export default decorate([
           {type === 's3' && (
             <fieldset className='form-group form-group'>
               <div className='input-group form-group'>
-                <label for='s3-protocol'>
+                <span className='align-middle'>
                   {_('remoteS3HttpColumnName')}{' '}
                   <Tooltip content={_('remoteS3TooltipProtocol')}>
                     <Icon icon='info' size='lg' />
                   </Tooltip>
-                </label>
-                <Toggle id='s3-protocol' onChange={effects.setInsecure} value={protocol === 'http'} />
+                </span>
+                <Toggle
+                  className='align-middle pull-right'
+                  onChange={effects.setInsecure}
+                  value={protocol === 'http'}
+                />
               </div>
 
               <div className='input-group form-group'>
-                <label for='s3-unauthorized'>
+                <span className='align-middle '>
                   {_('remoteS3AllowInsecure')}{' '}
                   <Tooltip content={_('remoteS3TooltipAcceptInsecure')}>
                     <Icon icon='info' size='lg' />
                   </Tooltip>
-                </label>
+                </span>
                 <Toggle
+                  className='align-middle pull-right'
                   disabled={protocol !== 'https'}
                   onChange={effects.setAllowUnauthorized}
                   value={allowUnauthorized}
@@ -384,15 +389,10 @@ export default decorate([
                   type='text'
                   value={host}
                 />
-                {protocol === 'https' && (
-                  <span className='input-group-addon'>
-                    <Tooltip content={formatMessage(messages.remoteS3TooltipAcceptInsecure)} />
-                  </span>
-                )}
               </div>
               <div className='input-group form-group'>
                 <input
-                  className=''
+                  className='form-control'
                   name='region'
                   onChange={effects.linkState}
                   pattern='[a-z0-9-]+'
