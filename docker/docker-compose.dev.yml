@@ -1,0 +1,10 @@
+version: '3.3'
+
+services:
+  xo:
+    build:
+      context: .
+    ports:
+      - 8000:80
+    volumes:
+      - ../:/xen-orchestra
