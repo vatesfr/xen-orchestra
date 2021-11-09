@@ -1,5 +1,12 @@
+export const SECTOR_SIZE = 512
 export const compressionDeflate = 'COMPRESSION_DEFLATE'
 export const compressionNone = 'COMPRESSION_NONE'
+
+export const MARKER_EOS = 0
+export const MARKER_GT = 1
+export const MARKER_GD = 2
+export const MARKER_FOOTER = 3
+
 const compressionMap = [compressionNone, compressionDeflate]
 
 export function parseFlags(flagBuffer) {
@@ -69,5 +76,42 @@ export function parseHeader(buffer) {
     rGrainDirectoryOffsetSectors,
     l1EntrySectors,
     numGTEsPerGT,
+  }
+}
+
+export function createStreamOptimizedHeader(capacitySectors, descriptorSizeSectors, grainDirectoryOffsetSectors = -1) {
+  const headerBuffer = Buffer.alloc(SECTOR_SIZE)
+  Buffer.from('KDMV', 'ascii').copy(headerBuffer, 0)
+  // version
+  headerBuffer.writeUInt32LE(3, 4)
+  // newline, compression, markers
+  const flags = 1 | 1 << 16 | 1 << 17
+  headerBuffer.writeUInt32LE(flags, 8)
+  headerBuffer.writeBigUInt64LE(BigInt(capacitySectors), 12)
+  const grainSizeSectors = 128
+  headerBuffer.writeBigUInt64LE(BigInt(grainSizeSectors), 20)
+  const descriptorOffsetSectors = 1
+  headerBuffer.writeBigUInt64LE(BigInt(descriptorOffsetSectors), 28)
+  headerBuffer.writeBigUInt64LE(BigInt(descriptorSizeSectors), 36)
+  const numGTEsPerGT = 512
+  headerBuffer.writeUInt32LE(numGTEsPerGT, 44)
+  // The rgdOffset should be ignored because bit 1 of the flags field is not set.
+  headerBuffer.writeBigInt64LE(BigInt(grainDirectoryOffsetSectors), 56)
+  const grainDirectoryEntries = Math.ceil(Math.ceil(capacitySectors / grainSizeSectors) / numGTEsPerGT)
+  const grainTableEntries = grainDirectoryEntries * numGTEsPerGT
+  const grainDirectorySizeSectors = Math.ceil(grainDirectoryEntries * 4 / SECTOR_SIZE)
+  const grainTableSizeSectors = Math.ceil(grainTableEntries * 4 / SECTOR_SIZE)
+  const overheadSectors = 1 + descriptorSizeSectors + grainDirectorySizeSectors + grainTableSizeSectors
+  headerBuffer.writeBigInt64LE(BigInt(overheadSectors), 64)
+  // newline mangling detector
+  headerBuffer.write('\n \r\n', 73, 4, 'ascii')
+  // use DEFLATE
+  headerBuffer.writeUInt16LE(1, 77)
+  return {
+    buffer: headerBuffer,
+    grainDirectorySizeSectors,
+    grainTableSizeSectors,
+    grainDirectoryEntries,
+    grainTableEntries
   }
 }
