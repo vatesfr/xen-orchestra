@@ -207,9 +207,15 @@ const INDIVIDUAL_ACTIONS = [
         },
         {
           disabled: ({ type }) => type === 'VDI-unmanaged',
-          handler: exportVdi,
+          handler: vdi => exportVdi(vdi, 'vhd'),
           icon: 'export',
           label: _('exportVdi'),
+        },
+        {
+          disabled: ({ type }) => type === 'VDI-unmanaged',
+          handler: vdi => exportVdi(vdi, 'vmdk'),
+          icon: 'export',
+          label: _('exportVdiVmdk'),
         },
       ]
     : []),

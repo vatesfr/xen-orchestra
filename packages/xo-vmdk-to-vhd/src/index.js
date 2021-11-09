@@ -111,9 +111,18 @@ export async function createReadableVmdkStream(diskName, diskCapacityBytes, bloc
     directoryOffset = streamPosition
     const buff = Buffer.alloc(roundToSector(grainDirectoryEntries * OFFSET_SIZE))
     for (let i = 0; i < grainDirectoryEntries; i++) {
-      buff.writeUInt32LE((tablePosition + i * parsedHeader.numGTEsPerGT * OFFSET_SIZE)/ SECTOR_SIZE, i * OFFSET_SIZE)
+      buff.writeUInt32LE((tablePosition + i * parsedHeader.numGTEsPerGT * OFFSET_SIZE) / SECTOR_SIZE, i * OFFSET_SIZE)
     }
     return buff
+  }
+
+  function bufferIsBlank(buffer) {
+    for (const b of buffer) {
+      if (b !== 0) {
+        return false
+      }
+    }
+    return true
   }
 
   function createMarkedGrain(lbaBytes, buffer) {
@@ -134,8 +143,11 @@ export async function createReadableVmdkStream(diskName, diskCapacityBytes, bloc
     for (let i = 0; i < grainCount; i++) {
       const grainLbaBytes = blockLbaBytes + i * grainSizeBytes
       const tableIndex = grainLbaBytes / grainSizeBytes
-      tableBuffer.writeUInt32LE(streamPosition / SECTOR_SIZE, tableIndex * 4)
-      yield track(createMarkedGrain(grainLbaBytes, buffer.slice(i * grainSizeBytes, (i + 1) * grainSizeBytes)))
+      const grainData = buffer.slice(i * grainSizeBytes, (i + 1) * grainSizeBytes)
+      if (!bufferIsBlank(grainData)) {
+        tableBuffer.writeUInt32LE(streamPosition / SECTOR_SIZE, tableIndex * 4)
+        yield track(createMarkedGrain(grainLbaBytes, grainData))
+      }
     }
   }
 

@@ -1715,10 +1715,10 @@ export const exportVm = async vm => {
   window.open(`.${url}`)
 }
 
-export const exportVdi = vdi => {
+export const exportVdi = (vdi, format='vhd') => {
   const id = resolveId(vdi)
-  info(_('startVdiExport'), id)
-  return _call('disk.exportContent', { id: id, format:'vmdk' }).then(({ $getFrom: url }) => {
+  info(_('startVdiExport'), vdi.id)
+  return _call('disk.exportContent', { id: id, format }).then(({ $getFrom: url }) => {
     window.open(`.${url}`)
   })
 }
