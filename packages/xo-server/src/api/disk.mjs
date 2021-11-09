@@ -79,8 +79,9 @@ create.resolve = {
 
 // -------------------------------------------------------------------
 
-async function handleExportContent(req, res, { xapi, id }) {
-  const stream = await xapi.exportVdiContent(id)
+async function handleExportContent(req, res, { xapi, id, format = 'vhd' }) {
+  const stream = format === 'vmdk' ? await xapi.exportVdiAsVMDK(id) : await xapi.exportVdiContent(id)
+  console.log('STREAM', stream)
   req.on('close', () => stream.cancel())
 
   // Remove the filename as it is already part of the URL.
@@ -94,16 +95,18 @@ async function handleExportContent(req, res, { xapi, id }) {
   })
 }
 
-export async function exportContent({ vdi }) {
+export async function exportContent({ vdi, format = 'vhd' }) {
+  const extension = format === 'vhd' ? 'vhd' : 'vmdk'
   return {
     $getFrom: await this.registerHttpRequest(
       handleExportContent,
       {
         id: vdi._xapiId,
         xapi: this.getXapi(vdi),
+        format
       },
       {
-        suffix: `/${encodeURIComponent(vdi.name_label)}.vhd`,
+        suffix: `/${encodeURIComponent(vdi.name_label)}.${extension}`,
       }
     ),
   }
@@ -112,6 +115,7 @@ export async function exportContent({ vdi }) {
 exportContent.description = 'export the content of a VDI'
 exportContent.params = {
   id: { type: 'string' },
+  format: { type: 'string' },
 }
 exportContent.resolve = {
   vdi: ['id', ['VDI', 'VDI-snapshot'], 'view'],

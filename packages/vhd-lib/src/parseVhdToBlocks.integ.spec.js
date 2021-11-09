@@ -26,9 +26,9 @@ test('vhd parser can spit blocks', async () => {
   const vhdFileName = `${tempDir}/randomfile.vhd`
   await convertFromRawToVhd(rawFileName, vhdFileName)
   const res = await parseVhdToBlocks(fs.createReadStream(vhdFileName))
-  expect(res.blockSize).toEqual(2 * 1024 * 1024)
+  expect(res.blockSizeBytes).toEqual(2 * 1024 * 1024)
   const fileBuffer = await fs.readFile(rawFileName)
-  for await (const b of res.blockGenerator()) {
-    expect(b.block).toEqual(fileBuffer.slice(b.lba, b.lba + res.blockSize))
+  for await (const b of res.blockGenerator) {
+    expect(b.block).toEqual(fileBuffer.slice(b.lba, b.lba + res.blockSizeBytes))
   }
 })
