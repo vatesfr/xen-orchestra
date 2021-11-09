@@ -172,10 +172,15 @@ const INDIVIDUAL_ACTIONS = [
   ...(process.env.XOA_PLAN > 1
     ? [
         {
-          handler: vbd => exportVdi(vbd.vdi),
+          handler: vbd => exportVdi(vbd.vdi, 'vhd'),
           icon: 'export',
           label: _('exportVdi'),
         },
+      {
+        handler: vbd => exportVdi(vbd.vdi, 'vmdk'),
+        icon: 'export',
+        label: _('exportVdiVmdk'),
+      },
         {
           disabled: vbd => vbd.attached,
           handler: vbd => importVdi(vbd.vdi),

@@ -81,8 +81,7 @@ create.resolve = {
 
 async function handleExportContent(req, res, { xapi, id, format = 'vhd' }) {
   const stream = format === 'vmdk' ? await xapi.exportVdiAsVMDK(id) : await xapi.exportVdiContent(id)
-  console.log('STREAM', stream)
-  req.on('close', () => stream.cancel())
+  req.on('close', () => stream.destroy())
 
   // Remove the filename as it is already part of the URL.
   stream.headers['content-disposition'] = 'attachment'

@@ -1126,6 +1126,7 @@ const messages = {
   destroySelectedVdis: 'Destroy selected VDIs',
   destroyVdi: 'Destroy VDI',
   exportVdi: 'Export VDI content',
+  exportVdiVmdk: 'Export VDI content in VMDK',
   importVdi: 'Import VDI content',
   importVdiNoFile: 'No file selected',
   selectVdiMessage: 'Drop VHD file here',
