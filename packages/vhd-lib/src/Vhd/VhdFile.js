@@ -9,7 +9,7 @@ import {
 import { computeBatSize, sectorsToBytes, buildHeader, buildFooter, BUF_BLOCK_UNUSED } from './_utils'
 import { createLogger } from '@xen-orchestra/log'
 import { fuFooter, fuHeader, checksumStruct } from '../_structs'
-import { set as mapSetBit, test as mapTestBit } from '../_bitmap'
+import { set as mapSetBit } from '../_bitmap'
 import { VhdAbstract } from './VhdAbstract'
 import assert from 'assert'
 import getFirstAndLastBlocks from '../_getFirstAndLastBlocks'
@@ -341,47 +341,6 @@ export class VhdFile extends VhdAbstract {
       block.data.slice(sectorsToBytes(beginSectorId), sectorsToBytes(endSectorId)),
       sectorsToBytes(offset)
     )
-  }
-
-  async coalesceBlock(child, blockId) {
-    const block = await child.readBlock(blockId)
-    const { bitmap, data } = block
-
-    debug(`coalesceBlock block=${blockId}`)
-
-    // For each sector of block data...
-    const { sectorsPerBlock } = child
-    let parentBitmap = null
-    for (let i = 0; i < sectorsPerBlock; i++) {
-      // If no changes on one sector, skip.
-      if (!mapTestBit(bitmap, i)) {
-        continue
-      }
-      let endSector = i + 1
-
-      // Count changed sectors.
-      while (endSector < sectorsPerBlock && mapTestBit(bitmap, endSector)) {
-        ++endSector
-      }
-
-      // Write n sectors into parent.
-      debug(`coalesceBlock: write sectors=${i}...${endSector}`)
-
-      const isFullBlock = i === 0 && endSector === sectorsPerBlock
-      if (isFullBlock) {
-        await this.writeEntireBlock(block)
-      } else {
-        if (parentBitmap === null) {
-          parentBitmap = (await this.readBlock(blockId, true)).bitmap
-        }
-        await this._writeBlockSectors(block, i, endSector, parentBitmap)
-      }
-
-      i = endSector
-    }
-
-    // Return the merged data size
-    return data.length
   }
 
   // Write a context footer. (At the end and beginning of a vhd file.)

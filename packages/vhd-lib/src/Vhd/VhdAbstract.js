@@ -100,8 +100,10 @@ export class VhdAbstract {
    *
    * @returns {number} the merged data size
    */
-  coalesceBlock(child, blockId) {
-    throw new Error(`coalescing the block ${blockId} from ${child} is not implemented`)
+  async coalesceBlock(child, blockId) {
+    const block = await child.readBlock(blockId)
+    await this.writeEntireBlock(block)
+    return block.data.length
   }
 
   /**

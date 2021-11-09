@@ -1,4 +1,4 @@
-import { buildHeader, buildFooter } from './_utils'
+import { buildHeader, buildFooter, sectorsToBytes } from './_utils'
 import { createLogger } from '@xen-orchestra/log'
 import { fuFooter, fuHeader, checksumStruct } from '../_structs'
 import { test, set as setBitmap } from '../_bitmap'
@@ -174,12 +174,14 @@ export class VhdDirectory extends VhdAbstract {
   // and if the full block is modified in child ( which is the case whit xcp)
 
   async coalesceBlock(child, blockId) {
-    assert.strictEqual(this._handler, child._handler)
+    if (!(child instanceof VhdDirectory) || this._handler !== child._handler) {
+      return super.coalesceBlock(child, blockId)
+    }
     await this._handler.copy(
       child.getChunkPath(child._getBlockPath(blockId)),
       this.getChunkPath(this._getBlockPath(blockId))
     )
-    return await this._handler.getSize(this.getChunkPath(this._getBlockPath(blockId)))
+    return sectorsToBytes(this.sectorsPerBlock)
   }
 
   async writeEntireBlock(block) {
