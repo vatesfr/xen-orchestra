@@ -1714,7 +1714,7 @@ export const exportVm = async vm => {
 
 export const exportVdi = vdi => {
   info(_('startVdiExport'), vdi.id)
-  return _call('disk.exportContent', { id: resolveId(vdi) }).then(({ $getFrom: url }) => {
+  return _call('disk.exportContent', { id: resolveId(vdi), format:'vmdk' }).then(({ $getFrom: url }) => {
     window.open(`.${url}`)
   })
 }
