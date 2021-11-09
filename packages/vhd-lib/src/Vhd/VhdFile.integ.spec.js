@@ -6,13 +6,20 @@ import getStream from 'get-stream'
 import rimraf from 'rimraf'
 import tmp from 'tmp'
 import { getHandler } from '@xen-orchestra/fs'
-import { pFromCallback } from 'promise-toolbox'
+import { Disposable, pFromCallback } from 'promise-toolbox'
 import { randomBytes } from 'crypto'
 
 import { VhdFile } from './VhdFile'
+import { openVhd } from '../openVhd'
 
 import { SECTOR_SIZE } from '../_constants'
-import { checkFile, createRandomFile, convertFromRawToVhd, recoverRawContent } from '../tests/utils'
+import {
+  checkFile,
+  createRandomFile,
+  convertFromRawToVhd,
+  convertToVhdDirectory,
+  recoverRawContent,
+} from '../tests/utils'
 
 let tempDir = null
 
@@ -161,4 +168,46 @@ test('BAT can be extended and blocks moved', async () => {
   await newVhd.writeBlockAllocationTable()
   await recoverRawContent(vhdFileName, recoveredFileName, originalSize)
   expect(await fs.readFile(recoveredFileName)).toEqual(await fs.readFile(rawFileName))
+})
+
+test('Can coalesce block', async () => {
+  const initalSize = 4
+  const parentrawFileName = `${tempDir}/randomfile`
+  const parentFileName = `${tempDir}/parent.vhd`
+  await createRandomFile(parentrawFileName, initalSize)
+  await convertFromRawToVhd(parentrawFileName, parentFileName)
+  const childrawFileName = `${tempDir}/randomfile`
+  const childFileName = `${tempDir}/childFile.vhd`
+  await createRandomFile(childrawFileName, initalSize)
+  await convertFromRawToVhd(childrawFileName, childFileName)
+  const childRawDirectoryName = `${tempDir}/randomFile2.vhd`
+  const childDirectoryFileName = `${tempDir}/childDirFile.vhd`
+  const childDirectoryName = `${tempDir}/childDir.vhd`
+  await createRandomFile(childRawDirectoryName, initalSize)
+  await convertFromRawToVhd(childRawDirectoryName, childDirectoryFileName)
+  await convertToVhdDirectory(childRawDirectoryName, childDirectoryFileName, childDirectoryName)
+
+  await Disposable.use(async function* () {
+    const handler = getHandler({ url: 'file://' })
+    const parentVhd = yield openVhd(handler, parentFileName, 'r+')
+    await parentVhd.readBlockAllocationTable()
+    const childFileVhd = yield openVhd(handler, childFileName)
+    await childFileVhd.readBlockAllocationTable()
+    const childDirectoryVhd = yield openVhd(handler, childDirectoryName)
+    await childDirectoryVhd.readBlockAllocationTable()
+
+    await parentVhd.coalesceBlock(childFileVhd, 0)
+    await parentVhd.writeFooter()
+    await parentVhd.writeBlockAllocationTable()
+    let parentBlockData = await parentVhd.readBlock(0).data
+    let childBlockData = await childFileVhd.readBlock(0).data
+    expect(parentBlockData).toEqual(childBlockData)
+
+    await parentVhd.coalesceBlock(childDirectoryVhd, 0)
+    await parentVhd.writeFooter()
+    await parentVhd.writeBlockAllocationTable()
+    parentBlockData = await parentVhd.readBlock(0).data
+    childBlockData = await childDirectoryVhd.readBlock(0).data
+    expect(parentBlockData).toEqual(childBlockData)
+  })
 })
