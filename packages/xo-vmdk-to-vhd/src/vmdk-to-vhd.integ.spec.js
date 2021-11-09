@@ -8,7 +8,8 @@ import tmp from 'tmp'
 
 import { createReadStream, createWriteStream, stat } from 'fs-extra'
 import { pFromCallback } from 'promise-toolbox'
-import { vmdkToVhd, readVmdkGrainTable } from '.'
+import { vmdkToVhd, readVmdkGrainTable, createReadableVmdkStream } from '.'
+import VMDKDirectParser from './vmdk-read'
 
 const initialDir = process.cwd()
 jest.setTimeout(100000)
@@ -75,4 +76,48 @@ test('VMDK to VHD can convert a random data file with VMDKDirectParser', async (
     console.error(error.message)
     throw error
   }
+})
+
+test('Can generate an empty VMDK file', async () => {
+  const readStream = await createReadableVmdkStream('result.vmdk', 1024 * 1024 * 1024, 1024 * 1024, [])
+  const pipe = readStream.pipe(createWriteStream('result.vmdk'))
+  await fromEvent(pipe, 'finish')
+  await execa('qemu-img', ['check', 'result.vmdk'])
+})
+
+test('Can generate a small VMDK file', async () => {
+  const defaultVhdToVmdkRatio = 16
+  const blockSize = 1024 * 1024
+  const b1 = Buffer.allocUnsafe(blockSize)
+  const b2 = Buffer.allocUnsafe(blockSize)
+  const blockGenerator = [{ lba: 0, block: b1 }, { lba: blockSize, block: b2 }]
+  const fileName = 'result.vmdk'
+  const readStream = await createReadableVmdkStream(fileName, 2 * blockSize, blockSize, blockGenerator)
+  const pipe = readStream.pipe(createWriteStream(fileName))
+  await fromEvent(pipe, 'finish')
+
+  const expectedLBAs = []
+  for (let i = 0; i < blockGenerator.length; i++) {
+    for (let j = 0; j < defaultVhdToVmdkRatio; j++) {
+      expectedLBAs.push(expectedLBAs.length)
+    }
+  }
+  const data = await readVmdkGrainTable(createFileAccessor(fileName))
+  expect(bufferToArray(data.grainLogicalAddressList)).toEqual(expectedLBAs)
+  const grainFileOffsetList = bufferToArray(data.grainFileOffsetList)
+  const parser = new VMDKDirectParser(createReadStream(fileName), bufferToArray(data.grainLogicalAddressList), grainFileOffsetList, false)
+  await parser.readHeader()
+  const resLbas = []
+  const resBuffers = []
+  const DEFAULT_GRAIN_SIZE = 65536
+  for await (const b of parser.blockIterator()) {
+    resLbas.push(b.logicalAddressBytes / DEFAULT_GRAIN_SIZE)
+    resBuffers.push(b.data)
+  }
+  const resultBuffer = Buffer.concat(resBuffers)
+  const startingBuffer = Buffer.concat([b1, b2])
+  expect(resultBuffer).toEqual(startingBuffer)
+  expect(resLbas).toEqual(expectedLBAs)
+
+  await execa('qemu-img', ['check', 'result.vmdk'])
 })
