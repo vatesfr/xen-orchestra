@@ -27,5 +27,6 @@ module.exports = {
     'no-use-before-define': 'off',
 
     '@typescript-eslint/no-unused-vars': ['error', { ignoreRestSiblings: true }],
+    '@typescript-eslint/ban-ts-comment': 'off',
   },
 }
