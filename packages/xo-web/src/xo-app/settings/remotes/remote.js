@@ -351,7 +351,7 @@ export default decorate([
             <fieldset className='form-group form-group'>
               <div className='input-group form-group'>
                 <span className='align-middle'>
-                  {_('remoteS3HttpColumnName')}{' '}
+                  {_('remoteS3LabelUseHttp')}{' '}
                   <Tooltip content={_('remoteS3TooltipProtocol')}>
                     <Icon icon='info' size='lg' />
                   </Tooltip>
@@ -365,7 +365,7 @@ export default decorate([
 
               <div className='input-group form-group'>
                 <span className='align-middle '>
-                  {_('remoteS3AllowInsecure')}{' '}
+                  {_('remoteS3LabelAllowInsecure')}{' '}
                   <Tooltip content={_('remoteS3TooltipAcceptInsecure')}>
                     <Icon icon='info' size='lg' />
                   </Tooltip>

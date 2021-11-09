@@ -251,17 +251,15 @@ const COLUMNS_SMB_REMOTE = [
 const COLUMNS_S3_REMOTE = [
   COLUMN_NAME,
   {
-    itemRenderer: remote => {
-      return (
-        <Toggle
-          onChange={useHttp => _changeUrlElement(useHttp ? 'http' : 'https', { remote, element: 'protocol' })}
-          value={remote.protocol === 'http'}
-        />
-      )
-    },
+    itemRenderer: remote => (
+      <Toggle
+        onChange={useHttp => _changeUrlElement(useHttp ? 'http' : 'https', { remote, element: 'protocol' })}
+        value={remote.protocol === 'http'}
+      />
+    ),
     name: (
       <span>
-        {_('remoteS3HttpColumnName')}{' '}
+        {_('remoteS3LabelUseHttp')}{' '}
         <Tooltip content={_('remoteS3TooltipProtocol')}>
           <Icon icon='info' size='lg' />
         </Tooltip>
@@ -280,7 +278,7 @@ const COLUMNS_S3_REMOTE = [
     },
     name: (
       <span>
-        {_('remoteS3AllowInsecure')}{' '}
+        {_('remoteS3LabelAllowInsecure')}{' '}
         <Tooltip content={_('remoteS3TooltipAcceptInsecure')}>
           <Icon icon='info' size='lg' />
         </Tooltip>
