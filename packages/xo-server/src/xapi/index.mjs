@@ -53,6 +53,7 @@ import {
   prepareXapiParam,
 } from './utils.mjs'
 import { createVhdStreamWithLength } from 'vhd-lib'
+import { vhdToVMDK } from 'xo-vmdk-to-vhd'
 
 const log = createLogger('xo:xapi')
 
@@ -1703,6 +1704,22 @@ export default class Xapi extends XapiBase {
 
       throw error
     })
+  }
+
+  @cancelable
+  async exportVdiAsVMDK($cancelToken, vdi, base) {
+    vdi = this.getObject(vdi)
+    const params = { cancelToken: $cancelToken, format: VDI_FORMAT_VHD }
+    if (base) {
+      params.base = base
+    }
+    const vhdResult = await this.VDI_exportContent(vdi.$ref, params)
+    const vmdkStream = await vhdToVMDK(`${vdi.name_label}.vmdk`, vhdResult)
+    // callers expect the stream to be an HTTP response.
+    vmdkStream.headers = vhdResult.headers
+    vmdkStream.statusCode = vhdResult.statusCode
+    vmdkStream.statusMessage = vhdResult.statusMessage
+    return vmdkStream
   }
 
   @cancelable

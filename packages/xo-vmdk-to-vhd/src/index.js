@@ -1,4 +1,7 @@
-import { createReadableSparseStream } from 'vhd-lib'
+import { createReadableSparseStream, parseVhdToBlocks } from 'vhd-lib'
+import asyncIteratorToStream from 'async-iterator-to-stream'
+import * as assert from 'assert'
+import zlib from 'zlib'
 import { parseOVAFile, ParsableFile } from './ova'
 
 import VMDKDirectParser from './vmdk-read'
@@ -11,9 +14,7 @@ import {
   MARKER_FOOTER,
   MARKER_EOS
 } from './definitions'
-import asyncIteratorToStream from 'async-iterator-to-stream'
-import * as assert from 'assert'
-import zlib from 'zlib'
+
 
 export { default as readVmdkGrainTable, readCapacityAndGrainTable } from './vmdk-read-table'
 
@@ -36,6 +37,11 @@ async function vmdkToVhd(vmdkReadStream, grainLogicalAddressList, grainFileOffse
   )
 }
 
+async function vhdToVMDK(diskName, vhdReadStream) {
+  const { blockSizeBytes, blockGenerator, capacityBytes } = await parseVhdToBlocks(vhdReadStream)
+  return createReadableVmdkStream(diskName, capacityBytes, blockSizeBytes, blockGenerator)
+}
+
 /**
  // DEFINITIONS:
  // - block is an input bunch of bytes, VHD default size is 2MB
@@ -45,7 +51,7 @@ async function vmdkToVhd(vmdkReadStream, grainLogicalAddressList, grainFileOffse
  * @param diskName
  * @param diskCapacityBytes
  * @param blockSizeBytes
- * @param blockGenerator
+ * @param blockGenerator async generator of {lba:Number, block:Buffer} objects.
  * @returns ReadStream
  */
 export async function createReadableVmdkStream(diskName, diskCapacityBytes, blockSizeBytes, blockGenerator) {
@@ -157,4 +163,4 @@ export async function createReadableVmdkStream(diskName, diskCapacityBytes, bloc
   return asyncIteratorToStream(iterator())
 }
 
-export { ParsableFile, parseOVAFile, vmdkToVhd }
+export { ParsableFile, parseOVAFile, vmdkToVhd, vhdToVMDK }
