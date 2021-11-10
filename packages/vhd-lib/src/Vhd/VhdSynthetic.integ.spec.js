@@ -35,9 +35,10 @@ test('It can read block from a synthetic vhd', async () => {
 
   await Disposable.use(async function* () {
     const handler = yield getSyncedHandler({ url: 'file:///' })
-    const smallVhd = yield openVhd(handler, smallVhdFileName)
-    const bigVhd = yield openVhd(handler, bigVhdFileName)
-    const syntheticVhd = new VhdSynthetic([smallVhd, bigVhd])
+    const syntheticVhd = new VhdSynthetic(yield Disposable.all([
+      openVhd(handler, smallVhdFileName),
+      openVhd(handler, bigVhdFileName)
+    ]))
 
     await syntheticVhd.readBlockAllocationTable()
 
