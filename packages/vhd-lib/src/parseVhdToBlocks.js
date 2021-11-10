@@ -55,5 +55,10 @@ export default async function parseVhdToBlocks(inputStream) {
     }
   }
 
-  return { blockSizeBytes, blockGenerator: blockGenerator(), capacityBytes: footer.currentSize }
+  return {
+    blockSizeBytes,
+    blockGenerator: blockGenerator(),
+    capacityBytes: footer.currentSize,
+    geometry: footer.diskGeometry
+  }
 }

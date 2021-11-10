@@ -94,7 +94,8 @@ test('Can generate a small VMDK file', async () => {
   const b2 = Buffer.allocUnsafe(blockSize)
   const blockGenerator = [{ lba: 0, block: b1 }, { lba: blockSize, block: b2 }]
   const fileName = 'result.vmdk'
-  const readStream = asyncIteratorToStream(await generateVmdkData(fileName, 2 * blockSize, blockSize, blockGenerator))
+  const geometry = { sectorsPerTrackCylinder: 63, heads: 16, cylinders: 10402 }
+  const readStream = asyncIteratorToStream(await generateVmdkData(fileName, 2 * blockSize, blockSize, blockGenerator, geometry))
   const pipe = readStream.pipe(createWriteStream(fileName))
   await fromEvent(pipe, 'finish')
 
