@@ -1,5 +1,5 @@
 import React, { ElementType, ReactElement, ReactNode } from 'react'
-import { FormattedMessage, MessageDescriptor } from 'react-intl'
+import { FormattedMessage, MessageDescriptor, useIntl } from 'react-intl'
 import intlMessage from '../lang/en.json'
 
 // Extends FormattedMessage not working: "FormattedMessage refers to a value, but is being used as a type here"
@@ -13,5 +13,10 @@ interface Props extends MessageDescriptor {
   values?: Record<string, ReactNode>
 }
 const IntlMessage = (props: Props): JSX.Element => <FormattedMessage {...props} />
+
+export function translate(message: MessageDescriptor){
+  const intl = useIntl() // use intl is a hooks
+  return intl.formatMessage(message)
+}
 
 export default React.memo(IntlMessage)

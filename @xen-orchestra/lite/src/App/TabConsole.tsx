@@ -2,7 +2,7 @@ import React from 'react'
 import { withState } from 'reaclette'
 
 import Console from '../components/Console'
-import IntlMessage from '../components/IntlMessage'
+import IntlMessage, { translate } from '../components/IntlMessage'
 import { ObjectsByType, Vm } from '../libs/xapi'
 import PanelHeader from '../components/PanelHeader'
 
@@ -68,24 +68,20 @@ const TabConsole = withState<State, Props, Effects, Computed, ParentState, Paren
         </p>
       ) : (
         <>
-          <IntlMessage id='vmStartLabel' defaultMessage='loading'>
-            {VmStartLabel => (
-              <PanelHeader
-                actions={[
-                  {
-                    icon: 'play',
-                    color: 'primary',
-                    title:
-                    Array.isArray(VmStartLabel) ? VmStartLabel?.[0] : '',
-                    variant: 'contained',
-                    onClick: effects.showNotImplemented,
-                  },
-                ]}
-              >
-                {state.vm?.name_label ?? 'loading'}{' '}
-              </PanelHeader>
-            )}
-          </IntlMessage>
+          <PanelHeader
+            actions={[
+              {
+                key: 'start',
+                icon: 'play',
+                color: 'primary',
+                title:translate({id:'vmStartLabel'}),
+                variant: 'contained',
+                onClick: effects.showNotImplemented,
+              },
+            ]}
+          >
+            {state.vm?.name_label ?? 'loading'}{' '}
+          </PanelHeader>
 
           {/* Hide scaling and Ctrl+Alt+Del button temporarily */}
           {/* <RangeInput max={100} min={1} onChange={effects.scaleConsole} step={1} value={state.consoleScale} />
