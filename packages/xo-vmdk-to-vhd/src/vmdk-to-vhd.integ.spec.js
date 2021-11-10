@@ -8,7 +8,7 @@ import tmp from 'tmp'
 
 import { createReadStream, createWriteStream, stat } from 'fs-extra'
 import { pFromCallback } from 'promise-toolbox'
-import { vmdkToVhd, readVmdkGrainTable, createReadableVmdkStream } from '.'
+import { vmdkToVhd, readVmdkGrainTable } from '.'
 import VMDKDirectParser from './vmdk-read'
 import { generateVmdkData } from './vmdk-generate'
 import asyncIteratorToStream from 'async-iterator-to-stream'
