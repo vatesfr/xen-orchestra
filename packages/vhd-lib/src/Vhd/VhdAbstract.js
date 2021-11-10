@@ -13,17 +13,29 @@ export class VhdAbstract {
   sectorsOfBitmap
   sectorsPerBlock
 
+  get bitmapSize() {
+    return sectorsToBytes(this.sectorsOfBitmap)
+  }
+
+  get fullBlockSize() {
+    return sectorsToBytes(this.sectorsOfBitmap + this.sectorsPerBlock)
+  }
+
   get header() {
     assert.notStrictEqual(this.#header, undefined, `header must be read before it's used`)
     return this.#header
   }
 
+  get sectorsOfBitmap() {
+    return sectorsRoundUpNoZero(this.sectorsPerBlock >> 3)
+  }
+
+  get sectorsPerBlock() {
+    return this.header.blockSize / SECTOR_SIZE
+  }
+
   set header(header) {
     this.#header = header
-    this.sectorsPerBlock = header.blockSize / SECTOR_SIZE
-    this.sectorsOfBitmap = sectorsRoundUpNoZero(this.sectorsPerBlock >> 3)
-    this.fullBlockSize = sectorsToBytes(this.sectorsOfBitmap + this.sectorsPerBlock)
-    this.bitmapSize = sectorsToBytes(this.sectorsOfBitmap)
   }
 
   /**
