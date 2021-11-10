@@ -1,7 +1,6 @@
 import { asyncMap } from '@xen-orchestra/async-map'
 import { VhdAbstract } from './VhdAbstract'
-import { DISK_TYPE_DIFFERENCING, FOOTER_SIZE, HEADER_SIZE, SECTOR_SIZE } from '../_constants'
-import { sectorsRoundUpNoZero, sectorsToBytes } from './_utils'
+import { DISK_TYPE_DIFFERENCING, FOOTER_SIZE, HEADER_SIZE } from '../_constants'
 
 import assert from 'assert'
 
@@ -58,10 +57,6 @@ export class VhdSynthetic extends VhdAbstract {
     assert(vhds.length > 0)
     super()
     this.#vhds = vhds
-    this.sectorsPerBlock = vhds[0].header.blockSize / SECTOR_SIZE
-    this.sectorsOfBitmap = sectorsRoundUpNoZero(this.sectorsPerBlock >> 3)
-    this.fullBlockSize = sectorsToBytes(this.sectorsOfBitmap + this.sectorsPerBlock)
-    this.bitmapSize = sectorsToBytes(this.sectorsOfBitmap)
   }
 
   async readBlockAllocationTable() {
