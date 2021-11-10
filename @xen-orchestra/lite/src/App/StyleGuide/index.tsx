@@ -5,22 +5,27 @@ import React from 'react'
 import styled from 'styled-components'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { materialDark as codeStyle } from 'react-syntax-highlighter/dist/esm/styles/prism'
+import { SelectChangeEvent } from '@mui/material'
 import { withState } from 'reaclette'
 
 import Button from '../../components/Button'
 import Checkbox from '../../components/Checkbox'
 import Icon from '../../components/Icon'
 import Input from '../../components/Input'
+import Select from '../../components/Select'
 
 interface ParentState {}
 
-interface State {}
+interface State {
+  value: unknown
+}
 
 interface Props {}
 
 interface ParentEffects {}
 
 interface Effects {
+  onChangeSelect: (e: SelectChangeEvent<unknown>) => void
   sayHello: () => void
 }
 
@@ -53,11 +58,17 @@ const Code = styled(SyntaxHighlighter).attrs(() => ({
 
 const App = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
   {
+    initialState: () => ({
+      value: '',
+    }),
     effects: {
+      onChangeSelect: function (e) {
+        this.state.value = e.target.value
+      },
       sayHello: () => alert('hello'),
     },
   },
-  ({ effects }) => (
+  ({ effects, state }) => (
     <Page>
       <h2>Button</h2>
       <Container>
@@ -118,6 +129,32 @@ const App = withState<State, Props, Effects, Computed, ParentState, ParentEffect
         </Render>
         <Code>{`<TextInput label='Input' />
 <Checkbox />`}</Code>
+      </Container>
+      <h2>Select</h2>
+      <Container>
+        <Render>
+          <Select
+            onChange={effects.onChangeSelect}
+            options={[
+              { name: 'Bar', value: 1 },
+              { name: 'Foo', value: 2 },
+            ]}
+            value={state.value}
+            valueRenderer='value'
+          />
+        </Render>
+        <Code>
+          {`<Select
+  onChange={handleChange}
+  optionRenderer={item => item.name}
+  options={[
+    { name: 'Bar', value: 1 },
+    { name: 'Foo', value: 2 },
+  ]}
+  value={state.value}
+  valueRenderer='value'
+/>`}
+        </Code>
       </Container>
     </Page>
   )
