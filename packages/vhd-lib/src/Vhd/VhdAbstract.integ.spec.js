@@ -7,8 +7,10 @@ import { getSyncedHandler } from '@xen-orchestra/fs'
 import { Disposable, pFromCallback } from 'promise-toolbox'
 
 import { openVhd } from '../index'
-import { createRandomFile, convertFromRawToVhd, createRandomVhdDirectory } from '../tests/utils'
+import { checkFile, createRandomFile, convertFromRawToVhd, createRandomVhdDirectory } from '../tests/utils'
 import { VhdAbstract } from './VhdAbstract'
+import { SECTOR_SIZE } from '../../dist/_constants'
+import { BLOCK_UNUSED } from '../_constants'
 
 let tempDir
 
@@ -21,6 +23,15 @@ beforeEach(async () => {
 afterEach(async () => {
   await pFromCallback(cb => rimraf(tempDir, cb))
 })
+
+const streamToBuffer = stream => {
+  let buffer = Buffer.alloc(0)
+
+  return new Promise((resolve, reject) => {
+    stream.on('data', data => (buffer = Buffer.concat([buffer, data])))
+    stream.on('end', () => resolve(buffer))
+  })
+}
 
 test('It creates an alias', async () => {
   await Disposable.use(async function* () {
@@ -137,5 +148,83 @@ test('It create , rename and unlink alias', async () => {
     expect(await fs.exists(aliasFileName)).toEqual(false)
     expect(await fs.exists(vhdFileName)).toEqual(false)
     expect(await fs.exists(aliasFileNameRenamed)).toEqual(false)
+  })
+})
+
+test('it can create a vhd stream', async () => {
+  const initalSize = 6
+  const rawFileName = `${tempDir}/randomfile`
+  await createRandomFile(rawFileName, initalSize)
+  const vhdFileName = `${tempDir}/vhd.vhd`
+  await convertFromRawToVhd(rawFileName, vhdFileName)
+  const bat = Buffer.alloc(512)
+
+  await Disposable.use(async function* () {
+    const handler = yield getSyncedHandler({ url: 'file://' + tempDir })
+
+    // mark first block as unused
+    await handler.read('vhd.vhd', bat, 1024 + 512)
+    bat.writeUInt32BE(BLOCK_UNUSED, 0)
+    await handler.write('vhd.vhd', bat, 1024 + 512)
+
+    const vhd = yield openVhd(handler, 'vhd.vhd')
+    await vhd.readBlockAllocationTable()
+    const stream = vhd.stream()
+
+    // read all the stream into a buffer
+
+    const buffer = await streamToBuffer(stream)
+    const length = buffer.length
+    const start = 512 /* footer */ + 1024 /* header */ + 512 /* BAT */
+    const footer = buffer.slice(0, 512)
+    expect(length).toEqual(start + 2 * vhd.fullBlockSize + 512 /* footer again */)
+    // blocks
+    const blockBuf = Buffer.alloc(vhd.sectorsPerBlock * SECTOR_SIZE, 0)
+    for (let i = 1; i < 3; i++) {
+      const blockDataStart = start + (i - 1) * vhd.fullBlockSize + 512 /* block bitmap */
+      const blockDataEnd = blockDataStart + vhd.sectorsPerBlock * SECTOR_SIZE
+      const content = buffer.slice(blockDataStart, blockDataEnd)
+      await handler.read('randomfile', blockBuf, i * vhd.sectorsPerBlock * SECTOR_SIZE)
+      expect(content).toEqual(blockBuf)
+    }
+    // footer
+    const endFooter = buffer.slice(length - 512)
+    expect(footer).toEqual(endFooter)
+
+    await handler.writeFile('out.vhd', buffer)
+    // check that the vhd is still valid
+    await checkFile(`${tempDir}/out.vhd`)
+  })
+})
+
+it('can stream content', async () => {
+  const initalSize = 6
+  const rawFileName = `${tempDir}/randomfile`
+  await createRandomFile(rawFileName, initalSize)
+  const vhdFileName = `${tempDir}/vhd.vhd`
+  await convertFromRawToVhd(rawFileName, vhdFileName)
+  const bat = Buffer.alloc(512)
+
+  await Disposable.use(async function* () {
+    const handler = yield getSyncedHandler({ url: 'file://' + tempDir })
+
+    // mark first block as unused
+    await handler.read('vhd.vhd', bat, 1024 + 512)
+    bat.writeUInt32BE(BLOCK_UNUSED, 0)
+    await handler.write('vhd.vhd', bat, 1024 + 512)
+
+    const vhd = yield openVhd(handler, 'vhd.vhd')
+    await vhd.readBlockAllocationTable()
+    const stream = vhd.rawContent()
+    const buffer = await streamToBuffer(stream)
+    // check that data didn't change
+    const blockBuf = Buffer.alloc(vhd.sectorsPerBlock * SECTOR_SIZE, 0)
+    for (let i = 1; i < 3; i++) {
+      const blockDataStart = i * vhd.sectorsPerBlock * SECTOR_SIZE
+      const blockDataEnd = blockDataStart + vhd.sectorsPerBlock * SECTOR_SIZE
+      const content = buffer.slice(blockDataStart, blockDataEnd)
+      await handler.read('randomfile', blockBuf, i * vhd.sectorsPerBlock * SECTOR_SIZE)
+      expect(content).toEqual(blockBuf)
+    }
   })
 })
