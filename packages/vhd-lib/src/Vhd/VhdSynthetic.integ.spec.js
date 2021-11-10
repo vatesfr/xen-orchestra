@@ -53,8 +53,8 @@ test('It can read block and parent locator from a synthetic vhd', async () => {
     const syntheticVhd = new VhdSynthetic([smallVhd, bigVhd])
     await syntheticVhd.readBlockAllocationTable()
 
-    expect(syntheticVhd.header.diskType).toEqual(bigVhd.DISK_TYPE)
-    expect(syntheticVhd.header.parentTimestamp).toEqual(bigVhd.parentTimestamp)
+    expect(syntheticVhd.header.diskType).toEqual(bigVhd.header.diskType)
+    expect(syntheticVhd.header.parentTimestamp).toEqual(bigVhd.header.parentTimestamp)
 
     // first two block should be from small
     const buf = Buffer.alloc(syntheticVhd.sectorsPerBlock * SECTOR_SIZE, 0)
