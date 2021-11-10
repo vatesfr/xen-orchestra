@@ -1,5 +1,4 @@
 import * as assert from 'assert'
-import asyncIteratorToStream from 'async-iterator-to-stream'
 import zlib from 'zlib'
 
 import {
