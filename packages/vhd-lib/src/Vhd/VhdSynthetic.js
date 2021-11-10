@@ -1,6 +1,6 @@
 import { asyncMap } from '@xen-orchestra/async-map'
 import { VhdAbstract } from './VhdAbstract'
-import { FOOTER_SIZE, HEADER_SIZE, SECTOR_SIZE } from '../_constants'
+import { DISK_TYPE_DIFFERENCING, FOOTER_SIZE, HEADER_SIZE, SECTOR_SIZE } from '../_constants'
 import { sectorsRoundUpNoZero, sectorsToBytes } from './_utils'
 
 import assert from 'assert'
@@ -50,7 +50,10 @@ export class VhdSynthetic extends VhdAbstract {
       value: vhd,
     }
   }
-
+  /**
+   * @param {Array<VhdAbstract>} vhds the chain of Vhds used to compute this Vhd, from the deepest child (in position 0), to the root (in the last position)
+   * only the last one can have any type. Other must have type DISK_TYPE_DIFFERENCING (delta)
+   */
   constructor(vhds) {
     assert(vhds.length > 0)
     super()
@@ -66,21 +69,25 @@ export class VhdSynthetic extends VhdAbstract {
   }
 
   containsBlock(blockId) {
-    const contains = this.#vhds.map(vhd => vhd.containsBlock(blockId))
-    return contains.includes(true)
+    return this.#vhds.some(vhd => vhd.containsBlock(blockId))
   }
 
   async readHeaderAndFooter() {
     await asyncMap(this.#vhds, vhd => vhd.readHeaderAndFooter())
+    this.#vhds.forEach((vhd, index) => {
+      if (index < this.#vhds.length) {
+        assert.strictEqual(vhd.footer.diskType === DISK_TYPE_DIFFERENCING)
+      }
+    })
   }
 
   async readBlock(blockId, onlyBitmap = false) {
-    const contains = this.#vhds.map(vhd => vhd.containsBlock(blockId))
-    // only read the content of the last vhd containing this block
-    return await this.#vhds[contains.indexOf(true)].readBlock(blockId, onlyBitmap)
+    const index = this.#vhds.findIndex(vhd => vhd.containsBlock(blockId))
+    // only read the content of the first vhd containing this block
+    return await this.#vhds[index].readBlock(blockId, onlyBitmap)
   }
 
   _readParentLocatorData(id) {
-    return this.#vhds[0]._readParentLocatorData(id)
+    return this.#vhds[this.#vhds.length - 1]._readParentLocatorData(id)
   }
 }
