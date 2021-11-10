@@ -7,11 +7,7 @@ import path from 'path'
 
 export class VhdAbstract {
   #header
-  bitmapSize
   footer
-  fullBlockSize
-  sectorsOfBitmap
-  sectorsPerBlock
 
   get bitmapSize() {
     return sectorsToBytes(this.sectorsOfBitmap)
