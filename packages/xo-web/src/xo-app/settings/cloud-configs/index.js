@@ -129,7 +129,7 @@ export default decorate([
       inputNameId: generateId,
       inputTemplateId: generateId,
       isInvalid: ({ name, template }) => name.trim() === '' || (template !== undefined && template.trim() === ''),
-      isNetworkValid: ({ networkName, networkTemplate }) =>
+      isNetworkInvalid: ({ networkName, networkTemplate }) =>
         networkName.trim() === '' || (networkTemplate !== undefined && networkTemplate.trim() === ''),
       userCloudConfig: (_, { cloudConfigs }) => cloudConfigs.filter(({ type }) => type === undefined),
     },
@@ -237,7 +237,7 @@ export default decorate([
             {state.networkCloudConfigToEditId !== undefined ? (
               <ActionButton
                 btnStyle='primary'
-                disabled={state.isNetworkValid}
+                disabled={state.isNetworkInvalid}
                 handler={effects.editNetworkCloudConfig}
                 icon='edit'
               >
@@ -246,7 +246,7 @@ export default decorate([
             ) : (
               <ActionButton
                 btnStyle='success'
-                disabled={state.isNetworkValid}
+                disabled={state.isNetworkInvalid}
                 handler={effects.createNetworkCloudConfig}
                 icon='add'
               >
