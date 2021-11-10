@@ -20,9 +20,14 @@ import {
  * @param diskCapacityBytes
  * @param blockSizeBytes
  * @param blockGenerator async generator of {lba:Number, block:Buffer} objects.
+ * @param geometry an object of shape {sectorsPerTrackCylinder,heads,cylinders}
  * @returns an Async generator of Buffers representing the VMDK file fragments
  */
-export async function generateVmdkData(diskName, diskCapacityBytes, blockSizeBytes, blockGenerator) {
+export async function generateVmdkData(diskName, diskCapacityBytes, blockSizeBytes, blockGenerator, geometry = {
+  sectorsPerTrackCylinder: 63,
+  heads: 16,
+  cylinders: 10402
+}) {
   const cid = Math.floor(Math.random() * Math.pow(2, 32))
   const diskCapacitySectors = Math.ceil(diskCapacityBytes / SECTOR_SIZE)
   const descriptor = `# Disk DescriptorFile
@@ -35,9 +40,9 @@ export async function generateVmdkData(diskName, diskCapacityBytes, blockSizeByt
         # The Disk Data Base
                        #DDB
                        ddb.adapterType = "ide"
-                       ddb.geometry.sectors = "63"
-                       ddb.geometry.heads = "16"
-                       ddb.geometry.cylinders = "10402"
+                       ddb.geometry.sectors = "${geometry.sectorsPerTrackCylinder}"
+                       ddb.geometry.heads = "${geometry.heads}"
+                       ddb.geometry.cylinders = "${geometry.cylinders}"
 `
   const utf8Descriptor = Buffer.from(descriptor, 'utf8')
   const descriptorSizeSectors = Math.ceil(utf8Descriptor.length / SECTOR_SIZE)
