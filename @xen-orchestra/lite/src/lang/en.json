@@ -38,5 +38,5 @@
   "suspended": "Suspended",
   "version": "Version",
   "versionValue": "Version {version}",
-  "VmStartLabel": "Start"
+  "vmStartLabel": "Start"
 }

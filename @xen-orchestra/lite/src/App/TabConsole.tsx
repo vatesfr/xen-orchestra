@@ -68,7 +68,7 @@ const TabConsole = withState<State, Props, Effects, Computed, ParentState, Paren
         </p>
       ) : (
         <>
-          <IntlMessage id='VmStartLabel' defaultMessage='loading'>
+          <IntlMessage id='vmStartLabel' defaultMessage='loading'>
             {VmStartLabel => (
               <PanelHeader
                 actions={[
@@ -76,9 +76,7 @@ const TabConsole = withState<State, Props, Effects, Computed, ParentState, Paren
                     icon: 'play',
                     color: 'primary',
                     title:
-                      Array.isArray(VmStartLabel) && typeof VmStartLabel[0] === 'string'
-                        ? VmStartLabel[0]
-                        : typeof VmStartLabel,
+                    Array.isArray(VmStartLabel) ? VmStartLabel?.[0] : '',
                     variant: 'contained',
                     onClick: effects.showNotImplemented,
                   },
