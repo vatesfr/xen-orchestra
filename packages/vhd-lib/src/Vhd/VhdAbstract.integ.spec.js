@@ -55,9 +55,9 @@ test('It creates an alias', async () => {
 
 test('alias must have *.alias.vhd extension', async () => {
   await Disposable.use(async function* () {
-    const handler = yield getSyncedHandler({ url: 'file:///' })
-    const aliasPath = `${tempDir}/invalidalias.vhd`
-    const targetPath = `${tempDir}/targets.vhd`
+    const handler = yield getSyncedHandler({ url: `file://${tempDir}` })
+    const aliasPath = 'invalidalias.vhd'
+    const targetPath = 'targets.vhd'
     expect(async () => await VhdAbstract.createAlias(handler, aliasPath, targetPath)).rejects.toThrow()
 
     expect(await fs.exists(aliasPath)).toEqual(false)
@@ -66,9 +66,9 @@ test('alias must have *.alias.vhd extension', async () => {
 
 test('alias must not be chained', async () => {
   await Disposable.use(async function* () {
-    const handler = yield getSyncedHandler({ url: 'file:///' })
-    const aliasPath = `${tempDir}/valid.alias.vhd`
-    const targetPath = `${tempDir}/an.other.valid.alias.vhd`
+    const handler = yield getSyncedHandler({ url: `file://${tempDir}` })
+    const aliasPath = 'valid.alias.vhd'
+    const targetPath = 'an.other.valid.alias.vhd'
     expect(async () => await VhdAbstract.createAlias(handler, aliasPath, targetPath)).rejects.toThrow()
     expect(await fs.exists(aliasPath)).toEqual(false)
   })
@@ -78,19 +78,17 @@ test('It rename and unlink a VHDFile', async () => {
   const initalSize = 4
   const rawFileName = `${tempDir}/randomfile`
   await createRandomFile(rawFileName, initalSize)
-  const vhdFileName = `${tempDir}/randomfile.vhd`
-  await convertFromRawToVhd(rawFileName, vhdFileName)
+  await convertFromRawToVhd(rawFileName, `${tempDir}/randomfile.vhd`)
   await Disposable.use(async function* () {
-    const handler = yield getSyncedHandler({ url: 'file:///' })
-    const { size } = await fs.stat(vhdFileName)
-    const targetFileName = `${tempDir}/renamed.vhd`
+    const handler = yield getSyncedHandler({ url: `file://${tempDir}` })
+    const { size } = await fs.stat(`${tempDir}/randomfile.vhd`)
 
-    await VhdAbstract.rename(handler, vhdFileName, targetFileName)
-    expect(await fs.exists(vhdFileName)).toEqual(false)
-    const { size: renamedSize } = await fs.stat(targetFileName)
+    await VhdAbstract.rename(handler, 'randomfile.vhd', 'renamed.vhd')
+    expect(await fs.exists(`${tempDir}/randomfile.vhd`)).toEqual(false)
+    const { size: renamedSize } = await fs.stat(`${tempDir}/renamed.vhd`)
     expect(size).toEqual(renamedSize)
-    await VhdAbstract.unlink(handler, targetFileName)
-    expect(await fs.exists(targetFileName)).toEqual(false)
+    await VhdAbstract.unlink(handler, 'renamed.vhd')
+    expect(await fs.exists(`${tempDir}/renamed.vhd`)).toEqual(false)
   })
 })
 
@@ -100,16 +98,15 @@ test('It rename and unlink a VhdDirectory', async () => {
   await createRandomVhdDirectory(vhdDirectory, initalSize)
 
   await Disposable.use(async function* () {
-    const handler = yield getSyncedHandler({ url: 'file:///' })
-    const vhd = yield openVhd(handler, vhdDirectory)
+    const handler = yield getSyncedHandler({ url: `file://${tempDir}` })
+    const vhd = yield openVhd(handler, 'randomfile.dir')
     expect(vhd.header.cookie).toEqual('cxsparse')
     expect(vhd.footer.cookie).toEqual('conectix')
 
-    const targetFileName = `${tempDir}/renamed.vhd`
-    await VhdAbstract.rename(handler, vhdDirectory, targetFileName)
-    expect(await fs.exists(vhdDirectory)).toEqual(false)
-    await VhdAbstract.unlink(handler, targetFileName)
-    expect(await fs.exists(targetFileName)).toEqual(false)
+    await VhdAbstract.rename(handler, 'randomfile.dir', 'renamed.vhd')
+    expect(await fs.exists(`${tempDir}/randomfile.dir`)).toEqual(false)
+    await VhdAbstract.unlink(handler, `renamed.vhd`)
+    expect(await fs.exists(`${tempDir}/renamed.vhd`)).toEqual(false)
   })
 })
 
@@ -123,17 +120,17 @@ test('It create , rename and unlink alias', async () => {
   const aliasFileNameRenamed = `${tempDir}/aliasFileNameRenamed.alias.vhd`
 
   await Disposable.use(async function* () {
-    const handler = yield getSyncedHandler({ url: 'file:///' })
-    await VhdAbstract.createAlias(handler, aliasFileName, vhdFileName)
+    const handler = yield getSyncedHandler({ url: `file://${tempDir}` })
+    await VhdAbstract.createAlias(handler, 'aliasFileName.alias.vhd', 'randomfile.vhd')
     expect(await fs.exists(aliasFileName)).toEqual(true)
     expect(await fs.exists(vhdFileName)).toEqual(true)
 
-    await VhdAbstract.rename(handler, aliasFileName, aliasFileNameRenamed)
+    await VhdAbstract.rename(handler, 'aliasFileName.alias.vhd', 'aliasFileNameRenamed.alias.vhd')
     expect(await fs.exists(aliasFileName)).toEqual(false)
     expect(await fs.exists(vhdFileName)).toEqual(true)
     expect(await fs.exists(aliasFileNameRenamed)).toEqual(true)
 
-    await VhdAbstract.unlink(handler, aliasFileNameRenamed)
+    await VhdAbstract.unlink(handler, 'aliasFileNameRenamed.alias.vhd')
     expect(await fs.exists(aliasFileName)).toEqual(false)
     expect(await fs.exists(vhdFileName)).toEqual(false)
     expect(await fs.exists(aliasFileNameRenamed)).toEqual(false)
