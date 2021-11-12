@@ -4,11 +4,11 @@ export function getAll() {
 
 getAll.description = 'Gets all existing cloud configs templates'
 
-export function getAllNetwork() {
-  return this.getAllNetworkCloudConfigs()
+export function getAllNetworkConfigs() {
+  return this.getAllNetworkConfigs()
 }
 
-getAllNetwork.description = 'Gets all existing network cloud configs templates'
+getAllNetworkConfigs.description = 'Gets all existing network configs templates'
 
 export async function create(props) {
   return this.createCloudConfig(props)

@@ -357,7 +357,7 @@ const messages = {
   fillOptionalInformations: 'Fill information (optional)',
   selectTableReset: 'Reset',
   selectCloudConfigs: 'Select cloud config(s)…',
-  selectNetworkCloudConfigs: 'Select network cloud config(s)…',
+  selectNetworkConfigs: 'Select network config(s)…',
 
   // --- Dates/Scheduler ---
 
@@ -2129,8 +2129,8 @@ const messages = {
   deleteCloudConfig: 'Delete cloud config',
   editCloudConfig: 'Edit cloud config',
   deleteSelectedCloudConfigs: 'Delete selected cloud configs',
-  networksTemplate: 'Networks template',
-  usersTemplate: 'Users template',
+  networkConfig: 'Network config',
+  cloudConfig: 'Cloud config',
 
   // ----- Config -----
   noConfigFile: 'No config file selected',

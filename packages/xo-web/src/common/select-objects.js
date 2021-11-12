@@ -45,7 +45,7 @@ import {
   subscribeCurrentUser,
   subscribeGroups,
   subscribeIpPools,
-  subscribeNetworkCloudConfigs,
+  subscribeNetworkConfigs,
   subscribeProxies,
   subscribeRemotes,
   subscribeResourceSets,
@@ -1065,15 +1065,15 @@ export const SelectCloudConfig = makeSubscriptionSelect(
   { placeholder: _('selectCloudConfigs') }
 )
 
-export const SelectNetworkCloudConfig = makeSubscriptionSelect(
+export const SelectNetworkConfig = makeSubscriptionSelect(
   subscriber =>
-    subscribeNetworkCloudConfigs(cloudConfigs => {
+    subscribeNetworkConfigs(networkConfigs => {
       subscriber({
-        xoObjects: map(sortBy(cloudConfigs, 'name'), cloudConfig => ({
-          ...cloudConfig,
+        xoObjects: map(sortBy(networkConfigs, 'name'), networkConfigs => ({
+          ...networkConfigs,
           type: 'cloudConfig',
         })),
       })
     }),
-  { placeholder: _('selectNetworkCloudConfigs') }
+  { placeholder: _('selectNetworkConfigs') }
 )

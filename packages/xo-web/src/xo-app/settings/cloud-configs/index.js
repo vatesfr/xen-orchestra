@@ -14,13 +14,13 @@ import { Text } from 'editable'
 import { Textarea as DebounceTextarea } from 'debounce-input-decorator'
 import {
   createCloudConfig,
-  createNetworkCloudConfig,
+  createNetworkConfig,
   deleteCloudConfigs,
-  deleteNetworkCloudConfigs,
+  deleteNetworkConfigs,
   editCloudConfig,
-  editNetworkCloudConfig,
+  editNetworkConfig,
   subscribeCloudConfigs,
-  subscribeNetworkCloudConfigs,
+  subscribeNetworkConfigs,
 } from 'xo'
 
 // ===================================================================
@@ -41,7 +41,7 @@ const COLUMNS = [
 
 const ACTIONS = [
   {
-    handler: (ids, { type }) => (type === 'network' ? deleteNetworkCloudConfigs(ids) : deleteCloudConfigs(ids)),
+    handler: (ids, { type }) => (type === 'network' ? deleteNetworkConfigs(ids) : deleteCloudConfigs(ids)),
     icon: 'delete',
     individualLabel: _('deleteCloudConfig'),
     label: _('deleteSelectedCloudConfigs'),
@@ -61,7 +61,7 @@ const INDIVIDUAL_ACTIONS = [
 const initialParams = {
   cloudConfigToEditId: undefined,
   name: '',
-  networkCloudConfigToEditId: undefined,
+  networkConfigToEditId: undefined,
   networkName: '',
   networkTemplate: undefined,
   template: undefined,
@@ -70,7 +70,7 @@ const initialParams = {
 export default decorate([
   addSubscriptions({
     cloudConfigs: subscribeCloudConfigs,
-    networkConfigs: subscribeNetworkCloudConfigs,
+    networkConfigs: subscribeNetworkConfigs,
   }),
   provideState({
     initialState: () => initialParams,
@@ -91,10 +91,10 @@ export default decorate([
           await createCloudConfig({ name, template })
           reset()
         },
-      createNetworkCloudConfig:
+      createNetworkConfig:
         ({ reset }) =>
         async ({ networkName, networkTemplate = DEFAULT_NETWORK_CONFIG_TEMPLATE }) => {
-          await createNetworkCloudConfig({ name: networkName, template: networkTemplate })
+          await createNetworkConfig({ name: networkName, template: networkTemplate })
           reset()
         },
       editCloudConfig:
@@ -106,12 +106,12 @@ export default decorate([
           }
           reset()
         },
-      editNetworkCloudConfig:
+      editNetworkConfig:
         ({ reset }) =>
-        async ({ networkName, networkTemplate, networkCloudConfigToEditId }, { cloudConfigs }) => {
-          const oldCloudConfig = find(cloudConfigs, { id: networkCloudConfigToEditId })
-          if (oldCloudConfig.name !== networkName || oldCloudConfig.template !== networkTemplate) {
-            await editNetworkCloudConfig(networkCloudConfigToEditId, { name: networkName, template: networkTemplate })
+        async ({ networkName, networkTemplate, networkConfigToEditId }, { networkConfigs }) => {
+          const oldNetworkConfig = find(networkConfigs, { id: networkConfigToEditId })
+          if (oldNetworkConfig.name !== networkName || oldNetworkConfig.template !== networkTemplate) {
+            await editNetworkConfig(networkConfigToEditId, { name: networkName, template: networkTemplate })
           }
           reset()
         },
@@ -120,7 +120,7 @@ export default decorate([
         state => ({
           ...state,
           [type === 'network' ? 'networkName' : 'name']: name,
-          [type === 'network' ? 'networkCloudConfigToEditId' : 'cloudConfigToEditId']: id,
+          [type === 'network' ? 'networkConfigToEditId' : 'cloudConfigToEditId']: id,
           [type === 'network' ? 'networkTemplate' : 'template']: template,
         }),
     },
@@ -139,7 +139,7 @@ export default decorate([
     <div>
       <Container>
         <Col mediumSize={6}>
-          <h2>{_('usersTemplate')}</h2>
+          <h2>{_('cloudConfig')}</h2>
           <form id={state.formId}>
             <div className='form-group'>
               <label htmlFor={state.inputNameId}>
@@ -207,7 +207,7 @@ export default decorate([
       </Container>
       <Container className='mt-2'>
         <Col mediumSize={6}>
-          <h2>{_('networksTemplate')}</h2>
+          <h2>{_('networkConfig')}</h2>
           <form>
             <div className='form-group'>
               <label>
@@ -234,11 +234,11 @@ export default decorate([
                 value={defined(state.networkTemplate, DEFAULT_NETWORK_CONFIG_TEMPLATE)}
               />
             </div>
-            {state.networkCloudConfigToEditId !== undefined ? (
+            {state.networkConfigToEditId !== undefined ? (
               <ActionButton
                 btnStyle='primary'
                 disabled={state.isNetworkInvalid}
-                handler={effects.editNetworkCloudConfig}
+                handler={effects.editNetworkConfig}
                 icon='edit'
               >
                 {_('formEdit')}
@@ -247,7 +247,7 @@ export default decorate([
               <ActionButton
                 btnStyle='success'
                 disabled={state.isNetworkInvalid}
-                handler={effects.createNetworkCloudConfig}
+                handler={effects.createNetworkConfig}
                 icon='add'
               >
                 {_('formCreate')}

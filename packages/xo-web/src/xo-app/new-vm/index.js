@@ -46,7 +46,7 @@ import {
   SelectHost,
   SelectIp,
   SelectNetwork,
-  SelectNetworkCloudConfig,
+  SelectNetworkConfig,
   SelectPool,
   SelectResourceSet,
   SelectResourceSetIp,
@@ -1047,9 +1047,9 @@ export default class NewVm extends BaseComponent {
     })
   }
 
-  _onChangeNetworkCloudConfig = cloudConfig =>
+  _onChangeNetworkConfig = networkConfig =>
     this._setState({
-      networkConfig: get(() => cloudConfig.template),
+      networkConfig: get(() => networkConfig.template),
     })
 
   _renderInstallSettings = () => {
@@ -1141,13 +1141,6 @@ export default class NewVm extends BaseComponent {
               &nbsp;
               <AvailableTemplateVars />
               &nbsp;
-              <span className={styles.inlineSelect}>
-                <SelectCloudConfig disabled={installMethod !== 'customConfig'} onChange={this._onChangeCloudConfig} />
-                <SelectNetworkCloudConfig
-                  disabled={installMethod !== 'customConfig'}
-                  onChange={this._onChangeNetworkCloudConfig}
-                />
-              </span>
             </LineItem>
             <br />
             <LineItem>
@@ -1155,6 +1148,7 @@ export default class NewVm extends BaseComponent {
                 <label className='text-muted'>
                   {_('newVmUserConfigLabel')}
                   <br />
+                  <SelectCloudConfig disabled={installMethod !== 'customConfig'} onChange={this._onChangeCloudConfig} />
                   <DebounceTextarea
                     className='form-control text-monospace'
                     disabled={installMethod !== 'customConfig'}
@@ -1169,6 +1163,10 @@ export default class NewVm extends BaseComponent {
                   <label className='text-muted'>
                     {_('newVmNetworkConfigLabel')} <NetworkConfigInfo />
                     <br />
+                    <SelectNetworkConfig
+                      disabled={installMethod !== 'customConfig'}
+                      onChange={this._onChangeNetworkConfig}
+                    />
                     <DebounceTextarea
                       className='form-control text-monospace'
                       disabled={installMethod !== 'customConfig'}
