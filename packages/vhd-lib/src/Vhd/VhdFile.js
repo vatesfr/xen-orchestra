@@ -78,7 +78,7 @@ export class VhdFile extends VhdAbstract {
     return super.header
   }
 
-  static async open(handler, path, { flags } = {}) {
+  static async open(handler, path, { flags, checkSecondFooter = true } = {}) {
     const fd = await handler.openFile(path, flags ?? 'r+')
     const vhd = new VhdFile(handler, fd)
     // openning a file for reading does not trigger EISDIR as long as we don't really read from it :
@@ -86,7 +86,7 @@ export class VhdFile extends VhdAbstract {
     // EISDIR pathname refers to a directory and the access requested
     // involved writing (that is, O_WRONLY or O_RDWR is set).
     // reading the header ensure we have a well formed file immediatly
-    await vhd.readHeaderAndFooter()
+    await vhd.readHeaderAndFooter(checkSecondFooter)
     return {
       dispose: () => handler.closeFile(fd),
       value: vhd,

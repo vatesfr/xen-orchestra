@@ -39,8 +39,8 @@ export class VhdDirectory extends VhdAbstract {
     this.#uncheckedBlockTable = blockTable
   }
 
-  static async open(handler, path, opts) {
-    const vhd = new VhdDirectory(handler, path, { flags: 'r+', ...opts })
+  static async open(handler, path, { flags = 'r+' } = {}) {
+    const vhd = new VhdDirectory(handler, path, { flags })
 
     // openning a file for reading does not trigger EISDIR as long as we don't really read from it :
     // https://man7.org/linux/man-pages/man2/open.2.html
@@ -54,9 +54,9 @@ export class VhdDirectory extends VhdAbstract {
     }
   }
 
-  static async create(handler, path, opts = {}) {
+  static async create(handler, path, { flags = 'wx+' } = {}) {
     await handler.mkdir(path)
-    const vhd = new VhdDirectory(handler, path, { flags: 'wx', ...opts })
+    const vhd = new VhdDirectory(handler, path, { flags })
     return {
       dispose: () => {},
       value: vhd,
