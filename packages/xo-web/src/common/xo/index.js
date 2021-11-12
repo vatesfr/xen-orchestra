@@ -2902,7 +2902,7 @@ export const deleteCloudConfigs = ids => {
 export const editCloudConfig = (cloudConfig, props) =>
   _call('cloudConfig.update', { ...props, id: resolveId(cloudConfig) })::tap(subscribeCloudConfigs.forceRefresh)
 
-export const subscribeNetworkConfigs = createSubscription(() => _call('cloudConfig.getAllNetworkConfigs'))
+export const subscribeNetworkConfigs = createSubscription(() => _call('cloudConfig.getAllNetwork'))
 
 export const createNetworkConfig = props =>
   _call('cloudConfig.createNetwork', props)::tap(subscribeNetworkConfigs.forceRefresh)
