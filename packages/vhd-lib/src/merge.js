@@ -93,6 +93,9 @@ export default limitConcurrency(2)(async function merge(
       })
     }
 
+    // some blocks could have been created or moved in parent : write bat
+    await parentVhd.writeBlockAllocationTable()
+
     const cFooter = childVhd.footer
     const pFooter = parentVhd.footer
 
@@ -106,8 +109,6 @@ export default limitConcurrency(2)(async function merge(
     // creation
     await parentVhd.writeFooter()
 
-    // some blocks could have been created or moved in parent : write bat
-    await parentVhd.writeBlockAllocationTable()
     // should be a disposable
     parentHandler.unlink(mergeStatePath).catch(warn)
 
