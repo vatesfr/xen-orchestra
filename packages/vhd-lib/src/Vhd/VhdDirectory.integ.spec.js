@@ -60,8 +60,8 @@ test('Can coalesce block', async () => {
     await parentVhd.coalesceBlock(childDirectoryVhd, 0)
     await parentVhd.writeFooter()
     await parentVhd.writeBlockAllocationTable()
-    parentBlockData = await parentVhd.readBlock(0).data
-    childBlockData = await childDirectoryVhd.readBlock(0).data
+    parentBlockData = (await parentVhd.readBlock(0)).data
+    childBlockData = (await childDirectoryVhd.readBlock(0)).data
     expect(parentBlockData).toEqual(childBlockData)
   })
 })
