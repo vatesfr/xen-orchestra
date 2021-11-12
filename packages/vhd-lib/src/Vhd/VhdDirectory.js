@@ -93,10 +93,6 @@ export class VhdDirectory extends VhdAbstract {
   }
 
   async _writeChunk(partName, buffer) {
-    if (!Buffer.isBuffer(buffer)) {
-      buffer = Buffer.from(buffer)
-    }
-    assert(Buffer.isBuffer(buffer), buffer.toString())
     // here we can implement compression and / or crypto
 
     // chunks can be in sub directories :  create directories if necessary
