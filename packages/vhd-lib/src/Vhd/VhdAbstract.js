@@ -10,7 +10,7 @@ import {
 } from '../_constants'
 import assert from 'assert'
 import path from 'path'
-import asyncIteratorToStream from 'async-iterator-to-stream/dist'
+import asyncIteratorToStream from 'async-iterator-to-stream'
 import { checksumStruct, fuFooter, fuHeader } from '../_structs'
 import { isVhdAlias, resolveAlias } from '../_resolveAlias'
 
@@ -223,7 +223,8 @@ export class VhdAbstract {
   }
 
   stream() {
-    const { header, footer, batSize } = this
+    const { footer, batSize } = this
+    const { ...header } = this.header // copy since we don't ant to modifiy the current header
     const rawFooter = fuFooter.pack(footer)
     checksumStruct(rawFooter, fuFooter)
 
@@ -233,10 +234,12 @@ export class VhdAbstract {
 
     let offset = FOOTER_SIZE + HEADER_SIZE + batSize
     for (let i = 0; i < PARENT_LOCATOR_ENTRIES; i++) {
-      if (header.parentLocatorEntry[i].platformDataSpace > 0) {
-        header.parentLocatorEntry[i].platformDataOffset = offset
-        offset += header.parentLocatorEntry[i].platformDataSpace
+      const { ...entry } = header.parentLocatorEntry[i]
+      if (entry.platformDataSpace > 0) {
+        entry.platformDataOffset = offset
+        offset += entry.platformDataSpace
       }
+      header.parentLocatorEntry[i] = entry
     }
 
     const rawHeader = fuHeader.pack(header)
@@ -292,22 +295,23 @@ export class VhdAbstract {
   }
 
   rawContent() {
-    const { header, sectorsPerBlock } = this
+    const { header, footer, sectorsPerBlock } = this
     const self = this
-
+    const blockSize = sectorsPerBlock * SECTOR_SIZE
     async function* iterator() {
       const nBlocks = header.maxTableEntries
-      const EMPTY = Buffer.allocUnsafe(sectorsPerBlock * SECTOR_SIZE)
+      let remainingSize = footer.currentSize
+      const EMPTY = Buffer.alloc(blockSize, 0)
       for (let blockId = 0; blockId < nBlocks; ++blockId) {
-        if (await self.containsBlock(blockId)) {
-          yield (await self.readBlock(blockId)).data
-        } else {
-          yield EMPTY
-        }
+        let buffer = self.containsBlock(blockId) ? (await self.readBlock(blockId)).data : EMPTY
+        // the last block can be truncated since raw size is not a multiple of blockSize
+        buffer = remainingSize < blockSize ? buffer.slice(0, remainingSize) : buffer
+        remainingSize -= blockSize
+        yield buffer
       }
     }
     const stream = asyncIteratorToStream(iterator())
-    stream.length = this.header.maxTableEntries * this.sectorsPerBlock * SECTOR_SIZE
+    stream.length = footer.currentSize
     return stream
   }
 }

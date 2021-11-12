@@ -10,7 +10,7 @@ import { openVhd } from '../index'
 import { checkFile, createRandomFile, convertFromRawToVhd, createRandomVhdDirectory } from '../tests/utils'
 import { VhdAbstract } from './VhdAbstract'
 import { SECTOR_SIZE } from '../../dist/_constants'
-import { BLOCK_UNUSED } from '../_constants'
+import { BLOCK_UNUSED, FOOTER_SIZE, HEADER_SIZE } from '../_constants'
 
 let tempDir
 
@@ -152,7 +152,8 @@ test('It create , rename and unlink alias', async () => {
 })
 
 test('it can create a vhd stream', async () => {
-  const initalSize = 6
+  const initialNbBlocks = 3
+  const initalSize = initialNbBlocks * 2
   const rawFileName = `${tempDir}/randomfile`
   await createRandomFile(rawFileName, initalSize)
   const vhdFileName = `${tempDir}/vhd.vhd`
@@ -162,12 +163,14 @@ test('it can create a vhd stream', async () => {
   await Disposable.use(async function* () {
     const handler = yield getSyncedHandler({ url: 'file://' + tempDir })
 
-    // mark first block as unused
-    await handler.read('vhd.vhd', bat, 1024 + 512)
-    bat.writeUInt32BE(BLOCK_UNUSED, 0)
-    await handler.write('vhd.vhd', bat, 1024 + 512)
-
     const vhd = yield openVhd(handler, 'vhd.vhd')
+
+    // mark first block as unused
+    await handler.read('vhd.vhd', bat, vhd.header.tableOffset)
+    bat.writeUInt32BE(BLOCK_UNUSED, 0)
+    await handler.write('vhd.vhd', bat, vhd.header.tableOffset)
+
+    // read our modified bat
     await vhd.readBlockAllocationTable()
     const stream = vhd.stream()
 
@@ -175,9 +178,10 @@ test('it can create a vhd stream', async () => {
 
     const buffer = await streamToBuffer(stream)
     const length = buffer.length
-    const start = 512 /* footer */ + 1024 /* header */ + 512 /* BAT */
+    const start = FOOTER_SIZE + HEADER_SIZE + vhd.batSize
     const footer = buffer.slice(0, 512)
-    expect(length).toEqual(start + 2 * vhd.fullBlockSize + 512 /* footer again */)
+    // 1 deleted block should be in ouput
+    expect(length).toEqual(start + (initialNbBlocks - 1) * vhd.fullBlockSize + FOOTER_SIZE)
     // blocks
     const blockBuf = Buffer.alloc(vhd.sectorsPerBlock * SECTOR_SIZE, 0)
     for (let i = 1; i < 3; i++) {
@@ -198,9 +202,10 @@ test('it can create a vhd stream', async () => {
 })
 
 it('can stream content', async () => {
-  const initalSize = 6
+  const initalSizeMb = 5 // 2 block and an half
+  const initialByteSize = initalSizeMb * 1024 * 1024
   const rawFileName = `${tempDir}/randomfile`
-  await createRandomFile(rawFileName, initalSize)
+  await createRandomFile(rawFileName, initalSizeMb)
   const vhdFileName = `${tempDir}/vhd.vhd`
   await convertFromRawToVhd(rawFileName, vhdFileName)
   const bat = Buffer.alloc(512)
@@ -208,23 +213,41 @@ it('can stream content', async () => {
   await Disposable.use(async function* () {
     const handler = yield getSyncedHandler({ url: 'file://' + tempDir })
 
-    // mark first block as unused
-    await handler.read('vhd.vhd', bat, 1024 + 512)
-    bat.writeUInt32BE(BLOCK_UNUSED, 0)
-    await handler.write('vhd.vhd', bat, 1024 + 512)
-
     const vhd = yield openVhd(handler, 'vhd.vhd')
+    // mark first block as unused
+    await handler.read('vhd.vhd', bat, vhd.header.tableOffset)
+    bat.writeUInt32BE(BLOCK_UNUSED, 0)
+    await handler.write('vhd.vhd', bat, vhd.header.tableOffset)
+
+    // read our modified block allocation table
     await vhd.readBlockAllocationTable()
     const stream = vhd.rawContent()
     const buffer = await streamToBuffer(stream)
+
+    // qemu can modify size, to align it to geometry
+
     // check that data didn't change
-    const blockBuf = Buffer.alloc(vhd.sectorsPerBlock * SECTOR_SIZE, 0)
+    const blockDataLength = vhd.sectorsPerBlock * SECTOR_SIZE
+
+    // first block should be empty
+    const EMPTY = Buffer.alloc(blockDataLength, 0)
+    const firstBlock = buffer.slice(0, blockDataLength)
+    // using buffer1 toEquals buffer2 make jest crash trying to stringify it on failure
+    expect(firstBlock.equals(EMPTY)).toEqual(true)
+
+    let remainingLength = initialByteSize - blockDataLength // already checked the first block
     for (let i = 1; i < 3; i++) {
-      const blockDataStart = i * vhd.sectorsPerBlock * SECTOR_SIZE
-      const blockDataEnd = blockDataStart + vhd.sectorsPerBlock * SECTOR_SIZE
+      // last block will be truncated
+      const blockSize = Math.min(blockDataLength, remainingLength - blockDataLength)
+      const blockDataStart = i * blockDataLength // first block have been deleted
+      const blockDataEnd = blockDataStart + blockSize
       const content = buffer.slice(blockDataStart, blockDataEnd)
-      await handler.read('randomfile', blockBuf, i * vhd.sectorsPerBlock * SECTOR_SIZE)
-      expect(content).toEqual(blockBuf)
+
+      const blockBuf = Buffer.alloc(blockSize, 0)
+
+      await handler.read('randomfile', blockBuf, i * blockDataLength)
+      expect(content.equals(blockBuf)).toEqual(true)
+      remainingLength -= blockSize
     }
   })
 })

@@ -1,7 +1,6 @@
 export { default as chainVhd } from './chain'
 export { default as checkFooter } from './checkFooter'
 export { default as checkVhdChain } from './checkChain'
-export { default as createContentStream } from './createContentStream'
 export { default as createReadableRawStream } from './createReadableRawStream'
 export { default as createReadableSparseStream } from './createReadableSparseStream'
 export { default as createSyntheticStream } from './createSyntheticStream'
