@@ -1142,7 +1142,6 @@ export default class NewVm extends BaseComponent {
               <AvailableTemplateVars />
               &nbsp;
             </LineItem>
-            <br />
             <LineItem>
               <Item>
                 <label className='text-muted'>
