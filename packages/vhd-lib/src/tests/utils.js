@@ -73,7 +73,8 @@ export async function convertToVhdDirectory(rawFileName, vhdFileName, path) {
   // copy blocks
   const srcRaw = await fs.open(rawFileName, 'r')
   const blockDataSize = 512 * 4096
-  const bitmap = Buffer.alloc(4096)
+  // make a block bitmap full of 1, marking all sectors of the block as used
+  const bitmap = Buffer.alloc(4096, 255)
   await fs.mkdir(path + '/blocks/')
   await fs.mkdir(path + '/blocks/0/')
   const stats = await fs.stat(rawFileName)
