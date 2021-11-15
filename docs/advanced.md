@@ -40,6 +40,10 @@ Firewall:
 
 ## Cloud init
 
+:::tip
+Cloud init ready templates are available through the HUB. (More information needed on Hub templates)
+:::
+
 Cloud-init is a program "that handles the early initialization of a cloud instance". In other words, you can, on a "cloud-init"-ready template VM, pass a lot of data at first boot:
 
 - setting the hostname
@@ -52,13 +56,36 @@ This tool is pretty standard and used everywhere. A lot of existing cloud templa
 
 So it means very easily customizing your VM when you create it from a compatible template. It brings you closer to the "instance" principle, like in Amazon cloud or OpenStack.
 
-### Requirements
+### Creating a cloud init ready template
+#### General information
+:::warning
+There is currently [a bug in XOA's implementation](https://github.com/vatesfr/xen-orchestra/issues/4449) of creating the config drive for the NoCloud Datasource. This has been accomodated for in cloud-init 20.3, so make sure that your OS includes at least 20.3 in it's repositories.
+:::
 
-You only need to use a template of a VM with CloudInit installed inside it. [Check this blog post to learn how to install CloudInit](https://xen-orchestra.com/blog/centos-cloud-template-for-xenserver/).
+Creating a cloud-init ready template differs slightly from OS to OS, however here are the general steps outlined, needed to create a cloud-init ready template, with OS specific information found in the following sections. 
+
+1. Create your VM as you would normally with your preferred method of installation (WebGUI, xe-cli, terraform, etc.). Don't worry too much about CPU, RAM and disk settings as they can be changed later. Follow the setups according to your OS's documentation to install the os.
+
+2. Install cloud init through your OS's package manager. As we will convert this to a template later you can already install complementary packages that you want to be available in your template from the start, e.g. Xen Guest Tools
 
 :::tip
 In XOA 5.31, we changed the cloud-init config drive type from [OpenStack](https://cloudinit.readthedocs.io/en/latest/topics/datasources/configdrive.html) to the [NoCloud](https://cloudinit.readthedocs.io/en/latest/topics/datasources/nocloud.html) type. This will allow us to pass network configuration to VMs in the future. For 99% of users, including default cloud-init installs, this change will have no effect. However if you have previously modified your cloud-init installation in a VM template to only look for `openstack` drive types (for instance with the `datasource_list` setting in `/etc/cloud/cloud.cfg`) you need to modify it to also look for `nocloud`.
 :::
+
+#### Alpine Linux
+:::tip More explanation on why some of the steps are necessary can be found in the cloud-init documentation for Alpine Linux, available in [their git repository](https://git.alpinelinux.org/aports/tree/community/cloud-init/README.Alpine)
+::: 
+1. Perform a standard install with `setup-alpine` but select `none` when asked for an ssh server and reboot afterwards
+2. Install necesarry packages with `apk add cloud-init openssh-server-pam util-linux`
+3. Run `setup-cloud-init` to enable it
+4. Add the line `UsePam=yes` to `/etc/ssh/sshd_config`
+4. Shutdown your VM and go to the Advanced tab and select `Convert to template`
+
+#### Ubuntu
+TODO
+
+#### CentOS
+TODO
 
 ### Usage
 
@@ -103,6 +130,13 @@ Check the root file system size: indeed, **it was automatically increased** to w
 [centos@tmp-app1 ~]$ df -h
 /dev/xvda1          20G    1,2G   18G   6% /
 ```
+
+### Debugging cloud-init if something doesn't work
+WIP
+1. See if the config drive is present and correctly formattedwith `blkid /dev/xvdb`
+2. Check contents of config drive with `mount -t vfat /dev/xvdb /mnt`
+3. Ensure the NoCloud Datasource is enabled
+4. Ensure that cloud-init version >=20.3 is used
 
 ## Web hooks
 
