@@ -29,16 +29,16 @@ test('It opens a vhd file ( alias or not)', async () => {
   const vhdFileName = `${tempDir}/randomfile.vhd`
   await convertFromRawToVhd(rawFileName, vhdFileName)
   await Disposable.use(async function* () {
-    const handler = yield getSyncedHandler({ url: `file://${tempDir}/` })
-    const vhd = yield openVhd(handler, 'randomfile.vhd')
+    const handler = yield getSyncedHandler({ url: 'file://' })
+    const vhd = yield openVhd(handler, vhdFileName)
     expect(vhd.header.cookie).toEqual('cxsparse')
     expect(vhd.footer.cookie).toEqual('conectix')
 
-    await VhdAbstract.createAlias(handler, 'out.alias.vhd', 'randomfile.vhd')
-    const alias = yield openVhd(handler, 'out.alias.vhd')
+    const aliasFileName = `${tempDir}/out.alias.vhd`
+    await VhdAbstract.createAlias(handler, aliasFileName, vhdFileName)
+    const alias = yield openVhd(handler, aliasFileName)
     expect(alias.header.cookie).toEqual('cxsparse')
     expect(alias.footer.cookie).toEqual('conectix')
-    expect(alias._path?.path).toEqual('/randomfile.vhd')
   })
 })
 
@@ -48,15 +48,15 @@ test('It opens a vhd directory', async () => {
   await createRandomVhdDirectory(vhdDirectory, initalSize)
 
   await Disposable.use(async function* () {
-    const handler = yield getSyncedHandler({ url: `file://${tempDir}/` })
-    const vhd = yield openVhd(handler, 'randomfile.dir')
+    const handler = yield getSyncedHandler({ url: 'file://' })
+    const vhd = yield openVhd(handler, vhdDirectory)
     expect(vhd.header.cookie).toEqual('cxsparse')
     expect(vhd.footer.cookie).toEqual('conectix')
 
-    await VhdAbstract.createAlias(handler, 'out.alias.vhd', 'randomfile.dir')
-    const alias = yield openVhd(handler, 'out.alias.vhd')
+    const aliasFileName = `${tempDir}/out.alias.vhd`
+    await VhdAbstract.createAlias(handler, aliasFileName, vhdDirectory)
+    const alias = yield openVhd(handler, aliasFileName)
     expect(alias.header.cookie).toEqual('cxsparse')
     expect(alias.footer.cookie).toEqual('conectix')
-    expect(alias._path).toEqual('randomfile.dir')
   })
 })

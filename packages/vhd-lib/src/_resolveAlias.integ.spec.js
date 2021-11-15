@@ -32,34 +32,24 @@ test('resolve return the path in argument for a non alias file ', async () => {
 test('resolve get the path of the target file for an alias', async () => {
   await Disposable.use(async function* () {
     // same directory
-    const handler = yield getSyncedHandler({ url: `file://${tempDir}` })
-    await handler.mkdir(`alias`)
-    const aliasPath = 'alias/alias.alias.vhd'
-    const testOneCombination = async ({ targetPath, targetContent }) => {
-      await handler.writeFile(aliasPath, targetPath, { flags: 'w' })
-      const resolved = await resolveAlias(handler, aliasPath)
-      expect(resolved).toEqual(targetContent)
-      await handler.unlink(aliasPath)
-    }
-    // the alias contain the relative path to the file. The resolved values is the full path from the root of the remote
-    const combinations = [
-      { targetPath: `../targets.vhd`, targetContent: `targets.vhd` },
-      { targetPath: `targets.vhd`, targetContent: `alias/targets.vhd` },
-      { targetPath: `sub/targets.vhd`, targetContent: `alias/sub/targets.vhd` },
-      { targetPath: `../sibling/targets.vhd`, targetContent: `sibling/targets.vhd` },
-    ]
+    const handler = yield getSyncedHandler({ url: 'file:///' })
+    const tempDirFomRemoteUrl = tempDir.slice(1) // remove the / which is included in the remote url
+    const alias = `${tempDirFomRemoteUrl}/alias.alias.vhd`
+    await handler.writeFile(alias, 'target.vhd')
+    expect(await resolveAlias(handler, alias)).toEqual(`${tempDirFomRemoteUrl}/target.vhd`)
 
-    for (const { targetPath, targetContent } of combinations) {
-      await testOneCombination({ targetPath, targetContent })
-    }
+    // different directory
+    await handler.mkdir(`${tempDirFomRemoteUrl}/sub/`)
+    await handler.writeFile(alias, 'sub/target.vhd', { flags: 'w' })
+    expect(await resolveAlias(handler, alias)).toEqual(`${tempDirFomRemoteUrl}/sub/target.vhd`)
   })
 })
 
 test('resolve throws an error an alias to an alias', async () => {
   await Disposable.use(async function* () {
-    const handler = yield getSyncedHandler({ url: `file://${tempDir}` })
-    const alias = 'alias.alias.vhd'
-    const target = 'target.alias.vhd'
+    const handler = yield getSyncedHandler({ url: 'file:///' })
+    const alias = `${tempDir}/alias.alias.vhd`
+    const target = `${tempDir}/target.alias.vhd`
     await handler.writeFile(alias, target)
     expect(async () => await resolveAlias(handler, alias)).rejects.toThrow(Error)
   })
