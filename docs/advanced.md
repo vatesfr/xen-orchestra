@@ -40,7 +40,7 @@ Firewall:
 
 ## Cloud init
 
-Cloud-init is a program "that handles the early initialization of a cloud instance"[^n]. In other words, you can, on a "cloud-init"-ready template VM, pass a lot of data at first boot:
+Cloud-init is a program "that handles the early initialization of a cloud instance". In other words, you can, on a "cloud-init"-ready template VM, pass a lot of data at first boot:
 
 - setting the hostname
 - add ssh keys
