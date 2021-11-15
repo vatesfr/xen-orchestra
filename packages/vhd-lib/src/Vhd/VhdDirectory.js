@@ -79,13 +79,13 @@ export class VhdDirectory extends VhdAbstract {
     return test(this.#blockTable, blockId)
   }
 
-  getChunkPath(partName) {
+  _getChunkPath(partName) {
     return this._path + '/' + partName
   }
 
   async _readChunk(partName) {
     // here we can implement compression and / or crypto
-    const buffer = await this._handler.readFile(this.getChunkPath(partName))
+    const buffer = await this._handler.readFile(this._getChunkPath(partName))
 
     return {
       buffer: Buffer.from(buffer),
@@ -104,7 +104,7 @@ export class VhdDirectory extends VhdAbstract {
       currentPath += '/' + pathParts[i]
       await this._handler.mkdir(currentPath)
     }
-    return this._handler.writeFile(this.getChunkPath(partName), buffer, this._opts)
+    return this._handler.writeFile(this._getChunkPath(partName), buffer, this._opts)
   }
 
   // put block in subdirectories to limit impact when doing directory listing
@@ -174,8 +174,8 @@ export class VhdDirectory extends VhdAbstract {
       return super.coalesceBlock(child, blockId)
     }
     await this._handler.copy(
-      child.getChunkPath(child._getBlockPath(blockId)),
-      this.getChunkPath(this._getBlockPath(blockId))
+      child._getChunkPath(child._getBlockPath(blockId)),
+      this._getChunkPath(this._getBlockPath(blockId))
     )
     return sectorsToBytes(this.sectorsPerBlock)
   }
