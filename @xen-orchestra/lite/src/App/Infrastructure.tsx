@@ -1,6 +1,7 @@
 import React from 'react'
 import styled from 'styled-components'
 import { withState } from 'reaclette'
+import { withRouter } from 'react-router'
 import { Switch, Route } from 'react-router-dom'
 
 import TabConsole from './TabConsole'
@@ -27,37 +28,50 @@ const MainPanel = styled.div`
 
 interface ParentState {}
 
-interface State {}
+interface State {
+  selectedVm?: string
+}
 
-interface Props {}
+interface Props {
+  location: object
+}
 
 interface ParentEffects {}
 
-interface Effects {}
+interface Effects {
+  initialize: () => void
+}
 
 interface Computed {}
 
-const Infrastructure = withState<State, Props, Effects, Computed, ParentState, ParentEffects>({}, ({ vmId }) => (
-  <Container>
-    <LeftPanel>
-      <TreeView />
-    </LeftPanel>
-    <MainPanel>
-      <Switch>
-        <Route exact path='/infrastructure'>
-          Select a VM
-        </Route>
-        <Route
-          path='/infrastructure/vms/:id/console'
-          render={({
-            match: {
-              params: { id },
-            },
-          }) => <TabConsole key={id} vmId={id} />}
-        />
-      </Switch>
-    </MainPanel>
-  </Container>
-))
+const Infrastructure = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
+  {
+    initialState: props => ({
+      selectedVm: props.location.pathname.split('/')[3],
+    }),
+  },
+  ({ state: { selectedVm } }) => (
+    <Container>
+      <LeftPanel>
+        <TreeView defaultSelectedNodes={selectedVm === undefined ? undefined : [selectedVm]} />
+      </LeftPanel>
+      <MainPanel>
+        <Switch>
+          <Route exact path='/infrastructure'>
+            Select a VM
+          </Route>
+          <Route
+            path='/infrastructure/vms/:id/console'
+            render={({
+              match: {
+                params: { id },
+              },
+            }) => <TabConsole key={id} vmId={id} />}
+          />
+        </Switch>
+      </MainPanel>
+    </Container>
+  )
+)
 
-export default Infrastructure
+export default withRouter(Infrastructure)

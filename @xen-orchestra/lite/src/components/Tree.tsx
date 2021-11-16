@@ -1,3 +1,4 @@
+import classNames from 'classnames'
 import React from 'react'
 import Tooltip from '@mui/material/Tooltip'
 import TreeView from '@mui/lab/TreeView'
@@ -9,7 +10,9 @@ import Icon from '../components/Icon'
 
 interface ParentState {}
 
-interface State {}
+interface State {
+  selectedNodes?: Array<string>
+}
 
 interface ItemType {
   children?: Array<ItemType>
@@ -52,26 +55,30 @@ interface Props {
   //   }
   // ]
   collection: Array<ItemType>
+  defaultSelectedNodes?: Array<string>
 }
 
 interface ParentEffects {}
 
-interface Effects {}
+interface Effects {
+  setSelectedNodeIds: (event: React.SyntheticEvent, nodeIds: Array<string>) => void
+}
 
 interface Computed {}
 
 // Inspired by https://mui.com/components/tree-view/#contentcomponent-prop.
 const CustomContent = React.forwardRef(function CustomContent(props, ref) {
-  const { label, nodeId, expansionIcon } = props
-  const { handleExpansion } = useTreeItem(nodeId)
-
-  const handleExpansionClick = event => {
-    handleExpansion(event)
-  }
+  const { classes, className, label, nodeId, expansionIcon } = props
+  const { handleExpansion, handleSelection, selected } = useTreeItem(nodeId)
 
   return (
-    <span ref={ref}>
-      <span onClick={handleExpansionClick}>{expansionIcon}</span> {label}
+    <span className={classNames(className, { [classes.selected]: selected })} ref={ref}>
+      <span className={classes.iconContainer} onClick={handleExpansion}>
+        {expansionIcon}
+      </span>
+      <span className={classes.label} onClick={handleSelection}>
+        {label}
+      </span>
     </span>
   )
 })
@@ -93,10 +100,29 @@ const renderItem = ({ children, id, label, to, tooltip }: ItemType) => {
   )
 }
 
-const Tree = withState<State, Props, Effects, Computed, ParentState, ParentEffects>({}, ({ collection }) => (
-  <TreeView defaultExpanded={[collection[0].id]} defaultCollapseIcon={<Icon icon='chevron-up' />} defaultExpandIcon={<Icon icon='chevron-down' />}>
-    {collection.map(renderItem)}
-  </TreeView>
-))
+const Tree = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
+  {
+    initialState: ({ defaultSelectedNodes }) => ({
+      selectedNodes: defaultSelectedNodes === undefined ? [] : defaultSelectedNodes,
+    }),
+    effects: {
+      setSelectedNodeIds: function (event, nodeIds) {
+        this.state.selectedNodes = nodeIds
+      },
+    },
+  },
+  ({ effects, state: { selectedNodes }, collection }) => (
+    <TreeView
+      defaultExpanded={[collection[0].id]}
+      defaultCollapseIcon={<Icon icon='chevron-up' />}
+      defaultExpandIcon={<Icon icon='chevron-down' />}
+      onNodeSelect={effects.setSelectedNodeIds}
+      multiSelect
+      selected={selectedNodes}
+    >
+      {collection.map(renderItem)}
+    </TreeView>
+  )
+)
 
 export default Tree
