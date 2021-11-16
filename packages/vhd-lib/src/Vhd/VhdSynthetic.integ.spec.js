@@ -5,11 +5,10 @@ import tmp from 'tmp'
 import { Disposable, pFromCallback } from 'promise-toolbox'
 import { getSyncedHandler } from '@xen-orchestra/fs'
 
-import { SECTOR_SIZE } from '../_constants'
+import { SECTOR_SIZE, PLATFORM_W2KU } from '../_constants'
 import { createRandomFile, convertFromRawToVhd } from '../tests/utils'
 import { openVhd, chainVhd } from '..'
 import { VhdSynthetic } from './VhdSynthetic'
-import { PLATFORM_W2KU } from '../../dist/_constants'
 
 let tempDir = null
 
