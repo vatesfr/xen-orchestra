@@ -236,7 +236,7 @@ it('can stream content', async () => {
     expect(firstBlock.equals(EMPTY)).toEqual(true)
 
     let remainingLength = initialByteSize - blockDataLength // already checked the first block
-    for (let i = 1; i < 3; i++) {
+    for (let i = 1; i < initialNbBlocks; i++) {
       // last block will be truncated
       const blockSize = Math.min(blockDataLength, remainingLength - blockDataLength)
       const blockDataStart = i * blockDataLength // first block have been deleted
