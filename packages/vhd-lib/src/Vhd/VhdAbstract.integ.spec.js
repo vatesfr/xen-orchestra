@@ -184,7 +184,7 @@ test('it can create a vhd stream', async () => {
     expect(length).toEqual(start + (initialNbBlocks - 1) * vhd.fullBlockSize + FOOTER_SIZE)
     // blocks
     const blockBuf = Buffer.alloc(vhd.sectorsPerBlock * SECTOR_SIZE, 0)
-    for (let i = 1; i < 3; i++) {
+    for (let i = 1; i < initialNbBlocks; i++) {
       const blockDataStart = start + (i - 1) * vhd.fullBlockSize + 512 /* block bitmap */
       const blockDataEnd = blockDataStart + vhd.sectorsPerBlock * SECTOR_SIZE
       const content = buffer.slice(blockDataStart, blockDataEnd)
