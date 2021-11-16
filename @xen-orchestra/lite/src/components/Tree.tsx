@@ -11,7 +11,7 @@ import Icon from '../components/Icon'
 interface ParentState {}
 
 interface State {
-  defaultSelectedNodes?: Array<string>
+  selectedNodes?: Array<string>
 }
 
 interface ItemType {
@@ -55,7 +55,7 @@ interface Props {
   //   }
   // ]
   collection: Array<ItemType>
-  selected?: Array<string>
+  defaultSelectedNodes?: Array<string>
 }
 
 interface ParentEffects {}
@@ -102,21 +102,23 @@ const renderItem = ({ children, id, label, to, tooltip }: ItemType) => {
 
 const Tree = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
   {
-    initialState: ({ selected }) => ({ defaultSelectedNodes: selected === undefined ? [] : selected }),
+    initialState: ({ defaultSelectedNodes }) => ({
+      selectedNodes: defaultSelectedNodes === undefined ? [] : defaultSelectedNodes,
+    }),
     effects: {
       setSelectedNodeIds: function (event, nodeIds) {
-        this.state.defaultSelectedNodes = nodeIds
+        this.state.selectedNodes = nodeIds
       },
     },
   },
-  ({ effects, state: { defaultSelectedNodes }, collection }) => (
+  ({ effects, state: { selectedNodes }, collection }) => (
     <TreeView
       defaultExpanded={[collection[0].id]}
       defaultCollapseIcon={<Icon icon='chevron-up' />}
       defaultExpandIcon={<Icon icon='chevron-down' />}
       onNodeSelect={effects.setSelectedNodeIds}
       multiSelect
-      selected={defaultSelectedNodes}
+      selected={selectedNodes}
     >
       {collection.map(renderItem)}
     </TreeView>
