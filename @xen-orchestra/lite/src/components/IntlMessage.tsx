@@ -15,8 +15,7 @@ interface Props extends MessageDescriptor {
 const IntlMessage = (props: Props): JSX.Element => <FormattedMessage {...props} />
 
 export function translate(message: MessageDescriptor){
-  const intl = useIntl() // use intl is a hooks
-  return intl.formatMessage(message)
+  return useIntl().formatMessage(message)
 }
 
 export default React.memo(IntlMessage)
