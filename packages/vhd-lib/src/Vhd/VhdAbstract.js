@@ -1,9 +1,18 @@
 import { computeBatSize, sectorsRoundUpNoZero, sectorsToBytes } from './_utils'
-import { PLATFORM_NONE, SECTOR_SIZE, PLATFORM_W2KU, PARENT_LOCATOR_ENTRIES } from '../_constants'
-import { resolveAlias, isVhdAlias } from '../_resolveAlias'
-
+import {
+  PLATFORM_NONE,
+  SECTOR_SIZE,
+  PLATFORM_W2KU,
+  PARENT_LOCATOR_ENTRIES,
+  FOOTER_SIZE,
+  HEADER_SIZE,
+  BLOCK_UNUSED,
+} from '../_constants'
 import assert from 'assert'
 import path from 'path'
+import asyncIteratorToStream from 'async-iterator-to-stream'
+import { checksumStruct, fuFooter, fuHeader } from '../_structs'
+import { isVhdAlias, resolveAlias } from '../_resolveAlias'
 
 export class VhdAbstract {
   #header
@@ -211,5 +220,98 @@ export class VhdAbstract {
     // only store the relative path from alias to target
     const relativePathToTarget = path.relative(aliasDir, path.resolve('/', targetPath))
     await handler.writeFile(aliasPath, relativePathToTarget)
+  }
+
+  stream() {
+    const { footer, batSize } = this
+    const { ...header } = this.header // copy since we don't ant to modifiy the current header
+    const rawFooter = fuFooter.pack(footer)
+    checksumStruct(rawFooter, fuFooter)
+
+    // compute parent locator place and size
+    // update them in header
+    // update checksum in header
+
+    let offset = FOOTER_SIZE + HEADER_SIZE + batSize
+    for (let i = 0; i < PARENT_LOCATOR_ENTRIES; i++) {
+      const { ...entry } = header.parentLocatorEntry[i]
+      if (entry.platformDataSpace > 0) {
+        entry.platformDataOffset = offset
+        offset += entry.platformDataSpace
+      }
+      header.parentLocatorEntry[i] = entry
+    }
+
+    const rawHeader = fuHeader.pack(header)
+    checksumStruct(rawHeader, fuHeader)
+
+    assert.strictEqual(offset % SECTOR_SIZE, 0)
+
+    const bat = Buffer.allocUnsafe(batSize)
+    let offsetSector = offset / SECTOR_SIZE
+    const blockSizeInSectors = this.fullBlockSize / SECTOR_SIZE
+
+    // compute BAT , blocks starts after parent locator entries
+    for (let i = 0; i < header.maxTableEntries; i++) {
+      if (this.containsBlock(i)) {
+        bat.writeUInt32BE(offsetSector, i * 4)
+        offsetSector += blockSizeInSectors
+      } else {
+        bat.writeUInt32BE(BLOCK_UNUSED, i * 4)
+      }
+    }
+    const fileSize = offsetSector * SECTOR_SIZE + FOOTER_SIZE /* the footer at the end */
+
+    const self = this
+    async function* iterator() {
+      yield rawFooter
+      yield rawHeader
+      yield bat
+
+      // yield parent locator entries
+      for (let i = 0; i < PARENT_LOCATOR_ENTRIES; i++) {
+        if (header.parentLocatorEntry[i].platformDataSpace > 0) {
+          const parentLocator = await self.readParentLocator(i)
+          // @ todo pad to platformDataSpace
+          yield parentLocator.data
+        }
+      }
+
+      // yield all blocks
+      // since contains() can be costly for synthetic vhd, use the computed bat
+      for (let i = 0; i < header.maxTableEntries; i++) {
+        if (bat.readUInt32BE(i * 4) !== BLOCK_UNUSED) {
+          const block = await self.readBlock(i)
+          yield block.buffer
+        }
+      }
+      // yield footer again
+      yield rawFooter
+    }
+
+    const stream = asyncIteratorToStream(iterator())
+    stream.length = fileSize
+    return stream
+  }
+
+  rawContent() {
+    const { header, footer } = this
+    const { blockSize } = header
+    const self = this
+    async function* iterator() {
+      const nBlocks = header.maxTableEntries
+      let remainingSize = footer.currentSize
+      const EMPTY = Buffer.alloc(blockSize, 0)
+      for (let blockId = 0; blockId < nBlocks; ++blockId) {
+        let buffer = self.containsBlock(blockId) ? (await self.readBlock(blockId)).data : EMPTY
+        // the last block can be truncated since raw size is not a multiple of blockSize
+        buffer = remainingSize < blockSize ? buffer.slice(0, remainingSize) : buffer
+        remainingSize -= blockSize
+        yield buffer
+      }
+    }
+    const stream = asyncIteratorToStream(iterator())
+    stream.length = footer.currentSize
+    return stream
   }
 }
