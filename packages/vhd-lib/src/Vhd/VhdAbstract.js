@@ -22,10 +22,6 @@ export class VhdAbstract {
     return sectorsToBytes(this.sectorsOfBitmap)
   }
 
-  get blockSize() {
-    return sectorsToBytes(this.sectorsPerBlock)
-  }
-
   get fullBlockSize() {
     return sectorsToBytes(this.sectorsOfBitmap + this.sectorsPerBlock)
   }
@@ -299,7 +295,8 @@ export class VhdAbstract {
   }
 
   rawContent() {
-    const { blockSize, header, footer } = this
+    const { header, footer } = this
+    const { blockSize } = header
     const self = this
     async function* iterator() {
       const nBlocks = header.maxTableEntries
