@@ -203,6 +203,7 @@ test('it can create a vhd stream', async () => {
 
 it('can stream content', async () => {
   const initalSizeMb = 5 // 2 block and an half
+  const initialNbBlocks = Math.ceil(initalSizeMb / 2)
   const initialByteSize = initalSizeMb * 1024 * 1024
   const rawFileName = `${tempDir}/randomfile`
   await createRandomFile(rawFileName, initalSizeMb)

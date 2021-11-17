@@ -1,6 +1,5 @@
 /* eslint-env jest */
 
-import execa from 'execa'
 import fs from 'fs-extra'
 import rimraf from 'rimraf'
 import tmp from 'tmp'
@@ -9,8 +8,7 @@ import { pFromCallback } from 'promise-toolbox'
 
 import { VhdFile, chainVhd, mergeVhd as vhdMerge } from './index'
 
-import { SECTOR_SIZE } from './_constants'
-import { checkFile, createRandomFile, convertFromRawToVhd, recoverRawContent } from './tests/utils'
+import { checkFile, createRandomFile, convertFromRawToVhd } from './tests/utils'
 
 let tempDir = null
 
@@ -24,55 +22,42 @@ afterEach(async () => {
   await pFromCallback(cb => rimraf(tempDir, cb))
 })
 
-test('coalesce works in normal cases', async () => {
-  const mbOfRandom = 5
-  const randomFileName = `${tempDir}/randomfile`
-  const random2FileName = `${tempDir}/randomfile2`
-  const smallRandomFileName = `${tempDir}/small_randomfile`
+test('merge works in normal cases', async () => {
+  const mbOfFather = 8
+  const mbOfChildren = 4
+  const parentRandomFileName = `${tempDir}/randomfile`
+  const childRandomFileName = `${tempDir}/small_randomfile`
   const parentFileName = `${tempDir}/parent.vhd`
   const child1FileName = `${tempDir}/child1.vhd`
-  const child2FileName = `${tempDir}/child2.vhd`
-  const recoveredFileName = `${tempDir}/recovered`
-  await createRandomFile(randomFileName, mbOfRandom)
-  await createRandomFile(smallRandomFileName, Math.ceil(mbOfRandom / 2))
-  await execa('qemu-img', ['create', '-fvpc', parentFileName, mbOfRandom + 1 + 'M'])
-  await checkFile(parentFileName)
-  await convertFromRawToVhd(randomFileName, child1FileName)
   const handler = getHandler({ url: 'file://' })
-  await execa('vhd-util', ['snapshot', '-n', child2FileName, '-p', child1FileName])
-  const vhd = new VhdFile(handler, child2FileName)
-  await vhd.readHeaderAndFooter()
-  await vhd.readBlockAllocationTable()
-  vhd.footer.creatorApplication = 'xoa'
-  await vhd.writeFooter()
 
-  const originalSize = await handler._getSize(randomFileName)
-  await checkFile(child1FileName)
+  await createRandomFile(parentRandomFileName, mbOfFather)
+  await convertFromRawToVhd(parentRandomFileName, parentFileName)
+
+  await createRandomFile(childRandomFileName, mbOfChildren)
+  await convertFromRawToVhd(childRandomFileName, child1FileName)
   await chainVhd(handler, parentFileName, handler, child1FileName, true)
-  await checkFile(child1FileName)
-  await chainVhd(handler, child1FileName, handler, child2FileName, true)
-  await checkFile(child2FileName)
-  const smallRandom = await fs.readFile(smallRandomFileName)
-  const newVhd = new VhdFile(handler, child2FileName)
-  await newVhd.readHeaderAndFooter()
-  await newVhd.readBlockAllocationTable()
-  await newVhd.writeData(5, smallRandom)
-  await checkFile(child2FileName)
-  await checkFile(child1FileName)
-  await checkFile(parentFileName)
+
+  // merge
   await vhdMerge(handler, parentFileName, handler, child1FileName)
+
+  // check that vhd is still valid
   await checkFile(parentFileName)
-  await chainVhd(handler, parentFileName, handler, child2FileName, true)
-  await checkFile(child2FileName)
-  await vhdMerge(handler, parentFileName, handler, child2FileName)
-  await checkFile(parentFileName)
-  await recoverRawContent(parentFileName, recoveredFileName, originalSize)
-  await execa('cp', [randomFileName, random2FileName])
-  const fd = await fs.open(random2FileName, 'r+')
-  try {
-    await fs.write(fd, smallRandom, 0, smallRandom.length, 5 * SECTOR_SIZE)
-  } finally {
-    await fs.close(fd)
+
+  const parentVhd = new VhdFile(handler, parentFileName)
+  await parentVhd.readHeaderAndFooter()
+  await parentVhd.readBlockAllocationTable()
+
+  let offset = 0
+  // check that the data are the same as source
+  for await (const block of parentVhd.blocks()) {
+    const blockContent = block.data
+    const file = offset < mbOfChildren * 1024 * 1024 ? childRandomFileName : parentRandomFileName
+    const buffer = Buffer.alloc(blockContent.length)
+    const fd = await fs.open(file, 'r')
+    await fs.read(fd, buffer, 0, buffer.length, offset)
+
+    expect(buffer.equals(blockContent)).toEqual(true)
+    offset += parentVhd.header.blockSize
   }
-  expect(await fs.readFile(recoveredFileName)).toEqual(await fs.readFile(random2FileName))
 })
