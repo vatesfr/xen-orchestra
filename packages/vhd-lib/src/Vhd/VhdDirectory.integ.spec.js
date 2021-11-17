@@ -43,7 +43,7 @@ test('Can coalesce block', async () => {
 
   await Disposable.use(async function* () {
     const handler = getHandler({ url: 'file://' })
-    const parentVhd = yield openVhd(handler, parentDirectoryName, 'r+')
+    const parentVhd = yield openVhd(handler, parentDirectoryName, { flags: 'w' })
     await parentVhd.readBlockAllocationTable()
     const childFileVhd = yield openVhd(handler, childFileName)
     await childFileVhd.readBlockAllocationTable()
@@ -53,9 +53,9 @@ test('Can coalesce block', async () => {
     await parentVhd.coalesceBlock(childFileVhd, 0)
     await parentVhd.writeFooter()
     await parentVhd.writeBlockAllocationTable()
-    let parentBlockData = await parentVhd.readBlock(0).data
-    let childBlockData = await childFileVhd.readBlock(0).data
-    expect(parentBlockData).toEqual(childBlockData)
+    let parentBlockData = (await parentVhd.readBlock(0)).data
+    let childBlockData = (await childFileVhd.readBlock(0)).data
+    expect(parentBlockData.equals(childBlockData)).toEqual(true)
 
     await parentVhd.coalesceBlock(childDirectoryVhd, 0)
     await parentVhd.writeFooter()

@@ -93,6 +93,11 @@ export class VhdDirectory extends VhdAbstract {
   }
 
   async _writeChunk(partName, buffer) {
+    assert.notStrictEqual(
+      this._opts?.flags,
+      'r',
+      `Can't write a chunk ${partName} in ${this._path} with read permission`
+    )
     // here we can implement compression and / or crypto
 
     // chunks can be in sub directories :  create directories if necessary
