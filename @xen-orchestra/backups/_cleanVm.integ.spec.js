@@ -223,6 +223,52 @@ test('it merges delta of non destroyed chain', async () => {
   expect(remainingVhds.includes('grandchild.vhd')).toEqual(true)
 })
 
+test('it finish unterminated merge ', async () => {
+  await handler.writeFile(
+    `metadata.json`,
+    JSON.stringify({
+      mode: 'delta',
+      size: 209920,
+      vhds: [
+        `${basePath}/orphan.vhd`, // grand child should not be merged
+        `${basePath}/child.vhd`,
+        // orphan is not here, he should be merged in child
+      ],
+    })
+  )
+
+  // one orphan, which is a full vhd, no parent
+  const orphan = await generateVhd(`${basePath}/orphan.vhd`)
+  // a child to the orphan
+  const child = await generateVhd(`${basePath}/child.vhd`, {
+    header: {
+      parentUnicodeName: 'orphan.vhd',
+      parentUid: orphan.footer.uuid,
+    },
+  })
+  // a merge in progress file
+  await handler.writeFile(
+    `${basePath}/.orphan.vhd.merge.json`,
+    JSON.stringify({
+      parent: {
+        header: orphan.header.checksum,
+      },
+      child: {
+        header: child.header.checksum,
+      },
+    })
+  )
+
+  // a current merging
+  await adapter.cleanVm('/', { remove: true, merge: true })
+  // merging is already tested in vhd-lib, don't retest it here (and theses vhd are as empty as my stomach at 12h12)
+
+  // only check deletion
+  const remainingVhds = await handler.list(basePath)
+  expect(remainingVhds.length).toEqual(1)
+  expect(remainingVhds.includes('child.vhd')).toEqual(true)
+})
+
 // each of the vhd can be a file, a directory, an alias to a file or an alias to a directory
 // the message an resulting files should be identical to the output with vhd files which is tested independantly
 
@@ -275,11 +321,33 @@ describe('tests mulitple combination ', () => {
           },
         })
 
-        // a clean  vhd in metadata
-        await generateVhd(`${basePath}/clean.vhd`, {
+        // an older parent that was merging in clean
+        const cleanAncestor = await generateVhd(`${basePath}/cleanAncestor.vhd`, {
           useAlias,
           mode: vhdMode,
         })
+        // a clean  vhd in metadata
+        const clean = await generateVhd(`${basePath}/clean.vhd`, {
+          useAlias,
+          mode: vhdMode,
+          header: {
+            parentUnicodeName: 'cleanAncestor.vhd' + (useAlias ? '.alias.vhd' : ''),
+            parentUid: cleanAncestor.footer.uuid,
+          },
+        })
+
+        await handler.writeFile(
+          `${basePath}/.cleanAncestor.vhd${useAlias ? '.alias.vhd' : ''}.merge.json`,
+          JSON.stringify({
+            parent: {
+              header: cleanAncestor.header.checksum,
+            },
+            child: {
+              header: clean.header.checksum,
+            },
+          })
+        )
+
         // the metadata file
         await handler.writeFile(
           `metadata.json`,
@@ -300,10 +368,10 @@ describe('tests mulitple combination ', () => {
         const survivors = await handler.list(basePath)
         // console.log(survivors)
         if (useAlias) {
-          expect(survivors).toContain('clean.vhd.data')
           // the goal of the alias : do not move a full folder
           expect(survivors).toContain('ancestor.vhd.data')
           expect(survivors).toContain('grandchild.vhd.data')
+          expect(survivors).toContain('cleanAncestor.vhd.data')
           expect(survivors).toContain('clean.vhd.alias.vhd')
           expect(survivors).toContain('child.vhd.alias.vhd')
           expect(survivors).toContain('grandchild.vhd.alias.vhd')
