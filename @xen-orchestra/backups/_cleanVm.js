@@ -1,13 +1,14 @@
 const assert = require('assert')
 const sum = require('lodash/sum')
 const { asyncMap } = require('@xen-orchestra/async-map')
-const { VhdFile, mergeVhd } = require('vhd-lib')
+const { mergeVhd, openVhd, VhdAbstract, Constants } = require('vhd-lib')
 const { dirname, resolve } = require('path')
-const { DISK_TYPE_DIFFERENCING } = require('vhd-lib/dist/_constants.js')
+const { DISK_TYPE_DIFFERENCING } = Constants
 const { isMetadataFile, isVhdFile, isXvaFile, isXvaSumFile } = require('./_backupType.js')
 const { limitConcurrency } = require('limit-concurrency-decorator')
 
 const { Task } = require('./Task.js')
+const { Disposable } = require('promise-toolbox')
 
 // chain is an array of VHDs from child to parent
 //
@@ -65,12 +66,12 @@ async function mergeVhdChain(chain, { handler, onLog, remove, merge }) {
     clearInterval(handle)
 
     await Promise.all([
-      handler.rename(parent, child),
+      VhdAbstract.rename(handler, parent, child),
       asyncMap(children.slice(0, -1), child => {
         onLog(`the VHD ${child} is unused`)
         if (remove) {
           onLog(`deleting unused VHD ${child}`)
-          return handler.unlink(child)
+          return VhdAbstract.unlink(handler, child)
         }
       }),
     ])
@@ -128,7 +129,8 @@ exports.cleanVm = async function cleanVm(
 
   const handler = this._handler
 
-  const vhds = new Set()
+  const vhdPaths = new Set()
+  const vhds = { __proto__: null }
   const vhdParents = { __proto__: null }
   const vhdChildren = { __proto__: null }
 
@@ -137,26 +139,27 @@ exports.cleanVm = async function cleanVm(
   // remove broken VHDs
   await asyncMap(vhdsList.vhds, async path => {
     try {
-      const vhd = new VhdFile(handler, path)
-      await vhd.readHeaderAndFooter(!vhdsList.interruptedVhds.has(path))
-      vhds.add(path)
-      if (vhd.footer.diskType === DISK_TYPE_DIFFERENCING) {
-        const parent = resolve('/', dirname(path), vhd.header.parentUnicodeName)
-        vhdParents[path] = parent
-        if (parent in vhdChildren) {
-          const error = new Error('this script does not support multiple VHD children')
-          error.parent = parent
-          error.child1 = vhdChildren[parent]
-          error.child2 = path
-          throw error // should we throw?
+      await Disposable.use(openVhd(handler, path, { checkSecondFooter: !vhdsList.interruptedVhds.has(path) }), vhd => {
+        vhdPaths.add(path)
+        vhds[path] = vhd
+        if (vhd.footer.diskType === DISK_TYPE_DIFFERENCING) {
+          const parent = resolve('/', dirname(path), vhd.header.parentUnicodeName)
+          vhdParents[path] = parent
+          if (parent in vhdChildren) {
+            const error = new Error('this script does not support multiple VHD children')
+            error.parent = parent
+            error.child1 = vhdChildren[parent]
+            error.child2 = path
+            throw error // should we throw?
+          }
+          vhdChildren[parent] = path
         }
-        vhdChildren[parent] = path
-      }
+      })
     } catch (error) {
       onLog(`error while checking the VHD with path ${path}`, { error })
       if (error?.code === 'ERR_ASSERTION' && remove) {
         onLog(`deleting broken ${path}`)
-        await handler.unlink(path)
+        return VhdAbstract.unlink(handler, path)
       }
     }
   })
@@ -166,24 +169,25 @@ exports.cleanVm = async function cleanVm(
     const deletions = []
 
     // return true if the VHD has been deleted or is missing
-    const deleteIfOrphan = vhd => {
-      const parent = vhdParents[vhd]
+    const deleteIfOrphan = vhdPath => {
+      const parent = vhdParents[vhdPath]
       if (parent === undefined) {
         return
       }
 
       // no longer needs to be checked
-      delete vhdParents[vhd]
+      delete vhdParents[vhdPath]
 
       deleteIfOrphan(parent)
 
-      if (!vhds.has(parent)) {
-        vhds.delete(vhd)
+      if (!vhdPaths.has(parent)) {
+        vhdPaths.delete(vhdPath)
+        delete vhds[vhdPath]
 
-        onLog(`the parent ${parent} of the VHD ${vhd} is missing`)
+        onLog(`the parent ${parent} of the VHD ${vhdPath} is missing`)
         if (remove) {
-          onLog(`deleting orphan VHD ${vhd}`)
-          deletions.push(handler.unlink(vhd))
+          onLog(`deleting orphan VHD ${vhdPath}`)
+          deletions.push(VhdAbstract.unlink(handler, vhdPath))
         }
       }
     }
@@ -223,7 +227,7 @@ exports.cleanVm = async function cleanVm(
     }
   })
 
-  const unusedVhds = new Set(vhds)
+  const unusedVhds = new Set(vhdPaths)
   const unusedXvas = new Set(xvas)
 
   // compile the list of unused XVAs and VHDs, and remove backup metadata which
@@ -253,15 +257,20 @@ exports.cleanVm = async function cleanVm(
         const { vhds } = metadata
         return Object.keys(vhds).map(key => resolve('/', vmDir, vhds[key]))
       })()
-
       // FIXME: find better approach by keeping as much of the backup as
       // possible (existing disks) even if one disk is missing
-      if (linkedVhds.every(_ => vhds.has(_))) {
+      if (linkedVhds.every(_ => vhdPaths.has(_))) {
         linkedVhds.forEach(_ => unusedVhds.delete(_))
-
-        size = await asyncMap(linkedVhds, vhd => handler.getSize(vhd)).then(sum, error => {
-          onLog(`failed to get size of ${json}`, { error })
-        })
+        // checking the size of a vhd directory is costly
+        // 1 Http Query per 1000 blocks
+        // we only check size of all the vhd are VhdFiles
+        size = await asyncMap(linkedVhds, vhdPath => vhds[vhdPath].getSize()).then(
+          vhdSizes =>
+            vhdSizes.reduce((prev, curr) => (prev === undefined || curr === undefined ? undefined : prev + curr), 0),
+          error => {
+            onLog(`failed to get size of ${json}`, { error })
+          }
+        )
       } else {
         onLog(`Some VHDs linked to the metadata ${json} are missing`)
         if (remove) {
@@ -324,7 +333,7 @@ exports.cleanVm = async function cleanVm(
       onLog(`the VHD ${vhd} is unused`)
       if (remove) {
         onLog(`deleting unused VHD ${vhd}`)
-        unusedVhdsDeletion.push(handler.unlink(vhd))
+        unusedVhdsDeletion.push(VhdAbstract.unlink(handler, vhd))
       }
     }
 
