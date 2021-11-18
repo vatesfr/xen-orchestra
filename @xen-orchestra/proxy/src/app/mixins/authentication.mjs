@@ -10,6 +10,8 @@ const { warn } = createLogger('xo:proxy:authentication')
 const isValidToken = t => typeof t === 'string' && t.length !== 0
 
 export default class Authentication {
+  #token
+
   constructor(_, { appName, config: { authenticationToken: token } }) {
     if (!isValidToken(token)) {
       token = JSON.parse(execFileSync('xenstore-read', ['vm-data/xo-proxy-authenticationToken']))
@@ -32,11 +34,11 @@ export default class Authentication {
       }
     }
 
-    this._token = token
+    this.#token = token
   }
 
   async findProfile(credentials) {
-    if (credentials?.authenticationToken === this._token) {
+    if (credentials?.authenticationToken === this.#token) {
       return new Profile()
     }
   }
