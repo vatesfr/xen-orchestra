@@ -34,5 +34,5 @@
 
 - @xen-orchestra/fs minor
 - vhd-lib minor
-- xo-server minor
+- xo-server patch
 - vhd-cli minor
