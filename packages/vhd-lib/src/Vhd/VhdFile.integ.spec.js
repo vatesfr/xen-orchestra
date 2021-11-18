@@ -33,6 +33,29 @@ afterEach(async () => {
   await pFromCallback(cb => rimraf(tempDir, cb))
 })
 
+test('respect the checkSecondFooter flag', async () => {
+  const initalSize = 0
+  const rawFileName = `${tempDir}/randomfile`
+  await createRandomFile(rawFileName, initalSize)
+  const vhdFileName = `${tempDir}/randomfile.vhd`
+  await convertFromRawToVhd(rawFileName, vhdFileName)
+
+  const handler = getHandler({ url: `file://${tempDir}` })
+
+  const size = await handler.getSize('randomfile.vhd')
+  const fd = await handler.openFile('randomfile.vhd', 'r+')
+  const buffer = Buffer.alloc(512, 0)
+  // add a fake footer at the end
+  handler.write(fd, buffer, size)
+  await handler.closeFile(fd)
+  // not using openVhd to be able to call readHeaderAndFooter separatly
+  const vhd = new VhdFile(handler, 'randomfile.vhd')
+
+  await expect(async () => await vhd.readHeaderAndFooter()).rejects.toThrow()
+  await expect(async () => await vhd.readHeaderAndFooter(true)).rejects.toThrow()
+  await expect(await vhd.readHeaderAndFooter(false)).toEqual(undefined)
+})
+
 test('blocks can be moved', async () => {
   const initalSize = 4
   const rawFileName = `${tempDir}/randomfile`
@@ -65,6 +88,7 @@ test('the BAT MSB is not used for sign', async () => {
   // here we are moving the first sector very far in the VHD to prove the BAT doesn't use signed int32
   const hugePositionBytes = hugeWritePositionSectors * SECTOR_SIZE
   await vhd._freeFirstBlockSpace(hugePositionBytes)
+  await vhd.writeFooter()
 
   // we recover the data manually for speed reasons.
   // fs.write() with offset is way faster than qemu-img when there is a 1.5To

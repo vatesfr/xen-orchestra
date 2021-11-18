@@ -25,14 +25,19 @@ export default limitConcurrency(2)(async function merge(
   const mergeStatePath = dirname(parentPath) + '/' + '.' + basename(parentPath) + '.merge.json'
 
   return await Disposable.use(async function* () {
-    const parentVhd = yield openVhd(parentHandler, parentPath, { flags: 'r+' })
-    const childVhd = yield openVhd(childHandler, childPath)
     let mergeState = await parentHandler.readFile(mergeStatePath).catch(error => {
       if (error.code !== 'ENOENT') {
         throw error
       }
       // no merge state in case of missing file
     })
+    // during merging, the end footer of the parent can be overwritten by new blocks
+    // we should use it as a way to check vhd health
+    const parentVhd = yield openVhd(parentHandler, parentPath, {
+      flags: 'r+',
+      checkSecondFooter: mergeState === undefined,
+    })
+    const childVhd = yield openVhd(childHandler, childPath)
     if (mergeState !== undefined) {
       mergeState = JSON.parse(mergeState)
 
