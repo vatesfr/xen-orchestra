@@ -1,3 +1,4 @@
+import assert from 'assert'
 import fse from 'fs-extra'
 import xdg from 'xdg-basedir'
 import { createLogger } from '@xen-orchestra/log'
@@ -12,29 +13,42 @@ const isValidToken = t => typeof t === 'string' && t.length !== 0
 export default class Authentication {
   #token
 
-  constructor(_, { appName, config: { authenticationToken: token } }) {
-    if (!isValidToken(token)) {
-      token = JSON.parse(execFileSync('xenstore-read', ['vm-data/xo-proxy-authenticationToken']))
+  constructor(app, { appName, config: { authenticationToken: token } }) {
+    const setToken = ({ token }) => {
+      assert(isValidToken(token), 'invalid authentication token: ' + token)
 
-      if (!isValidToken(token)) {
-        throw new Error('missing authenticationToken in configuration')
-      }
+      // save this token in the automatically handled conf file
+      fse.outputFileSync(
+        // this file must take precedence over normal user config
+        `${xdg.config}/${appName}/config.z-auto.json`,
+        JSON.stringify({ authenticationToken: token }),
+        { mode: 0o600 }
+      )
+
+      this.#token = token
+    }
+
+    if (isValidToken(token)) {
+      this.#token = token
+    } else {
+      setToken({ token: JSON.parse(execFileSync('xenstore-read', ['vm-data/xo-proxy-authenticationToken'])) })
 
       try {
-        // save this token in the automatically handled conf file
-        fse.outputFileSync(
-          // this file must take precedence over normal user config
-          `${xdg.config}/${appName}/config.z-auto.json`,
-          JSON.stringify({ authenticationToken: token }),
-          { mode: 0o600 }
-        )
         execFileSync('xenstore-rm', ['vm-data/xo-proxy-authenticationToken'])
       } catch (error) {
         warn('failed to remove token from XenStore', { error })
       }
     }
 
-    this.#token = token
+    app.api.addMethod('authentication.setToken', setToken, {
+      description: 'change the authentication token used by this XO Proxy',
+      params: {
+        token: {
+          type: 'string',
+          minLength: 1,
+        },
+      },
+    })
   }
 
   async findProfile(credentials) {
