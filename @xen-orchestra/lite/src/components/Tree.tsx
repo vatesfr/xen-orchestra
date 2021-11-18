@@ -2,7 +2,7 @@ import classNames from 'classnames'
 import React from 'react'
 import Tooltip from '@mui/material/Tooltip'
 import TreeView from '@mui/lab/TreeView'
-import TreeItem, { useTreeItem } from '@mui/lab/TreeItem'
+import TreeItem, { useTreeItem, TreeItemContentProps } from '@mui/lab/TreeItem'
 import { withState } from 'reaclette'
 
 import Link from './Link'
@@ -58,6 +58,10 @@ interface Props {
   defaultSelectedNodes?: Array<string>
 }
 
+interface CustomContentProps extends TreeItemContentProps {
+  to?: string
+}
+
 interface ParentEffects {}
 
 interface Effects {
@@ -67,18 +71,27 @@ interface Effects {
 interface Computed {}
 
 // Inspired by https://mui.com/components/tree-view/#contentcomponent-prop.
-const CustomContent = React.forwardRef(function CustomContent(props, ref) {
-  const { classes, className, label, nodeId, expansionIcon } = props
+const CustomContent = React.forwardRef(function CustomContent(props: CustomContentProps, ref) {
+  const { classes, className, label, expansionIcon, nodeId, to } = props
   const { handleExpansion, handleSelection, selected } = useTreeItem(nodeId)
 
-  return (
+  return expansionIcon === undefined ? (
+    <Link decorated={false} to={to}>
+      <span className={classNames(className, { [classes.selected]: selected })} onClick={handleSelection} ref={ref}>
+        <span className={classes.iconContainer} />
+        <span className={classNames(classes.label)}>{label}</span>
+      </span>
+    </Link>
+  ) : (
     <span className={classNames(className, { [classes.selected]: selected })} ref={ref}>
       <span className={classes.iconContainer} onClick={handleExpansion}>
         {expansionIcon}
       </span>
-      <span className={classes.label} onClick={handleSelection}>
-        {label}
-      </span>
+      <Link decorated={false} to={to}>
+        <span className={classes.label} onClick={handleSelection}>
+          {label}
+        </span>
+      </Link>
     </span>
   )
 })
@@ -87,11 +100,9 @@ const renderItem = ({ children, id, label, to, tooltip }: ItemType) => {
   return (
     <TreeItem
       ContentComponent={CustomContent}
-      label={
-        <Link decorated={false} to={to}>
-          {tooltip ? <Tooltip title={tooltip}>{label}</Tooltip> : label}
-        </Link>
-      }
+      // FIXME: when https://github.com/mui-org/material-ui/issues/28668 is fixed
+      ContentProps={{ to } as CustomContentProps}
+      label={tooltip ? <Tooltip title={tooltip}>{label}</Tooltip> : label}
       key={id}
       nodeId={id}
     >
