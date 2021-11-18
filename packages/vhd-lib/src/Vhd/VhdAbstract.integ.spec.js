@@ -117,8 +117,13 @@ test('It rename and unlink a VhdDirectory', async () => {
     expect(vhd.footer.cookie).toEqual('conectix')
 
     const targetFileName = `${tempDir}/renamed.vhd`
+    // it should clean an existing directory
+    await fs.mkdir(targetFileName)
+    await fs.writeFile(`${targetFileName}/dummy`, 'I exists')
     await VhdAbstract.rename(handler, vhdDirectory, targetFileName)
     expect(await fs.exists(vhdDirectory)).toEqual(false)
+    expect(await fs.exists(targetFileName)).toEqual(true)
+    expect(await fs.exists(`${targetFileName}/dummy`)).toEqual(false)
     await VhdAbstract.unlink(handler, targetFileName)
     expect(await fs.exists(targetFileName)).toEqual(false)
   })

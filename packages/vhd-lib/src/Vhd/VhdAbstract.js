@@ -188,6 +188,10 @@ export class VhdAbstract {
   }
 
   static async rename(handler, sourcePath, targetPath) {
+    try {
+      // delete target if it already exists
+      await VhdAbstract.unlink(handler, targetPath)
+    } catch (e) {}
     await handler.rename(sourcePath, targetPath)
   }
 
