@@ -6,6 +6,7 @@ import { getSyncedHandler } from '@xen-orchestra/fs'
 import { Disposable, pFromCallback } from 'promise-toolbox'
 
 import { isVhdAlias, resolveAlias } from './_resolveAlias'
+import { ALIAS_MAX_PATH_LENGTH } from './_constants'
 
 let tempDir
 
@@ -36,12 +37,12 @@ test('resolve get the path of the target file for an alias', async () => {
     const tempDirFomRemoteUrl = tempDir.slice(1) // remove the / which is included in the remote url
     const alias = `${tempDirFomRemoteUrl}/alias.alias.vhd`
     await handler.writeFile(alias, 'target.vhd')
-    expect(await resolveAlias(handler, alias)).toEqual(`${tempDirFomRemoteUrl}/target.vhd`)
+    await expect(await resolveAlias(handler, alias)).toEqual(`${tempDirFomRemoteUrl}/target.vhd`)
 
     // different directory
     await handler.mkdir(`${tempDirFomRemoteUrl}/sub/`)
     await handler.writeFile(alias, 'sub/target.vhd', { flags: 'w' })
-    expect(await resolveAlias(handler, alias)).toEqual(`${tempDirFomRemoteUrl}/sub/target.vhd`)
+    await expect(await resolveAlias(handler, alias)).toEqual(`${tempDirFomRemoteUrl}/sub/target.vhd`)
   })
 })
 
@@ -51,6 +52,14 @@ test('resolve throws an error an alias to an alias', async () => {
     const alias = `${tempDir}/alias.alias.vhd`
     const target = `${tempDir}/target.alias.vhd`
     await handler.writeFile(alias, target)
-    expect(async () => await resolveAlias(handler, alias)).rejects.toThrow(Error)
+    await expect(async () => await resolveAlias(handler, alias)).rejects.toThrow(Error)
+  })
+})
+
+test('resolve throws an error on a file too big ', async () => {
+  await Disposable.use(async function* () {
+    const handler = yield getSyncedHandler({ url: `file://${tempDir}` })
+    await handler.writeFile('toobig.alias.vhd', Buffer.alloc(ALIAS_MAX_PATH_LENGTH + 1, 0))
+    await expect(async () => await resolveAlias(handler, 'toobig.alias.vhd')).rejects.toThrow(Error)
   })
 })

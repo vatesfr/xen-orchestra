@@ -213,6 +213,12 @@ export class VhdAbstract {
     const aliasDir = path.dirname(path.resolve('/', aliasPath))
     // only store the relative path from alias to target
     const relativePathToTarget = path.relative(aliasDir, path.resolve('/', targetPath))
+
+    if (relativePathToTarget.length > ALIAS_MAX_PATH_LENGTH) {
+      throw new Error(
+        `Alias relative path ${relativePathToTarget} is too long : ${relativePathToTarget.length} chars, max is ${ALIAS_MAX_PATH_LENGTH}`
+      )
+    }
     await handler.writeFile(aliasPath, relativePathToTarget)
   }
 

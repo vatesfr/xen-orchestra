@@ -36,3 +36,5 @@ export const PLATFORMS = {
 
 export const FILE_FORMAT_VERSION = 1 << 16
 export const HEADER_VERSION = 1 << 16
+
+export const ALIAS_MAX_PATH_LENGTH = 1024
