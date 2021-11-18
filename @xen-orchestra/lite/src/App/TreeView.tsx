@@ -83,7 +83,7 @@ const TreeView = withState<State, Props, Effects, Computed, ParentState, ParentE
             ?.valueSeq()
             .sortBy((vm: Vm) => vm.name_label)
             .map((vm: Vm) => ({
-              children: undefined,
+              children: undefined, // it's explicit to avoid type error
               id: vm.$id,
               label: (
                 <span>
@@ -96,7 +96,7 @@ const TreeView = withState<State, Props, Effects, Computed, ParentState, ParentE
             .toArray()
 
           collection.push({
-            children: hosts?.concat(haltedVms || []) || hosts || haltedVms,
+            children: hosts?.concat(haltedVms ?? []) ?? hosts ?? haltedVms,
             id: pool.$id,
             label: (
               <span>
