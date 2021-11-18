@@ -76,6 +76,7 @@ export default class RemoteHandlerAbstract {
 
     const sharedLimit = limitConcurrency(options.maxParallelOperations ?? DEFAULT_MAX_PARALLEL_OPERATIONS)
     this.closeFile = sharedLimit(this.closeFile)
+    this.copy = sharedLimit(this.copy)
     this.getInfo = sharedLimit(this.getInfo)
     this.getSize = sharedLimit(this.getSize)
     this.list = sharedLimit(this.list)
@@ -307,6 +308,17 @@ export default class RemoteHandlerAbstract {
     return p
   }
 
+  async copy(oldPath, newPath, { checksum = false } = {}) {
+    oldPath = normalizePath(oldPath)
+    newPath = normalizePath(newPath)
+
+    let p = timeout.call(this._copy(oldPath, newPath), this._timeout)
+    if (checksum) {
+      p = Promise.all([p, this._copy(checksumFile(oldPath), checksumFile(newPath))])
+    }
+    return p
+  }
+
   async rmdir(dir) {
     await timeout.call(this._rmdir(normalizePath(dir)).catch(ignoreEnoent), this._timeout)
   }
@@ -517,6 +529,9 @@ export default class RemoteHandlerAbstract {
   }
 
   async _rename(oldPath, newPath) {
+    throw new Error('Not implemented')
+  }
+  async _copy(oldPath, newPath) {
     throw new Error('Not implemented')
   }
 

@@ -51,6 +51,27 @@ export default class S3Handler extends RemoteHandlerAbstract {
     return { Bucket: this._bucket, Key: this._dir + file }
   }
 
+  async _copy(oldPath, newPath) {
+    const size = await this._getSize(oldPath)
+    const multipartParams = await this._s3.createMultipartUpload({ ...this._createParams(newPath) })
+    const param2 = { ...multipartParams, CopySource: `/${this._bucket}/${this._dir}${oldPath}` }
+    try {
+      const parts = []
+      let start = 0
+      while (start < size) {
+        const range = `bytes=${start}-${Math.min(start + MAX_PART_SIZE, size) - 1}`
+        const partParams = { ...param2, PartNumber: parts.length + 1, CopySourceRange: range }
+        const upload = await this._s3.uploadPartCopy(partParams)
+        parts.push({ ETag: upload.CopyPartResult.ETag, PartNumber: partParams.PartNumber })
+        start += MAX_PART_SIZE
+      }
+      await this._s3.completeMultipartUpload({ ...multipartParams, MultipartUpload: { Parts: parts } })
+    } catch (e) {
+      await this._s3.abortMultipartUpload(multipartParams)
+      throw e
+    }
+  }
+
   async _isNotEmptyDir(path) {
     const result = await this._s3.listObjectsV2({
       Bucket: this._bucket,
@@ -147,25 +168,9 @@ export default class S3Handler extends RemoteHandlerAbstract {
     // nothing to do, directories do not exist, they are part of the files' path
   }
 
+  // s3 doesn't have a rename operation, so copy + delete source
   async _rename(oldPath, newPath) {
-    const size = await this._getSize(oldPath)
-    const multipartParams = await this._s3.createMultipartUpload({ ...this._createParams(newPath) })
-    const param2 = { ...multipartParams, CopySource: `/${this._bucket}/${this._dir}${oldPath}` }
-    try {
-      const parts = []
-      let start = 0
-      while (start < size) {
-        const range = `bytes=${start}-${Math.min(start + MAX_PART_SIZE, size) - 1}`
-        const partParams = { ...param2, PartNumber: parts.length + 1, CopySourceRange: range }
-        const upload = await this._s3.uploadPartCopy(partParams)
-        parts.push({ ETag: upload.CopyPartResult.ETag, PartNumber: partParams.PartNumber })
-        start += MAX_PART_SIZE
-      }
-      await this._s3.completeMultipartUpload({ ...multipartParams, MultipartUpload: { Parts: parts } })
-    } catch (e) {
-      await this._s3.abortMultipartUpload(multipartParams)
-      throw e
-    }
+    await this.copy(oldPath, newPath)
     await this._s3.deleteObject(this._createParams(oldPath))
   }
 
