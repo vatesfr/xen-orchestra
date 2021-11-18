@@ -456,4 +456,8 @@ export class VhdFile extends VhdAbstract {
       header.parentLocatorEntry[parentLocatorId].platformDataOffset = position
     }
   }
+
+  async getSize() {
+    return await this._handler.getSize(this._path)
+  }
 }

@@ -316,4 +316,10 @@ export class VhdAbstract {
     stream.length = footer.currentSize
     return stream
   }
+
+  // computing a size is implementation specific
+  // this function is a placeholder to be able to implement it for vhddirectory later
+  async getSize() {
+    return undefined
+  }
 }
