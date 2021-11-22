@@ -32,6 +32,7 @@
 
 - @vates/async-each minor
 - @xen-orchestra/fs minor
+- @xen-orchestra/backup minor
 - vhd-lib minor
 - xo-server patch
 - vhd-cli minor
