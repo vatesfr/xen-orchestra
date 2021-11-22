@@ -129,7 +129,7 @@ exports.cleanVm = async function cleanVm(
 
   const handler = this._handler
 
-  const vhdPaths = new Set()
+  const vhds = new Set()
   const vhdParents = { __proto__: null }
   const vhdChildren = { __proto__: null }
 
@@ -139,7 +139,7 @@ exports.cleanVm = async function cleanVm(
   await asyncMap(vhdsList.vhds, async path => {
     try {
       await Disposable.use(openVhd(handler, path, { checkSecondFooter: !vhdsList.interruptedVhds.has(path) }), vhd => {
-        vhdPaths.add(path)
+        vhds.add(path)
         if (vhd.footer.diskType === DISK_TYPE_DIFFERENCING) {
           const parent = resolve('/', dirname(path), vhd.header.parentUnicodeName)
           vhdParents[path] = parent
@@ -180,8 +180,8 @@ exports.cleanVm = async function cleanVm(
 
       deleteIfOrphan(parent)
 
-      if (!vhdPaths.has(parent)) {
-        vhdPaths.delete(vhdPath)
+      if (!vhds.has(parent)) {
+        vhds.delete(vhdPath)
 
         onLog(`the parent ${parent} of the VHD ${vhdPath} is missing`)
         if (remove) {
@@ -226,7 +226,7 @@ exports.cleanVm = async function cleanVm(
     }
   })
 
-  const unusedVhds = new Set(vhdPaths)
+  const unusedVhds = new Set(vhds)
   const unusedXvas = new Set(xvas)
 
   // compile the list of unused XVAs and VHDs, and remove backup metadata which
@@ -258,7 +258,7 @@ exports.cleanVm = async function cleanVm(
       })()
       // FIXME: find better approach by keeping as much of the backup as
       // possible (existing disks) even if one disk is missing
-      if (linkedVhds.every(_ => vhdPaths.has(_))) {
+      if (linkedVhds.every(_ => vhds.has(_))) {
         linkedVhds.forEach(_ => unusedVhds.delete(_))
 
         // checking the size of a vhd directory is costly
