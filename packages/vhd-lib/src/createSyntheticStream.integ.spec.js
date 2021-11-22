@@ -35,8 +35,8 @@ test.only('createSyntheticStream passes vhd-util check', async () => {
   const expectedVhdSize = (await fs.stat(vhdFileName)).size
   expect(stream.length).toEqual((await fs.stat(vhdFileName)).size)
   await pFromCallback(cb => pipeline(stream, fs.createWriteStream(recoveredVhdFileName), cb))
-  await checkFile(recoveredVhdFileName)
   const stats = await fs.stat(recoveredVhdFileName)
   expect(stats.size).toEqual(expectedVhdSize)
+  await checkFile(recoveredVhdFileName)
   await execa('qemu-img', ['compare', recoveredVhdFileName, rawFileName])
 })
