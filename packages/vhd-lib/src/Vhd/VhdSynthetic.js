@@ -68,12 +68,16 @@ export class VhdSynthetic extends VhdAbstract {
   }
 
   async readHeaderAndFooter() {
-    await asyncMap(this.#vhds, vhd => vhd.readHeaderAndFooter())
-    this.#vhds.forEach((vhd, index) => {
-      if (index < this.#vhds.length) {
-        assert.strictEqual(vhd.footer.diskType === DISK_TYPE_DIFFERENCING)
-      }
-    })
+    const vhds = this.#vhds
+
+    await asyncMap(vhds, vhd => vhd.readHeaderAndFooter())
+
+    for (let i = 0, n = vhds.length - 1; i < n; ++i) {
+      const child = vhds[i]
+      const parent = vhds[i + 1]
+      assert.strictEqual(child.footer.diskType, DISK_TYPE_DIFFERENCING)
+      assert.strictEqual(child.header.parentUuid, parent.footer.uuid)
+    }
   }
 
   async readBlock(blockId, onlyBitmap = false) {
