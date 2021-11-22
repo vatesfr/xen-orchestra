@@ -17,7 +17,7 @@ const IDEAL_FRAGMENT_SIZE = Math.ceil(MAX_OBJECT_SIZE / MAX_PARTS_COUNT) // the 
 export default class S3Handler extends RemoteHandlerAbstract {
   constructor(remote, _opts) {
     super(remote)
-    const { host, path, username, password, protocol, region, allowUnauthorized } = parse(remote.url)
+    const { allowUnauthorized, host, path, username, password, protocol, region } = parse(remote.url)
     const params = {
       accessKeyId: username,
       apiVersion: '2006-03-01',
