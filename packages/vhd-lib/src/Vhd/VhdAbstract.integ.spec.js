@@ -9,8 +9,8 @@ import { Disposable, pFromCallback } from 'promise-toolbox'
 import { openVhd } from '../index'
 import { checkFile, createRandomFile, convertFromRawToVhd, createRandomVhdDirectory } from '../tests/utils'
 import { VhdAbstract } from './VhdAbstract'
-import { SECTOR_SIZE } from '../../dist/_constants'
-import { BLOCK_UNUSED, FOOTER_SIZE, HEADER_SIZE } from '../_constants'
+import { BLOCK_UNUSED, FOOTER_SIZE, HEADER_SIZE, SECTOR_SIZE } from '../_constants'
+import { buildHeader, buildFooter } from './_utils'
 
 let tempDir
 
@@ -183,10 +183,20 @@ test('it can create a vhd stream', async () => {
 
     const buffer = await streamToBuffer(stream)
     const length = buffer.length
-    const start = FOOTER_SIZE + HEADER_SIZE + vhd.batSize
-    const footer = buffer.slice(0, 512)
+    const bufFooter = buffer.slice(0, FOOTER_SIZE)
+
+    // footer is still valid
+    expect(() => buildFooter(bufFooter)).not.toThrow()
+    const footer = buildFooter(bufFooter)
+
+    // header is still valid
+    const bufHeader = buffer.slice(FOOTER_SIZE, HEADER_SIZE + FOOTER_SIZE)
+    expect(() => buildHeader(bufHeader, footer)).not.toThrow()
+
     // 1 deleted block should be in ouput
+    const start = FOOTER_SIZE + HEADER_SIZE + vhd.batSize
     expect(length).toEqual(start + (initialNbBlocks - 1) * vhd.fullBlockSize + FOOTER_SIZE)
+    expect(stream.length).toEqual(buffer.length)
     // blocks
     const blockBuf = Buffer.alloc(vhd.sectorsPerBlock * SECTOR_SIZE, 0)
     for (let i = 1; i < initialNbBlocks; i++) {
@@ -197,8 +207,8 @@ test('it can create a vhd stream', async () => {
       expect(content).toEqual(blockBuf)
     }
     // footer
-    const endFooter = buffer.slice(length - 512)
-    expect(footer).toEqual(endFooter)
+    const endFooter = buffer.slice(length - FOOTER_SIZE)
+    expect(bufFooter).toEqual(endFooter)
 
     await handler.writeFile('out.vhd', buffer)
     // check that the vhd is still valid
