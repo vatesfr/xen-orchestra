@@ -1,7 +1,7 @@
 const assert = require('assert')
 const sum = require('lodash/sum')
 const { asyncMap } = require('@xen-orchestra/async-map')
-const { mergeVhd, openVhd, VhdAbstract, Constants } = require('vhd-lib')
+const { Constants, mergeVhd, openVhd, VhdAbstract, VhdFile } = require('vhd-lib')
 const { dirname, resolve } = require('path')
 const { DISK_TYPE_DIFFERENCING } = Constants
 const { isMetadataFile, isVhdFile, isXvaFile, isXvaSumFile } = require('./_backupType.js')
@@ -130,7 +130,6 @@ exports.cleanVm = async function cleanVm(
   const handler = this._handler
 
   const vhdPaths = new Set()
-  const vhds = { __proto__: null }
   const vhdParents = { __proto__: null }
   const vhdChildren = { __proto__: null }
 
@@ -141,7 +140,6 @@ exports.cleanVm = async function cleanVm(
     try {
       await Disposable.use(openVhd(handler, path, { checkSecondFooter: !vhdsList.interruptedVhds.has(path) }), vhd => {
         vhdPaths.add(path)
-        vhds[path] = vhd
         if (vhd.footer.diskType === DISK_TYPE_DIFFERENCING) {
           const parent = resolve('/', dirname(path), vhd.header.parentUnicodeName)
           vhdParents[path] = parent
@@ -164,6 +162,8 @@ exports.cleanVm = async function cleanVm(
     }
   })
 
+  // @todo : add check for data folder of alias not referenced in a valid alias
+
   // remove VHDs with missing ancestors
   {
     const deletions = []
@@ -182,7 +182,6 @@ exports.cleanVm = async function cleanVm(
 
       if (!vhdPaths.has(parent)) {
         vhdPaths.delete(vhdPath)
-        delete vhds[vhdPath]
 
         onLog(`the parent ${parent} of the VHD ${vhdPath} is missing`)
         if (remove) {
@@ -261,16 +260,22 @@ exports.cleanVm = async function cleanVm(
       // possible (existing disks) even if one disk is missing
       if (linkedVhds.every(_ => vhdPaths.has(_))) {
         linkedVhds.forEach(_ => unusedVhds.delete(_))
+
         // checking the size of a vhd directory is costly
         // 1 Http Query per 1000 blocks
         // we only check size of all the vhd are VhdFiles
-        size = await asyncMap(linkedVhds, vhdPath => vhds[vhdPath].getSize()).then(
-          vhdSizes =>
-            vhdSizes.reduce((prev, curr) => (prev === undefined || curr === undefined ? undefined : prev + curr), 0),
-          error => {
+
+        const shouldComputeSize = linkedVhds.every(vhd => vhd instanceof VhdFile)
+        if (shouldComputeSize) {
+          try {
+            await Disposable.use(Disposable.all(linkedVhds.map(vhdPath => openVhd(handler, vhdPath))), async vhds => {
+              const sizes = await asyncMap(vhds, vhd => vhd.getSize())
+              size = sum(sizes)
+            })
+          } catch (error) {
             onLog(`failed to get size of ${json}`, { error })
           }
-        )
+        }
       } else {
         onLog(`Some VHDs linked to the metadata ${json} are missing`)
         if (remove) {

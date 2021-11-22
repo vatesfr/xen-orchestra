@@ -17,6 +17,7 @@ jest.setTimeout(60000)
 beforeEach(async () => {
   tempDir = await pFromCallback(cb => tmp.dir(cb))
   handler = getHandler({ url: `file://${tempDir}` })
+  await handler.sync()
   adapter = new RemoteAdapter(handler)
   jobId = uniqueId()
   vdiId = uniqueId()
@@ -26,6 +27,7 @@ beforeEach(async () => {
 
 afterEach(async () => {
   await pFromCallback(cb => rimraf(tempDir, cb))
+  await handler.forget()
 })
 
 const uniqueId = () => crypto.randomBytes(16).toString('hex')
@@ -259,7 +261,7 @@ test('it finish unterminated merge ', async () => {
     })
   )
 
-  // a current merging
+  // a unfinished merging
   await adapter.cleanVm('/', { remove: true, merge: true })
   // merging is already tested in vhd-lib, don't retest it here (and theses vhd are as empty as my stomach at 12h12)
 
