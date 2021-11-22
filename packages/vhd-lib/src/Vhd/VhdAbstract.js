@@ -256,17 +256,17 @@ export class VhdAbstract {
     const bat = Buffer.allocUnsafe(batSize)
     let offsetSector = offset / SECTOR_SIZE
     const blockSizeInSectors = this.fullBlockSize / SECTOR_SIZE
-
+    let fileSize = offsetSector * SECTOR_SIZE + FOOTER_SIZE /* the footer at the end */
     // compute BAT , blocks starts after parent locator entries
     for (let i = 0; i < header.maxTableEntries; i++) {
       if (this.containsBlock(i)) {
         bat.writeUInt32BE(offsetSector, i * 4)
         offsetSector += blockSizeInSectors
+        fileSize += this.fullBlockSize
       } else {
         bat.writeUInt32BE(BLOCK_UNUSED, i * 4)
       }
     }
-    const fileSize = offsetSector * SECTOR_SIZE + FOOTER_SIZE /* the footer at the end */
 
     const self = this
     async function* iterator() {
