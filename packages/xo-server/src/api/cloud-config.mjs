@@ -4,11 +4,11 @@ export function getAll() {
 
 getAll.description = 'Gets all existing cloud configs templates'
 
-export function getAllNetwork() {
+export function getAllNetworkConfigs() {
   return this.getAllNetworkConfigs()
 }
 
-getAllNetwork.description = 'Gets all existing network config templates'
+getAllNetworkConfigs.description = 'Gets all existing network config templates'
 
 export async function create(props) {
   return this.createCloudConfig(props)
@@ -21,13 +21,13 @@ create.params = {
   template: { type: 'string' },
 }
 
-export function createNetwork(props) {
+export function createNetworkConfigs(props) {
   return this.createCloudConfig({ ...props, type: 'network' })
 }
 
-createNetwork.permission = 'admin'
-createNetwork.description = 'Creates a new network cloud config template'
-createNetwork.params = {
+createNetworkConfigs.permission = 'admin'
+createNetworkConfigs.description = 'Creates a new network config template'
+createNetworkConfigs.params = {
   name: { type: 'string' },
   template: { type: 'string' },
 }

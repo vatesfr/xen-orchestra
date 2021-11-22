@@ -83,7 +83,15 @@ export default decorate([
         }),
       reset: () => state => ({
         ...state,
-        ...initialParams,
+        cloudConfigToEditId: initialParams.cloudConfigToEditId,
+        name: initialParams.name,
+        template: initialParams.template,
+      }),
+      resetNetworkForm: () => state => ({
+        ...state,
+        networkConfigToEditId: initialParams.networkConfigToEditId,
+        networkName: initialParams.networkName,
+        networkTemplate: initialParams.networkTemplate,
       }),
       createCloudConfig:
         ({ reset }) =>
@@ -92,10 +100,10 @@ export default decorate([
           reset()
         },
       createNetworkConfig:
-        ({ reset }) =>
+        ({ resetNetworkForm }) =>
         async ({ networkName, networkTemplate = DEFAULT_NETWORK_CONFIG_TEMPLATE }) => {
           await createNetworkConfig({ name: networkName, template: networkTemplate })
-          reset()
+          resetNetworkForm()
         },
       editCloudConfig:
         ({ reset }) =>
@@ -115,13 +123,21 @@ export default decorate([
           }
           reset()
         },
-      populateForm:
-        (_, { id, name, template, type }) =>
+      populateNetworkForm:
+        (_, { id, name, template }) =>
         state => ({
           ...state,
-          [type === 'network' ? 'networkName' : 'name']: name,
-          [type === 'network' ? 'networkConfigToEditId' : 'cloudConfigToEditId']: id,
-          [type === 'network' ? 'networkTemplate' : 'template']: template,
+          networkName: name,
+          networkConfigToEditId: id,
+          networkTemplate: template,
+        }),
+      populateForm:
+        (_, { id, name, template }) =>
+        state => ({
+          ...state,
+          name,
+          cloudConfigToEditId: id,
+          template,
         }),
     },
     computed: {
@@ -129,8 +145,8 @@ export default decorate([
       inputNameId: generateId,
       inputTemplateId: generateId,
       isInvalid: ({ name, template }) => name.trim() === '' || (template !== undefined && template.trim() === ''),
-      isNetworkInvalid: ({ networkName, networkTemplate }) =>
-        networkName.trim() === '' || (networkTemplate !== undefined && networkTemplate.trim() === ''),
+      isNetworkInvalid: props =>
+        props.networkName.trim() === '' || (props.networkTemplate !== undefined && props.networkTemplate.trim() === ''),
       userCloudConfig: (_, { cloudConfigs }) => cloudConfigs.filter(({ type }) => type === undefined),
     },
   }),
@@ -253,6 +269,9 @@ export default decorate([
                 {_('formCreate')}
               </ActionButton>
             )}
+            <ActionButton className='pull-right' handler={effects.resetNetworkForm} icon='cancel'>
+              {_('formCancel')}
+            </ActionButton>
           </form>
         </Col>
         <Col mediumSize={6}>
@@ -260,7 +279,7 @@ export default decorate([
             actions={ACTIONS}
             collection={networkConfigs}
             columns={COLUMNS}
-            data-populateForm={effects.populateForm}
+            data-populateForm={effects.populateNetworkForm}
             data-type='network'
             individualActions={INDIVIDUAL_ACTIONS}
             stateUrlParam='s'
