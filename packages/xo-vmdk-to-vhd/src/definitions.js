@@ -79,13 +79,13 @@ export function unpackHeader(buffer) {
   }
 }
 
-export function createStreamOptimizedHeader(capacitySectors, descriptorSizeSectors, grainDirectoryOffsetSectors = -1) {
+export function createStreamOptimizedHeader(capacitySectors, descriptorSizeSectors, grainDirectoryOffsetSectors = -1, compress = true) {
   const headerBuffer = Buffer.alloc(SECTOR_SIZE)
   Buffer.from('KDMV', 'ascii').copy(headerBuffer, 0)
   // version
   headerBuffer.writeUInt32LE(3, 4)
   // newline, compression, markers
-  const flags = 1 | 1 << 16 | 1 << 17
+  const flags = 1 | compress << 16 | compress << 17
   headerBuffer.writeUInt32LE(flags, 8)
   headerBuffer.writeBigUInt64LE(BigInt(capacitySectors), 12)
   const grainSizeSectors = 128
@@ -106,12 +106,12 @@ export function createStreamOptimizedHeader(capacitySectors, descriptorSizeSecto
   // newline mangling detector
   headerBuffer.write('\n \r\n', 73, 4, 'ascii')
   // use DEFLATE
-  headerBuffer.writeUInt16LE(1, 77)
+  headerBuffer.writeUInt16LE(compress + 0, 77)
   return {
     buffer: headerBuffer,
     grainDirectorySizeSectors,
     grainTableSizeSectors,
     grainDirectoryEntries,
-    grainTableEntries
+    grainTableEntries,
   }
 }

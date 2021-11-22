@@ -515,14 +515,9 @@ export default class Xapi extends XapiBase {
     return console
   }
 
-  // Returns a stream to the exported VM.
   @cancelable
-  async exportVm($cancelToken, vmId, { compress = false } = {}) {
-    const vm = this.getObject(vmId)
-    const useSnapshot = isVmRunning(vm)
-    const exportedVm = useSnapshot ? await this._snapshotVm($cancelToken, vm, `[XO Export] ${vm.name_label}`) : vm
-
-    const promise = this.getResource($cancelToken, '/export/', {
+  async exportVmXva($cancelToken, exportedVm, { compress = false } = {}) {
+    return this.getResource($cancelToken, '/export/', {
       query: {
         ref: exportedVm.$ref,
         use_compression: compress === 'zstd' ? 'zstd' : compress === true || compress === 'gzip' ? 'true' : 'false',
@@ -535,6 +530,31 @@ export default class Xapi extends XapiBase {
 
       throw error
     })
+  }
+
+  @cancelable
+  async exportVmOva($cancelToken, exportedVm) {
+    const collectedDisks = []
+    for (const blockDevice of exportedVm.$VBDs) {
+      if (blockDevice.type === 'Disk') {
+        const vdi = blockDevice.$VDI
+        collectedDisks.push({
+          getVmdkStream: () => this.exportVdiAsVMDK($cancelToken, vdi), name: vdi.name_label,
+          description: vdi.name_description, capacity: vdi.virtual_size
+        })
+      }
+    }
+    return createOvaStream(exportedVm.name_label, exportedVm.name_description, collectedDisks)
+  }
+
+  // Returns a stream to the exported VM.
+  @cancelable
+  async exportVm($cancelToken, vmId, { compress = false } = {}) {
+    const vm = this.getObject(vmId)
+    const useSnapshot = isVmRunning(vm)
+    const exportedVm = useSnapshot ? await this._snapshotVm($cancelToken, vm, `[XO Export] ${vm.name_label}`) : vm
+
+    const promise = this.exportVmXva($cancelToken, exportedVm, { compress })
 
     if (useSnapshot) {
       const destroySnapshot = () => this.VM_destroy(exportedVm.$ref)::ignoreErrors()

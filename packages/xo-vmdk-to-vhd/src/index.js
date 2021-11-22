@@ -1,8 +1,9 @@
 import { createReadableSparseStream, parseVhdToBlocks } from 'vhd-lib'
 import asyncIteratorToStream from 'async-iterator-to-stream'
-import { parseOVAFile, ParsableFile } from './ova'
+import { parseOVAFile, ParsableFile } from './ova-read'
 import VMDKDirectParser from './vmdk-read'
 import { generateVmdkData } from './vmdk-generate'
+import { createOvaStream } from './ova-generate'
 
 export { default as readVmdkGrainTable, readCapacityAndGrainTable } from './vmdk-read-table'
 
@@ -26,14 +27,18 @@ async function vmdkToVhd(vmdkReadStream, grainLogicalAddressList, grainFileOffse
 }
 
 /**
- *
+ * the returned stream will have its length set IIF compress === false
  * @param diskName
  * @param vhdReadStream
+ * @param compress
  * @returns a readable stream representing a VMDK file
  */
-async function vhdToVMDK(diskName, vhdReadStream) {
-  const { blockSizeBytes, blockGenerator, capacityBytes, geometry } = await parseVhdToBlocks(vhdReadStream)
-  return asyncIteratorToStream(generateVmdkData(diskName, capacityBytes, blockSizeBytes, blockGenerator, geometry))
+async function vhdToVMDK(diskName, vhdReadStream, compress = false) {
+  const { blockSizeBytes, blockGenerator, capacityBytes, geometry, blockCount } = await parseVhdToBlocks(vhdReadStream)
+  const iterable = generateVmdkData(diskName, capacityBytes, blockSizeBytes, blockCount, blockGenerator, geometry)
+  const stream = asyncIteratorToStream(iterable)
+  stream.length = iterable.length
+  return stream
 }
 
-export { ParsableFile, parseOVAFile, vmdkToVhd, vhdToVMDK }
+export { ParsableFile, parseOVAFile, vmdkToVhd, vhdToVMDK, createOvaStream }

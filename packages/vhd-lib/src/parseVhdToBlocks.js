@@ -33,6 +33,7 @@ export default async function parseVhdToBlocks(inputStream) {
       offsetToLBA.push([offsetSectors, lba])
     }
   }
+  const blockCount = offsetToLBA.length
   offsetToLBA.sort((a, b) => a[0] - b[0])
   const earliestBlockInFile = offsetToLBA[0][0]*SECTOR_SIZE
   assert.strictEqual(streamPosition <= earliestBlockInFile, true, `The BAT (${streamPosition}) is after the first block of data (${earliestBlockInFile})`)
@@ -57,6 +58,7 @@ export default async function parseVhdToBlocks(inputStream) {
 
   return {
     blockSizeBytes,
+    blockCount,
     blockGenerator: blockGenerator(),
     capacityBytes: footer.currentSize,
     geometry: footer.diskGeometry

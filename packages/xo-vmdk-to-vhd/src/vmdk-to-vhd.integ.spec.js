@@ -80,10 +80,11 @@ test('VMDK to VHD can convert a random data file with VMDKDirectParser', async (
   }
 })
 
-test('Can generate an empty VMDK file', async () => {
-  const readStream = asyncIteratorToStream(await generateVmdkData('result.vmdk', 1024 * 1024 * 1024, 1024 * 1024, []))
-  const pipe = readStream.pipe(createWriteStream('result.vmdk'))
-  await fromEvent(pipe, 'finish')
+test('Can generate an empty compressed VMDK file', async () => {
+  const readStream = asyncIteratorToStream(await generateVmdkData('result.vmdk', 1024 * 1024 * 1024, 1024 * 1024, 0, [], {}, true))
+  await fromEvent(readStream.pipe(createWriteStream('result.vmdk')), 'finish')
+  console.log(await execa('qemu-img', ['info', 'result.vmdk']))
+  console.log(await execa('qemu-img', ['map', 'result.vmdk']))
   await execa('qemu-img', ['check', 'result.vmdk'])
 })
 
@@ -95,10 +96,10 @@ test('Can generate a small VMDK file', async () => {
   const blockGenerator = [{ lba: 0, block: b1 }, { lba: blockSize, block: b2 }]
   const fileName = 'result.vmdk'
   const geometry = { sectorsPerTrackCylinder: 63, heads: 16, cylinders: 10402 }
-  const readStream = asyncIteratorToStream(await generateVmdkData(fileName, 2 * blockSize, blockSize, blockGenerator, geometry))
+  const readStream = asyncIteratorToStream(await generateVmdkData(fileName, 2 * blockSize, blockSize, blockGenerator.length, blockGenerator, geometry, true))
   const pipe = readStream.pipe(createWriteStream(fileName))
   await fromEvent(pipe, 'finish')
-
+  await execa('qemu-img', ['check', fileName])
   const expectedLBAs = []
   for (let i = 0; i < blockGenerator.length; i++) {
     for (let j = 0; j < defaultVhdToVmdkRatio; j++) {
@@ -106,17 +107,26 @@ test('Can generate a small VMDK file', async () => {
     }
   }
   const data = await readVmdkGrainTable(createFileAccessor(fileName))
-  expect(bufferToArray(data.grainLogicalAddressList)).toEqual(expectedLBAs)
+  const grainLogicalAddressList = bufferToArray(data.grainLogicalAddressList)
+  expect(grainLogicalAddressList).toEqual(expectedLBAs)
   const grainFileOffsetList = bufferToArray(data.grainFileOffsetList)
-  const parser = new VMDKDirectParser(createReadStream(fileName), bufferToArray(data.grainLogicalAddressList), grainFileOffsetList, false)
+  for (let i = 0; i < grainFileOffsetList.length; i++) {
+    const offset = grainFileOffsetList[i]
+    expect(offset).toBeGreaterThan(0)
+    expect(i === 0 || offset > grainFileOffsetList[i - 1]).toBeTruthy()
+  }
+  const parser = new VMDKDirectParser(createReadStream(fileName), grainLogicalAddressList, grainFileOffsetList, false)
   await parser.readHeader()
   const resLbas = []
   const resBuffers = []
   const DEFAULT_GRAIN_SIZE = 65536
+  console.log('parsing blocks', parser)
   for await (const b of parser.blockIterator()) {
+    console.log('BLOCK', b.logicalAddressBytes)
     resLbas.push(b.logicalAddressBytes / DEFAULT_GRAIN_SIZE)
     resBuffers.push(b.data)
   }
+  console.log('DONE parsing blocks')
   const resultBuffer = Buffer.concat(resBuffers)
   const startingBuffer = Buffer.concat([b1, b2])
   expect(resultBuffer).toEqual(startingBuffer)

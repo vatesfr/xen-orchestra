@@ -180,11 +180,13 @@ export default class VMDKDirectParser {
   }
 
   async *blockIterator() {
+    console.log(' in blockIterator')
     for (let tableIndex = 0; tableIndex < this.grainFileOffsetList.length; tableIndex++) {
       const position = this.virtualBuffer.position
       const grainPosition = this.grainFileOffsetList[tableIndex] * SECTOR_SIZE
       const grainSizeBytes = this.header.grainSizeSectors * SECTOR_SIZE
       const lba = this.grainLogicalAddressList[tableIndex] * grainSizeBytes
+      assert.strictEqual(grainPosition >= position, true)
       await this.virtualBuffer.readChunk(grainPosition - position, `blank from ${position} to ${grainPosition}`)
       let grain
       if (this.header.flags.hasMarkers) {
