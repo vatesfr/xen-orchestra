@@ -7,6 +7,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+[Export/Disks] Allow the export of disks in VMDK format(PR [#5982](https://github.com/vatesfr/xen-orchestra/pull/5982))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -33,5 +35,7 @@
 - @vates/async-each minor
 - @xen-orchestra/fs minor
 - vhd-lib minor
+- xo-vmdk-to-vhd minor
 - xo-server patch
 - vhd-cli minor
+- xo-web minor
