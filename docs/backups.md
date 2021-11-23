@@ -26,6 +26,12 @@ Each backups' job execution is identified by a `runId`. You can find this `runId
 
 ![](./assets/log-runId.png)
 
+## Exclude disks
+
+During a backup job, you can avoid saving all disks of the VM. To do that is trivial: just edit the VM disk name and add `[NOBAK]` before the current name, eg: `data-disk` will become `[NOBAK] data-disk` (with a space or not, doesn't matter).
+
+The disks marked with `[NOBAK]` will be now ignored in all following backups.
+
 ## Schedule
 
 :::tip

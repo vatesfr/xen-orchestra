@@ -43,12 +43,6 @@ Just go into your "Backup" view, and select Delta Backup. Then, it's the same as
 
 Unlike other types of backup jobs which delete the associated snapshot when the job is done and it has been exported, delta backups always keep a snapshot of every VM in the backup job, and uses it for the delta. Do not delete these snapshots!
 
-## Exclude disks
-
-During a delta backup job, you can avoid saving all disks of the VM. To do that is trivial: just edit the VM disk name and add `[NOBAK]` before the current name, eg: `data-disk` will become `[NOBAK] data-disk` (with a space or not, doesn't matter).
-
-The disks marked with `[NOBAK]` will be now ignored in all following backups.
-
 ## Delta backup initial seed
 
 If you don't want to do an initial full directly toward the destination, you can create a local delta backup first, then transfer the files to your destination.
