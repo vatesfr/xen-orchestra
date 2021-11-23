@@ -4,6 +4,11 @@ import { fuFooter, fuHeader, checksumStruct } from '../_structs'
 import { test, set as setBitmap } from '../_bitmap'
 import { VhdAbstract } from './VhdAbstract'
 import assert from 'assert'
+import promisify from 'promise-toolbox/promisify'
+import zlib from 'zlib'
+
+const gzip = promisify(zlib.gzip)
+const gunzip = promisify(zlib.gunzip)
 
 const { debug } = createLogger('vhd-lib:VhdDirectory')
 
@@ -22,6 +27,7 @@ export class VhdDirectory extends VhdAbstract {
   #uncheckedBlockTable
   #header
   footer
+  #metadata
 
   set header(header) {
     this.#header = header
@@ -50,16 +56,16 @@ export class VhdDirectory extends VhdAbstract {
     // EISDIR pathname refers to a directory and the access requested
     // involved writing (that is, O_WRONLY or O_RDWR is set).
     // reading the header ensure we have a well formed directory immediatly
-    await vhd.readHeaderAndFooter()
+    await Promise.all([vhd.readHeaderAndFooter(), vhd.#readMetadata()])
     return {
       dispose: () => {},
       value: vhd,
     }
   }
 
-  static async create(handler, path, { flags = 'wx+' } = {}) {
+  static async create(handler, path, { flags = 'wx+', compression = 'gzip' } = {}) {
     await handler.mkdir(path)
-    const vhd = new VhdDirectory(handler, path, { flags })
+    const vhd = new VhdDirectory(handler, path, { flags, compression })
     return {
       dispose: () => {},
       value: vhd,
@@ -71,6 +77,15 @@ export class VhdDirectory extends VhdAbstract {
     this._handler = handler
     this._path = path
     this._opts = opts
+    this.#metadata = {
+      compression:
+        opts?.compression === 'gzip'
+          ? {
+              type: 'gzip',
+              options: { level: 1 },
+            }
+          : undefined,
+    }
   }
 
   async readBlockAllocationTable() {
@@ -90,8 +105,9 @@ export class VhdDirectory extends VhdAbstract {
     // here we can implement compression and / or crypto
     const buffer = await this._handler.readFile(this._getChunkPath(partName))
 
+    const uncompressed = await this.#uncompress(buffer)
     return {
-      buffer: Buffer.from(buffer),
+      buffer: Buffer.from(uncompressed),
     }
   }
 
@@ -103,7 +119,8 @@ export class VhdDirectory extends VhdAbstract {
     )
     // here we can implement compression and / or crypto
 
-    return this._handler.outputFile(this._getChunkPath(partName), buffer, this._opts)
+    const compressed = await this.#compress(buffer)
+    return this._handler.outputFile(this._getChunkPath(partName), compressed, this._opts)
   }
 
   // put block in subdirectories to limit impact when doing directory listing
@@ -150,12 +167,13 @@ export class VhdDirectory extends VhdAbstract {
     await this._writeChunk('footer', rawFooter)
   }
 
-  writeHeader() {
+  async writeHeader() {
     const { header } = this
     const rawHeader = fuHeader.pack(header)
     header.checksum = checksumStruct(rawHeader, fuHeader)
     debug(`Write header  (checksum=${header.checksum}). (data=${rawHeader.toString('hex')})`)
-    return this._writeChunk('header', rawHeader)
+    await this._writeChunk('header', rawHeader)
+    await this.#writeMetadata()
   }
 
   writeBlockAllocationTable() {
@@ -167,9 +185,14 @@ export class VhdDirectory extends VhdAbstract {
 
   // only works if data are in the same handler
   // and if the full block is modified in child ( which is the case whit xcp)
+  // and if the compression type is same on both sides
 
   async coalesceBlock(child, blockId) {
-    if (!(child instanceof VhdDirectory) || this._handler !== child._handler) {
+    if (
+      !(child instanceof VhdDirectory) ||
+      this._handler !== child._handler ||
+      child.getBlockCompressionType() !== this.getBlockCompressionType()
+    ) {
       return super.coalesceBlock(child, blockId)
     }
     await this._handler.copy(
@@ -191,5 +214,51 @@ export class VhdDirectory extends VhdAbstract {
   async _writeParentLocatorData(id, data) {
     await this._writeChunk('parentLocatorEntry' + id, data)
     this.header.parentLocatorEntry[id].platformDataOffset = 0
+  }
+
+  async #uncompress(buffer) {
+    const { compression } = this.#metadata
+
+    if (compression === undefined) {
+      return buffer
+    }
+    if (compression.type === 'gzip') {
+      return await gunzip(buffer)
+    }
+    throw new Error(`Compression type ${compression.type} is not supported`)
+  }
+
+  async #compress(buffer) {
+    const { compression } = this.#metadata
+
+    if (compression === undefined) {
+      return buffer
+    }
+    if (compression?.type === 'gzip') {
+      return await gzip(buffer, compression.options)
+    }
+    throw new Error(`Compression type ${compression?.type} is not supported`)
+  }
+
+  async #writeMetadata() {
+    await this._handler.writeFile(this._path + '/metadata.json', JSON.stringify(this.#metadata))
+  }
+
+  async #readMetadata() {
+    try {
+      const buf = Buffer.from(await this._handler.readFile(this._path + '/metadata.json'), 'utf-8')
+      this.#metadata = JSON.parse(buf.toString())
+    } catch (error) {
+      if (error.code === 'ENOENT') {
+        // no metadata stored in file
+        this.#metadata = {}
+      } else {
+        throw error
+      }
+    }
+  }
+
+  getBlockCompressionType() {
+    return this.#metadata?.compression?.type
   }
 }
