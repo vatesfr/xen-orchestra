@@ -1,5 +1,5 @@
 import classNames from 'classnames'
-import React from 'react'
+import React, { ReactNode } from 'react'
 import Tooltip from '@mui/material/Tooltip'
 import TreeView from '@mui/lab/TreeView'
 import TreeItem, { useTreeItem, TreeItemContentProps } from '@mui/lab/TreeItem'
@@ -14,10 +14,10 @@ interface State {
   selectedNodes?: Array<string>
 }
 
-interface ItemType {
+export interface ItemType {
   children?: Array<ItemType>
   id: string
-  label: React.ReactNode
+  label: React.ReactElement
   to?: string
   tooltip?: React.ReactNode
 }

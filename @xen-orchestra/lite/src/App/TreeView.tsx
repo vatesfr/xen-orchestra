@@ -4,10 +4,12 @@ import { withState } from 'reaclette'
 
 import Icon from '../components/Icon'
 import IntlMessage from '../components/IntlMessage'
-import Tree from '../components/Tree'
-import { Host, Vm, Pool } from '../libs/xapi'
+import Tree, { ItemType } from '../components/Tree'
+import { Host, ObjectsByType, Pool, Vm } from '../libs/xapi'
 
-interface ParentState {}
+interface ParentState {
+  objectsByType: ObjectsByType
+}
 
 interface State {}
 
@@ -20,8 +22,8 @@ interface ParentEffects {}
 interface Effects {}
 
 interface Computed {
-  collection?: Array<object>
-  hostsByPool?: Map<string, Map<string, Host>>
+  collection?: Array<ItemType>
+  hostsByPool?: Collection.Keyed<string, Collection<string, Host>>
   pools?: Map<string, Pool>
   vms?: Map<string, Vm>
   vmsByContainerRef?: Collection.Keyed<string, Collection<string, Vm>>
@@ -32,10 +34,10 @@ const getHostPowerState = (host: Host) => {
   return $metrics ? ($metrics.live ? 'Running' : 'Halted') : 'Unknown'
 }
 
-const getIconColor = (obj: Object) => {
+const getIconColor = (obj: Host | Vm) => {
   let powerState = obj.power_state
   if (obj.$type === 'host') {
-    powerState = getHostPowerState(obj)
+    powerState = getHostPowerState(obj as Host)
   }
   return powerState === 'Running' ? '#198754' : powerState === 'Halted' ? '#dc3545' : '#6c757d'
 }
@@ -47,7 +49,7 @@ const TreeView = withState<State, Props, Effects, Computed, ParentState, ParentE
         if (state.pools === undefined) {
           return
         }
-        const collection = []
+        const collection = [] as Array<ItemType>
         state.pools.valueSeq().forEach((pool: Pool) => {
           const hosts = state.hostsByPool
             ?.get(pool.$id)
@@ -108,7 +110,7 @@ const TreeView = withState<State, Props, Effects, Computed, ParentState, ParentE
 
         return collection
       },
-      hostsByPool: state => state.objectsByType?.get('host')?.groupBy(host => host.$pool.$id),
+      hostsByPool: state => state.objectsByType?.get('host')?.groupBy((host: Host) => host.$pool.$id),
       pools: state => state.objectsByType?.get('pool'),
       vms: state =>
         state.objectsByType
