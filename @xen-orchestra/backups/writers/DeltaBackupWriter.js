@@ -3,7 +3,7 @@ const map = require('lodash/map.js')
 const mapValues = require('lodash/mapValues.js')
 const ignoreErrors = require('promise-toolbox/ignoreErrors.js')
 const { asyncMap } = require('@xen-orchestra/async-map')
-const { chainVhd, checkVhdChain, VhdFile } = require('vhd-lib')
+const { chainVhd, checkVhdChain, openVhd, VhdAbstract } = require('vhd-lib')
 const { createLogger } = require('@xen-orchestra/log')
 const { dirname } = require('path')
 
@@ -16,6 +16,7 @@ const { MixinBackupWriter } = require('./_MixinBackupWriter.js')
 const { AbstractDeltaWriter } = require('./_AbstractDeltaWriter.js')
 const { checkVhd } = require('./_checkVhd.js')
 const { packUuid } = require('./_packUuid.js')
+const { Disposable } = require('promise-toolbox')
 
 const { warn } = createLogger('xo:backups:DeltaBackupWriter')
 
@@ -37,13 +38,13 @@ exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(Ab
         await asyncMap(vhds, async path => {
           try {
             await checkVhdChain(handler, path)
-
-            const vhd = new VhdFile(handler, path)
-            await vhd.readHeaderAndFooter()
-            found = found || vhd.footer.uuid.equals(packUuid(baseUuid))
+            await Disposable.use(
+              openVhd(handler, path),
+              vhd => (found = found || vhd.footer.uuid.equals(packUuid(baseUuid)))
+            )
           } catch (error) {
             warn('checkBaseVdis', { error })
-            await ignoreErrors.call(handler.unlink(path))
+            await ignoreErrors.call(VhdAbstract.unlink(handler, path))
           }
         })
       } catch (error) {
@@ -200,11 +201,11 @@ exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(Ab
           }
 
           // set the correct UUID in the VHD
-          const vhd = new VhdFile(handler, path)
-          await vhd.readHeaderAndFooter()
-          vhd.footer.uuid = packUuid(vdi.uuid)
-          await vhd.readBlockAllocationTable() // required by writeFooter()
-          await vhd.writeFooter()
+          await Disposable.use(openVhd(handler, path), async vhd => {
+            vhd.footer.uuid = packUuid(vdi.uuid)
+            await vhd.readBlockAllocationTable() // required by writeFooter()
+            await vhd.writeFooter()
+          })
         })
       )
       return {
