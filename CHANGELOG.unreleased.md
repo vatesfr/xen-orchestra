@@ -30,6 +30,7 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
+- @xen-orchestra/backups minor
 - @vates/async-each minor
 - @xen-orchestra/fs minor
 - vhd-lib minor

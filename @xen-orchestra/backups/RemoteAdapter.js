@@ -3,13 +3,13 @@ const Disposable = require('promise-toolbox/Disposable.js')
 const fromCallback = require('promise-toolbox/fromCallback.js')
 const fromEvent = require('promise-toolbox/fromEvent.js')
 const pDefer = require('promise-toolbox/defer.js')
-const pump = require('pump')
-const { basename, dirname, join, normalize, resolve } = require('path')
+const { dirname, join, normalize, resolve } = require('path')
 const { createLogger } = require('@xen-orchestra/log')
 const { VhdAbstract, createVhdDirectoryFromStream } = require('vhd-lib')
 const { deduped } = require('@vates/disposable/deduped.js')
 const { execFile } = require('child_process')
 const { readdir, stat } = require('fs-extra')
+const { v4: uuidv4 } = require('uuid')
 const { ZipFile } = require('yazl')
 
 const { BACKUP_DIR } = require('./_getVmBackupDir.js')
@@ -312,6 +312,19 @@ class RemoteAdapter {
     return yield this._getPartition(devicePath, await this._findPartition(devicePath, partitionId))
   }
 
+  // this function will be the one where we plug the logic of the storage format by fs type/user settings
+
+  // if the file is named .vhd => vhd file
+  // if the file is named alias.vhd => alias to a vhd file
+  // if the file is named dir.vhd => vhd directory
+  // if the file is named alias.vhd => alias to a vhd directory
+  getVhdFileName(baseName) {
+    if (this._handler.type === 's3') {
+      return `${baseName}.dir.alias.vhd` // we want an alias to a vhddirectory
+    }
+    return `${baseName}.vhd`
+  }
+
   async listAllVmBackups() {
     const handler = this._handler
 
@@ -454,6 +467,34 @@ class RemoteAdapter {
     )
 
     return backups.sort(compareTimestamp)
+  }
+
+  async writeVhd(path, input, { checksum = true, validator = noop } = {}) {
+    const basename = formatFilenameDate(timestamp)
+    const handler = this._handler
+    let dataPath = path
+
+    if (path.endsWith('.alias.vhd')) {
+      dataPath = `${dirname(path)}/data/${uuidv4()}.vhd`
+    }
+
+    if (path.endsWith('.dir.alias.vhd') || path.endsWith('.dir.vhd')) {
+      await createVhdDirectoryFromStream(handler, dataPath, input, {
+        concurrency: 16,
+        async validator() {
+          await input.task
+          return validator.apply(this, arguments)
+        },
+      })
+    } else {
+      path = `${basePath}/${basename}.vhd`
+      this.outputStream(path, input, { checksum, validator })
+    }
+
+    //create alias after creating successfully the vhd
+    if (path.endsWith('.alias.vhd')) {
+      await VhdAbstract.createAlias(handler, path, dataPath)
+    }
   }
 
   async outputStream(path, input, { checksum = true, validator = noop } = {}) {

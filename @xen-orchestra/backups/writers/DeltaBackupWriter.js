@@ -145,7 +145,7 @@ exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(Ab
               // don't do delta for it
               vdi.uuid
             : vdi.$snapshot_of$uuid
-        }/${basename}.vhd`
+        }/${adapter.getVhdFileName(basename)}`
     )
 
     const metadataFilename = `${backupDir}/${basename}.json`
@@ -189,7 +189,7 @@ exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(Ab
             await checkVhd(handler, parentPath)
           }
 
-          await adapter.outputStream(path, deltaExport.streams[`${id}.vhd`], {
+          await adapter.writeVhd(path, deltaExport.streams[`${id}.vhd`], {
             // no checksum for VHDs, because they will be invalidated by
             // merges and chainings
             checksum: false,
