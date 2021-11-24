@@ -37,7 +37,7 @@
     "csv-parser": "^3.0.0",
     "exec-promise": "^0.7.0",
     "through2": "^4.0.2",
-    "xo-lib": "^0.10.1"
+    "xo-lib": "^0.11.0"
   },
   "devDependencies": {
     "@types/node": "^16.11.6",
