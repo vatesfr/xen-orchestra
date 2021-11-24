@@ -6,6 +6,11 @@ import checkHeader from '../_checkHeader'
 
 export const computeBatSize = entries => sectorsToBytes(sectorsRoundUpNoZero(entries * 4))
 
+export const computeSectorsPerBlock = blockSize => blockSize / SECTOR_SIZE
+// one bit per sector
+export const computeBlockBitmapSize = blockSize => computeSectorsPerBlock(blockSize) >>> 3
+export const computeSectorOfBitmap = blockSize => sectorsRoundUpNoZero(computeBlockBitmapSize(blockSize))
+
 // Sectors conversions.
 export const sectorsRoundUpNoZero = bytes => Math.ceil(bytes / SECTOR_SIZE) || 1
 export const sectorsToBytes = sectors => sectors * SECTOR_SIZE

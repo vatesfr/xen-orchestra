@@ -1,4 +1,4 @@
-import { computeBatSize, sectorsRoundUpNoZero, sectorsToBytes } from './_utils'
+import { computeBatSize, computeSectorOfBitmap, computeSectorsPerBlock, sectorsToBytes } from './_utils'
 import {
   PLATFORM_NONE,
   SECTOR_SIZE,
@@ -32,11 +32,11 @@ export class VhdAbstract {
   }
 
   get sectorsOfBitmap() {
-    return sectorsRoundUpNoZero(this.sectorsPerBlock >> 3)
+    return computeSectorOfBitmap(this.header.blockSize)
   }
 
   get sectorsPerBlock() {
-    return this.header.blockSize / SECTOR_SIZE
+    return computeSectorsPerBlock(this.header.blockSize)
   }
 
   set header(header) {
