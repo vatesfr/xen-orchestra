@@ -6,7 +6,7 @@ const pDefer = require('promise-toolbox/defer.js')
 const pump = require('pump')
 const { basename, dirname, join, normalize, resolve } = require('path')
 const { createLogger } = require('@xen-orchestra/log')
-const { createSyntheticStream, mergeVhd, VhdFile } = require('vhd-lib')
+const { VhdAbstract, createVhdDirectoryFromStream } = require('vhd-lib')
 const { deduped } = require('@vates/disposable/deduped.js')
 const { execFile } = require('child_process')
 const { readdir, stat } = require('fs-extra')
@@ -75,48 +75,6 @@ class RemoteAdapter {
 
   get handler() {
     return this._handler
-  }
-
-  async _deleteVhd(path) {
-    const handler = this._handler
-    const vhds = await asyncMapSettled(
-      await handler.list(dirname(path), {
-        filter: isVhdFile,
-        prependDir: true,
-      }),
-      async path => {
-        try {
-          const vhd = new VhdFile(handler, path)
-          await vhd.readHeaderAndFooter()
-          return {
-            footer: vhd.footer,
-            header: vhd.header,
-            path,
-          }
-        } catch (error) {
-          // Do not fail on corrupted VHDs (usually uncleaned temporary files),
-          // they are probably inconsequent to the backup process and should not
-          // fail it.
-          warn(`BackupNg#_deleteVhd ${path}`, { error })
-        }
-      }
-    )
-    const base = basename(path)
-    const child = vhds.find(_ => _ !== undefined && _.header.parentUnicodeName === base)
-    if (child === undefined) {
-      await handler.unlink(path)
-      return 0
-    }
-
-    try {
-      const childPath = child.path
-      const mergedDataSize = await mergeVhd(handler, path, handler, childPath)
-      await handler.rename(path, childPath)
-      return mergedDataSize
-    } catch (error) {
-      handler.unlink(path).catch(warn)
-      throw error
-    }
   }
 
   async _findPartition(devicePath, partitionId) {
@@ -255,7 +213,7 @@ class RemoteAdapter {
     const handler = this._handler
 
     // unused VHDs will be detected by `cleanVm`
-    await asyncMapSettled(backups, ({ _filename }) => handler.unlink(_filename))
+    await asyncMapSettled(backups, ({ _filename }) => VhdAbstract.unlink(handler, _filename))
   }
 
   async deleteMetadataBackup(backupId) {
