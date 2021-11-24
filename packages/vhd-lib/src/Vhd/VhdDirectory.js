@@ -56,7 +56,7 @@ export class VhdDirectory extends VhdAbstract {
     // EISDIR pathname refers to a directory and the access requested
     // involved writing (that is, O_WRONLY or O_RDWR is set).
     // reading the header ensure we have a well formed directory immediatly
-    await Promise.all([vhd.readHeaderAndFooter(), vhd.#readMetadata()])
+    await vhd.readHeaderAndFooter()
     return {
       dispose: () => {},
       value: vhd,
@@ -131,6 +131,8 @@ export class VhdDirectory extends VhdAbstract {
   }
 
   async readHeaderAndFooter() {
+    // we need to know if thre is compression before reading headers
+    await this.#readMetadata()
     const { buffer: bufHeader } = await this._readChunk('header')
     const { buffer: bufFooter } = await this._readChunk('footer')
     const footer = unpackFooter(bufFooter)
