@@ -49,7 +49,7 @@ const TreeView = withState<State, Props, Effects, Computed, ParentState, ParentE
         if (state.pools === undefined) {
           return
         }
-        const collection = [] as Array<ItemType>
+        const collection: ItemType[] = []
         state.pools.valueSeq().forEach((pool: Pool) => {
           const hosts = state.hostsByPool
             ?.get(pool.$id)
