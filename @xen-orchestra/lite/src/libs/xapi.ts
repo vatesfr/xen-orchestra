@@ -55,8 +55,8 @@ export interface Vm extends XapiObject {
   is_control_domain: boolean
   name_description: string
   name_label: string
-  resident_on: string
   power_state: string
+  resident_on: string
 }
 
 export interface Host extends XapiObject {

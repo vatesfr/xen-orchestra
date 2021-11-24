@@ -83,7 +83,6 @@ const TreeView = withState<State, Props, Effects, Computed, ParentState, ParentE
             ?.valueSeq()
             .sortBy((vm: Vm) => vm.name_label)
             .map((vm: Vm) => ({
-              children: undefined, // it's explicit to avoid type error
               id: vm.$id,
               label: (
                 <span>
@@ -116,7 +115,9 @@ const TreeView = withState<State, Props, Effects, Computed, ParentState, ParentE
           ?.get('VM')
           ?.filter((vm: Vm) => !vm.is_control_domain && !vm.is_a_snapshot && !vm.is_a_template),
       vmsByContainerRef: state =>
-        state.vms?.groupBy((vm: Vm) => (vm.power_state === 'Running' ? vm.resident_on : vm.$pool.$ref)),
+        state.vms?.groupBy(({ power_state: powerState, ...props }: Vm) =>
+          powerState === 'Running' || powerState === 'Paused' ? props.resident_on : props.$pool.$ref
+        ),
     },
   },
   ({ state, defaultSelectedNodes }) =>
