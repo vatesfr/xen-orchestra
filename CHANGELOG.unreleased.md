@@ -36,3 +36,4 @@
 - vhd-lib minor
 - xo-server patch
 - vhd-cli minor
+- xo-web minor
