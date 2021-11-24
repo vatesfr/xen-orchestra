@@ -10,7 +10,7 @@ import { openVhd } from '../index'
 import { checkFile, createRandomFile, convertFromRawToVhd, createRandomVhdDirectory } from '../tests/utils'
 import { VhdAbstract } from './VhdAbstract'
 import { BLOCK_UNUSED, FOOTER_SIZE, HEADER_SIZE, SECTOR_SIZE } from '../_constants'
-import { buildHeader, buildFooter } from './_utils'
+import { unpackHeader, unpackFooter } from './_utils'
 
 let tempDir
 
@@ -186,12 +186,12 @@ test('it can create a vhd stream', async () => {
     const bufFooter = buffer.slice(0, FOOTER_SIZE)
 
     // footer is still valid
-    expect(() => buildFooter(bufFooter)).not.toThrow()
-    const footer = buildFooter(bufFooter)
+    expect(() => unpackFooter(bufFooter)).not.toThrow()
+    const footer = unpackFooter(bufFooter)
 
     // header is still valid
     const bufHeader = buffer.slice(FOOTER_SIZE, HEADER_SIZE + FOOTER_SIZE)
-    expect(() => buildHeader(bufHeader, footer)).not.toThrow()
+    expect(() => unpackHeader(bufHeader, footer)).not.toThrow()
 
     // 1 deleted block should be in ouput
     const start = FOOTER_SIZE + HEADER_SIZE + vhd.batSize

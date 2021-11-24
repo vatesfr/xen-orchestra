@@ -3,7 +3,7 @@ import { BLOCK_UNUSED, FOOTER_SIZE, HEADER_SIZE, SECTOR_SIZE } from './_constant
 import { readChunk } from '@vates/read-chunk'
 import assert from 'assert'
 import { Disposable } from 'promise-toolbox'
-import { buildFooter, buildHeader, computeBlockBitmapSize } from './Vhd/_utils'
+import { unpackFooter, unpackHeader, computeBlockBitmapSize } from './Vhd/_utils'
 import { asyncEach } from '@vates/async-each'
 
 const cappedBufferConcat = (buffers, maxSize) => {
@@ -33,11 +33,11 @@ async function* parse(stream) {
 
   const bufFooter = await read(0, FOOTER_SIZE)
 
-  const footer = buildFooter(bufFooter)
+  const footer = unpackFooter(bufFooter)
   yield { type: 'footer', footer, offset: 0 }
 
   const bufHeader = await read(FOOTER_SIZE, HEADER_SIZE)
-  const header = buildHeader(bufHeader, footer)
+  const header = unpackHeader(bufHeader, footer)
 
   yield { type: 'header', header, offset: SECTOR_SIZE }
   const blockSize = header.blockSize

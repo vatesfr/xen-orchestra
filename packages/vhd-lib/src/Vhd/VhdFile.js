@@ -6,7 +6,7 @@ import {
   SECTOR_SIZE,
   PARENT_LOCATOR_ENTRIES,
 } from '../_constants'
-import { computeBatSize, sectorsToBytes, buildHeader, buildFooter, BUF_BLOCK_UNUSED } from './_utils'
+import { computeBatSize, sectorsToBytes, unpackHeader, unpackFooter, BUF_BLOCK_UNUSED } from './_utils'
 import { createLogger } from '@xen-orchestra/log'
 import { fuFooter, fuHeader, checksumStruct } from '../_structs'
 import { set as mapSetBit } from '../_bitmap'
@@ -177,8 +177,8 @@ export class VhdFile extends VhdAbstract {
     const bufFooter = buf.slice(0, FOOTER_SIZE)
     const bufHeader = buf.slice(FOOTER_SIZE)
 
-    const footer = buildFooter(bufFooter)
-    const header = buildHeader(bufHeader, footer)
+    const footer = unpackFooter(bufFooter)
+    const header = unpackHeader(bufHeader, footer)
 
     if (checkSecondFooter) {
       const size = await this._handler.getSize(this._path)

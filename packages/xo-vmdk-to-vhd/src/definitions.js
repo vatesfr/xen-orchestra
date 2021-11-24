@@ -35,7 +35,7 @@ export function parseU64b(buffer, offset, valueName) {
   return value
 }
 
-export function parseHeader(buffer) {
+export function unpackHeader(buffer) {
   const magicString = buffer.slice(0, 4).toString('ascii')
   if (magicString !== 'KDMV') {
     throw new Error('not a VMDK file')

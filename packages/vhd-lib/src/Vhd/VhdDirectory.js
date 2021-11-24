@@ -1,4 +1,4 @@
-import { buildHeader, buildFooter, sectorsToBytes } from './_utils'
+import { unpackHeader, unpackFooter, sectorsToBytes } from './_utils'
 import { createLogger } from '@xen-orchestra/log'
 import { fuFooter, fuHeader, checksumStruct } from '../_structs'
 import { test, set as setBitmap } from '../_bitmap'
@@ -122,8 +122,8 @@ export class VhdDirectory extends VhdAbstract {
   async readHeaderAndFooter() {
     const { buffer: bufHeader } = await this._readChunk('header')
     const { buffer: bufFooter } = await this._readChunk('footer')
-    const footer = buildFooter(bufFooter)
-    const header = buildHeader(bufHeader, footer)
+    const footer = unpackFooter(bufFooter)
+    const header = unpackHeader(bufHeader, footer)
 
     this.footer = footer
     this.header = header

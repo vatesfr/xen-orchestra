@@ -32,7 +32,7 @@ BUF_BLOCK_UNUSED.writeUInt32BE(BLOCK_UNUSED, 0)
  * @param {Object} footer
  * @returns {Object} the parsed header
  */
-export const buildHeader = (bufHeader, footer) => {
+export const unpackHeader = (bufHeader, footer) => {
   assertChecksum('header', bufHeader, fuHeader)
 
   const header = fuHeader.unpack(bufHeader)
@@ -48,7 +48,7 @@ export const buildHeader = (bufHeader, footer) => {
  * @returns {Object} the parsed footer
  */
 
-export const buildFooter = bufFooter => {
+export const unpackFooter = bufFooter => {
   assertChecksum('footer', bufFooter, fuFooter)
 
   const footer = fuFooter.unpack(bufFooter)
