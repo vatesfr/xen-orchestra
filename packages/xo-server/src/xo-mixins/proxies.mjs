@@ -23,7 +23,7 @@ import { timeout } from 'promise-toolbox'
 
 import Collection from '../collection/redis.mjs'
 import patch from '../patch.mjs'
-import { debounceWithKey } from '../_pDebounceWithKey.mjs'
+import { debounceWithKey, REMOVE_CACHE_ENTRY } from '../_pDebounceWithKey.mjs'
 import { extractIpFromVmNetworks } from '../_extractIpFromVmNetworks.mjs'
 import { generateToken } from '../utils.mjs'
 
@@ -180,6 +180,7 @@ export default class Proxy {
     const { vmUuid } = await this._getProxy(id)
     const xapi = this._app.getXapi(vmUuid)
     await xapi.getObject(vmUuid).update_xenstore_data(xenstoreData)
+    this.getProxyApplianceUpdaterState(REMOVE_CACHE_ENTRY, id)
 
     try {
       await xapi.rebootVm(vmUuid)
