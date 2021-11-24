@@ -67,7 +67,7 @@ test('Can coalesce block', async () => {
   })
 })
 
-test('compressed block keep the content', async () => {
+test('compressed blocks and metadata works', async () => {
   const initalSize = 4
   const rawFileName = `${tempDir}/randomfile`
   const vhdName = `${tempDir}/parent.vhd`
@@ -87,17 +87,28 @@ test('compressed block keep the content', async () => {
     await Promise
       .all[(await compressedVhd.writeHeader(), await compressedVhd.writeFooter(), await compressedVhd.writeBlockAllocationTable())]
 
-    // check if everything still works
+    // compressed vhd have a metadata file
     expect(await fs.exists(`${tempDir}/compressed.vhd/metadata.json`)).toEqual(true)
+    const metada = JSON.parse(await handler.readFile('compressed.vhd/metadata.json'))
+    expect(metada.compression.type).toEqual('gzip')
+    expect(metada.compression.options.level).toEqual(1)
 
+    // compressed vhd should not be broken
     await compressedVhd.readHeaderAndFooter()
     await compressedVhd.readBlockAllocationTable()
+
+    // check that footer and header are not modified
+    expect(compressedVhd.footer).toEqual(vhd.footer)
+    expect(compressedVhd.header).toEqual(vhd.header)
+
+    // their block content should not have changed
     let counter = 0
     for await (const block of compressedVhd.blocks()) {
       const source = await vhd.readBlock(block.id)
       expect(source.data.equals(block.data)).toEqual(true)
       counter++
     }
+    // neither the number of blocks
     expect(counter).toEqual(2)
   })
 })
