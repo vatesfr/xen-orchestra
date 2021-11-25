@@ -15,7 +15,7 @@ const { ZipFile } = require('yazl')
 const { BACKUP_DIR } = require('./_getVmBackupDir.js')
 const { cleanVm } = require('./_cleanVm.js')
 const { getTmpDir } = require('./_getTmpDir.js')
-const { isMetadataFile, isVhdFile } = require('./_backupType.js')
+const { isMetadataFile } = require('./_backupType.js')
 const { isValidXva } = require('./_isValidXva.js')
 const { listPartitions, LVM_PARTITION_TYPE } = require('./_listPartitions.js')
 const { lvs, pvs } = require('./_lvm.js')
@@ -470,7 +470,6 @@ class RemoteAdapter {
   }
 
   async writeVhd(path, input, { checksum = true, validator = noop } = {}) {
-    const basename = formatFilenameDate(timestamp)
     const handler = this._handler
     let dataPath = path
 
@@ -487,8 +486,7 @@ class RemoteAdapter {
         },
       })
     } else {
-      path = `${basePath}/${basename}.vhd`
-      this.outputStream(path, input, { checksum, validator })
+      this.outputStream(dataPath, input, { checksum, validator })
     }
 
     //create alias after creating successfully the vhd
