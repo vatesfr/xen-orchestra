@@ -1,7 +1,7 @@
 import { dirname, relative } from 'path'
 
 import { openVhd } from './'
-import { DISK_TYPE_DIFFERENCING } from './_constants'
+import { DISK_TYPES } from './_constants'
 import { Disposable } from 'promise-toolbox'
 
 export default async function chain(parentHandler, parentPath, childHandler, childPath, force = false) {
@@ -11,11 +11,11 @@ export default async function chain(parentHandler, parentPath, childHandler, chi
       await childVhd.readHeaderAndFooter()
       const { header, footer } = childVhd
 
-      if (footer.diskType !== DISK_TYPE_DIFFERENCING) {
+      if (footer.diskType !== DISK_TYPES.DIFFERENCING) {
         if (!force) {
           throw new Error('cannot chain disk of type ' + footer.diskType)
         }
-        footer.diskType = DISK_TYPE_DIFFERENCING
+        footer.diskType = DISK_TYPES.DIFFERENCING
       }
       await childVhd.readBlockAllocationTable()
 

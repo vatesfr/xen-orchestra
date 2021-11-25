@@ -5,7 +5,7 @@ import tmp from 'tmp'
 import { Disposable, pFromCallback } from 'promise-toolbox'
 import { getSyncedHandler } from '@xen-orchestra/fs'
 
-import { SECTOR_SIZE, PLATFORM_W2KU } from '../_constants'
+import { SECTOR_SIZE, PLATFORMS } from '../_constants'
 import { createRandomFile, convertFromRawToVhd } from '../tests/utils'
 import { openVhd, chainVhd } from '..'
 import { VhdSynthetic } from './VhdSynthetic'
@@ -35,7 +35,7 @@ test('It can read block and parent locator from a synthetic vhd', async () => {
 
   await Disposable.use(async function* () {
     const handler = yield getSyncedHandler({ url: `file://${tempDir}` })
-    // ensure the two VHD are linked, with the child of type DISK_TYPE_DIFFERENCING
+    // ensure the two VHD are linked, with the child of type DISK_TYPES.DIFFERENCING
     await chainVhd(handler, bigVhdFileName, handler, smallVhdFileName, true)
 
     const [smallVhd, bigVhd] = yield Disposable.all([
@@ -46,7 +46,7 @@ test('It can read block and parent locator from a synthetic vhd', async () => {
     // this will also scramble the block inside the vhd files
     await bigVhd.writeParentLocator({
       id: 0,
-      platformCode: PLATFORM_W2KU,
+      platformCode: PLATFORMS.W2KU,
       data: Buffer.from('I am in the big one'),
     })
     const syntheticVhd = new VhdSynthetic([smallVhd, bigVhd])
@@ -77,7 +77,7 @@ test('It can read block and parent locator from a synthetic vhd', async () => {
 
     // the parent locator should the one of the root vhd
     const parentLocator = await syntheticVhd.readParentLocator(0)
-    expect(parentLocator.platformCode).toEqual(PLATFORM_W2KU)
+    expect(parentLocator.platformCode).toEqual(PLATFORMS.W2KU)
     expect(Buffer.from(parentLocator.data, 'utf-8').toString()).toEqual('I am in the big one')
   })
 })

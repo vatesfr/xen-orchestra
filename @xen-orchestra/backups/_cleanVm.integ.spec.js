@@ -49,9 +49,9 @@ async function generateVhd(path, opts = {}) {
   vhd.footer.uuid = Buffer.from(crypto.randomBytes(16))
 
   if (vhd.header.parentUnicodeName) {
-    vhd.footer.diskType = Constants.DISK_TYPE_DIFFERENCING
+    vhd.footer.diskType = Constants.DISK_TYPES.DIFFERENCING
   } else {
-    vhd.footer.diskType = Constants.DISK_TYPE_DYNAMIC
+    vhd.footer.diskType = Constants.DISK_TYPES.DYNAMIC
   }
 
   if (opts.useAlias === true) {

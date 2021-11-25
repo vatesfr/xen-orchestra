@@ -1,13 +1,5 @@
 import { computeBatSize, computeSectorOfBitmap, computeSectorsPerBlock, sectorsToBytes } from './_utils'
-import {
-  PLATFORM_NONE,
-  SECTOR_SIZE,
-  PLATFORM_W2KU,
-  PARENT_LOCATOR_ENTRIES,
-  FOOTER_SIZE,
-  HEADER_SIZE,
-  BLOCK_UNUSED,
-} from '../_constants'
+import { PLATFORMS, SECTOR_SIZE, PARENT_LOCATOR_ENTRIES, FOOTER_SIZE, HEADER_SIZE, BLOCK_UNUSED } from '../_constants'
 import assert from 'assert'
 import path from 'path'
 import asyncIteratorToStream from 'async-iterator-to-stream'
@@ -136,7 +128,7 @@ export class VhdAbstract {
     return computeBatSize(this.header.maxTableEntries)
   }
 
-  async writeParentLocator({ id, platformCode = PLATFORM_NONE, data = Buffer.alloc(0) }) {
+  async writeParentLocator({ id, platformCode = PLATFORMS.NONE, data = Buffer.alloc(0) }) {
     assert(id >= 0, 'parent Locator id must be a positive number')
     assert(id < PARENT_LOCATOR_ENTRIES, `parent Locator id  must be less than ${PARENT_LOCATOR_ENTRIES}`)
 
@@ -165,14 +157,14 @@ export class VhdAbstract {
   async setUniqueParentLocator(fileNameString) {
     await this.writeParentLocator({
       id: 0,
-      platformCode: PLATFORM_W2KU,
+      platformCode: PLATFORMS.W2KU,
       data: Buffer.from(fileNameString, 'utf16le'),
     })
 
     for (let i = 1; i < PARENT_LOCATOR_ENTRIES; i++) {
       await this.writeParentLocator({
         id: i,
-        platformCode: PLATFORM_NONE,
+        platformCode: PLATFORMS.NONE,
         data: Buffer.alloc(0),
       })
     }

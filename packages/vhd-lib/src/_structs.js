@@ -33,7 +33,7 @@ export const fuFooter = fu.struct([
     fu.uint8('heads'), // 58
     fu.uint8('sectorsPerTrackCylinder'), // 59
   ]),
-  fu.uint32('diskType'), // 60 Disk type, must be equal to HARD_DISK_TYPE_DYNAMIC/HARD_DISK_TYPE_DIFFERENCING.
+  fu.uint32('diskType'), // 60 Disk type, must be equal to DYNAMIC/DIFFERENCING.
   fu.uint32('checksum'), // 64
   fu.byte('uuid', 16), // 68
   fu.char('saved'), // 84
