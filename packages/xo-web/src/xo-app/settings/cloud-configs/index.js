@@ -150,7 +150,7 @@ export default decorate([
     },
   }),
   injectState,
-  ({ cloudConfig, effects, networkConfigs, state }) => (
+  ({ cloudConfigs, effects, networkConfigs, state }) => (
     <div>
       <Container>
         <Col mediumSize={6}>
@@ -212,7 +212,7 @@ export default decorate([
         <Col mediumSize={6}>
           <SortedTable
             actions={ACTIONS}
-            collection={cloudConfig}
+            collection={cloudConfigs}
             columns={COLUMNS}
             data-populateForm={effects.populateForm}
             individualActions={INDIVIDUAL_ACTIONS}
@@ -281,7 +281,7 @@ export default decorate([
             data-populateForm={effects.populateNetworkForm}
             data-type='network'
             individualActions={INDIVIDUAL_ACTIONS}
-            stateUrlParam='s'
+            stateUrlParam='n'
           />
         </Col>
       </Container>
