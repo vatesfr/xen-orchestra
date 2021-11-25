@@ -44,11 +44,9 @@ async function grabTables(grainDirectoryEntries, grainDir, grainTablePhysicalSiz
   for (let i = 0; i < grainDirectoryEntries; i++) {
     const grainTableAddr = grainDir[i] * SECTOR_SIZE
     if (grainTableAddr !== 0) {
-      console.log('grabTables', {i, grainTableAddr})
       cachedGrainTables[i] = new Uint32Array(
         await fileAccessor(grainTableAddr, grainTableAddr + grainTablePhysicalSize)
       )
-      console.log('cachedGrainTables[i]', cachedGrainTables[i])
     }
   }
   return cachedGrainTables
@@ -67,9 +65,7 @@ export async function readCapacityAndGrainTable(fileAccessor) {
 
     grainAddrBuffer = headerBuffer.slice(GRAIN_ADDRESS_OFFSET, GRAIN_ADDRESS_OFFSET + 8)
   }
-  //console.log(headerBuffer.slice(0, 4).map(n=>))
   const grainDirPosBytes = getLongLong(grainAddrBuffer, 0, 'grain directory address') * SECTOR_SIZE
-  console.log({grainDirPosBytes})
   const capacity = getLongLong(headerBuffer, DISK_CAPACITY_OFFSET, 'capacity') * SECTOR_SIZE
 
   async function readTable() {
@@ -82,11 +78,9 @@ export async function readCapacityAndGrainTable(fileAccessor) {
     const grainDir = new Uint32Array(
       await fileAccessor(grainDirPosBytes, grainDirPosBytes + grainDirectoryPhysicalSize)
     )
-    console.log({grainDirPosBytes, grainDir})
     const cachedGrainTables = await grabTables(grainDirectoryEntries, grainDir, grainTablePhysicalSize, fileAccessor)
     const extractedGrainTable = []
 
-    console.log({grainDirectoryEntries, grainCount, cachedGrainTables, grainTablePhysicalSize})
     for (let i = 0; i < grainCount; i++) {
       const directoryEntry = Math.floor(i / numGTEsPerGT)
       const grainTable = cachedGrainTables[directoryEntry]

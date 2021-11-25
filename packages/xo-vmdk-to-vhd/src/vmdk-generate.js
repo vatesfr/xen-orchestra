@@ -4,10 +4,11 @@ import zlib from 'zlib'
 import {
   SECTOR_SIZE,
   createStreamOptimizedHeader,
-  parseHeader,
+  unpackHeader,
   MARKER_GT,
   MARKER_GD,
-  MARKER_FOOTER, MARKER_EOS
+  MARKER_FOOTER,
+  MARKER_EOS,
 } from './definitions'
 
 const roundToSector = value => Math.ceil(value / SECTOR_SIZE) * SECTOR_SIZE
@@ -25,18 +26,16 @@ const roundToSector = value => Math.ceil(value / SECTOR_SIZE) * SECTOR_SIZE
  * @param blockCount number of blocks in the generator
  * @param blockGenerator async generator of {lba:Number, block:Buffer} objects.
  * @param geometry an object of shape {sectorsPerTrackCylinder,heads,cylinders}
- * @param compress if true the grains will be compressed and `length` will not be set on the returned generator
  * @returns an Async generator of Buffers representing the VMDK file fragments
  */
 export async function generateVmdkData(diskName, diskCapacityBytes, blockSizeBytes, blockCount, blockGenerator, geometry = {
   sectorsPerTrackCylinder: 63,
   heads: 16,
   cylinders: 10402
-}, compress = false) {
+}) {
   const cid = Math.floor(Math.random() * Math.pow(2, 32))
   const diskCapacitySectors = Math.ceil(diskCapacityBytes / SECTOR_SIZE)
-  const creationType = compress ? 'streamOptimized' : 'monolithicSparse'
-  console.log('creationType', creationType)
+  const creationType = 'streamOptimized'
   const descriptor = `# Disk DescriptorFile
         version=1
                        CID=${cid}
@@ -55,26 +54,16 @@ export async function generateVmdkData(diskName, diskCapacityBytes, blockSizeByt
   const descriptorSizeSectors = Math.ceil(utf8Descriptor.length / SECTOR_SIZE)
   const descriptorBuffer = Buffer.alloc(descriptorSizeSectors * SECTOR_SIZE)
   utf8Descriptor.copy(descriptorBuffer)
-  const headerData = createStreamOptimizedHeader(diskCapacitySectors, descriptorSizeSectors, compress)
-  const parsedHeader = parseHeader(headerData.buffer)
+  const headerData = createStreamOptimizedHeader(diskCapacitySectors, descriptorSizeSectors)
+  const parsedHeader = unpackHeader(headerData.buffer)
   const OFFSET_SIZE = 4
   const directorySizeBytes = roundToSector(headerData.grainDirectoryEntries * OFFSET_SIZE)
   const tableSizeBytes = roundToSector(headerData.grainTableEntries * OFFSET_SIZE)
   const grainSizeBytes = parsedHeader.grainSizeSectors * SECTOR_SIZE
 
-  function computeFileSize(grainCount) {
-    const headerSize = SECTOR_SIZE
-    const descriptorSize = descriptorBuffer.length
-    // +1 because the marker adds some space.
-    const grainSize = grainSizeBytes + SECTOR_SIZE
-    return headerSize + descriptorSize + grainSize * grainCount + directorySizeBytes + tableSizeBytes + headerSize
-  }
-
   if (blockSizeBytes % grainSizeBytes !== 0 || blockSizeBytes === 0) {
     throw new Error(`createReadableVmdkStream can only accept block size multiple of ${grainSizeBytes}, got ${blockSizeBytes}`)
   }
-  const grainsPerBlock = blockSizeBytes / grainSizeBytes
-  const fileSize = compress ? null : computeFileSize(blockCount * grainsPerBlock)
   const tableBuffer = Buffer.alloc(tableSizeBytes)
   let streamPosition = 0
   let directoryOffset = 0
@@ -94,7 +83,6 @@ export async function generateVmdkData(diskName, diskCapacityBytes, blockSizeByt
 
   function createDirectoryBuffer(grainDirectoryEntries, directorySizeBytes, tablePosition) {
     directoryOffset = streamPosition
-    console.log('directoryOffset', { directoryOffset, tablePosition })
     const buff = Buffer.alloc(directorySizeBytes)
     for (let i = 0; i < grainDirectoryEntries; i++) {
       buff.writeUInt32LE((tablePosition + i * parsedHeader.numGTEsPerGT * OFFSET_SIZE) / SECTOR_SIZE, i * OFFSET_SIZE)
@@ -115,7 +103,7 @@ export async function generateVmdkData(diskName, diskCapacityBytes, blockSizeByt
     assert.strictEqual(buffer.length, grainSizeBytes)
     assert.strictEqual(lbaBytes % grainSizeBytes, 0)
     const markerOverHead = 12
-    const data = compress ? zlib.deflateSync(buffer, { level: 9 }) : buffer
+    const data = zlib.deflateSync(buffer, { level: 9 })
     const outputBuffer = Buffer.alloc(roundToSector(markerOverHead + data.length))
     data.copy(outputBuffer, markerOverHead)
     outputBuffer.writeBigUInt64LE(BigInt(lbaBytes / SECTOR_SIZE), 0)
@@ -147,7 +135,6 @@ export async function generateVmdkData(diskName, diskCapacityBytes, blockSizeByt
 
   function track(buffer) {
     assert.strictEqual(streamPosition % SECTOR_SIZE, 0)
-    assert.strictEqual(compress ? true : streamPosition < fileSize, true)
     if (buffer.length > 0) {
       streamPosition += buffer.length
     }
@@ -157,7 +144,7 @@ export async function generateVmdkData(diskName, diskCapacityBytes, blockSizeByt
   async function * iterator() {
     yield track(headerData.buffer)
     yield track(descriptorBuffer)
-    // yield * emitBlocks(grainSizeBytes, blockGenerator)
+    yield * emitBlocks(grainSizeBytes, blockGenerator)
     yield track(createEmptyMarkerIfNecessary(MARKER_GT))
     const tableOffset = streamPosition
     yield track(tableBuffer)
@@ -165,15 +152,11 @@ export async function generateVmdkData(diskName, diskCapacityBytes, blockSizeByt
     yield track(createDirectoryBuffer(headerData.grainDirectoryEntries, directorySizeBytes, tableOffset))
     yield track(createEmptyMarkerIfNecessary(MARKER_FOOTER))
     // re-create the header so that the directory address is filled
-    const footer = createStreamOptimizedHeader(diskCapacitySectors, descriptorSizeSectors, directoryOffset / SECTOR_SIZE, compress)
+    const footer = createStreamOptimizedHeader(diskCapacitySectors, descriptorSizeSectors, directoryOffset / SECTOR_SIZE)
     yield track(footer.buffer)
     yield track(createEmptyMarkerIfNecessary(MARKER_EOS))
   }
 
-  const itr = iterator()
-  if (!compress) {
-    //  itr.length = fileSize
-  }
-  return itr
+  return iterator()
 }
 

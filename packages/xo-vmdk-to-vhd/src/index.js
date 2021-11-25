@@ -27,18 +27,43 @@ async function vmdkToVhd(vmdkReadStream, grainLogicalAddressList, grainFileOffse
 }
 
 /**
+ * @param diskName
+ * @param vhdReadStreamGetter an async function whose call brings a fresh VHD readStream.
+ * We need to read the VHD twice when generating OVA files to get the VMDK file length.
+ * @param withLength if true, the returned VMDK stream will have its `length` field set. The VHD stream will be entirely read to compute it.
+ * @returns a readable stream representing a VMDK file
+ */
+async function vhdToVMDK(diskName, vhdReadStreamGetter, withLength = false) {
+  let length
+  if (withLength) {
+    length = 0
+    const i = await vhdToVMDKIterator(diskName, await vhdReadStreamGetter())
+    for await (const b of i) {
+      length += b.length
+    }
+  }
+  const stream = await asyncIteratorToStream(vhdToVMDKIterator(diskName,await vhdReadStreamGetter()))
+  if (withLength) {
+    stream.length = length
+  }
+  return stream
+}
+
+/**
  * the returned stream will have its length set IIF compress === false
  * @param diskName
  * @param vhdReadStream
- * @param compress
  * @returns a readable stream representing a VMDK file
  */
-async function vhdToVMDK(diskName, vhdReadStream, compress = false) {
-  const { blockSizeBytes, blockGenerator, capacityBytes, geometry, blockCount } = await parseVhdToBlocks(vhdReadStream)
-  const iterable = generateVmdkData(diskName, capacityBytes, blockSizeBytes, blockCount, blockGenerator, geometry)
-  const stream = asyncIteratorToStream(iterable)
-  stream.length = iterable.length
-  return stream
+async function vhdToVMDKIterator(diskName, vhdReadStream) {
+  const {
+    blockSizeBytes,
+    blockGenerator,
+    capacityBytes,
+    geometry,
+    blockCount
+  } = await parseVhdToBlocks(vhdReadStream)
+  return generateVmdkData(diskName, capacityBytes, blockSizeBytes, blockCount, blockGenerator, geometry)
 }
 
 export { ParsableFile, parseOVAFile, vmdkToVhd, vhdToVMDK, createOvaStream }
