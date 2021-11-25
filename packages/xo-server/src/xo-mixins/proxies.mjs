@@ -180,7 +180,6 @@ export default class Proxy {
     const { vmUuid } = await this._getProxy(id)
     const xapi = this._app.getXapi(vmUuid)
     await xapi.getObject(vmUuid).update_xenstore_data(xenstoreData)
-    this.getProxyApplianceUpdaterState(REMOVE_CACHE_ENTRY, id)
 
     try {
       await xapi.rebootVm(vmUuid)
@@ -191,6 +190,8 @@ export default class Proxy {
 
       await xapi.startVm(vmUuid)
     }
+
+    this.getProxyApplianceUpdaterState(REMOVE_CACHE_ENTRY, id)
 
     await xapi._waitObjectState(vmUuid, vm => extractIpFromVmNetworks(vm.$guest_metrics?.networks) !== undefined)
   }
