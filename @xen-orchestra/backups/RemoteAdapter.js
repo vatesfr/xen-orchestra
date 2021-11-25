@@ -481,7 +481,7 @@ class RemoteAdapter {
       })
       await VhdAbstract.createAlias(handler, path, dataPath)
     } else {
-      this.outputStream(dataPath, input, { checksum, validator })
+      await this.outputStream(dataPath, input, { checksum, validator })
     }
   }
 
