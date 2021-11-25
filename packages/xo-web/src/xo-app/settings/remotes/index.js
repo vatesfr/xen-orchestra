@@ -14,7 +14,6 @@ import { groupBy, map, isEmpty } from 'lodash'
 import { injectIntl } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
 import { Number, Password, Text, XoSelect } from 'editable'
-import { Toggle } from 'form'
 import { Proxy } from 'render-xo-item'
 
 import {
@@ -251,26 +250,12 @@ const COLUMNS_SMB_REMOTE = [
 const COLUMNS_S3_REMOTE = [
   COLUMN_NAME,
   {
-    itemRenderer: remote => <Toggle disabled value={remote.protocol === 'http'} />,
-    name: (
-      <span>
-        {_('remoteS3LabelUseHttp')}{' '}
-        <Tooltip content={_('remoteS3TooltipProtocol')}>
-          <Icon icon='info' size='lg' />
-        </Tooltip>
-      </span>
-    ),
+    itemRenderer: remote => remote.protocol === 'https' && <Icon icon='success' />,
+    name: <span>{_('remoteS3LabelUseHttps')} </span>,
   },
   {
-    itemRenderer: remote => <Toggle disabled value={remote.allowUnauthorized} />,
-    name: (
-      <span>
-        {_('remoteS3LabelAllowInsecure')}{' '}
-        <Tooltip content={_('remoteS3TooltipAcceptInsecure')}>
-          <Icon icon='info' size='lg' />
-        </Tooltip>
-      </span>
-    ),
+    itemRenderer: remote => remote.allowUnauthorized && <Icon icon='success' />,
+    name: <span>{_('remoteS3LabelAllowInsecure')} </span>,
   },
   {
     itemRenderer: (remote, { formatMessage }) => (

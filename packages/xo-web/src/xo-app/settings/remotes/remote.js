@@ -148,7 +148,7 @@ export default decorate([
         this.state.password = value
       },
       setInsecure(_, value) {
-        this.state.protocol = value ? 'http' : 'https'
+        this.state.protocol = value ? 'https' : 'http'
       },
       setAllowUnauthorized(_, value) {
         this.state.allowUnauthorized = value
@@ -351,7 +351,7 @@ export default decorate([
             <fieldset className='form-group form-group'>
               <div className='input-group form-group'>
                 <span className='align-middle'>
-                  {_('remoteS3LabelUseHttp')}{' '}
+                  {_('remoteS3LabelUseHttps')}{' '}
                   <Tooltip content={_('remoteS3TooltipProtocol')}>
                     <Icon icon='info' size='lg' />
                   </Tooltip>
@@ -359,7 +359,7 @@ export default decorate([
                 <Toggle
                   className='align-middle pull-right'
                   onChange={effects.setInsecure}
-                  value={protocol === 'http'}
+                  value={protocol === 'https'}
                 />
               </div>
 
