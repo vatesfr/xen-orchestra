@@ -36,6 +36,7 @@
 - @xen-orchestra/fs minor
 - vhd-lib major
 - @xen-orchestra/backups minor
+- xo-lib patch
 - xo-server patch
 - vhd-cli minor
 - xo-web minor

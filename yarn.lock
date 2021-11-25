@@ -11083,10 +11083,10 @@ jsonrpc-websocket-client@^0.6.0:
     promise-toolbox "^0.19.0"
     ws "^7.0.0"
 
-jsonrpc-websocket-client@^0.7.1:
-  version "0.7.1"
-  resolved "https://registry.yarnpkg.com/jsonrpc-websocket-client/-/jsonrpc-websocket-client-0.7.1.tgz#c595d4519e98ef511e3af6e74654d516b568b764"
-  integrity sha512-DTFxrzo7yojKurKBRxA1iboW4UmxsX0xS5jbw/IgXFwXjk+7nrMBv+kz4aHJ5lk+8nkwKy5wijhdg7u0bbqSKQ==
+jsonrpc-websocket-client@^0.7.2:
+  version "0.7.2"
+  resolved "https://registry.yarnpkg.com/jsonrpc-websocket-client/-/jsonrpc-websocket-client-0.7.2.tgz#c523a076fdf868227a0d2552aea4d640a20598a9"
+  integrity sha512-kZraioEmrWqFPAv7rYnGtGSzvQ6gtX1j86C1hEnlu6x9c+WNWqVzXUlhvPYL8W7kx4M1gPOAJ+mUQboPwnVTsg==
   dependencies:
     isomorphic-ws "^4.0.1"
     iterable-backoff "^0.1.0"
