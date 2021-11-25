@@ -314,13 +314,11 @@ class RemoteAdapter {
 
   // this function will be the one where we plug the logic of the storage format by fs type/user settings
 
-  // if the file is named .vhd => vhd file
-  // if the file is named alias.vhd => alias to a vhd file
-  // if the file is named dir.vhd => vhd directory
-  // if the file is named alias.vhd => alias to a vhd directory
+  // if the file is named .vhd => vhd
+  // if the file is named alias.vhd => alias to a vhd
   getVhdFileName(baseName) {
     if (this._handler.type === 's3') {
-      return `${baseName}.dir.alias.vhd` // we want an alias to a vhddirectory
+      return `${baseName}.alias.vhd` // we want an alias to a vhddirectory
     }
     return `${baseName}.vhd`
   }
@@ -474,24 +472,16 @@ class RemoteAdapter {
     let dataPath = path
 
     if (path.endsWith('.alias.vhd')) {
-      dataPath = `${dirname(path)}/data/${uuidv4()}.vhd`
-    }
-
-    if (path.endsWith('.dir.alias.vhd') || path.endsWith('.dir.vhd')) {
-      await createVhdDirectoryFromStream(handler, dataPath, input, {
+      await createVhdDirectoryFromStream(handler, `${dirname(path)}/data/${uuidv4()}.vhd`, input, {
         concurrency: 16,
         async validator() {
           await input.task
           return validator.apply(this, arguments)
         },
       })
+      await VhdAbstract.createAlias(handler, path, dataPath)
     } else {
       this.outputStream(dataPath, input, { checksum, validator })
-    }
-
-    //create alias after creating successfully the vhd
-    if (path.endsWith('.alias.vhd')) {
-      await VhdAbstract.createAlias(handler, path, dataPath)
     }
   }
 
