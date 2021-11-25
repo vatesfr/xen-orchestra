@@ -54,6 +54,20 @@ const data = deepFreeze({
       username: 'AKIAS',
       password: 'XSuBupZ0mJlu+',
       region: undefined,
+      allowUnauthorized: false,
+    },
+  },
+  's3 accepting self signed ': {
+    string: 's3://AKIAS:XSuBupZ0mJlu%2B@s3-us-west-2.amazonaws.com/test-bucket/dir?allowUnauthorized=true',
+    object: {
+      type: 's3',
+      protocol: 'https',
+      host: 's3-us-west-2.amazonaws.com',
+      path: '/test-bucket/dir',
+      username: 'AKIAS',
+      password: 'XSuBupZ0mJlu+',
+      region: undefined,
+      allowUnauthorized: true,
     },
   },
 })
@@ -97,6 +111,33 @@ const parseData = deepFreeze({
       region: 'reg1',
       username: 'Administrator',
       password: 'password',
+      allowUnauthorized: false,
+    },
+  },
+  'S3 accepting self signed certificate': {
+    string: 's3+http://Administrator:password@192.168.100.225/bucket/dir?allowUnauthorized=true#reg1',
+    object: {
+      type: 's3',
+      host: '192.168.100.225',
+      protocol: 'http',
+      path: '/bucket/dir',
+      region: 'reg1',
+      username: 'Administrator',
+      password: 'password',
+      allowUnauthorized: true,
+    },
+    'S3 with broken allowUnauthorized': {
+      string: 's3+http://Administrator:password@192.168.100.225/bucket/dir?allowUnauthorized=notTrue#reg1',
+      object: {
+        type: 's3',
+        host: '192.168.100.225',
+        protocol: 'http',
+        path: '/bucket/dir',
+        region: 'reg1',
+        username: 'Administrator',
+        password: 'password',
+        allowUnauthorized: false,
+      },
     },
   },
 })
@@ -109,6 +150,19 @@ const formatData = deepFreeze({
     object: {
       type: 'local',
       path: '/var/lib/xoa/backup',
+    },
+  },
+  'S3 with broken allowUnauthorized': {
+    string: 's3+http://Administrator:password@192.168.100.225/bucket/dir#reg1',
+    object: {
+      type: 's3',
+      host: '192.168.100.225',
+      protocol: 'http',
+      path: '/bucket/dir',
+      region: 'reg1',
+      username: 'Administrator',
+      password: 'password',
+      allowUnauthorized: 'notTrue',
     },
   },
 })

@@ -42,6 +42,7 @@ export default decorate([
       bucket: undefined,
       protocol: undefined,
       region: undefined,
+      allowUnauthorized: undefined,
     }),
     effects: {
       linkState,
@@ -67,6 +68,7 @@ export default decorate([
             username = remote.username,
             protocol = remote.protocol || 'https',
             region = remote.region,
+            allowUnauthorized = remote.allowUnauthorized,
           } = state
           let { path = remote.path } = state
           if (type === 's3') {
@@ -85,6 +87,7 @@ export default decorate([
               username,
               protocol,
               region,
+              allowUnauthorized,
             }),
             options: options !== '' ? options : null,
             proxy: proxyId,
@@ -145,7 +148,10 @@ export default decorate([
         this.state.password = value
       },
       setInsecure(_, value) {
-        this.state.protocol = value ? 'http' : 'https'
+        this.state.protocol = value ? 'https' : 'http'
+      },
+      setAllowUnauthorized(_, value) {
+        this.state.allowUnauthorized = value
       },
     },
     computed: {
@@ -175,6 +181,7 @@ export default decorate([
       proxyId = remote.proxy,
       type = remote.type || 'nfs',
       username = remote.username || '',
+      allowUnauthorized = remote.allowUnauthorized || false,
     } = state
     return (
       <div>
@@ -343,11 +350,35 @@ export default decorate([
           {type === 's3' && (
             <fieldset className='form-group form-group'>
               <div className='input-group form-group'>
-                <span className='input-group-addon'>
-                  <Tooltip content={formatMessage(messages.remoteS3TooltipProtocol)}>
-                    <Toggle iconSize={1} onChange={effects.setInsecure} value={protocol === 'http'} />
+                <span className='align-middle'>
+                  {_('remoteS3LabelUseHttps')}{' '}
+                  <Tooltip content={_('remoteS3TooltipProtocol')}>
+                    <Icon icon='info' size='lg' />
                   </Tooltip>
                 </span>
+                <Toggle
+                  className='align-middle pull-right'
+                  onChange={effects.setInsecure}
+                  value={protocol === 'https'}
+                />
+              </div>
+
+              <div className='input-group form-group'>
+                <span className='align-middle '>
+                  {_('remoteS3LabelAllowInsecure')}{' '}
+                  <Tooltip content={_('remoteS3TooltipAcceptInsecure')}>
+                    <Icon icon='info' size='lg' />
+                  </Tooltip>
+                </span>
+                <Toggle
+                  className='align-middle pull-right'
+                  disabled={protocol !== 'https'}
+                  onChange={effects.setAllowUnauthorized}
+                  value={allowUnauthorized}
+                />
+              </div>
+
+              <div className='input-group form-group'>
                 <input
                   className='form-control'
                   name='host'
