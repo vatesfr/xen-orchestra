@@ -147,11 +147,10 @@ export default decorate([
       isInvalid: ({ name, template }) => name.trim() === '' || (template !== undefined && template.trim() === ''),
       isNetworkInvalid: props =>
         props.networkName.trim() === '' || (props.networkTemplate !== undefined && props.networkTemplate.trim() === ''),
-      userCloudConfig: (_, { cloudConfigs }) => cloudConfigs.filter(({ type }) => type === undefined),
     },
   }),
   injectState,
-  ({ state, effects, networkConfigs }) => (
+  ({ cloudConfig, effects, networkConfigs, state }) => (
     <div>
       <Container>
         <Col mediumSize={6}>
@@ -213,7 +212,7 @@ export default decorate([
         <Col mediumSize={6}>
           <SortedTable
             actions={ACTIONS}
-            collection={state.userCloudConfig}
+            collection={cloudConfig}
             columns={COLUMNS}
             data-populateForm={effects.populateForm}
             individualActions={INDIVIDUAL_ACTIONS}

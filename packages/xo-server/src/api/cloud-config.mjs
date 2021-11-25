@@ -21,13 +21,13 @@ create.params = {
   template: { type: 'string' },
 }
 
-export function createNetworkConfigs(props) {
+export function createNetworkConfig(props) {
   return this.createCloudConfig({ ...props, type: 'network' })
 }
 
-createNetworkConfigs.permission = 'admin'
-createNetworkConfigs.description = 'Creates a new network config template'
-createNetworkConfigs.params = {
+createNetworkConfig.permission = 'admin'
+createNetworkConfig.description = 'Creates a new network config template'
+createNetworkConfig.params = {
   name: { type: 'string' },
   template: { type: 'string' },
 }
