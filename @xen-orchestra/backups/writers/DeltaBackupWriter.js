@@ -24,6 +24,7 @@ exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(Ab
   async checkBaseVdis(baseUuidToSrcVdi) {
     const { handler } = this._adapter
     const backup = this._backup
+    const adapter = this._adapter
 
     const backupDir = getVmBackupDir(backup.vm.uuid)
     const vdisDir = `${backupDir}/vdis/${backup.job.id}`
@@ -35,13 +36,11 @@ exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(Ab
           filter: _ => _[0] !== '.' && _.endsWith('.vhd'),
           prependDir: true,
         })
+        const packedBaseUuid = packUuid(baseUuid)
         await asyncMap(vhds, async path => {
           try {
             await checkVhdChain(handler, path)
-            await Disposable.use(
-              openVhd(handler, path),
-              vhd => (found = found || vhd.footer.uuid.equals(packUuid(baseUuid)))
-            )
+            found = found || (await adapter.isMergeableParent(packedBaseUuid, path))
           } catch (error) {
             warn('checkBaseVdis', { error })
             await ignoreErrors.call(VhdAbstract.unlink(handler, path))

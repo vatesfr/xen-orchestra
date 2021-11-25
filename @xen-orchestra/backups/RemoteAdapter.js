@@ -191,6 +191,19 @@ class RemoteAdapter {
     return files
   }
 
+  // check if we will be allowed to merge a a vhd created in this adapter
+  // with the vhd at path `path`
+  async isMergeableParent(packedParentUid, path) {
+    return await Disposable.use(openVhd(this.handler, path), vhd => {
+      // this baseUuid is not linked with this vhd
+      if (!vhd.footer.uuid.equals(packedParentUid)) {
+        return false
+      }
+      // can't merge uncompressed with compressed and recipro
+      return this.getCompressionType() === vhd.getCompressionType()
+    })
+  }
+
   fetchPartitionFiles(diskId, partitionId, paths) {
     const { promise, reject, resolve } = pDefer()
     Disposable.use(
@@ -262,6 +275,18 @@ class RemoteAdapter {
     ])
   }
 
+  getCompressionType() {
+    return this.handler.type === 's3' ? 'gzip' : undefined
+  }
+
+  useVhdDirectory() {
+    return this.handler.type === 's3'
+  }
+
+  useAlias() {
+    return this.handler.type === 's3'
+  }
+
   getDisk = Disposable.factory(this.getDisk)
   getDisk = deduped(this.getDisk, diskId => [diskId])
   getDisk = debounceResourceFactory(this.getDisk)
@@ -318,13 +343,10 @@ class RemoteAdapter {
     return yield this._getPartition(devicePath, await this._findPartition(devicePath, partitionId))
   }
 
-  // this function will be the one where we plug the logic of the storage format by fs type/user settings
-
-  // if the file is named .vhd => vhd
-  // if the file is named alias.vhd => alias to a vhd
+  // if we use alias on this remote, we have to name the file alias.vhd
   getVhdFileName(baseName) {
-    if (this._handler.type === 's3') {
-      return `${baseName}.alias.vhd` // we want an alias to a vhddirectory
+    if (this.useAlias()) {
+      return `${baseName}.alias.vhd`
     }
     return `${baseName}.vhd`
   }
@@ -476,7 +498,7 @@ class RemoteAdapter {
   async writeVhd(path, input, { checksum = true, validator = noop } = {}) {
     const handler = this._handler
 
-    if (path.endsWith('.alias.vhd')) {
+    if (this.useAlias()) {
       const dataPath = `${dirname(path)}/data/${uuidv4()}.vhd`
       await createVhdDirectoryFromStream(handler, dataPath, input, {
         concurrency: 16,
