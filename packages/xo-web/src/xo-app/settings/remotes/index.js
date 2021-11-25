@@ -262,9 +262,7 @@ const COLUMNS_S3_REMOTE = [
     ),
   },
   {
-    itemRenderer: remote => {
-      return <Toggle disabled value={remote.allowUnauthorized} />
-    },
+    itemRenderer: remote => <Toggle disabled value={remote.allowUnauthorized} />,
     name: (
       <span>
         {_('remoteS3LabelAllowInsecure')}{' '}
