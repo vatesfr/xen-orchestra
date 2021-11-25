@@ -104,7 +104,7 @@ const INDIVIDUAL_ACTIONS = [
     disabled: ({ power_state }) => power_state !== 'Suspended',
     handler: ({ suspendVDIId }) => exportVdi(getObject(store.getState(), suspendVDIId)),
     icon: 'memory',
-    label: 'Export with memory',
+    label: _('exportSnapshotMemory'),
   },
   {
     collapsed: true,
