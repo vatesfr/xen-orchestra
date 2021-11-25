@@ -99,6 +99,7 @@ module.exports = class Vm {
       // should coalesce
       const children = childrenMap[vdi.uuid]
       if (
+        children !== undefined && // unused unmanaged VDI, will be GC-ed
         children.length === 1 &&
         !children[0].managed && // some SRs do not coalesce the leaf
         tolerance-- <= 0

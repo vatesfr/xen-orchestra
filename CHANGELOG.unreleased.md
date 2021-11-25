@@ -34,9 +34,11 @@
 
 - @vates/async-each minor
 - @xen-orchestra/fs minor
+- @xen-orchestra/xapi patch
 - vhd-lib major
 - @xen-orchestra/backups minor
 - xo-lib patch
+- @xen-orchestra/proxy patch
 - xo-server patch
 - vhd-cli minor
 - xo-web minor
