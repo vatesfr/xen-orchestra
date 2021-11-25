@@ -471,6 +471,7 @@ const TRANSFORMS = {
 
       vm.snapshot_time = toTimestamp(obj.snapshot_time)
       vm.$snapshot_of = link(obj, 'snapshot_of')
+      vm.suspendVDIId = obj.suspend_VDI.startsWith('OpaqueRef:NULL') ? null : $xapi.getObjectByRef(obj.suspend_VDI).$id
     } else if (obj.is_a_template) {
       const defaultTemplate = isDefaultTemplate(obj)
       vm.type += '-template'

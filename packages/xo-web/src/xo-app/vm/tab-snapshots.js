@@ -3,11 +3,12 @@ import copy from 'copy-to-clipboard'
 import Icon from 'icon'
 import React, { Component } from 'react'
 import SortedTable from 'sorted-table'
+import store from 'store'
 import TabButton from 'tab-button'
 import Tooltip from 'tooltip'
 import { connectStore } from 'utils'
 import { Text } from 'editable'
-import { createGetObjectsOfType } from 'selectors'
+import { createGetObjectsOfType, getObject } from 'selectors'
 import { FormattedRelative, FormattedTime } from 'react-intl'
 import { includes, isEmpty } from 'lodash'
 import { Container, Row, Col } from 'grid'
@@ -16,6 +17,7 @@ import {
   copyVm,
   deleteSnapshot,
   deleteSnapshots,
+  exportVdi,
   exportVm,
   editVm,
   revertSnapshot,
@@ -96,6 +98,13 @@ const INDIVIDUAL_ACTIONS = [
     handler: exportVm,
     icon: 'export',
     label: _('exportSnapshot'),
+  },
+  {
+    collapsed: true,
+    disabled: ({ power_state }) => power_state !== 'Suspended',
+    handler: ({ suspendVDIId }) => exportVdi(getObject(store.getState(), suspendVDIId)),
+    icon: 'memory',
+    label: 'Export with memory',
   },
   {
     collapsed: true,
