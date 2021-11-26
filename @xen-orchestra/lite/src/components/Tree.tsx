@@ -100,7 +100,8 @@ const renderItem = ({ children, id, label, to, tooltip }: ItemType) => {
   return (
     <TreeItem
       ContentComponent={CustomContent}
-      // FIXME: when https://github.com/mui-org/material-ui/issues/28668 is fixed
+      // FIXME: ContentProps should only be React.HTMLAttributes<HTMLElement> or undefined, it doesn't support other type.
+      // when https://github.com/mui-org/material-ui/issues/28668 is fixed, remove 'as CustomContentProps'.
       ContentProps={{ to } as CustomContentProps}
       label={tooltip ? <Tooltip title={tooltip}>{label}</Tooltip> : label}
       key={id}
