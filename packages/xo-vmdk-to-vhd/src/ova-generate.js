@@ -1,18 +1,28 @@
 import tar from 'tar-stream'
+import { vhdToVMDK } from './index'
+import fromEvent from 'promise-toolbox/fromEvent'
 
 /**
  *
  * @param vmName
  * @param vmDescription
- * @param disks
+ * @param disks [{name, getStream}]
  * @returns readStream
  */
-export async function createOvaStream({ vmName, vmDescription, disks }) {
+export async function createOvaStream({ vmName, vmDescription='', disks=[] }) {
   const ovf = createOvf(vmName, vmDescription, disks)
   const pack = tar.pack()
-  pack.entry({ name: 'vmName.ovf' }, Buffer.from(ovf, 'utf8'))
+  pack.entry({ name: `${vmName}.ovf` }, Buffer.from(ovf, 'utf8'))
   for (const disk of disks) {
-    pack.entry()
+    console.log('at disk', disk.name)
+    const stream = await vhdToVMDK(disk.name, disk.getStream, true)
+    console.log('after stream', stream.length)
+    const tarStream = pack.entry({name: `${disk.name}.vmdk`, size: stream.length})
+    console.log({ tarStream })
+    const pipe = stream.pipe(tarStream)
+    console.log('after pipe')
+    await fromEvent(pipe, 'finish')
+    console.log('after finish')
   }
   return pack
 }

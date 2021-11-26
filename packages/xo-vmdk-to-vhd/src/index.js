@@ -42,7 +42,11 @@ async function vhdToVMDK(diskName, vhdReadStreamGetter, withLength = false) {
       length += b.length
     }
   }
-  const stream = await asyncIteratorToStream(vhdToVMDKIterator(diskName,await vhdReadStreamGetter()))
+  console.log({ length, withLength })
+  const iterable = await vhdToVMDKIterator(diskName, await vhdReadStreamGetter())
+  console.log('iterable', iterable)
+  const stream = await asyncIteratorToStream(iterable)
+  console.log('after asyncIteratorToStream')
   if (withLength) {
     stream.length = length
   }
