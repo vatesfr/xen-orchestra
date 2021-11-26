@@ -7,9 +7,6 @@ import assert from 'assert'
 import promisify from 'promise-toolbox/promisify'
 import zlib from 'zlib'
 
-const gzip = promisify(zlib.gzip)
-const gunzip = promisify(zlib.gunzip)
-
 const { debug } = createLogger('vhd-lib:VhdDirectory')
 
 // ===================================================================
@@ -71,20 +68,51 @@ export class VhdDirectory extends VhdAbstract {
       value: vhd,
     }
   }
+  static #getCompressor(compressorType = 'none') {
+    const COMPRESSORS = {
+      none: {
+        compress: buffer => buffer,
+        decompress: buffer => buffer,
+        baseOptions: {},
+      },
+      gzip: {
+        compress: promisify(zlib.gzip),
+        decompress: promisify(zlib.gunzip),
+        baseOptions: { level: zlib },
+      },
+      brotli: {
+        compress: promisify(zlib.brotliCompress),
+        decompress: promisify(zlib.brotliDecompress),
+        baseOptions: {
+          params: {
+            [zlib.constants.BROTLI_PARAM_QUALITY]: zlib.constants.BROTLI_MIN_QUALITY,
+          },
+        },
+      },
+    }
+    const compressor = COMPRESSORS[compressorType]
+
+    if (compressor === undefined) {
+      throw new Error(`Compression type ${compressorType} is not supported`)
+    }
+
+    return compressor
+  }
 
   constructor(handler, path, opts) {
     super()
     this._handler = handler
     this._path = path
     this._opts = opts
-    this.#metadata = {
-      compression:
-        opts?.compression === 'gzip'
-          ? {
-              type: 'gzip',
-              options: { level: 1 },
-            }
-          : undefined,
+    const compressor = VhdDirectory.#getCompressor(opts?.compression)
+    this.#metadata = {}
+    if (compressor !== undefined) {
+      this.#metadata = {
+        compression: {
+          type: opts?.compression,
+          options: { ...compressor.baseOptions },
+        },
+      }
     }
   }
 
@@ -117,7 +145,6 @@ export class VhdDirectory extends VhdAbstract {
       'r',
       `Can't write a chunk ${partName} in ${this._path} with read permission`
     )
-    // here we can implement compression and / or crypto
 
     const compressed = await this.#compress(buffer)
     return this._handler.outputFile(this._getChunkPath(partName), compressed, this._opts)
@@ -221,25 +248,15 @@ export class VhdDirectory extends VhdAbstract {
   async #uncompress(buffer) {
     const { compression } = this.#metadata
 
-    if (compression === undefined) {
-      return buffer
-    }
-    if (compression.type === 'gzip') {
-      return await gunzip(buffer)
-    }
-    throw new Error(`Compression type ${compression.type} is not supported`)
+    const compressor = VhdDirectory.#getCompressor(compression?.type)
+    return await compressor.decompress(buffer, compression?.options)
   }
 
   async #compress(buffer) {
     const { compression } = this.#metadata
 
-    if (compression === undefined) {
-      return buffer
-    }
-    if (compression?.type === 'gzip') {
-      return await gzip(buffer, compression.options)
-    }
-    throw new Error(`Compression type ${compression?.type} is not supported`)
+    const compressor = VhdDirectory.#getCompressor(compression?.type)
+    return await compressor.compress(buffer, compression?.options)
   }
 
   async #writeMetadata() {

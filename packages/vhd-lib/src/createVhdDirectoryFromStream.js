@@ -2,8 +2,8 @@ import { parseVhdStream, VhdDirectory } from './'
 import { Disposable } from 'promise-toolbox'
 import { asyncEach } from '@vates/async-each'
 
-const buildVhd = Disposable.wrap(async function* (handler, path, inputStream, { concurrency }) {
-  const vhd = yield VhdDirectory.create(handler, path)
+const buildVhd = Disposable.wrap(async function* (handler, path, inputStream, { concurrency, compression }) {
+  const vhd = yield VhdDirectory.create(handler, path, { compression })
   await asyncEach(
     parseVhdStream(inputStream),
     async function (item) {
@@ -34,9 +34,14 @@ const buildVhd = Disposable.wrap(async function* (handler, path, inputStream, { 
   await Promise.all([vhd.writeFooter(), vhd.writeHeader(), vhd.writeBlockAllocationTable()])
 })
 
-export async function createVhdDirectoryFromStream(handler, path, inputStream, { validator, concurrency = 16 } = {}) {
+export async function createVhdDirectoryFromStream(
+  handler,
+  path,
+  inputStream,
+  { validator, concurrency = 16, compression } = {}
+) {
   try {
-    await buildVhd(handler, path, inputStream, { concurrency })
+    await buildVhd(handler, path, inputStream, { concurrency, compression })
     if (validator !== undefined) {
       await validator.call(this, path)
     }

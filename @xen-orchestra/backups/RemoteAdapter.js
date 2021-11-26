@@ -200,7 +200,7 @@ class RemoteAdapter {
         return false
       }
       // can't merge uncompressed with compressed and recipro
-      return this.getCompressionType() === vhd.getCompressionType()
+      return this.#getCompressionType() === vhd.getCompressionType()
     })
   }
 
@@ -275,16 +275,16 @@ class RemoteAdapter {
     ])
   }
 
-  getCompressionType() {
-    return this.handler.type === 's3' ? 'gzip' : undefined
+  #getCompressionType() {
+    return this.handler.type === 's3' ? 'brotli' : undefined
   }
 
-  useVhdDirectory() {
+  #useVhdDirectory() {
     return this.handler.type === 's3'
   }
 
-  useAlias() {
-    return this.handler.type === 's3'
+  #useAlias() {
+    return this.#useVhdDirectory()
   }
 
   getDisk = Disposable.factory(this.getDisk)
@@ -345,7 +345,7 @@ class RemoteAdapter {
 
   // if we use alias on this remote, we have to name the file alias.vhd
   getVhdFileName(baseName) {
-    if (this.useAlias()) {
+    if (this.#useAlias()) {
       return `${baseName}.alias.vhd`
     }
     return `${baseName}.vhd`
@@ -498,10 +498,11 @@ class RemoteAdapter {
   async writeVhd(path, input, { checksum = true, validator = noop } = {}) {
     const handler = this._handler
 
-    if (this.useAlias()) {
+    if (this.#useVhdDirectory()) {
       const dataPath = `${dirname(path)}/data/${uuidv4()}.vhd`
       await createVhdDirectoryFromStream(handler, dataPath, input, {
         concurrency: 16,
+        compression: this.#getCompressionType(),
         async validator() {
           await input.task
           return validator.apply(this, arguments)
