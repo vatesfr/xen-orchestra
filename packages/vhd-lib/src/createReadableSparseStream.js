@@ -7,7 +7,7 @@ import { createFooter, createHeader } from './_createFooterHeader'
 import {
   BLOCK_UNUSED,
   DEFAULT_BLOCK_SIZE as VHD_BLOCK_SIZE_BYTES,
-  DISK_TYPE_DYNAMIC,
+  DISK_TYPES,
   FOOTER_SIZE,
   HEADER_SIZE,
   SECTOR_SIZE,
@@ -73,7 +73,7 @@ export default async function createReadableStream(diskSize, fragmentSize, fragm
   const firstBlockPosition = batPosition + tablePhysicalSizeBytes
   const geometry = computeGeometryForSize(diskSize)
   const actualSize = geometry.actualSize
-  const footer = createFooter(actualSize, Math.floor(Date.now() / 1000), geometry, FOOTER_SIZE, DISK_TYPE_DYNAMIC)
+  const footer = createFooter(actualSize, Math.floor(Date.now() / 1000), geometry, FOOTER_SIZE, DISK_TYPES.DYNAMIC)
   const header = createHeader(maxTableEntries, batPosition, VHD_BLOCK_SIZE_BYTES)
   const bitmapSize = Math.ceil(VHD_BLOCK_SIZE_SECTORS / 8 / SECTOR_SIZE) * SECTOR_SIZE
   const bat = Buffer.alloc(tablePhysicalSizeBytes, 0xff)

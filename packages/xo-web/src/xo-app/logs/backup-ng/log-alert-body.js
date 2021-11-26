@@ -102,7 +102,12 @@ const TaskError = ({ task }) => {
   const [label, className] =
     task.status === 'skipped' ? [_('taskReason'), 'text-info'] : [_('taskError'), 'text-danger']
 
-  return <div>{_.keyValue(label, <span className={className}>{message}</span>)}</div>
+  return (
+    <div>
+      {_.keyValue(label, <span className={className}>{message}</span>)}
+      {task.result.name === 'XapiError' && <span className='d-block'>{_('logXapiError')}</span>}
+    </div>
+  )
 }
 
 const Warnings = ({ warnings }) =>

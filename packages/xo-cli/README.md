@@ -20,8 +20,11 @@ Installation of the [npm package](https://npmjs.org/package/xo-cli):
 > xo-cli --help
 Usage:
 
-  xo-cli --register [--expiresIn duration] <XO-Server URL> <username> [<password>]
+  xo-cli --register [--allowUnauthorized] [--expiresIn duration] <XO-Server URL> <username> [<password>]
     Registers the XO instance to use.
+
+    --allowUnauthorized, --au
+      Accept invalid certificate (e.g. self-signed).
 
     --expiresIn duration
       Can be used to change the validity duration of the

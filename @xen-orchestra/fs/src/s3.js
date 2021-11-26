@@ -1,6 +1,7 @@
 import aws from '@sullux/aws-sdk'
 import assert from 'assert'
 import http from 'http'
+import https from 'https'
 import { parse } from 'xo-remote-parser'
 
 import RemoteHandlerAbstract from './abstract'
@@ -16,7 +17,7 @@ const IDEAL_FRAGMENT_SIZE = Math.ceil(MAX_OBJECT_SIZE / MAX_PARTS_COUNT) // the 
 export default class S3Handler extends RemoteHandlerAbstract {
   constructor(remote, _opts) {
     super(remote)
-    const { host, path, username, password, protocol, region } = parse(remote.url)
+    const { allowUnauthorized, host, path, username, password, protocol, region } = parse(remote.url)
     const params = {
       accessKeyId: username,
       apiVersion: '2006-03-01',
@@ -31,6 +32,10 @@ export default class S3Handler extends RemoteHandlerAbstract {
     if (protocol === 'http') {
       params.httpOptions.agent = new http.Agent()
       params.sslEnabled = false
+    } else if (protocol === 'https' && allowUnauthorized === true) {
+      params.httpOptions.agent = new https.Agent({
+        rejectUnauthorized: false,
+      })
     }
     if (region !== undefined) {
       params.region = region
@@ -49,6 +54,27 @@ export default class S3Handler extends RemoteHandlerAbstract {
 
   _createParams(file) {
     return { Bucket: this._bucket, Key: this._dir + file }
+  }
+
+  async _copy(oldPath, newPath) {
+    const size = await this._getSize(oldPath)
+    const multipartParams = await this._s3.createMultipartUpload({ ...this._createParams(newPath) })
+    const param2 = { ...multipartParams, CopySource: `/${this._bucket}/${this._dir}${oldPath}` }
+    try {
+      const parts = []
+      let start = 0
+      while (start < size) {
+        const range = `bytes=${start}-${Math.min(start + MAX_PART_SIZE, size) - 1}`
+        const partParams = { ...param2, PartNumber: parts.length + 1, CopySourceRange: range }
+        const upload = await this._s3.uploadPartCopy(partParams)
+        parts.push({ ETag: upload.CopyPartResult.ETag, PartNumber: partParams.PartNumber })
+        start += MAX_PART_SIZE
+      }
+      await this._s3.completeMultipartUpload({ ...multipartParams, MultipartUpload: { Parts: parts } })
+    } catch (e) {
+      await this._s3.abortMultipartUpload(multipartParams)
+      throw e
+    }
   }
 
   async _isNotEmptyDir(path) {
@@ -147,25 +173,9 @@ export default class S3Handler extends RemoteHandlerAbstract {
     // nothing to do, directories do not exist, they are part of the files' path
   }
 
+  // s3 doesn't have a rename operation, so copy + delete source
   async _rename(oldPath, newPath) {
-    const size = await this._getSize(oldPath)
-    const multipartParams = await this._s3.createMultipartUpload({ ...this._createParams(newPath) })
-    const param2 = { ...multipartParams, CopySource: `/${this._bucket}/${this._dir}${oldPath}` }
-    try {
-      const parts = []
-      let start = 0
-      while (start < size) {
-        const range = `bytes=${start}-${Math.min(start + MAX_PART_SIZE, size) - 1}`
-        const partParams = { ...param2, PartNumber: parts.length + 1, CopySourceRange: range }
-        const upload = await this._s3.uploadPartCopy(partParams)
-        parts.push({ ETag: upload.CopyPartResult.ETag, PartNumber: partParams.PartNumber })
-        start += MAX_PART_SIZE
-      }
-      await this._s3.completeMultipartUpload({ ...multipartParams, MultipartUpload: { Parts: parts } })
-    } catch (e) {
-      await this._s3.abortMultipartUpload(multipartParams)
-      throw e
-    }
+    await this.copy(oldPath, newPath)
     await this._s3.deleteObject(this._createParams(oldPath))
   }
 
@@ -183,9 +193,21 @@ export default class S3Handler extends RemoteHandlerAbstract {
     }
     const params = this._createParams(file)
     params.Range = `bytes=${position}-${position + buffer.length - 1}`
-    const result = await this._s3.getObject(params)
-    result.Body.copy(buffer)
-    return { bytesRead: result.Body.length, buffer }
+    try {
+      const result = await this._s3.getObject(params)
+      result.Body.copy(buffer)
+      return { bytesRead: result.Body.length, buffer }
+    } catch (e) {
+      if (e.code === 'NoSuchKey') {
+        if (await this._isNotEmptyDir(file)) {
+          const error = new Error(`${file} is a directory`)
+          error.code = 'EISDIR'
+          error.path = file
+          throw error
+        }
+      }
+      throw e
+    }
   }
 
   async _rmdir(path) {
@@ -197,6 +219,23 @@ export default class S3Handler extends RemoteHandlerAbstract {
     }
 
     // nothing to do, directories do not exist, they are part of the files' path
+  }
+
+  // reimplement _rmTree to handle efficiantly path with more than 1000 entries in trees
+  // @todo : use parallel processing for unlink
+  async _rmTree(path) {
+    let NextContinuationToken
+    do {
+      const result = await this._s3.listObjectsV2({
+        Bucket: this._bucket,
+        Prefix: this._dir + path + '/',
+        ContinuationToken: NextContinuationToken,
+      })
+      NextContinuationToken = result.isTruncated ? null : result.NextContinuationToken
+      for (const path of result.Contents) {
+        await this._unlink(path)
+      }
+    } while (NextContinuationToken !== null)
   }
 
   async _write(file, buffer, position) {

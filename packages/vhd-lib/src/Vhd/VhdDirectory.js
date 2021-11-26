@@ -1,4 +1,4 @@
-import { buildHeader, buildFooter } from './_utils'
+import { unpackHeader, unpackFooter, sectorsToBytes } from './_utils'
 import { createLogger } from '@xen-orchestra/log'
 import { fuFooter, fuHeader, checksumStruct } from '../_structs'
 import { test, set as setBitmap } from '../_bitmap'
@@ -39,8 +39,8 @@ export class VhdDirectory extends VhdAbstract {
     this.#uncheckedBlockTable = blockTable
   }
 
-  static async open(handler, path) {
-    const vhd = new VhdDirectory(handler, path)
+  static async open(handler, path, { flags = 'r+' } = {}) {
+    const vhd = new VhdDirectory(handler, path, { flags })
 
     // openning a file for reading does not trigger EISDIR as long as we don't really read from it :
     // https://man7.org/linux/man-pages/man2/open.2.html
@@ -54,19 +54,20 @@ export class VhdDirectory extends VhdAbstract {
     }
   }
 
-  static async create(handler, path) {
+  static async create(handler, path, { flags = 'wx+' } = {}) {
     await handler.mkdir(path)
-    const vhd = new VhdDirectory(handler, path)
+    const vhd = new VhdDirectory(handler, path, { flags })
     return {
       dispose: () => {},
       value: vhd,
     }
   }
 
-  constructor(handler, path) {
+  constructor(handler, path, opts) {
     super()
     this._handler = handler
     this._path = path
+    this._opts = opts
   }
 
   async readBlockAllocationTable() {
@@ -78,13 +79,13 @@ export class VhdDirectory extends VhdAbstract {
     return test(this.#blockTable, blockId)
   }
 
-  getChunkPath(partName) {
+  _getChunkPath(partName) {
     return this._path + '/' + partName
   }
 
   async _readChunk(partName) {
     // here we can implement compression and / or crypto
-    const buffer = await this._handler.readFile(this.getChunkPath(partName))
+    const buffer = await this._handler.readFile(this._getChunkPath(partName))
 
     return {
       buffer: Buffer.from(buffer),
@@ -92,10 +93,14 @@ export class VhdDirectory extends VhdAbstract {
   }
 
   async _writeChunk(partName, buffer) {
-    assert(Buffer.isBuffer(buffer))
+    assert.notStrictEqual(
+      this._opts?.flags,
+      'r',
+      `Can't write a chunk ${partName} in ${this._path} with read permission`
+    )
     // here we can implement compression and / or crypto
 
-    // chunks can be in sub directories :  create direcotries if necessary
+    // chunks can be in sub directories :  create directories if necessary
     const pathParts = partName.split('/')
     let currentPath = this._path
 
@@ -104,8 +109,7 @@ export class VhdDirectory extends VhdAbstract {
       currentPath += '/' + pathParts[i]
       await this._handler.mkdir(currentPath)
     }
-
-    return this._handler.writeFile(this.getChunkPath(partName), buffer)
+    return this._handler.writeFile(this._getChunkPath(partName), buffer, this._opts)
   }
 
   // put block in subdirectories to limit impact when doing directory listing
@@ -118,8 +122,8 @@ export class VhdDirectory extends VhdAbstract {
   async readHeaderAndFooter() {
     const { buffer: bufHeader } = await this._readChunk('header')
     const { buffer: bufFooter } = await this._readChunk('footer')
-    const footer = buildFooter(bufFooter)
-    const header = buildHeader(bufHeader, footer)
+    const footer = unpackFooter(bufFooter)
+    const header = unpackHeader(bufHeader, footer)
 
     this.footer = footer
     this.header = header
@@ -167,11 +171,18 @@ export class VhdDirectory extends VhdAbstract {
     return this._writeChunk('bat', this.#blockTable)
   }
 
-  // only works if data are in the same bucket
+  // only works if data are in the same handler
   // and if the full block is modified in child ( which is the case whit xcp)
 
-  coalesceBlock(child, blockId) {
-    this._handler.copy(child.getChunkPath(blockId), this.getChunkPath(blockId))
+  async coalesceBlock(child, blockId) {
+    if (!(child instanceof VhdDirectory) || this._handler !== child._handler) {
+      return super.coalesceBlock(child, blockId)
+    }
+    await this._handler.copy(
+      child._getChunkPath(child._getBlockPath(blockId)),
+      this._getChunkPath(this._getBlockPath(blockId))
+    )
+    return sectorsToBytes(this.sectorsPerBlock)
   }
 
   async writeEntireBlock(block) {

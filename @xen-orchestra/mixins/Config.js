@@ -13,7 +13,7 @@ module.exports = class Config {
     const watchers = (this._watchers = new Set())
 
     app.hooks.on('start', async () => {
-      app.hooks.on(
+      app.hooks.once(
         'stop',
         await watch({ appDir, appName, ignoreUnknownFormats: true }, (error, config) => {
           if (error != null) {

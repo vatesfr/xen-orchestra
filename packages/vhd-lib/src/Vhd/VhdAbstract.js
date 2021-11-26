@@ -1,26 +1,38 @@
-import { computeBatSize, sectorsRoundUpNoZero, sectorsToBytes } from './_utils'
-import { PLATFORM_NONE, SECTOR_SIZE, PLATFORM_W2KU, PARENT_LOCATOR_ENTRIES } from '../_constants'
+import { computeBatSize, computeSectorOfBitmap, computeSectorsPerBlock, sectorsToBytes } from './_utils'
+import { PLATFORMS, SECTOR_SIZE, PARENT_LOCATOR_ENTRIES, FOOTER_SIZE, HEADER_SIZE, BLOCK_UNUSED } from '../_constants'
 import assert from 'assert'
+import path from 'path'
+import asyncIteratorToStream from 'async-iterator-to-stream'
+import { checksumStruct, fuFooter, fuHeader } from '../_structs'
+import { isVhdAlias, resolveAlias } from '../_resolveAlias'
 
 export class VhdAbstract {
   #header
-  bitmapSize
   footer
-  fullBlockSize
-  sectorsOfBitmap
-  sectorsPerBlock
+
+  get bitmapSize() {
+    return sectorsToBytes(this.sectorsOfBitmap)
+  }
+
+  get fullBlockSize() {
+    return sectorsToBytes(this.sectorsOfBitmap + this.sectorsPerBlock)
+  }
 
   get header() {
     assert.notStrictEqual(this.#header, undefined, `header must be read before it's used`)
     return this.#header
   }
 
+  get sectorsOfBitmap() {
+    return computeSectorOfBitmap(this.header.blockSize)
+  }
+
+  get sectorsPerBlock() {
+    return computeSectorsPerBlock(this.header.blockSize)
+  }
+
   set header(header) {
     this.#header = header
-    this.sectorsPerBlock = header.blockSize / SECTOR_SIZE
-    this.sectorsOfBitmap = sectorsRoundUpNoZero(this.sectorsPerBlock >> 3)
-    this.fullBlockSize = sectorsToBytes(this.sectorsOfBitmap + this.sectorsPerBlock)
-    this.bitmapSize = sectorsToBytes(this.sectorsOfBitmap)
   }
 
   /**
@@ -80,8 +92,10 @@ export class VhdAbstract {
    *
    * @returns {number} the merged data size
    */
-  coalesceBlock(child, blockId) {
-    throw new Error(`coalescing the block ${blockId} from ${child} is not implemented`)
+  async coalesceBlock(child, blockId) {
+    const block = await child.readBlock(blockId)
+    await this.writeEntireBlock(block)
+    return block.data.length
   }
 
   /**
@@ -114,7 +128,7 @@ export class VhdAbstract {
     return computeBatSize(this.header.maxTableEntries)
   }
 
-  async writeParentLocator({ id, platformCode = PLATFORM_NONE, data = Buffer.alloc(0) }) {
+  async writeParentLocator({ id, platformCode = PLATFORMS.NONE, data = Buffer.alloc(0) }) {
     assert(id >= 0, 'parent Locator id must be a positive number')
     assert(id < PARENT_LOCATOR_ENTRIES, `parent Locator id  must be less than ${PARENT_LOCATOR_ENTRIES}`)
 
@@ -143,14 +157,14 @@ export class VhdAbstract {
   async setUniqueParentLocator(fileNameString) {
     await this.writeParentLocator({
       id: 0,
-      code: PLATFORM_W2KU,
+      platformCode: PLATFORMS.W2KU,
       data: Buffer.from(fileNameString, 'utf16le'),
     })
 
     for (let i = 1; i < PARENT_LOCATOR_ENTRIES; i++) {
       await this.writeParentLocator({
         id: i,
-        code: PLATFORM_NONE,
+        platformCode: PLATFORMS.NONE,
         data: Buffer.alloc(0),
       })
     }
@@ -163,5 +177,139 @@ export class VhdAbstract {
         yield await this.readBlock(blockId)
       }
     }
+  }
+
+  static async rename(handler, sourcePath, targetPath) {
+    try {
+      // delete target if it already exists
+      await VhdAbstract.unlink(handler, targetPath)
+    } catch (e) {}
+    await handler.rename(sourcePath, targetPath)
+  }
+
+  static async unlink(handler, path) {
+    const resolved = await resolveAlias(handler, path)
+    try {
+      await handler.unlink(resolved)
+    } catch (err) {
+      if (err.code === 'EISDIR') {
+        await handler.rmtree(resolved)
+      } else {
+        throw err
+      }
+    }
+
+    // also delete the alias file
+    if (path !== resolved) {
+      await handler.unlink(path)
+    }
+  }
+
+  static async createAlias(handler, aliasPath, targetPath) {
+    if (!isVhdAlias(aliasPath)) {
+      throw new Error(`Alias must be named *.alias.vhd,  ${aliasPath} given`)
+    }
+    if (isVhdAlias(targetPath)) {
+      throw new Error(`Chaining alias is forbidden ${aliasPath} to ${targetPath}`)
+    }
+    // aliasPath and targetPath are absolute path from the root of the handler
+    // normalize them so they can't  escape this dir
+    const aliasDir = path.dirname(path.resolve('/', aliasPath))
+    // only store the relative path from alias to target
+    const relativePathToTarget = path.relative(aliasDir, path.resolve('/', targetPath))
+    await handler.writeFile(aliasPath, relativePathToTarget)
+  }
+
+  stream() {
+    const { footer, batSize } = this
+    const { ...header } = this.header // copy since we don't ant to modifiy the current header
+    const rawFooter = fuFooter.pack(footer)
+    checksumStruct(rawFooter, fuFooter)
+
+    // compute parent locator place and size
+    // update them in header
+    // update checksum in header
+
+    let offset = FOOTER_SIZE + HEADER_SIZE + batSize
+    for (let i = 0; i < PARENT_LOCATOR_ENTRIES; i++) {
+      const { ...entry } = header.parentLocatorEntry[i]
+      if (entry.platformDataSpace > 0) {
+        entry.platformDataOffset = offset
+        offset += entry.platformDataSpace
+      }
+      header.parentLocatorEntry[i] = entry
+    }
+
+    const rawHeader = fuHeader.pack(header)
+    checksumStruct(rawHeader, fuHeader)
+
+    assert.strictEqual(offset % SECTOR_SIZE, 0)
+
+    const bat = Buffer.allocUnsafe(batSize)
+    let offsetSector = offset / SECTOR_SIZE
+    const blockSizeInSectors = this.fullBlockSize / SECTOR_SIZE
+    let fileSize = offsetSector * SECTOR_SIZE + FOOTER_SIZE /* the footer at the end */
+    // compute BAT , blocks starts after parent locator entries
+    for (let i = 0; i < header.maxTableEntries; i++) {
+      if (this.containsBlock(i)) {
+        bat.writeUInt32BE(offsetSector, i * 4)
+        offsetSector += blockSizeInSectors
+        fileSize += this.fullBlockSize
+      } else {
+        bat.writeUInt32BE(BLOCK_UNUSED, i * 4)
+      }
+    }
+
+    const self = this
+    async function* iterator() {
+      yield rawFooter
+      yield rawHeader
+      yield bat
+
+      // yield parent locator entries
+      for (let i = 0; i < PARENT_LOCATOR_ENTRIES; i++) {
+        if (header.parentLocatorEntry[i].platformDataSpace > 0) {
+          const parentLocator = await self.readParentLocator(i)
+          // @ todo pad to platformDataSpace
+          yield parentLocator.data
+        }
+      }
+
+      // yield all blocks
+      // since contains() can be costly for synthetic vhd, use the computed bat
+      for (let i = 0; i < header.maxTableEntries; i++) {
+        if (bat.readUInt32BE(i * 4) !== BLOCK_UNUSED) {
+          const block = await self.readBlock(i)
+          yield block.buffer
+        }
+      }
+      // yield footer again
+      yield rawFooter
+    }
+
+    const stream = asyncIteratorToStream(iterator())
+    stream.length = fileSize
+    return stream
+  }
+
+  rawContent() {
+    const { header, footer } = this
+    const { blockSize } = header
+    const self = this
+    async function* iterator() {
+      const nBlocks = header.maxTableEntries
+      let remainingSize = footer.currentSize
+      const EMPTY = Buffer.alloc(blockSize, 0)
+      for (let blockId = 0; blockId < nBlocks; ++blockId) {
+        let buffer = self.containsBlock(blockId) ? (await self.readBlock(blockId)).data : EMPTY
+        // the last block can be truncated since raw size is not a multiple of blockSize
+        buffer = remainingSize < blockSize ? buffer.slice(0, remainingSize) : buffer
+        remainingSize -= blockSize
+        yield buffer
+      }
+    }
+    const stream = asyncIteratorToStream(iterator())
+    stream.length = footer.currentSize
+    return stream
   }
 }

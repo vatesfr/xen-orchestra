@@ -1,0 +1,35 @@
+### `asyncEach(iterable, iteratee, [opts])`
+
+Executes `iteratee` in order for each value yielded by `iterable`.
+
+Returns a promise wich rejects as soon as a call to `iteratee` throws or a promise returned by it rejects, and which resolves when all promises returned by `iteratee` have resolved.
+
+`iterable` must be an iterable or async iterable.
+
+`iteratee` is called with the same `this` value as `asyncEach`, and with the following arguments:
+
+- `value`: the value yielded by `iterable`
+- `index`: the 0-based index for this value
+- `iterable`: the iterable itself
+
+`opts` is an object that can contains the following options:
+
+- `concurrency`: a number which indicates the maximum number of parallel call to `iteratee`, defaults to `1`
+- `signal`: an abort signal to stop the iteration
+- `stopOnError`: wether to stop iteration of first error, or wait for all calls to finish and throw an `AggregateError`, defaults to `true`
+
+```js
+import { asyncEach } from '@vates/async-each'
+
+const contents = []
+await asyncEach(
+  ['foo.txt', 'bar.txt', 'baz.txt'],
+  async function (filename, i) {
+    contents[i] = await readFile(filename)
+  },
+  {
+    // reads two files at a time
+    concurrency: 2,
+  }
+)
+```

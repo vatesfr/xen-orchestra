@@ -7,6 +7,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [Backup/logs] identify XAPI errors (PR [#6001](https://github.com/vatesfr/xen-orchestra/pull/6001))
+- [S3] Ability to authorize self signed certificates for S3 remote (PR [#5961](https://github.com/vatesfr/xen-orchestra/pull/5961))
 - [Cloud config] Ability to create a network cloud config template and reuse it in the VM creation [#5931](https://github.com/vatesfr/xen-orchestra/issues/5931) (PR [#5979](https://github.com/vatesfr/xen-orchestra/pull/5979))
 
 ### Bug fixes
@@ -32,5 +34,14 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
-- xo-web minor
+- @vates/async-each minor
+- xo-remote-parser minor
+- @xen-orchestra/fs minor
+- @xen-orchestra/xapi patch
+- vhd-lib major
+- @xen-orchestra/backups minor
+- xo-lib patch
+- @xen-orchestra/proxy patch
 - xo-server minor
+- vhd-cli minor
+- xo-web minor

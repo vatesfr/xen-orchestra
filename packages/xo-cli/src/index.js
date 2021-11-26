@@ -14,6 +14,7 @@ const chalk = require('chalk')
 const forEach = require('lodash/forEach')
 const fromCallback = require('promise-toolbox/fromCallback')
 const getKeys = require('lodash/keys')
+const getopts = require('getopts')
 const hrp = require('http-request-plus')
 const humanFormat = require('human-format')
 const identity = require('lodash/identity')
@@ -35,7 +36,7 @@ const config = require('./config')
 // ===================================================================
 
 async function connect() {
-  const { server, token } = await config.load()
+  const { allowUnauthorized, server, token } = await config.load()
   if (server === undefined) {
     throw new Error('no server to connect to!')
   }
@@ -44,7 +45,7 @@ async function connect() {
     throw new Error('no token available')
   }
 
-  const xo = new Xo({ url: server })
+  const xo = new Xo({ rejectUnauthorized: !allowUnauthorized, url: server })
   await xo.open()
   await xo.signIn({ token })
   return xo
@@ -150,8 +151,11 @@ const help = wrap(
       `
     Usage:
 
-      $name --register [--expiresIn duration] <XO-Server URL> <username> [<password>]
+      $name --register [--allowUnauthorized] [--expiresIn duration] <XO-Server URL> <username> [<password>]
         Registers the XO instance to use.
+
+        --allowUnauthorized, --au
+          Accept invalid certificate (e.g. self-signed).
 
         --expiresIn duration
           Can be used to change the validity duration of the
@@ -231,29 +235,35 @@ exports = module.exports = main
 exports.help = help
 
 async function register(args) {
-  let expiresIn
-  if (args[0] === '--expiresIn') {
-    expiresIn = args[1]
-    args = args.slice(2)
-  }
+  const {
+    allowUnauthorized,
+    expiresIn,
+    _: [
+      url,
+      email,
+      password = await new Promise(function (resolve) {
+        process.stdout.write('Password: ')
+        pw(resolve)
+      }),
+    ],
+  } = getopts(args, {
+    alias: {
+      allowUnauthorized: 'au',
+    },
+    boolean: ['allowUnauthorized'],
+    stopEarly: true,
+    string: ['expiresIn'],
+  })
 
-  const [
-    url,
-    email,
-    password = await new Promise(function (resolve) {
-      process.stdout.write('Password: ')
-      pw(resolve)
-    }),
-  ] = args
-
-  const xo = new Xo({ url })
+  const xo = new Xo({ rejectUnauthorized: !allowUnauthorized, url })
   await xo.open()
   await xo.signIn({ email, password })
   console.log('Successfully logged with', xo.user.email)
 
   await config.set({
+    allowUnauthorized,
     server: url,
-    token: await xo.call('token.create', { expiresIn }),
+    token: await xo.call('token.create', { expiresIn: expiresIn === '' ? undefined : expiresIn }),
   })
 }
 exports.register = register

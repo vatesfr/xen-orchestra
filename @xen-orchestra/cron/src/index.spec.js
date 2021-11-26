@@ -2,6 +2,8 @@
 
 import { createSchedule } from './'
 
+jest.useFakeTimers()
+
 const wrap = value => () => value
 
 describe('issues', () => {

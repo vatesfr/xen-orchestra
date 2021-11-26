@@ -27,6 +27,7 @@ If applicable, add screenshots to help explain your problem.
  - Node: [e.g. 16.12.1]
  - xo-server: [e.g. 5.82.3]
  - xo-web: [e.g. 5.87.0]
+ - hypervisor: [e.g. XCP-ng 8.2.0]
 
 **Additional context**
 Add any other context about the problem here.

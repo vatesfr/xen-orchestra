@@ -1,15 +1,8 @@
-import {
-  BLOCK_UNUSED,
-  FOOTER_SIZE,
-  HEADER_SIZE,
-  PLATFORM_NONE,
-  SECTOR_SIZE,
-  PARENT_LOCATOR_ENTRIES,
-} from '../_constants'
-import { computeBatSize, sectorsToBytes, buildHeader, buildFooter, BUF_BLOCK_UNUSED } from './_utils'
+import { BLOCK_UNUSED, FOOTER_SIZE, HEADER_SIZE, PLATFORMS, SECTOR_SIZE, PARENT_LOCATOR_ENTRIES } from '../_constants'
+import { computeBatSize, sectorsToBytes, unpackHeader, unpackFooter, BUF_BLOCK_UNUSED } from './_utils'
 import { createLogger } from '@xen-orchestra/log'
 import { fuFooter, fuHeader, checksumStruct } from '../_structs'
-import { set as mapSetBit, test as mapTestBit } from '../_bitmap'
+import { set as mapSetBit } from '../_bitmap'
 import { VhdAbstract } from './VhdAbstract'
 import assert from 'assert'
 import getFirstAndLastBlocks from '../_getFirstAndLastBlocks'
@@ -78,23 +71,23 @@ export class VhdFile extends VhdAbstract {
     return super.header
   }
 
-  static async open(handler, path) {
-    const fd = await handler.openFile(path, 'r+')
+  static async open(handler, path, { flags, checkSecondFooter = true } = {}) {
+    const fd = await handler.openFile(path, flags ?? 'r+')
     const vhd = new VhdFile(handler, fd)
     // openning a file for reading does not trigger EISDIR as long as we don't really read from it :
     // https://man7.org/linux/man-pages/man2/open.2.html
     // EISDIR pathname refers to a directory and the access requested
     // involved writing (that is, O_WRONLY or O_RDWR is set).
     // reading the header ensure we have a well formed file immediatly
-    await vhd.readHeaderAndFooter()
+    await vhd.readHeaderAndFooter(checkSecondFooter)
     return {
       dispose: () => handler.closeFile(fd),
       value: vhd,
     }
   }
 
-  static async create(handler, path) {
-    const fd = await handler.openFile(path, 'wx')
+  static async create(handler, path, { flags } = {}) {
+    const fd = await handler.openFile(path, flags ?? 'wx')
     const vhd = new VhdFile(handler, fd)
     return {
       dispose: () => handler.closeFile(fd),
@@ -129,7 +122,7 @@ export class VhdFile extends VhdAbstract {
     for (let i = 0; i < PARENT_LOCATOR_ENTRIES; i++) {
       const entry = header.parentLocatorEntry[i]
 
-      if (entry.platformCode !== PLATFORM_NONE) {
+      if (entry.platformCode !== PLATFORMS.NONE) {
         end = Math.max(end, entry.platformDataOffset + sectorsToBytes(entry.platformDataSpace))
       }
     }
@@ -177,8 +170,8 @@ export class VhdFile extends VhdAbstract {
     const bufFooter = buf.slice(0, FOOTER_SIZE)
     const bufHeader = buf.slice(FOOTER_SIZE)
 
-    const footer = buildFooter(bufFooter)
-    const header = buildHeader(bufHeader, footer)
+    const footer = unpackFooter(bufFooter)
+    const header = unpackHeader(bufHeader, footer)
 
     if (checkSecondFooter) {
       const size = await this._handler.getSize(this._path)
@@ -343,47 +336,6 @@ export class VhdFile extends VhdAbstract {
     )
   }
 
-  async coalesceBlock(child, blockId) {
-    const block = await child.readBlock(blockId)
-    const { bitmap, data } = block
-
-    debug(`coalesceBlock block=${blockId}`)
-
-    // For each sector of block data...
-    const { sectorsPerBlock } = child
-    let parentBitmap = null
-    for (let i = 0; i < sectorsPerBlock; i++) {
-      // If no changes on one sector, skip.
-      if (!mapTestBit(bitmap, i)) {
-        continue
-      }
-      let endSector = i + 1
-
-      // Count changed sectors.
-      while (endSector < sectorsPerBlock && mapTestBit(bitmap, endSector)) {
-        ++endSector
-      }
-
-      // Write n sectors into parent.
-      debug(`coalesceBlock: write sectors=${i}...${endSector}`)
-
-      const isFullBlock = i === 0 && endSector === sectorsPerBlock
-      if (isFullBlock) {
-        await this.writeEntireBlock(block)
-      } else {
-        if (parentBitmap === null) {
-          parentBitmap = (await this.readBlock(blockId, true)).bitmap
-        }
-        await this._writeBlockSectors(block, i, endSector, parentBitmap)
-      }
-
-      i = endSector
-    }
-
-    // Return the merged data size
-    return data.length
-  }
-
   // Write a context footer. (At the end and beginning of a vhd file.)
   async writeFooter(onlyEndFooter = false) {
     const { footer } = this
@@ -478,11 +430,27 @@ export class VhdFile extends VhdAbstract {
         // new parent locator length is smaller than available space : keep it in place
         position = header.parentLocatorEntry[parentLocatorId].platformDataOffset
       } else {
-        // new parent locator length is bigger than available space : move it to the end
-        position = this._getEndOfData()
+        const firstAndLastBlocks = getFirstAndLastBlocks(this.#blockTable)
+        if (firstAndLastBlocks === undefined) {
+          // no block in data : put the parent locatorn entry at the end
+          position = this._getEndOfData()
+        } else {
+          // need more size
+
+          // since there can be multiple parent locator entry, we can't extend the entry in place
+          // move the first(s) block(s) at the end of the data
+          // move the parent locator to the  precedent position of the first block
+          const { firstSector } = firstAndLastBlocks
+          await this._freeFirstBlockSpace(header.parentLocatorEntry[parentLocatorId].platformDataSpace)
+          position = sectorsToBytes(firstSector)
+        }
       }
       await this._write(data, position)
       header.parentLocatorEntry[parentLocatorId].platformDataOffset = position
     }
+  }
+
+  async getSize() {
+    return await this._handler.getSize(this._path)
   }
 }

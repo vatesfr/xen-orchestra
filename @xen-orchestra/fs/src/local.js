@@ -33,6 +33,10 @@ export default class LocalHandler extends RemoteHandlerAbstract {
     return fs.close(fd)
   }
 
+  async _copy(oldPath, newPath) {
+    return fs.copy(this._getFilePath(oldPath), this._getFilePath(newPath))
+  }
+
   async _createReadStream(file, options) {
     if (typeof file === 'string') {
       const stream = fs.createReadStream(this._getFilePath(file), options)

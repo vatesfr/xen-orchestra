@@ -250,6 +250,14 @@ const COLUMNS_SMB_REMOTE = [
 const COLUMNS_S3_REMOTE = [
   COLUMN_NAME,
   {
+    itemRenderer: remote => remote.protocol === 'https' && <Icon icon='success' />,
+    name: <span>{_('remoteS3LabelUseHttps')} </span>,
+  },
+  {
+    itemRenderer: remote => remote.allowUnauthorized && <Icon icon='success' />,
+    name: <span>{_('remoteS3LabelAllowInsecure')} </span>,
+  },
+  {
     itemRenderer: (remote, { formatMessage }) => (
       <Text
         data-element='host'
