@@ -1,6 +1,6 @@
 import React from 'react'
-import { withState } from 'reaclette'
 import LoadingButton, { LoadingButtonProps } from '@mui/lab/LoadingButton'
+import { withState } from 'reaclette'
 
 interface ParentState {}
 
@@ -9,7 +9,7 @@ interface State {
 }
 
 interface Props extends LoadingButtonProps {
-  onClick: (e: unknown) => Promise<void>
+  onClick: (e: React.MouseEvent) => Promise<void>
 }
 
 interface ParentEffects {}
