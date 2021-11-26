@@ -62,8 +62,8 @@ const initialParams = {
   cloudConfigToEditId: undefined,
   name: '',
   networkConfigToEditId: undefined,
-  networkName: '',
-  networkTemplate: undefined,
+  networkConfigName: '',
+  networkConfigTemplate: undefined,
   template: undefined,
 }
 
@@ -90,8 +90,8 @@ export default decorate([
       resetNetworkForm: () => state => ({
         ...state,
         networkConfigToEditId: initialParams.networkConfigToEditId,
-        networkName: initialParams.networkName,
-        networkTemplate: initialParams.networkTemplate,
+        networkConfigName: initialParams.networkConfigName,
+        networkConfigTemplate: initialParams.networkConfigTemplate,
       }),
       createCloudConfig:
         ({ reset }) =>
@@ -101,8 +101,8 @@ export default decorate([
         },
       createNetworkConfig:
         ({ resetNetworkForm }) =>
-        async ({ networkName, networkTemplate = DEFAULT_NETWORK_CONFIG_TEMPLATE }) => {
-          await createNetworkConfig({ name: networkName, template: networkTemplate })
+        async ({ networkConfigName, networkConfigTemplate = DEFAULT_NETWORK_CONFIG_TEMPLATE }) => {
+          await createNetworkConfig({ name: networkConfigName, template: networkConfigTemplate })
           resetNetworkForm()
         },
       editCloudConfig:
@@ -115,21 +115,21 @@ export default decorate([
           reset()
         },
       editNetworkConfig:
-        ({ reset }) =>
-        async ({ networkName, networkTemplate, networkConfigToEditId }, { networkConfigs }) => {
+        ({ resetNetworkForm }) =>
+        async ({ networkConfigName, networkConfigTemplate, networkConfigToEditId }, { networkConfigs }) => {
           const oldNetworkConfig = find(networkConfigs, { id: networkConfigToEditId })
-          if (oldNetworkConfig.name !== networkName || oldNetworkConfig.template !== networkTemplate) {
-            await editNetworkConfig(networkConfigToEditId, { name: networkName, template: networkTemplate })
+          if (oldNetworkConfig.name !== networkConfigName || oldNetworkConfig.template !== networkConfigTemplate) {
+            await editNetworkConfig(networkConfigToEditId, { name: networkConfigName, template: networkConfigTemplate })
           }
-          reset()
+          resetNetworkForm()
         },
       populateNetworkForm:
         (_, { id, name, template }) =>
         state => ({
           ...state,
-          networkName: name,
+          networkConfigName: name,
           networkConfigToEditId: id,
-          networkTemplate: template,
+          networkConfigTemplate: template,
         }),
       populateForm:
         (_, { id, name, template }) =>
@@ -146,7 +146,8 @@ export default decorate([
       inputTemplateId: generateId,
       isInvalid: ({ name, template }) => name.trim() === '' || (template !== undefined && template.trim() === ''),
       isNetworkInvalid: props =>
-        props.networkName.trim() === '' || (props.networkTemplate !== undefined && props.networkTemplate.trim() === ''),
+        props.networkConfigName.trim() === '' ||
+        (props.networkConfigTemplate !== undefined && props.networkConfigTemplate.trim() === ''),
     },
   }),
   injectState,
@@ -230,10 +231,10 @@ export default decorate([
               </label>
               <input
                 className='form-control'
-                name='networkName'
+                name='networkConfigName'
                 onChange={effects.setInputValue}
                 type='text'
-                value={state.networkName}
+                value={state.networkConfigName}
               />
             </div>
             <div className='form-group'>
@@ -243,10 +244,10 @@ export default decorate([
               <DebounceTextarea
                 className='form-control text-monospace'
                 id={state.inputTemplateId}
-                name='networkTemplate'
+                name='networkConfigTemplate'
                 onChange={effects.setInputValue}
                 rows={12}
-                value={defined(state.networkTemplate, DEFAULT_NETWORK_CONFIG_TEMPLATE)}
+                value={defined(state.networkConfigTemplate, DEFAULT_NETWORK_CONFIG_TEMPLATE)}
               />
             </div>
             {state.networkConfigToEditId !== undefined ? (
