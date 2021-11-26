@@ -357,6 +357,7 @@ const messages = {
   fillOptionalInformations: 'Fill information (optional)',
   selectTableReset: 'Reset',
   selectCloudConfigs: 'Select cloud config(s)…',
+  selectNetworkConfigs: 'Select network config(s)…',
 
   // --- Dates/Scheduler ---
 
@@ -2125,9 +2126,14 @@ const messages = {
   confirmDeleteCloudConfigsTitle: 'Delete cloud config{nCloudConfigs, plural, one {} other {s}}',
   confirmDeleteCloudConfigsBody:
     'Are you sure you want to delete {nCloudConfigs, number} cloud config{nCloudConfigs, plural, one {} other {s}}?',
+  confirmDeleteNetworkConfigsTitle: 'Delete network config{nNetworkConfigs, plural, one {} other {s}}',
+  confirmDeleteNetworkConfigsBody:
+    'Are you sure you want to delete {nNetworkConfigs, number} network config{nNetworkConfigs, plural, one {} other {s}}?',
   deleteCloudConfig: 'Delete cloud config',
   editCloudConfig: 'Edit cloud config',
   deleteSelectedCloudConfigs: 'Delete selected cloud configs',
+  networkConfig: 'Network config',
+  cloudConfig: 'Cloud config',
 
   // ----- Config -----
   noConfigFile: 'No config file selected',
