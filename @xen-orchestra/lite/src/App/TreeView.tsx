@@ -95,7 +95,7 @@ const TreeView = withState<State, Props, Effects, Computed, ParentState, ParentE
             .toArray()
 
           collection.push({
-            children: hosts?.concat(haltedVms ?? []) ?? hosts ?? haltedVms,
+            children: (hosts ?? []).concat(haltedVms ?? []),
             id: pool.$id,
             label: (
               <span>
@@ -107,7 +107,6 @@ const TreeView = withState<State, Props, Effects, Computed, ParentState, ParentE
 
         return collection
       },
-
       hostsByPool: state => state.objectsByType?.get('host')?.groupBy(host => host.$pool.$id),
       pools: state => state.objectsByType?.get('pool'),
       vms: state =>
@@ -115,8 +114,8 @@ const TreeView = withState<State, Props, Effects, Computed, ParentState, ParentE
           ?.get('VM')
           ?.filter((vm: Vm) => !vm.is_control_domain && !vm.is_a_snapshot && !vm.is_a_template),
       vmsByContainerRef: state =>
-        state.vms?.groupBy(({ power_state: powerState, ...props }: Vm) =>
-          powerState === 'Running' || powerState === 'Paused' ? props.resident_on : props.$pool.$ref
+        state.vms?.groupBy(({ power_state: powerState, resident_on: host, $pool }: Vm) =>
+          powerState === 'Running' || powerState === 'Paused' ? host : $pool.$ref
         ),
     },
   },
