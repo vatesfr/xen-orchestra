@@ -30,11 +30,12 @@ export default class S3Handler extends RemoteHandlerAbstract {
       },
     }
     if (protocol === 'http') {
-      params.httpOptions.agent = new http.Agent()
+      params.httpOptions.agent = new http.Agent({ keepAlive: true })
       params.sslEnabled = false
-    } else if (protocol === 'https' && allowUnauthorized === true) {
+    } else if (protocol === 'https') {
       params.httpOptions.agent = new https.Agent({
-        rejectUnauthorized: false,
+        rejectUnauthorized: !allowUnauthorized,
+        keepAlive: true,
       })
     }
     if (region !== undefined) {
