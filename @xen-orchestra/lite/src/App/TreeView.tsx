@@ -35,10 +35,7 @@ const getHostPowerState = (host: Host) => {
 }
 
 const getIconColor = (obj: Host | Vm) => {
-  let powerState = obj.power_state
-  if (obj as Host) {
-    powerState = getHostPowerState(obj as Host)
-  }
+  const powerState = obj.power_state ?? getHostPowerState(obj as Host)
   return powerState === 'Running' ? '#198754' : powerState === 'Halted' ? '#dc3545' : '#6c757d'
 }
 
