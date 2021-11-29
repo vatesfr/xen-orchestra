@@ -11,6 +11,7 @@ addons:
       - qemu-utils
       - blktap-utils
       - vmdk-stream-converter
+      - libxml2-utils
 
 before_install:
   - curl -o- -L https://yarnpkg.com/install.sh | bash

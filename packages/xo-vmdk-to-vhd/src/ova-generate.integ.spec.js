@@ -1,7 +1,8 @@
 /* eslint-env jest */
-
-import { createReadStream, createWriteStream } from 'fs-extra'
+import { validateXMLWithXSD } from 'validate-with-xmllint'
+import { createReadStream, createWriteStream, readFile } from 'fs-extra'
 import execa from 'execa'
+import path from 'path'
 import { pFromCallback, fromEvent } from 'promise-toolbox'
 import tmp from 'tmp'
 import rimraf from 'rimraf'
@@ -40,21 +41,27 @@ test('An ova file is generated correctly', async () => {
     const pipe = await writeOvaOn(destination, {
       vmName: 'vm1',
       vmDescription: 'desc',
-      disks: [{ name: diskName1, getStream: async () => {
+      disks: [{
+        name: diskName1, capacityMB: Math.ceil(dataSize / 1024 * 1024), getStream: async () => {
           return createReadStream(vhdFileName1)
-        } },
-        { name: diskName2, getStream: async () => {
+        }
+      },
+        {
+          name: diskName2, capacityMB: Math.ceil(dataSize / 1024 * 1024), getStream: async () => {
             return createReadStream(vhdFileName2)
-          } }]
+          }
+        }]
     })
     await fromEvent(pipe, 'finish')
+    await execa('tar', ['xf', ovaFileName1, 'vm1.ovf'])
+    const xml = await readFile('vm1.ovf', { encoding: 'utf-8' })
+    await validateXMLWithXSD(xml, path.join(__dirname, 'ova-schema', 'dsp8023_1.1.1.xsd'))
     await execa('tar', ['xf', ovaFileName1, vmdkDiskName1])
     await execa('tar', ['xf', ovaFileName1, vmdkDiskName2])
     await execa('qemu-img', ['check', vmdkDiskName1])
     await execa('qemu-img', ['check', vmdkDiskName2])
-    await execa('qemu-img', ['compare',inputRawFileName1 , vmdkDiskName1])
-    await execa('qemu-img', ['compare',inputRawFileName2 , vmdkDiskName2])
-
+    await execa('qemu-img', ['compare', inputRawFileName1, vmdkDiskName1])
+    await execa('qemu-img', ['compare', inputRawFileName2, vmdkDiskName2])
   } catch (error) {
     console.error(error.stdout)
     console.error(error.stderr)

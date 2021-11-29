@@ -3,7 +3,7 @@
   "name": "xo-vmdk-to-vhd",
   "version": "2.0.0",
   "license": "AGPL-3.0-or-later",
-  "description": "JS lib streaming a vmdk file to a vhd",
+  "description": "JS lib reading and writing .vmdk and .ova files",
   "keywords": [
     "vhd",
     "vmdk"
@@ -39,7 +39,8 @@
     "get-stream": "^6.0.0",
     "promise-toolbox": "^0.19.2",
     "rimraf": "^3.0.0",
-    "tmp": "^0.2.1"
+    "tmp": "^0.2.1",
+    "validate-with-xmllint": "^1.2.0"
   },
   "scripts": {
     "build": "cross-env NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
