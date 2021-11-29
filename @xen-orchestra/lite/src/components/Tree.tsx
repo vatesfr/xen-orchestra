@@ -84,6 +84,7 @@ const CustomContent = React.forwardRef(function CustomContent(props: CustomConte
   return (
     <span
       className={classNames(className, { [classes.selected]: selected })}
+      // To trigger click event in the front of 'label' if there is no 'expansionIcon'.
       onClick={expansionIcon === undefined ? handleSelectionClick : undefined}
       ref={ref}
     >
