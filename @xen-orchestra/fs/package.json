@@ -33,7 +33,7 @@
     "proper-lockfile": "^4.1.2",
     "readable-stream": "^3.0.6",
     "through2": "^4.0.2",
-    "xo-remote-parser": "^0.7.0"
+    "xo-remote-parser": "^0.8.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.0.0",
