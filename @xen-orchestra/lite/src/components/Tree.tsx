@@ -4,8 +4,8 @@ import Tooltip from '@mui/material/Tooltip'
 import TreeView from '@mui/lab/TreeView'
 import TreeItem, { useTreeItem, TreeItemContentProps } from '@mui/lab/TreeItem'
 import { withState } from 'reaclette'
+import { useHistory } from 'react-router-dom'
 
-import Link from './Link'
 import Icon from '../components/Icon'
 
 interface ParentState {}
@@ -74,24 +74,25 @@ interface Computed {}
 const CustomContent = React.forwardRef(function CustomContent(props: CustomContentProps, ref) {
   const { classes, className, label, expansionIcon, nodeId, to } = props
   const { handleExpansion, handleSelection, selected } = useTreeItem(nodeId)
+  const history = useHistory()
 
-  return expansionIcon === undefined ? (
-    <Link decorated={false} to={to}>
-      <span className={classNames(className, { [classes.selected]: selected })} onClick={handleSelection} ref={ref}>
-        <span className={classes.iconContainer} />
-        <span className={classNames(classes.label)}>{label}</span>
-      </span>
-    </Link>
-  ) : (
-    <span className={classNames(className, { [classes.selected]: selected })} ref={ref}>
+  const handleSelectionClick = (event: React.SyntheticEvent) => {
+    to !== undefined && history.push(to)
+    handleSelection(event)
+  }
+
+  return (
+    <span
+      className={classNames(className, { [classes.selected]: selected })}
+      onClick={expansionIcon === undefined ? handleSelectionClick : undefined}
+      ref={ref}
+    >
       <span className={classes.iconContainer} onClick={handleExpansion}>
         {expansionIcon}
       </span>
-      <Link decorated={false} to={to}>
-        <span className={classes.label} onClick={handleSelection}>
-          {label}
-        </span>
-      </Link>
+      <span className={classes.label} onClick={handleSelectionClick}>
+        {label}
+      </span>
     </span>
   )
 })
