@@ -16,7 +16,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 [Import/VM] Fix the import of OVA files (PR [#5976](https://github.com/vatesfr/xen-orchestra/pull/5976))
-[Collapsed actions] Collapsed actions can no longer be triggered if they are disabled (PR [#6023](https://github.com/vatesfr/xen-orchestra/pull/6023))
+[Tables/collapsed actions] Collapsed actions can no longer be triggered if they are disabled (PR [#6023](https://github.com/vatesfr/xen-orchestra/pull/6023))
 
 ### Packages to release
 

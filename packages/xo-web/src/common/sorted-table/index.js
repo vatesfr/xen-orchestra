@@ -40,7 +40,6 @@ import {
   createSort,
 } from '../selectors'
 import { ITEMS_PER_PAGE_OPTIONS } from '../xo'
-import { noop } from '../utils'
 
 import styles from './index.css'
 
@@ -213,7 +212,7 @@ const CollapsedActions = decorate([
             className={action.level !== undefined ? `text-${action.level}` : ''}
             disabled={action.disabled}
             key={key}
-            onClick={action.disabled ? noop : () => effects.execute(action)}
+            onClick={action.disabled ? undefined : () => effects.execute(action)}
           >
             <Icon icon={action.icon} /> {action.label}
           </MenuItem>
