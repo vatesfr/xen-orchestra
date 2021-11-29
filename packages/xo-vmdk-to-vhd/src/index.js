@@ -26,6 +26,14 @@ async function vmdkToVhd(vmdkReadStream, grainLogicalAddressList, grainFileOffse
   )
 }
 
+export async function computeVmdkLength(diskName, vhdReadStream) {
+  let length = 0
+  for await (const b of await vhdToVMDKIterator(diskName, vhdReadStream)) {
+    length += b.length
+  }
+  return length
+}
+
 /**
  * @param diskName
  * @param vhdReadStreamGetter an async function whose call brings a fresh VHD readStream.
@@ -36,17 +44,10 @@ async function vmdkToVhd(vmdkReadStream, grainLogicalAddressList, grainFileOffse
 async function vhdToVMDK(diskName, vhdReadStreamGetter, withLength = false) {
   let length
   if (withLength) {
-    length = 0
-    const i = await vhdToVMDKIterator(diskName, await vhdReadStreamGetter())
-    for await (const b of i) {
-      length += b.length
-    }
+    length = await computeVmdkLength(diskName, await vhdReadStreamGetter())
   }
-  console.log({ length, withLength })
   const iterable = await vhdToVMDKIterator(diskName, await vhdReadStreamGetter())
-  console.log('iterable', iterable)
   const stream = await asyncIteratorToStream(iterable)
-  console.log('after asyncIteratorToStream')
   if (withLength) {
     stream.length = length
   }
@@ -59,7 +60,7 @@ async function vhdToVMDK(diskName, vhdReadStreamGetter, withLength = false) {
  * @param vhdReadStream
  * @returns a readable stream representing a VMDK file
  */
-async function vhdToVMDKIterator(diskName, vhdReadStream) {
+export async function vhdToVMDKIterator(diskName, vhdReadStream) {
   const {
     blockSizeBytes,
     blockGenerator,

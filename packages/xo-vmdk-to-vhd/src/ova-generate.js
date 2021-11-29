@@ -1,30 +1,47 @@
 import tar from 'tar-stream'
-import { vhdToVMDK } from './index'
-import fromEvent from 'promise-toolbox/fromEvent'
+import { computeVmdkLength, vhdToVMDKIterator } from '.'
+import { fromCallback } from 'promise-toolbox'
 
 /**
  *
+ * @param writeStream
  * @param vmName
  * @param vmDescription
  * @param disks [{name, getStream}]
  * @returns readStream
  */
-export async function createOvaStream({ vmName, vmDescription='', disks=[] }) {
+export async function writeOvaOn(writeStream, { vmName, vmDescription = '', disks = [] }) {
   const ovf = createOvf(vmName, vmDescription, disks)
   const pack = tar.pack()
-  pack.entry({ name: `${vmName}.ovf` }, Buffer.from(ovf, 'utf8'))
-  for (const disk of disks) {
-    console.log('at disk', disk.name)
-    const stream = await vhdToVMDK(disk.name, disk.getStream, true)
-    console.log('after stream', stream.length)
-    const tarStream = pack.entry({name: `${disk.name}.vmdk`, size: stream.length})
-    console.log({ tarStream })
-    const pipe = stream.pipe(tarStream)
-    console.log('after pipe')
-    await fromEvent(pipe, 'finish')
-    console.log('after finish')
+  const pipe = pack.pipe(writeStream)
+  await fromCallback.call(pack, pack.entry, { name: `${vmName}.ovf` }, Buffer.from(ovf, 'utf8'))
+
+  async function writeDisk(entry, blockIterator) {
+    for await(const block of blockIterator) {
+      entry.write(block)
+    }
   }
-  return pack
+
+// https://github.com/mafintosh/tar-stream/issues/24#issuecomment-558358268
+  async function pushDisk(disk) {
+    const size = await computeVmdkLength(disk.name, await disk.getStream())
+    const blockIterator = await vhdToVMDKIterator(disk.name, await disk.getStream())
+    return new Promise((resolve, reject) => {
+      const entry = pack.entry({ name: `${disk.name}.vmdk`, size: size }, (err) => {
+        if (err == null) {
+          return resolve()
+        } else
+          return reject(err)
+      })
+      return writeDisk(entry, blockIterator).then(() => entry.end(), e => reject(e))
+    })
+  }
+
+  for (const disk of disks) {
+    await pushDisk(disk)
+  }
+  pack.finalize()
+  return pipe
 }
 
 function createOvf(vmName, vmDescription, vmdkFileName) {

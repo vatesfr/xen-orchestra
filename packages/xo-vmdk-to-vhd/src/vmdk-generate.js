@@ -142,25 +142,19 @@ export async function generateVmdkData(diskName, diskCapacityBytes, blockSizeByt
   }
 
   async function * iterator() {
-    console.log('generating header')
     yield track(headerData.buffer)
     yield track(descriptorBuffer)
-    console.log('generating blocks')
     yield * emitBlocks(grainSizeBytes, blockGenerator)
     yield track(createEmptyMarkerIfNecessary(MARKER_GT))
     const tableOffset = streamPosition
-    console.log('generating table')
     yield track(tableBuffer)
     yield track(createEmptyMarkerIfNecessary(MARKER_GD))
-    console.log('generating directory')
     yield track(createDirectoryBuffer(headerData.grainDirectoryEntries, directorySizeBytes, tableOffset))
     yield track(createEmptyMarkerIfNecessary(MARKER_FOOTER))
-    console.log('generating footer')
     // re-create the header so that the directory address is filled
     const footer = createStreamOptimizedHeader(diskCapacitySectors, descriptorSizeSectors, directoryOffset / SECTOR_SIZE)
     yield track(footer.buffer)
     yield track(createEmptyMarkerIfNecessary(MARKER_EOS))
-    console.log('generating EOS ')
   }
 
   return iterator()

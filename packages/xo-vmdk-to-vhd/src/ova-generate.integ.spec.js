@@ -1,11 +1,11 @@
 /* eslint-env jest */
 
-import { createReadStream } from 'fs-extra'
+import { createReadStream, createWriteStream } from 'fs-extra'
 import execa from 'execa'
-import { createOvaStream } from '.'
-import { pFromCallback } from 'promise-toolbox'
+import { pFromCallback, fromEvent } from 'promise-toolbox'
 import tmp from 'tmp'
 import rimraf from 'rimraf'
+import { writeOvaOn } from './ova-generate'
 
 const initialDir = process.cwd()
 jest.setTimeout(100000)
@@ -23,15 +23,27 @@ afterEach(async () => {
 test('An ova file is generated correctly', async () => {
   const inputRawFileName = 'random-data.raw'
   const vhdFileName = 'random-data.vhd'
+  const ovaFileName = 'random-disk.ova'
   const dataSize = 100 * 1024 * 1024 // this number is an integer head/cylinder/count equation solution
   try {
     await execa('base64 /dev/urandom | head -c ' + dataSize + ' > ' + inputRawFileName, [], { shell: true })
     await execa('qemu-img', ['convert', '-fraw', '-Ovpc', inputRawFileName, vhdFileName])
     const streamGetter = async () => {
-      console.log('streamGetter')
       return createReadStream(vhdFileName)
     }
-    await createOvaStream({ vmName: 'vm1', vmDescription: 'desc', disks: [{ name: 'disk1', getStream: streamGetter }] })
+
+    const destination = await createWriteStream(ovaFileName)
+    const diskName = 'disk1'
+    const vmdkDiskName = `${diskName}.vmdk`
+    const pipe = await writeOvaOn(destination, {
+      vmName: 'vm1',
+      vmDescription: 'desc',
+      disks: [{ name: diskName, getStream: streamGetter }]
+    })
+    await fromEvent(pipe, 'finish')
+    await execa('tar', ['tf', ovaFileName, vmdkDiskName])
+    await execa('tar', ['xf', ovaFileName, vmdkDiskName])
+    await execa('qemu-img', ['check', vmdkDiskName])
   } catch (error) {
     console.error(error.stdout)
     console.error(error.stderr)
