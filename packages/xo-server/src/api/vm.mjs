@@ -9,6 +9,7 @@ import { FAIL_ON_QUEUE } from 'limit-concurrency-decorator'
 import { format } from 'json-rpc-peer'
 import { ignoreErrors } from 'promise-toolbox'
 import { invalidParameters, noSuchObject, operationFailed, unauthorized } from 'xo-common/api-errors.js'
+import { Ref } from 'xen-api'
 
 import { forEach, map, mapFilter, parseSize, safeDateFormat } from '../utils.mjs'
 
@@ -534,6 +535,11 @@ export const set = defer(async function ($defer, params) {
     await this.shareVmResourceSet(vmId)
   }
 
+  const suspendSr = extract(params, 'suspendSr')
+  if (suspendSr !== undefined) {
+    await xapi.call('VM.set_suspend_SR', VM._xapiRef, suspendSr === null ? Ref.EMPTY : suspendSr._xapiRef)
+  }
+
   return xapi.editVm(vmId, params, async (limits, vm) => {
     const resourceSet = xapi.xo.getData(vm, 'resourceSet')
 
@@ -632,10 +638,13 @@ set.params = {
   virtualizationMode: { type: 'string', optional: true },
 
   blockedOperations: { type: 'object', optional: true },
+
+  suspendSr: { type: ['string', 'null'], optional: true },
 }
 
 set.resolve = {
   VM: ['id', ['VM', 'VM-snapshot', 'VM-template'], 'administrate'],
+  suspendSr: ['suspendSr', 'SR', 'administrate'],
 }
 
 // -------------------------------------------------------------------
