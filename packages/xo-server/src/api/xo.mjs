@@ -1,3 +1,4 @@
+import * as CM from 'complex-matcher'
 import getStream from 'get-stream'
 import { fromCallback } from 'promise-toolbox'
 import { pipeline } from 'readable-stream'
@@ -52,6 +53,10 @@ function handleGetAllObjects(req, res, { filter, limit }) {
 }
 
 export function getAllObjects({ filter, limit, ndjson = false }) {
+  if (typeof filter === 'string') {
+    filter = CM.parse(filter).createPredicate()
+  }
+
   return ndjson
     ? this.registerHttpRequest(handleGetAllObjects, {
         filter,
@@ -63,7 +68,7 @@ export function getAllObjects({ filter, limit, ndjson = false }) {
 getAllObjects.description = 'Returns all XO objects'
 
 getAllObjects.params = {
-  filter: { type: 'object', optional: true },
+  filter: { type: ['object', 'string'], optional: true },
   limit: { type: 'number', optional: true },
   ndjson: { type: 'boolean', optional: true },
 }
