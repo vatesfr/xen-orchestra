@@ -3,12 +3,11 @@ import copy from 'copy-to-clipboard'
 import Icon from 'icon'
 import React, { Component } from 'react'
 import SortedTable from 'sorted-table'
-import store from 'store'
 import TabButton from 'tab-button'
 import Tooltip from 'tooltip'
 import { connectStore } from 'utils'
 import { Text } from 'editable'
-import { createGetObjectsOfType, getObject } from 'selectors'
+import { createGetObjectsOfType } from 'selectors'
 import { FormattedRelative, FormattedTime } from 'react-intl'
 import { includes, isEmpty } from 'lodash'
 import { Container, Row, Col } from 'grid'
@@ -58,8 +57,7 @@ const COLUMNS = [
     itemRenderer: snapshot => (
       <div>
         <Text onChange={value => editVm(snapshot, { name_label: value })} value={snapshot.name_label} />{' '}
-        {/* checkpoint snapshots are in a Suspended state */}
-        {snapshot.power_state === 'Suspended' && (
+        {isCheckpointSnapshot(snapshot) && (
           <Tooltip content={_('snapshotMemorySaved')}>
             <Icon icon='memory' color='text-success' />
           </Tooltip>
@@ -101,8 +99,8 @@ const INDIVIDUAL_ACTIONS = [
   },
   {
     collapsed: true,
-    disabled: ({ power_state }) => power_state !== 'Suspended',
-    handler: ({ suspendVDIId }) => exportVdi(getObject(store.getState(), suspendVDIId)),
+    disabled: snapshot => !isCheckpointSnapshot(snapshot),
+    handler: ({ suspendVdi }) => exportVdi(suspendVdi),
     icon: 'memory',
     label: _('exportSnapshotMemory'),
   },
@@ -132,6 +130,9 @@ const INDIVIDUAL_ACTIONS = [
 ]
 
 const _snapshotVmWithMemory = vm => snapshotVm(vm, undefined, true) // undefined: name is generated on the server side
+
+// checkpoint snapshots are in a Suspended state
+const isCheckpointSnapshot = ({ power_state }) => power_state === 'Suspended'
 
 @connectStore(() => ({
   snapshots: createGetObjectsOfType('VM-snapshot')

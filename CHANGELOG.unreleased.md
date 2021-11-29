@@ -7,7 +7,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [Export/Snapshot memory] Allow the export of snapshot memory (PR [#6015](https://github.com/vatesfr/xen-orchestra/pull/6015))
+- [VM] Ability to export a snapshot with memory (PR [#6015](https://github.com/vatesfr/xen-orchestra/pull/6015))
 
 ### Bug fixes
 
@@ -36,6 +36,6 @@
 - @xen-orchestra/fs minor
 - vhd-lib major
 - @xen-orchestra/backup minor
-- xo-server patch
+- xo-server minor
 - vhd-cli minor
 - xo-web minor
