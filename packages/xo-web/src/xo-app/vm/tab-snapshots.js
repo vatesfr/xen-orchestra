@@ -19,7 +19,7 @@ import {
   exportVdi,
   exportVm,
   editVm,
-  isSnapshotCheckpoint,
+  isCheckpointSnapshot,
   revertSnapshot,
   snapshotVm,
 } from 'xo'
@@ -58,7 +58,7 @@ const COLUMNS = [
     itemRenderer: snapshot => (
       <div>
         <Text onChange={value => editVm(snapshot, { name_label: value })} value={snapshot.name_label} />{' '}
-        {isSnapshotCheckpoint(snapshot) && (
+        {isCheckpointSnapshot(snapshot) && (
           <Tooltip content={_('snapshotMemorySaved')}>
             <Icon icon='memory' color='text-success' />
           </Tooltip>
@@ -100,7 +100,7 @@ const INDIVIDUAL_ACTIONS = [
   },
   {
     collapsed: true,
-    disabled: snapshot => !isSnapshotCheckpoint(snapshot),
+    disabled: snapshot => !isCheckpointSnapshot(snapshot),
     handler: ({ suspendVdi }) => exportVdi(suspendVdi),
     icon: 'memory',
     label: _('exportSnapshotMemory'),

@@ -471,7 +471,7 @@ const TRANSFORMS = {
 
       vm.snapshot_time = toTimestamp(obj.snapshot_time)
       vm.$snapshot_of = link(obj, 'snapshot_of')
-      vm.suspendVdi = obj.suspend_VDI.startsWith('OpaqueRef:NULL') ? null : link(obj, 'suspend_VDI')
+      vm.suspendVdi = link(obj, 'suspend_VDI')
     } else if (obj.is_a_template) {
       const defaultTemplate = isDefaultTemplate(obj)
       vm.type += '-template'

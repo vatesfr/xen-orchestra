@@ -7,7 +7,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [VM] Ability to export a snapshot with memory (PR [#6015](https://github.com/vatesfr/xen-orchestra/pull/6015))
+- [VM] Ability to export a snapshot's memory (PR [#6015](https://github.com/vatesfr/xen-orchestra/pull/6015))
 
 ### Bug fixes
 

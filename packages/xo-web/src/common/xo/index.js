@@ -1411,7 +1411,7 @@ export const deleteSnapshots = vms =>
   }).then(() => Promise.all(map(vms, vm => _call('vm.delete', { id: resolveId(vm) }))), noop)
 
 // checkpoint snapshot is in a Suspended state
-export const isSnapshotCheckpoint = ({ power_state }) => power_state === 'Suspended'
+export const isCheckpointSnapshot = ({ power_state }) => power_state === 'Suspended'
 
 import MigrateVmModalBody from './migrate-vm-modal' // eslint-disable-line import/first
 export const migrateVm = async (vm, host) => {
