@@ -3,19 +3,19 @@ const Disposable = require('promise-toolbox/Disposable.js')
 const fromCallback = require('promise-toolbox/fromCallback.js')
 const fromEvent = require('promise-toolbox/fromEvent.js')
 const pDefer = require('promise-toolbox/defer.js')
-const pump = require('pump')
-const { basename, dirname, join, normalize, resolve } = require('path')
+const { dirname, join, normalize, resolve } = require('path')
 const { createLogger } = require('@xen-orchestra/log')
-const { createSyntheticStream, mergeVhd, VhdFile } = require('vhd-lib')
+const { VhdAbstract, createVhdDirectoryFromStream } = require('vhd-lib')
 const { deduped } = require('@vates/disposable/deduped.js')
 const { execFile } = require('child_process')
 const { readdir, stat } = require('fs-extra')
+const { v4: uuidv4 } = require('uuid')
 const { ZipFile } = require('yazl')
 
 const { BACKUP_DIR } = require('./_getVmBackupDir.js')
 const { cleanVm } = require('./_cleanVm.js')
 const { getTmpDir } = require('./_getTmpDir.js')
-const { isMetadataFile, isVhdFile } = require('./_backupType.js')
+const { isMetadataFile } = require('./_backupType.js')
 const { isValidXva } = require('./_isValidXva.js')
 const { listPartitions, LVM_PARTITION_TYPE } = require('./_listPartitions.js')
 const { lvs, pvs } = require('./_lvm.js')
@@ -75,48 +75,6 @@ class RemoteAdapter {
 
   get handler() {
     return this._handler
-  }
-
-  async _deleteVhd(path) {
-    const handler = this._handler
-    const vhds = await asyncMapSettled(
-      await handler.list(dirname(path), {
-        filter: isVhdFile,
-        prependDir: true,
-      }),
-      async path => {
-        try {
-          const vhd = new VhdFile(handler, path)
-          await vhd.readHeaderAndFooter()
-          return {
-            footer: vhd.footer,
-            header: vhd.header,
-            path,
-          }
-        } catch (error) {
-          // Do not fail on corrupted VHDs (usually uncleaned temporary files),
-          // they are probably inconsequent to the backup process and should not
-          // fail it.
-          warn(`BackupNg#_deleteVhd ${path}`, { error })
-        }
-      }
-    )
-    const base = basename(path)
-    const child = vhds.find(_ => _ !== undefined && _.header.parentUnicodeName === base)
-    if (child === undefined) {
-      await handler.unlink(path)
-      return 0
-    }
-
-    try {
-      const childPath = child.path
-      const mergedDataSize = await mergeVhd(handler, path, handler, childPath)
-      await handler.rename(path, childPath)
-      return mergedDataSize
-    } catch (error) {
-      handler.unlink(path).catch(warn)
-      throw error
-    }
   }
 
   async _findPartition(devicePath, partitionId) {
@@ -255,7 +213,7 @@ class RemoteAdapter {
     const handler = this._handler
 
     // unused VHDs will be detected by `cleanVm`
-    await asyncMapSettled(backups, ({ _filename }) => handler.unlink(_filename))
+    await asyncMapSettled(backups, ({ _filename }) => VhdAbstract.unlink(handler, _filename))
   }
 
   async deleteMetadataBackup(backupId) {
@@ -352,6 +310,17 @@ class RemoteAdapter {
     }
 
     return yield this._getPartition(devicePath, await this._findPartition(devicePath, partitionId))
+  }
+
+  // this function will be the one where we plug the logic of the storage format by fs type/user settings
+
+  // if the file is named .vhd => vhd
+  // if the file is named alias.vhd => alias to a vhd
+  getVhdFileName(baseName) {
+    if (this._handler.type === 's3') {
+      return `${baseName}.alias.vhd` // we want an alias to a vhddirectory
+    }
+    return `${baseName}.vhd`
   }
 
   async listAllVmBackups() {
@@ -496,6 +465,24 @@ class RemoteAdapter {
     )
 
     return backups.sort(compareTimestamp)
+  }
+
+  async writeVhd(path, input, { checksum = true, validator = noop } = {}) {
+    const handler = this._handler
+    let dataPath = path
+
+    if (path.endsWith('.alias.vhd')) {
+      await createVhdDirectoryFromStream(handler, `${dirname(path)}/data/${uuidv4()}.vhd`, input, {
+        concurrency: 16,
+        async validator() {
+          await input.task
+          return validator.apply(this, arguments)
+        },
+      })
+      await VhdAbstract.createAlias(handler, path, dataPath)
+    } else {
+      await this.outputStream(dataPath, input, { checksum, validator })
+    }
   }
 
   async outputStream(path, input, { checksum = true, validator = noop } = {}) {

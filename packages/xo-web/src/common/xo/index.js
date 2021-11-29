@@ -2906,6 +2906,33 @@ export const deleteCloudConfigs = ids => {
 export const editCloudConfig = (cloudConfig, props) =>
   _call('cloudConfig.update', { ...props, id: resolveId(cloudConfig) })::tap(subscribeCloudConfigs.forceRefresh)
 
+export const subscribeNetworkConfigs = createSubscription(() => _call('cloudConfig.getAllNetworkConfigs'))
+
+export const createNetworkConfig = props =>
+  _call('cloudConfig.createNetworkConfig', props)::tap(subscribeNetworkConfigs.forceRefresh)
+
+export const deleteNetworkConfigs = ids => {
+  const { length } = ids
+  if (length === 0) {
+    return
+  }
+
+  const vars = { nNetworkConfigs: length }
+  return confirm({
+    title: _('confirmDeleteNetworkConfigsTitle', vars),
+    body: <p>{_('confirmDeleteNetworkConfigsBody', vars)}</p>,
+  }).then(
+    () =>
+      Promise.all(ids.map(id => _call('cloudConfig.delete', { id: resolveId(id) })))::tap(
+        subscribeNetworkConfigs.forceRefresh
+      ),
+    noop
+  )
+}
+
+export const editNetworkConfig = (networkConfig, props) =>
+  _call('cloudConfig.update', { ...props, id: resolveId(networkConfig) })::tap(subscribeNetworkConfigs.forceRefresh)
+
 // XO SAN ----------------------------------------------------------------------
 
 export const getVolumeInfo = (xosanSr, infoType) => _call('xosan.getVolumeInfo', { sr: xosanSr, infoType })

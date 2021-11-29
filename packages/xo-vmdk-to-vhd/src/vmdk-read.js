@@ -1,7 +1,7 @@
 import assert from 'assert'
 import zlib from 'zlib'
 
-import { compressionDeflate, parseHeader, parseU64b } from './definitions'
+import { compressionDeflate, unpackHeader, parseU64b } from './definitions'
 import { VirtualBuffer } from './virtual-buffer'
 
 const SECTOR_SIZE = 512
@@ -132,7 +132,7 @@ export default class VMDKDirectParser {
     if (version !== 1 && version !== 3) {
       throw new Error('unsupported VMDK version ' + version + ', only version 1 and 3 are supported')
     }
-    this.header = parseHeader(headerBuffer)
+    this.header = unpackHeader(headerBuffer)
     // I think the multiplications are OK, because the descriptor is always at the beginning of the file
     const descriptorLength = this.header.descriptorSizeSectors * SECTOR_SIZE
     const descriptorBuffer = await this.virtualBuffer.readChunk(descriptorLength, 'descriptor')

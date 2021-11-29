@@ -1,4 +1,4 @@
-import { buildHeader, buildFooter, sectorsToBytes } from './_utils'
+import { unpackHeader, unpackFooter, sectorsToBytes } from './_utils'
 import { createLogger } from '@xen-orchestra/log'
 import { fuFooter, fuHeader, checksumStruct } from '../_structs'
 import { test, set as setBitmap } from '../_bitmap'
@@ -100,16 +100,7 @@ export class VhdDirectory extends VhdAbstract {
     )
     // here we can implement compression and / or crypto
 
-    // chunks can be in sub directories :  create directories if necessary
-    const pathParts = partName.split('/')
-    let currentPath = this._path
-
-    // the last one is the file name
-    for (let i = 0; i < pathParts.length - 1; i++) {
-      currentPath += '/' + pathParts[i]
-      await this._handler.mkdir(currentPath)
-    }
-    return this._handler.writeFile(this._getChunkPath(partName), buffer, this._opts)
+    return this._handler.outputFile(this._getChunkPath(partName), buffer, this._opts)
   }
 
   // put block in subdirectories to limit impact when doing directory listing
@@ -122,8 +113,8 @@ export class VhdDirectory extends VhdAbstract {
   async readHeaderAndFooter() {
     const { buffer: bufHeader } = await this._readChunk('header')
     const { buffer: bufFooter } = await this._readChunk('footer')
-    const footer = buildFooter(bufFooter)
-    const header = buildHeader(bufHeader, footer)
+    const footer = unpackFooter(bufFooter)
+    const header = unpackHeader(bufHeader, footer)
 
     this.footer = footer
     this.header = header

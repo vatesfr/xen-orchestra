@@ -3,7 +3,7 @@ const sum = require('lodash/sum')
 const { asyncMap } = require('@xen-orchestra/async-map')
 const { Constants, mergeVhd, openVhd, VhdAbstract, VhdFile } = require('vhd-lib')
 const { dirname, resolve } = require('path')
-const { DISK_TYPE_DIFFERENCING } = Constants
+const { DISK_TYPES } = Constants
 const { isMetadataFile, isVhdFile, isXvaFile, isXvaSumFile } = require('./_backupType.js')
 const { limitConcurrency } = require('limit-concurrency-decorator')
 
@@ -140,7 +140,7 @@ exports.cleanVm = async function cleanVm(
     try {
       await Disposable.use(openVhd(handler, path, { checkSecondFooter: !vhdsList.interruptedVhds.has(path) }), vhd => {
         vhds.add(path)
-        if (vhd.footer.diskType === DISK_TYPE_DIFFERENCING) {
+        if (vhd.footer.diskType === DISK_TYPES.DIFFERENCING) {
           const parent = resolve('/', dirname(path), vhd.header.parentUnicodeName)
           vhdParents[path] = parent
           if (parent in vhdChildren) {

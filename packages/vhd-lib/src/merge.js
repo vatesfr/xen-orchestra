@@ -7,7 +7,7 @@ import { limitConcurrency } from 'limit-concurrency-decorator'
 
 import { openVhd } from '.'
 import { basename, dirname } from 'path'
-import { DISK_TYPE_DIFFERENCING, DISK_TYPE_DYNAMIC } from './_constants'
+import { DISK_TYPES } from './_constants'
 import { Disposable } from 'promise-toolbox'
 
 const { warn } = createLogger('vhd-lib:merge')
@@ -48,8 +48,8 @@ export default limitConcurrency(2)(async function merge(
       assert.strictEqual(childVhd.header.blockSize, parentVhd.header.blockSize)
 
       const parentDiskType = parentVhd.footer.diskType
-      assert(parentDiskType === DISK_TYPE_DIFFERENCING || parentDiskType === DISK_TYPE_DYNAMIC)
-      assert.strictEqual(childVhd.footer.diskType, DISK_TYPE_DIFFERENCING)
+      assert(parentDiskType === DISK_TYPES.DIFFERENCING || parentDiskType === DISK_TYPES.DYNAMIC)
+      assert.strictEqual(childVhd.footer.diskType, DISK_TYPES.DIFFERENCING)
     }
 
     // Read allocation table of child/parent.

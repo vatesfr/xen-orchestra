@@ -1,5 +1,6 @@
-const Vhd = require('vhd-lib').VhdFile
+const openVhd = require('vhd-lib').openVhd
+const Disposable = require('promise-toolbox/Disposable')
 
 exports.checkVhd = async function checkVhd(handler, path) {
-  await new Vhd(handler, path).readHeaderAndFooter()
+  await Disposable.use(openVhd(handler, path), () => {})
 }

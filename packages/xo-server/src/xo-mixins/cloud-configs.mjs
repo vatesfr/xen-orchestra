@@ -41,8 +41,12 @@ export default class {
     return this._db.remove(id)
   }
 
-  getAllCloudConfigs() {
-    return this._db.get()
+  async getAllCloudConfigs() {
+    return (await this._db.get()).filter(({ type }) => type === undefined)
+  }
+
+  async getAllNetworkConfigs() {
+    return (await this._db.get()).filter(({ type }) => type === 'network')
   }
 
   async getCloudConfig(id) {

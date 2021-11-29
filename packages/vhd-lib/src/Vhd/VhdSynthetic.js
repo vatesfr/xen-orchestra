@@ -1,6 +1,6 @@
 import { asyncMap } from '@xen-orchestra/async-map'
 import { VhdAbstract } from './VhdAbstract'
-import { DISK_TYPE_DIFFERENCING, FOOTER_SIZE, HEADER_SIZE } from '../_constants'
+import { DISK_TYPES, FOOTER_SIZE, HEADER_SIZE } from '../_constants'
 
 import assert from 'assert'
 
@@ -51,7 +51,7 @@ export class VhdSynthetic extends VhdAbstract {
   }
   /**
    * @param {Array<VhdAbstract>} vhds the chain of Vhds used to compute this Vhd, from the deepest child (in position 0), to the root (in the last position)
-   * only the last one can have any type. Other must have type DISK_TYPE_DIFFERENCING (delta)
+   * only the last one can have any type. Other must have type DISK_TYPES.DIFFERENCING (delta)
    */
   constructor(vhds) {
     assert(vhds.length > 0)
@@ -75,7 +75,7 @@ export class VhdSynthetic extends VhdAbstract {
     for (let i = 0, n = vhds.length - 1; i < n; ++i) {
       const child = vhds[i]
       const parent = vhds[i + 1]
-      assert.strictEqual(child.footer.diskType, DISK_TYPE_DIFFERENCING)
+      assert.strictEqual(child.footer.diskType, DISK_TYPES.DIFFERENCING)
       assert.strictEqual(child.header.parentUuid, parent.footer.uuid)
     }
   }

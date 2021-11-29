@@ -4,17 +4,17 @@ import { checksumStruct, fuFooter, fuHeader } from './_structs'
 import {
   CREATOR_APPLICATION,
   DEFAULT_BLOCK_SIZE as VHD_BLOCK_SIZE_BYTES,
-  DISK_TYPE_FIXED,
+  DISK_TYPES,
   FILE_FORMAT_VERSION,
   FOOTER_COOKIE,
   FOOTER_SIZE,
   HEADER_COOKIE,
   HEADER_SIZE,
   HEADER_VERSION,
-  PLATFORM_WI2K,
+  PLATFORMS,
 } from './_constants'
 
-export function createFooter(size, timestamp, geometry, dataOffset, diskType = DISK_TYPE_FIXED) {
+export function createFooter(size, timestamp, geometry, dataOffset, diskType = DISK_TYPES.FIXED) {
   const footer = fuFooter.pack({
     cookie: FOOTER_COOKIE,
     features: 2,
@@ -22,7 +22,7 @@ export function createFooter(size, timestamp, geometry, dataOffset, diskType = D
     dataOffset,
     timestamp,
     creatorApplication: CREATOR_APPLICATION,
-    creatorHostOs: PLATFORM_WI2K, // it looks like everybody is using Wi2k
+    creatorHostOs: PLATFORMS.WI2K, // it looks like everybody is using Wi2k
     originalSize: size,
     currentSize: size,
     diskGeometry: geometry,

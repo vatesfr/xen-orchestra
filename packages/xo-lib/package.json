@@ -1,7 +1,7 @@
 {
   "private": false,
   "name": "xo-lib",
-  "version": "0.10.1",
+  "version": "0.11.0",
   "license": "AGPL-3.0-or-later",
   "description": "Library to connect to XO-Server",
   "keywords": [
@@ -26,10 +26,10 @@
     "> 2%"
   ],
   "engines": {
-    "node": ">=6"
+    "node": ">=10"
   },
   "dependencies": {
-    "jsonrpc-websocket-client": "^0.6.0",
+    "jsonrpc-websocket-client": "^0.7.2",
     "lodash": "^4.17.2",
     "make-error": "^1.0.4"
   },

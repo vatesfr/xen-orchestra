@@ -1,12 +1,5 @@
-import {
-  BLOCK_UNUSED,
-  FOOTER_SIZE,
-  HEADER_SIZE,
-  PLATFORM_NONE,
-  SECTOR_SIZE,
-  PARENT_LOCATOR_ENTRIES,
-} from '../_constants'
-import { computeBatSize, sectorsToBytes, buildHeader, buildFooter, BUF_BLOCK_UNUSED } from './_utils'
+import { BLOCK_UNUSED, FOOTER_SIZE, HEADER_SIZE, PLATFORMS, SECTOR_SIZE, PARENT_LOCATOR_ENTRIES } from '../_constants'
+import { computeBatSize, sectorsToBytes, unpackHeader, unpackFooter, BUF_BLOCK_UNUSED } from './_utils'
 import { createLogger } from '@xen-orchestra/log'
 import { fuFooter, fuHeader, checksumStruct } from '../_structs'
 import { set as mapSetBit } from '../_bitmap'
@@ -129,7 +122,7 @@ export class VhdFile extends VhdAbstract {
     for (let i = 0; i < PARENT_LOCATOR_ENTRIES; i++) {
       const entry = header.parentLocatorEntry[i]
 
-      if (entry.platformCode !== PLATFORM_NONE) {
+      if (entry.platformCode !== PLATFORMS.NONE) {
         end = Math.max(end, entry.platformDataOffset + sectorsToBytes(entry.platformDataSpace))
       }
     }
@@ -177,8 +170,8 @@ export class VhdFile extends VhdAbstract {
     const bufFooter = buf.slice(0, FOOTER_SIZE)
     const bufHeader = buf.slice(FOOTER_SIZE)
 
-    const footer = buildFooter(bufFooter)
-    const header = buildHeader(bufHeader, footer)
+    const footer = unpackFooter(bufFooter)
+    const header = unpackHeader(bufHeader, footer)
 
     if (checkSecondFooter) {
       const size = await this._handler.getSize(this._path)
