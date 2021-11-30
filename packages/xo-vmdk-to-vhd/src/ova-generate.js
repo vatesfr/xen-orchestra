@@ -2,16 +2,28 @@ import tar from 'tar-stream'
 import { computeVmdkLength, vhdToVMDKIterator } from '.'
 import { fromCallback } from 'promise-toolbox'
 
+// WE MIGHT WANT TO HAVE A LOOK HERE: https://opennodecloud.com/howto/2013/12/25/howto-ON-ovf-reference.html
+
 /**
  *
  * @param writeStream
  * @param vmName
  * @param vmDescription
- * @param disks [{name, capacityMB, getStream}]
+ * @param disks [{name, fileName, capacityMB, getStream}]
+ * @param nics [{name, networkName}]
+ * @param vmMemoryMB
+ * @param cpuCount
  * @returns readStream
  */
-export async function writeOvaOn(writeStream, { vmName, vmDescription = '', disks = [] }) {
-  const ovf = createOvf(vmName, vmDescription, disks)
+export async function writeOvaOn(writeStream, {
+  vmName,
+  vmDescription = '',
+  disks = [],
+  nics = [],
+  vmMemoryMB = 64,
+  cpuCount
+}) {
+  const ovf = createOvf(vmName, vmDescription, disks, nics, vmMemoryMB, cpuCount)
   const pack = tar.pack()
   const pipe = pack.pipe(writeStream)
   await fromCallback.call(pack, pack.entry, { name: `${vmName}.ovf` }, Buffer.from(ovf, 'utf8'))
@@ -45,7 +57,7 @@ export async function writeOvaOn(writeStream, { vmName, vmDescription = '', disk
   return pipe
 }
 
-function createDiskSection(disks) {
+function createDiskSections(disks) {
   const fileReferences = []
   const diskFragments = []
   const diskItems = []
@@ -72,8 +84,36 @@ function createDiskSection(disks) {
   }
 }
 
-function createOvf(vmName, vmDescription, disks, vmMemoryMB=64) {
-  const diskSection = createDiskSection(disks)
+function createNicsSection(nics) {
+  const networks = new Set()
+  const nicItems = []
+  for (let i = 0; i < nics.length; i++) {
+    const nic = nics[i]
+    networks.add(nic.networkName)
+    const text = `
+      <Item>
+        <rasd:AddressOnParent>7</rasd:AddressOnParent>
+        <rasd:AutomaticAllocation>true</rasd:AutomaticAllocation>
+        <rasd:Connection>${nic.networkName}</rasd:Connection>
+        <rasd:Description>PCNet32 ethernet adapter on "${nic.networkName}"</rasd:Description>
+        <rasd:ElementName>${nic.name}</rasd:ElementName>
+        <rasd:InstanceID>${'nic' + i}</rasd:InstanceID>
+        <rasd:ResourceSubType>PCNet32</rasd:ResourceSubType>
+        <rasd:ResourceType>10</rasd:ResourceType>
+      </Item>
+`
+    nicItems.push(text)
+  }
+  const networksElements = []
+  for (const network of networks) {
+    networksElements.push(`    <Network ovf:name="${network}"/>`)
+  }
+  return { nicsSection: nicItems.join('\n'), networksSection: networksElements.join('\n') }
+}
+
+function createOvf(vmName, vmDescription, disks = [], nics = [], vmMemoryMB = 64, cpuCount = 1) {
+  const diskSection = createDiskSections(disks)
+  const networkSection = createNicsSection(nics)
   let id = 1
   const nextId = () => id++
 
@@ -83,17 +123,15 @@ function createOvf(vmName, vmDescription, disks, vmMemoryMB=64) {
     xmlns:rasd="http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/CIM_ResourceAllocationSettingData"
     xmlns:vssd="http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/CIM_VirtualSystemSettingData">
   <References>
-    ${diskSection.fileReferences}
+${diskSection.fileReferences}
   </References>
   <DiskSection>
     <Info>Virtual disk information</Info>
-    ${diskSection.diskFragments}
+${diskSection.diskFragments}
   </DiskSection>
   <NetworkSection>
     <Info>The list of logical networks</Info>
-    <Network ovf:name="LAN">
-      <Description>The LAN network</Description>
-    </Network>
+${networkSection.networksSection}
   </NetworkSection>
   <VirtualSystem ovf:id="${nextId()}">
     <Info>A virtual machine</Info>
@@ -112,10 +150,10 @@ function createOvf(vmName, vmDescription, disks, vmMemoryMB=64) {
       <Item>
         <rasd:AllocationUnits>hertz * 10^6</rasd:AllocationUnits>
         <rasd:Description>Number of Virtual CPUs</rasd:Description>
-        <rasd:ElementName>1 virtual CPU(s)</rasd:ElementName>
+        <rasd:ElementName>${cpuCount} virtual CPU(s)</rasd:ElementName>
         <rasd:InstanceID>1</rasd:InstanceID>
         <rasd:ResourceType>3</rasd:ResourceType>
-        <rasd:VirtualQuantity>1</rasd:VirtualQuantity>
+        <rasd:VirtualQuantity>${cpuCount}</rasd:VirtualQuantity>
       </Item>
       <Item>
         <rasd:AllocationUnits>byte * 2^20</rasd:AllocationUnits>
@@ -138,17 +176,8 @@ function createOvf(vmName, vmDescription, disks, vmMemoryMB=64) {
         <rasd:InstanceID>5</rasd:InstanceID>
         <rasd:ResourceType>24</rasd:ResourceType>
       </Item>
-      ${diskSection.diskItems}
-      <Item>
-        <rasd:AddressOnParent>7</rasd:AddressOnParent>
-        <rasd:AutomaticAllocation>true</rasd:AutomaticAllocation>
-        <rasd:Connection>LAN</rasd:Connection>
-        <rasd:Description>PCNet32 ethernet adapter on "LAN"</rasd:Description>
-        <rasd:ElementName>Ethernet 1</rasd:ElementName>
-        <rasd:InstanceID>9</rasd:InstanceID>
-        <rasd:ResourceSubType>PCNet32</rasd:ResourceSubType>
-        <rasd:ResourceType>10</rasd:ResourceType>
-      </Item>
+${diskSection.diskItems}
+${networkSection.nicsSection}
     </VirtualHardwareSection>
     <AnnotationSection ovf:required="false">
       <Info>A human-readable annotation</Info>

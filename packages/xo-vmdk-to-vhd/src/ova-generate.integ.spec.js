@@ -7,6 +7,7 @@ import { pFromCallback, fromEvent } from 'promise-toolbox'
 import tmp from 'tmp'
 import rimraf from 'rimraf'
 import { writeOvaOn } from './ova-generate'
+import { parseOVF } from './ova-read'
 
 const initialDir = process.cwd()
 jest.setTimeout(100000)
@@ -41,13 +42,22 @@ test('An ova file is generated correctly', async () => {
     const pipe = await writeOvaOn(destination, {
       vmName: 'vm1',
       vmDescription: 'desc',
+      vmMemoryMB: 100,
+      cpuCount: 3,
+      nics: [{ name: 'eth12', networkName: 'BigLan' }],
       disks: [{
-        name: diskName1, capacityMB: Math.ceil(dataSize / 1024 * 1024), getStream: async () => {
+        name: diskName1,
+        fileName: 'diskName1.vmdk',
+        capacityMB: Math.ceil(dataSize / 1024 * 1024),
+        getStream: async () => {
           return createReadStream(vhdFileName1)
         }
       },
         {
-          name: diskName2, capacityMB: Math.ceil(dataSize / 1024 * 1024), getStream: async () => {
+          name: diskName2,
+          fileName: 'diskName1.vmdk',
+          capacityMB: Math.ceil(dataSize / 1024 * 1024),
+          getStream: async () => {
             return createReadStream(vhdFileName2)
           }
         }]
@@ -55,13 +65,21 @@ test('An ova file is generated correctly', async () => {
     await fromEvent(pipe, 'finish')
     await execa('tar', ['xf', ovaFileName1, 'vm1.ovf'])
     const xml = await readFile('vm1.ovf', { encoding: 'utf-8' })
-    await validateXMLWithXSD(xml, path.join(__dirname, 'ova-schema', 'dsp8023_1.1.1.xsd'))
-    await execa('tar', ['xf', ovaFileName1, vmdkDiskName1])
-    await execa('tar', ['xf', ovaFileName1, vmdkDiskName2])
-    await execa('qemu-img', ['check', vmdkDiskName1])
-    await execa('qemu-img', ['check', vmdkDiskName2])
-    await execa('qemu-img', ['compare', inputRawFileName1, vmdkDiskName1])
-    await execa('qemu-img', ['compare', inputRawFileName2, vmdkDiskName2])
+
+    try {
+      await validateXMLWithXSD(xml, path.join(__dirname, 'ova-schema', 'dsp8023_1.1.1.xsd'))
+      await execa('tar', ['xf', ovaFileName1, vmdkDiskName1])
+      await execa('tar', ['xf', ovaFileName1, vmdkDiskName2])
+      await execa('qemu-img', ['check', vmdkDiskName1])
+      await execa('qemu-img', ['check', vmdkDiskName2])
+      await execa('qemu-img', ['compare', inputRawFileName1, vmdkDiskName1])
+      await execa('qemu-img', ['compare', inputRawFileName2, vmdkDiskName2])
+      const result = await parseOVF({ read: () => xml }, s => s)
+      console.log('result', result)
+    } catch (e) {
+      console.log({ xml })
+      throw e
+    }
   } catch (error) {
     console.error(error.stdout)
     console.error(error.stderr)
