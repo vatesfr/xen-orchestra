@@ -265,17 +265,14 @@ export class VhdDirectory extends VhdAbstract {
   }
 
   async #readMetadata() {
-    try {
-      const buf = await this._handler.readFile(this._path + '/metadata.json')
-      this.#metadata = JSON.parse(buf.toString())
-    } catch (error) {
+    this.#metadata = await this._handler.readFile(this._path + '/metadata.json').then(JSON.parse, error => {
       if (error.code === 'ENOENT') {
         // no metadata stored in file
-        this.#metadata = {}
-      } else {
-        throw error
+        return {}
       }
-    }
+
+      throw error
+    })
   }
 
   getCompressionType() {
