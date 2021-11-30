@@ -200,7 +200,7 @@ class RemoteAdapter {
         return false
       }
       // can't merge uncompressed with compressed and recipro
-      return this.#getCompressionType() === vhd.getCompressionType()
+      return this.#getCompressionType() === vhd.compressionType
     })
   }
 

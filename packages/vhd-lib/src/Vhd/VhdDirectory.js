@@ -48,6 +48,10 @@ export class VhdDirectory extends VhdAbstract {
   footer
   #metadata
 
+  get compressionType() {
+    return this.#metadata.compression?.type
+  }
+
   set header(header) {
     this.#header = header
     this.#blockTable = Buffer.alloc(header.maxTableEntries)
@@ -273,9 +277,5 @@ export class VhdDirectory extends VhdAbstract {
 
       throw error
     })
-  }
-
-  getCompressionType() {
-    return this.#metadata?.compression?.type
   }
 }
