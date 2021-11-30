@@ -106,6 +106,7 @@ test('Can generate a small VMDK file', async () => {
   }
   const data = await readVmdkGrainTable(createFileAccessor(fileName))
   const grainLogicalAddressList = bufferToArray(data.grainLogicalAddressList)
+  expect(grainLogicalAddressList.length).toEqual(expectedLBAs.length)
   expect(grainLogicalAddressList).toEqual(expectedLBAs)
   const grainFileOffsetList = bufferToArray(data.grainFileOffsetList)
   for (let i = 0; i < grainFileOffsetList.length; i++) {
