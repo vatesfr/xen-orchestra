@@ -136,7 +136,7 @@ export class VhdDirectory extends VhdAbstract {
 
     const uncompressed = await this.#uncompress(buffer)
     return {
-      buffer: Buffer.from(uncompressed),
+      buffer: uncompressed,
     }
   }
 
@@ -266,7 +266,7 @@ export class VhdDirectory extends VhdAbstract {
 
   async #readMetadata() {
     try {
-      const buf = Buffer.from(await this._handler.readFile(this._path + '/metadata.json'), 'utf-8')
+      const buf = await this._handler.readFile(this._path + '/metadata.json')
       this.#metadata = JSON.parse(buf.toString())
     } catch (error) {
       if (error.code === 'ENOENT') {
