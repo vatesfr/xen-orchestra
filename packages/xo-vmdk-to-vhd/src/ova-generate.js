@@ -72,7 +72,7 @@ function createDiskSection(disks) {
   }
 }
 
-function createOvf(vmName, vmDescription, disks) {
+function createOvf(vmName, vmDescription, disks, vmMemoryMB=64) {
   const diskSection = createDiskSection(disks)
   let id = 1
   const nextId = () => id++
@@ -106,7 +106,7 @@ function createOvf(vmName, vmDescription, disks) {
       <System>
         <vssd:ElementName>Virtual Hardware Family</vssd:ElementName>
         <vssd:InstanceID>0</vssd:InstanceID>
-        <vssd:VirtualSystemIdentifier>dsl</vssd:VirtualSystemIdentifier>
+        <vssd:VirtualSystemIdentifier>${vmName}</vssd:VirtualSystemIdentifier>
         <vssd:VirtualSystemType>vmx-11</vssd:VirtualSystemType>
       </System>
       <Item>
@@ -120,10 +120,10 @@ function createOvf(vmName, vmDescription, disks) {
       <Item>
         <rasd:AllocationUnits>byte * 2^20</rasd:AllocationUnits>
         <rasd:Description>Memory Size</rasd:Description>
-        <rasd:ElementName>64MB of memory</rasd:ElementName>
+        <rasd:ElementName>${vmMemoryMB}MB of memory</rasd:ElementName>
         <rasd:InstanceID>2</rasd:InstanceID>
         <rasd:ResourceType>4</rasd:ResourceType>
-        <rasd:VirtualQuantity>64</rasd:VirtualQuantity>
+        <rasd:VirtualQuantity>${vmMemoryMB}</rasd:VirtualQuantity>
       </Item>
       <Item>
         <rasd:Address>0</rasd:Address>
