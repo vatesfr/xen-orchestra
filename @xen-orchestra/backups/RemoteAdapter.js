@@ -5,7 +5,7 @@ const fromEvent = require('promise-toolbox/fromEvent.js')
 const pDefer = require('promise-toolbox/defer.js')
 const { dirname, join, normalize, resolve } = require('path')
 const { createLogger } = require('@xen-orchestra/log')
-const { VhdAbstract, createVhdDirectoryFromStream } = require('vhd-lib')
+const { Constants, createVhdDirectoryFromStream, openVhd, VhdAbstract, VhdSynthetic } = require('vhd-lib')
 const { deduped } = require('@vates/disposable/deduped.js')
 const { execFile } = require('child_process')
 const { readdir, stat } = require('fs-extra')
@@ -497,10 +497,28 @@ class RemoteAdapter {
   }
 
   async _createSyntheticStream(handler, paths) {
+    let disposableVhds = []
+
+    // if it's a path : open all hierarchy of parent
+    if (typeof paths === 'string') {
+      let vhd,
+        vhdPath = paths
+      do {
+        const disposable = await openVhd(handler, vhdPath)
+        vhd = disposable.value
+        disposableVhds.push(disposable)
+        vhdPath = resolveRelativeFromFile(vhdPath, vhd.header.parentUnicodeName)
+      } while (vhd.footer.diskType !== Constants.DISK_TYPES.DYNAMIC)
+    } else {
+      // only open the list of path given
+      disposableVhds = paths.map(path => openVhd(handler, path))
+    }
+
     // I don't want the vhds to be disposed on return
     // but only when the stream is done ( or failed )
-    const disposables = await Disposable.all(paths.map(path => openVhd(handler, path)))
+    const disposables = await Disposable.all(disposableVhds)
     const vhds = disposables.value
+
     const synthetic = new VhdSynthetic(vhds)
     await synthetic.readHeaderAndFooter()
     await synthetic.readBlockAllocationTable()
