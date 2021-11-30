@@ -9,12 +9,13 @@ import zlib from 'zlib'
 
 const { debug } = createLogger('vhd-lib:VhdDirectory')
 
+const NULL_COMPRESSOR = {
+  compress: buffer => buffer,
+  decompress: buffer => buffer,
+  baseOptions: {},
+}
+
 const COMPRESSORS = {
-  none: {
-    compress: buffer => buffer,
-    decompress: buffer => buffer,
-    baseOptions: {},
-  },
   gzip: {
     compress: promisify(zlib.gzip),
     decompress: promisify(zlib.gunzip),
@@ -94,7 +95,11 @@ export class VhdDirectory extends VhdAbstract {
       value: vhd,
     }
   }
-  static #getCompressor(compressorType = 'none') {
+  static #getCompressor(compressorType) {
+    if (compressorType === undefined) {
+      return NULL_COMPRESSOR
+    }
+
     const compressor = COMPRESSORS[compressorType]
 
     if (compressor === undefined) {
