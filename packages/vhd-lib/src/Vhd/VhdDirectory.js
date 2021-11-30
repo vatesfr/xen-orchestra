@@ -9,6 +9,28 @@ import zlib from 'zlib'
 
 const { debug } = createLogger('vhd-lib:VhdDirectory')
 
+const COMPRESSORS = {
+  none: {
+    compress: buffer => buffer,
+    decompress: buffer => buffer,
+    baseOptions: {},
+  },
+  gzip: {
+    compress: promisify(zlib.gzip),
+    decompress: promisify(zlib.gunzip),
+    baseOptions: { level: zlib },
+  },
+  brotli: {
+    compress: promisify(zlib.brotliCompress),
+    decompress: promisify(zlib.brotliDecompress),
+    baseOptions: {
+      params: {
+        [zlib.constants.BROTLI_PARAM_QUALITY]: zlib.constants.BROTLI_MIN_QUALITY,
+      },
+    },
+  },
+}
+
 // ===================================================================
 // Directory format
 // <path>
@@ -69,27 +91,6 @@ export class VhdDirectory extends VhdAbstract {
     }
   }
   static #getCompressor(compressorType = 'none') {
-    const COMPRESSORS = {
-      none: {
-        compress: buffer => buffer,
-        decompress: buffer => buffer,
-        baseOptions: {},
-      },
-      gzip: {
-        compress: promisify(zlib.gzip),
-        decompress: promisify(zlib.gunzip),
-        baseOptions: { level: zlib },
-      },
-      brotli: {
-        compress: promisify(zlib.brotliCompress),
-        decompress: promisify(zlib.brotliDecompress),
-        baseOptions: {
-          params: {
-            [zlib.constants.BROTLI_PARAM_QUALITY]: zlib.constants.BROTLI_MIN_QUALITY,
-          },
-        },
-      },
-    }
     const compressor = COMPRESSORS[compressorType]
 
     if (compressor === undefined) {
