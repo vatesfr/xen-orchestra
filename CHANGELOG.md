@@ -25,7 +25,7 @@
 - @xen-orchestra/backups 0.16.0
 - xo-lib 0.11.1
 - @xen-orchestra/proxy 0.15.3
-- xo-server 5.84.0
+- xo-server 5.84.1
 - vhd-cli 0.6.0
 - xo-web 5.90.0
 
