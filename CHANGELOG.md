@@ -21,7 +21,7 @@
 - xo-remote-parser 0.8.4
 - @xen-orchestra/fs 0.19.0
 - @xen-orchestra/xapi patch
-- vhd-lib 2.0.0
+- vhd-lib 2.0.1
 - @xen-orchestra/backups 0.16.0
 - xo-lib 0.11.1
 - @xen-orchestra/proxy 0.15.3
