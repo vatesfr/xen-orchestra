@@ -18,7 +18,7 @@ const COMPRESSORS = {
   gzip: {
     compress: promisify(zlib.gzip),
     decompress: promisify(zlib.gunzip),
-    baseOptions: { level: zlib },
+    baseOptions: { level: zlib.constants.Z_BEST_SPEED },
   },
   brotli: {
     compress: promisify(zlib.brotliCompress),
