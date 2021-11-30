@@ -76,24 +76,22 @@ const CustomContent = React.forwardRef(function CustomContent(props: CustomConte
   const { handleExpansion, handleSelection, selected } = useTreeItem(nodeId)
   const history = useHistory()
 
+  const handleExpansionClick = (event: React.SyntheticEvent) => {
+    event.stopPropagation()
+    handleExpansion(event)
+  }
+
   const handleSelectionClick = (event: React.SyntheticEvent) => {
     to !== undefined && history.push(to)
     handleSelection(event)
   }
 
   return (
-    <span
-      className={classNames(className, { [classes.selected]: selected })}
-      // To trigger click event in the front of 'label' if there is no 'expansionIcon'.
-      onClick={expansionIcon === undefined ? handleSelectionClick : undefined}
-      ref={ref}
-    >
-      <span className={classes.iconContainer} onClick={handleExpansion}>
+    <span className={classNames(className, { [classes.selected]: selected })} onClick={handleSelectionClick} ref={ref}>
+      <span className={classes.iconContainer} onClick={handleExpansionClick}>
         {expansionIcon}
       </span>
-      <span className={classes.label} onClick={handleSelectionClick}>
-        {label}
-      </span>
+      <span className={classes.label}>{label}</span>
     </span>
   )
 })
