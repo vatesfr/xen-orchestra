@@ -68,10 +68,11 @@ const debounceResourceFactory = factory =>
   }
 
 class RemoteAdapter {
-  constructor(handler, { debounceResource = res => res, dirMode } = {}) {
+  constructor(handler, { debounceResource = res => res, dirMode, vhdDirectoryCompression = 'brotli' } = {}) {
     this._debounceResource = debounceResource
     this._dirMode = dirMode
     this._handler = handler
+    this._vhdDirectoryCompression = vhdDirectoryCompression
   }
 
   get handler() {
@@ -276,7 +277,7 @@ class RemoteAdapter {
   }
 
   #getCompressionType() {
-    return this.handler.type === 's3' ? 'brotli' : undefined
+    return this._vhdDirectoryCompression
   }
 
   #useVhdDirectory() {

@@ -414,6 +414,7 @@ export default class Backups {
     return new RemoteAdapter(yield app.remotes.getHandler(remote), {
       debounceResource: app.debounceResource.bind(app),
       dirMode: app.config.get('backups.dirMode'),
+      vhdDirectoryCompression: app.config.get('backups.vhdDirectoryCompression'),
     })
   }
 
