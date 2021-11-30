@@ -1,4 +1,8 @@
-## **next**
+# ChangeLog
+
+## **5.65.0** (2021-11-30)
+
+<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
 
 ### Highlights
 
@@ -31,9 +35,7 @@
 
 ## **5.64.0** (2021-10-29)
 
-# ChangeLog
-
-<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ## Highlights
 
@@ -75,8 +77,6 @@
 - xo-web 5.89.0
 
 ## **5.63.0** (2021-09-30)
-
-<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Highlights
 
