@@ -21,11 +21,10 @@ interface Effects {}
 
 interface Computed {
   collection?: Array<object>
-  haltedVmsByPool?: Collection.Keyed<string, Collection<string, Vm>>
   hostsByPool?: Map<string, Map<string, Host>>
   pools?: Map<string, Pool>
   vms?: Map<string, Vm>
-  vmsByRef?: Map<string, Vm>
+  vmsByContainerRef?: Collection.Keyed<string, Collection<string, Vm>>
 }
 
 const getHostPowerState = (host: Host) => {
@@ -50,59 +49,53 @@ const TreeView = withState<State, Props, Effects, Computed, ParentState, ParentE
         }
         const collection = []
         state.pools.valueSeq().forEach((pool: Pool) => {
-          const haltedVms = []
-          const hosts = []
-          state.hostsByPool
+          const hosts = state.hostsByPool
             ?.get(pool.$id)
             ?.valueSeq()
-            .forEach((host: Host) => {
-              const runningVms = []
-              host.resident_VMs.forEach(vmRef => {
-                let vm
-                if ((vm = state.vmsByRef?.get(vmRef)) !== undefined) {
-                  runningVms.push({
-                    id: vm.$id,
-                    label: (
-                      <span>
-                        <Icon icon='desktop' color={getIconColor(vm)} /> {vm.name_label}
-                      </span>
-                    ),
-                    to: `/infrastructure/vms/${vm.$id}/console`,
-                    tooltip: <IntlMessage id={vm.power_state.toLowerCase()} />,
-                  })
-                }
-              })
+            .map((host: Host) => ({
+              children: state.vmsByContainerRef
+                ?.get(host.$ref)
+                ?.valueSeq()
+                .sortBy(vm => vm.name_label)
+                .map((vm: Vm) => ({
+                  id: vm.$id,
+                  label: (
+                    <span>
+                      <Icon icon='desktop' color={getIconColor(vm)} /> {vm.name_label}
+                    </span>
+                  ),
+                  to: `/infrastructure/vms/${vm.$id}/console`,
+                  tooltip: <IntlMessage id={vm.power_state.toLowerCase()} />,
+                }))
+                .toArray(),
+              id: host.$id,
+              label: (
+                <span>
+                  <Icon icon='server' color={getIconColor(host)} /> {host.name_label}
+                </span>
+              ),
+              tooltip: <IntlMessage id={getHostPowerState(host).toLowerCase()} />,
+            }))
+            .toArray()
 
-              hosts.push({
-                children: runningVms,
-                id: host.$id,
-                label: (
-                  <span>
-                    <Icon icon='server' color={getIconColor(host)} /> {host.name_label}
-                  </span>
-                ),
-                tooltip: <IntlMessage id={getHostPowerState(host).toLowerCase()} />,
-              })
-            })
-
-          state.haltedVmsByPool
-            ?.get(pool.$id)
+          const haltedVms = state.vmsByContainerRef
+            ?.get(pool.$ref)
             ?.valueSeq()
-            .forEach((vm: Vm) => {
-              haltedVms.push({
-                id: vm.$id,
-                label: (
-                  <span>
-                    <Icon icon='desktop' color={getIconColor(vm)} /> {vm.name_label}
-                  </span>
-                ),
-                to: `/infrastructure/vms/${vm.$id}/console`,
-                tooltip: <IntlMessage id='halted' />,
-              })
-            })
+            .sortBy((vm: Vm) => vm.name_label)
+            .map((vm: Vm) => ({
+              id: vm.$id,
+              label: (
+                <span>
+                  <Icon icon='desktop' color={getIconColor(vm)} /> {vm.name_label}
+                </span>
+              ),
+              to: `/infrastructure/vms/${vm.$id}/console`,
+              tooltip: <IntlMessage id='halted' />,
+            }))
+            .toArray()
 
           collection.push({
-            children: hosts.concat(haltedVms),
+            children: (hosts ?? []).concat(haltedVms ?? []),
             id: pool.$id,
             label: (
               <span>
@@ -114,19 +107,16 @@ const TreeView = withState<State, Props, Effects, Computed, ParentState, ParentE
 
         return collection
       },
-      haltedVmsByPool: state => state.vms?.filter((vm: Vm) => vm.power_state === 'Halted').groupBy(vm => vm.$pool.$id),
       hostsByPool: state => state.objectsByType?.get('host')?.groupBy(host => host.$pool.$id),
       pools: state => state.objectsByType?.get('pool'),
       vms: state =>
         state.objectsByType
           ?.get('VM')
           ?.filter((vm: Vm) => !vm.is_control_domain && !vm.is_a_snapshot && !vm.is_a_template),
-      vmsByRef: state =>
-        Map<string, Vm>().withMutations(vms => {
-          state.vms?.forEach(vm => {
-            vms = vms.set(vm.$ref, vm)
-          })
-        }),
+      vmsByContainerRef: state =>
+        state.vms?.groupBy(({ power_state: powerState, resident_on: host, $pool }: Vm) =>
+          powerState === 'Running' || powerState === 'Paused' ? host : $pool.$ref
+        ),
     },
   },
   ({ state, defaultSelectedNodes }) =>
