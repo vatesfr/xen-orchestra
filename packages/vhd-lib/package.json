@@ -16,6 +16,7 @@
     "node": ">=10"
   },
   "dependencies": {
+    "@vates/async-each": "^0.1.0",
     "@vates/read-chunk": "^0.1.2",
     "@xen-orchestra/log": "^0.3.0",
     "async-iterator-to-stream": "^1.0.2",
