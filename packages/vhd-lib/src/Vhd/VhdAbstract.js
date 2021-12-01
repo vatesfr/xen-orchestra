@@ -137,7 +137,7 @@ export class VhdAbstract {
     const entry = this.header.parentLocatorEntry[id]
     const dataSpaceSectors = Math.ceil(data.length / SECTOR_SIZE)
     entry.platformCode = platformCode
-    entry.platformDataSpace = dataSpaceSectors * SECTOR_SIZE
+    entry.platformDataSpace = dataSpaceSectors
     entry.platformDataLength = data.length
   }
 

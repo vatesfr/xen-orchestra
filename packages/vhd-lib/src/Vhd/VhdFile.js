@@ -426,7 +426,8 @@ export class VhdFile extends VhdAbstract {
       // reset offset if data is empty
       header.parentLocatorEntry[parentLocatorId].platformDataOffset = 0
     } else {
-      if (data.length <= header.parentLocatorEntry[parentLocatorId].platformDataSpace) {
+      const space = header.parentLocatorEntry[parentLocatorId].platformDataSpace * SECTOR_SIZE
+      if (data.length <= space) {
         // new parent locator length is smaller than available space : keep it in place
         position = header.parentLocatorEntry[parentLocatorId].platformDataOffset
       } else {
@@ -441,7 +442,7 @@ export class VhdFile extends VhdAbstract {
           // move the first(s) block(s) at the end of the data
           // move the parent locator to the  precedent position of the first block
           const { firstSector } = firstAndLastBlocks
-          await this._freeFirstBlockSpace(header.parentLocatorEntry[parentLocatorId].platformDataSpace)
+          await this._freeFirstBlockSpace(space)
           position = sectorsToBytes(firstSector)
         }
       }
