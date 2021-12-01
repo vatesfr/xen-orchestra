@@ -71,10 +71,11 @@ const App = withState<State, Props, Effects, Computed, ParentState, ParentEffect
         this.state.value = e.target.value
       },
       sayHello: () => alert('hello'),
-      sendPromise: () =>
+      sendPromise: (_, data = {}) =>
         new Promise(resolve => {
           setTimeout(() => {
             resolve()
+            window.alert(data.something)
           }, 1000)
         }),
       showAlertModal: () => alert({ message: 'This is an alert modal', title: 'Alert modal', icon: 'info' }),
@@ -132,10 +133,12 @@ const App = withState<State, Props, Effects, Computed, ParentState, ParentEffect
       <h2>Action button</h2>
       <Container>
         <Render>
-          <ActionButton onClick={effects.sendPromise}>Send promise</ActionButton>
+          <ActionButton data-something='data props forwarded' onClick={effects.sendPromise}>
+            Send promise
+          </ActionButton>
         </Render>
         <Code>
-          {`<ActionButton onClick={effects.sendPromise}>
+          {`<ActionButton data-something='data props forwarded' onClick={effects.sendPromise}>
   Send promise
 </ActionButton>`}
         </Code>

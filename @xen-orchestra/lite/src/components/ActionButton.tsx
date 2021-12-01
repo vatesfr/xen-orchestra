@@ -9,7 +9,9 @@ interface State {
 }
 
 interface Props extends LoadingButtonProps {
-  onClick: (e: React.MouseEvent) => Promise<void>
+  onClick: (e: React.MouseEvent, data?: { [key: string]: unknown }) => Promise<void>
+  // to pass props with the following patern: "data-something"
+  [key: string]: unknown
 }
 
 interface ParentEffects {}
@@ -18,7 +20,9 @@ interface Effects {
   _onClick: React.MouseEventHandler<HTMLButtonElement>
 }
 
-interface Computed {}
+interface Computed {
+  data: { [key: string]: unknown }
+}
 
 const ActionButton = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
   {
@@ -26,7 +30,18 @@ const ActionButton = withState<State, Props, Effects, Computed, ParentState, Par
     effects: {
       _onClick: function (e) {
         this.state.isLoading = true
-        return this.props.onClick(e).finally(() => (this.state.isLoading = false))
+        return this.props.onClick(e, this.state.data).finally(() => (this.state.isLoading = false))
+      },
+    },
+    computed: {
+      data: (_, props) => {
+        const _data: Record<string, unknown> = {}
+        Object.keys(props).forEach(key => {
+          if (key.startsWith('data-')) {
+            _data[key.slice(5)] = props[key]
+          }
+        })
+        return _data
       },
     },
   },
