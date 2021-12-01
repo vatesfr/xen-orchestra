@@ -7,20 +7,12 @@ import { checksumStruct, fuFooter, fuHeader } from '../_structs'
 import { isVhdAlias, resolveAlias } from '../_resolveAlias'
 
 export class VhdAbstract {
-  #header
-  footer
-
   get bitmapSize() {
     return sectorsToBytes(this.sectorsOfBitmap)
   }
 
   get fullBlockSize() {
     return sectorsToBytes(this.sectorsOfBitmap + this.sectorsPerBlock)
-  }
-
-  get header() {
-    assert.notStrictEqual(this.#header, undefined, `header must be read before it's used`)
-    return this.#header
   }
 
   get sectorsOfBitmap() {
@@ -31,8 +23,12 @@ export class VhdAbstract {
     return computeSectorsPerBlock(this.header.blockSize)
   }
 
-  set header(header) {
-    this.#header = header
+  get header() {
+    throw new Error('get header is not implemented')
+  }
+
+  get footer() {
+    throw new Error('get footer not implemented')
   }
 
   /**
