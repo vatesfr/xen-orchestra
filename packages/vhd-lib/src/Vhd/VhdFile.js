@@ -45,6 +45,8 @@ const { debug } = createLogger('vhd-lib:VhdFile')
 
 export class VhdFile extends VhdAbstract {
   #uncheckedBlockTable
+  #header
+  footer
 
   get #blockTable() {
     assert.notStrictEqual(this.#uncheckedBlockTable, undefined, 'Block table must be initialized before access')
@@ -60,7 +62,7 @@ export class VhdFile extends VhdAbstract {
   }
 
   set header(header) {
-    super.header = header
+    this.#header = header
     const size = this.batSize
     this.#blockTable = Buffer.alloc(size)
     for (let i = 0; i < this.header.maxTableEntries; i++) {
@@ -68,7 +70,7 @@ export class VhdFile extends VhdAbstract {
     }
   }
   get header() {
-    return super.header
+    return this.#header
   }
 
   static async open(handler, path, { flags, checkSecondFooter = true } = {}) {

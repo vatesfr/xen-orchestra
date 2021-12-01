@@ -7,9 +7,6 @@ import assert from 'assert'
 
 export class VhdSynthetic extends VhdAbstract {
   #vhds = []
-  set header(_) {
-    throw new Error('Header is read only for VhdSynthetic')
-  }
 
   get header() {
     // this the VHD we want to synthetize
@@ -27,10 +24,6 @@ export class VhdSynthetic extends VhdAbstract {
       parentUnicodeName: rootVhd.header.parentUnicodeName,
       parentUuid: rootVhd.header.parentUuid,
     }
-  }
-
-  set footer(_) {
-    throw new Error('Footer is read only for VhdSynthetic')
   }
 
   get footer() {
