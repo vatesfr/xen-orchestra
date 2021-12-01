@@ -11,6 +11,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Delta Backup Restoration] Fix assertion error [Forum #5257](https://xcp-ng.org/forum/topic/5257/problems-building-from-source)
+
 ### Packages to release
 
 > Packages will be released in the order they are here, therefore, they should
@@ -29,3 +31,6 @@
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
 - xo-vmdk-to-vhd patch
+- vhd-lib patch
+- @xen-orchestra/proxy patch
+- xo-server patch
