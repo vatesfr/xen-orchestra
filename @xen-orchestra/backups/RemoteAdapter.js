@@ -519,13 +519,26 @@ class RemoteAdapter {
     const disposables = await Disposable.all(disposableVhds)
     const vhds = disposables.value
 
+    let disposed = false
+    const disposeOnce = async () => {
+      if (!disposed) {
+        disposed = true
+
+        try {
+          await disposables.dispose()
+        } catch (error) {
+          warn('_createSyntheticStream: failed to dispose VHDs', { error })
+        }
+      }
+    }
+
     const synthetic = new VhdSynthetic(vhds)
     await synthetic.readHeaderAndFooter()
     await synthetic.readBlockAllocationTable()
     const stream = await synthetic.stream()
-    stream.on('end', () => disposables.dispose())
-    stream.on('close', () => disposables.dispose())
-    stream.on('error', () => disposables.dispose())
+    stream.on('end', disposeOnce)
+    stream.on('close', disposeOnce)
+    stream.on('error', disposeOnce)
     return stream
   }
 
