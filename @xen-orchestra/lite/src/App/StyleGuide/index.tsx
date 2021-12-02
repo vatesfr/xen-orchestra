@@ -13,6 +13,7 @@ import Checkbox from '../../components/Checkbox'
 import Icon from '../../components/Icon'
 import Input from '../../components/Input'
 import Select from '../../components/Select'
+import { alert, confirm } from '../../components/Modal'
 
 interface ParentState {}
 
@@ -27,6 +28,8 @@ interface ParentEffects {}
 interface Effects {
   onChangeSelect: (e: SelectChangeEvent<unknown>) => void
   sayHello: () => void
+  showAlertModal: () => void
+  showConfirmModal: () => void
 }
 
 interface Computed {}
@@ -66,6 +69,13 @@ const App = withState<State, Props, Effects, Computed, ParentState, ParentEffect
         this.state.value = e.target.value
       },
       sayHello: () => alert('hello'),
+      showAlertModal: () => alert({ message: 'This is an alert modal', title: 'Alert modal', icon: 'info' }),
+      showConfirmModal: () =>
+        confirm({
+          message: 'This is a confirm modal test',
+          title: 'Confirm modal',
+          icon: 'download',
+        }),
     },
   },
   ({ effects, state }) => (
@@ -129,6 +139,52 @@ const App = withState<State, Props, Effects, Computed, ParentState, ParentEffect
         </Render>
         <Code>{`<TextInput label='Input' />
 <Checkbox />`}</Code>
+      </Container>
+      <h2>Modal</h2>
+      <Container>
+        <Render>
+          <Button
+            color='primary'
+            onClick={effects.showAlertModal}
+            sx={{
+              marginBottom: 1,
+            }}
+          >
+            Alert
+          </Button>
+          <Button color='primary' onClick={effects.showConfirmModal}>
+            Confirm
+          </Button>
+        </Render>
+        <Code>{`<Button
+  color='primary'
+  onClick={() =>
+    alert({
+      message: 'This is an alert modal',
+      title: 'Alert modal',
+      icon: 'info'
+    })
+  }
+>
+  Alert
+</Button>
+<Button
+  color='primary'
+  onClick={async () => {
+    try {
+      await confirm({
+        message: 'This is a confirm modal',
+        title: 'Confirm modal',
+        icon: 'download',
+      })
+      // The modal has been confirmed
+    } catch (reason) { // "cancel"
+      // The modal has been closed
+    }
+  }}
+>
+  Confirm
+</Button>`}</Code>
       </Container>
       <h2>Select</h2>
       <Container>

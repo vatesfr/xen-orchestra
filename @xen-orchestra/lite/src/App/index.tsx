@@ -30,6 +30,7 @@ import Infrastructure from './Infrastructure'
 import IntlMessage from '../components/IntlMessage'
 import Link from '../components/Link'
 import messagesEn from '../lang/en.json'
+import Modal from '../components/Modal'
 import PoolTab from './PoolTab'
 import Signin from './Signin/index'
 import StyleGuide from './StyleGuide/index'
@@ -274,6 +275,7 @@ const App = withState<State, Props, Effects, Computed, ParentState, ParentEffect
     <IntlProvider messages={messagesEn} locale='en'>
       {/* Provided by this template: https://github.com/mui-org/material-ui/tree/next/docs/src/pages/getting-started/templates/dashboard */}
       <ThemeProvider theme={mdTheme}>
+        <Modal />
         {!state.connected ? (
           <Signin />
         ) : !state.objectsFetched ? (
