@@ -1,5 +1,13 @@
 import { computeBatSize, computeSectorOfBitmap, computeSectorsPerBlock, sectorsToBytes } from './_utils'
-import { PLATFORMS, SECTOR_SIZE, PARENT_LOCATOR_ENTRIES, FOOTER_SIZE, HEADER_SIZE, BLOCK_UNUSED } from '../_constants'
+import {
+  DISK_TYPES,
+  PLATFORMS,
+  SECTOR_SIZE,
+  PARENT_LOCATOR_ENTRIES,
+  FOOTER_SIZE,
+  HEADER_SIZE,
+  BLOCK_UNUSED,
+} from '../_constants'
 import assert from 'assert'
 import path from 'path'
 import asyncIteratorToStream from 'async-iterator-to-stream'
@@ -217,24 +225,18 @@ export class VhdAbstract {
   }
 
   stream() {
+    // TODO: support DIFFERENCING (i.e. parentLocator entries)
+    assert.strictEqual(this.footer.diskType, DISK_TYPES.DYNAMIC)
+
     const { footer, batSize } = this
     const { ...header } = this.header // copy since we don't ant to modifiy the current header
     const rawFooter = fuFooter.pack(footer)
     checksumStruct(rawFooter, fuFooter)
 
-    // compute parent locator place and size
     // update them in header
     // update checksum in header
 
-    let offset = FOOTER_SIZE + HEADER_SIZE + batSize
-    for (let i = 0; i < PARENT_LOCATOR_ENTRIES; i++) {
-      const { ...entry } = header.parentLocatorEntry[i]
-      if (entry.platformDataSpace > 0) {
-        entry.platformDataOffset = offset
-        offset += entry.platformDataSpace
-      }
-      header.parentLocatorEntry[i] = entry
-    }
+    const offset = FOOTER_SIZE + HEADER_SIZE + batSize
 
     const rawHeader = fuHeader.pack(header)
     checksumStruct(rawHeader, fuHeader)
@@ -261,15 +263,6 @@ export class VhdAbstract {
       yield rawFooter
       yield rawHeader
       yield bat
-
-      // yield parent locator entries
-      for (let i = 0; i < PARENT_LOCATOR_ENTRIES; i++) {
-        if (header.parentLocatorEntry[i].platformDataSpace > 0) {
-          const parentLocator = await self.readParentLocator(i)
-          // @ todo pad to platformDataSpace
-          yield parentLocator.data
-        }
-      }
 
       // yield all blocks
       // since contains() can be costly for synthetic vhd, use the computed bat
