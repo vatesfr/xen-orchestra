@@ -40,3 +40,14 @@ decorateMethodsWith(Foo, {
 ```
 
 The decorated class is returned, so you can export it directly.
+
+To apply multiple transforms to a method, you can either call `decorateMethodsWith` multiple times or use [`@vates/compose`](https://www.npmjs.com/package/@vates/compose):
+
+```js
+decorateMethodsWith(Foo, {
+  bar: compose([
+    [lodash.debounce, 150]
+    lodash.curry,
+  ])
+})
+```
