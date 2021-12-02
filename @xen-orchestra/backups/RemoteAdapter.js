@@ -469,10 +469,10 @@ class RemoteAdapter {
 
   async writeVhd(path, input, { checksum = true, validator = noop } = {}) {
     const handler = this._handler
-    let dataPath = path
 
     if (path.endsWith('.alias.vhd')) {
-      await createVhdDirectoryFromStream(handler, `${dirname(path)}/data/${uuidv4()}.vhd`, input, {
+      const dataPath = `${dirname(path)}/data/${uuidv4()}.vhd`
+      await createVhdDirectoryFromStream(handler, dataPath, input, {
         concurrency: 16,
         async validator() {
           await input.task
@@ -481,7 +481,7 @@ class RemoteAdapter {
       })
       await VhdAbstract.createAlias(handler, path, dataPath)
     } else {
-      await this.outputStream(dataPath, input, { checksum, validator })
+      await this.outputStream(path, input, { checksum, validator })
     }
   }
 
