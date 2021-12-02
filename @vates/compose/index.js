@@ -22,6 +22,24 @@ exports.compose = function compose(opts, fns) {
   if (n === 0) {
     throw new TypeError('at least one function must be passed')
   }
+
+  for (let i = 0; i < n; ++i) {
+    const entry = fns[i]
+    if (Array.isArray(entry)) {
+      const fn = entry[0]
+      const args = entry.slice()
+      args[0] = undefined
+      fns[i] = function composeWithArgs(value) {
+        args[0] = value
+        try {
+          return fn.apply(this, args)
+        } finally {
+          args[0] = undefined
+        }
+      }
+    }
+  }
+
   if (n === 1) {
     return fns[0]
   }
