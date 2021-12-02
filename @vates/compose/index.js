@@ -4,11 +4,13 @@ const defaultOpts = { async: false, right: false }
 
 exports.compose = function compose(opts, fns) {
   if (Array.isArray(opts)) {
-    fns = opts
+    fns = opts.slice() // don't mutate passed array
     opts = defaultOpts
   } else if (typeof opts === 'object') {
     opts = Object.assign({}, defaultOpts, opts)
-    if (!Array.isArray(fns)) {
+    if (Array.isArray(fns)) {
+      fns = fns.slice() // don't mutate passed array
+    } else {
       fns = Array.prototype.slice.call(arguments, 1)
     }
   } else {
