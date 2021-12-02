@@ -1,8 +1,41 @@
-## **5.64.0** (2021-10-29)
-
 # ChangeLog
 
+## **5.65.0** (2021-11-30)
+
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
+### Highlights
+
+- [VM] Ability to export a snapshot's memory (PR [#6015](https://github.com/vatesfr/xen-orchestra/pull/6015))
+- [Cloud config] Ability to create a network cloud config template and reuse it in the VM creation [#5931](https://github.com/vatesfr/xen-orchestra/issues/5931) (PR [#5979](https://github.com/vatesfr/xen-orchestra/pull/5979))
+- [Backup/logs] identify XAPI errors (PR [#6001](https://github.com/vatesfr/xen-orchestra/pull/6001))
+- [lite] Highlight selected VM (PR [#5939](https://github.com/vatesfr/xen-orchestra/pull/5939))
+
+### Enhancements
+
+- [S3] Ability to authorize self signed certificates for S3 remote (PR [#5961](https://github.com/vatesfr/xen-orchestra/pull/5961))
+
+### Bug fixes
+
+- [Import/VM] Fix the import of OVA files (PR [#5976](https://github.com/vatesfr/xen-orchestra/pull/5976))
+
+### Packages to release
+
+- @vates/async-each 0.1.0
+- xo-remote-parser 0.8.4
+- @xen-orchestra/fs 0.19.0
+- @xen-orchestra/xapi patch
+- vhd-lib 2.0.1
+- @xen-orchestra/backups 0.16.0
+- xo-lib 0.11.1
+- @xen-orchestra/proxy 0.15.3
+- xo-server 5.84.1
+- vhd-cli 0.6.0
+- xo-web 5.90.0
+
+## **5.64.0** (2021-10-29)
+
+<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ## Highlights
 
@@ -44,8 +77,6 @@
 - xo-web 5.89.0
 
 ## **5.63.0** (2021-09-30)
-
-<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Highlights
 

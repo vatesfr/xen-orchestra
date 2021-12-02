@@ -115,7 +115,10 @@ async function resolveParams(method, params) {
   const permissions = []
   forEach(resolve, ([param, types, permission = 'administrate'], key) => {
     const id = params[param]
-    if (id === undefined) {
+    if (
+      id === undefined || // optional param not used
+      id === null // explicit value to unset
+    ) {
       return
     }
 

@@ -1,3 +1,4 @@
+import * as UUID from 'uuid'
 import { asyncMap } from '@xen-orchestra/async-map'
 import { VhdAbstract } from './VhdAbstract'
 import { DISK_TYPES, FOOTER_SIZE, HEADER_SIZE } from '../_constants'
@@ -76,7 +77,7 @@ export class VhdSynthetic extends VhdAbstract {
       const child = vhds[i]
       const parent = vhds[i + 1]
       assert.strictEqual(child.footer.diskType, DISK_TYPES.DIFFERENCING)
-      assert.strictEqual(child.header.parentUuid, parent.footer.uuid)
+      assert.strictEqual(UUID.stringify(child.header.parentUuid), UUID.stringify(parent.footer.uuid))
     }
   }
 
