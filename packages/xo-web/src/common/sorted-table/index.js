@@ -212,7 +212,7 @@ const CollapsedActions = decorate([
             className={action.level !== undefined ? `text-${action.level}` : ''}
             disabled={action.disabled}
             key={key}
-            onClick={() => effects.execute(action)}
+            onClick={action.disabled ? undefined : () => effects.execute(action)}
           >
             <Icon icon={action.icon} /> {action.label}
           </MenuItem>

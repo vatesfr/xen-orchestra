@@ -13,6 +13,7 @@
 
 - [Delta Backup Restoration] Fix assertion error [Forum #5257](https://xcp-ng.org/forum/topic/5257/problems-building-from-source/16)
 - [Delta Backup Restoration] `TypeError: this disposable has already been disposed` [Forum #5257](https://xcp-ng.org/forum/topic/5257/problems-building-from-source/20)
+- [Tables/actions] Fix collapsed actions being clickable despite being disabled (PR [#6023](https://github.com/vatesfr/xen-orchestra/pull/6023))
 
 ### Packages to release
 
@@ -36,3 +37,4 @@
 - @xen-orchestra/backups patch
 - @xen-orchestra/proxy patch
 - xo-server patch
+- xo-web patch
