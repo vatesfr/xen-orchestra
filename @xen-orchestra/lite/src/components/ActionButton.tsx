@@ -47,8 +47,8 @@ const ActionButton = withState<State, Props, Effects, Computed, ParentState, Par
       disabled={state.isLoading}
       fullWidth
       loading={state.isLoading}
-      variant={variant}
       onClick={effects._onClick}
+      variant={variant}
       {...props}
     >
       {children}
