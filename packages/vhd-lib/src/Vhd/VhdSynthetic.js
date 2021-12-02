@@ -1,4 +1,5 @@
 import * as UUID from 'uuid'
+import cloneDeep from 'lodash/cloneDeep.js'
 import { asyncMap } from '@xen-orchestra/async-map'
 import { VhdAbstract } from './VhdAbstract'
 import { DISK_TYPES, FOOTER_SIZE, HEADER_SIZE } from '../_constants'
@@ -19,6 +20,7 @@ export class VhdSynthetic extends VhdAbstract {
     // TODO: set parentLocatorEntry-s in header
     return {
       ...vhd.header,
+      parentLocatorEntry: cloneDeep(rootVhd.header.parentLocatorEntry),
       tableOffset: FOOTER_SIZE + HEADER_SIZE,
       parentTimestamp: rootVhd.header.parentTimestamp,
       parentUnicodeName: rootVhd.header.parentUnicodeName,
