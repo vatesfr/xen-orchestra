@@ -8,8 +8,11 @@ interface State {
   isLoading: boolean
 }
 
-interface Props extends LoadingButtonProps {
-  onClick: (e: React.MouseEvent, data?: { [key: string]: unknown }) => Promise<void>
+// Omit the "onClick" prop allow us to rewrite the definition type
+// for this one.
+// Otherwise the type of parameter 'data' is incompatible with the type 'event'.
+interface Props extends Omit<LoadingButtonProps, 'onClick'> {
+  onClick: (data: Record<string, unknown>) => Promise<void>
   // to pass props with the following patern: "data-something"
   [key: string]: unknown
 }
@@ -20,28 +23,21 @@ interface Effects {
   _onClick: React.MouseEventHandler<HTMLButtonElement>
 }
 
-interface Computed {
-  data: { [key: string]: unknown }
-}
+interface Computed {}
 
 const ActionButton = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
   {
     initialState: () => ({ isLoading: false }),
     effects: {
-      _onClick: function (e) {
+      _onClick: function () {
         this.state.isLoading = true
-        return this.props.onClick(e, this.state.data).finally(() => (this.state.isLoading = false))
-      },
-    },
-    computed: {
-      data: (_, props) => {
-        const _data: Record<string, unknown> = {}
-        Object.keys(props).forEach(key => {
+        const data: Record<string, unknown> = {}
+        Object.keys(this.props).forEach(key => {
           if (key.startsWith('data-')) {
-            _data[key.slice(5)] = props[key]
+            data[key.slice(5)] = this.props[key]
           }
         })
-        return _data
+        return this.props.onClick(data).finally(() => (this.state.isLoading = false))
       },
     },
   },
