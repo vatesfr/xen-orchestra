@@ -13,6 +13,7 @@
 
 - [Delta Backup Restoration] Fix assertion error [Forum #5257](https://xcp-ng.org/forum/topic/5257/problems-building-from-source/16)
 - [Delta Backup Restoration] `TypeError: this disposable has already been disposed` [Forum #5257](https://xcp-ng.org/forum/topic/5257/problems-building-from-source/20)
+- [Delta Backup Restoration] Fix error `ENOENT: no such file '/xo-vm-backups/../parentLocatorEntryN' with vhd having empty parent locator
 
 ### Packages to release
 

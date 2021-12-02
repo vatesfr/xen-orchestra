@@ -182,7 +182,14 @@ export class VhdDirectory extends VhdAbstract {
   }
 
   async _readParentLocatorData(id) {
-    return (await this._readChunk('parentLocatorEntry' + id)).buffer
+    try {
+      return (await this._readChunk('parentLocatorEntry' + id)).buffer
+    } catch (e) {
+      if (e.code === 'ENOENT') {
+        return Buffer.alloc(0)
+      }
+      throw e
+    }
   }
 
   async _writeParentLocatorData(id, data) {
