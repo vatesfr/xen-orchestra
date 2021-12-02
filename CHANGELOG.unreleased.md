@@ -15,6 +15,7 @@
 - [Delta Backup Restoration] `TypeError: this disposable has already been disposed` [Forum #5257](https://xcp-ng.org/forum/topic/5257/problems-building-from-source/20)
 - [Tables/actions] Fix collapsed actions being clickable despite being disabled (PR [#6023](https://github.com/vatesfr/xen-orchestra/pull/6023))
 - [Backups] Fix: `Error: Chaining alias is forbidden xo-vm-backups/..alias.vhd to xo-vm-backups/....alias.vhd` when backuping a file to s3 [Forum #5226](https://xcp-ng.org/forum/topic/5256/s3-backup-try-it)
+- [Delta Backup Restoration] `VDI_IO_ERROR(Device I/O errors)` [Forum #5727](https://xcp-ng.org/forum/topic/5257/problems-building-from-source/4) (PR [#6031](https://github.com/vatesfr/xen-orchestra/pull/6031))
 
 ### Packages to release
 
