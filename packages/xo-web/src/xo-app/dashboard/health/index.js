@@ -13,7 +13,7 @@ import { SelectPool } from 'select-objects'
 import { Container, Row, Col } from 'grid'
 import { Card, CardHeader, CardBlock } from 'card'
 import { FormattedRelative, FormattedTime } from 'react-intl'
-import { flatten, forEach, includes, isEmpty, map } from 'lodash'
+import { filter, flatten, forEach, includes, isEmpty, map } from 'lodash'
 import { connectStore, formatLogs, formatSize, noop, resolveIds } from 'utils'
 import {
   deleteMessage,
@@ -104,6 +104,18 @@ const DUPLICATED_MAC_ADDRESSES_COLUMNS = [
 const DUPLICATED_MAC_ADDRESSES_FILTERS = {
   filterOnlyRunningVms: 'nRunningVms:>1',
 }
+
+const NON_SHARED_DEFAULT_SR_COLUMNS = [
+  {
+    name: _('pool'),
+    itemRenderer: pool => pool.name_label,
+    sortCriteria: pool => pool.name_label,
+  },
+  {
+    name: _('sr'),
+    itemRenderer: pool => <Sr id={pool.default_SR} link spaceLeft={false} />,
+  },
+]
 
 const SR_COLUMNS = [
   {
@@ -530,6 +542,7 @@ const HANDLED_VDI_TYPES = new Set(['system', 'user', 'ephemeral'])
     areObjectsFetched,
     orphanVdis: getOrphanVdis,
     orphanVmSnapshots: getOrphanVmSnapshots,
+    pools: createGetObjectsOfType('pool'),
     tooManySnapshotsVms: getTooManySnapshotsVms,
     guestToolsVms: getGuestToolsVms,
     userSrs: getUserSrs,
@@ -585,6 +598,23 @@ export default class Health extends Component {
     )
   )
 
+  _getNonSharedDefaultSr = createSelector(
+    () => this.props.pools,
+    () => this.props.userSrs,
+    () => this._getPoolIds(),
+    (pools, userSrs, poolIds) => {
+      let _pools = {}
+      if (isEmpty(poolIds)) {
+        _pools = pools
+      } else {
+        forEach(poolIds, poolId => (_pools[poolId] = pools[poolId]))
+      }
+      return filter(_pools, pool => !userSrs[pool.default_SR].shared)
+    }
+  )
+
+  _getPools = createFilter(() => this.state.pools, this._getPoolPredicate)
+
   _getPoolIds = createCollectionWrapper(createSelector(() => this.state.pools, resolveIds))
 
   _getPoolPredicate = createSelector(this._getPoolIds, poolIds =>
@@ -616,6 +646,7 @@ export default class Health extends Component {
     const { props, state } = this
 
     const duplicatedMacAddresses = this._getDuplicatedMacAddresses()
+    const nonSharedDefaultSr = this._getNonSharedDefaultSr()
     const userSrs = this._getUserSrs()
     const orphanVdis = this._getOrphanVdis()
 
@@ -641,6 +672,34 @@ export default class Health extends Component {
                           rowLink={this._getSrUrl}
                           shortcutsTarget='body'
                           stateUrlParam='s_srs'
+                        />
+                      </Col>
+                    </Row>
+                  )}
+                </NoObjects>
+              </CardBlock>
+            </Card>
+          </Col>
+        </Row>
+        <Row>
+          <Col>
+            <Card>
+              <CardHeader>
+                <Icon icon='disk' /> {_('nonSharedDefaultSr')}
+              </CardHeader>
+              <CardBlock>
+                <NoObjects
+                  collection={props.areObjectsFetched ? nonSharedDefaultSr : null}
+                  emptyMessage={_('noNonSharedDefaultSr')}
+                >
+                  {() => (
+                    <Row>
+                      <Col>
+                        <SortedTable
+                          collection={nonSharedDefaultSr}
+                          columns={NON_SHARED_DEFAULT_SR_COLUMNS}
+                          shortcutsTarget='body'
+                          stateUrlParam='s_no_shared_default_sr'
                         />
                       </Col>
                     </Row>
