@@ -10,6 +10,24 @@ const { limitConcurrency } = require('limit-concurrency-decorator')
 const { Task } = require('./Task.js')
 const { Disposable } = require('promise-toolbox')
 
+// checking the size of a vhd directory is costly
+// 1 Http Query per 1000 blocks
+// we only check size of all the vhd are VhdFiles
+function shouldComputeVhdsSize(vhds) {
+  return vhds.every(vhd => vhd instanceof VhdFile)
+}
+
+async function computeVhdsSize(handler, vhdPaths) {
+  return await Disposable.use(Disposable.all(vhdPaths.map(vhdPath => openVhd(handler, vhdPath))), async vhds => {
+    if (!shouldComputeVhdsSize(vhds)) {
+      // don't lose time computing vhd size if some vhds have a non computable size
+      return
+    }
+    const sizes = await asyncMap(vhds, vhd => vhd.getSize())
+    return sum(sizes)
+  })
+}
+
 // chain is an array of VHDs from child to parent
 //
 // the whole chain will be merged into parent, parent will be renamed to child
@@ -273,20 +291,10 @@ exports.cleanVm = async function cleanVm(
       if (missingVhds.length === 0) {
         linkedVhds.forEach(_ => unusedVhds.delete(_))
 
-        // checking the size of a vhd directory is costly
-        // 1 Http Query per 1000 blocks
-        // we only check size of all the vhd are VhdFiles
-
-        const shouldComputeSize = linkedVhds.every(vhd => vhd instanceof VhdFile)
-        if (shouldComputeSize) {
-          try {
-            await Disposable.use(Disposable.all(linkedVhds.map(vhdPath => openVhd(handler, vhdPath))), async vhds => {
-              const sizes = await asyncMap(vhds, vhd => vhd.getSize())
-              size = sum(sizes)
-            })
-          } catch (error) {
-            onLog(`failed to get size of ${json}`, { error })
-          }
+        try {
+          size = await computeVhdsSize(handler, linkedVhds)
+        } catch (error) {
+          onLog(`failed to get size of ${json}`, { error })
         }
       } else {
         onLog(`Some VHDs linked to the metadata ${json} are missing`, { missingVhds })
