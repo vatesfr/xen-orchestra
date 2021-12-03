@@ -714,14 +714,11 @@ export default class Home extends Component {
           return filteredItems
         }
         const backedUpVms = uniq(
-          flatMap(jobs, job =>
-            filter(
-              filteredItems,
-              item => createPredicate(omit(job.vms, 'power_state'))(item) && schedulesByJob[job.id][0].enabled
-            )
+          flatMap(
+            filter(jobs, job => schedulesByJob[job.id][0].enabled),
+            job => filter(filteredItems, createPredicate(omit(job.vms, 'power_state')))
           )
         )
-
         return backup === 'true' ? backedUpVms : differenceBy(map(filteredItems), backedUpVms, 'id')
       }
     ),
