@@ -27,7 +27,7 @@
   "dependencies": {
     "@iarna/toml": "^2.2.0",
     "@koa/router": "^10.0.0",
-    "@vates/compose": "^2.0.0",
+    "@vates/compose": "^2.1.0",
     "@vates/decorate-with": "^0.1.0",
     "@vates/disposable": "^0.1.1",
     "@xen-orchestra/async-map": "^0.1.2",
