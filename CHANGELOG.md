@@ -38,7 +38,7 @@
 
 - [Import/VM] Fix the import of OVA files (PR [#5976](https://github.com/vatesfr/xen-orchestra/pull/5976))
 
-### Packages to release
+### Released packages
 
 - @vates/async-each 0.1.0
 - xo-remote-parser 0.8.4
