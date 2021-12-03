@@ -8,6 +8,7 @@
 - vhd-lib 2.0.2
 - xo-vmdk-to-vhd 2.0.1
 - @xen-orchestra/backups 0.16.1
+- @xen-orchestra/proxy 0.15.4
 
 ## **5.65.0** (2021-11-30)
 
