@@ -6,6 +6,7 @@
 
 - @vates/compose 2.1.0
 - vhd-lib 2.0.2
+- xo-vmdk-to-vhd 2.0.1
 
 ## **5.65.0** (2021-11-30)
 
