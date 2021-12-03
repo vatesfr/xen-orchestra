@@ -540,6 +540,7 @@ const HANDLED_VDI_TYPES = new Set(['system', 'user', 'ephemeral'])
   return {
     alertMessages: getAlertMessages,
     areObjectsFetched,
+    hosts: createGetObjectsOfType('host'),
     orphanVdis: getOrphanVdis,
     orphanVmSnapshots: getOrphanVmSnapshots,
     pools: createGetObjectsOfType('pool'),
@@ -599,17 +600,30 @@ export default class Health extends Component {
   )
 
   _getNonSharedDefaultSr = createSelector(
+    () => this.props.hosts,
     () => this.props.pools,
     () => this.props.userSrs,
     () => this._getPoolIds(),
-    (pools, userSrs, poolIds) => {
+    (hosts, pools, userSrs, poolIds) => {
       let _pools = {}
+      const poolsWithMultipleHosts = {}
+
       if (isEmpty(poolIds)) {
         _pools = pools
       } else {
         forEach(poolIds, poolId => (_pools[poolId] = pools[poolId]))
       }
-      return filter(_pools, pool => !userSrs[pool.default_SR].shared)
+      const nonSharedDefaultSr = filter(_pools, pool => !userSrs[pool.default_SR].shared)
+
+      forEach(hosts, host => {
+        const nbOfHostsInThePool = poolsWithMultipleHosts[host.$pool]
+        if (nbOfHostsInThePool === undefined) {
+          poolsWithMultipleHosts[host.$pool] = 1
+        } else {
+          poolsWithMultipleHosts[host.$pool] = nbOfHostsInThePool + 1
+        }
+      })
+      return filter(nonSharedDefaultSr, pool => poolsWithMultipleHosts[pool.id] > 1)
     }
   )
 
