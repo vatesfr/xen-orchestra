@@ -7,6 +7,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [Home/VMs/Backup filter] filter out VMs in disabled backup jobs (PR [#6037](https://github.com/vatesfr/xen-orchestra/pull/6037))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -41,4 +43,4 @@
 - @xen-orchestra/backups patch
 - @xen-orchestra/proxy patch
 - xo-server patch
-- xo-web patch
+- xo-web minor
