@@ -36,7 +36,6 @@
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
 - xo-vmdk-to-vhd patch
-- vhd-lib patch
 - @xen-orchestra/backups patch
 - @xen-orchestra/proxy patch
 - xo-server patch
