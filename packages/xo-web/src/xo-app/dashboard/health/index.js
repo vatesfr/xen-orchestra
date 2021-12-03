@@ -629,8 +629,6 @@ export default class Health extends Component {
     )
   )
 
-  _getPools = createFilter(() => this.state.pools, this._getPoolPredicate)
-
   _getPoolIds = createCollectionWrapper(createSelector(() => this.state.pools, resolveIds))
 
   _getPoolPredicate = createSelector(this._getPoolIds, poolIds =>
