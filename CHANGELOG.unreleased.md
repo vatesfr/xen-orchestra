@@ -11,6 +11,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Backup] Remove incorrect size warning following a merge [Forum #5727](https://xcp-ng.org/forum/topic/4769/warnings-showing-in-system-logs-following-each-backup-job/4) (PR [#6010](https://github.com/vatesfr/xen-orchestra/pull/6010))
+
 ### Packages to release
 
 > Packages will be released in the order they are here, therefore, they should
@@ -28,5 +30,7 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
-- @xen-orchestra/proxy patch
 - vhd-lib minor
+- @xen-orchestra/backups patch
+- xo-server patch
+- @xen-orchestra/proxy patch

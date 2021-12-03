@@ -4,6 +4,10 @@ import { fuFooter, fuHeader, checksumStruct, unpackField } from '../_structs'
 import checkFooter from '../checkFooter'
 import checkHeader from '../_checkHeader'
 
+// Sectors conversions.
+export const sectorsRoundUpNoZero = bytes => Math.ceil(bytes / SECTOR_SIZE) || 1
+export const sectorsToBytes = sectors => sectors * SECTOR_SIZE
+
 export const computeBatSize = entries => sectorsToBytes(sectorsRoundUpNoZero(entries * 4))
 
 export const computeSectorsPerBlock = blockSize => blockSize / SECTOR_SIZE
@@ -11,10 +15,7 @@ export const computeSectorsPerBlock = blockSize => blockSize / SECTOR_SIZE
 export const computeBlockBitmapSize = blockSize => computeSectorsPerBlock(blockSize) >>> 3
 export const computeFullBlockSize = blockSize => blockSize + SECTOR_SIZE * computeSectorOfBitmap(blockSize)
 export const computeSectorOfBitmap = blockSize => sectorsRoundUpNoZero(computeBlockBitmapSize(blockSize))
-
-// Sectors conversions.
-export const sectorsRoundUpNoZero = bytes => Math.ceil(bytes / SECTOR_SIZE) || 1
-export const sectorsToBytes = sectors => sectors * SECTOR_SIZE
+export const computeBlockSize = blockSize => sectorsToBytes(computeSectorOfBitmap(blockSize))
 
 export const assertChecksum = (name, buf, struct) => {
   const actual = unpackField(struct.fields.checksum, buf)
