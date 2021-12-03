@@ -28,6 +28,7 @@ import {
   find,
   flatMap,
   forEach,
+  groupBy,
   identity,
   includes,
   isEmpty,
@@ -64,6 +65,7 @@ import {
   stopVms,
   subscribeBackupNgJobs,
   subscribeResourceSets,
+  subscribeSchedules,
   subscribeServers,
   suspendVms,
   ITEMS_PER_PAGE_OPTIONS,
@@ -492,6 +494,7 @@ const NoObjects = props =>
     ? {
         jobs: subscribeBackupNgJobs,
         noResourceSets,
+        schedulesByJob: cb => subscribeSchedules(schedules => cb(groupBy(schedules, 'jobId'))),
       }
     : { noResourceSets }
 })
@@ -705,13 +708,18 @@ export default class Home extends Component {
       createFilter(() => this.props.items, this._getFilterFunction),
       () => this.props.location.query.backup,
       () => this.props.jobs,
-      (filteredItems, backup, jobs) => {
+      () => this.props.schedulesByJob,
+      (filteredItems, backup, jobs, schedulesByJob) => {
         if (backup === undefined) {
           return filteredItems
         }
-
         const backedUpVms = uniq(
-          flatMap(jobs, job => filter(filteredItems, createPredicate(omit(job.vms, 'power_state'))))
+          flatMap(jobs, job =>
+            filter(
+              filteredItems,
+              item => createPredicate(omit(job.vms, 'power_state'))(item) && schedulesByJob[job.id][0].enabled
+            )
+          )
         )
 
         return backup === 'true' ? backedUpVms : differenceBy(map(filteredItems), backedUpVms, 'id')
