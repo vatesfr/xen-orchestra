@@ -333,13 +333,16 @@ exports.VmBackup = class VmBackup {
 
     const baseUuidToSrcVdi = new Map()
     await asyncMap(await baseVm.$getDisks(), async baseRef => {
-      const snapshotOf = await xapi.getField('VDI', baseRef, 'snapshot_of')
+      const [baseUuid, snapshotOf] = await Promise.all([
+        xapi.getField('VDI', baseRef, 'uuid'),
+        xapi.getField('VDI', baseRef, 'snapshot_of'),
+      ])
       const srcVdi = srcVdis[snapshotOf]
       if (srcVdi !== undefined) {
-        baseUuidToSrcVdi.set(await xapi.getField('VDI', baseRef, 'uuid'), srcVdi)
+        baseUuidToSrcVdi.set(baseUuid, srcVdi)
       } else {
-        debug('no base VDI found', {
-          vdi: srcVdi.uuid,
+        debug('ignore snapshot VDI because no longer present on VM', {
+          vdi: baseUuid,
         })
       }
     })
