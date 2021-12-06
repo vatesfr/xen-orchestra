@@ -12,6 +12,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [Tables/actions] Fix collapsed actions being clickable despite being disabled (PR [#6023](https://github.com/vatesfr/xen-orchestra/pull/6023))
+- [Backup] fix handler.rmTree is not a function (Forum [5256](https://xcp-ng.org/forum/topic/5256/s3-backup-try-it/29) PR [#6041](https://github.com/vatesfr/xen-orchestra/pull/6041) )
 
 ### Packages to release
 
@@ -30,4 +31,6 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
+- @xen-orchestra/fs patch
+- vhd-lib patch
 - xo-web patch
