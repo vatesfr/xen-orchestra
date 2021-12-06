@@ -233,8 +233,13 @@ export default class S3Handler extends RemoteHandlerAbstract {
         ContinuationToken: NextContinuationToken,
       })
       NextContinuationToken = result.isTruncated ? null : result.NextContinuationToken
-      for (const path of result.Contents) {
-        await this._unlink(path)
+      for (const { Key } of result.Contents) {
+        // _unlink will add the prefix, but Key contains everything
+        // also we don't need to check if we delete a directory, since the list only return files
+        await this._s3.deleteObject({
+          Bucket: this._bucket,
+          Key,
+        })
       }
     } while (NextContinuationToken !== null)
   }
