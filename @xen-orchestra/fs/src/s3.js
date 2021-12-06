@@ -222,9 +222,9 @@ export default class S3Handler extends RemoteHandlerAbstract {
     // nothing to do, directories do not exist, they are part of the files' path
   }
 
-  // reimplement _rmTree to handle efficiantly path with more than 1000 entries in trees
+  // reimplement _rmtree to handle efficiantly path with more than 1000 entries in trees
   // @todo : use parallel processing for unlink
-  async _rmTree(path) {
+  async _rmtree(path) {
     let NextContinuationToken
     do {
       const result = await this._s3.listObjectsV2({
@@ -233,8 +233,13 @@ export default class S3Handler extends RemoteHandlerAbstract {
         ContinuationToken: NextContinuationToken,
       })
       NextContinuationToken = result.isTruncated ? null : result.NextContinuationToken
-      for (const path of result.Contents) {
-        await this._unlink(path)
+      for (const { Key } of result.Contents) {
+        // _unlink will add the prefix, but Key contains everything
+        // also we don't need to check if we delete a directory, since the list only return files
+        await this._s3.deleteObject({
+          Bucket: this._bucket,
+          Key,
+        })
       }
     } while (NextContinuationToken !== null)
   }
