@@ -154,6 +154,13 @@ export default class S3Handler extends RemoteHandlerAbstract {
       Bucket: this._bucket,
       Prefix: splitPrefix.join('/'),
     })
+
+    if (result.isTruncated) {
+      const error = new Error('more than 1000 objects, unsupported in this implementation')
+      error.dir = dir
+      throw error
+    }
+
     const uniq = new Set()
     for (const entry of result.Contents) {
       const line = splitPath(entry.Key)
