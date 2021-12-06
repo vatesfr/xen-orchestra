@@ -13,7 +13,7 @@ import { SelectPool } from 'select-objects'
 import { Container, Row, Col } from 'grid'
 import { Card, CardHeader, CardBlock } from 'card'
 import { FormattedRelative, FormattedTime } from 'react-intl'
-import { filter, flatten, forEach, includes, isEmpty, map } from 'lodash'
+import { countBy, filter, flatten, forEach, includes, isEmpty, map } from 'lodash'
 import { connectStore, formatLogs, formatSize, noop, resolveIds } from 'utils'
 import {
   deleteMessage,
@@ -607,24 +607,15 @@ export default class Health extends Component {
       () => this._getPoolIds(),
       (hosts, pools, userSrs, poolIds) => {
         let _pools = {}
-        const poolsWithMultipleHosts = {}
-
         if (isEmpty(poolIds)) {
           _pools = pools
         } else {
           forEach(poolIds, poolId => (_pools[poolId] = pools[poolId]))
         }
         const nonSharedDefaultSr = filter(_pools, pool => !userSrs[pool.default_SR].shared)
+        const nbOfHostsByPool = countBy(hosts, host => host.$pool)
 
-        forEach(hosts, host => {
-          const nbOfHostsInThePool = poolsWithMultipleHosts[host.$pool]
-          if (nbOfHostsInThePool === undefined) {
-            poolsWithMultipleHosts[host.$pool] = 1
-          } else {
-            poolsWithMultipleHosts[host.$pool] = nbOfHostsInThePool + 1
-          }
-        })
-        return filter(nonSharedDefaultSr, pool => poolsWithMultipleHosts[pool.id] > 1)
+        return filter(nonSharedDefaultSr, pool => nbOfHostsByPool[pool.id] > 1)
       }
     )
   )
