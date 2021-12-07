@@ -14,7 +14,7 @@ interface ParentState {
 interface State {}
 
 interface Props {
-  defaultSelectedNodes?: Array<string>
+  defaultSelectedNodes?: Array<string | undefined>
 }
 
 interface ParentEffects {}

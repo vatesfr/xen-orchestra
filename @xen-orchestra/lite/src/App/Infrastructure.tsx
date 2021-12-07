@@ -1,7 +1,7 @@
 import React from 'react'
 import styled from 'styled-components'
 import { withState } from 'reaclette'
-import { withRouter } from 'react-router'
+import { RouteChildrenProps, withRouter } from 'react-router'
 import { Switch, Route } from 'react-router-dom'
 
 import TabConsole from './TabConsole'
@@ -28,12 +28,10 @@ const MainPanel = styled.div`
 
 interface ParentState {}
 
-interface State {
-  selectedVm?: string
-}
+interface State {}
 
 interface Props {
-  location: object
+  location: RouteChildrenProps['location']
 }
 
 interface ParentEffects {}
@@ -42,18 +40,20 @@ interface Effects {
   initialize: () => void
 }
 
-interface Computed {}
+interface Computed {
+  selectedVm?: string
+}
 
 const Infrastructure = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
   {
-    initialState: props => ({
-      selectedVm: props.location.pathname.split('/')[3],
-    }),
+    computed: {
+      selectedVm: (_, { location }) => location.pathname.split('/')[3],
+    },
   },
   ({ state: { selectedVm } }) => (
     <Container>
       <LeftPanel>
-        <TreeView defaultSelectedNodes={selectedVm === undefined ? undefined : [selectedVm]} />
+        <TreeView defaultSelectedNodes={[selectedVm]} />
       </LeftPanel>
       <MainPanel>
         <Switch>
