@@ -936,9 +936,10 @@ export const installAllPatchesOnPool = ({ pool }) => {
   )
 }
 
+import RollingPoolUpdateModal from './rolling-pool-updates-modal' // eslint-disable-line import/first
 export const rollingPoolUpdate = poolId =>
   confirm({
-    body: _('rollingPoolUpdateMessage'),
+    body: <RollingPoolUpdateModal pool={poolId} />,
     title: _('rollingPoolUpdate'),
     icon: 'pool-rolling-update',
   }).then(
