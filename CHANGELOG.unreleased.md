@@ -7,6 +7,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [Pool,VM/advanced] Ability to update suspend SR ([#4163](https://github.com/vatesfr/xen-orchestra/issues/4163) PR [#6044](https://github.com/vatesfr/xen-orchestra/pull/6044))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -35,4 +37,4 @@
 - vhd-lib patch
 - xo-server patch
 - @xen-orchestra/proxy patch
-- xo-web patch
+- xo-web minor
