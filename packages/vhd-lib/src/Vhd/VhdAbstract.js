@@ -1,13 +1,5 @@
 import { computeBatSize, computeSectorOfBitmap, computeSectorsPerBlock, sectorsToBytes } from './_utils'
-import {
-  DISK_TYPES,
-  PLATFORMS,
-  SECTOR_SIZE,
-  PARENT_LOCATOR_ENTRIES,
-  FOOTER_SIZE,
-  HEADER_SIZE,
-  BLOCK_UNUSED,
-} from '../_constants'
+import { PLATFORMS, SECTOR_SIZE, PARENT_LOCATOR_ENTRIES, FOOTER_SIZE, HEADER_SIZE, BLOCK_UNUSED } from '../_constants'
 import assert from 'assert'
 import path from 'path'
 import asyncIteratorToStream from 'async-iterator-to-stream'
@@ -225,9 +217,6 @@ export class VhdAbstract {
   }
 
   stream() {
-    // TODO: support DIFFERENCING (i.e. parentLocator entries)
-    assert.strictEqual(this.footer.diskType, DISK_TYPES.DYNAMIC)
-
     const { footer, batSize } = this
     const { ...header } = this.header // copy since we don't ant to modifiy the current header
     const rawFooter = fuFooter.pack(footer)
@@ -236,10 +225,19 @@ export class VhdAbstract {
     // update them in header
     // update checksum in header
 
-    const offset = FOOTER_SIZE + HEADER_SIZE + batSize
+    let offset = FOOTER_SIZE + HEADER_SIZE + batSize
 
     const rawHeader = fuHeader.pack(header)
     checksumStruct(rawHeader, fuHeader)
+
+    // add parentlocator size
+    for (let i = 0; i < PARENT_LOCATOR_ENTRIES; i++) {
+      header.parentLocatorEntry[i] = {
+        ...header.parentLocatorEntry[i],
+        platformDataOffset: offset,
+      }
+      offset += header.parentLocatorEntry[i].platformDataSpace * SECTOR_SIZE
+    }
 
     assert.strictEqual(offset % SECTOR_SIZE, 0)
 
@@ -263,6 +261,19 @@ export class VhdAbstract {
       yield rawFooter
       yield rawHeader
       yield bat
+
+      // yield parent locator
+
+      for (let i = 0; i < PARENT_LOCATOR_ENTRIES; i++) {
+        const space = header.parentLocatorEntry[i].platformDataSpace * SECTOR_SIZE
+        if (space > 0) {
+          const data = (await self.readParentLocator(i)).data
+          // align data to a sector
+          const buffer = Buffer.alloc(space, 0)
+          data.copy(buffer)
+          yield buffer
+        }
+      }
 
       // yield all blocks
       // since contains() can be costly for synthetic vhd, use the computed bat
