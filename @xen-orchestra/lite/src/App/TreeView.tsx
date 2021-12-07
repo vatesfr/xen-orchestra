@@ -52,6 +52,7 @@ const TreeView = withState<State, Props, Effects, Computed, ParentState, ParentE
           const hosts = state.hostsByPool
             ?.get(pool.$id)
             ?.valueSeq()
+            .sortBy((host: host) => host.name_label)
             .map((host: Host) => ({
               children: state.vmsByContainerRef
                 ?.get(host.$ref)
