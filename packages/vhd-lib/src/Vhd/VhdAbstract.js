@@ -1,5 +1,13 @@
 import { computeBatSize, computeSectorOfBitmap, computeSectorsPerBlock, sectorsToBytes } from './_utils'
-import { PLATFORMS, SECTOR_SIZE, PARENT_LOCATOR_ENTRIES, FOOTER_SIZE, HEADER_SIZE, BLOCK_UNUSED } from '../_constants'
+import {
+  ALIAS_MAX_PATH_LENGTH,
+  PLATFORMS,
+  SECTOR_SIZE,
+  PARENT_LOCATOR_ENTRIES,
+  FOOTER_SIZE,
+  HEADER_SIZE,
+  BLOCK_UNUSED,
+} from '../_constants'
 import assert from 'assert'
 import path from 'path'
 import asyncIteratorToStream from 'async-iterator-to-stream'
