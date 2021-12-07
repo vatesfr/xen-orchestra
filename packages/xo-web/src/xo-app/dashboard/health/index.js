@@ -686,34 +686,36 @@ export default class Health extends Component {
             </Card>
           </Col>
         </Row>
-        <Row>
-          <Col>
-            <Card>
-              <CardHeader>
-                <Icon icon='disk' /> {_('nonSharedDefaultSr')}
-              </CardHeader>
-              <CardBlock>
-                <NoObjects
-                  collection={props.areObjectsFetched ? nonSharedDefaultSr : null}
-                  emptyMessage={_('noNonSharedDefaultSr')}
-                >
-                  {() => (
-                    <Row>
-                      <Col>
-                        <SortedTable
-                          collection={nonSharedDefaultSr}
-                          columns={NON_SHARED_DEFAULT_SR_COLUMNS}
-                          shortcutsTarget='body'
-                          stateUrlParam='s_no_shared_default_sr'
-                        />
-                      </Col>
-                    </Row>
-                  )}
-                </NoObjects>
-              </CardBlock>
-            </Card>
-          </Col>
-        </Row>
+        {nonSharedDefaultSr.length > 0 && (
+          <Row>
+            <Col>
+              <Card>
+                <CardHeader>
+                  <Icon icon='disk' /> {_('nonSharedDefaultSr')}
+                </CardHeader>
+                <CardBlock>
+                  <NoObjects
+                    collection={props.areObjectsFetched ? nonSharedDefaultSr : null}
+                    emptyMessage={_('noNonSharedDefaultSr')}
+                  >
+                    {() => (
+                      <Row>
+                        <Col>
+                          <SortedTable
+                            collection={nonSharedDefaultSr}
+                            columns={NON_SHARED_DEFAULT_SR_COLUMNS}
+                            shortcutsTarget='body'
+                            stateUrlParam='s_no_shared_default_sr'
+                          />
+                        </Col>
+                      </Row>
+                    )}
+                  </NoObjects>
+                </CardBlock>
+              </Card>
+            </Col>
+          </Row>
+        )}
         <Row>
           <Col>
             <Card>
