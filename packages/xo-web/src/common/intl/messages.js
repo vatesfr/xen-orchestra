@@ -1293,6 +1293,7 @@ const messages = {
   vmDefaultBootFirmwareLabel: 'default (bios)',
   vmBootFirmwareWarningMessage:
     "You're about to change your boot firmware. This is still experimental in CH/XCP-ng 8.0. Are you sure you want to continue?",
+  suspendSr: 'Suspend SR',
 
   // ----- VM placeholders -----
 
