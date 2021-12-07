@@ -30,12 +30,7 @@ export const SuspendSrSelect = decorate([
     },
     computed: {
       isVm: (state, props) => props.vm !== undefined,
-      predicate: (state, props) => sr => {
-        if (state.isVm) {
-          return props.vm.$pool === sr.$pool
-        }
-        return props.pool.id === sr.$pool
-      },
+      predicate: (state, props) => sr => state.isVm ? props.vm.$pool === sr.$pool : props.pool.id === sr.$pool,
     },
   }),
   injectState,
