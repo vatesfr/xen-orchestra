@@ -9,6 +9,7 @@ const crypto = require('crypto')
 const { RemoteAdapter } = require('./RemoteAdapter')
 const { VHDFOOTER, VHDHEADER } = require('./tests.fixtures.js')
 const { VhdFile, Constants, VhdDirectory, VhdAbstract } = require('vhd-lib')
+const { checkAliases } = require('./_cleanVm')
 const { dirname, basename } = require('path')
 
 let tempDir, adapter, handler, jobId, vdiId, basePath
@@ -405,4 +406,24 @@ describe('tests multiple combination ', () => {
       })
     }
   }
+})
+
+test('check Aliases should work alone', async () => {
+  await handler.mkdir('vhds')
+  await handler.mkdir('vhds/data')
+  await generateVhd(`vhds/data/ok.vhd`)
+  await VhdAbstract.createAlias(handler, 'vhds/ok.alias.vhd', 'vhds/data/ok.vhd')
+
+  await VhdAbstract.createAlias(handler, 'vhds/missingData.alias.vhd', 'vhds/data/nonexistent.vhd')
+
+  await generateVhd(`vhds/data/missingalias.vhd`)
+
+  await checkAliases(['vhds/missingData.alias.vhd', 'vhds/ok.alias.vhd'], 'vhds/data', { remove: true, handler })
+
+  // only ok have suvived
+  const alias = (await handler.list('vhds')).filter(f => f.endsWith('.vhd'))
+  expect(alias.length).toEqual(1)
+
+  const data = await handler.list('vhds/data')
+  expect(data.length).toEqual(1)
 })

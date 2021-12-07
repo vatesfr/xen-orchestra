@@ -178,6 +178,9 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
       bufHeader = (await this._readChunk('header')).buffer
       bufFooter = (await this._readChunk('footer')).buffer
     } catch (error) {
+      // to keep as much as possible of the vhdFile way of handlong broken vhd
+      // let's emit an assertion error (the vhd is broken, you should try to delete it)
+      // instead of a file not found error (the vhd is missing)
       if (error.code === 'ENOENT') {
         assert(false, 'Header And Footer should exists')
       } else {

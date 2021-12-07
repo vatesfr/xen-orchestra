@@ -9,6 +9,7 @@
 
 - Limit number of concurrent VM migrations per pool to `3` [#6065](https://github.com/vatesfr/xen-orchestra/issues/6065) (PR [#6076](https://github.com/vatesfr/xen-orchestra/pull/6076))
   Can be changed in `xo-server`'s configuration file: `xapiOptions.vmMigrationConcurrency`
+- [Backup] Add sanity check of alias after backup. PR [6043](https://github.com/vatesfr/xen-orchestra/pull/6043)
 
 ### Bug fixes
 
