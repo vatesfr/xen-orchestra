@@ -152,7 +152,8 @@ export default class S3Handler extends RemoteHandlerAbstract {
     const splitPrefix = splitPath(prefix)
     const result = await this._s3.listObjectsV2({
       Bucket: this._bucket,
-      Prefix: splitPrefix.join('/'),
+      Prefix: splitPrefix.join('/') + '/', // need slash at the end with the use of delimiters
+      Delimiter: '/', // will only return path until delimiters
     })
 
     if (result.isTruncated) {
@@ -161,14 +162,20 @@ export default class S3Handler extends RemoteHandlerAbstract {
       throw error
     }
 
-    const uniq = new Set()
+    const uniq = []
+
+    // sub directories
+    for (const entry of result.CommonPrefixes) {
+      const line = splitPath(entry.Prefix)
+      uniq.push(line[line.length - 1])
+    }
+    // files
     for (const entry of result.Contents) {
       const line = splitPath(entry.Key)
-      if (line.length > splitPrefix.length) {
-        uniq.add(line[splitPrefix.length])
-      }
+      uniq.push(line[line.length - 1])
     }
-    return [...uniq]
+
+    return uniq
   }
 
   async _mkdir(path) {
