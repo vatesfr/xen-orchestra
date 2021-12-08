@@ -45,7 +45,6 @@ export default class About extends Component {
           {isAdmin &&
             (process.env.XOA_PLAN < 5 ? (
               <Row>
-                (
                 <Col mediumSize={6}>
                   <Icon icon='host' size={4} />
                   <Copiable tagName='h4' data={`xo-server ${this.state.serverVersion}`}>
@@ -60,7 +59,6 @@ export default class About extends Component {
                   </Copiable>
                   <p className='text-muted'>{_('xenOrchestraWeb')}</p>
                 </Col>
-                )
               </Row>
             ) : (
               <Row>
