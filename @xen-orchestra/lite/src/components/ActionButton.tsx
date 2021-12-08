@@ -8,9 +8,7 @@ interface State {
   isLoading: boolean
 }
 
-// Omit the "onClick" prop allow us to rewrite the definition type
-// for this one.
-// Otherwise the type of parameter 'data' is incompatible with the type 'event'.
+// Omit the `onClick` props to rewrite its own one.
 interface Props extends Omit<LoadingButtonProps, 'onClick'> {
   onClick: (data: Record<string, unknown>) => Promise<void>
   // to pass props with the following patern: "data-something"
