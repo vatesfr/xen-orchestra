@@ -35,6 +35,7 @@
 
 - @xen-orchestra/fs patch
 - vhd-lib patch
+- @xen-orchestra/backups patch
 - xo-server patch
 - @xen-orchestra/proxy patch
 - xo-web patch
