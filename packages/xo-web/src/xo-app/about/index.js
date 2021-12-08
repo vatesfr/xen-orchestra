@@ -12,6 +12,8 @@ import { connectStore, getXoaPlan } from 'utils'
 
 import pkg from '../../../package'
 
+const COMMIT_ID = process.env.GIT_HEAD
+
 const HEADER = (
   <Container>
     <Row>
@@ -40,24 +42,35 @@ export default class About extends Component {
     return (
       <Page header={HEADER} title='aboutPage' formatTitle>
         <Container className='text-xs-center'>
-          {isAdmin && (
-            <Row>
-              <Col mediumSize={6}>
-                <Icon icon='host' size={4} />
-                <Copiable tagName='h4' data={`xo-server ${this.state.serverVersion}`}>
-                  xo-server {this.state.serverVersion || 'unknown'}
-                </Copiable>
-                <p className='text-muted'>{_('xenOrchestraServer')}</p>
-              </Col>
-              <Col mediumSize={6}>
-                <Icon icon='vm' size={4} />
-                <Copiable tagName='h4' data={`xo-web ${pkg.version}`}>
-                  xo-web {pkg.version}
-                </Copiable>
-                <p className='text-muted'>{_('xenOrchestraWeb')}</p>
-              </Col>
-            </Row>
-          )}
+          {isAdmin &&
+            (process.env.XOA_PLAN < 5 ? (
+              <Row>
+                <Col mediumSize={6}>
+                  <Icon icon='host' size={4} />
+                  <Copiable tagName='h4' data={`xo-server ${this.state.serverVersion}`}>
+                    xo-server {this.state.serverVersion || 'unknown'}
+                  </Copiable>
+                  <p className='text-muted'>{_('xenOrchestraServer')}</p>
+                </Col>
+                <Col mediumSize={6}>
+                  <Icon icon='vm' size={4} />
+                  <Copiable tagName='h4' data={`xo-web ${pkg.version}`}>
+                    xo-web {pkg.version}
+                  </Copiable>
+                  <p className='text-muted'>{_('xenOrchestraWeb')}</p>
+                </Col>
+              </Row>
+            ) : (
+              <Row>
+                <Col>
+                  <Icon icon='git' size={4} />
+                  <h4>
+                    Xen Orchestra, commit{' '}
+                    <a href={'https://github.com/vatesfr/xen-orchestra/commit/' + COMMIT_ID}>{COMMIT_ID.slice(0, 5)}</a>
+                  </h4>
+                </Col>
+              </Row>
+            ))}
           {process.env.XOA_PLAN > 4 ? (
             <div>
               <Row>
