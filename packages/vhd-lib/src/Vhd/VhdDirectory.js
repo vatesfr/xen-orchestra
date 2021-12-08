@@ -35,6 +35,7 @@ const COMPRESSORS = {
 // ===================================================================
 // Directory format
 // <path>
+// ├─ metadata.json
 // ├─ header // raw content of the header
 // ├─ footer // raw content of the footer
 // ├─ bat // bit array. A zero bit indicates at a position that this block is not present
