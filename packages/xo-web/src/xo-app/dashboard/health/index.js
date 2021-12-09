@@ -692,6 +692,9 @@ export default class Health extends Component {
                   <Icon icon='disk' /> {_('defaultLocalSrs')}
                 </CardHeader>
                 <CardBlock>
+                  <p>
+                    <Icon icon='info' /> <em>{_('defaultLocalSrsStatusTip')}</em>
+                  </p>
                   <NoObjects
                     collection={props.areObjectsFetched ? defaultLocalSrs : null}
                     emptyMessage={_('noDefaultLocalSrs')}

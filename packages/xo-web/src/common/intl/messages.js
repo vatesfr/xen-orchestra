@@ -1374,6 +1374,8 @@ const messages = {
   metricsLoading: 'Loading…',
 
   // ----- Health -----
+  defaultLocalSrsStatusTip:
+    "It is usually recommended for a pool's default SR to be shared to avoid unexpected behaviors",
   deleteBackups: 'Delete backup{nBackups, plural, one {} other {s}}',
   deleteBackupsMessage:
     'Are you sure you want to delete {nBackups, number} backup{nBackups, plural, one {} other {s}}?',
