@@ -8,6 +8,7 @@ import { materialDark as codeStyle } from 'react-syntax-highlighter/dist/esm/sty
 import { SelectChangeEvent } from '@mui/material'
 import { withState } from 'reaclette'
 
+import ActionButton from '../../components/ActionButton'
 import Button from '../../components/Button'
 import Checkbox from '../../components/Checkbox'
 import Icon from '../../components/Icon'
@@ -28,6 +29,7 @@ interface ParentEffects {}
 interface Effects {
   onChangeSelect: (e: SelectChangeEvent<unknown>) => void
   sayHello: () => void
+  sendPromise: (data: Record<string, unknown>) => Promise<void>
   showAlertModal: () => void
   showConfirmModal: () => void
 }
@@ -69,6 +71,13 @@ const App = withState<State, Props, Effects, Computed, ParentState, ParentEffect
         this.state.value = e.target.value
       },
       sayHello: () => alert('hello'),
+      sendPromise: data =>
+        new Promise(resolve => {
+          setTimeout(() => {
+            resolve()
+            window.alert(data.foo)
+          }, 1000)
+        }),
       showAlertModal: () => alert({ message: 'This is an alert modal', title: 'Alert modal', icon: 'info' }),
       showConfirmModal: () =>
         confirm({
@@ -80,6 +89,19 @@ const App = withState<State, Props, Effects, Computed, ParentState, ParentEffect
   },
   ({ effects, state }) => (
     <Page>
+      <h2>ActionButton</h2>
+      <Container>
+        <Render>
+          <ActionButton data-foo='forwarded data props' onClick={effects.sendPromise}>
+            Send promise
+          </ActionButton>
+        </Render>
+        <Code>
+          {`<ActionButton data-foo='forwarded data props' onClick={effects.sendPromise}>
+  Send promise
+</ActionButton>`}
+        </Code>
+      </Container>
       <h2>Button</h2>
       <Container>
         <Render>
