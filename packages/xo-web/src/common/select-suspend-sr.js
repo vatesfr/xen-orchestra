@@ -13,7 +13,7 @@ import { XoSelect } from './editable'
 
 export const SuspendSrSelect = decorate([
   connectStore({
-    suspendSr: createGetObject((_, props) => (props.vm || props.pool).suspendSr),
+    suspendSr: createGetObject((_, { pool, vm }) => (vm || pool).suspendSr),
   }),
   provideState({
     effects: {
