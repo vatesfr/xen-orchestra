@@ -849,6 +849,7 @@ const messages = {
   disconnectServer: 'Disconnect',
 
   // ----- Host item ------
+  host: 'Host',
   noMoreMaintained: 'This host version is no longer maintained',
 
   // ----- Host actions ------
@@ -1392,8 +1393,8 @@ const messages = {
   noOrphanedObject: 'No orphans',
   tooManySnapshots: 'Too many snapshots',
   tooManySnapshotsTip: 'VMs with more than the recommended amount of snapshots',
-  nonSharedDefaultSr: 'Non shared default SR',
-  noNonSharedDefaultSr: 'No non shared default SR',
+  defaultLocalSrs: 'Default local SRs',
+  noDefaultLocalSrs: 'No default local SRs',
   noTooManySnapshotsObject: 'No VMs with too many snapshots',
   numberOfSnapshots: 'Number of snapshots',
   guestToolStatus: 'Guest Tools status',

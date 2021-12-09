@@ -8,12 +8,12 @@ import NoObjects from 'no-objects'
 import React from 'react'
 import SortedTable from 'sorted-table'
 import Tooltip from 'tooltip'
-import { Network, Sr, Vm } from 'render-xo-item'
+import { Host, Network, Sr, Vm } from 'render-xo-item'
 import { SelectPool } from 'select-objects'
 import { Container, Row, Col } from 'grid'
 import { Card, CardHeader, CardBlock } from 'card'
 import { FormattedRelative, FormattedTime } from 'react-intl'
-import { countBy, filter, flatten, forEach, includes, isEmpty, map } from 'lodash'
+import { countBy, filter, flatten, forEach, includes, isEmpty, map, pick } from 'lodash'
 import { connectStore, formatLogs, formatSize, noop, resolveIds } from 'utils'
 import {
   deleteMessage,
@@ -105,7 +105,7 @@ const DUPLICATED_MAC_ADDRESSES_FILTERS = {
   filterOnlyRunningVms: 'nRunningVms:>1',
 }
 
-const NON_SHARED_DEFAULT_SR_COLUMNS = [
+const DEFAULT_LOCAL_SRS_COLUMNS = [
   {
     name: _('pool'),
     itemRenderer: pool => pool.name_label,
@@ -113,7 +113,12 @@ const NON_SHARED_DEFAULT_SR_COLUMNS = [
   },
   {
     name: _('sr'),
-    itemRenderer: pool => <Sr id={pool.default_SR} link spaceLeft={false} />,
+    itemRenderer: pool => <Sr container={false} id={pool.default_SR} link spaceLeft={false} />,
+  },
+  {
+    name: _('host'),
+    itemRenderer: (pool, { hosts, srs }) => <Host id={hosts[srs[pool.default_SR].$container].id} pool={false} link />,
+    sortCriteria: (pool, { hosts, srs }) => hosts[srs[pool.default_SR].$container].id,
   },
 ]
 
@@ -599,24 +604,17 @@ export default class Health extends Component {
     )
   )
 
-  _getNonSharedDefaultSr = createCollectionWrapper(
+  _getDefaultLocalSrs = createCollectionWrapper(
     createSelector(
       () => this.props.hosts,
       () => this.props.pools,
       () => this.props.userSrs,
       () => this._getPoolIds(),
-      (hosts, pools, userSrs, poolIds) => {
-        let _pools = {}
-        if (isEmpty(poolIds)) {
-          _pools = pools
-        } else {
-          forEach(poolIds, poolId => (_pools[poolId] = pools[poolId]))
-        }
-        const nonSharedDefaultSr = filter(_pools, pool => !userSrs[pool.default_SR].shared)
-        const nbOfHostsByPool = countBy(hosts, host => host.$pool)
-
-        return filter(nonSharedDefaultSr, pool => nbOfHostsByPool[pool.id] > 1)
-      }
+      (hosts, pools, userSrs, poolIds) =>
+        filter(
+          filter(isEmpty(poolIds) ? pools : pick(pools, poolIds), pool => !userSrs[pool.default_SR].shared),
+          pool => countBy(hosts, host => host.$pool)[pool.id] > 1
+        )
     )
   )
 
@@ -651,7 +649,7 @@ export default class Health extends Component {
     const { props, state } = this
 
     const duplicatedMacAddresses = this._getDuplicatedMacAddresses()
-    const nonSharedDefaultSr = this._getNonSharedDefaultSr()
+    const defaultLocalSrs = this._getDefaultLocalSrs()
     const userSrs = this._getUserSrs()
     const orphanVdis = this._getOrphanVdis()
 
@@ -686,26 +684,28 @@ export default class Health extends Component {
             </Card>
           </Col>
         </Row>
-        {nonSharedDefaultSr.length > 0 && (
+        {defaultLocalSrs.length > 0 && (
           <Row>
             <Col>
               <Card>
                 <CardHeader>
-                  <Icon icon='disk' /> {_('nonSharedDefaultSr')}
+                  <Icon icon='disk' /> {_('defaultLocalSrs')}
                 </CardHeader>
                 <CardBlock>
                   <NoObjects
-                    collection={props.areObjectsFetched ? nonSharedDefaultSr : null}
-                    emptyMessage={_('noNonSharedDefaultSr')}
+                    collection={props.areObjectsFetched ? defaultLocalSrs : null}
+                    emptyMessage={_('noDefaultLocalSrs')}
                   >
                     {() => (
                       <Row>
                         <Col>
                           <SortedTable
-                            collection={nonSharedDefaultSr}
-                            columns={NON_SHARED_DEFAULT_SR_COLUMNS}
+                            collection={defaultLocalSrs}
+                            columns={DEFAULT_LOCAL_SRS_COLUMNS}
+                            data-hosts={props.hosts}
+                            data-srs={userSrs}
                             shortcutsTarget='body'
-                            stateUrlParam='s_no_shared_default_sr'
+                            stateUrlParam='s_local_default_srs'
                           />
                         </Col>
                       </Row>
