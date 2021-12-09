@@ -21,10 +21,18 @@ exports.MixinBackupWriter = (BaseClass = Object) =>
       this.#vmBackupDir = getVmBackupDir(this._backup.vm.uuid)
     }
 
-    _cleanVm(options) {
-      return this._adapter
-        .cleanVm(this.#vmBackupDir, { ...options, fixMetadata: true, onLog: warn, lock: false })
-        .catch(warn)
+    async _cleanVm(options) {
+      try {
+        return await this._adapter.cleanVm(this.#vmBackupDir, {
+          ...options,
+          fixMetadata: true,
+          onLog: warn,
+          lock: false,
+        })
+      } catch (error) {
+        warn(error)
+        return {}
+      }
     }
 
     async beforeBackup() {
@@ -43,7 +51,13 @@ exports.MixinBackupWriter = (BaseClass = Object) =>
       // merge worker only compatible with local remotes
       const { handler } = this._adapter
       if (merge && !disableMergeWorker && typeof handler._getRealPath === 'function') {
-        await handler.outputFile(join(MergeWorker.CLEAN_VM_QUEUE, formatFilenameDate(new Date())), this._backup.vm.uuid)
+        const taskFile =
+          join(MergeWorker.CLEAN_VM_QUEUE, formatFilenameDate(new Date())) +
+          '-' +
+          // add a random suffix to avoid collision in case multiple tasks are created at the same second
+          Math.random().toString(36).slice(2)
+
+        await handler.outputFile(taskFile, this._backup.vm.uuid)
         const remotePath = handler._getRealPath()
         await MergeWorker.run(remotePath)
       }
