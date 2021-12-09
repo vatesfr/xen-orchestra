@@ -11,7 +11,7 @@ interface State {
 // Omit the `onClick` props to rewrite its own one.
 interface Props extends Omit<LoadingButtonProps, 'onClick'> {
   onClick: (data: Record<string, unknown>) => Promise<void>
-  // to pass props with the following patern: "data-something"
+  // to pass props with the following pattern: "data-something"
   [key: string]: unknown
 }
 
