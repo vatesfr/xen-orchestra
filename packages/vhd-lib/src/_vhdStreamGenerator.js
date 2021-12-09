@@ -75,7 +75,10 @@ export async function* vhdStreamGenerator(stream) {
     const item = index.shift()
     const buffer = await read(item.offset, item.size)
     if (item.type === 'bat') {
-      // found the BAT : read it and ad block to index
+      // found the BAT : read it and add block to index
+      // since we may reorder  / remove empty space, we recompute the bat instead of returning the source
+      const bat = Buffer.alloc(header.maxTableEntries * 4, 0)
+      let blockCount = 0
       for (let blockCounter = 0; blockCounter < header.maxTableEntries; blockCounter++) {
         const batEntrySector = buffer.readUInt32BE(blockCounter * 4)
         // unallocated block, no need to export it
@@ -89,10 +92,15 @@ export async function* vhdStreamGenerator(stream) {
             offset: batEntryBytes,
             size: blockAndBitmapSize,
           })
+          bat.writeInt32BE(batEntryBytes, 4 * blockCounter)
+          blockCount++
+        } else {
+          bat.writeInt32BE(BLOCK_UNUSED, 4 * blockCounter)
         }
       }
       // sort again index to ensure block and parent locator are in the right order
       index.sort((a, b) => a.offset - b.offset)
+      yield { ...item, blockCount, bat }
     } else {
       yield { ...item, buffer }
     }
