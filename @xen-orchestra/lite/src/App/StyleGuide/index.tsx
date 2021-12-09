@@ -89,7 +89,7 @@ const App = withState<State, Props, Effects, Computed, ParentState, ParentEffect
   },
   ({ effects, state }) => (
     <Page>
-      <h2>Action button</h2>
+      <h2>ActionButton</h2>
       <Container>
         <Render>
           <ActionButton data-foo='forwarded data props' onClick={effects.sendPromise}>
