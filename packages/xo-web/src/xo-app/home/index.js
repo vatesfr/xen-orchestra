@@ -715,7 +715,12 @@ export default class Home extends Component {
         }
         const backedUpVms = uniq(
           flatMap(
-            filter(jobs, job => some(schedulesByJob[job.id], schedule => schedule.enabled)),
+            createSelector(
+              () => jobs,
+              () => schedulesByJob,
+              (_jobs, _schedulesByJob) =>
+                filter(_jobs, job => some(_schedulesByJob[job.id], schedule => schedule.enabled))
+            )(),
             job => filter(filteredItems, createPredicate(omit(job.vms, 'power_state')))
           )
         )
