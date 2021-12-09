@@ -8,10 +8,10 @@ import Icon from './icon'
 import renderXoItem from './render-xo-item'
 import { connectStore } from './utils'
 import { createGetObject } from './selectors'
-import { editVm, editPool } from './xo'
+import { editVm, editPool, isSrWritable } from './xo'
 import { XoSelect } from './editable'
 
-export const SuspendSrSelect = decorate([
+export const SelectSuspendSr = decorate([
   connectStore({
     suspendSr: createGetObject((_, { pool, vm }) => (vm || pool).suspendSr),
   }),
@@ -30,7 +30,8 @@ export const SuspendSrSelect = decorate([
     },
     computed: {
       isVm: (state, props) => props.vm !== undefined,
-      predicate: (state, props) => sr => state.isVm ? props.vm.$pool === sr.$pool : props.pool.id === sr.$pool,
+      predicate: (state, props) => sr =>
+        isSrWritable(sr) && (state.isVm ? props.vm.$pool === sr.$pool : props.pool.id === sr.$pool),
     },
   }),
   injectState,

@@ -32,7 +32,7 @@ import {
   subscribePlugins,
   synchronizeNetbox,
 } from 'xo'
-import { SuspendSrSelect } from 'select-suspend-sr'
+import { SelectSuspendSr } from 'select-suspend-sr'
 
 @connectStore(() => ({
   master: createGetObjectsOfType('host').find((_, { pool }) => ({
@@ -206,7 +206,7 @@ export default class TabAdvanced extends Component {
                   <tr>
                     <th>{_('suspendSr')}</th>
                     <td>
-                      <SuspendSrSelect pool={pool} />
+                      <SelectSuspendSr pool={pool} />
                     </td>
                   </tr>
                 </tbody>

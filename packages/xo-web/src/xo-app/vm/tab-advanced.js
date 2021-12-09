@@ -50,7 +50,7 @@ import {
   XEN_VIDEORAM_VALUES,
 } from 'xo'
 import { createGetObject, createGetObjectsOfType, createSelector, isAdmin } from 'selectors'
-import { SuspendSrSelect } from 'select-suspend-sr'
+import { SelectSuspendSr } from 'select-suspend-sr'
 
 import BootOrder from './boot-order'
 
@@ -802,7 +802,7 @@ export default class TabAdvanced extends Component {
                 <tr>
                   <th>{_('suspendSr')}</th>
                   <td>
-                    <SuspendSrSelect vm={vm} />
+                    <SelectSuspendSr vm={vm} />
                   </td>
                 </tr>
               </tbody>
