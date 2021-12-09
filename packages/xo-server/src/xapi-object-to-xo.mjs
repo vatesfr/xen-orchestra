@@ -117,8 +117,8 @@ const TRANSFORMS = {
         cores: cpuInfo && +cpuInfo.cpu_count,
         sockets: cpuInfo && +cpuInfo.socket_count,
       },
-      zstdSupported: obj.restrictions.restrict_zstd_export === 'false',
       suspendSr: link(obj, 'suspend_image_SR'),
+      zstdSupported: obj.restrictions.restrict_zstd_export === 'false',
 
       // TODO
       // - ? networks = networksByPool.items[pool.id] (network.$pool.id)

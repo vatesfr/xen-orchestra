@@ -1266,6 +1266,7 @@ const messages = {
   vmLimitsLabel: 'VM limits',
   resourceSet: 'Resource set',
   resourceSetNone: 'None',
+  suspendSr: 'Suspend SR',
   vmCpuLimitsLabel: 'CPU limits',
   vmCpuTopology: 'Topology',
   vmChooseCoresPerSocket: 'Default behavior',
@@ -1293,7 +1294,6 @@ const messages = {
   vmDefaultBootFirmwareLabel: 'default (bios)',
   vmBootFirmwareWarningMessage:
     "You're about to change your boot firmware. This is still experimental in CH/XCP-ng 8.0. Are you sure you want to continue?",
-  suspendSr: 'Suspend SR',
 
   // ----- VM placeholders -----
 
