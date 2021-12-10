@@ -38,7 +38,7 @@ export const SelectSuspendSr = decorate([
   ({ effects: { onChange }, state: { predicate }, suspendSr }) => (
     <span>
       <XoSelect onChange={onChange} predicate={predicate} value={suspendSr} xoType='SR'>
-        {suspendSr ? renderXoItem(suspendSr) : _('noValue')}
+        {suspendSr !== undefined ? renderXoItem(suspendSr) : _('noValue')}
       </XoSelect>{' '}
       {suspendSr && (
         <a role='button' onClick={onChange}>
