@@ -8,6 +8,7 @@
 - vhd-lib 2.0.3
 - @xen-orchestra/backups 0.16.2
 - xo-server 5.84.3
+- @xen-orchestra/proxy 0.15.5
 
 ## **5.65.1** (2021-12-03)
 
