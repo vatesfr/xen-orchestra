@@ -5,6 +5,7 @@ import { Map } from 'immutable'
 import { SelectChangeEvent } from '@mui/material'
 import { withState } from 'reaclette'
 
+import ActionButton from './ActionButton'
 import Button from './Button'
 import Checkbox from './Checkbox'
 import Input from './Input'
@@ -22,7 +23,6 @@ interface ParentState {
 
 interface State {
   isBonded: boolean
-  isLoading: boolean
   form: {
     [key: string]: unknown
     bondMode: string
@@ -39,7 +39,7 @@ interface Props {}
 interface ParentEffects {}
 
 interface Effects {
-  createNetwork: React.FormEventHandler<HTMLFormElement>
+  createNetwork: () => Promise<void>
   handleChange: (e: SelectChangeEvent<unknown> | React.ChangeEvent<{ name: string; value: unknown }>) => void
   resetForm: () => void
   toggleBonded: () => void
@@ -93,15 +93,7 @@ const AddNetwork = withState<State, Props, Effects, Computed, ParentState, Paren
           .toArray(),
     },
     effects: {
-      createNetwork: async function (e) {
-        e.preventDefault()
-        // FIXME:
-        // Loading state will be handled by ActionButton in the future
-        // We should remove this when ActionButton is created
-        if (this.state.isLoading) {
-          return
-        }
-        this.state.isLoading = true
+      createNetwork: async function () {
         const { bondMode, description, mtu, nameLabel, pifsId, vlan } = this.state.form
 
         try {
@@ -126,7 +118,6 @@ const AddNetwork = withState<State, Props, Effects, Computed, ParentState, Paren
             })
           }
         }
-        this.state.isLoading = false
       },
       handleChange: function ({ target: { name, value } }) {
         // Reason why form values are initialized with empty string and not a undefined value
@@ -156,10 +147,9 @@ const AddNetwork = withState<State, Props, Effects, Computed, ParentState, Paren
   },
   ({
     effects: { createNetwork, handleChange, resetForm, toggleBonded },
-    state: { isBonded, isLoading, pifsMetrics, collection, form },
+    state: { isBonded, pifsMetrics, collection, form },
   }) => (
     <form
-      onSubmit={createNetwork}
       style={{
         width: '20em',
       }}
@@ -234,10 +224,10 @@ const AddNetwork = withState<State, Props, Effects, Computed, ParentState, Paren
           helperText={<IntlMessage id='vlanPlaceholder' />}
         />
       )}
-      <Button disabled={isLoading} type='submit' color='success' startIcon={<AddIcon />} sx={BUTTON_STYLES}>
+      <ActionButton color='success' onClick={createNetwork} startIcon={<AddIcon />} sx={BUTTON_STYLES}>
         <IntlMessage id='create' />
-      </Button>
-      <Button disabled={isLoading} onClick={resetForm} sx={BUTTON_STYLES} startIcon={<SettingsBackupRestoreIcon />}>
+      </ActionButton>
+      <Button onClick={resetForm} sx={BUTTON_STYLES} startIcon={<SettingsBackupRestoreIcon />}>
         <IntlMessage id='reset' />
       </Button>
     </form>
