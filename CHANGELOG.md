@@ -1,6 +1,8 @@
 # ChangeLog
 
-## **next**
+## **5.65.2** (2021-12-10)
+
+<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
 
 ### Bug fixes
 
@@ -17,8 +19,6 @@
 - @xen-orchestra/proxy 0.15.5
 
 ## **5.65.1** (2021-12-03)
-
-<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
 
 ### Bug fixes
 
