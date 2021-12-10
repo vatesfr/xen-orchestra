@@ -1,5 +1,11 @@
 # ChangeLog
 
+## **next**
+
+### Released packages
+
+- @xen-orchestra/fs 0.19.2
+
 ## **5.65.1** (2021-12-03)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
