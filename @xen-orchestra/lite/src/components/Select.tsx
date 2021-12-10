@@ -3,7 +3,8 @@ import MenuItem from '@mui/material/MenuItem'
 import React from 'react'
 import SelectMaterialUi, { SelectProps } from '@mui/material/Select'
 import { iteratee } from 'lodash'
-import { SelectChangeEvent } from '@mui/material'
+import { SelectChangeEvent, Theme } from '@mui/material'
+import { SxProps } from '@mui/system'
 import { withState } from 'reaclette'
 
 import IntlMessage from './IntlMessage'
@@ -16,11 +17,12 @@ interface State {}
 
 interface Props extends SelectProps {
   additionalProps?: AdditionalProps
+  containerStyle?: SxProps<Theme>
   onChange: (e: SelectChangeEvent<unknown>) => void
-  optionRenderer?: string | { (item: any): number | string }
+  optionRenderer?: string | { (item: any, additionalProps: any): number | string }
   options: any[] | undefined
   value: any
-  valueRenderer?: string | { (item: any): number | string }
+  valueRenderer?: string | { (item: any, additionalProps: any): number | string }
 }
 
 interface ParentEffects {}
@@ -44,10 +46,12 @@ const Select = withState<State, Props, Effects, Computed, ParentState, ParentEff
         options?.map(item => {
           const label =
             optionRenderer === undefined
-              ? item.name ?? item.label ?? item.name_label
+              ? item.name ?? item.label ?? item.name_label ?? item
               : state.renderOption(item, additionalProps)
           const value =
-            valueRenderer === undefined ? item.value ?? item.id ?? item.$id : state.renderValue(item, additionalProps)
+            valueRenderer === undefined
+              ? item.value ?? item.id ?? item.$id ?? item
+              : state.renderValue(item, additionalProps)
 
           if (value === undefined) {
             console.error('Computed value is undefined')
@@ -61,8 +65,19 @@ const Select = withState<State, Props, Effects, Computed, ParentState, ParentEff
         }),
     },
   },
-  ({ additionalProps, displayEmpty = true, effects, multiple, options, required, resetState, state, ...props }) => (
-    <FormControl>
+  ({
+    additionalProps,
+    containerStyle,
+    displayEmpty = true,
+    effects,
+    multiple,
+    options,
+    required,
+    resetState,
+    state,
+    ...props
+  }) => (
+    <FormControl sx={containerStyle}>
       <SelectMaterialUi multiple={multiple} required={required} displayEmpty={displayEmpty} {...props}>
         {!multiple && (
           <MenuItem value=''>

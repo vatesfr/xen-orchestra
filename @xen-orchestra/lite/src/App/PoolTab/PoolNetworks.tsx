@@ -1,7 +1,9 @@
 import React from 'react'
+import { Link, Route, Switch } from 'react-router-dom'
 import { Map } from 'immutable'
 import { withState } from 'reaclette'
 
+import AddNetwork from '../../components/AddNetwork'
 import IntlMessage from '../../components/IntlMessage'
 import Table, { Column } from '../../components/Table'
 import { ObjectsByType, Pif } from '../../libs/xapi'
@@ -58,7 +60,21 @@ const PoolNetworks = withState<State, Props, Effects, Computed, ParentState, Par
     },
   },
   ({ state }) => (
-    <Table collection={state.managementPifs} columns={COLUMNS} placeholder={<IntlMessage id='noManagementPifs' />} />
+    <Switch>
+      <Route exact path='/pool'>
+        <Link to='pool/new/network'>
+          <IntlMessage id='addNetwork' />
+        </Link>
+        <Table
+          collection={state.managementPifs}
+          columns={COLUMNS}
+          placeholder={<IntlMessage id='noManagementPifs' />}
+        />
+      </Route>
+      <Route exact path='/pool/new/network'>
+        <AddNetwork />
+      </Route>
+    </Switch>
   )
 )
 

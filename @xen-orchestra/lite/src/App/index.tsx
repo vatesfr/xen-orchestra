@@ -338,6 +338,9 @@ const App = withState<State, Props, Effects, Computed, ParentState, ParentEffect
                             <Route path='/about'>
                               <IntlMessage id='about' />
                             </Route>
+                            <Route path='/pool'>
+                              <IntlMessage id='pool' />
+                            </Route>
                             <Route>
                               <IntlMessage id='notFound' />
                             </Route>
@@ -401,6 +404,10 @@ const App = withState<State, Props, Effects, Computed, ParentState, ParentEffect
                               <IntlMessage id='versionValue' values={{ version: process.env.NPM_VERSION }} />
                             </p>
                           </Container>
+                        </Route>
+                        <Route path='/pool'>
+                          <Toolbar />
+                          <PoolTab />
                         </Route>
                         <Route>
                           <Toolbar />
