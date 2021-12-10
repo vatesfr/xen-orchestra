@@ -76,6 +76,7 @@ import { SelectHost, SelectPool, SelectResourceSet, SelectTag } from 'select-obj
 import { addSubscriptions, connectStore, noop } from 'utils'
 import {
   areObjectsFetched,
+  createCollectionWrapper,
   createCounter,
   createFilter,
   createGetObjectsOfType,
@@ -703,27 +704,31 @@ export default class Home extends Component {
     return event => setFilter(event.target.value)
   })
 
+  _getEnabledJobs = createSelector(
+    () => this.props.jobs,
+    () => this.props.schedulesByJob,
+    createCollectionWrapper((jobs, schedulesByJob) =>
+      filter(jobs, job => some(schedulesByJob[job.id], schedule => schedule.enabled))
+    )
+  )
+
+  _getJobPredicate = createSelector(
+    createFilter(() => this.props.items, this._getFilterFunction),
+    job => job,
+    (filteredItems, _job) => filter(filteredItems, createPredicate(omit(_job.vms, 'power_state')))
+  )
+
   _getFilteredItems = createSort(
     createSelector(
       createFilter(() => this.props.items, this._getFilterFunction),
       () => this.props.location.query.backup,
-      () => this.props.jobs,
-      () => this.props.schedulesByJob,
-      (filteredItems, backup, jobs, schedulesByJob) => {
+      () => this._getJobPredicate,
+      this._getEnabledJobs,
+      (filteredItems, backup, jobPredicate, enabledJobs) => {
         if (backup === undefined) {
           return filteredItems
         }
-        const backedUpVms = uniq(
-          flatMap(
-            createSelector(
-              () => jobs,
-              () => schedulesByJob,
-              (_jobs, _schedulesByJob) =>
-                filter(_jobs, job => some(_schedulesByJob[job.id], schedule => schedule.enabled))
-            )(),
-            job => filter(filteredItems, createPredicate(omit(job.vms, 'power_state')))
-          )
-        )
+        const backedUpVms = uniq(flatMap(enabledJobs, jobPredicate))
         return backup === 'true' ? backedUpVms : differenceBy(map(filteredItems), backedUpVms, 'id')
       }
     ),
