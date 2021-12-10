@@ -40,7 +40,7 @@ export const SelectSuspendSr = decorate([
       <XoSelect onChange={onChange} predicate={predicate} value={suspendSr} xoType='SR'>
         {suspendSr !== undefined ? renderXoItem(suspendSr) : _('noValue')}
       </XoSelect>{' '}
-      {suspendSr && (
+      {suspendSr !== undefined && (
         <a role='button' onClick={onChange}>
           <Icon icon='remove' />
         </a>
