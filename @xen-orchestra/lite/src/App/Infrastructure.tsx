@@ -53,7 +53,7 @@ const Infrastructure = withState<State, Props, Effects, Computed, ParentState, P
   ({ state: { selectedVm } }) => (
     <Container>
       <LeftPanel>
-        <TreeView defaultSelectedNodes={[selectedVm]} />
+        <TreeView defaultSelectedNode={selectedVm} />
       </LeftPanel>
       <MainPanel>
         <Switch>
