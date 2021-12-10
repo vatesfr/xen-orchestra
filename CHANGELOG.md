@@ -5,6 +5,7 @@
 ### Released packages
 
 - @xen-orchestra/fs 0.19.2
+- vhd-lib 2.0.3
 
 ## **5.65.1** (2021-12-03)
 
