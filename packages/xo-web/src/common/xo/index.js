@@ -1712,8 +1712,14 @@ export const exportVm = async vm => {
   window.open(`.${url}`)
 }
 
-export const exportVdi = (vdi, format='vhd') => {
+import ExportVdiModalBody from './export-vdi-modal' // eslint-disable-line import/first
+export const exportVdi = async vdi => {
   info(_('startVdiExport'), vdi.id)
+  const format = await confirm({
+    body: <ExportVdiModalBody vdi={vdi} />,
+    icon: 'export',
+    title: _('exportVdi'),
+  })
   return _call('disk.exportContent', { id: resolveId(vdi), format }).then(({ $getFrom: url }) => {
     window.open(`.${url}`)
   })
