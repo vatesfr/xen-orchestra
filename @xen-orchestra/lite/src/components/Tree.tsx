@@ -68,6 +68,8 @@ interface Effects {
   setSelectedNodeIds: (event: React.SyntheticEvent, nodeIds: Array<string>) => void
 }
 
+interface Computed {}
+
 // Inspired by https://mui.com/components/tree-view/#contentcomponent-prop.
 const CustomContent = React.forwardRef(function CustomContent(props: CustomContentProps, ref) {
   const { classes, className, label, expansionIcon, nodeId, to } = props
@@ -131,8 +133,8 @@ const Tree = withState<State, Props, Effects, Computed, ParentState, ParentEffec
       defaultExpanded={[collection[0].id]}
       defaultCollapseIcon={<Icon icon='chevron-up' />}
       defaultExpandIcon={<Icon icon='chevron-down' />}
-      multiSelect
       onNodeSelect={effects.setSelectedNodeIds}
+      multiSelect
       selected={defaultSelectedNode === undefined ? [''] : selectedNodes}
     >
       {collection.map(renderItem)}
