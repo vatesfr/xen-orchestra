@@ -1374,14 +1374,15 @@ const messages = {
   metricsLoading: 'Loading…',
 
   // ----- Health -----
-  defaultLocalSrsStatusTip:
-    "It is usually recommended for a pool's default SR to be shared to avoid unexpected behaviors",
   deleteBackups: 'Delete backup{nBackups, plural, one {} other {s}}',
   deleteBackupsMessage:
     'Are you sure you want to delete {nBackups, number} backup{nBackups, plural, one {} other {s}}?',
   detachedBackups: 'Detached backups',
   detachedVmSnapshots: 'Detached VM snapshots',
   duplicatedMacAddresses: 'Duplicated MAC addresses',
+  localDefaultSrs: 'Local default SRs',
+  localDefaultSrsStatusTip:
+    "It is usually recommended for a pool's default SR to be shared to avoid unexpected behaviors",
   missingJob: 'Missing job',
   missingVm: 'Missing VM',
   missingVmInJob: 'This VM does not belong to this job',
@@ -1395,8 +1396,7 @@ const messages = {
   noOrphanedObject: 'No orphans',
   tooManySnapshots: 'Too many snapshots',
   tooManySnapshotsTip: 'VMs with more than the recommended amount of snapshots',
-  defaultLocalSrs: 'Default local SRs',
-  noDefaultLocalSrs: 'No default local SRs',
+  noLocalDefaultSrs: 'No local default SRs',
   noTooManySnapshotsObject: 'No VMs with too many snapshots',
   numberOfSnapshots: 'Number of snapshots',
   guestToolStatus: 'Guest Tools status',

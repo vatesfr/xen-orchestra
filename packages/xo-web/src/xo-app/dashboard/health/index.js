@@ -604,7 +604,7 @@ export default class Health extends Component {
     )
   )
 
-  _getDefaultLocalSrs = createCollectionWrapper(
+  _getLocalDefaultSrs = createCollectionWrapper(
     createSelector(
       () => this.props.hosts,
       () => this.props.pools,
@@ -651,7 +651,7 @@ export default class Health extends Component {
     const { props, state } = this
 
     const duplicatedMacAddresses = this._getDuplicatedMacAddresses()
-    const defaultLocalSrs = this._getDefaultLocalSrs()
+    const localDefaultSrs = this._getLocalDefaultSrs()
     const userSrs = this._getUserSrs()
     const orphanVdis = this._getOrphanVdis()
 
@@ -686,26 +686,26 @@ export default class Health extends Component {
             </Card>
           </Col>
         </Row>
-        {defaultLocalSrs.length > 0 && (
+        {localDefaultSrs.length > 0 && (
           <Row>
             <Col>
               <Card>
                 <CardHeader>
-                  <Icon icon='disk' /> {_('defaultLocalSrs')}
+                  <Icon icon='disk' /> {_('localDefaultSrs')}
                 </CardHeader>
                 <CardBlock>
                   <p>
-                    <Icon icon='info' /> <em>{_('defaultLocalSrsStatusTip')}</em>
+                    <Icon icon='info' /> <em>{_('localDefaultSrsStatusTip')}</em>
                   </p>
                   <NoObjects
-                    collection={props.areObjectsFetched ? defaultLocalSrs : null}
-                    emptyMessage={_('noDefaultLocalSrs')}
+                    collection={props.areObjectsFetched ? localDefaultSrs : null}
+                    emptyMessage={_('noLocalDefaultSrs')}
                   >
                     {() => (
                       <Row>
                         <Col>
                           <SortedTable
-                            collection={defaultLocalSrs}
+                            collection={localDefaultSrs}
                             columns={DEFAULT_LOCAL_SRS_COLUMNS}
                             data-hosts={props.hosts}
                             data-srs={userSrs}
