@@ -8,7 +8,7 @@ import NoObjects from 'no-objects'
 import React from 'react'
 import SortedTable from 'sorted-table'
 import Tooltip from 'tooltip'
-import { Host, Network, Sr, Vm } from 'render-xo-item'
+import { Host, Network, Pool, Sr, Vm } from 'render-xo-item'
 import { SelectPool } from 'select-objects'
 import { Container, Row, Col } from 'grid'
 import { Card, CardHeader, CardBlock } from 'card'
@@ -108,8 +108,8 @@ const DUPLICATED_MAC_ADDRESSES_FILTERS = {
 const DEFAULT_LOCAL_SRS_COLUMNS = [
   {
     name: _('pool'),
-    itemRenderer: pool => pool.name_label,
-    sortCriteria: pool => pool.name_label,
+    itemRenderer: pool => <Pool id={pool.id} link />,
+    sortCriteria: 'name_label',
   },
   {
     name: _('sr'),
@@ -117,8 +117,8 @@ const DEFAULT_LOCAL_SRS_COLUMNS = [
   },
   {
     name: _('host'),
-    itemRenderer: (pool, { hosts, srs }) => <Host id={hosts[srs[pool.default_SR].$container].id} pool={false} link />,
-    sortCriteria: (pool, { hosts, srs }) => hosts[srs[pool.default_SR].$container].id,
+    itemRenderer: (pool, { srs }) => <Host id={srs[pool.default_SR].$container} link pool={false} />,
+    sortCriteria: (pool, { hosts, srs }) => hosts[srs[pool.default_SR].$container].name_label,
   },
 ]
 
@@ -610,11 +610,13 @@ export default class Health extends Component {
       () => this.props.pools,
       () => this.props.userSrs,
       () => this._getPoolIds(),
-      (hosts, pools, userSrs, poolIds) =>
-        filter(
-          filter(isEmpty(poolIds) ? pools : pick(pools, poolIds), pool => !userSrs[pool.default_SR].shared),
-          pool => countBy(hosts, host => host.$pool)[pool.id] > 1
+      (hosts, pools, userSrs, poolIds) => {
+        const nbHostsPerPool = countBy(hosts, host => host.$pool)
+        return filter(
+          isEmpty(poolIds) ? pools : pick(pools, poolIds),
+          pool => !userSrs[pool.default_SR].shared && nbHostsPerPool[pool.id] > 1
         )
+      }
     )
   )
 
