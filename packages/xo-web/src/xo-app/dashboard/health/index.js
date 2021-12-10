@@ -105,7 +105,7 @@ const DUPLICATED_MAC_ADDRESSES_FILTERS = {
   filterOnlyRunningVms: 'nRunningVms:>1',
 }
 
-const DEFAULT_LOCAL_SRS_COLUMNS = [
+const LOCAL_DEFAULT_SRS_COLUMNS = [
   {
     name: _('pool'),
     itemRenderer: pool => <Pool id={pool.id} link />,
@@ -706,7 +706,7 @@ export default class Health extends Component {
                         <Col>
                           <SortedTable
                             collection={localDefaultSrs}
-                            columns={DEFAULT_LOCAL_SRS_COLUMNS}
+                            columns={LOCAL_DEFAULT_SRS_COLUMNS}
                             data-hosts={props.hosts}
                             data-srs={userSrs}
                             shortcutsTarget='body'
