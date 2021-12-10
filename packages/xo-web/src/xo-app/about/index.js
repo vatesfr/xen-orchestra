@@ -42,26 +42,9 @@ export default class About extends Component {
     return (
       <Page header={HEADER} title='aboutPage' formatTitle>
         <Container className='text-xs-center'>
-          {isAdmin &&
-            (process.env.XOA_PLAN < 5 ? (
-              <Row>
-                <Col mediumSize={6}>
-                  <Icon icon='host' size={4} />
-                  <Copiable tagName='h4' data={`xo-server ${this.state.serverVersion}`}>
-                    xo-server {this.state.serverVersion || 'unknown'}
-                  </Copiable>
-                  <p className='text-muted'>{_('xenOrchestraServer')}</p>
-                </Col>
-                <Col mediumSize={6}>
-                  <Icon icon='vm' size={4} />
-                  <Copiable tagName='h4' data={`xo-web ${pkg.version}`}>
-                    xo-web {pkg.version}
-                  </Copiable>
-                  <p className='text-muted'>{_('xenOrchestraWeb')}</p>
-                </Col>
-              </Row>
-            ) : (
-              <Row>
+          {isAdmin && [
+            process.env.XOA_PLAN > 4 && COMMIT_ID !== '' && (
+              <Row key='0'>
                 <Col>
                   <Icon icon='git' size={4} />
                   <h4>
@@ -70,7 +53,24 @@ export default class About extends Component {
                   </h4>
                 </Col>
               </Row>
-            ))}
+            ),
+            <Row key='1'>
+              <Col mediumSize={6}>
+                <Icon icon='host' size={4} />
+                <Copiable tagName='h4' data={`xo-server ${this.state.serverVersion}`}>
+                  xo-server {this.state.serverVersion || 'unknown'}
+                </Copiable>
+                <p className='text-muted'>{_('xenOrchestraServer')}</p>
+              </Col>
+              <Col mediumSize={6}>
+                <Icon icon='vm' size={4} />
+                <Copiable tagName='h4' data={`xo-web ${pkg.version}`}>
+                  xo-web {pkg.version}
+                </Copiable>
+                <p className='text-muted'>{_('xenOrchestraWeb')}</p>
+              </Col>
+            </Row>,
+          ]}
           {process.env.XOA_PLAN > 4 ? (
             <div>
               <Row>
