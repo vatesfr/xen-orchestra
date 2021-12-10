@@ -254,7 +254,7 @@ export default class XapiConnection extends EventEmitter {
           if (pifsId === undefined) {
             return networkId
           }
-          if (bondMode !== undefined && pifsId !== undefined) {
+          if (bondMode !== undefined) {
             await Promise.all(
               pifsId.map(pifId => this.call('Bond.create', networkRef, pifs?.get(pifId)?.$network.PIFs, '', bondMode))
             )
