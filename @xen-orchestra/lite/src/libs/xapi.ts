@@ -12,7 +12,9 @@ export interface XapiObject {
 
 // Dictionary of XAPI types and their corresponding TypeScript types
 interface types {
+  network: Network
   PIF: Pif
+  PIF_metrics: PifMetrics
   pool: Pool
   VM: Vm
   host: Host
@@ -20,16 +22,30 @@ interface types {
 
 // XAPI types ---
 
+export interface Network extends XapiObject {
+  PIFs: string[]
+}
+
+export interface PifMetrics extends XapiObject {
+  device_name: string
+}
+
 export interface Pif extends XapiObject {
+  $network: Network
+  bond_slave_of: string
   device: string
   DNS: string
   gateway: string
+  host: string
   IP: string
   management: boolean
+  metrics: string
   network: string
+  VLAN: number
 }
 
 export interface Pool extends XapiObject {
+  master: string
   name_label: string
 }
 
@@ -88,6 +104,7 @@ export default class XapiConnection extends EventEmitter {
     objects: EventEmitter & {
       all: { [id: string]: XapiObject }
     }
+    barrier: (ref: string) => Promise<void>
     connect(): Promise<void>
     disconnect(): Promise<void>
     call: (method: string, ...args: unknown[]) => Promise<unknown>
@@ -102,6 +119,14 @@ export default class XapiConnection extends EventEmitter {
     this.areObjectsFetched = new Promise(resolve => {
       this._resolveObjectsFetched = resolve
     })
+  }
+
+  barrier(ref: string): Promise<void> {
+    const { _xapi } = this
+    if (_xapi === undefined) {
+      throw new Error('Not connected to XAPI')
+    }
+    return _xapi.barrier(ref)
   }
 
   async reattachSession(url: string): Promise<void> {
@@ -201,5 +226,50 @@ export default class XapiConnection extends EventEmitter {
     }
 
     return _xapi.call(method, ...args)
+  }
+
+  async createNetworks(
+    newNetworks: [
+      {
+        bondMode?: string
+        MTU: number
+        name_description: string
+        name_label: string
+        pifsId?: string[]
+        VLAN: number
+      }
+    ]
+  ): Promise<(string | undefined)[]> {
+    const pifs = this.objectsByType.get('PIF')
+    return Promise.all(
+      newNetworks.map(async ({ bondMode, pifsId, ...newNetwork }) => {
+        let networkRef: string | undefined
+        try {
+          networkRef = (await this.call('network.create', {
+            ...newNetwork,
+            other_config: { automatic: 'false' },
+          })) as string
+          await this.barrier(networkRef)
+          const networkId = this.objectsByType.get('network')?.find(({ $ref }) => $ref === networkRef)?.$id
+
+          if (pifsId === undefined) {
+            return networkId
+          }
+          if (bondMode !== undefined && pifsId !== undefined) {
+            await Promise.all(
+              pifsId.map(pifId => this.call('Bond.create', networkRef, pifs?.get(pifId)?.$network.PIFs, '', bondMode))
+            )
+          } else {
+            await this.call('pool.create_VLAN_from_PIF', pifs?.get(pifsId[0])?.$ref, networkRef, newNetwork.VLAN)
+          }
+          return networkId
+        } catch (error) {
+          if (networkRef !== undefined) {
+            await this.call('network.destroy', networkRef)
+          }
+          throw error
+        }
+      })
+    )
   }
 }
