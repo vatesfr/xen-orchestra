@@ -1,5 +1,13 @@
 import { computeBatSize, computeSectorOfBitmap, computeSectorsPerBlock, sectorsToBytes } from './_utils'
-import { PLATFORMS, SECTOR_SIZE, PARENT_LOCATOR_ENTRIES, FOOTER_SIZE, HEADER_SIZE, BLOCK_UNUSED } from '../_constants'
+import {
+  ALIAS_MAX_PATH_LENGTH,
+  PLATFORMS,
+  SECTOR_SIZE,
+  PARENT_LOCATOR_ENTRIES,
+  FOOTER_SIZE,
+  HEADER_SIZE,
+  BLOCK_UNUSED,
+} from '../_constants'
 import assert from 'assert'
 import path from 'path'
 import asyncIteratorToStream from 'async-iterator-to-stream'
@@ -213,6 +221,12 @@ export class VhdAbstract {
     const aliasDir = path.dirname(path.resolve('/', aliasPath))
     // only store the relative path from alias to target
     const relativePathToTarget = path.relative(aliasDir, path.resolve('/', targetPath))
+
+    if (relativePathToTarget.length > ALIAS_MAX_PATH_LENGTH) {
+      throw new Error(
+        `Alias relative path ${relativePathToTarget} is too long : ${relativePathToTarget.length} chars, max is ${ALIAS_MAX_PATH_LENGTH}`
+      )
+    }
     await handler.writeFile(aliasPath, relativePathToTarget)
   }
 
