@@ -15,6 +15,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [Tables/actions] Fix collapsed actions being clickable despite being disabled (PR [#6023](https://github.com/vatesfr/xen-orchestra/pull/6023))
+- [Continuous Replication] Fix `could not find the base VM`
 
 ### Packages to release
 

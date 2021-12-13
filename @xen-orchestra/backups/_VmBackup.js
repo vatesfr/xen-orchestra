@@ -354,6 +354,11 @@ exports.VmBackup = class VmBackup {
       false
     )
 
+    if (presentBaseVdis.size === 0) {
+      debug('no base VM found')
+      return
+    }
+
     const fullVdisRequired = new Set()
     baseUuidToSrcVdi.forEach((srcVdi, baseUuid) => {
       if (presentBaseVdis.has(baseUuid)) {
