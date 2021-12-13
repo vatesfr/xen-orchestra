@@ -96,6 +96,10 @@ async function handleExportContent(req, res, { xapi, id, format = 'vhd' }) {
 
 export async function exportContent({ vdi, format = 'vhd' }) {
   const extension = format === 'vhd' ? 'vhd' : 'vmdk'
+  let filename = vdi.name_label
+  if (filename === '') {
+    filename = 'unknown'
+  }
   return {
     $getFrom: await this.registerHttpRequest(
       handleExportContent,
@@ -105,7 +109,7 @@ export async function exportContent({ vdi, format = 'vhd' }) {
         format
       },
       {
-        suffix: `/${encodeURIComponent(vdi.name_label)}.${extension}`,
+        suffix: `/${encodeURIComponent(filename)}.${extension}`,
       }
     ),
   }
