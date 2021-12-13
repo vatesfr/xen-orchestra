@@ -1,5 +1,4 @@
 import BaseComponent from 'base-component'
-import PropTypes from 'prop-types'
 import React from 'react'
 
 import _ from '../../intl'
@@ -46,8 +45,4 @@ export default class ExportVdiModalBody extends BaseComponent {
       </Container>
     )
   }
-}
-
-ExportVdiModalBody.propTypes = {
-  vdi: PropTypes.object.isRequired,
 }

@@ -1715,7 +1715,7 @@ export const exportVm = async vm => {
 import ExportVdiModalBody from './export-vdi-modal' // eslint-disable-line import/first
 export const exportVdi = async vdi => {
   const format = await confirm({
-    body: <ExportVdiModalBody vdi={vdi} />,
+    body: <ExportVdiModalBody />,
     icon: 'export',
     title: _('exportVdi'),
   })
