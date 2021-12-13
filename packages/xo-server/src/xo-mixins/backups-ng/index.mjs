@@ -187,6 +187,15 @@ export default class BackupNg {
               filter: createPredicate({
                 type: 'VM',
                 ...vmsPattern,
+
+                // don't match VMs created by this very job
+                //
+                // otherwise replicated VMs would be matched and replicated again and again
+                other_config: {
+                  __not: {
+                    'xo:backup:job': job.id,
+                  },
+                },
               }),
             })
           )
