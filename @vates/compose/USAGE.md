@@ -46,3 +46,20 @@ const f = compose(
   [add2, mul3]
 )
 ```
+
+Functions can receive extra parameters:
+
+```js
+const isIn = (value, min, max) => min <= value && value <= max
+
+// Only compatible when `fns` is passed as an array!
+const f = compose([
+  [add, 2],
+  [isIn, 3, 10],
+])
+
+console.log(f(1))
+// → true
+```
+
+> Note: if the first function is defined with extra parameters, it will only receive the first value passed to the composed function, instead of all the parameters.

@@ -152,16 +152,30 @@ export default class S3Handler extends RemoteHandlerAbstract {
     const splitPrefix = splitPath(prefix)
     const result = await this._s3.listObjectsV2({
       Bucket: this._bucket,
-      Prefix: splitPrefix.join('/'),
+      Prefix: splitPrefix.join('/') + '/', // need slash at the end with the use of delimiters
+      Delimiter: '/', // will only return path until delimiters
     })
-    const uniq = new Set()
+
+    if (result.isTruncated) {
+      const error = new Error('more than 1000 objects, unsupported in this implementation')
+      error.dir = dir
+      throw error
+    }
+
+    const uniq = []
+
+    // sub directories
+    for (const entry of result.CommonPrefixes) {
+      const line = splitPath(entry.Prefix)
+      uniq.push(line[line.length - 1])
+    }
+    // files
     for (const entry of result.Contents) {
       const line = splitPath(entry.Key)
-      if (line.length > splitPrefix.length) {
-        uniq.add(line[splitPrefix.length])
-      }
+      uniq.push(line[line.length - 1])
     }
-    return [...uniq]
+
+    return uniq
   }
 
   async _mkdir(path) {
@@ -222,9 +236,9 @@ export default class S3Handler extends RemoteHandlerAbstract {
     // nothing to do, directories do not exist, they are part of the files' path
   }
 
-  // reimplement _rmTree to handle efficiantly path with more than 1000 entries in trees
+  // reimplement _rmtree to handle efficiantly path with more than 1000 entries in trees
   // @todo : use parallel processing for unlink
-  async _rmTree(path) {
+  async _rmtree(path) {
     let NextContinuationToken
     do {
       const result = await this._s3.listObjectsV2({
@@ -233,8 +247,13 @@ export default class S3Handler extends RemoteHandlerAbstract {
         ContinuationToken: NextContinuationToken,
       })
       NextContinuationToken = result.isTruncated ? null : result.NextContinuationToken
-      for (const path of result.Contents) {
-        await this._unlink(path)
+      for (const { Key } of result.Contents) {
+        // _unlink will add the prefix, but Key contains everything
+        // also we don't need to check if we delete a directory, since the list only return files
+        await this._s3.deleteObject({
+          Bucket: this._bucket,
+          Key,
+        })
       }
     } while (NextContinuationToken !== null)
   }

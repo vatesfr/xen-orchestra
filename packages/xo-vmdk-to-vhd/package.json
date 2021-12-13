@@ -1,7 +1,7 @@
 {
   "private": false,
   "name": "xo-vmdk-to-vhd",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "license": "AGPL-3.0-or-later",
   "description": "JS lib streaming a vmdk file to a vhd",
   "keywords": [
@@ -25,7 +25,7 @@
     "lodash": "^4.17.15",
     "pako": "^2.0.4",
     "promise-toolbox": "^0.20.0",
-    "vhd-lib": "^2.0.1",
+    "vhd-lib": "^2.0.3",
     "xml2js": "^0.4.23"
   },
   "devDependencies": {
@@ -37,7 +37,6 @@
     "execa": "^5.0.0",
     "fs-extra": "^10.0.0",
     "get-stream": "^6.0.0",
-    "promise-toolbox": "^0.19.2",
     "rimraf": "^3.0.0",
     "tmp": "^0.2.1"
   },

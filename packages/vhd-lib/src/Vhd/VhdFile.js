@@ -45,6 +45,8 @@ const { debug } = createLogger('vhd-lib:VhdFile')
 
 export class VhdFile extends VhdAbstract {
   #uncheckedBlockTable
+  #header
+  footer
 
   get #blockTable() {
     assert.notStrictEqual(this.#uncheckedBlockTable, undefined, 'Block table must be initialized before access')
@@ -60,7 +62,7 @@ export class VhdFile extends VhdAbstract {
   }
 
   set header(header) {
-    super.header = header
+    this.#header = header
     const size = this.batSize
     this.#blockTable = Buffer.alloc(size)
     for (let i = 0; i < this.header.maxTableEntries; i++) {
@@ -68,7 +70,7 @@ export class VhdFile extends VhdAbstract {
     }
   }
   get header() {
-    return super.header
+    return this.#header
   }
 
   static async open(handler, path, { flags, checkSecondFooter = true } = {}) {
@@ -414,7 +416,7 @@ export class VhdFile extends VhdAbstract {
   async _readParentLocatorData(parentLocatorId) {
     const { platformDataOffset, platformDataLength } = this.header.parentLocatorEntry[parentLocatorId]
     if (platformDataLength > 0) {
-      return (await this._read(platformDataOffset, platformDataLength)).buffer
+      return await this._read(platformDataOffset, platformDataLength)
     }
     return Buffer.alloc(0)
   }
@@ -426,7 +428,8 @@ export class VhdFile extends VhdAbstract {
       // reset offset if data is empty
       header.parentLocatorEntry[parentLocatorId].platformDataOffset = 0
     } else {
-      if (data.length <= header.parentLocatorEntry[parentLocatorId].platformDataSpace) {
+      const space = header.parentLocatorEntry[parentLocatorId].platformDataSpace * SECTOR_SIZE
+      if (data.length <= space) {
         // new parent locator length is smaller than available space : keep it in place
         position = header.parentLocatorEntry[parentLocatorId].platformDataOffset
       } else {
@@ -441,7 +444,7 @@ export class VhdFile extends VhdAbstract {
           // move the first(s) block(s) at the end of the data
           // move the parent locator to the  precedent position of the first block
           const { firstSector } = firstAndLastBlocks
-          await this._freeFirstBlockSpace(header.parentLocatorEntry[parentLocatorId].platformDataSpace)
+          await this._freeFirstBlockSpace(space)
           position = sectorsToBytes(firstSector)
         }
       }

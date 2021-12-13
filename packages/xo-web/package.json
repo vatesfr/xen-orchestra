@@ -138,12 +138,12 @@
     "xo-common": "^0.7.0",
     "xo-lib": "^0.11.1",
     "xo-remote-parser": "^0.8.0",
-    "xo-vmdk-to-vhd": "^2.0.0"
+    "xo-vmdk-to-vhd": "^2.0.1"
   },
   "scripts": {
-    "build": "NODE_ENV=production gulp build",
+    "build": "GIT_HEAD=$(git rev-parse HEAD) NODE_ENV=production gulp build",
     "clean": "gulp clean",
-    "dev": "NODE_ENV=development gulp build",
+    "dev": "GIT_HEAD=$(git rev-parse HEAD) NODE_ENV=development gulp build",
     "prebuild": "yarn run clean && index-modules --auto src",
     "predev": "yarn run prebuild",
     "prepublishOnly": "yarn run build"

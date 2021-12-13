@@ -1,5 +1,13 @@
 import { computeBatSize, computeSectorOfBitmap, computeSectorsPerBlock, sectorsToBytes } from './_utils'
-import { PLATFORMS, SECTOR_SIZE, PARENT_LOCATOR_ENTRIES, FOOTER_SIZE, HEADER_SIZE, BLOCK_UNUSED } from '../_constants'
+import {
+  ALIAS_MAX_PATH_LENGTH,
+  PLATFORMS,
+  SECTOR_SIZE,
+  PARENT_LOCATOR_ENTRIES,
+  FOOTER_SIZE,
+  HEADER_SIZE,
+  BLOCK_UNUSED,
+} from '../_constants'
 import assert from 'assert'
 import path from 'path'
 import asyncIteratorToStream from 'async-iterator-to-stream'
@@ -7,20 +15,12 @@ import { checksumStruct, fuFooter, fuHeader } from '../_structs'
 import { isVhdAlias, resolveAlias } from '../_resolveAlias'
 
 export class VhdAbstract {
-  #header
-  footer
-
   get bitmapSize() {
     return sectorsToBytes(this.sectorsOfBitmap)
   }
 
   get fullBlockSize() {
     return sectorsToBytes(this.sectorsOfBitmap + this.sectorsPerBlock)
-  }
-
-  get header() {
-    assert.notStrictEqual(this.#header, undefined, `header must be read before it's used`)
-    return this.#header
   }
 
   get sectorsOfBitmap() {
@@ -31,8 +31,12 @@ export class VhdAbstract {
     return computeSectorsPerBlock(this.header.blockSize)
   }
 
-  set header(header) {
-    this.#header = header
+  get header() {
+    throw new Error('get header is not implemented')
+  }
+
+  get footer() {
+    throw new Error('get footer not implemented')
   }
 
   /**
@@ -137,7 +141,7 @@ export class VhdAbstract {
     const entry = this.header.parentLocatorEntry[id]
     const dataSpaceSectors = Math.ceil(data.length / SECTOR_SIZE)
     entry.platformCode = platformCode
-    entry.platformDataSpace = dataSpaceSectors * SECTOR_SIZE
+    entry.platformDataSpace = dataSpaceSectors
     entry.platformDataLength = data.length
   }
 
@@ -217,6 +221,12 @@ export class VhdAbstract {
     const aliasDir = path.dirname(path.resolve('/', aliasPath))
     // only store the relative path from alias to target
     const relativePathToTarget = path.relative(aliasDir, path.resolve('/', targetPath))
+
+    if (relativePathToTarget.length > ALIAS_MAX_PATH_LENGTH) {
+      throw new Error(
+        `Alias relative path ${relativePathToTarget} is too long : ${relativePathToTarget.length} chars, max is ${ALIAS_MAX_PATH_LENGTH}`
+      )
+    }
     await handler.writeFile(aliasPath, relativePathToTarget)
   }
 
@@ -226,22 +236,22 @@ export class VhdAbstract {
     const rawFooter = fuFooter.pack(footer)
     checksumStruct(rawFooter, fuFooter)
 
-    // compute parent locator place and size
     // update them in header
     // update checksum in header
 
     let offset = FOOTER_SIZE + HEADER_SIZE + batSize
-    for (let i = 0; i < PARENT_LOCATOR_ENTRIES; i++) {
-      const { ...entry } = header.parentLocatorEntry[i]
-      if (entry.platformDataSpace > 0) {
-        entry.platformDataOffset = offset
-        offset += entry.platformDataSpace
-      }
-      header.parentLocatorEntry[i] = entry
-    }
 
     const rawHeader = fuHeader.pack(header)
     checksumStruct(rawHeader, fuHeader)
+
+    // add parentlocator size
+    for (let i = 0; i < PARENT_LOCATOR_ENTRIES; i++) {
+      header.parentLocatorEntry[i] = {
+        ...header.parentLocatorEntry[i],
+        platformDataOffset: offset,
+      }
+      offset += header.parentLocatorEntry[i].platformDataSpace * SECTOR_SIZE
+    }
 
     assert.strictEqual(offset % SECTOR_SIZE, 0)
 
@@ -266,12 +276,16 @@ export class VhdAbstract {
       yield rawHeader
       yield bat
 
-      // yield parent locator entries
+      // yield parent locator
+
       for (let i = 0; i < PARENT_LOCATOR_ENTRIES; i++) {
-        if (header.parentLocatorEntry[i].platformDataSpace > 0) {
-          const parentLocator = await self.readParentLocator(i)
-          // @ todo pad to platformDataSpace
-          yield parentLocator.data
+        const space = header.parentLocatorEntry[i].platformDataSpace * SECTOR_SIZE
+        if (space > 0) {
+          const data = (await self.readParentLocator(i)).data
+          // align data to a sector
+          const buffer = Buffer.alloc(space, 0)
+          data.copy(buffer)
+          yield buffer
         }
       }
 

@@ -1,3 +1,5 @@
+import * as UUID from 'uuid'
+import cloneDeep from 'lodash/cloneDeep.js'
 import { asyncMap } from '@xen-orchestra/async-map'
 import { VhdAbstract } from './VhdAbstract'
 import { DISK_TYPES, FOOTER_SIZE, HEADER_SIZE } from '../_constants'
@@ -6,9 +8,6 @@ import assert from 'assert'
 
 export class VhdSynthetic extends VhdAbstract {
   #vhds = []
-  set header(_) {
-    throw new Error('Header is read only for VhdSynthetic')
-  }
 
   get header() {
     // this the VHD we want to synthetize
@@ -21,15 +20,12 @@ export class VhdSynthetic extends VhdAbstract {
     // TODO: set parentLocatorEntry-s in header
     return {
       ...vhd.header,
+      parentLocatorEntry: cloneDeep(rootVhd.header.parentLocatorEntry),
       tableOffset: FOOTER_SIZE + HEADER_SIZE,
       parentTimestamp: rootVhd.header.parentTimestamp,
       parentUnicodeName: rootVhd.header.parentUnicodeName,
       parentUuid: rootVhd.header.parentUuid,
     }
-  }
-
-  set footer(_) {
-    throw new Error('Footer is read only for VhdSynthetic')
   }
 
   get footer() {
@@ -76,7 +72,7 @@ export class VhdSynthetic extends VhdAbstract {
       const child = vhds[i]
       const parent = vhds[i + 1]
       assert.strictEqual(child.footer.diskType, DISK_TYPES.DIFFERENCING)
-      assert.strictEqual(child.header.parentUuid, parent.footer.uuid)
+      assert.strictEqual(UUID.stringify(child.header.parentUuid), UUID.stringify(parent.footer.uuid))
     }
   }
 

@@ -20,14 +20,17 @@ const { debug } = createLogger('vhd-lib:VhdDirectory')
 
 export class VhdDirectory extends VhdAbstract {
   #uncheckedBlockTable
+  #header
+  footer
 
   set header(header) {
-    super.header = header
+    this.#header = header
     this.#blockTable = Buffer.alloc(header.maxTableEntries)
   }
 
   get header() {
-    return super.header
+    assert.notStrictEqual(this.#header, undefined, `header must be read before it's used`)
+    return this.#header
   }
 
   get #blockTable() {

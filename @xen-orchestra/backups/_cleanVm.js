@@ -256,9 +256,12 @@ exports.cleanVm = async function cleanVm(
         const { vhds } = metadata
         return Object.keys(vhds).map(key => resolve('/', vmDir, vhds[key]))
       })()
+
+      const missingVhds = linkedVhds.filter(_ => !vhds.has(_))
+
       // FIXME: find better approach by keeping as much of the backup as
       // possible (existing disks) even if one disk is missing
-      if (linkedVhds.every(_ => vhds.has(_))) {
+      if (missingVhds.length === 0) {
         linkedVhds.forEach(_ => unusedVhds.delete(_))
 
         // checking the size of a vhd directory is costly
@@ -277,7 +280,7 @@ exports.cleanVm = async function cleanVm(
           }
         }
       } else {
-        onLog(`Some VHDs linked to the metadata ${json} are missing`)
+        onLog(`Some VHDs linked to the metadata ${json} are missing`, { missingVhds })
         if (remove) {
           onLog(`deleting incomplete backup ${json}`)
           await handler.unlink(json)
