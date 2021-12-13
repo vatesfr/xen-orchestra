@@ -1128,8 +1128,6 @@ const messages = {
   exportVdi: 'Export VDI content',
   exportVdiErrorMessage: 'A format is required to export VDI',
   format: 'Format',
-  vhd: 'VHD',
-  vmdk: 'VMDK',
   importVdi: 'Import VDI content',
   importVdiNoFile: 'No file selected',
   selectVdiMessage: 'Drop VHD file here',
@@ -1139,6 +1137,8 @@ const messages = {
   warningVdiSr: "The VDIs' SRs must either be shared or on the same host for the VM to be able to start.",
   removeSelectedVdisFromVm: 'Remove selected VDIs from this VM',
   removeVdiFromVm: 'Remove VDI from this VM',
+  vhd: 'VHD',
+  vmdk: 'VMDK',
 
   // ----- VM network tab -----
 

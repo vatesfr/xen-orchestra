@@ -4,7 +4,6 @@ import React from 'react'
 
 import _ from '../../intl'
 import { Container, Row, Col } from '../../grid'
-
 import { Select } from '../../form'
 
 const OPTIONS = [
