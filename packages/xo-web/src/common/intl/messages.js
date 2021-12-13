@@ -1126,6 +1126,7 @@ const messages = {
   destroySelectedVdis: 'Destroy selected VDIs',
   destroyVdi: 'Destroy VDI',
   exportVdi: 'Export VDI content',
+  exportVdiErrorMessage: 'A format is required to export VDI',
   format: 'Format',
   vhd: 'VHD',
   vmdk: 'VMDK',
