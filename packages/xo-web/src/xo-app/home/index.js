@@ -707,29 +707,26 @@ export default class Home extends Component {
   _getEnabledJobs = createSelector(
     () => this.props.jobs,
     () => this.props.schedulesByJob,
-    createCollectionWrapper((jobs, schedulesByJob) =>
-      filter(jobs, job => some(schedulesByJob[job.id], schedule => schedule.enabled))
-    )
+    createCollectionWrapper((jobs, schedulesByJob) => filter(jobs, job => some(schedulesByJob[job.id], 'enabled')))
   )
 
-  _getJobPredicate = createSelector(
-    createFilter(() => this.props.items, this._getFilterFunction),
-    job => job,
-    (filteredItems, _job) => filter(filteredItems, createPredicate(omit(_job.vms, 'power_state')))
+  _getFilterBackedUpVms = createSelector(
+    this._getEnabledJobs,
+    enabledJobs => vms => uniq(flatMap(enabledJobs, job => filter(vms, createPredicate(omit(job.vms, 'power_state')))))
   )
 
   _getFilteredItems = createSort(
     createSelector(
       createFilter(() => this.props.items, this._getFilterFunction),
       () => this.props.location.query.backup,
-      () => this._getJobPredicate,
       this._getEnabledJobs,
-      (filteredItems, backup, jobPredicate, enabledJobs) => {
+      this._getFilterBackedUpVms,
+      (filteredVms, backup, enabledJobs, filterBackedUpVms) => {
         if (backup === undefined) {
-          return filteredItems
+          return filteredVms
         }
-        const backedUpVms = uniq(flatMap(enabledJobs, jobPredicate))
-        return backup === 'true' ? backedUpVms : differenceBy(map(filteredItems), backedUpVms, 'id')
+        const backedUpVms = filterBackedUpVms(filteredVms)
+        return backup === 'true' ? backedUpVms : differenceBy(map(filteredVms), backedUpVms, 'id')
       }
     ),
     createSelector(
