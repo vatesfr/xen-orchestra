@@ -261,16 +261,10 @@ exports.cleanVm = async function cleanVm(
     }
 
     const { mode } = metadata
-    let size
     if (mode === 'full') {
       const linkedXva = resolve('/', vmDir, metadata.xva)
-
       if (xvas.has(linkedXva)) {
         unusedXvas.delete(linkedXva)
-
-        size = await handler.getSize(linkedXva).catch(error => {
-          onLog(`failed to get size of ${json}`, { error })
-        })
       } else {
         onLog(`the XVA linked to the metadata ${json} is missing`)
         if (remove) {
@@ -291,37 +285,15 @@ exports.cleanVm = async function cleanVm(
       // possible (existing disks) even if one disk is missing
       if (missingVhds.length === 0) {
         linkedVhds.forEach(_ => unusedVhds.delete(_))
-
         linkedVhds.forEach(path => {
           vhdsToJSons[path] = json
         })
-        try {
-          size = await computeVhdsSize(handler, linkedVhds)
-        } catch (error) {
-          onLog(`failed to get size of ${json}`, { error })
-        }
       } else {
         onLog(`Some VHDs linked to the metadata ${json} are missing`, { missingVhds })
         if (remove) {
           onLog(`deleting incomplete backup ${json}`)
           jsons.delete(json)
           await handler.unlink(json)
-        }
-      }
-    }
-
-    const metadataSize = metadata.size
-    if (size !== undefined && metadataSize !== size) {
-      onLog(`incorrect size in metadata: ${metadataSize ?? 'none'} instead of ${size}`)
-
-      // don't update if the the stored size is greater than found files,
-      // it can indicates a problem
-      if (fixMetadata && (metadataSize === undefined || metadataSize < size)) {
-        try {
-          metadata.size = size
-          await handler.writeFile(json, JSON.stringify(metadata), { flags: 'w' })
-        } catch (error) {
-          onLog(`failed to update size in backup metadata ${json}`, { error })
         }
       }
     }
@@ -383,37 +355,13 @@ exports.cleanVm = async function cleanVm(
     })
   }
 
+  const metadataWithMergedVhd = {}
   const doMerge = async () => {
-    const metadataToBeUpdated = {}
     await asyncMap(toMerge, async chain => {
       const merged = await limitedMergeVhdChain(chain, { handler, onLog, remove, merge })
       if (merged !== undefined) {
         const metadataPath = vhdsToJSons[chain[0]] // all the chain should have the same metada file
-        metadataToBeUpdated[metadataPath] = true
-      }
-    })
-
-    // update the size in the metadata where there have been some merge
-    await asyncMap(Object.keys(metadataToBeUpdated), async metadataPath => {
-      const metadata = JSON.parse(await handler.readFile(metadataPath))
-
-      // update size stored in the metadata if possible
-      let size
-      try {
-        size = await computeVhdsSize(handler, metadata.vhds)
-        // only update if we are in a normal case of a vhd growing after merge
-      } catch (error) {
-        onLog(`failed to get size of ${metadataPath} after merge`, { error })
-      }
-      // write updated metadata file
-      // don't reduce the size : a vhd s should not be smaller after merge
-      if (metadata.size < size || metadata.size === undefined) {
-        metadata.size = size
-        try {
-          await handler.writeFile(metadataPath, JSON.stringify(metadata), { flags: 'w' })
-        } catch (error) {
-          onLog(`failed to update size in backup metadata ${metadataPath} after merge`, { error })
-        }
+        metadataWithMergedVhd[metadataPath] = true
       }
     })
   }
@@ -439,6 +387,56 @@ exports.cleanVm = async function cleanVm(
       }
     }),
   ])
+
+  // update size for delta metadata with merged VHD
+  // check for the other that the size is the same as the real file size
+
+  await asyncMap(jsons, async metadataPath => {
+    let metadata
+    try {
+      metadata = JSON.parse(await handler.readFile(metadataPath))
+    } catch (e) {
+      // metadata can't be openned, no need to update size
+      // it may have been deleted id incomplete
+      return
+    }
+    let fileSystemSize
+    const merged = metadataWithMergedVhd[metadataPath] !== undefined
+
+    const { mode, size, vhds, xva } = metadata
+
+    if (mode === 'full') {
+      // a full backup : check size
+      const linkedXva = resolve('/', vmDir, xva)
+      fileSystemSize = await handler.getSize(linkedXva).catch(error => {
+        onLog(`failed to get size of ${metadataPath}`, { error })
+      })
+    } else if (mode === 'delta') {
+      try {
+        fileSystemSize = await computeVhdsSize(handler, vhds)
+        // only update if we are in a normal case of a vhd growing after merge
+      } catch (error) {
+        onLog(`failed to get size of ${metadataPath}`, { error })
+      }
+      // not merged : check and update if necessary
+      if (metadataWithMergedVhd[metadataPath] === undefined) {
+        if (fileSystemSize !== undefined && fileSystemSize !== size) {
+          onLog(`incorrect size in metadata: ${size ?? 'none'} instead of ${fileSystemSize}`)
+        }
+      }
+    }
+    // systematically update size after a merge
+    if (merged || fixMetadata) {
+      if (size !== fileSystemSize || fileSystemSize === undefined) {
+        metadata.size = fileSystemSize
+        try {
+          await handler.writeFile(metadataPath, JSON.stringify(metadata), { flags: 'w' })
+        } catch (error) {
+          onLog(`failed to update size in backup metadata ${metadataPath} after merge`, { error })
+        }
+      }
+    }
+  })
 
   return {
     // boolean whether some VHDs were merged (or should be merged)

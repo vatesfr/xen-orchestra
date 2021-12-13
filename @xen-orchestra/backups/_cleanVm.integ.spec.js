@@ -204,15 +204,17 @@ test('it merges delta of non destroyed chain', async () => {
     },
   })
 
-  let loggued = ''
+  let loggued = []
   const onLog = message => {
-    loggued += message + '\n'
+    loggued.push(message)
   }
   await adapter.cleanVm('/', { remove: true, onLog })
-  expect(loggued).toEqual(`the parent /${basePath}/orphan.vhd of the child /${basePath}/child.vhd is unused\n`)
-  loggued = ''
+  expect(loggued[0]).toEqual(`the parent /${basePath}/orphan.vhd of the child /${basePath}/child.vhd is unused`)
+  expect(loggued[1]).toEqual(`incorrect size in metadata: 12000 instead of 209920`)
+
+  loggued = []
   await adapter.cleanVm('/', { remove: true, merge: true, onLog })
-  const [unused, merging] = loggued.split('\n')
+  const [unused, merging] = loggued
   expect(unused).toEqual(`the parent /${basePath}/orphan.vhd of the child /${basePath}/child.vhd is unused`)
   expect(merging).toEqual(`merging /${basePath}/child.vhd into /${basePath}/orphan.vhd`)
 
