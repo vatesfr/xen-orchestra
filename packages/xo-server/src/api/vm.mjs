@@ -1003,9 +1003,10 @@ revert.resolve = {
 
 // -------------------------------------------------------------------
 
-async function handleExport(req, res, { xapi, id, compress }) {
+async function handleExport(req, res, { xapi, id, compress, format = 'vhd' }) {
   const stream = await xapi.exportVm(FAIL_ON_QUEUE, id, {
     compress,
+    format
   })
   res.on('close', () => stream.cancel())
   // Remove the filename as it is already part of the URL.
@@ -1016,7 +1017,7 @@ async function handleExport(req, res, { xapi, id, compress }) {
 }
 
 // TODO: integrate in xapi.js
-async function export_({ vm, compress }) {
+async function export_({ vm, compress, format = 'ova' }) {
   if (vm.power_state === 'Running') {
     await checkPermissionOnSrs.call(this, vm)
   }
@@ -1025,11 +1026,12 @@ async function export_({ vm, compress }) {
     xapi: this.getXapi(vm),
     id: vm._xapiId,
     compress,
+    format
   }
 
   return {
     $getFrom: await this.registerHttpRequest(handleExport, data, {
-      suffix: '/' + encodeURIComponent(`${safeDateFormat(new Date())} - ${vm.name_label}.xva`),
+      suffix: '/' + encodeURIComponent(`${safeDateFormat(new Date())} - ${vm.name_label}.${format}`),
     }),
   }
 }
@@ -1037,6 +1039,7 @@ async function export_({ vm, compress }) {
 export_.params = {
   vm: { type: 'string' },
   compress: { type: ['boolean', 'string'], optional: true },
+  format: { enum: ['xva', 'ova'], optional: true },
 }
 
 export_.resolve = {
@@ -1059,6 +1062,9 @@ async function handleVmImport(req, res, { data, srId, type, xapi }) {
   // Timeout seems to be broken in Node 4.
   // See https://github.com/nodejs/node/issues/3319
   req.setTimeout(43200000) // 12 hours
+  res.on('error', err => console.log('error', err))
+  res.on('close', res => console.log('close', res))
+
   // expect "multipart/form-data; boundary=something"
   const contentType = req.headers['content-type']
   const vm = await (contentType != undefined && contentType.startsWith('multipart/form-data')
@@ -1068,6 +1074,7 @@ async function handleVmImport(req, res, { data, srId, type, xapi }) {
         const tables = {}
         form.on('error', reject)
         form.on('part', async part => {
+          console.log('part', part.name)
           try {
             if (part.name !== 'file') {
               promises.push(

@@ -53,7 +53,7 @@ import {
   prepareXapiParam,
 } from './utils.mjs'
 import { createVhdStreamWithLength } from 'vhd-lib'
-import { vhdToVMDK } from 'xo-vmdk-to-vhd'
+import { vhdToVMDK, writeOvaOn } from 'xo-vmdk-to-vhd'
 
 const log = createLogger('xo:xapi')
 
@@ -539,26 +539,57 @@ export default class Xapi extends XapiBase {
       if (blockDevice.type === 'Disk') {
         const vdi = blockDevice.$VDI
         collectedDisks.push({
-          getVmdkStream: () => this.exportVdiAsVMDK($cancelToken, vdi), name: vdi.name_label,
-          description: vdi.name_description, capacity: vdi.virtual_size
+          getStream: () => {
+            console.log('getStream', vdi.name_label)
+            return this.exportVdiContent($cancelToken, vdi, VDI_FORMAT_VHD)
+          },
+          name: vdi.name_label,
+          fileName: vdi.name_label + '.vmdk',
+          description: vdi.name_description,
+          capacityMB: Math.ceil(vdi.virtual_size / 1024 / 1024)
         })
       }
     }
-    return createOvaStream(exportedVm.name_label, exportedVm.name_description, collectedDisks)
+    const writeStream = new PassThrough()
+    writeStream.task = this.task_create('VM OVA export', exportedVm.name_label)
+    writeOvaOn(writeStream, {
+      disks: collectedDisks,
+      vmName: exportedVm.name_label,
+      vmDescription: exportedVm.name_description,
+      cpuCount: exportedVm.VCPUs_at_startup,
+      vmMemoryMB: Math.ceil(exportedVm.memory_dynamic_max / 1024 / 1024)
+    })
+    writeStream.statusCode = 200
+    writeStream.headers = { 'content-type': 'application/ova' }
+    writeStream.statusMessage = 'OK'
+    writeStream.cancel = () => {
+      console.log('cancel after file')
+      return writeStream.destroy()
+    }
+    return writeStream
   }
 
   // Returns a stream to the exported VM.
   @cancelable
-  async exportVm($cancelToken, vmId, { compress = false } = {}) {
+  async exportVm($cancelToken, vmId, { compress = false, format = 'xva' } = {}) {
     const vm = this.getObject(vmId)
     const useSnapshot = isVmRunning(vm)
     const exportedVm = useSnapshot ? await this._snapshotVm($cancelToken, vm, `[XO Export] ${vm.name_label}`) : vm
 
-    const promise = this.exportVmXva($cancelToken, exportedVm, { compress })
+    // noinspection ES6MissingAwait
+    const promise = format === 'xva'
+      ? this.exportVmXva($cancelToken, exportedVm, { compress })
+      : this.exportVmOva($cancelToken, exportedVm)
 
     if (useSnapshot) {
-      const destroySnapshot = () => this.VM_destroy(exportedVm.$ref)::ignoreErrors()
-      promise.then(_ => _.task.finally(destroySnapshot), destroySnapshot)
+      /*
+            const destroySnapshot = () => {
+              console.log('destroying useSnapshot')
+              return this.VM_destroy(exportedVm.$ref)::ignoreErrors()
+            }
+            promise.then(_ => _.task.finally(destroySnapshot), destroySnapshot)
+
+       */
     }
 
     return promise

@@ -21,7 +21,7 @@ export async function writeOvaOn(writeStream, {
   disks = [],
   nics = [],
   vmMemoryMB = 64,
-  cpuCount
+  cpuCount = 1
 }) {
   const ovf = createOvf(vmName, vmDescription, disks, nics, vmMemoryMB, cpuCount)
   const pack = tar.pack()
@@ -38,7 +38,10 @@ export async function writeOvaOn(writeStream, {
   async function pushDisk(disk) {
     const size = await computeVmdkLength(disk.name, await disk.getStream())
     disk.fileSize = size
+    console.log('size', size)
     const blockIterator = await vhdToVMDKIterator(disk.name, await disk.getStream())
+
+    console.log('blockIterator')
     return new Promise((resolve, reject) => {
       const entry = pack.entry({ name: `${disk.name}.vmdk`, size: size }, (err) => {
         if (err == null) {
@@ -65,7 +68,7 @@ function createDiskSections(disks) {
     const disk = disks[i]
     const diskId = `vmdisk${i + 1}`
     fileReferences.push(`    <File ovf:href="${disk.fileName}" ovf:id="file${i + 1}"/>`)
-    diskFragments.push(`    <Disk ovf:capacity="${disk.capacityMB}" ovf:capacityAllocationUnits="byte * 2^20" ovf:diskId="${diskId}" ovf:fileRef="file${i + 1}" />`)
+    diskFragments.push(`    <Disk ovf:capacity="${disk.capacityMB}" ovf:capacityAllocationUnits="byte * 2^20" ovf:diskId="${diskId}" ovf:fileRef="file${i + 1}" ovf:format="http://www.vmware.com/interfaces/specifications/vmdk.html#streamOptimized" />`)
     diskItems.push(`
       <Item>
         <rasd:AddressOnParent>${i}</rasd:AddressOnParent>

@@ -195,5 +195,6 @@ export default class VMDKDirectParser {
       }
       yield { logicalAddressBytes: lba, data: grain }
     }
+    console.log('yielded last VMDK block')
   }
 }

@@ -3,7 +3,7 @@ import asyncIteratorToStream from 'async-iterator-to-stream'
 import { parseOVAFile, ParsableFile } from './ova-read'
 import VMDKDirectParser from './vmdk-read'
 import { generateVmdkData } from './vmdk-generate'
-import { createOvaStream } from './ova-generate'
+import { writeOvaOn } from './ova-generate'
 
 export { default as readVmdkGrainTable, readCapacityAndGrainTable } from './vmdk-read-table'
 
@@ -28,9 +28,24 @@ async function vmdkToVhd(vmdkReadStream, grainLogicalAddressList, grainFileOffse
 
 export async function computeVmdkLength(diskName, vhdReadStream) {
   let length = 0
+  let blankCount = 0
+  const isBlank = buffer => {
+    for (const byte of buffer) {
+      if (byte !== 0)
+        return false
+    }
+    return true
+  }
+  let i = 0
   for await (const b of await vhdToVMDKIterator(diskName, vhdReadStream)) {
     length += b.length
+    blankCount += isBlank(b)
+    i++
+    if (i % 1000 === 0) {
+      console.log('computing length', length)
+    }
   }
+  console.log('length computation end. blanks', blankCount)
   return length
 }
 
@@ -41,7 +56,7 @@ export async function computeVmdkLength(diskName, vhdReadStream) {
  * @param withLength if true, the returned VMDK stream will have its `length` field set. The VHD stream will be entirely read to compute it.
  * @returns a readable stream representing a VMDK file
  */
-async function vhdToVMDK(diskName, vhdReadStreamGetter, withLength = false) {
+export async function vhdToVMDK(diskName, vhdReadStreamGetter, withLength = false) {
   let length
   if (withLength) {
     length = await computeVmdkLength(diskName, await vhdReadStreamGetter())
@@ -71,4 +86,4 @@ export async function vhdToVMDKIterator(diskName, vhdReadStream) {
   return generateVmdkData(diskName, capacityBytes, blockSizeBytes, blockCount, blockGenerator, geometry)
 }
 
-export { ParsableFile, parseOVAFile, vmdkToVhd, vhdToVMDK, createOvaStream }
+export { ParsableFile, parseOVAFile, vmdkToVhd, writeOvaOn }

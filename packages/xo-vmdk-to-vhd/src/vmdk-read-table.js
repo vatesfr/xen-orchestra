@@ -100,6 +100,7 @@ export async function readCapacityAndGrainTable(fileAccessor) {
       grainLogicalAddressList.setUint32(i * 4, index, true)
       grainFileOffsetList.setUint32(i * 4, grainAddress, true)
     })
+    console.log('ALL Tables READ')
     return {
       grainLogicalAddressList: grainLogicalAddressList.buffer,
       grainFileOffsetList: grainFileOffsetList.buffer,
