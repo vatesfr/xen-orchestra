@@ -341,6 +341,16 @@ XO will try to find the right prefix for each IP address. If it can't find a pre
 - Generate a token:
   - Go to Admin > Tokens > Add token
   - Create a token with "Write enabled"
+  - The owner of the token must have at least the following permissions:
+    - View permissions on:
+      - extras > custom-fields
+      - ipam > prefixes
+    - All permissions on:
+      - ipam > ip-addresses
+      - virtualization > cluster-types
+      - virtualization > clusters
+      - virtualization > interfaces
+      - virtualization > virtual-machines
 - Add a UUID custom field (for **Netbox 2.x**):
   - Got to Admin > Custom fields > Add custom field
   - Create a custom field called "uuid" (lower case!)
