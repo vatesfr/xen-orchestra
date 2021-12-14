@@ -1267,6 +1267,7 @@ const messages = {
   vmLimitsLabel: 'VM limits',
   resourceSet: 'Resource set',
   resourceSetNone: 'None',
+  suspendSr: 'Suspend SR',
   vmCpuLimitsLabel: 'CPU limits',
   vmCpuTopology: 'Topology',
   vmChooseCoresPerSocket: 'Default behavior',
