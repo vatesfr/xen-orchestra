@@ -849,6 +849,7 @@ const messages = {
   disconnectServer: 'Disconnect',
 
   // ----- Host item ------
+  host: 'Host',
   noMoreMaintained: 'This host version is no longer maintained',
 
   // ----- Host actions ------
@@ -1380,6 +1381,9 @@ const messages = {
   detachedBackups: 'Detached backups',
   detachedVmSnapshots: 'Detached VM snapshots',
   duplicatedMacAddresses: 'Duplicated MAC addresses',
+  localDefaultSrs: 'Local default SRs',
+  localDefaultSrsStatusTip:
+    "It is usually recommended for a pool's default SR to be shared to avoid unexpected behaviors",
   missingJob: 'Missing job',
   missingVm: 'Missing VM',
   missingVmInJob: 'This VM does not belong to this job',
@@ -1393,6 +1397,7 @@ const messages = {
   noOrphanedObject: 'No orphans',
   tooManySnapshots: 'Too many snapshots',
   tooManySnapshotsTip: 'VMs with more than the recommended amount of snapshots',
+  noLocalDefaultSrs: 'No local default SRs',
   noTooManySnapshotsObject: 'No VMs with too many snapshots',
   numberOfSnapshots: 'Number of snapshots',
   guestToolStatus: 'Guest Tools status',

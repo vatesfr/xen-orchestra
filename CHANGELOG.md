@@ -1,8 +1,24 @@
 # ChangeLog
 
-## **5.65.1** (2021-12-03)
+## **5.65.2** (2021-12-10)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
+### Bug fixes
+
+- [Backup] Fix `handler.rmTree` is not a function (Forum [5256](https://xcp-ng.org/forum/topic/5256/s3-backup-try-it/29) PR [#6041](https://github.com/vatesfr/xen-orchestra/pull/6041) )
+- [Backup] Fix `EEXIST` in logs when multiple merge tasks are created at the same time ([Forum #5301](https://xcp-ng.org/forum/topic/5301/warnings-errors-in-journalctl))
+- [Backup] Fix missing backup on restore (Forum [5256](https://xcp-ng.org/forum/topic/5256/s3-backup-try-it/29) (PR [#6048](https://github.com/vatesfr/xen-orchestra/pull/6048))
+
+### Released packages
+
+- @xen-orchestra/fs 0.19.2
+- vhd-lib 2.0.3
+- @xen-orchestra/backups 0.16.2
+- xo-server 5.84.3
+- @xen-orchestra/proxy 0.15.5
+
+## **5.65.1** (2021-12-03)
 
 ### Bug fixes
 
