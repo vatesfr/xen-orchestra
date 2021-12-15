@@ -18,6 +18,7 @@
 - [Tables/actions] Fix collapsed actions being clickable despite being disabled (PR [#6023](https://github.com/vatesfr/xen-orchestra/pull/6023))
 - [Continuous Replication] Fix `could not find the base VM`
 - [Backup/Smart mode] Always ignore replicated VMs created by the current job
+- [Backup] Fix `Unexpected end of JSON input` during merge step
 
 ### Packages to release
 
@@ -36,6 +37,7 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
+- vhd-lib patch
 - @xen-orchestra/backups minor
 - @xen-orchestra/proxy minor
 - xo-server minor
