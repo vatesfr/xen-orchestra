@@ -133,7 +133,7 @@ export default class {
 
   async updateXenServer(
     id,
-    { allowUnauthorized, enabled, error, host, label, password, readOnly, username, httpProxy }
+    { allowUnauthorized, enabled, error, host, label, password, readOnly, username, httpProxy, fallbackAddresses }
   ) {
     const server = await this._getXenServer(id)
     const xapi = this._xapis[id]
@@ -175,6 +175,9 @@ export default class {
     if (httpProxy !== undefined) {
       // if value is null, pass undefined to the model , so it will delete this optionnal property from the Server object
       server.set('httpProxy', httpProxy === null ? undefined : httpProxy)
+    }
+    if (fallbackAddresses !== undefined) {
+      server.set('fallBackAddresses', fallbackAddresses === null ? null : JSON.stringify(fallbackAddresses))
     }
     await this._servers.update(server)
   }
@@ -297,6 +300,14 @@ export default class {
     })
   }
 
+  async updateFallBackAdresses(xapi) {
+    const hosts = await xapi.getAllRecords('host')
+    const fallbackAddresses = hosts.map(({ address }) => address)
+    for (const host of hosts) {
+      await this.updateXenServer(host.id, { fallbackAddresses })
+    }
+  }
+
   async connectXenServer(id) {
     const server = await this.getXenServer(id)
 
@@ -305,7 +316,10 @@ export default class {
     }
 
     const { config } = this._app
-
+    let fallBackAddresses
+    try {
+      fallBackAddresses = JSON.parse(server.fallBackAddresses)
+    } catch (e) {}
     let { poolMarkingInterval, poolMarkingMaxAge, poolMarkingPrefix, ...xapiOptions } = config.get('xapiOptions')
     poolMarkingInterval = parseDuration(poolMarkingInterval)
     poolMarkingMaxAge = parseDuration(poolMarkingMaxAge)
@@ -316,6 +330,7 @@ export default class {
 
       ...xapiOptions,
       httpProxy: server.httpProxy,
+      fallBackAddresses,
       guessVhdSizeOnImport: config.get('guessVhdSizeOnImport'),
 
       auth: {
@@ -340,6 +355,8 @@ export default class {
       if (serverIdsByPool[poolId] !== undefined) {
         throw new PoolAlreadyConnected(poolId, serverIdsByPool[poolId], server.id)
       }
+
+      this.updateFallBackAdresses(xapi)
 
       serverIdsByPool[poolId] = server.id
 
@@ -468,6 +485,14 @@ export default class {
       xapi.watchEvents()
 
       this.updateXenServer(id, { error: null })::ignoreErrors()
+
+      const xo = this
+      // when the data are loaded, update the fall back adresses of all the hosts of this pool
+      xapi.once('eventFetchedSuccess', async function eventFetchedSuccessListener() {
+        const hosts = await this.getAllRecords('host')
+        const hostAddresses = hosts.map(({ address }) => address).join(';')
+        await xo.updateXenServer(server.id, { fallbackAddresses: hostAddresses })
+      })
 
       xapi.once('eventFetchingError', function eventFetchingErrorListener() {
         const timeout = setTimeout(() => {

@@ -44,7 +44,7 @@ const usage = 'Usage: xen-api <url> [<user> [<password>]]'
 
 async function main(createClient) {
   const opts = minimist(process.argv.slice(2), {
-    string: ['session-id'],
+    string: ['session-id', 'fallback-addresses'],
     boolean: ['allow-unauthorized', 'help', 'read-only', 'verbose'],
 
     alias: {
@@ -64,7 +64,7 @@ async function main(createClient) {
     // Does not work perfectly.
     //
     // https://github.com/visionmedia/debug/pull/156
-    createDebug.enable('xen-api,xen-api:*')
+    createDebug.enable('*')
   }
 
   let auth
@@ -82,6 +82,10 @@ async function main(createClient) {
     })
   }
 
+  let fallBackAddresses = []
+  if (opts['fallback-addresses']) {
+    fallBackAddresses = opts['fallback-addresses'].split(',')
+  }
   const xapi = createClient({
     url: opts._[0],
     allowUnauthorized: opts.au,
@@ -89,6 +93,7 @@ async function main(createClient) {
     debounce: opts.debounce != null ? +opts.debounce : null,
     readOnly: opts.ro,
     syncStackTraces: true,
+    fallBackAddresses,
   })
   await xapi.connect()
 
