@@ -1720,10 +1720,6 @@ export const exportVdi = async vdi => {
     title: _('exportVdi'),
   })
 
-  if (format === '') {
-    return error(_('exportVdi'), _('exportVdiErrorMessage'))
-  }
-
   info(_('startVdiExport'), vdi.id)
   return _call('disk.exportContent', { id: resolveId(vdi), format }).then(({ $getFrom: url }) => {
     window.open(`.${url}`)

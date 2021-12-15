@@ -17,7 +17,7 @@ const OPTIONS = [
 ]
 export default class ExportVdiModalBody extends BaseComponent {
   state = {
-    format: '',
+    format: 'vhd',
   }
 
   get value() {
