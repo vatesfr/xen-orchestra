@@ -22,11 +22,9 @@ import {
   ceil,
   compact,
   debounce,
-  differenceBy,
   escapeRegExp,
   filter,
   find,
-  flatMap,
   forEach,
   groupBy,
   identity,
@@ -41,7 +39,6 @@ import {
   size,
   some,
   sumBy,
-  uniq,
 } from 'lodash'
 import {
   addCustomFilter,
@@ -76,7 +73,6 @@ import { SelectHost, SelectPool, SelectResourceSet, SelectTag } from 'select-obj
 import { addSubscriptions, connectStore, noop } from 'utils'
 import {
   areObjectsFetched,
-  createCollectionWrapper,
   createCounter,
   createFilter,
   createGetObjectsOfType,
