@@ -192,7 +192,7 @@ export default class BackupNg {
                 // don't match VMs created by this very job
                 //
                 // otherwise replicated VMs would be matched and replicated again and again
-                other_config: {
+                other: {
                   __not: {
                     'xo:backup:job': job.id,
                   },
