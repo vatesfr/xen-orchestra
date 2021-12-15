@@ -164,6 +164,17 @@ export default class Backups {
             },
           },
         ],
+        deleteVmBackups: [
+          ({ filenames, remote }) =>
+            Disposable.use(this.getAdapter(remote), adapter => adapter.deleteVmBackups(filenames)),
+          {
+            description: 'delete VM backups',
+            params: {
+              filenames: { type: 'array', items: { type: 'string' } },
+              remote: { type: 'object' },
+            },
+          },
+        ],
         fetchPartitionFiles: [
           ({ disk: diskId, remote, partition: partitionId, paths }) =>
             Disposable.use(this.getAdapter(remote), adapter => adapter.fetchPartitionFiles(diskId, partitionId, paths)),
