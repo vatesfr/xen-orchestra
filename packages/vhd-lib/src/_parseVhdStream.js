@@ -42,6 +42,8 @@ export async function* parseVhdStream(stream) {
 
   const fullBlockSize = computeFullBlockSize(blockSize)
 
+  const bitmapSize = fullBlockSize - blockSize
+
   const index = []
 
   for (const parentLocatorId in header.parentLocatorEntry) {
@@ -72,13 +74,14 @@ export async function* parseVhdStream(stream) {
   index.sort((a, b) => a.offset - b.offset)
   while (index.length > 0) {
     const item = index.shift()
-    item.buffer = await read(item.offset, item.size)
+    const buffer = await read(item.offset, item.size)
+    item.buffer = buffer
 
-    if (item.type === 'bat') {
+    const { type } = item
+    if (type === 'bat') {
       // found the BAT : read it and add block to index
       // since we may reorder  / remove empty space, we recompute the bat instead of returning the source
 
-      const buffer = item.buffer
       const bat = Buffer.alloc(header.maxTableEntries * 4)
       item.buffer = bat
 
@@ -105,6 +108,9 @@ export async function* parseVhdStream(stream) {
       // sort again index to ensure block and parent locator are in the right order
       index.sort((a, b) => a.offset - b.offset)
       item.blockCount = blockCount
+    } else if (type === 'block') {
+      item.bitmap = buffer.slice(0, bitmapSize)
+      item.content = buffer.slice(bitmapSize)
     }
 
     yield item
