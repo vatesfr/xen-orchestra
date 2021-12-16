@@ -73,11 +73,16 @@ export async function* parseVhdStream(stream) {
   index.sort((a, b) => a.offset - b.offset)
   while (index.length > 0) {
     const item = index.shift()
-    const buffer = await read(item.offset, item.size)
+    item.buffer = await read(item.offset, item.size)
+
     if (item.type === 'bat') {
       // found the BAT : read it and add block to index
       // since we may reorder  / remove empty space, we recompute the bat instead of returning the source
+
+      const buffer = item.buffer
       const bat = Buffer.alloc(header.maxTableEntries * 4)
+      item.buffer = bat
+
       let blockCount = 0
       for (let blockCounter = 0; blockCounter < header.maxTableEntries; blockCounter++) {
         const batEntrySector = buffer.readUInt32BE(blockCounter * 4)
@@ -100,10 +105,10 @@ export async function* parseVhdStream(stream) {
       }
       // sort again index to ensure block and parent locator are in the right order
       index.sort((a, b) => a.offset - b.offset)
-      yield { ...item, blockCount, buffer: bat }
-    } else {
-      yield { ...item, buffer }
+      item.blockCount = blockCount
     }
+
+    yield item
   }
 
   /**
