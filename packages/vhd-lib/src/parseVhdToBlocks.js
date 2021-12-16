@@ -1,32 +1,43 @@
-import { computeBlockBitmapSize, sectorsRoundUpNoZero } from './Vhd/_utils'
-import { parseVhdStream } from './_parseVhdStream'
-import { SECTOR_SIZE } from './_constants'
+import assert from 'assert'
 
-async function* filteredGenerator(iterator, filter) {
-  for await (const item of iterator) {
-    if (filter(item) === true) {
+import { computeFullBlockSize } from './Vhd/_utils'
+import { parseVhdStream } from './_parseVhdStream'
+
+async function next(iterator, type, skipableType) {
+  let item
+  do {
+    const cursor = await iterator.next()
+    assert.strictEqual(cursor.done, false, 'iterator is done')
+
+    item = cursor.value
+  } while (item.type === skipableType)
+  assert.strictEqual(item.type, type)
+  return item
+}
+
+async function* onlyBlocks(iterable) {
+  for await (const item of iterable) {
+    if (item.type === 'block') {
       yield item
     }
   }
 }
 
-export async function parseVhdToBlocks(inputStream) {
-  const sourceIterator = parseVhdStream(inputStream)
-  const sourceWithoutParentLocatorIterator = filteredGenerator(sourceIterator, ({ type }) => type !== 'parentLocator')
+export async function parseVhdToBlocks(vhdStream) {
+  const iterator = parseVhdStream(vhdStream)
 
-  const footer = sourceWithoutParentLocatorIterator.next().value
-  const header = sourceWithoutParentLocatorIterator.next().value
-  // without parent locator we have footer -header-bat-blocks-footer
+  const footer = await next(iterator, 'footer')
+  const header = await next(iterator, 'header')
 
-  const { blockCount } = sourceWithoutParentLocatorIterator.next().value
-  const blockGenerator = filteredGenerator(sourceIterator, ({ type }) => type === 'block')
+  // ignore all parent locators that could be before the BAT
+  const { blockCount } = await next(iterator, 'bat', 'parentLocator')
 
   return {
     // each block have data + a bitmap
-    blockSizeBytes: header.blockSize + sectorsRoundUpNoZero(computeBlockBitmapSize(header.blockSize)) * SECTOR_SIZE,
+    blockSizeBytes: computeFullBlockSize(header.blockSize),
     blockCount,
     capacityBytes: footer.currentSize,
     geometry: footer.diskGeometry,
-    blockGenerator,
+    blocks: onlyBlocks(iterator),
   }
 }
