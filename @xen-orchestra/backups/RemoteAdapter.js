@@ -249,7 +249,12 @@ class RemoteAdapter {
   }
 
   async deleteVmBackups(files) {
-    const { delta, full } = groupBy(await asyncMap(files, file => this.readVmBackupMetadata(file)), 'mode')
+    const { delta, full, ...others } = groupBy(await asyncMap(files, file => this.readVmBackupMetadata(file)), 'mode')
+
+    const unsupportedModes = Object.keys(others)
+    if (unsupportedModes.length !== 0) {
+      throw new Error('no deleter for backup modes: ' + unsupportedModes.join(', '))
+    }
 
     await Promise.all([
       delta !== undefined && this.deleteDeltaVmBackups(delta),
