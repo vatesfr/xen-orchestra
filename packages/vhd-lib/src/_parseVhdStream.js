@@ -110,7 +110,7 @@ export async function* parseVhdStream(stream) {
       item.blockCount = blockCount
     } else if (type === 'block') {
       item.bitmap = buffer.slice(0, bitmapSize)
-      item.content = buffer.slice(bitmapSize)
+      item.data = buffer.slice(bitmapSize)
     }
 
     yield item
