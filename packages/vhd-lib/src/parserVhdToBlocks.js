@@ -1,5 +1,5 @@
 import { computeBlockBitmapSize, sectorsRoundUpNoZero } from './Vhd/_utils'
-import { vhdStreamGenerator } from './_vhdStreamGenerator'
+import { parseVhdStream } from './_parseVhdStream'
 import { SECTOR_SIZE } from './_constants'
 
 async function* filteredGenerator(iterator, filter) {
@@ -11,7 +11,7 @@ async function* filteredGenerator(iterator, filter) {
 }
 
 export async function parseVhdToBlocks(inputStream) {
-  const sourceIterator = vhdStreamGenerator(inputStream)
+  const sourceIterator = parseVhdStream(inputStream)
   const sourceWithoutParentLocatorIterator = filteredGenerator(sourceIterator, ({ type }) => type !== 'parentLocator')
 
   const footer = sourceWithoutParentLocatorIterator.next().value

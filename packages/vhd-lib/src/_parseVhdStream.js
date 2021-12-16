@@ -11,7 +11,7 @@ const cappedBufferConcat = (buffers, maxSize) => {
   return buffer
 }
 
-export async function* vhdStreamGenerator(stream) {
+export async function* parseVhdStream(stream) {
   let bytesRead = 0
 
   // handle empty space between elements
