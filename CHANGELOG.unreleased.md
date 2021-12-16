@@ -7,20 +7,9 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [About] Show commit instead of version numbers for source users (PR [#6045](https://github.com/vatesfr/xen-orchestra/pull/6045))
-- [Health] Display default SRs that aren't shared [#5871](https://github.com/vatesfr/xen-orchestra/issues/5871) (PR [#6033](https://github.com/vatesfr/xen-orchestra/pull/6033))
-- [Pool,VM/advanced] Ability to change the suspend SR [#4163](https://github.com/vatesfr/xen-orchestra/issues/4163) (PR [#6044](https://github.com/vatesfr/xen-orchestra/pull/6044))
-- [Home/VMs/Backup filter] Filter out VMs in disabled backup jobs (PR [#6037](https://github.com/vatesfr/xen-orchestra/pull/6037))
-- [Rolling Pool Update] Automatically disable High Availability during the update [#5711](https://github.com/vatesfr/xen-orchestra/issues/5711) (PR [#6057](https://github.com/vatesfr/xen-orchestra/pull/6057))
-
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
-
-- [Tables/actions] Fix collapsed actions being clickable despite being disabled (PR [#6023](https://github.com/vatesfr/xen-orchestra/pull/6023))
-- [Continuous Replication] Fix `could not find the base VM`
-- [Backup/Smart mode] Always ignore replicated VMs created by the current job
-- [Backup] Fix `Unexpected end of JSON input` during merge step
 
 ### Packages to release
 
@@ -38,9 +27,3 @@
 > - major: if the change breaks compatibility
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
-
-- vhd-lib patch
-- @xen-orchestra/backups minor
-- @xen-orchestra/proxy minor
-- xo-server minor
-- xo-web minor
