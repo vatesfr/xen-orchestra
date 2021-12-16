@@ -22,12 +22,11 @@ import {
   ceil,
   compact,
   debounce,
-  differenceBy,
   escapeRegExp,
   filter,
   find,
-  flatMap,
   forEach,
+  groupBy,
   identity,
   includes,
   isEmpty,
@@ -40,7 +39,6 @@ import {
   size,
   some,
   sumBy,
-  uniq,
 } from 'lodash'
 import {
   addCustomFilter,
@@ -64,6 +62,7 @@ import {
   stopVms,
   subscribeBackupNgJobs,
   subscribeResourceSets,
+  subscribeSchedules,
   subscribeServers,
   suspendVms,
   ITEMS_PER_PAGE_OPTIONS,
@@ -492,6 +491,7 @@ const NoObjects = props =>
     ? {
         jobs: subscribeBackupNgJobs,
         noResourceSets,
+        schedulesByJob: cb => subscribeSchedules(schedules => cb(groupBy(schedules, 'jobId'))),
       }
     : { noResourceSets }
 })
@@ -703,19 +703,22 @@ export default class Home extends Component {
   _getFilteredItems = createSort(
     createSelector(
       createFilter(() => this.props.items, this._getFilterFunction),
-      () => this.props.location.query.backup,
-      () => this.props.jobs,
-      (filteredItems, backup, jobs) => {
-        if (backup === undefined) {
-          return filteredItems
+      createSelector(
+        () => this.props.location.query.backup,
+        () => this.props.jobs,
+        () => this.props.schedulesByJob,
+        (backup, jobs, schedulesByJob) => {
+          if (backup !== undefined) {
+            const pattern = {
+              __or: jobs
+                .filter(job => schedulesByJob[job.id].some(_ => _.enabled))
+                .map(job => omit(job.vms, 'power_state')),
+            }
+            return createPredicate(backup === 'true' ? pattern : { __not: pattern })
+          }
         }
-
-        const backedUpVms = uniq(
-          flatMap(jobs, job => filter(filteredItems, createPredicate(omit(job.vms, 'power_state'))))
-        )
-
-        return backup === 'true' ? backedUpVms : differenceBy(map(filteredItems), backedUpVms, 'id')
-      }
+      ),
+      (filteredVms, predicate) => (predicate === undefined ? filteredVms : filter(filteredVms, predicate))
     ),
     createSelector(
       () => this.state.sortBy,

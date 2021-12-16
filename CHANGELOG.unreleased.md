@@ -10,6 +10,7 @@
 - [About] Show commit instead of version numbers for source users (PR [#6045](https://github.com/vatesfr/xen-orchestra/pull/6045))
 - [Health] Display default SRs that aren't shared [#5871](https://github.com/vatesfr/xen-orchestra/issues/5871) (PR [#6033](https://github.com/vatesfr/xen-orchestra/pull/6033))
 - [Pool,VM/advanced] Ability to change the suspend SR [#4163](https://github.com/vatesfr/xen-orchestra/issues/4163) (PR [#6044](https://github.com/vatesfr/xen-orchestra/pull/6044))
+- [Home/VMs/Backup filter] Filter out VMs in disabled backup jobs (PR [#6037](https://github.com/vatesfr/xen-orchestra/pull/6037))
 
 ### Bug fixes
 
