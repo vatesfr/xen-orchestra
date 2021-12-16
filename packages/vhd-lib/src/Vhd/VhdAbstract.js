@@ -1,4 +1,10 @@
-import { computeBatSize, computeSectorOfBitmap, computeSectorsPerBlock, sectorsToBytes } from './_utils'
+import {
+  computeBatSize,
+  computeFullBlockSize,
+  computeSectorOfBitmap,
+  computeSectorsPerBlock,
+  sectorsToBytes,
+} from './_utils'
 import {
   ALIAS_MAX_PATH_LENGTH,
   PLATFORMS,
@@ -20,7 +26,7 @@ export class VhdAbstract {
   }
 
   get fullBlockSize() {
-    return sectorsToBytes(this.sectorsOfBitmap + this.sectorsPerBlock)
+    return computeFullBlockSize(this.header.blockSize)
   }
 
   get sectorsOfBitmap() {
