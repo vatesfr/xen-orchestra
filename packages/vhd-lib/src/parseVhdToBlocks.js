@@ -32,10 +32,9 @@ export async function parseVhdToBlocks(vhdStream) {
   const { blockCount } = await next(iterator, 'bat', 'parentLocator')
 
   return {
-    // each block have data + a bitmap
-    blockSizeBytes: header.blockSize,
+    blockSize: header.blockSize,
     blockCount,
-    capacityBytes: footer.currentSize,
+    diskSize: footer.currentSize,
     geometry: footer.diskGeometry,
     blocks: onlyBlocks(iterator),
   }
