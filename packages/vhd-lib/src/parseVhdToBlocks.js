@@ -1,6 +1,5 @@
 import assert from 'assert'
 
-import { computeFullBlockSize } from './Vhd/_utils'
 import { parseVhdStream } from './_parseVhdStream'
 
 async function next(iterator, type, skipableType) {
@@ -34,7 +33,7 @@ export async function parseVhdToBlocks(vhdStream) {
 
   return {
     // each block have data + a bitmap
-    blockSizeBytes: computeFullBlockSize(header.blockSize),
+    blockSizeBytes: header.blockSize,
     blockCount,
     capacityBytes: footer.currentSize,
     geometry: footer.diskGeometry,

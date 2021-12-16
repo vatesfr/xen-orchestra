@@ -1,7 +1,7 @@
 import { BLOCK_UNUSED, FOOTER_SIZE, HEADER_SIZE, SECTOR_SIZE } from './_constants'
 import { readChunk } from '@vates/read-chunk'
 import assert from 'assert'
-import { unpackFooter, unpackHeader, computeBlockBitmapSize } from './Vhd/_utils'
+import { unpackFooter, unpackHeader, computeFullBlockSize } from './Vhd/_utils'
 
 const cappedBufferConcat = (buffers, maxSize) => {
   let buffer = Buffer.concat(buffers)
@@ -40,8 +40,7 @@ export async function* parseVhdStream(stream) {
   const blockSize = header.blockSize
   assert.strictEqual(blockSize % SECTOR_SIZE, 0)
 
-  const blockBitmapSize = computeBlockBitmapSize(blockSize)
-  const blockAndBitmapSize = blockBitmapSize + blockSize
+  const fullBlockSize = computeFullBlockSize(blockSize)
 
   const index = []
 
@@ -95,7 +94,7 @@ export async function* parseVhdStream(stream) {
             type: 'block',
             id: blockCounter,
             offset: batEntryBytes,
-            size: blockAndBitmapSize,
+            size: fullBlockSize,
           })
           bat.writeInt32BE(batEntryBytes, 4 * blockCounter)
           blockCount++
