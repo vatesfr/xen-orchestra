@@ -100,7 +100,7 @@ export async function* parseVhdStream(stream) {
       }
       // sort again index to ensure block and parent locator are in the right order
       index.sort((a, b) => a.offset - b.offset)
-      yield { ...item, blockCount, bat }
+      yield { ...item, blockCount, buffer: bat }
     } else {
       yield { ...item, buffer }
     }
