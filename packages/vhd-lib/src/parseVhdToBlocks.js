@@ -1,6 +1,6 @@
 import assert from 'assert'
 
-import { parseVhdStream } from './_parseVhdStream'
+import { parseVhdStream } from './parseVhdStream'
 
 async function next(iterator, type, skipableType) {
   let item
