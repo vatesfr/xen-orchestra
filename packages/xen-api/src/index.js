@@ -1,4 +1,5 @@
 import assert from 'assert'
+import coalesceCalls from '@vates/coalesce-calls'
 import dns from 'dns'
 import kindOf from 'kindof'
 import ms from 'ms'
@@ -10,7 +11,6 @@ import { cancelable, defer, fromCallback, fromEvents, ignoreErrors, pDelay, pRet
 import { limitConcurrency } from 'limit-concurrency-decorator'
 
 import autoTransport from './transports/auto'
-import coalesceCalls from './_coalesceCalls'
 import debug from './_debug'
 import getTaskResult from './_getTaskResult'
 import isGetAllRecordsMethod from './_isGetAllRecordsMethod'
