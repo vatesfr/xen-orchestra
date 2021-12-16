@@ -1,5 +1,30 @@
 # ChangeLog
 
+## **next**
+
+### Enhancements
+
+- [About] Show commit instead of version numbers for source users (PR [#6045](https://github.com/vatesfr/xen-orchestra/pull/6045))
+- [Health] Display default SRs that aren't shared [#5871](https://github.com/vatesfr/xen-orchestra/issues/5871) (PR [#6033](https://github.com/vatesfr/xen-orchestra/pull/6033))
+- [Pool,VM/advanced] Ability to change the suspend SR [#4163](https://github.com/vatesfr/xen-orchestra/issues/4163) (PR [#6044](https://github.com/vatesfr/xen-orchestra/pull/6044))
+- [Home/VMs/Backup filter] Filter out VMs in disabled backup jobs (PR [#6037](https://github.com/vatesfr/xen-orchestra/pull/6037))
+- [Rolling Pool Update] Automatically disable High Availability during the update [#5711](https://github.com/vatesfr/xen-orchestra/issues/5711) (PR [#6057](https://github.com/vatesfr/xen-orchestra/pull/6057))
+
+### Bug fixes
+
+- [Tables/actions] Fix collapsed actions being clickable despite being disabled (PR [#6023](https://github.com/vatesfr/xen-orchestra/pull/6023))
+- [Continuous Replication] Fix `could not find the base VM`
+- [Backup/Smart mode] Always ignore replicated VMs created by the current job
+- [Backup] Fix `Unexpected end of JSON input` during merge step
+
+### Released packages
+
+- vhd-lib 2.0.4
+- @xen-orchestra/backups 0.17.0
+- @xen-orchestra/proxy 0.16.0
+- xo-server 5.85.0
+- xo-web 5.91.0
+
 ## **5.65.2** (2021-12-10)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
