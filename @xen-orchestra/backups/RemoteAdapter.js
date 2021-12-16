@@ -249,9 +249,12 @@ class RemoteAdapter {
   }
 
   async deleteVmBackups(files) {
-    const metadatas = groupBy(await asyncMap(files, file => this.readVmBackupMetadata(file)), 'mode')
+    const { delta, full } = groupBy(await asyncMap(files, file => this.readVmBackupMetadata(file)), 'mode')
 
-    await Promise.all([this.deleteDeltaVmBackups(metadatas.delta), this.deleteFullVmBackups(metadatas.full)])
+    await Promise.all([
+      delta !== undefined && this.deleteDeltaVmBackups(delta),
+      full !== undefined && this.deleteFullVmBackups(full),
+    ])
   }
 
   getDisk = Disposable.factory(this.getDisk)
