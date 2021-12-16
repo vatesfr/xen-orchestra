@@ -1,7 +1,7 @@
 import asyncMapSettled from '@xen-orchestra/async-map/legacy'
 import Handlebars from 'handlebars'
 import humanFormat from 'human-format'
-import stringify from 'csv-stringify'
+import { stringify } from 'csv-stringify'
 import { createLogger } from '@xen-orchestra/log'
 import { createSchedule } from '@xen-orchestra/cron'
 import { minify } from 'html-minifier'

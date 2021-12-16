@@ -12,6 +12,8 @@ import { connectStore, getXoaPlan } from 'utils'
 
 import pkg from '../../../package'
 
+const COMMIT_ID = process.env.GIT_HEAD
+
 const HEADER = (
   <Container>
     <Row>
@@ -40,8 +42,19 @@ export default class About extends Component {
     return (
       <Page header={HEADER} title='aboutPage' formatTitle>
         <Container className='text-xs-center'>
-          {isAdmin && (
-            <Row>
+          {isAdmin && [
+            process.env.XOA_PLAN > 4 && COMMIT_ID !== '' && (
+              <Row key='0'>
+                <Col>
+                  <Icon icon='git' size={4} />
+                  <h4>
+                    Xen Orchestra, commit{' '}
+                    <a href={'https://github.com/vatesfr/xen-orchestra/commit/' + COMMIT_ID}>{COMMIT_ID.slice(0, 5)}</a>
+                  </h4>
+                </Col>
+              </Row>
+            ),
+            <Row key='1'>
               <Col mediumSize={6}>
                 <Icon icon='host' size={4} />
                 <Copiable tagName='h4' data={`xo-server ${this.state.serverVersion}`}>
@@ -56,8 +69,8 @@ export default class About extends Component {
                 </Copiable>
                 <p className='text-muted'>{_('xenOrchestraWeb')}</p>
               </Col>
-            </Row>
-          )}
+            </Row>,
+          ]}
           {process.env.XOA_PLAN > 4 ? (
             <div>
               <Row>

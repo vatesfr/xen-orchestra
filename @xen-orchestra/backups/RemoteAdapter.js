@@ -3,6 +3,7 @@ const Disposable = require('promise-toolbox/Disposable.js')
 const fromCallback = require('promise-toolbox/fromCallback.js')
 const fromEvent = require('promise-toolbox/fromEvent.js')
 const pDefer = require('promise-toolbox/defer.js')
+const groupBy = require('lodash/groupBy.js')
 const { dirname, join, normalize, resolve } = require('path')
 const { createLogger } = require('@xen-orchestra/log')
 const { Constants, createVhdDirectoryFromStream, openVhd, VhdAbstract, VhdSynthetic } = require('vhd-lib')
@@ -243,17 +244,14 @@ class RemoteAdapter {
     )
   }
 
-  async deleteVmBackup(filename) {
-    const metadata = JSON.parse(String(await this._handler.readFile(filename)))
-    metadata._filename = filename
+  deleteVmBackup(file) {
+    return this.deleteVmBackups([file])
+  }
 
-    if (metadata.mode === 'delta') {
-      await this.deleteDeltaVmBackups([metadata])
-    } else if (metadata.mode === 'full') {
-      await this.deleteFullVmBackups([metadata])
-    } else {
-      throw new Error(`no deleter for backup mode ${metadata.mode}`)
-    }
+  async deleteVmBackups(files) {
+    const metadatas = groupBy(await asyncMap(files, file => this.readVmBackupMetadata(file)), 'mode')
+
+    await Promise.all([this.deleteDeltaVmBackups(metadatas.delta), this.deleteFullVmBackups(metadatas.full)])
   }
 
   getDisk = Disposable.factory(this.getDisk)

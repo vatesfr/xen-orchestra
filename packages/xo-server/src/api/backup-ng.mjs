@@ -221,6 +221,19 @@ deleteVmBackup.params = {
   },
 }
 
+export function deleteVmBackups({ ids }) {
+  return this.deleteVmBackupsNg(ids)
+}
+
+deleteVmBackups.permission = 'admin'
+
+deleteVmBackups.params = {
+  ids: {
+    type: 'array',
+    items: { type: 'string' },
+  },
+}
+
 export function listVmBackups({ remotes, _forceRefresh }) {
   return this.listVmBackupsNg(remotes, _forceRefresh)
 }

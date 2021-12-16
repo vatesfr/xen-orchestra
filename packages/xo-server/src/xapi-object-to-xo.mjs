@@ -117,6 +117,7 @@ const TRANSFORMS = {
         cores: cpuInfo && +cpuInfo.cpu_count,
         sockets: cpuInfo && +cpuInfo.socket_count,
       },
+      suspendSr: link(obj, 'suspend_image_SR'),
       zstdSupported: obj.restrictions.restrict_zstd_export === 'false',
 
       // TODO
@@ -437,6 +438,7 @@ const TRANSFORMS = {
       startDelay: +obj.start_delay,
       startTime: metrics && toTimestamp(metrics.start_time),
       secureBoot: obj.platform.secureboot === 'true',
+      suspendSr: link(obj, 'suspend_SR'),
       tags: obj.tags,
       VIFs: link(obj, 'VIFs'),
       virtualizationMode: domainType,

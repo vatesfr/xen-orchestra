@@ -36,6 +36,11 @@ const forkDeltaExport = deltaExport =>
 
 exports.VmBackup = class VmBackup {
   constructor({ config, getSnapshotNameLabel, job, remoteAdapters, remotes, schedule, settings, srs, vm }) {
+    if (vm.other_config['xo:backup:job'] === job.id) {
+      // otherwise replicated VMs would be matched and replicated again and again
+      throw new Error('cannot backup a VM created by this very job')
+    }
+
     this.config = config
     this.job = job
     this.remoteAdapters = remoteAdapters
@@ -353,6 +358,11 @@ exports.VmBackup = class VmBackup {
       'writer.checkBaseVdis()',
       false
     )
+
+    if (presentBaseVdis.size === 0) {
+      debug('no base VM found')
+      return
+    }
 
     const fullVdisRequired = new Set()
     baseUuidToSrcVdi.forEach((srcVdi, baseUuid) => {

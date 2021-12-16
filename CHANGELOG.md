@@ -1,8 +1,43 @@
 # ChangeLog
 
-## **5.65.0** (2021-11-30)
+## **5.65.2** (2021-12-10)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
+### Bug fixes
+
+- [Backup] Fix `handler.rmTree` is not a function (Forum [5256](https://xcp-ng.org/forum/topic/5256/s3-backup-try-it/29) PR [#6041](https://github.com/vatesfr/xen-orchestra/pull/6041) )
+- [Backup] Fix `EEXIST` in logs when multiple merge tasks are created at the same time ([Forum #5301](https://xcp-ng.org/forum/topic/5301/warnings-errors-in-journalctl))
+- [Backup] Fix missing backup on restore (Forum [5256](https://xcp-ng.org/forum/topic/5256/s3-backup-try-it/29) (PR [#6048](https://github.com/vatesfr/xen-orchestra/pull/6048))
+
+### Released packages
+
+- @xen-orchestra/fs 0.19.2
+- vhd-lib 2.0.3
+- @xen-orchestra/backups 0.16.2
+- xo-server 5.84.3
+- @xen-orchestra/proxy 0.15.5
+
+## **5.65.1** (2021-12-03)
+
+### Bug fixes
+
+- [Delta Backup Restoration] Fix assertion error [Forum #5257](https://xcp-ng.org/forum/topic/5257/problems-building-from-source/16)
+- [Delta Backup Restoration] `TypeError: this disposable has already been disposed` [Forum #5257](https://xcp-ng.org/forum/topic/5257/problems-building-from-source/20)
+- [Backups] Fix: `Error: Chaining alias is forbidden xo-vm-backups/..alias.vhd to xo-vm-backups/....alias.vhd` when backuping a file to s3 [Forum #5226](https://xcp-ng.org/forum/topic/5256/s3-backup-try-it)
+- [Delta Backup Restoration] `VDI_IO_ERROR(Device I/O errors)` [Forum #5727](https://xcp-ng.org/forum/topic/5257/problems-building-from-source/4) (PR [#6031](https://github.com/vatesfr/xen-orchestra/pull/6031))
+- [Delta Backup] Fix `Cannot read property 'uuid' of undefined` when a VDI has been removed from a backed up VM (PR [#6034](https://github.com/vatesfr/xen-orchestra/pull/6034))
+
+### Released packages
+
+- @vates/compose 2.1.0
+- vhd-lib 2.0.2
+- xo-vmdk-to-vhd 2.0.1
+- @xen-orchestra/backups 0.16.1
+- @xen-orchestra/proxy 0.15.4
+- xo-server 5.84.2
+
+## **5.65.0** (2021-11-30)
 
 ### Highlights
 
@@ -19,7 +54,7 @@
 
 - [Import/VM] Fix the import of OVA files (PR [#5976](https://github.com/vatesfr/xen-orchestra/pull/5976))
 
-### Packages to release
+### Released packages
 
 - @vates/async-each 0.1.0
 - xo-remote-parser 0.8.4

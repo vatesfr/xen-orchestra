@@ -1,6 +1,7 @@
 import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
 import Disposable from 'promise-toolbox/Disposable.js'
 import forOwn from 'lodash/forOwn.js'
+import groupBy from 'lodash/groupBy.js'
 import merge from 'lodash/merge.js'
 import { Backup } from '@xen-orchestra/backups/Backup.js'
 import { createLogger } from '@xen-orchestra/log'
@@ -187,6 +188,15 @@ export default class BackupNg {
               filter: createPredicate({
                 type: 'VM',
                 ...vmsPattern,
+
+                // don't match VMs created by this very job
+                //
+                // otherwise replicated VMs would be matched and replicated again and again
+                other: {
+                  __not: {
+                    'xo:backup:job': job.id,
+                  },
+                },
               }),
             })
           )
@@ -371,23 +381,30 @@ export default class BackupNg {
     ])
   }
 
-  async deleteVmBackupNg(id) {
-    const app = this._app
-    const { metadataFilename, remoteId } = parseVmBackupId(id)
-    const remote = await app.getRemoteWithCredentials(remoteId)
-    if (remote.proxy !== undefined) {
-      await app.callProxyMethod(remote.proxy, 'backup.deleteVmBackup', {
-        filename: metadataFilename,
-        remote: {
-          url: remote.url,
-          options: remote.options,
-        },
-      })
-    } else {
-      await Disposable.use(app.getBackupsRemoteAdapter(remote), adapter => adapter.deleteVmBackup(metadataFilename))
-    }
+  deleteVmBackupNg(id) {
+    return this.deleteVmBackupsNg([id])
+  }
 
-    this._listVmBackupsOnRemote(REMOVE_CACHE_ENTRY, remoteId)
+  async deleteVmBackupsNg(ids) {
+    const app = this._app
+    const backupsByRemote = groupBy(ids.map(parseVmBackupId), 'remoteId')
+    await asyncMapSettled(Object.entries(backupsByRemote), async ([remoteId, backups]) => {
+      const filenames = backups.map(_ => _.metadataFilename)
+      const remote = await app.getRemoteWithCredentials(remoteId)
+      if (remote.proxy !== undefined) {
+        await app.callProxyMethod(remote.proxy, 'backup.deleteVmBackups', {
+          filenames,
+          remote: {
+            url: remote.url,
+            options: remote.options,
+          },
+        })
+      } else {
+        await Disposable.use(app.getBackupsRemoteAdapter(remote), adapter => adapter.deleteVmBackups(filenames))
+      }
+
+      this._listVmBackupsOnRemote(REMOVE_CACHE_ENTRY, remoteId)
+    })
   }
 
   // Task logs emitted in a restore execution:

@@ -9,7 +9,7 @@ import { Disposable, pFromCallback } from 'promise-toolbox'
 import { openVhd } from '../index'
 import { checkFile, createRandomFile, convertFromRawToVhd, createRandomVhdDirectory } from '../tests/utils'
 import { VhdAbstract } from './VhdAbstract'
-import { BLOCK_UNUSED, FOOTER_SIZE, HEADER_SIZE, SECTOR_SIZE } from '../_constants'
+import { BLOCK_UNUSED, FOOTER_SIZE, HEADER_SIZE, PLATFORMS, SECTOR_SIZE } from '../_constants'
 import { unpackHeader, unpackFooter } from './_utils'
 
 let tempDir
@@ -163,20 +163,22 @@ test('it can create a vhd stream', async () => {
   await createRandomFile(rawFileName, initalSize)
   const vhdFileName = `${tempDir}/vhd.vhd`
   await convertFromRawToVhd(rawFileName, vhdFileName)
-  const bat = Buffer.alloc(512)
 
   await Disposable.use(async function* () {
     const handler = yield getSyncedHandler({ url: 'file://' + tempDir })
 
     const vhd = yield openVhd(handler, 'vhd.vhd')
-
-    // mark first block as unused
-    await handler.read('vhd.vhd', bat, vhd.header.tableOffset)
-    bat.writeUInt32BE(BLOCK_UNUSED, 0)
-    await handler.write('vhd.vhd', bat, vhd.header.tableOffset)
-
-    // read our modified bat
     await vhd.readBlockAllocationTable()
+
+    const parentLocatorBase = Buffer.from('a file path, not aligned', 'utf16le')
+    const aligned = Buffer.alloc(SECTOR_SIZE, 0)
+    parentLocatorBase.copy(aligned)
+    await vhd.writeParentLocator({
+      id: 0,
+      platformCode: PLATFORMS.W2KU,
+      data: parentLocatorBase,
+    })
+    await vhd.writeFooter()
     const stream = vhd.stream()
 
     // read all the stream into a buffer
@@ -194,17 +196,21 @@ test('it can create a vhd stream', async () => {
     expect(() => unpackHeader(bufHeader, footer)).not.toThrow()
 
     // 1 deleted block should be in ouput
-    const start = FOOTER_SIZE + HEADER_SIZE + vhd.batSize
-    expect(length).toEqual(start + (initialNbBlocks - 1) * vhd.fullBlockSize + FOOTER_SIZE)
+    let start = FOOTER_SIZE + HEADER_SIZE + vhd.batSize
+
+    const parentLocatorData = buffer.slice(start, start + SECTOR_SIZE)
+    expect(parentLocatorData.equals(aligned)).toEqual(true)
+    start += SECTOR_SIZE // parent locator
+    expect(length).toEqual(start + initialNbBlocks * vhd.fullBlockSize + FOOTER_SIZE)
     expect(stream.length).toEqual(buffer.length)
     // blocks
     const blockBuf = Buffer.alloc(vhd.sectorsPerBlock * SECTOR_SIZE, 0)
-    for (let i = 1; i < initialNbBlocks; i++) {
-      const blockDataStart = start + (i - 1) * vhd.fullBlockSize + 512 /* block bitmap */
+    for (let i = 0; i < initialNbBlocks; i++) {
+      const blockDataStart = start + i * vhd.fullBlockSize + 512 /* block bitmap */
       const blockDataEnd = blockDataStart + vhd.sectorsPerBlock * SECTOR_SIZE
       const content = buffer.slice(blockDataStart, blockDataEnd)
       await handler.read('randomfile', blockBuf, i * vhd.sectorsPerBlock * SECTOR_SIZE)
-      expect(content).toEqual(blockBuf)
+      expect(content.equals(blockBuf)).toEqual(true)
     }
     // footer
     const endFooter = buffer.slice(length - FOOTER_SIZE)
