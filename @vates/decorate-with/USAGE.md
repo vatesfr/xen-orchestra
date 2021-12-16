@@ -51,3 +51,22 @@ decorateMethodsWith(Foo, {
   ])
 })
 ```
+
+### `perInstance(fn, ...args)`
+
+Helper to decorate the method by instance instead of for the whole class.
+
+This is often necessary for caching or deduplicating calls.
+
+```js
+import { perInstance } from '@vates/decorateWith'
+
+class Foo {
+  @decorateWith(perInstance, lodash.memoize)
+  bar() {
+    // body
+  }
+}
+```
+
+Because it's a normal function, it can also be used with `decorateMethodsWith`, with `compose` or even by itself.
