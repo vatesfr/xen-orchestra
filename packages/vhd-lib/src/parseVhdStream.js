@@ -80,10 +80,6 @@ export async function* parseVhdStream(stream) {
     const { type } = item
     if (type === 'bat') {
       // found the BAT : read it and add block to index
-      // since we may reorder  / remove empty space, we recompute the bat instead of returning the source
-
-      const bat = Buffer.alloc(header.maxTableEntries * 4)
-      item.buffer = bat
 
       let blockCount = 0
       for (let blockCounter = 0; blockCounter < header.maxTableEntries; blockCounter++) {
@@ -99,10 +95,7 @@ export async function* parseVhdStream(stream) {
             offset: batEntryBytes,
             size: fullBlockSize,
           })
-          bat.writeInt32BE(batEntryBytes, 4 * blockCounter)
           blockCount++
-        } else {
-          bat.writeInt32BE(BLOCK_UNUSED, 4 * blockCounter)
         }
       }
       // sort again index to ensure block and parent locator are in the right order
