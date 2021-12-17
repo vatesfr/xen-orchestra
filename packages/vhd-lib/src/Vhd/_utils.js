@@ -9,6 +9,7 @@ export const computeBatSize = entries => sectorsToBytes(sectorsRoundUpNoZero(ent
 export const computeSectorsPerBlock = blockSize => blockSize / SECTOR_SIZE
 // one bit per sector
 export const computeBlockBitmapSize = blockSize => computeSectorsPerBlock(blockSize) >>> 3
+export const computeFullBlockSize = blockSize => blockSize + SECTOR_SIZE * computeSectorOfBitmap(blockSize)
 export const computeSectorOfBitmap = blockSize => sectorsRoundUpNoZero(computeBlockBitmapSize(blockSize))
 
 // Sectors conversions.
