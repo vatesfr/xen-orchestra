@@ -246,7 +246,7 @@ export default class S3Handler extends RemoteHandlerAbstract {
         Prefix: this._dir + path + '/',
         ContinuationToken: NextContinuationToken,
       })
-      NextContinuationToken = result.isTruncated ? null : result.NextContinuationToken
+      NextContinuationToken = result.isTruncated ? result.NextContinuationToken : undefined
       for (const { Key } of result.Contents) {
         // _unlink will add the prefix, but Key contains everything
         // also we don't need to check if we delete a directory, since the list only return files
@@ -255,7 +255,7 @@ export default class S3Handler extends RemoteHandlerAbstract {
           Key,
         })
       }
-    } while (NextContinuationToken !== null)
+    } while (NextContinuationToken !== undefined)
   }
 
   async _write(file, buffer, position) {
