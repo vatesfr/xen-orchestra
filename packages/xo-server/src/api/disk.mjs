@@ -80,7 +80,7 @@ create.resolve = {
 // -------------------------------------------------------------------
 
 async function handleExportContent(req, res, { xapi, id, format = 'vhd' }) {
-  const stream = format === 'vmdk' ? await xapi.exportVdiAsVMDK(id) : await xapi.exportVdiContent(id)
+  const stream = format === 'vmdk' ? await xapi.exportVdiAsVmdk(id) : await xapi.exportVdiContent(id)
   req.on('close', () => stream.destroy())
 
   // Remove the filename as it is already part of the URL.
@@ -106,7 +106,7 @@ export async function exportContent({ vdi, format = 'vhd' }) {
       {
         id: vdi._xapiId,
         xapi: this.getXapi(vdi),
-        format
+        format,
       },
       {
         suffix: `/${encodeURIComponent(filename)}.${extension}`,

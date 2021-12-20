@@ -1705,8 +1705,7 @@ export default class Xapi extends XapiBase {
     })
   }
 
-  @cancelable
-  async exportVdiAsVMDK($cancelToken, vdi, base) {
+  async exportVdiAsVmdk($cancelToken, vdi, base) {
     vdi = this.getObject(vdi)
     const params = { cancelToken: $cancelToken, format: VDI_FORMAT_VHD }
     if (base) {
