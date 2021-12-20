@@ -392,14 +392,8 @@ exports.cleanVm = async function cleanVm(
   // check for the other that the size is the same as the real file size
 
   await asyncMap(jsons, async metadataPath => {
-    let metadata
-    try {
-      metadata = JSON.parse(await handler.readFile(metadataPath))
-    } catch (e) {
-      // metadata can't be openned, no need to update size
-      // it may have been deleted id incomplete
-      return
-    }
+    const metadata = JSON.parse(await handler.readFile(metadataPath))
+
     let fileSystemSize
     const merged = metadataWithMergedVhd[metadataPath] !== undefined
 
