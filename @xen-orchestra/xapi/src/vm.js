@@ -167,7 +167,7 @@ module.exports = class Vm {
       memory_static_min,
       name_description,
       name_label,
-      // NVRAM, // experimental
+      NVRAM,
       order,
       other_config = {},
       PCI_bus = '',
@@ -256,6 +256,7 @@ module.exports = class Vm {
       is_vmss_snapshot,
       name_description,
       name_label,
+      NVRAM,
       order,
       reference_label,
       shutdown_delay,
