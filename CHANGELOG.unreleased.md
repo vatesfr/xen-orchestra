@@ -29,6 +29,7 @@
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
 - @xen-orchestra/fs patch
+- @xen-orchestra/backups patch
 - @xen-orchestra/proxy patch
 - vhd-lib minor
 - xo-server patch

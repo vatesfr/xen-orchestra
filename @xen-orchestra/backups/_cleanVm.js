@@ -232,7 +232,15 @@ exports.cleanVm = async function cleanVm(
   // compile the list of unused XVAs and VHDs, and remove backup metadata which
   // reference a missing XVA/VHD
   await asyncMap(jsons, async json => {
-    const metadata = JSON.parse(await handler.readFile(json))
+    let metadata
+    try {
+      metadata = JSON.parse(await handler.readFile(json))
+    } catch (error) {
+      onLog(`failed to read metadata file ${json}`, { error })
+      jsons.delete(json)
+      return
+    }
+
     const { mode } = metadata
     let size
     if (mode === 'full') {
