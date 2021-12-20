@@ -399,26 +399,23 @@ exports.cleanVm = async function cleanVm(
 
     const { mode, size, vhds, xva } = metadata
 
-    if (mode === 'full') {
-      // a full backup : check size
-      const linkedXva = resolve('/', vmDir, xva)
-      fileSystemSize = await handler.getSize(linkedXva).catch(error => {
-        onLog(`failed to get size of ${metadataPath}`, { error })
-      })
-    } else if (mode === 'delta') {
-      try {
+    try {
+      if (mode === 'full') {
+        // a full backup : check size
+        const linkedXva = resolve('/', vmDir, xva)
+        fileSystemSize = await handler.getSize(linkedXva)
+      } else if (mode === 'delta') {
         fileSystemSize = await computeVhdsSize(handler, vhds)
-        // only update if we are in a normal case of a vhd growing after merge
-      } catch (error) {
-        onLog(`failed to get size of ${metadataPath}`, { error })
-      }
-      // not merged : check and update if necessary
-      if (metadataWithMergedVhd[metadataPath] === undefined) {
-        if (fileSystemSize !== undefined && fileSystemSize !== size) {
+
+        // don't warn if the size has changed after a merge
+        if (fileSystemSize !== size && metadataWithMergedVhd[metadataPath] === undefined) {
           onLog(`incorrect size in metadata: ${size ?? 'none'} instead of ${fileSystemSize}`)
         }
       }
+    } catch (error) {
+      onLog(`failed to get size of ${metadataPath}`, { error })
     }
+
     // systematically update size after a merge
     if (merged || fixMetadata) {
       if (size !== fileSystemSize || fileSystemSize === undefined) {
