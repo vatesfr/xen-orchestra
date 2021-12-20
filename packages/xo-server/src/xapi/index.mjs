@@ -21,7 +21,7 @@ import tarStream from 'tar-stream'
 import uniq from 'lodash/uniq.js'
 import { asyncMap } from '@xen-orchestra/async-map'
 import { vmdkToVhd, vhdToVMDK } from 'xo-vmdk-to-vhd'
-import { cancelable, fromEvents, ignoreErrors, pCatch, pRetry } from 'promise-toolbox'
+import { cancelable, CancelToken, fromEvents, ignoreErrors, pCatch, pRetry } from 'promise-toolbox'
 import { createLogger } from '@xen-orchestra/log'
 import { decorateWith } from '@vates/decorate-with'
 import { defer as deferrable } from 'golike-defer'
@@ -1705,9 +1705,9 @@ export default class Xapi extends XapiBase {
     })
   }
 
-  async exportVdiAsVmdk($cancelToken, vdi, base) {
+  async exportVdiAsVmdk(vdi, { cancelToken = CancelToken.none, base } = {}) {
     vdi = this.getObject(vdi)
-    const params = { cancelToken: $cancelToken, format: VDI_FORMAT_VHD }
+    const params = { cancelToken, format: VDI_FORMAT_VHD }
     if (base) {
       params.base = base
     }
