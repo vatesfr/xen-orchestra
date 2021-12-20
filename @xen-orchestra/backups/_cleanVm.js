@@ -408,7 +408,7 @@ exports.cleanVm = async function cleanVm(
         fileSystemSize = await computeVhdsSize(handler, vhds)
 
         // don't warn if the size has changed after a merge
-        if (fileSystemSize !== size && metadataWithMergedVhd[metadataPath] === undefined) {
+        if (!merged && fileSystemSize !== size) {
           onLog(`incorrect size in metadata: ${size ?? 'none'} instead of ${fileSystemSize}`)
         }
       }
