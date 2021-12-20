@@ -414,17 +414,16 @@ exports.cleanVm = async function cleanVm(
       }
     } catch (error) {
       onLog(`failed to get size of ${metadataPath}`, { error })
+      return
     }
 
     // systematically update size after a merge
-    if (merged || fixMetadata) {
-      if (size !== fileSystemSize || fileSystemSize === undefined) {
-        metadata.size = fileSystemSize
-        try {
-          await handler.writeFile(metadataPath, JSON.stringify(metadata), { flags: 'w' })
-        } catch (error) {
-          onLog(`failed to update size in backup metadata ${metadataPath} after merge`, { error })
-        }
+    if (merged || (fixMetadata && size !== fileSystemSize)) {
+      metadata.size = fileSystemSize
+      try {
+        await handler.writeFile(metadataPath, JSON.stringify(metadata), { flags: 'w' })
+      } catch (error) {
+        onLog(`failed to update size in backup metadata ${metadataPath} after merge`, { error })
       }
     }
   })
