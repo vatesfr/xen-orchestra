@@ -1708,7 +1708,7 @@ export default class Xapi extends XapiBase {
   async exportVdiAsVmdk(vdi, { cancelToken = CancelToken.none, base } = {}) {
     vdi = this.getObject(vdi)
     const params = { cancelToken, format: VDI_FORMAT_VHD }
-    if (base) {
+    if (base !== undefined) {
       params.base = base
     }
     const vhdResult = await this.VDI_exportContent(vdi.$ref, params)
