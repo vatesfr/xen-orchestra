@@ -418,7 +418,7 @@ exports.cleanVm = async function cleanVm(
     }
 
     // systematically update size after a merge
-    if (merged || (fixMetadata && size !== fileSystemSize)) {
+    if ((merged || fixMetadata) && size !== fileSystemSize) {
       metadata.size = fileSystemSize
       try {
         await handler.writeFile(metadataPath, JSON.stringify(metadata), { flags: 'w' })
