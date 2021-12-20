@@ -55,7 +55,7 @@ interface Props {
   //   }
   // ]
   collection: Array<ItemType>
-  defaultSelectedNode?: string
+  defaultSelectedNodes?: Array<string>
 }
 
 interface CustomContentProps extends TreeItemContentProps {
@@ -119,8 +119,8 @@ const renderItem = ({ children, id, label, to, tooltip }: ItemType) => {
 
 const Tree = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
   {
-    initialState: ({ defaultSelectedNode }) => ({
-      selectedNodes: [defaultSelectedNode ?? ''],
+    initialState: ({ defaultSelectedNodes }) => ({
+      selectedNodes: defaultSelectedNodes === undefined ? [''] : defaultSelectedNodes,
     }),
     effects: {
       setSelectedNodeIds: function (event, nodeIds) {
@@ -128,14 +128,14 @@ const Tree = withState<State, Props, Effects, Computed, ParentState, ParentEffec
       },
     },
   },
-  ({ effects, state: { selectedNodes }, collection, defaultSelectedNode }) => (
+  ({ effects, state: { selectedNodes }, collection, defaultSelectedNodes }) => (
     <TreeView
       defaultExpanded={[collection[0].id]}
       defaultCollapseIcon={<Icon icon='chevron-up' />}
       defaultExpandIcon={<Icon icon='chevron-down' />}
       onNodeSelect={effects.setSelectedNodeIds}
       multiSelect
-      selected={defaultSelectedNode === undefined ? [''] : selectedNodes}
+      selected={defaultSelectedNodes === undefined ? [''] : selectedNodes}
     >
       {collection.map(renderItem)}
     </TreeView>

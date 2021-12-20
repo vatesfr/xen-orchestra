@@ -14,7 +14,7 @@ interface ParentState {
 interface State {}
 
 interface Props {
-  defaultSelectedNode?: string
+  defaultSelectedNodes?: Array<string>
 }
 
 interface ParentEffects {}
@@ -119,10 +119,10 @@ const TreeView = withState<State, Props, Effects, Computed, ParentState, ParentE
         ),
     },
   },
-  ({ state, defaultSelectedNode }) =>
+  ({ state, defaultSelectedNodes }) =>
     state.collection === undefined ? null : (
       <div style={{ padding: '10px' }}>
-        <Tree collection={state.collection} defaultSelectedNode={defaultSelectedNode} />
+        <Tree collection={state.collection} defaultSelectedNodes={defaultSelectedNodes} />
       </div>
     )
 )
