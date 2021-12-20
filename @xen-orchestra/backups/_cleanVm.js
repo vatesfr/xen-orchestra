@@ -202,7 +202,7 @@ exports.cleanVm = async function cleanVm(
     await Promise.all(deletions)
   }
 
-  const jsons = []
+  const jsons = new Set()
   const xvas = new Set()
   const xvaSums = []
   const entries = await handler.list(vmDir, {
@@ -210,7 +210,7 @@ exports.cleanVm = async function cleanVm(
   })
   entries.forEach(path => {
     if (isMetadataFile(path)) {
-      jsons.push(path)
+      jsons.add(path)
     } else if (isXvaFile(path)) {
       xvas.add(path)
     } else if (isXvaSumFile(path)) {
@@ -248,6 +248,7 @@ exports.cleanVm = async function cleanVm(
         onLog(`the XVA linked to the metadata ${json} is missing`)
         if (remove) {
           onLog(`deleting incomplete backup ${json}`)
+          jsons.delete(json)
           await handler.unlink(json)
         }
       }
@@ -283,6 +284,7 @@ exports.cleanVm = async function cleanVm(
         onLog(`Some VHDs linked to the metadata ${json} are missing`, { missingVhds })
         if (remove) {
           onLog(`deleting incomplete backup ${json}`)
+          jsons.delete(json)
           await handler.unlink(json)
         }
       }
