@@ -178,7 +178,7 @@ test('it merges delta of non destroyed chain', async () => {
     `metadata.json`,
     JSON.stringify({
       mode: 'delta',
-      size: 209920,
+      size: 12000, // a size too small
       vhds: [
         `${basePath}/grandchild.vhd`, // grand child should not be merged
         `${basePath}/child.vhd`,
@@ -204,20 +204,25 @@ test('it merges delta of non destroyed chain', async () => {
     },
   })
 
-  let loggued = ''
+  let loggued = []
   const onLog = message => {
-    loggued += message + '\n'
+    loggued.push(message)
   }
   await adapter.cleanVm('/', { remove: true, onLog })
-  expect(loggued).toEqual(`the parent /${basePath}/orphan.vhd of the child /${basePath}/child.vhd is unused\n`)
-  loggued = ''
+  expect(loggued[0]).toEqual(`the parent /${basePath}/orphan.vhd of the child /${basePath}/child.vhd is unused`)
+  expect(loggued[1]).toEqual(`incorrect size in metadata: 12000 instead of 209920`)
+
+  loggued = []
   await adapter.cleanVm('/', { remove: true, merge: true, onLog })
-  const [unused, merging] = loggued.split('\n')
+  const [unused, merging] = loggued
   expect(unused).toEqual(`the parent /${basePath}/orphan.vhd of the child /${basePath}/child.vhd is unused`)
   expect(merging).toEqual(`merging /${basePath}/child.vhd into /${basePath}/orphan.vhd`)
 
-  // merging is already tested in vhd-lib, don't retest it here (and theses vhd are as empty as my stomach at 12h12)
+  const metadata = JSON.parse(await handler.readFile(`metadata.json`))
+  // size should be the size of children + grand children after the merge
+  expect(metadata.size).toEqual(209920)
 
+  // merging is already tested in vhd-lib, don't retest it here (and theses vhd are as empty as my stomach at 12h12)
   // only check deletion
   const remainingVhds = await handler.list(basePath)
   expect(remainingVhds.length).toEqual(2)
@@ -230,7 +235,7 @@ test('it finish unterminated merge ', async () => {
     `metadata.json`,
     JSON.stringify({
       mode: 'delta',
-      size: 209920,
+      size: undefined,
       vhds: [
         `${basePath}/orphan.vhd`, // grand child should not be merged
         `${basePath}/child.vhd`,
@@ -363,6 +368,10 @@ describe('tests mulitple combination ', () => {
           })
         )
         await adapter.cleanVm('/', { remove: true, merge: true })
+
+        const metadata = JSON.parse(await handler.readFile(`metadata.json`))
+        // size should be the size of children + grand children + clean after the merge
+        expect(metadata.size).toEqual(vhdMode === 'file' ? 314880 : undefined)
 
         // broken vhd, non referenced, abandonned should be deleted ( alias and data)
         // ancestor and child should be merged

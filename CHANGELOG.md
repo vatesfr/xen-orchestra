@@ -13,21 +13,31 @@
 ### Bug fixes
 
 - [Tables/actions] Fix collapsed actions being clickable despite being disabled (PR [#6023](https://github.com/vatesfr/xen-orchestra/pull/6023))
-- [Continuous Replication] Fix `could not find the base VM`
-- [Backup/Smart mode] Always ignore replicated VMs created by the current job
-- [Backup] Fix `Unexpected end of JSON input` during merge step
 
 ### Released packages
 
-- vhd-lib 2.0.4
-- @xen-orchestra/backups 0.17.0
 - @xen-orchestra/proxy 0.16.0
-- xo-server 5.85.0
 - xo-web 5.91.0
 
-## **5.65.2** (2021-12-10)
+## **5.65.3** (2021-12-20)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
+### Bug fixes
+
+- [Continuous Replication] Fix `could not find the base VM`
+- [Backup/Smart mode] Always ignore replicated VMs created by the current job
+- [Backup] Fix `Unexpected end of JSON input` during merge step
+- [Backup] Fix stuck jobs when using S3 remotes (PR [#6067](https://github.com/vatesfr/xen-orchestra/pull/6067))
+
+### Released packages
+
+- @xen-orchestra/fs 0.19.3
+- vhd-lib 2.0.4
+- @xen-orchestra/backups 0.17.1
+- xo-server 5.85.1
+
+## **5.65.2** (2021-12-10)
 
 ### Bug fixes
 

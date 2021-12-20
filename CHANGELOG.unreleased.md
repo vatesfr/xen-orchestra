@@ -11,6 +11,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Backup] Remove incorrect size warning following a merge [Forum #5727](https://xcp-ng.org/forum/topic/4769/warnings-showing-in-system-logs-following-each-backup-job/4) (PR [#6010](https://github.com/vatesfr/xen-orchestra/pull/6010))
 - [Delta Backup] Preserve UEFI boot parameters [#6054](https://github.com/vatesfr/xen-orchestra/issues/6054) [Forum #5319](https://xcp-ng.org/forum/topic/5319/bug-uefi-boot-parameters-not-preserved-with-delta-backups)
 
 ### Packages to release
@@ -31,5 +32,7 @@
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
 - @xen-orchestra/xapi patch
-- @xen-orchestra/proxy patch
+- vhd-lib minor
+- @xen-orchestra/backups patch
 - xo-server patch
+- @xen-orchestra/proxy patch
