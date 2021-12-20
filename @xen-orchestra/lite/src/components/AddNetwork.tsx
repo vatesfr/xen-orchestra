@@ -27,6 +27,7 @@ interface State {
     bondMode: string
     description: string
     isBonded: boolean
+    isEmptyLabel: boolean
     mtu: string
     nameLabel: string
     pifsId: string | string[]
@@ -70,6 +71,7 @@ const getInitialFormState = (): State['form'] => ({
   bondMode: '',
   description: '',
   isBonded: false,
+  isEmptyLabel: false,
   mtu: '',
   nameLabel: '',
   pifsId: '',
@@ -94,7 +96,13 @@ const AddNetwork = withState<State, Props, Effects, Computed, ParentState, Paren
     effects: {
       createNetwork: async function () {
         const { bondMode, description, mtu, nameLabel, pifsId, vlan } = this.state.form
-
+        if (nameLabel.trim() === '') {
+          this.state.form = {
+            ...this.state.form,
+            isEmptyLabel: true,
+          }
+          return
+        }
         try {
           await this.state.xapi.createNetworks([
             {
@@ -126,6 +134,9 @@ const AddNetwork = withState<State, Props, Effects, Computed, ParentState, Paren
         // element for the lifetime of the component.
         // More info: https://reactjs.org/link/controlled-components
         const { form } = this.state
+        if (name === 'nameLabel') {
+          form.isEmptyLabel = false
+        }
         if (form[name] !== undefined) {
           this.state.form = {
             ...form,
@@ -137,9 +148,13 @@ const AddNetwork = withState<State, Props, Effects, Computed, ParentState, Paren
         this.state.form = getInitialFormState()
       },
       toggleBonded: function () {
-        this.state.form.isBonded = !this.state.form.isBonded
-        // In bonded network case, we need an array to send severale pif id
-        this.state.form.pifsId = this.state.form.isBonded ? [] : ''
+        const isBonded = !this.state.form.isBonded
+        this.state.form = {
+          ...this.state.form,
+          isBonded,
+          // In bonded network case, we need an array to send severale pif id
+          pifsId: isBonded ? [] : '',
+        }
       },
     },
   },
@@ -148,7 +163,7 @@ const AddNetwork = withState<State, Props, Effects, Computed, ParentState, Paren
     state: {
       pifsMetrics,
       collection,
-      form: { isBonded, pifsId, nameLabel, bondMode, description, mtu, vlan },
+      form: { bondMode, description, isBonded, isEmptyLabel, mtu, nameLabel, pifsId, vlan },
     },
   }) => (
     <form
@@ -177,6 +192,7 @@ const AddNetwork = withState<State, Props, Effects, Computed, ParentState, Paren
         />
       </div>
       <Input
+        error={isEmptyLabel}
         name='nameLabel'
         onChange={handleChange}
         required
