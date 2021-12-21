@@ -17,25 +17,37 @@ const NULL_COMPRESSOR = {
 
 const COMPRESSORS = {
   gzip: {
-    compress: promisify(zlib.gzip),
+    compress: (
+      gzip => buffer =>
+        gzip(buffer, { level: zlib.constants.Z_BEST_SPEED })
+    )(promisify(zlib.gzip)),
     decompress: promisify(zlib.gunzip),
-    baseOptions: { level: zlib.constants.Z_BEST_SPEED },
   },
   brotli: {
-    compress: promisify(zlib.brotliCompress),
+    compress: (
+      brotliCompress => buffer =>
+        brotliCompress(buffer, {
+          params: {
+            [zlib.constants.BROTLI_PARAM_QUALITY]: zlib.constants.BROTLI_MIN_QUALITY,
+          },
+        })
+    )(promisify(zlib.brotliCompress)),
     decompress: promisify(zlib.brotliDecompress),
-    baseOptions: {
-      params: {
-        [zlib.constants.BROTLI_PARAM_QUALITY]: zlib.constants.BROTLI_MIN_QUALITY,
-      },
-    },
   },
+}
+
+// inject identifiers
+for (const id of Object.keys(COMPRESSORS)) {
+  COMPRESSORS[id].id = id
 }
 
 // ===================================================================
 // Directory format
 // <path>
-// ├─ metadata.json
+// ├─ chunk-filters.json
+// │    Ordered array of filters that have been applied before writing chunks.
+// │    These filters needs to be applied in reverse order to read them.
+// │
 // ├─ header // raw content of the header
 // ├─ footer // raw content of the footer
 // ├─ bat // bit array. A zero bit indicates at a position that this block is not present
@@ -48,10 +60,10 @@ export class VhdDirectory extends VhdAbstract {
   #uncheckedBlockTable
   #header
   footer
-  #metadata
+  #compressor
 
   get compressionType() {
-    return this.#metadata.compression?.type
+    return this.#compressor.id
   }
 
   set header(header) {
@@ -115,16 +127,7 @@ export class VhdDirectory extends VhdAbstract {
     this._handler = handler
     this._path = path
     this._opts = opts
-    const compressor = VhdDirectory.#getCompressor(opts?.compression)
-    this.#metadata = {}
-    if (compressor !== undefined) {
-      this.#metadata = {
-        compression: {
-          type: opts?.compression,
-          options: { ...compressor.baseOptions },
-        },
-      }
-    }
+    this.#compressor = VhdDirectory.#getCompressor(opts?.compression)
   }
 
   async readBlockAllocationTable() {
@@ -144,7 +147,7 @@ export class VhdDirectory extends VhdAbstract {
     // here we can implement compression and / or crypto
     const buffer = await this._handler.readFile(this._getChunkPath(partName))
 
-    const uncompressed = await this.#uncompress(buffer)
+    const uncompressed = await this.#compressor.decompress(buffer)
     return {
       buffer: uncompressed,
     }
@@ -157,7 +160,7 @@ export class VhdDirectory extends VhdAbstract {
       `Can't write a chunk ${partName} in ${this._path} with read permission`
     )
 
-    const compressed = await this.#compress(buffer)
+    const compressed = await this.#compressor.compress(buffer)
     return this._handler.outputFile(this._getChunkPath(partName), compressed, this._opts)
   }
 
@@ -170,7 +173,7 @@ export class VhdDirectory extends VhdAbstract {
 
   async readHeaderAndFooter() {
     // we need to know if thre is compression before reading headers
-    await this.#readMetadata()
+    await this.#readChunkFilters()
     const { buffer: bufHeader } = await this._readChunk('header')
     const { buffer: bufFooter } = await this._readChunk('footer')
     const footer = unpackFooter(bufFooter)
@@ -213,7 +216,7 @@ export class VhdDirectory extends VhdAbstract {
     header.checksum = checksumStruct(rawHeader, fuHeader)
     debug(`Write header  (checksum=${header.checksum}). (data=${rawHeader.toString('hex')})`)
     await this._writeChunk('header', rawHeader)
-    await this.#writeMetadata()
+    await this.#writeChunkFilters()
   }
 
   writeBlockAllocationTable() {
@@ -226,7 +229,6 @@ export class VhdDirectory extends VhdAbstract {
   // only works if data are in the same handler
   // and if the full block is modified in child ( which is the case whit xcp)
   // and if the compression type is same on both sides
-
   async coalesceBlock(child, blockId) {
     if (
       !(child instanceof VhdDirectory) ||
@@ -256,32 +258,23 @@ export class VhdDirectory extends VhdAbstract {
     this.header.parentLocatorEntry[id].platformDataOffset = 0
   }
 
-  async #uncompress(buffer) {
-    const { compression } = this.#metadata
-
-    const compressor = VhdDirectory.#getCompressor(compression?.type)
-    return await compressor.decompress(buffer, compression?.options)
+  async #writeChunkFilters() {
+    const compressionType = this.compressionType
+    const path = this._path + '/chunk-filters.json'
+    if (compressionType === undefined) {
+      await this._handler.unlink(path)
+    } else {
+      await this._handler.writeFile(path, JSON.stringify([compressionType]))
+    }
   }
 
-  async #compress(buffer) {
-    const { compression } = this.#metadata
-
-    const compressor = VhdDirectory.#getCompressor(compression?.type)
-    return await compressor.compress(buffer, compression?.options)
-  }
-
-  async #writeMetadata() {
-    await this._handler.writeFile(this._path + '/metadata.json', JSON.stringify(this.#metadata))
-  }
-
-  async #readMetadata() {
-    this.#metadata = await this._handler.readFile(this._path + '/metadata.json').then(JSON.parse, error => {
+  async #readChunkFilters() {
+    const chunkFilters = await this._handler.readFile(this._path + '/chunk-filters.json').then(JSON.parse, error => {
       if (error.code === 'ENOENT') {
-        // no metadata stored in file
-        return {}
+        return []
       }
-
       throw error
     })
+    this.#compressor = VhdDirectory.#getCompressor(chunkFilters[0])
   }
 }
