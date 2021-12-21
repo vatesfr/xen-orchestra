@@ -24,7 +24,7 @@
 - vhd-lib 2.1.0
 - xo-vmdk-to-vhd 2.0.2
 - @xen-orchestra/backups 0.18.1
-- @xen-orchestra/proxy 0.17.0
+- @xen-orchestra/proxy 0.17.1
 - xo-server 5.86.0
 - xo-web 5.91.0
 
