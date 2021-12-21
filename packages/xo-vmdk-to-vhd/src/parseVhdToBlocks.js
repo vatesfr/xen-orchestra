@@ -13,12 +13,13 @@ async function next(iterator, type, skipableType) {
   return item
 }
 
-async function* onlyBlocks(iterable) {
+async function* onlyBlocks(iterable, blockSize) {
   for await (const item of iterable) {
     if (item.type === 'block') {
       // transform to blocks expected by generateVmdkData
+      // rename the property and remove the block bitmap
       const { id, data } = item
-      yield { lba: id, block: data }
+      yield { lba: id * blockSize, block: data }
     }
   }
 }
@@ -26,17 +27,15 @@ async function* onlyBlocks(iterable) {
 export async function parseVhdToBlocks(vhdStream) {
   const iterator = parseVhdStream(vhdStream)
 
-  const footer = await next(iterator, 'footer')
-  const header = await next(iterator, 'header')
-
+  const footer = (await next(iterator, 'footer')).footer
+  const header = (await next(iterator, 'header')).header
   // ignore all parent locators that could be before the BAT
   const { blockCount } = await next(iterator, 'bat', 'parentLocator')
-
   return {
     blockSize: header.blockSize,
     blockCount,
     diskSize: footer.currentSize,
     geometry: footer.diskGeometry,
-    blocks: onlyBlocks(iterator),
+    blocks: onlyBlocks(iterator, header.blockSize),
   }
 }
