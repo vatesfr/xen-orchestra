@@ -35,6 +35,6 @@
 - @xen-orchestra/xapi patch
 - vhd-lib minor
 - xo-vmdk-to-vhd patch
-- @xen-orchestra/backups patch
-- xo-server patch
-- @xen-orchestra/proxy patch
+- @xen-orchestra/backups minor
+- xo-server minor
+- @xen-orchestra/proxy minor
