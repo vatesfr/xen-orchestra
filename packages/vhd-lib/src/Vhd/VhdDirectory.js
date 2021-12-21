@@ -233,7 +233,7 @@ export class VhdDirectory extends VhdAbstract {
     if (
       !(child instanceof VhdDirectory) ||
       this._handler !== child._handler ||
-      child.getCompressionType() !== this.getCompressionType()
+      child.compressionType !== this.compressionType
     ) {
       return super.coalesceBlock(child, blockId)
     }
