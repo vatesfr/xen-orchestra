@@ -21,6 +21,7 @@
 - xo-vmdk-to-vhd 2.0.2
 - @xen-orchestra/backups 0.18.0
 - @xen-orchestra/proxy 0.16.0
+- xo-server 5.86.0
 - xo-web 5.91.0
 
 ## **5.65.3** (2021-12-20)
