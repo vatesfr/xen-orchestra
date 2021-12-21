@@ -88,7 +88,7 @@ export class VhdDirectory extends VhdAbstract {
     }
   }
 
-  static async create(handler, path, { flags = 'wx+', compression = 'gzip' } = {}) {
+  static async create(handler, path, { flags = 'wx+', compression } = {}) {
     await handler.mkdir(path)
     const vhd = new VhdDirectory(handler, path, { flags, compression })
     return {
