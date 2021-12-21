@@ -17,6 +17,7 @@
 ### Released packages
 
 - @xen-orchestra/xapi 0.8.5
+- vhd-lib 2.1.0
 - @xen-orchestra/proxy 0.16.0
 - xo-web 5.91.0
 
