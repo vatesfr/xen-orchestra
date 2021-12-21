@@ -1,6 +1,8 @@
 # ChangeLog
 
-## **next**
+## **5.66.0** (2021-12-21)
+
+<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
 
 ### Enhancements
 
@@ -30,7 +32,7 @@
 
 ## **5.65.3** (2021-12-20)
 
-<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Bug fixes
 
@@ -113,8 +115,6 @@
 - xo-web 5.90.0
 
 ## **5.64.0** (2021-10-29)
-
-<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ## Highlights
 
