@@ -19,6 +19,7 @@
 
 ### Released packages
 
+- @xen-orchestra/mixins 0.1.2
 - @xen-orchestra/xapi 0.8.5
 - vhd-lib 2.1.0
 - xo-vmdk-to-vhd 2.0.2

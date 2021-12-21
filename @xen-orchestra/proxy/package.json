@@ -35,7 +35,7 @@
     "@xen-orchestra/fs": "^0.19.3",
     "@xen-orchestra/log": "^0.3.0",
     "@xen-orchestra/mixin": "^0.1.0",
-    "@xen-orchestra/mixins": "^0.1.1",
+    "@xen-orchestra/mixins": "^0.1.2",
     "@xen-orchestra/self-signed": "^0.1.0",
     "@xen-orchestra/xapi": "^0.8.5",
     "ajv": "^8.0.3",
