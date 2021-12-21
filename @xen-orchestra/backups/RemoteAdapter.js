@@ -68,7 +68,7 @@ const debounceResourceFactory = factory =>
   }
 
 class RemoteAdapter {
-  constructor(handler, { debounceResource = res => res, dirMode, vhdDirectoryCompression = 'brotli' } = {}) {
+  constructor(handler, { debounceResource = res => res, dirMode, vhdDirectoryCompression } = {}) {
     this._debounceResource = debounceResource
     this._dirMode = dirMode
     this._handler = handler

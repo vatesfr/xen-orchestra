@@ -28,6 +28,7 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
+- @xen-orchestra/backups patch
 - @xen-orchestra/mixins patch
 - @xen-orchestra/proxy patch
 - @xen-orchestra/xo-server patch
