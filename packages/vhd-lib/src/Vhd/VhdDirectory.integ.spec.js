@@ -2,10 +2,11 @@
 
 import rimraf from 'rimraf'
 import tmp from 'tmp'
-import { getHandler } from '@xen-orchestra/fs'
+import fs from 'fs-extra'
+import { getHandler, getSyncedHandler } from '@xen-orchestra/fs'
 import { Disposable, pFromCallback } from 'promise-toolbox'
 
-import { openVhd } from '../openVhd'
+import { openVhd, VhdDirectory } from '../'
 import { createRandomFile, convertFromRawToVhd, convertToVhdDirectory } from '../tests/utils'
 
 let tempDir = null
@@ -63,5 +64,51 @@ test('Can coalesce block', async () => {
     parentBlockData = (await parentVhd.readBlock(0)).data
     childBlockData = (await childDirectoryVhd.readBlock(0)).data
     expect(parentBlockData).toEqual(childBlockData)
+  })
+})
+
+test('compressed blocks and metadata works', async () => {
+  const initalSize = 4
+  const rawFileName = `${tempDir}/randomfile`
+  const vhdName = `${tempDir}/parent.vhd`
+
+  await createRandomFile(rawFileName, initalSize)
+  await convertFromRawToVhd(rawFileName, vhdName)
+  await Disposable.use(async function* () {
+    const handler = yield getSyncedHandler({ url: `file://${tempDir}` })
+    const vhd = yield openVhd(handler, 'parent.vhd')
+    await vhd.readBlockAllocationTable()
+    const compressedVhd = yield VhdDirectory.create(handler, 'compressed.vhd', { compression: 'gzip' })
+    compressedVhd.header = vhd.header
+    compressedVhd.footer = vhd.footer
+    for await (const block of vhd.blocks()) {
+      await compressedVhd.writeEntireBlock(block)
+    }
+    await Promise
+      .all[(await compressedVhd.writeHeader(), await compressedVhd.writeFooter(), await compressedVhd.writeBlockAllocationTable())]
+
+    // compressed vhd have a metadata file
+    expect(await fs.exists(`${tempDir}/compressed.vhd/metadata.json`)).toEqual(true)
+    const metada = JSON.parse(await handler.readFile('compressed.vhd/metadata.json'))
+    expect(metada.compression.type).toEqual('gzip')
+    expect(metada.compression.options.level).toEqual(1)
+
+    // compressed vhd should not be broken
+    await compressedVhd.readHeaderAndFooter()
+    await compressedVhd.readBlockAllocationTable()
+
+    // check that footer and header are not modified
+    expect(compressedVhd.footer).toEqual(vhd.footer)
+    expect(compressedVhd.header).toEqual(vhd.header)
+
+    // their block content should not have changed
+    let counter = 0
+    for await (const block of compressedVhd.blocks()) {
+      const source = await vhd.readBlock(block.id)
+      expect(source.data.equals(block.data)).toEqual(true)
+      counter++
+    }
+    // neither the number of blocks
+    expect(counter).toEqual(2)
   })
 })
