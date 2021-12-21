@@ -200,8 +200,9 @@ class RemoteAdapter {
       if (!vhd.footer.uuid.equals(packedParentUid)) {
         return false
       }
+
       // can't merge uncompressed with compressed and recipro
-      return this.#getCompressionType() === vhd.compressionType
+      return !this.#useVhdDirectory() || this.#getCompressionType() === vhd.compressionType
     })
   }
 
