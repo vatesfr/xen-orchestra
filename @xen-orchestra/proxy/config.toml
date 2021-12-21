@@ -20,6 +20,7 @@ keepAliveInterval = 10e3
 dirMode = 0o700
 disableMergeWorker = false
 snapshotNameLabelTpl = '[XO Backup {job.name}] {vm.name_label}'
+vhdDirectoryCompression = 'brotli'
 
 [backups.defaultSettings]
 reportWhen = 'failure'
