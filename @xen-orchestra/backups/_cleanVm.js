@@ -405,7 +405,8 @@ exports.cleanVm = async function cleanVm(
         const linkedXva = resolve('/', vmDir, xva)
         fileSystemSize = await handler.getSize(linkedXva)
       } else if (mode === 'delta') {
-        fileSystemSize = await computeVhdsSize(handler, vhds)
+        const linkedVhds = Object.keys(vhds).map(key => resolve('/', vmDir, vhds[key]))
+        fileSystemSize = await computeVhdsSize(handler, linkedVhds)
 
         // don't warn if the size has changed after a merge
         if (!merged && fileSystemSize !== size) {
