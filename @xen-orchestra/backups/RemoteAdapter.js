@@ -6,7 +6,7 @@ const pDefer = require('promise-toolbox/defer.js')
 const groupBy = require('lodash/groupBy.js')
 const { dirname, join, normalize, resolve } = require('path')
 const { createLogger } = require('@xen-orchestra/log')
-const { Constants, createVhdDirectoryFromStream, openVhd, VhdAbstract, VhdSynthetic } = require('vhd-lib')
+const { Constants, createVhdDirectoryFromStream, openVhd, VhdAbstract, VhdDirectory, VhdSynthetic } = require('vhd-lib')
 const { deduped } = require('@vates/disposable/deduped.js')
 const { execFile } = require('child_process')
 const { readdir, stat } = require('fs-extra')
@@ -201,8 +201,10 @@ class RemoteAdapter {
         return false
       }
 
-      // can't merge uncompressed with compressed and recipro
-      return !this.#useVhdDirectory() || this.#getCompressionType() === vhd.compressionType
+      const isVhdDirectory = vhd instanceof VhdDirectory
+      return isVhdDirectory
+        ? this.#useVhdDirectory && this.#getCompressionType() === vhd.compressionType
+        : !this.#useVhdDirectory
     })
   }
 
