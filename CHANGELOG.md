@@ -16,6 +16,7 @@
 
 ### Released packages
 
+- @xen-orchestra/xapi 0.8.5
 - @xen-orchestra/proxy 0.16.0
 - xo-web 5.91.0
 
