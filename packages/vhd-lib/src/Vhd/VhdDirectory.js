@@ -41,6 +41,20 @@ for (const id of Object.keys(COMPRESSORS)) {
   COMPRESSORS[id].id = id
 }
 
+function getCompressor(compressorType) {
+  if (compressorType === undefined) {
+    return NULL_COMPRESSOR
+  }
+
+  const compressor = COMPRESSORS[compressorType]
+
+  if (compressor === undefined) {
+    throw new Error(`Compression type ${compressorType} is not supported`)
+  }
+
+  return compressor
+}
+
 // ===================================================================
 // Directory format
 // <path>
@@ -108,26 +122,13 @@ export class VhdDirectory extends VhdAbstract {
       value: vhd,
     }
   }
-  static #getCompressor(compressorType) {
-    if (compressorType === undefined) {
-      return NULL_COMPRESSOR
-    }
-
-    const compressor = COMPRESSORS[compressorType]
-
-    if (compressor === undefined) {
-      throw new Error(`Compression type ${compressorType} is not supported`)
-    }
-
-    return compressor
-  }
 
   constructor(handler, path, opts) {
     super()
     this._handler = handler
     this._path = path
     this._opts = opts
-    this.#compressor = VhdDirectory.#getCompressor(opts?.compression)
+    this.#compressor = getCompressor(opts?.compression)
   }
 
   async readBlockAllocationTable() {
@@ -275,6 +276,6 @@ export class VhdDirectory extends VhdAbstract {
       }
       throw error
     })
-    this.#compressor = VhdDirectory.#getCompressor(chunkFilters[0])
+    this.#compressor = getCompressor(chunkFilters[0])
   }
 }
