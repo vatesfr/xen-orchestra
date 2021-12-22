@@ -73,21 +73,26 @@ interface Computed {}
 // Inspired by https://mui.com/components/tree-view/#contentcomponent-prop.
 const CustomContent = React.forwardRef(function CustomContent(props: CustomContentProps, ref) {
   const { classes, className, label, expansionIcon, nodeId, to } = props
-  const { handleExpansion, handleSelection, selected } = useTreeItem(nodeId)
+  const { focused, handleExpansion, handleSelection, selected } = useTreeItem(nodeId)
   const history = useHistory()
+
+  React.useEffect(() => {
+    if (selected) {
+      to !== undefined && history.push(to)
+    }
+  }, [selected])
 
   const handleExpansionClick = (event: React.SyntheticEvent) => {
     event.stopPropagation()
     handleExpansion(event)
   }
 
-  const handleSelectionClick = (event: React.SyntheticEvent) => {
-    to !== undefined && history.push(to)
-    handleSelection(event)
-  }
-
   return (
-    <span className={classNames(className, { [classes.selected]: selected })} onClick={handleSelectionClick} ref={ref}>
+    <span
+      className={classNames(className, { [classes.focused]: focused, [classes.selected]: selected })}
+      onClick={handleSelection}
+      ref={ref}
+    >
       <span className={classes.iconContainer} onClick={handleExpansionClick}>
         {expansionIcon}
       </span>
