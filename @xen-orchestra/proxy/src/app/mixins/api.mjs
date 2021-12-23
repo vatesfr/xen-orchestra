@@ -45,8 +45,8 @@ export default class Api {
   constructor(app, { appVersion, httpServer }) {
     this._ajv = new Ajv({ allErrors: true })
     this._methods = { __proto__: null }
-
-    const router = new Router({ prefix: '/api/v1' }).post('/', async ctx => {
+    this.PREFIX_URL = '/api/v1'
+    const router = new Router({ prefix: this.PREFIX_URL }).post('/', async ctx => {
       // Before Node 13.0 there was an inactivity timeout of 2 mins, which may
       // not be enough for the API.
       ctx.req.setTimeout(0)
@@ -113,6 +113,12 @@ export default class Api {
 
     const koa = new Koa()
       .on('error', warn)
+      // only answers to query to the root url of this mixin
+      .use( async(ctx, next)=>{
+        if(ctx.req.url.startsWith(this.PREFIX_URL)){
+          await next()
+        }
+      })
       .use(helmet())
       .use(compress())
       .use(router.routes())
