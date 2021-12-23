@@ -203,8 +203,8 @@ class RemoteAdapter {
 
       const isVhdDirectory = vhd instanceof VhdDirectory
       return isVhdDirectory
-        ? this.#useVhdDirectory && this.#getCompressionType() === vhd.compressionType
-        : !this.#useVhdDirectory
+        ? this.#useVhdDirectory() && this.#getCompressionType() === vhd.compressionType
+        : !this.#useVhdDirectory()
     })
   }
 
