@@ -11,6 +11,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Import/Disk] Fix `JSON.parse` and `createReadableSparseStream is not a function` errors [#6068](https://github.com/vatesfr/xen-orchestra/issues/6068)
+
 ### Packages to release
 
 > Packages will be released in the order they are here, therefore, they should
@@ -29,3 +31,6 @@
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
 - vhd-lib major
+- xo-vmdk-to-vhd patch
+- xo-server patch
+- xo-web patch
