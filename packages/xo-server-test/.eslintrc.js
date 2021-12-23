@@ -1,0 +1,1 @@
+../../scripts/babel-eslintrc.js
