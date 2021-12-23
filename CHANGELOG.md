@@ -2,6 +2,12 @@
 
 ## **next**
 
+### Bug fixes
+
+- [Dashboard/Health] Fix `error has occured` when a pool has no default SR
+- [Delta Backup] Fix unnecessary full backup when not using S3 [Forum #5371](https://xcp-ng.org/forum/topic/5371/delta-backup-changes-in-5-66)d (PR [#6070](https://github.com/vatesfr/xen-orchestra/pull/6070))
+- [Backup] Fix incorrect warnings `incorrect size [...] instead of undefined`
+
 ### Released packages
 
 - @xen-orchestra/backups 0.18.2
