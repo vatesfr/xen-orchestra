@@ -33,4 +33,3 @@
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
 - vhd-lib major
-- xo-web patch
