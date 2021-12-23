@@ -408,6 +408,11 @@ exports.cleanVm = async function cleanVm(
         const linkedVhds = Object.keys(vhds).map(key => resolve('/', vmDir, vhds[key]))
         fileSystemSize = await computeVhdsSize(handler, linkedVhds)
 
+        // the size is not computed in some cases (e.g. VhdDirectory)
+        if (fileSystemSize === undefined) {
+          return
+        }
+
         // don't warn if the size has changed after a merge
         if (!merged && fileSystemSize !== size) {
           onLog(`incorrect size in metadata: ${size ?? 'none'} instead of ${fileSystemSize}`)
