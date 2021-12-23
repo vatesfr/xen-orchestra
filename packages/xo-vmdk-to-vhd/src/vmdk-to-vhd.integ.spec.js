@@ -61,7 +61,11 @@ test('VMDK to VHD can convert a random data file with VMDKDirectParser', async (
     })
     const result = await readVmdkGrainTable(createFileAccessor(vmdkFileName))
     const pipe = (
-      await vmdkToVhd(createReadStream(vmdkFileName), bufferToArray(result.grainLogicalAddressList), bufferToArray(result.grainFileOffsetList))
+      await vmdkToVhd(
+        createReadStream(vmdkFileName),
+        bufferToArray(result.grainLogicalAddressList),
+        bufferToArray(result.grainFileOffsetList)
+      )
     ).pipe(createWriteStream(vhdFileName))
     await fromEvent(pipe, 'finish')
     await execa('vhd-util', ['check', '-p', '-b', '-t', '-n', vhdFileName])

@@ -14,7 +14,7 @@ import { createLogger } from '@xen-orchestra/log'
 
 const { debug, warn } = createLogger('xo:proxy:api')
 
-const ndJsonStream = asyncIteratorToStream(async function*(responseId, iterable) {
+const ndJsonStream = asyncIteratorToStream(async function* (responseId, iterable) {
   try {
     let cursor, iterator
     try {
@@ -52,7 +52,7 @@ export default class Api {
       ctx.req.setTimeout(0)
 
       const profile = await app.authentication.findProfile({
-        authenticationToken: ctx.cookies.get('authenticationToken')
+        authenticationToken: ctx.cookies.get('authenticationToken'),
       })
       if (profile === undefined) {
         ctx.status = 401
@@ -123,7 +123,7 @@ export default class Api {
     this.addMethods({
       system: {
         getMethodsInfo: [
-          function*() {
+          function* () {
             const methods = this._methods
             for (const name in methods) {
               const { description, params = {} } = methods[name]
@@ -131,25 +131,25 @@ export default class Api {
             }
           }.bind(this),
           {
-            description: 'returns the signatures of all available API methods'
-          }
+            description: 'returns the signatures of all available API methods',
+          },
         ],
         getServerVersion: [
           () => appVersion,
           {
-            description: 'returns the version of xo-server'
-          }
+            description: 'returns the version of xo-server',
+          },
         ],
         listMethods: [
-          function*() {
+          function* () {
             const methods = this._methods
             for (const name in methods) {
               yield name
             }
           }.bind(this),
           {
-            description: 'returns the name of all available API methods'
-          }
+            description: 'returns the name of all available API methods',
+          },
         ],
         methodSignature: [
           ({ method: name }) => {
@@ -164,14 +164,14 @@ export default class Api {
           {
             description: 'returns the signature of an API method',
             params: {
-              method: { type: 'string' }
-            }
-          }
-        ]
+              method: { type: 'string' },
+            },
+          },
+        ],
       },
       test: {
         range: [
-          function*({ start = 0, stop, step }) {
+          function* ({ start = 0, stop, step }) {
             if (step === undefined) {
               step = start > stop ? -1 : 1
             }
@@ -189,11 +189,11 @@ export default class Api {
             params: {
               start: { optional: true, type: 'number' },
               step: { optional: true, type: 'number' },
-              stop: { type: 'number' }
-            }
-          }
-        ]
-      }
+              stop: { type: 'number' },
+            },
+          },
+        ],
+      },
     })
   }
 
@@ -220,7 +220,7 @@ export default class Api {
         return required
       }),
 
-      type: 'object'
+      type: 'object',
     })
 
     const m = params => {
