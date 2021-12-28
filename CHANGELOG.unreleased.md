@@ -6,6 +6,7 @@
 ### Enhancements
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
+- [xo-proxy] : A visible xo-proxy can be used to transfer queries to another proxy/ host hidden from xo [PR#6071](https://github.com/vatesfr/xen-orchestra/pull/6072)
 
 ### Bug fixes
 
@@ -29,3 +30,4 @@
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
 - vhd-lib major
+- xo-proxy minor
