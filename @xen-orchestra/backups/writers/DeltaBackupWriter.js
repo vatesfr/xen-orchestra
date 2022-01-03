@@ -50,6 +50,7 @@ exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(Ab
         warn('checkBaseVdis', { error })
       }
       if (!found) {
+        warn(`checkBaseVdis ${baseUuid} (packed as ${packedBaseUuid}) not found `)
         baseUuidToSrcVdi.delete(baseUuid)
       }
     })
@@ -196,14 +197,24 @@ exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(Ab
           })
 
           if (isDelta) {
+            warn(`Is delta, will set parentPath ${parentPath}`)
             await chainVhd(handler, parentPath, handler, path)
+          } else {
+
+            warn(`Is a full backup, no ref to parent`)
           }
 
           // set the correct UUID in the VHD
           await Disposable.use(openVhd(handler, path), async vhd => {
+
+            warn(`Update uuid to ${vdi.uuid} (packed as ${packUuid(vdi.uuid)})`)
             vhd.footer.uuid = packUuid(vdi.uuid)
             await vhd.readBlockAllocationTable() // required by writeFooter()
             await vhd.writeFooter()
+          })
+          await Disposable.use(openVhd(handler, path), vhd => {
+            warn(`Uuid really stored is  ${vhd.footer.uuid}`)
+
           })
         })
       )

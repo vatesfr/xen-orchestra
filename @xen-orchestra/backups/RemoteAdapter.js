@@ -198,10 +198,11 @@ class RemoteAdapter {
     return await Disposable.use(openVhd(this.handler, path), vhd => {
       // this baseUuid is not linked with this vhd
       if (!vhd.footer.uuid.equals(packedParentUid)) {
+        warn(`not the same uid ${path} has ${vhd.footer.uuid} instead of ${packedParentUid}`)
         return false
       }
-
       const isVhdDirectory = vhd instanceof VhdDirectory
+      warn(`found the same uid ${path} `,{isVhdDirectory, useVhdDirectory: this.#useVhdDirectory(),compressionType: this.#getCompressionType() })
       return isVhdDirectory
         ? this.#useVhdDirectory() && this.#getCompressionType() === vhd.compressionType
         : !this.#useVhdDirectory()
