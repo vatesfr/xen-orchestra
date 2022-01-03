@@ -50,7 +50,7 @@ exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(Ab
         warn('checkBaseVdis', { error })
       }
       if (!found) {
-        warn(`checkBaseVdis ${baseUuid} (packed as ${packedBaseUuid}) not found `)
+        warn(`checkBaseVdis ${baseUuid} (packed as ${packUuid(baseUuid)}) not found for ${srcVdi}`)
         baseUuidToSrcVdi.delete(baseUuid)
       }
     })
