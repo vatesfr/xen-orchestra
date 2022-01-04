@@ -7,6 +7,9 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- Limit number of concurrent VM migrations per pool to `3` [#6065](https://github.com/vatesfr/xen-orchestra/issues/6065) (PR [#6076](https://github.com/vatesfr/xen-orchestra/pull/6076))
+  Can be changed in `xo-server`'s configuration file: `xapiOptions.vmMigrationConcurrency`
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
