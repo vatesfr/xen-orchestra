@@ -40,7 +40,10 @@ exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(Ab
         await asyncMap(vhds, async path => {
           try {
             await checkVhdChain(handler, path)
-            found = found || (await adapter.isMergeableParent(packedBaseUuid, path))
+            const mergeable = (await adapter.isMergeableParent(packedBaseUuid, path))
+            found = found || mergeable
+
+            warn('FOUND : ', { found, mergeable })
           } catch (error) {
             warn('checkBaseVdis', { error })
             await ignoreErrors.call(VhdAbstract.unlink(handler, path))

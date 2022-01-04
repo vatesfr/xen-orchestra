@@ -327,7 +327,7 @@ exports.VmBackup = class VmBackup {
     const fullInterval = this._settings.fullInterval
     const deltaChainLength = +(baseVm.other_config['xo:backup:deltaChainLength'] ?? 0) + 1
     if (!(fullInterval === 0 || fullInterval > deltaChainLength)) {
-      debug('not using base VM becaust fullInterval reached')
+      debug(`not using base VM because fullInterval ${fullInterval} reached. Delta chain length is ${deltaChainLength}`)
       return
     }
 
