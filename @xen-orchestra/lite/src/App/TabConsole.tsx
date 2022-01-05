@@ -89,8 +89,10 @@ const TabConsole = withState<State, Props, Effects, Computed, ParentState, Paren
           <IntlMessage id='consoleNotAvailable' />
         </p>
       ) : (
-        <div style={{ flex: 1, height: '80%', position: 'relative' }}>
-          <Console vmId={vmId} scale={state.consoleScale} setCtrlAltDel={effects.setCtrlAltDel} />
+        <div style={{ flex: 1, overflow: 'hidden' }}>
+          <div style={{height:'100%', width:'100%'}}>
+            <Console vmId={vmId} scale={state.consoleScale} setCtrlAltDel={effects.setCtrlAltDel} />
+          </div>
         </div>
       )}
     </div>
