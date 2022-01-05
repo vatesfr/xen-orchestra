@@ -123,7 +123,7 @@
     "unzipper": "^0.10.5",
     "uuid": "^8.3.1",
     "value-matcher": "^0.2.0",
-    "vhd-lib": "^2.1.0",
+    "vhd-lib": "^3.0.0",
     "ws": "^8.2.3",
     "xdg-basedir": "^4.0.0",
     "xen-api": "^0.35.1",
