@@ -33,8 +33,7 @@
 
 - vhd-lib major
 - xo-vmdk-to-vhd patch
-- @xen-orchestra/backups
-- @xen-orchestra/backups-cli
-- @xen-orchestra/proxy
+- @xen-orchestra/backups patch
+- @xen-orchestra/proxy patch
 - xo-server patch
 - xo-web patch
