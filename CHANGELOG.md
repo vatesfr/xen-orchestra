@@ -9,6 +9,7 @@
 - @xen-orchestra/backups 0.18.3
 - @xen-orchestra/proxy 0.17.3
 - xo-server 5.86.3
+- xo-web 5.91.2
 
 ## **5.66.1** (2021-12-23)
 
