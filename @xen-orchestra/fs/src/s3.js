@@ -118,7 +118,15 @@ export default class S3Handler extends RemoteHandlerAbstract {
   }
 
   async _writeFile(file, data, options) {
-    return this._s3.putObject({ ...this._createParams(file), Body: data })
+    return  this._s3.upload(
+      {
+        ...this._createParams(file),
+        Body: data,
+      },
+      // concurrency is handled by xo, adding the concurrency
+      // of aws may overload the upload link and lead to timeout
+      { queueSize: 1 }
+    )
   }
 
   async _createReadStream(path, options) {
