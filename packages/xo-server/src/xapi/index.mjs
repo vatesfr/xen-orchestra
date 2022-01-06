@@ -82,6 +82,7 @@ export default class Xapi extends XapiBase {
     restartHostTimeout,
     vdiExportConcurrency,
     vmExportConcurrency,
+    vmMigrationConcurrency = 3,
     vmSnapshotConcurrency,
     ...opts
   }) {
@@ -96,6 +97,7 @@ export default class Xapi extends XapiBase {
     this._exportVdi = limitConcurrency(vdiExportConcurrency, waitStreamEnd)(this._exportVdi)
     this.exportVm = limitConcurrency(vmExportConcurrency, waitStreamEnd)(this.exportVm)
 
+    this._migrateVmWithStorageMotion = limitConcurrency(vmMigrationConcurrency)(this._migrateVmWithStorageMotion)
     this._snapshotVm = limitConcurrency(vmSnapshotConcurrency)(this._snapshotVm)
 
     // Patch getObject to resolve _xapiId property.
