@@ -11,7 +11,7 @@ import Icon from '../components/Icon'
 interface ParentState {}
 
 interface State {
-  selectedNodes?: Array<string>
+  _selectedNodes?: Array<string>
 }
 
 export interface ItemType {
@@ -68,7 +68,9 @@ interface Effects {
   setSelectedNodeIds: (event: React.SyntheticEvent, nodeIds: Array<string>) => void
 }
 
-interface Computed {}
+interface Computed {
+  selectedNodes: Array<string>
+}
 
 // Inspired by https://mui.com/components/tree-view/#contentcomponent-prop.
 const CustomContent = React.forwardRef(function CustomContent(props: CustomContentProps, ref) {
@@ -119,23 +121,27 @@ const renderItem = ({ children, id, label, to, tooltip }: ItemType) => {
 
 const Tree = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
   {
-    initialState: ({ defaultSelectedNodes }) => ({
-      selectedNodes: defaultSelectedNodes === undefined ? [''] : defaultSelectedNodes,
+    initialState: () => ({
+      _selectedNodes: undefined,
     }),
     effects: {
       setSelectedNodeIds: function (event, nodeIds) {
-        this.state.selectedNodes = nodeIds
+        this.state._selectedNodes = nodeIds
       },
     },
+    computed: {
+      selectedNodes: ({ _selectedNodes }, { defaultSelectedNodes }) =>
+        defaultSelectedNodes === undefined ? [''] : _selectedNodes ?? defaultSelectedNodes,
+    },
   },
-  ({ effects, state: { selectedNodes }, collection, defaultSelectedNodes }) => (
+  ({ effects, state: { selectedNodes }, collection }) => (
     <TreeView
       defaultExpanded={[collection[0].id]}
       defaultCollapseIcon={<Icon icon='chevron-up' />}
       defaultExpandIcon={<Icon icon='chevron-down' />}
       onNodeSelect={effects.setSelectedNodeIds}
       multiSelect
-      selected={defaultSelectedNodes === undefined ? [''] : selectedNodes}
+      selected={selectedNodes}
     >
       {collection.map(renderItem)}
     </TreeView>
