@@ -131,7 +131,7 @@ const Tree = withState<State, Props, Effects, Computed, ParentState, ParentEffec
     },
     computed: {
       selectedNodes: ({ _selectedNodes }, { defaultSelectedNodes }) =>
-        defaultSelectedNodes === undefined ? [''] : _selectedNodes ?? defaultSelectedNodes,
+        defaultSelectedNodes === undefined ? [] : _selectedNodes ?? defaultSelectedNodes,
     },
   },
   ({ effects, state: { selectedNodes }, collection }) => (
