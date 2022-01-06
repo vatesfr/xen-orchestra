@@ -115,6 +115,11 @@ async function updateLocalConfig(diff) {
 async function createExpressApp(config) {
   const app = createExpress()
 
+  // For a nicer API
+  //
+  // https://expressjs.com/en/api.html#app.set
+  app.set('json spaces', 2)
+
   app.use(helmet(config.http.helmet))
 
   app.use(compression())
@@ -237,7 +242,7 @@ async function setUpPassport(express, xo, { authentication: authCfg, http: { coo
   }
 
   const SIGNIN_STRATEGY_RE = /^\/signin\/([^/]+)(\/callback)?(:?\?.*)?$/
-  const UNCHECKED_URL_RE = /favicon|fontawesome|images|styles|\.(?:css|jpg|png)$/
+  const UNCHECKED_URL_RE = /(?:^\/rest\/)|favicon|fontawesome|images|styles|\.(?:css|jpg|png)$/
   express.use(async (req, res, next) => {
     const { url } = req
 
@@ -771,6 +776,7 @@ export default async function main(args) {
     appName: APP_NAME,
     appVersion: APP_VERSION,
     config,
+    express,
     safeMode,
   })
 
