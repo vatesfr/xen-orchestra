@@ -122,6 +122,14 @@ const LOCAL_DEFAULT_SRS_COLUMNS = [
   },
 ]
 
+const POOLS_WITHOUT_DEFAULT_SR_COLUMNS = [
+  {
+    name: _('pool'),
+    itemRenderer: pool => <Pool id={pool.id} link />,
+    sortCriteria: 'name_label',
+  },
+]
+
 const SR_COLUMNS = [
   {
     name: _('srName'),
@@ -620,6 +628,15 @@ export default class Health extends Component {
     )
   )
 
+  _getPoolsWithNoDefaultSr = createCollectionWrapper(
+    createSelector(
+      () => this.props.pools,
+      () => this._getPoolIds(),
+      (pools, poolIds) =>
+        filter(isEmpty(poolIds) ? pools : pick(pools, poolIds), ({ default_SR }) => default_SR === undefined)
+    )
+  )
+
   _getPoolIds = createCollectionWrapper(createSelector(() => this.state.pools, resolveIds))
 
   _getPoolPredicate = createSelector(this._getPoolIds, poolIds =>
@@ -654,6 +671,7 @@ export default class Health extends Component {
     const localDefaultSrs = this._getLocalDefaultSrs()
     const userSrs = this._getUserSrs()
     const orphanVdis = this._getOrphanVdis()
+    const poolsWithNoDefaultSr = this._getPoolsWithNoDefaultSr()
 
     return (
       <Container>
@@ -711,6 +729,35 @@ export default class Health extends Component {
                             data-srs={userSrs}
                             shortcutsTarget='body'
                             stateUrlParam='s_local_default_srs'
+                          />
+                        </Col>
+                      </Row>
+                    )}
+                  </NoObjects>
+                </CardBlock>
+              </Card>
+            </Col>
+          </Row>
+        )}
+        {poolsWithNoDefaultSr.length > 0 && (
+          <Row>
+            <Col>
+              <Card>
+                <CardHeader>
+                  <Icon icon='pool' /> {_('poolsWithNoDefaultSr')}
+                </CardHeader>
+                <CardBlock>
+                  <NoObjects collection={props.areObjectsFetched ? poolsWithNoDefaultSr : null}>
+                    {() => (
+                      <Row>
+                        <Col>
+                          <SortedTable
+                            collection={poolsWithNoDefaultSr}
+                            columns={POOLS_WITHOUT_DEFAULT_SR_COLUMNS}
+                            data-hosts={props.hosts}
+                            data-srs={userSrs}
+                            shortcutsTarget='body'
+                            stateUrlParam='s_no_default_sr'
                           />
                         </Col>
                       </Row>

@@ -1396,6 +1396,7 @@ const messages = {
   orphanVdisTip: 'VDIs and VDI snapshots that are not attached to a VM',
   orphanedVms: 'Orphaned VMs snapshot',
   noOrphanedObject: 'No orphans',
+  poolsWithNoDefaultSr: 'Pools with no default SR',
   tooManySnapshots: 'Too many snapshots',
   tooManySnapshotsTip: 'VMs with more than the recommended amount of snapshots',
   noLocalDefaultSrs: 'No local default SRs',
