@@ -615,12 +615,11 @@ export default class Health extends Component {
   _getLocalDefaultSrs = createCollectionWrapper(
     createSelector(
       () => this.props.hosts,
-      () => this.props.pools,
+      () => this._getPools(),
       () => this.props.userSrs,
-      () => this._getPoolIds(),
-      (hosts, pools, userSrs, poolIds) => {
+      (hosts, pools, userSrs) => {
         const nbHostsPerPool = countBy(hosts, host => host.$pool)
-        return filter(isEmpty(poolIds) ? pools : pick(pools, poolIds), pool => {
+        return filter(pools, pool => {
           const { default_SR } = pool
           return default_SR !== undefined && !userSrs[default_SR].shared && nbHostsPerPool[pool.id] > 1
         })
