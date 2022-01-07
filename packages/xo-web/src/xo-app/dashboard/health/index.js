@@ -628,12 +628,18 @@ export default class Health extends Component {
     )
   )
 
-  _getPoolsWithNoDefaultSr = createCollectionWrapper(
+  _getPools = createCollectionWrapper(
     createSelector(
       () => this.props.pools,
       () => this._getPoolIds(),
-      (pools, poolIds) =>
-        filter(isEmpty(poolIds) ? pools : pick(pools, poolIds), ({ default_SR }) => default_SR === undefined)
+      (pools, poolIds) => (isEmpty(poolIds) ? pools : pick(pools, poolIds))
+    )
+  )
+
+  _getPoolsWithNoDefaultSr = createCollectionWrapper(
+    createSelector(
+      () => this._getPools(),
+      pools => filter(pools, ({ default_SR }) => default_SR === undefined)
     )
   )
 
