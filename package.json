@@ -61,7 +61,10 @@
       "/xo-server-test/",
       "/xo-web/"
     ],
-    "testRegex": "\\.spec\\.js$"
+    "testRegex": "\\.spec\\.(?:m?j|t)sx?$",
+    "transform": {
+      "\\.(?:m?j|t)sx?$": "babel-jest"
+    }
   },
   "lint-staged": {
     "*.{md,ts,ts}": "prettier --write"
@@ -71,14 +74,14 @@
     "build": "scripts/run-script --parallel build",
     "clean": "scripts/run-script --parallel clean",
     "dev": "scripts/run-script --parallel dev",
-    "dev-test": "jest --bail --watch \"^(?!.*\\.integ\\.spec\\.js$)\"",
+    "dev-test": "jest --bail --watch \"^(?!.*\\.integ\\.spec\\.m?js$)\"",
     "docs:dev": "vuepress dev docs",
     "docs:build": "vuepress build docs",
     "prettify": "prettier --ignore-path .gitignore --write '**/*.{cjs,js,jsx,md,mjs,ts,tsx}'",
     "test": "npm run test-lint && npm run test-unit",
-    "test-integration": "jest \".integ\\.spec\\.js$\"",
+    "test-integration": "jest \".integ\\.spec\\.m?js$\"",
     "test-lint": "eslint --ignore-path .gitignore .",
-    "test-unit": "jest \"^(?!.*\\.integ\\.spec\\.js$)\" && scripts/run-script test",
+    "test-unit": "jest \"^(?!.*\\.integ\\.spec\\.m?js$)\" && scripts/run-script test",
     "travis-tests": "scripts/travis-tests"
   },
   "workspaces": [
