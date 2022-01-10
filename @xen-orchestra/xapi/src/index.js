@@ -15,16 +15,18 @@ exports.VDI_FORMAT_VHD = 'vhd'
 // xapi.call('host.get_servertime', host.$ref) for example
 exports.formatDateTime = utcFormat('%Y%m%dT%H:%M:%SZ')
 
-const parseDateTimeHelper = utcParse('%Y%m%dT%H:%M:%SZ')
+const dateTimeParsers = ['%Y%m%dT%H:%M:%SZ', '%Y-%m-%dT%H:%M:%S.%LZ'].map(utcParse)
 exports.parseDateTime = function (str, defaultValue) {
-  const date = parseDateTimeHelper(str)
-  if (date === null) {
-    if (arguments.length > 1) {
-      return defaultValue
+  for (const parser of dateTimeParsers) {
+    const date = parser(str)
+    if (date !== null) {
+      return date.getTime()
     }
-    throw new RangeError(`unable to parse XAPI datetime ${JSON.stringify(str)}`)
   }
-  return date.getTime()
+  if (arguments.length > 1) {
+    return defaultValue
+  }
+  throw new RangeError(`unable to parse XAPI datetime ${JSON.stringify(str)}`)
 }
 
 const hasProps = o => {
