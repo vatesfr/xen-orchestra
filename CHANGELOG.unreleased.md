@@ -10,6 +10,7 @@
 - Limit number of concurrent VM migrations per pool to `3` [#6065](https://github.com/vatesfr/xen-orchestra/issues/6065) (PR [#6076](https://github.com/vatesfr/xen-orchestra/pull/6076))
   Can be changed in `xo-server`'s configuration file: `xapiOptions.vmMigrationConcurrency`
 - [Proxy] Now ships a reverse proxy [PR#6072](https://github.com/vatesfr/xen-orchestra/pull/6072)
+- Retry uploading vhd chunk on remote internal error when using a S3 compatible storage (PR [#6086](https://github.com/vatesfr/xen-orchestra/issues/6086)) (Forum [5397](https://xcp-ng.org/forum/topic/5397/delta-backups-failing-aws-s3-uploadpartcopy-cpu-too-busy/5))
 
 ### Bug fixes
 
