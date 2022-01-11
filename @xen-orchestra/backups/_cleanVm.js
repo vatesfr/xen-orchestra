@@ -100,7 +100,7 @@ async function mergeVhdChain(chain, { handler, onLog, remove, merge }) {
 
 const noop = Function.prototype
 
-const INTERRUPTED_VHDS_REG = /^(?:(.+)\/)?\.(.+)\.merge.json$/
+const INTERRUPTED_VHDS_REG = /^\.(.+)\.merge.json$/
 const listVhds = async (handler, vmDir) => {
   const vhds = []
   const interruptedVhds = new Set()
@@ -118,16 +118,14 @@ const listVhds = async (handler, vmDir) => {
         async vdiDir => {
           const list = await handler.list(vdiDir, {
             filter: file => isVhdFile(file) || INTERRUPTED_VHDS_REG.test(file),
-            prependDir: true,
           })
 
           list.forEach(file => {
             const res = INTERRUPTED_VHDS_REG.exec(file)
             if (res === null) {
-              vhds.push(file)
+              vhds.push(`${vdiDir}/${file}`)
             } else {
-              const [, dir, file] = res
-              interruptedVhds.add(`${dir}/${file}`)
+              interruptedVhds.add(`${vdiDir}/${res[1]}`)
             }
           })
         }
