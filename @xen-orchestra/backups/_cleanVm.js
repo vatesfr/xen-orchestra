@@ -103,7 +103,7 @@ const noop = Function.prototype
 const INTERRUPTED_VHDS_REG = /^\.(.+)\.merge.json$/
 const listVhds = async (handler, vmDir) => {
   const vhds = new Set()
-  const interruptedVhds = new Set()
+  const interruptedVhds = new Map()
 
   await asyncMap(
     await handler.list(`${vmDir}/vdis`, {
@@ -125,7 +125,7 @@ const listVhds = async (handler, vmDir) => {
             if (res === null) {
               vhds.add(`${vdiDir}/${file}`)
             } else {
-              interruptedVhds.add(`${vdiDir}/${res[1]}`)
+              interruptedVhds.set(`${vdiDir}/${res[1]}`, `${vdiDir}/${file}`)
             }
           })
         }
@@ -177,6 +177,23 @@ exports.cleanVm = async function cleanVm(
       }
     }
   })
+
+  // remove interrupted merge states for missing VHDs
+  for (const interruptedVhd of interruptedVhds.keys()) {
+    if (!vhds.has(interruptedVhd)) {
+      const statePath = interruptedVhds.get(interruptedVhd)
+      interruptedVhds.delete(interruptedVhd)
+
+      onLog('orphan merge state', {
+        mergeStatePath: statePath,
+        missingVhdPath: interruptedVhd,
+      })
+      if (remove) {
+        onLog(`deleting orphan merge state ${statePath}`)
+        await handler.unlink(statePath)
+      }
+    }
+  }
 
   // @todo : add check for data folder of alias not referenced in a valid alias
 
@@ -341,9 +358,9 @@ exports.cleanVm = async function cleanVm(
     })
 
     // merge interrupted VHDs
-    interruptedVhds.forEach(parent => {
+    for (const parent of interruptedVhds.keys()) {
       vhdChainsToMerge[parent] = [vhdChildren[parent], parent]
-    })
+    }
 
     Object.values(vhdChainsToMerge).forEach(chain => {
       if (chain !== undefined) {
