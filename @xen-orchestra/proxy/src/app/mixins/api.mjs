@@ -45,7 +45,7 @@ export default class Api {
   constructor(app, { appVersion, httpServer }) {
     this._ajv = new Ajv({ allErrors: true })
     this._methods = { __proto__: null }
-    const PREFIX  =  '/api/v1'
+    const PREFIX = '/api/v1'
     const router = new Router({ prefix: PREFIX }).post('/', async ctx => {
       // Before Node 13.0 there was an inactivity timeout of 2 mins, which may
       // not be enough for the API.
@@ -120,13 +120,13 @@ export default class Api {
       .use(router.allowedMethods())
 
     const callback = koa.callback()
-    httpServer.on('request', (req, res)=>{
+    httpServer.on('request', (req, res) => {
       // only answers to query to the root url of this mixin
       // do it before giving the request to Koa to ensure it's not modified
-      if(req.url.startsWith(PREFIX)){
+      if (req.url.startsWith(PREFIX)) {
         callback(req, res)
       }
-    } )
+    })
 
     this.addMethods({
       system: {
