@@ -102,7 +102,7 @@ const noop = Function.prototype
 
 const INTERRUPTED_VHDS_REG = /^\.(.+)\.merge.json$/
 const listVhds = async (handler, vmDir) => {
-  const vhds = []
+  const vhds = new Set()
   const interruptedVhds = new Set()
 
   await asyncMap(
@@ -123,7 +123,7 @@ const listVhds = async (handler, vmDir) => {
           list.forEach(file => {
             const res = INTERRUPTED_VHDS_REG.exec(file)
             if (res === null) {
-              vhds.push(`${vdiDir}/${file}`)
+              vhds.add(`${vdiDir}/${file}`)
             } else {
               interruptedVhds.add(`${vdiDir}/${res[1]}`)
             }
@@ -145,18 +145,16 @@ exports.cleanVm = async function cleanVm(
 
   const handler = this._handler
 
-  const vhds = new Set()
   const vhdsToJSons = new Set()
   const vhdParents = { __proto__: null }
   const vhdChildren = { __proto__: null }
 
-  const vhdsList = await listVhds(handler, vmDir)
+  const { vhds, interruptedVhds } = await listVhds(handler, vmDir)
 
   // remove broken VHDs
-  await asyncMap(vhdsList.vhds, async path => {
+  await asyncMap(vhds, async path => {
     try {
-      await Disposable.use(openVhd(handler, path, { checkSecondFooter: !vhdsList.interruptedVhds.has(path) }), vhd => {
-        vhds.add(path)
+      await Disposable.use(openVhd(handler, path, { checkSecondFooter: !interruptedVhds.has(path) }), vhd => {
         if (vhd.footer.diskType === DISK_TYPES.DIFFERENCING) {
           const parent = resolve('/', dirname(path), vhd.header.parentUnicodeName)
           vhdParents[path] = parent
@@ -171,6 +169,7 @@ exports.cleanVm = async function cleanVm(
         }
       })
     } catch (error) {
+      vhds.delete(path)
       onLog(`error while checking the VHD with path ${path}`, { error })
       if (error?.code === 'ERR_ASSERTION' && remove) {
         onLog(`deleting broken ${path}`)
@@ -342,7 +341,7 @@ exports.cleanVm = async function cleanVm(
     })
 
     // merge interrupted VHDs
-    vhdsList.interruptedVhds.forEach(parent => {
+    interruptedVhds.forEach(parent => {
       vhdChainsToMerge[parent] = [vhdChildren[parent], parent]
     })
 
