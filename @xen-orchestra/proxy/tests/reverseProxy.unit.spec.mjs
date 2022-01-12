@@ -47,7 +47,9 @@ const expectedLocalToRemote = {
 const proxy = new ReverseProxy(app, { httpServer: { on: () => {} } })
 for (const proxyId in expectedLocalToRemote) {
   for (const { local, remote } of expectedLocalToRemote[proxyId]) {
-    strictEqual(proxy.localToBackendUrl('https', local).href, remote, 'error converting to backend')
+    const config = proxy._getConfigFromRequest({ url: local })
+    const url = new URL(config.target)
+    strictEqual(proxy.localToBackendUrl(config.path, url, local).href, remote, 'error converting to backend')
   }
 }
 
@@ -59,11 +61,11 @@ const expectedRemoteToLocal = {
     },
     {
       local: '/proxy/v1/https/sub/index.html',
-      remote: 'https://localhost:8080/remotePath/sub/index.html',
+      remote: '/remotePath/sub/index.html',
     },
     {
       local: '/proxy/v1/https/?baseParm=1#one=2&another=3',
-      remote: 'https://localhost:8080/remotePath/?baseParm=1#one=2&another=3',
+      remote: '?baseParm=1#one=2&another=3',
     },
     {
       local: '/proxy/v1/https/sub?baseParm=1#one=2&another=3',
@@ -74,7 +76,9 @@ const expectedRemoteToLocal = {
 
 for (const proxyId in expectedRemoteToLocal) {
   for (const { local, remote } of expectedRemoteToLocal[proxyId]) {
-    const url = new URL(remote, 'https://localhost:8080/remotePath/?baseParm=1#one=2&another=3')
-    strictEqual(proxy.backendToLocalPath('https', url), local, 'error converting to local')
+    const config = proxy._getConfigFromRequest({ url: local })
+    const targetUrl = new URL('https://localhost:8080/remotePath/?baseParm=1#one=2&another=3')
+    const remoteUrl = new URL(remote, targetUrl)
+    strictEqual(proxy.backendToLocalPath(config.path, targetUrl, remoteUrl), local, 'error converting to local')
   }
 }

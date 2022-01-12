@@ -20,30 +20,19 @@ function mergeUrl(relative, base) {
 }
 export default class ReverseProxy {
   constructor(app, { httpServer }) {
-    this.httpServer = httpServer
-    this.app = app
-    this.configs = {}
-    for (const [proxyId, { path, target, ...options }] of Object.entries(app.config.get('reverseProxies'))) {
-      this.configs[proxyId] = {
-        path: '/proxy/v1/' + removeSlash(path),
-        target: new URL(target),
-        options,
-      }
-      this.setupOneProxy(proxyId)
-    }
+    this._app = app
+    httpServer.on('request', this.proxy)
+    httpServer.on('upgrade', this.upgrade)
   }
 
-  localToBackendUrl(proxyId, localPath) {
-    const { path: basePath, target } = this.configs[proxyId]
+  localToBackendUrl(basePath, target, localPath) {
     let localPathWithoutBase = removeSlash(localPath).substring(basePath.length)
     localPathWithoutBase = './' + removeSlash(localPathWithoutBase)
     const url = mergeUrl(localPathWithoutBase, target)
     return url
   }
 
-  backendToLocalPath(proxyId, backendUrl) {
-    const { path: basePath, target } = this.configs[proxyId]
-
+  backendToLocalPath(basePath, target, backendUrl) {
     // keep redirect url relative to local server
     const localPath = `${basePath}/${backendUrl.pathname.substring(target.pathname.length)}${backendUrl.search}${
       backendUrl.hash
@@ -51,16 +40,31 @@ export default class ReverseProxy {
     return localPath
   }
 
-  proxy(proxyId, req, res) {
-    const { path, target, options } = this.configs[proxyId]
-    const url = new URL(target)
-    if (!req.url.startsWith(path + '/')) {
+  _getConfigFromRequest(req) {
+    for (const { path, target, ...options } of Object.values(this._app.config.get('reverseProxies'))) {
+      const fullPath = '/proxy/v1/' + removeSlash(path)
+      if (req.url.startsWith(fullPath + '/')) {
+        return {
+          path: fullPath,
+          target,
+          options,
+        }
+      }
+    }
+  }
+
+  proxy(req, res) {
+    const config = this._getConfigFromRequest(req)
+
+    if (config === undefined) {
       return
     }
-    const targetUrl = this.localToBackendUrl(proxyId, req.originalUrl || req.url)
+
+    const url = new URL(config.target)
+    const targetUrl = this.localToBackendUrl(config.path, url, req.originalUrl || req.url)
     proxy.web(req, res, {
       ...urlToHttpOptions(targetUrl),
-      ...options,
+      ...config.options,
       onRes: (req, res, proxyRes) => {
         // rewrite redirect to pass through this proxy
         if (proxyRes.statusCode === 301 || proxyRes.statusCode === 302) {
@@ -73,12 +77,12 @@ export default class ReverseProxy {
           }
           res.writeHead(proxyRes.statusCode, {
             ...proxyRes.headers,
-            location: this.backendToLocalPath(proxyId, redirectTargetLocation),
+            location: this.backendToLocalPath(config.path, url, redirectTargetLocation),
           })
           res.end()
           return
         }
-        // pass through the anwer of the remote server
+        // pass through the answer of the remote server
         res.writeHead(proxyRes.statusCode, {
           ...proxyRes.headers,
         })
@@ -88,20 +92,17 @@ export default class ReverseProxy {
     })
   }
 
-  upgrade(proxyId, req, socket, head) {
-    const { path, options } = this.configs[proxyId]
-    if (!req.url.startsWith(path + '/')) {
+  upgrade(req, socket, head) {
+    const config = this._getConfigFromRequest(req)
+    if (config === undefined) {
       return
     }
-    const targetUrl = this.localToBackendUrl(proxyId, req.originalUrl || req.url)
+
+    const { path, target, options } = config
+    const targetUrl = this.localToBackendUrl(path, target, req.originalUrl || req.url)
     proxy.ws(req, socket, head, {
       ...urlToHttpOptions(targetUrl),
       ...options,
     })
-  }
-
-  setupOneProxy(proxyId) {
-    this.httpServer.on('request', (req, res) => this.proxy(proxyId, req, res))
-    this.httpServer.on('upgrade', (req, socket, head) => this.upgrade(proxyId, req, socket, head))
   }
 }
