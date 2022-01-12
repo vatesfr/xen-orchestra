@@ -230,8 +230,8 @@ class RemoteAdapter {
   async deleteDeltaVmBackups(backups) {
     const handler = this._handler
 
-    // unused VHDs will be detected by `cleanVm`
-    await asyncMapSettled(backups, ({ _filename }) => VhdAbstract.unlink(handler, _filename))
+    // this will delete the json, unused VHDs will be detected by `cleanVm`
+    await asyncMapSettled(backups, ({ _filename }) => handler.unlink(_filename))
   }
 
   async deleteMetadataBackup(backupId) {
