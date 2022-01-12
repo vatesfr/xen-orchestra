@@ -9,6 +9,7 @@
 
 - Limit number of concurrent VM migrations per pool to `3` [#6065](https://github.com/vatesfr/xen-orchestra/issues/6065) (PR [#6076](https://github.com/vatesfr/xen-orchestra/pull/6076))
   Can be changed in `xo-server`'s configuration file: `xapiOptions.vmMigrationConcurrency`
+- [Rolling Pool Update] Automatically pause load balancer plugin during the update [#5711](https://github.com/vatesfr/xen-orchestra/issues/5711)
 
 ### Bug fixes
 
@@ -34,4 +35,5 @@
 - @xen-orchestra/backups patch
 - @xen-orchestra/backups-cli patch
 - @xen-orchestra/proxy patch
-- xo-server patch
+- xo-server minor
+- xo-web minor

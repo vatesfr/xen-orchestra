@@ -132,7 +132,17 @@ installPatches.description = 'Install patches on hosts'
 // -------------------------------------------------------------------
 
 export async function rollingUpdate({ pool }) {
+  const loadBalancerPlugin = (await this.getPlugins()).find(plugin => plugin.name === 'load-balancer')
+  const pauseLoadBalancer = loadBalancerPlugin?.loaded
+  if (pauseLoadBalancer) {
+    await this.unloadPlugin('load-balancer')
+  }
+
   await this.getXapi(pool).rollingPoolUpdate()
+
+  if (pauseLoadBalancer) {
+    await this.loadPlugin('load-balancer')
+  }
 }
 
 rollingUpdate.params = {

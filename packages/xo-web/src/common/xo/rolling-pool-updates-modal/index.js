@@ -1,10 +1,16 @@
 import _ from 'intl'
+import addSubscriptions from 'add-subscriptions'
 import BaseComponent from 'base-component'
 import Icon from 'icon'
 import React from 'react'
 import { connectStore } from 'utils'
 import { createGetObjectsOfType } from 'selectors'
 
+import { subscribePlugins } from '../'
+
+@addSubscriptions(() => ({
+  plugins: subscribePlugins,
+}))
 @connectStore(
   {
     pools: createGetObjectsOfType('pool'),
@@ -14,6 +20,7 @@ import { createGetObjectsOfType } from 'selectors'
 export default class RollingPoolUpdateModal extends BaseComponent {
   render() {
     const pool = this.props.pools[this.props.pool]
+    const loadBalancerPlugin = this.props.plugins && this.props.plugins.find(plugin => plugin.name === 'load-balancer')
 
     return (
       <div>
@@ -22,6 +29,13 @@ export default class RollingPoolUpdateModal extends BaseComponent {
           <p>
             <em className='text-warning'>
               <Icon icon='alarm' /> {_('rollingPoolUpdateHaWarning')}
+            </em>
+          </p>
+        )}
+        {loadBalancerPlugin && loadBalancerPlugin.loaded && (
+          <p>
+            <em className='text-warning'>
+              <Icon icon='alarm' /> {_('rollingPoolUpdateLoadBalancerWarning')}
             </em>
           </p>
         )}
