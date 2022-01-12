@@ -1,5 +1,5 @@
 import ReverseProxy from '../dist/app/mixins/reverseProxy.mjs'
-import { strictEqual } from 'assert'
+import { deepEqual, strictEqual } from 'assert'
 
 function makeApp(reverseProxies) {
   return {
@@ -11,11 +11,13 @@ function makeApp(reverseProxies) {
 
 const app = makeApp({
   https: {
-    path: '/https',
     target: 'https://localhost:8080/remotePath/?baseParm=1#one=2&another=3',
+    oneOption: true
   },
+  http: 'http://localhost:8080/remotePath/?baseParm=1#one=2&another=3'
 })
 
+// test localToBackendUrl
 const expectedLocalToRemote = {
   https: [
     {
@@ -53,6 +55,7 @@ for (const proxyId in expectedLocalToRemote) {
   }
 }
 
+// test backendToLocalPath
 const expectedRemoteToLocal = {
   https: [
     {
@@ -81,4 +84,41 @@ for (const proxyId in expectedRemoteToLocal) {
     const remoteUrl = new URL(remote, targetUrl)
     strictEqual(proxy.backendToLocalPath(config.path, targetUrl, remoteUrl), local, 'error converting to local')
   }
+}
+
+// test _getConfigFromRequest
+
+const expectedConfig = [
+  {
+  local: '/proxy/v1/http/other',
+  config: {
+    target: 'http://localhost:8080/remotePath/?baseParm=1#one=2&another=3',
+    options: {},
+    path:  '/proxy/v1/http'
+  }
+  },
+  {
+    local: '/proxy/v1/http',
+    config: undefined
+  },
+
+  {
+    local: '/proxy/v1/other',
+    config: undefined
+    },
+    {
+      local: '/proxy/v1/https/',
+      config: {
+        target: 'https://localhost:8080/remotePath/?baseParm=1#one=2&another=3',
+        options: {
+          oneOption: true
+        },
+        path:  '/proxy/v1/https'
+      }
+    }
+]
+const config = proxy._getConfigFromRequest({ url: '/http/out' })
+
+for( const {local, config} of expectedConfig){
+  deepEqual(proxy._getConfigFromRequest({ url:local }), config)
 }
