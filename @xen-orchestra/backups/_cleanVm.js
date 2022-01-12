@@ -151,13 +151,21 @@ async function checkAliases(aliasPaths, targetDataRepository, { handler, onLog =
 
     try {
       const { dispose } = await openVhd(handler, target)
-      dispose()
-    } catch (e) {
-      onLog(`target ${target} of alias ${path} is missing or broken`)
+      try {
+        await dispose()
+      } catch (e) {
+        // error during dispose should not trigger a deletion
+      }
+    } catch (error) {
+      onLog(`target ${target} of alias ${path} is missing or broken`, { error })
       if (remove) {
         try {
           await VhdAbstract.unlink(handler, path)
-        } catch(e){}
+        } catch (e) {
+          if (e.code !== 'ENOENT') {
+            onLog(`Error while deleting target ${target} of alias ${path}`, { error: e })
+          }
+        }
       }
       continue
     }
