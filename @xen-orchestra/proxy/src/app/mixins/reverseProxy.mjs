@@ -21,8 +21,8 @@ function mergeUrl(relative, base) {
 export default class ReverseProxy {
   constructor(app, { httpServer }) {
     this._app = app
-    httpServer.on('request', this.proxy)
-    httpServer.on('upgrade', this.upgrade)
+    httpServer.on('request', (req, res) => this.proxy(req, res))
+    httpServer.on('upgrade', (req, socket, head) => this.upgrade(req, socket, head))
   }
 
   localToBackendUrl(basePath, target, localPath) {
@@ -44,11 +44,11 @@ export default class ReverseProxy {
     for (const [path, config] of Object.entries(this._app.config.get('reverseProxies'))) {
       const fullPath = '/proxy/v1/' + removeSlash(path)
       if (req.url.startsWith(fullPath + '/')) {
-        if(typeof config === 'string'){
+        if (typeof config === 'string') {
           return {
             path: fullPath,
-            target : config,
-            options: {}
+            target: config,
+            options: {},
           }
         }
 

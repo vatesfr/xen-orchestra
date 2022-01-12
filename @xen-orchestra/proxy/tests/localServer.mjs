@@ -45,7 +45,7 @@ function httpHandler(req, res) {
       res.end()
       return
     default:
-      res.writeHEad(404)
+      res.writeHead(404)
       res.end()
   }
 }

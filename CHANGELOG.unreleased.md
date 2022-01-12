@@ -6,8 +6,7 @@
 ### Enhancements
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
-- [xo-proxy] : A visible xo-proxy can be used to transfer queries to another proxy/ host hidden from xo [PR#6071](https://github.com/vatesfr/xen-orchestra/pull/6072)
-
+- [Proxy] Now ships a reverse proxy [PR#6071](https://github.com/vatesfr/xen-orchestra/pull/6072)
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
