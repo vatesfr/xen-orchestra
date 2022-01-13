@@ -127,7 +127,6 @@ export default class S3Handler extends RemoteHandlerAbstract {
   // in this case we should retry,  and let their load balancing do its magic
   // https://www.backblaze.com/b2/docs/calling.html#error_handling
   @decorateWith(pRetry.wrap, {
-    tries: 5,
     delays: [100, 200, 500, 1000, 2000],
     when: e => e.code === 'InternalError',
     onRetry() {
