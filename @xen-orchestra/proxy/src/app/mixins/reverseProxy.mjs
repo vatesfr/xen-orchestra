@@ -41,7 +41,9 @@ export default class ReverseProxy {
   }
 
   _getConfigFromRequest(req) {
-    for (const [path, config] of Object.entries(this._app.config.get('reverseProxies'))) {
+    const proxies = this._app.config.get('reverseProxies')
+    for (const path of Object.keys(proxies).sort((a, b) => b.length - a.length)) {
+      const config = proxies[path]
       const fullPath = '/proxy/v1/' + removeSlash(path)
       if (req.url.startsWith(fullPath + '/')) {
         if (typeof config === 'string') {
