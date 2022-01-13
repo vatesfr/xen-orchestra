@@ -102,6 +102,6 @@ watchEvents = ['network', 'PIF', 'pool', 'SR', 'task', 'VBD', 'VDI', 'VIF', 'VM'
 # And use the extended mode when required
 # The additionnal options of a proxy's configuraiton's section are used to instantiate the `https` Agent(respectively the `http`).
 # A notable option is `rejectUnauthorized` which allow to connect to a HTTPS backend  with an invalid/ self signed certificate
-[reverseProxies.'/https/']
+#[reverseProxies.'/https/']
 # target = 'https://localhost:8080/'
 # rejectUnauthorized = false
