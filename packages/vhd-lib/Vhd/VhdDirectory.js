@@ -5,7 +5,6 @@ const { test, set: setBitmap } = require('../_bitmap')
 const { VhdAbstract } = require('./VhdAbstract')
 const assert = require('assert')
 const promisify = require('promise-toolbox/promisify')
-const pRetry = require('promise-toolbox/retry.js')
 const zlib = require('zlib')
 
 const { debug } = createLogger('vhd-lib:VhdDirectory')
@@ -164,17 +163,7 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
 
     const compressed = await this.#compressor.compress(buffer)
 
-    // some objectstorage provider like backblaze, can answer a 500/503 routinely
-    // in this case we should retry,  and let their load balancing do its magic
-    // https://www.backblaze.com/b2/docs/calling.html#error_handling
-    return pRetry(async () => this._handler.outputFile(this._getChunkPath(partName), compressed, this._opts), {
-      tries: 5,
-      delays: [100, 200, 500, 1000, 2000],
-      when: e => e.code === 'InternalError',
-      onRetry: () => {
-        warn('retrying writechunk', { partName })
-      },
-    })
+    return this._handler.outputFile(this._getChunkPath(partName), compressed, this._opts)
   }
 
   // put block in subdirectories to limit impact when doing directory listing
