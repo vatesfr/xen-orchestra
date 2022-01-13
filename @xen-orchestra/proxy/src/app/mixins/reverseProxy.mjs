@@ -74,6 +74,13 @@ export default class ReverseProxy {
     proxy.web(req, res, {
       ...urlToHttpOptions(targetUrl),
       ...config.options,
+      onReq: (req, { headers }) => {
+        headers['x-forwarded-for'] = req.socket.remoteAddress
+        headers['x-forwarded-proto'] = req.socket.encrypted ? 'https' : 'http'
+        if(req.headers['host'] !== undefined){
+          headers['x-forwarded-host'] = req.headers['host']
+        }
+      },
       onRes: (req, res, proxyRes) => {
         // rewrite redirect to pass through this proxy
         if (proxyRes.statusCode === 301 || proxyRes.statusCode === 302) {
@@ -92,7 +99,9 @@ export default class ReverseProxy {
           return
         }
         // pass through the answer of the remote server
-        res.writeHead(proxyRes.statusCode, proxyRes.headers)
+        res.writeHead(proxyRes.statusCode, {
+          ...proxyRes.headers,
+        })
         // pass through content
         proxyRes.pipe(res)
       },
