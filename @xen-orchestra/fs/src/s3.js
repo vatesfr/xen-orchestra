@@ -2,6 +2,9 @@ import aws from '@sullux/aws-sdk'
 import assert from 'assert'
 import http from 'http'
 import https from 'https'
+import pRetry from 'promise-toolbox/retry'
+import { createLogger } from '@xen-orchestra/log'
+import { decorateWith } from '@vates/decorate-with'
 import { parse } from 'xo-remote-parser'
 
 import RemoteHandlerAbstract from './abstract'
@@ -14,6 +17,9 @@ const MAX_PART_SIZE = 1024 * 1024 * 1024 * 5 // 5GB
 const MAX_PARTS_COUNT = 10000
 const MAX_OBJECT_SIZE = 1024 * 1024 * 1024 * 1024 * 5 // 5TB
 const IDEAL_FRAGMENT_SIZE = Math.ceil(MAX_OBJECT_SIZE / MAX_PARTS_COUNT) // the smallest fragment size that still allows a 5TB upload in 10000 fragments, about 524MB
+
+const { warn } = createLogger('xo:fs:s3')
+
 export default class S3Handler extends RemoteHandlerAbstract {
   constructor(remote, _opts) {
     super(remote)
@@ -117,6 +123,21 @@ export default class S3Handler extends RemoteHandlerAbstract {
     }
   }
 
+  // some objectstorage provider like backblaze, can answer a 500/503 routinely
+  // in this case we should retry,  and let their load balancing do its magic
+  // https://www.backblaze.com/b2/docs/calling.html#error_handling
+  @decorateWith(pRetry.wrap, {
+    delays: [100, 200, 500, 1000, 2000],
+    when: e => e.code === 'InternalError',
+    onRetry(error) {
+      warn('retrying writing file', {
+        attemptNumber: this.attemptNumber,
+        delay: this.delay,
+        error,
+        file: this.arguments[0],
+      })
+    },
+  })
   async _writeFile(file, data, options) {
     return this._s3.putObject({ ...this._createParams(file), Body: data })
   }
