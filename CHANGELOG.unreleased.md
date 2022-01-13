@@ -14,6 +14,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Backup] Detect and clear orphan merge states, fix `ENOENT` errors (PR [#6087](https://github.com/vatesfr/xen-orchestra/pull/6087))
+
 ### Packages to release
 
 > Packages will be released in the order they are here, therefore, they should
@@ -31,7 +33,7 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
-- @xen-orchestra/backups patch
-- @xen-orchestra/backups-cli patch
-- @xen-orchestra/proxy patch
-- xo-server patch
+- @xen-orchestra/backups minor
+- @xen-orchestra/backups-cli minor
+- @xen-orchestra/proxy minor
+- xo-server minor
