@@ -129,8 +129,13 @@ export default class S3Handler extends RemoteHandlerAbstract {
   @decorateWith(pRetry.wrap, {
     delays: [100, 200, 500, 1000, 2000],
     when: e => e.code === 'InternalError',
-    onRetry() {
-      warn('retrying writing file', { file: this.arguments[0] })
+    onRetry(error) {
+      warn('retrying writing file', {
+        attemptNumber: this.attemptNumber,
+        delay: this.delay,
+        error,
+        file: this.arguments[0],
+      })
     },
   })
   async _writeFile(file, data, options) {
