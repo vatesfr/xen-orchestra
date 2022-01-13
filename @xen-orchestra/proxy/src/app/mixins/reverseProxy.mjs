@@ -1,4 +1,4 @@
-import { urlToHttpOptions } from 'url' // node  14.18.0, 15.7.0 is it ok ?
+import { urlToHttpOptions } from 'url'
 import proxy from 'http2-proxy'
 
 function removeSlash(str) {
