@@ -36,33 +36,26 @@ export function localToBackendUrl(basePath, target, localPath) {
 
 export default class ReverseProxy {
   constructor(app, { httpServer }) {
-    this._app = app
+    app.config.watch('reverseProxies', proxies => {
+      this._proxies = Object.keys(proxies)
+        .sort((a, b) => b.length - a.length)
+        .map(path => {
+          let config = proxies[path]
+          if (typeof config === 'string') {
+            config = { target: config }
+          }
+          config.path = '/proxy/v1/' + removeSlash(path) + '/'
+
+          return config
+        })
+    })
+
     httpServer.on('request', (req, res) => this._proxy(req, res))
     httpServer.on('upgrade', (req, socket, head) => this._upgrade(req, socket, head))
   }
 
   _getConfigFromRequest(req) {
-    const proxies = this._app.config.get('reverseProxies')
-    for (const path of Object.keys(proxies).sort((a, b) => b.length - a.length)) {
-      const config = proxies[path]
-      const fullPath = '/proxy/v1/' + removeSlash(path)
-      if (req.url.startsWith(fullPath + '/')) {
-        if (typeof config === 'string') {
-          return {
-            path: fullPath,
-            target: config,
-            options: {},
-          }
-        }
-
-        const { target, ...options } = config
-        return {
-          path: fullPath,
-          target,
-          options,
-        }
-      }
-    }
+    return this._proxies.find(({ path }) => req.url.startsWith(path))
   }
 
   _proxy(req, res) {
