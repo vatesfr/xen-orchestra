@@ -119,6 +119,9 @@ require('exec-promise')(() =>
       pkg.scripts = sortedObject(scripts)
     }
 
+    const useBabel =
+      pkg.devDependencies?.['@babel/core'] !== undefined || pkg.dependencies?.['@babel/core'] !== undefined
+
     return Promise.all([
       forceRelativeSymlink(NPMIGNORE_PATH, `${dir}/.npmignore`),
       readFile(`${dir}/USAGE.md`, 'utf8')
@@ -136,10 +139,9 @@ require('exec-promise')(() =>
             console.error('Error while handling README', error)
           }
         }),
-      pkg.devDependencies?.['@babel/core'] !== undefined
-        ? forceRelativeSymlink(BABEL_ESLINTRC_PATH, `${dir}/.eslintrc.js`)
-        : unlink(`${dir}/.eslintrc.js`),
+      useBabel ? forceRelativeSymlink(BABEL_ESLINTRC_PATH, `${dir}/.eslintrc.js`) : unlink(`${dir}/.eslintrc.js`),
       writeFile(`${dir}/package.json`, JSON.stringify(pkg, null, 2) + '\n'),
+      useBabel || unlink(`${dir}/.babelrc.js`),
       unlink(`${dir}/.editorconfig`),
       unlink(`${dir}/.flowconfig`),
       unlink(`${dir}/.gitignore`),

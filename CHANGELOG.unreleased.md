@@ -7,14 +7,18 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-[Export/Disks] Allow the export of disks in VMDK format(PR [#5982](https://github.com/vatesfr/xen-orchestra/pull/5982))
+- Limit number of concurrent VM migrations per pool to `3` [#6065](https://github.com/vatesfr/xen-orchestra/issues/6065) (PR [#6076](https://github.com/vatesfr/xen-orchestra/pull/6076))
+  Can be changed in `xo-server`'s configuration file: `xapiOptions.vmMigrationConcurrency`
+- [Proxy] Now ships a reverse proxy [PR#6072](https://github.com/vatesfr/xen-orchestra/pull/6072)
+- [Delta Backup] When using S3 remote, retry uploading VHD parts on Internal Error to support [Blackblaze](https://www.backblaze.com/b2/docs/calling.html#error_handling) (PR [#6086](https://github.com/vatesfr/xen-orchestra/issues/6086)) (Forum [5397](https://xcp-ng.org/forum/topic/5397/delta-backups-failing-aws-s3-uploadpartcopy-cpu-too-busy/5))
+- [Backup] Add sanity check of aliases on S3 remotes (PR [6043](https://github.com/vatesfr/xen-orchestra/pull/6043))
+- [Export/Disks] Allow the export of disks in VMDK format(PR [#5982](https://github.com/vatesfr/xen-orchestra/pull/5982))
 
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [Backup] Remove incorrect size warning following a merge [Forum #5727](https://xcp-ng.org/forum/topic/4769/warnings-showing-in-system-logs-following-each-backup-job/4) (PR [#6010](https://github.com/vatesfr/xen-orchestra/pull/6010))
-- [Delta Backup] Preserve UEFI boot parameters [#6054](https://github.com/vatesfr/xen-orchestra/issues/6054) [Forum #5319](https://xcp-ng.org/forum/topic/5319/bug-uefi-boot-parameters-not-preserved-with-delta-backups)
+- [Backup] Detect and clear orphan merge states, fix `ENOENT` errors (PR [#6087](https://github.com/vatesfr/xen-orchestra/pull/6087))
 
 ### Packages to release
 
@@ -33,10 +37,11 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
-- @xen-orchestra/xapi patch
+- @xen-orchestra/fs minor
 - vhd-lib minor
 - xo-vmdk-to-vhd minor
-- @xen-orchestra/backups patch
-- @xen-orchestra/proxy patch
+- @xen-orchestra/backups minor
+- @xen-orchestra/backups-cli minor
+- @xen-orchestra/proxy minor
 - xo-server minor
 - xo-web minor

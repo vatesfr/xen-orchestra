@@ -1,5 +1,5 @@
-import { createReadableSparseStream } from 'vhd-lib'
 import asyncIteratorToStream from 'async-iterator-to-stream'
+import createReadableSparseStream from 'vhd-lib/createReadableSparseStream.js'
 import { parseOVAFile, ParsableFile } from './ova'
 import VMDKDirectParser from './vmdk-read'
 import { generateVmdkData } from './vmdk-generate'

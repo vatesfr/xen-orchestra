@@ -14,7 +14,7 @@ import { createLogger } from '@xen-orchestra/log'
 
 const { debug, warn } = createLogger('xo:proxy:api')
 
-const ndJsonStream = asyncIteratorToStream(async function*(responseId, iterable) {
+const ndJsonStream = asyncIteratorToStream(async function* (responseId, iterable) {
   try {
     let cursor, iterator
     try {
@@ -45,14 +45,14 @@ export default class Api {
   constructor(app, { appVersion, httpServer }) {
     this._ajv = new Ajv({ allErrors: true })
     this._methods = { __proto__: null }
-
-    const router = new Router({ prefix: '/api/v1' }).post('/', async ctx => {
+    const PREFIX = '/api/v1'
+    const router = new Router({ prefix: PREFIX }).post('/', async ctx => {
       // Before Node 13.0 there was an inactivity timeout of 2 mins, which may
       // not be enough for the API.
       ctx.req.setTimeout(0)
 
       const profile = await app.authentication.findProfile({
-        authenticationToken: ctx.cookies.get('authenticationToken')
+        authenticationToken: ctx.cookies.get('authenticationToken'),
       })
       if (profile === undefined) {
         ctx.status = 401
@@ -102,6 +102,7 @@ export default class Api {
           // breaks, send some data every 10s to keep it opened.
           const stopTimer = clearInterval.bind(
             undefined,
+            // @to check : can this add space inside binary data ?
             setInterval(() => stream.push(' '), keepAliveInterval)
           )
           stream.on('end', stopTimer).on('error', stopTimer)
@@ -118,12 +119,19 @@ export default class Api {
       .use(router.routes())
       .use(router.allowedMethods())
 
-    httpServer.on('request', koa.callback())
+    const callback = koa.callback()
+    httpServer.on('request', (req, res) => {
+      // only answers to query to the root url of this mixin
+      // do it before giving the request to Koa to ensure it's not modified
+      if (req.url.startsWith(PREFIX)) {
+        callback(req, res)
+      }
+    })
 
     this.addMethods({
       system: {
         getMethodsInfo: [
-          function*() {
+          function* () {
             const methods = this._methods
             for (const name in methods) {
               const { description, params = {} } = methods[name]
@@ -131,25 +139,25 @@ export default class Api {
             }
           }.bind(this),
           {
-            description: 'returns the signatures of all available API methods'
-          }
+            description: 'returns the signatures of all available API methods',
+          },
         ],
         getServerVersion: [
           () => appVersion,
           {
-            description: 'returns the version of xo-server'
-          }
+            description: 'returns the version of xo-server',
+          },
         ],
         listMethods: [
-          function*() {
+          function* () {
             const methods = this._methods
             for (const name in methods) {
               yield name
             }
           }.bind(this),
           {
-            description: 'returns the name of all available API methods'
-          }
+            description: 'returns the name of all available API methods',
+          },
         ],
         methodSignature: [
           ({ method: name }) => {
@@ -164,14 +172,14 @@ export default class Api {
           {
             description: 'returns the signature of an API method',
             params: {
-              method: { type: 'string' }
-            }
-          }
-        ]
+              method: { type: 'string' },
+            },
+          },
+        ],
       },
       test: {
         range: [
-          function*({ start = 0, stop, step }) {
+          function* ({ start = 0, stop, step }) {
             if (step === undefined) {
               step = start > stop ? -1 : 1
             }
@@ -189,11 +197,11 @@ export default class Api {
             params: {
               start: { optional: true, type: 'number' },
               step: { optional: true, type: 'number' },
-              stop: { type: 'number' }
-            }
-          }
-        ]
-      }
+              stop: { type: 'number' },
+            },
+          },
+        ],
+      },
     })
   }
 
@@ -220,7 +228,7 @@ export default class Api {
         return required
       }),
 
-      type: 'object'
+      type: 'object',
     })
 
     const m = params => {

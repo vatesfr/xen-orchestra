@@ -6,7 +6,7 @@ const pDefer = require('promise-toolbox/defer.js')
 const groupBy = require('lodash/groupBy.js')
 const { dirname, join, normalize, resolve } = require('path')
 const { createLogger } = require('@xen-orchestra/log')
-const { Constants, createVhdDirectoryFromStream, openVhd, VhdAbstract, VhdSynthetic } = require('vhd-lib')
+const { Constants, createVhdDirectoryFromStream, openVhd, VhdAbstract, VhdDirectory, VhdSynthetic } = require('vhd-lib')
 const { deduped } = require('@vates/disposable/deduped.js')
 const { execFile } = require('child_process')
 const { readdir, stat } = require('fs-extra')
@@ -68,10 +68,11 @@ const debounceResourceFactory = factory =>
   }
 
 class RemoteAdapter {
-  constructor(handler, { debounceResource = res => res, dirMode } = {}) {
+  constructor(handler, { debounceResource = res => res, dirMode, vhdDirectoryCompression } = {}) {
     this._debounceResource = debounceResource
     this._dirMode = dirMode
     this._handler = handler
+    this._vhdDirectoryCompression = vhdDirectoryCompression
   }
 
   get handler() {
@@ -191,6 +192,22 @@ class RemoteAdapter {
     return files
   }
 
+  // check if we will be allowed to merge a a vhd created in this adapter
+  // with the vhd at path `path`
+  async isMergeableParent(packedParentUid, path) {
+    return await Disposable.use(openVhd(this.handler, path), vhd => {
+      // this baseUuid is not linked with this vhd
+      if (!vhd.footer.uuid.equals(packedParentUid)) {
+        return false
+      }
+
+      const isVhdDirectory = vhd instanceof VhdDirectory
+      return isVhdDirectory
+        ? this.#useVhdDirectory() && this.#getCompressionType() === vhd.compressionType
+        : !this.#useVhdDirectory()
+    })
+  }
+
   fetchPartitionFiles(diskId, partitionId, paths) {
     const { promise, reject, resolve } = pDefer()
     Disposable.use(
@@ -262,6 +279,18 @@ class RemoteAdapter {
     ])
   }
 
+  #getCompressionType() {
+    return this._vhdDirectoryCompression
+  }
+
+  #useVhdDirectory() {
+    return this.handler.type === 's3'
+  }
+
+  #useAlias() {
+    return this.#useVhdDirectory()
+  }
+
   getDisk = Disposable.factory(this.getDisk)
   getDisk = deduped(this.getDisk, diskId => [diskId])
   getDisk = debounceResourceFactory(this.getDisk)
@@ -318,13 +347,10 @@ class RemoteAdapter {
     return yield this._getPartition(devicePath, await this._findPartition(devicePath, partitionId))
   }
 
-  // this function will be the one where we plug the logic of the storage format by fs type/user settings
-
-  // if the file is named .vhd => vhd
-  // if the file is named alias.vhd => alias to a vhd
+  // if we use alias on this remote, we have to name the file alias.vhd
   getVhdFileName(baseName) {
-    if (this._handler.type === 's3') {
-      return `${baseName}.alias.vhd` // we want an alias to a vhddirectory
+    if (this.#useAlias()) {
+      return `${baseName}.alias.vhd`
     }
     return `${baseName}.vhd`
   }
@@ -476,10 +502,11 @@ class RemoteAdapter {
   async writeVhd(path, input, { checksum = true, validator = noop } = {}) {
     const handler = this._handler
 
-    if (path.endsWith('.alias.vhd')) {
+    if (this.#useVhdDirectory()) {
       const dataPath = `${dirname(path)}/data/${uuidv4()}.vhd`
       await createVhdDirectoryFromStream(handler, dataPath, input, {
         concurrency: 16,
+        compression: this.#getCompressionType(),
         async validator() {
           await input.task
           return validator.apply(this, arguments)

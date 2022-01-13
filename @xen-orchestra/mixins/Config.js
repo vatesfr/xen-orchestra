@@ -32,7 +32,7 @@ module.exports = class Config {
   get(path) {
     const value = get(this._config, path)
     if (value === undefined) {
-      throw new TypeError('missing config entry: ' + value)
+      throw new TypeError('missing config entry: ' + path)
     }
     return value
   }

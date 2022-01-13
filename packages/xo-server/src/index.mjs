@@ -22,7 +22,7 @@ import serveStatic from 'serve-static'
 import stoppable from 'stoppable'
 import WebServer from 'http-server-plus'
 import WebSocket, { WebSocketServer } from 'ws'
-import xdg from 'xdg-basedir'
+import { xdgConfig } from 'xdg-basedir'
 import { createLogger } from '@xen-orchestra/log'
 import { createRequire } from 'module'
 import { genSelfSignedCert } from '@xen-orchestra/self-signed'
@@ -99,7 +99,7 @@ async function loadConfiguration() {
   return config
 }
 
-const LOCAL_CONFIG_FILE = `${xdg.config}/${APP_NAME}/config.z-auto.json`
+const LOCAL_CONFIG_FILE = `${xdgConfig}/${APP_NAME}/config.z-auto.json`
 async function updateLocalConfig(diff) {
   // TODO lock file
   const localConfig = await fse.readFile(LOCAL_CONFIG_FILE).then(JSON.parse, () => ({}))
@@ -733,27 +733,6 @@ export default async function main(args) {
     log.warn('Failed to change user/group:', { error })
   }
 
-  const safeMode = includes(args, '--safe-mode')
-
-  // Creates main object.
-  const xo = new Xo({
-    appDir: APP_DIR,
-    appName: APP_NAME,
-    appVersion: APP_VERSION,
-    config,
-    httpServer: webServer,
-    safeMode,
-  })
-
-  // Register web server close on XO stop.
-  xo.hooks.on('stop', () => fromCallback.call(webServer, 'stop'))
-
-  // Connects to all registered servers.
-  await xo.hooks.start()
-
-  // Trigger a clean job.
-  await xo.hooks.clean()
-
   // Express is used to manage non WebSocket connections.
   const express = await createExpressApp(config)
 
@@ -779,6 +758,32 @@ export default async function main(args) {
     }
   }
 
+  // Attaches express to the web server.
+  webServer.on('request', express)
+  webServer.on('upgrade', (req, socket, head) => {
+    express.emit('upgrade', req, socket, head)
+  })
+
+  const safeMode = includes(args, '--safe-mode')
+
+  // Creates main object.
+  const xo = new Xo({
+    appDir: APP_DIR,
+    appName: APP_NAME,
+    appVersion: APP_VERSION,
+    config,
+    safeMode,
+  })
+
+  // Register web server close on XO stop.
+  xo.hooks.on('stop', () => fromCallback.call(webServer, 'stop'))
+
+  // Connects to all registered servers.
+  await xo.hooks.start()
+
+  // Trigger a clean job.
+  await xo.hooks.clean()
+
   // Must be set up before the API.
   setUpConsoleProxy(webServer, xo)
 
@@ -788,12 +793,6 @@ export default async function main(args) {
   // Everything above is not protected by the sign in, allowing xo-cli
   // to work properly.
   await setUpPassport(express, xo, config)
-
-  // Attaches express to the web server.
-  webServer.on('request', express)
-  webServer.on('upgrade', (req, socket, head) => {
-    express.emit('upgrade', req, socket, head)
-  })
 
   // Must be set up before the static files.
   setUpApi(webServer, xo, config)
