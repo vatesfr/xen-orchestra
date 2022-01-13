@@ -6,7 +6,8 @@
 ### Enhancements
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
-- [Proxy] Now ships a reverse proxy [PR#6071](https://github.com/vatesfr/xen-orchestra/pull/6072)
+- [Proxy] Now ships a reverse proxy [PR#6072](https://github.com/vatesfr/xen-orchestra/pull/6072)
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
