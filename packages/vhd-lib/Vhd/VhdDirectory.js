@@ -169,6 +169,7 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
     // https://www.backblaze.com/b2/docs/calling.html#error_handling
     return pRetry(async () => this._handler.outputFile(this._getChunkPath(partName), compressed, this._opts), {
       tries: 5,
+      delays: [100, 200, 500, 1000, 2000],
       when: e => e.code === 'InternalError',
       onRetry: () => {
         warn('retrying writechunk', { partName })
