@@ -1,4 +1,4 @@
-import ReverseProxy from '../dist/app/mixins/reverseProxy.mjs'
+import ReverseProxy, { backendToLocalPath, localToBackendUrl } from '../dist/app/mixins/reverseProxy.mjs'
 import { deepEqual, strictEqual } from 'assert'
 
 function makeApp(reverseProxies) {
@@ -51,7 +51,7 @@ for (const proxyId in expectedLocalToRemote) {
   for (const { local, remote } of expectedLocalToRemote[proxyId]) {
     const config = proxy._getConfigFromRequest({ url: local })
     const url = new URL(config.target)
-    strictEqual(proxy._localToBackendUrl(config.path, url, local).href, remote, 'error converting to backend')
+    strictEqual(localToBackendUrl(config.path, url, local).href, remote, 'error converting to backend')
   }
 }
 
@@ -82,7 +82,7 @@ for (const proxyId in expectedRemoteToLocal) {
     const config = proxy._getConfigFromRequest({ url: local })
     const targetUrl = new URL('https://localhost:8080/remotePath/?baseParm=1#one=2&another=3')
     const remoteUrl = new URL(remote, targetUrl)
-    strictEqual(proxy._backendToLocalPath(config.path, targetUrl, remoteUrl), local, 'error converting to local')
+    strictEqual(backendToLocalPath(config.path, targetUrl, remoteUrl), local, 'error converting to local')
   }
 }
 

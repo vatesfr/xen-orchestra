@@ -18,26 +18,27 @@ function mergeUrl(relative, base) {
   res.hash = relativeUrl.hash.length > 0 ? relativeUrl.hash : res.hash
   return res
 }
+
+export function backendToLocalPath(basePath, target, backendUrl) {
+  // keep redirect url relative to local server
+  const localPath = `${basePath}/${backendUrl.pathname.substring(target.pathname.length)}${backendUrl.search}${
+    backendUrl.hash
+  }`
+  return localPath
+}
+
+export function localToBackendUrl(basePath, target, localPath) {
+  let localPathWithoutBase = removeSlash(localPath).substring(basePath.length)
+  localPathWithoutBase = './' + removeSlash(localPathWithoutBase)
+  const url = mergeUrl(localPathWithoutBase, target)
+  return url
+}
+
 export default class ReverseProxy {
   constructor(app, { httpServer }) {
     this._app = app
     httpServer.on('request', (req, res) => this.proxy(req, res))
     httpServer.on('upgrade', (req, socket, head) => this.upgrade(req, socket, head))
-  }
-
-  _localToBackendUrl(basePath, target, localPath) {
-    let localPathWithoutBase = removeSlash(localPath).substring(basePath.length)
-    localPathWithoutBase = './' + removeSlash(localPathWithoutBase)
-    const url = mergeUrl(localPathWithoutBase, target)
-    return url
-  }
-
-  _backendToLocalPath(basePath, target, backendUrl) {
-    // keep redirect url relative to local server
-    const localPath = `${basePath}/${backendUrl.pathname.substring(target.pathname.length)}${backendUrl.search}${
-      backendUrl.hash
-    }`
-    return localPath
   }
 
   _getConfigFromRequest(req) {
@@ -74,7 +75,7 @@ export default class ReverseProxy {
     }
 
     const url = new URL(config.target)
-    const targetUrl = this._localToBackendUrl(config.path, url, req.originalUrl || req.url)
+    const targetUrl = localToBackendUrl(config.path, url, req.originalUrl || req.url)
     proxy.web(req, res, {
       ...urlToHttpOptions(targetUrl),
       ...config.options,
@@ -97,7 +98,7 @@ export default class ReverseProxy {
           }
           res.writeHead(proxyRes.statusCode, {
             ...proxyRes.headers,
-            location: this._backendToLocalPath(config.path, url, redirectTargetLocation),
+            location: backendToLocalPath(config.path, url, redirectTargetLocation),
           })
           res.end()
           return
@@ -119,7 +120,7 @@ export default class ReverseProxy {
     }
 
     const { path, target, options } = config
-    const targetUrl = this._localToBackendUrl(path, target, req.originalUrl || req.url)
+    const targetUrl = localToBackendUrl(path, target, req.originalUrl || req.url)
     proxy.ws(req, socket, head, {
       ...urlToHttpOptions(targetUrl),
       ...options,
