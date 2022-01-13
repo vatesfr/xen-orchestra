@@ -79,8 +79,8 @@ export default class ReverseProxy {
       onReq: (req, { headers }) => {
         headers['x-forwarded-for'] = req.socket.remoteAddress
         headers['x-forwarded-proto'] = req.socket.encrypted ? 'https' : 'http'
-        if(req.headers['host'] !== undefined){
-          headers['x-forwarded-host'] = req.headers['host']
+        if (req.headers.host !== undefined) {
+          headers['x-forwarded-host'] = req.headers.host
         }
       },
       onRes: (req, res, proxyRes) => {

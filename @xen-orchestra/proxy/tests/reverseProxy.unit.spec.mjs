@@ -12,9 +12,9 @@ function makeApp(reverseProxies) {
 const app = makeApp({
   https: {
     target: 'https://localhost:8080/remotePath/?baseParm=1#one=2&another=3',
-    oneOption: true
+    oneOption: true,
   },
-  http: 'http://localhost:8080/remotePath/?baseParm=1#one=2&another=3'
+  http: 'http://localhost:8080/remotePath/?baseParm=1#one=2&another=3',
 })
 
 // test localToBackendUrl
@@ -90,35 +90,34 @@ for (const proxyId in expectedRemoteToLocal) {
 
 const expectedConfig = [
   {
-  local: '/proxy/v1/http/other',
-  config: {
-    target: 'http://localhost:8080/remotePath/?baseParm=1#one=2&another=3',
-    options: {},
-    path:  '/proxy/v1/http'
-  }
+    local: '/proxy/v1/http/other',
+    config: {
+      target: 'http://localhost:8080/remotePath/?baseParm=1#one=2&another=3',
+      options: {},
+      path: '/proxy/v1/http',
+    },
   },
   {
     local: '/proxy/v1/http',
-    config: undefined
+    config: undefined,
   },
 
   {
     local: '/proxy/v1/other',
-    config: undefined
+    config: undefined,
+  },
+  {
+    local: '/proxy/v1/https/',
+    config: {
+      target: 'https://localhost:8080/remotePath/?baseParm=1#one=2&another=3',
+      options: {
+        oneOption: true,
+      },
+      path: '/proxy/v1/https',
     },
-    {
-      local: '/proxy/v1/https/',
-      config: {
-        target: 'https://localhost:8080/remotePath/?baseParm=1#one=2&another=3',
-        options: {
-          oneOption: true
-        },
-        path:  '/proxy/v1/https'
-      }
-    }
+  },
 ]
-const config = proxy._getConfigFromRequest({ url: '/http/out' })
 
-for( const {local, config} of expectedConfig){
-  deepEqual(proxy._getConfigFromRequest({ url:local }), config)
+for (const { local, config } of expectedConfig) {
+  deepEqual(proxy._getConfigFromRequest({ url: local }), config)
 }
