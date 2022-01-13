@@ -92,9 +92,7 @@ export default class ReverseProxy {
           return
         }
         // pass through the answer of the remote server
-        res.writeHead(proxyRes.statusCode, {
-          ...proxyRes.headers,
-        })
+        res.writeHead(proxyRes.statusCode, proxyRes.headers)
         // pass through content
         proxyRes.pipe(res)
       },
