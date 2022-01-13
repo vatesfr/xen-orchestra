@@ -68,6 +68,8 @@ export default class ReverseProxy {
     const config = this._getConfigFromRequest(req)
 
     if (config === undefined) {
+      res.writeHead(404)
+      res.end('404')
       return
     }
 
