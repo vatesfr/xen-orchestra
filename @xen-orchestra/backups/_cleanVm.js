@@ -103,7 +103,7 @@ const INTERRUPTED_VHDS_REG = /^\.(.+)\.merge.json$/
 const listVhds = async (handler, vmDir) => {
   const vhds = new Set()
   const aliases = {}
-  const interruptedVhds = new Set()
+  const interruptedVhds = new Map()
 
   await asyncMap(
     await handler.list(`${vmDir}/vdis`, {
@@ -125,7 +125,7 @@ const listVhds = async (handler, vmDir) => {
             if (res === null) {
               vhds.add(`${vdiDir}/${file}`)
             } else {
-              interruptedVhds.add(`${vdiDir}/${res[1]}`)
+              interruptedVhds.set(`${vdiDir}/${res[1]}`, `${vdiDir}/${file}`)
             }
           })
         }
@@ -203,7 +203,7 @@ exports.cleanVm = async function cleanVm(
   const vhdParents = { __proto__: null }
   const vhdChildren = { __proto__: null }
 
-  const { vhds, interruptedVhds } = await listVhds(handler, vmDir)
+  const { vhds, interruptedVhds, aliases } = await listVhds(handler, vmDir)
 
   // remove broken VHDs
   await asyncMap(vhds, async path => {
@@ -231,10 +231,28 @@ exports.cleanVm = async function cleanVm(
       }
     }
   })
+
+  // remove interrupted merge states for missing VHDs
+  for (const interruptedVhd of interruptedVhds.keys()) {
+    if (!vhds.has(interruptedVhd)) {
+      const statePath = interruptedVhds.get(interruptedVhd)
+      interruptedVhds.delete(interruptedVhd)
+
+      onLog('orphan merge state', {
+        mergeStatePath: statePath,
+        missingVhdPath: interruptedVhd,
+      })
+      if (remove) {
+        onLog(`deleting orphan merge state ${statePath}`)
+        await handler.unlink(statePath)
+      }
+    }
+  }
+
   // check if alias are correct
   // check if all vhd in data subfolder have a corresponding alias
-  await asyncMap(Object.keys(vhdsList.aliases), async dir => {
-    const aliases = vhdsList.aliases[dir]
+  await asyncMap(Object.keys(aliases), async dir => {
+    const aliases = aliases[dir]
     await checkAliases(aliases, `${dir}/data`, { handler, onLog, remove })
   })
 
@@ -399,9 +417,9 @@ exports.cleanVm = async function cleanVm(
     })
 
     // merge interrupted VHDs
-    interruptedVhds.forEach(parent => {
+    for (const parent of interruptedVhds.keys()) {
       vhdChainsToMerge[parent] = [vhdChildren[parent], parent]
-    })
+    }
 
     Object.values(vhdChainsToMerge).forEach(chain => {
       if (chain !== undefined) {

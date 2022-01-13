@@ -408,6 +408,14 @@ describe('tests multiple combination ', () => {
   }
 })
 
+test('it cleans orphan merge states ', async () => {
+  await handler.writeFile(`${basePath}/.orphan.vhd.merge.json`, '')
+
+  await adapter.cleanVm('/', { remove: true })
+
+  expect(await handler.list(basePath)).toEqual([])
+})
+
 test('check Aliases should work alone', async () => {
   await handler.mkdir('vhds')
   await handler.mkdir('vhds/data')
