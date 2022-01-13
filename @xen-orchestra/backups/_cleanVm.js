@@ -252,8 +252,7 @@ exports.cleanVm = async function cleanVm(
   // check if alias are correct
   // check if all vhd in data subfolder have a corresponding alias
   await asyncMap(Object.keys(aliases), async dir => {
-    const aliases = aliases[dir]
-    await checkAliases(aliases, `${dir}/data`, { handler, onLog, remove })
+    await checkAliases(aliases[dir], `${dir}/data`, { handler, onLog, remove })
   })
 
   // remove VHDs with missing ancestors
