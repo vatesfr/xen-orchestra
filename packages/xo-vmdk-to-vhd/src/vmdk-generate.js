@@ -37,19 +37,20 @@ export async function generateVmdkData(
 ) {
   const cid = Math.floor(Math.random() * Math.pow(2, 32))
   const diskCapacitySectors = Math.ceil(diskCapacityBytes / SECTOR_SIZE)
+  // Virtual Box can't parse indented descriptors
   const descriptor = `# Disk DescriptorFile
-        version=1
-                       CID=${cid}
-                       parentCID=ffffffff
-                       createType="streamOptimized"
-        # Extent description
-                       RW ${diskCapacitySectors} SPARSE "${diskName}"
-        # The Disk Data Base
-                       #DDB
-                       ddb.adapterType = "ide"
-                       ddb.geometry.sectors = "${geometry.sectorsPerTrackCylinder}"
-                       ddb.geometry.heads = "${geometry.heads}"
-                       ddb.geometry.cylinders = "${geometry.cylinders}"
+version=1
+CID=${cid}
+parentCID=ffffffff
+createType="streamOptimized"
+# Extent description
+RW ${diskCapacitySectors} SPARSE "${diskName}"
+# The Disk Data Base
+#DDB
+ddb.adapterType = "ide"
+ddb.geometry.sectors = "${geometry.sectorsPerTrackCylinder}"
+ddb.geometry.heads = "${geometry.heads}"
+ddb.geometry.cylinders = "${geometry.cylinders}"
 `
   const utf8Descriptor = Buffer.from(descriptor, 'utf8')
   const descriptorSizeSectors = Math.ceil(utf8Descriptor.length / SECTOR_SIZE)
