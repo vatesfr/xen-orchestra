@@ -37,8 +37,8 @@ export function localToBackendUrl(basePath, target, localPath) {
 export default class ReverseProxy {
   constructor(app, { httpServer }) {
     this._app = app
-    httpServer.on('request', (req, res) => this.proxy(req, res))
-    httpServer.on('upgrade', (req, socket, head) => this.upgrade(req, socket, head))
+    httpServer.on('request', (req, res) => this._proxy(req, res))
+    httpServer.on('upgrade', (req, socket, head) => this._upgrade(req, socket, head))
   }
 
   _getConfigFromRequest(req) {
@@ -65,7 +65,7 @@ export default class ReverseProxy {
     }
   }
 
-  proxy(req, res) {
+  _proxy(req, res) {
     const config = this._getConfigFromRequest(req)
 
     if (config === undefined) {
@@ -113,7 +113,7 @@ export default class ReverseProxy {
     })
   }
 
-  upgrade(req, socket, head) {
+  _upgrade(req, socket, head) {
     const config = this._getConfigFromRequest(req)
     if (config === undefined) {
       return
