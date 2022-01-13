@@ -9,6 +9,7 @@
 
 - Limit number of concurrent VM migrations per pool to `3` [#6065](https://github.com/vatesfr/xen-orchestra/issues/6065) (PR [#6076](https://github.com/vatesfr/xen-orchestra/pull/6076))
   Can be changed in `xo-server`'s configuration file: `xapiOptions.vmMigrationConcurrency`
+- [Proxy] Now ships a reverse proxy [PR#6072](https://github.com/vatesfr/xen-orchestra/pull/6072)
 
 ### Bug fixes
 
