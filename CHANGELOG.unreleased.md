@@ -11,6 +11,7 @@
   Can be changed in `xo-server`'s configuration file: `xapiOptions.vmMigrationConcurrency`
 - [Proxy] Now ships a reverse proxy [PR#6072](https://github.com/vatesfr/xen-orchestra/pull/6072)
 - [Delta Backup] When using S3 remote, retry uploading VHD parts on Internal Error to support [Blackblaze](https://www.backblaze.com/b2/docs/calling.html#error_handling) (PR [#6086](https://github.com/vatesfr/xen-orchestra/issues/6086)) (Forum [5397](https://xcp-ng.org/forum/topic/5397/delta-backups-failing-aws-s3-uploadpartcopy-cpu-too-busy/5))
+- [Backup] Add sanity check of aliases on S3 remotes (PR [6043](https://github.com/vatesfr/xen-orchestra/pull/6043))
 
 ### Bug fixes
 
