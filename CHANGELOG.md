@@ -1,8 +1,24 @@
 # ChangeLog
 
-## **5.66.1** (2021-12-23)
+## **5.66.2** (2022-01-05)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
+### Bug fixes
+
+- [Import/Disk] Fix `JSON.parse` and `createReadableSparseStream is not a function` errors [#6068](https://github.com/vatesfr/xen-orchestra/issues/6068)
+- [Backup] Fix delta backup are almost always full backup instead of differentials [Forum#5256](https://xcp-ng.org/forum/topic/5256/s3-backup-try-it/69) [Forum#5371](https://xcp-ng.org/forum/topic/5371/delta-backup-changes-in-5-66) (PR [#6075](https://github.com/vatesfr/xen-orchestra/pull/6075))
+
+### Released packages
+
+- vhd-lib 3.0.0
+- xo-vmdk-to-vhd 2.0.3
+- @xen-orchestra/backups 0.18.3
+- @xen-orchestra/proxy 0.17.3
+- xo-server 5.86.3
+- xo-web 5.91.2
+
+## **5.66.1** (2021-12-23)
 
 ### Bug fixes
 

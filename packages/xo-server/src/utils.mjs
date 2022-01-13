@@ -1,5 +1,5 @@
 import base64url from 'base64url'
-import fastXmlParser from 'fast-xml-parser'
+import { XMLParser } from 'fast-xml-parser'
 import forEach from 'lodash/forEach.js'
 import has from 'lodash/has.js'
 import highland from 'highland'
@@ -84,16 +84,16 @@ export const generateToken = (randomBytes => {
 // -------------------------------------------------------------------
 
 export const parseXml = (function () {
-  const opts = {
+  const parser = new XMLParser({
     attributeNamePrefix: '',
     ignoreAttributes: false,
-    parseNodeValue: false,
+    parseTagValue: false,
     parseAttributeValue: false,
-  }
+  })
 
   return xml => {
     try {
-      return fastXmlParser.parse(Buffer.isBuffer(xml) ? xml.toString() : xml, opts, true)
+      return parser.parse(Buffer.isBuffer(xml) ? xml.toString() : xml)
     } catch (error) {
       log.warn('parseXml', { error, xml })
       return ''

@@ -7,11 +7,15 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- Limit number of concurrent VM migrations per pool to `3` [#6065](https://github.com/vatesfr/xen-orchestra/issues/6065) (PR [#6076](https://github.com/vatesfr/xen-orchestra/pull/6076))
+  Can be changed in `xo-server`'s configuration file: `xapiOptions.vmMigrationConcurrency`
 - [Proxy] Now ships a reverse proxy [PR#6072](https://github.com/vatesfr/xen-orchestra/pull/6072)
 
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
+
+- [Backup] Detect and clear orphan merge states, fix `ENOENT` errors (PR [#6087](https://github.com/vatesfr/xen-orchestra/pull/6087))
 
 ### Packages to release
 
@@ -30,5 +34,7 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
-- vhd-lib major
+- @xen-orchestra/backups minor
+- @xen-orchestra/backups-cli minor
 - @xen-orchestra/proxy minor
+- xo-server minor

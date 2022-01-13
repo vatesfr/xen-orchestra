@@ -40,7 +40,14 @@ exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(Ab
         await asyncMap(vhds, async path => {
           try {
             await checkVhdChain(handler, path)
-            found = found || (await adapter.isMergeableParent(packedBaseUuid, path))
+            // Warning, this should not be written as found = found || await adapter.isMergeableParent(packedBaseUuid, path)
+            //
+            // since all the checks of a path are done in parallel, found would be containing
+            // only the last answer of isMergeableParent which is probably not the right one
+            // this led to the support tickets  https://help.vates.fr/#ticket/zoom/4751 , 4729, 4665 and 4300
+
+            const isMergeable = await adapter.isMergeableParent(packedBaseUuid, path)
+            found = found || isMergeable
           } catch (error) {
             warn('checkBaseVdis', { error })
             await ignoreErrors.call(VhdAbstract.unlink(handler, path))

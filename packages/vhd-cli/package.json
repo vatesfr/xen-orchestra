@@ -29,7 +29,7 @@
     "exec-promise": "^0.7.0",
     "getopts": "^2.2.3",
     "human-format": "^0.11.0",
-    "vhd-lib": "^2.1.0"
+    "vhd-lib": "^3.0.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.0.0",
