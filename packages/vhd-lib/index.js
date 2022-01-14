@@ -1,3 +1,4 @@
+
 exports.chainVhd = require('./chain')
 exports.checkFooter = require('./checkFooter')
 exports.checkVhdChain = require('./checkChain')
@@ -12,3 +13,6 @@ exports.VhdDirectory = require('./Vhd/VhdDirectory').VhdDirectory
 exports.VhdFile = require('./Vhd/VhdFile').VhdFile
 exports.VhdSynthetic = require('./Vhd/VhdSynthetic').VhdSynthetic
 exports.Constants = require('./_constants')
+const {isVhdAlias, resolveAlias} = require('./_resolveAlias')
+exports.isVhdAlias = isVhdAlias
+exports.resolveAlias = resolveAlias
