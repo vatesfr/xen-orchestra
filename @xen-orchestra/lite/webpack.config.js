@@ -54,9 +54,17 @@ module.exports = {
   devtool: __PROD__ ? 'source-map' : 'eval-cheap-module-source-map',
   plugins: [
     new (require('clean-webpack-plugin').CleanWebpackPlugin)(),
+    new (require('copy-webpack-plugin'))({
+      patterns: [
+        {
+          from: resolveApp('public'),
+          to: resolveApp('dist'),
+          filter: file => file !== resolveApp('public/index.html'),
+        },
+      ],
+    }),
     new (require('html-webpack-plugin'))({
       template: resolveApp('public/index.html'),
-      favicon: resolveApp('public/favicon.ico'),
     }),
     new webpack.EnvironmentPlugin({ XAPI_HOST: '', NPM_VERSION: require('./package.json').version }),
     new (require('node-polyfill-webpack-plugin'))(),
