@@ -1,3 +1,4 @@
+import { defer as deferrable } from 'golike-defer'
 import { format } from 'json-rpc-peer'
 import { Ref } from 'xen-api'
 
@@ -131,19 +132,14 @@ installPatches.description = 'Install patches on hosts'
 
 // -------------------------------------------------------------------
 
-export async function rollingUpdate({ pool }) {
-  const loadBalancerPlugin = (await this.getPlugins()).find(plugin => plugin.name === 'load-balancer')
-  const pauseLoadBalancer = loadBalancerPlugin?.loaded
-  if (pauseLoadBalancer) {
+export const rollingUpdate = deferrable(async function ($defer, { pool }) {
+  if ((await this.getPlugin('load-balancer'))?.loaded) {
     await this.unloadPlugin('load-balancer')
+    $defer(() => this.loadPlugin('load-balancer'))
   }
 
   await this.getXapi(pool).rollingPoolUpdate()
-
-  if (pauseLoadBalancer) {
-    await this.loadPlugin('load-balancer')
-  }
-}
+})
 
 rollingUpdate.params = {
   pool: { type: 'string' },

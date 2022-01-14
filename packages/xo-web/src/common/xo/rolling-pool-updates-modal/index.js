@@ -20,7 +20,8 @@ import { subscribePlugins } from '../'
 export default class RollingPoolUpdateModal extends BaseComponent {
   render() {
     const pool = this.props.pools[this.props.pool]
-    const loadBalancerPlugin = this.props.plugins && this.props.plugins.find(plugin => plugin.name === 'load-balancer')
+    const loadBalancerPlugin =
+      this.props.plugins !== undefined && this.props.plugins.find(plugin => plugin.name === 'load-balancer')
 
     return (
       <div>
@@ -32,7 +33,7 @@ export default class RollingPoolUpdateModal extends BaseComponent {
             </em>
           </p>
         )}
-        {loadBalancerPlugin && loadBalancerPlugin.loaded && (
+        {loadBalancerPlugin !== undefined && loadBalancerPlugin.loaded && (
           <p>
             <em className='text-warning'>
               <Icon icon='alarm' /> {_('rollingPoolUpdateLoadBalancerWarning')}
