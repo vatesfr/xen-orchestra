@@ -19,8 +19,25 @@ const MAX_OBJECT_SIZE = 1024 * 1024 * 1024 * 1024 * 5 // 5TB
 const IDEAL_FRAGMENT_SIZE = Math.ceil(MAX_OBJECT_SIZE / MAX_PARTS_COUNT) // the smallest fragment size that still allows a 5TB upload in 10000 fragments, about 524MB
 
 const { warn } = createLogger('xo:fs:s3')
-
+  // some objectstorage provider like backblaze, can answer a 500/503 routinely
+  // in this case we should retry,  and let their load balancing do its magic
+  // https://www.backblaze.com/b2/docs/calling.html#error_handling
+  const retryOptions = {
+    delays: [100, 200, 500, 1000, 2000],
+    when: e => e.code === 'InternalError',
+    onRetry(error) {
+      warn('retrying writing file', {
+        attemptNumber: this.attemptNumber,
+        delay: this.delay,
+        error,
+        file: this.arguments[0],
+      })
+    },
+  }
 export default class S3Handler extends RemoteHandlerAbstract {
+
+
+
   constructor(remote, _opts) {
     super(remote)
     const { allowUnauthorized, host, path, username, password, protocol, region } = parse(remote.url)
@@ -123,21 +140,7 @@ export default class S3Handler extends RemoteHandlerAbstract {
     }
   }
 
-  // some objectstorage provider like backblaze, can answer a 500/503 routinely
-  // in this case we should retry,  and let their load balancing do its magic
-  // https://www.backblaze.com/b2/docs/calling.html#error_handling
-  @decorateWith(pRetry.wrap, {
-    delays: [100, 200, 500, 1000, 2000],
-    when: e => e.code === 'InternalError',
-    onRetry(error) {
-      warn('retrying writing file', {
-        attemptNumber: this.attemptNumber,
-        delay: this.delay,
-        error,
-        file: this.arguments[0],
-      })
-    },
-  })
+  @decorateWith(pRetry.wrap, retryOptions)
   async _writeFile(file, data, options) {
     return this._s3.putObject({ ...this._createParams(file), Body: data })
   }
