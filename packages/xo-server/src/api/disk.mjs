@@ -79,7 +79,7 @@ create.resolve = {
 
 // -------------------------------------------------------------------
 
-async function handleExportContent(req, res, { xapi, id, format = 'vhd' }) {
+async function handleExportContent(req, res, { xapi, id, format }) {
   const stream = format === 'vmdk' ? await xapi.exportVdiAsVmdk(id) : await xapi.exportVdiContent(id)
   req.on('close', () => stream.destroy())
 
