@@ -121,7 +121,7 @@ export async function exportContent({ vdi, format = VHD }) {
 exportContent.description = 'export the content of a VDI'
 exportContent.params = {
   id: { type: 'string' },
-  format: { type: 'string', optional: true },
+  format: { eq: [VMDK, VHD], optional: true },
 }
 exportContent.resolve = {
   vdi: ['id', ['VDI', 'VDI-snapshot'], 'view'],
