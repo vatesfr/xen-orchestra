@@ -27,10 +27,12 @@ async function* onlyBlocks(iterable, blockSize) {
 export async function parseVhdToBlocks(vhdStream) {
   const iterator = parseVhdStream(vhdStream)
 
-  const footer = (await next(iterator, 'footer')).footer
-  const header = (await next(iterator, 'header')).header
+  const { footer } = await next(iterator, 'footer')
+  const { header } = await next(iterator, 'header')
+
   // ignore all parent locators that could be before the BAT
   const { blockCount } = await next(iterator, 'bat', 'parentLocator')
+
   return {
     blockSize: header.blockSize,
     blockCount,
