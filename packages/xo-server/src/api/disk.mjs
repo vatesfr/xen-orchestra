@@ -79,8 +79,11 @@ create.resolve = {
 
 // -------------------------------------------------------------------
 
+const VHD = 'vhd'
+const VMDK = 'vmdk'
+
 async function handleExportContent(req, res, { xapi, id, format }) {
-  const stream = format === 'vmdk' ? await xapi.exportVdiAsVmdk(id) : await xapi.exportVdiContent(id)
+  const stream = format === VMDK ? await xapi.exportVdiAsVmdk(id) : await xapi.exportVdiContent(id)
   req.on('close', () => stream.destroy())
 
   // Remove the filename as it is already part of the URL.
@@ -94,8 +97,8 @@ async function handleExportContent(req, res, { xapi, id, format }) {
   })
 }
 
-export async function exportContent({ vdi, format = 'vhd' }) {
-  const extension = format === 'vhd' ? 'vhd' : 'vmdk'
+export async function exportContent({ vdi, format = VHD }) {
+  const extension = format === VHD ? 'vhd' : 'vmdk'
   let filename = vdi.name_label
   if (filename === '') {
     filename = 'unknown'
