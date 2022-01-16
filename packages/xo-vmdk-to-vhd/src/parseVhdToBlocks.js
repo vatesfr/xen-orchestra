@@ -1,5 +1,5 @@
 import assert from 'assert'
-import { parseVhdStream } from 'vhd-lib'
+import { parseVhdStream } from 'vhd-lib/parseVhdStream.js'
 
 async function next(iterator, type, skipableType) {
   let item
