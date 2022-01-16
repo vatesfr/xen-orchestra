@@ -1132,6 +1132,7 @@ const messages = {
   destroySelectedVdis: 'Destroy selected VDIs',
   destroyVdi: 'Destroy VDI',
   exportVdi: 'Export VDI content',
+  format: 'Format',
   importVdi: 'Import VDI content',
   importVdiNoFile: 'No file selected',
   selectVdiMessage: 'Drop VHD file here',
@@ -1141,6 +1142,8 @@ const messages = {
   warningVdiSr: "The VDIs' SRs must either be shared or on the same host for the VM to be able to start.",
   removeSelectedVdisFromVm: 'Remove selected VDIs from this VM',
   removeVdiFromVm: 'Remove VDI from this VM',
+  vhd: 'VHD',
+  vmdk: 'VMDK',
 
   // ----- VM network tab -----
 
