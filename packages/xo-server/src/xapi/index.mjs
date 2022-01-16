@@ -1707,18 +1707,14 @@ export default class Xapi extends XapiBase {
     })
   }
 
-  async exportVdiAsVmdk(vdi, { cancelToken = CancelToken.none, base } = {}) {
+  async exportVdiAsVmdk(vdi, filename, { cancelToken = CancelToken.none, base } = {}) {
     vdi = this.getObject(vdi)
     const params = { cancelToken, format: VDI_FORMAT_VHD }
     if (base !== undefined) {
       params.base = base
     }
     const vhdResult = await this.VDI_exportContent(vdi.$ref, params)
-    let filename = vdi.name_label
-    if (filename === '') {
-      filename = 'unknown'
-    }
-    const vmdkStream = await vhdToVMDK(`${filename}.vmdk`, vhdResult)
+    const vmdkStream = await vhdToVMDK(filename, vhdResult)
     // callers expect the stream to be an HTTP response.
     vmdkStream.headers = {
       ...vhdResult.headers,
