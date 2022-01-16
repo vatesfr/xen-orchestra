@@ -7,7 +7,6 @@ exports.createVhdDirectoryFromStream = require('./createVhdDirectoryFromStream')
 exports.mergeVhd = require('./merge')
 exports.peekFooterFromVhdStream = require('./peekFooterFromVhdStream')
 exports.openVhd = require('./openVhd').openVhd
-exports.parseVhdStream = require('./parseVhdStream').parseVhdStream
 exports.VhdAbstract = require('./Vhd/VhdAbstract').VhdAbstract
 exports.VhdDirectory = require('./Vhd/VhdDirectory').VhdDirectory
 exports.VhdFile = require('./Vhd/VhdFile').VhdFile
