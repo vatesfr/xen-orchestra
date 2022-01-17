@@ -119,7 +119,7 @@ const listVhds = async (handler, vmDir) => {
           const list = await handler.list(vdiDir, {
             filter: file => isVhdFile(file) || INTERRUPTED_VHDS_REG.test(file),
           })
-          aliases[vdiDir] = list.filter(vhd => isVhdAlias(vhd))
+          aliases[vdiDir] = list.filter(vhd => isVhdAlias(vhd)).map(file => `${vdiDir}/${file}`)
           list.forEach(file => {
             const res = INTERRUPTED_VHDS_REG.exec(file)
             if (res === null) {
@@ -249,15 +249,11 @@ exports.cleanVm = async function cleanVm(
     }
   }
 
-  // 2022-01-17 - FBP & JFT - Temporary disable aliases checking as it appears problematic
-  //
   // check if alias are correct
   // check if all vhd in data subfolder have a corresponding alias
-  // await asyncMap(Object.keys(aliases), async dir => {
-  //   await checkAliases(aliases[dir], `${dir}/data`, { handler, onLog, remove })
-  // })
-  // Avoid a ESLint unused variable
-  noop(aliases)
+  await asyncMap(Object.keys(aliases), async dir => {
+    await checkAliases(aliases[dir], `${dir}/data`, { handler, onLog, remove })
+  })
 
   // remove VHDs with missing ancestors
   {
