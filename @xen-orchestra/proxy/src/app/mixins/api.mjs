@@ -45,8 +45,8 @@ export default class Api {
   constructor(app, { appVersion, httpServer }) {
     this._ajv = new Ajv({ allErrors: true })
     this._methods = { __proto__: null }
-
-    const router = new Router({ prefix: '/api/v1' }).post('/', async ctx => {
+    const PREFIX = '/api/v1'
+    const router = new Router({ prefix: PREFIX }).post('/', async ctx => {
       // Before Node 13.0 there was an inactivity timeout of 2 mins, which may
       // not be enough for the API.
       ctx.req.setTimeout(0)
@@ -102,6 +102,7 @@ export default class Api {
           // breaks, send some data every 10s to keep it opened.
           const stopTimer = clearInterval.bind(
             undefined,
+            // @to check : can this add space inside binary data ?
             setInterval(() => stream.push(' '), keepAliveInterval)
           )
           stream.on('end', stopTimer).on('error', stopTimer)
@@ -118,7 +119,14 @@ export default class Api {
       .use(router.routes())
       .use(router.allowedMethods())
 
-    httpServer.on('request', koa.callback())
+    const callback = koa.callback()
+    httpServer.on('request', (req, res) => {
+      // only answers to query to the root url of this mixin
+      // do it before giving the request to Koa to ensure it's not modified
+      if (req.url.startsWith(PREFIX)) {
+        callback(req, res)
+      }
+    })
 
     this.addMethods({
       system: {

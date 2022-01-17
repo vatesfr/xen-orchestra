@@ -46,7 +46,6 @@
       ],
       "^(value-matcher)$": "$1/src",
       "^(vhd-cli)$": "$1/src",
-      "^(vhd-lib)$": "$1/src",
       "^(xo-[^/]+)$": [
         "$1/src",
         "$1"

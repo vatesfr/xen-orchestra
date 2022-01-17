@@ -22,7 +22,7 @@
     "xo-proxy": "dist/index.mjs"
   },
   "engines": {
-    "node": ">=14.13"
+    "node": ">=14.18"
   },
   "dependencies": {
     "@iarna/toml": "^2.2.0",
@@ -46,6 +46,7 @@
     "getopts": "^2.2.3",
     "golike-defer": "^0.5.1",
     "http-server-plus": "^0.11.0",
+    "http2-proxy": "^5.0.53",
     "json-rpc-protocol": "^0.13.1",
     "jsonrpc-websocket-client": "^0.7.2",
     "koa": "^2.5.1",
