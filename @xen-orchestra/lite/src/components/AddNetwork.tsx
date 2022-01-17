@@ -13,7 +13,7 @@ import IntlMessage from './IntlMessage'
 import Select from './Select'
 import { alert } from './Modal'
 
-import XapiConnection, { ObjectsByType, Pif, PifMetrics } from '../libs/xapi'
+import XapiConnection, { BOND_MODE, ObjectsByType, Pif, PifMetrics } from '../libs/xapi'
 
 interface ParentState {
   objectsByType: ObjectsByType
@@ -27,10 +27,12 @@ interface State {
     bondMode: string
     description: string
     isBonded: boolean
+    isEmptyBondMode: boolean
     isEmptyLabel: boolean
+    isInsufficientNumberOfInterfaces: boolean
     mtu: string
     nameLabel: string
-    pifsId: string | string[]
+    pifsId: string[]
     vlan: string
   }
 }
@@ -52,8 +54,6 @@ interface Computed {
   pifsMetrics?: Map<string, PifMetrics>
 }
 
-const BOND_MODE = ['active-backup', 'balance-slb', 'lacp']
-
 const BUTTON_STYLES = {
   marginRight: '1em',
   width: 'fit-content',
@@ -71,10 +71,12 @@ const getInitialFormState = (): State['form'] => ({
   bondMode: '',
   description: '',
   isBonded: false,
+  isEmptyBondMode: false,
   isEmptyLabel: false,
+  isInsufficientNumberOfInterfaces: false,
   mtu: '',
   nameLabel: '',
-  pifsId: '',
+  pifsId: [],
   vlan: '',
 })
 
@@ -95,12 +97,32 @@ const AddNetwork = withState<State, Props, Effects, Computed, ParentState, Paren
     },
     effects: {
       createNetwork: async function () {
-        const { bondMode, description, mtu, nameLabel, pifsId, vlan } = this.state.form
+        const { bondMode, description, isBonded, mtu, nameLabel, pifsId, vlan } = this.state.form
         if (nameLabel.trim() === '') {
           this.state.form = {
             ...this.state.form,
             isEmptyLabel: true,
           }
+        }
+        if (isBonded) {
+          if (bondMode === '') {
+            this.state.form = {
+              ...this.state.form,
+              isEmptyBondMode: true,
+            }
+          }
+          if (pifsId.length < 2) {
+            this.state.form = {
+              ...this.state.form,
+              isInsufficientNumberOfInterfaces: true,
+            }
+          }
+        }
+        if (
+          this.state.form.isEmptyLabel ||
+          this.state.form.isEmptyBondMode ||
+          this.state.form.isInsufficientNumberOfInterfaces
+        ) {
           return
         }
         try {
@@ -111,19 +133,17 @@ const AddNetwork = withState<State, Props, Effects, Computed, ParentState, Paren
               name_label: nameLabel,
               VLAN: +vlan,
               bondMode: bondMode === '' ? undefined : bondMode,
-              pifsId: pifsId === '' ? undefined : Array.isArray(pifsId) ? pifsId : [pifsId],
+              pifsId: pifsId.length < 1 ? undefined : pifsId,
             },
           ])
           this.effects.resetForm()
         } catch (error) {
           console.error(error)
-          if (error instanceof Error) {
-            alert({
-              icon: 'exclamation-triangle',
-              message: <p>{error.message}</p>,
-              title: <IntlMessage id='networkCreation' />,
-            })
-          }
+          alert({
+            icon: 'exclamation-triangle',
+            message: error instanceof Error ? error.message : <IntlMessage id='errorOccurred' />,
+            title: <IntlMessage id='networkCreation' />,
+          })
         }
       },
       handleChange: function ({ target: { name, value } }) {
@@ -134,9 +154,17 @@ const AddNetwork = withState<State, Props, Effects, Computed, ParentState, Paren
         // element for the lifetime of the component.
         // More info: https://reactjs.org/link/controlled-components
         const { form } = this.state
+        if (name === 'bondMode') {
+          form.isEmptyBondMode = false
+        }
         if (name === 'nameLabel') {
           form.isEmptyLabel = false
         }
+        if (name === 'pifsId') {
+          form.isInsufficientNumberOfInterfaces = false
+          value = form.isBonded ? value : [value]
+        }
+
         if (form[name] !== undefined) {
           this.state.form = {
             ...form,
@@ -152,8 +180,6 @@ const AddNetwork = withState<State, Props, Effects, Computed, ParentState, Paren
         this.state.form = {
           ...this.state.form,
           isBonded,
-          // In bonded network case, we need an array to send severale pif id
-          pifsId: isBonded ? [] : '',
         }
       },
     },
@@ -163,7 +189,18 @@ const AddNetwork = withState<State, Props, Effects, Computed, ParentState, Paren
     state: {
       pifsMetrics,
       collection,
-      form: { bondMode, description, isBonded, isEmptyLabel, mtu, nameLabel, pifsId, vlan },
+      form: {
+        bondMode,
+        description,
+        isBonded,
+        isEmptyBondMode,
+        isInsufficientNumberOfInterfaces,
+        isEmptyLabel,
+        mtu,
+        nameLabel,
+        pifsId,
+        vlan,
+      },
     },
   }) => (
     <form
@@ -177,11 +214,13 @@ const AddNetwork = withState<State, Props, Effects, Computed, ParentState, Paren
       <Checkbox checked={isBonded} name='bonded' onChange={toggleBonded} />
       <div>
         <label>
-          <IntlMessage id='interface' />
+          <IntlMessage id='interface' values={{ nInterface: isBonded ? 2 : 1 }} />
+          {isBonded && ' *'}
         </label>
         <Select
           additionalProps={{ pifsMetrics }}
           containerStyle={INPUT_STYLES}
+          error={isInsufficientNumberOfInterfaces}
           multiple={isBonded}
           name='pifsId'
           onChange={handleChange}
@@ -220,10 +259,11 @@ const AddNetwork = withState<State, Props, Effects, Computed, ParentState, Paren
       {isBonded ? (
         <div>
           <label>
-            <IntlMessage id='bondMode' />
+            <IntlMessage id='bondMode' /> *
           </label>
           <Select
             containerStyle={INPUT_STYLES}
+            error={isEmptyBondMode}
             name='bondMode'
             onChange={handleChange}
             options={BOND_MODE}

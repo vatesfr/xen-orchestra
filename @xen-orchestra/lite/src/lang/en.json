@@ -23,7 +23,7 @@
   "halted": "Halted",
   "hostUnreachable": "Host unreachable",
   "infrastructure": "Infrastructure",
-  "interface": "Interface",
+  "interface": "Interface{nInterface, plural, one {} other {s}}",
   "ip": "IP",
   "loading": "Loading…",
   "login": "Login",

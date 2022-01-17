@@ -92,6 +92,8 @@ export interface ObjectsByType extends Map<string, Map<string, XapiObject>> {
   get<T extends keyof types>(key: T): Map<string, types[T]> | undefined
 }
 
+export const BOND_MODE = ['active-backup', 'balance-slb', 'lacp']
+
 export default class XapiConnection extends EventEmitter {
   areObjectsFetched: Promise<void>
   connected: boolean
