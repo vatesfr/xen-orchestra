@@ -249,11 +249,15 @@ exports.cleanVm = async function cleanVm(
     }
   }
 
+  // 2022-01-17 - FBP & JFT - Temporary disable aliases checking as it appears problematic
+  //
   // check if alias are correct
   // check if all vhd in data subfolder have a corresponding alias
-  await asyncMap(Object.keys(aliases), async dir => {
-    await checkAliases(aliases[dir], `${dir}/data`, { handler, onLog, remove })
-  })
+  // await asyncMap(Object.keys(aliases), async dir => {
+  //   await checkAliases(aliases[dir], `${dir}/data`, { handler, onLog, remove })
+  // })
+  // Avoid a ESLint unused variable
+  noop(aliases)
 
   // remove VHDs with missing ancestors
   {
