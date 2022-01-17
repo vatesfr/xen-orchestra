@@ -173,6 +173,8 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
   }
 
   async readHeaderAndFooter() {
+    await this.#readChunkFilters()
+
     let bufHeader, bufFooter
     try {
       bufHeader = (await this._readChunk('header')).buffer
