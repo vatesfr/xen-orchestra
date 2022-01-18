@@ -1,11 +1,14 @@
 import React from 'react'
 import styled from 'styled-components'
+import { Switch, Route, RouteComponentProps } from 'react-router-dom'
 import { withState } from 'reaclette'
 import { withRouter } from 'react-router'
-import { Switch, Route } from 'react-router-dom'
 
+import Pool from './Pool'
 import TabConsole from './TabConsole'
 import TreeView from './TreeView'
+
+import { ObjectsByType } from '../libs/xapi'
 
 const Container = styled.div`
   display: flex;
@@ -26,15 +29,18 @@ const MainPanel = styled.div`
   width: 80%;
 `
 
-interface ParentState {}
+interface ParentState {
+  objectsByType: ObjectsByType
+  pool?: string
+}
 
 interface State {
+  selectedObject?: string
   selectedVm?: string
 }
 
-interface Props {
-  location: object
-}
+// For compatibility with 'withRouter'
+interface Props extends RouteComponentProps {}
 
 interface ParentEffects {}
 
@@ -44,21 +50,28 @@ interface Effects {
 
 interface Computed {}
 
+const selectedNodesToArray = (nodes: Array<string> | string | undefined) =>
+  nodes === undefined ? undefined : Array.isArray(nodes) ? nodes : [nodes]
+
 const Infrastructure = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
   {
     initialState: props => ({
       selectedVm: props.location.pathname.split('/')[3],
     }),
+    computed: {
+      selectedObject: (state, props) =>
+        props.location.pathname.startsWith('/infrastructure/pool') ? state.pool : state.selectedVm,
+    },
   },
-  ({ state: { selectedVm } }) => (
+  ({ state: { pool, selectedObject } }) => (
     <Container>
       <LeftPanel>
-        <TreeView defaultSelectedNodes={selectedVm === undefined ? undefined : [selectedVm]} />
+        <TreeView defaultSelectedNodes={selectedNodesToArray(selectedObject)} />
       </LeftPanel>
       <MainPanel>
         <Switch>
-          <Route exact path='/infrastructure'>
-            Select a VM
+          <Route exact path={`/infrastructure/pool/${pool}/dashboard`}>
+            <Pool id={pool} />
           </Route>
           <Route
             path='/infrastructure/vms/:id/console'
