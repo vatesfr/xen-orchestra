@@ -6,7 +6,7 @@ function isVhdAlias(filename) {
 }
 exports.isVhdAlias = isVhdAlias
 
-exports.resolveAlias = async function resolveAlias(handler, filename) {
+exports.resolveVhdAlias = async function resolveVhdAlias(handler, filename) {
   if (!isVhdAlias(filename)) {
     return filename
   }

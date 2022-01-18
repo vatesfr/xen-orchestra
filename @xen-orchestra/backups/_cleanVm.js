@@ -1,7 +1,8 @@
 const assert = require('assert')
 const sum = require('lodash/sum')
 const { asyncMap } = require('@xen-orchestra/async-map')
-const { Constants, isVhdAlias, mergeVhd, openVhd, VhdAbstract, VhdFile, resolveAlias } = require('vhd-lib')
+const { Constants, mergeVhd, openVhd, VhdAbstract, VhdFile } = require('vhd-lib')
+const { isVhdAlias, resolveVhdAlias } = require('vhd-lib/aliases')
 const { dirname, resolve } = require('path')
 const { DISK_TYPES } = Constants
 const { isMetadataFile, isVhdFile, isXvaFile, isXvaSumFile } = require('./_backupType.js')
@@ -138,7 +139,7 @@ const listVhds = async (handler, vmDir) => {
 async function checkAliases(aliasPaths, targetDataRepository, { handler, onLog = noop, remove = false }) {
   const aliasFound = []
   for (const path of aliasPaths) {
-    const target = await resolveAlias(handler, path)
+    const target = await resolveVhdAlias(handler, path)
 
     if (!isVhdFile(target)) {
       onLog(`Alias ${path} references a non vhd target:  ${target}`)

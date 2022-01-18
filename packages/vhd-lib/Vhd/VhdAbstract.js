@@ -18,7 +18,7 @@ const assert = require('assert')
 const path = require('path')
 const asyncIteratorToStream = require('async-iterator-to-stream')
 const { checksumStruct, fuFooter, fuHeader } = require('../_structs')
-const { isVhdAlias, resolveAlias } = require('../_resolveAlias')
+const { isVhdAlias, resolveVhdAlias } = require('../aliases')
 
 exports.VhdAbstract = class VhdAbstract {
   get bitmapSize() {
@@ -198,7 +198,7 @@ exports.VhdAbstract = class VhdAbstract {
   }
 
   static async unlink(handler, path) {
-    const resolved = await resolveAlias(handler, path)
+    const resolved = await resolveVhdAlias(handler, path)
     try {
       await handler.unlink(resolved)
     } catch (err) {
