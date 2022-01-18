@@ -20,7 +20,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [Backup] Detect and clear orphan merge states, fix `ENOENT` errors (PR [#6087](https://github.com/vatesfr/xen-orchestra/pull/6087))
-- [Backup] Ensure merges are also executed after backup on S3, maintaining the size of the vhd chain under control(from [https://xcp-ng.org/forum/post/45743](https://xcp-ng.org/forum/post/45743) ) (PR [#6095](https://github.com/vatesfr/xen-orchestra/pull/6095))
+- [Backup] Ensure merges are also executed after backup on S3, maintaining the size of the VHD chain under control [Forum#45743](https://xcp-ng.org/forum/post/45743) (PR [#6095](https://github.com/vatesfr/xen-orchestra/pull/6095))
 
 ### Packages to release
 
