@@ -14,6 +14,7 @@ import Checkbox from '../../components/Checkbox'
 import Icon from '../../components/Icon'
 import Input from '../../components/Input'
 import Select from '../../components/Select'
+import Tabs from '../../components/Tabs'
 import { alert, confirm } from '../../components/Modal'
 
 interface ParentState {}
@@ -231,6 +232,25 @@ const App = withState<State, Props, Effects, Computed, ParentState, ParentEffect
   ]}
   value={state.value}
   valueRenderer='value'
+/>`}
+        </Code>
+      </Container>
+      <h2>Tabs</h2>
+      <Container>
+        <Render>
+          <Tabs
+            list={[
+              { component: 'Hello BAR!', pathname: '/styleguide', label: 'BAR' },
+              { pathname: '/styleguide/foo', label: 'FOO' },
+            ]}
+          />
+        </Render>
+        <Code>
+          {`<Tabs
+  list={[
+    { component: 'Hello BAR!', pathname: '/styleguide', label: 'BAR' },
+    { label: 'FOO', pathname: '/styleguide/foo' },
+  ]}
 />`}
         </Code>
       </Container>

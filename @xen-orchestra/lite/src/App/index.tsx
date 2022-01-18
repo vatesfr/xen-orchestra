@@ -12,17 +12,17 @@ import ListItemIcon from '@mui/material/ListItemIcon'
 import ListItemButton from '@mui/material/ListItemButton'
 import ListItemText from '@mui/material/ListItemText'
 import MenuIcon from '@mui/icons-material/Menu'
-import MuiAppBar, { AppBarProps as MuiAppBarProps } from '@mui/material/AppBar'
+import MuiAppBar, { value AppBarProps as MuiAppBarProps } from '@mui/material/AppBar'
 import MuiDrawer from '@mui/material/Drawer'
 import React from 'react'
 import styledComponent from 'styled-components'
 import Toolbar from '@mui/material/Toolbar'
 import Typography from '@mui/material/Typography'
-import { HashRouter as Router, Switch, Redirect, Route } from 'react-router-dom'
-import { IntlProvider } from 'react-intl'
-import { Map } from 'immutable'
-import { styled, createTheme, ThemeProvider } from '@mui/material/styles'
-import { withState } from 'reaclette'
+import { value HashRouter as Router, value Switch, value Redirect, value Route } from 'react-router-dom'
+import { value IntlProvider } from 'react-intl'
+import { value Map } from 'immutable'
+import { value styled, value createTheme, value ThemeProvider } from '@mui/material/styles'
+import { value withState } from 'reaclette'
 
 // import Button from '../components/Button'
 import Icon from '../components/Icon'
@@ -35,7 +35,7 @@ import PoolTab from './PoolTab'
 import Signin from './Signin/index'
 import StyleGuide from './StyleGuide/index'
 import TabConsole from './TabConsole'
-import XapiConnection, { ObjectsByType, Vm } from '../libs/xapi'
+import XapiConnection, { value ObjectsByType, value Vm } from '../libs/xapi'
 
 const drawerWidth = 240
 
@@ -154,7 +154,7 @@ const mdTheme = createTheme({
     primary: {
       dark: '#168FFF',
       light: '#0085FF',
-      main: '#007bff',
+      main: '#0085FF',
     },
     secondary: {
       main: '#6c757d',
@@ -164,6 +164,23 @@ const mdTheme = createTheme({
     },
     warning: {
       main: '#ffc107',
+    },
+  },
+  components: {
+    MuiTab: {
+      styleOverrides: {
+        root: {
+          background: '#FFFFFF',
+          color: '#E8E8E8',
+          fontFamily: 'inter',
+          fontStyle: 'medium',
+          fontSize: '1.25em',
+          textAlign: 'center',
+          '&.Mui-selected': {
+            color: '#0085FF',
+          },
+        },
+      },
     },
   },
 })
@@ -306,6 +323,9 @@ const App = withState<State, Props, Effects, Computed, ParentState, ParentEffect
                   )}
                 </Route>
                 <Route exact path='/styleguide'>
+                  <StyleGuide />
+                </Route>
+                <Route exact path='/styleguide/foo'>
                   <StyleGuide />
                 </Route>
                 <Route exact path='/pool'>
