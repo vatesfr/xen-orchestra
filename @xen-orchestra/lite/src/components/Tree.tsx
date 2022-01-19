@@ -66,9 +66,7 @@ interface ParentEffects {}
 
 interface Effects {}
 
-interface Computed {
-  selectedNodes: Array<string>
-}
+interface Computed {}
 
 // Inspired by https://mui.com/components/tree-view/#contentcomponent-prop.
 const CustomContent = React.forwardRef(function CustomContent(props: CustomContentProps, ref) {
