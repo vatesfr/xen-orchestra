@@ -1,12 +1,12 @@
-import React from 'react'
-import { RouteComponentProps } from 'react-router-dom'
-import { withState } from 'reaclette'
-import { withRouter } from 'react-router'
 import Box from '@mui/material/Box'
+import React from 'react'
 import Tab from '@mui/material/Tab'
 import TabContext from '@mui/lab/TabContext'
 import TabList from '@mui/lab/TabList'
 import TabPanel from '@mui/lab/TabPanel'
+import { RouteComponentProps } from 'react-router-dom'
+import { withState } from 'reaclette'
+import { withRouter } from 'react-router'
 
 interface ParentState {}
 
@@ -17,14 +17,15 @@ interface State {
 interface TabType {
   component?: React.ReactNode
   disabled: boolean
-  pathname: string
   label: React.ReactNode
+  pathname: string
 }
 
 interface Props {
+  history: RouteComponentProps['history']
   // list= [
   //   {
-  //      component: (<div>{contentA}</div>)
+  //      component: (<span>BAR</span>)
   //      pathname: '/path',
   //      label: (
   //        <span>
@@ -34,7 +35,6 @@ interface Props {
   //   },
   // ]
   list: Array<TabType>
-  history: RouteComponentProps['history']
 }
 
 interface ParentEffects {}
@@ -68,7 +68,7 @@ const Tabs = withState<State, Props, Effects, Computed, ParentState, ParentEffec
       <Box sx={{ borderBottom: 1, borderColor: 'divider', marginTop: '0.5em' }}>
         <TabList onChange={effects.onChange} variant='standard'>
           {list.map((tab: TabType, index) => (
-            <Tab key={index} label={tab.label} value={tab.pathname} disabled={tab.disabled} />
+            <Tab disabled={tab.disabled} key={index} label={tab.label} value={tab.pathname} />
           ))}
         </TabList>
       </Box>
