@@ -10,9 +10,7 @@ import Icon from '../components/Icon'
 
 interface ParentState {}
 
-interface State {
-  _selectedNodes?: Array<string>
-}
+interface State {}
 
 export interface ItemType {
   children?: Array<ItemType>
@@ -56,6 +54,8 @@ interface Props {
   // ]
   collection: Array<ItemType>
   defaultSelectedNodes?: Array<string>
+  selectedNodes: Array<string>
+  setSelectedNodeIds: (event: React.SyntheticEvent<Element, Event>, nodeIds: Array<string>) => void
 }
 
 interface CustomContentProps extends TreeItemContentProps {
@@ -64,9 +64,7 @@ interface CustomContentProps extends TreeItemContentProps {
 
 interface ParentEffects {}
 
-interface Effects {
-  setSelectedNodeIds: (event: React.SyntheticEvent, nodeIds: Array<string>) => void
-}
+interface Effects {}
 
 interface Computed {
   selectedNodes: Array<string>
@@ -120,27 +118,14 @@ const renderItem = ({ children, id, label, to, tooltip }: ItemType) => {
 }
 
 const Tree = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
-  {
-    initialState: () => ({
-      _selectedNodes: undefined,
-    }),
-    effects: {
-      setSelectedNodeIds: function (event, nodeIds) {
-        this.state._selectedNodes = nodeIds
-      },
-    },
-    computed: {
-      selectedNodes: ({ _selectedNodes }, { defaultSelectedNodes }) =>
-        defaultSelectedNodes === undefined ? [] : _selectedNodes ?? defaultSelectedNodes,
-    },
-  },
-  ({ effects, state: { selectedNodes }, collection }) => (
+  {},
+  ({ setSelectedNodeIds, selectedNodes, collection }) => (
     <TreeView
       defaultExpanded={[collection[0].id]}
       defaultCollapseIcon={<Icon icon='chevron-up' />}
       defaultExpandIcon={<Icon icon='chevron-down' />}
-      onNodeSelect={effects.setSelectedNodeIds}
       multiSelect
+      onNodeSelect={setSelectedNodeIds}
       selected={selectedNodes}
     >
       {collection.map(renderItem)}

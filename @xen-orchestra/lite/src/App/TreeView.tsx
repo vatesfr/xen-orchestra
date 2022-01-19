@@ -11,7 +11,9 @@ interface ParentState {
   objectsByType: ObjectsByType
 }
 
-interface State {}
+interface State {
+  _selectedNodes?: Array<string>
+}
 
 interface Props {
   defaultSelectedNodes?: Array<string>
@@ -19,12 +21,15 @@ interface Props {
 
 interface ParentEffects {}
 
-interface Effects {}
+interface Effects {
+  setSelectedNodeIds: (event: React.SyntheticEvent<Element, Event>, nodeIds: Array<string>) => void
+}
 
 interface Computed {
   collection?: Array<ItemType>
   hostsByPool?: Collection.Keyed<string, Collection<string, Host>>
   pools?: Map<string, Pool>
+  selectedNodes: Array<string>
   vms?: Map<string, Vm>
   vmsByContainerRef?: Collection.Keyed<string, Collection<string, Vm>>
 }
@@ -41,6 +46,14 @@ const getIconColor = (obj: Host | Vm) => {
 
 const TreeView = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
   {
+    initialState: () => ({
+      _selectedNodes: undefined,
+    }),
+    effects: {
+      setSelectedNodeIds: function (_, nodeIds) {
+        this.state._selectedNodes = nodeIds
+      },
+    },
     computed: {
       collection: state => {
         if (state.pools === undefined) {
@@ -109,6 +122,8 @@ const TreeView = withState<State, Props, Effects, Computed, ParentState, ParentE
       },
       hostsByPool: state => state.objectsByType?.get('host')?.groupBy((host: Host) => host.$pool.$id),
       pools: state => state.objectsByType?.get('pool'),
+      selectedNodes: ({ _selectedNodes }, { defaultSelectedNodes }) =>
+        _selectedNodes ?? (defaultSelectedNodes === undefined ? [] : defaultSelectedNodes),
       vms: state =>
         state.objectsByType
           ?.get('VM')
@@ -119,10 +134,15 @@ const TreeView = withState<State, Props, Effects, Computed, ParentState, ParentE
         ),
     },
   },
-  ({ state, defaultSelectedNodes }) =>
+  ({ defaultSelectedNodes, effects, state }) =>
     state.collection === undefined ? null : (
       <div style={{ padding: '10px' }}>
-        <Tree collection={state.collection} defaultSelectedNodes={defaultSelectedNodes} />
+        <Tree
+          collection={state.collection}
+          defaultSelectedNodes={defaultSelectedNodes}
+          selectedNodes={state.selectedNodes}
+          setSelectedNodeIds={effects.setSelectedNodeIds}
+        />
       </div>
     )
 )
