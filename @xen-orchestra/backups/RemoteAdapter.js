@@ -359,9 +359,12 @@ class RemoteAdapter {
     const handler = this._handler
 
     const backups = { __proto__: null }
-    await asyncMap(await handler.list(BACKUP_DIR), async vmUuid => {
-      const vmBackups = await this.listVmBackups(vmUuid)
-      backups[vmUuid] = vmBackups
+    await asyncMap(await handler.list(BACKUP_DIR), async entry => {
+      // ignore hidden and lock files
+      if (entry[0] !== '.' && !entry.endsWith('.lock')) {
+        const vmBackups = await this.listVmBackups(entry)
+        backups[entry] = vmBackups
+      }
     })
 
     return backups
