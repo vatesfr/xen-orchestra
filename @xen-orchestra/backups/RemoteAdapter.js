@@ -363,7 +363,9 @@ class RemoteAdapter {
       // ignore hidden and lock files
       if (entry[0] !== '.' && !entry.endsWith('.lock')) {
         const vmBackups = await this.listVmBackups(entry)
-        backups[entry] = vmBackups
+        if (vmBackups.length !== 0) {
+          backups[entry] = vmBackups
+        }
       }
     })
 
