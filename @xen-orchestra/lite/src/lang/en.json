@@ -6,6 +6,7 @@
   "confirm": "Confirm",
   "confirmCtrlAltDel": "Send Ctrl+Alt+Del to VM?",
   "connect": "Connect",
+  "connectionError": "Connection error",
   "consoleNotAvailable": "Console is only available for running VMs",
   "ctrlAltDel": "Ctrl+Alt+Del",
   "description": "Description",
