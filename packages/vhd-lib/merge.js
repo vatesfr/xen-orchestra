@@ -9,8 +9,21 @@ const { openVhd } = require('./openVhd')
 const { basename, dirname } = require('path')
 const { DISK_TYPES } = require('./_constants')
 const { Disposable } = require('promise-toolbox')
+const { asyncEach } = require('@vates/async-each')
+const { VhdDirectory } = require('./Vhd/VhdDirectory')
 
 const { warn } = createLogger('vhd-lib:merge')
+
+function makeThrottledWriter(handler, path, delay) {
+  let lastWrite = Date.now()
+  return async json => {
+    const now = Date.now()
+    if (now - lastWrite > delay) {
+      lastWrite = now
+      await handler.writeFile(path, JSON.stringify(json), { flags: 'w' }).catch(warn)
+    }
+  }
+}
 
 // Merge vhd child into vhd parent.
 //
@@ -43,6 +56,7 @@ module.exports = limitConcurrency(2)(async function merge(
     })
     const childVhd = yield openVhd(childHandler, childPath)
 
+    const concurrency = childVhd instanceof VhdDirectory ? 16 : 1
     if (mergeState === undefined) {
       assert.strictEqual(childVhd.header.blockSize, parentVhd.header.blockSize)
 
@@ -76,30 +90,40 @@ module.exports = limitConcurrency(2)(async function merge(
     }
 
     // counts number of allocated blocks
-    let nBlocks = 0
+    const toMerge = []
     for (let block = mergeState.currentBlock; block < maxTableEntries; block++) {
       if (childVhd.containsBlock(block)) {
-        nBlocks += 1
+        toMerge.push(block)
       }
     }
-
+    const nBlocks = toMerge.length
     onProgress({ total: nBlocks, done: 0 })
 
-    // merges blocks
-    for (let i = 0; i < nBlocks; ++i, ++mergeState.currentBlock) {
-      while (!childVhd.containsBlock(mergeState.currentBlock)) {
-        ++mergeState.currentBlock
+    const merging = new Set()
+    let counter = 0
+
+    const mergeStateWriter = makeThrottledWriter(parentHandler, mergeStatePath, 10e3)
+
+    await asyncEach(
+      toMerge,
+      async blockId => {
+        merging.add(blockId)
+        mergeState.mergedDataSize += await parentVhd.coalesceBlock(childVhd, blockId)
+        merging.delete(blockId)
+
+        onProgress({
+          total: nBlocks,
+          done: counter + 1,
+        })
+        counter++
+        mergeState.currentBlock = Math.min(...merging)
+        mergeStateWriter(mergeState)
+      },
+      {
+        concurrency,
       }
-
-      await parentHandler.writeFile(mergeStatePath, JSON.stringify(mergeState), { flags: 'w' }).catch(warn)
-
-      mergeState.mergedDataSize += await parentVhd.coalesceBlock(childVhd, mergeState.currentBlock)
-      onProgress({
-        total: nBlocks,
-        done: i + 1,
-      })
-    }
-
+    )
+    onProgress({ total: nBlocks, done: nBlocks })
     // some blocks could have been created or moved in parent : write bat
     await parentVhd.writeBlockAllocationTable()
 
