@@ -8,6 +8,7 @@ import { decorateWith } from '@vates/decorate-with'
 import { parse } from 'xo-remote-parser'
 
 import RemoteHandlerAbstract from './abstract'
+import { asyncEach } from '@vates/async-each'
 
 // endpoints https://docs.aws.amazon.com/general/latest/gr/s3.html
 
@@ -285,14 +286,20 @@ export default class S3Handler extends RemoteHandlerAbstract {
         ContinuationToken: NextContinuationToken,
       })
       NextContinuationToken = result.IsTruncated ? result.NextContinuationToken : undefined
-      for (const { Key } of result.Contents) {
-        // _unlink will add the prefix, but Key contains everything
-        // also we don't need to check if we delete a directory, since the list only return files
-        await this._s3.deleteObject({
-          Bucket: this._bucket,
-          Key,
-        })
-      }
+      await asyncEach(
+        result.Contents,
+        async ({ Key }) => {
+          // _unlink will add the prefix, but Key contains everything
+          // also we don't need to check if we delete a directory, since the list only return files
+          await this._s3.deleteObject({
+            Bucket: this._bucket,
+            Key,
+          })
+        },
+        {
+          concurrency: 16,
+        }
+      )
     } while (NextContinuationToken !== undefined)
   }
 
