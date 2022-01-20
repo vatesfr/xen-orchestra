@@ -63,10 +63,11 @@ export default class S3Handler extends RemoteHandlerAbstract {
     return { Bucket: this._bucket, Key: this._dir + file }
   }
 
-  async _copy(oldPath, newPath) {
+  async _multipartCopy(oldPath, newPath) {
     const size = await this._getSize(oldPath)
+    const CopySource = `/${this._bucket}/${this._dir}${oldPath}`
     const multipartParams = await this._s3.createMultipartUpload({ ...this._createParams(newPath) })
-    const param2 = { ...multipartParams, CopySource: `/${this._bucket}/${this._dir}${oldPath}` }
+    const param2 = { ...multipartParams, CopySource }
     try {
       const parts = []
       let start = 0
@@ -80,6 +81,22 @@ export default class S3Handler extends RemoteHandlerAbstract {
       await this._s3.completeMultipartUpload({ ...multipartParams, MultipartUpload: { Parts: parts } })
     } catch (e) {
       await this._s3.abortMultipartUpload(multipartParams)
+      throw e
+    }
+  }
+
+  async _copy(oldPath, newPath) {
+    const CopySource = `/${this._bucket}/${this._dir}${oldPath}`
+    try {
+      await this._s3.copyObject({
+        ...this._createParams(newPath),
+        CopySource,
+      })
+    } catch (e) {
+      // object > 5GB must be copied part by part
+      if (e.code === 'EntityTooLarge') {
+        return this._multipartCopy(oldPath, newPath)
+      }
       throw e
     }
   }
