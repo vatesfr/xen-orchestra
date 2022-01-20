@@ -7,12 +7,11 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- Limit number of concurrent VM migrations per pool to `3` [#6065](https://github.com/vatesfr/xen-orchestra/issues/6065) (PR [#6076](https://github.com/vatesfr/xen-orchestra/pull/6076))
-  Can be changed in `xo-server`'s configuration file: `xapiOptions.vmMigrationConcurrency`
-- [Proxy] Now ships a reverse proxy [PR#6072](https://github.com/vatesfr/xen-orchestra/pull/6072)
-- [Delta Backup] When using S3 remote, retry uploading VHD parts on Internal Error to support [Blackblaze](https://www.backblaze.com/b2/docs/calling.html#error_handling) (PR [#6086](https://github.com/vatesfr/xen-orchestra/issues/6086)) (Forum [5397](https://xcp-ng.org/forum/topic/5397/delta-backups-failing-aws-s3-uploadpartcopy-cpu-too-busy/5))
-- [Backup] Add sanity check of aliases on S3 remotes (PR [6043](https://github.com/vatesfr/xen-orchestra/pull/6043))
-- [Export/Disks] Allow the export of disks in VMDK format(PR [#5982](https://github.com/vatesfr/xen-orchestra/pull/5982))
+- Limit number of concurrent VM migrations per pool to `3`. Can be changed in `xo-server`'s configuration file: `xapiOptions.vmMigrationConcurrency` [#6065](https://github.com/vatesfr/xen-orchestra/issues/6065) (PR [#6076](https://github.com/vatesfr/xen-orchestra/pull/6076))
+- [Proxy] Now ships a reverse proxy (PR [#6072](https://github.com/vatesfr/xen-orchestra/pull/6072))
+- [Delta Backup] When using S3 remote, retry uploading VHD parts on Internal Error to support [Blackblaze](https://www.backblaze.com/b2/docs/calling.html#error_handling) [Forum#5397](https://xcp-ng.org/forum/topic/5397/delta-backups-failing-aws-s3-uploadpartcopy-cpu-too-busy/5) (PR [#6086](https://github.com/vatesfr/xen-orchestra/issues/6086))
+- [Backup] Add sanity check of aliases on S3 remotes (PR [#6043](https://github.com/vatesfr/xen-orchestra/pull/6043))
+- [Export/Disks] Allow the export of disks in VMDK format (PR [#5982](https://github.com/vatesfr/xen-orchestra/pull/5982))
 - [Rolling Pool Update] Automatically pause load balancer plugin during the update [#5711](https://github.com/vatesfr/xen-orchestra/issues/5711)
 
 ### Bug fixes
