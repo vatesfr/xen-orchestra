@@ -173,10 +173,20 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
   }
 
   async readHeaderAndFooter() {
-    // we need to know if thre is compression before reading headers
     await this.#readChunkFilters()
-    const { buffer: bufHeader } = await this._readChunk('header')
-    const { buffer: bufFooter } = await this._readChunk('footer')
+
+    let bufHeader, bufFooter
+    try {
+      bufHeader = (await this._readChunk('header')).buffer
+      bufFooter = (await this._readChunk('footer')).buffer
+    } catch (error) {
+      // emit an AssertionError if the VHD is broken to stay as close as possible to the VhdFile API
+      if (error.code === 'ENOENT') {
+        assert(false, 'Header And Footer should exists')
+      } else {
+        throw error
+      }
+    }
     const footer = unpackFooter(bufFooter)
     const header = unpackHeader(bufHeader, footer)
 

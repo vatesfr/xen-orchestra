@@ -88,3 +88,20 @@ ignoreNobakVdis = false
 
 maxUncoalescedVdis = 1
 watchEvents = ['network', 'PIF', 'pool', 'SR', 'task', 'VBD', 'VDI', 'VIF', 'VM']
+
+
+
+#compact mode
+[reverseProxies]
+# '/http/' = 'http://localhost:8081/'
+#The target can have a path ( like `http://target/sub/directory/`),
+# parameters (`?param=one`) and hash (`#jwt:32154`) that are automatically added to all queries transfered by the proxy.
+# If a parameter is present in the configuration and in the query, only the config parameter is transferred.
+# '/another' = http://hiddenServer:8765/path/
+
+# And use the extended mode when required
+# The additionnal options of a proxy's configuraiton's section are used to instantiate the `https` Agent(respectively the `http`).
+# A notable option is `rejectUnauthorized` which allow to connect to a HTTPS backend  with an invalid/ self signed certificate
+#[reverseProxies.'/https/']
+# target = 'https://localhost:8080/'
+# rejectUnauthorized = false

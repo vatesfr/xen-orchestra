@@ -1,11 +1,24 @@
 const assert = require('assert')
 
-const isGzipFile = async (handler, fd) => {
+const COMPRESSED_MAGIC_NUMBERS = [
   // https://tools.ietf.org/html/rfc1952.html#page-5
-  const magicNumber = Buffer.allocUnsafe(2)
+  Buffer.from('1F8B', 'hex'),
 
-  assert.strictEqual((await handler.read(fd, magicNumber, 0)).bytesRead, magicNumber.length)
-  return magicNumber[0] === 31 && magicNumber[1] === 139
+  // https://github.com/facebook/zstd/blob/dev/doc/zstd_compression_format.md#zstandard-frames
+  Buffer.from('28B52FFD', 'hex'),
+]
+const MAGIC_NUMBER_MAX_LENGTH = Math.max(...COMPRESSED_MAGIC_NUMBERS.map(_ => _.length))
+
+const isCompressedFile = async (handler, fd) => {
+  const header = Buffer.allocUnsafe(MAGIC_NUMBER_MAX_LENGTH)
+  assert.strictEqual((await handler.read(fd, header, 0)).bytesRead, header.length)
+
+  for (const magicNumber of COMPRESSED_MAGIC_NUMBERS) {
+    if (magicNumber.compare(header, 0, magicNumber.length) === 0) {
+      return true
+    }
+  }
+  return false
 }
 
 // TODO: better check?
@@ -43,8 +56,8 @@ async function isValidXva(path) {
         return false
       }
 
-      return (await isGzipFile(handler, fd))
-        ? true // gzip files cannot be validated at this time
+      return (await isCompressedFile(handler, fd))
+        ? true // compressed files cannot be validated at this time
         : await isValidTar(handler, size, fd)
     } finally {
       handler.closeFile(fd).catch(noop)

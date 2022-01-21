@@ -60,7 +60,7 @@ module.exports = class Vm {
       try {
         vdi = await this[vdiRefOrUuid.startsWith('OpaqueRef:') ? 'getRecord' : 'getRecordByUuid']('VDI', vdiRefOrUuid)
       } catch (error) {
-        warn(error)
+        warn('_assertHealthyVdiChain, could not fetch VDI', { error })
         return
       }
       cache[vdi.$ref] = vdi
@@ -81,7 +81,7 @@ module.exports = class Vm {
                   try {
                     vdi = await this.getRecord('VDI', vdiRef)
                   } catch (error) {
-                    warn(error)
+                    warn('_assertHealthyVdiChain, could not fetch VDI', { error })
                     return
                   }
                   cache[vdiRef] = vdi

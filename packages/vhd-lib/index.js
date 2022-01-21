@@ -1,14 +1,12 @@
 exports.chainVhd = require('./chain')
 exports.checkFooter = require('./checkFooter')
 exports.checkVhdChain = require('./checkChain')
-exports.createReadableRawStream = require('./createReadableRawStream')
 exports.createReadableSparseStream = require('./createReadableSparseStream')
 exports.createVhdStreamWithLength = require('./createVhdStreamWithLength')
 exports.createVhdDirectoryFromStream = require('./createVhdDirectoryFromStream').createVhdDirectoryFromStream
 exports.mergeVhd = require('./merge')
 exports.peekFooterFromVhdStream = require('./peekFooterFromVhdStream')
 exports.openVhd = require('./openVhd').openVhd
-exports.parseVhdStream = require('./parseVhdStream').parseVhdStream
 exports.VhdAbstract = require('./Vhd/VhdAbstract').VhdAbstract
 exports.VhdDirectory = require('./Vhd/VhdDirectory').VhdDirectory
 exports.VhdFile = require('./Vhd/VhdFile').VhdFile

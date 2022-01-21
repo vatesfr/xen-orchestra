@@ -25,22 +25,15 @@ module.exports = limitConcurrency(2)(async function merge(
   const mergeStatePath = dirname(parentPath) + '/' + '.' + basename(parentPath) + '.merge.json'
 
   return await Disposable.use(async function* () {
-    let mergeState = await parentHandler
-      .readFile(mergeStatePath)
-      .then(content => {
-        const state = JSON.parse(content)
-
-        // ensure the correct merge will be continued
-        assert.strictEqual(parentVhd.header.checksum, state.parent.header)
-        assert.strictEqual(childVhd.header.checksum, state.child.header)
-
-        return state
-      })
-      .catch(error => {
-        if (error.code !== 'ENOENT') {
-          warn('problem while checking the merge state', { error })
-        }
-      })
+    let mergeState
+    try {
+      const mergeStateContent = await parentHandler.readFile(mergeStatePath)
+      mergeState = JSON.parse(mergeStateContent)
+    } catch (error) {
+      if (error.code !== 'ENOENT') {
+        warn('problem while checking the merge state', { error })
+      }
+    }
 
     // during merging, the end footer of the parent can be overwritten by new blocks
     // we should use it as a way to check vhd health
@@ -49,12 +42,16 @@ module.exports = limitConcurrency(2)(async function merge(
       checkSecondFooter: mergeState === undefined,
     })
     const childVhd = yield openVhd(childHandler, childPath)
+
     if (mergeState === undefined) {
       assert.strictEqual(childVhd.header.blockSize, parentVhd.header.blockSize)
 
       const parentDiskType = parentVhd.footer.diskType
       assert(parentDiskType === DISK_TYPES.DIFFERENCING || parentDiskType === DISK_TYPES.DYNAMIC)
       assert.strictEqual(childVhd.footer.diskType, DISK_TYPES.DIFFERENCING)
+    } else {
+      assert.strictEqual(parentVhd.header.checksum, mergeState.parent.header)
+      assert.strictEqual(childVhd.header.checksum, mergeState.child.header)
     }
 
     // Read allocation table of child/parent.
