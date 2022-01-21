@@ -80,7 +80,7 @@ const Select = withState<State, Props, Effects, Computed, ParentState, ParentEff
         multiple={multiple}
         required={required}
         displayEmpty={displayEmpty}
-        value={value ?? (isControlled ? '' : value)}
+        value={value ?? (isControlled ? '' : undefined)}
         {...props}
       >
         {!multiple && (
