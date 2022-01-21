@@ -151,6 +151,8 @@ export default class BackupNg {
         // Make sure we are passing only the VM to run which can be
         // different than the VMs in the job itself.
         let vmIds = data?.vms ?? extractIdsFromSimplePattern(vmsPattern)
+
+        await this.checkAuthorizations({ job, schedule, useSmartBackup: vmIds === undefined })
         if (vmIds === undefined) {
           const poolPattern = vmsPattern.$pool
 
@@ -368,6 +370,42 @@ export default class BackupNg {
     }
 
     return job
+  }
+
+  async checkAuthorizations({ job, useSmartBackup, schedule }) {
+    const { _app: app } = this
+
+    if (job.mode === 'full') {
+      await app.checkFeatureAuthorization('BACKUP.FULL')
+    }
+
+    if (job.mode === 'delta') {
+      if (unboxIdsFromPattern(job.srs)?.length > 0) {
+        await app.checkFeatureAuthorization('BACKUP.DELTA_REPLICATION')
+      } else {
+        await app.checkFeatureAuthorization('BACKUP.DELTA')
+      }
+    }
+
+    if (job.type === 'metadataBackup') {
+      await app.checkFeatureAuthorization('BACKUP.METADATA')
+    }
+
+    if (useSmartBackup) {
+      await app.checkFeatureAuthorization('BACKUP.SMART_BACKUP')
+    }
+
+    // this won't check a per VM settings
+    const config = app.config.get('backups')
+    const jobSettings = {
+      ...config.defaultSettings,
+      ...config.metadata.defaultSettings,
+      ...job.settings[''],
+      ...job.settings[schedule.id],
+    }
+    if (jobSettings.checkpointSnapshot === true) {
+      await app.checkFeatureAuthorization('BACKUP.WITH_RAM')
+    }
   }
 
   async deleteBackupNgJob(id) {
