@@ -128,10 +128,10 @@ const AddNetwork = withState<State, Props, Effects, Computed, ParentState, Paren
         try {
           await this.state.xapi.createNetworks([
             {
-              MTU: +mtu,
+              MTU: mtu === '' ? undefined : mtu,
               name_description: description,
               name_label: nameLabel,
-              VLAN: +vlan,
+              VLAN: vlan === '' ? undefined : vlan,
               bondMode: bondMode === '' ? undefined : bondMode,
               pifsId: pifsId.length < 1 ? undefined : pifsId,
             },
@@ -227,7 +227,7 @@ const AddNetwork = withState<State, Props, Effects, Computed, ParentState, Paren
           optionRenderer={OPTION_PIF_RENDERER}
           options={pifsCollection}
           required={isBonded}
-          value={pifsId}
+          value={isBonded ? pifsId : pifsId[0]}
         />
       </div>
       <Input

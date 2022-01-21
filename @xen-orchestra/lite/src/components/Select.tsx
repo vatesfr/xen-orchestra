@@ -46,18 +46,11 @@ const Select = withState<State, Props, Effects, Computed, ParentState, ParentEff
         options?.map(item => {
           const label =
             optionRenderer === undefined
-              ? item.name ?? item.label ?? item.name_label ?? (typeof item === 'string' || typeof item === 'number')
-                ? item
-                : 'Unknown'
+              ? item.name ?? item.label ?? item.name_label ?? item
               : state.renderOption(item, additionalProps)
           const value =
             valueRenderer === undefined
-              ? item.value ??
-                item.id ??
-                item.$id ??
-                (typeof item === 'string' || typeof item === 'number' || typeof item === 'boolean')
-                ? item
-                : undefined
+              ? item.value ?? item.id ?? item.$id ?? item
               : state.renderValue(item, additionalProps)
 
           if (value === undefined) {
