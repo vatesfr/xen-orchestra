@@ -16,6 +16,7 @@ interface State {}
 
 interface Props extends SelectProps {
   additionalProps?: AdditionalProps
+  isControlled?: boolean
   onChange: (e: SelectChangeEvent<unknown>) => void
   optionRenderer?: string | { (item: any): number | string }
   options: any[] | undefined
@@ -61,9 +62,27 @@ const Select = withState<State, Props, Effects, Computed, ParentState, ParentEff
         }),
     },
   },
-  ({ additionalProps, displayEmpty = true, effects, multiple, options, required, resetState, state, ...props }) => (
+  ({
+    additionalProps,
+    displayEmpty = true,
+    effects,
+    isControlled = true,
+    multiple,
+    options,
+    required,
+    resetState,
+    state,
+    value,
+    ...props
+  }) => (
     <FormControl>
-      <SelectMaterialUi multiple={multiple} required={required} displayEmpty={displayEmpty} {...props}>
+      <SelectMaterialUi
+        multiple={multiple}
+        required={required}
+        displayEmpty={displayEmpty}
+        value={value ?? (isControlled ? '' : value)}
+        {...props}
+      >
         {!multiple && (
           <MenuItem value=''>
             <em>
