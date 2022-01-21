@@ -23,6 +23,7 @@
 - [Backup] Delete backups immediately instead of waiting for the next backup (PR [#6081](https://github.com/vatesfr/xen-orchestra/pull/6081))
 - [Backup] Delete S3 backups completely, even if there are more than 1000 files (PR [#6103](https://github.com/vatesfr/xen-orchestra/pull/6103))
 - [Backup] Fix merge resuming (PR [#6099](https://github.com/vatesfr/xen-orchestra/pull/6099))
+- [Plugin/Audit] Fix `key cannot be 'null' or 'undefined'` error when no audit log in the database [#6040](https://github.com/vatesfr/xen-orchestra/issues/6040) (PR [#6071](https://github.com/vatesfr/xen-orchestra/pull/6071))
 
 ### Packages to release
 
@@ -47,5 +48,6 @@
 - @xen-orchestra/backups minor
 - @xen-orchestra/backups-cli minor
 - @xen-orchestra/proxy minor
+- xo-server-audit patch
 - xo-server minor
 - xo-web minor
