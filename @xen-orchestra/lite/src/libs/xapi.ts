@@ -233,11 +233,11 @@ export default class XapiConnection extends EventEmitter {
     newNetworks: [
       {
         bondMode?: string
-        MTU: number
+        MTU?: string
         name_description: string
         name_label: string
         pifsId?: string[]
-        VLAN: number
+        VLAN?: string
       }
     ]
   ): Promise<(string | undefined)[]> {
