@@ -230,8 +230,8 @@ class RemoteAdapter {
   async deleteDeltaVmBackups(backups) {
     const handler = this._handler
 
-    // unused VHDs will be detected by `cleanVm`
-    await asyncMapSettled(backups, ({ _filename }) => VhdAbstract.unlink(handler, _filename))
+    // this will delete the json, unused VHDs will be detected by `cleanVm`
+    await asyncMapSettled(backups, ({ _filename }) => handler.unlink(_filename))
   }
 
   async deleteMetadataBackup(backupId) {
@@ -277,6 +277,12 @@ class RemoteAdapter {
       delta !== undefined && this.deleteDeltaVmBackups(delta),
       full !== undefined && this.deleteFullVmBackups(full),
     ])
+
+    const dirs = new Set(files.map(file => dirname(file)))
+    for (const dir of dirs) {
+      // don't merge in main process, unused VHDs will be merged in the next backup run
+      await this.cleanVm(dir, { remove: true, onLog: warn })
+    }
   }
 
   #getCompressionType() {
@@ -359,9 +365,14 @@ class RemoteAdapter {
     const handler = this._handler
 
     const backups = { __proto__: null }
-    await asyncMap(await handler.list(BACKUP_DIR), async vmUuid => {
-      const vmBackups = await this.listVmBackups(vmUuid)
-      backups[vmUuid] = vmBackups
+    await asyncMap(await handler.list(BACKUP_DIR), async entry => {
+      // ignore hidden and lock files
+      if (entry[0] !== '.' && !entry.endsWith('.lock')) {
+        const vmBackups = await this.listVmBackups(entry)
+        if (vmBackups.length !== 0) {
+          backups[entry] = vmBackups
+        }
+      }
     })
 
     return backups
