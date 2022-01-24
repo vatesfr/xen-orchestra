@@ -612,14 +612,24 @@ export default class Health extends Component {
     )
   )
 
+  _getPoolIds = createCollectionWrapper(createSelector(() => this.state.pools, resolveIds))
+
+  _getSelectedPools = createCollectionWrapper(
+    createSelector(
+      () => this.props.pools,
+      this._getPoolIds,
+      (pools, poolIds) => (isEmpty(poolIds) ? pools : pick(pools, poolIds))
+    )
+  )
+
   _getLocalDefaultSrs = createCollectionWrapper(
     createSelector(
       () => this.props.hosts,
-      () => this._getPools(),
       () => this.props.userSrs,
-      (hosts, pools, userSrs) => {
+      this._getSelectedPools,
+      (hosts, userSrs, selectedPools) => {
         const nbHostsPerPool = countBy(hosts, host => host.$pool)
-        return filter(pools, pool => {
+        return filter(selectedPools, pool => {
           const { default_SR } = pool
           return default_SR !== undefined && !userSrs[default_SR].shared && nbHostsPerPool[pool.id] > 1
         })
@@ -627,22 +637,11 @@ export default class Health extends Component {
     )
   )
 
-  _getPools = createCollectionWrapper(
-    createSelector(
-      () => this.props.pools,
-      () => this._getPoolIds(),
-      (pools, poolIds) => (isEmpty(poolIds) ? pools : pick(pools, poolIds))
-    )
-  )
-
   _getPoolsWithNoDefaultSr = createCollectionWrapper(
-    createSelector(
-      () => this._getPools(),
-      pools => filter(pools, ({ default_SR }) => default_SR === undefined)
+    createSelector(this._getSelectedPools, selectedPools =>
+      filter(selectedPools, ({ default_SR }) => default_SR === undefined)
     )
   )
-
-  _getPoolIds = createCollectionWrapper(createSelector(() => this.state.pools, resolveIds))
 
   _getPoolPredicate = createSelector(this._getPoolIds, poolIds =>
     isEmpty(poolIds) ? undefined : item => includes(poolIds, item.$pool)
