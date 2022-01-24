@@ -34,6 +34,8 @@ export function localToBackendUrl(basePath, target, localPath) {
   return url
 }
 
+const PREFIX = '/proxy/v1/'
+
 export default class ReverseProxy {
   constructor(app, { httpServer }) {
     app.config.watch('reverseProxies', proxies => {
@@ -44,7 +46,7 @@ export default class ReverseProxy {
           if (typeof config === 'string') {
             config = { target: config }
           }
-          config.path = '/proxy/v1/' + removeSlash(path) + '/'
+          config.path = PREFIX + removeSlash(path) + '/'
 
           return config
         })
@@ -59,6 +61,10 @@ export default class ReverseProxy {
   }
 
   _proxy(req, res) {
+    if (!req.url.startsWith(PREFIX)) {
+      return
+    }
+
     const config = this._getConfigFromRequest(req)
 
     if (config === undefined) {
