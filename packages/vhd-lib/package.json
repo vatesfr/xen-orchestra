@@ -27,7 +27,7 @@
     "uuid": "^8.3.1"
   },
   "devDependencies": {
-    "@xen-orchestra/fs": "^0.19.3",
+    "@xen-orchestra/fs": "^0.20.0",
     "get-stream": "^6.0.0",
     "readable-stream": "^3.0.6",
     "tmp": "^0.2.1"
