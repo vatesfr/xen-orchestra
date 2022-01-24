@@ -45,7 +45,6 @@
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
 - xo-vmdk-to-vhd minor
-- @xen-orchestra/backups-cli minor
 - @xen-orchestra/proxy minor
 - xo-server-audit patch
 - xo-server minor
