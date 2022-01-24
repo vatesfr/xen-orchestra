@@ -6,6 +6,7 @@
 
 - @xen-orchestra/fs 0.20.0
 - vhd-lib 3.1.0
+- @xen-orchestra/backups 0.19.0
 
 ## **5.66.2** (2022-01-05)
 
