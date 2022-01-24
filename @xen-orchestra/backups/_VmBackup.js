@@ -36,8 +36,9 @@ const forkDeltaExport = deltaExport =>
 
 exports.VmBackup = class VmBackup {
   constructor({ config, getSnapshotNameLabel, job, remoteAdapters, remotes, schedule, settings, srs, vm }) {
-    if (vm.other_config['xo:backup:job'] === job.id) {
-      // otherwise replicated VMs would be matched and replicated again and again
+    if (vm.other_config['xo:backup:job'] === job.id && 'start' in vm.blocked_operations) {
+      // don't match replicated VMs created by this very job otherwise they
+      // will be replicated again and again
       throw new Error('cannot backup a VM created by this very job')
     }
 

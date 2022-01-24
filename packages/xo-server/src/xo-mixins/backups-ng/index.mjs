@@ -185,19 +185,18 @@ export default class BackupNg {
 
           vmIds = Object.keys(
             app.getObjects({
-              filter: createPredicate({
-                type: 'VM',
-                ...vmsPattern,
+              filter: (() => {
+                const isMatchingVm = createPredicate({
+                  type: 'VM',
+                  ...vmsPattern,
+                })
 
-                // don't match VMs created by this very job
-                //
-                // otherwise replicated VMs would be matched and replicated again and again
-                other: {
-                  __not: {
-                    'xo:backup:job': job.id,
-                  },
-                },
-              }),
+                return obj =>
+                  isMatchingVm(obj) &&
+                  // don't match replicated VMs created by this very job otherwise
+                  // they will be replicated again and again
+                  !('start' in obj.blocked_operations && obj.other['xo:backup:job'] === job.id)
+              })(),
             })
           )
           if (vmIds.length === 0) {
