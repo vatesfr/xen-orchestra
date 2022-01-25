@@ -28,7 +28,7 @@ interface Props {
   //      id: 'idA',
   //      label: (
   //        <span>
-  //          <Icon icon='cloud' /> {labelA}
+  //          <Icon icon='warehouse' /> {labelA}
   //        </span>
   //      ),
   //      to: '/routeA',
@@ -47,7 +47,7 @@ interface Props {
   //      id: 'idB',
   //      label: (
   //        <span>
-  //          <Icon icon='cloud' /> {labelB}
+  //          <Icon icon='warehouse' /> {labelB}
   //        </span>
   //      ),
   //      to: '/routeB',
