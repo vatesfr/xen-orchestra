@@ -65,7 +65,7 @@ interface CustomContentProps extends TreeItemContentProps {
 interface ParentEffects {}
 
 interface Effects {
-  setSelectedNodeIds: (event: React.SyntheticEvent, nodeIds: string) => void
+  setSelectedNodeIds: (event: React.SyntheticEvent, nodeIds: Array<string>) => void
 }
 
 interface Computed {}
@@ -124,7 +124,7 @@ const Tree = withState<State, Props, Effects, Computed, ParentState, ParentEffec
     }),
     effects: {
       setSelectedNodeIds: function (event, nodeIds) {
-        this.state.selectedNodes = [nodeIds]
+        this.state.selectedNodes = [nodeIds[0]]
       },
     },
   },
@@ -134,6 +134,7 @@ const Tree = withState<State, Props, Effects, Computed, ParentState, ParentEffec
       defaultCollapseIcon={<Icon icon='chevron-up' />}
       defaultExpandIcon={<Icon icon='chevron-down' />}
       onNodeSelect={effects.setSelectedNodeIds}
+      multiSelect
       selected={selectedNodes}
     >
       {collection.map(renderItem)}
