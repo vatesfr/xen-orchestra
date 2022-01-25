@@ -753,14 +753,14 @@ export default class Health extends Component {
                 <CardBlock>
                   <NoObjects collection={props.areObjectsFetched ? poolsWithNoDefaultSr : null}>
                     {() => (
-                      <Row>
+                      <Row className='no-default-sr'>
                         <Col>
                           <SortedTable
                             collection={poolsWithNoDefaultSr}
                             columns={POOLS_WITHOUT_DEFAULT_SR_COLUMNS}
                             data-hosts={props.hosts}
                             data-srs={userSrs}
-                            shortcutsTarget='body'
+                            shortcutsTarget='.no-default-sr'
                             stateUrlParam='s_no_default_sr'
                           />
                         </Col>
