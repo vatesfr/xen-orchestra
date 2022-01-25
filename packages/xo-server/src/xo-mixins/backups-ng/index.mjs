@@ -195,7 +195,7 @@ export default class BackupNg {
                   isMatchingVm(obj) &&
                   // don't match replicated VMs created by this very job otherwise
                   // they will be replicated again and again
-                  !('start' in obj.blocked_operations && obj.other['xo:backup:job'] === job.id)
+                  !('start' in obj.blockedOperations && obj.other['xo:backup:job'] === job.id)
               })(),
             })
           )
