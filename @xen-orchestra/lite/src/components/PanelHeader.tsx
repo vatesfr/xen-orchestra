@@ -22,7 +22,7 @@ interface Effects {}
 
 interface Computed {}
 
-const DEFAULT_TITLE_STYLE = { flex: 1, fontSize: '250%' }
+const DEFAULT_TITLE_STYLE = { marginLeft: '0.5em', flex: 1, fontSize: '250%' }
 const DEFAULT_BUTTONGROUP_STYLE = { margin: '0.5em', flex: 0 }
 
 interface Props extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -37,8 +37,8 @@ interface Props extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 const PanelHeader = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
   {},
   ({ actions = [], titleProps = {}, buttonGroupProps = {}, children = null }) => (
-    <Stack direction='row' alignItems='start'>
-      <Typography variant='h1' sx={DEFAULT_TITLE_STYLE} {...titleProps}>
+    <Stack direction='row' alignItems='start' sx={{ paddingTop: '1em', background: '#FFFFFF' }}>
+      <Typography variant='h2' sx={DEFAULT_TITLE_STYLE} {...titleProps}>
         {children}
       </Typography>
       <ButtonGroup sx={DEFAULT_BUTTONGROUP_STYLE} {...buttonGroupProps}>
