@@ -5,7 +5,7 @@ import { fibonacci } from 'iterable-backoff'
 import { withState } from 'reaclette'
 
 import IntlMessage from './IntlMessage'
-import { alert, confirm } from './Modal'
+import { confirm } from './Modal'
 
 import XapiConnection, { ObjectsByType, Vm } from '../libs/xapi'
 
@@ -22,6 +22,7 @@ interface State {
   rfb: any
   rfbConnected: boolean
   timeout?: NodeJS.Timeout
+  tryToReconnect: boolean
   url?: URL
 }
 
@@ -69,6 +70,7 @@ const Console = withState<State, Props, Effects, Computed, ParentState, ParentEf
       rfb: undefined,
       rfbConnected: false,
       timeout: undefined,
+      tryToReconnect: true,
       url: undefined,
     }),
     effects: {
@@ -80,9 +82,7 @@ const Console = withState<State, Props, Effects, Computed, ParentState, ParentEf
       },
       _handleDisconnect: async function () {
         this.state.rfbConnected = false
-        let reconnect = true
-
-        const protocol = window.location.protocol
+        const { protocol } = window.location
         if (protocol === Protocols.https) {
           try {
             await fetch(`${protocol}//${this.state.url?.host}`)
@@ -94,10 +94,9 @@ const Console = withState<State, Props, Effects, Computed, ParentState, ParentEf
                 message: (
                   <div>
                     <p>
-                      The host seems unreachable. Please verify the host is alive and in case the host use self signed
-                      certificat, ensure your browser support it.
+                      <IntlMessage id='hostSeemsUnreachable' />
                     </p>
-                    <a href={`${protocol}//${this.state.url?.host}`} target='_blank' rel='noopener noreferrer'>
+                    <a href={`${protocol}//${this.state.url?.host}`} rel='noopener noreferrer' target='_blank'>
                       {this.state.url?.host}
                     </a>
                   </div>
@@ -105,12 +104,12 @@ const Console = withState<State, Props, Effects, Computed, ParentState, ParentEf
                 title: <IntlMessage id='connectionError' />,
               })
             } catch {
-              reconnect = false
+              this.state.tryToReconnect = false
             }
           }
         }
 
-        if (reconnect) {
+        if (this.state.tryToReconnect) {
           this.effects._connect()
         }
       },
@@ -179,7 +178,7 @@ const Console = withState<State, Props, Effects, Computed, ParentState, ParentEf
     <>
       {state.rfb !== undefined && !state.rfbConnected && (
         <p>
-          <IntlMessage id='reconnectionAttempt' />
+          <IntlMessage id={state.tryToReconnect ? 'reconnectionAttempt' : 'hostUnreachable'} />
         </p>
       )}
       <StyledConsole ref={state.container} scale={scale} visible={state.rfbConnected} />
