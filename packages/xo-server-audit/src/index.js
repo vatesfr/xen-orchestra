@@ -196,6 +196,10 @@ class AuditXoPlugin {
     getRecords.permission = 'admin'
     getRecords.params = {
       id: { type: 'string', optional: true },
+
+      // null is used to bypass the default limit
+      maxRecords: { type: ['number', 'null'], optional: true },
+
       ndjson: { type: 'boolean', optional: true },
     }
 
@@ -289,12 +293,12 @@ class AuditXoPlugin {
     }
   }
 
-  async _getRecords({ id, ndjson = false }) {
+  async _getRecords({ id, maxRecords = 10e3, ndjson = false }) {
     if (ndjson) {
       return this._xo
         .registerHttpRequest((req, res) => {
           res.set('Content-Type', 'application/json')
-          return fromCallback(pipeline, this._getRecordsStream(id), res)
+          return fromCallback(pipeline, this._getRecordsStream(id, maxRecords === null ? undefined : maxRecords), res)
         })
         .then($getFrom => ({
           $getFrom,
@@ -426,8 +430,12 @@ class AuditXoPlugin {
   }
 }
 
-AuditXoPlugin.prototype._getRecordsStream = asyncIteratorToStream(async function* (id) {
+AuditXoPlugin.prototype._getRecordsStream = asyncIteratorToStream(async function* (id, maxRecords = Infinity) {
   for await (const record of this._auditCore.getFrom(id)) {
+    if (--maxRecords < 0) {
+      break
+    }
+
     yield JSON.stringify(record)
     yield '\n'
   }
