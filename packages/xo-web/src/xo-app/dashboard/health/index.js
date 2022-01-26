@@ -122,6 +122,14 @@ const LOCAL_DEFAULT_SRS_COLUMNS = [
   },
 ]
 
+const POOLS_WITHOUT_DEFAULT_SR_COLUMNS = [
+  {
+    name: _('pool'),
+    itemRenderer: pool => <Pool id={pool.id} link />,
+    sortCriteria: 'name_label',
+  },
+]
+
 const SR_COLUMNS = [
   {
     name: _('srName'),
@@ -604,15 +612,24 @@ export default class Health extends Component {
     )
   )
 
+  _getPoolIds = createCollectionWrapper(createSelector(() => this.state.pools, resolveIds))
+
+  _getSelectedPools = createCollectionWrapper(
+    createSelector(
+      () => this.props.pools,
+      this._getPoolIds,
+      (pools, poolIds) => (isEmpty(poolIds) ? pools : pick(pools, poolIds))
+    )
+  )
+
   _getLocalDefaultSrs = createCollectionWrapper(
     createSelector(
       () => this.props.hosts,
-      () => this.props.pools,
       () => this.props.userSrs,
-      () => this._getPoolIds(),
-      (hosts, pools, userSrs, poolIds) => {
+      this._getSelectedPools,
+      (hosts, userSrs, selectedPools) => {
         const nbHostsPerPool = countBy(hosts, host => host.$pool)
-        return filter(isEmpty(poolIds) ? pools : pick(pools, poolIds), pool => {
+        return filter(selectedPools, pool => {
           const { default_SR } = pool
           return default_SR !== undefined && !userSrs[default_SR].shared && nbHostsPerPool[pool.id] > 1
         })
@@ -620,7 +637,11 @@ export default class Health extends Component {
     )
   )
 
-  _getPoolIds = createCollectionWrapper(createSelector(() => this.state.pools, resolveIds))
+  _getPoolsWithNoDefaultSr = createCollectionWrapper(
+    createSelector(this._getSelectedPools, selectedPools =>
+      filter(selectedPools, ({ default_SR }) => default_SR === undefined)
+    )
+  )
 
   _getPoolPredicate = createSelector(this._getPoolIds, poolIds =>
     isEmpty(poolIds) ? undefined : item => includes(poolIds, item.$pool)
@@ -654,6 +675,7 @@ export default class Health extends Component {
     const localDefaultSrs = this._getLocalDefaultSrs()
     const userSrs = this._getUserSrs()
     const orphanVdis = this._getOrphanVdis()
+    const poolsWithNoDefaultSr = this._getPoolsWithNoDefaultSr()
 
     return (
       <Container>
@@ -711,6 +733,35 @@ export default class Health extends Component {
                             data-srs={userSrs}
                             shortcutsTarget='body'
                             stateUrlParam='s_local_default_srs'
+                          />
+                        </Col>
+                      </Row>
+                    )}
+                  </NoObjects>
+                </CardBlock>
+              </Card>
+            </Col>
+          </Row>
+        )}
+        {poolsWithNoDefaultSr.length > 0 && (
+          <Row>
+            <Col>
+              <Card>
+                <CardHeader>
+                  <Icon icon='pool' /> {_('poolsWithNoDefaultSr')}
+                </CardHeader>
+                <CardBlock>
+                  <NoObjects collection={props.areObjectsFetched ? poolsWithNoDefaultSr : null}>
+                    {() => (
+                      <Row className='no-default-sr'>
+                        <Col>
+                          <SortedTable
+                            collection={poolsWithNoDefaultSr}
+                            columns={POOLS_WITHOUT_DEFAULT_SR_COLUMNS}
+                            data-hosts={props.hosts}
+                            data-srs={userSrs}
+                            shortcutsTarget='.no-default-sr'
+                            stateUrlParam='s_no_default_sr'
                           />
                         </Col>
                       </Row>
