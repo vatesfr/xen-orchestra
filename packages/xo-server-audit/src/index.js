@@ -396,12 +396,12 @@ class AuditXoPlugin {
   }
 
   async _generateFingerprint(props) {
-    const { oldest = NULL_ID, newest = await this._storage.getLastId() } = props
+    const { oldest = NULL_ID, newest = (await this._storage.getLastId()) ?? NULL_ID } = props
     try {
       return {
         fingerprint: `${oldest}|${newest}`,
         newest,
-        nValid: await this._checkIntegrity({ oldest, newest }),
+        nValid: newest !== NULL_ID ? await this._checkIntegrity({ oldest, newest }) : 0,
         oldest,
       }
     } catch (error) {

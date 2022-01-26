@@ -1,6 +1,6 @@
 import assert from 'assert'
 import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
-import execa from 'execa'
+import { execa } from 'execa'
 import filter from 'lodash/filter.js'
 import find from 'lodash/find.js'
 import fs from 'fs-extra'

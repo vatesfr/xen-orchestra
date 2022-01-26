@@ -1,9 +1,9 @@
-const { resolveAlias } = require('./_resolveAlias')
+const { resolveVhdAlias } = require('./aliases')
 const { VhdDirectory } = require('./Vhd/VhdDirectory.js')
 const { VhdFile } = require('./Vhd/VhdFile.js')
 
 exports.openVhd = async function openVhd(handler, path, opts) {
-  const resolved = await resolveAlias(handler, path)
+  const resolved = await resolveVhdAlias(handler, path)
   try {
     return await VhdFile.open(handler, resolved, opts)
   } catch (e) {

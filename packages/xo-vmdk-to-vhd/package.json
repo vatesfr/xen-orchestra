@@ -25,7 +25,7 @@
     "lodash": "^4.17.15",
     "pako": "^2.0.4",
     "promise-toolbox": "^0.20.0",
-    "vhd-lib": "^3.0.0",
+    "vhd-lib": "^3.1.0",
     "xml2js": "^0.4.23"
   },
   "devDependencies": {

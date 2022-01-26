@@ -22,7 +22,7 @@ import serveStatic from 'serve-static'
 import stoppable from 'stoppable'
 import WebServer from 'http-server-plus'
 import WebSocket, { WebSocketServer } from 'ws'
-import xdg from 'xdg-basedir'
+import { xdgConfig } from 'xdg-basedir'
 import { createLogger } from '@xen-orchestra/log'
 import { createRequire } from 'module'
 import { genSelfSignedCert } from '@xen-orchestra/self-signed'
@@ -99,7 +99,7 @@ async function loadConfiguration() {
   return config
 }
 
-const LOCAL_CONFIG_FILE = `${xdg.config}/${APP_NAME}/config.z-auto.json`
+const LOCAL_CONFIG_FILE = `${xdgConfig}/${APP_NAME}/config.z-auto.json`
 async function updateLocalConfig(diff) {
   // TODO lock file
   const localConfig = await fse.readFile(LOCAL_CONFIG_FILE).then(JSON.parse, () => ({}))

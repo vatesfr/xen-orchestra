@@ -50,7 +50,7 @@ predicate([false, { foo: 'bar', baz: 42 }, null, 42]) // true
 predicate('foo') // false
 ```
 
-### `{ __all: Pattern[] }`
+### `{ __and: Pattern[] }`
 
 All patterns must match.
 

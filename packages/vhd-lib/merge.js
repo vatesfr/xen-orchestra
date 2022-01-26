@@ -9,8 +9,21 @@ const { openVhd } = require('./openVhd')
 const { basename, dirname } = require('path')
 const { DISK_TYPES } = require('./_constants')
 const { Disposable } = require('promise-toolbox')
+const { asyncEach } = require('@vates/async-each')
+const { VhdDirectory } = require('./Vhd/VhdDirectory')
 
 const { warn } = createLogger('vhd-lib:merge')
+
+function makeThrottledWriter(handler, path, delay) {
+  let lastWrite = Date.now()
+  return async json => {
+    const now = Date.now()
+    if (now - lastWrite > delay) {
+      lastWrite = now
+      await handler.writeFile(path, JSON.stringify(json), { flags: 'w' }).catch(warn)
+    }
+  }
+}
 
 // Merge vhd child into vhd parent.
 //
@@ -25,22 +38,15 @@ module.exports = limitConcurrency(2)(async function merge(
   const mergeStatePath = dirname(parentPath) + '/' + '.' + basename(parentPath) + '.merge.json'
 
   return await Disposable.use(async function* () {
-    let mergeState = await parentHandler
-      .readFile(mergeStatePath)
-      .then(content => {
-        const state = JSON.parse(content)
-
-        // ensure the correct merge will be continued
-        assert.strictEqual(parentVhd.header.checksum, state.parent.header)
-        assert.strictEqual(childVhd.header.checksum, state.child.header)
-
-        return state
-      })
-      .catch(error => {
-        if (error.code !== 'ENOENT') {
-          warn('problem while checking the merge state', { error })
-        }
-      })
+    let mergeState
+    try {
+      const mergeStateContent = await parentHandler.readFile(mergeStatePath)
+      mergeState = JSON.parse(mergeStateContent)
+    } catch (error) {
+      if (error.code !== 'ENOENT') {
+        warn('problem while checking the merge state', { error })
+      }
+    }
 
     // during merging, the end footer of the parent can be overwritten by new blocks
     // we should use it as a way to check vhd health
@@ -49,12 +55,17 @@ module.exports = limitConcurrency(2)(async function merge(
       checkSecondFooter: mergeState === undefined,
     })
     const childVhd = yield openVhd(childHandler, childPath)
+
+    const concurrency = childVhd instanceof VhdDirectory ? 16 : 1
     if (mergeState === undefined) {
       assert.strictEqual(childVhd.header.blockSize, parentVhd.header.blockSize)
 
       const parentDiskType = parentVhd.footer.diskType
       assert(parentDiskType === DISK_TYPES.DIFFERENCING || parentDiskType === DISK_TYPES.DYNAMIC)
       assert.strictEqual(childVhd.footer.diskType, DISK_TYPES.DIFFERENCING)
+    } else {
+      assert.strictEqual(parentVhd.header.checksum, mergeState.parent.header)
+      assert.strictEqual(childVhd.header.checksum, mergeState.child.header)
     }
 
     // Read allocation table of child/parent.
@@ -79,30 +90,40 @@ module.exports = limitConcurrency(2)(async function merge(
     }
 
     // counts number of allocated blocks
-    let nBlocks = 0
+    const toMerge = []
     for (let block = mergeState.currentBlock; block < maxTableEntries; block++) {
       if (childVhd.containsBlock(block)) {
-        nBlocks += 1
+        toMerge.push(block)
       }
     }
-
+    const nBlocks = toMerge.length
     onProgress({ total: nBlocks, done: 0 })
 
-    // merges blocks
-    for (let i = 0; i < nBlocks; ++i, ++mergeState.currentBlock) {
-      while (!childVhd.containsBlock(mergeState.currentBlock)) {
-        ++mergeState.currentBlock
+    const merging = new Set()
+    let counter = 0
+
+    const mergeStateWriter = makeThrottledWriter(parentHandler, mergeStatePath, 10e3)
+
+    await asyncEach(
+      toMerge,
+      async blockId => {
+        merging.add(blockId)
+        mergeState.mergedDataSize += await parentVhd.coalesceBlock(childVhd, blockId)
+        merging.delete(blockId)
+
+        onProgress({
+          total: nBlocks,
+          done: counter + 1,
+        })
+        counter++
+        mergeState.currentBlock = Math.min(...merging)
+        mergeStateWriter(mergeState)
+      },
+      {
+        concurrency,
       }
-
-      await parentHandler.writeFile(mergeStatePath, JSON.stringify(mergeState), { flags: 'w' }).catch(warn)
-
-      mergeState.mergedDataSize += await parentVhd.coalesceBlock(childVhd, mergeState.currentBlock)
-      onProgress({
-        total: nBlocks,
-        done: i + 1,
-      })
-    }
-
+    )
+    onProgress({ total: nBlocks, done: nBlocks })
     // some blocks could have been created or moved in parent : write bat
     await parentVhd.writeBlockAllocationTable()
 
