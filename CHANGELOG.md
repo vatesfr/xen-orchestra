@@ -10,6 +10,7 @@
 - @xen-orchestra/backups-cli 0.7.0
 - xo-vmdk-to-vhd 2.1.0
 - @xen-orchestra/proxy 0.18.0
+- xo-server-audit 0.9.1
 
 ## **5.66.2** (2022-01-05)
 
