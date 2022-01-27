@@ -56,6 +56,11 @@ const Select = withState<State, Props, Effects, Computed, ParentState, ParentEff
           if (value === undefined) {
             console.error('Computed value is undefined')
           }
+          if (typeof label === 'object' || typeof value === 'object') {
+            throw new Error(
+              'When "options" prop is an array of objects, you have to define "optionRenderer" and "valueRenderer" or ensure the objects have one of these following keys: ("name" | "label" | "name_label") and ("value" | "id" | "$id")'
+            )
+          }
 
           return (
             <MenuItem key={value} value={value}>

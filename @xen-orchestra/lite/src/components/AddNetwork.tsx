@@ -49,8 +49,7 @@ interface Effects {
 }
 
 interface Computed {
-  pifsCollection?: Pif[]
-  pifs?: Map<string, Pif>
+  filteredPifs?: Pif[]
   pifsMetrics?: Map<string, PifMetrics>
 }
 
@@ -86,10 +85,10 @@ const AddNetwork = withState<State, Props, Effects, Computed, ParentState, Paren
       form: getInitialFormState(),
     }),
     computed: {
-      pifs: state => state.objectsByType.get('PIF'),
       pifsMetrics: state => state.objectsByType.get('PIF_metrics'),
-      pifsCollection: state =>
-        state.pifs
+      filteredPifs: state =>
+        state.objectsByType
+          .get('PIF')
           ?.filter(pif => pif.VLAN === -1 && pif.bond_slave_of === 'OpaqueRef:NULL' && pif.host === pif.$pool.master)
           .sortBy(pif => pif.device)
           .valueSeq()
@@ -187,7 +186,7 @@ const AddNetwork = withState<State, Props, Effects, Computed, ParentState, Paren
   ({
     effects: { createNetwork, handleChange, resetForm, toggleBonded },
     state: {
-      pifsCollection,
+      filteredPifs,
       pifsMetrics,
       form: {
         bondMode,
@@ -225,7 +224,7 @@ const AddNetwork = withState<State, Props, Effects, Computed, ParentState, Paren
           name='pifsId'
           onChange={handleChange}
           optionRenderer={OPTION_PIF_RENDERER}
-          options={pifsCollection}
+          options={filteredPifs}
           required={isBonded}
           value={isBonded ? pifsId : pifsId[0]}
         />
