@@ -239,7 +239,7 @@ const App = withState<State, Props, Effects, Computed, ParentState, ParentEffect
       <Container>
         <Render>
           <Tabs
-            list={[
+            tabs={[
               { component: 'Hello BAR!', pathname: '/styleguide', label: 'BAR' },
               { pathname: '/styleguide/foo', label: 'FOO' },
             ]}
@@ -247,7 +247,7 @@ const App = withState<State, Props, Effects, Computed, ParentState, ParentEffect
         </Render>
         <Code>
           {`<Tabs
-  list={[
+  tabs={[
     { component: 'Hello BAR!', pathname: '/styleguide', label: 'BAR' },
     { label: 'FOO', pathname: '/styleguide/foo' },
   ]}
