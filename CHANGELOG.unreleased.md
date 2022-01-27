@@ -27,6 +27,7 @@
 - [Backup] Fix merge resuming (PR [#6099](https://github.com/vatesfr/xen-orchestra/pull/6099))
 - [Plugin/Audit] Fix `key cannot be 'null' or 'undefined'` error when no audit log in the database [#6040](https://github.com/vatesfr/xen-orchestra/issues/6040) (PR [#6071](https://github.com/vatesfr/xen-orchestra/pull/6071))
 - [Backup] Fix backuping restored VMs
+- [Audit Log] Don't log `proxy.getApplianceUpdaterState` API calls
 
 ### Packages to release
 

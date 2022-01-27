@@ -36,6 +36,7 @@ const DEFAULT_BLOCKED_LIST = {
   'plugin.get': true,
   'pool.listMissingPatches': true,
   'proxy.getAll': true,
+  'proxy.getApplianceUpdaterState': true,
   'remote.getAll': true,
   'remote.getAllInfo': true,
   'remote.list': true,
