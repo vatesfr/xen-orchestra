@@ -8,6 +8,7 @@
 - vhd-lib 3.1.0
 - @xen-orchestra/backups 0.19.0
 - @xen-orchestra/backups-cli 0.7.0
+- xo-vmdk-to-vhd 2.1.0
 
 ## **5.66.2** (2022-01-05)
 
