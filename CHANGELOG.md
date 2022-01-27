@@ -12,6 +12,7 @@
 - @xen-orchestra/proxy 0.18.0
 - xo-server-audit 0.9.1
 - xo-server 5.87.0
+- xo-web 5.92.0
 
 ## **5.66.2** (2022-01-05)
 
