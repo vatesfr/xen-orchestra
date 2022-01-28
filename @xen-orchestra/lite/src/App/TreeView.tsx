@@ -12,24 +12,24 @@ interface ParentState {
 }
 
 interface State {
-  _selectedNodes?: Array<string>
+  selectedNodes: Array<string>
 }
 
 interface Props {
-  defaultSelectedNodes?: Array<string>
+  selectedNodes: Array<string>
 }
 
 interface ParentEffects {}
 
 interface Effects {
-  setSelectedNodeIds: (event: React.SyntheticEvent<Element, Event>, nodeIds: Array<string>) => void
+  setSelectedNodes: (event: React.SyntheticEvent<Element, Event>, nodeIds: Array<string>) => void
+  urlListener: (e: HashChangeEvent) => void
 }
 
 interface Computed {
   collection?: Array<ItemType>
   hostsByPool?: Collection.Keyed<string, Collection<string, Host>>
   pools?: Map<string, Pool>
-  selectedNodes: Array<string>
   vms?: Map<string, Vm>
   vmsByContainerRef?: Collection.Keyed<string, Collection<string, Vm>>
 }
@@ -46,12 +46,23 @@ const getIconColor = (obj: Host | Vm) => {
 
 const TreeView = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
   {
-    initialState: () => ({
-      _selectedNodes: undefined,
+    initialState: ({ selectedNodes }) => ({
+      selectedNodes: selectedNodes,
     }),
     effects: {
-      setSelectedNodeIds: function (_, nodeIds) {
-        this.state._selectedNodes = nodeIds
+      initialize: function () {
+        window.addEventListener('hashchange', this.effects.urlListener)
+      },
+      finalize: function () {
+        window.removeEventListener('hashchange', this.effects.urlListener)
+      },
+      urlListener: function ({ newURL }) {
+        if (newURL.split('#')[1].split('/')[3] === undefined) {
+          this.state.selectedNodes = []
+        }
+      },
+      setSelectedNodes: function (_, nodeIds) {
+        this.state.selectedNodes = [nodeIds[0]]
       },
     },
     computed: {
@@ -122,8 +133,6 @@ const TreeView = withState<State, Props, Effects, Computed, ParentState, ParentE
       },
       hostsByPool: state => state.objectsByType?.get('host')?.groupBy((host: Host) => host.$pool.$id),
       pools: state => state.objectsByType?.get('pool'),
-      selectedNodes: ({ _selectedNodes }, { defaultSelectedNodes }) =>
-        _selectedNodes ?? (defaultSelectedNodes === undefined ? [] : defaultSelectedNodes),
       vms: state =>
         state.objectsByType
           ?.get('VM')
@@ -134,14 +143,13 @@ const TreeView = withState<State, Props, Effects, Computed, ParentState, ParentE
         ),
     },
   },
-  ({ defaultSelectedNodes, effects, state }) =>
+  ({ state, effects }) =>
     state.collection === undefined ? null : (
       <div style={{ padding: '10px' }}>
         <Tree
           collection={state.collection}
-          defaultSelectedNodes={defaultSelectedNodes}
           selectedNodes={state.selectedNodes}
-          setSelectedNodeIds={effects.setSelectedNodeIds}
+          setSelectedNodeIds={effects.setSelectedNodes}
         />
       </div>
     )

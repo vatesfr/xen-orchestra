@@ -53,7 +53,6 @@ interface Props {
   //   }
   // ]
   collection: Array<ItemType>
-  defaultSelectedNodes?: Array<string>
   selectedNodes: Array<string>
   setSelectedNodeIds: (event: React.SyntheticEvent<Element, Event>, nodeIds: Array<string>) => void
 }

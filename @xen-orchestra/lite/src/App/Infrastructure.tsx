@@ -28,7 +28,9 @@ const MainPanel = styled.div`
 
 interface ParentState {}
 
-interface State {}
+interface State {
+  selectedNodes: Array<string>
+}
 
 interface Props {
   location: RouteChildrenProps['location']
@@ -36,24 +38,20 @@ interface Props {
 
 interface ParentEffects {}
 
-interface Effects {
-  initialize: () => void
-}
+interface Effects {}
 
-interface Computed {
-  selectedVm?: string
-}
+interface Computed {}
 
 const Infrastructure = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
   {
-    computed: {
-      selectedVm: (_, { location }) => location.pathname.split('/')[3],
-    },
+    initialState: ({ location }) => ({
+      selectedNodes: [location.pathname.split('/')[3]],
+    }),
   },
-  ({ state: { selectedVm } }) => (
+  ({ state: { selectedNodes } }) => (
     <Container>
       <LeftPanel>
-        <TreeView defaultSelectedNodes={selectedVm === undefined ? undefined : [selectedVm]} />
+        <TreeView selectedNodes={selectedNodes} />
       </LeftPanel>
       <MainPanel>
         <Switch>
