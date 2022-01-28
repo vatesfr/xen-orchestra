@@ -48,7 +48,7 @@ describe('group', () => {
 
   async function getGroup(id) {
     const groups = await getAllGroups()
-    return find(groups, { id: id })
+    return find(groups, { id })
   }
 
   // =================================================================
@@ -112,7 +112,7 @@ describe('group', () => {
       })
       await xo.call('group.addUser', {
         id: groupId,
-        userId: userId,
+        userId,
       })
 
       // delete the group
@@ -129,7 +129,7 @@ describe('group', () => {
       })
       await xo.call('group.addUser', {
         id: groupId,
-        userId: userId,
+        userId,
       })
 
       // delete the group
@@ -289,7 +289,7 @@ describe('group', () => {
     it('adds a user id to a group', async () => {
       await xo.call('group.addUser', {
         id: groupId,
-        userId: userId,
+        userId,
       })
 
       const [group, user] = await Promise.all([getGroup(groupId), getUser(xo, userId)])
@@ -322,14 +322,14 @@ describe('group', () => {
 
       await xo.call('group.addUser', {
         id: groupId,
-        userId: userId,
+        userId,
       })
     })
 
     it('removes a user to a group', async () => {
       await xo.call('group.removeUser', {
         id: groupId,
-        userId: userId,
+        userId,
       })
 
       const [group, user] = await Promise.all([getGroup(groupId), getUser(xo, userId)])

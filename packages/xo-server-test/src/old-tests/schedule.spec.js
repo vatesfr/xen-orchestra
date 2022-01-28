@@ -85,7 +85,7 @@ describe('schedule', () => {
   describe('.create()', () => {
     it('creates a new schedule', async () => {
       const schedule = await createSchedule({
-        jobId: jobId,
+        jobId,
         cron: '* * * * * *',
         enabled: true,
       })

@@ -57,7 +57,7 @@ module.exports = class Vdi {
       SR,
       tags,
       type,
-      virtual_size: virtual_size,
+      virtual_size,
       xenstore_data,
     })
   }

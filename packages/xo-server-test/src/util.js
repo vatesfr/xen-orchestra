@@ -40,6 +40,7 @@ export function getAllHosts(xo) {
 
 export function getOneHost(xo) {
   const hosts = getAllHosts(xo)
+  // eslint-disable-next-line no-unreachable-loop
   for (const id in hosts) {
     return hosts[id]
   }
@@ -107,7 +108,7 @@ export async function jobTest(xo) {
 
 export async function scheduleTest(xo, jobId) {
   const schedule = await xo.call('schedule.create', {
-    jobId: jobId,
+    jobId,
     cron: '* * * * * *',
     enabled: false,
   })
@@ -115,7 +116,7 @@ export async function scheduleTest(xo, jobId) {
 }
 
 export async function getSchedule(xo, id) {
-  const schedule = xo.call('schedule.get', { id: id })
+  const schedule = xo.call('schedule.get', { id })
   return schedule
 }
 

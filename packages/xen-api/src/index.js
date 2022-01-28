@@ -180,6 +180,7 @@ export class Xapi extends EventEmitter {
   }
 
   connect = coalesceCalls(this.connect)
+  // eslint-disable-next-line no-dupe-class-members
   async connect() {
     const status = this._status
 
@@ -760,6 +761,7 @@ export class Xapi extends EventEmitter {
     },
   }
   _sessionOpen = coalesceCalls(this._sessionOpen)
+  // eslint-disable-next-line no-dupe-class-members
   async _sessionOpen() {
     const { user, password, sessionId } = this._auth
 
@@ -1011,6 +1013,7 @@ export class Xapi extends EventEmitter {
   }
 
   _watchEvents = coalesceCalls(this._watchEvents)
+  // eslint-disable-next-line no-dupe-class-members
   async _watchEvents() {
     // eslint-disable-next-line no-labels
     mainLoop: while (true) {

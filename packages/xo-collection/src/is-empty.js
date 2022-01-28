@@ -1,5 +1,5 @@
 export default function isEmpty(object) {
-  /* eslint no-unused-vars: 0 */
+  // eslint-disable-next-line no-unreachable-loop
   for (const key in object) {
     return false
   }

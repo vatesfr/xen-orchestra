@@ -6,6 +6,7 @@ const keyBy = require('lodash/keyBy.js')
 const mapValues = require('lodash/mapValues.js')
 const { asyncMap } = require('@xen-orchestra/async-map')
 const { createLogger } = require('@xen-orchestra/log')
+const { decorateMethodsWith } = require('@vates/decorate-with')
 const { defer } = require('golike-defer')
 const { formatDateTime } = require('@xen-orchestra/xapi')
 
@@ -34,7 +35,7 @@ const forkDeltaExport = deltaExport =>
     },
   })
 
-exports.VmBackup = class VmBackup {
+class VmBackup {
   constructor({ config, getSnapshotNameLabel, job, remoteAdapters, remotes, schedule, settings, srs, vm }) {
     if (vm.other_config['xo:backup:job'] === job.id && 'start' in vm.blocked_operations) {
       // don't match replicated VMs created by this very job otherwise they
@@ -385,7 +386,6 @@ exports.VmBackup = class VmBackup {
     this._fullVdisRequired = fullVdisRequired
   }
 
-  run = defer(this.run)
   async run($defer) {
     const settings = this._settings
     assert(
@@ -433,3 +433,8 @@ exports.VmBackup = class VmBackup {
     }
   }
 }
+exports.VmBackup = VmBackup
+
+decorateMethodsWith(VmBackup, {
+  run: defer,
+})

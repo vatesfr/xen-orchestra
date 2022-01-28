@@ -67,7 +67,7 @@ function _getGlusterEndpoint(sr) {
   }
   return {
     xapi,
-    data: data,
+    data,
     hosts: map(data.nodes, node => xapi.getObject(node.host)),
     addresses: map(data.nodes, node => node.vm.ip),
   }
@@ -220,7 +220,7 @@ export async function profileStatus({ sr, changeStatus = null }) {
   if (changeStatus === true) {
     await glusterCmd(glusterEndpoint, 'volume profile xosan start')
   }
-  return this::getVolumeInfo({ sr: sr, infoType: 'profile' })
+  return this::getVolumeInfo({ sr, infoType: 'profile' })
 }
 
 profileStatus.description = 'activate, deactivate, or interrogate profile data'
@@ -322,7 +322,7 @@ async function remoteSsh(glusterEndpoint, cmd, ignoreError = false) {
       try {
         result = await callPlugin(glusterEndpoint.xapi, host, 'run_ssh', {
           destination: 'root@' + address,
-          cmd: cmd,
+          cmd,
         })
         break
       } catch (exception) {
@@ -666,8 +666,8 @@ export const createSR = defer(async function (
     await xapi.xo.setData(xosanSrRef, 'xosan_config', {
       version: 'beta2',
       creationDate: new Date().toISOString(),
-      nodes: nodes,
-      template: template,
+      nodes,
+      template,
       network: xosanNetwork.$id,
       type: glusterType,
       networkPrefix,
@@ -741,7 +741,7 @@ async function createNewDisk(xapi, sr, vm, diskSize) {
       name_label: 'xosan_data',
       name_description: 'Created by XO',
       size: createVdiSize,
-      sr: sr,
+      sr,
       sm_config: { type: 'raw' },
     },
     { setSmConfig: true }
@@ -867,7 +867,7 @@ export async function replaceBrick({ xosansr, previousBrick, newLvmSr, brickSize
     data.nodes.splice(nodeIndex, 1, {
       brickName: addressAndHost.brickName,
       host: addressAndHost.host.$id,
-      arbiter: arbiter,
+      arbiter,
       vm: { ip: addressAndHost.address, id: newVM.$id },
       underlyingSr: newLvmSr,
     })
@@ -944,7 +944,7 @@ async function _prepareGlusterVm(
   const vm = await xapi._waitObjectState(newVM.$id, _ => Ref.isNotEmpty(_.guest_metrics))
   await xapi._waitObjectState(vm.guest_metrics, _ => includes(_.networks, ip))
   log.debug(`booted ${ip}`)
-  const localEndpoint = { xapi: xapi, hosts: [host], addresses: [ip] }
+  const localEndpoint = { xapi, hosts: [host], addresses: [ip] }
   const srFreeSpace = sr.physical_size - sr.physical_utilisation
   // we use a percentage because it looks like the VDI overhead is proportional
   const newSize = floor2048(Math.min(maxDiskSize - rootDiskSize, srFreeSpace * XOSAN_DATA_DISK_USEAGE_RATIO))

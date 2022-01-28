@@ -107,7 +107,7 @@ export class OvsdbClient {
     const portName = bridge.name + '_port' + index
 
     // Add interface and port to the bridge
-    const options = { remote_ip: remoteAddress, key: key }
+    const options = { remote_ip: remoteAddress, key }
     if (password !== undefined) {
       options.psk = password
     }
@@ -605,7 +605,7 @@ export class OvsdbClient {
     const req = {
       id: requestId,
       method: 'transact',
-      params: params,
+      params,
     }
 
     try {

@@ -22,6 +22,7 @@ import serveStatic from 'serve-static'
 import stoppable from 'stoppable'
 import WebServer from 'http-server-plus'
 import WebSocket, { WebSocketServer } from 'ws'
+import { asyncMap } from '@xen-orchestra/async-map'
 import { xdgConfig } from 'xdg-basedir'
 import { createLogger } from '@xen-orchestra/log'
 import { createRequire } from 'module'
@@ -362,13 +363,11 @@ async function registerPluginsInPath(path, prefix) {
     throw error
   })
 
-  await Promise.all(
-    files.map(name => {
-      if (name.startsWith(prefix)) {
-        return registerPluginWrapper.call(this, `${path}/${name}`, name.slice(prefix.length))
-      }
-    })
-  )
+  await asyncMap(files, name => {
+    if (name.startsWith(prefix)) {
+      return registerPluginWrapper.call(this, `${path}/${name}`, name.slice(prefix.length))
+    }
+  })
 }
 
 async function registerPlugins(xo) {

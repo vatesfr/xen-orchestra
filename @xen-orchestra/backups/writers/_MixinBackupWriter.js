@@ -1,7 +1,7 @@
 const { createLogger } = require('@xen-orchestra/log')
 const { join } = require('path')
 
-const { BACKUP_DIR, getVmBackupDir } = require('../_getVmBackupDir.js')
+const { getVmBackupDir } = require('../_getVmBackupDir.js')
 const MergeWorker = require('../merge-worker/index.js')
 const { formatFilenameDate } = require('../_filenameDate.js')
 

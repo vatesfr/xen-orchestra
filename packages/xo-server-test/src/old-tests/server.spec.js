@@ -26,7 +26,7 @@ describe('server', () => {
 
   async function getServer(id) {
     const servers = await getAllServers()
-    return find(servers, { id: id })
+    return find(servers, { id })
   }
 
   // ==================================================================
