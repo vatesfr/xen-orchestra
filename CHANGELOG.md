@@ -23,6 +23,7 @@
 - [Plugin/Audit] Fix `key cannot be 'null' or 'undefined'` error when no audit log in the database [#6040](https://github.com/vatesfr/xen-orchestra/issues/6040) (PR [#6071](https://github.com/vatesfr/xen-orchestra/pull/6071))
 - [Backup] Fix backuping restored VMs
 - [Audit Log] Don't log `proxy.getApplianceUpdaterState` API calls
+- [Audit Log] Fix long data loading when displaying logs (PR [#6113](https://github.com/vatesfr/xen-orchestra/pull/6113))
 
 ### Released packages
 
@@ -32,7 +33,7 @@
 - @xen-orchestra/backups-cli 0.7.0
 - xo-vmdk-to-vhd 2.1.0
 - @xen-orchestra/proxy 0.18.0
-- xo-server-audit 0.9.1
+- xo-server-audit 0.9.2
 - xo-server 5.87.0
 - xo-web 5.92.0
 

@@ -11,8 +11,6 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [Plugin/Audit] Fix long data loading when displaying logs (PR [#6113](https://github.com/vatesfr/xen-orchestra/pull/6113))
-
 ### Packages to release
 
 > Packages will be released in the order they are here, therefore, they should
@@ -29,5 +27,3 @@
 > - major: if the change breaks compatibility
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
-
-- xo-server-audit patch
