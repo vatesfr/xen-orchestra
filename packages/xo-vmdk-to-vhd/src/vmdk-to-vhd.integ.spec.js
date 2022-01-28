@@ -96,10 +96,15 @@ test('Can generate a small VMDK file', async () => {
   const blockSize = 1024 * 1024
   const b1 = Buffer.allocUnsafe(blockSize)
   const b2 = Buffer.allocUnsafe(blockSize)
-  const blockGenerator = [{ lba: 0, block: b1 }, { lba: blockSize, block: b2 }]
+  const blockGenerator = [
+    { lba: 0, block: b1 },
+    { lba: blockSize, block: b2 },
+  ]
   const fileName = 'result.vmdk'
   const geometry = { sectorsPerTrackCylinder: 63, heads: 16, cylinders: 10402 }
-  const readStream = asyncIteratorToStream(await generateVmdkData(fileName, 2 * blockSize, blockSize, blockGenerator, geometry))
+  const readStream = asyncIteratorToStream(
+    await generateVmdkData(fileName, 2 * blockSize, blockSize, blockGenerator, geometry)
+  )
   const pipe = readStream.pipe(createWriteStream(fileName))
   await fromEvent(pipe, 'finish')
 
@@ -112,7 +117,12 @@ test('Can generate a small VMDK file', async () => {
   const data = await readVmdkGrainTable(createFileAccessor(fileName))
   expect(bufferToArray(data.grainLogicalAddressList)).toEqual(expectedLBAs)
   const grainFileOffsetList = bufferToArray(data.grainFileOffsetList)
-  const parser = new VMDKDirectParser(createReadStream(fileName), bufferToArray(data.grainLogicalAddressList), grainFileOffsetList, false)
+  const parser = new VMDKDirectParser(
+    createReadStream(fileName),
+    bufferToArray(data.grainLogicalAddressList),
+    grainFileOffsetList,
+    false
+  )
   await parser.readHeader()
   const resLbas = []
   const resBuffers = []

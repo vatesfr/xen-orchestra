@@ -2227,7 +2227,8 @@ export const restoreBackup = (backup, sr, { generateNewMacAddresses = false, sta
 
 export const deleteBackup = backup => _call('backupNg.deleteVmBackup', { id: resolveId(backup) })
 
-export const deleteBackups = async backups => _call('backupNg.deleteVmBackups', { ids: backups.map(backup => resolveId(backup)) })
+export const deleteBackups = async backups =>
+  _call('backupNg.deleteVmBackups', { ids: backups.map(backup => resolveId(backup)) })
 
 export const createMetadataBackupJob = props =>
   _call('metadataBackup.createJob', props)
