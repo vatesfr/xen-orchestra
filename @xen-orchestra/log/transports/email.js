@@ -1,6 +1,6 @@
 const fromCallback = require('promise-toolbox/fromCallback')
-const nodemailer = require('nodemailer') // eslint-disable-line node/no-extraneous-import
-const prettyFormat = require('pretty-format') // eslint-disable-line node/no-extraneous-import
+const nodemailer = require('nodemailer') // eslint-disable-line n/no-extraneous-import
+const prettyFormat = require('pretty-format') // eslint-disable-line n/no-extraneous-import
 
 const { evalTemplate, required } = require('../utils')
 const { NAMES } = require('../levels')

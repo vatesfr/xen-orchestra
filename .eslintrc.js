@@ -20,6 +20,10 @@ module.exports = {
     },
   ],
 
+  parserOptions: {
+    ecmaVersion: 13,
+  },
+
   rules: {
     // disabled because XAPI objects are using camel case
     camelcase: ['off'],

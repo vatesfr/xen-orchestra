@@ -9,7 +9,7 @@ const _combine = (vectors, n, cb) => {
   const m = vector.length
   if (n === 1) {
     for (let i = 0; i < m; ++i) {
-      // eslint-disable-next-line node/no-callback-literal
+      // eslint-disable-next-line n/no-callback-literal
       cb([vector[i]])
     }
     return

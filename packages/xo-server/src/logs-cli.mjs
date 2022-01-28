@@ -284,7 +284,7 @@ execPromise(async function main() {
     // TODO: remove once `import.meta.resolve` is stabilized
     const require = (await import('module')).createRequire(import.meta.url)
 
-    // eslint-disable-next-line node/no-extraneous-require
+    // eslint-disable-next-line n/no-extraneous-require
     const { repair } = require(require.resolve('level', {
       paths: [require.resolve('level-party')],
     }))
