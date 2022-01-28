@@ -54,7 +54,7 @@ interface Props {
   // ]
   collection: Array<ItemType>
   selectedNodes: Array<string>
-  setSelectedNodeIds: (event: React.SyntheticEvent<Element, Event>, nodeIds: Array<string>) => void
+  onNodeSelect: (event: React.SyntheticEvent<Element, Event>, nodeIds: Array<string>) => void
 }
 
 interface CustomContentProps extends TreeItemContentProps {
@@ -116,13 +116,13 @@ const renderItem = ({ children, id, label, to, tooltip }: ItemType) => {
 
 const Tree = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
   {},
-  ({ setSelectedNodeIds, selectedNodes, collection }) => (
+  ({ onNodeSelect, selectedNodes, collection }) => (
     <TreeView
       defaultExpanded={[collection[0].id]}
       defaultCollapseIcon={<Icon icon='chevron-up' />}
       defaultExpandIcon={<Icon icon='chevron-down' />}
       multiSelect
-      onNodeSelect={setSelectedNodeIds}
+      onNodeSelect={onNodeSelect}
       selected={selectedNodes}
     >
       {collection.map(renderItem)}

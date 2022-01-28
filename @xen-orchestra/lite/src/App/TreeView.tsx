@@ -149,7 +149,7 @@ const TreeView = withState<State, Props, Effects, Computed, ParentState, ParentE
         <Tree
           collection={state.collection}
           selectedNodes={state.selectedNodes}
-          setSelectedNodeIds={effects.setSelectedNodes}
+          onNodeSelect={effects.setSelectedNodes}
         />
       </div>
     )
