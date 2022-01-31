@@ -37,7 +37,14 @@ interface Props extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 const PanelHeader = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
   {},
   ({ actions = [], titleProps = {}, buttonGroupProps = {}, children = null }) => (
-    <Stack direction='row' alignItems='start' sx={{ paddingTop: '1em', background: '#FFFFFF' }}>
+    <Stack
+      direction='row'
+      alignItems='start'
+      sx={{
+        paddingTop: '1em',
+        backgroundColor: theme => theme.palette.common.white,
+      }}
+    >
       <Typography variant='h2' sx={DEFAULT_TITLE_STYLE} {...titleProps}>
         {children}
       </Typography>
