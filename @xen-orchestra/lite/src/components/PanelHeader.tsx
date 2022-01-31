@@ -38,11 +38,11 @@ const PanelHeader = withState<State, Props, Effects, Computed, ParentState, Pare
   {},
   ({ actions = [], titleProps = {}, buttonGroupProps = {}, children = null }) => (
     <Stack
-      direction='row'
       alignItems='start'
+      direction='row'
       sx={{
-        paddingTop: '1em',
         backgroundColor: theme => theme.palette.common.white,
+        paddingTop: '1em',
       }}
     >
       <Typography variant='h2' sx={DEFAULT_TITLE_STYLE} {...titleProps}>
