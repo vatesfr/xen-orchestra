@@ -24,8 +24,8 @@ interface Tab {
   pathname: string
 }
 
-interface Props {
-  history: RouteComponentProps['history']
+// For compatibility with 'withRouter'
+interface Props extends RouteComponentProps {
   // tabs= [
   //   {
   //      component: (<span>BAR</span>)
