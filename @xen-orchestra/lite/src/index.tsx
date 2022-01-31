@@ -1,5 +1,6 @@
 import React from 'react'
 import ReactDOM from 'react-dom'
+import { Helmet } from 'react-helmet'
 import { createGlobalStyle } from 'styled-components'
 
 import App from './App/index'
@@ -15,6 +16,9 @@ const GlobalStyle = createGlobalStyle`
 
 ReactDOM.render(
   <React.StrictMode>
+    <Helmet>
+      <link rel='shortcut icon' href='favicon.ico' />
+    </Helmet>
     <GlobalStyle />
     <App />
   </React.StrictMode>,

@@ -77,7 +77,7 @@ const Signin = withState<State, Props, Effects, Computed, ParentState, ParentEff
   ({ effects, state }) => (
     <Wrapper>
       <Form onSubmit={e => e.preventDefault()}>
-        <img src='//lite.xen-orchestra.com/dist/logo.png' />
+        <img src='logo.png' />
         <h1>Xen Orchestra Lite</h1>
         <Fieldset>
           <Input disabled label={<IntlMessage id='login' />} value='root' />
