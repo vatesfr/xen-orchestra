@@ -61,7 +61,7 @@ const TreeView = withState<State, Props, Effects, Computed, ParentState, ParentE
                   id: vm.$id,
                   label: (
                     <span>
-                      <Icon icon='desktop' color={getIconColor(vm)} /> {vm.name_label}
+                      <Icon icon='desktop' htmlColor={getIconColor(vm)} /> {vm.name_label}
                     </span>
                   ),
                   to: `/infrastructure/vms/${vm.$id}/console`,
@@ -71,7 +71,7 @@ const TreeView = withState<State, Props, Effects, Computed, ParentState, ParentE
               id: host.$id,
               label: (
                 <span>
-                  <Icon icon='server' color={getIconColor(host)} /> {host.name_label}
+                  <Icon icon='server' htmlColor={getIconColor(host)} /> {host.name_label}
                 </span>
               ),
               tooltip: <IntlMessage id={getHostPowerState(host).toLowerCase()} />,
@@ -86,7 +86,7 @@ const TreeView = withState<State, Props, Effects, Computed, ParentState, ParentE
               id: vm.$id,
               label: (
                 <span>
-                  <Icon icon='desktop' color={getIconColor(vm)} /> {vm.name_label}
+                  <Icon icon='desktop' htmlColor={getIconColor(vm)} /> {vm.name_label}
                 </span>
               ),
               to: `/infrastructure/vms/${vm.$id}/console`,
@@ -99,7 +99,7 @@ const TreeView = withState<State, Props, Effects, Computed, ParentState, ParentE
             id: pool.$id,
             label: (
               <span>
-                <Icon icon='cloud' /> {pool.name_label}
+                <Icon icon='cloud' color='primary' /> {pool.name_label}
               </span>
             ),
           })
