@@ -147,43 +147,40 @@ function wrap(val) {
 
 const help = wrap(
   (function (pkg) {
-    return require('strip-indent')(
-      `
-    Usage:
+    return `Usage:
 
-      $name --register [--allowUnauthorized] [--expiresIn duration] <XO-Server URL> <username> [<password>]
-        Registers the XO instance to use.
+  $name --register [--allowUnauthorized] [--expiresIn duration] <XO-Server URL> <username> [<password>]
+    Registers the XO instance to use.
 
-        --allowUnauthorized, --au
-          Accept invalid certificate (e.g. self-signed).
+    --allowUnauthorized, --au
+      Accept invalid certificate (e.g. self-signed).
 
-        --expiresIn duration
-          Can be used to change the validity duration of the
-          authorization token (default: one month).
+    --expiresIn duration
+      Can be used to change the validity duration of the
+      authorization token (default: one month).
 
-      $name --unregister
-        Remove stored credentials.
+  $name --unregister
+    Remove stored credentials.
 
-      $name --list-commands [--json] [<pattern>]...
-        Returns the list of available commands on the current XO instance.
+  $name --list-commands [--json] [<pattern>]...
+    Returns the list of available commands on the current XO instance.
 
-        The patterns can be used to filter on command names.
+    The patterns can be used to filter on command names.
 
-      $name --list-objects [--<property>]… [<property>=<value>]...
-        Returns a list of XO objects.
+  $name --list-objects [--<property>]… [<property>=<value>]...
+    Returns a list of XO objects.
 
-        --<property>
-          Restricts displayed properties to those listed.
+    --<property>
+      Restricts displayed properties to those listed.
 
-        <property>=<value>
-          Restricted displayed objects to those matching the patterns.
+    <property>=<value>
+      Restricted displayed objects to those matching the patterns.
 
-      $name <command> [<name>=<value>]...
-        Executes a command on the current XO instance.
+  $name <command> [<name>=<value>]...
+    Executes a command on the current XO instance.
 
-    $name v$version
-  `
-    ).replace(/<([^>]+)>|\$(\w+)/g, function (_, arg, key) {
+$name v$version
+`.replace(/<([^>]+)>|\$(\w+)/g, function (_, arg, key) {
       if (arg) {
         return '<' + chalk.yellow(arg) + '>'
       }
