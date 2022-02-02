@@ -2,8 +2,8 @@ require('@xen-orchestra/log/configure.js').catchGlobalErrors(
   require('@xen-orchestra/log').createLogger('xo:backups:worker')
 )
 
-const Disposable = require('promise-toolbox/Disposable.js')
-const ignoreErrors = require('promise-toolbox/ignoreErrors.js')
+const Disposable = require('promise-toolbox/Disposable')
+const ignoreErrors = require('promise-toolbox/ignoreErrors')
 const { compose } = require('@vates/compose')
 const { createDebounceResource } = require('@vates/disposable/debounceResource.js')
 const { decorateMethodsWith } = require('@vates/decorate-with')

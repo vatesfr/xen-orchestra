@@ -1,7 +1,7 @@
 const assert = require('assert')
 const map = require('lodash/map.js')
 const mapValues = require('lodash/mapValues.js')
-const ignoreErrors = require('promise-toolbox/ignoreErrors.js')
+const ignoreErrors = require('promise-toolbox/ignoreErrors')
 const { asyncMap } = require('@xen-orchestra/async-map')
 const { chainVhd, checkVhdChain, openVhd, VhdAbstract } = require('vhd-lib')
 const { createLogger } = require('@xen-orchestra/log')

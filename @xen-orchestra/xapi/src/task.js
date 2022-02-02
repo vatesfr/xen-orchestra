@@ -1,4 +1,4 @@
-const ignoreErrors = require('promise-toolbox/ignoreErrors.js')
+const ignoreErrors = require('promise-toolbox/ignoreErrors')
 
 module.exports = class Task {
   create(name = 'untitled task', description) {

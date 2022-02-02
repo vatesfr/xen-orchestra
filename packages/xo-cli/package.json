@@ -43,7 +43,7 @@
     "mkdirp": "^1.0.4",
     "pretty-ms": "^7.0.0",
     "progress-stream": "^2.0.0",
-    "promise-toolbox": "^0.20.0",
+    "promise-toolbox": "^0.21.0",
     "pump": "^3.0.0",
     "pw": "^0.0.4",
     "strip-indent": "^3.0.0",

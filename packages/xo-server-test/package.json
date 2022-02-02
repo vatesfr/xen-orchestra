@@ -33,7 +33,7 @@
     "golike-defer": "^0.5.1",
     "jest": "^27.3.1",
     "lodash": "^4.17.11",
-    "promise-toolbox": "^0.20.0",
+    "promise-toolbox": "^0.21.0",
     "xo-collection": "^0.5.0",
     "xo-common": "^0.7.0",
     "xo-lib": "^0.11.1"

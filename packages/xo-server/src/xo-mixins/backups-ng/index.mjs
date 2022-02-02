@@ -1,5 +1,5 @@
 import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
-import Disposable from 'promise-toolbox/Disposable.js'
+import Disposable from 'promise-toolbox/Disposable'
 import forOwn from 'lodash/forOwn.js'
 import groupBy from 'lodash/groupBy.js'
 import merge from 'lodash/merge.js'

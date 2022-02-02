@@ -44,7 +44,7 @@
     "d3-time-format": "^3.0.0",
     "golike-defer": "^0.5.1",
     "lodash": "^4.17.15",
-    "promise-toolbox": "^0.20.0"
+    "promise-toolbox": "^0.21.0"
   },
   "private": false,
   "license": "AGPL-3.0-or-later",

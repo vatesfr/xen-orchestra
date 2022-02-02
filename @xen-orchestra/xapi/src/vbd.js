@@ -1,5 +1,5 @@
 const identity = require('lodash/identity.js')
-const ignoreErrors = require('promise-toolbox/ignoreErrors.js')
+const ignoreErrors = require('promise-toolbox/ignoreErrors')
 const { Ref } = require('xen-api')
 
 const isVmRunning = require('./_isVmRunning.js')

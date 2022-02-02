@@ -22,7 +22,7 @@
     "lint-staged": "^12.0.3",
     "lodash": "^4.17.4",
     "prettier": "^2.0.5",
-    "promise-toolbox": "^0.20.0",
+    "promise-toolbox": "^0.21.0",
     "sorted-object": "^2.0.1",
     "vuepress": "^1.4.1"
   },

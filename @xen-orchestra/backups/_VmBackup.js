@@ -1,7 +1,7 @@
 const assert = require('assert')
 const findLast = require('lodash/findLast.js')
 const groupBy = require('lodash/groupBy.js')
-const ignoreErrors = require('promise-toolbox/ignoreErrors.js')
+const ignoreErrors = require('promise-toolbox/ignoreErrors')
 const keyBy = require('lodash/keyBy.js')
 const mapValues = require('lodash/mapValues.js')
 const { asyncMap } = require('@xen-orchestra/async-map')
