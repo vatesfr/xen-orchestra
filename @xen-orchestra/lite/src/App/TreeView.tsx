@@ -99,7 +99,7 @@ const TreeView = withState<State, Props, Effects, Computed, ParentState, ParentE
             id: pool.$id,
             label: (
               <span>
-                <Icon icon='cloud' color='primary' /> {pool.name_label}
+                <Icon icon='warehouse' color='primary' /> {pool.name_label}
               </span>
             ),
           })
