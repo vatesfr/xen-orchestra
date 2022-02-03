@@ -146,12 +146,12 @@ const App = withState<State, Props, Effects, Computed, ParentState, ParentEffect
       <h2>Icon</h2>
       <Container>
         <Render>
-          <Icon icon='truck' />
-          <Icon icon='truck' size='2x' />
+          <Icon icon='truck' htmlColor='#0085FF' />
+          <Icon icon='truck' color='primary' size='2x' />
         </Render>
         <Code>{`// https://fontawesome.com/icons
-<Icon icon='truck' />
-<Icon icon='truck' size='2x' />`}</Code>
+<Icon icon='truck' htmlColor='#0085FF'/>
+<Icon icon='truck' color='primary' size='2x' />`}</Code>
       </Container>
       <h2>Input</h2>
       <Container>
