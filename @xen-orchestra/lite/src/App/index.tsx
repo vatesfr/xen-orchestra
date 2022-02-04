@@ -146,8 +146,8 @@ const SecondaryListItems = withState<
 const mdTheme = createTheme({
   background: {
     primary: {
-      light: '#FFFFFF',
       dark: '#111111',
+      light: '#FFFFFF',
     },
   },
   palette: {

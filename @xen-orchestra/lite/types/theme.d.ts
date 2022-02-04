@@ -5,16 +5,16 @@ declare module '@mui/material/styles' {
   interface Theme extends ThemeMui {
     background: {
       primary: {
-        light: string
         dark: string
+        light: string
       }
     }
   }
   interface ThemeOptions extends ThemeOptionsMui {
     background?: {
       primary?: {
-        light?: string
         dark?: string
+        light?: string
       }
     }
   }
