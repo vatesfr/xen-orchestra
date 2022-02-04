@@ -7,6 +7,7 @@ import Button, { ButtonProps } from '@mui/material/Button'
 import ButtonGroup, { ButtonGroupClassKey } from '@mui/material/ButtonGroup'
 import Stack from '@mui/material/Stack'
 import Typography, { TypographyClassKey } from '@mui/material/Typography'
+import { Theme } from '@mui/material/styles'
 
 interface ParentState {}
 
@@ -34,6 +35,11 @@ interface Props extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   buttonGroupProps?: ButtonGroupClassKey
 }
 
+const getBackgroundColor = (theme: Theme) => {
+  const { background, palette } = theme
+  return palette.mode === 'light' ? background.primary.light : background.primary.dark
+}
+
 const PanelHeader = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
   {},
   ({ actions = [], titleProps = {}, buttonGroupProps = {}, children = null }) => (
@@ -41,7 +47,7 @@ const PanelHeader = withState<State, Props, Effects, Computed, ParentState, Pare
       alignItems='start'
       direction='row'
       sx={{
-        backgroundColor: theme => theme.palette.common.white,
+        backgroundColor: getBackgroundColor,
         paddingTop: '1em',
       }}
     >
