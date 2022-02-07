@@ -53,6 +53,9 @@ const CONNECTED = 'connected'
 const CONNECTING = 'connecting'
 const DISCONNECTED = 'disconnected'
 
+const BARRIER_PREFIX = 'xo:barrier:'
+const BARRIER_MAX_AGE = 60 * 60 * 1e3
+
 // -------------------------------------------------------------------
 
 const identity = value => value
@@ -542,18 +545,27 @@ export class Xapi extends EventEmitter {
       throw new Error('Xapi#barrier() requires events watching')
     }
 
-    const key = `xo:barrier:${Math.random().toString(36).slice(2)}`
-    const poolRef = this._pool.$ref
+    const key = BARRIER_PREFIX + Math.random().toString(36).slice(2)
+    const { $ref: poolRef, other_config } = this._pool
 
     const { promise, resolve } = defer()
     eventWatchers[key] = resolve
+
+    const now = Date.now()
+
+    // delete stale entries
+    for (const key of Object.keys(other_config)) {
+      if (key.startsWith(BARRIER_PREFIX) && now - other_config[key] > BARRIER_MAX_AGE) {
+        ignoreErrors.call(this._sessionCall('pool.remove_from_other_config', [poolRef, key]))
+      }
+    }
 
     await this._sessionCall('pool.add_to_other_config', [
       poolRef,
       key,
 
       // use ms timestamp as values to enable identification of stale entries
-      String(Date.now()),
+      String(now),
     ])
 
     await this._addSyncStackTrace(promise)
