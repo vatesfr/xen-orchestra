@@ -58,6 +58,15 @@
 # configuration.
 # redirectToHttps = true
 
+# Public URL to connect to this XO
+#
+# This optional entry is used to communicate to external entities (e.g. XO Lite)
+# how to connect to this XO.
+#
+# It SHOULD be defined in case the IP address of the current machine is not
+# good enough (e.g. a domain name must be used or there is a reverse proxy).
+#publicUrl = 'https://xoa.company.lan'
+
 # Settings applied to cookies created by xo-server's embedded HTTP server.
 #
 # See https://www.npmjs.com/package/cookie#options-1

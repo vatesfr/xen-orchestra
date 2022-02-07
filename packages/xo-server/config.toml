@@ -173,6 +173,10 @@ vdiExportConcurrency = 12
 vmExportConcurrency = 2
 vmSnapshotConcurrency = 2
 
+poolMarkingInterval = '6 hours'
+poolMarkingMaxAge = '48 hours'
+poolMarkingPrefix = 'xo:clientInfo:'
+
 [xo-proxy]
 callTimeout = '1 min'
 

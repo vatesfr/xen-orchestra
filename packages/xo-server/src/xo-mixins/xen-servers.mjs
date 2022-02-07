@@ -1,9 +1,13 @@
+import assert from 'assert'
 import findKey from 'lodash/findKey.js'
 import pick from 'lodash/pick.js'
+import { asyncEach } from '@vates/async-each'
 import { BaseError } from 'make-error'
 import { createLogger } from '@xen-orchestra/log'
 import { fibonacci } from 'iterable-backoff'
+import { networkInterfaces } from 'os'
 import { noSuchObject } from 'xo-common/api-errors.js'
+import { parseDuration } from '@vates/parse-duration'
 import { pDelay, ignoreErrors } from 'promise-toolbox'
 
 import * as XenStore from '../_XenStore.mjs'
@@ -89,6 +93,13 @@ export default class {
       if (!safeMode) {
         await connectServers()
       }
+    })
+
+    this._applianceUuid = Math.random().toString(36).slice(2)
+    app.hooks.on('start', async () => {
+      const value = (await XenStore.read('vm')).trim()
+      assert(value.startsWith('/vm/'))
+      this._applianceUuid = value.slice(4)
     })
 
     // TODO: disconnect servers on stop.
@@ -295,11 +306,15 @@ export default class {
 
     const { config } = this._app
 
+    let { poolMarkingInterval, poolMarkingMaxAge, poolMarkingPrefix, ...xapiOptions } = config.get('xapiOptions')
+    poolMarkingInterval = parseDuration(poolMarkingInterval)
+    poolMarkingMaxAge = parseDuration(poolMarkingMaxAge)
+
     const xapi = (this._xapis[server.id] = new Xapi({
       allowUnauthorized: server.allowUnauthorized,
       readOnly: server.readOnly,
 
-      ...config.get('xapiOptions'),
+      ...xapiOptions,
       httpProxy: server.httpProxy,
       guessVhdSizeOnImport: config.get('guessVhdSizeOnImport'),
 
@@ -371,6 +386,37 @@ export default class {
           return xapiObjectToXo(object, dependents)
         }
 
+        const markPool = async () => {
+          const now = Date.now()
+          const { pool } = xapi
+
+          try {
+            await asyncEach(Object.entries(pool.other_config), ([key, value]) => {
+              if (key.startsWith(poolMarkingPrefix)) {
+                const { lastConnected } = JSON.parse(value)
+                if (now - lastConnected > poolMarkingMaxAge) {
+                  return pool.update_other_config(key, null)
+                }
+              }
+            })
+
+            const publicUrl = config.getOptional('http.publicUrl')
+            const info = {
+              lastConnected: now,
+              publicUrl,
+            }
+            if (publicUrl === undefined) {
+              info.networkInterfaces = networkInterfaces()
+              delete info.networkInterfaces.lo
+            }
+
+            await pool.update_other_config(poolMarkingPrefix + this._applianceUuid, JSON.stringify(info))
+          } catch (error) {
+            log.warn('markPool', { error })
+          }
+        }
+        let markPoolHandle
+
         return {
           httpRequest: this._app.httpRequest.bind(this),
 
@@ -381,8 +427,13 @@ export default class {
             objects.on('finish', onFinish)
 
             onAddOrUpdate(objects.all)
+
+            markPool()
+            markPoolHandle = setInterval(markPool, poolMarkingInterval)
           },
           uninstall() {
+            clearInterval(markPoolHandle)
+
             objects.removeListener('add', onAddOrUpdate)
             objects.removeListener('update', onAddOrUpdate)
             objects.removeListener('remove', onRemove)
