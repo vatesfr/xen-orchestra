@@ -42,34 +42,27 @@ interface Effects {}
 
 interface Computed {}
 
-const Infrastructure = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
-  {
-    initialState: ({ location }) => ({
-      selectedNodes: [location.pathname.split('/')[3]],
-    }),
-  },
-  ({ state: { selectedNodes } }) => (
-    <Container>
-      <LeftPanel>
-        <TreeView selectedNodes={selectedNodes} />
-      </LeftPanel>
-      <MainPanel>
-        <Switch>
-          <Route exact path='/infrastructure'>
-            Select a VM
-          </Route>
-          <Route
-            path='/infrastructure/vms/:id/console'
-            render={({
-              match: {
-                params: { id },
-              },
-            }) => <TabConsole key={id} vmId={id} />}
-          />
-        </Switch>
-      </MainPanel>
-    </Container>
-  )
-)
+const Infrastructure = withState<State, Props, Effects, Computed, ParentState, ParentEffects>({}, ({ location }) => (
+  <Container>
+    <LeftPanel>
+      <TreeView pathname={location.pathname} />
+    </LeftPanel>
+    <MainPanel>
+      <Switch>
+        <Route exact path='/infrastructure'>
+          Select a VM
+        </Route>
+        <Route
+          path='/infrastructure/vms/:id/console'
+          render={({
+            match: {
+              params: { id },
+            },
+          }) => <TabConsole key={id} vmId={id} />}
+        />
+      </Switch>
+    </MainPanel>
+  </Container>
+))
 
 export default withRouter(Infrastructure)
