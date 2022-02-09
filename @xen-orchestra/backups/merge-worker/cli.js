@@ -41,13 +41,32 @@ const main = Disposable.wrap(async function* main(args) {
   let taskFiles
   while ((taskFiles = await listRetry()) !== undefined) {
     const taskFileBasename = min(taskFiles)
+    const previousTaskFile = join(CLEAN_VM_QUEUE, taskFileBasename)
     const taskFile = join(CLEAN_VM_QUEUE, '_' + taskFileBasename)
 
     // move this task to the end
-    await handler.rename(join(CLEAN_VM_QUEUE, taskFileBasename), taskFile)
+    try {
+      await handler.rename(previousTaskFile, taskFile)
+    } catch (error) {
+      // this error occurs if the task failed too many times (i.e. too many `_` prefixes)
+      // there is nothing more that can be done
+      if (error.code === 'ENAMETOOLONG') {
+        await handler.unlink(previousTaskFile)
+      }
+
+      throw error
+    }
+
     try {
       const vmDir = getVmBackupDir(String(await handler.readFile(taskFile)))
-      await adapter.cleanVm(vmDir, { merge: true, onLog: info, remove: true })
+      try {
+        await adapter.cleanVm(vmDir, { merge: true, onLog: info, remove: true })
+      } catch (error) {
+        // consider the clean successful if the VM dir is missing
+        if (error.code !== 'ENOENT') {
+          throw error
+        }
+      }
 
       handler.unlink(taskFile).catch(error => warn('deleting task failure', { error }))
     } catch (error) {
