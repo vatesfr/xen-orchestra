@@ -2,10 +2,7 @@
 
 // ===================================================================
 
-const promisify = require('bluebird').promisify
-
-const readFile = promisify(require('fs').readFile)
-const writeFile = promisify(require('fs').writeFile)
+const { readFile, writeFile } = require('fs/promises')
 
 const get = require('lodash/get')
 const mkdirp = require('fs-extra').ensureDir

@@ -30,7 +30,6 @@
     "node": ">=10"
   },
   "dependencies": {
-    "bluebird": "^3.5.1",
     "chalk": "^4.1.0",
     "exec-promise": "^0.7.0",
     "fs-extra": "^10.0.0",

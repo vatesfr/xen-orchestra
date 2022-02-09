@@ -2,9 +2,6 @@
 
 'use strict'
 
-const Bluebird = require('bluebird')
-Bluebird.longStackTraces()
-
 const createReadStream = require('fs').createReadStream
 const createWriteStream = require('fs').createWriteStream
 const resolveUrl = require('url').resolve
