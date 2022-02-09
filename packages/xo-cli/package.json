@@ -37,7 +37,6 @@
     "getopts": "^2.3.0",
     "http-request-plus": "^0.13.0",
     "human-format": "^0.11.0",
-    "l33teral": "^3.0.3",
     "lodash": "^4.17.4",
     "micromatch": "^4.0.2",
     "mkdirp": "^1.0.4",

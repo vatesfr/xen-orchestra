@@ -8,11 +8,12 @@ import FormData from 'form-data'
 import { createReadStream } from 'fs'
 import { stat } from 'fs-extra'
 import getStream from 'get-stream'
+import has from 'lodash/has'
 import hrp from 'http-request-plus'
 import humanFormat from 'human-format'
-import l33t from 'l33teral'
 import isObject from 'lodash/isObject'
 import getKeys from 'lodash/keys'
+import set from 'lodash/set'
 import startsWith from 'lodash/startsWith'
 import prettyMs from 'pretty-ms'
 import progressStream from 'progress-stream'
@@ -164,18 +165,17 @@ export async function upload(args) {
   })
   data.networks = data.networks.map(() => pif.$network)
   console.log('data', data)
-  const l33tData = l33t(data)
   const overridesKeys = Object.keys(overrides)
-  const missingKeys = overridesKeys.filter(k => !l33tData.probe(k))
+  const missingKeys = overridesKeys.filter(k => !has(data, k))
   if (missingKeys.length) {
     // eslint-disable-next-line no-throw-literal
     throw `those override keys don't exist in the metadata: ${missingKeys}`
   }
   for (const key of overridesKeys) {
-    l33tData.plant(key, overrides[key])
+    set(data, key, overrides[key])
   }
   data.disks = Object.values(data.disks)
-  params.data = l33tData.obj
+  params.data = data
   params.type = 'ova'
   const method = 'vm.import'
 

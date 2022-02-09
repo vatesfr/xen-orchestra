@@ -10400,11 +10400,6 @@ koa@^2.5.1:
     type-is "^1.6.16"
     vary "^1.1.2"
 
-l33teral@^3.0.3:
-  version "3.0.3"
-  resolved "https://registry.yarnpkg.com/l33teral/-/l33teral-3.0.3.tgz#9a1dc526fbdff5c4b0f348a7e35fba66f75dea07"
-  integrity sha1-mh3FJvvf9cSw80in41+6Zvdd6gc=
-
 labeled-stream-splicer@^2.0.0:
   version "2.0.2"
   resolved "https://registry.yarnpkg.com/labeled-stream-splicer/-/labeled-stream-splicer-2.0.2.tgz#42a41a16abcd46fd046306cf4f2c3576fffb1c21"

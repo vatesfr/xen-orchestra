@@ -37,7 +37,6 @@
     "get-stream": "^6.0.0",
     "http-request-plus": "^0.13.0",
     "human-format": "^0.11.0",
-    "l33teral": "^3.0.3",
     "lodash": "^4.17.4",
     "pretty-ms": "^7.0.0",
     "progress-stream": "^2.0.0",
