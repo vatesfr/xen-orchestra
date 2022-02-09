@@ -8,7 +8,7 @@ const readFile = promisify(require('fs').readFile)
 const writeFile = promisify(require('fs').writeFile)
 
 const get = require('lodash/get')
-const mkdirp = require('mkdirp')
+const mkdirp = require('fs-extra').ensureDir
 const unset = require('lodash/unset')
 const xdgBasedir = require('xdg-basedir')
 

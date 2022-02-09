@@ -39,7 +39,6 @@
     "human-format": "^0.11.0",
     "lodash": "^4.17.4",
     "micromatch": "^4.0.2",
-    "mkdirp": "^1.0.4",
     "pretty-ms": "^7.0.0",
     "progress-stream": "^2.0.0",
     "promise-toolbox": "^0.21.0",
