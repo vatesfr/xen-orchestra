@@ -35,7 +35,6 @@
     "parse-pairs": "^1.1.0",
     "promise-toolbox": "^0.21.0",
     "proper-lockfile": "^4.1.2",
-    "pump": "^3.0.0",
     "uuid": "^8.3.2",
     "vhd-lib": "^3.1.0",
     "yazl": "^2.5.1"

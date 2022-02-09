@@ -18,7 +18,6 @@ const isObject = require('lodash/isObject')
 const micromatch = require('micromatch')
 const pairs = require('lodash/toPairs')
 const pick = require('lodash/pick')
-const pump = require('pump')
 const prettyMs = require('pretty-ms')
 const progressStream = require('progress-stream')
 const pw = require('pw')
@@ -394,7 +393,7 @@ async function call(args) {
         printProgress
       )
 
-      return fromCallback(pump, response, progress, output)
+      return fromCallback(pipeline, response, progress, output)
     }
 
     if (key === '$sendTo') {

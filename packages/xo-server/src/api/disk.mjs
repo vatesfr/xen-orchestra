@@ -1,11 +1,11 @@
 import * as multiparty from 'multiparty'
 import assert from 'assert'
 import getStream from 'get-stream'
-import pump from 'pump'
 import { createLogger } from '@xen-orchestra/log'
 import { defer } from 'golike-defer'
 import { format, JsonRpcError } from 'json-rpc-peer'
 import { noSuchObject } from 'xo-common/api-errors.js'
+import { pipeline } from 'stream'
 import { checkFooter, peekFooterFromVhdStream } from 'vhd-lib'
 import { vmdkToVhd } from 'xo-vmdk-to-vhd'
 
@@ -90,7 +90,7 @@ async function handleExportContent(req, res, { xapi, id, filename, format }) {
   stream.headers['content-disposition'] = 'attachment'
 
   res.writeHead(stream.statusCode, stream.statusMessage != null ? stream.statusMessage : '', stream.headers)
-  pump(stream, res, error => {
+  pipeline(stream, res, error => {
     if (error != null) {
       log.warn('disk.exportContent', { error })
     }
