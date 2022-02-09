@@ -46,6 +46,45 @@ async function connect() {
   return xo
 }
 
+async function parseRegisterArgs(args) {
+  const {
+    allowUnauthorized,
+    expiresIn,
+    _: [
+      url,
+      email,
+      password = await new Promise(function (resolve) {
+        process.stdout.write('Password: ')
+        pw(resolve)
+      }),
+    ],
+  } = getopts(args, {
+    alias: {
+      allowUnauthorized: 'au',
+    },
+    boolean: ['allowUnauthorized'],
+    stopEarly: true,
+    string: ['expiresIn'],
+  })
+
+  return {
+    allowUnauthorized,
+    email,
+    expiresIn: expiresIn || undefined,
+    password,
+    url,
+  }
+}
+
+async function _createToken({ allowUnauthorized, email, expiresIn, password, url }) {
+  const xo = new Xo({ rejectUnauthorized: !allowUnauthorized, url })
+  await xo.open()
+  await xo.signIn({ email, password })
+  console.warn('Successfully logged with', xo.user.email)
+
+  return await xo.call('token.create', { expiresIn })
+}
+
 function createOutputStream(path) {
   if (path !== undefined && path !== '-') {
     return createWriteStream(path)
@@ -154,6 +193,12 @@ const help = wrap(
       Can be used to change the validity duration of the
       authorization token (default: one month).
 
+  $name --createToken <params>…
+    Create an authentication token for XO API.
+
+    <params>…
+      Accept the same parameters as --register, see its usage.
+
   $name --unregister
     Remove stored credentials.
 
@@ -226,36 +271,21 @@ exports = module.exports = main
 
 exports.help = help
 
-async function register(args) {
-  const {
-    allowUnauthorized,
-    expiresIn,
-    _: [
-      url,
-      email,
-      password = await new Promise(function (resolve) {
-        process.stdout.write('Password: ')
-        pw(resolve)
-      }),
-    ],
-  } = getopts(args, {
-    alias: {
-      allowUnauthorized: 'au',
-    },
-    boolean: ['allowUnauthorized'],
-    stopEarly: true,
-    string: ['expiresIn'],
-  })
+async function createToken(args) {
+  const token = await _createToken(await parseRegisterArgs(args))
+  console.warn('Authentication token created')
+  console.warn()
+  console.log(token)
+}
+exports.createToken = createToken
 
-  const xo = new Xo({ rejectUnauthorized: !allowUnauthorized, url })
-  await xo.open()
-  await xo.signIn({ email, password })
-  console.log('Successfully logged with', xo.user.email)
+async function register(args) {
+  const opts = await parseRegisterArgs(args)
 
   await config.set({
-    allowUnauthorized,
-    server: url,
-    token: await xo.call('token.create', { expiresIn: expiresIn === '' ? undefined : expiresIn }),
+    allowUnauthorized: opts.allowUnauthorized,
+    server: opts.url,
+    token: await _createToken(opts),
   })
 }
 exports.register = register

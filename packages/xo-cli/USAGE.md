@@ -12,6 +12,12 @@ Usage:
       Can be used to change the validity duration of the
       authorization token (default: one month).
 
+  xo-cli --createToken <params>…
+    Create an authentication token for XO API.
+
+    <params>…
+      Accept the same parameters as --register, see its usage.
+
   xo-cli --unregister
     Remove stored credentials.
 

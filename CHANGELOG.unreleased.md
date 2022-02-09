@@ -31,5 +31,5 @@
 - @xen-orchestra/mixins minor
 - @xen-orchestra/backups patch
 - @xen-orchestra/proxy patch
-- xo-cli patch
+- xo-cli minor
 - xo-server minor
