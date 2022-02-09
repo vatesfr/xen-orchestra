@@ -49,8 +49,8 @@ interface PropsStyledConsole {
 }
 
 enum Protocols {
-  https = 'https:',
   http = 'http:',
+  https = 'https:',
   ws = 'ws:',
   wss = 'wss:',
 }
@@ -94,7 +94,14 @@ const Console = withState<State, Props, Effects, Computed, ParentState, ParentEf
                 message: (
                   <div>
                     <p>
-                      <IntlMessage id='hostSeemsUnreachable' />
+                      <IntlMessage
+                        id='unreachableHost'
+                        values={{
+                          name: this.state.objectsByType
+                            .get('host')
+                            ?.find(host => host.address === this.state.url?.host)?.name_label,
+                        }}
+                      />
                     </p>
                     <a href={`${protocol}//${this.state.url?.host}`} rel='noopener noreferrer' target='_blank'>
                       {this.state.url?.host}

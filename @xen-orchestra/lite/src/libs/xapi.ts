@@ -64,6 +64,7 @@ interface HostMetrics {
 }
 export interface Host extends XapiObject {
   $metrics: HostMetrics
+  address: string
   name_label: string
   power_state: string
 }

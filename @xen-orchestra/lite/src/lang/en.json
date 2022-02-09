@@ -16,8 +16,7 @@
   "errorOccurred": "An error has occurred.",
   "gateway": "Gateway",
   "halted": "Halted",
-  "hostSeemsUnreachable": "The host seems to be unreachable. Please verify the host is alive and in case the host use self signed certificat, ensure your browser support it.",
-  "hostUnreachable":"Host unreachable",
+  "hostUnreachable": "Host unreachable",
   "infrastructure": "Infrastructure",
   "ip": "IP",
   "loading": "Loading…",
@@ -39,6 +38,7 @@
   "running": "Running",
   "size": "Size",
   "suspended": "Suspended",
+  "unreachableHost": "The host ({name}) seems to be unreachable. Please verify the host is alive and in case the host use self signed certificat, ensure your browser allow it.",
   "version": "Version",
   "versionValue": "Version {version}",
   "vmStartLabel": "Start"
