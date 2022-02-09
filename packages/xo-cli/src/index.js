@@ -4,7 +4,6 @@
 
 const createReadStream = require('fs').createReadStream
 const createWriteStream = require('fs').createWriteStream
-const resolveUrl = require('url').resolve
 const stat = require('fs-extra').stat
 
 const chalk = require('chalk')
@@ -380,7 +379,7 @@ async function call(args) {
 
     if (key === '$getFrom') {
       ensurePathParam(method, file)
-      url = resolveUrl(baseUrl, result[key])
+      url = new URL(result[key], baseUrl)
       const output = createOutputStream(file)
       const response = await hrp(url)
 
@@ -397,7 +396,7 @@ async function call(args) {
 
     if (key === '$sendTo') {
       ensurePathParam(method, file)
-      url = resolveUrl(baseUrl, result[key])
+      url = new URL(result[key], baseUrl)
 
       const { size: length } = await stat(file)
       const input = pipeline(
