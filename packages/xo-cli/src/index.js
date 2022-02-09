@@ -371,6 +371,9 @@ async function call(args) {
 
   // FIXME: do not use private properties.
   const baseUrl = xo._url.replace(/^ws/, 'http')
+  const httpOptions = {
+    rejectUnauthorized: !(await config.load()).allowUnauthorized,
+  }
 
   const result = await xo.call(method, params)
   let keys, key, url
@@ -381,7 +384,7 @@ async function call(args) {
       ensurePathParam(method, file)
       url = new URL(result[key], baseUrl)
       const output = createOutputStream(file)
-      const response = await hrp(url)
+      const response = await hrp(url, httpOptions)
 
       const progress = progressStream(
         {
@@ -412,7 +415,7 @@ async function call(args) {
       )
 
       return hrp
-        .post(url, {
+        .post(url, httpOptions, {
           body: input,
           headers: {
             'content-length': length,
