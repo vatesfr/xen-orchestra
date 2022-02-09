@@ -41,6 +41,10 @@ module.exports = class Config {
     return parseDuration(this.get(path))
   }
 
+  getOptional(path) {
+    return get(this._config, path)
+  }
+
   watch(path, cb) {
     // internal arg
     const processor = arguments.length > 2 ? arguments[2] : identity
