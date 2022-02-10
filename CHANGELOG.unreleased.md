@@ -12,6 +12,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [Self service] Change identifiers used for VM templates to avoid them from being removed on XCP-ng upgrade
+- [Backup/File restore] Does not take into consideration backups on S3 remote (PR [#6116](https://github.com/vatesfr/xen-orchestra/pull/6116))
 
 ### Packages to release
 
@@ -36,3 +37,4 @@
 - @xen-orchestra/proxy patch
 - xo-cli minor
 - xo-server minor
+- xo-web patch
