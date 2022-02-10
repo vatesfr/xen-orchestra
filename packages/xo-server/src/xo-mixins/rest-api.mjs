@@ -9,7 +9,6 @@ import map from 'lodash/map.js'
 import * as CM from 'complex-matcher'
 
 const handleOptionalUserFilter = filter => filter && CM.parse(filter).createPredicate()
-const isVm = obj => obj.type === 'VM'
 
 const subRouter = (app, path) => {
   const router = Router({ strict: true })
@@ -36,54 +35,61 @@ export default class RestApi {
       )
     })
 
-    const vms = subRouter(api, '/vms')
+    for (const [path, type] of Object.entries({
+      '/hosts': 'host',
+      '/pools': 'pool',
+      '/vms': 'VM',
+      '/srs': 'SR',
+    })) {
+      const isCorrectType = _ => _.type === type
 
-    vms.get('/', async (req, res) => {
-      const { query } = req
-      const basePath = req.baseUrl + req.path
-      const makeUrl = vm => basePath + vm.id
+      subRouter(api, path)
+        .get('/', async (req, res) => {
+          const { query } = req
+          const basePath = req.baseUrl + req.path
+          const makeUrl = object => basePath + object.id
 
-      const vms = await app.getObjects({
-        filter: every(isVm, handleOptionalUserFilter(req.query.filter)),
-        limit: ifDef(query.limit, Number),
-      })
+          const objects = await app.getObjects({
+            filter: every(isCorrectType, handleOptionalUserFilter(req.query.filter)),
+            limit: ifDef(query.limit, Number),
+          })
 
-      let { fields } = query
-      let results
-      if (fields !== undefined) {
-        fields = fields.split(',')
-        results = map(vms, vm => {
-          const url = makeUrl(vm)
-          vm = pick(vm, fields)
-          vm.url = url
-          return vm
-        })
-      } else {
-        results = map(vms, makeUrl)
-      }
+          let { fields } = query
+          let results
+          if (fields !== undefined) {
+            fields = fields.split(',')
+            results = map(objects, object => {
+              const url = makeUrl(object)
+              object = pick(object, fields)
+              object.href = url
+              return object
+            })
+          } else {
+            results = map(objects, makeUrl)
+          }
 
-      if (query.ndjson !== undefined) {
-        res.set('Content-Type', 'application/x-ndjson')
-        pipeline(createNdJsonStream(results), res, error => {
-          if (error !== undefined) {
-            console.warn('pipeline error', error)
+          if (query.ndjson !== undefined) {
+            res.set('Content-Type', 'application/x-ndjson')
+            pipeline(createNdJsonStream(results), res, error => {
+              if (error !== undefined) {
+                console.warn('pipeline error', error)
+              }
+            })
+          } else {
+            res.json(results)
           }
         })
-      } else {
-        res.json(results)
-      }
-    })
-
-    vms.get('/:id', async (req, res, next) => {
-      try {
-        res.json(await app.getObject(req.params.id, 'VM'))
-      } catch (error) {
-        if (noSuchObject.is(error)) {
-          next()
-        } else {
-          next(error)
-        }
-      }
-    })
+        .get('/:id', async (req, res, next) => {
+          try {
+            res.json(await app.getObject(req.params.id, type))
+          } catch (error) {
+            if (noSuchObject.is(error)) {
+              next()
+            } else {
+              next(error)
+            }
+          }
+        })
+    }
   }
 }
