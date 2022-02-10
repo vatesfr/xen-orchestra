@@ -1,3 +1,4 @@
+import { every } from '@vates/predicates'
 import { ifDef } from '@xen-orchestra/defined'
 import { invalidCredentials, noSuchObject } from 'xo-common/api-errors.js'
 import { pipeline } from 'stream'
@@ -6,6 +7,9 @@ import createNdJsonStream from '../_createNdJsonStream.mjs'
 import pick from 'lodash/pick.js'
 import map from 'lodash/map.js'
 import * as CM from 'complex-matcher'
+
+const handleOptionalUserFilter = filter => filter && CM.parse(filter).createPredicate()
+const isVm = obj => obj.type === 'VM'
 
 const subRouter = (app, path) => {
   const router = Router({ strict: true })
@@ -39,16 +43,10 @@ export default class RestApi {
       const basePath = req.baseUrl + req.path
       const makeUrl = vm => basePath + vm.id
 
-      let filter
-      let userFilter = req.query.filter
-      if (userFilter) {
-        userFilter = CM.parse(userFilter).createPredicate()
-        filter = obj => obj.type === 'VM' && userFilter(obj)
-      } else {
-        filter = obj => obj.type === 'VM'
-      }
-
-      const vms = await app.getObjects({ filter, limit: ifDef(query.limit, Number) })
+      const vms = await app.getObjects({
+        filter: every(isVm, handleOptionalUserFilter(req.query.filter)),
+        limit: ifDef(query.limit, Number),
+      })
 
       let { fields } = query
       let results
