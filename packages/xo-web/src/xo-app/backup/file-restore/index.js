@@ -91,6 +91,7 @@ export default class Restore extends Component {
       'id'
     )
     const backupsByRemote = await listVmBackups(toArray(remotes))
+
     const backupDataByVm = {}
     forEach(backupsByRemote, (backups, remoteId) => {
       const remote = remotes[remoteId]
