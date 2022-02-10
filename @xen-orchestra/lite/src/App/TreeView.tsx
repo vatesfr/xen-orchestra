@@ -1,5 +1,6 @@
 import React from 'react'
 import { Collection, Map } from 'immutable'
+import { RouteComponentProps, withRouter } from 'react-router-dom'
 import { withState } from 'reaclette'
 
 import Icon from '../components/Icon'
@@ -15,9 +16,7 @@ interface State {
   _selectedNodes: Array<string>
 }
 
-interface Props {
-  pathname: string
-}
+interface Props extends RouteComponentProps {}
 
 interface ParentEffects {}
 
@@ -47,8 +46,8 @@ const getIconColor = (obj: Host | Vm) => {
 
 const TreeView = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
   {
-    initialState: ({ pathname }) => ({
-      _selectedNodes: [pathname.split('/')[3]],
+    initialState: ({ location }) => ({
+      _selectedNodes: [location.pathname.split('/')[3]],
     }),
     effects: {
       setSelectedNodes: function (_, nodeIds) {
@@ -125,7 +124,7 @@ const TreeView = withState<State, Props, Effects, Computed, ParentState, ParentE
         return collection
       },
       hostsByPool: state => state.objectsByType?.get('host')?.groupBy((host: Host) => host.$pool.$id),
-      objectId: (_, { pathname }) => pathname.split('/')[3],
+      objectId: (_, { location }) => location.pathname.split('/')[3],
       pools: state => state.objectsByType?.get('pool'),
       selectedNodes: ({ objectId, _selectedNodes }) => (objectId !== undefined ? _selectedNodes : []),
       vms: state =>
@@ -146,4 +145,4 @@ const TreeView = withState<State, Props, Effects, Computed, ParentState, ParentE
     )
 )
 
-export default TreeView
+export default withRouter(TreeView)
