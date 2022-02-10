@@ -1,8 +1,8 @@
 import React from 'react'
 import styled from 'styled-components'
-import { withState } from 'reaclette'
 import { RouteComponentProps, withRouter } from 'react-router'
 import { Switch, Route } from 'react-router-dom'
+import { withState } from 'reaclette'
 
 import TabConsole from './TabConsole'
 import TreeView from './TreeView'
