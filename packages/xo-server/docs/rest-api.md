@@ -22,7 +22,7 @@ Set-Cookie: authenticationToken=KQxQdm2vMiv7jBIK0hgkmgxKzemd8wSJ7ugFGKFkTbs
 Usage with cURL:
 
 ```
-curl -b authenticationToken=KQxQdm2vMiv7jBIK0hgkmgxKzemd8wSJ7ugFGKFkTbs https://xo.company.lan/api/proxy/v0
+curl -b authenticationToken=KQxQdm2vMiv7jBIK0hgkmgxKzemd8wSJ7ugFGKFkTbs https://xo.company.lan/rest/v0/
 ```
 
 You can use `xo-cli` to create an authentication token:
