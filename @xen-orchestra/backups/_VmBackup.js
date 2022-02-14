@@ -22,6 +22,13 @@ const { watchStreamSize } = require('./_watchStreamSize.js')
 
 const { debug, warn } = createLogger('xo:backups:VmBackup')
 
+class AggregateError extends Error {
+  constructor(errors, message) {
+    super(message)
+    this.errors = errors
+  }
+}
+
 const asyncEach = async (iterable, fn, thisArg = iterable) => {
   for (const item of iterable) {
     await fn.call(thisArg, item)
@@ -126,16 +133,18 @@ class VmBackup {
       return
     }
 
+    const errors = []
     await (parallel ? asyncMap : asyncEach)(writers, async function (writer) {
       try {
         await fn(writer)
       } catch (error) {
+        errors.push(error)
         this.delete(writer)
         warn(warnMessage, { error, writer: writer.constructor.name })
       }
     })
     if (writers.size === 0) {
-      throw new Error('all targets have failed, step: ' + warnMessage)
+      throw new AggregateError(errors, 'all targets have failed, step: ' + warnMessage)
     }
   }
 
