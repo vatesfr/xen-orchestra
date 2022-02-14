@@ -28,9 +28,7 @@ const MainPanel = styled.div`
 
 interface ParentState {}
 
-interface State {
-  selectedNodes: Array<string>
-}
+interface State {}
 
 interface Props extends RouteComponentProps {}
 

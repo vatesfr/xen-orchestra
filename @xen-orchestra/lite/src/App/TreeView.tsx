@@ -47,7 +47,7 @@ const getIconColor = (obj: Host | Vm) => {
 const TreeView = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
   {
     initialState: ({ location }) => ({
-      _selectedNodes: [location.pathname.split('/')[3]],
+      _selectedNodes: location.pathname.split('/')[3] !== undefined ? [location.pathname.split('/')[3]] : [],
     }),
     effects: {
       setSelectedNodes: function (_, nodeIds) {
