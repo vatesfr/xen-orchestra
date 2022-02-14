@@ -87,7 +87,7 @@ export default class Restore extends Component {
 
   _refreshBackupList = async (_remotes = this.props.remotes, jobs = this.props.jobs) => {
     const remotes = keyBy(
-      filter(_remotes, ({ enabled, url }) => enabled && !/^s3\+/.test(url)),
+      filter(_remotes, remote => remote.enabled && remote.supportFileRestore),
       'id'
     )
     const backupsByRemote = await listVmBackups(toArray(remotes))
