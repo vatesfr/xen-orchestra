@@ -818,22 +818,14 @@ export class Xapi extends EventEmitter {
     }
   }
 
-  async _setHostAddressInUrl(url, host) {
-    const pool = this._pool
-
-    const poolBackupNetwork = pool.other_config['xo:backupNetwork']
+  async _getHostBackupAddress(host) {
     if (host === undefined) {
-      if (poolBackupNetwork === undefined) {
-        const xapiUrl = this._url
-        url.hostname = xapiUrl.hostname
-        url.port = xapiUrl.port
-        return
-      }
-
-      host = await this.getRecord('host', pool.master)
+      host = await this.getRecord('host', this._pool.master)
     }
 
     let { address } = host
+
+    const poolBackupNetwork = this._pool.other_config['xo:backupNetwork']
     if (poolBackupNetwork !== undefined) {
       const hostPifs = new Set(host.PIFs)
       try {
@@ -855,7 +847,26 @@ export class Xapi extends EventEmitter {
       }
     }
 
-    url.hostname = address
+    return address
+  }
+
+  async getHostBackupUrl(host) {
+    return Object.assign(new URL('http://localhost'), {
+      ...this._url,
+      hostname: await this._getHostBackupAddress(host),
+    })
+  }
+
+  async _setHostAddressInUrl(url, host) {
+    const poolBackupNetwork = this._pool.other_config['xo:backupNetwork']
+    if (host === undefined && poolBackupNetwork === undefined) {
+      const xapiUrl = this._url
+      url.hostname = xapiUrl.hostname
+      url.port = xapiUrl.port
+      return
+    }
+
+    url.hostname = await this._getHostBackupAddress(host)
   }
 
   _setUrl(url) {
