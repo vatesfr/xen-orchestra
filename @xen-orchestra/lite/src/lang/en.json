@@ -38,7 +38,7 @@
   "running": "Running",
   "size": "Size",
   "suspended": "Suspended",
-  "unreachableHost": "The host ({name}) seems to be unreachable. Please verify the host is alive and in case the host use self signed certificat, ensure your browser allow it.",
+  "unreachableHost": "Click here to ensure your ({name}) host is reachable.",
   "version": "Version",
   "versionValue": "Version {version}",
   "vmStartLabel": "Start"

@@ -82,31 +82,28 @@ const Console = withState<State, Props, Effects, Computed, ParentState, ParentEf
       },
       _handleDisconnect: async function () {
         this.state.rfbConnected = false
+        const {
+          state: { objectsByType, url },
+          effects: { _connect },
+        } = this
         const { protocol } = window.location
         if (protocol === Protocols.https) {
           try {
-            await fetch(`${protocol}//${this.state.url?.host}`)
+            await fetch(`${protocol}//${url?.host}`)
           } catch (error) {
             console.error(error)
             try {
               await confirm({
                 icon: 'exclamation-triangle',
                 message: (
-                  <div>
-                    <p>
-                      <IntlMessage
-                        id='unreachableHost'
-                        values={{
-                          name: this.state.objectsByType
-                            .get('host')
-                            ?.find(host => host.address === this.state.url?.host)?.name_label,
-                        }}
-                      />
-                    </p>
-                    <a href={`${protocol}//${this.state.url?.host}`} rel='noopener noreferrer' target='_blank'>
-                      {this.state.url?.host}
-                    </a>
-                  </div>
+                  <a href={`${protocol}//${url?.host}`} rel='noopener noreferrer' target='_blank'>
+                    <IntlMessage
+                      id='unreachableHost'
+                      values={{
+                        name: objectsByType.get('host')?.find(host => host.address === url?.host)?.name_label,
+                      }}
+                    />
+                  </a>
                 ),
                 title: <IntlMessage id='connectionError' />,
               })
@@ -117,7 +114,7 @@ const Console = withState<State, Props, Effects, Computed, ParentState, ParentEf
         }
 
         if (this.state.tryToReconnect) {
-          this.effects._connect()
+          _connect()
         }
       },
       _connect: async function () {
