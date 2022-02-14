@@ -11,6 +11,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Self service] Change identifiers used for VM templates to avoid them from being removed on XCP-ng upgrade
+
 ### Packages to release
 
 > Packages will be released in the order they are here, therefore, they should
