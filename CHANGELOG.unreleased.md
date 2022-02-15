@@ -16,6 +16,7 @@
 
 - [Rolling Pool Update] Don't fail if `load-balancer` plugin is missing (Starter and Enterprise plans)
 - [Backup/Restore] Fix missing backups on Backblaze
+- [Templates] Fix "incorrect state" error when trying to delete a default template
 
 ### Packages to release
 
