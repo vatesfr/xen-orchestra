@@ -6,14 +6,20 @@ import { getRenderXoItemOfType } from 'render-xo-item'
 import { Select, Toggle } from 'form'
 import { SelectSr } from 'select-objects'
 
+import ChooseSrForEachVdisModal from '../../../common/xo/choose-sr-for-each-vdis-modal'
+
 const BACKUP_RENDERER = getRenderXoItemOfType('backup')
 
 export default class RestoreBackupsModalBody extends Component {
-  state = { generateNewMacAddresses: false }
+  state = { generateNewMacAddresses: false, targetSrs: { mainSr: undefined, mapVdisSrs: undefined } }
 
   get value() {
     return this.state
   }
+
+  _getDisks = backup =>
+    backup !== undefined ? backup.disks.reduce((vdis, vdi) => ({ ...vdis, [vdi.uuid]: vdi }), {}) : {}
+
   render() {
     return (
       <div>
@@ -25,20 +31,30 @@ export default class RestoreBackupsModalBody extends Component {
             placeholder={_('importBackupModalSelectBackup')}
           />
         </div>
-        <div className='mb-1'>
-          <SelectSr onChange={this.linkState('sr')} placeholder={_('importBackupModalSelectSr')} />
-        </div>
-        <div>
-          <Toggle iconSize={1} onChange={this.linkState('start')} /> {_('restoreVmBackupsStart', { nVms: 1 })}
-        </div>
-        <div>
-          <Toggle
-            iconSize={1}
-            value={this.state.generateNewMacAddresses}
-            onChange={this.toggleState('generateNewMacAddresses')}
-          />{' '}
-          {_('generateNewMacAddress')}
-        </div>
+        {this.state.backup != null && (
+          <div>
+            <div className='mb-1'>
+              <ChooseSrForEachVdisModal
+                onChange={this.linkState('targetSrs')}
+                placeholder={_('importBackupModalSelectSr')}
+                required
+                value={this.state.targetSrs}
+                vdis={this._getDisks(this.state.backup)}
+              />
+            </div>
+            <div>
+              <Toggle iconSize={1} onChange={this.linkState('start')} /> {_('restoreVmBackupsStart', { nVms: 1 })}
+            </div>
+            <div>
+              <Toggle
+                iconSize={1}
+                value={this.state.generateNewMacAddresses}
+                onChange={this.toggleState('generateNewMacAddresses')}
+              />{' '}
+              {_('generateNewMacAddress')}
+            </div>
+          </div>
+        )}
       </div>
     )
   }

@@ -2,6 +2,7 @@ const compareVersions = require('compare-versions')
 const find = require('lodash/find.js')
 const groupBy = require('lodash/groupBy.js')
 const ignoreErrors = require('promise-toolbox/ignoreErrors.js')
+const isEmpty = require('lodash/isEmpty.js')
 const omit = require('lodash/omit.js')
 const { asyncMap } = require('@xen-orchestra/async-map')
 const { CancelToken } = require('promise-toolbox')
@@ -165,6 +166,12 @@ exports.importDeltaVm = defer(async function importDeltaVm(
     }
   }
 
+  if (!isEmpty(mapVdisSrs)) {
+    for (const [vdiUuid, srId] of Object.entries(mapVdisSrs)) {
+      mapVdisSrs[vdiUuid] = xapi.getObject(srId, 'SR')._xapiRef
+    }
+  }
+
   const baseVdis = {}
   baseVm &&
     baseVm.$VBDs.forEach(vbd => {
@@ -239,6 +246,7 @@ exports.importDeltaVm = defer(async function importDeltaVm(
       }
 
       newVdi = await xapi.getRecord('VDI', await baseVdi.$clone())
+
       $defer.onFailure(() => newVdi.$destroy())
 
       await newVdi.update_other_config(TAG_COPY_SRC, vdi.uuid)
