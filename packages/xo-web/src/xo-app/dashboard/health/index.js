@@ -8,14 +8,15 @@ import NoObjects from 'no-objects'
 import React from 'react'
 import SortedTable from 'sorted-table'
 import Tooltip from 'tooltip'
-import { Host, Network, Pool, Sr, Vm } from 'render-xo-item'
+import { Host, Network, Pool, Sr, Vdi, Vm } from 'render-xo-item'
 import { SelectPool } from 'select-objects'
 import { Container, Row, Col } from 'grid'
 import { Card, CardHeader, CardBlock } from 'card'
 import { FormattedRelative, FormattedTime } from 'react-intl'
 import { countBy, filter, flatten, forEach, includes, isEmpty, map, pick } from 'lodash'
-import { connectStore, formatLogs, formatSize, noop, resolveIds } from 'utils'
+import { addSubscriptions, connectStore, formatLogs, formatSize, noop, resolveIds } from 'utils'
 import {
+  createSrsUnhealthyVdiChainsLengthSubscription,
   deleteMessage,
   deleteMessages,
   deleteOrphanedVdis,
@@ -501,6 +502,88 @@ const ALARM_ACTIONS = [
 
 const HANDLED_VDI_TYPES = new Set(['system', 'user', 'ephemeral'])
 
+const UNHEALTHY_VDI_CHAINS = [
+  {
+    itemRenderer: vdiChains => (
+      <div>
+        {vdiChains.total >= 10 && (
+          <span className='text-warning'>
+            <Icon icon='alarm' />{' '}
+          </span>
+        )}
+        <Sr id={vdiChains.srId} link />
+      </div>
+    ),
+    name: 'SR',
+    sortCriteria: 'name_label',
+  },
+  {
+    itemRenderer: vdiChains =>
+      map(vdiChains.vdis, (vdiDepth, id) => (
+        <div key={id}>
+          <Vdi id={id} showSize /> <span>Depth: {vdiDepth}</span>
+        </div>
+      )),
+    name: 'VDIs to coalesce',
+  },
+]
+
+@addSubscriptions(props => ({
+  unhealthyVdiChainsBySrs: createSrsUnhealthyVdiChainsLengthSubscription(props.srs),
+}))
+class VdiToCoalesceTable extends Component {
+  getVdisToCoalesceBySrs = createSelector(
+    () => this.props.unhealthyVdiChainsBySrs,
+    () => this.props.userSrs,
+    (unhealthyVdiChainsBySrs, srs) => {
+      const _unhealthyVdiChainsBySrs = {}
+      let total = 0
+      forEach(unhealthyVdiChainsBySrs, (vdiChains, srId) => {
+        if (!Object.keys(srs).includes(srId)) {
+          return
+        }
+        let totalBySrs = 0
+        forEach(vdiChains, vdiLength => {
+          totalBySrs += vdiLength
+        })
+        _unhealthyVdiChainsBySrs[srId] = {
+          srId,
+          total: totalBySrs,
+          vdis: vdiChains,
+        }
+        total += _unhealthyVdiChainsBySrs[srId].total
+      })
+      return {
+        total,
+        unhealthyVdiChainsBySrs: _unhealthyVdiChainsBySrs,
+      }
+    }
+  )
+
+  render() {
+    const getVdisToCoalesceBySrs = this.getVdisToCoalesceBySrs()
+    const { total, unhealthyVdiChainsBySrs } = getVdisToCoalesceBySrs
+    return (
+      <Row>
+        <Col>
+          <Card>
+            <CardHeader>
+              <Icon icon='disk' /> {`Total VDIs to coalesce (${total})`}
+            </CardHeader>
+            <CardBlock>
+              <Row className='no-default-sr'>
+                <Col>
+                  <SortedTable collection={unhealthyVdiChainsBySrs} columns={UNHEALTHY_VDI_CHAINS} />
+                </Col>
+              </Row>
+            </CardBlock>
+          </Card>
+        </Col>
+      </Row>
+    )
+  }
+}
+
 @connectStore(() => {
   const getSrs = createGetObjectsOfType('SR')
   const getOrphanVdis = createSort(
@@ -557,6 +640,7 @@ const HANDLED_VDI_TYPES = new Set(['system', 'user', 'ephemeral'])
     orphanVdis: getOrphanVdis,
     orphanVmSnapshots: getOrphanVmSnapshots,
     pools: createGetObjectsOfType('pool'),
+    srs: getSrs,
     tooManySnapshotsVms: getTooManySnapshotsVms,
     guestToolsVms: getGuestToolsVms,
     userSrs: getUserSrs,
@@ -682,6 +766,7 @@ export default class Health extends Component {
         <Row className='mb-1'>
           <SelectPool multi onChange={this.linkState('pools')} value={state.pools} />
         </Row>
+        {props.areObjectsFetched && <VdiToCoalesceTable srs={props.srs} userSrs={userSrs} />}
         <Row>
           <Col>
             <Card>
