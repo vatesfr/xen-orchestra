@@ -536,8 +536,8 @@ export const createSrUnhealthyVdiChainsLengthSubscription = sr => {
 }
 
 const unhealthyVdiChainsLengthBySrs = {}
-export const createSrsUnhealthyVdiChainsLengthSubscription = srs => {
-  return createSubscription(async () => {
+export const createSrsUnhealthyVdiChainsLengthSubscription = srs =>
+  createSubscription(async () => {
     await Promise.all(
       map(srs, async sr => {
         sr = resolveId(sr)
@@ -551,7 +551,6 @@ export const createSrsUnhealthyVdiChainsLengthSubscription = srs => {
     )
     return unhealthyVdiChainsLengthBySrs
   })
-}
 
 // System ============================================================
 
