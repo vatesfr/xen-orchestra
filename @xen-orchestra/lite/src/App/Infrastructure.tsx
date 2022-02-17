@@ -1,6 +1,5 @@
 import React from 'react'
 import styled from 'styled-components'
-import { RouteComponentProps, withRouter } from 'react-router'
 import { Switch, Route } from 'react-router-dom'
 import { withState } from 'reaclette'
 
@@ -30,7 +29,7 @@ interface ParentState {}
 
 interface State {}
 
-interface Props extends RouteComponentProps {}
+interface Props {}
 
 interface ParentEffects {}
 
@@ -61,4 +60,4 @@ const Infrastructure = withState<State, Props, Effects, Computed, ParentState, P
   </Container>
 ))
 
-export default withRouter(Infrastructure)
+export default Infrastructure
