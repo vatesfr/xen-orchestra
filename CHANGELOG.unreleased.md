@@ -7,6 +7,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [Dashboad/Health] List all existing VDIs that need coalescing. (PR [#6120](https://github.com/vatesfr/xen-orchestra/pull/6120))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -36,3 +38,4 @@
 - @xen-orchestra/proxy patch
 - xo-cli minor
 - xo-server minor
+- xo-web minor
