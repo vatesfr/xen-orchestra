@@ -61,9 +61,26 @@ const Select = withState<State, Props, Effects, Computed, ParentState, ParentEff
         }),
     },
   },
-  ({ additionalProps, displayEmpty = true, effects, multiple, options, required, resetState, state, ...props }) => (
+  ({
+    additionalProps,
+    displayEmpty = true,
+    effects,
+    multiple,
+    options,
+    required,
+    resetState,
+    state,
+    value,
+    ...props
+  }) => (
     <FormControl>
-      <SelectMaterialUi multiple={multiple} required={required} displayEmpty={displayEmpty} {...props}>
+      <SelectMaterialUi
+        multiple={multiple}
+        required={required}
+        displayEmpty={displayEmpty}
+        value={value ?? (multiple ? [] : '')}
+        {...props}
+      >
         {!multiple && (
           <MenuItem value=''>
             <em>
