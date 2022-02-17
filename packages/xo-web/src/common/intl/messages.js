@@ -1428,6 +1428,8 @@ const messages = {
   alarmObject: 'Issue on',
   alarmPool: 'Pool',
   spaceLeftTooltip: '{used}% used ({free} left)',
+  totalVdisToCoalesce: 'Total VDIs to coalesce ({total, number})',
+  vdisToCoalesce: 'VDIs to coalesce',
 
   // ----- New VM -----
   createVmModalTitle: 'Create VM',

@@ -514,17 +514,20 @@ const UNHEALTHY_VDI_CHAINS = [
         <Sr id={vdiChains.srId} link />
       </div>
     ),
-    name: 'SR',
+    name: _('sr'),
     sortCriteria: 'name_label',
   },
   {
     itemRenderer: vdiChains =>
       map(vdiChains.vdis, (vdiDepth, id) => (
         <div key={id}>
-          <Vdi id={id} showSize /> <span>Depth: {vdiDepth}</span>
+          <Vdi id={id} showSize />{' '}
+          <span>
+            {_('srUnhealthyVdiDepth')}: {vdiDepth}
+          </span>
         </div>
       )),
-    name: 'VDIs to coalesce',
+    name: _('vdisToCoalesce'),
   },
 ]
 
@@ -568,7 +571,7 @@ class VdiToCoalesceTable extends Component {
         <Col>
           <Card>
             <CardHeader>
-              <Icon icon='disk' /> {`Total VDIs to coalesce (${total})`}
+              <Icon icon='disk' /> {_('totalVdisToCoalesce', { total })}
             </CardHeader>
             <CardBlock>
               <Row className='no-default-sr'>
@@ -766,7 +769,6 @@ export default class Health extends Component {
         <Row className='mb-1'>
           <SelectPool multi onChange={this.linkState('pools')} value={state.pools} />
         </Row>
-        {props.areObjectsFetched && <VdiToCoalesceTable srs={props.srs} userSrs={userSrs} />}
         <Row>
           <Col>
             <Card>
@@ -857,6 +859,7 @@ export default class Health extends Component {
             </Col>
           </Row>
         )}
+        {props.areObjectsFetched && <VdiToCoalesceTable srs={props.srs} userSrs={userSrs} />}
         <Row>
           <Col>
             <Card>
