@@ -39,7 +39,7 @@ export default class RestoreBackupsModalBody extends Component {
                 placeholder={_('importBackupModalSelectSr')}
                 required
                 value={this.state.targetSrs}
-                vdis={this._getDisks(this.state.backup)}
+                vdis={this.state.backup.mode === 'delta' ? this._getDisks(this.state.backup) : undefined}
               />
             </div>
             <div>
