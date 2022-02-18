@@ -137,28 +137,24 @@ The first time a user signs in, XO will create a new XO user with the same ident
 
 #### Creating the Google project
 
-[Create a new project](https://console.developers.google.com/project):
+Go to Google's [Credentials page](https://console.developers.google.com/apis/credentials) and create a new project:
 
-![](https://raw.githubusercontent.com/vatesfr/xen-orchestra/master/packages/xo-server-auth-google/create-project-2.png)
+![](./assets/auth-google-create-project.png)
 
-Enable the Google+ API:
+Configure an OAuth consent screen if requested then create OAuth 2.0 credentials:
 
-![](https://raw.githubusercontent.com/vatesfr/xen-orchestra/master/packages/xo-server-auth-google/enable-google+-api.png)
+![](./assets/auth-google-create-oauth.png)
+![](./assets/auth-google-create-oauth-form.png)
 
-Add OAuth 2.0 credentials:
+Get your client ID and client secret:
 
-![](https://raw.githubusercontent.com/vatesfr/xen-orchestra/master/packages/xo-server-auth-google/add-oauth2-credentials.png)
-![](https://raw.githubusercontent.com/vatesfr/xen-orchestra/master/packages/xo-server-auth-google/add-oauth2-credentials-2.png)
+![](./assets/auth-google-client-id-secret.png)
 
 #### Configure the XO plugin
 
-In Settings, then Plugins, expand the Google plugin detail and provide:
+In Settings, then Plugins, expand the Google plugin details and configure it with the information from the Google Console:
 
-- a `clientID` e.g `326211154583-nt2s112d3t7f4f1hh49oo9164nivvbnu.apps.googleusercontent.com`
-- a `clientSecret`, e.g `HTDb8I4jXiLRMaRL15qCffQ`
-- the `callbackURL`, e.g `http://xo.company.net/signin/google/callback`
-
-![](./assets/googleconfig.png)
+![](./assets/auth-google-plugin-config.png)
 
 Be sure to activate the plugin after you save the configuration (button on top).
 
