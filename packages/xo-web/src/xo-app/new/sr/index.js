@@ -360,8 +360,8 @@ export default class New extends Component {
       if (type === 'ext' || type === 'lvm' || type === 'zfs' || type === 'local') {
         try {
           await confirm({
-            title: _('createSrConfirm', { type }),
-            body: <p>{_('createSrConfirmMessage')}</p>,
+            title: _('newSr'),
+            body: <p>{_('newSrConfirm')}</p>,
           })
         } catch (e) {
           return
