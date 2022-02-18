@@ -356,6 +356,18 @@ export default class New extends Component {
     }
 
     try {
+      // local SR
+      if (type === 'ext' || type === 'lvm' || type === 'zfs' || type === 'local') {
+        try {
+          await confirm({
+            title: _('createSrConfirm', { type }),
+            body: <p>{_('createSrConfirmMessage')}</p>,
+          })
+        } catch (e) {
+          return
+        }
+      }
+
       return await createMethodFactories[type]()
     } catch (err) {
       error('SR Creation', err.message || String(err))
