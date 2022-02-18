@@ -124,7 +124,7 @@ require('exec-promise')(() =>
 
     return Promise.all([
       forceRelativeSymlink(NPMIGNORE_PATH, `${dir}/.npmignore`),
-      readFile(`${dir}/USAGE.md`, 'utf8')
+      readFile(`${dir}/.USAGE.md`, 'utf8')
         .then(content =>
           writeFile(
             `${dir}/README.md`,
