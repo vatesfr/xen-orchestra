@@ -41,7 +41,7 @@ exports.every = function every() {
   }
   return function everyPredicate() {
     for (let i = 0; i < n; ++i) {
-      if (!predicates[0].apply(this, arguments)) {
+      if (!predicates[i].apply(this, arguments)) {
         return false
       }
     }
@@ -60,7 +60,7 @@ exports.some = function some() {
   }
   return function somePredicate() {
     for (let i = 0; i < n; ++i) {
-      if (predicates[0].apply(this, arguments)) {
+      if (predicates[i].apply(this, arguments)) {
         return true
       }
     }
