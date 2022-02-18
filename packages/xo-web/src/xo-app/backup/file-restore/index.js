@@ -87,7 +87,6 @@ export default class Restore extends Component {
 
   _refreshBackupList = async (_remotes = this.props.remotes, jobs = this.props.jobs) => {
     const remotes = keyBy(
-      // S3 remote not supported
       filter(_remotes, remote => remote.enabled && remote.supportFileRestore),
       'id'
     )
