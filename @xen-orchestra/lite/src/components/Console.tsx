@@ -22,6 +22,8 @@ interface State {
   rfb: any
   rfbConnected: boolean
   timeout?: NodeJS.Timeout
+  tryToReconnect: boolean
+  url?: URL
 }
 
 interface Props {
@@ -35,7 +37,7 @@ interface ParentEffects {}
 interface Effects {
   _connect: () => Promise<void>
   _handleConnect: () => void
-  _handleDisconnect: () => void
+  _handleDisconnect: () => Promise<void>
   sendCtrlAltDel: () => void
 }
 
@@ -45,6 +47,14 @@ interface PropsStyledConsole {
   scale: number
   visible: boolean
 }
+
+enum Protocols {
+  http = 'http:',
+  https = 'https:',
+  ws = 'ws:',
+  wss = 'wss:',
+}
+
 const StyledConsole = styled.div<PropsStyledConsole>`
   height: ${props => props.scale}%;
   margin: auto;
@@ -60,6 +70,8 @@ const Console = withState<State, Props, Effects, Computed, ParentState, ParentEf
       rfb: undefined,
       rfbConnected: false,
       timeout: undefined,
+      tryToReconnect: true,
+      url: undefined,
     }),
     effects: {
       initialize: function () {
@@ -68,9 +80,42 @@ const Console = withState<State, Props, Effects, Computed, ParentState, ParentEf
       _handleConnect: function () {
         this.state.rfbConnected = true
       },
-      _handleDisconnect: function () {
+      _handleDisconnect: async function () {
         this.state.rfbConnected = false
-        this.effects._connect()
+        const {
+          state: { objectsByType, url },
+          effects: { _connect },
+        } = this
+        const { protocol } = window.location
+        if (protocol === Protocols.https) {
+          try {
+            await fetch(`${protocol}//${url?.host}`)
+          } catch (error) {
+            console.error(error)
+            try {
+              await confirm({
+                icon: 'exclamation-triangle',
+                message: (
+                  <a href={`${protocol}//${url?.host}`} rel='noopener noreferrer' target='_blank'>
+                    <IntlMessage
+                      id='unreachableHost'
+                      values={{
+                        name: objectsByType.get('host')?.find(host => host.address === url?.host)?.name_label,
+                      }}
+                    />
+                  </a>
+                ),
+                title: <IntlMessage id='connectionError' />,
+              })
+            } catch {
+              this.state.tryToReconnect = false
+            }
+          }
+        }
+
+        if (this.state.tryToReconnect) {
+          _connect()
+        }
       },
       _connect: async function () {
         const { vmId } = this.props
@@ -97,11 +142,11 @@ const Console = withState<State, Props, Effects, Computed, ParentState, ParentEf
               throw new Error('Not connected to XAPI')
             }
 
-            const url = new URL(consoles[0].location)
-            url.protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-            url.searchParams.set('session_id', xapi.sessionId)
+            this.state.url = new URL(consoles[0].location)
+            this.state.url.protocol = window.location.protocol === Protocols.https ? Protocols.wss : Protocols.ws
+            this.state.url.searchParams.set('session_id', xapi.sessionId)
 
-            this.state.rfb = new RFB(this.state.container.current, url, {
+            this.state.rfb = new RFB(this.state.container.current, this.state.url, {
               wsProtocols: ['binary'],
             })
             this.state.rfb.addEventListener('connect', this.effects._handleConnect)
@@ -137,7 +182,7 @@ const Console = withState<State, Props, Effects, Computed, ParentState, ParentEf
     <>
       {state.rfb !== undefined && !state.rfbConnected && (
         <p>
-          <IntlMessage id='reconnectionAttempt' />
+          <IntlMessage id={state.tryToReconnect ? 'reconnectionAttempt' : 'hostUnreachable'} />
         </p>
       )}
       <StyledConsole ref={state.container} scale={scale} visible={state.rfbConnected} />

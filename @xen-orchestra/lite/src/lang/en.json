@@ -6,6 +6,7 @@
   "confirm": "Confirm",
   "confirmCtrlAltDel": "Send Ctrl+Alt+Del to VM?",
   "connect": "Connect",
+  "connectionError": "Connection error",
   "consoleNotAvailable": "Console is only available for running VMs",
   "ctrlAltDel": "Ctrl+Alt+Del",
   "description": "Description",
@@ -15,6 +16,7 @@
   "errorOccurred": "An error has occurred.",
   "gateway": "Gateway",
   "halted": "Halted",
+  "hostUnreachable": "Host unreachable",
   "infrastructure": "Infrastructure",
   "ip": "IP",
   "loading": "Loading…",
@@ -36,6 +38,7 @@
   "running": "Running",
   "size": "Size",
   "suspended": "Suspended",
+  "unreachableHost": "Click here to make sure your host ({name}) is reachable. You may have to allow self-signed SSL certificates in your browser.",
   "version": "Version",
   "versionValue": "Version {version}",
   "vmStartLabel": "Start"
