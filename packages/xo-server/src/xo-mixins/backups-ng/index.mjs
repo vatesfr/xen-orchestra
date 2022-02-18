@@ -270,14 +270,17 @@ export default class BackupNg {
               remotes[id] = remote
             }),
             asyncMapSettled([...servers], async id => {
-              const { allowUnauthorized, host, password, username } = await app.getXenServer(id)
+              const { allowUnauthorized, password, username } = await app.getXenServer(id)
+
+              const xapi = app.getAllXapis()[id]
+
               xapis[id] = {
                 allowUnauthorized,
                 credentials: {
                   username,
                   password,
                 },
-                url: host,
+                url: await xapi.getHostBackupUrl(xapi.pool.$master),
               }
             }),
           ])
