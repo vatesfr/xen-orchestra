@@ -2,7 +2,6 @@ const compareVersions = require('compare-versions')
 const find = require('lodash/find.js')
 const groupBy = require('lodash/groupBy.js')
 const ignoreErrors = require('promise-toolbox/ignoreErrors.js')
-const isEmpty = require('lodash/isEmpty.js')
 const omit = require('lodash/omit.js')
 const { asyncMap } = require('@xen-orchestra/async-map')
 const { CancelToken } = require('promise-toolbox')
@@ -16,6 +15,16 @@ exports.TAG_BASE_DELTA = TAG_BASE_DELTA
 
 const TAG_COPY_SRC = 'xo:copy_of'
 exports.TAG_COPY_SRC = TAG_COPY_SRC
+
+const CACHE = new Map()
+const resolveUuid = async (xapi, uuid, type) => {
+  let ref = CACHE.get(uuid)
+  if (ref === undefined) {
+    ref = await xapi.call(`${type}.get_by_uuid`, uuid)
+    CACHE.set(uuid, ref)
+  }
+  return ref
+}
 
 const ensureArray = value => (value === undefined ? [] : Array.isArray(value) ? value : [value])
 
@@ -166,10 +175,8 @@ exports.importDeltaVm = defer(async function importDeltaVm(
     }
   }
 
-  if (!isEmpty(mapVdisSrs)) {
-    for (const [vdiUuid, srId] of Object.entries(mapVdisSrs)) {
-      mapVdisSrs[vdiUuid] = xapi.getObject(srId, 'SR').$ref
-    }
+  for (const [vdiUuid, srUuid] of Object.entries(mapVdisSrs)) {
+    mapVdisSrs[vdiUuid] = await resolveUuid(xapi, srUuid, 'SR')
   }
 
   const baseVdis = {}
