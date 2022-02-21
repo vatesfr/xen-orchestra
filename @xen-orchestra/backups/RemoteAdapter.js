@@ -1,12 +1,15 @@
 const { asyncMap, asyncMapSettled } = require('@xen-orchestra/async-map')
-const Disposable = require('promise-toolbox/Disposable.js')
-const fromCallback = require('promise-toolbox/fromCallback.js')
-const fromEvent = require('promise-toolbox/fromEvent.js')
-const pDefer = require('promise-toolbox/defer.js')
+const Disposable = require('promise-toolbox/Disposable')
+const fromCallback = require('promise-toolbox/fromCallback')
+const fromEvent = require('promise-toolbox/fromEvent')
+const pDefer = require('promise-toolbox/defer')
+const groupBy = require('lodash/groupBy.js')
 const { dirname, join, normalize, resolve } = require('path')
 const { createLogger } = require('@xen-orchestra/log')
-const { VhdAbstract, createVhdDirectoryFromStream } = require('vhd-lib')
+const { Constants, createVhdDirectoryFromStream, openVhd, VhdAbstract, VhdDirectory, VhdSynthetic } = require('vhd-lib')
 const { deduped } = require('@vates/disposable/deduped.js')
+const { decorateMethodsWith } = require('@vates/decorate-with')
+const { compose } = require('@vates/compose')
 const { execFile } = require('child_process')
 const { readdir, stat } = require('fs-extra')
 const { v4: uuidv4 } = require('uuid')
@@ -67,10 +70,11 @@ const debounceResourceFactory = factory =>
   }
 
 class RemoteAdapter {
-  constructor(handler, { debounceResource = res => res, dirMode } = {}) {
+  constructor(handler, { debounceResource = res => res, dirMode, vhdDirectoryCompression } = {}) {
     this._debounceResource = debounceResource
     this._dirMode = dirMode
     this._handler = handler
+    this._vhdDirectoryCompression = vhdDirectoryCompression
   }
 
   get handler() {
@@ -86,9 +90,6 @@ class RemoteAdapter {
     return partition
   }
 
-  _getLvmLogicalVolumes = Disposable.factory(this._getLvmLogicalVolumes)
-  _getLvmLogicalVolumes = deduped(this._getLvmLogicalVolumes, (devicePath, pvId, vgName) => [devicePath, pvId, vgName])
-  _getLvmLogicalVolumes = debounceResourceFactory(this._getLvmLogicalVolumes)
   async *_getLvmLogicalVolumes(devicePath, pvId, vgName) {
     yield this._getLvmPhysicalVolume(devicePath, pvId && (await this._findPartition(devicePath, pvId)))
 
@@ -100,9 +101,6 @@ class RemoteAdapter {
     }
   }
 
-  _getLvmPhysicalVolume = Disposable.factory(this._getLvmPhysicalVolume)
-  _getLvmPhysicalVolume = deduped(this._getLvmPhysicalVolume, (devicePath, partition) => [devicePath, partition?.id])
-  _getLvmPhysicalVolume = debounceResourceFactory(this._getLvmPhysicalVolume)
   async *_getLvmPhysicalVolume(devicePath, partition) {
     const args = []
     if (partition !== undefined) {
@@ -123,9 +121,6 @@ class RemoteAdapter {
     }
   }
 
-  _getPartition = Disposable.factory(this._getPartition)
-  _getPartition = deduped(this._getPartition, (devicePath, partition) => [devicePath, partition?.id])
-  _getPartition = debounceResourceFactory(this._getPartition)
   async *_getPartition(devicePath, partition) {
     const options = ['loop', 'ro']
 
@@ -178,7 +173,6 @@ class RemoteAdapter {
     })
   }
 
-  _usePartitionFiles = Disposable.factory(this._usePartitionFiles)
   async *_usePartitionFiles(diskId, partitionId, paths) {
     const path = yield this.getPartition(diskId, partitionId)
 
@@ -188,6 +182,22 @@ class RemoteAdapter {
     )
 
     return files
+  }
+
+  // check if we will be allowed to merge a a vhd created in this adapter
+  // with the vhd at path `path`
+  async isMergeableParent(packedParentUid, path) {
+    return await Disposable.use(openVhd(this.handler, path), vhd => {
+      // this baseUuid is not linked with this vhd
+      if (!vhd.footer.uuid.equals(packedParentUid)) {
+        return false
+      }
+
+      const isVhdDirectory = vhd instanceof VhdDirectory
+      return isVhdDirectory
+        ? this.#useVhdDirectory() && this.#getCompressionType() === vhd.compressionType
+        : !this.#useVhdDirectory()
+    })
   }
 
   fetchPartitionFiles(diskId, partitionId, paths) {
@@ -212,8 +222,8 @@ class RemoteAdapter {
   async deleteDeltaVmBackups(backups) {
     const handler = this._handler
 
-    // unused VHDs will be detected by `cleanVm`
-    await asyncMapSettled(backups, ({ _filename }) => VhdAbstract.unlink(handler, _filename))
+    // this will delete the json, unused VHDs will be detected by `cleanVm`
+    await asyncMapSettled(backups, ({ _filename }) => handler.unlink(_filename))
   }
 
   async deleteMetadataBackup(backupId) {
@@ -243,22 +253,42 @@ class RemoteAdapter {
     )
   }
 
-  async deleteVmBackup(filename) {
-    const metadata = JSON.parse(String(await this._handler.readFile(filename)))
-    metadata._filename = filename
+  deleteVmBackup(file) {
+    return this.deleteVmBackups([file])
+  }
 
-    if (metadata.mode === 'delta') {
-      await this.deleteDeltaVmBackups([metadata])
-    } else if (metadata.mode === 'full') {
-      await this.deleteFullVmBackups([metadata])
-    } else {
-      throw new Error(`no deleter for backup mode ${metadata.mode}`)
+  async deleteVmBackups(files) {
+    const { delta, full, ...others } = groupBy(await asyncMap(files, file => this.readVmBackupMetadata(file)), 'mode')
+
+    const unsupportedModes = Object.keys(others)
+    if (unsupportedModes.length !== 0) {
+      throw new Error('no deleter for backup modes: ' + unsupportedModes.join(', '))
+    }
+
+    await Promise.all([
+      delta !== undefined && this.deleteDeltaVmBackups(delta),
+      full !== undefined && this.deleteFullVmBackups(full),
+    ])
+
+    const dirs = new Set(files.map(file => dirname(file)))
+    for (const dir of dirs) {
+      // don't merge in main process, unused VHDs will be merged in the next backup run
+      await this.cleanVm(dir, { remove: true, onLog: warn })
     }
   }
 
-  getDisk = Disposable.factory(this.getDisk)
-  getDisk = deduped(this.getDisk, diskId => [diskId])
-  getDisk = debounceResourceFactory(this.getDisk)
+  #getCompressionType() {
+    return this._vhdDirectoryCompression
+  }
+
+  #useVhdDirectory() {
+    return this.handler.type === 's3'
+  }
+
+  #useAlias() {
+    return this.#useVhdDirectory()
+  }
+
   async *getDisk(diskId) {
     const handler = this._handler
 
@@ -295,7 +325,6 @@ class RemoteAdapter {
   // - `<partitionId>`: partitioned disk
   // - `<pvId>/<vgName>/<lvName>`: LVM on a partitioned disk
   // - `/<vgName>/lvName>`: LVM on a raw disk
-  getPartition = Disposable.factory(this.getPartition)
   async *getPartition(diskId, partitionId) {
     const devicePath = yield this.getDisk(diskId)
     if (partitionId === undefined) {
@@ -312,13 +341,10 @@ class RemoteAdapter {
     return yield this._getPartition(devicePath, await this._findPartition(devicePath, partitionId))
   }
 
-  // this function will be the one where we plug the logic of the storage format by fs type/user settings
-
-  // if the file is named .vhd => vhd
-  // if the file is named alias.vhd => alias to a vhd
+  // if we use alias on this remote, we have to name the file alias.vhd
   getVhdFileName(baseName) {
-    if (this._handler.type === 's3') {
-      return `${baseName}.alias.vhd` // we want an alias to a vhddirectory
+    if (this.#useAlias()) {
+      return `${baseName}.alias.vhd`
     }
     return `${baseName}.vhd`
   }
@@ -327,9 +353,14 @@ class RemoteAdapter {
     const handler = this._handler
 
     const backups = { __proto__: null }
-    await asyncMap(await handler.list(BACKUP_DIR), async vmUuid => {
-      const vmBackups = await this.listVmBackups(vmUuid)
-      backups[vmUuid] = vmBackups
+    await asyncMap(await handler.list(BACKUP_DIR), async entry => {
+      // ignore hidden and lock files
+      if (entry[0] !== '.' && !entry.endsWith('.lock')) {
+        const vmBackups = await this.listVmBackups(entry)
+        if (vmBackups.length !== 0) {
+          backups[entry] = vmBackups
+        }
+      }
     })
 
     return backups
@@ -469,11 +500,12 @@ class RemoteAdapter {
 
   async writeVhd(path, input, { checksum = true, validator = noop } = {}) {
     const handler = this._handler
-    let dataPath = path
 
-    if (path.endsWith('.alias.vhd')) {
-      await createVhdDirectoryFromStream(handler, `${dirname(path)}/data/${uuidv4()}.vhd`, input, {
+    if (this.#useVhdDirectory()) {
+      const dataPath = `${dirname(path)}/data/${uuidv4()}.vhd`
+      await createVhdDirectoryFromStream(handler, dataPath, input, {
         concurrency: 16,
+        compression: this.#getCompressionType(),
         async validator() {
           await input.task
           return validator.apply(this, arguments)
@@ -481,7 +513,7 @@ class RemoteAdapter {
       })
       await VhdAbstract.createAlias(handler, path, dataPath)
     } else {
-      await this.outputStream(dataPath, input, { checksum, validator })
+      await this.outputStream(path, input, { checksum, validator })
     }
   }
 
@@ -497,17 +529,48 @@ class RemoteAdapter {
   }
 
   async _createSyntheticStream(handler, paths) {
+    let disposableVhds = []
+
+    // if it's a path : open all hierarchy of parent
+    if (typeof paths === 'string') {
+      let vhd
+      let vhdPath = paths
+      do {
+        const disposable = await openVhd(handler, vhdPath)
+        vhd = disposable.value
+        disposableVhds.push(disposable)
+        vhdPath = resolveRelativeFromFile(vhdPath, vhd.header.parentUnicodeName)
+      } while (vhd.footer.diskType !== Constants.DISK_TYPES.DYNAMIC)
+    } else {
+      // only open the list of path given
+      disposableVhds = paths.map(path => openVhd(handler, path))
+    }
+
     // I don't want the vhds to be disposed on return
     // but only when the stream is done ( or failed )
-    const disposables = await Disposable.all(paths.map(path => openVhd(handler, path)))
+    const disposables = await Disposable.all(disposableVhds)
     const vhds = disposables.value
+
+    let disposed = false
+    const disposeOnce = async () => {
+      if (!disposed) {
+        disposed = true
+
+        try {
+          await disposables.dispose()
+        } catch (error) {
+          warn('_createSyntheticStream: failed to dispose VHDs', { error })
+        }
+      }
+    }
+
     const synthetic = new VhdSynthetic(vhds)
     await synthetic.readHeaderAndFooter()
     await synthetic.readBlockAllocationTable()
     const stream = await synthetic.stream()
-    stream.on('end', () => disposables.dispose())
-    stream.on('close', () => disposables.dispose())
-    stream.on('error', () => disposables.dispose())
+    stream.on('end', disposeOnce)
+    stream.on('close', disposeOnce)
+    stream.on('error', disposeOnce)
     return stream
   }
 
@@ -549,6 +612,32 @@ Object.assign(RemoteAdapter.prototype, {
     }
   },
   isValidXva,
+})
+
+decorateMethodsWith(RemoteAdapter, {
+  _getLvmLogicalVolumes: compose([
+    Disposable.factory,
+    [deduped, (devicePath, pvId, vgName) => [devicePath, pvId, vgName]],
+    debounceResourceFactory,
+  ]),
+
+  _getLvmPhysicalVolume: compose([
+    Disposable.factory,
+    [deduped, (devicePath, partition) => [devicePath, partition?.id]],
+    debounceResourceFactory,
+  ]),
+
+  _getPartition: compose([
+    Disposable.factory,
+    [deduped, (devicePath, partition) => [devicePath, partition?.id]],
+    debounceResourceFactory,
+  ]),
+
+  _usePartitionFiles: Disposable.factory,
+
+  getDisk: compose([Disposable.factory, [deduped, diskId => [diskId]], debounceResourceFactory]),
+
+  getPartition: Disposable.factory,
 })
 
 exports.RemoteAdapter = RemoteAdapter

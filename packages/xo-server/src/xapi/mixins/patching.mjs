@@ -478,7 +478,15 @@ export default {
     throw new Error('non pool-wide install not implemented')
   },
 
-  async rollingPoolUpdate() {
+  @decorateWith(deferrable)
+  async rollingPoolUpdate($defer) {
+    if (this.pool.ha_enabled) {
+      const haSrs = this.pool.$ha_statefiles.map(vdi => vdi.SR)
+      const haConfig = this.pool.ha_configuration
+      await this.call('pool.disable_ha')
+      $defer(() => this.call('pool.enable_ha', haSrs, haConfig))
+    }
+
     const hosts = filter(this.objects.all, { $type: 'host' })
     await Promise.all(hosts.map(host => host.$call('assert_can_evacuate')))
 

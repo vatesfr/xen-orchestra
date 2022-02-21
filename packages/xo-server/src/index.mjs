@@ -22,7 +22,8 @@ import serveStatic from 'serve-static'
 import stoppable from 'stoppable'
 import WebServer from 'http-server-plus'
 import WebSocket, { WebSocketServer } from 'ws'
-import xdg from 'xdg-basedir'
+import { asyncMap } from '@xen-orchestra/async-map'
+import { xdgConfig } from 'xdg-basedir'
 import { createLogger } from '@xen-orchestra/log'
 import { createRequire } from 'module'
 import { genSelfSignedCert } from '@xen-orchestra/self-signed'
@@ -99,7 +100,7 @@ async function loadConfiguration() {
   return config
 }
 
-const LOCAL_CONFIG_FILE = `${xdg.config}/${APP_NAME}/config.z-auto.json`
+const LOCAL_CONFIG_FILE = `${xdgConfig}/${APP_NAME}/config.z-auto.json`
 async function updateLocalConfig(diff) {
   // TODO lock file
   const localConfig = await fse.readFile(LOCAL_CONFIG_FILE).then(JSON.parse, () => ({}))
@@ -113,6 +114,11 @@ async function updateLocalConfig(diff) {
 
 async function createExpressApp(config) {
   const app = createExpress()
+
+  // For a nicer API
+  //
+  // https://expressjs.com/en/api.html#app.set
+  app.set('json spaces', 2)
 
   app.use(helmet(config.http.helmet))
 
@@ -236,7 +242,7 @@ async function setUpPassport(express, xo, { authentication: authCfg, http: { coo
   }
 
   const SIGNIN_STRATEGY_RE = /^\/signin\/([^/]+)(\/callback)?(:?\?.*)?$/
-  const UNCHECKED_URL_RE = /favicon|fontawesome|images|styles|\.(?:css|jpg|png)$/
+  const UNCHECKED_URL_RE = /(?:^\/rest\/)|favicon|fontawesome|images|styles|\.(?:css|jpg|png)$/
   express.use(async (req, res, next) => {
     const { url } = req
 
@@ -362,13 +368,11 @@ async function registerPluginsInPath(path, prefix) {
     throw error
   })
 
-  await Promise.all(
-    files.map(name => {
-      if (name.startsWith(prefix)) {
-        return registerPluginWrapper.call(this, `${path}/${name}`, name.slice(prefix.length))
-      }
-    })
-  )
+  await asyncMap(files, name => {
+    if (name.startsWith(prefix)) {
+      return registerPluginWrapper.call(this, `${path}/${name}`, name.slice(prefix.length))
+    }
+  })
 }
 
 async function registerPlugins(xo) {
@@ -733,27 +737,6 @@ export default async function main(args) {
     log.warn('Failed to change user/group:', { error })
   }
 
-  const safeMode = includes(args, '--safe-mode')
-
-  // Creates main object.
-  const xo = new Xo({
-    appDir: APP_DIR,
-    appName: APP_NAME,
-    appVersion: APP_VERSION,
-    config,
-    httpServer: webServer,
-    safeMode,
-  })
-
-  // Register web server close on XO stop.
-  xo.hooks.on('stop', () => fromCallback.call(webServer, 'stop'))
-
-  // Connects to all registered servers.
-  await xo.hooks.start()
-
-  // Trigger a clean job.
-  await xo.hooks.clean()
-
   // Express is used to manage non WebSocket connections.
   const express = await createExpressApp(config)
 
@@ -779,6 +762,33 @@ export default async function main(args) {
     }
   }
 
+  // Attaches express to the web server.
+  webServer.on('request', express)
+  webServer.on('upgrade', (req, socket, head) => {
+    express.emit('upgrade', req, socket, head)
+  })
+
+  const safeMode = includes(args, '--safe-mode')
+
+  // Creates main object.
+  const xo = new Xo({
+    appDir: APP_DIR,
+    appName: APP_NAME,
+    appVersion: APP_VERSION,
+    config,
+    express,
+    safeMode,
+  })
+
+  // Register web server close on XO stop.
+  xo.hooks.on('stop', () => fromCallback.call(webServer, 'stop'))
+
+  // Connects to all registered servers.
+  await xo.hooks.start()
+
+  // Trigger a clean job.
+  await xo.hooks.clean()
+
   // Must be set up before the API.
   setUpConsoleProxy(webServer, xo)
 
@@ -788,12 +798,6 @@ export default async function main(args) {
   // Everything above is not protected by the sign in, allowing xo-cli
   // to work properly.
   await setUpPassport(express, xo, config)
-
-  // Attaches express to the web server.
-  webServer.on('request', express)
-  webServer.on('upgrade', (req, socket, head) => {
-    express.emit('upgrade', req, socket, head)
-  })
 
   // Must be set up before the static files.
   setUpApi(webServer, xo, config)

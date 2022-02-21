@@ -1,4 +1,4 @@
-import Disposable from 'promise-toolbox/Disposable.js'
+import Disposable from 'promise-toolbox/Disposable'
 
 import { compose } from '@vates/compose'
 import { decorateWith } from '@vates/decorate-with'
@@ -21,6 +21,7 @@ export default class BackupsRemoteAdapter {
     return new RemoteAdapter(await app.getRemoteHandler(remote), {
       debounceResource: app.debounceResource.bind(app),
       dirMode: app.config.get('backups.dirMode'),
+      vhdDirectoryCompression: app.config.get('backups.vhdDirectoryCompression'),
     })
   }
 }

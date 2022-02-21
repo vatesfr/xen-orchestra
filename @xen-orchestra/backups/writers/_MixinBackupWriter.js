@@ -1,7 +1,7 @@
 const { createLogger } = require('@xen-orchestra/log')
 const { join } = require('path')
 
-const { BACKUP_DIR, getVmBackupDir } = require('../_getVmBackupDir.js')
+const { getVmBackupDir } = require('../_getVmBackupDir.js')
 const MergeWorker = require('../merge-worker/index.js')
 const { formatFilenameDate } = require('../_filenameDate.js')
 
@@ -21,10 +21,18 @@ exports.MixinBackupWriter = (BaseClass = Object) =>
       this.#vmBackupDir = getVmBackupDir(this._backup.vm.uuid)
     }
 
-    _cleanVm(options) {
-      return this._adapter
-        .cleanVm(this.#vmBackupDir, { ...options, fixMetadata: true, onLog: warn, lock: false })
-        .catch(warn)
+    async _cleanVm(options) {
+      try {
+        return await this._adapter.cleanVm(this.#vmBackupDir, {
+          ...options,
+          fixMetadata: true,
+          onLog: warn,
+          lock: false,
+        })
+      } catch (error) {
+        warn(error)
+        return {}
+      }
     }
 
     async beforeBackup() {
@@ -36,14 +44,21 @@ exports.MixinBackupWriter = (BaseClass = Object) =>
 
     async afterBackup() {
       const { disableMergeWorker } = this._backup.config
-
-      const { merge } = await this._cleanVm({ remove: true, merge: disableMergeWorker })
-      await this.#lock.dispose()
-
       // merge worker only compatible with local remotes
       const { handler } = this._adapter
-      if (merge && !disableMergeWorker && typeof handler._getRealPath === 'function') {
-        await handler.outputFile(join(MergeWorker.CLEAN_VM_QUEUE, formatFilenameDate(new Date())), this._backup.vm.uuid)
+      const willMergeInWorker = !disableMergeWorker && typeof handler._getRealPath === 'function'
+
+      const { merge } = await this._cleanVm({ remove: true, merge: !willMergeInWorker })
+      await this.#lock.dispose()
+
+      if (merge && willMergeInWorker) {
+        const taskFile =
+          join(MergeWorker.CLEAN_VM_QUEUE, formatFilenameDate(new Date())) +
+          '-' +
+          // add a random suffix to avoid collision in case multiple tasks are created at the same second
+          Math.random().toString(36).slice(2)
+
+        await handler.outputFile(taskFile, this._backup.vm.uuid)
         const remotePath = handler._getRealPath()
         await MergeWorker.run(remotePath)
       }

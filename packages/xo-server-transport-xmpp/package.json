@@ -30,7 +30,7 @@
   },
   "dependencies": {
     "node-xmpp-client": "^3.0.0",
-    "promise-toolbox": "^0.20.0"
+    "promise-toolbox": "^0.21.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.0.0",

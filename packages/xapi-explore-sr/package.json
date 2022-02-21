@@ -1,7 +1,7 @@
 {
   "private": false,
   "name": "xapi-explore-sr",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "license": "ISC",
   "description": "Display the list of VDIs (unmanaged and snapshots included) of a SR",
   "keywords": [
@@ -33,6 +33,7 @@
     "node": ">=8"
   },
   "dependencies": {
+    "@xen-orchestra/defined": "^0.0.1",
     "archy": "^1.0.0",
     "chalk": "^4.1.0",
     "exec-promise": "^0.7.0",

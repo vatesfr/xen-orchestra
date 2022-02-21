@@ -8,12 +8,12 @@ import NoObjects from 'no-objects'
 import React from 'react'
 import SortedTable from 'sorted-table'
 import Tooltip from 'tooltip'
-import { Network, Sr, Vm } from 'render-xo-item'
+import { Host, Network, Pool, Sr, Vm } from 'render-xo-item'
 import { SelectPool } from 'select-objects'
 import { Container, Row, Col } from 'grid'
 import { Card, CardHeader, CardBlock } from 'card'
 import { FormattedRelative, FormattedTime } from 'react-intl'
-import { flatten, forEach, includes, isEmpty, map } from 'lodash'
+import { countBy, filter, flatten, forEach, includes, isEmpty, map, pick } from 'lodash'
 import { connectStore, formatLogs, formatSize, noop, resolveIds } from 'utils'
 import {
   deleteMessage,
@@ -104,6 +104,31 @@ const DUPLICATED_MAC_ADDRESSES_COLUMNS = [
 const DUPLICATED_MAC_ADDRESSES_FILTERS = {
   filterOnlyRunningVms: 'nRunningVms:>1',
 }
+
+const LOCAL_DEFAULT_SRS_COLUMNS = [
+  {
+    name: _('pool'),
+    itemRenderer: pool => <Pool id={pool.id} link />,
+    sortCriteria: 'name_label',
+  },
+  {
+    name: _('sr'),
+    itemRenderer: pool => <Sr container={false} id={pool.default_SR} link spaceLeft={false} />,
+  },
+  {
+    name: _('host'),
+    itemRenderer: (pool, { srs }) => <Host id={srs[pool.default_SR].$container} link pool={false} />,
+    sortCriteria: (pool, { hosts, srs }) => hosts[srs[pool.default_SR].$container].name_label,
+  },
+]
+
+const POOLS_WITHOUT_DEFAULT_SR_COLUMNS = [
+  {
+    name: _('pool'),
+    itemRenderer: pool => <Pool id={pool.id} link />,
+    sortCriteria: 'name_label',
+  },
+]
 
 const SR_COLUMNS = [
   {
@@ -528,8 +553,10 @@ const HANDLED_VDI_TYPES = new Set(['system', 'user', 'ephemeral'])
   return {
     alertMessages: getAlertMessages,
     areObjectsFetched,
+    hosts: createGetObjectsOfType('host'),
     orphanVdis: getOrphanVdis,
     orphanVmSnapshots: getOrphanVmSnapshots,
+    pools: createGetObjectsOfType('pool'),
     tooManySnapshotsVms: getTooManySnapshotsVms,
     guestToolsVms: getGuestToolsVms,
     userSrs: getUserSrs,
@@ -587,6 +614,35 @@ export default class Health extends Component {
 
   _getPoolIds = createCollectionWrapper(createSelector(() => this.state.pools, resolveIds))
 
+  _getSelectedPools = createCollectionWrapper(
+    createSelector(
+      () => this.props.pools,
+      this._getPoolIds,
+      (pools, poolIds) => (isEmpty(poolIds) ? pools : pick(pools, poolIds))
+    )
+  )
+
+  _getLocalDefaultSrs = createCollectionWrapper(
+    createSelector(
+      () => this.props.hosts,
+      () => this.props.userSrs,
+      this._getSelectedPools,
+      (hosts, userSrs, selectedPools) => {
+        const nbHostsPerPool = countBy(hosts, host => host.$pool)
+        return filter(selectedPools, pool => {
+          const { default_SR } = pool
+          return default_SR !== undefined && !userSrs[default_SR].shared && nbHostsPerPool[pool.id] > 1
+        })
+      }
+    )
+  )
+
+  _getPoolsWithNoDefaultSr = createCollectionWrapper(
+    createSelector(this._getSelectedPools, selectedPools =>
+      filter(selectedPools, ({ default_SR }) => default_SR === undefined)
+    )
+  )
+
   _getPoolPredicate = createSelector(this._getPoolIds, poolIds =>
     isEmpty(poolIds) ? undefined : item => includes(poolIds, item.$pool)
   )
@@ -616,8 +672,10 @@ export default class Health extends Component {
     const { props, state } = this
 
     const duplicatedMacAddresses = this._getDuplicatedMacAddresses()
+    const localDefaultSrs = this._getLocalDefaultSrs()
     const userSrs = this._getUserSrs()
     const orphanVdis = this._getOrphanVdis()
+    const poolsWithNoDefaultSr = this._getPoolsWithNoDefaultSr()
 
     return (
       <Container>
@@ -650,6 +708,70 @@ export default class Health extends Component {
             </Card>
           </Col>
         </Row>
+        {localDefaultSrs.length > 0 && (
+          <Row>
+            <Col>
+              <Card>
+                <CardHeader>
+                  <Icon icon='disk' /> {_('localDefaultSrs')}
+                </CardHeader>
+                <CardBlock>
+                  <p>
+                    <Icon icon='info' /> <em>{_('localDefaultSrsStatusTip')}</em>
+                  </p>
+                  <NoObjects
+                    collection={props.areObjectsFetched ? localDefaultSrs : null}
+                    emptyMessage={_('noLocalDefaultSrs')}
+                  >
+                    {() => (
+                      <Row>
+                        <Col>
+                          <SortedTable
+                            collection={localDefaultSrs}
+                            columns={LOCAL_DEFAULT_SRS_COLUMNS}
+                            data-hosts={props.hosts}
+                            data-srs={userSrs}
+                            shortcutsTarget='body'
+                            stateUrlParam='s_local_default_srs'
+                          />
+                        </Col>
+                      </Row>
+                    )}
+                  </NoObjects>
+                </CardBlock>
+              </Card>
+            </Col>
+          </Row>
+        )}
+        {poolsWithNoDefaultSr.length > 0 && (
+          <Row>
+            <Col>
+              <Card>
+                <CardHeader>
+                  <Icon icon='pool' /> {_('poolsWithNoDefaultSr')}
+                </CardHeader>
+                <CardBlock>
+                  <NoObjects collection={props.areObjectsFetched ? poolsWithNoDefaultSr : null}>
+                    {() => (
+                      <Row className='no-default-sr'>
+                        <Col>
+                          <SortedTable
+                            collection={poolsWithNoDefaultSr}
+                            columns={POOLS_WITHOUT_DEFAULT_SR_COLUMNS}
+                            data-hosts={props.hosts}
+                            data-srs={userSrs}
+                            shortcutsTarget='.no-default-sr'
+                            stateUrlParam='s_no_default_sr'
+                          />
+                        </Col>
+                      </Row>
+                    )}
+                  </NoObjects>
+                </CardBlock>
+              </Card>
+            </Col>
+          </Row>
+        )}
         <Row>
           <Col>
             <Card>

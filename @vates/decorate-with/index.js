@@ -19,3 +19,15 @@ exports.decorateMethodsWith = function decorateMethodsWith(klass, map) {
   }
   return klass
 }
+
+exports.perInstance = function perInstance(fn, decorator, ...args) {
+  const map = new WeakMap()
+  return function () {
+    let decorated = map.get(this)
+    if (decorated === undefined) {
+      decorated = decorator(fn, ...args)
+      map.set(this, decorated)
+    }
+    return decorated.apply(this, arguments)
+  }
+}

@@ -1,7 +1,7 @@
 const compareVersions = require('compare-versions')
 const find = require('lodash/find.js')
 const groupBy = require('lodash/groupBy.js')
-const ignoreErrors = require('promise-toolbox/ignoreErrors.js')
+const ignoreErrors = require('promise-toolbox/ignoreErrors')
 const omit = require('lodash/omit.js')
 const { asyncMap } = require('@xen-orchestra/async-map')
 const { CancelToken } = require('promise-toolbox')

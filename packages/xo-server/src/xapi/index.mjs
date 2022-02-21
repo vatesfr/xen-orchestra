@@ -20,8 +20,8 @@ import semver from 'semver'
 import tarStream from 'tar-stream'
 import uniq from 'lodash/uniq.js'
 import { asyncMap } from '@xen-orchestra/async-map'
-import { vmdkToVhd } from 'xo-vmdk-to-vhd'
-import { cancelable, fromEvents, ignoreErrors, pCatch, pRetry } from 'promise-toolbox'
+import { vmdkToVhd, vhdToVMDK } from 'xo-vmdk-to-vhd'
+import { cancelable, CancelToken, fromEvents, ignoreErrors, pCatch, pRetry } from 'promise-toolbox'
 import { createLogger } from '@xen-orchestra/log'
 import { decorateWith } from '@vates/decorate-with'
 import { defer as deferrable } from 'golike-defer'
@@ -83,6 +83,7 @@ export default class Xapi extends XapiBase {
     restartHostTimeout,
     vdiExportConcurrency,
     vmExportConcurrency,
+    vmMigrationConcurrency = 3,
     vmSnapshotConcurrency,
     ...opts
   }) {
@@ -97,6 +98,7 @@ export default class Xapi extends XapiBase {
     this._exportVdi = limitConcurrency(vdiExportConcurrency, waitStreamEnd)(this._exportVdi)
     this.exportVm = limitConcurrency(vmExportConcurrency, waitStreamEnd)(this.exportVm)
 
+    this._migrateVmWithStorageMotion = limitConcurrency(vmMigrationConcurrency)(this._migrateVmWithStorageMotion)
     this._snapshotVm = limitConcurrency(vmSnapshotConcurrency)(this._snapshotVm)
 
     // Patch getObject to resolve _xapiId property.
@@ -1755,6 +1757,24 @@ export default class Xapi extends XapiBase {
 
       throw error
     })
+  }
+
+  async exportVdiAsVmdk(vdi, filename, { cancelToken = CancelToken.none, base } = {}) {
+    vdi = this.getObject(vdi)
+    const params = { cancelToken, format: VDI_FORMAT_VHD }
+    if (base !== undefined) {
+      params.base = base
+    }
+    const vhdResult = await this.VDI_exportContent(vdi.$ref, params)
+    const vmdkStream = await vhdToVMDK(filename, vhdResult)
+    // callers expect the stream to be an HTTP response.
+    vmdkStream.headers = {
+      ...vhdResult.headers,
+      'content-type': 'application/x-vmdk',
+    }
+    vmdkStream.statusCode = vhdResult.statusCode
+    vmdkStream.statusMessage = vhdResult.statusMessage
+    return vmdkStream
   }
 
   @cancelable

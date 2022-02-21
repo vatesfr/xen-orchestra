@@ -41,7 +41,7 @@ function readGrain(offsetSectors, buffer, compressed) {
   const grainContent = compressed ? zlib.inflateSync(grainBuffer) : grainBuffer
   const lba = parseU64b(buffer, offset, 'l2Lba')
   return {
-    offsetSectors: offsetSectors,
+    offsetSectors,
     offset,
     lba,
     lbaBytes: lba * SECTOR_SIZE,

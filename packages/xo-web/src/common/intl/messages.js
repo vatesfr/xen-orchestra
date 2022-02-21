@@ -849,6 +849,7 @@ const messages = {
   disconnectServer: 'Disconnect',
 
   // ----- Host item ------
+  host: 'Host',
   noMoreMaintained: 'This host version is no longer maintained',
 
   // ----- Host actions ------
@@ -1002,6 +1003,9 @@ const messages = {
   rollingPoolUpdate: 'Rolling pool update',
   rollingPoolUpdateMessage:
     'Are you sure you want to start a rolling pool update? Running VMs will be migrated back and forth and this can take a while.',
+  rollingPoolUpdateHaWarning: 'High Availability is enabled. This will automatically disable it during the update.',
+  rollingPoolUpdateLoadBalancerWarning:
+    'Load Balancer plugin is running. This will automatically pause it during the update.',
   poolNeedsDefaultSr: 'The pool needs a default SR to install the patches.',
   vmsHaveCds: '{nVms, number} VM{nVms, plural, one {} other {s}} {nVms, plural, one {has} other {have}} CDs',
   ejectCds: 'Eject CDs',
@@ -1130,7 +1134,7 @@ const messages = {
   destroySelectedVdis: 'Destroy selected VDIs',
   destroyVdi: 'Destroy VDI',
   exportVdi: 'Export VDI content',
-  exportVdiVmdk: 'Export VDI content in VMDK',
+  format: 'Format',
   importVdi: 'Import VDI content',
   importVdiNoFile: 'No file selected',
   selectVdiMessage: 'Drop VHD file here',
@@ -1140,6 +1144,8 @@ const messages = {
   warningVdiSr: "The VDIs' SRs must either be shared or on the same host for the VM to be able to start.",
   removeSelectedVdisFromVm: 'Remove selected VDIs from this VM',
   removeVdiFromVm: 'Remove VDI from this VM',
+  vhd: 'VHD',
+  vmdk: 'VMDK',
 
   // ----- VM network tab -----
 
@@ -1267,6 +1273,7 @@ const messages = {
   vmLimitsLabel: 'VM limits',
   resourceSet: 'Resource set',
   resourceSetNone: 'None',
+  suspendSr: 'Suspend SR',
   vmCpuLimitsLabel: 'CPU limits',
   vmCpuTopology: 'Topology',
   vmChooseCoresPerSocket: 'Default behavior',
@@ -1380,6 +1387,9 @@ const messages = {
   detachedBackups: 'Detached backups',
   detachedVmSnapshots: 'Detached VM snapshots',
   duplicatedMacAddresses: 'Duplicated MAC addresses',
+  localDefaultSrs: 'Local default SRs',
+  localDefaultSrsStatusTip:
+    "It is usually recommended for a pool's default SR to be shared to avoid unexpected behaviors",
   missingJob: 'Missing job',
   missingVm: 'Missing VM',
   missingVmInJob: 'This VM does not belong to this job',
@@ -1391,8 +1401,10 @@ const messages = {
   orphanVdisTip: 'VDIs and VDI snapshots that are not attached to a VM',
   orphanedVms: 'Orphaned VMs snapshot',
   noOrphanedObject: 'No orphans',
+  poolsWithNoDefaultSr: 'Pools with no default SR',
   tooManySnapshots: 'Too many snapshots',
   tooManySnapshotsTip: 'VMs with more than the recommended amount of snapshots',
+  noLocalDefaultSrs: 'No local default SRs',
   noTooManySnapshotsObject: 'No VMs with too many snapshots',
   numberOfSnapshots: 'Number of snapshots',
   guestToolStatus: 'Guest Tools status',

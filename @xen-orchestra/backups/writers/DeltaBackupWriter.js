@@ -1,7 +1,7 @@
 const assert = require('assert')
 const map = require('lodash/map.js')
 const mapValues = require('lodash/mapValues.js')
-const ignoreErrors = require('promise-toolbox/ignoreErrors.js')
+const ignoreErrors = require('promise-toolbox/ignoreErrors')
 const { asyncMap } = require('@xen-orchestra/async-map')
 const { chainVhd, checkVhdChain, openVhd, VhdAbstract } = require('vhd-lib')
 const { createLogger } = require('@xen-orchestra/log')
@@ -24,6 +24,7 @@ exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(Ab
   async checkBaseVdis(baseUuidToSrcVdi) {
     const { handler } = this._adapter
     const backup = this._backup
+    const adapter = this._adapter
 
     const backupDir = getVmBackupDir(backup.vm.uuid)
     const vdisDir = `${backupDir}/vdis/${backup.job.id}`
@@ -35,13 +36,18 @@ exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(Ab
           filter: _ => _[0] !== '.' && _.endsWith('.vhd'),
           prependDir: true,
         })
+        const packedBaseUuid = packUuid(baseUuid)
         await asyncMap(vhds, async path => {
           try {
             await checkVhdChain(handler, path)
-            await Disposable.use(
-              openVhd(handler, path),
-              vhd => (found = found || vhd.footer.uuid.equals(packUuid(baseUuid)))
-            )
+            // Warning, this should not be written as found = found || await adapter.isMergeableParent(packedBaseUuid, path)
+            //
+            // since all the checks of a path are done in parallel, found would be containing
+            // only the last answer of isMergeableParent which is probably not the right one
+            // this led to the support tickets  https://help.vates.fr/#ticket/zoom/4751 , 4729, 4665 and 4300
+
+            const isMergeable = await adapter.isMergeableParent(packedBaseUuid, path)
+            found = found || isMergeable
           } catch (error) {
             warn('checkBaseVdis', { error })
             await ignoreErrors.call(VhdAbstract.unlink(handler, path))

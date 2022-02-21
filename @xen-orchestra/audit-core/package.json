@@ -30,7 +30,7 @@
     "rimraf": "^3.0.0"
   },
   "dependencies": {
-    "@vates/decorate-with": "^0.1.0",
+    "@vates/decorate-with": "^1.0.0",
     "@xen-orchestra/log": "^0.3.0",
     "golike-defer": "^0.5.1",
     "object-hash": "^2.0.1"

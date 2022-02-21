@@ -1,10 +1,10 @@
-const CancelToken = require('promise-toolbox/CancelToken.js')
+const CancelToken = require('promise-toolbox/CancelToken')
 const groupBy = require('lodash/groupBy.js')
 const ignoreErrors = require('promise-toolbox/ignoreErrors')
 const pickBy = require('lodash/pickBy.js')
 const omit = require('lodash/omit.js')
-const pCatch = require('promise-toolbox/catch.js')
-const pRetry = require('promise-toolbox/retry.js')
+const pCatch = require('promise-toolbox/catch')
+const pRetry = require('promise-toolbox/retry')
 const { asyncMap } = require('@xen-orchestra/async-map')
 const { createLogger } = require('@xen-orchestra/log')
 const { decorateWith } = require('@vates/decorate-with')
@@ -60,7 +60,7 @@ module.exports = class Vm {
       try {
         vdi = await this[vdiRefOrUuid.startsWith('OpaqueRef:') ? 'getRecord' : 'getRecordByUuid']('VDI', vdiRefOrUuid)
       } catch (error) {
-        warn(error)
+        warn('_assertHealthyVdiChain, could not fetch VDI', { error })
         return
       }
       cache[vdi.$ref] = vdi
@@ -81,7 +81,7 @@ module.exports = class Vm {
                   try {
                     vdi = await this.getRecord('VDI', vdiRef)
                   } catch (error) {
-                    warn(error)
+                    warn('_assertHealthyVdiChain, could not fetch VDI', { error })
                     return
                   }
                   cache[vdiRef] = vdi
@@ -167,7 +167,7 @@ module.exports = class Vm {
       memory_static_min,
       name_description,
       name_label,
-      // NVRAM, // experimental
+      NVRAM,
       order,
       other_config = {},
       PCI_bus = '',
@@ -256,6 +256,7 @@ module.exports = class Vm {
       is_vmss_snapshot,
       name_description,
       name_label,
+      NVRAM,
       order,
       reference_label,
       shutdown_delay,

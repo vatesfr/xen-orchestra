@@ -1,5 +1,5 @@
-import Disposable from 'promise-toolbox/Disposable.js'
-import fromCallback from 'promise-toolbox/fromCallback.js'
+import Disposable from 'promise-toolbox/Disposable'
+import fromCallback from 'promise-toolbox/fromCallback'
 import { asyncMap } from '@xen-orchestra/async-map'
 import { Backup } from '@xen-orchestra/backups/Backup.js'
 import { compose } from '@vates/compose'
@@ -160,6 +160,17 @@ export default class Backups {
             description: 'delete VM backup',
             params: {
               filename: { type: 'string' },
+              remote: { type: 'object' },
+            },
+          },
+        ],
+        deleteVmBackups: [
+          ({ filenames, remote }) =>
+            Disposable.use(this.getAdapter(remote), adapter => adapter.deleteVmBackups(filenames)),
+          {
+            description: 'delete VM backups',
+            params: {
+              filenames: { type: 'array', items: { type: 'string' } },
               remote: { type: 'object' },
             },
           },
@@ -403,6 +414,7 @@ export default class Backups {
     return new RemoteAdapter(yield app.remotes.getHandler(remote), {
       debounceResource: app.debounceResource.bind(app),
       dirMode: app.config.get('backups.dirMode'),
+      vhdDirectoryCompression: app.config.get('backups.vhdDirectoryCompression'),
     })
   }
 

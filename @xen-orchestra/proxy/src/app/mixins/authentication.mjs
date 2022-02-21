@@ -1,6 +1,6 @@
 import assert from 'assert'
 import fse from 'fs-extra'
-import xdg from 'xdg-basedir'
+import { xdgConfig } from 'xdg-basedir'
 import { createLogger } from '@xen-orchestra/log'
 import { execFileSync } from 'child_process'
 
@@ -20,7 +20,7 @@ export default class Authentication {
       // save this token in the automatically handled conf file
       fse.outputFileSync(
         // this file must take precedence over normal user config
-        `${xdg.config}/${appName}/config.z-auto.json`,
+        `${xdgConfig}/${appName}/config.z-auto.json`,
         JSON.stringify({ authenticationToken: token }),
         { mode: 0o600 }
       )

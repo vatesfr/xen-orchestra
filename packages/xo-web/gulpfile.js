@@ -97,7 +97,7 @@ const src = lazyFn(function () {
         const base = resolve(opts && opts.base)
 
         return gulp.src(pattern, {
-          base: base,
+          base,
           cwd: base,
           passthrough: opts && opts.passthrough,
           sourcemaps: opts && opts.sourcemaps,
@@ -108,13 +108,13 @@ const src = lazyFn(function () {
 
         return pipe(
           gulp.src(pattern, {
-            base: base,
+            base,
             cwd: base,
             passthrough: opts && opts.passthrough,
             sourcemaps: opts && opts.sourcemaps,
           }),
           require('gulp-watch')(pattern, {
-            base: base,
+            base,
             cwd: base,
           }),
           require('gulp-plumber')()
@@ -204,7 +204,7 @@ function browserify(path, opts) {
         new (require('vinyl'))({
           base: SRC_DIR,
           contents: buffer,
-          path: path,
+          path,
         })
       )
     })

@@ -2,13 +2,11 @@
 
 // ===================================================================
 
-const promisify = require('bluebird').promisify
+const { readFile, writeFile } = require('fs/promises')
 
-const readFile = promisify(require('fs').readFile)
-const writeFile = promisify(require('fs').writeFile)
-
-const l33t = require('l33teral')
-const mkdirp = require('mkdirp')
+const get = require('lodash/get')
+const mkdirp = require('fs-extra').ensureDir
+const unset = require('lodash/unset')
 const xdgBasedir = require('xdg-basedir')
 
 // ===================================================================
@@ -28,7 +26,7 @@ const load = (exports.load = function () {
 
 exports.get = function (path) {
   return load().then(function (config) {
-    return l33t(config).tap(path)
+    return get(config, path)
   })
 }
 
@@ -46,9 +44,8 @@ exports.set = function (data) {
 
 exports.unset = function (paths) {
   return load().then(function (config) {
-    const l33tConfig = l33t(config)
     ;[].concat(paths).forEach(function (path) {
-      l33tConfig.purge(path, true)
+      unset(config, path)
     })
     return save(config)
   })

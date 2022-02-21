@@ -26,10 +26,10 @@
   "preferGlobal": false,
   "main": "dist/",
   "engines": {
-    "node": ">=6"
+    "node": ">=12"
   },
   "dependencies": {
-    "passport-saml": "^2.0.2"
+    "passport-saml": "^3.2.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.0.0",

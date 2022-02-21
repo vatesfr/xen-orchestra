@@ -1,8 +1,191 @@
-## **5.64.0** (2021-10-29)
-
 # ChangeLog
 
+## **5.67.0** (2022-01-31)
+
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
+### Highlights
+
+- [Rolling Pool Update] Automatically pause load balancer plugin during the update [#5711](https://github.com/vatesfr/xen-orchestra/issues/5711)
+- [Export/Disks] Allow the export of disks in VMDK format (PR [#5982](https://github.com/vatesfr/xen-orchestra/pull/5982))
+- Limit number of concurrent VM migrations per pool to `3`. Can be changed in `xo-server`'s configuration file: `xapiOptions.vmMigrationConcurrency` [#6065](https://github.com/vatesfr/xen-orchestra/issues/6065) (PR [#6076](https://github.com/vatesfr/xen-orchestra/pull/6076))
+- [Health] Display pools with no default SR (PR [#6083](https://github.com/vatesfr/xen-orchestra/pull/6083))
+- [Backup] Speedup merge and cleanup speed for S3 backup by a factor 10 (PR [#6100](https://github.com/vatesfr/xen-orchestra/pull/6100))
+- [Proxy] Now ships a reverse proxy (PR [#6072](https://github.com/vatesfr/xen-orchestra/pull/6072))
+
+### Enhancements
+
+- [Delta Backup] When using S3 remote, retry uploading VHD parts on Internal Error to support [Blackblaze](https://www.backblaze.com/b2/docs/calling.html#error_handling) [Forum#5397](https://xcp-ng.org/forum/topic/5397/delta-backups-failing-aws-s3-uploadpartcopy-cpu-too-busy/5) (PR [#6086](https://github.com/vatesfr/xen-orchestra/issues/6086))
+- [Backup] Add sanity check of aliases on S3 remotes (PR [#6043](https://github.com/vatesfr/xen-orchestra/pull/6043))
+
+### Bug fixes
+
+- [Backup] Detect and clear orphan merge states, fix `ENOENT` errors (PR [#6087](https://github.com/vatesfr/xen-orchestra/pull/6087))
+- [Backup] Ensure merges are also executed after backup on S3, maintaining the size of the VHD chain under control [Forum#45743](https://xcp-ng.org/forum/post/45743) (PR [#6095](https://github.com/vatesfr/xen-orchestra/pull/6095))
+- [Backup] Delete backups immediately instead of waiting for the next backup (PR [#6081](https://github.com/vatesfr/xen-orchestra/pull/6081))
+- [Backup] Delete S3 backups completely, even if there are more than 1000 files (PR [#6103](https://github.com/vatesfr/xen-orchestra/pull/6103))
+- [Backup] Fix merge resuming (PR [#6099](https://github.com/vatesfr/xen-orchestra/pull/6099))
+- [Plugin/Audit] Fix `key cannot be 'null' or 'undefined'` error when no audit log in the database [#6040](https://github.com/vatesfr/xen-orchestra/issues/6040) (PR [#6071](https://github.com/vatesfr/xen-orchestra/pull/6071))
+- [Backup] Fix backuping restored VMs
+- [Audit Log] Don't log `proxy.getApplianceUpdaterState` API calls
+- [Audit Log] Fix long data loading when displaying logs (PR [#6113](https://github.com/vatesfr/xen-orchestra/pull/6113))
+
+### Released packages
+
+- @xen-orchestra/fs 0.20.0
+- vhd-lib 3.1.0
+- @xen-orchestra/backups 0.19.0
+- @xen-orchestra/backups-cli 0.7.0
+- xo-vmdk-to-vhd 2.1.0
+- @xen-orchestra/proxy 0.18.0
+- xo-server-audit 0.9.2
+- xo-server 5.87.0
+- xo-web 5.92.0
+
+## **5.66.2** (2022-01-05)
+
+<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
+
+### Bug fixes
+
+- [Import/Disk] Fix `JSON.parse` and `createReadableSparseStream is not a function` errors [#6068](https://github.com/vatesfr/xen-orchestra/issues/6068)
+- [Backup] Fix delta backup are almost always full backup instead of differentials [Forum#5256](https://xcp-ng.org/forum/topic/5256/s3-backup-try-it/69) [Forum#5371](https://xcp-ng.org/forum/topic/5371/delta-backup-changes-in-5-66) (PR [#6075](https://github.com/vatesfr/xen-orchestra/pull/6075))
+
+### Released packages
+
+- vhd-lib 3.0.0
+- xo-vmdk-to-vhd 2.0.3
+- @xen-orchestra/backups 0.18.3
+- @xen-orchestra/proxy 0.17.3
+- xo-server 5.86.3
+- xo-web 5.91.2
+
+## **5.66.1** (2021-12-23)
+
+### Bug fixes
+
+- [Dashboard/Health] Fix `error has occured` when a pool has no default SR
+- [Delta Backup] Fix unnecessary full backup when not using S3 [Forum#5371](https://xcp-ng.org/forum/topic/5371/delta-backup-changes-in-5-66) (PR [#6070](https://github.com/vatesfr/xen-orchestra/pull/6070))
+- [Backup] Fix incorrect warnings `incorrect size [...] instead of undefined`
+
+### Released packages
+
+- @xen-orchestra/backups 0.18.2
+- @xen-orchestra/proxy 0.17.2
+- xo-server 5.86.2
+- xo-web 5.91.1
+
+## **5.66.0** (2021-12-21)
+
+### Enhancements
+
+- [About] Show commit instead of version numbers for source users (PR [#6045](https://github.com/vatesfr/xen-orchestra/pull/6045))
+- [Health] Display default SRs that aren't shared [#5871](https://github.com/vatesfr/xen-orchestra/issues/5871) (PR [#6033](https://github.com/vatesfr/xen-orchestra/pull/6033))
+- [Pool,VM/advanced] Ability to change the suspend SR [#4163](https://github.com/vatesfr/xen-orchestra/issues/4163) (PR [#6044](https://github.com/vatesfr/xen-orchestra/pull/6044))
+- [Home/VMs/Backup filter] Filter out VMs in disabled backup jobs (PR [#6037](https://github.com/vatesfr/xen-orchestra/pull/6037))
+- [Rolling Pool Update] Automatically disable High Availability during the update [#5711](https://github.com/vatesfr/xen-orchestra/issues/5711) (PR [#6057](https://github.com/vatesfr/xen-orchestra/pull/6057))
+- [Delta Backup on S3] Compress blocks by default ([Brotli](https://en.wikipedia.org/wiki/Brotli)) which reduces remote usage and increase backup speed (PR [#5932](https://github.com/vatesfr/xen-orchestra/pull/5932))
+
+### Bug fixes
+
+- [Tables/actions] Fix collapsed actions being clickable despite being disabled (PR [#6023](https://github.com/vatesfr/xen-orchestra/pull/6023))
+- [Backup] Remove incorrect size warning following a merge [Forum#5727](https://xcp-ng.org/forum/topic/4769/warnings-showing-in-system-logs-following-each-backup-job/4) (PR [#6010](https://github.com/vatesfr/xen-orchestra/pull/6010))
+- [Delta Backup] Preserve UEFI boot parameters [#6054](https://github.com/vatesfr/xen-orchestra/issues/6054) [Forum#5319](https://xcp-ng.org/forum/topic/5319/bug-uefi-boot-parameters-not-preserved-with-delta-backups)
+
+### Released packages
+
+- @xen-orchestra/mixins 0.1.2
+- @xen-orchestra/xapi 0.8.5
+- vhd-lib 2.1.0
+- xo-vmdk-to-vhd 2.0.2
+- @xen-orchestra/backups 0.18.1
+- @xen-orchestra/proxy 0.17.1
+- xo-server 5.86.1
+- xo-web 5.91.0
+
+## **5.65.3** (2021-12-20)
+
+### Bug fixes
+
+- [Continuous Replication] Fix `could not find the base VM`
+- [Backup/Smart mode] Always ignore replicated VMs created by the current job
+- [Backup] Fix `Unexpected end of JSON input` during merge step
+- [Backup] Fix stuck jobs when using S3 remotes (PR [#6067](https://github.com/vatesfr/xen-orchestra/pull/6067))
+
+### Released packages
+
+- @xen-orchestra/fs 0.19.3
+- vhd-lib 2.0.4
+- @xen-orchestra/backups 0.17.1
+- xo-server 5.85.1
+
+## **5.65.2** (2021-12-10)
+
+### Bug fixes
+
+- [Backup] Fix `handler.rmTree` is not a function [Forum#5256](https://xcp-ng.org/forum/topic/5256/s3-backup-try-it/29) (PR [#6041](https://github.com/vatesfr/xen-orchestra/pull/6041))
+- [Backup] Fix `EEXIST` in logs when multiple merge tasks are created at the same time [Forum#5301](https://xcp-ng.org/forum/topic/5301/warnings-errors-in-journalctl)
+- [Backup] Fix missing backup on restore [Forum#5256](https://xcp-ng.org/forum/topic/5256/s3-backup-try-it/29) (PR [#6048](https://github.com/vatesfr/xen-orchestra/pull/6048))
+
+### Released packages
+
+- @xen-orchestra/fs 0.19.2
+- vhd-lib 2.0.3
+- @xen-orchestra/backups 0.16.2
+- xo-server 5.84.3
+- @xen-orchestra/proxy 0.15.5
+
+## **5.65.1** (2021-12-03)
+
+### Bug fixes
+
+- [Delta Backup Restoration] Fix assertion error [Forum#5257](https://xcp-ng.org/forum/topic/5257/problems-building-from-source/16)
+- [Delta Backup Restoration] `TypeError: this disposable has already been disposed` [Forum#5257](https://xcp-ng.org/forum/topic/5257/problems-building-from-source/20)
+- [Backups] Fix: `Error: Chaining alias is forbidden xo-vm-backups/..alias.vhd to xo-vm-backups/....alias.vhd` when backuping a file to s3 [Forum#5226](https://xcp-ng.org/forum/topic/5256/s3-backup-try-it)
+- [Delta Backup Restoration] `VDI_IO_ERROR(Device I/O errors)` [Forum#5727](https://xcp-ng.org/forum/topic/5257/problems-building-from-source/4) (PR [#6031](https://github.com/vatesfr/xen-orchestra/pull/6031))
+- [Delta Backup] Fix `Cannot read property 'uuid' of undefined` when a VDI has been removed from a backed up VM (PR [#6034](https://github.com/vatesfr/xen-orchestra/pull/6034))
+
+### Released packages
+
+- @vates/compose 2.1.0
+- vhd-lib 2.0.2
+- xo-vmdk-to-vhd 2.0.1
+- @xen-orchestra/backups 0.16.1
+- @xen-orchestra/proxy 0.15.4
+- xo-server 5.84.2
+
+## **5.65.0** (2021-11-30)
+
+### Highlights
+
+- [VM] Ability to export a snapshot's memory (PR [#6015](https://github.com/vatesfr/xen-orchestra/pull/6015))
+- [Cloud config] Ability to create a network cloud config template and reuse it in the VM creation [#5931](https://github.com/vatesfr/xen-orchestra/issues/5931) (PR [#5979](https://github.com/vatesfr/xen-orchestra/pull/5979))
+- [Backup/logs] identify XAPI errors (PR [#6001](https://github.com/vatesfr/xen-orchestra/pull/6001))
+- [lite] Highlight selected VM (PR [#5939](https://github.com/vatesfr/xen-orchestra/pull/5939))
+
+### Enhancements
+
+- [S3] Ability to authorize self signed certificates for S3 remote (PR [#5961](https://github.com/vatesfr/xen-orchestra/pull/5961))
+
+### Bug fixes
+
+- [Import/VM] Fix the import of OVA files (PR [#5976](https://github.com/vatesfr/xen-orchestra/pull/5976))
+
+### Released packages
+
+- @vates/async-each 0.1.0
+- xo-remote-parser 0.8.4
+- @xen-orchestra/fs 0.19.0
+- @xen-orchestra/xapi patch
+- vhd-lib 2.0.1
+- @xen-orchestra/backups 0.16.0
+- xo-lib 0.11.1
+- @xen-orchestra/proxy 0.15.3
+- xo-server 5.84.1
+- vhd-cli 0.6.0
+- xo-web 5.90.0
+
+## **5.64.0** (2021-10-29)
 
 ## Highlights
 
@@ -11,8 +194,8 @@
 - [Host] Handle evacuation failure during host shutdown (PR [#5966](https://github.com/vatesfr/xen-orchestra/pull/#5966))
 - [Menu] Notify user when proxies need to be upgraded (PR [#5930](https://github.com/vatesfr/xen-orchestra/pull/5930))
 - [Servers] Ability to use an HTTP proxy between XO and a server (PR [#5958](https://github.com/vatesfr/xen-orchestra/pull/5958))
-- [VM/export] Ability to copy the export URL (PR [#5948](https://github.com/vatesfr/xen-orchestra/pull/5948))
-- [Pool/advanced] Ability to define network for importing/exporting VMs/VDIs (PR [#5957](https://github.com/vatesfr/xen-orchestra/pull/5957))
+- [VM/export] Ability to copy the export URL (PR [#5948](https://github.com/vatesfr/xen-orchestra/pull/5948))
+- [Pool/advanced] Ability to define network for importing/exporting VMs/VDIs (PR [#5957](https://github.com/vatesfr/xen-orchestra/pull/5957))
 - [Host/advanced] Add button to enable/disable the host (PR [#5952](https://github.com/vatesfr/xen-orchestra/pull/5952))
 - [Backups] Enable merge worker by default
 
@@ -45,13 +228,11 @@
 
 ## **5.63.0** (2021-09-30)
 
-<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
-
 ### Highlights
 
 - [Backup] Go back to previous page instead of going to the overview after editing a job: keeps current filters and page (PR [#5913](https://github.com/vatesfr/xen-orchestra/pull/5913))
-- [Health] Do not take into consideration duplicated MAC addresses from CR VMs (PR [#5916](https://github.com/vatesfr/xen-orchestra/pull/5916))
-- [Health] Ability to filter duplicated MAC addresses by running VMs (PR [#5917](https://github.com/vatesfr/xen-orchestra/pull/5917))
+- [Health] Do not take into consideration duplicated MAC addresses from CR VMs (PR [#5916](https://github.com/vatesfr/xen-orchestra/pull/5916))
+- [Health] Ability to filter duplicated MAC addresses by running VMs (PR [#5917](https://github.com/vatesfr/xen-orchestra/pull/5917))
 - [Tables] Move the search bar and pagination to the top of the table (PR [#5914](https://github.com/vatesfr/xen-orchestra/pull/5914))
 - [Netbox] Handle nested prefixes by always assigning an IP to the smallest prefix it matches (PR [#5908](https://github.com/vatesfr/xen-orchestra/pull/5908))
 
@@ -199,7 +380,7 @@
 
 ### Bug fixes
 
-- [SDN Controller] Private network creation failure when the tunnels were created on different devices [Forum #4620](https://xcp-ng.org/forum/topic/4620/no-pif-found-in-center) (PR [#5793](https://github.com/vatesfr/xen-orchestra/pull/5793))
+- [SDN Controller] Private network creation failure when the tunnels were created on different devices [Forum#4620](https://xcp-ng.org/forum/topic/4620/no-pif-found-in-center) (PR [#5793](https://github.com/vatesfr/xen-orchestra/pull/5793))
 
 ### Released packages
 
@@ -318,7 +499,7 @@
 - [Proxy] _Redeploy_ now works when the bound VM is missing
 - [VM template] Fix confirmation modal doesn't appear on deleting a default template (PR [#5644](https://github.com/vatesfr/xen-orchestra/pull/5644))
 - [OVA VM Import] Fix imported VMs all having the same MAC addresses
-- [Disk import] Fix `an error has occurred` when importing wrong format or corrupted files [#5663](https://github.com/vatesfr/xen-orchestra/issues/5663) (PR [#5683](https://github.com/vatesfr/xen-orchestra/pull/5683))
+- [Disk import] Fix `an error has occurred` when importing wrong format or corrupted files [#5663](https://github.com/vatesfr/xen-orchestra/issues/5663) (PR [#5683](https://github.com/vatesfr/xen-orchestra/pull/5683))
 
 ### Released packages
 

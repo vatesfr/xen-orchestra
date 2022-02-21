@@ -1,11 +1,12 @@
 const assert = require('assert')
 const findLast = require('lodash/findLast.js')
 const groupBy = require('lodash/groupBy.js')
-const ignoreErrors = require('promise-toolbox/ignoreErrors.js')
+const ignoreErrors = require('promise-toolbox/ignoreErrors')
 const keyBy = require('lodash/keyBy.js')
 const mapValues = require('lodash/mapValues.js')
 const { asyncMap } = require('@xen-orchestra/async-map')
 const { createLogger } = require('@xen-orchestra/log')
+const { decorateMethodsWith } = require('@vates/decorate-with')
 const { defer } = require('golike-defer')
 const { formatDateTime } = require('@xen-orchestra/xapi')
 
@@ -21,6 +22,13 @@ const { watchStreamSize } = require('./_watchStreamSize.js')
 
 const { debug, warn } = createLogger('xo:backups:VmBackup')
 
+class AggregateError extends Error {
+  constructor(errors, message) {
+    super(message)
+    this.errors = errors
+  }
+}
+
 const asyncEach = async (iterable, fn, thisArg = iterable) => {
   for (const item of iterable) {
     await fn.call(thisArg, item)
@@ -34,8 +42,14 @@ const forkDeltaExport = deltaExport =>
     },
   })
 
-exports.VmBackup = class VmBackup {
+class VmBackup {
   constructor({ config, getSnapshotNameLabel, job, remoteAdapters, remotes, schedule, settings, srs, vm }) {
+    if (vm.other_config['xo:backup:job'] === job.id && 'start' in vm.blocked_operations) {
+      // don't match replicated VMs created by this very job otherwise they
+      // will be replicated again and again
+      throw new Error('cannot backup a VM created by this very job')
+    }
+
     this.config = config
     this.job = job
     this.remoteAdapters = remoteAdapters
@@ -119,16 +133,18 @@ exports.VmBackup = class VmBackup {
       return
     }
 
+    const errors = []
     await (parallel ? asyncMap : asyncEach)(writers, async function (writer) {
       try {
         await fn(writer)
       } catch (error) {
+        errors.push(error)
         this.delete(writer)
         warn(warnMessage, { error, writer: writer.constructor.name })
       }
     })
     if (writers.size === 0) {
-      throw new Error('all targets have failed, step: ' + warnMessage)
+      throw new AggregateError(errors, 'all targets have failed, step: ' + warnMessage)
     }
   }
 
@@ -333,13 +349,16 @@ exports.VmBackup = class VmBackup {
 
     const baseUuidToSrcVdi = new Map()
     await asyncMap(await baseVm.$getDisks(), async baseRef => {
-      const snapshotOf = await xapi.getField('VDI', baseRef, 'snapshot_of')
+      const [baseUuid, snapshotOf] = await Promise.all([
+        xapi.getField('VDI', baseRef, 'uuid'),
+        xapi.getField('VDI', baseRef, 'snapshot_of'),
+      ])
       const srcVdi = srcVdis[snapshotOf]
       if (srcVdi !== undefined) {
-        baseUuidToSrcVdi.set(await xapi.getField('VDI', baseRef, 'uuid'), srcVdi)
+        baseUuidToSrcVdi.set(baseUuid, srcVdi)
       } else {
-        debug('no base VDI found', {
-          vdi: srcVdi.uuid,
+        debug('ignore snapshot VDI because no longer present on VM', {
+          vdi: baseUuid,
         })
       }
     })
@@ -350,6 +369,11 @@ exports.VmBackup = class VmBackup {
       'writer.checkBaseVdis()',
       false
     )
+
+    if (presentBaseVdis.size === 0) {
+      debug('no base VM found')
+      return
+    }
 
     const fullVdisRequired = new Set()
     baseUuidToSrcVdi.forEach((srcVdi, baseUuid) => {
@@ -371,7 +395,6 @@ exports.VmBackup = class VmBackup {
     this._fullVdisRequired = fullVdisRequired
   }
 
-  run = defer(this.run)
   async run($defer) {
     const settings = this._settings
     assert(
@@ -419,3 +442,8 @@ exports.VmBackup = class VmBackup {
     }
   }
 }
+exports.VmBackup = VmBackup
+
+decorateMethodsWith(VmBackup, {
+  run: defer,
+})

@@ -85,7 +85,7 @@ export function createStreamOptimizedHeader(capacitySectors, descriptorSizeSecto
   // version
   headerBuffer.writeUInt32LE(3, 4)
   // newline, compression, markers
-  const flags = 1 | 1 << 16 | 1 << 17
+  const flags = 1 | (1 << 16) | (1 << 17)
   headerBuffer.writeUInt32LE(flags, 8)
   headerBuffer.writeBigUInt64LE(BigInt(capacitySectors), 12)
   const grainSizeSectors = 128
@@ -99,8 +99,8 @@ export function createStreamOptimizedHeader(capacitySectors, descriptorSizeSecto
   headerBuffer.writeBigInt64LE(BigInt(grainDirectoryOffsetSectors), 56)
   const grainDirectoryEntries = Math.ceil(Math.ceil(capacitySectors / grainSizeSectors) / numGTEsPerGT)
   const grainTableEntries = grainDirectoryEntries * numGTEsPerGT
-  const grainDirectorySizeSectors = Math.ceil(grainDirectoryEntries * 4 / SECTOR_SIZE)
-  const grainTableSizeSectors = Math.ceil(grainTableEntries * 4 / SECTOR_SIZE)
+  const grainDirectorySizeSectors = Math.ceil((grainDirectoryEntries * 4) / SECTOR_SIZE)
+  const grainTableSizeSectors = Math.ceil((grainTableEntries * 4) / SECTOR_SIZE)
   const overheadSectors = 1 + descriptorSizeSectors + grainDirectorySizeSectors + grainTableSizeSectors
   headerBuffer.writeBigInt64LE(BigInt(overheadSectors), 64)
   // newline mangling detector

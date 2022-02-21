@@ -8,16 +8,16 @@ import FormData from 'form-data'
 import { createReadStream } from 'fs'
 import { stat } from 'fs-extra'
 import getStream from 'get-stream'
+import has from 'lodash/has'
 import hrp from 'http-request-plus'
 import humanFormat from 'human-format'
-import l33t from 'l33teral'
 import isObject from 'lodash/isObject'
 import getKeys from 'lodash/keys'
+import set from 'lodash/set'
 import startsWith from 'lodash/startsWith'
 import prettyMs from 'pretty-ms'
 import progressStream from 'progress-stream'
 import pw from 'pw'
-import stripIndent from 'strip-indent'
 import { URL } from 'url'
 import Xo from 'xo-lib'
 import { parseOVAFile } from 'xo-vmdk-to-vhd'
@@ -29,32 +29,29 @@ import { load as loadConfig, set as setConfig, unset as unsetConfig } from './co
 const noop = Function.prototype
 
 function help() {
-  return stripIndent(
-    `
-    Usage:
+  return `Usage:
 
-      $name --register [--expiresIn duration] <XO-Server URL> <username> [<password>]
-        Registers the XO instance to use.
+  $name --register [--expiresIn duration] <XO-Server URL> <username> [<password>]
+    Registers the XO instance to use.
 
-        --expiresIn duration
-          Can be used to change the validity duration of the
-          authorization token (default: one month).
+    --expiresIn duration
+      Can be used to change the validity duration of the
+      authorization token (default: one month).
 
-      $name --unregister
-        Remove stored credentials.
+  $name --unregister
+    Remove stored credentials.
 
-      $name --inspect <file>
-        Displays the data that would be imported from the ova.
+  $name --inspect <file>
+    Displays the data that would be imported from the ova.
 
-      $name --upload <file> <sr> [--override <key>=<value> [<key>=<value>]+]
-        Actually imports the VM contained in <file> to the Storage Repository <sr>.
-        Some parameters can be overridden from the file, consult --inspect to get the list.
-        Note: --override has to come last. By default arguments are string, prefix them with <json:> to type
-        them, ex. " --override nameLabel='new VM'  memory=json:67108864 disks.vmdisk1.capacity=json:134217728"
+  $name --upload <file> <sr> [--override <key>=<value> [<key>=<value>]+]
+    Actually imports the VM contained in <file> to the Storage Repository <sr>.
+    Some parameters can be overridden from the file, consult --inspect to get the list.
+    Note: --override has to come last. By default arguments are string, prefix them with <json:> to type
+    them, ex. " --override nameLabel='new VM'  memory=json:67108864 disks.vmdisk1.capacity=json:134217728"
 
-    $name v$version
-  `
-  ).replace(/<([^>]+)>|\$(\w+)/g, function (_, arg, key) {
+$name v$version
+`.replace(/<([^>]+)>|\$(\w+)/g, function (_, arg, key) {
     if (arg) {
       return '<' + chalk.yellow(arg) + '>'
     }
@@ -168,18 +165,17 @@ export async function upload(args) {
   })
   data.networks = data.networks.map(() => pif.$network)
   console.log('data', data)
-  const l33tData = l33t(data)
   const overridesKeys = Object.keys(overrides)
-  const missingKeys = overridesKeys.filter(k => !l33tData.probe(k))
+  const missingKeys = overridesKeys.filter(k => !has(data, k))
   if (missingKeys.length) {
     // eslint-disable-next-line no-throw-literal
     throw `those override keys don't exist in the metadata: ${missingKeys}`
   }
   for (const key of overridesKeys) {
-    l33tData.plant(key, overrides[key])
+    set(data, key, overrides[key])
   }
   data.disks = Object.values(data.disks)
-  params.data = l33tData.obj
+  params.data = data
   params.type = 'ova'
   const method = 'vm.import'
 

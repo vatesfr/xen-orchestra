@@ -8,7 +8,7 @@ import tmp from 'tmp'
 
 import { createReadStream, createWriteStream, stat } from 'fs-extra'
 import { pFromCallback } from 'promise-toolbox'
-import { vmdkToVhd, readVmdkGrainTable, vhdToVMDK } from '.'
+import { vmdkToVhd, readVmdkGrainTable } from '.'
 import VMDKDirectParser from './vmdk-read'
 import { generateVmdkData } from './vmdk-generate'
 import asyncIteratorToStream from 'async-iterator-to-stream'
@@ -64,7 +64,11 @@ test('VMDK to VHD can convert a random data file with VMDKDirectParser', async (
     })
     const result = await readVmdkGrainTable(createFileAccessor(vmdkFileName))
     const pipe = (
-      await vmdkToVhd(createReadStream(vmdkFileName), bufferToArray(result.grainLogicalAddressList), bufferToArray(result.grainFileOffsetList))
+      await vmdkToVhd(
+        createReadStream(vmdkFileName),
+        bufferToArray(result.grainLogicalAddressList),
+        bufferToArray(result.grainFileOffsetList)
+      )
     ).pipe(createWriteStream(vhdFileName))
     await fromEvent(pipe, 'finish')
     await execa('vhd-util', ['check', '-p', '-b', '-t', '-n', vhdFileName])
@@ -80,9 +84,10 @@ test('VMDK to VHD can convert a random data file with VMDKDirectParser', async (
   }
 })
 
-test('Can generate an empty compressed VMDK file', async () => {
-  const readStream = asyncIteratorToStream(await generateVmdkData('result.vmdk', 1024 * 1024 * 1024, 1024 * 1024, 0, [], {}, true))
-  await fromEvent(readStream.pipe(createWriteStream('result.vmdk')), 'finish')
+test('Can generate an empty VMDK file', async () => {
+  const readStream = asyncIteratorToStream(await generateVmdkData('result.vmdk', 1024 * 1024 * 1024, 1024 * 1024, []))
+  const pipe = readStream.pipe(createWriteStream('result.vmdk'))
+  await fromEvent(pipe, 'finish')
   await execa('qemu-img', ['check', 'result.vmdk'])
 })
 
@@ -91,13 +96,18 @@ test('Can generate a small VMDK file', async () => {
   const blockSize = 1024 * 1024
   const b1 = Buffer.allocUnsafe(blockSize)
   const b2 = Buffer.allocUnsafe(blockSize)
-  const blockGenerator = [{ lba: 0, block: b1 }, { lba: blockSize, block: b2 }]
+  const blockGenerator = [
+    { lba: 0, block: b1 },
+    { lba: blockSize, block: b2 },
+  ]
   const fileName = 'result.vmdk'
   const geometry = { sectorsPerTrackCylinder: 63, heads: 16, cylinders: 10402 }
-  const readStream = asyncIteratorToStream(await generateVmdkData(fileName, 2 * blockSize, blockSize, blockGenerator.length, blockGenerator, geometry))
+  const readStream = asyncIteratorToStream(
+    await generateVmdkData(fileName, 2 * blockSize, blockSize, blockGenerator, geometry)
+  )
   const pipe = readStream.pipe(createWriteStream(fileName))
   await fromEvent(pipe, 'finish')
-  await execa('qemu-img', ['check', fileName])
+
   const expectedLBAs = []
   for (let i = 0; i < blockGenerator.length; i++) {
     for (let j = 0; j < defaultVhdToVmdkRatio; j++) {
@@ -105,16 +115,14 @@ test('Can generate a small VMDK file', async () => {
     }
   }
   const data = await readVmdkGrainTable(createFileAccessor(fileName))
-  const grainLogicalAddressList = bufferToArray(data.grainLogicalAddressList)
-  expect(grainLogicalAddressList.length).toEqual(expectedLBAs.length)
-  expect(grainLogicalAddressList).toEqual(expectedLBAs)
+  expect(bufferToArray(data.grainLogicalAddressList)).toEqual(expectedLBAs)
   const grainFileOffsetList = bufferToArray(data.grainFileOffsetList)
-  for (let i = 0; i < grainFileOffsetList.length; i++) {
-    const offset = grainFileOffsetList[i]
-    expect(offset).toBeGreaterThan(0)
-    expect(i === 0 || offset > grainFileOffsetList[i - 1]).toBeTruthy()
-  }
-  const parser = new VMDKDirectParser(createReadStream(fileName), grainLogicalAddressList, grainFileOffsetList, false)
+  const parser = new VMDKDirectParser(
+    createReadStream(fileName),
+    bufferToArray(data.grainLogicalAddressList),
+    grainFileOffsetList,
+    false
+  )
   await parser.readHeader()
   const resLbas = []
   const resBuffers = []
@@ -129,26 +137,4 @@ test('Can generate a small VMDK file', async () => {
   expect(resLbas).toEqual(expectedLBAs)
 
   await execa('qemu-img', ['check', 'result.vmdk'])
-})
-
-test('Can convert a random vhd file to vmdk', async () => {
-  const inputRawFileName = 'random-data.raw'
-  const vhdFileName = 'random-data.vhd'
-  const vmdkFileName = 'file_under_test.vmdk'
-  const dataSize = 100 * 1024 * 1024 // this number is an integer head/cylinder/count equation solution
-  try {
-    await execa('base64 /dev/urandom | head -c ' + dataSize + ' > ' + inputRawFileName, [], { shell: true })
-    await execa('qemu-img', ['convert', '-fraw', '-Ovpc', inputRawFileName, vhdFileName])
-    const stream = await vhdToVMDK('disk1', async () => createReadStream(vhdFileName), true)
-    const lengthUnderTest = stream.length
-    const pipe = stream.pipe(createWriteStream(vmdkFileName))
-    await fromEvent(pipe, 'finish')
-    expect(lengthUnderTest).toEqual((await stat(vmdkFileName)).size)
-    await execa('qemu-img', ['compare', vmdkFileName, vhdFileName])
-  } catch (error) {
-    console.error(error.stdout)
-    console.error(error.stderr)
-    console.error(error.message)
-    throw error
-  }
 })

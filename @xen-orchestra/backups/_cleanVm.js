@@ -2,6 +2,7 @@ const assert = require('assert')
 const sum = require('lodash/sum')
 const { asyncMap } = require('@xen-orchestra/async-map')
 const { Constants, mergeVhd, openVhd, VhdAbstract, VhdFile } = require('vhd-lib')
+const { isVhdAlias, resolveVhdAlias } = require('vhd-lib/aliases')
 const { dirname, resolve } = require('path')
 const { DISK_TYPES } = Constants
 const { isMetadataFile, isVhdFile, isXvaFile, isXvaSumFile } = require('./_backupType.js')
@@ -9,6 +10,24 @@ const { limitConcurrency } = require('limit-concurrency-decorator')
 
 const { Task } = require('./Task.js')
 const { Disposable } = require('promise-toolbox')
+
+// checking the size of a vhd directory is costly
+// 1 Http Query per 1000 blocks
+// we only check size of all the vhd are VhdFiles
+function shouldComputeVhdsSize(vhds) {
+  return vhds.every(vhd => vhd instanceof VhdFile)
+}
+
+const computeVhdsSize = (handler, vhdPaths) =>
+  Disposable.use(
+    vhdPaths.map(vhdPath => openVhd(handler, vhdPath)),
+    async vhds => {
+      if (shouldComputeVhdsSize(vhds)) {
+        const sizes = await asyncMap(vhds, vhd => vhd.getSize())
+        return sum(sizes)
+      }
+    }
+  )
 
 // chain is an array of VHDs from child to parent
 //
@@ -64,7 +83,6 @@ async function mergeVhdChain(chain, { handler, onLog, remove, merge }) {
     )
 
     clearInterval(handle)
-
     await Promise.all([
       VhdAbstract.rename(handler, parent, child),
       asyncMap(children.slice(0, -1), child => {
@@ -82,10 +100,11 @@ async function mergeVhdChain(chain, { handler, onLog, remove, merge }) {
 
 const noop = Function.prototype
 
-const INTERRUPTED_VHDS_REG = /^(?:(.+)\/)?\.(.+)\.merge.json$/
+const INTERRUPTED_VHDS_REG = /^\.(.+)\.merge.json$/
 const listVhds = async (handler, vmDir) => {
-  const vhds = []
-  const interruptedVhds = new Set()
+  const vhds = new Set()
+  const aliases = {}
+  const interruptedVhds = new Map()
 
   await asyncMap(
     await handler.list(`${vmDir}/vdis`, {
@@ -100,24 +119,76 @@ const listVhds = async (handler, vmDir) => {
         async vdiDir => {
           const list = await handler.list(vdiDir, {
             filter: file => isVhdFile(file) || INTERRUPTED_VHDS_REG.test(file),
-            prependDir: true,
           })
-
+          aliases[vdiDir] = list.filter(vhd => isVhdAlias(vhd)).map(file => `${vdiDir}/${file}`)
           list.forEach(file => {
             const res = INTERRUPTED_VHDS_REG.exec(file)
             if (res === null) {
-              vhds.push(file)
+              vhds.add(`${vdiDir}/${file}`)
             } else {
-              const [, dir, file] = res
-              interruptedVhds.add(`${dir}/${file}`)
+              interruptedVhds.set(`${vdiDir}/${res[1]}`, `${vdiDir}/${file}`)
             }
           })
         }
       )
   )
 
-  return { vhds, interruptedVhds }
+  return { vhds, interruptedVhds, aliases }
 }
+
+async function checkAliases(aliasPaths, targetDataRepository, { handler, onLog = noop, remove = false }) {
+  const aliasFound = []
+  for (const path of aliasPaths) {
+    const target = await resolveVhdAlias(handler, path)
+
+    if (!isVhdFile(target)) {
+      onLog(`Alias ${path} references a non vhd target:  ${target}`)
+      if (remove) {
+        await handler.unlink(target)
+        await handler.unlink(path)
+      }
+      continue
+    }
+
+    try {
+      const { dispose } = await openVhd(handler, target)
+      try {
+        await dispose()
+      } catch (e) {
+        // error during dispose should not trigger a deletion
+      }
+    } catch (error) {
+      onLog(`target ${target} of alias ${path} is missing or broken`, { error })
+      if (remove) {
+        try {
+          await VhdAbstract.unlink(handler, path)
+        } catch (e) {
+          if (e.code !== 'ENOENT') {
+            onLog(`Error while deleting target ${target} of alias ${path}`, { error: e })
+          }
+        }
+      }
+      continue
+    }
+
+    aliasFound.push(resolve('/', target))
+  }
+
+  const entries = await handler.list(targetDataRepository, {
+    ignoreMissing: true,
+    prependDir: true,
+  })
+
+  entries.forEach(async entry => {
+    if (!aliasFound.includes(entry)) {
+      onLog(`the Vhd  ${entry} is not referenced by a an alias`)
+      if (remove) {
+        await VhdAbstract.unlink(handler, entry)
+      }
+    }
+  })
+}
+exports.checkAliases = checkAliases
 
 const defaultMergeLimiter = limitConcurrency(1)
 
@@ -129,17 +200,16 @@ exports.cleanVm = async function cleanVm(
 
   const handler = this._handler
 
-  const vhds = new Set()
+  const vhdsToJSons = new Set()
   const vhdParents = { __proto__: null }
   const vhdChildren = { __proto__: null }
 
-  const vhdsList = await listVhds(handler, vmDir)
+  const { vhds, interruptedVhds, aliases } = await listVhds(handler, vmDir)
 
   // remove broken VHDs
-  await asyncMap(vhdsList.vhds, async path => {
+  await asyncMap(vhds, async path => {
     try {
-      await Disposable.use(openVhd(handler, path, { checkSecondFooter: !vhdsList.interruptedVhds.has(path) }), vhd => {
-        vhds.add(path)
+      await Disposable.use(openVhd(handler, path, { checkSecondFooter: !interruptedVhds.has(path) }), vhd => {
         if (vhd.footer.diskType === DISK_TYPES.DIFFERENCING) {
           const parent = resolve('/', dirname(path), vhd.header.parentUnicodeName)
           vhdParents[path] = parent
@@ -154,6 +224,7 @@ exports.cleanVm = async function cleanVm(
         }
       })
     } catch (error) {
+      vhds.delete(path)
       onLog(`error while checking the VHD with path ${path}`, { error })
       if (error?.code === 'ERR_ASSERTION' && remove) {
         onLog(`deleting broken ${path}`)
@@ -162,7 +233,28 @@ exports.cleanVm = async function cleanVm(
     }
   })
 
-  // @todo : add check for data folder of alias not referenced in a valid alias
+  // remove interrupted merge states for missing VHDs
+  for (const interruptedVhd of interruptedVhds.keys()) {
+    if (!vhds.has(interruptedVhd)) {
+      const statePath = interruptedVhds.get(interruptedVhd)
+      interruptedVhds.delete(interruptedVhd)
+
+      onLog('orphan merge state', {
+        mergeStatePath: statePath,
+        missingVhdPath: interruptedVhd,
+      })
+      if (remove) {
+        onLog(`deleting orphan merge state ${statePath}`)
+        await handler.unlink(statePath)
+      }
+    }
+  }
+
+  // check if alias are correct
+  // check if all vhd in data subfolder have a corresponding alias
+  await asyncMap(Object.keys(aliases), async dir => {
+    await checkAliases(aliases[dir], `${dir}/data`, { handler, onLog, remove })
+  })
 
   // remove VHDs with missing ancestors
   {
@@ -202,7 +294,7 @@ exports.cleanVm = async function cleanVm(
     await Promise.all(deletions)
   }
 
-  const jsons = []
+  const jsons = new Set()
   const xvas = new Set()
   const xvaSums = []
   const entries = await handler.list(vmDir, {
@@ -210,7 +302,7 @@ exports.cleanVm = async function cleanVm(
   })
   entries.forEach(path => {
     if (isMetadataFile(path)) {
-      jsons.push(path)
+      jsons.add(path)
     } else if (isXvaFile(path)) {
       xvas.add(path)
     } else if (isXvaSumFile(path)) {
@@ -232,22 +324,25 @@ exports.cleanVm = async function cleanVm(
   // compile the list of unused XVAs and VHDs, and remove backup metadata which
   // reference a missing XVA/VHD
   await asyncMap(jsons, async json => {
-    const metadata = JSON.parse(await handler.readFile(json))
+    let metadata
+    try {
+      metadata = JSON.parse(await handler.readFile(json))
+    } catch (error) {
+      onLog(`failed to read metadata file ${json}`, { error })
+      jsons.delete(json)
+      return
+    }
+
     const { mode } = metadata
-    let size
     if (mode === 'full') {
       const linkedXva = resolve('/', vmDir, metadata.xva)
-
       if (xvas.has(linkedXva)) {
         unusedXvas.delete(linkedXva)
-
-        size = await handler.getSize(linkedXva).catch(error => {
-          onLog(`failed to get size of ${json}`, { error })
-        })
       } else {
         onLog(`the XVA linked to the metadata ${json} is missing`)
         if (remove) {
           onLog(`deleting incomplete backup ${json}`)
+          jsons.delete(json)
           await handler.unlink(json)
         }
       }
@@ -256,47 +351,22 @@ exports.cleanVm = async function cleanVm(
         const { vhds } = metadata
         return Object.keys(vhds).map(key => resolve('/', vmDir, vhds[key]))
       })()
+
+      const missingVhds = linkedVhds.filter(_ => !vhds.has(_))
+
       // FIXME: find better approach by keeping as much of the backup as
       // possible (existing disks) even if one disk is missing
-      if (linkedVhds.every(_ => vhds.has(_))) {
+      if (missingVhds.length === 0) {
         linkedVhds.forEach(_ => unusedVhds.delete(_))
-
-        // checking the size of a vhd directory is costly
-        // 1 Http Query per 1000 blocks
-        // we only check size of all the vhd are VhdFiles
-
-        const shouldComputeSize = linkedVhds.every(vhd => vhd instanceof VhdFile)
-        if (shouldComputeSize) {
-          try {
-            await Disposable.use(Disposable.all(linkedVhds.map(vhdPath => openVhd(handler, vhdPath))), async vhds => {
-              const sizes = await asyncMap(vhds, vhd => vhd.getSize())
-              size = sum(sizes)
-            })
-          } catch (error) {
-            onLog(`failed to get size of ${json}`, { error })
-          }
-        }
+        linkedVhds.forEach(path => {
+          vhdsToJSons[path] = json
+        })
       } else {
-        onLog(`Some VHDs linked to the metadata ${json} are missing`)
+        onLog(`Some VHDs linked to the metadata ${json} are missing`, { missingVhds })
         if (remove) {
           onLog(`deleting incomplete backup ${json}`)
+          jsons.delete(json)
           await handler.unlink(json)
-        }
-      }
-    }
-
-    const metadataSize = metadata.size
-    if (size !== undefined && metadataSize !== size) {
-      onLog(`incorrect size in metadata: ${metadataSize ?? 'none'} instead of ${size}`)
-
-      // don't update if the the stored size is greater than found files,
-      // it can indicates a problem
-      if (fixMetadata && (metadataSize === undefined || metadataSize < size)) {
-        try {
-          metadata.size = size
-          await handler.writeFile(json, JSON.stringify(metadata), { flags: 'w' })
-        } catch (error) {
-          onLog(`failed to update size in backup metadata ${json}`, { error })
         }
       }
     }
@@ -347,9 +417,9 @@ exports.cleanVm = async function cleanVm(
     })
 
     // merge interrupted VHDs
-    vhdsList.interruptedVhds.forEach(parent => {
+    for (const parent of interruptedVhds.keys()) {
       vhdChainsToMerge[parent] = [vhdChildren[parent], parent]
-    })
+    }
 
     Object.values(vhdChainsToMerge).forEach(chain => {
       if (chain !== undefined) {
@@ -358,9 +428,15 @@ exports.cleanVm = async function cleanVm(
     })
   }
 
-  const doMerge = () => {
-    const promise = asyncMap(toMerge, async chain => limitedMergeVhdChain(chain, { handler, onLog, remove, merge }))
-    return merge ? promise.then(sizes => ({ size: sum(sizes) })) : promise
+  const metadataWithMergedVhd = {}
+  const doMerge = async () => {
+    await asyncMap(toMerge, async chain => {
+      const merged = await limitedMergeVhdChain(chain, { handler, onLog, remove, merge })
+      if (merged !== undefined) {
+        const metadataPath = vhdsToJSons[chain[0]] // all the chain should have the same metada file
+        metadataWithMergedVhd[metadataPath] = true
+      }
+    })
   }
 
   await Promise.all([
@@ -384,6 +460,52 @@ exports.cleanVm = async function cleanVm(
       }
     }),
   ])
+
+  // update size for delta metadata with merged VHD
+  // check for the other that the size is the same as the real file size
+
+  await asyncMap(jsons, async metadataPath => {
+    const metadata = JSON.parse(await handler.readFile(metadataPath))
+
+    let fileSystemSize
+    const merged = metadataWithMergedVhd[metadataPath] !== undefined
+
+    const { mode, size, vhds, xva } = metadata
+
+    try {
+      if (mode === 'full') {
+        // a full backup : check size
+        const linkedXva = resolve('/', vmDir, xva)
+        fileSystemSize = await handler.getSize(linkedXva)
+      } else if (mode === 'delta') {
+        const linkedVhds = Object.keys(vhds).map(key => resolve('/', vmDir, vhds[key]))
+        fileSystemSize = await computeVhdsSize(handler, linkedVhds)
+
+        // the size is not computed in some cases (e.g. VhdDirectory)
+        if (fileSystemSize === undefined) {
+          return
+        }
+
+        // don't warn if the size has changed after a merge
+        if (!merged && fileSystemSize !== size) {
+          onLog(`incorrect size in metadata: ${size ?? 'none'} instead of ${fileSystemSize}`)
+        }
+      }
+    } catch (error) {
+      onLog(`failed to get size of ${metadataPath}`, { error })
+      return
+    }
+
+    // systematically update size after a merge
+    if ((merged || fixMetadata) && size !== fileSystemSize) {
+      metadata.size = fileSystemSize
+      try {
+        await handler.writeFile(metadataPath, JSON.stringify(metadata), { flags: 'w' })
+      } catch (error) {
+        onLog(`failed to update size in backup metadata ${metadataPath} after merge`, { error })
+      }
+    }
+  })
 
   return {
     // boolean whether some VHDs were merged (or should be merged)

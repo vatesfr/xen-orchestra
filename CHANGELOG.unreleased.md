@@ -7,16 +7,13 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [Backup/logs] identify XAPI errors (PR [#6001](https://github.com/vatesfr/xen-orchestra/pull/6001))
-- [S3] Ability to authorize self signed certificates for S3 remote (PR [#5961](https://github.com/vatesfr/xen-orchestra/pull/5961))
-- [Cloud config] Ability to create a network cloud config template and reuse it in the VM creation [#5931](https://github.com/vatesfr/xen-orchestra/issues/5931) (PR [#5979](https://github.com/vatesfr/xen-orchestra/pull/5979))
-- [VM] Ability to export a snapshot's memory (PR [#6015](https://github.com/vatesfr/xen-orchestra/pull/6015))
-
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-[Import/VM] Fix the import of OVA files (PR [#5976](https://github.com/vatesfr/xen-orchestra/pull/5976))
+- [Self service] Change identifiers used for VM templates to avoid them from being removed on XCP-ng upgrade
+- [Proxy] Always connect to XAPI via [backup network if defined](https://xen-orchestra.com/blog/xen-orchestra-5-64/#backupmigrationnetwork)
+- [Backup/File restore] Do not list backups on non-compatible remotes (S3) (PR [#6116](https://github.com/vatesfr/xen-orchestra/pull/6116))
 
 ### Packages to release
 
@@ -35,14 +32,12 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
-- @vates/async-each minor
-- xo-remote-parser minor
-- @xen-orchestra/fs minor
-- @xen-orchestra/xapi patch
-- vhd-lib major
-- @xen-orchestra/backups minor
-- xo-lib patch
+- xen-api minor
+- @xen-orchestra/xapi
+- @vates/predicates major
+- @xen-orchestra/mixins minor
+- @xen-orchestra/backups patch
 - @xen-orchestra/proxy patch
+- xo-cli minor
 - xo-server minor
-- vhd-cli minor
-- xo-web minor
+- xo-web patch

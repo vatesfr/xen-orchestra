@@ -1,5 +1,5 @@
 const assert = require('assert')
-const pRetry = require('promise-toolbox/retry.js')
+const pRetry = require('promise-toolbox/retry')
 const { utcFormat, utcParse } = require('d3-time-format')
 const { Xapi: Base } = require('xen-api')
 

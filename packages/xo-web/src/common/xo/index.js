@@ -936,9 +936,10 @@ export const installAllPatchesOnPool = ({ pool }) => {
   )
 }
 
+import RollingPoolUpdateModal from './rolling-pool-updates-modal' // eslint-disable-line import/first
 export const rollingPoolUpdate = poolId =>
   confirm({
-    body: _('rollingPoolUpdateMessage'),
+    body: <RollingPoolUpdateModal pool={poolId} />,
     title: _('rollingPoolUpdate'),
     icon: 'pool-rolling-update',
   }).then(
@@ -1715,10 +1716,16 @@ export const exportVm = async vm => {
   window.open(`.${url}`)
 }
 
-export const exportVdi = (vdi, format='vhd') => {
-  const id = resolveId(vdi)
+import ExportVdiModalBody from './export-vdi-modal' // eslint-disable-line import/first
+export const exportVdi = async vdi => {
+  const format = await confirm({
+    body: <ExportVdiModalBody />,
+    icon: 'export',
+    title: _('exportVdi'),
+  })
+
   info(_('startVdiExport'), vdi.id)
-  return _call('disk.exportContent', { id: id, format }).then(({ $getFrom: url }) => {
+  return _call('disk.exportContent', { id: resolveId(vdi), format }).then(({ $getFrom: url }) => {
     window.open(`.${url}`)
   })
 }
@@ -2220,13 +2227,8 @@ export const restoreBackup = (backup, sr, { generateNewMacAddresses = false, sta
 
 export const deleteBackup = backup => _call('backupNg.deleteVmBackup', { id: resolveId(backup) })
 
-export const deleteBackups = async backups => {
-  // delete sequentially from newest to oldest
-  backups = backups.slice().sort((b1, b2) => b2.timestamp - b1.timestamp)
-  for (let i = 0, n = backups.length; i < n; ++i) {
-    await deleteBackup(backups[i])
-  }
-}
+export const deleteBackups = async backups =>
+  _call('backupNg.deleteVmBackups', { ids: backups.map(backup => resolveId(backup)) })
 
 export const createMetadataBackupJob = props =>
   _call('metadataBackup.createJob', props)

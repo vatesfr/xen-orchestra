@@ -3,7 +3,7 @@
 import forOwn from 'lodash/forOwn.js'
 import fse from 'fs-extra'
 import getopts from 'getopts'
-import pRetry from 'promise-toolbox/retry.js'
+import pRetry from 'promise-toolbox/retry'
 import { catchGlobalErrors } from '@xen-orchestra/log/configure.js'
 import { create as createServer } from 'http-server-plus'
 import { createLogger } from '@xen-orchestra/log'
@@ -132,7 +132,7 @@ ${APP_NAME} v${APP_VERSION}
   })
 
   // dont delay require to stopping phase because deps may no longer be there (eg on uninstall)
-  const { default: fromCallback } = await import('promise-toolbox/fromCallback.js')
+  const { default: fromCallback } = await import('promise-toolbox/fromCallback')
   app.hooks.on('stop', () => fromCallback(cb => httpServer.stop(cb)))
 
   await app.hooks.start()
@@ -152,7 +152,7 @@ ${APP_NAME} v${APP_VERSION}
     })
   })
 
-  return (await import('promise-toolbox/fromEvent.js')).default(app.hooks, 'stopped')
+  return (await import('promise-toolbox/fromEvent')).default(app.hooks, 'stopped')
 }
 main(process.argv.slice(2)).then(
   () => {

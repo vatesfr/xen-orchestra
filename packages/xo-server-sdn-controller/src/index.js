@@ -138,12 +138,12 @@ async function generateCertificatesAndKey(dataDir) {
     hash: 'sha256',
     startdate: new Date('1984-02-04 00:00:00'),
     enddate: new Date('2143-06-04 04:16:23'),
-    subject: subject,
+    subject,
   }
   const caCsrOptions = {
     hash: 'sha256',
     days: NB_DAYS,
-    subject: subject,
+    subject,
   }
 
   let operation

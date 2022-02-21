@@ -1,7 +1,7 @@
 {
   "private": false,
   "name": "xo-vmdk-to-vhd",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "license": "AGPL-3.0-or-later",
   "description": "JS lib reading and writing .vmdk and .ova files",
   "keywords": [
@@ -24,8 +24,8 @@
     "child-process-promise": "^2.0.3",
     "lodash": "^4.17.15",
     "pako": "^2.0.4",
-    "promise-toolbox": "^0.20.0",
-    "vhd-lib": "^1.3.0",
+    "promise-toolbox": "^0.21.0",
+    "vhd-lib": "^3.1.0",
     "xml2js": "^0.4.23"
   },
   "devDependencies": {
@@ -37,7 +37,6 @@
     "execa": "^5.0.0",
     "fs-extra": "^10.0.0",
     "get-stream": "^6.0.0",
-    "promise-toolbox": "^0.19.2",
     "rimraf": "^3.0.0",
     "tmp": "^0.2.1",
     "validate-with-xmllint": "^1.2.0"

@@ -1,0 +1,40 @@
+{
+  "private": false,
+  "name": "@vates/predicates",
+  "description": "Utilities to compose predicates",
+  "keywords": [
+    "and",
+    "combine",
+    "compose",
+    "every",
+    "function",
+    "functions",
+    "or",
+    "predicate",
+    "predicates",
+    "some"
+  ],
+  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@vates/predicates",
+  "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
+  "repository": {
+    "directory": "@vates/predicates",
+    "type": "git",
+    "url": "https://github.com/vatesfr/xen-orchestra.git"
+  },
+  "author": {
+    "name": "Vates SAS",
+    "url": "https://vates.fr"
+  },
+  "license": "ISC",
+  "version": "0.0.0",
+  "engines": {
+    "node": ">=6"
+  },
+  "scripts": {
+    "postversion": "npm publish --access public",
+    "test": "tap"
+  },
+  "devDependencies": {
+    "tap": "^15.1.6"
+  }
+}

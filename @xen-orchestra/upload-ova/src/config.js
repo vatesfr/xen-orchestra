@@ -3,7 +3,8 @@
 // ===================================================================
 
 import assign from 'lodash/assign'
-import l33t from 'l33teral'
+import get_ from 'lodash/get'
+import unset_ from 'lodash/unset'
 import xdgBasedir from 'xdg-basedir'
 
 import { mkdirp, readFile, writeFile } from 'fs-extra'
@@ -20,8 +21,7 @@ export async function load() {
 }
 
 export async function get(path) {
-  const config = await load()
-  return l33t(config).tap(path)
+  return get_(await load(), path)
 }
 
 export async function save(config) {
@@ -36,9 +36,8 @@ export async function set(data) {
 
 export async function unset(paths) {
   const config = await load()
-  const l33tConfig = l33t(config)
   ;[].concat(paths).forEach(function (path) {
-    l33tConfig.purge(path, true)
+    unset_(config, path)
   })
   return save(config)
 }

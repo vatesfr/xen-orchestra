@@ -2,12 +2,8 @@
 
 'use strict'
 
-const Bluebird = require('bluebird')
-Bluebird.longStackTraces()
-
 const createReadStream = require('fs').createReadStream
 const createWriteStream = require('fs').createWriteStream
-const resolveUrl = require('url').resolve
 const stat = require('fs-extra').stat
 
 const chalk = require('chalk')
@@ -22,7 +18,6 @@ const isObject = require('lodash/isObject')
 const micromatch = require('micromatch')
 const pairs = require('lodash/toPairs')
 const pick = require('lodash/pick')
-const pump = require('pump')
 const prettyMs = require('pretty-ms')
 const progressStream = require('progress-stream')
 const pw = require('pw')
@@ -49,6 +44,45 @@ async function connect() {
   await xo.open()
   await xo.signIn({ token })
   return xo
+}
+
+async function parseRegisterArgs(args) {
+  const {
+    allowUnauthorized,
+    expiresIn,
+    _: [
+      url,
+      email,
+      password = await new Promise(function (resolve) {
+        process.stdout.write('Password: ')
+        pw(resolve)
+      }),
+    ],
+  } = getopts(args, {
+    alias: {
+      allowUnauthorized: 'au',
+    },
+    boolean: ['allowUnauthorized'],
+    stopEarly: true,
+    string: ['expiresIn'],
+  })
+
+  return {
+    allowUnauthorized,
+    email,
+    expiresIn: expiresIn || undefined,
+    password,
+    url,
+  }
+}
+
+async function _createToken({ allowUnauthorized, email, expiresIn, password, url }) {
+  const xo = new Xo({ rejectUnauthorized: !allowUnauthorized, url })
+  await xo.open()
+  await xo.signIn({ email, password })
+  console.warn('Successfully logged with', xo.user.email)
+
+  return await xo.call('token.create', { expiresIn })
 }
 
 function createOutputStream(path) {
@@ -147,43 +181,46 @@ function wrap(val) {
 
 const help = wrap(
   (function (pkg) {
-    return require('strip-indent')(
-      `
-    Usage:
+    return `Usage:
 
-      $name --register [--allowUnauthorized] [--expiresIn duration] <XO-Server URL> <username> [<password>]
-        Registers the XO instance to use.
+  $name --register [--allowUnauthorized] [--expiresIn duration] <XO-Server URL> <username> [<password>]
+    Registers the XO instance to use.
 
-        --allowUnauthorized, --au
-          Accept invalid certificate (e.g. self-signed).
+    --allowUnauthorized, --au
+      Accept invalid certificate (e.g. self-signed).
 
-        --expiresIn duration
-          Can be used to change the validity duration of the
-          authorization token (default: one month).
+    --expiresIn duration
+      Can be used to change the validity duration of the
+      authorization token (default: one month).
 
-      $name --unregister
-        Remove stored credentials.
+  $name --createToken <params>…
+    Create an authentication token for XO API.
 
-      $name --list-commands [--json] [<pattern>]...
-        Returns the list of available commands on the current XO instance.
+    <params>…
+      Accept the same parameters as --register, see its usage.
 
-        The patterns can be used to filter on command names.
+  $name --unregister
+    Remove stored credentials.
 
-      $name --list-objects [--<property>]… [<property>=<value>]...
-        Returns a list of XO objects.
+  $name --list-commands [--json] [<pattern>]...
+    Returns the list of available commands on the current XO instance.
 
-        --<property>
-          Restricts displayed properties to those listed.
+    The patterns can be used to filter on command names.
 
-        <property>=<value>
-          Restricted displayed objects to those matching the patterns.
+  $name --list-objects [--<property>]… [<property>=<value>]...
+    Returns a list of XO objects.
 
-      $name <command> [<name>=<value>]...
-        Executes a command on the current XO instance.
+    --<property>
+      Restricts displayed properties to those listed.
 
-    $name v$version
-  `
-    ).replace(/<([^>]+)>|\$(\w+)/g, function (_, arg, key) {
+    <property>=<value>
+      Restricted displayed objects to those matching the patterns.
+
+  $name <command> [<name>=<value>]...
+    Executes a command on the current XO instance.
+
+$name v$version
+`.replace(/<([^>]+)>|\$(\w+)/g, function (_, arg, key) {
       if (arg) {
         return '<' + chalk.yellow(arg) + '>'
       }
@@ -234,36 +271,21 @@ exports = module.exports = main
 
 exports.help = help
 
-async function register(args) {
-  const {
-    allowUnauthorized,
-    expiresIn,
-    _: [
-      url,
-      email,
-      password = await new Promise(function (resolve) {
-        process.stdout.write('Password: ')
-        pw(resolve)
-      }),
-    ],
-  } = getopts(args, {
-    alias: {
-      allowUnauthorized: 'au',
-    },
-    boolean: ['allowUnauthorized'],
-    stopEarly: true,
-    string: ['expiresIn'],
-  })
+async function createToken(args) {
+  const token = await _createToken(await parseRegisterArgs(args))
+  console.warn('Authentication token created')
+  console.warn()
+  console.log(token)
+}
+exports.createToken = createToken
 
-  const xo = new Xo({ rejectUnauthorized: !allowUnauthorized, url })
-  await xo.open()
-  await xo.signIn({ email, password })
-  console.log('Successfully logged with', xo.user.email)
+async function register(args) {
+  const opts = await parseRegisterArgs(args)
 
   await config.set({
-    allowUnauthorized,
-    server: url,
-    token: await xo.call('token.create', { expiresIn: expiresIn === '' ? undefined : expiresIn }),
+    allowUnauthorized: opts.allowUnauthorized,
+    server: opts.url,
+    token: await _createToken(opts),
   })
 }
 exports.register = register
@@ -378,6 +400,9 @@ async function call(args) {
 
   // FIXME: do not use private properties.
   const baseUrl = xo._url.replace(/^ws/, 'http')
+  const httpOptions = {
+    rejectUnauthorized: !(await config.load()).allowUnauthorized,
+  }
 
   const result = await xo.call(method, params)
   let keys, key, url
@@ -386,9 +411,9 @@ async function call(args) {
 
     if (key === '$getFrom') {
       ensurePathParam(method, file)
-      url = resolveUrl(baseUrl, result[key])
+      url = new URL(result[key], baseUrl)
       const output = createOutputStream(file)
-      const response = await hrp(url)
+      const response = await hrp(url, httpOptions)
 
       const progress = progressStream(
         {
@@ -398,12 +423,12 @@ async function call(args) {
         printProgress
       )
 
-      return fromCallback(pump, response, progress, output)
+      return fromCallback(pipeline, response, progress, output)
     }
 
     if (key === '$sendTo') {
       ensurePathParam(method, file)
-      url = resolveUrl(baseUrl, result[key])
+      url = new URL(result[key], baseUrl)
 
       const { size: length } = await stat(file)
       const input = pipeline(
@@ -419,7 +444,7 @@ async function call(args) {
       )
 
       return hrp
-        .post(url, {
+        .post(url, httpOptions, {
           body: input,
           headers: {
             'content-length': length,
