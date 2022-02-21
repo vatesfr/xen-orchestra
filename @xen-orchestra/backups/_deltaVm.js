@@ -168,7 +168,7 @@ exports.importDeltaVm = defer(async function importDeltaVm(
 
   if (!isEmpty(mapVdisSrs)) {
     for (const [vdiUuid, srId] of Object.entries(mapVdisSrs)) {
-      mapVdisSrs[vdiUuid] = xapi.getObject(srId, 'SR')._xapiRef
+      mapVdisSrs[vdiUuid] = xapi.getObject(srId, 'SR').$ref
     }
   }
 
@@ -246,7 +246,6 @@ exports.importDeltaVm = defer(async function importDeltaVm(
       }
 
       newVdi = await xapi.getRecord('VDI', await baseVdi.$clone())
-
       $defer.onFailure(() => newVdi.$destroy())
 
       await newVdi.update_other_config(TAG_COPY_SRC, vdi.uuid)
