@@ -1,8 +1,18 @@
+'use strict'
+
 module.exports = {
-  parser: '@babel/eslint-parser',
-  parserOptions: {
-    ecmaFeatures: {
-      legacyDecorators: true,
+  overrides: [
+    {
+      files: ['src/**/*'],
+
+      parser: '@babel/eslint-parser',
+
+      parserOptions: {
+        ecmaFeatures: {
+          legacyDecorators: true,
+        },
+        sourceType: 'module',
+      },
     },
-  },
+  ],
 }

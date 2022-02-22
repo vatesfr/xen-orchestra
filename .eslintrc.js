@@ -18,10 +18,17 @@ module.exports = {
         'no-console': 'off',
       },
     },
+    {
+      files: ['*.mjs'],
+      parserOptions: {
+        sourceType: 'module',
+      },
+    },
   ],
 
   parserOptions: {
     ecmaVersion: 13,
+    sourceType: 'script',
   },
 
   rules: {
