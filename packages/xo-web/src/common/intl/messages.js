@@ -1381,6 +1381,7 @@ const messages = {
   metricsLoading: 'Loading…',
 
   // ----- Health -----
+  length: 'Length {length}',
   deleteBackups: 'Delete backup{nBackups, plural, one {} other {s}}',
   deleteBackupsMessage:
     'Are you sure you want to delete {nBackups, number} backup{nBackups, plural, one {} other {s}}?',
@@ -1428,8 +1429,8 @@ const messages = {
   alarmObject: 'Issue on',
   alarmPool: 'Pool',
   spaceLeftTooltip: '{used}% used ({free} left)',
-  totalVdisToCoalesce: 'Total VDIs to coalesce ({total, number})',
   vdisToCoalesce: 'VDIs to coalesce',
+  srVdisToCoalesceWarning: 'This SR has more than ({limitVdis, number}) VDIs to coalesce',
 
   // ----- New VM -----
   createVmModalTitle: 'Create VM',

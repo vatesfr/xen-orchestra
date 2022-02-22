@@ -2029,6 +2029,8 @@ export const editSr = (sr, { nameDescription, nameLabel }) =>
 export const rescanSr = sr => _call('sr.scan', { id: resolveId(sr) })
 export const rescanSrs = srs => Promise.all(map(resolveIds(srs), id => _call('sr.scan', { id })))
 
+export const getUnhealthyVdiChainsLength = sr => _call('sr.getUnhealthyVdiChainsLength', { sr })
+
 // PBDs --------------------------------------------------------------
 
 export const connectPbd = pbd => _call('pbd.connect', { id: resolveId(pbd) })

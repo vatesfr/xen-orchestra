@@ -7,7 +7,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [Dashboad/Health] List all existing VDIs that need coalescing. (PR [#6120](https://github.com/vatesfr/xen-orchestra/pull/6120))
+- [Dashboad/Health] List all VDIs that need coalescing (PR [#6120](https://github.com/vatesfr/xen-orchestra/pull/6120))
 
 ### Bug fixes
 
