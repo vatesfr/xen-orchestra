@@ -535,23 +535,6 @@ export const createSrUnhealthyVdiChainsLengthSubscription = sr => {
   return subscription
 }
 
-const unhealthyVdiChainsLengthBySrs = {}
-export const createSrsUnhealthyVdiChainsLengthSubscription = srs =>
-  createSubscription(async () => {
-    await Promise.all(
-      map(srs, async sr => {
-        sr = resolveId(sr)
-        const vdiChains = await _call('sr.getUnhealthyVdiChainsLength', { sr })
-        if (!isEmpty(vdiChains)) {
-          unhealthyVdiChainsLengthBySrs[sr] = vdiChains
-        } else {
-          delete unhealthyVdiChainsLengthBySrs[sr]
-        }
-      })
-    )
-    return unhealthyVdiChainsLengthBySrs
-  })
-
 // System ============================================================
 
 export const apiMethods = _call('system.getMethodsInfo')

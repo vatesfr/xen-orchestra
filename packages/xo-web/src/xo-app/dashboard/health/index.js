@@ -559,7 +559,6 @@ const HANDLED_VDI_TYPES = new Set(['system', 'user', 'ephemeral'])
     orphanVdis: getOrphanVdis,
     orphanVmSnapshots: getOrphanVmSnapshots,
     pools: createGetObjectsOfType('pool'),
-    srs: getSrs,
     tooManySnapshotsVms: getTooManySnapshotsVms,
     guestToolsVms: getGuestToolsVms,
     userSrs: getUserSrs,
