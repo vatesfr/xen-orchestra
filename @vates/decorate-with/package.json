@@ -25,6 +25,10 @@
     "node": ">=8.10"
   },
   "scripts": {
-    "postversion": "npm publish --access public"
+    "postversion": "npm publish --access public",
+    "test": "tap"
+  },
+  "devDependencies": {
+    "tap": "^15.1.6"
   }
 }
