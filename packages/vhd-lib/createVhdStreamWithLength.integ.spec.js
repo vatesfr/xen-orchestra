@@ -9,7 +9,7 @@ const { createReadStream, createWriteStream } = require('fs')
 const { pFromCallback } = require('promise-toolbox')
 const { pipeline } = require('readable-stream')
 
-const { createVhdStreamWithLength } = require('./createVhdStreamWithLength.js')
+const createVhdStreamWithLength = require('./createVhdStreamWithLength')
 const { FOOTER_SIZE } = require('./_constants')
 const { createRandomFile, convertFromRawToVhd, convertFromVhdToRaw } = require('./tests/utils')
 

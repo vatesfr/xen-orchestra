@@ -20,7 +20,7 @@ import semver from 'semver'
 import tarStream from 'tar-stream'
 import uniq from 'lodash/uniq.js'
 import { asyncMap } from '@xen-orchestra/async-map'
-import { vmdkToVhd, vhdToVMDK } from 'xo-vmdk-to-vhd'
+import { vmdkToVhd, vhdToVMDK, writeOvaOn } from 'xo-vmdk-to-vhd'
 import { cancelable, CancelToken, fromEvents, ignoreErrors, pCatch, pRetry } from 'promise-toolbox'
 import { createLogger } from '@xen-orchestra/log'
 import { decorateWith } from '@vates/decorate-with'
@@ -53,7 +53,6 @@ import {
   prepareXapiParam,
 } from './utils.mjs'
 import { createVhdStreamWithLength } from 'vhd-lib'
-import { vhdToVMDK, writeOvaOn } from 'xo-vmdk-to-vhd'
 
 const log = createLogger('xo:xapi')
 
