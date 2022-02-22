@@ -1,3 +1,5 @@
+'use strict'
+
 const { AbstractWriter } = require('./_AbstractWriter.js')
 
 exports.AbstractDeltaWriter = class AbstractDeltaWriter extends AbstractWriter {

@@ -1,3 +1,5 @@
+'use strict'
+
 const compareVersions = require('compare-versions')
 const find = require('lodash/find.js')
 const groupBy = require('lodash/groupBy.js')

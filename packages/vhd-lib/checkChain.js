@@ -1,3 +1,5 @@
+'use strict'
+
 const { openVhd } = require('./openVhd')
 const resolveRelativeFromFile = require('./_resolveRelativeFromFile')
 const { DISK_TYPES } = require('./_constants')

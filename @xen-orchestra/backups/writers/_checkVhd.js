@@ -1,3 +1,5 @@
+'use strict'
+
 const openVhd = require('vhd-lib').openVhd
 const Disposable = require('promise-toolbox/Disposable')
 

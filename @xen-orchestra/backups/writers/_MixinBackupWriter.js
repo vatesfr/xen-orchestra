@@ -1,3 +1,5 @@
+'use strict'
+
 const { createLogger } = require('@xen-orchestra/log')
 const { join } = require('path')
 

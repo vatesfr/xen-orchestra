@@ -1,3 +1,5 @@
+'use strict'
+
 require('@xen-orchestra/log/configure.js').catchGlobalErrors(
   require('@xen-orchestra/log').createLogger('xo:backups:worker')
 )

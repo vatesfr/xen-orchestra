@@ -1,3 +1,5 @@
+'use strict'
+
 const pkg = require('./package.json')
 
 // `xo-server-test` is a special package which has no dev dependencies but our

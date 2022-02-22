@@ -1,3 +1,5 @@
+'use strict'
+
 const { dirname, relative } = require('path')
 
 const { openVhd } = require('./openVhd')

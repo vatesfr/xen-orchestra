@@ -1,3 +1,5 @@
+'use strict'
+
 const eos = require('end-of-stream')
 const { PassThrough } = require('stream')
 

@@ -1,7 +1,3 @@
-'use strict'
-
-// ===================================================================
-
 const { readFile, writeFile } = require('fs/promises')
 
 const get = require('lodash/get')

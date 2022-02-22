@@ -1,3 +1,5 @@
+'use strict'
+
 const fromCallback = require('promise-toolbox/fromCallback')
 const nodemailer = require('nodemailer') // eslint-disable-line n/no-extraneous-import
 const prettyFormat = require('pretty-format') // eslint-disable-line n/no-extraneous-import

@@ -1,3 +1,5 @@
+'use strict'
+
 const { join, resolve } = require('path')
 const { spawn } = require('child_process')
 const { check } = require('proper-lockfile')

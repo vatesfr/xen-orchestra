@@ -1,3 +1,5 @@
+'use strict'
+
 // This is one of the simplest xo-server's plugin than can be created.
 
 // This (optional) schema is used to describe the expected

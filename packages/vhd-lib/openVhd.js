@@ -1,3 +1,5 @@
+'use strict'
+
 const { resolveVhdAlias } = require('./aliases')
 const { VhdDirectory } = require('./Vhd/VhdDirectory.js')
 const { VhdFile } = require('./Vhd/VhdFile.js')

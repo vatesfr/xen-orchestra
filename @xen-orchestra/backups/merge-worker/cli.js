@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+'use strict'
+
 const { catchGlobalErrors } = require('@xen-orchestra/log/configure.js')
 const { createLogger } = require('@xen-orchestra/log')
 const { getSyncedHandler } = require('@xen-orchestra/fs')

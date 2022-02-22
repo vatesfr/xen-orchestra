@@ -1,3 +1,5 @@
+'use strict'
+
 /* eslint-env jest */
 const { createFooter } = require('./_createFooterHeader')
 

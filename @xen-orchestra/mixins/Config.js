@@ -1,3 +1,5 @@
+'use strict'
+
 const get = require('lodash/get')
 const identity = require('lodash/identity')
 const isEqual = require('lodash/isEqual')

@@ -1,3 +1,5 @@
+'use strict'
+
 const { DIR_XO_CONFIG_BACKUPS, DIR_XO_POOL_METADATA_BACKUPS } = require('./RemoteAdapter.js')
 
 exports.parseMetadataBackupId = function parseMetadataBackupId(backupId) {

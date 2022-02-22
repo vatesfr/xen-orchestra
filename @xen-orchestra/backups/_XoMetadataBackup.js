@@ -1,3 +1,5 @@
+'use strict'
+
 const { asyncMap } = require('@xen-orchestra/async-map')
 
 const { DIR_XO_CONFIG_BACKUPS } = require('./RemoteAdapter.js')

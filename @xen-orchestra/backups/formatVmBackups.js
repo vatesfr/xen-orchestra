@@ -1,3 +1,5 @@
+'use strict'
+
 const mapValues = require('lodash/mapValues.js')
 const { dirname } = require('path')
 

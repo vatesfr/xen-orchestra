@@ -1,5 +1,3 @@
-'use strict'
-
 export class VirtualBuffer {
   constructor(readStream) {
     this._readStream = readStream

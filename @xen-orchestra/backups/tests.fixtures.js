@@ -1,3 +1,5 @@
+'use strict'
+
 // a valid footer of a 2
 exports.VHDFOOTER = {
   cookie: 'conectix',

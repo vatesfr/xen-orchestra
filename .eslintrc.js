@@ -1,3 +1,5 @@
+'use strict'
+
 module.exports = {
   extends: ['plugin:eslint-comments/recommended', 'standard', 'standard-jsx', 'prettier'],
   globals: {
@@ -45,5 +47,7 @@ module.exports = {
     'lines-between-class-members': 'off',
 
     'no-console': ['error', { allow: ['warn', 'error'] }],
+
+    strict: 'error',
   },
 }

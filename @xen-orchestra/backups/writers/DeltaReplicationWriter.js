@@ -1,3 +1,5 @@
+'use strict'
+
 const { asyncMap, asyncMapSettled } = require('@xen-orchestra/async-map')
 const ignoreErrors = require('promise-toolbox/ignoreErrors')
 const { formatDateTime } = require('@xen-orchestra/xapi')

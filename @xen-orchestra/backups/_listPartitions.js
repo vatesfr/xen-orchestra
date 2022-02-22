@@ -1,3 +1,5 @@
+'use strict'
+
 const fromCallback = require('promise-toolbox/fromCallback')
 const { createLogger } = require('@xen-orchestra/log')
 const { createParser } = require('parse-pairs')

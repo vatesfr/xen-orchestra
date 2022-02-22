@@ -1,3 +1,5 @@
+'use strict'
+
 exports.BLOCK_UNUSED = 0xffffffff
 
 // This lib has been extracted from the Xen Orchestra project.

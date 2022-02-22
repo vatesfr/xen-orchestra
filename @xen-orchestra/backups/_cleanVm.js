@@ -1,3 +1,5 @@
+'use strict'
+
 const assert = require('assert')
 const sum = require('lodash/sum')
 const { asyncMap } = require('@xen-orchestra/async-map')

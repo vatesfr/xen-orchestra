@@ -1,3 +1,5 @@
+'use strict'
+
 const PARSE_UUID_RE = /-/g
 
 exports.packUuid = function packUuid(uuid) {

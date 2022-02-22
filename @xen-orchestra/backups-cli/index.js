@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+'use strict'
+
 require('./_composeCommands')({
   'clean-vms': {
     get main() {

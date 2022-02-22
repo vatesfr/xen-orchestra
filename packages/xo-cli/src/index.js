@@ -1,7 +1,5 @@
 #!/usr/bin/env node
 
-'use strict'
-
 const createReadStream = require('fs').createReadStream
 const createWriteStream = require('fs').createWriteStream
 const stat = require('fs-extra').stat

@@ -1,3 +1,5 @@
+'use strict'
+
 class Node {
   constructor(value) {
     this.children = new Map()

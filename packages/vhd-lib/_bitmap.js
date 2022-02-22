@@ -1,3 +1,5 @@
+'use strict'
+
 const MASK = 0x80
 
 exports.set = (map, bit) => {
