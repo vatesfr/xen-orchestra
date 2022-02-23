@@ -361,7 +361,7 @@ export default class New extends Component {
       if (SR_TYPE_REQUIRE_DISK_FORMATTING.includes(type)) {
         await confirm({
           title: _('newSr'),
-          body: <p>{_('newSrConfirm')}</p>,
+          body: <p>{_('newSrConfirm', { name: device.value })}</p>,
         })
       }
       return await createMethodFactories[type]()
