@@ -275,6 +275,7 @@ const messages = {
   homeMissingPatches: 'Missing patches',
   homePoolMaster: 'Master:',
   homeResourceSet: 'Resource set: {resourceSet}',
+  homeSrVdisToCoalesce: 'Some VDIs need to be coalesced',
   highAvailability: 'High Availability',
   powerState: 'Power state',
   srSharedType: 'Shared {type}',

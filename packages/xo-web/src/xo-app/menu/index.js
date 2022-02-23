@@ -248,7 +248,7 @@ export default class Menu extends Component {
     ) : null
 
     const vdisToCoalesceWarning = this._hasVdisToCoalesce() ? (
-      <Tooltip content={_('srVdisToCoalesceWarning', { limitVdis: VDIS_TO_COALESCE_LIMIT })}>
+      <Tooltip content={_('homeSrVdisToCoalesce')}>
         <span className='text-warning'>
           <Icon icon='alarm' />
         </span>
