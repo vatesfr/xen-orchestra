@@ -592,6 +592,10 @@ const messages = {
   remotePlaceHolderPassword: 'Password(fill to edit)',
 
   // ------ New Storage -----
+
+  newSr: 'New SR',
+  newSrConfirm:
+    'This will erase the entire disk or partition ({name}) to create a new storage repository. Are you sure you want to continue?',
   newSrTitle: 'Create a new SR',
   newSrGeneral: 'General',
   newSrTypeSelection: 'Select storage type:',
