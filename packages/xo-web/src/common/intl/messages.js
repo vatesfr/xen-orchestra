@@ -1381,7 +1381,7 @@ const messages = {
   metricsLoading: 'Loading…',
 
   // ----- Health -----
-  length: 'Length {length}',
+  length: 'Length: {length}',
   deleteBackups: 'Delete backup{nBackups, plural, one {} other {s}}',
   deleteBackupsMessage:
     'Are you sure you want to delete {nBackups, number} backup{nBackups, plural, one {} other {s}}?',
