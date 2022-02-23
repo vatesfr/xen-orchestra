@@ -175,8 +175,9 @@ exports.importDeltaVm = defer(async function importDeltaVm(
     }
   }
 
+  const mapVdisSrRefs = {}
   for (const [vdiUuid, srUuid] of Object.entries(mapVdisSrs)) {
-    mapVdisSrs[vdiUuid] = await resolveUuid(xapi, srUuid, 'SR')
+    mapVdisSrRefs[vdiUuid] = await resolveUuid(xapi, srUuid, 'SR')
   }
 
   const baseVdis = {}
@@ -202,7 +203,7 @@ exports.importDeltaVm = defer(async function importDeltaVm(
           [TAG_BASE_DELTA]: undefined,
           [TAG_COPY_SRC]: vdi.uuid,
         },
-        sr: mapVdisSrs[vdi.uuid] ?? sr.$ref,
+        sr: mapVdisSrRefs[vdi.uuid] ?? sr.$ref,
       })
     )
     $defer.onFailure(() => suspendVdi.$destroy())
@@ -269,7 +270,7 @@ exports.importDeltaVm = defer(async function importDeltaVm(
             [TAG_BASE_DELTA]: undefined,
             [TAG_COPY_SRC]: vdi.uuid,
           },
-          SR: mapVdisSrs[vdi.uuid] ?? sr.$ref,
+          SR: mapVdisSrRefs[vdi.uuid] ?? sr.$ref,
         })
       )
       $defer.onFailure(() => newVdi.$destroy())
