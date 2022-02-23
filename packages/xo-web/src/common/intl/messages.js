@@ -1431,7 +1431,7 @@ const messages = {
   alarmPool: 'Pool',
   spaceLeftTooltip: '{used}% used ({free} left)',
   vdisToCoalesce: 'VDIs to coalesce',
-  srVdisToCoalesceWarning: 'This SR has more than ({limitVdis, number}) VDIs to coalesce',
+  srVdisToCoalesceWarning: 'This SR has more than {limitVdis, number} VDIs to coalesce',
 
   // ----- New VM -----
   createVmModalTitle: 'Create VM',

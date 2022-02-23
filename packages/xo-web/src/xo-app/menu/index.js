@@ -97,7 +97,7 @@ export default class Menu extends Component {
     this._removeListener()
     this._unsubscribeMissingPatches()
     this._unsubscribeProxiesApplianceUpdaterState()
-    this._unsubscribeUnhealthyVdiChainsLengthState()
+    this._unsubscribeUnhealthyVdiChainsLength()
   }
 
   componentDidUpdate(prevProps) {
@@ -230,11 +230,11 @@ export default class Menu extends Component {
       })
     )
 
-    if (this._unsubscribeUnhealthyVdiChainsLengthState !== undefined) {
-      this._unsubscribeUnhealthyVdiChainsLengthState()
+    if (this._unsubscribeUnhealthyVdiChainsLength !== undefined) {
+      this._unsubscribeUnhealthyVdiChainsLength()
     }
 
-    this._unsubscribeUnhealthyVdiChainsLengthState = () => forEach(unsubs, unsub => unsub())
+    this._unsubscribeUnhealthyVdiChainsLength = () => forEach(unsubs, unsub => unsub())
   }
 
   render() {
