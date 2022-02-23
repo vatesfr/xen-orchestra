@@ -11,6 +11,7 @@ import { NotificationTag } from '../xoa/notifications'
 import { addSubscriptions, connectStore, getXoaPlan, noop } from 'utils'
 import {
   connect,
+  isSrWritable,
   signOut,
   subscribeHostMissingPatches,
   subscribeNotifications,
@@ -44,6 +45,8 @@ const returnTrue = () => true
 @connectStore(
   () => {
     const getHosts = createGetObjectsOfType('host')
+    const getSrs = createGetObjectsOfType('SR')
+    const getWritableSrs = getSrs.filter([isSrWritable])
     return {
       hosts: getHosts,
       isAdmin,
@@ -51,9 +54,10 @@ const returnTrue = () => true
       nHosts: getHosts.count(),
       nTasks: createGetObjectsOfType('task').count([task => task.status === 'pending']),
       pools: createGetObjectsOfType('pool'),
-      srs: createGetObjectsOfType('SR'),
+      srs: getSrs,
       status: getStatus,
       user: getUser,
+      writableSrs: getWritableSrs,
       xoaState: getXoaState,
     }
   },
@@ -105,7 +109,7 @@ export default class Menu extends Component {
       this._updateProxiesSubscriptions()
     }
 
-    if (!isEqual(Object.keys(prevProps.srs).sort(), Object.keys(this.props.srs).sort())) {
+    if (!isEqual(Object.keys(prevProps.writableSrs).sort(), Object.keys(this.props.writableSrs).sort())) {
       this._updateUnhealthyVdiChainsLengthSubscriptions()
     }
   }
@@ -212,10 +216,10 @@ export default class Menu extends Component {
 
   _updateUnhealthyVdiChainsLengthSubscriptions = () => {
     this.setState(({ vdiChainsLengthBySr }) => ({
-      vdiChainsLengthBySr: pick(vdiChainsLengthBySr, Object.keys(this.props.srs)),
+      vdiChainsLengthBySr: pick(vdiChainsLengthBySr, Object.keys(this.props.writableSrs)),
     }))
 
-    const unsubs = map(this.props.srs, sr =>
+    const unsubs = map(this.props.writableSrs, sr =>
       subscribeSrUnhealthyVdiChainsLength(sr, vdiChainsLength => {
         this.setState(state => ({
           vdiChainsLengthBySr: {
