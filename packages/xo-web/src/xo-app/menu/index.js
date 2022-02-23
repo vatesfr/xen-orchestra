@@ -18,6 +18,8 @@ import {
   subscribeProxies,
   subscribeProxiesApplianceUpdaterState,
   subscribeResourceSets,
+  subscribeSrUnhealthyVdiChainsLength,
+  VDIS_TO_COALESCE_LIMIT,
 } from 'xo'
 import {
   createFilter,
@@ -29,7 +31,7 @@ import {
   getXoaState,
   isAdmin,
 } from 'selectors'
-import { every, forEach, identity, isEmpty, isEqual, map, pick, some } from 'lodash'
+import { every, forEach, identity, isEmpty, isEqual, map, pick, size, some } from 'lodash'
 
 import styles from './index.css'
 
@@ -84,12 +86,14 @@ export default class Menu extends Component {
 
     this._updateMissingPatchesSubscriptions()
     this._updateProxiesSubscriptions()
+    this._updateUnhealthyVdiChainsLengthSubscriptions()
   }
 
   componentWillUnmount() {
     this._removeListener()
     this._unsubscribeMissingPatches()
     this._unsubscribeProxiesApplianceUpdaterState()
+    this._unsubscribeUnhealthyVdiChainsLengthState()
   }
 
   componentDidUpdate(prevProps) {
@@ -99,6 +103,10 @@ export default class Menu extends Component {
 
     if (!isEqual(prevProps.proxyIds, this.props.proxyIds)) {
       this._updateProxiesSubscriptions()
+    }
+
+    if (!isEqual(Object.keys(prevProps.srs).sort(), Object.keys(this.props.srs).sort())) {
+      this._updateUnhealthyVdiChainsLengthSubscriptions()
     }
   }
 
@@ -133,6 +141,11 @@ export default class Menu extends Component {
   _hasMissingPatches = createSelector(
     () => this.state.missingPatches,
     missingPatches => some(missingPatches, _ => _)
+  )
+
+  _hasVdisToCoalesce = createSelector(
+    () => this.state.vdiChainsLengthBySr,
+    vdiChainsLengthBySr => some(vdiChainsLengthBySr, vdiChainsLength => size(vdiChainsLength) >= VDIS_TO_COALESCE_LIMIT)
   )
 
   _toggleCollapsed = event => {
@@ -197,6 +210,29 @@ export default class Menu extends Component {
     this._unsubscribeProxiesApplianceUpdaterState = () => forEach(unsubs, unsub => unsub())
   }
 
+  _updateUnhealthyVdiChainsLengthSubscriptions = () => {
+    this.setState(({ vdiChainsLengthBySr }) => ({
+      vdiChainsLengthBySr: pick(vdiChainsLengthBySr, Object.keys(this.props.srs)),
+    }))
+
+    const unsubs = map(this.props.srs, sr =>
+      subscribeSrUnhealthyVdiChainsLength(sr, vdiChainsLength => {
+        this.setState(state => ({
+          vdiChainsLengthBySr: {
+            ...state.vdiChainsLengthBySr,
+            [sr.id]: vdiChainsLength,
+          },
+        }))
+      })
+    )
+
+    if (this._unsubscribeUnhealthyVdiChainsLengthState !== undefined) {
+      this._unsubscribeUnhealthyVdiChainsLengthState()
+    }
+
+    this._unsubscribeUnhealthyVdiChainsLengthState = () => forEach(unsubs, unsub => unsub())
+  }
+
   render() {
     const { isAdmin, isPoolAdmin, nTasks, state, status, user, pools, nHosts, srs, xoaState } = this.props
     const noOperatablePools = this._getNoOperatablePools()
@@ -205,6 +241,14 @@ export default class Menu extends Component {
 
     const missingPatchesWarning = this._hasMissingPatches() ? (
       <Tooltip content={_('homeMissingPatches')}>
+        <span className='text-warning'>
+          <Icon icon='alarm' />
+        </span>
+      </Tooltip>
+    ) : null
+
+    const vdisToCoalesceWarning = this._hasVdisToCoalesce() ? (
+      <Tooltip content={_('srVdisToCoalesceWarning', { limitVdis: VDIS_TO_COALESCE_LIMIT })}>
         <span className='text-warning'>
           <Icon icon='alarm' />
         </span>
@@ -247,6 +291,7 @@ export default class Menu extends Component {
         to: '/dashboard/overview',
         icon: 'menu-dashboard',
         label: 'dashboardPage',
+        extra: [vdisToCoalesceWarning],
         subMenu: [
           {
             to: '/dashboard/overview',
@@ -267,6 +312,7 @@ export default class Menu extends Component {
             to: '/dashboard/health',
             icon: 'menu-dashboard-health',
             label: 'overviewHealthDashboardPage',
+            extra: [vdisToCoalesceWarning],
           },
         ],
       },

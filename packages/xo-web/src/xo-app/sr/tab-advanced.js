@@ -9,7 +9,7 @@ import { Container, Row, Col } from 'grid'
 import { CustomFields } from 'custom-fields'
 import { createGetObjectsOfType } from 'selectors'
 import { createSelector } from 'reselect'
-import { createSrUnhealthyVdiChainsLengthSubscription, deleteSr } from 'xo'
+import { subscribeSrUnhealthyVdiChainsLength, deleteSr } from 'xo'
 import { flowRight, isEmpty, keys, sum, values } from 'lodash'
 
 // ===================================================================
@@ -39,7 +39,7 @@ const COLUMNS = [
 
 const UnhealthyVdiChains = flowRight(
   addSubscriptions(props => ({
-    chains: createSrUnhealthyVdiChainsLengthSubscription(props.sr),
+    chains: cb => subscribeSrUnhealthyVdiChainsLength(props.sr, cb),
   })),
   connectStore(() => ({
     vdis: createGetObjectsOfType('VDI').pick(createSelector((_, props) => props.chains, keys)),

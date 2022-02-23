@@ -7,12 +7,10 @@ import SortedTable from 'sorted-table'
 import Tooltip from 'tooltip'
 import { Card, CardHeader, CardBlock } from 'card'
 import { Col, Row } from 'grid'
-import { getUnhealthyVdiChainsLength } from 'xo'
+import { getUnhealthyVdiChainsLength, VDIS_TO_COALESCE_LIMIT } from 'xo'
 import { injectState, provideState } from 'reaclette'
 import { map, size } from 'lodash'
 import { Sr, Vdi } from 'render-xo-item'
-
-const VDIS_TO_COALESCE_LIMIT = 10
 
 const COLUMNS = [
   {

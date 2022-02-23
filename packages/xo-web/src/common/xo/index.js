@@ -40,6 +40,7 @@ import parseNdJson from './_parseNdJson'
 // ===================================================================
 
 export const ITEMS_PER_PAGE_OPTIONS = [10, 20, 50, 100]
+export const VDIS_TO_COALESCE_LIMIT = 10
 
 // ===================================================================
 
@@ -525,14 +526,27 @@ subscribeVolumeInfo.forceRefresh = (() => {
 })()
 
 const unhealthyVdiChainsLengthSubscriptionsBySr = {}
-export const createSrUnhealthyVdiChainsLengthSubscription = sr => {
-  sr = resolveId(sr)
-  let subscription = unhealthyVdiChainsLengthSubscriptionsBySr[sr]
+export const subscribeSrUnhealthyVdiChainsLength = (sr, cb) => {
+  const srId = resolveId(sr)
+  let subscription = unhealthyVdiChainsLengthSubscriptionsBySr[srId]
   if (subscription === undefined) {
-    subscription = createSubscription(() => _call('sr.getUnhealthyVdiChainsLength', { sr }))
-    unhealthyVdiChainsLengthSubscriptionsBySr[sr] = subscription
+    subscription = createSubscription(() => getUnhealthyVdiChainsLength(srId))
+    unhealthyVdiChainsLengthSubscriptionsBySr[srId] = subscription
   }
-  return subscription
+  return subscription(cb)
+}
+
+subscribeSrUnhealthyVdiChainsLength.forceRefresh = sr => {
+  const srId = resolveId(sr)
+  if (srId === undefined) {
+    forEach(unhealthyVdiChainsLengthSubscriptionsBySr, subscription => subscription.forceRefresh())
+    return
+  }
+
+  const subscription = unhealthyVdiChainsLengthSubscriptionsBySr[srId]
+  if (subscription !== undefined) {
+    subscription.forceRefresh()
+  }
 }
 
 // System ============================================================
@@ -2012,7 +2026,7 @@ export const editSr = (sr, { nameDescription, nameLabel }) =>
 export const rescanSr = sr => _call('sr.scan', { id: resolveId(sr) })
 export const rescanSrs = srs => Promise.all(map(resolveIds(srs), id => _call('sr.scan', { id })))
 
-export const getUnhealthyVdiChainsLength = sr => _call('sr.getUnhealthyVdiChainsLength', { sr })
+export const getUnhealthyVdiChainsLength = id => _call('sr.getUnhealthyVdiChainsLength', { id })
 
 // PBDs --------------------------------------------------------------
 
