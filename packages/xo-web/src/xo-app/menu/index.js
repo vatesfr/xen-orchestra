@@ -11,7 +11,6 @@ import { NotificationTag } from '../xoa/notifications'
 import { addSubscriptions, connectStore, getXoaPlan, noop } from 'utils'
 import {
   connect,
-  isSrWritable,
   signOut,
   subscribeHostMissingPatches,
   subscribeNotifications,
@@ -19,7 +18,7 @@ import {
   subscribeProxies,
   subscribeProxiesApplianceUpdaterState,
   subscribeResourceSets,
-  subscribeSrUnhealthyVdiChainsLength,
+  subscribeSrsUnhealthyVdiChainsLength,
   VDIS_TO_COALESCE_LIMIT,
 } from 'xo'
 import {
@@ -45,8 +44,6 @@ const returnTrue = () => true
 @connectStore(
   () => {
     const getHosts = createGetObjectsOfType('host')
-    const getSrs = createGetObjectsOfType('SR')
-    const getWritableSrs = getSrs.filter([isSrWritable])
     return {
       hosts: getHosts,
       isAdmin,
@@ -54,10 +51,9 @@ const returnTrue = () => true
       nHosts: getHosts.count(),
       nTasks: createGetObjectsOfType('task').count([task => task.status === 'pending']),
       pools: createGetObjectsOfType('pool'),
-      srs: getSrs,
+      srs: createGetObjectsOfType('SR'),
       status: getStatus,
       user: getUser,
-      writableSrs: getWritableSrs,
       xoaState: getXoaState,
     }
   },
@@ -73,6 +69,7 @@ const returnTrue = () => true
       cb(map(proxies, 'id').sort())
     }),
   resourceSets: subscribeResourceSets,
+  unhealthyVdiChainsLength: subscribeSrsUnhealthyVdiChainsLength,
 })
 @injectState
 export default class Menu extends Component {
@@ -90,14 +87,12 @@ export default class Menu extends Component {
 
     this._updateMissingPatchesSubscriptions()
     this._updateProxiesSubscriptions()
-    this._updateUnhealthyVdiChainsLengthSubscriptions()
   }
 
   componentWillUnmount() {
     this._removeListener()
     this._unsubscribeMissingPatches()
     this._unsubscribeProxiesApplianceUpdaterState()
-    this._unsubscribeUnhealthyVdiChainsLength()
   }
 
   componentDidUpdate(prevProps) {
@@ -107,10 +102,6 @@ export default class Menu extends Component {
 
     if (!isEqual(prevProps.proxyIds, this.props.proxyIds)) {
       this._updateProxiesSubscriptions()
-    }
-
-    if (!isEqual(Object.keys(prevProps.writableSrs).sort(), Object.keys(this.props.writableSrs).sort())) {
-      this._updateUnhealthyVdiChainsLengthSubscriptions()
     }
   }
 
@@ -147,9 +138,10 @@ export default class Menu extends Component {
     missingPatches => some(missingPatches, _ => _)
   )
 
-  _hasVdisToCoalesce = createSelector(
-    () => this.state.vdiChainsLengthBySr,
-    vdiChainsLengthBySr => some(vdiChainsLengthBySr, vdiChainsLength => size(vdiChainsLength) >= VDIS_TO_COALESCE_LIMIT)
+  _hasUnhealthyVdis = createSelector(
+    () => this.state.unhealthyVdiChainsLength,
+    unhealthyVdiChainsLength =>
+      some(unhealthyVdiChainsLength, vdiChainsLength => size(vdiChainsLength) >= VDIS_TO_COALESCE_LIMIT)
   )
 
   _toggleCollapsed = event => {
@@ -214,29 +206,6 @@ export default class Menu extends Component {
     this._unsubscribeProxiesApplianceUpdaterState = () => forEach(unsubs, unsub => unsub())
   }
 
-  _updateUnhealthyVdiChainsLengthSubscriptions = () => {
-    this.setState(({ vdiChainsLengthBySr }) => ({
-      vdiChainsLengthBySr: pick(vdiChainsLengthBySr, Object.keys(this.props.writableSrs)),
-    }))
-
-    const unsubs = map(this.props.writableSrs, sr =>
-      subscribeSrUnhealthyVdiChainsLength(sr, vdiChainsLength => {
-        this.setState(state => ({
-          vdiChainsLengthBySr: {
-            ...state.vdiChainsLengthBySr,
-            [sr.id]: vdiChainsLength,
-          },
-        }))
-      })
-    )
-
-    if (this._unsubscribeUnhealthyVdiChainsLength !== undefined) {
-      this._unsubscribeUnhealthyVdiChainsLength()
-    }
-
-    this._unsubscribeUnhealthyVdiChainsLength = () => forEach(unsubs, unsub => unsub())
-  }
-
   render() {
     const { isAdmin, isPoolAdmin, nTasks, state, status, user, pools, nHosts, srs, xoaState } = this.props
     const noOperatablePools = this._getNoOperatablePools()
@@ -251,8 +220,8 @@ export default class Menu extends Component {
       </Tooltip>
     ) : null
 
-    const vdisToCoalesceWarning = this._hasVdisToCoalesce() ? (
-      <Tooltip content={_('homeSrVdisToCoalesce')}>
+    const unhealthyVdisWarning = this._hasUnhealthyVdis() ? (
+      <Tooltip content={_('homeUnhealthyVdis')}>
         <span className='text-warning'>
           <Icon icon='alarm' />
         </span>
@@ -295,7 +264,7 @@ export default class Menu extends Component {
         to: '/dashboard/overview',
         icon: 'menu-dashboard',
         label: 'dashboardPage',
-        extra: [vdisToCoalesceWarning],
+        extra: [unhealthyVdisWarning],
         subMenu: [
           {
             to: '/dashboard/overview',
@@ -316,7 +285,7 @@ export default class Menu extends Component {
             to: '/dashboard/health',
             icon: 'menu-dashboard-health',
             label: 'overviewHealthDashboardPage',
-            extra: [vdisToCoalesceWarning],
+            extra: [unhealthyVdisWarning],
           },
         ],
       },

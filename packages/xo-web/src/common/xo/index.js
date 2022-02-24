@@ -525,28 +525,17 @@ subscribeVolumeInfo.forceRefresh = (() => {
   }
 })()
 
+export const subscribeSrsUnhealthyVdiChainsLength = createSubscription(() => _call('sr.getAllUnhealthyVdiChainsLength'))
+
 const unhealthyVdiChainsLengthSubscriptionsBySr = {}
-export const subscribeSrUnhealthyVdiChainsLength = (sr, cb) => {
-  const srId = resolveId(sr)
-  let subscription = unhealthyVdiChainsLengthSubscriptionsBySr[srId]
+export const createSrUnhealthyVdiChainsLengthSubscription = sr => {
+  sr = resolveId(sr)
+  let subscription = unhealthyVdiChainsLengthSubscriptionsBySr[sr]
   if (subscription === undefined) {
-    subscription = createSubscription(() => getUnhealthyVdiChainsLength(srId))
-    unhealthyVdiChainsLengthSubscriptionsBySr[srId] = subscription
+    subscription = createSubscription(() => _call('sr.getUnhealthyVdiChainsLength', { sr }))
+    unhealthyVdiChainsLengthSubscriptionsBySr[sr] = subscription
   }
-  return subscription(cb)
-}
-
-subscribeSrUnhealthyVdiChainsLength.forceRefresh = sr => {
-  const srId = resolveId(sr)
-  if (srId === undefined) {
-    forEach(unhealthyVdiChainsLengthSubscriptionsBySr, subscription => subscription.forceRefresh())
-    return
-  }
-
-  const subscription = unhealthyVdiChainsLengthSubscriptionsBySr[srId]
-  if (subscription !== undefined) {
-    subscription.forceRefresh()
-  }
+  return subscription
 }
 
 // System ============================================================
@@ -2025,8 +2014,6 @@ export const editSr = (sr, { nameDescription, nameLabel }) =>
 
 export const rescanSr = sr => _call('sr.scan', { id: resolveId(sr) })
 export const rescanSrs = srs => Promise.all(map(resolveIds(srs), id => _call('sr.scan', { id })))
-
-export const getUnhealthyVdiChainsLength = id => _call('sr.getUnhealthyVdiChainsLength', { id })
 
 // PBDs --------------------------------------------------------------
 

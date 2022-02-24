@@ -1,4 +1,5 @@
 import _ from 'intl'
+import addSubscriptions from 'add-subscriptions'
 import decorate from 'apply-decorators'
 import Icon from 'icon'
 import React from 'react'
@@ -7,10 +8,10 @@ import SortedTable from 'sorted-table'
 import Tooltip from 'tooltip'
 import { Card, CardHeader, CardBlock } from 'card'
 import { Col, Row } from 'grid'
-import { getUnhealthyVdiChainsLength, VDIS_TO_COALESCE_LIMIT } from 'xo'
 import { injectState, provideState } from 'reaclette'
 import { map, size } from 'lodash'
 import { Sr, Vdi } from 'render-xo-item'
+import { subscribeSrsUnhealthyVdiChainsLength, VDIS_TO_COALESCE_LIMIT } from 'xo'
 
 const COLUMNS = [
   {
@@ -48,35 +49,17 @@ const COLUMNS = [
   },
 ]
 
-const VdisToCoalesce = decorate([
+const UnhealthyVdis = decorate([
+  addSubscriptions({
+    unhealthyVdiChainsLengthBySr: subscribeSrsUnhealthyVdiChainsLength,
+  }),
   provideState({
-    initialState: () => ({
-      unhealthyVdiChainsLengthBySr: {},
-    }),
-    effects: {
-      initialize({ fetchUnhealthyVdiChainsLength }) {
-        return fetchUnhealthyVdiChainsLength(map(this.props.srs, 'id'))
-      },
-      async fetchUnhealthyVdiChainsLength(effects, srIds) {
-        const unhealthyVdiChainsLengthBySr = { ...this.state.unhealthyVdiChainsLengthBySr }
-        await Promise.all(
-          srIds.map(async srId => {
-            const unhealthyVdiChainsLength = await getUnhealthyVdiChainsLength(srId)
-            if (size(unhealthyVdiChainsLength) > 0) {
-              unhealthyVdiChainsLengthBySr[srId] = unhealthyVdiChainsLength
-            }
-          })
-        )
-
-        this.state.unhealthyVdiChainsLengthBySr = unhealthyVdiChainsLengthBySr
-      },
-    },
     computed: {
-      srIds: ({ unhealthyVdiChainsLengthBySr = {} }) => Object.keys(unhealthyVdiChainsLengthBySr),
+      srIds: (state, { unhealthyVdiChainsLengthBySr = {} }) => Object.keys(unhealthyVdiChainsLengthBySr),
     },
   }),
   injectState,
-  ({ state: { srIds, unhealthyVdiChainsLengthBySr }, srs }) => (
+  ({ state: { srIds }, unhealthyVdiChainsLengthBySr }) => (
     <Row>
       <Col>
         <Card>
@@ -101,4 +84,4 @@ const VdisToCoalesce = decorate([
   ),
 ])
 
-export default VdisToCoalesce
+export default UnhealthyVdis

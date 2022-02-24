@@ -36,7 +36,7 @@ import {
   createSort,
 } from 'selectors'
 
-import VdisToCoalesce from './vdisToCoalesce'
+import UnhealthyVdis from './unhealthyVdis'
 
 const SrColContainer = connectStore(() => ({
   container: createGetObject(),
@@ -774,7 +774,7 @@ export default class Health extends Component {
             </Col>
           </Row>
         )}
-        {props.areObjectsFetched && <VdisToCoalesce srs={userSrs} />}
+        {props.areObjectsFetched && <UnhealthyVdis />}
         <Row>
           <Col>
             <Card>
