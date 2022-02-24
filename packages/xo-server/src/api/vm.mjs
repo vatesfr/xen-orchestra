@@ -3,6 +3,7 @@ import assignWith from 'lodash/assignWith.js'
 import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
 import concat from 'lodash/concat.js'
 import getStream from 'get-stream'
+import hrp from 'http-request-plus'
 import { createLogger } from '@xen-orchestra/log'
 import { defer } from 'golike-defer'
 import { FAIL_ON_QUEUE } from 'limit-concurrency-decorator'
@@ -1102,9 +1103,20 @@ async function handleVmImport(req, res, { data, srId, type, xapi }) {
 }
 
 // TODO: "sr_id" can be passed in URL to target a specific SR
-async function import_({ data, sr, type }) {
+async function import_({ data, sr, type = 'xva', url }) {
   if (data && type === 'xva') {
     throw invalidParameters('unsupported field data for the file type xva')
+  }
+
+  const xapi = this.getXapi(sr)
+  const srId = sr._xapiId
+
+  if (url !== undefined) {
+    if (type !== 'xva') {
+      throw invalidParameters('URL import is only compatible with XVA')
+    }
+
+    return (await xapi.importVm(await hrp(url), { srId, type })).$id
   }
 
   return {
@@ -1112,12 +1124,7 @@ async function import_({ data, sr, type }) {
       'vm.import',
       this.session,
       handleVmImport,
-      {
-        data,
-        srId: sr._xapiId,
-        type,
-        xapi: this.getXapi(sr),
-      },
+      { data, srId, type, xapi },
       { exposeAllErrors: true }
     ),
   }
@@ -1155,6 +1162,7 @@ import_.params = {
   },
   type: { type: 'string', optional: true },
   sr: { type: 'string' },
+  url: { type: 'string', optional: true },
 }
 
 import_.resolve = {
