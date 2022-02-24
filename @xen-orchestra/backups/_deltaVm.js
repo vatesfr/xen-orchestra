@@ -16,17 +16,15 @@ exports.TAG_BASE_DELTA = TAG_BASE_DELTA
 const TAG_COPY_SRC = 'xo:copy_of'
 exports.TAG_COPY_SRC = TAG_COPY_SRC
 
-const CACHE = new Map()
-const resolveUuid = async (xapi, uuid, type) => {
-  let ref = CACHE.get(uuid)
+const ensureArray = value => (value === undefined ? [] : Array.isArray(value) ? value : [value])
+const resolveUuid = async (xapi, cache, uuid, type) => {
+  let ref = cache.get(uuid)
   if (ref === undefined) {
     ref = await xapi.call(`${type}.get_by_uuid`, uuid)
-    CACHE.set(uuid, ref)
+    cache.set(uuid, ref)
   }
   return ref
 }
-
-const ensureArray = value => (value === undefined ? [] : Array.isArray(value) ? value : [value])
 
 exports.exportDeltaVm = async function exportDeltaVm(
   vm,
@@ -175,9 +173,10 @@ exports.importDeltaVm = defer(async function importDeltaVm(
     }
   }
 
+  const cache = new Map()
   const mapVdisSrRefs = {}
   for (const [vdiUuid, srUuid] of Object.entries(mapVdisSrs)) {
-    mapVdisSrRefs[vdiUuid] = await resolveUuid(xapi, srUuid, 'SR')
+    mapVdisSrRefs[vdiUuid] = await resolveUuid(xapi, cache, srUuid, 'SR')
   }
 
   const baseVdis = {}
