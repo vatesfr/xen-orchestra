@@ -1,12 +1,12 @@
 import _ from 'intl'
 import React from 'react'
+import ChooseSrForEachVdisModal from 'xo/choose-sr-for-each-vdis-modal'
 import Component from 'base-component'
 import StateButton from 'state-button'
+import { createSelector } from 'selectors'
 import { getRenderXoItemOfType } from 'render-xo-item'
 import { Select, Toggle } from 'form'
 import { SelectSr } from 'select-objects'
-
-import ChooseSrForEachVdisModal from '../../../common/xo/choose-sr-for-each-vdis-modal'
 
 const BACKUP_RENDERER = getRenderXoItemOfType('backup')
 
@@ -17,8 +17,13 @@ export default class RestoreBackupsModalBody extends Component {
     return this.state
   }
 
-  _getDisks = backup =>
-    backup !== undefined ? backup.disks.reduce((vdis, vdi) => ({ ...vdis, [vdi.uuid]: vdi }), {}) : {}
+  _getDisks = createSelector(
+    () => this.state.backup,
+    backup =>
+      backup !== undefined && backup.mode === 'delta'
+        ? backup.disks.reduce((vdis, vdi) => ({ ...vdis, [vdi.uuid]: vdi }), {})
+        : {}
+  )
 
   render() {
     return (
@@ -39,7 +44,7 @@ export default class RestoreBackupsModalBody extends Component {
                 placeholder={_('importBackupModalSelectSr')}
                 required
                 value={this.state.targetSrs}
-                vdis={this.state.backup.mode === 'delta' ? this._getDisks(this.state.backup) : undefined}
+                vdis={this._getDisks()}
               />
             </div>
             <div>
