@@ -65,13 +65,13 @@ ddb.geometry.cylinders = "${geometry.cylinders}"
     )
   }
 
+  const roundToSector = value => Math.ceil(value / SECTOR_SIZE) * SECTOR_SIZE
+
   const grainTableEntries = headerData.grainTableEntries
-  const tableBuffer = Buffer.alloc(grainTableEntries * 4)
+  const tableBuffer = Buffer.alloc(roundToSector(grainTableEntries * 4))
 
   let streamPosition = 0
   let directoryOffset = 0
-
-  const roundToSector = value => Math.ceil(value / SECTOR_SIZE) * SECTOR_SIZE
 
   function track(buffer) {
     assert.equal(streamPosition % SECTOR_SIZE, 0)
@@ -84,6 +84,14 @@ ddb.geometry.cylinders = "${geometry.cylinders}"
   function createEmptyMarker(type) {
     const buff = Buffer.alloc(SECTOR_SIZE)
     buff.writeBigUInt64LE(BigInt(0), 0)
+    buff.writeUInt32LE(0, 8)
+    buff.writeUInt32LE(type, 12)
+    return buff
+  }
+
+  function createMetadataMarker(type, sectors) {
+    const buff = Buffer.alloc(SECTOR_SIZE)
+    buff.writeBigUInt64LE(BigInt(sectors), 0)
     buff.writeUInt32LE(0, 8)
     buff.writeUInt32LE(type, 12)
     return buff
@@ -143,13 +151,14 @@ ddb.geometry.cylinders = "${geometry.cylinders}"
   async function* iterator() {
     yield track(headerData.buffer)
     yield track(descriptorBuffer)
-    yield* emitBlocks(grainSizeBytes, blockGenerator)
-    yield track(createEmptyMarker(MARKER_GT))
+    yield * emitBlocks(grainSizeBytes, blockGenerator)
+    yield track(createMetadataMarker(MARKER_GT, tableBuffer.length / 512))
     const tableOffset = streamPosition
     yield track(tableBuffer)
-    yield track(createEmptyMarker(MARKER_GD))
-    yield track(createDirectoryBuffer(headerData.grainDirectoryEntries, tableOffset))
-    yield track(createEmptyMarker(MARKER_FOOTER))
+    const directoryBuffer = createDirectoryBuffer(headerData.grainDirectoryEntries, tableOffset)
+    yield track(createMetadataMarker(MARKER_GD, directoryBuffer.length / 512))
+    yield track(directoryBuffer)
+    yield track(createMetadataMarker(MARKER_FOOTER, 1))
     const footer = createStreamOptimizedHeader(
       diskCapacitySectors,
       descriptorSizeSectors,
