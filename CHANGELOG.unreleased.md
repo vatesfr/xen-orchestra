@@ -36,7 +36,6 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
-- xen-api minor
 - @xen-orchestra/xapi
 - @vates/predicates major
 - @xen-orchestra/mixins minor
