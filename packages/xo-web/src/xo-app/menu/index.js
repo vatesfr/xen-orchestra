@@ -18,6 +18,8 @@ import {
   subscribeProxies,
   subscribeProxiesApplianceUpdaterState,
   subscribeResourceSets,
+  subscribeSrsUnhealthyVdiChainsLength,
+  VDIS_TO_COALESCE_LIMIT,
 } from 'xo'
 import {
   createFilter,
@@ -29,7 +31,7 @@ import {
   getXoaState,
   isAdmin,
 } from 'selectors'
-import { every, forEach, identity, isEmpty, isEqual, map, pick, some } from 'lodash'
+import { every, forEach, identity, isEmpty, isEqual, map, pick, size, some } from 'lodash'
 
 import styles from './index.css'
 
@@ -67,6 +69,7 @@ const returnTrue = () => true
       cb(map(proxies, 'id').sort())
     }),
   resourceSets: subscribeResourceSets,
+  unhealthyVdiChainsLength: subscribeSrsUnhealthyVdiChainsLength,
 })
 @injectState
 export default class Menu extends Component {
@@ -133,6 +136,12 @@ export default class Menu extends Component {
   _hasMissingPatches = createSelector(
     () => this.state.missingPatches,
     missingPatches => some(missingPatches, _ => _)
+  )
+
+  _hasUnhealthyVdis = createSelector(
+    () => this.state.unhealthyVdiChainsLength,
+    unhealthyVdiChainsLength =>
+      some(unhealthyVdiChainsLength, vdiChainsLength => size(vdiChainsLength) >= VDIS_TO_COALESCE_LIMIT)
   )
 
   _toggleCollapsed = event => {
@@ -211,6 +220,14 @@ export default class Menu extends Component {
       </Tooltip>
     ) : null
 
+    const unhealthyVdisWarning = this._hasUnhealthyVdis() ? (
+      <Tooltip content={_('homeUnhealthyVdis')}>
+        <span className='text-warning'>
+          <Icon icon='alarm' />
+        </span>
+      </Tooltip>
+    ) : null
+
     /* eslint-disable object-property-newline */
     const items = [
       {
@@ -247,6 +264,7 @@ export default class Menu extends Component {
         to: '/dashboard/overview',
         icon: 'menu-dashboard',
         label: 'dashboardPage',
+        extra: [unhealthyVdisWarning],
         subMenu: [
           {
             to: '/dashboard/overview',
@@ -267,6 +285,7 @@ export default class Menu extends Component {
             to: '/dashboard/health',
             icon: 'menu-dashboard-health',
             label: 'overviewHealthDashboardPage',
+            extra: [unhealthyVdisWarning],
           },
         ],
       },

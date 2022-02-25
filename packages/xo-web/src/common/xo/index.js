@@ -40,6 +40,7 @@ import parseNdJson from './_parseNdJson'
 // ===================================================================
 
 export const ITEMS_PER_PAGE_OPTIONS = [10, 20, 50, 100]
+export const VDIS_TO_COALESCE_LIMIT = 10
 
 // ===================================================================
 
@@ -523,6 +524,8 @@ subscribeVolumeInfo.forceRefresh = (() => {
     }
   }
 })()
+
+export const subscribeSrsUnhealthyVdiChainsLength = createSubscription(() => _call('sr.getAllUnhealthyVdiChainsLength'))
 
 const unhealthyVdiChainsLengthSubscriptionsBySr = {}
 export const createSrUnhealthyVdiChainsLengthSubscription = sr => {

@@ -275,6 +275,7 @@ const messages = {
   homeMissingPatches: 'Missing patches',
   homePoolMaster: 'Master:',
   homeResourceSet: 'Resource set: {resourceSet}',
+  homeSrVdisToCoalesce: 'Some VDIs need to be coalesced',
   highAvailability: 'High Availability',
   powerState: 'Power state',
   srSharedType: 'Shared {type}',
@@ -1385,6 +1386,7 @@ const messages = {
   metricsLoading: 'Loading…',
 
   // ----- Health -----
+  length: 'Length: {length}',
   deleteBackups: 'Delete backup{nBackups, plural, one {} other {s}}',
   deleteBackupsMessage:
     'Are you sure you want to delete {nBackups, number} backup{nBackups, plural, one {} other {s}}?',
@@ -1432,6 +1434,8 @@ const messages = {
   alarmObject: 'Issue on',
   alarmPool: 'Pool',
   spaceLeftTooltip: '{used}% used ({free} left)',
+  vdisToCoalesce: 'VDIs to coalesce',
+  srVdisToCoalesceWarning: 'This SR has more than {limitVdis, number} VDIs to coalesce',
 
   // ----- New VM -----
   createVmModalTitle: 'Create VM',

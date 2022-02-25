@@ -36,6 +36,8 @@ import {
   createSort,
 } from 'selectors'
 
+import UnhealthyVdis from './unhealthyVdis'
+
 const SrColContainer = connectStore(() => ({
   container: createGetObject(),
 }))(
@@ -772,6 +774,7 @@ export default class Health extends Component {
             </Col>
           </Row>
         )}
+        {props.areObjectsFetched && <UnhealthyVdis />}
         <Row>
           <Col>
             <Card>
