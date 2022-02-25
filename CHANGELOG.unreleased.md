@@ -36,6 +36,5 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
-- xo-cli minor
 - xo-server minor
 - xo-web minor
