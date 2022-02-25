@@ -9,6 +9,7 @@
 - @vates/predicates 1.0.0
 - @xen-orchestra/mixins 0.2.0
 - @xen-orchestra/backups 0.19.1
+- @xen-orchestra/proxy 0.18.1
 
 ## **5.67.0** (2022-01-31)
 
