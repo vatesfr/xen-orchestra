@@ -7,6 +7,7 @@
 - xen-api 0.36.0
 - @xen-orchestra/xapi 0.9.0
 - @vates/predicates 1.0.0
+- @xen-orchestra/mixins 0.2.0
 
 ## **5.67.0** (2022-01-31)
 
