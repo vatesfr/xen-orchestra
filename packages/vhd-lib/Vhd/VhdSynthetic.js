@@ -1,3 +1,5 @@
+'use strict'
+
 const UUID = require('uuid')
 const cloneDeep = require('lodash/cloneDeep.js')
 const { asyncMap } = require('@xen-orchestra/async-map')

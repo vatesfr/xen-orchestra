@@ -1,3 +1,5 @@
+'use strict'
+
 const { ALIAS_MAX_PATH_LENGTH } = require('./_constants')
 const resolveRelativeFromFile = require('./_resolveRelativeFromFile')
 
@@ -6,7 +8,7 @@ function isVhdAlias(filename) {
 }
 exports.isVhdAlias = isVhdAlias
 
-exports.resolveAlias = async function resolveAlias(handler, filename) {
+exports.resolveVhdAlias = async function resolveVhdAlias(handler, filename) {
   if (!isVhdAlias(filename)) {
     return filename
   }

@@ -1,3 +1,5 @@
+'use strict'
+
 const assert = require('assert')
 
 const { formatFilenameDate } = require('./_filenameDate.js')

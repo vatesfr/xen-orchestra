@@ -1,3 +1,5 @@
+'use strict'
+
 exports.isMetadataFile = filename => filename.endsWith('.json')
 exports.isVhdFile = filename => filename.endsWith('.vhd')
 exports.isXvaFile = filename => filename.endsWith('.xva')

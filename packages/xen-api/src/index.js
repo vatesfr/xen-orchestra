@@ -53,6 +53,9 @@ const CONNECTED = 'connected'
 const CONNECTING = 'connecting'
 const DISCONNECTED = 'disconnected'
 
+const BARRIER_PREFIX = 'xo:barrier:'
+const BARRIER_MAX_AGE = 60 * 60 * 1e3
+
 // -------------------------------------------------------------------
 
 const identity = value => value
@@ -180,6 +183,7 @@ export class Xapi extends EventEmitter {
   }
 
   connect = coalesceCalls(this.connect)
+  // eslint-disable-next-line no-dupe-class-members
   async connect() {
     const status = this._status
 
@@ -541,18 +545,27 @@ export class Xapi extends EventEmitter {
       throw new Error('Xapi#barrier() requires events watching')
     }
 
-    const key = `xo:barrier:${Math.random().toString(36).slice(2)}`
-    const poolRef = this._pool.$ref
+    const key = BARRIER_PREFIX + Math.random().toString(36).slice(2)
+    const { $ref: poolRef, other_config } = this._pool
 
     const { promise, resolve } = defer()
     eventWatchers[key] = resolve
+
+    const now = Date.now()
+
+    // delete stale entries
+    for (const key of Object.keys(other_config)) {
+      if (key.startsWith(BARRIER_PREFIX) && now - other_config[key] > BARRIER_MAX_AGE) {
+        ignoreErrors.call(this._sessionCall('pool.remove_from_other_config', [poolRef, key]))
+      }
+    }
 
     await this._sessionCall('pool.add_to_other_config', [
       poolRef,
       key,
 
       // use ms timestamp as values to enable identification of stale entries
-      String(Date.now()),
+      String(now),
     ])
 
     await this._addSyncStackTrace(promise)
@@ -760,6 +773,7 @@ export class Xapi extends EventEmitter {
     },
   }
   _sessionOpen = coalesceCalls(this._sessionOpen)
+  // eslint-disable-next-line no-dupe-class-members
   async _sessionOpen() {
     const { user, password, sessionId } = this._auth
 
@@ -804,22 +818,14 @@ export class Xapi extends EventEmitter {
     }
   }
 
-  async _setHostAddressInUrl(url, host) {
-    const pool = this._pool
-
-    const poolBackupNetwork = pool.other_config['xo:backupNetwork']
+  async _getHostBackupAddress(host) {
     if (host === undefined) {
-      if (poolBackupNetwork === undefined) {
-        const xapiUrl = this._url
-        url.hostname = xapiUrl.hostname
-        url.port = xapiUrl.port
-        return
-      }
-
-      host = await this.getRecord('host', pool.master)
+      host = await this.getRecord('host', this._pool.master)
     }
 
     let { address } = host
+
+    const poolBackupNetwork = this._pool.other_config['xo:backupNetwork']
     if (poolBackupNetwork !== undefined) {
       const hostPifs = new Set(host.PIFs)
       try {
@@ -841,7 +847,26 @@ export class Xapi extends EventEmitter {
       }
     }
 
-    url.hostname = address
+    return address
+  }
+
+  async getHostBackupUrl(host) {
+    return Object.assign(new URL('http://localhost'), {
+      ...this._url,
+      hostname: await this._getHostBackupAddress(host),
+    })
+  }
+
+  async _setHostAddressInUrl(url, host) {
+    const poolBackupNetwork = this._pool.other_config['xo:backupNetwork']
+    if (host === undefined && poolBackupNetwork === undefined) {
+      const xapiUrl = this._url
+      url.hostname = xapiUrl.hostname
+      url.port = xapiUrl.port
+      return
+    }
+
+    url.hostname = await this._getHostBackupAddress(host)
   }
 
   _setUrl(url) {
@@ -1011,6 +1036,7 @@ export class Xapi extends EventEmitter {
   }
 
   _watchEvents = coalesceCalls(this._watchEvents)
+  // eslint-disable-next-line no-dupe-class-members
   async _watchEvents() {
     // eslint-disable-next-line no-labels
     mainLoop: while (true) {

@@ -1,11 +1,11 @@
 import * as multiparty from 'multiparty'
 import assert from 'assert'
 import getStream from 'get-stream'
-import pump from 'pump'
 import { createLogger } from '@xen-orchestra/log'
 import { defer } from 'golike-defer'
 import { format, JsonRpcError } from 'json-rpc-peer'
 import { noSuchObject } from 'xo-common/api-errors.js'
+import { pipeline } from 'stream'
 import { checkFooter, peekFooterFromVhdStream } from 'vhd-lib'
 import { vmdkToVhd } from 'xo-vmdk-to-vhd'
 
@@ -79,31 +79,37 @@ create.resolve = {
 
 // -------------------------------------------------------------------
 
-async function handleExportContent(req, res, { xapi, id }) {
-  const stream = await xapi.exportVdiContent(id)
-  req.on('close', () => stream.cancel())
+const VHD = 'vhd'
+const VMDK = 'vmdk'
+
+async function handleExportContent(req, res, { xapi, id, filename, format }) {
+  const stream = format === VMDK ? await xapi.exportVdiAsVmdk(id, filename) : await xapi.exportVdiContent(id)
+  req.on('close', () => stream.destroy())
 
   // Remove the filename as it is already part of the URL.
   stream.headers['content-disposition'] = 'attachment'
 
   res.writeHead(stream.statusCode, stream.statusMessage != null ? stream.statusMessage : '', stream.headers)
-  pump(stream, res, error => {
+  pipeline(stream, res, error => {
     if (error != null) {
       log.warn('disk.exportContent', { error })
     }
   })
 }
 
-export async function exportContent({ vdi }) {
+export async function exportContent({ vdi, format = VHD }) {
+  const filename = (vdi.name_label || 'unknown') + '.' + (format === VHD ? 'vhd' : 'vmdk')
   return {
     $getFrom: await this.registerHttpRequest(
       handleExportContent,
       {
         id: vdi._xapiId,
         xapi: this.getXapi(vdi),
+        filename,
+        format,
       },
       {
-        suffix: `/${encodeURIComponent(vdi.name_label)}.vhd`,
+        suffix: `/${encodeURIComponent(filename)}`,
       }
     ),
   }
@@ -112,6 +118,7 @@ export async function exportContent({ vdi }) {
 exportContent.description = 'export the content of a VDI'
 exportContent.params = {
   id: { type: 'string' },
+  format: { eq: [VMDK, VHD], optional: true },
 }
 exportContent.resolve = {
   vdi: ['id', ['VDI', 'VDI-snapshot'], 'view'],

@@ -1,8 +1,76 @@
 # ChangeLog
 
-## **5.66.2** (2022-01-05)
+## **next**
+
+### Enhancements
+
+- [Dashboad/Health] List all VDIs that need coalescing (PR [#6120](https://github.com/vatesfr/xen-orchestra/pull/6120))
+- [Menu] Show a warning icon when some SRs have more than 10 VDIs to coalesce (PR [#6120](https://github.com/vatesfr/xen-orchestra/pull/6120))
+
+### Bug fixes
+
+- [Self service] Change identifiers used for VM templates to avoid them from being removed on XCP-ng upgrade
+- [Proxy] Always connect to XAPI via [backup network if defined](https://xen-orchestra.com/blog/xen-orchestra-5-64/#backupmigrationnetwork)
+- [Backup/File restore] Do not list backups on non-compatible remotes (S3) (PR [#6116](https://github.com/vatesfr/xen-orchestra/pull/6116))
+- [New SR] Add confirmation message before creating local SR (PR [#6121](https://github.com/vatesfr/xen-orchestra/pull/6121))
+
+### Released packages
+
+- xen-api 0.36.0
+- @xen-orchestra/xapi 0.9.0
+- @vates/predicates 1.0.0
+- @xen-orchestra/mixins 0.2.0
+- @xen-orchestra/backups 0.19.1
+- @xen-orchestra/proxy 0.18.1
+- xo-cli 0.13.0
+- xo-server 5.88.0
+- xo-web 5.93.0
+
+## **5.67.0** (2022-01-31)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
+### Highlights
+
+- [Rolling Pool Update] Automatically pause load balancer plugin during the update [#5711](https://github.com/vatesfr/xen-orchestra/issues/5711)
+- [Export/Disks] Allow the export of disks in VMDK format (PR [#5982](https://github.com/vatesfr/xen-orchestra/pull/5982))
+- Limit number of concurrent VM migrations per pool to `3`. Can be changed in `xo-server`'s configuration file: `xapiOptions.vmMigrationConcurrency` [#6065](https://github.com/vatesfr/xen-orchestra/issues/6065) (PR [#6076](https://github.com/vatesfr/xen-orchestra/pull/6076))
+- [Health] Display pools with no default SR (PR [#6083](https://github.com/vatesfr/xen-orchestra/pull/6083))
+- [Backup] Speedup merge and cleanup speed for S3 backup by a factor 10 (PR [#6100](https://github.com/vatesfr/xen-orchestra/pull/6100))
+- [Proxy] Now ships a reverse proxy (PR [#6072](https://github.com/vatesfr/xen-orchestra/pull/6072))
+
+### Enhancements
+
+- [Delta Backup] When using S3 remote, retry uploading VHD parts on Internal Error to support [Blackblaze](https://www.backblaze.com/b2/docs/calling.html#error_handling) [Forum#5397](https://xcp-ng.org/forum/topic/5397/delta-backups-failing-aws-s3-uploadpartcopy-cpu-too-busy/5) (PR [#6086](https://github.com/vatesfr/xen-orchestra/issues/6086))
+- [Backup] Add sanity check of aliases on S3 remotes (PR [#6043](https://github.com/vatesfr/xen-orchestra/pull/6043))
+
+### Bug fixes
+
+- [Backup] Detect and clear orphan merge states, fix `ENOENT` errors (PR [#6087](https://github.com/vatesfr/xen-orchestra/pull/6087))
+- [Backup] Ensure merges are also executed after backup on S3, maintaining the size of the VHD chain under control [Forum#45743](https://xcp-ng.org/forum/post/45743) (PR [#6095](https://github.com/vatesfr/xen-orchestra/pull/6095))
+- [Backup] Delete backups immediately instead of waiting for the next backup (PR [#6081](https://github.com/vatesfr/xen-orchestra/pull/6081))
+- [Backup] Delete S3 backups completely, even if there are more than 1000 files (PR [#6103](https://github.com/vatesfr/xen-orchestra/pull/6103))
+- [Backup] Fix merge resuming (PR [#6099](https://github.com/vatesfr/xen-orchestra/pull/6099))
+- [Plugin/Audit] Fix `key cannot be 'null' or 'undefined'` error when no audit log in the database [#6040](https://github.com/vatesfr/xen-orchestra/issues/6040) (PR [#6071](https://github.com/vatesfr/xen-orchestra/pull/6071))
+- [Backup] Fix backuping restored VMs
+- [Audit Log] Don't log `proxy.getApplianceUpdaterState` API calls
+- [Audit Log] Fix long data loading when displaying logs (PR [#6113](https://github.com/vatesfr/xen-orchestra/pull/6113))
+
+### Released packages
+
+- @xen-orchestra/fs 0.20.0
+- vhd-lib 3.1.0
+- @xen-orchestra/backups 0.19.0
+- @xen-orchestra/backups-cli 0.7.0
+- xo-vmdk-to-vhd 2.1.0
+- @xen-orchestra/proxy 0.18.0
+- xo-server-audit 0.9.2
+- xo-server 5.87.0
+- xo-web 5.92.0
+
+## **5.66.2** (2022-01-05)
+
+<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Bug fixes
 
@@ -23,7 +91,7 @@
 ### Bug fixes
 
 - [Dashboard/Health] Fix `error has occured` when a pool has no default SR
-- [Delta Backup] Fix unnecessary full backup when not using S3 [Forum #5371](https://xcp-ng.org/forum/topic/5371/delta-backup-changes-in-5-66)d (PR [#6070](https://github.com/vatesfr/xen-orchestra/pull/6070))
+- [Delta Backup] Fix unnecessary full backup when not using S3 [Forum#5371](https://xcp-ng.org/forum/topic/5371/delta-backup-changes-in-5-66) (PR [#6070](https://github.com/vatesfr/xen-orchestra/pull/6070))
 - [Backup] Fix incorrect warnings `incorrect size [...] instead of undefined`
 
 ### Released packages
@@ -47,8 +115,8 @@
 ### Bug fixes
 
 - [Tables/actions] Fix collapsed actions being clickable despite being disabled (PR [#6023](https://github.com/vatesfr/xen-orchestra/pull/6023))
-- [Backup] Remove incorrect size warning following a merge [Forum #5727](https://xcp-ng.org/forum/topic/4769/warnings-showing-in-system-logs-following-each-backup-job/4) (PR [#6010](https://github.com/vatesfr/xen-orchestra/pull/6010))
-- [Delta Backup] Preserve UEFI boot parameters [#6054](https://github.com/vatesfr/xen-orchestra/issues/6054) [Forum #5319](https://xcp-ng.org/forum/topic/5319/bug-uefi-boot-parameters-not-preserved-with-delta-backups)
+- [Backup] Remove incorrect size warning following a merge [Forum#5727](https://xcp-ng.org/forum/topic/4769/warnings-showing-in-system-logs-following-each-backup-job/4) (PR [#6010](https://github.com/vatesfr/xen-orchestra/pull/6010))
+- [Delta Backup] Preserve UEFI boot parameters [#6054](https://github.com/vatesfr/xen-orchestra/issues/6054) [Forum#5319](https://xcp-ng.org/forum/topic/5319/bug-uefi-boot-parameters-not-preserved-with-delta-backups)
 
 ### Released packages
 
@@ -62,8 +130,6 @@
 - xo-web 5.91.0
 
 ## **5.65.3** (2021-12-20)
-
-<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Bug fixes
 
@@ -83,9 +149,9 @@
 
 ### Bug fixes
 
-- [Backup] Fix `handler.rmTree` is not a function (Forum [5256](https://xcp-ng.org/forum/topic/5256/s3-backup-try-it/29) PR [#6041](https://github.com/vatesfr/xen-orchestra/pull/6041) )
-- [Backup] Fix `EEXIST` in logs when multiple merge tasks are created at the same time ([Forum #5301](https://xcp-ng.org/forum/topic/5301/warnings-errors-in-journalctl))
-- [Backup] Fix missing backup on restore (Forum [5256](https://xcp-ng.org/forum/topic/5256/s3-backup-try-it/29) (PR [#6048](https://github.com/vatesfr/xen-orchestra/pull/6048))
+- [Backup] Fix `handler.rmTree` is not a function [Forum#5256](https://xcp-ng.org/forum/topic/5256/s3-backup-try-it/29) (PR [#6041](https://github.com/vatesfr/xen-orchestra/pull/6041))
+- [Backup] Fix `EEXIST` in logs when multiple merge tasks are created at the same time [Forum#5301](https://xcp-ng.org/forum/topic/5301/warnings-errors-in-journalctl)
+- [Backup] Fix missing backup on restore [Forum#5256](https://xcp-ng.org/forum/topic/5256/s3-backup-try-it/29) (PR [#6048](https://github.com/vatesfr/xen-orchestra/pull/6048))
 
 ### Released packages
 
@@ -99,10 +165,10 @@
 
 ### Bug fixes
 
-- [Delta Backup Restoration] Fix assertion error [Forum #5257](https://xcp-ng.org/forum/topic/5257/problems-building-from-source/16)
-- [Delta Backup Restoration] `TypeError: this disposable has already been disposed` [Forum #5257](https://xcp-ng.org/forum/topic/5257/problems-building-from-source/20)
-- [Backups] Fix: `Error: Chaining alias is forbidden xo-vm-backups/..alias.vhd to xo-vm-backups/....alias.vhd` when backuping a file to s3 [Forum #5226](https://xcp-ng.org/forum/topic/5256/s3-backup-try-it)
-- [Delta Backup Restoration] `VDI_IO_ERROR(Device I/O errors)` [Forum #5727](https://xcp-ng.org/forum/topic/5257/problems-building-from-source/4) (PR [#6031](https://github.com/vatesfr/xen-orchestra/pull/6031))
+- [Delta Backup Restoration] Fix assertion error [Forum#5257](https://xcp-ng.org/forum/topic/5257/problems-building-from-source/16)
+- [Delta Backup Restoration] `TypeError: this disposable has already been disposed` [Forum#5257](https://xcp-ng.org/forum/topic/5257/problems-building-from-source/20)
+- [Backups] Fix: `Error: Chaining alias is forbidden xo-vm-backups/..alias.vhd to xo-vm-backups/....alias.vhd` when backuping a file to s3 [Forum#5226](https://xcp-ng.org/forum/topic/5256/s3-backup-try-it)
+- [Delta Backup Restoration] `VDI_IO_ERROR(Device I/O errors)` [Forum#5727](https://xcp-ng.org/forum/topic/5257/problems-building-from-source/4) (PR [#6031](https://github.com/vatesfr/xen-orchestra/pull/6031))
 - [Delta Backup] Fix `Cannot read property 'uuid' of undefined` when a VDI has been removed from a backed up VM (PR [#6034](https://github.com/vatesfr/xen-orchestra/pull/6034))
 
 ### Released packages
@@ -340,7 +406,7 @@
 
 ### Bug fixes
 
-- [SDN Controller] Private network creation failure when the tunnels were created on different devices [Forum #4620](https://xcp-ng.org/forum/topic/4620/no-pif-found-in-center) (PR [#5793](https://github.com/vatesfr/xen-orchestra/pull/5793))
+- [SDN Controller] Private network creation failure when the tunnels were created on different devices [Forum#4620](https://xcp-ng.org/forum/topic/4620/no-pif-found-in-center) (PR [#5793](https://github.com/vatesfr/xen-orchestra/pull/5793))
 
 ### Released packages
 

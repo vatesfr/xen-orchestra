@@ -35,3 +35,6 @@ pnpm-debug.log.*
 yarn-error.log
 yarn-error.log.*
 .env
+
+# nyc test coverage
+.nyc_output

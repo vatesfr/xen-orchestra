@@ -1,4 +1,4 @@
-import Disposable from 'promise-toolbox/Disposable.js'
+import Disposable from 'promise-toolbox/Disposable'
 
 import { compose } from '@vates/compose'
 import { decorateWith } from '@vates/decorate-with'

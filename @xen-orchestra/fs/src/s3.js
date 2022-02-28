@@ -2,9 +2,13 @@ import aws from '@sullux/aws-sdk'
 import assert from 'assert'
 import http from 'http'
 import https from 'https'
+import pRetry from 'promise-toolbox/retry'
+import { createLogger } from '@xen-orchestra/log'
+import { decorateWith } from '@vates/decorate-with'
 import { parse } from 'xo-remote-parser'
 
 import RemoteHandlerAbstract from './abstract'
+import { asyncEach } from '@vates/async-each'
 
 // endpoints https://docs.aws.amazon.com/general/latest/gr/s3.html
 
@@ -14,6 +18,9 @@ const MAX_PART_SIZE = 1024 * 1024 * 1024 * 5 // 5GB
 const MAX_PARTS_COUNT = 10000
 const MAX_OBJECT_SIZE = 1024 * 1024 * 1024 * 1024 * 5 // 5TB
 const IDEAL_FRAGMENT_SIZE = Math.ceil(MAX_OBJECT_SIZE / MAX_PARTS_COUNT) // the smallest fragment size that still allows a 5TB upload in 10000 fragments, about 524MB
+
+const { warn } = createLogger('xo:fs:s3')
+
 export default class S3Handler extends RemoteHandlerAbstract {
   constructor(remote, _opts) {
     super(remote)
@@ -57,10 +64,11 @@ export default class S3Handler extends RemoteHandlerAbstract {
     return { Bucket: this._bucket, Key: this._dir + file }
   }
 
-  async _copy(oldPath, newPath) {
+  async _multipartCopy(oldPath, newPath) {
     const size = await this._getSize(oldPath)
+    const CopySource = `/${this._bucket}/${this._dir}${oldPath}`
     const multipartParams = await this._s3.createMultipartUpload({ ...this._createParams(newPath) })
-    const param2 = { ...multipartParams, CopySource: `/${this._bucket}/${this._dir}${oldPath}` }
+    const param2 = { ...multipartParams, CopySource }
     try {
       const parts = []
       let start = 0
@@ -74,6 +82,22 @@ export default class S3Handler extends RemoteHandlerAbstract {
       await this._s3.completeMultipartUpload({ ...multipartParams, MultipartUpload: { Parts: parts } })
     } catch (e) {
       await this._s3.abortMultipartUpload(multipartParams)
+      throw e
+    }
+  }
+
+  async _copy(oldPath, newPath) {
+    const CopySource = `/${this._bucket}/${this._dir}${oldPath}`
+    try {
+      await this._s3.copyObject({
+        ...this._createParams(newPath),
+        CopySource,
+      })
+    } catch (e) {
+      // object > 5GB must be copied part by part
+      if (e.code === 'EntityTooLarge') {
+        return this._multipartCopy(oldPath, newPath)
+      }
       throw e
     }
   }
@@ -117,6 +141,21 @@ export default class S3Handler extends RemoteHandlerAbstract {
     }
   }
 
+  // some objectstorage provider like backblaze, can answer a 500/503 routinely
+  // in this case we should retry,  and let their load balancing do its magic
+  // https://www.backblaze.com/b2/docs/calling.html#error_handling
+  @decorateWith(pRetry.wrap, {
+    delays: [100, 200, 500, 1000, 2000],
+    when: e => e.code === 'InternalError',
+    onRetry(error) {
+      warn('retrying writing file', {
+        attemptNumber: this.attemptNumber,
+        delay: this.delay,
+        error,
+        file: this.arguments[0],
+      })
+    },
+  })
   async _writeFile(file, data, options) {
     return this._s3.putObject({ ...this._createParams(file), Body: data })
   }
@@ -156,7 +195,7 @@ export default class S3Handler extends RemoteHandlerAbstract {
       Delimiter: '/', // will only return path until delimiters
     })
 
-    if (result.isTruncated) {
+    if (result.IsTruncated) {
       const error = new Error('more than 1000 objects, unsupported in this implementation')
       error.dir = dir
       throw error
@@ -246,15 +285,21 @@ export default class S3Handler extends RemoteHandlerAbstract {
         Prefix: this._dir + path + '/',
         ContinuationToken: NextContinuationToken,
       })
-      NextContinuationToken = result.isTruncated ? result.NextContinuationToken : undefined
-      for (const { Key } of result.Contents) {
-        // _unlink will add the prefix, but Key contains everything
-        // also we don't need to check if we delete a directory, since the list only return files
-        await this._s3.deleteObject({
-          Bucket: this._bucket,
-          Key,
-        })
-      }
+      NextContinuationToken = result.IsTruncated ? result.NextContinuationToken : undefined
+      await asyncEach(
+        result.Contents,
+        async ({ Key }) => {
+          // _unlink will add the prefix, but Key contains everything
+          // also we don't need to check if we delete a directory, since the list only return files
+          await this._s3.deleteObject({
+            Bucket: this._bucket,
+            Key,
+          })
+        },
+        {
+          concurrency: 16,
+        }
+      )
     } while (NextContinuationToken !== undefined)
   }
 

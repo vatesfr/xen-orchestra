@@ -1,3 +1,5 @@
+'use strict'
+
 const filenamify = require('filenamify')
 const get = require('lodash/get')
 const { asyncMap } = require('@xen-orchestra/async-map')

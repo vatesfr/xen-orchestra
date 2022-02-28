@@ -1,7 +1,7 @@
 {
   "private": false,
   "name": "vhd-lib",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "license": "AGPL-3.0-or-later",
   "description": "Primitives for VHD file handling",
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/packages/vhd-lib",
@@ -22,12 +22,12 @@
     "fs-extra": "^10.0.0",
     "limit-concurrency-decorator": "^0.5.0",
     "lodash": "^4.17.4",
-    "promise-toolbox": "^0.20.0",
+    "promise-toolbox": "^0.21.0",
     "struct-fu": "^1.2.0",
     "uuid": "^8.3.1"
   },
   "devDependencies": {
-    "@xen-orchestra/fs": "^0.19.3",
+    "@xen-orchestra/fs": "^0.20.0",
     "get-stream": "^6.0.0",
     "readable-stream": "^3.0.6",
     "tmp": "^0.2.1"

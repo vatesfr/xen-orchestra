@@ -1,3 +1,5 @@
+'use strict'
+
 const camelCase = require('lodash/camelCase')
 
 const { defineProperties, defineProperty, keys } = Object

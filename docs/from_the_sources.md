@@ -20,7 +20,7 @@ We'll consider at this point that you've got a working node on your box. E.g:
 
 ```
 $ node -v
-v14.17.0
+v16.14.0
 ```
 
 If not, see [this page](https://nodejs.org/en/download/package-manager/) for instructions on how to install Node.

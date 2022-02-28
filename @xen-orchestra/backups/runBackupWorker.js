@@ -1,3 +1,5 @@
+'use strict'
+
 const path = require('path')
 const { createLogger } = require('@xen-orchestra/log')
 const { fork } = require('child_process')

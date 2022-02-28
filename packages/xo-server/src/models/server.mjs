@@ -44,7 +44,7 @@ export class Servers extends Collection {
   }
 
   _update(servers) {
-    servers.map(server => {
+    servers.forEach(server => {
       server.allowUnauthorized = server.allowUnauthorized ? 'true' : undefined
       server.enabled = server.enabled ? 'true' : undefined
       const { error } = server

@@ -92,7 +92,7 @@ export default class {
     }
   }
 
-  async _getPlugin(id) {
+  async getPlugin(id) {
     const {
       configurationPresets,
       configurationSchema,
@@ -123,7 +123,7 @@ export default class {
   }
 
   async getPlugins() {
-    return /* await */ Promise.all(mapToArray(this._plugins, ({ id }) => this._getPlugin(id)))
+    return /* await */ Promise.all(mapToArray(this._plugins, ({ id }) => this.getPlugin(id)))
   }
 
   // Validate the configuration and configure the plugin instance.

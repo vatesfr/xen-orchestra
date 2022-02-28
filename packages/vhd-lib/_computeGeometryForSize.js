@@ -1,3 +1,5 @@
+'use strict'
+
 const { SECTOR_SIZE } = require('./_constants')
 
 module.exports = function computeGeometryForSize(size) {

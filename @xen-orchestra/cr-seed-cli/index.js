@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+'use strict'
+
 const { Ref, Xapi } = require('xen-api')
 const { defer } = require('golike-defer')
 

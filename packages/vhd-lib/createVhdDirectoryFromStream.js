@@ -1,3 +1,5 @@
+'use strict'
+
 const { parseVhdStream } = require('./parseVhdStream.js')
 const { VhdDirectory } = require('./Vhd/VhdDirectory.js')
 const { Disposable } = require('promise-toolbox')

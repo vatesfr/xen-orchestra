@@ -1,4 +1,6 @@
-const fromCallback = require('promise-toolbox/fromCallback.js')
+'use strict'
+
+const fromCallback = require('promise-toolbox/fromCallback')
 const { createParser } = require('parse-pairs')
 const { execFile } = require('child_process')
 

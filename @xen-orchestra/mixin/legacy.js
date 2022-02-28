@@ -1,3 +1,5 @@
+'use strict'
+
 const { getBoundPropertyDescriptor } = require('bind-property-descriptor')
 
 // ===================================================================

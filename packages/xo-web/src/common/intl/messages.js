@@ -275,6 +275,7 @@ const messages = {
   homeMissingPatches: 'Missing patches',
   homePoolMaster: 'Master:',
   homeResourceSet: 'Resource set: {resourceSet}',
+  homeSrVdisToCoalesce: 'Some VDIs need to be coalesced',
   highAvailability: 'High Availability',
   powerState: 'Power state',
   srSharedType: 'Shared {type}',
@@ -592,6 +593,10 @@ const messages = {
   remotePlaceHolderPassword: 'Password(fill to edit)',
 
   // ------ New Storage -----
+
+  newSr: 'New SR',
+  newSrConfirm:
+    'This will erase the entire disk or partition ({name}) to create a new storage repository. Are you sure you want to continue?',
   newSrTitle: 'Create a new SR',
   newSrGeneral: 'General',
   newSrTypeSelection: 'Select storage type:',
@@ -1004,6 +1009,8 @@ const messages = {
   rollingPoolUpdateMessage:
     'Are you sure you want to start a rolling pool update? Running VMs will be migrated back and forth and this can take a while.',
   rollingPoolUpdateHaWarning: 'High Availability is enabled. This will automatically disable it during the update.',
+  rollingPoolUpdateLoadBalancerWarning:
+    'Load Balancer plugin is running. This will automatically pause it during the update.',
   poolNeedsDefaultSr: 'The pool needs a default SR to install the patches.',
   vmsHaveCds: '{nVms, number} VM{nVms, plural, one {} other {s}} {nVms, plural, one {has} other {have}} CDs',
   ejectCds: 'Eject CDs',
@@ -1132,6 +1139,7 @@ const messages = {
   destroySelectedVdis: 'Destroy selected VDIs',
   destroyVdi: 'Destroy VDI',
   exportVdi: 'Export VDI content',
+  format: 'Format',
   importVdi: 'Import VDI content',
   importVdiNoFile: 'No file selected',
   selectVdiMessage: 'Drop VHD file here',
@@ -1141,6 +1149,8 @@ const messages = {
   warningVdiSr: "The VDIs' SRs must either be shared or on the same host for the VM to be able to start.",
   removeSelectedVdisFromVm: 'Remove selected VDIs from this VM',
   removeVdiFromVm: 'Remove VDI from this VM',
+  vhd: 'VHD',
+  vmdk: 'VMDK',
 
   // ----- VM network tab -----
 
@@ -1376,6 +1386,7 @@ const messages = {
   metricsLoading: 'Loading…',
 
   // ----- Health -----
+  length: 'Length: {length}',
   deleteBackups: 'Delete backup{nBackups, plural, one {} other {s}}',
   deleteBackupsMessage:
     'Are you sure you want to delete {nBackups, number} backup{nBackups, plural, one {} other {s}}?',
@@ -1396,6 +1407,7 @@ const messages = {
   orphanVdisTip: 'VDIs and VDI snapshots that are not attached to a VM',
   orphanedVms: 'Orphaned VMs snapshot',
   noOrphanedObject: 'No orphans',
+  poolsWithNoDefaultSr: 'Pools with no default SR',
   tooManySnapshots: 'Too many snapshots',
   tooManySnapshotsTip: 'VMs with more than the recommended amount of snapshots',
   noLocalDefaultSrs: 'No local default SRs',
@@ -1422,6 +1434,8 @@ const messages = {
   alarmObject: 'Issue on',
   alarmPool: 'Pool',
   spaceLeftTooltip: '{used}% used ({free} left)',
+  vdisToCoalesce: 'VDIs to coalesce',
+  srVdisToCoalesceWarning: 'This SR has more than {limitVdis, number} VDIs to coalesce',
 
   // ----- New VM -----
   createVmModalTitle: 'Create VM',

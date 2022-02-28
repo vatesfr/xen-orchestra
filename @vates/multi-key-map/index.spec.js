@@ -1,3 +1,5 @@
+'use strict'
+
 /* eslint-env jest */
 
 const { MultiKeyMap } = require('./')

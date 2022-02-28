@@ -1,3 +1,5 @@
+'use strict'
+
 const { BLOCK_UNUSED, FOOTER_SIZE, HEADER_SIZE, SECTOR_SIZE } = require('./_constants')
 const { readChunk } = require('@vates/read-chunk')
 const assert = require('assert')

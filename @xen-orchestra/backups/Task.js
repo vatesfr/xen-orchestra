@@ -1,4 +1,6 @@
-const CancelToken = require('promise-toolbox/CancelToken.js')
+'use strict'
+
+const CancelToken = require('promise-toolbox/CancelToken')
 const Zone = require('node-zone')
 
 const logAfterEnd = () => {
@@ -6,6 +8,8 @@ const logAfterEnd = () => {
 }
 
 const noop = Function.prototype
+
+const serializeErrors = errors => (Array.isArray(errors) ? errors.map(serializeError) : errors)
 
 // Create a serializable object from an error.
 //
@@ -15,6 +19,7 @@ const serializeError = error =>
     ? {
         ...error, // Copy enumerable properties.
         code: error.code,
+        errors: serializeErrors(error.errors), // supports AggregateError
         message: error.message,
         name: error.name,
         stack: error.stack,

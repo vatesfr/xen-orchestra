@@ -1,3 +1,5 @@
+'use strict'
+
 const readChunk = (stream, size) =>
   size === 0
     ? Promise.resolve(Buffer.alloc(0))

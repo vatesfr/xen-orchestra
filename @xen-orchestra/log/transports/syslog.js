@@ -1,3 +1,5 @@
+'use strict'
+
 const fromCallback = require('promise-toolbox/fromCallback')
 const splitHost = require('split-host')
 const { createClient, Facility, Severity, Transport } = require('syslog-client')

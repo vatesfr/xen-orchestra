@@ -1,3 +1,5 @@
+'use strict'
+
 const { execFile } = require('child_process')
 
 const openssl = (cmd, args, { input, ...opts } = {}) =>

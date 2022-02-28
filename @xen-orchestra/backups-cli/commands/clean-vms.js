@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+'use strict'
+
 // -----------------------------------------------------------------------------
 
 const asyncMap = require('lodash/curryRight')(require('@xen-orchestra/async-map').asyncMap)

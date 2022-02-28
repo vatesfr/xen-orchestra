@@ -1,7 +1,9 @@
+'use strict'
+
 const { createLogger } = require('@xen-orchestra/log')
 const { join } = require('path')
 
-const { BACKUP_DIR, getVmBackupDir } = require('../_getVmBackupDir.js')
+const { getVmBackupDir } = require('../_getVmBackupDir.js')
 const MergeWorker = require('../merge-worker/index.js')
 const { formatFilenameDate } = require('../_filenameDate.js')
 
@@ -44,13 +46,14 @@ exports.MixinBackupWriter = (BaseClass = Object) =>
 
     async afterBackup() {
       const { disableMergeWorker } = this._backup.config
-
-      const { merge } = await this._cleanVm({ remove: true, merge: disableMergeWorker })
-      await this.#lock.dispose()
-
       // merge worker only compatible with local remotes
       const { handler } = this._adapter
-      if (merge && !disableMergeWorker && typeof handler._getRealPath === 'function') {
+      const willMergeInWorker = !disableMergeWorker && typeof handler._getRealPath === 'function'
+
+      const { merge } = await this._cleanVm({ remove: true, merge: !willMergeInWorker })
+      await this.#lock.dispose()
+
+      if (merge && willMergeInWorker) {
         const taskFile =
           join(MergeWorker.CLEAN_VM_QUEUE, formatFilenameDate(new Date())) +
           '-' +

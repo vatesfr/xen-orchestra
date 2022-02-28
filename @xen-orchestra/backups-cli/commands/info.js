@@ -1,3 +1,5 @@
+'use strict'
+
 const groupBy = require('lodash/groupBy')
 const { asyncMap } = require('@xen-orchestra/async-map')
 const { createHash } = require('crypto')

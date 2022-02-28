@@ -1,3 +1,5 @@
+'use strict'
+
 const get = require('lodash/get')
 const identity = require('lodash/identity')
 const isEqual = require('lodash/isEqual')
@@ -39,6 +41,10 @@ module.exports = class Config {
 
   getDuration(path) {
     return parseDuration(this.get(path))
+  }
+
+  getOptional(path) {
+    return get(this._config, path)
   }
 
   watch(path, cb) {

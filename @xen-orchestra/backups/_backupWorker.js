@@ -1,11 +1,14 @@
+'use strict'
+
 require('@xen-orchestra/log/configure.js').catchGlobalErrors(
   require('@xen-orchestra/log').createLogger('xo:backups:worker')
 )
 
-const Disposable = require('promise-toolbox/Disposable.js')
-const ignoreErrors = require('promise-toolbox/ignoreErrors.js')
+const Disposable = require('promise-toolbox/Disposable')
+const ignoreErrors = require('promise-toolbox/ignoreErrors')
 const { compose } = require('@vates/compose')
 const { createDebounceResource } = require('@vates/disposable/debounceResource.js')
+const { decorateMethodsWith } = require('@vates/decorate-with')
 const { deduped } = require('@vates/disposable/deduped.js')
 const { getHandler } = require('@xen-orchestra/fs')
 const { parseDuration } = require('@vates/parse-duration')
@@ -58,11 +61,6 @@ class BackupWorker {
     }).run()
   }
 
-  getAdapter = Disposable.factory(this.getAdapter)
-  getAdapter = deduped(this.getAdapter, remote => [remote.url])
-  getAdapter = compose(this.getAdapter, function (resource) {
-    return this.debounceResource(resource)
-  })
   async *getAdapter(remote) {
     const handler = getHandler(remote, this.#remoteOptions)
     await handler.sync()
@@ -77,11 +75,6 @@ class BackupWorker {
     }
   }
 
-  getXapi = Disposable.factory(this.getXapi)
-  getXapi = deduped(this.getXapi, ({ url }) => [url])
-  getXapi = compose(this.getXapi, function (resource) {
-    return this.debounceResource(resource)
-  })
   async *getXapi({ credentials: { username: user, password }, ...opts }) {
     const xapi = new Xapi({
       ...this.#xapiOptions,
@@ -102,6 +95,30 @@ class BackupWorker {
     }
   }
 }
+
+decorateMethodsWith(BackupWorker, {
+  getAdapter: compose([
+    Disposable.factory,
+    [deduped, remote => [remote.url]],
+    [
+      compose,
+      function (resource) {
+        return this.debounceResource(resource)
+      },
+    ],
+  ]),
+
+  getXapi: compose([
+    Disposable.factory,
+    [deduped, xapi => [xapi.url]],
+    [
+      compose,
+      function (resource) {
+        return this.debounceResource(resource)
+      },
+    ],
+  ]),
+})
 
 // Received message:
 //

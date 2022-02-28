@@ -156,7 +156,16 @@ const SchedulePreviewBody = decorate([
   })),
   connectStore(() => ({
     nVms: createGetObjectsOfType('VM')
-      .filter(createSelector((_, props) => props.job.vms, createPredicate))
+      .filter(
+        createSelector(
+          (_, props) => props.job.id,
+          (_, props) => props.job.vms,
+          (jobId, pattern) => {
+            const isMatchingVm = createPredicate(pattern)
+            return vm => isMatchingVm(vm) && !('start' in vm.blockedOperations && vm.other['xo:backup:job'] === jobId)
+          }
+        )
+      )
       .count(),
   })),
   ({ job, schedule, scrollIntoLogs, lastRunLog, nVms }) => (

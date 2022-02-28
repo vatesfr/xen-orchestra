@@ -1,4 +1,4 @@
-import Disposable from 'promise-toolbox/Disposable.js'
+import Disposable from 'promise-toolbox/Disposable'
 import { execa } from 'execa'
 
 // - [x] list partitions

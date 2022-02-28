@@ -1,3 +1,5 @@
+'use strict'
+
 const assert = require('assert')
 
 const { HEADER_COOKIE, HEADER_VERSION, SECTOR_SIZE } = require('./_constants')

@@ -1,3 +1,5 @@
+'use strict'
+
 const { pFromCallback } = require('promise-toolbox')
 const { pipeline } = require('readable-stream')
 const asyncIteratorToStream = require('async-iterator-to-stream')

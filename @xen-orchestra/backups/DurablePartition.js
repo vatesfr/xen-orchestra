@@ -1,3 +1,5 @@
+'use strict'
+
 const { asyncMap } = require('@xen-orchestra/async-map')
 
 exports.DurablePartition = class DurablePartition {

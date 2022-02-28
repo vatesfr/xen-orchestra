@@ -8,13 +8,13 @@ import fromCallback from 'promise-toolbox/fromCallback'
 import fs from 'fs'
 import getopts from 'getopts'
 import hrp from 'http-request-plus'
-import pump from 'pump'
 import split2 from 'split2'
 import pumpify from 'pumpify'
 import { extname, join } from 'path'
 import { format, parse } from 'json-rpc-protocol'
 import { inspect } from 'util'
 import { load as loadConfig } from 'app-conf'
+import { pipeline } from 'stream'
 import { readChunk } from '@vates/read-chunk'
 
 import pkg from '../package.json'
@@ -106,7 +106,7 @@ ${pkg.name} v${pkg.version}`
       if (stdout.isTTY) {
         throw new Error('binary data, pipe to a file!')
       }
-      await fromCallback(pump, response, stdout)
+      await fromCallback(pipeline, response, stdout)
       return
     }
 

@@ -1,4 +1,6 @@
-const Disposable = require('promise-toolbox/Disposable.js')
+'use strict'
+
+const Disposable = require('promise-toolbox/Disposable')
 const { join } = require('path')
 const { mkdir, rmdir } = require('fs-extra')
 const { tmpdir } = require('os')

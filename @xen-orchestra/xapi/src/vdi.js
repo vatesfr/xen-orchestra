@@ -1,6 +1,6 @@
-const CancelToken = require('promise-toolbox/CancelToken.js')
-const pCatch = require('promise-toolbox/catch.js')
-const pRetry = require('promise-toolbox/retry.js')
+const CancelToken = require('promise-toolbox/CancelToken')
+const pCatch = require('promise-toolbox/catch')
+const pRetry = require('promise-toolbox/retry')
 const { decorateWith } = require('@vates/decorate-with')
 
 const extractOpaqueRef = require('./_extractOpaqueRef.js')
@@ -57,7 +57,7 @@ module.exports = class Vdi {
       SR,
       tags,
       type,
-      virtual_size: virtual_size,
+      virtual_size,
       xenstore_data,
     })
   }

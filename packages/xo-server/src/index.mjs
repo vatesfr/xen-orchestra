@@ -22,6 +22,7 @@ import serveStatic from 'serve-static'
 import stoppable from 'stoppable'
 import WebServer from 'http-server-plus'
 import WebSocket, { WebSocketServer } from 'ws'
+import { asyncMap } from '@xen-orchestra/async-map'
 import { xdgConfig } from 'xdg-basedir'
 import { createLogger } from '@xen-orchestra/log'
 import { createRequire } from 'module'
@@ -113,6 +114,11 @@ async function updateLocalConfig(diff) {
 
 async function createExpressApp(config) {
   const app = createExpress()
+
+  // For a nicer API
+  //
+  // https://expressjs.com/en/api.html#app.set
+  app.set('json spaces', 2)
 
   app.use(helmet(config.http.helmet))
 
@@ -236,7 +242,7 @@ async function setUpPassport(express, xo, { authentication: authCfg, http: { coo
   }
 
   const SIGNIN_STRATEGY_RE = /^\/signin\/([^/]+)(\/callback)?(:?\?.*)?$/
-  const UNCHECKED_URL_RE = /favicon|fontawesome|images|styles|\.(?:css|jpg|png)$/
+  const UNCHECKED_URL_RE = /(?:^\/rest\/)|favicon|fontawesome|images|styles|\.(?:css|jpg|png)$/
   express.use(async (req, res, next) => {
     const { url } = req
 
@@ -362,13 +368,11 @@ async function registerPluginsInPath(path, prefix) {
     throw error
   })
 
-  await Promise.all(
-    files.map(name => {
-      if (name.startsWith(prefix)) {
-        return registerPluginWrapper.call(this, `${path}/${name}`, name.slice(prefix.length))
-      }
-    })
-  )
+  await asyncMap(files, name => {
+    if (name.startsWith(prefix)) {
+      return registerPluginWrapper.call(this, `${path}/${name}`, name.slice(prefix.length))
+    }
+  })
 }
 
 async function registerPlugins(xo) {
@@ -772,6 +776,7 @@ export default async function main(args) {
     appName: APP_NAME,
     appVersion: APP_VERSION,
     config,
+    express,
     safeMode,
   })
 

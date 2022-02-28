@@ -1,5 +1,5 @@
 import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
-import Disposable from 'promise-toolbox/Disposable.js'
+import Disposable from 'promise-toolbox/Disposable'
 import forOwn from 'lodash/forOwn.js'
 import groupBy from 'lodash/groupBy.js'
 import merge from 'lodash/merge.js'
@@ -185,19 +185,18 @@ export default class BackupNg {
 
           vmIds = Object.keys(
             app.getObjects({
-              filter: createPredicate({
-                type: 'VM',
-                ...vmsPattern,
+              filter: (() => {
+                const isMatchingVm = createPredicate({
+                  type: 'VM',
+                  ...vmsPattern,
+                })
 
-                // don't match VMs created by this very job
-                //
-                // otherwise replicated VMs would be matched and replicated again and again
-                other: {
-                  __not: {
-                    'xo:backup:job': job.id,
-                  },
-                },
-              }),
+                return obj =>
+                  isMatchingVm(obj) &&
+                  // don't match replicated VMs created by this very job otherwise
+                  // they will be replicated again and again
+                  !('start' in obj.blockedOperations && obj.other['xo:backup:job'] === job.id)
+              })(),
             })
           )
           if (vmIds.length === 0) {
@@ -271,14 +270,17 @@ export default class BackupNg {
               remotes[id] = remote
             }),
             asyncMapSettled([...servers], async id => {
-              const { allowUnauthorized, host, password, username } = await app.getXenServer(id)
+              const { allowUnauthorized, password, username } = await app.getXenServer(id)
+
+              const xapi = app.getAllXapis()[id]
+
               xapis[id] = {
                 allowUnauthorized,
                 credentials: {
                   username,
                   password,
                 },
-                url: host,
+                url: await xapi.getHostBackupUrl(xapi.pool.$master),
               }
             }),
           ])

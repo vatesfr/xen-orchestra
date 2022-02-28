@@ -1,3 +1,5 @@
+'use strict'
+
 const { createReadStream, createWriteStream, statSync } = require('fs')
 const { fromCallback } = require('promise-toolbox')
 const { PassThrough, pipeline } = require('readable-stream')

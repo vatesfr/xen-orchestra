@@ -1,3 +1,5 @@
+'use strict'
+
 module.exports = {
   extends: ['plugin:eslint-comments/recommended', 'standard', 'standard-jsx', 'prettier'],
   globals: {
@@ -18,7 +20,18 @@ module.exports = {
         'no-console': 'off',
       },
     },
+    {
+      files: ['*.mjs'],
+      parserOptions: {
+        sourceType: 'module',
+      },
+    },
   ],
+
+  parserOptions: {
+    ecmaVersion: 13,
+    sourceType: 'script',
+  },
 
   rules: {
     // disabled because XAPI objects are using camel case
@@ -34,5 +47,7 @@ module.exports = {
     'lines-between-class-members': 'off',
 
     'no-console': ['error', { allow: ['warn', 'error'] }],
+
+    strict: 'error',
   },
 }
