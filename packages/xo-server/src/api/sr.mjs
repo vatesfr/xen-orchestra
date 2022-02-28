@@ -5,6 +5,7 @@ import some from 'lodash/some.js'
 
 import ensureArray from '../_ensureArray.mjs'
 import { asInteger } from '../xapi/utils.mjs'
+import { debounceWithKey } from '../_pDebounceWithKey.mjs'
 import { forEach, parseXml } from '../utils.mjs'
 
 // ===================================================================
@@ -866,7 +867,7 @@ probeNfsExists.resolve = {
 
 // -------------------------------------------------------------------
 
-export function getAllUnhealthyVdiChainsLength() {
+export const getAllUnhealthyVdiChainsLength = debounceWithKey(function getAllUnhealthyVdiChainsLength() {
   const unhealthyVdiChainsLengthBySr = {}
   filter(this.objects.all, obj => obj.type === 'SR' && obj.content_type !== 'iso' && obj.size > 0).forEach(sr => {
     const unhealthyVdiChainsLengthByVdi = this.getXapi(sr).getUnhealthyVdiChainsLength(sr)
@@ -875,7 +876,7 @@ export function getAllUnhealthyVdiChainsLength() {
     }
   })
   return unhealthyVdiChainsLengthBySr
-}
+}, 60e3)
 
 // -------------------------------------------------------------------
 
