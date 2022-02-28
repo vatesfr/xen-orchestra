@@ -1,5 +1,6 @@
 import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
 import filter from 'lodash/filter.js'
+import isEmpty from 'lodash/isEmpty.js'
 import some from 'lodash/some.js'
 
 import ensureArray from '../_ensureArray.mjs'
@@ -868,7 +869,10 @@ probeNfsExists.resolve = {
 export function getAllUnhealthyVdiChainsLength() {
   const unhealthyVdiChainsLengthBySr = {}
   filter(this.objects.all, obj => obj.type === 'SR' && obj.content_type !== 'iso' && obj.size > 0).forEach(sr => {
-    unhealthyVdiChainsLengthBySr[sr.uuid] = this.getXapi(sr).getUnhealthyVdiChainsLength(sr)
+    const unhealthyVdiChainsLengthByVdi = this.getXapi(sr).getUnhealthyVdiChainsLength(sr)
+    if (!isEmpty(unhealthyVdiChainsLengthByVdi)) {
+      unhealthyVdiChainsLengthBySr[sr.uuid] = unhealthyVdiChainsLengthByVdi
+    }
   })
   return unhealthyVdiChainsLengthBySr
 }
