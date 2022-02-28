@@ -21,7 +21,7 @@
 - @vates/predicates 1.0.0
 - @xen-orchestra/mixins 0.2.0
 - @xen-orchestra/backups 0.20.0
-- @xen-orchestra/proxy 0.18.1
+- @xen-orchestra/proxy 0.19.0
 - xo-cli 0.13.0
 - xo-server 5.88.0
 - xo-web 5.93.0
