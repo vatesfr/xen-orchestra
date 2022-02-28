@@ -869,9 +869,9 @@ probeNfsExists.resolve = {
 export function getAllUnhealthyVdiChainsLength() {
   const unhealthyVdiChainsLengthBySr = {}
   filter(this.objects.all, obj => obj.type === 'SR' && obj.content_type !== 'iso' && obj.size > 0).forEach(sr => {
-    const unhealthyVdiChainsLength = this.getXapi(sr).getUnhealthyVdiChainsLength(sr)
-    if (size(unhealthyVdiChainsLength) > 0) {
-      unhealthyVdiChainsLengthBySr[sr.uuid] = unhealthyVdiChainsLength
+    const unhealthyVdiChainsLengthByVdi = this.getXapi(sr).getUnhealthyVdiChainsLength(sr)
+    if (size(unhealthyVdiChainsLengthByVdi) > 0) {
+      unhealthyVdiChainsLengthBySr[sr.uuid] = unhealthyVdiChainsLengthByVdi
     }
   })
   return unhealthyVdiChainsLengthBySr
