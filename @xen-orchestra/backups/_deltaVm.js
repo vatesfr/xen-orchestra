@@ -19,6 +19,14 @@ const TAG_COPY_SRC = 'xo:copy_of'
 exports.TAG_COPY_SRC = TAG_COPY_SRC
 
 const ensureArray = value => (value === undefined ? [] : Array.isArray(value) ? value : [value])
+const resolveUuid = async (xapi, cache, uuid, type) => {
+  let ref = cache.get(uuid)
+  if (ref === undefined) {
+    ref = await xapi.call(`${type}.get_by_uuid`, uuid)
+    cache.set(uuid, ref)
+  }
+  return ref
+}
 
 exports.exportDeltaVm = async function exportDeltaVm(
   vm,
@@ -167,6 +175,12 @@ exports.importDeltaVm = defer(async function importDeltaVm(
     }
   }
 
+  const cache = new Map()
+  const mapVdisSrRefs = {}
+  for (const [vdiUuid, srUuid] of Object.entries(mapVdisSrs)) {
+    mapVdisSrRefs[vdiUuid] = await resolveUuid(xapi, cache, srUuid, 'SR')
+  }
+
   const baseVdis = {}
   baseVm &&
     baseVm.$VBDs.forEach(vbd => {
@@ -190,7 +204,7 @@ exports.importDeltaVm = defer(async function importDeltaVm(
           [TAG_BASE_DELTA]: undefined,
           [TAG_COPY_SRC]: vdi.uuid,
         },
-        sr: mapVdisSrs[vdi.uuid] ?? sr.$ref,
+        sr: mapVdisSrRefs[vdi.uuid] ?? sr.$ref,
       })
     )
     $defer.onFailure(() => suspendVdi.$destroy())
@@ -257,7 +271,7 @@ exports.importDeltaVm = defer(async function importDeltaVm(
             [TAG_BASE_DELTA]: undefined,
             [TAG_COPY_SRC]: vdi.uuid,
           },
-          SR: mapVdisSrs[vdi.uuid] ?? sr.$ref,
+          SR: mapVdisSrRefs[vdi.uuid] ?? sr.$ref,
         })
       )
       $defer.onFailure(() => newVdi.$destroy())

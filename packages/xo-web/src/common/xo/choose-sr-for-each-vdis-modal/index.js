@@ -2,7 +2,7 @@ import Collapse from 'collapse'
 import Component from 'base-component'
 import PropTypes from 'prop-types'
 import React from 'react'
-import { map } from 'lodash'
+import { isEmpty, map } from 'lodash'
 import { Vdi } from 'render-xo-item'
 
 import _ from '../../intl'
@@ -54,21 +54,23 @@ export default class ChooseSrForEachVdisModal extends Component {
     const { props } = this
     const {
       mainSrPredicate = isSrWritable,
+      placeholder,
       srPredicate = mainSrPredicate,
       value: { mainSr, mapVdisSrs },
+      vdis,
     } = props
 
     return (
       <div>
         <SelectSr
           onChange={this._onChangeMainSr}
-          placeholder={_('chooseSrForEachVdisModalMainSr')}
+          placeholder={placeholder !== undefined ? placeholder : 'chooseSrForEachVdisModalMainSr'}
           predicate={mainSrPredicate}
           required
           value={mainSr}
         />
         <br />
-        {props.vdis != null && mainSr != null && (
+        {!isEmpty(vdis) && mainSr != null && (
           <Collapsible buttonText={_('chooseSrForEachVdisModalSelectSr')} collapsible size='small'>
             <br />
             <Container>
@@ -80,11 +82,9 @@ export default class ChooseSrForEachVdisModal extends Component {
                   <strong>{_('chooseSrForEachVdisModalSrLabel')}</strong>
                 </Col>
               </SingleLineRow>
-              {map(props.vdis, vdi => (
+              {map(vdis, vdi => (
                 <SingleLineRow key={vdi.uuid}>
-                  <Col size={6}>
-                    <Vdi id={vdi.id} showSize />
-                  </Col>
+                  <Col size={6}>{vdi.name !== undefined ? vdi.name : <Vdi id={vdi.id} showSize />}</Col>
                   <Col size={6}>
                     <SelectSr
                       onChange={sr =>
