@@ -16,10 +16,13 @@ import Input from '../../components/Input'
 import Select from '../../components/Select'
 import Tabs from '../../components/Tabs'
 import { alert, confirm } from '../../components/Modal'
+import ProgressCircle from '../../components/ProgressCircle'
+import { toNumber } from 'lodash'
 
 interface ParentState {}
 
 interface State {
+  progressBarValue: number
   value: unknown
 }
 
@@ -28,6 +31,7 @@ interface Props {}
 interface ParentEffects {}
 
 interface Effects {
+  onChangeProgressBarValue: (e: React.ChangeEvent<HTMLInputElement>) => void
   onChangeSelect: (e: SelectChangeEvent<unknown>) => void
   sayHello: () => void
   sendPromise: (data: Record<string, unknown>) => Promise<void>
@@ -65,9 +69,13 @@ const Code = styled(SyntaxHighlighter).attrs(() => ({
 const App = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
   {
     initialState: () => ({
+      progressBarValue: 100,
       value: '',
     }),
     effects: {
+      onChangeProgressBarValue: function (e) {
+        this.state.progressBarValue = toNumber(e.target.value)
+      },
       onChangeSelect: function (e) {
         this.state.value = e.target.value
       },
@@ -90,6 +98,53 @@ const App = withState<State, Props, Effects, Computed, ParentState, ParentEffect
   },
   ({ effects, state }) => (
     <Page>
+      <h2>ProgressCircle</h2>
+      <Container>
+        <Render>
+          <div style={{ display: 'flex', justifyContent: 'space-around', flexWrap: 'wrap' }}>
+            <ProgressCircle progress={state.progressBarValue} strokeColor='#28a745' secondaryColor='#ddd9d9' base={200}>
+              {value => (
+                <p
+                  style={{
+                    color: '#28a745',
+                    fontWeight: 'bold',
+                  }}
+                >
+                  {Math.round((value / 200) * 100)}%
+                </p>
+              )}
+            </ProgressCircle>
+            <ProgressCircle progress={state.progressBarValue} strokeColor='red' base={200} />
+          </div>
+          <input
+            type='range'
+            min='0'
+            max='200'
+            onChange={effects.onChangeProgressBarValue}
+            step='1'
+            defaultValue={state.progressBarValue}
+            style={{
+              display: 'block',
+              margin: '10px auto',
+            }}
+          />
+        </Render>
+        <Code>
+          {`<ProgressCircle progress={state.progressBarValue} strokeColor='#28a745' secondaryColor='#ddd9d9' base={200}>
+  {value => (
+    <p
+      style={{
+        color: '#28a745',
+        fontWeight: 'bold',
+      }}
+    >
+      {Math.round((value / 200) * 100)}%
+    </p>
+  )}
+</ProgressCircle>
+<ProgressCircle progress={state.progressBarValue} strokeColor='red' base={200} />`}
+        </Code>
+      </Container>
       <h2>ActionButton</h2>
       <Container>
         <Render>
