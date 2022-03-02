@@ -1,8 +1,8 @@
+#last version of ubuntu with blktap-utils
 FROM ubuntu:xenial
 
 # https://qastack.fr/programming/25899912/how-to-install-nvm-in-docker
 
-RUN ls
 RUN apt-get update
 RUN apt-get install -y curl qemu-utils blktap-utils vmdk-stream-converter git
 ENV NVM_DIR /usr/local/nvm
