@@ -154,7 +154,7 @@ const mdTheme = createTheme({
     primary: {
       dark: '#168FFF',
       light: '#0085FF',
-      main: '#0085FF',
+      main: '#007bff',
     },
     secondary: {
       main: '#6c757d',
