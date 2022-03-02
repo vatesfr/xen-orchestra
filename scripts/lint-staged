@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+'use strict'
+
 const formatFiles = files => {
   run('./node_modules/.bin/prettier', ['--write'].concat(files))
 }

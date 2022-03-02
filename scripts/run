@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+'use strict'
+
 const { fromEvent } = require('promise-toolbox')
 const { spawn } = require('child_process')
 

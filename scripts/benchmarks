@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+'use strict'
+
 require('@babel/register')
 
 const pkg = require('../package.json')
@@ -21,7 +23,7 @@ function bench(path) {
   }
 
   fn({
-    benchmark: benchmark,
+    benchmark,
   })
 
   benchmarks.forEach(function (benchmark) {

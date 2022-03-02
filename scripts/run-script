@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+'use strict'
+
 const { delimiter } = require('path')
 const { forEach, fromEvent } = require('promise-toolbox')
 const { spawn } = require('child_process')
