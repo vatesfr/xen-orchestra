@@ -56,6 +56,13 @@ import { createVhdStreamWithLength } from 'vhd-lib'
 
 const log = createLogger('xo:xapi')
 
+class AggregateError extends Error {
+  constructor(errors, message) {
+    super(message)
+    this.errors = errors
+  }
+}
+
 // ===================================================================
 
 const TAG_BASE_DELTA = 'xo:base_delta'
@@ -1334,14 +1341,52 @@ export default class Xapi extends XapiBase {
       await vm.update_blocked_operations({ start: null, start_on: null })
     }
 
-    return hostId === undefined
-      ? this.call(
+    const vmRef = vm.$ref
+    if (hostId === undefined) {
+      try {
+        await this.call(
           'VM.start',
-          vm.$ref,
+          vmRef,
           false, // Start paused?
           false // Skip pre-boot checks?
         )
-      : this.callAsync('VM.start_on', vm.$ref, this.getObject(hostId).$ref, false, false)
+      } catch (error) {
+        if (error.code !== 'NO_HOSTS_AVAILABLE') {
+          throw error
+        }
+
+        throw new AggregateError(
+          await asyncMap(await this.call('host.get_all'), async hostRef => {
+            const hostNameLabel = await this.call('host.get_name_label', hostRef)
+            try {
+              await this.call('VM.assert_can_boot_here', vmRef, hostRef)
+              return `${hostNameLabel}: OK`
+            } catch (error) {
+              return `${hostNameLabel}: ${error.message}`
+            }
+          })
+        )
+      }
+    } else {
+      const hostRef = this.getObject(hostId).$ref
+      let retry
+      do {
+        retry = false
+
+        try {
+          await this.callAsync('VM.start_on', vmRef, hostRef, false, false)
+        } catch (error) {
+          if (error.code !== 'NO_HOSTS_AVAILABLE') {
+            throw error
+          }
+
+          await this.call('VM.assert_can_boot_here', vmRef, hostRef)
+
+          // Something has changed between the last two calls, starting the VM should be retried
+          retry = true
+        }
+      } while (retry)
+    }
   }
 
   async startVm(vmId, options) {
