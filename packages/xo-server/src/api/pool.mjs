@@ -133,7 +133,7 @@ installPatches.description = 'Install patches on hosts'
 // -------------------------------------------------------------------
 
 export const rollingUpdate = deferrable(async function ($defer, { pool }) {
-  if ((await this.getPlugin('load-balancer'))?.loaded) {
+  if ((await this.getOptionalPlugin('load-balancer'))?.loaded) {
     await this.unloadPlugin('load-balancer')
     $defer(() => this.loadPlugin('load-balancer'))
   }

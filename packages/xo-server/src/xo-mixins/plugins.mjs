@@ -122,6 +122,16 @@ export default class {
     }
   }
 
+  async getOptionalPlugin(id) {
+    try {
+      return await this.getPlugin(id)
+    } catch (error) {
+      if (!noSuchObject.is(error, { id, type: 'plugin' })) {
+        throw error
+      }
+    }
+  }
+
   async getPlugins() {
     return /* await */ Promise.all(mapToArray(this._plugins, ({ id }) => this.getPlugin(id)))
   }
