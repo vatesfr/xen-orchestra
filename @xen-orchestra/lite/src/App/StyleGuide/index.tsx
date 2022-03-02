@@ -98,53 +98,6 @@ const App = withState<State, Props, Effects, Computed, ParentState, ParentEffect
   },
   ({ effects, state }) => (
     <Page>
-      <h2>ProgressCircle</h2>
-      <Container>
-        <Render>
-          <div style={{ display: 'flex', justifyContent: 'space-around', flexWrap: 'wrap' }}>
-            <ProgressCircle progress={state.progressBarValue} strokeColor='#28a745' secondaryColor='#ddd9d9' base={200}>
-              {value => (
-                <p
-                  style={{
-                    color: '#28a745',
-                    fontWeight: 'bold',
-                  }}
-                >
-                  {Math.round((value / 200) * 100)}%
-                </p>
-              )}
-            </ProgressCircle>
-            <ProgressCircle progress={state.progressBarValue} strokeColor='red' base={200} />
-          </div>
-          <input
-            type='range'
-            min='0'
-            max='200'
-            onChange={effects.onChangeProgressBarValue}
-            step='1'
-            defaultValue={state.progressBarValue}
-            style={{
-              display: 'block',
-              margin: '10px auto',
-            }}
-          />
-        </Render>
-        <Code>
-          {`<ProgressCircle progress={state.progressBarValue} strokeColor='#28a745' secondaryColor='#ddd9d9' base={200}>
-  {value => (
-    <p
-      style={{
-        color: '#28a745',
-        fontWeight: 'bold',
-      }}
-    >
-      {Math.round((value / 200) * 100)}%
-    </p>
-  )}
-</ProgressCircle>
-<ProgressCircle progress={state.progressBarValue} strokeColor='red' base={200} />`}
-        </Code>
-      </Container>
       <h2>ActionButton</h2>
       <Container>
         <Render>
@@ -263,6 +216,53 @@ const App = withState<State, Props, Effects, Computed, ParentState, ParentEffect
 >
   Confirm
 </Button>`}</Code>
+      </Container>
+      <h2>ProgressCircle</h2>
+      <Container>
+        <Render>
+          <div style={{ display: 'flex', justifyContent: 'space-around', flexWrap: 'wrap' }}>
+            <ProgressCircle progress={state.progressBarValue} strokeColor='#28a745' secondaryColor='#ddd9d9' base={200}>
+              {value => (
+                <p
+                  style={{
+                    color: '#28a745',
+                    fontWeight: 'bold',
+                  }}
+                >
+                  {Math.round((value / 200) * 100)}%
+                </p>
+              )}
+            </ProgressCircle>
+            <ProgressCircle progress={state.progressBarValue} strokeColor='red' base={200} />
+          </div>
+          <input
+            type='range'
+            min='0'
+            max='200'
+            onChange={effects.onChangeProgressBarValue}
+            step='1'
+            defaultValue={state.progressBarValue}
+            style={{
+              display: 'block',
+              margin: '10px auto',
+            }}
+          />
+        </Render>
+        <Code>
+          {`<ProgressCircle progress={state.progressBarValue} strokeColor='#28a745' secondaryColor='#ddd9d9' base={200}>
+  {value => (
+    <p
+      style={{
+        color: '#28a745',
+        fontWeight: 'bold',
+      }}
+    >
+      {Math.round((value / 200) * 100)}%
+    </p>
+  )}
+</ProgressCircle>
+<ProgressCircle progress={state.progressBarValue} strokeColor='red' base={200} />`}
+        </Code>
       </Container>
       <h2>Select</h2>
       <Container>
