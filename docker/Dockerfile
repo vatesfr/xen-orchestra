@@ -19,5 +19,5 @@ RUN  npm install -g yarn
 
 WORKDIR /xen-orchestra
 
-ENTRYPOINT ["yarn ci"]
+ENTRYPOINT yarn ci
 
