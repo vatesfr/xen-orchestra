@@ -138,11 +138,10 @@
     "@babel/core": "^7.0.0",
     "@babel/plugin-proposal-decorators": "^7.0.0",
     "@babel/plugin-proposal-export-default-from": "^7.0.0",
-    "@babel/plugin-proposal-export-namespace-from": "^7.0.0",
     "@babel/plugin-proposal-function-bind": "^7.0.0",
     "@babel/plugin-proposal-pipeline-operator": "^7.0.0",
     "@babel/plugin-proposal-throw-expressions": "^7.0.0",
-    "@babel/preset-env": "^7.8.0",
+    "@babel/preset-env": "^7.11.0",
     "babel-plugin-transform-dev": "^2.0.1",
     "cross-env": "^7.0.2",
     "index-modules": "^0.4.3"
