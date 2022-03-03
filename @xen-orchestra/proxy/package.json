@@ -19,7 +19,7 @@
   },
   "preferGlobal": true,
   "bin": {
-    "xo-proxy": "dist/index.mjs"
+    "xo-proxy": "./index.mjs"
   },
   "engines": {
     "node": ">=14.18"
@@ -63,24 +63,14 @@
     "xo-common": "^0.7.0"
   },
   "devDependencies": {
-    "@babel/cli": "^7.0.0",
-    "@babel/core": "^7.0.0",
-    "@babel/preset-env": "^7.8.0",
-    "@vates/toggle-scripts": "^1.0.0",
-    "babel-plugin-transform-dev": "^2.0.1",
-    "cross-env": "^7.0.2",
-    "index-modules": "^0.4.3"
+    "@vates/toggle-scripts": "^1.0.0"
   },
   "scripts": {
-    "_build": "index-modules --index-file index.mjs src/app/mixins && babel --delete-dir-on-start --keep-file-extension --source-maps --out-dir=dist/ src/",
-    "build": "cross-env NODE_ENV=production yarn run _build",
-    "dev": "cross-env NODE_ENV=development yarn run _build --watch",
     "_postinstall": "./scripts/systemd-service-installer",
     "postpack": "toggle-scripts -postinstall -preuninstall",
     "prepack": "toggle-scripts +postinstall +preuninstall",
-    "prepublishOnly": "yarn run build",
     "_preuninstall": "./scripts/systemd-service-installer",
-    "start": "./dist/index.mjs"
+    "start": "./index.mjs"
   },
   "author": {
     "name": "Vates SAS",

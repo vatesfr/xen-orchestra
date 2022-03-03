@@ -17,9 +17,9 @@ catchGlobalErrors(createLogger('xo:proxy'))
 
 const { fatal, info, warn } = createLogger('xo:proxy:bootstrap')
 
-const APP_DIR = new URL('..', import.meta.url).pathname
+const APP_DIR = new URL('.', import.meta.url).pathname
 const APP_NAME = 'xo-proxy'
-const APP_VERSION = JSON.parse(fse.readFileSync(new URL('../package.json', import.meta.url))).version
+const APP_VERSION = JSON.parse(fse.readFileSync(new URL('package.json', import.meta.url))).version
 
 // -------------------------------------------------------------------
 
