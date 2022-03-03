@@ -106,11 +106,9 @@ export default class Backups {
     })(run)
     run = (run =>
       async function () {
-        if (!__DEV__) {
-          const license = await app.appliance.getSelfLicense()
-          if (license === undefined) {
-            throw new JsonRpcError('no valid proxy license')
-          }
+        const license = await app.appliance.getSelfLicense()
+        if (license === undefined) {
+          throw new JsonRpcError('no valid proxy license')
         }
         return run.apply(this, arguments)
       })(run)
