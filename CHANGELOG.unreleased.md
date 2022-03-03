@@ -30,4 +30,5 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
+- vhd-cli minor
 - xo-server patch
