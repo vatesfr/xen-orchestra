@@ -1,6 +1,6 @@
 import Disposable from 'promise-toolbox/Disposable'
 import { compose } from '@vates/compose'
-import { decorateWith } from '@vates/decorate-with'
+import { decorateMethodsWith } from '@vates/decorate-with'
 import { deduped } from '@vates/disposable/deduped.js'
 import { getHandler } from '@xen-orchestra/fs'
 
@@ -35,11 +35,6 @@ export default class Remotes {
     })
   }
 
-  // FIXME: invalidate cache on remote option change
-  @decorateWith(compose, function (resource) {
-    return this._app.debounceResource(resource)
-  })
-  @decorateWith(deduped, remote => [remote.url])
   async getHandler(remote) {
     const { config } = this._app
     const handler = getHandler(remote, config.get('remoteOptions'))
@@ -52,3 +47,16 @@ export default class Remotes {
     return new Disposable(() => handler.forget(), handler)
   }
 }
+
+decorateMethodsWith(Remotes, {
+  getHandler: compose([
+    // FIXME: invalidate cache on remote option change
+    [
+      compose,
+      function (resource) {
+        return this._app.debounceResource(resource)
+      },
+    ],
+    [deduped, remote => [remote.url]],
+  ]),
+})

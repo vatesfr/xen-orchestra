@@ -4,7 +4,7 @@ import { asyncMap } from '@xen-orchestra/async-map'
 import { Backup } from '@xen-orchestra/backups/Backup.js'
 import { compose } from '@vates/compose'
 import { createLogger } from '@xen-orchestra/log'
-import { decorateWith } from '@vates/decorate-with'
+import { decorateMethodsWith } from '@vates/decorate-with'
 import { deduped } from '@vates/disposable/deduped.js'
 import { defer } from 'golike-defer'
 import { DurablePartition } from '@xen-orchestra/backups/DurablePartition.js'
@@ -403,12 +403,6 @@ export default class Backups {
     })
   }
 
-  // FIXME: invalidate cache on remote option change
-  @decorateWith(compose, function (resource) {
-    return this._app.debounceResource(resource)
-  })
-  @decorateWith(deduped, remote => [remote.url])
-  @decorateWith(Disposable.factory)
   *getAdapter(remote) {
     const app = this._app
     return new RemoteAdapter(yield app.remotes.getHandler(remote), {
@@ -418,12 +412,6 @@ export default class Backups {
     })
   }
 
-  // FIXME: invalidate cache on options change
-  @decorateWith(compose, function (resource) {
-    return this._app.debounceResource(resource)
-  })
-  @decorateWith(deduped, ({ url }) => [url])
-  @decorateWith(Disposable.factory)
   async *getXapi({ credentials: { username: user, password }, ...opts }) {
     const xapi = new Xapi({
       ...this._app.config.get('xapiOptions'),
@@ -444,3 +432,28 @@ export default class Backups {
     }
   }
 }
+
+decorateMethodsWith(Backups, {
+  getAdapter: compose([
+    // FIXME: invalidate cache on remote option change
+    [
+      compose,
+      function (resource) {
+        return this._app.debounceResource(resource)
+      },
+    ],
+    [deduped, remote => [remote.url]],
+    Disposable.factory,
+  ]),
+  getXapi: compose([
+    // FIXME: invalidate cache on remote option change
+    [
+      compose,
+      function (resource) {
+        return this._app.debounceResource(resource)
+      },
+    ],
+    [deduped, xapi => [xapi.url]],
+    Disposable.factory,
+  ]),
+})
