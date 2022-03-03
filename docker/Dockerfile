@@ -19,5 +19,5 @@ RUN  npm install -g yarn
 
 WORKDIR /xen-orchestra
 
-ENTRYPOINT ["/xen-orchestra/docker/startup.sh"]
+ENTRYPOINT ["yarn ci"]
 
