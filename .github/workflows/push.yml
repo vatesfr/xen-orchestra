@@ -6,8 +6,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-        with:
-          fetch-depth: 2
       - run: git checkout
       - uses: actions/cache@v2
         id: yarn-cache-2 # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
