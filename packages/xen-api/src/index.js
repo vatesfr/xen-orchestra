@@ -6,6 +6,7 @@ import httpRequest from 'http-request-plus'
 import { coalesceCalls } from '@vates/coalesce-calls'
 import { Collection } from 'xo-collection'
 import { EventEmitter } from 'events'
+import { Index } from 'xo-collection/index'
 import { map, noop, omit } from 'lodash'
 import { cancelable, defer, fromCallback, fromEvents, ignoreErrors, pDelay, pRetry, pTimeout } from 'promise-toolbox'
 import { limitConcurrency } from 'limit-concurrency-decorator'
@@ -131,8 +132,11 @@ export class Xapi extends EventEmitter {
     this._watchEventsError = undefined
     this._lastEventFetchedTimestamp = undefined
 
+    const objects = new Collection()
+    objects.createIndex('type', new Index('$type'))
+    this._objects = objects
+
     this._debounce = opts.debounce ?? 200
-    this._objects = new Collection()
     this._objectsByRef = { __proto__: null }
     this._objectsFetched = new Promise(resolve => {
       this._resolveObjectsFetched = resolve
