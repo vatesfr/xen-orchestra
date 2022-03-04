@@ -206,9 +206,9 @@ export default class Import extends Component {
   constructor(props) {
     super(props)
     this.state = {
-      vms: [],
       importType: 'file',
       url: '',
+      vms: [],
     }
   }
 
@@ -289,6 +289,12 @@ export default class Import extends Component {
     })
   }
 
+  _toggleFromUrl = () => {
+    this.setState(prevStat => ({
+      importType: prevStat.importType === 'file' ? 'url' : 'file',
+    }))
+  }
+
   render() {
     const { pool, sr, srPredicate, vms, importType, url } = this.state
 
@@ -296,11 +302,7 @@ export default class Import extends Component {
       <Container>
         <form id='import-form'>
           <p>
-            <Toggle
-              value={importType === 'url'}
-              onChange={() => this.setState({ importType: importType === 'file' ? 'url' : 'file' })}
-            />{' '}
-            {_('fromUrl')}
+            <Toggle value={importType === 'url'} onChange={this._toggleFromUrl} /> {_('fromUrl')}
           </p>
           <FormGrid.Row>
             <FormGrid.LabelCol>{_('vmImportToPool')}</FormGrid.LabelCol>
@@ -390,13 +392,13 @@ export default class Import extends Component {
                 </FormGrid.Row>
                 <ActionButton
                   btnStyle='primary'
-                  icon='import'
-                  form='import-form'
                   className='mr-1 mt-1'
                   disabled={isEmpty(url)}
+                  form='import-form'
                   handler={this._importVmFromUrl}
-                  type='submit'
+                  icon='import'
                   redirectOnSuccess={getRedirectionUrl}
+                  type='submit'
                 >
                   {_('newImport')}
                 </ActionButton>
