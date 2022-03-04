@@ -17,6 +17,7 @@
 - [Rolling Pool Update] Don't fail if `load-balancer` plugin is missing (Starter and Enterprise plans)
 - [Backup/Restore] Fix missing backups on Backblaze
 - [Templates] Fix "incorrect state" error when trying to delete a default template [#6124](https://github.com/vatesfr/xen-orchestra/issues/6124) (PR [#6119](https://github.com/vatesfr/xen-orchestra/pull/6119))
+- [web] Show more sensible significant numbers when relevant (for example 1.28 TB of memory instead of 1TB)
 
 ### Packages to release
 
@@ -42,4 +43,5 @@
 - vhd-cli minor
 - @xen-orchestra/backups minor
 - @xen-orchestra/proxy minor
+- xo-web minor
 - xo-server patch
