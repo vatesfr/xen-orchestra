@@ -1545,6 +1545,7 @@ const messages = {
   resourceSetNew: 'New',
 
   // ---- VM import ---
+  fromUrl: 'From URL',
   importVmsList: 'Drop OVA or XVA files here to import Virtual Machines.',
   noSelectedVms: 'No selected VMs.',
   vmImportToPool: 'To Pool:',
