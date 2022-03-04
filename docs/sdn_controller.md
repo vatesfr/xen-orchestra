@@ -83,9 +83,9 @@ In the VM network tab a new column has been added: _Network rules_.
 
 - The _Add rule_ button display a form to add a new rule choosing to:
   - enable/disable the matching traffic
-  - for a specific protocol (optionnal)
-  - on a specific port (optionnal)
-  - matching a specific IP or IP range (optionnal)
+  - for a specific protocol (optional)
+  - on a specific port (optional)
+  - matching a specific IP or IP range (optional)
   - coming from the VIF / going to the VIF / both
 - The _Show rules_ button allow to display all rules for a VIF.
 - When the rules are display a button to delete a rule is available.
