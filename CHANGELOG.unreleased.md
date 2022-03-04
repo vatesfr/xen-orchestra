@@ -30,6 +30,6 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
-- xen-api minor
+- xen-api major
 - vhd-cli minor
 - xo-server patch
