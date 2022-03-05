@@ -3,6 +3,7 @@ import dns from 'dns'
 import kindOf from 'kindof'
 import ms from 'ms'
 import httpRequest from 'http-request-plus'
+import ProxyAgent from 'proxy-agent'
 import { coalesceCalls } from '@vates/coalesce-calls'
 import { Collection } from 'xo-collection'
 import { EventEmitter } from 'events'
@@ -119,7 +120,9 @@ export class Xapi extends EventEmitter {
     }
 
     this._allowUnauthorized = opts.allowUnauthorized
-    this._httpProxy = opts.httpProxy
+    if (opts.httpProxy !== undefined) {
+      this._httpAgent = new ProxyAgent(this._httpProxy)
+    }
     this._setUrl(url)
 
     this._connected = new Promise(resolve => {
@@ -151,6 +154,10 @@ export class Xapi extends EventEmitter {
       }
       this.watchEvents()
     }
+  }
+
+  get httpAgent() {
+    return this._httpAgent
   }
 
   get readOnly() {
@@ -386,6 +393,7 @@ export class Xapi extends EventEmitter {
 
           // Support XS <= 6.5 with Node => 12
           minVersion: 'TLSv1',
+          agent: this.httpAgent,
         }),
       {
         when: { code: 302 },
@@ -471,6 +479,7 @@ export class Xapi extends EventEmitter {
           query: 'task_id' in query ? omit(query, 'task_id') : query,
 
           maxRedirects: 0,
+          agent: this.httpAgent,
         }).then(
           response => {
             response.cancel()
@@ -881,7 +890,7 @@ export class Xapi extends EventEmitter {
         rejectUnauthorized: !this._allowUnauthorized,
       },
       url,
-      httpProxy: this._httpProxy,
+      agent: this.httpAgent,
     })
     this._url = url
   }
