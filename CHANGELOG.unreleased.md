@@ -7,6 +7,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [Vm stats] : support http proxy [#6132](https://github.com/vatesfr/xen-orchestra/pull/6132)
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -32,4 +34,4 @@
 
 - xen-api major
 - vhd-cli minor
-- xo-server patch
+- xo-server minor

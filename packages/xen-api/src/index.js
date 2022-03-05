@@ -3,6 +3,7 @@ import dns from 'dns'
 import kindOf from 'kindof'
 import ms from 'ms'
 import httpRequest from 'http-request-plus'
+import ProxyAgent from 'proxy-agent'
 import { coalesceCalls } from '@vates/coalesce-calls'
 import { Collection } from 'xo-collection'
 import { EventEmitter } from 'events'
@@ -373,6 +374,10 @@ export class Xapi extends EventEmitter {
     url.pathname = pathname
     url.search = new URLSearchParams(query)
     await this._setHostAddressInUrl(url, host)
+    let agent
+    if (this._httpProxy !== undefined) {
+      agent = new ProxyAgent(this._httpProxy)
+    }
 
     const response = await pRetry(
       async () =>
@@ -386,6 +391,7 @@ export class Xapi extends EventEmitter {
 
           // Support XS <= 6.5 with Node => 12
           minVersion: 'TLSv1',
+          agent,
         }),
       {
         when: { code: 302 },
