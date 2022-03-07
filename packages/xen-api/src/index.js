@@ -120,7 +120,9 @@ export class Xapi extends EventEmitter {
     }
 
     this._allowUnauthorized = opts.allowUnauthorized
-    this._httpProxy = opts.httpProxy
+    if (opts.httpProxy !== undefined) {
+      this._httpProxyAgent = new ProxyAgent(this._httpProxy)
+    }
     this._setUrl(url)
 
     this._connected = new Promise(resolve => {
@@ -374,10 +376,6 @@ export class Xapi extends EventEmitter {
     url.pathname = pathname
     url.search = new URLSearchParams(query)
     await this._setHostAddressInUrl(url, host)
-    let agent
-    if (this._httpProxy !== undefined) {
-      agent = new ProxyAgent(this._httpProxy)
-    }
 
     const response = await pRetry(
       async () =>
@@ -391,7 +389,7 @@ export class Xapi extends EventEmitter {
 
           // Support XS <= 6.5 with Node => 12
           minVersion: 'TLSv1',
-          agent,
+          agent: this._httpProxyAgent,
         }),
       {
         when: { code: 302 },
@@ -887,7 +885,7 @@ export class Xapi extends EventEmitter {
         rejectUnauthorized: !this._allowUnauthorized,
       },
       url,
-      httpProxy: this._httpProxy,
+      agent: this._httpProxyAgent,
     })
     this._url = url
   }

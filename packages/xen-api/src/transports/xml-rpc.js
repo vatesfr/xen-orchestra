@@ -1,6 +1,5 @@
 import { createClient, createSecureClient } from 'xmlrpc'
 import { promisify } from 'promise-toolbox'
-import ProxyAgent from 'proxy-agent'
 
 import XapiError from '../_XapiError'
 
@@ -31,12 +30,8 @@ const parseResult = result => {
   return result.Value
 }
 
-export default ({ secureOptions, url: { hostname, port, protocol, httpProxy } }) => {
+export default ({ secureOptions, url: { hostname, port, protocol, agent } }) => {
   const secure = protocol === 'https:'
-  let agent
-  if (httpProxy !== undefined) {
-    agent = new ProxyAgent(httpProxy)
-  }
   const client = (secure ? createSecureClient : createClient)({
     ...(secure ? secureOptions : undefined),
     agent,
