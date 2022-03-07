@@ -375,6 +375,12 @@ export default class BackupNg {
   async checkAuthorizations({ job, useSmartBackup, schedule }) {
     const { _app: app } = this
 
+    if (job.type === 'metadataBackup') {
+      await app.checkFeatureAuthorization('BACKUP.METADATA')
+      // the other checks does not apply to metadata backups
+      return
+    }
+
     if (job.mode === 'full') {
       await app.checkFeatureAuthorization('BACKUP.FULL')
     }
@@ -386,11 +392,6 @@ export default class BackupNg {
         await app.checkFeatureAuthorization('BACKUP.DELTA')
       }
     }
-
-    if (job.type === 'metadataBackup') {
-      await app.checkFeatureAuthorization('BACKUP.METADATA')
-    }
-
     if (useSmartBackup) {
       await app.checkFeatureAuthorization('BACKUP.SMART_BACKUP')
     }
@@ -399,7 +400,7 @@ export default class BackupNg {
     const config = app.config.get('backups')
     const jobSettings = {
       ...config.defaultSettings,
-      ...config.metadata.defaultSettings,
+      ...config.vm.defaultSettings,
       ...job.settings[''],
       ...job.settings[schedule.id],
     }

@@ -403,8 +403,7 @@ export default class Backups {
 
   *getAdapter(remote) {
     const app = this._app
-    const handler = yield app.remotes.getHandler(remote)
-    return new RemoteAdapter(handler, {
+    return new RemoteAdapter(yield app.remotes.getHandler(remote), {
       debounceResource: app.debounceResource.bind(app),
       dirMode: app.config.get('backups.dirMode'),
       vhdDirectoryCompression: app.config.get('backups.vhdDirectoryCompression'),

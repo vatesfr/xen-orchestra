@@ -1,22 +1,18 @@
-import { createLogger } from '@xen-orchestra/log'
 import get from 'lodash/get.js'
 import { featureUnauthorized } from 'xo-common/api-errors.js'
 import assert from 'assert'
-
-const { warn } = createLogger('xo:server:authorization')
 
 const FREE = 1
 const STARTER = 2
 const ENTREPRISE = 3
 const PREMIUM = 4
-const OPEN = 5
+const COMMUNITY = 5 // compiled from sources
 
-export const TRIAL_LEVELS = {
+export const PLANS = {
   free: FREE,
   starter: STARTER,
   entreprise: ENTREPRISE,
   premium: PREMIUM,
-  open: OPEN,
 }
 
 const AUTHORIZATIONS = {
@@ -48,20 +44,13 @@ export default class Authorization {
   async #getCurrentPlan() {
     if (this.#app.getXoaPlan === undefined) {
       // source user => everything is open
-      return OPEN
-    }
-    if (typeof this.#app.getXoaPlan !== 'function') {
-      warn(`app.getLicense should be a function, ${typeof this.#app.getXoaPlan} given`)
-      return OPEN
+      return COMMUNITY
     }
 
-    // waiting for the real implementation on wwwxo side
-    const license = await this.#app.getXoaPlan()
-    if (TRIAL_LEVELS[license] === undefined) {
-      warn(`trial level ${license} is unknown`)
-      return OPEN
-    }
-    return TRIAL_LEVELS[license]
+    const plan = await this.#app.getXoaPlan()
+
+    assert.notEqual(PLANS[plan], undefined, `plan  ${plan} is not defined in the PLANS object`)
+    return PLANS[plan]
   }
 
   async checkFeatureAuthorization(featureCode) {
