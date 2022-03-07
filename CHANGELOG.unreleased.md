@@ -7,7 +7,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [Vm stats] : support http proxy [#6132](https://github.com/vatesfr/xen-orchestra/pull/6132)
+- [Vm stats] : support http proxy and resource upload [#6132](https://github.com/vatesfr/xen-orchestra/pull/6132)
 
 ### Bug fixes
 

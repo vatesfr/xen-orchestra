@@ -475,6 +475,7 @@ export class Xapi extends EventEmitter {
           query: 'task_id' in query ? omit(query, 'task_id') : query,
 
           maxRedirects: 0,
+          agent: this._httpProxyAgent,
         }).then(
           response => {
             response.cancel()
