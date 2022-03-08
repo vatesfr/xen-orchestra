@@ -221,19 +221,19 @@ const App = withState<State, Props, Effects, Computed, ParentState, ParentEffect
       <Container>
         <Render>
           <div style={{ display: 'flex', justifyContent: 'space-around', flexWrap: 'wrap' }}>
-            <ProgressCircle progress={state.progressBarValue} strokeColor='#28a745' secondaryColor='#ddd9d9' base={200}>
-              {value => (
+            <ProgressCircle base={200} value={state.progressBarValue}>
+              {progress => (
                 <p
                   style={{
                     color: '#28a745',
                     fontWeight: 'bold',
                   }}
                 >
-                  {Math.round((value / 200) * 100)}%
+                  {progress}%
                 </p>
               )}
             </ProgressCircle>
-            <ProgressCircle progress={state.progressBarValue} strokeColor='red' base={200} />
+            <ProgressCircle base={200} haveBackgroundCircle={false} value={state.progressBarValue} />
           </div>
           <input
             type='range'
@@ -249,19 +249,19 @@ const App = withState<State, Props, Effects, Computed, ParentState, ParentEffect
           />
         </Render>
         <Code>
-          {`<ProgressCircle progress={state.progressBarValue} strokeColor='#28a745' secondaryColor='#ddd9d9' base={200}>
-  {value => (
+          {`<ProgressCircle base={200} value={state.progressBarValue}>
+  {progress => (
     <p
       style={{
         color: '#28a745',
         fontWeight: 'bold',
       }}
     >
-      {Math.round((value / 200) * 100)}%
+      {progress}%
     </p>
   )}
 </ProgressCircle>
-<ProgressCircle progress={state.progressBarValue} strokeColor='red' base={200} />`}
+<ProgressCircle base={200} haveBackgroundCircle={false} value={state.progressBarValue} />`}
         </Code>
       </Container>
       <h2>Select</h2>
