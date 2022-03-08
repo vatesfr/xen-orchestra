@@ -57,7 +57,7 @@ const TreeView = withState<State, Props, Effects, Computed, ParentState, ParentE
         if (this.state.objectId === undefined) {
           this.props.history.push('/infrastructure/type/' + nodeIds[0])
         }
-        this.state._selectedNodes = [nodeIds[0]]
+        this.state._selectedNodes = nodeIds
       },
     },
     computed: {
