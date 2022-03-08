@@ -26,6 +26,8 @@ interface Tab {
 
 // For compatibility with 'withRouter'
 interface Props extends RouteComponentProps {
+  indicatorColor?: 'primary' | 'secondary'
+  textColor?: 'inherit' | 'primary' | 'secondary'
   // tabs= [
   //   {
   //      component: (<span>BAR</span>)
@@ -72,10 +74,10 @@ const Tabs = withState<State, Props, Effects, Computed, ParentState, ParentEffec
       },
     },
   },
-  ({ effects, state: { pathname }, tabs }) => (
+  ({ effects, state: { pathname }, indicatorColor, textColor, tabs }) => (
     <TabContext value={pathname}>
       <Box sx={{ borderBottom: 1, borderColor: 'divider', marginTop: '0.5em' }}>
-        <TabList onChange={effects.onChange}>
+        <TabList indicatorColor={indicatorColor} onChange={effects.onChange} textColor={textColor}>
           {tabs.map((tab: Tab) => (
             <Tab disabled={tab.disabled} key={tab.pathname} label={tab.label} value={tab.pathname} />
           ))}
