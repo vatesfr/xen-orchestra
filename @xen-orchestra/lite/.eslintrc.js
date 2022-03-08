@@ -28,6 +28,5 @@ module.exports = {
 
     '@typescript-eslint/no-unused-vars': ['error', { ignoreRestSiblings: true }],
     '@typescript-eslint/ban-ts-comment': 'off',
-    'react/display-name': 'off',
   },
 }
