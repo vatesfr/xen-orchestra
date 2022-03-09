@@ -32,6 +32,7 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
+- @vates/decorate-with major
 - xen-api major
 - @xen-orchestra/xapi minor
 - vhd-cli minor

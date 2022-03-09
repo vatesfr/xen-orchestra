@@ -3,7 +3,9 @@
 const assert = require('assert')
 const { describe, it } = require('tap').mocha
 
-const { decorateWith, decorateMethodsWith, perInstance } = require('./')
+const { decorateClass, decorateWith, decorateMethodsWith, perInstance } = require('./')
+
+const identity = _ => _
 
 describe('decorateWith', () => {
   it('works', () => {
@@ -31,11 +33,14 @@ describe('decorateWith', () => {
   })
 })
 
-describe('decorateMethodsWith', () => {
-  it('works', () => {
+describe('decorateClass', function () {
+  it('works', function () {
     class C {
       foo() {}
       bar() {}
+      get baz() {}
+      // eslint-disable-next-line accessor-pairs
+      set qux(_) {}
     }
 
     const expectedArgs = [Math.random(), Math.random()]
@@ -45,27 +50,74 @@ describe('decorateMethodsWith', () => {
 
     const newFoo = () => {}
     const newBar = () => {}
+    const newGetBaz = () => {}
+    const newSetQux = _ => {}
 
-    decorateMethodsWith(C, {
-      foo(method) {
+    decorateClass(C, {
+      foo(fn) {
         assert.strictEqual(arguments.length, 1)
-        assert.strictEqual(method, P.foo)
+        assert.strictEqual(fn, P.foo)
         return newFoo
       },
       bar: [
-        function (method, ...args) {
-          assert.strictEqual(method, P.bar)
+        function (fn, ...args) {
+          assert.strictEqual(fn, P.bar)
           assert.deepStrictEqual(args, expectedArgs)
           return newBar
         },
         ...expectedArgs,
       ],
+      baz: {
+        get(fn) {
+          assert.strictEqual(arguments.length, 1)
+          assert.strictEqual(fn, descriptors.baz.get)
+          return newGetBaz
+        },
+      },
+      qux: {
+        set: [
+          function (fn, ...args) {
+            assert.strictEqual(fn, descriptors.qux.set)
+            assert.deepStrictEqual(args, expectedArgs)
+            return newSetQux
+          },
+          ...expectedArgs,
+        ],
+      },
     })
 
     const newDescriptors = Object.getOwnPropertyDescriptors(P)
     assert.deepStrictEqual(newDescriptors.foo, { ...descriptors.foo, value: newFoo })
     assert.deepStrictEqual(newDescriptors.bar, { ...descriptors.bar, value: newBar })
+    assert.deepStrictEqual(newDescriptors.baz, { ...descriptors.baz, get: newGetBaz })
+    assert.deepStrictEqual(newDescriptors.qux, { ...descriptors.qux, set: newSetQux })
   })
+
+  it('throws if using a accessor decorator for a method', function () {
+    assert.throws(() =>
+      decorateClass(
+        class {
+          foo() {}
+        },
+        { foo: { get: identity, set: identity } }
+      )
+    )
+  })
+
+  it('throws if using a method decorator for an accessor', function () {
+    assert.throws(() =>
+      decorateClass(
+        class {
+          get foo() {}
+        },
+        { foo: identity }
+      )
+    )
+  })
+})
+
+it('decorateMethodsWith is an alias of decorateClass', function () {
+  assert.strictEqual(decorateMethodsWith, decorateClass)
 })
 
 describe('perInstance', () => {
