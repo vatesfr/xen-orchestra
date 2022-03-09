@@ -3,7 +3,8 @@ version: '3.3'
 services:
   xo:
     build:
-      context: "${PWD}/docker"
+      context: "${PWD}"
+      dockerfile: "${PWD}/docker/Dockerfile"
     ports:
       - 8000:80
     volumes:
