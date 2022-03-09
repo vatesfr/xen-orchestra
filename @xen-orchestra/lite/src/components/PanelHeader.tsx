@@ -25,6 +25,13 @@ interface Computed {}
 
 const DEFAULT_TITLE_STYLE = { marginLeft: '0.5em', flex: 1, fontSize: '250%' }
 const DEFAULT_BUTTONGROUP_STYLE = { margin: '0.5em', flex: 0 }
+const DEFAULT_STACK_STYLE = {
+  backgroundColor: (theme: Theme) => {
+    const { background, palette } = theme
+    return palette.mode === 'light' ? background.primary.light : background.primary.dark
+  },
+  paddingTop: '1em',
+}
 
 interface Props extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   // Accepts an array of Actions. An action accepts all the props of a Button + an icon
@@ -35,22 +42,10 @@ interface Props extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   buttonGroupProps?: ButtonGroupClassKey
 }
 
-const getBackgroundColor = (theme: Theme) => {
-  const { background, palette } = theme
-  return palette.mode === 'light' ? background.primary.light : background.primary.dark
-}
-
 const PanelHeader = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
   {},
   ({ actions = [], titleProps = {}, buttonGroupProps = {}, children = null }) => (
-    <Stack
-      alignItems='start'
-      direction='row'
-      sx={{
-        backgroundColor: getBackgroundColor,
-        paddingTop: '1em',
-      }}
-    >
+    <Stack alignItems='start' direction='row' sx={DEFAULT_STACK_STYLE}>
       <Typography variant='h2' sx={DEFAULT_TITLE_STYLE} {...titleProps}>
         {children}
       </Typography>
