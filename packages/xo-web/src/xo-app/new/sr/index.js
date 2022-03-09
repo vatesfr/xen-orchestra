@@ -495,6 +495,9 @@ export default class New extends Component {
   }
 
   _handleSrPathSelection = async path => {
+    if (isEmpty(path)) {
+      return
+    }
     const { server } = this.refs
     const { host } = this.state
 
@@ -696,7 +699,7 @@ export default class New extends Component {
                         ref='path'
                         required
                       >
-                        <option value={null}>{formatMessage(messages.noSelectedValue)}</option>
+                        <option value=''>{formatMessage(messages.noSelectedValue)}</option>
                         {map(paths, (item, key) => (
                           <option key={key} value={item.path}>
                             {item.path}
