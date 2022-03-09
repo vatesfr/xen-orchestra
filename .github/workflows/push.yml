@@ -6,12 +6,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - run: git checkout
+        with:
+          clean: false
+      - run: ls ${GITHUB_WORKSPACE}
       - uses: actions/cache@v2
         id: yarn-cache-2 # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
         with:
-          path: /home/runner/work/xen-orchestra/**/node_modules
-          key: ${{ runner.os }}-xen-orchestra-yarn-${{ hashFiles('/home/runner/work/xen-orchestra/yarn.lock') }}
+          path: ${GITHUB_WORKSPACE}/**/node_modules
+          key: ${{ runner.os }}-xen-orchestra-yarn-${{ hashFiles('${{GITHUB_WORKSPACE}}/yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-xen-orchestra-yarn-
       - uses: satackey/action-docker-layer-caching@v0.0.11
