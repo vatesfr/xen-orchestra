@@ -33,8 +33,8 @@ describe('decorateWith', () => {
   })
 })
 
-describe('decorateClass', function () {
-  it('works', function () {
+describe('decorateClass', () => {
+  it('works', () => {
     class C {
       foo() {}
       bar() {}
