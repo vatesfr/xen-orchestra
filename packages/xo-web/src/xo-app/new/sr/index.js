@@ -495,7 +495,7 @@ export default class New extends Component {
   }
 
   _handleSrPathSelection = async path => {
-    if (isEmpty(path)) {
+    if (path === '') {
       return
     }
     const { server } = this.refs
