@@ -34,6 +34,6 @@
 
 - xen-api major
 - @xen-orchestra/xapi minor
-- @xen-orchestra/fs patch
+- @xen-orchestra/fs major
 - vhd-cli minor
 - xo-server patch

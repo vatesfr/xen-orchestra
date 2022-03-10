@@ -13,6 +13,9 @@
   },
   "preferGlobal": true,
   "main": "dist/",
+  "bin": {
+    "xo-fs": "./cli.js"
+  },
   "engines": {
     "node": ">=14"
   },
@@ -26,6 +29,7 @@
     "@xen-orchestra/async-map": "^0.1.2",
     "@xen-orchestra/log": "^0.3.0",
     "aws-sdk": "^2.686.0",
+    "bind-property-descriptor": "^2.0.0",
     "decorator-synchronized": "^0.6.0",
     "execa": "^5.0.0",
     "fs-extra": "^10.0.0",
