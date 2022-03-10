@@ -75,9 +75,13 @@ export default class RestApi {
 
     const collections = [
       { id: 'hosts', type: 'host' },
+      { id: 'networks', type: 'network' },
       { id: 'pools', type: 'pool' },
-      { id: 'vms', type: 'VM' },
       { id: 'srs', type: 'SR' },
+      { id: 'vbds', type: 'VBD' },
+      { id: 'vdis', type: 'VDI' },
+      { id: 'vifs', type: 'VIF' },
+      { id: 'vms', type: 'VM' },
     ]
 
     api.get('/', (req, res) => sendObjects(collections, req, res))

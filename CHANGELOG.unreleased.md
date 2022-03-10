@@ -7,6 +7,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [REST API] Expose networks, VBDs, VDIs and VIFs
 - [Console] Supports host and VM consoles behind HTTP proxies [#6133](https://github.com/vatesfr/xen-orchestra/pull/6133)
 
 ### Bug fixes
@@ -32,6 +33,9 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
+- @vates/decorate-with major
 - xen-api major
+- @xen-orchestra/xapi minor
+- @xen-orchestra/fs major
 - vhd-cli minor
 - xo-server patch
