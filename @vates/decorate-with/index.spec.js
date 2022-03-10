@@ -93,7 +93,7 @@ describe('decorateClass', function () {
     assert.deepStrictEqual(newDescriptors.qux, { ...descriptors.qux, set: newSetQux })
   })
 
-  it('throws if using a accessor decorator for a method', function () {
+  it('throws if using an accessor decorator for a method', function () {
     assert.throws(() =>
       decorateClass(
         class {
