@@ -187,34 +187,34 @@ export default class S3Handler extends RemoteHandlerAbstract {
       return path.split('/').filter(d => d.length)
     }
 
+    let NextContinuationToken
+    const uniq = new Set()
     const prefix = [this._dir, dir].join('/')
     const splitPrefix = splitPath(prefix)
-    const result = await this._s3.listObjectsV2({
-      Bucket: this._bucket,
-      Prefix: splitPrefix.join('/') + '/', // need slash at the end with the use of delimiters
-      Delimiter: '/', // will only return path until delimiters
-    })
 
-    if (result.IsTruncated) {
-      const error = new Error('more than 1000 objects, unsupported in this implementation')
-      error.dir = dir
-      throw error
-    }
+    do {
+      const result = await this._s3.listObjectsV2({
+        Bucket: this._bucket,
+        Prefix: splitPrefix.join('/') + '/',
+        // need slash at the end with the use of delimiters
+        Delimiter: '/',
+        // will only return path until delimiters
+        ContinuationToken: NextContinuationToken,
+      })
+      NextContinuationToken = result.IsTruncated ? result.NextContinuationToken : undefined // sub directories
+      NextContinuationToken && warn(`need pagination to browse the directory ${dir} completly`)
+      for (const entry of result.CommonPrefixes) {
+        const line = splitPath(entry.Prefix)
+        uniq.add(line[line.length - 1])
+      } // files
 
-    const uniq = []
+      for (const entry of result.Contents) {
+        const line = splitPath(entry.Key)
+        uniq.add(line[line.length - 1])
+      }
+    } while (NextContinuationToken !== undefined)
 
-    // sub directories
-    for (const entry of result.CommonPrefixes) {
-      const line = splitPath(entry.Prefix)
-      uniq.push(line[line.length - 1])
-    }
-    // files
-    for (const entry of result.Contents) {
-      const line = splitPath(entry.Key)
-      uniq.push(line[line.length - 1])
-    }
-
-    return uniq
+    return [...uniq]
   }
 
   async _mkdir(path) {
