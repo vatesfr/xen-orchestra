@@ -201,8 +201,12 @@ export default class S3Handler extends RemoteHandlerAbstract {
         // will only return path until delimiters
         ContinuationToken: NextContinuationToken,
       })
-      NextContinuationToken = result.IsTruncated ? result.NextContinuationToken : undefined // sub directories
-      NextContinuationToken && warn(`need pagination to browse the directory ${dir} completly`)
+      if (result.IsTruncated) {
+        warn(`need pagination to browse the directory ${dir} completely`)
+        NextContinuationToken = result.NextContinuationToken
+      } else {
+        NextContinuationToken = undefined
+     }
 
       // subdirectories
       for (const entry of result.CommonPrefixes) {
