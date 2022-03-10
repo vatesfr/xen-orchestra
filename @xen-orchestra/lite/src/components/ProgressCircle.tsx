@@ -89,7 +89,13 @@ const ProgressCircle = withState<State, Props, Effects, Computed, ParentState, P
             <BackgroundCircle variant='determinate' value={100} size={size} />
           </BackgroundWrapperChildren>
         )}
-        <CircularProgress variant='determinate' value={progress} size={size} color={color} />
+        <CircularProgress
+          aria-label={`${progress}%`}
+          variant='determinate'
+          value={progress}
+          size={size}
+          color={color}
+        />
         {children !== undefined ? (
           <WrapperChildren>{typeof children === 'function' ? children(progress, value) : children}</WrapperChildren>
         ) : (
