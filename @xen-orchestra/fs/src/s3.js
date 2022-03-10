@@ -203,11 +203,14 @@ export default class S3Handler extends RemoteHandlerAbstract {
       })
       NextContinuationToken = result.IsTruncated ? result.NextContinuationToken : undefined // sub directories
       NextContinuationToken && warn(`need pagination to browse the directory ${dir} completly`)
+
+      // subdirectories
       for (const entry of result.CommonPrefixes) {
         const line = splitPath(entry.Prefix)
         uniq.add(line[line.length - 1])
-      } // files
+      }
 
+      // files
       for (const entry of result.Contents) {
         const line = splitPath(entry.Key)
         uniq.add(line[line.length - 1])
