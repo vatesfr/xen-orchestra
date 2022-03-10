@@ -11,6 +11,8 @@ import { withRouter } from 'react-router'
 
 import IntlMessage from '../components/IntlMessage'
 
+const BOX_STYLE = { borderBottom: 1, borderColor: 'divider', marginTop: '0.5em' }
+
 interface ParentState {}
 
 interface State {
@@ -76,7 +78,7 @@ const Tabs = withState<State, Props, Effects, Computed, ParentState, ParentEffec
   },
   ({ effects, state: { pathname }, indicatorColor, textColor, tabs }) => (
     <TabContext value={pathname}>
-      <Box sx={{ borderBottom: 1, borderColor: 'divider', marginTop: '0.5em' }}>
+      <Box sx={BOX_STYLE}>
         <TabList indicatorColor={indicatorColor} onChange={effects.onChange} textColor={textColor}>
           {tabs.map((tab: Tab) => (
             <Tab disabled={tab.disabled} key={tab.pathname} label={tab.label} value={tab.pathname} />
