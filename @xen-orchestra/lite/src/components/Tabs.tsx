@@ -68,7 +68,7 @@ const Tabs = withState<State, Props, Effects, Computed, ParentState, ParentEffec
   {
     initialState: ({ tabs }) => ({ pathname: tabs[0].pathname }),
     effects: {
-      onChange: function (event, pathname) {
+      onChange: function (_, pathname) {
         this.props.history.push(pathname)
         this.state.pathname = pathname
       },
