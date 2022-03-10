@@ -58,9 +58,9 @@ decorateClass(Foo, {
     // without arguments
     get: lodash.memoize,
 
-  // with arguments
-    set: [lodash.debounce, 150]
-  }
+    // with arguments
+    set: [lodash.debounce, 150],
+  },
 
   // method (with or without arguments)
   baz: lodash.curry,
