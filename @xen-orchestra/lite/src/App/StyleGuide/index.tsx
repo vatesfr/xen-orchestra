@@ -221,19 +221,13 @@ const App = withState<State, Props, Effects, Computed, ParentState, ParentEffect
       <Container>
         <Render>
           <div style={{ display: 'flex', justifyContent: 'space-around', flexWrap: 'wrap' }}>
-            <ProgressCircle base={200} value={state.progressBarValue}>
-              {progress => (
-                <p
-                  style={{
-                    color: '#28a745',
-                    fontWeight: 'bold',
-                  }}
-                >
-                  {progress}%
-                </p>
-              )}
-            </ProgressCircle>
-            <ProgressCircle base={200} haveBackgroundCircle={false} value={state.progressBarValue} />
+            <ProgressCircle base={200} value={state.progressBarValue} />
+            <ProgressCircle
+              base={200}
+              haveBackgroundCircle={false}
+              showPercent={false}
+              value={state.progressBarValue}
+            />
           </div>
           <input
             type='range'
