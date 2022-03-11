@@ -90,10 +90,9 @@ test('compressed blocks and metadata works', async () => {
       .all[(await compressedVhd.writeHeader(), await compressedVhd.writeFooter(), await compressedVhd.writeBlockAllocationTable())]
 
     // compressed vhd have a metadata file
-    expect(await fs.exists(`${tempDir}/compressed.vhd/metadata.json`)).toEqual(true)
-    const metada = JSON.parse(await handler.readFile('compressed.vhd/metadata.json'))
-    expect(metada.compression.type).toEqual('gzip')
-    expect(metada.compression.options.level).toEqual(1)
+    expect(await fs.exists(`${tempDir}/compressed.vhd/chunk-filters.json`)).toEqual(true)
+    const metada = JSON.parse(await handler.readFile('compressed.vhd/chunk-filters.json'))
+    expect(metada[0]).toEqual('gzip')
 
     // compressed vhd should not be broken
     await compressedVhd.readHeaderAndFooter()
