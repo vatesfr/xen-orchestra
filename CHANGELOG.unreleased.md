@@ -37,6 +37,6 @@
 - @xen-orchestra/xapi minor
 - @xen-orchestra/fs major
 - vhd-cli minor
-- @xen-orchestra/backups
-- @xen-orchestra/proxy
+- @xen-orchestra/backups minor
+- @xen-orchestra/proxy minor
 - xo-server patch
