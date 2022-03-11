@@ -19,7 +19,6 @@ RUN  npm install -g yarn
 
 WORKDIR /xen-orchestra
 #  invalidate build on package change
-COPY ./package.json /xen-orchestra/package.json
 COPY ./yarn.lock /xen-orchestra/yarn.lock
 ENTRYPOINT yarn ci
 
