@@ -14,7 +14,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [Rolling Pool Update] Don't fail if `load-balancer` plugin is missing (Starter and Enterprise plans)
-- [Backup restore] Fix missing backup on Backblaze
+- [Backup/Restore] Fix missing backups on Backblaze
 
 ### Packages to release
 
