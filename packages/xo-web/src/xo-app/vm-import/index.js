@@ -190,23 +190,18 @@ const parseFile = async (file, type, func) => {
   }
 }
 
-const getRedirectionUrl = vms => {
-  const vmPath = vm => `/vms/${vm}`
-  if (typeof vms === 'string') {
-    return vmPath(vms)
-  }
-  return vms.length === 0
+const getRedirectionUrl = vms =>
+  vms.length === 0
     ? undefined // no redirect
     : vms.length === 1
-    ? vmPath(vms[0])
+    ? `vms/${vms[0]}`
     : `/home?s=${encodeURIComponent(`id:|(${vms.join(' ')})`)}&t=VM`
-}
 
 export default class Import extends Component {
   constructor(props) {
     super(props)
     this.state = {
-      importType: 'file',
+      isFromUrl: false,
       url: '',
       vms: [],
     }
@@ -228,7 +223,7 @@ export default class Import extends Component {
     )
   }
 
-  _importVmFromUrl = async () => {
+  _importVmFromUrl = () => {
     const url = this.state.url
     const file = {
       name: url.split('/').pop(),
@@ -289,20 +284,20 @@ export default class Import extends Component {
     })
   }
 
-  _toggleFromUrl = () => {
+  _toggleIsFromUrl = () => {
     this.setState(prevStat => ({
-      importType: prevStat.importType === 'file' ? 'url' : 'file',
+      isFromUrl: !prevStat.isFromUrl,
     }))
   }
 
   render() {
-    const { pool, sr, srPredicate, vms, importType, url } = this.state
+    const { isFromUrl, pool, sr, srPredicate, vms, url } = this.state
 
     return (
       <Container>
         <form id='import-form'>
           <p>
-            <Toggle value={importType === 'url'} onChange={this._toggleFromUrl} /> {_('fromUrl')}
+            <Toggle value={isFromUrl} onChange={this._toggleIsFromUrl} /> {_('fromUrl')}
           </p>
           <FormGrid.Row>
             <FormGrid.LabelCol>{_('vmImportToPool')}</FormGrid.LabelCol>
@@ -323,7 +318,7 @@ export default class Import extends Component {
             </FormGrid.InputCol>
           </FormGrid.Row>
           {sr &&
-            (this.state.importType === 'file' ? (
+            (!isFromUrl ? (
               <div>
                 <Dropzone onDrop={this._handleDrop} message={_('importVmsList')} />
                 <hr />
@@ -384,9 +379,10 @@ export default class Import extends Component {
                   <FormGrid.LabelCol>{_('fromUrl')}:</FormGrid.LabelCol>
                   <FormGrid.InputCol>
                     <Input
-                      placeholder='http://127.0.0.1/vm.xva'
                       className='form-control'
                       onChange={this.linkState('url')}
+                      placeholder='http://127.0.0.1/vm.xva'
+                      type='url'
                     />
                   </FormGrid.InputCol>
                 </FormGrid.Row>

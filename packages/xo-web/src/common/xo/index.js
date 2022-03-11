@@ -1603,7 +1603,7 @@ export const importVm = async (file, type = 'xva', data = undefined, sr, url = u
     // If imported from URL, result is of type string
     // and correspond to the vmId
     success(_('vmImportSuccess'), name)
-    return result
+    return [result]
   }
   formData.append('file', file)
   const res = await post(result.$sendTo, formData)
