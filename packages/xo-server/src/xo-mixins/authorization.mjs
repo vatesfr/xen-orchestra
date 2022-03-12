@@ -6,7 +6,6 @@ const FREE = 1
 const STARTER = 2
 const ENTREPRISE = 3
 const PREMIUM = 4
-const COMMUNITY = 5 // compiled from sources
 
 export const PLANS = {
   free: FREE,
@@ -44,11 +43,6 @@ export default class Authorization {
   }
 
   async #getCurrentPlan() {
-    if (this.#app.getXoaPlan === undefined) {
-      // source user => everything is open
-      return COMMUNITY
-    }
-
     const plan = await this.#app.getXoaPlan()
 
     assert.notEqual(PLANS[plan], undefined, `plan  ${plan} is not defined in the PLANS object`)
@@ -56,6 +50,11 @@ export default class Authorization {
   }
 
   async checkFeatureAuthorization(featureCode) {
+    if (this.#app.getXoaPlan === undefined) {
+      // source user => everything is open
+      return
+    }
+
     const minPlan = this.#getMinPlan(featureCode)
     const currentPlan = await this.#getCurrentPlan()
     if (currentPlan < minPlan) {
