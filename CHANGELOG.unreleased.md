@@ -16,6 +16,7 @@
 
 - [Rolling Pool Update] Don't fail if `load-balancer` plugin is missing (Starter and Enterprise plans)
 - [Backup/Restore] Fix missing backups on Backblaze
+- [Backup/Restore] Fix ` BACKUP.SMART_BACKUP is not defined in the AUTHORIZATIONS object`
 
 ### Packages to release
 

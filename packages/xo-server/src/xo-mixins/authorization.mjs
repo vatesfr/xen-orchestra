@@ -22,6 +22,7 @@ const AUTHORIZATIONS = {
     FULL: STARTER,
     METADATA: ENTREPRISE,
     WITH_RAM: ENTREPRISE,
+    SMART_BACKUP: ENTREPRISE,
   },
   DOCKER: STARTER, // @todo  _doDockerAction in xen-orchestra/packages/xo-server/src/xapi/index.mjs
   EXPORT: {
