@@ -1,6 +1,5 @@
 import asyncMapSettled from '@xen-orchestra/async-map/legacy'
 import getStream from 'get-stream'
-import path, { basename } from 'path'
 import { coalesceCalls } from '@vates/coalesce-calls'
 import { fromCallback, fromEvent, ignoreErrors, timeout } from 'promise-toolbox'
 import { limitConcurrency } from 'limit-concurrency-decorator'
@@ -9,10 +8,8 @@ import { pipeline } from 'stream'
 import { randomBytes } from 'crypto'
 import { synchronized } from 'decorator-synchronized'
 
-import normalizePath from './_normalizePath'
+import { basename, dirname, normalize as normalizePath } from './_path'
 import { createChecksumStream, validChecksumOfReadStream } from './checksum'
-
-const { dirname } = path.posix
 
 const checksumFile = file => file + '.checksum'
 const computeRate = (hrtime, size) => {
