@@ -49,7 +49,7 @@ export default class Remotes {
 }
 
 decorateMethodsWith(Remotes, {
-  getHandler: compose([
+  getHandler: compose({ right: true }, [
     // FIXME: invalidate cache on remote option change
     [
       compose,
