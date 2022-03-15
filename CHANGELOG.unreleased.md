@@ -10,6 +10,7 @@
 - [REST API] Expose networks, VBDs, VDIs and VIFs
 - [Console] Supports host and VM consoles behind HTTP proxies [#6133](https://github.com/vatesfr/xen-orchestra/pull/6133)
 - [Install patches] Disable patch installation when `High Availability` is enabled (PR [#6145](https://github.com/vatesfr/xen-orchestra/pull/6145))
+- [Delta Backup/Restore] Ability to ignore some VDIs (PR [#6143](https://github.com/vatesfr/xen-orchestra/pull/6143))
 
 ### Bug fixes
 
@@ -44,5 +45,5 @@
 - vhd-cli minor
 - @xen-orchestra/backups minor
 - @xen-orchestra/proxy minor
-- xo-server patch
+- xo-server minor
 - xo-web minor

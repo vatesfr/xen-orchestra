@@ -30,7 +30,12 @@ exports.ImportVmBackup = class ImportVmBackup {
     } else {
       assert.strictEqual(metadata.mode, 'delta')
 
-      backup = await adapter.readDeltaVmBackup(metadata)
+      const ignoredVdis = new Set(
+        Object.entries(this._importDeltaVmSettings.mapVdisSrs)
+          .filter(([_, srUuid]) => srUuid === null)
+          .map(([vdiUuid]) => vdiUuid)
+      )
+      backup = await adapter.readDeltaVmBackup(metadata, ignoredVdis)
       Object.values(backup.streams).forEach(stream => watchStreamSize(stream, sizeContainer))
     }
 
