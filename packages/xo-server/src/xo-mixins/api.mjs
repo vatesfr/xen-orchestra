@@ -10,6 +10,7 @@ import { format, JsonRpcError, MethodNotFound } from 'json-rpc-peer'
 
 import * as methods from '../api/index.mjs'
 import * as sensitiveValues from '../sensitive-values.mjs'
+import Connection from '../connection.mjs'
 import { noop, serializeError } from '../utils.mjs'
 
 import * as errors from 'xo-common/api-errors.js'
@@ -146,6 +147,12 @@ async function resolveParams(method, params) {
 // -------------------------------------------------------------------
 
 export default class Api {
+  #connections = new Set()
+
+  get apiConnections() {
+    return this.#connections
+  }
+
   constructor(app) {
     this._logger = null
     this._methods = { __proto__: null }
@@ -378,6 +385,24 @@ export default class Api {
 
       throw error
     }
+  }
+
+  createApiConnection(remoteAddress) {
+    const connections = this.#connections
+
+    const connection = new Connection()
+    connection.set('user_ip', remoteAddress)
+
+    connections.add(connection)
+    connection.on('close', () => {
+      connections.delete(connection)
+
+      log.info(`- WebSocket connection (${remoteAddress}) (${connections.size} connected)`)
+    })
+
+    log.info(`+ WebSocket connection (${remoteAddress}) (${connections.size} connected)`)
+
+    return connection
   }
 
   registerApiHttpRequest(method, session, fn, data, { exposeAllErrors = false, ...opts } = {}) {

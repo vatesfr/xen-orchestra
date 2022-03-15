@@ -17,7 +17,6 @@ import { parseDuration } from '@vates/parse-duration'
 import { UniqueIndex as XoUniqueIndex } from 'xo-collection/unique-index.js'
 
 import mixins from './xo-mixins/index.mjs'
-import Connection from './connection.mjs'
 import { generateToken, noop } from './utils.mjs'
 
 // ===================================================================
@@ -38,9 +37,6 @@ export default class Xo extends EventEmitter {
 
     this._objects = new XoCollection()
     this._objects.createIndex('byRef', new XoUniqueIndex('_xapiRef'))
-
-    // Connections to users.
-    this._connections = new Set()
 
     this._httpRequestWatchers = { __proto__: null }
 
@@ -120,26 +116,6 @@ export default class Xo extends EventEmitter {
       }
     }
     return results
-  }
-
-  // -----------------------------------------------------------------
-
-  createUserConnection(remoteAddress) {
-    const { _connections: connections } = this
-
-    const connection = new Connection()
-    connection.set('user_ip', remoteAddress)
-
-    connections.add(connection)
-    connection.on('close', () => {
-      connections.delete(connection)
-
-      log.info(`- WebSocket connection (${remoteAddress}) (${connections.size} connected)`)
-    })
-
-    log.info(`+ WebSocket connection (${remoteAddress}) (${connections.size} connected)`)
-
-    return connection
   }
 
   // -----------------------------------------------------------------
@@ -269,7 +245,7 @@ export default class Xo extends EventEmitter {
   // Some should be forwarded to connected clients.
   // Some should be persistently saved.
   _watchObjects() {
-    const { _connections: connections, _objects: objects } = this
+    const { _objects: objects } = this
 
     let entered, exited
     function reset() {
@@ -308,7 +284,7 @@ export default class Xo extends EventEmitter {
         return
       }
 
-      for (const connection of connections) {
+      for (const connection of this.apiConnections) {
         // Notifies only authenticated clients.
         if (connection.has('user_id') && connection.notify) {
           if (enteredMessage) {

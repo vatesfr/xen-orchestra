@@ -558,7 +558,7 @@ const setUpApi = (webServer, xo, config) => {
     const { remoteAddress } = upgradeReq.socket
 
     // Create the abstract XO object for this connection.
-    const connection = xo.createUserConnection(remoteAddress)
+    const connection = xo.createApiConnection(remoteAddress)
     connection.once('close', () => {
       socket.close()
     })
