@@ -397,10 +397,10 @@ export default class Api {
     connection.on('close', () => {
       connections.delete(connection)
 
-      log.info(`- WebSocket connection (${remoteAddress}) (${connections.size} connected)`)
+      log.debug(`- WebSocket connection (${remoteAddress}) (${connections.size} connected)`)
     })
 
-    log.info(`+ WebSocket connection (${remoteAddress}) (${connections.size} connected)`)
+    log.debug(`+ WebSocket connection (${remoteAddress}) (${connections.size} connected)`)
 
     return connection
   }
