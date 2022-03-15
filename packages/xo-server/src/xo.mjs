@@ -40,8 +40,7 @@ export default class Xo extends EventEmitter {
     this._objects.createIndex('byRef', new XoUniqueIndex('_xapiRef'))
 
     // Connections to users.
-    this._nextConId = 0
-    this._connections = { __proto__: null }
+    this._connections = new Set()
 
     this._httpRequestWatchers = { __proto__: null }
 
@@ -125,16 +124,20 @@ export default class Xo extends EventEmitter {
 
   // -----------------------------------------------------------------
 
-  createUserConnection() {
+  createUserConnection(remoteAddress) {
     const { _connections: connections } = this
 
     const connection = new Connection()
-    const id = (connection.id = this._nextConId++)
+    connection.set('user_ip', remoteAddress)
 
-    connections[id] = connection
+    connections.add(connection)
     connection.on('close', () => {
-      delete connections[id]
+      connections.delete(connection)
+
+      log.info(`- WebSocket connection (${remoteAddress}) (${connections.size} connected)`)
     })
+
+    log.info(`+ WebSocket connection (${remoteAddress}) (${connections.size} connected)`)
 
     return connection
   }
@@ -305,7 +308,7 @@ export default class Xo extends EventEmitter {
         return
       }
 
-      forEach(connections, connection => {
+      for (const connection of connections) {
         // Notifies only authenticated clients.
         if (connection.has('user_id') && connection.notify) {
           if (enteredMessage) {
@@ -315,7 +318,7 @@ export default class Xo extends EventEmitter {
             connection.notify('all', exitedMessage)
           }
         }
-      })
+      }
 
       reset()
     })

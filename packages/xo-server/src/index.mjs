@@ -554,18 +554,11 @@ const setUpApi = (webServer, xo, config) => {
   })
   xo.hooks.on('stop', () => fromCallback.call(webSocketServer, 'close'))
 
-  let n = 0
-
   const onConnection = (socket, upgradeReq) => {
     const { remoteAddress } = upgradeReq.socket
 
-    ++n
-
-    log.info(`+ WebSocket connection (${remoteAddress}) (${n} connected)`)
-
     // Create the abstract XO object for this connection.
-    const connection = xo.createUserConnection()
-    connection.set('user_ip', remoteAddress)
+    const connection = xo.createUserConnection(remoteAddress)
     connection.once('close', () => {
       socket.close()
     })
@@ -580,9 +573,6 @@ const setUpApi = (webServer, xo, config) => {
 
     // Close the XO connection with this WebSocket.
     socket.once('close', () => {
-      --n
-      log.info(`- WebSocket connection (${remoteAddress}) (${n} connected)`)
-
       connection.close()
     })
 
