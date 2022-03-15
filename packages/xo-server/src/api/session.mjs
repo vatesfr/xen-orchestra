@@ -5,18 +5,18 @@ import { getUserPublicProperties } from '../utils.mjs'
 // ===================================================================
 
 export async function signIn(credentials) {
-  const { session } = this
+  const { connection } = this
 
   const { user, expiration } = await this.authenticateUser(credentials, {
-    ip: session.get('user_ip', undefined),
+    ip: connection.get('user_ip', undefined),
   })
 
-  session.set('user_id', user.id)
+  connection.set('user_id', user.id)
 
   if (expiration === undefined) {
-    session.unset('expiration')
+    connection.unset('expiration')
   } else {
-    session.set('expiration', expiration)
+    connection.set('expiration', expiration)
   }
 
   return getUserPublicProperties(user)
@@ -47,7 +47,7 @@ signInWithToken.permission = null // user does not need to be authenticated
 // -------------------------------------------------------------------
 
 export function signOut() {
-  this.session.unset('user_id')
+  this.connection.unset('user_id')
 }
 
 signOut.description = 'sign out the user from the current session'
@@ -55,7 +55,7 @@ signOut.description = 'sign out the user from the current session'
 // -------------------------------------------------------------------
 
 export async function getUser() {
-  const userId = this.session.get('user_id')
+  const userId = this.connection.get('user_id')
 
   return userId === undefined ? null : getUserPublicProperties(await this.getUser(userId))
 }

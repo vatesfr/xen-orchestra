@@ -34,7 +34,7 @@ function checkPermissionOnSrs(vm, permission = 'operate') {
     return permissions.push([this.getObject(vdiId, ['VDI', 'VDI-snapshot']).$SR, permission])
   })
 
-  return this.checkPermissions(this.session.get('user_id'), permissions)
+  return this.checkPermissions(this.connection.get('user_id'), permissions)
 }
 
 // ===================================================================
@@ -1122,7 +1122,7 @@ async function import_({ data, sr, type = 'xva', url }) {
   return {
     $sendTo: await this.registerApiHttpRequest(
       'vm.import',
-      this.session,
+      this.connection,
       handleVmImport,
       { data, srId, type, xapi },
       { exposeAllErrors: true }

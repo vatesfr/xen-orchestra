@@ -280,9 +280,9 @@ export default class Jobs {
           })(executor)
       }
 
-      const session = app.createUserConnection()
-      $defer.call(session, 'close')
-      session.set('user_id', job.userId)
+      const connection = app.createUserConnection()
+      $defer.call(connection, 'close')
+      connection.set('user_id', job.userId)
 
       const { cancel, token } = CancelToken.source()
 
@@ -293,12 +293,12 @@ export default class Jobs {
       const status = await executor({
         app,
         cancelToken: token,
+        connection,
         data: data_,
         job,
         logger,
         runJobId,
         schedule,
-        session,
       })
 
       await logger.notice(

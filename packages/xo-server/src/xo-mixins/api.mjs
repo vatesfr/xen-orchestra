@@ -225,7 +225,7 @@ export default class Api {
     return remove
   }
 
-  async callApiMethod(session, name, params = {}) {
+  async callApiMethod(connection, name, params = {}) {
     const app = this._app
     const startTime = Date.now()
 
@@ -241,8 +241,8 @@ export default class Api {
           // Used by system.*().
           value: this,
         },
-        session: {
-          value: session,
+        connection: {
+          value: connection,
         },
       }
 
@@ -259,7 +259,7 @@ export default class Api {
     })()
 
     // Fetch and inject the current user.
-    const userId = session.get('user_id', undefined)
+    const userId = connection.get('user_id', undefined)
     context.user = userId && (await app.getUser(userId))
     const userName = context.user ? context.user.email : '(unknown user)'
 
@@ -267,7 +267,7 @@ export default class Api {
       callId: Math.random().toString(36).slice(2),
       userId,
       userName,
-      userIp: session.get('user_ip', undefined),
+      userIp: connection.get('user_ip', undefined),
       method: name,
       params: sensitiveValues.replace(params, '* obfuscated *'),
       timestamp: Date.now(),
@@ -323,7 +323,7 @@ export default class Api {
 
       // it's a special case in which the user is defined at the end of the call
       if (data.method === 'session.signIn') {
-        const { id, email } = await app.getUser(session.get('user_id'))
+        const { id, email } = await app.getUser(connection.get('user_id'))
         data.userId = id
         data.userName = email
       }
@@ -405,7 +405,7 @@ export default class Api {
     return connection
   }
 
-  registerApiHttpRequest(method, session, fn, data, { exposeAllErrors = false, ...opts } = {}) {
+  registerApiHttpRequest(method, connection, fn, data, { exposeAllErrors = false, ...opts } = {}) {
     const app = this._app
     const logger = this._logger
     return app.registerHttpRequest(
@@ -414,13 +414,13 @@ export default class Api {
         try {
           return await fn.apply(this, arguments)
         } catch (error) {
-          const userId = session.get('user_id', undefined)
+          const userId = connection.get('user_id', undefined)
           const user = userId && (await app.getUser(userId))
           logger.error(`handleVmImport =!> ${error}`, {
             callId: Math.random().toString(36).slice(2),
             // userId,
             userName: user?.email ?? '(unknown user)',
-            userIp: session.get('user_ip', undefined),
+            userIp: connection.get('user_ip', undefined),
             method: `HTTP handler of ${method}`,
             timestamp,
             duration: Date.now() - timestamp,
