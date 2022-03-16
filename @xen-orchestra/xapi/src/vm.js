@@ -339,7 +339,7 @@ module.exports = class Vm {
     // destroyed even if this fails
     await this.call('VM.destroy', vmRef)
 
-    return Promise.all([
+    await Promise.all([
       asyncMap(vm.snapshots, snapshotRef =>
         this.VM_destroy(snapshotRef).catch(error => {
           warn('VM_destroy: failed to destroy snapshot', {
