@@ -280,7 +280,7 @@ export default class Jobs {
           })(executor)
       }
 
-      const connection = app.createUserConnection()
+      const connection = app.createApiConnection()
       $defer.call(connection, 'close')
       connection.set('user_id', job.userId)
 
