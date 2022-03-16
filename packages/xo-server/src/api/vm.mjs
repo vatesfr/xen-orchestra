@@ -827,10 +827,10 @@ export const snapshot = defer(async function (
   }
 
   const xapi = this.getXapi(vm)
-  const { $id: snapshotId, $ref: snapshotRef } = await (saveMemory
-    ? xapi.checkpointVm(vm._xapiRef, name)
-    : xapi.snapshotVm(vm._xapiRef, name))
+  const snapshotRef = await xapi['VM_' + (saveMemory ? 'checkpoint' : 'snapshot')](vm._xapiRef, { name_label: name })
   $defer.onFailure(() => xapi.VM_destroy(snapshotRef))
+
+  const snapshotId = await xapi.getField('VM', snapshotRef, 'uuid')
 
   if (description !== undefined) {
     await xapi.editVm(snapshotId, { name_description: description })

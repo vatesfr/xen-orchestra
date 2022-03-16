@@ -1220,9 +1220,7 @@ export class Xapi extends EventEmitter {
           // dont trigger getters (eg sessionId)
           const fn = Object.getOwnPropertyDescriptor(object, name).value
           if (typeof fn === 'function' && name.startsWith(type + '_')) {
-            const key = '$' + name.slice(type.length + 1)
-            assert.strictEqual(props[key], undefined)
-            props[key] = function (...args) {
+            props['$' + name.slice(type.length + 1)] = function (...args) {
               return xapi[name](this.$ref, ...args)
             }
           }
