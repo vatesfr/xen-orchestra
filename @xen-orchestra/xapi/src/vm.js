@@ -132,7 +132,21 @@ module.exports = class Vm {
       name_label = await this.getField('VM', vmRef, 'name_label')
     }
     try {
-      return await this.callAsync(cancelToken, 'VM.checkpoint', vmRef, name_label).then(extractOpaqueRef)
+      const ref = await this.callAsync(cancelToken, 'VM.checkpoint', vmRef, name_label).then(extractOpaqueRef)
+
+      // VM checkpoints are marked as templates, unfortunately it does not play well with XVA export/import
+      // which will import them as templates and not VM checkpoints or plain VMs
+      await pCatch.call(
+        this.setField('VM', ref, 'is_a_template', false),
+
+        // Ignore if this fails due to license restriction
+        //
+        // see https://bugs.xenserver.org/browse/XSO-766
+        { code: 'LICENSE_RESTRICTION' },
+        noop
+      )
+
+      return ref
     } catch (error) {
       if (error.code === 'VM_BAD_POWER_STATE') {
         return this.VM_snapshot(vmRef, { cancelToken, name_label })
