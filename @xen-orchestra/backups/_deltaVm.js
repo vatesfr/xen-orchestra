@@ -11,6 +11,8 @@ const { createVhdStreamWithLength } = require('vhd-lib')
 const { defer } = require('golike-defer')
 
 const { cancelableMap } = require('./_cancelableMap.js')
+const Task = require('./Task')
+const { pick } = require('lodash')
 
 const TAG_BASE_DELTA = 'xo:base_delta'
 exports.TAG_BASE_DELTA = TAG_BASE_DELTA
@@ -195,19 +197,25 @@ exports.importDeltaVm = defer(async function importDeltaVm(
   let suspendVdi
   if (vmRecord.power_state === 'Suspended') {
     const vdi = vdiRecords[vmRecord.suspend_VDI]
-    suspendVdi = await xapi.getRecord(
-      'VDI',
-      await xapi.VDI_create({
-        ...vdi,
-        other_config: {
-          ...vdi.other_config,
-          [TAG_BASE_DELTA]: undefined,
-          [TAG_COPY_SRC]: vdi.uuid,
-        },
-        sr: mapVdisSrRefs[vdi.uuid] ?? sr.$ref,
+    if (vdi === undefined) {
+      Task.warning('Suspend VDI not available for this suspended VM', {
+        vm: pick(vmRecord, 'uuid', 'name_label'),
       })
-    )
-    $defer.onFailure(() => suspendVdi.$destroy())
+    } else {
+      suspendVdi = await xapi.getRecord(
+        'VDI',
+        await xapi.VDI_create({
+          ...vdi,
+          other_config: {
+            ...vdi.other_config,
+            [TAG_BASE_DELTA]: undefined,
+            [TAG_COPY_SRC]: vdi.uuid,
+          },
+          sr: mapVdisSrRefs[vdi.uuid] ?? sr.$ref,
+        })
+      )
+      $defer.onFailure(() => suspendVdi.$destroy())
+    }
   }
 
   // 1. Create the VM.
