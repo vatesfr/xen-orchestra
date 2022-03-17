@@ -12,6 +12,8 @@ import { FormattedRelative, FormattedTime } from 'react-intl'
 import { installAllPatchesOnHost, restartHost } from 'xo'
 import { isEmpty } from 'lodash'
 
+import { createGetObject } from '../../common/selectors'
+
 const MISSING_PATCH_COLUMNS = [
   {
     name: _('patchNameLabel'),
@@ -145,7 +147,7 @@ const INSTALLED_PATCH_COLUMNS = [
 
 class XcpPatches extends Component {
   render() {
-    const { missingPatches, host, installAllPatches } = this.props
+    const { missingPatches, host, installAllPatches, pool } = this.props
     const hasMissingPatches = !isEmpty(missingPatches)
     return (
       <Container>
@@ -161,11 +163,12 @@ class XcpPatches extends Component {
               />
             )}
             <TabButton
-              disabled={!hasMissingPatches}
+              disabled={!hasMissingPatches || pool.HA_enabled}
               btnStyle={hasMissingPatches ? 'primary' : undefined}
               handler={installAllPatches}
               icon={hasMissingPatches ? 'host-patch-update' : 'success'}
               labelId={hasMissingPatches ? 'patchUpdateButton' : 'hostUpToDate'}
+              tooltip={pool.HA_enabled ? _('disabledInstallPatchesTooltip') : undefined}
             />
           </Col>
         </Row>
@@ -191,7 +194,7 @@ class XcpPatches extends Component {
 }))
 class XenServerPatches extends Component {
   render() {
-    const { host, missingPatches, installAllPatches, hostPatches } = this.props
+    const { host, hostPatches, installAllPatches, missingPatches, pool } = this.props
     const hasMissingPatches = !isEmpty(missingPatches)
     return (
       <Container>
@@ -207,11 +210,12 @@ class XenServerPatches extends Component {
               />
             )}
             <TabButton
-              disabled={!hasMissingPatches}
+              disabled={!hasMissingPatches || pool.HA_enabled}
               btnStyle={hasMissingPatches ? 'primary' : undefined}
               handler={installAllPatches}
               icon={hasMissingPatches ? 'host-patch-update' : 'success'}
               labelId={hasMissingPatches ? 'patchUpdateButton' : 'hostUpToDate'}
+              tooltip={pool.HA_enabled ? _('disabledInstallPatchesTooltip') : undefined}
             />
           </Col>
         </Row>
@@ -234,6 +238,9 @@ class XenServerPatches extends Component {
   }
 }
 
+@connectStore(() => ({
+  pool: createGetObject((_, props) => props.host.$pool),
+}))
 export default class TabPatches extends Component {
   static contextTypes = {
     router: PropTypes.object,

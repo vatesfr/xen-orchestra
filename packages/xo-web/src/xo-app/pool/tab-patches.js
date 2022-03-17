@@ -48,6 +48,7 @@ const MISSING_PATCH_COLUMNS = [
 
 const ACTIONS = [
   {
+    disabled: (_, { pool }) => pool.HA_enabled,
     handler: (patches, { pool }) => installPatches(patches, pool),
     icon: 'host-patch-update',
     label: _('install'),
@@ -186,10 +187,11 @@ export default class TabPatches extends Component {
               <TabButton
                 btnStyle='primary'
                 data-pool={pool}
-                disabled={isEmpty(missingPatches)}
+                disabled={isEmpty(missingPatches) || pool.HA_enabled}
                 handler={installAllPatchesOnPool}
                 icon='host-patch-update'
                 labelId='installPoolPatches'
+                tooltip={pool.HA_enabled ? _('disabledInstallPatchesTooltip') : undefined}
               />
             </Col>
           </Row>
