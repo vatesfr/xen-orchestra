@@ -147,7 +147,9 @@ const Tree = withState<State, Props, Effects, Computed, ParentState, ParentEffec
         for (const node of collection) {
           if (defaultSelectedNodes.includes(node.id)) {
             for (const nodeId of tempExpandedNodes.values()) {
-              !expandedNodes.includes(nodeId) && expandedNodes.push(nodeId)
+              if (!expandedNodes.includes(nodeId)) {
+                expandedNodes.push(nodeId)
+              }
             }
           }
           tempExpandedNodes.add(node.id)
