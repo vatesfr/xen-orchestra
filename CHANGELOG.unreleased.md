@@ -9,6 +9,7 @@
 
 - [REST API] Expose networks, VBDs, VDIs and VIFs
 - [Console] Supports host and VM consoles behind HTTP proxies [#6133](https://github.com/vatesfr/xen-orchestra/pull/6133)
+- [VM creation] Add link to documentation on secure boot [#6146](https://github.com/vatesfr/xen-orchestra/pull/6146)
 
 ### Bug fixes
 
