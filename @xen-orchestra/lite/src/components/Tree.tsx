@@ -137,8 +137,8 @@ const Tree = withState<State, Props, Effects, Computed, ParentState, ParentEffec
       }
 
       // expandedNodes should contain all nodes up to the defaultSelectedNodes.
-      const expandedNodes: Array<string> = []
-      const tempExpandedNodes = new Set<string>()
+      const expandedNodes = new Set<string>()
+      const pathToNode = new Set<string>()
       const addExpandedNode = (collection: Array<ItemType> | undefined) => {
         if (collection === undefined) {
           return
@@ -146,21 +146,19 @@ const Tree = withState<State, Props, Effects, Computed, ParentState, ParentEffec
 
         for (const node of collection) {
           if (defaultSelectedNodes.includes(node.id)) {
-            for (const nodeId of tempExpandedNodes.values()) {
-              if (!expandedNodes.includes(nodeId)) {
-                expandedNodes.push(nodeId)
-              }
+            for (const nodeId of pathToNode.values()) {
+              expandedNodes.add(nodeId)
             }
           }
-          tempExpandedNodes.add(node.id)
+          pathToNode.add(node.id)
           addExpandedNode(node.children)
-          tempExpandedNodes.delete(node.id)
+          pathToNode.delete(node.id)
         }
       }
 
       addExpandedNode(collection)
 
-      return { expandedNodes, selectedNodes: defaultSelectedNodes }
+      return { expandedNodes: Array.from(expandedNodes), selectedNodes: defaultSelectedNodes }
     },
     effects: {
       setExpandedNodeIds: function (event, nodeIds) {
@@ -179,9 +177,9 @@ const Tree = withState<State, Props, Effects, Computed, ParentState, ParentEffec
         defaultExpanded={[collection[0].id]}
         defaultCollapseIcon={<Icon icon='chevron-up' />}
         defaultExpandIcon={<Icon icon='chevron-down' />}
+        multiSelect
         onNodeSelect={effects.setSelectedNodeIds}
         onNodeToggle={effects.setExpandedNodeIds}
-        multiSelect
         selected={selectedNodes}
       >
         {collection.map(item => renderItem(item, defaultSelectedNode))}
