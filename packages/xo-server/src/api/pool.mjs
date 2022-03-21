@@ -2,6 +2,7 @@ import { asyncMap } from '@xen-orchestra/async-map'
 import { defer as deferrable } from 'golike-defer'
 import { format } from 'json-rpc-peer'
 import { Ref } from 'xen-api'
+import { incorrectState } from 'xo-common/api-errors.js'
 
 import { moveFirst } from '../_moveFirst.mjs'
 
@@ -126,6 +127,15 @@ export async function installPatches({ pool, patches, hosts }) {
     opts.hosts = hosts
     xapi = hosts[0].$xapi
     pool = xapi.pool
+  }
+
+  if (pool.ha_enabled) {
+    throw incorrectState({
+      actual: pool.ha_enabled,
+      expected: false,
+      object: pool.$id,
+      property: 'ha_enabled',
+    })
   }
 
   await xapi.installPatches(opts)
