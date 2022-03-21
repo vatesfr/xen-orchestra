@@ -236,7 +236,6 @@ exports.Backup = class Backup {
         }
 
         const vmIds = extractIdsFromSimplePattern(job.vms)
-
         Task.info('vms', { vms: vmIds })
 
         remoteAdapters = getAdaptersByRemote(remoteAdapters)

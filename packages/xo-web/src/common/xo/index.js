@@ -2237,6 +2237,18 @@ export const restoreBackup = (
   return promise
 }
 
+export const checkBackup = (
+  backup,
+  sr,
+  { generateNewMacAddresses = false, mapVdisSrs = {}, startOnRestore = false } = {}
+) => {
+  return _call('backupNg.checkBackup', {
+    id: resolveId(backup),
+    settings: { mapVdisSrs: resolveIds(mapVdisSrs), newMacAddresses: generateNewMacAddresses },
+    sr: resolveId(sr),
+  })
+}
+
 export const deleteBackup = backup => _call('backupNg.deleteVmBackup', { id: resolveId(backup) })
 
 export const deleteBackups = async backups =>

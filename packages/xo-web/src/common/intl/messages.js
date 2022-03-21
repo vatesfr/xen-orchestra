@@ -481,6 +481,7 @@ const messages = {
     'If your country participates in DST, it is advised that you avoid scheduling jobs at the time of change. e.g. 2AM to 3AM for US.',
 
   // ------ New backup -----
+  checkBackup: 'check backup consistency',
   newBackupAdvancedSettings: 'Advanced settings',
   newBackupSettings: 'Settings',
   reportWhenAlways: 'Always',

@@ -345,6 +345,10 @@
     @extend .fa;
     @extend .fa-download;
   }
+  &-check {
+    @extend .fa;
+    @extend .fa-check;
+  }
   &-restore {
     @extend .fa;
     @extend .fa-upload;
