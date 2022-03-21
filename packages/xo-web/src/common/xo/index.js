@@ -1600,8 +1600,7 @@ export const importVm = async (file, type = 'xva', data = undefined, sr, url = u
   }
   const result = await _call('vm.import', { type, data, sr: resolveId(sr), url })
   if (url !== undefined) {
-    // If imported from URL, result is of type string
-    // and correspond to the vmId
+    // If imported from URL, result is of type string and corresponds to the vmId
     success(_('vmImportSuccess'), name)
     return [result]
   }
