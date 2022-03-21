@@ -1,6 +1,9 @@
+import { asyncMap } from '@xen-orchestra/async-map'
 import { defer as deferrable } from 'golike-defer'
 import { format } from 'json-rpc-peer'
 import { Ref } from 'xen-api'
+
+import { moveFirst } from '../_moveFirst.mjs'
 
 // ===================================================================
 
@@ -112,10 +115,27 @@ listMissingPatches.resolve = {
 // -------------------------------------------------------------------
 
 export async function installPatches({ pool, patches, hosts }) {
-  await this.getXapi(hosts === undefined ? pool : hosts[0]).installPatches({
-    patches,
-    hosts,
-  })
+  const opts = { patches }
+  let xapi
+  if (pool !== undefined) {
+    pool = this.getXapiObject(pool, 'pool')
+    xapi = pool.$xapi
+    hosts = Object.values(xapi.objects.indexes.type.host)
+  } else {
+    hosts = hosts.map(_ => this.getXapiObject(_))
+    opts.hosts = hosts
+    xapi = hosts[0].$xapi
+    pool = xapi.pool
+  }
+
+  await xapi.installPatches(opts)
+
+  const masterRef = pool.master
+  if (moveFirst(hosts, _ => _.$ref === masterRef)) {
+    await hosts.shift().$restartAgent()
+  }
+
+  await asyncMap(hosts, host => host.$restartAgent())
 }
 
 installPatches.params = {
