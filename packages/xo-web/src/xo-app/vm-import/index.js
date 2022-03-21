@@ -389,7 +389,7 @@ export default class Import extends Component {
                 </FormGrid.Row>
                 <FormGrid.Row>
                   <Tooltip content={_('tooltipsFileType')}>
-                    <FormGrid.LabelCol>{_('fileType')}</FormGrid.LabelCol>
+                    <FormGrid.LabelCol>{_('fileType')}:</FormGrid.LabelCol>
                   </Tooltip>
                   <FormGrid.InputCol>
                     <Input className='form-control' onChange={this.linkState('type')} placeholder='xva' />
