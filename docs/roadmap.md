@@ -7,7 +7,7 @@ The goal of this document is to give you a hint on what's next. However, since a
 This means some parts of the following features are already available, but only partially.
 
 - [XO Lite](https://xcp-ng.org/forum/topic/5018/xo-lite-building-an-embedded-ui-in-xcp-ng): a small/light version of Xen Orchestra bundled inside your XCP-ng host.
-- Public REST API
+- [Public REST API](https://github.com/vatesfr/xen-orchestra/blob/master/packages/xo-server/docs/rest-api.md)
 
 ## In progress
 
