@@ -285,12 +285,6 @@ export default class Import extends Component {
     })
   }
 
-  _toggleIsFromUrl = () => {
-    this.setState(prevStat => ({
-      isFromUrl: !prevStat.isFromUrl,
-    }))
-  }
-
   render() {
     const { isFromUrl, pool, sr, srPredicate, vms, url } = this.state
 
