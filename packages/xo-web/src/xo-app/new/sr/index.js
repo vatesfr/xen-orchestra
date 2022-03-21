@@ -490,12 +490,14 @@ export default class New extends Component {
         }
       }
     } catch (err) {
+      console.log(err)
       error('Server Detection', err.message || String(err))
     }
   }
 
   _handleSrPathSelection = async path => {
     if (path === '') {
+      this.setState({ path: undefined })
       return
     }
     const { server } = this.refs

@@ -12,7 +12,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [Rolling Pool Update] Don't fail if `load-balancer` plugin is missing (Starter and Enterprise plans)
-- [New sr] Fix `sr.probeNfsExists` with value as "No selected value" [#5991](https://github.com/vatesfr/xen-orchestra/issues/5991)(PR [#6137](https://github.com/vatesfr/xen-orchestra/pull/6137))
+- [New SR] Don't check for server path when selecting "No selected value" [#5991](https://github.com/vatesfr/xen-orchestra/issues/5991) (PR [#6137](https://github.com/vatesfr/xen-orchestra/pull/6137))
 
 ### Packages to release
 
