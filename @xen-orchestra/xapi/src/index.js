@@ -206,6 +206,7 @@ function mixin(mixins) {
 }
 mixin({
   task: require('./task.js'),
+  host: require('./host.js'),
   VBD: require('./vbd.js'),
   VDI: require('./vdi.js'),
   VIF: require('./vif.js'),
