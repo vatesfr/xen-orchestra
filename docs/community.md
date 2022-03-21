@@ -1,7 +1,25 @@
 # Community support
 
+We do our best to assist people running Xen Orchestra from the sources on [our community forums](https://xcp-ng.org/forum/category/12/xen-orchestra). However, there's no guarantee to have an answer (from us or the community), nor any timeframe for that. Usually, we are responsive, but keep in mind that if you need production ready support level, you should consider to subscribe to our [XOA offers](https://xen-orchestra.com).
+
 :::warning
 If you installed your XO from a 3rd party script (any method outside [our official documentation](installation.md#from-the-sources)), please report your issue **first** on the script repository. We can't waste time on debugging 3rd party installers.
+:::
+
+## Current version
+
+With Xen Orchestra from the sources, you can check your current commit hash in the **About** section:
+
+![](./assets/commitversion.png)
+
+:::tip
+You can compare this hash to the current commit list on [our GitHub repository](https://github.com/vatesfr/xen-orchestra/commits/master).
+:::
+
+## Report a bug
+
+:::warning
+Before reporting a bug, please check that your **current version is up-to-date with the latest commit on `master`!** See "Current version" section below.
 :::
 
 If you have issues on XO installed from the sources (via GitHub), please **always** do first:
@@ -14,4 +32,16 @@ Only after that, you can go on the [dedicated forum](https://xcp-ng.org/forum/ca
 
 :::tip
 If you want a consistent and tested solution for using Xen Orchestra, we strongly advise to use our preconfigured and validated [Xen Orchestra virtual Appliance](installation.md#xoa).
+:::
+
+## Feature request
+
+The best way to go for a feature request is to:
+
+1. Ask on the forum first, explaining **why you need it**.
+2. If the discussion is fruitful, we might ask you to [create the request on our GitHub repository](https://github.com/vatesfr/xen-orchestra/issues/new/choose) and choose "Feature request".
+3. Wait for the feature to be released!
+
+:::tip
+Obviously, XOA users got a higher priority to get new features, since they contribute directly to the project with a subscription. However, your feedback/ideas are always welcome, and more popular the feature request is, higher the chances to be created!
 :::
