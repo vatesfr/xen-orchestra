@@ -185,7 +185,7 @@ export class Xapi extends EventEmitter {
   }
 
   get sessionId() {
-    assert(this._status === CONNECTED)
+    assert.strictEqual(this._status, CONNECTED)
     return this._sessionId
   }
 
@@ -202,7 +202,7 @@ export class Xapi extends EventEmitter {
       return
     }
 
-    assert(status === DISCONNECTED)
+    assert.strictEqual(status, DISCONNECTED)
 
     this._status = CONNECTING
     this._disconnected = new Promise(resolve => {
@@ -236,7 +236,7 @@ export class Xapi extends EventEmitter {
         this._resolveConnected = resolve
       })
     } else {
-      assert(status === CONNECTING)
+      assert.strictEqual(status, CONNECTING)
     }
 
     const sessionId = this._sessionId
