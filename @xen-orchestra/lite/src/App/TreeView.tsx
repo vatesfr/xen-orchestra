@@ -12,9 +12,7 @@ interface ParentState {
   objectsByType: ObjectsByType
 }
 
-interface State {
-  _selectedNodes: Array<string>
-}
+interface State {}
 
 interface Props extends RouteComponentProps {}
 
@@ -46,18 +44,14 @@ const getIconColor = (obj: Host | Vm) => {
 
 const TreeView = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
   {
-    initialState: ({ location }) => {
-      const selectedNode = location.pathname.split('/')[3]
-      return {
-        _selectedNodes: selectedNode !== undefined ? [selectedNode] : [],
-      }
-    },
     effects: {
       setSelectedNodes: function (_, nodeIds) {
-        if (this.state.objectId === undefined) {
-          this.props.history.push('/infrastructure/type/' + nodeIds[0])
-        }
-        this.state._selectedNodes = nodeIds
+        const { objectId } = this.state
+        this.props.history.push(
+          objectId?.match(/^[0-9a-z]{8}-([0-9a-z]{4}-){3}[0-9a-z]{12}$/) != null
+            ? this.props.history.location.pathname.replace(objectId, nodeIds[0])
+            : '/infrastructure/type/' + nodeIds[0]
+        )
       },
     },
     computed: {
@@ -129,7 +123,7 @@ const TreeView = withState<State, Props, Effects, Computed, ParentState, ParentE
       hostsByPool: state => state.objectsByType?.get('host')?.groupBy((host: Host) => host.$pool.$id),
       objectId: (_, { location }) => location.pathname.split('/')[3],
       pools: state => state.objectsByType?.get('pool'),
-      selectedNodes: ({ objectId, _selectedNodes }) => (objectId !== undefined ? _selectedNodes : []),
+      selectedNodes: ({ objectId }) => (objectId !== undefined ? [objectId] : []),
       vms: state =>
         state.objectsByType
           ?.get('VM')
