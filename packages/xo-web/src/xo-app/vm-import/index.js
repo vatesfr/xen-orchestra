@@ -196,7 +196,7 @@ const getRedirectionUrl = vms =>
   vms.length === 0
     ? undefined // no redirect
     : vms.length === 1
-    ? `vms/${vms[0]}`
+    ? `/vms/${vms[0]}`
     : `/home?s=${encodeURIComponent(`id:|(${vms.join(' ')})`)}&t=VM`
 
 export default class Import extends Component {
