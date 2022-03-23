@@ -37,10 +37,25 @@ const IDEAL_FRAGMENT_SIZE = Math.ceil(MAX_OBJECT_SIZE / MAX_PARTS_COUNT) // the 
 
 const { warn } = createLogger('xo:fs:s3')
 
+// TODO
+function guessRegion(host) {
+  const matches = /^s3\.([^.]+)\.amazonaws.com$/.exec(host)
+  return matches !== null ? matches[1] : 'us-east-1'
+}
+
 export default class S3Handler extends RemoteHandlerAbstract {
   constructor(remote, _opts) {
     super(remote)
-    const { allowUnauthorized, host, path, username, password, protocol, region } = parse(remote.url)
+    const {
+      allowUnauthorized,
+      host,
+      path,
+      username,
+      password,
+      protocol,
+      region = guessRegion(host),
+    } = parse(remote.url)
+
     this._s3 = new S3Client({
       apiVersion: '2006-03-01',
       endpoint: `${protocol}://${host}`,
@@ -50,7 +65,7 @@ export default class S3Handler extends RemoteHandlerAbstract {
         secretAccessKey: password,
       },
       tls: protocol === 'https',
-      region: region || 'us-east-1',
+      region,
       requestHandler: new NodeHttpHandler({
         socketTimeout: 600000,
         httpAgent: new HttpAgent({
