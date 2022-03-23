@@ -44,24 +44,24 @@ const Select = withState<State, Props, Effects, Computed, ParentState, ParentEff
       renderValue: (_, { valueRenderer }) => iteratee(valueRenderer),
       options: (state, { additionalProps, options, optionRenderer, valueRenderer }) =>
         options?.map(item => {
+          const isItemReadable = typeof item === 'string' || typeof item === 'number'
           const label =
             optionRenderer === undefined
-              ? item.name ?? item.label ?? item.name_label ?? item
+              ? isItemReadable
+                ? item
+                : item.name ?? item.label ?? item.name_label
               : state.renderOption(item, additionalProps)
+
           const value =
             valueRenderer === undefined
-              ? item.value ?? item.id ?? item.$id ?? item
+              ? isItemReadable
+                ? item
+                : item.value ?? item.id ?? item.$id
               : state.renderValue(item, additionalProps)
 
           if (value === undefined) {
             console.error('Computed value is undefined')
           }
-          if (typeof label === 'object' || typeof value === 'object') {
-            throw new Error(
-              'When "options" prop is an array of objects, you have to define "optionRenderer" and "valueRenderer" or ensure the objects have one of these following keys: ("name" | "label" | "name_label") and ("value" | "id" | "$id")'
-            )
-          }
-
           return (
             <MenuItem key={value} value={value}>
               {label}
