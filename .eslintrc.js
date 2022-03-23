@@ -1,7 +1,7 @@
 'use strict'
 
 module.exports = {
-  extends: ['plugin:eslint-comments/recommended', 'standard', 'standard-jsx', 'prettier'],
+  extends: ['plugin:eslint-comments/recommended', 'plugin:n/recommended', 'standard', 'standard-jsx', 'prettier'],
   globals: {
     __DEV__: true,
     $Dict: true,
@@ -17,6 +17,7 @@ module.exports = {
     {
       files: ['cli.{,c,m}js', '*-cli.{,c,m}js', '**/*cli*/**/*.{,c,m}js'],
       rules: {
+        'n/no-process-exit': 'off',
         'no-console': 'off',
       },
     },
@@ -24,6 +25,23 @@ module.exports = {
       files: ['*.mjs'],
       parserOptions: {
         sourceType: 'module',
+      },
+    },
+    {
+      files: ['*.spec.{,c,m}js'],
+      rules: {
+        'n/no-unsupported-features/node-builtins': [
+          'error',
+          {
+            version: '>=16',
+          },
+        ],
+        'n/no-unsupported-features/es-syntax': [
+          'error',
+          {
+            version: '>=16',
+          },
+        ],
       },
     },
   ],

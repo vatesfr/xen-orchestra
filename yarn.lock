@@ -2994,7 +2994,7 @@ async-hook-domain@^2.0.4:
   resolved "https://registry.yarnpkg.com/async-hook-domain/-/async-hook-domain-2.0.4.tgz#5a24910982c04394ea33dd442860f80cce2d972c"
   integrity sha512-14LjCmlK1PK8eDtTezR6WX8TMaYNIzBIsd2D1sGoGjgx0BuNMMoSdk7i/drlbtamy0AWv9yv2tkB+ASdmeqFIw==
 
-async-iterator-to-stream@^1.0.1, async-iterator-to-stream@^1.0.2, async-iterator-to-stream@^1.1.0:
+async-iterator-to-stream@^1.0.1, async-iterator-to-stream@^1.0.2, async-iterator-to-stream@^1.1.0, async-iterator-to-stream@^1.2.0:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/async-iterator-to-stream/-/async-iterator-to-stream-1.2.0.tgz#fd90483e3a308be2b5a1cf2d28d6f62f4f7923e0"
   integrity sha512-6R+mWdZgHpmXpvovdsl+/gidRgl0Wf18ADozWPA5isk9XBzJnzpVBH7qcZZbKG72eytJlNXBN3rWgmwzd4Wr8A==
@@ -7017,7 +7017,7 @@ execa@^5.0.0, execa@^5.1.1:
     signal-exit "^3.0.3"
     strip-final-newline "^2.0.0"
 
-execa@^6.0.0:
+execa@^6.0.0, execa@^6.1.0:
   version "6.1.0"
   resolved "https://registry.yarnpkg.com/execa/-/execa-6.1.0.tgz#cea16dee211ff011246556388effa0818394fb20"
   integrity sha512-QVWlX2e50heYJcCPG0iWtf8r0xjEYfz/OYLGDYH+IyjWezzPNxz63qNFOu0l4YftGWuizFVZHHs8PrLU5p2IDA==
@@ -18185,7 +18185,7 @@ ws@^7, ws@^7.4.6, ws@^7.5.5:
   resolved "https://registry.yarnpkg.com/ws/-/ws-7.5.7.tgz#9e0ac77ee50af70d58326ecff7e85eb3fa375e67"
   integrity sha512-KMvVuFzpKBuiIXW3E4u3mySRO2/mCHSyZDJQM5NQ9Q9KHWHWh0NHgfbRMLLrceUK5qAL4ytALJbpRMjixFZh8A==
 
-ws@^8.2.3, ws@^8.3.0:
+ws@^8.2.3, ws@^8.3.0, ws@^8.5.0:
   version "8.5.0"
   resolved "https://registry.yarnpkg.com/ws/-/ws-8.5.0.tgz#bfb4be96600757fe5382de12c670dab984a1ed4f"
   integrity sha512-BWX0SWVgLPzYwF8lTzEy1egjhS4S4OEAHfsO8o65WOVsrnSRGaSiUaa9e0ggGlkMTtBlmOpEXiie9RUcBO86qg==

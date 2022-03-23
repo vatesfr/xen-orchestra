@@ -27,7 +27,7 @@
     "xo-cli": "dist/index.js"
   },
   "engines": {
-    "node": ">=10"
+    "node": ">=14"
   },
   "dependencies": {
     "chalk": "^4.1.0",

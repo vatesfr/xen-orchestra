@@ -27,6 +27,7 @@
     "vuepress": "^1.4.1"
   },
   "engines": {
+    "node": ">=14",
     "yarn": "^1.7.0"
   },
   "husky": {

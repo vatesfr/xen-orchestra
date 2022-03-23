@@ -1,4 +1,4 @@
-import ReverseProxy, { backendToLocalPath, localToBackendUrl } from '../dist/app/mixins/reverseProxy.mjs'
+import ReverseProxy, { backendToLocalPath, localToBackendUrl } from '../app/mixins/reverseProxy.mjs'
 import { deepEqual, strictEqual } from 'assert'
 
 function makeApp(reverseProxies) {
