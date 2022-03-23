@@ -1,21 +1,17 @@
 const CancelToken = require('promise-toolbox/CancelToken')
 const pCatch = require('promise-toolbox/catch')
 const pRetry = require('promise-toolbox/retry')
-const { decorateWith } = require('@vates/decorate-with')
+const { decorateClass } = require('@vates/decorate-with')
 
 const extractOpaqueRef = require('./_extractOpaqueRef.js')
 
 const noop = Function.prototype
 
-module.exports = class Vdi {
+class Vdi {
   async clone(vdiRef) {
     return extractOpaqueRef(await this.callAsync('VDI.clone', vdiRef))
   }
 
-  // work around a race condition in XCP-ng/XenServer where the disk is not fully unmounted yet
-  @decorateWith(pRetry.wrap, function () {
-    return this._vdiDestroyRetryWhenInUse
-  })
   async destroy(vdiRef) {
     await pCatch.call(
       this.callAsync('VDI.destroy', vdiRef),
@@ -113,3 +109,14 @@ module.exports = class Vdi {
     }
   }
 }
+module.exports = Vdi
+
+decorateClass(Vdi, {
+  // work around a race condition in XCP-ng/XenServer where the disk is not fully unmounted yet
+  destroy: [
+    pRetry.wrap,
+    function () {
+      return this._vdiDestroyRetryWhenInUse
+    },
+  ],
+})

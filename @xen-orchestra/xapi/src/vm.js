@@ -7,7 +7,7 @@ const pCatch = require('promise-toolbox/catch')
 const pRetry = require('promise-toolbox/retry')
 const { asyncMap } = require('@xen-orchestra/async-map')
 const { createLogger } = require('@xen-orchestra/log')
-const { decorateWith } = require('@vates/decorate-with')
+const { decorateClass } = require('@vates/decorate-with')
 const { defer } = require('golike-defer')
 const { incorrectState } = require('xo-common/api-errors.js')
 const { Ref } = require('xen-api')
@@ -53,7 +53,7 @@ async function safeGetRecord(xapi, type, ref) {
 
 const noop = Function.prototype
 
-module.exports = class Vm {
+class Vm {
   async _assertHealthyVdiChain(vdiRefOrUuid, cache, tolerance) {
     let vdi = cache[vdiRefOrUuid]
     if (vdi === undefined) {
@@ -155,7 +155,6 @@ module.exports = class Vm {
     }
   }
 
-  @decorateWith(defer)
   async create(
     $defer,
     {
@@ -372,7 +371,6 @@ module.exports = class Vm {
     ])
   }
 
-  @decorateWith(defer)
   async export($defer, vmRef, { cancelToken = CancelToken.none, compress = false, useSnapshot } = {}) {
     const vm = await this.getRecord('VM', vmRef)
     const taskRef = await this.task_create('VM export', vm.name_label)
@@ -477,7 +475,6 @@ module.exports = class Vm {
     }
   }
 
-  @decorateWith(defer)
   async snapshot($defer, vmRef, { cancelToken = CancelToken.none, name_label } = {}) {
     const vm = await this.getRecord('VM', vmRef)
     // cannot unplug VBDs on Running, Paused and Suspended VMs
@@ -584,3 +581,10 @@ module.exports = class Vm {
     return ref
   }
 }
+module.exports = Vm
+
+decorateClass(Vm, {
+  create: defer,
+  export: defer,
+  snapshot: defer,
+})
