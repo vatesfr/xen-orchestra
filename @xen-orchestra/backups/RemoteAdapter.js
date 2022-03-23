@@ -581,7 +581,6 @@ class RemoteAdapter {
     const handler = this._handler
     const { vbds, vhds, vifs, vm } = metadata
     const dir = dirname(metadata._filename)
-
     const vdis = ignoredVdis === undefined ? metadata.vdis : pickBy(metadata.vdis, vdi => !ignoredVdis.has(vdi.uuid))
 
     const streams = {}
