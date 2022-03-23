@@ -56,10 +56,8 @@ interface Computed {}
 const pageUnderConstruction = (
   <div style={{ color: '#0085FF', textAlign: 'center' }}>
     <Typography variant='h2'>
-      {' '}
       <IntlMessage id='xoLiteUnderConstruction' />
     </Typography>
-
     <Typography variant='h3'>
       <IntlMessage id='newFeaturesUnderConstruction' />
     </Typography>
