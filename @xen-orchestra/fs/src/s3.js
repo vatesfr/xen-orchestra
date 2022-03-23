@@ -22,6 +22,9 @@ import { createLogger } from '@xen-orchestra/log'
 import { decorateWith } from '@vates/decorate-with'
 import { PassThrough, pipeline } from 'stream'
 import { parse } from 'xo-remote-parser'
+import copyStreamToBuffer from './_copyStreamToBuffer.js'
+import createBufferFromStream from './_createBufferFromStream.js'
+import guessAwsRegion from './_guessAwsRegion.js'
 import RemoteHandlerAbstract from './abstract'
 import { basename, join, split } from './_path'
 import { asyncEach } from '@vates/async-each'
@@ -37,12 +40,6 @@ const IDEAL_FRAGMENT_SIZE = Math.ceil(MAX_OBJECT_SIZE / MAX_PARTS_COUNT) // the 
 
 const { warn } = createLogger('xo:fs:s3')
 
-// TODO
-function guessRegion(host) {
-  const matches = /^s3\.([^.]+)\.amazonaws.com$/.exec(host)
-  return matches !== null ? matches[1] : 'us-east-1'
-}
-
 export default class S3Handler extends RemoteHandlerAbstract {
   constructor(remote, _opts) {
     super(remote)
@@ -53,7 +50,7 @@ export default class S3Handler extends RemoteHandlerAbstract {
       username,
       password,
       protocol,
-      region = guessRegion(host),
+      region = guessAwsRegion(host),
     } = parse(remote.url)
 
     this._s3 = new S3Client({
@@ -209,7 +206,7 @@ export default class S3Handler extends RemoteHandlerAbstract {
   // https://www.backblaze.com/b2/docs/calling.html#error_handling
   @decorateWith(pRetry.wrap, {
     delays: [100, 200, 500, 1000, 2000],
-    when: e => e.code === 'InternalError',
+    when: e => e.$metadata.httpStatusCode === 500,
     onRetry(error) {
       warn('retrying writing file', {
         attemptNumber: this.attemptNumber,
@@ -274,12 +271,12 @@ export default class S3Handler extends RemoteHandlerAbstract {
       }
 
       // subdirectories
-      for (const entry of result.CommonPrefixes || []) {
+      for (const entry of result.CommonPrefixes ?? []) {
         uniq.add(basename(entry.Prefix))
       }
 
       // files
-      for (const entry of result.Contents || []) {
+      for (const entry of result.Contents ?? []) {
         uniq.add(basename(entry.Key))
       }
     } while (NextContinuationToken !== undefined)
@@ -311,39 +308,6 @@ export default class S3Handler extends RemoteHandlerAbstract {
     return +result.ContentLength
   }
 
-  /**
-   * @param {Readable} inputStream
-   * @param {Buffer} destinationBuffer
-   * @returns {Promise<int>} Buffer length
-   * @private
-   */
-  async _copyStreamToBuffer(inputStream, destinationBuffer) {
-    return new Promise((resolve, reject) => {
-      let index = 0
-
-      inputStream.on('data', chunk => {
-        chunk.copy(destinationBuffer, index)
-        index += chunk.length
-      })
-      inputStream.on('end', () => resolve(index))
-      inputStream.on('error', err => reject(err))
-    })
-  }
-
-  /**
-   * @param {Readable} stream
-   * @returns {Promise<Buffer>}
-   * @private
-   */
-  async _createBufferFromStream(stream) {
-    return new Promise((resolve, reject) => {
-      const chunks = []
-      stream.on('data', chunk => chunks.push(chunk))
-      stream.on('end', () => resolve(Buffer.concat(chunks)))
-      stream.on('error', error => reject(error))
-    })
-  }
-
   async _read(file, buffer, position = 0) {
     if (typeof file !== 'string') {
       file = file.fd
@@ -352,7 +316,7 @@ export default class S3Handler extends RemoteHandlerAbstract {
     params.Range = `bytes=${position}-${position + buffer.length - 1}`
     try {
       const result = await this._s3.send(new GetObjectCommand(params))
-      const bytesRead = await this._copyStreamToBuffer(result.Body, buffer)
+      const bytesRead = await copyStreamToBuffer(result.Body, buffer)
       return { bytesRead, buffer }
     } catch (e) {
       if (e.name === 'NoSuchKey') {
@@ -394,7 +358,7 @@ export default class S3Handler extends RemoteHandlerAbstract {
 
       NextContinuationToken = result.IsTruncated ? result.NextContinuationToken : undefined
       await asyncEach(
-        result.Contents || [],
+        result.Contents ?? [],
         async ({ Key }) => {
           // _unlink will add the prefix, but Key contains everything
           // also we don't need to check if we delete a directory, since the list only return files
@@ -431,7 +395,7 @@ export default class S3Handler extends RemoteHandlerAbstract {
       const resultBuffer = Buffer.alloc(Math.max(fileSize, position + buffer.length))
       if (fileSize !== 0) {
         const result = await this._s3.send(new GetObjectCommand(uploadParams))
-        await this._copyStreamToBuffer(result.Body, resultBuffer)
+        await copyStreamToBuffer(result.Body, resultBuffer)
       } else {
         Buffer.alloc(0).copy(resultBuffer)
       }
@@ -492,7 +456,7 @@ export default class S3Handler extends RemoteHandlerAbstract {
           let prefixBuffer
           if (prefixSize > 0) {
             const result = await this._s3.send(new GetObjectCommand(downloadParams))
-            prefixBuffer = await this._createBufferFromStream(result.Body)
+            prefixBuffer = await createBufferFromStream(result.Body)
           } else {
             prefixBuffer = Buffer.alloc(0)
           }
@@ -511,7 +475,7 @@ export default class S3Handler extends RemoteHandlerAbstract {
           const prefixRange = `bytes=${complementOffset}-${complementOffset + complementSize - 1}`
           const downloadParams = { ...uploadParams, Range: prefixRange }
           const result = await this._s3.send(new GetObjectCommand(downloadParams))
-          const complementBuffer = await this._createBufferFromStream(result.Body)
+          const complementBuffer = await createBufferFromStream(result.Body)
           editBuffer = Buffer.concat([editBuffer, complementBuffer])
         }
         const editParams = { ...multipartParams, Body: editBuffer, PartNumber: partNumber++ }
