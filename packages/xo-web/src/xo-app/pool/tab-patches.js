@@ -191,7 +191,7 @@ export default class TabPatches extends Component {
                 handler={installAllPatchesOnPool}
                 icon='host-patch-update'
                 labelId='installPoolPatches'
-                tooltip={pool.HA_enabled ? _('disabledInstallPatchesTooltip') : undefined}
+                tooltip={pool.HA_enabled ? _('highAvailabilityNotDisabledTooltip') : undefined}
               />
             </Col>
           </Row>

@@ -1014,7 +1014,8 @@ const messages = {
   poolNeedsDefaultSr: 'The pool needs a default SR to install the patches.',
   vmsHaveCds: '{nVms, number} VM{nVms, plural, one {} other {s}} {nVms, plural, one {has} other {have}} CDs',
   ejectCds: 'Eject CDs',
-  disabledInstallPatchesTooltip: 'High Availability must be disabled',
+  highAvailabilityNotDisabledTooltip: 'High Availability must be disabled',
+
   // ----- Pool storage tabs -----
   defaultSr: 'Default SR',
   setAsDefaultSr: 'Set as default SR',

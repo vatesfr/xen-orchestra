@@ -168,7 +168,7 @@ class XcpPatches extends Component {
               handler={installAllPatches}
               icon={hasMissingPatches ? 'host-patch-update' : 'success'}
               labelId={hasMissingPatches ? 'patchUpdateButton' : 'hostUpToDate'}
-              tooltip={pool.HA_enabled ? _('disabledInstallPatchesTooltip') : undefined}
+              tooltip={pool.HA_enabled ? _('highAvailabilityNotDisabledTooltip') : undefined}
             />
           </Col>
         </Row>
@@ -215,7 +215,7 @@ class XenServerPatches extends Component {
               handler={installAllPatches}
               icon={hasMissingPatches ? 'host-patch-update' : 'success'}
               labelId={hasMissingPatches ? 'patchUpdateButton' : 'hostUpToDate'}
-              tooltip={pool.HA_enabled ? _('disabledInstallPatchesTooltip') : undefined}
+              tooltip={pool.HA_enabled ? _('highAvailabilityNotDisabledTooltip') : undefined}
             />
           </Col>
         </Row>
