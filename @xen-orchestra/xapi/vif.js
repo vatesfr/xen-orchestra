@@ -1,3 +1,5 @@
+'use strict'
+
 const isVmRunning = require('./_isVmRunning.js')
 
 module.exports = class Vif {

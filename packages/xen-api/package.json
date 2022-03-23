@@ -28,7 +28,7 @@
     "xen-api": "dist/cli.js"
   },
   "engines": {
-    "node": ">=7.6"
+    "node": ">=10"
   },
   "dependencies": {
     "@vates/coalesce-calls": "^0.1.0",

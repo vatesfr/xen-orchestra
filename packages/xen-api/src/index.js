@@ -860,6 +860,12 @@ export class Xapi extends EventEmitter {
       }
     }
 
+    // if this the pool master and the address has not been changed by the conditions above,
+    // use the current URL to avoid potential issues with internal addresses and NAT
+    if (host.$ref === this._pool.master && address === host.address) {
+      return this._url.hostname
+    }
+
     return address
   }
 
