@@ -30,15 +30,15 @@ interface Tab {
 interface Props extends RouteComponentProps {
   indicatorColor?: 'primary' | 'secondary'
   textColor?: 'inherit' | 'primary' | 'secondary'
-  // tabs= [
+  // tabs = [
   //   {
-  //      component: (<span>BAR</span>)
-  //      pathname: '/path',
-  //      label: (
-  //        <span>
-  //          <Icon icon='cloud' /> {labelA}
-  //        </span>
-  //      ),
+  //     component: <span>BAR</span>,
+  //     pathname: '/path',
+  //     label: (
+  //       <span>
+  //         <Icon icon='cloud' /> {labelA}
+  //       </span>
+  //     ),
   //   },
   // ]
   tabs: Array<Tab>
