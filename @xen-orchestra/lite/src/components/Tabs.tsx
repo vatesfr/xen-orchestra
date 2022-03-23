@@ -16,14 +16,15 @@ const BOX_STYLE = { borderBottom: 1, borderColor: 'divider', marginTop: '0.5em' 
 interface ParentState {}
 
 interface State {
-  pathname: string
+  value: string
 }
 
 interface Tab {
   component?: React.ReactNode
   disabled?: boolean
   label: React.ReactNode
-  pathname: string
+  // if value is a string, it's considered as a pathname
+  value: any
 }
 
 // For compatibility with 'withRouter'
@@ -33,7 +34,7 @@ interface Props extends RouteComponentProps {
   // tabs = [
   //   {
   //     component: <span>BAR</span>,
-  //     pathname: '/path',
+  //     value: '/path',
   //     label: (
   //       <span>
   //         <Icon icon='cloud' /> {labelA}
@@ -66,25 +67,27 @@ const pageUnderConstruction = (
 
 const Tabs = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
   {
-    initialState: ({ tabs }) => ({ pathname: tabs[0].pathname }),
+    initialState: ({ tabs }) => ({ value: tabs[0].value }),
     effects: {
-      onChange: function (_, pathname) {
-        this.props.history.push(pathname)
-        this.state.pathname = pathname
+      onChange: function (_, value) {
+        if (typeof value === 'string') {
+          this.props.history.push(value)
+        }
+        this.state.value = value
       },
     },
   },
-  ({ effects, state: { pathname }, indicatorColor, textColor, tabs }) => (
-    <TabContext value={pathname}>
+  ({ effects, state: { value }, indicatorColor, textColor, tabs }) => (
+    <TabContext value={value}>
       <Box sx={BOX_STYLE}>
         <TabList indicatorColor={indicatorColor} onChange={effects.onChange} textColor={textColor}>
           {tabs.map((tab: Tab) => (
-            <Tab disabled={tab.disabled} key={tab.pathname} label={tab.label} value={tab.pathname} />
+            <Tab disabled={tab.disabled} key={tab.value} label={tab.label} value={tab.value} />
           ))}
         </TabList>
       </Box>
       {tabs.map((tab: Tab) => (
-        <TabPanel key={tab.pathname} value={tab.pathname}>
+        <TabPanel key={tab.value} value={tab.value}>
           {tab.component === undefined ? pageUnderConstruction : tab.component}
         </TabPanel>
       ))}

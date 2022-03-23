@@ -240,16 +240,16 @@ const App = withState<State, Props, Effects, Computed, ParentState, ParentEffect
         <Render>
           <Tabs
             tabs={[
-              { component: 'Hello BAR!', pathname: '/styleguide', label: 'BAR' },
-              { pathname: '/styleguide/foo', label: 'FOO' },
+              { component: 'Hello BAR!', label: 'BAR', value: '/styleguide' },
+              { label: 'FOO', value: 1 },
             ]}
           />
         </Render>
         <Code>
           {`<Tabs
   tabs={[
-    { component: 'Hello BAR!', pathname: '/styleguide', label: 'BAR' },
-    { label: 'FOO', pathname: '/styleguide/foo' },
+    { component: 'Hello BAR!', label: 'BAR', value: '/styleguide' },
+    { label: 'FOO', value: 1 },
   ]}
 />`}
         </Code>
