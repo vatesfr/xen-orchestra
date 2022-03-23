@@ -1,3 +1,5 @@
+'use strict'
+
 module.exports = class Host {
   async restartAgent(ref) {
     const agentStartTime = +(await this.getField('host', ref, 'other_config')).agent_start_time

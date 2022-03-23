@@ -8,33 +8,20 @@
     "type": "git",
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },
-  "main": "dist/",
   "bin": {
-    "xo-xapi": "./dist/cli.js"
+    "xo-xapi": "./cli.js"
   },
   "engines": {
-    "node": ">=8.10"
+    "node": ">=14"
   },
   "devDependencies": {
-    "@babel/cli": "^7.2.3",
-    "@babel/core": "^7.3.3",
-    "@babel/preset-env": "^7.3.1",
-    "cross-env": "^7.0.2",
-    "rimraf": "^3.0.0",
     "xo-common": "^0.7.0"
   },
   "peerDependencies": {
     "xen-api": "^0.36.0"
   },
   "scripts": {
-    "build": "cross-env NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
-    "clean": "rimraf dist/",
-    "dev": "cross-env NODE_ENV=development babel --watch --source-maps --out-dir=dist/ src/",
-    "postversion": "npm publish --access public",
-    "prebuild": "yarn run clean",
-    "predev": "yarn run prebuild",
-    "prepare": "yarn run build",
-    "prepublishOnly": "yarn run build"
+    "postversion": "npm publish --access public"
   },
   "dependencies": {
     "@vates/decorate-with": "^1.0.0",

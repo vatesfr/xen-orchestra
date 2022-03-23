@@ -1,3 +1,5 @@
+'use strict'
+
 const OPAQUE_REF_RE = /OpaqueRef:[0-9a-z-]+/
 
 module.exports = str => {

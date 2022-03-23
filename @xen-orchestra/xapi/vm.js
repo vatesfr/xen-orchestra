@@ -1,3 +1,5 @@
+'use strict'
+
 const CancelToken = require('promise-toolbox/CancelToken')
 const groupBy = require('lodash/groupBy.js')
 const ignoreErrors = require('promise-toolbox/ignoreErrors')

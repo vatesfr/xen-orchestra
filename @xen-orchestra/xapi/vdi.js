@@ -1,3 +1,5 @@
+'use strict'
+
 const CancelToken = require('promise-toolbox/CancelToken')
 const pCatch = require('promise-toolbox/catch')
 const pRetry = require('promise-toolbox/retry')

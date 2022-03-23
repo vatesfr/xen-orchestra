@@ -9,7 +9,7 @@
   dependencies:
     "@jridgewell/trace-mapping" "^0.3.0"
 
-"@babel/cli@^7.0.0", "@babel/cli@^7.1.5", "@babel/cli@^7.13.16", "@babel/cli@^7.2.3", "@babel/cli@^7.4.4", "@babel/cli@^7.7.0", "@babel/cli@^7.7.4":
+"@babel/cli@^7.0.0", "@babel/cli@^7.1.5", "@babel/cli@^7.13.16", "@babel/cli@^7.4.4", "@babel/cli@^7.7.0", "@babel/cli@^7.7.4":
   version "7.17.6"
   resolved "https://registry.yarnpkg.com/@babel/cli/-/cli-7.17.6.tgz#169e5935f1795f0b62ded5a2accafeedfe5c5363"
   integrity sha512-l4w608nsDNlxZhiJ5tE3DbNmr61fIKMZ6fTBo171VEFuFMIYuJ3mHRhTLEkKKyvx2Mizkkv/0a8OJOnZqkKYNA==
@@ -38,7 +38,7 @@
   resolved "https://registry.yarnpkg.com/@babel/compat-data/-/compat-data-7.17.7.tgz#078d8b833fbbcc95286613be8c716cef2b519fa2"
   integrity sha512-p8pdE6j0a29TNGebNm7NzYZWB3xVZJBZ7XGs42uAKzQo8VQ3F0By/cQCtUEABwIqw5zo6WA4NbmxsfzADzMKnQ==
 
-"@babel/core@^7.0.0", "@babel/core@^7.1.0", "@babel/core@^7.1.5", "@babel/core@^7.1.6", "@babel/core@^7.11.0", "@babel/core@^7.12.3", "@babel/core@^7.13.8", "@babel/core@^7.14.0", "@babel/core@^7.3.3", "@babel/core@^7.4.4", "@babel/core@^7.5.5", "@babel/core@^7.7.2", "@babel/core@^7.7.4", "@babel/core@^7.7.5", "@babel/core@^7.8.0", "@babel/core@^7.8.4":
+"@babel/core@^7.0.0", "@babel/core@^7.1.0", "@babel/core@^7.1.5", "@babel/core@^7.1.6", "@babel/core@^7.11.0", "@babel/core@^7.12.3", "@babel/core@^7.13.8", "@babel/core@^7.14.0", "@babel/core@^7.4.4", "@babel/core@^7.5.5", "@babel/core@^7.7.2", "@babel/core@^7.7.4", "@babel/core@^7.7.5", "@babel/core@^7.8.0", "@babel/core@^7.8.4":
   version "7.17.8"
   resolved "https://registry.yarnpkg.com/@babel/core/-/core-7.17.8.tgz#3dac27c190ebc3a4381110d46c80e77efe172e1a"
   integrity sha512-OdQDV/7cRBtJHLSOBqqbYNkOcydOgnX59TZx4puf41fzcVtN3e/4yqY8lMQsK+5X2lJtAdmA+6OHqsj1hBJ4IQ==
@@ -941,7 +941,7 @@
     "@babel/helper-create-regexp-features-plugin" "^7.16.7"
     "@babel/helper-plugin-utils" "^7.16.7"
 
-"@babel/preset-env@^7.0.0", "@babel/preset-env@^7.1.5", "@babel/preset-env@^7.1.6", "@babel/preset-env@^7.11.0", "@babel/preset-env@^7.13.8", "@babel/preset-env@^7.14.1", "@babel/preset-env@^7.3.1", "@babel/preset-env@^7.4.4", "@babel/preset-env@^7.7.4", "@babel/preset-env@^7.8.0":
+"@babel/preset-env@^7.0.0", "@babel/preset-env@^7.1.5", "@babel/preset-env@^7.1.6", "@babel/preset-env@^7.11.0", "@babel/preset-env@^7.13.8", "@babel/preset-env@^7.14.1", "@babel/preset-env@^7.4.4", "@babel/preset-env@^7.7.4", "@babel/preset-env@^7.8.0":
   version "7.16.11"
   resolved "https://registry.yarnpkg.com/@babel/preset-env/-/preset-env-7.16.11.tgz#5dd88fd885fae36f88fd7c8342475c9f0abe2982"
   integrity sha512-qcmWG8R7ZW6WBRPZK//y+E3Cli151B20W1Rv7ln27vuPaXU/8TKms6jFdiJtF7UDTxcrb7mZd88tAeK9LjdT8g==
