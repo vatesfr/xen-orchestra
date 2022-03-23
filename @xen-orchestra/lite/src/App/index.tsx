@@ -144,6 +144,12 @@ const SecondaryListItems = withState<
 // Default bootstrap 4 colors
 // https://github.com/twbs/bootstrap/blob/v4-dev/scss/_variables.scss#L67-L74
 const mdTheme = createTheme({
+  background: {
+    primary: {
+      dark: '#111111',
+      light: '#FFFFFF',
+    },
+  },
   palette: {
     error: {
       main: '#dc3545',
