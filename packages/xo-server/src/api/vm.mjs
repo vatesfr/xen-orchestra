@@ -34,7 +34,7 @@ function checkPermissionOnSrs(vm, permission = 'operate') {
     return permissions.push([this.getObject(vdiId, ['VDI', 'VDI-snapshot']).$SR, permission])
   })
 
-  return this.checkPermissions(this.session.get('user_id'), permissions)
+  return this.checkPermissions(this.connection.get('user_id'), permissions)
 }
 
 // ===================================================================
@@ -149,7 +149,7 @@ export const create = defer(async function ($defer, params) {
   }
 
   const xapiVm = await xapi.createVm(template._xapiId, params, checkLimits)
-  $defer.onFailure(() => xapi.VM_destroy(xapiVm.$ref, true, true))
+  $defer.onFailure(() => xapi.VM_destroy(xapiVm.$ref, { deleteDisks: true, force: true }))
 
   const vm = xapi.xo.addObject(xapiVm)
 
@@ -382,7 +382,7 @@ const delete_ = defer(async function (
     }
   })
 
-  return xapi.VM_destroy(vm._xapiRef, deleteDisks, force, forceDeleteDefaultTemplate)
+  return xapi.VM_destroy(vm._xapiRef, { deleteDisks, force, forceDeleteDefaultTemplate })
 })
 
 delete_.params = {
@@ -827,10 +827,10 @@ export const snapshot = defer(async function (
   }
 
   const xapi = this.getXapi(vm)
-  const { $id: snapshotId, $ref: snapshotRef } = await (saveMemory
-    ? xapi.checkpointVm(vm._xapiRef, name)
-    : xapi.snapshotVm(vm._xapiRef, name))
+  const snapshotRef = await xapi['VM_' + (saveMemory ? 'checkpoint' : 'snapshot')](vm._xapiRef, { name_label: name })
   $defer.onFailure(() => xapi.VM_destroy(snapshotRef))
+
+  const snapshotId = await xapi.getField('VM', snapshotRef, 'uuid')
 
   if (description !== undefined) {
     await xapi.editVm(snapshotId, { name_description: description })
@@ -1122,7 +1122,7 @@ async function import_({ data, sr, type = 'xva', url }) {
   return {
     $sendTo: await this.registerApiHttpRequest(
       'vm.import',
-      this.session,
+      this.connection,
       handleVmImport,
       { data, srId, type, xapi },
       { exposeAllErrors: true }

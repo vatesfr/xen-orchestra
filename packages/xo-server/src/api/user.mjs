@@ -22,7 +22,7 @@ create.params = {
 
 // Deletes an existing user.
 async function delete_({ id }) {
-  if (id === this.session.get('user_id')) {
+  if (id === this.connection.get('user_id')) {
     throw invalidParameters('a user cannot delete itself')
   }
 
@@ -61,7 +61,7 @@ getAll.permission = 'admin'
 export async function set({ id, email, password, permission, preferences }) {
   const isAdmin = this.user && this.user.permission === 'admin'
   if (isAdmin) {
-    if (permission && id === this.session.get('user_id')) {
+    if (permission && id === this.connection.get('user_id')) {
       throw invalidParameters('a user cannot change its own permission')
     }
   } else if (email || password || permission) {

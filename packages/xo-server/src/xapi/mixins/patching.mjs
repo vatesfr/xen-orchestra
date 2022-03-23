@@ -307,24 +307,21 @@ export default {
   // INSTALL -------------------------------------------------------------------
 
   async _xcpUpdate(hosts) {
-    if (hosts === undefined) {
-      hosts = filter(this.objects.all, { $type: 'host' })
-    } else {
-      hosts = filter(this.objects.all, obj => obj.$type === 'host' && hosts.includes(obj.$id))
-    }
-
     // XCP-ng hosts need to be updated one at a time starting with the pool master
     // https://github.com/vatesfr/xen-orchestra/issues/4468
     hosts = hosts.sort(({ $ref }) => ($ref === this.pool.master ? -1 : 1))
     for (const host of hosts) {
+      // With throw in case of error with XCP-ng>=8.2.1
       const result = JSON.parse(await this.call('host.call_plugin', host.$ref, 'updater.py', 'update', {}))
 
-      if (result.exit !== 0) {
+      // Defined and different than 0 in case of error with XCP-ng<8.2.1
+      const { exit } = result
+      if (exit !== undefined && exit !== 0) {
         throw new Error(result.stderr)
-      } else {
-        log.debug(result.stdout)
-        await host.update_other_config('rpm_patch_installation_time', String(Date.now() / 1000))
       }
+
+      log.debug(result.stdout)
+      await host.update_other_config('rpm_patch_installation_time', String(Date.now() / 1000))
     }
   },
 

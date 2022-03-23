@@ -27,6 +27,7 @@
     "vuepress": "^1.4.1"
   },
   "engines": {
+    "node": ">=14",
     "yarn": "^1.7.0"
   },
   "husky": {
@@ -70,6 +71,7 @@
   "private": true,
   "scripts": {
     "build": "scripts/run-script --parallel build",
+    "ci": "yarn && yarn test-integration",
     "clean": "scripts/run-script --parallel clean",
     "dev": "scripts/run-script --parallel dev",
     "dev-test": "jest --bail --watch \"^(?!.*\\.integ\\.spec\\.js$)\"",

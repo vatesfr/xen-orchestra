@@ -1,3 +1,5 @@
+'use strict'
+
 const CancelToken = require('promise-toolbox/CancelToken')
 const groupBy = require('lodash/groupBy.js')
 const ignoreErrors = require('promise-toolbox/ignoreErrors')
@@ -7,7 +9,7 @@ const pCatch = require('promise-toolbox/catch')
 const pRetry = require('promise-toolbox/retry')
 const { asyncMap } = require('@xen-orchestra/async-map')
 const { createLogger } = require('@xen-orchestra/log')
-const { decorateWith } = require('@vates/decorate-with')
+const { decorateClass } = require('@vates/decorate-with')
 const { defer } = require('golike-defer')
 const { incorrectState } = require('xo-common/api-errors.js')
 const { Ref } = require('xen-api')
@@ -53,7 +55,7 @@ async function safeGetRecord(xapi, type, ref) {
 
 const noop = Function.prototype
 
-module.exports = class Vm {
+class Vm {
   async _assertHealthyVdiChain(vdiRefOrUuid, cache, tolerance) {
     let vdi = cache[vdiRefOrUuid]
     if (vdi === undefined) {
@@ -132,7 +134,21 @@ module.exports = class Vm {
       name_label = await this.getField('VM', vmRef, 'name_label')
     }
     try {
-      return await this.callAsync(cancelToken, 'VM.checkpoint', vmRef, name_label).then(extractOpaqueRef)
+      const ref = await this.callAsync(cancelToken, 'VM.checkpoint', vmRef, name_label).then(extractOpaqueRef)
+
+      // VM checkpoints are marked as templates, unfortunately it does not play well with XVA export/import
+      // which will import them as templates and not VM checkpoints or plain VMs
+      await pCatch.call(
+        this.setField('VM', ref, 'is_a_template', false),
+
+        // Ignore if this fails due to license restriction
+        //
+        // see https://bugs.xenserver.org/browse/XSO-766
+        { code: 'LICENSE_RESTRICTION' },
+        noop
+      )
+
+      return ref
     } catch (error) {
       if (error.code === 'VM_BAD_POWER_STATE') {
         return this.VM_snapshot(vmRef, { cancelToken, name_label })
@@ -141,7 +157,6 @@ module.exports = class Vm {
     }
   }
 
-  @decorateWith(defer)
   async create(
     $defer,
     {
@@ -325,7 +340,7 @@ module.exports = class Vm {
     // destroyed even if this fails
     await this.call('VM.destroy', vmRef)
 
-    return Promise.all([
+    await Promise.all([
       asyncMap(vm.snapshots, snapshotRef =>
         this.VM_destroy(snapshotRef).catch(error => {
           warn('VM_destroy: failed to destroy snapshot', {
@@ -358,7 +373,6 @@ module.exports = class Vm {
     ])
   }
 
-  @decorateWith(defer)
   async export($defer, vmRef, { cancelToken = CancelToken.none, compress = false, useSnapshot } = {}) {
     const vm = await this.getRecord('VM', vmRef)
     const taskRef = await this.task_create('VM export', vm.name_label)
@@ -463,7 +477,6 @@ module.exports = class Vm {
     }
   }
 
-  @decorateWith(defer)
   async snapshot($defer, vmRef, { cancelToken = CancelToken.none, name_label } = {}) {
     const vm = await this.getRecord('VM', vmRef)
     // cannot unplug VBDs on Running, Paused and Suspended VMs
@@ -570,3 +583,10 @@ module.exports = class Vm {
     return ref
   }
 }
+module.exports = Vm
+
+decorateClass(Vm, {
+  create: defer,
+  export: defer,
+  snapshot: defer,
+})

@@ -1,5 +1,4 @@
 /_book/
-/coverage/
 /node_modules/
 /lerna-debug.log
 /lerna-debug.log.*
@@ -34,5 +33,6 @@ yarn-error.log
 yarn-error.log.*
 .env
 
-# nyc test coverage
-.nyc_output
+# code coverage
+.nyc_output/
+coverage/

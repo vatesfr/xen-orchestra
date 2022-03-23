@@ -432,7 +432,7 @@ export default class Backups {
 }
 
 decorateMethodsWith(Backups, {
-  getAdapter: compose([
+  getAdapter: compose({ right: true }, [
     // FIXME: invalidate cache on remote option change
     [
       compose,
@@ -443,7 +443,7 @@ decorateMethodsWith(Backups, {
     [deduped, remote => [remote.url]],
     Disposable.factory,
   ]),
-  getXapi: compose([
+  getXapi: compose({ right: true }, [
     // FIXME: invalidate cache on remote option change
     [
       compose,

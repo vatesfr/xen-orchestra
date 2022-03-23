@@ -1,3 +1,5 @@
+'use strict'
+
 const assert = require('assert')
 const pRetry = require('promise-toolbox/retry')
 const { utcFormat, utcParse } = require('d3-time-format')
@@ -206,6 +208,7 @@ function mixin(mixins) {
 }
 mixin({
   task: require('./task.js'),
+  host: require('./host.js'),
   VBD: require('./vbd.js'),
   VDI: require('./vdi.js'),
   VIF: require('./vif.js'),

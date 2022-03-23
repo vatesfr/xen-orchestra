@@ -63,7 +63,8 @@
     "xo-common": "^0.7.0"
   },
   "devDependencies": {
-    "@vates/toggle-scripts": "^1.0.0"
+    "@vates/toggle-scripts": "^1.0.0",
+    "ws": "^8.5.0"
   },
   "scripts": {
     "_postinstall": "./scripts/systemd-service-installer",

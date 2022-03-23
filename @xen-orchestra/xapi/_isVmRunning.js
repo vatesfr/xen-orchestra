@@ -1,3 +1,5 @@
+'use strict'
+
 const RUNNING_POWER_STATES = {
   Running: true,
   Paused: true,

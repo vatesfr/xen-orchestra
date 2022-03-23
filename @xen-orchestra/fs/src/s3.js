@@ -8,6 +8,7 @@ import { decorateWith } from '@vates/decorate-with'
 import { parse } from 'xo-remote-parser'
 
 import RemoteHandlerAbstract from './abstract'
+import { basename, join, split } from './_path'
 import { asyncEach } from '@vates/async-each'
 
 // endpoints https://docs.aws.amazon.com/general/latest/gr/s3.html
@@ -51,22 +52,34 @@ export default class S3Handler extends RemoteHandlerAbstract {
 
     this._s3 = aws(params).s3
 
-    const splitPath = path.split('/').filter(s => s.length)
-    this._bucket = splitPath.shift()
-    this._dir = splitPath.join('/')
+    const parts = split(path)
+    this._bucket = parts.shift()
+    this._dir = join(...parts)
   }
 
   get type() {
     return 's3'
   }
 
+  _makeCopySource(path) {
+    return join(this._bucket, this._dir, path)
+  }
+
+  _makeKey(file) {
+    return join(this._dir, file)
+  }
+
+  _makePrefix(dir) {
+    return join(this._dir, dir, '/')
+  }
+
   _createParams(file) {
-    return { Bucket: this._bucket, Key: this._dir + file }
+    return { Bucket: this._bucket, Key: this._makeKey(file) }
   }
 
   async _multipartCopy(oldPath, newPath) {
     const size = await this._getSize(oldPath)
-    const CopySource = `/${this._bucket}/${this._dir}${oldPath}`
+    const CopySource = this._makeCopySource(oldPath)
     const multipartParams = await this._s3.createMultipartUpload({ ...this._createParams(newPath) })
     const param2 = { ...multipartParams, CopySource }
     try {
@@ -87,7 +100,7 @@ export default class S3Handler extends RemoteHandlerAbstract {
   }
 
   async _copy(oldPath, newPath) {
-    const CopySource = `/${this._bucket}/${this._dir}${oldPath}`
+    const CopySource = this._makeCopySource(oldPath)
     try {
       await this._s3.copyObject({
         ...this._createParams(newPath),
@@ -106,7 +119,7 @@ export default class S3Handler extends RemoteHandlerAbstract {
     const result = await this._s3.listObjectsV2({
       Bucket: this._bucket,
       MaxKeys: 1,
-      Prefix: this._dir + path + '/',
+      Prefix: this._makePrefix(path),
     })
     return result.Contents.length !== 0
   }
@@ -183,38 +196,37 @@ export default class S3Handler extends RemoteHandlerAbstract {
   }
 
   async _list(dir) {
-    function splitPath(path) {
-      return path.split('/').filter(d => d.length)
-    }
+    let NextContinuationToken
+    const uniq = new Set()
+    const Prefix = this._makePrefix(dir)
 
-    const prefix = [this._dir, dir].join('/')
-    const splitPrefix = splitPath(prefix)
-    const result = await this._s3.listObjectsV2({
-      Bucket: this._bucket,
-      Prefix: splitPrefix.join('/') + '/', // need slash at the end with the use of delimiters
-      Delimiter: '/', // will only return path until delimiters
-    })
+    do {
+      const result = await this._s3.listObjectsV2({
+        Bucket: this._bucket,
+        Prefix,
+        Delimiter: '/',
+        // will only return path until delimiters
+        ContinuationToken: NextContinuationToken,
+      })
+      if (result.IsTruncated) {
+        warn(`need pagination to browse the directory ${dir} completely`)
+        NextContinuationToken = result.NextContinuationToken
+      } else {
+        NextContinuationToken = undefined
+      }
 
-    if (result.IsTruncated) {
-      const error = new Error('more than 1000 objects, unsupported in this implementation')
-      error.dir = dir
-      throw error
-    }
+      // subdirectories
+      for (const entry of result.CommonPrefixes) {
+        uniq.add(basename(entry.Prefix))
+      }
 
-    const uniq = []
+      // files
+      for (const entry of result.Contents) {
+        uniq.add(basename(entry.Key))
+      }
+    } while (NextContinuationToken !== undefined)
 
-    // sub directories
-    for (const entry of result.CommonPrefixes) {
-      const line = splitPath(entry.Prefix)
-      uniq.push(line[line.length - 1])
-    }
-    // files
-    for (const entry of result.Contents) {
-      const line = splitPath(entry.Key)
-      uniq.push(line[line.length - 1])
-    }
-
-    return uniq
+    return [...uniq]
   }
 
   async _mkdir(path) {
@@ -279,10 +291,11 @@ export default class S3Handler extends RemoteHandlerAbstract {
   // @todo : use parallel processing for unlink
   async _rmtree(path) {
     let NextContinuationToken
+    const Prefix = this._makePrefix(path)
     do {
       const result = await this._s3.listObjectsV2({
         Bucket: this._bucket,
-        Prefix: this._dir + path + '/',
+        Prefix,
         ContinuationToken: NextContinuationToken,
       })
       NextContinuationToken = result.IsTruncated ? result.NextContinuationToken : undefined
@@ -337,7 +350,7 @@ export default class S3Handler extends RemoteHandlerAbstract {
       const multipartParams = await this._s3.createMultipartUpload(uploadParams)
       const copyMultipartParams = {
         ...multipartParams,
-        CopySource: `/${this._bucket}/${this._dir + file}`,
+        CopySource: this._makeCopySource(file),
       }
       try {
         const parts = []
