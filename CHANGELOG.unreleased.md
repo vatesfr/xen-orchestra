@@ -9,6 +9,7 @@
 
 - [REST API] Expose networks, VBDs, VDIs and VIFs
 - [Console] Supports host and VM consoles behind HTTP proxies [#6133](https://github.com/vatesfr/xen-orchestra/pull/6133)
+- [Install patches] Disable patch installation when `High Availability` is enabled (PR [#6145](https://github.com/vatesfr/xen-orchestra/pull/6145))
 
 ### Bug fixes
 
@@ -44,4 +45,4 @@
 - @xen-orchestra/backups minor
 - @xen-orchestra/proxy minor
 - xo-server patch
-- xo-web patch
+- xo-web minor
