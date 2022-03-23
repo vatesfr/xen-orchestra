@@ -146,7 +146,7 @@ const Tree = withState<State, Props, Effects, Computed, ParentState, ParentEffec
 
         for (const node of collection) {
           if (defaultSelectedNodes.includes(node.id)) {
-            for (const nodeId of pathToNode.values()) {
+            for (const nodeId of pathToNode) {
               expandedNodes.add(nodeId)
             }
           }
@@ -174,8 +174,8 @@ const Tree = withState<State, Props, Effects, Computed, ParentState, ParentEffec
     return (
       <TreeView
         expanded={expandedNodes}
-        defaultExpanded={[collection[0].id]}
         defaultCollapseIcon={<Icon icon='chevron-up' />}
+        defaultExpanded={[collection[0].id]}
         defaultExpandIcon={<Icon icon='chevron-down' />}
         multiSelect
         onNodeSelect={effects.setSelectedNodeIds}
