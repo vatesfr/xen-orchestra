@@ -20,7 +20,7 @@ interface Computed {}
 
 const Input = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
   {},
-  ({ effects, resetState, state, ...props }) => <TextField fullWidth {...props} />
+  ({ effects, resetState, state, value, ...props }) => <TextField fullWidth value={value ?? ''} {...props} />
 )
 
 export default Input

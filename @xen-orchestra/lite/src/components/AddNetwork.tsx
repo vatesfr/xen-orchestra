@@ -9,7 +9,7 @@ import ActionButton from './ActionButton'
 import Button from './Button'
 import Checkbox from './Checkbox'
 import Input from './Input'
-import IntlMessage from './IntlMessage'
+import IntlMessage, { translate } from './IntlMessage'
 import Select from './Select'
 import { alert } from './Modal'
 
@@ -24,16 +24,17 @@ interface ParentState {
 interface State {
   form: {
     [key: string]: unknown
-    bondMode: string
-    description: string
+    bondMode?: string
+    description?: string
     isBonded: boolean
     isEmptyBondMode: boolean
     isEmptyLabel: boolean
-    isInsufficientNumberOfInterfaces: boolean
-    mtu: string
-    nameLabel: string
-    pifsId: string[]
-    vlan: string
+    isInterfacesLimit: boolean
+    isLoading: boolean
+    mtu?: string
+    nameLabel?: string
+    pifIds: string[]
+    vlan?: string
   }
 }
 
@@ -51,6 +52,7 @@ interface Effects {
 interface Computed {
   filteredPifs?: Pif[]
   pifsMetrics?: Map<string, PifMetrics>
+  pifOptionRenderer?: (pif: Pif) => string
 }
 
 const BUTTON_STYLES = {
@@ -58,25 +60,23 @@ const BUTTON_STYLES = {
   width: 'fit-content',
 }
 
-const OPTION_PIF_RENDERER = (pif: Pif, { pifsMetrics }: { pifsMetrics: Computed['pifsMetrics'] }) =>
-  `${pif.device} (${pifsMetrics?.find(metrics => metrics.$ref === pif.metrics)?.device_name ?? 'unknown'})`
-
 const INPUT_STYLES = {
   marginBottom: '1em',
   width: '100%',
 }
 
 const getInitialFormState = (): State['form'] => ({
-  bondMode: '',
-  description: '',
+  bondMode: undefined,
+  description: undefined,
   isBonded: false,
   isEmptyBondMode: false,
   isEmptyLabel: false,
-  isInsufficientNumberOfInterfaces: false,
-  mtu: '',
-  nameLabel: '',
-  pifsId: [],
-  vlan: '',
+  isInterfacesLimit: false,
+  isLoading: false,
+  mtu: undefined,
+  nameLabel: undefined,
+  pifIds: [],
+  vlan: undefined,
 })
 
 const AddNetwork = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
@@ -93,46 +93,52 @@ const AddNetwork = withState<State, Props, Effects, Computed, ParentState, Paren
           .sortBy(pif => pif.device)
           .valueSeq()
           .toArray(),
+      pifOptionRenderer:
+        ({ pifsMetrics }) =>
+        (pif: Pif) =>
+          `${pif.device} (${
+            pifsMetrics?.find(metrics => metrics.$ref === pif.metrics)?.device_name ?? translate({ id: 'unknown' })
+          })`,
     },
     effects: {
       createNetwork: async function () {
-        const { bondMode, description, isBonded, mtu, nameLabel, pifsId, vlan } = this.state.form
-        if (nameLabel.trim() === '') {
+        const { bondMode, description, isBonded, mtu, nameLabel, pifIds, vlan } = this.state.form
+        if (nameLabel === undefined) {
           this.state.form = {
             ...this.state.form,
             isEmptyLabel: true,
           }
         }
         if (isBonded) {
-          if (bondMode === '') {
+          if (bondMode === undefined) {
             this.state.form = {
               ...this.state.form,
               isEmptyBondMode: true,
             }
           }
-          if (pifsId.length < 2) {
+          if (pifIds.length < 2) {
             this.state.form = {
               ...this.state.form,
-              isInsufficientNumberOfInterfaces: true,
+              isInterfacesLimit: true,
             }
           }
         }
-        if (
-          this.state.form.isEmptyLabel ||
-          this.state.form.isEmptyBondMode ||
-          this.state.form.isInsufficientNumberOfInterfaces
-        ) {
+        if (this.state.form.isEmptyLabel || this.state.form.isEmptyBondMode || this.state.form.isInterfacesLimit) {
           return
+        }
+        this.state.form = {
+          ...this.state.form,
+          isLoading: true,
         }
         try {
           await this.state.xapi.createNetworks([
             {
               MTU: mtu === '' ? undefined : mtu,
-              name_description: description,
-              name_label: nameLabel,
+              name_description: description ?? '',
+              name_label: nameLabel!,
               VLAN: vlan === '' ? undefined : vlan,
               bondMode: bondMode === '' ? undefined : bondMode,
-              pifsId: pifsId.length < 1 ? undefined : pifsId,
+              pifIds: pifIds.length < 1 ? undefined : pifIds,
             },
           ])
           this.effects.resetForm()
@@ -143,15 +149,14 @@ const AddNetwork = withState<State, Props, Effects, Computed, ParentState, Paren
             message: error instanceof Error ? error.message : <IntlMessage id='errorOccurred' />,
             title: <IntlMessage id='networkCreation' />,
           })
+        } finally {
+          this.state.form = {
+            ...this.state.form,
+            isLoading: false,
+          }
         }
       },
       handleChange: function ({ target: { name, value } }) {
-        // Reason why form values are initialized with empty string and not a undefined value
-        // Warning: A component is changing an uncontrolled input to be controlled.
-        // This is likely caused by the value changing from undefined to a defined value,
-        // which should not happen. Decide between using a controlled or uncontrolled input
-        // element for the lifetime of the component.
-        // More info: https://reactjs.org/link/controlled-components
         const { form } = this.state
         if (name === 'bondMode') {
           form.isEmptyBondMode = false
@@ -159,16 +164,14 @@ const AddNetwork = withState<State, Props, Effects, Computed, ParentState, Paren
         if (name === 'nameLabel') {
           form.isEmptyLabel = false
         }
-        if (name === 'pifsId') {
-          form.isInsufficientNumberOfInterfaces = false
+        if (name === 'pifIds') {
+          form.isInterfacesLimit = false
           value = form.isBonded ? value : [value]
         }
 
-        if (form[name] !== undefined) {
-          this.state.form = {
-            ...form,
-            [name]: value,
-          }
+        this.state.form = {
+          ...form,
+          [name]: value,
         }
       },
       resetForm: function () {
@@ -188,16 +191,18 @@ const AddNetwork = withState<State, Props, Effects, Computed, ParentState, Paren
     state: {
       filteredPifs,
       pifsMetrics,
+      pifOptionRenderer,
       form: {
         bondMode,
         description,
         isBonded,
         isEmptyBondMode,
-        isInsufficientNumberOfInterfaces,
+        isInterfacesLimit,
         isEmptyLabel,
+        isLoading,
         mtu,
         nameLabel,
-        pifsId,
+        pifIds,
         vlan,
       },
     },
@@ -213,20 +218,20 @@ const AddNetwork = withState<State, Props, Effects, Computed, ParentState, Paren
       <Checkbox checked={isBonded} name='bonded' onChange={toggleBonded} />
       <div>
         <label>
-          <IntlMessage id='interface' values={{ nInterface: isBonded ? 2 : 1 }} />
+          <IntlMessage id='interface' values={{ nInterfaces: isBonded ? 2 : 1 }} />
           {isBonded && ' *'}
         </label>
         <Select
           additionalProps={{ pifsMetrics }}
           containerStyle={INPUT_STYLES}
-          error={isInsufficientNumberOfInterfaces}
+          error={isInterfacesLimit}
           multiple={isBonded}
-          name='pifsId'
+          name='pifIds'
           onChange={handleChange}
-          optionRenderer={OPTION_PIF_RENDERER}
+          optionRenderer={pifOptionRenderer}
           options={filteredPifs}
           required={isBonded}
-          value={isBonded ? pifsId : pifsId[0]}
+          value={isBonded ? pifIds : pifIds[0]}
         />
       </div>
       <Input
@@ -284,7 +289,7 @@ const AddNetwork = withState<State, Props, Effects, Computed, ParentState, Paren
       <ActionButton color='success' onClick={createNetwork} startIcon={<AddIcon />} sx={BUTTON_STYLES}>
         <IntlMessage id='create' />
       </ActionButton>
-      <Button onClick={resetForm} sx={BUTTON_STYLES} startIcon={<SettingsBackupRestoreIcon />}>
+      <Button onClick={resetForm} sx={BUTTON_STYLES} startIcon={<SettingsBackupRestoreIcon />} disabled={isLoading}>
         <IntlMessage id='reset' />
       </Button>
     </form>
