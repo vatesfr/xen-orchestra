@@ -335,6 +335,9 @@ const App = withState<State, Props, Effects, Computed, ParentState, ParentEffect
                 <Route exact path='/styleguide'>
                   <StyleGuide />
                 </Route>
+                <Route exact path='/styleguide/foo'>
+                  <StyleGuide />
+                </Route>
                 <Route exact path='/pool'>
                   <PoolTab />
                 </Route>

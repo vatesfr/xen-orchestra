@@ -23,18 +23,27 @@ interface Tab {
   component?: React.ReactNode
   disabled?: boolean
   label: React.ReactNode
-  // if value is a string, it's considered as a pathname
+}
+
+interface UrlTab extends Tab {
+  pathname: string
+  value?: any
+}
+
+interface NoUrlTab extends Tab {
+  pathname?: string
   value: any
 }
 
 // For compatibility with 'withRouter'
 interface Props extends RouteComponentProps {
+  modeUrl?: boolean
   indicatorColor?: 'primary' | 'secondary'
   textColor?: 'inherit' | 'primary' | 'secondary'
   // tabs = [
   //   {
   //     component: <span>BAR</span>,
-  //     value: '/path',
+  //     pathname: '/path',
   //     label: (
   //       <span>
   //         <Icon icon='cloud' /> {labelA}
@@ -42,7 +51,7 @@ interface Props extends RouteComponentProps {
   //     ),
   //   },
   // ]
-  tabs: Array<Tab>
+  tabs: Array<NoUrlTab | UrlTab>
 }
 
 interface ParentEffects {}
@@ -67,30 +76,36 @@ const pageUnderConstruction = (
 
 const Tabs = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
   {
-    initialState: ({ tabs }) => ({ value: tabs[0].value }),
+    initialState: ({ location: { pathname }, modeUrl = false, tabs }) => ({
+      value: modeUrl ? pathname ?? tabs[0].pathname : tabs[0].value,
+    }),
     effects: {
       onChange: function (_, value) {
-        if (typeof value === 'string') {
+        if (this.props.modeUrl) {
           this.props.history.push(value)
         }
         this.state.value = value
       },
     },
   },
-  ({ effects, state: { value }, indicatorColor, textColor, tabs }) => (
+  ({ effects, state: { value }, indicatorColor, modeUrl = false, textColor, tabs }) => (
     <TabContext value={value}>
       <Box sx={BOX_STYLE}>
         <TabList indicatorColor={indicatorColor} onChange={effects.onChange} textColor={textColor}>
-          {tabs.map((tab: Tab) => (
-            <Tab disabled={tab.disabled} key={tab.value} label={tab.label} value={tab.value} />
-          ))}
+          {tabs.map((tab: UrlTab | NoUrlTab) => {
+            const value = modeUrl ? tab.pathname : tab.value
+            return <Tab disabled={tab.disabled} key={value} label={tab.label} value={value} />
+          })}
         </TabList>
       </Box>
-      {tabs.map((tab: Tab) => (
-        <TabPanel key={tab.value} value={tab.value}>
-          {tab.component === undefined ? pageUnderConstruction : tab.component}
-        </TabPanel>
-      ))}
+      {tabs.map((tab: UrlTab | NoUrlTab) => {
+        const value = modeUrl ? tab.pathname : tab.value
+        return (
+          <TabPanel key={value} value={value}>
+            {tab.component === undefined ? pageUnderConstruction : tab.component}
+          </TabPanel>
+        )
+      })}
     </TabContext>
   )
 )
