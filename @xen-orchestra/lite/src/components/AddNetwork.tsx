@@ -2,7 +2,7 @@ import AddIcon from '@mui/icons-material/Add'
 import React from 'react'
 import SettingsBackupRestoreIcon from '@mui/icons-material/SettingsBackupRestore'
 import { Map } from 'immutable'
-import { SelectChangeEvent } from '@mui/material'
+import { FormControl, FormHelperText, SelectChangeEvent, styled } from '@mui/material'
 import { withState } from 'reaclette'
 
 import ActionButton from './ActionButton'
@@ -60,10 +60,14 @@ const BUTTON_STYLES = {
   width: 'fit-content',
 }
 
-const INPUT_STYLES = {
+const StyledFormControl = styled(FormControl)({
   marginBottom: '1em',
   width: '100%',
-}
+})
+
+const StyledLabel = styled('label')<{ error?: boolean }>(({ theme, error }) => ({
+  color: error ? theme.palette.error.main : 'initial',
+}))
 
 const getInitialFormState = (): State['form'] => ({
   bondMode: undefined,
@@ -135,6 +139,7 @@ const AddNetwork = withState<State, Props, Effects, Computed, ParentState, Paren
             {
               MTU: mtu === '' ? undefined : mtu,
               name_description: description ?? '',
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
               name_label: nameLabel!,
               VLAN: vlan === '' ? undefined : vlan,
               bondMode: bondMode === '' ? undefined : bondMode,
@@ -217,56 +222,71 @@ const AddNetwork = withState<State, Props, Effects, Computed, ParentState, Paren
       </label>
       <Checkbox checked={isBonded} name='bonded' onChange={toggleBonded} />
       <div>
-        <label>
-          <IntlMessage id='interface' values={{ nInterfaces: isBonded ? 2 : 1 }} />
-          {isBonded && ' *'}
-        </label>
-        <Select
-          additionalProps={{ pifsMetrics }}
-          containerStyle={INPUT_STYLES}
-          error={isInterfacesLimit}
-          multiple={isBonded}
-          name='pifIds'
-          onChange={handleChange}
-          optionRenderer={pifOptionRenderer}
-          options={filteredPifs}
-          required={isBonded}
-          value={isBonded ? pifIds : pifIds[0]}
-        />
-      </div>
-      <Input
-        error={isEmptyLabel}
-        name='nameLabel'
-        onChange={handleChange}
-        required
-        value={nameLabel}
-        label={<IntlMessage id='name' />}
-        sx={INPUT_STYLES}
-      />
-      <Input
-        name='description'
-        onChange={handleChange}
-        type='text'
-        value={description}
-        label={<IntlMessage id='description' />}
-        sx={INPUT_STYLES}
-      />
-      <Input
-        name='mtu'
-        onChange={handleChange}
-        type='number'
-        value={mtu}
-        label={<IntlMessage id='mtu' />}
-        sx={INPUT_STYLES}
-        helperText={<IntlMessage id='defaultValue' values={{ value: 1500 }} />}
-      />
-      {isBonded ? (
-        <div>
-          <label>
-            <IntlMessage id='bondMode' /> *
-          </label>
+        <StyledFormControl error={isInterfacesLimit}>
+          <StyledLabel error={isInterfacesLimit}>
+            <IntlMessage id='interface' values={{ nInterfaces: isBonded ? 2 : 1 }} />
+            {isBonded && ' *'}
+          </StyledLabel>
           <Select
-            containerStyle={INPUT_STYLES}
+            additionalProps={{ pifsMetrics }}
+            error={isInterfacesLimit}
+            multiple={isBonded}
+            name='pifIds'
+            onChange={handleChange}
+            optionRenderer={pifOptionRenderer}
+            options={filteredPifs}
+            required={isBonded}
+            value={isBonded ? pifIds : pifIds[0]}
+          />
+          {isInterfacesLimit && (
+            <FormHelperText>
+              <IntlMessage id='errorBondedNetworkCreationPifs' />
+            </FormHelperText>
+          )}
+        </StyledFormControl>
+      </div>
+      <StyledFormControl error={isEmptyLabel}>
+        <Input
+          error={isEmptyLabel}
+          name='nameLabel'
+          onChange={handleChange}
+          required
+          value={nameLabel}
+          label={<IntlMessage id='name' />}
+        />
+        {isEmptyLabel && (
+          <FormHelperText>
+            <IntlMessage id='errorNetworkCreationName' />
+          </FormHelperText>
+        )}
+      </StyledFormControl>
+
+      <StyledFormControl>
+        <Input
+          name='description'
+          onChange={handleChange}
+          type='text'
+          value={description}
+          label={<IntlMessage id='description' />}
+        />
+      </StyledFormControl>
+      <StyledFormControl>
+        <Input
+          name='mtu'
+          onChange={handleChange}
+          type='number'
+          value={mtu}
+          label={<IntlMessage id='mtu' />}
+          helperText={<IntlMessage id='defaultValue' values={{ value: 1500 }} />}
+        />
+      </StyledFormControl>
+
+      {isBonded ? (
+        <StyledFormControl error={isEmptyBondMode}>
+          <StyledLabel error={isEmptyBondMode}>
+            <IntlMessage id='bondMode' /> *
+          </StyledLabel>
+          <Select
             error={isEmptyBondMode}
             name='bondMode'
             onChange={handleChange}
@@ -274,17 +294,23 @@ const AddNetwork = withState<State, Props, Effects, Computed, ParentState, Paren
             required
             value={bondMode}
           />
-        </div>
+          {isEmptyBondMode && (
+            <FormHelperText>
+              <IntlMessage id='errorBondedNetworkCreationBond' />
+            </FormHelperText>
+          )}
+        </StyledFormControl>
       ) : (
-        <Input
-          name='vlan'
-          onChange={handleChange}
-          type='number'
-          value={vlan}
-          label={<IntlMessage id='vlan' />}
-          sx={INPUT_STYLES}
-          helperText={<IntlMessage id='vlanPlaceholder' />}
-        />
+        <StyledFormControl>
+          <Input
+            name='vlan'
+            onChange={handleChange}
+            type='number'
+            value={vlan}
+            label={<IntlMessage id='vlan' />}
+            helperText={<IntlMessage id='vlanPlaceholder' />}
+          />
+        </StyledFormControl>
       )}
       <ActionButton color='success' onClick={createNetwork} startIcon={<AddIcon />} sx={BUTTON_STYLES}>
         <IntlMessage id='create' />
