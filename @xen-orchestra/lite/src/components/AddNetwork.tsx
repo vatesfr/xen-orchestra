@@ -107,7 +107,7 @@ const AddNetwork = withState<State, Props, Effects, Computed, ParentState, Paren
     effects: {
       createNetwork: async function () {
         const { bondMode, description, isBonded, mtu, nameLabel, pifIds, vlan } = this.state.form
-        if (nameLabel === undefined) {
+        if (nameLabel === undefined || nameLabel.trim() === '') {
           this.state.form = {
             ...this.state.form,
             isEmptyLabel: true,
@@ -135,14 +135,15 @@ const AddNetwork = withState<State, Props, Effects, Computed, ParentState, Paren
           isLoading: true,
         }
         try {
+          // @ts-ignore defer decorator
           await this.state.xapi.createNetworks([
             {
-              MTU: mtu === '' ? undefined : mtu,
+              MTU: mtu,
               name_description: description ?? '',
               // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
               name_label: nameLabel!,
-              VLAN: vlan === '' ? undefined : vlan,
-              bondMode: bondMode === '' ? undefined : bondMode,
+              VLAN: vlan,
+              bondMode: bondMode,
               pifIds: pifIds.length < 1 ? undefined : pifIds,
             },
           ])
@@ -176,7 +177,7 @@ const AddNetwork = withState<State, Props, Effects, Computed, ParentState, Paren
 
         this.state.form = {
           ...form,
-          [name]: value,
+          [name]: value === '' ? undefined : value,
         }
       },
       resetForm: function () {

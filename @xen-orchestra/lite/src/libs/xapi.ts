@@ -1,4 +1,5 @@
 import Cookies from 'js-cookie'
+import { defer } from 'golike-defer'
 import { EventEmitter } from 'events'
 import { Map } from 'immutable'
 import { Xapi } from 'xen-api'
@@ -230,7 +231,9 @@ export default class XapiConnection extends EventEmitter {
     return _xapi.call(method, ...args)
   }
 
+  @defer
   async createNetworks(
+    $defer,
     newNetworks: [
       {
         bondMode?: string
@@ -241,36 +244,33 @@ export default class XapiConnection extends EventEmitter {
         VLAN?: string
       }
     ]
-  ): Promise<(string | undefined)[]> {
+  ): Promise<Array<string | undefined>> {
     const pifs = this.objectsByType.get('PIF')
     return Promise.all(
       newNetworks.map(async ({ bondMode, pifIds, ...newNetwork }) => {
-        let networkRef: string | undefined
-        try {
-          networkRef = (await this.call('network.create', {
-            ...newNetwork,
-            other_config: { automatic: 'false' },
-          })) as string
-          await this.barrier(networkRef)
-          const networkId = this.objectsByType.get('network')?.find(({ $ref }) => $ref === networkRef)?.$id
-
-          if (pifIds === undefined) {
-            return networkId
-          }
-          if (bondMode !== undefined) {
-            await Promise.all(
-              pifIds.map(pifId => this.call('Bond.create', networkRef, pifs?.get(pifId)?.$network.PIFs, '', bondMode))
-            )
-          } else {
-            await this.call('pool.create_VLAN_from_PIF', pifs?.get(pifIds[0])?.$ref, networkRef, newNetwork.VLAN)
-          }
-          return networkId
-        } catch (error) {
+        const networkRef = (await this.call('network.create', {
+          ...newNetwork,
+          other_config: { automatic: 'false' },
+        })) as string
+        await this.barrier(networkRef)
+        $defer.onFailure(async (err: unknown) => {
           if (networkRef !== undefined) {
             await this.call('network.destroy', networkRef)
           }
-          throw error
+          throw err
+        })
+        const networkId = this.objectsByType.get('network')?.find(({ $ref }) => $ref === networkRef)?.$id
+        if (pifIds === undefined) {
+          return networkId
         }
+        if (bondMode !== undefined) {
+          await Promise.all(
+            pifIds.map(pifId => this.call('Bond.create', networkRef, pifs?.get(pifId)?.$network.PIFs, '', bondMode))
+          )
+        } else {
+          await this.call('pool.create_VLAN_from_PIF', pifs?.get(pifIds[0])?.$ref, networkRef, newNetwork.VLAN ?? 1500)
+        }
+        return networkId
       })
     )
   }
