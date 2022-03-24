@@ -20,6 +20,9 @@ exports.TAG_COPY_SRC = TAG_COPY_SRC
 
 const ensureArray = value => (value === undefined ? [] : Array.isArray(value) ? value : [value])
 const resolveUuid = async (xapi, cache, uuid, type) => {
+  if (uuid == null) {
+    return uuid
+  }
   let ref = cache.get(uuid)
   if (ref === undefined) {
     ref = await xapi.call(`${type}.get_by_uuid`, uuid)
