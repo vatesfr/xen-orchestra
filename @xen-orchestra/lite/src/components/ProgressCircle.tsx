@@ -13,35 +13,10 @@ const Container = styled(Box)({
   display: 'inline-flex',
 })
 
-const Percent = styled('p')(
-  ({
-    color,
-    theme: {
-      palette: { primary, secondary, success, warning, error },
-    },
-  }) => {
-    const getColor = (color?: string) => {
-      switch (color) {
-        case 'primary':
-          return primary.main
-        case 'secondary':
-          return secondary.main
-        case 'success':
-          return success.main
-        case 'warning':
-          return warning.main
-        case 'error':
-          return error.main
-        default:
-          return primary.main
-      }
-    }
-    return {
-      color: getColor(color),
-      fontWeight: 'bold',
-    }
-  }
-)
+const Percent = styled('p')(({ color, theme: { palette } }) => ({
+  color: (palette[color ?? 'primary'] ?? palette.primary).main,
+  fontWeight: 'bold',
+}))
 
 const BackgroundWrapperChildren = styled(Box)({
   position: 'absolute',
@@ -66,9 +41,9 @@ interface Props {
   base?: number
   children?: { (progress: number, value: number): React.ReactNode } | React.ReactNode
   color?: CircularProgressProps['color']
-  haveBackgroundCircle?: boolean
-  showPercent?: boolean
+  showValue?: boolean
   size?: number
+  suffix?: string
   value: number
 }
 
@@ -80,15 +55,13 @@ interface Computed {}
 
 const ProgressCircle = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
   {},
-  ({ base = 100, children, color = 'success', haveBackgroundCircle = true, showPercent = true, size = 100, value }) => {
+  ({ base = 100, children, color = 'success', showValue = false, size = 100, suffix, value }) => {
     const progress = Math.round((value / base) * 100)
     return (
       <Container>
-        {haveBackgroundCircle && (
-          <BackgroundWrapperChildren>
-            <BackgroundCircle variant='determinate' value={100} size={size} />
-          </BackgroundWrapperChildren>
-        )}
+        <BackgroundWrapperChildren>
+          <BackgroundCircle variant='determinate' value={100} size={size} />
+        </BackgroundWrapperChildren>
         <CircularProgress
           aria-label={`${progress}%`}
           variant='determinate'
@@ -99,9 +72,9 @@ const ProgressCircle = withState<State, Props, Effects, Computed, ParentState, P
         {children !== undefined ? (
           <WrapperChildren>{typeof children === 'function' ? children(progress, value) : children}</WrapperChildren>
         ) : (
-          showPercent && (
+          suffix !== undefined && (
             <WrapperChildren>
-              <Percent color={color}>{progress}%</Percent>
+              <Percent color={color}>{(showValue ? value : progress) + suffix}</Percent>
             </WrapperChildren>
           )
         )}
