@@ -1,5 +1,7 @@
-import moment from 'moment-timezone'
-import sortedIndex from 'lodash/sortedIndex'
+'use strict'
+
+const moment = require('moment-timezone')
+const sortedIndex = require('lodash/sortedIndex')
 
 const NEXT_MAPPING = {
   month: { year: 1 },
@@ -31,7 +33,7 @@ const setFirstAvailable = (date, unit, values) => {
 }
 
 // returns the next run, after the passed date
-export default (schedule, fromDate) => {
+module.exports = (schedule, fromDate) => {
   let date = moment(fromDate)
     .set({
       second: 0,

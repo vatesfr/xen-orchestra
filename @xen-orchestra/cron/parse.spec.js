@@ -1,6 +1,8 @@
 /* eslint-env jest */
 
-import parse from './parse'
+'use strict'
+
+const parse = require('./parse')
 
 describe('parse()', () => {
   it('works', () => {

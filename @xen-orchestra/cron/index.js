@@ -1,7 +1,9 @@
-import moment from 'moment-timezone'
+'use strict'
 
-import next from './next'
-import parse from './parse'
+const moment = require('moment-timezone')
+
+const next = require('./next')
+const parse = require('./parse')
 
 const MAX_DELAY = 2 ** 31 - 1
 
@@ -94,4 +96,5 @@ class Schedule {
   }
 }
 
-export const createSchedule = (...args) => new Schedule(...args)
+const createSchedule = (...args) => new Schedule(...args)
+exports.createSchedule = createSchedule

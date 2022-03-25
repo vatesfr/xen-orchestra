@@ -1,6 +1,8 @@
 /* eslint-env jest */
 
-import { createSchedule } from './'
+'use strict'
+
+const { createSchedule } = require('./')
 
 jest.useFakeTimers()
 
