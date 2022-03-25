@@ -20,6 +20,7 @@
 - [Backup/Restore] Fix missing backups on Backblaze
 - [Templates] Fix "incorrect state" error when trying to delete a default template [#6124](https://github.com/vatesfr/xen-orchestra/issues/6124) (PR [#6119](https://github.com/vatesfr/xen-orchestra/pull/6119))
 - [New SR] Fix "SR_BACKEND_FAILURE_103" error when selecting "No selected value" for the path [#5991](https://github.com/vatesfr/xen-orchestra/issues/5991) (PR [#6137](https://github.com/vatesfr/xen-orchestra/pull/6137))
+- [Jobs] Fix "invalid parameters" error when running jobs in some cases (PR [#6156](https://github.com/vatesfr/xen-orchestra/pull/6156))
 
 ### Packages to release
 
