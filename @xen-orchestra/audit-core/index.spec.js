@@ -1,6 +1,8 @@
+'use strict'
+
 /* eslint-env jest */
 
-import { AlteredRecordError, AuditCore, MissingRecordError, NULL_ID, Storage } from '.'
+const { AlteredRecordError, AuditCore, MissingRecordError, NULL_ID, Storage } = require('.')
 
 const asyncIteratorToArray = async asyncIterator => {
   const array = []
