@@ -1,7 +1,9 @@
-/* eslint-env jest */
-
+import assert from 'assert/strict'
 import forEach from 'lodash/forEach.js'
+import tap from 'tap'
 import { resolveParamsVector } from './execute-call.mjs'
+
+const { describe, it } = tap.mocha
 
 describe('resolveParamsVector', function () {
   forEach(
@@ -107,7 +109,7 @@ describe('resolveParamsVector', function () {
     ([expectedResult, entry, context], name) => {
       describe(`with ${name}`, () => {
         it('Resolves params vector', () => {
-          expect(resolveParamsVector.call(context, entry)).toEqual(expectedResult)
+          assert.deepEqual(resolveParamsVector.call(context, entry), expectedResult)
         })
       })
     }

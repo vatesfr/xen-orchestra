@@ -60,6 +60,7 @@
       "/@vates/decorate-with/",
       "/@vates/predicates/",
       "/dist/",
+      "/xo-server/",
       "/xo-server-test/",
       "/xo-web/"
     ],
