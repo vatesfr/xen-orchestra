@@ -206,7 +206,7 @@ export default class S3Handler extends RemoteHandlerAbstract {
   // https://www.backblaze.com/b2/docs/calling.html#error_handling
   @decorateWith(pRetry.wrap, {
     delays: [100, 200, 500, 1000, 2000],
-    when: e => e.$metadata.httpStatusCode === 500,
+    when: e => e.$metadata?.httpStatusCode === 500,
     onRetry(error) {
       warn('retrying writing file', {
         attemptNumber: this.attemptNumber,
