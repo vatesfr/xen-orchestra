@@ -1549,7 +1549,6 @@ const messages = {
   fromUrl: 'From URL',
   importVmsList: 'Drop OVA or XVA files here to import Virtual Machines.',
   noSelectedVms: 'No selected VMs.',
-  tooltipsFileType: "In case the URL path isn't properly formatted.",
   url: 'URL',
   vmImportToPool: 'To Pool:',
   vmImportToSr: 'To SR:',

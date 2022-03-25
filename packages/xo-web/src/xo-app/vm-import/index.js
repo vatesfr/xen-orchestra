@@ -228,9 +228,9 @@ export default class Import extends Component {
   _importVmFromUrl = () => {
     const url = this.state.url
     const file = {
-      name: url.split('/').pop(),
+      name: url.slice(url.lastIndexOf('/') + 1),
     }
-    const type = this.state.type ?? file.name.split('.').pop().trim()
+    const type = (this.state.type ?? url.slice(url.lastIndexOf('.') + 1)).toLowerCase()
     return importVm(file, type, undefined, this.state.sr, url)
   }
 
@@ -383,9 +383,7 @@ export default class Import extends Component {
                   </FormGrid.InputCol>
                 </FormGrid.Row>
                 <FormGrid.Row>
-                  <Tooltip content={_('tooltipsFileType')}>
-                    <FormGrid.LabelCol>{_('fileType')}:</FormGrid.LabelCol>
-                  </Tooltip>
+                  <FormGrid.LabelCol>{_('fileType')}:</FormGrid.LabelCol>
                   <FormGrid.InputCol>
                     <Input className='form-control' onChange={this.linkState('type')} placeholder='xva' />
                   </FormGrid.InputCol>

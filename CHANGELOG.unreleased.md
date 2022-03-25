@@ -7,7 +7,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [Import VM] Add a way to import VM from an URL (PR [#6130](https://github.com/vatesfr/xen-orchestra/pull/6130))
+- [Import VM] Ability to import VM from an URL (PR [#6130](https://github.com/vatesfr/xen-orchestra/pull/6130))
 
 ### Bug fixes
 
