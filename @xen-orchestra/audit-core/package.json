@@ -12,7 +12,8 @@
     "node": ">=14"
   },
   "scripts": {
-    "postversion": "npm publish --access public"
+    "postversion": "npm publish --access public",
+    "test": "tap --lines 67 --functions 92 --branches 52 --statements 67"
   },
   "dependencies": {
     "@vates/decorate-with": "^1.0.0",
@@ -25,5 +26,8 @@
   "author": {
     "name": "Vates SAS",
     "url": "https://vates.fr"
+  },
+  "devDependencies": {
+    "tap": "^16.0.1"
   }
 }
