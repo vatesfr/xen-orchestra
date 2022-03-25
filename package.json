@@ -59,6 +59,7 @@
     "testPathIgnorePatterns": [
       "/@vates/decorate-with/",
       "/@vates/predicates/",
+      "/@xen-orchestra/audit-core/",
       "/dist/",
       "/xo-server/",
       "/xo-server-test/",
