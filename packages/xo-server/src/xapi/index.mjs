@@ -526,8 +526,8 @@ export default class Xapi extends XapiBase {
     const useSnapshot = isVmRunning(vm)
     const exportedVm = useSnapshot
       ? await this.getRecord(
-          await this.VM_snapshot(vm.$ref, { cancelToken: $cancelToken, name_label: `[XO Export] ${vm.name_label}` }),
-          'VM'
+          'VM',
+          await this.VM_snapshot(vm.$ref, { cancelToken: $cancelToken, name_label: `[XO Export] ${vm.name_label}` })
         )
       : vm
 
@@ -582,8 +582,8 @@ export default class Xapi extends XapiBase {
       }
 
       vm = await this.getRecord(
-        await this.VM_snapshot(vm.$ref, { cancelToken: $cancelToken, name_label: snapshotNameLabel }),
-        'VM'
+        'VM',
+        await this.VM_snapshot(vm.$ref, { cancelToken: $cancelToken, name_label: snapshotNameLabel })
       )
       $defer.onFailure(() => this.VM_destroy(vm.$ref))
     }
