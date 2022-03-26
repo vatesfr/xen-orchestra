@@ -1,5 +1,6 @@
 - [Authentication](#authentication)
 - [Collections](#collections)
+- [VM Export](#vm-export)
 
 > This [REST](https://en.wikipedia.org/wiki/Representational_state_transfer)-oriented API is experimental. Non-backward compatible changes or removal may occur in any future release. Use of the feature is not recommended in production environments.
 
@@ -101,4 +102,20 @@ Content-Type: application/x-ndjson
 
 {"name_label":"Debian 10 Cloudinit","power_state":"Running","url":"/rest/v0/vms/770aa52a-fd42-8faf-f167-8c5c4a237cac"}
 {"name_label":"Debian 10 Cloudinit self-service","power_state":"Halted","url":"/rest/v0/vms/5019156b-f40d-bc57-835b-4a259b177be1"}
+```
+
+### VM Export
+
+A VM can be exported as an XVA at `/rest/v0/vms/<uuid>.xva`.
+
+By default, the XVA is not compressed, however the `compress` query parameter supports the following values:
+
+- `gzip`: use [gzip](https://en.wikipedia.org/wiki/Gzip) compression (very slow)
+- `zstd`: use [Zstandard](https://en.wikipedia.org/wiki/Zstd) compression (fast, only supported on XCP-ng)
+
+```
+curl \
+  -b authenticationToken=KQxQdm2vMiv7jBIK0hgkmgxKzemd8wSJ7ugFGKFkTbs \
+  'https://xo.company.lan/rest/v0/vms/770aa52a-fd42-8faf-f167-8c5c4a237cac.xva?compress=zstd' \
+  > export.xva
 ```

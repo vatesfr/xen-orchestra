@@ -7,6 +7,7 @@ import createNdJsonStream from '../_createNdJsonStream.mjs'
 import pick from 'lodash/pick.js'
 import map from 'lodash/map.js'
 import * as CM from 'complex-matcher'
+import fromCallback from 'promise-toolbox/fromCallback'
 
 function sendObjects(objects, req, res) {
   const { query } = req
@@ -113,5 +114,23 @@ export default class RestApi {
           }
         })
     }
+
+    api.get('/vms/:uuid.xva', async (req, res, next) => {
+      try {
+        const vm = await app.getXapiObject(req.params.uuid)
+        const stream = await vm.$xapi.VM_export(vm.$ref, { compress: req.query.compress })
+
+        stream.headers['content-disposition'] = 'attachment'
+        res.writeHead(stream.statusCode, stream.statusMessage != null ? stream.statusMessage : '', stream.headers)
+
+        await fromCallback(pipeline, stream, res)
+      } catch (error) {
+        if (noSuchObject.is(error)) {
+          next()
+        } else {
+          next(error)
+        }
+      }
+    })
   }
 }
