@@ -1,4 +1,4 @@
-This [REST](https://en.wikipedia.org/wiki/Representational_state_transfer)-oriented API is available at the address `/rest/v0`.
+> This [REST](https://en.wikipedia.org/wiki/Representational_state_transfer)-oriented API is experimental. Non-backward compatible changes or removal may occur in any future release. Use of the feature is not recommended in production environments.
 
 ### Authentication
 
