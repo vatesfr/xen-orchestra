@@ -1004,8 +1004,8 @@ revert.resolve = {
 
 // -------------------------------------------------------------------
 
-async function handleExport(req, res, { xapi, id, compress }) {
-  const stream = await xapi.exportVm(FAIL_ON_QUEUE, id, {
+async function handleExport(req, res, { xapi, vmRef, compress }) {
+  const stream = await xapi.VM_export(FAIL_ON_QUEUE, vmRef, {
     compress,
   })
   res.on('close', () => stream.cancel())
@@ -1024,7 +1024,7 @@ async function export_({ vm, compress }) {
 
   const data = {
     xapi: this.getXapi(vm),
-    id: vm._xapiId,
+    vmRef: vm._xapiRef,
     compress,
   }
 

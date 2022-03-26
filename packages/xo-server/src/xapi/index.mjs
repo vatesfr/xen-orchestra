@@ -102,7 +102,7 @@ export default class Xapi extends XapiBase {
     //  close event is emitted when the export is canceled via browser. See https://github.com/vatesfr/xen-orchestra/issues/5535
     const waitStreamEnd = async stream => fromEvents(await stream, ['end', 'close'])
     this._exportVdi = limitConcurrency(vdiExportConcurrency, waitStreamEnd)(this._exportVdi)
-    this.exportVm = limitConcurrency(vmExportConcurrency, waitStreamEnd)(this.exportVm)
+    this.VM_export = limitConcurrency(vmExportConcurrency, waitStreamEnd)(this.VM_export)
 
     this._migrateVmWithStorageMotion = limitConcurrency(vmMigrationConcurrency)(this._migrateVmWithStorageMotion)
     this.VM_snapshot = limitConcurrency(vmSnapshotConcurrency)(this.VM_snapshot)
@@ -378,7 +378,7 @@ export default class Xapi extends XapiBase {
     }
 
     const sr = targetXapi.getObject(targetSrId)
-    const stream = await this.exportVm(vmId, {
+    const stream = await this.VM_export(this.getObject(vmId).$ref, {
       compress,
     })
 
@@ -517,40 +517,6 @@ export default class Xapi extends XapiBase {
     }
 
     return console
-  }
-
-  // Returns a stream to the exported VM.
-  @cancelable
-  async exportVm($cancelToken, vmId, { compress = false } = {}) {
-    const vm = this.getObject(vmId)
-    const useSnapshot = isVmRunning(vm)
-    const exportedVm = useSnapshot
-      ? await this.getRecord(
-          'VM',
-          await this.VM_snapshot(vm.$ref, { cancelToken: $cancelToken, name_label: `[XO Export] ${vm.name_label}` })
-        )
-      : vm
-
-    const promise = this.getResource($cancelToken, '/export/', {
-      query: {
-        ref: exportedVm.$ref,
-        use_compression: compress === 'zstd' ? 'zstd' : compress === true || compress === 'gzip' ? 'true' : 'false',
-      },
-      task: this.task_create('VM export', vm.name_label),
-    }).catch(error => {
-      // augment the error with as much relevant info as possible
-      error.pool_master = this.pool.$master
-      error.VM = exportedVm
-
-      throw error
-    })
-
-    if (useSnapshot) {
-      const destroySnapshot = () => this.VM_destroy(exportedVm.$ref)::ignoreErrors()
-      promise.then(_ => _.task.finally(destroySnapshot), destroySnapshot)
-    }
-
-    return promise
   }
 
   // Create a snapshot (if necessary) of the VM and returns a delta export
