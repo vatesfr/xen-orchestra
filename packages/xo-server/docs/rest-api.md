@@ -36,6 +36,8 @@ Authentication token created
 DiYBFavJwf9GODZqQJs23eAx9eh3KlsRhBi8RcoX0KM
 ```
 
+> Only admin users can currently use the API.
+
 ### Collections
 
 Collections of objects are available at `/<name>` (e.g. `/vms`)
