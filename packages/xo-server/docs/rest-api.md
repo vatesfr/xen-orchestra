@@ -1,6 +1,7 @@
 - [Authentication](#authentication)
 - [Collections](#collections)
 - [VM Export](#vm-export)
+- [VDI Export](#vdi-export)
 
 > This [REST](https://en.wikipedia.org/wiki/Representational_state_transfer)-oriented API is experimental. Non-backward compatible changes or removal may occur in any future release. Use of the feature is not recommended in production environments.
 
@@ -118,4 +119,15 @@ curl \
   -b authenticationToken=KQxQdm2vMiv7jBIK0hgkmgxKzemd8wSJ7ugFGKFkTbs \
   'https://xo.company.lan/rest/v0/vms/770aa52a-fd42-8faf-f167-8c5c4a237cac.xva?compress=zstd' \
   > export.xva
+```
+
+### VDI Export
+
+A VM can be exported as an VHD at `/rest/v0/vdis/<uuid>.vhd`.
+
+```
+curl \
+  -b authenticationToken=KQxQdm2vMiv7jBIK0hgkmgxKzemd8wSJ7ugFGKFkTbs \
+  'https://xo.company.lan/rest/v0/vdis/1a269782-ea93-4c4c-897a-475365f7b674.vhd' \
+  > export.vhd
 ```

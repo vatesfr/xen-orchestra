@@ -119,6 +119,24 @@ export default class RestApi {
         })
     }
 
+    api.get('/vdis/:uuid.vhd', async (req, res, next) => {
+      try {
+        const vdi = await app.getXapiObject(req.params.uuid, 'VDI')
+        const stream = await vdi.$xapi.VDI_exportContent(vdi.$ref, { format: 'vhd' })
+
+        stream.headers['content-disposition'] = 'attachment'
+        res.writeHead(stream.statusCode, stream.statusMessage != null ? stream.statusMessage : '', stream.headers)
+
+        await fromCallback(pipeline, stream, res)
+      } catch (error) {
+        if (noSuchObject.is(error)) {
+          next()
+        } else {
+          next(error)
+        }
+      }
+    })
+
     api.get('/vms/:uuid.xva', async (req, res, next) => {
       try {
         const vm = await app.getXapiObject(req.params.uuid, 'VM')
