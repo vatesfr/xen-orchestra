@@ -1608,7 +1608,7 @@ const messages = {
   getRemote: 'Get remote',
   noBackups: 'There are no backups!',
   restoreBackupsInfo: 'Click on a VM to display restore options',
-  restoreDeltaBackupsInfo: 'Only the files of Delta Backup which are not on a SMB remote can be restored',
+  restoreDeltaBackupsInfo: 'Only the files of Delta Backup which are not on a SMB or S3 remote can be restored',
   remoteEnabled: 'Enabled',
   remoteDisabled: 'Disabled',
   enableRemote: 'Enable',
