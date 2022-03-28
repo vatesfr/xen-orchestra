@@ -45,8 +45,11 @@ export const debounceWithKey = (fn, delay, keyFn = defaultKeyFn) => {
           resolve(fn.apply(this, arguments))
         }))
       )
-      const remove = scheduleRemoveCacheEntry.bind(cache, keys, Date.now() + delayFn.apply(this, arguments))
-      promise.then(remove, remove)
+      const delay = delayFn.apply(this, arguments)
+      if (delay !== Infinity) {
+        const remove = scheduleRemoveCacheEntry.bind(cache, keys, Date.now() + delay)
+        promise.then(remove, remove)
+      }
     }
     return promise
   }

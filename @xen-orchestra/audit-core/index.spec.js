@@ -1,6 +1,9 @@
-/* eslint-env jest */
+'use strict'
 
-import { AlteredRecordError, AuditCore, MissingRecordError, NULL_ID, Storage } from '.'
+const assert = require('assert/strict')
+const { afterEach, describe, it } = require('tap').mocha
+
+const { AlteredRecordError, AuditCore, MissingRecordError, NULL_ID, Storage } = require('.')
 
 const asyncIteratorToArray = async asyncIterator => {
   const array = []
@@ -72,7 +75,7 @@ const auditCore = new AuditCore(db)
 const storeAuditRecords = async () => {
   await Promise.all(DATA.map(data => auditCore.add(...data)))
   const records = await asyncIteratorToArray(auditCore.getFrom())
-  expect(records.length).toBe(DATA.length)
+  assert.equal(records.length, DATA.length)
   return records
 }
 
@@ -83,10 +86,11 @@ describe('auditCore', () => {
     const [newestRecord, deletedRecord] = await storeAuditRecords()
 
     const nValidRecords = await auditCore.checkIntegrity(NULL_ID, newestRecord.id)
-    expect(nValidRecords).toBe(DATA.length)
+    assert.equal(nValidRecords, DATA.length)
 
     await db.del(deletedRecord.id)
-    await expect(auditCore.checkIntegrity(NULL_ID, newestRecord.id)).rejects.toEqual(
+    await assert.rejects(
+      auditCore.checkIntegrity(NULL_ID, newestRecord.id),
       new MissingRecordError(deletedRecord.id, 1)
     )
   })
@@ -97,7 +101,8 @@ describe('auditCore', () => {
     alteredRecord.event = ''
     await db.put(alteredRecord)
 
-    await expect(auditCore.checkIntegrity(NULL_ID, newestRecord.id)).rejects.toEqual(
+    await assert.rejects(
+      auditCore.checkIntegrity(NULL_ID, newestRecord.id),
       new AlteredRecordError(alteredRecord.id, 1, alteredRecord)
     )
   })
@@ -107,8 +112,8 @@ describe('auditCore', () => {
 
     await auditCore.deleteFrom(secondRecord.id)
 
-    expect(await db.get(firstRecord.id)).toBe(undefined)
-    expect(await db.get(secondRecord.id)).toBe(undefined)
+    assert.equal(await db.get(firstRecord.id), undefined)
+    assert.equal(await db.get(secondRecord.id), undefined)
 
     await auditCore.checkIntegrity(secondRecord.id, thirdRecord.id)
   })

@@ -1,12 +1,14 @@
-import assert from 'assert'
-import hash from 'object-hash'
-import { createLogger } from '@xen-orchestra/log'
-import { decorateWith } from '@vates/decorate-with'
-import { defer } from 'golike-defer'
+'use strict'
+
+const assert = require('assert')
+const hash = require('object-hash')
+const { createLogger } = require('@xen-orchestra/log')
+const { decorateClass } = require('@vates/decorate-with')
+const { defer } = require('golike-defer')
 
 const log = createLogger('xo:audit-core')
 
-export class Storage {
+exports.Storage = class Storage {
   constructor() {
     this._lock = Promise.resolve()
   }
@@ -29,7 +31,7 @@ const ID_TO_ALGORITHM = {
   5: 'sha256',
 }
 
-export class AlteredRecordError extends Error {
+class AlteredRecordError extends Error {
   constructor(id, nValid, record) {
     super('altered record')
 
@@ -38,8 +40,9 @@ export class AlteredRecordError extends Error {
     this.record = record
   }
 }
+exports.AlteredRecordError = AlteredRecordError
 
-export class MissingRecordError extends Error {
+class MissingRecordError extends Error {
   constructor(id, nValid) {
     super('missing record')
 
@@ -47,8 +50,10 @@ export class MissingRecordError extends Error {
     this.nValid = nValid
   }
 }
+exports.MissingRecordError = MissingRecordError
 
-export const NULL_ID = 'nullId'
+const NULL_ID = 'nullId'
+exports.NULL_ID = NULL_ID
 
 const HASH_ALGORITHM_ID = '5'
 const createHash = (data, algorithmId = HASH_ALGORITHM_ID) =>
@@ -57,13 +62,12 @@ const createHash = (data, algorithmId = HASH_ALGORITHM_ID) =>
     excludeKeys: key => key === 'id',
   })}`
 
-export class AuditCore {
+class AuditCore {
   constructor(storage) {
     assert.notStrictEqual(storage, undefined)
     this._storage = storage
   }
 
-  @decorateWith(defer)
   async add($defer, subject, event, data) {
     const time = Date.now()
     $defer(await this._storage.acquireLock())
@@ -148,7 +152,6 @@ export class AuditCore {
     }
   }
 
-  @decorateWith(defer)
   async deleteRangeAndRewrite($defer, newest, oldest) {
     assert.notStrictEqual(newest, undefined)
     assert.notStrictEqual(oldest, undefined)
@@ -189,3 +192,9 @@ export class AuditCore {
     }
   }
 }
+exports.AuditCore = AuditCore
+
+decorateClass(AuditCore, {
+  add: defer,
+  deleteRangeAndRewrite: defer,
+})

@@ -1,22 +1,25 @@
-/* eslint-env jest */
+import assert from 'assert/strict'
+import tap from 'tap'
 
 import { camelToSnakeCase, diffItems, extractProperty, generateToken, parseSize, parseXml } from './utils.mjs'
+
+const { describe, it } = tap.mocha
 
 // ===================================================================
 
 describe('camelToSnakeCase()', function () {
   it('converts a string from camelCase to snake_case', function () {
-    expect(camelToSnakeCase('fooBar')).toBe('foo_bar')
-    expect(camelToSnakeCase('ipv4Allowed')).toBe('ipv4_allowed')
+    assert.equal(camelToSnakeCase('fooBar'), 'foo_bar')
+    assert.equal(camelToSnakeCase('ipv4Allowed'), 'ipv4_allowed')
   })
 
   it('does not alter snake_case strings', function () {
-    expect(camelToSnakeCase('foo_bar')).toBe('foo_bar')
-    expect(camelToSnakeCase('ipv4_allowed')).toBe('ipv4_allowed')
+    assert.equal(camelToSnakeCase('foo_bar'), 'foo_bar')
+    assert.equal(camelToSnakeCase('ipv4_allowed'), 'ipv4_allowed')
   })
 
   it('does not alter upper case letters expect those from the camelCase', function () {
-    expect(camelToSnakeCase('fooBar_BAZ')).toBe('foo_bar_BAZ')
+    assert.equal(camelToSnakeCase('fooBar_BAZ'), 'foo_bar_BAZ')
   })
 })
 
@@ -24,7 +27,7 @@ describe('camelToSnakeCase()', function () {
 
 describe('diffItems', () => {
   it('computes the added/removed items between 2 iterables', () => {
-    expect(diffItems(['foo', 'bar'], ['baz', 'foo'])).toEqual([['bar'], ['baz']])
+    assert.deepEqual(diffItems(['foo', 'bar'], ['baz', 'foo']), [['bar'], ['baz']])
   })
 })
 
@@ -35,15 +38,15 @@ describe('extractProperty()', function () {
     const value = {}
     const obj = { prop: value }
 
-    expect(extractProperty(obj, 'prop')).toBe(value)
+    assert.equal(extractProperty(obj, 'prop'), value)
   })
 
   it('removes the property from the object', function () {
     const value = {}
     const obj = { prop: value }
 
-    expect(extractProperty(obj, 'prop')).toBe(value)
-    expect(obj.prop).not.toBeDefined()
+    assert.equal(extractProperty(obj, 'prop'), value)
+    assert.equal(obj.prop, undefined)
   })
 })
 
@@ -136,13 +139,13 @@ describe('parseXml()', () => {
   }
 
   it('supports strings', () => {
-    expect(parseXml(strA)).toEqual(resultA)
-    expect(parseXml(strB)).toEqual(resultB)
+    assert.deepEqual(parseXml(strA), resultA)
+    assert.deepEqual(parseXml(strB), resultB)
   })
 
   it('supports buffers', () => {
-    expect(parseXml(bufA)).toEqual(resultA)
-    expect(parseXml(bufB)).toEqual(resultB)
+    assert.deepEqual(parseXml(bufA), resultA)
+    assert.deepEqual(parseXml(bufB), resultB)
   })
 })
 
@@ -150,7 +153,7 @@ describe('parseXml()', () => {
 
 describe('generateToken()', () => {
   it('generates a string', async () => {
-    expect(typeof (await generateToken())).toBe('string')
+    assert.equal(typeof (await generateToken()), 'string')
   })
 })
 
@@ -158,20 +161,20 @@ describe('generateToken()', () => {
 
 describe('parseSize()', function () {
   it('parses a human size', function () {
-    expect(parseSize('1G')).toBe(1e9)
+    assert.equal(parseSize('1G'), 1e9)
   })
 
   it('returns the parameter if already a number', function () {
-    expect(parseSize(1e6)).toBe(1e6)
+    assert.equal(parseSize(1e6), 1e6)
   })
 
   it('throws if the string cannot be parsed', function () {
-    expect(function () {
+    assert.throws(function () {
       parseSize('foo')
-    }).toThrow()
+    })
   })
 
   it('supports the B unit as suffix', function () {
-    expect(parseSize('3MB')).toBe(3e6)
+    assert.equal(parseSize('3MB'), 3e6)
   })
 })

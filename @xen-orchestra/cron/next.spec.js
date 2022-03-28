@@ -1,10 +1,12 @@
 /* eslint-env jest */
 
-import mapValues from 'lodash/mapValues'
-import moment from 'moment-timezone'
+'use strict'
 
-import next from './next'
-import parse from './parse'
+const mapValues = require('lodash/mapValues')
+const moment = require('moment-timezone')
+
+const next = require('./next')
+const parse = require('./parse')
 
 const N = (pattern, fromDate = '2018-04-09T06:25') => {
   const iso = next(parse(pattern), moment.utc(fromDate)).toISOString()

@@ -1,3 +1,5 @@
+'use strict'
+
 const compareNumbers = (a, b) => a - b
 
 const createParser = ({ fields: [...fields], presets: { ...presets } }) => {
@@ -148,7 +150,7 @@ const createParser = ({ fields: [...fields], presets: { ...presets } }) => {
   return parse
 }
 
-export default createParser({
+module.exports = createParser({
   fields: [
     {
       name: 'minute',

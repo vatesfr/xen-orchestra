@@ -9,6 +9,9 @@
 
 - [REST API] Expose networks, VBDs, VDIs and VIFs
 - [Console] Supports host and VM consoles behind HTTP proxies [#6133](https://github.com/vatesfr/xen-orchestra/pull/6133)
+- [Install patches] Disable patch installation when `High Availability` is enabled (PR [#6145](https://github.com/vatesfr/xen-orchestra/pull/6145))
+- [Delta Backup/Restore] Ability to ignore some VDIs (PR [#6143](https://github.com/vatesfr/xen-orchestra/pull/6143))
+- [Rolling Pool Update] Don't update if some of the hosts are not running
 - [VM form] Add link to documentation on secure boot in the Advanced tab (PR [#6146](https://github.com/vatesfr/xen-orchestra/pull/6146))
 
 ### Bug fixes
@@ -18,6 +21,7 @@
 - [Rolling Pool Update] Don't fail if `load-balancer` plugin is missing (Starter and Enterprise plans)
 - [Backup/Restore] Fix missing backups on Backblaze
 - [Templates] Fix "incorrect state" error when trying to delete a default template [#6124](https://github.com/vatesfr/xen-orchestra/issues/6124) (PR [#6119](https://github.com/vatesfr/xen-orchestra/pull/6119))
+- [New SR] Fix "SR_BACKEND_FAILURE_103" error when selecting "No selected value" for the path [#5991](https://github.com/vatesfr/xen-orchestra/issues/5991) (PR [#6137](https://github.com/vatesfr/xen-orchestra/pull/6137))
 
 ### Packages to release
 
@@ -43,4 +47,5 @@
 - vhd-cli minor
 - @xen-orchestra/backups minor
 - @xen-orchestra/proxy minor
-- xo-server patch
+- xo-server minor
+- xo-web minor

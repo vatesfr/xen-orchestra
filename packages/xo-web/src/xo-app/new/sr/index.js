@@ -688,7 +688,7 @@ export default class New extends Component {
                       <label htmlFor='selectSrPath'>{_('newSrPath')}</label>
                       <select
                         className='form-control'
-                        defaultValue={null}
+                        defaultValue=''
                         id='selectSrPath'
                         onChange={event => {
                           this._handleSrPathSelection(event.target.value)
@@ -696,7 +696,9 @@ export default class New extends Component {
                         ref='path'
                         required
                       >
-                        <option value={null}>{formatMessage(messages.noSelectedValue)}</option>
+                        <option disabled value=''>
+                          {formatMessage(messages.noSelectedValue)}
+                        </option>
                         {map(paths, (item, key) => (
                           <option key={key} value={item.path}>
                             {item.path}

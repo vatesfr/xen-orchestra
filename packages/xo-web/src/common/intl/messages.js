@@ -1014,6 +1014,8 @@ const messages = {
   poolNeedsDefaultSr: 'The pool needs a default SR to install the patches.',
   vmsHaveCds: '{nVms, number} VM{nVms, plural, one {} other {s}} {nVms, plural, one {has} other {have}} CDs',
   ejectCds: 'Eject CDs',
+  highAvailabilityNotDisabledTooltip: 'High Availability must be disabled',
+
   // ----- Pool storage tabs -----
   defaultSr: 'Default SR',
   setAsDefaultSr: 'Set as default SR',
@@ -1825,6 +1827,7 @@ const messages = {
     'This VM contains a duplicate MAC address or has the same MAC address as another running VM. Do you want to continue?',
   vmsWithDuplicatedMacAddressesMessage:
     '{nVms, number} VM{nVms, plural, one {} other {s}} contain{nVms, plural, one {s} other {}} duplicate MAC addresses or {nVms, plural, one {has} other {have}} the same MAC addresses as other running VMs. Do you want to continue?',
+  ignoreVdi: 'Ignore this VDI',
 
   // ----- Servers -----
   enableServerErrorTitle: 'Enable server',

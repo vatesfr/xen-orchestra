@@ -8,13 +8,14 @@ import unzip from 'unzipper'
 import { createLogger } from '@xen-orchestra/log'
 import { decorateWith } from '@vates/decorate-with'
 import { defer as deferrable } from 'golike-defer'
+import { incorrectState } from 'xo-common/api-errors.js'
 import { timeout } from 'promise-toolbox'
 
 import ensureArray from '../../_ensureArray.mjs'
 import { debounceWithKey } from '../../_pDebounceWithKey.mjs'
 import { forEach, mapFilter, parseXml } from '../../utils.mjs'
 
-import { extractOpaqueRef, parseDateTime, useUpdateSystem } from '../utils.mjs'
+import { extractOpaqueRef, isHostRunning, parseDateTime, useUpdateSystem } from '../utils.mjs'
 
 // TOC -------------------------------------------------------------------------
 
@@ -485,6 +486,20 @@ export default {
     }
 
     const hosts = filter(this.objects.all, { $type: 'host' })
+
+    {
+      const deadHost = hosts.find(_ => !isHostRunning(_))
+      if (deadHost !== undefined) {
+        // reflect the interface of an XO host object
+        throw incorrectState({
+          actual: 'Halted',
+          expected: 'Running',
+          object: deadHost.$id,
+          property: 'power_state',
+        })
+      }
+    }
+
     await Promise.all(hosts.map(host => host.$call('assert_can_evacuate')))
 
     log.debug('Install patches')
