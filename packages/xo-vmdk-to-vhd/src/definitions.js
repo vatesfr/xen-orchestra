@@ -7,6 +7,9 @@ export const MARKER_GT = 1
 export const MARKER_GD = 2
 export const MARKER_FOOTER = 3
 
+export const GRAIN_SIZE_SECTORS = 128
+export const NUM_GTE_PER_GT = 128
+
 const compressionMap = [compressionNone, compressionDeflate]
 
 export function parseFlags(flagBuffer) {
@@ -45,7 +48,7 @@ export function parseU64b(buffer, offset, valueName) {
 export function unpackHeader(buffer) {
   const magicString = buffer.slice(0, 4).toString('ascii')
   if (magicString !== 'KDMV') {
-    throw new Error('not a VMDK file')
+    throw new Error('not a VMDK file' + magicString)
   }
   const version = buffer.readUInt32LE(4)
   if (version !== 1 && version !== 3) {
@@ -60,6 +63,10 @@ export function unpackHeader(buffer) {
   const rGrainDirectoryOffsetSectors = parseS64b(buffer, 48, 'rGrainDirectoryOffsetSectors')
   const grainDirectoryOffsetSectors = parseS64b(buffer, 56, 'grainDirectoryOffsetSectors')
   const overheadSectors = parseS64b(buffer, 64, 'overheadSectors')
+  const isDirty = buffer.readUInt8(72)
+  const endOfLineChar = buffer.readUInt8(73)
+  const nonEndOfLineChar = buffer.readUInt8(74)
+  const doubleendOfLineChar = buffer.readUInt8(75)
   const compressionMethod = compressionMap[buffer.readUInt16LE(77)]
   const l1EntrySectors = numGTEsPerGT * grainSizeSectors
   return {
@@ -69,6 +76,7 @@ export function unpackHeader(buffer) {
     compressionMethod,
     grainSizeSectors,
     overheadSectors,
+    isDirty,
     capacitySectors,
     descriptorOffsetSectors,
     descriptorSizeSectors,
@@ -76,6 +84,9 @@ export function unpackHeader(buffer) {
     rGrainDirectoryOffsetSectors,
     l1EntrySectors,
     numGTEsPerGT,
+    endOfLineChar,
+    nonEndOfLineChar,
+    doubleendOfLineChar,
   }
 }
 

@@ -1711,6 +1711,9 @@ export default class Xapi extends XapiBase {
       ...vhdResult.headers,
       'content-type': 'application/x-vmdk',
     }
+    if (vmdkStream.length !== undefined) {
+      vmdkStream.headers['content-length'] = vmdkStream.length
+    }
     vmdkStream.statusCode = vhdResult.statusCode
     vmdkStream.statusMessage = vhdResult.statusMessage
     return vmdkStream
