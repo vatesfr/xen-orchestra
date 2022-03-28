@@ -121,7 +121,7 @@ export default class RestApi {
 
     api.get('/vms/:uuid.xva', async (req, res, next) => {
       try {
-        const vm = await app.getXapiObject(req.params.uuid)
+        const vm = await app.getXapiObject(req.params.uuid, 'VM')
         const stream = await vm.$xapi.VM_export(vm.$ref, { compress: req.query.compress })
 
         stream.headers['content-disposition'] = 'attachment'
