@@ -794,8 +794,8 @@ export default class TabAdvanced extends Component {
                         className='text-muted'
                         href='https://xcp-ng.org/docs/guides.html#guest-uefi-secure-boot'
                         rel='noopener noreferrer'
-                        target='_blank'
                         style={{ display: 'block' }}
+                        target='_blank'
                       >
                         <Icon icon='info' /> {_('secureBootLinkToDocumentationMessage')}
                       </a>
