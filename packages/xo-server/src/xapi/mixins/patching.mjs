@@ -8,7 +8,7 @@ import unzip from 'unzipper'
 import { createLogger } from '@xen-orchestra/log'
 import { decorateWith } from '@vates/decorate-with'
 import { defer as deferrable } from 'golike-defer'
-import { incorrectState } from 'xo-common/api-errors'
+import { incorrectState } from 'xo-common/api-errors.js'
 import { timeout } from 'promise-toolbox'
 
 import ensureArray from '../../_ensureArray.mjs'
