@@ -61,8 +61,12 @@ export default class RestApi {
 
     api.use(({ cookies }, res, next) => {
       app.authenticateUser({ token: cookies.authenticationToken ?? cookies.token }).then(
-        () => {
-          next()
+        ({ user }) => {
+          if (user.permission === 'admin') {
+            return next()
+          }
+
+          res.sendStatus(401)
         },
         error => {
           if (invalidCredentials.is(error)) {
