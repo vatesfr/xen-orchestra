@@ -51,8 +51,8 @@ interface Effects {
 
 interface Computed {
   filteredPifs?: Pif[]
-  pifsMetrics?: Map<string, PifMetrics>
   pifOptionRenderer?: (pif: Pif) => string
+  pifsMetrics?: Map<string, PifMetrics>
 }
 
 const BUTTON_STYLES = {
@@ -89,7 +89,6 @@ const AddNetwork = withState<State, Props, Effects, Computed, ParentState, Paren
       form: getInitialFormState(),
     }),
     computed: {
-      pifsMetrics: state => state.objectsByType.get('PIF_metrics'),
       filteredPifs: state =>
         state.objectsByType
           .get('PIF')
@@ -103,6 +102,7 @@ const AddNetwork = withState<State, Props, Effects, Computed, ParentState, Paren
           `${pif.device} (${
             pifsMetrics?.find(metrics => metrics.$ref === pif.metrics)?.device_name ?? translate({ id: 'unknown' })
           })`,
+      pifsMetrics: state => state.objectsByType.get('PIF_metrics'),
     },
     effects: {
       createNetwork: async function () {
@@ -249,11 +249,11 @@ const AddNetwork = withState<State, Props, Effects, Computed, ParentState, Paren
       <StyledFormControl error={isEmptyLabel}>
         <Input
           error={isEmptyLabel}
+          label={<IntlMessage id='name' />}
           name='nameLabel'
           onChange={handleChange}
           required
           value={nameLabel}
-          label={<IntlMessage id='name' />}
         />
         {isEmptyLabel && (
           <FormHelperText>
@@ -264,21 +264,21 @@ const AddNetwork = withState<State, Props, Effects, Computed, ParentState, Paren
 
       <StyledFormControl>
         <Input
+          label={<IntlMessage id='description' />}
           name='description'
           onChange={handleChange}
           type='text'
           value={description}
-          label={<IntlMessage id='description' />}
         />
       </StyledFormControl>
       <StyledFormControl>
         <Input
+          helperText={<IntlMessage id='defaultValue' values={{ value: 1500 }} />}
+          label={<IntlMessage id='mtu' />}
           name='mtu'
           onChange={handleChange}
           type='number'
           value={mtu}
-          label={<IntlMessage id='mtu' />}
-          helperText={<IntlMessage id='defaultValue' values={{ value: 1500 }} />}
         />
       </StyledFormControl>
 
@@ -304,19 +304,19 @@ const AddNetwork = withState<State, Props, Effects, Computed, ParentState, Paren
       ) : (
         <StyledFormControl>
           <Input
+            helperText={<IntlMessage id='vlanPlaceholder' />}
+            label={<IntlMessage id='vlan' />}
             name='vlan'
             onChange={handleChange}
             type='number'
             value={vlan}
-            label={<IntlMessage id='vlan' />}
-            helperText={<IntlMessage id='vlanPlaceholder' />}
           />
         </StyledFormControl>
       )}
       <ActionButton color='success' onClick={createNetwork} startIcon={<AddIcon />} sx={BUTTON_STYLES}>
         <IntlMessage id='create' />
       </ActionButton>
-      <Button onClick={resetForm} sx={BUTTON_STYLES} startIcon={<SettingsBackupRestoreIcon />} disabled={isLoading}>
+      <Button disabled={isLoading} onClick={resetForm} startIcon={<SettingsBackupRestoreIcon />} sx={BUTTON_STYLES}>
         <IntlMessage id='reset' />
       </Button>
     </form>
