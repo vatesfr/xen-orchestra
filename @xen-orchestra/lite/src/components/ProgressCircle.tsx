@@ -39,11 +39,10 @@ interface State {}
 
 interface Props {
   base?: number
-  children?: { (progress: number, value: number): React.ReactNode } | React.ReactNode
   color?: CircularProgressProps['color']
-  showValue?: boolean
+  label?: { (progress: number, value: number): string } | string
+  showLabel?: boolean
   size?: number
-  suffix?: string
   value: number
 }
 
@@ -55,28 +54,19 @@ interface Computed {}
 
 const ProgressCircle = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
   {},
-  ({ base = 100, children, color = 'success', showValue = false, size = 100, suffix, value }) => {
+  ({ base = 100, color = 'success', label, showLabel = true, size = 100, value }) => {
     const progress = Math.round((value / base) * 100)
+    const _label = (typeof label === 'function' ? label(progress, value) : label) ?? `${progress}%`
     return (
       <Container>
         <BackgroundWrapperChildren>
           <BackgroundCircle variant='determinate' value={100} size={size} />
         </BackgroundWrapperChildren>
-        <CircularProgress
-          aria-label={`${progress}%`}
-          variant='determinate'
-          value={progress}
-          size={size}
-          color={color}
-        />
-        {children !== undefined ? (
-          <WrapperChildren>{typeof children === 'function' ? children(progress, value) : children}</WrapperChildren>
-        ) : (
-          suffix !== undefined && (
-            <WrapperChildren>
-              <Percent color={color}>{(showValue ? value : progress) + suffix}</Percent>
-            </WrapperChildren>
-          )
+        <CircularProgress aria-label={_label} color={color} size={size} value={progress} variant='determinate' />
+        {showLabel && (
+          <WrapperChildren>
+            <Percent color={color}>{_label}</Percent>
+          </WrapperChildren>
         )}
       </Container>
     )
