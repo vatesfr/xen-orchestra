@@ -1003,7 +1003,7 @@ const messages = {
   install: 'Install',
   installPatchesTitle: 'Install patch{nPatches, plural, one {} other {es}}',
   installPatchesContent:
-    'This will automatically restart toolstack on each host and running VMs will not be affected. Are you sure you want to continue and install {nPatches, number} patch{nPatches, plural, one {} other {es}}?',
+    'This will automatically restart the toolstack on every host. Running VMs will not be affected. Are you sure you want to continue and install {nPatches, number} patch{nPatches, plural, one {} other {es}}?',
   installPoolPatches: 'Install pool patches',
   confirmPoolPatch:
     'This will automatically restart the toolstack on every host. Running VMs will not be affected. Are you sure you want to continue and install all the patches on this pool?',
