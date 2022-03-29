@@ -12,24 +12,27 @@
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },
   "engines": {
-    "node": ">=12"
+    "node": ">=14"
   },
   "dependencies": {
     "@vates/async-each": "^0.1.0",
     "@vates/read-chunk": "^0.1.2",
+    "@xen-orchestra/async-map": "^0.1.2",
     "@xen-orchestra/log": "^0.3.0",
     "async-iterator-to-stream": "^1.0.2",
     "fs-extra": "^10.0.0",
     "limit-concurrency-decorator": "^0.5.0",
     "lodash": "^4.17.4",
     "promise-toolbox": "^0.21.0",
+    "readable-stream": "^3.0.6",
     "struct-fu": "^1.2.0",
     "uuid": "^8.3.1"
   },
   "devDependencies": {
     "@xen-orchestra/fs": "^0.20.0",
+    "execa": "^6.1.0",
     "get-stream": "^6.0.0",
-    "readable-stream": "^3.0.6",
+    "rimraf": "^3.0.2",
     "tmp": "^0.2.1"
   },
   "scripts": {

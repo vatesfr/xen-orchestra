@@ -57,77 +57,6 @@ const extractIdsFromSimplePattern = pattern => {
   }
 }
 
-// File structure on remotes:
-//
-// <remote>
-// └─ xo-vm-backups
-//   ├─ index.json // TODO
-//   └─ <VM UUID>
-//      ├─ index.json // TODO
-//      ├─ vdis
-//      │  └─ <job UUID>
-//      │     └─ <VDI UUID>
-//      │        ├─ index.json // TODO
-//      │        └─ <YYYYMMDD>T<HHmmss>.vhd
-//      ├─ <YYYYMMDD>T<HHmmss>.json // backup metadata
-//      ├─ <YYYYMMDD>T<HHmmss>.xva
-//      └─ <YYYYMMDD>T<HHmmss>.xva.checksum
-//
-// Attributes on created VM snapshots:
-//
-// - `other_config`:
-//    - `xo:backup:deltaChainLength` = n (number of delta copies/replicated since a full)
-//    - `xo:backup:exported` = 'true' (added at the end of the backup)
-//
-// Attributes on created VMs and created snapshots:
-//
-// - `other_config`:
-//    - `xo:backup:datetime`: format is UTC %Y%m%dT%H:%M:%SZ
-//       - from snapshots: snapshot.snapshot_time
-//       - with offline backup: formatDateTime(Date.now())
-//    - `xo:backup:job` = job.id
-//    - `xo:backup:schedule` = schedule.id
-//    - `xo:backup:vm` = vm.uuid
-//
-// Attributes of created VMs:
-//
-// - `name_label`: `${original name} - ${job name} - (${safeDateFormat(backup timestamp)})`
-// - tag:
-//    - copy in delta mode: `Continuous Replication`
-//    - copy in full mode: `Disaster Recovery`
-//    - imported from backup: `restored from backup`
-// - `blocked_operations.start`: message
-// - for copies/replications only, added after complete transfer
-//    - `other_config[xo:backup:sr]` = sr.uuid
-//
-// Task logs emitted in a backup execution:
-//
-// job.start(data: { mode: Mode, reportWhen: ReportWhen })
-// ├─ task.info(message: 'vms', data: { vms: string[] })
-// ├─ task.warning(message: string)
-// ├─ task.start(data: { type: 'VM', id: string })
-// │  ├─ task.warning(message: string)
-// │  ├─ task.start(message: 'snapshot')
-// │  │  └─ task.end
-// │  ├─ task.start(message: 'export', data: { type: 'SR' | 'remote', id: string })
-// │  │  ├─ task.warning(message: string)
-// │  │  ├─ task.start(message: 'transfer')
-// │  │  │  ├─ task.warning(message: string)
-// │  │  │  └─ task.end(result: { size: number })
-// │  │  │
-// │  │  │  // in case of full backup, DR and CR
-// │  │  ├─ task.start(message: 'clean')
-// │  │  │  ├─ task.warning(message: string)
-// │  │  │  └─ task.end
-// │  │  │
-// │  │  │ // in case of delta backup
-// │  │  ├─ task.start(message: 'merge')
-// │  │  │  ├─ task.warning(message: string)
-// │  │  │  └─ task.end(result: { size: number })
-// │  │  │
-// │  │  └─ task.end
-// │  └─ task.end
-// └─ job.end
 export default class BackupNg {
   get runningRestores() {
     return this._runningRestores
@@ -151,6 +80,8 @@ export default class BackupNg {
         // Make sure we are passing only the VM to run which can be
         // different than the VMs in the job itself.
         let vmIds = data?.vms ?? extractIdsFromSimplePattern(vmsPattern)
+
+        await this.checkAuthorizations({ job, schedule, useSmartBackup: vmIds === undefined })
         if (vmIds === undefined) {
           const poolPattern = vmsPattern.$pool
 
@@ -370,6 +301,43 @@ export default class BackupNg {
     return job
   }
 
+  async checkAuthorizations({ job, useSmartBackup, schedule }) {
+    const { _app: app } = this
+
+    if (job.type === 'metadataBackup') {
+      await app.checkFeatureAuthorization('BACKUP.METADATA')
+      // the other checks does not apply to metadata backups
+      return
+    }
+
+    if (job.mode === 'full') {
+      await app.checkFeatureAuthorization('BACKUP.FULL')
+    }
+
+    if (job.mode === 'delta') {
+      if (unboxIdsFromPattern(job.srs)?.length > 0) {
+        await app.checkFeatureAuthorization('BACKUP.DELTA_REPLICATION')
+      } else {
+        await app.checkFeatureAuthorization('BACKUP.DELTA')
+      }
+    }
+    if (useSmartBackup) {
+      await app.checkFeatureAuthorization('BACKUP.SMART_BACKUP')
+    }
+
+    // this won't check a per VM settings
+    const config = app.config.get('backups')
+    const jobSettings = {
+      ...config.defaultSettings,
+      ...config.vm.defaultSettings,
+      ...job.settings[''],
+      ...job.settings[schedule.id],
+    }
+    if (jobSettings.checkpointSnapshot === true) {
+      await app.checkFeatureAuthorization('BACKUP.WITH_RAM')
+    }
+  }
+
   async deleteBackupNgJob(id) {
     const app = this._app
     const [schedules] = await Promise.all([app.getAllSchedules(), app.getJob(id, 'backup')])
@@ -409,12 +377,6 @@ export default class BackupNg {
     })
   }
 
-  // Task logs emitted in a restore execution:
-  //
-  // task.start(message: 'restore', data: { jobId: string, srId: string, time: number })
-  // ├─ task.start(message: 'transfer')
-  // │  └─ task.end(result: { id: string, size: number })
-  // └─ task.end
   async importVmBackupNg(id, srId, settings) {
     const app = this._app
     const xapi = app.getXapi(srId)

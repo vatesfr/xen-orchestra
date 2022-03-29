@@ -161,6 +161,10 @@ export default class {
     if (!remote.enabled) {
       throw new Error('remote is disabled')
     }
+    const parsedRemote = parse(remote.url)
+    if (parsedRemote.type === 's3') {
+      await this._app.checkFeatureAuthorization('BACKUP.S3')
+    }
     return remote
   }
 

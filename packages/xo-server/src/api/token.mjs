@@ -4,7 +4,7 @@ export async function create({ expiresIn }) {
   return (
     await this.createAuthenticationToken({
       expiresIn,
-      userId: this.session.get('user_id'),
+      userId: this.connection.get('user_id'),
     })
   ).id
 }
@@ -40,7 +40,7 @@ delete_.params = {
 export async function deleteAll({ except }) {
   await this.deleteAuthenticationTokens({
     filter: {
-      user_id: this.session.get('user_id'),
+      user_id: this.connection.get('user_id'),
       id: {
         __not: except,
       },

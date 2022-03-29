@@ -18,12 +18,11 @@
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },
   "preferGlobal": true,
-  "main": "dist/",
   "bin": {
-    "xo-proxy-cli": "dist/index.js"
+    "xo-proxy-cli": "./index.js"
   },
   "engines": {
-    "node": ">=12"
+    "node": ">=14"
   },
   "dependencies": {
     "@iarna/toml": "^2.2.0",
@@ -39,23 +38,8 @@
     "pumpify": "^2.0.1",
     "split2": "^4.1.0"
   },
-  "devDependencies": {
-    "@babel/cli": "^7.0.0",
-    "@babel/core": "^7.0.0",
-    "@babel/plugin-proposal-nullish-coalescing-operator": "^7.7.4",
-    "@babel/plugin-proposal-optional-chaining": "^7.0.0",
-    "@babel/preset-env": "^7.0.0",
-    "cross-env": "^7.0.2",
-    "rimraf": "^3.0.0"
-  },
   "scripts": {
-    "build": "cross-env NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
-    "clean": "rimraf dist/",
-    "dev": "cross-env NODE_ENV=development babel --watch --source-maps --out-dir=dist/ src/",
-    "postversion": "npm publish --access public",
-    "prebuild": "yarn run clean",
-    "predev": "yarn run prebuild",
-    "prepublishOnly": "yarn run build"
+    "postversion": "npm publish --access public"
   },
   "author": {
     "name": "Vates SAS",

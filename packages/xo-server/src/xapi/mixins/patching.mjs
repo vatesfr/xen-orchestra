@@ -8,13 +8,14 @@ import unzip from 'unzipper'
 import { createLogger } from '@xen-orchestra/log'
 import { decorateWith } from '@vates/decorate-with'
 import { defer as deferrable } from 'golike-defer'
+import { incorrectState } from 'xo-common/api-errors.js'
 import { timeout } from 'promise-toolbox'
 
 import ensureArray from '../../_ensureArray.mjs'
 import { debounceWithKey } from '../../_pDebounceWithKey.mjs'
 import { forEach, mapFilter, parseXml } from '../../utils.mjs'
 
-import { extractOpaqueRef, parseDateTime, useUpdateSystem } from '../utils.mjs'
+import { extractOpaqueRef, isHostRunning, parseDateTime, useUpdateSystem } from '../utils.mjs'
 
 // TOC -------------------------------------------------------------------------
 
@@ -307,24 +308,21 @@ export default {
   // INSTALL -------------------------------------------------------------------
 
   async _xcpUpdate(hosts) {
-    if (hosts === undefined) {
-      hosts = filter(this.objects.all, { $type: 'host' })
-    } else {
-      hosts = filter(this.objects.all, obj => obj.$type === 'host' && hosts.includes(obj.$id))
-    }
-
     // XCP-ng hosts need to be updated one at a time starting with the pool master
     // https://github.com/vatesfr/xen-orchestra/issues/4468
     hosts = hosts.sort(({ $ref }) => ($ref === this.pool.master ? -1 : 1))
     for (const host of hosts) {
+      // With throw in case of error with XCP-ng>=8.2.1
       const result = JSON.parse(await this.call('host.call_plugin', host.$ref, 'updater.py', 'update', {}))
 
-      if (result.exit !== 0) {
+      // Defined and different than 0 in case of error with XCP-ng<8.2.1
+      const { exit } = result
+      if (exit !== undefined && exit !== 0) {
         throw new Error(result.stderr)
-      } else {
-        log.debug(result.stdout)
-        await host.update_other_config('rpm_patch_installation_time', String(Date.now() / 1000))
       }
+
+      log.debug(result.stdout)
+      await host.update_other_config('rpm_patch_installation_time', String(Date.now() / 1000))
     }
   },
 
@@ -488,6 +486,20 @@ export default {
     }
 
     const hosts = filter(this.objects.all, { $type: 'host' })
+
+    {
+      const deadHost = hosts.find(_ => !isHostRunning(_))
+      if (deadHost !== undefined) {
+        // reflect the interface of an XO host object
+        throw incorrectState({
+          actual: 'Halted',
+          expected: 'Running',
+          object: deadHost.$id,
+          property: 'power_state',
+        })
+      }
+    }
+
     await Promise.all(hosts.map(host => host.$call('assert_can_evacuate')))
 
     log.debug('Install patches')

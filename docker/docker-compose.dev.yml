@@ -1,0 +1,11 @@
+version: '3.3'
+
+services:
+  xo:
+    build:
+      context: "${PWD}"
+      dockerfile: "${PWD}/docker/Dockerfile"
+    ports:
+      - 8000:80
+    volumes:
+      - ${PWD}:/xen-orchestra

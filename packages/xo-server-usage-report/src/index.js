@@ -4,6 +4,7 @@ import humanFormat from 'human-format'
 import { stringify } from 'csv-stringify'
 import { createLogger } from '@xen-orchestra/log'
 import { createSchedule } from '@xen-orchestra/cron'
+import { join } from 'path'
 import { minify } from 'html-minifier'
 import {
   concat,
@@ -43,7 +44,7 @@ const mibPower = Math.pow(2, 20)
 const kibPower = Math.pow(2, 10)
 
 let template = null
-pReadFile(`${__dirname}/../report.html.tpl`, 'utf8').then(tpl => {
+pReadFile(join(__dirname, '../report.html.tpl'), 'utf8').then(tpl => {
   template = Handlebars.compile(
     minify(tpl, {
       collapseBooleanAttributes: true,
@@ -58,7 +59,7 @@ pReadFile(`${__dirname}/../report.html.tpl`, 'utf8').then(tpl => {
 })
 
 let imgXo = null
-pReadFile(`${__dirname}/../images/xo.png`, 'base64').then(data => {
+pReadFile(join(__dirname, '../images/xo.png'), 'base64').then(data => {
   imgXo = `data:image/png;base64,${data}`
 })
 

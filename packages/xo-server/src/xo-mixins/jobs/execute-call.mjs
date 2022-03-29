@@ -47,7 +47,7 @@ export function resolveParamsVector(paramsVector) {
 
 // ===================================================================
 
-export default async function executeJobCall({ app, job, logger, runJobId, schedule, session }) {
+export default async function executeJobCall({ app, job, logger, runJobId, schedule, connection }) {
   const { paramsVector } = job
   const paramsFlatVector = paramsVector ? resolveParamsVector.call(app, paramsVector) : [{}] // One call with no parameters
 
@@ -71,7 +71,7 @@ export default async function executeJobCall({ app, job, logger, runJobId, sched
       params,
       start: Date.now(),
     })
-    let promise = app.callApiMethod(session, job.method, Object.assign({}, params))
+    let promise = app.callApiMethod(connection, job.method, Object.assign({}, params))
     if (job.timeout) {
       promise = promise::timeout(job.timeout)
     }

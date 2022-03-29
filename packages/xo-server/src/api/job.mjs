@@ -26,7 +26,7 @@ get.params = {
 
 export async function create({ job }) {
   if (!job.userId) {
-    job.userId = this.session.get('user_id')
+    job.userId = this.connection.get('user_id')
   }
 
   return (await this.createJob(job)).id

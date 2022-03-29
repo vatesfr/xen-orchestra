@@ -3,10 +3,14 @@ import dns from 'dns'
 import kindOf from 'kindof'
 import ms from 'ms'
 import httpRequest from 'http-request-plus'
+import map from 'lodash/map'
+import noop from 'lodash/noop'
+import omit from 'lodash/omit'
+import ProxyAgent from 'proxy-agent'
 import { coalesceCalls } from '@vates/coalesce-calls'
 import { Collection } from 'xo-collection'
 import { EventEmitter } from 'events'
-import { map, noop, omit } from 'lodash'
+import { Index } from 'xo-collection/index'
 import { cancelable, defer, fromCallback, fromEvents, ignoreErrors, pDelay, pRetry, pTimeout } from 'promise-toolbox'
 import { limitConcurrency } from 'limit-concurrency-decorator'
 
@@ -118,7 +122,9 @@ export class Xapi extends EventEmitter {
     }
 
     this._allowUnauthorized = opts.allowUnauthorized
-    this._httpProxy = opts.httpProxy
+    if (opts.httpProxy !== undefined) {
+      this._httpAgent = new ProxyAgent(this._httpProxy)
+    }
     this._setUrl(url)
 
     this._connected = new Promise(resolve => {
@@ -131,8 +137,11 @@ export class Xapi extends EventEmitter {
     this._watchEventsError = undefined
     this._lastEventFetchedTimestamp = undefined
 
+    const objects = new Collection()
+    objects.createIndex('type', new Index('$type'))
+    this._objects = objects
+
     this._debounce = opts.debounce ?? 200
-    this._objects = new Collection()
     this._objectsByRef = { __proto__: null }
     this._objectsFetched = new Promise(resolve => {
       this._resolveObjectsFetched = resolve
@@ -147,6 +156,10 @@ export class Xapi extends EventEmitter {
       }
       this.watchEvents()
     }
+  }
+
+  get httpAgent() {
+    return this._httpAgent
   }
 
   get readOnly() {
@@ -174,7 +187,7 @@ export class Xapi extends EventEmitter {
   }
 
   get sessionId() {
-    assert(this._status === CONNECTED)
+    assert.strictEqual(this._status, CONNECTED)
     return this._sessionId
   }
 
@@ -191,7 +204,7 @@ export class Xapi extends EventEmitter {
       return
     }
 
-    assert(status === DISCONNECTED)
+    assert.strictEqual(status, DISCONNECTED)
 
     this._status = CONNECTING
     this._disconnected = new Promise(resolve => {
@@ -225,7 +238,7 @@ export class Xapi extends EventEmitter {
         this._resolveConnected = resolve
       })
     } else {
-      assert(status === CONNECTING)
+      assert.strictEqual(status, CONNECTING)
     }
 
     const sessionId = this._sessionId
@@ -382,6 +395,7 @@ export class Xapi extends EventEmitter {
 
           // Support XS <= 6.5 with Node => 12
           minVersion: 'TLSv1',
+          agent: this.httpAgent,
         }),
       {
         when: { code: 302 },
@@ -467,6 +481,7 @@ export class Xapi extends EventEmitter {
           query: 'task_id' in query ? omit(query, 'task_id') : query,
 
           maxRedirects: 0,
+          agent: this.httpAgent,
         }).then(
           response => {
             response.cancel()
@@ -847,6 +862,12 @@ export class Xapi extends EventEmitter {
       }
     }
 
+    // if this the pool master and the address has not been changed by the conditions above,
+    // use the current URL to avoid potential issues with internal addresses and NAT
+    if (host.$ref === this._pool.master && address === host.address) {
+      return this._url.hostname
+    }
+
     return address
   }
 
@@ -877,7 +898,7 @@ export class Xapi extends EventEmitter {
         rejectUnauthorized: !this._allowUnauthorized,
       },
       url,
-      httpProxy: this._httpProxy,
+      agent: this.httpAgent,
     })
     this._url = url
   }
@@ -1207,9 +1228,7 @@ export class Xapi extends EventEmitter {
           // dont trigger getters (eg sessionId)
           const fn = Object.getOwnPropertyDescriptor(object, name).value
           if (typeof fn === 'function' && name.startsWith(type + '_')) {
-            const key = '$' + name.slice(type.length + 1)
-            assert.strictEqual(props[key], undefined)
-            props[key] = function (...args) {
+            props['$' + name.slice(type.length + 1)] = function (...args) {
               return xapi[name](this.$ref, ...args)
             }
           }

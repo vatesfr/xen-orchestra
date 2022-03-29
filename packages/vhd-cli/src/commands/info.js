@@ -1,6 +1,7 @@
 import { Constants, VhdFile } from 'vhd-lib'
 import { getHandler } from '@xen-orchestra/fs'
 import { resolve } from 'path'
+import * as UUID from 'uuid'
 import humanFormat from 'human-format'
 import invert from 'lodash/invert.js'
 
@@ -14,6 +15,7 @@ const MAPPERS = {
   date: _ => (_ !== 0 ? new Date(_) : 0),
   diskType: _ => DISK_TYPES_MAP[_],
   platform: _ => PLATFORMS_MAP[_],
+  uuid: UUID.stringify,
 }
 function mapProperties(object, mapping) {
   const result = { ...object }
@@ -46,6 +48,7 @@ export default async args => {
       diskType: 'diskType',
       originalSize: 'bytes',
       timestamp: 'date',
+      uuid: 'uuid',
     })
   )
 
@@ -60,6 +63,7 @@ export default async args => {
               platformCode: 'platform',
             })
           ),
+      parentUuid: 'uuid',
     })
   )
 }

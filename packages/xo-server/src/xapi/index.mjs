@@ -102,10 +102,10 @@ export default class Xapi extends XapiBase {
     //  close event is emitted when the export is canceled via browser. See https://github.com/vatesfr/xen-orchestra/issues/5535
     const waitStreamEnd = async stream => fromEvents(await stream, ['end', 'close'])
     this._exportVdi = limitConcurrency(vdiExportConcurrency, waitStreamEnd)(this._exportVdi)
-    this.exportVm = limitConcurrency(vmExportConcurrency, waitStreamEnd)(this.exportVm)
+    this.VM_export = limitConcurrency(vmExportConcurrency, waitStreamEnd)(this.VM_export)
 
     this._migrateVmWithStorageMotion = limitConcurrency(vmMigrationConcurrency)(this._migrateVmWithStorageMotion)
-    this._snapshotVm = limitConcurrency(vmSnapshotConcurrency)(this._snapshotVm)
+    this.VM_snapshot = limitConcurrency(vmSnapshotConcurrency)(this.VM_snapshot)
 
     // Patch getObject to resolve _xapiId property.
     this.getObject = (
@@ -302,10 +302,6 @@ export default class Xapi extends XapiBase {
     await this.callAsync('host.reboot', host.$ref)
   }
 
-  async restartHostAgent(hostId) {
-    await this.callAsync('host.restart_agent', this.getObject(hostId).$ref)
-  }
-
   async setRemoteSyslogHost(hostId, syslogDestination) {
     const host = this.getObject(hostId)
     await host.set_logging({
@@ -339,9 +335,9 @@ export default class Xapi extends XapiBase {
   // If a SR is specified, it will contains the copies of the VDIs,
   // otherwise they will use the SRs they are on.
   async _copyVm(vm, nameLabel = vm.name_label, sr = undefined) {
-    let snapshot
+    let snapshotRef
     if (isVmRunning(vm)) {
-      snapshot = await this._snapshotVm(vm)
+      snapshotRef = await this.VM_snapshot(vm.$ref)
     }
 
     log.debug(
@@ -351,10 +347,10 @@ export default class Xapi extends XapiBase {
     )
 
     try {
-      return await this.call('VM.copy', snapshot ? snapshot.$ref : vm.$ref, nameLabel, sr ? sr.$ref : '')
+      return await this.call('VM.copy', snapshotRef || vm.$ref, nameLabel, sr ? sr.$ref : '')
     } finally {
-      if (snapshot) {
-        await this.VM_destroy(snapshot.$ref)
+      if (snapshotRef) {
+        await this.VM_destroy(snapshotRef)
       }
     }
   }
@@ -382,7 +378,7 @@ export default class Xapi extends XapiBase {
     }
 
     const sr = targetXapi.getObject(targetSrId)
-    const stream = await this.exportVm(vmId, {
+    const stream = await this.VM_export(this.getObject(vmId).$ref, {
       compress,
     })
 
@@ -523,35 +519,6 @@ export default class Xapi extends XapiBase {
     return console
   }
 
-  // Returns a stream to the exported VM.
-  @cancelable
-  async exportVm($cancelToken, vmId, { compress = false } = {}) {
-    const vm = this.getObject(vmId)
-    const useSnapshot = isVmRunning(vm)
-    const exportedVm = useSnapshot ? await this._snapshotVm($cancelToken, vm, `[XO Export] ${vm.name_label}`) : vm
-
-    const promise = this.getResource($cancelToken, '/export/', {
-      query: {
-        ref: exportedVm.$ref,
-        use_compression: compress === 'zstd' ? 'zstd' : compress === true || compress === 'gzip' ? 'true' : 'false',
-      },
-      task: this.task_create('VM export', vm.name_label),
-    }).catch(error => {
-      // augment the error with as much relevant info as possible
-      error.pool_master = this.pool.$master
-      error.VM = exportedVm
-
-      throw error
-    })
-
-    if (useSnapshot) {
-      const destroySnapshot = () => this.VM_destroy(exportedVm.$ref)::ignoreErrors()
-      promise.then(_ => _.task.finally(destroySnapshot), destroySnapshot)
-    }
-
-    return promise
-  }
-
   // Create a snapshot (if necessary) of the VM and returns a delta export
   // object.
   @cancelable
@@ -580,7 +547,10 @@ export default class Xapi extends XapiBase {
         await this.VM_assertHealthyVdiChains(vm.$ref)
       }
 
-      vm = await this._snapshotVm($cancelToken, vm, snapshotNameLabel)
+      vm = await this.getRecord(
+        'VM',
+        await this.VM_snapshot(vm.$ref, { cancelToken: $cancelToken, name_label: snapshotNameLabel })
+      )
       $defer.onFailure(() => this.VM_destroy(vm.$ref))
     }
 
@@ -1257,64 +1227,6 @@ export default class Xapi extends XapiBase {
         await this._migrateVmWithStorageMotion(vm, hostXapi, host, { force })
       }
     }
-  }
-
-  @cancelable
-  async _snapshotVm($cancelToken, { $ref: vmRef }, nameLabel) {
-    const vm = await this.getRecord('VM', vmRef)
-    if (nameLabel === undefined) {
-      nameLabel = vm.name_label
-    }
-
-    log.debug(`Snapshotting VM ${vm.name_label}${nameLabel !== vm.name_label ? ` as ${nameLabel}` : ''}`)
-
-    // see https://github.com/vatesfr/xen-orchestra/issues/4074
-    const snapshotNameLabelPrefix = `Snapshot of ${vm.uuid} [`
-    ignoreErrors.call(
-      Promise.all(
-        vm.snapshots.map(async ref => {
-          const nameLabel = await this.getField('VM', ref, 'name_label')
-          if (nameLabel.startsWith(snapshotNameLabelPrefix)) {
-            return this.VM_destroy(ref)
-          }
-        })
-      )
-    )
-
-    let ref
-    do {
-      if (!vm.tags.includes('xo-disable-quiesce')) {
-        try {
-          ref = await this.callAsync($cancelToken, 'VM.snapshot_with_quiesce', vmRef, nameLabel).then(extractOpaqueRef)
-          ignoreErrors.call(this.call('VM.add_tags', ref, 'quiesce'))
-
-          break
-        } catch (error) {
-          const { code } = error
-          if (
-            // removed in CH 8.1
-            code !== 'MESSAGE_REMOVED' &&
-            code !== 'VM_SNAPSHOT_WITH_QUIESCE_NOT_SUPPORTED' &&
-            // quiesce only work on a running VM
-            code !== 'VM_BAD_POWER_STATE' &&
-            // quiesce failed, fallback on standard snapshot
-            // TODO: emit warning
-            code !== 'VM_SNAPSHOT_WITH_QUIESCE_FAILED'
-          ) {
-            throw error
-          }
-        }
-      }
-      ref = await this.callAsync($cancelToken, 'VM.snapshot', vmRef, nameLabel).then(extractOpaqueRef)
-    } while (false)
-
-    await this.setField('VM', ref, 'is_a_template', false)
-
-    return this.getRecord('VM', ref)
-  }
-
-  async snapshotVm(vmId, nameLabel = undefined) {
-    return /* await */ this._snapshotVm(this.getObject(vmId), nameLabel)
   }
 
   async _startVm(vm, { force = false, bypassMacAddressesCheck = force, hostId } = {}) {

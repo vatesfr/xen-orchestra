@@ -9,14 +9,27 @@ exports.decorateWith = function decorateWith(fn, ...args) {
 
 const { getOwnPropertyDescriptor, defineProperty } = Object
 
-exports.decorateMethodsWith = function decorateMethodsWith(klass, map) {
+function applyDecorator(decorator, value) {
+  return typeof decorator === 'function' ? decorator(value) : decorator[0](value, ...decorator.slice(1))
+}
+
+exports.decorateClass = exports.decorateMethodsWith = function decorateClass(klass, map) {
   const { prototype } = klass
   for (const name of Object.keys(map)) {
-    const descriptor = getOwnPropertyDescriptor(prototype, name)
-    const { value } = descriptor
-
     const decorator = map[name]
-    descriptor.value = typeof decorator === 'function' ? decorator(value) : decorator[0](value, ...decorator.slice(1))
+    const descriptor = getOwnPropertyDescriptor(prototype, name)
+    if (typeof decorator === 'function' || Array.isArray(decorator)) {
+      descriptor.value = applyDecorator(decorator, descriptor.value)
+    } else {
+      const { get, set } = decorator
+      if (get !== undefined) {
+        descriptor.get = applyDecorator(get, descriptor.get)
+      }
+      if (set !== undefined) {
+        descriptor.set = applyDecorator(set, descriptor.set)
+      }
+    }
+
     defineProperty(prototype, name, descriptor)
   }
   return klass

@@ -28,7 +28,7 @@
     "xen-api": "dist/cli.js"
   },
   "engines": {
-    "node": ">=7.6"
+    "node": ">=10"
   },
   "dependencies": {
     "@vates/coalesce-calls": "^0.1.0",
@@ -53,12 +53,8 @@
   "devDependencies": {
     "@babel/cli": "^7.0.0",
     "@babel/core": "^7.0.0",
-    "@babel/plugin-proposal-class-properties": "^7.3.4",
     "@babel/plugin-proposal-decorators": "^7.0.0",
-    "@babel/plugin-proposal-nullish-coalescing-operator": "^7.2.0",
-    "@babel/plugin-proposal-optional-chaining": "^7.2.0",
-    "@babel/preset-env": "^7.0.0",
-    "babel-plugin-lodash": "^3.3.2",
+    "@babel/preset-env": "^7.8.0",
     "cross-env": "^7.0.2",
     "rimraf": "^3.0.0"
   },
