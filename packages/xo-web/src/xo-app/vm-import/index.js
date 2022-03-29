@@ -11,7 +11,7 @@ import PropTypes from 'prop-types'
 import React from 'react'
 import { Container, Col, Row } from 'grid'
 import { importVm, importVms, isSrWritable } from 'xo'
-import { SizeInput, Toggle } from 'form'
+import { Select, SizeInput, Toggle } from 'form'
 import { createFinder, createGetObject, createGetObjectsOfType, createSelector } from 'selectors'
 import { connectStore, formatSize, mapPlus, noop } from 'utils'
 import { Input } from 'debounce-input-decorator'
@@ -22,9 +22,14 @@ import parseOvaFile from './ova'
 
 import styles from './index.css'
 
-import Tooltip from '../../common/tooltip'
-
 // ===================================================================
+
+const FILE_TYPES = [
+  {
+    label: 'xva',
+    value: 'xva',
+  },
+]
 
 const FORMAT_TO_HANDLER = {
   ova: parseOvaFile,
@@ -204,6 +209,7 @@ export default class Import extends Component {
     super(props)
     this.state = {
       isFromUrl: false,
+      type: 'xva',
       url: '',
       vms: [],
     }
@@ -226,11 +232,10 @@ export default class Import extends Component {
   }
 
   _importVmFromUrl = () => {
-    const url = this.state.url
+    const { type, url } = this.state
     const file = {
       name: url.slice(url.lastIndexOf('/') + 1),
     }
-    const type = (this.state.type ?? url.slice(url.lastIndexOf('.') + 1)).toLowerCase()
     return importVm(file, type, undefined, this.state.sr, url)
   }
 
@@ -264,6 +269,11 @@ export default class Import extends Component {
     })
   }
 
+  _handleSelectedFileType = fileType =>
+    this.setState({
+      type: fileType.value,
+    })
+
   _handleSelectedPool = pool => {
     if (pool === '') {
       this.setState({
@@ -287,7 +297,7 @@ export default class Import extends Component {
   }
 
   render() {
-    const { isFromUrl, pool, sr, srPredicate, vms, url } = this.state
+    const { isFromUrl, pool, sr, srPredicate, type, url, vms } = this.state
 
     return (
       <Container>
@@ -372,7 +382,7 @@ export default class Import extends Component {
             ) : (
               <div>
                 <FormGrid.Row>
-                  <FormGrid.LabelCol>{_('url')}:</FormGrid.LabelCol>
+                  <FormGrid.LabelCol>{_('url')}</FormGrid.LabelCol>
                   <FormGrid.InputCol>
                     <Input
                       className='form-control'
@@ -383,9 +393,9 @@ export default class Import extends Component {
                   </FormGrid.InputCol>
                 </FormGrid.Row>
                 <FormGrid.Row>
-                  <FormGrid.LabelCol>{_('fileType')}:</FormGrid.LabelCol>
+                  <FormGrid.LabelCol>{_('fileType')}</FormGrid.LabelCol>
                   <FormGrid.InputCol>
-                    <Input className='form-control' onChange={this.linkState('type')} placeholder='xva' />
+                    <Select onChange={this._handleSelectedFileType} options={FILE_TYPES} required value={type} />
                   </FormGrid.InputCol>
                 </FormGrid.Row>
                 <ActionButton
