@@ -234,7 +234,7 @@ export default class Import extends Component {
   _importVmFromUrl = () => {
     const { type, url } = this.state
     const file = {
-      name: url.slice(url.lastIndexOf('/') + 1),
+      name: decodeURI(url.slice(url.lastIndexOf('/') + 1)),
     }
     return importVm(file, type, undefined, this.state.sr, url)
   }
