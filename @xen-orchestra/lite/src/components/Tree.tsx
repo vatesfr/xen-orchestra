@@ -173,10 +173,10 @@ const Tree = withState<State, Props, Effects, Computed, ParentState, ParentEffec
     const defaultSelectedNode = defaultSelectedNodes !== undefined ? defaultSelectedNodes[0] : undefined
     return (
       <TreeView
-        expanded={expandedNodes}
         defaultCollapseIcon={<Icon icon='chevron-up' />}
         defaultExpanded={[collection[0].id]}
         defaultExpandIcon={<Icon icon='chevron-down' />}
+        expanded={expandedNodes}
         multiSelect
         onNodeSelect={effects.setSelectedNodeIds}
         onNodeToggle={effects.setExpandedNodeIds}
