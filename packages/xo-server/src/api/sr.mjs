@@ -126,7 +126,18 @@ disconnectAllPbds.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function createIso({ host, nameLabel, nameDescription, path, type, user, password, srUuid }) {
+export async function createIso({
+  host,
+  nameLabel,
+  nameDescription,
+  path,
+  type,
+  user,
+  password,
+  nfsVersion,
+  nfsOptions,
+  srUuid,
+}) {
   const xapi = this.getXapi(host)
 
   const deviceConfig = {}
@@ -137,6 +148,13 @@ export async function createIso({ host, nameLabel, nameDescription, path, type, 
     deviceConfig.type = 'cifs'
     deviceConfig.username = user
     deviceConfig.cifspassword = password
+  } else if (type === 'nfs') {
+    if (nfsVersion !== undefined) {
+      deviceConfig.nfsversion = nfsVersion
+    }
+    if (nfsOptions !== undefined) {
+      deviceConfig.options = nfsOptions
+    }
   }
 
   deviceConfig.location = path
@@ -177,6 +195,8 @@ createIso.params = {
   type: { type: 'string' },
   user: { type: 'string', optional: true },
   password: { type: 'string', optional: true },
+  nfsVersion: { type: 'string', optional: true },
+  nfsOptions: { type: 'string', optional: true },
   srUuid: { type: 'string', optional: true },
 }
 

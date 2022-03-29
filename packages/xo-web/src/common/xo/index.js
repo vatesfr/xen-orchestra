@@ -2511,11 +2511,15 @@ export const createSrIso = (
   type,
   user = undefined,
   password = undefined,
+  nfsVersion = undefined,
+  nfsOptions = undefined,
   srUuid
 ) => {
   const params = { host, nameLabel, nameDescription, path, type, srUuid }
   user && (params.user = user)
   password && (params.password = password)
+  nfsVersion && (params.nfsVersion = nfsVersion)
+  nfsOptions && (params.nfsOptions = nfsOptions)
   srUuid && (params.srUuid = srUuid)
   return _call('sr.createIso', params)
 }
