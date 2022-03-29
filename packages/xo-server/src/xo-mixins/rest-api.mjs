@@ -7,6 +7,7 @@ import createNdJsonStream from '../_createNdJsonStream.mjs'
 import pick from 'lodash/pick.js'
 import map from 'lodash/map.js'
 import * as CM from 'complex-matcher'
+import fromCallback from 'promise-toolbox/fromCallback'
 
 function sendObjects(objects, req, res) {
   const { query } = req
@@ -60,8 +61,12 @@ export default class RestApi {
 
     api.use(({ cookies }, res, next) => {
       app.authenticateUser({ token: cookies.authenticationToken ?? cookies.token }).then(
-        () => {
-          next()
+        ({ user }) => {
+          if (user.permission === 'admin') {
+            return next()
+          }
+
+          res.sendStatus(401)
         },
         error => {
           if (invalidCredentials.is(error)) {
@@ -113,5 +118,41 @@ export default class RestApi {
           }
         })
     }
+
+    api.get('/vdis/:uuid.vhd', async (req, res, next) => {
+      try {
+        const vdi = await app.getXapiObject(req.params.uuid, 'VDI')
+        const stream = await vdi.$xapi.VDI_exportContent(vdi.$ref, { format: 'vhd' })
+
+        stream.headers['content-disposition'] = 'attachment'
+        res.writeHead(stream.statusCode, stream.statusMessage != null ? stream.statusMessage : '', stream.headers)
+
+        await fromCallback(pipeline, stream, res)
+      } catch (error) {
+        if (noSuchObject.is(error)) {
+          next()
+        } else {
+          next(error)
+        }
+      }
+    })
+
+    api.get('/vms/:uuid.xva', async (req, res, next) => {
+      try {
+        const vm = await app.getXapiObject(req.params.uuid, 'VM')
+        const stream = await vm.$xapi.VM_export(vm.$ref, { compress: req.query.compress })
+
+        stream.headers['content-disposition'] = 'attachment'
+        res.writeHead(stream.statusCode, stream.statusMessage != null ? stream.statusMessage : '', stream.headers)
+
+        await fromCallback(pipeline, stream, res)
+      } catch (error) {
+        if (noSuchObject.is(error)) {
+          next()
+        } else {
+          next(error)
+        }
+      }
+    })
   }
 }

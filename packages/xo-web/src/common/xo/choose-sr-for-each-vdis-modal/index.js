@@ -1,14 +1,16 @@
 import Collapse from 'collapse'
 import Component from 'base-component'
+import Icon from 'icon'
 import PropTypes from 'prop-types'
 import React from 'react'
+import Tooltip from 'tooltip'
+import { Container, Col } from 'grid'
 import { isEmpty, map } from 'lodash'
+import { isSrWritable } from 'xo'
 import { Vdi } from 'render-xo-item'
 
 import _ from '../../intl'
 import SingleLineRow from '../../single-line-row'
-import { Container, Col } from 'grid'
-import { isSrWritable } from 'xo'
 import { SelectSr } from '../../select-objects'
 
 const Collapsible = ({ collapsible, children, ...props }) =>
@@ -29,6 +31,7 @@ Collapsible.propTypes = {
 
 export default class ChooseSrForEachVdisModal extends Component {
   static propTypes = {
+    ignorableVdis: PropTypes.bool,
     mainSrPredicate: PropTypes.func,
     onChange: PropTypes.func.isRequired,
     srPredicate: PropTypes.func,
@@ -53,6 +56,7 @@ export default class ChooseSrForEachVdisModal extends Component {
   render() {
     const { props } = this
     const {
+      ignorableVdis = false,
       mainSrPredicate = isSrWritable,
       placeholder,
       srPredicate = mainSrPredicate,
@@ -64,7 +68,7 @@ export default class ChooseSrForEachVdisModal extends Component {
       <div>
         <SelectSr
           onChange={this._onChangeMainSr}
-          placeholder={placeholder !== undefined ? placeholder : 'chooseSrForEachVdisModalMainSr'}
+          placeholder={placeholder !== undefined ? placeholder : _('chooseSrForEachVdisModalMainSr')}
           predicate={mainSrPredicate}
           required
           value={mainSr}
@@ -84,7 +88,9 @@ export default class ChooseSrForEachVdisModal extends Component {
               </SingleLineRow>
               {map(vdis, vdi => (
                 <SingleLineRow key={vdi.uuid}>
-                  <Col size={6}>{vdi.name !== undefined ? vdi.name : <Vdi id={vdi.id} showSize />}</Col>
+                  <Col size={ignorableVdis ? 5 : 6}>
+                    {vdi.name !== undefined ? vdi.name : <Vdi id={vdi.id} showSize />}
+                  </Col>
                   <Col size={6}>
                     <SelectSr
                       onChange={sr =>
@@ -96,6 +102,22 @@ export default class ChooseSrForEachVdisModal extends Component {
                       value={mapVdisSrs !== undefined && mapVdisSrs[vdi.uuid]}
                     />
                   </Col>
+                  {ignorableVdis && (
+                    <Col size={1}>
+                      <Tooltip content={_('ignoreVdi')}>
+                        <a
+                          role='button'
+                          onClick={() =>
+                            this._onChange({
+                              mapVdisSrs: { ...mapVdisSrs, [vdi.uuid]: null },
+                            })
+                          }
+                        >
+                          <Icon icon='remove' />
+                        </a>
+                      </Tooltip>
+                    </Col>
+                  )}
                 </SingleLineRow>
               ))}
               <i>{_('optionalEntry')}</i>

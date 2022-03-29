@@ -1,21 +1,24 @@
-/* eslint-env jest */
+import assert from 'assert/strict'
+import tap from 'tap'
 
 import ensureArray from './_ensureArray.mjs'
+
+const { describe, it } = tap.mocha
 
 describe('ensureArray()', function () {
   it('wrap the value in an array', function () {
     const value = 'foo'
 
-    expect(ensureArray(value)).toEqual([value])
+    assert.deepEqual(ensureArray(value), [value])
   })
 
   it('returns an empty array for undefined', function () {
-    expect(ensureArray(undefined)).toEqual([])
+    assert.deepEqual(ensureArray(undefined), [])
   })
 
   it('returns the object itself if is already an array', function () {
     const array = ['foo', 'bar', 'baz']
 
-    expect(ensureArray(array)).toBe(array)
+    assert.equal(ensureArray(array), array)
   })
 })

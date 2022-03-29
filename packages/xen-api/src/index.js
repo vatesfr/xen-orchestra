@@ -3,12 +3,14 @@ import dns from 'dns'
 import kindOf from 'kindof'
 import ms from 'ms'
 import httpRequest from 'http-request-plus'
+import map from 'lodash/map'
+import noop from 'lodash/noop'
+import omit from 'lodash/omit'
 import ProxyAgent from 'proxy-agent'
 import { coalesceCalls } from '@vates/coalesce-calls'
 import { Collection } from 'xo-collection'
 import { EventEmitter } from 'events'
 import { Index } from 'xo-collection/index'
-import { map, noop, omit } from 'lodash'
 import { cancelable, defer, fromCallback, fromEvents, ignoreErrors, pDelay, pRetry, pTimeout } from 'promise-toolbox'
 import { limitConcurrency } from 'limit-concurrency-decorator'
 
@@ -858,6 +860,12 @@ export class Xapi extends EventEmitter {
       } catch (error) {
         console.warn('reversing host address', address, error)
       }
+    }
+
+    // if this the pool master and the address has not been changed by the conditions above,
+    // use the current URL to avoid potential issues with internal addresses and NAT
+    if (host.$ref === this._pool.master && address === host.address) {
+      return this._url.hostname
     }
 
     return address

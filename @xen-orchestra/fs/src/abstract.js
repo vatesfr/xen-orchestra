@@ -548,7 +548,9 @@ export default class RemoteHandlerAbstract {
     const files = await this._list(dir)
     await asyncMapSettled(files, file =>
       this._unlink(`${dir}/${file}`).catch(error => {
-        if (error.code === 'EISDIR') {
+        // Unlink dir behavior is not consistent across platforms
+        // https://github.com/nodejs/node-v0.x-archive/issues/5791
+        if (error.code === 'EISDIR' || error.code === 'EPERM') {
           return this._rmtree(`${dir}/${file}`)
         }
         throw error

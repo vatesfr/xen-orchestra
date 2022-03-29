@@ -1581,7 +1581,7 @@ export const fetchVmStats = (vm, granularity) => _call('vm.stats', { id: resolve
 
 export const getVmsHaValues = () => _call('vm.getHaValues')
 
-export const importVm = async (file, type = 'xva', data = undefined, sr) => {
+export const importVm = async (file, type = 'xva', data = undefined, sr, url = undefined) => {
   const { name } = file
 
   info(_('startVmImport'), name)
@@ -1598,7 +1598,12 @@ export const importVm = async (file, type = 'xva', data = undefined, sr) => {
       }
     }
   }
-  const result = await _call('vm.import', { type, data, sr: resolveId(sr) })
+  const result = await _call('vm.import', { type, data, sr: resolveId(sr), url })
+  if (url !== undefined) {
+    // If imported from URL, result is the ID of the created VM
+    success(_('vmImportSuccess'), name)
+    return [result]
+  }
   formData.append('file', file)
   const res = await post(result.$sendTo, formData)
   const json = await res.json()
@@ -2506,11 +2511,15 @@ export const createSrIso = (
   type,
   user = undefined,
   password = undefined,
+  nfsVersion = undefined,
+  nfsOptions = undefined,
   srUuid
 ) => {
   const params = { host, nameLabel, nameDescription, path, type, srUuid }
   user && (params.user = user)
   password && (params.password = password)
+  nfsVersion && (params.nfsVersion = nfsVersion)
+  nfsOptions && (params.nfsOptions = nfsOptions)
   srUuid && (params.srUuid = srUuid)
   return _call('sr.createIso', params)
 }

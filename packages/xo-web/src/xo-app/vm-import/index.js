@@ -10,10 +10,12 @@ import orderBy from 'lodash/orderBy'
 import PropTypes from 'prop-types'
 import React from 'react'
 import { Container, Col, Row } from 'grid'
-import { importVms, isSrWritable } from 'xo'
-import { SizeInput } from 'form'
+import { importVm, importVms, isSrWritable } from 'xo'
+import { Select, SizeInput, Toggle } from 'form'
 import { createFinder, createGetObject, createGetObjectsOfType, createSelector } from 'selectors'
 import { connectStore, formatSize, mapPlus, noop } from 'utils'
+import { Input } from 'debounce-input-decorator'
+
 import { SelectNetwork, SelectPool, SelectSr } from 'select-objects'
 
 import parseOvaFile from './ova'
@@ -21,6 +23,13 @@ import parseOvaFile from './ova'
 import styles from './index.css'
 
 // ===================================================================
+
+const FILE_TYPES = [
+  {
+    label: 'XVA',
+    value: 'xva',
+  },
+]
 
 const FORMAT_TO_HANDLER = {
   ova: parseOvaFile,
@@ -198,7 +207,15 @@ const getRedirectionUrl = vms =>
 export default class Import extends Component {
   constructor(props) {
     super(props)
-    this.state.vms = []
+    this.state = {
+      isFromUrl: false,
+      type: {
+        label: 'XVA',
+        value: 'xva',
+      },
+      url: '',
+      vms: [],
+    }
   }
 
   _import = () => {
@@ -215,6 +232,14 @@ export default class Import extends Component {
       }),
       state.sr
     )
+  }
+
+  _importVmFromUrl = () => {
+    const { type, url } = this.state
+    const file = {
+      name: decodeURIComponent(url.slice(url.lastIndexOf('/') + 1)),
+    }
+    return importVm(file, type.value, undefined, this.state.sr, url)
   }
 
   _handleDrop = async files => {
@@ -270,11 +295,14 @@ export default class Import extends Component {
   }
 
   render() {
-    const { pool, sr, srPredicate, vms } = this.state
+    const { isFromUrl, pool, sr, srPredicate, type, url, vms } = this.state
 
     return (
       <Container>
         <form id='import-form'>
+          <p>
+            <Toggle value={isFromUrl} onChange={this.toggleState('isFromUrl')} /> {_('fromUrl')}
+          </p>
           <FormGrid.Row>
             <FormGrid.LabelCol>{_('vmImportToPool')}</FormGrid.LabelCol>
             <FormGrid.InputCol>
@@ -293,62 +321,95 @@ export default class Import extends Component {
               />
             </FormGrid.InputCol>
           </FormGrid.Row>
-          {sr && (
-            <div>
-              <Dropzone onDrop={this._handleDrop} message={_('importVmsList')} />
-              <hr />
-              <h5>{_('vmsToImport')}</h5>
-              {vms.length > 0 ? (
-                <div>
-                  {map(vms, ({ data, error, file, type }, vmIndex) => (
-                    <div key={file.preview} className={styles.vmContainer}>
-                      <strong>{file.name}</strong>
-                      <span className='pull-right'>
-                        <strong>{`(${formatSize(file.size)})`}</strong>
-                      </span>
-                      {!error ? (
-                        data && (
+          {sr &&
+            (!isFromUrl ? (
+              <div>
+                <Dropzone onDrop={this._handleDrop} message={_('importVmsList')} />
+                <hr />
+                <h5>{_('vmsToImport')}</h5>
+                {vms.length > 0 ? (
+                  <div>
+                    {map(vms, ({ data, error, file, type }, vmIndex) => (
+                      <div key={file.preview} className={styles.vmContainer}>
+                        <strong>{file.name}</strong>
+                        <span className='pull-right'>
+                          <strong>{`(${formatSize(file.size)})`}</strong>
+                        </span>
+                        {!error ? (
+                          data && (
+                            <div>
+                              <hr />
+                              <div className='alert alert-info' role='alert'>
+                                <strong>{_('vmImportFileType', { type })}</strong> {_('vmImportConfigAlert')}
+                              </div>
+                              <VmData {...data} ref={`vm-data-${vmIndex}`} pool={pool} />
+                            </div>
+                          )
+                        ) : (
                           <div>
                             <hr />
-                            <div className='alert alert-info' role='alert'>
-                              <strong>{_('vmImportFileType', { type })}</strong> {_('vmImportConfigAlert')}
+                            <div className='alert alert-danger' role='alert'>
+                              <strong>{_('vmImportError')}</strong>{' '}
+                              {(error && error.message) || _('noVmImportErrorDescription')}
                             </div>
-                            <VmData {...data} ref={`vm-data-${vmIndex}`} pool={pool} />
                           </div>
-                        )
-                      ) : (
-                        <div>
-                          <hr />
-                          <div className='alert alert-danger' role='alert'>
-                            <strong>{_('vmImportError')}</strong>{' '}
-                            {(error && error.message) || _('noVmImportErrorDescription')}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  ))}
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p>{_('noSelectedVms')}</p>
+                )}
+                <hr />
+                <div className='form-group pull-right'>
+                  <ActionButton
+                    btnStyle='primary'
+                    disabled={!vms.length}
+                    className='mr-1'
+                    form='import-form'
+                    handler={this._import}
+                    icon='import'
+                    redirectOnSuccess={getRedirectionUrl}
+                    type='submit'
+                  >
+                    {_('newImport')}
+                  </ActionButton>
+                  <Button onClick={this._handleCleanSelectedVms}>{_('importVmsCleanList')}</Button>
                 </div>
-              ) : (
-                <p>{_('noSelectedVms')}</p>
-              )}
-              <hr />
-              <div className='form-group pull-right'>
+              </div>
+            ) : (
+              <div>
+                <FormGrid.Row>
+                  <FormGrid.LabelCol>{_('url')}</FormGrid.LabelCol>
+                  <FormGrid.InputCol>
+                    <Input
+                      className='form-control'
+                      onChange={this.linkState('url')}
+                      placeholder='https://my-company.net/vm.xva'
+                      type='url'
+                    />
+                  </FormGrid.InputCol>
+                </FormGrid.Row>
+                <FormGrid.Row>
+                  <FormGrid.LabelCol>{_('fileType')}</FormGrid.LabelCol>
+                  <FormGrid.InputCol>
+                    <Select onChange={this.linkState('type')} options={FILE_TYPES} required value={type} />
+                  </FormGrid.InputCol>
+                </FormGrid.Row>
                 <ActionButton
                   btnStyle='primary'
-                  disabled={!vms.length}
-                  className='mr-1'
+                  className='mr-1 mt-1'
+                  disabled={isEmpty(url)}
                   form='import-form'
-                  handler={this._import}
+                  handler={this._importVmFromUrl}
                   icon='import'
                   redirectOnSuccess={getRedirectionUrl}
                   type='submit'
                 >
                   {_('newImport')}
                 </ActionButton>
-                <Button onClick={this._handleCleanSelectedVms}>{_('importVmsCleanList')}</Button>
               </div>
-            </div>
-          )}
+            ))}
         </form>
       </Container>
     )
