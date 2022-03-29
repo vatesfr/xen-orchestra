@@ -339,7 +339,7 @@ XO will try to find the right prefix for each IP address. If it can't find a pre
 :::
 
 - Generate a token:
-  - Go to Admin > Tokens > Add token
+  - Go to Profile > API Tokens > Add a token
   - Create a token with "Write enabled"
   - The owner of the token must have at least the following permissions:
     - View permissions on:
@@ -351,15 +351,15 @@ XO will try to find the right prefix for each IP address. If it can't find a pre
       - virtualization > clusters
       - virtualization > interfaces
       - virtualization > virtual-machines
-- Add a UUID custom field (for **Netbox 2.x**):
-  - Got to Admin > Custom fields > Add custom field
+- Add a UUID custom field:
+  - Go to Other > Custom fields > Add
   - Create a custom field called "uuid" (lower case!)
   - Assign it to object types `virtualization > cluster` and `virtualization > virtual machine`
 
 ![](./assets/customfield.png)
 
 :::tip
-In Netbox 3.x, custom fields can be found directly in the site (no need to go in the admin section). It's available in "Other/Customization/Custom Fields". After creation of the `uuid` field, assign it to the object types `virtualization > cluster` and `virtualization > virtual machine`.
+In Netbox 2.x, custom fields can be created from the Admin panel > Custom fields > Add custom field.
 :::
 
 ### In Xen Orchestra
