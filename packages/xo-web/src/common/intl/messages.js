@@ -988,7 +988,8 @@ const messages = {
   installAllPatchesTitle: 'Install all patches',
   installAllPatchesContent: 'To install all patches go to pool.',
   installAllPatchesRedirect: 'Go to pool',
-  installAllPatchesOnHostContent: 'Are you sure you want to install all patches on this host?',
+  installAllPatchesOnHostContent:
+    'This will automatically restart the toolstack. Running VMs will not be affected. Are you sure you want to continue and install all patches on this host?',
   patchRelease: 'Release',
   updatePluginNotInstalled:
     'An error occurred while fetching the patches. Please make sure the updater plugin is installed by running `yum install xcp-ng-updater` on the host.',
@@ -1002,9 +1003,10 @@ const messages = {
   install: 'Install',
   installPatchesTitle: 'Install patch{nPatches, plural, one {} other {es}}',
   installPatchesContent:
-    'Are you sure you want to install {nPatches, number} patch{nPatches, plural, one {} other {es}}?',
+    'This will automatically restart the toolstack on every host. Running VMs will not be affected. Are you sure you want to continue and install {nPatches, number} patch{nPatches, plural, one {} other {es}}?',
   installPoolPatches: 'Install pool patches',
-  confirmPoolPatch: 'Are you sure you want to install all the patches on this pool?',
+  confirmPoolPatch:
+    'This will automatically restart the toolstack on every host. Running VMs will not be affected. Are you sure you want to continue and install all the patches on this pool?',
   rollingPoolUpdate: 'Rolling pool update',
   rollingPoolUpdateMessage:
     'Are you sure you want to start a rolling pool update? Running VMs will be migrated back and forth and this can take a while.',
