@@ -26,7 +26,7 @@ import styles from './index.css'
 
 const FILE_TYPES = [
   {
-    label: 'xva',
+    label: 'XVA',
     value: 'xva',
   },
 ]
@@ -209,7 +209,10 @@ export default class Import extends Component {
     super(props)
     this.state = {
       isFromUrl: false,
-      type: 'xva',
+      type: {
+        label: 'XVA',
+        value: 'xva',
+      },
       url: '',
       vms: [],
     }
@@ -234,9 +237,9 @@ export default class Import extends Component {
   _importVmFromUrl = () => {
     const { type, url } = this.state
     const file = {
-      name: decodeURI(url.slice(url.lastIndexOf('/') + 1)),
+      name: decodeURIComponent(url.slice(url.lastIndexOf('/') + 1)),
     }
-    return importVm(file, type, undefined, this.state.sr, url)
+    return importVm(file, type.value, undefined, this.state.sr, url)
   }
 
   _handleDrop = async files => {
@@ -268,11 +271,6 @@ export default class Import extends Component {
       vms: [],
     })
   }
-
-  _handleSelectedFileType = fileType =>
-    this.setState({
-      type: fileType.value,
-    })
 
   _handleSelectedPool = pool => {
     if (pool === '') {
@@ -395,7 +393,7 @@ export default class Import extends Component {
                 <FormGrid.Row>
                   <FormGrid.LabelCol>{_('fileType')}</FormGrid.LabelCol>
                   <FormGrid.InputCol>
-                    <Select onChange={this._handleSelectedFileType} options={FILE_TYPES} required value={type} />
+                    <Select onChange={this.linkState('type')} options={FILE_TYPES} required value={type} />
                   </FormGrid.InputCol>
                 </FormGrid.Row>
                 <ActionButton
