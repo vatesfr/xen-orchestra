@@ -35,6 +35,6 @@
     "test": "tap"
   },
   "devDependencies": {
-    "tap": "^15.1.6"
+    "tap": "^16.0.1"
   }
 }
