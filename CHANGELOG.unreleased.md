@@ -17,7 +17,7 @@
 - [Rolling Pool Update] Don't fail if `load-balancer` plugin is missing (Starter and Enterprise plans)
 - [Backup/Restore] Fix missing backups on Backblaze
 - [Templates] Fix "incorrect state" error when trying to delete a default template [#6124](https://github.com/vatesfr/xen-orchestra/issues/6124) (PR [#6119](https://github.com/vatesfr/xen-orchestra/pull/6119))
-- Show more sensible significant numbers when relevant for vm disk size and pool memory size(for example 10 TB of memory instead of 10.12TB)
+- Allow a decimal when displaying small values (e.g. show *1.4 TiB* instead of *1 TiB* for 1,400 GiB of RAM)
 
 ### Packages to release
 
