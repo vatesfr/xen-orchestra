@@ -342,6 +342,8 @@ export default class New extends Component {
           'nfs',
           username && username.value,
           password && password.value,
+          nfsVersion !== '' ? nfsVersion : undefined,
+          nfsOptions,
           srUuid
         ),
       smb: () =>
@@ -353,6 +355,8 @@ export default class New extends Component {
           'smb',
           username && username.value,
           password && password.value,
+          undefined,
+          undefined,
           srUuid
         ),
     }
