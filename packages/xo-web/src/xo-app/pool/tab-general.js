@@ -9,7 +9,7 @@ import { addTag, removeTag } from 'xo'
 import Link, { BlockLink } from 'link'
 import { Container, Row, Col } from 'grid'
 import Usage, { UsageElement } from 'usage'
-import { formatSize, formatSizeShort } from 'utils'
+import { formatSizeShort } from 'utils'
 import Tooltip from 'tooltip'
 
 export default ({ hosts, nVms, pool, srs }) => (
@@ -55,7 +55,7 @@ export default ({ hosts, nVms, pool, srs }) => (
         <Usage total={sumBy(hosts, 'memory.size')}>
           {map(hosts, host => (
             <UsageElement
-              tooltip={`${host.name_label} (${formatSize(host.memory.usage)})`}
+              tooltip={`${host.name_label} (${formatSizeShort(host.memory.usage)})`}
               key={host.id}
               value={host.memory.usage}
               href={`#/hosts/${host.id}`}

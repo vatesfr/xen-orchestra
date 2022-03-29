@@ -26,6 +26,7 @@
 - [New SR] Fix "SR_BACKEND_FAILURE_103" error when selecting "No selected value" for the path [#5991](https://github.com/vatesfr/xen-orchestra/issues/5991) (PR [#6137](https://github.com/vatesfr/xen-orchestra/pull/6137))
 - [Jobs] Fix "invalid parameters" error when running jobs in some cases (PR [#6156](https://github.com/vatesfr/xen-orchestra/pull/6156))
 - [New SR] Take NFS version and options into account when creating an ISO SR
+- Allow a decimal when displaying small values (e.g. show *1.4 TiB* instead of *1 TiB* for 1,400 GiB of RAM)
 
 ### Packages to release
 
