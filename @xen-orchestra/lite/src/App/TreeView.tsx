@@ -42,15 +42,39 @@ const getIconColor = (obj: Host | Vm) => {
   return powerState === 'Running' ? '#198754' : powerState === 'Halted' ? '#dc3545' : '#6c757d'
 }
 
+const getRelativePath = (pathname: string, relativePath: string) => {
+  if (relativePath.startsWith('./')) {
+    return pathname + relativePath.slice(1)
+  }
+  const pathnameSegements = pathname.split('/')
+  const relativePathSegements = relativePath.split('/')
+
+  relativePath.match(/\.\.\//g)?.forEach(() => {
+    relativePathSegements.shift()
+    pathnameSegements.pop()
+  })
+
+  return pathnameSegements.join('/') + '/' + relativePathSegements.join('/')
+}
+
 const TreeView = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
   {
     effects: {
       setSelectedNodes: function (_, nodeIds) {
-        const { objectId } = this.state
+        const newObjectId = nodeIds[0]
+        const pool = this.state.collection?.[0]
+        const type =
+          pool?.id === newObjectId
+            ? 'pool'
+            : pool?.children?.find(item => item.id === newObjectId)?.children !== undefined
+            ? 'hosts'
+            : 'vms'
+
         this.props.history.push(
-          objectId?.match(/^[0-9a-z]{8}-([0-9a-z]{4}-){3}[0-9a-z]{12}$/) != null
-            ? this.props.history.location.pathname.replace(objectId, nodeIds[0])
-            : '/infrastructure/type/' + nodeIds[0]
+          getRelativePath(
+            this.props.history.location.pathname,
+            `${this.state.objectId === undefined ? './' : '../../../'}${type}/${newObjectId}`
+          )
         )
       },
     },
