@@ -25,6 +25,7 @@
 
 ### Released packages
 
+- xo-common 0.8.0
 - @vates/decorate-with 2.0.0
 - xen-api 1.0.0
 - @xen-orchestra/xapi 0.10.0
@@ -32,7 +33,7 @@
 - vhd-cli 0.7.0
 - @xen-orchestra/backups 0.21.0
 - @xen-orchestra/proxy 0.20.0
-- xo-server 5.90.0
+- xo-server 5.90.1
 - xo-web 5.95.0
 
 ## **5.68.0** (2022-02-28)
