@@ -25,6 +25,7 @@
 
 ### Released packages
 
+- xo-common 0.8.0
 - @vates/decorate-with 2.0.0
 - xen-api 1.0.0
 - @xen-orchestra/xapi 0.10.0
