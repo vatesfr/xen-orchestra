@@ -11,6 +11,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [vmdk] Fix `VBOX_E_FILE_ERROR (0x80BB0004)` when trying to copy a VMDK exported from XO in virtual box (PR [#6163](https://github.com/vatesfr/xen-orchestra/pull/6163))
 ### Packages to release
 
 > Packages will be released in the order they are here, therefore, they should
@@ -27,3 +28,6 @@
 > - major: if the change breaks compatibility
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
+
+- xo-vmdk-to-vhd minor
+- xo-server patch
