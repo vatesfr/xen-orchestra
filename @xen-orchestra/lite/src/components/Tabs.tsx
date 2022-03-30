@@ -31,13 +31,11 @@ interface UrlTab extends Tab {
 }
 
 interface NoUrlTab extends Tab {
-  pathname?: string
   value: any
 }
 
 // For compatibility with 'withRouter'
 interface Props extends RouteComponentProps {
-  modeUrl?: boolean
   indicatorColor?: 'primary' | 'secondary'
   textColor?: 'inherit' | 'primary' | 'secondary'
   // tabs = [
@@ -52,6 +50,8 @@ interface Props extends RouteComponentProps {
   //   },
   // ]
   tabs: Array<NoUrlTab | UrlTab>
+  useUrl?: boolean
+  value?: any
 }
 
 interface ParentEffects {}
@@ -76,30 +76,31 @@ const pageUnderConstruction = (
 
 const Tabs = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
   {
-    initialState: ({ location: { pathname }, modeUrl = false, tabs }) => ({
-      value: modeUrl ? pathname ?? tabs[0].pathname : tabs[0].value,
+    initialState: ({ location: { pathname }, tabs, useUrl = false, value }) => ({
+      value: (useUrl && pathname) || (value ?? tabs[0].value ?? tabs[0].pathname),
     }),
     effects: {
       onChange: function (_, value) {
-        if (this.props.modeUrl) {
-          this.props.history.push(value)
+        if (this.props.useUrl) {
+          const { history, tabs } = this.props
+          history.push(tabs.find(tab => (tab.value ?? tab.pathname) === value).pathname)
         }
         this.state.value = value
       },
     },
   },
-  ({ effects, state: { value }, indicatorColor, modeUrl = false, textColor, tabs }) => (
+  ({ effects, state: { value }, indicatorColor, textColor, tabs }) => (
     <TabContext value={value}>
       <Box sx={BOX_STYLE}>
         <TabList indicatorColor={indicatorColor} onChange={effects.onChange} textColor={textColor}>
           {tabs.map((tab: UrlTab | NoUrlTab) => {
-            const value = modeUrl ? tab.pathname : tab.value
+            const value = tab.value ?? tab.pathname
             return <Tab disabled={tab.disabled} key={value} label={tab.label} value={value} />
           })}
         </TabList>
       </Box>
       {tabs.map((tab: UrlTab | NoUrlTab) => {
-        const value = modeUrl ? tab.pathname : tab.value
+        const value = tab.value ?? tab.pathname
         return (
           <TabPanel key={value} value={value}>
             {tab.component === undefined ? pageUnderConstruction : tab.component}

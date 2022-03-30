@@ -239,20 +239,20 @@ const App = withState<State, Props, Effects, Computed, ParentState, ParentEffect
       <Container>
         <Render>
           <Tabs
-            modeUrl
             tabs={[
               { component: 'Hello BAR!', label: 'BAR', pathname: '/styleguide' },
               { label: 'FOO', pathname: '/styleguide/foo' },
             ]}
+            useUrl
           />
         </Render>
         <Code>
           {`<Tabs
-  modeUrl
   tabs={[
     { component: 'Hello BAR!', label: 'BAR', pathname: '/styleguide' },
     { label: 'FOO', pathname: '/styleguide/foo' },
   ]}
+  useUrl
 />`}
         </Code>
       </Container>
