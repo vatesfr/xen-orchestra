@@ -80,8 +80,8 @@ const CustomContent = React.forwardRef(function CustomContent(props: CustomConte
   const history = useHistory()
 
   useEffect(() => {
-    // There can only be one object selected at once for now.
-    // Auto-revealing more than one object in the tree would require a different implementation.
+    // There can only be one node selected at once for now.
+    // Auto-revealing more than one node in the tree would require a different implementation.
     if (defaultSelectedNode === nodeId) {
       ref?.current?.scrollIntoView()
     }
