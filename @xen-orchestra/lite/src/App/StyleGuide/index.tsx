@@ -225,16 +225,16 @@ const App = withState<State, Props, Effects, Computed, ParentState, ParentEffect
             <ProgressCircle base={200} value={state.progressBarValue} label={(_, value) => `${value} VM(s)`} />
           </div>
           <input
-            type='range'
-            min='0'
+            defaultValue={state.progressBarValue}
             max='200'
+            min='0'
             onChange={effects.onChangeProgressBarValue}
             step='1'
-            defaultValue={state.progressBarValue}
             style={{
               display: 'block',
               margin: '10px auto',
             }}
+            type='range'
           />
         </Render>
         <Code>
