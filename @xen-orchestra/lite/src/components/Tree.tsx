@@ -71,7 +71,9 @@ interface Effects {
   setSelectedNodeIds: (event: React.SyntheticEvent, nodeIds: Array<string>) => void
 }
 
-interface Computed {}
+interface Computed {
+  defaultSelectedNode?: string
+}
 
 // Inspired by https://mui.com/components/tree-view/#contentcomponent-prop.
 const CustomContent = React.forwardRef(function CustomContent(props: CustomContentProps, ref) {
@@ -163,31 +165,32 @@ const Tree = withState<State, Props, Effects, Computed, ParentState, ParentEffec
       return { expandedNodes: Array.from(expandedNodes), selectedNodes: defaultSelectedNodes }
     },
     effects: {
-      setExpandedNodeIds: function (event, nodeIds) {
+      setExpandedNodeIds: function (_, nodeIds) {
         this.state.expandedNodes = nodeIds
       },
-      setSelectedNodeIds: function (event, nodeIds) {
+      setSelectedNodeIds: function (_, nodeIds) {
         this.state.selectedNodes = [nodeIds[0]]
       },
     },
+    computed: {
+      defaultSelectedNode: (_, { defaultSelectedNodes }) =>
+        defaultSelectedNodes !== undefined ? defaultSelectedNodes[0] : undefined,
+    },
   },
-  ({ effects, state: { expandedNodes, selectedNodes }, collection, defaultSelectedNodes }) => {
-    const defaultSelectedNode = defaultSelectedNodes !== undefined ? defaultSelectedNodes[0] : undefined
-    return (
-      <TreeView
-        defaultCollapseIcon={<Icon icon='chevron-up' />}
-        defaultExpanded={[collection[0].id]}
-        defaultExpandIcon={<Icon icon='chevron-down' />}
-        expanded={expandedNodes}
-        multiSelect
-        onNodeSelect={effects.setSelectedNodeIds}
-        onNodeToggle={effects.setExpandedNodeIds}
-        selected={selectedNodes}
-      >
-        {collection.map(item => renderItem(item, defaultSelectedNode))}
-      </TreeView>
-    )
-  }
+  ({ effects, state: { defaultSelectedNode, expandedNodes, selectedNodes }, collection }) => (
+    <TreeView
+      defaultCollapseIcon={<Icon icon='chevron-up' />}
+      defaultExpanded={[collection[0].id]}
+      defaultExpandIcon={<Icon icon='chevron-down' />}
+      expanded={expandedNodes}
+      multiSelect
+      onNodeSelect={effects.setSelectedNodeIds}
+      onNodeToggle={effects.setExpandedNodeIds}
+      selected={selectedNodes}
+    >
+      {collection.map(item => renderItem(item, defaultSelectedNode))}
+    </TreeView>
+  )
 )
 
 export default Tree
