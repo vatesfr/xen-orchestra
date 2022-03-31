@@ -1,8 +1,18 @@
 # ChangeLog
 
-## **5.69.0** (2022-03-31)
+## **5.69.1** (2022-03-31)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
+### Bug fixes
+
+- [Backup] Fix `plan enterprise is not defined in the PLANS object` (PR [#6168](https://github.com/vatesfr/xen-orchestra/pull/6168))
+
+### Released packages
+
+- xo-server 5.90.2
+
+## **5.69.0** (2022-03-31)
 
 ### Highlights
 
