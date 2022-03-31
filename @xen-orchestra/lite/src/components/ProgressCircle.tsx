@@ -4,6 +4,10 @@ import CircularProgress, { CircularProgressProps } from '@mui/material/CircularP
 import { styled } from '@mui/material/styles'
 import { withState } from 'reaclette'
 
+const BackgroundBox = styled(Box)({
+  position: 'absolute',
+})
+
 const BackgroundCircle = styled(CircularProgress)({
   color: '#e3dede',
 })
@@ -13,16 +17,12 @@ const Container = styled(Box)({
   display: 'inline-flex',
 })
 
-const Percent = styled('p')(({ color, theme: { palette } }) => ({
+const Label = styled('p')(({ color, theme: { palette } }) => ({
   color: (palette[color ?? 'primary'] ?? palette.primary).main,
   fontWeight: 'bold',
 }))
 
-const BackgroundWrapperChildren = styled(Box)({
-  position: 'absolute',
-})
-
-const WrapperChildren = styled(Box)({
+const LabelBox = styled(Box)({
   top: 0,
   left: 0,
   bottom: 0,
@@ -50,27 +50,32 @@ interface ParentEffects {}
 
 interface Effects {}
 
-interface Computed {}
+interface Computed {
+  label: string
+  progress: number
+}
 
 const ProgressCircle = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
-  {},
-  ({ base = 100, color = 'success', label, showLabel = true, size = 100, value }) => {
-    const progress = Math.round((value / base) * 100)
-    const _label = (typeof label === 'function' ? label(progress, value) : label) ?? `${progress}%`
-    return (
-      <Container>
-        <BackgroundWrapperChildren>
-          <BackgroundCircle variant='determinate' value={100} size={size} />
-        </BackgroundWrapperChildren>
-        <CircularProgress aria-label={_label} color={color} size={size} value={progress} variant='determinate' />
-        {showLabel && (
-          <WrapperChildren>
-            <Percent color={color}>{_label}</Percent>
-          </WrapperChildren>
-        )}
-      </Container>
-    )
-  }
+  {
+    computed: {
+      label: ({ progress }, { label, value }) =>
+        (typeof label === 'function' ? label(progress, value) : label) ?? `${progress}%`,
+      progress: (_, { base = 100, value }) => Math.round((value / base) * 100),
+    },
+  },
+  ({ color = 'success', showLabel = true, size = 100, state: { label, progress } }) => (
+    <Container>
+      <BackgroundBox>
+        <BackgroundCircle variant='determinate' value={100} size={size} />
+      </BackgroundBox>
+      <CircularProgress aria-label={label} color={color} size={size} value={progress} variant='determinate' />
+      {showLabel && (
+        <LabelBox>
+          <Label color={color}>{label}</Label>
+        </LabelBox>
+      )}
+    </Container>
+  )
 )
 
 export default ProgressCircle
