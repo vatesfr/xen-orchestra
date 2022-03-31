@@ -24,7 +24,7 @@ export function create({ cron, enabled, jobId, name, timezone }) {
     jobId,
     name,
     timezone,
-    userId: this.session.get('user_id'),
+    userId: this.connection.get('user_id'),
   })
 }
 

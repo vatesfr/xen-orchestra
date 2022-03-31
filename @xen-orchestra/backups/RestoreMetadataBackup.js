@@ -1,3 +1,5 @@
+'use strict'
+
 const { DIR_XO_POOL_METADATA_BACKUPS } = require('./RemoteAdapter.js')
 const { PATH_DB_DUMP } = require('./_PoolMetadataBackup.js')
 

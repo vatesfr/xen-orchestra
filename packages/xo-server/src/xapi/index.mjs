@@ -56,6 +56,13 @@ import { createVhdStreamWithLength } from 'vhd-lib'
 
 const log = createLogger('xo:xapi')
 
+class AggregateError extends Error {
+  constructor(errors, message) {
+    super(message)
+    this.errors = errors
+  }
+}
+
 // ===================================================================
 
 const TAG_BASE_DELTA = 'xo:base_delta'
@@ -95,10 +102,10 @@ export default class Xapi extends XapiBase {
     //  close event is emitted when the export is canceled via browser. See https://github.com/vatesfr/xen-orchestra/issues/5535
     const waitStreamEnd = async stream => fromEvents(await stream, ['end', 'close'])
     this._exportVdi = limitConcurrency(vdiExportConcurrency, waitStreamEnd)(this._exportVdi)
-    this.exportVm = limitConcurrency(vmExportConcurrency, waitStreamEnd)(this.exportVm)
+    this.VM_export = limitConcurrency(vmExportConcurrency, waitStreamEnd)(this.VM_export)
 
     this._migrateVmWithStorageMotion = limitConcurrency(vmMigrationConcurrency)(this._migrateVmWithStorageMotion)
-    this._snapshotVm = limitConcurrency(vmSnapshotConcurrency)(this._snapshotVm)
+    this.VM_snapshot = limitConcurrency(vmSnapshotConcurrency)(this.VM_snapshot)
 
     // Patch getObject to resolve _xapiId property.
     this.getObject = (
@@ -295,10 +302,6 @@ export default class Xapi extends XapiBase {
     await this.callAsync('host.reboot', host.$ref)
   }
 
-  async restartHostAgent(hostId) {
-    await this.callAsync('host.restart_agent', this.getObject(hostId).$ref)
-  }
-
   async setRemoteSyslogHost(hostId, syslogDestination) {
     const host = this.getObject(hostId)
     await host.set_logging({
@@ -332,9 +335,9 @@ export default class Xapi extends XapiBase {
   // If a SR is specified, it will contains the copies of the VDIs,
   // otherwise they will use the SRs they are on.
   async _copyVm(vm, nameLabel = vm.name_label, sr = undefined) {
-    let snapshot
+    let snapshotRef
     if (isVmRunning(vm)) {
-      snapshot = await this._snapshotVm(vm)
+      snapshotRef = await this.VM_snapshot(vm.$ref)
     }
 
     log.debug(
@@ -344,10 +347,10 @@ export default class Xapi extends XapiBase {
     )
 
     try {
-      return await this.call('VM.copy', snapshot ? snapshot.$ref : vm.$ref, nameLabel, sr ? sr.$ref : '')
+      return await this.call('VM.copy', snapshotRef || vm.$ref, nameLabel, sr ? sr.$ref : '')
     } finally {
-      if (snapshot) {
-        await this.VM_destroy(snapshot.$ref)
+      if (snapshotRef) {
+        await this.VM_destroy(snapshotRef)
       }
     }
   }
@@ -375,7 +378,7 @@ export default class Xapi extends XapiBase {
     }
 
     const sr = targetXapi.getObject(targetSrId)
-    const stream = await this.exportVm(vmId, {
+    const stream = await this.VM_export(this.getObject(vmId).$ref, {
       compress,
     })
 
@@ -623,7 +626,10 @@ export default class Xapi extends XapiBase {
         await this.VM_assertHealthyVdiChains(vm.$ref)
       }
 
-      vm = await this._snapshotVm($cancelToken, vm, snapshotNameLabel)
+      vm = await this.getRecord(
+        'VM',
+        await this.VM_snapshot(vm.$ref, { cancelToken: $cancelToken, name_label: snapshotNameLabel })
+      )
       $defer.onFailure(() => this.VM_destroy(vm.$ref))
     }
 
@@ -1302,64 +1308,6 @@ export default class Xapi extends XapiBase {
     }
   }
 
-  @cancelable
-  async _snapshotVm($cancelToken, { $ref: vmRef }, nameLabel) {
-    const vm = await this.getRecord('VM', vmRef)
-    if (nameLabel === undefined) {
-      nameLabel = vm.name_label
-    }
-
-    log.debug(`Snapshotting VM ${vm.name_label}${nameLabel !== vm.name_label ? ` as ${nameLabel}` : ''}`)
-
-    // see https://github.com/vatesfr/xen-orchestra/issues/4074
-    const snapshotNameLabelPrefix = `Snapshot of ${vm.uuid} [`
-    ignoreErrors.call(
-      Promise.all(
-        vm.snapshots.map(async ref => {
-          const nameLabel = await this.getField('VM', ref, 'name_label')
-          if (nameLabel.startsWith(snapshotNameLabelPrefix)) {
-            return this.VM_destroy(ref)
-          }
-        })
-      )
-    )
-
-    let ref
-    do {
-      if (!vm.tags.includes('xo-disable-quiesce')) {
-        try {
-          ref = await this.callAsync($cancelToken, 'VM.snapshot_with_quiesce', vmRef, nameLabel).then(extractOpaqueRef)
-          ignoreErrors.call(this.call('VM.add_tags', ref, 'quiesce'))
-
-          break
-        } catch (error) {
-          const { code } = error
-          if (
-            // removed in CH 8.1
-            code !== 'MESSAGE_REMOVED' &&
-            code !== 'VM_SNAPSHOT_WITH_QUIESCE_NOT_SUPPORTED' &&
-            // quiesce only work on a running VM
-            code !== 'VM_BAD_POWER_STATE' &&
-            // quiesce failed, fallback on standard snapshot
-            // TODO: emit warning
-            code !== 'VM_SNAPSHOT_WITH_QUIESCE_FAILED'
-          ) {
-            throw error
-          }
-        }
-      }
-      ref = await this.callAsync($cancelToken, 'VM.snapshot', vmRef, nameLabel).then(extractOpaqueRef)
-    } while (false)
-
-    await this.setField('VM', ref, 'is_a_template', false)
-
-    return this.getRecord('VM', ref)
-  }
-
-  async snapshotVm(vmId, nameLabel = undefined) {
-    return /* await */ this._snapshotVm(this.getObject(vmId), nameLabel)
-  }
-
   async _startVm(vm, { force = false, bypassMacAddressesCheck = force, hostId } = {}) {
     if (!bypassMacAddressesCheck) {
       const vmMacAddresses = vm.$VIFs.map(vif => vif.MAC)
@@ -1384,14 +1332,52 @@ export default class Xapi extends XapiBase {
       await vm.update_blocked_operations({ start: null, start_on: null })
     }
 
-    return hostId === undefined
-      ? this.call(
+    const vmRef = vm.$ref
+    if (hostId === undefined) {
+      try {
+        await this.call(
           'VM.start',
-          vm.$ref,
+          vmRef,
           false, // Start paused?
           false // Skip pre-boot checks?
         )
-      : this.callAsync('VM.start_on', vm.$ref, this.getObject(hostId).$ref, false, false)
+      } catch (error) {
+        if (error.code !== 'NO_HOSTS_AVAILABLE') {
+          throw error
+        }
+
+        throw new AggregateError(
+          await asyncMap(await this.call('host.get_all'), async hostRef => {
+            const hostNameLabel = await this.call('host.get_name_label', hostRef)
+            try {
+              await this.call('VM.assert_can_boot_here', vmRef, hostRef)
+              return `${hostNameLabel}: OK`
+            } catch (error) {
+              return `${hostNameLabel}: ${error.message}`
+            }
+          })
+        )
+      }
+    } else {
+      const hostRef = this.getObject(hostId).$ref
+      let retry
+      do {
+        retry = false
+
+        try {
+          await this.callAsync('VM.start_on', vmRef, hostRef, false, false)
+        } catch (error) {
+          if (error.code !== 'NO_HOSTS_AVAILABLE') {
+            throw error
+          }
+
+          await this.call('VM.assert_can_boot_here', vmRef, hostRef)
+
+          // Something has changed between the last two calls, starting the VM should be retried
+          retry = true
+        }
+      } while (retry)
+    }
   }
 
   async startVm(vmId, options) {

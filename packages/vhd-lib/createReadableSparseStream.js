@@ -1,3 +1,5 @@
+'use strict'
+
 const assert = require('assert')
 const asyncIteratorToStream = require('async-iterator-to-stream')
 const { forEachRight } = require('lodash')

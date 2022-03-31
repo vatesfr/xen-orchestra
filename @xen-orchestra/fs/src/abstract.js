@@ -1,6 +1,5 @@
 import asyncMapSettled from '@xen-orchestra/async-map/legacy'
 import getStream from 'get-stream'
-import path, { basename } from 'path'
 import { coalesceCalls } from '@vates/coalesce-calls'
 import { fromCallback, fromEvent, ignoreErrors, timeout } from 'promise-toolbox'
 import { limitConcurrency } from 'limit-concurrency-decorator'
@@ -9,10 +8,8 @@ import { pipeline } from 'stream'
 import { randomBytes } from 'crypto'
 import { synchronized } from 'decorator-synchronized'
 
-import normalizePath from './_normalizePath'
+import { basename, dirname, normalize as normalizePath } from './_path'
 import { createChecksumStream, validChecksumOfReadStream } from './checksum'
-
-const { dirname } = path.posix
 
 const checksumFile = file => file + '.checksum'
 const computeRate = (hrtime, size) => {
@@ -551,7 +548,9 @@ export default class RemoteHandlerAbstract {
     const files = await this._list(dir)
     await asyncMapSettled(files, file =>
       this._unlink(`${dir}/${file}`).catch(error => {
-        if (error.code === 'EISDIR') {
+        // Unlink dir behavior is not consistent across platforms
+        // https://github.com/nodejs/node-v0.x-archive/issues/5791
+        if (error.code === 'EISDIR' || error.code === 'EPERM') {
           return this._rmtree(`${dir}/${file}`)
         }
         throw error

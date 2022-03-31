@@ -1,3 +1,5 @@
+'use strict'
+
 const CancelToken = require('promise-toolbox/CancelToken')
 const Zone = require('node-zone')
 

@@ -1,3 +1,5 @@
+'use strict'
+
 // TODO: remove once completely merged in vhd.js
 
 const assert = require('assert')

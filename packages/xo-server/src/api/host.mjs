@@ -134,7 +134,7 @@ restart.resolve = {
 // -------------------------------------------------------------------
 
 export function restartAgent({ host }) {
-  return this.getXapi(host).restartHostAgent(host._xapiId)
+  return this.getXapiObject(host).$restartAgent()
 }
 
 restartAgent.description = 'restart the Xen agent on the host'

@@ -1,3 +1,5 @@
+'use strict'
+
 const { v4: generateUuid } = require('uuid')
 
 const { checksumStruct, fuFooter, fuHeader } = require('./_structs')

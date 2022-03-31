@@ -3,6 +3,7 @@ import assignWith from 'lodash/assignWith.js'
 import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
 import concat from 'lodash/concat.js'
 import getStream from 'get-stream'
+import hrp from 'http-request-plus'
 import { createLogger } from '@xen-orchestra/log'
 import { defer } from 'golike-defer'
 import { FAIL_ON_QUEUE } from 'limit-concurrency-decorator'
@@ -33,7 +34,7 @@ function checkPermissionOnSrs(vm, permission = 'operate') {
     return permissions.push([this.getObject(vdiId, ['VDI', 'VDI-snapshot']).$SR, permission])
   })
 
-  return this.checkPermissions(this.session.get('user_id'), permissions)
+  return this.checkPermissions(this.connection.get('user_id'), permissions)
 }
 
 // ===================================================================
@@ -148,7 +149,7 @@ export const create = defer(async function ($defer, params) {
   }
 
   const xapiVm = await xapi.createVm(template._xapiId, params, checkLimits)
-  $defer.onFailure(() => xapi.VM_destroy(xapiVm.$ref, true, true))
+  $defer.onFailure(() => xapi.VM_destroy(xapiVm.$ref, { deleteDisks: true, force: true }))
 
   const vm = xapi.xo.addObject(xapiVm)
 
@@ -381,7 +382,7 @@ const delete_ = defer(async function (
     }
   })
 
-  return xapi.VM_destroy(vm._xapiRef, deleteDisks, force, forceDeleteDefaultTemplate)
+  return xapi.VM_destroy(vm._xapiRef, { deleteDisks, force, forceDeleteDefaultTemplate })
 })
 
 delete_.params = {
@@ -826,10 +827,10 @@ export const snapshot = defer(async function (
   }
 
   const xapi = this.getXapi(vm)
-  const { $id: snapshotId, $ref: snapshotRef } = await (saveMemory
-    ? xapi.checkpointVm(vm._xapiRef, name)
-    : xapi.snapshotVm(vm._xapiRef, name))
+  const snapshotRef = await xapi['VM_' + (saveMemory ? 'checkpoint' : 'snapshot')](vm._xapiRef, { name_label: name })
   $defer.onFailure(() => xapi.VM_destroy(snapshotRef))
+
+  const snapshotId = await xapi.getField('VM', snapshotRef, 'uuid')
 
   if (description !== undefined) {
     await xapi.editVm(snapshotId, { name_description: description })
@@ -1003,10 +1004,10 @@ revert.resolve = {
 
 // -------------------------------------------------------------------
 
-async function handleExport(req, res, { xapi, id, compress, format = 'vhd' }) {
-  const stream = await xapi.exportVm(FAIL_ON_QUEUE, id, {
+async function handleExport(req, res, { xapi, vmRef, compress, format = 'vhd' }) {
+  const stream = await xapi.exportVm(vmRef, {
     compress,
-    format
+    format,
   })
   res.on('close', () => stream.cancel())
   // Remove the filename as it is already part of the URL.
@@ -1024,9 +1025,9 @@ async function export_({ vm, compress, format = 'ova' }) {
 
   const data = {
     xapi: this.getXapi(vm),
-    id: vm._xapiId,
+    vmRef: vm._xapiRef,
     compress,
-    format
+    format,
   }
 
   return {
@@ -1109,22 +1110,28 @@ async function handleVmImport(req, res, { data, srId, type, xapi }) {
 }
 
 // TODO: "sr_id" can be passed in URL to target a specific SR
-async function import_({ data, sr, type }) {
+async function import_({ data, sr, type = 'xva', url }) {
   if (data && type === 'xva') {
     throw invalidParameters('unsupported field data for the file type xva')
+  }
+
+  const xapi = this.getXapi(sr)
+  const srId = sr._xapiId
+
+  if (url !== undefined) {
+    if (type !== 'xva') {
+      throw invalidParameters('URL import is only compatible with XVA')
+    }
+
+    return (await xapi.importVm(await hrp(url), { srId, type })).$id
   }
 
   return {
     $sendTo: await this.registerApiHttpRequest(
       'vm.import',
-      this.session,
+      this.connection,
       handleVmImport,
-      {
-        data,
-        srId: sr._xapiId,
-        type,
-        xapi: this.getXapi(sr),
-      },
+      { data, srId, type, xapi },
       { exposeAllErrors: true }
     ),
   }
@@ -1162,6 +1169,7 @@ import_.params = {
   },
   type: { type: 'string', optional: true },
   sr: { type: 'string' },
+  url: { type: 'string', optional: true },
 }
 
 import_.resolve = {

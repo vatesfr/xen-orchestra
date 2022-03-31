@@ -1,3 +1,5 @@
+'use strict'
+
 exports.extractIdsFromSimplePattern = function extractIdsFromSimplePattern(pattern) {
   if (pattern === undefined) {
     return []

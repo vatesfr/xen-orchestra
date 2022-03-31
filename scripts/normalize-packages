@@ -1,12 +1,14 @@
 #!/usr/bin/env node
 
+'use strict'
+
 const isEmpty = require('lodash/isEmpty')
 const sortedObject = require('sorted-object')
-const { dirname, relative } = require('path')
+const { dirname, join, relative } = require('path')
 const { getPackages, noop, readFile, symlink, writeFile, unlink } = require('./utils')
 
-const BABEL_ESLINTRC_PATH = `${__dirname}/babel-eslintrc.js`
-const NPMIGNORE_PATH = `${__dirname}/npmignore`
+const BABEL_ESLINTRC_PATH = join(__dirname, 'babel-eslintrc.js')
+const NPMIGNORE_PATH = join(__dirname, 'npmignore')
 
 const deleteIfEmpty = (object, property) => {
   if (isEmpty(object[property])) {
@@ -25,7 +27,9 @@ const deleteProperties = (object, property, properties) => {
   deleteIfEmpty(object, property)
 }
 
-const generateReadme = require('handlebars').compile(require('fs').readFileSync(`${__dirname}/README.md.tpl`, 'utf8'))
+const generateReadme = require('handlebars').compile(
+  require('fs').readFileSync(join(__dirname, 'README.md.tpl'), 'utf8')
+)
 
 const forceRelativeSymlink = async (target, path) => {
   await unlink(path).catch(noop)

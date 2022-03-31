@@ -1,3 +1,5 @@
+'use strict'
+
 const LEVELS = Object.create(null)
 exports.LEVELS = LEVELS
 

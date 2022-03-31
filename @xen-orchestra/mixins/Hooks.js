@@ -1,3 +1,5 @@
+'use strict'
+
 const assert = require('assert')
 const emitAsync = require('@xen-orchestra/emit-async')
 const EventEmitter = require('events')

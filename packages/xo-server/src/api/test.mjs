@@ -58,7 +58,7 @@ export async function copyVm({ vm, sr }) {
   // full
   {
     console.log('export full VM...')
-    const input = await srcXapi.exportVm(vm)
+    const input = await srcXapi.VM_export(vm._xapiRef)
     console.log('import full VM...')
     await tgtXapi.VM_destroy((await tgtXapi.importVm(input, { srId: sr })).$ref)
   }

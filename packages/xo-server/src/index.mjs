@@ -557,11 +557,8 @@ const setUpApi = (webServer, xo, config) => {
   const onConnection = (socket, upgradeReq) => {
     const { remoteAddress } = upgradeReq.socket
 
-    log.info(`+ WebSocket connection (${remoteAddress})`)
-
     // Create the abstract XO object for this connection.
-    const connection = xo.createUserConnection()
-    connection.set('user_ip', remoteAddress)
+    const connection = xo.createApiConnection(remoteAddress)
     connection.once('close', () => {
       socket.close()
     })
@@ -576,8 +573,6 @@ const setUpApi = (webServer, xo, config) => {
 
     // Close the XO connection with this WebSocket.
     socket.once('close', () => {
-      log.info(`- WebSocket connection (${remoteAddress})`)
-
       connection.close()
     })
 
@@ -678,7 +673,7 @@ const setUpConsoleProxy = (webServer, xo) => {
 
       // FIXME: lost connection due to VM restart is not detected.
       webSocketServer.handleUpgrade(req, socket, head, connection => {
-        proxyConsole(connection, vmConsole, xapi.sessionId)
+        proxyConsole(connection, vmConsole, xapi.sessionId, xapi.httpAgent)
       })
     } catch (error) {
       try {

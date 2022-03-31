@@ -1,3 +1,5 @@
+'use strict'
+
 const ensureArray = require('ensure-array')
 const { MultiKeyMap } = require('@vates/multi-key-map')
 

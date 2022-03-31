@@ -1,8 +1,10 @@
-/* eslint-env jest */
-
+import assert from 'assert/strict'
 import forEach from 'lodash/forEach.js'
+import tap from 'tap'
 import { thunkToArray } from './utils.mjs'
 import { crossProduct, mergeObjects } from './math.mjs'
+
+const { describe, it } = tap.mocha
 
 describe('mergeObjects', function () {
   forEach(
@@ -25,7 +27,7 @@ describe('mergeObjects', function () {
     ([resultSet, ...sets], name) => {
       describe(`with ${name}`, () => {
         it('Assembles all given param sets in on set', function () {
-          expect(mergeObjects(sets)).toEqual(resultSet)
+          assert.deepEqual(mergeObjects(sets), resultSet)
         })
       })
     }
@@ -94,7 +96,7 @@ describe('crossProduct', function () {
     ([product, items, cb], name) => {
       describe(`with ${name}`, () => {
         it('Crosses sets of values with a crossProduct callback', function () {
-          expect(thunkToArray(crossProduct(items, cb)).sort()).toEqual(product.sort())
+          assert.deepEqual(thunkToArray(crossProduct(items, cb)).sort(), product.sort())
         })
       })
     }

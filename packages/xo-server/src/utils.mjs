@@ -87,6 +87,7 @@ export const parseXml = (function () {
   const parser = new XMLParser({
     attributeNamePrefix: '',
     ignoreAttributes: false,
+    ignoreDeclaration: true,
     parseTagValue: false,
     parseAttributeValue: false,
   })

@@ -1,3 +1,5 @@
+'use strict'
+
 const getopts = require('getopts')
 
 const { version } = require('./package.json')

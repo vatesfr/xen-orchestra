@@ -1,3 +1,5 @@
+'use strict'
+
 const { formatFilenameDate } = require('../_filenameDate.js')
 const { getOldEntries } = require('../_getOldEntries.js')
 const { getVmBackupDir } = require('../_getVmBackupDir.js')

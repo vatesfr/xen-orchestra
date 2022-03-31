@@ -1,3 +1,5 @@
+'use strict'
+
 const createTransport = require('./transports/console')
 const { LEVELS, resolve } = require('./levels')
 

@@ -1,3 +1,5 @@
+'use strict'
+
 const assert = require('assert')
 const { BLOCK_UNUSED, SECTOR_SIZE } = require('../_constants')
 const { fuFooter, fuHeader, checksumStruct, unpackField } = require('../_structs')

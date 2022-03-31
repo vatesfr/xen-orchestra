@@ -242,7 +242,7 @@ export const formatLogs = logs =>
 
 export const formatSize = bytes => (bytes != null ? safeHumanFormat(bytes, { scale: 'binary', unit: 'B' }) : 'N/D')
 
-export const formatSizeShort = bytes => safeHumanFormat(bytes, { scale: 'binary', unit: 'B', decimals: 0 })
+export const formatSizeShort = bytes => safeHumanFormat(bytes, { scale: 'binary', unit: 'B', maxDecimals: 'auto' })
 
 export const formatSizeRaw = bytes => humanFormat.raw(bytes, { scale: 'binary', unit: 'B' })
 

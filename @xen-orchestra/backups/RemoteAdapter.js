@@ -1,9 +1,12 @@
+'use strict'
+
 const { asyncMap, asyncMapSettled } = require('@xen-orchestra/async-map')
 const Disposable = require('promise-toolbox/Disposable')
 const fromCallback = require('promise-toolbox/fromCallback')
 const fromEvent = require('promise-toolbox/fromEvent')
 const pDefer = require('promise-toolbox/defer')
 const groupBy = require('lodash/groupBy.js')
+const pickBy = require('lodash/pickBy.js')
 const { dirname, join, normalize, resolve } = require('path')
 const { createLogger } = require('@xen-orchestra/log')
 const { Constants, createVhdDirectoryFromStream, openVhd, VhdAbstract, VhdDirectory, VhdSynthetic } = require('vhd-lib')
@@ -574,14 +577,15 @@ class RemoteAdapter {
     return stream
   }
 
-  async readDeltaVmBackup(metadata) {
+  async readDeltaVmBackup(metadata, ignoredVdis) {
     const handler = this._handler
-    const { vbds, vdis, vhds, vifs, vm } = metadata
+    const { vbds, vhds, vifs, vm } = metadata
     const dir = dirname(metadata._filename)
+    const vdis = ignoredVdis === undefined ? metadata.vdis : pickBy(metadata.vdis, vdi => !ignoredVdis.has(vdi.uuid))
 
     const streams = {}
-    await asyncMapSettled(Object.keys(vdis), async id => {
-      streams[`${id}.vhd`] = await this._createSyntheticStream(handler, join(dir, vhds[id]))
+    await asyncMapSettled(Object.keys(vdis), async ref => {
+      streams[`${ref}.vhd`] = await this._createSyntheticStream(handler, join(dir, vhds[ref]))
     })
 
     return {

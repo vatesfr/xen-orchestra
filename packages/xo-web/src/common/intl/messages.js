@@ -275,6 +275,7 @@ const messages = {
   homeMissingPatches: 'Missing patches',
   homePoolMaster: 'Master:',
   homeResourceSet: 'Resource set: {resourceSet}',
+  homeSrVdisToCoalesce: 'Some VDIs need to be coalesced',
   highAvailability: 'High Availability',
   powerState: 'Power state',
   srSharedType: 'Shared {type}',
@@ -592,6 +593,10 @@ const messages = {
   remotePlaceHolderPassword: 'Password(fill to edit)',
 
   // ------ New Storage -----
+
+  newSr: 'New SR',
+  newSrConfirm:
+    'This will erase the entire disk or partition ({name}) to create a new storage repository. Are you sure you want to continue?',
   newSrTitle: 'Create a new SR',
   newSrGeneral: 'General',
   newSrTypeSelection: 'Select storage type:',
@@ -983,7 +988,8 @@ const messages = {
   installAllPatchesTitle: 'Install all patches',
   installAllPatchesContent: 'To install all patches go to pool.',
   installAllPatchesRedirect: 'Go to pool',
-  installAllPatchesOnHostContent: 'Are you sure you want to install all patches on this host?',
+  installAllPatchesOnHostContent:
+    'This will automatically restart the toolstack. Running VMs will not be affected. Are you sure you want to continue and install all patches on this host?',
   patchRelease: 'Release',
   updatePluginNotInstalled:
     'An error occurred while fetching the patches. Please make sure the updater plugin is installed by running `yum install xcp-ng-updater` on the host.',
@@ -997,9 +1003,10 @@ const messages = {
   install: 'Install',
   installPatchesTitle: 'Install patch{nPatches, plural, one {} other {es}}',
   installPatchesContent:
-    'Are you sure you want to install {nPatches, number} patch{nPatches, plural, one {} other {es}}?',
+    'This will automatically restart the toolstack on every host. Running VMs will not be affected. Are you sure you want to continue and install {nPatches, number} patch{nPatches, plural, one {} other {es}}?',
   installPoolPatches: 'Install pool patches',
-  confirmPoolPatch: 'Are you sure you want to install all the patches on this pool?',
+  confirmPoolPatch:
+    'This will automatically restart the toolstack on every host. Running VMs will not be affected. Are you sure you want to continue and install all the patches on this pool?',
   rollingPoolUpdate: 'Rolling pool update',
   rollingPoolUpdateMessage:
     'Are you sure you want to start a rolling pool update? Running VMs will be migrated back and forth and this can take a while.',
@@ -1009,6 +1016,8 @@ const messages = {
   poolNeedsDefaultSr: 'The pool needs a default SR to install the patches.',
   vmsHaveCds: '{nVms, number} VM{nVms, plural, one {} other {s}} {nVms, plural, one {has} other {have}} CDs',
   ejectCds: 'Eject CDs',
+  highAvailabilityNotDisabledTooltip: 'High Availability must be disabled',
+
   // ----- Pool storage tabs -----
   defaultSr: 'Default SR',
   setAsDefaultSr: 'Set as default SR',
@@ -1381,6 +1390,7 @@ const messages = {
   metricsLoading: 'Loading…',
 
   // ----- Health -----
+  length: 'Length: {length}',
   deleteBackups: 'Delete backup{nBackups, plural, one {} other {s}}',
   deleteBackupsMessage:
     'Are you sure you want to delete {nBackups, number} backup{nBackups, plural, one {} other {s}}?',
@@ -1428,6 +1438,8 @@ const messages = {
   alarmObject: 'Issue on',
   alarmPool: 'Pool',
   spaceLeftTooltip: '{used}% used ({free} left)',
+  vdisToCoalesce: 'VDIs to coalesce',
+  srVdisToCoalesceWarning: 'This SR has more than {limitVdis, number} VDIs to coalesce',
 
   // ----- New VM -----
   createVmModalTitle: 'Create VM',
@@ -1502,6 +1514,7 @@ const messages = {
   newVmNoCloudDatasource: 'NoCloud datasource',
   newVmNetworkConfigDoc: 'Network config documentation',
   templateHasBiosStrings: 'The template already contains the BIOS strings',
+  secureBootLinkToDocumentationMessage: 'Click for more information about Guest UEFI Secure Boot.',
   vmBootFirmwareIsUefi: 'The boot firmware is UEFI',
 
   // ----- Self -----
@@ -1537,8 +1550,11 @@ const messages = {
   resourceSetNew: 'New',
 
   // ---- VM import ---
+  fileType: 'File type:',
+  fromUrl: 'From URL',
   importVmsList: 'Drop OVA or XVA files here to import Virtual Machines.',
   noSelectedVms: 'No selected VMs.',
+  url: 'URL:',
   vmImportToPool: 'To Pool:',
   vmImportToSr: 'To SR:',
   vmsToImport: 'VMs to import',
@@ -1598,7 +1614,7 @@ const messages = {
   getRemote: 'Get remote',
   noBackups: 'There are no backups!',
   restoreBackupsInfo: 'Click on a VM to display restore options',
-  restoreDeltaBackupsInfo: 'Only the files of Delta Backup which are not on a SMB remote can be restored',
+  restoreDeltaBackupsInfo: 'Only the files of Delta Backup which are not on a SMB or S3 remote can be restored',
   remoteEnabled: 'Enabled',
   remoteDisabled: 'Disabled',
   enableRemote: 'Enable',
@@ -1816,6 +1832,7 @@ const messages = {
     'This VM contains a duplicate MAC address or has the same MAC address as another running VM. Do you want to continue?',
   vmsWithDuplicatedMacAddressesMessage:
     '{nVms, number} VM{nVms, plural, one {} other {s}} contain{nVms, plural, one {s} other {}} duplicate MAC addresses or {nVms, plural, one {has} other {have}} the same MAC addresses as other running VMs. Do you want to continue?',
+  ignoreVdi: 'Ignore this VDI',
 
   // ----- Servers -----
   enableServerErrorTitle: 'Enable server',

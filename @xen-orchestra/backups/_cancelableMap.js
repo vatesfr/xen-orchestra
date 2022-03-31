@@ -1,3 +1,5 @@
+'use strict'
+
 const cancelable = require('promise-toolbox/cancelable')
 const CancelToken = require('promise-toolbox/CancelToken')
 

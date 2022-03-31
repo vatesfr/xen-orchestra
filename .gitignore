@@ -1,5 +1,4 @@
 /_book/
-/coverage/
 /node_modules/
 /lerna-debug.log
 /lerna-debug.log.*
@@ -10,8 +9,6 @@
 /@xen-orchestra/*/node_modules/
 /packages/*/dist/
 /packages/*/node_modules/
-
-/@xen-orchestra/proxy/src/app/mixins/index.mjs
 
 /packages/vhd-cli/src/commands/index.js
 
@@ -36,5 +33,6 @@ yarn-error.log
 yarn-error.log.*
 .env
 
-# nyc test coverage
-.nyc_output
+# code coverage
+.nyc_output/
+coverage/

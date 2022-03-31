@@ -1,5 +1,9 @@
+'use strict'
+
 const fromCallback = require('promise-toolbox/fromCallback')
+// eslint-disable-next-line n/no-missing-require
 const splitHost = require('split-host')
+// eslint-disable-next-line n/no-missing-require
 const { createClient, Facility, Severity, Transport } = require('syslog-client')
 
 const LEVELS = require('../levels')

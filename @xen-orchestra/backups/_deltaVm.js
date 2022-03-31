@@ -1,3 +1,5 @@
+'use strict'
+
 const compareVersions = require('compare-versions')
 const find = require('lodash/find.js')
 const groupBy = require('lodash/groupBy.js')
@@ -9,6 +11,8 @@ const { createVhdStreamWithLength } = require('vhd-lib')
 const { defer } = require('golike-defer')
 
 const { cancelableMap } = require('./_cancelableMap.js')
+const { Task } = require('./Task.js')
+const { pick } = require('lodash')
 
 const TAG_BASE_DELTA = 'xo:base_delta'
 exports.TAG_BASE_DELTA = TAG_BASE_DELTA
@@ -17,6 +21,17 @@ const TAG_COPY_SRC = 'xo:copy_of'
 exports.TAG_COPY_SRC = TAG_COPY_SRC
 
 const ensureArray = value => (value === undefined ? [] : Array.isArray(value) ? value : [value])
+const resolveUuid = async (xapi, cache, uuid, type) => {
+  if (uuid == null) {
+    return uuid
+  }
+  let ref = cache.get(uuid)
+  if (ref === undefined) {
+    ref = await xapi.call(`${type}.get_by_uuid`, uuid)
+    cache.set(uuid, ref)
+  }
+  return ref
+}
 
 exports.exportDeltaVm = async function exportDeltaVm(
   vm,
@@ -165,6 +180,12 @@ exports.importDeltaVm = defer(async function importDeltaVm(
     }
   }
 
+  const cache = new Map()
+  const mapVdisSrRefs = {}
+  for (const [vdiUuid, srUuid] of Object.entries(mapVdisSrs)) {
+    mapVdisSrRefs[vdiUuid] = await resolveUuid(xapi, cache, srUuid, 'SR')
+  }
+
   const baseVdis = {}
   baseVm &&
     baseVm.$VBDs.forEach(vbd => {
@@ -179,19 +200,25 @@ exports.importDeltaVm = defer(async function importDeltaVm(
   let suspendVdi
   if (vmRecord.power_state === 'Suspended') {
     const vdi = vdiRecords[vmRecord.suspend_VDI]
-    suspendVdi = await xapi.getRecord(
-      'VDI',
-      await xapi.VDI_create({
-        ...vdi,
-        other_config: {
-          ...vdi.other_config,
-          [TAG_BASE_DELTA]: undefined,
-          [TAG_COPY_SRC]: vdi.uuid,
-        },
-        sr: mapVdisSrs[vdi.uuid] ?? sr.$ref,
+    if (vdi === undefined) {
+      Task.warning('Suspend VDI not available for this suspended VM', {
+        vm: pick(vmRecord, 'uuid', 'name_label'),
       })
-    )
-    $defer.onFailure(() => suspendVdi.$destroy())
+    } else {
+      suspendVdi = await xapi.getRecord(
+        'VDI',
+        await xapi.VDI_create({
+          ...vdi,
+          other_config: {
+            ...vdi.other_config,
+            [TAG_BASE_DELTA]: undefined,
+            [TAG_COPY_SRC]: vdi.uuid,
+          },
+          sr: mapVdisSrRefs[vdi.uuid] ?? sr.$ref,
+        })
+      )
+      $defer.onFailure(() => suspendVdi.$destroy())
+    }
   }
 
   // 1. Create the VM.
@@ -255,7 +282,7 @@ exports.importDeltaVm = defer(async function importDeltaVm(
             [TAG_BASE_DELTA]: undefined,
             [TAG_COPY_SRC]: vdi.uuid,
           },
-          SR: mapVdisSrs[vdi.uuid] ?? sr.$ref,
+          SR: mapVdisSrRefs[vdi.uuid] ?? sr.$ref,
         })
       )
       $defer.onFailure(() => newVdi.$destroy())

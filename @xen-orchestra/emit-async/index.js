@@ -1,3 +1,5 @@
+'use strict'
+
 module.exports = function emitAsync(event) {
   let opts
   let i = 1

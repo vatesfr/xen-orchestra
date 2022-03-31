@@ -87,3 +87,15 @@ Edit your job and try to see matching VMs or check if your pool is connected to 
 ## Error: SR_OPERATION_NOT_SUPPORTED
 
 This error can be caused by leaving any removable device (such as USB storage) attached to the VM that you are backing up or snapshotting, detach the device and retry. This can also be caused if you created a VM disk using the [RAW format](https://xcp-ng.org/docs/storage.html#using-raw-format).
+
+## Error: Lock file is already being held
+
+This error message appears in the logs in some instances of a failed backup job. It means that the VM’s folder on the remote is already used by a process. This could be:
+
+- another backup job
+- a merge process on the Virtual Hard Disk (VHD)
+
+To solve this issue, we recommend that you:
+
+- wait until the other backup job is completed/the merge process is done
+- make sure your remote storage is not being overworked

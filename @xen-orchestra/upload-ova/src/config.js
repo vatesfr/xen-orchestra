@@ -1,7 +1,3 @@
-'use strict'
-
-// ===================================================================
-
 import assign from 'lodash/assign'
 import get_ from 'lodash/get'
 import unset_ from 'lodash/unset'

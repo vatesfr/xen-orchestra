@@ -1,7 +1,10 @@
+'use strict'
+
 const { forEach, fromCallback } = require('promise-toolbox')
+const { join } = require('path')
 const fs = require('fs')
 
-const ROOT_DIR = `${__dirname}/..`
+const ROOT_DIR = join(__dirname, '..')
 
 const _getPackages = scope => {
   const inScope = scope !== undefined

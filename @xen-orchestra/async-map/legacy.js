@@ -1,3 +1,5 @@
+'use strict'
+
 // type MaybePromise<T> = Promise<T> | T
 //
 // declare export function asyncMap<T1, T2>(

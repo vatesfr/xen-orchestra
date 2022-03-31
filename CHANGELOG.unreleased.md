@@ -11,10 +11,6 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [Self service] Change identifiers used for VM templates to avoid them from being removed on XCP-ng upgrade
-- [Proxy] Always connect to XAPI via [backup network if defined](https://xen-orchestra.com/blog/xen-orchestra-5-64/#backupmigrationnetwork)
-- [Backup/File restore] Do not list backups on non-compatible remotes (S3) (PR [#6116](https://github.com/vatesfr/xen-orchestra/pull/6116))
-
 ### Packages to release
 
 > Packages will be released in the order they are here, therefore, they should
@@ -31,13 +27,3 @@
 > - major: if the change breaks compatibility
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
-
-- xen-api minor
-- @xen-orchestra/xapi
-- @vates/predicates major
-- @xen-orchestra/mixins minor
-- @xen-orchestra/backups patch
-- @xen-orchestra/proxy patch
-- xo-cli minor
-- xo-server minor
-- xo-web patch

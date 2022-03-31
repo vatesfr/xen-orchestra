@@ -20,7 +20,7 @@ import {
   createGetVmLastShutdownTime,
   createSelector,
 } from 'selectors'
-import { connectStore, formatSize, getVirtualizationModeLabel, osFamily } from 'utils'
+import { connectStore, formatSizeShort, getVirtualizationModeLabel, osFamily } from 'utils'
 import { CpuSparkLines, MemorySparkLines, NetworkSparkLines, XvdSparkLines } from 'xo-sparklines'
 
 const GuestToolsDetection = ({ vm }) => {
@@ -144,7 +144,7 @@ export default connectStore(() => {
         <Col mediumSize={3}>
           <BlockLink to={`/vms/${id}/disks`}>
             <h2>
-              {formatSize(vmTotalDiskSpace)} <Icon icon='disk' size='lg' />
+              {formatSizeShort(vmTotalDiskSpace)} <Icon icon='disk' size='lg' />
             </h2>
           </BlockLink>
           <BlockLink to={`/vms/${id}/stats`}>{statsOverview && <XvdSparkLines data={statsOverview} />}</BlockLink>

@@ -1,3 +1,5 @@
+'use strict'
+
 const { ALIAS_MAX_PATH_LENGTH } = require('./_constants')
 const resolveRelativeFromFile = require('./_resolveRelativeFromFile')
 

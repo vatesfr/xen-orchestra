@@ -1,8 +1,11 @@
 import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
+import filter from 'lodash/filter.js'
+import isEmpty from 'lodash/isEmpty.js'
 import some from 'lodash/some.js'
 
 import ensureArray from '../_ensureArray.mjs'
 import { asInteger } from '../xapi/utils.mjs'
+import { debounceWithKey } from '../_pDebounceWithKey.mjs'
 import { forEach, parseXml } from '../utils.mjs'
 
 // ===================================================================
@@ -123,7 +126,18 @@ disconnectAllPbds.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function createIso({ host, nameLabel, nameDescription, path, type, user, password, srUuid }) {
+export async function createIso({
+  host,
+  nameLabel,
+  nameDescription,
+  path,
+  type,
+  user,
+  password,
+  nfsVersion,
+  nfsOptions,
+  srUuid,
+}) {
   const xapi = this.getXapi(host)
 
   const deviceConfig = {}
@@ -134,6 +148,13 @@ export async function createIso({ host, nameLabel, nameDescription, path, type, 
     deviceConfig.type = 'cifs'
     deviceConfig.username = user
     deviceConfig.cifspassword = password
+  } else if (type === 'nfs') {
+    if (nfsVersion !== undefined) {
+      deviceConfig.nfsversion = nfsVersion
+    }
+    if (nfsOptions !== undefined) {
+      deviceConfig.options = nfsOptions
+    }
   }
 
   deviceConfig.location = path
@@ -174,6 +195,8 @@ createIso.params = {
   type: { type: 'string' },
   user: { type: 'string', optional: true },
   password: { type: 'string', optional: true },
+  nfsVersion: { type: 'string', optional: true },
+  nfsOptions: { type: 'string', optional: true },
   srUuid: { type: 'string', optional: true },
 }
 
@@ -861,6 +884,19 @@ probeNfsExists.params = {
 probeNfsExists.resolve = {
   host: ['host', 'host', 'administrate'],
 }
+
+// -------------------------------------------------------------------
+
+export const getAllUnhealthyVdiChainsLength = debounceWithKey(function getAllUnhealthyVdiChainsLength() {
+  const unhealthyVdiChainsLengthBySr = {}
+  filter(this.objects.all, obj => obj.type === 'SR' && obj.content_type !== 'iso' && obj.size > 0).forEach(sr => {
+    const unhealthyVdiChainsLengthByVdi = this.getXapi(sr).getUnhealthyVdiChainsLength(sr)
+    if (!isEmpty(unhealthyVdiChainsLengthByVdi)) {
+      unhealthyVdiChainsLengthBySr[sr.uuid] = unhealthyVdiChainsLengthByVdi
+    }
+  })
+  return unhealthyVdiChainsLengthBySr
+}, 60e3)
 
 // -------------------------------------------------------------------
 

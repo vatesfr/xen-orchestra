@@ -1,3 +1,5 @@
+'use strict'
+
 const { unpackHeader, unpackFooter, sectorsToBytes } = require('./_utils')
 const { createLogger } = require('@xen-orchestra/log')
 const { fuFooter, fuHeader, checksumStruct } = require('../_structs')

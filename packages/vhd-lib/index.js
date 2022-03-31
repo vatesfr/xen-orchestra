@@ -1,3 +1,5 @@
+'use strict'
+
 exports.chainVhd = require('./chain')
 exports.checkFooter = require('./checkFooter')
 exports.checkVhdChain = require('./checkChain')

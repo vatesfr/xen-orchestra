@@ -1,3 +1,5 @@
+'use strict'
+
 const assert = require('assert')
 
 const { DISK_TYPES, FILE_FORMAT_VERSION, FOOTER_COOKIE, FOOTER_SIZE } = require('./_constants')

@@ -1,6 +1,6 @@
 {
   "name": "@xen-orchestra/xapi",
-  "version": "0.8.5",
+  "version": "0.10.0",
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/xapi",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "repository": {
@@ -8,43 +8,27 @@
     "type": "git",
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },
-  "main": "dist/",
   "bin": {
-    "xo-xapi": "./dist/cli.js"
+    "xo-xapi": "./cli.js"
   },
   "engines": {
-    "node": ">=8.10"
-  },
-  "devDependencies": {
-    "@babel/cli": "^7.2.3",
-    "@babel/core": "^7.3.3",
-    "@babel/plugin-proposal-decorators": "^7.3.0",
-    "@babel/preset-env": "^7.3.1",
-    "cross-env": "^7.0.2",
-    "rimraf": "^3.0.0",
-    "xo-common": "^0.7.0"
+    "node": ">=14"
   },
   "peerDependencies": {
-    "xen-api": "^0.35.1"
+    "xen-api": "^1.0.0"
   },
   "scripts": {
-    "build": "cross-env NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
-    "clean": "rimraf dist/",
-    "dev": "cross-env NODE_ENV=development babel --watch --source-maps --out-dir=dist/ src/",
-    "postversion": "npm publish --access public",
-    "prebuild": "yarn run clean",
-    "predev": "yarn run prebuild",
-    "prepare": "yarn run build",
-    "prepublishOnly": "yarn run build"
+    "postversion": "npm publish --access public"
   },
   "dependencies": {
-    "@vates/decorate-with": "^1.0.0",
+    "@vates/decorate-with": "^2.0.0",
     "@xen-orchestra/async-map": "^0.1.2",
     "@xen-orchestra/log": "^0.3.0",
     "d3-time-format": "^3.0.0",
     "golike-defer": "^0.5.1",
     "lodash": "^4.17.15",
-    "promise-toolbox": "^0.21.0"
+    "promise-toolbox": "^0.21.0",
+    "xo-common": "^0.8.0"
   },
   "private": false,
   "license": "AGPL-3.0-or-later",

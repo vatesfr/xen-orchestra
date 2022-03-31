@@ -1,3 +1,5 @@
+'use strict'
+
 const wrapCall = (fn, arg, thisArg) => {
   try {
     return Promise.resolve(fn.call(thisArg, arg))

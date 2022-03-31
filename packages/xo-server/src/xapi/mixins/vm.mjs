@@ -8,12 +8,12 @@ import mapValues from 'lodash/mapValues.js'
 import noop from 'lodash/noop.js'
 import { decorateWith } from '@vates/decorate-with'
 import { defer as deferrable } from 'golike-defer'
-import { cancelable, ignoreErrors, pCatch } from 'promise-toolbox'
+import { ignoreErrors, pCatch } from 'promise-toolbox'
 import { Ref } from 'xen-api'
 
 import { forEach, parseSize } from '../../utils.mjs'
 
-import { extractOpaqueRef, isVmHvm, isVmRunning, makeEditObject } from '../utils.mjs'
+import { isVmHvm, isVmRunning, makeEditObject } from '../utils.mjs'
 
 // According to: https://xenserver.org/blog/entry/vga-over-cirrus-in-xenserver-6-2.html.
 const XEN_VGA_VALUES = ['std', 'cirrus']
@@ -23,26 +23,6 @@ const XEN_VIDEORAM_VALUES = [1, 2, 4, 8, 16]
 const isMemoryConstraintError = e => e.code.startsWith('MEMORY_CONSTRAINT_VIOLATION')
 
 export default {
-  // https://xapi-project.github.io/xen-api/classes/vm.html#checkpoint
-  @cancelable
-  async checkpointVm($cancelToken, vmId, nameLabel) {
-    const vm = this.getObject(vmId)
-    try {
-      const ref = await this.callAsync(
-        $cancelToken,
-        'VM.checkpoint',
-        vm.$ref,
-        nameLabel != null ? nameLabel : vm.name_label
-      ).then(extractOpaqueRef)
-      return this.barrier(ref)
-    } catch (error) {
-      if (error.code === 'VM_BAD_POWER_STATE') {
-        return this._snapshotVm($cancelToken, vm, nameLabel)
-      }
-      throw error
-    }
-  },
-
   // TODO: clean up on error.
   @decorateWith(deferrable)
   async createVm(

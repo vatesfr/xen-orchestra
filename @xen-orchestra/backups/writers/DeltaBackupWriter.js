@@ -1,3 +1,5 @@
+'use strict'
+
 const assert = require('assert')
 const map = require('lodash/map.js')
 const mapValues = require('lodash/mapValues.js')

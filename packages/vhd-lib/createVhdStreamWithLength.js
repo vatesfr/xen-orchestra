@@ -1,3 +1,5 @@
+'use strict'
+
 const assert = require('assert')
 const { pipeline, Transform } = require('readable-stream')
 const { readChunk } = require('@vates/read-chunk')

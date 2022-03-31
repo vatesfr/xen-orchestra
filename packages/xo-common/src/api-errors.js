@@ -199,3 +199,12 @@ export const incorrectState = create(25, ({ actual, expected, object, property }
   },
   message: 'incorrect state',
 }))
+
+export const featureUnauthorized = create(26, ({ featureCode, currentPlan, minPlan }) => ({
+  data: {
+    featureCode,
+    currentPlan,
+    minPlan,
+  },
+  message: 'feature Unauthorized',
+}))

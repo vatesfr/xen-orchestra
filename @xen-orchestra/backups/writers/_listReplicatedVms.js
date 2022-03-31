@@ -1,3 +1,5 @@
+'use strict'
+
 const getReplicatedVmDatetime = vm => {
   const { 'xo:backup:datetime': datetime = vm.name_label.slice(-17, -1) } = vm.other_config
   return datetime

@@ -1,3 +1,5 @@
+'use strict'
+
 const assert = require('assert')
 
 const COMPRESSED_MAGIC_NUMBERS = [

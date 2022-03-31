@@ -1,3 +1,5 @@
+'use strict'
+
 exports.coalesceCalls = function (fn) {
   let promise
   const clean = () => {

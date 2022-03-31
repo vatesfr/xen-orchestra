@@ -184,6 +184,8 @@ const SR_GROUP_TO_LABEL = {
   isosr: 'ISO SR',
 }
 
+const SR_TYPE_REQUIRE_DISK_FORMATTING = ['ext', 'lvm']
+
 const typeGroups = {
   vdisr: ['ext', 'hba', 'iscsi', 'lvm', 'nfs', 'zfs'],
   isosr: ['local', 'nfsiso', 'smb'],
@@ -340,6 +342,8 @@ export default class New extends Component {
           'nfs',
           username && username.value,
           password && password.value,
+          nfsVersion !== '' ? nfsVersion : undefined,
+          nfsOptions,
           srUuid
         ),
       smb: () =>
@@ -351,13 +355,24 @@ export default class New extends Component {
           'smb',
           username && username.value,
           password && password.value,
+          undefined,
+          undefined,
           srUuid
         ),
     }
 
     try {
+      if (SR_TYPE_REQUIRE_DISK_FORMATTING.includes(type)) {
+        await confirm({
+          title: _('newSr'),
+          body: <p>{_('newSrConfirm', { name: device.value })}</p>,
+        })
+      }
       return await createMethodFactories[type]()
     } catch (err) {
+      if (err === undefined) {
+        return
+      }
       error('SR Creation', err.message || String(err))
     }
   }
@@ -677,7 +692,7 @@ export default class New extends Component {
                       <label htmlFor='selectSrPath'>{_('newSrPath')}</label>
                       <select
                         className='form-control'
-                        defaultValue={null}
+                        defaultValue=''
                         id='selectSrPath'
                         onChange={event => {
                           this._handleSrPathSelection(event.target.value)
@@ -685,7 +700,9 @@ export default class New extends Component {
                         ref='path'
                         required
                       >
-                        <option value={null}>{formatMessage(messages.noSelectedValue)}</option>
+                        <option disabled value=''>
+                          {formatMessage(messages.noSelectedValue)}
+                        </option>
                         {map(paths, (item, key) => (
                           <option key={key} value={item.path}>
                             {item.path}

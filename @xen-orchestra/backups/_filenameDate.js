@@ -1,3 +1,5 @@
+'use strict'
+
 const { utcFormat, utcParse } = require('d3-time-format')
 
 // Format a date in ISO 8601 in a safe way to be used in filenames

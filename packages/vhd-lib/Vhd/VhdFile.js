@@ -1,3 +1,5 @@
+'use strict'
+
 const {
   BLOCK_UNUSED,
   FOOTER_SIZE,

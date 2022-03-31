@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+'use strict'
+
 const { execFileSync, spawnSync } = require('child_process')
 
 const run = (command, args) => spawnSync(command, args, { stdio: 'inherit' }).status

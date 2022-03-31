@@ -7,6 +7,7 @@ import createNdJsonStream from '../_createNdJsonStream.mjs'
 import pick from 'lodash/pick.js'
 import map from 'lodash/map.js'
 import * as CM from 'complex-matcher'
+import fromCallback from 'promise-toolbox/fromCallback'
 
 function sendObjects(objects, req, res) {
   const { query } = req
@@ -49,12 +50,23 @@ const subRouter = (app, path) => {
 
 export default class RestApi {
   constructor(app, { express }) {
+    // don't setup the API if express is not present
+    //
+    // that can happen when the app is instanciated in another context like xo-server-recover-account
+    if (express === undefined) {
+      return
+    }
+
     const api = subRouter(express, '/rest/v0')
 
     api.use(({ cookies }, res, next) => {
       app.authenticateUser({ token: cookies.authenticationToken ?? cookies.token }).then(
-        () => {
-          next()
+        ({ user }) => {
+          if (user.permission === 'admin') {
+            return next()
+          }
+
+          res.sendStatus(401)
         },
         error => {
           if (invalidCredentials.is(error)) {
@@ -68,9 +80,13 @@ export default class RestApi {
 
     const collections = [
       { id: 'hosts', type: 'host' },
+      { id: 'networks', type: 'network' },
       { id: 'pools', type: 'pool' },
-      { id: 'vms', type: 'VM' },
       { id: 'srs', type: 'SR' },
+      { id: 'vbds', type: 'VBD' },
+      { id: 'vdis', type: 'VDI' },
+      { id: 'vifs', type: 'VIF' },
+      { id: 'vms', type: 'VM' },
     ]
 
     api.get('/', (req, res) => sendObjects(collections, req, res))
@@ -102,5 +118,41 @@ export default class RestApi {
           }
         })
     }
+
+    api.get('/vdis/:uuid.vhd', async (req, res, next) => {
+      try {
+        const vdi = await app.getXapiObject(req.params.uuid, 'VDI')
+        const stream = await vdi.$xapi.VDI_exportContent(vdi.$ref, { format: 'vhd' })
+
+        stream.headers['content-disposition'] = 'attachment'
+        res.writeHead(stream.statusCode, stream.statusMessage != null ? stream.statusMessage : '', stream.headers)
+
+        await fromCallback(pipeline, stream, res)
+      } catch (error) {
+        if (noSuchObject.is(error)) {
+          next()
+        } else {
+          next(error)
+        }
+      }
+    })
+
+    api.get('/vms/:uuid.xva', async (req, res, next) => {
+      try {
+        const vm = await app.getXapiObject(req.params.uuid, 'VM')
+        const stream = await vm.$xapi.VM_export(vm.$ref, { compress: req.query.compress })
+
+        stream.headers['content-disposition'] = 'attachment'
+        res.writeHead(stream.statusCode, stream.statusMessage != null ? stream.statusMessage : '', stream.headers)
+
+        await fromCallback(pipeline, stream, res)
+      } catch (error) {
+        if (noSuchObject.is(error)) {
+          next()
+        } else {
+          next(error)
+        }
+      }
+    })
   }
 }

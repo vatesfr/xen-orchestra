@@ -26,7 +26,7 @@
     "url": "https://vates.fr"
   },
   "license": "ISC",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "engines": {
     "node": ">=6"
   },
@@ -35,6 +35,6 @@
     "test": "tap"
   },
   "devDependencies": {
-    "tap": "^15.1.6"
+    "tap": "^16.0.1"
   }
 }
