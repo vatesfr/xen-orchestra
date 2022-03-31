@@ -176,11 +176,6 @@ const INDIVIDUAL_ACTIONS = [
           icon: 'export',
           label: _('exportVdi'),
         },
-      {
-        handler: vbd => exportVdi(vbd.vdi, 'vmdk'),
-        icon: 'export',
-        label: _('exportVdiVmdk'),
-      },
         {
           disabled: vbd => vbd.attached,
           handler: vbd => importVdi(vbd.vdi),
@@ -426,7 +421,7 @@ class AttachDisk extends Component {
           <fieldset className='form-inline'>
             <div className='form-group'>
               {vm.virtualizationMode === 'pv' && (
-                <span>
+                /* eslint-disable-line react/no-string-refs */ <span>
                   {_('vbdBootable')} <Toggle ref='bootable' />{' '}
                 </span>
               )}

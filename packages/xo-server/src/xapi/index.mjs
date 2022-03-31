@@ -523,7 +523,7 @@ export default class Xapi extends XapiBase {
         ref: exportedVm.$ref,
         use_compression: compress === 'zstd' ? 'zstd' : compress === true || compress === 'gzip' ? 'true' : 'false',
       },
-      task: this.task_create('VM export', vm.name_label),
+      task: this.task_create('VM export', exportedVm.name_label),
     }).catch(error => {
       // augment the error with as much relevant info as possible
       error.pool_master = this.pool.$master
@@ -541,13 +541,12 @@ export default class Xapi extends XapiBase {
         const vdi = blockDevice.$VDI
         collectedDisks.push({
           getStream: () => {
-            console.log('getStream', vdi.name_label)
             return this.exportVdiContent($cancelToken, vdi, VDI_FORMAT_VHD)
           },
           name: vdi.name_label,
           fileName: vdi.name_label + '.vmdk',
           description: vdi.name_description,
-          capacityMB: Math.ceil(vdi.virtual_size / 1024 / 1024)
+          capacityMB: Math.ceil(vdi.virtual_size / 1024 / 1024),
         })
       }
     }
@@ -558,13 +557,12 @@ export default class Xapi extends XapiBase {
       vmName: exportedVm.name_label,
       vmDescription: exportedVm.name_description,
       cpuCount: exportedVm.VCPUs_at_startup,
-      vmMemoryMB: Math.ceil(exportedVm.memory_dynamic_max / 1024 / 1024)
+      vmMemoryMB: Math.ceil(exportedVm.memory_dynamic_max / 1024 / 1024),
     })
     writeStream.statusCode = 200
     writeStream.headers = { 'content-type': 'application/ova' }
     writeStream.statusMessage = 'OK'
     writeStream.cancel = () => {
-      console.log('cancel after file')
       return writeStream.destroy()
     }
     return writeStream
@@ -578,9 +576,10 @@ export default class Xapi extends XapiBase {
     const exportedVm = useSnapshot ? await this._snapshotVm($cancelToken, vm, `[XO Export] ${vm.name_label}`) : vm
 
     // noinspection ES6MissingAwait
-    const promise = format === 'xva'
-      ? this.exportVmXva($cancelToken, exportedVm, { compress })
-      : this.exportVmOva($cancelToken, exportedVm)
+    const promise =
+      format === 'xva'
+        ? this.exportVmXva($cancelToken, exportedVm, { compress })
+        : this.exportVmOva($cancelToken, exportedVm)
 
     if (useSnapshot) {
       /*
@@ -1764,33 +1763,16 @@ export default class Xapi extends XapiBase {
     if (base !== undefined) {
       params.base = base
     }
-    const vhdResult = await this.VDI_exportContent(vdi.$ref, params)
-    const vmdkStream = await vhdToVMDK(filename, vhdResult)
-    // callers expect the stream to be an HTTP response.
-    vmdkStream.headers = {
-      ...vhdResult.headers,
-      'content-type': 'application/x-vmdk',
-    }
-    vmdkStream.statusCode = vhdResult.statusCode
-    vmdkStream.statusMessage = vhdResult.statusMessage
-    return vmdkStream
-  }
-
-  @cancelable
-  async exportVdiAsVMDK($cancelToken, vdi, base) {
-    vdi = this.getObject(vdi)
-    const params = { cancelToken: $cancelToken, format: VDI_FORMAT_VHD }
-    if (base) {
-      params.base = base
-    }
     let vhdResult
     const vmdkStream = await vhdToVMDK(`${vdi.name_label}.vmdk`, async () => {
       vhdResult = await this.VDI_exportContent(vdi.$ref, params)
       return vhdResult
     })
     // callers expect the stream to be an HTTP response.
-    vmdkStream.headers = { ...vhdResult.headers }
-    vmdkStream.headers['content-type'] = 'application/x-vmdk'
+    vmdkStream.headers = {
+      ...vhdResult.headers,
+      'content-type': 'application/x-vmdk',
+    }
     vmdkStream.statusCode = vhdResult.statusCode
     vmdkStream.statusMessage = vhdResult.statusMessage
     return vmdkStream
