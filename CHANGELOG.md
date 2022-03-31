@@ -1,17 +1,22 @@
 # ChangeLog
 
-## **next**
+## **5.69.0** (2022-03-31)
 
-### Enhancements
+<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
+### Highlights
 
 - [REST API] Expose networks, VBDs, VDIs and VIFs
 - [Console] Supports host and VM consoles behind HTTP proxies [#6133](https://github.com/vatesfr/xen-orchestra/pull/6133)
 - [Install patches] Disable patch installation when `High Availability` is enabled (PR [#6145](https://github.com/vatesfr/xen-orchestra/pull/6145))
 - [Delta Backup/Restore] Ability to ignore some VDIs (PR [#6143](https://github.com/vatesfr/xen-orchestra/pull/6143))
+- [Import VM] Ability to import a VM from a URL (PR [#6130](https://github.com/vatesfr/xen-orchestra/pull/6130))
+
+### Enhancements
+
 - [Rolling Pool Update] Don't update if some of the hosts are not running
 - [VM form] Add link to documentation on secure boot in the Advanced tab (PR [#6146](https://github.com/vatesfr/xen-orchestra/pull/6146))
 - [Install patches] Update confirmation messages for patch installation (PR [#6159](https://github.com/vatesfr/xen-orchestra/pull/6159))
-- [Import VM] Ability to import a VM from a URL (PR [#6130](https://github.com/vatesfr/xen-orchestra/pull/6130))
 
 ### Bug fixes
 
@@ -38,7 +43,7 @@
 
 ## **5.68.0** (2022-02-28)
 
-<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Highlights
 
@@ -70,8 +75,6 @@
 - xo-web 5.94.0
 
 ## **5.67.0** (2022-01-31)
-
-<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Highlights
 
