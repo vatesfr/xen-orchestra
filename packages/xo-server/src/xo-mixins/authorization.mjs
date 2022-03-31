@@ -4,24 +4,24 @@ import assert from 'assert'
 
 const FREE = 1
 const STARTER = 2
-const ENTREPRISE = 3
+const ENTERPRISE = 3
 const PREMIUM = 4
 
 export const PLANS = {
   free: FREE,
   starter: STARTER,
-  entreprise: ENTREPRISE,
+  enterprise: ENTERPRISE,
   premium: PREMIUM,
 }
 
 const AUTHORIZATIONS = {
   BACKUP: {
     DELTA: STARTER,
-    DELTA_REPLICATION: ENTREPRISE,
+    DELTA_REPLICATION: ENTERPRISE,
     FULL: STARTER,
-    METADATA: ENTREPRISE,
-    WITH_RAM: ENTREPRISE,
-    SMART_BACKUP: ENTREPRISE,
+    METADATA: ENTERPRISE,
+    WITH_RAM: ENTERPRISE,
+    SMART_BACKUP: ENTERPRISE,
     S3: STARTER,
   },
   DOCKER: STARTER, // @todo  _doDockerAction in xen-orchestra/packages/xo-server/src/xapi/index.mjs
