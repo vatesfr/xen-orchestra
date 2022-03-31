@@ -2,6 +2,7 @@ import Box from '@mui/material/Box'
 import React from 'react'
 import CircularProgress, { CircularProgressProps } from '@mui/material/CircularProgress'
 import { styled } from '@mui/material/styles'
+import { Typography } from '@mui/material'
 import { withState } from 'reaclette'
 
 const BackgroundBox = styled(Box)({
@@ -13,24 +14,28 @@ const BackgroundCircle = styled(CircularProgress)({
 })
 
 const Container = styled(Box)({
-  position: 'relative',
   display: 'inline-flex',
+  position: 'relative',
 })
 
-const Label = styled('p')(({ color, theme: { palette } }) => ({
-  color: (palette[color ?? 'primary'] ?? palette.primary).main,
-  fontWeight: 'bold',
+const StyledLabel = styled(Typography)(({ color, theme: { palette } }) => ({
+  color: (palette[(color as string) ?? 'primary'] ?? palette.primary).main,
+  textAlign: 'center',
 }))
 
 const LabelBox = styled(Box)({
-  top: 0,
-  left: 0,
-  bottom: 0,
-  right: 0,
-  position: 'absolute',
-  display: 'flex',
   alignItems: 'center',
+  bottom: 0,
+  display: 'flex',
+  height: '80%',
   justifyContent: 'center',
+  left: 0,
+  margin: 'auto',
+  overflow: 'hidden',
+  position: 'absolute',
+  right: 0,
+  top: 0,
+  width: '80%',
 })
 
 interface ParentState {}
@@ -71,7 +76,9 @@ const ProgressCircle = withState<State, Props, Effects, Computed, ParentState, P
       <CircularProgress aria-label={label} color={color} size={size} value={progress} variant='determinate' />
       {showLabel && (
         <LabelBox>
-          <Label color={color}>{label}</Label>
+          <StyledLabel variant='h5' color={color}>
+            {label}
+          </StyledLabel>
         </LabelBox>
       )}
     </Container>
