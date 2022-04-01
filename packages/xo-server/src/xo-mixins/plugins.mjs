@@ -1,5 +1,6 @@
 import Ajv from 'ajv'
 import mapToArray from 'lodash/map.js'
+import noop from 'lodash/noop.js'
 import { createLogger } from '@xen-orchestra/log'
 import { invalidParameters, noSuchObject } from 'xo-common/api-errors.js'
 
@@ -230,6 +231,7 @@ export default class {
   }
 
   async purgePluginConfiguration(id) {
+    await this.unloadPlugin(id).catch(noop)
     await this._pluginsMetadata.merge(id, { configuration: undefined })
   }
 
