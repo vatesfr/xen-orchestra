@@ -1018,7 +1018,7 @@ async function handleExport(req, res, { xapi, vmRef, compress, format = 'vhd' })
 }
 
 // TODO: integrate in xapi.js
-async function export_({ vm, compress, format = 'ova' }) {
+async function export_({ vm, compress, format = 'xva' }) {
   if (vm.power_state === 'Running') {
     await checkPermissionOnSrs.call(this, vm)
   }
