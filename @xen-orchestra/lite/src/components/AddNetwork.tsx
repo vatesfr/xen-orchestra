@@ -135,7 +135,8 @@ const AddNetwork = withState<State, Props, Effects, Computed, ParentState, Paren
           isLoading: true,
         }
         try {
-          // @ts-ignore defer decorator
+          // https://stackoverflow.com/questions/61370307/can-a-decorator-change-a-methods-signature
+          // @ts-expect-error Expected 2 arguments, but got 1.
           await this.state.xapi.createNetworks([
             {
               MTU: mtu,

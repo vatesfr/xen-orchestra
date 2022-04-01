@@ -1,5 +1,4 @@
 declare module '@novnc/novnc/lib/rfb'
-declare module 'golike-defer'
 declare module 'human-format'
 declare module 'iterable-backoff'
 declare module 'json-rpc-protocol'

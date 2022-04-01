@@ -1,5 +1,5 @@
 import Cookies from 'js-cookie'
-import { defer } from 'golike-defer'
+import { defer, $Defer } from 'golike-defer'
 import { EventEmitter } from 'events'
 import { Map } from 'immutable'
 import { Xapi } from 'xen-api'
@@ -233,17 +233,15 @@ export default class XapiConnection extends EventEmitter {
 
   @defer
   async createNetworks(
-    $defer,
-    newNetworks: [
-      {
-        bondMode?: string
-        MTU?: string
-        name_description: string
-        name_label: string
-        pifIds?: string[]
-        VLAN?: string
-      }
-    ]
+    $defer: $Defer,
+    newNetworks: Array<{
+      bondMode?: string
+      MTU?: string
+      name_description: string
+      name_label: string
+      pifIds?: string[]
+      VLAN?: string
+    }>
   ): Promise<Array<string | undefined>> {
     const pifs = this.objectsByType.get('PIF')
     return Promise.all(
