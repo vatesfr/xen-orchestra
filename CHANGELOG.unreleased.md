@@ -11,6 +11,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Plugins] Automatically configure plugins when a configuration file is imported
+
 ### Packages to release
 
 > Packages will be released in the order they are here, therefore, they should
@@ -30,3 +32,4 @@
 
 - xen-api minor
 - @xen-orchestra/proxy patch
+- xo-server patch
