@@ -448,23 +448,77 @@ It's perfect if you want to shutdown the host for hardware replacement, or if yo
 
 Note that maintenance mode will be **automatically exited after a host reboot**.
 
-## Hosts updates
+## Pool and host updates
 
-Patching a host manually can be time consuming (and boring). That's why we provide the high level feature of downloading and applying all missing patches automatically.
+Xen Orchestra is here to help you to manage all your pools and hosts updates. Note there's a difference on updates between XCP-ng and Citrix Hypervisor, since they are not using the same mechanism. However, the view on available updates and updating is very similar.
 
 :::tip
-Update mechanism is different between Citrix Hypervisor and XCP-ng. However, Xen Orchestra provides a similar UI for both systems, handled entirely transparently for you!
+Updates can be called both "patches" or "updates", it doesn't matter. Updates are distributed via an ISO file containing RPMs for Citrix Hypervisor, while in XCP-ng they are just traditional RPMs hosted in a central repository and its mirrors, like a regular Linux distribution.
 :::
 
-### XOA smart update system
+### Available updates
 
-Your XOA will check the official Citrix servers for missing patches. They will be displayed if any:
+You'll be notified by Xen Orchestra directly in the main XO menu (on the left), with a yellow triangle:
 
-- in dashboard view
-- in pool view (plus the number of missing patches in a red box)
-- in host view (in patching tab, same red pill)
+![](./assets/availableupdates.png)
 
-### Installing patches
+If you hover on it, it will explain that updates/patches are available.
+
+You can also see how many updates to do in the Home/Pool view for your pools, and Home/Host view for your hosts, with a red pill. In this following screenshot, "Test Pool1" got 88 updates available:
+
+![](./assets/updatesvisible.png)
+
+You can also see the available updates in the Dashboard view.
+
+### XCP-ng
+
+On XCP-ng, there's multiple way to update your pools and hosts.
+
+:::details ⚙️ How it works
+Xen Orchestra will request a plugin, bundled and hosted within your XCP-ng hosts. This plugin will query the status of updates. Then, when the update will be apply, it's also the plugin that will download and apply them. So unlike with Citrix Hypervisor, Xen Orchestra will not fetch or download updates, but it will order the host to do it by itself. Be sure that your host(s) can access the update repositories.
+:::
+
+#### Rolling Pool Updates (RPU)
+
+Also known as RPU, **this is the advised way to update your pool**. By just clicking on one button, Xen Orchestra will automatically move VMs around, apply updates and reboot the hosts, without any service interruption. The following button is available in the Pool view, on "Patches" tab:
+
+![](./assets/rpubutton.png)
+
+:::tip
+This powerful and fully automated mechanism requires some prerequisites: all your VMs disks must be on a one (or more) shared storage. Also, high-availability will be automatically disabled, as the XO load balancer plugin and backup jobs. Everything will be enabled back when it's done!
+:::
+
+![](./assets/rpu1.png)
+
+#### Pool updates
+
+If you can't use RPU (Rolling Pool Updates), you can still use "Install pool patches" button. This will simply install updates on all hosts on your pool and restart the toolstack, **without doing any host reboot**:
+
+![](./assets/installpoolpatches.png)
+
+:::tip
+Restarting the toolstack won't have any impact on your running VMs. However, **most updates will require a reboot** to be applied, that you should execute during a scheduled maintenance.
+:::
+
+You can see hosts that will require a reboot via a small blue triangle:
+
+![](./assets/xo5patching.png)
+
+#### Host updates
+
+:::warning
+We do NOT recommend to install updates to individual hosts. Obviously except if they are alone in their own pool. Running hosts in the same pool with different level of updates should be avoided as possible. We leave that option in case you have a specific need, but again, we discourage that usage as possible. Note that even a host alone in its pool can be updated via the "Pool update" button!
+:::
+
+### XenServer/Citrix Hypervisor
+
+:::details ⚙️ How it works
+Xen Orchestra will directly request a specific XML, hosted by Citrix. It will be analyzed and compared to the patch level on your hosts. If there's available/missing updates, XO will download it directly, then send it to the pool, and finally ask the pool to apply it. In that scenario, you should check if Xen Orchestra can access outside to get those updates.
+:::
+
+#### Pool updates
+
+It's recommended to apply patches from the entire pool, to be sure all your hosts are at the same patch level.
 
 When you click on "Install all patches", XOA will do all of the following automatically:
 
@@ -473,19 +527,15 @@ When you click on "Install all patches", XOA will do all of the following automa
 - upload them
 - apply them in the correct order
 
-You can see more screenshots here: https://xen-orchestra.com/blog/hotfix-xs70e004-for-xenserver-7-0/
+You can see [more screenshots here](https://xen-orchestra.com/blog/hotfix-xs70e004-for-xenserver-7-0).
 
 :::tip
 If you are behind a proxy, please update your `xo-server` configuration to add a proxy server, as [explained in the appropriate section](configuration.md#proxy-for-xenserver-updates-and-patches).
 :::
 
-### Notes on patching
+#### Host updates
 
-- Xen Orchestra won't reboot your hosts automatically. That's your call to choose when to do it.
-- Patching doesn't always require rebooting. Check in the host view if the reboot warning is displayed, it means you need to reboot to have the patch fully applied (see screenshot below)
-- XO will install all patches without rebooting: that's not an issue. Even applying patches manually, **it's not mandatory to reboot after each patch**.
-
-![](./assets/xo5patching.png)
+As for XCP-ng, we do NOT recommend to install updates to individual hosts. Please install patches for the whole pool, even if it's a single host.
 
 ## Pool Management
 
@@ -494,9 +544,10 @@ As specified in the [documentation](https://xcp-ng.org/docs/requirements.html#po
 :::
 
 ::: warning
-- Even with matching CPU vendors, in the case of different CPU models XCP-ng will scale the pool CPU ability to the CPU having the least instructions.
+
+- Even with matching CPU vendors, in the case of different CPU models, XCP-ng/Citrix Hypervisor will "level" down to use the CPU having the least instructions.
 - All the hosts in a pool must run the same XCP-ng version.
-:::
+  :::
 
 ### Creating a pool
 
