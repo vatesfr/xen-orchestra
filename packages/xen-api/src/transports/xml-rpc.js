@@ -30,7 +30,7 @@ const parseResult = result => {
   return result.Value
 }
 
-export default ({ secureOptions, url: { hostname, port, protocol, agent } }) => {
+export default ({ secureOptions, url: { hostname, port, protocol }, agent }) => {
   const secure = protocol === 'https:'
   const client = (secure ? createSecureClient : createClient)({
     ...(secure ? secureOptions : undefined),
