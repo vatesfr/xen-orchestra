@@ -28,7 +28,7 @@ export function backendToLocalPath(basePath, target, backendUrl) {
 }
 
 export function localToBackendUrl(basePath, target, localPath) {
-  let localPathWithoutBase = removeSlash(localPath).substring(basePath.length)
+  let localPathWithoutBase = removeSlash(localPath.substring(basePath.length))
   localPathWithoutBase = './' + removeSlash(localPathWithoutBase)
   const url = mergeUrl(localPathWithoutBase, target)
   return url
