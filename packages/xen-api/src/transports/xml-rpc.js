@@ -30,12 +30,13 @@ const parseResult = result => {
   return result.Value
 }
 
-export default ({ secureOptions, url: { hostname, port, protocol }, agent }) => {
+export default ({ secureOptions, url: { hostname, pathname, port, protocol }, agent }) => {
   const secure = protocol === 'https:'
   const client = (secure ? createSecureClient : createClient)({
     ...(secure ? secureOptions : undefined),
     agent,
     host: hostname,
+    pathname,
     port,
   })
   const call = promisify(client.methodCall, client)
