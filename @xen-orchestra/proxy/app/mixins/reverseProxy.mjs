@@ -73,11 +73,12 @@ export default class ReverseProxy {
       return
     }
 
-    const url = new URL(config.target)
-    const targetUrl = localToBackendUrl(config.path, url, req.originalUrl || req.url)
+    const { path, target, ...options } = config
+    const url = new URL(target)
+    const targetUrl = localToBackendUrl(path, url, req.originalUrl || req.url)
     proxy.web(req, res, {
       ...urlToHttpOptions(targetUrl),
-      ...config.options,
+      ...options,
       onReq: (req, { headers }) => {
         headers['x-forwarded-for'] = req.socket.remoteAddress
         headers['x-forwarded-proto'] = req.socket.encrypted ? 'https' : 'http'
