@@ -1,14 +1,14 @@
 # REST API
 
 :::warning ⚠️ Alpha feature
-This is an alpha feature that may change significantly in the coming months - do not use this feature in a production environment. The fully up-to-date README [is available here](https://github.com/vatesfr/xen-orchestra/blob/master/packages/xo-server/docs/rest-api.md). This page is only here to explain the way it works, it's not to be used as an accurate guide.
+This is an alpha feature that may change significantly in the coming months - do not use this feature in a production environment. The fully up-to-date README [is available here](https://github.com/vatesfr/xen-orchestra/blob/master/packages/xo-server/docs/rest-api.md). This page is only here to explain how it works, it's not intended to be used as an accurate guide.
 :::
 
 We originally developed [our existing API](architecture.html#api) to be used between the Web UI `xo-web` and the server backend, `xo-server`. That's why it's a JSON-RPC API connected via websockets, allowing us to update objects live in the browser. This is perfect for our usage, but a bit complicated for others.
 
-Also, this API wasn't meant to be public, but over the years some users have expressed a desire to be able to use it for their own purpose. This led us to add more tooling around it, like `xo-cli` and to answer specific requests.
+Also, this API wasn't meant to be public, but over the years some users have expressed a desire to be able to use it for their own purposes. This led us to add more tooling around it, like `xo-cli` and to answer specific requests.
 
-For those reasons, we decided to build a new API, not an evolution of the current one, but 100% new. It is meant to be public and [REST-like](https://en.wikipedia.org/wiki/Representational_state_transfer). So a simple curl command can request it. We will also document it as the intended goal is to be public this time.
+For these reasons we decided to build a new API. Not an evolution of the current one, but 100% new. It is meant to be public and [REST-like](https://en.wikipedia.org/wiki/Representational_state_transfer). So a simple curl command can request it. We will also provide documentation as the intended goal is for it to be used by the public.
 
 ## Authentication
 
@@ -22,7 +22,7 @@ Cookie: authenticationToken=TN2YBOMYtXB_hHtf4wTzm9p5tTuqq2i15yeuhcz2xXM
 
 The server will respond to an invalid token with a `401 Unauthorized` status.
 
-The server can request the client to update its token with a `Set-Cookie` header:
+The server can request that the client updates its token with a `Set-Cookie` header:
 
 ```http
 HTTP/1.1 200 OK
@@ -56,7 +56,7 @@ Only admin users can currently use the API.
 
 Collections of objects are available at `/<name>` (e.g. `/vms`)
 
-Following query parameters are supported:
+The following query parameters are supported:
 
 - `limit`: max number of objects returned
 - `fields`: if specified, instead of plain URLs, the results will be objects containing the requested fields
@@ -126,7 +126,7 @@ Content-Type: application/x-ndjson
 
 ## VM and VDI export
 
-VDI export and VM export are supported by the API. Here is a simple example to export a VM with `zstd` compression into a `myVM.xva` file:
+VDI export and VM export are supported by the API. Below is a simple example to export a VM with `zstd` compression into a `myVM.xva` file:
 
 ```bash
 curl \
@@ -146,4 +146,4 @@ curl \
 
 ## The future
 
-We are improving and adding features in the REST API step by step. If you have interesting use cases or feedback, please ask directly at <https://xcp-ng.org/forum/category/12/xen-orchestra>
+We are adding features and improving the REST API step by step. If you have interesting use cases or feedback, please ask directly at <https://xcp-ng.org/forum/category/12/xen-orchestra>
