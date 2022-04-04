@@ -11,12 +11,12 @@ assignees: ''
 If XOA:
 
 - which release channel? (`stable` vs `latest`)
-- please consider to create a support ticket in [your dedicated support space](https://xen-orchestra.com/#!/member/support)
+- please consider creating a support ticket in [your dedicated support area](https://xen-orchestra.com/#!/member/support)
 
 If XO from the sources:
 
 - Don't forget to [read this first](https://xen-orchestra.com/docs/community.html)
-- And to follow [this guide](https://xen-orchestra.com/docs/community.html#report-a-bug)
+- As well as follow [this guide](https://xen-orchestra.com/docs/community.html#report-a-bug)
 
 **Describe the bug**
 A clear and concise description of what the bug is.
@@ -35,7 +35,7 @@ A clear and concise description of what you expected to happen.
 **Screenshots**
 If applicable, add screenshots to help explain your problem.
 
-**Environment (please complete the following information):**
+**Environment (please provide the following information):**
 
 - Node: [e.g. 16.12.1]
 - xo-server: [e.g. 5.82.3]
