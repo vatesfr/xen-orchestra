@@ -17,7 +17,7 @@ user = 'nobody'
 group = 'nogroup'
 ```
 
-**Warning!** A non-privileged user requires the use of `sudo` to mount NFS shares. See [installation from the sources](from_the_sources.md).
+**Warning!** A non-privileged user requires the use of `sudo` to mount NFS shares. See [installation from the sources](installation.md#from-the-sources).
 
 ## HTTP listen address and port
 
