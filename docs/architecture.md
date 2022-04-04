@@ -236,10 +236,10 @@ encoding by prefixing with `json:`:
 
 ## API
 
-Our web UI (`xo-web`) and CLI (`xo-cli`) are both talking to `xo-server` via the same API. This API is working in a kind of "connected mode", using JSON-RPC through websockets, in a way we can subscribe to any events to stay always up-to-date on the client side.
+Our web UI (`xo-web`) and CLI (`xo-cli`) both talk to `xo-server` via the same API. This API works in a kind of "connected mode", using JSON-RPC through websockets, in a way where we can subscribe to any events to always stay up-to-date on the client side.
 
 :::warning
-However, this API was initial meant to be only private. Also, as it's JSON-RPC inside websockets, it's not trivial to use. If you want to make calls in an easy fashion, you should take a look at our [REST API](restapi.md#rest-api).
+However, this API was initially meant to only be private. Also, as it's JSON-RPC inside websockets, it's not trivial to use. If you want to make calls in an easy fashion, you should take a look at our [REST API](restapi.md#rest-api).
 :::
 
 If you need assistance on how to use it:
