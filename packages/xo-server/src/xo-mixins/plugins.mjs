@@ -30,12 +30,10 @@ export default class {
         plugins =>
           Promise.all(
             plugins.map(async plugin => {
-              const metadata = await this._pluginsMetadata.save(plugin)
+              await this._pluginsMetadata.save(plugin)
               if (plugin.configuration !== undefined && this._plugins[plugin.id] !== undefined) {
                 await this.configurePlugin(plugin.id, plugin.configuration)
               }
-
-              return metadata
             })
           )
       )
