@@ -209,7 +209,7 @@ File level restore **is only possible on delta backups**. Also, due of some tech
 :::
 
 :::warning
-File level restore **is only possible on a single VDI**, it does not support LVM Volume Groups on multiple VDIs.
+File level restore **is only possible on a single VDI**, it does not support LVM Volume Groups that span multiple VDIs.
 :::
 
 ### Restore a file
