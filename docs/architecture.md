@@ -236,10 +236,10 @@ encoding by prefixing with `json:`:
 
 ## API
 
-Because `xo-server` is already requested by our web UI (`xo-web`) or CLI (`xo-cli`), there's an API. You can use it directly to have advanced integration in your IT infrastructure (automation, or as a VPS vendor etc.).
+Our web UI (`xo-web`) and CLI (`xo-cli`) are both talking to `xo-server` via the same API. This API is working in a kind of "connected mode", using JSON-RPC through websockets, in a way we can subscribe to any events to stay always up-to-date on the client side.
 
 :::warning
-However, this API isn't 100% guarantee to be stable. Use it with caution.
+However, this API was initial meant to be only private. Also, as it's JSON-RPC inside websockets, it's not trivial to use. If you want to make calls in an easy fashion, you should take a look at our [REST API](restapi.md#rest-api).
 :::
 
 If you need assistance on how to use it:
