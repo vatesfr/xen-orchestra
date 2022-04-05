@@ -53,14 +53,16 @@ ddb.geometry.heads = "${geometry.heads}"
 ddb.geometry.cylinders = "${geometry.cylinders}"
 `
   const utf8Descriptor = Buffer.from(descriptor, 'utf8')
-  // virtual box add some additionnal properties to te descriptor like :
+
+  // virtual box add some additional properties to the descriptor like:
   // ddb.uuid.image="9afa1dd0-d966-4279-a762-b7fbb0136308"
   // ddb.uuid.modification="cd9be63c-4953-44d0-8325-45635a9ca396"
   // ddb.uuid.parent="00000000-0000-0000-0000-000000000000"
   // ddb.uuid.parentmodification="00000000-0000-0000-0000-000000000000"
-  // but does not ensure there is enough free room and  overwrite the data (the grain directory)
-  // broking the file
-
+  //
+  // but does not ensure there is enough free room and overwrite the data (the grain directory), breaking the file
+  //
+  // adding 10 sectors of padding seems to be enough to work-around the issue
   const descriptorSizeSectors = Math.ceil(utf8Descriptor.length / SECTOR_SIZE) + 10
   const descriptorBuffer = Buffer.alloc(descriptorSizeSectors * SECTOR_SIZE)
   utf8Descriptor.copy(descriptorBuffer)
