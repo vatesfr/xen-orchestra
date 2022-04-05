@@ -200,8 +200,8 @@ export default class Restore extends Component {
 
   _check = data =>
     confirm({
-      title: _('restoreVmBackupsTitle', { vm: data.last.vm.name_label }),
-      body: <RestoreBackupsModalBody data={data} />,
+      title: _('checkVmBackupsTitle', { vm: data.last.vm.name_label }),
+      body: <RestoreBackupsModalBody data={data} showGenerateNewMacAddress={false} showStartAfterBackup={false} />,
       icon: 'restore',
     })
       .then(({ backup, generateNewMacAddresses, targetSrs: { mainSr, mapVdisSrs }, start }) => {

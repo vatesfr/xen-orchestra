@@ -1632,6 +1632,7 @@ const messages = {
   refreshBackupList: 'Refresh backup list',
   restoreVmBackups: 'Restore',
   restoreVmBackupsTitle: 'Restore {vm}',
+  checkVmBackupsTitle: 'Verify {vm}',
   restoreVmBackupsBulkTitle: 'Restore {nVms, number} VM{nVms, plural, one {} other {s}}',
   restoreVmBackupsBulkMessage:
     'Restore {nVms, number} VM{nVms, plural, one {} other {s}} from {nVms, plural, one {its} other {their}} {oldestOrLatest} backup.',
