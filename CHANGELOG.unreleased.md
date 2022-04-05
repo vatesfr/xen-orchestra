@@ -11,7 +11,9 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Plugins] Automatically configure plugins when a configuration file is imported (PR [#6171](https://github.com/vatesfr/xen-orchestra/pull/6171))
 - [VMDK Export] Fix `VBOX_E_FILE_ERROR (0x80BB0004)` when importing in VirtualBox (PR [#6163](https://github.com/vatesfr/xen-orchestra/pull/6163))
+
 ### Packages to release
 
 > Packages will be released in the order they are here, therefore, they should
@@ -29,5 +31,7 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
+- xen-api minor
 - xo-vmdk-to-vhd minor
+- @xen-orchestra/proxy patch
 - xo-server patch

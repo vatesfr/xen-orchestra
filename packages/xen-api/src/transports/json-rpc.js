@@ -1,5 +1,6 @@
 import httpRequestPlus from 'http-request-plus'
 import { format, parse } from 'json-rpc-protocol'
+import { join } from 'path'
 
 import XapiError from '../_XapiError'
 
@@ -16,7 +17,7 @@ export default ({ secureOptions, url, agent }) => {
           Accept: 'application/json',
           'Content-Type': 'application/json',
         },
-        path: '/jsonrpc',
+        pathname: join(url.pathname, 'jsonrpc'),
         agent,
       })
       .readAll('utf8')
