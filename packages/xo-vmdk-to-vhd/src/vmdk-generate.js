@@ -155,15 +155,28 @@ ddb.geometry.cylinders = "${geometry.cylinders}"
     yield track(descriptorBuffer)
     yield* emitBlocks(grainSizeBytes, blockGenerator)
     yield track(createEmptyMarker(MARKER_GT))
-    const tableOffset = streamPosition
+    let tableOffset = streamPosition
+    // grain tables
     yield track(tableBuffer)
+    // redundant grain directory
+    // virtual box and esxi seems to prefer having both
+    yield track(createEmptyMarker(MARKER_GD))
+    yield track(createDirectoryBuffer(headerData.grainDirectoryEntries, tableOffset))
+    const rDirectoryOffset = directoryOffset
+
+    // grain tables (again)
+    yield track(createEmptyMarker(MARKER_GT))
+    tableOffset = streamPosition
+    yield track(tableBuffer)
+    // main grain directory (same data)
     yield track(createEmptyMarker(MARKER_GD))
     yield track(createDirectoryBuffer(headerData.grainDirectoryEntries, tableOffset))
     yield track(createEmptyMarker(MARKER_FOOTER))
     const footer = createStreamOptimizedHeader(
       diskCapacitySectors,
       descriptorSizeSectors,
-      directoryOffset / SECTOR_SIZE
+      directoryOffset / SECTOR_SIZE,
+      rDirectoryOffset / SECTOR_SIZE
     )
     yield track(footer.buffer)
     yield track(createEmptyMarker(MARKER_EOS))
