@@ -15,41 +15,37 @@ import { fromCallback } from 'promise-toolbox'
  * @param cpuCount
  * @returns readStream
  */
-export async function writeOvaOn(writeStream, {
-  vmName,
-  vmDescription = '',
-  disks = [],
-  nics = [],
-  vmMemoryMB = 64,
-  cpuCount = 1
-}) {
-  const ovf = createOvf(vmName, vmDescription, disks, nics, vmMemoryMB, cpuCount)
+export async function writeOvaOn(
+  writeStream,
+  { vmName, vmDescription = '', disks = [], firmware = 'bios', nics = [], vmMemoryMB = 64, cpuCount = 1 }
+) {
+  const ovf = createOvf(vmName, vmDescription, disks, nics, vmMemoryMB, cpuCount, firmware)
   const pack = tar.pack()
   const pipe = pack.pipe(writeStream)
   await fromCallback.call(pack, pack.entry, { name: `${vmName}.ovf` }, Buffer.from(ovf, 'utf8'))
 
   async function writeDisk(entry, blockIterator) {
-    for await(const block of blockIterator) {
+    for await (const block of blockIterator) {
       entry.write(block)
     }
   }
 
-// https://github.com/mafintosh/tar-stream/issues/24#issuecomment-558358268
+  // https://github.com/mafintosh/tar-stream/issues/24#issuecomment-558358268
   async function pushDisk(disk) {
     const size = await computeVmdkLength(disk.name, await disk.getStream())
     disk.fileSize = size
-    console.log('size', size)
     const blockIterator = await vhdToVMDKIterator(disk.name, await disk.getStream())
 
-    console.log('blockIterator')
     return new Promise((resolve, reject) => {
-      const entry = pack.entry({ name: `${disk.name}.vmdk`, size: size }, (err) => {
+      const entry = pack.entry({ name: `${disk.name}.vmdk`, size: size }, err => {
         if (err == null) {
           return resolve()
-        } else
-          return reject(err)
+        } else return reject(err)
       })
-      return writeDisk(entry, blockIterator).then(() => entry.end(), e => reject(e))
+      return writeDisk(entry, blockIterator).then(
+        () => entry.end(),
+        e => reject(e)
+      )
     })
   }
 
@@ -68,7 +64,13 @@ function createDiskSections(disks) {
     const disk = disks[i]
     const diskId = `vmdisk${i + 1}`
     fileReferences.push(`    <File ovf:href="${disk.fileName}" ovf:id="file${i + 1}"/>`)
-    diskFragments.push(`    <Disk ovf:capacity="${disk.capacityMB}" ovf:capacityAllocationUnits="byte * 2^20" ovf:diskId="${diskId}" ovf:fileRef="file${i + 1}" ovf:format="http://www.vmware.com/interfaces/specifications/vmdk.html#streamOptimized" />`)
+    diskFragments.push(
+      `    <Disk ovf:capacity="${
+        disk.capacityMB
+      }" ovf:capacityAllocationUnits="byte * 2^20" ovf:diskId="${diskId}" ovf:fileRef="file${
+        i + 1
+      }" ovf:format="http://www.vmware.com/interfaces/specifications/vmdk.html#streamOptimized" />`
+    )
     diskItems.push(`
       <Item>
         <rasd:AddressOnParent>${i}</rasd:AddressOnParent>
@@ -83,7 +85,7 @@ function createDiskSections(disks) {
   return {
     fileReferences: fileReferences.join('\n'),
     diskFragments: diskFragments.join('\n'),
-    diskItems: diskItems.join('\n')
+    diskItems: diskItems.join('\n'),
   }
 }
 
@@ -95,13 +97,14 @@ function createNicsSection(nics) {
     networks.add(nic.networkName)
     const text = `
       <Item>
-        <rasd:AddressOnParent>7</rasd:AddressOnParent>
+        <rasd:AddressOnParent>${i}</rasd:AddressOnParent>
         <rasd:AutomaticAllocation>true</rasd:AutomaticAllocation>
         <rasd:Connection>${nic.networkName}</rasd:Connection>
         <rasd:Description>PCNet32 ethernet adapter on "${nic.networkName}"</rasd:Description>
-        <rasd:ElementName>${nic.name}</rasd:ElementName>
+        <rasd:ElementName>Connection to ${nic.networkName}</rasd:ElementName>
         <rasd:InstanceID>${'nic' + i}</rasd:InstanceID>
         <rasd:ResourceSubType>PCNet32</rasd:ResourceSubType>
+        <rasd:Address>${nic.macAddress}</rasd:Address>
         <rasd:ResourceType>10</rasd:ResourceType>
       </Item>
 `
@@ -114,7 +117,7 @@ function createNicsSection(nics) {
   return { nicsSection: nicItems.join('\n'), networksSection: networksElements.join('\n') }
 }
 
-function createOvf(vmName, vmDescription, disks = [], nics = [], vmMemoryMB = 64, cpuCount = 1) {
+function createOvf(vmName, vmDescription, disks = [], nics = [], vmMemoryMB = 64, cpuCount = 1, firmware = 'bios') {
   const diskSection = createDiskSections(disks)
   const networkSection = createNicsSection(nics)
   let id = 1
@@ -136,12 +139,12 @@ ${diskSection.diskFragments}
     <Info>The list of logical networks</Info>
 ${networkSection.networksSection}
   </NetworkSection>
-  <VirtualSystem ovf:id="${nextId()}">
+  <VirtualSystem ovf:id="${vmName}">
     <Info>A virtual machine</Info>
     <Name>${vmName}</Name>
     <OperatingSystemSection ovf:id="${nextId()}">
       <Info>The kind of installed guest operating system</Info>
-    </OperatingSystemSection>
+   </OperatingSystemSection>
     <VirtualHardwareSection>
       <Info>Virtual hardware requirements</Info>
       <System>

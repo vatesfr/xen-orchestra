@@ -65,13 +65,13 @@ ddb.geometry.cylinders = "${geometry.cylinders}"
     )
   }
 
-  const roundToSector = value => Math.ceil(value / SECTOR_SIZE) * SECTOR_SIZE
-
   const grainTableEntries = headerData.grainTableEntries
-  const tableBuffer = Buffer.alloc(roundToSector(grainTableEntries * 4))
+  const tableBuffer = Buffer.alloc(grainTableEntries * 4)
 
   let streamPosition = 0
   let directoryOffset = 0
+
+  const roundToSector = value => Math.ceil(value / SECTOR_SIZE) * SECTOR_SIZE
 
   function track(buffer) {
     assert.equal(streamPosition % SECTOR_SIZE, 0)
@@ -84,14 +84,6 @@ ddb.geometry.cylinders = "${geometry.cylinders}"
   function createEmptyMarker(type) {
     const buff = Buffer.alloc(SECTOR_SIZE)
     buff.writeBigUInt64LE(BigInt(0), 0)
-    buff.writeUInt32LE(0, 8)
-    buff.writeUInt32LE(type, 12)
-    return buff
-  }
-
-  function createMetadataMarker(type, sectors) {
-    const buff = Buffer.alloc(SECTOR_SIZE)
-    buff.writeBigUInt64LE(BigInt(sectors), 0)
     buff.writeUInt32LE(0, 8)
     buff.writeUInt32LE(type, 12)
     return buff
@@ -120,7 +112,11 @@ ddb.geometry.cylinders = "${geometry.cylinders}"
     assert.strictEqual(buffer.length, grainSizeBytes)
     assert.strictEqual(lbaBytes % grainSizeBytes, 0)
     const markerOverHead = 12
-    const compressed = zlib.deflateSync(buffer, { level: 9 })
+    // even without compressing we need to go through zlib
+    // since each compressed buffer start with a fixed header and ends
+    // with a checksum ( ADLER32 )
+
+    const compressed = zlib.deflateSync(buffer, { level: 1 })
     const outputBuffer = Buffer.alloc(roundToSector(markerOverHead + compressed.length))
     compressed.copy(outputBuffer, markerOverHead)
     outputBuffer.writeBigUInt64LE(BigInt(lbaBytes / SECTOR_SIZE), 0)
@@ -151,18 +147,30 @@ ddb.geometry.cylinders = "${geometry.cylinders}"
   async function* iterator() {
     yield track(headerData.buffer)
     yield track(descriptorBuffer)
-    yield * emitBlocks(grainSizeBytes, blockGenerator)
-    yield track(createMetadataMarker(MARKER_GT, tableBuffer.length / 512))
-    const tableOffset = streamPosition
+    yield* emitBlocks(grainSizeBytes, blockGenerator)
+    yield track(createEmptyMarker(MARKER_GT))
+    let tableOffset = streamPosition
+    // grain tables
     yield track(tableBuffer)
-    const directoryBuffer = createDirectoryBuffer(headerData.grainDirectoryEntries, tableOffset)
-    yield track(createMetadataMarker(MARKER_GD, directoryBuffer.length / 512))
-    yield track(directoryBuffer)
-    yield track(createMetadataMarker(MARKER_FOOTER, 1))
+    // redundant grain directory
+    // virtual box and esxi seems to prefer having both
+    yield track(createEmptyMarker(MARKER_GD))
+    yield track(createDirectoryBuffer(headerData.grainDirectoryEntries, tableOffset))
+    const rDirectoryOffset = directoryOffset
+
+    // grain tables (again)
+    yield track(createEmptyMarker(MARKER_GT))
+    tableOffset = streamPosition
+    yield track(tableBuffer)
+    // main grain directory (same data)
+    yield track(createEmptyMarker(MARKER_GD))
+    yield track(createDirectoryBuffer(headerData.grainDirectoryEntries, tableOffset))
+    yield track(createEmptyMarker(MARKER_FOOTER))
     const footer = createStreamOptimizedHeader(
       diskCapacitySectors,
       descriptorSizeSectors,
-      directoryOffset / SECTOR_SIZE
+      directoryOffset / SECTOR_SIZE,
+      rDirectoryOffset / SECTOR_SIZE
     )
     yield track(footer.buffer)
     yield track(createEmptyMarker(MARKER_EOS))
