@@ -7,7 +7,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [Backup] Add the ability to restore and boot a VM backup to ensure it is production ready [#6148](https://github.com/vatesfr/xen-orchestra/pull/6148)
+- [Backup] Add *Restore Health Check*: ensure a backup is viable by doing an automatic test restore (requires guest tools in the VM) [#6148](https://github.com/vatesfr/xen-orchestra/pull/6148)
 
 ### Bug fixes
 
