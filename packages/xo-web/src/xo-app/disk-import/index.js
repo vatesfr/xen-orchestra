@@ -31,6 +31,7 @@ const DiskImport = decorate([
     initialState: getInitialState,
     effects: {
       handleDrop: async function (_, files) {
+        // @todo no setState ?
         this.state.loadingDisks = true
         const disks = await Promise.all(
           map(files, async file => {
@@ -40,7 +41,7 @@ const DiskImport = decorate([
             if (
               extIndex >= 0 &&
               (type = name.slice(extIndex + 1).toLowerCase()) &&
-              (type === 'vmdk' || type === 'vhd')
+              (type === 'vmdk' || type === 'vhd' || type === 'iso')
             ) {
               let vmdkData
               if (type === 'vmdk') {
@@ -108,7 +109,7 @@ const DiskImport = decorate([
         <Row>
           <LabelCol>{_('importToSr')}</LabelCol>
           <InputCol>
-            <SelectSr onChange={effects.onChangeSr} required value={sr} />
+            <SelectSr onChange={effects.onChangeSr} required value={sr} allowIsoSr />
           </InputCol>
         </Row>
         {sr !== undefined && (

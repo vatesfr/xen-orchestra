@@ -41,6 +41,7 @@ import {
 import { addSubscriptions, connectStore, resolveResourceSets } from './utils'
 import {
   isSrWritable,
+  isSrWritableOrIso,
   subscribeCloudConfigs,
   subscribeCurrentUser,
   subscribeGroups,
@@ -376,12 +377,15 @@ export const SelectPool = makeStoreSelect(
 // ===================================================================
 
 export const SelectSr = makeStoreSelect(
-  () => {
+  (_, { allowIsoSr } = {}) => {
     const getPools = createGetObjectsOfType('pool')
     const getHosts = createGetObjectsOfType('host')
 
     const getSrsByContainer = createGetObjectsOfType('SR')
-      .filter((_, { predicate }) => predicate || isSrWritable)
+      .filter((_, { predicate }) => {
+        console.log(predicate)
+        return predicate || (allowIsoSr ? isSrWritableOrIso : isSrWritable)
+      })
       .sort()
       .groupBy('$container')
 

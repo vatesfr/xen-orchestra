@@ -54,6 +54,7 @@ export const XEN_VIDEORAM_VALUES = [1, 2, 4, 8, 16]
 // ===================================================================
 
 export const isSrWritable = sr => sr && sr.content_type !== 'iso' && sr.size > 0
+export const isSrWritableOrIso = sr => sr && sr.size > 0
 export const isSrShared = sr => sr && sr.shared
 export const isVmRunning = vm => vm && vm.power_state === 'Running'
 
@@ -1675,8 +1676,10 @@ const importDisk = async ({ description, file, name, type, vmdkData }, sr) => {
     vmdkData,
   })
   formData.append('file', file)
+
   const result = await post(res.$sendTo, formData)
-  const body = await result.json()
+  const text = await result.text()
+  const body = JSON.parse(text)
   if (result.status !== 200) {
     throw new Error(body.error.message)
   }

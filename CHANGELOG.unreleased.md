@@ -9,6 +9,7 @@
 
 - [VM export] Feat export to `ova` format (PR [#6006](https://github.com/vatesfr/xen-orchestra/pull/6006))
 - [Backup] Add *Restore Health Check*: ensure a backup is viable by doing an automatic test restore (requires guest tools in the VM) [#6148](https://github.com/vatesfr/xen-orchestra/pull/6148)
+- [Import] Feat import `iso` disks (PR [#6180](https://github.com/vatesfr/xen-orchestra/pull/6180))
 
 ### Bug fixes
 
