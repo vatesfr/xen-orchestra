@@ -207,7 +207,7 @@ const INDIVIDUAL_ACTIONS = [
         },
         {
           disabled: ({ type }) => type === 'VDI-unmanaged',
-          handler: vdi => exportVdi(vdi, 'vhd'),
+          handler: exportVdi,
           icon: 'export',
           label: _('exportVdi'),
         },
