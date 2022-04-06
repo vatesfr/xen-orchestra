@@ -420,7 +420,8 @@ export default class BackupNg {
 
           const localTaskIds = { __proto__: null }
           for await (const log of logsStream) {
-            result = handleBackupLog(log, {
+            result = log.result
+            handleBackupLog(log, {
               logger,
               localTaskIds,
               handleRootTaskId: id => {
