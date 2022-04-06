@@ -45,22 +45,24 @@ test('An ova file is generated correctly', async () => {
       vmMemoryMB: 100,
       cpuCount: 3,
       nics: [{ name: 'eth12', networkName: 'BigLan' }],
-      disks: [{
-        name: diskName1,
-        fileName: 'diskName1.vmdk',
-        capacityMB: Math.ceil(dataSize / 1024 * 1024),
-        getStream: async () => {
-          return createReadStream(vhdFileName1)
-        }
-      },
+      disks: [
+        {
+          name: diskName1,
+          fileName: 'diskName1.vmdk',
+          capacityMB: Math.ceil((dataSize / 1024) * 1024),
+          getStream: async () => {
+            return createReadStream(vhdFileName1)
+          },
+        },
         {
           name: diskName2,
           fileName: 'diskName1.vmdk',
-          capacityMB: Math.ceil(dataSize / 1024 * 1024),
+          capacityMB: Math.ceil((dataSize / 1024) * 1024),
           getStream: async () => {
             return createReadStream(vhdFileName2)
-          }
-        }]
+          },
+        },
+      ],
     })
     await fromEvent(pipe, 'finish')
     await execa('tar', ['xf', ovaFileName1, 'vm1.ovf'])
@@ -74,10 +76,10 @@ test('An ova file is generated correctly', async () => {
       await execa('qemu-img', ['check', vmdkDiskName2])
       await execa('qemu-img', ['compare', inputRawFileName1, vmdkDiskName1])
       await execa('qemu-img', ['compare', inputRawFileName2, vmdkDiskName2])
-      const result = await parseOVF({ read: () => xml }, s => s)
-      console.log('result', result)
+      await parseOVF({ read: () => xml }, s => s)
     } catch (e) {
-      console.log({ xml })
+      e.xml = xml
+      // console.log({ xml })
       throw e
     }
   } catch (error) {
