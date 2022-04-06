@@ -16,6 +16,7 @@
 
 - [VM/Host Console] Fix support of older versions of XCP-ng/XS, please not that HTTP proxies are note supported in that case [#6191](https://github.com/vatesfr/xen-orchestra/pull/6191)
 - Fix HTTP proxy support to connect to pools (introduced in XO 5.69.0) [#6204](https://github.com/vatesfr/xen-orchestra/pull/6204)
+- [Backup] Fix failure when sending a backup (Full/Delta/Metadata) to S3 with Object Lock enabled (PR [#6190](https://github.com/vatesfr/xen-orchestra/pull/6190))
 
 ### Packages to release
 
@@ -38,6 +39,10 @@
 - @vates/event-listeners-manager major
 - xen-api minor
 - xo-vmdk-to-vhd minor
+- @xen-orchestra/fs patch
 - @xen-orchestra/proxy patch
+- @xen-orchestra/backups patch
 - xo-server minor
 - xo-web minor
+- vhd-cli patch
+- @xen-orchestra/backups-cli patch

@@ -464,6 +464,16 @@
     "@aws-sdk/util-utf8-node" "3.55.0"
     tslib "^2.3.1"
 
+"@aws-sdk/middleware-apply-body-checksum@^3.58.0":
+  version "3.58.0"
+  resolved "https://registry.yarnpkg.com/@aws-sdk/middleware-apply-body-checksum/-/middleware-apply-body-checksum-3.58.0.tgz#f14b9c96f3cc9e567b49184ebda96db84317811f"
+  integrity sha512-sAdY2IbFFgCdhBdiY7CamlShgZrFuli1eVJF60yndqSyVM5hUvOg4fNsMqXWCSqJ83151T3yf/j7G78yfoSt9g==
+  dependencies:
+    "@aws-sdk/is-array-buffer" "3.55.0"
+    "@aws-sdk/protocol-http" "3.58.0"
+    "@aws-sdk/types" "3.55.0"
+    tslib "^2.3.1"
+
 "@aws-sdk/middleware-bucket-endpoint@3.58.0":
   version "3.58.0"
   resolved "https://registry.yarnpkg.com/@aws-sdk/middleware-bucket-endpoint/-/middleware-bucket-endpoint-3.58.0.tgz#cec84100ff776862e3bbd4bd596a1e869ad81e5e"

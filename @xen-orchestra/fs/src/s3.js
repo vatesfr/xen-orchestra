@@ -14,6 +14,7 @@ import {
 } from '@aws-sdk/client-s3'
 import { Upload } from '@aws-sdk/lib-storage'
 import { NodeHttpHandler } from '@aws-sdk/node-http-handler'
+import { getApplyMd5BodyChecksumPlugin } from '@aws-sdk/middleware-apply-body-checksum'
 import assert from 'assert'
 import { Agent as HttpAgent } from 'http'
 import { Agent as HttpsAgent } from 'https'
@@ -74,6 +75,11 @@ export default class S3Handler extends RemoteHandlerAbstract {
         }),
       }),
     })
+
+    // Workaround for https://github.com/aws/aws-sdk-js-v3/issues/2673
+    this._s3.middlewareStack.use(
+      getApplyMd5BodyChecksumPlugin(this._s3.config)
+    )
 
     const parts = split(path)
     this._bucket = parts.shift()
