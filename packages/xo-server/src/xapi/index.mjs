@@ -520,24 +520,20 @@ export default class Xapi extends XapiBase {
   }
 
   @cancelable
-  async exportVmXva($cancelToken, exportedVm, { compress = false } = {}) {
-    return this.getResource($cancelToken, '/export/', {
-      query: {
-        ref: exportedVm.$ref,
-        use_compression: compress === 'zstd' ? 'zstd' : compress === true || compress === 'gzip' ? 'true' : 'false',
-      },
-      task: this.task_create('VM export', exportedVm.name_label),
-    }).catch(error => {
-      // augment the error with as much relevant info as possible
-      error.pool_master = this.pool.$master
-      error.VM = exportedVm
+  async exportVmOva($cancelToken, vmRef) {
+    const vm = this.getObject(vmRef)
+    const useSnapshot = isVmRunning(vm)
+    let exportedVm
+    if (useSnapshot) {
+      const snapshotRef = await this.VM_snapshot(vmRef, {
+        name_label: vm.name_label,
+        cancelToken: $cancelToken,
+      })
+      exportedVm = this.getObject(snapshotRef)
+    } else {
+      exportedVm = vm
+    }
 
-      throw error
-    })
-  }
-
-  @cancelable
-  async exportVmOva($cancelToken, exportedVm) {
     const collectedDisks = []
     for (const blockDevice of exportedVm.$VBDs) {
       if (blockDevice.type === 'Disk') {
@@ -572,44 +568,35 @@ export default class Xapi extends XapiBase {
       firmware: exportedVm.HVM_boot_params.firmware,
       nics,
     })
+
     writeStream.statusCode = 200
     writeStream.headers = { 'content-type': 'application/ova' }
     writeStream.statusMessage = 'OK'
+
+    let destroyed = false
+    const destroySnapshot = () => {
+      if (useSnapshot && !destroyed) {
+        destroyed = true
+        this.VM_destroy(exportedVm.$ref)::ignoreErrors()
+      }
+    }
     writeStream.cancel = () => {
+      destroySnapshot()
       return writeStream.destroy()
     }
+    writeStream.once('end', destroySnapshot)
+    writeStream.once('error', destroySnapshot)
     return writeStream
   }
 
   // Returns a stream to the exported VM.
   @cancelable
   async exportVm($cancelToken, vmRef, { compress = false, format = 'xva' } = {}) {
-    const vm = this.getObject(vmRef)
-    const useSnapshot = isVmRunning(vm)
-    let exportedVm
-    if (useSnapshot) {
-      const snapshotRef = await this.VM_snapshot(vmRef, {
-        name_label: vm.name_label,
-        cancelToken: $cancelToken,
-      })
-      exportedVm = this.getObject(snapshotRef)
-    } else {
-      exportedVm = vm
-    }
-
     // noinspection ES6MissingAwait
     const promise =
       format === 'xva'
-        ? this.exportVmXva($cancelToken, exportedVm, { compress })
-        : this.exportVmOva($cancelToken, exportedVm)
-
-    if (useSnapshot) {
-      const destroySnapshot = () => {
-        console.log('destroying useSnapshot')
-        return this.VM_destroy(exportedVm.$ref)::ignoreErrors()
-      }
-      promise.then(_ => _.task.finally(destroySnapshot), destroySnapshot)
-    }
+        ? this.VM_export(vmRef, { compress, cancelToken: $cancelToken })
+        : this.exportVmOva($cancelToken, vmRef)
 
     return promise
   }
