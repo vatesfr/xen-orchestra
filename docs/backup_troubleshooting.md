@@ -91,11 +91,9 @@ This error can be caused by leaving any removable device (such as USB storage) a
 ## Error: Lock file is already being held
 
 This error message appears in the logs in some instances of a failed backup job. It means that the VM’s folder on the remote is already used by a process. This could be:
-
 - another backup job
 - a merge process on the Virtual Hard Disk (VHD)
 
 To solve this issue, we recommend that you:
-
 - wait until the other backup job is completed/the merge process is done
 - make sure your remote storage is not being overworked

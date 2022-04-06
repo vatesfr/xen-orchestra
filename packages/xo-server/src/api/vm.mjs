@@ -6,7 +6,6 @@ import getStream from 'get-stream'
 import hrp from 'http-request-plus'
 import { createLogger } from '@xen-orchestra/log'
 import { defer } from 'golike-defer'
-import { FAIL_ON_QUEUE } from 'limit-concurrency-decorator'
 import { format } from 'json-rpc-peer'
 import { ignoreErrors } from 'promise-toolbox'
 import { invalidParameters, noSuchObject, operationFailed, unauthorized } from 'xo-common/api-errors.js'
@@ -1005,6 +1004,7 @@ revert.resolve = {
 // -------------------------------------------------------------------
 
 async function handleExport(req, res, { xapi, vmRef, compress, format = 'vhd' }) {
+  // @todo : should we put back the handleExportFAIL_ON_QUEUE ?
   const stream = await xapi.exportVm(vmRef, {
     compress,
     format,
@@ -1063,8 +1063,6 @@ async function handleVmImport(req, res, { data, srId, type, xapi }) {
   // Timeout seems to be broken in Node 4.
   // See https://github.com/nodejs/node/issues/3319
   req.setTimeout(43200000) // 12 hours
-  res.on('error', err => console.log('error', err))
-  res.on('close', res => console.log('close', res))
 
   // expect "multipart/form-data; boundary=something"
   const contentType = req.headers['content-type']
@@ -1075,7 +1073,6 @@ async function handleVmImport(req, res, { data, srId, type, xapi }) {
         const tables = {}
         form.on('error', reject)
         form.on('part', async part => {
-          console.log('part', part.name)
           try {
             if (part.name !== 'file') {
               promises.push(
