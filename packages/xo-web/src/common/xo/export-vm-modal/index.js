@@ -31,12 +31,11 @@ export default class ExportVmModalBody extends BaseComponent {
   }
 
   render() {
-    console.log(this.state.format, this.state.compression)
     return (
       <Container>
         <Row>
           <Col mediumSize={6}>
-            <strong>Format</strong>
+            <strong> {_('exportType')}</strong>
           </Col>
           <Col mediumSize={6}>
             <SelectExportFormat onChange={this.linkState('format')} value={this.state.format} />
