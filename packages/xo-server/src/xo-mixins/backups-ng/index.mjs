@@ -535,41 +535,44 @@ export default class BackupNg {
   }
 
   async checkVmBackupNg(id, srId, settings) {
-    const restoredId = await this.importVmBackupNg(id, srId, settings)
-    const app = this._app
-    const xapi = app.getXapi(srId)
-    const restoredVm = xapi.getObject(restoredId)
-
+    let restoredVm, xapi
     try {
+      const restoredId = await this.importVmBackupNg(id, srId, settings)
+      const app = this._app
+      xapi = app.getXapi(srId)
+      restoredVm = xapi.getObject(restoredId)
+
       // remove vifs
       await Promise.all(restoredVm.$VIFs.map(vif => xapi._deleteVif(vif)))
 
+      const start = new Date()
       // start Vm
-      // await is handled by waitForGuestMetrics to control timeout
-      xapi.startVm(restoredId)
-
+      await xapi.startVm(restoredId)
       const timeout = 10 * 60 * 1000
+      const startDuration = new Date() - start
 
-      async function waitForGuestMetrics() {
-        return new Promise((resolve, reject) => {
-          const stopWatch = this.watchObject(restoredVm, vm => {
-            if (vm.$guest_metrics) {
-              stopWatch()
-              timeoutId !== undefined && clearTimeout(timeoutId)
-              resolve()
-            }
-          })
-
-          const timeoutId = setTimeout(() => {
-            stopWatch()
-            reject(new Error(`VM ${restoredId} not started after ${timeout / 1000} second`))
-          }, timeout)
-        })
+      if (startDuration >= timeout) {
+        throw new Error(`VM ${restoredId} not started after ${timeout / 1000} second`)
       }
 
-      await waitForGuestMetrics()
+      const remainingTimeout = timeout - startDuration
+
+      await new Promise((resolve, reject) => {
+        const stopWatch = xapi.watchObject(restoredVm.$ref, vm => {
+          if (vm.$guest_metrics) {
+            stopWatch()
+            timeoutId !== undefined && clearTimeout(timeoutId)
+            resolve()
+          }
+        })
+
+        const timeoutId = setTimeout(() => {
+          stopWatch()
+          reject(new Error(`Guest tools of VM ${restoredId} not started after ${timeout / 1000} second`))
+        }, remainingTimeout)
+      })
     } finally {
-      await xapi.VM_destroy(restoredVm.$ref)
+      restoredVm !== undefined && xapi !== undefined && (await xapi.VM_destroy(restoredVm.$ref))
     }
   }
 }

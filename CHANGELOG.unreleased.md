@@ -7,7 +7,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [Backup] Add the ability to restore a backup to ensure the backup is production ready [#6148](https://github.com/vatesfr/xen-orchestra/pull/6148)
+- [Backup] Add the ability to restore and boot a VM backup to ensure it is production ready [#6148](https://github.com/vatesfr/xen-orchestra/pull/6148)
 
 ### Bug fixes
 
@@ -33,8 +33,8 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
-- xo-web minor
 - xen-api minor
 - xo-vmdk-to-vhd minor
 - @xen-orchestra/proxy patch
 - xo-server patch
+- xo-web minor

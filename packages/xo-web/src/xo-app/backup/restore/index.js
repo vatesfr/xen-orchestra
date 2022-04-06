@@ -198,22 +198,20 @@ export default class Restore extends Component {
       }, noop)
       .then(() => this._refreshBackupList())
 
-  _check = data =>
+  _restoreHealthCheck = data =>
     confirm({
       title: _('checkVmBackupsTitle', { vm: data.last.vm.name_label }),
       body: <RestoreBackupsModalBody data={data} showGenerateNewMacAddress={false} showStartAfterBackup={false} />,
       icon: 'restore',
     })
-      .then(({ backup, generateNewMacAddresses, targetSrs: { mainSr, mapVdisSrs }, start }) => {
+      .then(({ backup, targetSrs: { mainSr, mapVdisSrs } }) => {
         if (backup == null || mainSr == null) {
           error(_('backupRestoreErrorTitle'), _('backupRestoreErrorMessage'))
           return
         }
 
         return checkBackup(backup, mainSr, {
-          generateNewMacAddresses,
           mapVdisSrs,
-          startOnRestore: start,
         })
       }, noop)
       .then(() => this._refreshBackupList())
@@ -273,8 +271,8 @@ export default class Restore extends Component {
     },
     {
       icon: 'check',
-      individualHandler: this._check,
-      label: 'check backup',
+      individualHandler: this._restoreHealthCheck,
+      label: _('checkBackup'),
       level: 'secondary',
     },
     {
