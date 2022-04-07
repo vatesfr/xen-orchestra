@@ -52,6 +52,7 @@ module.exports = {
           ['/advanced', 'Advanced features'],
           ['/load_balancing', 'VM Load Balancing'],
           ['/sdn_controller', 'SDN Controller'],
+          ['/restapi', 'REST API'],
           ['/xosan', 'XOSANv1'],
           ['/xosanv2', 'XOSANv2'],
         ],
