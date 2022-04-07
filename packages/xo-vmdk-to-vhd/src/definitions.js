@@ -79,33 +79,58 @@ export function unpackHeader(buffer) {
   }
 }
 
-export function createStreamOptimizedHeader(capacitySectors, descriptorSizeSectors, grainDirectoryOffsetSectors = -1) {
+export function createStreamOptimizedHeader(
+  capacitySectors,
+  descriptorSizeSectors,
+  grainDirectoryOffsetSectors = -1,
+  rGrainDirectoryOffsetSectors = 0
+) {
   const headerBuffer = Buffer.alloc(SECTOR_SIZE)
   Buffer.from('KDMV', 'ascii').copy(headerBuffer, 0)
   // version
   headerBuffer.writeUInt32LE(3, 4)
-  // newline, compression, markers
-  const flags = 1 | (1 << 16) | (1 << 17)
+  // newline, secondary grain directory , compression, markers
+  const flags = 1 | (1 << 1) | (1 << 16) | (1 << 17)
   headerBuffer.writeUInt32LE(flags, 8)
+
+  // number of sectors of the full disk
   headerBuffer.writeBigUInt64LE(BigInt(capacitySectors), 12)
+
+  // number of sectors in the data of a grain (uncompressed)
   const grainSizeSectors = 128
   headerBuffer.writeBigUInt64LE(BigInt(grainSizeSectors), 20)
+
+  // offset of the descriptor(should be directly after header which is 1 sector long)
   const descriptorOffsetSectors = 1
   headerBuffer.writeBigUInt64LE(BigInt(descriptorOffsetSectors), 28)
+  // size of the descriptor in sectors
   headerBuffer.writeBigUInt64LE(BigInt(descriptorSizeSectors), 36)
   const numGTEsPerGT = 512
+  // number of entries in a grain table
   headerBuffer.writeUInt32LE(numGTEsPerGT, 44)
-  // The rgdOffset should be ignored because bit 1 of the flags field is not set.
+
+  // redundant grain directory offset
+  headerBuffer.writeBigInt64LE(BigInt(rGrainDirectoryOffsetSectors), 48)
+
+  // grain directory offset in sector
   headerBuffer.writeBigInt64LE(BigInt(grainDirectoryOffsetSectors), 56)
   const grainDirectoryEntries = Math.ceil(Math.ceil(capacitySectors / grainSizeSectors) / numGTEsPerGT)
   const grainTableEntries = grainDirectoryEntries * numGTEsPerGT
   const grainDirectorySizeSectors = Math.ceil((grainDirectoryEntries * 4) / SECTOR_SIZE)
   const grainTableSizeSectors = Math.ceil((grainTableEntries * 4) / SECTOR_SIZE)
-  const overheadSectors = 1 + descriptorSizeSectors + grainDirectorySizeSectors + grainTableSizeSectors
+  let overheadSectors = 1 + descriptorSizeSectors
+  // only grow the header if there really is a grain directory
+  if (grainDirectoryOffsetSectors > 0) {
+    overheadSectors += grainDirectorySizeSectors + grainTableSizeSectors
+  }
+
+  // first offset available for data
   headerBuffer.writeBigInt64LE(BigInt(overheadSectors), 64)
+
   // newline mangling detector
   headerBuffer.write('\n \r\n', 73, 4, 'ascii')
-  // use DEFLATE
+
+  // use DEFLATE compression algorithm
   headerBuffer.writeUInt16LE(1, 77)
   return {
     buffer: headerBuffer,

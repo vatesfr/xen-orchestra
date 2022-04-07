@@ -53,7 +53,17 @@ ddb.geometry.heads = "${geometry.heads}"
 ddb.geometry.cylinders = "${geometry.cylinders}"
 `
   const utf8Descriptor = Buffer.from(descriptor, 'utf8')
-  const descriptorSizeSectors = Math.ceil(utf8Descriptor.length / SECTOR_SIZE)
+
+  // virtual box add some additional properties to the descriptor like:
+  // ddb.uuid.image="9afa1dd0-d966-4279-a762-b7fbb0136308"
+  // ddb.uuid.modification="cd9be63c-4953-44d0-8325-45635a9ca396"
+  // ddb.uuid.parent="00000000-0000-0000-0000-000000000000"
+  // ddb.uuid.parentmodification="00000000-0000-0000-0000-000000000000"
+  //
+  // but does not ensure there is enough free room and overwrite the data (the grain directory), breaking the file
+  //
+  // adding 10 sectors of padding seems to be enough to work-around the issue
+  const descriptorSizeSectors = Math.ceil(utf8Descriptor.length / SECTOR_SIZE) + 10
   const descriptorBuffer = Buffer.alloc(descriptorSizeSectors * SECTOR_SIZE)
   utf8Descriptor.copy(descriptorBuffer)
   const headerData = createStreamOptimizedHeader(diskCapacitySectors, descriptorSizeSectors)
@@ -145,15 +155,28 @@ ddb.geometry.cylinders = "${geometry.cylinders}"
     yield track(descriptorBuffer)
     yield* emitBlocks(grainSizeBytes, blockGenerator)
     yield track(createEmptyMarker(MARKER_GT))
-    const tableOffset = streamPosition
+    let tableOffset = streamPosition
+    // grain tables
     yield track(tableBuffer)
+    // redundant grain directory
+    // virtual box and esxi seems to prefer having both
+    yield track(createEmptyMarker(MARKER_GD))
+    yield track(createDirectoryBuffer(headerData.grainDirectoryEntries, tableOffset))
+    const rDirectoryOffset = directoryOffset
+
+    // grain tables (again)
+    yield track(createEmptyMarker(MARKER_GT))
+    tableOffset = streamPosition
+    yield track(tableBuffer)
+    // main grain directory (same data)
     yield track(createEmptyMarker(MARKER_GD))
     yield track(createDirectoryBuffer(headerData.grainDirectoryEntries, tableOffset))
     yield track(createEmptyMarker(MARKER_FOOTER))
     const footer = createStreamOptimizedHeader(
       diskCapacitySectors,
       descriptorSizeSectors,
-      directoryOffset / SECTOR_SIZE
+      directoryOffset / SECTOR_SIZE,
+      rDirectoryOffset / SECTOR_SIZE
     )
     yield track(footer.buffer)
     yield track(createEmptyMarker(MARKER_EOS))

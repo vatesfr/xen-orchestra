@@ -8,7 +8,7 @@ const { Task } = require('./Task.js')
 const { watchStreamSize } = require('./_watchStreamSize.js')
 
 exports.ImportVmBackup = class ImportVmBackup {
-  constructor({ adapter, metadata, srUuid, xapi, settings: { newMacAddresses, mapVdisSrs } = {} }) {
+  constructor({ adapter, metadata, srUuid, xapi, settings: { newMacAddresses, mapVdisSrs = {} } = {} }) {
     this._adapter = adapter
     this._importDeltaVmSettings = { newMacAddresses, mapVdisSrs }
     this._metadata = metadata
