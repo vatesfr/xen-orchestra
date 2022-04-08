@@ -37,57 +37,32 @@ const computeVhdsSize = (handler, vhdPaths) =>
 // and all the others will deleted
 async function mergeVhdChain(chain, { handler, onLog, remove, merge }) {
   assert(chain.length >= 2)
-
-  let child = chain[0]
-  const parent = chain[chain.length - 1]
-  const children = chain.slice(0, -1).reverse()
-
-  chain
-    .slice(1)
-    .reverse()
-    .forEach(parent => {
-      onLog(`the parent ${parent} of the child ${child} is unused`)
-    })
+  const chainCopy = [...chain]
+  const parent = chainCopy.pop()
+  const children = chainCopy.reverse()
 
   if (merge) {
-    // `mergeVhd` does not work with a stream, either
-    // - make it accept a stream
-    // - or create synthetic VHD which is not a stream
-    if (children.length !== 1) {
-      // TODO: implement merging multiple children
-      children.length = 1
-      child = children[0]
-    }
-
-    onLog(`merging ${child} into ${parent}`)
+    onLog(`merging ${children.length} children into ${parent}`)
 
     let done, total
     const handle = setInterval(() => {
       if (done !== undefined) {
-        onLog(`merging ${child}: ${done}/${total}`)
+        onLog(`merging ${children.join(',')}: ${done}/${total}`)
       }
     }, 10e3)
 
-    const mergedSize = await mergeVhd(
-      handler,
-      parent,
-      handler,
-      child,
-      // children.length === 1
-      //   ? child
-      //   : await createSyntheticStream(handler, children),
-      {
-        onProgress({ done: d, total: t }) {
-          done = d
-          total = t
-        },
-      }
-    )
+    const mergedSize = await mergeVhd(handler, parent, handler, children, {
+      onProgress({ done: d, total: t }) {
+        done = d
+        total = t
+      },
+    })
 
     clearInterval(handle)
+    const mergeTargetChild = children.pop()
     await Promise.all([
-      VhdAbstract.rename(handler, parent, child),
-      asyncMap(children.slice(0, -1), child => {
+      VhdAbstract.rename(handler, parent, mergeTargetChild),
+      asyncMap(children, child => {
         onLog(`the VHD ${child} is unused`)
         if (remove) {
           onLog(`deleting unused VHD ${child}`)
