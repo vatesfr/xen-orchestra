@@ -589,18 +589,6 @@ export default class Xapi extends XapiBase {
     return writeStream
   }
 
-  // Returns a stream to the exported VM.
-  @cancelable
-  async exportVm($cancelToken, vmRef, { compress = false, format = 'xva' } = {}) {
-    // noinspection ES6MissingAwait
-    const promise =
-      format === 'xva'
-        ? this.VM_export(vmRef, { compress, cancelToken: $cancelToken })
-        : this.exportVmOva($cancelToken, vmRef)
-
-    return promise
-  }
-
   // Create a snapshot (if necessary) of the VM and returns a delta export
   // object.
   @cancelable

@@ -7,6 +7,7 @@ import hrp from 'http-request-plus'
 import { createLogger } from '@xen-orchestra/log'
 import { defer } from 'golike-defer'
 import { format } from 'json-rpc-peer'
+import { FAIL_ON_QUEUE } from 'limit-concurrency-decorator'
 import { ignoreErrors } from 'promise-toolbox'
 import { invalidParameters, noSuchObject, operationFailed, unauthorized } from 'xo-common/api-errors.js'
 import { Ref } from 'xen-api'
@@ -1003,12 +1004,11 @@ revert.resolve = {
 
 // -------------------------------------------------------------------
 
-async function handleExport(req, res, { xapi, vmRef, compress, format = 'vhd' }) {
+async function handleExport(req, res, { xapi, vmRef, compress, format = 'xva' }) {
   // @todo : should we put back the handleExportFAIL_ON_QUEUE ?
-  const stream = await xapi.exportVm(vmRef, {
-    compress,
-    format,
-  })
+  const stream =
+    format === 'ova' ? await xapi.exportVmOva(vmRef) : await xapi.VM_export(FAIL_ON_QUEUE, vmRef, { compress })
+
   res.on('close', () => stream.cancel())
   // Remove the filename as it is already part of the URL.
   stream.headers['content-disposition'] = 'attachment'
