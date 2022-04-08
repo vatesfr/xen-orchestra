@@ -163,6 +163,10 @@ class Xapi extends Base {
     return stopWatch
   }
 
+  // Watch an object for changes.
+  //
+  // Predicate can be either an id, a UUID, an opaque reference or a
+  // function.
   watchObject(predicate, cb) {
     if (typeof predicate === 'function') {
       const genericWatchers = this._genericWatchers
