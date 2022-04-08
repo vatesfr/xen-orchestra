@@ -172,6 +172,33 @@ const mdTheme = createTheme({
       main: '#ffc107',
     },
   },
+  typography: {
+    fontFamily: 'inter',
+    h2: {
+      fontWeight: 500,
+      fontSize: '2.25em',
+      fontStyle: 'medium',
+      lineHeight: '3em',
+    },
+    h3: {
+      fontWeight: 500,
+      fontSize: '1.5em',
+      fontStyle: 'medium',
+      lineHeight: '2em',
+    },
+  },
+  components: {
+    MuiTab: {
+      styleOverrides: {
+        root: {
+          color: '#E8E8E8',
+          fontStyle: 'medium',
+          fontSize: '1.25em',
+          textAlign: 'center',
+        },
+      },
+    },
+  },
 })
 
 const FullPage = styledComponent.div`
@@ -312,6 +339,9 @@ const App = withState<State, Props, Effects, Computed, ParentState, ParentEffect
                   )}
                 </Route>
                 <Route exact path='/styleguide'>
+                  <StyleGuide />
+                </Route>
+                <Route exact path='/styleguide/foo'>
                   <StyleGuide />
                 </Route>
                 <Route exact path='/pool'>
