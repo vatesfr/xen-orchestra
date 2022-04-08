@@ -62,3 +62,22 @@ test('It opens a vhd directory', async () => {
     expect(alias.footer.cookie).toEqual('conectix')
   })
 })
+
+test('It opens multiples vhd file as vhd synthetic', async () => {
+  const initalSize = 4
+  const rawFileName = `${tempDir}/randomfile`
+  await createRandomFile(rawFileName, initalSize)
+  const vhdFileNameChild = `${tempDir}/child.vhd`
+  await convertFromRawToVhd(rawFileName, vhdFileNameChild)
+  // new random file
+  await createRandomFile(rawFileName, initalSize)
+  const vhdFileNameParent = `${tempDir}/parent.vhd`
+  await convertFromRawToVhd(rawFileName, vhdFileNameParent)
+
+  await Disposable.use(async function* () {
+    const handler = yield getSyncedHandler({ url: 'file://' })
+    const vhd = yield openVhd(handler, [vhdFileNameChild, vhdFileNameParent])
+    expect(vhd.header.cookie).toEqual('cxsparse')
+    expect(vhd.footer.cookie).toEqual('conectix')
+  })
+})
