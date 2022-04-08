@@ -28,5 +28,11 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
+<!--packages-start-->
+
 - @xen-orchestra/mixins patch
 - xo-server patch
+
+<!--packages-end-->
+
+
