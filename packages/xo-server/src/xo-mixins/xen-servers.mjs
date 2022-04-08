@@ -356,7 +356,7 @@ export default class {
         throw new PoolAlreadyConnected(poolId, serverIdsByPool[poolId], server.id)
       }
 
-      await this._updateFallBackAdresses(xapi).cach(noop)
+      await this._updateFallBackAdresses(xapi).catch(noop)
 
       serverIdsByPool[poolId] = server.id
 
