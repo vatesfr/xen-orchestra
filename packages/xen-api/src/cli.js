@@ -64,7 +64,7 @@ async function main(createClient) {
     // Does not work perfectly.
     //
     // https://github.com/visionmedia/debug/pull/156
-    createDebug.enable('*')
+    createDebug.enable('xen-api,xen-api:*')
   }
 
   let auth

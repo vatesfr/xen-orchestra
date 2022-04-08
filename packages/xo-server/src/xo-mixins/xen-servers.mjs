@@ -14,7 +14,7 @@ import * as XenStore from '../_XenStore.mjs'
 import Xapi from '../xapi/index.mjs'
 import xapiObjectToXo from '../xapi-object-to-xo.mjs'
 import XapiStats from '../xapi-stats.mjs'
-import { camelToSnakeCase, forEach, isEmpty, popProperty } from '../utils.mjs'
+import { camelToSnakeCase, forEach, isEmpty, noop, popProperty } from '../utils.mjs'
 import { Servers } from '../models/server.mjs'
 
 // ===================================================================
@@ -177,7 +177,7 @@ export default class {
       server.set('httpProxy', httpProxy === null ? undefined : httpProxy)
     }
     if (fallbackAddresses !== undefined) {
-      server.set('fallBackAddresses', fallbackAddresses === null ? null : JSON.stringify(fallbackAddresses))
+      server.set('fallBackAddresses', fallbackAddresses === null ? undefined : JSON.stringify(fallbackAddresses))
     }
     await this._servers.update(server)
   }
@@ -300,7 +300,7 @@ export default class {
     })
   }
 
-  async updateFallBackAdresses(xapi) {
+  async _updateFallBackAdresses(xapi) {
     const hosts = await xapi.getAllRecords('host')
     const fallbackAddresses = hosts.map(({ address }) => address)
     for (const host of hosts) {
@@ -356,7 +356,7 @@ export default class {
         throw new PoolAlreadyConnected(poolId, serverIdsByPool[poolId], server.id)
       }
 
-      this.updateFallBackAdresses(xapi)
+      await this._updateFallBackAdresses(xapi).cach(noop)
 
       serverIdsByPool[poolId] = server.id
 
