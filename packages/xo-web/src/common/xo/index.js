@@ -2237,14 +2237,10 @@ export const restoreBackup = (
   return promise
 }
 
-export const checkBackup = (
-  backup,
-  sr,
-  { generateNewMacAddresses = false, mapVdisSrs = {}, startOnRestore = false } = {}
-) => {
+export const checkBackup = (backup, sr, { mapVdisSrs = {} } = {}) => {
   return _call('backupNg.checkBackup', {
     id: resolveId(backup),
-    settings: { mapVdisSrs: resolveIds(mapVdisSrs), newMacAddresses: generateNewMacAddresses },
+    settings: { mapVdisSrs: resolveIds(mapVdisSrs) },
     sr: resolveId(sr),
   })
 }
