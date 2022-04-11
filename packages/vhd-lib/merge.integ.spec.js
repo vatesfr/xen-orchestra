@@ -160,7 +160,8 @@ test('it can resume a merge ', async () => {
 
 test('it merge multiple child in one passe ', async () => {
   const mbOfFather = 8
-  const mbOfChildren = 4
+  const mbOfChildren = 6
+  const mbOfGrandChildren = 4
   const parentRandomFileName = `${tempDir}/randomfile`
   const childRandomFileName = `${tempDir}/small_randomfile`
   const grandChildRandomFileName = `${tempDir}/another_small_randomfile`
@@ -168,7 +169,6 @@ test('it merge multiple child in one passe ', async () => {
   const childFileName = `${tempDir}/child1.vhd`
   const grandChildFileName = `${tempDir}/child2.vhd`
   const handler = getHandler({ url: 'file://' })
-
   await createRandomFile(parentRandomFileName, mbOfFather)
   await convertFromRawToVhd(parentRandomFileName, parentFileName)
 
@@ -176,12 +176,12 @@ test('it merge multiple child in one passe ', async () => {
   await convertFromRawToVhd(childRandomFileName, childFileName)
   await chainVhd(handler, parentFileName, handler, childFileName, true)
 
-  await createRandomFile(grandChildRandomFileName, mbOfChildren)
+  await createRandomFile(grandChildRandomFileName, mbOfGrandChildren)
   await convertFromRawToVhd(grandChildRandomFileName, grandChildFileName)
   await chainVhd(handler, childFileName, handler, grandChildFileName, true)
 
   // merge
-  await vhdMerge(handler, parentFileName, [childFileName, grandChildFileName])
+  await vhdMerge(handler, parentFileName, handler, [grandChildFileName, childFileName])
 
   // check that vhd is still valid
   await checkFile(parentFileName)
@@ -194,11 +194,15 @@ test('it merge multiple child in one passe ', async () => {
   // check that the data are the same as source
   for await (const block of parentVhd.blocks()) {
     const blockContent = block.data
-    const file = offset < mbOfChildren * 1024 * 1024 ? grandChildFileName : parentRandomFileName
+    let file = parentRandomFileName
+    if (offset < mbOfGrandChildren * 1024 * 1024) {
+      file = grandChildRandomFileName
+    } else if (offset < mbOfChildren * 1024 * 1024) {
+      file = childRandomFileName
+    }
     const buffer = Buffer.alloc(blockContent.length)
     const fd = await fs.open(file, 'r')
     await fs.read(fd, buffer, 0, buffer.length, offset)
-
     expect(buffer.equals(blockContent)).toEqual(true)
     offset += parentVhd.header.blockSize
   }

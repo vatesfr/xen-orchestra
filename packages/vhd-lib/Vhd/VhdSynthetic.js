@@ -80,6 +80,9 @@ exports.VhdSynthetic = class VhdSynthetic extends VhdAbstract {
 
   async readBlock(blockId, onlyBitmap = false) {
     const index = this.#vhds.findIndex(vhd => vhd.containsBlock(blockId))
+    if (index === -1) {
+      throw new Error(`no such block ${blockId}`)
+    }
     // only read the content of the first vhd containing this block
     return await this.#vhds[index].readBlock(blockId, onlyBitmap)
   }

@@ -38,7 +38,6 @@ const openVhd = async function openVhd(handler, path, opts) {
   if (Array.isArray(path)) {
     return openVhds(handler, path, opts)
   }
-
   const resolved = await resolveVhdAlias(handler, path)
   try {
     return await VhdFile.open(handler, resolved, opts)

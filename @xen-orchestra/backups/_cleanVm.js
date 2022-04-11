@@ -47,7 +47,7 @@ async function mergeVhdChain(chain, { handler, onLog, remove, merge }) {
     let done, total
     const handle = setInterval(() => {
       if (done !== undefined) {
-        onLog(`merging ${children.join(',')}: ${done}/${total}`)
+        onLog(`merging ${children.join(',')} into ${parent}: ${done}/${total}`)
       }
     }, 10e3)
 
@@ -63,9 +63,9 @@ async function mergeVhdChain(chain, { handler, onLog, remove, merge }) {
     await Promise.all([
       VhdAbstract.rename(handler, parent, mergeTargetChild),
       asyncMap(children, child => {
-        onLog(`the VHD ${child} is unused`)
+        onLog(`the VHD ${child} is already merged`)
         if (remove) {
-          onLog(`deleting unused VHD ${child}`)
+          onLog(`deleting merged VHD ${child}`)
           return VhdAbstract.unlink(handler, child)
         }
       }),
