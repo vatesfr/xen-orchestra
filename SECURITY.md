@@ -2,7 +2,7 @@
 
 ## Supported Versions
 
-We are applying patches and fixing security issues on the following versions:
+We apply patches and fix security issues for the following versions:
 
 | Version | Supported          |
 | ------- | ------------------ |
@@ -13,5 +13,5 @@ We are applying patches and fixing security issues on the following versions:
 
 ## Reporting a Vulnerability
 
-If you detect a vulnerability, you should contact us by sending an email to security at vates dot fr
+If you discover a vulnerability, you should contact us by sending an email to security at vates dot fr
 From there, we'll discuss how to deal with it and prepare a dedicated mitigation.
