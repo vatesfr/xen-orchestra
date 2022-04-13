@@ -551,8 +551,9 @@ export default {
 
       await this.barrier(metricsRef)
       await this._waitObjectState(metricsRef, metrics => metrics.live)
-      const rebootTime = parseDateTime(await this.call('host.get_servertime', host.$ref))
 
+      const getServerTime = async () => parseDateTime(await this.call('host.get_servertime', host.$ref))
+      let rebootTime
       if (isXcp) {
         // On XCP-ng, install patches on each host one by one instead of all at once
         log.debug(`Evacuate host ${hostId}`)
@@ -560,10 +561,12 @@ export default {
         log.debug(`Install patches on host ${hostId}`)
         await this.installPatches({ hosts: [host] })
         log.debug(`Restart host ${hostId}`)
+        rebootTime = await getServerTime()
         await this.callAsync('host.reboot', host.$ref)
       } else {
         // On XS/CH, we only need to evacuate/restart the hosts one by one since patches have already been installed
         log.debug(`Evacuate and restart host ${hostId}`)
+        rebootTime = await getServerTime()
         await this.rebootHost(hostId)
       }
 
