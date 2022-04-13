@@ -7,6 +7,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [Rolling Pool Update] New algorithm for XCP-ng updates (PR [#6188](https://github.com/vatesfr/xen-orchestra/pull/6188))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -36,4 +38,4 @@
 - xen-api minor
 - xo-vmdk-to-vhd minor
 - @xen-orchestra/proxy patch
-- xo-server patch
+- xo-server minor
