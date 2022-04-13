@@ -557,12 +557,15 @@ export default {
         // On XCP-ng, install patches on each host one by one instead of all at once
         log.debug(`Evacuate host ${hostId}`)
         await this.clearHost(host)
-        log.debug(`Install patches and restart host ${hostId}`)
+        log.debug(`Install patches on host ${hostId}`)
         await this.installPatches({ hosts: [host] })
+        log.debug(`Restart host ${hostId}`)
+        await this.callAsync('host.reboot', host.$ref)
       } else {
+        // On XS/CH, we only need to evacuate/restart the hosts one by one since patches have already been installed
         log.debug(`Evacuate and restart host ${hostId}`)
+        await this.rebootHost(hostId)
       }
-      await this.rebootHost(hostId)
 
       log.debug(`Wait for host ${hostId} to be up`)
       await timeout.call(
