@@ -308,6 +308,10 @@ export default {
   // INSTALL -------------------------------------------------------------------
 
   async _xcpUpdate(hosts) {
+    if (hosts === undefined) {
+      hosts = Object.values(this.objects.indexes.type.host)
+    }
+
     // XCP-ng hosts need to be updated one at a time starting with the pool master
     // https://github.com/vatesfr/xen-orchestra/issues/4468
     hosts = hosts.sort(({ $ref }) => ($ref === this.pool.master ? -1 : 1))
