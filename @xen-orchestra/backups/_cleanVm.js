@@ -37,9 +37,10 @@ const computeVhdsSize = (handler, vhdPaths) =>
 // and all the others will deleted
 async function mergeVhdChain(chain, { handler, onLog, remove, merge }) {
   assert(chain.length >= 2)
+  // chain is parent -> child -> grand child > ..
   const chainCopy = [...chain]
   const parent = chainCopy.pop()
-  const children = chainCopy.reverse()
+  const children = chainCopy
 
   if (merge) {
     onLog(`merging ${children.length} children into ${parent}`)
@@ -59,7 +60,7 @@ async function mergeVhdChain(chain, { handler, onLog, remove, merge }) {
     })
 
     clearInterval(handle)
-    const mergeTargetChild = children.pop()
+    const mergeTargetChild = children.shift()
     await Promise.all([
       VhdAbstract.rename(handler, parent, mergeTargetChild),
       asyncMap(children, child => {
