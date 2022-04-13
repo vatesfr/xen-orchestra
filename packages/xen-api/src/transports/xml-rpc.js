@@ -34,7 +34,7 @@ export default ({ secureOptions, url: { hostname, pathname, port, protocol }, ag
   const secure = protocol === 'https:'
   const client = (secure ? createSecureClient : createClient)({
     ...(secure ? secureOptions : undefined),
-    agent,
+    //  agent,
     host: hostname,
     pathname,
     port,

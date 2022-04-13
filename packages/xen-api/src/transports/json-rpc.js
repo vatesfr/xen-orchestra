@@ -18,7 +18,7 @@ export default ({ secureOptions, url, agent }) => {
           'Content-Type': 'application/json',
         },
         pathname: join(url.pathname, 'jsonrpc'),
-        agent,
+        // agent,
       })
       .readAll('utf8')
       .then(
