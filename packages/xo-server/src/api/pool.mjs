@@ -116,7 +116,6 @@ listMissingPatches.resolve = {
 // -------------------------------------------------------------------
 
 export async function installPatches({ pool, patches, hosts }) {
-  const opts = { patches }
   let xapi
   if (pool !== undefined) {
     pool = this.getXapiObject(pool, 'pool')
@@ -127,7 +126,6 @@ export async function installPatches({ pool, patches, hosts }) {
     xapi = hosts[0].$xapi
     pool = xapi.pool
   }
-  opts.hosts = hosts
 
   if (pool.ha_enabled) {
     throw incorrectState({
@@ -138,7 +136,7 @@ export async function installPatches({ pool, patches, hosts }) {
     })
   }
 
-  await xapi.installPatches(opts)
+  await xapi.installPatches({ hosts, patches })
 
   const masterRef = pool.master
   if (moveFirst(hosts, _ => _.$ref === masterRef)) {
