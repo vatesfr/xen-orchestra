@@ -310,8 +310,6 @@ export default {
   async _xcpUpdate(hosts) {
     if (hosts === undefined) {
       hosts = Object.values(this.objects.indexes.type.host)
-    } else {
-      hosts = hosts.map(host => this.getXapiObject(host))
     }
 
     // XCP-ng hosts need to be updated one at a time starting with the pool master

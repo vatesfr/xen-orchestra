@@ -116,16 +116,18 @@ listMissingPatches.resolve = {
 // -------------------------------------------------------------------
 
 export async function installPatches({ pool, patches, hosts }) {
-  let xapi, xapiHosts
+  const opts = { patches }
+  let xapi
   if (pool !== undefined) {
     pool = this.getXapiObject(pool, 'pool')
     xapi = pool.$xapi
-    xapiHosts = Object.values(xapi.objects.indexes.type.host)
+    hosts = Object.values(xapi.objects.indexes.type.host)
   } else {
-    xapiHosts = hosts.map(_ => this.getXapiObject(_))
+    hosts = hosts.map(_ => this.getXapiObject(_))
     xapi = hosts[0].$xapi
     pool = xapi.pool
   }
+  opts.hosts = hosts
 
   if (pool.ha_enabled) {
     throw incorrectState({
@@ -136,14 +138,14 @@ export async function installPatches({ pool, patches, hosts }) {
     })
   }
 
-  await xapi.installPatches({ patches, hosts })
+  await xapi.installPatches(opts)
 
   const masterRef = pool.master
-  if (moveFirst(xapiHosts, _ => _.$ref === masterRef)) {
-    await xapiHosts.shift().$restartAgent()
+  if (moveFirst(hosts, _ => _.$ref === masterRef)) {
+    await hosts.shift().$restartAgent()
   }
 
-  await asyncMap(xapiHosts, host => host.$restartAgent())
+  await asyncMap(hosts, host => host.$restartAgent())
 }
 
 installPatches.params = {
