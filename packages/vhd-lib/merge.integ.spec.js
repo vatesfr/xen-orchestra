@@ -166,8 +166,8 @@ test('it merge multiple child in one passe ', async () => {
   const childRandomFileName = `${tempDir}/small_randomfile`
   const grandChildRandomFileName = `${tempDir}/another_small_randomfile`
   const parentFileName = `${tempDir}/parent.vhd`
-  const childFileName = `${tempDir}/child1.vhd`
-  const grandChildFileName = `${tempDir}/child2.vhd`
+  const childFileName = `${tempDir}/child.vhd`
+  const grandChildFileName = `${tempDir}/grandchild.vhd`
   const handler = getHandler({ url: 'file://' })
   await createRandomFile(parentRandomFileName, mbOfFather)
   await convertFromRawToVhd(parentRandomFileName, parentFileName)

@@ -28,8 +28,10 @@ async function openVhds(handler, paths, opts) {
       }
     }
   }
+  const vhd = new VhdSynthetic(disposables.value)
+  await vhd.readHeaderAndFooter()
   return {
-    value: new VhdSynthetic(disposables.value),
+    value: vhd,
     dispose: disposeOnce,
   }
 }

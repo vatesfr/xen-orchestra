@@ -217,14 +217,12 @@ test('it merges delta of non destroyed chain', async () => {
     loggued.push(message)
   }
   await adapter.cleanVm('/', { remove: true, onLog })
-  expect(loggued[0]).toEqual(`the parent /${basePath}/orphan.vhd of the child /${basePath}/child.vhd is unused`)
-  expect(loggued[1]).toEqual(`incorrect size in metadata: 12000 instead of 209920`)
+  expect(loggued[0]).toEqual(`incorrect size in metadata: 12000 instead of 209920`)
 
   loggued = []
   await adapter.cleanVm('/', { remove: true, merge: true, onLog })
-  const [unused, merging] = loggued
-  expect(unused).toEqual(`the parent /${basePath}/orphan.vhd of the child /${basePath}/child.vhd is unused`)
-  expect(merging).toEqual(`merging /${basePath}/child.vhd into /${basePath}/orphan.vhd`)
+  const [merging] = loggued
+  expect(merging).toEqual(`merging 1 children into /${basePath}/orphan.vhd`)
 
   const metadata = JSON.parse(await handler.readFile(`metadata.json`))
   // size should be the size of children + grand children after the merge

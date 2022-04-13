@@ -10,7 +10,6 @@ const { getSyncedHandler } = require('@xen-orchestra/fs')
 const { SECTOR_SIZE, PLATFORMS } = require('../_constants')
 const { createRandomFile, convertFromRawToVhd } = require('../tests/utils')
 const { openVhd, chainVhd } = require('..')
-const { VhdSynthetic } = require('./VhdSynthetic')
 
 let tempDir = null
 
@@ -40,10 +39,8 @@ test('It can read block and parent locator from a synthetic vhd', async () => {
     // ensure the two VHD are linked, with the child of type DISK_TYPES.DIFFERENCING
     await chainVhd(handler, bigVhdFileName, handler, smallVhdFileName, true)
 
-    const [smallVhd, bigVhd] = yield Disposable.all([
-      openVhd(handler, smallVhdFileName),
-      openVhd(handler, bigVhdFileName),
-    ])
+    const bigVhd = yield openVhd(handler, bigVhdFileName)
+    await bigVhd.readBlockAllocationTable()
     // add parent locato
     // this will also scramble the block inside the vhd files
     await bigVhd.writeParentLocator({
@@ -51,7 +48,14 @@ test('It can read block and parent locator from a synthetic vhd', async () => {
       platformCode: PLATFORMS.W2KU,
       data: Buffer.from('I am in the big one'),
     })
-    const syntheticVhd = new VhdSynthetic([smallVhd, bigVhd])
+    // header changed since thre is a new parent locator
+    await bigVhd.writeHeader()
+    // the footer at the end changed since the block have been moved
+    await bigVhd.writeFooter()
+
+    await bigVhd.readHeaderAndFooter()
+
+    const syntheticVhd = yield openVhd(handler, [smallVhdFileName, bigVhdFileName])
     await syntheticVhd.readBlockAllocationTable()
 
     expect(syntheticVhd.header.diskType).toEqual(bigVhd.header.diskType)

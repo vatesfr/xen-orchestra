@@ -7,7 +7,7 @@ const tmp = require('tmp')
 const { getSyncedHandler } = require('@xen-orchestra/fs')
 const { Disposable, pFromCallback } = require('promise-toolbox')
 
-const { openVhd } = require('./index')
+const { openVhd, chainVhd } = require('./index')
 const { createRandomFile, convertFromRawToVhd, createRandomVhdDirectory } = require('./tests/utils')
 
 const { VhdAbstract } = require('./Vhd/VhdAbstract')
@@ -76,7 +76,8 @@ test('It opens multiples vhd file as vhd synthetic', async () => {
 
   await Disposable.use(async function* () {
     const handler = yield getSyncedHandler({ url: 'file://' })
-    const vhd = yield openVhd(handler, [vhdFileNameChild, vhdFileNameParent])
+    await chainVhd(handler, vhdFileNameParent, handler, vhdFileNameChild, true)
+    const vhd = yield openVhd(handler, [vhdFileNameParent, vhdFileNameChild])
     expect(vhd.header.cookie).toEqual('cxsparse')
     expect(vhd.footer.cookie).toEqual('conectix')
   })

@@ -42,6 +42,7 @@ exports.VhdSynthetic = class VhdSynthetic extends VhdAbstract {
 
   static async open(vhds) {
     const vhd = new VhdSynthetic(vhds)
+    await vhd.readHeaderAndFooter() // check if the chaining is ok
     return {
       dispose: () => {},
       value: vhd,
