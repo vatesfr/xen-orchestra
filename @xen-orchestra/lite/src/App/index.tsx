@@ -198,7 +198,6 @@ const mdTheme = createTheme({
       fontWeight: 500,
       fontSize: '2.25em',
       fontStyle: 'medium',
-      lineHeight: '3em',
     },
     h3: {
       fontWeight: 500,
