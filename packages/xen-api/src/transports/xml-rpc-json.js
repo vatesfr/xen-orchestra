@@ -75,7 +75,7 @@ export default ({ secureOptions, url: { hostname, port, protocol, pathname }, ag
   const secure = protocol === 'https:'
   const client = (secure ? createSecureClient : createClient)({
     ...(secure ? secureOptions : undefined),
-    // agent,
+    agent,
     host: hostname,
     path: join(pathname, 'json'),
     port,

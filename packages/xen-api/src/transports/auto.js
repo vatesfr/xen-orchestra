@@ -32,7 +32,5 @@ export default opts => {
   }
   create()
 
-  return (method, args) => {
-    return call(method, args)
-  }
+  return (method, args) => call(method, args)
 }
