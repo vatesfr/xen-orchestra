@@ -49,6 +49,7 @@ const GridPanel = styled.div`
 `
 
 // TODO: use CircularProgress component when https://github.com/vatesfr/xen-orchestra/pull/6128 is merged.
+// Add a loading page when data is not loaded as it is in the model(figma).
 // FIXME: replace the hard-coded colors with the theme colors.
 const ObjectStatus = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
   {
@@ -56,7 +57,7 @@ const ObjectStatus = withState<State, Props, Effects, Computed, ParentState, Par
       nInactive: (state, { nTotal = 0, nActive = 0 }) => nTotal - nActive,
     },
   },
-  ({ state: { nInactive }, nActive, nTotal = 0, type }) => {
+  ({ state: { nInactive }, nActive = 0, nTotal = 0, type }) => {
     if (nTotal === 0) {
       return (
         <span>

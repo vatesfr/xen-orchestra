@@ -24,7 +24,7 @@ interface Computed {
   pool?: PoolType
 }
 
-// TODO: add tabs when https://github.com/vatesfr/xen-orchestra/pull/6096 is merged
+// TODO: add tabs when https://github.com/vatesfr/xen-orchestra/pull/6096 is merged.
 const Pool = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
   {
     computed: {
