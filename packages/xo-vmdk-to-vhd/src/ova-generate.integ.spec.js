@@ -1,5 +1,5 @@
 /* eslint-env jest */
-import { validateXMLWithXSD } from 'validate-with-xmllint'
+import { spawn } from 'child_process'
 import { createReadStream, createWriteStream, readFile } from 'fs-extra'
 import execa from 'execa'
 import path from 'path'
@@ -21,6 +21,32 @@ afterEach(async () => {
   process.chdir(initialDir)
   await pFromCallback(cb => rimraf(tmpDir, cb))
 })
+// from https://github.com/aautio/validate-with-xmllint/blob/master/src/index.ts
+// that way the test will fail if user does not have xml-lint installed on its os
+// but the XO install will succeed
+
+const exec_xmllint = (input, command) =>
+  new Promise((resolve, reject) => {
+    const xmllint = spawn(command, { shell: true })
+
+    // stdout and stderr are both captured to be made available if the promise rejects
+    let output = ''
+    xmllint.stdout.on('data', chunk => (output += chunk.toString()))
+    xmllint.stderr.on('data', chunk => (output += chunk.toString()))
+
+    // Any errors cause a rejection
+    xmllint.on('error', reject)
+
+    xmllint.on('close', code => {
+      if (code === 0) {
+        return resolve()
+      }
+      return reject(new Error(`xmllint exited with code ${code} when executed with ${command}:\n${output}`))
+    })
+
+    // pipe input to process
+    xmllint.stdin.end(input)
+  })
 
 test('An ova file is generated correctly', async () => {
   const inputRawFileName1 = 'random-data1.raw'
@@ -69,7 +95,10 @@ test('An ova file is generated correctly', async () => {
     const xml = await readFile('vm1.ovf', { encoding: 'utf-8' })
 
     try {
-      await validateXMLWithXSD(xml, path.join(__dirname, 'ova-schema', 'dsp8023_1.1.1.xsd'))
+      await exec_xmllint(
+        xml,
+        `xmllint --schema ${path.join(__dirname, 'ova-schema', 'dsp8023_1.1.1.xsd')} --noout --nonet -`
+      )
       await execa('tar', ['xf', ovaFileName1, vmdkDiskName1])
       await execa('tar', ['xf', ovaFileName1, vmdkDiskName2])
       await execa('qemu-img', ['check', vmdkDiskName1])
