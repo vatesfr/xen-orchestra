@@ -6,6 +6,7 @@ const { join } = require('path')
 const { getVmBackupDir } = require('../_getVmBackupDir.js')
 const MergeWorker = require('../merge-worker/index.js')
 const { formatFilenameDate } = require('../_filenameDate.js')
+const { Task } = require('../Task.js')
 
 const { warn } = createLogger('xo:backups:MixinBackupWriter')
 
@@ -33,6 +34,7 @@ exports.MixinBackupWriter = (BaseClass = Object) =>
         })
       } catch (error) {
         warn(error)
+        Task.warning(`error while cleaning the backup folder : ${error.toString()}`)
         return {}
       }
     }

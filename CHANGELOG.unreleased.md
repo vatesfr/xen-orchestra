@@ -8,6 +8,7 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [VM export] Feat export to `ova` format (PR [#6006](https://github.com/vatesfr/xen-orchestra/pull/6006))
+- [Backup] show more debug in logs (PR [#6194](https://github.com/vatesfr/xen-orchestra/pull/6194))
 
 ### Bug fixes
 
@@ -31,5 +32,6 @@
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
 - xo-vmdk-to-vhd minor
+- xo-server minor
 - xo-server minor
 - xo-web minor
