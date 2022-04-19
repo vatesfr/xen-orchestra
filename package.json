@@ -15,7 +15,7 @@
     "eslint-plugin-promise": "^6.0.0",
     "eslint-plugin-react": "^7.21.5",
     "exec-promise": "^0.7.0",
-    "globby": "^11.0.1",
+    "globby": "^13.1.1",
     "handlebars": "^4.7.6",
     "husky": "^4.2.5",
     "jest": "^27.3.1",

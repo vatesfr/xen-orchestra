@@ -20,6 +20,9 @@
     "node": ">=14"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.54.0",
+    "@aws-sdk/lib-storage": "^3.54.0",
+    "@aws-sdk/node-http-handler": "^3.54.0",
     "@marsaud/smb2": "^0.18.0",
     "@sindresorhus/df": "^3.1.1",
     "@vates/async-each": "^0.1.0",
@@ -27,9 +30,6 @@
     "@vates/decorate-with": "^2.0.0",
     "@xen-orchestra/async-map": "^0.1.2",
     "@xen-orchestra/log": "^0.3.0",
-    "@aws-sdk/client-s3": "^3.54.0",
-    "@aws-sdk/lib-storage": "^3.54.0",
-    "@aws-sdk/node-http-handler": "^3.54.0",
     "bind-property-descriptor": "^2.0.0",
     "decorator-synchronized": "^0.6.0",
     "execa": "^5.0.0",
@@ -52,7 +52,7 @@
     "async-iterator-to-stream": "^1.1.0",
     "babel-plugin-lodash": "^3.3.2",
     "cross-env": "^7.0.2",
-    "dotenv": "^15.0.0",
+    "dotenv": "^16.0.0",
     "rimraf": "^3.0.0"
   },
   "scripts": {
