@@ -251,7 +251,7 @@ export default class XapiConnection extends EventEmitter {
           other_config: { automatic: 'false' },
         })) as string
         await this.barrier(networkRef)
-        $defer.onFailure(async (err: unknown) => {
+        $defer.onFailure(async err => {
           if (networkRef !== undefined) {
             await this.call('network.destroy', networkRef)
           }
