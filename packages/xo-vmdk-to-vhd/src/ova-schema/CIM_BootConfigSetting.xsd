@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<xs:schema xmlns:cim="http://schemas.dmtf.org/wbem/wscim/1/common" xmlns:class="http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/CIM_BootConfigSetting" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" elementFormDefault="qualified" targetNamespace="http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/CIM_BootConfigSetting">
+    <xs:import namespace="http://schemas.dmtf.org/wbem/wscim/1/common" schemaLocation="http://schemas.dmtf.org/wbem/wscim/1/common.xsd"/>
+    <xs:element name="InstanceID" type="cim:cimString"/>
+    <xs:element name="ElementName" type="cim:cimString"/>
+    <xs:element name="ChangeableType" nillable="true">
+        <xs:complexType>
+            <xs:simpleContent>
+                <xs:restriction base="cim:cimUnsignedShort">
+                    <xs:enumeration value="0"/>
+                    <xs:enumeration value="1"/>
+                    <xs:enumeration value="2"/>
+                    <xs:enumeration value="3"/>
+                    <xs:anyAttribute namespace="##any" processContents="lax"/>
+                </xs:restriction>
+            </xs:simpleContent>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="ConfigurationName" nillable="true" type="cim:cimString"/>
+    <xs:element name="ComponentSetting" nillable="true" type="xs:anyType"/>
+    <xs:element name="SoID" nillable="true" type="cim:cimString"/>
+    <xs:element name="SoOrgID" nillable="true" type="cim:cimString"/>
+    <xs:element name="Caption" nillable="true">
+        <xs:complexType>
+            <xs:simpleContent>
+                <xs:restriction base="cim:cimString">
+                    <xs:maxLength value="64"/>
+                    <xs:anyAttribute namespace="##any" processContents="lax"/>
+                </xs:restriction>
+            </xs:simpleContent>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="Description" nillable="true" type="cim:cimString"/>
+    <xs:element name="Generation" nillable="true" type="cim:cimUnsignedLong"/>
+    <xs:element name="ChangeBootOrder_INPUT">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element maxOccurs="unbounded" minOccurs="0" name="Source" nillable="true" type="cim:cimReference"/>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="ChangeBootOrder_OUTPUT">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="Job" nillable="true" type="cim:cimReference"/>
+                <xs:element name="ReturnValue" nillable="true">
+                    <xs:complexType>
+                        <xs:simpleContent>
+                            <xs:restriction base="cim:cimAnySimpleType">
+                                <xs:simpleType>
+                                    <xs:union>
+                                        <xs:simpleType>
+                                            <xs:restriction base="xs:unsignedInt">
+                                                <xs:enumeration value="0"/>
+                                                <xs:enumeration value="1"/>
+                                                <xs:enumeration value="2"/>
+                                                <xs:enumeration value="3"/>
+                                                <xs:enumeration value="4"/>
+                                                <xs:enumeration value="5"/>
+                                                <xs:enumeration value="6"/>
+                                            </xs:restriction>
+                                        </xs:simpleType>
+                                        <xs:simpleType>
+                                            <xs:restriction base="xs:unsignedInt">
+                                                <xs:minInclusive value="7"/>
+                                                <xs:maxInclusive value="32767"/>
+                                            </xs:restriction>
+                                        </xs:simpleType>
+                                        <xs:simpleType>
+                                            <xs:restriction base="xs:unsignedInt">
+                                                <xs:minInclusive value="32768"/>
+                                                <xs:maxInclusive value="65535"/>
+                                            </xs:restriction>
+                                        </xs:simpleType>
+                                    </xs:union>
+                                </xs:simpleType>
+                                <xs:anyAttribute namespace="##any" processContents="lax"/>
+                            </xs:restriction>
+                        </xs:simpleContent>
+                    </xs:complexType>
+                </xs:element>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="ValidateSettings_INPUT">
+        <xs:complexType/>
+    </xs:element>
+    <xs:element name="ValidateSettings_OUTPUT">
+        <xs:complexType>
+            <xs:sequence>
+                <xs:element name="ReturnValue" nillable="true">
+                    <xs:complexType>
+                        <xs:simpleContent>
+                            <xs:restriction base="cim:cimAnySimpleType">
+                                <xs:simpleType>
+                                    <xs:union>
+                                        <xs:simpleType>
+                                            <xs:restriction base="xs:unsignedInt">
+                                                <xs:enumeration value="0"/>
+                                                <xs:enumeration value="1"/>
+                                                <xs:enumeration value="2"/>
+                                                <xs:enumeration value="3"/>
+                                            </xs:restriction>
+                                        </xs:simpleType>
+                                        <xs:simpleType>
+                                            <xs:restriction base="xs:unsignedInt">
+                                                <xs:minInclusive value="4"/>
+                                                <xs:maxInclusive value="32767"/>
+                                            </xs:restriction>
+                                        </xs:simpleType>
+                                        <xs:simpleType>
+                                            <xs:restriction base="xs:unsignedInt">
+                                                <xs:minInclusive value="32768"/>
+                                                <xs:maxInclusive value="65535"/>
+                                            </xs:restriction>
+                                        </xs:simpleType>
+                                    </xs:union>
+                                </xs:simpleType>
+                                <xs:anyAttribute namespace="##any" processContents="lax"/>
+                            </xs:restriction>
+                        </xs:simpleContent>
+                    </xs:complexType>
+                </xs:element>
+            </xs:sequence>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="CIM_BootConfigSetting" type="class:CIM_BootConfigSetting_Type"/>
+    <xs:complexType name="CIM_BootConfigSetting_Type">
+        <xs:sequence>
+            <xs:element minOccurs="0" ref="class:Caption"/>
+            <xs:element minOccurs="0" ref="class:ChangeableType"/>
+            <xs:element maxOccurs="unbounded" minOccurs="0" ref="class:ComponentSetting"/>
+            <xs:element minOccurs="0" ref="class:ConfigurationName"/>
+            <xs:element minOccurs="0" ref="class:Description"/>
+            <xs:element ref="class:ElementName"/>
+            <xs:element minOccurs="0" ref="class:Generation"/>
+            <xs:element ref="class:InstanceID"/>
+            <xs:element minOccurs="0" ref="class:SoID"/>
+            <xs:element minOccurs="0" ref="class:SoOrgID"/>
+            <xs:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax"/>
+        </xs:sequence>
+        <xs:anyAttribute namespace="##any" processContents="lax"/>
+    </xs:complexType>
+</xs:schema>

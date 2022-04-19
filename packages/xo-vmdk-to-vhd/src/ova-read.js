@@ -141,7 +141,7 @@ const filterDisks = disks => {
   }
 }
 
-async function parseOVF(fileFragment, stringDeserializer) {
+export async function parseOVF(fileFragment, stringDeserializer) {
   const xmlString = stringDeserializer(await fileFragment.read(), 'utf-8')
   return new Promise((resolve, reject) =>
     xml2js.parseString(

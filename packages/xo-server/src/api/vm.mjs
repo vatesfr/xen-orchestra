@@ -6,8 +6,8 @@ import getStream from 'get-stream'
 import hrp from 'http-request-plus'
 import { createLogger } from '@xen-orchestra/log'
 import { defer } from 'golike-defer'
-import { FAIL_ON_QUEUE } from 'limit-concurrency-decorator'
 import { format } from 'json-rpc-peer'
+import { FAIL_ON_QUEUE } from 'limit-concurrency-decorator'
 import { ignoreErrors } from 'promise-toolbox'
 import { invalidParameters, noSuchObject, operationFailed, unauthorized } from 'xo-common/api-errors.js'
 import { Ref } from 'xen-api'
@@ -1004,10 +1004,11 @@ revert.resolve = {
 
 // -------------------------------------------------------------------
 
-async function handleExport(req, res, { xapi, vmRef, compress }) {
-  const stream = await xapi.VM_export(FAIL_ON_QUEUE, vmRef, {
-    compress,
-  })
+async function handleExport(req, res, { xapi, vmRef, compress, format = 'xva' }) {
+  // @todo : should we put back the handleExportFAIL_ON_QUEUE ?
+  const stream =
+    format === 'ova' ? await xapi.exportVmOva(vmRef) : await xapi.VM_export(FAIL_ON_QUEUE, vmRef, { compress })
+
   res.on('close', () => stream.cancel())
   // Remove the filename as it is already part of the URL.
   stream.headers['content-disposition'] = 'attachment'
@@ -1017,7 +1018,7 @@ async function handleExport(req, res, { xapi, vmRef, compress }) {
 }
 
 // TODO: integrate in xapi.js
-async function export_({ vm, compress }) {
+async function export_({ vm, compress, format = 'xva' }) {
   if (vm.power_state === 'Running') {
     await checkPermissionOnSrs.call(this, vm)
   }
@@ -1026,11 +1027,12 @@ async function export_({ vm, compress }) {
     xapi: this.getXapi(vm),
     vmRef: vm._xapiRef,
     compress,
+    format,
   }
 
   return {
     $getFrom: await this.registerHttpRequest(handleExport, data, {
-      suffix: '/' + encodeURIComponent(`${safeDateFormat(new Date())} - ${vm.name_label}.xva`),
+      suffix: '/' + encodeURIComponent(`${safeDateFormat(new Date())} - ${vm.name_label}.${format}`),
     }),
   }
 }
@@ -1038,6 +1040,7 @@ async function export_({ vm, compress }) {
 export_.params = {
   vm: { type: 'string' },
   compress: { type: ['boolean', 'string'], optional: true },
+  format: { enum: ['xva', 'ova'], optional: true },
 }
 
 export_.resolve = {
@@ -1060,6 +1063,7 @@ async function handleVmImport(req, res, { data, srId, type, xapi }) {
   // Timeout seems to be broken in Node 4.
   // See https://github.com/nodejs/node/issues/3319
   req.setTimeout(43200000) // 12 hours
+
   // expect "multipart/form-data; boundary=something"
   const contentType = req.headers['content-type']
   const vm = await (contentType !== undefined && contentType.startsWith('multipart/form-data')
