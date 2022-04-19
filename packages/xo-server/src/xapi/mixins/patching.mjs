@@ -308,6 +308,10 @@ export default {
   // INSTALL -------------------------------------------------------------------
 
   async _xcpUpdate(hosts) {
+    if (hosts === undefined) {
+      hosts = Object.values(this.objects.indexes.type.host)
+    }
+
     // XCP-ng hosts need to be updated one at a time starting with the pool master
     // https://github.com/vatesfr/xen-orchestra/issues/4468
     hosts = hosts.sort(({ $ref }) => ($ref === this.pool.master ? -1 : 1))
@@ -478,6 +482,8 @@ export default {
 
   @decorateWith(deferrable)
   async rollingPoolUpdate($defer) {
+    const isXcp = _isXcp(this.pool.$master)
+
     if (this.pool.ha_enabled) {
       const haSrs = this.pool.$ha_statefiles.map(vdi => vdi.SR)
       const haConfig = this.pool.ha_configuration
@@ -502,8 +508,11 @@ export default {
 
     await Promise.all(hosts.map(host => host.$call('assert_can_evacuate')))
 
-    log.debug('Install patches')
-    await this.installPatches()
+    // On XS/CH, start by installing patches on all hosts
+    if (!isXcp) {
+      log.debug('Install patches')
+      await this.installPatches()
+    }
 
     // Remember on which hosts the running VMs are
     const vmsByHost = mapValues(
@@ -542,10 +551,24 @@ export default {
 
       await this.barrier(metricsRef)
       await this._waitObjectState(metricsRef, metrics => metrics.live)
-      const rebootTime = parseDateTime(await this.call('host.get_servertime', host.$ref))
 
-      log.debug(`Evacuate and restart host ${hostId}`)
-      await this.rebootHost(hostId)
+      const getServerTime = async () => parseDateTime(await this.call('host.get_servertime', host.$ref))
+      let rebootTime
+      if (isXcp) {
+        // On XCP-ng, install patches on each host one by one instead of all at once
+        log.debug(`Evacuate host ${hostId}`)
+        await this.clearHost(host)
+        log.debug(`Install patches on host ${hostId}`)
+        await this.installPatches({ hosts: [host] })
+        log.debug(`Restart host ${hostId}`)
+        rebootTime = await getServerTime()
+        await this.callAsync('host.reboot', host.$ref)
+      } else {
+        // On XS/CH, we only need to evacuate/restart the hosts one by one since patches have already been installed
+        log.debug(`Evacuate and restart host ${hostId}`)
+        rebootTime = await getServerTime()
+        await this.rebootHost(hostId)
+      }
 
       log.debug(`Wait for host ${hostId} to be up`)
       await timeout.call(

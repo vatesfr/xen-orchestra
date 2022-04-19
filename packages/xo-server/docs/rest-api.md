@@ -1,11 +1,14 @@
+# REST API <!-- omit in toc -->
+
 - [Authentication](#authentication)
 - [Collections](#collections)
 - [VM Export](#vm-export)
 - [VDI Export](#vdi-export)
+- [The future](#the-future)
 
 > This [REST](https://en.wikipedia.org/wiki/Representational_state_transfer)-oriented API is experimental. Non-backward compatible changes or removal may occur in any future release. Use of the feature is not recommended in production environments.
 
-### Authentication
+## Authentication
 
 A valid authentication token should be attached as a cookie to all HTTP
 requests:
@@ -17,7 +20,7 @@ Cookie: authenticationToken=TN2YBOMYtXB_hHtf4wTzm9p5tTuqq2i15yeuhcz2xXM
 
 The server will respond to an invalid token with a `401 Unauthorized` status.
 
-The server can request the client to update its token with a `Set-Cookie` header:
+The server can request that the client updates its token with a `Set-Cookie` header:
 
 ```http
 HTTP/1.1 200 OK
@@ -26,14 +29,16 @@ Set-Cookie: authenticationToken=KQxQdm2vMiv7jBIK0hgkmgxKzemd8wSJ7ugFGKFkTbs
 
 Usage with cURL:
 
-```
-curl -b authenticationToken=KQxQdm2vMiv7jBIK0hgkmgxKzemd8wSJ7ugFGKFkTbs https://xo.company.lan/rest/v0/
+```bash
+curl -b \
+  authenticationToken=KQxQdm2vMiv7jBIK0hgkmgxKzemd8wSJ7ugFGKFkTbs \
+  https://xo.company.lan/rest/v0/
 ```
 
 You can use `xo-cli` to create an authentication token:
 
-```
-> xo-cli --createToken xoa.company.lan admin@admin.net
+```bash
+$ xo-cli --createToken xoa.company.lan admin@admin.net
 Password: ********
 Successfully logged with admin@admin.net
 Authentication token created
@@ -43,11 +48,11 @@ DiYBFavJwf9GODZqQJs23eAx9eh3KlsRhBi8RcoX0KM
 
 > Only admin users can currently use the API.
 
-### Collections
+## Collections
 
 Collections of objects are available at `/<name>` (e.g. `/vms`)
 
-Following query parameters are supported:
+The following query parameters are supported:
 
 - `limit`: max number of objects returned
 - `fields`: if specified, instead of plain URLs, the results will be objects containing the requested fields
@@ -56,7 +61,7 @@ Following query parameters are supported:
 
 Simple request:
 
-```
+```http
 GET /rest/v0/vms HTTP/1.1
 Cookie: authenticationToken=TN2YBOMYtXB_hHtf4wTzm9p5tTuqq2i15yeuhcz2xXM
 
@@ -94,7 +99,7 @@ Content-Type: application/json
 
 As NDJSON:
 
-```
+```http
 GET /rest/v0/vms?fields=name_label,power_state&ndjson HTTP/1.1
 Cookie: authenticationToken=TN2YBOMYtXB_hHtf4wTzm9p5tTuqq2i15yeuhcz2xXM
 
@@ -105,7 +110,7 @@ Content-Type: application/x-ndjson
 {"name_label":"Debian 10 Cloudinit self-service","power_state":"Halted","url":"/rest/v0/vms/5019156b-f40d-bc57-835b-4a259b177be1"}
 ```
 
-### VM Export
+## VM Export
 
 A VM can be exported as an XVA at `/rest/v0/vms/<uuid>.xva`.
 
@@ -114,20 +119,24 @@ By default, the XVA is not compressed, however the `compress` query parameter su
 - `gzip`: use [gzip](https://en.wikipedia.org/wiki/Gzip) compression (very slow)
 - `zstd`: use [Zstandard](https://en.wikipedia.org/wiki/Zstd) compression (fast, only supported on XCP-ng)
 
-```
+```bash
 curl \
   -b authenticationToken=KQxQdm2vMiv7jBIK0hgkmgxKzemd8wSJ7ugFGKFkTbs \
   'https://xo.company.lan/rest/v0/vms/770aa52a-fd42-8faf-f167-8c5c4a237cac.xva?compress=zstd' \
-  > export.xva
+  > myVM.xva
 ```
 
-### VDI Export
+## VDI Export
 
 A VM can be exported as an VHD at `/rest/v0/vdis/<uuid>.vhd`.
 
-```
+```bash
 curl \
   -b authenticationToken=KQxQdm2vMiv7jBIK0hgkmgxKzemd8wSJ7ugFGKFkTbs \
   'https://xo.company.lan/rest/v0/vdis/1a269782-ea93-4c4c-897a-475365f7b674.vhd' \
-  > export.vhd
+  > myDisk.vhd
 ```
+
+## The future
+
+We are adding features and improving the REST API step by step. If you have interesting use cases or feedback, please ask directly at <https://xcp-ng.org/forum/category/12/xen-orchestra>

@@ -15,7 +15,7 @@
     "eslint-plugin-promise": "^6.0.0",
     "eslint-plugin-react": "^7.21.5",
     "exec-promise": "^0.7.0",
-    "globby": "^11.0.1",
+    "globby": "^13.1.1",
     "handlebars": "^4.7.6",
     "husky": "^4.2.5",
     "jest": "^27.3.1",
@@ -32,7 +32,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "lint-staged && scripts/lint-staged"
+      "pre-commit": "lint-staged && scripts/lint-staged.js"
     }
   },
   "jest": {
@@ -72,10 +72,10 @@
   },
   "private": true,
   "scripts": {
-    "build": "scripts/run-script --parallel build",
+    "build": "scripts/run-script.js --parallel build",
     "ci": "yarn && yarn test-integration",
-    "clean": "scripts/run-script --parallel clean",
-    "dev": "scripts/run-script --parallel dev",
+    "clean": "scripts/run-script.js --parallel clean",
+    "dev": "scripts/run-script.js --parallel dev",
     "dev-test": "jest --bail --watch \"^(?!.*\\.integ\\.spec\\.js$)\"",
     "docs:dev": "vuepress dev docs",
     "docs:build": "vuepress build docs",
@@ -83,8 +83,8 @@
     "test": "npm run test-lint && npm run test-unit",
     "test-integration": "jest \".integ\\.spec\\.js$\"",
     "test-lint": "eslint --ignore-path .gitignore .",
-    "test-unit": "jest \"^(?!.*\\.integ\\.spec\\.js$)\" && scripts/run-script test",
-    "travis-tests": "scripts/travis-tests"
+    "test-unit": "jest \"^(?!.*\\.integ\\.spec\\.js$)\" && scripts/run-script.js test",
+    "travis-tests": "scripts/travis-tests.js"
   },
   "workspaces": [
     "@*/*",
