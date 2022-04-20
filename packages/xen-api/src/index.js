@@ -761,7 +761,53 @@ export class Xapi extends EventEmitter {
     return error
   }
 
-  async _call(method, args, timeout = this._callTimeout(method, args)) {
+  _call(method, args, timeout = this._callTimeout(method, args)) {
+    return this._guardedCall([method, args, timeout])
+  }
+
+  _callGuard = undefined
+
+  _cleanCallGuard = () => {
+    this._callGuard = undefined
+  }
+
+  async _acquireCallGuard() {
+    const guard = this._callGuard
+    if (guard !== undefined) {
+      debug('waiting guard')
+      await guard
+      return
+    }
+    debug('guard acquired')
+
+    const { promise, resolve, reject } = defer()
+    promise.then(this._cleanCallGuard, this._cleanCallGuard)
+    this._callGuard = promise
+    return { resolve, reject }
+  }
+
+  async _guardedCall(args, ignoredErrors = new Set()) {
+    await this._callGuard
+
+    try {
+      return await this._unsafeCall(args)
+    } catch (error) {
+      const { code } = error
+      if (code === 'HOST_IS_SLAVE') {
+        const guard = await this._acquireCallGuard()
+        if (guard !== undefined) {
+          this._setUrl({ ...this._url, hostname: error.params[0] })
+          guard.resolve()
+        }
+
+        return this._guardedCall(args)
+      }
+
+      throw error
+    }
+  }
+
+  async _unsafeCall([method, args, timeout]) {
     const startTime = Date.now()
     try {
       const result = await pTimeout.call(this._addSyncStackTrace(this._transport(method, args)), timeout)
@@ -850,13 +896,6 @@ export class Xapi extends EventEmitter {
   // 3. the session is renewed
   // 4. the second call fails with SESSION_INVALID which leads to a new
   //    unnecessary renewal
-  _sessionOpenRetryOptions = {
-    tries: 2,
-    when: [{ code: 'HOST_IS_SLAVE' }],
-    onRetry: async error => {
-      this._setUrl({ ...this._url, hostname: error.params[0] })
-    },
-  }
   _sessionOpen = coalesceCalls(this._sessionOpen)
   // eslint-disable-next-line no-dupe-class-members
   async _sessionOpen() {
@@ -866,20 +905,14 @@ export class Xapi extends EventEmitter {
 
     if (sessionId === undefined) {
       const params = [user, password]
-      this._sessionId = await pRetry(
-        () => this._interruptOnDisconnect(this._call('session.login_with_password', params)),
-        this._sessionOpenRetryOptions
-      )
+      this._sessionId = await this._interruptOnDisconnect(this._call('session.login_with_password', params))
     }
 
     const oldPoolRef = this._pool?.$ref
 
     // Similar to `(await this.getAllRecords('pool'))[0]` but prevents a
     // deadlock in case of error due to a pRetry calling _sessionOpen again
-    const pools = await pRetry(
-      () => this._call('pool.get_all_records', [this._sessionId]),
-      this._sessionOpenRetryOptions
-    )
+    const pools = await this._call('pool.get_all_records', [this._sessionId])
     const poolRef = Object.keys(pools)[0]
     this._pool = this._wrapRecord('pool', poolRef, pools[poolRef])
 
