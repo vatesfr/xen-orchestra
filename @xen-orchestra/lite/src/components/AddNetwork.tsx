@@ -2,7 +2,7 @@ import AddIcon from '@mui/icons-material/Add'
 import React from 'react'
 import SettingsBackupRestoreIcon from '@mui/icons-material/SettingsBackupRestore'
 import { Map } from 'immutable'
-import { FormControl, FormHelperText, SelectChangeEvent, styled } from '@mui/material'
+import { FormControl, FormHelperText, styled } from '@mui/material'
 import { withState } from 'reaclette'
 
 import ActionButton from './ActionButton'
@@ -14,6 +14,14 @@ import Select from './Select'
 import { alert } from './Modal'
 
 import XapiConnection, { BOND_MODE, ObjectsByType, Pif, PifMetrics } from '../libs/xapi'
+import {
+  LinkState,
+  LinkStateEffect,
+  linkStateEffect,
+  ToggleState,
+  ToggleStateEffect,
+  toggleStateEffect,
+} from '../utils/stateManagement'
 
 interface ParentState {
   objectsByType: ObjectsByType
@@ -44,9 +52,9 @@ interface ParentEffects {}
 
 interface Effects {
   createNetwork: () => Promise<void>
-  handleChange: (e: SelectChangeEvent<unknown> | React.ChangeEvent<{ name: string; value: unknown }>) => void
   resetForm: () => void
-  toggleBonded: () => void
+  _linkState: LinkStateEffect
+  _toggleState: ToggleStateEffect
 }
 
 interface Computed {
@@ -163,38 +171,15 @@ const AddNetwork = withState<State, Props, Effects, Computed, ParentState, Paren
           }
         }
       },
-      handleChange: function ({ target: { name, value } }) {
-        const { form } = this.state
-        if (name === 'bondMode') {
-          form.isEmptyBondMode = false
-        }
-        if (name === 'nameLabel') {
-          form.isEmptyLabel = false
-        }
-        if (name === 'pifIds') {
-          form.isInterfacesLimit = false
-          value = form.isBonded ? value : [value]
-        }
-
-        this.state.form = {
-          ...form,
-          [name]: value === '' ? undefined : value,
-        }
-      },
       resetForm: function () {
         this.state.form = getInitialFormState()
       },
-      toggleBonded: function () {
-        const isBonded = !this.state.form.isBonded
-        this.state.form = {
-          ...this.state.form,
-          isBonded,
-        }
-      },
+      _linkState: linkStateEffect,
+      _toggleState: toggleStateEffect,
     },
   },
   ({
-    effects: { createNetwork, handleChange, resetForm, toggleBonded },
+    effects: { createNetwork, resetForm, _linkState, _toggleState },
     state: {
       filteredPifs,
       pifsMetrics,
@@ -213,115 +198,122 @@ const AddNetwork = withState<State, Props, Effects, Computed, ParentState, Paren
         vlan,
       },
     },
-  }) => (
-    <form
-      style={{
-        width: '20em',
-      }}
-    >
-      <label>
-        <IntlMessage id='bondedNetwork' />
-      </label>
-      <Checkbox checked={isBonded} name='bonded' onChange={toggleBonded} />
-      <div>
-        <StyledFormControl error={isInterfacesLimit}>
-          <StyledLabel error={isInterfacesLimit}>
-            <IntlMessage id='interface' values={{ nInterfaces: isBonded ? 2 : 1 }} />
-            {isBonded && ' *'}
-          </StyledLabel>
-          <Select
-            additionalProps={{ pifsMetrics }}
-            error={isInterfacesLimit}
-            multiple={isBonded}
-            name='pifIds'
-            onChange={handleChange}
-            optionRenderer={pifOptionRenderer}
-            options={filteredPifs}
-            required={isBonded}
-            value={isBonded ? pifIds : pifIds[0]}
-          />
-          {isInterfacesLimit && (
-            <FormHelperText>
-              <IntlMessage id='errorBondedNetworkCreationPifs' />
-            </FormHelperText>
-          )}
-        </StyledFormControl>
-      </div>
-      <StyledFormControl error={isEmptyLabel}>
-        <Input
-          error={isEmptyLabel}
-          label={<IntlMessage id='name' />}
-          name='nameLabel'
-          onChange={handleChange}
-          required
-          value={nameLabel}
-        />
-        {isEmptyLabel && (
-          <FormHelperText>
-            <IntlMessage id='errorNetworkCreationName' />
-          </FormHelperText>
-        )}
-      </StyledFormControl>
-
-      <StyledFormControl>
-        <Input
-          label={<IntlMessage id='description' />}
-          name='description'
-          onChange={handleChange}
-          type='text'
-          value={description}
-        />
-      </StyledFormControl>
-      <StyledFormControl>
-        <Input
-          helperText={<IntlMessage id='defaultValue' values={{ value: 1500 }} />}
-          label={<IntlMessage id='mtu' />}
-          name='mtu'
-          onChange={handleChange}
-          type='number'
-          value={mtu}
-        />
-      </StyledFormControl>
-
-      {isBonded ? (
-        <StyledFormControl error={isEmptyBondMode}>
-          <StyledLabel error={isEmptyBondMode}>
-            <IntlMessage id='bondMode' /> *
-          </StyledLabel>
-          <Select
-            error={isEmptyBondMode}
-            name='bondMode'
-            onChange={handleChange}
-            options={BOND_MODE}
+  }) => {
+    const linkState: LinkState = (name, customValue) => e => _linkState(name, e, customValue)
+    const toggleState: ToggleState = name => () => _toggleState(name)
+    return (
+      <form
+        style={{
+          width: '20em',
+        }}
+      >
+        <label>
+          <IntlMessage id='bondedNetwork' />
+        </label>
+        <Checkbox checked={isBonded} name='bonded' state-path='form' onChange={toggleState('form.isBonded')} />
+        <div>
+          <StyledFormControl error={isInterfacesLimit}>
+            <StyledLabel error={isInterfacesLimit}>
+              <IntlMessage id='interface' values={{ nInterfaces: isBonded ? 2 : 1 }} />
+              {isBonded && ' *'}
+            </StyledLabel>
+            <Select
+              additionalProps={{ pifsMetrics }}
+              error={isInterfacesLimit}
+              multiple={isBonded}
+              name='pifIds'
+              onChange={linkState('form.pifIds', ev => {
+                const { value } = ev.target
+                return isBonded ? value : [value]
+              })}
+              optionRenderer={pifOptionRenderer}
+              options={filteredPifs}
+              required={isBonded}
+              value={isBonded ? pifIds : pifIds[0]}
+            />
+            {isInterfacesLimit && (
+              <FormHelperText>
+                <IntlMessage id='errorBondedNetworkCreationPifs' />
+              </FormHelperText>
+            )}
+          </StyledFormControl>
+        </div>
+        <StyledFormControl error={isEmptyLabel}>
+          <Input
+            error={isEmptyLabel}
+            label={<IntlMessage id='name' />}
+            name='nameLabel'
+            onChange={linkState('form.nameLabel')}
             required
-            value={bondMode}
+            value={nameLabel}
           />
-          {isEmptyBondMode && (
+          {isEmptyLabel && (
             <FormHelperText>
-              <IntlMessage id='errorBondedNetworkCreationBond' />
+              <IntlMessage id='errorNetworkCreationName' />
             </FormHelperText>
           )}
         </StyledFormControl>
-      ) : (
+
         <StyledFormControl>
           <Input
-            helperText={<IntlMessage id='vlanPlaceholder' />}
-            label={<IntlMessage id='vlan' />}
-            name='vlan'
-            onChange={handleChange}
-            type='number'
-            value={vlan}
+            label={<IntlMessage id='description' />}
+            name='description'
+            onChange={linkState('form.description')}
+            type='text'
+            value={description}
           />
         </StyledFormControl>
-      )}
-      <ActionButton color='success' onClick={createNetwork} startIcon={<AddIcon />} sx={BUTTON_STYLES}>
-        <IntlMessage id='create' />
-      </ActionButton>
-      <Button disabled={isLoading} onClick={resetForm} startIcon={<SettingsBackupRestoreIcon />} sx={BUTTON_STYLES}>
-        <IntlMessage id='reset' />
-      </Button>
-    </form>
-  )
+        <StyledFormControl>
+          <Input
+            helperText={<IntlMessage id='defaultValue' values={{ value: 1500 }} />}
+            label={<IntlMessage id='mtu' />}
+            name='mtu'
+            onChange={linkState('form.mtu')}
+            type='number'
+            value={mtu}
+          />
+        </StyledFormControl>
+
+        {isBonded ? (
+          <StyledFormControl error={isEmptyBondMode}>
+            <StyledLabel error={isEmptyBondMode}>
+              <IntlMessage id='bondMode' /> *
+            </StyledLabel>
+            <Select
+              error={isEmptyBondMode}
+              name='bondMode'
+              onChange={linkState('form.bondMode')}
+              options={BOND_MODE}
+              required
+              value={bondMode}
+            />
+            {isEmptyBondMode && (
+              <FormHelperText>
+                <IntlMessage id='errorBondedNetworkCreationBond' />
+              </FormHelperText>
+            )}
+          </StyledFormControl>
+        ) : (
+          <StyledFormControl>
+            <Input
+              helperText={<IntlMessage id='vlanPlaceholder' />}
+              label={<IntlMessage id='vlan' />}
+              name='vlan'
+              onChange={linkState('form.vlan')}
+              type='number'
+              value={vlan}
+            />
+          </StyledFormControl>
+        )}
+        <ActionButton color='success' onClick={createNetwork} startIcon={<AddIcon />} sx={BUTTON_STYLES}>
+          <IntlMessage id='create' />
+        </ActionButton>
+        <Button disabled={isLoading} onClick={resetForm} startIcon={<SettingsBackupRestoreIcon />} sx={BUTTON_STYLES}>
+          <IntlMessage id='reset' />
+        </Button>
+      </form>
+    )
+  }
 )
 
 export default AddNetwork
