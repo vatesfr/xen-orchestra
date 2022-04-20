@@ -8,6 +8,7 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [VM export] Feat export to `ova` format (PR [#6006](https://github.com/vatesfr/xen-orchestra/pull/6006))
+- [Proxy] Disable "Deploy proxy" button for source users (PR [#6199](https://github.com/vatesfr/xen-orchestra/pull/6199))
 
 ### Bug fixes
 

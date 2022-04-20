@@ -27,6 +27,7 @@ import Page from '../page'
 
 import deployProxy from './deploy-proxy'
 import { updateApplianceSettings } from './update-appliance-settings'
+
 import { getXoaPlan, SOURCES } from '../../common/xoa-plans'
 
 const _editProxy = (value, { name, proxy }) => editProxyAppliance(proxy, { [name]: value })
@@ -231,6 +232,9 @@ const Proxies = decorate([
         return fetchProxyUpgrades([id])
       },
     },
+    computed: {
+      isFromSource: () => getXoaPlan() === SOURCES,
+    },
   }),
   withRouter,
   injectState,
@@ -240,10 +244,10 @@ const Proxies = decorate([
         <div className='mt-1 mb-1'>
           <ActionButton
             btnStyle='success'
+            disabled={state.isFromSource}
             handler={effects.deployProxy}
             icon='proxy'
             size='large'
-            disabled={getXoaPlan() === SOURCES}
           >
             {_('deployProxy')}
           </ActionButton>
