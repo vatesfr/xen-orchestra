@@ -25,7 +25,7 @@ afterEach(async () => {
 // that way the test will fail if user does not have xml-lint installed on its os
 // but the XO install will succeed
 
-const exec_xmllint = (input, args) =>
+const execXmllint = (input, args) =>
   new Promise((resolve, reject) => {
     const xmllint = spawn('xmllint', args)
 
@@ -97,7 +97,7 @@ test('An ova file is generated correctly', async () => {
     const xml = await readFile('vm1.ovf', { encoding: 'utf-8' })
 
     try {
-      await exec_xmllint(xml, [
+      await execXmllint(xml, [
         '--schema',
         path.join(__dirname, 'ova-schema', 'dsp8023_1.1.1.xsd'),
         '--noout',
