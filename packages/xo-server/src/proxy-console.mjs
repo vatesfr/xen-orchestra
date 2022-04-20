@@ -75,7 +75,9 @@ export default function proxyConsole(ws, vmConsole, sessionId, agent) {
     })
     .on('close', () => {
       closed = true
-      opened === true && ws.close()
+      if (opened) {
+        ws.close()
+      }
     })
 }
 
