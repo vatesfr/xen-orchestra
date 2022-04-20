@@ -104,7 +104,6 @@ function createNicsSection(nics) {
         <rasd:ElementName>Connection to ${nic.networkName}</rasd:ElementName>
         <rasd:InstanceID>${'nic' + i}</rasd:InstanceID>
         <rasd:ResourceSubType>PCNet32</rasd:ResourceSubType>
-        <rasd:Address>${nic.macAddress}</rasd:Address>
         <rasd:ResourceType>10</rasd:ResourceType>
       </Item>
 `
