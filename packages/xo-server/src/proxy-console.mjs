@@ -1,12 +1,13 @@
 import { connect } from 'tls'
 import { createLogger } from '@xen-orchestra/log'
 import { URL } from 'url'
+import fromEvent from 'promise-toolbox/fromEvent'
 import WebSocket from 'ws'
 import partialStream from 'partial-stream'
 
 const log = createLogger('xo:proxy-console')
 
-export default function proxyConsole(ws, vmConsole, sessionId, agent) {
+export default async function proxyConsole(clientSocket, vmConsole, sessionId, agent) {
   const url = new URL(vmConsole.location)
   url.protocol = 'wss:'
   let { hostname } = url
@@ -19,17 +20,7 @@ export default function proxyConsole(ws, vmConsole, sessionId, agent) {
     )
   }
 
-  let closed = false
-  let triedLegacy = false
-  let opened = false
-
-  const onSend = error => {
-    if (error) {
-      log.debug('error sending to the XO client:', { error })
-    }
-  }
-
-  const socket = new WebSocket(url, ['binary'], {
+  const serverSocket = new WebSocket(url, ['binary'], {
     agent,
     rejectUnauthorized: false,
     headers: {
@@ -37,48 +28,37 @@ export default function proxyConsole(ws, vmConsole, sessionId, agent) {
     },
   })
 
-  socket
-    .on('open', () => {
-      console.log('OPEN')
-      ws.on('error', error => {
-        closed = true
-        log.debug('error from the XO client:', { error })
-        socket.end()
+  try {
+    await fromEvent(serverSocket, 'open')
+  } catch (error) {
+    return proxyConsoleLegacy(clientSocket, url, sessionId)
+  }
+
+  // symmetrically connect client and socket
+  for (const [fromName, fromSocket, toName, toSocket] of [
+    ['client', clientSocket, 'server', serverSocket],
+    ['server', serverSocket, 'client', clientSocket],
+  ]) {
+    const onSend = error => {
+      if (error != null) {
+        log.debug('error sending to the ' + toName, { error })
+      }
+    }
+
+    fromSocket
+      .on('message', data => {
+        if (toSocket.readyState === WebSocket.OPEN) {
+          toSocket.send(data, { binary: true }, onSend)
+        }
       })
-        .on('message', data => {
-          if (!closed) {
-            socket.send(data, { binary: true })
-          }
-        })
-        .on('close', () => {
-          if (!closed) {
-            closed = true
-            log.debug('disconnected from the XO client')
-          }
-        })
-      opened = true
-    })
-    .on('unexpected-response', (request, response) => {
-      console.log('UNEXPECTED RESPONSE')
-      if (agent === undefined && !triedLegacy) {
-        triedLegacy = true
-        proxyConsoleLegacy(ws, url, sessionId)
-      }
-    })
-    .on('message', data => {
-      if (!closed) {
-        ws.send(data, onSend)
-      }
-    })
-    .on('error', error => {
-      log.warn('error using websocket', error)
-    })
-    .on('close', () => {
-      closed = true
-      if (opened) {
-        ws.close()
-      }
-    })
+      .on('close', (code, reason) => {
+        log.debug('disconnected from the ' + fromName, { code, reason })
+        toSocket.close()
+      })
+      .on('error', error => {
+        log.debug('error from the ' + fromName, { error })
+      })
+  }
 }
 
 function proxyConsoleLegacy(ws, url, sessionId) {
