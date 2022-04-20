@@ -14,7 +14,7 @@ import * as XenStore from '../_XenStore.mjs'
 import Xapi from '../xapi/index.mjs'
 import xapiObjectToXo from '../xapi-object-to-xo.mjs'
 import XapiStats from '../xapi-stats.mjs'
-import { camelToSnakeCase, forEach, isEmpty, noop, popProperty } from '../utils.mjs'
+import { camelToSnakeCase, forEach, isEmpty, popProperty } from '../utils.mjs'
 import { Servers } from '../models/server.mjs'
 
 // ===================================================================
@@ -177,7 +177,7 @@ export default class {
       server.set('httpProxy', httpProxy === null ? undefined : httpProxy)
     }
     if (fallbackAddresses !== undefined) {
-      server.set('fallBackAddresses', fallbackAddresses === null ? undefined : JSON.stringify(fallbackAddresses))
+      server.set('fallBackAddresses', fallbackAddresses)
     }
     await this._servers.update(server)
   }
@@ -304,7 +304,7 @@ export default class {
     const hosts = await xapi.getAllRecords('host')
     const fallbackAddresses = hosts.map(({ address }) => address)
     for (const host of hosts) {
-      await this.updateXenServer(host.id, { fallbackAddresses })
+      await this.updateXenServer(host.uuid, { fallbackAddresses: JSON.stringify(fallbackAddresses) })
     }
   }
 
@@ -355,8 +355,8 @@ export default class {
       if (serverIdsByPool[poolId] !== undefined) {
         throw new PoolAlreadyConnected(poolId, serverIdsByPool[poolId], server.id)
       }
-
-      await this._updateFallBackAdresses(xapi).catch(noop)
+      // @todo check id servers collection is ready here, no such object error on uuid
+      // await this._updateFallBackAdresses(xapi).catch(noop)
 
       serverIdsByPool[poolId] = server.id
 
@@ -490,8 +490,8 @@ export default class {
       // when the data are loaded, update the fall back adresses of all the hosts of this pool
       xapi.once('eventFetchedSuccess', async function eventFetchedSuccessListener() {
         const hosts = await this.getAllRecords('host')
-        const hostAddresses = hosts.map(({ address }) => address).join(';')
-        await xo.updateXenServer(server.id, { fallbackAddresses: hostAddresses })
+        const hostAddresses = hosts.map(({ address }) => address)
+        await xo.updateXenServer(server.id, { fallbackAddresses: JSON.stringify(hostAddresses) })
       })
 
       xapi.once('eventFetchingError', function eventFetchingErrorListener() {
