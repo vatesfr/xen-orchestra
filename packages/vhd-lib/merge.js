@@ -3,7 +3,6 @@
 // TODO: remove once completely merged in vhd.js
 
 const assert = require('assert')
-const UUID = require('uuid')
 const noop = require('./_noop')
 const { createLogger } = require('@xen-orchestra/log')
 const { limitConcurrency } = require('limit-concurrency-decorator')
@@ -62,7 +61,7 @@ module.exports = limitConcurrency(2)(async function merge(
     const concurrency = childVhd instanceof VhdDirectory ? 16 : 1
 
     // merge should be along a vhd chain
-    assert.strictEqual(UUID.stringify(childVhd.header.parentUuid), UUID.stringify(parentVhd.footer.uuid))
+    assert.strictEqual(childVhd.header.parentUuid.equals(parentVhd.footer.uuid), true)
     const parentDiskType = parentVhd.footer.diskType
     assert(parentDiskType === DISK_TYPES.DIFFERENCING || parentDiskType === DISK_TYPES.DYNAMIC)
     assert.strictEqual(childVhd.footer.diskType, DISK_TYPES.DIFFERENCING)

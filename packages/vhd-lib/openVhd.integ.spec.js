@@ -77,7 +77,7 @@ test('It opens multiples vhd file as vhd synthetic', async () => {
   await Disposable.use(async function* () {
     const handler = yield getSyncedHandler({ url: 'file://' })
     await chainVhd(handler, vhdFileNameParent, handler, vhdFileNameChild, true)
-    const vhd = yield openVhd(handler, [vhdFileNameParent, vhdFileNameChild])
+    const vhd = yield openVhd(handler, [vhdFileNameChild, vhdFileNameParent])
     expect(vhd.header.cookie).toEqual('cxsparse')
     expect(vhd.footer.cookie).toEqual('conectix')
   })
