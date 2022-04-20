@@ -2,8 +2,10 @@
 
 import * as SourceMapSupport from 'source-map-support'
 import Bluebird from 'bluebird'
+import dns from 'dns'
 import execPromise from 'exec-promise'
 import { catchGlobalErrors } from '@xen-orchestra/log/configure.js'
+import { createCachedLookup } from '@vates/cached-dns.lookup'
 import { createLogger } from '@xen-orchestra/log'
 
 import main from './index.mjs'
@@ -32,5 +34,7 @@ Bluebird.config({ asyncHooks: true })
 global.Promise = Bluebird
 
 catchGlobalErrors(createLogger('xo:xo-server'))
+
+dns.lookup = createCachedLookup()
 
 execPromise(main)

@@ -1,11 +1,13 @@
 #!/usr/bin/env node
 
+import dns from 'dns'
 import forOwn from 'lodash/forOwn.js'
 import fse from 'fs-extra'
 import getopts from 'getopts'
 import pRetry from 'promise-toolbox/retry'
 import { catchGlobalErrors } from '@xen-orchestra/log/configure.js'
 import { create as createServer } from 'http-server-plus'
+import { createCachedLookup } from '@vates/cached-dns.lookup'
 import { createLogger } from '@xen-orchestra/log'
 import { createSecureServer } from 'http2'
 import { genSelfSignedCert } from '@xen-orchestra/self-signed'
@@ -14,6 +16,8 @@ import { load as loadConfig } from 'app-conf'
 // -------------------------------------------------------------------
 
 catchGlobalErrors(createLogger('xo:proxy'))
+
+dns.lookup = createCachedLookup()
 
 const { fatal, info, warn } = createLogger('xo:proxy:bootstrap')
 
