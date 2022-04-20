@@ -1,6 +1,6 @@
 import { connect } from 'tls'
 import { createLogger } from '@xen-orchestra/log'
-import { URL, parse } from 'url'
+import { URL } from 'url'
 import WebSocket from 'ws'
 import partialStream from 'partial-stream'
 
@@ -62,7 +62,7 @@ export default function proxyConsole(ws, vmConsole, sessionId, agent) {
       console.log('UNEXPECTED RESPONSE')
       if (agent === undefined && !triedLegacy) {
         triedLegacy = true
-        proxyConsoleLegacy(ws, vmConsole, sessionId)
+        proxyConsoleLegacy(ws, url, sessionId)
       }
     })
     .on('message', data => {
@@ -81,24 +81,14 @@ export default function proxyConsole(ws, vmConsole, sessionId, agent) {
     })
 }
 
-function proxyConsoleLegacy(ws, vmConsole, sessionId) {
+function proxyConsoleLegacy(ws, url, sessionId) {
   console.log('FALLBACK')
-  const url = parse(vmConsole.location)
-  let { hostname } = url
-  if (hostname === null || hostname === '') {
-    const { address } = vmConsole.$VM.$resident_on
-    hostname = address
-
-    log.warn(
-      `host is missing in console (${vmConsole.uuid}) URI (${vmConsole.location}) using host address (${address}) as fallback`
-    )
-  }
 
   let closed = false
 
   const socket = connect(
     {
-      host: hostname,
+      host: url.hostname,
       port: url.port || 443,
       rejectUnauthorized: false,
 
@@ -108,7 +98,13 @@ function proxyConsoleLegacy(ws, vmConsole, sessionId) {
     () => {
       // Write headers.
       socket.write(
-        [`CONNECT ${url.path} HTTP/1.0`, `Host: ${hostname}`, `Cookie: session_id=${sessionId}`, '', ''].join('\r\n')
+        [
+          `CONNECT ${url.pathname + url.search} HTTP/1.0`,
+          `Host: ${url.hostname}`,
+          `Cookie: session_id=${sessionId}`,
+          '',
+          '',
+        ].join('\r\n')
       )
 
       const onSend = error => {
