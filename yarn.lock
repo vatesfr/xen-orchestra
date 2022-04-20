@@ -7530,10 +7530,10 @@ eslint-config-standard-jsx@^11.0.0-1:
   resolved "https://registry.yarnpkg.com/eslint-config-standard-jsx/-/eslint-config-standard-jsx-11.0.0-1.tgz#16834349ec77d255793d795d655cf454862adad8"
   integrity sha512-W70oBgrQ4EOnlqMU4gRhNpoiu7qA6Hnz1trSGHcEwlHLYdH9R+HyeBrClZCnHHNE0jGNHZHbz+BVDhKs4/MRLA==
 
-eslint-config-standard@^17.0.0-1:
-  version "17.0.0-1"
-  resolved "https://registry.yarnpkg.com/eslint-config-standard/-/eslint-config-standard-17.0.0-1.tgz#5496abc783468e3e3a806ae4f2b3273521b1cb9a"
-  integrity sha512-aqRG58dqoBNfOLN+PsitasxmW+W9Os4oQrx081B16T4E4WogsSbpUL6hnKSnyv35sSRYA2XjBtKMOrUboL6jgw==
+eslint-config-standard@^17.0.0:
+  version "17.0.0"
+  resolved "https://registry.yarnpkg.com/eslint-config-standard/-/eslint-config-standard-17.0.0.tgz#fd5b6cf1dcf6ba8d29f200c461de2e19069888cf"
+  integrity sha512-/2ks1GKyqSOkH7JFvXJicu0iMpoojkwB+f5Du/1SC0PtBL+s8v30k9njRZ21pm2drKYm2342jFnGWzttxPmZVg==
 
 eslint-import-resolver-node@^0.3.6:
   version "0.3.6"
