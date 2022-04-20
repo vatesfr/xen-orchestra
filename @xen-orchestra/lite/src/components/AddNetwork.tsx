@@ -59,8 +59,8 @@ interface Effects {
 
 interface Computed {
   filteredPifs?: Pif[]
+  pifMetrics?: Map<string, PifMetrics>
   pifOptionRenderer?: (pif: Pif) => string
-  pifsMetrics?: Map<string, PifMetrics>
 }
 
 const BUTTON_STYLES = {
@@ -104,13 +104,13 @@ const AddNetwork = withState<State, Props, Effects, Computed, ParentState, Paren
           .sortBy(pif => pif.device)
           .valueSeq()
           .toArray(),
+      pifMetrics: state => state.objectsByType.get('PIF_metrics'),
       pifOptionRenderer:
-        ({ pifsMetrics }) =>
+        ({ pifMetrics }) =>
         (pif: Pif) =>
           `${pif.device} (${
-            pifsMetrics?.find(metrics => metrics.$ref === pif.metrics)?.device_name ?? translate({ id: 'unknown' })
+            pifMetrics?.find(metrics => metrics.$ref === pif.metrics)?.device_name ?? translate({ id: 'unknown' })
           })`,
-      pifsMetrics: state => state.objectsByType.get('PIF_metrics'),
     },
     effects: {
       createNetwork: async function () {
@@ -182,15 +182,15 @@ const AddNetwork = withState<State, Props, Effects, Computed, ParentState, Paren
     effects: { createNetwork, resetForm, _linkState, _toggleState },
     state: {
       filteredPifs,
-      pifsMetrics,
+      pifMetrics,
       pifOptionRenderer,
       form: {
         bondMode,
         description,
         isBonded,
         isEmptyBondMode,
-        isInterfacesLimit,
         isEmptyLabel,
+        isInterfacesLimit,
         isLoading,
         mtu,
         nameLabel,
@@ -210,7 +210,7 @@ const AddNetwork = withState<State, Props, Effects, Computed, ParentState, Paren
         <label>
           <IntlMessage id='bondedNetwork' />
         </label>
-        <Checkbox checked={isBonded} name='bonded' state-path='form' onChange={toggleState('form.isBonded')} />
+        <Checkbox checked={isBonded} name='bonded' onChange={toggleState('form.isBonded')} />
         <div>
           <StyledFormControl error={isInterfacesLimit}>
             <StyledLabel error={isInterfacesLimit}>
@@ -218,7 +218,7 @@ const AddNetwork = withState<State, Props, Effects, Computed, ParentState, Paren
               {isBonded && ' *'}
             </StyledLabel>
             <Select
-              additionalProps={{ pifsMetrics }}
+              additionalProps={{ pifMetrics }}
               error={isInterfacesLimit}
               multiple={isBonded}
               name='pifIds'
