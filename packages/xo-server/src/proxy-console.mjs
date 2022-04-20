@@ -21,7 +21,7 @@ export default function proxyConsole(ws, vmConsole, sessionId, agent) {
 
   let closed = false
   let triedLegacy = false
-  let openned = false
+  let opened = false
   const socket = new WebSocket(url, ['binary'], {
     agent,
     rejectUnauthorized: false,
@@ -55,7 +55,7 @@ export default function proxyConsole(ws, vmConsole, sessionId, agent) {
             log.debug('disconnected from the XO client')
           }
         })
-      openned = true
+      opened = true
     })
     .on('unexpected-response', (request, response) => {
       console.log('UNEXPECTED RESPONSE')
@@ -74,7 +74,7 @@ export default function proxyConsole(ws, vmConsole, sessionId, agent) {
     })
     .on('close', () => {
       closed = true
-      openned === true && ws.close()
+      opened === true && ws.close()
     })
 }
 
