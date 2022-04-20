@@ -222,10 +222,13 @@ const AddNetwork = withState<State, Props, Effects, Computed, ParentState, Paren
               error={isInterfacesLimit}
               multiple={isBonded}
               name='pifIds'
-              onChange={linkState('form.pifIds', ev => {
-                const { value } = ev.target
-                return isBonded ? value : [value]
-              })}
+              onChange={e => {
+                linkState('form.pifIds', ev => {
+                  const { value } = ev.target
+                  return isBonded ? value : [value]
+                })(e)
+                linkState('form.isInterfacesLimit')(false)
+              }}
               optionRenderer={pifOptionRenderer}
               options={filteredPifs}
               required={isBonded}
@@ -243,7 +246,10 @@ const AddNetwork = withState<State, Props, Effects, Computed, ParentState, Paren
             error={isEmptyLabel}
             label={<IntlMessage id='name' />}
             name='nameLabel'
-            onChange={linkState('form.nameLabel')}
+            onChange={e => {
+              linkState('form.nameLabel')(e)
+              linkState('form.isEmptyLabel')(false)
+            }}
             required
             value={nameLabel}
           />
@@ -282,7 +288,10 @@ const AddNetwork = withState<State, Props, Effects, Computed, ParentState, Paren
             <Select
               error={isEmptyBondMode}
               name='bondMode'
-              onChange={linkState('form.bondMode')}
+              onChange={e => {
+                linkState('form.bondMode')(e)
+                linkState('form.isEmptyBondMode')(false)
+              }}
               options={BOND_MODE}
               required
               value={bondMode}
