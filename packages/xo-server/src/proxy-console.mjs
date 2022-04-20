@@ -6,6 +6,78 @@ import partialStream from 'partial-stream'
 
 const log = createLogger('xo:proxy-console')
 
+export default function proxyConsole(ws, vmConsole, sessionId, agent) {
+  const url = new URL(vmConsole.location)
+  url.protocol = 'wss:'
+  let { hostname } = url
+  if (hostname === null || hostname === '') {
+    const { address } = vmConsole.$VM.$resident_on
+    hostname = address
+
+    log.warn(
+      `host is missing in console (${vmConsole.uuid}) URI (${vmConsole.location}) using host address (${address}) as fallback`
+    )
+  }
+
+  let closed = false
+  let triedLegacy = false
+  let openned = false
+  const socket = new WebSocket(url, ['binary'], {
+    agent,
+    rejectUnauthorized: false,
+    headers: {
+      cookie: `session_id=${sessionId}`,
+    },
+  })
+
+  const onSend = error => {
+    if (error) {
+      log.debug('error sending to the XO client:', { error })
+    }
+  }
+
+  socket
+    .on('open', () => {
+      console.log('OPEN')
+      ws.on('error', error => {
+        closed = true
+        log.debug('error from the XO client:', { error })
+        socket.end()
+      })
+        .on('message', data => {
+          if (!closed) {
+            socket.send(data, { binary: true })
+          }
+        })
+        .on('close', () => {
+          if (!closed) {
+            closed = true
+            log.debug('disconnected from the XO client')
+          }
+        })
+      openned = true
+    })
+    .on('unexpected-response', (request, response) => {
+      console.log('UNEXPECTED RESPONSE')
+      if (agent === undefined && !triedLegacy) {
+        triedLegacy = true
+        proxyConsoleLegacy(ws, vmConsole, sessionId)
+      }
+    })
+    .on('message', data => {
+      if (!closed) {
+        ws.send(data, onSend)
+      }
+    })
+    .on('error', error => {
+      log.warn('error using websocket', error)
+    })
+    .on('close', () => {
+      closed = true
+      openned === true && ws.close()
+    })
+}
+
 function proxyConsoleLegacy(ws, vmConsole, sessionId) {
   console.log('FALLBACK')
   const url = parse(vmConsole.location)
@@ -89,76 +161,4 @@ function proxyConsoleLegacy(ws, vmConsole, sessionId) {
 
     ws.close()
   })
-}
-
-export default function proxyConsole(ws, vmConsole, sessionId, agent) {
-  const url = new URL(vmConsole.location)
-  url.protocol = 'wss:'
-  let { hostname } = url
-  if (hostname === null || hostname === '') {
-    const { address } = vmConsole.$VM.$resident_on
-    hostname = address
-
-    log.warn(
-      `host is missing in console (${vmConsole.uuid}) URI (${vmConsole.location}) using host address (${address}) as fallback`
-    )
-  }
-
-  let closed = false
-  let triedLegacy = false
-  let openned = false
-  const socket = new WebSocket(url, ['binary'], {
-    agent,
-    rejectUnauthorized: false,
-    headers: {
-      cookie: `session_id=${sessionId}`,
-    },
-  })
-
-  const onSend = error => {
-    if (error) {
-      log.debug('error sending to the XO client:', { error })
-    }
-  }
-
-  socket
-    .on('open', () => {
-      console.log('OPEN')
-      ws.on('error', error => {
-        closed = true
-        log.debug('error from the XO client:', { error })
-        socket.end()
-      })
-        .on('message', data => {
-          if (!closed) {
-            socket.send(data, { binary: true })
-          }
-        })
-        .on('close', () => {
-          if (!closed) {
-            closed = true
-            log.debug('disconnected from the XO client')
-          }
-        })
-      openned = true
-    })
-    .on('unexpected-response', (request, response) => {
-      console.log('UNEXPECTED RESPONSE')
-      if (agent === undefined && !triedLegacy) {
-        triedLegacy = true
-        proxyConsoleLegacy(ws, vmConsole, sessionId)
-      }
-    })
-    .on('message', data => {
-      if (!closed) {
-        ws.send(data, onSend)
-      }
-    })
-    .on('error', error => {
-      log.warn('error using websocket', error)
-    })
-    .on('close', () => {
-      closed = true
-      openned === true && ws.close()
-    })
 }
