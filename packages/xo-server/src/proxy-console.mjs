@@ -22,6 +22,13 @@ export default function proxyConsole(ws, vmConsole, sessionId, agent) {
   let closed = false
   let triedLegacy = false
   let opened = false
+
+  const onSend = error => {
+    if (error) {
+      log.debug('error sending to the XO client:', { error })
+    }
+  }
+
   const socket = new WebSocket(url, ['binary'], {
     agent,
     rejectUnauthorized: false,
@@ -29,12 +36,6 @@ export default function proxyConsole(ws, vmConsole, sessionId, agent) {
       cookie: `session_id=${sessionId}`,
     },
   })
-
-  const onSend = error => {
-    if (error) {
-      log.debug('error sending to the XO client:', { error })
-    }
-  }
 
   socket
     .on('open', () => {
