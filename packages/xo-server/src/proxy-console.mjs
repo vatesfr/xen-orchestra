@@ -7,6 +7,23 @@ import partialStream from 'partial-stream'
 
 const log = createLogger('xo:proxy-console')
 
+// create a function that will
+// - send data in binary
+// - not error if the socket is closed
+// - properly log any errors
+function createSend(socket, name) {
+  function onSend(error) {
+    if (error != null) {
+      log.debug('error sending to the ' + name, { error })
+    }
+  }
+  return function send(data) {
+    if (socket.readyState === WebSocket.OPEN) {
+      socket.send(data, { binary: true }, onSend)
+    }
+  }
+}
+
 export default async function proxyConsole(clientSocket, vmConsole, sessionId, agent) {
   const url = new URL(vmConsole.location)
   url.protocol = 'wss:'
@@ -28,29 +45,38 @@ export default async function proxyConsole(clientSocket, vmConsole, sessionId, a
     },
   })
 
+  // create a function that will enqueue data before the socket is open
+  //
+  // necessary to avoid losing messages from the client
+  let sendToServer = (() => {
+    let queue = []
+    serverSocket.on('open', () => {
+      sendToServer = createSend(serverSocket, 'server')
+      queue.forEach(sendToServer)
+      queue = undefined
+    })
+
+    return data => {
+      queue.push(data)
+    }
+  })()
+
+  clientSocket.on('message', data => sendToServer(data))
+  serverSocket.on('message', createSend(clientSocket, 'client'))
+
   try {
     await fromEvent(serverSocket, 'open')
   } catch (error) {
+    log.debug('failing to open the server socket, fallback to legacy implementation', { error })
     return proxyConsoleLegacy(clientSocket, url, sessionId)
   }
 
   // symmetrically connect client and socket
-  for (const [fromName, fromSocket, toName, toSocket] of [
-    ['client', clientSocket, 'server', serverSocket],
-    ['server', serverSocket, 'client', clientSocket],
+  for (const [fromName, fromSocket, toSocket] of [
+    ['client', clientSocket, serverSocket],
+    ['server', serverSocket, clientSocket],
   ]) {
-    const onSend = error => {
-      if (error != null) {
-        log.debug('error sending to the ' + toName, { error })
-      }
-    }
-
     fromSocket
-      .on('message', data => {
-        if (toSocket.readyState === WebSocket.OPEN) {
-          toSocket.send(data, { binary: true }, onSend)
-        }
-      })
       .on('close', (code, reason) => {
         log.debug('disconnected from the ' + fromName, { code, reason })
         toSocket.close()
@@ -62,8 +88,6 @@ export default async function proxyConsole(clientSocket, vmConsole, sessionId, a
 }
 
 function proxyConsoleLegacy(ws, url, sessionId) {
-  console.log('FALLBACK')
-
   let closed = false
 
   const socket = connect(
