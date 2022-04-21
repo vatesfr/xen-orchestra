@@ -31,6 +31,7 @@
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
 
+- @vates/event-listeners-manager major
 - xo-vmdk-to-vhd minor
 - xo-server minor
 - xo-web minor
