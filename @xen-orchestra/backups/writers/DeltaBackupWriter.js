@@ -33,13 +33,11 @@ exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(Ab
 
     await asyncMap(baseUuidToSrcVdi, async ([baseUuid, srcVdi]) => {
       let found = false
-      let folderEmpty = true
       try {
         const vhds = await handler.list(`${vdisDir}/${srcVdi.uuid}`, {
           filter: _ => _[0] !== '.' && _.endsWith('.vhd'),
           prependDir: true,
         })
-        folderEmpty = vhds.length === 0
         const packedBaseUuid = packUuid(baseUuid)
         await asyncMap(vhds, async path => {
           try {
@@ -55,7 +53,7 @@ exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(Ab
           } catch (error) {
             warn('checkBaseVdis', { error })
             Task.warning(
-              `checkBaseVdis : Error while checking existing VHD ${vdisDir}/${srcVdi.uuid} : ${error.toString()}`
+              `checkBaseVdis: Error while checking existing VHD ${vdisDir}/${srcVdi.uuid} : ${error.toString()}`
             )
             await ignoreErrors.call(VhdAbstract.unlink(handler, path))
           }
@@ -70,11 +68,7 @@ exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(Ab
       }
       if (!found) {
         // don't show warning if it's the first backup
-        if (!folderEmpty) {
-          Task.warning(
-            `checkBaseVdis : Impossible to find the base of ${srcVdi.uuid} for a delta : fallback to a full `
-          )
-        }
+        Task.warning(`checkBaseVdis : Impossible to find the base of ${srcVdi.uuid} for a delta : fallback to a full `)
         baseUuidToSrcVdi.delete(baseUuid)
       }
     })
