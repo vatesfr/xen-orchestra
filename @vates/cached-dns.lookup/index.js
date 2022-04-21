@@ -43,7 +43,7 @@ exports.createCachedLookup = function createCachedLookup({ lookup = originalLook
     if (result !== undefined) {
       setImmediate(reportResults, all, result, callback)
     } else {
-      originalLookup(hostname, { all: true, family, verbatim: true }, function onLookup(error, results) {
+      lookup(hostname, { all: true, family, verbatim: true }, function onLookup(error, results) {
         // errors are not cached because this will delay recovery after DNS/network issues
         //
         // there are no reliable way to detect if the error is real or simply
