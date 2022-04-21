@@ -5,12 +5,7 @@ const assert = require('assert/strict')
 const originalLookup = require('dns').lookup
 const LRU = require('lru-cache')
 
-function reportResult(all, result, callback) {
-  if (result[0]) {
-    return callback(result[1])
-  }
-
-  const results = result[1]
+function reportResults(all, results, callback) {
   if (all) {
     callback(null, results)
   } else {
@@ -46,13 +41,22 @@ exports.createCachedLookup = function createCachedLookup({ lookup = originalLook
 
     const result = cache.get(key)
     if (result !== undefined) {
-      setImmediate(reportResult, all, result, callback)
+      setImmediate(reportResults, all, result, callback)
     } else {
       originalLookup(hostname, { all: true, family, verbatim: true }, function onLookup(error, results) {
-        const isError = error != null
-        const result = [isError, isError ? error : results]
-        cache.set(key, result)
-        return reportResult(all, result, callback)
+        // errors are not cached because this will delay recovery after DNS/network issues
+        //
+        // there are no reliable way to detect if the error is real or simply
+        // that there are no results for the requested hostname
+        //
+        // there should be much fewer errors than success, therefore it should
+        // not be a big deal to not cache them
+        if (error != null) {
+          return callback(error)
+        }
+
+        cache.set(key, results)
+        reportResults(all, results, callback)
       })
     }
   }
