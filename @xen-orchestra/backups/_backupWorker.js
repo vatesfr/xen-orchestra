@@ -4,7 +4,7 @@ require('@xen-orchestra/log/configure.js').catchGlobalErrors(
   require('@xen-orchestra/log').createLogger('xo:backups:worker')
 )
 
-require('dns').lookup = require('@vates/cached-dns.lookup').createCachedLookup()
+require('@vates/cached-dns.lookup').createCachedLookup().patchGlobal()
 
 const Disposable = require('promise-toolbox/Disposable')
 const ignoreErrors = require('promise-toolbox/ignoreErrors')

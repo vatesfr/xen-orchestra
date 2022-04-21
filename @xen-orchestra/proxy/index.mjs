@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 
-import dns from 'dns'
 import forOwn from 'lodash/forOwn.js'
 import fse from 'fs-extra'
 import getopts from 'getopts'
@@ -17,7 +16,7 @@ import { load as loadConfig } from 'app-conf'
 
 catchGlobalErrors(createLogger('xo:proxy'))
 
-dns.lookup = createCachedLookup()
+createCachedLookup().patchGlobal()
 
 const { fatal, info, warn } = createLogger('xo:proxy:bootstrap')
 

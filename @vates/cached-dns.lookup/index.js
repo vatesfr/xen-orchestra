@@ -21,7 +21,7 @@ exports.createCachedLookup = function createCachedLookup({ lookup = dns.lookup }
     ttl: 60e3,
   })
 
-  return function cachedLookup(hostname, options, callback) {
+  function cachedLookup(hostname, options, callback) {
     let all = false
     let family = 0
     if (typeof options === 'function') {
@@ -59,4 +59,14 @@ exports.createCachedLookup = function createCachedLookup({ lookup = dns.lookup }
       })
     }
   }
+  cachedLookup.patchGlobal = function patchGlobal() {
+    const previous = dns.lookup
+    dns.lookup = cachedLookup
+    return function restoreGlobal() {
+      assert.equal(dns.lookup, cachedLookup)
+      dns.lookup = previous
+    }
+  }
+
+  return cachedLookup
 }

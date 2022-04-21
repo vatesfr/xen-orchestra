@@ -40,9 +40,11 @@ lookup('example.net', { all: true, family: 0 }, (error, result) => {
 Or it can be used to replace the native implementation and speed up the whole app:
 
 ```js
-import dns from 'dns'
+// assign our cached implementation to dns.lookup
+const restore = createCachedLookup().patchGlobal()
 
-dns.lookup = createCachedLookup()
+// to restore the previous implementation
+restore()
 ```
 
 ## Contributions
