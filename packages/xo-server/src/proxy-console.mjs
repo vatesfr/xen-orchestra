@@ -9,7 +9,7 @@ import partialStream from 'partial-stream'
 const log = createLogger('xo:proxy-console')
 
 function close(socket) {
-  const { readyState } = WebSocket
+  const { readyState } = socket
   if (readyState !== WebSocket.CLOSED && readyState !== WebSocket.CLOSING) {
     socket.close()
   }
