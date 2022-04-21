@@ -1,11 +1,19 @@
 import { connect } from 'tls'
 import { createLogger } from '@xen-orchestra/log'
+import { EventListenersManager } from '@vates/event-listeners-manager'
 import { URL } from 'url'
 import fromEvent from 'promise-toolbox/fromEvent'
 import WebSocket from 'ws'
 import partialStream from 'partial-stream'
 
 const log = createLogger('xo:proxy-console')
+
+function close(socket) {
+  const { readyState } = WebSocket
+  if (readyState !== WebSocket.CLOSED && readyState !== WebSocket.CLOSING) {
+    socket.close()
+  }
+}
 
 // create a function that will
 // - send data in binary
@@ -45,12 +53,15 @@ export default async function proxyConsole(clientSocket, vmConsole, sessionId, a
     },
   })
 
+  const serverEvents = new EventListenersManager(serverSocket)
+  const clientEvents = new EventListenersManager(clientSocket)
+
   // create a function that will enqueue data before the socket is open
   //
   // necessary to avoid losing messages from the client
   let sendToServer = (() => {
     let queue = []
-    serverSocket.on('open', () => {
+    serverEvents.add('open', () => {
       sendToServer = createSend(serverSocket, 'server')
       queue.forEach(sendToServer)
       queue = undefined
@@ -61,30 +72,36 @@ export default async function proxyConsole(clientSocket, vmConsole, sessionId, a
     }
   })()
 
-  clientSocket.on('message', data => sendToServer(data))
-  serverSocket.on('message', createSend(clientSocket, 'client'))
+  clientEvents
+    .add('close', (code, reason) => {
+      log.debug('disconnected from the client', { code, reason })
+      close(serverSocket)
+    })
+    .add('error', error => {
+      log.debug('error from the client', { error })
+    })
+    .add('message', data => sendToServer(data))
+  serverEvents
+    .add('close', (code, reason) => {
+      log.debug('disconnected from the server', { code, reason })
+      close(clientSocket)
+    })
+    .add('error', error => {
+      log.debug('error from the server', { error })
+    })
+    .add('message', createSend(clientSocket, 'client'))
 
   try {
     await fromEvent(serverSocket, 'open')
   } catch (error) {
+    clientEvents.removeAll()
+    serverEvents.removeAll()
+
     log.debug('failing to open the server socket, fallback to legacy implementation', { error })
     return proxyConsoleLegacy(clientSocket, url, sessionId)
   }
 
-  // symmetrically connect client and socket
-  for (const [fromName, fromSocket, toSocket] of [
-    ['client', clientSocket, serverSocket],
-    ['server', serverSocket, clientSocket],
-  ]) {
-    fromSocket
-      .on('close', (code, reason) => {
-        log.debug('disconnected from the ' + fromName, { code, reason })
-        toSocket.close()
-      })
-      .on('error', error => {
-        log.debug('error from the ' + fromName, { error })
-      })
-  }
+  await fromEvent(serverSocket, 'close').catch(log.warn)
 }
 
 function proxyConsoleLegacy(ws, url, sessionId) {
