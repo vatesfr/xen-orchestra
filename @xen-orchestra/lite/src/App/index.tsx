@@ -35,9 +35,11 @@ import PoolTab from './PoolTab'
 import Signin from './Signin/index'
 import StyleGuide from './StyleGuide/index'
 import TabConsole from './TabConsole'
-import XapiConnection, { ObjectsByType, Vm } from '../libs/xapi'
+
+import XapiConnection, { ObjectsByType, Pool, Vm } from '../libs/xapi'
 
 const drawerWidth = 240
+const redirectPaths = ['/', '/infrastructure']
 
 interface AppBarProps extends MuiAppBarProps {
   open?: boolean
@@ -172,21 +174,6 @@ const mdTheme = createTheme({
       main: '#ffc107',
     },
   },
-  typography: {
-    fontFamily: 'inter',
-    h2: {
-      fontWeight: 500,
-      fontSize: '2.25em',
-      fontStyle: 'medium',
-      lineHeight: '3em',
-    },
-    h3: {
-      fontWeight: 500,
-      fontSize: '1.5em',
-      fontStyle: 'medium',
-      lineHeight: '2em',
-    },
-  },
   components: {
     MuiTab: {
       styleOverrides: {
@@ -197,6 +184,63 @@ const mdTheme = createTheme({
           textAlign: 'center',
         },
       },
+    },
+  },
+  typography: {
+    fontFamily: 'inter',
+    h1: {
+      fontWeight: 500,
+      fontSize: '3em',
+      fontStyle: 'medium',
+      lineHeight: '3.75em',
+    },
+    h2: {
+      fontWeight: 500,
+      fontSize: '2.25em',
+      fontStyle: 'medium',
+    },
+    h3: {
+      fontWeight: 500,
+      fontSize: '1.5em',
+      fontStyle: 'medium',
+      lineHeight: '2em',
+    },
+    h4: {
+      fontWeight: 500,
+      fontSize: '1.25em',
+      fontStyle: 'medium',
+      lineHeight: '1.75em',
+    },
+    h5: {
+      fontWeight: 500,
+      fontSize: '1em',
+      fontStyle: 'medium',
+      lineHeight: '1.50em',
+    },
+    h6: {
+      fontWeight: 500,
+      fontSize: '0.8em',
+      fontStyle: 'medium',
+      lineHeight: '1.25em',
+    },
+    caption: {
+      // styleName: Caps / Caps 1 - 14 Semi Bold
+      fontSize: '0.9em',
+      fontStyle: 'normal',
+      fontWeight: 600,
+      lineHeight: '1.25em',
+      verticalAlign: 'top',
+      letterSpacing: '0.04em',
+      textAlign: 'left',
+    },
+    body2: {
+      // styleName: Paragraph / P2 - 16
+      fontSize: '1em',
+      fontStyle: 'normal',
+      fontWeight: 400,
+      lineHeight: '1.5em',
+      letterSpacing: '0em',
+      textAlign: 'left',
     },
   },
 })
@@ -231,6 +275,7 @@ interface Effects {
 
 interface Computed {
   objectsFetched: boolean
+  pool?: Pool
   url: string
   vms?: Map<string, Vm>
 }
@@ -297,6 +342,7 @@ const App = withState<State, Props, Effects, Computed, ParentState, ParentEffect
     },
     computed: {
       objectsFetched: state => state.objectsByType !== undefined,
+      pool: state => (state.objectsFetched ? state.objectsByType?.get('pool')?.keySeq().first() : undefined),
       vms: state =>
         state.objectsFetched
           ? state.objectsByType
@@ -319,8 +365,8 @@ const App = withState<State, Props, Effects, Computed, ParentState, ParentEffect
           <>
             <Router>
               <Switch>
-                <Route exact path='/'>
-                  <Redirect to='/infrastructure' />
+                <Route exact path={redirectPaths}>
+                  <Redirect to={`/infrastructure/pool/${state.pool.$id}/dashboard`} />
                 </Route>
                 <Route exact path='/vm-list'>
                   {state.vms !== undefined && (
