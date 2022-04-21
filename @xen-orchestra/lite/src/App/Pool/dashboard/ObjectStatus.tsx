@@ -101,11 +101,10 @@ const ObjectStatus = withState<State, Props, Effects, Computed, ParentState, Par
                 <IntlMessage id={type === 'VM' ? 'vms' : 'hosts'} />
               </Typography>
             </Grid>
-            <Grid item xs={1}>
+            <Grid item xs={10}>
               <Icon icon='circle' htmlColor='#00BA34' />
-            </Grid>
-            <Grid item xs={9}>
-              <Typography variant='body2' component='div'>
+              &nbsp;
+              <Typography variant='body2' component='span'>
                 <IntlMessage id='active' />
               </Typography>
             </Grid>
@@ -114,11 +113,10 @@ const ObjectStatus = withState<State, Props, Effects, Computed, ParentState, Par
                 {nActive}
               </Typography>
             </Grid>
-            <Grid item xs={1}>
+            <Grid item xs={10}>
               <Icon icon='circle' htmlColor='#E8E8E8' />
-            </Grid>
-            <Grid item xs={9}>
-              <Typography variant='body2' component='div'>
+              &nbsp;
+              <Typography variant='body2' component='span'>
                 <IntlMessage id='inactive' />
               </Typography>
             </Grid>
