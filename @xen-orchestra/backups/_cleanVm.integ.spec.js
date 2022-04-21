@@ -99,7 +99,7 @@ test('it remove vhd with missing or multiple ancestors', async () => {
     },
   })
 
-  // one orphan, which is a full vhd, no parent should stay
+  // one orphan, which is a full vhd, no parent : should stay
   const orphan = await generateVhd(`${basePath}/orphan.vhd`)
   // a child to the orphan in the metadata : should stay
   await generateVhd(`${basePath}/child.vhd`, {

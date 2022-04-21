@@ -6,6 +6,7 @@ const mapValues = require('lodash/mapValues.js')
 const ignoreErrors = require('promise-toolbox/ignoreErrors')
 const { asyncMap } = require('@xen-orchestra/async-map')
 const { chainVhd, checkVhdChain, openVhd, VhdAbstract } = require('vhd-lib')
+const { createLogger } = require('@xen-orchestra/log')
 const { dirname } = require('path')
 
 const { formatFilenameDate } = require('../_filenameDate.js')
@@ -19,6 +20,8 @@ const { checkVhd } = require('./_checkVhd.js')
 const { packUuid } = require('./_packUuid.js')
 const { Disposable } = require('promise-toolbox')
 
+const { warn } = createLogger('xo:backups:DeltaBackupWriter')
+
 exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(AbstractDeltaWriter) {
   async checkBaseVdis(baseUuidToSrcVdi) {
     const { handler } = this._adapter
@@ -30,13 +33,11 @@ exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(Ab
 
     await asyncMap(baseUuidToSrcVdi, async ([baseUuid, srcVdi]) => {
       let found = false
-      let foldersEmpty = true
       try {
         const vhds = await handler.list(`${vdisDir}/${srcVdi.uuid}`, {
           filter: _ => _[0] !== '.' && _.endsWith('.vhd'),
           prependDir: true,
         })
-        foldersEmpty = foldersEmpty || vhds.length > 0
         const packedBaseUuid = packUuid(baseUuid)
         await asyncMap(vhds, async path => {
           try {
@@ -50,20 +51,14 @@ exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(Ab
             const isMergeable = await adapter.isMergeableParent(packedBaseUuid, path)
             found = found || isMergeable
           } catch (error) {
-            Task.warning(`Error while checking existing VHD ${vdisDir}/${srcVdi.uuid} : ${error.toString()}`)
+            warn('checkBaseVdis', { error })
             await ignoreErrors.call(VhdAbstract.unlink(handler, path))
           }
         })
       } catch (error) {
-        Task.warning(
-          `Impossible to open ${vdisDir}/${srcVdi.uuid} folder to list precedent backups: ${error.toString()}`
-        )
+        warn('checkBaseVdis', { error })
       }
       if (!found) {
-        // don't show warning if it's the first backup
-        if (!foldersEmpty) {
-          Task.warning(`Impossible to find the base of ${srcVdi.uuid} for a delta : fallback to a full `)
-        }
         baseUuidToSrcVdi.delete(baseUuid)
       }
     })
