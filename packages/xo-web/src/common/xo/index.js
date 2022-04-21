@@ -1695,13 +1695,13 @@ export const importDisks = (disks, sr) =>
 
 import ExportVmModalBody from './export-vm-modal' // eslint-disable-line import/first
 export const exportVm = async vm => {
-  const compress = await confirm({
+  const { compression, format } = await confirm({
     body: <ExportVmModalBody vm={vm} />,
     icon: 'export',
     title: _('exportVmLabel'),
   })
   const id = resolveId(vm)
-  const { $getFrom: url } = await _call('vm.export', { vm: id, compress })
+  const { $getFrom: url } = await _call('vm.export', { vm: id, compress: compression, format })
   const fullUrl = window.location.origin + url
   const copytoClipboard = () => copy(fullUrl)
   const _info = () => info(_('startVmExport'), id)

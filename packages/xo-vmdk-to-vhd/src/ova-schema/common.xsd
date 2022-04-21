@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<!--  DMTF Document number: DSP8004 -->
+<!--  Status: Final                                   -->
+<!--  Copyright © 2007 Distributed Management Task Force, Inc. (DMTF). All rights reserved. -->
+
+<xs:schema targetNamespace="http://schemas.dmtf.org/wbem/wscim/1/common"
+    xmlns:cim="http://schemas.dmtf.org/wbem/wscim/1/common"
+    xmlns:xs="http://www.w3.org/2001/XMLSchema"
+    elementFormDefault="qualified">
+
+<!--  The following are runtime attribute definitions -->
+  <xs:attribute name="Key" type="xs:boolean"/> 
+
+  <xs:attribute name="Version" type="xs:string"/> 
+
+
+<!--  The following section defines the extended WS-CIM datatypes  -->
+  <xs:complexType name="cimDateTime">
+    <xs:choice>
+      <xs:element name="CIM_DateTime" type="xs:string" nillable="true"/>
+      <xs:element name="Interval" type="xs:duration"/>
+      <xs:element name="Date" type="xs:date" />
+      <xs:element name="Time" type="xs:time" />
+      <xs:element name="Datetime" type="xs:dateTime"/>
+    </xs:choice>
+    <xs:anyAttribute namespace="##any" processContents="lax"/>
+  </xs:complexType>
+
+
+  <xs:complexType name="cimUnsignedByte">
+    <xs:simpleContent>
+      <xs:extension base="xs:unsignedByte">
+         <xs:anyAttribute namespace="##any" processContents="lax"/>
+      </xs:extension>
+     </xs:simpleContent>
+  </xs:complexType>
+
+
+  <xs:complexType name="cimByte">
+    <xs:simpleContent>
+      <xs:extension base="xs:byte">
+         <xs:anyAttribute namespace="##any" processContents="lax"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+
+
+  <xs:complexType name="cimUnsignedShort">
+    <xs:simpleContent>
+      <xs:extension base="xs:unsignedShort">
+         <xs:anyAttribute namespace="##any" processContents="lax"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+
+
+  <xs:complexType name="cimShort">
+    <xs:simpleContent>
+      <xs:extension base="xs:short">
+         <xs:anyAttribute namespace="##any" processContents="lax"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+
+  <xs:complexType name="cimUnsignedInt">
+    <xs:simpleContent>
+      <xs:extension base="xs:unsignedInt">
+         <xs:anyAttribute namespace="##any" processContents="lax"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+
+
+  <xs:complexType name="cimInt">
+    <xs:simpleContent>
+      <xs:extension base="xs:int">
+         <xs:anyAttribute namespace="##any" processContents="lax"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+
+
+  <xs:complexType name="cimUnsignedLong">
+    <xs:simpleContent>
+      <xs:extension base="xs:unsignedLong">
+         <xs:anyAttribute namespace="##any" processContents="lax"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+
+
+  <xs:complexType name="cimLong">
+    <xs:simpleContent>
+      <xs:extension base="xs:long">
+         <xs:anyAttribute namespace="##any" processContents="lax"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+
+
+  <xs:complexType name="cimString">
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+         <xs:anyAttribute namespace="##any" processContents="lax"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+
+
+  <xs:complexType name="cimBoolean">
+    <xs:simpleContent>
+      <xs:extension base="xs:boolean">
+         <xs:anyAttribute namespace="##any" processContents="lax"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+
+
+  <xs:complexType name="cimFloat">
+    <xs:simpleContent>
+      <xs:extension base="xs:float">
+         <xs:anyAttribute namespace="##any" processContents="lax"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+
+
+  <xs:complexType name="cimDouble">
+    <xs:simpleContent>
+      <xs:extension base="xs:double">
+         <xs:anyAttribute namespace="##any" processContents="lax"/>
+      </xs:extension>
+  </xs:simpleContent>
+  </xs:complexType>
+
+
+  <xs:complexType name="cimChar16">
+    <xs:simpleContent>
+      <xs:restriction base="cim:cimString">
+         <xs:maxLength value="1"/>
+         <xs:anyAttribute namespace="##any" processContents="lax"/>
+       </xs:restriction>
+    </xs:simpleContent>
+  </xs:complexType>
+
+
+  <xs:complexType name="cimBase64Binary">
+    <xs:simpleContent>
+      <xs:extension base="xs:base64Binary">
+         <xs:anyAttribute namespace="##any" processContents="lax"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+
+  <xs:complexType name="cimReference">
+    <xs:sequence>
+      <xs:any namespace="##other" maxOccurs="unbounded" processContents="lax"/>
+    </xs:sequence>
+    <xs:anyAttribute namespace="##any" processContents="lax"/>
+  </xs:complexType>
+
+
+  <xs:complexType name="cimHexBinary">
+    <xs:simpleContent>
+      <xs:extension base="xs:hexBinary">
+         <xs:anyAttribute namespace="##any" processContents="lax"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+
+
+  <xs:complexType name="cimAnySimpleType">
+    <xs:simpleContent>
+      <xs:extension base="xs:anySimpleType">
+         <xs:anyAttribute namespace="##any" processContents="lax"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+
+
+
+<!--  The following datatypes are used exclusively to define metadata fragments  -->
+  <xs:attribute name="qualifier" type="xs:boolean"/>
+
+  <xs:complexType name="qualifierString">
+    <xs:simpleContent>
+      <xs:extension base="cim:cimString">
+        <xs:attribute ref="cim:qualifier" use="required"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+
+  <xs:complexType name="qualifierBoolean">
+    <xs:simpleContent>
+      <xs:extension base="cim:cimBoolean">
+        <xs:attribute ref="cim:qualifier" use="required"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+
+  <xs:complexType name="qualifierUInt32">
+    <xs:simpleContent>
+      <xs:extension base="cim:cimUnsignedInt">
+        <xs:attribute ref="cim:qualifier" use="required"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+
+  <xs:complexType name="qualifierSInt64">
+    <xs:simpleContent>
+      <xs:extension base="cim:cimLong">
+        <xs:attribute ref="cim:qualifier" use="required"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+
+  <xs:complexType name="qualifierSArray">
+    <xs:complexContent>
+      <xs:extension base="cim:qualifierString"/>
+    </xs:complexContent>
+  </xs:complexType>
+
+
+<!--  The following element is to be used only for defining metadata -->
+  <xs:element name="DefaultValue" type="xs:anySimpleType" />
+
+</xs:schema>
+

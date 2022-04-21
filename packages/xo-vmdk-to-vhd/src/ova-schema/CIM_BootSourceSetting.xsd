@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<xs:schema xmlns:cim="http://schemas.dmtf.org/wbem/wscim/1/common" xmlns:class="http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/CIM_BootSourceSetting" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" elementFormDefault="qualified" targetNamespace="http://schemas.dmtf.org/wbem/wscim/1/cim-schema/2/CIM_BootSourceSetting">
+    <xs:import namespace="http://schemas.dmtf.org/wbem/wscim/1/common" schemaLocation="http://schemas.dmtf.org/wbem/wscim/1/common.xsd"/>
+    <xs:element name="BootString" nillable="true" type="cim:cimString"/>
+    <xs:element name="BIOSBootString" nillable="true" type="cim:cimString"/>
+    <xs:element name="StructuredBootString" nillable="true" type="cim:cimString"/>
+    <xs:element name="FailThroughSupported" nillable="true">
+        <xs:complexType>
+            <xs:simpleContent>
+                <xs:restriction base="cim:cimUnsignedShort">
+                    <xs:enumeration value="0"/>
+                    <xs:enumeration value="1"/>
+                    <xs:enumeration value="2"/>
+                    <xs:anyAttribute namespace="##any" processContents="lax"/>
+                </xs:restriction>
+            </xs:simpleContent>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="InstanceID" type="cim:cimString"/>
+    <xs:element name="ElementName" type="cim:cimString"/>
+    <xs:element name="ChangeableType" nillable="true">
+        <xs:complexType>
+            <xs:simpleContent>
+                <xs:restriction base="cim:cimUnsignedShort">
+                    <xs:enumeration value="0"/>
+                    <xs:enumeration value="1"/>
+                    <xs:enumeration value="2"/>
+                    <xs:enumeration value="3"/>
+                    <xs:anyAttribute namespace="##any" processContents="lax"/>
+                </xs:restriction>
+            </xs:simpleContent>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="ConfigurationName" nillable="true" type="cim:cimString"/>
+    <xs:element name="ComponentSetting" nillable="true" type="xs:anyType"/>
+    <xs:element name="SoID" nillable="true" type="cim:cimString"/>
+    <xs:element name="SoOrgID" nillable="true" type="cim:cimString"/>
+    <xs:element name="Caption" nillable="true">
+        <xs:complexType>
+            <xs:simpleContent>
+                <xs:restriction base="cim:cimString">
+                    <xs:maxLength value="64"/>
+                    <xs:anyAttribute namespace="##any" processContents="lax"/>
+                </xs:restriction>
+            </xs:simpleContent>
+        </xs:complexType>
+    </xs:element>
+    <xs:element name="Description" nillable="true" type="cim:cimString"/>
+    <xs:element name="Generation" nillable="true" type="cim:cimUnsignedLong"/>
+    <xs:element name="CIM_BootSourceSetting" type="class:CIM_BootSourceSetting_Type"/>
+    <xs:complexType name="CIM_BootSourceSetting_Type">
+        <xs:sequence>
+            <xs:element minOccurs="0" ref="class:BIOSBootString"/>
+            <xs:element minOccurs="0" ref="class:BootString"/>
+            <xs:element minOccurs="0" ref="class:Caption"/>
+            <xs:element minOccurs="0" ref="class:ChangeableType"/>
+            <xs:element maxOccurs="unbounded" minOccurs="0" ref="class:ComponentSetting"/>
+            <xs:element minOccurs="0" ref="class:ConfigurationName"/>
+            <xs:element minOccurs="0" ref="class:Description"/>
+            <xs:element ref="class:ElementName"/>
+            <xs:element minOccurs="0" ref="class:FailThroughSupported"/>
+            <xs:element minOccurs="0" ref="class:Generation"/>
+            <xs:element ref="class:InstanceID"/>
+            <xs:element minOccurs="0" ref="class:SoID"/>
+            <xs:element minOccurs="0" ref="class:SoOrgID"/>
+            <xs:element minOccurs="0" ref="class:StructuredBootString"/>
+            <xs:any maxOccurs="unbounded" minOccurs="0" namespace="##other" processContents="lax"/>
+        </xs:sequence>
+        <xs:anyAttribute namespace="##any" processContents="lax"/>
+    </xs:complexType>
+</xs:schema>

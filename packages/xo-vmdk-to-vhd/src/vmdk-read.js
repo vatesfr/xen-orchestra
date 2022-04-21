@@ -185,6 +185,7 @@ export default class VMDKDirectParser {
       const grainPosition = this.grainFileOffsetList[tableIndex] * SECTOR_SIZE
       const grainSizeBytes = this.header.grainSizeSectors * SECTOR_SIZE
       const lba = this.grainLogicalAddressList[tableIndex] * grainSizeBytes
+      assert.strictEqual(grainPosition >= position, true)
       await this.virtualBuffer.readChunk(grainPosition - position, `blank from ${position} to ${grainPosition}`)
       let grain
       if (this.header.flags.hasMarkers) {
@@ -194,5 +195,6 @@ export default class VMDKDirectParser {
       }
       yield { logicalAddressBytes: lba, data: grain }
     }
+    console.log('yielded last VMDK block')
   }
 }

@@ -8,7 +8,7 @@ import { pFromCallback } from 'promise-toolbox'
 import rimraf from 'rimraf'
 import tmp from 'tmp'
 
-import { ParsableFile, parseOVAFile } from './ova'
+import { ParsableFile, parseOVAFile } from './ova-read'
 import readVmdkGrainTable from './vmdk-read-table'
 
 const initialDir = process.cwd()

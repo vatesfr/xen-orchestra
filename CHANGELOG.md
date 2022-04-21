@@ -1,8 +1,28 @@
 # ChangeLog
 
-## **5.69.1** (2022-03-31)
+## **5.69.2** (2022-04-13)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
+### Enhancements
+
+- [Rolling Pool Update] New algorithm for XCP-ng updates (PR [#6188](https://github.com/vatesfr/xen-orchestra/pull/6188))
+
+### Bug fixes
+
+- [Plugins] Automatically configure plugins when a configuration file is imported (PR [#6171](https://github.com/vatesfr/xen-orchestra/pull/6171))
+- [VMDK Export] Fix `VBOX_E_FILE_ERROR (0x80BB0004)` when importing in VirtualBox (PR [#6163](https://github.com/vatesfr/xen-orchestra/pull/6163))
+- [Backup] Fix "Cannot read properties of undefined" error when restoring from a proxied remote (PR [#6179](https://github.com/vatesfr/xen-orchestra/pull/6179))
+- [Rolling Pool Update] Fix "cannot read properties of undefined" error [#6170](https://github.com/vatesfr/xen-orchestra/issues/6170) (PR [#6186](https://github.com/vatesfr/xen-orchestra/pull/6186))
+
+### Released packages
+
+- xen-api 1.1.0
+- xo-vmdk-to-vhd 2.2.0
+- @xen-orchestra/proxy 0.20.1
+- xo-server 5.90.2
+
+## **5.69.1** (2022-03-31)
 
 ### Bug fixes
 
