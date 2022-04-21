@@ -10,7 +10,7 @@ import { confirm } from 'modal'
 import { error } from 'notification'
 import { FormattedDate } from 'react-intl'
 import { cloneDeep, filter, find, flatMap, forEach, map, reduce, orderBy } from 'lodash'
-import { deleteBackups, listVmBackups, restoreBackup, subscribeBackupNgJobs, subscribeRemotes } from 'xo'
+import { checkBackup, deleteBackups, listVmBackups, restoreBackup, subscribeBackupNgJobs, subscribeRemotes } from 'xo'
 
 import RestoreBackupsModalBody, { RestoreBackupsBulkModalBody } from './restore-backups-modal-body'
 import DeleteBackupsModalBody from './delete-backups-modal-body'
@@ -94,7 +94,7 @@ export default class Restore extends Component {
     backupDataByVm: {},
   }
 
-  componentWillReceiveProps(props) {
+  UNSAFE_componentWillReceiveProps(props) {
     if (props.remotes !== this.props.remotes || props.jobs !== this.props.jobs) {
       this._refreshBackupList(props.remotes, props.jobs)
     }
@@ -198,6 +198,24 @@ export default class Restore extends Component {
       }, noop)
       .then(() => this._refreshBackupList())
 
+  _restoreHealthCheck = data =>
+    confirm({
+      title: _('checkVmBackupsTitle', { vm: data.last.vm.name_label }),
+      body: <RestoreBackupsModalBody data={data} showGenerateNewMacAddress={false} showStartAfterBackup={false} />,
+      icon: 'restore',
+    })
+      .then(({ backup, targetSrs: { mainSr, mapVdisSrs } }) => {
+        if (backup == null || mainSr == null) {
+          error(_('backupRestoreErrorTitle'), _('backupRestoreErrorMessage'))
+          return
+        }
+
+        return checkBackup(backup, mainSr, {
+          mapVdisSrs,
+        })
+      }, noop)
+      .then(() => this._refreshBackupList())
+
   _delete = data =>
     confirm({
       title: _('deleteVmBackupsTitle', { vm: data.last.vm.name_label }),
@@ -250,6 +268,12 @@ export default class Restore extends Component {
       individualHandler: this._restore,
       label: _('restoreVmBackups'),
       level: 'primary',
+    },
+    {
+      icon: 'check',
+      individualHandler: this._restoreHealthCheck,
+      label: _('checkBackup'),
+      level: 'secondary',
     },
     {
       handler: this._bulkDelete,
