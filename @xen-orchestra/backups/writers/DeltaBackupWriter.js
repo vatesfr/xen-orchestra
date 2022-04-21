@@ -53,7 +53,7 @@ exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(Ab
           } catch (error) {
             warn('checkBaseVdis', { error })
             Task.warning(
-              `checkBaseVdis: Error while checking existing VHD ${vdisDir}/${srcVdi.uuid} : ${error.toString()}`
+              `Backup.checkBaseVdis: Error while checking existing VHD ${vdisDir}/${srcVdi.uuid} : ${error.toString()}`
             )
             await ignoreErrors.call(VhdAbstract.unlink(handler, path))
           }
@@ -61,14 +61,15 @@ exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(Ab
       } catch (error) {
         warn('checkBaseVdis', { error })
         Task.warning(
-          `checkBaseVdis : Impossible to open ${vdisDir}/${
+          `Backup.checkBaseVdis : Impossible to open ${vdisDir}/${
             srcVdi.uuid
           } folder to list precedent backups: ${error.toString()}`
         )
       }
       if (!found) {
-        // don't show warning if it's the first backup
-        Task.warning(`checkBaseVdis : Impossible to find the base of ${srcVdi.uuid} for a delta : fallback to a full `)
+        Task.warning(
+          `Backup.checkBaseVdis : Impossible to find the base of ${srcVdi.uuid} for a delta : fallback to a full `
+        )
         baseUuidToSrcVdi.delete(baseUuid)
       }
     })

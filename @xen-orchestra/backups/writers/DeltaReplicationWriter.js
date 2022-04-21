@@ -20,6 +20,7 @@ exports.DeltaReplicationWriter = class DeltaReplicationWriter extends MixinRepli
       vm => vm.other_config[TAG_COPY_SRC] === baseVm.uuid
     )
     if (replicatedVm === undefined) {
+      Task.warning(`Replication.checkBaseVdis: no replicated VMs`)
       return baseUuidToSrcVdi.clear()
     }
 
@@ -33,6 +34,7 @@ exports.DeltaReplicationWriter = class DeltaReplicationWriter extends MixinRepli
 
     for (const uuid of baseUuidToSrcVdi.keys()) {
       if (!replicatedVdis.has(uuid)) {
+        Task.warning(`Replication.checkBaseVdis: VDI ${uuid} is not in the list of already replicated VDI`)
         baseUuidToSrcVdi.delete(uuid)
       }
     }
