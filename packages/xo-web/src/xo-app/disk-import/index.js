@@ -114,7 +114,11 @@ const DiskImport = decorate([
         </Row>
         {sr !== undefined && (
           <div>
-            <Dropzone onDrop={effects.handleDrop} message={_('dropDisksFiles')} />
+            <Dropzone
+              onDrop={effects.handleDrop}
+              message={_('dropDisksFiles')}
+              accept={sr.content_type === 'iso' ? '.iso' : '.vhd,.vmdk'}
+            />
             {loadingDisks && <Icon icon='loading' />}
             {disks.length > 0 && (
               <div>
