@@ -1,8 +1,7 @@
 'use strict'
 
 const assert = require('assert/strict')
-
-const originalLookup = require('dns').lookup
+const dns = require('dns')
 const LRU = require('lru-cache')
 
 function reportResults(all, results, callback) {
@@ -14,7 +13,7 @@ function reportResults(all, results, callback) {
   }
 }
 
-exports.createCachedLookup = function createCachedLookup({ lookup = originalLookup } = {}) {
+exports.createCachedLookup = function createCachedLookup({ lookup = dns.lookup } = {}) {
   const cache = new LRU({
     max: 500,
 
