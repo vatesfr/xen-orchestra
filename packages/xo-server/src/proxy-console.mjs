@@ -35,13 +35,11 @@ function createSend(socket, name) {
 export default async function proxyConsole(clientSocket, vmConsole, sessionId, agent) {
   const url = new URL(vmConsole.location)
   url.protocol = 'wss:'
-  let { hostname } = url
-  if (hostname === null || hostname === '') {
-    const { address } = vmConsole.$VM.$resident_on
-    hostname = address
+  if (url.hostname === '') {
+    url.hostname = vmConsole.$VM.$resident_on.address
 
     log.warn(
-      `host is missing in console (${vmConsole.uuid}) URI (${vmConsole.location}) using host address (${address}) as fallback`
+      `host is missing in console (${vmConsole.uuid}) URI (${vmConsole.location}) using host address (${url.hostname}) as fallback`
     )
   }
 
