@@ -50,7 +50,7 @@
     "@xen-orchestra/template": "^0.1.0",
     "@xen-orchestra/xapi": "^0.10.0",
     "ajv": "^8.0.3",
-    "app-conf": "^2.0.0",
+    "app-conf": "^2.1.0",
     "async-iterator-to-stream": "^1.0.1",
     "base64url": "^3.0.0",
     "bind-property-descriptor": "^2.0.0",

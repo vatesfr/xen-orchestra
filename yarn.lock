@@ -3535,10 +3535,10 @@ anymatch@^3.0.0, anymatch@^3.0.3, anymatch@~3.1.2:
     normalize-path "^3.0.0"
     picomatch "^2.0.4"
 
-app-conf@^2.0.0:
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/app-conf/-/app-conf-2.0.0.tgz#ad4d52d5df60d5385c2c74642c75391d8590fff0"
-  integrity sha512-t+r2MCBdThyIW4ZFKTt+mQZLoWqgBF2kBniVRQqs7irCIukEkp+H/3+2wVpoy09YMaJGTij3v2FNKYgnCOqkBA==
+app-conf@^2.1.0:
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/app-conf/-/app-conf-2.1.0.tgz#ecd685b237f5185489b8ef38eb9a7dbcf7f72305"
+  integrity sha512-qI5Xq1lhcHeOEEhv6+bb5P7FsbAPBnLbSrmWletXR9Y0lmMTXT5iQg5sDH7Xrjiv9oghGbOXRF2KIIM/eFkf7A==
   dependencies:
     chokidar "^3.5.1"
     debug "^4.1.0"
