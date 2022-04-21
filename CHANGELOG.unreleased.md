@@ -14,7 +14,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [VM Console] fix connexion to older hosts. Remove support of http proxy for these hosts PR [#6191](https://github.com/vatesfr/xen-orchestra/pull/6191)
+- [VM/Host Console] Fix support of older versions of XCP-ng/XS, please not that HTTP proxies are note supported in that case [#6191](https://github.com/vatesfr/xen-orchestra/pull/6191)
 
 ### Packages to release
 
