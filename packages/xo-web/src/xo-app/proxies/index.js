@@ -245,6 +245,7 @@ const Proxies = decorate([
           <ActionButton
             btnStyle='success'
             disabled={state.isFromSource}
+            tooltip={state.isFromSource ? _('deployProxyDisabled') : undefined}
             handler={effects.deployProxy}
             icon='proxy'
             size='large'
