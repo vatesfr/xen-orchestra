@@ -1676,10 +1676,8 @@ const importDisk = async ({ description, file, name, type, vmdkData }, sr) => {
     vmdkData,
   })
   formData.append('file', file)
-
   const result = await post(res.$sendTo, formData)
-  const text = await result.text()
-  const body = JSON.parse(text)
+  const body = await result.json()
   if (result.status !== 200) {
     throw new Error(body.error.message)
   }
