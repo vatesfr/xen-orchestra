@@ -1,7 +1,9 @@
 import BaseComponent from 'base-component'
 import every from 'lodash/every'
+import filter from 'lodash/filter'
 import find from 'lodash/find'
 import forEach from 'lodash/forEach'
+import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import React from 'react'
 import store from 'store'
@@ -14,7 +16,13 @@ import { Col } from '../../grid'
 import { connectStore, mapPlus, resolveId, resolveIds } from '../../utils'
 import { getDefaultNetworkForVif, getDefaultMigrationNetwork } from '../utils'
 import { SelectHost, SelectNetwork } from '../../select-objects'
-import { createGetObjectsOfType, createPicker, createSelector, getObject } from '../../selectors'
+import {
+  createCollectionWrapper,
+  createGetObjectsOfType,
+  createPicker,
+  createSelector,
+  getObject,
+} from '../../selectors'
 
 import { isSrShared, isSrWritable } from '../'
 
@@ -80,22 +88,30 @@ export default class MigrateVmModalBody extends BaseComponent {
       host => (host ? sr => isSrWritable(sr) && (sr.$container === host.id || sr.$container === host.$pool) : false)
     )
 
+    this._getPrivateNetworks = createCollectionWrapper(
+      createSelector(
+        () => this.props.networks,
+        () => this.state.host.$poolId,
+        (networks, poolId) => filter(networks, network => network.$poolId === poolId && isEmpty(network.PIFs))
+      )
+    )
+
     this._getTargetNetworkPredicate = createSelector(
       createPicker(
         () => this.props.pifs,
         () => this.state.host.$PIFs
       ),
-      pifs => {
-        if (!pifs) {
-          return false
-        }
-
+      this._getPrivateNetworks,
+      (pifs, privateNetworks) => {
         const networks = {}
         forEach(pifs, pif => {
           networks[pif.$network] = true
         })
+        forEach(privateNetworks, network => {
+          networks[network.id] = true
+        })
 
-        return network => networks[network.id]
+        return isEmpty(networks) ? false : network => networks[network.id]
       }
     )
 
