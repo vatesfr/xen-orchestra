@@ -382,10 +382,7 @@ export const SelectSr = makeStoreSelect(
     const getHosts = createGetObjectsOfType('host')
 
     const getSrsByContainer = createGetObjectsOfType('SR')
-      .filter((_, { predicate }) => {
-        console.log(predicate)
-        return predicate || (allowIsoSr ? isSrWritableOrIso : isSrWritable)
-      })
+      .filter((_, { predicate }) => predicate || (allowIsoSr ? isSrWritableOrIso : isSrWritable))
       .sort()
       .groupBy('$container')
 

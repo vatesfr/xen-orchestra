@@ -31,7 +31,6 @@ const DiskImport = decorate([
     initialState: getInitialState,
     effects: {
       handleDrop: async function (_, files) {
-        // @todo no setState ?
         this.state.loadingDisks = true
         const disks = await Promise.all(
           map(files, async file => {
@@ -117,7 +116,7 @@ const DiskImport = decorate([
             <Dropzone
               onDrop={effects.handleDrop}
               message={_('dropDisksFiles')}
-              accept={sr.content_type === 'iso' ? '.iso' : '.vhd,.vmdk'}
+              accept={sr.content_type === 'iso' ? '.iso' : ['.vhd', '.vmdk']}
             />
             {loadingDisks && <Icon icon='loading' />}
             {disks.length > 0 && (
