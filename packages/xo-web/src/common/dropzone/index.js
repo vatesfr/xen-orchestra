@@ -18,11 +18,11 @@ export default class Dropzone extends Component {
 
     return (
       <ReactDropzone
+        accept={accept}
         activeClassName={styles.activeDropzone}
         className={styles.dropzone}
         multiple={multiple}
         onDrop={onDrop}
-        accept={accept}
       >
         <div className={styles.dropzoneText}>{message}</div>
       </ReactDropzone>

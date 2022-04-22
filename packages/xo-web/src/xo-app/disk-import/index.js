@@ -17,6 +17,7 @@ import { InputCol, LabelCol, Row } from 'form-grid'
 import { map } from 'lodash'
 import { readCapacityAndGrainTable } from 'xo-vmdk-to-vhd'
 import { SelectSr } from 'select-objects'
+import { isSrWritableOrIso } from '../../common/xo'
 
 const getInitialState = () => ({
   disks: [],
@@ -108,7 +109,7 @@ const DiskImport = decorate([
         <Row>
           <LabelCol>{_('importToSr')}</LabelCol>
           <InputCol>
-            <SelectSr onChange={effects.onChangeSr} required value={sr} allowIsoSr />
+            <SelectSr onChange={effects.onChangeSr} required value={sr} predicate={isSrWritableOrIso} />
           </InputCol>
         </Row>
         {sr !== undefined && (
