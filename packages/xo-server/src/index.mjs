@@ -758,7 +758,12 @@ export default async function main(args) {
   }
 
   // Attaches express to the web server.
-  webServer.on('request', express)
+  webServer.on('request', (req, res) => {
+    // don't handle proxy requests
+    if (req.url.startsWith('/')) {
+      return express(req, res)
+    }
+  })
   webServer.on('upgrade', (req, socket, head) => {
     express.emit('upgrade', req, socket, head)
   })
@@ -772,6 +777,7 @@ export default async function main(args) {
     appVersion: APP_VERSION,
     config,
     express,
+    httpServer: webServer,
     safeMode,
   })
 

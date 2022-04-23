@@ -1,6 +1,7 @@
 import Config from '@xen-orchestra/mixins/Config.js'
 import forEach from 'lodash/forEach.js'
 import Hooks from '@xen-orchestra/mixins/Hooks.js'
+import HttpProxy from '@xen-orchestra/mixins/HttpProxy.js'
 import includes from 'lodash/includes.js'
 import isEmpty from 'lodash/isEmpty.js'
 import iteratee from 'lodash/iteratee.js'
@@ -28,7 +29,7 @@ export default class Xo extends EventEmitter {
   constructor(opts) {
     super()
 
-    mixin(this, { Config, Hooks }, [opts])
+    mixin(this, { Config, Hooks, HttpProxy }, [opts])
 
     // a lot of mixins adds listener for start/stop/… events
     this.hooks.setMaxListeners(0)
