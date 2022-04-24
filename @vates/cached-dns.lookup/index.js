@@ -1,6 +1,6 @@
 'use strict'
 
-const assert = require('assert/strict')
+const assert = require('assert')
 const dns = require('dns')
 const LRU = require('lru-cache')
 
@@ -29,7 +29,7 @@ exports.createCachedLookup = function createCachedLookup({ lookup = dns.lookup }
     } else if (typeof options === 'number') {
       family = options
     } else if (options != null) {
-      assert.notEqual(options.verbatim, false, 'not supported by this implementation')
+      assert.notStrictEqual(options.verbatim, false, 'not supported by this implementation')
       ;({ all = all, family = family } = options)
     }
 
@@ -63,7 +63,7 @@ exports.createCachedLookup = function createCachedLookup({ lookup = dns.lookup }
     const previous = dns.lookup
     dns.lookup = cachedLookup
     return function restoreGlobal() {
-      assert.equal(dns.lookup, cachedLookup)
+      assert.strictEqual(dns.lookup, cachedLookup)
       dns.lookup = previous
     }
   }
