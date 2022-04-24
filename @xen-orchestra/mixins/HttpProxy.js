@@ -1,14 +1,15 @@
 'use strict'
 
 const { debug, warn } = require('@xen-orchestra/log').createLogger('xo:mixins:HttpProxy')
+const { EventListenersManager } = require('@vates/event-listeners-manager')
 const { pipeline } = require('stream')
 const { ServerResponse, request } = require('http')
 const assert = require('assert')
 const fromCallback = require('promise-toolbox/fromCallback')
+const fromEvent = require('promise-toolbox/fromEvent')
 const net = require('net')
 
 const { parseBasicAuth } = require('./_parseBasicAuth.js')
-const fromEvent = require('promise-toolbox/fromEvent')
 
 const IGNORED_HEADERS = new Set([
   // https://datatracker.ietf.org/doc/html/rfc2616#section-13.5.1
@@ -32,11 +33,17 @@ module.exports = class HttpProxy {
   constructor(app, { httpServer }) {
     this.#app = app
 
-    httpServer.on('connect', this.#handleConnect.bind(this)).on('request', this.#handleRequest.bind(this))
+    const events = new EventListenersManager(httpServer)
+    app.config.watch('http.proxy.enabled', (enabled = false) => {
+      events.removeAll()
+      if (enabled) {
+        httpServer.on('connect', this.#handleConnect.bind(this)).on('request', this.#handleRequest.bind(this))
+      }
+    })
   }
 
   async #handleAuthentication(req, res, next) {
-    const authenticationToken = this.#app.config.getOptional('http.proxies.authenticationToken')
+    const authenticationToken = this.#app.config.getOptional('http.proxy.authenticationToken')
 
     if (authenticationToken !== undefined) {
       const auth = parseBasicAuth(req.headers['proxy-authorization'])
