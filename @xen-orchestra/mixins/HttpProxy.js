@@ -36,7 +36,7 @@ module.exports = class HttpProxy {
   }
 
   async #handleAuthentication(req, res, next) {
-    const authenticationToken = this.#app.config('http.proxies.authenticationToken')
+    const authenticationToken = this.#app.config.get('http.proxies.authenticationToken')
 
     if (authenticationToken !== undefined) {
       const auth = parseBasicAuth(req.headers['proxy-authorization'])
