@@ -48,8 +48,8 @@ module.exports = class HttpProxy {
     if (authenticationToken !== undefined) {
       const auth = parseBasicAuth(req.headers['proxy-authorization'])
 
-      // https://datatracker.ietf.org/doc/html/rfc7235#section-3.2
-      if (auth === undefined || !(auth.user === authenticationToken && auth.password === '')) {
+      if (auth === undefined || !(auth.token === authenticationToken)) {
+        // https://datatracker.ietf.org/doc/html/rfc7235#section-3.2
         res.statusCode = '407'
         res.setHeader('proxy-authenticate', 'Basic realm="proxy"')
         return res.end('Proxy Authentication Required')
@@ -67,15 +67,22 @@ module.exports = class HttpProxy {
     const res = new ServerResponse(req)
     res.assignSocket(clientSocket)
 
-    this.#handleAuthentication(req, res, () => {
-      const { port, hostname } = new URL('http://' + req.url)
-      const serverSocket = net.connect(port || 80, hostname, function () {
+    try {
+      await this.#handleAuthentication(req, res, async () => {
+        const { port, hostname } = new URL('http://' + req.url)
+        const serverSocket = net.connect(port || 80, hostname)
+
+        await fromEvent(serverSocket, 'connect')
+
         clientSocket.write('HTTP/1.1 200 Connection Established\r\n\r\n')
         serverSocket.write(head)
         fromCallback(pipeline, clientSocket, serverSocket).catch(warn)
         fromCallback(pipeline, serverSocket, clientSocket).catch(warn)
       })
-    }).catch(warn)
+    } catch (error) {
+      warn(error)
+      clientSocket.end()
+    }
   }
 
   async #handleRequest(req, res) {

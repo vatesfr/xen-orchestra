@@ -12,18 +12,18 @@ exports.parseBasicAuth = function parseBasicAuth(header) {
     return
   }
 
-  const credentials = Buffer.from(matches[1], 'base64').toString()
+  let credentials = Buffer.from(matches[1], 'base64').toString()
 
-  // https://datatracker.ietf.org/doc/html/rfc3986#section-3.2.1
-  let user, password
   const i = credentials.indexOf(':')
   if (i === -1) {
-    user = credentials
-    password = ''
+    credentials = { token: credentials }
   } else {
-    user = credentials.slice(0, i)
-    password = credentials.slice(i + 1)
+    // https://datatracker.ietf.org/doc/html/rfc3986#section-3.2.1
+    credentials = {
+      username: credentials.slice(0, i),
+      password: credentials.slice(i + 1),
+    }
   }
 
-  return { user, password }
+  return credentials
 }
