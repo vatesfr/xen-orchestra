@@ -88,32 +88,19 @@ export default class MigrateVmModalBody extends BaseComponent {
       host => (host ? sr => isSrWritable(sr) && (sr.$container === host.id || sr.$container === host.$pool) : false)
     )
 
-    this._getPrivateNetworks = createCollectionWrapper(
+    this._getNetworks = createCollectionWrapper(
       createSelector(
         () => this.props.networks,
         () => this.state.host.$poolId,
-        (networks, poolId) => filter(networks, network => network.$poolId === poolId && isEmpty(network.PIFs))
+        (networks, poolId) => filter(networks, network => network.$poolId === poolId)
       )
     )
 
-    this._getTargetNetworkPredicate = createSelector(
-      createPicker(
-        () => this.props.pifs,
-        () => this.state.host.$PIFs
-      ),
-      this._getPrivateNetworks,
-      (pifs, privateNetworks) => {
-        const networks = {}
-        forEach(pifs, pif => {
-          networks[pif.$network] = true
-        })
-        forEach(privateNetworks, network => {
-          networks[network.id] = true
-        })
-
-        return isEmpty(networks) ? false : network => networks[network.id]
-      }
-    )
+    this._getTargetNetworkPredicate = createSelector(this._getNetworks, networks => {
+      const _networks = {}
+      forEach(networks, network => (_networks[network.id] = true))
+      return isEmpty(_networks) ? false : network => _networks[network.id]
+    })
 
     this._getMigrationNetworkPredicate = createSelector(
       createPicker(
