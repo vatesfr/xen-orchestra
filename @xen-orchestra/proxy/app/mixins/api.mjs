@@ -52,7 +52,7 @@ export default class Api {
       ctx.req.setTimeout(0)
 
       const profile = await app.authentication.findProfile({
-        authenticationToken: ctx.cookies.get('authenticationToken'),
+        token: ctx.cookies.get('authenticationToken'),
       })
       if (profile === undefined) {
         ctx.status = 401

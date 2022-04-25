@@ -43,12 +43,12 @@ module.exports = class HttpProxy {
   }
 
   async #handleAuthentication(req, res, next) {
-    const authenticationToken = this.#app.config.getOptional('http.proxy.authenticationToken')
+    const { authentication } = this.#app
 
-    if (authenticationToken !== undefined) {
+    if (authentication !== undefined) {
       const auth = parseBasicAuth(req.headers['proxy-authorization'])
 
-      if (auth === undefined || !(auth.token === authenticationToken)) {
+      if (auth === undefined || !(await authentication.findProfile(auth))) {
         // https://datatracker.ietf.org/doc/html/rfc7235#section-3.2
         res.statusCode = '407'
         res.setHeader('proxy-authenticate', 'Basic realm="proxy"')
