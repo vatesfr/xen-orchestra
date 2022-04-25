@@ -122,8 +122,12 @@ export class Xapi extends EventEmitter {
     }
 
     this._allowUnauthorized = opts.allowUnauthorized
-    const { httpProxy } = opts
+    let { httpProxy } = opts
     if (httpProxy !== undefined) {
+      if (httpProxy.startsWith('https:')) {
+        httpProxy = parseUrl(httpProxy)
+        httpProxy.rejectUnauthorized = !opts.allowUnauthorized
+      }
       this._httpAgent = new ProxyAgent(httpProxy)
     }
     this._setUrl(url)
