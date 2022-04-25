@@ -37,7 +37,7 @@ module.exports = class HttpProxy {
     app.config.watch('http.proxy.enabled', (enabled = false) => {
       events.removeAll()
       if (enabled) {
-        httpServer.on('connect', this.#handleConnect.bind(this)).on('request', this.#handleRequest.bind(this))
+        events.add('connect', this.#handleConnect.bind(this)).add('request', this.#handleRequest.bind(this))
       }
     })
   }
