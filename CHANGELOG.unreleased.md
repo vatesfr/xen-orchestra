@@ -36,7 +36,7 @@
 
 - @vates/cached-dns.lookup major
 - @vates/event-listeners-manager major
-- xen-api patch
+- xen-api minor
 - xo-vmdk-to-vhd minor
 - @xen-orchestra/proxy patch
 - xo-server minor
