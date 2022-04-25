@@ -18,6 +18,7 @@ module.exports = {
   ],
   rules: {
     'eslint-comments/disable-enable-pair': 'off',
+    'react/display-name': 'off',
     // Necessary to pass empty Effects/State to Reaclette
     '@typescript-eslint/no-empty-interface': 'off',
     // https://github.com/typescript-eslint/typescript-eslint/issues/1071

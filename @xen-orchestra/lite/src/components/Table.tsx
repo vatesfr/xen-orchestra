@@ -1,13 +1,29 @@
 import React from 'react'
-import styled from 'styled-components'
 import { withState } from 'reaclette'
 
 import IntlMessage from './IntlMessage'
+import {
+  styled,
+  Table as MUITable,
+  TableCell,
+  tableCellClasses,
+  TableHead,
+  TableRow,
+  TableSortLabel,
+  TableBody,
+  TablePagination,
+  Box,
+} from '@mui/material'
+import Checkbox from './Checkbox'
+import { findIndex } from 'lodash'
+import { RouteComponentProps, withRouter } from 'react-router-dom'
+import { cpuUsage } from 'process'
 
 export type Column<Type> = {
   header: React.ReactNode
   id?: string
   render: { (item: Type): React.ReactNode }
+  isNumeric?: boolean
 }
 
 type Item = {
@@ -17,57 +33,216 @@ type Item = {
 
 interface ParentState {}
 
-interface State {}
+interface State {
+  selectedItems: Array<unknown>
+}
 
-interface Props {
+interface Props extends RouteComponentProps {
   collection: Item[] | undefined
   columns: Column<any>[]
   placeholder?: JSX.Element
+  isItemSelectable?: boolean
+  rowPerPages?: number
+  stateUrlParam: string
+  rowsPerPageOptions?: number[]
 }
 
 interface ParentEffects {}
 
-interface Effects {}
+interface Effects {
+  toggleSelectItem: (item: any) => void
+  toggleAllSelectedItem: () => void
+  handlePaginationChange: (e: any, page: number) => void
+  handleRowPerPage: (e: any) => void
+}
 
-interface Computed {}
+interface Computed {
+  nbSelectedItems: JSX.Element
+  page: number
+  rowsPerPage: number
+}
 
-const StyledTable = styled.table`
-  border: 1px solid #333;
-  td {
-    border: 1px solid #333;
-  }
-  thead {
-    background-color: #333;
-    color: #fff;
-  }
-`
-const Table = withState<State, Props, Effects, Computed, ParentState, ParentEffects>({}, ({ collection, columns, placeholder }) =>
-  collection !== undefined ? (
-    collection.length !== 0 ? (
-      <StyledTable>
-        <thead>
-          <tr>
-            {columns.map((col, index) => (
-              <td key={col.id ?? index}>{col.header}</td>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {collection.map((item, index) => (
-            <tr key={item.id ?? index}>
+const StyledTableCell = styled(TableCell)(({ theme }) => ({
+  border: '1px solid #E8E8E8',
+  borderLeft: 'none',
+  [`&.${tableCellClasses.head}`]: {
+    color: theme.palette.primary.main,
+  },
+}))
+
+const StyledNbSelectedItems = styled('p')({
+  fontWeight: 'bold',
+})
+
+const Table = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
+  {
+    initialState: () => ({
+      selectedItems: [
+        {
+          name: 'Mathieu Foo',
+          description: 'Foo',
+          host_name: 'Host Foo',
+          pool_name: 'Pool Foo',
+          ipv4: '172.16.210.11',
+          cpu: 1,
+          ram: 4,
+          sr_name: 'SR Foo',
+          snapshot_name: 'Snapshot Foo',
+        },
+      ],
+    }),
+    effects: {
+      toggleSelectItem: function (item: any) {
+        const { selectedItems } = this.state
+        const index = findIndex(selectedItems, item)
+        index === -1 ? selectedItems.push(item) : selectedItems.splice(index, 1)
+        this.state.selectedItems = [...selectedItems]
+      },
+      toggleAllSelectedItem: function () {
+        if (this.props.collection === undefined) {
+          return
+        }
+        this.state.selectedItems.length !== this.props.collection.length
+          ? (this.state.selectedItems = [...this.props.collection])
+          : (this.state.selectedItems = [])
+      },
+      handlePaginationChange: function (_, page) {
+        const reg = new RegExp(this.props.stateUrlParam + '_page=\\d+')
+        let searchParams = this.props.location.search
+        if (reg.test(searchParams)) {
+          searchParams = searchParams.replace(reg, `${this.props.stateUrlParam}_page=${page}`)
+        } else {
+          searchParams += `?${this.props.stateUrlParam}_page=${page}`
+        }
+        this.props.history.push(`${this.props.location.pathname}${searchParams}`)
+      },
+      handleRowPerPage: function (e) {
+        const reg = new RegExp(this.props.stateUrlParam + '_row=\\d+')
+        let searchParams = this.props.location.search
+        if (reg.test(searchParams)) {
+          searchParams = searchParams.replace(reg, `${this.props.stateUrlParam}_row=${e.target.value}`)
+        } else {
+          searchParams += `?${this.props.stateUrlParam}_row=${e.target.value}`
+        }
+        this.props.history.push(`${this.props.location.pathname}${searchParams}`)
+      },
+    },
+    computed: {
+      nbSelectedItems: ({ selectedItems }: State) => (
+        <StyledNbSelectedItems>
+          <IntlMessage id='itemSelected' values={{ nSelected: selectedItems.length }} />
+        </StyledNbSelectedItems>
+      ),
+      page: (_, { location, stateUrlParam }) =>
+        Number(location.search.match(new RegExp(stateUrlParam + '_page=\\d+'))?.[0]?.split('=')[1] ?? 0),
+      rowsPerPage: (_, { location, stateUrlParam, rowsPerPageOptions }) => {
+        const _rowsPerPageOptions = rowsPerPageOptions ?? [10, 25, 50, 100]
+        let rowsPerPage = Number(
+          location.search.match(new RegExp(stateUrlParam + '_row=\\d+'))?.[0]?.split('=')[1] ?? _rowsPerPageOptions[0]
+        )
+        if (!_rowsPerPageOptions.includes(rowsPerPage)) {
+          console.error('Not allowed rowsPerPage', rowsPerPage)
+          rowsPerPage = _rowsPerPageOptions[0]
+        }
+        return rowsPerPage
+      },
+    },
+  },
+  ({
+    collection,
+    columns,
+    placeholder,
+    effects,
+    state: { selectedItems, nbSelectedItems, page, rowsPerPage },
+    isItemSelectable,
+    rowsPerPageOptions,
+  }) =>
+    collection !== undefined ? (
+      <>
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+          }}
+        >
+          {nbSelectedItems}
+          <TablePagination
+            component='div'
+            sx={{
+              display: 'block',
+            }}
+            rowsPerPage={rowsPerPage}
+            rowsPerPageOptions={rowsPerPageOptions}
+            onRowsPerPageChange={effects.handleRowPerPage}
+            count={collection.length}
+            page={page}
+            onPageChange={effects.handlePaginationChange}
+            labelRowsPerPage='Show by'
+          />
+        </Box>
+        <MUITable>
+          <TableHead>
+            <TableRow>
+              {isItemSelectable && (
+                <StyledTableCell padding='checkbox'>
+                  <Checkbox
+                    color='primary'
+                    indeterminate={selectedItems.length > 0 && selectedItems.length < collection.length}
+                    checked={selectedItems.length > 0 && selectedItems.length === collection.length}
+                    onChange={effects.toggleAllSelectedItem}
+                  />
+                </StyledTableCell>
+              )}
               {columns.map((col, index) => (
-                <td key={col.id ?? index}>{col.render(item)}</td>
+                <StyledTableCell key={col.id ?? index}>{col.header}</StyledTableCell>
               ))}
-            </tr>
-          ))}
-        </tbody>
-      </StyledTable>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {collection.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((item, index) => (
+              <TableRow key={item.id ?? index}>
+                {isItemSelectable && (
+                  <StyledTableCell padding='checkbox'>
+                    <Checkbox
+                      onChange={() => effects.toggleSelectItem(item)}
+                      checked={findIndex(selectedItems, item) !== -1}
+                    />
+                  </StyledTableCell>
+                )}
+                {columns.map((col, i) => (
+                  <StyledTableCell key={col.id ?? i} align={col.isNumeric ? 'right' : 'left'}>
+                    {col.render(item)}
+                  </StyledTableCell>
+                ))}
+              </TableRow>
+            ))}
+          </TableBody>
+        </MUITable>
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+          }}
+        >
+          {nbSelectedItems}
+          <TablePagination
+            component='div'
+            sx={{
+              display: 'block',
+            }}
+            rowsPerPage={rowsPerPage}
+            rowsPerPageOptions={rowsPerPageOptions}
+            onRowsPerPageChange={effects.handleRowPerPage}
+            count={collection.length}
+            page={page}
+            onPageChange={effects.handlePaginationChange}
+            labelRowsPerPage='Show by'
+          />
+        </Box>
+      </>
     ) : (
-      placeholder ?? <IntlMessage id='noData' />
+      <IntlMessage id='loading' />
     )
-  ) : (
-    <IntlMessage id='loading' />
-  )
 )
 
-export default Table
+export default withRouter(Table)
