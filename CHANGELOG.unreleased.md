@@ -15,6 +15,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [VM/Host Console] Fix support of older versions of XCP-ng/XS, please not that HTTP proxies are note supported in that case [#6191](https://github.com/vatesfr/xen-orchestra/pull/6191)
+- Fix HTTP proxy support to connect to pools (introduced in XO 5.69.0) [#6204](https://github.com/vatesfr/xen-orchestra/pull/6204)
 
 ### Packages to release
 
@@ -35,6 +36,8 @@
 
 - @vates/cached-dns.lookup major
 - @vates/event-listeners-manager major
+- xen-api patch
 - xo-vmdk-to-vhd minor
+- @xen-orchestra/proxy patch
 - xo-server minor
 - xo-web minor
