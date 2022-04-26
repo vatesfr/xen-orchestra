@@ -3,9 +3,10 @@
 const assert = require('assert')
 const map = require('lodash/map.js')
 const mapValues = require('lodash/mapValues.js')
+const uuid = require('uuid')
 const ignoreErrors = require('promise-toolbox/ignoreErrors')
 const { asyncMap } = require('@xen-orchestra/async-map')
-const { chainVhd, checkVhdChain, openVhd, VhdAbstract } = require('vhd-lib')
+const { chainVhd, checkVhdChain, openVhd, VhdAbstract, VhdDirectory } = require('vhd-lib')
 const { createLogger } = require('@xen-orchestra/log')
 const { dirname } = require('path')
 
@@ -30,6 +31,7 @@ exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(Ab
 
     const backupDir = getVmBackupDir(backup.vm.uuid)
     const vdisDir = `${backupDir}/vdis/${backup.job.id}`
+    const vhdDebugData = {}
 
     await asyncMap(baseUuidToSrcVdi, async ([baseUuid, srcVdi]) => {
       let found = false
@@ -40,6 +42,16 @@ exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(Ab
         })
         const packedBaseUuid = packUuid(baseUuid)
         await asyncMap(vhds, async path => {
+          await Disposable.use(openVhd(handler, path), async vhd => {
+            const isMergeable = await adapter.isMergeableParent(packedBaseUuid, path)
+            vhdDebugData[path] = {
+              uuid: uuid.stringify(vhd.footer.uuid),
+              parentUuid: uuid.stringify(vhd.header.parentUuid),
+              isVhdDirectory: vhd instanceof VhdDirectory,
+              disktype: vhd.footer.diskType,
+              isMergeable,
+            }
+          })
           try {
             await checkVhdChain(handler, path)
             // Warning, this should not be written as found = found || await adapter.isMergeableParent(packedBaseUuid, path)
@@ -68,7 +80,14 @@ exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(Ab
       }
       if (!found) {
         Task.warning(
-          `Backup.checkBaseVdis : Impossible to find the base of ${srcVdi.uuid} for a delta : fallback to a full `
+          `Backup.checkBaseVdis : Impossible to find the base of ${srcVdi.uuid} for a delta : fallback to a full `,
+          {
+            data: {
+              vhdDebugData,
+              baseUuid,
+              vdiuuid: srcVdi.uuid,
+            },
+          }
         )
         baseUuidToSrcVdi.delete(baseUuid)
       }
