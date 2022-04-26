@@ -481,6 +481,7 @@ const messages = {
     'If your country participates in DST, it is advised that you avoid scheduling jobs at the time of change. e.g. 2AM to 3AM for US.',
 
   // ------ New backup -----
+  checkBackup: 'Restore health check',
   newBackupAdvancedSettings: 'Advanced settings',
   newBackupSettings: 'Settings',
   reportWhenAlways: 'Always',
@@ -1631,6 +1632,7 @@ const messages = {
   refreshBackupList: 'Refresh backup list',
   restoreVmBackups: 'Restore',
   restoreVmBackupsTitle: 'Restore {vm}',
+  checkVmBackupsTitle: 'Restore health check {vm}',
   restoreVmBackupsBulkTitle: 'Restore {nVms, number} VM{nVms, plural, one {} other {s}}',
   restoreVmBackupsBulkMessage:
     'Restore {nVms, number} VM{nVms, plural, one {} other {s}} from {nVms, plural, one {its} other {their}} {oldestOrLatest} backup.',

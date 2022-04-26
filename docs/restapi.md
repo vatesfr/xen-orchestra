@@ -63,7 +63,6 @@ The following query parameters are supported:
 - `filter`: a string that will be used to select only matching objects, see [the syntax documentation](manage_infrastructure.md#live-filter-search)
 - `ndjson`: if specified, the result will be in [NDJSON format](http://ndjson.org/)
 
-
 Simple request:
 
 ```http
@@ -78,7 +77,6 @@ Content-Type: application/json
   "/rest/v0/vms/5019156b-f40d-bc57-835b-4a259b177be1"
 ]
 ```
-
 
 Here is an example with `curl`:
 
@@ -122,7 +120,6 @@ Content-Type: application/x-ndjson
 {"name_label":"Debian 10 Cloudinit","power_state":"Running","url":"/rest/v0/vms/770aa52a-fd42-8faf-f167-8c5c4a237cac"}
 {"name_label":"Debian 10 Cloudinit self-service","power_state":"Halted","url":"/rest/v0/vms/5019156b-f40d-bc57-835b-4a259b177be1"}
 ```
-
 
 ## VM and VDI export
 
