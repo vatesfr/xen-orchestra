@@ -53,22 +53,30 @@ export default class RestoreBackupsModalBody extends Component {
                 vdis={this._getDisks()}
               />
             </div>
-            <div>
-              <Toggle iconSize={1} onChange={this.linkState('start')} /> {_('restoreVmBackupsStart', { nVms: 1 })}
-            </div>
-            <div>
-              <Toggle
-                iconSize={1}
-                value={this.state.generateNewMacAddresses}
-                onChange={this.toggleState('generateNewMacAddresses')}
-              />{' '}
-              {_('generateNewMacAddress')}
-            </div>
+            {this.props.showStartAfterBackup && (
+              <div>
+                <Toggle iconSize={1} onChange={this.linkState('start')} /> {_('restoreVmBackupsStart', { nVms: 1 })}
+              </div>
+            )}
+            {this.props.showGenerateNewMacAddress && (
+              <div>
+                <Toggle
+                  iconSize={1}
+                  value={this.state.generateNewMacAddresses}
+                  onChange={this.toggleState('generateNewMacAddresses')}
+                />{' '}
+                {_('generateNewMacAddress')}
+              </div>
+            )}
           </div>
         )}
       </div>
     )
   }
+}
+RestoreBackupsModalBody.defaultProps = {
+  showGenerateNewMacAddress: true,
+  showStartAfterBackup: true,
 }
 
 export class RestoreBackupsBulkModalBody extends Component {

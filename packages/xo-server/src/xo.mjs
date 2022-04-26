@@ -149,7 +149,11 @@ export default class Xo extends EventEmitter {
         }
       },
       error => {
-        log.error('HTTP request error', { error })
+        log.error('HTTP request error', {
+          data,
+          error,
+          fn: fn.name,
+        })
 
         if (!res.headersSent) {
           res.writeHead(500)

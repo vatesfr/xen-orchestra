@@ -534,4 +534,46 @@ export default class BackupNg {
 
     return backupsByVmByRemote
   }
+
+  async checkVmBackupNg(id, srId, settings) {
+    let restoredVm, xapi
+    try {
+      const restoredId = await this.importVmBackupNg(id, srId, settings)
+      const app = this._app
+      xapi = app.getXapi(srId)
+      restoredVm = xapi.getObject(restoredId)
+
+      // remove vifs
+      await Promise.all(restoredVm.$VIFs.map(vif => xapi._deleteVif(vif)))
+
+      const start = new Date()
+      // start Vm
+      await xapi.startVm(restoredId)
+      const timeout = 10 * 60 * 1000
+      const startDuration = new Date() - start
+
+      if (startDuration >= timeout) {
+        throw new Error(`VM ${restoredId} not started after ${timeout / 1000} second`)
+      }
+
+      const remainingTimeout = timeout - startDuration
+
+      await new Promise((resolve, reject) => {
+        const stopWatch = xapi.watchObject(restoredVm.$ref, vm => {
+          if (vm.$guest_metrics) {
+            stopWatch()
+            timeoutId !== undefined && clearTimeout(timeoutId)
+            resolve()
+          }
+        })
+
+        const timeoutId = setTimeout(() => {
+          stopWatch()
+          reject(new Error(`Guest tools of VM ${restoredId} not started after ${timeout / 1000} second`))
+        }, remainingTimeout)
+      })
+    } finally {
+      restoredVm !== undefined && xapi !== undefined && (await xapi.VM_destroy(restoredVm.$ref))
+    }
+  }
 }

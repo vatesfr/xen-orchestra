@@ -268,6 +268,24 @@ importVmBackup.params = {
   },
 }
 
+export function checkBackup({ id, settings, sr }) {
+  return this.checkVmBackupNg(id, sr, settings)
+}
+
+checkBackup.permission = 'admin'
+
+checkBackup.params = {
+  id: {
+    type: 'string',
+  },
+  settings: {
+    type: 'object',
+  },
+  sr: {
+    type: 'string',
+  },
+}
+
 // -----------------------------------------------------------------------------
 
 export function listPartitions({ remote, disk }) {

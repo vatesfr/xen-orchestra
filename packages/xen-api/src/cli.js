@@ -44,13 +44,14 @@ const usage = 'Usage: xen-api <url> [<user> [<password>]]'
 
 async function main(createClient) {
   const opts = minimist(process.argv.slice(2), {
-    string: ['session-id'],
+    string: ['proxy', 'session-id'],
     boolean: ['allow-unauthorized', 'help', 'read-only', 'verbose'],
 
     alias: {
       'allow-unauthorized': 'au',
       debounce: 'd',
       help: 'h',
+      proxy: 'p',
       'read-only': 'ro',
       verbose: 'v',
     },
@@ -87,6 +88,7 @@ async function main(createClient) {
     allowUnauthorized: opts.au,
     auth,
     debounce: opts.debounce != null ? +opts.debounce : null,
+    httpProxy: opts.proxy,
     readOnly: opts.ro,
     syncStackTraces: true,
   })
