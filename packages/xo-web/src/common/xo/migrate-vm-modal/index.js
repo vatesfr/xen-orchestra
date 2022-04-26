@@ -1,6 +1,5 @@
 import BaseComponent from 'base-component'
 import every from 'lodash/every'
-import filter from 'lodash/filter'
 import find from 'lodash/find'
 import forEach from 'lodash/forEach'
 import isEmpty from 'lodash/isEmpty'
@@ -16,13 +15,7 @@ import { Col } from '../../grid'
 import { connectStore, mapPlus, resolveId, resolveIds } from '../../utils'
 import { getDefaultNetworkForVif, getDefaultMigrationNetwork } from '../utils'
 import { SelectHost, SelectNetwork } from '../../select-objects'
-import {
-  createCollectionWrapper,
-  createGetObjectsOfType,
-  createPicker,
-  createSelector,
-  getObject,
-} from '../../selectors'
+import { createGetObjectsOfType, createPicker, createSelector, getObject } from '../../selectors'
 
 import { isSrShared, isSrWritable } from '../'
 
@@ -88,19 +81,19 @@ export default class MigrateVmModalBody extends BaseComponent {
       host => (host ? sr => isSrWritable(sr) && (sr.$container === host.id || sr.$container === host.$pool) : false)
     )
 
-    this._getNetworks = createCollectionWrapper(
-      createSelector(
-        () => this.props.networks,
-        () => this.state.host.$poolId,
-        (networks, poolId) => filter(networks, network => network.$poolId === poolId)
-      )
+    this._getTargetNetworkPredicate = createSelector(
+      () => this.props.networks,
+      () => this.state.host.$poolId,
+      (networks, poolId) => {
+        const _networks = {}
+        forEach(networks, network => {
+          if (network.$poolId === poolId) {
+            _networks[network.id] = true
+          }
+        })
+        return isEmpty(_networks) ? false : network => _networks[network.id]
+      }
     )
-
-    this._getTargetNetworkPredicate = createSelector(this._getNetworks, networks => {
-      const _networks = {}
-      forEach(networks, network => (_networks[network.id] = true))
-      return isEmpty(_networks) ? false : network => _networks[network.id]
-    })
 
     this._getMigrationNetworkPredicate = createSelector(
       createPicker(
