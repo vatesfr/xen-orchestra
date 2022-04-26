@@ -68,21 +68,16 @@ export default class MigrateVmsModalBody extends BaseComponent {
     )
 
     this._getTargetNetworkPredicate = createSelector(
-      createPicker(
-        () => this.props.pifs,
-        () => this.state.host.$PIFs
-      ),
-      pifs => {
-        if (!pifs) {
-          return false
-        }
-
-        const networks = {}
-        forEach(pifs, pif => {
-          networks[pif.$network] = true
+      () => this.props.networks,
+      () => this.state.host.$poolId,
+      (networks, poolId) => {
+        const _networks = {}
+        forEach(networks, network => {
+          if (network.$poolId === poolId) {
+            _networks[network.id] = true
+          }
         })
-
-        return network => networks[network.id]
+        return isEmpty(_networks) ? false : network => _networks[network.id]
       }
     )
 
