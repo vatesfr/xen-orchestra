@@ -36,7 +36,7 @@
     "blocked": "^1.2.1",
     "debug": "^4.0.1",
     "http-request-plus": "^0.14.0",
-    "jest-diff": "^27.3.1",
+    "jest-diff": "^28.0.1",
     "json-rpc-protocol": "^0.13.1",
     "kindof": "^2.0.0",
     "limit-concurrency-decorator": "^0.5.0",
