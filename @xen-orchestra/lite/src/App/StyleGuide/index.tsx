@@ -221,8 +221,12 @@ const App = withState<State, Props, Effects, Computed, ParentState, ParentEffect
       <Container>
         <Render>
           <div style={{ display: 'flex', justifyContent: 'space-around', flexWrap: 'wrap' }}>
-            <ProgressCircle base={200} value={state.progressBarValue} />
-            <ProgressCircle base={200} value={state.progressBarValue} label={(_, value) => `${value} VM(s)`} />
+            <div>
+              <ProgressCircle max={200} value={state.progressBarValue} />
+            </div>
+            <div>
+              <ProgressCircle max={200} showLabel={false} size={150} value={state.progressBarValue} />
+            </div>
           </div>
           <input
             defaultValue={state.progressBarValue}
@@ -238,8 +242,8 @@ const App = withState<State, Props, Effects, Computed, ParentState, ParentEffect
           />
         </Render>
         <Code>
-          {`<ProgressCircle base={200} value={state.progressBarValue} />
-<ProgressCircle base={200} value={state.progressBarValue} label={(_,value) => \`\${value} VM(s)\`} />`}
+          {`<ProgressCircle max={200} value={state.progressBarValue} />
+<ProgressCircle max={200} showLabel={false} size={150} value={state.progressBarValue} />`}
         </Code>
       </Container>
       <h2>Select</h2>

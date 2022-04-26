@@ -43,9 +43,9 @@ interface ParentState {}
 interface State {}
 
 interface Props {
-  base?: number
   color?: CircularProgressProps['color']
-  label?: { (progress: number, value: number): string } | string
+  label?: string
+  max?: number
   showLabel?: boolean
   size?: number
   value: number
@@ -63,9 +63,8 @@ interface Computed {
 const ProgressCircle = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
   {
     computed: {
-      label: ({ progress }, { label, value }) =>
-        (typeof label === 'function' ? label(progress, value) : label) ?? `${progress}%`,
-      progress: (_, { base = 100, value }) => Math.round((value / base) * 100),
+      label: ({ progress }, { label }) => label ?? `${progress}%`,
+      progress: (_, { max = 100, value }) => Math.round((value / max) * 100),
     },
   },
   ({ color = 'success', showLabel = true, size = 100, state: { label, progress } }) => (
