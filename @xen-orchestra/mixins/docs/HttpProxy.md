@@ -19,7 +19,7 @@ enabled = true
 
 ## Usage
 
-For safety reaons, the proxy requires authentication to be used.
+For safety reasons, the proxy requires authentication to be used.
 
 ### `xo-proxy`
 
