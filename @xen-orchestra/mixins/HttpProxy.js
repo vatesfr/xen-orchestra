@@ -45,20 +45,31 @@ module.exports = class HttpProxy {
   async #handleAuthentication(req, res, next) {
     const auth = parseBasicAuth(req.headers['proxy-authorization'])
 
-    const app = this.#app
-    if (
-      auth === undefined ||
-      !(await (app.authenticateUser !== undefined
-        ? app.authenticateUser(auth) // xo-server
-        : app.authentication.findProfile(auth))) // xo-proxy
-    ) {
-      // https://datatracker.ietf.org/doc/html/rfc7235#section-3.2
-      res.statusCode = '407'
-      res.setHeader('proxy-authenticate', 'Basic realm="proxy"')
-      return res.end('Proxy Authentication Required')
+    let authenticated = false
+
+    if (auth !== undefined) {
+      const app = this.#app
+
+      if (app.authenticateUser !== undefined) {
+        // xo-server
+        try {
+          const { user } = await app.authenticateUser(auth)
+          authenticated = user.permission === 'admin'
+        } catch (error) {}
+      } else {
+        // xo-proxy
+        authenticated = (await app.authentication.findProfile(auth)) !== undefined
+      }
     }
 
-    return next()
+    if (authenticated) {
+      return next()
+    }
+
+    // https://datatracker.ietf.org/doc/html/rfc7235#section-3.2
+    res.statusCode = '407'
+    res.setHeader('proxy-authenticate', 'Basic realm="proxy"')
+    return res.end('Proxy Authentication Required')
   }
 
   async #handleConnect(req, clientSocket, head) {

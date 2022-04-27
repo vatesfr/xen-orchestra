@@ -35,6 +35,8 @@ https://J0BgKritQgPxoyZrBJ5ViafQfLk06YoyFwC3fmfO5wU@xo-proxy.company.lan
 
 ### `xo-server`
 
+> Only available for admin users.
+
 You can use your credentials:
 
 ```
