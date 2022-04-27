@@ -13,11 +13,17 @@ import {
   TableBody,
   TablePagination,
   Box,
+  IconButton,
 } from '@mui/material'
 import Checkbox from './Checkbox'
 import { findIndex } from 'lodash'
 import { RouteComponentProps, withRouter } from 'react-router-dom'
 import { cpuUsage } from 'process'
+import NavigateNextIcon from '@mui/icons-material/NavigateNext'
+import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore'
+import SkipNextIcon from '@mui/icons-material/SkipNext'
+import SkipPreviousIcon from '@mui/icons-material/SkipPrevious'
+import Select from './Select'
 
 export type Column<Type> = {
   header: React.ReactNode
@@ -40,6 +46,7 @@ interface State {
 interface Props extends RouteComponentProps {
   collection: Item[] | undefined
   columns: Column<any>[]
+  dataType?: string
   placeholder?: JSX.Element
   isItemSelectable?: boolean
   rowPerPages?: number
@@ -73,6 +80,114 @@ const StyledTableCell = styled(TableCell)(({ theme }) => ({
 const StyledNbSelectedItems = styled('p')({
   fontWeight: 'bold',
 })
+
+const StyledNavButton = styled(IconButton)({
+  backgroundColor: '#E8E8E8',
+  borderRadius: '5px',
+  padding: 0,
+  margin: '1px',
+})
+
+interface IPagination {
+  nbSelectedItems: number
+  dataType?: string
+}
+const Pagination = ({ dataType, nbSelectedItems }: IPagination) => {
+  return (
+    <Box
+      sx={{
+        display: 'flex',
+        justifyContent: 'space-between',
+      }}
+    >
+      {nbSelectedItems}
+      {/* Table pagination have to be customized */}
+      <div
+        style={{
+          fontSize: '13px',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'flex-end',
+        }}
+      >
+        <div
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+          }}
+        >
+          <p
+            style={{
+              color: '#585757',
+            }}
+          >
+            1-50 of 512{dataType !== undefined && ` ${dataType}`}
+          </p>
+          <StyledNavButton color='primary' size='small' disabled>
+            <SkipPreviousIcon />
+          </StyledNavButton>
+          <StyledNavButton disabled color='primary' size='small'>
+            <NavigateBeforeIcon />
+          </StyledNavButton>
+          <StyledNavButton color='primary' size='small'>
+            <NavigateNextIcon />
+          </StyledNavButton>
+          <StyledNavButton color='primary' size='small'>
+            <SkipNextIcon color='primary' />
+          </StyledNavButton>
+        </div>
+
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+          }}
+        >
+          <p
+            style={{
+              margin: '10px',
+            }}
+          >
+            Show by
+          </p>
+          <Select
+            onChange={() => {}}
+            color='primary'
+            options={[10, 25, 50, 100]}
+            required
+            value={10}
+            valueRenderer={item => item}
+            optionRenderer={item => item}
+            noNone
+            sx={{
+              backgroundColor: '#E8E8E8',
+              height: '24px',
+              color: '#007bff',
+              border: 'none',
+            }}
+          />
+        </div>
+      </div>
+      {/* In order to follow the model
+    <TablePagination
+      component='div'
+      sx={{
+        display: 'block',
+      }}
+      rowsPerPage={rowsPerPage}
+      rowsPerPageOptions={rowsPerPageOptions}
+      onRowsPerPageChange={effects.handleRowPerPage}
+      count={collection.length}
+      page={page}
+      onPageChange={effects.handlePaginationChange}
+      labelRowsPerPage='Show by'
+      // labelDisplayedRows={() => 'toto'}
+      // datatype="VM"
+
+    /> */}
+    </Box>
+  )
+}
 
 const Table = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
   {
@@ -156,6 +271,7 @@ const Table = withState<State, Props, Effects, Computed, ParentState, ParentEffe
     state: { selectedItems, nbSelectedItems, page, rowsPerPage },
     isItemSelectable,
     rowsPerPageOptions,
+    dataType,
   }) =>
     collection !== undefined ? (
       <>
@@ -218,27 +334,6 @@ const Table = withState<State, Props, Effects, Computed, ParentState, ParentEffe
             ))}
           </TableBody>
         </MUITable>
-        <Box
-          sx={{
-            display: 'flex',
-            justifyContent: 'space-between',
-          }}
-        >
-          {nbSelectedItems}
-          <TablePagination
-            component='div'
-            sx={{
-              display: 'block',
-            }}
-            rowsPerPage={rowsPerPage}
-            rowsPerPageOptions={rowsPerPageOptions}
-            onRowsPerPageChange={effects.handleRowPerPage}
-            count={collection.length}
-            page={page}
-            onPageChange={effects.handlePaginationChange}
-            labelRowsPerPage='Show by'
-          />
-        </Box>
       </>
     ) : (
       <IntlMessage id='loading' />

@@ -21,6 +21,7 @@ interface Props extends SelectProps {
   options: any[] | undefined
   value: any
   valueRenderer?: string | { (item: any): number | string }
+  noNone?: boolean
 }
 
 interface ParentEffects {}
@@ -71,6 +72,7 @@ const Select = withState<State, Props, Effects, Computed, ParentState, ParentEff
     resetState,
     state,
     value,
+    noNone = false,
     ...props
   }) => (
     <FormControl>
@@ -81,7 +83,7 @@ const Select = withState<State, Props, Effects, Computed, ParentState, ParentEff
         value={value ?? (multiple ? [] : '')}
         {...props}
       >
-        {!multiple && (
+        {!multiple && !noNone && (
           <MenuItem value=''>
             <em>
               <IntlMessage id='none' />

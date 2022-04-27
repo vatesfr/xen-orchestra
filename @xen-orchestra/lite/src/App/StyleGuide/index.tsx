@@ -322,6 +322,7 @@ const App = withState<State, Props, Effects, Computed, ParentState, ParentEffect
               { id: 'sr_name', header: 'SR Name', render: item => item.sr_name },
               { id: 'snapshot_name', header: 'Snapshot Name', render: item => item.snapshot_name },
             ]}
+            dataType='VMs'
           />
         </Render>
       </Container>
