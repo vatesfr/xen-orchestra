@@ -19,6 +19,7 @@
 - [VM/Host Console] Fix support of older versions of XCP-ng/XS, please not that HTTP proxies are note supported in that case [#6191](https://github.com/vatesfr/xen-orchestra/pull/6191)
 - Fix HTTP proxy support to connect to pools (introduced in XO 5.69.0) [#6204](https://github.com/vatesfr/xen-orchestra/pull/6204)
 - [Backup] Fix failure when sending a backup (Full/Delta/Metadata) to S3 with Object Lock enabled (PR [#6190](https://github.com/vatesfr/xen-orchestra/pull/6190))
+- [Pool] add a warning if the host does not support migration network when evacuating a host [#6206](https://github.com/vatesfr/xen-orchestra/pull/6206)
 
 ### Packages to release
 
