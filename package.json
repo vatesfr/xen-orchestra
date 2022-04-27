@@ -61,6 +61,7 @@
       "/@vates/predicates/",
       "/@xen-orchestra/audit-core/",
       "/dist/",
+      "/xen-api/",
       "/xo-server/",
       "/xo-server-test/",
       "/xo-web/"
