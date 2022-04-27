@@ -26,7 +26,6 @@ const IGNORED_HEADERS = new Set([
   'host',
 ])
 
-// https://nodejs.org/api/http.html#event-connect
 module.exports = class HttpProxy {
   #app
 
@@ -72,6 +71,7 @@ module.exports = class HttpProxy {
     return res.end('Proxy Authentication Required')
   }
 
+  // https://nodejs.org/api/http.html#event-connect
   async #handleConnect(req, clientSocket, head) {
     const { url } = req
 
