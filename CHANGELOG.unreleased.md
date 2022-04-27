@@ -11,6 +11,7 @@
 - [Backup] Add _Restore Health Check_: ensure a backup is viable by doing an automatic test restore (requires guest tools in the VM) [#6148](https://github.com/vatesfr/xen-orchestra/pull/6148)
 - [VM migrate] Allow to choose a private network for VIFs network (PR [#6200](https://github.com/vatesfr/xen-orchestra/pull/6200))
 - [Proxy] Disable "Deploy proxy" button for source users (PR [#6199](https://github.com/vatesfr/xen-orchestra/pull/6199))
+- New HTTP/HTTPS proxy implemented in xo-proxy and xo-server, [see the documentation](https://github.com/vatesfr/xen-orchestra/blob/master/@xen-orchestra/mixins/docs/HttpProxy.md) (PR [#6201](https://github.com/vatesfr/xen-orchestra/pull/6201))
 
 ### Bug fixes
 
