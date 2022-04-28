@@ -215,7 +215,8 @@ export default class Xapi extends XapiBase {
       } catch (error) {
         if (error.code === 'MESSAGE_PARAMETER_COUNT_MISMATCH') {
           log.warn(
-            'host.evacuate with a migration network is not supported on this host, falling back to evacuating without the migration network'
+            'host.evacuate with a migration network is not supported on this host, falling back to evacuating without the migration network',
+            { error }
           )
           await this.callAsync('host.evacuate', hostRef)
         } else {
