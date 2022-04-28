@@ -3819,7 +3819,7 @@ export default {
   diskImportSuccess: 'Importazione del disco riuscita',
 
   // Original text: 'Drop VMDK or VHD files here to import disks.'
-  dropDisksFiles: 'Rilascia qui i file VMDK o VHD per importare i dischi.',
+  dropDisksFiles: 'Rilascia qui i file ISO, VMDK o VHD per importare i dischi.',
 
   // Original text: 'To SR'
   importToSr: 'A SR',

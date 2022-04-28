@@ -17,6 +17,7 @@ import { InputCol, LabelCol, Row } from 'form-grid'
 import { map } from 'lodash'
 import { readCapacityAndGrainTable } from 'xo-vmdk-to-vhd'
 import { SelectSr } from 'select-objects'
+import { isSrWritableOrIso } from '../../common/xo'
 
 const getInitialState = () => ({
   disks: [],
@@ -40,7 +41,7 @@ const DiskImport = decorate([
             if (
               extIndex >= 0 &&
               (type = name.slice(extIndex + 1).toLowerCase()) &&
-              (type === 'vmdk' || type === 'vhd')
+              (type === 'vmdk' || type === 'vhd' || type === 'iso')
             ) {
               let vmdkData
               if (type === 'vmdk') {
@@ -108,12 +109,16 @@ const DiskImport = decorate([
         <Row>
           <LabelCol>{_('importToSr')}</LabelCol>
           <InputCol>
-            <SelectSr onChange={effects.onChangeSr} required value={sr} />
+            <SelectSr onChange={effects.onChangeSr} required value={sr} predicate={isSrWritableOrIso} />
           </InputCol>
         </Row>
         {sr !== undefined && (
           <div>
-            <Dropzone onDrop={effects.handleDrop} message={_('dropDisksFiles')} />
+            <Dropzone
+              onDrop={effects.handleDrop}
+              message={_('dropDisksFiles')}
+              accept={sr.content_type === 'iso' ? '.iso' : ['.vhd', '.vmdk']}
+            />
             {loadingDisks && <Icon icon='loading' />}
             {disks.length > 0 && (
               <div>

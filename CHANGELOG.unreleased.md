@@ -8,17 +8,18 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [VM export] Feat export to `ova` format (PR [#6006](https://github.com/vatesfr/xen-orchestra/pull/6006))
-- [Backup] Add _Restore Health Check_: ensure a backup is viable by doing an automatic test restore (requires guest tools in the VM) [#6148](https://github.com/vatesfr/xen-orchestra/pull/6148)
+- [Backup] Add _Restore Health Check_: ensure a backup is viable by doing an automatic test restore (requires guest tools in the VM) (PR [#6148](https://github.com/vatesfr/xen-orchestra/pull/6148))
 - [VM migrate] Allow to choose a private network for VIFs network (PR [#6200](https://github.com/vatesfr/xen-orchestra/pull/6200))
 - [Proxy] Disable "Deploy proxy" button for source users (PR [#6199](https://github.com/vatesfr/xen-orchestra/pull/6199))
+- [Import] Feat import `iso` disks (PR [#6180](https://github.com/vatesfr/xen-orchestra/pull/6180))
 - New HTTP/HTTPS proxy implemented in xo-proxy and xo-server, [see the documentation](https://github.com/vatesfr/xen-orchestra/blob/master/@xen-orchestra/mixins/docs/HttpProxy.md) (PR [#6201](https://github.com/vatesfr/xen-orchestra/pull/6201))
 
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [VM/Host Console] Fix support of older versions of XCP-ng/XS, please not that HTTP proxies are note supported in that case [#6191](https://github.com/vatesfr/xen-orchestra/pull/6191)
-- Fix HTTP proxy support to connect to pools (introduced in XO 5.69.0) [#6204](https://github.com/vatesfr/xen-orchestra/pull/6204)
+- [VM/Host Console] Fix support of older versions of XCP-ng/XS, please not that HTTP proxies are note supported in that case (PR [#6191](https://github.com/vatesfr/xen-orchestra/pull/6191))
+- Fix HTTP proxy support to connect to pools (introduced in XO 5.69.0) (PR [#6204](https://github.com/vatesfr/xen-orchestra/pull/6204))
 - [Backup] Fix failure when sending a backup (Full/Delta/Metadata) to S3 with Object Lock enabled (PR [#6190](https://github.com/vatesfr/xen-orchestra/pull/6190))
 
 ### Packages to release
@@ -44,8 +45,8 @@
 - @xen-orchestra/mixins minor
 - xo-vmdk-to-vhd minor
 - @xen-orchestra/fs patch
-- @xen-orchestra/proxy minor
 - @xen-orchestra/backups patch
+- @xen-orchestra/proxy minor
 - xo-server minor
 - xo-web minor
 - vhd-cli patch
