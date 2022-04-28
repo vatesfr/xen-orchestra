@@ -1,5 +1,3 @@
-import Box from '@mui/material/Box'
-import CircularProgress from '@mui/material/CircularProgress'
 import Grid from '@mui/material/Grid'
 import React from 'react'
 import styled from 'styled-components'
@@ -8,6 +6,7 @@ import { withState } from 'reaclette'
 
 import Icon from '../../../components/Icon'
 import IntlMessage from '../../../components/IntlMessage'
+import ProgressCircle from '../../../components/ProgressCircle'
 
 interface ParentState {}
 
@@ -48,8 +47,7 @@ const GridPanel = styled.div`
   height: 100%;
 `
 
-// TODO: use CircularProgress component when https://github.com/vatesfr/xen-orchestra/pull/6128 is merged.
-// Add a loading page when data is not loaded as it is in the model(figma).
+// TODO: Add a loading page when data is not loaded as it is in the model(figma).
 // FIXME: replace the hard-coded colors with the theme colors.
 const ObjectStatus = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
   {
@@ -69,30 +67,7 @@ const ObjectStatus = withState<State, Props, Effects, Computed, ParentState, Par
     return (
       <ObjectStatusContainer>
         <CircularProgressPanel>
-          <Box sx={{ position: 'relative', display: 'inline-flex' }}>
-            <CircularProgress
-              variant='determinate'
-              value={(nActive * 100) / nTotal}
-              sx={{ color: '#00BA34' }}
-              size={100}
-            />
-            <Box
-              sx={{
-                top: 0,
-                left: 0,
-                bottom: 0,
-                right: 0,
-                position: 'absolute',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <Typography variant='h5' sx={{ color: '#00BA34' }}>
-                {Math.round((nActive * 100) / nTotal)}%
-              </Typography>
-            </Box>
-          </Box>
+          <ProgressCircle max={nTotal} value={nActive} />
         </CircularProgressPanel>
         <GridPanel>
           <Grid container>
