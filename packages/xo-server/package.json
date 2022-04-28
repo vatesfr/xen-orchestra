@@ -33,7 +33,7 @@
     "@vates/compose": "^2.1.0",
     "@vates/decorate-with": "^2.0.0",
     "@vates/disposable": "^0.1.1",
-    "@vates/event-listeners-manager": "^0.0.0",
+    "@vates/event-listeners-manager": "^1.0.0",
     "@vates/multi-key-map": "^0.1.0",
     "@vates/parse-duration": "^0.1.1",
     "@vates/predicates": "^1.0.0",
