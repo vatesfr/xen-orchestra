@@ -2395,6 +2395,7 @@ const messages = {
   trialLicenseInfo: 'You are currently in a {edition} trial period that will end on {date, date, medium}',
 
   // ----- proxies -----
+  deployProxyDisabled: 'Only available to XOA users',
   forgetProxyApplianceTitle: 'Forget prox{n, plural, one {y} other {ies}}',
   forgetProxyApplianceMessage: 'Are you sure you want to forget {n, number} prox{n, plural, one {y} other {ies}}?',
   forgetProxies: 'Forget proxy(ies)',
