@@ -10,13 +10,15 @@ export default class Dropzone extends Component {
     onDrop: PropTypes.func,
     message: PropTypes.node,
     multiple: PropTypes.bool,
+    accept: PropTypes.oneOfType([PropTypes.string, PropTypes.arrayOf(PropTypes.string)]),
   }
 
   render() {
-    const { onDrop, message, multiple } = this.props
+    const { onDrop, message, multiple, accept } = this.props
 
     return (
       <ReactDropzone
+        accept={accept}
         activeClassName={styles.activeDropzone}
         className={styles.dropzone}
         multiple={multiple}
