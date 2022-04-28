@@ -16,7 +16,7 @@
     "postversion": "npm publish --access public"
   },
   "dependencies": {
-    "@vates/cached-dns.lookup": "^0.0.0",
+    "@vates/cached-dns.lookup": "^1.0.0",
     "@vates/compose": "^2.1.0",
     "@vates/decorate-with": "^2.0.0",
     "@vates/disposable": "^0.1.1",
