@@ -17442,7 +17442,7 @@ tap-yaml@^1.0.0:
   dependencies:
     yaml "^1.5.0"
 
-tap@^16.0.1:
+tap@^16.0.1, tap@^16.1.0:
   version "16.1.0"
   resolved "https://registry.yarnpkg.com/tap/-/tap-16.1.0.tgz#85e989313afb318e6447dfa74c8aeb01b1770278"
   integrity sha512-EFERYEEDCLjvsT+B+z/qAVuxh5JPEmtn0aGh1ZT/2BN5nVLm6VbcL9fR/Y2FtsxvHuEC3Q2xLc1n1h7mnWVP9w==

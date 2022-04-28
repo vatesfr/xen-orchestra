@@ -52,7 +52,7 @@ export default class Authentication {
   }
 
   async findProfile(credentials) {
-    if (credentials?.authenticationToken === this.#token) {
+    if (credentials?.token === this.#token) {
       return new Profile()
     }
   }

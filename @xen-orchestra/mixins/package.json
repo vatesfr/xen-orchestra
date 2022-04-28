@@ -19,11 +19,13 @@
     "node": ">=12"
   },
   "dependencies": {
+    "@vates/event-listeners-manager": "^0.0.0",
     "@vates/parse-duration": "^0.1.1",
     "@xen-orchestra/emit-async": "^0.1.0",
     "@xen-orchestra/log": "^0.3.0",
     "app-conf": "^2.1.0",
-    "lodash": "^4.17.21"
+    "lodash": "^4.17.21",
+    "promise-toolbox": "^0.21.0"
   },
   "scripts": {
     "postversion": "npm publish --access public"

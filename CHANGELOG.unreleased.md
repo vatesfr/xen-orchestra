@@ -12,6 +12,7 @@
 - [VM migrate] Allow to choose a private network for VIFs network (PR [#6200](https://github.com/vatesfr/xen-orchestra/pull/6200))
 - [Proxy] Disable "Deploy proxy" button for source users (PR [#6199](https://github.com/vatesfr/xen-orchestra/pull/6199))
 - [Import] Feat import `iso` disks (PR [#6180](https://github.com/vatesfr/xen-orchestra/pull/6180))
+- New HTTP/HTTPS proxy implemented in xo-proxy and xo-server, [see the documentation](https://github.com/vatesfr/xen-orchestra/blob/master/@xen-orchestra/mixins/docs/HttpProxy.md) (PR [#6201](https://github.com/vatesfr/xen-orchestra/pull/6201))
 
 ### Bug fixes
 
@@ -41,10 +42,11 @@
 - @vates/cached-dns.lookup major
 - @vates/event-listeners-manager major
 - xen-api minor
+- @xen-orchestra/mixins minor
 - xo-vmdk-to-vhd minor
 - @xen-orchestra/fs patch
 - @xen-orchestra/backups patch
-- @xen-orchestra/proxy patch
+- @xen-orchestra/proxy minor
 - xo-server minor
 - xo-web minor
 - vhd-cli patch
