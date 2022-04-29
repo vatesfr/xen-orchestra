@@ -79,18 +79,20 @@ export default async function proxyConsole(clientSocket, vmConsole, sessionId, a
       log.debug('error from the client', { error })
     })
     .add('message', data => sendToServer(data))
-  serverEvents
-    .add('close', (code, reason) => {
-      log.debug('disconnected from the server', { code, reason })
-      close(clientSocket)
-    })
-    .add('error', error => {
-      log.debug('error from the server', { error })
-    })
-    .add('message', createSend(clientSocket, 'client'))
+  serverEvents.add('message', createSend(clientSocket, 'client'))
 
   try {
     await fromEvent(serverSocket, 'open')
+
+    // add close and event handler after the socket really opened to avoid breaking legacy fallback
+    serverEvents
+      .add('close', (code, reason) => {
+        log.debug('disconnected from the server', { code, reason })
+        close(clientSocket)
+      })
+      .add('error', error => {
+        log.debug('error from the server', { error })
+      })
   } catch (error) {
     clientEvents.removeAll()
     serverEvents.removeAll()
