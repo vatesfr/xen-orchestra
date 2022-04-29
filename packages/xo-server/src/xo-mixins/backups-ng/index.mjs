@@ -559,16 +559,17 @@ export default class BackupNg {
       const remainingTimeout = timeout - startDuration
 
       await new Promise((resolve, reject) => {
-        const stopWatch = xapi.watchObject(restoredVm.$ref, vm => {
-          if (vm.$guest_metrics) {
-            stopWatch()
+        const vmInterval = setInterval(() => {
+          const vm = xapi.getObject(restoredId)
+          if (vm.$guest_metrics?.PV_drivers_version?.major) {
             timeoutId !== undefined && clearTimeout(timeoutId)
+            clearTimeout(vmInterval)
             resolve()
           }
-        })
+        }, 5000)
 
         const timeoutId = setTimeout(() => {
-          stopWatch()
+          vmInterval && clearTimeout(vmInterval)
           reject(new Error(`Guest tools of VM ${restoredId} not started after ${timeout / 1000} second`))
         }, remainingTimeout)
       })
