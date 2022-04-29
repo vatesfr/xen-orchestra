@@ -14,6 +14,7 @@ import {
   TablePagination,
   Box,
   IconButton,
+  SelectChangeEvent,
 } from '@mui/material'
 import Checkbox from './Checkbox'
 import { findIndex } from 'lodash'
@@ -30,6 +31,7 @@ export type Column<Type> = {
   id?: string
   render: { (item: Type): React.ReactNode }
   isNumeric?: boolean
+  center?: boolean
 }
 
 type Item = {
@@ -43,6 +45,8 @@ interface State {
   selectedItems: Array<unknown>
 }
 
+interface StatePagination {}
+
 interface Props extends RouteComponentProps {
   collection: Item[] | undefined
   columns: Column<any>[]
@@ -54,6 +58,20 @@ interface Props extends RouteComponentProps {
   rowsPerPageOptions?: number[]
 }
 
+interface PropsPagination {
+  rowPerPageOptions?: Array<number>
+  nbSelectedItems: number
+  nbTotalItems: number
+  dataType?: string
+  reverse?: boolean
+  onPaginationChange: (_: any, page: number) => void
+  onShowByChange: (value: SelectChangeEvent<unknown>) => void
+  showByValue: number
+  page: number
+  nbTotalPage: number
+  nbItemsOnThePage: number
+}
+
 interface ParentEffects {}
 
 interface Effects {
@@ -62,12 +80,15 @@ interface Effects {
   handlePaginationChange: (e: any, page: number) => void
   handleRowPerPage: (e: any) => void
 }
+interface EffectsPagination {}
 
 interface Computed {
-  nbSelectedItems: JSX.Element
   page: number
   rowsPerPage: number
+  paginatedCollection: Props['collection']
 }
+
+interface ComputedPagination {}
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
   border: '1px solid #E8E8E8',
@@ -77,9 +98,10 @@ const StyledTableCell = styled(TableCell)(({ theme }) => ({
   },
 }))
 
-const StyledNbSelectedItems = styled('p')({
+const StyledNbSelectedItems = styled('p')<{ reverse?: boolean }>(({ reverse = false }) => ({
   fontWeight: 'bold',
-})
+  alignSelf: reverse ? 'flex-end' : 'flex-start',
+}))
 
 const StyledNavButton = styled(IconButton)({
   backgroundColor: '#E8E8E8',
@@ -88,74 +110,96 @@ const StyledNavButton = styled(IconButton)({
   margin: '1px',
 })
 
-interface IPagination {
-  nbSelectedItems: number
-  dataType?: string
-}
-const Pagination = ({ dataType, nbSelectedItems }: IPagination) => {
-  return (
+const StyledPaginationContainer = styled(Box)({
+  fontSize: '13px',
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'flex-end',
+})
+
+const StyledPaginationFlexRow = styled(Box)({
+  display: 'inline-flex',
+  alignItems: 'center',
+})
+
+const StyledPaginationText = styled('p')({
+  color: '#585757',
+  margin: '10px',
+})
+
+const Pagination = withState<
+  StatePagination,
+  PropsPagination,
+  EffectsPagination,
+  ComputedPagination,
+  ParentState,
+  ParentEffects
+>(
+  {},
+  ({
+    rowPerPageOptions = [10, 25, 50, 100],
+    nbItemsOnThePage,
+    nbTotalPage,
+    page,
+    dataType,
+    nbSelectedItems,
+    reverse,
+    nbTotalItems,
+    showByValue,
+    onShowByChange,
+    onPaginationChange,
+  }) => (
     <Box
       sx={{
         display: 'flex',
         justifyContent: 'space-between',
       }}
     >
-      {nbSelectedItems}
-      {/* Table pagination have to be customized */}
-      <div
-        style={{
-          fontSize: '13px',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'flex-end',
-        }}
-      >
-        <div
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-          }}
-        >
-          <p
-            style={{
-              color: '#585757',
-            }}
-          >
-            1-50 of 512{dataType !== undefined && ` ${dataType}`}
-          </p>
-          <StyledNavButton color='primary' size='small' disabled>
+      <StyledNbSelectedItems reverse={reverse}>
+        <IntlMessage id='itemSelected' values={{ nSelected: nbSelectedItems }} />
+      </StyledNbSelectedItems>
+      <StyledPaginationContainer>
+        <StyledPaginationFlexRow>
+          <StyledPaginationText>
+            {page * showByValue + 1}-{page * showByValue + nbItemsOnThePage} of {nbTotalItems}
+            {dataType !== undefined && ` ${dataType}`}
+          </StyledPaginationText>
+          <StyledNavButton color='primary' size='small' disabled={page === 0} onClick={() => onPaginationChange('', 0)}>
             <SkipPreviousIcon />
           </StyledNavButton>
-          <StyledNavButton disabled color='primary' size='small'>
+          <StyledNavButton
+            disabled={page === 0}
+            color='primary'
+            size='small'
+            onClick={() => onPaginationChange('', page - 1)}
+          >
             <NavigateBeforeIcon />
           </StyledNavButton>
-          <StyledNavButton color='primary' size='small'>
+          <StyledNavButton
+            color='primary'
+            size='small'
+            disabled={page >= nbTotalPage - 1}
+            onClick={() => onPaginationChange('', page + 1)}
+          >
             <NavigateNextIcon />
           </StyledNavButton>
-          <StyledNavButton color='primary' size='small'>
-            <SkipNextIcon color='primary' />
-          </StyledNavButton>
-        </div>
-
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-          }}
-        >
-          <p
-            style={{
-              margin: '10px',
-            }}
-          >
-            Show by
-          </p>
-          <Select
-            onChange={() => {}}
+          <StyledNavButton
             color='primary'
-            options={[10, 25, 50, 100]}
+            size='small'
+            disabled={page >= nbTotalPage - 1}
+            onClick={() => onPaginationChange('', nbTotalPage - 1)}
+          >
+            <SkipNextIcon />
+          </StyledNavButton>
+        </StyledPaginationFlexRow>
+        <StyledPaginationFlexRow>
+          <StyledPaginationText>Show by</StyledPaginationText>
+          <Select
+            onChange={onShowByChange}
+            color='primary'
+            options={rowPerPageOptions}
             required
-            value={10}
+            value={showByValue}
             valueRenderer={item => item}
             optionRenderer={item => item}
             noNone
@@ -166,45 +210,16 @@ const Pagination = ({ dataType, nbSelectedItems }: IPagination) => {
               border: 'none',
             }}
           />
-        </div>
-      </div>
-      {/* In order to follow the model
-    <TablePagination
-      component='div'
-      sx={{
-        display: 'block',
-      }}
-      rowsPerPage={rowsPerPage}
-      rowsPerPageOptions={rowsPerPageOptions}
-      onRowsPerPageChange={effects.handleRowPerPage}
-      count={collection.length}
-      page={page}
-      onPageChange={effects.handlePaginationChange}
-      labelRowsPerPage='Show by'
-      // labelDisplayedRows={() => 'toto'}
-      // datatype="VM"
-
-    /> */}
+        </StyledPaginationFlexRow>
+      </StyledPaginationContainer>
     </Box>
   )
-}
+)
 
 const Table = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
   {
     initialState: () => ({
-      selectedItems: [
-        {
-          name: 'Mathieu Foo',
-          description: 'Foo',
-          host_name: 'Host Foo',
-          pool_name: 'Pool Foo',
-          ipv4: '172.16.210.11',
-          cpu: 1,
-          ram: 4,
-          sr_name: 'SR Foo',
-          snapshot_name: 'Snapshot Foo',
-        },
-      ],
+      selectedItems: [],
     }),
     effects: {
       toggleSelectItem: function (item: any) {
@@ -243,11 +258,6 @@ const Table = withState<State, Props, Effects, Computed, ParentState, ParentEffe
       },
     },
     computed: {
-      nbSelectedItems: ({ selectedItems }: State) => (
-        <StyledNbSelectedItems>
-          <IntlMessage id='itemSelected' values={{ nSelected: selectedItems.length }} />
-        </StyledNbSelectedItems>
-      ),
       page: (_, { location, stateUrlParam }) =>
         Number(location.search.match(new RegExp(stateUrlParam + '_page=\\d+'))?.[0]?.split('=')[1] ?? 0),
       rowsPerPage: (_, { location, stateUrlParam, rowsPerPageOptions }) => {
@@ -261,6 +271,8 @@ const Table = withState<State, Props, Effects, Computed, ParentState, ParentEffe
         }
         return rowsPerPage
       },
+      paginatedCollection: ({ page, rowsPerPage }, { collection }) =>
+        collection?.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage),
     },
   },
   ({
@@ -268,34 +280,26 @@ const Table = withState<State, Props, Effects, Computed, ParentState, ParentEffe
     columns,
     placeholder,
     effects,
-    state: { selectedItems, nbSelectedItems, page, rowsPerPage },
+    state: { selectedItems, page, rowsPerPage, paginatedCollection },
     isItemSelectable,
     rowsPerPageOptions,
     dataType,
   }) =>
-    collection !== undefined ? (
+    paginatedCollection !== undefined && collection !== undefined ? (
       <>
-        <Box
-          sx={{
-            display: 'flex',
-            justifyContent: 'space-between',
-          }}
-        >
-          {nbSelectedItems}
-          <TablePagination
-            component='div'
-            sx={{
-              display: 'block',
-            }}
-            rowsPerPage={rowsPerPage}
-            rowsPerPageOptions={rowsPerPageOptions}
-            onRowsPerPageChange={effects.handleRowPerPage}
-            count={collection.length}
-            page={page}
-            onPageChange={effects.handlePaginationChange}
-            labelRowsPerPage='Show by'
-          />
-        </Box>
+        <Pagination
+          rowPerPageOptions={rowsPerPageOptions}
+          nbSelectedItems={selectedItems.length}
+          nbTotalItems={collection.length}
+          dataType={dataType}
+          reverse
+          showByValue={rowsPerPage}
+          onPaginationChange={effects.handlePaginationChange}
+          onShowByChange={effects.handleRowPerPage}
+          page={page}
+          nbTotalPage={Math.ceil(collection.length / rowsPerPage)}
+          nbItemsOnThePage={paginatedCollection.length}
+        />
         <MUITable>
           <TableHead>
             <TableRow>
@@ -310,13 +314,15 @@ const Table = withState<State, Props, Effects, Computed, ParentState, ParentEffe
                 </StyledTableCell>
               )}
               {columns.map((col, index) => (
-                <StyledTableCell key={col.id ?? index}>{col.header}</StyledTableCell>
+                <StyledTableCell key={col.id ?? index} align={col.center ? 'center' : 'left'}>
+                  {col.header}
+                </StyledTableCell>
               ))}
             </TableRow>
           </TableHead>
           <TableBody>
-            {collection.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((item, index) => (
-              <TableRow key={item.id ?? index}>
+            {paginatedCollection?.map((item, index) => (
+              <TableRow key={item.id ?? item.$id ?? index}>
                 {isItemSelectable && (
                   <StyledTableCell padding='checkbox'>
                     <Checkbox
@@ -326,7 +332,7 @@ const Table = withState<State, Props, Effects, Computed, ParentState, ParentEffe
                   </StyledTableCell>
                 )}
                 {columns.map((col, i) => (
-                  <StyledTableCell key={col.id ?? i} align={col.isNumeric ? 'right' : 'left'}>
+                  <StyledTableCell key={col.id ?? i} align={col.center ? 'center' : col.isNumeric ? 'right' : 'left'}>
                     {col.render(item)}
                   </StyledTableCell>
                 ))}
@@ -334,6 +340,18 @@ const Table = withState<State, Props, Effects, Computed, ParentState, ParentEffe
             ))}
           </TableBody>
         </MUITable>
+        <Pagination
+          rowPerPageOptions={rowsPerPageOptions}
+          nbSelectedItems={selectedItems.length}
+          nbTotalItems={collection.length}
+          dataType={dataType}
+          showByValue={rowsPerPage}
+          onPaginationChange={effects.handlePaginationChange}
+          onShowByChange={effects.handleRowPerPage}
+          page={page}
+          nbTotalPage={Math.ceil(collection.length / rowsPerPage)}
+          nbItemsOnThePage={paginatedCollection.length}
+        />
       </>
     ) : (
       <IntlMessage id='loading' />

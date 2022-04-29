@@ -17,8 +17,12 @@ import Select from '../../components/Select'
 import Tabs from '../../components/Tabs'
 import { alert, confirm } from '../../components/Modal'
 import Table from '../../components/Table'
+import { ObjectsByType, Vm } from '../../libs/xapi'
+import { Map } from 'immutable'
 
-interface ParentState {}
+interface ParentState {
+  objectsByType: ObjectsByType
+}
 
 interface State {
   value: unknown
@@ -36,7 +40,9 @@ interface Effects {
   showConfirmModal: () => void
 }
 
-interface Computed {}
+interface Computed {
+  vms?: Map<string, Vm>
+}
 
 const Page = styled.div`
   margin: 30px;
@@ -88,6 +94,12 @@ const App = withState<State, Props, Effects, Computed, ParentState, ParentEffect
           icon: 'download',
         }),
     },
+    computed: {
+      vms: state =>
+        state.objectsByType
+          ?.get('VM')
+          ?.filter((vm: Vm) => !vm.is_control_domain && !vm.is_a_snapshot && !vm.is_a_template),
+    },
   },
   ({ effects, state }) => (
     <Page>
@@ -97,230 +109,21 @@ const App = withState<State, Props, Effects, Computed, ParentState, ParentEffect
           <Table
             isItemSelectable
             stateUrlParam='foo_table'
-            // rowsPerPageOptions={[10, 20, 30]}
-            collection={[
-              {
-                name: 'Mathieu Foo',
-                description: 'Foo',
-                host_name: 'Host Foo',
-                pool_name: 'Pool Foo',
-                ipv4: '172.16.210.11',
-                cpu: 1,
-                ram: 4,
-                sr_name: 'SR Foo',
-                snapshot_name: 'Snapshot Foo',
-              },
-              {
-                name: 'Mathieu Bar',
-                description: 'Bar',
-                host_name: 'Host Bar',
-                pool_name: 'Pool Bar',
-                ipv4: '172.16.210.11',
-                ipv6: 'fe80::e35f:46da:83cb:44012a01:240:ab08:4:607e:f6bb:b59f:b61',
-                cpu: 1,
-                ram: 4,
-                sr_name: 'SR Bar',
-                snapshot_name: 'Snapshot Bar',
-              },
-              {
-                name: 'Mathieu Baz',
-                description: 'Baz',
-                host_name: 'Host Baz',
-                pool_name: 'Pool Baz',
-                ipv4: '172.16.210.11',
-                ipv6: 'fe80::e35f:46da:83cb:44012a01:240:ab08:4:607e:f6bb:b59f:b61',
-                cpu: 1,
-                ram: 4,
-                sr_name: 'SR Baz',
-                snapshot_name: 'Snapshot Baz',
-              },
-              {
-                name: 'Mathieu Foo1',
-                description: 'Foo',
-                host_name: 'Host Foo',
-                pool_name: 'Pool Foo',
-                ipv4: '172.16.210.11',
-                cpu: 1,
-                ram: 4,
-                sr_name: 'SR Foo',
-                snapshot_name: 'Snapshot Foo',
-              },
-              {
-                name: 'Mathieu Bar1',
-                description: 'Bar',
-                host_name: 'Host Bar',
-                pool_name: 'Pool Bar',
-                ipv4: '172.16.210.11',
-                ipv6: 'fe80::e35f:46da:83cb:44012a01:240:ab08:4:607e:f6bb:b59f:b61',
-                cpu: 1,
-                ram: 4,
-                sr_name: 'SR Bar',
-                snapshot_name: 'Snapshot Bar',
-              },
-              {
-                name: 'Mathieu Baz1',
-                description: 'Baz',
-                host_name: 'Host Baz',
-                pool_name: 'Pool Baz',
-                ipv4: '172.16.210.11',
-                ipv6: 'fe80::e35f:46da:83cb:44012a01:240:ab08:4:607e:f6bb:b59f:b61',
-                cpu: 1,
-                ram: 4,
-                sr_name: 'SR Baz',
-                snapshot_name: 'Snapshot Baz',
-              },
-              {
-                name: 'Mathieu Foo2',
-                description: 'Foo',
-                host_name: 'Host Foo',
-                pool_name: 'Pool Foo',
-                ipv4: '172.16.210.11',
-                cpu: 1,
-                ram: 4,
-                sr_name: 'SR Foo',
-                snapshot_name: 'Snapshot Foo',
-              },
-              {
-                name: 'Mathieu Bar2',
-                description: 'Bar',
-                host_name: 'Host Bar',
-                pool_name: 'Pool Bar',
-                ipv4: '172.16.210.11',
-                ipv6: 'fe80::e35f:46da:83cb:44012a01:240:ab08:4:607e:f6bb:b59f:b61',
-                cpu: 1,
-                ram: 4,
-                sr_name: 'SR Bar',
-                snapshot_name: 'Snapshot Bar',
-              },
-              {
-                name: 'Mathieu Baz2',
-                description: 'Baz',
-                host_name: 'Host Baz',
-                pool_name: 'Pool Baz',
-                ipv4: '172.16.210.11',
-                ipv6: 'fe80::e35f:46da:83cb:44012a01:240:ab08:4:607e:f6bb:b59f:b61',
-                cpu: 1,
-                ram: 4,
-                sr_name: 'SR Baz',
-                snapshot_name: 'Snapshot Baz',
-              },
-              {
-                name: 'Mathieu Foo3',
-                description: 'Foo',
-                host_name: 'Host Foo',
-                pool_name: 'Pool Foo',
-                ipv4: '172.16.210.11',
-                cpu: 1,
-                ram: 4,
-                sr_name: 'SR Foo',
-                snapshot_name: 'Snapshot Foo',
-              },
-              {
-                name: 'Mathieu Bar3',
-                description: 'Bar',
-                host_name: 'Host Bar',
-                pool_name: 'Pool Bar',
-                ipv4: '172.16.210.11',
-                ipv6: 'fe80::e35f:46da:83cb:44012a01:240:ab08:4:607e:f6bb:b59f:b61',
-                cpu: 1,
-                ram: 4,
-                sr_name: 'SR Bar',
-                snapshot_name: 'Snapshot Bar',
-              },
-              {
-                name: 'Mathieu Baz3',
-                description: 'Baz',
-                host_name: 'Host Baz',
-                pool_name: 'Pool Baz',
-                ipv4: '172.16.210.11',
-                ipv6: 'fe80::e35f:46da:83cb:44012a01:240:ab08:4:607e:f6bb:b59f:b61',
-                cpu: 1,
-                ram: 4,
-                sr_name: 'SR Baz',
-                snapshot_name: 'Snapshot Baz',
-              },
-              {
-                name: 'Mathieu Foo4',
-                description: 'Foo',
-                host_name: 'Host Foo',
-                pool_name: 'Pool Foo',
-                ipv4: '172.16.210.11',
-                cpu: 1,
-                ram: 4,
-                sr_name: 'SR Foo',
-                snapshot_name: 'Snapshot Foo',
-              },
-              {
-                name: 'Mathieu Bar4',
-                description: 'Bar',
-                host_name: 'Host Bar',
-                pool_name: 'Pool Bar',
-                ipv4: '172.16.210.11',
-                ipv6: 'fe80::e35f:46da:83cb:44012a01:240:ab08:4:607e:f6bb:b59f:b61',
-                cpu: 1,
-                ram: 4,
-                sr_name: 'SR Bar',
-                snapshot_name: 'Snapshot Bar',
-              },
-              {
-                name: 'Mathieu Baz4',
-                description: 'Baz',
-                host_name: 'Host Baz',
-                pool_name: 'Pool Baz',
-                ipv4: '172.16.210.11',
-                ipv6: 'fe80::e35f:46da:83cb:44012a01:240:ab08:4:607e:f6bb:b59f:b61',
-                cpu: 1,
-                ram: 4,
-                sr_name: 'SR Baz',
-                snapshot_name: 'Snapshot Baz',
-              },
-              {
-                name: 'Mathieu Foo5',
-                description: 'Foo',
-                host_name: 'Host Foo',
-                pool_name: 'Pool Foo',
-                ipv4: '172.16.210.11',
-                cpu: 1,
-                ram: 4,
-                sr_name: 'SR Foo',
-                snapshot_name: 'Snapshot Foo',
-              },
-              {
-                name: 'Mathieu Bar5',
-                description: 'Bar',
-                host_name: 'Host Bar',
-                pool_name: 'Pool Bar',
-                ipv4: '172.16.210.11',
-                ipv6: 'fe80::e35f:46da:83cb:44012a01:240:ab08:4:607e:f6bb:b59f:b61',
-                cpu: 1,
-                ram: 4,
-                sr_name: 'SR Bar',
-                snapshot_name: 'Snapshot Bar',
-              },
-              {
-                name: 'Mathieu Baz5',
-                description: 'Baz',
-                host_name: 'Host Baz',
-                pool_name: 'Pool Baz',
-                ipv4: '172.16.210.11',
-                ipv6: 'fe80::e35f:46da:83cb:44012a01:240:ab08:4:607e:f6bb:b59f:b61',
-                cpu: 1,
-                ram: 4,
-                sr_name: 'SR Baz',
-                snapshot_name: 'Snapshot Baz',
-              },
-            ]}
+            rowsPerPageOptions={[10, 25, 50, 100]}
+            collection={state.vms?.valueSeq().toArray()}
             columns={[
-              { id: 'vm_name', header: 'VM Name', render: item => item.name },
-              { id: 'description', header: 'Description', render: item => item.description },
-              { id: 'host_name', header: 'Host Name', render: item => item.host_name },
-              { id: 'pool_name', header: 'Pool Name', render: item => item.pool_name },
-              { id: 'ipv4', header: 'IPv4', render: item => item.ipv4 },
-              { id: 'ipv6', header: 'IPv6', render: item => item.ipv6 },
-              { id: 'cpu', header: 'CPU', render: item => item.cpu, isNumeric: true },
-              { id: 'ram', header: 'RAM', render: item => item.ram, isNumeric: true },
-              { id: 'sr_name', header: 'SR Name', render: item => item.sr_name },
-              { id: 'snapshot_name', header: 'Snapshot Name', render: item => item.snapshot_name },
+              {
+                id: 'power_state',
+                header: <Icon icon='power-off' />,
+                render: item => (
+                  <Icon icon='circle' htmlColor={item.power_state === 'Running' ? '#00BA34' : '#E8E8E8'} />
+                ),
+                center: true,
+              },
+              { id: 'vm_name', header: 'VM Name', render: item => item.name_label },
+              { id: 'description', header: 'Description', render: item => item.name_description },
+              // Fictive value to show 'isNumeric' behavior
+              { id: 'cpu', header: 'CPU', render: () => '1', isNumeric: true },
             ]}
             dataType='VMs'
           />
