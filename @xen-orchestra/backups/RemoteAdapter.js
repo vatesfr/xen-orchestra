@@ -32,7 +32,7 @@ exports.DIR_XO_CONFIG_BACKUPS = DIR_XO_CONFIG_BACKUPS
 const DIR_XO_POOL_METADATA_BACKUPS = 'xo-pool-metadata-backups'
 exports.DIR_XO_POOL_METADATA_BACKUPS = DIR_XO_POOL_METADATA_BACKUPS
 
-const { warn } = createLogger('xo:backups:RemoteAdapter')
+const { debug, warn } = createLogger('xo:backups:RemoteAdapter')
 
 const compareTimestamp = (a, b) => a.timestamp - b.timestamp
 
@@ -224,7 +224,7 @@ class RemoteAdapter {
 
   async deleteDeltaVmBackups(backups) {
     const handler = this._handler
-
+    debug(`deleteDeltaVmBackups will delete ${backups.length} delta backups`, { backups })
     // this will delete the json, unused VHDs will be detected by `cleanVm`
     await asyncMapSettled(backups, ({ _filename }) => handler.unlink(_filename))
   }

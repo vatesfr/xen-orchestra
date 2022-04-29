@@ -90,7 +90,7 @@ async function mergeVhdChain(chain, { handler, onLog, remove, merge }) {
       asyncMap(children.slice(0, -1), child => {
         onLog(`the VHD ${child} is unused`)
         if (remove) {
-          onLog(`deleting unused VHD ${child}`)
+          onLog(`mergeVhdChain : deleting unused VHD ${child}`)
           return VhdAbstract.unlink(handler, child)
         }
       }),
@@ -409,7 +409,7 @@ exports.cleanVm = async function cleanVm(
 
       onLog(`the VHD ${vhd} is unused`)
       if (remove) {
-        onLog(`deleting unused VHD ${vhd}`)
+        onLog(`getUsedChildChainOrDelete : deleting unused VHD ${vhd}`)
         unusedVhdsDeletion.push(VhdAbstract.unlink(handler, vhd))
       }
     }
