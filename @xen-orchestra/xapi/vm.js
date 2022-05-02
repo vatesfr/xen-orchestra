@@ -147,14 +147,18 @@ class Vm {
   async checkpoint($defer, vmRef, { cancelToken = CancelToken.none, ignoreNobakVdis = false, name_label } = {}) {
     const vm = await this.getRecord('VM', vmRef)
 
-    // cannot unplug VBDs on Running, Paused and Suspended VMs
-    if (ignoreNobakVdis && vm.power_state === 'Halted') {
-      await asyncMap(await listNobakVbds(this, vm.VBDs), async vbd => {
-        await this.VBD_destroy(vbd.$ref)
-        $defer.call(this, 'VBD_create', vbd)
-      })
+    let destroyNobakVdis = false
 
-      ignoreNobakVdis = false
+    if (ignoreNobakVdis) {
+      if (vm.power_state === 'Halted') {
+        await asyncMap(await listNobakVbds(this, vm.VBDs), async vbd => {
+          await this.VBD_destroy(vbd.$ref)
+          $defer.call(this, 'VBD_create', vbd)
+        })
+      } else {
+        // cannot unplug VBDs on Running, Paused and Suspended VMs
+        destroyNobakVdis = true
+      }
     }
 
     if (name_label === undefined) {
@@ -175,7 +179,7 @@ class Vm {
         noop
       )
 
-      if (ignoreNobakVdis) {
+      if (destroyNobakVdis) {
         await asyncMap(await listNobakVbds(this, await this.getField('VM', ref, 'VBDs')), vbd =>
           this.VDI_destroy(vbd.VDI)
         )
@@ -513,14 +517,17 @@ class Vm {
   async snapshot($defer, vmRef, { cancelToken = CancelToken.none, ignoreNobakVdis = false, name_label } = {}) {
     const vm = await this.getRecord('VM', vmRef)
 
-    // cannot unplug VBDs on Running, Paused and Suspended VMs
-    if (ignoreNobakVdis && vm.power_state === 'Halted') {
-      await asyncMap(await listNobakVbds(this, vm.VBDs), async vbd => {
-        await this.VBD_destroy(vbd.$ref)
-        $defer.call(this, 'VBD_create', vbd)
-      })
-
-      ignoreNobakVdis = false
+    let destroyNobakVdis = false
+    if (ignoreNobakVdis) {
+      if (vm.power_state === 'Halted') {
+        await asyncMap(await listNobakVbds(this, vm.VBDs), async vbd => {
+          await this.VBD_destroy(vbd.$ref)
+          $defer.call(this, 'VBD_create', vbd)
+        })
+      } else {
+        // cannot unplug VBDs on Running, Paused and Suspended VMs
+        destroyNobakVdis = true
+      }
     }
 
     if (name_label === undefined) {
@@ -609,7 +616,7 @@ class Vm {
       noop
     )
 
-    if (ignoreNobakVdis) {
+    if (destroyNobakVdis) {
       await asyncMap(await listNobakVbds(this, await this.getField('VM', ref, 'VBDs')), vbd =>
         this.VDI_destroy(vbd.VDI)
       )
