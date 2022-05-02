@@ -30,6 +30,13 @@ module.exports = class HttpProxy {
   #app
 
   constructor(app, { httpServer }) {
+    // don't setup the proxy if httpServer is not present
+    //
+    // that can happen when the app is instanciated in another context like xo-server-recover-account
+    if (httpServer === undefined) {
+      return
+    }
+
     this.#app = app
 
     const events = new EventListenersManager(httpServer)
