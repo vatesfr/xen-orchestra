@@ -7,6 +7,7 @@
 - @xen-orchestra/mixins 0.3.1
 - @xen-orchestra/xapi 0.11.0
 - @xen-orchestra/backups 0.22.0
+- @xen-orchestra/proxy 0.22.0
 
 ## 5.70.0 (2022-04-29)
 
