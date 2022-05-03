@@ -563,7 +563,6 @@ export default class BackupNg {
         timeout: remainingTimeout,
       })
       const running = new Date()
-      restoredVm = xapi.getObject(restoredId)
       remainingTimeout -= running - started
       await xapi.waitObjectState(restoredVm.guest_metrics, gm => gm?.PV_drivers_version?.major !== undefined, {
         timeout: remainingTimeout,
