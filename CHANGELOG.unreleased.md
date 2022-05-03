@@ -27,6 +27,9 @@
 > - major: if the change breaks compatibility
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
+>
+> The `gen-deps-list` script can be used to generate this list of dependencies
+> Run `scripts/gen-deps-list.js --help` for usage
 
 <!--packages-start-->
 
@@ -34,5 +37,3 @@
 - xo-server patch
 
 <!--packages-end-->
-
-
