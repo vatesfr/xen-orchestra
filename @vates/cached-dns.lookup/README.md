@@ -16,13 +16,13 @@ Installation of the [npm package](https://npmjs.org/package/@vates/cached-dns.lo
 
 ## Usage
 
-Node does not cache queries to `dns.lookup`, which can leads application doing a lot of connections to have perf issues and to saturate Node threads pool.
+Node does not cache queries to `dns.lookup`, which can lead application doing a lot of connections to have perf issues and to saturate Node threads pool.
 
-This library attemps to mitigate these problems by providing a version of this function with a version short cache, applied on both errors and results.
+This library attempts to mitigate these problems by providing a version of this function with a version short cache, applied on both errors and results.
 
 > Limitation: `verbatim: false` option is not supported.
 
-I has exactly the same API as the native method and can be used directly:
+It has exactly the same API as the native method and can be used directly:
 
 ```js
 import { createCachedLookup } from '@vates/cached-dns.lookup'
