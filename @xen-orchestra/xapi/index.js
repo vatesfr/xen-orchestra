@@ -101,20 +101,16 @@ function removeWatcher(predicate, cb) {
 class Xapi extends Base {
   constructor({
     callRetryWhenTooManyPendingTasks = { delay: 5e3, tries: 10 },
-    ignoreNobakVdis,
     maxUncoalescedVdis,
     vdiDestroyRetryWhenInUse = { delay: 5e3, tries: 10 },
     ...opts
   }) {
-    assert.notStrictEqual(ignoreNobakVdis, undefined)
-
     super(opts)
     this._callRetryWhenTooManyPendingTasks = {
       ...callRetryWhenTooManyPendingTasks,
       onRetry,
       when: { code: 'TOO_MANY_PENDING_TASKS' },
     }
-    this._ignoreNobakVdis = ignoreNobakVdis
     this._maxUncoalescedVdis = maxUncoalescedVdis
     this._vdiDestroyRetryWhenInUse = {
       ...vdiDestroyRetryWhenInUse,
