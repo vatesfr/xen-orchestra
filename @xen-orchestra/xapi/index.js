@@ -187,7 +187,30 @@ class Xapi extends Base {
     }
     return removeWatcher.bind(watchers, predicate, cb)
   }
+
+  // wait for an object to be in a specified state
+
+  waitObjectState(refOrUuid, predicate, { timeout } = {}) {
+    return new Promise((resolve, reject) => {
+      let timeoutHandle
+      const stop = this.watchObject(refOrUuid, object => {
+        if (predicate(object)) {
+          clearTimeout(timeoutHandle)
+          stop()
+          resolve(object)
+        }
+      })
+
+      if (timeout !== undefined) {
+        timeoutHandle = setTimeout(() => {
+          stop()
+          reject(new Error(`waitObjectState: timeout reached before ${refOrUuid} in expected state`))
+        }, timeout)
+      }
+    })
+  }
 }
+
 function mixin(mixins) {
   const xapiProto = Xapi.prototype
   const { defineProperties, getOwnPropertyDescriptor, getOwnPropertyNames } = Object

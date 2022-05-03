@@ -549,28 +549,23 @@ export default class BackupNg {
       const start = new Date()
       // start Vm
       await xapi.startVm(restoredId)
+      const started = new Date()
       const timeout = 10 * 60 * 1000
-      const startDuration = new Date() - start
+      const startDuration = started - start
 
       if (startDuration >= timeout) {
         throw new Error(`VM ${restoredId} not started after ${timeout / 1000} second`)
       }
 
-      const remainingTimeout = timeout - startDuration
+      let remainingTimeout = timeout - startDuration
 
-      await new Promise((resolve, reject) => {
-        const stopWatch = xapi.watchObject(restoredVm.$ref, vm => {
-          if (vm.$guest_metrics) {
-            stopWatch()
-            timeoutId !== undefined && clearTimeout(timeoutId)
-            resolve()
-          }
-        })
-
-        const timeoutId = setTimeout(() => {
-          stopWatch()
-          reject(new Error(`Guest tools of VM ${restoredId} not started after ${timeout / 1000} second`))
-        }, remainingTimeout)
+      restoredVm = await xapi.waitObjectState(restoredVm.$ref, vm => vm.power_state === 'Running', {
+        timeout: remainingTimeout,
+      })
+      const running = new Date()
+      remainingTimeout -= running - started
+      await xapi.waitObjectState(restoredVm.guest_metrics, gm => gm?.PV_drivers_version?.major !== undefined, {
+        timeout: remainingTimeout,
       })
     } finally {
       restoredVm !== undefined && xapi !== undefined && (await xapi.VM_destroy(restoredVm.$ref))
