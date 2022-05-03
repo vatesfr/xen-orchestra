@@ -49,7 +49,7 @@
     "@xen-orchestra/mixins": "^0.3.1",
     "@xen-orchestra/self-signed": "^0.1.0",
     "@xen-orchestra/template": "^0.1.0",
-    "@xen-orchestra/xapi": "^0.10.0",
+    "@xen-orchestra/xapi": "^0.11.0",
     "ajv": "^8.0.3",
     "app-conf": "^2.1.0",
     "async-iterator-to-stream": "^1.0.1",

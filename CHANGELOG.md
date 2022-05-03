@@ -5,6 +5,7 @@
 ### Released packages
 
 - @xen-orchestra/mixins 0.3.1
+- @xen-orchestra/xapi 0.11.0
 
 ## 5.70.0 (2022-04-29)
 
