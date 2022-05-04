@@ -11,6 +11,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [S3] Fix S3 remote with empty directory not showing anything to restore (PR [#6218](https://github.com/vatesfr/xen-orchestra/pull/6218))
+
 ### Packages to release
 
 > Packages will be released in the order they are here, therefore, they should
@@ -33,5 +35,11 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/fs patch
+- vhd-cli patch
+- @xen-orchestra/backups patch
+- xo-server patch
+- @xen-orchestra/backups-cli patch
+- @xen-orchestra/proxy patch
 
 <!--packages-end-->

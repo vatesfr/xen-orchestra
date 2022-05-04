@@ -77,9 +77,7 @@ export default class S3Handler extends RemoteHandlerAbstract {
     })
 
     // Workaround for https://github.com/aws/aws-sdk-js-v3/issues/2673
-    this._s3.middlewareStack.use(
-      getApplyMd5BodyChecksumPlugin(this._s3.config)
-    )
+    this._s3.middlewareStack.use(getApplyMd5BodyChecksumPlugin(this._s3.config))
 
     const parts = split(path)
     this._bucket = parts.shift()
@@ -99,7 +97,12 @@ export default class S3Handler extends RemoteHandlerAbstract {
   }
 
   _makePrefix(dir) {
-    return join(this._dir, dir, '/')
+    const prefix = join(this._dir, dir, '/')
+
+    // no prefix for root
+    if (prefix !== './') {
+      return prefix
+    }
   }
 
   _createParams(file) {
