@@ -65,17 +65,6 @@ exports.exportDeltaVm = async function exportDeltaVm(
       return
     }
 
-    // If the VDI name start with `[NOBAK]`, do not export it.
-    if (vdi.name_label.startsWith('[NOBAK]')) {
-      // FIXME: find a way to not create the VDI snapshot in the
-      // first time.
-      //
-      // The snapshot must not exist otherwise it could break the
-      // next export.
-      ignoreErrors.call(vdi.$destroy())
-      return
-    }
-
     vbds[vbd.$ref] = vbd
 
     const vdiRef = vdi.$ref

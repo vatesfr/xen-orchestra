@@ -1,5 +1,24 @@
 # ChangeLog
 
+## **next**
+
+### Enhancement
+
+- [Backup] Support `[NOBAK]` VDI prefix for all backup modes [#2560](https://github.com/vatesfr/xen-orchestra/issues/2560) (PR [#6207](https://github.com/vatesfr/xen-orchestra/pull/6207))
+- [VM/Host Console] Fix fallback for older versions of XCP-ng/XS (PR [#6203](https://github.com/vatesfr/xen-orchestra/pull/6203))
+
+### Bug fixes
+
+- [Backup Health Check] Fix guest tools detection (PR [#6214](https://github.com/vatesfr/xen-orchestra/pull/6214))
+
+### Released packages
+
+- @xen-orchestra/mixins 0.3.1
+- @xen-orchestra/xapi 0.11.0
+- @xen-orchestra/backups 0.22.0
+- @xen-orchestra/proxy 0.22.0
+- xo-server 5.93.0
+
 ## 5.70.0 (2022-04-29)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />

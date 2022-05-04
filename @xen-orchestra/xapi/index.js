@@ -101,20 +101,16 @@ function removeWatcher(predicate, cb) {
 class Xapi extends Base {
   constructor({
     callRetryWhenTooManyPendingTasks = { delay: 5e3, tries: 10 },
-    ignoreNobakVdis,
     maxUncoalescedVdis,
     vdiDestroyRetryWhenInUse = { delay: 5e3, tries: 10 },
     ...opts
   }) {
-    assert.notStrictEqual(ignoreNobakVdis, undefined)
-
     super(opts)
     this._callRetryWhenTooManyPendingTasks = {
       ...callRetryWhenTooManyPendingTasks,
       onRetry,
       when: { code: 'TOO_MANY_PENDING_TASKS' },
     }
-    this._ignoreNobakVdis = ignoreNobakVdis
     this._maxUncoalescedVdis = maxUncoalescedVdis
     this._vdiDestroyRetryWhenInUse = {
       ...vdiDestroyRetryWhenInUse,
@@ -191,7 +187,30 @@ class Xapi extends Base {
     }
     return removeWatcher.bind(watchers, predicate, cb)
   }
+
+  // wait for an object to be in a specified state
+
+  waitObjectState(refOrUuid, predicate, { timeout } = {}) {
+    return new Promise((resolve, reject) => {
+      let timeoutHandle
+      const stop = this.watchObject(refOrUuid, object => {
+        if (predicate(object)) {
+          clearTimeout(timeoutHandle)
+          stop()
+          resolve(object)
+        }
+      })
+
+      if (timeout !== undefined) {
+        timeoutHandle = setTimeout(() => {
+          stop()
+          reject(new Error(`waitObjectState: timeout reached before ${refOrUuid} in expected state`))
+        }, timeout)
+      }
+    })
+  }
 }
+
 function mixin(mixins) {
   const xapiProto = Xapi.prototype
   const { defineProperties, getOwnPropertyDescriptor, getOwnPropertyNames } = Object

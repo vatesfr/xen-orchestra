@@ -33,7 +33,5 @@
 
 <!--packages-start-->
 
-- @xen-orchestra/mixins patch
-- xo-server patch
 
 <!--packages-end-->
