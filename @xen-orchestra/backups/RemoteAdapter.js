@@ -1,6 +1,7 @@
 'use strict'
 
 const { asyncMap, asyncMapSettled } = require('@xen-orchestra/async-map')
+const { synchronized } = require('decorator-synchronized')
 const Disposable = require('promise-toolbox/Disposable')
 const fromCallback = require('promise-toolbox/fromCallback')
 const fromEvent = require('promise-toolbox/fromEvent')
@@ -17,6 +18,7 @@ const { execFile } = require('child_process')
 const { readdir, stat } = require('fs-extra')
 const { v4: uuidv4 } = require('uuid')
 const { ZipFile } = require('yazl')
+const zlib = require('zlib')
 
 const { BACKUP_DIR } = require('./_getVmBackupDir.js')
 const { cleanVm } = require('./_cleanVm.js')
@@ -78,6 +80,7 @@ class RemoteAdapter {
     this._dirMode = dirMode
     this._handler = handler
     this._vhdDirectoryCompression = vhdDirectoryCompression
+    this._createCacheListVmBackups = synchronized.withKey()(this._createCacheListVmBackups)
   }
 
   get handler() {
@@ -261,7 +264,8 @@ class RemoteAdapter {
   }
 
   async deleteVmBackups(files) {
-    const { delta, full, ...others } = groupBy(await asyncMap(files, file => this.readVmBackupMetadata(file)), 'mode')
+    const metadatas = await asyncMap(files, file => this.readVmBackupMetadata(file))
+    const { delta, full, ...others } = groupBy(metadatas, 'mode')
 
     const unsupportedModes = Object.keys(others)
     if (unsupportedModes.length !== 0) {
@@ -278,6 +282,7 @@ class RemoteAdapter {
       // don't merge in main process, unused VHDs will be merged in the next backup run
       await this.cleanVm(dir, { remove: true, onLog: warn })
     }
+    await asyncMap(metadatas, metadata => this.invalidateVmBackupListCache(metadata.vm.uuid))
   }
 
   #getCompressionType() {
@@ -448,9 +453,22 @@ class RemoteAdapter {
     return backupsByPool
   }
 
-  async listVmBackups(vmUuid, predicate) {
+  async invalidateVmBackupListCache(vmUuid) {
+    try {
+      await this.handler.unlink(`${BACKUP_DIR}/${vmUuid}/cache.json.gz`)
+
+      // remove any pending loc
+    } catch (error) {
+      if (error.code === 'ENOENT') {
+        return
+      }
+      throw error
+    }
+  }
+
+  async #getCachabledDataListVmBackups(vmUuid) {
     const handler = this._handler
-    const backups = []
+    const backups = {}
 
     try {
       const files = await handler.list(`${BACKUP_DIR}/${vmUuid}`, {
@@ -460,22 +478,103 @@ class RemoteAdapter {
       await asyncMap(files, async file => {
         try {
           const metadata = await this.readVmBackupMetadata(file)
-          if (predicate === undefined || predicate(metadata)) {
-            // inject an id usable by importVmBackupNg()
-            metadata.id = metadata._filename
-
-            backups.push(metadata)
-          }
+          // inject an id usable by importVmBackupNg()
+          metadata.id = metadata._filename
+          backups[file] = metadata
         } catch (error) {
-          warn(`listVmBackups ${file}`, { error })
+          warn(`createCacheListVmBackups ${file}`, { error })
         }
       })
+      return backups
     } catch (error) {
       let code
       if (error == null || ((code = error.code) !== 'ENOENT' && code !== 'ENOTDIR')) {
         throw error
       }
     }
+  }
+
+  // use _ to mark this method as private
+  // since we decorate it with syncrhonized.withKey in constructor
+  async _createCacheListVmBackups(vmUuid) {
+    const path = `${BACKUP_DIR}/${vmUuid}/cache.json.gz`
+    try {
+      const cached = await this.#readCacheListVmBackups(vmUuid)
+      if (cached !== undefined) {
+        return cached
+      }
+      // file did not get created during lock acquisition
+
+      const backups = await this.#getCachabledDataListVmBackups(vmUuid)
+      if (backups === undefined) {
+        return
+      }
+      const text = JSON.stringify(backups)
+      const zipped = await new Promise((resolve, reject) => {
+        zlib.gzip(text, (err, buffer) => {
+          if (err !== null) {
+            reject(err)
+          } else {
+            resolve(buffer)
+          }
+        })
+      })
+      // some file systems don't supports lock reliably
+      // in this case let's overwrite any existing file
+      // if the cache file is broken, it will be removed by readCacheListVmBackups
+      await this.handler.writeFile(path, zipped, { flags: 'w' })
+
+      return backups
+    } catch (error) {
+      let code
+      if (error == null || ((code = error.code) !== 'ENOENT' && code !== 'ENOTDIR')) {
+        throw error
+      }
+    }
+  }
+
+  async #readCacheListVmBackups(vmUuid) {
+    try {
+      const gzipped = await this.handler.readFile(`${BACKUP_DIR}/${vmUuid}/cache.json.gz`)
+      const text = await new Promise((resolve, reject) => {
+        zlib.gunzip(gzipped, (err, buffer) => {
+          if (err !== null) {
+            reject(err)
+          } else {
+            resolve(buffer)
+          }
+        })
+      })
+      return JSON.parse(text)
+    } catch (error) {
+      if (error.code === 'ENOENT') {
+        return
+      }
+      // try to delete the cache if the file is broken
+      await this.invalidateVmBackupListCache(vmUuid).catch(noop)
+      throw error
+    }
+  }
+
+  async listVmBackups(vmUuid, predicate) {
+    const backups = []
+    // await this.invalidateVmBackupListCache(vmUuid)
+    let cached = await this.#readCacheListVmBackups(vmUuid)
+
+    // nothing cached, update cache
+    if (cached === undefined) {
+      cached = await this._createCacheListVmBackups(vmUuid)
+    }
+
+    if (cached === undefined) {
+      return []
+    }
+
+    Object.values(cached).forEach(metadata => {
+      if (predicate === undefined || predicate(metadata)) {
+        backups.push(metadata)
+      }
+    })
 
     return backups.sort(compareTimestamp)
   }
@@ -584,7 +683,10 @@ class RemoteAdapter {
   }
 
   async readVmBackupMetadata(path) {
-    return Object.defineProperty(JSON.parse(await this._handler.readFile(path)), '_filename', { value: path })
+    // @todo : I really want to be able to stringify _filename
+    return { ...JSON.parse(await this._handler.readFile(path)), _filename: path }
+
+    // Object.defineProperty(JSON.parse(await this._handler.readFile(path)), '_filename', { value: path })
   }
 }
 

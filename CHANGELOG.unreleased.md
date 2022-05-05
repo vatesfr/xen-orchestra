@@ -8,6 +8,7 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [Backup] Merge multiple VHDs at once which will speed up the merging ĥase after reducing the retention of a backup job(PR [#6184](https://github.com/vatesfr/xen-orchestra/pull/6184))
+- [Backup] Implement file cache for listing the backups of a VM (PR [#6220](https://github.com/vatesfr/xen-orchestra/pull/6220))
 
 ### Bug fixes
 
@@ -38,8 +39,6 @@
 - vhd-lib patch
 - @xen-orchestra/fs patch
 - vhd-cli patch
-- @xen-orchestra/backups patch
-- xo-server patch
 - xo-vmdk-to-vhd minor
 - @xen-orchestra/upload-ova patch
 - @xen-orchestra/backups minor
