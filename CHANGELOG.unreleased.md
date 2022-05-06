@@ -7,6 +7,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [Backup] add a setting `unconditionalSnapshot` to force a snapshot even when the VM is halted (PR [#6221](https://github.com/vatesfr/xen-orchestra/pull/6221))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -32,6 +34,5 @@
 > Run `scripts/gen-deps-list.js --help` for usage
 
 <!--packages-start-->
-
 
 <!--packages-end-->
