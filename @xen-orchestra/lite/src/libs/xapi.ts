@@ -6,6 +6,7 @@ import { Xapi } from 'xen-api'
 export interface XapiObject {
   $pool: Pool
   $ref: string
+  $resident_on?: Host
   $type: keyof types
   $id: string
 }
@@ -53,10 +54,12 @@ export interface Vm extends XapiObject {
   is_a_snapshot: boolean
   is_a_template: boolean
   is_control_domain: boolean
+  memory_dynamic_max: number
   name_description: string
   name_label: string
   power_state: string
   resident_on: string
+  VCPUs_at_startup: number
 }
 
 interface HostMetrics {

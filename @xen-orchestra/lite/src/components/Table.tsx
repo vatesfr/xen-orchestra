@@ -9,9 +9,7 @@ import {
   tableCellClasses,
   TableHead,
   TableRow,
-  TableSortLabel,
   TableBody,
-  TablePagination,
   Box,
   IconButton,
   SelectChangeEvent,
@@ -19,7 +17,6 @@ import {
 import Checkbox from './Checkbox'
 import { findIndex } from 'lodash'
 import { RouteComponentProps, withRouter } from 'react-router-dom'
-import { cpuUsage } from 'process'
 import NavigateNextIcon from '@mui/icons-material/NavigateNext'
 import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore'
 import SkipNextIcon from '@mui/icons-material/SkipNext'
@@ -41,26 +38,36 @@ type Item = {
 
 interface ParentState {}
 
-interface State {
-  selectedItems: Array<unknown>
-}
+interface State {}
 
 interface StatePagination {}
 
-interface Props extends RouteComponentProps {
-  collection: Item[] | undefined
-  columns: Column<any>[]
-  dataType?: string
-  placeholder?: JSX.Element
-  isItemSelectable?: boolean
-  rowPerPages?: number
-  stateUrlParam: string
-  rowsPerPageOptions?: number[]
-}
+type IsSelectable =
+  | {
+      isItemSelectable: true
+      selectedItems: Array<any>
+      onSelectItems: (items: Array<any>) => void
+    }
+  | {
+      isItemSelectable?: false
+      selectedItems?: never
+      onSelectItems?: never
+    }
+
+type Props = IsSelectable &
+  RouteComponentProps & {
+    collection: Item[] | undefined
+    columns: Column<any>[]
+    dataType?: string
+    placeholder?: JSX.Element
+    rowPerPages?: number
+    stateUrlParam: string
+    rowsPerPageOptions?: number[]
+  }
 
 interface PropsPagination {
   rowPerPageOptions?: Array<number>
-  nbSelectedItems: number
+  nbSelectedItems?: number
   nbTotalItems: number
   dataType?: string
   reverse?: boolean
@@ -152,12 +159,14 @@ const Pagination = withState<
     <Box
       sx={{
         display: 'flex',
-        justifyContent: 'space-between',
+        justifyContent: nbSelectedItems !== undefined ? 'space-between' : 'right',
       }}
     >
-      <StyledNbSelectedItems reverse={reverse}>
-        <IntlMessage id='itemSelected' values={{ nSelected: nbSelectedItems }} />
-      </StyledNbSelectedItems>
+      {nbSelectedItems !== undefined && (
+        <StyledNbSelectedItems reverse={reverse}>
+          <IntlMessage id='itemSelected' values={{ nSelected: nbSelectedItems }} />
+        </StyledNbSelectedItems>
+      )}
       <StyledPaginationContainer>
         <StyledPaginationFlexRow>
           <StyledPaginationText>
@@ -218,23 +227,23 @@ const Pagination = withState<
 
 const Table = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
   {
-    initialState: () => ({
-      selectedItems: [],
-    }),
     effects: {
       toggleSelectItem: function (item: any) {
-        const { selectedItems } = this.state
+        const { selectedItems } = this.props
         const index = findIndex(selectedItems, item)
-        index === -1 ? selectedItems.push(item) : selectedItems.splice(index, 1)
-        this.state.selectedItems = [...selectedItems]
+        index === -1 ? selectedItems?.push(item) : selectedItems?.splice(index, 1)
+        if (selectedItems === undefined) {
+          return
+        }
+        this.props.onSelectItems?.(selectedItems)
       },
       toggleAllSelectedItem: function () {
         if (this.props.collection === undefined) {
           return
         }
-        this.state.selectedItems.length !== this.props.collection.length
-          ? (this.state.selectedItems = [...this.props.collection])
-          : (this.state.selectedItems = [])
+        this.props.onSelectItems?.(
+          this.props.selectedItems?.length !== this.props.collection.length ? this.props.collection : []
+        )
       },
       handlePaginationChange: function (_, page) {
         const reg = new RegExp(this.props.stateUrlParam + '_page=\\d+')
@@ -278,18 +287,18 @@ const Table = withState<State, Props, Effects, Computed, ParentState, ParentEffe
   ({
     collection,
     columns,
-    placeholder,
     effects,
-    state: { selectedItems, page, rowsPerPage, paginatedCollection },
+    state: { page, rowsPerPage, paginatedCollection },
     isItemSelectable,
     rowsPerPageOptions,
     dataType,
+    selectedItems,
   }) =>
     paginatedCollection !== undefined && collection !== undefined ? (
       <>
         <Pagination
           rowPerPageOptions={rowsPerPageOptions}
-          nbSelectedItems={selectedItems.length}
+          nbSelectedItems={selectedItems?.length}
           nbTotalItems={collection.length}
           dataType={dataType}
           reverse
@@ -315,7 +324,7 @@ const Table = withState<State, Props, Effects, Computed, ParentState, ParentEffe
               )}
               {columns.map((col, index) => (
                 <StyledTableCell key={col.id ?? index} align={col.center ? 'center' : 'left'}>
-                  {col.header}
+                  {typeof col.header === 'string' ? col.header.toUpperCase() : col.header}
                 </StyledTableCell>
               ))}
             </TableRow>
@@ -342,7 +351,7 @@ const Table = withState<State, Props, Effects, Computed, ParentState, ParentEffe
         </MUITable>
         <Pagination
           rowPerPageOptions={rowsPerPageOptions}
-          nbSelectedItems={selectedItems.length}
+          nbSelectedItems={selectedItems?.length}
           nbTotalItems={collection.length}
           dataType={dataType}
           showByValue={rowsPerPage}

@@ -1,9 +1,11 @@
 // https://mui.com/components/material-icons/
 import AccountCircleIcon from '@mui/icons-material/AccountCircle'
 import DeleteIcon from '@mui/icons-material/Delete'
+import humanFormat from 'human-format'
 import React from 'react'
 import styled from 'styled-components'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
+import { Map } from 'immutable'
 import { materialDark as codeStyle } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import { SelectChangeEvent } from '@mui/material'
 import { withState } from 'reaclette'
@@ -16,9 +18,25 @@ import Input from '../../components/Input'
 import Select from '../../components/Select'
 import Tabs from '../../components/Tabs'
 import { alert, confirm } from '../../components/Modal'
-import Table from '../../components/Table'
+import Table, { Column } from '../../components/Table'
 import { ObjectsByType, Vm } from '../../libs/xapi'
-import { Map } from 'immutable'
+
+const VM_TABLE_COLUMN: Array<Column<Vm>> = [
+  {
+    id: 'power_state',
+    header: <Icon icon='power-off' />,
+    render: vm => <Icon icon='circle' htmlColor={vm.power_state === 'Running' ? '#00BA34' : '#E8E8E8'} />,
+    center: true,
+  },
+  { id: 'vm_name', header: 'VM Name', render: vm => vm.name_label },
+  { id: 'description', header: 'Description', render: vm => vm.name_description },
+  { id: 'hostname', header: 'Host name', render: vm => vm.$resident_on?.name_label },
+  { id: 'poolname', header: 'Pool name', render: vm => vm.$pool.name_label },
+  { id: 'ipv4', header: 'IPV4', render: () => '127.0.0.1' },
+  { id: 'ipv6', header: 'IPV6', render: () => 'fe80::e35f:46da:83cb:44012a01:240:ab08:4:607e:f6bb:b59f:b61' },
+  { id: 'cpu', header: 'CPU', render: vm => vm.VCPUs_at_startup, isNumeric: true },
+  { id: 'ram', header: 'RAM', render: vm => humanFormat.bytes(vm.memory_dynamic_max), isNumeric: true },
+]
 
 interface ParentState {
   objectsByType: ObjectsByType
@@ -26,6 +44,7 @@ interface ParentState {
 
 interface State {
   value: unknown
+  tableSelectedVms: Array<Vm>
 }
 
 interface Props {}
@@ -38,6 +57,7 @@ interface Effects {
   sendPromise: (data: Record<string, unknown>) => Promise<void>
   showAlertModal: () => void
   showConfirmModal: () => void
+  setSelectedVms: (vms: Array<Vm>) => void
 }
 
 interface Computed {
@@ -73,6 +93,7 @@ const App = withState<State, Props, Effects, Computed, ParentState, ParentEffect
   {
     initialState: () => ({
       value: '',
+      tableSelectedVms: [],
     }),
     effects: {
       onChangeSelect: function (e) {
@@ -93,6 +114,9 @@ const App = withState<State, Props, Effects, Computed, ParentState, ParentEffect
           title: 'Confirm modal',
           icon: 'download',
         }),
+      setSelectedVms: function (vms) {
+        this.state.tableSelectedVms = [...vms]
+      },
     },
     computed: {
       vms: state =>
@@ -108,23 +132,12 @@ const App = withState<State, Props, Effects, Computed, ParentState, ParentEffect
         <Render>
           <Table
             isItemSelectable
+            selectedItems={state.tableSelectedVms}
+            onSelectItems={effects.setSelectedVms}
             stateUrlParam='foo_table'
             rowsPerPageOptions={[10, 25, 50, 100]}
             collection={state.vms?.valueSeq().toArray()}
-            columns={[
-              {
-                id: 'power_state',
-                header: <Icon icon='power-off' />,
-                render: item => (
-                  <Icon icon='circle' htmlColor={item.power_state === 'Running' ? '#00BA34' : '#E8E8E8'} />
-                ),
-                center: true,
-              },
-              { id: 'vm_name', header: 'VM Name', render: item => item.name_label },
-              { id: 'description', header: 'Description', render: item => item.name_description },
-              // Fictive value to show 'isNumeric' behavior
-              { id: 'cpu', header: 'CPU', render: () => '1', isNumeric: true },
-            ]}
+            columns={VM_TABLE_COLUMN}
             dataType='VMs'
           />
         </Render>
