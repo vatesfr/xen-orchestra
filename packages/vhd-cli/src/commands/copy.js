@@ -46,5 +46,9 @@ export default async rawArgs => {
     await dest.writeFooter()
     await dest.writeHeader()
     await dest.writeBlockAllocationTable()
+
+    if (directory) {
+      dest.finalize()
+    }
   })
 }

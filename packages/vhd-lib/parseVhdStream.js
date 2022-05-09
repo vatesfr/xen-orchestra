@@ -119,6 +119,9 @@ exports.parseVhdStream = async function* parseVhdStream(stream) {
    */
   const bufFooterEnd = await readLastSector(stream)
   assert(bufFooter.equals(bufFooterEnd), 'footer1 !== footer2')
+  yield {
+    type: 'end',
+  }
 }
 
 function readLastSector(stream) {

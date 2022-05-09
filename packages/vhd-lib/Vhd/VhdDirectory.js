@@ -11,6 +11,8 @@ const zlib = require('zlib')
 
 const { debug } = createLogger('vhd-lib:VhdDirectory')
 
+const CREATION_FILE_NAME = '.creating'
+
 const NULL_COMPRESSOR = {
   compress: buffer => buffer,
   decompress: buffer => buffer,
@@ -119,6 +121,7 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
   static async create(handler, path, { flags = 'wx+', compression } = {}) {
     await handler.mkdir(path)
     const vhd = new VhdDirectory(handler, path, { flags, compression })
+    await handler.writeFile(`${path}/${CREATION_FILE_NAME}`, +new Date())
     return {
       dispose: () => {},
       value: vhd,
@@ -174,7 +177,19 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
     return `blocks/${blockPrefix}/${blockSuffix}`
   }
 
-  async readHeaderAndFooter() {
+  async readHeaderAndFooter(checkSecondFooter = true) {
+    // check that the vhd is complete ( )
+    if (checkSecondFooter) {
+      try {
+        const date = await this._handler.readFile(`${this._path}/${CREATION_FILE_NAME}`)
+        throw new Error(`the vhd ${this._path} is currently in creation since ${date}`, { path: this._path, date })
+      } catch (error) {
+        if (error.code !== 'ENOENT') {
+          throw error
+        }
+        // no temporary file indicating that the vhd is currently in creation
+      }
+    }
     await this.#readChunkFilters()
 
     let bufHeader, bufFooter
@@ -289,5 +304,9 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
       throw error
     })
     this.#compressor = getCompressor(chunkFilters[0])
+  }
+
+  async finalize() {
+    await this._handler.unlink(`${this._path}/${CREATION_FILE_NAME}`)
   }
 }
