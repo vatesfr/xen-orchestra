@@ -7,7 +7,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [Backup] Feat Merge multiple VHD at once (PR [#6184](https://github.com/vatesfr/xen-orchestra/pull/6184))
+- [Backup] Merge multiple VHDs at once which will speed up the merging ĥase after reducing the retention of a backup job(PR [#6184](https://github.com/vatesfr/xen-orchestra/pull/6184))
 
 ### Bug fixes
 
@@ -41,7 +41,7 @@
 - @xen-orchestra/proxy patch
 
 - xo-vmdk-to-vhd minor
-- @xen-orchestra/backup minor
+- @xen-orchestra/backups minor
 - @xen-orchestra/proxy minor
 - xo-server minor
 - xo-web minor

@@ -31,13 +31,15 @@ const computeVhdsSize = (handler, vhdPaths) =>
     }
   )
 
-// chain is an array of VHDs from child to parent
-//
-// the whole chain will be merged into parent, parent will be renamed to child
-// and all the others will deleted
+// chain is [ progenitor, child, grand child,  ... , descendant parent, descendant ]
+
+// we will copy the used blocks of children in the progenitor
+// if a a block is used in child and grand child, we only keep the grand child block
+// then rename the progenitor as the descendant (that will also remove descendant before renaming)
+// and delete all the other vhd from child to descendant parent  since they won't be used anymore
+
 async function mergeVhdChain(chain, { handler, onLog, remove, merge }) {
   assert(chain.length >= 2)
-  // chain is parent -> child -> grand child > ..
   const chainCopy = [...chain]
   const parent = chainCopy.pop()
   const children = chainCopy
@@ -52,7 +54,7 @@ async function mergeVhdChain(chain, { handler, onLog, remove, merge }) {
       }
     }, 10e3)
 
-    const mergedSize = await mergeVhd(handler, parent, handler, children, {
+    const mergedSize = await mergeVhd(handler, parent, children, {
       onProgress({ done: d, total: t }) {
         done = d
         total = t

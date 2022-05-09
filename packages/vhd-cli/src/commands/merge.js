@@ -10,7 +10,7 @@ export default async function main(args) {
 
   const handler = getHandler({ url: 'file:///' })
   let bar
-  await mergeVhd(handler, resolve(args[1]), handler, resolve(args[0]), {
+  await mergeVhd(handler, resolve(args[1]), [resolve(args[0])], {
     onProgress({ done, total }) {
       if (bar === undefined) {
         bar = new Bar({

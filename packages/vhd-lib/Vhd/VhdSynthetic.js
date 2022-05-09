@@ -2,11 +2,14 @@
 
 const UUID = require('uuid')
 const cloneDeep = require('lodash/cloneDeep.js')
+const Disposable = require('promise-toolbox/Disposable')
 const { asyncMap } = require('@xen-orchestra/async-map')
-const { VhdAbstract } = require('./VhdAbstract')
-const { DISK_TYPES, FOOTER_SIZE, HEADER_SIZE } = require('../_constants')
 
 const assert = require('assert')
+const { DISK_TYPES, FOOTER_SIZE, HEADER_SIZE } = require('../_constants')
+const { openVhd } = require('../openVhd')
+const resolveRelativeFromFile = require('../_resolveRelativeFromFile')
+const { VhdAbstract } = require('./VhdAbstract')
 
 exports.VhdSynthetic = class VhdSynthetic extends VhdAbstract {
   #vhds = []
@@ -40,14 +43,38 @@ exports.VhdSynthetic = class VhdSynthetic extends VhdAbstract {
     }
   }
 
-  static async open(vhds) {
-    const vhd = new VhdSynthetic(vhds)
+  static async fromVhdChain(handler, childPath) {
+    const disposableVhds = []
+    let vhd
+    let vhdPath = childPath
+    do {
+      const disposable = await openVhd(handler, vhdPath)
+      vhd = disposable.value
+      disposableVhds.push(disposable)
+      vhdPath = resolveRelativeFromFile(vhdPath, vhd.header.parentUnicodeName)
+    } while (vhd.footer.diskType !== DISK_TYPES.DYNAMIC)
+    return VhdSynthetic.#openDisposables(disposableVhds)
+  }
+
+  static async open(handler, paths, opts) {
+    const disposableVhds = await asyncMap(paths, async path => {
+      return openVhd(handler, path, opts)
+    })
+    return VhdSynthetic.#openDisposables(disposableVhds)
+  }
+
+  static async #openDisposables(disposableVhds) {
+    const disposable = await Disposable.all(disposableVhds)
+
+    const vhd = new VhdSynthetic(disposable.value)
     await vhd.readHeaderAndFooter() // check if the chaining is ok
+
     return {
-      dispose: () => {},
+      dispose: () => disposable.dispose(),
       value: vhd,
     }
   }
+
   /**
    * @param {Array<VhdAbstract>} vhds the chain of Vhds used to compute this Vhd, from the deepest child (in position 0), to the root (in the last position)
    * only the last one can have any type. Other must have type DISK_TYPES.DIFFERENCING (delta)
@@ -81,9 +108,8 @@ exports.VhdSynthetic = class VhdSynthetic extends VhdAbstract {
 
   async readBlock(blockId, onlyBitmap = false) {
     const index = this.#vhds.findIndex(vhd => vhd.containsBlock(blockId))
-    if (index === -1) {
-      throw new Error(`no such block ${blockId}`)
-    }
+    assert(index !== -1, `no such block ${blockId}`)
+
     // only read the content of the first vhd containing this block
     return await this.#vhds[index].readBlock(blockId, onlyBitmap)
   }

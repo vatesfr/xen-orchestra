@@ -27,24 +27,23 @@ afterEach(async () => {
 test('merge works in normal cases', async () => {
   const mbOfFather = 8
   const mbOfChildren = 4
-  const parentRandomFileName = `${tempDir}/randomfile`
-  const childRandomFileName = `${tempDir}/small_randomfile`
-  const parentFileName = `${tempDir}/parent.vhd`
-  const child1FileName = `${tempDir}/child1.vhd`
-  const handler = getHandler({ url: 'file://' })
+  const parentRandomFileName = `randomfile`
+  const childRandomFileName = `small_randomfile`
+  const parentFileName = `parent.vhd`
+  const child1FileName = `child1.vhd`
+  const handler = getHandler({ url: `file://${tempDir}` })
 
-  await createRandomFile(parentRandomFileName, mbOfFather)
-  await convertFromRawToVhd(parentRandomFileName, parentFileName)
-
-  await createRandomFile(childRandomFileName, mbOfChildren)
-  await convertFromRawToVhd(childRandomFileName, child1FileName)
+  await createRandomFile(`${tempDir}/${parentRandomFileName}`, mbOfFather)
+  await convertFromRawToVhd(`${tempDir}/${parentRandomFileName}`, `${tempDir}/${parentFileName}`)
+  await createRandomFile(`${tempDir}/${childRandomFileName}`, mbOfChildren)
+  await convertFromRawToVhd(`${tempDir}/${childRandomFileName}`, `${tempDir}/${child1FileName}`)
   await chainVhd(handler, parentFileName, handler, child1FileName, true)
 
   // merge
-  await vhdMerge(handler, parentFileName, handler, child1FileName)
+  await vhdMerge(handler, parentFileName, [child1FileName])
 
   // check that vhd is still valid
-  await checkFile(parentFileName)
+  await checkFile(`${tempDir}/${parentFileName}`)
 
   const parentVhd = new VhdFile(handler, parentFileName)
   await parentVhd.readHeaderAndFooter()
@@ -56,7 +55,7 @@ test('merge works in normal cases', async () => {
     const blockContent = block.data
     const file = offset < mbOfChildren * 1024 * 1024 ? childRandomFileName : parentRandomFileName
     const buffer = Buffer.alloc(blockContent.length)
-    const fd = await fs.open(file, 'r')
+    const fd = await fs.open(`${tempDir}/${file}`, 'r')
     await fs.read(fd, buffer, 0, buffer.length, offset)
 
     expect(buffer.equals(blockContent)).toEqual(true)
@@ -94,7 +93,7 @@ test('it can resume a merge ', async () => {
     })
   )
   // expect merge to fail since child header is not ok
-  await expect(async () => await vhdMerge(handler, 'parent.vhd', handler, 'child1.vhd')).rejects.toThrow()
+  await expect(async () => await vhdMerge(handler, 'parent.vhd', ['child1.vhd'])).rejects.toThrow()
 
   await handler.unlink('.parent.vhd.merge.json')
   await handler.writeFile(
@@ -109,7 +108,7 @@ test('it can resume a merge ', async () => {
     })
   )
   // expect merge to fail since parent header is not ok
-  await expect(async () => await vhdMerge(handler, 'parent.vhd', handler, 'child1.vhd')).rejects.toThrow()
+  await expect(async () => await vhdMerge(handler, 'parent.vhd', ['child1.vhd'])).rejects.toThrow()
 
   // break the end footer of parent
   const size = await handler.getSize('parent.vhd')
@@ -136,7 +135,7 @@ test('it can resume a merge ', async () => {
   )
 
   // really merge
-  await vhdMerge(handler, 'parent.vhd', handler, 'child1.vhd')
+  await vhdMerge(handler, 'parent.vhd', ['child1.vhd'])
 
   // reload header footer and block allocation table , they should succed
   await parentVhd.readHeaderAndFooter()
@@ -181,7 +180,7 @@ test('it merge multiple child in one passe ', async () => {
   await chainVhd(handler, childFileName, handler, grandChildFileName, true)
 
   // merge
-  await vhdMerge(handler, parentFileName, handler, [grandChildFileName, childFileName])
+  await vhdMerge(handler, parentFileName, [grandChildFileName, childFileName])
 
   // check that vhd is still valid
   await checkFile(parentFileName)

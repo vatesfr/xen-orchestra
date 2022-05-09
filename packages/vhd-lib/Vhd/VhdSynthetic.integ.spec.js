@@ -9,7 +9,7 @@ const { getSyncedHandler } = require('@xen-orchestra/fs')
 
 const { SECTOR_SIZE, PLATFORMS } = require('../_constants')
 const { createRandomFile, convertFromRawToVhd } = require('../tests/utils')
-const { openVhd, chainVhd } = require('..')
+const { openVhd, chainVhd, VhdSynthetic } = require('..')
 
 let tempDir = null
 
@@ -55,7 +55,7 @@ test('It can read block and parent locator from a synthetic vhd', async () => {
 
     await bigVhd.readHeaderAndFooter()
 
-    const syntheticVhd = yield openVhd(handler, [smallVhdFileName, bigVhdFileName])
+    const syntheticVhd = yield VhdSynthetic.open(handler, [smallVhdFileName, bigVhdFileName])
     await syntheticVhd.readBlockAllocationTable()
 
     expect(syntheticVhd.header.diskType).toEqual(bigVhd.header.diskType)

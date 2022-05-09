@@ -7,7 +7,7 @@ const tmp = require('tmp')
 const { getSyncedHandler } = require('@xen-orchestra/fs')
 const { Disposable, pFromCallback } = require('promise-toolbox')
 
-const { openVhd, chainVhd } = require('./index')
+const { openVhd } = require('./index')
 const { createRandomFile, convertFromRawToVhd, createRandomVhdDirectory } = require('./tests/utils')
 
 const { VhdAbstract } = require('./Vhd/VhdAbstract')
@@ -60,25 +60,5 @@ test('It opens a vhd directory', async () => {
     const alias = yield openVhd(handler, aliasFileName)
     expect(alias.header.cookie).toEqual('cxsparse')
     expect(alias.footer.cookie).toEqual('conectix')
-  })
-})
-
-test('It opens multiples vhd file as vhd synthetic', async () => {
-  const initalSize = 4
-  const rawFileName = `${tempDir}/randomfile`
-  await createRandomFile(rawFileName, initalSize)
-  const vhdFileNameChild = `${tempDir}/child.vhd`
-  await convertFromRawToVhd(rawFileName, vhdFileNameChild)
-  // new random file
-  await createRandomFile(rawFileName, initalSize)
-  const vhdFileNameParent = `${tempDir}/parent.vhd`
-  await convertFromRawToVhd(rawFileName, vhdFileNameParent)
-
-  await Disposable.use(async function* () {
-    const handler = yield getSyncedHandler({ url: 'file://' })
-    await chainVhd(handler, vhdFileNameParent, handler, vhdFileNameChild, true)
-    const vhd = yield openVhd(handler, [vhdFileNameChild, vhdFileNameParent])
-    expect(vhd.header.cookie).toEqual('cxsparse')
-    expect(vhd.footer.cookie).toEqual('conectix')
   })
 })
