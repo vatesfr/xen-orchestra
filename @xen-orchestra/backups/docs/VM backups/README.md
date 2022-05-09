@@ -69,6 +69,8 @@ job.start(data: { mode: Mode, reportWhen: ReportWhen })
 ├─ task.warning(message: string)
 ├─ task.start(data: { type: 'VM', id: string })
 │  ├─ task.warning(message: string)
+|  ├─ task.start(message: 'clean-vm')
+│  │  └─ task.end
 │  ├─ task.start(message: 'snapshot')
 │  │  └─ task.end
 │  ├─ task.start(message: 'export', data: { type: 'SR' | 'remote', id: string, isFull: boolean })
@@ -89,12 +91,8 @@ job.start(data: { mode: Mode, reportWhen: ReportWhen })
 │  │  ├─ task.start(message: 'clean')
 │  │  │  ├─ task.warning(message: string)
 │  │  │  └─ task.end
-│  │  │
-│  │  │ // in case of delta backup
-│  │  ├─ task.start(message: 'merge')
-│  │  │  ├─ task.warning(message: string)
-│  │  │  └─ task.end(result: { size: number })
-│  │  │
+│  │  └─ task.end
+|  ├─ task.start(message: 'clean-vm')
 │  │  └─ task.end
 │  └─ task.end
 └─ job.end

@@ -6,6 +6,7 @@ import decorate from 'apply-decorators'
 import defined, { get } from '@xen-orchestra/defined'
 import Icon from 'icon'
 import Pagination from 'pagination'
+import PropTypes from 'prop-types'
 import React from 'react'
 import SearchBar from 'search-bar'
 import Select from 'form/select'
@@ -110,16 +111,54 @@ const TaskError = ({ task }) => {
   )
 }
 
-const Warnings = ({ warnings }) =>
+class TaskWarning extends React.Component {
+  constructor(props) {
+    super(props)
+    this.state = {
+      expanded: false,
+    }
+  }
+
+  render() {
+    const className = `text-warning ${this.props.data ? 'message-expandable' : ''}`
+
+    return (
+      <div>
+        <span className={className} onClick={() => this.setState({ expanded: !this.state.expanded })}>
+          <Icon icon='alarm' /> {this.props.message}
+        </span>
+        {this.state.expanded && (
+          <ul className='task-warning'>
+            {Object.keys(this.props.data).map(key => (
+              <li key={key}>
+                <strong>{key}</strong>
+                <span>{JSON.stringify(this.props.data[key])}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+    )
+  }
+}
+
+TaskWarning.propTypes = {
+  message: PropTypes.string.isRequired,
+  data: PropTypes.object,
+}
+
+const TaskWarnings = ({ warnings }) =>
   warnings !== undefined ? (
     <div>
-      {warnings.map(({ message }, key) => (
-        <div className='text-warning' key={key}>
-          <Icon icon='alarm' /> {message}
-        </div>
+      {warnings.map(({ message, data }, key) => (
+        <TaskWarning message={message} data={data} key={key} />
       ))}
     </div>
   ) : null
+
+TaskWarnings.propTypes = {
+  warnings: PropTypes.arrayOf(PropTypes.shape(TaskWarning.propTypes)),
+}
 
 const VmTask = ({ children, className, restartVmJob, task }) => (
   <li className={className}>
@@ -144,7 +183,7 @@ const VmTask = ({ children, className, restartVmJob, task }) => (
         />
       </ButtonGroup>
     )}
-    <Warnings warnings={task.warnings} />
+    <TaskWarnings warnings={task.warnings} />
     {children}
     <TaskStart task={task} />
     <TaskEnd task={task} />
@@ -171,7 +210,7 @@ const VmTask = ({ children, className, restartVmJob, task }) => (
 const PoolTask = ({ children, className, task }) => (
   <li className={className}>
     <Pool id={task.data.id} link newTab /> <TaskStateInfos status={task.status} />
-    <Warnings warnings={task.warnings} />
+    <TaskWarnings warnings={task.warnings} />
     {children}
     <TaskStart task={task} />
     <TaskEnd task={task} />
@@ -183,7 +222,7 @@ const PoolTask = ({ children, className, task }) => (
 const XoTask = ({ children, className, task }) => (
   <li className={className}>
     <Icon icon='menu-xoa' /> XO <TaskStateInfos status={task.status} />
-    <Warnings warnings={task.warnings} />
+    <TaskWarnings warnings={task.warnings} />
     {children}
     <TaskStart task={task} />
     <TaskEnd task={task} />
@@ -195,7 +234,18 @@ const XoTask = ({ children, className, task }) => (
 const SnapshotTask = ({ className, task }) => (
   <li className={className}>
     <Icon icon='task' /> {_('snapshotVmLabel')} <TaskStateInfos status={task.status} />
-    <Warnings warnings={task.warnings} />
+    <TaskWarnings warnings={task.warnings} />
+    <TaskStart task={task} />
+    <TaskEnd task={task} />
+    <TaskError task={task} />
+  </li>
+)
+
+const CleanVmTask = ({ children, className, task }) => (
+  <li className={className}>
+    <Icon icon='clean-vm' /> {_('cleanVm')} <TaskStateInfos status={task.status} />
+    <TaskWarnings warnings={task.warnings} />
+    {children}
     <TaskStart task={task} />
     <TaskEnd task={task} />
     <TaskError task={task} />
@@ -203,7 +253,7 @@ const SnapshotTask = ({ className, task }) => (
 )
 const HealthCheckTask = ({ children, className, task }) => (
   <li className={className}>
-    <Icon icon='health' /> {task.message} <TaskStateInfos status={task.status} /> <Warnings warnings={task.warnings} />
+    <Icon icon='health' /> {task.message} <TaskStateInfos status={task.status} /> <TaskWarnings warnings={task.warnings} />
     {children}
     <TaskStart task={task} />
     <TaskEnd task={task} />
@@ -222,7 +272,7 @@ const HealthCheckVmStartTask = ({ children, className, task }) => (
 const RemoteTask = ({ children, className, task }) => (
   <li className={className}>
     <Remote id={task.data.id} link newTab /> <TaskStateInfos status={task.status} />
-    <Warnings warnings={task.warnings} />
+    <TaskWarnings warnings={task.warnings} />
     {children}
     <TaskStart task={task} />
     <TaskEnd task={task} />
@@ -234,7 +284,7 @@ const RemoteTask = ({ children, className, task }) => (
 const SrTask = ({ children, className, task }) => (
   <li className={className}>
     <Sr id={task.data.id} link newTab /> <TaskStateInfos status={task.status} />
-    <Warnings warnings={task.warnings} />
+    <TaskWarnings warnings={task.warnings} />
     {children}
     <TaskStart task={task} />
     <TaskEnd task={task} />
@@ -245,7 +295,7 @@ const SrTask = ({ children, className, task }) => (
 
 const TransferMergeTask = ({ className, task }) => {
   const size = defined(() => task.result.size, 0)
-  if (task.status === 'success' && size === 0) {
+  if (task.status === 'success' && size === 0 && task.warnings?.length === 0) {
     return null
   }
 
@@ -262,7 +312,7 @@ const TransferMergeTask = ({ className, task }) => {
       )}{' '}
       {task.message}
       <TaskStateInfos status={task.status} />
-      <Warnings warnings={task.warnings} />
+      <TaskWarnings warnings={task.warnings} />
       <TaskStart task={task} />
       <TaskEnd task={task} />
       <TaskDuration task={task} />
@@ -292,6 +342,7 @@ const COMPONENT_BY_MESSAGE = {
   transfer: TransferMergeTask,
   'health check': HealthCheckTask,
   vmstart: HealthCheckVmStartTask,
+  'clean-vm': CleanVmTask,
 }
 
 const TaskLi = ({ task, ...props }) => {
@@ -474,7 +525,7 @@ export default decorate([
     const { scheduleId, warnings, tasks = [] } = state.log
     return tasks.length === 0 ? (
       <div>
-        <Warnings warnings={warnings} />
+        <TaskWarnings warnings={warnings} />
         <TaskError task={state.log} />
       </div>
     ) : (
@@ -495,7 +546,7 @@ export default decorate([
           value={state.status}
           valueKey='value'
         />
-        <Warnings warnings={warnings} />
+        <TaskWarnings warnings={warnings} />
         <br />
         <ul className='list-group'>
           {map(state.displayedTasks, taskLog => {
