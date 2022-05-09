@@ -1,8 +1,6 @@
-'use strict'
-
 const RE = /^\s*basic\s+(.+?)\s*$/i
 
-exports.parseBasicAuth = function parseBasicAuth(header) {
+export function parseBasicAuth(header) {
   if (header === undefined) {
     return
   }

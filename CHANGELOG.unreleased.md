@@ -34,5 +34,8 @@
 <!--packages-start-->
 
 - @xen-orchestra/xapi major
+- @xen-orchestra/mixins major
+- xo-server patch
+- @xen-orchestra/proxy patch
 
 <!--packages-end-->
