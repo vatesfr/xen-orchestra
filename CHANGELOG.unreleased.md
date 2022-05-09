@@ -33,5 +33,6 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/xapi major
 
 <!--packages-end-->
