@@ -16,12 +16,12 @@ interface State {}
 
 interface Props extends SelectProps {
   additionalProps?: AdditionalProps
+  noNone?: boolean
   onChange: (e: SelectChangeEvent<unknown>) => void
   optionRenderer?: string | { (item: any): number | string }
   options: any[] | undefined
   value: any
   valueRenderer?: string | { (item: any): number | string }
-  noNone?: boolean
 }
 
 interface ParentEffects {}
@@ -67,12 +67,12 @@ const Select = withState<State, Props, Effects, Computed, ParentState, ParentEff
     displayEmpty = true,
     effects,
     multiple,
+    noNone = false,
     options,
     required,
     resetState,
     state,
     value,
-    noNone = false,
     ...props
   }) => (
     <FormControl>
