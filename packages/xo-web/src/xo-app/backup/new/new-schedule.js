@@ -12,6 +12,8 @@ import { Number } from 'form'
 
 import { FormGroup, Input } from './../utils'
 import Tags from '../../../common/tags'
+import { getXoaPlan } from '../../../common/utils'
+import { PREMIUM } from '../../../common/xoa-plans'
 import { SelectSr } from '../../../common/select-objects'
 
 const New = decorate([
@@ -21,10 +23,6 @@ const New = decorate([
       formId: generateId,
       idInputName: generateId,
     },
-
-    initialState: () => ({
-      healthCheck: false,
-    }),
     effects: {
       setSchedule:
         (_, params) =>
@@ -70,20 +68,35 @@ const New = decorate([
             name: value.trim() === '' ? null : value,
           })
         },
+      setHealthCheckTags({ setSchedule }, tags) {
+        setSchedule({
+          healthCheck: {
+            ...this.props.value.healthCheck,
+            tags,
+          },
+        })
+      },
       toggleForceFullBackup({ setSchedule }) {
         setSchedule({
           fullInterval: this.state.forceFullBackup ? undefined : 1,
         })
       },
-      toggleHealthCheck({ setSchedule }, { target: { value, checked } }) {
-        console.log('toggle', this.state.healthCheck, value, checked )
-        this.state.healthCheck = checked
+      toggleHealthCheck({ setSchedule }, { target: { checked } }) {
         setSchedule({
-          healthCheck: checked ? {} : null,
+          healthCheck: checked
+            ? {
+                tags: [],
+              }
+            : undefined,
         })
       },
-      changeSr({ setSchedule }, value) {
-        console.log('change sr ', value)
+      setHealthCheckSr({ setSchedule }, sr) {
+        setSchedule({
+          healthCheck: {
+            ...this.props.value.healthCheck,
+            sr: sr.id,
+          },
+        })
       },
     },
   }),
@@ -133,23 +146,36 @@ const New = decorate([
         )}
         <FormGroup>
           <label>
-            <strong>Health check</strong>{' '}
-            <input checked={state.healthCheck} onChange={effects.toggleHealthCheck} type='checkbox' />
+            <strong>{_('healthCheck')}</strong>{' '}
+            <Tooltip content={getXoaPlan() !== PREMIUM ? _('healthCheckTooltip') : undefined}>
+              <input
+                checked={schedule.healthCheck !== undefined}
+                disabled={getXoaPlan() !== PREMIUM}
+                onChange={effects.toggleHealthCheck}
+                type='checkbox'
+              />
+            </Tooltip>
           </label>
+          {schedule.healthCheck !== undefined && (
+            <div className='mb-2'>
+              <strong>{_('healthCheckTags')}</strong>
+              <br />
+              <em>
+                <Icon icon='info' /> {_('healthCheckTagsInfo')}
+              </em>
+              <p className='h2'>
+                <Tags labels={schedule.healthCheck.tags} onChange={effects.setHealthCheckTags} />
+              </p>
+              <strong>{_('sr')}</strong>
+              <SelectSr
+                onChange={effects.setHealthCheckSr}
+                placeholder={_('healthCheckSr')}
+                required
+                value={schedule.healthCheck.sr}
+              />
+            </div>
+          )}
         </FormGroup>
-        {state.healthCheck && <Tags
-        labels={[]}
-          onChange={t=>console.Console.log('change', t)}
-          />
-        }
-        {state.healthCheck && <SelectSr
-          required
-          placeholder={'Choose SR used for Vms restoration'}
-          onChange={effects.changeSr}
-          value={schedule.sr}
-         />
-        }
-
         {modes.isDelta && (
           <FormGroup>
             <label>

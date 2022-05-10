@@ -468,7 +468,6 @@ const New = decorate([
               return value
             },
           })
-          console.log({schedule})
           saveSchedule({
             ...schedule,
             id: storedSchedule.id || generateRandomId(),
