@@ -205,7 +205,6 @@ exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(Ab
     }
 
     const { size } = await Task.run({ name: 'transfer' }, async () => {
-      const paths = {}
       await Promise.all(
         map(deltaExport.vdis, async (vdi, id) => {
           const path = `${backupDir}/${vhds[id]}`
@@ -252,7 +251,6 @@ exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(Ab
       )
       return {
         size: Object.values(sizeContainers).reduce((sum, { size }) => sum + size, 0),
-        path: metadataFilename
       }
     })
     metadataContent.size = size
@@ -260,7 +258,6 @@ exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(Ab
       dirMode: backup.config.dirMode,
     })
 
-    sizeContainers.metadataPath = metadataFilename
     // TODO: run cleanup?
   }
 }

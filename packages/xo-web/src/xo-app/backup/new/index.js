@@ -468,6 +468,7 @@ const New = decorate([
               return value
             },
           })
+
           saveSchedule({
             ...schedule,
             id: storedSchedule.id || generateRandomId(),
@@ -487,7 +488,18 @@ const New = decorate([
       saveSchedule:
         (
           _,
-          { copyRetention, cron, enabled = true, exportRetention, fullInterval, id, name, snapshotRetention, timezone }
+          {
+            copyRetention,
+            cron,
+            enabled = true,
+            exportRetention,
+            fullInterval,
+            healthCheck,
+            id,
+            name,
+            snapshotRetention,
+            timezone,
+          }
         ) =>
         ({ propSettings, schedules, settings = propSettings }) => ({
           schedules: {
@@ -496,6 +508,7 @@ const New = decorate([
               ...schedules[id],
               cron,
               enabled,
+              healthCheck,
               id,
               name,
               timezone,

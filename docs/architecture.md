@@ -138,21 +138,8 @@ This CLI is mainly used as a debug tool, there's no 100% guarantee on its stabil
 > xo-cli --help
 Usage:
 
-  xo-cli --register [--allowUnauthorized] [--expiresIn duration] <XO-Server URL> <username> [<password>]
+  xo-cli --register <XO-Server URL> <username> [<password>]
     Registers the XO instance to use.
-
-    --allowUnauthorized, --au
-      Accept invalid certificate (e.g. self-signed).
-
-    --expiresIn duration
-      Can be used to change the validity duration of the
-      authorization token (default: one month).
-
-  xo-cli --createToken <params>…
-    Create an authentication token for XO API.
-
-    <params>…
-      Accept the same parameters as --register, see its usage.
 
   xo-cli --unregister
     Remove stored credentials.
@@ -173,6 +160,7 @@ Usage:
 
   xo-cli <command> [<name>=<value>]...
     Executes a command on the current XO instance.
+
 ```
 
 #### Register your XO instance

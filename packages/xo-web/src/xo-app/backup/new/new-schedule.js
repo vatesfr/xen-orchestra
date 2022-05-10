@@ -4,7 +4,7 @@ import Icon from 'icon'
 import PropTypes from 'prop-types'
 import React from 'react'
 import Scheduler, { SchedulePreview } from 'scheduling'
-import Tooltip from 'tooltip'
+import Tooltip, { conditionalTooltip } from 'tooltip'
 import { Card, CardBlock } from 'card'
 import { generateId } from 'reaclette-utils'
 import { injectState, provideState } from 'reaclette'
@@ -147,18 +147,19 @@ const New = decorate([
         <FormGroup>
           <label>
             <strong>{_('healthCheck')}</strong>{' '}
-            <Tooltip content={getXoaPlan() !== PREMIUM ? _('healthCheckTooltip') : undefined}>
+            {conditionalTooltip(
               <input
                 checked={schedule.healthCheck !== undefined}
                 disabled={getXoaPlan() !== PREMIUM}
                 onChange={effects.toggleHealthCheck}
                 type='checkbox'
-              />
-            </Tooltip>
+              />,
+              getXoaPlan() !== PREMIUM ? _('healthCheckTooltip') : undefined
+            )}
           </label>
           {schedule.healthCheck !== undefined && (
             <div className='mb-2'>
-              <strong>{_('healthCheckTags')}</strong>
+              <strong>{_('vmsTags')}</strong>
               <br />
               <em>
                 <Icon icon='info' /> {_('healthCheckTagsInfo')}
