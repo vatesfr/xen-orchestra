@@ -15,10 +15,14 @@ const { formatDateTime } = require('@xen-orchestra/xapi')
 const { DeltaBackupWriter } = require('./writers/DeltaBackupWriter.js')
 const { DeltaReplicationWriter } = require('./writers/DeltaReplicationWriter.js')
 const { exportDeltaVm } = require('./_deltaVm.js')
+const { formatFilenameDate } = require('./_filenameDate.js')
 const { forkStreamUnpipe } = require('./_forkStreamUnpipe.js')
 const { FullBackupWriter } = require('./writers/FullBackupWriter.js')
 const { FullReplicationWriter } = require('./writers/FullReplicationWriter.js')
 const { getOldEntries } = require('./_getOldEntries.js')
+const { getVmBackupDir } = require('./_getVmBackupDir.js')
+const { ImportVmBackup } = require('./ImportVmBackup.js')
+const { HealthCheckVmBackup } = require('./HealthCheckVmBackup.js')
 const { Task } = require('./Task.js')
 const { watchStreamSize } = require('./_watchStreamSize.js')
 
@@ -232,7 +236,7 @@ class VmBackup {
     const sizeContainers = mapValues(deltaExport.streams, stream => watchStreamSize(stream))
 
     const timestamp = Date.now()
-
+    this._metadataFileName =  getVmBackupDir(exportedVm.uuid)+'/'+formatFilenameDate(timestamp)+'.json'
     await this._callWriters(
       writer =>
         writer.transfer({
@@ -251,12 +255,10 @@ class VmBackup {
         String(+(baseVm.other_config['xo:backup:deltaChainLength'] ?? 0) + 1)
       )
     }
-
     // not the case if offlineBackup
     if (exportedVm.is_a_snapshot) {
       await exportedVm.update_other_config('xo:backup:exported', 'true')
     }
-
     const size = Object.values(sizeContainers).reduce((sum, { size }) => sum + size, 0)
     const end = Date.now()
     const duration = end - timestamp
@@ -278,6 +280,7 @@ class VmBackup {
     const sizeContainer = watchStreamSize(stream)
 
     const timestamp = Date.now()
+    this._metadataFileName =  getVmBackupDir(exportedVm.uuid)+'/'+formatFilenameDate(timestamp)+'.json'
 
     await this._callWriters(
       writer =>

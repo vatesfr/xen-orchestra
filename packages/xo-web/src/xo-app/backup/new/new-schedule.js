@@ -11,6 +11,8 @@ import { injectState, provideState } from 'reaclette'
 import { Number } from 'form'
 
 import { FormGroup, Input } from './../utils'
+import Tags from '../../../common/tags'
+import { SelectSr } from '../../../common/select-objects'
 
 const New = decorate([
   provideState({
@@ -19,6 +21,10 @@ const New = decorate([
       formId: generateId,
       idInputName: generateId,
     },
+
+    initialState: () => ({
+      healthCheck: false,
+    }),
     effects: {
       setSchedule:
         (_, params) =>
@@ -69,6 +75,16 @@ const New = decorate([
           fullInterval: this.state.forceFullBackup ? undefined : 1,
         })
       },
+      toggleHealthCheck({ setSchedule }, { target: { value, checked } }) {
+        console.log('toggle', this.state.healthCheck, value, checked )
+        this.state.healthCheck = checked
+        setSchedule({
+          healthCheck: checked ? {} : null,
+        })
+      },
+      changeSr({ setSchedule }, value) {
+        console.log('change sr ', value)
+      },
     },
   }),
   injectState,
@@ -115,6 +131,25 @@ const New = decorate([
             <Number min='0' onChange={effects.setSnapshotRetention} value={schedule.snapshotRetention} required />
           </FormGroup>
         )}
+        <FormGroup>
+          <label>
+            <strong>Health check</strong>{' '}
+            <input checked={state.healthCheck} onChange={effects.toggleHealthCheck} type='checkbox' />
+          </label>
+        </FormGroup>
+        {state.healthCheck && <Tags
+        labels={[]}
+          onChange={t=>console.Console.log('change', t)}
+          />
+        }
+        {state.healthCheck && <SelectSr
+          required
+          placeholder={'Choose SR used for Vms restoration'}
+          onChange={effects.changeSr}
+          value={schedule.sr}
+         />
+        }
+
         {modes.isDelta && (
           <FormGroup>
             <label>
