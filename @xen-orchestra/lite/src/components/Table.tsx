@@ -22,11 +22,13 @@ import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore'
 import SkipNextIcon from '@mui/icons-material/SkipNext'
 import SkipPreviousIcon from '@mui/icons-material/SkipPrevious'
 import Select from './Select'
+import Icon, { IconName } from './Icon'
 
 export type Column<Type> = {
-  header: React.ReactNode
+  header?: React.ReactNode
+  icon?: IconName
   id?: string
-  render: { (item: Type): React.ReactNode }
+  render: { (item: Type): React.ReactNode } | string
   isNumeric?: boolean
   center?: boolean
 }
@@ -324,6 +326,7 @@ const Table = withState<State, Props, Effects, Computed, ParentState, ParentEffe
               )}
               {columns.map((col, index) => (
                 <StyledTableCell key={col.id ?? index} align={col.center ? 'center' : 'left'}>
+                  {col.icon !== undefined && <Icon icon={col.icon} />}{' '}
                   {typeof col.header === 'string' ? col.header.toUpperCase() : col.header}
                 </StyledTableCell>
               ))}
@@ -342,7 +345,7 @@ const Table = withState<State, Props, Effects, Computed, ParentState, ParentEffe
                 )}
                 {columns.map((col, i) => (
                   <StyledTableCell key={col.id ?? i} align={col.center ? 'center' : col.isNumeric ? 'right' : 'left'}>
-                    {col.render(item)}
+                    {typeof col.render === 'function' ? col.render(item) : col.render}
                   </StyledTableCell>
                 ))}
               </TableRow>

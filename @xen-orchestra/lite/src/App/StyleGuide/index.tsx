@@ -1,7 +1,6 @@
 // https://mui.com/components/material-icons/
 import AccountCircleIcon from '@mui/icons-material/AccountCircle'
 import DeleteIcon from '@mui/icons-material/Delete'
-import humanFormat from 'human-format'
 import React from 'react'
 import styled from 'styled-components'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
@@ -23,19 +22,14 @@ import { ObjectsByType, Vm } from '../../libs/xapi'
 
 const VM_TABLE_COLUMN: Array<Column<Vm>> = [
   {
-    id: 'power_state',
-    header: <Icon icon='power-off' />,
+    icon: 'power-off',
     render: vm => <Icon icon='circle' htmlColor={vm.power_state === 'Running' ? '#00BA34' : '#E8E8E8'} />,
     center: true,
   },
-  { id: 'vm_name', header: 'VM Name', render: vm => vm.name_label },
-  { id: 'description', header: 'Description', render: vm => vm.name_description },
-  { id: 'hostname', header: 'Host name', render: vm => vm.$resident_on?.name_label },
-  { id: 'poolname', header: 'Pool name', render: vm => vm.$pool.name_label },
-  { id: 'ipv4', header: 'IPV4', render: () => '127.0.0.1' },
-  { id: 'ipv6', header: 'IPV6', render: () => 'fe80::e35f:46da:83cb:44012a01:240:ab08:4:607e:f6bb:b59f:b61' },
-  { id: 'cpu', header: 'CPU', render: vm => vm.VCPUs_at_startup, isNumeric: true },
-  { id: 'ram', header: 'RAM', render: vm => humanFormat.bytes(vm.memory_dynamic_max), isNumeric: true },
+  { header: 'VM Name', render: vm => vm.name_label },
+  { header: 'Host name', render: vm => vm.$resident_on?.name_label },
+  { header: 'IPV4', render: '127.0.0.1' },
+  { header: 'CPU', render: vm => vm.VCPUs_at_startup, isNumeric: true },
 ]
 
 interface ParentState {
@@ -43,8 +37,8 @@ interface ParentState {
 }
 
 interface State {
-  value: unknown
   tableSelectedVms: Array<Vm>
+  value: unknown
 }
 
 interface Props {}
@@ -55,9 +49,9 @@ interface Effects {
   onChangeSelect: (e: SelectChangeEvent<unknown>) => void
   sayHello: () => void
   sendPromise: (data: Record<string, unknown>) => Promise<void>
+  setSelectedVms: (vms: Array<Vm>) => void
   showAlertModal: () => void
   showConfirmModal: () => void
-  setSelectedVms: (vms: Array<Vm>) => void
 }
 
 interface Computed {
@@ -92,8 +86,8 @@ const Code = styled(SyntaxHighlighter).attrs(() => ({
 const App = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
   {
     initialState: () => ({
-      value: '',
       tableSelectedVms: [],
+      value: '',
     }),
     effects: {
       onChangeSelect: function (e) {
@@ -107,6 +101,9 @@ const App = withState<State, Props, Effects, Computed, ParentState, ParentEffect
             window.alert(data.foo)
           }, 1000)
         }),
+      setSelectedVms: function (vms) {
+        this.state.tableSelectedVms = [...vms]
+      },
       showAlertModal: () => alert({ message: 'This is an alert modal', title: 'Alert modal', icon: 'info' }),
       showConfirmModal: () =>
         confirm({
@@ -114,9 +111,6 @@ const App = withState<State, Props, Effects, Computed, ParentState, ParentEffect
           title: 'Confirm modal',
           icon: 'download',
         }),
-      setSelectedVms: function (vms) {
-        this.state.tableSelectedVms = [...vms]
-      },
     },
     computed: {
       vms: state =>
@@ -127,21 +121,6 @@ const App = withState<State, Props, Effects, Computed, ParentState, ParentEffect
   },
   ({ effects, state }) => (
     <Page>
-      <h2>Table</h2>
-      <Container>
-        <Render>
-          <Table
-            isItemSelectable
-            selectedItems={state.tableSelectedVms}
-            onSelectItems={effects.setSelectedVms}
-            stateUrlParam='foo_table'
-            rowsPerPageOptions={[10, 25, 50, 100]}
-            collection={state.vms?.valueSeq().toArray()}
-            columns={VM_TABLE_COLUMN}
-            dataType='VMs'
-          />
-        </Render>
-      </Container>
       <h2>ActionButton</h2>
       <Container>
         <Render>
@@ -285,6 +264,45 @@ const App = withState<State, Props, Effects, Computed, ParentState, ParentEffect
   value={state.value}
   valueRenderer='value'
 />`}
+        </Code>
+      </Container>
+      <h2>Table</h2>
+      <Container>
+        <Render>
+          <Table
+            collection={state.vms?.valueSeq().toArray()}
+            columns={VM_TABLE_COLUMN}
+            dataType='VMs'
+            isItemSelectable
+            onSelectItems={effects.setSelectedVms}
+            rowsPerPageOptions={[10, 25, 50, 100]}
+            selectedItems={state.tableSelectedVms}
+            stateUrlParam='foo_table'
+          />
+        </Render>
+        <Code>
+          {`const VM_TABLE_COLUMN: Array<Column<Vm>> = [
+  {
+    icon: 'power-off',
+    render: vm => <Icon icon='circle' htmlColor={vm.power_state === 'Running' ? '#00BA34' : '#E8E8E8'} />,
+    center: true,
+  },
+  { header: 'VM Name', render: vm => vm.name_label },
+  { header: 'Host name', render: vm => vm.$resident_on?.name_label },
+  { header: 'IPV4', render: '127.0.0.1' },
+  { header: 'CPU', render: vm => vm.VCPUs_at_startup, isNumeric: true },
+]
+<Table
+collection={state.vms}
+columns={VM_TABLE_COLUMN}
+dataType='VMs'
+isItemSelectable
+onSelectItems={vms => state.selectedVms = [...vms]}
+rowsPerPageOptions={[10, 25, 50, 100]}
+selectedItems={state.selectedVms}
+stateUrlParam='foo_table'
+/>
+`}
         </Code>
       </Container>
       <h2>Tabs</h2>
