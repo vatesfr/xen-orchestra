@@ -22,7 +22,7 @@ Cookie: authenticationToken=TN2YBOMYtXB_hHtf4wTzm9p5tTuqq2i15yeuhcz2xXM
 
 The server will respond to an invalid token with a `401 Unauthorized` status.
 
-The server can request that the client updates its token with a `Set-Cookie` header:
+**[Not implemented at this time]** The server can request that the client updates its token with a `Set-Cookie` header:
 
 ```http
 HTTP/1.1 200 OK
