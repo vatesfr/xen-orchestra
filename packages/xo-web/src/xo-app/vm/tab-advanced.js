@@ -319,12 +319,12 @@ const Acls = decorate([
             title: _('vmAddAcls'),
             body: <AddAclsModal acls={acls} vm={vm} />,
           })
-            .then(({ action, subjects }) => {
+            .then(async ({ action, subjects }) => {
               if (action == null || isEmpty(subjects)) {
                 return error(_('addAclsErrorTitle'), _('addAclsErrorMessage'))
               }
 
-              return Promise.all(map(subjects, subject => addAcl({ subject, object: vm, action })))
+              await Promise.all(map(subjects, subject => addAcl({ subject, object: vm, action })))
             })
             .catch(err => err && error(_('addAclsErrorTitle'), err.message || String(err))),
       removeAcl:
