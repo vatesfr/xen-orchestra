@@ -11,6 +11,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [VM/advanced] Fix various errors when adding ACLs [#6213](https://github.com/vatesfr/xen-orchestra/issues/6213) (PR [#6230](https://github.com/vatesfr/xen-orchestra/pull/6230))
+
 ### Packages to release
 
 > Packages will be released in the order they are here, therefore, they should
@@ -37,5 +39,6 @@
 - @xen-orchestra/mixins major
 - xo-server patch
 - @xen-orchestra/proxy patch
+- xo-web patch
 
 <!--packages-end-->
