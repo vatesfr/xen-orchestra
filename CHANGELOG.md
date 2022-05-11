@@ -1,8 +1,65 @@
 # ChangeLog
 
-## **5.69.2** (2022-04-13)
+## 5.70.1 (2022-05-04)
+
+### Enhancement
+
+- [Backup] Support `[NOBAK]` VDI prefix for all backup modes [#2560](https://github.com/vatesfr/xen-orchestra/issues/2560) (PR [#6207](https://github.com/vatesfr/xen-orchestra/pull/6207))
+- [VM/Host Console] Fix fallback for older versions of XCP-ng/XS (PR [#6203](https://github.com/vatesfr/xen-orchestra/pull/6203))
+
+### Bug fixes
+
+- [Backup Health Check] Fix guest tools detection (PR [#6214](https://github.com/vatesfr/xen-orchestra/pull/6214))
+
+### Released packages
+
+- @xen-orchestra/mixins 0.3.1
+- @xen-orchestra/xapi 0.11.0
+- @xen-orchestra/backups 0.22.0
+- @xen-orchestra/proxy 0.22.0
+- xo-server 5.93.0
+
+## 5.70.0 (2022-04-29)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
+### Highlights
+
+- [VM export] Feat export to `ova` format (PR [#6006](https://github.com/vatesfr/xen-orchestra/pull/6006))
+- [Backup] Add _Restore Health Check_: ensure a backup is viable by doing an automatic test restore (requires guest tools in the VM) (PR [#6148](https://github.com/vatesfr/xen-orchestra/pull/6148))
+- [Import] Feat import `iso` disks (PR [#6180](https://github.com/vatesfr/xen-orchestra/pull/6180))
+- New HTTP/HTTPS proxy implemented in xo-proxy and xo-server, [see the documentation](https://github.com/vatesfr/xen-orchestra/blob/master/@xen-orchestra/mixins/docs/HttpProxy.md) (PR [#6201](https://github.com/vatesfr/xen-orchestra/pull/6201))
+- [Backup job] Cache DNS queries (PR [#6196](https://github.com/vatesfr/xen-orchestra/pull/6196))
+
+### Enhancements
+
+- [VM migrate] Allow to choose a private network for VIFs network (PR [#6200](https://github.com/vatesfr/xen-orchestra/pull/6200))
+- [Proxy] Disable "Deploy proxy" button for source users (PR [#6199](https://github.com/vatesfr/xen-orchestra/pull/6199))
+
+### Bug fixes
+
+- [VM/Host Console] Fix support of older versions of XCP-ng/XS, please not that HTTP proxies are note supported in that case (PR [#6191](https://github.com/vatesfr/xen-orchestra/pull/6191))
+- Fix HTTP proxy support to connect to pools (introduced in XO 5.69.0) (PR [#6204](https://github.com/vatesfr/xen-orchestra/pull/6204))
+- [Backup] Fix failure when sending a backup (Full/Delta/Metadata) to S3 with Object Lock enabled (PR [#6190](https://github.com/vatesfr/xen-orchestra/pull/6190))
+
+### Released packages
+
+- @vates/cached-dns.lookup 1.0.0
+- @vates/event-listeners-manager 1.0.0
+- xen-api 1.2.0
+- @xen-orchestra/mixins 0.3.0
+- xo-vmdk-to-vhd 2.3.0
+- @xen-orchestra/fs 1.0.1
+- @xen-orchestra/backups 0.21.1
+- @xen-orchestra/proxy 0.21.0
+- xo-server 5.92.0
+- xo-web 5.96.0
+- vhd-cli 0.7.1
+- @xen-orchestra/backups-cli 0.7.1
+
+## **5.69.2** (2022-04-13)
+
+<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Enhancements
 
@@ -72,8 +129,6 @@
 - xo-web 5.95.0
 
 ## **5.68.0** (2022-02-28)
-
-<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Highlights
 

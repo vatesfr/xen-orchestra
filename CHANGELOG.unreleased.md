@@ -7,9 +7,6 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [VM export] Feat export to `ova` format (PR [#6006](https://github.com/vatesfr/xen-orchestra/pull/6006))
-- [Backup] show more debug in logs (PR [#6194](https://github.com/vatesfr/xen-orchestra/pull/6194))
-
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -30,8 +27,16 @@
 > - major: if the change breaks compatibility
 >
 > In case of conflict, the highest (lowest in previous list) `$version` wins.
+>
+> The `gen-deps-list` script can be used to generate this list of dependencies
+> Run `scripts/gen-deps-list.js --help` for usage
 
-- xo-vmdk-to-vhd minor
-- xo-server minor
-- xo-server minor
-- xo-web minor
+<!--packages-start-->
+
+- @xen-orchestra/xapi major
+- @xen-orchestra/backups minor
+- @xen-orchestra/mixins major
+- xo-server patch
+- @xen-orchestra/proxy patch
+
+<!--packages-end-->

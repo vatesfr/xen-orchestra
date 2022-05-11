@@ -4,7 +4,7 @@
 
 [![Package Version](https://badgen.net/npm/v/xo-vmdk-to-vhd)](https://npmjs.org/package/xo-vmdk-to-vhd) ![License](https://badgen.net/npm/license/xo-vmdk-to-vhd) [![PackagePhobia](https://badgen.net/bundlephobia/minzip/xo-vmdk-to-vhd)](https://bundlephobia.com/result?p=xo-vmdk-to-vhd) [![Node compatibility](https://badgen.net/npm/node/xo-vmdk-to-vhd)](https://npmjs.org/package/xo-vmdk-to-vhd)
 
-> JS lib streaming a vmdk file to a vhd
+> JS lib reading and writing .vmdk and .ova files
 
 ## Install
 

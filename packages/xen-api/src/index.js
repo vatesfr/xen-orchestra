@@ -8,7 +8,6 @@ import noop from 'lodash/noop'
 import omit from 'lodash/omit'
 import ProxyAgent from 'proxy-agent'
 import { coalesceCalls } from '@vates/coalesce-calls'
-import { synchronized } from 'decorator-synchronized'
 import { Collection } from 'xo-collection'
 import { EventEmitter } from 'events'
 import { Index } from 'xo-collection/index'
@@ -121,10 +120,15 @@ export class Xapi extends EventEmitter {
       delete url.username
       delete url.password
     }
-    this._fallBackAddresses = opts.fallBackAddresses ?? []
+
     this._allowUnauthorized = opts.allowUnauthorized
-    if (opts.httpProxy !== undefined) {
-      this._httpAgent = new ProxyAgent(this._httpProxy)
+    let { httpProxy } = opts
+    if (httpProxy !== undefined) {
+      if (httpProxy.startsWith('https:')) {
+        httpProxy = parseUrl(httpProxy)
+        httpProxy.rejectUnauthorized = !opts.allowUnauthorized
+      }
+      this._httpAgent = new ProxyAgent(httpProxy)
     }
     this._setUrl(url)
 
@@ -682,85 +686,6 @@ export class Xapi extends EventEmitter {
   // Private
   // ===========================================================================
 
-  @synchronized()
-  async _updateUrlFromFallbackAdresses(method, args, startTime) {
-    debug('%s: will try to find a new master', this._humanId)
-    const hostAddresses = this._fallBackAddresses
-
-    // there can be a master only if there is more than 1 host
-    if (hostAddresses.length < 2) {
-      return false
-    }
-
-    // another call to _updateUrlFromFallbackAdresses has already connected us to the right host
-    try {
-      await this._transport('session.get_auth_user_name', [])
-      debug('%s: host was already ok', this._humanId)
-      // host is ok, nothing to do here
-      return true
-    } catch (error) {
-      if (!['EHOSTUNREACH', 'HOST_IS_SLAVE', 'ENOTFOUND', 'MESSAGE_PARAMETER_COUNT_MISMATCH'].includes(error.code)) {
-        throw this._augmentCallError(error, method, args, startTime)
-      }
-    }
-
-    for (const hostAdress of hostAddresses) {
-      // we already tested the current master
-      if (hostAdress === this._url.hostname) {
-        debug(`%s: don't recheck currrent host`, this._humanId)
-        continue
-      }
-      // since this method is @syncrhonized , there can be only on call at once
-      this._setUrl({ ...this._url, hostname: hostAdress })
-
-      try {
-        // will not succeed without sessionId, but I only want to know if this host is entitled to answer (he's the master)
-        await this._transport('session.get_auth_user_name', [])
-        // success
-        return true
-      } catch (error) {
-        // this host is also down, try the next one
-        if (error.code === 'EHOSTUNREACH' || error.code === 'ENOTFOUND') {
-          debug(`%s: slave %s is alsoa unreachable`, this._humanId, hostAdress)
-          continue
-        }
-
-        if (error.code === 'HOST_IS_SLAVE') {
-          debug('%s: slave %s told us the master is %s', this._humanId, hostAdress, error.params[0])
-          this._setUrl({ ...this._url, hostname: hostAdress })
-          return true // we found the master no need to check for the other slave
-        }
-
-        if (error.code === 'MESSAGE_PARAMETER_COUNT_MISMATCH') {
-          debug('%s: found new master %s master', this._humanId, hostAdress)
-          // lucky : we found the master with the first host answering
-          return true // we found the master no need to check for the other slave
-        }
-        // any other error should be reported
-        throw this._augmentCallError(error, method, args, startTime)
-      }
-    }
-    return false
-  }
-
-  _augmentCallError(error, method, args, startTime) {
-    // do not log the session ID
-    //
-    // TODO: should log at the session level to avoid logging sensitive
-    // values?
-    const params = args[0] === this._sessionId ? args.slice(1) : args
-
-    error.call = {
-      method,
-      params:
-        // it pass server's credentials as param
-        method === 'session.login_with_password' ? '* obfuscated *' : replaceSensitiveValues(params, '* obfuscated *'),
-    }
-
-    debug('%s: %s(...) [%s] =!> %s', this._humanId, method, ms(Date.now() - startTime), error)
-    return error
-  }
-
   async _call(method, args, timeout = this._callTimeout(method, args)) {
     const startTime = Date.now()
     try {
@@ -768,14 +693,24 @@ export class Xapi extends EventEmitter {
       debug('%s: %s(...) [%s] ==> %s', this._humanId, method, ms(Date.now() - startTime), kindOf(result))
       return result
     } catch (error) {
-      if (this._fallBackAddresses?.length > 1 && ['EHOSTUNREACH', 'HOST_IS_SLAVE', 'ENOTFOUND'].includes(error.code)) {
-        const updatedHostUrl = await this._updateUrlFromFallbackAdresses(method, args, startTime)
-        if (updatedHostUrl) {
-          // try again
-          return this._call(method, args, timeout)
-        }
+      // do not log the session ID
+      //
+      // TODO: should log at the session level to avoid logging sensitive
+      // values?
+      const params = args[0] === this._sessionId ? args.slice(1) : args
+
+      error.call = {
+        method,
+        params:
+          // it pass server's credentials as param
+          method === 'session.login_with_password'
+            ? '* obfuscated *'
+            : replaceSensitiveValues(params, '* obfuscated *'),
       }
-      throw this._augmentCallError(error, method, args, startTime)
+
+      debug('%s: %s(...) [%s] =!> %s', this._humanId, method, ms(Date.now() - startTime), error)
+
+      throw error
     }
   }
 
@@ -852,8 +787,8 @@ export class Xapi extends EventEmitter {
   //    unnecessary renewal
   _sessionOpenRetryOptions = {
     tries: 2,
-    when: [{ code: 'HOST_IS_SLAVE' }],
-    onRetry: async error => {
+    when: { code: 'HOST_IS_SLAVE' },
+    onRetry: error => {
       this._setUrl({ ...this._url, hostname: error.params[0] })
     },
   }
@@ -1120,6 +1055,7 @@ export class Xapi extends EventEmitter {
       delete taskWatchers[ref]
     }
   }
+
   // read-only call, automatically retry in case of connection issues
   _roCall(method, args) {
     return pRetry(() => this._sessionCall(method, args), this._roCallRetryOptions)
@@ -1160,7 +1096,6 @@ export class Xapi extends EventEmitter {
       await this._refreshCachedRecords(types)
       this._resolveObjectsFetched()
       this._resolveObjectsFetched = undefined
-      this.emit('eventFetchedSuccess')
 
       // event loop
       const debounce = this._debounce
@@ -1191,10 +1126,6 @@ export class Xapi extends EventEmitter {
           if (code === 'EVENTS_LOST' || code === 'SESSION_INVALID') {
             // eslint-disable-next-line no-labels
             continue mainLoop
-          }
-          if (code === 'EHOSTUNREACH') {
-            // maybe the master has been demoted
-            await this._findCurrentMaster()
           }
 
           this.emit('eventFetchingError', error)
@@ -1259,6 +1190,15 @@ export class Xapi extends EventEmitter {
     }
   }
 
+  // Wrap a plain object record into an instance of a dedicated class (e.g. VM)
+  //
+  // This dedicated class contains the following helpers:
+  // - `$<name>` fields: return the cached object(s) pointed by the `<name>` field
+  // - `add_<name>(value)` async method: add a value to a set field
+  // - `remove_<name>(value)` async method: remove a value from a set field
+  // - `set_<name>(value)` async method: assigne a value to a field
+  // - `update_<name>(entry, value)` async method: set an entry of a map field to a value (remove if `null`)
+  // - `update_<name>(entries)` async method: update entries of a map field
   _wrapRecord(type, ref, data) {
     const RecordsByType = this._RecordsByType
     let Record = RecordsByType[type]

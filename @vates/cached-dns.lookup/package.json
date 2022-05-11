@@ -1,0 +1,32 @@
+{
+  "engines": {
+    "node": ">=8"
+  },
+  "dependencies": {
+    "lru-cache": "^7.0.4"
+  },
+  "private": false,
+  "name": "@vates/cached-dns.lookup",
+  "description": "Cached implementation of dns.lookup",
+  "keywords": [
+    "cache",
+    "dns",
+    "lookup"
+  ],
+  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@vates/cached-dns.lookup",
+  "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
+  "repository": {
+    "directory": "@vates/cached-dns.lookup",
+    "type": "git",
+    "url": "https://github.com/vatesfr/xen-orchestra.git"
+  },
+  "author": {
+    "name": "Vates SAS",
+    "url": "https://vates.fr"
+  },
+  "license": "ISC",
+  "version": "1.0.0",
+  "scripts": {
+    "postversion": "npm publish --access public"
+  }
+}

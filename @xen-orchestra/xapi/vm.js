@@ -45,6 +45,21 @@ const cleanBiosStrings = biosStrings => {
   }
 }
 
+async function listNobakVbds(xapi, vbdRefs) {
+  const vbds = []
+  await asyncMap(vbdRefs, async vbdRef => {
+    const vbd = await xapi.getRecord('VBD', vbdRef)
+    if (
+      vbd.type === 'Disk' &&
+      Ref.isNotEmpty(vbd.VDI) &&
+      (await xapi.getField('VDI', vbd.VDI, 'name_label')).startsWith('[NOBAK]')
+    ) {
+      vbds.push(vbd)
+    }
+  })
+  return vbds
+}
+
 async function safeGetRecord(xapi, type, ref) {
   try {
     return await xapi.getRecord(type, ref)
@@ -129,9 +144,25 @@ class Vm {
     }
   }
 
-  async checkpoint(vmRef, { cancelToken = CancelToken.none, name_label } = {}) {
+  async checkpoint($defer, vmRef, { cancelToken = CancelToken.none, ignoreNobakVdis = false, name_label } = {}) {
+    const vm = await this.getRecord('VM', vmRef)
+
+    let destroyNobakVdis = false
+
+    if (ignoreNobakVdis) {
+      if (vm.power_state === 'Halted') {
+        await asyncMap(await listNobakVbds(this, vm.VBDs), async vbd => {
+          await this.VBD_destroy(vbd.$ref)
+          $defer.call(this, 'VBD_create', vbd)
+        })
+      } else {
+        // cannot unplug VBDs on Running, Paused and Suspended VMs
+        destroyNobakVdis = true
+      }
+    }
+
     if (name_label === undefined) {
-      name_label = await this.getField('VM', vmRef, 'name_label')
+      name_label = vm.name_label
     }
     try {
       const ref = await this.callAsync(cancelToken, 'VM.checkpoint', vmRef, name_label).then(extractOpaqueRef)
@@ -147,6 +178,12 @@ class Vm {
         { code: 'LICENSE_RESTRICTION' },
         noop
       )
+
+      if (destroyNobakVdis) {
+        await asyncMap(await listNobakVbds(this, await this.getField('VM', ref, 'VBDs')), vbd =>
+          this.VDI_destroy(vbd.VDI)
+        )
+      }
 
       return ref
     } catch (error) {
@@ -477,21 +514,20 @@ class Vm {
     }
   }
 
-  async snapshot($defer, vmRef, { cancelToken = CancelToken.none, name_label } = {}) {
+  async snapshot($defer, vmRef, { cancelToken = CancelToken.none, ignoreNobakVdis = false, name_label } = {}) {
     const vm = await this.getRecord('VM', vmRef)
-    // cannot unplug VBDs on Running, Paused and Suspended VMs
-    if (vm.power_state === 'Halted' && this._ignoreNobakVdis) {
-      await asyncMap(vm.VBDs, async vbdRef => {
-        const vbd = await this.getRecord('VBD', vbdRef)
-        if (
-          vbd.type === 'Disk' &&
-          Ref.isNotEmpty(vbd.VDI) &&
-          (await this.getField('VDI', vbd.VDI, 'name_label')).startsWith('[NOBAK]')
-        ) {
-          await this.VBD_destroy(vbdRef)
+
+    let destroyNobakVdis = false
+    if (ignoreNobakVdis) {
+      if (vm.power_state === 'Halted') {
+        await asyncMap(await listNobakVbds(this, vm.VBDs), async vbd => {
+          await this.VBD_destroy(vbd.$ref)
           $defer.call(this, 'VBD_create', vbd)
-        }
-      })
+        })
+      } else {
+        // cannot unplug VBDs on Running, Paused and Suspended VMs
+        destroyNobakVdis = true
+      }
     }
 
     if (name_label === undefined) {
@@ -580,12 +616,19 @@ class Vm {
       noop
     )
 
+    if (destroyNobakVdis) {
+      await asyncMap(await listNobakVbds(this, await this.getField('VM', ref, 'VBDs')), vbd =>
+        this.VDI_destroy(vbd.VDI)
+      )
+    }
+
     return ref
   }
 }
 module.exports = Vm
 
 decorateClass(Vm, {
+  checkpoint: defer,
   create: defer,
   export: defer,
   snapshot: defer,

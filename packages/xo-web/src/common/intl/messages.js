@@ -481,6 +481,7 @@ const messages = {
     'If your country participates in DST, it is advised that you avoid scheduling jobs at the time of change. e.g. 2AM to 3AM for US.',
 
   // ------ New backup -----
+  checkBackup: 'Restore health check',
   newBackupAdvancedSettings: 'Advanced settings',
   newBackupSettings: 'Settings',
   reportWhenAlways: 'Always',
@@ -1583,7 +1584,7 @@ const messages = {
   // ---- Disk import ---
   diskImportFailed: 'Disk import failed',
   diskImportSuccess: 'Disk import success',
-  dropDisksFiles: 'Drop VMDK or VHD files here to import disks.',
+  dropDisksFiles: 'Drop ISO, VMDK or VHD files here to import disks.',
   importToSr: 'To SR',
 
   // ---- Tasks ---
@@ -1631,6 +1632,7 @@ const messages = {
   refreshBackupList: 'Refresh backup list',
   restoreVmBackups: 'Restore',
   restoreVmBackupsTitle: 'Restore {vm}',
+  checkVmBackupsTitle: 'Restore health check {vm}',
   restoreVmBackupsBulkTitle: 'Restore {nVms, number} VM{nVms, plural, one {} other {s}}',
   restoreVmBackupsBulkMessage:
     'Restore {nVms, number} VM{nVms, plural, one {} other {s}} from {nVms, plural, one {its} other {their}} {oldestOrLatest} backup.',
@@ -2393,6 +2395,7 @@ const messages = {
   trialLicenseInfo: 'You are currently in a {edition} trial period that will end on {date, date, medium}',
 
   // ----- proxies -----
+  deployProxyDisabled: 'Only available to XOA users',
   forgetProxyApplianceTitle: 'Forget prox{n, plural, one {y} other {ies}}',
   forgetProxyApplianceMessage: 'Are you sure you want to forget {n, number} prox{n, plural, one {y} other {ies}}?',
   forgetProxies: 'Forget proxy(ies)',

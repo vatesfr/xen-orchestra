@@ -54,6 +54,7 @@ export const XEN_VIDEORAM_VALUES = [1, 2, 4, 8, 16]
 // ===================================================================
 
 export const isSrWritable = sr => sr && sr.content_type !== 'iso' && sr.size > 0
+export const isSrWritableOrIso = sr => sr && sr.size > 0
 export const isSrShared = sr => sr && sr.shared
 export const isVmRunning = vm => vm && vm.power_state === 'Running'
 
@@ -2235,6 +2236,14 @@ export const restoreBackup = (
   }
 
   return promise
+}
+
+export const checkBackup = (backup, sr, { mapVdisSrs = {} } = {}) => {
+  return _call('backupNg.checkBackup', {
+    id: resolveId(backup),
+    settings: { mapVdisSrs: resolveIds(mapVdisSrs) },
+    sr: resolveId(sr),
+  })
 }
 
 export const deleteBackup = backup => _call('backupNg.deleteVmBackup', { id: resolveId(backup) })

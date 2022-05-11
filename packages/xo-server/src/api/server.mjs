@@ -112,10 +112,6 @@ set.params = {
     optional: true,
     type: ['string', 'null'],
   },
-  fallbackAddresses: {
-    type: ['string', 'null'],
-    optional: true,
-  },
 }
 
 // -------------------------------------------------------------------

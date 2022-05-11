@@ -1,0 +1,42 @@
+{
+  "engines": {
+    "node": ">=6"
+  },
+  "private": false,
+  "name": "@vates/event-listeners-manager",
+  "descriptions": "Easy way to clean up event listeners",
+  "keywords": [
+    "add",
+    "addEventListener",
+    "addListener",
+    "browser",
+    "clear",
+    "DOM",
+    "emitter",
+    "event",
+    "EventEmitter",
+    "EventTarget",
+    "management",
+    "manager",
+    "node",
+    "remove",
+    "removeEventListener",
+    "removeListener"
+  ],
+  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@vates/event-listeners-manager",
+  "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
+  "repository": {
+    "directory": "@vates/event-listeners-manager",
+    "type": "git",
+    "url": "https://github.com/vatesfr/xen-orchestra.git"
+  },
+  "author": {
+    "name": "Vates SAS",
+    "url": "https://vates.fr"
+  },
+  "license": "ISC",
+  "version": "1.0.0",
+  "scripts": {
+    "postversion": "npm publish --access public"
+  }
+}

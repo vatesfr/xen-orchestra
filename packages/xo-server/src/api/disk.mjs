@@ -9,7 +9,7 @@ import { pipeline } from 'stream'
 import { checkFooter, peekFooterFromVhdStream } from 'vhd-lib'
 import { vmdkToVhd } from 'xo-vmdk-to-vhd'
 
-import { VDI_FORMAT_VHD } from '../xapi/index.mjs'
+import { VDI_FORMAT_VHD, VDI_FORMAT_RAW } from '../xapi/index.mjs'
 
 const log = createLogger('xo:disk')
 
@@ -182,25 +182,37 @@ async function handleImport(req, res, { type, name, description, vmdkData, srId,
             })()
           )
         } else {
+          let diskFormat = VDI_FORMAT_VHD
           await Promise.all(promises)
           part.length = part.byteCount
-          if (type === 'vmdk') {
-            vhdStream = await vmdkToVhd(part, vmdkData.grainLogicalAddressList, vmdkData.grainFileOffsetList)
-            size = vmdkData.capacity
-          } else if (type === 'vhd') {
-            vhdStream = part
-            const footer = await peekFooterFromVhdStream(vhdStream)
-            try {
-              checkFooter(footer)
-            } catch (e) {
-              if (e instanceof assert.AssertionError) {
-                throw new JsonRpcError(`Vhd file had an invalid header ${e}`)
+          switch (type) {
+            case 'vmdk':
+              vhdStream = await vmdkToVhd(part, vmdkData.grainLogicalAddressList, vmdkData.grainFileOffsetList)
+              size = vmdkData.capacity
+              break
+            case 'vhd':
+              {
+                const footer = await peekFooterFromVhdStream(vhdStream)
+                try {
+                  checkFooter(footer)
+                } catch (e) {
+                  if (e instanceof assert.AssertionError) {
+                    throw new JsonRpcError(`Vhd file had an invalid header ${e}`)
+                  }
+                }
+                vhdStream = part
+                size = footer.currentSize
               }
-            }
-            size = footer.currentSize
-          } else {
-            throw new JsonRpcError(`Unknown disk type, expected "vhd" or "vmdk", got ${type}`)
+              break
+            case 'iso':
+              diskFormat = VDI_FORMAT_RAW
+              vhdStream = part
+              size = part.byteCount
+              break
+            default:
+              throw new JsonRpcError(`Unknown disk type, expected "iso", "vhd" or "vmdk", got ${type}`)
           }
+
           const vdi = await xapi.createVdi({
             name_description: description,
             name_label: name,
@@ -208,7 +220,7 @@ async function handleImport(req, res, { type, name, description, vmdkData, srId,
             sr: srId,
           })
           try {
-            await xapi.importVdiContent(vdi, vhdStream, VDI_FORMAT_VHD)
+            await xapi.importVdiContent(vdi, vhdStream, { format: diskFormat })
             res.end(format.response(0, vdi.$id))
           } catch (e) {
             await vdi.$destroy()
