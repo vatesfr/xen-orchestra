@@ -90,7 +90,7 @@ async function main() {
     })
   }
 
-  handlePackage(rootPackage.name, getNextVersion(rootPackage.version, rootReleaseWeight))
+  handlePackage(rootPackage.name, getNextVersion(rootPackage.package.version, rootReleaseWeight))
 
   const outputLines = dependencyTree.resolve().map(dependencyName => {
     const releaseTypeName = RELEASE_TYPE[packagesToRelease.get(dependencyName)].toLocaleLowerCase()
@@ -155,7 +155,7 @@ function versionToReleaseWeight(version) {
  * @returns {string} The incremented version
  */
 function getNextVersion(version, releaseWeight) {
-  return semver.inc(version, RELEASE_TYPE[releaseWeight])
+  return semver.inc(version, RELEASE_TYPE[releaseWeight].toLocaleLowerCase())
 }
 
 const changelogRegex = new RegExp(
@@ -173,7 +173,9 @@ async function importPackagesFromChangelog() {
 
   const lines = block.matchAll(/^- (?<name>[^ ]+) (?<type>patch|minor|major)$/gm)
 
-  for (const { groups: { name, type } } of lines) {
+  for (const {
+    groups: { name, type },
+  } of lines) {
     registerPackageToRelease(name, releaseTypeToWeight(type))
     dependencyTree.add(name)
   }
