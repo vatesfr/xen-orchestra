@@ -409,7 +409,7 @@ exports.cleanVm = async function cleanVm(
 
       onLog(`the VHD ${vhd} is unused`)
       if (remove) {
-        onLog(`getUsedChildChainOrDelete: deleting unused VHD ${vhd}`, {
+        onLog(`getUsedChildChainOrDelete: deleting unused VHD`, {
           vhdChildren,
           vhd,
         })
