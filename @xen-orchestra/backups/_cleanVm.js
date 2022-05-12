@@ -423,7 +423,7 @@ exports.cleanVm = async function cleanVm(
       // eslint-disable-next-line no-console
       const debug = console.debug
 
-      if (shouldDelete === true) {
+      if (shouldDelete) {
         const chains = { __proto__: null }
 
         const queue = new Set(vhds)
