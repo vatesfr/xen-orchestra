@@ -31,12 +31,21 @@ const computeVhdsSize = (handler, vhdPaths) =>
     }
   )
 
-// chain is [ progenitor, child, grand child,  ... , descendant parent, descendant ]
-
-// we will copy the used blocks of children in the progenitor
-// if a a block is used in child and grand child, we only keep the grand child block
-// then rename the progenitor as the descendant (that will also remove descendant before renaming)
-// and delete all the other vhd from child to descendant parent  since they won't be used anymore
+// chain is [ ancestor, child1, ..., childn]
+// 1. Create a VhdSynthetic from all children
+// 2. Merge the VhdSynthetic into the ancestor
+// 3. Delete all (now) unused VHDs
+// 4. Rename the ancestor with the merged data to the latest child
+//
+//                  VhdSynthetic
+//                       |
+//              /‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\
+//  [ ancestor, child1, ...,child n-1,  childn ]
+//         |    \___________________/     ^
+//         |             |                |
+//         |       unused VHDs            |
+//         |                              |
+//         \___________rename_____________/
 
 async function mergeVhdChain(chain, { handler, onLog, remove, merge }) {
   assert(chain.length >= 2)
