@@ -8,7 +8,7 @@ const tmp = require('tmp')
 const { getHandler } = require('@xen-orchestra/fs')
 const { pFromCallback } = require('promise-toolbox')
 
-const { VhdFile, chainVhd, mergeVhd: vhdMerge } = require('./index')
+const { VhdFile, chainVhd, mergeVhd } = require('./index')
 
 const { checkFile, createRandomFile, convertFromRawToVhd } = require('./tests/utils')
 
@@ -40,7 +40,7 @@ test('merge works in normal cases', async () => {
   await chainVhd(handler, parentFileName, handler, child1FileName, true)
 
   // merge
-  await vhdMerge(handler, parentFileName, [child1FileName])
+  await mergeVhd(handler, parentFileName, handler, [child1FileName])
 
   // check that vhd is still valid
   await checkFile(`${tempDir}/${parentFileName}`)
@@ -93,7 +93,7 @@ test('it can resume a merge ', async () => {
     })
   )
   // expect merge to fail since child header is not ok
-  await expect(async () => await vhdMerge(handler, 'parent.vhd', ['child1.vhd'])).rejects.toThrow()
+  await expect(async () => await mergeVhd(handler, 'parent.vhd', handler, ['child1.vhd'])).rejects.toThrow()
 
   await handler.unlink('.parent.vhd.merge.json')
   await handler.writeFile(
@@ -108,7 +108,7 @@ test('it can resume a merge ', async () => {
     })
   )
   // expect merge to fail since parent header is not ok
-  await expect(async () => await vhdMerge(handler, 'parent.vhd', ['child1.vhd'])).rejects.toThrow()
+  await expect(async () => await mergeVhd(handler, 'parent.vhd', handler, ['child1.vhd'])).rejects.toThrow()
 
   // break the end footer of parent
   const size = await handler.getSize('parent.vhd')
@@ -135,7 +135,7 @@ test('it can resume a merge ', async () => {
   )
 
   // really merge
-  await vhdMerge(handler, 'parent.vhd', ['child1.vhd'])
+  await mergeVhd(handler, 'parent.vhd', handler, ['child1.vhd'])
 
   // reload header footer and block allocation table , they should succed
   await parentVhd.readHeaderAndFooter()
@@ -180,7 +180,7 @@ test('it merge multiple child in one passe ', async () => {
   await chainVhd(handler, childFileName, handler, grandChildFileName, true)
 
   // merge
-  await vhdMerge(handler, parentFileName, [grandChildFileName, childFileName])
+  await mergeVhd(handler, parentFileName, handler, [grandChildFileName, childFileName])
 
   // check that vhd is still valid
   await checkFile(parentFileName)

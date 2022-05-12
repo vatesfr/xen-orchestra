@@ -54,7 +54,7 @@ async function mergeVhdChain(chain, { handler, onLog, remove, merge }) {
       }
     }, 10e3)
 
-    const mergedSize = await mergeVhd(handler, parent, children, {
+    const mergedSize = await mergeVhd(handler, parent, handler, children, {
       onProgress({ done: d, total: t }) {
         done = d
         total = t
