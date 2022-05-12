@@ -182,7 +182,7 @@ export const rollingUpdate = deferrable(async function ($defer, { ignoreBackup =
       }
     })
   } else {
-    log.warn('rolling pool with argument "ignoreBackup" set to true', { poolId: pool.id })
+    log.warn('rolling pool update with argument "ignoreBackup" set to true', { poolId: pool.id })
   }
   if ((await this.getOptionalPlugin('load-balancer'))?.loaded) {
     await this.unloadPlugin('load-balancer')
