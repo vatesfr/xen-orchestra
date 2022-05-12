@@ -1,5 +1,11 @@
 # ChangeLog
 
+## **next**
+
+### Released packages
+
+- @xen-orchestra/xapi 1.0.0
+
 ## 5.70.1 (2022-05-04)
 
 ### Enhancement
