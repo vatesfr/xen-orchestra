@@ -848,8 +848,10 @@ export default class Xapi extends XapiBase {
         })
       }).concat(
         map(networks, (networkId, i) =>
-          this._createVif(vm, this.getObject(networkId), {
+          this.VIF_create({
             device: vifDevices[i],
+            network: this.getObject(networkId).$ref,
+            VM: vm.$ref,
           })
         )
       )
@@ -1444,61 +1446,6 @@ export default class Xapi extends XapiBase {
   }
 
   // =================================================================
-
-  async _createVif(
-    vm,
-    network,
-    {
-      mac = '',
-      position = undefined,
-
-      currently_attached = true,
-      device = position != null ? String(position) : undefined,
-      ipv4_allowed = undefined,
-      ipv6_allowed = undefined,
-      locking_mode = undefined,
-      MAC = mac,
-      other_config = {},
-      qos_algorithm_params = {},
-      qos_algorithm_type = '',
-    } = {}
-  ) {
-    log.debug(`Creating VIF for VM ${vm.name_label} on network ${network.name_label}`)
-
-    if (device == null) {
-      device = (await this.call('VM.get_allowed_VIF_devices', vm.$ref))[0]
-    }
-
-    const vifRef = await this.call(
-      'VIF.create',
-      filterUndefineds({
-        currently_attached: vm.power_state === 'Suspended' ? currently_attached : undefined,
-        device,
-        ipv4_allowed,
-        ipv6_allowed,
-        locking_mode,
-        MAC,
-        MTU: asInteger(network.MTU),
-        network: network.$ref,
-        other_config,
-        qos_algorithm_params,
-        qos_algorithm_type,
-        VM: vm.$ref,
-      })
-    )
-
-    if (currently_attached && isVmRunning(vm)) {
-      await this.callAsync('VIF.plug', vifRef)
-    }
-
-    return vifRef
-  }
-
-  async createVif(vmId, networkId, opts = undefined) {
-    return /* await */ this._getOrWaitObject(
-      await this._createVif(this.getObject(vmId), this.getObject(networkId), opts)
-    )
-  }
 
   @decorateWith(deferrable)
   async createNetwork($defer, { name, description = 'Created with Xen Orchestra', pifId, mtu, vlan }) {

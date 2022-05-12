@@ -190,14 +190,20 @@ export default {
       const devices = await this.call('VM.get_allowed_VIF_devices', vm.$ref)
       await Promise.all(
         mapToArray(vifs, (vif, index) =>
-          this._createVif(vm, this.getObject(vif.network), {
-            ipv4_allowed: vif.ipv4_allowed,
-            ipv6_allowed: vif.ipv6_allowed,
-            device: devices[index],
-            locking_mode: isEmpty(vif.ipv4_allowed) && isEmpty(vif.ipv6_allowed) ? 'network_default' : 'locked',
-            mac: vif.mac,
-            mtu: vif.mtu,
-          })
+          this.VIF_create(
+            {
+              ipv4_allowed: vif.ipv4_allowed,
+              ipv6_allowed: vif.ipv6_allowed,
+              device: devices[index],
+              locking_mode: isEmpty(vif.ipv4_allowed) && isEmpty(vif.ipv6_allowed) ? 'network_default' : 'locked',
+              MTU: vif.mtu,
+              network: this.getObject(vif.network).$ref,
+              VIM: vm.$ref,
+            },
+            {
+              MAC: vif.mac,
+            }
+          )
         )
       )
     }
