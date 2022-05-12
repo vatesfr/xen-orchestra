@@ -20,23 +20,15 @@
 
 ### Packages to release
 
-> Packages will be released in the order they are here, therefore, they should
-> be listed by inverse order of dependency.
+> When modifying a package, add it here with its release type.
 >
-> Rule of thumb: add packages on top.
+> The format is the following: - `$packageName` `$releaseType`
 >
-> The format is the following: - `$packageName` `$version`
->
-> Where `$version` is
+> Where `$releaseType` is
 >
 > - patch: if the change is a bug fix or a simple code improvement
 > - minor: if the change is a new feature
 > - major: if the change breaks compatibility
->
-> In case of conflict, the highest (lowest in previous list) `$version` wins.
->
-> The `gen-deps-list` script can be used to generate this list of dependencies
-> Run `scripts/gen-deps-list.js --help` for usage
 
 <!--packages-start-->
 
