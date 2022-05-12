@@ -1,10 +1,13 @@
 import { asyncMap } from '@xen-orchestra/async-map'
+import { createLogger } from '@xen-orchestra/log'
 import { defer as deferrable } from 'golike-defer'
 import { format } from 'json-rpc-peer'
 import { Ref } from 'xen-api'
-import { incorrectState } from 'xo-common/api-errors.js'
+import { forbiddenOperation, incorrectState } from 'xo-common/api-errors.js'
 
 import { moveFirst } from '../_moveFirst.mjs'
+
+const log = createLogger('xo:pool')
 
 // ===================================================================
 
@@ -160,13 +163,33 @@ installPatches.description = 'Install patches on hosts'
 
 // -------------------------------------------------------------------
 
-export const rollingUpdate = deferrable(async function ($defer, { pool }) {
-  if ((await this.getOptionalPlugin('load-balancer'))?.loaded) {
-    await this.unloadPlugin('load-balancer')
-    $defer(() => this.loadPlugin('load-balancer'))
+export const rollingUpdate = deferrable(async function ($defer, { ignoreBackup = false, pool }) {
+  if (!ignoreBackup) {
+    const jobs = await this.getAllJobs()
+    const RPUGuard = id => {
+      if (this.getObject(id).$poolId === pool.id) {
+        throw forbiddenOperation('Rolling pool update', `A backup is running on the pool: ${pool.id}`)
+      }
+    }
+    jobs.forEach(({ runId, type, vms }) => {
+      if (runId !== undefined && type === 'backup') {
+        const id = vms.id.__or ?? vms.id
+        if (Array.isArray(id)) {
+          id.forEach(RPUGuard)
+        } else {
+          RPUGuard(id)
+        }
+      }
+    })
+  } else {
+    log.warn('rolling pool with argument "ignoreBackup" set to true', { poolId: pool.id })
   }
+  // if ((await this.getOptionalPlugin('load-balancer'))?.loaded) {
+  //   await this.unloadPlugin('load-balancer')
+  //   $defer(() => this.loadPlugin('load-balancer'))
+  // }
 
-  await this.getXapi(pool).rollingPoolUpdate()
+  // await this.getXapi(pool).rollingPoolUpdate()
 })
 
 rollingUpdate.params = {
