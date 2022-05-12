@@ -946,9 +946,31 @@ export const rollingPoolUpdate = poolId =>
     body: <RollingPoolUpdateModal pool={poolId} />,
     title: _('rollingPoolUpdate'),
     icon: 'pool-rolling-update',
-  }).then(
-    () => _call('pool.rollingUpdate', { pool: poolId })::tap(() => subscribeHostMissingPatches.forceRefresh()),
-    noop
+  }).then(() =>
+    _call('pool.rollingUpdate', { pool: poolId })::tap(
+      () => subscribeHostMissingPatches.forceRefresh(),
+      err => {
+        if (!forbiddenOperation.is(err)) {
+          throw err
+        }
+        confirm({
+          body: (
+            <p className='text-warning'>
+              <Icon icon='alarm' /> {_('rollingPoolUpdateIgnoreBackup')}
+            </p>
+          ),
+          title: _('rollingPoolUpdate'),
+          icon: 'pool-rolling-update',
+        }).then(
+          () =>
+            _call('pool.rollingUpdate', { ignoreBackup: true, pool: poolId })::tap(() =>
+              subscribeHostMissingPatches.forceRefresh()
+            ),
+          noop
+        )
+      },
+      noop
+    )
   )
 
 export const installSupplementalPack = (host, file) => {

@@ -184,15 +184,19 @@ export const rollingUpdate = deferrable(async function ($defer, { ignoreBackup =
   } else {
     log.warn('rolling pool with argument "ignoreBackup" set to true', { poolId: pool.id })
   }
-  // if ((await this.getOptionalPlugin('load-balancer'))?.loaded) {
-  //   await this.unloadPlugin('load-balancer')
-  //   $defer(() => this.loadPlugin('load-balancer'))
-  // }
+  if ((await this.getOptionalPlugin('load-balancer'))?.loaded) {
+    await this.unloadPlugin('load-balancer')
+    $defer(() => this.loadPlugin('load-balancer'))
+  }
 
-  // await this.getXapi(pool).rollingPoolUpdate()
+  await this.getXapi(pool).rollingPoolUpdate()
 })
 
 rollingUpdate.params = {
+  ignoreBackup: {
+    optional: true,
+    type: 'boolean',
+  },
   pool: { type: 'string' },
 }
 
