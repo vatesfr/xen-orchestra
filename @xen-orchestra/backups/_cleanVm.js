@@ -5,7 +5,7 @@ const sum = require('lodash/sum')
 const { asyncMap } = require('@xen-orchestra/async-map')
 const { Constants, mergeVhd, openVhd, VhdAbstract, VhdFile } = require('vhd-lib')
 const { isVhdAlias, resolveVhdAlias } = require('vhd-lib/aliases')
-const { dirname, resolve } = require('path')
+const { dirname, resolve, basename } = require('path')
 const { DISK_TYPES } = Constants
 const { isMetadataFile, isVhdFile, isXvaFile, isXvaSumFile } = require('./_backupType.js')
 const { limitConcurrency } = require('limit-concurrency-decorator')
@@ -90,7 +90,7 @@ async function mergeVhdChain(chain, { handler, onLog, remove, merge }) {
       asyncMap(children.slice(0, -1), child => {
         onLog(`the VHD ${child} is unused`)
         if (remove) {
-          onLog(`deleting unused VHD ${child}`)
+          onLog(`mergeVhdChain: deleting unused VHD ${child}`)
           return VhdAbstract.unlink(handler, child)
         }
       }),
@@ -383,7 +383,7 @@ exports.cleanVm = async function cleanVm(
     const vhdChainsToMerge = { __proto__: null }
 
     const toCheck = new Set(unusedVhds)
-
+    let shouldDelete = false
     const getUsedChildChainOrDelete = vhd => {
       if (vhd in vhdChainsToMerge) {
         const chain = vhdChainsToMerge[vhd]
@@ -409,8 +409,64 @@ exports.cleanVm = async function cleanVm(
 
       onLog(`the VHD ${vhd} is unused`)
       if (remove) {
-        onLog(`deleting unused VHD ${vhd}`)
-        unusedVhdsDeletion.push(VhdAbstract.unlink(handler, vhd))
+        onLog(`getUsedChildChainOrDelete: deleting unused VHD`, {
+          vhdChildren,
+          vhd,
+        })
+        // temporarly disabled
+        shouldDelete = true
+        // unusedVhdsDeletion.push(VhdAbstract.unlink(handler, vhd))
+      }
+    }
+
+    {
+      // eslint-disable-next-line no-console
+      const debug = console.debug
+
+      if (shouldDelete) {
+        const chains = { __proto__: null }
+
+        const queue = new Set(vhds)
+        function addChildren(parent, chain) {
+          queue.delete(parent)
+
+          const child = vhdChildren[parent]
+          if (child !== undefined) {
+            const childChain = chains[child]
+            if (childChain !== undefined) {
+              // if a chain already exists, use it
+              delete chains[child]
+              chain.push(...childChain)
+            } else {
+              chain.push(child)
+              addChildren(child, chain)
+            }
+          }
+        }
+        for (const vhd of queue) {
+          const chain = []
+          addChildren(vhd, chain)
+          chains[vhd] = chain
+        }
+
+        const entries = Object.entries(chains)
+        debug(`${vhds.size} VHDs (${unusedVhds.size} unused) found among ${entries.length} chains [`)
+        const decorateVhd = vhd => {
+          const shortPath = basename(vhd)
+          return unusedVhds.has(vhd) ? `${shortPath} [unused]` : shortPath
+        }
+        for (let i = 0, n = entries.length; i < n; ++i) {
+          debug(`in ${dirname(entries[i][0])}`)
+          debug('  [')
+
+          const [parent, children] = entries[i]
+          debug('    ' + decorateVhd(parent))
+          for (const child of children) {
+            debug('    ' + decorateVhd(child))
+          }
+          debug('  ]')
+        }
+        debug(']')
       }
     }
 
