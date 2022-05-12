@@ -417,9 +417,6 @@ exports.cleanVm = async function cleanVm(
         shouldDelete = true
         // unusedVhdsDeletion.push(VhdAbstract.unlink(handler, vhd))
       }
-    }
-
-    {
       // eslint-disable-next-line no-console
       const debug = console.debug
 
