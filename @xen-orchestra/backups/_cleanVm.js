@@ -416,6 +416,13 @@ exports.cleanVm = async function cleanVm(
         shouldDelete = true
         // unusedVhdsDeletion.push(VhdAbstract.unlink(handler, vhd))
       }
+    }
+
+    toCheck.forEach(vhd => {
+      vhdChainsToMerge[vhd] = getUsedChildChainOrDelete(vhd)
+    })
+
+    {
       // eslint-disable-next-line no-console
       const debug = console.debug
 
@@ -465,10 +472,6 @@ exports.cleanVm = async function cleanVm(
         debug(']')
       }
     }
-
-    toCheck.forEach(vhd => {
-      vhdChainsToMerge[vhd] = getUsedChildChainOrDelete(vhd)
-    })
 
     // merge interrupted VHDs
     for (const parent of interruptedVhds.keys()) {
