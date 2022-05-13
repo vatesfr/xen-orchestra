@@ -28,7 +28,8 @@ function makeThrottledWriter(handler, path, delay) {
   }
 }
 
-// Merge vhd child into vhd parent.
+// Merge one or multiple vhd child into vhd parent.
+// childPath can be array to create a synthetic VHD from multiple VHDs
 //
 // TODO: rename the VHD file during the merge
 module.exports = limitConcurrency(2)(async function merge(
@@ -57,7 +58,12 @@ module.exports = limitConcurrency(2)(async function merge(
       flags: 'r+',
       checkSecondFooter: mergeState === undefined,
     })
-    const childVhd = yield VhdSynthetic.open(childHandler, childPath)
+    let childVhd
+    if (Array.isArray(childPath)) {
+      childVhd = yield VhdSynthetic.open(childHandler, childPath)
+    } else {
+      childVhd = yield openVhd(childHandler, childPath)
+    }
 
     const concurrency = childVhd instanceof VhdDirectory ? 16 : 1
 

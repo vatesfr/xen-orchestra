@@ -40,7 +40,7 @@ test('merge works in normal cases', async () => {
   await chainVhd(handler, parentFileName, handler, child1FileName, true)
 
   // merge
-  await mergeVhd(handler, parentFileName, handler, [child1FileName])
+  await mergeVhd(handler, parentFileName, handler, child1FileName)
 
   // check that vhd is still valid
   await checkFile(`${tempDir}/${parentFileName}`)
@@ -93,7 +93,7 @@ test('it can resume a merge ', async () => {
     })
   )
   // expect merge to fail since child header is not ok
-  await expect(async () => await mergeVhd(handler, 'parent.vhd', handler, ['child1.vhd'])).rejects.toThrow()
+  await expect(async () => await mergeVhd(handler, 'parent.vhd', handler, 'child1.vhd')).rejects.toThrow()
 
   await handler.unlink('.parent.vhd.merge.json')
   await handler.writeFile(
@@ -135,7 +135,7 @@ test('it can resume a merge ', async () => {
   )
 
   // really merge
-  await mergeVhd(handler, 'parent.vhd', handler, ['child1.vhd'])
+  await mergeVhd(handler, 'parent.vhd', handler, 'child1.vhd')
 
   // reload header footer and block allocation table , they should succed
   await parentVhd.readHeaderAndFooter()
@@ -157,7 +157,7 @@ test('it can resume a merge ', async () => {
   }
 })
 
-test('it merge multiple child in one passe ', async () => {
+test('it merge multiple child in one pass ', async () => {
   const mbOfFather = 8
   const mbOfChildren = 6
   const mbOfGrandChildren = 4
