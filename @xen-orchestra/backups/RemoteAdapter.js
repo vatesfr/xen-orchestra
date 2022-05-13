@@ -454,16 +454,7 @@ class RemoteAdapter {
   }
 
   async invalidateVmBackupListCache(vmUuid) {
-    try {
-      await this.handler.unlink(`${BACKUP_DIR}/${vmUuid}/cache.json.gz`)
-
-      // remove any pending loc
-    } catch (error) {
-      if (error.code === 'ENOENT') {
-        return
-      }
-      throw error
-    }
+    await this.handler.unlink(`${BACKUP_DIR}/${vmUuid}/cache.json.gz`)
   }
 
   async #getCachabledDataListVmBackups(vmUuid) {
