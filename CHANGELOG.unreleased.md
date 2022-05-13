@@ -35,13 +35,16 @@
 
 <!--packages-start-->
 
-- @xen-orchestra/xapi major
-- @xen-orchestra/mixins major
+- vhd-lib patch
+- vhd-cli patch
+- @xen-orchestra/backups patch
 - xo-server patch
-- @xen-orchestra/proxy patch
-
 - xo-vmdk-to-vhd minor
+- @xen-orchestra/upload-ova patch
 - @xen-orchestra/backups minor
+- @xen-orchestra/backups-cli patch
 - @xen-orchestra/proxy minor
 - xo-server minor
 - xo-web minor
+
+<!--packages-end-->

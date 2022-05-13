@@ -1217,12 +1217,21 @@ export async function createInterface({ vm, network, position, mac, allowedIpv4A
   }
 
   let ipAddresses
-  const vif = await this.getXapi(vm).createVif(vm._xapiId, network._xapiId, {
-    mac,
-    position,
-    ipv4_allowed: allowedIpv4Addresses,
-    ipv6_allowed: allowedIpv6Addresses,
-  })
+  const xapi = this.getXapi(vm)
+  const vif = await xapi._getOrWaitObject(
+    await xapi.VIF_create(
+      {
+        device: position !== undefined ? String(position) : undefined,
+        ipv4_allowed: allowedIpv4Addresses,
+        ipv6_allowed: allowedIpv6Addresses,
+        network: network._xapiRef,
+        VM: vm._xapiRef,
+      },
+      {
+        MAC: mac,
+      }
+    )
+  )
 
   const { push } = (ipAddresses = [])
   if (allowedIpv4Addresses) {
