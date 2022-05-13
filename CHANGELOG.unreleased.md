@@ -7,7 +7,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [Backup] add a setting `unconditionalSnapshot` to force a snapshot even when the VM is halted (PR [#6221](https://github.com/vatesfr/xen-orchestra/pull/6221))
+- [Backup] add a setting `backups.metadata.defaultSettings.unconditionalSnapshot` in `xo-server` configuration file to force a snapshot even when the VM is halted (PR [#6221](https://github.com/vatesfr/xen-orchestra/pull/6221))
 
 ### Bug fixes
 
@@ -34,5 +34,10 @@
 > Run `scripts/gen-deps-list.js --help` for usage
 
 <!--packages-start-->
+
+- @xen-orchestra/backups minor
+- xo-server patch
+- @xen-orchestra/backups-cli patch
+- @xen-orchestra/proxy patch
 
 <!--packages-end-->
