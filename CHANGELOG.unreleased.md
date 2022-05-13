@@ -33,4 +33,12 @@
 
 <!--packages-start-->
 
+- vhd-lib patch
+- vhd-cli patch
+- @xen-orchestra/backups patch
+- xo-server patch
+- xo-vmdk-to-vhd patch
+- @xen-orchestra/upload-ova patch
+- @xen-orchestra/backups-cli patch
+- @xen-orchestra/proxy patch
 <!--packages-end-->
