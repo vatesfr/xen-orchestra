@@ -173,23 +173,66 @@ export const rollingUpdate = deferrable(async function ($defer, { ignoreBackup =
     }
     jobs.forEach(({ runId, type, vms }) => {
       if (runId !== undefined && type === 'backup') {
-        const id = vms.id.__or ?? vms.id
-        if (Array.isArray(id)) {
-          id.forEach(RPUGuard)
+        // not in smartmode
+        if (vms.id !== undefined) {
+          const id = vms.id.__or ?? vms.id
+          if (Array.isArray(id)) {
+            id.forEach(RPUGuard)
+          } else {
+            RPUGuard(id)
+          }
         } else {
-          RPUGuard(id)
+          // Smart mode
+          /**
+           * vms: {
+           *    $pool: {
+           *      __and: [
+           *        {
+           *          __not: {
+           *            __or: ['poolId','poolId']
+           *          }
+           *        },
+           *        {
+           *          __or: ['poolId','poolId']
+           *        }
+           *      ]
+           *    }
+           *  }
+           */
+          let isPoolSafe = false
+          vms.$pool.__and.forEach(conditions => {
+            if (isPoolSafe) return
+            for (const key in conditions) {
+              const condition = conditions[key]
+              if (key === '__not') {
+                if (condition.__or.includes(pool.id)) {
+                  isPoolSafe = true
+                  break
+                }
+                if (key === '__or') {
+                  if (condition.includes(pool.id)) {
+                    throw forbiddenOperation('Rolling pool update', `A backup may run on the pool: ${pool.id}`)
+                  }
+                }
+              }
+            }
+            if (!isPoolSafe) {
+              throw forbiddenOperation('Rolling pool update', `A backup may run on the pool: ${pool.id}`)
+            }
+          })
         }
       }
     })
   } else {
     log.warn('rolling pool update with argument "ignoreBackup" set to true', { poolId: pool.id })
   }
-  if ((await this.getOptionalPlugin('load-balancer'))?.loaded) {
-    await this.unloadPlugin('load-balancer')
-    $defer(() => this.loadPlugin('load-balancer'))
-  }
 
-  await this.getXapi(pool).rollingPoolUpdate()
+  // if ((await this.getOptionalPlugin('load-balancer'))?.loaded) {
+  //   await this.unloadPlugin('load-balancer')
+  //   $defer(() => this.loadPlugin('load-balancer'))
+  // }
+
+  // await this.getXapi(pool).rollingPoolUpdate()
 })
 
 rollingUpdate.params = {
