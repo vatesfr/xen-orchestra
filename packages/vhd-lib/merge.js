@@ -13,6 +13,7 @@ const { DISK_TYPES } = require('./_constants')
 const { Disposable } = require('promise-toolbox')
 const { asyncEach } = require('@vates/async-each')
 const { VhdDirectory } = require('./Vhd/VhdDirectory')
+const { VhdSynthetic } = require('./Vhd/VhdSynthetic')
 
 const { warn } = createLogger('vhd-lib:merge')
 
@@ -27,7 +28,8 @@ function makeThrottledWriter(handler, path, delay) {
   }
 }
 
-// Merge vhd child into vhd parent.
+// Merge one or multiple vhd child into vhd parent.
+// childPath can be array to create a synthetic VHD from multiple VHDs
 //
 // TODO: rename the VHD file during the merge
 module.exports = limitConcurrency(2)(async function merge(
@@ -56,16 +58,24 @@ module.exports = limitConcurrency(2)(async function merge(
       flags: 'r+',
       checkSecondFooter: mergeState === undefined,
     })
-    const childVhd = yield openVhd(childHandler, childPath)
+    let childVhd
+    if (Array.isArray(childPath)) {
+      childVhd = yield VhdSynthetic.open(childHandler, childPath)
+    } else {
+      childVhd = yield openVhd(childHandler, childPath)
+    }
 
     const concurrency = childVhd instanceof VhdDirectory ? 16 : 1
-    if (mergeState === undefined) {
-      assert.strictEqual(childVhd.header.blockSize, parentVhd.header.blockSize)
 
+    if (mergeState === undefined) {
+      // merge should be along a vhd chain
+      assert.strictEqual(childVhd.header.parentUuid.equals(parentVhd.footer.uuid), true)
       const parentDiskType = parentVhd.footer.diskType
       assert(parentDiskType === DISK_TYPES.DIFFERENCING || parentDiskType === DISK_TYPES.DYNAMIC)
       assert.strictEqual(childVhd.footer.diskType, DISK_TYPES.DIFFERENCING)
+      assert.strictEqual(childVhd.header.blockSize, parentVhd.header.blockSize)
     } else {
+      // vhd should not have changed to resume
       assert.strictEqual(parentVhd.header.checksum, mergeState.parent.header)
       assert.strictEqual(childVhd.header.checksum, mergeState.child.header)
     }
