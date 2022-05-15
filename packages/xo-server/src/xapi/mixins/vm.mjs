@@ -198,7 +198,7 @@ export default {
               locking_mode: isEmpty(vif.ipv4_allowed) && isEmpty(vif.ipv6_allowed) ? 'network_default' : 'locked',
               MTU: vif.mtu,
               network: this.getObject(vif.network).$ref,
-              VIM: vm.$ref,
+              VM: vm.$ref,
             },
             {
               MAC: vif.mac,
