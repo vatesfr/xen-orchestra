@@ -490,24 +490,21 @@ class RemoteAdapter {
 
   // use _ to mark this method as private
   // since we decorate it with syncrhonized.withKey in constructor
+  // and # function are not writeable
+
   async _createCacheListVmBackups(vmUuid) {
     const path = `${BACKUP_DIR}/${vmUuid}/cache.json.gz`
     try {
-      const cached = await this.#readCacheListVmBackups(vmUuid)
-      if (cached !== undefined) {
-        return cached
-      }
-      // file did not get created during lock acquisition
-
       const backups = await this.#getCachabledDataListVmBackups(vmUuid)
       if (backups === undefined) {
         return
       }
       const text = JSON.stringify(backups)
       const zipped = await pFromCallback(zlib.gzip, text)
-      // some file systems don't supports lock reliably
-      // in this case let's overwrite any existing file
-      // if the cache file is broken, it will be removed by readCacheListVmBackups
+
+      // cache file may be updated by multiple XO on the same remote
+      // we try to overwrite the cache file, and if it results
+      // to a broken cache file , it will be invalidated on next read
       await this.handler.writeFile(path, zipped, { flags: 'w' })
 
       return backups
@@ -519,30 +516,30 @@ class RemoteAdapter {
     }
   }
 
+  // read the list of backup of a Vm from cache
+  // if cache is broken => delete it and regenerate it
+  // if cache is missing => regenerate it
+
   async #readCacheListVmBackups(vmUuid) {
     try {
       const gzipped = await this.handler.readFile(`${BACKUP_DIR}/${vmUuid}/cache.json.gz`)
       const text = await fromCallback(zlib.gunzip, gzipped)
       return JSON.parse(text)
     } catch (error) {
-      if (error.code === 'ENOENT') {
-        return
+      if (error.code !== 'ENOENT') {
+        warn('Cache file was unreadable', { vmUuid, error })
+        // try to delete the cache if the file is broken
+        await this.invalidateVmBackupListCache(vmUuid).catch(noop)
       }
-      // try to delete the cache if the file is broken
-      await this.invalidateVmBackupListCache(vmUuid).catch(noop)
-      throw error
     }
+
+    // nothing cached, or cache unreadable => regenerate it
+    return await this._createCacheListVmBackups(vmUuid)
   }
 
   async listVmBackups(vmUuid, predicate) {
     const backups = []
-    // await this.invalidateVmBackupListCache(vmUuid)
-    let cached = await this.#readCacheListVmBackups(vmUuid)
-
-    // nothing cached, update cache
-    if (cached === undefined) {
-      cached = await this._createCacheListVmBackups(vmUuid)
-    }
+    const cached = await this.#readCacheListVmBackups(vmUuid)
 
     if (cached === undefined) {
       return []
