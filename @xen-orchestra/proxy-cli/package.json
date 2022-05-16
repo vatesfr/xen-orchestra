@@ -19,10 +19,10 @@
   },
   "preferGlobal": true,
   "bin": {
-    "xo-proxy-cli": "./index.js"
+    "xo-proxy-cli": "./index.mjs"
   },
   "engines": {
-    "node": ">=14"
+    "node": ">=14.13"
   },
   "dependencies": {
     "@iarna/toml": "^2.2.0",

@@ -1,25 +1,23 @@
 #!/usr/bin/env node
 
-'use strict'
+import assert from 'assert'
+import colors from 'ansi-colors'
+import contentType from 'content-type'
+import CSON from 'cson-parser'
+import fromCallback from 'promise-toolbox/fromCallback'
+import fs from 'fs'
+import getopts from 'getopts'
+import hrp from 'http-request-plus'
+import split2 from 'split2'
+import pumpify from 'pumpify'
+import { extname } from 'path'
+import { format, parse } from 'json-rpc-protocol'
+import { inspect } from 'util'
+import { load as loadConfig } from 'app-conf'
+import { pipeline } from 'stream'
+import { readChunk } from '@vates/read-chunk'
 
-const assert = require('assert')
-const colors = require('ansi-colors')
-const contentType = require('content-type')
-const CSON = require('cson-parser')
-const fromCallback = require('promise-toolbox/fromCallback')
-const fs = require('fs')
-const getopts = require('getopts')
-const hrp = require('http-request-plus')
-const split2 = require('split2')
-const pumpify = require('pumpify')
-const { extname } = require('path')
-const { format, parse } = require('json-rpc-protocol')
-const { inspect } = require('util')
-const { load: loadConfig } = require('app-conf')
-const { pipeline } = require('stream')
-const { readChunk } = require('@vates/read-chunk')
-
-const pkg = require('./package.json')
+const pkg = JSON.parse(fs.readFileSync(new URL('package.json', import.meta.url)))
 
 const FORMATS = {
   __proto__: null,
