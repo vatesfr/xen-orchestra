@@ -173,7 +173,6 @@ export const rollingUpdate = deferrable(async function ($defer, { ignoreBackup =
     }
     jobs.forEach(({ runId, type, vms }) => {
       if (runId !== undefined && type === 'backup') {
-        // not in smartmode
         if (vms.id !== undefined) {
           const id = vms.id.__or ?? vms.id
           if (Array.isArray(id)) {
@@ -182,8 +181,8 @@ export const rollingUpdate = deferrable(async function ($defer, { ignoreBackup =
             RPUGuard(id)
           }
         } else {
-          // Smart mode
           /**
+           * Smart mode
            * vms: {
            *    $pool: {
            *      __and: [
@@ -204,16 +203,12 @@ export const rollingUpdate = deferrable(async function ($defer, { ignoreBackup =
             if (isPoolSafe) return
             for (const key in conditions) {
               const condition = conditions[key]
-              if (key === '__not') {
-                if (condition.__or.includes(pool.id)) {
-                  isPoolSafe = true
-                  break
-                }
-                if (key === '__or') {
-                  if (condition.includes(pool.id)) {
-                    throw forbiddenOperation('Rolling pool update', `A backup may run on the pool: ${pool.id}`)
-                  }
-                }
+              if (key === '__not' && condition.__or.includes(pool.id)) {
+                isPoolSafe = true
+                break
+              }
+              if (key === '__or' && condition.includes(pool.id)) {
+                throw forbiddenOperation('Rolling pool update', `A backup may run on the pool: ${pool.id}`)
               }
             }
             if (!isPoolSafe) {
