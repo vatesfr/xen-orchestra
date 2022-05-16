@@ -163,63 +163,71 @@ installPatches.description = 'Install patches on hosts'
 
 // -------------------------------------------------------------------
 
-export const rollingUpdate = deferrable(async function ($defer, { ignoreBackup = false, pool }) {
-  if (!ignoreBackup) {
-    const jobs = await this.getAllJobs()
-    const RPUGuard = id => {
-      if (this.getObject(id).$poolId === pool.id) {
-        throw forbiddenOperation('Rolling pool update', `A backup is running on the pool: ${pool.id}`)
+export async function backupGuard(poolId) {
+  const jobs = await this.getAllJobs()
+  const guard = id => {
+    if (this.getObject(id).$poolId === poolId) {
+      throw forbiddenOperation('Rolling pool update', `A backup is running on the pool: ${poolId}`)
+    }
+  }
+
+  jobs.forEach(({ runId, type, vms }) => {
+    if (runId !== undefined && type === 'backup') {
+      if (vms.id !== undefined) {
+        const id = vms.id.__or ?? vms.id
+        if (Array.isArray(id)) {
+          id.forEach(guard)
+        } else {
+          guard(id)
+        }
+      } else {
+        /**
+         * Smart mode
+         * vms: {
+         *    $pool: {
+         *      __and: [
+         *        {
+         *          __not: {
+         *            __or: ['poolId','poolId']
+         *          }
+         *        },
+         *        {
+         *          __or: ['poolId','poolId']
+         *        }
+         *      ]
+         *    }
+         *  }
+         */
+        let isPoolSafe = false
+        vms.$pool.__and.forEach(conditions => {
+          if (isPoolSafe) return
+          for (const key in conditions) {
+            const condition = conditions[key]
+            if (key === '__not' && condition.__or.includes(poolId)) {
+              isPoolSafe = true
+              break
+            }
+            if (key === '__or' && condition.includes(poolId)) {
+              throw forbiddenOperation('Rolling pool update', `A backup may run on the pool: ${poolId}`)
+            }
+          }
+          if (!isPoolSafe) {
+            throw forbiddenOperation('Rolling pool update', `A backup may run on the pool: ${poolId}`)
+          }
+        })
       }
     }
-    jobs.forEach(({ runId, type, vms }) => {
-      if (runId !== undefined && type === 'backup') {
-        if (vms.id !== undefined) {
-          const id = vms.id.__or ?? vms.id
-          if (Array.isArray(id)) {
-            id.forEach(RPUGuard)
-          } else {
-            RPUGuard(id)
-          }
-        } else {
-          /**
-           * Smart mode
-           * vms: {
-           *    $pool: {
-           *      __and: [
-           *        {
-           *          __not: {
-           *            __or: ['poolId','poolId']
-           *          }
-           *        },
-           *        {
-           *          __or: ['poolId','poolId']
-           *        }
-           *      ]
-           *    }
-           *  }
-           */
-          let isPoolSafe = false
-          vms.$pool.__and.forEach(conditions => {
-            if (isPoolSafe) return
-            for (const key in conditions) {
-              const condition = conditions[key]
-              if (key === '__not' && condition.__or.includes(pool.id)) {
-                isPoolSafe = true
-                break
-              }
-              if (key === '__or' && condition.includes(pool.id)) {
-                throw forbiddenOperation('Rolling pool update', `A backup may run on the pool: ${pool.id}`)
-              }
-            }
-            if (!isPoolSafe) {
-              throw forbiddenOperation('Rolling pool update', `A backup may run on the pool: ${pool.id}`)
-            }
-          })
-        }
-      }
-    })
+  })
+}
+
+// -------------------------------------------------------------------
+
+export const rollingUpdate = deferrable(async function ($defer, { ignoreBackup = false, pool }) {
+  const poolId = pool.id
+  if (ignoreBackup) {
+    log.warn('rolling pool update with argument "ignoreBackup" set to true', { poolId })
   } else {
-    log.warn('rolling pool update with argument "ignoreBackup" set to true', { poolId: pool.id })
+    await backupGuard.call(this, poolId)
   }
 
   // if ((await this.getOptionalPlugin('load-balancer'))?.loaded) {
