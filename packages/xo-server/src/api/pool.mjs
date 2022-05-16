@@ -11,6 +11,65 @@ const log = createLogger('xo:pool')
 
 // ===================================================================
 
+export async function backupGuard(poolId) {
+  const jobs = await this.getAllJobs()
+  const guard = id => {
+    if (this.getObject(id).$poolId === poolId) {
+      throw forbiddenOperation('Rolling pool update', `A backup is running on the pool: ${poolId}`)
+    }
+  }
+
+  jobs.forEach(({ runId, type, vms }) => {
+    if (runId !== undefined && type === 'backup') {
+      if (vms.id !== undefined) {
+        const id = vms.id.__or ?? vms.id
+        if (Array.isArray(id)) {
+          id.forEach(guard)
+        } else {
+          guard(id)
+        }
+      } else {
+        /**
+         * Smart mode
+         * vms: {
+         *    $pool: {
+         *      __and: [
+         *        {
+         *          __not: {
+         *            __or: ['poolId','poolId']
+         *          }
+         *        },
+         *        {
+         *          __or: ['poolId','poolId']
+         *        }
+         *      ]
+         *    }
+         *  }
+         */
+        let isPoolSafe = false
+        vms.$pool.__and.forEach(conditions => {
+          if (isPoolSafe) return
+          for (const key in conditions) {
+            const condition = conditions[key]
+            if (key === '__not' && condition.__or.includes(poolId)) {
+              isPoolSafe = true
+              break
+            }
+            if (key === '__or' && condition.includes(poolId)) {
+              throw forbiddenOperation('Rolling pool update', `A backup may run on the pool: ${poolId}`)
+            }
+          }
+          if (!isPoolSafe) {
+            throw forbiddenOperation('Rolling pool update', `A backup may run on the pool: ${poolId}`)
+          }
+        })
+      }
+    }
+  })
+}
+
+// ===================================================================
+
 export async function set({
   pool,
 
@@ -160,65 +219,6 @@ installPatches.resolve = {
 }
 
 installPatches.description = 'Install patches on hosts'
-
-// -------------------------------------------------------------------
-
-export async function backupGuard(poolId) {
-  const jobs = await this.getAllJobs()
-  const guard = id => {
-    if (this.getObject(id).$poolId === poolId) {
-      throw forbiddenOperation('Rolling pool update', `A backup is running on the pool: ${poolId}`)
-    }
-  }
-
-  jobs.forEach(({ runId, type, vms }) => {
-    if (runId !== undefined && type === 'backup') {
-      if (vms.id !== undefined) {
-        const id = vms.id.__or ?? vms.id
-        if (Array.isArray(id)) {
-          id.forEach(guard)
-        } else {
-          guard(id)
-        }
-      } else {
-        /**
-         * Smart mode
-         * vms: {
-         *    $pool: {
-         *      __and: [
-         *        {
-         *          __not: {
-         *            __or: ['poolId','poolId']
-         *          }
-         *        },
-         *        {
-         *          __or: ['poolId','poolId']
-         *        }
-         *      ]
-         *    }
-         *  }
-         */
-        let isPoolSafe = false
-        vms.$pool.__and.forEach(conditions => {
-          if (isPoolSafe) return
-          for (const key in conditions) {
-            const condition = conditions[key]
-            if (key === '__not' && condition.__or.includes(poolId)) {
-              isPoolSafe = true
-              break
-            }
-            if (key === '__or' && condition.includes(poolId)) {
-              throw forbiddenOperation('Rolling pool update', `A backup may run on the pool: ${poolId}`)
-            }
-          }
-          if (!isPoolSafe) {
-            throw forbiddenOperation('Rolling pool update', `A backup may run on the pool: ${poolId}`)
-          }
-        })
-      }
-    }
-  })
-}
 
 // -------------------------------------------------------------------
 
