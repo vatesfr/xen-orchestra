@@ -12,7 +12,7 @@ const getopts = require('getopts')
 const hrp = require('http-request-plus')
 const split2 = require('split2')
 const pumpify = require('pumpify')
-const { extname, join } = require('path')
+const { extname } = require('path')
 const { format, parse } = require('json-rpc-protocol')
 const { inspect } = require('util')
 const { load: loadConfig } = require('app-conf')
@@ -32,7 +32,6 @@ const parseValue = value => (value.startsWith('json:') ? JSON.parse(value.slice(
 
 async function main(argv) {
   const config = await loadConfig('xo-proxy', {
-    appDir: join(__dirname, '..'),
     ignoreUnknownFormats: true,
   })
 
