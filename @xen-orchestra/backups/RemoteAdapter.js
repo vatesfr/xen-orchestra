@@ -27,7 +27,6 @@ const { isMetadataFile } = require('./_backupType.js')
 const { isValidXva } = require('./_isValidXva.js')
 const { listPartitions, LVM_PARTITION_TYPE } = require('./_listPartitions.js')
 const { lvs, pvs } = require('./_lvm.js')
-const { pFromCallback } = require('promise-toolbox')
 
 const DIR_XO_CONFIG_BACKUPS = 'xo-config-backups'
 exports.DIR_XO_CONFIG_BACKUPS = DIR_XO_CONFIG_BACKUPS
@@ -81,7 +80,7 @@ class RemoteAdapter {
     this._dirMode = dirMode
     this._handler = handler
     this._vhdDirectoryCompression = vhdDirectoryCompression
-    this._createCacheListVmBackups = synchronized.withKey()(this._createCacheListVmBackups)
+    this._readCacheListVmBackups = synchronized.withKey()(this._readCacheListVmBackups)
   }
 
   get handler() {
@@ -460,12 +459,12 @@ class RemoteAdapter {
     await this.handler.unlink(`${BACKUP_DIR}/${vmUuid}/cache.json.gz`)
   }
 
-  async #getCachabledDataListVmBackups(vmUuid) {
+  async #getCachabledDataListVmBackups(dir) {
     const handler = this._handler
     const backups = {}
 
     try {
-      const files = await handler.list(`${BACKUP_DIR}/${vmUuid}`, {
+      const files = await handler.list(dir, {
         filter: isMetadataFile,
         prependDir: true,
       })
@@ -476,7 +475,7 @@ class RemoteAdapter {
           metadata.id = metadata._filename
           backups[file] = metadata
         } catch (error) {
-          warn(`createCacheListVmBackups ${file}`, { error })
+          warn(`can't read vm backup metadata`, { error, file, dir })
         }
       })
       return backups
@@ -488,58 +487,52 @@ class RemoteAdapter {
     }
   }
 
-  // use _ to mark this method as private
-  // since we decorate it with syncrhonized.withKey in constructor
-  // and # function are not writeable
-
-  async _createCacheListVmBackups(vmUuid) {
-    const path = `${BACKUP_DIR}/${vmUuid}/cache.json.gz`
-    try {
-      const backups = await this.#getCachabledDataListVmBackups(vmUuid)
-      if (backups === undefined) {
-        return
-      }
-      const text = JSON.stringify(backups)
-      const zipped = await pFromCallback(zlib.gzip, text)
-
-      // cache file may be updated by multiple XO on the same remote
-      // we try to overwrite the cache file, and if it results
-      // to a broken cache file , it will be invalidated on next read
-      await this.handler.writeFile(path, zipped, { flags: 'w' })
-
-      return backups
-    } catch (error) {
-      let code
-      if (error == null || ((code = error.code) !== 'ENOENT' && code !== 'ENOTDIR')) {
-        throw error
-      }
-    }
-  }
-
+  // use _ to mark this method as private by convention
+  // since we decorate it with synchronized.withKey in the constructor
+  // and # function are not writeable.
+  //
   // read the list of backup of a Vm from cache
-  // if cache is broken => delete it and regenerate it
-  // if cache is missing => regenerate it
+  // if cache is missing  or broken  => regenerate it and return
 
-  async #readCacheListVmBackups(vmUuid) {
+  async _readCacheListVmBackups(vmUuid) {
+    const dir = `${BACKUP_DIR}/${vmUuid}`
+    const path = `${dir}/cache.json.gz`
+
     try {
-      const gzipped = await this.handler.readFile(`${BACKUP_DIR}/${vmUuid}/cache.json.gz`)
+      const gzipped = await this.handler.readFile(path)
       const text = await fromCallback(zlib.gunzip, gzipped)
       return JSON.parse(text)
     } catch (error) {
       if (error.code !== 'ENOENT') {
         warn('Cache file was unreadable', { vmUuid, error })
-        // try to delete the cache if the file is broken
-        await this.invalidateVmBackupListCache(vmUuid).catch(noop)
       }
     }
 
     // nothing cached, or cache unreadable => regenerate it
-    return await this._createCacheListVmBackups(vmUuid)
+    const backups = await this.#getCachabledDataListVmBackups(dir)
+    if (backups === undefined) {
+      return
+    }
+
+    // detached async action, will not reject
+    this.#writeVmBackupsCache(path, backups)
+
+    return backups
+  }
+
+  async #writeVmBackupsCache(cacheFile, backups) {
+    try {
+      const text = JSON.stringify(backups)
+      const zipped = await fromCallback(zlib.gzip, text)
+      await this.handler.writeFile(cacheFile, zipped, { flags: 'w' })
+    } catch (error) {
+      warn('writeVmBackupsCache', { cacheFile, error })
+    }
   }
 
   async listVmBackups(vmUuid, predicate) {
     const backups = []
-    const cached = await this.#readCacheListVmBackups(vmUuid)
+    const cached = await this._readCacheListVmBackups(vmUuid)
 
     if (cached === undefined) {
       return []
