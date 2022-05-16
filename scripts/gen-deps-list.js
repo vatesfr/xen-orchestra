@@ -8,6 +8,7 @@ const semver = require('semver')
 const { getPackages } = require('./utils')
 const escapeRegExp = require('lodash/escapeRegExp')
 const invert = require('lodash/invert')
+const trim = require('lodash/trim')
 
 const changelogConfig = {
   path: joinPath(__dirname, '../CHANGELOG.unreleased.md'),
@@ -37,18 +38,28 @@ async function main() {
     throw new Error(`Could not find changelog block in ${changelogConfig.path}`)
   }
 
-  const lines = block.matchAll(/^- (?<name>[^ ]+) (?<type>patch|minor|major)$/gm)
+  const lines = block.split(/\s*\r?\n\s*/).map(line => {
+    const items = trim(line, '- ').split(/\s+/)
 
-  for (const {
-    groups: { name, type },
-  } of lines) {
+    if (items.length !== 2) {
+      throw new Error(`Invalid line: "${line}"`)
+    }
+
+    return items
+  })
+
+  for (const [name, releaseType] of lines) {
+    if (!['patch', 'minor', 'major'].includes(releaseType)) {
+      throw new Error(`Package "${name}" has invalid release type: "${releaseType}"`)
+    }
+
     const rootPackage = allPackages.find(pkg => pkg.name === name)
 
     if (!rootPackage) {
-      throw new Error(`error: Package ${name} not found`)
+      throw new Error(`Package "${name}" does not exist`)
     }
 
-    const rootReleaseWeight = releaseTypeToWeight(type)
+    const rootReleaseWeight = releaseTypeToWeight(releaseType)
     registerPackageToRelease(name, rootReleaseWeight)
     dependencyTree.add(rootPackage.name)
 
