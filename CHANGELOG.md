@@ -1,6 +1,6 @@
 # ChangeLog
 
-## **next**
+## 5.70.2 (2022-05-16)
 
 ### Bug fixes
 
