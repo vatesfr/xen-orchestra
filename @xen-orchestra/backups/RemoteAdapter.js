@@ -27,6 +27,7 @@ const { isMetadataFile } = require('./_backupType.js')
 const { isValidXva } = require('./_isValidXva.js')
 const { listPartitions, LVM_PARTITION_TYPE } = require('./_listPartitions.js')
 const { lvs, pvs } = require('./_lvm.js')
+const { pFromCallback } = require('promise-toolbox')
 
 const DIR_XO_CONFIG_BACKUPS = 'xo-config-backups'
 exports.DIR_XO_CONFIG_BACKUPS = DIR_XO_CONFIG_BACKUPS
@@ -282,7 +283,9 @@ class RemoteAdapter {
       // don't merge in main process, unused VHDs will be merged in the next backup run
       await this.cleanVm(dir, { remove: true, onLog: warn })
     }
-    await asyncMap(metadatas, metadata => this.invalidateVmBackupListCache(metadata.vm.uuid))
+
+    const dedupedVmUuid = new Set(metadatas.map(_ => _.vm.uuid))
+    await asyncMap(dedupedVmUuid, vmUuid => this.invalidateVmBackupListCache(vmUuid))
   }
 
   #getCompressionType() {
@@ -501,15 +504,7 @@ class RemoteAdapter {
         return
       }
       const text = JSON.stringify(backups)
-      const zipped = await new Promise((resolve, reject) => {
-        zlib.gzip(text, (err, buffer) => {
-          if (err !== null) {
-            reject(err)
-          } else {
-            resolve(buffer)
-          }
-        })
-      })
+      const zipped = await pFromCallback(zlib.gzip, text)
       // some file systems don't supports lock reliably
       // in this case let's overwrite any existing file
       // if the cache file is broken, it will be removed by readCacheListVmBackups
@@ -527,15 +522,7 @@ class RemoteAdapter {
   async #readCacheListVmBackups(vmUuid) {
     try {
       const gzipped = await this.handler.readFile(`${BACKUP_DIR}/${vmUuid}/cache.json.gz`)
-      const text = await new Promise((resolve, reject) => {
-        zlib.gunzip(gzipped, (err, buffer) => {
-          if (err !== null) {
-            reject(err)
-          } else {
-            resolve(buffer)
-          }
-        })
-      })
+      const text = await fromCallback(zlib.gunzip, gzipped)
       return JSON.parse(text)
     } catch (error) {
       if (error.code === 'ENOENT') {
@@ -674,10 +661,10 @@ class RemoteAdapter {
   }
 
   async readVmBackupMetadata(path) {
-    // @todo : I really want to be able to stringify _filename
+    // _filename is a private field used to compute the backup id
+    //
+    // it's enumerable to make it cacheable
     return { ...JSON.parse(await this._handler.readFile(path)), _filename: path }
-
-    // Object.defineProperty(JSON.parse(await this._handler.readFile(path)), '_filename', { value: path })
   }
 }
 
