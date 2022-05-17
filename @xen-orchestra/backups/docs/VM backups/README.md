@@ -77,6 +77,17 @@ job.start(data: { mode: Mode, reportWhen: ReportWhen })
 │  │  │  ├─ task.warning(message: string)
 │  │  │  └─ task.end(result: { size: number })
 │  │  │
+│  │  │  // in case there is a healthcheck scheduled for this vm in this job
+│  │  ├─ task.start(message: 'healthcheck')
+│  │  │  ├─ task.warning(message: string)
+│  │  │  ├─ task.start(message: 'transfer')
+│  │  │  │  ├─ task.warning(message: string)
+│  │  │  │  └─ task.end(result: { size: number })
+│  │  │  ├─ task.start(message: 'vmstart')
+│  │  │  │  ├─ task.warning(message: string)
+│  │  │  │  └─ task.end
+│  │  │  └─ task.end
+│  │  │
 │  │  │  // in case of full backup, DR and CR
 │  │  ├─ task.start(message: 'clean')
 │  │  │  ├─ task.warning(message: string)

@@ -143,6 +143,12 @@ export default class BackupNg {
           settings: merge(job.settings, data?.settings),
         }
 
+        // @todo remove when front PR is merged
+        job.settings[schedule.id].healthCheck = {
+          srUuid: '86a9757d-9c05-9fe0-e79a-8243cb1f37f3',
+          tags: [],
+        }
+
         const proxyId = job.proxy
         const remoteIds = unboxIdsFromPattern(job.remotes)
         try {
@@ -185,6 +191,11 @@ export default class BackupNg {
           }
           vmIds.forEach(handleRecord)
           unboxIdsFromPattern(job.srs).forEach(handleRecord)
+
+          // add xapi specific to the healthcheck SR if needed
+          if (job.settings[schedule.id].healthCheck?.srUuid !== undefined) {
+            handleRecord(job.settings[schedule.id].healthCheck.srUuid)
+          }
 
           const remotes = {}
           const xapis = {}

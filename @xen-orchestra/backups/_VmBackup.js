@@ -45,7 +45,18 @@ const forkDeltaExport = deltaExport =>
   })
 
 class VmBackup {
-  constructor({ baseSettings, config, getSnapshotNameLabel, job, remoteAdapters, schedule, settings, srs, vm }) {
+  constructor({
+    config,
+    getSnapshotNameLabel,
+    healthCheckSr,
+    job,
+    remoteAdapters,
+    remotes,
+    schedule,
+    settings,
+    srs,
+    vm,
+  }) {
     if (vm.other_config['xo:backup:job'] === job.id && 'start' in vm.blocked_operations) {
       // don't match replicated VMs created by this very job otherwise they
       // will be replicated again and again
@@ -68,6 +79,7 @@ class VmBackup {
     this._fullVdisRequired = undefined
     this._getSnapshotNameLabel = getSnapshotNameLabel
     this._isDelta = job.mode === 'delta'
+    this._healthCheckSr = healthCheckSr
     this._jobId = job.id
     this._jobSnapshots = undefined
     this._xapi = vm.$xapi
@@ -94,7 +106,6 @@ class VmBackup {
         : [FullBackupWriter, FullReplicationWriter]
 
       const allSettings = job.settings
-
       Object.keys(remoteAdapters).forEach(remoteId => {
         const targetSettings = {
           ...settings,
@@ -177,7 +188,7 @@ class VmBackup {
       (!settings.offlineBackup && vm.power_state === 'Running') ||
       settings.snapshotRetention !== 0
     if (doSnapshot) {
-      await Task.run({ name: 'snapshot' }, async () => {
+      await Task.run({ name: 'snapshot', type: 'remote' }, async () => {
         if (!settings.bypassVdiChainsCheck) {
           await vm.$assertHealthyVdiChains()
         }
@@ -221,15 +232,13 @@ class VmBackup {
 
     const timestamp = Date.now()
 
-    await this._callWriters(
-      writer =>
-        writer.transfer({
-          deltaExport: forkDeltaExport(deltaExport),
-          sizeContainers,
-          timestamp,
-        }),
-      'writer.transfer()'
-    )
+    await this._callWriters(async writer => {
+      await writer.transfer({
+        deltaExport: forkDeltaExport(deltaExport),
+        sizeContainers,
+        timestamp,
+      })
+    }, 'writer.transfer()')
 
     this._baseVm = exportedVm
 
@@ -395,6 +404,24 @@ class VmBackup {
     this._fullVdisRequired = fullVdisRequired
   }
 
+  async _healthCheck() {
+    const settings = this._settings
+
+    if (settings.healthCheck === undefined) {
+      return
+    }
+
+    // check if current VM has tags
+    const { tags } = this.vm
+    const intersect = settings.healthCheck.tags.filter(t => tags.includes(t))
+
+    if (settings.healthCheck.tags.length !== 0 && intersect.length === 0) {
+      return
+    }
+
+    await this._callWriters(writer => writer.healthCheck(this._healthCheckSr), 'writer.healthCheck()')
+  }
+
   async run($defer) {
     const settings = this._settings
     assert(
@@ -404,7 +431,9 @@ class VmBackup {
 
     await this._callWriters(async writer => {
       await writer.beforeBackup()
-      $defer(() => writer.afterBackup())
+      $defer(async () => {
+        await writer.afterBackup()
+      })
     }, 'writer.beforeBackup()')
 
     await this._fetchJobSnapshots()
@@ -440,6 +469,8 @@ class VmBackup {
       await this._fetchJobSnapshots()
       await this._removeUnusedSnapshots()
     }
+    // get the SR OBJECT await xapi.getRecord('SR', srRef)
+    await this._healthCheck()
   }
 }
 exports.VmBackup = VmBackup

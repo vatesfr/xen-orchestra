@@ -215,6 +215,13 @@ exports.Backup = class Backup {
     const schedule = this._schedule
 
     const config = this._config
+    const { settings } = job
+    const scheduleSettings = {
+      ...config.defaultSettings,
+      ...config.vm.defaultSettings,
+      ...settings[''],
+      ...settings[schedule.id],
+    }
     await Disposable.use(
       Disposable.all(
         extractIdsFromSimplePattern(job.srs).map(id =>
@@ -242,7 +249,8 @@ exports.Backup = class Backup {
           })
         )
       ),
-      async (srs, remoteAdapters) => {
+      () => scheduleSettings.healthCheck !== undefined && this._getRecord('SR', scheduleSettings.healthCheck.srUuid),
+      async (srs, remoteAdapters, healthCheckSr) => {
         // remove adapters that failed (already handled)
         remoteAdapters = remoteAdapters.filter(_ => _ !== undefined)
 
@@ -271,6 +279,7 @@ exports.Backup = class Backup {
                 baseSettings,
                 config,
                 getSnapshotNameLabel,
+                healthCheckSr,
                 job,
                 remoteAdapters,
                 schedule,
