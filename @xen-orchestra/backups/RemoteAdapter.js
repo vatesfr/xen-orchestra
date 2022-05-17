@@ -1,6 +1,7 @@
 'use strict'
 
 const { asyncMap, asyncMapSettled } = require('@xen-orchestra/async-map')
+const { synchronized } = require('decorator-synchronized')
 const Disposable = require('promise-toolbox/Disposable')
 const fromCallback = require('promise-toolbox/fromCallback')
 const fromEvent = require('promise-toolbox/fromEvent')
@@ -9,7 +10,7 @@ const groupBy = require('lodash/groupBy.js')
 const pickBy = require('lodash/pickBy.js')
 const { dirname, join, normalize, resolve } = require('path')
 const { createLogger } = require('@xen-orchestra/log')
-const { Constants, createVhdDirectoryFromStream, openVhd, VhdAbstract, VhdDirectory, VhdSynthetic } = require('vhd-lib')
+const { createVhdDirectoryFromStream, openVhd, VhdAbstract, VhdDirectory, VhdSynthetic } = require('vhd-lib')
 const { deduped } = require('@vates/disposable/deduped.js')
 const { decorateMethodsWith } = require('@vates/decorate-with')
 const { compose } = require('@vates/compose')
@@ -17,6 +18,7 @@ const { execFile } = require('child_process')
 const { readdir, stat } = require('fs-extra')
 const { v4: uuidv4 } = require('uuid')
 const { ZipFile } = require('yazl')
+const zlib = require('zlib')
 
 const { BACKUP_DIR } = require('./_getVmBackupDir.js')
 const { cleanVm } = require('./_cleanVm.js')
@@ -78,6 +80,7 @@ class RemoteAdapter {
     this._dirMode = dirMode
     this._handler = handler
     this._vhdDirectoryCompression = vhdDirectoryCompression
+    this._readCacheListVmBackups = synchronized.withKey()(this._readCacheListVmBackups)
   }
 
   get handler() {
@@ -261,7 +264,8 @@ class RemoteAdapter {
   }
 
   async deleteVmBackups(files) {
-    const { delta, full, ...others } = groupBy(await asyncMap(files, file => this.readVmBackupMetadata(file)), 'mode')
+    const metadatas = await asyncMap(files, file => this.readVmBackupMetadata(file))
+    const { delta, full, ...others } = groupBy(metadatas, 'mode')
 
     const unsupportedModes = Object.keys(others)
     if (unsupportedModes.length !== 0) {
@@ -278,6 +282,9 @@ class RemoteAdapter {
       // don't merge in main process, unused VHDs will be merged in the next backup run
       await this.cleanVm(dir, { remove: true, onLog: warn })
     }
+
+    const dedupedVmUuid = new Set(metadatas.map(_ => _.vm.uuid))
+    await asyncMap(dedupedVmUuid, vmUuid => this.invalidateVmBackupListCache(vmUuid))
   }
 
   #getCompressionType() {
@@ -448,34 +455,94 @@ class RemoteAdapter {
     return backupsByPool
   }
 
-  async listVmBackups(vmUuid, predicate) {
+  async invalidateVmBackupListCache(vmUuid) {
+    await this.handler.unlink(`${BACKUP_DIR}/${vmUuid}/cache.json.gz`)
+  }
+
+  async #getCachabledDataListVmBackups(dir) {
     const handler = this._handler
-    const backups = []
+    const backups = {}
 
     try {
-      const files = await handler.list(`${BACKUP_DIR}/${vmUuid}`, {
+      const files = await handler.list(dir, {
         filter: isMetadataFile,
         prependDir: true,
       })
       await asyncMap(files, async file => {
         try {
           const metadata = await this.readVmBackupMetadata(file)
-          if (predicate === undefined || predicate(metadata)) {
-            // inject an id usable by importVmBackupNg()
-            metadata.id = metadata._filename
-
-            backups.push(metadata)
-          }
+          // inject an id usable by importVmBackupNg()
+          metadata.id = metadata._filename
+          backups[file] = metadata
         } catch (error) {
-          warn(`listVmBackups ${file}`, { error })
+          warn(`can't read vm backup metadata`, { error, file, dir })
         }
       })
+      return backups
     } catch (error) {
       let code
       if (error == null || ((code = error.code) !== 'ENOENT' && code !== 'ENOTDIR')) {
         throw error
       }
     }
+  }
+
+  // use _ to mark this method as private by convention
+  // since we decorate it with synchronized.withKey in the constructor
+  // and # function are not writeable.
+  //
+  // read the list of backup of a Vm from cache
+  // if cache is missing  or broken  => regenerate it and return
+
+  async _readCacheListVmBackups(vmUuid) {
+    const dir = `${BACKUP_DIR}/${vmUuid}`
+    const path = `${dir}/cache.json.gz`
+
+    try {
+      const gzipped = await this.handler.readFile(path)
+      const text = await fromCallback(zlib.gunzip, gzipped)
+      return JSON.parse(text)
+    } catch (error) {
+      if (error.code !== 'ENOENT') {
+        warn('Cache file was unreadable', { vmUuid, error })
+      }
+    }
+
+    // nothing cached, or cache unreadable => regenerate it
+    const backups = await this.#getCachabledDataListVmBackups(dir)
+    if (backups === undefined) {
+      return
+    }
+
+    // detached async action, will not reject
+    this.#writeVmBackupsCache(path, backups)
+
+    return backups
+  }
+
+  async #writeVmBackupsCache(cacheFile, backups) {
+    try {
+      const text = JSON.stringify(backups)
+      const zipped = await fromCallback(zlib.gzip, text)
+      await this.handler.writeFile(cacheFile, zipped, { flags: 'w' })
+    } catch (error) {
+      warn('writeVmBackupsCache', { cacheFile, error })
+    }
+  }
+
+  async listVmBackups(vmUuid, predicate) {
+    const backups = []
+    const cached = await this._readCacheListVmBackups(vmUuid)
+
+    if (cached === undefined) {
+      return []
+    }
+
+    Object.values(cached).forEach(metadata => {
+      if (predicate === undefined || predicate(metadata)) {
+        backups.push(metadata)
+      }
+    })
 
     return backups.sort(compareTimestamp)
   }
@@ -531,46 +598,27 @@ class RemoteAdapter {
     })
   }
 
-  async _createSyntheticStream(handler, paths) {
-    let disposableVhds = []
-
-    // if it's a path : open all hierarchy of parent
-    if (typeof paths === 'string') {
-      let vhd
-      let vhdPath = paths
-      do {
-        const disposable = await openVhd(handler, vhdPath)
-        vhd = disposable.value
-        disposableVhds.push(disposable)
-        vhdPath = resolveRelativeFromFile(vhdPath, vhd.header.parentUnicodeName)
-      } while (vhd.footer.diskType !== Constants.DISK_TYPES.DYNAMIC)
-    } else {
-      // only open the list of path given
-      disposableVhds = paths.map(path => openVhd(handler, path))
-    }
-
+  // open the  hierarchy of ancestors until we find a full one
+  async _createSyntheticStream(handler, path) {
+    const disposableSynthetic = await VhdSynthetic.fromVhdChain(handler, path)
     // I don't want the vhds to be disposed on return
     // but only when the stream is done ( or failed )
-    const disposables = await Disposable.all(disposableVhds)
-    const vhds = disposables.value
 
     let disposed = false
     const disposeOnce = async () => {
       if (!disposed) {
         disposed = true
-
         try {
-          await disposables.dispose()
+          await disposableSynthetic.dispose()
         } catch (error) {
-          warn('_createSyntheticStream: failed to dispose VHDs', { error })
+          warn('openVhd: failed to dispose VHDs', { error })
         }
       }
     }
-
-    const synthetic = new VhdSynthetic(vhds)
-    await synthetic.readHeaderAndFooter()
+    const synthetic = disposableSynthetic.value
     await synthetic.readBlockAllocationTable()
     const stream = await synthetic.stream()
+
     stream.on('end', disposeOnce)
     stream.on('close', disposeOnce)
     stream.on('error', disposeOnce)
@@ -603,7 +651,10 @@ class RemoteAdapter {
   }
 
   async readVmBackupMetadata(path) {
-    return Object.defineProperty(JSON.parse(await this._handler.readFile(path)), '_filename', { value: path })
+    // _filename is a private field used to compute the backup id
+    //
+    // it's enumerable to make it cacheable
+    return { ...JSON.parse(await this._handler.readFile(path)), _filename: path }
   }
 }
 

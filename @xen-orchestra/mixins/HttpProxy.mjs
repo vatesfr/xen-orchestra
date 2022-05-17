@@ -1,15 +1,15 @@
-'use strict'
+import { createLogger } from '@xen-orchestra/log'
+import { EventListenersManager } from '@vates/event-listeners-manager'
+import { pipeline } from 'stream'
+import { ServerResponse, request } from 'http'
+import assert from 'assert'
+import fromCallback from 'promise-toolbox/fromCallback'
+import fromEvent from 'promise-toolbox/fromEvent'
+import net from 'net'
 
-const { debug, warn } = require('@xen-orchestra/log').createLogger('xo:mixins:HttpProxy')
-const { EventListenersManager } = require('@vates/event-listeners-manager')
-const { pipeline } = require('stream')
-const { ServerResponse, request } = require('http')
-const assert = require('assert')
-const fromCallback = require('promise-toolbox/fromCallback')
-const fromEvent = require('promise-toolbox/fromEvent')
-const net = require('net')
+import { parseBasicAuth } from './_parseBasicAuth.mjs'
 
-const { parseBasicAuth } = require('./_parseBasicAuth.js')
+const { debug, warn } = createLogger('xo:mixins:HttpProxy')
 
 const IGNORED_HEADERS = new Set([
   // https://datatracker.ietf.org/doc/html/rfc2616#section-13.5.1
@@ -26,7 +26,7 @@ const IGNORED_HEADERS = new Set([
   'host',
 ])
 
-module.exports = class HttpProxy {
+export default class HttpProxy {
   #app
 
   constructor(app, { httpServer }) {

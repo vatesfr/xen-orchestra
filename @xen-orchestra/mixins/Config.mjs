@@ -1,15 +1,13 @@
-'use strict'
-
-const get = require('lodash/get')
-const identity = require('lodash/identity')
-const isEqual = require('lodash/isEqual')
-const { createLogger } = require('@xen-orchestra/log')
-const { parseDuration } = require('@vates/parse-duration')
-const { watch } = require('app-conf')
+import get from 'lodash/get.js'
+import identity from 'lodash/identity.js'
+import isEqual from 'lodash/isEqual.js'
+import { createLogger } from '@xen-orchestra/log'
+import { parseDuration } from '@vates/parse-duration'
+import { watch } from 'app-conf'
 
 const { warn } = createLogger('xo:mixins:config')
 
-module.exports = class Config {
+export default class Config {
   constructor(app, { appDir, appName, config }) {
     this._config = config
     const watchers = (this._watchers = new Set())

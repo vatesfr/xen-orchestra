@@ -226,7 +226,10 @@ export default class Proxy {
     $defer.onFailure(() => app.unbindLicense(arg))
 
     if (networkId !== undefined) {
-      await Promise.all([...vm.VIFs.map(vif => xapi.deleteVif(vif)), xapi.createVif(vm.$id, networkId)])
+      await Promise.all([
+        ...vm.VIFs.map(vif => xapi.deleteVif(vif)),
+        xapi.VIF_create({ network: xapi.getObject(networkId).$ref, VM: vm.$ref }),
+      ])
     }
 
     const date = new Date()
