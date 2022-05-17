@@ -173,11 +173,10 @@ class VmBackup {
     const settings = this._settings
 
     const doSnapshot =
+      settings.unconditionalSnapshot ||
       this._isDelta ||
       (!settings.offlineBackup && vm.power_state === 'Running') ||
-      settings.snapshotRetention !== 0 ||
-      // https://help.vates.fr/#ticket/zoom/6735
-      settings.unconditionalSnapshot
+      settings.snapshotRetention !== 0
     if (doSnapshot) {
       await Task.run({ name: 'snapshot' }, async () => {
         if (!settings.bypassVdiChainsCheck) {
