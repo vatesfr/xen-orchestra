@@ -7,7 +7,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [Backup] add a setting `backups.metadata.defaultSettings.unconditionalSnapshot` in `xo-server` configuration file to force a snapshot even when the VM is halted (PR [#6221](https://github.com/vatesfr/xen-orchestra/pull/6221))
+- [Backup] Add setting `backups.metadata.defaultSettings.unconditionalSnapshot` in `xo-server`'s configuration file to force a snapshot even when not required by the backup, this is useful to avoid locking the VM halted during the backup (PR [#6221](https://github.com/vatesfr/xen-orchestra/pull/6221))
 
 ### Bug fixes
 
