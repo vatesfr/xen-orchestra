@@ -97,7 +97,12 @@ export default class S3Handler extends RemoteHandlerAbstract {
   }
 
   _makePrefix(dir) {
-    return join(this._dir, dir, '/')
+    const prefix = join(this._dir, dir, '/')
+
+    // no prefix for root
+    if (prefix !== './') {
+      return prefix
+    }
   }
 
   _createParams(file) {
