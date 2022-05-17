@@ -42,6 +42,9 @@ exports.ImportVmBackup = class ImportVmBackup {
     return Task.run(
       {
         name: 'transfer',
+        data: {
+          direction: 'download',
+        },
       },
       async () => {
         const xapi = this._xapi

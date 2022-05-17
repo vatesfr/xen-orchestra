@@ -201,6 +201,24 @@ const SnapshotTask = ({ className, task }) => (
     <TaskError task={task} />
   </li>
 )
+const HealthCheckTask = ({ children, className, task }) => (
+  <li className={className}>
+    <Icon icon='health' /> Health check <TaskStateInfos status={task.status} /> <Warnings warnings={task.warnings} />
+    {children}
+    <TaskStart task={task} />
+    <TaskEnd task={task} />
+    <TaskError task={task} />
+  </li>
+)
+const HealthCheckVmStartTask = ({ children, className, task }) => (
+  <li className={className}>
+    <Icon icon='run' /> VM start <TaskStateInfos status={task.status} />
+    <Warnings warnings={task.warnings} />
+    <TaskStart task={task} />
+    <TaskEnd task={task} />
+    <TaskError task={task} />
+  </li>
+)
 
 const RemoteTask = ({ children, className, task }) => (
   <li className={className}>
@@ -234,7 +252,15 @@ const TransferMergeTask = ({ className, task }) => {
 
   return (
     <li className={className}>
-      <Icon icon='task' /> {task.message} <TaskStateInfos status={task.status} />
+      {task.data?.direction === 'download' ? (
+        <Icon icon='download' />
+      ) : task.message === 'transfer' ? (
+        <Icon icon='upload' />
+      ) : (
+        <Icon icon='task' />
+      )}{' '}
+      {task.message}
+      <TaskStateInfos status={task.status} />
       <Warnings warnings={task.warnings} />
       <TaskStart task={task} />
       <TaskEnd task={task} />
@@ -263,6 +289,8 @@ const COMPONENT_BY_MESSAGE = {
   snapshot: SnapshotTask,
   merge: TransferMergeTask,
   transfer: TransferMergeTask,
+  healthcheck: HealthCheckTask,
+  vmstart: HealthCheckVmStartTask,
 }
 
 const TaskLi = ({ task, ...props }) => {
@@ -469,7 +497,13 @@ export default decorate([
                     <TaskLi key={subTaskLog.id} task={subTaskLog}>
                       <ul>
                         {map(subTaskLog.tasks, subSubTaskLog => (
-                          <TaskLi task={subSubTaskLog} key={subSubTaskLog.id} />
+                          <TaskLi task={subSubTaskLog} key={subSubTaskLog.id}>
+                            <ul>
+                              {map(subSubTaskLog.tasks, subSubTaskLog => (
+                                <TaskLi task={subSubTaskLog} key={subSubTaskLog.id} />
+                              ))}
+                            </ul>
+                          </TaskLi>
                         ))}
                       </ul>
                     </TaskLi>
