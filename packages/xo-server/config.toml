@@ -109,6 +109,7 @@ offlineSnapshot = false
 snapshotRetention = 0
 timeout = 0
 vmTimeout = 0
+unconditionalSnapshot = false
 
 # This is a work-around.
 #
