@@ -766,8 +766,19 @@ export const restartHost = (host, force = false) =>
     body: _('restartHostModalMessage'),
   }).then(
     () =>
-      _call('host.restart', { id: resolveId(host), force }).catch(error => {
-        if (noHostsAvailable.is(error)) {
+      _call('host.restart', { id: resolveId(host), force }).catch(async error => {
+        if (forbiddenOperation.is(error) || noHostsAvailable.is(error)) {
+          if (forbiddenOperation.is(error)) {
+            await confirm({
+              body: _('ignoreBackupHost'),
+              title: _('restartHostModalTitle'),
+            })
+            return _call('host.restart', { id: resolveId(host), force, ignoreBackup: true }).catch(err => {
+              if (noHostsAvailable.is(error)) {
+                alert(_('noHostsAvailableErrorTitle'), _('noHostsAvailableErrorMessage'))
+              }
+            })
+          }
           alert(_('noHostsAvailableErrorTitle'), _('noHostsAvailableErrorMessage'))
         }
       }),
@@ -811,6 +822,14 @@ export const restartHostsAgents = hosts => {
 
 export const startHost = host => _call('host.start', { id: resolveId(host) })
 
+const forceStopHost = async ignoreBackup => {
+  await confirm({
+    body: _('forceStopHostMessage'),
+    title: _('forceStopHost'),
+  })
+  return _call('host.stop', { id: resolveId(host), bypassEvacuate: true, ignoreBackup })
+}
+
 export const stopHost = async host => {
   await confirm({
     body: _('stopHostModalMessage'),
@@ -820,13 +839,20 @@ export const stopHost = async host => {
   try {
     await _call('host.stop', { id: resolveId(host) })
   } catch (err) {
-    if (err.message === 'no hosts available') {
-      // Retry with bypassEvacuate.
-      await confirm({
-        body: _('forceStopHostMessage'),
-        title: _('forceStopHost'),
-      })
-      return _call('host.stop', { id: resolveId(host), bypassEvacuate: true })
+    if (forbiddenOperation.is(err) || err.message === 'no hosts available') {
+      if (forbiddenOperation.is(err)) {
+        await confirm({
+          body: _('ignoreBackupHost'),
+          title: _('stopHostModalTitle'),
+        })
+        return _call('host.stop', { id: resolveId(host), ignoreBackup: true }).catch(e => {
+          if (e.message === 'no hosts available') {
+            return forceStopHost(true)
+          }
+          throw error
+        })
+      }
+      return forceStopHost()
     }
     throw error
   }

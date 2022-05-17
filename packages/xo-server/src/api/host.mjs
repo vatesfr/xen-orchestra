@@ -1,5 +1,10 @@
+import { createLogger } from '@xen-orchestra/log'
 import assert from 'assert'
 import { format } from 'json-rpc-peer'
+
+import { backupGuard } from './pool.mjs'
+
+const log = createLogger('xo:host')
 
 // ===================================================================
 
@@ -113,7 +118,12 @@ set.resolve = {
 
 // FIXME: set force to false per default when correctly implemented in
 // UI.
-export function restart({ host, force = true }) {
+export async function restart({ host, ignoreBackup = false, force = true }) {
+  if (ignoreBackup) {
+    log.warn('Restart host with argument "ignoreBackup" set to true', { hostId: host.id })
+  } else {
+    await backupGuard.call(this, host.$poolId)
+  }
   return this.getXapi(host).rebootHost(host._xapiId, force)
 }
 
@@ -121,6 +131,10 @@ restart.description = 'restart the host'
 
 restart.params = {
   id: { type: 'string' },
+  ignoreBackup: {
+    type: 'boolean',
+    optional: true,
+  },
   force: {
     type: 'boolean',
     optional: true,
@@ -183,7 +197,12 @@ start.resolve = {
 
 // -------------------------------------------------------------------
 
-export function stop({ host, bypassEvacuate }) {
+export async function stop({ host, bypassEvacuate, ignoreBackup = false }) {
+  if (ignoreBackup) {
+    log.warn('Stop host with argument "ignoreBackup" set to true', { hostId: host.id })
+  } else {
+    await backupGuard.call(this, host.$poolId)
+  }
   return this.getXapi(host).shutdownHost(host._xapiId, { bypassEvacuate })
 }
 
@@ -191,6 +210,10 @@ stop.description = 'stop the host'
 
 stop.params = {
   id: { type: 'string' },
+  ignoreBackup: {
+    type: 'boolean',
+    optional: true,
+  },
   bypassEvacuate: { type: 'boolean', optional: true },
 }
 

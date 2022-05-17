@@ -1,5 +1,6 @@
 import { asyncMap } from '@xen-orchestra/async-map'
 import { createLogger } from '@xen-orchestra/log'
+import { createPredicate } from 'value-matcher'
 import { defer as deferrable } from 'golike-defer'
 import { format } from 'json-rpc-peer'
 import { Ref } from 'xen-api'
@@ -15,7 +16,7 @@ export async function backupGuard(poolId) {
   const jobs = await this.getAllJobs()
   const guard = id => {
     if (this.getObject(id).$poolId === poolId) {
-      throw forbiddenOperation('Rolling pool update', `A backup is running on the pool: ${poolId}`)
+      throw forbiddenOperation('Backup is running', `A backup is running on the pool: ${poolId}`)
     }
   }
 
@@ -29,40 +30,11 @@ export async function backupGuard(poolId) {
           guard(id)
         }
       } else {
-        /**
-         * Smart mode
-         * vms: {
-         *    $pool: {
-         *      __and: [
-         *        {
-         *          __not: {
-         *            __or: ['poolId','poolId']
-         *          }
-         *        },
-         *        {
-         *          __or: ['poolId','poolId']
-         *        }
-         *      ]
-         *    }
-         *  }
-         */
-        let isPoolSafe = false
-        vms.$pool.__and.forEach(conditions => {
-          if (isPoolSafe) return
-          for (const key in conditions) {
-            const condition = conditions[key]
-            if (key === '__not' && condition.__or.includes(poolId)) {
-              isPoolSafe = true
-              break
-            }
-            if (key === '__or' && condition.includes(poolId)) {
-              throw forbiddenOperation('Rolling pool update', `A backup may run on the pool: ${poolId}`)
-            }
-          }
-          if (!isPoolSafe) {
-            throw forbiddenOperation('Rolling pool update', `A backup may run on the pool: ${poolId}`)
-          }
-        })
+        // smartmode
+        const isPoolSafe = vms.$pool === undefined ? false : !createPredicate(vms.$pool)(poolId)
+        if (!isPoolSafe) {
+          throw forbiddenOperation('May have running backup', `A backup may run on the pool: ${poolId}`)
+        }
       }
     }
   })
@@ -225,17 +197,17 @@ installPatches.description = 'Install patches on hosts'
 export const rollingUpdate = deferrable(async function ($defer, { ignoreBackup = false, pool }) {
   const poolId = pool.id
   if (ignoreBackup) {
-    log.warn('rolling pool update with argument "ignoreBackup" set to true', { poolId })
+    log.warn('Rolling pool update with argument "ignoreBackup" set to true', { poolId })
   } else {
     await backupGuard.call(this, poolId)
   }
 
-  // if ((await this.getOptionalPlugin('load-balancer'))?.loaded) {
-  //   await this.unloadPlugin('load-balancer')
-  //   $defer(() => this.loadPlugin('load-balancer'))
-  // }
+  if ((await this.getOptionalPlugin('load-balancer'))?.loaded) {
+    await this.unloadPlugin('load-balancer')
+    $defer(() => this.loadPlugin('load-balancer'))
+  }
 
-  // await this.getXapi(pool).rollingPoolUpdate()
+  await this.getXapi(pool).rollingPoolUpdate()
 })
 
 rollingUpdate.params = {
