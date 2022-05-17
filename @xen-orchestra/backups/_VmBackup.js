@@ -185,6 +185,7 @@ class VmBackup {
         const snapshotRef = await vm[settings.checkpointSnapshot ? '$checkpoint' : '$snapshot']({
           ignoreNobakVdis: true,
           name_label: this._getSnapshotNameLabel(vm),
+          unplugVusbs: true,
         })
         this.timestamp = Date.now()
 
