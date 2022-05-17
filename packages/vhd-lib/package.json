@@ -30,7 +30,7 @@
   },
   "devDependencies": {
     "@xen-orchestra/fs": "^1.0.1",
-    "execa": "^6.1.0",
+    "execa": "^5.0.0",
     "get-stream": "^6.0.0",
     "rimraf": "^3.0.2",
     "tmp": "^0.2.1"

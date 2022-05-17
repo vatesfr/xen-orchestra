@@ -77,9 +77,7 @@ export default class S3Handler extends RemoteHandlerAbstract {
     })
 
     // Workaround for https://github.com/aws/aws-sdk-js-v3/issues/2673
-    this._s3.middlewareStack.use(
-      getApplyMd5BodyChecksumPlugin(this._s3.config)
-    )
+    this._s3.middlewareStack.use(getApplyMd5BodyChecksumPlugin(this._s3.config))
 
     const parts = split(path)
     this._bucket = parts.shift()
@@ -232,14 +230,17 @@ export default class S3Handler extends RemoteHandlerAbstract {
   }
 
   async _createReadStream(path, options) {
-    if (!(await this._isFile(path))) {
-      const error = new Error(`ENOENT: no such file '${path}'`)
-      error.code = 'ENOENT'
-      error.path = path
-      throw error
+    try {
+      return (await this._s3.send(new GetObjectCommand(this._createParams(path)))).Body
+    } catch (e) {
+      if (e.name === 'NoSuchKey') {
+        const error = new Error(`ENOENT: no such file '${path}'`)
+        error.code = 'ENOENT'
+        error.path = path
+        throw error
+      }
+      throw e
     }
-
-    return (await this._s3.send(new GetObjectCommand(this._createParams(path)))).Body
   }
 
   async _unlink(path) {
