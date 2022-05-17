@@ -6,6 +6,7 @@
 - [Task logs](#task-logs)
   - [During backup](#during-backup)
   - [During restoration](#during-restoration)
+- [Writer API](#writer-api)
 
 ## File structure on remote
 
@@ -95,3 +96,15 @@ task.start(message: 'restore', data: { jobId: string, srId: string, time: number
 │  └─ task.end(result: { id: string, size: number })
 └─ task.end
 ```
+
+## Writer API
+
+- `beforeBackup()`
+  - **Delta**
+    - `checkBaseVdis(baseUuidToSrcVdi, baseVm)`
+    - `prepare({ isFull })`
+    - `transfer({ timestamp, deltaExport, sizeContainers })`
+    - `cleanup()`
+  - **Full**
+    - `run({ timestamp, sizeContainer, stream })`
+- `afterBackup()`
