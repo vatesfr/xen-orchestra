@@ -7,7 +7,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [Rolling pool update] Ask for confirmation when start an RPU with running backups on the pool (PR [6232](https://github.com/vatesfr/xen-orchestra/pull/6232))
+- [RPU/Host] Ask for confirmation when start an RPU or shutdown/reboot an host with running backups on the pool (PR [6232](https://github.com/vatesfr/xen-orchestra/pull/6232))
 
 ### Bug fixes
 
