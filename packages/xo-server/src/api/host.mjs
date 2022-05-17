@@ -147,7 +147,12 @@ restart.resolve = {
 
 // -------------------------------------------------------------------
 
-export function restartAgent({ host }) {
+export async function restartAgent({ host, ignoreBackup = false }) {
+  if (ignoreBackup) {
+    log.warn('Restart host agent with argument "ignoreBackup" set to true', { hostId: host.id })
+  } else {
+    await backupGuard.call(this, host.$poolId)
+  }
   return this.getXapiObject(host).$restartAgent()
 }
 
@@ -155,6 +160,10 @@ restartAgent.description = 'restart the Xen agent on the host'
 
 restartAgent.params = {
   id: { type: 'string' },
+  ignoreBackup: {
+    type: 'boolean',
+    optional: true,
+  },
 }
 
 restartAgent.resolve = {

@@ -810,7 +810,20 @@ export const restartHosts = (hosts, force = false) => {
   )
 }
 
-export const restartHostAgent = host => _call('host.restart_agent', { id: resolveId(host) })
+export const restartHostAgent = async host => {
+  try {
+    await _call('host.restart_agent', { id: resolveId(host) })
+  } catch (error) {
+    if (forbiddenOperation.is(error)) {
+      await confirm({
+        body: _('ignoreBackupHost'),
+        title: _('restartHostAgent'),
+      })
+      return _call('host.restart_agent', { id: resolveId(host), ignoreBackup: true })
+    }
+    throw error
+  }
+}
 
 export const restartHostsAgents = hosts => {
   const nHosts = size(hosts)
@@ -822,7 +835,7 @@ export const restartHostsAgents = hosts => {
 
 export const startHost = host => _call('host.start', { id: resolveId(host) })
 
-const forceStopHost = async ignoreBackup => {
+const forceStopHost = async (host, ignoreBackup) => {
   await confirm({
     body: _('forceStopHostMessage'),
     title: _('forceStopHost'),
@@ -847,12 +860,12 @@ export const stopHost = async host => {
         })
         return _call('host.stop', { id: resolveId(host), ignoreBackup: true }).catch(e => {
           if (e.message === 'no hosts available') {
-            return forceStopHost(true)
+            return forceStopHost(host, true)
           }
           throw error
         })
       }
-      return forceStopHost()
+      return forceStopHost(host)
     }
     throw error
   }
