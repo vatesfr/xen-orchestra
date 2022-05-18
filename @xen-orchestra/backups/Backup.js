@@ -24,6 +24,32 @@ const getAdaptersByRemote = adapters => {
 
 const runTask = (...args) => Task.run(...args).catch(noop) // errors are handled by logs
 
+const DEFAULT_SETTINGS = {
+  reportWhen: 'failure',
+}
+
+const DEFAULT_VM_SETTINGS = {
+  bypassVdiChainsCheck: false,
+  checkpointSnapshot: false,
+  concurrency: 2,
+  copyRetention: 0,
+  deleteFirst: false,
+  exportRetention: 0,
+  fullInterval: 0,
+  maxMergedDeltasPerRun: 2,
+  offlineBackup: false,
+  offlineSnapshot: false,
+  snapshotRetention: 0,
+  timeout: 0,
+  unconditionalSnapshot: false,
+  vmTimeout: 0,
+}
+
+const DEFAULT_METADATA_SETTINGS = {
+  retentionPoolMetadata: 0,
+  retentionXoMetadata: 0,
+}
+
 exports.Backup = class Backup {
   constructor({ config, getAdapter, getConnectedRecord, job, schedule }) {
     this._config = config
@@ -65,8 +91,10 @@ exports.Backup = class Backup {
 
     const config = this._config
     const settings = {
+      ...DEFAULT_SETTINGS,
+      ...DEFAULT_METADATA_SETTINGS,
       ...config.defaultSettings,
-      ...config.metadata.defaultSettings,
+      ...config.metadata?.defaultSettings,
       ...job.settings[''],
       ...job.settings[schedule.id],
     }
@@ -191,8 +219,10 @@ exports.Backup = class Backup {
     const config = this._config
     const { settings } = job
     const scheduleSettings = {
+      ...DEFAULT_SETTINGS,
+      ...DEFAULT_VM_SETTINGS,
       ...config.defaultSettings,
-      ...config.vm.defaultSettings,
+      ...config.vm?.defaultSettings,
       ...settings[''],
       ...settings[schedule.id],
     }
