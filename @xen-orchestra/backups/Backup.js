@@ -70,13 +70,19 @@ exports.Backup = class Backup {
     })
 
     const { type } = job
+    const baseSettings = { ...DEFAULT_SETTINGS }
     if (type === 'backup') {
+      Object.assign(baseSettings, DEFAULT_VM_SETTINGS, config.defaultSettings, config.vm?.defaultSettings)
       this.run = this._runVmBackup
     } else if (type === 'metadataBackup') {
+      Object.assign(baseSettings, DEFAULT_METADATA_SETTINGS, config.defaultSettings, config.metadata?.defaultSettings)
       this.run = this._runMetadataBackup
     } else {
       throw new Error(`No runner for the backup type ${type}`)
     }
+    Object.assign(baseSettings, job.settings[''])
+
+    this._settings = { ...baseSettings, ...job.settings[schedule.id] }
   }
 
   async _runMetadataBackup() {
@@ -88,21 +94,14 @@ exports.Backup = class Backup {
     }
 
     const config = this._config
-    const settings = {
-      ...DEFAULT_SETTINGS,
-      ...DEFAULT_METADATA_SETTINGS,
-      ...config.defaultSettings,
-      ...config.metadata?.defaultSettings,
-      ...job.settings[''],
-      ...job.settings[schedule.id],
-    }
-
     const poolIds = extractIdsFromSimplePattern(job.pools)
     const isEmptyPools = poolIds.length === 0
     const isXoMetadata = job.xoMetadata !== undefined
     if (!isXoMetadata && isEmptyPools) {
       throw new Error('no metadata mode found')
     }
+
+    const settings = this._settings
 
     const { retentionPoolMetadata, retentionXoMetadata } = settings
 
@@ -215,16 +214,6 @@ exports.Backup = class Backup {
     const schedule = this._schedule
 
     const config = this._config
-    const { settings } = job
-    const scheduleSettings = {
-      ...DEFAULT_SETTINGS,
-      ...DEFAULT_VM_SETTINGS,
-      ...config.defaultSettings,
-      ...config.vm?.defaultSettings,
-      ...settings[''],
-      ...settings[schedule.id],
-    }
-
     await Disposable.use(
       Disposable.all(
         extractIdsFromSimplePattern(job.srs).map(id =>
@@ -259,7 +248,9 @@ exports.Backup = class Backup {
         // remove srs that failed (already handled)
         srs = srs.filter(_ => _ !== undefined)
 
-        if (remoteAdapters.length === 0 && srs.length === 0 && scheduleSettings.snapshotRetention === 0) {
+        const settings = this._settings
+
+        if (remoteAdapters.length === 0 && srs.length === 0 && settings.snapshotRetention === 0) {
           return
         }
 
@@ -268,6 +259,8 @@ exports.Backup = class Backup {
         Task.info('vms', { vms: vmIds })
 
         remoteAdapters = getAdaptersByRemote(remoteAdapters)
+
+        const allSettings = this._job.settings
 
         const handleVm = vmUuid =>
           runTask({ name: 'backup VM', data: { type: 'VM', id: vmUuid } }, () =>
@@ -278,13 +271,13 @@ exports.Backup = class Backup {
                 job,
                 remoteAdapters,
                 schedule,
-                settings: { ...scheduleSettings, ...settings[vmUuid] },
+                settings: { ...settings, ...allSettings[vm.uuid] },
                 srs,
                 vm,
               }).run()
             )
           )
-        const { concurrency } = scheduleSettings
+        const { concurrency } = settings
         await asyncMapSettled(vmIds, concurrency === 0 ? handleVm : limitConcurrency(concurrency)(handleVm))
       }
     )
