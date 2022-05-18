@@ -81,7 +81,7 @@ export default class BackupNg {
         // different than the VMs in the job itself.
         let vmIds = data?.vms ?? extractIdsFromSimplePattern(vmsPattern)
 
-        await this.checkAuthorizations({ job, schedule, useSmartBackup: vmIds === undefined })
+        await this._checkAuthorizations({ job, schedule, useSmartBackup: vmIds === undefined })
         if (vmIds === undefined) {
           const poolPattern = vmsPattern.$pool
 
@@ -301,7 +301,7 @@ export default class BackupNg {
     return job
   }
 
-  async checkAuthorizations({ job, useSmartBackup, schedule }) {
+  async _checkAuthorizations({ job, useSmartBackup, schedule }) {
     const { _app: app } = this
 
     if (job.type === 'metadataBackup') {
