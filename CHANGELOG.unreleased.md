@@ -16,6 +16,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [S3] Fix S3 remote with empty directory not showing anything to restore (PR [#6218](https://github.com/vatesfr/xen-orchestra/pull/6218))
+- [S3] remote fom did not save the `https` and `allow unatuhorized`during remote creation (PR [#6219](https://github.com/vatesfr/xen-orchestra/pull/6219))
 
 ### Packages to release
 
