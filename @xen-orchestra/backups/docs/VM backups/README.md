@@ -6,6 +6,10 @@
 - [Task logs](#task-logs)
   - [During backup](#during-backup)
   - [During restoration](#during-restoration)
+- [API](#api)
+  - [Run description object](#run-description-object)
+  - [`IdPattern`](#idpattern)
+  - [Settings](#settings)
 - [Writer API](#writer-api)
 
 ## File structure on remote
@@ -96,6 +100,92 @@ task.start(message: 'restore', data: { jobId: string, srId: string, time: number
 │  └─ task.end(result: { id: string, size: number })
 └─ task.end
 ```
+
+## API
+
+### Run description object
+
+This is a JavaScript object containing all the information necessary to run a backup job.
+
+```coffee
+# Information about the job itself
+job:
+
+  # Unique identifier
+  id: string
+
+  # Human readable identifier
+  name: string
+
+  # Whether this job is doing Full Backup / Disaster Recovery or
+  # Delta Backup / Continuous Replication
+  mode: 'full' | 'delta'
+
+  # For backup jobs, indicates which remotes to use
+  remotes: IdPattern
+
+  settings:
+
+    # Used for the whole job
+    '': Settings
+
+    # Used for a specific schedule
+    [ScheduleId]: Settings
+
+    # Used for a specific VM
+    [VmId]: Settings
+
+  # For replication jobs, indicates which SRs to use
+  srs: IdPattern
+
+  # Here for historical reasons
+  type: 'backup'
+
+  # Indicates which VMs to backup/replicate
+  vms: IdPattern
+
+# Indicates which XAPI to use to connect to a specific VM or SR
+recordToXapi:
+  [ObjectId]: XapiId
+
+# Information necessary to connect to each remote
+remotes:
+  [RemoteId]:
+    url: string
+
+# Indicates which schedule is used for this run
+schedule:
+  id: ScheduleId
+
+# Information necessary to connect to each XAPI
+xapis:
+  [XapiId]:
+    allowUnauthorized: boolean
+    credentials:
+      password: string
+      username: string
+    url: string
+```
+
+### `IdPattern`
+
+For a single object:
+
+```
+{ id: string }
+```
+
+For multiple objects:
+
+```
+{ id: { __or: string[] } }
+```
+
+> This syntax is compatible with [`value-matcher`](https://github.com/vatesfr/xen-orchestra/tree/master/packages/value-matcher).
+
+### Settings
+
+Settings are described in [`@xen-orchestra/backups/Backup.js](https://github.com/vatesfr/xen-orchestra/blob/master/%40xen-orchestra/backups/Backup.js).
 
 ## Writer API
 
