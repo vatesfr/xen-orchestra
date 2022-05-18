@@ -336,6 +336,9 @@ export default class BackupNg {
     if (jobSettings.checkpointSnapshot === true) {
       await app.checkFeatureAuthorization('BACKUP.WITH_RAM')
     }
+    if (jobSettings.healthCheck !== undefined) {
+      await app.checkFeatureAuthorization('BACKUP.HEALTHCHECK')
+    }
   }
 
   async deleteBackupNgJob(id) {
