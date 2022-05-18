@@ -327,12 +327,15 @@ export default class BackupNg {
 
     // this won't check a per VM settings
     const config = app.config.get('backups')
+
+    // FIXME: does not take into account default values defined in @xen-orchestra/backups/Backup
     const jobSettings = {
       ...config.defaultSettings,
-      ...config.vm.defaultSettings,
+      ...config.vm?.defaultSettings,
       ...job.settings[''],
       ...job.settings[schedule.id],
     }
+
     if (jobSettings.checkpointSnapshot === true) {
       await app.checkFeatureAuthorization('BACKUP.WITH_RAM')
     }
