@@ -49,5 +49,6 @@
 - @xen-orchestra/proxy minor
 - xo-server minor
 - xo-web minor
+- xo-server-backup-reports minor
 
 <!--packages-end-->
