@@ -276,7 +276,6 @@ exports.Backup = class Backup {
                 config,
                 getSnapshotNameLabel,
                 job,
-                // remotes,
                 remoteAdapters,
                 schedule,
                 settings: { ...scheduleSettings, ...settings[vmUuid] },
