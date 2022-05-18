@@ -31,6 +31,10 @@ export async function backupGuard(poolId) {
         }
       } else {
         // smartmode
+// For the smartmode we take a simplified approach :
+// if the smartmode is explicitly 'resident' or 'not resident' on pools : we check if it concern this pool 
+// if not, the job  may concern this pool and we show the warning without looking through all the impacted VM
+
         const isPoolSafe = vms.$pool === undefined ? false : !createPredicate(vms.$pool)(poolId)
         if (!isPoolSafe) {
           throw forbiddenOperation('May have running backup', `A backup may run on the pool: ${poolId}`)
