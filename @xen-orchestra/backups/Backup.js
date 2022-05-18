@@ -68,14 +68,12 @@ exports.Backup = class Backup {
       '{job.name}': job.name,
       '{vm.name_label}': vm => vm.name_label,
     })
-  }
 
-  run() {
-    const type = this._job.type
+    const { type } = job
     if (type === 'backup') {
-      return this._runVmBackup()
+      this.run = this._runVmBackup
     } else if (type === 'metadataBackup') {
-      return this._runMetadataBackup()
+      this.run = this._runMetadataBackup
     } else {
       throw new Error(`No runner for the backup type ${type}`)
     }
