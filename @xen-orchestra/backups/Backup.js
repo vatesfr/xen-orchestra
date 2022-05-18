@@ -82,6 +82,7 @@ exports.Backup = class Backup {
     }
     Object.assign(baseSettings, job.settings[''])
 
+    this._baseSettings = baseSettings
     this._settings = { ...baseSettings, ...job.settings[schedule.id] }
   }
 
@@ -261,11 +262,13 @@ exports.Backup = class Backup {
         remoteAdapters = getAdaptersByRemote(remoteAdapters)
 
         const allSettings = this._job.settings
+        const baseSettings = this._baseSettings
 
         const handleVm = vmUuid =>
           runTask({ name: 'backup VM', data: { type: 'VM', id: vmUuid } }, () =>
             Disposable.use(this._getRecord('VM', vmUuid), vm =>
               new VmBackup({
+                baseSettings,
                 config,
                 getSnapshotNameLabel,
                 job,

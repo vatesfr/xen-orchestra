@@ -45,7 +45,7 @@ const forkDeltaExport = deltaExport =>
   })
 
 class VmBackup {
-  constructor({ config, getSnapshotNameLabel, job, remoteAdapters, schedule, settings, srs, vm }) {
+  constructor({ baseSettings, config, getSnapshotNameLabel, job, remoteAdapters, schedule, settings, srs, vm }) {
     if (vm.other_config['xo:backup:job'] === job.id && 'start' in vm.blocked_operations) {
       // don't match replicated VMs created by this very job otherwise they
       // will be replicated again and again
@@ -306,22 +306,17 @@ class VmBackup {
   }
 
   async _removeUnusedSnapshots() {
-    const jobSettings = this.job.settings
+    const allSettings = this.job.settings
+    const baseSettings = this._baseSettings
     const baseVmRef = this._baseVm?.$ref
-    const { config } = this
-    const baseSettings = {
-      ...config.defaultSettings,
-      ...config.metadata.defaultSettings,
-      ...jobSettings[''],
-    }
 
     const snapshotsPerSchedule = groupBy(this._jobSnapshots, _ => _.other_config['xo:backup:schedule'])
     const xapi = this._xapi
     await asyncMap(Object.entries(snapshotsPerSchedule), ([scheduleId, snapshots]) => {
       const settings = {
         ...baseSettings,
-        ...jobSettings[scheduleId],
-        ...jobSettings[this.vm.uuid],
+        ...allSettings[scheduleId],
+        ...allSettings[this.vm.uuid],
       }
       return asyncMap(getOldEntries(settings.snapshotRetention, snapshots), ({ $ref }) => {
         if ($ref !== baseVmRef) {
