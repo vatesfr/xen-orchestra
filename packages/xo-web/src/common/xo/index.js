@@ -770,7 +770,11 @@ export const restartHost = (host, force = false) =>
         if (forbiddenOperation.is(error) || noHostsAvailable.is(error)) {
           if (forbiddenOperation.is(error)) {
             await confirm({
-              body: _('ignoreBackupHost'),
+              body: (
+                <p className='text-warning'>
+                  <Icon icon='alarm' /> {_('ignoreBackupHost')}
+                </p>
+              ),
               title: _('restartHostModalTitle'),
             })
             return _call('host.restart', { id: resolveId(host), force, ignoreBackup: true }).catch(err => {
@@ -816,7 +820,11 @@ export const restartHostAgent = async host => {
   } catch (error) {
     if (forbiddenOperation.is(error)) {
       await confirm({
-        body: _('ignoreBackupHost'),
+        body: (
+          <p className='text-warning'>
+            <Icon icon='alarm' /> {_('ignoreBackupHost')}
+          </p>
+        ),
         title: _('restartHostAgent'),
       })
       return _call('host.restart_agent', { id: resolveId(host), ignoreBackup: true })
@@ -855,16 +863,22 @@ export const stopHost = async host => {
     if (forbiddenOperation.is(err) || err.message === 'no hosts available') {
       if (forbiddenOperation.is(err)) {
         await confirm({
-          body: _('ignoreBackupHost'),
+          body: (
+            <p className='text-warning'>
+              <Icon icon='alarm' /> {_('ignoreBackupHost')}
+            </p>
+          ),
           title: _('stopHostModalTitle'),
         })
         return _call('host.stop', { id: resolveId(host), ignoreBackup: true }).catch(e => {
           if (e.message === 'no hosts available') {
+            // Retry with bypassEvacuate.
             return forceStopHost(host, true)
           }
           throw error
         })
       }
+      // Retry with bypassEvacuate.
       return forceStopHost(host)
     }
     throw error

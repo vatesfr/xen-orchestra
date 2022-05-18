@@ -13,15 +13,15 @@ const log = createLogger('xo:pool')
 // ===================================================================
 
 export async function backupGuard(poolId) {
-  const jobs = await this.getAllJobs()
+  const jobs = await this.getAllJobs('backup')
   const guard = id => {
     if (this.getObject(id).$poolId === poolId) {
       throw forbiddenOperation('Backup is running', `A backup is running on the pool: ${poolId}`)
     }
   }
 
-  jobs.forEach(({ runId, type, vms }) => {
-    if (runId !== undefined && type === 'backup') {
+  jobs.forEach(({ runId, vms }) => {
+    if (runId !== undefined) {
       if (vms.id !== undefined) {
         const id = vms.id.__or ?? vms.id
         if (Array.isArray(id)) {
