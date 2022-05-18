@@ -21,7 +21,7 @@ import { generateId, linkState } from 'reaclette-utils'
 import { injectIntl } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
 import { Map } from 'immutable'
-import { Number } from 'form'
+import { Number, Toggle } from 'form'
 import { renderXoItemFromId, Remote } from 'render-xo-item'
 import { SelectRemote, SelectSr, SelectVm } from 'select-objects'
 import {
@@ -194,6 +194,7 @@ const getInitialState = ({ preSelectedVmIds, setHomeVmIdsSelection, suggestedExc
     snapshotMode: false,
     srs: [],
     tags: { notValues: suggestedExcludedTags },
+    unplugVusbOnSnapshot: false,
     vms: preSelectedVmIds,
   }
 }
@@ -250,6 +251,7 @@ const New = decorate([
             exportMode: state.exportMode,
             copyMode: state.copyMode,
             snapshotMode: state.snapshotMode,
+            unplugVusbOnSnapshot: state.unplugVusbOnSnapshot,
           }).toObject()
         } else {
           const id = generateId()
@@ -601,6 +603,11 @@ const New = decorate([
             offlineBackup,
           })
         },
+      toggleUnplugVusbOnSnapshot:
+        () =>
+        ({ unplugVusbOnSnapshot }) => ({
+          unplugVusbOnSnapshot: !unplugVusbOnSnapshot,
+        }),
     },
     computed: {
       compressionId: generateId,
@@ -958,6 +965,19 @@ const New = decorate([
                           value={timeout && timeout / 3600e3}
                           placeholder={formatMessage(messages.timeoutUnit)}
                         />
+                      </FormGroup>
+                      <FormGroup>
+                        <Toggle
+                          className='align-middle'
+                          onChange={effects.toggleUnplugVusbOnSnapshot}
+                          value={state.unplugVusbOnSnapshot}
+                        />{' '}
+                        <label onClick={effects.toggleUnplugVusbOnSnapshot}>
+                          <strong>{_('unplugVusbOnSnapshot')}</strong>
+                        </label>{' '}
+                        <Tooltip content={_('unplugVusbOnSnapshotInfo')}>
+                          <Icon icon='info' size='lg' />
+                        </Tooltip>
                       </FormGroup>
                       {state.isDelta && (
                         <FormGroup>

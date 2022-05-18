@@ -499,6 +499,8 @@ const messages = {
   offlineBackupInfo: 'Export VMs without snapshotting them. The VMs will be shutdown during the export.',
   timeout: 'Timeout',
   timeoutInfo: 'Number of hours after which a job is considered failed',
+  unplugVusbOnSnapshot: 'Unplug VUSB during snapshot',
+  unplugVusbOnSnapshotInfo: 'Any VUSB device will be unplugged during checkpoint or snapshot',
   fullBackupInterval: 'Full backup interval',
   forceFullBackup: 'Force full backup',
   timeoutUnit: 'In hours',
