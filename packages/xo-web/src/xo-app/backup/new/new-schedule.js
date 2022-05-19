@@ -85,7 +85,7 @@ const New = decorate([
       },
       setHealthCheckSr({ setSchedule }, sr) {
         setSchedule({
-          healthCheckSr: sr,
+          healthCheckSr: sr.id,
         })
       },
     },
