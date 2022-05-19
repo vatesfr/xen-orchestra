@@ -144,10 +144,8 @@ export default class BackupNg {
         }
 
         // @todo remove when front PR is merged
-        job.settings[schedule.id].healthCheck = {
-          srUuid: '86a9757d-9c05-9fe0-e79a-8243cb1f37f3',
-          tags: [],
-        }
+        job.settings[schedule.id].healthCheckSr = '86a9757d-9c05-9fe0-e79a-8243cb1f37f3'
+        job.settings[schedule.id].healthCheckVmsWithTags = []
 
         const proxyId = job.proxy
         const remoteIds = unboxIdsFromPattern(job.remotes)
@@ -193,8 +191,8 @@ export default class BackupNg {
           unboxIdsFromPattern(job.srs).forEach(handleRecord)
 
           // add xapi specific to the healthcheck SR if needed
-          if (job.settings[schedule.id].healthCheck?.srUuid !== undefined) {
-            handleRecord(job.settings[schedule.id].healthCheck.srUuid)
+          if (job.settings[schedule.id].healthCheckSr !== undefined) {
+            handleRecord(job.settings[schedule.id].healthCheckSr)
           }
 
           const remotes = {}
@@ -551,24 +549,23 @@ export default class BackupNg {
   }
 
   async checkVmBackupNg(backupId, srId, settings) {
-    let restoredVm, xapi
     await Task.run(
       {
-        name: 'healthcheck',
+        name: 'health check',
       },
       async () => {
-        try {
-          const app = this._app
-          xapi = app.getXapi(srId)
-          const restoredId = await this.importVmBackupNg(backupId, srId, settings)
+        const app = this._app
+        const xapi = app.getXapi(srId)
+        const restoredId = await this.importVmBackupNg(backupId, srId, settings)
 
-          restoredVm = xapi.getObject(restoredId)
+        const restoredVm = xapi.getObject(restoredId)
+        try {
           await new HealthCheckVmBackup({
             restoredVm,
             xapi,
           }).run()
         } finally {
-          restoredVm !== undefined && xapi !== undefined && (await xapi.VM_destroy(restoredVm.$ref))
+          await xapi.VM_destroy(restoredVm.$ref)
         }
       }
     )

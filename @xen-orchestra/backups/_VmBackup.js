@@ -188,7 +188,7 @@ class VmBackup {
       (!settings.offlineBackup && vm.power_state === 'Running') ||
       settings.snapshotRetention !== 0
     if (doSnapshot) {
-      await Task.run({ name: 'snapshot', type: 'remote' }, async () => {
+      await Task.run({ name: 'snapshot' }, async () => {
         if (!settings.bypassVdiChainsCheck) {
           await vm.$assertHealthyVdiChains()
         }
@@ -232,13 +232,15 @@ class VmBackup {
 
     const timestamp = Date.now()
 
-    await this._callWriters(async writer => {
-      await writer.transfer({
-        deltaExport: forkDeltaExport(deltaExport),
-        sizeContainers,
-        timestamp,
-      })
-    }, 'writer.transfer()')
+    await this._callWriters(
+      writer =>
+        writer.transfer({
+          deltaExport: forkDeltaExport(deltaExport),
+          sizeContainers,
+          timestamp,
+        }),
+      'writer.transfer()'
+    )
 
     this._baseVm = exportedVm
 
@@ -407,15 +409,15 @@ class VmBackup {
   async _healthCheck() {
     const settings = this._settings
 
-    if (settings.healthCheck === undefined) {
+    if (this._healthCheckSr === undefined) {
       return
     }
 
     // check if current VM has tags
     const { tags } = this.vm
-    const intersect = settings.healthCheck.tags.filter(t => tags.includes(t))
+    const intersect = settings.healthCheckVmsWithTags.some(t => tags.includes(t)) ?? false
 
-    if (settings.healthCheck.tags.length !== 0 && intersect.length === 0) {
+    if (settings.healthCheckVmsWithTags.length !== 0 && !intersect) {
       return
     }
 

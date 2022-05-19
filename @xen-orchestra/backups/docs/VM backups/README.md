@@ -78,13 +78,10 @@ job.start(data: { mode: Mode, reportWhen: ReportWhen })
 │  │  │  └─ task.end(result: { size: number })
 │  │  │
 │  │  │  // in case there is a healthcheck scheduled for this vm in this job
-│  │  ├─ task.start(message: 'healthcheck')
-│  │  │  ├─ task.warning(message: string)
+│  │  ├─ task.start(message: 'health check')
 │  │  │  ├─ task.start(message: 'transfer')
-│  │  │  │  ├─ task.warning(message: string)
 │  │  │  │  └─ task.end(result: { size: number })
 │  │  │  ├─ task.start(message: 'vmstart')
-│  │  │  │  ├─ task.warning(message: string)
 │  │  │  │  └─ task.end
 │  │  │  └─ task.end
 │  │  │
@@ -206,6 +203,7 @@ Settings are described in [`@xen-orchestra/backups/Backup.js](https://github.com
     - `prepare({ isFull })`
     - `transfer({ timestamp, deltaExport, sizeContainers })`
     - `cleanup()`
+    - `healthCheck()`
   - **Full**
     - `run({ timestamp, sizeContainer, stream })`
 - `afterBackup()`

@@ -72,30 +72,29 @@ exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(Ab
   }
 
   healthCheck(sr) {
-    let restoredVm, xapi
     return Task.run(
       {
-        name: 'healthcheck',
+        name: 'health check',
       },
       async () => {
+        const xapi = sr.$xapi
+        const srUuid = sr.uuid
+        const adapter = this._adapter
+        const metadata = await adapter.readVmBackupMetadata(this._metadataFileName)
+        const { id: restoredId } = await new ImportVmBackup({
+          adapter,
+          metadata,
+          srUuid,
+          xapi,
+        }).run()
+        const restoredVm = xapi.getObject(restoredId)
         try {
-          xapi = sr.$xapi
-          const srUuid = sr.uuid
-          const adapter = this._adapter
-          const metadata = await adapter.readVmBackupMetadata(this._metadataFileName)
-          const { id: restoredId } = await new ImportVmBackup({
-            adapter,
-            metadata,
-            srUuid,
-            xapi,
-          }).run()
-          const restoredVm = xapi.getObject(restoredId)
           await new HealthCheckVmBackup({
             restoredVm,
             xapi,
           }).run()
         } finally {
-          restoredVm !== undefined && xapi !== undefined && (await xapi.VM_destroy(restoredVm.$ref))
+          await xapi.VM_destroy(restoredVm.$ref)
         }
       }
     )
