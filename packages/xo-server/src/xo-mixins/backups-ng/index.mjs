@@ -143,10 +143,6 @@ export default class BackupNg {
           settings: merge(job.settings, data?.settings),
         }
 
-        // @todo remove when front PR is merged
-        job.settings[schedule.id].healthCheckSr = '86a9757d-9c05-9fe0-e79a-8243cb1f37f3'
-        job.settings[schedule.id].healthCheckVmsWithTags = []
-
         const proxyId = job.proxy
         const remoteIds = unboxIdsFromPattern(job.remotes)
         try {
