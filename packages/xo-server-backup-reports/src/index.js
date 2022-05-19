@@ -500,7 +500,7 @@ class BackupReportsXoPlugin {
           if (
             operationLog.message !== 'merge' &&
             operationLog.message !== 'transfer' &&
-            operationLog.message !== 'healthcheck'
+            operationLog.message !== 'health check'
           ) {
             return
           }
@@ -513,7 +513,7 @@ class BackupReportsXoPlugin {
               globalTransferSize += size
             }
           } // don't ignore health check
-          else if (operationLog.status === 'success' && operationLog.message !== 'healthcheck') {
+          else if (operationLog.status === 'success' && operationLog.message !== 'health check') {
             return
           }
 
