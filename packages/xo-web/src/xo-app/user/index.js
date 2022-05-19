@@ -53,6 +53,7 @@ const FILTER_TYPE_TO_LABEL_ID = {
   pool: 'homeTypePool',
   VM: 'homeTypeVm',
   'VM-template': 'homeTypeVmTemplate',
+  SR: 'homeTypeSr',
 }
 
 const SSH_KEY_STYLE = { wordWrap: 'anywhere' }
