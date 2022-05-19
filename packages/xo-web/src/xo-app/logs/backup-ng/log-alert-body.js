@@ -203,7 +203,7 @@ const SnapshotTask = ({ className, task }) => (
 )
 const HealthCheckTask = ({ children, className, task }) => (
   <li className={className}>
-    <Icon icon='health' /> Health check <TaskStateInfos status={task.status} /> <Warnings warnings={task.warnings} />
+    <Icon icon='health' /> {task.message} <TaskStateInfos status={task.status} /> <Warnings warnings={task.warnings} />
     {children}
     <TaskStart task={task} />
     <TaskEnd task={task} />
@@ -212,7 +212,7 @@ const HealthCheckTask = ({ children, className, task }) => (
 )
 const HealthCheckVmStartTask = ({ children, className, task }) => (
   <li className={className}>
-    <Icon icon='run' /> VM start <TaskStateInfos status={task.status} />
+    <Icon icon='run' /> {task.message} <TaskStateInfos status={task.status} />
     <Warnings warnings={task.warnings} />
     <TaskStart task={task} />
     <TaskEnd task={task} />
