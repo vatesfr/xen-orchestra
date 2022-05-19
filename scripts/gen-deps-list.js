@@ -8,7 +8,7 @@ const semver = require('semver')
 const { getPackages } = require('./utils')
 const escapeRegExp = require('lodash/escapeRegExp')
 const invert = require('lodash/invert')
-const trim = require('lodash/trim')
+const keyBy = require('lodash/keyBy')
 
 const changelogConfig = {
   path: joinPath(__dirname, '../CHANGELOG.unreleased.md'),
@@ -26,7 +26,7 @@ const packagesToRelease = new Map()
 let allPackages
 
 async function main() {
-  allPackages = await getPackages(true)
+  allPackages = keyBy(await getPackages(true), 'name')
   const content = await fs.readFile(changelogConfig.path)
   const changelogRegex = new RegExp(
     `${escapeRegExp(changelogConfig.startTag)}(.*)${escapeRegExp(changelogConfig.endTag)}`,
@@ -38,33 +38,35 @@ async function main() {
     throw new Error(`Could not find changelog block in ${changelogConfig.path}`)
   }
 
-  const lines = block.split(/\s*\r?\n\s*/).map(line => {
-    const items = trim(line, '- ').split(/\s+/)
+  block.split('\n').forEach(rawLine => {
+    const line = rawLine.trim()
 
-    if (items.length !== 2) {
-      throw new Error(`Invalid line: "${line}"`)
+    if (!line) {
+      return
     }
 
-    return items
-  })
+    const match = line.match(/^-\s*(?<packageName>\S+)\s+(?<releaseType>patch|minor|major)$/)
 
-  for (const [name, releaseType] of lines) {
-    if (!['patch', 'minor', 'major'].includes(releaseType)) {
-      throw new Error(`Package "${name}" has invalid release type: "${releaseType}"`)
+    if (!match) {
+      throw new Error(`Invalid line: "${rawLine}"`)
     }
 
-    const rootPackage = allPackages.find(pkg => pkg.name === name)
+    const {
+      groups: { packageName, releaseType },
+    } = match
+
+    const rootPackage = allPackages[packageName]
 
     if (!rootPackage) {
-      throw new Error(`Package "${name}" does not exist`)
+      throw new Error(`Package "${packageName}" does not exist`)
     }
 
     const rootReleaseWeight = releaseTypeToWeight(releaseType)
-    registerPackageToRelease(name, rootReleaseWeight)
+    registerPackageToRelease(packageName, rootReleaseWeight)
     dependencyTree.add(rootPackage.name)
 
     handlePackageDependencies(rootPackage.name, getNextVersion(rootPackage.version, rootReleaseWeight))
-  }
+  })
 
   const outputLines = dependencyTree.resolve().map(dependencyName => {
     const releaseTypeName = RELEASE_TYPE[packagesToRelease.get(dependencyName)].toLocaleLowerCase()
@@ -81,21 +83,23 @@ async function main() {
  * @param {string} packageNextVersion The next version of the package to handle
  */
 function handlePackageDependencies(packageName, packageNextVersion) {
-  allPackages.forEach(({ package: { name, version, dependencies, optionalDependencies, peerDependencies } }) => {
-    let releaseWeight
+  Object.values(allPackages).forEach(
+    ({ package: { name, version, dependencies, optionalDependencies, peerDependencies } }) => {
+      let releaseWeight
 
-    if (shouldPackageBeReleased(packageName, { ...dependencies, ...optionalDependencies }, packageNextVersion)) {
-      releaseWeight = RELEASE_WEIGHT.PATCH
-    } else if (shouldPackageBeReleased(packageName, peerDependencies || {}, packageNextVersion)) {
-      releaseWeight = versionToReleaseWeight(version)
-    }
+      if (shouldPackageBeReleased(packageName, { ...dependencies, ...optionalDependencies }, packageNextVersion)) {
+        releaseWeight = RELEASE_WEIGHT.PATCH
+      } else if (shouldPackageBeReleased(packageName, peerDependencies || {}, packageNextVersion)) {
+        releaseWeight = versionToReleaseWeight(version)
+      }
 
-    if (releaseWeight !== undefined) {
-      registerPackageToRelease(name, releaseWeight)
-      dependencyTree.add(name, packageName)
-      handlePackageDependencies(name, getNextVersion(version, releaseWeight))
+      if (releaseWeight !== undefined) {
+        registerPackageToRelease(name, releaseWeight)
+        dependencyTree.add(name, packageName)
+        handlePackageDependencies(name, getNextVersion(version, releaseWeight))
+      }
     }
-  })
+  )
 }
 
 function releaseTypeToWeight(type) {
