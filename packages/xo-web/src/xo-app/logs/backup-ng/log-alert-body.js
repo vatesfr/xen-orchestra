@@ -289,7 +289,7 @@ const COMPONENT_BY_MESSAGE = {
   snapshot: SnapshotTask,
   merge: TransferMergeTask,
   transfer: TransferMergeTask,
-  healthcheck: HealthCheckTask,
+  'health check': HealthCheckTask,
   vmstart: HealthCheckVmStartTask,
 }
 
