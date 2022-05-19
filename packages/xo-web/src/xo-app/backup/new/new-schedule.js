@@ -70,10 +70,7 @@ const New = decorate([
         },
       setHealthCheckTags({ setSchedule }, tags) {
         setSchedule({
-          healthCheck: {
-            ...this.props.value.healthCheck,
-            tags,
-          },
+          healthCheckVmsWithTags: tags,
         })
       },
       toggleForceFullBackup({ setSchedule }) {
@@ -83,19 +80,12 @@ const New = decorate([
       },
       toggleHealthCheck({ setSchedule }, { target: { checked } }) {
         setSchedule({
-          healthCheck: checked
-            ? {
-                tags: [],
-              }
-            : undefined,
+          healthCheckVmsWithTags: checked ? [] : undefined,
         })
       },
       setHealthCheckSr({ setSchedule }, sr) {
         setSchedule({
-          healthCheck: {
-            ...this.props.value.healthCheck,
-            sr: sr.id,
-          },
+          healthCheckSr: sr,
         })
       },
     },
@@ -149,7 +139,7 @@ const New = decorate([
             <strong>{_('healthCheck')}</strong>{' '}
             {conditionalTooltip(
               <input
-                checked={schedule.healthCheck !== undefined}
+                checked={schedule.healthCheckVmsWithTags !== undefined}
                 disabled={getXoaPlan() !== PREMIUM}
                 onChange={effects.toggleHealthCheck}
                 type='checkbox'
@@ -157,7 +147,7 @@ const New = decorate([
               getXoaPlan() !== PREMIUM ? _('healthCheckTooltip') : undefined
             )}
           </label>
-          {schedule.healthCheck !== undefined && (
+          {schedule.healthCheckVmsWithTags !== undefined && (
             <div className='mb-2'>
               <strong>{_('vmsTags')}</strong>
               <br />
@@ -165,14 +155,14 @@ const New = decorate([
                 <Icon icon='info' /> {_('healthCheckTagsInfo')}
               </em>
               <p className='h2'>
-                <Tags labels={schedule.healthCheck.tags} onChange={effects.setHealthCheckTags} />
+                <Tags labels={schedule.healthCheckVmsWithTags} onChange={effects.setHealthCheckTags} />
               </p>
               <strong>{_('sr')}</strong>
               <SelectSr
                 onChange={effects.setHealthCheckSr}
                 placeholder={_('healthCheckSr')}
                 required
-                value={schedule.healthCheck.sr}
+                value={schedule.healthCheckSr}
               />
             </div>
           )}
