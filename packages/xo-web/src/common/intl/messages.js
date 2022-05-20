@@ -1015,7 +1015,7 @@ const messages = {
   rollingPoolUpdateLoadBalancerWarning:
     'Load Balancer plugin is running. This will automatically pause it during the update.',
   rollingPoolUpdateIgnoreBackup:
-    'There may be ongoing backups on the pool. Are you sure you want to start a rolling pool update ?',
+    'There may be ongoing backups on the pool. Are you sure you want to start a Rolling Pool Update?',
   poolNeedsDefaultSr: 'The pool needs a default SR to install the patches.',
   vmsHaveCds: '{nVms, number} VM{nVms, plural, one {} other {s}} {nVms, plural, one {has} other {have}} CDs',
   ejectCds: 'Eject CDs',

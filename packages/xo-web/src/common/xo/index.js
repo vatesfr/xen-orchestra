@@ -766,9 +766,16 @@ export const restartHost = (host, force = false) =>
     body: _('restartHostModalMessage'),
   }).then(
     () =>
-      _call('host.restart', { id: resolveId(host), force }).catch(async error => {
-        if (forbiddenOperation.is(error) || noHostsAvailable.is(error)) {
-          if (forbiddenOperation.is(error)) {
+      _call('host.restart', { id: resolveId(host), force })
+        .catch(async error => {
+          if (
+            forbiddenOperation.is(error, {
+              reason: `A backup may run on the pool: ${host.$poolId}`,
+            }) ||
+            forbiddenOperation.is(error, {
+              reason: `A backup is running on the pool: ${host.$poolId}`,
+            })
+          ) {
             await confirm({
               body: (
                 <p className='text-warning'>
@@ -777,15 +784,16 @@ export const restartHost = (host, force = false) =>
               ),
               title: _('restartHostModalTitle'),
             })
-            return _call('host.restart', { id: resolveId(host), force, ignoreBackup: true }).catch(err => {
-              if (noHostsAvailable.is(error)) {
-                alert(_('noHostsAvailableErrorTitle'), _('noHostsAvailableErrorMessage'))
-              }
-            })
+            return _call('host.restart', { id: resolveId(host), force, ignoreBackup: true })
           }
-          alert(_('noHostsAvailableErrorTitle'), _('noHostsAvailableErrorMessage'))
-        }
-      }),
+          throw error
+        })
+        .catch(error => {
+          if (noHostsAvailable.is(error)) {
+            alert(_('noHostsAvailableErrorTitle'), _('noHostsAvailableErrorMessage'))
+          }
+          throw error
+        }),
     noop
   )
 
@@ -843,25 +851,24 @@ export const restartHostsAgents = hosts => {
 
 export const startHost = host => _call('host.start', { id: resolveId(host) })
 
-const forceStopHost = async (host, ignoreBackup) => {
-  await confirm({
-    body: _('forceStopHostMessage'),
-    title: _('forceStopHost'),
-  })
-  return _call('host.stop', { id: resolveId(host), bypassEvacuate: true, ignoreBackup })
-}
-
 export const stopHost = async host => {
   await confirm({
     body: _('stopHostModalMessage'),
     title: _('stopHostModalTitle'),
   })
 
-  try {
-    await _call('host.stop', { id: resolveId(host) })
-  } catch (err) {
-    if (forbiddenOperation.is(err) || err.message === 'no hosts available') {
-      if (forbiddenOperation.is(err)) {
+  let ignoreBackup = false
+  return _call('host.stop', { id: resolveId(host) })
+    .catch(async err => {
+      if (
+        forbiddenOperation.is(err, {
+          reason: `A backup may run on the pool: ${host.$poolId}`,
+        }) ||
+        forbiddenOperation.is(error, {
+          reason: `A backup is running on the pool: ${host.$poolId}`,
+        })
+      ) {
+        ignoreBackup = true
         await confirm({
           body: (
             <p className='text-warning'>
@@ -870,19 +877,21 @@ export const stopHost = async host => {
           ),
           title: _('stopHostModalTitle'),
         })
-        return _call('host.stop', { id: resolveId(host), ignoreBackup: true }).catch(e => {
-          if (e.message === 'no hosts available') {
-            // Retry with bypassEvacuate.
-            return forceStopHost(host, true)
-          }
-          throw error
-        })
+        return _call('host.stop', { id: resolveId(host), ignoreBackup })
       }
-      // Retry with bypassEvacuate.
-      return forceStopHost(host)
-    }
-    throw error
-  }
+      throw err
+    })
+    .catch(async err => {
+      if (noHostsAvailable.is(err)) {
+        await confirm({
+          body: _('forceStopHostMessage'),
+          title: _('forceStopHost'),
+        })
+        // Retry with bypassEvacuate.
+        return _call('host.stop', { id: resolveId(host), bypassEvacuate: true, ignoreBackup })
+      }
+      throw err
+    })
 }
 
 export const stopHosts = hosts => {
