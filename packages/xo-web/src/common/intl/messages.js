@@ -1011,7 +1011,7 @@ const messages = {
     'This will automatically restart the toolstack on every host. Running VMs will not be affected. Are you sure you want to continue and install all the patches on this pool?',
   rollingPoolUpdate: 'Rolling pool update',
   rollingPoolUpdateMessage:
-    'Are you sure you want to start a rolling pool update? Running VMs will be migrated back and forth and this can take a while.',
+    'Are you sure you want to start a rolling pool update? Running VMs will be migrated back and forth and this can take a while and scheduled backups that may concern this pool will be disabled.',
   rollingPoolUpdateHaWarning: 'High Availability is enabled. This will automatically disable it during the update.',
   rollingPoolUpdateLoadBalancerWarning:
     'Load Balancer plugin is running. This will automatically pause it during the update.',
