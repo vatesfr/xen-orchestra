@@ -68,12 +68,20 @@ async function main() {
     handlePackageDependencies(rootPackage.name, getNextVersion(rootPackage.version, rootReleaseWeight))
   })
 
-  const outputLines = dependencyTree.resolve().map(dependencyName => {
-    const releaseTypeName = RELEASE_TYPE[packagesToRelease.get(dependencyName)].toLocaleLowerCase()
-    return `- ${dependencyName} ${releaseTypeName}`
+  const commandsToExecute = ['', 'Commands to execute:', '']
+  const releasedPackages = ['', '### Released packages', '']
+
+  dependencyTree.resolve().forEach(dependencyName => {
+    const releaseWeight = packagesToRelease.get(dependencyName)
+    const {
+      package: { version },
+    } = allPackages[dependencyName]
+    commandsToExecute.push(`./scripts/bump-pkg ${dependencyName} ${RELEASE_TYPE[releaseWeight].toLocaleLowerCase()}`)
+    releasedPackages.push(`- ${dependencyName} ${getNextVersion(version, releaseWeight)}`)
   })
 
-  console.log(outputLines.join('\n'))
+  console.log(commandsToExecute.join('\n'))
+  console.log(releasedPackages.join('\n'))
 }
 
 /**
@@ -150,7 +158,7 @@ function versionToReleaseWeight(version) {
  * @returns {string} The incremented version
  */
 function getNextVersion(version, releaseWeight) {
-  return semver.inc(version, RELEASE_TYPE[releaseWeight])
+  return semver.inc(version, RELEASE_TYPE[releaseWeight].toLocaleLowerCase())
 }
 
 main().catch(error => {
