@@ -71,7 +71,7 @@ job.start(data: { mode: Mode, reportWhen: ReportWhen })
 │  ├─ task.warning(message: string)
 │  ├─ task.start(message: 'snapshot')
 │  │  └─ task.end
-│  ├─ task.start(message: 'export', data: { type: 'SR' | 'remote', id: string })
+│  ├─ task.start(message: 'export', data: { type: 'SR' | 'remote', id: string, isFull: boolean })
 │  │  ├─ task.warning(message: string)
 │  │  ├─ task.start(message: 'transfer')
 │  │  │  ├─ task.warning(message: string)
