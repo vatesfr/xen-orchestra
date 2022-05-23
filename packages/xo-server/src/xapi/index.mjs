@@ -661,31 +661,26 @@ export default class Xapi extends XapiBase {
       }
     }
 
-    const token = await hostXapi.call('host.migrate_receive', host.$ref, migrationNetwork.$ref, {})
+    const params = [
+      vm.$ref,
+      await hostXapi.call('host.migrate_receive', host.$ref, migrationNetwork.$ref, {}), // token
+      true, // Live migration.
+      vdis,
+      vifsMap,
+      {
+        force: force ? 'true' : 'false',
+      },
+      // FIXME: missing param `vgu_map`, it does not cause issues ATM but it
+      // might need to be changed one day.
+      // {},
+    ]
 
-    const loop = () => {
-      const params = [
-        vm.$ref,
-        token,
-        true, // Live migration.
-        vdis,
-        vifsMap,
-        {
-          force: force ? 'true' : 'false',
-        },
-        // FIXME: missing param `vgu_map`, it does not cause issues ATM but it
-        // might need to be changed one day.
-        // {},
-      ]
+    await this.callAsync('VM.assert_can_migrate', ...params)
 
-      return this.callAsync('VM.assert_can_migrate', ...params)
-        .then(() => {
-          return this.callAsync('VM.migrate_send', ...params)::pCatch({ code: 'TOO_MANY_STORAGE_MIGRATES' }, () =>
-            pDelay(1e4).then(loop)
-          )
-        })
-        .catch(error => throw error)
-    }
+    const loop = () =>
+      this.callAsync('VM.migrate_send', ...params)::pCatch({ code: 'TOO_MANY_STORAGE_MIGRATES' }, () =>
+        pDelay(1e4).then(loop)
+      )
 
     return loop().then(noop)
   }
