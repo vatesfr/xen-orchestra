@@ -203,7 +203,7 @@ Settings are described in [`@xen-orchestra/backups/Backup.js](https://github.com
     - `prepare({ isFull })`
     - `transfer({ timestamp, deltaExport, sizeContainers })`
     - `cleanup()`
-    - `healthCheck()`
+    - `healthCheck(sr)`
   - **Full**
     - `run({ timestamp, sizeContainer, stream })`
 - `afterBackup()`
