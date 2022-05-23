@@ -40,7 +40,7 @@ await ee.emitAsync('start')
 // error handling though:
 await ee.emitAsync(
   {
-    onError(error) {
+    onError(error, event, listener) {
       console.warn(error)
     },
   },
