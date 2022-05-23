@@ -1663,9 +1663,9 @@ const messages = {
   bulkDeleteMetadataBackupsConfirmText:
     'delete {nMetadataBackups} metadata backup{nMetadataBackups, plural, one {} other {s}}',
   healthCheck: 'Health check',
-  healthCheckSr: 'Choose SR used for VMs restoration',
+  healthCheckChooseSr: 'Choose SR used for VMs restoration',
   healthCheckTagsInfo: 'If no tags are specified, all VMs in the backup will be tested.',
-  healthCheckTooltip: 'Only available to premium users',
+  healthCheckAvailablePremiumUser: 'Only available to premium users',
   remoteNotCompatibleWithSelectedProxy:
     "The backup will not be run on this remote because it's not compatible with the selected proxy",
   remoteLoadBackupsFailure: 'Loading backups failed',
