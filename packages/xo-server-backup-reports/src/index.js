@@ -505,7 +505,7 @@ class BackupReportsXoPlugin {
             return
           }
 
-          const size = operationLog.result?.size ?? 0
+          const size = operationLog.result?.size
           if (size > 0) {
             if (operationLog.message === 'merge') {
               globalMergeSize += size
