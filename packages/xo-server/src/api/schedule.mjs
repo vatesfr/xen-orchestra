@@ -1,14 +1,23 @@
 // FIXME so far, no acls for schedules
 
 export async function getAll() {
-  return /* await */ this.getAllSchedules()
+  return (await this.getAllSchedules()).map(schedule => ({
+    ...schedule,
+    healthCheckVmsWithTags:
+      schedule.healthCheckVmsWithTags !== undefined ? JSON.parse(schedule.healthCheckVmsWithTags) : undefined,
+  }))
 }
 
 getAll.permission = 'admin'
 getAll.description = 'Gets all existing schedules'
 
 export async function get(id) {
-  return /* await */ this.getSchedule(id)
+  const schedule = await this.getSchedule(id)
+  return {
+    ...schedule,
+    healthCheckVmsWithTags:
+      schedule.healthCheckVmsWithTags !== undefined ? JSON.parse(schedule.healthCheckVmsWithTags) : undefined,
+  }
 }
 
 get.permission = 'admin'
@@ -17,10 +26,12 @@ get.params = {
   id: { type: 'string' },
 }
 
-export function create({ cron, enabled, jobId, name, timezone }) {
+export function create({ cron, enabled, healthCheckSr, healthCheckVmsWithTags, jobId, name, timezone }) {
   return this.createSchedule({
     cron,
     enabled,
+    healthCheckSr,
+    healthCheckVmsWithTags,
     jobId,
     name,
     timezone,
@@ -33,13 +44,15 @@ create.description = 'Creates a new schedule'
 create.params = {
   cron: { type: 'string' },
   enabled: { type: 'boolean', optional: true },
+  healthCheckSr: { type: 'string', optional: true },
+  healthCheckVmsWithTags: { type: 'array', items: { type: 'string' }, optional: true },
   jobId: { type: 'string' },
   name: { type: 'string', optional: true },
   timezone: { type: 'string', optional: true },
 }
 
-export async function set({ cron, enabled, id, jobId, name, timezone }) {
-  await this.updateSchedule({ cron, enabled, id, jobId, name, timezone })
+export async function set({ cron, enabled, healthCheckSr, healthCheckVmsWithTags, id, jobId, name, timezone }) {
+  await this.updateSchedule({ cron, enabled, healthCheckSr, healthCheckVmsWithTags, id, jobId, name, timezone })
 }
 
 set.permission = 'admin'
@@ -47,6 +60,8 @@ set.description = 'Modifies an existing schedule'
 set.params = {
   cron: { type: 'string', optional: true },
   enabled: { type: 'boolean', optional: true },
+  healthCheckSr: { type: 'string', optional: true },
+  healthCheckVmsWithTags: { type: 'array', items: { type: 'string' }, optional: true },
   id: { type: 'string' },
   jobId: { type: 'string', optional: true },
   name: { type: ['string', 'null'], optional: true },

@@ -72,11 +72,13 @@ export default class Scheduling {
     })
   }
 
-  async createSchedule({ cron, enabled, jobId, name = '', timezone, userId }) {
+  async createSchedule({ cron, enabled, healthCheckSr, healthCheckVmsWithTags, jobId, name = '', timezone, userId }) {
     const schedule = (
       await this._db.add({
         cron,
         enabled,
+        healthCheckSr,
+        healthCheckVmsWithTags: JSON.stringify(healthCheckVmsWithTags),
         jobId,
         name,
         timezone,
@@ -104,9 +106,19 @@ export default class Scheduling {
     await this._db.remove(id)
   }
 
-  async updateSchedule({ cron, enabled, id, jobId, name, timezone, userId }) {
+  async updateSchedule({ cron, enabled, healthCheckSr, healthCheckVmsWithTags, id, jobId, name, timezone, userId }) {
     const schedule = await this.getSchedule(id)
-    patch(schedule, { cron, enabled, jobId, name, timezone, userId })
+    patch(schedule, {
+      cron,
+      enabled,
+      // null to delete the key of the object in case we remove healthcheck
+      healthCheckSr: healthCheckVmsWithTags !== undefined ? healthCheckSr : null,
+      healthCheckVmsWithTags: JSON.stringify(healthCheckVmsWithTags) ?? null,
+      jobId,
+      name,
+      timezone,
+      userId,
+    })
 
     this._start(schedule)
 

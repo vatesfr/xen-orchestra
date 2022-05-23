@@ -299,7 +299,9 @@ const New = decorate([
               newSchedule.cron !== oldSchedule.cron ||
               newSchedule.name !== oldSchedule.name ||
               newSchedule.timezone !== oldSchedule.timezone ||
-              newSchedule.enabled !== oldSchedule.enabled
+              newSchedule.enabled !== oldSchedule.enabled ||
+              newSchedule.healthCheckSr !== oldSchedule.healthCheckSr ||
+              newSchedule.healthCheckVmsWithTags !== oldSchedule.healthCheckVmsWithTags
             ) {
               return editSchedule({
                 id,
@@ -307,6 +309,8 @@ const New = decorate([
                 name: newSchedule.name,
                 timezone: newSchedule.timezone,
                 enabled: newSchedule.enabled,
+                healthCheckSr: newSchedule.healthCheckSr,
+                healthCheckVmsWithTags: newSchedule.healthCheckVmsWithTags,
               })
             }
           })
@@ -322,6 +326,8 @@ const New = decorate([
                 name: schedule.name,
                 timezone: schedule.timezone,
                 enabled: schedule.enabled,
+                healthCheckSr: schedule.healthCheckSr,
+                healthCheckVmsWithTags: schedule.healthCheckVmsWithTags,
               })
 
               settings = settings.withMutations(settings => {
