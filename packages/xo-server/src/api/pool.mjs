@@ -1,48 +1,15 @@
 import { asyncMap } from '@xen-orchestra/async-map'
 import { createLogger } from '@xen-orchestra/log'
-import { createPredicate } from 'value-matcher'
 import { defer as deferrable } from 'golike-defer'
 import { format } from 'json-rpc-peer'
 import { Ref } from 'xen-api'
-import { forbiddenOperation, incorrectState } from 'xo-common/api-errors.js'
+import { incorrectState } from 'xo-common/api-errors.js'
+
+import backupGuard from './_backupGuard.mjs'
 
 import { moveFirst } from '../_moveFirst.mjs'
 
-const log = createLogger('xo:pool')
-
-// ===================================================================
-
-export async function backupGuard(poolId) {
-  const jobs = await this.getAllJobs('backup')
-  const guard = id => {
-    if (this.getObject(id).$poolId === poolId) {
-      throw forbiddenOperation('Backup is running', `A backup is running on the pool: ${poolId}`)
-    }
-  }
-
-  jobs.forEach(({ runId, vms }) => {
-    if (runId !== undefined) {
-      if (vms.id !== undefined) {
-        const id = vms.id.__or ?? vms.id
-        if (Array.isArray(id)) {
-          id.forEach(guard)
-        } else {
-          guard(id)
-        }
-      } else {
-        // smartmode
-// For the smartmode we take a simplified approach :
-// if the smartmode is explicitly 'resident' or 'not resident' on pools : we check if it concern this pool 
-// if not, the job  may concern this pool and we show the warning without looking through all the impacted VM
-
-        const isPoolSafe = vms.$pool === undefined ? false : !createPredicate(vms.$pool)(poolId)
-        if (!isPoolSafe) {
-          throw forbiddenOperation('May have running backup', `A backup may run on the pool: ${poolId}`)
-        }
-      }
-    }
-  })
-}
+const log = createLogger('xo:api:pool')
 
 // ===================================================================
 
@@ -198,10 +165,10 @@ installPatches.description = 'Install patches on hosts'
 
 // -------------------------------------------------------------------
 
-export const rollingUpdate = deferrable(async function ($defer, { ignoreBackup = false, pool }) {
+export const rollingUpdate = deferrable(async function ($defer, { bypassBackupCheck = false, pool }) {
   const poolId = pool.id
-  if (ignoreBackup) {
-    log.warn('Rolling pool update with argument "ignoreBackup" set to true', { poolId })
+  if (bypassBackupCheck) {
+    log.warn('pool.rollingUpdate update with argument "bypassBackupCheck" set to true', { poolId })
   } else {
     await backupGuard.call(this, poolId)
   }
@@ -215,7 +182,7 @@ export const rollingUpdate = deferrable(async function ($defer, { ignoreBackup =
 })
 
 rollingUpdate.params = {
-  ignoreBackup: {
+  bypassBackupCheck: {
     optional: true,
     type: 'boolean',
   },

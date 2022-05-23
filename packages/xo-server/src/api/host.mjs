@@ -2,9 +2,9 @@ import { createLogger } from '@xen-orchestra/log'
 import assert from 'assert'
 import { format } from 'json-rpc-peer'
 
-import { backupGuard } from './pool.mjs'
+import backupGuard from './_backupGuard.mjs'
 
-const log = createLogger('xo:host')
+const log = createLogger('xo:api:host')
 
 // ===================================================================
 
@@ -118,9 +118,9 @@ set.resolve = {
 
 // FIXME: set force to false per default when correctly implemented in
 // UI.
-export async function restart({ host, ignoreBackup = false, force = true }) {
-  if (ignoreBackup) {
-    log.warn('Restart host with argument "ignoreBackup" set to true', { hostId: host.id })
+export async function restart({ bypassBackupCheck = false, host, force = true }) {
+  if (bypassBackupCheck) {
+    log.warn('host.restart with argument "bypassBackupCheck" set to true', { hostId: host.id })
   } else {
     await backupGuard.call(this, host.$poolId)
   }
@@ -130,11 +130,11 @@ export async function restart({ host, ignoreBackup = false, force = true }) {
 restart.description = 'restart the host'
 
 restart.params = {
-  id: { type: 'string' },
-  ignoreBackup: {
+  bypassBackupCheck: {
     type: 'boolean',
     optional: true,
   },
+  id: { type: 'string' },
   force: {
     type: 'boolean',
     optional: true,
@@ -147,9 +147,9 @@ restart.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function restartAgent({ host, ignoreBackup = false }) {
-  if (ignoreBackup) {
-    log.warn('Restart host agent with argument "ignoreBackup" set to true', { hostId: host.id })
+export async function restartAgent({ bypassBackupCheck = false, host }) {
+  if (bypassBackupCheck) {
+    log.warn('host.restartAgent with argument "bypassBackupCheck" set to true', { hostId: host.id })
   } else {
     await backupGuard.call(this, host.$poolId)
   }
@@ -159,11 +159,11 @@ export async function restartAgent({ host, ignoreBackup = false }) {
 restartAgent.description = 'restart the Xen agent on the host'
 
 restartAgent.params = {
-  id: { type: 'string' },
-  ignoreBackup: {
+  bypassBackupCheck: {
     type: 'boolean',
     optional: true,
   },
+  id: { type: 'string' },
 }
 
 restartAgent.resolve = {
@@ -206,9 +206,9 @@ start.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function stop({ host, bypassEvacuate, ignoreBackup = false }) {
-  if (ignoreBackup) {
-    log.warn('Stop host with argument "ignoreBackup" set to true', { hostId: host.id })
+export async function stop({ bypassBackupCheck = false, host, bypassEvacuate }) {
+  if (bypassBackupCheck) {
+    log.warn('host.stop with argument "bypassBackupCheck" set to true', { hostId: host.id })
   } else {
     await backupGuard.call(this, host.$poolId)
   }
@@ -218,11 +218,11 @@ export async function stop({ host, bypassEvacuate, ignoreBackup = false }) {
 stop.description = 'stop the host'
 
 stop.params = {
-  id: { type: 'string' },
-  ignoreBackup: {
+  bypassBackupCheck: {
     type: 'boolean',
     optional: true,
   },
+  id: { type: 'string' },
   bypassEvacuate: { type: 'boolean', optional: true },
 }
 
