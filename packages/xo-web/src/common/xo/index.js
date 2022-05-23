@@ -779,7 +779,7 @@ export const restartHost = (host, force = false) =>
             await confirm({
               body: (
                 <p className='text-warning'>
-                  <Icon icon='alarm' /> {_('ignoreBackupHost')}
+                  <Icon icon='alarm' /> {_('bypassBackupHostModalMessage')}
                 </p>
               ),
               title: _('restartHostModalTitle'),
@@ -830,7 +830,7 @@ export const restartHostAgent = async host => {
       await confirm({
         body: (
           <p className='text-warning'>
-            <Icon icon='alarm' /> {_('ignoreBackupHost')}
+            <Icon icon='alarm' /> {_('bypassBackupHostModalMessage')}
           </p>
         ),
         title: _('restartHostAgent'),
@@ -872,7 +872,7 @@ export const stopHost = async host => {
         await confirm({
           body: (
             <p className='text-warning'>
-              <Icon icon='alarm' /> {_('ignoreBackupHost')}
+              <Icon icon='alarm' /> {_('bypassBackupHostModalMessage')}
             </p>
           ),
           title: _('stopHostModalTitle'),
@@ -1018,7 +1018,7 @@ export const rollingPoolUpdate = poolId =>
         confirm({
           body: (
             <p className='text-warning'>
-              <Icon icon='alarm' /> {_('rollingPoolUpdateIgnoreBackup')}
+              <Icon icon='alarm' /> {_('bypassBackupPoolModalMessage')}
             </p>
           ),
           title: _('rollingPoolUpdate'),

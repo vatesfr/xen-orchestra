@@ -1014,8 +1014,6 @@ const messages = {
   rollingPoolUpdateHaWarning: 'High Availability is enabled. This will automatically disable it during the update.',
   rollingPoolUpdateLoadBalancerWarning:
     'Load Balancer plugin is running. This will automatically pause it during the update.',
-  rollingPoolUpdateIgnoreBackup:
-    'There may be ongoing backups on the pool. Are you sure you want to start a Rolling Pool Update?',
   poolNeedsDefaultSr: 'The pool needs a default SR to install the patches.',
   vmsHaveCds: '{nVms, number} VM{nVms, plural, one {} other {s}} {nVms, plural, one {has} other {have}} CDs',
   ejectCds: 'Eject CDs',
@@ -1685,6 +1683,8 @@ const messages = {
   restoreFilesUnselectAll: 'Unselect all files',
 
   // ----- Modals -----
+  bypassBackupHostModalMessage: 'There may be ongoing backups on the host. Are you sure you want to continue?',
+  bypassBackupPoolModalMessage: 'There may be ongoing backups on the pool. Are you sure you want to continue?',
   emergencyShutdownHostModalTitle: 'Emergency shutdown Host',
   emergencyShutdownHostModalMessage: 'Are you sure you want to shutdown {host}?',
   emergencyShutdownHostsModalTitle: 'Emergency shutdown Host{nHosts, plural, one {} other {s}}',
@@ -1693,7 +1693,6 @@ const messages = {
   stopHostModalTitle: 'Shutdown host',
   stopHostModalMessage:
     "This will shutdown your host. Do you want to continue? If it's the pool master, your connection to the pool will be lost",
-  ignoreBackupHost: 'It may have running backup on the host. Do you want to continue ?',
   forceStopHost: 'Force shutdown host',
   forceStopHostMessage: 'This will shutdown your host without evacuating its VMs. Do you want to continue?',
   addHostModalTitle: 'Add host',
