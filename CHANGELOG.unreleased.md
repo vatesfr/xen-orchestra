@@ -48,6 +48,7 @@
 - @xen-orchestra/upload-ova patch
 - @xen-orchestra/backups minor
 - @xen-orchestra/backups-cli patch
+- @xen-orchestra/mixins minor
 - @xen-orchestra/proxy minor
 - xo-server minor
 - xo-web minor

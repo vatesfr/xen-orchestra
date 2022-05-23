@@ -54,8 +54,9 @@ export default class Config {
       try {
         const value = processor(get(config, path))
         if (!isEqual(value, prev)) {
+          const previous = prev
           prev = value
-          cb(value)
+          cb(value, previous, path)
         }
       } catch (error) {
         warn('watch', { error, path })
