@@ -164,15 +164,18 @@ export default class {
   // -----------------------------------------------------------------
 
   async createAuthenticationToken({ expiresIn, userId }) {
+    let duration = this._defaultTokenValidity
+    if (expiresIn !== undefined) {
+      duration = parseDuration(expiresIn)
+      if (duration > this._maxTokenValidity) {
+        throw new Error('too high expiresIn duration: ' + expiresIn)
+      }
+    }
+
     const token = new Token({
       id: await generateToken(),
       user_id: userId,
-      expiration:
-        Date.now() +
-        Math.min(
-          expiresIn !== undefined ? parseDuration(expiresIn) : this._defaultTokenValidity,
-          this._maxTokenValidity
-        ),
+      expiration: Date.now() + duration,
     })
 
     await this._tokens.add(token)
