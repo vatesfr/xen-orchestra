@@ -243,7 +243,7 @@ const SrTask = ({ children, className, task }) => (
   </li>
 )
 
-const TransferMergeTask = ({ className, task }) => {
+const TransferMergeTask = ({ className, task, parentTask }) => {
   const size = defined(() => task.result.size, 0)
   if (task.status === 'success' && size === 0) {
     return null
@@ -251,7 +251,7 @@ const TransferMergeTask = ({ className, task }) => {
 
   return (
     <li className={className}>
-      {task.data?.direction === 'download' ? (
+      {parentTask?.message === 'health check' ? (
         <Icon icon='download' />
       ) : task.message === 'transfer' ? (
         <Icon icon='upload' />
@@ -496,10 +496,10 @@ export default decorate([
                     <TaskLi key={subTaskLog.id} task={subTaskLog}>
                       <ul>
                         {map(subTaskLog.tasks, subSubTaskLog => (
-                          <TaskLi task={subSubTaskLog} key={subSubTaskLog.id}>
+                          <TaskLi task={subSubTaskLog} key={subSubTaskLog.id} parentTask={subTaskLog}>
                             <ul>
-                              {map(subSubTaskLog.tasks, subSubTaskLog => (
-                                <TaskLi task={subSubTaskLog} key={subSubTaskLog.id} />
+                              {map(subSubTaskLog.tasks, subSubSubTaskLog => (
+                                <TaskLi task={subSubSubTaskLog} key={subSubSubTaskLog.id} parentTask={subSubTaskLog} />
                               ))}
                             </ul>
                           </TaskLi>
