@@ -201,6 +201,23 @@ const SnapshotTask = ({ className, task }) => (
     <TaskError task={task} />
   </li>
 )
+const HealthCheckTask = ({ children, className, task }) => (
+  <li className={className}>
+    <Icon icon='health' /> {task.message} <TaskStateInfos status={task.status} /> <Warnings warnings={task.warnings} />
+    {children}
+    <TaskStart task={task} />
+    <TaskEnd task={task} />
+    <TaskError task={task} />
+  </li>
+)
+const HealthCheckVmStartTask = ({ children, className, task }) => (
+  <li className={className}>
+    <Icon icon='run' /> {task.message} <TaskStateInfos status={task.status} />
+    <TaskStart task={task} />
+    <TaskEnd task={task} />
+    <TaskError task={task} />
+  </li>
+)
 
 const RemoteTask = ({ children, className, task }) => (
   <li className={className}>
@@ -234,7 +251,17 @@ const TransferMergeTask = ({ className, task }) => {
 
   return (
     <li className={className}>
-      <Icon icon='task' /> {task.message} <TaskStateInfos status={task.status} />
+      {task.message === 'transfer' ? (
+        task.parent?.message === 'health check' ? (
+          <Icon icon='download' />
+        ) : (
+          <Icon icon='upload' />
+        )
+      ) : (
+        <Icon icon='task' />
+      )}{' '}
+      {task.message}
+      <TaskStateInfos status={task.status} />
       <Warnings warnings={task.warnings} />
       <TaskStart task={task} />
       <TaskEnd task={task} />
@@ -263,6 +290,8 @@ const COMPONENT_BY_MESSAGE = {
   snapshot: SnapshotTask,
   merge: TransferMergeTask,
   transfer: TransferMergeTask,
+  'health check': HealthCheckTask,
+  vmstart: HealthCheckVmStartTask,
 }
 
 const TaskLi = ({ task, ...props }) => {
@@ -287,7 +316,20 @@ export default decorate([
   addSubscriptions(({ id }) => ({
     log: cb =>
       subscribeBackupNgLogs(logs => {
-        cb(logs[id])
+        const linkParent = parent => {
+          const { tasks } = parent
+          if (tasks !== undefined) {
+            for (const task of tasks) {
+              task.parent = parent
+              linkParent(task)
+            }
+          }
+        }
+        const log = logs[id]
+        if (log !== undefined) {
+          linkParent(log)
+        }
+        cb(log)
       }),
   })),
   connectStore({
@@ -469,7 +511,13 @@ export default decorate([
                     <TaskLi key={subTaskLog.id} task={subTaskLog}>
                       <ul>
                         {map(subTaskLog.tasks, subSubTaskLog => (
-                          <TaskLi task={subSubTaskLog} key={subSubTaskLog.id} />
+                          <TaskLi task={subSubTaskLog} key={subSubTaskLog.id}>
+                            <ul>
+                              {map(subSubTaskLog.tasks, subSubSubTaskLog => (
+                                <TaskLi task={subSubSubTaskLog} key={subSubSubTaskLog.id} />
+                              ))}
+                            </ul>
+                          </TaskLi>
                         ))}
                       </ul>
                     </TaskLi>
