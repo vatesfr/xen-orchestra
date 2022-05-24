@@ -251,10 +251,12 @@ const TransferMergeTask = ({ className, task, parentTask }) => {
 
   return (
     <li className={className}>
-      {parentTask?.message === 'health check' ? (
-        <Icon icon='download' />
-      ) : task.message === 'transfer' ? (
-        <Icon icon='upload' />
+      {task.message === 'transfer' ? (
+        parentTask?.message === 'health check' ? (
+          <Icon icon='download' />
+        ) : (
+          <Icon icon='upload' />
+        )
       ) : (
         <Icon icon='task' />
       )}{' '}
