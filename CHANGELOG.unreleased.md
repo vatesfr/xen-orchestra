@@ -8,6 +8,7 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - Created SRs will now have auto-scan enabled similarly to what XenCenter does (PR [#6246](https://github.com/vatesfr/xen-orchestra/pull/6246))
+- [RPU] Disable scheduled job during RPU (PR [#6244](https://github.com/vatesfr/xen-orchestra/pull/6244))
 
 ### Bug fixes
 
