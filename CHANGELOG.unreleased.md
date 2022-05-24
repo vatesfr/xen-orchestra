@@ -43,7 +43,6 @@
 
 - vhd-lib patch
 - @xen-orchestra/fs patch
-- @xen-orchestra/backups minor
 - vhd-cli patch
 - xo-vmdk-to-vhd minor
 - @xen-orchestra/upload-ova patch
