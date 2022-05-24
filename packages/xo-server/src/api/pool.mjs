@@ -178,8 +178,7 @@ export const rollingUpdate = deferrable(async function ($defer, { bypassBackupCh
   }
 
   const poolId = pool.id
-  const schedules = await this.getAllSchedules()
-  const jobs = await this.getAllJobs('backup')
+  const [schedules, jobs] = await Promise.all([this.getAllSchedules(), this.getAllJobs('backup')])
 
   const jobsOfthePool = []
   jobs.forEach(({ id: jobId, vms }) => {
