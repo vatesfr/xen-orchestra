@@ -7,6 +7,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- Created SRs will now have auto-scan enabled similarly to what XenCenter does (PR [#6246](https://github.com/vatesfr/xen-orchestra/pull/6246))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -27,6 +29,7 @@
 
 <!--packages-start-->
 
-- xo-server patch
+- @xen-orchestra/xapi minor
+- xo-server minor
 
 <!--packages-end-->

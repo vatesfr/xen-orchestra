@@ -638,18 +638,16 @@ export const createSR = defer(async function (
     ).join(':')
     const config = { server: ipAndHosts[0].address + ':/xosan', backupservers }
     CURRENT_POOL_OPERATIONS[poolId] = { ...OPERATION_OBJECT, state: 5 }
-    const xosanSrRef = await xapi.call(
-      'SR.create',
-      firstSr.$PBDs[0].$host.$ref,
-      config,
-      0,
-      'XOSAN',
-      'XOSAN',
-      'xosan',
-      '',
-      true,
-      {}
-    )
+    const xosanSrRef = await xapi.SR_create({
+      content_type: '',
+      device_config: config,
+      host: firstSr.$PBDs[0].$host.$ref,
+      name_description: 'XOSAN',
+      name_label: 'XOSAN',
+      physical_size: 0,
+      shared: true,
+      type: 'xosan',
+    })
     log.debug('sr created')
     // we just forget because the cleanup actions are stacked in the $onFailure system
     $defer.onFailure(() => xapi.forgetSr(xosanSrRef))
