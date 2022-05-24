@@ -3,6 +3,7 @@ import { createLogger } from '@xen-orchestra/log'
 import { defer as deferrable } from 'golike-defer'
 import { format } from 'json-rpc-peer'
 import { createPredicate } from 'value-matcher'
+import { extractIdsFromSimplePattern } from '@xen-orchestra/backups/extractIdsFromSimplePattern.js'
 import { Ref } from 'xen-api'
 import { incorrectState } from 'xo-common/api-errors.js'
 
@@ -180,44 +181,36 @@ export const rollingUpdate = deferrable(async function ($defer, { bypassBackupCh
   const schedules = await this.getAllSchedules()
   const jobs = await this.getAllJobs('backup')
 
-  const scheduledJobs = []
+  const jobsOfthePool = []
   jobs.forEach(({ id: jobId, vms }) => {
     if (vms.id !== undefined) {
-      const id = vms.id.__or ?? vms.id
-      if (Array.isArray(id)) {
-        for (const vmId of id) {
+      for (const vmId of extractIdsFromSimplePattern(vms)) {
+        // try/catch to avoid `no such object`
+        try {
           if (this.getObject(vmId).$poolId === poolId) {
-            scheduledJobs.push(jobId)
+            jobsOfthePool.push(jobId)
             break
           }
-        }
-      } else {
-        // if (this.getObject(id).$poolId === poolId) {
-        //   scheduledJobs.push(jobId)
-        // }
+        } catch {}
       }
     } else {
       // SMARTMODE
       if (vms.$pool === undefined || createPredicate(vms.$pool)(poolId)) {
-        scheduledJobs.push(jobId)
+        jobsOfthePool.push(jobId)
       }
     }
   })
 
-  const enabledSchedules = schedules.filter(schedule => scheduledJobs.includes(schedule.jobId) && schedule.enabled)
+  const enabledSchedules = schedules.filter(schedule => jobsOfthePool.includes(schedule.jobId) && schedule.enabled)
 
   await Promise.all(enabledSchedules.map(schedule => this.updateSchedule({ ...schedule, enabled: false })))
   try {
-    // if ((await this.getOptionalPlugin('load-balancer'))?.loaded) {
-    //   await this.unloadPlugin('load-balancer')
-    //   $defer(() => this.loadPlugin('load-balancer'))
-    // }
+    if ((await this.getOptionalPlugin('load-balancer'))?.loaded) {
+      await this.unloadPlugin('load-balancer')
+      $defer(() => this.loadPlugin('load-balancer'))
+    }
 
-    // await this.getXapi(pool).rollingPoolUpdate()
-
-    // Just to test scheduled jobs are correctly enabled at the end of the function
-    // eslint-disable-next-line promise/param-names
-    await new Promise(r => setTimeout(r, 10000))
+    await this.getXapi(pool).rollingPoolUpdate()
   } finally {
     Promise.all(enabledSchedules.map(schedule => this.updateSchedule({ ...schedule, enabled: true })))
   }
