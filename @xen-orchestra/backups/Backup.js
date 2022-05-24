@@ -36,6 +36,8 @@ const DEFAULT_VM_SETTINGS = {
   deleteFirst: false,
   exportRetention: 0,
   fullInterval: 0,
+  healthCheckSr: undefined,
+  healthCheckVmsWithTags: [],
   maxMergedDeltasPerRun: 2,
   offlineBackup: false,
   offlineSnapshot: false,
@@ -215,6 +217,7 @@ exports.Backup = class Backup {
     const schedule = this._schedule
 
     const config = this._config
+    const settings = this._settings
     await Disposable.use(
       Disposable.all(
         extractIdsFromSimplePattern(job.srs).map(id =>
@@ -242,14 +245,13 @@ exports.Backup = class Backup {
           })
         )
       ),
-      async (srs, remoteAdapters) => {
+      () => settings.healthCheckSr !== undefined && this._getRecord('SR', settings.healthCheckSr),
+      async (srs, remoteAdapters, healthCheckSr) => {
         // remove adapters that failed (already handled)
         remoteAdapters = remoteAdapters.filter(_ => _ !== undefined)
 
         // remove srs that failed (already handled)
         srs = srs.filter(_ => _ !== undefined)
-
-        const settings = this._settings
 
         if (remoteAdapters.length === 0 && srs.length === 0 && settings.snapshotRetention === 0) {
           return
@@ -271,6 +273,7 @@ exports.Backup = class Backup {
                 baseSettings,
                 config,
                 getSnapshotNameLabel,
+                healthCheckSr,
                 job,
                 remoteAdapters,
                 schedule,

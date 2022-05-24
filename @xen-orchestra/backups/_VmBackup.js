@@ -45,7 +45,18 @@ const forkDeltaExport = deltaExport =>
   })
 
 class VmBackup {
-  constructor({ baseSettings, config, getSnapshotNameLabel, job, remoteAdapters, schedule, settings, srs, vm }) {
+  constructor({
+    config,
+    getSnapshotNameLabel,
+    healthCheckSr,
+    job,
+    remoteAdapters,
+    remotes,
+    schedule,
+    settings,
+    srs,
+    vm,
+  }) {
     if (vm.other_config['xo:backup:job'] === job.id && 'start' in vm.blocked_operations) {
       // don't match replicated VMs created by this very job otherwise they
       // will be replicated again and again
@@ -68,6 +79,7 @@ class VmBackup {
     this._fullVdisRequired = undefined
     this._getSnapshotNameLabel = getSnapshotNameLabel
     this._isDelta = job.mode === 'delta'
+    this._healthCheckSr = healthCheckSr
     this._jobId = job.id
     this._jobSnapshots = undefined
     this._xapi = vm.$xapi
@@ -94,7 +106,6 @@ class VmBackup {
         : [FullBackupWriter, FullReplicationWriter]
 
       const allSettings = job.settings
-
       Object.keys(remoteAdapters).forEach(remoteId => {
         const targetSettings = {
           ...settings,
@@ -396,6 +407,24 @@ class VmBackup {
     this._fullVdisRequired = fullVdisRequired
   }
 
+  async _healthCheck() {
+    const settings = this._settings
+
+    if (this._healthCheckSr === undefined) {
+      return
+    }
+
+    // check if current VM has tags
+    const { tags } = this.vm
+    const intersect = settings.healthCheckVmsWithTags.some(t => tags.includes(t))
+
+    if (settings.healthCheckVmsWithTags.length !== 0 && !intersect) {
+      return
+    }
+
+    await this._callWriters(writer => writer.healthCheck(this._healthCheckSr), 'writer.healthCheck()')
+  }
+
   async run($defer) {
     const settings = this._settings
     assert(
@@ -405,7 +434,9 @@ class VmBackup {
 
     await this._callWriters(async writer => {
       await writer.beforeBackup()
-      $defer(() => writer.afterBackup())
+      $defer(async () => {
+        await writer.afterBackup()
+      })
     }, 'writer.beforeBackup()')
 
     await this._fetchJobSnapshots()
@@ -441,6 +472,7 @@ class VmBackup {
       await this._fetchJobSnapshots()
       await this._removeUnusedSnapshots()
     }
+    await this._healthCheck()
   }
 }
 exports.VmBackup = VmBackup

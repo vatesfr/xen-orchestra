@@ -19,6 +19,8 @@ const { AbstractDeltaWriter } = require('./_AbstractDeltaWriter.js')
 const { checkVhd } = require('./_checkVhd.js')
 const { packUuid } = require('./_packUuid.js')
 const { Disposable } = require('promise-toolbox')
+const { HealthCheckVmBackup } = require('../HealthCheckVmBackup.js')
+const { ImportVmBackup } = require('../ImportVmBackup.js')
 
 const { warn } = createLogger('xo:backups:DeltaBackupWriter')
 
@@ -69,6 +71,35 @@ exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(Ab
     return this._cleanVm({ merge: true })
   }
 
+  healthCheck(sr) {
+    return Task.run(
+      {
+        name: 'health check',
+      },
+      async () => {
+        const xapi = sr.$xapi
+        const srUuid = sr.uuid
+        const adapter = this._adapter
+        const metadata = await adapter.readVmBackupMetadata(this._metadataFileName)
+        const { id: restoredId } = await new ImportVmBackup({
+          adapter,
+          metadata,
+          srUuid,
+          xapi,
+        }).run()
+        const restoredVm = xapi.getObject(restoredId)
+        try {
+          await new HealthCheckVmBackup({
+            restoredVm,
+            xapi,
+          }).run()
+        } finally {
+          await xapi.VM_destroy(restoredVm.$ref)
+        }
+      }
+    )
+  }
+
   prepare({ isFull }) {
     // create the task related to this export and ensure all methods are called in this context
     const task = new Task({
@@ -80,7 +111,9 @@ exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(Ab
       },
     })
     this.transfer = task.wrapFn(this.transfer)
-    this.cleanup = task.wrapFn(this.cleanup, true)
+    this.healthCheck = task.wrapFn(this.healthCheck)
+    this.cleanup = task.wrapFn(this.cleanup)
+    this.afterBackup = task.wrapFn(this.afterBackup, true)
 
     return task.run(() => this._prepare())
   }
@@ -156,7 +189,7 @@ exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(Ab
         }/${adapter.getVhdFileName(basename)}`
     )
 
-    const metadataFilename = `${backupDir}/${basename}.json`
+    const metadataFilename = (this._metadataFileName = `${backupDir}/${basename}.json`)
     const metadataContent = {
       jobId,
       mode: job.mode,
