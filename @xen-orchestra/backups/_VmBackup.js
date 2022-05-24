@@ -415,7 +415,7 @@ class VmBackup {
 
     // check if current VM has tags
     const { tags } = this.vm
-    const intersect = settings.healthCheckVmsWithTags.some(t => tags.includes(t)) ?? false
+    const intersect = settings.healthCheckVmsWithTags.some(t => tags.includes(t))
 
     if (settings.healthCheckVmsWithTags.length !== 0 && !intersect) {
       return
