@@ -94,11 +94,21 @@ export default class Scheduling {
     if (schedule === undefined) {
       throw noSuchObject(id, 'schedule')
     }
-    return schedule.properties
+    return {
+      ...schedule.properties,
+      healthCheckVmsWithTags:
+        schedule.properties.healthCheckVmsWithTags !== undefined
+          ? JSON.parse(schedule.properties.healthCheckVmsWithTags)
+          : undefined,
+    }
   }
 
   async getAllSchedules() {
-    return this._db.get()
+    return (await this._db.get()).map(schedule => ({
+      ...schedule,
+      healthCheckVmsWithTags:
+        schedule.healthCheckVmsWithTags !== undefined ? JSON.parse(schedule.healthCheckVmsWithTags) : undefined,
+    }))
   }
 
   async deleteSchedule(id) {

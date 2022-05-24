@@ -1,23 +1,14 @@
 // FIXME so far, no acls for schedules
 
 export async function getAll() {
-  return (await this.getAllSchedules()).map(schedule => ({
-    ...schedule,
-    healthCheckVmsWithTags:
-      schedule.healthCheckVmsWithTags !== undefined ? JSON.parse(schedule.healthCheckVmsWithTags) : undefined,
-  }))
+  return this.getAllSchedules()
 }
 
 getAll.permission = 'admin'
 getAll.description = 'Gets all existing schedules'
 
 export async function get(id) {
-  const schedule = await this.getSchedule(id)
-  return {
-    ...schedule,
-    healthCheckVmsWithTags:
-      schedule.healthCheckVmsWithTags !== undefined ? JSON.parse(schedule.healthCheckVmsWithTags) : undefined,
-  }
+  return this.getSchedule(id)
 }
 
 get.permission = 'admin'
