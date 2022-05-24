@@ -471,7 +471,6 @@ class VmBackup {
       await this._fetchJobSnapshots()
       await this._removeUnusedSnapshots()
     }
-    // get the SR OBJECT await xapi.getRecord('SR', srRef)
     await this._healthCheck()
   }
 }

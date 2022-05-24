@@ -41,8 +41,6 @@
 
 <!--packages-start-->
 
-- @xen-orchestra/xapi major
-- @xen-orchestra/mixins major
 - vhd-lib patch
 - @xen-orchestra/fs patch
 - @xen-orchestra/backups minor
