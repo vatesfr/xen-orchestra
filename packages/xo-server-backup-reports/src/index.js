@@ -497,7 +497,11 @@ class BackupReportsXoPlugin {
         }
 
         forEach(subTaskLog.tasks, operationLog => {
-          if (operationLog.message !== 'merge' && operationLog.message !== 'transfer') {
+          if (
+            operationLog.message !== 'merge' &&
+            operationLog.message !== 'transfer' &&
+            operationLog.message !== 'health check'
+          ) {
             return
           }
 
@@ -508,7 +512,8 @@ class BackupReportsXoPlugin {
             } else {
               globalTransferSize += size
             }
-          } else if (operationLog.status === 'success') {
+          } // don't ignore health check
+          else if (operationLog.status === 'success' && operationLog.message !== 'health check') {
             return
           }
 
