@@ -243,7 +243,7 @@ const SrTask = ({ children, className, task }) => (
   </li>
 )
 
-const TransferMergeTask = ({ className, task, parentTask }) => {
+const TransferMergeTask = ({ className, task }) => {
   const size = defined(() => task.result.size, 0)
   if (task.status === 'success' && size === 0) {
     return null
@@ -252,7 +252,7 @@ const TransferMergeTask = ({ className, task, parentTask }) => {
   return (
     <li className={className}>
       {task.message === 'transfer' ? (
-        parentTask?.message === 'health check' ? (
+        task.parent?.message === 'health check' ? (
           <Icon icon='download' />
         ) : (
           <Icon icon='upload' />
@@ -316,7 +316,20 @@ export default decorate([
   addSubscriptions(({ id }) => ({
     log: cb =>
       subscribeBackupNgLogs(logs => {
-        cb(logs[id])
+        const linkParent = parent => {
+          const { tasks } = parent
+          if (tasks !== undefined) {
+            for (const task of tasks) {
+              task.parent = parent
+              linkParent(task)
+            }
+          }
+        }
+        const log = logs[id]
+        if (log !== undefined) {
+          linkParent(log)
+        }
+        cb(log)
       }),
   })),
   connectStore({
@@ -498,10 +511,10 @@ export default decorate([
                     <TaskLi key={subTaskLog.id} task={subTaskLog}>
                       <ul>
                         {map(subTaskLog.tasks, subSubTaskLog => (
-                          <TaskLi task={subSubTaskLog} key={subSubTaskLog.id} parentTask={subTaskLog}>
+                          <TaskLi task={subSubTaskLog} key={subSubTaskLog.id}>
                             <ul>
                               {map(subSubTaskLog.tasks, subSubSubTaskLog => (
-                                <TaskLi task={subSubSubTaskLog} key={subSubSubTaskLog.id} parentTask={subSubTaskLog} />
+                                <TaskLi task={subSubSubTaskLog} key={subSubSubTaskLog.id} />
                               ))}
                             </ul>
                           </TaskLi>
