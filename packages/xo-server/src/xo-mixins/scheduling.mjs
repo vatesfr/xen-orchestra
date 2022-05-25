@@ -1,6 +1,7 @@
 import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
 import keyBy from 'lodash/keyBy.js'
 import { createSchedule } from '@xen-orchestra/cron'
+import { ifDef } from '@xen-orchestra/defined'
 import { ignoreErrors } from 'promise-toolbox'
 import { noSuchObject } from 'xo-common/api-errors.js'
 
@@ -96,18 +97,14 @@ export default class Scheduling {
     }
     return {
       ...schedule.properties,
-      healthCheckVmsWithTags:
-        schedule.properties.healthCheckVmsWithTags !== undefined
-          ? JSON.parse(schedule.properties.healthCheckVmsWithTags)
-          : undefined,
+      healthCheckVmsWithTags: ifDef(schedule.properties.healthCheckVmsWithTags, JSON.parse),
     }
   }
 
   async getAllSchedules() {
     return (await this._db.get()).map(schedule => ({
       ...schedule,
-      healthCheckVmsWithTags:
-        schedule.healthCheckVmsWithTags !== undefined ? JSON.parse(schedule.healthCheckVmsWithTags) : undefined,
+      healthCheckVmsWithTags: ifDef(schedule.healthCheckVmsWithTags, JSON.parse),
     }))
   }
 
