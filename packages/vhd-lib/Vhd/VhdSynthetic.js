@@ -2,13 +2,16 @@
 
 const UUID = require('uuid')
 const cloneDeep = require('lodash/cloneDeep.js')
+const Disposable = require('promise-toolbox/Disposable')
 const { asyncMap } = require('@xen-orchestra/async-map')
-const { VhdAbstract } = require('./VhdAbstract')
-const { DISK_TYPES, FOOTER_SIZE, HEADER_SIZE } = require('../_constants')
 
 const assert = require('assert')
+const { DISK_TYPES, FOOTER_SIZE, HEADER_SIZE } = require('../_constants')
+const { openVhd } = require('../openVhd')
+const resolveRelativeFromFile = require('../_resolveRelativeFromFile')
+const { VhdAbstract } = require('./VhdAbstract')
 
-exports.VhdSynthetic = class VhdSynthetic extends VhdAbstract {
+const VhdSynthetic = class VhdSynthetic extends VhdAbstract {
   #vhds = []
 
   get header() {
@@ -40,13 +43,6 @@ exports.VhdSynthetic = class VhdSynthetic extends VhdAbstract {
     }
   }
 
-  static async open(vhds) {
-    const vhd = new VhdSynthetic(vhds)
-    return {
-      dispose: () => {},
-      value: vhd,
-    }
-  }
   /**
    * @param {Array<VhdAbstract>} vhds the chain of Vhds used to compute this Vhd, from the deepest child (in position 0), to the root (in the last position)
    * only the last one can have any type. Other must have type DISK_TYPES.DIFFERENCING (delta)
@@ -80,6 +76,8 @@ exports.VhdSynthetic = class VhdSynthetic extends VhdAbstract {
 
   async readBlock(blockId, onlyBitmap = false) {
     const index = this.#vhds.findIndex(vhd => vhd.containsBlock(blockId))
+    assert(index !== -1, `no such block ${blockId}`)
+
     // only read the content of the first vhd containing this block
     return await this.#vhds[index].readBlock(blockId, onlyBitmap)
   }
@@ -88,3 +86,27 @@ exports.VhdSynthetic = class VhdSynthetic extends VhdAbstract {
     return this.#vhds[this.#vhds.length - 1]._readParentLocatorData(id)
   }
 }
+
+// add decorated  static method
+VhdSynthetic.fromVhdChain = Disposable.factory(async function* fromVhdChain(handler, childPath) {
+  let vhdPath = childPath
+  let vhd
+  const vhds = []
+  do {
+    vhd = yield openVhd(handler, vhdPath)
+    vhds.push(vhd)
+    vhdPath = resolveRelativeFromFile(vhdPath, vhd.header.parentUnicodeName)
+  } while (vhd.footer.diskType !== DISK_TYPES.DYNAMIC)
+
+  const synthetic = new VhdSynthetic(vhds)
+  await synthetic.readHeaderAndFooter()
+  yield synthetic
+})
+
+VhdSynthetic.open = Disposable.factory(async function* open(handler, paths, opts) {
+  const synthetic = new VhdSynthetic(yield Disposable.all(paths.map(path => openVhd(handler, path, opts))))
+  await synthetic.readHeaderAndFooter()
+  yield synthetic
+})
+
+exports.VhdSynthetic = VhdSynthetic

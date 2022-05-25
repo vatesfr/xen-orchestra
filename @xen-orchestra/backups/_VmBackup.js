@@ -45,7 +45,18 @@ const forkDeltaExport = deltaExport =>
   })
 
 class VmBackup {
-  constructor({ config, getSnapshotNameLabel, job, remoteAdapters, remotes, schedule, settings, srs, vm }) {
+  constructor({
+    config,
+    getSnapshotNameLabel,
+    healthCheckSr,
+    job,
+    remoteAdapters,
+    remotes,
+    schedule,
+    settings,
+    srs,
+    vm,
+  }) {
     if (vm.other_config['xo:backup:job'] === job.id && 'start' in vm.blocked_operations) {
       // don't match replicated VMs created by this very job otherwise they
       // will be replicated again and again
@@ -55,7 +66,6 @@ class VmBackup {
     this.config = config
     this.job = job
     this.remoteAdapters = remoteAdapters
-    this.remotes = remotes
     this.scheduleId = schedule.id
     this.timestamp = undefined
 
@@ -69,6 +79,7 @@ class VmBackup {
     this._fullVdisRequired = undefined
     this._getSnapshotNameLabel = getSnapshotNameLabel
     this._isDelta = job.mode === 'delta'
+    this._healthCheckSr = healthCheckSr
     this._jobId = job.id
     this._jobSnapshots = undefined
     this._xapi = vm.$xapi
@@ -95,7 +106,6 @@ class VmBackup {
         : [FullBackupWriter, FullReplicationWriter]
 
       const allSettings = job.settings
-
       Object.keys(remoteAdapters).forEach(remoteId => {
         const targetSettings = {
           ...settings,
@@ -173,7 +183,10 @@ class VmBackup {
     const settings = this._settings
 
     const doSnapshot =
-      this._isDelta || (!settings.offlineBackup && vm.power_state === 'Running') || settings.snapshotRetention !== 0
+      settings.unconditionalSnapshot ||
+      this._isDelta ||
+      (!settings.offlineBackup && vm.power_state === 'Running') ||
+      settings.snapshotRetention !== 0
     if (doSnapshot) {
       await Task.run({ name: 'snapshot' }, async () => {
         if (!settings.bypassVdiChainsCheck) {
@@ -183,6 +196,7 @@ class VmBackup {
         const snapshotRef = await vm[settings.checkpointSnapshot ? '$checkpoint' : '$snapshot']({
           ignoreNobakVdis: true,
           name_label: this._getSnapshotNameLabel(vm),
+          unplugVusbs: true,
         })
         this.timestamp = Date.now()
 
@@ -304,22 +318,17 @@ class VmBackup {
   }
 
   async _removeUnusedSnapshots() {
-    const jobSettings = this.job.settings
+    const allSettings = this.job.settings
+    const baseSettings = this._baseSettings
     const baseVmRef = this._baseVm?.$ref
-    const { config } = this
-    const baseSettings = {
-      ...config.defaultSettings,
-      ...config.metadata.defaultSettings,
-      ...jobSettings[''],
-    }
 
     const snapshotsPerSchedule = groupBy(this._jobSnapshots, _ => _.other_config['xo:backup:schedule'])
     const xapi = this._xapi
     await asyncMap(Object.entries(snapshotsPerSchedule), ([scheduleId, snapshots]) => {
       const settings = {
         ...baseSettings,
-        ...jobSettings[scheduleId],
-        ...jobSettings[this.vm.uuid],
+        ...allSettings[scheduleId],
+        ...allSettings[this.vm.uuid],
       }
       return asyncMap(getOldEntries(settings.snapshotRetention, snapshots), ({ $ref }) => {
         if ($ref !== baseVmRef) {
@@ -398,6 +407,24 @@ class VmBackup {
     this._fullVdisRequired = fullVdisRequired
   }
 
+  async _healthCheck() {
+    const settings = this._settings
+
+    if (this._healthCheckSr === undefined) {
+      return
+    }
+
+    // check if current VM has tags
+    const { tags } = this.vm
+    const intersect = settings.healthCheckVmsWithTags.some(t => tags.includes(t))
+
+    if (settings.healthCheckVmsWithTags.length !== 0 && !intersect) {
+      return
+    }
+
+    await this._callWriters(writer => writer.healthCheck(this._healthCheckSr), 'writer.healthCheck()')
+  }
+
   async run($defer) {
     const settings = this._settings
     assert(
@@ -407,7 +434,9 @@ class VmBackup {
 
     await this._callWriters(async writer => {
       await writer.beforeBackup()
-      $defer(() => writer.afterBackup())
+      $defer(async () => {
+        await writer.afterBackup()
+      })
     }, 'writer.beforeBackup()')
 
     await this._fetchJobSnapshots()
@@ -443,6 +472,7 @@ class VmBackup {
       await this._fetchJobSnapshots()
       await this._removeUnusedSnapshots()
     }
+    await this._healthCheck()
   }
 }
 exports.VmBackup = VmBackup

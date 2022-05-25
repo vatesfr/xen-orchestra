@@ -17,10 +17,12 @@ get.params = {
   id: { type: 'string' },
 }
 
-export function create({ cron, enabled, jobId, name, timezone }) {
+export function create({ cron, enabled, healthCheckSr, healthCheckVmsWithTags, jobId, name, timezone }) {
   return this.createSchedule({
     cron,
     enabled,
+    healthCheckSr,
+    healthCheckVmsWithTags,
     jobId,
     name,
     timezone,
@@ -33,13 +35,15 @@ create.description = 'Creates a new schedule'
 create.params = {
   cron: { type: 'string' },
   enabled: { type: 'boolean', optional: true },
+  healthCheckSr: { type: 'string', optional: true },
+  healthCheckVmsWithTags: { type: 'array', items: { type: 'string' }, optional: true },
   jobId: { type: 'string' },
   name: { type: 'string', optional: true },
   timezone: { type: 'string', optional: true },
 }
 
-export async function set({ cron, enabled, id, jobId, name, timezone }) {
-  await this.updateSchedule({ cron, enabled, id, jobId, name, timezone })
+export async function set({ cron, enabled, healthCheckSr, healthCheckVmsWithTags, id, jobId, name, timezone }) {
+  await this.updateSchedule({ cron, enabled, healthCheckSr, healthCheckVmsWithTags, id, jobId, name, timezone })
 }
 
 set.permission = 'admin'
@@ -47,6 +51,8 @@ set.description = 'Modifies an existing schedule'
 set.params = {
   cron: { type: 'string', optional: true },
   enabled: { type: 'boolean', optional: true },
+  healthCheckSr: { type: 'string', optional: true },
+  healthCheckVmsWithTags: { type: 'array', items: { type: 'string' }, optional: true },
   id: { type: 'string' },
   jobId: { type: 'string', optional: true },
   name: { type: ['string', 'null'], optional: true },

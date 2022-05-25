@@ -201,9 +201,7 @@ exports.VhdFile = class VhdFile extends VhdAbstract {
 
   readBlock(blockId, onlyBitmap = false) {
     const blockAddr = this._getBatEntry(blockId)
-    if (blockAddr === BLOCK_UNUSED) {
-      throw new Error(`no such block ${blockId}`)
-    }
+    assert(blockAddr !== BLOCK_UNUSED, `no such block ${blockId}`)
 
     return this._read(sectorsToBytes(blockAddr), onlyBitmap ? this.bitmapSize : this.fullBlockSize).then(buf =>
       onlyBitmap

@@ -125,8 +125,10 @@ export default decorate([
             type,
           }
           if (type === 's3') {
-            const { bucket, directory } = state
+            const { allowUnauthorized, bucket, directory, protocol = 'https' } = state
             urlParams.path = bucket + '/' + directory
+            urlParams.allowUnauthorized = allowUnauthorized
+            urlParams.protocol = protocol
           }
           username && (urlParams.username = username)
           password && (urlParams.password = password)

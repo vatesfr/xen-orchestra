@@ -62,17 +62,6 @@ export async function copyVm({ vm, sr }) {
     console.log('import full VM...')
     await tgtXapi.VM_destroy((await tgtXapi.importVm(input, { srId: sr })).$ref)
   }
-
-  // delta
-  {
-    console.log('export delta VM...')
-    const input = await srcXapi.exportDeltaVm(vm)
-    console.log('import delta VM...')
-    const { vm: copyVm } = await tgtXapi.importDeltaVm(input, {
-      srId: sr,
-    })
-    await tgtXapi.VM_destroy(copyVm.$ref)
-  }
 }
 
 copyVm.description = 'export/import full/delta VM'

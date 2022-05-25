@@ -8,6 +8,7 @@ import { createLogger } from '@xen-orchestra/log'
 import { createPredicate } from 'value-matcher'
 import { decorateWith } from '@vates/decorate-with'
 import { formatVmBackups } from '@xen-orchestra/backups/formatVmBackups.js'
+import { HealthCheckVmBackup } from '@xen-orchestra/backups/HealthCheckVmBackup.js'
 import { ImportVmBackup } from '@xen-orchestra/backups/ImportVmBackup.js'
 import { invalidParameters } from 'xo-common/api-errors.js'
 import { runBackupWorker } from '@xen-orchestra/backups/runBackupWorker.js'
@@ -81,7 +82,7 @@ export default class BackupNg {
         // different than the VMs in the job itself.
         let vmIds = data?.vms ?? extractIdsFromSimplePattern(vmsPattern)
 
-        await this.checkAuthorizations({ job, schedule, useSmartBackup: vmIds === undefined })
+        await this._checkAuthorizations({ job, schedule, useSmartBackup: vmIds === undefined })
         if (vmIds === undefined) {
           const poolPattern = vmsPattern.$pool
 
@@ -184,6 +185,11 @@ export default class BackupNg {
           }
           vmIds.forEach(handleRecord)
           unboxIdsFromPattern(job.srs).forEach(handleRecord)
+
+          // add xapi specific to the healthcheck SR if needed
+          if (job.settings[schedule.id].healthCheckSr !== undefined) {
+            handleRecord(job.settings[schedule.id].healthCheckSr)
+          }
 
           const remotes = {}
           const xapis = {}
@@ -301,7 +307,7 @@ export default class BackupNg {
     return job
   }
 
-  async checkAuthorizations({ job, useSmartBackup, schedule }) {
+  async _checkAuthorizations({ job, useSmartBackup, schedule }) {
     const { _app: app } = this
 
     if (job.type === 'metadataBackup') {
@@ -327,14 +333,20 @@ export default class BackupNg {
 
     // this won't check a per VM settings
     const config = app.config.get('backups')
+
+    // FIXME: does not take into account default values defined in @xen-orchestra/backups/Backup
     const jobSettings = {
       ...config.defaultSettings,
-      ...config.vm.defaultSettings,
+      ...config.vm?.defaultSettings,
       ...job.settings[''],
       ...job.settings[schedule.id],
     }
+
     if (jobSettings.checkpointSnapshot === true) {
       await app.checkFeatureAuthorization('BACKUP.WITH_RAM')
+    }
+    if (jobSettings.healthCheckSr !== undefined) {
+      await app.checkFeatureAuthorization('BACKUP.HEALTHCHECK')
     }
   }
 
@@ -535,40 +547,26 @@ export default class BackupNg {
     return backupsByVmByRemote
   }
 
-  async checkVmBackupNg(id, srId, settings) {
-    let restoredVm, xapi
-    try {
-      const restoredId = await this.importVmBackupNg(id, srId, settings)
-      const app = this._app
-      xapi = app.getXapi(srId)
-      restoredVm = xapi.getObject(restoredId)
+  async checkVmBackupNg(backupId, srId, settings) {
+    await Task.run(
+      {
+        name: 'health check',
+      },
+      async () => {
+        const app = this._app
+        const xapi = app.getXapi(srId)
+        const restoredId = await this.importVmBackupNg(backupId, srId, settings)
 
-      // remove vifs
-      await Promise.all(restoredVm.$VIFs.map(vif => xapi._deleteVif(vif)))
-
-      const start = new Date()
-      // start Vm
-      await xapi.startVm(restoredId)
-      const started = new Date()
-      const timeout = 10 * 60 * 1000
-      const startDuration = started - start
-
-      if (startDuration >= timeout) {
-        throw new Error(`VM ${restoredId} not started after ${timeout / 1000} second`)
+        const restoredVm = xapi.getObject(restoredId)
+        try {
+          await new HealthCheckVmBackup({
+            restoredVm,
+            xapi,
+          }).run()
+        } finally {
+          await xapi.VM_destroy(restoredVm.$ref)
+        }
       }
-
-      let remainingTimeout = timeout - startDuration
-
-      restoredVm = await xapi.waitObjectState(restoredVm.$ref, vm => vm.power_state === 'Running', {
-        timeout: remainingTimeout,
-      })
-      const running = new Date()
-      remainingTimeout -= running - started
-      await xapi.waitObjectState(restoredVm.guest_metrics, gm => gm?.PV_drivers_version?.major !== undefined, {
-        timeout: remainingTimeout,
-      })
-    } finally {
-      restoredVm !== undefined && xapi !== undefined && (await xapi.VM_destroy(restoredVm.$ref))
-    }
+    )
   }
 }

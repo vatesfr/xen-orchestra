@@ -1,5 +1,7 @@
 'use strict'
 
+const identity = v => v
+
 module.exports = function emitAsync(event) {
   let opts
   let i = 1
@@ -17,12 +19,18 @@ module.exports = function emitAsync(event) {
   }
 
   const onError = opts != null && opts.onError
+  const addErrorHandler = onError
+    ? (promise, listener) => promise.catch(error => onError(error, event, listener))
+    : identity
 
   return Promise.all(
     this.listeners(event).map(listener =>
-      new Promise(resolve => {
-        resolve(listener.apply(this, args))
-      }).catch(onError)
+      addErrorHandler(
+        new Promise(resolve => {
+          resolve(listener.apply(this, args))
+        }),
+        listener
+      )
     )
   )
 }

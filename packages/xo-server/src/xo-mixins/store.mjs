@@ -50,7 +50,11 @@ const valueEncoding = {
 export default class {
   constructor(app) {
     const dir = `${app.config.get('datadir')}/leveldb`
-    this._db = fse.ensureDir(dir).then(() => levelup(dir))
+    this._db = (async () => {
+      await fse.ensureDir(dir)
+      await fse.access(dir, fse.constants.R_OK | fse.constants.W_OK)
+      return levelup(dir)
+    })()
   }
 
   async getStore(namespace) {
