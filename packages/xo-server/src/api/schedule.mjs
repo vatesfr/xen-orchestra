@@ -1,14 +1,14 @@
 // FIXME so far, no acls for schedules
 
 export async function getAll() {
-  return this.getAllSchedules()
+  return /* await */ this.getAllSchedules()
 }
 
 getAll.permission = 'admin'
 getAll.description = 'Gets all existing schedules'
 
 export async function get(id) {
-  return this.getSchedule(id)
+  return /* await */ this.getSchedule(id)
 }
 
 get.permission = 'admin'
