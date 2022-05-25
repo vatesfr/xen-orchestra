@@ -1,0 +1,28 @@
+{
+  "baseUrl": "http://ci-test-xen-orchestra.localdomain/",
+  "env": {
+    "xoLab": {
+      "url": "",
+      "username": "",
+      "password": ""
+    },
+    "xenOrchestra": {
+      "host": "ci-test-xen-orchestra.localdomain",
+      "username": "",
+      "password": "",
+      "snapshotId": ""
+    },
+    "xcpNgLts": {
+      "host": "ci-test-xcp-ng-lts.localdomain",
+      "username": "",
+      "password": "",
+      "snapshotId": ""
+    },
+    "xenServerLts": {
+      "host": "ci-test-xenserver-lts.localdomain",
+      "username": "",
+      "password": "",
+      "snapshotId": ""
+    }
+  }
+}

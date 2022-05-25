@@ -1,0 +1,32 @@
+{
+  "private": true,
+  "name": "@xen-orchestra/test-e2e",
+  "version": "0.0.0",
+  "license": "AGPL-3.0-or-later",
+  "description": "E2E Tests for Xen Orchestra",
+  "repository": {
+    "directory": "@xen-orchestra/test-e2e",
+    "type": "git",
+    "url": "https://github.com/vatesfr/xen-orchestra.git"
+  },
+  "engines": {
+    "node": ">=14"
+  },
+  "author": {
+    "name": "Vates SAS",
+    "url": "https://vates.fr"
+  },
+  "bin": {
+    "restore-vm": "./scripts/restore-vm.js"
+  },
+  "devDependencies": {
+    "cypress": "^9.7.0",
+    "eslint-plugin-chai-friendly": "^0.7.2",
+    "eslint-plugin-cypress": "^2.12.1",
+    "wait-on": "^6.0.1",
+    "xo-lib": "^0.11.1"
+  },
+  "scripts": {
+    "test": "cypress run"
+  }
+}
