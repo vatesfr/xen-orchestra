@@ -321,7 +321,8 @@ const Acls = decorate([
           })
             .then(async ({ action, subjects }) => {
               if (action == null || isEmpty(subjects)) {
-                return error(_('addAclsErrorTitle'), _('addAclsErrorMessage'))
+                error(_('addAclsErrorTitle'), _('addAclsErrorMessage'))
+                return
               }
 
               await Promise.all(map(subjects, subject => addAcl({ subject, object: vm, action })))
