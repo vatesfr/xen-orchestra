@@ -56,7 +56,7 @@ export default class LevelDbLogger extends AbstractLogger {
     forEach(Array.isArray(id) ? id : [id], id => {
       this._db.get(id).then(value => {
         if (value.namespace === this._namespace) {
-          ignoreErrors.call(this._db.del(id, noop))
+          this._db.del(id, noop)
         }
       })
     })
