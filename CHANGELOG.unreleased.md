@@ -35,6 +35,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/self-signed patch
 - vhd-lib patch
 - @xen-orchestra/fs patch
 - vhd-cli patch
