@@ -1,0 +1,4 @@
+cypress/downloads
+cypress/screenshots
+cypress/videos
+cypress.json
