@@ -119,6 +119,24 @@ export default class RestApi {
         })
     }
 
+    api.post('/srs/:uuid/vdis', async (req, res, next) => {
+      try {
+        const sr = await app.getXapiObject(req.params.uuid, 'SR')
+        req.length = +req.headers['content-length']
+
+        const { name_label, name_description } = req.query
+        const vdiRef = await sr.$importVdi(req, { name_label, name_description })
+
+        res.end(vdiRef)
+      } catch (error) {
+        if (noSuchObject.is(error)) {
+          next()
+        } else {
+          next(error)
+        }
+      }
+    })
+
     api.get('/vdis/:uuid.vhd', async (req, res, next) => {
       try {
         const vdi = await app.getXapiObject(req.params.uuid, 'VDI')
