@@ -36,7 +36,7 @@
 <!--packages-start-->
 
 - @xen-orchestra/self-signed patch
-- vhd-lib patch
+- vhd-lib minor
 - @xen-orchestra/fs patch
 - vhd-cli patch
 - xo-vmdk-to-vhd minor
