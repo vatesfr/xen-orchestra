@@ -192,7 +192,7 @@ async function handleImport(req, res, { type, name, description, vmdkData, srId,
               break
             case 'vhd':
               {
-                const footer = await peekFooterFromVhdStream(vhdStream).catch(e => {
+                const footer = await peekFooterFromVhdStream(part).catch(e => {
                   if (e instanceof assert.AssertionError) {
                     throw new JsonRpcError(`Vhd file had an invalid header ${e}`)
                   }
