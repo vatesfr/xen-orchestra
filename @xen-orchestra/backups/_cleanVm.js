@@ -47,19 +47,19 @@ const computeVhdsSize = (handler, vhdPaths) =>
 //         |                              |
 //         \___________rename_____________/
 
-async function mergeVhdChain(chain, { handler, onLog, remove, merge }) {
+async function mergeVhdChain(chain, { handler, logInfo, remove, merge }) {
   assert(chain.length >= 2)
   const chainCopy = [...chain]
   const parent = chainCopy.pop()
   const children = chainCopy
 
   if (merge) {
-    onLog(`merging ${children.length} children into ${parent}`)
+    logInfo(`merging children into parent`, { childrenCount: children.length, parent })
 
     let done, total
     const handle = setInterval(() => {
       if (done !== undefined) {
-        onLog(`merging ${children.join(',')} into ${parent}: ${done}/${total}`)
+        logInfo(`merging children in progress`, { children, parent, doneCount: done, totalCount: total})
       }
     }, 10e3)
 
@@ -75,9 +75,9 @@ async function mergeVhdChain(chain, { handler, onLog, remove, merge }) {
     await Promise.all([
       VhdAbstract.rename(handler, parent, mergeTargetChild),
       asyncMap(children, child => {
-        onLog(`the VHD ${child} is already merged`)
+        logInfo(`the VHD child is already merged`, { child })
         if (remove) {
-          onLog(`deleting merged VHD ${child}`)
+          logInfo(`deleting merged VHD child`, { child })
           return VhdAbstract.unlink(handler, child)
         }
       }),
@@ -125,14 +125,19 @@ const listVhds = async (handler, vmDir) => {
   return { vhds, interruptedVhds, aliases }
 }
 
-async function checkAliases(aliasPaths, targetDataRepository, { handler, onLog = noop, remove = false }) {
+async function checkAliases(
+  aliasPaths,
+  targetDataRepository,
+  { handler, logInfo = noop, logWarn = console.warn, remove = false }
+) {
   const aliasFound = []
   for (const path of aliasPaths) {
     const target = await resolveVhdAlias(handler, path)
 
     if (!isVhdFile(target)) {
-      onLog(`Alias ${path} references a non vhd target:  ${target}`)
+      logWarn('alias references non VHD target', { path, target })
       if (remove) {
+        logInfo('removing alias and non VHD target', { path, target })
         await handler.unlink(target)
         await handler.unlink(path)
       }
@@ -147,13 +152,13 @@ async function checkAliases(aliasPaths, targetDataRepository, { handler, onLog =
         // error during dispose should not trigger a deletion
       }
     } catch (error) {
-      onLog(`target ${target} of alias ${path} is missing or broken`, { error })
+      logWarn('missing or broken alias target', { target, path, error })
       if (remove) {
         try {
           await VhdAbstract.unlink(handler, path)
-        } catch (e) {
-          if (e.code !== 'ENOENT') {
-            onLog(`Error while deleting target ${target} of alias ${path}`, { error: e })
+        } catch (error) {
+          if (error.code !== 'ENOENT') {
+            logWarn('error deleting alias target', { target, path, error })
           }
         }
       }
@@ -170,20 +175,22 @@ async function checkAliases(aliasPaths, targetDataRepository, { handler, onLog =
 
   entries.forEach(async entry => {
     if (!aliasFound.includes(entry)) {
-      onLog(`the Vhd  ${entry} is not referenced by a an alias`)
+      logWarn('no alias references VHD', { entry })
       if (remove) {
+        logInfo('deleting unaliased VHD')
         await VhdAbstract.unlink(handler, entry)
       }
     }
   })
 }
+
 exports.checkAliases = checkAliases
 
 const defaultMergeLimiter = limitConcurrency(1)
 
 exports.cleanVm = async function cleanVm(
   vmDir,
-  { fixMetadata, remove, merge, mergeLimiter = defaultMergeLimiter, onLog = noop }
+  { fixMetadata, remove, merge, mergeLimiter = defaultMergeLimiter, logInfo = noop, logWarn = console.warn }
 ) {
   const limitedMergeVhdChain = mergeLimiter(mergeVhdChain)
 
@@ -214,9 +221,9 @@ exports.cleanVm = async function cleanVm(
       })
     } catch (error) {
       vhds.delete(path)
-      onLog(`error while checking the VHD with path ${path}`, { error })
+      logWarn('VHD check error', { path, error })
       if (error?.code === 'ERR_ASSERTION' && remove) {
-        onLog(`deleting broken ${path}`)
+        logInfo('deleting broken path', { path })
         return VhdAbstract.unlink(handler, path)
       }
     }
@@ -228,12 +235,12 @@ exports.cleanVm = async function cleanVm(
       const statePath = interruptedVhds.get(interruptedVhd)
       interruptedVhds.delete(interruptedVhd)
 
-      onLog('orphan merge state', {
+      logWarn('orphan merge state', {
         mergeStatePath: statePath,
         missingVhdPath: interruptedVhd,
       })
       if (remove) {
-        onLog(`deleting orphan merge state ${statePath}`)
+        logInfo('deleting orphan merge state', { statePath })
         await handler.unlink(statePath)
       }
     }
@@ -242,7 +249,7 @@ exports.cleanVm = async function cleanVm(
   // check if alias are correct
   // check if all vhd in data subfolder have a corresponding alias
   await asyncMap(Object.keys(aliases), async dir => {
-    await checkAliases(aliases[dir], `${dir}/data`, { handler, onLog, remove })
+    await checkAliases(aliases[dir], `${dir}/data`, { handler, logInfo, logWarn, remove })
   })
 
   // remove VHDs with missing ancestors
@@ -264,9 +271,9 @@ exports.cleanVm = async function cleanVm(
       if (!vhds.has(parent)) {
         vhds.delete(vhdPath)
 
-        onLog(`the parent ${parent} of the VHD ${vhdPath} is missing`)
+        logWarn('parent VHD is missing', { parent, vhdPath })
         if (remove) {
-          onLog(`deleting orphan VHD ${vhdPath}`)
+          logInfo('deleting orphan VHD', { vhdPath })
           deletions.push(VhdAbstract.unlink(handler, vhdPath))
         }
       }
@@ -303,7 +310,7 @@ exports.cleanVm = async function cleanVm(
     // check is not good enough to delete the file, the best we can do is report
     // it
     if (!(await this.isValidXva(path))) {
-      onLog(`the XVA with path ${path} is potentially broken`)
+      logWarn('XVA might be broken', { path })
     }
   })
 
@@ -317,7 +324,7 @@ exports.cleanVm = async function cleanVm(
     try {
       metadata = JSON.parse(await handler.readFile(json))
     } catch (error) {
-      onLog(`failed to read metadata file ${json}`, { error })
+      logWarn('failed to read metadata file', { json, error })
       jsons.delete(json)
       return
     }
@@ -328,9 +335,9 @@ exports.cleanVm = async function cleanVm(
       if (xvas.has(linkedXva)) {
         unusedXvas.delete(linkedXva)
       } else {
-        onLog(`the XVA linked to the metadata ${json} is missing`)
+        logWarn('metadata XVA is missing', { json })
         if (remove) {
-          onLog(`deleting incomplete backup ${json}`)
+          logInfo('deleting incomplete backup', { json })
           jsons.delete(json)
           await handler.unlink(json)
         }
@@ -351,9 +358,9 @@ exports.cleanVm = async function cleanVm(
           vhdsToJSons[path] = json
         })
       } else {
-        onLog(`Some VHDs linked to the metadata ${json} are missing`, { missingVhds })
+        logWarn('some metadata VHDs are missing', { json, missingVhds })
         if (remove) {
-          onLog(`deleting incomplete backup ${json}`)
+          logInfo('deleting incomplete backup', { json })
           jsons.delete(json)
           await handler.unlink(json)
         }
@@ -394,9 +401,9 @@ exports.cleanVm = async function cleanVm(
         }
       }
 
-      onLog(`the VHD ${vhd} is unused`)
+      logWarn('unused VHD', { vhd })
       if (remove) {
-        onLog(`deleting unused VHD ${vhd}`)
+        logInfo('deleting unused VHD', { vhd })
         unusedVhdsDeletion.push(VhdAbstract.unlink(handler, vhd))
       }
     }
@@ -420,7 +427,7 @@ exports.cleanVm = async function cleanVm(
   const metadataWithMergedVhd = {}
   const doMerge = async () => {
     await asyncMap(toMerge, async chain => {
-      const merged = await limitedMergeVhdChain(chain, { handler, onLog, remove, merge })
+      const merged = await limitedMergeVhdChain(chain, { handler, logInfo, logWarn, remove, merge })
       if (merged !== undefined) {
         const metadataPath = vhdsToJSons[chain[0]] // all the chain should have the same metada file
         metadataWithMergedVhd[metadataPath] = true
@@ -432,18 +439,18 @@ exports.cleanVm = async function cleanVm(
     ...unusedVhdsDeletion,
     toMerge.length !== 0 && (merge ? Task.run({ name: 'merge' }, doMerge) : doMerge()),
     asyncMap(unusedXvas, path => {
-      onLog(`the XVA ${path} is unused`)
+      logWarn('unused XVA', { path })
       if (remove) {
-        onLog(`deleting unused XVA ${path}`)
+        logInfo('deleting unused XVA', { path })
         return handler.unlink(path)
       }
     }),
     asyncMap(xvaSums, path => {
       // no need to handle checksums for XVAs deleted by the script, they will be handled by `unlink()`
       if (!xvas.has(path.slice(0, -'.checksum'.length))) {
-        onLog(`the XVA checksum ${path} is unused`)
+        logInfo('unused XVA checksum', { path })
         if (remove) {
-          onLog(`deleting unused XVA checksum ${path}`)
+          logInfo('deleting unused XVA checksum', { path })
           return handler.unlink(path)
         }
       }
@@ -477,11 +484,11 @@ exports.cleanVm = async function cleanVm(
 
         // don't warn if the size has changed after a merge
         if (!merged && fileSystemSize !== size) {
-          onLog(`incorrect size in metadata: ${size ?? 'none'} instead of ${fileSystemSize}`)
+          logWarn('incorrect size in metadata', { size: size ?? 'none', fileSystemSize })
         }
       }
     } catch (error) {
-      onLog(`failed to get size of ${metadataPath}`, { error })
+      logWarn('failed to get metadata size', { metadataPath, error })
       return
     }
 
@@ -491,7 +498,7 @@ exports.cleanVm = async function cleanVm(
       try {
         await handler.writeFile(metadataPath, JSON.stringify(metadata), { flags: 'w' })
       } catch (error) {
-        onLog(`failed to update size in backup metadata ${metadataPath} after merge`, { error })
+        logWarn('metadata size update failed', { metadataPath, error })
       }
     }
   })

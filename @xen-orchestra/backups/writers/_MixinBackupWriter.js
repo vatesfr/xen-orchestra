@@ -6,8 +6,9 @@ const { join } = require('path')
 const { getVmBackupDir } = require('../_getVmBackupDir.js')
 const MergeWorker = require('../merge-worker/index.js')
 const { formatFilenameDate } = require('../_filenameDate.js')
+const { Task } = require('../Task.js')
 
-const { warn } = createLogger('xo:backups:MixinBackupWriter')
+const { info, warn } = createLogger('xo:backups:MixinBackupWriter')
 
 exports.MixinBackupWriter = (BaseClass = Object) =>
   class MixinBackupWriter extends BaseClass {
@@ -25,11 +26,17 @@ exports.MixinBackupWriter = (BaseClass = Object) =>
 
     async _cleanVm(options) {
       try {
-        return await this._adapter.cleanVm(this.#vmBackupDir, {
-          ...options,
-          fixMetadata: true,
-          onLog: warn,
-          lock: false,
+        return await Task.run({ name: 'clean-vm' }, () => {
+          return this._adapter.cleanVm(this.#vmBackupDir, {
+            ...options,
+            fixMetadata: true,
+            logInfo: info,
+            logWarn: (message, data) => {
+              warn(message, data)
+              Task.warning(message, data)
+            },
+            lock: false,
+          })
         })
       } catch (error) {
         warn(error)

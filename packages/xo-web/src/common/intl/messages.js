@@ -745,6 +745,7 @@ const messages = {
   resumeVmLabel: 'Resume',
   copyVmLabel: 'Copy',
   cloneVmLabel: 'Clone',
+  cleanVm: 'Clean VM directory',
   fastCloneVmLabel: 'Fast clone',
   vmConsoleLabel: 'Console',
   vmExportUrlValidity: 'The URL is valid once for a short period of time.',

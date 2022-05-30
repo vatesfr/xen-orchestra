@@ -23,6 +23,10 @@
     @extend .fa;
     @extend .fa-tasks;
   }
+  &-clean-vm {
+    @extend .fa;
+    @extend .fa-recycle;
+  }
   &-template {
     @extend .fa;
     @extend .fa-thumb-tack;
