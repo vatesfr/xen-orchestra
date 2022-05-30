@@ -147,8 +147,11 @@ curl \
   -b authenticationToken=KQxQdm2vMiv7jBIK0hgkmgxKzemd8wSJ7ugFGKFkTbs \
   -H 'Content-Type: application/octet-stream' \
   --data-binary @myDisk.vhd \
-  'https://xo.company.lan/rest/v0/srs/357bd56c-71f9-4b2a-83b8-3451dec04b8f/vdis?name_label=my_imported_VDI'
+  'https://xo.company.lan/rest/v0/srs/357bd56c-71f9-4b2a-83b8-3451dec04b8f/vdis?name_label=my_imported_VDI' \
+  | cat
 ```
+
+> Note: the final `| cat` ensures cURL's standard output is not a TTY, which is necessary for upload stats to be dislayed.
 
 This request returns the UUID of the created VDI.
 
