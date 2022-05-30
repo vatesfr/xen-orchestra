@@ -509,8 +509,11 @@ migrate.params = {
   // Identifier of the Network use for the migration
   migrationNetwork: { type: 'string', optional: true },
 
-  // Bypass the verification asserting whether a VM can be migrated to the specified destination.
-  bypassAssert: { type: 'boolean', optional: true },
+  bypassAssert: {
+    description: 'Bypass the verification asserting whether a VM can be migrated to the specified destination,
+    optional: true,
+    type: 'boolean',
+  },
 }
 
 migrate.resolve = {
