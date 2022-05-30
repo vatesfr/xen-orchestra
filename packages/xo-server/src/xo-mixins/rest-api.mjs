@@ -121,7 +121,7 @@ export default class RestApi {
 
     api.post('/srs/:uuid/vdis', async (req, res, next) => {
       try {
-        const sr = await app.getXapiObject(req.params.uuid, 'SR')
+        const sr = app.getXapiObject(req.params.uuid, 'SR')
         req.length = +req.headers['content-length']
 
         const { name_label, name_description } = req.query
@@ -139,7 +139,7 @@ export default class RestApi {
 
     api.get('/vdis/:uuid.vhd', async (req, res, next) => {
       try {
-        const vdi = await app.getXapiObject(req.params.uuid, 'VDI')
+        const vdi = app.getXapiObject(req.params.uuid, 'VDI')
         const stream = await vdi.$xapi.VDI_exportContent(vdi.$ref, { format: 'vhd' })
 
         stream.headers['content-disposition'] = 'attachment'
@@ -157,7 +157,7 @@ export default class RestApi {
 
     api.get('/vms/:uuid.xva', async (req, res, next) => {
       try {
-        const vm = await app.getXapiObject(req.params.uuid, 'VM')
+        const vm = app.getXapiObject(req.params.uuid, 'VM')
         const stream = await vm.$xapi.VM_export(vm.$ref, { compress: req.query.compress })
 
         stream.headers['content-disposition'] = 'attachment'
