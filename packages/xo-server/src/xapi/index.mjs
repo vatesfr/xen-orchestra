@@ -593,6 +593,7 @@ export default class Xapi extends XapiBase {
       mapVdisSrs = {},
       mapVifsNetworks,
       force = false,
+      bypassAssert = false,
     }
   ) {
     const getDefaultSrRef = once(() => {
@@ -661,23 +662,28 @@ export default class Xapi extends XapiBase {
       }
     }
 
-    const token = await hostXapi.call('host.migrate_receive', host.$ref, migrationNetwork.$ref, {})
+    const params = [
+      vm.$ref,
+      await hostXapi.call('host.migrate_receive', host.$ref, migrationNetwork.$ref, {}), // token
+      true, // Live migration.
+      vdis,
+      vifsMap,
+      {
+        force: force ? 'true' : 'false',
+      },
+      // FIXME: missing param `vgu_map`, it does not cause issues ATM but it
+      // might need to be changed one day.
+      // {},
+    ]
+
+    if (!bypassAssert) {
+      await this.callAsync('VM.assert_can_migrate', ...params)
+    }
 
     const loop = () =>
-      this.callAsync(
-        'VM.migrate_send',
-        vm.$ref,
-        token,
-        true, // Live migration.
-        vdis,
-        vifsMap,
-        {
-          force: force ? 'true' : 'false',
-        }
-        // FIXME: missing param `vgu_map`, it does not cause issues ATM but it
-        // might need to be changed one day.
-        // {},
-      )::pCatch({ code: 'TOO_MANY_STORAGE_MIGRATES' }, () => pDelay(1e4).then(loop))
+      this.callAsync('VM.migrate_send', ...params)::pCatch({ code: 'TOO_MANY_STORAGE_MIGRATES' }, () =>
+        pDelay(1e4).then(loop)
+      )
 
     return loop().then(noop)
   }
@@ -913,7 +919,7 @@ export default class Xapi extends XapiBase {
     throw new Error(`unsupported type: '${type}'`)
   }
 
-  async migrateVm(vmId, hostXapi, hostId, { force = false, mapVdisSrs, mapVifsNetworks, migrationNetworkId, sr } = {}) {
+  async migrateVm(vmId, hostXapi, hostId, { force = false, mapVdisSrs, mapVifsNetworks, migrationNetworkId, sr, bypassAssert } = {}) {
     const vm = this.getObject(vmId)
     const host = hostXapi.getObject(hostId)
 
@@ -932,6 +938,7 @@ export default class Xapi extends XapiBase {
         mapVdisSrs,
         mapVifsNetworks,
         force,
+        bypassAssert,
       })
     } else {
       try {

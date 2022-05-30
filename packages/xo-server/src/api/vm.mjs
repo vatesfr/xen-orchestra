@@ -444,7 +444,7 @@ insertCd.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function migrate({ vm, host, sr, mapVdisSrs, mapVifsNetworks, migrationNetwork, force }) {
+export async function migrate({ vm, host, sr, mapVdisSrs, mapVifsNetworks, migrationNetwork, force, bypassAssert = false }) {
   let mapVdisSrsXapi, mapVifsNetworksXapi
   const permissions = []
 
@@ -475,6 +475,7 @@ export async function migrate({ vm, host, sr, mapVdisSrs, mapVifsNetworks, migra
       mapVifsNetworks: mapVifsNetworksXapi,
       mapVdisSrs: mapVdisSrsXapi,
       force,
+      bypassAssert,
     })
     .catch(error => {
       if (error?.code !== undefined) {
@@ -507,6 +508,12 @@ migrate.params = {
 
   // Identifier of the Network use for the migration
   migrationNetwork: { type: 'string', optional: true },
+
+  bypassAssert: {
+    description: 'Bypass the verification asserting whether a VM can be migrated to the specified destination,
+    optional: true,
+    type: 'boolean',
+  },
 }
 
 migrate.resolve = {
