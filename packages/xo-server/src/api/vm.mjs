@@ -444,7 +444,16 @@ insertCd.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function migrate({ vm, host, sr, mapVdisSrs, mapVifsNetworks, migrationNetwork, force, bypassAssert = false }) {
+export async function migrate({
+  bypassAssert = false,
+  force,
+  host,
+  mapVdisSrs,
+  mapVifsNetworks,
+  migrationNetwork,
+  sr,
+  vm,
+}) {
   let mapVdisSrsXapi, mapVifsNetworksXapi
   const permissions = []
 
