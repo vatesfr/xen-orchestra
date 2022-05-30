@@ -193,26 +193,34 @@ export const rollingUpdate = deferrable(async function ($defer, { bypassBackupCh
         } catch {}
       }
     } else {
-      // SMARTMODE
+      // Smart mode
+      // For smart mode, we take a simplified approach:
+      // - if smart mode is explicitly 'resident' or 'not resident' on pools, we
+      //   check if it concerns this pool
+      // - if not, the job may concern this pool so we add it to `jobsOfThePool`
       if (vms.$pool === undefined || createPredicate(vms.$pool)(poolId)) {
         jobsOfthePool.push(jobId)
       }
     }
   })
 
-  const enabledSchedules = schedules.filter(schedule => jobsOfthePool.includes(schedule.jobId) && schedule.enabled)
+  // Disable schedules
+  await Promise.all(
+    schedules
+      .filter(schedule => jobsOfthePool.includes(schedule.jobId) && schedule.enabled)
+      .map(async schedule => {
+        await this.updateSchedule({ ...schedule, enabled: false })
+        $defer(() => this.updateSchedule({ ...schedule, enabled: true }))
+      })
+  )
 
-  await Promise.all(enabledSchedules.map(schedule => this.updateSchedule({ ...schedule, enabled: false })))
-  try {
-    if ((await this.getOptionalPlugin('load-balancer'))?.loaded) {
-      await this.unloadPlugin('load-balancer')
-      $defer(() => this.loadPlugin('load-balancer'))
-    }
-
-    await this.getXapi(pool).rollingPoolUpdate()
-  } finally {
-    Promise.all(enabledSchedules.map(schedule => this.updateSchedule({ ...schedule, enabled: true })))
+  // Disable load balancer
+  if ((await this.getOptionalPlugin('load-balancer'))?.loaded) {
+    await this.unloadPlugin('load-balancer')
+    $defer(() => this.loadPlugin('load-balancer'))
   }
+
+  await this.getXapi(pool).rollingPoolUpdate()
 })
 
 rollingUpdate.params = {
