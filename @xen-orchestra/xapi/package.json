@@ -1,6 +1,6 @@
 {
   "name": "@xen-orchestra/xapi",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/xapi",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "repository": {
@@ -28,7 +28,7 @@
     "golike-defer": "^0.5.1",
     "lodash": "^4.17.15",
     "promise-toolbox": "^0.21.0",
-    "vhd-lib": "^3.1.0",
+    "vhd-lib": "^3.2.0",
     "xo-common": "^0.8.0"
   },
   "private": false,
