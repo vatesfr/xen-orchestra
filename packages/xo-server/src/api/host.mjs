@@ -1,5 +1,10 @@
+import { createLogger } from '@xen-orchestra/log'
 import assert from 'assert'
 import { format } from 'json-rpc-peer'
+
+import backupGuard from './_backupGuard.mjs'
+
+const log = createLogger('xo:api:host')
 
 // ===================================================================
 
@@ -113,13 +118,22 @@ set.resolve = {
 
 // FIXME: set force to false per default when correctly implemented in
 // UI.
-export function restart({ host, force = true }) {
+export async function restart({ bypassBackupCheck = false, host, force = true }) {
+  if (bypassBackupCheck) {
+    log.warn('host.restart with argument "bypassBackupCheck" set to true', { hostId: host.id })
+  } else {
+    await backupGuard.call(this, host.$poolId)
+  }
   return this.getXapi(host).rebootHost(host._xapiId, force)
 }
 
 restart.description = 'restart the host'
 
 restart.params = {
+  bypassBackupCheck: {
+    type: 'boolean',
+    optional: true,
+  },
   id: { type: 'string' },
   force: {
     type: 'boolean',
@@ -133,13 +147,22 @@ restart.resolve = {
 
 // -------------------------------------------------------------------
 
-export function restartAgent({ host }) {
+export async function restartAgent({ bypassBackupCheck = false, host }) {
+  if (bypassBackupCheck) {
+    log.warn('host.restartAgent with argument "bypassBackupCheck" set to true', { hostId: host.id })
+  } else {
+    await backupGuard.call(this, host.$poolId)
+  }
   return this.getXapiObject(host).$restartAgent()
 }
 
 restartAgent.description = 'restart the Xen agent on the host'
 
 restartAgent.params = {
+  bypassBackupCheck: {
+    type: 'boolean',
+    optional: true,
+  },
   id: { type: 'string' },
 }
 
@@ -183,13 +206,22 @@ start.resolve = {
 
 // -------------------------------------------------------------------
 
-export function stop({ host, bypassEvacuate }) {
+export async function stop({ bypassBackupCheck = false, host, bypassEvacuate }) {
+  if (bypassBackupCheck) {
+    log.warn('host.stop with argument "bypassBackupCheck" set to true', { hostId: host.id })
+  } else {
+    await backupGuard.call(this, host.$poolId)
+  }
   return this.getXapi(host).shutdownHost(host._xapiId, { bypassEvacuate })
 }
 
 stop.description = 'stop the host'
 
 stop.params = {
+  bypassBackupCheck: {
+    type: 'boolean',
+    optional: true,
+  },
   id: { type: 'string' },
   bypassEvacuate: { type: 'boolean', optional: true },
 }

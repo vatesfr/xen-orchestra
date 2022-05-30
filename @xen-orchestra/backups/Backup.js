@@ -6,7 +6,7 @@ const ignoreErrors = require('promise-toolbox/ignoreErrors')
 const { compileTemplate } = require('@xen-orchestra/template')
 const { limitConcurrency } = require('limit-concurrency-decorator')
 
-const { extractIdsFromSimplePattern } = require('./_extractIdsFromSimplePattern.js')
+const { extractIdsFromSimplePattern } = require('./extractIdsFromSimplePattern.js')
 const { PoolMetadataBackup } = require('./_PoolMetadataBackup.js')
 const { Task } = require('./Task.js')
 const { VmBackup } = require('./_VmBackup.js')

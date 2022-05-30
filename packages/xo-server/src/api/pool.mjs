@@ -1,10 +1,15 @@
 import { asyncMap } from '@xen-orchestra/async-map'
+import { createLogger } from '@xen-orchestra/log'
 import { defer as deferrable } from 'golike-defer'
 import { format } from 'json-rpc-peer'
 import { Ref } from 'xen-api'
 import { incorrectState } from 'xo-common/api-errors.js'
 
+import backupGuard from './_backupGuard.mjs'
+
 import { moveFirst } from '../_moveFirst.mjs'
+
+const log = createLogger('xo:api:pool')
 
 // ===================================================================
 
@@ -162,7 +167,14 @@ installPatches.description = 'Install patches on hosts'
 
 // -------------------------------------------------------------------
 
-export const rollingUpdate = deferrable(async function ($defer, { pool }) {
+export const rollingUpdate = deferrable(async function ($defer, { bypassBackupCheck = false, pool }) {
+  const poolId = pool.id
+  if (bypassBackupCheck) {
+    log.warn('pool.rollingUpdate update with argument "bypassBackupCheck" set to true', { poolId })
+  } else {
+    await backupGuard.call(this, poolId)
+  }
+
   if ((await this.getOptionalPlugin('load-balancer'))?.loaded) {
     await this.unloadPlugin('load-balancer')
     $defer(() => this.loadPlugin('load-balancer'))
@@ -172,6 +184,10 @@ export const rollingUpdate = deferrable(async function ($defer, { pool }) {
 })
 
 rollingUpdate.params = {
+  bypassBackupCheck: {
+    optional: true,
+    type: 'boolean',
+  },
   pool: { type: 'string' },
 }
 

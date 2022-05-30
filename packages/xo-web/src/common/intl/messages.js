@@ -1688,6 +1688,8 @@ const messages = {
   restoreFilesUnselectAll: 'Unselect all files',
 
   // ----- Modals -----
+  bypassBackupHostModalMessage: 'There may be ongoing backups on the host. Are you sure you want to continue?',
+  bypassBackupPoolModalMessage: 'There may be ongoing backups on the pool. Are you sure you want to continue?',
   emergencyShutdownHostModalTitle: 'Emergency shutdown Host',
   emergencyShutdownHostModalMessage: 'Are you sure you want to shutdown {host}?',
   emergencyShutdownHostsModalTitle: 'Emergency shutdown Host{nHosts, plural, one {} other {s}}',

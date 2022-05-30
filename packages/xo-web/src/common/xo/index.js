@@ -766,11 +766,34 @@ export const restartHost = (host, force = false) =>
     body: _('restartHostModalMessage'),
   }).then(
     () =>
-      _call('host.restart', { id: resolveId(host), force }).catch(error => {
-        if (noHostsAvailable.is(error)) {
-          alert(_('noHostsAvailableErrorTitle'), _('noHostsAvailableErrorMessage'))
-        }
-      }),
+      _call('host.restart', { id: resolveId(host), force })
+        .catch(async error => {
+          if (
+            forbiddenOperation.is(error, {
+              reason: `A backup may run on the pool: ${host.$poolId}`,
+            }) ||
+            forbiddenOperation.is(error, {
+              reason: `A backup is running on the pool: ${host.$poolId}`,
+            })
+          ) {
+            await confirm({
+              body: (
+                <p className='text-warning'>
+                  <Icon icon='alarm' /> {_('bypassBackupHostModalMessage')}
+                </p>
+              ),
+              title: _('restartHostModalTitle'),
+            })
+            return _call('host.restart', { id: resolveId(host), force, ignoreBackup: true })
+          }
+          throw error
+        })
+        .catch(error => {
+          if (noHostsAvailable.is(error)) {
+            alert(_('noHostsAvailableErrorTitle'), _('noHostsAvailableErrorMessage'))
+          }
+          throw error
+        }),
     noop
   )
 
@@ -799,7 +822,24 @@ export const restartHosts = (hosts, force = false) => {
   )
 }
 
-export const restartHostAgent = host => _call('host.restart_agent', { id: resolveId(host) })
+export const restartHostAgent = async host => {
+  try {
+    await _call('host.restart_agent', { id: resolveId(host) })
+  } catch (error) {
+    if (forbiddenOperation.is(error)) {
+      await confirm({
+        body: (
+          <p className='text-warning'>
+            <Icon icon='alarm' /> {_('bypassBackupHostModalMessage')}
+          </p>
+        ),
+        title: _('restartHostAgent'),
+      })
+      return _call('host.restart_agent', { id: resolveId(host), ignoreBackup: true })
+    }
+    throw error
+  }
+}
 
 export const restartHostsAgents = hosts => {
   const nHosts = size(hosts)
@@ -817,19 +857,41 @@ export const stopHost = async host => {
     title: _('stopHostModalTitle'),
   })
 
-  try {
-    await _call('host.stop', { id: resolveId(host) })
-  } catch (err) {
-    if (err.message === 'no hosts available') {
-      // Retry with bypassEvacuate.
-      await confirm({
-        body: _('forceStopHostMessage'),
-        title: _('forceStopHost'),
-      })
-      return _call('host.stop', { id: resolveId(host), bypassEvacuate: true })
-    }
-    throw error
-  }
+  let ignoreBackup = false
+  return _call('host.stop', { id: resolveId(host) })
+    .catch(async err => {
+      if (
+        forbiddenOperation.is(err, {
+          reason: `A backup may run on the pool: ${host.$poolId}`,
+        }) ||
+        forbiddenOperation.is(error, {
+          reason: `A backup is running on the pool: ${host.$poolId}`,
+        })
+      ) {
+        ignoreBackup = true
+        await confirm({
+          body: (
+            <p className='text-warning'>
+              <Icon icon='alarm' /> {_('bypassBackupHostModalMessage')}
+            </p>
+          ),
+          title: _('stopHostModalTitle'),
+        })
+        return _call('host.stop', { id: resolveId(host), ignoreBackup })
+      }
+      throw err
+    })
+    .catch(async err => {
+      if (noHostsAvailable.is(err)) {
+        await confirm({
+          body: _('forceStopHostMessage'),
+          title: _('forceStopHost'),
+        })
+        // Retry with bypassEvacuate.
+        return _call('host.stop', { id: resolveId(host), bypassEvacuate: true, ignoreBackup })
+      }
+      throw err
+    })
 }
 
 export const stopHosts = hosts => {
@@ -946,9 +1008,31 @@ export const rollingPoolUpdate = poolId =>
     body: <RollingPoolUpdateModal pool={poolId} />,
     title: _('rollingPoolUpdate'),
     icon: 'pool-rolling-update',
-  }).then(
-    () => _call('pool.rollingUpdate', { pool: poolId })::tap(() => subscribeHostMissingPatches.forceRefresh()),
-    noop
+  }).then(() =>
+    _call('pool.rollingUpdate', { pool: poolId })::tap(
+      () => subscribeHostMissingPatches.forceRefresh(),
+      err => {
+        if (!forbiddenOperation.is(err)) {
+          throw err
+        }
+        confirm({
+          body: (
+            <p className='text-warning'>
+              <Icon icon='alarm' /> {_('bypassBackupPoolModalMessage')}
+            </p>
+          ),
+          title: _('rollingPoolUpdate'),
+          icon: 'pool-rolling-update',
+        }).then(
+          () =>
+            _call('pool.rollingUpdate', { ignoreBackup: true, pool: poolId })::tap(() =>
+              subscribeHostMissingPatches.forceRefresh()
+            ),
+          noop
+        )
+      },
+      noop
+    )
   )
 
 export const installSupplementalPack = (host, file) => {
