@@ -13,7 +13,7 @@ import { Text, XoSelect } from 'editable'
 import { isEmpty, map } from 'lodash'
 import { addTag, editVm, fetchVmStats, migrateVm, removeTag, startVm, stopVm, subscribeResourceSets } from 'xo'
 import { addSubscriptions, connectStore, formatSizeShort, osFamily } from 'utils'
-import { createFinder, createGetObject, createGetVmDisks, createSelector, createSumBy } from 'selectors'
+import { createFinder, createGetObject, createGetVmDisks, createSelector, createSumBy, isAdmin } from 'selectors'
 
 import MiniStats from './mini-stats'
 import styles from './index.css'
@@ -23,6 +23,7 @@ import styles from './index.css'
 })
 @connectStore(() => ({
   container: createGetObject((_, props) => props.item.$container),
+  isAdmin,
   totalDiskSize: createSumBy(
     createGetVmDisks((_, props) => props.item),
     'size'
@@ -65,7 +66,7 @@ export default class VmItem extends Component {
   )
 
   render() {
-    const { item: vm, container, expandAll, selected } = this.props
+    const { item: vm, container, expandAll, isAdmin, selected } = this.props
     const resourceSet = this._getResourceSet()
     const state = this._getVmState()
 
@@ -189,7 +190,11 @@ export default class VmItem extends Component {
                   {resourceSet && (
                     <span>
                       {_('homeResourceSet', {
-                        resourceSet: <Link to={`self?resourceSet=${resourceSet.id}`}>{resourceSet.name}</Link>,
+                        resourceSet: isAdmin ? (
+                          <Link to={`self?resourceSet=${resourceSet.id}`}>{resourceSet.name}</Link>
+                        ) : (
+                          resourceSet.name
+                        ),
                       })}
                     </span>
                   )}
