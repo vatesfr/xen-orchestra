@@ -1,7 +1,6 @@
 import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
 import keyBy from 'lodash/keyBy.js'
 import { createSchedule } from '@xen-orchestra/cron'
-import { ifDef } from '@xen-orchestra/defined'
 import { ignoreErrors } from 'promise-toolbox'
 import { noSuchObject } from 'xo-common/api-errors.js'
 
@@ -97,10 +96,7 @@ export default class Scheduling {
   }
 
   async getAllSchedules() {
-    return (await this._db.get()).map(schedule => ({
-      ...schedule,
-      healthCheckVmsWithTags: ifDef(schedule.healthCheckVmsWithTags, JSON.parse),
-    }))
+    return await this._db.get()
   }
 
   async deleteSchedule(id) {
@@ -108,14 +104,11 @@ export default class Scheduling {
     await this._db.remove(id)
   }
 
-  async updateSchedule({ cron, enabled, healthCheckSr, healthCheckVmsWithTags, id, jobId, name, timezone, userId }) {
+  async updateSchedule({ cron, enabled, id, jobId, name, timezone, userId }) {
     const schedule = await this.getSchedule(id)
     patch(schedule, {
       cron,
       enabled,
-      // null to delete the key of the object in case we remove healthcheck
-      healthCheckSr: healthCheckVmsWithTags !== undefined ? healthCheckSr : null,
-      healthCheckVmsWithTags: JSON.stringify(healthCheckVmsWithTags) ?? null,
       jobId,
       name,
       timezone,

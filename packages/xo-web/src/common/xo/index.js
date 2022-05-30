@@ -2108,13 +2108,8 @@ export const cancelJob = ({ id, name, runId }) =>
 
 // Backup/Schedule ---------------------------------------------------------
 
-export const createSchedule = (
-  jobId,
-  { cron, enabled, healthCheckSr, healthCheckVmsWithTags, name = undefined, timezone = undefined }
-) =>
-  _call('schedule.create', { jobId, cron, enabled, healthCheckSr, healthCheckVmsWithTags, name, timezone })::tap(
-    subscribeSchedules.forceRefresh
-  )
+export const createSchedule = (jobId, { cron, enabled, name = undefined, timezone = undefined }) =>
+  _call('schedule.create', { jobId, cron, enabled, name, timezone })::tap(subscribeSchedules.forceRefresh)
 
 export const deleteBackupSchedule = async schedule => {
   await confirm({
@@ -2145,10 +2140,8 @@ export const deleteSchedules = schedules =>
 
 export const disableSchedule = id => editSchedule({ id, enabled: false })
 
-export const editSchedule = ({ id, jobId, cron, enabled, healthCheckSr, healthCheckVmsWithTags, name, timezone }) =>
-  _call('schedule.set', { id, jobId, cron, enabled, healthCheckSr, healthCheckVmsWithTags, name, timezone })::tap(
-    subscribeSchedules.forceRefresh
-  )
+export const editSchedule = ({ id, jobId, cron, enabled, name, timezone }) =>
+  _call('schedule.set', { id, jobId, cron, enabled, name, timezone })::tap(subscribeSchedules.forceRefresh)
 
 export const enableSchedule = id => editSchedule({ id, enabled: true })
 
