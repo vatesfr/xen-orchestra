@@ -510,7 +510,7 @@ migrate.params = {
   migrationNetwork: { type: 'string', optional: true },
 
   bypassAssert: {
-    description: 'Bypass the verification asserting whether a VM can be migrated to the specified destination,
+    description: 'Bypass the verification asserting whether a VM can be migrated to the specified destination',
     optional: true,
     type: 'boolean',
   },
