@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 'use strict'
 
-const { program, Argument } = require('commander')
 const DepTree = require('deptree')
 const fs = require('fs').promises
 const joinPath = require('path').join
@@ -9,6 +8,7 @@ const semver = require('semver')
 const { getPackages } = require('./utils')
 const escapeRegExp = require('lodash/escapeRegExp')
 const invert = require('lodash/invert')
+const keyBy = require('lodash/keyBy')
 
 const changelogConfig = {
   path: joinPath(__dirname, '../CHANGELOG.unreleased.md'),
@@ -16,95 +16,98 @@ const changelogConfig = {
   endTag: '<!--packages-end-->',
 }
 
-program
-  .argument('<package-name>', 'The name of the package to release')
-  .addArgument(new Argument('<release-type>', 'The type of release to perform').choices(['patch', 'minor', 'major']))
-  .option('-r, --read-changelog', 'Import existing packages from the changelog')
-  .option('-w, --write-changelog', 'Write output to the changelog')
-  .option('--force', 'Required when using --write-changelog without --read-changelog')
-  .showHelpAfterError(true)
-  .showSuggestionAfterError(true)
-  .parse()
-
-const [rootPackageName, rootReleaseType] = program.args
-const { readChangelog, writeChangelog, force } = program.opts()
-
-if (writeChangelog && !readChangelog && !force) {
-  // Stop the process to prevent unwanted changelog overwrite
-  program.showHelpAfterError(false).error(`
-  WARNING: Using --write-changelog without --read-changelog will remove existing packages list.
-  If you are sure you want to do this, add --force.
-  `)
-}
-
 const RELEASE_WEIGHT = { PATCH: 1, MINOR: 2, MAJOR: 3 }
 const RELEASE_TYPE = invert(RELEASE_WEIGHT)
-const rootReleaseWeight = releaseTypeToWeight(rootReleaseType)
-
-/** @type {Map<string, int>} A mapping of package names to their release weight */
-const packagesToRelease = new Map([[rootPackageName, rootReleaseWeight]])
 
 const dependencyTree = new DepTree()
+/** @type {Map<string, int>} A mapping of package names to their release weight */
+const packagesToRelease = new Map()
+
+let allPackages
 
 async function main() {
-  if (readChangelog) {
-    await importPackagesFromChangelog()
+  allPackages = keyBy(await getPackages(true), 'name')
+  const content = await fs.readFile(changelogConfig.path)
+  const changelogRegex = new RegExp(
+    `${escapeRegExp(changelogConfig.startTag)}(.*)${escapeRegExp(changelogConfig.endTag)}`,
+    's'
+  )
+  const block = changelogRegex.exec(content)?.[1].trim()
+
+  if (block === undefined) {
+    throw new Error(`Could not find changelog block in ${changelogConfig.path}`)
   }
 
-  const packages = await getPackages(true)
-  const rootPackage = packages.find(pkg => pkg.name === rootPackageName)
+  block.split('\n').forEach(rawLine => {
+    const line = rawLine.trim()
 
-  if (!rootPackage) {
-    program.showHelpAfterError(false).error(`error: Package ${rootPackageName} not found`)
-  }
+    if (!line) {
+      return
+    }
 
-  dependencyTree.add(rootPackage.name)
+    const match = line.match(/^-\s*(?<packageName>\S+)\s+(?<releaseType>patch|minor|major)$/)
 
-  /**
-   * Recursively add dependencies to the dependency tree
-   *
-   * @param {string} handledPackageName The name of the package to handle
-   * @param {string} handledPackageNextVersion The next version of the package to handle
-   */
-  function handlePackage(handledPackageName, handledPackageNextVersion) {
-    packages.forEach(({ package: { name, version, dependencies, optionalDependencies, peerDependencies } }) => {
+    if (!match) {
+      throw new Error(`Invalid line: "${rawLine}"`)
+    }
+
+    const {
+      groups: { packageName, releaseType },
+    } = match
+
+    const rootPackage = allPackages[packageName]
+
+    if (!rootPackage) {
+      throw new Error(`Package "${packageName}" does not exist`)
+    }
+
+    const rootReleaseWeight = releaseTypeToWeight(releaseType)
+    registerPackageToRelease(packageName, rootReleaseWeight)
+    dependencyTree.add(rootPackage.name)
+
+    handlePackageDependencies(rootPackage.name, getNextVersion(rootPackage.version, rootReleaseWeight))
+  })
+
+  const commandsToExecute = ['', 'Commands to execute:', '']
+  const releasedPackages = ['', '### Released packages', '']
+
+  dependencyTree.resolve().forEach(dependencyName => {
+    const releaseWeight = packagesToRelease.get(dependencyName)
+    const {
+      package: { version },
+    } = allPackages[dependencyName]
+    commandsToExecute.push(`./scripts/bump-pkg ${dependencyName} ${RELEASE_TYPE[releaseWeight].toLocaleLowerCase()}`)
+    releasedPackages.push(`- ${dependencyName} ${getNextVersion(version, releaseWeight)}`)
+  })
+
+  console.log(commandsToExecute.join('\n'))
+  console.log(releasedPackages.join('\n'))
+}
+
+/**
+ * Recursively add dependencies to the dependency tree
+ *
+ * @param {string} packageName The name of the package to handle
+ * @param {string} packageNextVersion The next version of the package to handle
+ */
+function handlePackageDependencies(packageName, packageNextVersion) {
+  Object.values(allPackages).forEach(
+    ({ package: { name, version, dependencies, optionalDependencies, peerDependencies } }) => {
       let releaseWeight
 
-      if (
-        shouldPackageBeReleased(
-          handledPackageName,
-          { ...dependencies, ...optionalDependencies },
-          handledPackageNextVersion
-        )
-      ) {
+      if (shouldPackageBeReleased(packageName, { ...dependencies, ...optionalDependencies }, packageNextVersion)) {
         releaseWeight = RELEASE_WEIGHT.PATCH
-      } else if (shouldPackageBeReleased(handledPackageName, peerDependencies || {}, handledPackageNextVersion)) {
+      } else if (shouldPackageBeReleased(packageName, peerDependencies || {}, packageNextVersion)) {
         releaseWeight = versionToReleaseWeight(version)
       }
 
       if (releaseWeight !== undefined) {
         registerPackageToRelease(name, releaseWeight)
-        dependencyTree.add(name, handledPackageName)
-        handlePackage(name, getNextVersion(version, releaseWeight))
+        dependencyTree.add(name, packageName)
+        handlePackageDependencies(name, getNextVersion(version, releaseWeight))
       }
-    })
-  }
-
-  handlePackage(rootPackage.name, getNextVersion(rootPackage.version, rootReleaseWeight))
-
-  const outputLines = dependencyTree.resolve().map(dependencyName => {
-    const releaseTypeName = RELEASE_TYPE[packagesToRelease.get(dependencyName)].toLocaleLowerCase()
-    return `- ${dependencyName} ${releaseTypeName}`
-  })
-
-  const outputLog = ['', 'New packages list:', '', ...outputLines]
-
-  if (writeChangelog) {
-    await updateChangelog(outputLines)
-    outputLog.unshift('', `File updated: ${changelogConfig.path}`)
-  }
-
-  console.log(outputLog.join('\n'))
+    }
+  )
 }
 
 function releaseTypeToWeight(type) {
@@ -155,38 +158,7 @@ function versionToReleaseWeight(version) {
  * @returns {string} The incremented version
  */
 function getNextVersion(version, releaseWeight) {
-  return semver.inc(version, RELEASE_TYPE[releaseWeight])
-}
-
-const changelogRegex = new RegExp(
-  `${escapeRegExp(changelogConfig.startTag)}(.*)${escapeRegExp(changelogConfig.endTag)}`,
-  's'
-)
-
-async function importPackagesFromChangelog() {
-  const content = await fs.readFile(changelogConfig.path)
-  const block = changelogRegex.exec(content)?.[1].trim()
-
-  if (block === undefined) {
-    throw new Error(`Could not find changelog block in ${changelogConfig.path}`)
-  }
-
-  const lines = block.matchAll(/^- (?<name>[^ ]+) (?<type>patch|minor|major)$/gm)
-
-  for (const { groups: { name, type } } of lines) {
-    registerPackageToRelease(name, releaseTypeToWeight(type))
-    dependencyTree.add(name)
-  }
-}
-
-async function updateChangelog(lines) {
-  const content = await fs.readFile(changelogConfig.path)
-  await fs.writeFile(
-    changelogConfig.path,
-    content
-      .toString()
-      .replace(changelogRegex, [changelogConfig.startTag, '', ...lines, '', changelogConfig.endTag].join('\n'))
-  )
+  return semver.inc(version, RELEASE_TYPE[releaseWeight].toLocaleLowerCase())
 }
 
 main().catch(error => {

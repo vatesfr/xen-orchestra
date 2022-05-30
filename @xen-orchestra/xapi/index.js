@@ -230,8 +230,9 @@ function mixin(mixins) {
   defineProperties(xapiProto, descriptors)
 }
 mixin({
-  task: require('./task.js'),
   host: require('./host.js'),
+  SR: require('./sr.js'),
+  task: require('./task.js'),
   VBD: require('./vbd.js'),
   VDI: require('./vdi.js'),
   VIF: require('./vif.js'),

@@ -514,12 +514,27 @@ class Vm {
     }
   }
 
-  async snapshot($defer, vmRef, { cancelToken = CancelToken.none, ignoreNobakVdis = false, name_label } = {}) {
+  async snapshot(
+    $defer,
+    vmRef,
+    { cancelToken = CancelToken.none, ignoreNobakVdis = false, name_label, unplugVusbs = false } = {}
+  ) {
     const vm = await this.getRecord('VM', vmRef)
+
+    const isHalted = vm.power_state === 'Halted'
+
+    // requires the VM to be halted because it's not possible to re-plug VUSB on a live VM
+    if (unplugVusbs && isHalted) {
+      await asyncMap(vm.VUSBs, async ref => {
+        const vusb = await this.getRecord('VUSB', ref)
+        await vusb.$call('destroy')
+        $defer.call(this, 'call', 'VUSB.create', vusb.VM, vusb.USB_group, vusb.other_config)
+      })
+    }
 
     let destroyNobakVdis = false
     if (ignoreNobakVdis) {
-      if (vm.power_state === 'Halted') {
+      if (isHalted) {
         await asyncMap(await listNobakVbds(this, vm.VBDs), async vbd => {
           await this.VBD_destroy(vbd.$ref)
           $defer.call(this, 'VBD_create', vbd)

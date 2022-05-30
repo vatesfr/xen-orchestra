@@ -1,6 +1,7 @@
 import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
 import keyBy from 'lodash/keyBy.js'
 import { createSchedule } from '@xen-orchestra/cron'
+import { ifDef } from '@xen-orchestra/defined'
 import { ignoreErrors } from 'promise-toolbox'
 import { noSuchObject } from 'xo-common/api-errors.js'
 
@@ -72,11 +73,13 @@ export default class Scheduling {
     })
   }
 
-  async createSchedule({ cron, enabled, jobId, name = '', timezone, userId }) {
+  async createSchedule({ cron, enabled, healthCheckSr, healthCheckVmsWithTags, jobId, name = '', timezone, userId }) {
     const schedule = (
       await this._db.add({
         cron,
         enabled,
+        healthCheckSr,
+        healthCheckVmsWithTags: JSON.stringify(healthCheckVmsWithTags),
         jobId,
         name,
         timezone,
@@ -92,11 +95,17 @@ export default class Scheduling {
     if (schedule === undefined) {
       throw noSuchObject(id, 'schedule')
     }
-    return schedule.properties
+    return {
+      ...schedule.properties,
+      healthCheckVmsWithTags: ifDef(schedule.properties.healthCheckVmsWithTags, JSON.parse),
+    }
   }
 
   async getAllSchedules() {
-    return this._db.get()
+    return (await this._db.get()).map(schedule => ({
+      ...schedule,
+      healthCheckVmsWithTags: ifDef(schedule.healthCheckVmsWithTags, JSON.parse),
+    }))
   }
 
   async deleteSchedule(id) {
@@ -104,9 +113,19 @@ export default class Scheduling {
     await this._db.remove(id)
   }
 
-  async updateSchedule({ cron, enabled, id, jobId, name, timezone, userId }) {
+  async updateSchedule({ cron, enabled, healthCheckSr, healthCheckVmsWithTags, id, jobId, name, timezone, userId }) {
     const schedule = await this.getSchedule(id)
-    patch(schedule, { cron, enabled, jobId, name, timezone, userId })
+    patch(schedule, {
+      cron,
+      enabled,
+      // null to delete the key of the object in case we remove healthcheck
+      healthCheckSr: healthCheckVmsWithTags !== undefined ? healthCheckSr : null,
+      healthCheckVmsWithTags: JSON.stringify(healthCheckVmsWithTags) ?? null,
+      jobId,
+      name,
+      timezone,
+      userId,
+    })
 
     this._start(schedule)
 

@@ -378,6 +378,11 @@
     @extend .fa-folder;
   }
 
+  &-health {
+    @extend .fa;
+    @extend .fa-heartbeat;
+  }
+
   // Jobs
   &-jobs {
     @extend .fa;

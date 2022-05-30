@@ -141,6 +141,23 @@ curl \
   > myDisk.vhd
 ```
 
+## VDI Import
+
+A VHD can be imported on an SR to create a VDI at `/rest/v0/srs/<sr uuid>/vdis`.
+
+```bash
+curl \
+  -b authenticationToken=KQxQdm2vMiv7jBIK0hgkmgxKzemd8wSJ7ugFGKFkTbs \
+  --progress-bar \
+  --data-binary @myDisk.vhd \
+  'https://xo.example.org/rest/v0/srs/357bd56c-71f9-4b2a-83b8-3451dec04b8f/vdis'
+```
+
+The following query parameters are supported to customize the created VDI:
+
+- `name_label`
+- `name_description`
+
 ## The future
 
 We are adding features and improving the REST API step by step. If you have interesting use cases or feedback, please ask directly at <https://xcp-ng.org/forum/category/12/xen-orchestra>

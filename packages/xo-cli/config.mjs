@@ -1,9 +1,8 @@
-const { readFile, writeFile } = require('fs/promises')
-
-const get = require('lodash/get')
-const mkdirp = require('fs-extra').ensureDir
-const unset = require('lodash/unset')
-const xdgBasedir = require('xdg-basedir')
+import { ensureDir as mkdirp } from 'fs-extra'
+import { readFile, writeFile } from 'fs/promises'
+import lodashGet from 'lodash/get.js'
+import lodashUnset from 'lodash/unset.js'
+import xdgBasedir from 'xdg-basedir'
 
 // ===================================================================
 
@@ -12,36 +11,36 @@ const configFile = configPath + '/config.json'
 
 // ===================================================================
 
-const load = (exports.load = function () {
+export function load() {
   return readFile(configFile)
     .then(JSON.parse)
     .catch(function () {
       return {}
     })
-})
+}
 
-exports.get = function (path) {
+export function get(path) {
   return load().then(function (config) {
-    return get(config, path)
+    return lodashGet(config, path)
   })
 }
 
-const save = (exports.save = function (config) {
+export function save(config) {
   return mkdirp(configPath).then(function () {
     return writeFile(configFile, JSON.stringify(config))
   })
-})
+}
 
-exports.set = function (data) {
+export function set(data) {
   return load().then(function (config) {
     return save(Object.assign(config, data))
   })
 }
 
-exports.unset = function (paths) {
+export function unset(paths) {
   return load().then(function (config) {
     ;[].concat(paths).forEach(function (path) {
-      unset(config, path)
+      lodashUnset(config, path)
     })
     return save(config)
   })

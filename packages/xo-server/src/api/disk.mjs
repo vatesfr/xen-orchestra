@@ -6,7 +6,7 @@ import { defer } from 'golike-defer'
 import { format, JsonRpcError } from 'json-rpc-peer'
 import { noSuchObject } from 'xo-common/api-errors.js'
 import { pipeline } from 'stream'
-import { checkFooter, peekFooterFromVhdStream } from 'vhd-lib'
+import { peekFooterFromVhdStream } from 'vhd-lib'
 import { vmdkToVhd } from 'xo-vmdk-to-vhd'
 
 import { VDI_FORMAT_VHD, VDI_FORMAT_RAW } from '../xapi/index.mjs'
@@ -192,14 +192,12 @@ async function handleImport(req, res, { type, name, description, vmdkData, srId,
               break
             case 'vhd':
               {
-                const footer = await peekFooterFromVhdStream(vhdStream)
-                try {
-                  checkFooter(footer)
-                } catch (e) {
+                const footer = await peekFooterFromVhdStream(part).catch(e => {
                   if (e instanceof assert.AssertionError) {
                     throw new JsonRpcError(`Vhd file had an invalid header ${e}`)
                   }
-                }
+                  throw e
+                })
                 vhdStream = part
                 size = footer.currentSize
               }

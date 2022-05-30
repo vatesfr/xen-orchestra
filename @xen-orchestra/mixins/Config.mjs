@@ -7,6 +7,9 @@ import { watch } from 'app-conf'
 
 const { warn } = createLogger('xo:mixins:config')
 
+// if path is undefined, an empty string or an empty array, returns the root value
+const niceGet = (value, path) => (path === undefined || path.length === 0 ? value : get(value, path))
+
 export default class Config {
   constructor(app, { appDir, appName, config }) {
     this._config = config
@@ -30,7 +33,7 @@ export default class Config {
   }
 
   get(path) {
-    const value = get(this._config, path)
+    const value = niceGet(this._config, path)
     if (value === undefined) {
       throw new TypeError('missing config entry: ' + path)
     }
@@ -42,20 +45,27 @@ export default class Config {
   }
 
   getOptional(path) {
-    return get(this._config, path)
+    return niceGet(this._config, path)
   }
 
   watch(path, cb) {
+    // short syntax for the whole config: watch(cb)
+    if (typeof path === 'function') {
+      cb = path
+      path = undefined
+    }
+
     // internal arg
     const processor = arguments.length > 2 ? arguments[2] : identity
 
     let prev
     const watcher = config => {
       try {
-        const value = processor(get(config, path))
+        const value = processor(niceGet(config, path))
         if (!isEqual(value, prev)) {
+          const previous = prev
           prev = value
-          cb(value)
+          cb(value, previous, path)
         }
       } catch (error) {
         warn('watch', { error, path })

@@ -24,6 +24,34 @@ const getAdaptersByRemote = adapters => {
 
 const runTask = (...args) => Task.run(...args).catch(noop) // errors are handled by logs
 
+const DEFAULT_SETTINGS = {
+  reportWhen: 'failure',
+}
+
+const DEFAULT_VM_SETTINGS = {
+  bypassVdiChainsCheck: false,
+  checkpointSnapshot: false,
+  concurrency: 2,
+  copyRetention: 0,
+  deleteFirst: false,
+  exportRetention: 0,
+  fullInterval: 0,
+  healthCheckSr: undefined,
+  healthCheckVmsWithTags: [],
+  maxMergedDeltasPerRun: 2,
+  offlineBackup: false,
+  offlineSnapshot: false,
+  snapshotRetention: 0,
+  timeout: 0,
+  unconditionalSnapshot: false,
+  vmTimeout: 0,
+}
+
+const DEFAULT_METADATA_SETTINGS = {
+  retentionPoolMetadata: 0,
+  retentionXoMetadata: 0,
+}
+
 exports.Backup = class Backup {
   constructor({ config, getAdapter, getConnectedRecord, job, schedule }) {
     this._config = config
@@ -42,17 +70,22 @@ exports.Backup = class Backup {
       '{job.name}': job.name,
       '{vm.name_label}': vm => vm.name_label,
     })
-  }
 
-  run() {
-    const type = this._job.type
+    const { type } = job
+    const baseSettings = { ...DEFAULT_SETTINGS }
     if (type === 'backup') {
-      return this._runVmBackup()
+      Object.assign(baseSettings, DEFAULT_VM_SETTINGS, config.defaultSettings, config.vm?.defaultSettings)
+      this.run = this._runVmBackup
     } else if (type === 'metadataBackup') {
-      return this._runMetadataBackup()
+      Object.assign(baseSettings, DEFAULT_METADATA_SETTINGS, config.defaultSettings, config.metadata?.defaultSettings)
+      this.run = this._runMetadataBackup
     } else {
       throw new Error(`No runner for the backup type ${type}`)
     }
+    Object.assign(baseSettings, job.settings[''])
+
+    this._baseSettings = baseSettings
+    this._settings = { ...baseSettings, ...job.settings[schedule.id] }
   }
 
   async _runMetadataBackup() {
@@ -64,19 +97,14 @@ exports.Backup = class Backup {
     }
 
     const config = this._config
-    const settings = {
-      ...config.defaultSettings,
-      ...config.metadata.defaultSettings,
-      ...job.settings[''],
-      ...job.settings[schedule.id],
-    }
-
     const poolIds = extractIdsFromSimplePattern(job.pools)
     const isEmptyPools = poolIds.length === 0
     const isXoMetadata = job.xoMetadata !== undefined
     if (!isXoMetadata && isEmptyPools) {
       throw new Error('no metadata mode found')
     }
+
+    const settings = this._settings
 
     const { retentionPoolMetadata, retentionXoMetadata } = settings
 
@@ -189,14 +217,7 @@ exports.Backup = class Backup {
     const schedule = this._schedule
 
     const config = this._config
-    const { settings } = job
-    const scheduleSettings = {
-      ...config.defaultSettings,
-      ...config.vm.defaultSettings,
-      ...settings[''],
-      ...settings[schedule.id],
-    }
-
+    const settings = this._settings
     await Disposable.use(
       Disposable.all(
         extractIdsFromSimplePattern(job.srs).map(id =>
@@ -224,14 +245,15 @@ exports.Backup = class Backup {
           })
         )
       ),
-      async (srs, remoteAdapters) => {
+      () => settings.healthCheckSr !== undefined ? this._getRecord('SR', settings.healthCheckSr) : undefined,
+      async (srs, remoteAdapters, healthCheckSr) => {
         // remove adapters that failed (already handled)
         remoteAdapters = remoteAdapters.filter(_ => _ !== undefined)
 
         // remove srs that failed (already handled)
         srs = srs.filter(_ => _ !== undefined)
 
-        if (remoteAdapters.length === 0 && srs.length === 0 && scheduleSettings.snapshotRetention === 0) {
+        if (remoteAdapters.length === 0 && srs.length === 0 && settings.snapshotRetention === 0) {
           return
         }
 
@@ -241,23 +263,27 @@ exports.Backup = class Backup {
 
         remoteAdapters = getAdaptersByRemote(remoteAdapters)
 
+        const allSettings = this._job.settings
+        const baseSettings = this._baseSettings
+
         const handleVm = vmUuid =>
           runTask({ name: 'backup VM', data: { type: 'VM', id: vmUuid } }, () =>
             Disposable.use(this._getRecord('VM', vmUuid), vm =>
               new VmBackup({
+                baseSettings,
                 config,
                 getSnapshotNameLabel,
+                healthCheckSr,
                 job,
-                // remotes,
                 remoteAdapters,
                 schedule,
-                settings: { ...scheduleSettings, ...settings[vmUuid] },
+                settings: { ...settings, ...allSettings[vm.uuid] },
                 srs,
                 vm,
               }).run()
             )
           )
-        const { concurrency } = scheduleSettings
+        const { concurrency } = settings
         await asyncMapSettled(vmIds, concurrency === 0 ? handleVm : limitConcurrency(concurrency)(handleVm))
       }
     )

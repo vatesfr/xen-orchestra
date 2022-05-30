@@ -277,7 +277,7 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
     if (compressionType === undefined) {
       await this._handler.unlink(path)
     } else {
-      await this._handler.writeFile(path, JSON.stringify([compressionType]))
+      await this._handler.writeFile(path, JSON.stringify([compressionType]), { flags: 'w' })
     }
   }
 

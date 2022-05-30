@@ -31,66 +31,53 @@ const computeVhdsSize = (handler, vhdPaths) =>
     }
   )
 
-// chain is an array of VHDs from child to parent
+// chain is [ ancestor, child1, ..., childn]
+// 1. Create a VhdSynthetic from all children
+// 2. Merge the VhdSynthetic into the ancestor
+// 3. Delete all (now) unused VHDs
+// 4. Rename the ancestor with the merged data to the latest child
 //
-// the whole chain will be merged into parent, parent will be renamed to child
-// and all the others will deleted
+//                  VhdSynthetic
+//                       |
+//              /‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\
+//  [ ancestor, child1, ...,child n-1,  childn ]
+//         |    \___________________/     ^
+//         |             |                |
+//         |       unused VHDs            |
+//         |                              |
+//         \___________rename_____________/
+
 async function mergeVhdChain(chain, { handler, onLog, remove, merge }) {
   assert(chain.length >= 2)
-
-  let child = chain[0]
-  const parent = chain[chain.length - 1]
-  const children = chain.slice(0, -1).reverse()
-
-  chain
-    .slice(1)
-    .reverse()
-    .forEach(parent => {
-      onLog(`the parent ${parent} of the child ${child} is unused`)
-    })
+  const chainCopy = [...chain]
+  const parent = chainCopy.pop()
+  const children = chainCopy
 
   if (merge) {
-    // `mergeVhd` does not work with a stream, either
-    // - make it accept a stream
-    // - or create synthetic VHD which is not a stream
-    if (children.length !== 1) {
-      // TODO: implement merging multiple children
-      children.length = 1
-      child = children[0]
-    }
-
-    onLog(`merging ${child} into ${parent}`)
+    onLog(`merging ${children.length} children into ${parent}`)
 
     let done, total
     const handle = setInterval(() => {
       if (done !== undefined) {
-        onLog(`merging ${child}: ${done}/${total}`)
+        onLog(`merging ${children.join(',')} into ${parent}: ${done}/${total}`)
       }
     }, 10e3)
 
-    const mergedSize = await mergeVhd(
-      handler,
-      parent,
-      handler,
-      child,
-      // children.length === 1
-      //   ? child
-      //   : await createSyntheticStream(handler, children),
-      {
-        onProgress({ done: d, total: t }) {
-          done = d
-          total = t
-        },
-      }
-    )
+    const mergedSize = await mergeVhd(handler, parent, handler, children, {
+      onProgress({ done: d, total: t }) {
+        done = d
+        total = t
+      },
+    })
 
     clearInterval(handle)
+    const mergeTargetChild = children.shift()
     await Promise.all([
-      VhdAbstract.rename(handler, parent, child),
-      asyncMap(children.slice(0, -1), child => {
-        onLog(`the VHD ${child} is unused`)
+      VhdAbstract.rename(handler, parent, mergeTargetChild),
+      asyncMap(children, child => {
+        onLog(`the VHD ${child} is already merged`)
         if (remove) {
-          onLog(`deleting unused VHD ${child}`)
+          onLog(`deleting merged VHD ${child}`)
           return VhdAbstract.unlink(handler, child)
         }
       }),

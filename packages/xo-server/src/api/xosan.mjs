@@ -924,7 +924,14 @@ async function _prepareGlusterVm(
       if (error.code === 'MESSAGE_METHOD_UNKNOWN') {
         // VIF.move has been introduced in xenserver 7.0
         await xapi.deleteVif(firstVif.$id)
-        await xapi.createVif(newVM.$id, xosanNetwork.$id, firstVif)
+        await xapi.VIF_create(
+          {
+            ...firstVif,
+            VM: newVM.$ref,
+            network: xosanNetwork.$ref,
+          },
+          firstVif
+        )
       }
     }
   }

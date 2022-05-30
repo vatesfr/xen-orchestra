@@ -1,5 +1,19 @@
 # ChangeLog
 
+## 5.70.2 (2022-05-16)
+
+### Bug fixes
+
+- [Pool/Patches] Fix failure to install patches on Citrix Hypervisor (PR [#6231](https://github.com/vatesfr/xen-orchestra/pull/6231))
+
+### Released packages
+
+- @xen-orchestra/xapi 1.0.0
+- @xen-orchestra/backups 0.23.0
+- @xen-orchestra/mixins 0.4.0
+- @xen-orchestra/proxy 0.22.1
+- xo-server 5.93.1
+
 ## 5.70.1 (2022-05-04)
 
 ### Enhancement

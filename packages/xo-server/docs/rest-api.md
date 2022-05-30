@@ -4,6 +4,7 @@
 - [Collections](#collections)
 - [VM Export](#vm-export)
 - [VDI Export](#vdi-export)
+- [VDI Import](#vdi-import)
 - [The future](#the-future)
 
 > This [REST](https://en.wikipedia.org/wiki/Representational_state_transfer)-oriented API is experimental. Non-backward compatible changes or removal may occur in any future release. Use of the feature is not recommended in production environments.
@@ -136,6 +137,23 @@ curl \
   'https://xo.company.lan/rest/v0/vdis/1a269782-ea93-4c4c-897a-475365f7b674.vhd' \
   > myDisk.vhd
 ```
+
+## VDI Import
+
+A VHD can be imported on an SR to create a VDI at `/rest/v0/srs/<sr uuid>/vdis`.
+
+```bash
+curl \
+  -b authenticationToken=KQxQdm2vMiv7jBIK0hgkmgxKzemd8wSJ7ugFGKFkTbs \
+  --progress-bar \
+  --data-binary @myDisk.vhd \
+  'https://xo.company.lan/rest/v0/srs/357bd56c-71f9-4b2a-83b8-3451dec04b8f/vdis'
+```
+
+The following query parameters are supported to customize the created VDI:
+
+- `name_label`
+- `name_description`
 
 ## The future
 

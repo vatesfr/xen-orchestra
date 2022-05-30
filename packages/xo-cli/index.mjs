@@ -1,30 +1,31 @@
 #!/usr/bin/env node
 
-const createReadStream = require('fs').createReadStream
-const createWriteStream = require('fs').createWriteStream
-const stat = require('fs-extra').stat
-
-const chalk = require('chalk')
-const forEach = require('lodash/forEach')
-const fromCallback = require('promise-toolbox/fromCallback')
-const getKeys = require('lodash/keys')
-const getopts = require('getopts')
-const hrp = require('http-request-plus')
-const humanFormat = require('human-format')
-const identity = require('lodash/identity')
-const isObject = require('lodash/isObject')
-const micromatch = require('micromatch')
-const pairs = require('lodash/toPairs')
-const pick = require('lodash/pick')
-const prettyMs = require('pretty-ms')
-const progressStream = require('progress-stream')
-const pw = require('pw')
-const Xo = require('xo-lib').default
-const { PassThrough, pipeline } = require('stream')
+import { createReadStream, createWriteStream, readFileSync } from 'fs'
+import { PassThrough, pipeline } from 'stream'
+import { stat } from 'fs/promises'
+import chalk from 'chalk'
+import execPromise from 'exec-promise'
+import forEach from 'lodash/forEach.js'
+import fromCallback from 'promise-toolbox/fromCallback'
+import getKeys from 'lodash/keys.js'
+import getopts from 'getopts'
+import hrp from 'http-request-plus'
+import humanFormat from 'human-format'
+import identity from 'lodash/identity.js'
+import isObject from 'lodash/isObject.js'
+import micromatch from 'micromatch'
+import pairs from 'lodash/toPairs.js'
+import pick from 'lodash/pick.js'
+import prettyMs from 'pretty-ms'
+import progressStream from 'progress-stream'
+import pw from 'pw'
+import XoLib from 'xo-lib'
 
 // -------------------------------------------------------------------
 
-const config = require('./config')
+import * as config from './config.mjs'
+
+const Xo = XoLib.default
 
 // ===================================================================
 
@@ -229,10 +230,12 @@ $name v$version
 
       return pkg[key]
     })
-  })(require('../package'))
+  })(JSON.parse(readFileSync(new URL('package.json', import.meta.url))))
 )
 
 // -------------------------------------------------------------------
+
+const COMMANDS = { __proto__: null }
 
 function main(args) {
   if (!args || !args.length || args[0] === '-h') {
@@ -246,11 +249,11 @@ function main(args) {
 
     return match[1].toUpperCase()
   })
-  if (fnName in exports) {
-    return exports[fnName](args.slice(1))
+  if (fnName in COMMANDS) {
+    return COMMANDS[fnName](args.slice(1))
   }
 
-  return exports.call(args).catch(error => {
+  return COMMANDS.call(args).catch(error => {
     if (!(error != null && error.code === 10 && 'errors' in error.data)) {
       throw error
     }
@@ -263,11 +266,10 @@ function main(args) {
     throw lines.join('\n')
   })
 }
-exports = module.exports = main
 
 // -------------------------------------------------------------------
 
-exports.help = help
+COMMANDS.help = help
 
 async function createToken(args) {
   const token = await _createToken(await parseRegisterArgs(args))
@@ -275,7 +277,7 @@ async function createToken(args) {
   console.warn()
   console.log(token)
 }
-exports.createToken = createToken
+COMMANDS.createToken = createToken
 
 async function register(args) {
   const opts = await parseRegisterArgs(args)
@@ -286,12 +288,12 @@ async function register(args) {
     token: await _createToken(opts),
   })
 }
-exports.register = register
+COMMANDS.register = register
 
 function unregister() {
   return config.unset(['server', 'token'])
 }
-exports.unregister = unregister
+COMMANDS.unregister = unregister
 
 async function listCommands(args) {
   const xo = await connect()
@@ -350,7 +352,7 @@ async function listCommands(args) {
   })
   return str.join('')
 }
-exports.listCommands = listCommands
+COMMANDS.listCommands = listCommands
 
 async function listObjects(args) {
   const properties = getKeys(extractFlags(args))
@@ -374,7 +376,7 @@ async function listObjects(args) {
   }
   stdout.write(']\n')
 }
-exports.listObjects = listObjects
+COMMANDS.listObjects = listObjects
 
 function ensurePathParam(method, value) {
   if (typeof value !== 'string') {
@@ -454,10 +456,8 @@ async function call(args) {
 
   return result
 }
-exports.call = call
+COMMANDS.call = call
 
 // ===================================================================
 
-if (!module.parent) {
-  require('exec-promise')(exports)
-}
+execPromise(main)

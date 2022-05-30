@@ -4,13 +4,16 @@ import Icon from 'icon'
 import PropTypes from 'prop-types'
 import React from 'react'
 import Scheduler, { SchedulePreview } from 'scheduling'
-import Tooltip from 'tooltip'
+import Tooltip, { conditionalTooltip } from 'tooltip'
 import { Card, CardBlock } from 'card'
 import { generateId } from 'reaclette-utils'
 import { injectState, provideState } from 'reaclette'
 import { Number } from 'form'
 
 import { FormGroup, Input } from './../utils'
+import Tags from '../../../common/tags'
+import { getXoaPlan, PREMIUM } from '../../../common/xoa-plans'
+import { SelectSr } from '../../../common/select-objects'
 
 const New = decorate([
   provideState({
@@ -64,9 +67,24 @@ const New = decorate([
             name: value.trim() === '' ? null : value,
           })
         },
+      setHealthCheckTags({ setSchedule }, tags) {
+        setSchedule({
+          healthCheckVmsWithTags: tags,
+        })
+      },
       toggleForceFullBackup({ setSchedule }) {
         setSchedule({
           fullInterval: this.state.forceFullBackup ? undefined : 1,
+        })
+      },
+      toggleHealthCheck({ setSchedule }, { target: { checked } }) {
+        setSchedule({
+          healthCheckVmsWithTags: checked ? [] : undefined,
+        })
+      },
+      setHealthCheckSr({ setSchedule }, sr) {
+        setSchedule({
+          healthCheckSr: sr.id,
         })
       },
     },
@@ -115,6 +133,39 @@ const New = decorate([
             <Number min='0' onChange={effects.setSnapshotRetention} value={schedule.snapshotRetention} required />
           </FormGroup>
         )}
+        <FormGroup>
+          <label>
+            <strong>{_('healthCheck')}</strong>{' '}
+            {conditionalTooltip(
+              <input
+                checked={schedule.healthCheckVmsWithTags !== undefined}
+                disabled={getXoaPlan().value < PREMIUM.value}
+                onChange={effects.toggleHealthCheck}
+                type='checkbox'
+              />,
+              getXoaPlan().value < PREMIUM.value ? _('healthCheckAvailablePremiumUser') : undefined
+            )}
+          </label>
+          {schedule.healthCheckVmsWithTags !== undefined && (
+            <div className='mb-2'>
+              <strong>{_('vmsTags')}</strong>
+              <br />
+              <em>
+                <Icon icon='info' /> {_('healthCheckTagsInfo')}
+              </em>
+              <p className='h2'>
+                <Tags labels={schedule.healthCheckVmsWithTags} onChange={effects.setHealthCheckTags} />
+              </p>
+              <strong>{_('sr')}</strong>
+              <SelectSr
+                onChange={effects.setHealthCheckSr}
+                placeholder={_('healthCheckChooseSr')}
+                required
+                value={schedule.healthCheckSr}
+              />
+            </div>
+          )}
+        </FormGroup>
         {modes.isDelta && (
           <FormGroup>
             <label>

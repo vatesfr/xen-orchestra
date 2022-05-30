@@ -5,9 +5,9 @@
 const rimraf = require('rimraf')
 const tmp = require('tmp')
 const fs = require('fs-extra')
+const uuid = require('uuid')
 const { getHandler } = require('@xen-orchestra/fs')
 const { pFromCallback } = require('promise-toolbox')
-const crypto = require('crypto')
 const { RemoteAdapter } = require('./RemoteAdapter')
 const { VHDFOOTER, VHDHEADER } = require('./tests.fixtures.js')
 const { VhdFile, Constants, VhdDirectory, VhdAbstract } = require('vhd-lib')
@@ -34,7 +34,8 @@ afterEach(async () => {
   await handler.forget()
 })
 
-const uniqueId = () => crypto.randomBytes(16).toString('hex')
+const uniqueId = () => uuid.v1()
+const uniqueIdBuffer = () => Buffer.from(uniqueId(), 'utf-8')
 
 async function generateVhd(path, opts = {}) {
   let vhd
@@ -53,10 +54,9 @@ async function generateVhd(path, opts = {}) {
   }
 
   vhd.header = { ...VHDHEADER, ...opts.header }
-  vhd.footer = { ...VHDFOOTER, ...opts.footer }
-  vhd.footer.uuid = Buffer.from(crypto.randomBytes(16))
+  vhd.footer = { ...VHDFOOTER, ...opts.footer, uuid: uniqueIdBuffer() }
 
-  if (vhd.header.parentUnicodeName) {
+  if (vhd.header.parentUuid) {
     vhd.footer.diskType = Constants.DISK_TYPES.DIFFERENCING
   } else {
     vhd.footer.diskType = Constants.DISK_TYPES.DYNAMIC
@@ -91,24 +91,31 @@ test('It remove broken vhd', async () => {
 })
 
 test('it remove vhd with missing or multiple ancestors', async () => {
-  // one with a broken parent
+  // one with a broken parent, should be deleted
   await generateVhd(`${basePath}/abandonned.vhd`, {
     header: {
       parentUnicodeName: 'gone.vhd',
-      parentUid: Buffer.from(crypto.randomBytes(16)),
+      parentUuid: uniqueIdBuffer(),
     },
   })
 
-  // one orphan, which is a full vhd, no parent
+  // one orphan, which is a full vhd, no parent : should stay
   const orphan = await generateVhd(`${basePath}/orphan.vhd`)
-  // a child to the orphan
+  // a child to the orphan in the metadata : should stay
   await generateVhd(`${basePath}/child.vhd`, {
     header: {
       parentUnicodeName: 'orphan.vhd',
-      parentUid: orphan.footer.uuid,
+      parentUuid: orphan.footer.uuid,
     },
   })
-
+  await handler.writeFile(
+    `metadata.json`,
+    JSON.stringify({
+      mode: 'delta',
+      vhds: [`${basePath}/child.vhd`, `${basePath}/abandonned.vhd`],
+    }),
+    { flags: 'w' }
+  )
   // clean
   let loggued = ''
   const onLog = message => {
@@ -147,7 +154,7 @@ test('it remove backup meta data referencing a missing vhd in delta backup', asy
   await generateVhd(`${basePath}/child.vhd`, {
     header: {
       parentUnicodeName: 'orphan.vhd',
-      parentUid: orphan.footer.uuid,
+      parentUuid: orphan.footer.uuid,
     },
   })
 
@@ -201,14 +208,14 @@ test('it merges delta of non destroyed chain', async () => {
   const child = await generateVhd(`${basePath}/child.vhd`, {
     header: {
       parentUnicodeName: 'orphan.vhd',
-      parentUid: orphan.footer.uuid,
+      parentUuid: orphan.footer.uuid,
     },
   })
   // a grand child
   await generateVhd(`${basePath}/grandchild.vhd`, {
     header: {
       parentUnicodeName: 'child.vhd',
-      parentUid: child.footer.uuid,
+      parentUuid: child.footer.uuid,
     },
   })
 
@@ -217,14 +224,12 @@ test('it merges delta of non destroyed chain', async () => {
     loggued.push(message)
   }
   await adapter.cleanVm('/', { remove: true, onLog })
-  expect(loggued[0]).toEqual(`the parent /${basePath}/orphan.vhd of the child /${basePath}/child.vhd is unused`)
-  expect(loggued[1]).toEqual(`incorrect size in metadata: 12000 instead of 209920`)
+  expect(loggued[0]).toEqual(`incorrect size in metadata: 12000 instead of 209920`)
 
   loggued = []
   await adapter.cleanVm('/', { remove: true, merge: true, onLog })
-  const [unused, merging] = loggued
-  expect(unused).toEqual(`the parent /${basePath}/orphan.vhd of the child /${basePath}/child.vhd is unused`)
-  expect(merging).toEqual(`merging /${basePath}/child.vhd into /${basePath}/orphan.vhd`)
+  const [merging] = loggued
+  expect(merging).toEqual(`merging 1 children into /${basePath}/orphan.vhd`)
 
   const metadata = JSON.parse(await handler.readFile(`metadata.json`))
   // size should be the size of children + grand children after the merge
@@ -254,7 +259,7 @@ test('it finish unterminated merge ', async () => {
   const child = await generateVhd(`${basePath}/child.vhd`, {
     header: {
       parentUnicodeName: 'orphan.vhd',
-      parentUid: orphan.footer.uuid,
+      parentUuid: orphan.footer.uuid,
     },
   })
   // a merge in progress file
@@ -310,7 +315,7 @@ describe('tests multiple combination ', () => {
           mode: vhdMode,
           header: {
             parentUnicodeName: 'gone.vhd',
-            parentUid: crypto.randomBytes(16),
+            parentUuid: uniqueIdBuffer(),
           },
         })
 
@@ -324,7 +329,7 @@ describe('tests multiple combination ', () => {
           mode: vhdMode,
           header: {
             parentUnicodeName: 'ancestor.vhd' + (useAlias ? '.alias.vhd' : ''),
-            parentUid: ancestor.footer.uuid,
+            parentUuid: ancestor.footer.uuid,
           },
         })
         // a grand child  vhd in metadata
@@ -333,7 +338,7 @@ describe('tests multiple combination ', () => {
           mode: vhdMode,
           header: {
             parentUnicodeName: 'child.vhd' + (useAlias ? '.alias.vhd' : ''),
-            parentUid: child.footer.uuid,
+            parentUuid: child.footer.uuid,
           },
         })
 
@@ -348,7 +353,7 @@ describe('tests multiple combination ', () => {
           mode: vhdMode,
           header: {
             parentUnicodeName: 'cleanAncestor.vhd' + (useAlias ? '.alias.vhd' : ''),
-            parentUid: cleanAncestor.footer.uuid,
+            parentUuid: cleanAncestor.footer.uuid,
           },
         })
 

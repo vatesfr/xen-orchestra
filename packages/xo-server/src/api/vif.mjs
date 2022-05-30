@@ -111,21 +111,29 @@ export async function set({
     await xapi.deleteVif(vif._xapiId)
 
     // create new VIF with new parameters
-    const newVif = await xapi.createVif(vm.$id, network.$id, {
-      mac,
-      currently_attached: attached,
-      ipv4_allowed: newIpv4Addresses,
-      ipv6_allowed: newIpv6Addresses,
-      // - If locking mode has explicitly passed: use it
-      // - Else if the network is changing: config it to 'network_default'
-      // - Else: use the old locking mode
-      locking_mode: lockingMode ?? (isNetworkChanged ? 'network_default' : vif.lockingMode),
-      qos_algorithm_type: rateLimit != null ? 'ratelimit' : undefined,
-      qos_algorithm_params: rateLimit != null ? { kbps: String(rateLimit) } : undefined,
-      other_config: {
-        'ethtool-tx': txChecksumming !== undefined ? String(txChecksumming) : undefined,
-      },
-    })
+    const newVif = await xapi._getOrWaitObject(
+      await xapi.VIF_create(
+        {
+          currently_attached: attached,
+          ipv4_allowed: newIpv4Addresses,
+          ipv6_allowed: newIpv6Addresses,
+          // - If locking mode has explicitly passed: use it
+          // - Else if the network is changing: config it to 'network_default'
+          // - Else: use the old locking mode
+          locking_mode: lockingMode ?? (isNetworkChanged ? 'network_default' : vif.lockingMode),
+          qos_algorithm_type: rateLimit != null ? 'ratelimit' : undefined,
+          qos_algorithm_params: rateLimit != null ? { kbps: String(rateLimit) } : undefined,
+          network: network.$ref,
+          other_config: {
+            'ethtool-tx': txChecksumming !== undefined ? String(txChecksumming) : undefined,
+          },
+          VM: vm.$ref,
+        },
+        {
+          MAC: mac,
+        }
+      )
+    )
 
     await this.allocIpAddresses(newVif.$id, newIpAddresses)
 
