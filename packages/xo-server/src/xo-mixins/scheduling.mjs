@@ -73,13 +73,11 @@ export default class Scheduling {
     })
   }
 
-  async createSchedule({ cron, enabled, healthCheckSr, healthCheckVmsWithTags, jobId, name = '', timezone, userId }) {
+  async createSchedule({ cron, enabled, jobId, name = '', timezone, userId }) {
     const schedule = (
       await this._db.add({
         cron,
         enabled,
-        healthCheckSr,
-        healthCheckVmsWithTags: JSON.stringify(healthCheckVmsWithTags),
         jobId,
         name,
         timezone,
@@ -95,10 +93,7 @@ export default class Scheduling {
     if (schedule === undefined) {
       throw noSuchObject(id, 'schedule')
     }
-    return {
-      ...schedule.properties,
-      healthCheckVmsWithTags: ifDef(schedule.properties.healthCheckVmsWithTags, JSON.parse),
-    }
+    return schedule.properties
   }
 
   async getAllSchedules() {
