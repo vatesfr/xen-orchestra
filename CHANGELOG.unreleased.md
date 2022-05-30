@@ -11,6 +11,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [load-balancer] Fix density mode failing to shutdown hosts (PR [#6253](https://github.com/vatesfr/xen-orchestra/pull/6253))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -24,5 +26,7 @@
 > - major: if the change breaks compatibility
 
 <!--packages-start-->
+
+- xo-server patch
 
 <!--packages-end-->

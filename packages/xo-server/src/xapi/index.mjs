@@ -304,7 +304,7 @@ export default class Xapi extends XapiBase {
     await this.call('host.syslog_reconfigure', host.$ref)
   }
 
-  async shutdownHost(hostId, { force = false, bypassEvacuate = false }) {
+  async shutdownHost(hostId, { force = false, bypassEvacuate = false } = {}) {
     const host = this.getObject(hostId)
     if (bypassEvacuate) {
       await this.call('host.disable', host.$ref)
@@ -919,7 +919,12 @@ export default class Xapi extends XapiBase {
     throw new Error(`unsupported type: '${type}'`)
   }
 
-  async migrateVm(vmId, hostXapi, hostId, { force = false, mapVdisSrs, mapVifsNetworks, migrationNetworkId, sr, bypassAssert } = {}) {
+  async migrateVm(
+    vmId,
+    hostXapi,
+    hostId,
+    { force = false, mapVdisSrs, mapVifsNetworks, migrationNetworkId, sr, bypassAssert } = {}
+  ) {
     const vm = this.getObject(vmId)
     const host = hostXapi.getObject(hostId)
 
