@@ -31,7 +31,7 @@
     "human-format": "^1.0.0",
     "lodash": "^4.17.21",
     "uuid": "^8.3.2",
-    "vhd-lib": "^3.1.0"
+    "vhd-lib": "^3.2.0"
   },
   "devDependencies": {
     "@babel/cli": "^7.0.0",
