@@ -140,7 +140,7 @@ export default class RestApi {
     api.get('/vdis/:uuid.vhd', async (req, res, next) => {
       try {
         const vdi = app.getXapiObject(req.params.uuid, 'VDI')
-        const stream = await vdi.$xapi.VDI_exportContent(vdi.$ref, { format: 'vhd' })
+        const stream = await vdi.$exportContent({ format: 'vhd' })
 
         stream.headers['content-disposition'] = 'attachment'
         res.writeHead(stream.statusCode, stream.statusMessage != null ? stream.statusMessage : '', stream.headers)
@@ -158,7 +158,7 @@ export default class RestApi {
     api.get('/vms/:uuid.xva', async (req, res, next) => {
       try {
         const vm = app.getXapiObject(req.params.uuid, 'VM')
-        const stream = await vm.$xapi.VM_export(vm.$ref, { compress: req.query.compress })
+        const stream = await vm.$export({ compress: req.query.compress })
 
         stream.headers['content-disposition'] = 'attachment'
         res.writeHead(stream.statusCode, stream.statusMessage != null ? stream.statusMessage : '', stream.headers)
