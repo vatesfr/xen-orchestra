@@ -150,6 +150,8 @@ curl \
   'https://xo.company.lan/rest/v0/srs/357bd56c-71f9-4b2a-83b8-3451dec04b8f/vdis'
 ```
 
+This request returns the UUID of the created VDI.
+
 The following query parameters are supported to customize the created VDI:
 
 - `name_label`

@@ -127,7 +127,7 @@ export default class RestApi {
         const { name_label, name_description } = req.query
         const vdiRef = await sr.$importVdi(req, { name_label, name_description })
 
-        res.end(vdiRef)
+        res.end(await sr.$xapi.getField('VDI', vdiRef, 'uuid'))
       } catch (error) {
         if (noSuchObject.is(error)) {
           next()
