@@ -87,34 +87,6 @@ export default {
     return unhealthyVdis
   },
 
-  async createSr({
-    hostRef,
-
-    content_type = 'user', // recommended by Citrix
-    device_config = {},
-    name_description = '',
-    name_label,
-    shared = false,
-    physical_size = 0,
-    sm_config = {},
-    type,
-  }) {
-    const srRef = await this.call(
-      'SR.create',
-      hostRef,
-      device_config,
-      physical_size,
-      name_label,
-      name_description,
-      type,
-      content_type,
-      shared,
-      sm_config
-    )
-
-    return (await this.barrier(srRef)).uuid
-  },
-
   // This function helps to reattach a forgotten NFS/iSCSI/HBA SR
   @decorateWith(defer)
   async reattachSr($defer, { uuid, nameLabel, nameDescription, type, deviceConfig }) {

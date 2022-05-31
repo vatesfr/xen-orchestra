@@ -170,18 +170,15 @@ export async function createIso({
     })
   }
 
-  const srRef = await xapi.call(
-    'SR.create',
-    host._xapiRef,
-    deviceConfig,
-    '0', // SR size 0 because ISO
-    nameLabel,
-    nameDescription,
-    'iso', // SR type ISO
-    'iso', // SR content type ISO
-    type !== 'local',
-    {}
-  )
+  const srRef = await xapi.SR_create({
+    content_type: 'iso',
+    device_config: deviceConfig,
+    host: host._xapiRef,
+    name_description: nameDescription,
+    name_label: nameLabel,
+    shared: type !== 'local',
+    type: 'iso',
+  })
 
   const sr = await xapi.call('SR.get_record', srRef)
   return sr.uuid
@@ -247,18 +244,14 @@ export async function createNfs({
     })
   }
 
-  const srRef = await xapi.call(
-    'SR.create',
-    host._xapiRef,
-    deviceConfig,
-    '0',
-    nameLabel,
-    nameDescription,
-    'nfs', // SR LVM over iSCSI
-    'user', // recommended by Citrix
-    true,
-    {}
-  )
+  const srRef = await xapi.SR_create({
+    device_config: deviceConfig,
+    host: host._xapiRef,
+    name_description: nameDescription,
+    name_label: nameLabel,
+    shared: true,
+    type: 'nfs', // SR LVM over iSCSI
+  })
 
   const sr = await xapi.call('SR.get_record', srRef)
   return sr.uuid
@@ -302,18 +295,14 @@ export async function createHba({ host, nameLabel, nameDescription, scsiId, srUu
     })
   }
 
-  const srRef = await xapi.call(
-    'SR.create',
-    host._xapiRef,
-    deviceConfig,
-    '0',
-    nameLabel,
-    nameDescription,
-    'lvmohba', // SR LVM over HBA
-    'user', // recommended by Citrix
-    true,
-    {}
-  )
+  const srRef = await xapi.SR_create({
+    device_config: deviceConfig,
+    host: host._xapiRef,
+    name_description: nameDescription,
+    name_label: nameLabel,
+    shared: true,
+    type: 'lvmohba', // SR LVM over HBA
+  })
 
   const sr = await xapi.call('SR.get_record', srRef)
   return sr.uuid
@@ -343,18 +332,14 @@ export async function createLvm({ host, nameLabel, nameDescription, device }) {
     device,
   }
 
-  const srRef = await xapi.call(
-    'SR.create',
-    host._xapiRef,
-    deviceConfig,
-    '0',
-    nameLabel,
-    nameDescription,
-    'lvm', // SR LVM
-    'user', // recommended by Citrix
-    false,
-    {}
-  )
+  const srRef = await xapi.SR_create({
+    device_config: deviceConfig,
+    host: host._xapiRef,
+    name_description: nameDescription,
+    name_label: nameLabel,
+    shared: false,
+    type: 'lvm', // SR LVM
+  })
 
   const sr = await xapi.call('SR.get_record', srRef)
   return sr.uuid
@@ -383,18 +368,14 @@ export async function createExt({ host, nameLabel, nameDescription, device }) {
     device,
   }
 
-  const srRef = await xapi.call(
-    'SR.create',
-    host._xapiRef,
-    deviceConfig,
-    '0',
-    nameLabel,
-    nameDescription,
-    'ext', // SR ext
-    'user', // recommended by Citrix
-    false,
-    {}
-  )
+  const srRef = await xapi.call({
+    device_config: deviceConfig,
+    host: host._xapiRef,
+    name_description: nameDescription,
+    name_label: nameLabel,
+    shared: false,
+    type: 'ext', // SR ext
+  })
 
   const sr = await xapi.call('SR.get_record', srRef)
   return sr.uuid
@@ -458,13 +439,18 @@ export async function createZfs({ host, nameLabel, nameDescription, location }) 
   const xapi = this.getXapi(host)
   // only XCP-ng >=8.2 support the ZFS SR
   const types = await xapi.call('SR.get_supported_types')
-  return xapi.createSr({
-    hostRef: host._xapiRef,
-    name_label: nameLabel,
-    name_description: nameDescription,
-    type: types.includes('zfs') ? 'zfs' : 'file',
-    device_config: { location },
-  })
+  return await xapi.getField(
+    'SR',
+    await xapi.SR_create({
+      device_config: { location },
+      host: host._xapiRef,
+      name_description: nameDescription,
+      name_label: nameLabel,
+      shared: false,
+      type: types.includes('zfs') ? 'zfs' : 'file',
+    }),
+    'uuid'
+  )
 }
 
 createZfs.params = {
@@ -614,18 +600,14 @@ export async function createIscsi({
     })
   }
 
-  const srRef = await xapi.call(
-    'SR.create',
-    host._xapiRef,
-    deviceConfig,
-    '0',
-    nameLabel,
-    nameDescription,
-    'lvmoiscsi', // SR LVM over iSCSI
-    'user', // recommended by Citrix
-    true,
-    {}
-  )
+  const srRef = await xapi.SR_create({
+    device_config: deviceConfig,
+    host: host._xapiRef,
+    name_description: nameDescription,
+    name_label: nameLabel,
+    shared: true,
+    type: 'lvmoiscsi', // SR LVM over iSCSI
+  })
 
   const sr = await xapi.call('SR.get_record', srRef)
   return sr.uuid
