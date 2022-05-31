@@ -397,6 +397,7 @@ const TOO_MANY_SNAPSHOT_COLUMNS = [
     default: true,
     name: _('numberOfSnapshots'),
     itemRenderer: vm => vm.snapshots.length,
+    sortCriteria: vm => vm.snapshots.length,
     sortOrder: 'desc',
   },
 ]

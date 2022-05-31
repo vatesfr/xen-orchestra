@@ -14,6 +14,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [load-balancer] Fix density mode failing to shutdown hosts (PR [#6253](https://github.com/vatesfr/xen-orchestra/pull/6253))
+- [Health] Make "Too many snapshots" table sortable by number of snapshots (PR [#6255](https://github.com/vatesfr/xen-orchestra/pull/6255))
 
 ### Packages to release
 
@@ -31,5 +32,6 @@
 
 - @xen-orchestra/xapi minor
 - xo-server minor
+- xo-web patch
 
 <!--packages-end-->
