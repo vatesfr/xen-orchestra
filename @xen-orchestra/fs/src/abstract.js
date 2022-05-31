@@ -7,7 +7,6 @@ import { limitConcurrency } from 'limit-concurrency-decorator'
 import { parse } from 'xo-remote-parser'
 import { pipeline } from 'stream'
 import { randomBytes } from 'crypto'
-import { serializeError } from 'serialize-error'
 import { synchronized } from 'decorator-synchronized'
 
 import { basename, dirname, normalize as normalizePath } from './_path'
@@ -366,8 +365,7 @@ export default class RemoteHandlerAbstract {
         success: false,
         step,
         file: testFileName,
-        // ensure even non serializeable errors are displayed
-        error: error.message || JSON.stringify(serializeError(error)),
+        error,
       }
     } finally {
       ignoreErrors.call(this._unlink(testFileName))

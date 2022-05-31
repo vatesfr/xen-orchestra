@@ -74,9 +74,9 @@ export default class {
 
       try {
         await handler.sync()
-        ignoreErrors.call(this._updateRemote(id, { error: '' }))
+        ignoreErrors.call(this._updateRemote(id, { error: null }))
       } catch (error) {
-        ignoreErrors.call(this._updateRemote(id, { error: error.message }))
+        ignoreErrors.call(this._updateRemote(id, { error }))
         throw error
       }
 
@@ -103,7 +103,7 @@ export default class {
         writeRate,
       }
       await this._updateRemote(remoteId, {
-        error: '',
+        error: null,
         benchmarks:
           remote.benchmarks !== undefined
             ? [...remote.benchmarks.slice(-49), benchmark] // store 50 benchmarks

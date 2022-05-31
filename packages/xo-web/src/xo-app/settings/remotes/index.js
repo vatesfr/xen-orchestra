@@ -29,11 +29,13 @@ import {
 
 import Remote from './remote'
 
+const formatError = error => (typeof error === 'string' ? error : JSON.stringify(error, null, 2).replace(/\\n/g, '\n'))
+
 const _changeUrlElement = (value, { remote, element }) =>
   editRemote(remote, {
     url: format({ ...remote, [element]: value === null ? undefined : value }),
   })
-const _showError = remote => alert(_('remoteConnectionFailed'), remote.error)
+const _showError = remote => alert(_('remoteConnectionFailed'), <pre>{formatError(remote.error)}</pre>)
 const _editRemoteName = (name, { remote }) => editRemote(remote, { name })
 const _editRemoteOptions = (options, { remote }) => editRemote(remote, { options: options !== '' ? options : null })
 
@@ -331,7 +333,9 @@ const INDIVIDUAL_ACTIONS = [
                 <p>
                   <dl className='dl-horizontal'>
                     <dt>{_('remoteTestError')}</dt>
-                    <dd>{answer.error}</dd>
+                    <dd>
+                      <pre>{formatError(answer.error)}</pre>
+                    </dd>
                     <dt>{_('remoteTestStep')}</dt>
                     <dd>{answer.step}</dd>
                   </dl>

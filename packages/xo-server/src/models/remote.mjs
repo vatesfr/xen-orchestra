@@ -1,6 +1,6 @@
 import Collection from '../collection/redis.mjs'
 import Model from '../model.mjs'
-import { forEach } from '../utils.mjs'
+import { forEach, serializeError } from '../utils.mjs'
 
 import { parseProp } from './utils.mjs'
 
@@ -18,6 +18,7 @@ export class Remotes extends Collection {
     forEach(remotes, remote => {
       remote.benchmarks = parseProp('remote', remote, 'benchmarks')
       remote.enabled = remote.enabled === 'true'
+      remote.error = parseProp('remote', remote, 'error', remote.error)
     })
     return remotes
   }
@@ -29,6 +30,12 @@ export class Remotes extends Collection {
         if (benchmarks !== undefined) {
           remote.benchmarks = JSON.stringify(benchmarks)
         }
+
+        const { error } = remote
+        if (error !== undefined) {
+          remote.error = JSON.stringify(typeof error === 'object' ? serializeError(error) : error)
+        }
+
         return remote
       })
     )
