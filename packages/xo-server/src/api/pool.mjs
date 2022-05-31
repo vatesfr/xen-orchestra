@@ -1,6 +1,8 @@
 import { asyncMap } from '@xen-orchestra/async-map'
 import { createLogger } from '@xen-orchestra/log'
+import { createPredicate } from 'value-matcher'
 import { defer as deferrable } from 'golike-defer'
+import { extractIdsFromSimplePattern } from '@xen-orchestra/backups/extractIdsFromSimplePattern.js'
 import { format } from 'json-rpc-peer'
 import { Ref } from 'xen-api'
 import { incorrectState } from 'xo-common/api-errors.js'
@@ -175,6 +177,44 @@ export const rollingUpdate = deferrable(async function ($defer, { bypassBackupCh
     await backupGuard.call(this, poolId)
   }
 
+  const poolId = pool.id
+  const [schedules, jobs] = await Promise.all([this.getAllSchedules(), this.getAllJobs('backup')])
+
+  const jobsOfthePool = []
+  jobs.forEach(({ id: jobId, vms }) => {
+    if (vms.id !== undefined) {
+      for (const vmId of extractIdsFromSimplePattern(vms)) {
+        // try/catch to avoid `no such object`
+        try {
+          if (this.getObject(vmId).$poolId === poolId) {
+            jobsOfthePool.push(jobId)
+            break
+          }
+        } catch {}
+      }
+    } else {
+      // Smart mode
+      // For smart mode, we take a simplified approach:
+      // - if smart mode is explicitly 'resident' or 'not resident' on pools, we
+      //   check if it concerns this pool
+      // - if not, the job may concern this pool so we add it to `jobsOfThePool`
+      if (vms.$pool === undefined || createPredicate(vms.$pool)(poolId)) {
+        jobsOfthePool.push(jobId)
+      }
+    }
+  })
+
+  // Disable schedules
+  await Promise.all(
+    schedules
+      .filter(schedule => jobsOfthePool.includes(schedule.jobId) && schedule.enabled)
+      .map(async schedule => {
+        await this.updateSchedule({ ...schedule, enabled: false })
+        $defer(() => this.updateSchedule({ ...schedule, enabled: true }))
+      })
+  )
+
+  // Disable load balancer
   if ((await this.getOptionalPlugin('load-balancer'))?.loaded) {
     await this.unloadPlugin('load-balancer')
     $defer(() => this.loadPlugin('load-balancer'))
