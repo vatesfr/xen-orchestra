@@ -1,6 +1,7 @@
 import asyncMapSettled from '@xen-orchestra/async-map/legacy'
 import getStream from 'get-stream'
 import { coalesceCalls } from '@vates/coalesce-calls'
+import { createLogger } from '@xen-orchestra/log'
 import { fromCallback, fromEvent, ignoreErrors, timeout } from 'promise-toolbox'
 import { limitConcurrency } from 'limit-concurrency-decorator'
 import { parse } from 'xo-remote-parser'
@@ -10,6 +11,8 @@ import { synchronized } from 'decorator-synchronized'
 
 import { basename, dirname, normalize as normalizePath } from './_path'
 import { createChecksumStream, validChecksumOfReadStream } from './checksum'
+
+const { warn } = createLogger('@xen-orchestra:fs')
 
 const checksumFile = file => file + '.checksum'
 const computeRate = (hrtime, size) => {
@@ -357,11 +360,12 @@ export default class RemoteHandlerAbstract {
         readRate: computeRate(readDuration, SIZE),
       }
     } catch (error) {
+      warn(`error while testing the remote at step ${step}`, { error })
       return {
         success: false,
         step,
         file: testFileName,
-        error: error.message || String(error),
+        error,
       }
     } finally {
       ignoreErrors.call(this._unlink(testFileName))
