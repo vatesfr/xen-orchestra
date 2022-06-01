@@ -39,8 +39,8 @@
 - vhd-cli 0.7.2
 - xo-vmdk-to-vhd 2.4.0
 - @xen-orchestra/upload-ova 0.1.5
+- @xen-orchestra/xapi 1.1.0
 - @xen-orchestra/backups 0.24.0
-- @xen-orchestra/xapi 1.0.1
 - @xen-orchestra/backups-cli 0.7.2
 - @xen-orchestra/emit-async 1.0.0
 - @xen-orchestra/mixins 0.5.0
