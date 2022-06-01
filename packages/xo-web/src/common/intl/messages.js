@@ -1666,7 +1666,7 @@ const messages = {
   healthCheck: 'Health check',
   healthCheckChooseSr: 'Choose SR used for VMs restoration',
   healthCheckTagsInfo: 'If no tags are specified, all VMs in the backup will be tested.',
-  healthCheckAvailablePremiumUser: 'Only available to premium users',
+  healthCheckAvailableEnterpriseUser: 'Only available to enterprise users',
   remoteNotCompatibleWithSelectedProxy:
     "The backup will not be run on this remote because it's not compatible with the selected proxy",
   remoteLoadBackupsFailure: 'Loading backups failed',
