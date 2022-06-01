@@ -46,7 +46,7 @@
 - @xen-orchestra/mixins 0.5.0
 - @xen-orchestra/proxy 0.23.1
 - xo-server 5.95.0
-- xo-web 5.97.0
+- xo-web 5.97.1
 - xo-server-backup-reports 0.17.0
 
 ## 5.70.2 (2022-05-16)
