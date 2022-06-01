@@ -35,7 +35,7 @@
 
 - @xen-orchestra/self-signed 0.1.3
 - vhd-lib 3.2.0
-- @xen-orchestra/fs 1.0.2
+- @xen-orchestra/fs 1.0.3
 - vhd-cli 0.7.2
 - xo-vmdk-to-vhd 2.4.0
 - @xen-orchestra/upload-ova 0.1.5

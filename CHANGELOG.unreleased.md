@@ -33,7 +33,6 @@
 
 <!--packages-start-->
 
-- @xen-orchestra/fs patch
 - @xen-orchestra/xapi minor
 - xo-server minor
 - xo-web patch

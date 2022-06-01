@@ -29,7 +29,7 @@
     "uuid": "^8.3.1"
   },
   "devDependencies": {
-    "@xen-orchestra/fs": "^1.0.2",
+    "@xen-orchestra/fs": "^1.0.3",
     "execa": "^5.0.0",
     "get-stream": "^6.0.0",
     "rimraf": "^3.0.2",
