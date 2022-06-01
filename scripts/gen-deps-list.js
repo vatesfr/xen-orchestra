@@ -19,7 +19,14 @@ const changelogConfig = {
 const RELEASE_WEIGHT = { PATCH: 1, MINOR: 2, MAJOR: 3 }
 const RELEASE_TYPE = invert(RELEASE_WEIGHT)
 
-const dependencyTree = new DepTree()
+const releaseGraph = { __proto__: null }
+function addToGraph(name, depName) {
+  const deps = releaseGraph[name] ?? (releaseGraph[name] = [])
+  if (depName !== undefined) {
+    deps.push(depName)
+  }
+}
+
 /** @type {Map<string, int>} A mapping of package names to their release weight */
 const packagesToRelease = new Map()
 
@@ -67,7 +74,7 @@ async function main(args, scriptName) {
 
     const rootReleaseWeight = releaseTypeToWeight(releaseType)
     registerPackageToRelease(packageName, rootReleaseWeight)
-    dependencyTree.add(rootPackage.name)
+    addToGraph(rootPackage.name)
 
     handlePackageDependencies(rootPackage.name, getNextVersion(rootPackage.package.version, rootReleaseWeight))
   })
@@ -75,7 +82,14 @@ async function main(args, scriptName) {
   const commandsToExecute = ['', 'Commands to execute:', '']
   const releasedPackages = ['', '### Released packages', '']
 
-  dependencyTree.resolve().forEach(dependencyName => {
+  const tree = new DepTree()
+  Object.keys(releaseGraph)
+    .sort()
+    .forEach(name => {
+      tree.add(name, releaseGraph[name])
+    })
+
+  tree.resolve().forEach(dependencyName => {
     const releaseWeight = packagesToRelease.get(dependencyName)
     const {
       package: { version },
@@ -139,7 +153,7 @@ function handlePackageDependencies(packageName, packageNextVersion) {
 
       if (releaseWeight !== undefined) {
         registerPackageToRelease(name, releaseWeight)
-        dependencyTree.add(name, packageName)
+        addToGraph(name, packageName)
         handlePackageDependencies(name, getNextVersion(version, releaseWeight))
       }
     }
