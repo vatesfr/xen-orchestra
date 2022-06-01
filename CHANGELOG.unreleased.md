@@ -10,6 +10,7 @@
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
+> Import Vdi content now works when server is behind http proxy
 
 ### Packages to release
 
