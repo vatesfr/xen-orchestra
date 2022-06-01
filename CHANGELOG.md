@@ -44,7 +44,7 @@
 - @xen-orchestra/backups-cli 0.7.2
 - @xen-orchestra/emit-async 1.0.0
 - @xen-orchestra/mixins 0.5.0
-- @xen-orchestra/proxy 0.23.0
+- @xen-orchestra/proxy 0.23.1
 - xo-server 5.94.0
 - xo-web 5.97.0
 - xo-server-backup-reports 0.17.0
