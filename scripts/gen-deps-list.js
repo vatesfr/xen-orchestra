@@ -60,7 +60,7 @@ async function main(args, scriptName) {
 `)
       return
     }
-    readPackagesFromChangelog(toRelease)
+    await readPackagesFromChangelog(toRelease)
   }
 
   allPackages = keyBy(await getPackages(true), 'name')
