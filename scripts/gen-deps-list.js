@@ -25,36 +25,40 @@ const packagesToRelease = new Map()
 
 let allPackages
 
-async function main() {
-  allPackages = keyBy(await getPackages(true), 'name')
-  const content = await fs.readFile(changelogConfig.path)
-  const changelogRegex = new RegExp(
-    `${escapeRegExp(changelogConfig.startTag)}(.*)${escapeRegExp(changelogConfig.endTag)}`,
-    's'
-  )
-  const block = changelogRegex.exec(content)?.[1].trim()
+async function main(args, scriptName) {
+  const toRelease = { __proto__: null }
 
-  if (block === undefined) {
-    throw new Error(`Could not find changelog block in ${changelogConfig.path}`)
-  }
+  const testMode = args[0] === '--test'
+  if (testMode) {
+    args.shift()
 
-  block.split('\n').forEach(rawLine => {
-    const line = rawLine.trim()
+    for (const arg of args) {
+      const matches = /^(.+)@(patch|minor|major)$/.exec(arg)
+      if (matches === null) {
+        throw new Error('invalid arg: ' + arg)
+      }
+      toRelease[matches[1]] = matches[2]
+    }
+  } else {
+    if (args.length !== 0) {
+      process.stdout.write(`Usage:
 
-    if (!line) {
+  ${scriptName}
+    Read the list of packages with changes from \`CHANGELOG.unreleased.md\` and compute the list of packages to be released.
+
+  ${scriptName} --test <name>@<release type>...
+    Compute the list of packages to be released from the list of changed packages from the command line.
+
+    Does not do any side effects.
+`)
       return
     }
+    readPackagesFromChangelog(toRelease)
+  }
 
-    const match = line.match(/^-\s*(?<packageName>\S+)\s+(?<releaseType>patch|minor|major)$/)
+  allPackages = keyBy(await getPackages(true), 'name')
 
-    if (!match) {
-      throw new Error(`Invalid line: "${rawLine}"`)
-    }
-
-    const {
-      groups: { packageName, releaseType },
-    } = match
-
+  Object.entries(toRelease).forEach(([packageName, releaseType]) => {
     const rootPackage = allPackages[packageName]
 
     if (!rootPackage) {
@@ -82,6 +86,36 @@ async function main() {
 
   console.log(commandsToExecute.join('\n'))
   console.log(releasedPackages.join('\n'))
+}
+
+async function readPackagesFromChangelog(toRelease) {
+  const content = await fs.readFile(changelogConfig.path)
+  const changelogRegex = new RegExp(
+    `${escapeRegExp(changelogConfig.startTag)}(.*)${escapeRegExp(changelogConfig.endTag)}`,
+    's'
+  )
+  const block = changelogRegex.exec(content)?.[1].trim()
+
+  if (block === undefined) {
+    throw new Error(`Could not find changelog block in ${changelogConfig.path}`)
+  }
+
+  block.split('\n').forEach(rawLine => {
+    const line = rawLine.trim()
+
+    if (!line) {
+      return
+    }
+
+    const match = line.match(/^-\s*(?<name>\S+)\s+(?<releaseType>patch|minor|major)$/)
+
+    if (!match) {
+      throw new Error(`Invalid line: "${rawLine}"`)
+    }
+
+    const { name, releaseType } = match.groups
+    toRelease[name] = releaseType
+  })
 }
 
 /**
@@ -161,7 +195,7 @@ function getNextVersion(version, releaseWeight) {
   return semver.inc(version, RELEASE_TYPE[releaseWeight].toLocaleLowerCase())
 }
 
-main().catch(error => {
+main(process.argv.slice(2), process.argv[1]).catch(error => {
   console.error(error)
   process.exit(1)
 })
