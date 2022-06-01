@@ -69,7 +69,7 @@ async function main(args, scriptName) {
     registerPackageToRelease(packageName, rootReleaseWeight)
     dependencyTree.add(rootPackage.name)
 
-    handlePackageDependencies(rootPackage.name, getNextVersion(rootPackage.version, rootReleaseWeight))
+    handlePackageDependencies(rootPackage.name, getNextVersion(rootPackage.package.version, rootReleaseWeight))
   })
 
   const commandsToExecute = ['', 'Commands to execute:', '']
@@ -129,9 +129,11 @@ function handlePackageDependencies(packageName, packageNextVersion) {
     ({ package: { name, version, dependencies, optionalDependencies, peerDependencies } }) => {
       let releaseWeight
 
-      if (shouldPackageBeReleased(packageName, { ...dependencies, ...optionalDependencies }, packageNextVersion)) {
+      if (
+        shouldPackageBeReleased(name, { ...dependencies, ...optionalDependencies }, packageName, packageNextVersion)
+      ) {
         releaseWeight = RELEASE_WEIGHT.PATCH
-      } else if (shouldPackageBeReleased(packageName, peerDependencies || {}, packageNextVersion)) {
+      } else if (shouldPackageBeReleased(name, peerDependencies || {}, packageName, packageNextVersion)) {
         releaseWeight = versionToReleaseWeight(version)
       }
 
@@ -151,17 +153,20 @@ function releaseTypeToWeight(type) {
 /**
  * @param {string} name The package name to check
  * @param {object} dependencies The package dependencies name/constraint map
- * @param {string} version The version to check the dependency constraint against
+ * @param {string} depName The name of the current dependency
+ * @param {string} depVersion The version to check the dependency constraint against
  * @returns {boolean}
  */
-function shouldPackageBeReleased(name, dependencies, version) {
-  if (!Object.prototype.hasOwnProperty.call(dependencies, name)) {
+function shouldPackageBeReleased(name, dependencies, depName, depVersion) {
+  if (!Object.prototype.hasOwnProperty.call(dependencies, depName)) {
     return false
   }
 
-  return (
-    ['xo-web', 'xo-server', '@xen-orchestra/proxy'].includes(name) || !semver.satisfies(version, dependencies[name])
-  )
+  if (['xo-web', 'xo-server', '@xen-orchestra/proxy'].includes(name)) {
+    return true
+  }
+
+  return !semver.satisfies(depVersion, dependencies[depName])
 }
 
 /**
