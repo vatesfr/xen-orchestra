@@ -17,6 +17,7 @@
 - [load-balancer] Fix density mode failing to shutdown hosts (PR [#6253](https://github.com/vatesfr/xen-orchestra/pull/6253))
 - [Health] Make "Too many snapshots" table sortable by number of snapshots (PR [#6255](https://github.com/vatesfr/xen-orchestra/pull/6255))
 - [Remote] Show complete errors instead of only a potentially missing message (PR [#6216](https://github.com/vatesfr/xen-orchestra/pull/6216))
+- [Backup] Scheduled health check of a backup is available from the enterprise level (PR [#6257](https://github.com/vatesfr/xen-orchestra/pull/6257))
 
 ### Packages to release
 

@@ -12,7 +12,7 @@ import { Number } from 'form'
 
 import { FormGroup, Input } from './../utils'
 import Tags from '../../../common/tags'
-import { getXoaPlan, PREMIUM } from '../../../common/xoa-plans'
+import { ENTERPRISE, getXoaPlan } from '../../../common/xoa-plans'
 import { SelectSr } from '../../../common/select-objects'
 
 const New = decorate([
@@ -139,11 +139,11 @@ const New = decorate([
             {conditionalTooltip(
               <input
                 checked={schedule.healthCheckVmsWithTags !== undefined}
-                disabled={getXoaPlan().value < PREMIUM.value}
+                disabled={getXoaPlan().value < ENTERPRISE.value}
                 onChange={effects.toggleHealthCheck}
                 type='checkbox'
               />,
-              getXoaPlan().value < PREMIUM.value ? _('healthCheckAvailablePremiumUser') : undefined
+              getXoaPlan().value < ENTERPRISE.value ? _('healthCheckAvailableEnterpriseUser') : undefined
             )}
           </label>
           {schedule.healthCheckVmsWithTags !== undefined && (
