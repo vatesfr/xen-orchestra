@@ -6,6 +6,8 @@ const { Ref } = require('xen-api')
 
 const isVmRunning = require('./_isVmRunning.js')
 
+const { warn } = require('@xen-orchestra/log').createLogger('xo:xapi:vbd')
+
 const noop = Function.prototype
 
 module.exports = class Vbd {
@@ -66,7 +68,7 @@ module.exports = class Vbd {
     })
 
     if (isVmRunning(powerState)) {
-      await this.callAsync('VBD.plug', vbdRef)
+      this.callAsync('VBD.plug', vbdRef).catch(warn)
     }
 
     return vbdRef
