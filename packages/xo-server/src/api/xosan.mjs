@@ -740,9 +740,8 @@ async function createNewDisk(xapi, sr, vm, diskSize) {
       name_description: 'Created by XO',
       size: createVdiSize,
       sr,
-      sm_config: { type: 'raw' },
     },
-    { setSmConfig: true }
+    { sm_config: { type: 'raw' } }
   )
   if (extensionSize > 0) {
     const { type, uuid: srUuid, $PBDs } = xapi.getObject(sr)
