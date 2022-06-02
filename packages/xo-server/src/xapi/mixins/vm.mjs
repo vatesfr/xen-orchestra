@@ -168,18 +168,16 @@ export default {
             name_label: vdiDescription.name_label,
             virtual_size: vdiDescription.size,
             SR: this.getObject(vdiDescription.sr || vdiDescription.SR, 'SR').$ref,
-          })
-            .then(vdiRef => this._getOrWaitObject(vdiRef))
-            .then(vdi =>
-              this.createVbd({
-                // Either the CD or the 1st disk is bootable (only useful for PV VMs)
-                bootable: !(hasBootableDisk || i),
+          }).then(vdiRef =>
+            this.VBD_create({
+              // Either the CD or the 1st disk is bootable (only useful for PV VMs)
+              bootable: !(hasBootableDisk || i),
 
-                userdevice: devices[i],
-                vdi,
-                vm,
-              })
-            )
+              userdevice: devices[i],
+              VDI: vdiRef,
+              VM: vm.$ref,
+            })
+          )
         )
       )
     }

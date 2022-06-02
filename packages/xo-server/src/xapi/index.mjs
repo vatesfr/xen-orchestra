@@ -6,8 +6,6 @@ import filter from 'lodash/filter.js'
 import find from 'lodash/find.js'
 import flatMap from 'lodash/flatMap.js'
 import flatten from 'lodash/flatten.js'
-import identity from 'lodash/identity.js'
-import includes from 'lodash/includes.js'
 import isEmpty from 'lodash/isEmpty.js'
 import mapToArray from 'lodash/map.js'
 import mixin from '@xen-orchestra/mixin/legacy.js'
@@ -849,10 +847,10 @@ export default class Xapi extends XapiBase {
         ))
         $defer.onFailure(() => vdi.$destroy())
         compression[disk.path] = disk.compression
-        return this.createVbd({
+        return this.VBD_create({
           userdevice: String(disk.position),
-          vdi,
-          vm,
+          VDI: vdi.$ref,
+          VM: vm.$ref,
         })
       }).concat(
         map(networks, (networkId, i) =>
@@ -1104,74 +1102,6 @@ export default class Xapi extends XapiBase {
 
   // =================================================================
 
-  async createVbd({
-    bootable = false,
-    currently_attached = false,
-    device = '',
-    other_config = {},
-    qos_algorithm_params = {},
-    qos_algorithm_type = '',
-    type = 'Disk',
-    unpluggable = false,
-    userdevice,
-    VDI,
-    VM,
-
-    vdi = VDI,
-
-    empty = vdi === undefined,
-    mode = type === 'Disk' ? 'RW' : 'RO',
-    vm = VM,
-  }) {
-    vdi = this.getObject(vdi)
-    vm = this.getObject(vm)
-
-    log.debug(`Creating VBD for VDI ${vdi.name_label} on VM ${vm.name_label}`)
-
-    if (userdevice == null) {
-      const allowed = await this.call('VM.get_allowed_VBD_devices', vm.$ref)
-      const { length } = allowed
-      if (length === 0) {
-        throw new Error('no allowed VBD devices')
-      }
-
-      if (type === 'CD') {
-        // Choose position 3 if allowed.
-        userdevice = includes(allowed, '3') ? '3' : allowed[0]
-      } else {
-        userdevice = allowed[0]
-
-        // Avoid userdevice 3 if possible.
-        if (userdevice === '3' && length > 1) {
-          userdevice = allowed[1]
-        }
-      }
-    }
-
-    const ifVmSuspended = vm.power_state === 'Suspended' ? identity : noop
-
-    // By default a VBD is unpluggable.
-    const vbdRef = await this.call('VBD.create', {
-      bootable: Boolean(bootable),
-      currently_attached: ifVmSuspended(currently_attached),
-      device: ifVmSuspended(device),
-      empty: Boolean(empty),
-      mode,
-      other_config,
-      qos_algorithm_params,
-      qos_algorithm_type,
-      type,
-      unpluggable: Boolean(unpluggable),
-      userdevice,
-      VDI: vdi && vdi.$ref,
-      VM: vm.$ref,
-    })
-
-    if (isVmRunning(vm)) {
-      await this.callAsync('VBD.plug', vbdRef)
-    }
-  }
-
   _cloneVdi(vdi) {
     log.debug(`Cloning VDI ${vdi.name_label}`)
 
@@ -1201,9 +1131,9 @@ export default class Xapi extends XapiBase {
       const newVdi = await this.barrier(await this.callAsync('VDI.copy', vdi.$ref, sr.$ref).then(extractOpaqueRef))
       await asyncMapSettled(vdi.$VBDs, async vbd => {
         await this.call('VBD.destroy', vbd.$ref)
-        await this.createVbd({
+        await this.VBD_create({
           ...vbd,
-          vdi: newVdi,
+          VDI: newVdi.$ref,
         })
       })
       await vdi.$destroy()
@@ -1253,11 +1183,11 @@ export default class Xapi extends XapiBase {
         await cdDrive.set_bootable(bootable)
       }
     } else {
-      await this.createVbd({
+      await this.VBD_create({
         bootable,
         type: 'CD',
-        vdi: cd,
-        vm,
+        VDI: cd.$ref,
+        VM: vm.$ref,
       })
     }
   }
@@ -1621,7 +1551,7 @@ export default class Xapi extends XapiBase {
       log.warn('importVdiContent: ', { error })
     })
 
-    await this.createVbd({ vdi, vm })
+    await this.VBD_create({ VDI: vdi.$ref, VM: vm.$ref })
   }
 
   @decorateWith(deferrable)

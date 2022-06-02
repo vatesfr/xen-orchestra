@@ -758,7 +758,7 @@ async function createNewDisk(xapi, sr, vm, diskSize) {
     }
     await xapi.callAsync('SR.scan', xapi.getObject(sr).$ref)
   }
-  await xapi.createVbd({ vdi: newDisk, vm })
+  await xapi.VBD_create({ VDI: newDisk.$ref, VM: vm.$ref })
   let vbd = (await xapi._waitObjectState(newDisk.$id, disk => Boolean(disk.$VBDs.length))).$VBDs[0]
   vbd = await xapi._waitObjectState(vbd.$id, vbd => Boolean(vbd.device.length))
   return '/dev/' + vbd.device

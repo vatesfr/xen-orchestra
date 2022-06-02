@@ -51,12 +51,12 @@ export const create = defer(async function ($defer, { name, size, sr, vm, bootab
   $defer.onFailure(() => vdi.$destroy())
 
   if (attach) {
-    await xapi.createVbd({
+    await xapi.VBD_create({
       bootable,
       mode,
       userdevice: position,
-      vdi: vdi.$id,
-      vm: vm._xapiId,
+      VDI: vdi.$ref,
+      VM: vm._xapiRef,
     })
   }
 

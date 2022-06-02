@@ -1196,12 +1196,12 @@ export { import_ as import }
 // FIXME: if position is used, all other disks after this position
 // should be shifted.
 export async function attachDisk({ vm, vdi, position, mode, bootable }) {
-  await this.getXapi(vm).createVbd({
+  await this.getXapi(vm).VBD_create({
     bootable,
     mode,
     userdevice: position,
-    vdi: vdi._xapiId,
-    vm: vm._xapiId,
+    VDI: vdi._xapiRef,
+    VM: vm._xapiRef,
   })
 }
 
