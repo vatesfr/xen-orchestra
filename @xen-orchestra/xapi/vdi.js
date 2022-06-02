@@ -30,7 +30,7 @@ class Vdi {
       other_config = {},
       read_only = false,
       sharable = false,
-      SR,
+      SR = this.pool.default_SR,
       tags,
       type = 'user',
       virtual_size,

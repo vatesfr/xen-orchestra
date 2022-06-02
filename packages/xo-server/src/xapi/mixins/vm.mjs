@@ -163,21 +163,23 @@ export default {
       const devices = await this.call('VM.get_allowed_VBD_devices', vm.$ref)
       await Promise.all(
         mapToArray(vdis, (vdiDescription, i) =>
-          this.createVdi({
+          this.VDI_create({
             name_description: vdiDescription.name_description,
             name_label: vdiDescription.name_label,
-            size: vdiDescription.size,
-            sr: vdiDescription.sr || vdiDescription.SR,
-          }).then(vdi =>
-            this.createVbd({
-              // Either the CD or the 1st disk is bootable (only useful for PV VMs)
-              bootable: !(hasBootableDisk || i),
+            virtual_size: vdiDescription.size,
+            SR: this.getObject(vdiDescription.sr || vdiDescription.SR, 'SR').$ref,
+          })
+            .then(vdiRef => this._getOrWaitObject(vdiRef))
+            .then(vdi =>
+              this.createVbd({
+                // Either the CD or the 1st disk is bootable (only useful for PV VMs)
+                bootable: !(hasBootableDisk || i),
 
-              userdevice: devices[i],
-              vdi,
-              vm,
-            })
-          )
+                userdevice: devices[i],
+                vdi,
+                vm,
+              })
+            )
         )
       )
     }

@@ -10,6 +10,7 @@ import { peekFooterFromVhdStream } from 'vhd-lib'
 import { vmdkToVhd } from 'xo-vmdk-to-vhd'
 
 import { VDI_FORMAT_VHD, VDI_FORMAT_RAW } from '../xapi/index.mjs'
+import { parseSize } from '../utils.mjs'
 
 const log = createLogger('xo:disk')
 
@@ -40,11 +41,13 @@ export const create = defer(async function ($defer, { name, size, sr, vm, bootab
   } while (false)
 
   const xapi = this.getXapi(sr)
-  const vdi = await xapi.createVdi({
-    name_label: name,
-    size,
-    sr: sr._xapiId,
-  })
+  const vdi = await xapi._getOrWaitObject(
+    await xapi.VDI_create({
+      name_label: name,
+      SR: sr._xapiRef,
+      virtual_size: parseSize(size),
+    })
+  )
   $defer.onFailure(() => vdi.$destroy())
 
   if (attach) {
@@ -211,12 +214,14 @@ async function handleImport(req, res, { type, name, description, vmdkData, srId,
               throw new JsonRpcError(`Unknown disk type, expected "iso", "vhd" or "vmdk", got ${type}`)
           }
 
-          const vdi = await xapi.createVdi({
-            name_description: description,
-            name_label: name,
-            size,
-            sr: srId,
-          })
+          const vdi = await this._getOrWaitObject(
+            await xapi.VDI_create({
+              name_description: description,
+              name_label: name,
+              SR: xapi.getObject(srId, 'SR').$ref,
+              virtual_size: parseSize(size),
+            })
+          )
           try {
             await xapi.importVdiContent(vdi, vhdStream, { format: diskFormat })
             res.end(format.response(0, vdi.$id))

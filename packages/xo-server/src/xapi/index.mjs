@@ -31,7 +31,7 @@ import { Ref } from 'xen-api'
 import { synchronized } from 'decorator-synchronized'
 
 import fatfsBuffer, { init as fatfsBufferInit } from '../fatfs-buffer.mjs'
-import { camelToSnakeCase, forEach, map, parseSize, pDelay, promisifyAll } from '../utils.mjs'
+import { camelToSnakeCase, forEach, map, pDelay, promisifyAll } from '../utils.mjs'
 
 import mixins from './mixins/index.mjs'
 import OTHER_CONFIG_TEMPLATE from './other-config-template.mjs'
@@ -839,12 +839,14 @@ export default class Xapi extends XapiBase {
     }
     await Promise.all(
       map(disks, async disk => {
-        const vdi = (vdis[disk.path] = await this.createVdi({
-          name_description: disk.descriptionLabel,
-          name_label: disk.nameLabel,
-          size: disk.capacity,
-          sr: sr.$ref,
-        }))
+        const vdi = (vdis[disk.path] = await this._getOrWaitObject(
+          await this.VDI_create({
+            name_description: disk.descriptionLabel,
+            name_label: disk.nameLabel,
+            SR: sr.$ref,
+            virtual_size: disk.capacity,
+          })
+        ))
         $defer.onFailure(() => vdi.$destroy())
         compression[disk.path] = disk.compression
         return this.createVbd({
@@ -1174,51 +1176,6 @@ export default class Xapi extends XapiBase {
     log.debug(`Cloning VDI ${vdi.name_label}`)
 
     return this.callAsync('VDI.clone', vdi.$ref).then(extractOpaqueRef)
-  }
-
-  async createVdi(
-    {
-      name_description,
-      name_label,
-      other_config = {},
-      read_only = false,
-      sharable = false,
-      sm_config,
-      SR,
-      tags,
-      type = 'user',
-      virtual_size,
-      xenstore_data,
-
-      size,
-      sr = Ref.isNotEmpty(SR) ? SR : this.pool.default_SR,
-    },
-    {
-      // blindly copying `sm_config` from another VDI can create problems,
-      // therefore it is ignored by default by this method
-      //
-      // see https://github.com/vatesfr/xen-orchestra/issues/4482
-      setSmConfig = false,
-    } = {}
-  ) {
-    sr = this.getObject(sr)
-    log.debug(`Creating VDI ${name_label} on ${sr.name_label}`)
-
-    return this._getOrWaitObject(
-      await this.callAsync('VDI.create', {
-        name_description,
-        name_label,
-        other_config,
-        read_only: Boolean(read_only),
-        sharable: Boolean(sharable),
-        SR: sr.$ref,
-        tags,
-        type,
-        sm_config: setSmConfig ? sm_config : undefined,
-        virtual_size: size !== undefined ? parseSize(size) : virtual_size,
-        xenstore_data,
-      }).then(extractOpaqueRef)
-    )
   }
 
   async moveVdi(vdiId, srId) {
@@ -1625,11 +1582,13 @@ export default class Xapi extends XapiBase {
 
     // First, create a small VDI (10MB) which will become the ConfigDrive
     const buffer = fatfsBufferInit({ label: 'cidata     ' })
-    const vdi = await this.createVdi({
-      name_label: 'XO CloudConfigDrive',
-      size: buffer.length,
-      sr: sr.$ref,
-    })
+    const vdi = await this._getOrWaitObject(
+      await this.VDI_create({
+        name_label: 'XO CloudConfigDrive',
+        SR: sr.$ref,
+        virtual_size: buffer.length,
+      })
+    )
     $defer.onFailure(() => vdi.$destroy())
 
     // Then, generate a FAT fs
@@ -1667,12 +1626,14 @@ export default class Xapi extends XapiBase {
 
   @decorateWith(deferrable)
   async createTemporaryVdiOnSr($defer, stream, sr, name_label, name_description) {
-    const vdi = await this.createVdi({
-      name_description,
-      name_label,
-      size: stream.length,
-      sr: sr.$ref,
-    })
+    const vdi = await this._getOrWaitObject(
+      await this.VDI_create({
+        name_description,
+        name_label,
+        SR: sr.$ref,
+        virtual_size: stream.length,
+      })
+    )
     $defer.onFailure(() => vdi.$destroy())
 
     await this.importVdiContent(vdi.$id, stream, { format: VDI_FORMAT_RAW })

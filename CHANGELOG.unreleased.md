@@ -26,5 +26,6 @@
 <!--packages-start-->
 
 - @xen-orchestra/xapi minor
+- xo-server patch
 
 <!--packages-end-->
