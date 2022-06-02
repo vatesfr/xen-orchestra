@@ -34,14 +34,11 @@ import { camelToSnakeCase, forEach, map, pDelay, promisifyAll } from '../utils.m
 import mixins from './mixins/index.mjs'
 import OTHER_CONFIG_TEMPLATE from './other-config-template.mjs'
 import {
-  asBoolean,
   asInteger,
   extractOpaqueRef,
-  filterUndefineds,
   canSrHaveNewVdiOfSize,
   isVmHvm,
   isVmRunning,
-  optional,
   parseDateTime,
   prepareXapiParam,
 } from './utils.mjs'
@@ -382,123 +379,6 @@ export default class Xapi extends XapiBase {
     }
   }
 
-  // Low level create VM.
-  _createVmRecord(
-    {
-      actions_after_crash,
-      actions_after_reboot,
-      actions_after_shutdown,
-      affinity,
-      // appliance,
-      blocked_operations,
-      domain_type, // Used when the VM is created Suspended
-      generation_id,
-      ha_always_run,
-      ha_restart_priority,
-      has_vendor_device = false, // Avoid issue with some Dundee builds.
-      hardware_platform_version,
-      HVM_boot_params,
-      HVM_boot_policy,
-      HVM_shadow_multiplier,
-      is_a_template,
-      last_boot_CPU_flags, // Used when the VM is created Suspended
-      last_booted_record, // Used when the VM is created Suspended
-      memory_dynamic_max,
-      memory_dynamic_min,
-      memory_static_max,
-      memory_static_min,
-      name_description,
-      name_label,
-      order,
-      other_config,
-      PCI_bus,
-      platform,
-      protection_policy,
-      PV_args,
-      PV_bootloader,
-      PV_bootloader_args,
-      PV_kernel,
-      PV_legacy_args,
-      PV_ramdisk,
-      recommendations,
-      shutdown_delay,
-      start_delay,
-      // suspend_SR,
-      tags,
-      user_version,
-      VCPUs_at_startup,
-      VCPUs_max,
-      VCPUs_params,
-      version,
-      xenstore_data,
-    },
-    {
-      // if set, will create the VM in Suspended power_state with this VDI
-      //
-      // it's a separate param because it's not supported for all versions of
-      // XCP-ng/XenServer and should be passed explicitly
-      suspend_VDI,
-    } = {}
-  ) {
-    log.debug(`Creating VM ${name_label}`)
-
-    return this.call(
-      'VM.create',
-      filterUndefineds({
-        actions_after_crash,
-        actions_after_reboot,
-        actions_after_shutdown,
-        affinity: affinity == null ? Ref.EMPTY : affinity,
-        HVM_boot_params,
-        HVM_boot_policy,
-        is_a_template: asBoolean(is_a_template),
-        memory_dynamic_max: asInteger(memory_dynamic_max),
-        memory_dynamic_min: asInteger(memory_dynamic_min),
-        memory_static_max: asInteger(memory_static_max),
-        memory_static_min: asInteger(memory_static_min),
-        other_config,
-        PCI_bus,
-        platform,
-        PV_args,
-        PV_bootloader,
-        PV_bootloader_args,
-        PV_kernel,
-        PV_legacy_args,
-        PV_ramdisk,
-        recommendations,
-        user_version: asInteger(user_version),
-        VCPUs_at_startup: asInteger(VCPUs_at_startup),
-        VCPUs_max: asInteger(VCPUs_max),
-        VCPUs_params,
-
-        // Optional fields.
-        blocked_operations,
-        generation_id,
-        ha_always_run: asBoolean(ha_always_run),
-        ha_restart_priority,
-        has_vendor_device,
-        hardware_platform_version: optional(hardware_platform_version, asInteger),
-        // HVM_shadow_multiplier: asFloat(HVM_shadow_multiplier), // FIXME: does not work FIELD_TYPE_ERROR(hVM_shadow_multiplier)
-        name_description,
-        name_label,
-        order: optional(order, asInteger),
-        protection_policy,
-        shutdown_delay: asInteger(shutdown_delay),
-        start_delay: asInteger(start_delay),
-        tags,
-        version: asInteger(version),
-        xenstore_data,
-
-        // VM created Suspended
-        power_state: suspend_VDI !== undefined ? 'Suspended' : undefined,
-        suspend_VDI,
-        domain_type,
-        last_boot_CPU_flags,
-        last_booted_record,
-      })
-    )
-  }
-
   getVmConsole(vmId) {
     const vm = this.getObject(vmId)
 
@@ -808,7 +688,7 @@ export default class Xapi extends XapiBase {
   async _importOvaVm($defer, stream, { descriptionLabel, disks, memory, nameLabel, networks, nCpus, tables }, sr) {
     // 1. Create VM.
     const vm = await this._getOrWaitObject(
-      await this._createVmRecord({
+      await this.VM_create({
         ...OTHER_CONFIG_TEMPLATE,
         memory_dynamic_max: memory,
         memory_dynamic_min: memory,
