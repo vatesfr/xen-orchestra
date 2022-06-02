@@ -27,4 +27,6 @@
 
 <!--packages-start-->
 
+- xo-server minor
+
 <!--packages-end-->
