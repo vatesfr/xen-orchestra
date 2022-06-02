@@ -99,3 +99,32 @@ To solve this issue, we recommend that you:
 
 - wait until the other backup job is completed/the merge process is done
 - make sure your remote storage is not being overworked
+
+## Error: HTTP connection has timed out
+
+This error is coming when XO tries to fetch the data on the host, while doing an HTTP GET method. This basically mean that the host (the dom0 in fact) isn't responding anymore, after we asked it to expose the disk to be exported. This could the symptom of having a dom0 which is overloaded and that couldn't respond fast enough. It could also be the dom0 having trouble to attach the snapshot disk to expose it, or just to have enough resources to answer our GET request.
+
+::: warning
+As a temporary workaround you can raise the timeout to be longer than default, to leave more "chances" for the host to finally respond. But you will need to understand the root cause of the issue or else you risk the issue to come back.
+:::
+Create the following file:
+```
+/etc/xo-server/config.httpInactivityTimeout.toml
+```
+and adding this as is content:
+```
+# XOA Support - Work-around HTTP timeout issue during backups
+[xapiOptions]
+httpInactivityTimeout = 1800000 # 30 mins
+```
+## Error: Expected values to be strictly equal
+
+This error happens at the end of the transfer. XO is checking exported VM disk integrity, to be sure we receive a valid VHD file (using the correct format, we check the header and footer of the received file). So this means the file we received was not complete (likely the transfer failed at some point from the dom0 and we managed to get only a partial part of the VHD/VM disk).
+
+## Error: the job is already running
+
+This means the same previous job is not finished when the new one started. This happens when you have backup job schedule too close to each other OR if you have long timeout/slow response in the current job, it will logically spend more time and might collide with the new schedule coming after. We consider this is an error to be sure you'll be notified that the planned schedule won't run this time because the previous one isn't finished.
+
+## Error: VDI_IO_ERROR
+
+This message is directly coming from your host/dom0. Basically, XO asked the host to expose a VM disk to export it in HTTP (as usual), we managed to make the HTTP GET connection, and even start the transfer. But then, the host couldn't read the VM disk anymore, causing this error on the host side. This might happen if the VDI is corrupted on the storage, or if there's race conditions during snapshots and finally if the storage is too slow to answer.
