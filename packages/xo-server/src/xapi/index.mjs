@@ -88,7 +88,7 @@ export default class Xapi extends XapiBase {
 
     //  close event is emitted when the export is canceled via browser. See https://github.com/vatesfr/xen-orchestra/issues/5535
     const waitStreamEnd = async stream => fromEvents(await stream, ['end', 'close'])
-    this._exportVdi = limitConcurrency(vdiExportConcurrency, waitStreamEnd)(this._exportVdi)
+    this.VDI_exportContent = limitConcurrency(vdiExportConcurrency, waitStreamEnd)(this.VDI_exportContent)
     this.VM_export = limitConcurrency(vmExportConcurrency, waitStreamEnd)(this.VM_export)
 
     this._migrateVmWithStorageMotion = limitConcurrency(vmMigrationConcurrency)(this._migrateVmWithStorageMotion)
@@ -531,7 +531,7 @@ export default class Xapi extends XapiBase {
         const vdi = blockDevice.$VDI
         collectedDisks.push({
           getStream: () => {
-            return this.exportVdiContent($cancelToken, vdi, VDI_FORMAT_VHD)
+            return vdi.$exportContent({ cancelToken: $cancelToken, format: VDI_FORMAT_VHD })
           },
           name: vdi.name_label,
           fileName: vdi.name_label + '.vmdk',
@@ -1257,31 +1257,6 @@ export default class Xapi extends XapiBase {
     return snap
   }
 
-  @cancelable
-  _exportVdi($cancelToken, vdi, base, format = VDI_FORMAT_VHD) {
-    const query = {
-      format,
-      vdi: vdi.$ref,
-    }
-    if (base) {
-      query.base = base.$ref
-    }
-
-    log.debug(`exporting VDI ${vdi.name_label}${base ? ` (from base ${vdi.name_label})` : ''}`)
-
-    return this.getResource($cancelToken, '/export_raw_vdi/', {
-      query,
-      task: this.task_create('VDI Export', vdi.name_label),
-    }).catch(error => {
-      // augment the error with as much relevant info as possible
-      error.pool_master = vdi.$pool.$master
-      error.SR = vdi.$SR
-      error.VDI = vdi
-
-      throw error
-    })
-  }
-
   async exportVdiAsVmdk(vdi, filename, { cancelToken = CancelToken.none, base } = {}) {
     vdi = this.getObject(vdi)
     const params = { cancelToken, format: VDI_FORMAT_VHD }
@@ -1301,11 +1276,6 @@ export default class Xapi extends XapiBase {
     vmdkStream.statusCode = vhdResult.statusCode
     vmdkStream.statusMessage = vhdResult.statusMessage
     return vmdkStream
-  }
-
-  @cancelable
-  exportVdiContent($cancelToken, vdi, { format } = {}) {
-    return this._exportVdi($cancelToken, this.getObject(vdi), undefined, format)
   }
 
   // =================================================================
