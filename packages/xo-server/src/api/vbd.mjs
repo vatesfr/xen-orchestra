@@ -1,7 +1,7 @@
 // FIXME: too low level, should be removed.
 
 async function delete_({ vbd }) {
-  await this.getXapi(vbd).deleteVbd(vbd)
+  await this.getXapiObject(vbd).$destroy()
 }
 
 delete_.params = {

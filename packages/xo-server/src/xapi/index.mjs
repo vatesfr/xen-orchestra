@@ -1092,23 +1092,9 @@ export default class Xapi extends XapiBase {
     await this._disconnectVbd(this.getObject(vbdId))
   }
 
-  async _deleteVbd(vbd) {
-    await this._disconnectVbd(vbd)::ignoreErrors()
-    await this.call('VBD.destroy', vbd.$ref)
-  }
-
-  deleteVbd(vbdId) {
-    return this._deleteVbd(this.getObject(vbdId))
-  }
-
   // TODO: remove when no longer used.
   async destroyVbdsFromVm(vmId) {
-    await Promise.all(
-      this.getObject(vmId).$VBDs.map(async vbd => {
-        await this.disconnectVbd(vbd.$ref)::ignoreErrors()
-        return this.call('VBD.destroy', vbd.$ref)
-      })
-    )
+    await Promise.all(this.getObject(vmId).VBDs.map(async ref => this.VBD_destroy(ref)))
   }
 
   async resizeVdi(vdiId, size) {
