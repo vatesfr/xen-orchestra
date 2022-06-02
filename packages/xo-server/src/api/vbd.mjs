@@ -17,8 +17,7 @@ export { delete_ as delete }
 // -------------------------------------------------------------------
 
 export async function disconnect({ vbd }) {
-  const xapi = this.getXapi(vbd)
-  await xapi.disconnectVbd(vbd._xapiRef)
+  await this.getXapiObject(vbd).$unplug()
 }
 
 disconnect.params = {
