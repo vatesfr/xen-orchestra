@@ -68,6 +68,8 @@ module.exports = class Vbd {
     if (isVmRunning(powerState)) {
       await this.callAsync('VBD.plug', vbdRef)
     }
+
+    return vbdRef
   }
 
   async unplug(ref) {
