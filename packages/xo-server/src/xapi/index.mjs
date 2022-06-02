@@ -45,7 +45,6 @@ import {
   parseDateTime,
   prepareXapiParam,
 } from './utils.mjs'
-import { createVhdStreamWithLength } from 'vhd-lib'
 
 const log = createLogger('xo:xapi')
 
@@ -887,7 +886,7 @@ export default class Xapi extends XapiBase {
           compression[entry.name] === 'gzip'
         )
         try {
-          await this._importVdiContent(vdi, vhdStream, VDI_FORMAT_VHD)
+          await vdi.$importContent(vhdStream, { format: VDI_FORMAT_VHD })
           // See: https://github.com/mafintosh/tar-stream#extracting
           // No import parallelization.
         } catch (e) {
@@ -1309,41 +1308,6 @@ export default class Xapi extends XapiBase {
     return this._exportVdi($cancelToken, this.getObject(vdi), undefined, format)
   }
 
-  // -----------------------------------------------------------------
-
-  async _importVdiContent(vdi, body, format = VDI_FORMAT_VHD) {
-    if (typeof body.pipe === 'function' && body.length === undefined) {
-      if (this._guessVhdSizeOnImport && format === VDI_FORMAT_VHD) {
-        body = await createVhdStreamWithLength(body)
-      } else if (__DEV__) {
-        throw new Error('Trying to import a VDI without a length field. Please report this error to Xen Orchestra.')
-      }
-    }
-
-    await Promise.all([
-      body.task,
-      body.checksumVerified,
-      this.putResource(body, '/import_raw_vdi/', {
-        query: {
-          format,
-          vdi: vdi.$ref,
-        },
-        task: this.task_create('VDI Content Import', vdi.name_label),
-      }),
-    ]).catch(error => {
-      // augment the error with as much relevant info as possible
-      error.pool_master = vdi.$pool.$master
-      error.SR = vdi.$SR
-      error.VDI = vdi
-
-      throw error
-    })
-  }
-
-  importVdiContent(vdiId, body, { format } = {}) {
-    return this._importVdiContent(this.getObject(vdiId), body, format)
-  }
-
   // =================================================================
 
   @decorateWith(deferrable)
@@ -1547,7 +1511,7 @@ export default class Xapi extends XapiBase {
 
     // ignore errors, I (JFT) don't understand why they are emitted
     // because it works
-    await this._importVdiContent(vdi, buffer, VDI_FORMAT_RAW).catch(error => {
+    await vdi.$importContent(buffer, { format: VDI_FORMAT_RAW }).catch(error => {
       log.warn('importVdiContent: ', { error })
     })
 
@@ -1566,7 +1530,7 @@ export default class Xapi extends XapiBase {
     )
     $defer.onFailure(() => vdi.$destroy())
 
-    await this.importVdiContent(vdi.$id, stream, { format: VDI_FORMAT_RAW })
+    await vdi.$importContent(stream, { format: VDI_FORMAT_RAW })
 
     return vdi
   }

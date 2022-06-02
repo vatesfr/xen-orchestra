@@ -129,20 +129,19 @@ exportContent.resolve = {
 
 // -------------------------------------------------------------------
 
-async function handleImportContent(req, res, { xapi, id }) {
+async function handleImportContent(req, res, { vdi }) {
   // Timeout seems to be broken in Node 4.
   // See https://github.com/nodejs/node/issues/3319
   req.setTimeout(43200000) // 12 hours
   req.length = +req.headers['content-length']
-  await xapi.importVdiContent(id, req)
+  await vdi.$importContent(req, { format: VDI_FORMAT_VHD })
   res.end(format.response(0, true))
 }
 
 export async function importContent({ vdi }) {
   return {
     $sendTo: await this.registerHttpRequest(handleImportContent, {
-      id: vdi._xapiId,
-      xapi: this.getXapi(vdi),
+      vdi: this.getXapiObject(vdi),
     }),
   }
 }
@@ -223,7 +222,7 @@ async function handleImport(req, res, { type, name, description, vmdkData, srId,
             })
           )
           try {
-            await xapi.importVdiContent(vdi, vhdStream, { format: diskFormat })
+            await vdi.$importContent(vhdStream, { format: diskFormat })
             res.end(format.response(0, vdi.$id))
           } catch (e) {
             await vdi.$destroy()
