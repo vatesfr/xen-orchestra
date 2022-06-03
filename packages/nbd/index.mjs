@@ -5,6 +5,7 @@ import { stdin as input, stdout as output } from 'node:process'
 import { asyncMap } from '@xen-orchestra/async-map'
 import { asyncEach } from '@vates/async-each'
 import { CancelToken } from 'promise-toolbox'
+import zlib from 'node:zlib'
 
 const xapi = new Xapi({
   auth: {
