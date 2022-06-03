@@ -11,6 +11,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Backup] show a warning in the task log if a writer fails, an error if they all fail (PR [#6266](https://github.com/vatesfr/xen-orchestra/pull/6266))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -26,6 +28,7 @@
 <!--packages-start-->
 
 - @xen-orchestra/xapi minor
+- @xen-orchestra/backups minor
 - xo-server patch
 
 <!--packages-end-->
