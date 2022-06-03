@@ -150,13 +150,13 @@ console.table(stats)
 
 console.log('## will check full download of the base vdi ')
 
-async function getFullBlocks(concurrency) {
+async function getFullBlocks(concurrency, blockSize) {
   let nbModified = 0,
     size = 0
   console.log('### with concurrency ', concurrency)
   const start = new Date()
   function* blockIterator() {
-    for (let i = 0; i < (cbt.length * 8) / nbBlocksRead; i++) {
+    for (let i = 0; i < (cbt.length * 8) / ((blockSize / 64) * 1024); i++) {
       yield i
     }
   }
@@ -166,7 +166,7 @@ async function getFullBlocks(concurrency) {
   await asyncEach(
     blockIterator(),
     async blockIndex => {
-      const data = await client.readBlock(blockIndex)
+      const data = await client.readBlock(blockIndex, blockSize)
       size += data?.length ?? 0
       nbModified++
     },
