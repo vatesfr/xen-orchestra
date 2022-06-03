@@ -87,41 +87,27 @@ if (!nbd) {
   console.error('you should add `insecure_nbd` as the `purpose` of a network of this host')
   process.exit()
 }
-const nbBlocksRead = parseInt(await question('How many 64KB block should we read at once  [1-128] ? '), 10)
-console.log(`you choose to transfer blocks of [ ${(64 * nbBlocksRead) / 1024} MB]`)
-nbd.blockSize = 64 * 1024 * nbBlocksRead
 
 const client = new NbdClient(nbd)
 await client.connect()
 
-const MASK = 0x80
-const test = (map, bit) => ((map[bit >> 3] << (bit & 7)) & MASK) !== 0
-
-const changed = []
-for (let i = 0; i < (cbt.length * 8) / nbBlocksRead; i++) {
-  let blockChanged = false
-  for (let j = 0; j < nbBlocksRead; j++) {
-    blockChanged = blockChanged || test(cbt, i * nbBlocksRead + j)
-  }
-  if (blockChanged) {
-    changed.push(i)
-  }
-}
 // @todo : should also handle last blocks that could be incomplete
 
-console.log(changed.length, 'block changed')
-
-async function getChangedNbdBlocks(concurrency) {
+const stats = {}
+async function getChangedNbdBlocks(changed, concurrency, blockSize) {
   let nbModified = 0,
     size = 0
   const start = new Date()
-  console.log('### with concurrency ', concurrency)
+  console.log('### with concurrency ', concurrency, ' blockSize ', blockSize / 1024 / 1024, 'MB')
   const interval = setInterval(() => {
     console.log(`${nbModified} block handled in ${new Date() - start} ms`)
   }, 5000)
   await asyncEach(
     changed,
     async blockIndex => {
+      if (new Date() - start > 30000) {
+        return
+      }
       const data = await client.readBlock(blockIndex)
       size += data?.length ?? 0
       nbModified++
@@ -132,16 +118,35 @@ async function getChangedNbdBlocks(concurrency) {
   )
   clearInterval(interval)
   console.log('duration :', new Date() - start)
-  console.log('modified blocks : ', nbModified)
   console.log('read : ', size, 'octets')
   console.log('speed : ', Math.round(((size / 1024 / 1024) * 1000) / (new Date() - start)), 'MB/s')
+  stats[blockSize][concurrency] = Math.round(((size / 1024 / 1024) * 1000) / (new Date() - start))
 }
 
-await getChangedNbdBlocks(32)
-await getChangedNbdBlocks(16)
-await getChangedNbdBlocks(8)
-await getChangedNbdBlocks(4)
-await getChangedNbdBlocks(2)
+for (const nbBlocksRead of [32, 16, 8, 4, 2, 1]) {
+  const blockSize = nbBlocksRead * 64 * 1024
+  stats[blockSize] = {}
+  const MASK = 0x80
+  const test = (map, bit) => ((map[bit >> 3] << (bit & 7)) & MASK) !== 0
+
+  const changed = []
+  for (let i = 0; i < (cbt.length * 8) / nbBlocksRead; i++) {
+    let blockChanged = false
+    for (let j = 0; j < nbBlocksRead; j++) {
+      blockChanged = blockChanged || test(cbt, i * nbBlocksRead + j)
+    }
+    if (blockChanged) {
+      changed.push(i)
+    }
+  }
+  console.log(changed.length, 'block changed')
+  for (const concurrency of [32, 16, 8, 4, 2]) {
+    await getChangedNbdBlocks(changed, concurrency, blockSize)
+    console.table(stats)
+  }
+}
+console.log('speed summary')
+console.table(stats)
 
 console.log('## will check full download of the base vdi ')
 
@@ -175,7 +180,7 @@ async function getFullBlocks(concurrency) {
   console.log('read : ', size, 'octets')
   console.log('speed : ', Math.round(((size / 1024 / 1024) * 1000) / (new Date() - start)), 'MB/s')
 }
-await getFullBlocks(4)
+await getFullBlocks(16, 512 * 1024) // a good sweet spot
 
 console.log('## will check vhd delta export  size and speed')
 

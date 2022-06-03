@@ -16,12 +16,11 @@ export default class NbdClient {
   #handle = 0
 
   #queries = {}
-  constructor({ address, port = 10809, exportname, cert, blockSize = BLOCK_SIZE }) {
+  constructor({ address, port = 10809, exportname, cert }) {
     this.#address = address
     this.#port = port
     this.#exportname = exportname
     this.#cert = cert
-    this.#blockSize = blockSize
     this.#client = new Socket()
   }
 
@@ -33,7 +32,7 @@ export default class NbdClient {
         resolve()
       })
 
-      client.on('data', async data => {
+      client.on('data', data => {
         this.#buffer = Buffer.concat([this.#buffer, Buffer.from(data)])
 
         if (this.#readPromiseResolve && this.#buffer.length >= this.#waitingForLength) {
@@ -43,13 +42,7 @@ export default class NbdClient {
         } else {
           if (!this.#readPromiseResolve && this.#buffer.length > 4) {
             if (this.#buffer.readInt32BE(0) === 0x67446698) {
-              const response = await this.#readResponse()
-              if (this.#queries[response.handle]) {
-                this.#queries[response.handle](response)
-                delete this.#queries[response.handle]
-              } else {
-                console.log('no query associated with handle ', response.handle, Object.keys(this.#queries))
-              }
+              this.#readResponse()
             }
           }
         }
@@ -156,15 +149,16 @@ export default class NbdClient {
     }
     // handle
     const handle = await this.#readFromSocketInt64()
-    //assert(handleAnswer, handle) // handle did not changed
-    // data
-    return {
-      handle: handle,
-      data: await this.#readFromSocket(this.#blockSize),
+    const query = this.#queries[handle]
+    if (!query) {
+      console.log('no query associated with handle ', response.handle, Object.keys(this.#queries))
+      return
     }
+    delete this.#queries[handle]
+    query.resolve(await this.#readFromSocket(query.size))
   }
 
-  async readBlock(index) {
+  async readBlock(index, size = BLOCK_SIZE) {
     if (index > this.#nbDiskBlocks) {
       return null
     }
@@ -174,11 +168,14 @@ export default class NbdClient {
     this.#writeToSocketInt16(0) //command flags
     this.#writeToSocketInt16(0) //READ
     this.#writeToSocketInt64(handle)
-    this.#writeToSocketInt64(BigInt(index) * BigInt(this.#blockSize))
-    this.#writeToSocketUInt32(this.#blockSize)
+    this.#writeToSocketInt64(BigInt(index) * BigInt(size))
+    this.#writeToSocketUInt32(size)
 
     return new Promise(resolve => {
-      this.#queries[handle] = response => resolve(response.data)
+      this.#queries[handle] = {
+        size,
+        resolve,
+      }
     })
   }
 }
