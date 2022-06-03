@@ -485,7 +485,6 @@ export class Xapi extends EventEmitter {
           query: 'task_id' in query ? omit(query, 'task_id') : query,
 
           maxRedirects: 0,
-          agent: this.httpAgent,
         }).then(
           response => {
             response.cancel()
