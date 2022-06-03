@@ -96,7 +96,7 @@ await client.connect()
 const stats = {}
 async function getChangedNbdBlocks(changed, concurrency, blockSize) {
   let nbModified = 0,
-    size = 0
+    size = 0, compressedSize =0
   const start = new Date()
   console.log('### with concurrency ', concurrency, ' blockSize ', blockSize / 1024 / 1024, 'MB')
   const interval = setInterval(() => {
@@ -109,6 +109,13 @@ async function getChangedNbdBlocks(changed, concurrency, blockSize) {
         return
       }
       const data = await client.readBlock(blockIndex, blockSize)
+
+      await new Promise(resolve=>{
+        zlib.gzip(data, { level: zlib.constants.Z_BEST_SPEED }, (_,compressed)=>{
+          compressedSize += compressed.length
+          resolve()
+        })
+      })
       size += data?.length ?? 0
       nbModified++
     },
@@ -118,7 +125,7 @@ async function getChangedNbdBlocks(changed, concurrency, blockSize) {
   )
   clearInterval(interval)
   console.log('duration :', new Date() - start)
-  console.log('read : ', size, 'octets')
+  console.log('read : ', size, 'octets, compressed: ',compressedSize, 'ratio ', size/compressedSize )
   console.log('speed : ', Math.round(((size / 1024 / 1024) * 1000) / (new Date() - start)), 'MB/s')
   stats[blockSize][concurrency] = Math.round(((size / 1024 / 1024) * 1000) / (new Date() - start))
 }
@@ -152,11 +159,12 @@ console.log('## will check full download of the base vdi ')
 
 async function getFullBlocks(concurrency, blockSize) {
   let nbModified = 0,
-    size = 0
+    size = 0,
+    compressedSize= 0
   console.log('### with concurrency ', concurrency)
   const start = new Date()
   function* blockIterator() {
-    for (let i = 0; i < (cbt.length * 8) / ((blockSize / 64) * 1024); i++) {
+    for (let i = 0; i < (cbt.length * 8) / (blockSize / (64 * 1024)); i++) {
       yield i
     }
   }
@@ -167,6 +175,12 @@ async function getFullBlocks(concurrency, blockSize) {
     blockIterator(),
     async blockIndex => {
       const data = await client.readBlock(blockIndex, blockSize)
+      await new Promise(resolve=>{
+        zlib.gzip(data, { level: zlib.constants.Z_BEST_SPEED }, (_,compressed)=>{
+          compressedSize += compressed.length
+        })
+        resolve()
+      })
       size += data?.length ?? 0
       nbModified++
     },
@@ -177,7 +191,7 @@ async function getFullBlocks(concurrency, blockSize) {
   clearInterval(interval)
   console.log('duration :', new Date() - start)
   console.log('nb blocks : ', nbModified)
-  console.log('read : ', size, 'octets')
+  console.log('read : ', size, 'octets, compressed: ',compressedSize, 'ratio ', size/compressedSize )
   console.log('speed : ', Math.round(((size / 1024 / 1024) * 1000) / (new Date() - start)), 'MB/s')
 }
 await getFullBlocks(16, 512 * 1024) // a good sweet spot
