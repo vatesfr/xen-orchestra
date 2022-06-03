@@ -108,7 +108,7 @@ async function getChangedNbdBlocks(changed, concurrency, blockSize) {
       if (new Date() - start > 30000) {
         return
       }
-      const data = await client.readBlock(blockIndex)
+      const data = await client.readBlock(blockIndex, blockSize)
       size += data?.length ?? 0
       nbModified++
     },
