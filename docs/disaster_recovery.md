@@ -35,6 +35,7 @@ A higher retention number will lead to huge space occupation on your SR.
 If you boot a copy of your production VM, be careful: if they share the same static IP, you'll have troubles.
 
 A good way to avoid this kind of problem is to remove the network interface on the DR VM and check if the export is correctly done.
+
 :::warning
 For each DR replicated VM, we add a block "start" operation, meaning despite having "Auto power on", the VM won't start after a reboot of your host.
 :::
