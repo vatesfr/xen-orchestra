@@ -37,5 +37,5 @@ If you boot a copy of your production VM, be careful: if they share the same sta
 A good way to avoid this kind of problem is to remove the network interface on the DR VM and check if the export is correctly done.
 
 :::warning
-For each DR replicated VM, we add a block "start" operation, meaning despite having "Auto power on", the VM won't start after a reboot of your host.
+For each DR replicated VM, we add "start" as a blocked operation, meaning even VMs with "Auto power on" enabled will not be started on your DR destination if it reboots.
 :::
