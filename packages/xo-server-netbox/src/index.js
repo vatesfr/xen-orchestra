@@ -600,7 +600,9 @@ class Netbox {
     if (ignoredIps.length > 0) {
       log.warn('Could not find prefix for some IPs: ignoring them.', { ips: ignoredIps })
     }
-
+    log.debug('ip address prmoises')
+    log.debug('ipsToDelete:', ipsToDelete)
+    log.debug('newNetboxIps:', newNetboxIps)
     await Promise.all([
       ipsToDelete.length !== 0 && this.#makeRequest('/ipam/ip-addresses/', 'DELETE', ipsToDelete),
       ipsToCreate.length !== 0 &&
@@ -618,7 +620,9 @@ class Netbox {
           })
         }),
     ])
-
+    
+    log.debug('set primary ips')
+    
     // Primary IPs
     vmsToUpdate = []
     Object.entries(netboxVms).forEach(([vmId, netboxVm]) => {
@@ -653,7 +657,7 @@ class Netbox {
         vmsToUpdate.push(newNetboxVm)
       }
     })
-
+    log.debug('vmsToUpdate:', vmsToUpdate)
     if (vmsToUpdate.length > 0) {
       await this.#makeRequest('/virtualization/virtual-machines/', 'PATCH', vmsToUpdate)
     }
