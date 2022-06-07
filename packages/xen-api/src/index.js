@@ -465,6 +465,8 @@ export class Xapi extends EventEmitter {
     await this._setHostAddressInUrl(url, host)
 
     const doRequest = httpRequest.put.bind(undefined, $cancelToken, {
+      agent: this.httpAgent,
+
       body,
       headers,
       rejectUnauthorized: !this._allowUnauthorized,
@@ -486,7 +488,6 @@ export class Xapi extends EventEmitter {
           query: 'task_id' in query ? omit(query, 'task_id') : query,
 
           maxRedirects: 0,
-          agent: this.httpAgent,
         }).then(
           response => {
             response.cancel()
