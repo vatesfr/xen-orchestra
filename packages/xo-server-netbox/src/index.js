@@ -103,7 +103,7 @@ class Netbox {
   async #makeRequest(path, method, data) {
     const dataDebug =
       Array.isArray(data) && data.length > 2 ? [...data.slice(0, 2), `and ${data.length - 2} others`] : data
-    log.debug(`${method} ${path}`, dataDebug)
+    log.warn(`${method} ${path}`, dataDebug)
     let url = this.#endpoint + '/api' + path
     const options = {
       headers: { 'Content-Type': 'application/json', Authorization: `Token ${this.#token}` },
@@ -188,7 +188,7 @@ class Netbox {
     await this.#checkCustomFields()
 
     const xo = this.#xo
-    log.debug('synchronizing')
+    log.warn('synchronizing')
     // Cluster type
     const clusterTypes = await this.#makeRequest(
       `/virtualization/cluster-types/?name=${encodeURIComponent(CLUSTER_TYPE)}`,
@@ -600,9 +600,9 @@ class Netbox {
     if (ignoredIps.length > 0) {
       log.warn('Could not find prefix for some IPs: ignoring them.', { ips: ignoredIps })
     }
-    log.debug('ip address prmoises')
-    log.debug('ipsToDelete:', ipsToDelete)
-    log.debug('ipsToCreate:', ipsToCreate)
+    log.warn('ip address prmoises')
+    log.warn('ipsToDelete:', ipsToDelete)
+    log.warn('ipsToCreate:', ipsToCreate)
     await Promise.all([
       ipsToDelete.length !== 0 && this.#makeRequest('/ipam/ip-addresses/', 'DELETE', ipsToDelete),
       ipsToCreate.length !== 0 &&
@@ -621,7 +621,7 @@ class Netbox {
         }),
     ])
     
-    log.debug('set primary ips')
+    log.warn('set primary ips')
     
     // Primary IPs
     vmsToUpdate = []
@@ -657,12 +657,12 @@ class Netbox {
         vmsToUpdate.push(newNetboxVm)
       }
     })
-    log.debug('vmsToUpdate:', vmsToUpdate)
+    log.warn('vmsToUpdate:', vmsToUpdate)
     if (vmsToUpdate.length > 0) {
       await this.#makeRequest('/virtualization/virtual-machines/', 'PATCH', vmsToUpdate)
     }
 
-    log.debug('synchronized')
+    log.warn('synchronized')
   }
 
   async test() {
@@ -722,6 +722,16 @@ export const configurationSchema = ({ xo: { apiMethods } }) => ({
       type: 'number',
       title: 'Interval',
       description: 'Synchronization interval in hours - leave empty to disable auto-sync',
+    },
+    ignoredVmTags: {
+      type: 'array',
+      title: 'Ignored VM tags',
+      description: 'list of VM tags to never migrate specific VMs',
+
+      items: {
+        type: 'string',
+        $type: 'Tag',
+      },
     },
   },
   required: ['endpoint', 'token', 'pools'],
