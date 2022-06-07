@@ -5,6 +5,7 @@ import forEach from 'lodash/forEach.js'
 import getKeys from 'lodash/keys.js'
 import isEmpty from 'lodash/isEmpty.js'
 import map from 'lodash/map.js'
+import omit from 'lodash/omit.js'
 import { createClient as createRedisClient } from 'redis'
 import { ignoreErrors, promisifyAll } from 'promise-toolbox'
 import { v4 as generateUuid } from 'uuid'
@@ -184,7 +185,7 @@ export default class Redis extends Collection {
     // Special treatment for the identifier.
     const id = properties.id
     if (id !== undefined) {
-      delete properties.id
+      properties = omit(properties, 'id')
       return this._extract([id]).then(models => {
         return models.length && !isEmpty(properties) ? filter(models) : models
       })
