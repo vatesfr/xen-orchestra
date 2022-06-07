@@ -17,7 +17,7 @@ import Select from '../../components/Select'
 import Tabs from '../../components/Tabs'
 import { alert, confirm } from '../../components/Modal'
 import Table, { Column } from '../../components/Table'
-import { ObjectsByType, Vm } from '../../libs/xapi'
+import { Vm } from '../../libs/xapi'
 import { translate } from '../../components/IntlMessage'
 
 const VM_TABLE_COLUMN: Array<Column<any>> = [
@@ -50,9 +50,7 @@ for (let index = 1; index < 16; index++) {
   )
 }
 
-interface ParentState {
-  objectsByType: ObjectsByType
-}
+interface ParentState {}
 
 interface State {
   tableSelectedVms: Array<Vm>
