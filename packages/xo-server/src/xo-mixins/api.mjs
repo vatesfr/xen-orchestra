@@ -383,6 +383,11 @@ export default class Api {
         })
       }
 
+      // don't return *unknown error from the peer* if the user is admin
+      if (error.toJsonRpcError === undefined && context?.user.permission === 'admin') {
+        throw new JsonRpcError(error.message, undefined, serializeError(serializedError))
+      }
+
       throw error
     }
   }
