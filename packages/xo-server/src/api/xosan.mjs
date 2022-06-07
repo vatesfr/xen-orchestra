@@ -734,15 +734,16 @@ async function createNewDisk(xapi, sr, vm, diskSize) {
   const vdiMax = 2040 * 1024 * 1024 * 1024
   const createVdiSize = Math.min(vdiMax, diskSize)
   const extensionSize = diskSize - createVdiSize
-  const newDisk = await xapi.createVdi(
-    {
-      name_label: 'xosan_data',
-      name_description: 'Created by XO',
-      size: createVdiSize,
-      sr,
-      sm_config: { type: 'raw' },
-    },
-    { setSmConfig: true }
+  const newDisk = await xapi._getOrWaitObject(
+    await xapi.VDI_create(
+      {
+        name_description: 'Created by XO',
+        name_label: 'xosan_data',
+        SR: sr.$ref,
+        virtual_size: createVdiSize,
+      },
+      { sm_config: { type: 'raw' } }
+    )
   )
   if (extensionSize > 0) {
     const { type, uuid: srUuid, $PBDs } = xapi.getObject(sr)
@@ -757,7 +758,7 @@ async function createNewDisk(xapi, sr, vm, diskSize) {
     }
     await xapi.callAsync('SR.scan', xapi.getObject(sr).$ref)
   }
-  await xapi.createVbd({ vdi: newDisk, vm })
+  await xapi.VBD_create({ VDI: newDisk.$ref, VM: vm.$ref })
   let vbd = (await xapi._waitObjectState(newDisk.$id, disk => Boolean(disk.$VBDs.length))).$VBDs[0]
   vbd = await xapi._waitObjectState(vbd.$id, vbd => Boolean(vbd.device.length))
   return '/dev/' + vbd.device
@@ -811,7 +812,7 @@ async function replaceBrickOnSameVM(xosansr, previousBrick, newLvmSr, brickSize)
     CURRENT_POOL_OPERATIONS[poolId] = { ...OPERATION_OBJECT, state: 3 }
     await umountDisk(localEndpoint, previousBrickRoot)
     const previousVBD = previousVM.$VBDs.find(vbd => vbd.device === previousBrickDevice)
-    await xapi.disconnectVbd(previousVBD)
+    await previousVBD.$unplug()
     await xapi.VDI_destroy(previousVBD.VDI)
     CURRENT_POOL_OPERATIONS[poolId] = { ...OPERATION_OBJECT, state: 4 }
     await xapi.callAsync('SR.scan', xapi.getObject(xosansr).$ref)

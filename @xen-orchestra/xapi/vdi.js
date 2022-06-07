@@ -30,8 +30,7 @@ class Vdi {
       other_config = {},
       read_only = false,
       sharable = false,
-      sm_config,
-      SR,
+      SR = this.pool.default_SR,
       tags,
       type = 'user',
       virtual_size,
@@ -39,10 +38,10 @@ class Vdi {
     },
     {
       // blindly copying `sm_config` from another VDI can create problems,
-      // therefore it is ignored by default by this method
+      // therefore it should be passed explicitly
       //
       // see https://github.com/vatesfr/xen-orchestra/issues/4482
-      setSmConfig = false,
+      sm_config,
     } = {}
   ) {
     return this.call('VDI.create', {
@@ -51,7 +50,7 @@ class Vdi {
       other_config,
       read_only,
       sharable,
-      sm_config: setSmConfig ? sm_config : undefined,
+      sm_config,
       SR,
       tags,
       type,

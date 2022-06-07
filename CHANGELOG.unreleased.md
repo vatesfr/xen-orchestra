@@ -27,6 +27,8 @@
 
 <!--packages-start-->
 
+- xo-cli minor
+- @xen-orchestra/xapi minor
 - xo-server minor
 
 <!--packages-end-->

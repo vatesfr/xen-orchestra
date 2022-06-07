@@ -224,6 +224,7 @@ async function setUpPassport(express, xo, { authentication: authCfg, http: { coo
   const setToken = async (req, res, next) => {
     const { user, isPersistent } = req.session
     const token = await xo.createAuthenticationToken({
+      description: 'web sign in',
       expiresIn: isPersistent ? PERMANENT_VALIDITY : SESSION_VALIDITY,
       userId: user.id,
     })
