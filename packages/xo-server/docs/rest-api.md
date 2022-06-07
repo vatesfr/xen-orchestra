@@ -145,7 +145,6 @@ A VHD can be imported on an SR to create a VDI at `/rest/v0/srs/<sr uuid>/vdis`.
 ```bash
 curl \
   -X POST \
-  -H 'Content-Type: application/octet-stream' \
   -b authenticationToken=KQxQdm2vMiv7jBIK0hgkmgxKzemd8wSJ7ugFGKFkTbs \
   -T myDisk.vhd \
   'https://xo.company.lan/rest/v0/srs/357bd56c-71f9-4b2a-83b8-3451dec04b8f/vdis?name_label=my_imported_VDI' \
