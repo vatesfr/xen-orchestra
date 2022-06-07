@@ -33,7 +33,7 @@ const VM_TABLE_COLUMN: Array<Column<any>> = [
 
 const VMs: Array<any> = []
 
-for (let index = 1; index < 6; index++) {
+for (let index = 1; index < 16; index++) {
   VMs.push(
     {
       power_state: 'Running',
@@ -44,24 +44,6 @@ for (let index = 1; index < 6; index++) {
     {
       power_state: 'Running',
       name_label: `Bar${index} VM`,
-      IPv4: `127.0.0.${index}`,
-      CPU: index * 2,
-    },
-    {
-      power_state: 'Halted',
-      name_label: `Baz${index} VM`,
-      IPv4: `127.0.0.${index}`,
-      CPU: index * 2,
-    },
-    {
-      power_state: 'Halted',
-      name_label: `Qux${index} VM`,
-      IPv4: `127.0.0.${index}`,
-      CPU: index * 2,
-    },
-    {
-      power_state: 'Halted',
-      name_label: `Fred${index} VM`,
       IPv4: `127.0.0.${index}`,
       CPU: index * 2,
     }

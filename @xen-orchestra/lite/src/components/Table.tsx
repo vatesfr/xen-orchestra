@@ -78,12 +78,6 @@ interface PropsPagination {
 interface ParentEffects {}
 
 interface Effects {
-  _manageSearchParams: (params: {
-    searchParams: string
-    stateUrlParam: string
-    label: string
-    value: unknown
-  }) => string
   handlePaginationChange: (e: any, page: number) => void
   handleRowPerPage: (e: any) => void
   toggleAllSelectedItem: () => void
@@ -134,6 +128,26 @@ const StyledPaginationText = styled('p')({
   color: '#585757',
   margin: '10px',
 })
+
+function _manageSearchParams({
+  searchParams,
+  stateUrlParam,
+  label,
+  value,
+}: {
+  searchParams: string
+  stateUrlParam: string
+  label: string
+  value: unknown
+}) {
+  const reg = new RegExp(stateUrlParam + `_${label}=\\d+`)
+  if (reg.test(searchParams)) {
+    searchParams = searchParams.replace(reg, `${stateUrlParam}_${label}=${value}`)
+  } else {
+    searchParams += `${searchParams === '' ? '?' : '&'}${stateUrlParam}_${label}=${value}`
+  }
+  return searchParams
+}
 
 const Pagination = withState<
   StatePagination,
@@ -231,17 +245,8 @@ const Table = withState<State, Props, Effects, Computed, ParentState, ParentEffe
       // URL Can contains theses following search params:
       // {props.stateUrlParam}_page={number}: Its value is the requested page of the table.
       // {props.stateUrlParam}_row={number}: Its determine how many items per page we want to display.
-      _manageSearchParams: function ({ searchParams, stateUrlParam, label, value }) {
-        const reg = new RegExp(this.props.stateUrlParam + `_${label}=\\d+`)
-        if (reg.test(searchParams)) {
-          searchParams = searchParams.replace(reg, `${stateUrlParam}_${label}=${value}`)
-        } else {
-          searchParams += `${searchParams === '' ? '?' : '&'}${stateUrlParam}_${label}=${value}`
-        }
-        return searchParams
-      },
       handlePaginationChange: function (_, page) {
-        const searchParams = this.effects._manageSearchParams({
+        const searchParams = _manageSearchParams({
           searchParams: this.props.location.search,
           stateUrlParam: this.props.stateUrlParam,
           label: 'page',
@@ -250,7 +255,7 @@ const Table = withState<State, Props, Effects, Computed, ParentState, ParentEffe
         this.props.history.push(`${this.props.location.pathname}${searchParams}`)
       },
       handleRowPerPage: function (e) {
-        const searchParams = this.effects._manageSearchParams({
+        const searchParams = _manageSearchParams({
           searchParams: this.props.location.search,
           stateUrlParam: this.props.stateUrlParam,
           label: 'row',
