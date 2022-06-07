@@ -172,10 +172,12 @@ export default class {
       }
     }
 
+    const now = Date.now()
     const token = new Token({
+      created_at: now,
       id: await generateToken(),
       user_id: userId,
-      expiration: Date.now() + duration,
+      expiration: now + duration,
     })
 
     await this._tokens.add(token)
