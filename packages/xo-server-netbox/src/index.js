@@ -49,6 +49,7 @@ class Netbox {
   #pools
   #removeApiMethods
   #syncInterval
+  #ignoredVmTags
   #token
   #xo
 
@@ -608,6 +609,8 @@ class Netbox {
       ipsToDelete.length !== 0 && this.#makeRequest('/ipam/ip-addresses/', 'DELETE', ipsToDelete),
     ])
 
+    // breaking up creating/assigning of ip's into multiple calls. 
+    // one bad entry will stop netbox accepting any of the changes and will not give a detailed error response
     for (const create_ip_obj of ipsToCreate) {
       log.warn('attempting to add ip: ', create_ip_obj)
       await this.#makeRequest(
