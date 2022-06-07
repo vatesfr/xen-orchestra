@@ -65,6 +65,7 @@ class Netbox {
     this.#token = configuration.token
     this.#pools = configuration.pools
     this.#syncInterval = configuration.syncInterval && configuration.syncInterval * 60 * 60 * 1e3
+    this.#ignoredVmTags = configuration.ignoredVmTags
 
     // We don't want to start the auto-sync if the plugin isn't loaded
     if (this.#loaded) {
@@ -605,21 +606,16 @@ class Netbox {
     log.warn('ipsToCreate:', ipsToCreate)
     await Promise.all([
       ipsToDelete.length !== 0 && this.#makeRequest('/ipam/ip-addresses/', 'DELETE', ipsToDelete),
-      ipsToCreate.length !== 0 &&
-        this.#makeRequest(
+    ])
+
+    for (const create_ip_obj of ipsToCreate) {
+      log.warn('attempting to add ip: ', create_ip_obj)
+      await this.#makeRequest(
           '/ipam/ip-addresses/',
           'POST',
-          ipsToCreate.map(ip => omit(ip, 'vifId'))
-        ).then(newNetboxIps => {
-          newNetboxIps.forEach((newNetboxIp, i) => {
-            const { vifId } = ipsToCreate[i]
-            if (netboxIpsByVif[vifId] === undefined) {
-              netboxIpsByVif[vifId] = []
-            }
-            netboxIpsByVif[vifId].push(newNetboxIp)
-          })
-        }),
-    ])
+          omit(create_ip_obj, 'vifId')
+        )
+    }
     
     log.warn('set primary ips')
     
