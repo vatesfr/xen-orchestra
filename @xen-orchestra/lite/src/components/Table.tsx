@@ -93,7 +93,15 @@ interface Computed {
 
 interface ComputedPagination {}
 
+const StyledSelect = styled(Select)(({ theme }) => ({
+  backgroundColor: theme.palette.lightGray.main,
+  border: 'none',
+  color: theme.palette.primary.main,
+  height: '24px',
+}))
+
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
+  border: `1px solid ${theme.palette.lightGray.main}`,
   borderLeft: 'none',
   [`&.${tableCellClasses.head}`]: {
     color: theme.palette.primary.main,
@@ -105,12 +113,13 @@ const StyledNbSelectedItems = styled('p')<{ reverse?: boolean }>(({ reverse = fa
   fontWeight: 'bold',
 }))
 
-const StyledNavButton = styled(IconButton)({
-  backgroundColor: '#E8E8E8',
+const StyledNavButton = styled(IconButton)(({ theme }) => ({
+  backgroundColor: theme.palette.lightGray.main,
+  color: theme.palette.primary.main,
   borderRadius: '5px',
   margin: '1px',
   padding: 0,
-})
+}))
 
 const StyledPaginationContainer = styled(Box)({
   alignItems: 'flex-end',
@@ -124,10 +133,10 @@ const StyledPaginationFlexRow = styled(Box)({
   display: 'inline-flex',
 })
 
-const StyledPaginationText = styled('p')({
-  color: '#585757',
+const StyledPaginationText = styled('p')(({ theme }) => ({
+  color: theme.palette.secondary.main,
   margin: '10px',
-})
+}))
 
 function _manageSearchParams({
   searchParams,
@@ -187,19 +196,13 @@ const Pagination = withState<
             {page * showByValue + 1}-{page * showByValue + nItemsOnThePage} of {nTotalItems}
             {dataType !== undefined && ` ${dataType}`}
           </StyledPaginationText>
-          <StyledNavButton color='primary' size='small' disabled={page === 0} onClick={() => onPaginationChange('', 0)}>
+          <StyledNavButton size='small' disabled={page === 0} onClick={() => onPaginationChange('', 0)}>
             <SkipPreviousIcon />
           </StyledNavButton>
-          <StyledNavButton
-            color='primary'
-            disabled={page === 0}
-            onClick={() => onPaginationChange('', page - 1)}
-            size='small'
-          >
+          <StyledNavButton disabled={page === 0} onClick={() => onPaginationChange('', page - 1)} size='small'>
             <NavigateBeforeIcon />
           </StyledNavButton>
           <StyledNavButton
-            color='primary'
             disabled={page >= nTotalPage - 1}
             onClick={() => onPaginationChange('', page + 1)}
             size='small'
@@ -207,7 +210,6 @@ const Pagination = withState<
             <NavigateNextIcon />
           </StyledNavButton>
           <StyledNavButton
-            color='primary'
             disabled={page >= nTotalPage - 1}
             onClick={() => onPaginationChange('', nTotalPage - 1)}
             size='small'
@@ -217,19 +219,12 @@ const Pagination = withState<
         </StyledPaginationFlexRow>
         <StyledPaginationFlexRow>
           <StyledPaginationText>Show by</StyledPaginationText>
-          <Select
-            color='primary'
+          <StyledSelect
             noNone
             onChange={onShowByChange}
             optionRenderer={item => item}
             options={[10, 25, 50, 100]}
             required
-            sx={{
-              backgroundColor: '#E8E8E8',
-              border: 'none',
-              color: '#007bff',
-              height: '24px',
-            }}
             value={showByValue}
             valueRenderer={item => item}
           />

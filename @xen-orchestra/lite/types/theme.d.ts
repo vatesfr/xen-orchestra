@@ -18,4 +18,13 @@ declare module '@mui/material/styles' {
       }
     }
   }
+
+  // https://mui.com/material-ui/customization/palette/#adding-new-colors
+  interface Palette {
+    lightGray: Palette['primary']
+  }
+
+  interface PaletteOptions {
+    lightGray: PaletteOptions['primary']
+  }
 }

@@ -42,7 +42,7 @@ for (let index = 1; index < 16; index++) {
       CPU: index * 2,
     },
     {
-      power_state: 'Running',
+      power_state: 'Halted',
       name_label: `Bar${index} VM`,
       IPv4: `127.0.0.${index}`,
       CPU: index * 2,

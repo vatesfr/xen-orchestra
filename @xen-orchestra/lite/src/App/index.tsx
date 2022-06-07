@@ -159,6 +159,9 @@ const mdTheme = createTheme({
     info: {
       main: '#17a2b8',
     },
+    lightGray: {
+      main: '#e8e8e8',
+    },
     primary: {
       dark: '#168FFF',
       light: '#0085FF',
@@ -182,13 +185,6 @@ const mdTheme = createTheme({
           fontStyle: 'medium',
           fontSize: '1.25em',
           textAlign: 'center',
-        },
-      },
-    },
-    MuiTableCell: {
-      styleOverrides: {
-        root: {
-          border: '1px solid #E8E8E8',
         },
       },
     },
