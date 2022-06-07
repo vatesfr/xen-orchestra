@@ -214,6 +214,21 @@ export default class {
   }
 
   async getAuthenticationTokensForUser(userId) {
-    return this._tokens.get({ user_id: userId })
+    const tokens = []
+
+    const now = Date.now()
+    const tokensDb = this._tokens
+    const toRemove = []
+    for (const token of await tokensDb.get({ user_id: userId })) {
+      const { expiration } = token
+      if (expiration < now) {
+        toRemove.push(token.id)
+      } else {
+        tokens.push(token)
+      }
+    }
+    tokensDb.remove(toRemove).catch(log.warn)
+
+    return tokens
   }
 }
