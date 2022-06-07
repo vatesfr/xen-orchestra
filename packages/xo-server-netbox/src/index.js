@@ -613,13 +613,15 @@ class Netbox {
     // one bad entry will stop netbox accepting any of the changes and will not give a detailed error response
     for (const create_ip_obj of ipsToCreate) {
       log.warn('attempting to add ip: ', create_ip_obj)
-      await this.#makeRequest(
+      try {
+        await this.#makeRequest(
           '/ipam/ip-addresses/',
           'POST',
           omit(create_ip_obj, 'vifId')
-        ).catch (error) {
-          log.error("unable to add ip ", error)
-        }
+        )
+      } catch (error) {
+        log.error("unable to add ip ", error)
+      }
     }
     
     log.warn('set primary ips')
