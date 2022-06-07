@@ -465,14 +465,17 @@ export class Xapi extends EventEmitter {
     await this._setHostAddressInUrl(url, host)
 
     const doRequest = httpRequest.put.bind(undefined, $cancelToken, {
+      agent: this.httpAgent,
+
       body,
       headers,
       rejectUnauthorized: !this._allowUnauthorized,
+      
       // this is an inactivity timeout (unclear in Node doc)
       timeout: this._httpInactivityTimeout,
+      
       // Support XS <= 6.5 with Node => 12
       minVersion: 'TLSv1',
-      agent: this.httpAgent,
     })
 
     // if body is a stream, sends a dummy request to probe for a redirection
