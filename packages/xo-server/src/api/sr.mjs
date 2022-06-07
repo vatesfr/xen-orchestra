@@ -368,7 +368,7 @@ export async function createExt({ host, nameLabel, nameDescription, device }) {
     device,
   }
 
-  const srRef = await xapi.call({
+  const srRef = await xapi.SR_create({
     device_config: deviceConfig,
     host: host._xapiRef,
     name_description: nameDescription,
