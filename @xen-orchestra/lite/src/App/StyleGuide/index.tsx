@@ -18,6 +18,7 @@ import Tabs from '../../components/Tabs'
 import { alert, confirm } from '../../components/Modal'
 import Table, { Column } from '../../components/Table'
 import { ObjectsByType, Vm } from '../../libs/xapi'
+import { translate } from '../../components/IntlMessage'
 
 const VM_TABLE_COLUMN: Array<Column<any>> = [
   {
@@ -299,7 +300,7 @@ const App = withState<State, Props, Effects, Computed, ParentState, ParentEffect
           <Table
             collection={VMs}
             columns={VM_TABLE_COLUMN}
-            dataType='VMs'
+            dataType={translate({ id: 'VMs' })}
             onSelectItems={effects.setSelectedVms}
             selectedItems={state.tableSelectedVms}
             stateUrlParam='foo_table'

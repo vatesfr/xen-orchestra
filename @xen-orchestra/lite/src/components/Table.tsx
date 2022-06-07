@@ -59,8 +59,6 @@ type Props = IsSelectable &
     collection: Item[] | undefined
     columns: Column<any>[]
     dataType?: string
-    placeholder?: JSX.Element
-    rowPerPages?: number
     stateUrlParam: string
   }
 
@@ -80,6 +78,12 @@ interface PropsPagination {
 interface ParentEffects {}
 
 interface Effects {
+  _manageSearchParams: (params: {
+    searchParams: string
+    stateUrlParam: string
+    label: string
+    value: unknown
+  }) => string
   handlePaginationChange: (e: any, page: number) => void
   handleRowPerPage: (e: any) => void
   toggleAllSelectedItem: () => void
@@ -227,26 +231,31 @@ const Table = withState<State, Props, Effects, Computed, ParentState, ParentEffe
       // URL Can contains theses following search params:
       // {props.stateUrlParam}_page={number}: Its value is the requested page of the table.
       // {props.stateUrlParam}_row={number}: Its determine how many items per page we want to display.
-
-      // Mutualize code that handle params
-      handlePaginationChange: function (_, page) {
-        const reg = new RegExp(this.props.stateUrlParam + '_page=\\d+')
-        let searchParams = this.props.location.search
+      _manageSearchParams: function ({ searchParams, stateUrlParam, label, value }) {
+        const reg = new RegExp(this.props.stateUrlParam + `_${label}=\\d+`)
         if (reg.test(searchParams)) {
-          searchParams = searchParams.replace(reg, `${this.props.stateUrlParam}_page=${page}`)
+          searchParams = searchParams.replace(reg, `${stateUrlParam}_${label}=${value}`)
         } else {
-          searchParams += `${searchParams === '' ? '?' : '&'}${this.props.stateUrlParam}_page=${page}`
+          searchParams += `${searchParams === '' ? '?' : '&'}${stateUrlParam}_${label}=${value}`
         }
+        return searchParams
+      },
+      handlePaginationChange: function (_, page) {
+        const searchParams = this.effects._manageSearchParams({
+          searchParams: this.props.location.search,
+          stateUrlParam: this.props.stateUrlParam,
+          label: 'page',
+          value: page,
+        })
         this.props.history.push(`${this.props.location.pathname}${searchParams}`)
       },
       handleRowPerPage: function (e) {
-        const reg = new RegExp(this.props.stateUrlParam + '_row=\\d+')
-        let searchParams = this.props.location.search
-        if (reg.test(searchParams)) {
-          searchParams = searchParams.replace(reg, `${this.props.stateUrlParam}_row=${e.target.value}`)
-        } else {
-          searchParams += `${searchParams === '' ? '?' : '&'}${this.props.stateUrlParam}_row=${e.target.value}`
-        }
+        const searchParams = this.effects._manageSearchParams({
+          searchParams: this.props.location.search,
+          stateUrlParam: this.props.stateUrlParam,
+          label: 'row',
+          value: e.target.value,
+        })
         this.props.history.push(`${this.props.location.pathname}${searchParams}`)
       },
       toggleAllSelectedItem: function () {
