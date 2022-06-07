@@ -185,6 +185,13 @@ const mdTheme = createTheme({
         },
       },
     },
+    MuiTableCell: {
+      styleOverrides: {
+        root: {
+          border: '1px solid #E8E8E8',
+        },
+      },
+    },
   },
   typography: {
     fontFamily: 'inter',

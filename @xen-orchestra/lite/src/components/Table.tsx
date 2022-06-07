@@ -35,12 +35,10 @@ export type Column<Type> = {
 
 type IsSelectable =
   | {
-      isItemSelectable: true
       onSelectItems: (items: Array<any>) => void
       selectedItems: Array<any>
     }
   | {
-      isItemSelectable?: false
       onSelectItems?: never
       selectedItems?: never
     }
@@ -63,21 +61,19 @@ type Props = IsSelectable &
     dataType?: string
     placeholder?: JSX.Element
     rowPerPages?: number
-    rowsPerPageOptions?: number[]
     stateUrlParam: string
   }
 
 interface PropsPagination {
   dataType?: string
-  nbItemsOnThePage: number
-  nbSelectedItems?: number
-  nbTotalItems: number
-  nbTotalPage: number
+  nItemsOnThePage: number
+  nSelectedItems?: number
+  nTotalItems: number
+  nTotalPage: number
   onPaginationChange: (_: any, page: number) => void
   onShowByChange: (value: SelectChangeEvent<unknown>) => void
   page: number
   reverse?: boolean
-  rowPerPageOptions?: Array<number>
   showByValue: number
 }
 
@@ -100,7 +96,6 @@ interface Computed {
 interface ComputedPagination {}
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
-  border: '1px solid #E8E8E8',
   borderLeft: 'none',
   [`&.${tableCellClasses.head}`]: {
     color: theme.palette.primary.main,
@@ -147,32 +142,31 @@ const Pagination = withState<
   {},
   ({
     dataType,
-    nbItemsOnThePage,
-    nbSelectedItems,
-    nbTotalItems,
-    nbTotalPage,
+    nItemsOnThePage,
+    nSelectedItems,
+    nTotalItems,
+    nTotalPage,
     onPaginationChange,
     onShowByChange,
     page,
     reverse,
-    rowPerPageOptions = [10, 25, 50, 100],
     showByValue,
   }) => (
     <Box
       sx={{
         display: 'flex',
-        justifyContent: nbSelectedItems !== undefined ? 'space-between' : 'right',
+        justifyContent: nSelectedItems !== undefined ? 'space-between' : 'right',
       }}
     >
-      {nbSelectedItems !== undefined && (
+      {nSelectedItems !== undefined && (
         <StyledNbSelectedItems reverse={reverse}>
-          <IntlMessage id='itemSelected' values={{ nSelected: nbSelectedItems }} />
+          <IntlMessage id='itemSelected' values={{ nSelected: nSelectedItems }} />
         </StyledNbSelectedItems>
       )}
       <StyledPaginationContainer>
         <StyledPaginationFlexRow>
           <StyledPaginationText>
-            {page * showByValue + 1}-{page * showByValue + nbItemsOnThePage} of {nbTotalItems}
+            {page * showByValue + 1}-{page * showByValue + nItemsOnThePage} of {nTotalItems}
             {dataType !== undefined && ` ${dataType}`}
           </StyledPaginationText>
           <StyledNavButton color='primary' size='small' disabled={page === 0} onClick={() => onPaginationChange('', 0)}>
@@ -188,7 +182,7 @@ const Pagination = withState<
           </StyledNavButton>
           <StyledNavButton
             color='primary'
-            disabled={page >= nbTotalPage - 1}
+            disabled={page >= nTotalPage - 1}
             onClick={() => onPaginationChange('', page + 1)}
             size='small'
           >
@@ -196,8 +190,8 @@ const Pagination = withState<
           </StyledNavButton>
           <StyledNavButton
             color='primary'
-            disabled={page >= nbTotalPage - 1}
-            onClick={() => onPaginationChange('', nbTotalPage - 1)}
+            disabled={page >= nTotalPage - 1}
+            onClick={() => onPaginationChange('', nTotalPage - 1)}
             size='small'
           >
             <SkipNextIcon />
@@ -210,7 +204,7 @@ const Pagination = withState<
             noNone
             onChange={onShowByChange}
             optionRenderer={item => item}
-            options={rowPerPageOptions}
+            options={[10, 25, 50, 100]}
             required
             sx={{
               backgroundColor: '#E8E8E8',
@@ -230,13 +224,18 @@ const Pagination = withState<
 const Table = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
   {
     effects: {
+      // URL Can contains theses following search params:
+      // {props.stateUrlParam}_page={number}: Its value is the requested page of the table.
+      // {props.stateUrlParam}_row={number}: Its determine how many items per page we want to display.
+
+      // Mutualize code that handle params
       handlePaginationChange: function (_, page) {
         const reg = new RegExp(this.props.stateUrlParam + '_page=\\d+')
         let searchParams = this.props.location.search
         if (reg.test(searchParams)) {
           searchParams = searchParams.replace(reg, `${this.props.stateUrlParam}_page=${page}`)
         } else {
-          searchParams += `?${this.props.stateUrlParam}_page=${page}`
+          searchParams += `${searchParams === '' ? '?' : '&'}${this.props.stateUrlParam}_page=${page}`
         }
         this.props.history.push(`${this.props.location.pathname}${searchParams}`)
       },
@@ -246,7 +245,7 @@ const Table = withState<State, Props, Effects, Computed, ParentState, ParentEffe
         if (reg.test(searchParams)) {
           searchParams = searchParams.replace(reg, `${this.props.stateUrlParam}_row=${e.target.value}`)
         } else {
-          searchParams += `?${this.props.stateUrlParam}_row=${e.target.value}`
+          searchParams += `${searchParams === '' ? '?' : '&'}${this.props.stateUrlParam}_row=${e.target.value}`
         }
         this.props.history.push(`${this.props.location.pathname}${searchParams}`)
       },
@@ -273,17 +272,8 @@ const Table = withState<State, Props, Effects, Computed, ParentState, ParentEffe
         Number(location.search.match(new RegExp(stateUrlParam + '_page=\\d+'))?.[0]?.split('=')[1] ?? 0),
       paginatedCollection: ({ page, rowsPerPage }, { collection }) =>
         collection?.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage),
-      rowsPerPage: (_, { location, stateUrlParam, rowsPerPageOptions }) => {
-        const _rowsPerPageOptions = rowsPerPageOptions ?? [10, 25, 50, 100]
-        let rowsPerPage = Number(
-          location.search.match(new RegExp(stateUrlParam + '_row=\\d+'))?.[0]?.split('=')[1] ?? _rowsPerPageOptions[0]
-        )
-        if (!_rowsPerPageOptions.includes(rowsPerPage)) {
-          console.error('Not allowed rowsPerPage', rowsPerPage)
-          rowsPerPage = _rowsPerPageOptions[0]
-        }
-        return rowsPerPage
-      },
+      rowsPerPage: (_, { location, stateUrlParam }) =>
+        Number(location.search.match(new RegExp(stateUrlParam + '_row=\\d+'))?.[0]?.split('=')[1] ?? 10),
     },
   },
   ({
@@ -291,8 +281,7 @@ const Table = withState<State, Props, Effects, Computed, ParentState, ParentEffe
     columns,
     dataType,
     effects,
-    isItemSelectable,
-    rowsPerPageOptions,
+    onSelectItems,
     selectedItems,
     state: { page, paginatedCollection, rowsPerPage },
   }) =>
@@ -300,21 +289,20 @@ const Table = withState<State, Props, Effects, Computed, ParentState, ParentEffe
       <>
         <Pagination
           dataType={dataType}
-          nbItemsOnThePage={paginatedCollection.length}
-          nbSelectedItems={selectedItems?.length}
-          nbTotalItems={collection.length}
-          nbTotalPage={Math.ceil(collection.length / rowsPerPage)}
+          nItemsOnThePage={paginatedCollection.length}
+          nSelectedItems={selectedItems?.length}
+          nTotalItems={collection.length}
+          nTotalPage={Math.ceil(collection.length / rowsPerPage)}
           onPaginationChange={effects.handlePaginationChange}
           onShowByChange={effects.handleRowPerPage}
           page={page}
           reverse
-          rowPerPageOptions={rowsPerPageOptions}
           showByValue={rowsPerPage}
         />
         <MUITable>
           <TableHead>
             <TableRow>
-              {isItemSelectable && (
+              {onSelectItems !== undefined && (
                 <StyledTableCell padding='checkbox'>
                   <Checkbox
                     checked={selectedItems.length > 0 && selectedItems.length === collection.length}
@@ -335,7 +323,7 @@ const Table = withState<State, Props, Effects, Computed, ParentState, ParentEffe
           <TableBody>
             {paginatedCollection?.map((item, index) => (
               <TableRow key={item.id ?? item.$id ?? index}>
-                {isItemSelectable && (
+                {onSelectItems !== undefined && (
                   <StyledTableCell padding='checkbox'>
                     <Checkbox
                       onChange={() => effects.toggleSelectItem(item)}
@@ -354,14 +342,13 @@ const Table = withState<State, Props, Effects, Computed, ParentState, ParentEffe
         </MUITable>
         <Pagination
           dataType={dataType}
-          nbItemsOnThePage={paginatedCollection.length}
-          nbSelectedItems={selectedItems?.length}
-          nbTotalItems={collection.length}
-          nbTotalPage={Math.ceil(collection.length / rowsPerPage)}
+          nItemsOnThePage={paginatedCollection.length}
+          nSelectedItems={selectedItems?.length}
+          nTotalItems={collection.length}
+          nTotalPage={Math.ceil(collection.length / rowsPerPage)}
           onPaginationChange={effects.handlePaginationChange}
           onShowByChange={effects.handleRowPerPage}
           page={page}
-          rowPerPageOptions={rowsPerPageOptions}
           showByValue={rowsPerPage}
         />
       </>

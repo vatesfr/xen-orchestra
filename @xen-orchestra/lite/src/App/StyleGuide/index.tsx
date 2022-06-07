@@ -4,7 +4,6 @@ import DeleteIcon from '@mui/icons-material/Delete'
 import React from 'react'
 import styled from 'styled-components'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
-import { Map } from 'immutable'
 import { materialDark as codeStyle } from 'react-syntax-highlighter/dist/esm/styles/prism'
 import { SelectChangeEvent } from '@mui/material'
 import { withState } from 'reaclette'
@@ -20,17 +19,53 @@ import { alert, confirm } from '../../components/Modal'
 import Table, { Column } from '../../components/Table'
 import { ObjectsByType, Vm } from '../../libs/xapi'
 
-const VM_TABLE_COLUMN: Array<Column<Vm>> = [
+const VM_TABLE_COLUMN: Array<Column<any>> = [
   {
     icon: 'power-off',
     render: vm => <Icon icon='circle' htmlColor={vm.power_state === 'Running' ? '#00BA34' : '#E8E8E8'} />,
     center: true,
   },
+  { header: 'IPv4', render: vm => vm.IPv4 },
   { header: 'VM Name', render: vm => vm.name_label },
-  { header: 'Host name', render: vm => vm.$resident_on?.name_label },
-  { header: 'IPV4', render: '127.0.0.1' },
-  { header: 'CPU', render: vm => vm.VCPUs_at_startup, isNumeric: true },
+  { header: 'CPU', render: vm => vm.CPU, isNumeric: true },
 ]
+
+const VMs: Array<any> = []
+
+for (let index = 1; index < 6; index++) {
+  VMs.push(
+    {
+      power_state: 'Running',
+      name_label: `Foo${index} VM`,
+      IPv4: `127.0.0.${index}`,
+      CPU: index * 2,
+    },
+    {
+      power_state: 'Running',
+      name_label: `Bar${index} VM`,
+      IPv4: `127.0.0.${index}`,
+      CPU: index * 2,
+    },
+    {
+      power_state: 'Halted',
+      name_label: `Baz${index} VM`,
+      IPv4: `127.0.0.${index}`,
+      CPU: index * 2,
+    },
+    {
+      power_state: 'Halted',
+      name_label: `Qux${index} VM`,
+      IPv4: `127.0.0.${index}`,
+      CPU: index * 2,
+    },
+    {
+      power_state: 'Halted',
+      name_label: `Fred${index} VM`,
+      IPv4: `127.0.0.${index}`,
+      CPU: index * 2,
+    }
+  )
+}
 
 interface ParentState {
   objectsByType: ObjectsByType
@@ -54,9 +89,7 @@ interface Effects {
   showConfirmModal: () => void
 }
 
-interface Computed {
-  vms?: Map<string, Vm>
-}
+interface Computed {}
 
 const Page = styled.div`
   margin: 30px;
@@ -111,12 +144,6 @@ const App = withState<State, Props, Effects, Computed, ParentState, ParentEffect
           title: 'Confirm modal',
           icon: 'download',
         }),
-    },
-    computed: {
-      vms: state =>
-        state.objectsByType
-          ?.get('VM')
-          ?.filter((vm: Vm) => !vm.is_control_domain && !vm.is_a_snapshot && !vm.is_a_template),
     },
   },
   ({ effects, state }) => (
@@ -270,12 +297,10 @@ const App = withState<State, Props, Effects, Computed, ParentState, ParentEffect
       <Container>
         <Render>
           <Table
-            collection={state.vms?.valueSeq().toArray()}
+            collection={VMs}
             columns={VM_TABLE_COLUMN}
             dataType='VMs'
-            isItemSelectable
             onSelectItems={effects.setSelectedVms}
-            rowsPerPageOptions={[10, 25, 50, 100]}
             selectedItems={state.tableSelectedVms}
             stateUrlParam='foo_table'
           />
@@ -288,19 +313,18 @@ const App = withState<State, Props, Effects, Computed, ParentState, ParentEffect
     center: true,
   },
   { header: 'VM Name', render: vm => vm.name_label },
-  { header: 'Host name', render: vm => vm.$resident_on?.name_label },
-  { header: 'IPV4', render: '127.0.0.1' },
-  { header: 'CPU', render: vm => vm.VCPUs_at_startup, isNumeric: true },
+  { header: 'IPv4', render: vm => vm.IPv4 },
+  { header: 'CPU', render: vm => vm.CPU, isNumeric: true },
 ]
 <Table
-collection={state.vms}
-columns={VM_TABLE_COLUMN}
-dataType='VMs'
-isItemSelectable
-onSelectItems={vms => state.selectedVms = [...vms]}
-rowsPerPageOptions={[10, 25, 50, 100]}
-selectedItems={state.selectedVms}
-stateUrlParam='foo_table'
+  collection={state.vms}
+  columns={VM_TABLE_COLUMN}
+  dataType='VMs'
+  isItemSelectable
+  onSelectItems={vms => state.selectedVms = [...vms]}
+  rowsPerPageOptions={[10, 25, 50, 100]}
+  selectedItems={state.selectedVms}
+  stateUrlParam='foo_table'
 />
 `}
         </Code>
