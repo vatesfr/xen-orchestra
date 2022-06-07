@@ -187,7 +187,7 @@ export default class Redis extends Collection {
     if (id !== undefined) {
       properties = omit(properties, 'id')
       return this._extract([id]).then(models => {
-        return models.length && !isEmpty(properties) ? filter(models) : models
+        return models.length && !isEmpty(properties) ? filter(models, properties) : models
       })
     }
 
