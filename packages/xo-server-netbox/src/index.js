@@ -617,7 +617,9 @@ class Netbox {
           '/ipam/ip-addresses/',
           'POST',
           omit(create_ip_obj, 'vifId')
-        )
+        ).catch (error) {
+          log.error("unable to add ip ", error)
+        }
     }
     
     log.warn('set primary ips')
