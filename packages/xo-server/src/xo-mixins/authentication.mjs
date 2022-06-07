@@ -4,6 +4,7 @@ import { ignoreErrors } from 'promise-toolbox'
 import { invalidCredentials, noSuchObject } from 'xo-common/api-errors.js'
 import { parseDuration } from '@vates/parse-duration'
 
+import patch from '../patch.mjs'
 import Token, { Tokens } from '../models/token.mjs'
 import { forEach, generateToken } from '../utils.mjs'
 
@@ -163,7 +164,7 @@ export default class {
 
   // -----------------------------------------------------------------
 
-  async createAuthenticationToken({ expiresIn, userId }) {
+  async createAuthenticationToken({ description, expiresIn, userId }) {
     let duration = this._defaultTokenValidity
     if (expiresIn !== undefined) {
       duration = parseDuration(expiresIn)
@@ -175,6 +176,7 @@ export default class {
     const now = Date.now()
     const token = new Token({
       created_at: now,
+      description,
       id: await generateToken(),
       user_id: userId,
       expiration: now + duration,
@@ -198,8 +200,10 @@ export default class {
     )
   }
 
-  async getAuthenticationToken(id) {
-    let token = await this._tokens.first(id)
+  async getAuthenticationToken(properties) {
+    const id = typeof properties === 'string' ? properties : properties.id
+
+    let token = await this._tokens.first(properties)
     if (token === undefined) {
       throw noSuchAuthenticationToken(id)
     }
@@ -232,5 +236,12 @@ export default class {
     tokensDb.remove(toRemove).catch(log.warn)
 
     return tokens
+  }
+
+  async updateAuthenticationToken(properties, { description }) {
+    const token = await this.getAuthenticationToken(properties)
+    patch(token, { description })
+    await this._tokens.update(token)
+    return token
   }
 }
