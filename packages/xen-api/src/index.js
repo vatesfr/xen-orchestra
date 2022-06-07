@@ -470,10 +470,10 @@ export class Xapi extends EventEmitter {
       body,
       headers,
       rejectUnauthorized: !this._allowUnauthorized,
-      
+
       // this is an inactivity timeout (unclear in Node doc)
       timeout: this._httpInactivityTimeout,
-      
+
       // Support XS <= 6.5 with Node => 12
       minVersion: 'TLSv1',
     })
