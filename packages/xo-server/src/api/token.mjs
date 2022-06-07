@@ -1,8 +1,9 @@
 // TODO: Prevent token connections from creating tokens.
 // TODO: Token permission.
-export async function create({ expiresIn }) {
+export async function create({ description, expiresIn }) {
   return (
     await this.createAuthenticationToken({
+      description,
       expiresIn,
       userId: this.connection.get('user_id'),
     })
@@ -12,6 +13,10 @@ export async function create({ expiresIn }) {
 create.description = 'create a new authentication token'
 
 create.params = {
+  description: {
+    optional: true,
+    type: 'string',
+  },
   expiresIn: {
     optional: true,
     type: ['number', 'string'],
@@ -52,4 +57,17 @@ deleteAll.description = 'delete all tokens of the current user except the curren
 
 deleteAll.params = {
   except: { type: 'string', optional: true },
+}
+
+// -------------------------------------------------------------------
+
+export async function set({ id, ...props }) {
+  await this.updateAuthenticationToken({ id, user_id: this.connection.get('user_id') }, props)
+}
+
+set.description = 'changes the properties of an existing token'
+
+set.params = {
+  description: { type: ['null', 'string'], optional: true },
+  id: { type: 'string' },
 }

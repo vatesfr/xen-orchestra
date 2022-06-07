@@ -6,8 +6,6 @@ import filter from 'lodash/filter.js'
 import find from 'lodash/find.js'
 import flatMap from 'lodash/flatMap.js'
 import flatten from 'lodash/flatten.js'
-import identity from 'lodash/identity.js'
-import includes from 'lodash/includes.js'
 import isEmpty from 'lodash/isEmpty.js'
 import mapToArray from 'lodash/map.js'
 import mixin from '@xen-orchestra/mixin/legacy.js'
@@ -31,23 +29,19 @@ import { Ref } from 'xen-api'
 import { synchronized } from 'decorator-synchronized'
 
 import fatfsBuffer, { init as fatfsBufferInit } from '../fatfs-buffer.mjs'
-import { camelToSnakeCase, forEach, map, parseSize, pDelay, promisifyAll } from '../utils.mjs'
+import { camelToSnakeCase, forEach, map, pDelay, promisifyAll } from '../utils.mjs'
 
 import mixins from './mixins/index.mjs'
 import OTHER_CONFIG_TEMPLATE from './other-config-template.mjs'
 import {
-  asBoolean,
   asInteger,
   extractOpaqueRef,
-  filterUndefineds,
   canSrHaveNewVdiOfSize,
   isVmHvm,
   isVmRunning,
-  optional,
   parseDateTime,
   prepareXapiParam,
 } from './utils.mjs'
-import { createVhdStreamWithLength } from 'vhd-lib'
 
 const log = createLogger('xo:xapi')
 
@@ -91,7 +85,7 @@ export default class Xapi extends XapiBase {
 
     //  close event is emitted when the export is canceled via browser. See https://github.com/vatesfr/xen-orchestra/issues/5535
     const waitStreamEnd = async stream => fromEvents(await stream, ['end', 'close'])
-    this._exportVdi = limitConcurrency(vdiExportConcurrency, waitStreamEnd)(this._exportVdi)
+    this.VDI_exportContent = limitConcurrency(vdiExportConcurrency, waitStreamEnd)(this.VDI_exportContent)
     this.VM_export = limitConcurrency(vmExportConcurrency, waitStreamEnd)(this.VM_export)
 
     this._migrateVmWithStorageMotion = limitConcurrency(vmMigrationConcurrency)(this._migrateVmWithStorageMotion)
@@ -385,123 +379,6 @@ export default class Xapi extends XapiBase {
     }
   }
 
-  // Low level create VM.
-  _createVmRecord(
-    {
-      actions_after_crash,
-      actions_after_reboot,
-      actions_after_shutdown,
-      affinity,
-      // appliance,
-      blocked_operations,
-      domain_type, // Used when the VM is created Suspended
-      generation_id,
-      ha_always_run,
-      ha_restart_priority,
-      has_vendor_device = false, // Avoid issue with some Dundee builds.
-      hardware_platform_version,
-      HVM_boot_params,
-      HVM_boot_policy,
-      HVM_shadow_multiplier,
-      is_a_template,
-      last_boot_CPU_flags, // Used when the VM is created Suspended
-      last_booted_record, // Used when the VM is created Suspended
-      memory_dynamic_max,
-      memory_dynamic_min,
-      memory_static_max,
-      memory_static_min,
-      name_description,
-      name_label,
-      order,
-      other_config,
-      PCI_bus,
-      platform,
-      protection_policy,
-      PV_args,
-      PV_bootloader,
-      PV_bootloader_args,
-      PV_kernel,
-      PV_legacy_args,
-      PV_ramdisk,
-      recommendations,
-      shutdown_delay,
-      start_delay,
-      // suspend_SR,
-      tags,
-      user_version,
-      VCPUs_at_startup,
-      VCPUs_max,
-      VCPUs_params,
-      version,
-      xenstore_data,
-    },
-    {
-      // if set, will create the VM in Suspended power_state with this VDI
-      //
-      // it's a separate param because it's not supported for all versions of
-      // XCP-ng/XenServer and should be passed explicitly
-      suspend_VDI,
-    } = {}
-  ) {
-    log.debug(`Creating VM ${name_label}`)
-
-    return this.call(
-      'VM.create',
-      filterUndefineds({
-        actions_after_crash,
-        actions_after_reboot,
-        actions_after_shutdown,
-        affinity: affinity == null ? Ref.EMPTY : affinity,
-        HVM_boot_params,
-        HVM_boot_policy,
-        is_a_template: asBoolean(is_a_template),
-        memory_dynamic_max: asInteger(memory_dynamic_max),
-        memory_dynamic_min: asInteger(memory_dynamic_min),
-        memory_static_max: asInteger(memory_static_max),
-        memory_static_min: asInteger(memory_static_min),
-        other_config,
-        PCI_bus,
-        platform,
-        PV_args,
-        PV_bootloader,
-        PV_bootloader_args,
-        PV_kernel,
-        PV_legacy_args,
-        PV_ramdisk,
-        recommendations,
-        user_version: asInteger(user_version),
-        VCPUs_at_startup: asInteger(VCPUs_at_startup),
-        VCPUs_max: asInteger(VCPUs_max),
-        VCPUs_params,
-
-        // Optional fields.
-        blocked_operations,
-        generation_id,
-        ha_always_run: asBoolean(ha_always_run),
-        ha_restart_priority,
-        has_vendor_device,
-        hardware_platform_version: optional(hardware_platform_version, asInteger),
-        // HVM_shadow_multiplier: asFloat(HVM_shadow_multiplier), // FIXME: does not work FIELD_TYPE_ERROR(hVM_shadow_multiplier)
-        name_description,
-        name_label,
-        order: optional(order, asInteger),
-        protection_policy,
-        shutdown_delay: asInteger(shutdown_delay),
-        start_delay: asInteger(start_delay),
-        tags,
-        version: asInteger(version),
-        xenstore_data,
-
-        // VM created Suspended
-        power_state: suspend_VDI !== undefined ? 'Suspended' : undefined,
-        suspend_VDI,
-        domain_type,
-        last_boot_CPU_flags,
-        last_booted_record,
-      })
-    )
-  }
-
   getVmConsole(vmId) {
     const vm = this.getObject(vmId)
 
@@ -534,7 +411,7 @@ export default class Xapi extends XapiBase {
         const vdi = blockDevice.$VDI
         collectedDisks.push({
           getStream: () => {
-            return this.exportVdiContent($cancelToken, vdi, VDI_FORMAT_VHD)
+            return vdi.$exportContent({ cancelToken: $cancelToken, format: VDI_FORMAT_VHD })
           },
           name: vdi.name_label,
           fileName: vdi.name_label + '.vmdk',
@@ -811,7 +688,7 @@ export default class Xapi extends XapiBase {
   async _importOvaVm($defer, stream, { descriptionLabel, disks, memory, nameLabel, networks, nCpus, tables }, sr) {
     // 1. Create VM.
     const vm = await this._getOrWaitObject(
-      await this._createVmRecord({
+      await this.VM_create({
         ...OTHER_CONFIG_TEMPLATE,
         memory_dynamic_max: memory,
         memory_dynamic_min: memory,
@@ -839,18 +716,20 @@ export default class Xapi extends XapiBase {
     }
     await Promise.all(
       map(disks, async disk => {
-        const vdi = (vdis[disk.path] = await this.createVdi({
-          name_description: disk.descriptionLabel,
-          name_label: disk.nameLabel,
-          size: disk.capacity,
-          sr: sr.$ref,
-        }))
+        const vdi = (vdis[disk.path] = await this._getOrWaitObject(
+          await this.VDI_create({
+            name_description: disk.descriptionLabel,
+            name_label: disk.nameLabel,
+            SR: sr.$ref,
+            virtual_size: disk.capacity,
+          })
+        ))
         $defer.onFailure(() => vdi.$destroy())
         compression[disk.path] = disk.compression
-        return this.createVbd({
+        return this.VBD_create({
           userdevice: String(disk.position),
-          vdi,
-          vm,
+          VDI: vdi.$ref,
+          VM: vm.$ref,
         })
       }).concat(
         map(networks, (networkId, i) =>
@@ -887,7 +766,7 @@ export default class Xapi extends XapiBase {
           compression[entry.name] === 'gzip'
         )
         try {
-          await this._importVdiContent(vdi, vhdStream, VDI_FORMAT_VHD)
+          await vdi.$importContent(vhdStream, { format: VDI_FORMAT_VHD })
           // See: https://github.com/mafintosh/tar-stream#extracting
           // No import parallelization.
         } catch (e) {
@@ -1102,123 +981,10 @@ export default class Xapi extends XapiBase {
 
   // =================================================================
 
-  async createVbd({
-    bootable = false,
-    currently_attached = false,
-    device = '',
-    other_config = {},
-    qos_algorithm_params = {},
-    qos_algorithm_type = '',
-    type = 'Disk',
-    unpluggable = false,
-    userdevice,
-    VDI,
-    VM,
-
-    vdi = VDI,
-
-    empty = vdi === undefined,
-    mode = type === 'Disk' ? 'RW' : 'RO',
-    vm = VM,
-  }) {
-    vdi = this.getObject(vdi)
-    vm = this.getObject(vm)
-
-    log.debug(`Creating VBD for VDI ${vdi.name_label} on VM ${vm.name_label}`)
-
-    if (userdevice == null) {
-      const allowed = await this.call('VM.get_allowed_VBD_devices', vm.$ref)
-      const { length } = allowed
-      if (length === 0) {
-        throw new Error('no allowed VBD devices')
-      }
-
-      if (type === 'CD') {
-        // Choose position 3 if allowed.
-        userdevice = includes(allowed, '3') ? '3' : allowed[0]
-      } else {
-        userdevice = allowed[0]
-
-        // Avoid userdevice 3 if possible.
-        if (userdevice === '3' && length > 1) {
-          userdevice = allowed[1]
-        }
-      }
-    }
-
-    const ifVmSuspended = vm.power_state === 'Suspended' ? identity : noop
-
-    // By default a VBD is unpluggable.
-    const vbdRef = await this.call('VBD.create', {
-      bootable: Boolean(bootable),
-      currently_attached: ifVmSuspended(currently_attached),
-      device: ifVmSuspended(device),
-      empty: Boolean(empty),
-      mode,
-      other_config,
-      qos_algorithm_params,
-      qos_algorithm_type,
-      type,
-      unpluggable: Boolean(unpluggable),
-      userdevice,
-      VDI: vdi && vdi.$ref,
-      VM: vm.$ref,
-    })
-
-    if (isVmRunning(vm)) {
-      await this.callAsync('VBD.plug', vbdRef)
-    }
-  }
-
   _cloneVdi(vdi) {
     log.debug(`Cloning VDI ${vdi.name_label}`)
 
     return this.callAsync('VDI.clone', vdi.$ref).then(extractOpaqueRef)
-  }
-
-  async createVdi(
-    {
-      name_description,
-      name_label,
-      other_config = {},
-      read_only = false,
-      sharable = false,
-      sm_config,
-      SR,
-      tags,
-      type = 'user',
-      virtual_size,
-      xenstore_data,
-
-      size,
-      sr = Ref.isNotEmpty(SR) ? SR : this.pool.default_SR,
-    },
-    {
-      // blindly copying `sm_config` from another VDI can create problems,
-      // therefore it is ignored by default by this method
-      //
-      // see https://github.com/vatesfr/xen-orchestra/issues/4482
-      setSmConfig = false,
-    } = {}
-  ) {
-    sr = this.getObject(sr)
-    log.debug(`Creating VDI ${name_label} on ${sr.name_label}`)
-
-    return this._getOrWaitObject(
-      await this.callAsync('VDI.create', {
-        name_description,
-        name_label,
-        other_config,
-        read_only: Boolean(read_only),
-        sharable: Boolean(sharable),
-        SR: sr.$ref,
-        tags,
-        type,
-        sm_config: setSmConfig ? sm_config : undefined,
-        virtual_size: size !== undefined ? parseSize(size) : virtual_size,
-        xenstore_data,
-      }).then(extractOpaqueRef)
-    )
   }
 
   async moveVdi(vdiId, srId) {
@@ -1244,9 +1010,9 @@ export default class Xapi extends XapiBase {
       const newVdi = await this.barrier(await this.callAsync('VDI.copy', vdi.$ref, sr.$ref).then(extractOpaqueRef))
       await asyncMapSettled(vdi.$VBDs, async vbd => {
         await this.call('VBD.destroy', vbd.$ref)
-        await this.createVbd({
+        await this.VBD_create({
           ...vbd,
-          vdi: newVdi,
+          VDI: newVdi.$ref,
         })
       })
       await vdi.$destroy()
@@ -1296,11 +1062,11 @@ export default class Xapi extends XapiBase {
         await cdDrive.set_bootable(bootable)
       }
     } else {
-      await this.createVbd({
+      await this.VBD_create({
         bootable,
         type: 'CD',
-        vdi: cd,
-        vm,
+        VDI: cd.$ref,
+        VM: vm.$ref,
       })
     }
   }
@@ -1309,40 +1075,9 @@ export default class Xapi extends XapiBase {
     await this.callAsync('VBD.plug', vbdId)
   }
 
-  async _disconnectVbd(vbd) {
-    // TODO: check if VBD is attached before
-    try {
-      await this.call('VBD.unplug_force', vbd.$ref)
-    } catch (error) {
-      if (error.code === 'VBD_NOT_UNPLUGGABLE') {
-        await vbd.set_unpluggable(true)
-        return this.call('VBD.unplug_force', vbd.$ref)
-      }
-      throw error
-    }
-  }
-
-  async disconnectVbd(vbdId) {
-    await this._disconnectVbd(this.getObject(vbdId))
-  }
-
-  async _deleteVbd(vbd) {
-    await this._disconnectVbd(vbd)::ignoreErrors()
-    await this.call('VBD.destroy', vbd.$ref)
-  }
-
-  deleteVbd(vbdId) {
-    return this._deleteVbd(this.getObject(vbdId))
-  }
-
   // TODO: remove when no longer used.
   async destroyVbdsFromVm(vmId) {
-    await Promise.all(
-      this.getObject(vmId).$VBDs.map(async vbd => {
-        await this.disconnectVbd(vbd.$ref)::ignoreErrors()
-        return this.call('VBD.destroy', vbd.$ref)
-      })
-    )
+    await Promise.all(this.getObject(vmId).VBDs.map(async ref => this.VBD_destroy(ref)))
   }
 
   async resizeVdi(vdiId, size) {
@@ -1371,31 +1106,6 @@ export default class Xapi extends XapiBase {
     return snap
   }
 
-  @cancelable
-  _exportVdi($cancelToken, vdi, base, format = VDI_FORMAT_VHD) {
-    const query = {
-      format,
-      vdi: vdi.$ref,
-    }
-    if (base) {
-      query.base = base.$ref
-    }
-
-    log.debug(`exporting VDI ${vdi.name_label}${base ? ` (from base ${vdi.name_label})` : ''}`)
-
-    return this.getResource($cancelToken, '/export_raw_vdi/', {
-      query,
-      task: this.task_create('VDI Export', vdi.name_label),
-    }).catch(error => {
-      // augment the error with as much relevant info as possible
-      error.pool_master = vdi.$pool.$master
-      error.SR = vdi.$SR
-      error.VDI = vdi
-
-      throw error
-    })
-  }
-
   async exportVdiAsVmdk(vdi, filename, { cancelToken = CancelToken.none, base } = {}) {
     vdi = this.getObject(vdi)
     const params = { cancelToken, format: VDI_FORMAT_VHD }
@@ -1415,46 +1125,6 @@ export default class Xapi extends XapiBase {
     vmdkStream.statusCode = vhdResult.statusCode
     vmdkStream.statusMessage = vhdResult.statusMessage
     return vmdkStream
-  }
-
-  @cancelable
-  exportVdiContent($cancelToken, vdi, { format } = {}) {
-    return this._exportVdi($cancelToken, this.getObject(vdi), undefined, format)
-  }
-
-  // -----------------------------------------------------------------
-
-  async _importVdiContent(vdi, body, format = VDI_FORMAT_VHD) {
-    if (typeof body.pipe === 'function' && body.length === undefined) {
-      if (this._guessVhdSizeOnImport && format === VDI_FORMAT_VHD) {
-        body = await createVhdStreamWithLength(body)
-      } else if (__DEV__) {
-        throw new Error('Trying to import a VDI without a length field. Please report this error to Xen Orchestra.')
-      }
-    }
-
-    await Promise.all([
-      body.task,
-      body.checksumVerified,
-      this.putResource(body, '/import_raw_vdi/', {
-        query: {
-          format,
-          vdi: vdi.$ref,
-        },
-        task: this.task_create('VDI Content Import', vdi.name_label),
-      }),
-    ]).catch(error => {
-      // augment the error with as much relevant info as possible
-      error.pool_master = vdi.$pool.$master
-      error.SR = vdi.$SR
-      error.VDI = vdi
-
-      throw error
-    })
-  }
-
-  importVdiContent(vdiId, body, { format } = {}) {
-    return this._importVdiContent(this.getObject(vdiId), body, format)
   }
 
   // =================================================================
@@ -1625,11 +1295,13 @@ export default class Xapi extends XapiBase {
 
     // First, create a small VDI (10MB) which will become the ConfigDrive
     const buffer = fatfsBufferInit({ label: 'cidata     ' })
-    const vdi = await this.createVdi({
-      name_label: 'XO CloudConfigDrive',
-      size: buffer.length,
-      sr: sr.$ref,
-    })
+    const vdi = await this._getOrWaitObject(
+      await this.VDI_create({
+        name_label: 'XO CloudConfigDrive',
+        SR: sr.$ref,
+        virtual_size: buffer.length,
+      })
+    )
     $defer.onFailure(() => vdi.$destroy())
 
     // Then, generate a FAT fs
@@ -1658,24 +1330,26 @@ export default class Xapi extends XapiBase {
 
     // ignore errors, I (JFT) don't understand why they are emitted
     // because it works
-    await this._importVdiContent(vdi, buffer, VDI_FORMAT_RAW).catch(error => {
+    await vdi.$importContent(buffer, { format: VDI_FORMAT_RAW }).catch(error => {
       log.warn('importVdiContent: ', { error })
     })
 
-    await this.createVbd({ vdi, vm })
+    await this.VBD_create({ VDI: vdi.$ref, VM: vm.$ref })
   }
 
   @decorateWith(deferrable)
   async createTemporaryVdiOnSr($defer, stream, sr, name_label, name_description) {
-    const vdi = await this.createVdi({
-      name_description,
-      name_label,
-      size: stream.length,
-      sr: sr.$ref,
-    })
+    const vdi = await this._getOrWaitObject(
+      await this.VDI_create({
+        name_description,
+        name_label,
+        SR: sr.$ref,
+        virtual_size: stream.length,
+      })
+    )
     $defer.onFailure(() => vdi.$destroy())
 
-    await this.importVdiContent(vdi.$id, stream, { format: VDI_FORMAT_RAW })
+    await vdi.$importContent(stream, { format: VDI_FORMAT_RAW })
 
     return vdi
   }
