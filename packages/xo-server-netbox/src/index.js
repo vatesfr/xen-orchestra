@@ -602,7 +602,7 @@ class Netbox {
     }
     log.debug('ip address prmoises')
     log.debug('ipsToDelete:', ipsToDelete)
-    log.debug('newNetboxIps:', newNetboxIps)
+    log.debug('ipsToCreate:', ipsToCreate)
     await Promise.all([
       ipsToDelete.length !== 0 && this.#makeRequest('/ipam/ip-addresses/', 'DELETE', ipsToDelete),
       ipsToCreate.length !== 0 &&
