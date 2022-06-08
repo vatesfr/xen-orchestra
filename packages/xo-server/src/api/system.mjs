@@ -73,4 +73,7 @@ export function methodSignature({ method: name }) {
   ]
 }
 methodSignature.description = 'returns the signature of an API method'
+methodSignature.params = {
+  method: { type: 'string' },
+}
 methodSignature.permission = null // user does not need to be authenticated
