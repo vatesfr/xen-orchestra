@@ -261,7 +261,10 @@ class Netbox {
     )
 
     // VMs
-    const vms = xo.getObjects({ filter: object => object.type === 'VM' && pools.includes(object.$pool) })
+    const vms = xo.getObjects({ filter: object => object.type === 'VM' && 
+                                pools.includes(object.$pool) &&
+                                !object.tags.some(tag => this.#ignoredVmTags.has(tag))
+                              })
     let oldNetboxVms = flatten(
       // FIXME: It should be doable with one request:
       // `cluster_id=1&cluster_id=2` but it doesn't work
