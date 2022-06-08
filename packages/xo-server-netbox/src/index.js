@@ -105,7 +105,7 @@ class Netbox {
   async #makeRequest(path, method, data) {
     const dataDebug =
       Array.isArray(data) && data.length > 2 ? [...data.slice(0, 2), `and ${data.length - 2} others`] : data
-    log.warn(`${method} ${path}`, dataDebug)
+    log.debug(`${method} ${path}`, dataDebug)
     let url = this.#endpoint + '/api' + path
     const options = {
       headers: { 'Content-Type': 'application/json', Authorization: `Token ${this.#token}` },
@@ -190,7 +190,7 @@ class Netbox {
     await this.#checkCustomFields()
 
     const xo = this.#xo
-    log.warn('synchronizing')
+    log.debug('synchronizing')
     // Cluster type
     const clusterTypes = await this.#makeRequest(
       `/virtualization/cluster-types/?name=${encodeURIComponent(CLUSTER_TYPE)}`,
@@ -605,9 +605,9 @@ class Netbox {
     if (ignoredIps.length > 0) {
       log.warn('Could not find prefix for some IPs: ignoring them.', { ips: ignoredIps })
     }
-    log.warn('ip address prmoises')
-    log.warn('ipsToDelete:', ipsToDelete)
-    log.warn('ipsToCreate:', ipsToCreate)
+    log.debug('ip address prmoises')
+    // log.warn('ipsToDelete:', ipsToDelete)
+    // log.warn('ipsToCreate:', ipsToCreate)
     await Promise.all([
       ipsToDelete.length !== 0 && this.#makeRequest('/ipam/ip-addresses/', 'DELETE', ipsToDelete),
     ])
@@ -615,7 +615,7 @@ class Netbox {
     // breaking up creating/assigning of ip's into multiple calls. 
     // one bad entry will stop netbox accepting any of the changes and will not give a detailed error response
     for (const create_ip_obj of ipsToCreate) {
-      log.warn('attempting to add ip: ', create_ip_obj)
+      log.debug('attempting to add ip: ', create_ip_obj)
       try {
         await this.#makeRequest(
           '/ipam/ip-addresses/',
@@ -623,11 +623,11 @@ class Netbox {
           omit(create_ip_obj, 'vifId')
         )
       } catch (error) {
-        log.error("unable to add ip ", error)
+        log.error("unable to add ip ", [error, create_ip_obj])
       }
     }
     
-    log.warn('set primary ips')
+    log.debug('set primary ips')
     
     // Primary IPs
     vmsToUpdate = []
@@ -663,12 +663,12 @@ class Netbox {
         vmsToUpdate.push(newNetboxVm)
       }
     })
-    log.warn('vmsToUpdate:', vmsToUpdate)
+    log.debug('vmsToUpdate:', vmsToUpdate)
     if (vmsToUpdate.length > 0) {
       await this.#makeRequest('/virtualization/virtual-machines/', 'PATCH', vmsToUpdate)
     }
 
-    log.warn('synchronized')
+    log.debug('synchronized')
   }
 
   async test() {
