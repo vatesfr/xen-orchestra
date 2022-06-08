@@ -66,7 +66,7 @@ class Netbox {
     this.#token = configuration.token
     this.#pools = configuration.pools
     this.#syncInterval = configuration.syncInterval && configuration.syncInterval * 60 * 60 * 1e3
-    this.#ignoredVmTags = configuration.ignoredVmTags
+    this.#ignoredVmTags =  new Set( configuration.ignoredVmTags)
 
     // We don't want to start the auto-sync if the plugin isn't loaded
     if (this.#loaded) {
