@@ -237,10 +237,6 @@ export default class Api {
     // create the context which is an augmented XO
     const context = (() => {
       const descriptors = {
-        api: {
-          // Used by system.*().
-          value: this,
-        },
         connection: {
           value: connection,
         },
