@@ -84,7 +84,7 @@ function checkPermission(method) {
     return
   }
 
-  const { user } = this
+  const { user } = this.apiContext
   if (!user) {
     throw errors.unauthorized(permission)
   }
@@ -104,7 +104,7 @@ async function resolveParams(method, params) {
     return params
   }
 
-  const { user } = this
+  const { user } = this.apiContext
   if (!user) {
     throw errors.unauthorized()
   }
@@ -239,6 +239,11 @@ export default class Api {
 
     const apiContext = { __proto__: null }
 
+    const userId = connection.get('user_id', undefined)
+    if (userId !== undefined) {
+      apiContext.user = await this._app.getUser(userId)
+    }
+
     return this.#apiContext.run(apiContext, () => this.#callApiMethod(connection, name, method, params))
   }
 
@@ -266,14 +271,13 @@ export default class Api {
       return Object.create(null, descriptors)
     })()
 
-    // Fetch and inject the current user.
-    const userId = connection.get('user_id', undefined)
-    context.user = userId && (await app.getUser(userId))
-    const userName = context.user ? context.user.email : '(unknown user)'
+    const { user } = this.apiContext
+
+    const userName = user?.email ?? '(unknown user)'
 
     const data = {
       callId: Math.random().toString(36).slice(2),
-      userId,
+      userId: user?.id,
       userName,
       userIp: connection.get('user_ip', undefined),
       method: name,
@@ -392,7 +396,7 @@ export default class Api {
       }
 
       // don't return *unknown error from the peer* if the user is admin
-      if (error.toJsonRpcError === undefined && context?.user.permission === 'admin') {
+      if (error.toJsonRpcError === undefined && user?.permission === 'admin') {
         throw new JsonRpcError(error.message, undefined, serializeError(serializedError))
       }
 

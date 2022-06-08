@@ -22,7 +22,7 @@ create.params = {
 
 // Deletes an existing user.
 async function delete_({ id }) {
-  if (id === this.connection.get('user_id')) {
+  if (id === this.apiContext.user.id) {
     throw invalidParameters('a user cannot delete itself')
   }
 
@@ -59,7 +59,7 @@ getAll.permission = 'admin'
 // -------------------------------------------------------------------
 
 export function getAuthenticationTokens() {
-  return this.getAuthenticationTokensForUser(this.connection.get('user_id'))
+  return this.getAuthenticationTokensForUser(this.apiContext.user.id)
 }
 
 getAuthenticationTokens.description = 'returns authentication tokens of the current user'
@@ -67,9 +67,9 @@ getAuthenticationTokens.description = 'returns authentication tokens of the curr
 // -------------------------------------------------------------------
 
 export async function set({ id, email, password, permission, preferences }) {
-  const isAdmin = this.user && this.user.permission === 'admin'
+  const isAdmin = this.apiContext.user.permission === 'admin'
   if (isAdmin) {
-    if (permission && id === this.connection.get('user_id')) {
+    if (permission && id === this.apiContext.user.id) {
       throw invalidParameters('a user cannot change its own permission')
     }
   } else if (email || password || permission) {
@@ -97,7 +97,7 @@ set.params = {
 // -------------------------------------------------------------------
 
 export async function changePassword({ oldPassword, newPassword }) {
-  const { user } = this
+  const { user } = this.apiContext
 
   if (!isEmpty(user.authProviders)) {
     throw forbiddenOperation('change password', 'synchronized users cannot change their passwords')

@@ -69,7 +69,7 @@ set.resolve = {
 // -------------------------------------------------------------------
 
 export async function setDefaultSr({ sr }) {
-  await this.hasPermissions(this.user.id, [[sr.$pool, 'administrate']])
+  await this.hasPermissions(this.apiContext.user.id, [[sr.$pool, 'administrate']])
 
   await this.getXapi(sr).setDefaultSr(sr._xapiId)
 }
@@ -87,7 +87,7 @@ setDefaultSr.resolve = {
 // -------------------------------------------------------------------
 
 export async function setPoolMaster({ host }) {
-  await this.hasPermissions(this.user.id, [[host.$pool, 'administrate']])
+  await this.hasPermissions(this.apiContext.user.id, [[host.$pool, 'administrate']])
 
   await this.getXapi(host).setPoolMaster(host._xapiId)
 }
@@ -286,7 +286,7 @@ getPatchesDifference.resolve = {
 
 export async function mergeInto({ source, sources = [source], target, force }) {
   await this.checkPermissions(
-    this.user.id,
+    this.apiContext.user.id,
     sources.map(source => [source, 'administrate'])
   )
   return this.mergeInto({

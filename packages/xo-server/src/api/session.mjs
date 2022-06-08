@@ -55,7 +55,7 @@ signOut.description = 'sign out the user from the current session'
 // -------------------------------------------------------------------
 
 export async function getUser() {
-  const userId = this.connection.get('user_id')
+  const userId = this.apiContext.user.id
 
   return userId === undefined ? null : getUserPublicProperties(await this.getUser(userId))
 }

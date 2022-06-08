@@ -5,7 +5,7 @@ export async function create({ description, expiresIn }) {
     await this.createAuthenticationToken({
       description,
       expiresIn,
-      userId: this.connection.get('user_id'),
+      userId: this.apiContext.user.id,
     })
   ).id
 }
@@ -45,7 +45,7 @@ delete_.params = {
 export async function deleteAll({ except }) {
   await this.deleteAuthenticationTokens({
     filter: {
-      user_id: this.connection.get('user_id'),
+      user_id: this.apiContext.user.id,
       id: {
         __not: except,
       },
@@ -62,7 +62,7 @@ deleteAll.params = {
 // -------------------------------------------------------------------
 
 export async function set({ id, ...props }) {
-  await this.updateAuthenticationToken({ id, user_id: this.connection.get('user_id') }, props)
+  await this.updateAuthenticationToken({ id, user_id: this.apiContext.user.id }, props)
 }
 
 set.description = 'changes the properties of an existing token'

@@ -18,7 +18,7 @@ delete_.description = 'Delete an ipPool'
 // -------------------------------------------------------------------
 
 export function getAll(params) {
-  const { user } = this
+  const { user } = this.apiContext
 
   return this.getAllIpPools(user.permission === 'admin' ? params && params.userId : user.id)
 }

@@ -7,7 +7,7 @@ import { REMOVE_CACHE_ENTRY } from '../_pDebounceWithKey.mjs'
 import { safeDateFormat } from '../utils.mjs'
 
 export function createJob({ schedules, ...job }) {
-  job.userId = this.user.id
+  job.userId = this.apiContext.user.id
   return this.createBackupNgJob(job, schedules).then(({ id }) => id)
 }
 
