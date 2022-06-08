@@ -5,6 +5,7 @@ import forEach from 'lodash/forEach.js'
 import kindOf from 'kindof'
 import ms from 'ms'
 import schemaInspector from 'schema-inspector'
+import { AsyncLocalStorage } from 'async_hooks'
 import { getBoundPropertyDescriptor } from 'bind-property-descriptor'
 import { format, JsonRpcError, MethodNotFound } from 'json-rpc-peer'
 
@@ -147,10 +148,15 @@ async function resolveParams(method, params) {
 // -------------------------------------------------------------------
 
 export default class Api {
+  #apiContext = new AsyncLocalStorage()
   #connections = new Set()
 
   get apiConnections() {
     return this.#connections
+  }
+
+  get apiContext() {
+    return this.#apiContext.getStore()
   }
 
   constructor(app) {
@@ -226,13 +232,19 @@ export default class Api {
   }
 
   async callApiMethod(connection, name, params = {}) {
-    const app = this._app
-    const startTime = Date.now()
-
     const method = this._methods[name]
     if (!method) {
       throw new MethodNotFound(name)
     }
+
+    const apiContext = { __proto__: null }
+
+    return this.#apiContext.run(apiContext, () => this.#callApiMethod(connection, name, method, params))
+  }
+
+  async #callApiMethod(connection, name, method, params) {
+    const app = this._app
+    const startTime = Date.now()
 
     // create the context which is an augmented XO
     const context = (() => {
