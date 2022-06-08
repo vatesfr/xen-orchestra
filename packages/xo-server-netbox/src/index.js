@@ -729,7 +729,7 @@ export const configurationSchema = ({ xo: { apiMethods } }) => ({
     ignoredVmTags: {
       type: 'array',
       title: 'Ignored VM tags',
-      description: 'list of VM tags to never migrate specific VMs',
+      description: 'list of VM tags to never sync to netbox',
 
       items: {
         type: 'string',
