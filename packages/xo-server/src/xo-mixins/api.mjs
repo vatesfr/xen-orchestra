@@ -53,7 +53,7 @@ const XAPI_ERROR_TO_XO_ERROR = {
   VM_MISSING_PV_DRIVERS: ([vm], getId) => errors.vmMissingPvDrivers({ vm: getId(vm) }),
 }
 
-const hasPermission = (user, permission) => PERMISSIONS[user.permission] >= PERMISSIONS[permission]
+const hasPermission = (actual, expected) => PERMISSIONS[actual] >= PERMISSIONS[expected]
 
 function checkParams(method, params) {
   const schema = method.params
@@ -83,8 +83,8 @@ function checkPermission(method) {
     return
   }
 
-  const { user } = this.apiContext
-  if (!user) {
+  const { apiContext } = this
+  if (!apiContext.user) {
     throw errors.unauthorized(permission)
   }
 
@@ -92,7 +92,7 @@ function checkPermission(method) {
     return
   }
 
-  if (!hasPermission(user, permission)) {
+  if (!hasPermission(apiContext.permission, permission)) {
     throw errors.unauthorized(permission)
   }
 }
@@ -103,12 +103,9 @@ async function resolveParams(method, params) {
     return params
   }
 
-  const { user } = this.apiContext
-  if (!user) {
+  if (!this.apiContext.user) {
     throw errors.unauthorized()
   }
-
-  const userId = user.id
 
   // Do not alter the original object.
   params = { ...params }
@@ -139,7 +136,7 @@ async function resolveParams(method, params) {
     }
   })
 
-  await this.checkPermissions(userId, permissions)
+  await this.checkPermissions(permissions)
 
   return params
 }
@@ -240,7 +237,11 @@ export default class Api {
 
     const userId = connection.get('user_id', undefined)
     if (userId !== undefined) {
-      apiContext.user = await this._app.getUser(userId)
+      const user = await this._app.getUser(userId)
+      apiContext.user = user
+      apiContext.permission = user.permission
+    } else {
+      apiContext.permission = 'none'
     }
 
     return this.#apiContext.run(apiContext, () => this.#callApiMethod(name, method, params))

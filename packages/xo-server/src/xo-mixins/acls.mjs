@@ -98,11 +98,19 @@ export default class {
     return permissions
   }
 
-  async checkPermissions(userId, permissions) {
-    const user = await this._app.getUser(userId)
+  async checkPermissions(permissions, userId) {
+    let permission
+    if (userId !== undefined) {
+      ;({ permission } = await this._app.getUser(userId))
+    } else {
+      ;({
+        permission,
+        user: { id: userId },
+      } = this._app.apiContext)
+    }
 
     // Special case for super XO administrators.
-    if (user.permission === 'admin') {
+    if (permission === 'admin') {
       return true
     }
 

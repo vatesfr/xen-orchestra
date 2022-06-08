@@ -37,7 +37,7 @@ export const create = defer(async function ($defer, { name, size, sr, vm, bootab
       // the resource set does not exist, falls back to normal check
     }
 
-    await this.checkPermissions(this.apiContext.user.id, [[sr.id, 'administrate']])
+    await this.checkPermissions([[sr.id, 'administrate']])
   } while (false)
 
   const xapi = this.getXapi(sr)

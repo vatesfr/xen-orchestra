@@ -285,10 +285,7 @@ getPatchesDifference.resolve = {
 // -------------------------------------------------------------------
 
 export async function mergeInto({ source, sources = [source], target, force }) {
-  await this.checkPermissions(
-    this.apiContext.user.id,
-    sources.map(source => [source, 'administrate'])
-  )
+  await this.checkPermissions(sources.map(source => [source, 'administrate']))
   return this.mergeInto({
     force,
     sources,

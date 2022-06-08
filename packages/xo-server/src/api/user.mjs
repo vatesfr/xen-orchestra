@@ -67,7 +67,7 @@ getAuthenticationTokens.description = 'returns authentication tokens of the curr
 // -------------------------------------------------------------------
 
 export async function set({ id, email, password, permission, preferences }) {
-  const isAdmin = this.apiContext.user.permission === 'admin'
+  const isAdmin = this.apiContext.permission === 'admin'
   if (isAdmin) {
     if (permission && id === this.apiContext.user.id) {
       throw invalidParameters('a user cannot change its own permission')

@@ -34,7 +34,7 @@ function checkPermissionOnSrs(vm, permission = 'operate') {
     return permissions.push([this.getObject(vdiId, ['VDI', 'VDI-snapshot']).$SR, permission])
   })
 
-  return this.checkPermissions(this.apiContext.user.id, permissions)
+  return this.checkPermissions(permissions)
 }
 
 // ===================================================================
@@ -51,7 +51,7 @@ export const create = defer(async function ($defer, params) {
   const resourceSet = extract(params, 'resourceSet')
   const template = extract(params, 'template')
   if (resourceSet === undefined) {
-    await this.checkPermissions(this.apiContext.user.id, [[template.$pool, 'administrate']])
+    await this.checkPermissions([[template.$pool, 'administrate']])
   }
 
   params.template = template._xapiId
@@ -475,7 +475,7 @@ export async function migrate({
     })
   }
 
-  await this.checkPermissions(this.apiContext.user.id, permissions)
+  await this.checkPermissions(permissions)
 
   await this.getXapi(vm)
     .migrateVm(vm._xapiId, this.getXapi(host), host._xapiId, {
@@ -540,7 +540,7 @@ export const set = defer(async function ($defer, params) {
 
   const resourceSetId = extract(params, 'resourceSet')
   if (resourceSetId !== undefined) {
-    if (this.apiContext.user.permission !== 'admin') {
+    if (this.apiContext.permission !== 'admin') {
       throw unauthorized()
     }
 
@@ -573,7 +573,7 @@ export const set = defer(async function ($defer, params) {
       }
     }
 
-    if (limits.cpuWeight && this.apiContext.user.permission !== 'admin') {
+    if (limits.cpuWeight && this.apiContext.permission !== 'admin') {
       throw unauthorized()
     }
   })
@@ -697,7 +697,7 @@ export const clone = defer(async function ($defer, { vm, name, full_copy: fullCo
     await newVm.set_is_a_template(false)
   }
 
-  const isAdmin = this.apiContext.user.permission === 'admin'
+  const isAdmin = this.apiContext.permission === 'admin'
   if (!isAdmin) {
     await this.addAcl(this.apiContext.user.id, newVm.$id, 'admin')
   }
@@ -773,7 +773,7 @@ copy.resolve = {
 
 export async function convertToTemplate({ vm }) {
   // Convert to a template requires pool admin permission.
-  await this.checkPermissions(this.apiContext.user.id, [[vm.$pool, 'administrate']])
+  await this.checkPermissions([[vm.$pool, 'administrate']])
 
   await this.getXapiObject(vm).set_is_a_template(true)
 }
@@ -852,7 +852,7 @@ export const snapshot = defer(async function (
     await xapi.editVm(snapshotId, { name_description: description })
   }
 
-  if (user.permission !== 'admin') {
+  if (this.apiContext.permission !== 'admin') {
     await this.addAcl(user.id, snapshotId, 'admin')
   }
   return snapshotId
@@ -968,7 +968,7 @@ resume.resolve = {
 // -------------------------------------------------------------------
 
 export const revert = defer(async function ($defer, { snapshot }) {
-  await this.checkPermissions(this.apiContext.user.id, [[snapshot.$snapshot_of, 'operate']])
+  await this.checkPermissions([[snapshot.$snapshot_of, 'operate']])
   const vm = this.getObject(snapshot.$snapshot_of)
   const { resourceSet } = vm
   if (resourceSet !== undefined) {
@@ -990,7 +990,7 @@ export const revert = defer(async function ($defer, { snapshot }) {
     // Compute the resource usage of the snapshot that's being reverted as if it
     // was used by the VM
     const snapshotUsage = await this.computeVmResourcesUsage(snapshot)
-    await this.allocateLimitsInResourceSet(snapshotUsage, resourceSet, this.apiContext.user.permission === 'admin')
+    await this.allocateLimitsInResourceSet(snapshotUsage, resourceSet, this.apiContext.permission === 'admin')
     $defer.onFailure(() => this.releaseLimitsInResourceSet(snapshotUsage, resourceSet))
 
     // Reallocate the snapshot's IP addresses
@@ -1229,7 +1229,7 @@ export async function createInterface({ vm, network, position, mac, allowedIpv4A
   if (resourceSet != null) {
     await this.checkResourceSetConstraints(resourceSet, this.apiContext.user.id, [network.id])
   } else {
-    await this.checkPermissions(this.apiContext.user.id, [[network.id, 'view']])
+    await this.checkPermissions([[network.id, 'view']])
   }
 
   let ipAddresses
