@@ -15,6 +15,7 @@
 
 - [New SR] Fix `method.startsWith is not a function` when creating an _ext_ SR
 - Import VDI content now works when there is a HTTP proxy between XO and the host (PR [#6261](https://github.com/vatesfr/xen-orchestra/pull/6261))
+- [Backup] Fix `undefined is not iterable (cannot read property Symbol(Symbol.iterator))` on XS 7.0.0
 
 ### Packages to release
 
