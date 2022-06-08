@@ -6,7 +6,6 @@ import kindOf from 'kindof'
 import ms from 'ms'
 import schemaInspector from 'schema-inspector'
 import { AsyncLocalStorage } from 'async_hooks'
-import { getBoundPropertyDescriptor } from 'bind-property-descriptor'
 import { format, JsonRpcError, MethodNotFound } from 'json-rpc-peer'
 
 import * as methods from '../api/index.mjs'
@@ -237,41 +236,21 @@ export default class Api {
       throw new MethodNotFound(name)
     }
 
-    const apiContext = { __proto__: null }
+    const apiContext = { __proto__: null, connection }
 
     const userId = connection.get('user_id', undefined)
     if (userId !== undefined) {
       apiContext.user = await this._app.getUser(userId)
     }
 
-    return this.#apiContext.run(apiContext, () => this.#callApiMethod(connection, name, method, params))
+    return this.#apiContext.run(apiContext, () => this.#callApiMethod(name, method, params))
   }
 
-  async #callApiMethod(connection, name, method, params) {
+  async #callApiMethod(name, method, params) {
     const app = this._app
     const startTime = Date.now()
 
-    // create the context which is an augmented XO
-    const context = (() => {
-      const descriptors = {
-        connection: {
-          value: connection,
-        },
-      }
-
-      let obj = app
-      do {
-        Object.getOwnPropertyNames(obj).forEach(name => {
-          if (!(name in descriptors)) {
-            descriptors[name] = getBoundPropertyDescriptor(obj, name, app)
-          }
-        })
-      } while ((obj = Reflect.getPrototypeOf(obj)) !== null)
-
-      return Object.create(null, descriptors)
-    })()
-
-    const { user } = this.apiContext
+    const { connection, user } = this.apiContext
 
     const userName = user?.email ?? '(unknown user)'
 
@@ -297,7 +276,7 @@ export default class Api {
     )
 
     try {
-      await checkPermission.call(context, method)
+      await checkPermission.call(app, method)
 
       // API methods are in a namespace.
       // Some methods use the namespace or an id parameter like:
@@ -319,11 +298,11 @@ export default class Api {
         }
       }
 
-      checkParams.call(context, method, params)
+      checkParams.call(app, method, params)
 
-      const resolvedParams = await resolveParams.call(context, method, params)
+      const resolvedParams = await resolveParams.call(app, method, params)
 
-      let result = await method.call(context, resolvedParams)
+      let result = await method.call(app, resolvedParams)
 
       // If nothing was returned, consider this operation a success
       // and return true.

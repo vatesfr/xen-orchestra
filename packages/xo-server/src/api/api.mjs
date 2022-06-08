@@ -8,8 +8,9 @@ getConnections.description = 'Get a list of all current connections to this API'
 getConnections.permission = 'admin'
 
 export function closeAllConnections() {
+  const currentConnection = this.apiContext.connection
   for (const connection of this.apiConnections) {
-    if (connection !== this.connection) {
+    if (connection !== currentConnection) {
       connection.close()
     }
   }

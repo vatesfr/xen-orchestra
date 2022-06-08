@@ -1142,7 +1142,7 @@ async function import_({ data, sr, type = 'xva', url }) {
   return {
     $sendTo: await this.registerApiHttpRequest(
       'vm.import',
-      this.connection,
+      this.apiContext.connection,
       handleVmImport,
       { data, srId, type, xapi },
       { exposeAllErrors: true }

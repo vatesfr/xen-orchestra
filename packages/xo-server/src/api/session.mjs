@@ -5,7 +5,7 @@ import { getUserPublicProperties } from '../utils.mjs'
 // ===================================================================
 
 export async function signIn(credentials) {
-  const { connection } = this
+  const { connection } = this.apiContext
 
   const { user, expiration } = await this.authenticateUser(credentials, {
     ip: connection.get('user_ip', undefined),
@@ -47,7 +47,7 @@ signInWithToken.permission = null // user does not need to be authenticated
 // -------------------------------------------------------------------
 
 export function signOut() {
-  this.connection.unset('user_id')
+  this.apiContext.connection.unset('user_id')
 }
 
 signOut.description = 'sign out the user from the current session'
