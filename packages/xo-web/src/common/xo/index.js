@@ -14,8 +14,8 @@ import { filter, forEach, get, includes, isEmpty, isEqual, map, once, size, sort
 import { forbiddenOperation, incorrectState, noHostsAvailable, vmLacksFeature } from 'xo-common/api-errors'
 
 import _ from '../intl'
-import AuthTokenModal from './auth_token_modal'
 import ActionButton from '../action-button'
+import AuthTokenModal from './auth_token_modal'
 import fetch, { post } from '../fetch'
 import invoke from '../invoke'
 import Icon from '../icon'
@@ -2895,9 +2895,9 @@ export const deleteSshKeys = keys =>
 
 export const addAuthToken = async () => {
   const { description, expiration } = await confirm({
-    icon: 'token',
-    title: _('newAuthTokenModalTitle'),
     body: <AuthTokenModal />,
+    icon: 'user',
+    title: _('newAuthTokenModalTitle'),
   })
   const expires = new Date(expiration).setHours(23, 59)
   return _call('token.create', {
@@ -2908,20 +2908,22 @@ export const addAuthToken = async () => {
 
 export const deleteAuthToken = async ({ id }) => {
   await confirm({
-    title: _('deleteAuthTokenConfirm'),
     body: _('deleteAuthTokenConfirmMessage', {
       id: id,
     }),
+    icon: 'user',
+    title: _('deleteAuthTokenConfirm'),
   })
   return _call('token.delete', { token: id })::tap(subscribeUserAuthTokens.forceRefresh)
 }
 
 export const deleteAuthTokens = async tokens => {
   await confirm({
-    title: _('deleteAuthTokensConfirm', { nTokens: tokens.length }),
     body: _('deleteAuthTokensConfirmMessage', {
       nTokens: tokens.length,
     }),
+    icon: 'user',
+    title: _('deleteAuthTokensConfirm', { nTokens: tokens.length }),
   })
   return Promise.all(tokens.map(({ id }) => _call('token.delete', { token: id })))::tap(
     subscribeUserAuthTokens.forceRefresh
@@ -2930,16 +2932,15 @@ export const deleteAuthTokens = async tokens => {
 
 export const editAuthToken = async token => {
   const { description } = await confirm({
-    icon: 'ssh-key',
-    title: _('newAuthTokenModalTitle'),
     body: <AuthTokenModal description={token.description} expiration={token.expiration} />,
+    icon: 'user',
+    title: _('newAuthTokenModalTitle'),
   })
 
   return _call('token.set', {
     description,
     id: token.id,
   })
-  //
 }
 
 // User filters --------------------------------------------------
