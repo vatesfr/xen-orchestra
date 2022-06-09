@@ -2083,7 +2083,7 @@ const messages = {
   title: 'Title',
   key: 'Key',
   deleteAuthTokenConfirm: 'Delete authentication token',
-  deleteAuthtokenConfirmMessage: 'Are you sure you want to delete the authentication token: {id}?',
+  deleteAuthTokenConfirmMessage: 'Are you sure you want to delete the authentication token: {id}?',
   deleteAuthTokensConfirm: 'Delete authentication token{nTokens, plural, one {} other {s}}',
   deleteAuthTokensConfirmMessage:
     'Are you sure you want to delete {nTokens, number} autentication token{nTokens, plural, one {} other {s}}?',

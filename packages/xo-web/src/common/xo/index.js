@@ -2909,7 +2909,7 @@ export const addAuthToken = async () => {
 export const deleteAuthToken = async ({ id }) => {
   await confirm({
     title: _('deleteAuthTokenConfirm'),
-    body: _('deleteAuthtokenConfirmMessage', {
+    body: _('deleteAuthTokenConfirmMessage', {
       id: id,
     }),
   })
