@@ -31,6 +31,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/proxy-cli minor
 - xen-api patch
 - xo-cli minor
 - @xen-orchestra/xapi minor
