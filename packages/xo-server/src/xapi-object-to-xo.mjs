@@ -899,6 +899,7 @@ export default function xapiObjectToXo(xapiObj, dependents = {}) {
       value: xapiObj.$id,
     },
     _xapiRef: {
+      enumerable: true,
       value: xapiObj.$ref,
     },
   })
