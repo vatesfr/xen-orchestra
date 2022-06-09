@@ -11,7 +11,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [Backup] show a warning in the task log if a writer fails, an error if they all fail (PR [#6266](https://github.com/vatesfr/xen-orchestra/pull/6266))
+- [Backup] Ensure a warning is shown if a target preparation step fails (PR [#6266](https://github.com/vatesfr/xen-orchestra/pull/6266))
 
 ### Packages to release
 
