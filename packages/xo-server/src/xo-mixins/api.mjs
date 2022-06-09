@@ -237,10 +237,6 @@ export default class Api {
     // create the context which is an augmented XO
     const context = (() => {
       const descriptors = {
-        api: {
-          // Used by system.*().
-          value: this,
-        },
         connection: {
           value: connection,
         },
@@ -381,6 +377,11 @@ export default class Api {
             return ref
           }
         })
+      }
+
+      // don't return *unknown error from the peer* if the user is admin
+      if (error.toJsonRpcError === undefined && context?.user.permission === 'admin') {
+        throw new JsonRpcError(error.message, undefined, serializeError(serializedError))
       }
 
       throw error

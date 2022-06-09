@@ -33,26 +33,19 @@ async function main(argv) {
     ignoreUnknownFormats: true,
   })
 
-  const { hostname = 'localhost', port } = config?.http?.listen?.https ?? {}
-
-  const {
-    _: args,
-    file,
-    help,
-    host,
-    raw,
-    token,
-  } = getopts(argv, {
+  const opts = getopts(argv, {
     alias: { file: 'f', help: 'h' },
     boolean: ['help', 'raw'],
     default: {
       token: config.authenticationToken,
     },
     stopEarly: true,
-    string: ['file', 'host', 'token'],
+    string: ['file', 'host', 'token', 'url'],
   })
 
-  if (help || (file === '' && args.length === 0)) {
+  const { _: args, file } = opts
+
+  if (opts.help || (file === '' && args.length === 0)) {
     return console.log(
       '%s',
       `Usage:
@@ -77,18 +70,29 @@ ${pkg.name} v${pkg.version}`
   const baseRequest = {
     headers: {
       'content-type': 'application/json',
-      cookie: `authenticationToken=${token}`,
     },
     pathname: '/api/v1',
-    protocol: 'https:',
     rejectUnauthorized: false,
   }
-  if (host !== '') {
-    baseRequest.host = host
+  let { token } = opts
+  if (opts.url !== '') {
+    const { protocol, host, username } = new URL(opts.url)
+    Object.assign(baseRequest, { protocol, host })
+    if (username !== '') {
+      token = username
+    }
   } else {
-    baseRequest.hostname = hostname
-    baseRequest.port = port
+    baseRequest.protocol = 'https:'
+    if (opts.host !== '') {
+      baseRequest.host = opts.host
+    } else {
+      const { hostname = 'localhost', port } = config?.http?.listen?.https ?? {}
+      baseRequest.hostname = hostname
+      baseRequest.port = port
+    }
   }
+  baseRequest.headers.cookie = `authenticationToken=${token}`
+
   const call = async ({ method, params }) => {
     if (callPath.length !== 0) {
       process.stderr.write(`\n${colors.bold(`--- call #${callPath.join('.')}`)} ---\n\n`)
@@ -127,7 +131,7 @@ ${pkg.name} v${pkg.version}`
           stdout.write(inspect(JSON.parse(line), { colors: true, depth: null }))
           stdout.write('\n')
         }
-      } else if (raw && typeof result === 'string') {
+      } else if (opts.raw && typeof result === 'string') {
         stdout.write(result)
       } else {
         stdout.write(inspect(result, { colors: true, depth: null }))

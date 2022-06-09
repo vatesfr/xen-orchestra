@@ -75,13 +75,19 @@ async function parseRegisterArgs(args) {
   }
 }
 
-async function _createToken({ allowUnauthorized, email, expiresIn, password, url }) {
+async function _createToken({ allowUnauthorized, description, email, expiresIn, password, url }) {
   const xo = new Xo({ rejectUnauthorized: !allowUnauthorized, url })
   await xo.open()
   await xo.signIn({ email, password })
   console.warn('Successfully logged with', xo.user.email)
 
-  return await xo.call('token.create', { expiresIn })
+  return xo.call('token.create', { description, expiresIn }).catch(error => {
+    // if invalid parameter error, retry without description for backward compatibility
+    if (error.code === 10) {
+      return xo.call('token.create', { expiresIn })
+    }
+    throw error
+  })
 }
 
 function createOutputStream(path) {
@@ -272,7 +278,10 @@ function main(args) {
 COMMANDS.help = help
 
 async function createToken(args) {
-  const token = await _createToken(await parseRegisterArgs(args))
+  const opts = await parseRegisterArgs(args)
+  opts.description = 'xo-cli --createToken'
+
+  const token = await _createToken(opts)
   console.warn('Authentication token created')
   console.warn()
   console.log(token)
@@ -281,6 +290,7 @@ COMMANDS.createToken = createToken
 
 async function register(args) {
   const opts = await parseRegisterArgs(args)
+  opts.description = 'xo-cli --register'
 
   await config.set({
     allowUnauthorized: opts.allowUnauthorized,

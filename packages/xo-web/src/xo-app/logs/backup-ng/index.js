@@ -136,10 +136,10 @@ const COLUMNS = [
               return
             }
             if (operationTask.message === 'transfer' && vmTransferSize === undefined) {
-              vmTransferSize = operationTask.result.size
+              vmTransferSize = operationTask.result?.size
             }
             if (operationTask.message === 'merge' && vmMergeSize === undefined) {
-              vmMergeSize = operationTask.result.size
+              vmMergeSize = operationTask.result?.size
             }
 
             if (vmTransferSize !== undefined && vmMergeSize !== undefined) {

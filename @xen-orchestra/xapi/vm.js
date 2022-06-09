@@ -525,11 +525,15 @@ class Vm {
 
     // requires the VM to be halted because it's not possible to re-plug VUSB on a live VM
     if (unplugVusbs && isHalted) {
-      await asyncMap(vm.VUSBs, async ref => {
-        const vusb = await this.getRecord('VUSB', ref)
-        await vusb.$call('destroy')
-        $defer.call(this, 'call', 'VUSB.create', vusb.VM, vusb.USB_group, vusb.other_config)
-      })
+      // vm.VUSBs can be undefined (e.g. on XS 7.0.0)
+      const vusbs = vm.VUSBs
+      if (vusbs !== undefined) {
+        await asyncMap(vusbs, async ref => {
+          const vusb = await this.getRecord('VUSB', ref)
+          await vusb.$call('destroy')
+          $defer.call(this, 'call', 'VUSB.create', vusb.VM, vusb.USB_group, vusb.other_config)
+        })
+      }
     }
 
     let destroyNobakVdis = false

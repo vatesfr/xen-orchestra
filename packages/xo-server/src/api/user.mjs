@@ -58,6 +58,14 @@ getAll.permission = 'admin'
 
 // -------------------------------------------------------------------
 
+export function getAuthenticationTokens() {
+  return this.getAuthenticationTokensForUser(this.connection.get('user_id'))
+}
+
+getAuthenticationTokens.description = 'returns authentication tokens of the current user'
+
+// -------------------------------------------------------------------
+
 export async function set({ id, email, password, permission, preferences }) {
   const isAdmin = this.user && this.user.permission === 'admin'
   if (isAdmin) {

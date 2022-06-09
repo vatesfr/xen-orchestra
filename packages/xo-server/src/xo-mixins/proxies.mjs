@@ -30,7 +30,6 @@ import { generateToken } from '../utils.mjs'
 const DEBOUNCE_TIME_PROXY_STATE = 60000
 
 const extractProperties = _ => _.properties
-const omitToken = proxy => omit(proxy, 'authenticationToken')
 const synchronizedWrite = synchronized()
 
 const log = createLogger('xo:proxy')
@@ -96,7 +95,7 @@ export default class Proxy {
   }
 
   async unregisterProxy(id) {
-    const { vmUuid } = await this._getProxy(id)
+    const { vmUuid } = await this.getProxy(id)
 
     await this._db.remove(id)
 
@@ -112,7 +111,7 @@ export default class Proxy {
   }
 
   async destroyProxy(id) {
-    const { vmUuid } = await this._getProxy(id)
+    const { vmUuid } = await this.getProxy(id)
     if (vmUuid !== undefined) {
       try {
         await this._app.getXapiObject(vmUuid).$destroy()
@@ -125,7 +124,7 @@ export default class Proxy {
     return this.unregisterProxy(id)
   }
 
-  async _getProxy(id) {
+  async getProxy(id) {
     const proxy = await this._db.first(id)
     if (proxy === undefined) {
       throw noSuchObject(id, 'proxy')
@@ -133,24 +132,20 @@ export default class Proxy {
     return extractProperties(proxy)
   }
 
-  getProxy(id) {
-    return this._getProxy(id).then(omitToken)
-  }
-
   getAllProxies() {
-    return this._db.get().then(proxies => proxies.map(omitToken))
+    return this._db.get()
   }
 
   @synchronizedWrite
   async updateProxy(id, { address, authenticationToken, name, vmUuid }) {
-    const proxy = await this._getProxy(id)
+    const proxy = await this.getProxy(id)
     await this._throwIfRegistered(
       proxy.address !== address ? address : undefined,
       proxy.vm !== vmUuid ? vmUuid : undefined
     )
 
     patch(proxy, { address, authenticationToken, name, vmUuid })
-    return this._db.update(proxy).then(extractProperties).then(omitToken)
+    return this._db.update(proxy).then(extractProperties)
   }
 
   async upgradeProxyAppliance(id, ignoreRunningJobs = false) {
@@ -177,7 +172,7 @@ export default class Proxy {
       xenstoreData['vm-data/xoa-updater-channel'] = JSON.stringify(this._app.config.get('xo-proxy.channel'))
     }
 
-    const { vmUuid } = await this._getProxy(id)
+    const { vmUuid } = await this.getProxy(id)
     const xapi = this._app.getXapi(vmUuid)
     await xapi.getObject(vmUuid).update_xenstore_data(xenstoreData)
 
@@ -279,7 +274,7 @@ export default class Proxy {
 
     const redeploy = proxyId !== undefined
     if (redeploy) {
-      const { vmUuid } = await this._getProxy(proxyId)
+      const { vmUuid } = await this.getProxy(proxyId)
       if (vmUuid !== undefined) {
         try {
           await app.getXapiObject(vmUuid).$destroy()
@@ -358,7 +353,7 @@ export default class Proxy {
 
   // enum assertType {iterator, scalar, stream}
   async callProxyMethod(id, method, params, { assertType = 'scalar' } = {}) {
-    const proxy = await this._getProxy(id)
+    const proxy = await this.getProxy(id)
 
     const request = {
       body: format.request(0, method, params),
