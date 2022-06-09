@@ -22,7 +22,7 @@ export async function writeOvaOn(
   const ovf = createOvf(vmName, vmDescription, disks, nics, vmMemoryMB, cpuCount, firmware)
   const pack = tar.pack()
   const pipe = pack.pipe(writeStream)
-  await fromCallback.call(pack, pack.entry, { name: `${vmName}.ovf` }, Buffer.from(ovf, 'utf8'))
+  await fromCallback.call(pack, pack.entry, { name: `metadata.ovf` }, Buffer.from(ovf, 'utf8'))
 
   async function writeDisk(entry, blockIterator) {
     for await (const block of blockIterator) {
