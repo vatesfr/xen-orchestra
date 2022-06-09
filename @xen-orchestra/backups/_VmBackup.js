@@ -153,9 +153,13 @@ class VmBackup {
         errors.push(error)
         this.delete(writer)
         warn(warnMessage, { error, writer: writer.constructor.name })
-        Task.warning(
-          `the writer ${writer.constructor.name} has failed the step ${warnMessage} with error ${error.message}. It won't be used anymore in this job execution.`
-        )
+
+        // these two steps are the only one that are not already in their own sub tasks
+        if (warnMessage === 'writer.checkBaseVdis()' || warnMessage === 'writer.beforeBackup()') {
+          Task.warning(
+            `the writer ${writer.constructor.name} has failed the step ${warnMessage} with error ${error.message}. It won't be used anymore in this job execution.`
+          )
+        }
       }
     })
     if (writers.size === 0) {
@@ -436,7 +440,7 @@ class VmBackup {
     )
 
     await this._callWriters(async writer => {
-      await Task.run({ name: 'beforeBackup' }, () => writer.beforeBackup())
+      await writer.beforeBackup()
       $defer(async () => {
         await writer.afterBackup()
       })
