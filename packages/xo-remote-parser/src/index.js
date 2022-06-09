@@ -65,7 +65,6 @@ export const parse = string => {
     object.password = password
     object = { ...parseOptionList(optionList), ...object }
   } else if (type === 's3' || type === 's3+http') {
-    // @todo : not supported until node 6.13.0 , is ok ?
     const parsed = new URL(string)
     object.protocol = parsed.protocol === 's3:' ? 'https' : 'http'
     object.type = 's3'
