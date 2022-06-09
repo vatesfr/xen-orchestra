@@ -36,5 +36,6 @@
 - xo-cli minor
 - @xen-orchestra/xapi minor
 - xo-server minor
+- xo-web patch
 
 <!--packages-end-->
