@@ -429,7 +429,6 @@ export default class Xapi extends XapiBase {
     }
 
     const writeStream = new PassThrough()
-    writeStream.task = this.task_create('VM OVA export', exportedVm.name_label)
     writeOvaOn(writeStream, {
       disks: collectedDisks,
       vmName: exportedVm.name_label,
