@@ -14,6 +14,7 @@ import { filter, forEach, get, includes, isEmpty, isEqual, map, once, size, sort
 import { forbiddenOperation, incorrectState, noHostsAvailable, vmLacksFeature } from 'xo-common/api-errors'
 
 import _ from '../intl'
+import AuthTokenModal from './auth_token_modal'
 import ActionButton from '../action-button'
 import fetch, { post } from '../fetch'
 import invoke from '../invoke'
@@ -538,6 +539,8 @@ export const createSrUnhealthyVdiChainsLengthSubscription = sr => {
   }
   return subscription
 }
+
+export const subscribeUserAuthTokens = createSubscription(() => _call('user.getAuthenticationTokens'))
 
 // System ============================================================
 
@@ -2889,6 +2892,55 @@ export const deleteSshKeys = keys =>
       sshKeys: filter(preferences && preferences.sshKeys, sshKey => !includes(keyIds, sshKey.key)),
     })
   }, noop)
+
+export const addAuthToken = async () => {
+  const { description, expiration } = await confirm({
+    icon: 'token',
+    title: _('newAuthTokenModalTitle'),
+    body: <AuthTokenModal />,
+  })
+  const expires = new Date(expiration).setHours(23, 59)
+  return _call('token.create', {
+    description,
+    expiresIn: Number.isNaN(expires) ? undefined : expires - new Date().getTime(),
+  })::tap(subscribeUserAuthTokens.forceRefresh)
+}
+
+export const deleteAuthToken = async ({ id }) => {
+  await confirm({
+    title: _('deleteAuthTokenConfirm'),
+    body: _('deleteAuthtokenConfirmMessage', {
+      id: id,
+    }),
+  })
+  return _call('token.delete', { token: id })::tap(subscribeUserAuthTokens.forceRefresh)
+}
+
+export const deleteAuthTokens = async tokens => {
+  await confirm({
+    title: _('deleteAuthTokensConfirm', { nTokens: tokens.length }),
+    body: _('deleteAuthtokensConfirmMessage', {
+      nTokens: tokens.length,
+    }),
+  })
+  return Promise.all(tokens.map(({ id }) => _call('token.delete', { token: id })))::tap(
+    subscribeUserAuthTokens.forceRefresh
+  )
+}
+
+export const editAuthToken = async token => {
+  const { description } = await confirm({
+    icon: 'ssh-key',
+    title: _('newAuthTokenModalTitle'),
+    body: <AuthTokenModal description={token.description} expiration={token.expiration} />,
+  })
+
+  return _call('token.set', {
+    description,
+    id: token.id,
+  })
+  //
+}
 
 // User filters --------------------------------------------------
 

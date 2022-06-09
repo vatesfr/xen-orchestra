@@ -13,24 +13,28 @@ import { alert } from 'modal'
 import { Container, Row, Col } from 'grid'
 import { getLang } from 'selectors'
 import { isEmpty, map } from 'lodash'
-import { injectIntl } from 'react-intl'
+import { FormattedDate, injectIntl } from 'react-intl'
 import { Select } from 'form'
 import { Card, CardBlock, CardHeader } from 'card'
 import { addSubscriptions, connectStore, noop } from 'utils'
 import {
   addSshKey,
   changePassword,
+  deleteAuthToken,
+  deleteAuthTokens,
   deleteSshKey,
   deleteSshKeys,
   editCustomFilter,
   removeCustomFilter,
   setDefaultHomeFilter,
   signOutFromEverywhereElse,
+  subscribeUserAuthTokens,
   subscribeCurrentUser,
 } from 'xo'
 
 import Page from '../page'
 import Otp from './otp'
+import { addAuthToken, editAuthToken } from '../../common/xo'
 
 // ===================================================================
 
@@ -284,6 +288,83 @@ const SshKeys = addSubscriptions({
 
 // ===================================================================
 
+const COLUMNS_AUTH_TOKENS = [
+  {
+    default: true,
+    itemRenderer: ({ expiration }) => (
+      <FormattedDate
+        value={new Date(+expiration)}
+        weekday='long'
+        year='numeric'
+        month='long'
+        day='numeric'
+        hour='numeric'
+        minute='numeric'
+      />
+    ),
+    name: _('authTokenExpiration'),
+    sortCriteria: 'expiration',
+  },
+  {
+    itemRenderer: ({ id }) => id,
+    name: _('authTokenId'),
+  },
+  {
+    itemRenderer: ({ description }) => description,
+    name: _('authTokenDescription'),
+  },
+]
+
+const INDIVIDUAL_ACTIONS_AUTH_TOKENS = [
+  {
+    handler: deleteAuthToken,
+    icon: 'delete',
+    label: _('deleteAuthToken'),
+    level: 'danger',
+  },
+  {
+    handler: editAuthToken,
+    icon: 'edit',
+    label: _('deleteAuthToken'),
+    level: 'secondary',
+  },
+]
+
+const GROUPED_ACTIONS_AUTH_TOKENS = [
+  {
+    handler: deleteAuthTokens,
+    icon: 'delete',
+    label: _('deleteAuthTokens'),
+    level: 'danger',
+  },
+]
+
+const UserAuthTokens = addSubscriptions({
+  userAuthTokens: subscribeUserAuthTokens,
+})(({ userAuthTokens }) => (
+  <div>
+    <Card>
+      <CardHeader>
+        <Icon icon='user' /> Authentication tokens
+        <ActionButton className='btn-success pull-right' icon='add' handler={addAuthToken}>
+          New token
+        </ActionButton>
+      </CardHeader>
+      <CardBlock>
+        <SortedTable
+          collection={userAuthTokens}
+          columns={COLUMNS_AUTH_TOKENS}
+          stateUrlParam='t'
+          groupedActions={GROUPED_ACTIONS_AUTH_TOKENS}
+          individualActions={INDIVIDUAL_ACTIONS_AUTH_TOKENS}
+        />
+      </CardBlock>
+    </Card>
+  </div>
+))
+
+// ===================================================================
+
 @addSubscriptions({
   user: subscribeCurrentUser,
 })
@@ -411,6 +492,8 @@ export default class User extends Component {
           <hr key='hr' />,
         ]}
         <SshKeys />
+        <hr />
+        <UserAuthTokens />
         <hr />
         <UserFilters user={user} />
       </Page>
