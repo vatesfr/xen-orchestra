@@ -2919,7 +2919,7 @@ export const deleteAuthToken = async ({ id }) => {
 export const deleteAuthTokens = async tokens => {
   await confirm({
     title: _('deleteAuthTokensConfirm', { nTokens: tokens.length }),
-    body: _('deleteAuthtokensConfirmMessage', {
+    body: _('deleteAuthTokensConfirmMessage', {
       nTokens: tokens.length,
     }),
   })

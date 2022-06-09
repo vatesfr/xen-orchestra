@@ -2085,7 +2085,7 @@ const messages = {
   deleteAuthTokenConfirm: 'Delete authentication token',
   deleteAuthtokenConfirmMessage: 'Are you sure you want to delete the authentication token: {id}?',
   deleteAuthTokensConfirm: 'Delete authentication token{nTokens, plural, one {} other {s}}',
-  deleteAuthtokensConfirmMessage:
+  deleteAuthTokensConfirmMessage:
     'Are you sure you want to delete {nTokens, number} autentication token{nTokens, plural, one {} other {s}}?',
   deleteSshKeyConfirm: 'Delete SSH key',
   deleteSshKeyConfirmMessage: 'Are you sure you want to delete the SSH key {title}?',
