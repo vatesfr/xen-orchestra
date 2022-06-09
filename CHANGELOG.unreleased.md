@@ -19,6 +19,7 @@
 - [Backup] Ensure a warning is shown if a target preparation step fails (PR [#6266](https://github.com/vatesfr/xen-orchestra/pull/6266))
 - [OVA Export] Avoid creating a zombie task (PR [#6267](https://github.com/vatesfr/xen-orchestra/pull/6267))
 - [OVA Export] Increase speed by lowering compression to acceptable level (PR [#6267](https://github.com/vatesfr/xen-orchestra/pull/6267))
+- [OVA Export] Fix broken OVAs due to special characters in VM name (PR [#6267](https://github.com/vatesfr/xen-orchestra/pull/6267))
 
 ### Packages to release
 
