@@ -15,7 +15,6 @@
 
 - [New SR] Fix `method.startsWith is not a function` when creating an _ext_ SR
 - Import VDI content now works when there is a HTTP proxy between XO and the host (PR [#6261](https://github.com/vatesfr/xen-orchestra/pull/6261))
-- Fix `an error occured` in the backup logs view (PR [#6275](https://github.com/vatesfr/xen-orchestra/pull/6275))
 
 ### Packages to release
 
