@@ -122,7 +122,7 @@ ddb.geometry.cylinders = "${geometry.cylinders}"
     assert.strictEqual(buffer.length, grainSizeBytes)
     assert.strictEqual(lbaBytes % grainSizeBytes, 0)
     const markerOverHead = 12
-    const compressed = zlib.deflateSync(buffer, { level: 9 })
+    const compressed = zlib.deflateSync(buffer, { level: zlib.constants.Z_BEST_SPEED })
     const outputBuffer = Buffer.alloc(roundToSector(markerOverHead + compressed.length))
     compressed.copy(outputBuffer, markerOverHead)
     outputBuffer.writeBigUInt64LE(BigInt(lbaBytes / SECTOR_SIZE), 0)
