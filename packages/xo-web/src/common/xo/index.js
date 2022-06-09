@@ -15,11 +15,11 @@ import { forbiddenOperation, incorrectState, noHostsAvailable, vmLacksFeature } 
 
 import _ from '../intl'
 import ActionButton from '../action-button'
-import AuthTokenModal from './auth_token_modal'
 import fetch, { post } from '../fetch'
 import invoke from '../invoke'
 import Icon from '../icon'
 import logError from '../log-error'
+import NewAuthTokenModal from './new_auth_token_modal'
 import renderXoItem, { renderXoItemFromId } from '../render-xo-item'
 import store from 'store'
 import { alert, chooseAction, confirm } from '../modal'
@@ -2895,11 +2895,11 @@ export const deleteSshKeys = keys =>
 
 export const addAuthToken = async () => {
   const { description, expiration } = await confirm({
-    body: <AuthTokenModal />,
+    body: <NewAuthTokenModal />,
     icon: 'user',
     title: _('newAuthTokenModalTitle'),
   })
-  const expires = new Date(expiration).setHours(23, 59)
+  const expires = new Date(expiration).setUTCHours(23, 59, 59)
   return _call('token.create', {
     description,
     expiresIn: Number.isNaN(expires) ? undefined : expires - new Date().getTime(),
@@ -2930,18 +2930,11 @@ export const deleteAuthTokens = async tokens => {
   )
 }
 
-export const editAuthToken = async token => {
-  const { description } = await confirm({
-    body: <AuthTokenModal description={token.description} expiration={token.expiration} />,
-    icon: 'user',
-    title: _('newAuthTokenModalTitle'),
-  })
-
-  return _call('token.set', {
+export const editAuthToken = ({ description, id }) =>
+  _call('token.set', {
     description,
-    id: token.id,
-  })
-}
+    id,
+  })::tap(subscribeUserAuthTokens.forceRefresh)
 
 // User filters --------------------------------------------------
 

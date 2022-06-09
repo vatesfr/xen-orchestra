@@ -2,6 +2,7 @@ import * as FormGrid from 'form-grid'
 import _, { messages } from 'intl'
 import ActionButton from 'action-button'
 import Component from 'base-component'
+import CopyToClipboard from 'react-copy-to-clipboard'
 import homeFilters from 'home-filters'
 import Icon from 'icon'
 import PropTypes from 'prop-types'
@@ -13,7 +14,7 @@ import { alert } from 'modal'
 import { Container, Row, Col } from 'grid'
 import { getLang } from 'selectors'
 import { isEmpty, map } from 'lodash'
-import { FormattedDate, injectIntl } from 'react-intl'
+import { injectIntl } from 'react-intl'
 import { Select } from 'form'
 import { Card, CardBlock, CardHeader } from 'card'
 import { addSubscriptions, connectStore, noop } from 'utils'
@@ -32,6 +33,7 @@ import {
   subscribeCurrentUser,
 } from 'xo'
 
+import Button from '../../common/button'
 import Page from '../page'
 import Otp from './otp'
 import { addAuthToken, editAuthToken } from '../../common/xo'
@@ -290,27 +292,34 @@ const SshKeys = addSubscriptions({
 
 const COLUMNS_AUTH_TOKENS = [
   {
+    itemRenderer: ({ created_at }) => new Date(+created_at).toISOString(),
+    sortCriteria: 'created_at',
+    name: 'createdAt',
+  },
+
+  {
     default: true,
-    itemRenderer: ({ expiration }) => (
-      <FormattedDate
-        value={new Date(+expiration)}
-        weekday='long'
-        year='numeric'
-        month='long'
-        day='numeric'
-        hour='numeric'
-        minute='numeric'
-      />
-    ),
+    itemRenderer: ({ expiration }) => new Date(+expiration).toISOString(),
     name: _('authTokenExpiration'),
     sortCriteria: 'expiration',
   },
   {
-    itemRenderer: ({ id }) => id,
+    itemRenderer: ({ id }) => (
+      <CopyToClipboard text={id}>
+        <div>
+          <pre>{id}</pre>
+          <Button size='small'>
+            <Icon icon='clipboard' />
+          </Button>
+        </div>
+      </CopyToClipboard>
+    ),
     name: _('authTokenId'),
   },
   {
-    itemRenderer: ({ description }) => description,
+    itemRenderer: token => (
+      <Text value={token.description} onChange={description => editAuthToken({ ...token, description })} />
+    ),
     name: _('authTokenDescription'),
   },
 ]
@@ -321,12 +330,6 @@ const INDIVIDUAL_ACTIONS_AUTH_TOKENS = [
     icon: 'delete',
     label: _('deleteAuthToken'),
     level: 'danger',
-  },
-  {
-    handler: editAuthToken,
-    icon: 'edit',
-    label: _('editAuthToken'),
-    level: 'secondary',
   },
 ]
 
