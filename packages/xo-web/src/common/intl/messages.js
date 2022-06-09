@@ -2045,6 +2045,7 @@ const messages = {
   pifPhysicallyDisconnected: 'Physically disconnected',
 
   // ----- User -----
+  authTokenCreatedAt: 'Creation date',
   authTokenDescription: 'Description',
   authTokenExpiration: 'Expiration',
   authTokenId: 'Token id',

@@ -293,10 +293,9 @@ const SshKeys = addSubscriptions({
 const COLUMNS_AUTH_TOKENS = [
   {
     itemRenderer: ({ created_at }) => new Date(+created_at).toISOString(),
-    sortCriteria: 'created_at',
+    sortCriteria: _('authTokenCreatedAt'),
     name: 'createdAt',
   },
-
   {
     default: true,
     itemRenderer: ({ expiration }) => new Date(+expiration).toISOString(),
