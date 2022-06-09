@@ -130,3 +130,7 @@ This means the same job is still running, typically from the last scheduled run.
 ## Error: VDI_IO_ERROR
 
 This error comes directly from your host/dom0, and not XO. Essentially, XO asked the host to expose a VM disk to export via HTTP (as usual), XO managed to make the HTTP GET connection, and even start the transfer. But then at some point the host couldn't read the VM disk any further, causing this error on the host side. This might happen if the VDI is corrupted on the storage, or if there's a race condition during snapshots. More rarely, this can also occur if your SR is just too slow to keep up with the export as well as live VM traffic.
+
+## Error: no XAPI associated to <UUID>
+
+This message means that XO recorded the UUID to backup but couldn't find any object matching it. The reason can be that the pool where this VM runs is not connected to XOA at the moment. Double-check that the pool hosting the VM is currently connected in Settings/Server. You can also search the VM UUID in the Home/VM search bar. If you can see it, run the backup job again, it will work. If you cannot, either the VM was removed or the pool is not connected.
