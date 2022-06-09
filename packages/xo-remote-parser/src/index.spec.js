@@ -102,7 +102,7 @@ const data = deepFreeze({
   },
   'S3 with brotli': {
     string:
-      's3+http://Administrator:password@192.168.100.225/bucket/dir?compressionType=brotli&compressionOptions=%7B%22level%22%3A1%7D#reg1',
+      's3+http://Administrator:password@192.168.100.225/bucket/dir?compressionType=%22brotli%22&compressionOptions=%7B%22level%22%3A1%7D#reg1',
     object: {
       type: 's3',
       host: '192.168.100.225',
@@ -171,19 +171,6 @@ const parseData = deepFreeze({
       allowUnauthorized: true,
     },
   },
-  'S3 with broken allowUnauthorized': {
-    string: 's3+http://Administrator:password@192.168.100.225/bucket/dir?allowUnauthorized=notTrue#reg1',
-    object: {
-      type: 's3',
-      host: '192.168.100.225',
-      protocol: 'http',
-      path: '/bucket/dir',
-      region: 'reg1',
-      username: 'Administrator',
-      password: 'password',
-      allowUnauthorized: false,
-    },
-  },
 })
 
 const formatData = deepFreeze({
@@ -194,19 +181,6 @@ const formatData = deepFreeze({
     object: {
       type: 'local',
       path: '/var/lib/xoa/backup',
-    },
-  },
-  'S3 with broken allowUnauthorized': {
-    string: 's3+http://Administrator:password@192.168.100.225/bucket/dir?allowUnauthorized=false#reg1',
-    object: {
-      type: 's3',
-      host: '192.168.100.225',
-      protocol: 'http',
-      path: '/bucket/dir',
-      region: 'reg1',
-      username: 'Administrator',
-      password: 'password',
-      allowUnauthorized: 'notTrue',
     },
   },
 })

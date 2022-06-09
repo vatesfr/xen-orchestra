@@ -2,116 +2,34 @@ import filter from 'lodash/filter'
 import map from 'lodash/map'
 import trim from 'lodash/trim'
 import trimStart from 'lodash/trimStart'
-import urlParser from 'url-parse'
-
-const zlib = require('zlib')
+import queryString from 'querystring'
+import { URL } from 'url'
 
 const NFS_RE = /^([^:]+):(?:(\d+):)?([^:?]+)(\?[^?]*)?$/
 const SMB_RE = /^([^:]+):(.+)@([^@]+)\\\\([^\0?]+)(?:\0([^?]*))?(\?[^?]*)?$/
 
-const AUTHORIZED_OPTIONS = {
-  // common options
-  default: {
-    useVhdDirectory: {
-      type: 'boolean',
-      default: false,
-    },
-    compressionType: {
-      type: 'string',
-      default: 'none',
-    },
-  },
-  // by remote type options
-  file: {},
-  nfs: {},
-  smb: {},
-  s3: {
-    allowUnauthorized: {
-      type: 'boolean',
-      default: false,
-    },
-    compressionType: {
-      type: 'string',
-      default: 'gzip',
-    },
-    compressionOptions: {
-      type: 'object',
-      default: {
-        level: zlib.constants.Z_BEST_SPEED,
-      },
-    },
-    useVhdDirectory: {
-      type: 'boolean',
-      default: true,
-    },
-  },
-}
-
 const sanitizePath = (...paths) => filter(map(paths, s => s && filter(map(s.split('/'), trim)).join('/'))).join('/')
 
-const parseOptionList = (remoteType, optionList = '') => {
-  const parsed = {}
-  optionList
-    .split('&')
-    .filter(v => !!v)
-    .map(keyVal => keyVal.split('='))
-    .map(([key, val]) => (parsed[key] = decodeURIComponent(val)))
-
-  return filterOptions(remoteType, parsed)
-}
-
-const filterOptions = (remoteType, rawOptions) => {
-  const authorizedOptions = { ...AUTHORIZED_OPTIONS.default, ...AUTHORIZED_OPTIONS[remoteType] }
-  const options = {}
-
-  Object.keys(rawOptions).forEach(key => {
-    const val = rawOptions[key]
-    const authorizedOption = authorizedOptions[key]
-    if (authorizedOption !== undefined) {
-      switch (authorizedOption.type) {
-        case 'boolean':
-          options[key] = val === '' ? authorizedOption.default : val === 'true'
-          break
-        case 'string':
-          options[key] = val === '' ? authorizedOption.default : val
-          break
-        case 'object':
-          options[key] = val === '' ? authorizedOption.default : JSON.parse(val)
-          break
-        default:
-          throw new Error(`can't handle option of type ${authorizedOption.type} for key ${key}`)
-      }
-    }
-  })
-  return options
-}
-
-const makeOptionList = (remoteType, options) => {
-  const authorizedOptions = { ...AUTHORIZED_OPTIONS.default, ...AUTHORIZED_OPTIONS[remoteType] }
-  const list = []
-  for (const authorizedOptionKey of Object.keys(authorizedOptions)) {
-    const authorizedOption = authorizedOptions[authorizedOptionKey]
-    if (options[authorizedOptionKey] === undefined) {
-      // @todo : should I return the default value ? that way the remote url will be explicit
-      continue
-    }
-    const val = options[authorizedOptionKey] ?? authorizedOption.default
-    switch (authorizedOption.type) {
-      case 'boolean':
-        list.push(`${authorizedOptionKey}=${val === true ? 'true' : 'false'}`)
-        break
-      case 'string':
-        list.push(`${authorizedOptionKey}=${encodeURIComponent(val)}`)
-        break
-      case 'object':
-        list.push(`${authorizedOptionKey}=${encodeURIComponent(JSON.stringify(val))}`)
-        break
-      default:
-        throw new Error(`can't handle option of type ${authorizedOption.type} for key ${authorizedOptionKey}`)
-    }
-    list[authorizedOptionKey] = encodeURIComponent(list[authorizedOptionKey])
+const parseOptionList = (optionList = '') => {
+  if (optionList?.startsWith('?')) {
+    optionList = optionList.substring(1)
   }
-  return list.join('&')
+  const parsed = queryString.parse(optionList)
+  Object.keys(parsed).forEach(key => {
+    const val = parsed[key]
+    parsed[key] = val === 'true' ? true : val === 'false' ? false : JSON.parse(val)
+  })
+  return parsed
+}
+
+const makeOptionList = options => {
+  const encoded = {}
+
+  Object.keys(options).forEach(key => {
+    const val = options[key]
+    encoded[key] = val === 'true' || val === 'false' ? val : JSON.stringify(val)
+  })
+  return queryString.stringify(encoded)
 }
 
 export const parse = string => {
@@ -122,7 +40,7 @@ export const parse = string => {
     let optionList
     ;[rest, optionList] = rest.split('?')
     object.path = `/${trimStart(rest, '/')}` // the leading slash has been forgotten on client side first implementation
-    object = { ...parseOptionList('file', optionList), ...object }
+    object = { ...parseOptionList(optionList), ...object }
   } else if (type === 'nfs') {
     object.type = 'nfs'
     let host, port, path, optionList
@@ -136,8 +54,7 @@ export const parse = string => {
     object.host = host
     object.port = port
     object.path = `/${trimStart(path, '/')}` // takes care of a missing leading slash coming from previous version format
-    // remove the ? at the begininng of options
-    object = { ...parseOptionList('nfs', optionList?.substring(1)), ...object }
+    object = { ...parseOptionList(optionList), ...object }
   } else if (type === 'smb') {
     object.type = 'smb'
     const [, username, password, domain, host, path = '', optionList] = SMB_RE.exec(rest)
@@ -146,10 +63,10 @@ export const parse = string => {
     object.domain = domain
     object.username = username
     object.password = password
-    // remove the ? at the begininng of options
-    object = { ...parseOptionList('smb', optionList?.substring(1)), ...object }
+    object = { ...parseOptionList(optionList), ...object }
   } else if (type === 's3' || type === 's3+http') {
-    const parsed = urlParser(string, true)
+    // @todo : not supported until node 6.13.0 , is ok ?
+    const parsed = new URL(string)
     object.protocol = parsed.protocol === 's3:' ? 'https' : 'http'
     object.type = 's3'
     object.region = parsed.hash.length === 0 ? undefined : parsed.hash.slice(1) // remove '#'
@@ -157,14 +74,12 @@ export const parse = string => {
     object.path = parsed.pathname
     object.username = parsed.username
     object.password = decodeURIComponent(parsed.password)
-
-    object = { ...filterOptions('s3', parsed.query), ...object }
+    object = { ...parseOptionList(parsed.search), ...object }
   }
   return object
 }
 
-export const format = parameters => {
-  let { type, host, path, port, username, password, domain, protocol = type, region } = parameters
+export const format = ({ type, host, path, port, username, password, domain, protocol = type, region, ...options }) => {
   type === 'local' && (type = 'file')
   let string = `${type}://`
   if (type === 'nfs') {
@@ -186,7 +101,7 @@ export const format = parameters => {
   }
   string += path
 
-  const optionsList = makeOptionList(type, parameters)
+  const optionsList = makeOptionList(options)
 
   if (optionsList !== '') {
     string += '?' + optionsList
