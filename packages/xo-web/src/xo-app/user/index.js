@@ -325,7 +325,7 @@ const INDIVIDUAL_ACTIONS_AUTH_TOKENS = [
   {
     handler: editAuthToken,
     icon: 'edit',
-    label: _('deleteAuthToken'),
+    label: _('editAuthToken'),
     level: 'secondary',
   },
 ]
@@ -345,9 +345,9 @@ const UserAuthTokens = addSubscriptions({
   <div>
     <Card>
       <CardHeader>
-        <Icon icon='user' /> Authentication tokens
+        <Icon icon='user' /> {_('authTokens')}
         <ActionButton className='btn-success pull-right' icon='add' handler={addAuthToken}>
-          New token
+          {_('newAuthToken')}
         </ActionButton>
       </CardHeader>
       <CardBlock>
