@@ -1,5 +1,34 @@
 # ChangeLog
 
+## **next**
+
+### Enhancements
+
+- Show raw errors to administrators instead of _unknown error from the peer_ (PR [#6260](https://github.com/vatesfr/xen-orchestra/pull/6260))
+
+### Bug fixes
+
+- [New SR] Fix `method.startsWith is not a function` when creating an _ext_ SR
+- Import VDI content now works when there is a HTTP proxy between XO and the host (PR [#6261](https://github.com/vatesfr/xen-orchestra/pull/6261))
+- [Backup] Fix `undefined is not iterable (cannot read property Symbol(Symbol.iterator))` on XS 7.0.0
+- [Backup] Ensure a warning is shown if a target preparation step fails (PR [#6266](https://github.com/vatesfr/xen-orchestra/pull/6266))
+- [OVA Export] Avoid creating a zombie task (PR [#6267](https://github.com/vatesfr/xen-orchestra/pull/6267))
+- [OVA Export] Increase speed by lowering compression to acceptable level (PR [#6267](https://github.com/vatesfr/xen-orchestra/pull/6267))
+- [OVA Export] Fix broken OVAs due to special characters in VM name (PR [#6267](https://github.com/vatesfr/xen-orchestra/pull/6267))
+
+### Released packages
+
+- @xen-orchestra/backups 0.25.0
+- @xen-orchestra/backups-cli 0.7.3
+- xen-api 1.2.1
+- @xen-orchestra/xapi 1.2.0
+- @xen-orchestra/proxy 0.23.2
+- @xen-orchestra/proxy-cli 0.3.0
+- xo-cli 0.14.0
+- xo-vmdk-to-vhd 2.4.1
+- xo-server 5.96.0
+- xo-web 5.97.2
+
 ## **5.71.0 (2022-05-31)**
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
@@ -15,8 +44,6 @@
 
 ### Enhancements
 
-> Users must be able to say: “Nice enhancement, I'm eager to test it”
-
 - [Backup] Merge multiple VHDs at once which will speed up the merging phase after reducing the retention of a backup job(PR [#6184](https://github.com/vatesfr/xen-orchestra/pull/6184))
 - [Backup] Add setting `backups.metadata.defaultSettings.unconditionalSnapshot` in `xo-server`'s configuration file to force a snapshot even when not required by the backup, this is useful to avoid locking the VM halted during the backup (PR [#6221](https://github.com/vatesfr/xen-orchestra/pull/6221))
 - [VM migration] Ensure the VM can be migrated before performing the migration to avoid issues [#5301](https://github.com/vatesfr/xen-orchestra/issues/5301) (PR [#6245](https://github.com/vatesfr/xen-orchestra/pull/6245))
@@ -25,8 +52,6 @@
 - [RPU] Disable scheduled backup jobs during RPU (PR [#6244](https://github.com/vatesfr/xen-orchestra/pull/6244))
 
 ### Bug fixes
-
-> Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [S3] Fix S3 remote with empty directory not showing anything to restore (PR [#6218](https://github.com/vatesfr/xen-orchestra/pull/6218))
 - [S3] remote fom did not save the `https` and `allow unatuhorized`during remote creation (PR [#6219](https://github.com/vatesfr/xen-orchestra/pull/6219))
