@@ -1,8 +1,9 @@
 import * as FormGrid from 'form-grid'
+import * as d3 from 'd3'
 import _, { messages } from 'intl'
 import ActionButton from 'action-button'
 import Component from 'base-component'
-import CopyToClipboard from 'react-copy-to-clipboard'
+import Copiable from 'copiable'
 import homeFilters from 'home-filters'
 import Icon from 'icon'
 import PropTypes from 'prop-types'
@@ -19,12 +20,14 @@ import { Select } from 'form'
 import { Card, CardBlock, CardHeader } from 'card'
 import { addSubscriptions, connectStore, noop } from 'utils'
 import {
+  addAuthToken,
   addSshKey,
   changePassword,
   deleteAuthToken,
   deleteAuthTokens,
   deleteSshKey,
   deleteSshKeys,
+  editAuthToken,
   editCustomFilter,
   removeCustomFilter,
   setDefaultHomeFilter,
@@ -33,10 +36,8 @@ import {
   subscribeCurrentUser,
 } from 'xo'
 
-import Button from '../../common/button'
 import Page from '../page'
 import Otp from './otp'
-import { addAuthToken, editAuthToken } from '../../common/xo'
 
 // ===================================================================
 
@@ -289,31 +290,32 @@ const SshKeys = addSubscriptions({
 })
 
 // ===================================================================
+const dateFormat = d3.timeFormat('%Y-%m-%d %H:%M')
 
 const COLUMNS_AUTH_TOKENS = [
   {
-    itemRenderer: ({ created_at }) => new Date(+created_at).toISOString(),
+    itemRenderer: ({ created_at }) => {
+      if (created_at !== undefined) {
+        return dateFormat(created_at)
+      }
+      return _('notDefined')
+    },
     name: _('authTokenCreatedAt'),
     sortCriteria: 'created_at',
   },
   {
     default: true,
-    itemRenderer: ({ expiration }) => new Date(+expiration).toISOString(),
+    itemRenderer: ({ expiration }) => dateFormat(expiration),
     name: _('authTokenExpiration'),
     sortCriteria: 'expiration',
   },
   {
     itemRenderer: ({ id }) => (
-      <CopyToClipboard text={id}>
-        <div>
-          <pre>{id}</pre>
-          <Button size='small'>
-            <Icon icon='clipboard' />
-          </Button>
-        </div>
-      </CopyToClipboard>
+      <Copiable tagName='pre' data={id}>
+        {id.slice(4, 9)}
+      </Copiable>
     ),
-    name: _('authTokenId'),
+    name: _('authToken'),
   },
   {
     itemRenderer: token => (

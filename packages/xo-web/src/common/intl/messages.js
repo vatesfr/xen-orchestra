@@ -14,6 +14,7 @@ const messages = {
   errorUnknownItem: 'Unknown {type}',
   generateNewMacAddress: 'Generate new MAC addresses',
   memoryFree: '{memoryFree} RAM free',
+  notDefined: 'Not defined',
   utcDate: 'UTC date',
   utcTime: 'UTC time',
   date: 'Date',
@@ -2045,10 +2046,10 @@ const messages = {
   pifPhysicallyDisconnected: 'Physically disconnected',
 
   // ----- User -----
+  authToken: 'Token',
   authTokenCreatedAt: 'Creation date',
   authTokenDescription: 'Description',
   authTokenExpiration: 'Expiration',
-  authTokenId: 'Token id',
   authTokens: 'Authentication tokens',
   username: 'Username',
   password: 'Password',

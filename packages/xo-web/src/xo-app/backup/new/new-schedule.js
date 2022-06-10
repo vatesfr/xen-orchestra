@@ -146,7 +146,6 @@ const New = decorate([
               getXoaPlan().value < ENTERPRISE.value ? _('healthCheckAvailableEnterpriseUser') : undefined
             )}
           </label>
-          {console.log(schedule)}
           {schedule.healthCheckVmsWithTags !== undefined && (
             <div className='mb-2'>
               <strong>{_('vmsTags')}</strong>
