@@ -10,15 +10,6 @@ export default class NewAuthTokenModal extends BaseComponent {
     return this.state
   }
 
-  componentWillMount() {
-    const expiration =
-      this.props.expiration !== undefined ? new Date(+this.props.expiration).toISOString().split('T')[0] : ''
-    this.setState({
-      description: this.props.description ?? '',
-      expiration,
-    })
-  }
-
   render() {
     const { description, expiration } = this.state
 
@@ -32,8 +23,7 @@ export default class NewAuthTokenModal extends BaseComponent {
                 className='form-control'
                 onChange={this.linkState('expiration')}
                 type='date'
-                value={expiration}
-                disabled={this.props.expiration !== undefined}
+                value={expiration ?? ''}
               />
             </Col>
           </SingleLineRow>
@@ -46,7 +36,7 @@ export default class NewAuthTokenModal extends BaseComponent {
                 className='form-control text-monospace'
                 onChange={this.linkState('description')}
                 rows={10}
-                value={description}
+                value={description ?? ''}
               />
             </Col>
           </SingleLineRow>
