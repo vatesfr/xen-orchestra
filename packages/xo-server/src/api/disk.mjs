@@ -215,7 +215,7 @@ async function handleImport(req, res, { type, name, description, vmdkData, srId,
               throw new JsonRpcError(`Unknown disk type, expected "iso", "vhd" or "vmdk", got ${type}`)
           }
 
-          const vdi = await this._getOrWaitObject(
+          const vdi = await xapi._getOrWaitObject(
             await xapi.VDI_create({
               name_description: description,
               name_label: name,

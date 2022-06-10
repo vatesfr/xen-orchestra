@@ -11,6 +11,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [VDI Import] Fix `this._getOrWaitObject is not a function`
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -24,5 +26,7 @@
 > - major: if the change breaks compatibility
 
 <!--packages-start-->
+
+- xo-server patch
 
 <!--packages-end-->
