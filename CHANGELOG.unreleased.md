@@ -29,6 +29,7 @@
 
 <!--packages-start-->
 
+- @vates/read-chunk major
 - xo-server patch
 
 <!--packages-end-->

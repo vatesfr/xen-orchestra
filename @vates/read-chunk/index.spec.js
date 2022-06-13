@@ -4,7 +4,7 @@
 
 const { Readable } = require('stream')
 
-const { readChunk } = require('./')
+const { readChunk, readChunkStrict } = require('./')
 
 const makeStream = it => Readable.from(it, { objectMode: false })
 makeStream.obj = Readable.from
@@ -41,5 +41,29 @@ describe('readChunk', () => {
       const chunks = [{}, {}]
       expect(await readChunk(makeStream.obj(chunks))).toBe(chunks[0])
     })
+  })
+})
+
+const rejectionOf = promise =>
+  promise.then(
+    value => {
+      throw value
+    },
+    error => error
+  )
+
+describe('readChunkStrict', function () {
+  it('throws if stream is empty', async () => {
+    const error = await rejectionOf(readChunkStrict(makeStream([])))
+    expect(error).toBeInstanceOf(Error)
+    expect(error.message).toBe('stream has ended without data')
+    expect(error.chunk).toEqual(undefined)
+  })
+
+  it('throws if stream ends with not enough data', async () => {
+    const error = await rejectionOf(readChunkStrict(makeStream(['foo', 'bar']), 10))
+    expect(error).toBeInstanceOf(Error)
+    expect(error.message).toBe('stream has ended with not enough data')
+    expect(error.chunk).toEqual(Buffer.from('foobar'))
   })
 })
