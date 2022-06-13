@@ -133,4 +133,4 @@ This error comes directly from your host/dom0, and not XO. Essentially, XO asked
 
 ## Error: no XAPI associated to <UUID>
 
-This message means that XO recorded the UUID to backup but couldn't find any object matching it. The reason can be that the pool where this VM runs is not connected to XOA at the moment. Double-check that the pool hosting the VM is currently connected in Settings/Server. You can also search the VM UUID in the Home/VM search bar. If you can see it, run the backup job again, it will work. If you cannot, either the VM was removed or the pool is not connected.
+This message means that XO had a UUID of a VM to backup, but when the job ran it couldn't find any object matching it. This could be caused by the pool where this VM lived no longer being connected to XO. Double-check that the pool hosting the VM is currently connected under Settings > Servers. You can also search for the VM UUID in the Home > VMs search bar. If you can see it, run the backup job again and it will work. If you cannot, either the VM was removed or the pool is not connected.
