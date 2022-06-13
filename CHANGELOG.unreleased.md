@@ -12,6 +12,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [VDI Import] Fix `this._getOrWaitObject is not a function`
+- [OVA Import] Fix import stuck after first disk
 
 ### Packages to release
 
