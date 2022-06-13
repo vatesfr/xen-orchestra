@@ -64,7 +64,7 @@ function alignSectors(number) {
 }
 
 export default class VMDKDirectParser {
-  constructor(readStream, grainLogicalAddressList, grainFileOffsetList, gzipped = false) {
+  constructor(readStream, grainLogicalAddressList, grainFileOffsetList, gzipped = false, length) {
     if (gzipped) {
       const unzipStream = zlib.createGunzip()
       readStream.pipe(unzipStream)
@@ -74,6 +74,7 @@ export default class VMDKDirectParser {
     this.grainFileOffsetList = grainFileOffsetList
     this.virtualBuffer = new VirtualBuffer(readStream)
     this.header = null
+    this._length = length
   }
 
   // I found a VMDK file whose L1 and L2 table did not have a marker, but they were at the top
@@ -195,6 +196,9 @@ export default class VMDKDirectParser {
       }
       yield { logicalAddressBytes: lba, data: grain }
     }
-    console.log('yielded last VMDK block')
+    // drain remaining
+    if (this._length !== undefined) {
+      await this.virtualBuffer.readChunk(this._length - this.virtualBuffer.position, 'draining')
+    }
   }
 }
