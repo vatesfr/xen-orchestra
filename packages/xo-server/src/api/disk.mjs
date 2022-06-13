@@ -23,7 +23,7 @@ export const create = defer(async function ($defer, { name, size, sr, vm, bootab
     let resourceSet
     if (attach && (resourceSet = vm.resourceSet) != null) {
       try {
-        await this.checkResourceSetConstraints(resourceSet, this.user.id, [sr.id])
+        await this.checkResourceSetConstraints(resourceSet, this.apiContext.user.id, [sr.id])
         await this.allocateLimitsInResourceSet({ disk: size }, resourceSet)
         $defer.onFailure(() => this.releaseLimitsInResourceSet({ disk: size }, resourceSet))
 
@@ -37,7 +37,7 @@ export const create = defer(async function ($defer, { name, size, sr, vm, bootab
       // the resource set does not exist, falls back to normal check
     }
 
-    await this.checkPermissions(this.user.id, [[sr.id, 'administrate']])
+    await this.checkPermissions([[sr.id, 'administrate']])
   } while (false)
 
   const xapi = this.getXapi(sr)
