@@ -296,7 +296,7 @@ const COLUMNS_AUTH_TOKENS = [
   {
     itemRenderer: ({ id }) => (
       <Copiable tagName='pre' data={id}>
-        {id.slice(4, 9)}
+        {id.slice(0, 5)}…
       </Copiable>
     ),
     name: _('authToken'),
