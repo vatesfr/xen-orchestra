@@ -18,7 +18,8 @@ Installation of the [npm package](https://npmjs.org/package/@vates/read-chunk):
 
 - returns the next available chunk of data
 - like `stream.read()`, a number of bytes can be specified
-- returns `null` if the stream has ended
+- returns with less data than expected if stream has ended
+- returns `null` if the stream has ended and no data has been read
 
 ```js
 import { readChunk } from '@vates/read-chunk'
