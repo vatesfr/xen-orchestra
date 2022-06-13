@@ -1,6 +1,8 @@
 # ChangeLog
 
-## **next**
+## **5.71.1 (2022-06-13)**
+
+<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
 
 ### Enhancements
 
@@ -30,8 +32,6 @@
 - xo-web 5.97.2
 
 ## **5.71.0 (2022-05-31)**
-
-<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
 
 ### Highlights
 
