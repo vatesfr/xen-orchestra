@@ -294,6 +294,21 @@ const dateFormat = d3.timeFormat('%Y-%m-%d %H:%M')
 
 const COLUMNS_AUTH_TOKENS = [
   {
+    itemRenderer: ({ id }) => (
+      <Copiable tagName='pre' data={id}>
+        {id.slice(4, 9)}
+      </Copiable>
+    ),
+    name: _('authToken'),
+  },
+  {
+    itemRenderer: token => (
+      <Text value={token.description} onChange={description => editAuthToken({ ...token, description })} />
+    ),
+    name: _('authTokenDescription'),
+    sortCriteria: 'description',
+  },
+  {
     itemRenderer: ({ created_at }) => {
       if (created_at !== undefined) {
         return dateFormat(created_at)
@@ -308,20 +323,6 @@ const COLUMNS_AUTH_TOKENS = [
     itemRenderer: ({ expiration }) => dateFormat(expiration),
     name: _('authTokenExpiration'),
     sortCriteria: 'expiration',
-  },
-  {
-    itemRenderer: ({ id }) => (
-      <Copiable tagName='pre' data={id}>
-        {id.slice(4, 9)}
-      </Copiable>
-    ),
-    name: _('authToken'),
-  },
-  {
-    itemRenderer: token => (
-      <Text value={token.description} onChange={description => editAuthToken({ ...token, description })} />
-    ),
-    name: _('authTokenDescription'),
   },
 ]
 

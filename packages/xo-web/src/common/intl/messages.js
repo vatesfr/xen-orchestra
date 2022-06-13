@@ -2047,7 +2047,7 @@ const messages = {
 
   // ----- User -----
   authToken: 'Token',
-  authTokenCreatedAt: 'Creation date',
+  authTokenCreatedAt: 'Creation',
   authTokenDescription: 'Description',
   authTokenExpiration: 'Expiration',
   authTokens: 'Authentication tokens',
