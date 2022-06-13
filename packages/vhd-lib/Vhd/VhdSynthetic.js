@@ -43,6 +43,16 @@ const VhdSynthetic = class VhdSynthetic extends VhdAbstract {
     }
   }
 
+  get compressionType() {
+    const compressionType = this.vhds[0].compressionType
+    for (let i = 0; i < this.vhds.length; i++) {
+      if (compressionType !== this.vhds[i].compressionType) {
+        return undefined
+      }
+    }
+    return compressionType
+  }
+
   /**
    * @param {Array<VhdAbstract>} vhds the chain of Vhds used to compute this Vhd, from the deepest child (in position 0), to the root (in the last position)
    * only the last one can have any type. Other must have type DISK_TYPES.DIFFERENCING (delta)
@@ -74,16 +84,30 @@ const VhdSynthetic = class VhdSynthetic extends VhdAbstract {
     }
   }
 
-  async readBlock(blockId, onlyBitmap = false) {
+  #getVhdWithBlock(blockId) {
     const index = this.#vhds.findIndex(vhd => vhd.containsBlock(blockId))
     assert(index !== -1, `no such block ${blockId}`)
+    return this.#vhds[index]
+  }
 
+  async readBlock(blockId, onlyBitmap = false) {
     // only read the content of the first vhd containing this block
-    return await this.#vhds[index].readBlock(blockId, onlyBitmap)
+    return await this.#getVhdWithBlock(blockId).readBlock(blockId, onlyBitmap)
+  }
+
+  async coalesceBlock(child, blockId) {
+    throw new Error(`can't coalesce block into a vhd synthetic`)
   }
 
   _readParentLocatorData(id) {
     return this.#vhds[this.#vhds.length - 1]._readParentLocatorData(id)
+  }
+  getFullBlockPath(blockId) {
+    const vhd = this.#getVhdWithBlock(blockId)
+    return vhd.getFullBlockPath(blockId)
+  }
+  isBlockBased() {
+    return this.#vhds.every(vhd => vhd.isBlockBased())
   }
 }
 

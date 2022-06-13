@@ -174,6 +174,10 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
     return `blocks/${blockPrefix}/${blockSuffix}`
   }
 
+  getFullBlockPath(blockId) {
+    return this._getChunkPath(this._getBlockPath(blockId))
+  }
+
   async readHeaderAndFooter() {
     await this.#readChunkFilters()
 
@@ -240,20 +244,13 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
   }
 
   // only works if data are in the same handler
-  // and if the full block is modified in child ( which is the case whit xcp)
+  // and if the full block is modified in child ( which is the case with xcp)
   // and if the compression type is same on both sides
   async coalesceBlock(child, blockId) {
-    if (
-      !(child instanceof VhdDirectory) ||
-      this._handler !== child._handler ||
-      child.compressionType !== this.compressionType
-    ) {
+    if (!child.isBlockBased() || this._handler !== child._handler || child.compressionType !== this.compressionType) {
       return super.coalesceBlock(child, blockId)
     }
-    await this._handler.copy(
-      child._getChunkPath(child._getBlockPath(blockId)),
-      this._getChunkPath(this._getBlockPath(blockId))
-    )
+    await this._handler.copy(child.getFullBlockPath(blockId), this.getFullBlockPath(blockId))
     return sectorsToBytes(this.sectorsPerBlock)
   }
 
@@ -289,5 +286,9 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
       throw error
     })
     this.#compressor = getCompressor(chunkFilters[0])
+  }
+
+  isBlockBased() {
+    return true
   }
 }

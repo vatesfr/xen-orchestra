@@ -53,19 +53,25 @@ test('Can coalesce block', async () => {
     const childDirectoryVhd = yield openVhd(handler, childDirectoryName)
     await childDirectoryVhd.readBlockAllocationTable()
 
-    await parentVhd.coalesceBlock(childFileVhd, 0)
-    await parentVhd.writeFooter()
-    await parentVhd.writeBlockAllocationTable()
-    let parentBlockData = (await parentVhd.readBlock(0)).data
-    let childBlockData = (await childFileVhd.readBlock(0)).data
-    expect(parentBlockData.equals(childBlockData)).toEqual(true)
-
+    let childBlockData = (await childDirectoryVhd.readBlock(0)).data
     await parentVhd.coalesceBlock(childDirectoryVhd, 0)
     await parentVhd.writeFooter()
     await parentVhd.writeBlockAllocationTable()
-    parentBlockData = (await parentVhd.readBlock(0)).data
-    childBlockData = (await childDirectoryVhd.readBlock(0)).data
-    expect(parentBlockData).toEqual(childBlockData)
+    let parentBlockData = (await parentVhd.readBlock(0)).data
+    // block should be present in parent
+    expect(parentBlockData.equals(childBlockData)).toEqual(true)
+    // block should not be in child since it's a rename  for vhd directory
+    await expect(childDirectoryVhd.readBlock(0)).rejects.toThrowError()
+
+    childBlockData = (await childFileVhd.readBlock(1)).data
+    await parentVhd.coalesceBlock(childFileVhd, 1)
+    await parentVhd.writeFooter()
+    await parentVhd.writeBlockAllocationTable()
+    parentBlockData = (await parentVhd.readBlock(1)).data
+    // block should be present in parent in case of mixed vhdfile/vhddirectory
+    expect(parentBlockData.equals(childBlockData)).toEqual(true)
+    // block should still be child
+    await childFileVhd.readBlock(1)
   })
 })
 
