@@ -2423,6 +2423,7 @@ const messages = {
   proxyTestFailedConnectionIssueMessage: 'Unable to connect to this proxy',
   proxyLinkedRemotes: 'Click to see linked remotes',
   proxyLinkedBackups: 'Click to see linked backups',
+  proxyUrl: 'URL',
   proxyNetworkDnsPlaceHolder: 'Default to: {dns}',
   proxyNetworkNetmaskPlaceHolder: 'Default to: {netmask}',
   proxySrPredicateInfo: 'The select only contains SRs connected to at least one HVM-capable host',

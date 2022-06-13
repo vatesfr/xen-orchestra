@@ -1,6 +1,7 @@
 import _ from 'intl'
 import ActionButton from 'action-button'
 import addSubscriptions from 'add-subscriptions'
+import Copiable from 'copiable'
 import decorate from 'apply-decorators'
 import Icon from 'icon'
 import NoObjects from 'no-objects'
@@ -120,6 +121,15 @@ const COLUMNS = [
     itemRenderer: proxy => <Text data-name='name' data-proxy={proxy} onChange={_editProxy} value={proxy.name} />,
     name: _('name'),
     sortCriteria: 'name',
+  },
+  {
+    // TODO: replace dummy URL by proxy.url
+    itemRenderer: ({ url }) => (
+      <Copiable tagName='pre' value='http://token@address'>
+        http://token@address
+      </Copiable>
+    ),
+    name: _('proxyUrl'),
   },
   {
     itemRenderer: proxy => <Vm id={proxy.vmUuid} link />,
