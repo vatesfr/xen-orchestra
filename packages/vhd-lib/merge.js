@@ -90,6 +90,7 @@ module.exports.mergeVhd = limitConcurrency(2)(async function merge(
 
   return await Disposable.use(async function* () {
     let mergeState
+    let isResuming = false
     try {
       const mergeStateContent = await parentHandler.readFile(mergeStatePath)
       mergeState = JSON.parse(mergeStateContent)
@@ -122,6 +123,7 @@ module.exports.mergeVhd = limitConcurrency(2)(async function merge(
       assert.strictEqual(childVhd.footer.diskType, DISK_TYPES.DIFFERENCING)
       assert.strictEqual(childVhd.header.blockSize, parentVhd.header.blockSize)
     } else {
+      isResuming = true
       // vhd should not have changed to resume
       assert.strictEqual(parentVhd.header.checksum, mergeState.parent.header)
       assert.strictEqual(childVhd.header.checksum, mergeState.child.header)
@@ -162,12 +164,28 @@ module.exports.mergeVhd = limitConcurrency(2)(async function merge(
     let counter = 0
 
     const mergeStateWriter = makeThrottledWriter(parentHandler, mergeStatePath, 10e3)
-
     await asyncEach(
       toMerge,
       async blockId => {
         merging.add(blockId)
-        mergeState.mergedDataSize += await parentVhd.coalesceBlock(childVhd, blockId)
+        try {
+          mergeState.mergedDataSize += await parentVhd.coalesceBlock(childVhd, blockId)
+        } catch (error) {
+          if (error.code === 'ENOENT' && isResuming === true) {
+            // when resuming, the blocks moved since the last merge state write are
+            // not in the child anymore but it should be ok
+
+            // it will throw an error if block is missing in parent
+            // won't detect if the block was already in parent and is broken/missing in child
+            const { data } = await parentVhd.readBlock(blockId)
+            assert.strictEqual(data.length, parentVhd.header.blockSize)
+
+            mergeState.mergedDataSize += parentVhd.header.blockSize
+          } else {
+            throw error
+          }
+        }
+
         merging.delete(blockId)
 
         onProgress({

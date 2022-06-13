@@ -33,9 +33,12 @@
 
 - @vates/event-listeners-manager patch
 - @vates/read-chunk major
+- @xen-orchestra/backups minor
 - @xen-orchestra/xapi minor
+- vhd-lib minor
 - xo-remote-parser minor
-- xo-server patch
+- xo-server minor
 - xo-vmdk-to-vhd patch
+
 
 <!--packages-end-->

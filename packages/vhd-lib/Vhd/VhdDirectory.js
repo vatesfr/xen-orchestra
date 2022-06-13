@@ -250,7 +250,7 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
     if (!child.isBlockBased() || this._handler !== child._handler || child.compressionType !== this.compressionType) {
       return super.coalesceBlock(child, blockId)
     }
-    await this._handler.copy(child.getFullBlockPath(blockId), this.getFullBlockPath(blockId))
+    await this._handler.rename(child.getFullBlockPath(blockId), this.getFullBlockPath(blockId))
     return sectorsToBytes(this.sectorsPerBlock)
   }
 
