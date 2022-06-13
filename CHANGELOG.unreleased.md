@@ -24,6 +24,8 @@
 > - patch: if the change is a bug fix or a simple code improvement
 > - minor: if the change is a new feature
 > - major: if the change breaks compatibility
+>
+> Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
 
