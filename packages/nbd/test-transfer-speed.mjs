@@ -68,8 +68,9 @@ if (!nbd) {
 const client = new NbdClient(nbd)
 await client.connect()
 
-const maxSize = parseInt(await question('Maximum data size per test in MB ? (-1 for unlimited) '), 10) * 1024 * 1024
-console.log('Will download ', maxSize, 'bytes')
+const maxDuration =
+  parseInt(await question('Maximum duration per test in second ? (-1 for unlimited, default 30) '), 10) || 30
+console.log('Will start downloading blocks during ', maxDuration, 'seconds')
 
 console.log('## will check the vhd download speed')
 
@@ -83,9 +84,7 @@ async function getFullBlocks(concurrency, nbBlocksRead) {
   console.log(' max nb blocks ', client.nbBlocks / nbBlocksRead)
   function* blockIterator() {
     for (let i = 0; i < client.nbBlocks / nbBlocksRead; i++) {
-      if (maxSize > 0 && i * blockSize < maxSize) {
-        yield i
-      }
+      yield i
     }
   }
   const interval = setInterval(() => {
@@ -94,6 +93,9 @@ async function getFullBlocks(concurrency, nbBlocksRead) {
   await asyncEach(
     blockIterator(),
     async blockIndex => {
+      if (maxDuration > 0 && new Date() - start > maxDuration * 1000) {
+        return
+      }
       const data = await client.readBlock(blockIndex, blockSize)
       size += data?.length ?? 0
       nbModified++
@@ -103,6 +105,11 @@ async function getFullBlocks(concurrency, nbBlocksRead) {
     }
   )
   clearInterval(interval)
+  if (new Date() - start < 10000) {
+    console.warn(
+      `data set too small or perofrmance to high, result won't be usefull. Please relaunch with bigger snapshot or higher maximum data size `
+    )
+  }
   console.log('duration :', new Date() - start)
   console.log('nb blocks : ', nbModified)
   console.log('read : ', size, 'octets')
@@ -135,7 +142,8 @@ async function downloadVhd(query) {
   for await (const chunk of stream) {
     sizeStream += chunk.length
     nbChunk++
-    if (maxSize > 0 && sizeStream >= maxSize) {
+
+    if (maxDuration > 0 && new Date() - startStream > maxDuration * 1000) {
       break
     }
   }
@@ -152,4 +160,9 @@ await downloadVhd({
   vdi: snapshotRef,
 })
 
+console.log('## will check full raw export  size and speed')
+await downloadVhd({
+  format: 'raw',
+  vdi: snapshotRef,
+})
 process.exit()
