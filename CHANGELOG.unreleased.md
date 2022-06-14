@@ -11,6 +11,7 @@
 - [Proxies] Ability to copy the proxy access URL (PR [#6287](https://github.com/vatesfr/xen-orchestra/pull/6287))
 - [User] User tokens management through XO interface (PR [#6276](https://github.com/vatesfr/xen-orchestra/pull/6276))
 - [Tasks, VM/General] Self Service users: show tasks related to their pools, hosts, SRs, networks and VMs (PR [#6217](https://github.com/vatesfr/xen-orchestra/pull/6217))
+- Users can use vhd directory on any remote type (PR [#6273](https://github.com/vatesfr/xen-orchestra/pull/6273))
 
 ### Bug fixes
 

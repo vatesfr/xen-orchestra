@@ -597,6 +597,10 @@ const messages = {
   remoteS3TooltipProtocol: 'Uncheck if you want HTTP instead of HTTPS',
   remoteS3TooltipAcceptInsecure: 'Check if you want to accept self signed certificates',
   remotePlaceHolderPassword: 'Password(fill to edit)',
+  remoteUseVhdDirectory:
+    'Store backup as multiple data block instead of a whole Vhd file. Disable file level restore but allow for faster merge.',
+  remoteUseVhdDirectoryTooltip:
+    'Your remote must be able to handle parallel access (up to 16 write processes per backups) and the number of files (500 files per GB of backuped data)',
 
   // ------ New Storage -----
 
