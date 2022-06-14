@@ -24,6 +24,9 @@ export default class NbdClient {
     this.#client = new Socket()
   }
 
+  get nbBlocks() {
+    return this.#nbDiskBlocks
+  }
   async connect() {
     const client = this.#client
     return new Promise(resolve => {
@@ -75,7 +78,7 @@ export default class NbdClient {
     const exportSize = answer.readBigUInt64BE(0)
     const transmissionFlags = answer.readInt16BE(8) // 3 is readonly
     this.#nbDiskBlocks = Number(exportSize / BigInt(64 * 1024))
-    console.log(`disk is ${exportSize} bytes`)
+    console.log(`disk is ${exportSize} bytes ${this.#nbDiskBlocks} 64KB blocks`)
   }
 
   #takeFromBuffer(length) {
