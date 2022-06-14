@@ -14,7 +14,7 @@ const messages = {
   errorUnknownItem: 'Unknown {type}',
   generateNewMacAddress: 'Generate new MAC addresses',
   memoryFree: '{memoryFree} RAM free',
-  notDefined: 'Not defined',
+  authTokenNotDefined: 'Not defined',
   utcDate: 'UTC date',
   utcTime: 'UTC time',
   date: 'Date',
