@@ -165,9 +165,6 @@ export default decorate([
       setUseVhdDirectory(_, value) {
         this.state.useVhdDirectory = value
       },
-      setUseMoveMerge(_, value) {
-        this.state.useMoveMerge = value
-      },
     },
     computed: {
       formId: generateId,
@@ -476,7 +473,7 @@ export default decorate([
                 </span>
                 <Toggle
                   className='align-middle pull-right'
-                  onChange={effects.setInsecure}
+                  onChange={effects.setUseVhdDirectory}
                   value={useVhdDirectory === true}
                 />
               </div>
