@@ -313,7 +313,7 @@ const COLUMNS_AUTH_TOKENS = [
       if (created_at !== undefined) {
         return dateFormat(created_at)
       }
-      return _('notDefined')
+      return _('authTokenNotDefined')
     },
     name: _('authTokenCreatedAt'),
     sortCriteria: 'created_at',
