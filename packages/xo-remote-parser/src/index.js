@@ -3,7 +3,7 @@ import map from 'lodash/map'
 import trim from 'lodash/trim'
 import trimStart from 'lodash/trimStart'
 import queryString from 'querystring'
-import { URL } from 'url'
+import urlParser from 'url-parse'
 
 const NFS_RE = /^([^:]+):(?:(\d+):)?([^:?]+)(\?[^?]*)?$/
 const SMB_RE = /^([^:]+):(.+)@([^@]+)\\\\([^\0?]+)(?:\0([^?]*))?(\?[^?]*)?$/
@@ -65,7 +65,7 @@ export const parse = string => {
     object.password = password
     object = { ...parseOptionList(optionList), ...object }
   } else if (type === 's3' || type === 's3+http') {
-    const parsed = new URL(string)
+    const parsed = urlParser(string, false)
     object.protocol = parsed.protocol === 's3:' ? 'https' : 'http'
     object.type = 's3'
     object.region = parsed.hash.length === 0 ? undefined : parsed.hash.slice(1) // remove '#'
@@ -73,7 +73,7 @@ export const parse = string => {
     object.path = parsed.pathname
     object.username = parsed.username
     object.password = decodeURIComponent(parsed.password)
-    object = { ...parseOptionList(parsed.search), ...object }
+    object = { ...parseOptionList(parsed.query), ...object }
   }
   return object
 }
