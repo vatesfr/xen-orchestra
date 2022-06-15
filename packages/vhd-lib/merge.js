@@ -72,7 +72,7 @@ function cleanupVhds(handler, parent, children, { logInfo = noop, remove = false
     }),
   ])
 }
-module.exports.cleanupVhds = cleanupVhds
+module.exports._cleanupVhds = cleanupVhds
 
 // Merge one or multiple vhd child into vhd parent.
 // childPath can be array to create a synthetic VHD from multiple VHDs
@@ -168,23 +168,7 @@ module.exports.mergeVhd = limitConcurrency(2)(async function merge(
       toMerge,
       async blockId => {
         merging.add(blockId)
-        try {
-          mergeState.mergedDataSize += await parentVhd.coalesceBlock(childVhd, blockId)
-        } catch (error) {
-          if (error.code === 'ENOENT' && isResuming === true) {
-            // when resuming, the blocks moved since the last merge state write are
-            // not in the child anymore but it should be ok
-
-            // it will throw an error if block is missing in parent
-            // won't detect if the block was already in parent and is broken/missing in child
-            const { data } = await parentVhd.readBlock(blockId)
-            assert.strictEqual(data.length, parentVhd.header.blockSize)
-
-            mergeState.mergedDataSize += parentVhd.header.blockSize
-          } else {
-            throw error
-          }
-        }
+        mergeState.mergedDataSize += await parentVhd.mergeBlock(childVhd, blockId, isResuming)
 
         merging.delete(blockId)
 

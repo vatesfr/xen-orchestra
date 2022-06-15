@@ -54,7 +54,7 @@ test('Can coalesce block', async () => {
     await childDirectoryVhd.readBlockAllocationTable()
 
     let childBlockData = (await childDirectoryVhd.readBlock(0)).data
-    await parentVhd.coalesceBlock(childDirectoryVhd, 0)
+    await parentVhd.mergeBlock(childDirectoryVhd, 0)
     await parentVhd.writeFooter()
     await parentVhd.writeBlockAllocationTable()
     let parentBlockData = (await parentVhd.readBlock(0)).data
@@ -64,7 +64,7 @@ test('Can coalesce block', async () => {
     await expect(childDirectoryVhd.readBlock(0)).rejects.toThrowError()
 
     childBlockData = (await childFileVhd.readBlock(1)).data
-    await parentVhd.coalesceBlock(childFileVhd, 1)
+    await parentVhd.mergeBlock(childFileVhd, 1)
     await parentVhd.writeFooter()
     await parentVhd.writeBlockAllocationTable()
     parentBlockData = (await parentVhd.readBlock(1)).data

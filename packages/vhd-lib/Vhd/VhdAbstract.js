@@ -104,7 +104,7 @@ exports.VhdAbstract = class VhdAbstract {
    *
    * @returns {number} the merged data size
    */
-  async coalesceBlock(child, blockId) {
+  async mergeBlock(child, blockId) {
     const block = await child.readBlock(blockId)
     await this.writeEntireBlock(block)
     return block.data.length

@@ -47,7 +47,7 @@ const VhdSynthetic = class VhdSynthetic extends VhdAbstract {
     const compressionType = this.vhds[0].compressionType
     for (let i = 0; i < this.vhds.length; i++) {
       if (compressionType !== this.vhds[i].compressionType) {
-        return undefined
+        return 'MIXED'
       }
     }
     return compressionType
@@ -95,16 +95,16 @@ const VhdSynthetic = class VhdSynthetic extends VhdAbstract {
     return await this.#getVhdWithBlock(blockId).readBlock(blockId, onlyBitmap)
   }
 
-  async coalesceBlock(child, blockId) {
+  async mergeBlock(child, blockId) {
     throw new Error(`can't coalesce block into a vhd synthetic`)
   }
 
   _readParentLocatorData(id) {
     return this.#vhds[this.#vhds.length - 1]._readParentLocatorData(id)
   }
-  getFullBlockPath(blockId) {
+  _getFullBlockPath(blockId) {
     const vhd = this.#getVhdWithBlock(blockId)
-    return vhd.getFullBlockPath(blockId)
+    return vhd._getFullBlockPath(blockId)
   }
   isBlockBased() {
     return this.#vhds.every(vhd => vhd.isBlockBased())
