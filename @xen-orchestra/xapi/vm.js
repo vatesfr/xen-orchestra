@@ -343,7 +343,7 @@ class Vm {
     const vm = await this.getRecord('VM', vmRef)
 
     if (!bypassBlockedOperation && 'destroy' in vm.blocked_operations) {
-      throw forbiddenOperation('destroy is blocked')
+      throw forbiddenOperation(`destroy: ${vm.blocked_operations.destroy}`)
     }
 
     if (!forceDeleteDefaultTemplate && isDefaultTemplate(vm)) {
