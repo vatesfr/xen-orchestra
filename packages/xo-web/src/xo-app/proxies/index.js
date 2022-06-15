@@ -62,7 +62,6 @@ const INDIVIDUAL_ACTIONS = [
     handler: ({ url }) => navigator.clipboard.writeText(url),
     icon: 'clipboard',
     label: _('proxyCopyUrl'),
-    level: 'primary',
   },
   {
     collapsed: true,
