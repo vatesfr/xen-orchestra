@@ -11,13 +11,13 @@ const SMB_RE = /^([^:]+):(.+)@([^@]+)\\\\([^\0?]+)(?:\0([^?]*))?(\?[^?]*)?$/
 const sanitizePath = (...paths) => filter(map(paths, s => s && filter(map(s.split('/'), trim)).join('/'))).join('/')
 
 const parseOptionList = (optionList = '') => {
-  if (optionList?.startsWith('?')) {
+  if (optionList.startsWith('?')) {
     optionList = optionList.substring(1)
   }
   const parsed = queryString.parse(optionList)
   Object.keys(parsed).forEach(key => {
     const val = parsed[key]
-    parsed[key] = val === 'true' ? true : val === 'false' ? false : JSON.parse(val)
+    parsed[key] = JSON.parse(val)
   })
   return parsed
 }
@@ -27,7 +27,7 @@ const makeOptionList = options => {
 
   Object.keys(options).forEach(key => {
     const val = options[key]
-    encoded[key] = val === 'true' || val === 'false' ? val : JSON.stringify(val)
+    encoded[key] = JSON.stringify(val)
   })
   return queryString.stringify(encoded)
 }
