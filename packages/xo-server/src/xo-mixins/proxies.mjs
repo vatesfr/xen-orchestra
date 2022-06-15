@@ -70,6 +70,17 @@ export default class Proxy {
     )
   }
 
+  async _getChannel() {
+    const PLACEHOLDER = '{xoChannel}'
+    let channel = this._app.config.get('xo-proxy.channel')
+    const i = channel.indexOf(PLACEHOLDER)
+    if (i !== -1) {
+      const xoChannel = await this._app.getCurrentChannel()
+      channel = channel.slice(0, i) + xoChannel + channel.slice(i + PLACEHOLDER.length)
+    }
+    return channel
+  }
+
   async _throwIfRegistered(address, vmUuid) {
     if (address != null && (await this._db.exists({ address }))) {
       throw new Error(`A proxy with the address (${address}) is already registered`)
@@ -169,7 +180,7 @@ export default class Proxy {
       xenstoreData['vm-data/xoa-updater-proxy-url'] = JSON.stringify(httpProxy)
     }
     if (upgrade) {
-      xenstoreData['vm-data/xoa-updater-channel'] = JSON.stringify(this._app.config.get('xo-proxy.channel'))
+      xenstoreData['vm-data/xoa-updater-channel'] = JSON.stringify(await this._getChannel())
     }
 
     const { vmUuid } = await this.getProxy(id)
@@ -241,7 +252,7 @@ export default class Proxy {
         email,
         registrationToken,
       }),
-      'vm-data/xoa-updater-channel': JSON.stringify(xoProxyConf.channel),
+      'vm-data/xoa-updater-channel': JSON.stringify(await this._getChannel()),
     }
     if (httpProxy !== undefined) {
       xenstoreData['vm-data/xoa-updater-proxy-url'] = JSON.stringify(httpProxy)
