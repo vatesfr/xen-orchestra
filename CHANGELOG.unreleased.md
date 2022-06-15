@@ -29,6 +29,7 @@
 
 <!--packages-start-->
 
+- @vates/event-listeners-manager patch
 - @vates/read-chunk major
 - xo-server patch
 
