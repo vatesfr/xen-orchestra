@@ -21,6 +21,7 @@ export default class NewAuthTokenModal extends BaseComponent {
             <Col size={8}>
               <input
                 className='form-control'
+                min={new Date().toISOString().split('T')[0]}
                 onChange={this.linkState('expiration')}
                 type='date'
                 value={expiration ?? ''}
