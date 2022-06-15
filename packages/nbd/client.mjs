@@ -1,5 +1,6 @@
 import assert from 'node:assert'
 import { Socket } from 'node:net'
+import { connect } from 'node:tls'
 
 const BLOCK_SIZE = 64 * 1024
 export default class NbdClient {
@@ -14,50 +15,86 @@ export default class NbdClient {
   #waitingForLength = 0
   #nbDiskBlocks = 0
   #handle = 0
-
+  #secure = false
   #queries = {}
-  constructor({ address, port = 10809, exportname, cert }) {
+  constructor({ address, port = 10809, exportname, cert, secure = false }) {
     this.#address = address
     this.#port = port
     this.#exportname = exportname
     this.#cert = cert
-    this.#client = new Socket()
+    this.#secure = secure
   }
 
   get nbBlocks() {
     return this.#nbDiskBlocks
   }
-  async connect() {
+
+  async #addListenners() {
     const client = this.#client
-    return new Promise(resolve => {
-      client.connect(this.#port, this.#address, async () => {
-        await this.#handshake()
-        resolve()
-      })
+    client.on('data', data => {
+      this.#buffer = Buffer.concat([this.#buffer, Buffer.from(data)])
 
-      client.on('data', data => {
-        this.#buffer = Buffer.concat([this.#buffer, Buffer.from(data)])
-
-        if (this.#readPromiseResolve && this.#buffer.length >= this.#waitingForLength) {
-          this.#readPromiseResolve(this.#takeFromBuffer(this.#waitingForLength))
-          this.#readPromiseResolve = null
-          this.#waitingForLength = 0
-        } else {
-          if (!this.#readPromiseResolve && this.#buffer.length > 4) {
-            if (this.#buffer.readInt32BE(0) === 0x67446698) {
-              this.#readResponse()
-            }
+      if (this.#readPromiseResolve && this.#buffer.length >= this.#waitingForLength) {
+        this.#readPromiseResolve(this.#takeFromBuffer(this.#waitingForLength))
+        this.#readPromiseResolve = null
+        this.#waitingForLength = 0
+      } else {
+        if (!this.#readPromiseResolve && this.#buffer.length > 4) {
+          if (this.#buffer.readInt32BE(0) === 0x67446698) {
+            this.#readResponse()
           }
         }
-      })
+      }
+    })
 
-      client.on('close', function () {
-        console.log('Connection closed')
-      })
-      client.on('error', function (err) {
-        console.error('ERRROR', err)
+    client.on('close', function () {
+      console.log('Connection closed')
+    })
+    client.on('error', function (err) {
+      console.error('ERRROR', err)
+    })
+  }
+
+  async #tlsConnect() {
+    return new Promise(resolve => {
+      this.#client = connect(
+        {
+          socket: this.#client,
+          rejectUnauthorized: false,
+          // Support XS <= 6.5 with Node => 12
+          minVersion: 'TLSv1',
+        },
+        resolve
+      )
+      this.#addListenners()
+    })
+  }
+  async #unsecureConnect() {
+    console.log('unsecure connect')
+    this.#client = new Socket()
+    this.#addListenners()
+    return new Promise((resolve, reject) => {
+      this.#client.connect(this.#port, this.#address, () => {
+        console.log('connected will resolve')
+        resolve()
       })
     })
+  }
+  async connect() {
+    await this.#unsecureConnect()
+    await this.#handshake()
+  }
+
+  async #sendOption(option, buffer = Buffer.alloc(0)) {
+    await this.#writeToSocket(Buffer.from('IHAVEOPT'))
+    await this.#writeToSocketInt32(option)
+    await this.#writeToSocketInt32(buffer.length)
+    await this.#writeToSocket(buffer)
+    assert(await this.#readFromSocketInt64(), 0x3e889045565a9) //magic number everywhere
+    assert(await this.#readFromSocketInt32(), option) // the option passed
+    assert(await this.#readFromSocketInt32(), 1) // ACK
+    const length = await this.#readFromSocketInt32()
+    assert(length === 0) // length
   }
 
   async #handshake() {
@@ -68,10 +105,18 @@ export default class NbdClient {
     assert(flags === 1) // only FIXED_NEWSTYLE one is supported
     await this.#writeToSocketInt32(1) //client also support  NBD_FLAG_C_FIXED_NEWSTYLE
 
+    if (this.#secure) {
+      // upgrade socket to TLS
+      await this.#sendOption(5) //command NBD_OPT_STARTTLS
+      await this.#tlsConnect()
+      console.log('switched to TLS')
+    }
+
     // send export name it's also implictly closing the negociation phase
     await this.#writeToSocket(Buffer.from('IHAVEOPT'))
     await this.#writeToSocketInt32(1) //command NBD_OPT_EXPORT_NAME
     await this.#writeToSocketInt32(this.#exportname.length)
+
     await this.#writeToSocket(Buffer.from(this.#exportname))
     // 8 + 2 + 124
     const answer = await this.#readFromSocket(134)

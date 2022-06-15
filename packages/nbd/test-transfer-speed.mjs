@@ -17,6 +17,23 @@ const xapi = new Xapi({
 })
 await xapi.connect()
 
+let networks = await xapi.call('network.get_all_records')
+console.log({ networks })
+let nbdNetworks = Object.values(networks).filter(
+  network => network.purpose.includes('nbd') || network.purpose.includes('insecure_nbd')
+)
+
+let secure = false
+if (!nbdNetworks.length) {
+  console.log(`you don't have any nbd enabled network`)
+  console.log(`please add a purpose of nbd (to use tls) or insecure_nbd to oneof the host network`)
+  process.exit()
+}
+
+const network = networks[0]
+secure = network.purpose.includes('nbd')
+console.log(`we will use network ${network.name_label} ${secure ? 'with' : 'without'} TLS`)
+
 const rl = readline.createInterface({ input, output })
 const question = text => {
   return new Promise(resolve => {
@@ -65,6 +82,7 @@ if (!nbd) {
   process.exit()
 }
 
+nbd.secure = secure
 const client = new NbdClient(nbd)
 await client.connect()
 

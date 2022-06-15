@@ -10,12 +10,29 @@ import zlib from 'node:zlib'
 const xapi = new Xapi({
   auth: {
     user: 'root',
-    password: '',
+    password: 'vateslab',
   },
   url: '172.16.210.11',
   allowUnauthorized: true,
 })
 await xapi.connect()
+
+let networks = await xapi.call('network.get_all_records')
+
+let nbdNetworks = Object.values(networks).filter(
+  network => network.purpose.includes('nbd') || network.purpose.includes('insecure_nbd')
+)
+
+let secure = false
+if (!nbdNetworks.length) {
+  console.log(`you don't have any nbd enabled network`)
+  console.log(`please add a purpose of nbd (to use tls) or insecure_nbd to oneof the host network`)
+  process.exit()
+}
+
+const network = nbdNetworks[0]
+secure = network.purpose.includes('nbd')
+console.log(`we will use network **${network.name_label}** ${secure ? 'with' : 'without'} TLS`)
 
 const rl = readline.createInterface({ input, output })
 const question = text => {
@@ -30,8 +47,9 @@ do {
   try {
     vmRef = xapi.getObject(vmuuid).$ref
   } catch (e) {
-    console.log(e)
+    //console.log(e)
     console.log('maybe the objects was not loaded, try again ')
+    await new Promise(resolve => setTimeout(resolve, 1000))
   }
 } while (!vmRef)
 
@@ -89,6 +107,8 @@ if (!nbd) {
   process.exit()
 }
 
+nbd.secure = true
+//console.log(nbd)
 const client = new NbdClient(nbd)
 await client.connect()
 
@@ -97,7 +117,8 @@ await client.connect()
 const stats = {}
 async function getChangedNbdBlocks(changed, concurrency, blockSize) {
   let nbModified = 0,
-    size = 0, compressedSize =0
+    size = 0,
+    compressedSize = 0
   const start = new Date()
   console.log('### with concurrency ', concurrency, ' blockSize ', blockSize / 1024 / 1024, 'MB')
   const interval = setInterval(() => {
@@ -111,8 +132,8 @@ async function getChangedNbdBlocks(changed, concurrency, blockSize) {
       }
       const data = await client.readBlock(blockIndex, blockSize)
 
-      await new Promise(resolve=>{
-        zlib.gzip(data, { level: zlib.constants.Z_BEST_SPEED }, (_,compressed)=>{
+      await new Promise(resolve => {
+        zlib.gzip(data, { level: zlib.constants.Z_BEST_SPEED }, (_, compressed) => {
           compressedSize += compressed.length
           resolve()
         })
@@ -126,7 +147,7 @@ async function getChangedNbdBlocks(changed, concurrency, blockSize) {
   )
   clearInterval(interval)
   console.log('duration :', new Date() - start)
-  console.log('read : ', size, 'octets, compressed: ',compressedSize, 'ratio ', size/compressedSize )
+  console.log('read : ', size, 'octets, compressed: ', compressedSize, 'ratio ', size / compressedSize)
   console.log('speed : ', Math.round(((size / 1024 / 1024) * 1000) / (new Date() - start)), 'MB/s')
   stats[blockSize][concurrency] = Math.round(((size / 1024 / 1024) * 1000) / (new Date() - start))
 }
@@ -161,7 +182,7 @@ console.log('## will check full download of the base vdi ')
 async function getFullBlocks(concurrency, blockSize) {
   let nbModified = 0,
     size = 0,
-    compressedSize= 0
+    compressedSize = 0
   console.log('### with concurrency ', concurrency)
   const start = new Date()
   function* blockIterator() {
@@ -176,8 +197,8 @@ async function getFullBlocks(concurrency, blockSize) {
     blockIterator(),
     async blockIndex => {
       const data = await client.readBlock(blockIndex, blockSize)
-      await new Promise(resolve=>{
-        zlib.gzip(data, { level: zlib.constants.Z_BEST_SPEED }, (_,compressed)=>{
+      await new Promise(resolve => {
+        zlib.gzip(data, { level: zlib.constants.Z_BEST_SPEED }, (_, compressed) => {
           compressedSize += compressed.length
         })
         resolve()
@@ -192,7 +213,7 @@ async function getFullBlocks(concurrency, blockSize) {
   clearInterval(interval)
   console.log('duration :', new Date() - start)
   console.log('nb blocks : ', nbModified)
-  console.log('read : ', size, 'octets, compressed: ',compressedSize, 'ratio ', size/compressedSize )
+  console.log('read : ', size, 'octets, compressed: ', compressedSize, 'ratio ', size / compressedSize)
   console.log('speed : ', Math.round(((size / 1024 / 1024) * 1000) / (new Date() - start)), 'MB/s')
 }
 await getFullBlocks(16, 512 * 1024) // a good sweet spot
