@@ -30,9 +30,9 @@ if (!nbdNetworks.length) {
   process.exit()
 }
 
-const network = networks[0]
+const network = nbdNetworks[0]
 secure = network.purpose.includes('nbd')
-console.log(`we will use network ${network.name_label} ${secure ? 'with' : 'without'} TLS`)
+console.log(`we will use network **${network.name_label}** ${secure ? 'with' : 'without'} TLS`)
 
 const rl = readline.createInterface({ input, output })
 const question = text => {
