@@ -7,6 +7,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [VM] Attempting to shutdown/restart a protected VM should display a modal with the error and the ability to bypass it (PR [#6295](https://github.com/vatesfr/xen-orchestra/pull/6295))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -32,5 +34,6 @@
 - @vates/event-listeners-manager patch
 - @vates/read-chunk major
 - xo-server patch
+- xo-web patch
 
 <!--packages-end-->
