@@ -258,7 +258,9 @@ export default {
 
     blockedOperations: {
       set(operations, vm) {
-        return vm.update_blocked_operations(mapValues(operations, value => (value ? 'true' : null)))
+        return vm.update_blocked_operations(
+          mapValues(operations, value => (typeof value === 'string' ? value : value ? 'true' : null))
+        )
       },
     },
 

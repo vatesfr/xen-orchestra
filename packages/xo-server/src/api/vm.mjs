@@ -654,7 +654,7 @@ set.params = {
 
   virtualizationMode: { type: 'string', optional: true },
 
-  blockedOperations: { type: 'object', optional: true },
+  blockedOperations: { type: 'object', optional: true, properties: { '*': { type: ['boolean', 'null', 'string'] } } },
 
   suspendSr: { type: ['string', 'null'], optional: true },
 }
