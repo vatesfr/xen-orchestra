@@ -75,11 +75,15 @@ const debounceResourceFactory = factory =>
   }
 
 class RemoteAdapter {
-  constructor(handler, { debounceResource = res => res, dirMode, vhdDirectoryCompression } = {}) {
+  constructor(
+    handler,
+    { debounceResource = res => res, dirMode, vhdDirectoryCompression, vhdDirectoryEncryption } = {}
+  ) {
     this._debounceResource = debounceResource
     this._dirMode = dirMode
     this._handler = handler
     this._vhdDirectoryCompression = vhdDirectoryCompression
+    this._vhdDirectoryEncryption = vhdDirectoryEncryption
     this._readCacheListVmBackups = synchronized.withKey()(this._readCacheListVmBackups)
   }
 
@@ -201,7 +205,9 @@ class RemoteAdapter {
 
       const isVhdDirectory = vhd instanceof VhdDirectory
       return isVhdDirectory
-        ? this.#useVhdDirectory() && this.#getCompressionType() === vhd.compressionType
+        ? this.#useVhdDirectory() &&
+            this.#getCompressionType() === vhd.compressionType &&
+            this.#getEncryption() === vhd.encryption
         : !this.#useVhdDirectory()
     })
   }
@@ -289,6 +295,10 @@ class RemoteAdapter {
 
   #getCompressionType() {
     return this._vhdDirectoryCompression
+  }
+
+  #getEncryption() {
+    return this._vhdDirectoryEncryption
   }
 
   #useVhdDirectory() {
@@ -576,6 +586,7 @@ class RemoteAdapter {
       await createVhdDirectoryFromStream(handler, dataPath, input, {
         concurrency: 16,
         compression: this.#getCompressionType(),
+        encryption: this.#getEncryption(),
         async validator() {
           await input.task
           return validator.apply(this, arguments)

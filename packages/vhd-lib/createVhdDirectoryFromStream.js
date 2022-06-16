@@ -5,8 +5,13 @@ const { VhdDirectory } = require('./Vhd/VhdDirectory.js')
 const { Disposable } = require('promise-toolbox')
 const { asyncEach } = require('@vates/async-each')
 
-const buildVhd = Disposable.wrap(async function* (handler, path, inputStream, { concurrency, compression }) {
-  const vhd = yield VhdDirectory.create(handler, path, { compression })
+const buildVhd = Disposable.wrap(async function* (
+  handler,
+  path,
+  inputStream,
+  { concurrency, compression, encryption }
+) {
+  const vhd = yield VhdDirectory.create(handler, path, { compression, encryption })
   await asyncEach(
     parseVhdStream(inputStream),
     async function (item) {
@@ -41,10 +46,10 @@ exports.createVhdDirectoryFromStream = async function createVhdDirectoryFromStre
   handler,
   path,
   inputStream,
-  { validator, concurrency = 16, compression } = {}
+  { validator, concurrency = 16, compression, encryption } = {}
 ) {
   try {
-    await buildVhd(handler, path, inputStream, { concurrency, compression })
+    await buildVhd(handler, path, inputStream, { concurrency, compression, encryption })
     if (validator !== undefined) {
       await validator.call(this, path)
     }

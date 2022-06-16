@@ -5,57 +5,10 @@ const { createLogger } = require('@xen-orchestra/log')
 const { fuFooter, fuHeader, checksumStruct } = require('../_structs')
 const { test, set: setBitmap } = require('../_bitmap')
 const { VhdAbstract } = require('./VhdAbstract')
+const { _getCompressor: getCompressor } = require('./_compressors')
+const { _getEncryptor: getEncryptor } = require('./_encryptors')
 const assert = require('assert')
-const promisify = require('promise-toolbox/promisify')
-const zlib = require('zlib')
-
 const { debug } = createLogger('vhd-lib:VhdDirectory')
-
-const NULL_COMPRESSOR = {
-  compress: buffer => buffer,
-  decompress: buffer => buffer,
-  baseOptions: {},
-}
-
-const COMPRESSORS = {
-  gzip: {
-    compress: (
-      gzip => buffer =>
-        gzip(buffer, { level: zlib.constants.Z_BEST_SPEED })
-    )(promisify(zlib.gzip)),
-    decompress: promisify(zlib.gunzip),
-  },
-  brotli: {
-    compress: (
-      brotliCompress => buffer =>
-        brotliCompress(buffer, {
-          params: {
-            [zlib.constants.BROTLI_PARAM_QUALITY]: zlib.constants.BROTLI_MIN_QUALITY,
-          },
-        })
-    )(promisify(zlib.brotliCompress)),
-    decompress: promisify(zlib.brotliDecompress),
-  },
-}
-
-// inject identifiers
-for (const id of Object.keys(COMPRESSORS)) {
-  COMPRESSORS[id].id = id
-}
-
-function getCompressor(compressorType) {
-  if (compressorType === undefined) {
-    return NULL_COMPRESSOR
-  }
-
-  const compressor = COMPRESSORS[compressorType]
-
-  if (compressor === undefined) {
-    throw new Error(`Compression type ${compressorType} is not supported`)
-  }
-
-  return compressor
-}
 
 // ===================================================================
 // Directory format
@@ -77,9 +30,14 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
   #header
   footer
   #compressor
+  #encryptor
+  #encryption
 
   get compressionType() {
     return this.#compressor.id
+  }
+  get encryption() {
+    return this.#encryption
   }
 
   set header(header) {
@@ -116,9 +74,9 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
     }
   }
 
-  static async create(handler, path, { flags = 'wx+', compression } = {}) {
+  static async create(handler, path, { flags = 'wx+', compression, encryption } = {}) {
     await handler.mkdir(path)
-    const vhd = new VhdDirectory(handler, path, { flags, compression })
+    const vhd = new VhdDirectory(handler, path, { flags, compression, encryption })
     return {
       dispose: () => {},
       value: vhd,
@@ -131,6 +89,8 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
     this._path = path
     this._opts = opts
     this.#compressor = getCompressor(opts?.compression)
+    this.#encryption = opts?.encryption
+    this.#encryptor = getEncryptor(opts?.encryption)
   }
 
   async readBlockAllocationTable() {
@@ -150,7 +110,8 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
     // here we can implement compression and / or crypto
     const buffer = await this._handler.readFile(this._getChunkPath(partName))
 
-    const uncompressed = await this.#compressor.decompress(buffer)
+    const decrypted = await this.#encryptor.decrypt(buffer)
+    const uncompressed = await this.#compressor.decompress(decrypted)
     return {
       buffer: uncompressed,
     }
@@ -164,7 +125,8 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
     )
 
     const compressed = await this.#compressor.compress(buffer)
-    return this._handler.outputFile(this._getChunkPath(partName), compressed, this._opts)
+    const encrypted = await this.#encryptor.encrypt(compressed)
+    return this._handler.outputFile(this._getChunkPath(partName), encrypted, this._opts)
   }
 
   // put block in subdirectories to limit impact when doing directory listing
@@ -246,7 +208,8 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
     if (
       !(child instanceof VhdDirectory) ||
       this._handler !== child._handler ||
-      child.compressionType !== this.compressionType
+      child.compressionType !== this.compressionType ||
+      child.encryption !== this.encryption
     ) {
       return super.coalesceBlock(child, blockId)
     }
@@ -273,11 +236,12 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
 
   async #writeChunkFilters() {
     const compressionType = this.compressionType
+    const encryption = this.encryption
     const path = this._path + '/chunk-filters.json'
-    if (compressionType === undefined) {
+    if (compressionType === undefined && encryption === undefined) {
       await this._handler.unlink(path)
     } else {
-      await this._handler.writeFile(path, JSON.stringify([compressionType]), { flags: 'w' })
+      await this._handler.writeFile(path, JSON.stringify([compressionType, encryption]), { flags: 'w' })
     }
   }
 
@@ -288,6 +252,9 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
       }
       throw error
     })
+    assert(chunkFilters.length, 2)
     this.#compressor = getCompressor(chunkFilters[0])
+    this.#encryption = chunkFilters[1]
+    this.#encryptor = getEncryptor(chunkFilters[1])
   }
 }

@@ -88,6 +88,7 @@ snapshotNameLabelTpl = '[XO Backup {job.name}] {vm.name_label}'
 listingDebounce = '1 min'
 
 vhdDirectoryCompression = 'brotli'
+vhdDirectoryEncryption = '{"algorithm": "aes-256-cbc", "key": "45eb3ffe48dd29e7bd04a7941ba425f2" ,"ivLength": 16}'
 
 # This is a work-around.
 #

@@ -71,6 +71,7 @@ class BackupWorker {
         debounceResource: this.debounceResource,
         dirMode: this.#config.dirMode,
         vhdDirectoryCompression: this.#config.vhdDirectoryCompression,
+        vhdDirectoryEncryption: this.#config.vhdDirectoryEncryption,
       })
     } finally {
       await handler.forget()
