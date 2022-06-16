@@ -12,7 +12,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [VDI Import] Fix `this._getOrWaitObject is not a function`
-- [VM delete] In case the "Protect from accidental deletion" is set to `true` on a VM, a force modal is displayed when trying to delete it. (PR [#6290](https://github.com/vatesfr/xen-orchestra/pull/6290))
+- [VM] Attempting to delete a protected VM should display a modal with the error and the ability to bypass it (PR [#6290](https://github.com/vatesfr/xen-orchestra/pull/6290))
 
 ### Packages to release
 
