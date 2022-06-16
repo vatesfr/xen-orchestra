@@ -466,7 +466,7 @@ export default decorate([
             <fieldset className='form-group form-group'>
               <div className='input-group form-group'>
                 <span className='align-middle'>
-                  {_('remoteUseVhdDirectory')}
+                  {_('remoteUseVhdDirectory')}{' '}
                   <Tooltip content={_('remoteUseVhdDirectoryTooltip')}>
                     <Icon icon='info' size='lg' />
                   </Tooltip>
