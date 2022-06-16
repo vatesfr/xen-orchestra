@@ -666,13 +666,26 @@ set.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function restart({ vm, force = false }) {
+export const restart = defer(async function ($defer, { vm, force = false, forceBlockedOperation = false }) {
+  const xapi = this.getXapi(vm)
+  if (forceBlockedOperation) {
+    await Promise.all(
+      ['reboot', 'clean_reboot', 'hard_reboot'].map(async operation => {
+        const reason = vm.blockedOperations[operation]
+        if (reason !== undefined) {
+          await xapi.call('VM.remove_from_blocked_operations', vm._xapiRef, operation)
+          $defer(() => xapi.call('VM.add_to_blocked_operations', vm._xapiRef, operation, reason))
+        }
+      })
+    )
+  }
   return this.getXapi(vm).rebootVm(vm._xapiId, { hard: force })
-}
+})
 
 restart.params = {
   id: { type: 'string' },
   force: { type: 'boolean', optional: true },
+  forceBlockedOperation: { type: 'boolean', optional: true },
 }
 
 restart.resolve = {
@@ -893,8 +906,20 @@ start.resolve = {
 // - if !force → clean shutdown
 // - if force is true → hard shutdown
 // - if force is integer → clean shutdown and after force seconds, hard shutdown.
-export async function stop({ vm, force }) {
+export const stop = defer(async function ($defer, { vm, force, forceBlockedOperation = false }) {
   const xapi = this.getXapi(vm)
+
+  if (forceBlockedOperation) {
+    await Promise.all(
+      ['shutdown', 'clean_shutdown', 'hard_shutdown'].map(async operation => {
+        const reason = vm.blockedOperations[operation]
+        if (reason !== undefined) {
+          await xapi.call('VM.remove_from_blocked_operations', vm._xapiRef, operation)
+          $defer(() => xapi.call('VM.add_to_blocked_operations', vm._xapiRef, operation, reason))
+        }
+      })
+    )
+  }
 
   // Hard shutdown
   if (force) {
@@ -912,11 +937,12 @@ export async function stop({ vm, force }) {
 
     throw error
   }
-}
+})
 
 stop.params = {
   id: { type: 'string' },
   force: { type: 'boolean', optional: true },
+  forceBlockedOperation: { type: 'boolean', optional: true },
 }
 
 stop.resolve = {
