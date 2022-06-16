@@ -31,7 +31,7 @@
 <!--packages-start-->
 
 - @vates/read-chunk major
-- @xen-orchestra patch
+- @xen-orchestra/xapi minor
 - xo-server patch
 
 <!--packages-end-->
