@@ -61,8 +61,7 @@ export default class NbdClient {
         {
           socket: this.#client,
           rejectUnauthorized: false,
-          // Support XS <= 6.5 with Node => 12
-          minVersion: 'TLSv1',
+          cert: this.#cert,
         },
         resolve
       )
