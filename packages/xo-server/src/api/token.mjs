@@ -41,7 +41,7 @@ delete_.params = {
 
 // TODO: an user should be able to delete its own tokens.
 export async function delete_many({ tokens }) {
-  await this.deleteAuthenticationTokens({ filter: { id: { __or: tokens.map(token => token.id) } } })
+  await this.deleteAuthenticationTokens({ filter: { id: { __or: tokens } } })
 }
 
 delete_many.description = 'delete a collection of existing authentication token'
@@ -49,7 +49,7 @@ delete_many.description = 'delete a collection of existing authentication token'
 delete_many.permission = 'admin'
 
 delete_many.params = {
-  tokens: { type: 'array', items: { type: 'object' } },
+  tokens: { type: 'array', items: { type: 'string' } },
 }
 
 // -------------------------------------------------------------------

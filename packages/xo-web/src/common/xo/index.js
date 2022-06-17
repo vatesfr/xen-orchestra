@@ -2925,7 +2925,9 @@ export const deleteAuthTokens = async tokens => {
     icon: 'user',
     title: _('deleteAuthTokensConfirm', { nTokens: tokens.length }),
   })
-  return _call('token.delete_many', { tokens })::tap(subscribeUserAuthTokens.forceRefresh)
+  return _call('token.delete_many', { tokens: tokens.map(token => token.id) })::tap(
+    subscribeUserAuthTokens.forceRefresh
+  )
 }
 
 export const editAuthToken = ({ description, id }) =>
