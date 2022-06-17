@@ -61,14 +61,29 @@ export default class Collection extends EventEmitter {
     return /* await */ this._get(properties)
   }
 
-  async remove(ids) {
-    if (!Array.isArray(ids)) {
-      ids = [ids]
+  // remove(id: string)
+  // remove(ids: string[])
+  // remove(properties: object)
+  async remove(properties) {
+    let ids
+    if (typeof properties === 'object') {
+      if (Array.isArray(properties)) {
+        ids = properties
+      } else {
+        ids = (await this.get(properties)).map(_ => _.id)
+        if (ids.length === 0) {
+          return false
+        }
+      }
+    } else {
+      ids = [properties]
     }
 
     await this._remove(ids)
 
     this.emit('remove', ids)
+
+    // FIXME: returns false if some ids were not removed
     return true
   }
 
