@@ -2899,7 +2899,7 @@ export const addAuthToken = async () => {
     icon: 'user',
     title: _('newAuthTokenModalTitle'),
   })
-  const expires = new Date(expiration).setUTCHours(23, 59, 59)
+  const expires = new Date(expiration).setHours(23, 59, 59)
   return _call('token.create', {
     description,
     expiresIn: Number.isNaN(expires) ? undefined : expires - new Date().getTime(),
@@ -2925,9 +2925,7 @@ export const deleteAuthTokens = async tokens => {
     icon: 'user',
     title: _('deleteAuthTokensConfirm', { nTokens: tokens.length }),
   })
-  return Promise.all(tokens.map(({ id }) => _call('token.delete', { token: id })))::tap(
-    subscribeUserAuthTokens.forceRefresh
-  )
+  return _call('token.delete_many', { tokens })::tap(subscribeUserAuthTokens.forceRefresh)
 }
 
 export const editAuthToken = ({ description, id }) =>

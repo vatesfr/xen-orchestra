@@ -34,7 +34,7 @@ export default class NewAuthTokenModal extends BaseComponent {
             <Col size={4}>{_('authTokenDescription')}</Col>
             <Col size={8}>
               <textarea
-                className='form-control text-monospace'
+                className='form-control'
                 onChange={this.linkState('description')}
                 rows={10}
                 value={description ?? ''}

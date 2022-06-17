@@ -305,7 +305,7 @@ const COLUMNS_AUTH_TOKENS = [
     itemRenderer: token => (
       <Text value={token.description} onChange={description => editAuthToken({ ...token, description })} />
     ),
-    name: _('authTokenDescription'),
+    name: _('description'),
     sortCriteria: 'description',
   },
   {
@@ -313,15 +313,15 @@ const COLUMNS_AUTH_TOKENS = [
       if (created_at !== undefined) {
         return dateFormat(created_at)
       }
-      return _('authTokenNotDefined')
+      return _('notDefined')
     },
-    name: _('authTokenCreatedAt'),
+    name: _('creation'),
     sortCriteria: 'created_at',
   },
   {
     default: true,
     itemRenderer: ({ expiration }) => dateFormat(expiration),
-    name: _('authTokenExpiration'),
+    name: _('expiration'),
     sortCriteria: 'expiration',
   },
 ]

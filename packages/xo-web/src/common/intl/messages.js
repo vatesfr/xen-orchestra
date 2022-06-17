@@ -4,8 +4,12 @@
 const forEach = require('lodash/forEach')
 
 const messages = {
+  creation: 'Creation',
+  description: 'Description',
+  expiration: 'Expiration',
   keyValue: '{key}: {value}',
 
+  notDefined: 'Not defined',
   statusConnecting: 'Connecting',
   statusDisconnected: 'Disconnected',
   statusLoading: 'Loading…',
@@ -2046,10 +2050,6 @@ const messages = {
 
   // ----- User -----
   authToken: 'Token',
-  authTokenCreatedAt: 'Creation',
-  authTokenDescription: 'Description',
-  authTokenExpiration: 'Expiration',
-  authTokenNotDefined: 'Not defined',
   authTokens: 'Authentication tokens',
   username: 'Username',
   password: 'Password',

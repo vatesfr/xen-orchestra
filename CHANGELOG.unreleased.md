@@ -7,7 +7,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [User] User tokens management throught xo interface (PR [#6276](https://github.com/vatesfr/xen-orchestra/pull/6276))
+- [User] User tokens management through XO interface (PR [#6276](https://github.com/vatesfr/xen-orchestra/pull/6276))
 
 ### Bug fixes
 
