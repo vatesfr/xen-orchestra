@@ -2785,7 +2785,14 @@ export const deleteUsers = users =>
 export const editUser = (user, { email, password, permission }) =>
   _call('user.set', { id: resolveId(user), email, password, permission })::tap(subscribeUsers.forceRefresh)
 
-const _signOutFromEverywhereElse = () => _call('token.deleteAll', { except: cookies.get('token') })
+const _signOutFromEverywhereElse = () =>
+  _call('token.delete', {
+    patern: {
+      id: {
+        __not: cookies.get('token'),
+      },
+    },
+  })
 
 export const signOutFromEverywhereElse = () =>
   _signOutFromEverywhereElse().then(
@@ -2914,7 +2921,7 @@ export const deleteAuthToken = async ({ id }) => {
     icon: 'user',
     title: _('deleteAuthTokenConfirm'),
   })
-  return _call('token.delete', { token: id })::tap(subscribeUserAuthTokens.forceRefresh)
+  return _call('token.delete', { tokens: [id] })::tap(subscribeUserAuthTokens.forceRefresh)
 }
 
 export const deleteAuthTokens = async tokens => {
@@ -2925,9 +2932,7 @@ export const deleteAuthTokens = async tokens => {
     icon: 'user',
     title: _('deleteAuthTokensConfirm', { nTokens: tokens.length }),
   })
-  return _call('token.delete_many', { tokens: tokens.map(token => token.id) })::tap(
-    subscribeUserAuthTokens.forceRefresh
-  )
+  return _call('token.delete', { tokens: tokens.map(token => token.id) })::tap(subscribeUserAuthTokens.forceRefresh)
 }
 
 export const editAuthToken = ({ description, id }) =>
