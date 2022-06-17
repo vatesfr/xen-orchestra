@@ -17,7 +17,7 @@ export default class NewAuthTokenModal extends BaseComponent {
       <div>
         <div className='pb-1'>
           <SingleLineRow>
-            <Col size={4}>{_('authTokenExpiration')}</Col>
+            <Col size={4}>{_('expiration')}</Col>
             <Col size={8}>
               <input
                 className='form-control'
@@ -31,7 +31,7 @@ export default class NewAuthTokenModal extends BaseComponent {
         </div>
         <div className='pb-1'>
           <SingleLineRow>
-            <Col size={4}>{_('authTokenDescription')}</Col>
+            <Col size={4}>{_('description')}</Col>
             <Col size={8}>
               <textarea
                 className='form-control'
