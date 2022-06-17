@@ -198,7 +198,15 @@ export default class {
   }
 
   async deleteAuthenticationToken(id) {
-    if (!(await this._tokens.remove(id))) {
+    let predicate
+    const { apiContext } = this._app
+    if (apiContext === undefined || apiContext.permission === 'admin') {
+      predicate = id
+    } else {
+      predicate = { id, user_id: apiContext.user.id }
+    }
+
+    if (!(await this._tokens.remove(predicate))) {
       throw noSuchAuthenticationToken(id)
     }
   }
