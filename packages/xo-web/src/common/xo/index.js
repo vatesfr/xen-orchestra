@@ -2787,7 +2787,7 @@ export const editUser = (user, { email, password, permission }) =>
 
 const _signOutFromEverywhereElse = () =>
   _call('token.delete', {
-    patern: {
+    pattern: {
       id: {
         __not: cookies.get('token'),
       },

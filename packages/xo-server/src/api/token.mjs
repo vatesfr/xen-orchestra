@@ -25,8 +25,8 @@ create.params = {
 
 // -------------------------------------------------------------------
 
-async function delete_({ patern, tokens }) {
-  await this.deleteAuthenticationTokens({ filter: patern ?? { id: { __or: tokens } } })
+async function delete_({ pattern, tokens }) {
+  await this.deleteAuthenticationTokens({ filter: pattern ?? { id: { __or: tokens } } })
 }
 
 export { delete_ as delete }
@@ -35,9 +35,8 @@ delete_.description = 'delete an existing authentication token'
 
 delete_.params = {
   tokens: { type: 'array', optional: true, items: { type: 'string' } },
-  patern: { type: 'object', optional: true },
+  pattern: { type: 'object', optional: true },
 }
-
 
 // -------------------------------------------------------------------
 
