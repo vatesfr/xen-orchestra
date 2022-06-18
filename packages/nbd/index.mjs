@@ -3,9 +3,7 @@ import { Xapi } from 'xen-api'
 import readline from 'node:readline'
 import { stdin as input, stdout as output } from 'node:process'
 import { asyncMap } from '@xen-orchestra/async-map'
-import { asyncEach } from '@vates/async-each'
-import { CancelToken } from 'promise-toolbox'
-import zlib from 'node:zlib'
+import { downloadVhd, getFullBlocks, getChangedNbdBlocks } from './utils'
 
 const xapi = new Xapi({
   auth: {
@@ -115,42 +113,6 @@ await client.connect()
 // @todo : should also handle last blocks that could be incomplete
 
 const stats = {}
-async function getChangedNbdBlocks(changed, concurrency, blockSize) {
-  let nbModified = 0,
-    size = 0,
-    compressedSize = 0
-  const start = new Date()
-  console.log('### with concurrency ', concurrency, ' blockSize ', blockSize / 1024 / 1024, 'MB')
-  const interval = setInterval(() => {
-    console.log(`${nbModified} block handled in ${new Date() - start} ms`)
-  }, 5000)
-  await asyncEach(
-    changed,
-    async blockIndex => {
-      if (new Date() - start > 30000) {
-        return
-      }
-      const data = await client.readBlock(blockIndex, blockSize)
-
-      await new Promise(resolve => {
-        zlib.gzip(data, { level: zlib.constants.Z_BEST_SPEED }, (_, compressed) => {
-          compressedSize += compressed.length
-          resolve()
-        })
-      })
-      size += data?.length ?? 0
-      nbModified++
-    },
-    {
-      concurrency,
-    }
-  )
-  clearInterval(interval)
-  console.log('duration :', new Date() - start)
-  console.log('read : ', size, 'octets, compressed: ', compressedSize, 'ratio ', size / compressedSize)
-  console.log('speed : ', Math.round(((size / 1024 / 1024) * 1000) / (new Date() - start)), 'MB/s')
-  stats[blockSize][concurrency] = Math.round(((size / 1024 / 1024) * 1000) / (new Date() - start))
-}
 
 for (const nbBlocksRead of [32, 16, 8, 4, 2, 1]) {
   const blockSize = nbBlocksRead * 64 * 1024
@@ -170,8 +132,8 @@ for (const nbBlocksRead of [32, 16, 8, 4, 2, 1]) {
   }
   console.log(changed.length, 'block changed')
   for (const concurrency of [32, 16, 8, 4, 2]) {
-    await getChangedNbdBlocks(changed, concurrency, blockSize)
-    console.table(stats)
+    const { speed } = await getChangedNbdBlocks(client, changed, concurrency, blockSize)
+    stats[blockSize][concurrency] = speed
   }
 }
 console.log('speed summary')
@@ -179,75 +141,12 @@ console.table(stats)
 
 console.log('## will check full download of the base vdi ')
 
-async function getFullBlocks(concurrency, blockSize) {
-  let nbModified = 0,
-    size = 0,
-    compressedSize = 0
-  console.log('### with concurrency ', concurrency)
-  const start = new Date()
-  function* blockIterator() {
-    for (let i = 0; i < (cbt.length * 8) / (blockSize / (64 * 1024)); i++) {
-      yield i
-    }
-  }
-  const interval = setInterval(() => {
-    console.log(`${nbModified} block handled in ${new Date() - start} ms`)
-  }, 5000)
-  await asyncEach(
-    blockIterator(),
-    async blockIndex => {
-      const data = await client.readBlock(blockIndex, blockSize)
-      await new Promise(resolve => {
-        zlib.gzip(data, { level: zlib.constants.Z_BEST_SPEED }, (_, compressed) => {
-          compressedSize += compressed.length
-        })
-        resolve()
-      })
-      size += data?.length ?? 0
-      nbModified++
-    },
-    {
-      concurrency,
-    }
-  )
-  clearInterval(interval)
-  console.log('duration :', new Date() - start)
-  console.log('nb blocks : ', nbModified)
-  console.log('read : ', size, 'octets, compressed: ', compressedSize, 'ratio ', size / compressedSize)
-  console.log('speed : ', Math.round(((size / 1024 / 1024) * 1000) / (new Date() - start)), 'MB/s')
-}
-await getFullBlocks(16, 512 * 1024) // a good sweet spot
+await getFullBlocks(client, 16, 512 * 1024) // a good sweet spot
 
 console.log('## will check vhd delta export  size and speed')
 
-async function downloadVhd(query) {
-  const startStream = new Date()
-  let sizeStream = 0
-  let nbChunk = 0
-
-  const interval = setInterval(() => {
-    console.log(`${nbChunk} chunks , ${sizeStream} octets handled in ${new Date() - startStream} ms`)
-  }, 5000)
-  const stream = await xapi.getResource(CancelToken.none, '/export_raw_vdi/', {
-    query,
-  })
-  for await (const chunk of stream) {
-    sizeStream += chunk.length
-    nbChunk++
-  }
-  clearInterval(interval)
-  console.log('Stream duration :', new Date() - startStream)
-  console.log('Stream read : ', sizeStream, 'octets')
-  console.log('speed : ', Math.round(((sizeStream / 1024 / 1024) * 1000) / (new Date() - startStream)), 'MB/s')
-}
-
-await downloadVhd({
-  format: 'vhd',
-  base: snapshotRef,
-  vdi: snapshotTarget,
-})
 console.log('## will check full vhd export  size and speed')
-await downloadVhd({
+await downloadVhd(xapi, {
   format: 'vhd',
   vdi: snapshotTarget,
 })

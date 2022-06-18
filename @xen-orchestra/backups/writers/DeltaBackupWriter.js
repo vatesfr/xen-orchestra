@@ -19,7 +19,7 @@ const { AbstractDeltaWriter } = require('./_AbstractDeltaWriter.js')
 const { checkVhd } = require('./_checkVhd.js')
 const { packUuid } = require('./_packUuid.js')
 const { Disposable } = require('promise-toolbox')
-
+const NbdClient = require('../../../packages/nbd/client.js')
 const { warn } = createLogger('xo:backups:DeltaBackupWriter')
 
 exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(AbstractDeltaWriter) {
@@ -199,12 +199,24 @@ exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(Ab
             await checkVhd(handler, parentPath)
           }
 
+          // get nbd if possible
+          const vdiRef = vm.$xapi.getObject(vdi.uuid).$ref
+          let nbdClient
+          try {
+            const [nbdInfo] = await vm.$xapi.call('VDI.get_nbd_info', vdiRef)
+            nbdClient = new NbdClient(nbdInfo)
+            await nbdClient.connect()
+          } catch (e) {
+            console.log('NBD error', e)
+          }
+
           await adapter.writeVhd(path, deltaExport.streams[`${id}.vhd`], {
             // no checksum for VHDs, because they will be invalidated by
             // merges and chainings
             checksum: false,
             validator: tmpPath => checkVhd(handler, tmpPath),
             writeBlockConcurrency: this._backup.config.writeBlockConcurrency,
+            nbdClient
           })
 
           if (isDelta) {
