@@ -212,9 +212,14 @@ export default class {
   }
 
   async deleteAuthenticationTokens({ filter }) {
-    return Promise.all(
-      (await this._tokens.get()).filter(createPredicate(filter)).map(({ id }) => this.deleteAuthenticationToken(id))
-    )
+    let predicate
+    const { apiContext } = this._app
+    if (apiContext !== undefined && apiContext.permission !== 'admin') {
+      predicate = { user_id: apiContext.user.id }
+    }
+
+    const db = this._tokens
+    return db.remove((await db.get(predicate)).filter(createPredicate(filter)).map(({ id }) => id))
   }
 
   async getAuthenticationToken(properties) {
