@@ -169,10 +169,11 @@ class StreamNbdParser extends StreamParser {
     const SECTOR_BITMAP = Buffer.alloc(512, 255)
     const index = this._index
     const client = this.#nbdClient
-    for (const item of index) {
-      // we read in a raw file, so the block position is id x length, and have nothing to do with the offset
-      // in the vhd stream
+
+    async function iteratee(item) {
       try {
+        // we read in a raw file, so the block position is id x length, and have nothing to do with the offset
+        // in the vhd stream
         const rawDataLength = item.size - SECTOR_BITMAP.length
         let data = await client.readBlock(item.id, rawDataLength)
 
@@ -188,11 +189,41 @@ class StreamNbdParser extends StreamParser {
           data,
           buffer,
         }
-        yield block
+        return block
       } catch (e) {
         // fail on the last block
         console.log(e)
       }
+    }
+
+    const promiseQueue = []
+
+    // parallel yielding
+    function next(position) {
+      const item = index.shift()
+      if (item) {
+        promiseQueue[position] = iteratee(item).then(result => {
+          return { result, position }
+        })
+      } else {
+        promiseQueue[position] = undefined
+      }
+    }
+
+    for (let i = 0; i < 16; i++) {
+      next(i)
+    }
+
+    let runningPromises = []
+    while (true) {
+      runningPromises = promiseQueue.filter(p => p !== undefined)
+      if (runningPromises.length === 0) {
+        break
+      }
+
+      const { result, position } = await Promise.any(runningPromises)
+      next(position)
+      yield result
     }
   }
 
