@@ -1,3 +1,4 @@
+import assert from 'assert'
 import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
 import difference from 'lodash/difference.js'
 import filter from 'lodash/filter.js'
@@ -35,6 +36,9 @@ const VERSION = '20170905'
 export default class Redis extends Collection {
   constructor({ connection, indexes = [], namespace, uri }) {
     super()
+
+    assert(!namespace.includes(':'), 'namespace must not contains ":": ' + namespace)
+    assert(!namespace.includes('_'), 'namespace must not contains "_": ' + namespace)
 
     const prefix = 'xo:' + namespace
 
