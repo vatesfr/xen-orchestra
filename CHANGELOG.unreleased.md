@@ -32,5 +32,6 @@
 
 - @vates/read-chunk major
 - xo-server patch
+- xo-vmdk-to-vhd patch
 
 <!--packages-end-->
