@@ -29,7 +29,6 @@ import { generateToken } from '../utils.mjs'
 
 const DEBOUNCE_TIME_PROXY_STATE = 60000
 
-const extractProperties = _ => _.properties
 const synchronizedWrite = synchronized()
 
 const log = createLogger('xo:proxy')
@@ -165,7 +164,7 @@ export default class Proxy {
     if (proxy === undefined) {
       throw noSuchObject(id, 'proxy')
     }
-    return extractProperties(proxy)
+    return proxy
   }
 
   async getProxy(id) {
@@ -190,7 +189,7 @@ export default class Proxy {
     )
 
     patch(proxy, { address, authenticationToken, name, vmUuid })
-    return this._db.update(proxy).then(extractProperties)
+    return this._db.update(proxy)
   }
 
   async upgradeProxyAppliance(id, ignoreRunningJobs = false) {

@@ -120,7 +120,7 @@ export default class {
       username,
     })
 
-    return server.properties
+    return server
   }
 
   async unregisterXenServer(id) {
@@ -148,39 +148,39 @@ export default class {
       throw new Error('this entry require disconnecting the server to update it')
     }
 
-    if (label !== undefined) server.set('label', label || undefined)
-    if (host) server.set('host', host)
-    if (username) server.set('username', username)
-    if (password) server.set('password', password)
+    if (label !== undefined) server.label = label || undefined
+    if (host) server.host = host
+    if (username) server.username = username
+    if (password) server.password = password
 
     if (error !== undefined) {
-      server.set('error', error)
+      server.error = error
     }
 
     if (enabled !== undefined) {
-      server.set('enabled', enabled)
+      server.enabled = enabled
     }
 
     if (readOnly !== undefined) {
-      server.set('readOnly', readOnly)
+      server.readOnly = readOnly
       if (xapi !== undefined) {
         xapi.readOnly = readOnly
       }
     }
 
     if (allowUnauthorized !== undefined) {
-      server.set('allowUnauthorized', allowUnauthorized)
+      server.allowUnauthorized = allowUnauthorized
     }
 
     if (httpProxy !== undefined) {
       // if value is null, pass undefined to the model , so it will delete this optionnal property from the Server object
-      server.set('httpProxy', httpProxy === null ? undefined : httpProxy)
+      server.httpProxy = httpProxy === null ? undefined : httpProxy
     }
     await this._servers.update(server)
   }
 
   async getXenServer(id) {
-    return (await this._getXenServer(id)).properties
+    return await this._getXenServer(id)
   }
 
   // TODO: this method will no longer be async when servers are

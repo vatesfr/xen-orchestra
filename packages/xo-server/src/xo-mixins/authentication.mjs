@@ -5,7 +5,7 @@ import { invalidCredentials, noSuchObject } from 'xo-common/api-errors.js'
 import { parseDuration } from '@vates/parse-duration'
 
 import patch from '../patch.mjs'
-import Token, { Tokens } from '../models/token.mjs'
+import { Tokens } from '../models/token.mjs'
 import { forEach, generateToken } from '../utils.mjs'
 
 // ===================================================================
@@ -183,18 +183,17 @@ export default class {
     }
 
     const now = Date.now()
-    const token = new Token({
+    const token = {
       created_at: now,
       description,
       id: await generateToken(),
       user_id: userId,
       expiration: now + duration,
-    })
+    }
 
     await this._tokens.add(token)
 
-    // TODO: use plain properties directly.
-    return token.properties
+    return token
   }
 
   async deleteAuthenticationToken(id) {
@@ -225,12 +224,11 @@ export default class {
   async getAuthenticationToken(properties) {
     const id = typeof properties === 'string' ? properties : properties.id
 
-    let token = await this._tokens.first(properties)
+    const token = await this._tokens.first(properties)
     if (token === undefined) {
       throw noSuchAuthenticationToken(id)
     }
 
-    token = token.properties
     unserialize(token)
 
     if (!(token.expiration > Date.now())) {

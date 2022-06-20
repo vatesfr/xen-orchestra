@@ -1,5 +1,4 @@
 import Collection from '../collection/redis.mjs'
-import Model from '../model.mjs'
 import { createLogger } from '@xen-orchestra/log'
 import { forEach } from '../utils.mjs'
 
@@ -7,15 +6,7 @@ const log = createLogger('xo:plugin-metadata')
 
 // ===================================================================
 
-export default class PluginMetadata extends Model {}
-
-// ===================================================================
-
 export class PluginsMetadata extends Collection {
-  get Model() {
-    return PluginMetadata
-  }
-
   async save({ id, autoload, configuration }) {
     return /* await */ this.update({
       id,
@@ -31,7 +22,7 @@ export class PluginsMetadata extends Collection {
     }
 
     return /* await */ this.save({
-      ...pluginMetadata.properties,
+      ...pluginMetadata,
       ...data,
     })
   }

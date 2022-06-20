@@ -28,7 +28,7 @@ export default class {
   }
 
   createCloudConfig(cloudConfig) {
-    return this._db.add(cloudConfig).properties
+    return this._db.add(cloudConfig)
   }
 
   async updateCloudConfig({ id, name, template }) {
@@ -54,6 +54,6 @@ export default class {
     if (cloudConfig === undefined) {
       throw noSuchObject(id, 'cloud config')
     }
-    return cloudConfig.properties
+    return cloudConfig
   }
 }

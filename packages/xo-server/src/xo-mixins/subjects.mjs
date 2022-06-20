@@ -85,7 +85,7 @@ export default class {
     // TODO: use plain objects
     const user = await this._users.create(properties)
 
-    return user.properties
+    return user
   }
 
   async deleteUser(id) {
@@ -183,7 +183,7 @@ export default class {
   // TODO: this method will no longer be async when users are
   // integrated to the main collection.
   async getUser(id) {
-    const user = (await this._getUser(id)).properties
+    const user = await this._getUser(id)
 
     // TODO: remove when no longer the email property has been
     // completely eradicated.
@@ -200,7 +200,7 @@ export default class {
     // TODO: change `email` by `username`.
     const user = await this._users.first({ email: username })
     if (user !== undefined) {
-      return user.properties
+      return user
     }
 
     if (returnNullIfMissing) {
@@ -323,7 +323,7 @@ export default class {
 
   async createGroup({ name, provider, providerGroupId }) {
     // TODO: use plain objects.
-    const group = (await this._groups.create(name, provider, providerGroupId)).properties
+    const group = await this._groups.create(name, provider, providerGroupId)
 
     return group
   }
@@ -362,7 +362,7 @@ export default class {
       throw noSuchObject(id, 'group')
     }
 
-    return group.properties
+    return group
   }
 
   async getAllGroups() {
