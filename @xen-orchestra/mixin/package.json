@@ -16,7 +16,7 @@
   },
   "preferGlobal": false,
   "engines": {
-    "node": ">=6"
+    "node": ">=7.6"
   },
   "dependencies": {
     "bind-property-descriptor": "^2.0.0",
