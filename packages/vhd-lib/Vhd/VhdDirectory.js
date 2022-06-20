@@ -247,8 +247,9 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
   // and if the full block is modified in child ( which is the case with xcp)
   // and if the compression type is same on both sides
   async mergeBlock(child, blockId, isResumingMerge = false) {
+    const childBlockPath = child._getFullBlockPath?.(blockId)
     if (
-      !child.isBlockBased() ||
+      childBlockPath !== undefined ||
       this._handler !== child._handler ||
       child.compressionType !== this.compressionType ||
       child.compressionType === 'MIXED'
@@ -256,7 +257,7 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
       return super.mergeBlock(child, blockId)
     }
     try {
-      await this._handler.rename(child._getFullBlockPath(blockId), this._getFullBlockPath(blockId))
+      await this._handler.rename(childBlockPath, this._getFullBlockPath(blockId))
     } catch (error) {
       if (error.code === 'ENOENT' && isResumingMerge === true) {
         // when resuming, the blocks moved since the last merge state write are
@@ -306,9 +307,5 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
       throw error
     })
     this.#compressor = getCompressor(chunkFilters[0])
-  }
-
-  isBlockBased() {
-    return true
   }
 }

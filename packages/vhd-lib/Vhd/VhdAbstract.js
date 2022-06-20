@@ -334,7 +334,4 @@ exports.VhdAbstract = class VhdAbstract {
     stream.length = footer.currentSize
     return stream
   }
-  isBlockBased() {
-    return false
-  }
 }

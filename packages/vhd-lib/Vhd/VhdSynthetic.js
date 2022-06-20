@@ -106,9 +106,6 @@ const VhdSynthetic = class VhdSynthetic extends VhdAbstract {
     const vhd = this.#getVhdWithBlock(blockId)
     return vhd._getFullBlockPath(blockId)
   }
-  isBlockBased() {
-    return this.#vhds.every(vhd => vhd.isBlockBased())
-  }
 }
 
 // add decorated  static method
