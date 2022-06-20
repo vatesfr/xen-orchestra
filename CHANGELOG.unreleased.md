@@ -13,6 +13,7 @@
 
 - [VDI Import] Fix `this._getOrWaitObject is not a function`
 - [VM] Attempting to delete a protected VM should display a modal with the error and the ability to bypass it (PR [#6290](https://github.com/vatesfr/xen-orchestra/pull/6290))
+- [OVA Import] Fix import stuck after first disk
 
 ### Packages to release
 
@@ -35,5 +36,6 @@
 - @xen-orchestra/xapi minor
 - xo-remote-parser minor
 - xo-server patch
+- xo-vmdk-to-vhd patch
 
 <!--packages-end-->

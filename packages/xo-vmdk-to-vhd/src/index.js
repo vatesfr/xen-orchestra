@@ -16,8 +16,8 @@ export { default as readVmdkGrainTable, readCapacityAndGrainTable } from './vmdk
  * @param gzipped
  * @returns a stream whose bytes represent a VHD file containing the VMDK data
  */
-async function vmdkToVhd(vmdkReadStream, grainLogicalAddressList, grainFileOffsetList, gzipped = false) {
-  const parser = new VMDKDirectParser(vmdkReadStream, grainLogicalAddressList, grainFileOffsetList, gzipped)
+async function vmdkToVhd(vmdkReadStream, grainLogicalAddressList, grainFileOffsetList, gzipped = false, length) {
+  const parser = new VMDKDirectParser(vmdkReadStream, grainLogicalAddressList, grainFileOffsetList, gzipped, length)
   const header = await parser.readHeader()
   return createReadableSparseStream(
     header.capacitySectors * 512,
