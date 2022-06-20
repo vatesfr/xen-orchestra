@@ -17,6 +17,7 @@ import Collection, { ModelAlreadyExists } from '../collection.mjs'
 
 // ///////////////////////////////////////////////////////////////////
 // Data model:
+// - 'xo::namespaces': set of all available namespaces
 // - prefix +'_ids': set containing identifier of all models;
 // - prefix +'_'+ index +':' + lowerCase(value): set of identifiers
 //   which have value for the given index.
@@ -45,6 +46,8 @@ export default class Redis extends Collection {
     this.indexes = indexes
     this.prefix = prefix
     const redis = (this.redis = promisifyAll(connection || createRedisClient(uri)))
+
+    redis.sadd('xo::namespaces', namespace)::ignoreErrors()
 
     const key = `${prefix}:version`
     redis
