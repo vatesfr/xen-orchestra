@@ -1,3 +1,5 @@
+'use strict'
+
 const match = (pattern, value) => {
   if (Array.isArray(pattern)) {
     return (
@@ -43,4 +45,6 @@ const match = (pattern, value) => {
   return pattern === value
 }
 
-export const createPredicate = pattern => value => match(pattern, value)
+exports.createPredicate = function createPredicate(pattern) {
+  return value => match(pattern, value)
+}

@@ -175,7 +175,9 @@ export default class {
     let duration = this._defaultTokenValidity
     if (expiresIn !== undefined) {
       duration = parseDuration(expiresIn)
-      if (duration > this._maxTokenValidity) {
+      if (duration <= 60e3) {
+        throw new Error('invalid expiresIn duration: ' + expiresIn)
+      } else if (duration > this._maxTokenValidity) {
         throw new Error('too high expiresIn duration: ' + expiresIn)
       }
     }
@@ -196,15 +198,28 @@ export default class {
   }
 
   async deleteAuthenticationToken(id) {
-    if (!(await this._tokens.remove(id))) {
+    let predicate
+    const { apiContext } = this._app
+    if (apiContext === undefined || apiContext.permission === 'admin') {
+      predicate = id
+    } else {
+      predicate = { id, user_id: apiContext.user.id }
+    }
+
+    if (!(await this._tokens.remove(predicate))) {
       throw noSuchAuthenticationToken(id)
     }
   }
 
   async deleteAuthenticationTokens({ filter }) {
-    return Promise.all(
-      (await this._tokens.get()).filter(createPredicate(filter)).map(({ id }) => this.deleteAuthenticationToken(id))
-    )
+    let predicate
+    const { apiContext } = this._app
+    if (apiContext !== undefined && apiContext.permission !== 'admin') {
+      predicate = { user_id: apiContext.user.id }
+    }
+
+    const db = this._tokens
+    return db.remove((await db.get(predicate)).filter(createPredicate(filter)).map(({ id }) => id))
   }
 
   async getAuthenticationToken(properties) {

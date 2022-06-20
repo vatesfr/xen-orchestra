@@ -60,6 +60,7 @@
     "testEnvironment": "node",
     "testPathIgnorePatterns": [
       "/@vates/decorate-with/",
+      "/@vates/event-listeners-manager/",
       "/@vates/predicates/",
       "/@xen-orchestra/audit-core/",
       "/dist/",
