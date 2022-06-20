@@ -167,46 +167,40 @@ class StreamNbdParser extends StreamParser {
 
   async *blocks() {
     const SECTOR_BITMAP = Buffer.alloc(512, 255)
-    console.log({ SECTOR_BITMAP })
     const index = this._index
     const client = this.#nbdClient
-    let nb = 0
-    console.log({ index })
     for (const item of index) {
       // we read in a raw file, so the block position is id x length, and have nothing to do with the offset
       // in the vhd stream
       try {
-        console.log('will read ', item.id, nb)
-        let data = await client.readBlock(item.id, item.size)
+        const rawDataLength = item.size - SECTOR_BITMAP.length
+        let data = await client.readBlock(item.id, rawDataLength)
 
         // end of file , non aligned vhd block
-        if (data.length < item.size) {
-          data = Buffer.concat([data, Buffer.alloc(item.size - data.length)])
+        if (data.length < rawDataLength) {
+          data = Buffer.concat([data, Buffer.alloc(rawDataLength - data.length)])
         }
+        const buffer = Buffer.concat([SECTOR_BITMAP, data])
         const block = {
           ...item,
+          size: rawDataLength,
           bitmap: SECTOR_BITMAP,
           data,
-          buffer: Buffer.concat([SECTOR_BITMAP, data]),
+          buffer,
         }
-        console.log('yielded', block.id, block.buffer.length, nb, index.length)
         yield block
-        nb++
       } catch (e) {
         // fail on the last block
         console.log(e)
       }
     }
-    console.log('done *blocks')
   }
 
   async *parse() {
     yield* this.headers()
 
     yield* this.blocks()
-    console.log('done with blocks')
     this._stream.destroy()
-    console.log('stream destroyed')
   }
 }
 
