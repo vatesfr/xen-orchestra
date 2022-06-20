@@ -75,7 +75,7 @@ export default class Jobs {
     const executors = (this._executors = { __proto__: null })
     const jobsDb = (this._jobs = new JobsDb({
       connection: app._redis,
-      prefix: 'xo:job',
+      namespace: 'job',
       indexes: ['user_id', 'key'],
     }))
     this._logger = undefined

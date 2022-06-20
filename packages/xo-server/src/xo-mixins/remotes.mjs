@@ -23,7 +23,7 @@ export default class {
     this._handlers = { __proto__: null }
     this._remotes = new Remotes({
       connection: app._redis,
-      prefix: 'xo:remote',
+      namespace: 'remote',
       indexes: ['enabled'],
     })
     this._remotesInfo = {}

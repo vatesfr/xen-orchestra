@@ -14,7 +14,7 @@ export default class {
     this._app = app
     const db = (this._db = new CloudConfigs({
       connection: app._redis,
-      prefix: 'xo:cloudConfig',
+      namespace: 'cloudConfig',
     }))
 
     app.hooks.on('clean', () => db.rebuildIndexes())

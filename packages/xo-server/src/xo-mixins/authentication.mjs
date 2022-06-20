@@ -39,7 +39,7 @@ export default class {
     // Creates persistent collections.
     const tokensDb = (this._tokens = new Tokens({
       connection: app._redis,
-      prefix: 'xo:token',
+      namespace: 'token',
       indexes: ['user_id'],
     }))
 

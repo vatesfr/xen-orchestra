@@ -33,7 +33,7 @@ export default class Scheduling {
 
     const db = (this._db = new Schedules({
       connection: app._redis,
-      prefix: 'xo:schedule',
+      namespace: 'schedule',
     }))
 
     this._runs = { __proto__: null }

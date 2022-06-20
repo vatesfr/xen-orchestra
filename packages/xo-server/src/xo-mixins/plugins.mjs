@@ -21,7 +21,7 @@ export default class {
 
     this._pluginsMetadata = new PluginsMetadata({
       connection: app._redis,
-      prefix: 'xo:plugin-metadata',
+      namespace: 'plugin-metadata',
     })
 
     app.hooks.on('start', () => {

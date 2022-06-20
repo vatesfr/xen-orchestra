@@ -82,7 +82,7 @@ export default class Proxy {
     const db = (this._db = new Collection({
       connection: app._redis,
       indexes: ['address', 'vmUuid'],
-      prefix: 'xo:proxy',
+      namespace: 'proxy',
     }))
 
     app.hooks.on('clean', () => db.rebuildIndexes())

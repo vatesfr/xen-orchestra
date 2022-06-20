@@ -26,11 +26,11 @@ export default class {
 
     const groupsDb = (this._groups = new Groups({
       connection: redis,
-      prefix: 'xo:group',
+      namespace: 'group',
     }))
     const usersDb = (this._users = new Users({
       connection: redis,
-      prefix: 'xo:user',
+      namespace: 'user',
       indexes: ['email'],
     }))
 

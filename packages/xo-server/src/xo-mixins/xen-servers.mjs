@@ -44,7 +44,7 @@ export default class {
     this._objectConflicts = { __proto__: null } // TODO: clean when a server is disconnected.
     const serversDb = (this._servers = new Servers({
       connection: app._redis,
-      prefix: 'xo:server',
+      namespace: 'server',
       indexes: ['host'],
     }))
     this._serverIdsByPool = { __proto__: null }

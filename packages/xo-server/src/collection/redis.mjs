@@ -33,8 +33,10 @@ import Collection, { ModelAlreadyExists } from '../collection.mjs'
 const VERSION = '20170905'
 
 export default class Redis extends Collection {
-  constructor({ connection, indexes = [], prefix, uri }) {
+  constructor({ connection, indexes = [], namespace, uri }) {
     super()
+
+    const prefix = 'xo:' + namespace
 
     this.indexes = indexes
     this.prefix = prefix
