@@ -16,7 +16,6 @@ import Collection, { ModelAlreadyExists } from '../collection.mjs'
 
 // ///////////////////////////////////////////////////////////////////
 // Data model:
-// - prefix +'_id': value of the last generated identifier;
 // - prefix +'_ids': set containing identifier of all models;
 // - prefix +'_'+ index +':' + lowerCase(value): set of identifiers
 //   which have value for the given index.
