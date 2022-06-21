@@ -153,11 +153,6 @@ module.exports.mergeVhdChain = limitConcurrency(2)(async function mergeVhdChain(
         mergedDataSize: 0,
         chain: chain.map(vhdPath => handlerPath.relativeFromFile(mergeStatePath, vhdPath)),
       }
-
-      // finds first allocated block for the 2 following loops
-      while (mergeState.currentBlock < maxTableEntries && !childVhd.containsBlock(mergeState.currentBlock)) {
-        ++mergeState.currentBlock
-      }
     }
 
     // counts number of allocated blocks
