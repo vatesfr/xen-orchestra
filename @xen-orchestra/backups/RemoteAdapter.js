@@ -27,6 +27,7 @@ const { isMetadataFile } = require('./_backupType.js')
 const { isValidXva } = require('./_isValidXva.js')
 const { listPartitions, LVM_PARTITION_TYPE } = require('./_listPartitions.js')
 const { lvs, pvs } = require('./_lvm.js')
+const { asyncEach } = require('@vates/async-each')
 
 const DIR_XO_CONFIG_BACKUPS = 'xo-config-backups'
 exports.DIR_XO_CONFIG_BACKUPS = DIR_XO_CONFIG_BACKUPS
@@ -363,15 +364,21 @@ class RemoteAdapter {
     const handler = this._handler
 
     const backups = { __proto__: null }
-    await asyncMap(await handler.list(BACKUP_DIR), async entry => {
-      // ignore hidden and lock files
-      if (entry[0] !== '.' && !entry.endsWith('.lock')) {
-        const vmBackups = await this.listVmBackups(entry)
-        if (vmBackups.length !== 0) {
-          backups[entry] = vmBackups
+    await asyncEach(
+      await handler.list(BACKUP_DIR),
+      async entry => {
+        // ignore hidden and lock files
+        if (entry[0] !== '.' && !entry.endsWith('.lock')) {
+          const vmBackups = await this.listVmBackups(entry)
+          if (vmBackups.length !== 0) {
+            backups[entry] = vmBackups
+          }
         }
+      },
+      {
+        concurrency: 16,
       }
-    })
+    )
 
     return backups
   }
