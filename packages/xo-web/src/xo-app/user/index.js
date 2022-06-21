@@ -330,7 +330,7 @@ const INDIVIDUAL_ACTIONS_AUTH_TOKENS = [
   {
     handler: deleteAuthToken,
     icon: 'delete',
-    label: _('deleteAuthToken'),
+    label: _('delete'),
     level: 'danger',
   },
 ]

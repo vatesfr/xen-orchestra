@@ -19,7 +19,7 @@ import fetch, { post } from '../fetch'
 import invoke from '../invoke'
 import Icon from '../icon'
 import logError from '../log-error'
-import NewAuthTokenModal from './new_auth_token_modal'
+import NewAuthTokenModal from './new-auth-token-modal'
 import renderXoItem, { renderXoItemFromId } from '../render-xo-item'
 import store from 'store'
 import { alert, chooseAction, confirm } from '../modal'
@@ -2916,7 +2916,7 @@ export const addAuthToken = async () => {
 export const deleteAuthToken = async ({ id }) => {
   await confirm({
     body: _('deleteAuthTokenConfirmMessage', {
-      id: id,
+      id,
     }),
     icon: 'user',
     title: _('deleteAuthTokenConfirm'),
