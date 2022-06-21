@@ -104,7 +104,7 @@ const VhdSynthetic = class VhdSynthetic extends VhdAbstract {
   }
   _getFullBlockPath(blockId) {
     const vhd = this.#getVhdWithBlock(blockId)
-    return vhd._getFullBlockPath(blockId)
+    return vhd?._getFullBlockPath(blockId)
   }
 }
 
