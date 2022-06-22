@@ -82,6 +82,8 @@ Don't forget to reload `systemd` conf and restart `xo-server`:
 # systemctl restart xo-server.service
 ```
 
+> For XO Proxy, the process is almost the same except the file to create is `/etc/systemd/system/xo-proxy.service/ca.conf` and the service to restart is `xo-proxy.service`.
+
 ## Redis server
 
 By default, XO-server will try to contact Redis server on `localhost`, with the port `6379`. But you can define whatever you want:
