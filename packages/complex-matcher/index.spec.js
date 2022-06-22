@@ -1,7 +1,9 @@
 /* eslint-env jest */
 
-import { ast, pattern } from './index.fixtures'
-import {
+'use strict'
+
+const { ast, pattern } = require('./index.fixtures')
+const {
   getPropertyClausesStrings,
   GlobPattern,
   Null,
@@ -11,7 +13,7 @@ import {
   Property,
   setPropertyClause,
   StringNode,
-} from './'
+} = require('./')
 
 it('getPropertyClausesStrings', () => {
   const tmp = getPropertyClausesStrings(parse('foo bar:baz baz:|(foo bar /^boo$/ /^far$/) foo:/^bar$/'))
