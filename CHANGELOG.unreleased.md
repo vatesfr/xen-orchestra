@@ -7,6 +7,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [Backup] Merge delta backups without copying data when using VHD directories on NFS/SMB/local remote(https://github.com/vatesfr/xen-orchestra/pull/6271))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -33,9 +35,11 @@
 
 - @vates/event-listeners-manager patch
 - @vates/read-chunk major
+- @xen-orchestra/backups minor
 - @xen-orchestra/xapi minor
+- vhd-lib minor
 - xo-remote-parser minor
-- xo-server patch
+- xo-server minor
 - xo-vmdk-to-vhd patch
 
 <!--packages-end-->
