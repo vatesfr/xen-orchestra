@@ -93,18 +93,18 @@ interface Computed {
 
 interface ComputedPagination {}
 
-const StyledSelect = styled(Select)(({ theme }) => ({
-  backgroundColor: theme.palette.lightGray.main,
+const StyledSelect = styled(Select)(({ theme: { palette } }) => ({
+  backgroundColor: palette.gray[palette.mode],
   border: 'none',
-  color: theme.palette.primary.main,
+  color: palette.primary[palette.mode],
   height: '24px',
 }))
 
-const StyledTableCell = styled(TableCell)(({ theme }) => ({
-  border: `1px solid ${theme.palette.lightGray.main}`,
+const StyledTableCell = styled(TableCell)(({ theme: { palette } }) => ({
+  border: `1px solid ${palette.gray[palette.mode]}`,
   borderLeft: 'none',
   [`&.${tableCellClasses.head}`]: {
-    color: theme.palette.primary.main,
+    color: palette.primary[palette.mode],
   },
 }))
 
@@ -113,9 +113,9 @@ const StyledNbSelectedItems = styled('p')<{ reverse?: boolean }>(({ reverse = fa
   fontWeight: 'bold',
 }))
 
-const StyledNavButton = styled(IconButton)(({ theme }) => ({
-  backgroundColor: theme.palette.lightGray.main,
-  color: theme.palette.primary.main,
+const StyledNavButton = styled(IconButton)(({ theme: { palette } }) => ({
+  backgroundColor: palette.gray[palette.mode],
+  color: palette.primary[palette.mode],
   borderRadius: '5px',
   margin: '1px',
   padding: 0,
@@ -133,8 +133,8 @@ const StyledPaginationFlexRow = styled(Box)({
   display: 'inline-flex',
 })
 
-const StyledPaginationText = styled('p')(({ theme }) => ({
-  color: theme.palette.secondary.main,
+const StyledPaginationText = styled('p')(({ theme: { palette } }) => ({
+  color: palette.secondary[palette.mode],
   margin: '10px',
 }))
 

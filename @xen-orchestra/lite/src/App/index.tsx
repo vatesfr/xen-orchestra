@@ -159,7 +159,8 @@ const mdTheme = createTheme({
     info: {
       main: '#17a2b8',
     },
-    lightGray: {
+    gray: {
+      light: '#e8e8e8',
       main: '#e8e8e8',
     },
     primary: {
