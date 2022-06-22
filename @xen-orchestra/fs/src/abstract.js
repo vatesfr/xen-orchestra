@@ -591,6 +591,10 @@ export default class RemoteHandlerAbstract {
   async _writeFile(file, data, options) {
     throw new Error('Not implemented')
   }
+
+  useVhdDirectory() {
+    throw new Error('Not implemented')
+  }
 }
 
 function createPrefixWrapperMethods() {

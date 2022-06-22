@@ -292,7 +292,7 @@ class RemoteAdapter {
   }
 
   #useVhdDirectory() {
-    return this.handler.type === 's3'
+    return this.handler.useVhdDirectory()
   }
 
   #useAlias() {
