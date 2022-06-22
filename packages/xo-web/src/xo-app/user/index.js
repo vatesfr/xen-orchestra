@@ -1,5 +1,4 @@
 import * as FormGrid from 'form-grid'
-import * as d3 from 'd3'
 import _, { messages } from 'intl'
 import ActionButton from 'action-button'
 import Component from 'base-component'
@@ -18,7 +17,7 @@ import { isEmpty, map } from 'lodash'
 import { injectIntl } from 'react-intl'
 import { Select } from 'form'
 import { Card, CardBlock, CardHeader } from 'card'
-import { addSubscriptions, connectStore, noop } from 'utils'
+import { addSubscriptions, connectStore, noop, NumericDate } from 'utils'
 import {
   addAuthToken,
   addSshKey,
@@ -290,8 +289,6 @@ const SshKeys = addSubscriptions({
 })
 
 // ===================================================================
-const dateFormat = d3.timeFormat('%Y-%m-%d %H:%M')
-
 const COLUMNS_AUTH_TOKENS = [
   {
     itemRenderer: ({ id }) => (
@@ -311,7 +308,7 @@ const COLUMNS_AUTH_TOKENS = [
   {
     itemRenderer: ({ created_at }) => {
       if (created_at !== undefined) {
-        return dateFormat(created_at)
+        return <NumericDate timestamp={created_at} />
       }
       return _('notDefined')
     },
@@ -320,7 +317,7 @@ const COLUMNS_AUTH_TOKENS = [
   },
   {
     default: true,
-    itemRenderer: ({ expiration }) => dateFormat(expiration),
+    itemRenderer: ({ expiration }) => <NumericDate timestamp={expiration} />,
     name: _('expiration'),
     sortCriteria: 'expiration',
   },
