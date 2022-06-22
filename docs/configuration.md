@@ -82,7 +82,7 @@ Don't forget to reload `systemd` conf and restart `xo-server`:
 # systemctl restart xo-server.service
 ```
 
-> For XO Proxy, the process is almost the same except the file to create is `/etc/systemd/system/xo-proxy.service/ca.conf` and the service to restart is `xo-proxy.service`.
+> For XO Proxy, the process is almost the same except the file to create is `/etc/systemd/system/xo-proxy.service.d/ca.conf` and the service to restart is `xo-proxy.service`.
 
 ## Redis server
 
