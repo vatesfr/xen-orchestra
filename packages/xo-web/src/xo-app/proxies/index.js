@@ -1,6 +1,7 @@
 import _ from 'intl'
 import ActionButton from 'action-button'
 import addSubscriptions from 'add-subscriptions'
+import copy from 'copy-to-clipboard'
 import decorate from 'apply-decorators'
 import Icon from 'icon'
 import NoObjects from 'no-objects'
@@ -59,7 +60,7 @@ const INDIVIDUAL_ACTIONS = [
   {
     collapsed: true,
     disabled: ({ url }) => url === undefined,
-    handler: ({ url }) => navigator.clipboard.writeText(url),
+    handler: ({ url }) => copy(url),
     icon: 'clipboard',
     label: _('proxyCopyUrl'),
   },

@@ -7,7 +7,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [Proxies] Possibility to copy the proxy access url (PR [#6287](https://github.com/vatesfr/xen-orchestra/pull/6287))
+- [Proxies] Ability to copy the proxy access URL (PR [#6287](https://github.com/vatesfr/xen-orchestra/pull/6287))
 
 ### Bug fixes
 
