@@ -68,9 +68,10 @@ You shouldn't have to change this. It's the path where `xo-web` files are served
 
 If you use certificates signed by an in-house CA for your XCP-ng or XenServer hosts, and want to have Xen Orchestra connect to them without rejection, you can use the [`NODE_EXTRA_CA_CERTS`](https://nodejs.org/api/cli.html#cli_node_extra_ca_certs_file) environment variable.
 
-To enable this option in your XOA, edit the `/etc/systemd/system/xo-server.service` file and add this:
+To enable this option in your XOA, create `/etc/systemd/system/xo-server.service/ca.conf` with the following content:
 
 ```
+[Service]
 Environment=NODE_EXTRA_CA_CERTS=/usr/local/share/ca-certificates/my-cert.crt
 ```
 
