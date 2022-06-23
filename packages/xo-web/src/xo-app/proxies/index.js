@@ -29,6 +29,7 @@ import Page from '../page'
 import deployProxy from './deploy-proxy'
 import { updateApplianceSettings } from './update-appliance-settings'
 
+import Tooltip from '../../common/tooltip'
 import { getXoaPlan, SOURCES } from '../../common/xoa-plans'
 
 const _editProxy = (value, { name, proxy }) => editProxyAppliance(proxy, { [name]: value })
@@ -62,7 +63,9 @@ const INDIVIDUAL_ACTIONS = [
     disabled: ({ url }) => url === undefined,
     handler: ({ url }) => copy(url),
     icon: 'clipboard',
-    label: _('proxyCopyUrl'),
+    label: ({ url }) => (
+      <Tooltip content={url !== undefined ? _('copyValue', { value: url }) : undefined}>{_('proxyCopyUrl')}</Tooltip>
+    ),
   },
   {
     collapsed: true,

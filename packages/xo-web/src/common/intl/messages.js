@@ -131,6 +131,7 @@ const messages = {
   // ----- Copiable component -----
   copyToClipboard: 'Copy to clipboard',
   copyUuid: 'Copy {uuid}',
+  copyValue: 'Copy {value}',
 
   // ----- Pills -----
   pillMaster: 'Master',
