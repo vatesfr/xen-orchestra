@@ -5,6 +5,7 @@ import React from 'react'
 import styled from 'styled-components'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { materialDark as codeStyle } from 'react-syntax-highlighter/dist/esm/styles/prism'
+import { toNumber } from 'lodash'
 import { SelectChangeEvent } from '@mui/material'
 import { withState } from 'reaclette'
 
@@ -13,6 +14,7 @@ import Button from '../../components/Button'
 import Checkbox from '../../components/Checkbox'
 import Icon from '../../components/Icon'
 import Input from '../../components/Input'
+import ProgressCircle from '../../components/ProgressCircle'
 import Select from '../../components/Select'
 import Tabs from '../../components/Tabs'
 import { alert, confirm } from '../../components/Modal'
@@ -53,6 +55,7 @@ for (let index = 1; index < 16; index++) {
 interface ParentState {}
 
 interface State {
+  progressBarValue: number
   tableSelectedVms: Array<Vm>
   value: unknown
 }
@@ -62,6 +65,7 @@ interface Props {}
 interface ParentEffects {}
 
 interface Effects {
+  onChangeProgressBarValue: (e: React.ChangeEvent<HTMLInputElement>) => void
   onChangeSelect: (e: SelectChangeEvent<unknown>) => void
   sayHello: () => void
   sendPromise: (data: Record<string, unknown>) => Promise<void>
@@ -100,10 +104,14 @@ const Code = styled(SyntaxHighlighter).attrs(() => ({
 const App = withState<State, Props, Effects, Computed, ParentState, ParentEffects>(
   {
     initialState: () => ({
+      progressBarValue: 100,
       tableSelectedVms: [],
       value: '',
     }),
     effects: {
+      onChangeProgressBarValue: function (e) {
+        this.state.progressBarValue = toNumber(e.target.value)
+      },
       onChangeSelect: function (e) {
         this.state.value = e.target.value
       },
@@ -247,6 +255,35 @@ const App = withState<State, Props, Effects, Computed, ParentState, ParentEffect
 >
   Confirm
 </Button>`}</Code>
+      </Container>
+      <h2>ProgressCircle</h2>
+      <Container>
+        <Render>
+          <div style={{ display: 'flex', justifyContent: 'space-around', flexWrap: 'wrap' }}>
+            <div>
+              <ProgressCircle max={200} value={state.progressBarValue} />
+            </div>
+            <div>
+              <ProgressCircle max={200} showLabel={false} size={150} value={state.progressBarValue} />
+            </div>
+          </div>
+          <input
+            defaultValue={state.progressBarValue}
+            max='200'
+            min='0'
+            onChange={effects.onChangeProgressBarValue}
+            step='1'
+            style={{
+              display: 'block',
+              margin: '10px auto',
+            }}
+            type='range'
+          />
+        </Render>
+        <Code>
+          {`<ProgressCircle max={200} value={state.progressBarValue} />
+<ProgressCircle max={200} showLabel={false} size={150} value={state.progressBarValue} />`}
+        </Code>
       </Container>
       <h2>Select</h2>
       <Container>
