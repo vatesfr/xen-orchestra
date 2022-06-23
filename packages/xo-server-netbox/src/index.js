@@ -40,6 +40,13 @@ const onRequest = req => {
   req.on('timeout', req.abort)
 }
 
+const tenDot = ipaddr.parseCIDR('10.0.0.0/8')
+const oneSevenTwo = ipaddr.parseCIDR('172.16.0.0/12')
+const oneNineTwo = ipaddr.parseCIDR('192.168.0.0/16')
+const isRfc1918 = (ip) => {
+  return ip.match(tenDot[0], tenDot[1]) || ip.match(oneSevenTwo[0], oneSevenTwo[1]) || ip.match(oneNineTwo[0], oneNineTwo[1])
+}
+
 class Netbox {
   #allowUnauthorized
   #endpoint
@@ -51,6 +58,7 @@ class Netbox {
   #syncInterval
   #token
   #xo
+  #ignoreRfc1918
 
   constructor({ xo }) {
     this.#xo = xo
@@ -65,6 +73,7 @@ class Netbox {
     this.#token = configuration.token
     this.#pools = configuration.pools
     this.#syncInterval = configuration.syncInterval && configuration.syncInterval * 60 * 60 * 1e3
+    this.#ignoreRfc1918 = configuration.ignoreRfc1918 ?? false
 
     // We don't want to start the auto-sync if the plugin isn't loaded
     if (this.#loaded) {
@@ -560,6 +569,10 @@ class Netbox {
           const parsedIp = ipaddr.parse(ip)
           const ipKind = parsedIp.kind()
           const ipCompactNotation = parsedIp.toString()
+
+          if (this.#ignoreRfc1918 && isRfc1918(parsedIp)) {
+            continue
+          }
 
           let smallestPrefix
           let highestBits = 0
