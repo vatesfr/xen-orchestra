@@ -484,6 +484,21 @@ export default class BackupNg {
         })
       }
       return result.id
+    } catch (error) {
+      if (
+        // xxhash is the new form consistency hashing in CH 8.1 which uses a faster,
+        // more efficient hashing algorithm to generate the consistency checks
+        // in order to support larger files without the consistency checking process taking an incredibly long time
+        error.code === 'IMPORT_ERROR' &&
+        error.params?.some(
+          param =>
+            param.includes('INTERNAL_ERROR') &&
+            param.includes('Expected to find an inline checksum') &&
+            param.includes('.xxhash')
+        )
+      ) {
+        throw new Error('Importing the VM backup requires that CH >= 8.1 be restored.')
+      }
     } finally {
       this._runningRestores.delete(rootTaskId)
     }
