@@ -517,20 +517,7 @@ export const createFakeProgress = (() => {
 })()
 
 export const NumericDate = ({ timestamp }) => (
-  // https://formatjs.io/docs/react-intl/components/#formatteddateparts
-  // FormattedDateParts not available on the current "react-intl" version
-  <FormattedDate day='2-digit' hour='numeric' minute='numeric' month='2-digit' value={timestamp} year='numeric'>
-    {fullDate => {
-      const [date, time] = fullDate.split(',')
-      const [month, day, year] = date.split('/')
-      return (
-        <p>
-          {year}-{month}-{day}
-          {time}
-        </p>
-      )
-    }}
-  </FormattedDate>
+  <FormattedDate day='2-digit' hour='numeric' minute='numeric' month='2-digit' value={timestamp} year='numeric' />
 )
 
 export const ShortDate = ({ timestamp }) => (
