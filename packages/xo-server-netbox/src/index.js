@@ -719,6 +719,11 @@ export const configurationSchema = ({ xo: { apiMethods } }) => ({
       title: 'Interval',
       description: 'Synchronization interval in hours - leave empty to disable auto-sync',
     },
+    ignoreRfc1918: {
+      type: 'boolean',
+      title: 'Ignore RFC 1918 VM IPs (e.g. 10.0.x.x, 192...)',
+      description: 'Enable this if you do not want these IPs to be imported into Netbox',
+    }
   },
   required: ['endpoint', 'token', 'pools'],
 })
