@@ -64,7 +64,9 @@ const INDIVIDUAL_ACTIONS = [
     handler: ({ url }) => copy(url),
     icon: 'clipboard',
     label: ({ url }) => (
-      <Tooltip content={url !== undefined ? _('copyValue', { value: url }) : undefined}>{_('proxyCopyUrl')}</Tooltip>
+      <Tooltip content={url !== undefined ? _('copyValue', { value: url }) : _('urlNotFound')}>
+        {_('proxyCopyUrl')}
+      </Tooltip>
     ),
   },
   {

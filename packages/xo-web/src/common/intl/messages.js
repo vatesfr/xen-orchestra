@@ -2418,6 +2418,7 @@ const messages = {
   noProxiesAvailable: 'No proxies available',
   checkProxyHealth: 'Test your proxy',
   updateProxyApplianceSettings: 'Update appliance settings',
+  urlNotFound: 'URL not found',
   proxyCopyUrl: 'Copy proxy URL',
   proxyTestSuccess: 'Test passed for {name}',
   proxyTestSuccessMessage: 'The proxy appears to work correctly',
