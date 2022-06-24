@@ -25,7 +25,6 @@ import Select from './Select'
 import Icon, { IconName } from './Icon'
 
 export type Column<Type> = {
-  center?: boolean
   header?: React.ReactNode
   icon?: IconName
   id?: string
@@ -322,9 +321,14 @@ const Table = withState<State, Props, Effects, Computed, ParentState, ParentEffe
                 </StyledTableCell>
               )}
               {columns.map((col, index) => (
-                <StyledTableCell key={col.id ?? index} align={col.center ? 'center' : 'left'}>
-                  {col.icon !== undefined && <Icon icon={col.icon} />}{' '}
-                  {typeof col.header === 'string' ? col.header.toUpperCase() : col.header}
+                <StyledTableCell key={col.id ?? index} align={col.icon !== undefined ? 'center' : 'left'}>
+                  {col.icon !== undefined ? (
+                    <Icon icon={col.icon} />
+                  ) : typeof col.header === 'string' ? (
+                    col.header.toUpperCase()
+                  ) : (
+                    col.header
+                  )}
                 </StyledTableCell>
               ))}
             </TableRow>
@@ -341,7 +345,10 @@ const Table = withState<State, Props, Effects, Computed, ParentState, ParentEffe
                   </StyledTableCell>
                 )}
                 {columns.map((col, i) => (
-                  <StyledTableCell key={col.id ?? i} align={col.center ? 'center' : col.isNumeric ? 'right' : 'left'}>
+                  <StyledTableCell
+                    key={col.id ?? i}
+                    align={col.icon !== undefined ? 'center' : col.isNumeric ? 'right' : 'left'}
+                  >
                     {typeof col.render === 'function' ? col.render(item) : col.render}
                   </StyledTableCell>
                 ))}

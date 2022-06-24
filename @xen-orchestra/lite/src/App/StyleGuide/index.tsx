@@ -24,7 +24,6 @@ const VM_TABLE_COLUMN: Array<Column<any>> = [
   {
     icon: 'power-off',
     render: vm => <Icon icon='circle' htmlColor={vm.power_state === 'Running' ? '#00BA34' : '#E8E8E8'} />,
-    center: true,
   },
   { header: 'IPv4', render: vm => vm.IPv4 },
   { header: 'VM Name', render: vm => vm.name_label },
@@ -301,9 +300,7 @@ const App = withState<State, Props, Effects, Computed, ParentState, ParentEffect
   collection={state.vms}
   columns={VM_TABLE_COLUMN}
   dataType='VMs'
-  isItemSelectable
   onSelectItems={vms => state.selectedVms = [...vms]}
-  rowsPerPageOptions={[10, 25, 50, 100]}
   selectedItems={state.selectedVms}
   stateUrlParam='foo_table'
 />
