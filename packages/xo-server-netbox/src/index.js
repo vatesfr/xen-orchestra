@@ -605,7 +605,7 @@ class Netbox {
     if (ignoredIps.length > 0) {
       log.warn('Could not find prefix for some IPs: ignoring them.', { ips: ignoredIps })
     }
-    log.debug('ip address prmoises')
+    log.debug('ip address promises')
     // log.warn('ipsToDelete:', ipsToDelete)
     // log.warn('ipsToCreate:', ipsToCreate)
     await Promise.all([
