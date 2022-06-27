@@ -10,7 +10,7 @@ import { decorateWith } from '@vates/decorate-with'
 import { formatVmBackups } from '@xen-orchestra/backups/formatVmBackups.js'
 import { HealthCheckVmBackup } from '@xen-orchestra/backups/HealthCheckVmBackup.js'
 import { ImportVmBackup } from '@xen-orchestra/backups/ImportVmBackup.js'
-import { invalidParameters } from 'xo-common/api-errors.js'
+import { incorrectState, invalidParameters } from 'xo-common/api-errors.js'
 import { runBackupWorker } from '@xen-orchestra/backups/runBackupWorker.js'
 import { Task } from '@xen-orchestra/backups/Task.js'
 
@@ -490,14 +490,19 @@ export default class BackupNg {
         // more efficient hashing algorithm to generate the consistency checks
         // in order to support larger files without the consistency checking process taking an incredibly long time
         error.code === 'IMPORT_ERROR' &&
-        error.params?.some(
+        error.params.some(
           param =>
             param.includes('INTERNAL_ERROR') &&
             param.includes('Expected to find an inline checksum') &&
             param.includes('.xxhash')
         )
       ) {
-        throw new Error('Importing the VM backup requires that CH >= 8.1 be restored.')
+        console.error(error)
+        throw incorrectState({
+          actual: 'CH < 8.1',
+          expected: 'CH >= 8.1',
+          object: id,
+        })
       }
     } finally {
       this._runningRestores.delete(rootTaskId)
