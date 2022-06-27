@@ -1,9 +1,11 @@
-import { Constants, VhdFile } from 'vhd-lib'
-import { getHandler } from '@xen-orchestra/fs'
-import { resolve } from 'path'
-import * as UUID from 'uuid'
-import humanFormat from 'human-format'
-import invert from 'lodash/invert.js'
+'use strict'
+
+const { Constants, VhdFile } = require('vhd-lib')
+const { getHandler } = require('@xen-orchestra/fs')
+const { resolve } = require('path')
+const UUID = require('uuid')
+const humanFormat = require('human-format')
+const invert = require('lodash/invert.js')
 
 const { PLATFORMS } = Constants
 
@@ -32,7 +34,7 @@ function mapProperties(object, mapping) {
   return result
 }
 
-export default async args => {
+module.exports = async function info(args) {
   const vhd = new VhdFile(getHandler({ url: 'file:///' }), resolve(args[0]))
 
   try {

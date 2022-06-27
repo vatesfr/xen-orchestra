@@ -1,11 +1,13 @@
-import { openVhd } from 'vhd-lib'
-import { getSyncedHandler } from '@xen-orchestra/fs'
-import { resolve } from 'path'
+'use strict'
 
-import { writeStream } from '../_utils'
-import { Disposable } from 'promise-toolbox'
+const { openVhd } = require('vhd-lib')
+const { getSyncedHandler } = require('@xen-orchestra/fs')
+const { resolve } = require('path')
 
-export default async args => {
+const { writeStream } = require('../_utils')
+const { Disposable } = require('promise-toolbox')
+
+module.exports = async function raw(args) {
   if (args.length < 2 || args.some(_ => _ === '-h' || _ === '--help')) {
     return `Usage: ${this.command} <input VHD> [<output raw>]`
   }

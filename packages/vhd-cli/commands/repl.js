@@ -1,10 +1,12 @@
-import { asCallback, fromCallback, fromEvent } from 'promise-toolbox'
-import { getHandler } from '@xen-orchestra/fs'
-import { relative } from 'path'
-import { start as createRepl } from 'repl'
-import * as vhdLib from 'vhd-lib'
+'use strict'
 
-export default async args => {
+const { asCallback, fromCallback, fromEvent } = require('promise-toolbox')
+const { getHandler } = require('@xen-orchestra/fs')
+const { relative } = require('path')
+const { start: createRepl } = require('repl')
+const vhdLib = require('vhd-lib')
+
+module.exports = async function repl(args) {
   const cwd = process.cwd()
   const handler = getHandler({ url: 'file://' + cwd })
   await handler.sync()

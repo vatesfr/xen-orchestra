@@ -16,12 +16,11 @@
     "url": "https://vates.fr"
   },
   "preferGlobal": true,
-  "main": "dist/",
   "bin": {
-    "vhd-cli": "dist/index.js"
+    "vhd-cli": "./index.js"
   },
   "engines": {
-    "node": ">=8.10"
+    "node": ">=10"
   },
   "dependencies": {
     "@xen-orchestra/fs": "^1.0.3",
@@ -30,26 +29,11 @@
     "getopts": "^2.2.3",
     "human-format": "^1.0.0",
     "lodash": "^4.17.21",
+    "promise-toolbox": "^0.21.0",
     "uuid": "^8.3.2",
     "vhd-lib": "^3.2.0"
   },
-  "devDependencies": {
-    "@babel/cli": "^7.0.0",
-    "@babel/core": "^7.0.0",
-    "@babel/preset-env": "^7.0.0",
-    "cross-env": "^7.0.2",
-    "execa": "^5.0.0",
-    "index-modules": "^0.4.3",
-    "promise-toolbox": "^0.21.0",
-    "rimraf": "^3.0.0",
-    "tmp": "^0.2.1"
-  },
   "scripts": {
-    "build": "cross-env NODE_ENV=production babel --source-maps --out-dir=dist/ src/",
-    "dev": "cross-env NODE_ENV=development babel --watch --source-maps --out-dir=dist/ src/",
-    "prebuild": "rimraf dist/ && index-modules --cjs-lazy src/commands",
-    "predev": "yarn run prebuild",
-    "prepublishOnly": "yarn run build",
     "postversion": "npm publish"
   }
 }

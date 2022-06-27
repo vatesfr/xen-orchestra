@@ -1,3 +1,5 @@
+'use strict'
+
 const { createWriteStream } = require('fs')
 const { PassThrough } = require('stream')
 
@@ -12,7 +14,7 @@ const createOutputStream = path => {
   return stream
 }
 
-export const writeStream = (input, path) => {
+exports.writeStream = function writeStream(input, path) {
   const output = createOutputStream(path)
 
   return new Promise((resolve, reject) =>
