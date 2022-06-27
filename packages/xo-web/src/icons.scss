@@ -583,6 +583,14 @@
   // SR
   &-sr,
   &-vdi {
+    &-disable {
+      @extend .fa;
+      @extend .fa-times-circle;
+    }
+    &-enable {
+      @extend .fa;
+      @extend .fa-check-circle;
+    }
     &-reconnect-all {
       @extend .fa;
       @extend .fa-retweet;

@@ -2108,6 +2108,39 @@ export const editSr = (sr, { nameDescription, nameLabel }) =>
 export const rescanSr = sr => _call('sr.scan', { id: resolveId(sr) })
 export const rescanSrs = srs => Promise.all(map(resolveIds(srs), id => _call('sr.scan', { id })))
 
+export const toggleSrMaintenanceMode = sr => {
+  const id = resolveId(sr)
+  const method = sr.in_maintenance_mode ? 'disableMaintenanceMode' : 'enableMaintenanceMode'
+
+  return _call(`sr.${method}`, { id }).catch(async err => {
+    if (
+      incorrectState.is(err, {
+        property: 'vmsToShutdown',
+      })
+    ) {
+      const vmIds = err.data.expected
+      const vmNames = vmIds.map(vmId => store.getState().objects.all[vmId].name_label)
+      await confirm({
+        title: _('maintenanceSrModalTitle'),
+        body: (
+          <div>
+            {_('maintenanceSrModalBody', { n: vmNames.length })}
+            <ul>
+              {vmNames.map(name => (
+                <li key={name}>{name}</li>
+              ))}
+            </ul>
+          </div>
+        ),
+      })
+      // return _call(`sr.${method}`, { id, vmsToShutdown: vmIds })
+    } else {
+      throw err
+    }
+  })
+  //
+}
+
 // PBDs --------------------------------------------------------------
 
 export const connectPbd = pbd => _call('pbd.connect', { id: resolveId(pbd) })

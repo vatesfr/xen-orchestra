@@ -2219,6 +2219,9 @@ const messages = {
   srAllDisconnected: 'Disconnected',
   srSomeConnected: 'Partially connected',
   srAllConnected: 'Connected',
+  maintenanceSrModalBody:
+    'In order to put this SR in maintenance mode, VM{n, plural, one {} other {s}} bellow will be shut down. Are you sure you want to continue?',
+  maintenanceSrModalTitle: 'Maintenance mode',
   migrateSelectedVdis: 'Migrate selected VDIs',
   migrateVdiMessage:
     'All the VDIs attached to a VM must either be on a shared SR or on the same host (local SR) for the VM to be able to start.',
