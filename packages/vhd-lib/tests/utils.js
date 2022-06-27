@@ -85,10 +85,9 @@ async function convertToVhdDirectory(rawFileName, vhdFileName, path) {
   await fs.mkdir(path + '/blocks/0/')
   const stats = await fs.stat(rawFileName)
 
-  const sizeMB = stats.size / 1024 / 1024
-  for (let i = 0, offset = 0; i < sizeMB; i++, offset += blockDataSize) {
+  for (let i = 0, offset = 0; offset < stats.size; i++, offset += blockDataSize) {
     const blockData = Buffer.alloc(blockDataSize)
-    await fs.read(srcRaw, blockData, offset)
+    await fs.read(srcRaw, blockData, 0, blockData.length, offset)
     await fs.writeFile(path + '/blocks/0/' + i, Buffer.concat([bitmap, blockData]))
   }
   await fs.close(srcRaw)

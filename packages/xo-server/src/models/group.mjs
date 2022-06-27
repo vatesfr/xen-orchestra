@@ -1,7 +1,6 @@
 import isEmpty from 'lodash/isEmpty.js'
 
 import Collection from '../collection/redis.mjs'
-import Model from '../model.mjs'
 
 import { forEach } from '../utils.mjs'
 
@@ -9,17 +8,9 @@ import { parseProp } from './utils.mjs'
 
 // ===================================================================
 
-export default class Group extends Model {}
-
-// ===================================================================
-
 export class Groups extends Collection {
-  get Model() {
-    return Group
-  }
-
   create(name, provider, providerGroupId) {
-    return this.add(new Group({ name, provider, providerGroupId }))
+    return this.add({ name, provider, providerGroupId })
   }
 
   async save(group) {

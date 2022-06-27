@@ -154,7 +154,7 @@ poolMarkingPrefix = 'xo:clientInfo:'
 [xo-proxy]
 callTimeout = '1 min'
 
-channel = 'xo-proxy-appliance'
+channel = 'xo-proxy-appliance-{xoChannel}'
 
 namespace = 'xoProxyAppliance'
 

@@ -33,7 +33,7 @@ export default class Scheduling {
 
     const db = (this._db = new Schedules({
       connection: app._redis,
-      prefix: 'xo:schedule',
+      namespace: 'schedule',
     }))
 
     this._runs = { __proto__: null }
@@ -73,16 +73,14 @@ export default class Scheduling {
   }
 
   async createSchedule({ cron, enabled, jobId, name = '', timezone, userId }) {
-    const schedule = (
-      await this._db.add({
-        cron,
-        enabled,
-        jobId,
-        name,
-        timezone,
-        userId,
-      })
-    ).properties
+    const schedule = await this._db.add({
+      cron,
+      enabled,
+      jobId,
+      name,
+      timezone,
+      userId,
+    })
     this._start(schedule)
     return schedule
   }
@@ -92,7 +90,7 @@ export default class Scheduling {
     if (schedule === undefined) {
       throw noSuchObject(id, 'schedule')
     }
-    return schedule.properties
+    return schedule
   }
 
   async getAllSchedules() {

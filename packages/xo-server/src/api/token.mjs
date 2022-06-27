@@ -25,7 +25,6 @@ create.params = {
 
 // -------------------------------------------------------------------
 
-// TODO: an user should be able to delete its own tokens.
 async function delete_({ token: id }) {
   await this.deleteAuthenticationToken(id)
 }
@@ -33,8 +32,6 @@ async function delete_({ token: id }) {
 export { delete_ as delete }
 
 delete_.description = 'delete an existing authentication token'
-
-delete_.permission = 'admin'
 
 delete_.params = {
   token: { type: 'string' },

@@ -37,6 +37,10 @@
   "license": "ISC",
   "version": "1.0.0",
   "scripts": {
-    "postversion": "npm publish --access public"
+    "postversion": "npm publish --access public",
+    "test": "tap --branches=72"
+  },
+  "devDependencies": {
+    "tap": "^16.2.0"
   }
 }

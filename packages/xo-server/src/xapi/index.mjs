@@ -762,7 +762,8 @@ export default class Xapi extends XapiBase {
           stream,
           table.grainLogicalAddressList,
           table.grainFileOffsetList,
-          compression[entry.name] === 'gzip'
+          compression[entry.name] === 'gzip',
+          entry.size
         )
         try {
           await vdi.$importContent(vhdStream, { format: VDI_FORMAT_VHD })

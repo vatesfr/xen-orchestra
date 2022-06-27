@@ -1,12 +1,12 @@
 import { ensureDir as mkdirp } from 'fs-extra'
 import { readFile, writeFile } from 'fs/promises'
+import { xdgConfig } from 'xdg-basedir'
 import lodashGet from 'lodash/get.js'
 import lodashUnset from 'lodash/unset.js'
-import xdgBasedir from 'xdg-basedir'
 
 // ===================================================================
 
-const configPath = xdgBasedir.config + '/xo-cli'
+const configPath = xdgConfig + '/xo-cli'
 const configFile = configPath + '/config.json'
 
 // ===================================================================

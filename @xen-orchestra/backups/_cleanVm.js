@@ -59,30 +59,20 @@ async function mergeVhdChain(chain, { handler, logInfo, remove, merge }) {
     let done, total
     const handle = setInterval(() => {
       if (done !== undefined) {
-        logInfo(`merging children in progress`, { children, parent, doneCount: done, totalCount: total})
+        logInfo(`merging children in progress`, { children, parent, doneCount: done, totalCount: total })
       }
     }, 10e3)
 
     const mergedSize = await mergeVhd(handler, parent, handler, children, {
+      logInfo,
       onProgress({ done: d, total: t }) {
         done = d
         total = t
       },
+      remove,
     })
 
     clearInterval(handle)
-    const mergeTargetChild = children.shift()
-    await Promise.all([
-      VhdAbstract.rename(handler, parent, mergeTargetChild),
-      asyncMap(children, child => {
-        logInfo(`the VHD child is already merged`, { child })
-        if (remove) {
-          logInfo(`deleting merged VHD child`, { child })
-          return VhdAbstract.unlink(handler, child)
-        }
-      }),
-    ])
-
     return mergedSize
   }
 }

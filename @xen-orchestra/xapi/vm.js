@@ -11,7 +11,7 @@ const { asyncMap } = require('@xen-orchestra/async-map')
 const { createLogger } = require('@xen-orchestra/log')
 const { decorateClass } = require('@vates/decorate-with')
 const { defer } = require('golike-defer')
-const { incorrectState } = require('xo-common/api-errors.js')
+const { incorrectState, forbiddenOperation } = require('xo-common/api-errors.js')
 const { Ref } = require('xen-api')
 
 const extractOpaqueRef = require('./_extractOpaqueRef.js')
@@ -343,7 +343,13 @@ class Vm {
     const vm = await this.getRecord('VM', vmRef)
 
     if (!bypassBlockedOperation && 'destroy' in vm.blocked_operations) {
-      throw new Error('destroy is blocked')
+      throw forbiddenOperation(
+        `destroy is blocked: ${
+          vm.blocked_operations.destroy === 'true'
+            ? 'protected from accidental deletion'
+            : vm.blocked_operations.destroy
+        }`
+      )
     }
 
     if (!forceDeleteDefaultTemplate && isDefaultTemplate(vm)) {
