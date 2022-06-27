@@ -36,6 +36,7 @@ import Signin from './Signin/index'
 import StyleGuide from './StyleGuide/index'
 import TabConsole from './TabConsole'
 
+import PoppinsWoff2 from '../fonts/poppins.woff2'
 import XapiConnection, { ObjectsByType, Pool, Vm } from '../libs/xapi'
 
 const drawerWidth = 240
@@ -175,6 +176,16 @@ const mdTheme = createTheme({
     },
   },
   components: {
+    MuiCssBaseline: {
+      styleOverrides: `
+        @font-face {
+          font-family: 'poppins';
+          font-style: normal;
+          font-weight: 400;
+          src: url(${PoppinsWoff2}) format('woff2');
+        }
+      `,
+    },
     MuiTab: {
       styleOverrides: {
         root: {
@@ -187,7 +198,7 @@ const mdTheme = createTheme({
     },
   },
   typography: {
-    fontFamily: 'inter',
+    fontFamily: 'poppins',
     h1: {
       fontWeight: 500,
       fontSize: '3em',
