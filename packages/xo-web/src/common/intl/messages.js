@@ -131,6 +131,7 @@ const messages = {
   // ----- Copiable component -----
   copyToClipboard: 'Copy to clipboard',
   copyUuid: 'Copy {uuid}',
+  copyValue: 'Copy {value}',
 
   // ----- Pills -----
   pillMaster: 'Master',
@@ -2417,6 +2418,8 @@ const messages = {
   noProxiesAvailable: 'No proxies available',
   checkProxyHealth: 'Test your proxy',
   updateProxyApplianceSettings: 'Update appliance settings',
+  urlNotFound: 'URL not found',
+  proxyCopyUrl: 'Copy proxy URL',
   proxyTestSuccess: 'Test passed for {name}',
   proxyTestSuccessMessage: 'The proxy appears to work correctly',
   proxyTestFailed: 'Test failed for {name}',
