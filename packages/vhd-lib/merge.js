@@ -4,6 +4,7 @@
 
 const assert = require('assert')
 const noop = require('./_noop')
+const UUID = require('uuid')
 const { createLogger } = require('@xen-orchestra/log')
 const { limitConcurrency } = require('limit-concurrency-decorator')
 
@@ -117,7 +118,7 @@ module.exports.mergeVhd = limitConcurrency(2)(async function merge(
 
     if (mergeState === undefined) {
       // merge should be along a vhd chain
-      assert.strictEqual(childVhd.header.parentUuid.equals(parentVhd.footer.uuid), true)
+      assert.strictEqual(UUID.stringify(childVhd.header.parentUuid), UUID.stringify(parentVhd.footer.uuid))
       const parentDiskType = parentVhd.footer.diskType
       assert(parentDiskType === DISK_TYPES.DIFFERENCING || parentDiskType === DISK_TYPES.DYNAMIC)
       assert.strictEqual(childVhd.footer.diskType, DISK_TYPES.DIFFERENCING)
