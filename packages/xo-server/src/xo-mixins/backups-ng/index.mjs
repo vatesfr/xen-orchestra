@@ -490,7 +490,7 @@ export default class BackupNg {
         // more efficient hashing algorithm to generate the consistency checks
         // in order to support larger files without the consistency checking process taking an incredibly long time
         error.code === 'IMPORT_ERROR' &&
-        error.params.some(
+        error.params?.some(
           param =>
             param.includes('INTERNAL_ERROR') &&
             param.includes('Expected to find an inline checksum') &&
