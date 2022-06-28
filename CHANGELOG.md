@@ -1,5 +1,11 @@
 # ChangeLog
 
+## **next**
+
+### Released packages
+
+- vhd-cli 0.8.0
+
 ## **5.71.1 (2022-06-13)**
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />

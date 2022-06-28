@@ -516,6 +516,10 @@ export const createFakeProgress = (() => {
   }
 })()
 
+export const NumericDate = ({ timestamp }) => (
+  <FormattedDate day='2-digit' hour='numeric' minute='numeric' month='2-digit' value={timestamp} year='numeric' />
+)
+
 export const ShortDate = ({ timestamp }) => (
   <FormattedDate value={timestamp} month='short' day='numeric' year='numeric' />
 )

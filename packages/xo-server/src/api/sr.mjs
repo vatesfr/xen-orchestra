@@ -913,3 +913,38 @@ stats.params = {
 stats.resolve = {
   sr: ['id', 'SR', 'view'],
 }
+
+// -------------------------------------------------------------------
+
+export function enableMaintenanceMode({ sr, vmsToShutdown }) {
+  return this.getXapiObject(sr).$enableMaintenanceMode({ vmsToShutdown })
+}
+
+enableMaintenanceMode.description = 'switch the SR into maintenance mode'
+
+enableMaintenanceMode.params = {
+  id: { type: 'string' },
+  vmsToShutdown: { type: 'array', items: { type: 'string' }, optional: true },
+}
+
+enableMaintenanceMode.permission = 'admin'
+
+enableMaintenanceMode.resolve = {
+  sr: ['id', 'SR', 'operate'],
+}
+
+export function disableMaintenanceMode({ sr }) {
+  return this.getXapiObject(sr).$disableMaintenanceMode()
+}
+
+disableMaintenanceMode.description = 'disable the maintenance of the SR'
+
+disableMaintenanceMode.params = {
+  id: { type: 'string' },
+}
+
+disableMaintenanceMode.permission = 'admin'
+
+disableMaintenanceMode.resolve = {
+  sr: ['id', 'SR', 'operate'],
+}

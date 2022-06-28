@@ -1,11 +1,13 @@
-import { VhdFile, checkVhdChain } from 'vhd-lib'
-import getopts from 'getopts'
-import { getHandler } from '@xen-orchestra/fs'
-import { resolve } from 'path'
+'use strict'
+
+const { VhdFile, checkVhdChain } = require('vhd-lib')
+const getopts = require('getopts')
+const { getHandler } = require('@xen-orchestra/fs')
+const { resolve } = require('path')
 
 const checkVhd = (handler, path) => new VhdFile(handler, path).readHeaderAndFooter()
 
-export default async rawArgs => {
+module.exports = async function check(rawArgs) {
   const { chain, _: args } = getopts(rawArgs, {
     boolean: ['chain'],
     default: {

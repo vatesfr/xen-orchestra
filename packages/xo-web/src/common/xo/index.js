@@ -19,6 +19,7 @@ import fetch, { post } from '../fetch'
 import invoke from '../invoke'
 import Icon from '../icon'
 import logError from '../log-error'
+import NewAuthTokenModal from './new-auth-token-modal'
 import renderXoItem, { renderXoItemFromId } from '../render-xo-item'
 import store from 'store'
 import { alert, chooseAction, confirm } from '../modal'
@@ -538,6 +539,8 @@ export const createSrUnhealthyVdiChainsLengthSubscription = sr => {
   }
   return subscription
 }
+
+export const subscribeUserAuthTokens = createSubscription(() => _call('user.getAuthenticationTokens'))
 
 // System ============================================================
 
@@ -2782,7 +2785,14 @@ export const deleteUsers = users =>
 export const editUser = (user, { email, password, permission }) =>
   _call('user.set', { id: resolveId(user), email, password, permission })::tap(subscribeUsers.forceRefresh)
 
-const _signOutFromEverywhereElse = () => _call('token.deleteAll', { except: cookies.get('token') })
+const _signOutFromEverywhereElse = () =>
+  _call('token.delete', {
+    pattern: {
+      id: {
+        __not: cookies.get('token'),
+      },
+    },
+  })
 
 export const signOutFromEverywhereElse = () =>
   _signOutFromEverywhereElse().then(
@@ -2889,6 +2899,47 @@ export const deleteSshKeys = keys =>
       sshKeys: filter(preferences && preferences.sshKeys, sshKey => !includes(keyIds, sshKey.key)),
     })
   }, noop)
+
+export const addAuthToken = async () => {
+  const { description, expiration } = await confirm({
+    body: <NewAuthTokenModal />,
+    icon: 'user',
+    title: _('newAuthTokenModalTitle'),
+  })
+  const expires = new Date(expiration).setHours(23, 59, 59)
+  return _call('token.create', {
+    description,
+    expiresIn: Number.isNaN(expires) ? undefined : expires - new Date().getTime(),
+  })::tap(subscribeUserAuthTokens.forceRefresh)
+}
+
+export const deleteAuthToken = async ({ id }) => {
+  await confirm({
+    body: _('deleteAuthTokenConfirmMessage', {
+      id,
+    }),
+    icon: 'user',
+    title: _('deleteAuthTokenConfirm'),
+  })
+  return _call('token.delete', { tokens: [id] })::tap(subscribeUserAuthTokens.forceRefresh)
+}
+
+export const deleteAuthTokens = async tokens => {
+  await confirm({
+    body: _('deleteAuthTokensConfirmMessage', {
+      nTokens: tokens.length,
+    }),
+    icon: 'user',
+    title: _('deleteAuthTokensConfirm', { nTokens: tokens.length }),
+  })
+  return _call('token.delete', { tokens: tokens.map(token => token.id) })::tap(subscribeUserAuthTokens.forceRefresh)
+}
+
+export const editAuthToken = ({ description, id }) =>
+  _call('token.set', {
+    description,
+    id,
+  })::tap(subscribeUserAuthTokens.forceRefresh)
 
 // User filters --------------------------------------------------
 

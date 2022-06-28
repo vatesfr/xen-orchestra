@@ -1,8 +1,10 @@
-import escapeRegExp from 'lodash/escapeRegExp'
+'use strict'
+
+const escapeRegExp = require('lodash/escapeRegExp')
 
 const compareLengthDesc = (a, b) => b.length - a.length
 
-export function compileTemplate(pattern, rules) {
+exports.compileTemplate = function compileTemplate(pattern, rules) {
   const matches = Object.keys(rules).sort(compareLengthDesc).map(escapeRegExp).join('|')
   const regExp = new RegExp(`\\\\(?:\\\\|${matches})|${matches}`, 'g')
   return (...params) =>

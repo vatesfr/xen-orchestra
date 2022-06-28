@@ -7,6 +7,9 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [Backup] Merge delta backups without copying data when using VHD directories on NFS/SMB/local remote(https://github.com/vatesfr/xen-orchestra/pull/6271))
+- [Proxies] Ability to copy the proxy access URL (PR [#6287](https://github.com/vatesfr/xen-orchestra/pull/6287))
+- [User] User tokens management through XO interface (PR [#6276](https://github.com/vatesfr/xen-orchestra/pull/6276))
 - [Tasks, VM/General] Self Service users: show tasks related to their pools, hosts, SRs, networks and VMs (PR [#6217](https://github.com/vatesfr/xen-orchestra/pull/6217))
 
 ### Bug fixes
@@ -15,6 +18,8 @@
 
 - [VDI Import] Fix `this._getOrWaitObject is not a function`
 - [VM] Attempting to delete a protected VM should display a modal with the error and the ability to bypass it (PR [#6290](https://github.com/vatesfr/xen-orchestra/pull/6290))
+- [OVA Import] Fix import stuck after first disk
+- [File restore] Ignore symbolic links
 
 ### Packages to release
 
@@ -34,9 +39,12 @@
 
 - @vates/event-listeners-manager patch
 - @vates/read-chunk major
+- @xen-orchestra/backups minor
 - @xen-orchestra/xapi minor
+- vhd-lib minor
 - xo-remote-parser minor
-- xo-server patch
+- xo-server minor
+- xo-vmdk-to-vhd patch
 - xo-web minor
 
 <!--packages-end-->

@@ -1,18 +1,11 @@
 import Collection from '../collection/redis.mjs'
-import Model from '../model.mjs'
 import { forEach, serializeError } from '../utils.mjs'
 
 import { parseProp } from './utils.mjs'
 
 // ===================================================================
 
-export default class Remote extends Model {}
-
 export class Remotes extends Collection {
-  get Model() {
-    return Remote
-  }
-
   async get(properties) {
     const remotes = await super.get(properties)
     forEach(remotes, remote => {
