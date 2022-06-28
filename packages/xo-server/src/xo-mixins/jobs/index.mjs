@@ -49,7 +49,7 @@ const serialize = job => {
 
 class JobsDb extends Collection {
   async create(job) {
-    return normalize((await this.add(serialize(job))).properties)
+    return normalize(await this.add(serialize(job)))
   }
 
   async save(job) {
@@ -75,7 +75,7 @@ export default class Jobs {
     const executors = (this._executors = { __proto__: null })
     const jobsDb = (this._jobs = new JobsDb({
       connection: app._redis,
-      prefix: 'xo:job',
+      namespace: 'job',
       indexes: ['user_id', 'key'],
     }))
     this._logger = undefined
@@ -137,12 +137,11 @@ export default class Jobs {
   }
 
   async getJob(id, type) {
-    let job = await this._jobs.first(id)
-    if (job === undefined || (type !== undefined && job.properties.type !== type)) {
+    const job = await this._jobs.first(id)
+    if (job === undefined || (type !== undefined && job.type !== type)) {
       throw noSuchObject(id, 'job')
     }
 
-    job = job.properties
     job.runId = this._runningJobs[id]
 
     return job

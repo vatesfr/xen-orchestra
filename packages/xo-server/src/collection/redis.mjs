@@ -1,3 +1,4 @@
+import assert from 'assert'
 import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
 import difference from 'lodash/difference.js'
 import filter from 'lodash/filter.js'
@@ -16,7 +17,8 @@ import Collection, { ModelAlreadyExists } from '../collection.mjs'
 
 // ///////////////////////////////////////////////////////////////////
 // Data model:
-// - prefix +'_id': value of the last generated identifier;
+// - 'xo::namespaces': set of all available namespaces
+// - prefix + '::indexes': set containing all indexes;
 // - prefix +'_ids': set containing identifier of all models;
 // - prefix +'_'+ index +':' + lowerCase(value): set of identifiers
 //   which have value for the given index.
@@ -34,12 +36,19 @@ import Collection, { ModelAlreadyExists } from '../collection.mjs'
 const VERSION = '20170905'
 
 export default class Redis extends Collection {
-  constructor({ connection, indexes = [], prefix, uri }) {
+  constructor({ connection, indexes = [], namespace, uri }) {
     super()
+
+    assert(!namespace.includes(':'), 'namespace must not contains ":": ' + namespace)
+    assert(!namespace.includes('_'), 'namespace must not contains "_": ' + namespace)
+
+    const prefix = 'xo:' + namespace
 
     this.indexes = indexes
     this.prefix = prefix
     const redis = (this.redis = promisifyAll(connection || createRedisClient(uri)))
+
+    redis.sadd('xo::namespaces', namespace)::ignoreErrors()
 
     const key = `${prefix}:version`
     redis
@@ -61,28 +70,32 @@ export default class Redis extends Collection {
       ::ignoreErrors()
   }
 
-  rebuildIndexes() {
+  async rebuildIndexes() {
     const { indexes, prefix, redis } = this
 
+    await redis.del(`${prefix}::indexes`)
+
     if (indexes.length === 0) {
-      return Promise.resolve()
+      return
     }
 
-    const idsIndex = `${prefix}_ids`
-    return asyncMapSettled(indexes, index =>
+    await redis.sadd(`${prefix}::indexes`, indexes)
+
+    await asyncMapSettled(indexes, index =>
       redis.keys(`${prefix}_${index}:*`).then(keys => keys.length !== 0 && redis.del(keys))
-    ).then(() =>
-      asyncMapSettled(redis.smembers(idsIndex), id =>
-        redis.hgetall(`${prefix}:${id}`).then(values =>
-          values == null
-            ? redis.srem(idsIndex, id) // entry no longer exists
-            : asyncMapSettled(indexes, index => {
-                const value = values[index]
-                if (value !== undefined) {
-                  return redis.sadd(`${prefix}_${index}:${String(value).toLowerCase()}`, id)
-                }
-              })
-        )
+    )
+
+    const idsIndex = `${prefix}_ids`
+    await asyncMapSettled(redis.smembers(idsIndex), id =>
+      redis.hgetall(`${prefix}:${id}`).then(values =>
+        values == null
+          ? redis.srem(idsIndex, id) // entry no longer exists
+          : asyncMapSettled(indexes, index => {
+              const value = values[index]
+              if (value !== undefined) {
+                return redis.sadd(`${prefix}_${index}:${String(value).toLowerCase()}`, id)
+              }
+            })
       )
     )
   }

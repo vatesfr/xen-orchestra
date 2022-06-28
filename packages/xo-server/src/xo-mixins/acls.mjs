@@ -14,7 +14,7 @@ export default class {
 
     const aclsDb = (this._acls = new Acls({
       connection: app._redis,
-      prefix: 'xo:acl',
+      namespace: 'acl',
       indexes: ['subject', 'object'],
     }))
 

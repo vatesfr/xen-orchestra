@@ -1,9 +1,11 @@
-import { Bar } from 'cli-progress'
-import { mergeVhd } from 'vhd-lib'
-import { getHandler } from '@xen-orchestra/fs'
-import { resolve } from 'path'
+'use strict'
 
-export default async function main(args) {
+const { Bar } = require('cli-progress')
+const { mergeVhd } = require('vhd-lib')
+const { getHandler } = require('@xen-orchestra/fs')
+const { resolve } = require('path')
+
+module.exports = async function merge(args) {
   if (args.length < 2 || args.some(_ => _ === '-h' || _ === '--help')) {
     return `Usage: ${this.command} <child VHD> <parent VHD>`
   }
