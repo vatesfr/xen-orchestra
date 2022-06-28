@@ -17,7 +17,7 @@ const parseOptionList = (optionList = '') => {
   const parsed = queryString.parse(optionList)
   Object.keys(parsed).forEach(key => {
     const val = parsed[key]
-    // some incorrects values have been saved in users database (introduced  by #6270)
+    // some incorrect values have been saved in users database (introduced by #6270)
     parsed[key] = val === '' ? false : JSON.parse(val)
   })
   return parsed
