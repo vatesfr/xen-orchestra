@@ -2121,7 +2121,7 @@ export const toggleSrMaintenanceMode = sr => {
       const vmIds = err.data.expected
       const vmNames = vmIds.map(vmId => store.getState().objects.all[vmId].name_label)
       await confirm({
-        title: _('maintenanceSrModalTitle'),
+        title: _('maintenanceMode'),
         body: (
           <div>
             {_('maintenanceSrModalBody', { n: vmNames.length })}
@@ -2133,7 +2133,7 @@ export const toggleSrMaintenanceMode = sr => {
           </div>
         ),
       })
-      // return _call(`sr.${method}`, { id, vmsToShutdown: vmIds })
+      return _call(`sr.${method}`, { id, vmsToShutdown: vmIds })
     } else {
       throw err
     }
