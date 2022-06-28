@@ -300,7 +300,7 @@ const COLUMNS_AUTH_TOKENS = [
   },
   {
     itemRenderer: token => (
-      <Text value={token.description} onChange={description => editAuthToken({ ...token, description })} />
+      <Text value={token.description ?? ''} onChange={description => editAuthToken({ ...token, description })} />
     ),
     name: _('description'),
     sortCriteria: 'description',
@@ -356,7 +356,7 @@ const UserAuthTokens = addSubscriptions({
         <SortedTable
           collection={userAuthTokens}
           columns={COLUMNS_AUTH_TOKENS}
-          stateUrlParam='t'
+          stateUrlParam='s_auth_tokens'
           groupedActions={GROUPED_ACTIONS_AUTH_TOKENS}
           individualActions={INDIVIDUAL_ACTIONS_AUTH_TOKENS}
         />
