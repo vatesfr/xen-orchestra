@@ -2138,7 +2138,6 @@ export const toggleSrMaintenanceMode = sr => {
       throw err
     }
   })
-  //
 }
 
 // PBDs --------------------------------------------------------------
