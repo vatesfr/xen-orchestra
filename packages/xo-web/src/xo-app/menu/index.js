@@ -75,7 +75,7 @@ const returnTrue = () => true
 })
 @injectState
 export default class Menu extends Component {
-  UNSAFE_componentWillMount() {
+  componentWillMount() {
     const updateCollapsed = () => {
       this.setState({ collapsed: window.innerWidth < 1200 })
     }
