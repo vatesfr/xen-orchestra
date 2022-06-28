@@ -215,7 +215,7 @@ export default class Tasks extends Component {
     finishedTasks: [],
   }
 
-  UNSAFE_componentWillReceiveProps(props) {
+  componentWillReceiveProps(props) {
     const finishedTasks = differenceBy(this.props.resolvedPendingTasksByPool, props.resolvedPendingTasksByPool, 'id')
     if (!isEmpty(finishedTasks)) {
       this.setState({
