@@ -68,7 +68,7 @@ export default decorate([
             username = remote.username,
             protocol = remote.protocol || 'https',
             region = remote.region,
-            allowUnauthorized = remote.allowUnauthorized,
+            allowUnauthorized = remote.allowUnauthorized === true ? true : undefined,
           } = state
           let { path = remote.path } = state
           if (type === 's3') {
