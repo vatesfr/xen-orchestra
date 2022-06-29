@@ -1,6 +1,5 @@
 'use strict'
 
-const assert = require('assert')
 const sum = require('lodash/sum')
 const UUID = require('uuid')
 const { asyncMap } = require('@xen-orchestra/async-map')
@@ -10,7 +9,7 @@ const { dirname, resolve } = require('path')
 const { DISK_TYPES } = Constants
 const { isMetadataFile, isVhdFile, isXvaFile, isXvaSumFile } = require('./_backupType.js')
 const { limitConcurrency } = require('limit-concurrency-decorator')
-const { mergeVhd } = require('vhd-lib/merge')
+const { mergeVhdChain } = require('vhd-lib/merge')
 
 const { Task } = require('./Task.js')
 const { Disposable } = require('promise-toolbox')
@@ -34,54 +33,34 @@ const computeVhdsSize = (handler, vhdPaths) =>
     }
   )
 
-// chain is [ ancestor, child1, ..., childn]
-// 1. Create a VhdSynthetic from all children
-// 2. Merge the VhdSynthetic into the ancestor
-// 3. Delete all (now) unused VHDs
-// 4. Rename the ancestor with the merged data to the latest child
-//
-//                  VhdSynthetic
-//                       |
-//              /‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\
-//  [ ancestor, child1, ...,child n-1,  childn ]
-//         |    \___________________/     ^
-//         |             |                |
-//         |       unused VHDs            |
-//         |                              |
-//         \___________rename_____________/
-
-async function mergeVhdChain(chain, { handler, logInfo, remove, merge }) {
-  assert(chain.length >= 2)
-  const chainCopy = [...chain]
-  const parent = chainCopy.shift()
-  const children = chainCopy
-
+// chain is [ ancestor, child_1, ..., child_n ]
+async function _mergeVhdChain(handler, chain, { logInfo, remove, merge }) {
   if (merge) {
-    logInfo('will merge children into parent', { children, parent })
+    logInfo(`merging VHD chain`, { chain })
 
     let done, total
     const handle = setInterval(() => {
       if (done !== undefined) {
         logInfo('merge in progress', {
           done,
-          parent,
+          parent: chain[0],
           progress: Math.round((100 * done) / total),
           total,
         })
       }
     }, 10e3)
-
-    const mergedSize = await mergeVhd(handler, parent, handler, children, {
-      logInfo,
-      onProgress({ done: d, total: t }) {
-        done = d
-        total = t
-      },
-      remove,
-    })
-
-    clearInterval(handle)
-    return mergedSize
+    try {
+      return await mergeVhdChain(handler, chain, {
+        logInfo,
+        onProgress({ done: d, total: t }) {
+          done = d
+          total = t
+        },
+        removeUnused: remove,
+      })
+    } finally {
+      clearInterval(handle)
+    }
   }
 }
 
@@ -201,7 +180,7 @@ exports.cleanVm = async function cleanVm(
   vmDir,
   { fixMetadata, remove, merge, mergeLimiter = defaultMergeLimiter, logInfo = noop, logWarn = console.warn }
 ) {
-  const limitedMergeVhdChain = mergeLimiter(mergeVhdChain)
+  const limitedMergeVhdChain = mergeLimiter(_mergeVhdChain)
 
   const handler = this._handler
 
@@ -462,7 +441,7 @@ exports.cleanVm = async function cleanVm(
   const metadataWithMergedVhd = {}
   const doMerge = async () => {
     await asyncMap(toMerge, async chain => {
-      const merged = await limitedMergeVhdChain(chain, { handler, logInfo, logWarn, remove, merge })
+      const merged = await limitedMergeVhdChain(handler, chain, { logInfo, logWarn, remove, merge })
       if (merged !== undefined) {
         const metadataPath = vhdsToJSons[chain[chain.length - 1]] // all the chain should have the same metada file
         metadataWithMergedVhd[metadataPath] = true
