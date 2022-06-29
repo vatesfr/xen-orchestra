@@ -87,7 +87,7 @@ module.exports.mergeVhd = limitConcurrency(2)(async function merge(
   childPath,
   { onProgress = noop, logInfo = noop, remove } = {}
 ) {
-  const mergeStatePath = dirname(parentPath) + '/' + '.' + basename(parentPath) + '.merge.json'
+  const mergeStatePath = dirname(parentPath) + '/.' + basename(parentPath) + '.merge.json'
 
   return await Disposable.use(async function* () {
     let mergeState
