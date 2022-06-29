@@ -117,7 +117,7 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
   }
 
   static async create(handler, path, { flags = 'wx+', compression } = {}) {
-    await handler.mkdir(path)
+    await handler.mktree(path)
     const vhd = new VhdDirectory(handler, path, { flags, compression })
     return {
       dispose: () => {},
