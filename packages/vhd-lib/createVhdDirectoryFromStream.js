@@ -50,7 +50,7 @@ exports.createVhdDirectoryFromStream = async function createVhdDirectoryFromStre
     }
   } catch (error) {
     // cleanup on error
-    await handler.rmtree(path)
+    await handler.rmtree(path).catch(() => {})
     throw error
   }
 }
