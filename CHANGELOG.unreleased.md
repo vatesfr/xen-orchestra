@@ -40,6 +40,7 @@
 - @vates/event-listeners-manager patch
 - @vates/read-chunk major
 - @xen-orchestra/backups minor
+- @xen-orchestra/fs minor
 - @xen-orchestra/xapi minor
 - vhd-lib minor
 - xo-remote-parser minor
