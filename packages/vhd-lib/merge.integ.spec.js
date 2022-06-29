@@ -8,8 +8,8 @@ const tmp = require('tmp')
 const { getHandler } = require('@xen-orchestra/fs')
 const { pFromCallback } = require('promise-toolbox')
 
-const { VhdFile, chainVhd, mergeVhd } = require('./index')
-const { _cleanupVhds: cleanupVhds } = require('./merge')
+const { VhdFile, chainVhd } = require('./index')
+const { _cleanupVhds: cleanupVhds, mergeVhd } = require('./merge')
 
 const { checkFile, createRandomFile, convertFromRawToVhd } = require('./tests/utils')
 
