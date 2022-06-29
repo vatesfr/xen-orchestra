@@ -424,6 +424,10 @@ export default class RemoteHandlerAbstract {
 
   // Methods that can be implemented by inheriting classes
 
+  useVhdDirectory() {
+    return this._remote.useVhdDirectory ?? false
+  }
+
   async _closeFile(fd) {
     throw new Error('Not implemented')
   }
@@ -589,10 +593,6 @@ export default class RemoteHandlerAbstract {
   }
 
   async _writeFile(file, data, options) {
-    throw new Error('Not implemented')
-  }
-
-  useVhdDirectory() {
     throw new Error('Not implemented')
   }
 }
