@@ -17,18 +17,21 @@ const parseOptionList = (optionList = '') => {
   const parsed = queryString.parse(optionList)
   Object.keys(parsed).forEach(key => {
     const val = parsed[key]
-    parsed[key] = JSON.parse(val)
+    // some incorrect values have been saved in users database (introduced by #6270)
+    parsed[key] = val === '' ? false : JSON.parse(val)
   })
   return parsed
 }
 
 const makeOptionList = options => {
   const encoded = {}
-
-  Object.keys(options).forEach(key => {
-    const val = options[key]
-    encoded[key] = JSON.stringify(val)
-  })
+  Object.keys(options)
+    // don't save undefined options
+    .filter(option => option !== undefined)
+    .forEach(key => {
+      const val = options[key]
+      encoded[key] = JSON.stringify(val)
+    })
   return queryString.stringify(encoded)
 }
 

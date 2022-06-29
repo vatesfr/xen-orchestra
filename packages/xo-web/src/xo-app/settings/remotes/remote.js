@@ -68,7 +68,8 @@ export default decorate([
             username = remote.username,
             protocol = remote.protocol || 'https',
             region = remote.region,
-            allowUnauthorized = remote.allowUnauthorized,
+            // making it undefined if falsish won't save it in the remote url
+            allowUnauthorized = remote.allowUnauthorized ? true : undefined,
           } = state
           let { path = remote.path } = state
           if (type === 's3') {
