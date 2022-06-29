@@ -164,7 +164,7 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
     )
 
     const compressed = await this.#compressor.compress(buffer)
-    return this._handler.outputFile(this.#getChunkPath(partName), compressed, this._opts)
+    return this._handler.outputFile(this.#getChunkPath(partName), compressed, { flags: 'w' })
   }
 
   // put block in subdirectories to limit impact when doing directory listing
