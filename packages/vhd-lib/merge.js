@@ -56,17 +56,16 @@ function makeThrottledWriter(handler, path, delay) {
 // make the rename / delete part of the merge process
 // will fail if parent and children are in different remote
 
-async function cleanupVhds(handler, parent, children, { logInfo = noop, remove = false } = {}) {
-  if (!Array.isArray(children)) {
-    children = [children]
-  }
-  const mergeTargetChild = children.pop()
+async function cleanupVhds(handler, chain, { logInfo = noop, removeUnused = false } = {}) {
+  const parent = chain[0]
+  const children = chain.slice(1, -1)
+  const mergeTargetChild = chain[chain.length - 1]
 
   await VhdAbstract.rename(handler, parent, mergeTargetChild)
 
   return asyncMap(children, child => {
     logInfo(`the VHD child is already merged`, { child })
-    if (remove) {
+    if (removeUnused) {
       logInfo(`deleting merged VHD child`, { child })
       return VhdAbstract.unlink(handler, child)
     }
@@ -75,25 +74,24 @@ async function cleanupVhds(handler, parent, children, { logInfo = noop, remove =
 
 module.exports._cleanupVhds = cleanupVhds
 
-// Merge one or multiple vhd child into vhd parent.
-// childPath can be array to create a synthetic VHD from multiple VHDs
-// childPath  is from the grand children to the children
-//
-// TODO: rename the VHD file during the merge
-module.exports.mergeVhd = limitConcurrency(2)(async function merge(
-  parentHandler,
-  parentPath,
-  childHandler,
-  childPath,
-  { onProgress = noop, logInfo = noop, remove } = {}
+// Merge a chain of VHDs into a single VHD
+module.exports.mergeVhdChain = limitConcurrency(2)(async function mergeVhdChain(
+  handler,
+  chain,
+  { onProgress = noop, logInfo = noop, removeUnused = false } = {}
 ) {
+  assert(chain.length >= 2)
+
+  const parentPath = chain[0]
+  const childrenPaths = chain.slice(1)
+
   const mergeStatePath = dirname(parentPath) + '/.' + basename(parentPath) + '.merge.json'
 
   return await Disposable.use(async function* () {
     let mergeState
     let isResuming = false
     try {
-      const mergeStateContent = await parentHandler.readFile(mergeStatePath)
+      const mergeStateContent = await handler.readFile(mergeStatePath)
       mergeState = JSON.parse(mergeStateContent)
 
       // work-around a bug introduce in 97d94b795
@@ -110,18 +108,18 @@ module.exports.mergeVhd = limitConcurrency(2)(async function merge(
 
     // during merging, the end footer of the parent can be overwritten by new blocks
     // we should use it as a way to check vhd health
-    const parentVhd = yield openVhd(parentHandler, parentPath, {
+    const parentVhd = yield openVhd(handler, parentPath, {
       flags: 'r+',
       checkSecondFooter: mergeState === undefined,
     })
     let childVhd
     const parentIsVhdDirectory = parentVhd instanceof VhdDirectory
     let childIsVhdDirectory
-    if (Array.isArray(childPath)) {
-      childVhd = yield VhdSynthetic.open(childHandler, childPath)
+    if (childrenPaths.length === 1) {
+      childVhd = yield VhdSynthetic.open(handler, childrenPaths)
       childIsVhdDirectory = childVhd.checkVhdsClass(VhdDirectory)
     } else {
-      childVhd = yield openVhd(childHandler, childPath)
+      childVhd = yield openVhd(handler, childrenPaths[0])
       childIsVhdDirectory = childVhd instanceof VhdDirectory
     }
 
@@ -147,20 +145,13 @@ module.exports.mergeVhd = limitConcurrency(2)(async function merge(
 
     if (mergeState === undefined) {
       await parentVhd.ensureBatSize(childVhd.header.maxTableEntries)
-      let chain
-      if (Array.isArray(childPath)) {
-        chain = [parentPath].concat(childPath)
-      } else {
-        chain = [parentPath, childPath]
-      }
-      chain = chain.map(vhdPath => handlerPath.relativeFromFile(mergeStatePath, vhdPath))
 
       mergeState = {
         child: { header: childVhd.header.checksum },
         parent: { header: parentVhd.header.checksum },
         currentBlock: 0,
         mergedDataSize: 0,
-        chain,
+        chain: chain.map(vhdPath => handlerPath.relativeFromFile(mergeStatePath, vhdPath)),
       }
 
       // finds first allocated block for the 2 following loops
@@ -182,7 +173,7 @@ module.exports.mergeVhd = limitConcurrency(2)(async function merge(
     const merging = new Set()
     let counter = 0
 
-    const mergeStateWriter = makeThrottledWriter(parentHandler, mergeStatePath, 10e3)
+    const mergeStateWriter = makeThrottledWriter(handler, mergeStatePath, 10e3)
     await asyncEach(
       toMerge,
       async blockId => {
@@ -220,16 +211,15 @@ module.exports.mergeVhd = limitConcurrency(2)(async function merge(
     // creation
     await parentVhd.writeFooter()
 
-    await cleanupVhds(parentHandler, parentPath, childPath, { logInfo, remove })
+    await cleanupVhds(handler, chain, { logInfo, removeUnused })
 
     // should be a disposable
-    parentHandler.unlink(mergeStatePath).catch(warn)
+    handler.unlink(mergeStatePath).catch(warn)
 
     return mergeState.mergedDataSize
   }).catch(error => {
     try {
-      error.childPath = childPath
-      error.parentPath = parentPath
+      error.chain = chain
     } finally {
       // eslint-disable-next-line no-unsafe-finally
       throw error

@@ -9,7 +9,7 @@ const { getHandler } = require('@xen-orchestra/fs')
 const { pFromCallback } = require('promise-toolbox')
 
 const { VhdFile, chainVhd } = require('./index')
-const { _cleanupVhds: cleanupVhds, mergeVhd } = require('./merge')
+const { _cleanupVhds: cleanupVhds, mergeVhdChain } = require('./merge')
 
 const { checkFile, createRandomFile, convertFromRawToVhd } = require('./tests/utils')
 
@@ -42,7 +42,7 @@ test('merge works in normal cases', async () => {
   await checkFile(`${tempDir}/${parentFileName}`)
 
   // merge
-  await mergeVhd(handler, parentFileName, handler, child1FileName)
+  await mergeVhdChain(handler, [parentFileName, child1FileName])
 
   // check that the merged vhd is still valid
   await checkFile(`${tempDir}/${child1FileName}`)
@@ -95,7 +95,7 @@ test('it can resume a simple merge ', async () => {
     })
   )
   // expect merge to fail since child header is not ok
-  await expect(async () => await mergeVhd(handler, 'parent.vhd', handler, 'child1.vhd')).rejects.toThrow()
+  await expect(async () => await mergeVhdChain(handler, ['parent.vhd', 'child1.vhd'])).rejects.toThrow()
 
   await handler.unlink('.parent.vhd.merge.json')
   await handler.writeFile(
@@ -110,7 +110,7 @@ test('it can resume a simple merge ', async () => {
     })
   )
   // expect merge to fail since parent header is not ok
-  await expect(async () => await mergeVhd(handler, 'parent.vhd', handler, ['child1.vhd'])).rejects.toThrow()
+  await expect(async () => await mergeVhdChain(handler, ['parent.vhd', 'child1.vhd'])).rejects.toThrow()
 
   // break the end footer of parent
   const size = await handler.getSize('parent.vhd')
@@ -137,7 +137,7 @@ test('it can resume a simple merge ', async () => {
   )
 
   // really merge
-  await mergeVhd(handler, 'parent.vhd', handler, 'child1.vhd')
+  await mergeVhdChain(handler, ['parent.vhd', 'child1.vhd'])
 
   // reload header footer and block allocation table , they should succed
   await childVhd.readHeaderAndFooter()
@@ -249,7 +249,7 @@ test('it merge multiple child in one pass ', async () => {
   await chainVhd(handler, childFileName, handler, grandChildFileName, true)
 
   // merge
-  await mergeVhd(handler, parentFileName, handler, [childFileName, grandChildFileName])
+  await mergeVhdChain(handler, [parentFileName, childFileName, grandChildFileName])
 
   // check that vhd is still valid
   await checkFile(grandChildFileName)
@@ -284,7 +284,7 @@ test('it cleans vhd mergedfiles', async () => {
   await handler.writeFile('child2', 'child2Data')
   await handler.writeFile('child3', 'child3Data')
 
-  await cleanupVhds(handler, 'parent', ['child1', 'child2', 'child3'], { remove: true })
+  await cleanupVhds(handler, ['parent', 'child1', 'child2', 'child3'], { remove: true })
 
   // only child3 should stay, with the data of parent
   const [child3, ...other] = await handler.list('.')
