@@ -4,8 +4,12 @@
 const forEach = require('lodash/forEach')
 
 const messages = {
+  creation: 'Creation',
+  description: 'Description',
+  expiration: 'Expiration',
   keyValue: '{key}: {value}',
 
+  notDefined: 'Not defined',
   statusConnecting: 'Connecting',
   statusDisconnected: 'Disconnected',
   statusLoading: 'Loading…',
@@ -131,6 +135,7 @@ const messages = {
   // ----- Copiable component -----
   copyToClipboard: 'Copy to clipboard',
   copyUuid: 'Copy {uuid}',
+  copyValue: 'Copy {value}',
 
   // ----- Pills -----
   pillMaster: 'Master',
@@ -2045,6 +2050,8 @@ const messages = {
   pifPhysicallyDisconnected: 'Physically disconnected',
 
   // ----- User -----
+  authToken: 'Token',
+  authTokens: 'Authentication tokens',
   username: 'Username',
   password: 'Password',
   language: 'Language',
@@ -2064,15 +2071,23 @@ const messages = {
   forgetTokensSuccess: 'Successfully forgot connection tokens',
   forgetTokensError: 'Error while forgetting connection tokens',
   sshKeys: 'SSH keys',
+  newAuthToken: 'New token',
   newSshKey: 'New SSH key',
+  deleteAuthTokens: 'Delete selected authentication tokens',
   deleteSshKey: 'Delete',
   deleteSshKeys: 'Delete selected SSH keys',
+  newAuthTokenModalTitle: 'New authentication token',
   newSshKeyModalTitle: 'New SSH key',
   sshKeyAlreadyExists: 'SSH key already exists!',
   sshKeyErrorTitle: 'Invalid key',
   sshKeyErrorMessage: 'An SSH key requires both a title and a key.',
   title: 'Title',
   key: 'Key',
+  deleteAuthTokenConfirm: 'Delete authentication token',
+  deleteAuthTokenConfirmMessage: 'Are you sure you want to delete the authentication token: {id}?',
+  deleteAuthTokensConfirm: 'Delete authentication token{nTokens, plural, one {} other {s}}',
+  deleteAuthTokensConfirmMessage:
+    'Are you sure you want to delete {nTokens, number} autentication token{nTokens, plural, one {} other {s}}?',
   deleteSshKeyConfirm: 'Delete SSH key',
   deleteSshKeyConfirmMessage: 'Are you sure you want to delete the SSH key {title}?',
   deleteSshKeysConfirm: 'Delete SSH key{nKeys, plural, one {} other {s}}',
@@ -2417,6 +2432,8 @@ const messages = {
   noProxiesAvailable: 'No proxies available',
   checkProxyHealth: 'Test your proxy',
   updateProxyApplianceSettings: 'Update appliance settings',
+  urlNotFound: 'URL not found',
+  proxyCopyUrl: 'Copy proxy URL',
   proxyTestSuccess: 'Test passed for {name}',
   proxyTestSuccessMessage: 'The proxy appears to work correctly',
   proxyTestFailed: 'Test failed for {name}',

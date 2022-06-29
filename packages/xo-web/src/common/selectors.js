@@ -1,4 +1,5 @@
 import add from 'lodash/add'
+import defined from '@xen-orchestra/defined'
 import { check as checkPermissions } from 'xo-acl-resolver'
 import { createSelector as create } from 'reselect'
 import {
@@ -6,6 +7,7 @@ import {
   filter,
   find,
   forEach,
+  forOwn,
   groupBy,
   identity,
   isArrayLike,
@@ -588,3 +590,60 @@ export const createGetHostState = getHost =>
     (powerState, enabled, operations) =>
       powerState !== 'Running' ? powerState : !isEmpty(operations) ? 'Busy' : !enabled ? 'Disabled' : 'Running'
   )
+
+const taskPredicate = obj => !isEmpty(obj.current_operations)
+const getLinkedObjectsByTaskRefOrId = create(
+  createGetObjectsOfType('pool').filter([taskPredicate]),
+  createGetObjectsOfType('host').filter([taskPredicate]),
+  createGetObjectsOfType('SR').filter([taskPredicate]),
+  createGetObjectsOfType('VDI').filter([taskPredicate]),
+  createGetObjectsOfType('VM').filter([taskPredicate]),
+  createGetObjectsOfType('network').filter([taskPredicate]),
+  getCheckPermissions,
+  (pools, hosts, srs, vdis, vms, networks, check) => {
+    const linkedObjectsByTaskRefOrId = {}
+    const resolveLinkedObjects = obj => {
+      if (!check(obj.id, 'view')) {
+        return
+      }
+
+      Object.keys(obj.current_operations).forEach(task => {
+        if (linkedObjectsByTaskRefOrId[task] === undefined) {
+          linkedObjectsByTaskRefOrId[task] = []
+        }
+        linkedObjectsByTaskRefOrId[task].push(obj)
+      })
+    }
+
+    forOwn(pools, resolveLinkedObjects)
+    forOwn(hosts, resolveLinkedObjects)
+    forOwn(srs, resolveLinkedObjects)
+    forOwn(vdis, resolveLinkedObjects)
+    forOwn(vms, resolveLinkedObjects)
+    forOwn(networks, resolveLinkedObjects)
+
+    return linkedObjectsByTaskRefOrId
+  }
+)
+
+export const getResolvedPendingTasks = create(
+  createGetObjectsOfType('task').filter([task => task.status === 'pending']),
+  getLinkedObjectsByTaskRefOrId,
+  (tasks, linkedObjectsByTaskRefOrId) => {
+    const resolvedTasks = []
+    forEach(tasks, task => {
+      const objects = [
+        ...defined(linkedObjectsByTaskRefOrId[task.xapiRef], []),
+        // for VMs, the current_operations prop is
+        // { taskId → operation } map instead of { taskRef → operation } map
+        ...defined(linkedObjectsByTaskRefOrId[task.id], []),
+      ]
+      objects.length > 0 &&
+        resolvedTasks.push({
+          ...task,
+          objects,
+        })
+    })
+    return resolvedTasks
+  }
+)

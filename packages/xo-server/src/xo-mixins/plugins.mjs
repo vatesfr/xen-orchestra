@@ -49,9 +49,8 @@ export default class {
     return plugin
   }
 
-  async _getPluginMetadata(id) {
-    const metadata = await this._pluginsMetadata.first(id)
-    return metadata?.properties
+  _getPluginMetadata(id) {
+    return this._pluginsMetadata.first(id)
   }
 
   async registerPlugin(name, instance, configurationSchema, configurationPresets, description, testSchema, version) {

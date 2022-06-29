@@ -1,9 +1,11 @@
-import path from 'path'
-import { createSyntheticStream } from 'vhd-lib'
-import { createWriteStream } from 'fs'
-import { getHandler } from '@xen-orchestra/fs'
+'use strict'
 
-export default async function main(args) {
+const path = require('path')
+const { createSyntheticStream } = require('vhd-lib')
+const { createWriteStream } = require('fs')
+const { getHandler } = require('@xen-orchestra/fs')
+
+module.exports = async function synthetize(args) {
   if (args.length < 2 || args.some(_ => _ === '-h' || _ === '--help')) {
     return `Usage: ${this.command} <input VHD> <output VHD>`
   }
