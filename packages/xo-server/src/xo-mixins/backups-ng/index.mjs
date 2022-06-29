@@ -10,7 +10,8 @@ import { decorateWith } from '@vates/decorate-with'
 import { formatVmBackups } from '@xen-orchestra/backups/formatVmBackups.js'
 import { HealthCheckVmBackup } from '@xen-orchestra/backups/HealthCheckVmBackup.js'
 import { ImportVmBackup } from '@xen-orchestra/backups/ImportVmBackup.js'
-import { incorrectState, invalidParameters } from 'xo-common/api-errors.js'
+import { invalidParameters } from 'xo-common/api-errors.js'
+import { JsonRpcError } from 'json-rpc-peer'
 import { runBackupWorker } from '@xen-orchestra/backups/runBackupWorker.js'
 import { Task } from '@xen-orchestra/backups/Task.js'
 
@@ -497,13 +498,10 @@ export default class BackupNg {
             param.includes('.xxhash')
         )
       ) {
-        console.error(error)
-        throw incorrectState({
-          actual: 'CH < 8.1',
-          expected: 'CH >= 8.1',
-          object: id,
-        })
+        log.warn('importVmBackupNg', { error })
+        throw new JsonRpcError('Importing the VM backup requires that CH >= 8.1 be restored.')
       }
+      throw error
     } finally {
       this._runningRestores.delete(rootTaskId)
     }
