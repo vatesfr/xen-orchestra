@@ -2,6 +2,41 @@
 
 ## **next**
 
+### Enhancements
+
+> Users must be able to say: “Nice enhancement, I'm eager to test it”
+
+- [Backup] Merge delta backups without copying data when using VHD directories on NFS/SMB/local remote(https://github.com/vatesfr/xen-orchestra/pull/6271))
+- [Proxies] Ability to copy the proxy access URL (PR [#6287](https://github.com/vatesfr/xen-orchestra/pull/6287))
+- [User] User tokens management through XO interface (PR [#6276](https://github.com/vatesfr/xen-orchestra/pull/6276))
+- [Tasks, VM/General] Self Service users: show tasks related to their pools, hosts, SRs, networks and VMs (PR [#6217](https://github.com/vatesfr/xen-orchestra/pull/6217))
+
+### Bug fixes
+
+> Users must be able to say: “I had this issue, happy to know it's fixed”
+
+- [VDI Import] Fix `this._getOrWaitObject is not a function`
+- [VM] Attempting to delete a protected VM should display a modal with the error and the ability to bypass it (PR [#6290](https://github.com/vatesfr/xen-orchestra/pull/6290))
+- [OVA Import] Fix import stuck after first disk
+- [File restore] Ignore symbolic links
+
+### Released packages
+
+- @vates/event-listeners-manager 1.0.1
+- @vates/read-chunk 1.0.0
+- @xen-orchestra/backups 0.26.0
+- @xen-orchestra/backups-cli 0.7.4
+- xo-remote-parser 0.9.0
+- @xen-orchestra/fs 1.1.0
+- @xen-orchestra/openflow 0.1.2
+- @xen-orchestra/xapi 1.3.0
+- @xen-orchestra/proxy 0.23.3
+- @xen-orchestra/proxy-cli 0.3.1
+- vhd-lib 3.3.0
+- xo-vmdk-to-vhd 2.4.2
+- xo-server 5.97.0
+- xo-web 5.98.0
+
 ### Released packages
 
 - vhd-cli 0.8.0
