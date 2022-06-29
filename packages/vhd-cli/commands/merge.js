@@ -1,8 +1,8 @@
 'use strict'
 
 const { Bar } = require('cli-progress')
-const { mergeVhd } = require('vhd-lib')
 const { getHandler } = require('@xen-orchestra/fs')
+const { mergeVhd } = require('vhd-lib/merge')
 const { resolve } = require('path')
 
 module.exports = async function merge(args) {
