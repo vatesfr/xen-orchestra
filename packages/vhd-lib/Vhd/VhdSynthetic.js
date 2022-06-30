@@ -109,11 +109,7 @@ const VhdSynthetic = class VhdSynthetic extends VhdAbstract {
 
   // return true if all the vhds ar an instance of cls
   checkVhdsClass(cls) {
-    let ok = true
-    for (const vhd of this.#vhds) {
-      ok = ok && vhd instanceof cls
-    }
-    return ok
+    return this.#vhds.every(vhd => vhd instanceof cls)
   }
 }
 
