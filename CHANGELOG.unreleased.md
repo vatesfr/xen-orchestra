@@ -29,5 +29,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/xapi minor
 - vhd-lib patch
+
 <!--packages-end-->

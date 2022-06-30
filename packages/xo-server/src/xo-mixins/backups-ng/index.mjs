@@ -11,7 +11,6 @@ import { formatVmBackups } from '@xen-orchestra/backups/formatVmBackups.js'
 import { HealthCheckVmBackup } from '@xen-orchestra/backups/HealthCheckVmBackup.js'
 import { ImportVmBackup } from '@xen-orchestra/backups/ImportVmBackup.js'
 import { invalidParameters } from 'xo-common/api-errors.js'
-import { JsonRpcError } from 'json-rpc-peer'
 import { runBackupWorker } from '@xen-orchestra/backups/runBackupWorker.js'
 import { Task } from '@xen-orchestra/backups/Task.js'
 
@@ -485,23 +484,6 @@ export default class BackupNg {
         })
       }
       return result.id
-    } catch (error) {
-      if (
-        // xxhash is the new form consistency hashing in CH 8.1 which uses a faster,
-        // more efficient hashing algorithm to generate the consistency checks
-        // in order to support larger files without the consistency checking process taking an incredibly long time
-        error.code === 'IMPORT_ERROR' &&
-        error.params?.some(
-          param =>
-            param.includes('INTERNAL_ERROR') &&
-            param.includes('Expected to find an inline checksum') &&
-            param.includes('.xxhash')
-        )
-      ) {
-        log.warn('importVmBackupNg', { error })
-        throw new JsonRpcError('Importing this VM requires XCP-ng or Citrix Hypervisor >=8.1')
-      }
-      throw error
     } finally {
       this._runningRestores.delete(rootTaskId)
     }
