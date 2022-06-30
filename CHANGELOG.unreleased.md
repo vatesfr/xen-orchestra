@@ -8,7 +8,6 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [Restore backup] Clearer error message when importing a VM backup requires restoration of CH >= 8.1 (PR [#6304](https://github.com/vatesfr/xen-orchestra/pull/6304))
-- [Backup] Merge delta backups without copying data when using VHD directories on NFS/SMB/local remote(https://github.com/vatesfr/xen-orchestra/pull/6271))
 - [SR/advanced] Ability to enable/disable a maintenance mode for an SR [#6215](https://github.com/vatesfr/xen-orchestra/issues/6215) (PRs [#6308](https://github.com/vatesfr/xen-orchestra/pull/6308), [#6297](https://github.com/vatesfr/xen-orchestra/pull/6297))
 
 ### Bug fixes
@@ -32,10 +31,8 @@
 <!--packages-start-->
 
 - @xen-orchestra/xapi minor
-- vhd-lib minor
-- xo-remote-parser minor
+- vhd-lib patch
 - xo-server minor
-- xo-vmdk-to-vhd patch
 - xo-web minor
 
 <!--packages-end-->
