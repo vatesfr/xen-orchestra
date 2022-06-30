@@ -1,9 +1,12 @@
 'use strict'
 
+const { createLogger } = require('@xen-orchestra/log')
 const { parseVhdStream } = require('./parseVhdStream.js')
 const { VhdDirectory } = require('./Vhd/VhdDirectory.js')
 const { Disposable } = require('promise-toolbox')
 const { asyncEach } = require('@vates/async-each')
+
+const { warn } = createLogger('vhd-lib:createVhdDirectoryFromStream')
 
 const buildVhd = Disposable.wrap(async function* (handler, path, inputStream, { concurrency, compression }) {
   const vhd = yield VhdDirectory.create(handler, path, { compression })
@@ -50,7 +53,7 @@ exports.createVhdDirectoryFromStream = async function createVhdDirectoryFromStre
     }
   } catch (error) {
     // cleanup on error
-    await handler.rmtree(path)
+    await handler.rmtree(path).catch(warn)
     throw error
   }
 }

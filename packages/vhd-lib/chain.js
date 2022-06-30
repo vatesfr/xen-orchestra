@@ -8,7 +8,7 @@ const { Disposable } = require('promise-toolbox')
 
 module.exports = async function chain(parentHandler, parentPath, childHandler, childPath, force = false) {
   await Disposable.use(
-    [openVhd(parentHandler, parentPath), openVhd(childHandler, childPath)],
+    [openVhd(parentHandler, parentPath), openVhd(childHandler, childPath, { flags: 'r+' })],
     async ([parentVhd, childVhd]) => {
       await childVhd.readHeaderAndFooter()
       const { header, footer } = childVhd

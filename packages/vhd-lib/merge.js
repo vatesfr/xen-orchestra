@@ -20,26 +20,25 @@ const { asyncMap } = require('@xen-orchestra/async-map')
 
 const { warn } = createLogger('vhd-lib:merge')
 
-// the chain we want to merge  is [ ancestor, child1, ..., childn]
-// this chain can have grand children or grand parent
+// The chain we want to merge  is [ ancestor, child_1, ..., child_n]
 //
-// 1. Create a VhdSynthetic from all children if more than 1 child are merged
-// 2. Merge the resulting vhd into the ancestor
-//    2.a if at least one is a file : copy file part from child to parent
-//    2.b if they are all vhd directory : move blocks from children to the ancestor
-// 3. update the size, uuid and timestamp of the ancestor with those of child n
+// 1. Create a VhdSynthetic from all children if more than 1 child
+// 2. Merge the resulting VHD into the ancestor
+//    2.a if at least one is a file: copy file part from child to parent
+//    2.b if they are all VhdDirectory: move blocks from children to the ancestor
+// 3. Update the size, UUID and timestamp of the ancestor with those of child_n
 // 3. Delete all (now) unused VHDs
-// 4. Rename the ancestor to to child n
+// 4. Rename the ancestor to to child_n
 //
-//                  VhdSynthetic
-//                       |
-//              /‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\
-//  [ ancestor, child1, ...,child n-1,  child n ]
-//         |    \___________________/     ^
-//         |             |                |
-//         |       unused VHDs            |
-//         |                              |
-//         \___________rename_____________/
+//                       VhdSynthetic
+//                             |
+//              /‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\
+//  [ ancestor, child_1, ...,child_n-1,  child_n ]
+//         |    \____________________/      ^
+//         |              |                 |
+//         |         unused VHDs            |
+//         |                                |
+//         \_____________rename_____________/
 
 // write the merge progress file at most  every `delay` seconds
 function makeThrottledWriter(handler, path, delay) {
@@ -108,14 +107,17 @@ module.exports.mergeVhd = limitConcurrency(2)(async function merge(
       checkSecondFooter: mergeState === undefined,
     })
     let childVhd
+    const parentIsVhdDirectory = parentVhd instanceof VhdDirectory
+    let childIsVhdDirectory
     if (Array.isArray(childPath)) {
       childVhd = yield VhdSynthetic.open(childHandler, childPath)
+      childIsVhdDirectory = childVhd.checkVhdsClass(VhdDirectory)
     } else {
       childVhd = yield openVhd(childHandler, childPath)
+      childIsVhdDirectory = childVhd instanceof VhdDirectory
     }
 
-    const concurrency = childVhd instanceof VhdDirectory ? 16 : 1
-
+    const concurrency = parentIsVhdDirectory && childIsVhdDirectory ? 16 : 1
     if (mergeState === undefined) {
       // merge should be along a vhd chain
       assert.strictEqual(UUID.stringify(childVhd.header.parentUuid), UUID.stringify(parentVhd.footer.uuid))

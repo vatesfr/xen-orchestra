@@ -117,7 +117,7 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
   }
 
   static async create(handler, path, { flags = 'wx+', compression } = {}) {
-    await handler.mkdir(path)
+    await handler.mktree(path)
     const vhd = new VhdDirectory(handler, path, { flags, compression })
     return {
       dispose: () => {},
@@ -163,8 +163,10 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
       `Can't write a chunk ${partName} in ${this._path} with read permission`
     )
 
+    // in case of VhdDirectory, we want to create the file if it does not exists
+    const flags = this._opts?.flags === 'r+' ? 'w' : this._opts?.flags
     const compressed = await this.#compressor.compress(buffer)
-    return this._handler.outputFile(this.#getChunkPath(partName), compressed, this._opts)
+    return this._handler.outputFile(this.#getChunkPath(partName), compressed, { flags })
   }
 
   // put block in subdirectories to limit impact when doing directory listing

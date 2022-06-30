@@ -424,6 +424,10 @@ export default class RemoteHandlerAbstract {
 
   // Methods that can be implemented by inheriting classes
 
+  useVhdDirectory() {
+    return this._remote.useVhdDirectory ?? false
+  }
+
   async _closeFile(fd) {
     throw new Error('Not implemented')
   }
