@@ -113,9 +113,7 @@ export default class SrItem extends Component {
                   <Text value={sr.name_label} onChange={this._setNameLabel} useLongClick />
                 </Ellipsis>
                 {isDefaultSr && <span className='tag tag-pill tag-info ml-1'>{_('defaultSr')}</span>}
-                {sr.in_maintenance_mode && (
-                  <span className='tag tag-pill tag-warning ml-1'>{_('maintenanceMode')}</span>
-                )}
+                {sr.inMaintenanceMode && <span className='tag tag-pill tag-warning ml-1'>{_('maintenanceMode')}</span>}
               </EllipsisContainer>
             </Col>
             <Col largeSize={1} className='hidden-md-down'>

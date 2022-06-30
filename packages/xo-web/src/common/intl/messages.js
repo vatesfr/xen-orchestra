@@ -2220,7 +2220,7 @@ const messages = {
   srSomeConnected: 'Partially connected',
   srAllConnected: 'Connected',
   maintenanceSrModalBody:
-    'In order to put this SR in maintenance mode, VM{n, plural, one {} other {s}} bellow will be shut down. Are you sure you want to continue?',
+    'In order to put this SR in maintenance mode, the following VM{n, plural, one {} other {s}} will be shut down. Are you sure you want to continue?',
   maintenanceMode: 'Maintenance mode',
   migrateSelectedVdis: 'Migrate selected VDIs',
   migrateVdiMessage:

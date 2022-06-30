@@ -59,7 +59,7 @@ export default ({ sr }) => (
     <Row>
       <Col className='text-xs-right'>
         <TabButton btnStyle='danger' handler={deleteSr} handlerParam={sr} icon='sr-remove' labelId='srRemoveButton' />
-        {sr.in_maintenance_mode ? (
+        {sr.inMaintenanceMode ? (
           <TabButton
             btnStyle='warning'
             handler={toggleSrMaintenanceMode}

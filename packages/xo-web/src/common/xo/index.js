@@ -20,7 +20,7 @@ import invoke from '../invoke'
 import Icon from '../icon'
 import logError from '../log-error'
 import NewAuthTokenModal from './new-auth-token-modal'
-import renderXoItem, { renderXoItemFromId } from '../render-xo-item'
+import renderXoItem, { renderXoItemFromId, Vm } from '../render-xo-item'
 import store from 'store'
 import { alert, chooseAction, confirm } from '../modal'
 import { error, info, success } from '../notification'
@@ -2110,7 +2110,7 @@ export const rescanSrs = srs => Promise.all(map(resolveIds(srs), id => _call('sr
 
 export const toggleSrMaintenanceMode = sr => {
   const id = resolveId(sr)
-  const method = sr.in_maintenance_mode ? 'disableMaintenanceMode' : 'enableMaintenanceMode'
+  const method = sr.inMaintenanceMode ? 'disableMaintenanceMode' : 'enableMaintenanceMode'
 
   return _call(`sr.${method}`, { id }).catch(async err => {
     if (
@@ -2119,15 +2119,16 @@ export const toggleSrMaintenanceMode = sr => {
       })
     ) {
       const vmIds = err.data.expected
-      const vmNames = vmIds.map(vmId => store.getState().objects.all[vmId].name_label)
       await confirm({
         title: _('maintenanceMode'),
         body: (
           <div>
-            {_('maintenanceSrModalBody', { n: vmNames.length })}
+            {_('maintenanceSrModalBody', { n: vmIds.length })}
             <ul>
-              {vmNames.map(name => (
-                <li key={name}>{name}</li>
+              {vmIds.map(id => (
+                <li key={id}>
+                  <Vm id={id} />
+                </li>
               ))}
             </ul>
           </div>
