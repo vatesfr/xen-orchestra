@@ -20,7 +20,7 @@ import invoke from '../invoke'
 import Icon from '../icon'
 import logError from '../log-error'
 import NewAuthTokenModal from './new-auth-token-modal'
-import renderXoItem, { renderXoItemFromId } from '../render-xo-item'
+import renderXoItem, { renderXoItemFromId, Vm } from '../render-xo-item'
 import store from 'store'
 import { alert, chooseAction, confirm } from '../modal'
 import { error, info, success } from '../notification'
@@ -37,6 +37,10 @@ import {
 } from '../store/actions'
 
 import parseNdJson from './_parseNdJson'
+
+// ===================================================================
+
+const MAX_VMS = 30
 
 // ===================================================================
 
@@ -2107,6 +2111,41 @@ export const editSr = (sr, { nameDescription, nameLabel }) =>
 
 export const rescanSr = sr => _call('sr.scan', { id: resolveId(sr) })
 export const rescanSrs = srs => Promise.all(map(resolveIds(srs), id => _call('sr.scan', { id })))
+
+export const toggleSrMaintenanceMode = sr => {
+  const id = resolveId(sr)
+  const method = sr.inMaintenanceMode ? 'disableMaintenanceMode' : 'enableMaintenanceMode'
+
+  return _call(`sr.${method}`, { id }).catch(async err => {
+    if (
+      incorrectState.is(err, {
+        property: 'vmsToShutdown',
+      })
+    ) {
+      const vmIds = err.data.expected
+      const nVms = vmIds.length
+      await confirm({
+        title: _('maintenanceMode'),
+        body: (
+          <div>
+            {_('maintenanceSrModalBody', { n: nVms })}
+            <ul>
+              {vmIds.slice(0, MAX_VMS).map(id => (
+                <li key={id}>
+                  <Vm id={id} />
+                </li>
+              ))}
+            </ul>
+            {nVms > MAX_VMS && _('andNMore', { n: nVms - MAX_VMS })}
+          </div>
+        ),
+      })
+      return _call(`sr.${method}`, { id, vmsToShutdown: vmIds })
+    } else {
+      throw err
+    }
+  })
+}
 
 // PBDs --------------------------------------------------------------
 

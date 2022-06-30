@@ -539,6 +539,7 @@ const TRANSFORMS = {
 
       allocationStrategy: ALLOCATION_BY_TYPE[srType],
       current_operations: obj.current_operations,
+      inMaintenanceMode: obj.other_config['xo:maintenanceState'] !== undefined,
       name_description: obj.name_description,
       name_label: obj.name_label,
       size: +obj.physical_size,
