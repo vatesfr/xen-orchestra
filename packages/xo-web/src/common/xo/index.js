@@ -40,6 +40,10 @@ import parseNdJson from './_parseNdJson'
 
 // ===================================================================
 
+const MAX_VMS = 30
+
+// ===================================================================
+
 export const ITEMS_PER_PAGE_OPTIONS = [10, 20, 50, 100]
 export const VDIS_TO_COALESCE_LIMIT = 10
 
@@ -2119,22 +2123,20 @@ export const toggleSrMaintenanceMode = sr => {
       })
     ) {
       const vmIds = err.data.expected
-      const nVm = vmIds.length
+      const nVms = vmIds.length
       await confirm({
         title: _('maintenanceMode'),
         body: (
           <div>
-            {_('maintenanceSrModalBody', { n: nVm })}
+            {_('maintenanceSrModalBody', { n: nVms })}
             <ul>
-              {vmIds.map((id, i) => {
-                return i > 29 ? null : (
-                  <li key={id}>
-                    <Vm id={id} />
-                  </li>
-                )
-              })}
+              {vmIds.slice(0, MAX_VMS).map(id => (
+                <li key={id}>
+                  <Vm id={id} />
+                </li>
+              ))}
             </ul>
-            {nVm > 30 && _('andNMore', { n: nVm - 30 })}
+            {nVms > MAX_VMS && _('andNMore', { n: nVms - MAX_VMS })}
           </div>
         ),
       })
