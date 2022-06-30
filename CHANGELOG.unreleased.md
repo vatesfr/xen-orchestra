@@ -7,7 +7,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [SR] In SR view, add `maintenance mode` badge next to his name
+- [SR] In SR view, add `maintenance mode` badge next to his name (PR [#6313](https://github.com/vatesfr/xen-orchestra/pull/6313))
 
 ### Bug fixes
 
@@ -28,5 +28,7 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
+
 - xo-web minor
+
 <!--packages-end-->
