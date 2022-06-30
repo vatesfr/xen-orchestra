@@ -27,4 +27,5 @@
 
 <!--packages-start-->
 
+- vhd-lib patch
 <!--packages-end-->
