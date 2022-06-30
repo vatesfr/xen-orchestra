@@ -75,6 +75,7 @@ export default decorate([
 
           // making it undefined if falsish won't save it in the remote url
           allowUnauthorized = allowUnauthorized ? true : undefined
+          useVhdDirectory = useVhdDirectory ? true : undefined
 
           if (type === 's3') {
             const { parsedPath, bucket = parsedPath.split('/')[0], directory = parsedPath.split('/')[1] } = state
@@ -123,7 +124,7 @@ export default decorate([
             proxyId,
             type = 'nfs',
             username,
-            useVhdDirectory = false,
+            useVhdDirectory = undefined,
           } = state
 
           const urlParams = {
