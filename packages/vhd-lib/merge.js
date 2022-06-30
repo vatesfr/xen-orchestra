@@ -107,14 +107,17 @@ module.exports.mergeVhd = limitConcurrency(2)(async function merge(
       checkSecondFooter: mergeState === undefined,
     })
     let childVhd
+    const parentIsVhdDirectory = parentVhd instanceof VhdDirectory
+    let childIsVhdDirectory
     if (Array.isArray(childPath)) {
       childVhd = yield VhdSynthetic.open(childHandler, childPath)
+      childIsVhdDirectory = childVhd.checkVhdsClass(VhdDirectory)
     } else {
       childVhd = yield openVhd(childHandler, childPath)
+      childIsVhdDirectory = childVhd instanceof VhdDirectory
     }
 
-    const concurrency = childVhd instanceof VhdDirectory ? 16 : 1
-
+    const concurrency = parentIsVhdDirectory && childIsVhdDirectory ? 16 : 1
     if (mergeState === undefined) {
       // merge should be along a vhd chain
       assert.strictEqual(UUID.stringify(childVhd.header.parentUuid), UUID.stringify(parentVhd.footer.uuid))
