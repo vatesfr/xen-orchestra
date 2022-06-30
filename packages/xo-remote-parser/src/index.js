@@ -27,7 +27,7 @@ const makeOptionList = options => {
   const encoded = {}
   Object.keys(options)
     // don't save undefined options
-    .filter(option => option !== undefined)
+    .filter(key => options[key] !== undefined)
     .forEach(key => {
       const val = options[key]
       encoded[key] = JSON.stringify(val)

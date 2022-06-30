@@ -8,6 +8,7 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [Restore backup] Clearer error message when importing a VM backup requires restoration of CH >= 8.1 (PR [#6304](https://github.com/vatesfr/xen-orchestra/pull/6304))
+- [Backup] Users can use VHD directory on any remote type (PR [#6273](https://github.com/vatesfr/xen-orchestra/pull/6273))
 
 ### Bug fixes
 
@@ -31,5 +32,7 @@
 
 - @xen-orchestra/xapi minor
 - vhd-lib patch
+- xo-remote-parser patch
+- xo-web minor
 
 <!--packages-end-->
