@@ -71,12 +71,15 @@ export default decorate([
             region = remote.region,
           } = state
 
-          let { path = remote.path, useVhdDirectory, allowUnauthorized = remote.allowUnauthorized } = state
+          let {
+            path = remote.path,
+            useVhdDirectory = remote.useVhdDirectory,
+            allowUnauthorized = remote.allowUnauthorized,
+          } = state
 
           // making it undefined if falsish won't save it in the remote url
           allowUnauthorized = allowUnauthorized ? true : undefined
           useVhdDirectory = useVhdDirectory ? true : undefined
-
           if (type === 's3') {
             const { parsedPath, bucket = parsedPath.split('/')[0], directory = parsedPath.split('/')[1] } = state
             path = bucket + '/' + directory
