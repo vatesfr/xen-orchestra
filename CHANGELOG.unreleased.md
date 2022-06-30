@@ -31,7 +31,6 @@
 
 <!--packages-start-->
 
-- vhd-lib patch
 - xo-remote-parser patch
 - xo-server minor
 - xo-web minor

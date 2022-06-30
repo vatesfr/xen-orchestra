@@ -32,7 +32,7 @@
 - @xen-orchestra/xapi 1.4.0
 - @xen-orchestra/proxy 0.23.3
 - @xen-orchestra/proxy-cli 0.3.1
-- vhd-lib 3.3.0
+- vhd-lib 3.3.1
 - xo-vmdk-to-vhd 2.4.2
 - xo-server 5.97.0
 - xo-web 5.98.0
