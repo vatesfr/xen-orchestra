@@ -30,7 +30,7 @@
 - @xen-orchestra/fs 1.1.0
 - @xen-orchestra/openflow 0.1.2
 - @xen-orchestra/xapi 1.4.0
-- @xen-orchestra/proxy 0.23.3
+- @xen-orchestra/proxy 0.23.4
 - @xen-orchestra/proxy-cli 0.3.1
 - vhd-lib 3.3.1
 - xo-vmdk-to-vhd 2.4.2
