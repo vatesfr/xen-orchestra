@@ -499,7 +499,7 @@ export default class BackupNg {
         )
       ) {
         log.warn('importVmBackupNg', { error })
-        throw new JsonRpcError('Importing the VM backup requires that CH >= 8.1 be restored.')
+        throw new JsonRpcError('Importing this VM requires XCP-ng or Citrix Hypervisor >=8.1')
       }
       throw error
     } finally {
