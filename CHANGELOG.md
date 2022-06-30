@@ -34,7 +34,7 @@
 - @xen-orchestra/proxy-cli 0.3.1
 - vhd-lib 3.3.1
 - xo-vmdk-to-vhd 2.4.2
-- xo-server 5.97.0
+- xo-server 5.98.0
 - xo-web 5.98.0
 
 ### Released packages
