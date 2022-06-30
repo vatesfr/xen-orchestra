@@ -26,7 +26,7 @@
 - @vates/read-chunk 1.0.0
 - @xen-orchestra/backups 0.26.0
 - @xen-orchestra/backups-cli 0.7.4
-- xo-remote-parser 0.9.0
+- xo-remote-parser 0.9.1
 - @xen-orchestra/fs 1.1.0
 - @xen-orchestra/openflow 0.1.2
 - @xen-orchestra/xapi 1.4.0
