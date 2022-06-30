@@ -11460,7 +11460,7 @@ json-rpc-peer@^0.17.0:
     json-rpc-protocol "^0.13.1"
     lodash "^4.17.4"
 
-json-rpc-protocol@^0.13.1:
+json-rpc-protocol@^0.13.1, json-rpc-protocol@^0.13.2:
   version "0.13.2"
   resolved "https://registry.yarnpkg.com/json-rpc-protocol/-/json-rpc-protocol-0.13.2.tgz#0338cdf9a12b457af256682f003f451031af0814"
   integrity sha512-2InSi+c7wGESmvYcEVS0clctpJCodV7gLqLN1BIIPNK07wokXIwhOL8RQWU4O7oX5adChn6HJGtIU6JaUQ1P/A==

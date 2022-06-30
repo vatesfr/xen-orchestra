@@ -26,6 +26,7 @@
     "@xen-orchestra/log": "^0.3.0",
     "d3-time-format": "^3.0.0",
     "golike-defer": "^0.5.1",
+    "json-rpc-protocol": "^0.13.2",
     "lodash": "^4.17.15",
     "promise-toolbox": "^0.21.0",
     "vhd-lib": "^3.3.0",
