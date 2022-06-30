@@ -97,6 +97,7 @@ export default class Sr extends Component {
           <Col mediumSize={6} className='header-title'>
             <h2>
               <Icon icon='sr' /> <Text value={sr.name_label} onChange={nameLabel => editSr(sr, { nameLabel })} />
+              {sr.inMaintenanceMode && <span className='tag tag-pill tag-warning ml-1'>{_('maintenanceMode')}</span>}
             </h2>
             <Copiable tagName='pre' className='text-muted mb-0'>
               {sr.uuid}
