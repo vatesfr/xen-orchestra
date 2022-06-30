@@ -10,6 +10,9 @@
 - [Proxies] Ability to copy the proxy access URL (PR [#6287](https://github.com/vatesfr/xen-orchestra/pull/6287))
 - [User] User tokens management through XO interface (PR [#6276](https://github.com/vatesfr/xen-orchestra/pull/6276))
 - [Tasks, VM/General] Self Service users: show tasks related to their pools, hosts, SRs, networks and VMs (PR [#6217](https://github.com/vatesfr/xen-orchestra/pull/6217))
+- [Backup/Restore] Clearer error message when importing a VM backup requires XCP-n/CH >= 8.1 (PR [#6304](https://github.com/vatesfr/xen-orchestra/pull/6304))
+- [Backup] Users can use VHD directory on any remote type (PR [#6273](https://github.com/vatesfr/xen-orchestra/pull/6273))
+- [SR/advanced] Ability to enable/disable a maintenance mode for an SR [#6215](https://github.com/vatesfr/xen-orchestra/issues/6215) (PRs [#6308](https://github.com/vatesfr/xen-orchestra/pull/6308), [#6297](https://github.com/vatesfr/xen-orchestra/pull/6297))
 
 ### Bug fixes
 
@@ -26,16 +29,16 @@
 - @vates/read-chunk 1.0.0
 - @xen-orchestra/backups 0.26.0
 - @xen-orchestra/backups-cli 0.7.4
-- xo-remote-parser 0.9.0
+- xo-remote-parser 0.9.1
 - @xen-orchestra/fs 1.1.0
 - @xen-orchestra/openflow 0.1.2
-- @xen-orchestra/xapi 1.3.0
-- @xen-orchestra/proxy 0.23.3
+- @xen-orchestra/xapi 1.4.0
+- @xen-orchestra/proxy 0.23.4
 - @xen-orchestra/proxy-cli 0.3.1
-- vhd-lib 3.3.0
+- vhd-lib 3.3.1
 - xo-vmdk-to-vhd 2.4.2
-- xo-server 5.97.0
-- xo-web 5.98.0
+- xo-server 5.98.0
+- xo-web 5.99.0
 
 ### Released packages
 
