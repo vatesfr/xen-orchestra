@@ -29,7 +29,7 @@
 - xo-remote-parser 0.9.0
 - @xen-orchestra/fs 1.1.0
 - @xen-orchestra/openflow 0.1.2
-- @xen-orchestra/xapi 1.3.0
+- @xen-orchestra/xapi 1.4.0
 - @xen-orchestra/proxy 0.23.3
 - @xen-orchestra/proxy-cli 0.3.1
 - vhd-lib 3.3.0

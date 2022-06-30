@@ -31,7 +31,6 @@
 
 <!--packages-start-->
 
-- @xen-orchestra/xapi minor
 - vhd-lib patch
 - xo-remote-parser patch
 - xo-server minor
