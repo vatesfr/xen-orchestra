@@ -2119,18 +2119,22 @@ export const toggleSrMaintenanceMode = sr => {
       })
     ) {
       const vmIds = err.data.expected
+      const nVm = vmIds.length
       await confirm({
         title: _('maintenanceMode'),
         body: (
           <div>
-            {_('maintenanceSrModalBody', { n: vmIds.length })}
+            {_('maintenanceSrModalBody', { n: nVm })}
             <ul>
-              {vmIds.map(id => (
-                <li key={id}>
-                  <Vm id={id} />
-                </li>
-              ))}
+              {vmIds.map((id, i) => {
+                return i > 29 ? null : (
+                  <li key={id}>
+                    <Vm id={id} />
+                  </li>
+                )
+              })}
             </ul>
+            {nVm > 30 && _('andNMore', { n: nVm - 30 })}
           </div>
         ),
       })
