@@ -339,7 +339,7 @@ exports.VhdAbstract = class VhdAbstract {
    * check if all the data of a child are already contained in this vhd
    */
 
-  async contains(child) {
+  async containsAllDataOf(child) {
     await this.readBlockAllocationTable()
     await child.readBlockAllocationTable()
     for await (const block of child.blocks()) {

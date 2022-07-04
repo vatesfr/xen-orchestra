@@ -189,7 +189,7 @@ exports.cleanVm = async function cleanVm(
   const vhdsToJSons = new Set()
   const vhdParents = { __proto__: null }
   const vhdChildren = { __proto__: null }
-  const vhdIds = new Map()
+  const vhdById = new Map()
 
   const { vhds, interruptedVhds, aliases } = await listVhds(handler, vmDir)
 
@@ -209,19 +209,18 @@ exports.cleanVm = async function cleanVm(
           }
           vhdChildren[parent] = path
         }
-        const duplicate = vhdIds.get(vhd.footer.uuid)
-        if (duplicate) {
+        const duplicate = vhdById.get(vhd.footer.uuid)
+        if (duplicate !== undefined) {
           logWarn('uuid is duplicated', { uuid: vhd.footer.uuid })
-          // uuid is already present
-          if (duplicate.contains(vhd)) {
+          if (duplicate.containsAllDataOf(vhd)) {
             logWarn(`should delete ${path}`)
-          } else if (vhd.contains(duplicate)) {
+          } else if (vhd.containsAllDataOf(duplicate)) {
             logWarn(`should delete ${duplicate._path}`)
           } else {
             logWarn(`same ids but different content`)
           }
         }
-        vhdIds.set(vhd.footer.uuid, vhd)
+        vhdById.set(vhd.footer.uuid, vhd)
       })
     } catch (error) {
       vhds.delete(path)
@@ -232,6 +231,9 @@ exports.cleanVm = async function cleanVm(
       }
     }
   })
+  // the vhd are closed at the end of the disposable
+  // it's unsafe to use them later
+  vhdById.clear()
 
   // remove interrupted merge states for missing VHDs
   for (const interruptedVhd of interruptedVhds.keys()) {
