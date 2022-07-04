@@ -275,3 +275,26 @@ it('can stream content', async () => {
     }
   })
 })
+
+it('can check vhd contained in on another', async () => {
+  const rawFile = `${tempDir}/contained`
+  await createRandomFile(rawFile, 4)
+  const containedVhdFileName = `${tempDir}/contained.vhd`
+  await convertFromRawToVhd(rawFile, containedVhdFileName)
+
+  const after = `${tempDir}/after`
+  await createRandomFile(after, 4)
+
+  fs.appendFile(rawFile, await fs.readFile(after))
+
+  const cnotainerVhdFileName = `${tempDir}/container.vhd`
+  await convertFromRawToVhd(rawFile, cnotainerVhdFileName)
+
+  await Disposable.use(async function* () {
+    const handler = yield getSyncedHandler({ url: 'file://' + tempDir })
+    const contained = yield openVhd(handler, 'contained.vhd')
+    const container = yield openVhd(handler, 'container.vhd')
+    expect(await contained.contains(container)).toEqual(false)
+    expect(await container.contains(contained)).toEqual(true)
+  })
+})

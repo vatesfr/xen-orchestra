@@ -334,4 +334,25 @@ exports.VhdAbstract = class VhdAbstract {
     stream.length = footer.currentSize
     return stream
   }
+
+  /*
+   * check if all the data of a child are already contained in this vhd
+   */
+
+  async contains(child) {
+    await this.readBlockAllocationTable()
+    await child.readBlockAllocationTable()
+    for await (const block of child.blocks()) {
+      const { id, data: childData } = block
+      // block is in child not in parent
+      if (!this.containsBlock(id)) {
+        return false
+      }
+      const { data: parentData } = await this.readBlock(id)
+      if (!childData.equals(parentData)) {
+        return false
+      }
+    }
+    return true
+  }
 }

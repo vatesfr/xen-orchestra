@@ -189,6 +189,7 @@ exports.cleanVm = async function cleanVm(
   const vhdsToJSons = new Set()
   const vhdParents = { __proto__: null }
   const vhdChildren = { __proto__: null }
+  const vhdIds = new Map()
 
   const { vhds, interruptedVhds, aliases } = await listVhds(handler, vmDir)
 
@@ -208,6 +209,19 @@ exports.cleanVm = async function cleanVm(
           }
           vhdChildren[parent] = path
         }
+        const duplicate = vhdIds.get(vhd.footer.uuid)
+        if (duplicate) {
+          logWarn('uuid is duplicated', { uuid: vhd.footer.uuid })
+          // uuid is already present
+          if (duplicate.contains(vhd)) {
+            logWarn(`should delete ${path}`)
+          } else if (vhd.contains(duplicate)) {
+            logWarn(`should delete ${duplicate._path}`)
+          } else {
+            logWarn(`same ids but different content`)
+          }
+        }
+        vhdIds.set(vhd.footer.uuid, vhd)
       })
     } catch (error) {
       vhds.delete(path)
