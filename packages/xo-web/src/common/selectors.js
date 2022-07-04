@@ -638,11 +638,10 @@ export const getResolvedPendingTasks = create(
         // { taskId → operation } map instead of { taskRef → operation } map
         ...defined(linkedObjectsByTaskRefOrId[task.id], []),
       ]
-      objects.length > 0 &&
-        resolvedTasks.push({
-          ...task,
-          objects,
-        })
+      resolvedTasks.push({
+        ...task,
+        objects,
+      })
     })
     return resolvedTasks
   }
