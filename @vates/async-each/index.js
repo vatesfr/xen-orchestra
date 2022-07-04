@@ -10,6 +10,9 @@ class AggregateError extends Error {
 }
 
 exports.asyncEach = function asyncEach(iterable, iteratee, { concurrency = 1, signal, stopOnError = true } = {}) {
+  if (concurrency === 0) {
+    concurrency = Infinity
+  }
   return new Promise((resolve, reject) => {
     const it = (iterable[Symbol.iterator] || iterable[Symbol.asyncIterator]).call(iterable)
     const errors = []

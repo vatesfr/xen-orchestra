@@ -29,6 +29,7 @@
 
 <!--packages-start-->
 
+- @vates/async-each minor
 - xo-web minor
 
 <!--packages-end-->
