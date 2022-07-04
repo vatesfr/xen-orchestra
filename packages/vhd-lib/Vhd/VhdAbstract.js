@@ -86,10 +86,19 @@ exports.VhdAbstract = class VhdAbstract {
   }
 
   /**
+   * @typedef {Object} BitmapBlock
+   * @property {number} id
+   * @property {Buffer} bitmap
+   *
+   * @typedef {Object} FullBlock
+   * @property {number} id
+   * @property {Buffer} bitmap
+   * @property {Buffer} data
+   * @property {Buffer} buffer - bitmap + data
    *
    * @param {number} blockId
    * @param {boolean} onlyBitmap
-   * @returns {Buffer}
+   * @returns {Promise<BitmapBlock | FullBlock>}
    */
   readBlock(blockId, onlyBitmap = false) {
     throw new Error(`reading  ${onlyBitmap ? 'bitmap of block' : 'block'} ${blockId} is not implemented`)
