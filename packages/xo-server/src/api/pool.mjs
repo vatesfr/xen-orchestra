@@ -152,7 +152,7 @@ export async function installPatches({ pool, patches, hosts }) {
     await hosts.shift().$restartAgent()
   }
 
-  await asyncMap(hosts, host => host.$restartAgent())
+  await pEach(hosts, host => host.$restartAgent())
 }
 
 installPatches.params = {

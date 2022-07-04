@@ -67,7 +67,7 @@ export async function destroy({ sr }) {
   const config = xapi.xo.getData(sr, 'xosan_config')
   // we simply forget because the hosted disks are being destroyed with the VMs
   await xapi.forgetSr(sr._xapiId)
-  await asyncMapSettled(config.nodes, node => this.getXapiObject(node.vm.id).$destroy())
+  await pEach(config.nodes, node => this.getXapiObject(node.vm.id).$destroy(), { stopOnError: false })
   await xapi.deleteNetwork(config.network)
   if (sr.SR_type === 'xosan') {
     await this.unbindXosanLicense({ srId: sr.id })

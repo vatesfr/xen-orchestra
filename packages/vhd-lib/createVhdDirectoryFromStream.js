@@ -4,13 +4,13 @@ const { createLogger } = require('@xen-orchestra/log')
 const { parseVhdStream } = require('./parseVhdStream.js')
 const { VhdDirectory } = require('./Vhd/VhdDirectory.js')
 const { Disposable } = require('promise-toolbox')
-const { asyncEach } = require('@vates/async-each')
+const { pEach } = require('@vates/async-each')
 
 const { warn } = createLogger('vhd-lib:createVhdDirectoryFromStream')
 
 const buildVhd = Disposable.wrap(async function* (handler, path, inputStream, { concurrency, compression }) {
   const vhd = yield VhdDirectory.create(handler, path, { compression })
-  await asyncEach(
+  await pEach(
     parseVhdStream(inputStream),
     async function (item) {
       switch (item.type) {

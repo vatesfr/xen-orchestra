@@ -25,7 +25,7 @@ exports.DeltaReplicationWriter = class DeltaReplicationWriter extends MixinRepli
 
     const xapi = replicatedVm.$xapi
     const replicatedVdis = new Set(
-      await asyncMap(await replicatedVm.$getDisks(), async vdiRef => {
+      await pEach(await replicatedVm.$getDisks(), async vdiRef => {
         const otherConfig = await xapi.getField('VDI', vdiRef, 'other_config')
         return otherConfig[TAG_COPY_SRC]
       })
@@ -60,7 +60,10 @@ exports.DeltaReplicationWriter = class DeltaReplicationWriter extends MixinRepli
     const { scheduleId, vm } = this._backup
 
     // delete previous interrupted copies
-    ignoreErrors.call(asyncMapSettled(listReplicatedVms(xapi, scheduleId, undefined, vm.uuid), vm => vm.$destroy))
+    ignoreErrors.call(
+      pEach(listReplicatedVms(xapi, scheduleId, undefined, vm.uuid), vm => vm.$destroy),
+      { stopOnError: false }
+    )
 
     this._oldEntries = getOldEntries(settings.copyRetention - 1, listReplicatedVms(xapi, scheduleId, srUuid, vm.uuid))
 
@@ -76,7 +79,7 @@ exports.DeltaReplicationWriter = class DeltaReplicationWriter extends MixinRepli
   }
 
   async _deleteOldEntries() {
-    return asyncMapSettled(this._oldEntries, vm => vm.$destroy())
+    return pEach(this._oldEntries, vm => vm.$destroy(), { stopOnError: false })
   }
 
   async _transfer({ timestamp, deltaExport, sizeContainers }) {
@@ -108,7 +111,7 @@ exports.DeltaReplicationWriter = class DeltaReplicationWriter extends MixinRepli
       targetVm.ha_restart_priority !== '' &&
         Promise.all([targetVm.set_ha_restart_priority(''), targetVm.add_tags('HA disabled')]),
       targetVm.set_name_label(`${vm.name_label} - ${job.name} - (${formatFilenameDate(timestamp)})`),
-      asyncMap(['start', 'start_on'], op =>
+      pEach(['start', 'start_on'], op =>
         targetVm.update_blocked_operations(
           op,
           'Start operation for this vm is blocked, clone it if you want to use it.'

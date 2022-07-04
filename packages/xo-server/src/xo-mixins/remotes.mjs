@@ -120,27 +120,31 @@ export default class {
 
   async getAllRemotesInfo() {
     const remotesInfo = this._remotesInfo
-    await asyncMapSettled(this._remotes.get(), async remote => {
-      if (!remote.enabled) {
-        return
-      }
+    await pEach(
+      this._remotes.get(),
+      async remote => {
+        if (!remote.enabled) {
+          return
+        }
 
-      const promise =
-        remote.proxy !== undefined
-          ? this._app.callProxyMethod(remote.proxy, 'remote.getInfo', {
-              remote,
-            })
-          : this.getRemoteHandler(remote.id).then(handler => handler.getInfo())
+        const promise =
+          remote.proxy !== undefined
+            ? this._app.callProxyMethod(remote.proxy, 'remote.getInfo', {
+                remote,
+              })
+            : this.getRemoteHandler(remote.id).then(handler => handler.getInfo())
 
-      try {
-        await timeout.call(
-          promise.then(info => {
-            remotesInfo[remote.id] = info
-          }),
-          5e3
-        )
-      } catch (_) {}
-    })
+        try {
+          await timeout.call(
+            promise.then(info => {
+              remotesInfo[remote.id] = info
+            }),
+            5e3
+          )
+        } catch (_) {}
+      },
+      { stopOnError: false }
+    )
     return remotesInfo
   }
 

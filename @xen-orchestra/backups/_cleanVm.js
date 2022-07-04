@@ -4,11 +4,12 @@ const assert = require('assert')
 const sum = require('lodash/sum')
 const { asyncMap } = require('@xen-orchestra/async-map')
 const { Constants, mergeVhd, openVhd, VhdAbstract, VhdFile } = require('vhd-lib')
-const { isVhdAlias, resolveVhdAlias } = require('vhd-lib/aliases')
 const { dirname, resolve } = require('path')
 const { DISK_TYPES } = Constants
 const { isMetadataFile, isVhdFile, isXvaFile, isXvaSumFile } = require('./_backupType.js')
+const { isVhdAlias, resolveVhdAlias } = require('vhd-lib/aliases')
 const { limitConcurrency } = require('limit-concurrency-decorator')
+const { pEach } = require('@vates/async-each')
 
 const { Task } = require('./Task.js')
 const { Disposable } = require('promise-toolbox')
@@ -85,13 +86,13 @@ const listVhds = async (handler, vmDir) => {
   const aliases = {}
   const interruptedVhds = new Map()
 
-  await asyncMap(
+  await pEach(
     await handler.list(`${vmDir}/vdis`, {
       ignoreMissing: true,
       prependDir: true,
     }),
     async jobDir =>
-      asyncMap(
+      pEach(
         await handler.list(jobDir, {
           prependDir: true,
         }),
@@ -193,7 +194,7 @@ exports.cleanVm = async function cleanVm(
   const { vhds, interruptedVhds, aliases } = await listVhds(handler, vmDir)
 
   // remove broken VHDs
-  await asyncMap(vhds, async path => {
+  await pEach(vhds, async path => {
     try {
       await Disposable.use(openVhd(handler, path, { checkSecondFooter: !interruptedVhds.has(path) }), vhd => {
         if (vhd.footer.diskType === DISK_TYPES.DIFFERENCING) {
@@ -238,7 +239,7 @@ exports.cleanVm = async function cleanVm(
 
   // check if alias are correct
   // check if all vhd in data subfolder have a corresponding alias
-  await asyncMap(Object.keys(aliases), async dir => {
+  await pEach(Object.keys(aliases), async dir => {
     await checkAliases(aliases[dir], `${dir}/data`, { handler, logInfo, logWarn, remove })
   })
 
@@ -296,7 +297,7 @@ exports.cleanVm = async function cleanVm(
     }
   })
 
-  await asyncMap(xvas, async path => {
+  await pEach(xvas, async path => {
     // check is not good enough to delete the file, the best we can do is report
     // it
     if (!(await this.isValidXva(path))) {
@@ -309,7 +310,7 @@ exports.cleanVm = async function cleanVm(
 
   // compile the list of unused XVAs and VHDs, and remove backup metadata which
   // reference a missing XVA/VHD
-  await asyncMap(jsons, async json => {
+  await pEach(jsons, async json => {
     let metadata
     try {
       metadata = JSON.parse(await handler.readFile(json))
@@ -416,7 +417,7 @@ exports.cleanVm = async function cleanVm(
 
   const metadataWithMergedVhd = {}
   const doMerge = async () => {
-    await asyncMap(toMerge, async chain => {
+    await pEach(toMerge, async chain => {
       const merged = await limitedMergeVhdChain(chain, { handler, logInfo, logWarn, remove, merge })
       if (merged !== undefined) {
         const metadataPath = vhdsToJSons[chain[0]] // all the chain should have the same metada file
@@ -428,14 +429,14 @@ exports.cleanVm = async function cleanVm(
   await Promise.all([
     ...unusedVhdsDeletion,
     toMerge.length !== 0 && (merge ? Task.run({ name: 'merge' }, doMerge) : doMerge()),
-    asyncMap(unusedXvas, path => {
+    pEach(unusedXvas, path => {
       logWarn('unused XVA', { path })
       if (remove) {
         logInfo('deleting unused XVA', { path })
         return handler.unlink(path)
       }
     }),
-    asyncMap(xvaSums, path => {
+    pEach(xvaSums, path => {
       // no need to handle checksums for XVAs deleted by the script, they will be handled by `unlink()`
       if (!xvas.has(path.slice(0, -'.checksum'.length))) {
         logInfo('unused XVA checksum', { path })
@@ -450,7 +451,7 @@ exports.cleanVm = async function cleanVm(
   // update size for delta metadata with merged VHD
   // check for the other that the size is the same as the real file size
 
-  await asyncMap(jsons, async metadataPath => {
+  await pEach(jsons, async metadataPath => {
     const metadata = JSON.parse(await handler.readFile(metadataPath))
 
     let fileSystemSize

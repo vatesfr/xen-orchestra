@@ -12,7 +12,7 @@ const { openVhd } = require('./openVhd')
 const { basename, dirname } = require('path')
 const { DISK_TYPES } = require('./_constants')
 const { Disposable } = require('promise-toolbox')
-const { asyncEach } = require('@vates/async-each')
+const { pEach } = require('@vates/async-each')
 const { VhdAbstract } = require('./Vhd/VhdAbstract')
 const { VhdDirectory } = require('./Vhd/VhdDirectory')
 const { VhdSynthetic } = require('./Vhd/VhdSynthetic')
@@ -63,7 +63,7 @@ function cleanupVhds(handler, parent, children, { logInfo = noop, remove = false
 
   return Promise.all([
     VhdAbstract.rename(handler, parent, mergeTargetChild),
-    asyncMap(children, child => {
+    pEach(children, child => {
       logInfo(`the VHD child is already merged`, { child })
       if (remove) {
         logInfo(`deleting merged VHD child`, { child })
@@ -167,7 +167,7 @@ module.exports.mergeVhd = limitConcurrency(2)(async function merge(
     let counter = 0
 
     const mergeStateWriter = makeThrottledWriter(parentHandler, mergeStatePath, 10e3)
-    await asyncEach(
+    await pEach(
       toMerge,
       async blockId => {
         merging.add(blockId)

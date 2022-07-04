@@ -28,7 +28,7 @@ import createBufferFromStream from './_createBufferFromStream.js'
 import guessAwsRegion from './_guessAwsRegion.js'
 import RemoteHandlerAbstract from './abstract'
 import { basename, join, split } from './_path'
-import { asyncEach } from '@vates/async-each'
+import { pEach } from '@vates/async-each'
 
 // endpoints https://docs.aws.amazon.com/general/latest/gr/s3.html
 
@@ -369,7 +369,7 @@ export default class S3Handler extends RemoteHandlerAbstract {
       )
 
       NextContinuationToken = result.IsTruncated ? result.NextContinuationToken : undefined
-      await asyncEach(
+      await pEach(
         result.Contents ?? [],
         async ({ Key }) => {
           // _unlink will add the prefix, but Key contains everything

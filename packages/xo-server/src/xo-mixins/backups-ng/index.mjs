@@ -194,32 +194,40 @@ export default class BackupNg {
           const remotes = {}
           const xapis = {}
           await waitAll([
-            asyncMapSettled(remoteIds, async id => {
-              const remote = await app.getRemoteWithCredentials(id)
-              if (remote.proxy !== proxyId) {
-                throw new Error(
-                  proxyId === undefined
-                    ? 'The remote must not be linked to a proxy'
-                    : `The remote ${remote.name} must be linked to the proxy ${proxyId}`
-                )
-              }
+            pEach(
+              remoteIds,
+              async id => {
+                const remote = await app.getRemoteWithCredentials(id)
+                if (remote.proxy !== proxyId) {
+                  throw new Error(
+                    proxyId === undefined
+                      ? 'The remote must not be linked to a proxy'
+                      : `The remote ${remote.name} must be linked to the proxy ${proxyId}`
+                  )
+                }
 
-              remotes[id] = remote
-            }),
-            asyncMapSettled([...servers], async id => {
-              const { allowUnauthorized, password, username } = await app.getXenServer(id)
+                remotes[id] = remote
+              },
+              { stopOnError: false }
+            ),
+            pEach(
+              servers,
+              async id => {
+                const { allowUnauthorized, password, username } = await app.getXenServer(id)
 
-              const xapi = app.getAllXapis()[id]
+                const xapi = app.getAllXapis()[id]
 
-              xapis[id] = {
-                allowUnauthorized,
-                credentials: {
-                  username,
-                  password,
-                },
-                url: await xapi.getHostBackupUrl(xapi.pool.$master),
-              }
-            }),
+                xapis[id] = {
+                  allowUnauthorized,
+                  credentials: {
+                    username,
+                    password,
+                  },
+                  url: await xapi.getHostBackupUrl(xapi.pool.$master),
+                }
+              },
+              { stopOnError: false }
+            ),
           ])
 
           const params = {
@@ -295,12 +303,16 @@ export default class BackupNg {
     if (schedules !== undefined) {
       const { id, settings } = job
       const tmpIds = Object.keys(schedules)
-      await asyncMapSettled(tmpIds, async tmpId => {
-        const schedule = schedules[tmpId]
-        schedule.jobId = id
-        settings[(await app.createSchedule(schedule)).id] = settings[tmpId]
-        delete settings[tmpId]
-      })
+      await pEach(
+        tmpIds,
+        async tmpId => {
+          const schedule = schedules[tmpId]
+          schedule.jobId = id
+          settings[(await app.createSchedule(schedule)).id] = settings[tmpId]
+          delete settings[tmpId]
+        },
+        { stopOnError: false }
+      )
       await app.updateJob({ id, settings })
     }
 
@@ -355,11 +367,15 @@ export default class BackupNg {
     const [schedules] = await Promise.all([app.getAllSchedules(), app.getJob(id, 'backup')])
     await Promise.all([
       app.removeJob(id),
-      asyncMapSettled(schedules, schedule => {
-        if (schedule.id === id) {
-          app.deleteSchedule(schedule.id)
-        }
-      }),
+      pEach(
+        schedules,
+        schedule => {
+          if (schedule.id === id) {
+            app.deleteSchedule(schedule.id)
+          }
+        },
+        { stopOnError: false }
+      ),
     ])
   }
 
@@ -370,23 +386,27 @@ export default class BackupNg {
   async deleteVmBackupsNg(ids) {
     const app = this._app
     const backupsByRemote = groupBy(ids.map(parseVmBackupId), 'remoteId')
-    await asyncMapSettled(Object.entries(backupsByRemote), async ([remoteId, backups]) => {
-      const filenames = backups.map(_ => _.metadataFilename)
-      const remote = await app.getRemoteWithCredentials(remoteId)
-      if (remote.proxy !== undefined) {
-        await app.callProxyMethod(remote.proxy, 'backup.deleteVmBackups', {
-          filenames,
-          remote: {
-            url: remote.url,
-            options: remote.options,
-          },
-        })
-      } else {
-        await Disposable.use(app.getBackupsRemoteAdapter(remote), adapter => adapter.deleteVmBackups(filenames))
-      }
+    await pEach(
+      Object.entries(backupsByRemote),
+      async ([remoteId, backups]) => {
+        const filenames = backups.map(_ => _.metadataFilename)
+        const remote = await app.getRemoteWithCredentials(remoteId)
+        if (remote.proxy !== undefined) {
+          await app.callProxyMethod(remote.proxy, 'backup.deleteVmBackups', {
+            filenames,
+            remote: {
+              url: remote.url,
+              options: remote.options,
+            },
+          })
+        } else {
+          await Disposable.use(app.getBackupsRemoteAdapter(remote), adapter => adapter.deleteVmBackups(filenames))
+        }
 
-      this._listVmBackupsOnRemote(REMOVE_CACHE_ENTRY, remoteId)
-    })
+        this._listVmBackupsOnRemote(REMOVE_CACHE_ENTRY, remoteId)
+      },
+      { stopOnError: false }
+    )
   }
 
   async importVmBackupNg(id, srId, settings) {

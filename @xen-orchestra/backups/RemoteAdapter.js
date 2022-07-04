@@ -49,9 +49,7 @@ const RE_VHDI = /^vhdi(\d+)$/
 async function addDirectory(files, realPath, metadataPath) {
   const stats = await lstat(realPath)
   if (stats.isDirectory()) {
-    await asyncMap(await readdir(realPath), file =>
-      addDirectory(files, realPath + '/' + file, metadataPath + '/' + file)
-    )
+    await pEach(await readdir(realPath), file => addDirectory(files, realPath + '/' + file, metadataPath + '/' + file))
   } else if (stats.isFile()) {
     files.push({
       realPath,
@@ -182,7 +180,7 @@ class RemoteAdapter {
     const path = yield this.getPartition(diskId, partitionId)
 
     const files = []
-    await asyncMap(paths, file =>
+    await pEach(paths, file =>
       addDirectory(files, resolveSubpath(path, file), normalize('./' + file).replace(/\/+$/, ''))
     )
 
@@ -228,7 +226,9 @@ class RemoteAdapter {
     const handler = this._handler
 
     // this will delete the json, unused VHDs will be detected by `cleanVm`
-    await asyncMapSettled(backups, ({ _filename }) => handler.unlink(_filename))
+    await pEach(backups, ({ _filename }) => handler.unlink(_filename), {
+      stopOnError: false,
+    })
   }
 
   async deleteMetadataBackup(backupId) {
@@ -248,13 +248,16 @@ class RemoteAdapter {
     let list = await handler.list(dir)
     list.sort()
     list = list.filter(timestamp => /^\d{8}T\d{6}Z$/.test(timestamp)).slice(0, -retention)
-    await asyncMapSettled(list, timestamp => handler.rmtree(`${dir}/${timestamp}`))
+    await pEach(list, timestamp => handler.rmtree(`${dir}/${timestamp}`), { stopOnError: false })
   }
 
   async deleteFullVmBackups(backups) {
     const handler = this._handler
-    await asyncMapSettled(backups, ({ _filename, xva }) =>
-      Promise.all([handler.unlink(_filename), handler.unlink(resolveRelativeFromFile(_filename, xva))])
+    await pEach(
+      backups,
+      ({ _filename, xva }) =>
+        Promise.all([handler.unlink(_filename), handler.unlink(resolveRelativeFromFile(_filename, xva))]),
+      { stopOnError: false }
     )
   }
 
@@ -263,7 +266,7 @@ class RemoteAdapter {
   }
 
   async deleteVmBackups(files) {
-    const metadatas = await asyncMap(files, file => this.readVmBackupMetadata(file))
+    const metadatas = await pEach(files, file => this.readVmBackupMetadata(file))
     const { delta, full, ...others } = groupBy(metadatas, 'mode')
 
     const unsupportedModes = Object.keys(others)
@@ -283,7 +286,7 @@ class RemoteAdapter {
     }
 
     const dedupedVmUuid = new Set(metadatas.map(_ => _.vm.uuid))
-    await asyncMap(dedupedVmUuid, vmUuid => this.invalidateVmBackupListCache(vmUuid))
+    await pEach(dedupedVmUuid, vmUuid => this.invalidateVmBackupListCache(vmUuid))
   }
 
   #getCompressionType() {
@@ -362,7 +365,7 @@ class RemoteAdapter {
     const handler = this._handler
 
     const backups = { __proto__: null }
-    await asyncMap(await handler.list(BACKUP_DIR), async entry => {
+    await pEach(await handler.list(BACKUP_DIR), async entry => {
       // ignore hidden and lock files
       if (entry[0] !== '.' && !entry.endsWith('.lock')) {
         const vmBackups = await this.listVmBackups(entry)
@@ -380,7 +383,7 @@ class RemoteAdapter {
       path = resolveSubpath(rootPath, path)
 
       const entriesMap = {}
-      await asyncMap(await readdir(path), async name => {
+      await pEach(await readdir(path), async name => {
         try {
           const stats = await lstat(`${path}/${name}`)
           if (stats.isDirectory()) {
@@ -413,10 +416,13 @@ class RemoteAdapter {
       }
 
       const results = []
-      await asyncMapSettled(partitions, partition =>
-        partition.type === LVM_PARTITION_TYPE
-          ? this._listLvmLogicalVolumes(devicePath, partition, results)
-          : results.push(partition)
+      await pEach(
+        partitions,
+        partition =>
+          partition.type === LVM_PARTITION_TYPE
+            ? this._listLvmLogicalVolumes(devicePath, partition, results)
+            : results.push(partition),
+        { stopOnError: false }
       )
       return results
     })
@@ -427,10 +433,10 @@ class RemoteAdapter {
     const safeReaddir = createSafeReaddir(handler, 'listPoolMetadataBackups')
 
     const backupsByPool = {}
-    await asyncMap(await safeReaddir(DIR_XO_POOL_METADATA_BACKUPS, { prependDir: true }), async scheduleDir =>
-      asyncMap(await safeReaddir(scheduleDir), async poolId => {
+    await pEach(await safeReaddir(DIR_XO_POOL_METADATA_BACKUPS, { prependDir: true }), async scheduleDir =>
+      pEach(await safeReaddir(scheduleDir), async poolId => {
         const backups = backupsByPool[poolId] ?? (backupsByPool[poolId] = [])
-        return asyncMap(await safeReaddir(`${scheduleDir}/${poolId}`, { prependDir: true }), async backupDir => {
+        return pEach(await safeReaddir(`${scheduleDir}/${poolId}`, { prependDir: true }), async backupDir => {
           try {
             backups.push({
               id: backupDir,
@@ -471,7 +477,7 @@ class RemoteAdapter {
         filter: isMetadataFile,
         prependDir: true,
       })
-      await asyncMap(files, async file => {
+      await pEach(files, async file => {
         try {
           const metadata = await this.readVmBackupMetadata(file)
           // inject an id usable by importVmBackupNg()
@@ -555,8 +561,8 @@ class RemoteAdapter {
     const safeReaddir = createSafeReaddir(handler, 'listXoMetadataBackups')
 
     const backups = []
-    await asyncMap(await safeReaddir(DIR_XO_CONFIG_BACKUPS, { prependDir: true }), async scheduleDir =>
-      asyncMap(await safeReaddir(scheduleDir, { prependDir: true }), async backupDir => {
+    await pEach(await safeReaddir(DIR_XO_CONFIG_BACKUPS, { prependDir: true }), async scheduleDir =>
+      pEach(await safeReaddir(scheduleDir, { prependDir: true }), async backupDir => {
         try {
           backups.push({
             id: backupDir,
@@ -635,9 +641,13 @@ class RemoteAdapter {
     const vdis = ignoredVdis === undefined ? metadata.vdis : pickBy(metadata.vdis, vdi => !ignoredVdis.has(vdi.uuid))
 
     const streams = {}
-    await asyncMapSettled(Object.keys(vdis), async ref => {
-      streams[`${ref}.vhd`] = await this._createSyntheticStream(handler, join(dir, vhds[ref]))
-    })
+    await pEach(
+      Object.keys(vdis),
+      async ref => {
+        streams[`${ref}.vhd`] = await this._createSyntheticStream(handler, join(dir, vhds[ref]))
+      },
+      { stopOnError: false }
+    )
 
     return {
       streams,

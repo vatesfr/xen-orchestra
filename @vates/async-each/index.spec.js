@@ -2,7 +2,7 @@
 
 /* eslint-env jest */
 
-const { asyncEach } = require('./')
+const { pEach } = require('./')
 
 const randomDelay = (max = 10) =>
   new Promise(resolve => {
@@ -14,7 +14,7 @@ const rejectionOf = p =>
     p.then(reject, resolve)
   })
 
-describe('asyncEach', () => {
+describe('pEach', () => {
   const thisArg = 'qux'
   const values = ['foo', 'bar', 'baz']
 
@@ -36,7 +36,7 @@ describe('asyncEach', () => {
       it('works', async () => {
         const iteratee = jest.fn(async () => {})
 
-        await asyncEach.call(thisArg, iterable, iteratee)
+        await pEach.call(thisArg, iterable, iteratee)
 
         expect(iteratee.mock.instances).toEqual(Array.from(values, () => thisArg))
         expect(iteratee.mock.calls).toEqual(Array.from(values, (value, index) => [value, index, iterable]))
@@ -45,7 +45,7 @@ describe('asyncEach', () => {
         it('respects a concurrency of ' + concurrency, async () => {
           let running = 0
 
-          await asyncEach(
+          await pEach(
             values,
             async () => {
               ++running
@@ -66,7 +66,7 @@ describe('asyncEach', () => {
           }
         })
 
-        expect(await rejectionOf(asyncEach(iterable, iteratee, { stopOnError: true }))).toBe(error)
+        expect(await rejectionOf(pEach(iterable, iteratee, { stopOnError: true }))).toBe(error)
         expect(iteratee).toHaveBeenCalledTimes(2)
       })
 
@@ -78,7 +78,7 @@ describe('asyncEach', () => {
           throw error
         })
 
-        const error = await rejectionOf(asyncEach(iterable, iteratee, { stopOnError: false }))
+        const error = await rejectionOf(pEach(iterable, iteratee, { stopOnError: false }))
         expect(error.errors).toEqual(errors)
         expect(iteratee.mock.calls).toEqual(Array.from(values, (value, index) => [value, index, iterable]))
       })
@@ -91,7 +91,7 @@ describe('asyncEach', () => {
           }
         })
 
-        await expect(asyncEach(iterable, iteratee, { signal: ac.signal })).rejects.toThrow('asyncEach aborted')
+        await expect(pEach(iterable, iteratee, { signal: ac.signal })).rejects.toThrow('pEach aborted')
         expect(iteratee).toHaveBeenCalledTimes(2)
       })
     })

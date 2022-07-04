@@ -374,13 +374,17 @@ const delete_ = defer(async function (
     $defer.onFailure(() => this.setVmResourceSet(vm._xapiId, resourceSet, true)::ignoreErrors())
   }
 
-  await asyncMapSettled(vm.snapshots, async id => {
-    const { resourceSet } = this.getObject(id)
-    if (resourceSet !== undefined) {
-      await this.setVmResourceSet(id, null)
-      $defer.onFailure(() => this.setVmResourceSet(id, resourceSet, true))
-    }
-  })
+  await pEach(
+    vm.snapshots,
+    async id => {
+      const { resourceSet } = this.getObject(id)
+      if (resourceSet !== undefined) {
+        await this.setVmResourceSet(id, null)
+        $defer.onFailure(() => this.setVmResourceSet(id, resourceSet, true))
+      }
+    },
+    { stopOnError: false }
+  )
 
   return xapi.VM_destroy(vm._xapiRef, { deleteDisks, force, forceDeleteDefaultTemplate })
 })

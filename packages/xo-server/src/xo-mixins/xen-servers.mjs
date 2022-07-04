@@ -1,7 +1,7 @@
 import assert from 'assert'
 import findKey from 'lodash/findKey.js'
 import pick from 'lodash/pick.js'
-import { asyncEach } from '@vates/async-each'
+import { pEach } from '@vates/async-each'
 import { BaseError } from 'make-error'
 import { createLogger } from '@xen-orchestra/log'
 import { fibonacci } from 'iterable-backoff'
@@ -391,7 +391,7 @@ export default class {
           const { pool } = xapi
 
           try {
-            await asyncEach(Object.entries(pool.other_config), ([key, value]) => {
+            await pEach(Object.entries(pool.other_config), ([key, value]) => {
               if (key.startsWith(poolMarkingPrefix)) {
                 const { lastConnected } = JSON.parse(value)
                 if (now - lastConnected > poolMarkingMaxAge) {

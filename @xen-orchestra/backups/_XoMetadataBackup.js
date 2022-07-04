@@ -38,7 +38,7 @@ exports.XoMetadataBackup = class XoMetadataBackup {
     )
     const metaDataFileName = `${dir}/metadata.json`
 
-    await asyncMap(
+    await pEach(
       Object.entries(this._remoteAdapters),
       ([remoteId, adapter]) =>
         Task.run(

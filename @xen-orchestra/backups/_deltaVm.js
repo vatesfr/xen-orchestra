@@ -5,10 +5,10 @@ const find = require('lodash/find.js')
 const groupBy = require('lodash/groupBy.js')
 const ignoreErrors = require('promise-toolbox/ignoreErrors')
 const omit = require('lodash/omit.js')
-const { asyncMap } = require('@xen-orchestra/async-map')
 const { CancelToken } = require('promise-toolbox')
 const { createVhdStreamWithLength } = require('vhd-lib')
 const { defer } = require('golike-defer')
+const { pEach } = require('@vates/async-each')
 
 const { cancelableMap } = require('./_cancelableMap.js')
 const { Task } = require('./Task.js')
@@ -237,13 +237,13 @@ exports.importDeltaVm = defer(async function importDeltaVm(
   $defer.onFailure.call(xapi, 'VM_destroy', vmRef)
 
   // 2. Delete all VBDs which may have been created by the import.
-  await asyncMap(await xapi.getField('VM', vmRef, 'VBDs'), ref => ignoreErrors.call(xapi.call('VBD.destroy', ref)))
+  await pEach(await xapi.getField('VM', vmRef, 'VBDs'), ref => ignoreErrors.call(xapi.call('VBD.destroy', ref)))
 
   // 3. Create VDIs & VBDs.
   const vbdRecords = deltaVm.vbds
   const vbds = groupBy(vbdRecords, 'VDI')
   const newVdis = {}
-  await asyncMap(Object.keys(vdiRecords), async vdiRef => {
+  await pEach(Object.keys(vdiRecords), async vdiRef => {
     const vdi = vdiRecords[vdiRef]
     let newVdi
 
@@ -279,7 +279,7 @@ exports.importDeltaVm = defer(async function importDeltaVm(
 
     const vdiVbds = vbds[vdiRef]
     if (vdiVbds !== undefined) {
-      await asyncMap(Object.values(vdiVbds), vbd =>
+      await pEach(Object.values(vdiVbds), vbd =>
         xapi.VBD_create({
           ...vbd,
           VDI: newVdi.$ref,
@@ -323,7 +323,7 @@ exports.importDeltaVm = defer(async function importDeltaVm(
     }),
 
     // Create VIFs.
-    asyncMap(Object.values(deltaVm.vifs), vif => {
+    pEach(Object.values(deltaVm.vifs), vif => {
       let network = vif.$network$uuid && xapi.getObjectByUuid(vif.$network$uuid, undefined)
 
       if (network === undefined) {

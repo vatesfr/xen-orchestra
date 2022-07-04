@@ -401,19 +401,25 @@ const createNetworkAndInsertHosts = defer(async function ($defer, xapi, pif, vla
     pif,
     address: networkPrefix + hostIpLastNumber++,
   }))
-  await asyncMapSettled(addresses, addressAndPif => reconfigurePifIP(xapi, addressAndPif.pif, addressAndPif.address))
+  await pEach(addresses, addressAndPif => reconfigurePifIP(xapi, addressAndPif.pif, addressAndPif.address), {
+    stopOnError: false,
+  })
   const master = xapi.pool.$master
   const otherAddresses = addresses.filter(addr => addr.pif.$host !== master)
-  await asyncMapSettled(otherAddresses, async address => {
-    const result = await callPlugin(xapi, master, 'run_ping', {
-      address: address.address,
-    })
-    if (result.exit !== 0) {
-      throw invalidParameters(
-        `Could not ping ${master.name_label}->${address.pif.$host.name_label} (${address.address}) \n${result.stdout}`
-      )
-    }
-  })
+  await pEach(
+    otherAddresses,
+    async address => {
+      const result = await callPlugin(xapi, master, 'run_ping', {
+        address: address.address,
+      })
+      if (result.exit !== 0) {
+        throw invalidParameters(
+          `Could not ping ${master.name_label}->${address.pif.$host.name_label} (${address.address}) \n${result.stdout}`
+        )
+      }
+    },
+    { stopOnError: false }
+  )
   return xosanNetwork
 })
 
@@ -441,10 +447,14 @@ async function getOrCreateSshKey(xapi) {
 }
 
 const _probePoolAndWaitForPresence = defer(async function ($defer, glusterEndpoint, addresses) {
-  await asyncMapSettled(addresses, async address => {
-    await glusterCmd(glusterEndpoint, 'peer probe ' + address)
-    $defer.onFailure(() => glusterCmd(glusterEndpoint, 'peer detach ' + address, true))
-  })
+  await pEach(
+    addresses,
+    async address => {
+      await glusterCmd(glusterEndpoint, 'peer probe ' + address)
+      $defer.onFailure(() => glusterCmd(glusterEndpoint, 'peer detach ' + address, true))
+    },
+    { stopOnError: false }
+  )
 
   function shouldRetry(peers) {
     for (const peer of peers) {
@@ -1129,11 +1139,11 @@ export const removeBricks = defer(async function ($defer, { xosansr, bricks }) {
     const dict = _getIPToVMDict(xapi, xosansr.id)
     const brickVMs = map(bricks, b => dict[b])
     await glusterCmd(glusterEndpoint, `volume remove-brick xosan ${bricks.join(' ')} force`)
-    await asyncMapSettled(ips, ip => glusterCmd(glusterEndpoint, 'peer detach ' + ip, true))
+    await pEach(ips, ip => glusterCmd(glusterEndpoint, 'peer detach ' + ip, true), { stopOnError: false })
     remove(data.nodes, node => ips.includes(node.vm.ip))
     await xapi.xo.setData(xosansr.id, 'xosan_config', data)
     await xapi.callAsync('SR.scan', xapi.getObject(xosansr._xapiId).$ref)
-    await asyncMapSettled(brickVMs, vm => xapi.VM_destroy(vm.vm.$ref, true))
+    await pEach(brickVMs, vm => xapi.VM_destroy(vm.vm.$ref, true), { stopOnError: false })
   } finally {
     delete CURRENT_POOL_OPERATIONS[xapi.pool.$id]
   }

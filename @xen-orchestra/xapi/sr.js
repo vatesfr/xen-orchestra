@@ -68,12 +68,12 @@ class Sr {
         }
       }
     }
-    await asyncMap(await this.getField('SR', ref, 'VDIs'), async ref => {
-      await asyncMap(await this.getField('VDI', ref, 'VBDs'), handleVbd)
+    await pEach(await this.getField('SR', ref, 'VDIs'), async ref => {
+      await pEach(await this.getField('VDI', ref, 'VBDs'), handleVbd)
     })
 
     {
-      const runningVmUuids = await asyncMap(runningVms.keys(), ref => this.getField('VM', ref, 'uuid'))
+      const runningVmUuids = await pEach(runningVms.keys(), ref => this.getField('VM', ref, 'uuid'))
 
       const set = new Set(vmsToShutdown)
       for (const vmUuid of runningVmUuids) {
@@ -89,29 +89,37 @@ class Sr {
 
     state.shutdownVms = {}
 
-    await asyncMapSettled(runningVms, async ([ref, isPaused]) => {
-      state.shutdownVms[await this.getField('VM', ref, 'uuid')] = isPaused
+    await pEach(
+      runningVms,
+      async ([ref, isPaused]) => {
+        state.shutdownVms[await this.getField('VM', ref, 'uuid')] = isPaused
 
-      try {
-        await this.callAsync('VM.clean_shutdown', ref)
-      } catch (error) {
-        warn('SR_enableMaintenanceMode, VM clean shutdown', { error })
-        await this.callAsync('VM.hard_shutdown', ref)
-      }
+        try {
+          await this.callAsync('VM.clean_shutdown', ref)
+        } catch (error) {
+          warn('SR_enableMaintenanceMode, VM clean shutdown', { error })
+          await this.callAsync('VM.hard_shutdown', ref)
+        }
 
-      $defer.onFailure.call(this, 'callAsync', 'VM.start', ref, isPaused, true)
-    })
+        $defer.onFailure.call(this, 'callAsync', 'VM.start', ref, isPaused, true)
+      },
+      { stopOnError: false }
+    )
 
     state.unpluggedPbds = []
-    await asyncMapSettled(await this.getField('SR', ref, 'PBDs'), async ref => {
-      if (await this.getField('PBD', ref, 'currently_attached')) {
-        state.unpluggedPbds.push(await this.getField('PBD', ref, 'uuid'))
+    await pEach(
+      await this.getField('SR', ref, 'PBDs'),
+      async ref => {
+        if (await this.getField('PBD', ref, 'currently_attached')) {
+          state.unpluggedPbds.push(await this.getField('PBD', ref, 'uuid'))
 
-        await this.callAsync('PBD.unplug', ref)
+          await this.callAsync('PBD.unplug', ref)
 
-        $defer.onFailure.call(this, 'callAsync', 'PBD.plug', ref)
-      }
-    })
+          $defer.onFailure.call(this, 'callAsync', 'PBD.plug', ref)
+        }
+      },
+      { stopOnError: false }
+    )
 
     await this.setFieldEntry('SR', ref, 'other_config', OC_MAINTENANCE, JSON.stringify(state))
   }
@@ -125,7 +133,7 @@ class Sr {
 
     const errors = []
 
-    await asyncMap(state.unpluggedPbds, async uuid => {
+    await pEach(state.unpluggedPbds, async uuid => {
       try {
         await this.callAsync('PBD.plug', await this.call('PBD.get_by_uuid', uuid))
       } catch (error) {
@@ -133,7 +141,7 @@ class Sr {
       }
     })
 
-    await asyncMap(Object.entries(state.shutdownVms), async ([uuid, isPaused]) => {
+    await pEach(Object.entries(state.shutdownVms), async ([uuid, isPaused]) => {
       try {
         await this.callAsync('VM.start', await this.call('VM.get_by_uuid', uuid), isPaused, true)
       } catch (error) {

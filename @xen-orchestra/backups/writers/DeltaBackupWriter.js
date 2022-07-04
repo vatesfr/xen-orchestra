@@ -33,7 +33,7 @@ exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(Ab
     const backupDir = getVmBackupDir(backup.vm.uuid)
     const vdisDir = `${backupDir}/vdis/${backup.job.id}`
 
-    await asyncMap(baseUuidToSrcVdi, async ([baseUuid, srcVdi]) => {
+    await pEach(baseUuidToSrcVdi, async ([baseUuid, srcVdi]) => {
       let found = false
       try {
         const vhds = await handler.list(`${vdisDir}/${srcVdi.uuid}`, {
@@ -41,7 +41,7 @@ exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(Ab
           prependDir: true,
         })
         const packedBaseUuid = packUuid(baseUuid)
-        await asyncMap(vhds, async path => {
+        await pEach(vhds, async path => {
           try {
             await checkVhdChain(handler, path)
             // Warning, this should not be written as found = found || await adapter.isMergeableParent(packedBaseUuid, path)

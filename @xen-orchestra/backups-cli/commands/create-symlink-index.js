@@ -11,8 +11,8 @@ module.exports = async function createSymlinkIndex([backupDir, fieldPath]) {
   const indexDir = join(backupDir, 'indexes', filenamify(fieldPath))
   await mktree(indexDir)
 
-  await asyncMap(await readdir2(backupDir), async vmDir =>
-    asyncMap(
+  await pEach(await readdir2(backupDir), async vmDir =>
+    pEach(
       (await readdir2(vmDir)).filter(_ => _.endsWith('.json')),
       async json => {
         const metadata = JSON.parse(await readFile(json))

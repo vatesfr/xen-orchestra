@@ -53,10 +53,14 @@ export default class Scheduling {
         'schedules',
         () => db.get(),
         schedules =>
-          asyncMapSettled(schedules, async schedule => {
-            await db.update(normalize(schedule))
-            this._start(schedule.id)
-          }),
+          pEach(
+            schedules,
+            async schedule => {
+              await db.update(normalize(schedule))
+              this._start(schedule.id)
+            },
+            { stopOnError: false }
+          ),
         ['jobs']
       )
 

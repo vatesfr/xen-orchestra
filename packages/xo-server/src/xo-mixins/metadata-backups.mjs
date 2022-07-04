@@ -69,25 +69,33 @@ export default class metadataBackup {
         const remotes = {}
         const xapis = {}
         await waitAll([
-          asyncMapSettled(remoteIds, async id => {
-            const remote = await app.getRemoteWithCredentials(id)
-            if (remote.proxy !== proxyId) {
-              throw new Error(`The remote ${remote.name} must be linked to the proxy ${proxyId}`)
-            }
+          pEach(
+            remoteIds,
+            async id => {
+              const remote = await app.getRemoteWithCredentials(id)
+              if (remote.proxy !== proxyId) {
+                throw new Error(`The remote ${remote.name} must be linked to the proxy ${proxyId}`)
+              }
 
-            remotes[id] = remote
-          }),
-          asyncMapSettled([...servers], async id => {
-            const { allowUnauthorized, host, password, username } = await app.getXenServer(id)
-            xapis[id] = {
-              allowUnauthorized,
-              credentials: {
-                username,
-                password,
-              },
-              url: host,
-            }
-          }),
+              remotes[id] = remote
+            },
+            { stopOnError: false }
+          ),
+          pEach(
+            servers,
+            async id => {
+              const { allowUnauthorized, host, password, username } = await app.getXenServer(id)
+              xapis[id] = {
+                allowUnauthorized,
+                credentials: {
+                  username,
+                  password,
+                },
+                url: host,
+              }
+            },
+            { stopOnError: false }
+          ),
         ])
 
         const params = {
@@ -157,14 +165,18 @@ export default class metadataBackup {
     })
 
     const { id: jobId, settings } = job
-    await asyncMapSettled(schedules, async (schedule, tmpId) => {
-      const { id: scheduleId } = await app.createSchedule({
-        ...schedule,
-        jobId,
-      })
-      settings[scheduleId] = settings[tmpId]
-      delete settings[tmpId]
-    })
+    await pEach(
+      schedules,
+      async (schedule, tmpId) => {
+        const { id: scheduleId } = await app.createSchedule({
+          ...schedule,
+          jobId,
+        })
+        settings[scheduleId] = settings[tmpId]
+        delete settings[tmpId]
+      },
+      { stopOnError: false }
+    )
     await app.updateJob({ id: jobId, settings })
 
     return job
@@ -180,11 +192,15 @@ export default class metadataBackup {
 
     await Promise.all([
       app.removeJob(id),
-      asyncMapSettled(schedules, schedule => {
-        if (schedule.id === id) {
-          return app.deleteSchedule(id)
-        }
-      }),
+      pEach(
+        schedules,
+        schedule => {
+          if (schedule.id === id) {
+            return app.deleteSchedule(id)
+          }
+        },
+        { stopOnError: false }
+      ),
     ])
   }
 

@@ -81,22 +81,31 @@ export default class Redis extends Collection {
 
     await redis.sadd(`${prefix}::indexes`, indexes)
 
-    await asyncMapSettled(indexes, index =>
-      redis.keys(`${prefix}_${index}:*`).then(keys => keys.length !== 0 && redis.del(keys))
+    await pEach(
+      indexes,
+      index => redis.keys(`${prefix}_${index}:*`).then(keys => keys.length !== 0 && redis.del(keys)),
+      { stopOnError: false }
     )
 
     const idsIndex = `${prefix}_ids`
-    await asyncMapSettled(redis.smembers(idsIndex), id =>
-      redis.hgetall(`${prefix}:${id}`).then(values =>
-        values == null
-          ? redis.srem(idsIndex, id) // entry no longer exists
-          : asyncMapSettled(indexes, index => {
-              const value = values[index]
-              if (value !== undefined) {
-                return redis.sadd(`${prefix}_${index}:${String(value).toLowerCase()}`, id)
-              }
-            })
-      )
+    await pEach(
+      redis.smembers(idsIndex),
+      id =>
+        redis.hgetall(`${prefix}:${id}`).then(values =>
+          values == null
+            ? redis.srem(idsIndex, id) // entry no longer exists
+            : pEach(
+                indexes,
+                index => {
+                  const value = values[index]
+                  if (value !== undefined) {
+                    return redis.sadd(`${prefix}_${index}:${String(value).toLowerCase()}`, id)
+                  }
+                },
+                { stopOnError: false }
+              )
+        ),
+      { stopOnError: false }
     )
   }
 
@@ -146,12 +155,16 @@ export default class Redis extends Collection {
           // remove the previous values from indexes
           if (indexes.length !== 0) {
             const previous = await redis.hgetall(`${prefix}:${id}`)
-            await asyncMapSettled(indexes, index => {
-              const value = previous[index]
-              if (value !== undefined) {
-                return redis.srem(`${prefix}_${index}:${String(value).toLowerCase()}`, id)
-              }
-            })
+            await pEach(
+              indexes,
+              index => {
+                const value = previous[index]
+                if (value !== undefined) {
+                  return redis.srem(`${prefix}_${index}:${String(value).toLowerCase()}`, id)
+                }
+              },
+              { stopOnError: false }
+            )
           }
         }
 
@@ -230,17 +243,24 @@ export default class Redis extends Collection {
     if (indexes.length !== 0) {
       promise = Promise.all([
         promise,
-        asyncMapSettled(ids, id =>
-          redis.hgetall(`${prefix}:${id}`).then(
-            values =>
-              values != null &&
-              asyncMapSettled(indexes, index => {
-                const value = values[index]
-                if (value !== undefined) {
-                  return redis.srem(`${prefix}_${index}:${String(value).toLowerCase()}`, id)
-                }
-              })
-          )
+        pEach(
+          ids,
+          id =>
+            redis.hgetall(`${prefix}:${id}`).then(
+              values =>
+                values != null &&
+                pEach(
+                  indexes,
+                  index => {
+                    const value = values[index]
+                    if (value !== undefined) {
+                      return redis.srem(`${prefix}_${index}:${String(value).toLowerCase()}`, id)
+                    }
+                  },
+                  { stopOnError: false }
+                )
+            ),
+          { stopOnError: false }
         ),
       ])
     }

@@ -250,7 +250,7 @@ export default class Backups {
         listPoolMetadataBackups: [
           async ({ remotes }) => {
             const backupsByRemote = {}
-            await asyncMap(Object.entries(remotes), async ([remoteId, remote]) => {
+            await pEach(Object.entries(remotes), async ([remoteId, remote]) => {
               try {
                 await Disposable.use(this.getAdapter(remote), async adapter => {
                   backupsByRemote[remoteId] = await adapter.listPoolMetadataBackups()
@@ -274,7 +274,7 @@ export default class Backups {
         listVmBackups: [
           async ({ remotes }) => {
             const backups = {}
-            await asyncMap(Object.keys(remotes), async remoteId => {
+            await pEach(Object.keys(remotes), async remoteId => {
               try {
                 await Disposable.use(this.getAdapter(remotes[remoteId]), async adapter => {
                   backups[remoteId] = formatVmBackups(await adapter.listAllVmBackups())
@@ -304,7 +304,7 @@ export default class Backups {
         listXoMetadataBackups: [
           async ({ remotes }) => {
             const backupsByRemote = {}
-            await asyncMap(Object.entries(remotes), async ([remoteId, remote]) => {
+            await pEach(Object.entries(remotes), async ([remoteId, remote]) => {
               try {
                 await Disposable.use(this.getAdapter(remote), async adapter => {
                   backupsByRemote[remoteId] = await adapter.listXoMetadataBackups()

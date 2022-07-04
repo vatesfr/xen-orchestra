@@ -15,7 +15,7 @@ class AggregateError extends Error {
  * @param {(item: Item, index: number, iterable: Iterable<Item>) => Promise<void>} iteratee
  * @returns {Promise<void>}
  */
-exports.asyncEach = function asyncEach(iterable, iteratee, { concurrency = 1, signal, stopOnError = true } = {}) {
+exports.pEach = function pEach(iterable, iteratee, { concurrency = 10, signal, stopOnError = true } = {}) {
   if (concurrency === 0) {
     concurrency = Infinity
   }
@@ -28,7 +28,7 @@ exports.asyncEach = function asyncEach(iterable, iteratee, { concurrency = 1, si
     let onAbort
     if (signal !== undefined) {
       onAbort = () => {
-        onRejectedWrapper(new Error('asyncEach aborted'))
+        onRejectedWrapper(new Error('pEach aborted'))
       }
       signal.addEventListener('abort', onAbort)
     }
@@ -51,11 +51,10 @@ exports.asyncEach = function asyncEach(iterable, iteratee, { concurrency = 1, si
         clean()
       })(reject)
 
-    let onFulfilled = value => {
+    let onFulfilled = () => {
       --running
       next()
     }
-    const onFulfilledWrapper = value => onFulfilled(value)
 
     let onRejected = stopOnError
       ? reject
@@ -65,6 +64,14 @@ exports.asyncEach = function asyncEach(iterable, iteratee, { concurrency = 1, si
           next()
         }
     const onRejectedWrapper = reason => onRejected(reason)
+
+    const run = async (value, index) => {
+      try {
+        onFulfilled(await iteratee.call(this, value, index++))
+      } catch (error) {
+        onRejected(error)
+      }
+    }
 
     let nextIsRunning = false
     let next = async () => {
@@ -86,17 +93,7 @@ exports.asyncEach = function asyncEach(iterable, iteratee, { concurrency = 1, si
           }
         } else {
           ++running
-          try {
-            const result = iteratee.call(this, cursor.value, index++, iterable)
-            let then
-            if (result != null && typeof result === 'object' && typeof (then = result.then) === 'function') {
-              then.call(result, onFulfilledWrapper, onRejectedWrapper)
-            } else {
-              onFulfilled(result)
-            }
-          } catch (error) {
-            onRejected(error)
-          }
+          run(cursor.value, index++, iterable)
         }
         nextIsRunning = false
         return next()

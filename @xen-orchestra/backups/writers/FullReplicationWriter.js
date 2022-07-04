@@ -40,12 +40,14 @@ exports.FullReplicationWriter = class FullReplicationWriter extends MixinReplica
 
     // delete previous interrupted copies
     ignoreErrors.call(
-      asyncMapSettled(listReplicatedVms(xapi, scheduleId, undefined, vm.uuid), vm => xapi.VM_destroy(vm.$ref))
+      pEach(listReplicatedVms(xapi, scheduleId, undefined, vm.uuid), vm => xapi.VM_destroy(vm.$ref), {
+        stopOnError: false,
+      })
     )
 
     const oldVms = getOldEntries(settings.copyRetention - 1, listReplicatedVms(xapi, scheduleId, srUuid, vm.uuid))
 
-    const deleteOldBackups = () => asyncMapSettled(oldVms, vm => xapi.VM_destroy(vm.$ref))
+    const deleteOldBackups = () => pEach(oldVms, vm => xapi.VM_destroy(vm.$ref), { stopOnError: false })
     const { deleteFirst } = settings
     if (deleteFirst) {
       await deleteOldBackups()
@@ -66,7 +68,7 @@ exports.FullReplicationWriter = class FullReplicationWriter extends MixinReplica
     const targetVm = await xapi.getRecord('VM', targetVmRef)
 
     await Promise.all([
-      asyncMap(['start', 'start_on'], op =>
+      pEach(['start', 'start_on'], op =>
         targetVm.update_blocked_operations(
           op,
           'Start operation for this vm is blocked, clone it if you want to use it.'

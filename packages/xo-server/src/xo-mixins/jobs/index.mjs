@@ -96,23 +96,27 @@ export default class Jobs {
       )
     })
     // it sends a report for the interrupted backup jobs
-    app.on('plugins:registered', () =>
-      asyncMapSettled(this._jobs.get(), job => {
-        // only the interrupted backup jobs have the runId property
-        if (job.runId === undefined) {
-          return
-        }
-
-        app.emit(
-          'job:terminated',
-          // This cast can be removed after merging the PR: https://github.com/vatesfr/xen-orchestra/pull/3209
-          String(job.runId),
-          {
-            type: job.type,
+    app.on('plugins:registered', async () =>
+      pEach(
+        await this._jobs.get(),
+        job => {
+          // only the interrupted backup jobs have the runId property
+          if (job.runId === undefined) {
+            return
           }
-        )
-        return this.updateJob({ id: job.id, runId: null })
-      })
+
+          app.emit(
+            'job:terminated',
+            // This cast can be removed after merging the PR: https://github.com/vatesfr/xen-orchestra/pull/3209
+            String(job.runId),
+            {
+              type: job.type,
+            }
+          )
+          return this.updateJob({ id: job.id, runId: null })
+        },
+        { stopOnError: false }
+      )
     )
   }
 

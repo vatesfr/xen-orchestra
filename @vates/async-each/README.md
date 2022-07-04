@@ -16,7 +16,7 @@ Installation of the [npm package](https://npmjs.org/package/@vates/async-each):
 
 ## Usage
 
-### `asyncEach(iterable, iteratee, [opts])`
+### `pEach(iterable, iteratee, [opts])`
 
 Executes `iteratee` in order for each value yielded by `iterable`.
 
@@ -24,7 +24,7 @@ Returns a promise wich rejects as soon as a call to `iteratee` throws or a promi
 
 `iterable` must be an iterable or async iterable.
 
-`iteratee` is called with the same `this` value as `asyncEach`, and with the following arguments:
+`iteratee` is called with the same `this` value as `pEach`, and with the following arguments:
 
 - `value`: the value yielded by `iterable`
 - `index`: the 0-based index for this value
@@ -37,10 +37,10 @@ Returns a promise wich rejects as soon as a call to `iteratee` throws or a promi
 - `stopOnError`: wether to stop iteration of first error, or wait for all calls to finish and throw an `AggregateError`, defaults to `true`
 
 ```js
-import { asyncEach } from '@vates/async-each'
+import { pEach } from '@vates/async-each'
 
 const contents = []
-await asyncEach(
+await pEach(
   ['foo.txt', 'bar.txt', 'baz.txt'],
   async function (filename, i) {
     contents[i] = await readFile(filename)

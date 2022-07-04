@@ -146,7 +146,7 @@ class VmBackup {
     }
 
     const errors = []
-    await (parallel ? asyncMap : asyncEach)(writers, async function (writer) {
+    await (parallel ? pEach : asyncEach)(writers, async function (writer) {
       try {
         await fn(writer)
       } catch (error) {
@@ -331,13 +331,13 @@ class VmBackup {
 
     const snapshotsPerSchedule = groupBy(this._jobSnapshots, _ => _.other_config['xo:backup:schedule'])
     const xapi = this._xapi
-    await asyncMap(Object.entries(snapshotsPerSchedule), ([scheduleId, snapshots]) => {
+    await pEach(Object.entries(snapshotsPerSchedule), ([scheduleId, snapshots]) => {
       const settings = {
         ...baseSettings,
         ...allSettings[scheduleId],
         ...allSettings[this.vm.uuid],
       }
-      return asyncMap(getOldEntries(settings.snapshotRetention, snapshots), ({ $ref }) => {
+      return pEach(getOldEntries(settings.snapshotRetention, snapshots), ({ $ref }) => {
         if ($ref !== baseVmRef) {
           return xapi.VM_destroy($ref)
         }
@@ -367,7 +367,7 @@ class VmBackup {
     baseVm = await xapi.getRecord('VM', baseVm.$ref)
 
     const baseUuidToSrcVdi = new Map()
-    await asyncMap(await baseVm.$getDisks(), async baseRef => {
+    await pEach(await baseVm.$getDisks(), async baseRef => {
       const [baseUuid, snapshotOf] = await Promise.all([
         xapi.getField('VDI', baseRef, 'uuid'),
         xapi.getField('VDI', baseRef, 'snapshot_of'),

@@ -369,7 +369,7 @@ async function registerPluginsInPath(path, prefix) {
     throw error
   })
 
-  await asyncMap(files, name => {
+  await pEach(files, name => {
     if (name.startsWith(prefix)) {
       return registerPluginWrapper.call(this, `${path}/${name}`, name.slice(prefix.length))
     }

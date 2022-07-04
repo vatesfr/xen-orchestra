@@ -48,7 +48,7 @@ const cleanBiosStrings = biosStrings => {
 
 async function listNobakVbds(xapi, vbdRefs) {
   const vbds = []
-  await asyncMap(vbdRefs, async vbdRef => {
+  await pEach(vbdRefs, async vbdRef => {
     const vbd = await xapi.getRecord('VBD', vbdRef)
     if (
       vbd.type === 'Disk' &&
@@ -152,7 +152,7 @@ class Vm {
 
     if (ignoreNobakVdis) {
       if (vm.power_state === 'Halted') {
-        await asyncMap(await listNobakVbds(this, vm.VBDs), async vbd => {
+        await pEach(await listNobakVbds(this, vm.VBDs), async vbd => {
           await this.VBD_destroy(vbd.$ref)
           $defer.call(this, 'VBD_create', vbd)
         })
@@ -181,9 +181,7 @@ class Vm {
       )
 
       if (destroyNobakVdis) {
-        await asyncMap(await listNobakVbds(this, await this.getField('VM', ref, 'VBDs')), vbd =>
-          this.VDI_destroy(vbd.VDI)
-        )
+        await pEach(await listNobakVbds(this, await this.getField('VM', ref, 'VBDs')), vbd => this.VDI_destroy(vbd.VDI))
       }
 
       return ref
@@ -385,7 +383,7 @@ class Vm {
     await this.call('VM.destroy', vmRef)
 
     await Promise.all([
-      asyncMap(vm.snapshots, snapshotRef =>
+      pEach(vm.snapshots, snapshotRef =>
         this.VM_destroy(snapshotRef).catch(error => {
           warn('VM_destroy: failed to destroy snapshot', {
             error,
@@ -395,7 +393,7 @@ class Vm {
         })
       ),
       deleteDisks &&
-        asyncMap(disks, async vdiRef => {
+        pEach(disks, async vdiRef => {
           try {
             // Dont destroy if attached to other (non control domain) VMs
             for (const vbdRef of await this.getField('VDI', vdiRef, 'VBDs')) {
@@ -551,7 +549,7 @@ class Vm {
       // vm.VUSBs can be undefined (e.g. on XS 7.0.0)
       const vusbs = vm.VUSBs
       if (vusbs !== undefined) {
-        await asyncMap(vusbs, async ref => {
+        await pEach(vusbs, async ref => {
           const vusb = await this.getRecord('VUSB', ref)
           await vusb.$call('destroy')
           $defer.call(this, 'call', 'VUSB.create', vusb.VM, vusb.USB_group, vusb.other_config)
@@ -562,7 +560,7 @@ class Vm {
     let destroyNobakVdis = false
     if (ignoreNobakVdis) {
       if (isHalted) {
-        await asyncMap(await listNobakVbds(this, vm.VBDs), async vbd => {
+        await pEach(await listNobakVbds(this, vm.VBDs), async vbd => {
           await this.VBD_destroy(vbd.$ref)
           $defer.call(this, 'VBD_create', vbd)
         })
@@ -659,9 +657,7 @@ class Vm {
     )
 
     if (destroyNobakVdis) {
-      await asyncMap(await listNobakVbds(this, await this.getField('VM', ref, 'VBDs')), vbd =>
-        this.VDI_destroy(vbd.VDI)
-      )
+      await pEach(await listNobakVbds(this, await this.getField('VM', ref, 'VBDs')), vbd => this.VDI_destroy(vbd.VDI))
     }
 
     return ref

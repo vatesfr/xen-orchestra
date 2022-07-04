@@ -1,6 +1,8 @@
 'use strict'
 
-const { asyncMap } = require('@xen-orchestra/async-map')
+const { pEach } = require('@xen-orchestra/async-map')
+
+const noop = Function.protoype
 
 exports.DurablePartition = class DurablePartition {
   // private resource API is used exceptionally to be able to separate resource creation and release
@@ -8,10 +10,10 @@ exports.DurablePartition = class DurablePartition {
 
   flushAll() {
     const partitionDisposers = this.#partitionDisposers
-    return asyncMap(Object.keys(partitionDisposers), path => {
+    return pEach(Object.keys(partitionDisposers), path => {
       const disposers = partitionDisposers[path]
       delete partitionDisposers[path]
-      return asyncMap(disposers, d => d(path).catch(noop => {}))
+      return pEach(disposers, d => d(path).catch(noop))
     })
   }
 

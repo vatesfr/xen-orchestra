@@ -1,6 +1,6 @@
 'use strict'
 
-const { asyncMap } = require('@xen-orchestra/async-map')
+const { pEach } = require('@vates/async-each')
 
 const { DIR_XO_POOL_METADATA_BACKUPS } = require('./RemoteAdapter.js')
 const { forkStreamUnpipe } = require('./_forkStreamUnpipe.js')
@@ -52,7 +52,7 @@ exports.PoolMetadataBackup = class PoolMetadataBackup {
     )
     const metaDataFileName = `${dir}/metadata.json`
 
-    await asyncMap(
+    await pEach(
       Object.entries(this._remoteAdapters),
       ([remoteId, adapter]) =>
         Task.run(

@@ -159,7 +159,7 @@ exports.Backup = class Backup {
         const promises = []
         if (pools.length !== 0 && settings.retentionPoolMetadata !== 0) {
           promises.push(
-            asyncMap(pools, async pool =>
+            pEach(pools, async pool =>
               runTask(
                 {
                   name: `Starting metadata backup for the pool (${pool.$id}). (${job.id})`,
@@ -245,7 +245,7 @@ exports.Backup = class Backup {
           })
         )
       ),
-      () => settings.healthCheckSr !== undefined ? this._getRecord('SR', settings.healthCheckSr) : undefined,
+      () => (settings.healthCheckSr !== undefined ? this._getRecord('SR', settings.healthCheckSr) : undefined),
       async (srs, remoteAdapters, healthCheckSr) => {
         // remove adapters that failed (already handled)
         remoteAdapters = remoteAdapters.filter(_ => _ !== undefined)
@@ -284,7 +284,10 @@ exports.Backup = class Backup {
             )
           )
         const { concurrency } = settings
-        await asyncMapSettled(vmIds, concurrency === 0 ? handleVm : limitConcurrency(concurrency)(handleVm))
+        await pEach(vmIds, handleVm, {
+          concurrency,
+          stopOnError: false,
+        })
       }
     )
   }

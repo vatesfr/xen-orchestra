@@ -58,49 +58,53 @@ export default async function executeJobCall({ app, job, logger, runJobId, sched
     timezone: schedule !== undefined ? schedule.timezone : undefined,
   }
 
-  await asyncMapSettled(paramsFlatVector, params => {
-    const runCallId = logger.notice(`Starting ${job.method} call. (${job.id})`, {
-      event: 'jobCall.start',
-      runJobId,
-      method: job.method,
-      params,
-    })
+  await pEach(
+    paramsFlatVector,
+    params => {
+      const runCallId = logger.notice(`Starting ${job.method} call. (${job.id})`, {
+        event: 'jobCall.start',
+        runJobId,
+        method: job.method,
+        params,
+      })
 
-    const call = (execStatus.calls[runCallId] = {
-      method: job.method,
-      params,
-      start: Date.now(),
-    })
-    let promise = app.callApiMethod(connection, job.method, Object.assign({}, params))
-    if (job.timeout) {
-      promise = promise::timeout(job.timeout)
-    }
-
-    return promise.then(
-      value => {
-        logger.notice(`Call ${job.method} (${runCallId}) is a success. (${job.id})`, {
-          event: 'jobCall.end',
-          runJobId,
-          runCallId,
-          returnedValue: value,
-        })
-
-        call.returnedValue = value
-        call.end = Date.now()
-      },
-      reason => {
-        logger.notice(`Call ${job.method} (${runCallId}) has failed. (${job.id})`, {
-          event: 'jobCall.end',
-          runJobId,
-          runCallId,
-          error: serializeError(reason),
-        })
-
-        call.error = reason
-        call.end = Date.now()
+      const call = (execStatus.calls[runCallId] = {
+        method: job.method,
+        params,
+        start: Date.now(),
+      })
+      let promise = app.callApiMethod(connection, job.method, Object.assign({}, params))
+      if (job.timeout) {
+        promise = promise::timeout(job.timeout)
       }
-    )
-  })
+
+      return promise.then(
+        value => {
+          logger.notice(`Call ${job.method} (${runCallId}) is a success. (${job.id})`, {
+            event: 'jobCall.end',
+            runJobId,
+            runCallId,
+            returnedValue: value,
+          })
+
+          call.returnedValue = value
+          call.end = Date.now()
+        },
+        reason => {
+          logger.notice(`Call ${job.method} (${runCallId}) has failed. (${job.id})`, {
+            event: 'jobCall.end',
+            runJobId,
+            runCallId,
+            error: serializeError(reason),
+          })
+
+          call.error = reason
+          call.end = Date.now()
+        }
+      )
+    },
+    { stopOnError: false }
+  )
 
   execStatus.end = Date.now()
 

@@ -64,7 +64,7 @@ const VhdSynthetic = class VhdSynthetic extends VhdAbstract {
   }
 
   async readBlockAllocationTable() {
-    await asyncMap(this.#vhds, vhd => vhd.readBlockAllocationTable())
+    await pEach(this.#vhds, vhd => vhd.readBlockAllocationTable())
   }
 
   containsBlock(blockId) {
@@ -74,7 +74,7 @@ const VhdSynthetic = class VhdSynthetic extends VhdAbstract {
   async readHeaderAndFooter() {
     const vhds = this.#vhds
 
-    await asyncMap(vhds, vhd => vhd.readHeaderAndFooter())
+    await pEach(vhds, vhd => vhd.readHeaderAndFooter())
 
     for (let i = 0, n = vhds.length - 1; i < n; ++i) {
       const child = vhds[i]

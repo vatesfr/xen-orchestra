@@ -42,6 +42,7 @@ import {
   parseDateTime,
   prepareXapiParam,
 } from './utils.mjs'
+import { pEach } from '@vates/async-each'
 
 const log = createLogger('xo:xapi')
 
@@ -171,7 +172,7 @@ export default class Xapi extends XapiBase {
     const host = this.getObject(hostId)
     const vms = host.$resident_VMs
     log.debug(`Emergency shutdown: ${host.name_label}`)
-    await asyncMap(vms, vm => {
+    await pEach(vms, vm => {
       if (!vm.is_control_domain) {
         return ignoreErrors.call(this.callAsync('VM.suspend', vm.$ref))
       }
@@ -261,11 +262,15 @@ export default class Xapi extends XapiBase {
     // from host to another. It only works when a shared SR is present
     // in the host. For this reason we chose to show a warning instead.
     const pluggedPbds = host.$PBDs.filter(pbd => pbd.currently_attached)
-    await asyncMapSettled(pluggedPbds, async pbd => {
-      const ref = pbd.$ref
-      await this.unplugPbd(ref)
-      $defer(() => this.plugPbd(ref))
-    })
+    await pEach(
+      pluggedPbds,
+      async pbd => {
+        const ref = pbd.$ref
+        await this.unplugPbd(ref)
+        $defer(() => this.plugPbd(ref))
+      },
+      { stopOnError: false }
+    )
 
     return host.update_other_config(
       multipathing
@@ -702,7 +707,9 @@ export default class Xapi extends XapiBase {
     $defer.onFailure(() => this.VM_destroy(vm.$ref))
     // Disable start and change the VM name label during import.
     await Promise.all([
-      asyncMapSettled(['start', 'start_on'], op => vm.update_blocked_operations(op, 'OVA import in progress...')),
+      pEach(['start', 'start_on'], op => vm.update_blocked_operations(op, 'OVA import in progress...'), {
+        stopOnError: false,
+      }),
       vm.set_name_label(`[Importing...] ${nameLabel}`),
     ])
 
@@ -879,7 +886,7 @@ export default class Xapi extends XapiBase {
         }
 
         throw new AggregateError(
-          await asyncMap(await this.call('host.get_all'), async hostRef => {
+          await pEach(await this.call('host.get_all'), async hostRef => {
             const hostNameLabel = await this.call('host.get_name_label', hostRef)
             try {
               await this.call('VM.assert_can_boot_here', vmRef, hostRef)
@@ -1008,13 +1015,17 @@ export default class Xapi extends XapiBase {
         throw error
       }
       const newVdi = await this.barrier(await this.callAsync('VDI.copy', vdi.$ref, sr.$ref).then(extractOpaqueRef))
-      await asyncMapSettled(vdi.$VBDs, async vbd => {
-        await this.call('VBD.destroy', vbd.$ref)
-        await this.VBD_create({
-          ...vbd,
-          VDI: newVdi.$ref,
-        })
-      })
+      await pEach(
+        vdi.$VBDs,
+        async vbd => {
+          await this.call('VBD.destroy', vbd.$ref)
+          await this.VBD_create({
+            ...vbd,
+            VDI: newVdi.$ref,
+          })
+        },
+        { stopOnError: false }
+      )
       await vdi.$destroy()
 
       return newVdi
@@ -1195,7 +1206,7 @@ export default class Xapi extends XapiBase {
       })
     })
 
-    await asyncMapSettled(pifsByHost, pifs => this.call('Bond.create', network.$ref, pifs, '', bondMode))
+    await pEach(pifsByHost, pifs => this.call('Bond.create', network.$ref, pifs, '', bondMode), { stopOnError: false })
 
     return network
   }

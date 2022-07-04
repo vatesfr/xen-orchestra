@@ -426,6 +426,6 @@ export default class {
     }
 
     const { subjects } = await this.getResourceSet(resourceSetId)
-    await asyncMapSettled(subjects, subject => this._app.addAcl(subject, vmId, 'admin'))
+    await pEach(subjects, subject => this._app.addAcl(subject, vmId, 'admin'), { stopOnError: false })
   }
 }
