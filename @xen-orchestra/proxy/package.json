@@ -26,7 +26,7 @@
   },
   "dependencies": {
     "@iarna/toml": "^2.2.0",
-    "@koa/router": "^10.0.0",
+    "@koa/router": "^11.0.1",
     "@vates/cached-dns.lookup": "^1.0.0",
     "@vates/compose": "^2.1.0",
     "@vates/decorate-with": "^2.0.0",
