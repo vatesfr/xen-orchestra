@@ -29,7 +29,7 @@
 
 <!--packages-start-->
 
-- @vates/async-each minor
+- @vates/async-each major
 - xo-web minor
 
 <!--packages-end-->

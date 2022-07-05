@@ -15,7 +15,7 @@ class AggregateError extends Error {
  * @param {(item: Item, index: number, iterable: Iterable<Item>) => Promise<void>} iteratee
  * @returns {Promise<void>}
  */
-exports.asyncEach = function asyncEach(iterable, iteratee, { concurrency = 1, signal, stopOnError = true } = {}) {
+exports.asyncEach = function asyncEach(iterable, iteratee, { concurrency = 10, signal, stopOnError = true } = {}) {
   if (concurrency === 0) {
     concurrency = Infinity
   }
