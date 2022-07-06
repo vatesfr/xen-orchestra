@@ -13,7 +13,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [Tasks] fix not displayed tasks when running CR backup [Forum#6038](https://xcp-ng.org/forum/topic/6038/not-seeing-tasks-any-more-as-admin/9) (PR [#6315](https://github.com/vatesfr/xen-orchestra/pull/6315))
+- [Tasks] Fix tasks not displayed when running CR backup job [Forum#6038](https://xcp-ng.org/forum/topic/6038/not-seeing-tasks-any-more-as-admin) (PR [#6315](https://github.com/vatesfr/xen-orchestra/pull/6315))
 
 ### Packages to release
 
