@@ -9463,10 +9463,10 @@ hasha@^5.0.0:
     is-stream "^2.0.0"
     type-fest "^0.8.0"
 
-hashy@^0.11.0:
-  version "0.11.0"
-  resolved "https://registry.yarnpkg.com/hashy/-/hashy-0.11.0.tgz#df6fb4ab3b7fc47557ef499d2f36ccc8c484c6b6"
-  integrity sha512-ju3yms0V4OL6rO/RtrzaGyjwC1dJxNUrLCZWVZWhEMtLBUq+QJ8jaKfQxmPCd45GzVgBkwWkYE+ieMytnY9nFw==
+hashy@^0.11.1:
+  version "0.11.1"
+  resolved "https://registry.yarnpkg.com/hashy/-/hashy-0.11.1.tgz#9399b36d45cb6fb54d793f97d99628ba415b4363"
+  integrity sha512-A4bxszn7kPv/a4FEUN1E37IQXlMiAtWbsH5BGNh9nEvlljyfXrZao+3XcQ6KizOXtZPIJpbiEMKS/PSxrUdi2A==
   dependencies:
     argon2 "^0.28.5"
     bcryptjs "^2.4.3"
