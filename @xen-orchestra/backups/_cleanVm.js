@@ -2,6 +2,7 @@
 
 const assert = require('assert')
 const sum = require('lodash/sum')
+const UUID = require('uuid')
 const { asyncMap } = require('@xen-orchestra/async-map')
 const { Constants, mergeVhd, openVhd, VhdAbstract, VhdFile } = require('vhd-lib')
 const { isVhdAlias, resolveVhdAlias } = require('vhd-lib/aliases')
@@ -187,6 +188,7 @@ exports.cleanVm = async function cleanVm(
   const handler = this._handler
 
   const vhdsToJSons = new Set()
+  const vhdById = new Map()
   const vhdParents = { __proto__: null }
   const vhdChildren = { __proto__: null }
 
@@ -195,7 +197,7 @@ exports.cleanVm = async function cleanVm(
   // remove broken VHDs
   await asyncMap(vhds, async path => {
     try {
-      await Disposable.use(openVhd(handler, path, { checkSecondFooter: !interruptedVhds.has(path) }), vhd => {
+      await Disposable.use(openVhd(handler, path, { checkSecondFooter: !interruptedVhds.has(path) }), async vhd => {
         if (vhd.footer.diskType === DISK_TYPES.DIFFERENCING) {
           const parent = resolve('/', dirname(path), vhd.header.parentUnicodeName)
           vhdParents[path] = parent
@@ -208,6 +210,24 @@ exports.cleanVm = async function cleanVm(
           }
           vhdChildren[parent] = path
         }
+        const duplicate = vhdById.get(UUID.stringify(vhd.footer.uuid))
+        let vhdKept = vhd
+        if (duplicate !== undefined) {
+          logWarn('uuid is duplicated', { uuid: UUID.stringify(vhd.footer.uuid) })
+          if (duplicate.containsAllDataOf(vhd)) {
+            logWarn(`should delete ${path}`)
+            vhdKept = duplicate
+            vhds.delete(path)
+          } else if (vhd.containsAllDataOf(duplicate)) {
+            logWarn(`should delete ${duplicate._path}`)
+            vhds.delete(duplicate._path)
+          } else {
+            logWarn(`same ids but different content`)
+          }
+        } else {
+          logInfo('not duplicate', UUID.stringify(vhd.footer.uuid), path)
+        }
+        vhdById.set(UUID.stringify(vhdKept.footer.uuid), vhdKept)
       })
     } catch (error) {
       vhds.delete(path)
