@@ -217,8 +217,7 @@ test('it cleans vhd mergedfiles', async () => {
   await handler.writeFile('child2', 'child2Data')
   await handler.writeFile('child3', 'child3Data')
 
-  // childPath  is from the grand children to the children
-  await cleanupVhds(handler, 'parent', ['child3', 'child2', 'child1'], { remove: true })
+  await cleanupVhds(handler, 'parent', ['child1', 'child2', 'child3'], { remove: true })
 
   // only child3 should stay, with the data of parent
   const [child3, ...other] = await handler.list('.')

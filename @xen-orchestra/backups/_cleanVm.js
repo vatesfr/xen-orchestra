@@ -51,7 +51,7 @@ const computeVhdsSize = (handler, vhdPaths) =>
 async function mergeVhdChain(chain, { handler, logInfo, remove, merge }) {
   assert(chain.length >= 2)
   const chainCopy = [...chain]
-  const parent = chainCopy.pop()
+  const parent = chainCopy.shift()
   const children = chainCopy
 
   if (merge) {
@@ -197,7 +197,7 @@ exports.cleanVm = async function cleanVm(
   // remove broken VHDs
   await asyncMap(vhds, async path => {
     try {
-      await Disposable.use(openVhd(handler, path, { checkSecondFooter: !interruptedVhds.has(path) }), async vhd => {
+      await Disposable.use(openVhd(handler, path, { checkSecondFooter: !interruptedVhds.has(path) }), vhd => {
         if (vhd.footer.diskType === DISK_TYPES.DIFFERENCING) {
           const parent = resolve('/', dirname(path), vhd.header.parentUnicodeName)
           vhdParents[path] = parent
@@ -382,7 +382,7 @@ exports.cleanVm = async function cleanVm(
   const unusedVhdsDeletion = []
   const toMerge = []
   {
-    // VHD chains (as list from child to ancestor) to merge indexed by last
+    // VHD chains (as list from oldest to most recent) to merge indexed by most recent
     // ancestor
     const vhdChainsToMerge = { __proto__: null }
 
@@ -406,7 +406,7 @@ exports.cleanVm = async function cleanVm(
       if (child !== undefined) {
         const chain = getUsedChildChainOrDelete(child)
         if (chain !== undefined) {
-          chain.push(vhd)
+          chain.unshift(vhd)
           return chain
         }
       }
