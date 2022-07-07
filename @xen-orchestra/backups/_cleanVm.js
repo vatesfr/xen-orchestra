@@ -2,6 +2,7 @@
 
 const assert = require('assert')
 const sum = require('lodash/sum')
+const UUID = require('uuid')
 const { asyncMap } = require('@xen-orchestra/async-map')
 const { Constants, mergeVhd, openVhd, VhdAbstract, VhdFile } = require('vhd-lib')
 const { isVhdAlias, resolveVhdAlias } = require('vhd-lib/aliases')
@@ -50,7 +51,7 @@ const computeVhdsSize = (handler, vhdPaths) =>
 async function mergeVhdChain(chain, { handler, logInfo, remove, merge }) {
   assert(chain.length >= 2)
   const chainCopy = [...chain]
-  const parent = chainCopy.pop()
+  const parent = chainCopy.shift()
   const children = chainCopy
 
   if (merge) {
@@ -187,6 +188,7 @@ exports.cleanVm = async function cleanVm(
   const handler = this._handler
 
   const vhdsToJSons = new Set()
+  const vhdById = new Map()
   const vhdParents = { __proto__: null }
   const vhdChildren = { __proto__: null }
 
@@ -208,6 +210,27 @@ exports.cleanVm = async function cleanVm(
           }
           vhdChildren[parent] = path
         }
+        // Detect VHDs with the same UUIDs
+        //
+        // Due to a bug introduced in a1bcd35e2
+        const duplicate = vhdById.get(UUID.stringify(vhd.footer.uuid))
+        let vhdKept = vhd
+        if (duplicate !== undefined) {
+          logWarn('uuid is duplicated', { uuid: UUID.stringify(vhd.footer.uuid) })
+          if (duplicate.containsAllDataOf(vhd)) {
+            logWarn(`should delete ${path}`)
+            vhdKept = duplicate
+            vhds.delete(path)
+          } else if (vhd.containsAllDataOf(duplicate)) {
+            logWarn(`should delete ${duplicate._path}`)
+            vhds.delete(duplicate._path)
+          } else {
+            logWarn(`same ids but different content`)
+          }
+        } else {
+          logInfo('not duplicate', UUID.stringify(vhd.footer.uuid), path)
+        }
+        vhdById.set(UUID.stringify(vhdKept.footer.uuid), vhdKept)
       })
     } catch (error) {
       vhds.delete(path)
@@ -362,7 +385,7 @@ exports.cleanVm = async function cleanVm(
   const unusedVhdsDeletion = []
   const toMerge = []
   {
-    // VHD chains (as list from child to ancestor) to merge indexed by last
+    // VHD chains (as list from oldest to most recent) to merge indexed by most recent
     // ancestor
     const vhdChainsToMerge = { __proto__: null }
 
@@ -386,7 +409,7 @@ exports.cleanVm = async function cleanVm(
       if (child !== undefined) {
         const chain = getUsedChildChainOrDelete(child)
         if (chain !== undefined) {
-          chain.push(vhd)
+          chain.unshift(vhd)
           return chain
         }
       }

@@ -15,14 +15,13 @@ const VhdSynthetic = class VhdSynthetic extends VhdAbstract {
   #vhds = []
 
   get header() {
-    // this the VHD we want to synthetize
-    const vhd = this.#vhds[0]
+    // this the most recent vhd
+    const vhd = this.#vhds[this.#vhds.length - 1]
 
     // this is the root VHD
-    const rootVhd = this.#vhds[this.#vhds.length - 1]
+    const rootVhd = this.#vhds[0]
 
     // data of our synthetic VHD
-    // TODO: set parentLocatorEntry-s in header
     return {
       ...vhd.header,
       parentLocatorEntry: cloneDeep(rootVhd.header.parentLocatorEntry),
@@ -34,10 +33,13 @@ const VhdSynthetic = class VhdSynthetic extends VhdAbstract {
   }
 
   get footer() {
-    // this is the root VHD
-    const rootVhd = this.#vhds[this.#vhds.length - 1]
+    // this the most recent vhd
+    const vhd = this.#vhds[this.#vhds.length - 1]
+
+    // this is the oldest VHD
+    const rootVhd = this.#vhds[0]
     return {
-      ...this.#vhds[0].footer,
+      ...vhd.footer,
       dataOffset: FOOTER_SIZE,
       diskType: rootVhd.footer.diskType,
     }
@@ -77,17 +79,21 @@ const VhdSynthetic = class VhdSynthetic extends VhdAbstract {
     await asyncMap(vhds, vhd => vhd.readHeaderAndFooter())
 
     for (let i = 0, n = vhds.length - 1; i < n; ++i) {
-      const child = vhds[i]
-      const parent = vhds[i + 1]
+      const parent = vhds[i]
+      const child = vhds[i + 1]
       assert.strictEqual(child.footer.diskType, DISK_TYPES.DIFFERENCING)
       assert.strictEqual(UUID.stringify(child.header.parentUuid), UUID.stringify(parent.footer.uuid))
     }
   }
 
   #getVhdWithBlock(blockId) {
-    const index = this.#vhds.findIndex(vhd => vhd.containsBlock(blockId))
-    assert(index !== -1, `no such block ${blockId}`)
-    return this.#vhds[index]
+    for (let i = this.#vhds.length - 1; i >= 0; i--) {
+      const vhd = this.#vhds[i]
+      if (vhd.containsBlock(blockId)) {
+        return vhd
+      }
+    }
+    assert(false, `no such block ${blockId}`)
   }
 
   async readBlock(blockId, onlyBitmap = false) {
@@ -120,7 +126,7 @@ VhdSynthetic.fromVhdChain = Disposable.factory(async function* fromVhdChain(hand
   const vhds = []
   do {
     vhd = yield openVhd(handler, vhdPath)
-    vhds.push(vhd)
+    vhds.unshift(vhd) // from oldest to most recent
     vhdPath = resolveRelativeFromFile(vhdPath, vhd.header.parentUnicodeName)
   } while (vhd.footer.diskType !== DISK_TYPES.DYNAMIC)
 

@@ -59,7 +59,7 @@ function cleanupVhds(handler, parent, children, { logInfo = noop, remove = false
   if (!Array.isArray(children)) {
     children = [children]
   }
-  const mergeTargetChild = children.shift()
+  const mergeTargetChild = children.pop()
 
   return Promise.all([
     VhdAbstract.rename(handler, parent, mergeTargetChild),

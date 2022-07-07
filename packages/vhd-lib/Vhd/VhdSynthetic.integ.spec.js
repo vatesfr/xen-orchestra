@@ -55,7 +55,7 @@ test('It can read block and parent locator from a synthetic vhd', async () => {
 
     await bigVhd.readHeaderAndFooter()
 
-    const syntheticVhd = yield VhdSynthetic.open(handler, [smallVhdFileName, bigVhdFileName])
+    const syntheticVhd = yield VhdSynthetic.open(handler, [bigVhdFileName, smallVhdFileName])
     await syntheticVhd.readBlockAllocationTable()
 
     expect(syntheticVhd.header.diskType).toEqual(bigVhd.header.diskType)
