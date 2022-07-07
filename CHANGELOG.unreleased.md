@@ -15,6 +15,7 @@
 
 - [Tasks] Fix tasks not displayed when running CR backup job [Forum#6038](https://xcp-ng.org/forum/topic/6038/not-seeing-tasks-any-more-as-admin) (PR [#6315](https://github.com/vatesfr/xen-orchestra/pull/6315))
 - [Backup] Fix failing merge multiple VHDs at once (PR [#6317](https://github.com/vatesfr/xen-orchestra/pull/6317))
+- [VM/Console] Fix _Connect with SSH/RDP_ when address is IPv6
 
 ### Packages to release
 
