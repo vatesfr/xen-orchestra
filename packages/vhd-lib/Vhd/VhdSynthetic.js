@@ -24,7 +24,7 @@ const VhdSynthetic = class VhdSynthetic extends VhdAbstract {
     // data of our synthetic VHD
     return {
       ...vhd.header,
-      parentLocatorEntry: cloneDeep(vhd.header.parentLocatorEntry),
+      parentLocatorEntry: cloneDeep(rootVhd.header.parentLocatorEntry),
       tableOffset: FOOTER_SIZE + HEADER_SIZE,
       parentTimestamp: rootVhd.header.parentTimestamp,
       parentUnicodeName: rootVhd.header.parentUnicodeName,
