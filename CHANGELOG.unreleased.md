@@ -14,7 +14,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [Tasks] Fix tasks not displayed when running CR backup job [Forum#6038](https://xcp-ng.org/forum/topic/6038/not-seeing-tasks-any-more-as-admin) (PR [#6315](https://github.com/vatesfr/xen-orchestra/pull/6315))
-- [Backup] Fix merging failing (PR [#6317](https://github.com/vatesfr/xen-orchestra/pull/6317))
+- [Backup] Fix failing merge multiple VHDs at once (PR [#6317](https://github.com/vatesfr/xen-orchestra/pull/6317))
 
 ### Packages to release
 
