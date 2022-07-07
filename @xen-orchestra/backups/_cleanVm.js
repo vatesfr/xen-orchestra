@@ -210,6 +210,9 @@ exports.cleanVm = async function cleanVm(
           }
           vhdChildren[parent] = path
         }
+        // Detect VHDs with the same UUIDs
+        //
+        // Due to a bug introduced in a1bcd35e2
         const duplicate = vhdById.get(UUID.stringify(vhd.footer.uuid))
         let vhdKept = vhd
         if (duplicate !== undefined) {
