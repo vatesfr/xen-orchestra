@@ -8,7 +8,7 @@ import URL from 'url-parse'
 import Xo from 'xo-lib'
 import { createBackoff } from 'jsonrpc-websocket-client'
 import { get as getDefined } from '@xen-orchestra/defined'
-import { pFinally, reflect, tap, tapCatch } from 'promise-toolbox'
+import { pFinally, reflect, retry, tap, tapCatch } from 'promise-toolbox'
 import { SelectHost } from 'select-objects'
 import { filter, forEach, get, includes, isEmpty, isEqual, map, once, size, sortBy, throttle } from 'lodash'
 import {
@@ -1232,30 +1232,27 @@ export const startVms = vms =>
     }
   }, noop)
 
-export const stopVm = async (vm, force = false) => {
+export const stopVm = async (vm, hardShutdown = false) => {
   let forceBlockedOperation = false
   const id = resolveId(vm)
+
   await confirm({
     title: _('stopVmModalTitle'),
     body: _('stopVmModalMessage', { name: vm.name_label }),
   })
-  return _call('vm.stop', { id, force })
-    .catch(async err => {
+
+  return retry(() => _call('vm.stop', { id, force: hardShutdown, forceBlockedOperation }), {
+    when: err => operationBlocked.is(err) || vmLacksFeature.is(err),
+    async onRetry(err) {
       if (operationBlocked.is(err)) {
         await confirm({
           title: _('stopVmBlockedModaltitle'),
           body: _('stopVmBlockedModalMessage'),
         })
         forceBlockedOperation = true
-        return _call('vm.stop', { id, force, forceBlockedOperation })
       }
-      throw err
-    })
-    .catch(async err => {
-      if (err === undefined) {
-        return
-      }
-      if (vmLacksFeature.is(err) || force) {
+
+      if (vmLacksFeature.is(err) && !hardShutdown) {
         await confirm({
           title: _('vmHasNoTools'),
           body: (
@@ -1267,10 +1264,10 @@ export const stopVm = async (vm, force = false) => {
             </div>
           ),
         })
-        return _call('vm.stop', { id, force: true, forceBlockedOperation })
+        hardShutdown = true
       }
-      throw err
-    })
+    },
+  })
 }
 
 export const stopVms = (vms, force = false) =>
@@ -1297,30 +1294,27 @@ export const pauseVms = vms =>
 
 export const recoveryStartVm = vm => _call('vm.recoveryStart', { id: resolveId(vm) })
 
-export const restartVm = async (vm, force = false) => {
+export const restartVm = async (vm, hardRestart = false) => {
   let forceBlockedOperation = false
   const id = resolveId(vm)
+
   await confirm({
     title: _('restartVmModalTitle'),
     body: _('restartVmModalMessage', { name: vm.name_label }),
   })
-  return _call('vm.restart', { id, force })
-    .catch(async err => {
+
+  return retry(() => _call('vm.restart', { id, force: hardRestart, forceBlockedOperation }), {
+    when: err => operationBlocked.is(err) || vmLacksFeature.is(err),
+    async onRetry(err) {
       if (operationBlocked.is(err)) {
         await confirm({
           title: _('restartVmBlockedModaltitle'),
           body: _('restartVmBlockedModalMessage'),
         })
         forceBlockedOperation = true
-        return _call('vm.restart', { id, force, forceBlockedOperation })
       }
-      throw err
-    })
-    .catch(async err => {
-      if (err === undefined) {
-        return
-      }
-      if (vmLacksFeature.is(err) || force) {
+
+      if (vmLacksFeature.is(err) && !hardRestart) {
         await confirm({
           title: _('vmHasNoTools'),
           body: (
@@ -1332,10 +1326,10 @@ export const restartVm = async (vm, force = false) => {
             </div>
           ),
         })
-        return _call('vm.restart', { id, force: true, forceBlockedOperation })
+        hardRestart = true
       }
-      throw err
-    })
+    },
+  })
 }
 
 export const restartVms = (vms, force = false) =>
