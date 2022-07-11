@@ -1304,7 +1304,7 @@ export const restartVm = async (vm, hardRestart = false) => {
   })
 
   return retry(() => _call('vm.restart', { id, force: hardRestart, forceBlockedOperation }), {
-    when: err => operationBlocked.is(err) || vmLacksFeature.is(err),
+    when: err => operationBlocked.is(err) || (vmLacksFeature.is(err) && !hardRestart),
     async onRetry(err) {
       if (operationBlocked.is(err)) {
         await confirm({
