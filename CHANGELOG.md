@@ -6,6 +6,7 @@
 
 - @xen-orchestra/backups 0.27.0
 - @xen-orchestra/backups-cli 0.7.5
+- @xen-orchestra/proxy 0.23.5
 - vhd-lib 3.3.2
 
 ## **5.72.0** (2022-06-30)
