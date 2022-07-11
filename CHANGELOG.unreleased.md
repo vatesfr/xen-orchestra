@@ -35,7 +35,6 @@
 <!--packages-start-->
 
 - @vates/async-each major
-- xo-server-audit minor
 - xo-web minor
 
 <!--packages-end-->
