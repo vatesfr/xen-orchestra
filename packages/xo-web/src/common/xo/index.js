@@ -1242,11 +1242,11 @@ export const stopVm = async (vm, hardShutdown = false) => {
   })
 
   return retry(() => _call('vm.stop', { id, force: hardShutdown, forceBlockedOperation }), {
-    when: err => operationBlocked.is(err) || vmLacksFeature.is(err),
+    when: err => operationBlocked.is(err) || (vmLacksFeature.is(err) && !hardShutdown),
     async onRetry(err) {
       if (operationBlocked.is(err)) {
         await confirm({
-          title: _('stopVmBlockedModaltitle'),
+          title: _('blockedOperation'),
           body: _('stopVmBlockedModalMessage'),
         })
         forceBlockedOperation = true

@@ -16,6 +16,9 @@ import { forEach, map, mapFilter, parseSize, safeDateFormat } from '../utils.mjs
 
 const log = createLogger('xo:vm')
 
+const RESTART_OPERATIONS = ['reboot', 'clean_reboot', 'hard_reboot']
+const SHUTDOWN_OPERATIONS = ['shutdown', 'clean_shutdown', 'hard_shutdown']
+
 // ===================================================================
 
 export function getHaValues() {
@@ -670,7 +673,7 @@ export const restart = defer(async function ($defer, { vm, force = false, forceB
   const xapi = this.getXapi(vm)
   if (forceBlockedOperation) {
     await Promise.all(
-      ['reboot', 'clean_reboot', 'hard_reboot'].map(async operation => {
+      RESTART_OPERATIONS.map(async operation => {
         const reason = vm.blockedOperations[operation]
         if (reason !== undefined) {
           await xapi.call('VM.remove_from_blocked_operations', vm._xapiRef, operation)
@@ -911,7 +914,7 @@ export const stop = defer(async function ($defer, { vm, force, forceBlockedOpera
 
   if (forceBlockedOperation) {
     await Promise.all(
-      ['shutdown', 'clean_shutdown', 'hard_shutdown'].map(async operation => {
+      SHUTDOWN_OPERATIONS.map(async operation => {
         const reason = vm.blockedOperations[operation]
         if (reason !== undefined) {
           await xapi.call('VM.remove_from_blocked_operations', vm._xapiRef, operation)

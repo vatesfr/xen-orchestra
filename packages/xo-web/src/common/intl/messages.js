@@ -1729,7 +1729,7 @@ const messages = {
   restartVmModalMessage: 'Are you sure you want to restart {name}?',
   stopVmModalTitle: 'Stop VM',
   stopVmModalMessage: 'Are you sure you want to stop {name}?',
-  stopVmBlockedModaltitle: 'Blocked operation',
+  blockedOperation: 'Blocked operation',
   stopVmBlockedModalMessage: 'Stop operation for this VM is blocked. Would you like to stop it anyway?',
   vmHasNoTools: 'No guest tools',
   vmHasNoToolsMessage: "The VM doesn't have Xen tools installed, which are required to properly stop or reboot it.",

@@ -7,7 +7,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [VM] Attempting to shutdown/restart a protected VM should display a modal with the error and the ability to bypass it (PR [#6295](https://github.com/vatesfr/xen-orchestra/pull/6295))
+- [VM] Display a confirmation modal when stopping/restarting a protected VM (PR [#6295](https://github.com/vatesfr/xen-orchestra/pull/6295))
 
 ### Bug fixes
 
