@@ -10,6 +10,7 @@
 - vhd-lib 3.3.2
 - xo-server 5.98.1
 - xo-server-audit 0.10.0
+- xo-web 5.100.0
 
 ## **5.72.0** (2022-06-30)
 
