@@ -35,7 +35,6 @@
 <!--packages-start-->
 
 - @vates/async-each major
-- vhd-lib patch
 - xo-server-audit minor
 - xo-web minor
 

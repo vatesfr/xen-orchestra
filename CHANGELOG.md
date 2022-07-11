@@ -5,6 +5,7 @@
 ### Released packages
 
 - @xen-orchestra/backups 0.27.0
+- vhd-lib 3.3.2
 
 ## **5.72.0** (2022-06-30)
 
