@@ -23,7 +23,9 @@
     "@vates/parse-duration": "^0.1.1",
     "@xen-orchestra/emit-async": "^1.0.0",
     "@xen-orchestra/log": "^0.3.0",
+    "acme-client": "^4.2.5",
     "app-conf": "^2.1.0",
+    "fs-extra": "^10.1.0",
     "lodash": "^4.17.21",
     "promise-toolbox": "^0.21.0"
   },

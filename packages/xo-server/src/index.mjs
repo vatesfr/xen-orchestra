@@ -52,6 +52,7 @@ import { Strategy as LocalStrategy } from 'passport-local'
 import transportConsole from '@xen-orchestra/log/transports/console.js'
 import { configure } from '@xen-orchestra/log/configure.js'
 import { generateToken } from './utils.mjs'
+import tls from 'tls'
 
 // ===================================================================
 
@@ -429,6 +430,22 @@ async function makeWebServerListen(
         opts.cert = pems.cert
         opts.key = pems.key
       }
+      if (opts.letsencrypt) {
+        opts.SNICallback = async (serverName, callback) => {
+          try {
+            const { cert, key } = await webServer.getCertificate(serverName, opts.cert, opts.key)
+            callback(
+              null,
+              tls.createSecureContext({
+                cert,
+                key,
+              })
+            )
+          } catch (error) {
+            callback(error, null)
+          }
+        }
+      }
     }
 
     const niceAddress = await webServer.listen(opts)
@@ -752,6 +769,10 @@ export default async function main(args) {
         if (req.secure) {
           return next()
         }
+        // don't redirect let's encrypt challenge to https
+        if (req.url.startsWith('/.well')) {
+          return next()
+        }
 
         res.redirect(`https://${req.hostname}:${port}${req.originalUrl}`)
       })
@@ -796,6 +817,9 @@ export default async function main(args) {
 
   // Must be set up before the API.
   express.use(xo._handleHttpRequest.bind(xo))
+
+  // must be able to answer to let's encrypt challenge without signin in
+  xo.sslCertificate.register()
 
   // Everything above is not protected by the sign in, allowing xo-cli
   // to work properly.
