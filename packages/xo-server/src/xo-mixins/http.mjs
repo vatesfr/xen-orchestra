@@ -1,8 +1,12 @@
 import hrp from 'http-request-plus'
 import ProxyAgent from 'proxy-agent'
-import firstDefined from '@xen-orchestra/defined'
+
+const { env } = process
 
 export default class Http {
+  // automatically fetches the proxy to use for the requested URL from the environnement
+  _agent = new ProxyAgent()
+
   // whether XO has a proxy set from its own config/environment
   get hasOwnHttpProxy() {
     return this._hasOwnHttpProxy
@@ -12,16 +16,14 @@ export default class Http {
     return this._agent
   }
 
-  constructor(_, { config: { httpProxy = firstDefined(process.env.http_proxy, process.env.HTTP_PROXY) } }) {
-    this._hasOwnHttpProxy = httpProxy != null
+  constructor(_, { config: { httpProxy, noProxy } }) {
+    if (httpProxy !== undefined) {
+      this._hasOwnHttpProxy = true
 
-    this.setHttpProxy(httpProxy)
+      this.setHttpProxy(httpProxy, noProxy)
+    }
   }
 
-  // TODO: find a way to decide for which addresses the proxy should be used
-  //
-  // For the moment, use this method only to access external resources (e.g.
-  // patches, upgrades, support tunnel)
   httpRequest(...args) {
     return hrp(
       {
@@ -31,11 +33,24 @@ export default class Http {
     )
   }
 
-  setHttpProxy(proxy) {
+  // Inject the proxy into the environnement, it will be automatically used by `_agent` and by most libs (e.g `axios`)
+  setHttpProxy(proxy, noProxy) {
     if (proxy == null) {
-      this._agent = undefined
+      delete env.http_proxy
+      delete env.HTTP_PROXY
+      delete env.https_proxy
+      delete env.HTTPS_PROXY
     } else {
-      this._agent = new ProxyAgent(proxy)
+      env.http_proxy = env.HTTP_PROXY = env.https_proxy = env.HTTPS_PROXY = proxy
+    }
+
+    if (noProxy !== undefined) {
+      if (proxy === null) {
+        delete env.no_proxy
+        delete env.NO_PROXY
+      } else {
+        env.no_proxy = env.NO_PROXY = noProxy
+      }
     }
   }
 }
