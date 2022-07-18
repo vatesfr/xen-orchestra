@@ -9,7 +9,6 @@ import { create as createServer } from 'http-server-plus'
 import { createCachedLookup } from '@vates/cached-dns.lookup'
 import { createLogger } from '@xen-orchestra/log'
 import { createSecureServer } from 'http2'
-import { genSelfSignedCert } from '@xen-orchestra/self-signed'
 import { load as loadConfig } from 'app-conf'
 
 // -------------------------------------------------------------------
@@ -61,20 +60,14 @@ ${APP_NAME} v${APP_VERSION}
       const niceAddress = await pRetry(
         async () => {
           if (cert !== undefined && key !== undefined) {
-            try {
-              opts.cert = fse.readFileSync(cert)
-              opts.key = fse.readFileSync(key)
-            } catch (error) {
-              if (!(autoCert && error.code === 'ENOENT')) {
-                throw error
+            opts.SNICallback = async (serverName, callback) => {
+              // injected by @xen-orchestr/mixins/sslCertificate.mjs
+              try {
+                const secureContext = await httpServer.getSecureContext(serverName)
+                callback(null, secureContext)
+              } catch (error) {
+                callback(error)
               }
-
-              const pems = await genSelfSignedCert()
-              fse.outputFileSync(cert, pems.cert, { flag: 'wx', mode: 0o400 })
-              fse.outputFileSync(key, pems.key, { flag: 'wx', mode: 0o400 })
-              info('new certificate generated', { cert, key })
-              opts.cert = pems.cert
-              opts.key = pems.key
             }
           }
 
@@ -138,6 +131,8 @@ ${APP_NAME} v${APP_VERSION}
   const { default: fromCallback } = await import('promise-toolbox/fromCallback')
   app.hooks.on('stop', () => fromCallback(cb => httpServer.stop(cb)))
 
+  app.sslCertificate.register()
+
   await app.hooks.start()
 
   // Gracefully shutdown on signals.
@@ -146,6 +141,7 @@ ${APP_NAME} v${APP_VERSION}
     process.on(signal, () => {
       if (alreadyCalled) {
         warn('forced exit')
+        // eslint-disable-next-line n/no-process-exit
         process.exit(1)
       }
       alreadyCalled = true
@@ -163,7 +159,7 @@ main(process.argv.slice(2)).then(
   },
   error => {
     fatal(error)
-
+    // eslint-disable-next-line n/no-process-exit
     process.exit(1)
   }
 )

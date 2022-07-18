@@ -8,6 +8,7 @@ import iteratee from 'lodash/iteratee.js'
 import mixin from '@xen-orchestra/mixin'
 import mixinLegacy from '@xen-orchestra/mixin/legacy.js'
 import stubTrue from 'lodash/stubTrue.js'
+import SslCertificate from '@xen-orchestra/mixins/SslCertificate.mjs'
 import { Collection as XoCollection } from 'xo-collection'
 import { createClient as createRedisClient } from 'redis'
 import { createDebounceResource } from '@vates/disposable/debounceResource.js'
@@ -29,7 +30,7 @@ export default class Xo extends EventEmitter {
   constructor(opts) {
     super()
 
-    mixin(this, { Config, Hooks, HttpProxy }, [opts])
+    mixin(this, { Config, Hooks, HttpProxy, SslCertificate }, [opts])
 
     // a lot of mixins adds listener for start/stop/… events
     this.hooks.setMaxListeners(0)

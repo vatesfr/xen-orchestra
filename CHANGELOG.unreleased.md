@@ -28,5 +28,8 @@
 <!--packages-start-->
 
 - @vates/async-each major
+- @xen-orchestra/mixins minor
+- @xen-orchestra/proxy patch
+- @xen-orchestra/xo-server patch
 
 <!--packages-end-->

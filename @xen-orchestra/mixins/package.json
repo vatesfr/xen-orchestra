@@ -16,16 +16,18 @@
   "license": "AGPL-3.0-or-later",
   "version": "0.5.0",
   "engines": {
-    "node": ">=12"
+    "node": ">=14"
   },
   "dependencies": {
     "@vates/event-listeners-manager": "^1.0.1",
     "@vates/parse-duration": "^0.1.1",
     "@xen-orchestra/emit-async": "^1.0.0",
     "@xen-orchestra/log": "^0.3.0",
+    "@xen-orchestra/self-signed": "^0.1.3",
     "app-conf": "^2.1.0",
     "lodash": "^4.17.21",
-    "promise-toolbox": "^0.21.0"
+    "promise-toolbox": "^0.21.0",
+    "pw": "^0.0.4"
   },
   "scripts": {
     "postversion": "npm publish --access public"

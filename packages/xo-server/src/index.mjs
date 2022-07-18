@@ -17,7 +17,6 @@ import merge from 'lodash/merge.js'
 import ms from 'ms'
 import once from 'lodash/once.js'
 import proxyConsole from './proxy-console.mjs'
-import pw from 'pw'
 import serveStatic from 'serve-static'
 import stoppable from 'stoppable'
 import WebServer from 'http-server-plus'
@@ -26,7 +25,6 @@ import { asyncMap } from '@xen-orchestra/async-map'
 import { xdgConfig } from 'xdg-basedir'
 import { createLogger } from '@xen-orchestra/log'
 import { createRequire } from 'module'
-import { genSelfSignedCert } from '@xen-orchestra/self-signed'
 import { parseDuration } from '@vates/parse-duration'
 import { URL } from 'url'
 
@@ -77,7 +75,6 @@ configure([
 ])
 
 const log = createLogger('xo:main')
-
 // ===================================================================
 
 const DEPRECATED_ENTRIES = ['users', 'servers']
@@ -405,29 +402,15 @@ async function makeWebServerListen(
 ) {
   try {
     if (cert && key) {
-      try {
-        ;[opts.cert, opts.key] = await Promise.all([fse.readFile(cert), fse.readFile(key)])
-        if (opts.key.includes('ENCRYPTED')) {
-          opts.passphrase = await new Promise(resolve => {
-            // eslint-disable-next-line no-console
-            console.log('Encrypted key %s', key)
-            process.stdout.write(`Enter pass phrase: `)
-            pw(resolve)
-          })
-        }
-      } catch (error) {
-        if (!(autoCert && error.code === 'ENOENT')) {
-          throw error
-        }
+      opts.SNICallback = async (serverName, callback) => {
+        // injected by @xen-orchestr/mixins/sslCertificate.mjs
+        try {
+          const secureContext = await webServer.getSecureContext(serverName)
 
-        const pems = await genSelfSignedCert()
-        await Promise.all([
-          fse.outputFile(cert, pems.cert, { flag: 'wx', mode: 0o400 }),
-          fse.outputFile(key, pems.key, { flag: 'wx', mode: 0o400 }),
-        ])
-        log.info('new certificate generated', { cert, key })
-        opts.cert = pems.cert
-        opts.key = pems.key
+          callback(null, secureContext)
+        } catch (error) {
+          callback(error)
+        }
       }
     }
 
@@ -797,6 +780,8 @@ export default async function main(args) {
   // Must be set up before the API.
   express.use(xo._handleHttpRequest.bind(xo))
 
+  await xo.sslCertificate.register()
+
   // Everything above is not protected by the sign in, allowing xo-cli
   // to work properly.
   await setUpPassport(express, xo, config)
@@ -823,6 +808,7 @@ export default async function main(args) {
     process.on(signal, () => {
       if (alreadyCalled) {
         log.warn('forced exit')
+        // eslint-disable-next-line n/no-process-exit
         process.exit(1)
       }
       alreadyCalled = true
