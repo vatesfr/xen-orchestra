@@ -1626,15 +1626,32 @@ export const deleteVm = (vm, retryWithForce = true) =>
       throw error
     })
 
-export const deleteVms = vms =>
-  confirm({
+export const deleteVms = async vms => {
+  if (vms.length === 1) {
+    return deleteVm(vms[0])
+  }
+  await confirm({
     title: _('deleteVmsModalTitle', { vms: vms.length }),
     body: _('deleteVmsModalMessage', { vms: vms.length }),
     strongConfirm: vms.length > 1 && {
       messageId: 'deleteVmsConfirmText',
       values: { nVms: vms.length },
     },
-  }).then(() => Promise.all(map(vms, vmId => _call('vm.delete', { id: resolveId(vmId) }))), noop)
+  }).catch(noop)
+
+  let nErrors = 0
+  await Promise.all(
+    map(vms, vmId =>
+      _call('vm.delete', { id: resolveId(vmId) }).catch(() => {
+        nErrors++
+      })
+    )
+  )
+
+  if (nErrors > 0) {
+    error(_('failedDeleteErrorTitle'), _('failedVmsErrorMessage', { nVms: nErrors }))
+  }
+}
 
 export const importBackup = ({ remote, file, sr }) => _call('vm.importBackup', resolveIds({ remote, file, sr }))
 

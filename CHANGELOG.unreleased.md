@@ -11,6 +11,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Home/VM] Show error when deleting VMs failed
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -28,5 +30,6 @@
 <!--packages-start-->
 
 - @vates/async-each major
+- xo-web patch
 
 <!--packages-end-->
