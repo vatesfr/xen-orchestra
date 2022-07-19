@@ -1,30 +1,38 @@
 import { createLogger } from '@xen-orchestra/log'
 import { genSelfSignedCert } from '@xen-orchestra/self-signed'
+import pRetry from 'promise-toolbox/retry'
 
 import { X509Certificate } from 'crypto'
 import fs from 'node:fs/promises'
+import { dirname } from 'path'
 import pw from 'pw'
 import tls from 'node:tls'
 
 const { debug, info, warn } = createLogger('xo:mixins:sslCertificate')
 
-export default class SslCertificate {
-  #cert
-  #config
+async function outputFile(path, content) {
+  await fs.mkdir(dirname(path), { recursive: true })
+  await fs.writeFile(path, content, { flag: 'w', mode: 0o400 })
+}
+
+class SslCertificate {
+  #app
+  #configKey
   #updateSslCertificatePromise
   #secureContext
+  #validTo
 
-  constructor(app, { httpServer, config }) {
-    // don't setup the proxy if httpServ, configer is not present
-    //
-    // that can happen when the app is instanciated in another context like xo-server-recover-account
-    if (httpServer === undefined) {
-      return
-    }
+  constructor(app, configKey) {
+    this.#app = app
+    this.#configKey = configKey
+  }
 
-    this.#config = config
-
-    httpServer.getSecureContext = this.getSecureContext.bind(this)
+  #createSecureContext(cert, key, passphrase) {
+    return tls.createSecureContext({
+      cert,
+      key,
+      passphrase,
+    })
   }
 
   // load on register
@@ -35,78 +43,114 @@ export default class SslCertificate {
     try {
       ;[cert, key] = await Promise.all([fs.readFile(certPath), fs.readFile(keyPath)])
       if (keyPath.includes('ENCRYPTED')) {
+        if (config.autoCert) {
+          throw new Error(`encrytped certificates aren't compatible with autoCert option`)
+        }
         passphrase = await new Promise(resolve => {
           // eslint-disable-next-line no-console
           process.stdout.write(`Enter pass phrase: `)
           pw(resolve)
         })
       }
-      this.#secureContext = tls.createSecureContext({
-        cert,
-        key,
-        passphrase,
-      })
-      this.#cert = cert
     } catch (error) {
       if (!(config.autoCert && error.code === 'ENOENT')) {
         throw error
       }
       // self signed certificate or let's encrypt will be generated on demand
     }
+
+    // create secure context also make a validation of the certificate
+    const secureContext = this.#createSecureContext(cert, key, passphrase)
+    this.#secureContext = secureContext
+
+    // will be tested and eventually renewed on first query
+    const { validTo } = new X509Certificate(cert)
+    this.#validTo = new Date(validTo)
+  }
+
+  #getConfig() {
+    const config = this.#app.config.get(this.#configKey)
+    if (config === undefined) {
+      throw new Error(`config for key ${this.#configKey} is unavailable`)
+    }
+    return config
   }
 
   async #getSelfSignedContext(config) {
-    const { cert, key } = await genSelfSignedCert()
-    info('new certificates generated', { cert, key })
-    try {
-      await Promise.all([
-        fs.writeFile(config.cert, cert, { flag: 'w', mode: 0o400 }),
-        fs.writeFile(config.key, key, { flag: 'w', mode: 0o400 }),
-      ])
-    } catch (error) {
-      warn(`can't save self signed certificates `, { error, config })
-    }
+    return pRetry(
+      async () => {
+        const { cert, key } = await genSelfSignedCert()
+        info('new certificates generated', { cert, key })
+        try {
+          await Promise.all([outputFile(config.cert, cert), outputFile(config.key, key)])
+        } catch (error) {
+          warn(`can't save self signed certificates `, { error, config })
+        }
 
-    this.#cert = cert
-    this.#secureContext = tls.createSecureContext({
-      cert,
-      key,
-    })
-
-    return this.#secureContext
+        // create secure context also make a validation of the certificate
+        const { validTo } = new X509Certificate(cert)
+        return { secureContext: this.#createSecureContext(cert, key), validTo: new Date(validTo) }
+      },
+      {
+        tries: 2,
+        when: e => e.code === 'ERR_SSL_EE_KEY_TOO_SMALL',
+        onRetry: () => {
+          warn('got ERR_SSL_EE_KEY_TOO_SMALL while generating self signed certificate ')
+        },
+      }
+    )
   }
 
   // get the current certificate for this hostname
   async getSecureContext(hostName) {
+    const config = this.#getConfig()
+    if (config === undefined) {
+      throw new Error(`config for key ${this.#configKey} is unavailable`)
+    }
+
     if (this.#updateSslCertificatePromise) {
       debug('certificate is already refreshing')
       return this.#updateSslCertificatePromise
     }
-    const cert = this.#cert
-    const config = this.#getHttpsConfig()
-    let certificateIsValid = cert !== undefined
+
+    let certificateIsValid = this.#validTo !== undefined
     let shouldRenew = !certificateIsValid
 
     if (certificateIsValid) {
-      const { validTo } = new X509Certificate(cert)
-      const validToDate = new Date(validTo)
-      certificateIsValid = validToDate >= new Date()
-      shouldRenew = !certificateIsValid || validToDate - new Date() < 30 * 24 * 60 * 60 * 1000
+      certificateIsValid = this.#validTo >= new Date()
+      shouldRenew = !certificateIsValid || this.#validTo - new Date() < 30 * 24 * 60 * 60 * 1000
     }
 
+    let promise = Promise.resolve()
     if (shouldRenew) {
       try {
         // @todo : should also handle let's encrypt
-        if (config?.autoCert === true) {
-          this.#updateSslCertificatePromise = this.#getSelfSignedContext(config)
+        if (config.autoCert === true) {
+          promise = promise.then(() => this.#getSelfSignedContext(config))
         }
 
-        // cleanup
-        this.#updateSslCertificatePromise.then(
-          () => (this.#updateSslCertificatePromise = undefined),
-          error => {
+        this.#updateSslCertificatePromise = promise
+
+        // cleanup and store
+        promise = promise.then(
+          ({ secureContext, validTo }) => {
+            this.#validTo = validTo
+            this.#secureContext = secureContext
+            this.#updateSslCertificatePromise = undefined
+            return secureContext
+          },
+          async error => {
             console.warn('error while updating ssl certificate', { error })
             this.#updateSslCertificatePromise = undefined
+            if (!certificateIsValid) {
+              // we couldn't generate a valid certificate
+              // only throw if the current certificate is invalid
+              warn('deleting invalid certificate')
+              this.#secureContext = undefined
+              this.#validTo = undefined
+              await Promise.all([fs.unlink(config.cert), fs.unlink(config.key)])
+              throw error
+            }
           }
         )
       } catch (error) {
@@ -127,16 +171,49 @@ export default class SslCertificate {
     return this.#updateSslCertificatePromise
   }
 
-  // only handle ONE https config at once
-  #getHttpsConfig() {
-    const configs = this.#config.http.listen ?? []
-    return Object.values(configs).find(({ cert, key }) => cert !== undefined && key !== undefined)
+  async register() {
+    await this.#loadSslCertificate(this.#getConfig())
+  }
+}
+
+export default class SslCertificates {
+  #app
+  #handlers = {}
+  constructor(app, { httpServer }) {
+    // don't setup the proxy if httpServer is not present
+    //
+    // that can happen when the app is instanciated in another context like xo-server-recover-account
+    if (httpServer === undefined) {
+      return
+    }
+    this.#app = app
+
+    httpServer.getSecureContext = this.getSecureContext.bind(this)
+  }
+
+  async getSecureContext(hostname, configKey) {
+    const config = this.#app.config.get(`http.listen.${configKey}`)
+    if (!config || !config.cert || !config.key) {
+      throw new Error(`HTTPS configuration does no exists for key http.listen.${configKey}`)
+    }
+
+    if (this.#handlers[configKey] === undefined) {
+      throw new Error(`the SslCertificate handler for key  http.listen.${configKey} does not exists.`)
+    }
+    return this.#handlers[configKey].getSecureContext(hostname, config)
   }
 
   async register() {
-    const config = this.#getHttpsConfig()
-    if (config !== undefined) {
-      await this.#loadSslCertificate(config)
-    }
+    // http.listen can be an array or an object
+    const configs = this.#app.config.get('http.listen') || []
+    const configKeys = Object.keys(configs) || []
+    await Promise.all(
+      configKeys
+        .filter(configKey => configs[configKey].cert !== undefined && configs[configKey].key !== undefined)
+        .map(async configKey => {
+          this.#handlers[configKey] = new SslCertificate(this.#app, `http.listen.${configKey}`)
+          return this.#handlers[configKey].register(configs[configKey])
+        })
+    )
   }
 }

@@ -3,7 +3,6 @@
 import forOwn from 'lodash/forOwn.js'
 import fse from 'fs-extra'
 import getopts from 'getopts'
-import pRetry from 'promise-toolbox/retry'
 import { catchGlobalErrors } from '@xen-orchestra/log/configure.js'
 import { create as createServer } from 'http-server-plus'
 import { createCachedLookup } from '@vates/cached-dns.lookup'
@@ -55,35 +54,21 @@ ${APP_NAME} v${APP_VERSION}
     createSecureServer: opts => createSecureServer({ ...opts, allowHTTP1: true }),
   })
 
-  forOwn(config.http.listen, async ({ autoCert, cert, key, ...opts }) => {
+  forOwn(config.http.listen, async ({ autoCert, cert, key, ...opts }, listenKey) => {
     try {
-      const niceAddress = await pRetry(
-        async () => {
-          if (cert !== undefined && key !== undefined) {
-            opts.SNICallback = async (serverName, callback) => {
-              // injected by @xen-orchestr/mixins/sslCertificate.mjs
-              try {
-                const secureContext = await httpServer.getSecureContext(serverName)
-                callback(null, secureContext)
-              } catch (error) {
-                callback(error)
-              }
-            }
+      if (cert !== undefined && key !== undefined) {
+        opts.SNICallback = async (serverName, callback) => {
+          // injected by @xen-orchestr/mixins/sslCertificate.mjs
+          try {
+            const secureContext = await httpServer.getSecureContext(serverName, listenKey)
+            callback(null, secureContext)
+          } catch (error) {
+            warn('An error occured during certificate context creation', { error, listenKey, serverName })
+            callback(error)
           }
-
-          return httpServer.listen(opts)
-        },
-        {
-          tries: 2,
-          when: e => autoCert && e.code === 'ERR_SSL_EE_KEY_TOO_SMALL',
-          onRetry: () => {
-            warn('deleting invalid certificate')
-            fse.unlinkSync(cert)
-            fse.unlinkSync(key)
-          },
         }
-      )
-
+      }
+      const niceAddress = httpServer.listen(opts)
       info(`Web server listening on ${niceAddress}`)
     } catch (error) {
       if (error.niceAddress !== undefined) {
@@ -131,7 +116,7 @@ ${APP_NAME} v${APP_VERSION}
   const { default: fromCallback } = await import('promise-toolbox/fromCallback')
   app.hooks.on('stop', () => fromCallback(cb => httpServer.stop(cb)))
 
-  app.sslCertificate.register()
+  await app.sslCertificate.register()
 
   await app.hooks.start()
 

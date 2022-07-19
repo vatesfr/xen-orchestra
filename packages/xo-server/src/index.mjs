@@ -397,6 +397,9 @@ async function makeWebServerListen(
     cert = certificate,
 
     key,
+
+    listenKey,
+
     ...opts
   }
 ) {
@@ -405,10 +408,11 @@ async function makeWebServerListen(
       opts.SNICallback = async (serverName, callback) => {
         // injected by @xen-orchestr/mixins/sslCertificate.mjs
         try {
-          const secureContext = await webServer.getSecureContext(serverName)
+          const secureContext = await webServer.getSecureContext(serverName, listenKey)
 
           callback(null, secureContext)
         } catch (error) {
+          log.warn('An error occured during certificate context creation', { error, listenKey, serverName })
           callback(error)
         }
       }
@@ -436,7 +440,9 @@ async function makeWebServerListen(
 async function createWebServer({ listen, listenOptions }) {
   const webServer = stoppable(new WebServer())
 
-  await Promise.all(map(listen, opts => makeWebServerListen(webServer, { ...listenOptions, ...opts })))
+  await Promise.all(
+    map(listen, (opts, listenKey) => makeWebServerListen(webServer, { ...listenOptions, ...opts, listenKey }))
+  )
 
   return webServer
 }
