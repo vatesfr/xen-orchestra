@@ -3,26 +3,31 @@ import { genSelfSignedCert } from '@xen-orchestra/self-signed'
 
 import { X509Certificate } from 'crypto'
 import fs from 'node:fs/promises'
+import { dirname } from 'path'
 import pw from 'pw'
 import tls from 'node:tls'
 
 const { debug, info, warn } = createLogger('xo:mixins:sslCertificate')
 
+async function outputFile(path, content) {
+  await fs.mkdir(dirname(path), { recursive: true })
+  await fs.writeFile(path, content, { flag: 'w', mode: 0o400 })
+}
 export default class SslCertificate {
+  #app
   #cert
-  #config
   #updateSslCertificatePromise
   #secureContext
 
-  constructor(app, { httpServer, config }) {
-    // don't setup the proxy if httpServ, configer is not present
+  constructor(app, { httpServer }) {
+    // don't setup the proxy if httpServer is not present
     //
     // that can happen when the app is instanciated in another context like xo-server-recover-account
     if (httpServer === undefined) {
       return
     }
 
-    this.#config = config
+    this.#app = app
 
     httpServer.getSecureContext = this.getSecureContext.bind(this)
   }
@@ -59,10 +64,7 @@ export default class SslCertificate {
     const { cert, key } = await genSelfSignedCert()
     info('new certificates generated', { cert, key })
     try {
-      await Promise.all([
-        fs.writeFile(config.cert, cert, { flag: 'w', mode: 0o400 }),
-        fs.writeFile(config.key, key, { flag: 'w', mode: 0o400 }),
-      ])
+      await Promise.all([outputFile(config.cert, cert), outputFile(config.key, key)])
     } catch (error) {
       warn(`can't save self signed certificates `, { error, config })
     }
@@ -129,7 +131,7 @@ export default class SslCertificate {
 
   // only handle ONE https config at once
   #getHttpsConfig() {
-    const configs = this.#config.http.listen ?? []
+    const configs = Object.values(this.#app.config.get('http.listen')) ?? []
     return Object.values(configs).find(({ cert, key }) => cert !== undefined && key !== undefined)
   }
 
