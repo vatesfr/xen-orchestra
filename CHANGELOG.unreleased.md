@@ -7,7 +7,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [Web] acquires Ssl certificate from let's encrypt (PR [#6320](https://github.com/vatesfr/xen-orchestra/pull/6320))
+- HTTPS server can acquire SSL certificate from Let's Encrypt (PR [#6320](https://github.com/vatesfr/xen-orchestra/pull/6320))
 
 ### Bug fixes
 

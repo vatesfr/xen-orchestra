@@ -52,7 +52,6 @@ import { Strategy as LocalStrategy } from 'passport-local'
 import transportConsole from '@xen-orchestra/log/transports/console.js'
 import { configure } from '@xen-orchestra/log/configure.js'
 import { generateToken } from './utils.mjs'
-import tls from 'tls'
 
 // ===================================================================
 
@@ -401,49 +400,49 @@ async function makeWebServerListen(
     cert = certificate,
 
     key,
+
+    configKey,
+
     ...opts
   }
 ) {
   try {
     if (cert && key) {
-      try {
-        ;[opts.cert, opts.key] = await Promise.all([fse.readFile(cert), fse.readFile(key)])
-        if (opts.key.includes('ENCRYPTED')) {
-          opts.passphrase = await new Promise(resolve => {
-            // eslint-disable-next-line no-console
-            console.log('Encrypted key %s', key)
-            process.stdout.write(`Enter pass phrase: `)
-            pw(resolve)
-          })
-        }
-      } catch (error) {
-        if (!(autoCert && error.code === 'ENOENT')) {
-          throw error
-        }
-
-        const pems = await genSelfSignedCert()
-        await Promise.all([
-          fse.outputFile(cert, pems.cert, { flag: 'wx', mode: 0o400 }),
-          fse.outputFile(key, pems.key, { flag: 'wx', mode: 0o400 }),
-        ])
-        log.info('new certificate generated', { cert, key })
-        opts.cert = pems.cert
-        opts.key = pems.key
-      }
-      if (opts.letsencrypt) {
+      if (opts.certDomain) {
         opts.SNICallback = async (serverName, callback) => {
           try {
-            const { cert, key } = await webServer.getCertificate(serverName, opts.cert, opts.key)
-            callback(
-              null,
-              tls.createSecureContext({
-                cert,
-                key,
-              })
-            )
+            // injected byt mixins/SslCertificate
+            const secureContext = await webServer.getSecureContext(serverName, configKey)
+            callback(null, secureContext)
           } catch (error) {
+            log.warn(error)
             callback(error, null)
           }
+        }
+      } else {
+        ;[opts.cert, opts.key] = await Promise.all([fse.readFile(cert), fse.readFile(key)])
+        try {
+          if (opts.key.includes('ENCRYPTED')) {
+            opts.passphrase = await new Promise(resolve => {
+              // eslint-disable-next-line no-console
+              console.log('Encrypted key %s', key)
+              process.stdout.write(`Enter pass phrase: `)
+              pw(resolve)
+            })
+          }
+        } catch (error) {
+          if (!(autoCert && error.code === 'ENOENT')) {
+            throw error
+          }
+
+          const pems = await genSelfSignedCert()
+          await Promise.all([
+            fse.outputFile(cert, pems.cert, { flag: 'wx', mode: 0o400 }),
+            fse.outputFile(key, pems.key, { flag: 'wx', mode: 0o400 }),
+          ])
+          log.info('new certificate generated', { cert, key })
+          opts.cert = pems.cert
+          opts.key = pems.key
         }
       }
     }
@@ -470,7 +469,9 @@ async function makeWebServerListen(
 async function createWebServer({ listen, listenOptions }) {
   const webServer = stoppable(new WebServer())
 
-  await Promise.all(map(listen, opts => makeWebServerListen(webServer, { ...listenOptions, ...opts })))
+  await Promise.all(
+    map(listen, (opts, configKey) => makeWebServerListen(webServer, { ...listenOptions, ...opts, configKey }))
+  )
 
   return webServer
 }
@@ -769,10 +770,6 @@ export default async function main(args) {
         if (req.secure) {
           return next()
         }
-        // don't redirect let's encrypt challenge to https
-        if (req.url.startsWith('/.well')) {
-          return next()
-        }
 
         res.redirect(`https://${req.hostname}:${port}${req.originalUrl}`)
       })
@@ -781,6 +778,10 @@ export default async function main(args) {
 
   // Attaches express to the web server.
   webServer.on('request', (req, res) => {
+    // don't redirect let's encrypt challenge to https
+    if (req.url.startsWith('/.well')) {
+      return
+    }
     // don't handle proxy requests
     if (req.url.startsWith('/')) {
       return express(req, res)
@@ -817,9 +818,6 @@ export default async function main(args) {
 
   // Must be set up before the API.
   express.use(xo._handleHttpRequest.bind(xo))
-
-  // must be able to answer to let's encrypt challenge without signin in
-  xo.sslCertificate.register()
 
   // Everything above is not protected by the sign in, allowing xo-cli
   // to work properly.

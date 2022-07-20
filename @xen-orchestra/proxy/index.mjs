@@ -56,25 +56,38 @@ ${APP_NAME} v${APP_VERSION}
     createSecureServer: opts => createSecureServer({ ...opts, allowHTTP1: true }),
   })
 
-  forOwn(config.http.listen, async ({ autoCert, cert, key, ...opts }) => {
+  forOwn(config.http.listen, async ({ autoCert, cert, key, certDomain, ...opts }, configKey) => {
     try {
       const niceAddress = await pRetry(
         async () => {
           if (cert !== undefined && key !== undefined) {
-            try {
-              opts.cert = fse.readFileSync(cert)
-              opts.key = fse.readFileSync(key)
-            } catch (error) {
-              if (!(autoCert && error.code === 'ENOENT')) {
-                throw error
+            if (certDomain !== undefined) {
+              opts.SNICallback = async (serverName, callback) => {
+                try {
+                  // injected byt mixins/SslCertificate
+                  const secureContext = await httpServer.getSecureContext(serverName, configKey)
+                  callback(null, secureContext)
+                } catch (error) {
+                  warn(error)
+                  callback(error, null)
+                }
               }
+            } else {
+              try {
+                opts.cert = fse.readFileSync(cert)
+                opts.key = fse.readFileSync(key)
+              } catch (error) {
+                if (!(autoCert && error.code === 'ENOENT')) {
+                  throw error
+                }
 
-              const pems = await genSelfSignedCert()
-              fse.outputFileSync(cert, pems.cert, { flag: 'wx', mode: 0o400 })
-              fse.outputFileSync(key, pems.key, { flag: 'wx', mode: 0o400 })
-              info('new certificate generated', { cert, key })
-              opts.cert = pems.cert
-              opts.key = pems.key
+                const pems = await genSelfSignedCert()
+                fse.outputFileSync(cert, pems.cert, { flag: 'wx', mode: 0o400 })
+                fse.outputFileSync(key, pems.key, { flag: 'wx', mode: 0o400 })
+                info('new certificate generated', { cert, key })
+                opts.cert = pems.cert
+                opts.key = pems.key
+              }
             }
           }
 
