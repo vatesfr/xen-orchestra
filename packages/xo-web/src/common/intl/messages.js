@@ -1728,8 +1728,9 @@ const messages = {
   blockedStartVmsModalMessage: 'Forbidden operation start for {nVms, number} vm{nVms, plural, one {} other {s}}.',
   startVmsModalMessage: 'Are you sure you want to start {vms, number} VM{vms, plural, one {} other {s}}?',
   failedVmsErrorMessage:
-    '{nVms, number} vm{nVms, plural, one {} other {s}} are failed. Please see your logs to get more information',
+    '{nVms, number} VM{nVms, plural, one {} other {s}} failed. Please check logs for more information',
   failedVmsErrorTitle: 'Start failed',
+  failedDeleteErrorTitle: 'Delete failed',
   stopHostsModalTitle: 'Stop Host{nHosts, plural, one {} other {s}}',
   stopHostsModalMessage: 'Are you sure you want to stop {nHosts, number} Host{nHosts, plural, one {} other {s}}?',
   stopVmsModalTitle: 'Stop VM{vms, plural, one {} other {s}}',
