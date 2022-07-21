@@ -1,0 +1,79 @@
+body {
+  --color-blue-scale-000: #000000;
+  --color-blue-scale-100: #1A1B38;
+  --color-blue-scale-200: #595A6F;
+  --color-blue-scale-300: #9899A5;
+  --color-blue-scale-400: #E5E5E7;
+  --color-blue-scale-500: #FFFFFF;
+
+  --color-extra-blue-l60: #D1CEFB;
+  --color-extra-blue-l40: #BBB5F9;
+  --color-extra-blue-l20: #A39DF8;
+  --color-extra-blue-base: #8F84FF;
+  --color-extra-blue-d20: #716AC6;
+  --color-extra-blue-d40: #554F94;
+  --color-extra-blue-d60: #383563;
+
+  --color-green-infra-l60: #D1CEFB;
+  --color-green-infra-l40: #BBB5F9;
+  --color-green-infra-l20: #A39DF8;
+  --color-green-infra-base: #8F84FF;
+  --color-green-infra-d20: #716AC6;
+  --color-green-infra-d40: #554F94;
+  --color-green-infra-d60: #383563;
+
+  --color-orange-world-l60: #D1CEFB;
+  --color-orange-world-l40: #BBB5F9;
+  --color-orange-world-l20: #A39DF8;
+  --color-orange-world-base: #8F84FF;
+  --color-orange-world-d20: #716AC6;
+  --color-orange-world-d40: #554F94;
+  --color-orange-world-d60: #383563;
+
+  --color-red-vates-l60: #D1CEFB;
+  --color-red-vates-l40: #BBB5F9;
+  --color-red-vates-l20: #A39DF8;
+  --color-red-vates-base: #8F84FF;
+  --color-red-vates-d20: #716AC6;
+  --color-red-vates-d40: #554F94;
+  --color-red-vates-d60: #383563;
+
+  --color-grayscale-200: #585757;
+
+  --background-color-primary: #FFFFFF;
+  --background-color-secondary: #F6F6F7;
+  --background-color-extra-blue: #F4F3FE;
+  --background-color-green-infra: #ECF5F2;
+  --background-color-orange-world: #FBF2E9;
+  --background-color-red-vates: #F5E8E9;
+
+  --shadow-100: 0 0.1rem 0.1rem rgba(20, 20, 30, 0.06);
+  --shadow-200: 0 0.1rem 0.3rem rgba(20, 20, 30, 0.1), 0 0.2rem 0.1rem rgba(20, 20, 30, 0.06), 0 0.1rem 0.1rem rgba(20, 20, 30, 0.08);
+  --shadow-300: 0 0.3rem 0.5rem rgba(20, 20, 30, 0.1), 0 0.1rem 1.8rem rgba(20, 20, 30, 0.06), 0 0.6rem 1.0rem rgba(20, 20, 30, 0.08);
+  --shadow-400: 0 1.1rem 1.5rem rgba(20, 20, 30, 0.1), 0 0.9rem 4.6rem rgba(20, 20, 30, 0.06), 0 2.4rem 3.8rem rgba(20, 20, 30, 0.04);
+
+  --form-control-disabled: var(--color-blue-scale-200);
+  --form-background: var(--color-blue-scale-500);
+  --form-control-color: var(--color-blue-scale-100);
+}
+
+body.dark {
+  --color-blue-scale-000: #FFFFFF;
+  --color-blue-scale-100: #E5E5E7;
+  --color-blue-scale-200: #9899A5;
+  --color-blue-scale-300: #595A6F;
+  --color-blue-scale-400: #1A1B38;
+  --color-blue-scale-500: #000000;
+
+  --background-color-primary: #14141D;
+  --background-color-secondary: #17182A;
+  --background-color-extra-blue: #35335D;
+  --background-color-green-infra: #243B3D;
+  --background-color-orange-world: #493328;
+  --background-color-red-vates: #3C1A28;
+
+  --shadow-100: 0 0.1rem 0.1rem rgba(20, 20, 30, 0.12);
+  --shadow-200: 0 0.1rem 0.3rem rgba(20, 20, 30, 0.2), 0 0.2rem 0.1rem rgba(20, 20, 30, 0.12), 0 0.1rem 0.1rem rgba(20, 20, 30, 0.16);
+  --shadow-300: 0 0.3rem 0.5rem rgba(20, 20, 30, 0.2), 0 0.1rem 1.8rem rgba(20, 20, 30, 0.12), 0 0.6rem 1.0rem rgba(20, 20, 30, 0.16);
+  --shadow-400: 0 1.1rem 1.5rem rgba(20, 20, 30, 0.2), 0 0.9rem 4.6rem rgba(20, 20, 30, 0.12), 0 2.4rem 3.8rem rgba(20, 20, 30, 0.08);
+}
