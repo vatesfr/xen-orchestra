@@ -5,6 +5,7 @@ const { decorateClass } = require('@vates/decorate-with')
 const { defer } = require('golike-defer')
 const { incorrectState } = require('xo-common/api-errors')
 const { VDI_FORMAT_VHD } = require('./index.js')
+const assert = require('node:assert').strict
 const peekFooterFromStream = require('vhd-lib/peekFooterFromVhdStream')
 
 const AggregateError = require('./_AggregateError.js')
@@ -150,12 +151,26 @@ class Sr {
     $defer,
     ref,
     stream,
-    { name_label = '[XO] Imported disk - ' + new Date().toISOString(), ...vdiCreateOpts } = {}
+    {
+      format = VDI_FORMAT_VHD,
+      name_label = '[XO] Imported disk - ' + new Date().toISOString(),
+      virtual_size,
+      ...vdiCreateOpts
+    } = {}
   ) {
-    const footer = await peekFooterFromStream(stream)
-    const vdiRef = await this.VDI_create({ ...vdiCreateOpts, name_label, SR: ref, virtual_size: footer.currentSize })
+    if (virtual_size === undefined) {
+      if (format === VDI_FORMAT_VHD) {
+        const footer = await peekFooterFromStream(stream)
+        virtual_size = footer.currentSize
+      } else {
+        virtual_size = stream.length
+        assert.notEqual(virtual_size, undefined)
+      }
+    }
+
+    const vdiRef = await this.VDI_create({ ...vdiCreateOpts, name_label, SR: ref, virtual_size })
     $defer.onFailure.call(this, 'callAsync', 'VDI.destroy', vdiRef)
-    await this.VDI_importContent(vdiRef, stream, { format: VDI_FORMAT_VHD })
+    await this.VDI_importContent(vdiRef, stream, { format })
     return vdiRef
   }
 }

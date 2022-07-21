@@ -7,6 +7,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [REST API] VDI import now also supports the raw format
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -33,6 +35,7 @@
 - @vates/async-each major
 - @xen-orchestra/xapi patch
 - xo-cli patch
+- xo-server minor
 - xo-web patch
 
 <!--packages-end-->
