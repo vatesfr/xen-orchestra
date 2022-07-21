@@ -30,6 +30,7 @@
 <!--packages-start-->
 
 - @vates/async-each major
+- xo-cli patch
 - xo-web patch
 
 <!--packages-end-->

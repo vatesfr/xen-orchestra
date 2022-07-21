@@ -247,7 +247,7 @@ $name v$version
 
 const COMMANDS = { __proto__: null }
 
-function main(args) {
+async function main(args) {
   if (!args || !args.length || args[0] === '-h') {
     return help()
   }
@@ -259,22 +259,32 @@ function main(args) {
 
     return match[1].toUpperCase()
   })
-  if (fnName in COMMANDS) {
-    return COMMANDS[fnName](args.slice(1))
-  }
 
-  return COMMANDS.call(args).catch(error => {
-    if (!(error != null && error.code === 10 && 'errors' in error.data)) {
-      throw error
+  try {
+    if (fnName in COMMANDS) {
+      return await COMMANDS[fnName](args.slice(1))
     }
 
-    const lines = [error.message]
-    const { errors } = error.data
-    errors.forEach(error => {
-      lines.push(`  property ${error.property}: ${error.message}`)
+    return await COMMANDS.call(args).catch(error => {
+      if (!(error != null && error.code === 10 && 'errors' in error.data)) {
+        throw error
+      }
+
+      const lines = [error.message]
+      const { errors } = error.data
+      errors.forEach(error => {
+        lines.push(`  property ${error.property}: ${error.message}`)
+      })
+      throw lines.join('\n')
     })
-    throw lines.join('\n')
-  })
+  } catch (error) {
+    // `promise-toolbox/fromEvent` uses `addEventListener` by default wich makes
+    // `ws/WebSocket` (used by `xo-lib`) emit DOM `Event` objects which are not
+    // correctly displayed by `exec-promise`.
+    //
+    // Extracts the original error for a better display.
+    throw 'error' in error ? error.error : error
+  }
 }
 
 // -------------------------------------------------------------------
