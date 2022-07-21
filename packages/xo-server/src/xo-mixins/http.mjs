@@ -16,12 +16,14 @@ export default class Http {
     return this._agent
   }
 
-  constructor(_, { config: { httpProxy, noProxy } }) {
-    if (httpProxy !== undefined) {
-      this._hasOwnHttpProxy = true
+  constructor(app) {
+    app.config.watch(({ httpProxy, noProxy }) => {
+      if (httpProxy !== undefined) {
+        this._hasOwnHttpProxy = true
 
-      this.setHttpProxy(httpProxy, noProxy)
-    }
+        this.setHttpProxy(httpProxy, noProxy)
+      }
+    })
   }
 
   httpRequest(...args) {
