@@ -30,6 +30,7 @@
 <!--packages-start-->
 
 - @vates/async-each major
+- @xen-orchestra/xapi patch
 - xo-cli patch
 - xo-web patch
 

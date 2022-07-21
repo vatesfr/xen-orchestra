@@ -1,5 +1,6 @@
 'use strict'
 
+const assert = require('node:assert').strict
 const CancelToken = require('promise-toolbox/CancelToken')
 const pCatch = require('promise-toolbox/catch')
 const pRetry = require('promise-toolbox/retry')
@@ -86,6 +87,8 @@ class Vdi {
   }
 
   async importContent(ref, stream, { cancelToken = CancelToken.none, format }) {
+    assert.notEqual(format, undefined)
+
     if (stream.length === undefined) {
       throw new Error('Trying to import a VDI without a length field. Please report this error to Xen Orchestra.')
     }
