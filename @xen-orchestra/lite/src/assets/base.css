@@ -5,23 +5,10 @@
 
 body {
   min-height: 100vh;
+  font-family: Poppins, sans-serif;
   font-size: 1.3rem;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: var(--color-blue-scale-100);
-}
-
-a {
-  color: var(--color-extra-blue-base);
-}
-
-code {
-  font-family: monospace;
-}
-
-.card-view {
-  padding: 1.2rem;
-  display: flex;
-  gap: 2rem;
 }

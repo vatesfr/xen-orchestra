@@ -1,1 +1,1 @@
-<template>System (coming soon)</template>
+<template>System</template>

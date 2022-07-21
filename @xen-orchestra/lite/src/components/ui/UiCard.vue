@@ -6,7 +6,6 @@
 
 <style lang="postcss" scoped>
 .ui-card {
-  height: fit-content;
   padding: 2.1rem;
   border-radius: 0.8rem;
   background-color: var(--background-color-primary);

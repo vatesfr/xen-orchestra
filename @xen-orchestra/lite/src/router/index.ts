@@ -1,14 +1,14 @@
-import { createRouter, createWebHashHistory } from "vue-router";
+import { createRouter, createWebHistory } from "vue-router";
 import pool from "@/router/pool";
+import DemoView from "@/views/DemoView.vue";
 import HomeView from "@/views/HomeView.vue";
 import HostDashboardView from "@/views/host/HostDashboardView.vue";
 import HostRootView from "@/views/host/HostRootView.vue";
-import SettingsView from "@/views/settings/SettingsView.vue";
 import VmConsoleView from "@/views/vm/VmConsoleView.vue";
 import VmRootView from "@/views/vm/VmRootView.vue";
 
 const router = createRouter({
-  history: createWebHashHistory(),
+  history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
       path: "/",
@@ -16,9 +16,9 @@ const router = createRouter({
       component: HomeView,
     },
     {
-      path: "/settings",
-      name: "settings",
-      component: SettingsView,
+      path: "/demo",
+      name: "demo",
+      component: DemoView,
     },
     pool,
     {

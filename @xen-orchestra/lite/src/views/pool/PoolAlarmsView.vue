@@ -1,1 +1,1 @@
-<template>Alarms (coming soon)</template>
+<template>Alarms</template>

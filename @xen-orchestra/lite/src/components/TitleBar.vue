@@ -30,12 +30,12 @@ defineProps<{
 }
 
 .icon {
-  font-size: 3.8rem;
+  font-size: 4.8rem;
   color: var(--color-extra-blue-base);
 }
 
 .title {
-  font-size: 3rem;
+  font-size: 3.6rem;
   color: var(--color-blue-scale-100);
 }
 </style>

@@ -1,4 +1,4 @@
 <template>
-  Host dashboard (coming soon)
+  Host dashboard
   <RouterView />
 </template>

@@ -1,5 +1,4 @@
 import { JSONRPCClient } from "json-rpc-2.0";
-import { buildXoObject, parseDateTime } from "@/libs/utils";
 
 export type RawObjectType =
   | "Bond"
@@ -66,23 +65,16 @@ export interface XenApiRecord {
   uuid: string;
 }
 
-export type RawXenApiRecord<T extends XenApiRecord> = Omit<T, "$ref">;
+type RawXenApiRecord<T extends XenApiRecord> = Omit<T, "$ref">;
 
 export interface XenApiPool extends XenApiRecord {
   name_label: string;
 }
 
 export interface XenApiHost extends XenApiRecord {
-  address: string;
   name_label: string;
   metrics: string;
   resident_VMs: string[];
-}
-
-export interface XenApiSr extends XenApiRecord {
-  name_label: string;
-  physical_size: number;
-  physical_utilisation: number;
 }
 
 export interface XenApiVm extends XenApiRecord {
@@ -179,7 +171,6 @@ export default class XenApi {
   }
 
   disconnect() {
-    this.#call("session.logout", [this.#sessionId]);
     this.stopWatch();
     this.#sessionId = undefined;
   }
@@ -199,30 +190,6 @@ export default class XenApi {
     return this.#client.request(method, args);
   }
 
-  async getHostServertime(host: XenApiHost) {
-    const serverLocaltime = (await this.#call("host.get_servertime", [
-      this.sessionId,
-      host.$ref,
-    ])) as string;
-    return Math.floor(parseDateTime(serverLocaltime) / 1e3);
-  }
-
-  async getResource(
-    pathname: string,
-    { host, query }: { host: XenApiHost; query: any }
-  ) {
-    const url = new URL("http://localhost");
-    url.protocol = window.location.protocol;
-    url.hostname = host.address;
-    url.pathname = pathname;
-    url.search = new URLSearchParams({
-      ...query,
-      session_id: this.#sessionId,
-    }).toString();
-
-    return fetch(url);
-  }
-
   async loadRecords<T extends XenApiRecord>(
     type: RawObjectType
   ): Promise<Map<string, T>> {
@@ -233,7 +200,7 @@ export default class XenApi {
 
     const entries = Object.entries(result).map<[string, T]>(([key, entry]) => [
       key,
-      buildXoObject(entry, { opaqueRef: key }) as T,
+      { $ref: key, ...entry } as T,
     ]);
 
     return new Map(entries);

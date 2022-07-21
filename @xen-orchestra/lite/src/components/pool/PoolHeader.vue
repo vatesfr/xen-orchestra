@@ -11,5 +11,7 @@ import TitleBar from "@/components/TitleBar.vue";
 import { usePoolStore } from "@/stores/pool.store";
 
 const poolStore = usePoolStore();
-const name = computed(() => poolStore.pool?.name_label ?? "...");
+const name = computed(() =>
+  poolStore.isReady ? poolStore.pool.name_label : "..."
+);
 </script>

@@ -89,8 +89,6 @@ const fontSize = ref("2rem");
 
 ### Icons
 
-This project is using Font Awesome 6 Free.
-
 Here is how to use an icon in your template.
 
 Note: `FontAwesomeIcon` is a global component that does not need to be imported.
@@ -106,17 +104,6 @@ Note: `FontAwesomeIcon` is a global component that does not need to be imported.
 import { faDisplay } from "@fortawesome/free-solid-svg-icons";
 </script>
 ```
-
-#### Font weight <=> Style name
-
-Here is the equivalent between font weight and style name.
-
-| Style name | Font weight |
-| ---------- | ----------- |
-| Solid      | 900         |
-| Regular    | 400         |
-| Light      | 300         |
-| Thin       | 100         |
 
 ### CSS
 
@@ -183,65 +170,4 @@ export const useFoobarStore = defineStore("foobar", () => {
     myCustomGetter,
   };
 });
-```
-
-### I18n
-
-Internationalization of the app is done with [Vue-i18n](https://vue-i18n.intlify.dev/).
-
-Locale files are located in `src/locales` directory.
-
-Source of truth is `en-US.json` file.
-
-To quickly check if there are missing translations in other locale files, open `main.ts` and check the `messages`
-property of `createI18n()` for TypeScript error.
-
-#### Example
-
-```json
-{
-  "hello": "Hello",
-  "hello_name": "Hello {name}",
-  "hello_linked": "@:hello_name how are you?",
-  "hello_plural": "No hello | Hello to you | Hello to {count} persons"
-}
-```
-
-```html
-<!-- String -->
-
-<p>{{ $t("hello") }}</p>
-<!-- Hello -->
-<p>{{ $t("hello_name", { name: "World" }) }}</p>
-<!-- Hello World -->
-<p>{{ $t("hello_linked", { name: "World" }) }}</p>
-<!-- Hello World how are you? -->
-<p>{{ $tc("hello_plural", 0) }}</p>
-<!-- No hello -->
-<p>{{ $tc("hello_plural", 1) }}</p>
-<!-- Hello to you -->
-<p>{{ $tc("hello_plural", 4) }}</p>
-<!-- Hello to 4 persons -->
-
-<!-- Date and time -->
-
-<p>{{ $d(date, "date_short") }}</p>
-<!-- 9/10/2022 -->
-<p>{{ $d(date, "date_medium") }}</p>
-<!-- Sep 10, 2022 -->
-<p>{{ $d(date, "date_long") }}</p>
-<!-- September 10, 2022 -->
-<p>{{ $d(date, "datetime_short") }}</p>
-<!-- 9/10/2022, 06:30 PM -->
-<p>{{ $d(date, "datetime_medium") }}</p>
-<!-- Sep 10, 2022, 06:30 PM -->
-<p>{{ $d(date, "datetime_long") }}</p>
-<!-- September 10, 2022 at 06:30 PM -->
-<p>{{ $d(date, "time") }}</p>
-<!-- 06:30 PM -->
-
-<!-- Number -->
-
-<p>{{ $n(1234567.898765) }}</p>
-<!-- 1,234,567.899 -->
 ```

@@ -1,1 +1,1 @@
-<template>Tasks (coming soon)</template>
+<template>Tasks</template>

@@ -5,39 +5,19 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, provide } from "vue";
-import type { Color } from "@/types";
+import { provide, toRef } from "vue";
 
 const props = defineProps<{
   busy?: boolean;
   disabled?: boolean;
-  color?: Color;
-  outlined?: boolean;
-  transparent?: boolean;
+  color?: "default" | "action";
 }>();
-provide(
-  "isButtonGroupBusy",
-  computed(() => props.busy ?? false)
-);
-provide(
-  "isButtonGroupDisabled",
-  computed(() => props.disabled ?? false)
-);
-provide(
-  "buttonGroupColor",
-  computed(() => props.color ?? "info")
-);
-provide(
-  "isButtonGroupOutlined",
-  computed(() => props.outlined ?? false)
-);
-provide(
-  "isButtonGroupTransparent",
-  computed(() => props.transparent ?? false)
-);
+provide("isButtonGroupBusy", toRef(props, "busy"));
+provide("isButtonGroupDisabled", toRef(props, "disabled"));
+provide("buttonGroupColor", toRef(props, "color"));
 </script>
 
-<style lang="postcss" scoped>
+<style scoped>
 .ui-button-group {
   display: flex;
   justify-content: left;

@@ -55,9 +55,15 @@ const progressWithUnit = computed(() => {
 }
 
 .progress-bar-fill {
-  transition: width 1s ease-in-out;
+  animation: progress 1s ease-out forwards;
   width: v-bind(progressWithUnit);
   height: 1.2rem;
   background-color: var(--color-extra-blue-d20);
+}
+
+@keyframes progress {
+  0% {
+    width: 0;
+  }
 }
 </style>

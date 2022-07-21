@@ -1,9 +1,7 @@
 <template>
-  <RouterLink v-slot="{ isExactActive, href, navigate }" :to="route" custom>
+  <RouterLink v-slot="{ isActive, href, navigate }" :to="route" custom>
     <div
-      :class="
-        isExactActive ? 'exact-active' : $props.active ? 'active' : undefined
-      "
+      :class="{ current: isActive || $props.current }"
       class="infra-item-label"
       v-bind="$attrs"
     >
@@ -27,7 +25,7 @@ import type { IconDefinition } from "@fortawesome/fontawesome-common-types";
 defineProps<{
   icon: IconDefinition;
   route: RouteLocationRaw;
-  active?: boolean;
+  current?: boolean;
 }>();
 </script>
 
@@ -35,6 +33,8 @@ defineProps<{
 .infra-item-label {
   display: flex;
   align-items: stretch;
+  height: 6rem;
+  margin-bottom: 0.2rem;
   color: var(--color-blue-scale-100);
   border-radius: 0.8rem;
   background-color: var(--background-color-primary);
@@ -44,13 +44,12 @@ defineProps<{
     background-color: var(--background-color-secondary);
   }
 
-  &:active,
-  &.active {
+  &:active {
     color: var(--color-extra-blue-base);
     background-color: var(--background-color-primary);
   }
 
-  &.exact-active {
+  &.current {
     color: var(--color-blue-scale-100);
     background-color: var(--background-color-extra-blue);
 
@@ -65,19 +64,16 @@ defineProps<{
   align-items: center;
   flex: 1;
   min-width: 0;
-  padding: 1.5rem;
+  padding-left: 1.5rem;
   text-decoration: none;
   color: inherit;
   gap: 1rem;
-  font-weight: 500;
-  font-size: 2rem;
 }
 
 .text {
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-  font-size: 1.6rem;
 }
 
 .actions {

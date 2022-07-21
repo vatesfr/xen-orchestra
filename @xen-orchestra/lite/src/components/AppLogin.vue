@@ -1,18 +1,17 @@
 <template>
   <div class="app-login form-container">
     <form @submit.prevent="handleSubmit">
-      <img alt="XO Lite" src="../assets/logo-title.svg" />
+      <img alt="XO Lite" src="../assets/logo.png" />
+      <h1>Xen Orchestra Lite</h1>
       <input v-model="login" name="login" readonly type="text" />
       <input
         v-model="password"
         :readonly="isConnecting"
         name="password"
-        :placeholder="$t('password')"
+        placeholder="Password"
         type="password"
       />
-      <UiButton :busy="isConnecting" type="submit">
-        {{ $t("login") }}
-      </UiButton>
+      <UiButton :busy="isConnecting" type="submit">Login</UiButton>
     </form>
   </div>
 </template>
@@ -37,26 +36,23 @@ async function handleSubmit() {
 }
 </script>
 
-<style lang="postcss" scoped>
+<style scoped>
 .form-container {
   display: flex;
   align-items: center;
   flex: 1;
   justify-content: center;
-  min-height: 100vh;
-  max-width: 100vw;
+  height: 100vh;
   background-color: var(--background-color-primary);
 }
 
 form {
   display: flex;
-  min-width: 30em;
-  max-width: 100%;
   align-items: center;
   flex-direction: column;
   justify-content: center;
   margin: 0 auto;
-  padding: 8.5rem;
+  padding: 0 0 8.5rem 0;
   background-color: var(--background-color-secondary);
 }
 
@@ -68,8 +64,7 @@ h1 {
 }
 
 img {
-  width: 40rem;
-  margin-bottom: 5rem;
+  width: 60rem;
 }
 
 label {
@@ -80,15 +75,10 @@ label {
 
 input {
   width: 45rem;
-  max-width: 100%;
   margin-bottom: 1rem;
   padding: 1rem 1.5rem;
   border: 1px solid var(--color-blue-scale-400);
   border-radius: 0.8rem;
   background-color: white;
-}
-
-button {
-  margin-top: 3rem;
 }
 </style>

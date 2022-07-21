@@ -1,7 +1,6 @@
 import { defineStore } from "pinia";
 import { ref, watchEffect } from "vue";
 import { useLocalStorage } from "@vueuse/core";
-import XapiStats from "@/libs/xapi-stats";
 import type { XenApiRecord } from "@/libs/xen-api";
 import XenApi from "@/libs/xen-api";
 import { useConsoleStore } from "@/stores/console.store";
@@ -9,16 +8,12 @@ import { useHostMetricsStore } from "@/stores/host-metrics.store";
 import { useHostStore } from "@/stores/host.store";
 import { usePoolStore } from "@/stores/pool.store";
 import { useRecordsStore } from "@/stores/records.store";
-import { useSrStore } from "@/stores/storage.store";
 import { useVmGuestMetricsStore } from "@/stores/vm-guest-metrics.store";
 import { useVmMetricsStore } from "@/stores/vm-metrics.store";
 import { useVmStore } from "@/stores/vm.store";
 
 export const useXenApiStore = defineStore("xen-api", () => {
-  const xenApi = new XenApi(
-    import.meta.env.PROD ? window.origin : import.meta.env.VITE_XO_HOST
-  );
-  const xapiStats = new XapiStats(xenApi);
+  const xenApi = new XenApi(import.meta.env.VITE_XO_HOST);
   const currentSessionId = useLocalStorage<string | null>("sessionId", null);
   const isConnected = ref(false);
   const isConnecting = ref(false);
@@ -29,14 +24,6 @@ export const useXenApiStore = defineStore("xen-api", () => {
     }
 
     return xenApi;
-  }
-
-  function getXapiStats() {
-    if (!currentSessionId.value) {
-      throw new Error("Not connected to xapi");
-    }
-
-    return xapiStats;
   }
 
   async function init() {
@@ -77,13 +64,11 @@ export const useXenApiStore = defineStore("xen-api", () => {
     const hostMetricsStore = useHostMetricsStore();
     const vmMetricsStore = useVmMetricsStore();
     const vmGuestMetricsStore = useVmGuestMetricsStore();
-    const srStore = useSrStore();
 
     await Promise.all([
       hostMetricsStore.init(),
       vmMetricsStore.init(),
       vmGuestMetricsStore.init(),
-      srStore.init(),
     ]);
 
     const consoleStore = useConsoleStore();
@@ -120,7 +105,6 @@ export const useXenApiStore = defineStore("xen-api", () => {
   function disconnect() {
     currentSessionId.value = null;
     xenApi.disconnect();
-    isConnected.value = false;
   }
 
   return {
@@ -131,7 +115,6 @@ export const useXenApiStore = defineStore("xen-api", () => {
     disconnect,
     init,
     getXapi,
-    getXapiStats,
     currentSessionId,
   };
 });

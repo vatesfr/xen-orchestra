@@ -1,69 +1,101 @@
 <template>
-  <div class="pool-dashboard-view card-view">
+  <div class="pool-dashboard-view">
     <PoolDashboardStatus class="item" />
-    <PoolDashboardStorageUsage class="item" />
-    <PoolDashboardCpuUsage class="item" />
+    <UiCard style="min-width: 40rem">
+      <UiTitle type="h4">RAM usage</UiTitle>
+      <UsageBar title="Hosts" :data="data.slice(0, 5)">
+        <template #header>
+          <span>Host</span>
+          <span>Top 5</span>
+        </template>
+      </UsageBar>
+    </UiCard>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { differenceBy } from "lodash-es";
-import { computed, onMounted, provide, watch } from "vue";
-import PoolDashboardCpuUsage from "@/components/pool/dashboard/PoolDashboardCpuUsage.vue";
+import UsageBar from "@/components/UsageBar.vue";
 import PoolDashboardStatus from "@/components/pool/dashboard/PoolDashboardStatus.vue";
-import PoolDashboardStorageUsage from "@/components/pool/dashboard/PoolDashboardStorageUsage.vue";
-import useFetchStats from "@/composables/fetch-stats.composable";
-import { isHostRunning } from "@/libs/utils";
-import { GRANULARITY, type HostStats, type VmStats } from "@/libs/xapi-stats";
-import type { XenApiHost, XenApiVm } from "@/libs/xen-api";
-import { useHostStore } from "@/stores/host.store";
-import { useVmStore } from "@/stores/vm.store";
+import UiCard from "@/components/ui/UiCard.vue";
+import UiTitle from "@/components/ui/UiTitle.vue";
 
-const hostStore = useHostStore();
-const vmStore = useVmStore();
-
-const {
-  register: hostRegister,
-  unregister: hostUnregister,
-  stats: hostStats,
-} = useFetchStats<XenApiHost, HostStats>("host", GRANULARITY.Seconds);
-const {
-  register: vmRegister,
-  unregister: vmUnregister,
-  stats: vmStats,
-} = useFetchStats<XenApiVm, VmStats>("vm", GRANULARITY.Seconds);
-
-const runningHosts = computed(() => hostStore.allRecords.filter(isHostRunning));
-const runningVms = computed(() =>
-  vmStore.allRecords.filter((vm) => vm.power_state === "Running")
-);
-
-provide("hostStats", hostStats);
-provide("vmStats", vmStats);
-
-watch(runningHosts, (hosts, previousHosts) => {
-  // turned On
-  differenceBy(hosts, previousHosts ?? [], "uuid").forEach(hostRegister);
-
-  // turned Off
-  differenceBy(previousHosts, hosts, "uuid").forEach(hostUnregister);
-});
-
-watch(runningVms, (vms, previousVms) => {
-  // turned On
-  differenceBy(vms, previousVms ?? [], "uuid").forEach(vmRegister);
-
-  // turned Off
-  differenceBy(previousVms, vms, "uuid").forEach(vmUnregister);
-});
-
-onMounted(() => {
-  runningHosts.value.forEach(hostRegister);
-  runningVms.value.forEach(vmRegister);
-});
+const data = [
+  {
+    value: 61,
+    maxValue: 128,
+    label: "R620-L2",
+    badgeLabel: "61/128 GB",
+  },
+  {
+    value: 38,
+    maxValue: 64,
+    label: "R620-L1",
+    badgeLabel: "38/64 GB",
+  },
+  {
+    value: 118,
+    maxValue: 512,
+    label: "R620-L3",
+    badgeLabel: "118/512 GB",
+  },
+  {
+    value: 60,
+    maxValue: 1000,
+    label: "R620-L5",
+    badgeLabel: "60/1000 GB",
+  },
+  {
+    value: 4,
+    maxValue: 32,
+    label: "R620-L4",
+    badgeLabel: "4/32 GB",
+  },
+  {
+    value: 60,
+    maxValue: 1000,
+    label: "R620-L5",
+    badgeLabel: "60/1000 GB",
+  },
+  {
+    value: 4,
+    maxValue: 32,
+    label: "R620-L4",
+    badgeLabel: "4/32 GB",
+  },
+  {
+    value: 60,
+    maxValue: 1000,
+    label: "R620-L5",
+    badgeLabel: "60/1000 GB",
+  },
+  {
+    value: 4,
+    maxValue: 32,
+    label: "R620-L4",
+    badgeLabel: "4/32 GB",
+  },
+  {
+    value: 60,
+    maxValue: 1000,
+    label: "R620-L5",
+    badgeLabel: "60/1000 GB",
+  },
+  {
+    value: 4,
+    maxValue: 32,
+    label: "R620-L4",
+    badgeLabel: "4/32 GB",
+  },
+];
 </script>
 
 <style lang="postcss" scoped>
+.pool-dashboard-view {
+  display: flex;
+  padding: 2rem;
+  gap: 2rem;
+}
+
 .item {
   min-width: 37rem;
 }

@@ -20,7 +20,7 @@ watchEffect(() => {
     return;
   }
 
-  if (vncClient !== undefined) {
+  if (vncClient) {
     vncClient.disconnect();
     vncClient = undefined;
   }
@@ -38,7 +38,6 @@ watchEffect(() => {
 
 onBeforeUnmount(() => {
   vncClient?.disconnect();
-  vncClient = undefined;
 });
 </script>
 

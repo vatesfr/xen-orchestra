@@ -13,7 +13,7 @@
 
 <script lang="ts" setup></script>
 
-<style lang="postcss" scoped>
+<style scoped>
 .ui-table {
   border-spacing: 0;
 }

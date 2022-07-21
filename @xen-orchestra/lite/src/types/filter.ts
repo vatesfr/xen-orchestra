@@ -2,50 +2,30 @@ import type { IconDefinition } from "@fortawesome/fontawesome-common-types";
 
 export type FilterType = "string" | "boolean" | "number" | "enum";
 
-export type FilterComparisonType =
-  | "stringContains"
-  | "stringEquals"
-  | "stringStartsWith"
-  | "stringEndsWith"
-  | "stringMatchesRegex"
-  | "numberLessThan"
-  | "numberLessThanOrEquals"
-  | "numberEquals"
-  | "numberGreaterThanOrEquals"
-  | "numberGreaterThan"
-  | "booleanTrue"
-  | "booleanFalse";
+export interface FilterComparison {
+  label: string;
+  pattern: string;
+  default?: boolean;
+  before?: string | IconDefinition;
+  after?: string | IconDefinition;
+  escape?: boolean;
+}
 
-export type FilterComparisons = {
-  [key in FilterComparisonType]?: string;
-};
+export type FilterComparisons = Record<FilterType, FilterComparison[]>;
 
-interface FilterCommon {
+interface AvailableFilterCommon {
+  property: string;
   label?: string;
   icon?: IconDefinition;
 }
 
-export interface FilterEnum extends FilterCommon {
+export interface AvailableFilterEnum extends AvailableFilterCommon {
   type: "enum";
   choices: string[];
 }
 
-interface FilterOther extends FilterCommon {
+interface AvailableFilterOther extends AvailableFilterCommon {
   type: Exclude<FilterType, "enum">;
 }
 
-export type Filter = FilterEnum | FilterOther;
-
-export type Filters = { [key: string]: Filter };
-
-export interface NewFilter {
-  id: number;
-  content: string;
-  isAdvanced: boolean;
-  builder: {
-    property: string;
-    comparison: FilterComparisonType | "";
-    value: string;
-    negate: boolean;
-  };
-}
+export type AvailableFilter = AvailableFilterEnum | AvailableFilterOther;

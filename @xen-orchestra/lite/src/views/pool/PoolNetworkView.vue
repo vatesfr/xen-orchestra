@@ -1,1 +1,1 @@
-<template>Network (coming soon)</template>
+<template>Network</template>

@@ -1,10 +1,10 @@
 import { ref } from "vue";
 
-export default function useModal<T>() {
-  const $payload = ref<T>();
+export default function useModal() {
+  const $payload = ref();
   const $isOpen = ref(false);
 
-  const open = (payload?: T) => {
+  const open = (payload?: any) => {
     $isOpen.value = true;
     $payload.value = payload;
   };

@@ -1,6 +1,6 @@
 <template>
   <ul class="infra-host-list">
-    <li v-if="!isReady">{{ $t("loading-hosts") }}</li>
+    <li v-if="!isReady">Chargement des hosts en cours...</li>
     <template v-else>
       <InfraHostItem
         v-for="opaqueRef in opaqueRefs"

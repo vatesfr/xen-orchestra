@@ -20,11 +20,9 @@ export default function useCollectionFilter(
 
   if (config.queryStringParam) {
     const queryStringParam = config.queryStringParam;
-    watch(filters, (value) =>
-      router.replace({
-        query: { ...route.query, [queryStringParam]: value.join(" ") },
-      })
-    );
+    watch(filters, (value) => {
+      router.replace({ query: { [queryStringParam]: value.join(" ") } });
+    });
   }
 
   const addFilter = (filter: string) => {
@@ -49,16 +47,10 @@ export default function useCollectionFilter(
   };
 }
 
-function queryToSet(query: LocationQueryValue): Set<string> {
-  if (!query) {
-    return new Set();
+function queryToSet(filter: LocationQueryValue): Set<string> {
+  if (filter) {
+    return new Set(filter.split(" "));
   }
 
-  const rootNode = CM.parse(query);
-
-  if (rootNode instanceof CM.And) {
-    return new Set(rootNode.children.map((child) => child.toString()));
-  } else {
-    return new Set([rootNode.toString()]);
-  }
+  return new Set();
 }

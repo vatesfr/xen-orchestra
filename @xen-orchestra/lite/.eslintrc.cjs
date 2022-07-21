@@ -2,10 +2,6 @@
 require("@rushstack/eslint-patch/modern-module-resolution");
 
 module.exports = {
-  globals: {
-    XO_LITE_GIT_HEAD: true,
-    XO_LITE_VERSION: true,
-  },
   root: true,
   env: {
     node: true,
@@ -20,9 +16,6 @@ module.exports = {
   rules: {
     "@typescript-eslint/no-non-null-assertion": "off",
     "@typescript-eslint/no-explicit-any": "off",
-    "@limegrass/import-alias/import-alias": [
-      "error",
-      { aliasConfigPath: require("path").join(__dirname, "tsconfig.json") },
-    ],
+    "@limegrass/import-alias/import-alias": "error",
   },
 };
