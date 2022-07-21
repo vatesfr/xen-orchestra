@@ -4,7 +4,7 @@ const { asyncMap, asyncMapSettled } = require('@xen-orchestra/async-map')
 const { decorateClass } = require('@vates/decorate-with')
 const { defer } = require('golike-defer')
 const { incorrectState } = require('xo-common/api-errors')
-const { VDI_FORMAT_RAW } = require('./index.js')
+const { VDI_FORMAT_VHD } = require('./index.js')
 const peekFooterFromStream = require('vhd-lib/peekFooterFromVhdStream')
 
 const AggregateError = require('./_AggregateError.js')
@@ -155,7 +155,7 @@ class Sr {
     const footer = await peekFooterFromStream(stream)
     const vdiRef = await this.VDI_create({ ...vdiCreateOpts, name_label, SR: ref, virtual_size: footer.currentSize })
     $defer.onFailure.call(this, 'callAsync', 'VDI.destroy', vdiRef)
-    await this.VDI_importContent(vdiRef, stream, { format: VDI_FORMAT_RAW })
+    await this.VDI_importContent(vdiRef, stream, { format: VDI_FORMAT_VHD })
     return vdiRef
   }
 }
