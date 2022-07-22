@@ -1,6 +1,6 @@
 import { createLogger } from '@xen-orchestra/log'
 import { createSecureContext } from 'tls'
-import { X509Certificate } from 'crypto'
+import { X509Certificate } from 'node:crypto'
 import acme from 'acme-client'
 import fs from 'node:fs/promises'
 
@@ -15,6 +15,7 @@ class SslCertificate {
   #configKey
   #delayBeforeRenewal = 30 * 24 * 60 * 60 * 1000 // 30 days
   #secureContext
+  #selfSigned = false
   #updateSslCertificatePromise
   #validTo
 
@@ -32,8 +33,9 @@ class SslCertificate {
         cert,
         key,
       })
-      const { validTo } = new X509Certificate(cert)
+      const { validTo, issuer, subject } = new X509Certificate(cert)
       this.#validTo = new Date(validTo)
+      this.#selfSigned = issuer === subject
     } catch (error) {
       if (error.code === 'ENOENT') {
         debug('no certificate exists for this config ', { config })
@@ -67,8 +69,13 @@ class SslCertificate {
       await this.#loadExististingCertificate(config)
     }
 
-    const isValid = this.#secureContext !== undefined && this.#validTo !== undefined && this.#validTo >= new Date()
-    const shouldBeRenewed = !isValid || this.#validTo - this.#delayBeforeRenewal <= new Date()
+    const isValid =
+      !this.#selfSigned && // current certificiate is self signed
+      this.#secureContext !== undefined &&
+      this.#validTo !== undefined && // no current certificate
+      this.#validTo >= new Date() // expired
+
+    const shouldBeRenewed = !isValid || this.#validTo - this.#delayBeforeRenewal <= new Date() // will expires soon
 
     if (shouldBeRenewed && this.#updateSslCertificatePromise === undefined) {
       // not currently updating certificate
@@ -107,7 +114,7 @@ class SslCertificate {
 
     /* Init client */
     const client = new acme.Client({
-      directoryUrl: acme.directory.letsencrypt.staging,
+      directoryUrl: config.certDirectory || acme.directory.letsencrypt.production,
       accountKey: await acme.forge.createPrivateKey(),
     })
 

@@ -408,6 +408,30 @@ async function makeWebServerListen(
 ) {
   try {
     if (cert && key) {
+      try {
+        ;[opts.cert, opts.key] = await Promise.all([fse.readFile(cert), fse.readFile(key)])
+        if (opts.key.includes('ENCRYPTED')) {
+          opts.passphrase = await new Promise(resolve => {
+            // eslint-disable-next-line no-console
+            console.log('Encrypted key %s', key)
+            process.stdout.write(`Enter pass phrase: `)
+            pw(resolve)
+          })
+        }
+      } catch (error) {
+        if (!(autoCert && error.code === 'ENOENT')) {
+          throw error
+        }
+        const pems = await genSelfSignedCert()
+        await Promise.all([
+          fse.outputFile(cert, pems.cert, { flag: 'wx', mode: 0o400 }),
+          fse.outputFile(key, pems.key, { flag: 'wx', mode: 0o400 }),
+        ])
+        log.info('new certificate generated', { cert, key })
+        opts.cert = pems.cert
+        opts.key = pems.key
+      }
+
       if (opts.certDomain) {
         opts.SNICallback = async (serverName, callback) => {
           try {
@@ -418,31 +442,6 @@ async function makeWebServerListen(
             log.warn(error)
             callback(error, null)
           }
-        }
-      } else {
-        ;[opts.cert, opts.key] = await Promise.all([fse.readFile(cert), fse.readFile(key)])
-        try {
-          if (opts.key.includes('ENCRYPTED')) {
-            opts.passphrase = await new Promise(resolve => {
-              // eslint-disable-next-line no-console
-              console.log('Encrypted key %s', key)
-              process.stdout.write(`Enter pass phrase: `)
-              pw(resolve)
-            })
-          }
-        } catch (error) {
-          if (!(autoCert && error.code === 'ENOENT')) {
-            throw error
-          }
-
-          const pems = await genSelfSignedCert()
-          await Promise.all([
-            fse.outputFile(cert, pems.cert, { flag: 'wx', mode: 0o400 }),
-            fse.outputFile(key, pems.key, { flag: 'wx', mode: 0o400 }),
-          ])
-          log.info('new certificate generated', { cert, key })
-          opts.cert = pems.cert
-          opts.key = pems.key
         }
       }
     }
@@ -468,7 +467,6 @@ async function makeWebServerListen(
 
 async function createWebServer({ listen, listenOptions }) {
   const webServer = stoppable(new WebServer())
-
   await Promise.all(
     map(listen, (opts, configKey) => makeWebServerListen(webServer, { ...listenOptions, ...opts, configKey }))
   )
