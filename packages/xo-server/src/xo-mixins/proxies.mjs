@@ -125,7 +125,7 @@ export default class Proxy {
     if (vmUuid !== undefined) {
       // waiting the unbind of the license in order to be available at the end of the method call
       await this._app
-        .unbindLicense({
+        .unbindLicense?.({
           boundObjectId: vmUuid,
           productId: this._app.config.get('xo-proxy.licenseProductId'),
         })
