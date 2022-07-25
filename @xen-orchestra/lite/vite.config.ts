@@ -10,4 +10,14 @@ export default defineConfig({
       "@": fileURLToPath(new URL("./src", import.meta.url)),
     },
   },
+
+  // https://vitejs.dev/guide/dep-pre-bundling.html#monorepos-and-linked-dependencies
+  build: {
+    commonjsOptions: {
+      include: [/complex-matcher/, /node_modules/],
+    },
+  },
+  optimizeDeps: {
+    include: ["complex-matcher"],
+  },
 });
