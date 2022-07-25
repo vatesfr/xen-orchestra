@@ -15,6 +15,7 @@
 
 - [Home/VM] Show error when deleting VMs failed (PR [#6323](https://github.com/vatesfr/xen-orchestra/pull/6323))
 - [REST API] Fix broken VDI after VHD import [#6327](https://github.com/vatesfr/xen-orchestra/issues/6327) (PR [#6326](https://github.com/vatesfr/xen-orchestra/pull/6326))
+- [Netbox] Fix `ipaddr: the address has neither IPv6 nor IPv4 format` error
 
 ### Packages to release
 
