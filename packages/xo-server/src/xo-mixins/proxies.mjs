@@ -33,16 +33,6 @@ const synchronizedWrite = synchronized()
 
 const log = createLogger('xo:proxy')
 
-const assertProxyAddress = (proxy, address) => {
-  if (address !== undefined) {
-    return address
-  }
-
-  const error = new Error('cannot get the proxy address')
-  error.proxy = omit(proxy, 'authenticationToken')
-  throw error
-}
-
 function addProxyUrl(proxy) {
   const url = new URL('https://localhost')
   url.username = proxy.authenticationToken
@@ -415,14 +405,20 @@ export default class Proxy {
       timeout: this._app.config.getDuration('xo-proxy.callTimeout'),
     }
 
-    if (proxy.vmUuid !== undefined) {
+    if (proxy.address !== undefined) {
+      request.host = proxy.address
+    } else {
       const vm = this._app.getXapi(proxy.vmUuid).getObjectByUuid(proxy.vmUuid)
 
+      const address = extractIpFromVmNetworks(vm.$guest_metrics?.networks)
+      if (address === undefined) {
+        const error = new Error('cannot get the proxy address')
+        error.proxy = omit(proxy, 'authenticationToken')
+        throw error
+      }
+
       // use hostname field to avoid issues with IPv6 addresses
-      request.hostname = assertProxyAddress(proxy, extractIpFromVmNetworks(vm.$guest_metrics?.networks))
-    } else {
-      // use host field so that ports can be passed
-      request.host = assertProxyAddress(proxy, proxy.address)
+      request.hostname = address
     }
 
     const response = await hrp(request)
