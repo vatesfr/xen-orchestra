@@ -108,9 +108,7 @@ export default class Proxy {
   async registerProxy({ address, authenticationToken, name = this._generateDefaultProxyName(), vmUuid }) {
     await this._throwIfRegistered(address, vmUuid)
 
-    const {
-      properties: { id },
-    } = await this._db.add({
+    const { id } = await this._db.add({
       address,
       authenticationToken,
       name,
