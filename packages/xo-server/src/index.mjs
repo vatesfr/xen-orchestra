@@ -823,6 +823,7 @@ export default async function main(args) {
     process.on(signal, () => {
       if (alreadyCalled) {
         log.warn('forced exit')
+        // eslint-disable-next-line n/no-process-exit
         process.exit(1)
       }
       alreadyCalled = true

@@ -146,6 +146,7 @@ ${APP_NAME} v${APP_VERSION}
     process.on(signal, () => {
       if (alreadyCalled) {
         warn('forced exit')
+        // eslint-disable-next-line n/no-process-exit
         process.exit(1)
       }
       alreadyCalled = true
@@ -164,6 +165,7 @@ main(process.argv.slice(2)).then(
   error => {
     fatal(error)
 
+    // eslint-disable-next-line n/no-process-exit
     process.exit(1)
   }
 )
