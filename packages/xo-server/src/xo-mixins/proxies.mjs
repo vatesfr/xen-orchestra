@@ -189,7 +189,10 @@ export default class Proxy {
     )
 
     patch(proxy, { address, authenticationToken, name, vmUuid })
-    return this._db.update(proxy)
+    await this._db.update(proxy)
+
+    addProxyUrl(proxy)
+    return proxy
   }
 
   async upgradeProxyAppliance(id, ignoreRunningJobs = false) {
