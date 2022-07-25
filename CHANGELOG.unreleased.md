@@ -33,6 +33,7 @@
 <!--packages-start-->
 
 - @vates/async-each major
+- @xen-orchestra/fs major
 - @xen-orchestra/xapi patch
 - xo-cli patch
 - xo-server minor
