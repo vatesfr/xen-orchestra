@@ -10,11 +10,11 @@
 
 ## Set up
 
-The proxy is disabled by default, to enable it, add the following lines to your config:
+The proxy is enabled by default, to disable it, add the following lines to your config:
 
 ```toml
 [http.proxy]
-enabled = true
+enabled = false
 ```
 
 ## Usage

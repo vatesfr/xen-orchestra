@@ -40,7 +40,7 @@ export default class HttpProxy {
     this.#app = app
 
     const events = new EventListenersManager(httpServer)
-    app.config.watch('http.proxy.enabled', (enabled = false) => {
+    app.config.watch('http.proxy.enabled', (enabled = true) => {
       events.removeAll()
       if (enabled) {
         events.add('connect', this.#handleConnect.bind(this)).add('request', this.#handleRequest.bind(this))

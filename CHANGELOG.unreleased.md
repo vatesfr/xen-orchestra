@@ -8,6 +8,7 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [REST API] VDI import now also supports the raw format
+- Embedded HTTP/HTTPS proxy is now enabled by default
 
 ### Bug fixes
 
@@ -34,6 +35,8 @@
 
 - @vates/async-each major
 - @xen-orchestra/fs major
+- @xen-orchestra/mixins minor
+- @xen-orchestra/proxy minor
 - @xen-orchestra/xapi patch
 - xo-cli patch
 - xo-server minor
