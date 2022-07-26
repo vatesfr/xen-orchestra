@@ -212,7 +212,7 @@ export default class SslCertificates {
     const challenge = this.#challenges[token]
     debug('challenge content is ', challenge)
     if (challenge === undefined) {
-      res.status(404)
+      res.statusCode = 404
       res.end()
       return
     }
