@@ -3,6 +3,7 @@ import { createSecureContext } from 'tls'
 import { X509Certificate } from 'node:crypto'
 import acme from 'acme-client'
 import fs from 'node:fs/promises'
+import get from 'lodash/get.js'
 
 const { debug, warn } = createLogger('xo:mixins:sslCertificate')
 
@@ -112,9 +113,14 @@ class SslCertificate {
       debug(message)
     })
 
+    let { acmeCa = 'letsencrypt/production' } = config
+    if (!(acmeCa.startsWith('http:') || acmeCa.startsWith('https:'))) {
+      acmeCa = get(acme.directory, acmeCa.split('/'))
+    }
+
     /* Init client */
     const client = new acme.Client({
-      directoryUrl: config.certDirectory || acme.directory.letsencrypt.production,
+      directoryUrl: acmeCa,
       accountKey: await acme.forge.createPrivateKey(),
     })
 
