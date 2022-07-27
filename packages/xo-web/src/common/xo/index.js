@@ -1232,43 +1232,7 @@ export const startVms = vms =>
     }
   }, noop)
 
-export const stopVm = async (vm, hardShutdown = false) => {
-  let forceBlockedOperation = false
-  const id = resolveId(vm)
-
-  await confirm({
-    title: _('stopVmModalTitle'),
-    body: _('stopVmModalMessage', { name: vm.name_label }),
-  })
-
-  return retry(() => _call('vm.stop', { id, force: hardShutdown, forceBlockedOperation }), {
-    when: err => operationBlocked.is(err) || (vmLacksFeature.is(err) && !hardShutdown),
-    async onRetry(err) {
-      if (operationBlocked.is(err)) {
-        await confirm({
-          title: _('blockedOperation'),
-          body: _('stopVmBlockedModalMessage'),
-        })
-        forceBlockedOperation = true
-      }
-
-      if (vmLacksFeature.is(err) && !hardShutdown) {
-        await confirm({
-          title: _('vmHasNoTools'),
-          body: (
-            <div>
-              <p>{_('vmHasNoToolsMessage')}</p>
-              <p>
-                <strong>{_('confirmForceShutdown')}</strong>
-              </p>
-            </div>
-          ),
-        })
-        hardShutdown = true
-      }
-    },
-  })
-}
+export const stopVm = (vm, hardShutdown = false) => stopOrRestartVm(vm, 'stop', hardShutdown)
 
 export const stopVms = (vms, force = false) =>
   confirm({
@@ -1294,27 +1258,31 @@ export const pauseVms = vms =>
 
 export const recoveryStartVm = vm => _call('vm.recoveryStart', { id: resolveId(vm) })
 
-export const restartVm = async (vm, hardRestart = false) => {
+const stopOrRestartVm = async (vm, kindOperation, hard = false) => {
   let forceBlockedOperation = false
   const id = resolveId(vm)
 
+  if (kindOperation !== 'stop' || kindOperation !== 'restart') {
+    throw new Error('invalid "kindOperation"')
+  }
+  const isStopOperation = kindOperation === 'stop'
+
   await confirm({
-    title: _('restartVmModalTitle'),
-    body: _('restartVmModalMessage', { name: vm.name_label }),
+    title: _(isStopOperation ? 'stopVmModalTitle' : 'restartVmModalTitle'),
+    body: _(isStopOperation ? 'stopVmModalMessage' : 'restartVmModalMessage'),
   })
 
-  return retry(() => _call('vm.restart', { id, force: hardRestart, forceBlockedOperation }), {
-    when: err => operationBlocked.is(err) || (vmLacksFeature.is(err) && !hardRestart),
+  return retry(() => _call(`vm.${isStopOperation ? 'stop' : 'restart'}`, { id, force: hard, forceBlockedOperation }), {
+    when: err => operationBlocked.is(err) || (vmLacksFeature.is(err) && !hard),
     async onRetry(err) {
       if (operationBlocked.is(err)) {
         await confirm({
-          title: _('restartVmBlockedModaltitle'),
-          body: _('restartVmBlockedModalMessage'),
+          title: _('blockedOperation'),
+          body: _(isStopOperation ? 'stopVmBlockedModalMessage' : 'restartVmBlockedModalMessage'),
         })
         forceBlockedOperation = true
       }
-
-      if (vmLacksFeature.is(err) && !hardRestart) {
+      if (vmLacksFeature.is(err) && !hard) {
         await confirm({
           title: _('vmHasNoTools'),
           body: (
@@ -1326,11 +1294,14 @@ export const restartVm = async (vm, hardRestart = false) => {
             </div>
           ),
         })
-        hardRestart = true
+        hard = true
       }
     },
+    delay: 0,
   })
 }
+
+export const restartVm = (vm, hardRestart = false) => stopOrRestartVm(vm, 'restart', hardRestart)
 
 export const restartVms = (vms, force = false) =>
   confirm({

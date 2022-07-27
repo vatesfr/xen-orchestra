@@ -1741,7 +1741,6 @@ const messages = {
   pauseVmsModalMessage: 'Are you sure you want to pause {vms, number} VM{vms, plural, one {} other {s}}?',
   restartVmsModalTitle: 'Restart VM{vms, plural, one {} other {s}}',
   restartVmsModalMessage: 'Are you sure you want to restart {vms, number} VM{vms, plural, one {} other {s}}?',
-  restartVmBlockedModaltitle: 'Blocked operation',
   restartVmBlockedModalMessage: 'Restart operation for this VM is blocked. Would you like to restart it anyway?',
   snapshotSaveMemory: 'save memory',
   snapshotVmsModalTitle: 'Snapshot VM{vms, plural, one {} other {s}}',

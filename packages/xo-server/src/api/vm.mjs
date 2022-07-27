@@ -682,7 +682,7 @@ export const restart = defer(async function ($defer, { vm, force = false, forceB
       })
     )
   }
-  return this.getXapi(vm).rebootVm(vm._xapiId, { hard: force })
+  return xapi.rebootVm(vm._xapiId, { hard: force })
 })
 
 restart.params = {
