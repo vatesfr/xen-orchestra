@@ -1262,14 +1262,14 @@ const stopOrRestartVm = async (vm, kindOperation, hard = false) => {
   let forceBlockedOperation = false
   const id = resolveId(vm)
 
-  if (kindOperation !== 'stop' || kindOperation !== 'restart') {
+  if (kindOperation !== 'stop' && kindOperation !== 'restart') {
     throw new Error('invalid "kindOperation"')
   }
   const isStopOperation = kindOperation === 'stop'
 
   await confirm({
     title: _(isStopOperation ? 'stopVmModalTitle' : 'restartVmModalTitle'),
-    body: _(isStopOperation ? 'stopVmModalMessage' : 'restartVmModalMessage'),
+    body: _(isStopOperation ? 'stopVmModalMessage' : 'restartVmModalMessage', { name: vm.name_label }),
   })
 
   return retry(() => _call(`vm.${isStopOperation ? 'stop' : 'restart'}`, { id, force: hard, forceBlockedOperation }), {
