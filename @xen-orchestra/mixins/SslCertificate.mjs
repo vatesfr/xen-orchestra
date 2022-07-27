@@ -53,7 +53,7 @@ class SslCertificate {
   }
 
   async getSecureContext(httpsDomainName) {
-    const config = this.#app.config.get(`http.listen.${this.#configKey}`)
+    const config = this.#app.config.get(['http', 'listen', this.#configKey])
 
     // something changed in configuration or there is a network misconfiguration
     // don't generate new let's encrypt challenges or invalid certificates
