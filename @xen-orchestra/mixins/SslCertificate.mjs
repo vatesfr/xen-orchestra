@@ -1,11 +1,27 @@
 import { createLogger } from '@xen-orchestra/log'
 import { createSecureContext } from 'tls'
+import { dirname } from 'node:path'
 import { X509Certificate } from 'node:crypto'
 import acme from 'acme-client'
 import fs from 'node:fs/promises'
 import get from 'lodash/get.js'
 
 const { debug, warn } = createLogger('xo:mixins:sslCertificate')
+
+// - create any missing parent directories
+// - replace existing files
+// - secure permissions (read-only for the owner)
+async function outputFile(path, content) {
+  await fs.mkdir(dirname(path), { recursive: true })
+  try {
+    await fs.unlink(path)
+  } catch (error) {
+    if (error.code !== 'ENOENT') {
+      throw error
+    }
+  }
+  await fs.writeFile(path, content, { flag: 'wx', mode: 0o400 })
+}
 
 // from https://github.com/publishlab/node-acme-client/blob/master/examples/auto.js
 class SslCertificate {
@@ -144,7 +160,7 @@ class SslCertificate {
     debug('Successfully generated certificate', { key, csr })
 
     try {
-      await Promise.all([fs.writeFile(keyPath, key), fs.writeFile(certPath, cert)])
+      await Promise.all([outputFile(keyPath, key), outputFile(certPath, cert)])
       debug('certificate key and cert are saved to disk')
     } catch (error) {
       warn(`couldn't write let's encrypt certificates to disk `, { error })
