@@ -432,7 +432,7 @@ async function makeWebServerListen(
         opts.key = pems.key
       }
 
-      if (opts.certDomain) {
+      if (opts.acmeDomain) {
         opts.SNICallback = async (serverName, callback) => {
           try {
             // injected byt mixins/SslCertificate

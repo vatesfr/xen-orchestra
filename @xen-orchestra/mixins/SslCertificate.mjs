@@ -57,9 +57,9 @@ class SslCertificate {
 
     // something changed in configuration or there is a network misconfiguration
     // don't generate new let's encrypt challenges or invalid certificates
-    if (config?.certDomain !== httpsDomainName) {
+    if (config?.acmeDomain !== httpsDomainName) {
       warn(`certificates is configured for a domain, but receive http request from another`, {
-        certDomain: config?.certDomain,
+        acmeDomain: config?.acmeDomain,
         httpsDomainName,
       })
       // fallback to self signed certificate to not lock user out
@@ -107,7 +107,7 @@ class SslCertificate {
   }
 
   async #updateSslCertificate(config) {
-    const { cert: certPath, key: keyPath, certEmail, certDomain } = config
+    const { cert: certPath, key: keyPath, acmeEmail, acmeDomain } = config
 
     acme.setLogger(message => {
       debug(message)
@@ -126,14 +126,14 @@ class SslCertificate {
 
     /* Create CSR */
     let [key, csr] = await acme.forge.createCsr({
-      commonName: certDomain,
+      commonName: acmeDomain,
     })
     debug('Successfully generated key and csr')
     /* Certificate */
 
     const cert = await client.auto({
       csr,
-      email: certEmail,
+      email: acmeEmail,
       termsOfServiceAgreed: true,
       challengeCreateFn: this.#challengeCreateFn,
       challengeRemoveFn: this.#challengeRemoveFn,
@@ -192,8 +192,8 @@ export default class SslCertificates {
     if (!this.#handlers[configKey]) {
       const config = this.#app.config.get(`http.listen.${configKey}`)
       // not a let's encrypt protected end point, sommething changed in the configuration
-      if (config.certDomain === undefined) {
-        warn(`config don't have certdomain, mandatory for let's encrypt`, { config })
+      if (config.acmeDomain === undefined) {
+        warn(`config don't have acmeDomain, mandatory for let's encrypt`, { config })
         return
       }
 

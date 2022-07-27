@@ -56,12 +56,12 @@ ${APP_NAME} v${APP_VERSION}
     createSecureServer: opts => createSecureServer({ ...opts, allowHTTP1: true }),
   })
 
-  forOwn(config.http.listen, async ({ autoCert, cert, key, certDomain, ...opts }, configKey) => {
+  forOwn(config.http.listen, async ({ autoCert, cert, key, acmeDomain, ...opts }, configKey) => {
     try {
       const niceAddress = await pRetry(
         async () => {
           if (cert !== undefined && key !== undefined) {
-            if (certDomain !== undefined) {
+            if (acmeDomain !== undefined) {
               opts.SNICallback = async (serverName, callback) => {
                 try {
                   // injected byt mixins/SslCertificate
