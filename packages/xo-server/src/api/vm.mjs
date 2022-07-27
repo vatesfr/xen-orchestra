@@ -669,9 +669,9 @@ set.resolve = {
 
 // -------------------------------------------------------------------
 
-export const restart = defer(async function ($defer, { vm, force = false, forceBlockedOperation = false }) {
+export const restart = defer(async function ($defer, { vm, force = false, bypassBlockedOperation = force }) {
   const xapi = this.getXapi(vm)
-  if (forceBlockedOperation) {
+  if (bypassBlockedOperation) {
     await Promise.all(
       RESTART_OPERATIONS.map(async operation => {
         const reason = vm.blockedOperations[operation]
@@ -688,7 +688,7 @@ export const restart = defer(async function ($defer, { vm, force = false, forceB
 restart.params = {
   id: { type: 'string' },
   force: { type: 'boolean', optional: true },
-  forceBlockedOperation: { type: 'boolean', optional: true },
+  bypassBlockedOperation: { type: 'boolean', optional: true },
 }
 
 restart.resolve = {
@@ -909,10 +909,10 @@ start.resolve = {
 // - if !force → clean shutdown
 // - if force is true → hard shutdown
 // - if force is integer → clean shutdown and after force seconds, hard shutdown.
-export const stop = defer(async function ($defer, { vm, force, forceBlockedOperation = false }) {
+export const stop = defer(async function ($defer, { vm, force, bypassBlockedOperation = force }) {
   const xapi = this.getXapi(vm)
 
-  if (forceBlockedOperation) {
+  if (bypassBlockedOperation) {
     await Promise.all(
       SHUTDOWN_OPERATIONS.map(async operation => {
         const reason = vm.blockedOperations[operation]
@@ -945,7 +945,7 @@ export const stop = defer(async function ($defer, { vm, force, forceBlockedOpera
 stop.params = {
   id: { type: 'string' },
   force: { type: 'boolean', optional: true },
-  forceBlockedOperation: { type: 'boolean', optional: true },
+  bypassBlockedOperation: { type: 'boolean', optional: true },
 }
 
 stop.resolve = {
