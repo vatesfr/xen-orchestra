@@ -1,5 +1,34 @@
 # ChangeLog
 
+## **next**
+
+### Enhancements
+
+- [REST API] VDI import now also supports the raw format
+- Embedded HTTP/HTTPS proxy is now enabled by default
+- [VM] Display a confirmation modal when stopping/restarting a protected VM (PR [#6295](https://github.com/vatesfr/xen-orchestra/pull/6295))
+
+### Bug fixes
+
+- [Home/VM] Show error when deleting VMs failed (PR [#6323](https://github.com/vatesfr/xen-orchestra/pull/6323))
+- [REST API] Fix broken VDI after VHD import [#6327](https://github.com/vatesfr/xen-orchestra/issues/6327) (PR [#6326](https://github.com/vatesfr/xen-orchestra/pull/6326))
+- [Netbox] Fix `ipaddr: the address has neither IPv6 nor IPv4 format` error (PR [#6328](https://github.com/vatesfr/xen-orchestra/pull/6328))
+
+### Released packages
+
+- @vates/async-each 1.0.0
+- @xen-orchestra/fs 2.0.0
+- @xen-orchestra/backups 0.27.1
+- @xen-orchestra/backups-cli 0.7.6
+- @xen-orchestra/mixins 0.6.0
+- @xen-orchestra/xapi 1.4.1
+- @xen-orchestra/proxy 0.24.0
+- vhd-cli 0.8.1
+- vhd-lib 3.3.3
+- xo-cli 0.14.1
+- xo-server 5.99.0
+- xo-web 5.101.0
+
 ## **5.72.1** (2022-07-11)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
