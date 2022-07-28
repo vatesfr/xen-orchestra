@@ -203,10 +203,10 @@ module.exports.mergeVhd = limitConcurrency(2)(async function merge(
     // creation
     await parentVhd.writeFooter()
 
+    await cleanupVhds(parentHandler, parentPath, childPath, { logInfo, remove })
+
     // should be a disposable
     parentHandler.unlink(mergeStatePath).catch(warn)
-
-    await cleanupVhds(parentHandler, parentPath, childPath, { logInfo, remove })
 
     return mergeState.mergedDataSize
   })
