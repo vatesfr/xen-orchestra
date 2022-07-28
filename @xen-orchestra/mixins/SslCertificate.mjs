@@ -49,7 +49,7 @@ class SslCertificate {
   }
 
   get #shouldBeRenewed() {
-    return !this.#isValid || Date.parse(this.#cert.validTo) < Date.now() + this.#delayBeforeRenewal
+    return !(this.#isValid && Date.parse(this.#cert.validTo) > Date.now() + this.#delayBeforeRenewal)
   }
 
   #set(cert, key) {
@@ -179,7 +179,7 @@ export default class SslCertificates {
     httpServer.getSecureContext = this.getSecureContext.bind(this)
   }
 
-  async getSecureContext(httpsDomainName, configKey, initialKey, initialCert) {
+  async getSecureContext(httpsDomainName, configKey, initialCert, initialKey) {
     const config = this.#app.config.get(['http', 'listen', configKey])
     const handlers = this.#handlers
 
@@ -193,7 +193,7 @@ export default class SslCertificates {
     let handler = handlers.get(configKey)
     if (handler === undefined) {
       // register the handler for this domain
-      handler = new SslCertificate(this.#challengeHandlers, initialKey, initialCert)
+      handler = new SslCertificate(this.#challengeHandlers, initialCert, initialKey)
       handlers.set(configKey, handler)
     }
     return handler.getSecureContext(httpsDomainName, config)
