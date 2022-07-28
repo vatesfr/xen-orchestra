@@ -445,7 +445,7 @@ exports.cleanVm = async function cleanVm(
     await asyncMap(toMerge, async chain => {
       const merged = await limitedMergeVhdChain(chain, { handler, logInfo, logWarn, remove, merge })
       if (merged !== undefined) {
-        const metadataPath = vhdsToJSons[chain[0]] // all the chain should have the same metada file
+        const metadataPath = vhdsToJSons[chain[chain.length - 1]] // all the chain should have the same metada file
         metadataWithMergedVhd[metadataPath] = true
       }
     })
