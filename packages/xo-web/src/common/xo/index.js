@@ -1289,7 +1289,7 @@ const stopOrRestartVm = async (vm, method, force = false) => {
             <div>
               <p>{_('vmHasNoToolsMessage')}</p>
               <p>
-                <strong>{_('confirmForceReboot')}</strong>
+                <strong>{_(isStopOperation ? 'confirmForceShutdown' : 'confirmForceReboot')}</strong>
               </p>
             </div>
           ),
