@@ -32,6 +32,7 @@
 - @xen-orchestra/backups patch
 - @xen-orchestra/mixins minor
 - @xen-orchestra/proxy minor
+- vhd-lib patch
 - xo-server minor
 
 <!--packages-end-->

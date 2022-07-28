@@ -55,22 +55,21 @@ function makeThrottledWriter(handler, path, delay) {
 // make the rename / delete part of the merge process
 // will fail if parent and children are in different remote
 
-function cleanupVhds(handler, parent, children, { logInfo = noop, remove = false } = {}) {
+async function cleanupVhds(handler, parent, children, { logInfo = noop, remove = false } = {}) {
   if (!Array.isArray(children)) {
     children = [children]
   }
   const mergeTargetChild = children.pop()
 
-  return Promise.all([
-    VhdAbstract.rename(handler, parent, mergeTargetChild),
-    asyncMap(children, child => {
-      logInfo(`the VHD child is already merged`, { child })
-      if (remove) {
-        logInfo(`deleting merged VHD child`, { child })
-        return VhdAbstract.unlink(handler, child)
-      }
-    }),
-  ])
+  await VhdAbstract.rename(handler, parent, mergeTargetChild)
+
+  return asyncMap(children, child => {
+    logInfo(`the VHD child is already merged`, { child })
+    if (remove) {
+      logInfo(`deleting merged VHD child`, { child })
+      return VhdAbstract.unlink(handler, child)
+    }
+  })
 }
 module.exports._cleanupVhds = cleanupVhds
 
