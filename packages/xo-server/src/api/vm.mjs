@@ -16,6 +16,9 @@ import { forEach, map, mapFilter, parseSize, safeDateFormat } from '../utils.mjs
 
 const log = createLogger('xo:vm')
 
+const RESTART_OPERATIONS = ['reboot', 'clean_reboot', 'hard_reboot']
+const SHUTDOWN_OPERATIONS = ['shutdown', 'clean_shutdown', 'hard_shutdown']
+
 // ===================================================================
 
 export function getHaValues() {
@@ -666,13 +669,26 @@ set.resolve = {
 
 // -------------------------------------------------------------------
 
-export async function restart({ vm, force = false }) {
-  return this.getXapi(vm).rebootVm(vm._xapiId, { hard: force })
-}
+export const restart = defer(async function ($defer, { vm, force = false, bypassBlockedOperation = force }) {
+  const xapi = this.getXapi(vm)
+  if (bypassBlockedOperation) {
+    await Promise.all(
+      RESTART_OPERATIONS.map(async operation => {
+        const reason = vm.blockedOperations[operation]
+        if (reason !== undefined) {
+          await xapi.call('VM.remove_from_blocked_operations', vm._xapiRef, operation)
+          $defer(() => xapi.call('VM.add_to_blocked_operations', vm._xapiRef, operation, reason))
+        }
+      })
+    )
+  }
+  return xapi.rebootVm(vm._xapiId, { hard: force })
+})
 
 restart.params = {
   id: { type: 'string' },
   force: { type: 'boolean', optional: true },
+  bypassBlockedOperation: { type: 'boolean', optional: true },
 }
 
 restart.resolve = {
@@ -893,8 +909,20 @@ start.resolve = {
 // - if !force → clean shutdown
 // - if force is true → hard shutdown
 // - if force is integer → clean shutdown and after force seconds, hard shutdown.
-export async function stop({ vm, force }) {
+export const stop = defer(async function ($defer, { vm, force, bypassBlockedOperation = force }) {
   const xapi = this.getXapi(vm)
+
+  if (bypassBlockedOperation) {
+    await Promise.all(
+      SHUTDOWN_OPERATIONS.map(async operation => {
+        const reason = vm.blockedOperations[operation]
+        if (reason !== undefined) {
+          await xapi.call('VM.remove_from_blocked_operations', vm._xapiRef, operation)
+          $defer(() => xapi.call('VM.add_to_blocked_operations', vm._xapiRef, operation, reason))
+        }
+      })
+    )
+  }
 
   // Hard shutdown
   if (force) {
@@ -912,11 +940,12 @@ export async function stop({ vm, force }) {
 
     throw error
   }
-}
+})
 
 stop.params = {
   id: { type: 'string' },
   force: { type: 'boolean', optional: true },
+  bypassBlockedOperation: { type: 'boolean', optional: true },
 }
 
 stop.resolve = {

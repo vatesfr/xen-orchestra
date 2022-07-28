@@ -9,6 +9,7 @@
 
 - [REST API] VDI import now also supports the raw format
 - Embedded HTTP/HTTPS proxy is now enabled by default
+- [VM] Display a confirmation modal when stopping/restarting a protected VM (PR [#6295](https://github.com/vatesfr/xen-orchestra/pull/6295))
 
 ### Bug fixes
 
@@ -41,6 +42,6 @@
 - @xen-orchestra/xapi patch
 - xo-cli patch
 - xo-server minor
-- xo-web patch
+- xo-web minor
 
 <!--packages-end-->
