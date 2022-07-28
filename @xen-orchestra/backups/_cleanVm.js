@@ -169,7 +169,7 @@ async function checkAliases(
     prependDir: true,
   })
 
-  vhds.forEach(async path => {
+  await asyncMap(vhds, async path => {
     if (!aliasFound.includes(path)) {
       logWarn('no alias references VHD', { path })
       if (remove) {
