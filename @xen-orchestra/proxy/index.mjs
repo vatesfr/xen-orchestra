@@ -56,11 +56,32 @@ ${APP_NAME} v${APP_VERSION}
     createSecureServer: opts => createSecureServer({ ...opts, allowHTTP1: true }),
   })
 
-  forOwn(config.http.listen, async ({ autoCert, cert, key, ...opts }) => {
+  forOwn(config.http.listen, async ({ autoCert, cert, key, ...opts }, configKey) => {
+    const useAcme = autoCert && opts.acmeDomain !== undefined
+
+    // don't pass these entries to httpServer.listen(opts)
+    for (const key of Object.keys(opts).filter(_ => _.startsWith('acme'))) {
+      delete opts[key]
+    }
+
     try {
-      const niceAddress = await pRetry(
-        async () => {
-          if (cert !== undefined && key !== undefined) {
+      let niceAddress
+      if (cert !== undefined && key !== undefined) {
+        if (useAcme) {
+          opts.SNICallback = async (serverName, callback) => {
+            try {
+              // injected by mixins/SslCertificate
+              const secureContext = await httpServer.getSecureContext(serverName, configKey, opts.cert, opts.key)
+              callback(null, secureContext)
+            } catch (error) {
+              warn(error)
+              callback(error, null)
+            }
+          }
+        }
+
+        niceAddress = await pRetry(
+          async () => {
             try {
               opts.cert = fse.readFileSync(cert)
               opts.key = fse.readFileSync(key)
@@ -76,20 +97,22 @@ ${APP_NAME} v${APP_VERSION}
               opts.cert = pems.cert
               opts.key = pems.key
             }
-          }
 
-          return httpServer.listen(opts)
-        },
-        {
-          tries: 2,
-          when: e => autoCert && e.code === 'ERR_SSL_EE_KEY_TOO_SMALL',
-          onRetry: () => {
-            warn('deleting invalid certificate')
-            fse.unlinkSync(cert)
-            fse.unlinkSync(key)
+            return httpServer.listen(opts)
           },
-        }
-      )
+          {
+            tries: 2,
+            when: e => autoCert && e.code === 'ERR_SSL_EE_KEY_TOO_SMALL',
+            onRetry: () => {
+              warn('deleting invalid certificate')
+              fse.unlinkSync(cert)
+              fse.unlinkSync(key)
+            },
+          }
+        )
+      } else {
+        niceAddress = await httpServer.listen(opts)
+      }
 
       info(`Web server listening on ${niceAddress}`)
     } catch (error) {
