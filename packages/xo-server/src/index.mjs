@@ -407,7 +407,27 @@ async function makeWebServerListen(
   }
 ) {
   try {
+    const useAcme = autoCert && opts.acmeDomain !== undefined
+
+    // don't pass these entries to httpServer.listen(opts)
+    for (const key of Object.keys(opts).filter(_ => _.startsWith('acme'))) {
+      delete opts[key]
+    }
+
     if (cert && key) {
+      if (useAcme) {
+        opts.SNICallback = async (serverName, callback) => {
+          try {
+            // injected by mixins/SslCertificate
+            const secureContext = await webServer.getSecureContext(serverName, configKey, opts.cert, opts.key)
+            callback(null, secureContext)
+          } catch (error) {
+            log.warn(error)
+            callback(error, null)
+          }
+        }
+      }
+
       try {
         ;[opts.cert, opts.key] = await Promise.all([fse.readFile(cert), fse.readFile(key)])
         if (opts.key.includes('ENCRYPTED')) {
@@ -430,19 +450,6 @@ async function makeWebServerListen(
         log.info('new certificate generated', { cert, key })
         opts.cert = pems.cert
         opts.key = pems.key
-      }
-
-      if (opts.acmeDomain) {
-        opts.SNICallback = async (serverName, callback) => {
-          try {
-            // injected byt mixins/SslCertificate
-            const secureContext = await webServer.getSecureContext(serverName, configKey)
-            callback(null, secureContext)
-          } catch (error) {
-            log.warn(error)
-            callback(error, null)
-          }
-        }
       }
     }
 

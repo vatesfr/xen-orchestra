@@ -2,6 +2,13 @@
 
 First of all, make sure your server is listening on HTTP on port 80 and on HTTPS 443.
 
+In `xo-server`, to avoid HTTP access, enable the redirection to HTTPs:
+
+```toml
+[http]
+redirectToHttps = true
+```
+
 Your server must be reachable with the configured domain to the certificate provider (e.g. Let's Encrypt), it usually means publicly reachable.
 
 Finally, add the following entries to your HTTPS configuration.

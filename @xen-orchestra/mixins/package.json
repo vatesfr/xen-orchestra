@@ -16,7 +16,7 @@
   "license": "AGPL-3.0-or-later",
   "version": "0.6.0",
   "engines": {
-    "node": ">=14"
+    "node": ">=15.6"
   },
   "dependencies": {
     "@vates/event-listeners-manager": "^1.0.1",

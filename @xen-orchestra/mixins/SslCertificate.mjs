@@ -6,7 +6,11 @@ import acme from 'acme-client'
 import fs from 'node:fs/promises'
 import get from 'lodash/get.js'
 
-const { debug, warn } = createLogger('xo:mixins:sslCertificate')
+const { debug, info, warn } = createLogger('xo:mixins:sslCertificate')
+
+acme.setLogger(message => {
+  debug(message)
+})
 
 // - create any missing parent directories
 // - replace existing files
@@ -25,52 +29,35 @@ async function outputFile(path, content) {
 
 // from https://github.com/publishlab/node-acme-client/blob/master/examples/auto.js
 class SslCertificate {
-  #app
-  #certLoaded = false
+  #cert
   #challengeCreateFn
   #challengeRemoveFn
-  #configKey
   #delayBeforeRenewal = 30 * 24 * 60 * 60 * 1000 // 30 days
   #secureContext
-  #selfSigned = false
   #updateSslCertificatePromise
-  #validTo
 
-  constructor({ app, configKey, challengeCreateFn, challengeRemoveFn }) {
-    this.#app = app
-    this.#configKey = configKey
+  constructor({ challengeCreateFn, challengeRemoveFn }, cert, key) {
     this.#challengeCreateFn = challengeCreateFn
     this.#challengeRemoveFn = challengeRemoveFn
+
+    this.#set(cert, key)
   }
 
-  async #loadExististingCertificate(config) {
-    try {
-      const [cert, key] = await Promise.all([fs.readFile(config.cert), fs.readFile(config.key)])
-      this.#secureContext = createSecureContext({
-        cert,
-        key,
-      })
-      const { validTo, issuer, subject } = new X509Certificate(cert)
-      this.#validTo = new Date(validTo)
-      this.#selfSigned = issuer === subject
-    } catch (error) {
-      if (error.code === 'ENOENT') {
-        debug('no certificate exists for this config ', { config })
-        return
-      }
-      if (error.code === 'ERR_SSL_EE_KEY_TOO_SMALL') {
-        debug('certificate is too old and too weak ', { config })
-        return
-      }
-      throw error
-    } finally {
-      this.#certLoaded = true
-    }
+  get #isValid() {
+    const cert = this.#cert
+    return cert !== undefined && Date.parse(cert.validTo) > Date.now() && cert.issuer !== cert.subject
   }
 
-  async getSecureContext(httpsDomainName) {
-    const config = this.#app.config.get(['http', 'listen', this.#configKey])
+  get #shouldBeRenewed() {
+    return !this.#isValid || Date.parse(this.#cert.validTo) < Date.now() + this.#delayBeforeRenewal
+  }
 
+  #set(cert, key) {
+    this.#cert = new X509Certificate(cert)
+    this.#secureContext = createSecureContext({ cert, key })
+  }
+
+  async getSecureContext(httpsDomainName, config) {
     // something changed in configuration or there is a network misconfiguration
     // don't generate new let's encrypt challenges or invalid certificates
     if (config?.acmeDomain !== httpsDomainName) {
@@ -82,105 +69,94 @@ class SslCertificate {
       return undefined
     }
 
-    if (!this.#certLoaded) {
-      await this.#loadExististingCertificate(config)
+    if (!this.#shouldBeRenewed) {
+      return this.#secureContext
     }
 
-    const isValid =
-      !this.#selfSigned && // current certificiate is self signed
-      this.#secureContext !== undefined &&
-      this.#validTo !== undefined && // no current certificate
-      this.#validTo >= new Date() // expired
-
-    const shouldBeRenewed = !isValid || this.#validTo - this.#delayBeforeRenewal <= new Date() // will expires soon
-
-    if (shouldBeRenewed && this.#updateSslCertificatePromise === undefined) {
+    if (this.#updateSslCertificatePromise === undefined) {
       // not currently updating certificate
+      //
       // ensure we only refresh certificate once at a time
+      //
+      // promise is cleaned by #updateSslCertificate itself
       this.#updateSslCertificatePromise = this.#updateSslCertificate(config)
-        // async cleanup but don't making orphan promises
-        .then(() => {
-          this.#updateSslCertificatePromise = undefined
-          return this.#secureContext
-        })
-        .catch(error => {
-          warn(`couldn't renew ssl certificate`, { error, httpsDomainName, config })
-          this.#updateSslCertificatePromise = undefined
-          if (!isValid) {
-            this.#secureContext = undefined
-            this.#validTo = undefined
-            return undefined
-          }
-        })
     }
 
     // old certificate is still here, return it while updating
-    if (isValid) {
+    if (this.#isValid) {
       return this.#secureContext
     }
 
     return this.#updateSslCertificatePromise
   }
 
-  async #updateSslCertificate(config) {
-    const { cert: certPath, key: keyPath, acmeEmail, acmeDomain } = config
-
-    acme.setLogger(message => {
-      debug(message)
-    })
-
-    let { acmeCa = 'letsencrypt/production' } = config
-    if (!(acmeCa.startsWith('http:') || acmeCa.startsWith('https:'))) {
-      acmeCa = get(acme.directory, acmeCa.split('/'))
-    }
-
-    /* Init client */
-    const client = new acme.Client({
-      directoryUrl: acmeCa,
-      accountKey: await acme.forge.createPrivateKey(),
-    })
-
-    /* Create CSR */
-    let [key, csr] = await acme.forge.createCsr({
-      commonName: acmeDomain,
-    })
-    debug('Successfully generated key and csr')
-    /* Certificate */
-
-    const cert = await client.auto({
-      csr,
-      email: acmeEmail,
-      termsOfServiceAgreed: true,
-      challengeCreateFn: this.#challengeCreateFn,
-      challengeRemoveFn: this.#challengeRemoveFn,
-    })
-    csr = csr.toString()
-    key = key.toString()
-
-    debug('Successfully generated certificate', { key, csr })
-
+  async #save(certPath, cert, keyPath, key) {
     try {
       await Promise.all([outputFile(keyPath, key), outputFile(certPath, cert)])
-      debug('certificate key and cert are saved to disk')
+      info('new certificate generated', { cert: certPath, key: keyPath })
     } catch (error) {
       warn(`couldn't write let's encrypt certificates to disk `, { error })
     }
+  }
 
-    // we don't catch a SSL error here, since it's a brand new certificate from let's encrypt
-    this.#secureContext = createSecureContext({
-      cert,
-      key,
-    })
-    const { validTo } = new X509Certificate(cert)
-    this.#validTo = new Date(validTo)
-    debug('secure contexte generated', this.#secureContext, this.#validTo)
+  async #updateSslCertificate(config) {
+    const { cert: certPath, key: keyPath, acmeEmail, acmeDomain } = config
+    try {
+      let { acmeCa = 'letsencrypt/production' } = config
+      if (!(acmeCa.startsWith('http:') || acmeCa.startsWith('https:'))) {
+        acmeCa = get(acme.directory, acmeCa.split('/'))
+      }
+
+      /* Init client */
+      const client = new acme.Client({
+        directoryUrl: acmeCa,
+        accountKey: await acme.forge.createPrivateKey(),
+      })
+
+      /* Create CSR */
+      let [key, csr] = await acme.forge.createCsr({
+        commonName: acmeDomain,
+      })
+      csr = csr.toString()
+      key = key.toString()
+      debug('Successfully generated key and csr')
+
+      /* Certificate */
+      const cert = await client.auto({
+        csr,
+        email: acmeEmail,
+        termsOfServiceAgreed: true,
+        challengeCreateFn: this.#challengeCreateFn,
+        challengeRemoveFn: this.#challengeRemoveFn,
+      })
+      debug('Successfully generated certificate')
+
+      this.#set(cert, key)
+
+      // don't wait for this
+      this.#save(certPath, cert, keyPath, key)
+
+      return this.#secureContext
+    } catch (error) {
+      warn(`couldn't renew ssl certificate`, { acmeDomain, error })
+    } finally {
+      this.#updateSslCertificatePromise = undefined
+    }
   }
 }
 
 export default class SslCertificates {
   #app
-  #challenges = {}
-  #handlers = {}
+  #challenges = new Map()
+  #challengeHandlers = {
+    challengeCreateFn: (authz, challenge, keyAuthorization) => {
+      this.#challenges.set(challenge.token, keyAuthorization)
+    },
+    challengeRemoveFn: (authz, challenge, keyAuthorization) => {
+      this.#challenges.delete(challenge.token)
+    },
+  }
+  #handlers = new Map()
 
   constructor(app, { httpServer }) {
     // don't setup the proxy if httpServer is not present
@@ -192,11 +168,10 @@ export default class SslCertificates {
     const prefix = '/.well-known/acme-challenge/'
     httpServer.on('request', (req, res) => {
       const { url } = req
-      if (!url.startsWith(prefix)) {
-        return
+      if (url.startsWith(prefix)) {
+        const token = url.slice(prefix.length)
+        this.#acmeChallendMiddleware(req, res, token)
       }
-      const token = url.slice(prefix.length)
-      this.#acmeChallendMiddleware(req, res, token)
     })
 
     this.#app = app
@@ -204,34 +179,30 @@ export default class SslCertificates {
     httpServer.getSecureContext = this.getSecureContext.bind(this)
   }
 
-  async getSecureContext(httpsDomainName, configKey) {
-    if (!this.#handlers[configKey]) {
-      const config = this.#app.config.get(`http.listen.${configKey}`)
-      // not a let's encrypt protected end point, sommething changed in the configuration
-      if (config.acmeDomain === undefined) {
-        warn(`config don't have acmeDomain, mandatory for let's encrypt`, { config })
-        return
-      }
+  async getSecureContext(httpsDomainName, configKey, initialKey, initialCert) {
+    const config = this.#app.config.get(['http', 'listen', configKey])
+    const handlers = this.#handlers
 
-      // register the handler for this domain
-      this.#handlers[configKey] = new SslCertificate({
-        app: this.#app,
-        configKey,
-        challengeCreateFn: (authz, challenge, keyAuthorization) => {
-          this.#challenges[challenge.token] = keyAuthorization
-        },
-        challengeRemoveFn: (authz, challenge, keyAuthorization) => {
-          delete this.#challenges[challenge.token]
-        },
-      })
+    // not a let's encrypt protected end point, sommething changed in the configuration
+    if (config.acmeDomain === undefined) {
+      warn(`config don't have acmeDomain, mandatory for let's encrypt`, { config })
+      handlers.delete(configKey)
+      return
     }
-    return this.#handlers[configKey].getSecureContext(httpsDomainName)
+
+    let handler = handlers.get(configKey)
+    if (handler === undefined) {
+      // register the handler for this domain
+      handler = new SslCertificate(this.#challengeHandlers, initialKey, initialCert)
+      handlers.set(configKey, handler)
+    }
+    return handler.getSecureContext(httpsDomainName, config)
   }
 
   // middleware that will serve the http challenge to let's encrypt servers
   #acmeChallendMiddleware(req, res, token) {
     debug('fetching challenge for token ', token)
-    const challenge = this.#challenges[token]
+    const challenge = this.#challenges.get(token)
     debug('challenge content is ', challenge)
     if (challenge === undefined) {
       res.statusCode = 404
