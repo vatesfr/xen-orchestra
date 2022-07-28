@@ -1,4 +1,6 @@
-import { escapeRegExp, isPlainObject, some } from 'lodash'
+'use strict'
+
+const { escapeRegExp, isPlainObject, some } = require('lodash')
 
 // ===================================================================
 
@@ -23,7 +25,7 @@ class Node {
   }
 }
 
-export class Null extends Node {
+class Null extends Node {
   match() {
     return true
   }
@@ -32,10 +34,11 @@ export class Null extends Node {
     return ''
   }
 }
+exports.Null = Null
 
 const formatTerms = terms => terms.map(term => term.toString(true)).join(' ')
 
-export class And extends Node {
+class And extends Node {
   constructor(children) {
     super()
 
@@ -54,8 +57,9 @@ export class And extends Node {
     return isNested ? `(${terms})` : terms
   }
 }
+exports.And = And
 
-export class Comparison extends Node {
+class Comparison extends Node {
   constructor(operator, value) {
     super()
     this._comparator = Comparison.comparators[operator]
@@ -71,6 +75,7 @@ export class Comparison extends Node {
     return this._operator + String(this._value)
   }
 }
+exports.Comparison = Comparison
 Comparison.comparators = {
   '>': (a, b) => a > b,
   '>=': (a, b) => a >= b,
@@ -78,7 +83,7 @@ Comparison.comparators = {
   '<=': (a, b) => a <= b,
 }
 
-export class Or extends Node {
+class Or extends Node {
   constructor(children) {
     super()
 
@@ -96,8 +101,9 @@ export class Or extends Node {
     return `|(${formatTerms(this.children)})`
   }
 }
+exports.Or = Or
 
-export class Not extends Node {
+class Not extends Node {
   constructor(child) {
     super()
 
@@ -112,8 +118,9 @@ export class Not extends Node {
     return '!' + this.child.toString(true)
   }
 }
+exports.Not = Not
 
-export class NumberNode extends Node {
+exports.Number = exports.NumberNode = class NumberNode extends Node {
   constructor(value) {
     super()
 
@@ -133,9 +140,8 @@ export class NumberNode extends Node {
     return String(this.value)
   }
 }
-export { NumberNode as Number }
 
-export class NumberOrStringNode extends Node {
+class NumberOrStringNode extends Node {
   constructor(value) {
     super()
 
@@ -160,9 +166,9 @@ export class NumberOrStringNode extends Node {
     return this.value
   }
 }
-export { NumberOrStringNode as NumberOrString }
+exports.NumberOrString = exports.NumberOrStringNode = NumberOrStringNode
 
-export class Property extends Node {
+class Property extends Node {
   constructor(name, child) {
     super()
 
@@ -178,12 +184,13 @@ export class Property extends Node {
     return `${formatString(this.name)}:${this.child.toString(true)}`
   }
 }
+exports.Property = Property
 
 const escapeChar = char => '\\' + char
 const formatString = value =>
   Number.isNaN(+value) ? (isRawString(value) ? value : `"${value.replace(/\\|"/g, escapeChar)}"`) : `"${value}"`
 
-export class GlobPattern extends Node {
+class GlobPattern extends Node {
   constructor(value) {
     // fallback to string node if no wildcard
     if (value.indexOf('*') === -1) {
@@ -216,8 +223,9 @@ export class GlobPattern extends Node {
     return this.value
   }
 }
+exports.GlobPattern = GlobPattern
 
-export class RegExpNode extends Node {
+class RegExpNode extends Node {
   constructor(pattern, flags) {
     super()
 
@@ -245,9 +253,9 @@ export class RegExpNode extends Node {
     return this.re.toString()
   }
 }
-export { RegExpNode as RegExp }
+exports.RegExp = RegExpNode
 
-export class StringNode extends Node {
+class StringNode extends Node {
   constructor(value) {
     super()
 
@@ -275,9 +283,9 @@ export class StringNode extends Node {
     return formatString(this.value)
   }
 }
-export { StringNode as String }
+exports.String = exports.StringNode = StringNode
 
-export class TruthyProperty extends Node {
+class TruthyProperty extends Node {
   constructor(name) {
     super()
 
@@ -292,6 +300,7 @@ export class TruthyProperty extends Node {
     return formatString(this.name) + '?'
   }
 }
+exports.TruthyProperty = TruthyProperty
 
 // -------------------------------------------------------------------
 
@@ -531,7 +540,7 @@ const parser = P.grammar({
     ),
   ws: P.regex(/\s*/),
 }).default
-export const parse = parser.parse.bind(parser)
+exports.parse = parser.parse.bind(parser)
 
 // -------------------------------------------------------------------
 
@@ -573,7 +582,7 @@ const _getPropertyClauseStrings = ({ child }) => {
 }
 
 // Find possible values for property clauses in a and clause.
-export const getPropertyClausesStrings = node => {
+exports.getPropertyClausesStrings = function getPropertyClausesStrings(node) {
   if (!node) {
     return {}
   }
@@ -605,7 +614,7 @@ export const getPropertyClausesStrings = node => {
 
 // -------------------------------------------------------------------
 
-export const setPropertyClause = (node, name, child) => {
+exports.setPropertyClause = function setPropertyClause(node, name, child) {
   const property = child && new Property(name, typeof child === 'string' ? new StringNode(child) : child)
 
   if (node === undefined) {

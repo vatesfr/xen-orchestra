@@ -11,7 +11,8 @@ const { asyncMap } = require('@xen-orchestra/async-map')
 const { createLogger } = require('@xen-orchestra/log')
 const { decorateClass } = require('@vates/decorate-with')
 const { defer } = require('golike-defer')
-const { incorrectState } = require('xo-common/api-errors.js')
+const { incorrectState, forbiddenOperation } = require('xo-common/api-errors.js')
+const { JsonRpcError } = require('json-rpc-protocol')
 const { Ref } = require('xen-api')
 
 const extractOpaqueRef = require('./_extractOpaqueRef.js')
@@ -343,7 +344,13 @@ class Vm {
     const vm = await this.getRecord('VM', vmRef)
 
     if (!bypassBlockedOperation && 'destroy' in vm.blocked_operations) {
-      throw new Error('destroy is blocked')
+      throw forbiddenOperation(
+        `destroy is blocked: ${
+          vm.blocked_operations.destroy === 'true'
+            ? 'protected from accidental deletion'
+            : vm.blocked_operations.destroy
+        }`
+      )
     }
 
     if (!forceDeleteDefaultTemplate && isDefaultTemplate(vm)) {
@@ -503,6 +510,22 @@ class Vm {
       }
       return ref
     } catch (error) {
+      if (
+        // xxhash is the new form consistency hashing in CH 8.1 which uses a faster,
+        // more efficient hashing algorithm to generate the consistency checks
+        // in order to support larger files without the consistency checking process taking an incredibly long time
+        error.code === 'IMPORT_ERROR' &&
+        error.params?.some(
+          param =>
+            param.includes('INTERNAL_ERROR') &&
+            param.includes('Expected to find an inline checksum') &&
+            param.includes('.xxhash')
+        )
+      ) {
+        warn('import', { error })
+        throw new JsonRpcError('Importing this VM requires XCP-ng or Citrix Hypervisor >=8.1')
+      }
+
       // augment the error with as much relevant info as possible
       const [poolMaster, sr] = await Promise.all([
         safeGetRecord(this, 'host', this.pool.master),

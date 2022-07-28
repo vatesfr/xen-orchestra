@@ -25,38 +25,17 @@ create.params = {
 
 // -------------------------------------------------------------------
 
-// TODO: an user should be able to delete its own tokens.
-async function delete_({ token: id }) {
-  await this.deleteAuthenticationToken(id)
+async function delete_({ pattern, tokens }) {
+  await this.deleteAuthenticationTokens({ filter: pattern ?? { id: { __or: tokens } } })
 }
 
 export { delete_ as delete }
 
 delete_.description = 'delete an existing authentication token'
 
-delete_.permission = 'admin'
-
 delete_.params = {
-  token: { type: 'string' },
-}
-
-// -------------------------------------------------------------------
-
-export async function deleteAll({ except }) {
-  await this.deleteAuthenticationTokens({
-    filter: {
-      user_id: this.apiContext.user.id,
-      id: {
-        __not: except,
-      },
-    },
-  })
-}
-
-deleteAll.description = 'delete all tokens of the current user except the current one'
-
-deleteAll.params = {
-  except: { type: 'string', optional: true },
+  tokens: { type: 'array', optional: true, items: { type: 'string' } },
+  pattern: { type: 'object', optional: true },
 }
 
 // -------------------------------------------------------------------

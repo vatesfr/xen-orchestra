@@ -1,9 +1,11 @@
-import { getSyncedHandler } from '@xen-orchestra/fs'
-import { openVhd, VhdFile, VhdDirectory } from 'vhd-lib'
-import Disposable from 'promise-toolbox/Disposable'
-import getopts from 'getopts'
+'use strict'
 
-export default async rawArgs => {
+const { getSyncedHandler } = require('@xen-orchestra/fs')
+const { openVhd, VhdFile, VhdDirectory } = require('vhd-lib')
+const Disposable = require('promise-toolbox/Disposable')
+const getopts = require('getopts')
+
+module.exports = async function copy(rawArgs) {
   const {
     directory,
     help,

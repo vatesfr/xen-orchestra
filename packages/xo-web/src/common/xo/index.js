@@ -25,7 +25,8 @@ import fetch, { post } from '../fetch'
 import invoke from '../invoke'
 import Icon from '../icon'
 import logError from '../log-error'
-import renderXoItem, { renderXoItemFromId } from '../render-xo-item'
+import NewAuthTokenModal from './new-auth-token-modal'
+import renderXoItem, { renderXoItemFromId, Vm } from '../render-xo-item'
 import store from 'store'
 import { alert, chooseAction, confirm } from '../modal'
 import { error, info, success } from '../notification'
@@ -42,6 +43,10 @@ import {
 } from '../store/actions'
 
 import parseNdJson from './_parseNdJson'
+
+// ===================================================================
+
+const MAX_VMS = 30
 
 // ===================================================================
 
@@ -544,6 +549,8 @@ export const createSrUnhealthyVdiChainsLengthSubscription = sr => {
   }
   return subscription
 }
+
+export const subscribeUserAuthTokens = createSubscription(() => _call('user.getAuthenticationTokens'))
 
 // System ============================================================
 
@@ -1598,15 +1605,32 @@ export const deleteVm = (vm, retryWithForce = true) =>
       throw error
     })
 
-export const deleteVms = vms =>
-  confirm({
+export const deleteVms = async vms => {
+  if (vms.length === 1) {
+    return deleteVm(vms[0])
+  }
+  await confirm({
     title: _('deleteVmsModalTitle', { vms: vms.length }),
     body: _('deleteVmsModalMessage', { vms: vms.length }),
     strongConfirm: vms.length > 1 && {
       messageId: 'deleteVmsConfirmText',
       values: { nVms: vms.length },
     },
-  }).then(() => Promise.all(map(vms, vmId => _call('vm.delete', { id: resolveId(vmId) }))), noop)
+  }).catch(noop)
+
+  let nErrors = 0
+  await Promise.all(
+    map(vms, vmId =>
+      _call('vm.delete', { id: resolveId(vmId) }).catch(() => {
+        nErrors++
+      })
+    )
+  )
+
+  if (nErrors > 0) {
+    error(_('failedDeleteErrorTitle'), _('failedVmsErrorMessage', { nVms: nErrors }))
+  }
+}
 
 export const importBackup = ({ remote, file, sr }) => _call('vm.importBackup', resolveIds({ remote, file, sr }))
 
@@ -2083,6 +2107,41 @@ export const editSr = (sr, { nameDescription, nameLabel }) =>
 
 export const rescanSr = sr => _call('sr.scan', { id: resolveId(sr) })
 export const rescanSrs = srs => Promise.all(map(resolveIds(srs), id => _call('sr.scan', { id })))
+
+export const toggleSrMaintenanceMode = sr => {
+  const id = resolveId(sr)
+  const method = sr.inMaintenanceMode ? 'disableMaintenanceMode' : 'enableMaintenanceMode'
+
+  return _call(`sr.${method}`, { id }).catch(async err => {
+    if (
+      incorrectState.is(err, {
+        property: 'vmsToShutdown',
+      })
+    ) {
+      const vmIds = err.data.expected
+      const nVms = vmIds.length
+      await confirm({
+        title: _('maintenanceMode'),
+        body: (
+          <div>
+            {_('maintenanceSrModalBody', { n: nVms })}
+            <ul>
+              {vmIds.slice(0, MAX_VMS).map(id => (
+                <li key={id}>
+                  <Vm id={id} />
+                </li>
+              ))}
+            </ul>
+            {nVms > MAX_VMS && _('andNMore', { n: nVms - MAX_VMS })}
+          </div>
+        ),
+      })
+      return _call(`sr.${method}`, { id, vmsToShutdown: vmIds })
+    } else {
+      throw err
+    }
+  })
+}
 
 // PBDs --------------------------------------------------------------
 
@@ -2761,7 +2820,14 @@ export const deleteUsers = users =>
 export const editUser = (user, { email, password, permission }) =>
   _call('user.set', { id: resolveId(user), email, password, permission })::tap(subscribeUsers.forceRefresh)
 
-const _signOutFromEverywhereElse = () => _call('token.deleteAll', { except: cookies.get('token') })
+const _signOutFromEverywhereElse = () =>
+  _call('token.delete', {
+    pattern: {
+      id: {
+        __not: cookies.get('token'),
+      },
+    },
+  })
 
 export const signOutFromEverywhereElse = () =>
   _signOutFromEverywhereElse().then(
@@ -2868,6 +2934,47 @@ export const deleteSshKeys = keys =>
       sshKeys: filter(preferences && preferences.sshKeys, sshKey => !includes(keyIds, sshKey.key)),
     })
   }, noop)
+
+export const addAuthToken = async () => {
+  const { description, expiration } = await confirm({
+    body: <NewAuthTokenModal />,
+    icon: 'user',
+    title: _('newAuthTokenModalTitle'),
+  })
+  const expires = new Date(expiration).setHours(23, 59, 59)
+  return _call('token.create', {
+    description,
+    expiresIn: Number.isNaN(expires) ? undefined : expires - new Date().getTime(),
+  })::tap(subscribeUserAuthTokens.forceRefresh)
+}
+
+export const deleteAuthToken = async ({ id }) => {
+  await confirm({
+    body: _('deleteAuthTokenConfirmMessage', {
+      id,
+    }),
+    icon: 'user',
+    title: _('deleteAuthTokenConfirm'),
+  })
+  return _call('token.delete', { tokens: [id] })::tap(subscribeUserAuthTokens.forceRefresh)
+}
+
+export const deleteAuthTokens = async tokens => {
+  await confirm({
+    body: _('deleteAuthTokensConfirmMessage', {
+      nTokens: tokens.length,
+    }),
+    icon: 'user',
+    title: _('deleteAuthTokensConfirm', { nTokens: tokens.length }),
+  })
+  return _call('token.delete', { tokens: tokens.map(token => token.id) })::tap(subscribeUserAuthTokens.forceRefresh)
+}
+
+export const editAuthToken = ({ description, id }) =>
+  _call('token.set', {
+    description,
+    id,
+  })::tap(subscribeUserAuthTokens.forceRefresh)
 
 // User filters --------------------------------------------------
 

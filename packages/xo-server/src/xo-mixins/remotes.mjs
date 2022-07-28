@@ -23,7 +23,7 @@ export default class {
     this._handlers = { __proto__: null }
     this._remotes = new Remotes({
       connection: app._redis,
-      prefix: 'xo:remote',
+      namespace: 'remote',
       indexes: ['enabled'],
     })
     this._remotesInfo = {}
@@ -153,7 +153,7 @@ export default class {
     if (remote === undefined) {
       throw noSuchObject(id, 'remote')
     }
-    return remote.properties
+    return remote
   }
 
   async getRemoteWithCredentials(id) {
@@ -184,7 +184,7 @@ export default class {
       params.options = options
     }
     const remote = await this._remotes.add(params)
-    return /* await */ this.updateRemote(remote.get('id'), { enabled: true })
+    return /* await */ this.updateRemote(remote.id, { enabled: true })
   }
 
   updateRemote(id, { enabled, name, options, proxy, url }) {
@@ -215,7 +215,7 @@ export default class {
 
     patch(remote, props)
 
-    return (await this._remotes.update(remote)).properties
+    return await this._remotes.update(remote)
   }
 
   async removeRemote(id) {

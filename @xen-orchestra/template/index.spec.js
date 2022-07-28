@@ -1,5 +1,8 @@
 /* eslint-env jest */
-import { compileTemplate } from '.'
+
+'use strict'
+
+const { compileTemplate } = require('.')
 
 it("correctly replaces the template's variables", () => {
   const replacer = compileTemplate('{property}_\\{property}_\\\\{property}_{constant}_%_FOO', {

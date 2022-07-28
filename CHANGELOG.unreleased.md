@@ -7,13 +7,17 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [REST API] VDI import now also supports the raw format
+- Embedded HTTP/HTTPS proxy is now enabled by default
 - [VM] Display a confirmation modal when stopping/restarting a protected VM (PR [#6295](https://github.com/vatesfr/xen-orchestra/pull/6295))
 
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [VDI Import] Fix `this._getOrWaitObject is not a function`
+- [Home/VM] Show error when deleting VMs failed (PR [#6323](https://github.com/vatesfr/xen-orchestra/pull/6323))
+- [REST API] Fix broken VDI after VHD import [#6327](https://github.com/vatesfr/xen-orchestra/issues/6327) (PR [#6326](https://github.com/vatesfr/xen-orchestra/pull/6326))
+- [Netbox] Fix `ipaddr: the address has neither IPv6 nor IPv4 format` error (PR [#6328](https://github.com/vatesfr/xen-orchestra/pull/6328))
 
 ### Packages to release
 
@@ -31,9 +35,13 @@
 
 <!--packages-start-->
 
-- @vates/event-listeners-manager patch
-- @vates/read-chunk major
-- xo-server patch
+- @vates/async-each major
+- @xen-orchestra/fs major
+- @xen-orchestra/mixins minor
+- @xen-orchestra/proxy minor
+- @xen-orchestra/xapi patch
+- xo-cli patch
+- xo-server minor
 - xo-web minor
 
 <!--packages-end-->

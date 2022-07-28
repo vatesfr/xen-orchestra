@@ -9,7 +9,16 @@ class AggregateError extends Error {
   }
 }
 
-exports.asyncEach = function asyncEach(iterable, iteratee, { concurrency = 1, signal, stopOnError = true } = {}) {
+/**
+ * @template Item
+ * @param {Iterable<Item>} iterable
+ * @param {(item: Item, index: number, iterable: Iterable<Item>) => Promise<void>} iteratee
+ * @returns {Promise<void>}
+ */
+exports.asyncEach = function asyncEach(iterable, iteratee, { concurrency = 10, signal, stopOnError = true } = {}) {
+  if (concurrency === 0) {
+    concurrency = Infinity
+  }
   return new Promise((resolve, reject) => {
     const it = (iterable[Symbol.iterator] || iterable[Symbol.asyncIterator]).call(iterable)
     const errors = []

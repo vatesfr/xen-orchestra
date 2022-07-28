@@ -1,19 +1,10 @@
 import isEmpty from 'lodash/isEmpty.js'
 
 import Collection from '../collection/redis.mjs'
-import Model from '../model.mjs'
 
 import { parseProp } from './utils.mjs'
 
 // ===================================================================
-
-export default class User extends Model {}
-
-User.prototype.default = {
-  permission: 'none',
-}
-
-// -------------------------------------------------------------------
 
 const serialize = user => {
   let tmp
@@ -26,6 +17,7 @@ const serialize = user => {
 }
 
 const deserialize = user => ({
+  permission: 'none',
   ...user,
   authProviders: parseProp('user', user, 'authProviders', undefined),
   groups: parseProp('user', user, 'groups', []),
@@ -33,10 +25,6 @@ const deserialize = user => ({
 })
 
 export class Users extends Collection {
-  get Model() {
-    return User
-  }
-
   async create(properties) {
     const { email } = properties
 
@@ -45,11 +33,8 @@ export class Users extends Collection {
       throw new Error(`the user ${email} already exists`)
     }
 
-    // Create the user object.
-    const user = new User(serialize(properties))
-
     // Adds the user to the collection.
-    return /* await */ this.add(user)
+    return /* await */ this.add(serialize(properties))
   }
 
   async save(user) {

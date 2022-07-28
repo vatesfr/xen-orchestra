@@ -5,7 +5,7 @@ import { invalidCredentials, noSuchObject } from 'xo-common/api-errors.js'
 import { parseDuration } from '@vates/parse-duration'
 
 import patch from '../patch.mjs'
-import Token, { Tokens } from '../models/token.mjs'
+import { Tokens } from '../models/token.mjs'
 import { forEach, generateToken } from '../utils.mjs'
 
 // ===================================================================
@@ -39,7 +39,7 @@ export default class {
     // Creates persistent collections.
     const tokensDb = (this._tokens = new Tokens({
       connection: app._redis,
-      prefix: 'xo:token',
+      namespace: 'token',
       indexes: ['user_id'],
     }))
 
@@ -183,41 +183,52 @@ export default class {
     }
 
     const now = Date.now()
-    const token = new Token({
+    const token = {
       created_at: now,
       description,
       id: await generateToken(),
       user_id: userId,
       expiration: now + duration,
-    })
+    }
 
     await this._tokens.add(token)
 
-    // TODO: use plain properties directly.
-    return token.properties
+    return token
   }
 
   async deleteAuthenticationToken(id) {
-    if (!(await this._tokens.remove(id))) {
+    let predicate
+    const { apiContext } = this._app
+    if (apiContext === undefined || apiContext.permission === 'admin') {
+      predicate = id
+    } else {
+      predicate = { id, user_id: apiContext.user.id }
+    }
+
+    if (!(await this._tokens.remove(predicate))) {
       throw noSuchAuthenticationToken(id)
     }
   }
 
   async deleteAuthenticationTokens({ filter }) {
-    return Promise.all(
-      (await this._tokens.get()).filter(createPredicate(filter)).map(({ id }) => this.deleteAuthenticationToken(id))
-    )
+    let predicate
+    const { apiContext } = this._app
+    if (apiContext !== undefined && apiContext.permission !== 'admin') {
+      predicate = { user_id: apiContext.user.id }
+    }
+
+    const db = this._tokens
+    return db.remove((await db.get(predicate)).filter(createPredicate(filter)).map(({ id }) => id))
   }
 
   async getAuthenticationToken(properties) {
     const id = typeof properties === 'string' ? properties : properties.id
 
-    let token = await this._tokens.first(properties)
+    const token = await this._tokens.first(properties)
     if (token === undefined) {
       throw noSuchAuthenticationToken(id)
     }
 
-    token = token.properties
     unserialize(token)
 
     if (!(token.expiration > Date.now())) {

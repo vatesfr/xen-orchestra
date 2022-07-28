@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 
-import execPromise from 'exec-promise'
+'use strict'
 
-import pkg from '../package.json'
+const execPromise = require('exec-promise')
 
-import commands from './commands'
+const pkg = require('./package.json')
+const commands = require('./commands').default
 
 function runCommand(commands, [command, ...args]) {
   if (command === undefined || command === '-h' || command === '--help') {

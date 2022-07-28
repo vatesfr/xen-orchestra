@@ -15,7 +15,7 @@ const { deduped } = require('@vates/disposable/deduped.js')
 const { decorateMethodsWith } = require('@vates/decorate-with')
 const { compose } = require('@vates/compose')
 const { execFile } = require('child_process')
-const { readdir, stat } = require('fs-extra')
+const { readdir, lstat } = require('fs-extra')
 const { v4: uuidv4 } = require('uuid')
 const { ZipFile } = require('yazl')
 const zlib = require('zlib')
@@ -47,13 +47,12 @@ const resolveSubpath = (root, path) => resolve(root, `.${resolve('/', path)}`)
 const RE_VHDI = /^vhdi(\d+)$/
 
 async function addDirectory(files, realPath, metadataPath) {
-  try {
-    const subFiles = await readdir(realPath)
-    await asyncMap(subFiles, file => addDirectory(files, realPath + '/' + file, metadataPath + '/' + file))
-  } catch (error) {
-    if (error == null || error.code !== 'ENOTDIR') {
-      throw error
-    }
+  const stats = await lstat(realPath)
+  if (stats.isDirectory()) {
+    await asyncMap(await readdir(realPath), file =>
+      addDirectory(files, realPath + '/' + file, metadataPath + '/' + file)
+    )
+  } else if (stats.isFile()) {
     files.push({
       realPath,
       metadataPath,
@@ -292,7 +291,7 @@ class RemoteAdapter {
   }
 
   #useVhdDirectory() {
-    return this.handler.type === 's3'
+    return this.handler.useVhdDirectory()
   }
 
   #useAlias() {
@@ -383,8 +382,12 @@ class RemoteAdapter {
       const entriesMap = {}
       await asyncMap(await readdir(path), async name => {
         try {
-          const stats = await stat(`${path}/${name}`)
-          entriesMap[stats.isDirectory() ? `${name}/` : name] = {}
+          const stats = await lstat(`${path}/${name}`)
+          if (stats.isDirectory()) {
+            entriesMap[name + '/'] = {}
+          } else if (stats.isFile()) {
+            entriesMap[name] = {}
+          }
         } catch (error) {
           if (error == null || error.code !== 'ENOENT') {
             throw error

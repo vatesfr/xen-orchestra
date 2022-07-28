@@ -4,6 +4,7 @@
 
 const assert = require('assert')
 const noop = require('./_noop')
+const UUID = require('uuid')
 const { createLogger } = require('@xen-orchestra/log')
 const { limitConcurrency } = require('limit-concurrency-decorator')
 
@@ -12,11 +13,34 @@ const { basename, dirname } = require('path')
 const { DISK_TYPES } = require('./_constants')
 const { Disposable } = require('promise-toolbox')
 const { asyncEach } = require('@vates/async-each')
+const { VhdAbstract } = require('./Vhd/VhdAbstract')
 const { VhdDirectory } = require('./Vhd/VhdDirectory')
 const { VhdSynthetic } = require('./Vhd/VhdSynthetic')
+const { asyncMap } = require('@xen-orchestra/async-map')
 
 const { warn } = createLogger('vhd-lib:merge')
 
+// The chain we want to merge  is [ ancestor, child_1, ..., child_n]
+//
+// 1. Create a VhdSynthetic from all children if more than 1 child
+// 2. Merge the resulting VHD into the ancestor
+//    2.a if at least one is a file: copy file part from child to parent
+//    2.b if they are all VhdDirectory: move blocks from children to the ancestor
+// 3. Update the size, UUID and timestamp of the ancestor with those of child_n
+// 3. Delete all (now) unused VHDs
+// 4. Rename the ancestor to to child_n
+//
+//                       VhdSynthetic
+//                             |
+//              /‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\
+//  [ ancestor, child_1, ...,child_n-1,  child_n ]
+//         |    \____________________/      ^
+//         |              |                 |
+//         |         unused VHDs            |
+//         |                                |
+//         \_____________rename_____________/
+
+// write the merge progress file at most  every `delay` seconds
 function makeThrottledWriter(handler, path, delay) {
   let lastWrite = Date.now()
   return async json => {
@@ -28,21 +52,45 @@ function makeThrottledWriter(handler, path, delay) {
   }
 }
 
+// make the rename / delete part of the merge process
+// will fail if parent and children are in different remote
+
+function cleanupVhds(handler, parent, children, { logInfo = noop, remove = false } = {}) {
+  if (!Array.isArray(children)) {
+    children = [children]
+  }
+  const mergeTargetChild = children.pop()
+
+  return Promise.all([
+    VhdAbstract.rename(handler, parent, mergeTargetChild),
+    asyncMap(children, child => {
+      logInfo(`the VHD child is already merged`, { child })
+      if (remove) {
+        logInfo(`deleting merged VHD child`, { child })
+        return VhdAbstract.unlink(handler, child)
+      }
+    }),
+  ])
+}
+module.exports._cleanupVhds = cleanupVhds
+
 // Merge one or multiple vhd child into vhd parent.
 // childPath can be array to create a synthetic VHD from multiple VHDs
+// childPath  is from the grand children to the children
 //
 // TODO: rename the VHD file during the merge
-module.exports = limitConcurrency(2)(async function merge(
+module.exports.mergeVhd = limitConcurrency(2)(async function merge(
   parentHandler,
   parentPath,
   childHandler,
   childPath,
-  { onProgress = noop } = {}
+  { onProgress = noop, logInfo = noop, remove } = {}
 ) {
   const mergeStatePath = dirname(parentPath) + '/' + '.' + basename(parentPath) + '.merge.json'
 
   return await Disposable.use(async function* () {
     let mergeState
+    let isResuming = false
     try {
       const mergeStateContent = await parentHandler.readFile(mergeStatePath)
       mergeState = JSON.parse(mergeStateContent)
@@ -59,22 +107,26 @@ module.exports = limitConcurrency(2)(async function merge(
       checkSecondFooter: mergeState === undefined,
     })
     let childVhd
+    const parentIsVhdDirectory = parentVhd instanceof VhdDirectory
+    let childIsVhdDirectory
     if (Array.isArray(childPath)) {
       childVhd = yield VhdSynthetic.open(childHandler, childPath)
+      childIsVhdDirectory = childVhd.checkVhdsClass(VhdDirectory)
     } else {
       childVhd = yield openVhd(childHandler, childPath)
+      childIsVhdDirectory = childVhd instanceof VhdDirectory
     }
 
-    const concurrency = childVhd instanceof VhdDirectory ? 16 : 1
-
+    const concurrency = parentIsVhdDirectory && childIsVhdDirectory ? 16 : 1
     if (mergeState === undefined) {
       // merge should be along a vhd chain
-      assert.strictEqual(childVhd.header.parentUuid.equals(parentVhd.footer.uuid), true)
+      assert.strictEqual(UUID.stringify(childVhd.header.parentUuid), UUID.stringify(parentVhd.footer.uuid))
       const parentDiskType = parentVhd.footer.diskType
       assert(parentDiskType === DISK_TYPES.DIFFERENCING || parentDiskType === DISK_TYPES.DYNAMIC)
       assert.strictEqual(childVhd.footer.diskType, DISK_TYPES.DIFFERENCING)
       assert.strictEqual(childVhd.header.blockSize, parentVhd.header.blockSize)
     } else {
+      isResuming = true
       // vhd should not have changed to resume
       assert.strictEqual(parentVhd.header.checksum, mergeState.parent.header)
       assert.strictEqual(childVhd.header.checksum, mergeState.child.header)
@@ -115,12 +167,12 @@ module.exports = limitConcurrency(2)(async function merge(
     let counter = 0
 
     const mergeStateWriter = makeThrottledWriter(parentHandler, mergeStatePath, 10e3)
-
     await asyncEach(
       toMerge,
       async blockId => {
         merging.add(blockId)
-        mergeState.mergedDataSize += await parentVhd.coalesceBlock(childVhd, blockId)
+        mergeState.mergedDataSize += await parentVhd.mergeBlock(childVhd, blockId, isResuming)
+
         merging.delete(blockId)
 
         onProgress({
@@ -154,6 +206,8 @@ module.exports = limitConcurrency(2)(async function merge(
 
     // should be a disposable
     parentHandler.unlink(mergeStatePath).catch(warn)
+
+    await cleanupVhds(parentHandler, parentPath, childPath, { logInfo, remove })
 
     return mergeState.mergedDataSize
   })
