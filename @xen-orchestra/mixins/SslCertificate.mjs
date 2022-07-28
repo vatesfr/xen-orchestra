@@ -123,11 +123,13 @@ class SslCertificate {
 
       /* Certificate */
       const cert = await client.auto({
+        challengeCreateFn: this.#challengeCreateFn,
+        challengePriority: ['http-01'],
+        challengeRemoveFn: this.#challengeRemoveFn,
         csr,
         email: acmeEmail,
+        skipChallengeVerification: true,
         termsOfServiceAgreed: true,
-        challengeCreateFn: this.#challengeCreateFn,
-        challengeRemoveFn: this.#challengeRemoveFn,
       })
       debug('Successfully generated certificate')
 
