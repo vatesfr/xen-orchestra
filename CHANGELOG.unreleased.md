@@ -29,6 +29,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/backups patch
 - @xen-orchestra/mixins minor
 - @xen-orchestra/proxy minor
 - xo-server minor
