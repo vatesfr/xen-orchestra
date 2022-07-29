@@ -7,6 +7,7 @@
 - [REST API] VDI import now also supports the raw format
 - Embedded HTTP/HTTPS proxy is now enabled by default
 - [VM] Display a confirmation modal when stopping/restarting a protected VM (PR [#6295](https://github.com/vatesfr/xen-orchestra/pull/6295))
+- HTTPS server can acquire SSL certificate from Let's Encrypt (PR [#6320](https://github.com/vatesfr/xen-orchestra/pull/6320))
 
 ### Bug fixes
 
@@ -18,15 +19,15 @@
 
 - @vates/async-each 1.0.0
 - @xen-orchestra/fs 2.0.0
-- @xen-orchestra/backups 0.27.1
+- @xen-orchestra/backups 0.27.2
 - @xen-orchestra/backups-cli 0.7.6
-- @xen-orchestra/mixins 0.6.0
+- @xen-orchestra/mixins 0.7.0
 - @xen-orchestra/xapi 1.4.1
-- @xen-orchestra/proxy 0.24.0
+- @xen-orchestra/proxy 0.25.0
 - vhd-cli 0.8.1
-- vhd-lib 3.3.3
+- vhd-lib 3.3.4
 - xo-cli 0.14.1
-- xo-server 5.99.0
+- xo-server 5.100.0
 - xo-web 5.101.0
 
 ## **5.72.1** (2022-07-11)
