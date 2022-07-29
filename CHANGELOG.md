@@ -1,13 +1,18 @@
 # ChangeLog
 
-## **next**
+## **5.73.0** (2022-07-29)
+
+<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
+### Highlights
+
+- [REST API] VDI import now also supports the raw format
+- HTTPS server can acquire SSL certificate from Let's Encrypt (PR [#6320](https://github.com/vatesfr/xen-orchestra/pull/6320))
 
 ### Enhancements
 
-- [REST API] VDI import now also supports the raw format
 - Embedded HTTP/HTTPS proxy is now enabled by default
 - [VM] Display a confirmation modal when stopping/restarting a protected VM (PR [#6295](https://github.com/vatesfr/xen-orchestra/pull/6295))
-- HTTPS server can acquire SSL certificate from Let's Encrypt (PR [#6320](https://github.com/vatesfr/xen-orchestra/pull/6320))
 
 ### Bug fixes
 
@@ -32,7 +37,7 @@
 
 ## **5.72.1** (2022-07-11)
 
-<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Enhancements
 
@@ -100,8 +105,6 @@
 - xo-web 5.99.0
 
 ## **5.71.1 (2022-06-13)**
-
-<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Enhancements
 
