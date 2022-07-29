@@ -24,14 +24,18 @@ key = 'path/to/key.pem'
 
 # ACME (e.g. Let's Encrypt, ZeroSSL) CA directory
 #
-# Specifies the URL to the ACME CA's directory. It is strongly recommended to
-# set this to `letsencrypt/staging` for testing or development.
+# Specifies the URL to the ACME CA's directory.
 #
 # A identifier `provider/directory` can be passed instead of a URL, see the
 # list of supported directories here: https://www.npmjs.com/package/acme-client#directory-urls
 #
+# Note that the application cannot detect that this value has changed.
+#
+# In that case delete the certificate and the key files, and restart the
+# application to generate new ones.
+#
 # Default is 'letsencrypt/production'
-acmeCa = 'letsencrypt/staging'
+acmeCa = 'zerossl/production'
 
 # Domain for which the certificate should be created.
 #
