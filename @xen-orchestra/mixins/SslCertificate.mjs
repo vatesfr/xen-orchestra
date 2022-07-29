@@ -57,18 +57,7 @@ class SslCertificate {
     this.#secureContext = createSecureContext({ cert, key })
   }
 
-  async getSecureContext(httpsDomainName, config) {
-    // something changed in configuration or there is a network misconfiguration
-    // don't generate new let's encrypt challenges or invalid certificates
-    if (config?.acmeDomain !== httpsDomainName) {
-      warn(`certificates is configured for a domain, but receive http request from another`, {
-        acmeDomain: config?.acmeDomain,
-        httpsDomainName,
-      })
-      // fallback to self signed certificate to not lock user out
-      return undefined
-    }
-
+  async getSecureContext(config) {
     if (!this.#shouldBeRenewed) {
       return this.#secureContext
     }
@@ -185,10 +174,16 @@ export default class SslCertificates {
     const config = this.#app.config.get(['http', 'listen', configKey])
     const handlers = this.#handlers
 
+    const { acmeDomain } = config
+
     // not a let's encrypt protected end point, sommething changed in the configuration
-    if (config.acmeDomain === undefined) {
-      warn(`config don't have acmeDomain, mandatory for let's encrypt`, { config })
+    if (acmeDomain === undefined) {
       handlers.delete(configKey)
+      return
+    }
+
+    // server has been access with another domain, don't use the certificate
+    if (acmeDomain !== httpsDomainName) {
       return
     }
 
@@ -198,7 +193,7 @@ export default class SslCertificates {
       handler = new SslCertificate(this.#challengeHandlers, initialCert, initialKey)
       handlers.set(configKey, handler)
     }
-    return handler.getSecureContext(httpsDomainName, config)
+    return handler.getSecureContext(config)
   }
 
   // middleware that will serve the http challenge to let's encrypt servers

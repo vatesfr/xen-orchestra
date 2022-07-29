@@ -27,4 +27,6 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/mixins patch
+
 <!--packages-end-->
