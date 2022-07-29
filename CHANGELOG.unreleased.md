@@ -7,8 +7,6 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- HTTPS server can acquire SSL certificate from Let's Encrypt (PR [#6320](https://github.com/vatesfr/xen-orchestra/pull/6320))
-
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -28,11 +26,5 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
-
-- @xen-orchestra/backups patch
-- @xen-orchestra/mixins minor
-- @xen-orchestra/proxy minor
-- vhd-lib patch
-- xo-server minor
 
 <!--packages-end-->
