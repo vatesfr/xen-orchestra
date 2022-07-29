@@ -38,7 +38,7 @@
     "promise-toolbox": "^0.21.0",
     "proper-lockfile": "^4.1.2",
     "uuid": "^8.3.2",
-    "vhd-lib": "^3.3.3",
+    "vhd-lib": "^3.3.4",
     "yazl": "^2.5.1"
   },
   "devDependencies": {
