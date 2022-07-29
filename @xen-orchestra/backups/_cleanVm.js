@@ -232,8 +232,6 @@ exports.cleanVm = async function cleanVm(
           } else {
             logWarn('same ids but different content')
           }
-        } else {
-          logInfo('not duplicate', UUID.stringify(vhd.footer.uuid), path)
         }
         vhdById.set(UUID.stringify(vhdKept.footer.uuid), vhdKept)
       })
