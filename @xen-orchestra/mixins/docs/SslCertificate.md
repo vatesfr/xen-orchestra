@@ -17,6 +17,11 @@ Finally, add the following entries to your HTTPS configuration.
 # Must be set to true for this feature
 autoCert = true
 
+# These entries are required and indicates where the certificate and the
+# private key will be saved.
+cert = 'path/to/cert.pem'
+key = 'path/to/key.pem'
+
 # ACME (e.g. Let's Encrypt, ZeroSSL) CA directory
 #
 # Specifies the URL to the ACME CA's directory. It is strongly recommended to
