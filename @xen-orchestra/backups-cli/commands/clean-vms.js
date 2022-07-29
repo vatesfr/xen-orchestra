@@ -26,7 +26,13 @@ module.exports = async function main(args) {
   await asyncMap(_, async vmDir => {
     vmDir = resolve(vmDir)
     try {
-      await adapter.cleanVm(vmDir, { fixMetadata: fix, remove, merge, onLog: (...args) => console.warn(...args) })
+      await adapter.cleanVm(vmDir, {
+        fixMetadata: fix,
+        remove,
+        merge,
+        logInfo: (...args) => console.log(...args),
+        logWarn: (...args) => console.warn(...args),
+      })
     } catch (error) {
       console.error('adapter.cleanVm', vmDir, error)
     }

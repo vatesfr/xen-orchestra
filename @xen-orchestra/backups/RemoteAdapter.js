@@ -279,7 +279,7 @@ class RemoteAdapter {
     const dirs = new Set(files.map(file => dirname(file)))
     for (const dir of dirs) {
       // don't merge in main process, unused VHDs will be merged in the next backup run
-      await this.cleanVm(dir, { remove: true, onLog: warn })
+      await this.cleanVm(dir, { remove: true, logWarn: warn })
     }
 
     const dedupedVmUuid = new Set(metadatas.map(_ => _.vm.uuid))
