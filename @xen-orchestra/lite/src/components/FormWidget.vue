@@ -1,9 +1,5 @@
 <template>
-<<<<<<< HEAD
   <label class="form-widget">
-=======
-  <label :class="{ inline }" class="form-widget">
->>>>>>> feat(lite): initial Vue.js implementation
     <span v-if="label || $slots.label" class="label">
       <slot name="label">
         {{ label }}
@@ -33,13 +29,8 @@
 import type { IconDefinition } from "@fortawesome/fontawesome-common-types";
 
 defineProps<{
-<<<<<<< HEAD
   before?: IconDefinition | string | object; // "object" added as workaround
   after?: IconDefinition | string | object; // See https://github.com/vuejs/core/issues/4294
-=======
-  before?: IconDefinition | string;
-  after?: IconDefinition | string;
->>>>>>> feat(lite): initial Vue.js implementation
   label?: string;
   inline?: boolean;
 }>();
@@ -48,11 +39,7 @@ const isIcon = (maybeIcon: any): maybeIcon is IconDefinition =>
   typeof maybeIcon === "object";
 </script>
 
-<<<<<<< HEAD
 <style lang="postcss" scoped>
-=======
-<style scoped>
->>>>>>> feat(lite): initial Vue.js implementation
 .form-widget {
   display: inline-flex;
   align-items: stretch;
@@ -63,20 +50,13 @@ const isIcon = (maybeIcon: any): maybeIcon is IconDefinition =>
 
 .widget {
   display: inline-flex;
-<<<<<<< HEAD
   flex: 1;
-=======
->>>>>>> feat(lite): initial Vue.js implementation
   align-items: stretch;
   overflow: hidden;
   padding: 0 0.7rem;
   border: 1px solid var(--color-blue-scale-400);
   border-radius: 0.8rem;
-<<<<<<< HEAD
   background-color: var(--color-blue-scale-500);
-=======
-  background-color: var(--form-background);
->>>>>>> feat(lite): initial Vue.js implementation
   box-shadow: var(--shadow-100);
   gap: 0.1rem;
 
@@ -85,58 +65,41 @@ const isIcon = (maybeIcon: any): maybeIcon is IconDefinition =>
   }
 }
 
-<<<<<<< HEAD
 .label {
   display: flex;
   align-items: center;
 }
 
-=======
->>>>>>> feat(lite): initial Vue.js implementation
 .form-widget:hover .widget {
   border-color: var(--color-extra-blue-l60);
 }
 
 .element {
   display: flex;
-<<<<<<< HEAD
   flex: 1;
   align-items: center;
-=======
->>>>>>> feat(lite): initial Vue.js implementation
 }
 
 .before,
 .after {
   display: flex;
   align-items: center;
-<<<<<<< HEAD
   padding: 0 0.3rem;
-=======
->>>>>>> feat(lite): initial Vue.js implementation
 }
 
 :slotted(input),
 :slotted(select),
 :slotted(textarea) {
-<<<<<<< HEAD
-=======
-  font-family: Poppins, sans-serif;
->>>>>>> feat(lite): initial Vue.js implementation
   font-size: inherit;
   border: none;
   outline: none;
   color: var(--color-blue-scale-100);
-<<<<<<< HEAD
   background-color: var(--color-blue-scale-500);
   flex: 1;
 
   &:disabled {
     opacity: 0.5;
   }
-=======
-  background-color: var(--form-background);
->>>>>>> feat(lite): initial Vue.js implementation
 }
 
 :slotted(input[type="checkbox"]) {
@@ -171,12 +134,7 @@ const isIcon = (maybeIcon: any): maybeIcon is IconDefinition =>
 
   &:disabled {
     cursor: not-allowed;
-<<<<<<< HEAD
     color: var(--color-blue-scale-200);
-=======
-    color: var(--form-control-disabled);
-    --form-control-color: var(--form-control-disabled);
->>>>>>> feat(lite): initial Vue.js implementation
   }
 }
 </style>
