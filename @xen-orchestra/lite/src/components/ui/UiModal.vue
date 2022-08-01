@@ -10,7 +10,7 @@
 
 <script lang="ts" setup></script>
 
-<style scoped>
+<style lang="postcss" scoped>
 .ui-modal {
   position: fixed;
   top: 0;
@@ -24,7 +24,7 @@
 }
 
 .content {
-  background-color: white;
+  background-color: var(--background-color-primary);
   min-width: 40rem;
   padding: 2rem;
   border-radius: 1rem;
@@ -33,6 +33,6 @@
 
 :slotted(.ui-button-group) {
   justify-content: center;
-  margin-top: 2rem;
+  margin-top: 1rem;
 }
 </style>

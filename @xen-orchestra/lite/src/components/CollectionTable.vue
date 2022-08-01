@@ -1,11 +1,21 @@
 <template>
-  <CollectionFilter
-    v-if="availableFilters"
-    :active-filters="filters"
-    :available-filters="availableFilters"
-    @add-filter="addFilter"
-    @remove-filter="removeFilter"
-  />
+  <div class="filter-and-sort">
+    <CollectionFilter
+      v-if="availableFilters"
+      :active-filters="filters"
+      :available-filters="availableFilters"
+      @add-filter="addFilter"
+      @remove-filter="removeFilter"
+    />
+
+    <CollectionSorter
+      :active-sorts="sorts"
+      :available-sorts="availableSorts"
+      @add-sort="addSort"
+      @remove-sort="removeSort"
+      @toggle-sort-direction="toggleSortDirection"
+    />
+  </div>
 
   <UiTable>
     <template #header>
@@ -15,9 +25,13 @@
       <slot name="header" />
     </template>
 
-    <tr v-for="item in filteredCollection" :key="item.$ref">
+    <tr v-for="item in filteredAndSortedCollection" :key="item[idProperty]">
       <td v-if="isSelectable">
-        <input v-model="selected" :value="item.$ref" type="checkbox" />
+        <input
+          v-model="selected"
+          :value="item[props.idProperty]"
+          type="checkbox"
+        />
       </td>
       <slot :item="item" name="row" />
     </tr>
@@ -26,18 +40,23 @@
 
 <script lang="ts" setup>
 import { computed, toRef, watch } from "vue";
-import type { AvailableFilter } from "@/types/filter";
+import type { Filters } from "@/types/filter";
+import type { Sorts } from "@/types/sort";
 import CollectionFilter from "@/components/CollectionFilter.vue";
+import CollectionSorter from "@/components/CollectionSorter.vue";
 import UiTable from "@/components/ui/UiTable.vue";
 import useCollectionFilter from "@/composables/collection-filter.composable";
+import useCollectionSorter from "@/composables/collection-sorter.composable";
 import useFilteredCollection from "@/composables/filtered-collection.composable";
 import useMultiSelect from "@/composables/multi-select.composable";
-import type { XenApiRecord } from "@/libs/xen-api";
+import useSortedCollection from "@/composables/sorted-collection.composable";
 
 const props = defineProps<{
   modelValue?: string[];
-  availableFilters?: AvailableFilter[];
-  collection: XenApiRecord[];
+  availableFilters?: Filters;
+  availableSorts?: Sorts;
+  collection: Record<string, any>[];
+  idProperty: string;
 }>();
 
 const emit = defineEmits<{
@@ -47,16 +66,25 @@ const emit = defineEmits<{
 const isSelectable = computed(() => props.modelValue !== undefined);
 
 const { filters, addFilter, removeFilter, predicate } = useCollectionFilter();
+const { sorts, addSort, removeSort, toggleSortDirection, compareFn } =
+  useCollectionSorter();
 
 const filteredCollection = useFilteredCollection(
   toRef(props, "collection"),
   predicate
 );
 
-const usableRefs = computed(() => props.collection.map((item) => item.$ref));
+const filteredAndSortedCollection = useSortedCollection(
+  filteredCollection,
+  compareFn
+);
+
+const usableRefs = computed(() =>
+  props.collection.map((item) => item[props.idProperty])
+);
 
 const selectableRefs = computed(() =>
-  filteredCollection.value.map((item) => item.$ref)
+  filteredAndSortedCollection.value.map((item) => item[props.idProperty])
 );
 
 const { selected, areAllSelected } = useMultiSelect(usableRefs, selectableRefs);
@@ -66,4 +94,8 @@ watch(selected, (selected) => emit("update:modelValue", selected), {
 });
 </script>
 
-<style scoped></style>
+<style lang="postcss" scoped>
+.filter-and-sort {
+  display: flex;
+}
+</style>

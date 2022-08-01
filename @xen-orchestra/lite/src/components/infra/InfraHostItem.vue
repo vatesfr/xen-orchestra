@@ -20,11 +20,8 @@
 
 <script lang="ts" setup>
 import { computed } from "vue";
-import {
-  faAngleDown,
-  faAngleUp,
-  faServer,
-} from "@fortawesome/free-solid-svg-icons";
+import { faAngleDown, faAngleUp } from "@fortawesome/pro-light-svg-icons";
+import { faServer } from "@fortawesome/pro-regular-svg-icons";
 import { useToggle } from "@vueuse/core";
 import InfraAction from "@/components/infra/InfraAction.vue";
 import InfraItemLabel from "@/components/infra/InfraItemLabel.vue";

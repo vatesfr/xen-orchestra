@@ -14,7 +14,7 @@
 <script lang="ts" setup>
 import { storeToRefs } from "pinia";
 import { computed } from "vue";
-import { faDisplay } from "@fortawesome/free-solid-svg-icons";
+import { faDisplay } from "@fortawesome/pro-solid-svg-icons";
 import InfraLoadingItem from "@/components/infra/InfraLoadingItem.vue";
 import InfraVmItem from "@/components/infra/InfraVmItem.vue";
 import { useVmStore } from "@/stores/vm.store";

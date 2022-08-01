@@ -1,23 +1,23 @@
 declare module "complex-matcher" {
   type ComparisonOperator = ">" | ">=" | "<" | "<=";
 
-  class Node {
+  class ComplexMatcherNode {
     createPredicate(): (value) => boolean;
   }
 
-  class Null extends Node {
+  class Null extends ComplexMatcherNode {
     match(): true;
     toString(): "";
   }
 
-  class And extends Node {
-    constructor(children: Node[]);
+  class And extends ComplexMatcherNode {
+    constructor(children: ComplexMatcherNode[]);
     match(value: any): boolean;
     toString(isNested?: boolean): string;
-    children: Node[];
+    children: ComplexMatcherNode[];
   }
 
-  class Comparison extends Node {
+  class Comparison extends ComplexMatcherNode {
     constructor(operator: ComparisonOperator, value: number);
     match(value: any): boolean;
     toString(): string;
@@ -25,61 +25,65 @@ declare module "complex-matcher" {
     _value: number;
   }
 
-  class Or extends Node {
-    constructor(children: Node[]);
+  class Or extends ComplexMatcherNode {
+    constructor(children: ComplexMatcherNode[]);
     match(value: any): boolean;
     toString(): string;
-    children: Node[];
+    children: ComplexMatcherNode[];
   }
 
-  class Not extends Node {
-    constructor(child: Node);
+  class Not extends ComplexMatcherNode {
+    constructor(child: ComplexMatcherNode);
     match(value: any): boolean;
     toString(): string;
-    child: Node;
+    child: ComplexMatcherNode;
   }
 
-  class Number extends Node {
+  class Number extends ComplexMatcherNode {
     constructor(value: number);
     match(value: any): boolean;
     toString(): string;
     value: number;
   }
 
-  class Property extends Node {
-    constructor(name: string, child: Node);
+  class Property extends ComplexMatcherNode {
+    constructor(name: string, child: ComplexMatcherNode);
     match(value: any): boolean;
     toString(): string;
     name: string;
-    child: Node;
+    child: ComplexMatcherNode;
   }
 
-  class GlobPattern extends Node {
+  class GlobPattern extends ComplexMatcherNode {
     constructor(value: string);
     match(re: RegExp, value: any): boolean;
     toString(): string;
     value: string;
   }
 
-  class RegExpNode extends Node {
+  class RegExpNode extends ComplexMatcherNode {
     constructor(pattern: string, flags: string);
     match(value: any): boolean;
     toString(): string;
     re: RegExp;
   }
 
-  class StringNode extends Node {
+  class StringNode extends ComplexMatcherNode {
     constructor(value: string);
     match(lcValue: string, value: any): boolean;
     toString(): string;
     value: string;
   }
 
-  class TruthyProperty extends Node {
+  class TruthyProperty extends ComplexMatcherNode {
     constructor(name: string);
     match(value: any): boolean;
     toString(): string;
   }
 
-  function parse(input: string, pos? = 0, end?: input.length): Node;
+  function parse(
+    input: string,
+    pos? = 0,
+    end?: input.length
+  ): ComplexMatcherNode;
 }
