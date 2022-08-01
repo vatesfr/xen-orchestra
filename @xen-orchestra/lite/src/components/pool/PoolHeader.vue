@@ -6,7 +6,7 @@
 
 <script lang="ts" setup>
 import { computed } from "vue";
-import { faBuilding } from "@fortawesome/free-regular-svg-icons";
+import { faBuilding } from "@fortawesome/pro-regular-svg-icons";
 import TitleBar from "@/components/TitleBar.vue";
 import { usePoolStore } from "@/stores/pool.store";
 
