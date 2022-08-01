@@ -33,8 +33,6 @@ defineProps<{
 .infra-item-label {
   display: flex;
   align-items: stretch;
-  height: 6rem;
-  margin-bottom: 0.2rem;
   color: var(--color-blue-scale-100);
   border-radius: 0.8rem;
   background-color: var(--background-color-primary);
@@ -64,10 +62,12 @@ defineProps<{
   align-items: center;
   flex: 1;
   min-width: 0;
-  padding-left: 1.5rem;
+  padding: 1.5rem;
   text-decoration: none;
   color: inherit;
   gap: 1rem;
+  font-weight: 500;
+  font-size: 2rem;
 }
 
 .text {

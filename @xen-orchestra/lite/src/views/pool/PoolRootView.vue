@@ -13,7 +13,7 @@ import PoolHeader from "@/components/pool/PoolHeader.vue";
 import PoolTabBar from "@/components/pool/PoolTabBar.vue";
 </script>
 
-<style scoped>
+<style lang="postcss" scoped>
 .view {
   padding: 2rem;
 }
