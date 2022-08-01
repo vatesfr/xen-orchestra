@@ -19,7 +19,7 @@ import { useXenApiStore } from "@/stores/xen-api.store";
 const router = useRouter();
 
 const toggleTheme = () => {
-  document.body.classList.toggle("dark");
+  document.documentElement.classList.toggle("dark");
 };
 
 const logout = () => {

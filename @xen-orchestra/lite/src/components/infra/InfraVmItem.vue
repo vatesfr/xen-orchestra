@@ -7,7 +7,9 @@
     >
       {{ vm.name_label }}
       <template #actions>
-        <InfraAction :class="powerStateClass" :icon="powerStateIcon" />
+        <InfraAction>
+          <PowerStateIcon :state="vm?.power_state" />
+        </InfraAction>
       </template>
     </InfraItemLabel>
   </li>
@@ -15,14 +17,9 @@
 
 <script lang="ts" setup>
 import { computed, ref } from "vue";
-import {
-  faDisplay,
-  faMoon,
-  faPause,
-  faPlay,
-  faStop,
-} from "@fortawesome/free-solid-svg-icons";
+import { faDisplay } from "@fortawesome/pro-solid-svg-icons";
 import { useIntersectionObserver } from "@vueuse/core";
+import PowerStateIcon from "@/components/PowerStateIcon.vue";
 import InfraAction from "@/components/infra/InfraAction.vue";
 import InfraItemLabel from "@/components/infra/InfraItemLabel.vue";
 import { useVmStore } from "@/stores/vm.store";
@@ -44,23 +41,6 @@ const { stop } = useIntersectionObserver(rootElement, ([entry]) => {
 const vmStore = useVmStore();
 
 const vm = computed(() => vmStore.getRecord(props.vmOpaqueRef));
-
-const powerStateIcon = computed(() => {
-  switch (vm.value?.power_state) {
-    case "Running":
-      return faPlay;
-    case "Paused":
-      return faPause;
-    case "Suspended":
-      return faMoon;
-    default:
-      return faStop;
-  }
-});
-
-const powerStateClass = computed(() =>
-  vm.value?.power_state.toLocaleLowerCase()
-);
 </script>
 
 <style lang="postcss" scoped>

@@ -6,7 +6,7 @@
 
 <script lang="ts" setup></script>
 
-<style scoped>
+<style lang="postcss" scoped>
 .ui-filter-group {
   display: flex;
   padding: 1rem;

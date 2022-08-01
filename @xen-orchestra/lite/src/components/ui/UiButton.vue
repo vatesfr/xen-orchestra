@@ -1,70 +1,103 @@
 <template>
   <button
-    :class="`color-${buttonColor}`"
+    :class="[
+      `color-${buttonColor}`,
+      { busy: isBusy, disabled: isDisabled, 'has-icon': icon !== undefined },
+    ]"
     :disabled="isBusy || isDisabled"
     :type="type || 'button'"
     class="ui-button"
   >
-    <FontAwesomeIcon v-if="isBusy" :icon="faSpinner" spin />
-    <FontAwesomeIcon v-else-if="iconLeft" :icon="iconLeft" />
-    <slot />
+    <FontAwesomeIcon v-if="isBusy" :icon="faSpinner" class="icon" spin />
+    <template v-else>
+      <FontAwesomeIcon v-if="icon" :icon="icon" class="icon" />
+      <slot />
+    </template>
   </button>
 </template>
 
 <script lang="ts" setup>
 import { computed, inject, unref } from "vue";
 import type { IconDefinition } from "@fortawesome/fontawesome-common-types";
-import { faSpinner } from "@fortawesome/free-solid-svg-icons";
+import { faSpinner } from "@fortawesome/pro-regular-svg-icons";
 
 const props = defineProps<{
   type?: "button" | "reset" | "submit";
   busy?: boolean;
   disabled?: boolean;
-  iconLeft?: IconDefinition;
-  color?: "default" | "action";
+  icon?: IconDefinition;
+  color?: "primary" | "secondary";
 }>();
 
 const isGroupBusy = inject("isButtonGroupBusy", false);
-const isBusy = computed(() => props.busy || unref(isGroupBusy));
+const isBusy = computed(() => props.busy ?? unref(isGroupBusy));
 
 const isGroupDisabled = inject("isButtonGroupDisabled", false);
-const isDisabled = computed(() => props.disabled || unref(isGroupDisabled));
+const isDisabled = computed(() => props.disabled ?? unref(isGroupDisabled));
 
-const buttonGroupColor = inject("buttonGroupColor", "default");
-const buttonColor = computed(() => props.color || unref(buttonGroupColor));
+const buttonGroupColor = inject("buttonGroupColor", "primary");
+const buttonColor = computed(() => props.color ?? unref(buttonGroupColor));
 </script>
 
-<style scoped>
+<style lang="postcss" scoped>
 .ui-button {
-  font-size: 1.6rem;
-  font-weight: 400;
+  font-size: 2rem;
+  font-weight: 500;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  height: 3.8rem;
-  margin: 0;
-  padding: 0 1rem;
-  color: var(--color-blue-scale-500);
+  min-width: 10rem;
+  height: 5rem;
+  padding: 0 1.5rem;
   border: none;
   border-radius: 0.8rem;
-  background-color: var(--color-extra-blue-base);
-  gap: 1rem;
+  box-shadow: var(--shadow-100);
+  gap: 1.5rem;
 
-  &:not([disabled]) {
-    cursor: pointer;
+  &.has-icon {
+    min-width: 13rem;
   }
 
-  &.color-action {
-    color: var(--color-grayscale-200);
-    background-color: var(--color-white);
+  &.disabled {
+    color: var(--color-blue-scale-400);
+    background-color: var(--background-color-secondary);
+  }
 
-    &:not([disabled]):hover {
-      background-color: var(--background-color-secondary);
+  &:not(.disabled) {
+    &.color-primary {
+      color: var(--color-blue-scale-500);
+      background-color: var(--color-extra-blue-base);
+
+      &:hover {
+        background-color: var(--color-extra-blue-d20);
+      }
+
+      &:active,
+      &.busy {
+        background-color: var(--color-extra-blue-d40);
+      }
+    }
+
+    &.color-secondary {
+      color: var(--color-extra-blue-base);
+      border: 1px solid var(--color-extra-blue-base);
+      background-color: var(--color-blue-scale-500);
+
+      &:hover {
+        color: var(--color-extra-blue-d20);
+        border-color: var(--color-extra-blue-d20);
+      }
+
+      &:active,
+      &.busy {
+        color: var(--color-extra-blue-d40);
+        border-color: var(--color-extra-blue-d40);
+      }
     }
   }
+}
 
-  &[disabled] {
-    opacity: 0.5;
-  }
+.icon {
+  font-size: 1.6rem;
 }
 </style>

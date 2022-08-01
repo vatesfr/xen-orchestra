@@ -1,5 +1,5 @@
 <template>
-  <label :class="{ inline }" class="form-widget">
+  <label class="form-widget">
     <span v-if="label || $slots.label" class="label">
       <slot name="label">
         {{ label }}
@@ -29,8 +29,8 @@
 import type { IconDefinition } from "@fortawesome/fontawesome-common-types";
 
 defineProps<{
-  before?: IconDefinition | string;
-  after?: IconDefinition | string;
+  before?: IconDefinition | string | object; // "object" added as workaround
+  after?: IconDefinition | string | object; // See https://github.com/vuejs/core/issues/4294
   label?: string;
   inline?: boolean;
 }>();
@@ -39,9 +39,9 @@ const isIcon = (maybeIcon: any): maybeIcon is IconDefinition =>
   typeof maybeIcon === "object";
 </script>
 
-<style scoped>
+<style lang="postcss" scoped>
 .form-widget {
-  display: inline-flex;
+  display: flex;
   align-items: stretch;
   gap: 1rem;
   font-size: 1.6rem;
@@ -50,12 +50,13 @@ const isIcon = (maybeIcon: any): maybeIcon is IconDefinition =>
 
 .widget {
   display: inline-flex;
+  flex: 1;
   align-items: stretch;
   overflow: hidden;
   padding: 0 0.7rem;
   border: 1px solid var(--color-blue-scale-400);
   border-radius: 0.8rem;
-  background-color: var(--form-background);
+  background-color: var(--color-blue-scale-500);
   box-shadow: var(--shadow-100);
   gap: 0.1rem;
 
@@ -64,29 +65,41 @@ const isIcon = (maybeIcon: any): maybeIcon is IconDefinition =>
   }
 }
 
+.label {
+  display: flex;
+  align-items: center;
+}
+
 .form-widget:hover .widget {
   border-color: var(--color-extra-blue-l60);
 }
 
 .element {
   display: flex;
+  flex: 1;
+  align-items: center;
 }
 
 .before,
 .after {
   display: flex;
   align-items: center;
+  padding: 0 0.3rem;
 }
 
 :slotted(input),
 :slotted(select),
 :slotted(textarea) {
-  font-family: Poppins, sans-serif;
   font-size: inherit;
   border: none;
   outline: none;
   color: var(--color-blue-scale-100);
-  background-color: var(--form-background);
+  background-color: var(--color-blue-scale-500);
+  flex: 1;
+
+  &:disabled {
+    opacity: 0.5;
+  }
 }
 
 :slotted(input[type="checkbox"]) {
@@ -121,8 +134,7 @@ const isIcon = (maybeIcon: any): maybeIcon is IconDefinition =>
 
   &:disabled {
     cursor: not-allowed;
-    color: var(--form-control-disabled);
-    --form-control-color: var(--form-control-disabled);
+    color: var(--color-blue-scale-200);
   }
 }
 </style>

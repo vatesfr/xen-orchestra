@@ -1,6 +1,8 @@
 <template>
   <div class="infra-action">
-    <FontAwesomeIcon :icon="icon" fixed-width />
+    <slot>
+      <FontAwesomeIcon :icon="icon" fixed-width />
+    </slot>
   </div>
 </template>
 
@@ -8,7 +10,7 @@
 import type { IconDefinition } from "@fortawesome/fontawesome-common-types";
 
 defineProps<{
-  icon: IconDefinition;
+  icon?: IconDefinition;
 }>();
 </script>
 
