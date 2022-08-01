@@ -184,4 +184,8 @@ const className = computed(() => {
     transform: rotate(360deg);
   }
 }
+
+.icon {
+  font-size: 1.6rem;
+}
 </style>

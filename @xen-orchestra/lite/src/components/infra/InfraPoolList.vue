@@ -6,7 +6,7 @@
     />
     <li v-else class="infra-pool-item">
       <InfraItemLabel
-        :icon="faBuilding"
+        :icon="faBuildings"
         :route="{ name: 'pool.dashboard', params: { uuid: pool.uuid } }"
         active
       >
@@ -22,7 +22,7 @@
 
 <script lang="ts" setup>
 import { storeToRefs } from "pinia";
-import { faBuilding } from "@fortawesome/free-regular-svg-icons";
+import { faBuildings } from "@fortawesome/pro-regular-svg-icons";
 import InfraHostList from "@/components/infra/InfraHostList.vue";
 import InfraItemLabel from "@/components/infra/InfraItemLabel.vue";
 import InfraLoadingItem from "@/components/infra/InfraLoadingItem.vue";
