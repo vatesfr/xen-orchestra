@@ -6,59 +6,58 @@
       @edit="emit('toggleSortDirection', property)"
       @remove="emit('removeSort', property)"
     >
-      <span class="property">
+      <span style="display: inline-flex; align-items: center; gap: 0.7rem">
         <FontAwesomeIcon :icon="isAscending ? faCaretUp : faCaretDown" />
         {{ property }}
       </span>
     </UiFilter>
 
+<<<<<<< HEAD
     <UiActionButton :icon="faPlus" class="add-sort" @click="open">
       {{ $t("add-sort") }}
     </UiActionButton>
-  </UiFilterGroup>
 
-  <UiModal v-if="isOpen" @submit.prevent="handleSubmit" :icon="faSort">
-    <div class="form-widgets">
-      <FormWidget :label="$t('sort-by')">
-        <select v-model="newSortProperty">
-          <option v-if="!newSortProperty"></option>
-          <option
-            v-for="(sort, property) in availableSorts"
-            :key="property"
-            :value="property"
-          >
-            {{ sort.label ?? property }}
-          </option>
-        </select>
-      </FormWidget>
-      <FormWidget>
-        <select v-model="newSortIsAscending">
-          <option :value="true">{{ $t("ascending") }}</option>
-          <option :value="false">{{ $t("descending") }}</option>
-        </select>
-      </FormWidget>
-    </div>
-    <template #buttons>
-      <UiButton type="submit">{{ $t("add") }}</UiButton>
-      <UiButton outlined @click="handleCancel">
-          {{ $t("cancel") }}
-        </UiButton>
-    </template>
+  <UiModal v-if="isOpen">
+    <form @submit.prevent="handleSubmit">
+      <div style="display: flex; gap: 1rem">
+        <FormWidget label="Sort by">
+          <select v-model="newSortProperty">
+            <option v-if="!newSortProperty"></option>
+            <option
+              v-for="(sort, property) in availableSorts"
+              :key="property"
+              :value="property"
+            >
+              {{ sort.label ?? property }}
+            </option>
+          </select>
+        </FormWidget>
+        <FormWidget>
+          <select v-model="newSortIsAscending">
+            <option :value="true">ascending</option>
+            <option :value="false">descending</option>
+          </select>
+        </FormWidget>
+      </div>
+      <UiButtonGroup>
+        <UiButton type="submit"> Add</UiButton>
+        <UiButton color="secondary" @click="handleCancel">Cancel</UiButton>
+      </UiButtonGroup>
+    </form>
+>>>>>>> Merge old repo to XO
   </UiModal>
 </template>
 
-<script lang="ts" setup>
 import { ref } from "vue";
 import type { ActiveSorts, Sorts } from "@/types/sort";
 import {
   faCaretDown,
   faCaretUp,
   faPlus,
-  faSort,
-} from "@fortawesome/free-solid-svg-icons";
+} from "@fortawesome/pro-solid-svg-icons";
 import FormWidget from "@/components/FormWidget.vue";
 import UiButton from "@/components/ui/UiButton.vue";
-import UiActionButton from "@/components/ui/UiActionButton.vue";
+import UiButtonGroup from "@/components/ui/UiButtonGroup.vue";
 import UiFilter from "@/components/ui/UiFilter.vue";
 import UiFilterGroup from "@/components/ui/UiFilterGroup.vue";
 import UiModal from "@/components/ui/UiModal.vue";
@@ -81,8 +80,9 @@ const newSortProperty = ref();
 const newSortIsAscending = ref<boolean>(true);
 
 const reset = () => {
-  newSortProperty.value = undefined;
-  newSortIsAscending.value = true;
+  // editedFilter.value = "";
+  // newFilters.value = [];
+  // addNewFilter();
 };
 
 const handleSubmit = () => {
@@ -98,14 +98,7 @@ const handleCancel = () => {
 </script>
 
 <style lang="postcss" scoped>
-.form-widgets {
-  display: flex;
-  gap: 1rem;
-}
-
-.property {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.7rem;
+.add-sort {
+  height: 3.4rem;
 }
 </style>

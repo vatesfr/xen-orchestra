@@ -1,14 +1,14 @@
 <template>
   <div class="collection-filter-row">
-    <span class="or">{{ $t("or") }}</span>
-    <FormWidget v-if="newFilter.isAdvanced" class="form-widget-advanced">
+    <span class="or">OR</span>
+    <FormWidget v-if="newFilter.isAdvanced" style="flex: 1">
       <input v-model="newFilter.content" />
     </FormWidget>
     <template v-else>
       <FormWidget :before="currentFilterIcon">
         <select v-model="newFilter.builder.property">
           <option v-if="!newFilter.builder.property" value="">
-            - {{ $t("property") }} -
+            - Property -
           </option>
           <option
             v-for="(filter, property) in availableFilters"
@@ -62,12 +62,20 @@
         </FormWidget>
       </template>
     </template>
-    <UiActionButton
+    <UiButton
       v-if="!newFilter.isAdvanced"
+      color="secondary"
       @click="enableAdvancedMode"
-      :icon="faPencil"
-    />
-    <UiActionButton @click="emit('remove', newFilter.id)" :icon="faRemove" />
+    >
+      <FontAwesomeIcon :icon="faPencil" />
+    </UiButton>
+    <UiButton
+      class="remove"
+      color="secondary"
+      @click="emit('remove', newFilter.id)"
+    >
+      <FontAwesomeIcon :icon="faRemove" class="remove-icon" />
+    </UiButton>
   </div>
 </template>
 
@@ -81,10 +89,10 @@ import type {
   Filters,
   NewFilter,
 } from "@/types/filter";
-import { faPencil, faRemove } from "@fortawesome/free-solid-svg-icons";
+import { faPencil, faRemove } from "@fortawesome/pro-solid-svg-icons";
 import { useVModel } from "@vueuse/core";
 import FormWidget from "@/components/FormWidget.vue";
-import UiActionButton from "@/components/ui/UiActionButton.vue";
+import UiButton from "@/components/ui/UiButton.vue";
 import { buildComplexMatcherNode } from "@/libs/complex-matcher.utils";
 import { getFilterIcon } from "@/libs/utils";
 
@@ -234,10 +242,6 @@ const valueInputAfter = computed(() => {
   border-bottom: 1px solid var(--background-color-secondary);
   gap: 1rem;
 
-  .or {
-    text-transform: uppercase;
-  }
-
   &:only-child {
     .or,
     .remove {
@@ -250,7 +254,7 @@ const valueInputAfter = computed(() => {
   }
 }
 
-.form-widget-advanced {
-  flex: 1;
+.remove-icon {
+  color: var(--color-red-vates-base);
 }
 </style>

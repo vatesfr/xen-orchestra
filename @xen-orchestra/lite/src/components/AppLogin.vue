@@ -36,7 +36,7 @@ async function handleSubmit() {
 }
 </script>
 
-<style scoped>
+<style lang="postcss" scoped>
 .form-container {
   display: flex;
   align-items: center;

@@ -10,7 +10,8 @@ import {
   faPlay,
   faQuestion,
   faStop,
-} from "@fortawesome/free-solid-svg-icons";
+} from "@fortawesome/pro-solid-svg-icons";
+import FormWidget from "@/components/FormWidget.vue";
 import type { PowerState } from "@/libs/xen-api";
 
 const props = defineProps<{
@@ -18,36 +19,33 @@ const props = defineProps<{
 }>();
 
 const icon = computed(() => {
-  switch (props.state) {
-    case "Running":
-      return faPlay;
-    case "Paused":
-      return faPause;
-    case "Suspended":
-      return faMoon;
-    case "Unknown":
-      return faQuestion;
-    default:
-      return faStop;
-  }
+  const icons = {
+    Running: faPlay,
+    Paused: faPause,
+    Suspended: faMoon,
+    Unknown: faQuestion,
+    Halted: faStop,
+  };
+
+  return icons[props.state];
 });
 
-const className = computed(() => props.state.toLocaleLowerCase());
+const className = computed(() => `state-${props.state.toLocaleLowerCase()}`);
 </script>
 
 <style scoped lang="postcss">
 .power-state-icon {
   color: var(--color-extra-blue-d60);
 
-  &.running {
+  &.state-running {
     color: var(--color-green-infra-base);
   }
 
-  &.paused {
+  &.state-paused {
     color: var(--color-blue-scale-300);
   }
 
-  &.suspended {
+  &.state-suspended {
     color: var(--color-extra-blue-d20);
   }
 }
