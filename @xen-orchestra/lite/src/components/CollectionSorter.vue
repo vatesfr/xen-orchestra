@@ -6,7 +6,7 @@
       @edit="emit('toggleSortDirection', property)"
       @remove="emit('removeSort', property)"
     >
-      <span style="display: inline-flex; align-items: center; gap: 0.7rem">
+      <span class="property">
         <FontAwesomeIcon :icon="isAscending ? faCaretUp : faCaretDown" />
         {{ property }}
       </span>
@@ -19,7 +19,7 @@
 
   <UiModal v-if="isOpen">
     <form @submit.prevent="handleSubmit">
-      <div style="display: flex; gap: 1rem">
+      <div class="form-widgets">
         <FormWidget label="Sort by">
           <select v-model="newSortProperty">
             <option v-if="!newSortProperty"></option>
@@ -80,9 +80,8 @@ const newSortProperty = ref();
 const newSortIsAscending = ref<boolean>(true);
 
 const reset = () => {
-  // editedFilter.value = "";
-  // newFilters.value = [];
-  // addNewFilter();
+  newSortProperty.value = undefined;
+  newSortIsAscending.value = true;
 };
 
 const handleSubmit = () => {
@@ -100,5 +99,16 @@ const handleCancel = () => {
 <style lang="postcss" scoped>
 .add-sort {
   height: 3.4rem;
+}
+
+.form-widgets {
+  display: flex;
+  gap: 1rem;
+}
+
+.property {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
 }
 </style>

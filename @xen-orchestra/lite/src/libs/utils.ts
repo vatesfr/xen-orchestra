@@ -23,6 +23,13 @@ export function escapeRegExp(string: string) {
   return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
+const iconsByType = {
+  string: faFont,
+  number: faHashtag,
+  boolean: faSquareCheck,
+  enum: faList,
+};
+
 export function getFilterIcon(filter: Filter | undefined) {
   if (!filter) {
     return;
@@ -31,13 +38,6 @@ export function getFilterIcon(filter: Filter | undefined) {
   if (filter.icon) {
     return filter.icon;
   }
-
-  const iconsByType = {
-    string: faFont,
-    number: faHashtag,
-    boolean: faSquareCheck,
-    enum: faList,
-  };
 
   return iconsByType[filter.type];
 }
