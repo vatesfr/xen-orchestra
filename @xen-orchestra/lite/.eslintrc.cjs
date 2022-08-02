@@ -13,14 +13,14 @@ module.exports = {
     "@vue/eslint-config-prettier",
   ],
   plugins: [
-    [
-      "@limegrass/import-alias",
-      { aliasConfigPath: require("path").join(__dirname, ".tsconfig.json") },
-    ],
+    "@limegrass/import-alias"
   ],
   rules: {
     "@typescript-eslint/no-non-null-assertion": "off",
     "@typescript-eslint/no-explicit-any": "off",
-    "@limegrass/import-alias/import-alias": "error",
+    "@limegrass/import-alias/import-alias": [
+      "error",
+      { aliasConfigPath: require("path").join(__dirname, "tsconfig.json") }
+    ],
   },
 };
