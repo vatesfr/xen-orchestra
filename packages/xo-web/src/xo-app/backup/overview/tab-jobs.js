@@ -1,3 +1,4 @@
+import * as CM from 'complex-matcher'
 import _ from 'intl'
 import ActionButton from 'action-button'
 import addSubscriptions from 'add-subscriptions'
@@ -107,11 +108,12 @@ const GoToLogs = decorate([
     effects: {
       goTo() {
         const { jobId, location, router, scheduleId, scrollIntoLogs } = this.props
+        const search = jobId !== undefined ? ['jobId', jobId] : ['scheduleId', scheduleId]
         router.replace({
           ...location,
           query: {
             ...location.query,
-            s_logs: jobId !== undefined ? `jobId:${jobId}` : `scheduleId:${scheduleId}`,
+            s_logs: new CM.Property(search[0], new CM.String(search[1])).toString(),
           },
         })
         scrollIntoLogs()

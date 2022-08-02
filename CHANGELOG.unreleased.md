@@ -28,5 +28,6 @@
 <!--packages-start-->
 
 - @xen-orchestra/mixins patch
+- xo-web patch
 
 <!--packages-end-->
