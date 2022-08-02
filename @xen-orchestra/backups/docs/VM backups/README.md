@@ -34,23 +34,15 @@
 
 ### with vhd directories
 
+When `useVhdDirectory` is enabled on the remote, the directory containing the VHDs has a slightly different architecture:
+
 ```
-<remote>
-└─ xo-vm-backups
-  ├─ index.json // TODO
-  └─ <VM UUID>
-     ├─ index.json // TODO
-     ├─ vdis
-     │  └─ <job UUID>
-     │     └─ <VDI UUID>
-     │        ├─ <YYYYMMDD>T<HHmmss>.alias.vhd // contains the relative path to a vhd directory
-     │        ├─ <YYYYMMDD>T<HHmmss>.alias.vhd
-     │        └─ data
-     │          ├─ <uuid>.vhd //vhd directory format is described in vhd-lib/Vhd/VhdDirectory.js
-     |          └─ <uuid>.vhd
-     ├─ <YYYYMMDD>T<HHmmss>.json // backup metadata
-     ├─ <YYYYMMDD>T<HHmmss>.xva
-     └─ <YYYYMMDD>T<HHmmss>.xva.checksum
+<vdis>/<job UUID>/<VDI UUID>
+  ├─ <YYYYMMDD>T<HHmmss>.alias.vhd // contains the relative path to a VHD directory
+  ├─ <YYYYMMDD>T<HHmmss>.alias.vhd
+  └─ data
+    ├─ <uuid>.vhd // VHD directory format is described in vhd-lib/Vhd/VhdDirectory.js
+    └─ <uuid>.vhd
 ```
 
 ## Attributes
