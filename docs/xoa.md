@@ -206,6 +206,19 @@ In any case, if you lose your password, you can reset the database and get the d
 
 You can verify that your time is correctly set with the `date` command. To set XOA to your current timezone, use `sudo dpkg-reconfigure tzdata`.
 
+## Setting a custom NTP server
+
+By default XOA NTP servers are set to work with Debian NTP pool:
+```
+pool 0.debian.pool.ntp.org iburst
+pool 1.debian.pool.ntp.org iburst
+pool 2.debian.pool.ntp.org iburst
+pool 3.debian.pool.ntp.org iburst
+```
+But if you want to use your own NTP server or another pool you can edit the ntp.conf file located in /etc.
+You will need sudo permission to edit the file.
+We recommend you only add your own NTP server at the start of the list and not removing the Debian pool if not necessary.
+
 ## Restart the service
 
 You can restart Xen Orchestra by accessing XOA via SSH (or console) and running `systemctl restart xo-server.service`.
