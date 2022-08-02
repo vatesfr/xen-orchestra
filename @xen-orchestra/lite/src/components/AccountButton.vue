@@ -1,13 +1,44 @@
 <template>
-  <button class="account-button">
-    <FontAwesomeIcon class="user-icon" :icon="faCircleUser" />
-    <FontAwesomeIcon class="dropdown-icon" :icon="faAngleDown" />
-  </button>
+  <AppMenu placement="bottom-end">
+    <template #trigger="{ open, isOpen }">
+      <button type="button" class="account-button" :class="{ active: isOpen }" @click="open">
+        <FontAwesomeIcon class="user-icon" :icon="faCircleUser" />
+        <FontAwesomeIcon class="dropdown-icon" :icon="faAngleDown" />
+      </button>
+    </template>
+    <AppMenuItem :icon="faGear">Settings</AppMenuItem>
+    <AppMenuItem :icon="faMessageExclamation">Send us feedback</AppMenuItem>
+    <AppMenuItem :icon="faArrowRightFromBracket" @click="logout">
+      Log out
+    </AppMenuItem>
+  </AppMenu>
 </template>
 
 <script lang="ts" setup>
-import { faAngleDown } from "@fortawesome/pro-light-svg-icons";
+import AppMenu from '@/components/AppMenu.vue';
+import AppMenuItem from '@/components/AppMenuItem.vue';
+import { useXenApiStore } from '@/stores/xen-api.store';
 import { faCircleUser } from "@fortawesome/pro-solid-svg-icons";
+import {
+  faAngleDown,
+  faArrowRightFromBracket,
+  faGear,
+  faMessageExclamation,
+} from "@fortawesome/pro-light-svg-icons";
+import { nextTick } from 'vue';
+import { useRouter } from 'vue-router';
+
+defineProps<{
+  active?: boolean;
+}>();
+
+const xenApiStore = useXenApiStore();
+const router = useRouter();
+
+const logout = () => {
+  xenApiStore.disconnect();
+  nextTick(() => router.push({ name: "home" }));
+};
 </script>
 
 <style scoped>
@@ -28,11 +59,13 @@ import { faCircleUser } from "@fortawesome/pro-solid-svg-icons";
   &:not(:disabled) {
     cursor: pointer;
     &:hover,
-    &:active {
+    &:active,
+    &.active {
       background-color: var(--background-color-primary);
     }
 
-    &:active {
+    &:active,
+    &.active {
       color: var(--color-extra-blue-base);
     }
   }

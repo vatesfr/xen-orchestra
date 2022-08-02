@@ -5,27 +5,17 @@
     </RouterLink>
     <slot />
     <span style="cursor: pointer" @click="toggleTheme">Switch theme</span>
-    <span style="cursor: pointer; margin-left: 1rem" @click="logout">
-      Logout
-    </span>
+    <div class="right">
+      <AccountButton />
+    </div>
   </header>
 </template>
 
 <script lang="ts" setup>
-import { nextTick } from "vue";
-import { useRouter } from "vue-router";
-import { useXenApiStore } from "@/stores/xen-api.store";
-
-const router = useRouter();
+import AccountButton from '@/components/AccountButton.vue';
 
 const toggleTheme = () => {
-  document.documentElement.classList.toggle("dark");
-};
-
-const logout = () => {
-  const xenApiStore = useXenApiStore();
-  xenApiStore.disconnect();
-  nextTick(() => router.push({ name: "home" }));
+  document.documentElement.classList.toggle('dark');
 };
 </script>
 
@@ -37,5 +27,9 @@ const logout = () => {
   padding: 0 0.8rem;
   border-bottom: 0.1rem solid var(--color-blue-scale-400);
   background-color: var(--background-color-secondary);
+}
+
+.right {
+  margin-left: auto;
 }
 </style>
