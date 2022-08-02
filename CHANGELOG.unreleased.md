@@ -27,6 +27,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/fs minor
 - vhd-lib major
 
 <!--packages-end-->
