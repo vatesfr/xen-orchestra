@@ -65,7 +65,9 @@ class AuthSamlXoPlugin {
     this._conf = {
       ...this._strategyOptions,
       ...DEFAULTS,
-      ...conf
+      path: '/signin/saml/callback',
+
+      ...conf,
     }
 
     if (loaded) {
