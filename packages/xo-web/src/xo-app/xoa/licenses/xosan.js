@@ -1,65 +1,14 @@
 import _ from 'intl'
-import ActionButton from 'action-button'
 import Component from 'base-component'
 import Link from 'link'
 import React from 'react'
 import renderXoItem, { Pool } from 'render-xo-item'
+import SelectLicense from 'select-license'
 import SortedTable from 'sorted-table'
 import { connectStore } from 'utils'
 import { createSelector, createGetObjectsOfType, createFilter } from 'selectors'
 import { filter, forEach, includes, map } from 'lodash'
-import { get } from '@xen-orchestra/defined'
-import { injectIntl } from 'react-intl'
 import { unlockXosan } from 'xo'
-
-@injectIntl
-class SelectLicense extends Component {
-  state = { license: 'none' }
-
-  render() {
-    return (
-      <form className='form-inline'>
-        <select className='form-control' onChange={this.linkState('license')}>
-          {_('selectLicense', message => (
-            <option key='none' value='none'>
-              {message}
-            </option>
-          ))}
-          {map(this.props.licenses, license =>
-            _(
-              'expiresOn',
-              {
-                date:
-                  license.expires !== undefined
-                    ? this.props.intl.formatTime(license.expires, {
-                        day: 'numeric',
-                        month: 'numeric',
-                        year: 'numeric',
-                      })
-                    : '',
-              },
-              message => (
-                <option key={license.id} value={license.id}>
-                  {license.id.slice(-4)} {license.expires ? `(${message})` : ''}
-                </option>
-              )
-            )
-          )}
-        </select>
-        <ActionButton
-          btnStyle='primary'
-          className='ml-1'
-          disabled={this.state.license === 'none'}
-          handler={this.props.onChange}
-          handlerParam={get(() => this.state.license)}
-          icon='connect'
-        >
-          {_('bindLicense')}
-        </ActionButton>
-      </form>
-    )
-  }
-}
 
 const XOSAN_COLUMNS = [
   {
@@ -72,7 +21,7 @@ const XOSAN_COLUMNS = [
     itemRenderer: sr => <Pool id={sr.$pool} link />,
   },
   {
-    name: _('xosanLicense'),
+    name: _('license'),
     itemRenderer: (sr, { availableLicenses, licensesByXosan, updateLicenses }) => {
       const license = licensesByXosan[sr.id]
 
@@ -90,6 +39,7 @@ const XOSAN_COLUMNS = [
         <SelectLicense
           licenses={availableLicenses}
           onChange={licenseId => unlockXosan(licenseId, sr.id).then(updateLicenses)}
+          productType='xosan'
         />
       )
     },

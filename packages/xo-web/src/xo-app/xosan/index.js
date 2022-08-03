@@ -21,13 +21,13 @@ import {
   subscribeResourceCatalog,
   subscribeVolumeInfo,
   updateXosanPacks,
+  EXPIRES_SOON_DELAY,
 } from 'xo'
 
 import NewXosan from './new-xosan'
 import CreationProgress from './creation-progress'
 
 export const INFO_TYPES = ['heal', 'status', 'info', 'statusDetail', 'hosts']
-const EXPIRES_SOON_DELAY = 30 * 24 * 60 * 60 * 1000 // 1 month
 
 // ==================================================================
 
@@ -120,7 +120,7 @@ const XOSAN_COLUMNS = [
     sortCriteria: sr => (sr.physical_usage * 100) / sr.size,
   },
   {
-    name: _('xosanLicense'),
+    name: _('license'),
     itemRenderer: (sr, { isAdmin, licensesByXosan, licenseError }) => {
       if (licenseError !== undefined) {
         return
@@ -155,20 +155,20 @@ const XOSAN_COLUMNS = [
             '✔'
           ) : expired ? (
             <span>
-              {_('licenseHasExpired')} {isAdmin && <Link to='/xoa/licenses'>{_('xosanUpdateLicenseMessage')}</Link>}
+              {_('licenseHasExpired')} {isAdmin && <Link to='/xoa/licenses'>{_('updateLicenseMessage')}</Link>}
             </span>
           ) : (
             <span className={expiresSoon && 'text-danger'}>
-              {_('xosanLicenseExpiresDate', {
+              {_('licenseExpiresDate', {
                 date: <ShortDate timestamp={license.expires} />,
               })}{' '}
-              {expiresSoon && isAdmin && <Link to='/xoa/licenses'>{_('xosanUpdateLicenseMessage')}</Link>}
+              {expiresSoon && isAdmin && <Link to='/xoa/licenses'>{_('updateLicenseMessage')}</Link>}
             </span>
           )}
         </span>
       ) : (
         <span>
-          {_('xosanNoLicense')} <Link to='/xoa/licenses'>{_('xosanUnlockNow')}</Link>
+          {_('xosanNoLicense')} <Link to='/xoa/licenses'>{_('unlockNow')}</Link>
         </span>
       )
     },

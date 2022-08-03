@@ -4,11 +4,13 @@ import addSubscriptions from 'add-subscriptions'
 import copy from 'copy-to-clipboard'
 import decorate from 'apply-decorators'
 import Icon from 'icon'
+import Link from 'link'
 import NoObjects from 'no-objects'
 import React from 'react'
 import SortedTable from 'sorted-table'
-import { adminOnly } from 'utils'
+import { adminOnly, ShortDate } from 'utils'
 import { confirm } from 'modal'
+import { groupBy } from 'lodash'
 import { incorrectState } from 'xo-common/api-errors'
 import { provideState, injectState } from 'reaclette'
 import { Text } from 'editable'
@@ -19,9 +21,11 @@ import {
   destroyProxyAppliances,
   editProxyAppliance,
   forgetProxyAppliances,
+  getLicenses,
   getProxyApplianceUpdaterState,
   subscribeProxies,
   upgradeProxyAppliance,
+  EXPIRES_SOON_DELAY,
 } from 'xo'
 
 import Page from '../page'
@@ -139,6 +143,61 @@ const COLUMNS = [
     name: _('vm'),
   },
   {
+    name: _('license'),
+    itemRenderer: (proxy, { isAdmin, licensesByVmUuid, licenseError }) => {
+      if (licenseError !== undefined) {
+        return
+      }
+
+      const license = licensesByVmUuid[proxy.vmUuid]
+
+      // Proxy not bound to any license, not even trial
+      if (license === undefined) {
+        return (
+          <span className='text-danger'>
+            {_('noLicenseAvailable')} <a href='https://xen-orchestra.com/'>{_('contactUs')}</a>
+          </span>
+        )
+      }
+      /*
+      // Proxy bound to multiple licenses
+      if (license === null) {
+        return (
+          <span className='text-danger'>
+            {_('multipleLicenses')} <a href='https://xen-orchestra.com/'>{_('contactUs')}</a>
+          </span>
+        )
+      }
+      */
+
+      const now = Date.now()
+      const expiresSoon = license.expires - now < EXPIRES_SOON_DELAY
+      const expired = license.expires < now
+      return license.productId === 'xoproxy' ? (
+        <span>
+          {license.expires === undefined ? (
+            '✔'
+          ) : expired ? (
+            <span>
+              {_('licenseHasExpired')} {isAdmin && <Link to='/xoa/licenses'>{_('updateLicenseMessage')}</Link>}
+            </span>
+          ) : (
+            <span className={expiresSoon && 'text-danger'}>
+              {_('licenseExpiresDate', {
+                date: <ShortDate timestamp={license.expires} />,
+              })}{' '}
+              {expiresSoon && isAdmin && <Link to='/xoa/licenses'>{_('updateLicenseMessage')}</Link>}
+            </span>
+          )}
+        </span>
+      ) : (
+        <span>
+          {_('noLicenseAvailable')} <Link to='/xoa/licenses'>{_('unlockNow')}</Link>
+        </span>
+      )
+    },
+  },
+  {
     itemRenderer: (proxy, { upgradesByProxy, upgradeAppliance }) => {
       const globalState = upgradesByProxy[proxy.id]
       if (globalState === undefined) {
@@ -201,9 +260,11 @@ const Proxies = decorate([
   provideState({
     initialState: () => ({
       upgradesByProxy: {},
+      licensesByProxy: {},
     }),
     effects: {
-      initialize({ fetchProxyUpgrades }) {
+      async initialize({ fetchProxyUpgrades }) {
+        this.state.licensesByVmUuid = groupBy(await getLicenses({ productType: 'xoproxy' }), 'boundObjectId')
         return fetchProxyUpgrades(this.props.proxies.map(({ id }) => id))
       },
       async fetchProxyUpgrades(effects, proxies) {
@@ -272,6 +333,7 @@ const Proxies = decorate([
           columns={COLUMNS}
           component={SortedTable}
           data-deployProxy={effects.deployProxy}
+          data-licensesByVmUuid={state.licensesByVmUuid}
           data-router={router}
           data-upgradesByProxy={state.upgradesByProxy}
           data-upgradeAppliance={effects.upgradeAppliance}

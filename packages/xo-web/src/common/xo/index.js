@@ -50,6 +50,10 @@ const MAX_VMS = 30
 
 // ===================================================================
 
+export const EXPIRES_SOON_DELAY = 30 * 24 * 60 * 60 * 1000 // 1 month
+
+// ===================================================================
+
 export const ITEMS_PER_PAGE_OPTIONS = [10, 20, 50, 100]
 export const VDIS_TO_COALESCE_LIMIT = 10
 
