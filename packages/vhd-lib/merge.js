@@ -216,5 +216,13 @@ module.exports.mergeVhd = limitConcurrency(2)(async function merge(
     parentHandler.unlink(mergeStatePath).catch(warn)
 
     return mergeState.mergedDataSize
+  }).catch(error => {
+    try {
+      error.childPath = childPath
+      error.parentPath = parentPath
+    } finally {
+      // eslint-disable-next-line no-unsafe-finally
+      throw error
+    }
   })
 })
