@@ -9,7 +9,7 @@ import { pipeline } from 'stream'
 import { randomBytes } from 'crypto'
 import { synchronized } from 'decorator-synchronized'
 
-import { basename, dirname, normalize as normalizePath } from './_path'
+import { basename, dirname, normalize as normalizePath } from './path'
 import { createChecksumStream, validChecksumOfReadStream } from './checksum'
 
 const { warn } = createLogger('@xen-orchestra:fs')

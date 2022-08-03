@@ -5,6 +5,7 @@
 const assert = require('assert')
 const noop = require('./_noop')
 const UUID = require('uuid')
+const handlerPath = require('@xen-orchestra/fs/path')
 const { createLogger } = require('@xen-orchestra/log')
 const { limitConcurrency } = require('limit-concurrency-decorator')
 
@@ -71,6 +72,7 @@ async function cleanupVhds(handler, parent, children, { logInfo = noop, remove =
     }
   })
 }
+
 module.exports._cleanupVhds = cleanupVhds
 
 // Merge one or multiple vhd child into vhd parent.
@@ -145,12 +147,20 @@ module.exports.mergeVhd = limitConcurrency(2)(async function merge(
 
     if (mergeState === undefined) {
       await parentVhd.ensureBatSize(childVhd.header.maxTableEntries)
+      let chain
+      if (Array.isArray(childPath)) {
+        chain = [parentPath].concat(childPath)
+      } else {
+        chain = [parentPath, childPath]
+      }
+      chain = chain.map(vhdPath => handlerPath.relativeFromFile(mergeStatePath, vhdPath))
 
       mergeState = {
         child: { header: childVhd.header.checksum },
         parent: { header: parentVhd.header.checksum },
         currentBlock: 0,
         mergedDataSize: 0,
+        chain,
       }
 
       // finds first allocated block for the 2 following loops

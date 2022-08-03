@@ -17,7 +17,7 @@
     "xo-fs": "./cli.js"
   },
   "engines": {
-    "node": ">=14"
+    "node": ">=14.13"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.54.0",
@@ -67,5 +67,9 @@
   "author": {
     "name": "Vates SAS",
     "url": "https://vates.fr"
+  },
+  "exports": {
+    ".": "./dist/index.js",
+    "./path": "./dist/path.js"
   }
 }
