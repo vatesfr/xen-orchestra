@@ -93,6 +93,13 @@ module.exports.mergeVhd = limitConcurrency(2)(async function merge(
     try {
       const mergeStateContent = await parentHandler.readFile(mergeStatePath)
       mergeState = JSON.parse(mergeStateContent)
+
+      // work-around a bug introduce in 97d94b795
+      //
+      // currentBlock could be `null` due to the JSON.stringify of a `NaN` value
+      if (mergeState.currentBlock === null) {
+        mergeState.currentBlock = 0
+      }
     } catch (error) {
       if (error.code !== 'ENOENT') {
         warn('problem while checking the merge state', { error })
@@ -172,6 +179,7 @@ module.exports.mergeVhd = limitConcurrency(2)(async function merge(
         merging.add(blockId)
         mergeState.mergedDataSize += await parentVhd.mergeBlock(childVhd, blockId, isResuming)
 
+        mergeState.currentBlock = Math.min(...merging)
         merging.delete(blockId)
 
         onProgress({
@@ -179,7 +187,6 @@ module.exports.mergeVhd = limitConcurrency(2)(async function merge(
           done: counter + 1,
         })
         counter++
-        mergeState.currentBlock = Math.min(...merging)
         mergeStateWriter(mergeState)
       },
       {

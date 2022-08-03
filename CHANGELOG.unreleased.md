@@ -32,6 +32,7 @@
 - @xen-orchestra/backups patch
 - @xen-orchestra/mixins patch
 - vhd-cli minor
+- vhd-lib patch
 - xo-web patch
 - xo-server-auth-saml minor
 
