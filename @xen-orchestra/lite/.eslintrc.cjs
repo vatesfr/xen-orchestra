@@ -17,10 +17,7 @@ module.exports = {
     "@vue/eslint-config-prettier",
   ],
   plugins: [
-    [
-      "@limegrass/import-alias",
-      { aliasConfigPath: require("path").join(__dirname, ".tsconfig.json") },
-    ],
+    "@limegrass/import-alias"
   ],
   rules: {
     "@typescript-eslint/no-non-null-assertion": "off",
