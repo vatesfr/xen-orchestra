@@ -430,7 +430,7 @@ exports.cleanVm = async function cleanVm(
 
     // merge interrupted VHDs
     for (const parent of interruptedVhds.keys()) {
-      vhdChainsToMerge[parent] = [vhdChildren[parent], parent]
+      vhdChainsToMerge[parent] = [parent, vhdChildren[parent]]
     }
 
     Object.values(vhdChainsToMerge).forEach(chain => {
