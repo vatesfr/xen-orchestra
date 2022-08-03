@@ -31,7 +31,8 @@
 
 - @xen-orchestra/backups patch
 - @xen-orchestra/mixins patch
+- vhd-cli minor
 - xo-web patch
-- xo-server-auth-saml minor 
+- xo-server-auth-saml minor
 
 <!--packages-end-->
