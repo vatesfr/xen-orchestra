@@ -9,6 +9,7 @@ const { getHandler } = require('@xen-orchestra/fs')
 const { pFromCallback } = require('promise-toolbox')
 
 const { VhdFile, chainVhd, mergeVhd } = require('./index')
+const { _cleanupVhds: cleanupVhds } = require('./merge')
 
 const { checkFile, createRandomFile, convertFromRawToVhd } = require('./tests/utils')
 
@@ -38,14 +39,15 @@ test('merge works in normal cases', async () => {
   await createRandomFile(`${tempDir}/${childRandomFileName}`, mbOfChildren)
   await convertFromRawToVhd(`${tempDir}/${childRandomFileName}`, `${tempDir}/${child1FileName}`)
   await chainVhd(handler, parentFileName, handler, child1FileName, true)
+  await checkFile(`${tempDir}/${parentFileName}`)
 
   // merge
   await mergeVhd(handler, parentFileName, handler, child1FileName)
 
-  // check that vhd is still valid
-  await checkFile(`${tempDir}/${parentFileName}`)
+  // check that the merged vhd is still valid
+  await checkFile(`${tempDir}/${child1FileName}`)
 
-  const parentVhd = new VhdFile(handler, parentFileName)
+  const parentVhd = new VhdFile(handler, child1FileName)
   await parentVhd.readHeaderAndFooter()
   await parentVhd.readBlockAllocationTable()
 
@@ -138,11 +140,11 @@ test('it can resume a merge ', async () => {
   await mergeVhd(handler, 'parent.vhd', handler, 'child1.vhd')
 
   // reload header footer and block allocation table , they should succed
-  await parentVhd.readHeaderAndFooter()
-  await parentVhd.readBlockAllocationTable()
+  await childVhd.readHeaderAndFooter()
+  await childVhd.readBlockAllocationTable()
   let offset = 0
   // check that the data are the same as source
-  for await (const block of parentVhd.blocks()) {
+  for await (const block of childVhd.blocks()) {
     const blockContent = block.data
     // first block is marked as already merged, should not be modified
     // second block should come from children
@@ -153,7 +155,7 @@ test('it can resume a merge ', async () => {
     await fs.read(fd, buffer, 0, buffer.length, offset)
 
     expect(buffer.equals(blockContent)).toEqual(true)
-    offset += parentVhd.header.blockSize
+    offset += childVhd.header.blockSize
   }
 })
 
@@ -183,9 +185,9 @@ test('it merge multiple child in one pass ', async () => {
   await mergeVhd(handler, parentFileName, handler, [grandChildFileName, childFileName])
 
   // check that vhd is still valid
-  await checkFile(parentFileName)
+  await checkFile(grandChildFileName)
 
-  const parentVhd = new VhdFile(handler, parentFileName)
+  const parentVhd = new VhdFile(handler, grandChildFileName)
   await parentVhd.readHeaderAndFooter()
   await parentVhd.readBlockAllocationTable()
 
@@ -205,4 +207,21 @@ test('it merge multiple child in one pass ', async () => {
     expect(buffer.equals(blockContent)).toEqual(true)
     offset += parentVhd.header.blockSize
   }
+})
+
+test('it cleans vhd mergedfiles', async () => {
+  const handler = getHandler({ url: `file://${tempDir}` })
+
+  await handler.writeFile('parent', 'parentData')
+  await handler.writeFile('child1', 'child1Data')
+  await handler.writeFile('child2', 'child2Data')
+  await handler.writeFile('child3', 'child3Data')
+
+  await cleanupVhds(handler, 'parent', ['child1', 'child2', 'child3'], { remove: true })
+
+  // only child3 should stay, with the data of parent
+  const [child3, ...other] = await handler.list('.')
+  expect(other.length).toEqual(0)
+  expect(child3).toEqual('child3')
+  expect((await handler.readFile('child3')).toString('utf8')).toEqual('parentData')
 })

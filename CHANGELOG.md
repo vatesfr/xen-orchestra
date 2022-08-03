@@ -1,8 +1,139 @@
 # ChangeLog
 
-## **5.71.0 (2022-05-31)**
+## **5.73.0** (2022-07-29)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
+### Highlights
+
+- [REST API] VDI import now also supports the raw format
+- HTTPS server can acquire SSL certificate from Let's Encrypt (PR [#6320](https://github.com/vatesfr/xen-orchestra/pull/6320))
+
+### Enhancements
+
+- Embedded HTTP/HTTPS proxy is now enabled by default
+- [VM] Display a confirmation modal when stopping/restarting a protected VM (PR [#6295](https://github.com/vatesfr/xen-orchestra/pull/6295))
+
+### Bug fixes
+
+- [Home/VM] Show error when deleting VMs failed (PR [#6323](https://github.com/vatesfr/xen-orchestra/pull/6323))
+- [REST API] Fix broken VDI after VHD import [#6327](https://github.com/vatesfr/xen-orchestra/issues/6327) (PR [#6326](https://github.com/vatesfr/xen-orchestra/pull/6326))
+- [Netbox] Fix `ipaddr: the address has neither IPv6 nor IPv4 format` error (PR [#6328](https://github.com/vatesfr/xen-orchestra/pull/6328))
+
+### Released packages
+
+- @vates/async-each 1.0.0
+- @xen-orchestra/fs 2.0.0
+- @xen-orchestra/backups 0.27.2
+- @xen-orchestra/backups-cli 0.7.6
+- @xen-orchestra/mixins 0.7.0
+- @xen-orchestra/xapi 1.4.1
+- @xen-orchestra/proxy 0.25.0
+- vhd-cli 0.8.1
+- vhd-lib 3.3.4
+- xo-cli 0.14.1
+- xo-server 5.100.0
+- xo-web 5.101.0
+
+## **5.72.1** (2022-07-11)
+
+<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
+
+### Enhancements
+
+- [SR] When SR is in maintenance, add "Maintenance mode" badge next to its name (PR [#6313](https://github.com/vatesfr/xen-orchestra/pull/6313))
+
+### Bug fixes
+
+- [Tasks] Fix tasks not displayed when running CR backup job [Forum#6038](https://xcp-ng.org/forum/topic/6038/not-seeing-tasks-any-more-as-admin) (PR [#6315](https://github.com/vatesfr/xen-orchestra/pull/6315))
+- [Backup] Fix failing merge multiple VHDs at once (PR [#6317](https://github.com/vatesfr/xen-orchestra/pull/6317))
+- [VM/Console] Fix _Connect with SSH/RDP_ when address is IPv6
+- [Audit] Ignore side-effects free API methods `xoa.check`, `xoa.clearCheckCache` and `xoa.getHVSupportedVersions`
+
+### Released packages
+
+- @xen-orchestra/backups 0.27.0
+- @xen-orchestra/backups-cli 0.7.5
+- @xen-orchestra/proxy 0.23.5
+- vhd-lib 3.3.2
+- xo-server 5.98.1
+- xo-server-audit 0.10.0
+- xo-web 5.100.0
+
+## **5.72.0** (2022-06-30)
+
+### Highlights
+
+- [Backup] Merge delta backups without copying data when using VHD directories on NFS/SMB/local remote(https://github.com/vatesfr/xen-orchestra/pull/6271))
+- [Proxies] Ability to copy the proxy access URL (PR [#6287](https://github.com/vatesfr/xen-orchestra/pull/6287))
+- [SR/Advanced] Ability to enable/disable _Maintenance Mode_ [#6215](https://github.com/vatesfr/xen-orchestra/issues/6215) (PRs [#6308](https://github.com/vatesfr/xen-orchestra/pull/6308), [#6297](https://github.com/vatesfr/xen-orchestra/pull/6297))
+- [User] User tokens management through XO interface (PR [#6276](https://github.com/vatesfr/xen-orchestra/pull/6276))
+- [Tasks, VM/General] Self Service users: show tasks related to their pools, hosts, SRs, networks and VMs (PR [#6217](https://github.com/vatesfr/xen-orchestra/pull/6217))
+
+### Enhancements
+
+> Users must be able to say: “Nice enhancement, I'm eager to test it”
+
+- [Backup/Restore] Clearer error message when importing a VM backup requires XCP-n/CH >= 8.1 (PR [#6304](https://github.com/vatesfr/xen-orchestra/pull/6304))
+- [Backup] Users can use VHD directory on any remote type (PR [#6273](https://github.com/vatesfr/xen-orchestra/pull/6273))
+
+### Bug fixes
+
+> Users must be able to say: “I had this issue, happy to know it's fixed”
+
+- [VDI Import] Fix `this._getOrWaitObject is not a function`
+- [VM] Attempting to delete a protected VM should display a modal with the error and the ability to bypass it (PR [#6290](https://github.com/vatesfr/xen-orchestra/pull/6290))
+- [OVA Import] Fix import stuck after first disk
+- [File restore] Ignore symbolic links
+
+### Released packages
+
+- @vates/event-listeners-manager 1.0.1
+- @vates/read-chunk 1.0.0
+- @xen-orchestra/backups 0.26.0
+- @xen-orchestra/backups-cli 0.7.4
+- xo-remote-parser 0.9.1
+- @xen-orchestra/fs 1.1.0
+- @xen-orchestra/openflow 0.1.2
+- @xen-orchestra/xapi 1.4.0
+- @xen-orchestra/proxy 0.23.4
+- @xen-orchestra/proxy-cli 0.3.1
+- vhd-lib 3.3.1
+- vhd-cli 0.8.0
+- xo-vmdk-to-vhd 2.4.2
+- xo-server 5.98.0
+- xo-web 5.99.0
+
+## **5.71.1 (2022-06-13)**
+
+### Enhancements
+
+- Show raw errors to administrators instead of _unknown error from the peer_ (PR [#6260](https://github.com/vatesfr/xen-orchestra/pull/6260))
+
+### Bug fixes
+
+- [New SR] Fix `method.startsWith is not a function` when creating an _ext_ SR
+- Import VDI content now works when there is a HTTP proxy between XO and the host (PR [#6261](https://github.com/vatesfr/xen-orchestra/pull/6261))
+- [Backup] Fix `undefined is not iterable (cannot read property Symbol(Symbol.iterator))` on XS 7.0.0
+- [Backup] Ensure a warning is shown if a target preparation step fails (PR [#6266](https://github.com/vatesfr/xen-orchestra/pull/6266))
+- [OVA Export] Avoid creating a zombie task (PR [#6267](https://github.com/vatesfr/xen-orchestra/pull/6267))
+- [OVA Export] Increase speed by lowering compression to acceptable level (PR [#6267](https://github.com/vatesfr/xen-orchestra/pull/6267))
+- [OVA Export] Fix broken OVAs due to special characters in VM name (PR [#6267](https://github.com/vatesfr/xen-orchestra/pull/6267))
+
+### Released packages
+
+- @xen-orchestra/backups 0.25.0
+- @xen-orchestra/backups-cli 0.7.3
+- xen-api 1.2.1
+- @xen-orchestra/xapi 1.2.0
+- @xen-orchestra/proxy 0.23.2
+- @xen-orchestra/proxy-cli 0.3.0
+- xo-cli 0.14.0
+- xo-vmdk-to-vhd 2.4.1
+- xo-server 5.96.0
+- xo-web 5.97.2
+
+## **5.71.0 (2022-05-31)**
 
 ### Highlights
 
@@ -15,8 +146,6 @@
 
 ### Enhancements
 
-> Users must be able to say: “Nice enhancement, I'm eager to test it”
-
 - [Backup] Merge multiple VHDs at once which will speed up the merging phase after reducing the retention of a backup job(PR [#6184](https://github.com/vatesfr/xen-orchestra/pull/6184))
 - [Backup] Add setting `backups.metadata.defaultSettings.unconditionalSnapshot` in `xo-server`'s configuration file to force a snapshot even when not required by the backup, this is useful to avoid locking the VM halted during the backup (PR [#6221](https://github.com/vatesfr/xen-orchestra/pull/6221))
 - [VM migration] Ensure the VM can be migrated before performing the migration to avoid issues [#5301](https://github.com/vatesfr/xen-orchestra/issues/5301) (PR [#6245](https://github.com/vatesfr/xen-orchestra/pull/6245))
@@ -25,8 +154,6 @@
 - [RPU] Disable scheduled backup jobs during RPU (PR [#6244](https://github.com/vatesfr/xen-orchestra/pull/6244))
 
 ### Bug fixes
-
-> Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [S3] Fix S3 remote with empty directory not showing anything to restore (PR [#6218](https://github.com/vatesfr/xen-orchestra/pull/6218))
 - [S3] remote fom did not save the `https` and `allow unatuhorized`during remote creation (PR [#6219](https://github.com/vatesfr/xen-orchestra/pull/6219))
@@ -88,8 +215,6 @@
 - xo-server 5.93.0
 
 ## 5.70.0 (2022-04-29)
-
-<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Highlights
 

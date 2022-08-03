@@ -111,41 +111,6 @@ export default class RemoteHandlerAbstract {
     await this.__closeFile(fd)
   }
 
-  // TODO: remove method
-  async createOutputStream(file, { checksum = false, dirMode, ...options } = {}) {
-    if (typeof file === 'string') {
-      file = normalizePath(file)
-    }
-    const path = typeof file === 'string' ? file : file.path
-    const streamP = timeout.call(
-      this._createOutputStream(file, {
-        dirMode,
-        flags: 'wx',
-        ...options,
-      }),
-      this._timeout
-    )
-
-    if (!checksum) {
-      return streamP
-    }
-
-    const checksumStream = createChecksumStream()
-    const forwardError = error => {
-      checksumStream.emit('error', error)
-    }
-
-    const stream = await streamP
-    stream.on('error', forwardError)
-    checksumStream.pipe(stream)
-
-    checksumStream.checksumWritten = checksumStream.checksum
-      .then(value => this._outputFile(checksumFile(path), value, { flags: 'wx' }))
-      .catch(forwardError)
-
-    return checksumStream
-  }
-
   createReadStream(file, { checksum = false, ignoreMissingChecksum = false, ...options } = {}) {
     if (typeof file === 'string') {
       file = normalizePath(file)
@@ -424,6 +389,10 @@ export default class RemoteHandlerAbstract {
 
   // Methods that can be implemented by inheriting classes
 
+  useVhdDirectory() {
+    return this._remote.useVhdDirectory ?? false
+  }
+
   async _closeFile(fd) {
     throw new Error('Not implemented')
   }
@@ -506,9 +475,13 @@ export default class RemoteHandlerAbstract {
 
   async _outputStream(path, input, { dirMode, validator }) {
     const tmpPath = `${dirname(path)}/.${basename(path)}`
-    const output = await this.createOutputStream(tmpPath, {
-      dirMode,
-    })
+    const output = await timeout.call(
+      this._createOutputStream(tmpPath, {
+        dirMode,
+        flags: 'wx',
+      }),
+      this._timeout
+    )
     try {
       await fromCallback(pipeline, input, output)
       if (validator !== undefined) {

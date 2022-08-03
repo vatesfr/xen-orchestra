@@ -1,20 +1,11 @@
 import Collection from '../collection/redis.mjs'
-import Model from '../model.mjs'
 import { forEach, serializeError } from '../utils.mjs'
 
 import { parseProp } from './utils.mjs'
 
 // ===================================================================
 
-export default class Server extends Model {}
-
-// -------------------------------------------------------------------
-
 export class Servers extends Collection {
-  get Model() {
-    return Server
-  }
-
   async create(params) {
     const { host } = params
 

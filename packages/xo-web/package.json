@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "xo-web",
-  "version": "5.97.1",
+  "version": "5.101.0",
   "license": "AGPL-3.0-or-later",
   "description": "Web interface client for Xen-Orchestra",
   "keywords": [
@@ -137,8 +137,8 @@
     "xo-acl-resolver": "^0.4.1",
     "xo-common": "^0.8.0",
     "xo-lib": "^0.11.1",
-    "xo-remote-parser": "^0.8.0",
-    "xo-vmdk-to-vhd": "^2.4.0"
+    "xo-remote-parser": "^0.9.1",
+    "xo-vmdk-to-vhd": "^2.4.2"
   },
   "scripts": {
     "build": "GIT_HEAD=$(git rev-parse HEAD) NODE_ENV=production gulp build",

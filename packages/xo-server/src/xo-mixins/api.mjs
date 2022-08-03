@@ -5,7 +5,7 @@ import forEach from 'lodash/forEach.js'
 import kindOf from 'kindof'
 import ms from 'ms'
 import schemaInspector from 'schema-inspector'
-import { getBoundPropertyDescriptor } from 'bind-property-descriptor'
+import { AsyncLocalStorage } from 'async_hooks'
 import { format, JsonRpcError, MethodNotFound } from 'json-rpc-peer'
 
 import * as methods from '../api/index.mjs'
@@ -53,7 +53,7 @@ const XAPI_ERROR_TO_XO_ERROR = {
   VM_MISSING_PV_DRIVERS: ([vm], getId) => errors.vmMissingPvDrivers({ vm: getId(vm) }),
 }
 
-const hasPermission = (user, permission) => PERMISSIONS[user.permission] >= PERMISSIONS[permission]
+const hasPermission = (actual, expected) => PERMISSIONS[actual] >= PERMISSIONS[expected]
 
 function checkParams(method, params) {
   const schema = method.params
@@ -83,8 +83,8 @@ function checkPermission(method) {
     return
   }
 
-  const { user } = this
-  if (!user) {
+  const { apiContext } = this
+  if (!apiContext.user) {
     throw errors.unauthorized(permission)
   }
 
@@ -92,7 +92,7 @@ function checkPermission(method) {
     return
   }
 
-  if (!hasPermission(user, permission)) {
+  if (!hasPermission(apiContext.permission, permission)) {
     throw errors.unauthorized(permission)
   }
 }
@@ -103,12 +103,9 @@ async function resolveParams(method, params) {
     return params
   }
 
-  const { user } = this
-  if (!user) {
+  if (!this.apiContext.user) {
     throw errors.unauthorized()
   }
-
-  const userId = user.id
 
   // Do not alter the original object.
   params = { ...params }
@@ -139,7 +136,7 @@ async function resolveParams(method, params) {
     }
   })
 
-  await this.checkPermissions(userId, permissions)
+  await this.checkPermissions(permissions)
 
   return params
 }
@@ -147,10 +144,15 @@ async function resolveParams(method, params) {
 // -------------------------------------------------------------------
 
 export default class Api {
+  #apiContext = new AsyncLocalStorage()
   #connections = new Set()
 
   get apiConnections() {
     return this.#connections
+  }
+
+  get apiContext() {
+    return this.#apiContext.getStore()
   }
 
   constructor(app) {
@@ -226,42 +228,36 @@ export default class Api {
   }
 
   async callApiMethod(connection, name, params = {}) {
-    const app = this._app
-    const startTime = Date.now()
-
     const method = this._methods[name]
     if (!method) {
       throw new MethodNotFound(name)
     }
 
-    // create the context which is an augmented XO
-    const context = (() => {
-      const descriptors = {
-        connection: {
-          value: connection,
-        },
-      }
+    const apiContext = { __proto__: null, connection }
 
-      let obj = app
-      do {
-        Object.getOwnPropertyNames(obj).forEach(name => {
-          if (!(name in descriptors)) {
-            descriptors[name] = getBoundPropertyDescriptor(obj, name, app)
-          }
-        })
-      } while ((obj = Reflect.getPrototypeOf(obj)) !== null)
-
-      return Object.create(null, descriptors)
-    })()
-
-    // Fetch and inject the current user.
     const userId = connection.get('user_id', undefined)
-    context.user = userId && (await app.getUser(userId))
-    const userName = context.user ? context.user.email : '(unknown user)'
+    if (userId !== undefined) {
+      const user = await this._app.getUser(userId)
+      apiContext.user = user
+      apiContext.permission = user.permission
+    } else {
+      apiContext.permission = 'none'
+    }
+
+    return this.#apiContext.run(apiContext, () => this.#callApiMethod(name, method, params))
+  }
+
+  async #callApiMethod(name, method, params) {
+    const app = this._app
+    const startTime = Date.now()
+
+    const { connection, user } = this.apiContext
+
+    const userName = user?.email ?? '(unknown user)'
 
     const data = {
       callId: Math.random().toString(36).slice(2),
-      userId,
+      userId: user?.id,
       userName,
       userIp: connection.get('user_ip', undefined),
       method: name,
@@ -281,7 +277,7 @@ export default class Api {
     )
 
     try {
-      await checkPermission.call(context, method)
+      await checkPermission.call(app, method)
 
       // API methods are in a namespace.
       // Some methods use the namespace or an id parameter like:
@@ -303,11 +299,11 @@ export default class Api {
         }
       }
 
-      checkParams.call(context, method, params)
+      checkParams.call(app, method, params)
 
-      const resolvedParams = await resolveParams.call(context, method, params)
+      const resolvedParams = await resolveParams.call(app, method, params)
 
-      let result = await method.call(context, resolvedParams)
+      let result = await method.call(app, resolvedParams)
 
       // If nothing was returned, consider this operation a success
       // and return true.
@@ -380,7 +376,7 @@ export default class Api {
       }
 
       // don't return *unknown error from the peer* if the user is admin
-      if (error.toJsonRpcError === undefined && context?.user.permission === 'admin') {
+      if (error.toJsonRpcError === undefined && user?.permission === 'admin') {
         throw new JsonRpcError(error.message, undefined, serializeError(serializedError))
       }
 

@@ -222,14 +222,14 @@ test('Can coalesce block', async () => {
     const childDirectoryVhd = yield openVhd(handler, childDirectoryName)
     await childDirectoryVhd.readBlockAllocationTable()
 
-    await parentVhd.coalesceBlock(childFileVhd, 0)
+    await parentVhd.mergeBlock(childFileVhd, 0)
     await parentVhd.writeFooter()
     await parentVhd.writeBlockAllocationTable()
     let parentBlockData = (await parentVhd.readBlock(0)).data
     let childBlockData = (await childFileVhd.readBlock(0)).data
     expect(parentBlockData).toEqual(childBlockData)
 
-    await parentVhd.coalesceBlock(childDirectoryVhd, 0)
+    await parentVhd.mergeBlock(childDirectoryVhd, 0)
     await parentVhd.writeFooter()
     await parentVhd.writeBlockAllocationTable()
     parentBlockData = (await parentVhd.readBlock(0)).data

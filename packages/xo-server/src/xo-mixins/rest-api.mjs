@@ -8,6 +8,7 @@ import pick from 'lodash/pick.js'
 import map from 'lodash/map.js'
 import * as CM from 'complex-matcher'
 import fromCallback from 'promise-toolbox/fromCallback'
+import { VDI_FORMAT_RAW, VDI_FORMAT_VHD } from '@xen-orchestra/xapi'
 
 function sendObjects(objects, req, res) {
   const { query } = req
@@ -124,8 +125,12 @@ export default class RestApi {
         const sr = app.getXapiObject(req.params.uuid, 'SR')
         req.length = +req.headers['content-length']
 
-        const { name_label, name_description } = req.query
-        const vdiRef = await sr.$importVdi(req, { name_label, name_description })
+        const { name_label, name_description, raw } = req.query
+        const vdiRef = await sr.$importVdi(req, {
+          format: raw !== undefined ? VDI_FORMAT_RAW : VDI_FORMAT_VHD,
+          name_label,
+          name_description,
+        })
 
         res.end(await sr.$xapi.getField('VDI', vdiRef, 'uuid'))
       } catch (error) {

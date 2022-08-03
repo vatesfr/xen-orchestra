@@ -1,9 +1,11 @@
-import { getSyncedHandler } from '@xen-orchestra/fs'
-import { openVhd, Constants } from 'vhd-lib'
-import Disposable from 'promise-toolbox/Disposable'
-import omit from 'lodash/omit'
+'use strict'
 
-const deepCompareObjects = function (src, dest, path) {
+const { getSyncedHandler } = require('@xen-orchestra/fs')
+const { openVhd, Constants } = require('vhd-lib')
+const Disposable = require('promise-toolbox/Disposable')
+const omit = require('lodash/omit')
+
+function deepCompareObjects(src, dest, path) {
   for (const key of Object.keys(src)) {
     const srcValue = src[key]
     const destValue = dest[key]
@@ -29,7 +31,7 @@ const deepCompareObjects = function (src, dest, path) {
   }
 }
 
-export default async args => {
+module.exports = async function compare(args) {
   if (args.length < 4 || args.some(_ => _ === '-h' || _ === '--help')) {
     return `Usage: compare <sourceRemoteUrl> <source VHD> <destionationRemoteUrl> <destination> `
   }

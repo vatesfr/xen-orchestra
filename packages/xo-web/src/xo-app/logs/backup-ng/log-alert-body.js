@@ -241,16 +241,17 @@ const SnapshotTask = ({ className, task }) => (
   </li>
 )
 
-const CleanVmTask = ({ children, className, task }) => (
-  <li className={className}>
-    <Icon icon='clean-vm' /> {_('cleanVm')} <TaskStateInfos status={task.status} />
-    <TaskWarnings warnings={task.warnings} />
-    {children}
-    <TaskStart task={task} />
-    <TaskEnd task={task} />
-    <TaskError task={task} />
-  </li>
-)
+const CleanVmTask = ({ children, className, task }) =>
+  task.warnings?.length > 0 ? (
+    <li className={className}>
+      <Icon icon='clean-vm' /> {_('cleanVm')} <TaskStateInfos status={task.status} />
+      <TaskWarnings warnings={task.warnings} />
+      {children}
+      <TaskStart task={task} />
+      <TaskEnd task={task} />
+      <TaskError task={task} />
+    </li>
+  ) : null
 const HealthCheckTask = ({ children, className, task }) => (
   <li className={className}>
     <Icon icon='health' /> {task.message} <TaskStateInfos status={task.status} /> <TaskWarnings warnings={task.warnings} />

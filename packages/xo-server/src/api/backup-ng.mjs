@@ -6,8 +6,25 @@ import createNdJsonStream from '../_createNdJsonStream.mjs'
 import { REMOVE_CACHE_ENTRY } from '../_pDebounceWithKey.mjs'
 import { safeDateFormat } from '../utils.mjs'
 
+const SCHEMA_SETTINGS = {
+  type: 'object',
+  properties: {
+    '*': {
+      type: 'object',
+      properties: {
+        concurrency: {
+          type: 'number',
+          gt: 0,
+          optional: true,
+        },
+      },
+    },
+  },
+  optional: true,
+}
+
 export function createJob({ schedules, ...job }) {
-  job.userId = this.user.id
+  job.userId = this.apiContext.user.id
   return this.createBackupNgJob(job, schedules).then(({ id }) => id)
 }
 
@@ -36,9 +53,7 @@ createJob.params = {
     type: 'object',
     optional: true,
   },
-  settings: {
-    type: 'object',
-  },
+  settings: SCHEMA_SETTINGS,
   srs: {
     type: 'object',
     optional: true,
@@ -91,10 +106,7 @@ editJob.params = {
     type: 'object',
     optional: true,
   },
-  settings: {
-    type: 'object',
-    optional: true,
-  },
+  settings: SCHEMA_SETTINGS,
   srs: {
     type: 'object',
     optional: true,
@@ -139,13 +151,7 @@ runJob.params = {
   schedule: {
     type: 'string',
   },
-  settings: {
-    type: 'object',
-    properties: {
-      '*': { type: 'object' },
-    },
-    optional: true,
-  },
+  settings: SCHEMA_SETTINGS,
   vm: {
     type: 'string',
     optional: true,

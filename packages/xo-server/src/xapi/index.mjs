@@ -429,7 +429,6 @@ export default class Xapi extends XapiBase {
     }
 
     const writeStream = new PassThrough()
-    writeStream.task = this.task_create('VM OVA export', exportedVm.name_label)
     writeOvaOn(writeStream, {
       disks: collectedDisks,
       vmName: exportedVm.name_label,
@@ -763,7 +762,8 @@ export default class Xapi extends XapiBase {
           stream,
           table.grainLogicalAddressList,
           table.grainFileOffsetList,
-          compression[entry.name] === 'gzip'
+          compression[entry.name] === 'gzip',
+          entry.size
         )
         try {
           await vdi.$importContent(vhdStream, { format: VDI_FORMAT_VHD })

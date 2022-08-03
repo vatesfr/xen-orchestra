@@ -1,3 +1,4 @@
+import * as CM from 'complex-matcher'
 import _, { messages } from 'intl'
 import ActionButton from 'action-button'
 import ActionRowButton from 'action-row-button'
@@ -57,7 +58,10 @@ const COLUMNS = [
                 (
                 <Link
                   to={`/srs/${activeVdis[0].$SR}/disks?s=${encodeURIComponent(
-                    `id:|(${activeVdis.map(activeVdi => activeVdi.id).join(' ')})`
+                    new CM.Property(
+                      'id',
+                      new CM.Or(activeVdis.map(activeVdi => new CM.String(activeVdi.id)))
+                    ).toString()
                   )}`}
                 >
                   {activeVdis.length > 1 ? (

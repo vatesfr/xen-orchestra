@@ -78,16 +78,20 @@ async function parseRegisterArgs(args) {
 async function _createToken({ allowUnauthorized, description, email, expiresIn, password, url }) {
   const xo = new Xo({ rejectUnauthorized: !allowUnauthorized, url })
   await xo.open()
-  await xo.signIn({ email, password })
-  console.warn('Successfully logged with', xo.user.email)
+  try {
+    await xo.signIn({ email, password })
+    console.warn('Successfully logged with', xo.user.email)
 
-  return xo.call('token.create', { description, expiresIn }).catch(error => {
-    // if invalid parameter error, retry without description for backward compatibility
-    if (error.code === 10) {
-      return xo.call('token.create', { expiresIn })
-    }
-    throw error
-  })
+    return await xo.call('token.create', { description, expiresIn }).catch(error => {
+      // if invalid parameter error, retry without description for backward compatibility
+      if (error.code === 10) {
+        return xo.call('token.create', { expiresIn })
+      }
+      throw error
+    })
+  } finally {
+    await xo.close()
+  }
 }
 
 function createOutputStream(path) {
@@ -243,7 +247,7 @@ $name v$version
 
 const COMMANDS = { __proto__: null }
 
-function main(args) {
+async function main(args) {
   if (!args || !args.length || args[0] === '-h') {
     return help()
   }
@@ -255,22 +259,32 @@ function main(args) {
 
     return match[1].toUpperCase()
   })
-  if (fnName in COMMANDS) {
-    return COMMANDS[fnName](args.slice(1))
-  }
 
-  return COMMANDS.call(args).catch(error => {
-    if (!(error != null && error.code === 10 && 'errors' in error.data)) {
-      throw error
+  try {
+    if (fnName in COMMANDS) {
+      return await COMMANDS[fnName](args.slice(1))
     }
 
-    const lines = [error.message]
-    const { errors } = error.data
-    errors.forEach(error => {
-      lines.push(`  property ${error.property}: ${error.message}`)
+    return await COMMANDS.call(args).catch(error => {
+      if (!(error != null && error.code === 10 && 'errors' in error.data)) {
+        throw error
+      }
+
+      const lines = [error.message]
+      const { errors } = error.data
+      errors.forEach(error => {
+        lines.push(`  property ${error.property}: ${error.message}`)
+      })
+      throw lines.join('\n')
     })
-    throw lines.join('\n')
-  })
+  } catch (error) {
+    // `promise-toolbox/fromEvent` uses `addEventListener` by default wich makes
+    // `ws/WebSocket` (used by `xo-lib`) emit DOM `Event` objects which are not
+    // correctly displayed by `exec-promise`.
+    //
+    // Extracts the original error for a better display.
+    throw 'error' in error ? error.error : error
+  }
 }
 
 // -------------------------------------------------------------------
@@ -407,64 +421,67 @@ async function call(args) {
   delete params['@']
 
   const xo = await connect()
-
-  // FIXME: do not use private properties.
-  const baseUrl = xo._url.replace(/^ws/, 'http')
-  const httpOptions = {
-    rejectUnauthorized: !(await config.load()).allowUnauthorized,
-  }
-
-  const result = await xo.call(method, params)
-  let keys, key, url
-  if (isObject(result) && (keys = getKeys(result)).length === 1) {
-    key = keys[0]
-
-    if (key === '$getFrom') {
-      ensurePathParam(method, file)
-      url = new URL(result[key], baseUrl)
-      const output = createOutputStream(file)
-      const response = await hrp(url, httpOptions)
-
-      const progress = progressStream(
-        {
-          length: response.headers['content-length'],
-          time: 1e3,
-        },
-        printProgress
-      )
-
-      return fromCallback(pipeline, response, progress, output)
+  try {
+    // FIXME: do not use private properties.
+    const baseUrl = xo._url.replace(/^ws/, 'http')
+    const httpOptions = {
+      rejectUnauthorized: !(await config.load()).allowUnauthorized,
     }
 
-    if (key === '$sendTo') {
-      ensurePathParam(method, file)
-      url = new URL(result[key], baseUrl)
+    const result = await xo.call(method, params)
+    let keys, key, url
+    if (isObject(result) && (keys = getKeys(result)).length === 1) {
+      key = keys[0]
 
-      const { size: length } = await stat(file)
-      const input = pipeline(
-        createReadStream(file),
-        progressStream(
+      if (key === '$getFrom') {
+        ensurePathParam(method, file)
+        url = new URL(result[key], baseUrl)
+        const output = createOutputStream(file)
+        const response = await hrp(url, httpOptions)
+
+        const progress = progressStream(
           {
-            length,
+            length: response.headers['content-length'],
             time: 1e3,
           },
           printProgress
-        ),
-        noop
-      )
+        )
 
-      return hrp
-        .post(url, httpOptions, {
-          body: input,
-          headers: {
-            'content-length': length,
-          },
-        })
-        .readAll('utf-8')
+        return fromCallback(pipeline, response, progress, output)
+      }
+
+      if (key === '$sendTo') {
+        ensurePathParam(method, file)
+        url = new URL(result[key], baseUrl)
+
+        const { size: length } = await stat(file)
+        const input = pipeline(
+          createReadStream(file),
+          progressStream(
+            {
+              length,
+              time: 1e3,
+            },
+            printProgress
+          ),
+          noop
+        )
+
+        return hrp
+          .post(url, httpOptions, {
+            body: input,
+            headers: {
+              'content-length': length,
+            },
+          })
+          .readAll('utf-8')
+      }
     }
-  }
 
-  return result
+    return result
+  } finally {
+    await xo.close()
+  }
 }
 COMMANDS.call = call
 

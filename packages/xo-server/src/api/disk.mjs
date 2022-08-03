@@ -23,7 +23,7 @@ export const create = defer(async function ($defer, { name, size, sr, vm, bootab
     let resourceSet
     if (attach && (resourceSet = vm.resourceSet) != null) {
       try {
-        await this.checkResourceSetConstraints(resourceSet, this.user.id, [sr.id])
+        await this.checkResourceSetConstraints(resourceSet, this.apiContext.user.id, [sr.id])
         await this.allocateLimitsInResourceSet({ disk: size }, resourceSet)
         $defer.onFailure(() => this.releaseLimitsInResourceSet({ disk: size }, resourceSet))
 
@@ -37,7 +37,7 @@ export const create = defer(async function ($defer, { name, size, sr, vm, bootab
       // the resource set does not exist, falls back to normal check
     }
 
-    await this.checkPermissions(this.user.id, [[sr.id, 'administrate']])
+    await this.checkPermissions([[sr.id, 'administrate']])
   } while (false)
 
   const xapi = this.getXapi(sr)
@@ -215,7 +215,7 @@ async function handleImport(req, res, { type, name, description, vmdkData, srId,
               throw new JsonRpcError(`Unknown disk type, expected "iso", "vhd" or "vmdk", got ${type}`)
           }
 
-          const vdi = await this._getOrWaitObject(
+          const vdi = await xapi._getOrWaitObject(
             await xapi.VDI_create({
               name_description: description,
               name_label: name,

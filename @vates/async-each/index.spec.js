@@ -36,7 +36,7 @@ describe('asyncEach', () => {
       it('works', async () => {
         const iteratee = jest.fn(async () => {})
 
-        await asyncEach.call(thisArg, iterable, iteratee)
+        await asyncEach.call(thisArg, iterable, iteratee, { concurrency: 1 })
 
         expect(iteratee.mock.instances).toEqual(Array.from(values, () => thisArg))
         expect(iteratee.mock.calls).toEqual(Array.from(values, (value, index) => [value, index, iterable]))
@@ -66,7 +66,7 @@ describe('asyncEach', () => {
           }
         })
 
-        expect(await rejectionOf(asyncEach(iterable, iteratee, { stopOnError: true }))).toBe(error)
+        expect(await rejectionOf(asyncEach(iterable, iteratee, { concurrency: 1, stopOnError: true }))).toBe(error)
         expect(iteratee).toHaveBeenCalledTimes(2)
       })
 
@@ -91,7 +91,9 @@ describe('asyncEach', () => {
           }
         })
 
-        await expect(asyncEach(iterable, iteratee, { signal: ac.signal })).rejects.toThrow('asyncEach aborted')
+        await expect(asyncEach(iterable, iteratee, { concurrency: 1, signal: ac.signal })).rejects.toThrow(
+          'asyncEach aborted'
+        )
         expect(iteratee).toHaveBeenCalledTimes(2)
       })
     })

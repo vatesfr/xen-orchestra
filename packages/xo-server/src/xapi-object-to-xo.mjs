@@ -341,6 +341,11 @@ const TRANSFORMS = {
     // See https://xcp-ng.org/forum/topic/4810
     const addresses = {}
     for (const key in networks) {
+      // Some fields may be emtpy
+      // See https://xcp-ng.org/forum/topic/4810/netbox-plugin-error-ipaddr-the-address-has-neither-ipv6-nor-ipv4-format/27?_=1658735770330
+      if (networks[key].trim() === '') {
+        continue
+      }
       const [, device, index] = /^(\d+)\/ip(?:v[46]\/(\d))?$/.exec(key) ?? []
       const ips = networks[key].split(/\s+/)
       if (ips.length === 1 && index !== undefined) {
@@ -539,6 +544,7 @@ const TRANSFORMS = {
 
       allocationStrategy: ALLOCATION_BY_TYPE[srType],
       current_operations: obj.current_operations,
+      inMaintenanceMode: obj.other_config['xo:maintenanceState'] !== undefined,
       name_description: obj.name_description,
       name_label: obj.name_label,
       size: +obj.physical_size,

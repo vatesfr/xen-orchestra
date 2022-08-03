@@ -4,8 +4,12 @@
 const forEach = require('lodash/forEach')
 
 const messages = {
+  creation: 'Creation',
+  description: 'Description',
+  expiration: 'Expiration',
   keyValue: '{key}: {value}',
 
+  notDefined: 'Not defined',
   statusConnecting: 'Connecting',
   statusDisconnected: 'Disconnected',
   statusLoading: 'Loading…',
@@ -131,6 +135,7 @@ const messages = {
   // ----- Copiable component -----
   copyToClipboard: 'Copy to clipboard',
   copyUuid: 'Copy {uuid}',
+  copyValue: 'Copy {value}',
 
   // ----- Pills -----
   pillMaster: 'Master',
@@ -592,6 +597,10 @@ const messages = {
   remoteS3TooltipProtocol: 'Uncheck if you want HTTP instead of HTTPS',
   remoteS3TooltipAcceptInsecure: 'Check if you want to accept self signed certificates',
   remotePlaceHolderPassword: 'Password(fill to edit)',
+  remoteUseVhdDirectory:
+    'Store backup as multiple data blocks instead of a whole VHD file. (disables file level restore but allows faster merge)',
+  remoteUseVhdDirectoryTooltip:
+    'Your remote must be able to handle parallel access (up to 16 write processes per backup) and the number of files (500 files per GB of backed up data)',
 
   // ------ New Storage -----
 
@@ -1719,8 +1728,9 @@ const messages = {
   blockedStartVmsModalMessage: 'Forbidden operation start for {nVms, number} vm{nVms, plural, one {} other {s}}.',
   startVmsModalMessage: 'Are you sure you want to start {vms, number} VM{vms, plural, one {} other {s}}?',
   failedVmsErrorMessage:
-    '{nVms, number} vm{nVms, plural, one {} other {s}} are failed. Please see your logs to get more information',
+    '{nVms, number} VM{nVms, plural, one {} other {s}} failed. Please check logs for more information',
   failedVmsErrorTitle: 'Start failed',
+  failedDeleteErrorTitle: 'Delete failed',
   stopHostsModalTitle: 'Stop Host{nHosts, plural, one {} other {s}}',
   stopHostsModalMessage: 'Are you sure you want to stop {nHosts, number} Host{nHosts, plural, one {} other {s}}?',
   stopVmsModalTitle: 'Stop VM{vms, plural, one {} other {s}}',
@@ -1729,6 +1739,8 @@ const messages = {
   restartVmModalMessage: 'Are you sure you want to restart {name}?',
   stopVmModalTitle: 'Stop VM',
   stopVmModalMessage: 'Are you sure you want to stop {name}?',
+  blockedOperation: 'Blocked operation',
+  stopVmBlockedModalMessage: 'Stop operation for this VM is blocked. Would you like to stop it anyway?',
   vmHasNoTools: 'No guest tools',
   vmHasNoToolsMessage: "The VM doesn't have Xen tools installed, which are required to properly stop or reboot it.",
   confirmForceShutdown: 'Would you like to force shutdown the VM?',
@@ -1739,6 +1751,7 @@ const messages = {
   pauseVmsModalMessage: 'Are you sure you want to pause {vms, number} VM{vms, plural, one {} other {s}}?',
   restartVmsModalTitle: 'Restart VM{vms, plural, one {} other {s}}',
   restartVmsModalMessage: 'Are you sure you want to restart {vms, number} VM{vms, plural, one {} other {s}}?',
+  restartVmBlockedModalMessage: 'Restart operation for this VM is blocked. Would you like to restart it anyway?',
   snapshotSaveMemory: 'save memory',
   snapshotVmsModalTitle: 'Snapshot VM{vms, plural, one {} other {s}}',
   deleteVmsModalTitle: 'Delete VM{vms, plural, one {} other {s}}',
@@ -2045,6 +2058,8 @@ const messages = {
   pifPhysicallyDisconnected: 'Physically disconnected',
 
   // ----- User -----
+  authToken: 'Token',
+  authTokens: 'Authentication tokens',
   username: 'Username',
   password: 'Password',
   language: 'Language',
@@ -2064,15 +2079,23 @@ const messages = {
   forgetTokensSuccess: 'Successfully forgot connection tokens',
   forgetTokensError: 'Error while forgetting connection tokens',
   sshKeys: 'SSH keys',
+  newAuthToken: 'New token',
   newSshKey: 'New SSH key',
+  deleteAuthTokens: 'Delete selected authentication tokens',
   deleteSshKey: 'Delete',
   deleteSshKeys: 'Delete selected SSH keys',
+  newAuthTokenModalTitle: 'New authentication token',
   newSshKeyModalTitle: 'New SSH key',
   sshKeyAlreadyExists: 'SSH key already exists!',
   sshKeyErrorTitle: 'Invalid key',
   sshKeyErrorMessage: 'An SSH key requires both a title and a key.',
   title: 'Title',
   key: 'Key',
+  deleteAuthTokenConfirm: 'Delete authentication token',
+  deleteAuthTokenConfirmMessage: 'Are you sure you want to delete the authentication token: {id}?',
+  deleteAuthTokensConfirm: 'Delete authentication token{nTokens, plural, one {} other {s}}',
+  deleteAuthTokensConfirmMessage:
+    'Are you sure you want to delete {nTokens, number} autentication token{nTokens, plural, one {} other {s}}?',
   deleteSshKeyConfirm: 'Delete SSH key',
   deleteSshKeyConfirmMessage: 'Are you sure you want to delete the SSH key {title}?',
   deleteSshKeysConfirm: 'Delete SSH key{nKeys, plural, one {} other {s}}',
@@ -2189,6 +2212,7 @@ const messages = {
   downloadConfig: 'Download current config',
 
   // ----- SR -----
+  andNMore: 'and {n} more',
   disabledVdiMigrateTooltip: "Snapshots and base copies can't be migrated individually",
   srReconnectAllModalTitle: 'Reconnect all hosts',
   srReconnectAllModalMessage: 'This will reconnect this SR to all its hosts.',
@@ -2204,6 +2228,9 @@ const messages = {
   srAllDisconnected: 'Disconnected',
   srSomeConnected: 'Partially connected',
   srAllConnected: 'Connected',
+  maintenanceSrModalBody:
+    'In order to put this SR in maintenance mode, the following VM{n, plural, one {} other {s}} will be shut down. Are you sure you want to continue?',
+  maintenanceMode: 'Maintenance mode',
   migrateSelectedVdis: 'Migrate selected VDIs',
   migrateVdiMessage:
     'All the VDIs attached to a VM must either be on a shared SR or on the same host (local SR) for the VM to be able to start.',
@@ -2417,6 +2444,8 @@ const messages = {
   noProxiesAvailable: 'No proxies available',
   checkProxyHealth: 'Test your proxy',
   updateProxyApplianceSettings: 'Update appliance settings',
+  urlNotFound: 'URL not found',
+  proxyCopyUrl: 'Copy proxy URL',
   proxyTestSuccess: 'Test passed for {name}',
   proxyTestSuccessMessage: 'The proxy appears to work correctly',
   proxyTestFailed: 'Test failed for {name}',

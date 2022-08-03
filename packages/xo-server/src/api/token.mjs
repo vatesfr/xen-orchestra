@@ -5,7 +5,7 @@ export async function create({ description, expiresIn }) {
     await this.createAuthenticationToken({
       description,
       expiresIn,
-      userId: this.connection.get('user_id'),
+      userId: this.apiContext.user.id,
     })
   ).id
 }
@@ -25,44 +25,23 @@ create.params = {
 
 // -------------------------------------------------------------------
 
-// TODO: an user should be able to delete its own tokens.
-async function delete_({ token: id }) {
-  await this.deleteAuthenticationToken(id)
+async function delete_({ pattern, tokens }) {
+  await this.deleteAuthenticationTokens({ filter: pattern ?? { id: { __or: tokens } } })
 }
 
 export { delete_ as delete }
 
 delete_.description = 'delete an existing authentication token'
 
-delete_.permission = 'admin'
-
 delete_.params = {
-  token: { type: 'string' },
-}
-
-// -------------------------------------------------------------------
-
-export async function deleteAll({ except }) {
-  await this.deleteAuthenticationTokens({
-    filter: {
-      user_id: this.connection.get('user_id'),
-      id: {
-        __not: except,
-      },
-    },
-  })
-}
-
-deleteAll.description = 'delete all tokens of the current user except the current one'
-
-deleteAll.params = {
-  except: { type: 'string', optional: true },
+  tokens: { type: 'array', optional: true, items: { type: 'string' } },
+  pattern: { type: 'object', optional: true },
 }
 
 // -------------------------------------------------------------------
 
 export async function set({ id, ...props }) {
-  await this.updateAuthenticationToken({ id, user_id: this.connection.get('user_id') }, props)
+  await this.updateAuthenticationToken({ id, user_id: this.apiContext.user.id }, props)
 }
 
 set.description = 'changes the properties of an existing token'

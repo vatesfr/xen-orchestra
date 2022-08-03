@@ -30,3 +30,22 @@ const readChunk = (stream, size) =>
         onReadable()
       })
 exports.readChunk = readChunk
+
+exports.readChunkStrict = async function readChunkStrict(stream, size) {
+  const chunk = await readChunk(stream, size)
+  if (chunk === null) {
+    throw new Error('stream has ended without data')
+  }
+
+  if (size !== undefined && chunk.length !== size) {
+    const error = new Error('stream has ended with not enough data')
+    Object.defineProperties(error, {
+      chunk: {
+        value: chunk,
+      },
+    })
+    throw error
+  }
+
+  return chunk
+}

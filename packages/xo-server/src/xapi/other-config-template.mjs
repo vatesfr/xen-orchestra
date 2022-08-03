@@ -4,7 +4,6 @@ const OTHER_CONFIG_TEMPLATE = {
   actions_after_crash: 'restart',
   actions_after_reboot: 'restart',
   actions_after_shutdown: 'destroy',
-  affinity: null,
   blocked_operations: {},
   ha_always_run: false,
   HVM_boot_params: {

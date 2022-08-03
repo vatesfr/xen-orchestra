@@ -64,7 +64,7 @@ const main = Disposable.wrap(async function* main(args) {
     try {
       const vmDir = getVmBackupDir(String(await handler.readFile(taskFile)))
       try {
-        await adapter.cleanVm(vmDir, { merge: true, onLog: info, remove: true })
+        await adapter.cleanVm(vmDir, { merge: true, logInfo: info, logWarn: warn, remove: true })
       } catch (error) {
         // consider the clean successful if the VM dir is missing
         if (error.code !== 'ENOENT') {

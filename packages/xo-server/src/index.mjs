@@ -400,11 +400,34 @@ async function makeWebServerListen(
     cert = certificate,
 
     key,
+
+    configKey,
+
     ...opts
   }
 ) {
   try {
+    const useAcme = autoCert && opts.acmeDomain !== undefined
+
+    // don't pass these entries to httpServer.listen(opts)
+    for (const key of Object.keys(opts).filter(_ => _.startsWith('acme'))) {
+      delete opts[key]
+    }
+
     if (cert && key) {
+      if (useAcme) {
+        opts.SNICallback = async (serverName, callback) => {
+          try {
+            // injected by mixins/SslCertificate
+            const secureContext = await webServer.getSecureContext(serverName, configKey, opts.cert, opts.key)
+            callback(null, secureContext)
+          } catch (error) {
+            log.warn(error)
+            callback(error, null)
+          }
+        }
+      }
+
       try {
         ;[opts.cert, opts.key] = await Promise.all([fse.readFile(cert), fse.readFile(key)])
         if (opts.key.includes('ENCRYPTED')) {
@@ -419,7 +442,6 @@ async function makeWebServerListen(
         if (!(autoCert && error.code === 'ENOENT')) {
           throw error
         }
-
         const pems = await genSelfSignedCert()
         await Promise.all([
           fse.outputFile(cert, pems.cert, { flag: 'wx', mode: 0o400 }),
@@ -452,8 +474,9 @@ async function makeWebServerListen(
 
 async function createWebServer({ listen, listenOptions }) {
   const webServer = stoppable(new WebServer())
-
-  await Promise.all(map(listen, opts => makeWebServerListen(webServer, { ...listenOptions, ...opts })))
+  await Promise.all(
+    map(listen, (opts, configKey) => makeWebServerListen(webServer, { ...listenOptions, ...opts, configKey }))
+  )
 
   return webServer
 }
@@ -760,6 +783,10 @@ export default async function main(args) {
 
   // Attaches express to the web server.
   webServer.on('request', (req, res) => {
+    // don't redirect let's encrypt challenge to https
+    if (req.url.startsWith('/.well')) {
+      return
+    }
     // don't handle proxy requests
     if (req.url.startsWith('/')) {
       return express(req, res)
@@ -823,6 +850,7 @@ export default async function main(args) {
     process.on(signal, () => {
       if (alreadyCalled) {
         log.warn('forced exit')
+        // eslint-disable-next-line n/no-process-exit
         process.exit(1)
       }
       alreadyCalled = true

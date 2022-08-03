@@ -525,4 +525,8 @@ export default class S3Handler extends RemoteHandlerAbstract {
   }
 
   async _closeFile(fd) {}
+
+  useVhdDirectory() {
+    return true
+  }
 }

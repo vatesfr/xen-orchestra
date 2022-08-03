@@ -1,9 +1,13 @@
-import { Constants, VhdFile } from 'vhd-lib'
-import { getHandler } from '@xen-orchestra/fs'
-import { resolve } from 'path'
-import * as UUID from 'uuid'
-import humanFormat from 'human-format'
-import invert from 'lodash/invert.js'
+'use strict'
+
+const { Constants, VhdFile } = require('vhd-lib')
+const { getHandler } = require('@xen-orchestra/fs')
+const { openVhd } = require('vhd-lib/openVhd')
+const { resolve } = require('path')
+const Disposable = require('promise-toolbox/Disposable')
+const humanFormat = require('human-format')
+const invert = require('lodash/invert.js')
+const UUID = require('uuid')
 
 const { PLATFORMS } = Constants
 
@@ -32,8 +36,8 @@ function mapProperties(object, mapping) {
   return result
 }
 
-export default async args => {
-  const vhd = new VhdFile(getHandler({ url: 'file:///' }), resolve(args[0]))
+async function showDetails(handler, path) {
+  const vhd = new VhdFile(handler, resolve(path))
 
   try {
     await vhd.readHeaderAndFooter()
@@ -66,4 +70,30 @@ export default async args => {
       parentUuid: 'uuid',
     })
   )
+}
+
+async function showList(handler, paths) {
+  let previousUuid
+  for (const path of paths) {
+    await Disposable.use(openVhd(handler, resolve(path)), async vhd => {
+      const uuid = MAPPERS.uuid(vhd.footer.uuid)
+      const fields = [path, MAPPERS.bytes(vhd.footer.currentSize), uuid, MAPPERS.diskType(vhd.footer.diskType)]
+      if (vhd.footer.diskType === Constants.DISK_TYPES.DIFFERENCING) {
+        const parentUuid = MAPPERS.uuid(vhd.header.parentUuid)
+        fields.push(parentUuid === previousUuid ? '<above VHD>' : parentUuid)
+      }
+      previousUuid = uuid
+      console.log(fields.join(' | '))
+    })
+  }
+}
+
+module.exports = async function info(args) {
+  const handler = getHandler({ url: 'file:///' })
+
+  if (args.length === 1) {
+    return showDetails(handler, args[0])
+  }
+
+  return showList(handler, args)
 }

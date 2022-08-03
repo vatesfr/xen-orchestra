@@ -86,10 +86,19 @@ exports.VhdAbstract = class VhdAbstract {
   }
 
   /**
+   * @typedef {Object} BitmapBlock
+   * @property {number} id
+   * @property {Buffer} bitmap
+   *
+   * @typedef {Object} FullBlock
+   * @property {number} id
+   * @property {Buffer} bitmap
+   * @property {Buffer} data
+   * @property {Buffer} buffer - bitmap + data
    *
    * @param {number} blockId
    * @param {boolean} onlyBitmap
-   * @returns {Buffer}
+   * @returns {Promise<BitmapBlock | FullBlock>}
    */
   readBlock(blockId, onlyBitmap = false) {
     throw new Error(`reading  ${onlyBitmap ? 'bitmap of block' : 'block'} ${blockId} is not implemented`)
@@ -104,7 +113,7 @@ exports.VhdAbstract = class VhdAbstract {
    *
    * @returns {number} the merged data size
    */
-  async coalesceBlock(child, blockId) {
+  async mergeBlock(child, blockId) {
     const block = await child.readBlock(blockId)
     await this.writeEntireBlock(block)
     return block.data.length
@@ -333,5 +342,22 @@ exports.VhdAbstract = class VhdAbstract {
     const stream = asyncIteratorToStream(iterator())
     stream.length = footer.currentSize
     return stream
+  }
+
+  async containsAllDataOf(child) {
+    await this.readBlockAllocationTable()
+    await child.readBlockAllocationTable()
+    for await (const block of child.blocks()) {
+      const { id, data: childData } = block
+      // block is in child not in parent
+      if (!this.containsBlock(id)) {
+        return false
+      }
+      const { data: parentData } = await this.readBlock(id)
+      if (!childData.equals(parentData)) {
+        return false
+      }
+    }
+    return true
   }
 }

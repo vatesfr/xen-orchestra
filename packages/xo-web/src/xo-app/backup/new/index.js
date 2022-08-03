@@ -957,7 +957,12 @@ const New = decorate([
                         <label htmlFor={state.inputConcurrencyId}>
                           <strong>{_('concurrency')}</strong>
                         </label>
-                        <Number id={state.inputConcurrencyId} onChange={effects.setConcurrency} value={concurrency} />
+                        <Number
+                          id={state.inputConcurrencyId}
+                          min={1}
+                          onChange={effects.setConcurrency}
+                          value={concurrency}
+                        />
                       </FormGroup>
                       <FormGroup>
                         <label htmlFor={state.inputTimeoutId}>
