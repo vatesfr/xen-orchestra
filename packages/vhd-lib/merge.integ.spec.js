@@ -65,7 +65,7 @@ test('merge works in normal cases', async () => {
   }
 })
 
-test('it can resume a merge ', async () => {
+test('it can resume a simple merge ', async () => {
   const mbOfFather = 8
   const mbOfChildren = 4
   const parentRandomFileName = `${tempDir}/randomfile`
@@ -159,6 +159,73 @@ test('it can resume a merge ', async () => {
   }
 })
 
+test('it can resume a multiple merge ', async () => {
+  const mbOfFather = 8
+  const mbOfChildren = 6
+  const mbOfGrandChildren = 4
+  const parentRandomFileName = `${tempDir}/randomfile`
+  const childRandomFileName = `${tempDir}/small_randomfile`
+  const grandChildRandomFileName = `${tempDir}/another_small_randomfile`
+  const parentFileName = `${tempDir}/parent.vhd`
+  const childFileName = `${tempDir}/child.vhd`
+  const grandChildFileName = `${tempDir}/grandchild.vhd`
+  const handler = getHandler({ url: 'file://' })
+  await createRandomFile(parentRandomFileName, mbOfFather)
+  await convertFromRawToVhd(parentRandomFileName, parentFileName)
+
+  await createRandomFile(childRandomFileName, mbOfChildren)
+  await convertFromRawToVhd(childRandomFileName, childFileName)
+  await chainVhd(handler, parentFileName, handler, childFileName, true)
+
+  await createRandomFile(grandChildRandomFileName, mbOfGrandChildren)
+  await convertFromRawToVhd(grandChildRandomFileName, grandChildFileName)
+  await chainVhd(handler, childFileName, handler, grandChildFileName, true)
+
+  const parentVhd = new VhdFile(handler, parentFileName)
+  await parentVhd.readHeaderAndFooter()
+
+  const childVhd = new VhdFile(handler, childFileName)
+  await childVhd.readHeaderAndFooter()
+
+  const grandChildVhd = new VhdFile(handler, grandChildFileName)
+  await grandChildVhd.readHeaderAndFooter()
+
+  await handler.writeFile(
+    `${tempDir}/.parent.vhd.merge.json`,
+    JSON.stringify({
+      parent: {
+        header: parentVhd.header.checksum,
+      },
+      child: {
+        header: childVhd.header.checksum,
+      },
+      currentBlock: 1,
+    })
+  )
+
+  // should fail since the merge state file has only data of parent and child
+  await expect(
+    async () => await mergeVhd(handler, parentFileName, handler, [childFileName, grandChildFileName])
+  ).rejects.toThrow()
+  // merge
+  await handler.unlink(`${tempDir}/.parent.vhd.merge.json`)
+  await handler.writeFile(
+    `${tempDir}/.parent.vhd.merge.json`,
+    JSON.stringify({
+      parent: {
+        header: parentVhd.header.checksum,
+      },
+      child: {
+        header: grandChildVhd.header.checksum,
+      },
+      currentBlock: 1,
+      childPath: [childVhd, grandChildVhd],
+    })
+  )
+  // it should succeed
+  await mergeVhd(handler, parentFileName, handler, [childFileName, grandChildFileName])
+})
+
 test('it merge multiple child in one pass ', async () => {
   const mbOfFather = 8
   const mbOfChildren = 6
@@ -182,7 +249,7 @@ test('it merge multiple child in one pass ', async () => {
   await chainVhd(handler, childFileName, handler, grandChildFileName, true)
 
   // merge
-  await mergeVhd(handler, parentFileName, handler, [grandChildFileName, childFileName])
+  await mergeVhd(handler, parentFileName, handler, [childFileName, grandChildFileName])
 
   // check that vhd is still valid
   await checkFile(grandChildFileName)

@@ -1,7 +1,7 @@
 import { parse } from 'xo-remote-parser'
 
 import MountHandler from './_mount'
-import { normalize } from './_path'
+import { normalize } from './path'
 
 export default class SmbMountHandler extends MountHandler {
   constructor(remote, opts) {

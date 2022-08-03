@@ -1,6 +1,6 @@
 import path from 'path'
 
-const { basename, dirname, join, resolve, sep } = path.posix
+const { basename, dirname, join, resolve, relative, sep } = path.posix
 
 export { basename, dirname, join }
 
@@ -19,3 +19,6 @@ export function split(path) {
 
   return parts
 }
+
+export const relativeFromFile = (file, path) => relative(dirname(file), path)
+export const resolveFromFile = (file, path) => resolve('/', dirname(file), path).slice(1)

@@ -13,6 +13,7 @@ const { limitConcurrency } = require('limit-concurrency-decorator')
 
 const { Task } = require('./Task.js')
 const { Disposable } = require('promise-toolbox')
+const handlerPath = require('@xen-orchestra/fs/path')
 
 // checking the size of a vhd directory is costly
 // 1 Http Query per 1000 blocks
@@ -86,7 +87,7 @@ async function mergeVhdChain(chain, { handler, logInfo, remove, merge }) {
 const noop = Function.prototype
 
 const INTERRUPTED_VHDS_REG = /^\.(.+)\.merge.json$/
-const listVhds = async (handler, vmDir) => {
+const listVhds = async (handler, vmDir, logWarn) => {
   const vhds = new Set()
   const aliases = {}
   const interruptedVhds = new Map()
@@ -106,12 +107,23 @@ const listVhds = async (handler, vmDir) => {
             filter: file => isVhdFile(file) || INTERRUPTED_VHDS_REG.test(file),
           })
           aliases[vdiDir] = list.filter(vhd => isVhdAlias(vhd)).map(file => `${vdiDir}/${file}`)
-          list.forEach(file => {
+
+          await asyncMap(list, async file => {
             const res = INTERRUPTED_VHDS_REG.exec(file)
             if (res === null) {
               vhds.add(`${vdiDir}/${file}`)
             } else {
-              interruptedVhds.set(`${vdiDir}/${res[1]}`, `${vdiDir}/${file}`)
+              try {
+                const mergeState = JSON.parse(await handler.readFile(file))
+                interruptedVhds.set(`${vdiDir}/${res[1]}`, {
+                  statePath: `${vdiDir}/${file}`,
+                  chain: mergeState.chain,
+                })
+              } catch (error) {
+                // fall back to a non resuming merge
+                vhds.add(`${vdiDir}/${file}`)
+                logWarn('failed to read existing merge state', { path: file, error })
+              }
             }
           })
         }
@@ -197,7 +209,7 @@ exports.cleanVm = async function cleanVm(
   const vhdParents = { __proto__: null }
   const vhdChildren = { __proto__: null }
 
-  const { vhds, interruptedVhds, aliases } = await listVhds(handler, vmDir)
+  const { vhds, interruptedVhds, aliases } = await listVhds(handler, vmDir, logWarn)
 
   // remove broken VHDs
   await asyncMap(vhds, async path => {
@@ -248,7 +260,7 @@ exports.cleanVm = async function cleanVm(
   // remove interrupted merge states for missing VHDs
   for (const interruptedVhd of interruptedVhds.keys()) {
     if (!vhds.has(interruptedVhd)) {
-      const statePath = interruptedVhds.get(interruptedVhd)
+      const { statePath } = interruptedVhds.get(interruptedVhd)
       interruptedVhds.delete(interruptedVhd)
 
       logWarn('orphan merge state', {
@@ -430,7 +442,13 @@ exports.cleanVm = async function cleanVm(
 
     // merge interrupted VHDs
     for (const parent of interruptedVhds.keys()) {
-      vhdChainsToMerge[parent] = [parent, vhdChildren[parent]]
+      // before #6349 the chain wasn't in the mergeState
+      const { chain, statePath } = interruptedVhds.get(parent)
+      if (chain === undefined) {
+        vhdChainsToMerge[parent] = [parent, vhdChildren[parent]]
+      } else {
+        vhdChainsToMerge[parent] = chain.map(vhdPath => handlerPath.resolveFromFile(statePath, vhdPath))
+      }
     }
 
     Object.values(vhdChainsToMerge).forEach(chain => {

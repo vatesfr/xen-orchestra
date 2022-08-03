@@ -31,6 +31,7 @@
 <!--packages-start-->
 
 - @xen-orchestra/backups patch
+- @xen-orchestra/fs minor
 - @xen-orchestra/mixins patch
 - vhd-cli minor
 - vhd-lib patch
