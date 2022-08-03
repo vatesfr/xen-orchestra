@@ -29,5 +29,6 @@
 
 - @xen-orchestra/mixins patch
 - xo-web patch
+- xo-server-auth-saml minor 
 
 <!--packages-end-->
