@@ -158,6 +158,7 @@ class StreamParser {
 class StreamNbdParser extends StreamParser {
   #nbdClient = null
   #generateBlockSequentially = true
+  #concurrency = 16
 
   constructor(stream, nbdClient, { generateBlockSequentially = true } = {}) {
     super(stream)
@@ -165,62 +166,66 @@ class StreamNbdParser extends StreamParser {
     this.#generateBlockSequentially = generateBlockSequentially
   }
 
-  async *blocks() {
+  async readBlockData(item) {
     const SECTOR_BITMAP = Buffer.alloc(512, 255)
-    const index = this._index
     const client = this.#nbdClient
+    // we read in a raw file, so the block position is id x length, and have nothing to do with the offset
+    // in the vhd stream
+    const rawDataLength = item.size - SECTOR_BITMAP.length
+    let data = await client.readBlock(item.id, rawDataLength)
 
-    async function iteratee(item) {
-      try {
-        // we read in a raw file, so the block position is id x length, and have nothing to do with the offset
-        // in the vhd stream
-        const rawDataLength = item.size - SECTOR_BITMAP.length
-        let data = await client.readBlock(item.id, rawDataLength)
-
-        // end of file , non aligned vhd block
-        if (data.length < rawDataLength) {
-          data = Buffer.concat([data, Buffer.alloc(rawDataLength - data.length)])
-        }
-        const buffer = Buffer.concat([SECTOR_BITMAP, data])
-        const block = {
-          ...item,
-          size: rawDataLength,
-          bitmap: SECTOR_BITMAP,
-          data,
-          buffer,
-        }
-        return block
-      } catch (e) {
-        // fail on the last block
-        console.log(e)
-      }
+    // end of file , non aligned vhd block
+    if (data.length < rawDataLength) {
+      data = Buffer.concat([data, Buffer.alloc(rawDataLength - data.length)])
     }
+    const buffer = Buffer.concat([SECTOR_BITMAP, data])
+    const block = {
+      ...item,
+      size: rawDataLength,
+      bitmap: SECTOR_BITMAP,
+      data,
+      buffer,
+    }
+    return block
+  }
 
-    const promiseQueue = []
+  async *blocks() {
+    const index = this._index
+
+    const promiseSlots = []
 
     // parallel yielding
     function next(position) {
       const item = index.shift()
       if (item) {
-        promiseQueue[position] = iteratee(item).then(result => {
-          return { result, position }
-        })
+        // update this ended
+        promiseSlots[position] = this.readBlockData(item)
+          .then(result => {
+            return { result, position }
+          })
+          .catch(error => {
+            console.error(error)
+            throw error
+          })
       } else {
-        promiseQueue[position] = undefined
+        // no more block to handle
+        promiseSlots[position] = undefined
       }
     }
 
-    for (let i = 0; i < 16; i++) {
+    for (let i = 0; i < this.#concurrency; i++) {
       next(i)
     }
 
     let runningPromises = []
     while (true) {
-      runningPromises = promiseQueue.filter(p => p !== undefined)
+      runningPromises = promiseSlots.filter(p => p !== undefined)
       if (runningPromises.length === 0) {
+        // done
         break
       }
-
+      // the failing promises will only be seen when ALL the running promises
+      // fails
       const { result, position } = await Promise.any(runningPromises)
       next(position)
       yield result
