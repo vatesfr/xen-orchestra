@@ -208,16 +208,18 @@ You can verify that your time is correctly set with the `date` command. To set X
 
 ## Setting a custom NTP server
 
-By default XOA NTP servers are set to work with Debian NTP pool:
+By default, XOA is configured to use the standard Debian NTP servers:
 ```
 pool 0.debian.pool.ntp.org iburst
 pool 1.debian.pool.ntp.org iburst
 pool 2.debian.pool.ntp.org iburst
 pool 3.debian.pool.ntp.org iburst
 ```
-But if you want to use your own NTP server or another pool you can edit the ntp.conf file located in /etc.
-You will need sudo permission to edit the file.
-We recommend you only add your own NTP server at the start of the list and not removing the Debian pool if not necessary.
+If you'd like to use your own NTP server or another pool, you can make the changes directly in `/etc/ntp.conf`.
+
+You will need to be root to edit this file (or use `sudo`). We recommend adding your custom server to the top of the list, leaving the debian server entries if possible.
+
+For changes to take effect, you will need to restart NTP: `sudo systemctl restart ntp.service`.
 
 ## Restart the service
 
