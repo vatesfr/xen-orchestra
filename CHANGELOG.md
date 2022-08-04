@@ -1,5 +1,24 @@
 # ChangeLog
 
+## **next**
+
+### Bug fixes
+
+- [Backup] Fix `incorrect backup size in metadata` on each merged VHD (PR [#6331](https://github.com/vatesfr/xen-orchestra/pull/6331))
+- [Backup] Fix `assertionError [ERR_ASSERTION]: Expected values to be strictly equal` when resuming a merge (PR [#6349](https://github.com/vatesfr/xen-orchestra/pull/6349))
+
+### Released packages
+
+- @xen-orchestra/backups 0.27.3
+- @xen-orchestra/fs 2.1.0
+- @xen-orchestra/mixins 0.7.1
+- @xen-orchestra/proxy 0.25.1
+- vhd-cli 0.9.0
+- vhd-lib 3.3.5
+- xo-server 5.100.1
+- xo-server-auth-saml 0.10.0
+- xo-web 5.101.1
+
 ## **5.73.0** (2022-07-29)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
