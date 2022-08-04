@@ -1,7 +1,8 @@
 # ChangeLog
 
-## **next**
+## **5.73.1** (2022-08-04)
 
+<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
 ### Bug fixes
 
 - [Backup] Fix `incorrect backup size in metadata` on each merged VHD (PR [#6331](https://github.com/vatesfr/xen-orchestra/pull/6331))
@@ -20,8 +21,6 @@
 - xo-web 5.101.1
 
 ## **5.73.0** (2022-07-29)
-
-<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
 
 ### Highlights
 
