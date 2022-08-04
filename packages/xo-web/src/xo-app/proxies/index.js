@@ -159,16 +159,6 @@ const COLUMNS = [
           </span>
         )
       }
-      /*
-      // Proxy bound to multiple licenses
-      if (license === null) {
-        return (
-          <span className='text-danger'>
-            {_('multipleLicenses')} <a href='https://xen-orchestra.com/'>{_('contactUs')}</a>
-          </span>
-        )
-      }
-      */
 
       const now = Date.now()
       const expiresSoon = license.expires - now < EXPIRES_SOON_DELAY
@@ -260,7 +250,7 @@ const Proxies = decorate([
   provideState({
     initialState: () => ({
       upgradesByProxy: {},
-      licensesByProxy: {},
+      licensesByVmUuid: {},
     }),
     effects: {
       async initialize({ fetchProxyUpgrades }) {

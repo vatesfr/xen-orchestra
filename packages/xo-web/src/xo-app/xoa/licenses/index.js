@@ -15,6 +15,7 @@ import { find, forEach, groupBy } from 'lodash'
 import { get } from '@xen-orchestra/defined'
 import { getLicenses, selfBindLicense, subscribePlugins, subscribeProxies, subscribeSelfLicenses } from 'xo'
 
+import Proxies from './proxies'
 import Xosan from './xosan'
 
 // -----------------------------------------------------------------------------
@@ -344,6 +345,12 @@ export default class Licenses extends Component {
               </a>
             </h2>
             <Xosan xosanLicenses={this.state.licenses.xosan} updateLicenses={this._updateLicenses} />
+          </Col>
+        </Row>
+        <Row>
+          <Col>
+            <h2>{_('proxies')}</h2>
+            <Proxies Licenses={this.state.licenses.proxy} updateLicenses={this._updateLicenses} />
           </Col>
         </Row>
       </Container>
