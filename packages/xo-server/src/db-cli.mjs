@@ -98,10 +98,9 @@ xo-server-logs ls <namespace> [<pattern>...]
     ignoreUnknownFormats: true,
   })
 
-  const { renameCommands, socket: path, uri: url } = config.redis || {}
+  const { socket: path, uri: url } = config.redis || {}
   const connection = createRedisClient({
     path,
-    rename_commands: renameCommands,
     url,
   })
   try {

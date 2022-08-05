@@ -43,11 +43,10 @@ export default class Xo extends EventEmitter {
 
     // Connects to Redis.
     {
-      const { renameCommands, socket: path, uri: url } = config.redis || {}
+      const { socket: path, uri: url } = config.redis || {}
 
       this._redis = createRedisClient({
         path,
-        rename_commands: renameCommands,
         url,
       })
     }

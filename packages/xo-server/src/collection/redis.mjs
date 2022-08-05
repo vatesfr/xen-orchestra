@@ -4,11 +4,11 @@ import difference from 'lodash/difference.js'
 import filter from 'lodash/filter.js'
 import forEach from 'lodash/forEach.js'
 import getKeys from 'lodash/keys.js'
+import ignoreErrors from 'promise-toolbox/ignoreErrors'
 import isEmpty from 'lodash/isEmpty.js'
 import map from 'lodash/map.js'
 import omit from 'lodash/omit.js'
 import { createClient as createRedisClient } from 'redis'
-import { ignoreErrors, promisifyAll } from 'promise-toolbox'
 import { v4 as generateUuid } from 'uuid'
 
 import Collection, { ModelAlreadyExists } from '../collection.mjs'
@@ -46,7 +46,7 @@ export default class Redis extends Collection {
 
     this.indexes = indexes
     this.prefix = prefix
-    const redis = (this.redis = promisifyAll(connection || createRedisClient(uri)))
+    const redis = (this.redis = connection || createRedisClient(uri))
 
     redis.sadd('xo::namespaces', namespace)::ignoreErrors()
 
