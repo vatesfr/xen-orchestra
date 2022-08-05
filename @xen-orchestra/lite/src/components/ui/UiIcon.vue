@@ -11,7 +11,7 @@
 <script lang="ts" setup>
 import { computed } from "vue";
 import type { IconDefinition } from "@fortawesome/fontawesome-common-types";
-import { faSpinner } from "@fortawesome/pro-light-svg-icons";
+import { faSpinner } from "@fortawesome/pro-solid-svg-icons";
 
 const props = withDefaults(
   defineProps<{
