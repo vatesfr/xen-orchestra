@@ -51,15 +51,15 @@ const COLUMNS = [
 
 const UnhealthyVdis = decorate([
   addSubscriptions({
-    unhealthyVdiChainsLengthBySr: subscribeSrsUnhealthyVdiChainsLength,
+    chainsLengthBySr: subscribeSrsUnhealthyVdiChainsLength,
   }),
   provideState({
     computed: {
-      srIds: (state, { unhealthyVdiChainsLengthBySr = {} }) => Object.keys(unhealthyVdiChainsLengthBySr),
+      srIds: (state, { chainsLengthBySr = {} }) => Object.keys(chainsLengthBySr.unhealthyVdis),
     },
   }),
   injectState,
-  ({ state: { srIds }, unhealthyVdiChainsLengthBySr }) => (
+  ({ state: { srIds }, chainsLengthBySr }) => (
     <Row>
       <Col>
         <Card>
@@ -70,7 +70,7 @@ const UnhealthyVdis = decorate([
             <Row>
               <Col>
                 <SortedTable
-                  data-unhealthyVdiChainsLengthBySr={unhealthyVdiChainsLengthBySr}
+                  data-unhealthyVdiChainsLengthBySr={chainsLengthBySr?.unhealthyVdis}
                   collection={srIds}
                   columns={COLUMNS}
                   stateUrlParam='s_vdis_to_coalesce'

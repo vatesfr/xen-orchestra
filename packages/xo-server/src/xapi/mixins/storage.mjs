@@ -58,7 +58,7 @@ export default {
       const children = childrenMap[uuid]
       length = children !== undefined && children.length === 1 ? 1 : 0
       try {
-        const parent = this.getObjectByUuid(uuid).sm_config['vhd-parent']
+        const parent = this.getObjectByUuid(uuid).sm_config?.['vhd-parent']
         if (parent !== undefined) {
           length += this._getUnhealthyVdiChainLength(parent, childrenMap, cache)
         }
@@ -74,6 +74,8 @@ export default {
     const vdis = this.getObject(sr).$VDIs
     const unhealthyVdis = { __proto__: null }
     const children = groupBy(vdis, 'sm_config.vhd-parent')
+    const missingVhdParent = children.undefined
+    delete children.undefined
     const cache = { __proto__: null }
     forEach(vdis, vdi => {
       if (vdi.managed && !vdi.is_a_snapshot) {
@@ -84,7 +86,10 @@ export default {
         }
       }
     })
-    return unhealthyVdis
+    return {
+      missingVhdParent,
+      unhealthyVdis,
+    }
   },
 
   // This function helps to reattach a forgotten NFS/iSCSI/HBA SR
