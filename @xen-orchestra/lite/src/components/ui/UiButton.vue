@@ -2,32 +2,33 @@
   <button
     :class="[
       `color-${buttonColor}`,
-      { busy: isBusy, disabled: isDisabled, 'has-icon': icon !== undefined },
+      { busy: isBusy, disabled: isDisabled, active },
     ]"
     :disabled="isBusy || isDisabled"
     :type="type || 'button'"
     class="ui-button"
   >
-    <FontAwesomeIcon v-if="isBusy" :icon="faSpinner" class="icon" spin />
-    <template v-else>
-      <FontAwesomeIcon v-if="icon" :icon="icon" class="icon" />
-      <slot />
-    </template>
+    <UiIcon :busy="isBusy" :icon="icon" class="icon" />
+    <slot v-if="!isBusy" />
   </button>
 </template>
 
 <script lang="ts" setup>
 import { computed, inject, unref } from "vue";
 import type { IconDefinition } from "@fortawesome/fontawesome-common-types";
-import { faSpinner } from "@fortawesome/pro-regular-svg-icons";
+import UiIcon from "@/components/ui/UiIcon.vue";
 
-const props = defineProps<{
-  type?: "button" | "reset" | "submit";
-  busy?: boolean;
-  disabled?: boolean;
-  icon?: IconDefinition;
-  color?: "primary" | "secondary";
-}>();
+const props = withDefaults(
+  defineProps<{
+    type?: "button" | "reset" | "submit";
+    busy?: boolean;
+    disabled?: boolean;
+    icon?: IconDefinition;
+    color?: "primary" | "secondary";
+    active?: boolean;
+  }>(),
+  { busy: undefined, disabled: undefined }
+);
 
 const isGroupBusy = inject("isButtonGroupBusy", false);
 const isBusy = computed(() => props.busy ?? unref(isGroupBusy));
@@ -46,17 +47,14 @@ const buttonColor = computed(() => props.color ?? unref(buttonGroupColor));
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 10rem;
-  height: 5rem;
-  padding: 0 1.5rem;
+  min-width: 5em;
+  min-height: 2.5em;
+  padding: 0 0.75em;
+  vertical-align: middle;
   border: none;
-  border-radius: 0.8rem;
+  border-radius: 0.4em;
   box-shadow: var(--shadow-100);
-  gap: 1.5rem;
-
-  &.has-icon {
-    min-width: 13rem;
-  }
+  gap: 0.75em;
 
   &.disabled {
     color: var(--color-blue-scale-400);
@@ -73,6 +71,7 @@ const buttonColor = computed(() => props.color ?? unref(buttonGroupColor));
       }
 
       &:active,
+      &.active,
       &.busy {
         background-color: var(--color-extra-blue-d40);
       }
@@ -89,6 +88,7 @@ const buttonColor = computed(() => props.color ?? unref(buttonGroupColor));
       }
 
       &:active,
+      &.active,
       &.busy {
         color: var(--color-extra-blue-d40);
         border-color: var(--color-extra-blue-d40);
@@ -98,6 +98,6 @@ const buttonColor = computed(() => props.color ?? unref(buttonGroupColor));
 }
 
 .icon {
-  font-size: 1.6rem;
+  font-size: 0.8em;
 }
 </style>
