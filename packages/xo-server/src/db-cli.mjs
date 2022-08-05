@@ -2,8 +2,6 @@
 
 import { createClient as createRedisClient } from 'redis'
 import appConf from 'app-conf'
-import fromCallback from 'promise-toolbox/fromCallback'
-import fromEvent from 'promise-toolbox/fromEvent'
 
 import RedisCollection from './collection/redis.mjs'
 
@@ -18,7 +16,7 @@ async function getDb(namespace) {
   const { connection } = this
   return new RedisCollection({
     connection,
-    indexes: await fromCallback.call(connection, 'smembers', `xo:${namespace}::indexes`),
+    indexes: await connection.sMembers(`xo:${namespace}::indexes`),
     namespace,
   })
 }
@@ -53,7 +51,7 @@ function sortKeys(object) {
 const COMMANDS = {
   async ls(args) {
     if (args.length === 0) {
-      const namespaces = await fromCallback.call(this.connection, 'smembers', 'xo::namespaces')
+      const namespaces = await this.connection.sMembers('xo::namespaces')
       namespaces.sort()
       for (const ns of namespaces) {
         console.log(ns)
@@ -103,14 +101,15 @@ xo-server-logs ls <namespace> [<pattern>...]
     path,
     url,
   })
+  await connection.connect()
+  // await repl({ context: { redis: connection } })
   try {
     const fn = COMMANDS[args.shift()]
     assert(fn !== undefined, 'command must be one of: ' + Object.keys(COMMANDS).join(', '))
 
     await fn.call({ connection, getDb }, args)
   } finally {
-    connection.quit()
-    await fromEvent(connection, 'end')
+    await connection.quit()
   }
 }
 main(process.argv.slice(2))

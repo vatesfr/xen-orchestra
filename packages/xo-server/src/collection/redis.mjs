@@ -8,7 +8,6 @@ import ignoreErrors from 'promise-toolbox/ignoreErrors'
 import isEmpty from 'lodash/isEmpty.js'
 import map from 'lodash/map.js'
 import omit from 'lodash/omit.js'
-import { createClient as createRedisClient } from 'redis'
 import { v4 as generateUuid } from 'uuid'
 
 import Collection, { ModelAlreadyExists } from '../collection.mjs'
@@ -46,9 +45,9 @@ export default class Redis extends Collection {
 
     this.indexes = indexes
     this.prefix = prefix
-    const redis = (this.redis = connection || createRedisClient(uri))
+    const redis = (this.redis = connection)
 
-    redis.sadd('xo::namespaces', namespace)::ignoreErrors()
+    redis.sAdd('xo::namespaces', namespace)::ignoreErrors()
 
     const key = `${prefix}:version`
     redis
@@ -79,21 +78,21 @@ export default class Redis extends Collection {
       return
     }
 
-    await redis.sadd(`${prefix}::indexes`, indexes)
+    await redis.sAdd(`${prefix}::indexes`, indexes)
 
     await asyncMapSettled(indexes, index =>
       redis.keys(`${prefix}_${index}:*`).then(keys => keys.length !== 0 && redis.del(keys))
     )
 
     const idsIndex = `${prefix}_ids`
-    await asyncMapSettled(redis.smembers(idsIndex), id =>
-      redis.hgetall(`${prefix}:${id}`).then(values =>
+    await asyncMapSettled(redis.sMembers(idsIndex), id =>
+      redis.hGetAll(`${prefix}:${id}`).then(values =>
         values == null
-          ? redis.srem(idsIndex, id) // entry no longer exists
+          ? redis.sRem(idsIndex, id) // entry no longer exists
           : asyncMapSettled(indexes, index => {
               const value = values[index]
               if (value !== undefined) {
-                return redis.sadd(`${prefix}_${index}:${String(value).toLowerCase()}`, id)
+                return redis.sAdd(`${prefix}_${index}:${String(value).toLowerCase()}`, id)
               }
             })
       )
@@ -107,7 +106,7 @@ export default class Redis extends Collection {
     const models = []
     return Promise.all(
       map(ids, id => {
-        return redis.hgetall(prefix + id).then(model => {
+        return redis.hGetAll(prefix + id).then(model => {
           // If empty, consider it a no match.
           if (isEmpty(model)) {
             return
@@ -136,7 +135,7 @@ export default class Redis extends Collection {
         }
         const { id } = model
 
-        const newEntry = await redis.sadd(prefix + '_ids', id)
+        const newEntry = await redis.sAdd(prefix + '_ids', id)
 
         if (!newEntry) {
           if (!replace) {
@@ -145,11 +144,11 @@ export default class Redis extends Collection {
 
           // remove the previous values from indexes
           if (indexes.length !== 0) {
-            const previous = await redis.hgetall(`${prefix}:${id}`)
+            const previous = await redis.hGetAll(`${prefix}:${id}`)
             await asyncMapSettled(indexes, index => {
               const value = previous[index]
               if (value !== undefined) {
-                return redis.srem(`${prefix}_${index}:${String(value).toLowerCase()}`, id)
+                return redis.sRem(`${prefix}_${index}:${String(value).toLowerCase()}`, id)
               }
             })
           }
@@ -168,7 +167,7 @@ export default class Redis extends Collection {
         })
 
         const key = `${prefix}:${id}`
-        const promises = [redis.del(key), redis.hmset(key, ...params)]
+        const promises = [redis.del(key), redis.hSet(key, ...params)]
 
         // Update indexes.
         forEach(indexes, index => {
@@ -178,7 +177,7 @@ export default class Redis extends Collection {
           }
 
           const key = prefix + '_' + index + ':' + String(value).toLowerCase()
-          promises.push(redis.sadd(key, id))
+          promises.push(redis.sAdd(key, id))
         })
 
         await Promise.all(promises)
@@ -192,7 +191,7 @@ export default class Redis extends Collection {
     const { prefix, redis } = this
 
     if (isEmpty(properties)) {
-      return redis.smembers(prefix + '_ids').then(ids => this._extract(ids))
+      return redis.sMembers(prefix + '_ids').then(ids => this._extract(ids))
     }
 
     // Special treatment for the identifier.
@@ -213,7 +212,7 @@ export default class Redis extends Collection {
     }
 
     const keys = map(properties, (value, index) => `${prefix}_${index}:${String(value).toLowerCase()}`)
-    return redis.sinter(...keys).then(ids => this._extract(ids))
+    return redis.sInter(...keys).then(ids => this._extract(ids))
   }
 
   _remove(ids) {
@@ -224,20 +223,20 @@ export default class Redis extends Collection {
     const { indexes, prefix, redis } = this
 
     // update main index
-    let promise = redis.srem(prefix + '_ids', ...ids)
+    let promise = redis.sRem(prefix + '_ids', ...ids)
 
     // update other indexes
     if (indexes.length !== 0) {
       promise = Promise.all([
         promise,
         asyncMapSettled(ids, id =>
-          redis.hgetall(`${prefix}:${id}`).then(
+          redis.hGetAll(`${prefix}:${id}`).then(
             values =>
               values != null &&
               asyncMapSettled(indexes, index => {
                 const value = values[index]
                 if (value !== undefined) {
-                  return redis.srem(`${prefix}_${index}:${String(value).toLowerCase()}`, id)
+                  return redis.sRem(`${prefix}_${index}:${String(value).toLowerCase()}`, id)
                 }
               })
           )
