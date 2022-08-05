@@ -75,6 +75,10 @@ const handleClick = async () => {
 </script>
 
 <style lang="postcss" scoped>
+.menu-item {
+  color: var(--color-blue-scale-200);
+}
+
 .submenu-icon {
   margin-left: auto;
 }

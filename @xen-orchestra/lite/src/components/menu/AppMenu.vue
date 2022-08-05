@@ -20,6 +20,19 @@ const props = defineProps<{
   horizontal?: boolean;
   shadow?: boolean;
   disabled?: boolean;
+  placement?:
+    | "top"
+    | "top-start"
+    | "top-end"
+    | "bottom"
+    | "bottom-start"
+    | "bottom-end"
+    | "right"
+    | "right-start"
+    | "right-end"
+    | "left"
+    | "left-start"
+    | "left-end";
 }>();
 const slots = useSlots();
 const isOpen = ref(false);
@@ -46,7 +59,8 @@ const open = (event: PointerEvent) => {
 
     placement(event.currentTarget as HTMLElement, unrefElement(menu), {
       placement:
-        unref(isParentHorizontal) !== false ? "bottom-start" : "right-start",
+        props.placement ??
+        (unref(isParentHorizontal) !== false ? "bottom-start" : "right-start"),
     });
   });
 };

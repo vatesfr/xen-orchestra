@@ -27,7 +27,6 @@ defineProps<{
   padding-right: 1.5rem;
   padding-left: 1rem;
   white-space: nowrap;
-  color: var(--color-blue-scale-200);
   border-radius: 0.8rem;
   gap: 1rem;
 
