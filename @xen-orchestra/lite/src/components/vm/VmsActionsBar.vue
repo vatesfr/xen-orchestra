@@ -1,31 +1,43 @@
 <template>
-  <UiButtonGroup
+  <AppMenu
+    horizontal
     :disabled="selectedRefs.length === 0"
     class="vms-actions-bar"
-    color="secondary"
   >
-    <UiButton :icon="faPowerOff">Change power state</UiButton>
-    <UiButton :icon="faRoute">Migrate</UiButton>
-    <UiButton :icon="faCopy">Copy</UiButton>
-    <UiButton :icon="faEdit">Edit config</UiButton>
-    <UiButton :icon="faCamera">Snapshot</UiButton>
-    <UiButton :icon="faBox">Backup</UiButton>
-    <UiButton :icon="faTrashCan">Delete</UiButton>
-    <UiButton :icon="faFileExport">Export</UiButton>
-  </UiButtonGroup>
+    <MenuItem :icon="faPowerOff">Change power state</MenuItem>
+    <MenuItem :icon="faRoute">Migrate</MenuItem>
+    <MenuItem :icon="faCopy">Copy</MenuItem>
+    <MenuItem :icon="faEdit">Edit config</MenuItem>
+    <MenuItem :icon="faCamera">Snapshot</MenuItem>
+    <MenuItem :icon="faBoxTaped">Backup</MenuItem>
+    <MenuItem :icon="faTrash">Delete</MenuItem>
+    <MenuItem :icon="faFileExport">
+      Export
+      <template #submenu>
+        <MenuItem :icon="faDisplay">Export VMs</MenuItem>
+        <MenuItem :icon="faCode">Export table in .json</MenuItem>
+        <MenuItem :icon="faFileCsv">Export table in .csv</MenuItem>
+      </template>
+    </MenuItem>
+  </AppMenu>
 </template>
 
 <script lang="ts" setup>
-import { faCopy, faEdit, faTrashCan } from "@fortawesome/pro-regular-svg-icons";
 import {
-  faBox,
+  faBoxTaped,
   faCamera,
+  faCode,
+  faCopy,
+  faDisplay,
+  faEdit,
+  faFileCsv,
   faFileExport,
   faPowerOff,
   faRoute,
-} from "@fortawesome/pro-solid-svg-icons";
-import UiButton from "@/components/ui/UiButton.vue";
-import UiButtonGroup from "@/components/ui/UiButtonGroup.vue";
+  faTrash,
+} from "@fortawesome/pro-light-svg-icons";
+import AppMenu from "@/components/menu/AppMenu.vue";
+import MenuItem from "@/components/menu/MenuItem.vue";
 
 defineProps<{
   disabled?: boolean;
