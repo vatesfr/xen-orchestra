@@ -4,17 +4,17 @@
       v-if="!$slots.submenu"
       :active="isBusy"
       :busy="isBusy"
-      :disabled="disabled"
+      :disabled="isDisabled"
       :icon="icon"
       @click="handleClick"
     >
       <slot />
     </MenuTrigger>
-    <AppMenu v-else shadow>
+    <AppMenu v-else shadow :disabled="isDisabled">
       <template #trigger="{ open, isOpen }">
         <MenuTrigger
           :active="isOpen"
-          :disabled="disabled"
+          :disabled="isDisabled"
           :icon="icon"
           @click="open"
         >
@@ -47,7 +47,9 @@ const props = defineProps<{
   busy?: boolean;
 }>();
 
-const isParentHorizontal = inject("isParentMenuHorizontal", false);
+const isParentHorizontal = inject("isMenuHorizontal", false);
+const isMenuDisabled = inject("isMenuDisabled", false);
+const isDisabled = computed(() => props.disabled || unref(isMenuDisabled));
 
 const submenuIcon = computed(() =>
   unref(isParentHorizontal) ? faAngleDown : faAngleRight
@@ -58,6 +60,10 @@ const isBusy = computed(() => isHandlingClick.value || props.busy);
 const closeMenu = inject("closeMenu", noop);
 
 const handleClick = async () => {
+  if (isDisabled.value) {
+    return;
+  }
+
   isHandlingClick.value = true;
   try {
     await props.onClick?.();

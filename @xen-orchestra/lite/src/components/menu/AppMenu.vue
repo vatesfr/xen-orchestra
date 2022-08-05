@@ -19,12 +19,14 @@ import { onClickOutside, unrefElement } from "@vueuse/core";
 const props = defineProps<{
   horizontal?: boolean;
   shadow?: boolean;
+  disabled?: boolean;
 }>();
 const slots = useSlots();
 const isOpen = ref(false);
 const menu = ref();
-const isParentHorizontal = inject("isParentMenuHorizontal", undefined);
-provide("isParentMenuHorizontal", toRef(props, "horizontal"));
+const isParentHorizontal = inject("isMenuHorizontal", undefined);
+provide("isMenuHorizontal", toRef(props, "horizontal"));
+provide("isMenuDisabled", toRef(props, "disabled"));
 
 if (slots.trigger && !inject("closeMenu", false)) {
   provide("closeMenu", () => (isOpen.value = false));
