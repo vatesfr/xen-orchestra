@@ -42,13 +42,13 @@ const { warn } = createLogger('vhd-lib:merge')
 //         \_____________rename_____________/
 
 // write the merge progress file at most  every `delay` seconds
-function makeThrottledWriter(handler, path, delay) {
+function makeThrottleFn(fn, delay) {
   let lastWrite = Date.now()
-  return async json => {
+  return async (...args) => {
     const now = Date.now()
     if (now - lastWrite > delay) {
       lastWrite = now
-      await handler.writeFile(path, JSON.stringify(json), { flags: 'w' }).catch(warn)
+      await fn(...args)
     }
   }
 }
@@ -153,6 +153,11 @@ module.exports.mergeVhdChain = limitConcurrency(2)(async function mergeVhdChain(
         mergedDataSize: 0,
         chain: chain.map(vhdPath => handlerPath.relativeFromFile(mergeStatePath, vhdPath)),
       }
+
+      // finds first allocated block for the 2 following loops
+      while (mergeState.currentBlock < maxTableEntries && !childVhd.containsBlock(mergeState.currentBlock)) {
+        ++mergeState.currentBlock
+      }
     }
 
     // counts number of allocated blocks
@@ -167,12 +172,21 @@ module.exports.mergeVhdChain = limitConcurrency(2)(async function mergeVhdChain(
 
     const merging = new Set()
     let counter = 0
+    let hasNewBlock = false
 
-    const mergeStateWriter = makeThrottledWriter(handler, mergeStatePath, 10e3)
+    const mergeProgressWriter = makeThrottleFn(async () => {
+      await handler.writeFile(mergeStatePath, JSON.stringify(mergeState), { flags: 'w' }).catch(warn)
+      if (hasNewBlock) {
+        hasNewBlock = false
+        await parentVhd.writeBlockAllocationTable().catch(warn)
+      }
+    }, 10e3)
+
     await asyncEach(
       toMerge,
       async blockId => {
         merging.add(blockId)
+        hasNewBlock = hasNewBlock || !parentVhd.containsBlock(blockId)
         mergeState.mergedDataSize += await parentVhd.mergeBlock(childVhd, blockId, isResuming)
 
         mergeState.currentBlock = Math.min(...merging)
@@ -183,7 +197,7 @@ module.exports.mergeVhdChain = limitConcurrency(2)(async function mergeVhdChain(
           done: counter + 1,
         })
         counter++
-        mergeStateWriter(mergeState)
+        mergeProgressWriter()
       },
       {
         concurrency,
