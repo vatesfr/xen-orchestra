@@ -160,7 +160,7 @@ export default class Redis extends Collection {
           redis.del(key),
           redis.hSet(
             key,
-            pickBy(model, (value, name) => value !== undefined && name !== id)
+            pickBy(model, (value, name) => value !== undefined && name !== 'id')
           ),
         ]
 
