@@ -112,4 +112,4 @@ xo-server-logs ls <namespace> [<pattern>...]
     await connection.quit()
   }
 }
-main(process.argv.slice(2))
+main(process.argv.slice(2)).catch(console.error)
