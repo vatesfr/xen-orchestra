@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { createClient as createRedisClient } from 'redis'
+import { start as startRepl } from 'repl'
 import appConf from 'app-conf'
 
 import RedisCollection from './collection/redis.mjs'
@@ -64,6 +65,30 @@ const COMMANDS = {
         console.log(sortKeys(record))
       }
     }
+  },
+
+  async repl([namespace]) {
+    assert(namespace !== undefined, 'missing namespace')
+    const db = await this.getDb(namespace)
+
+    const repl = startRepl({
+      ignoreUndefined: true,
+      prompt: `${namespace}> `,
+    })
+    repl.context.db = db
+    repl.context.redis = this.connection
+    const { eval: evaluate } = repl
+    repl.eval = (cmd, context, filename, cb) => {
+      evaluate.call(repl, cmd, context, filename, (error, result) => {
+        if (error != null) {
+          return cb(error)
+        }
+        Promise.resolve(result).then(result => cb(undefined, result), cb)
+      })
+    }
+    await new Promise((resolve, reject) => {
+      repl.on('error', reject).on('exit', resolve)
+    })
   },
 }
 
