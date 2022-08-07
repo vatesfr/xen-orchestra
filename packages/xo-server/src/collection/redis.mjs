@@ -8,7 +8,6 @@ import ignoreErrors from 'promise-toolbox/ignoreErrors'
 import isEmpty from 'lodash/isEmpty.js'
 import map from 'lodash/map.js'
 import omit from 'lodash/omit.js'
-import pickBy from 'lodash/pickBy.js'
 import { v4 as generateUuid } from 'uuid'
 
 import Collection, { ModelAlreadyExists } from '../collection.mjs'
@@ -156,13 +155,16 @@ export default class Redis extends Collection {
         }
 
         const key = `${prefix}:${id}`
-        const promises = [
-          redis.del(key),
-          redis.hSet(
-            key,
-            pickBy(model, (value, name) => value !== undefined && name !== 'id')
-          ),
-        ]
+        const props = {}
+        for (const name of Object.keys(model)) {
+          if (name !== 'id') {
+            const value = model[name]
+            if (value !== undefined) {
+              props[name] = String(value)
+            }
+          }
+        }
+        const promises = [redis.del(key), redis.hSet(key, props)]
 
         // Update indexes.
         forEach(indexes, index => {
