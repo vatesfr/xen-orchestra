@@ -22,6 +22,10 @@ async function getDb(namespace) {
   })
 }
 
+function getNamespaces() {
+  return this.connection.sMembers('xo::namespaces')
+}
+
 function parseParam(args) {
   const params = {}
   for (const arg of args) {
@@ -52,7 +56,7 @@ function sortKeys(object) {
 const COMMANDS = {
   async ls(args) {
     if (args.length === 0) {
-      const namespaces = await this.connection.sMembers('xo::namespaces')
+      const namespaces = await this.getNamespaces()
       namespaces.sort()
       for (const ns of namespaces) {
         console.log(ns)
@@ -67,16 +71,16 @@ const COMMANDS = {
     }
   },
 
-  async repl([namespace]) {
-    assert(namespace !== undefined, 'missing namespace')
-    const db = await this.getDb(namespace)
-
+  async repl() {
     const repl = startRepl({
       ignoreUndefined: true,
-      prompt: `${namespace}> `,
+      prompt: '> ',
     })
-    repl.context.db = db
-    repl.context.redis = this.connection
+    const { context } = repl
+    context.redis = this.connection
+    for (const namespace of await this.getNamespaces()) {
+      context[namespace] = await this.getDb(namespace)
+    }
     const { eval: evaluate } = repl
     repl.eval = (cmd, context, filename, cb) => {
       evaluate.call(repl, cmd, context, filename, (error, result) => {
@@ -132,7 +136,7 @@ xo-server-logs ls <namespace> [<pattern>...]
     const fn = COMMANDS[args.shift()]
     assert(fn !== undefined, 'command must be one of: ' + Object.keys(COMMANDS).join(', '))
 
-    await fn.call({ connection, getDb }, args)
+    await fn.call({ connection, getDb, getNamespaces }, args)
   } finally {
     await connection.quit()
   }
