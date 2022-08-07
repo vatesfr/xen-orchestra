@@ -36,7 +36,7 @@ import Collection, { ModelAlreadyExists } from '../collection.mjs'
 const VERSION = '20170905'
 
 export default class Redis extends Collection {
-  constructor({ connection, indexes = [], namespace, uri }) {
+  constructor({ connection, indexes = [], namespace }) {
     super()
 
     assert(!namespace.includes(':'), 'namespace must not contains ":": ' + namespace)
