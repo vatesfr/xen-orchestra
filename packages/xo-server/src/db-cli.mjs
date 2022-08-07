@@ -103,11 +103,11 @@ xo-server-db --help, -h
 
     Display this help message.
 
-xo-server-logs ls
+xo-server-db ls
 
     List the available namespaces.
 
-xo-server-logs ls <namespace> [<pattern>...]
+xo-server-db ls <namespace> [<pattern>...]
 
     List all entries in the given namespace.
 
@@ -115,6 +115,14 @@ xo-server-logs ls <namespace> [<pattern>...]
       Patterns can be used to filter entries.
 
       Patterns have the following format \`<field>=<value>\`.
+
+xo-server-logs repl
+
+    Open a REPL to interact directly with the database.
+
+    Available objects:
+      - redis: a raw node-redis instance connected to the database
+      - <namespace>: an xo-collection instance to the coresponding namespace in the database
 
 `)
     return
