@@ -7,7 +7,7 @@ import SortedTable from 'sorted-table'
 import { addSubscriptions } from 'utils'
 import { filter, groupBy } from 'lodash'
 import { injectState, provideState } from 'reaclette'
-import { subscribeProxies, unlock } from 'xo'
+import { subscribeProxies, bindLicense } from 'xo'
 
 const COLUMNS = [
   {
@@ -30,7 +30,7 @@ const COLUMNS = [
       ) : (
         <SelectLicense
           licenses={availableLicenses}
-          onChange={licenseId => unlock(licenseId, proxy).then(updateLicenses)}
+          onChange={licenseId => bindLicense(licenseId, proxy.vmUuid).then(updateLicenses)}
           productType='xoproxy'
         />
       )

@@ -455,4 +455,8 @@ export default class Proxy {
     lines.destroy()
     return result
   }
+
+  async bindLLicense({ licenseId, boundObjectId }) {
+    await this._app.bindLLicense({ licenseId, boundObjectId })
+  }
 }

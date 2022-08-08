@@ -3334,6 +3334,8 @@ export const checkProxyHealth = async proxy => {
       )
 }
 
+export const bindLicense = ({ licenseId, boundObjectId }) => _call('proxy.bindLicense', { licenseId, boundObjectId })
+
 // Audit plugin ---------------------------------------------------------
 
 const METHOD_NOT_FOUND_CODE = -32601
