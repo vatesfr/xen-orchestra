@@ -60,7 +60,7 @@ const isBusy = computed(() => isHandlingClick.value || props.busy);
 const closeMenu = inject("closeMenu", noop);
 
 const handleClick = async () => {
-  if (isDisabled.value) {
+  if (isDisabled.value || isBusy.value) {
     return;
   }
 

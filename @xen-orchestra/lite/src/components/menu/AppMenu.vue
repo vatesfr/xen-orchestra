@@ -12,7 +12,7 @@
 </template>
 
 <script lang="ts" setup>
-import placement from "placement.js";
+import placement, { type Options } from "placement.js";
 import { inject, nextTick, provide, ref, toRef, unref, useSlots } from "vue";
 import { onClickOutside, unrefElement } from "@vueuse/core";
 
@@ -20,19 +20,7 @@ const props = defineProps<{
   horizontal?: boolean;
   shadow?: boolean;
   disabled?: boolean;
-  placement?:
-    | "top"
-    | "top-start"
-    | "top-end"
-    | "bottom"
-    | "bottom-start"
-    | "bottom-end"
-    | "right"
-    | "right-start"
-    | "right-end"
-    | "left"
-    | "left-start"
-    | "left-end";
+  placement?: Options["placement"];
 }>();
 const slots = useSlots();
 const isOpen = ref(false);
