@@ -27,7 +27,7 @@
 
 <!--packages-start-->
 
-- @xen-orchestra/fs minor
+- @xen-orchestra/fs major
 - vhd-lib major
 - xo-server minor
 
