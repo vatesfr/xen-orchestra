@@ -29,5 +29,6 @@
 
 - @xen-orchestra/fs minor
 - vhd-lib major
+- xo-server minor
 
 <!--packages-end-->

@@ -105,7 +105,15 @@ threshold = 1000
 #[http.helmet.hsts]
 #includeSubDomains = false
 
-[[http.listen]]
+# Each `http.listen.<name>` entry defines a specific listening configuration for
+# the HTTP server.
+#
+# `<name>` can be freely choosen.
+#
+# Historically, `http.listen` was an array with the first config for HTTP and
+# the second for HTTPS. To avoid breaking existing user configs, this convention
+# is kept.
+[http.listen.0]
 port = 80
 
 # These options are applied to all listen entries.
