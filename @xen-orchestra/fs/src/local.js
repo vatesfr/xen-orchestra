@@ -7,7 +7,7 @@ import { fromEvent, retry } from 'promise-toolbox'
 
 import RemoteHandlerAbstract from './abstract'
 
-const { warn } = createLogger('xo:fs:local')
+const { info, warn } = createLogger('xo:fs:local')
 
 // save current stack trace and add it to any rejected error
 //
@@ -110,11 +110,21 @@ export default class LocalHandler extends RemoteHandlerAbstract {
   }
 
   async _lock(path) {
-    const release = lockfile.lock(this._getFilePath(path), {
-      onCompromised: async error => {
+    let release
+    const acquire = lockfile.lock.bind(undefined, this._getFilePath(path), {
+      async onCompromised(error) {
         warn('lock compromised', { error })
+        try {
+          release = await acquire()
+          info('compromised lock was reacquired')
+        } catch (error) {
+          warn('compromised lock could not be reacquired', { error })
+        }
       },
     })
+
+    await acquire()
+
     return async () => {
       try {
         await release()
