@@ -105,6 +105,7 @@ export const useXenApiStore = defineStore("xen-api", () => {
   function disconnect() {
     currentSessionId.value = null;
     xenApi.disconnect();
+    isConnected.value = false;
   }
 
   return {
