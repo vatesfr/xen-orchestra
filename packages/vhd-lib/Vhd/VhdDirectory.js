@@ -6,6 +6,7 @@ const { fuFooter, fuHeader, checksumStruct } = require('../_structs')
 const { test, set: setBitmap } = require('../_bitmap')
 const { VhdAbstract } = require('./VhdAbstract')
 const assert = require('assert')
+const { synchronized } = require('decorator-synchronized')
 const promisify = require('promise-toolbox/promisify')
 const zlib = require('zlib')
 
@@ -131,6 +132,7 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
     this._path = path
     this._opts = opts
     this.#compressor = getCompressor(opts?.compression)
+    this.writeBlockAllocationTable = synchronized.withKey()(this.writeBlockAllocationTable)
   }
 
   async readBlockAllocationTable() {
@@ -259,7 +261,12 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
       return super.mergeBlock(child, blockId)
     }
     try {
+      const blockExists = this.containsBlock(blockId)
       await this._handler.rename(childBlockPath, this._getFullBlockPath(blockId))
+      if (!blockExists) {
+        setBitmap(this.#blockTable, blockId)
+        await this.writeBlockAllocationTable()
+      }
     } catch (error) {
       if (error.code === 'ENOENT' && isResumingMerge === true) {
         // when resuming, the blocks moved since the last merge state write are
