@@ -186,6 +186,6 @@ const className = computed(() => {
 }
 
 .icon {
-  font-size: 1.6rem;
+  font-size: 0.8em;
 }
 </style>
