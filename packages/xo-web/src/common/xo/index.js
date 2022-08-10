@@ -848,7 +848,7 @@ export const restartHostAgent = async host => {
         ),
         title: _('restartHostAgent'),
       })
-      return _call('host.restart_agent', { id: resolveId(host), ignoreBackup: true })
+      return _call('host.restart_agent', { id: resolveId(host), bypassBackupCheck: true })
     }
     throw error
   }
