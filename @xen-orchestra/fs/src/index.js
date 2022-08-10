@@ -5,7 +5,6 @@ import RemoteHandlerLocal from './local'
 import RemoteHandlerNfs from './nfs'
 import RemoteHandlerS3 from './s3'
 import RemoteHandlerSmb from './smb'
-import RemoteHandlerSmbMount from './smb-mount'
 
 const HANDLERS = {
   file: RemoteHandlerLocal,
@@ -15,10 +14,8 @@ const HANDLERS = {
 
 try {
   execa.sync('mount.cifs', ['-V'])
-  HANDLERS.smb = RemoteHandlerSmbMount
-} catch (_) {
   HANDLERS.smb = RemoteHandlerSmb
-}
+} catch (_) {}
 
 export const getHandler = (remote, ...rest) => {
   const Handler = HANDLERS[parse(remote.url).type]
