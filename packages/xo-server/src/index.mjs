@@ -612,7 +612,11 @@ const setUpApi = (webServer, xo, config) => {
 
     const onSend = error => {
       if (error) {
-        log.warn('WebSocket send:', { error })
+        // even if the readyState of the socket is checked, it can still happen
+        // that the message failed to be sent because the connection was closed.
+        if (error.code !== 'ERR_STREAM_DESTROYED') {
+          log.warn('WebSocket send:', { error })
+        }
       }
     }
     jsonRpc.on('data', data => {
