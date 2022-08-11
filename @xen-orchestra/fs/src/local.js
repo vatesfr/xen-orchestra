@@ -110,7 +110,6 @@ export default class LocalHandler extends RemoteHandlerAbstract {
   }
 
   async _lock(path) {
-    let release
     const acquire = lockfile.lock.bind(undefined, this._getFilePath(path), {
       async onCompromised(error) {
         warn('lock compromised', { error })
@@ -123,7 +122,7 @@ export default class LocalHandler extends RemoteHandlerAbstract {
       },
     })
 
-    await acquire()
+    let release = await acquire()
 
     return async () => {
       try {
