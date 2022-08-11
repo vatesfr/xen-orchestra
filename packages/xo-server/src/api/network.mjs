@@ -112,7 +112,7 @@ set.resolve = {
 
 // =================================================================
 
-export async function delete_({ network }) {
+async function delete_({ network }) {
   return this.getXapi(network).deleteNetwork(network._xapiId)
 }
 export { delete_ as delete }
