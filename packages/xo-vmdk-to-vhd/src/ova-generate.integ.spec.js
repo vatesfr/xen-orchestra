@@ -93,8 +93,8 @@ test('An ova file is generated correctly', async () => {
       ],
     })
     await fromEvent(pipe, 'finish')
-    await execa('tar', ['xf', ovaFileName1, 'vm1.ovf'])
-    const xml = await readFile('vm1.ovf', { encoding: 'utf-8' })
+    await execa('tar', ['xf', ovaFileName1, 'metadata.ovf'])
+    const xml = await readFile('metadata.ovf', { encoding: 'utf-8' })
 
     try {
       await execXmllint(xml, [
