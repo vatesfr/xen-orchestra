@@ -14,7 +14,7 @@ const SCHEMA_SETTINGS = {
       properties: {
         concurrency: {
           type: 'number',
-          gt: 0,
+          minimum: 0,
           optional: true,
         },
       },
@@ -210,7 +210,7 @@ getLogs.params = {
   after: { type: ['number', 'string'], optional: true },
   before: { type: ['number', 'string'], optional: true },
   limit: { type: 'number', optional: true },
-  '*': { type: 'any' },
+  '*': {},
 }
 
 // -----------------------------------------------------------------------------
@@ -364,7 +364,7 @@ fetchFiles.params = {
   },
   paths: {
     items: { type: 'string' },
-    minLength: 1,
+    minItems: 1,
     type: 'array',
   },
   remote: {

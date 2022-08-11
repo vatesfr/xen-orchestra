@@ -171,7 +171,7 @@ restartAgent.resolve = {
 }
 
 // TODO: remove deprecated alias
-export { restartAgent as restart_agent } // eslint-disable-line camelcase
+export const restart_agent = 'restartAgent' // eslint-disable-line camelcase
 
 // -------------------------------------------------------------------
 

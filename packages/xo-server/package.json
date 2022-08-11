@@ -113,7 +113,6 @@
     "pw": "^0.0.4",
     "readable-stream": "^4.1.0",
     "redis": "^4.2.0",
-    "schema-inspector": "^2.0.1",
     "semver": "^7.3.2",
     "serve-static": "^1.13.1",
     "set-cookie-parser": "^2.3.5",
