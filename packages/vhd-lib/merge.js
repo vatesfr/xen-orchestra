@@ -115,7 +115,7 @@ module.exports.mergeVhdChain = limitConcurrency(2)(async function mergeVhdChain(
     let childVhd
     const parentIsVhdDirectory = parentVhd instanceof VhdDirectory
     let childIsVhdDirectory
-    if (childrenPaths.length === 1) {
+    if (childrenPaths.length !== 1) {
       childVhd = yield VhdSynthetic.open(handler, childrenPaths)
       childIsVhdDirectory = childVhd.checkVhdsClass(VhdDirectory)
     } else {
