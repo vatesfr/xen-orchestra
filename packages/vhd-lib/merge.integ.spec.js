@@ -205,7 +205,7 @@ test('it can resume a multiple merge ', async () => {
 
   // should fail since the merge state file has only data of parent and child
   await expect(
-    async () => await mergeVhd(handler, parentFileName, handler, [childFileName, grandChildFileName])
+    async () => await mergeVhdChain(handler, [parentFileName, childFileName, grandChildFileName])
   ).rejects.toThrow()
   // merge
   await handler.unlink(`${tempDir}/.parent.vhd.merge.json`)
@@ -223,7 +223,7 @@ test('it can resume a multiple merge ', async () => {
     })
   )
   // it should succeed
-  await mergeVhd(handler, parentFileName, handler, [childFileName, grandChildFileName])
+  await mergeVhdChain(handler, [parentFileName, childFileName, grandChildFileName])
 })
 
 test('it merge multiple child in one pass ', async () => {
@@ -284,7 +284,7 @@ test('it cleans vhd mergedfiles', async () => {
   await handler.writeFile('child2', 'child2Data')
   await handler.writeFile('child3', 'child3Data')
 
-  await cleanupVhds(handler, ['parent', 'child1', 'child2', 'child3'], { remove: true })
+  await cleanupVhds(handler, ['parent', 'child1', 'child2', 'child3'], { merge: true, removeUnused: true })
 
   // only child3 should stay, with the data of parent
   const [child3, ...other] = await handler.list('.')
