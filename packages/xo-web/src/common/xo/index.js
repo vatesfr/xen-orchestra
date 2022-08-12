@@ -797,7 +797,7 @@ export const restartHost = (host, force = false) =>
               ),
               title: _('restartHostModalTitle'),
             })
-            return _call('host.restart', { id: resolveId(host), force, ignoreBackup: true })
+            return _call('host.restart', { id: resolveId(host), force, bypassBackupCheck: true })
           }
           throw error
         })
@@ -848,7 +848,7 @@ export const restartHostAgent = async host => {
         ),
         title: _('restartHostAgent'),
       })
-      return _call('host.restart_agent', { id: resolveId(host), ignoreBackup: true })
+      return _call('host.restart_agent', { id: resolveId(host), bypassBackupCheck: true })
     }
     throw error
   }
@@ -890,7 +890,7 @@ export const stopHost = async host => {
           ),
           title: _('stopHostModalTitle'),
         })
-        return _call('host.stop', { id: resolveId(host), ignoreBackup })
+        return _call('host.stop', { id: resolveId(host), bypassBackupCheck: ignoreBackup })
       }
       throw err
     })
@@ -901,7 +901,7 @@ export const stopHost = async host => {
           title: _('forceStopHost'),
         })
         // Retry with bypassEvacuate.
-        return _call('host.stop', { id: resolveId(host), bypassEvacuate: true, ignoreBackup })
+        return _call('host.stop', { id: resolveId(host), bypassEvacuate: true, bypassBackupCheck: ignoreBackup })
       }
       throw err
     })
@@ -1038,7 +1038,7 @@ export const rollingPoolUpdate = poolId =>
           icon: 'pool-rolling-update',
         }).then(
           () =>
-            _call('pool.rollingUpdate', { ignoreBackup: true, pool: poolId })::tap(() =>
+            _call('pool.rollingUpdate', { bypassBackupCheck: true, pool: poolId })::tap(() =>
               subscribeHostMissingPatches.forceRefresh()
             ),
           noop
