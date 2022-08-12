@@ -251,7 +251,7 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
   async mergeBlock(child, blockId, isResumingMerge = false) {
     const childBlockPath = child._getFullBlockPath?.(blockId)
     if (
-      childBlockPath !== undefined ||
+      childBlockPath === undefined ||
       this._handler !== child._handler ||
       child.compressionType !== this.compressionType ||
       child.compressionType === 'MIXED'

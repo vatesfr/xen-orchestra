@@ -33,6 +33,7 @@
 - @xen-orchestra/backups patch
 - @xen-orchestra/fs major
 - vhd-lib major
+- xo-vmdk-to-vhd patch
 - xo-server minor
 - xo-web patch
 
