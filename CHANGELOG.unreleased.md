@@ -11,7 +11,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [Host] Fix `should not contains property [\"ignoreBackup\"]` on some host operations. (PR [#6362](https://github.com/vatesfr/xen-orchestra/pull/6362))
+- [Host] Fix `should not contains property ["ignoreBackup"]` on some host operations (PR [#6362](https://github.com/vatesfr/xen-orchestra/pull/6362))
 
 ### Packages to release
 
