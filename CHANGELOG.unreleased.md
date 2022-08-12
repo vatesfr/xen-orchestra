@@ -31,6 +31,6 @@
 
 - @xen-orchestra/fs minor
 - vhd-lib major
-- xo-web minor
+- xo-web patch
 
 <!--packages-end-->
