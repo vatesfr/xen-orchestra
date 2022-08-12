@@ -8,7 +8,7 @@ import { parseSize } from '../utils.mjs'
 
 // ====================================================================
 
-export async function delete_({ vdi }) {
+async function delete_({ vdi }) {
   const resourceSet = reduce(
     vdi.$VBDs,
     (resourceSet, vbd) => resourceSet || this.getObject(this.getObject(vbd, 'VBD').VM).resourceSet,

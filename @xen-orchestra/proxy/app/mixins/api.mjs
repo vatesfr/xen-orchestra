@@ -296,7 +296,7 @@ export default class Api {
     }
 
     const { type } = schema
-    if (Array.isArray(type) ? type.include('object') : type === 'object') {
+    if (Array.isArray(type) ? type.includes('object') : type === 'object') {
       const { properties = {} } = schema
 
       if (schema.additionalProperties === undefined) {

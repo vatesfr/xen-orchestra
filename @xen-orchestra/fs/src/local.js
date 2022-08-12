@@ -2,9 +2,12 @@ import df from '@sindresorhus/df'
 import fs from 'fs-extra'
 import identity from 'lodash/identity.js'
 import lockfile from 'proper-lockfile'
+import { createLogger } from '@xen-orchestra/log'
 import { fromEvent, retry } from 'promise-toolbox'
 
 import RemoteHandlerAbstract from './abstract'
+
+const { info, warn } = createLogger('xo:fs:local')
 
 // save current stack trace and add it to any rejected error
 //
@@ -106,8 +109,28 @@ export default class LocalHandler extends RemoteHandlerAbstract {
     return this._addSyncStackTrace(fs.readdir(this._getFilePath(dir)))
   }
 
-  _lock(path) {
-    return lockfile.lock(this._getFilePath(path))
+  async _lock(path) {
+    const acquire = lockfile.lock.bind(undefined, this._getFilePath(path), {
+      async onCompromised(error) {
+        warn('lock compromised', { error })
+        try {
+          release = await acquire()
+          info('compromised lock was reacquired')
+        } catch (error) {
+          warn('compromised lock could not be reacquired', { error })
+        }
+      },
+    })
+
+    let release = await acquire()
+
+    return async () => {
+      try {
+        await release()
+      } catch (error) {
+        warn('lock could not be released', { error })
+      }
+    }
   }
 
   _mkdir(dir, { mode }) {

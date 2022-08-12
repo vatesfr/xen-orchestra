@@ -1355,7 +1355,7 @@ export const convertVmToTemplate = vm =>
         <p>This operation is definitive.</p>
       </div>
     ),
-  }).then(() => _call('vm.convert', { id: resolveId(vm) }), noop)
+  }).then(() => _call('vm.convertToTemplate', { id: resolveId(vm) }), noop)
 
 export const copyToTemplate = async vm => {
   await confirm({
