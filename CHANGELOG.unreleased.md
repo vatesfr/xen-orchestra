@@ -11,6 +11,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Host] Fix `should not contains property [\"ignoreBackup\"]` on some host operations.
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -29,5 +31,6 @@
 
 - @xen-orchestra/fs minor
 - vhd-lib major
+- xo-web minor
 
 <!--packages-end-->
