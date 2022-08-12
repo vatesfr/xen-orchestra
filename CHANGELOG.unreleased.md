@@ -30,6 +30,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/backups patch
 - @xen-orchestra/fs major
 - vhd-lib major
 - xo-server minor

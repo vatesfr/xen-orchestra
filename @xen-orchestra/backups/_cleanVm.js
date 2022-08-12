@@ -94,7 +94,7 @@ const listVhds = async (handler, vmDir, logWarn) => {
               vhds.add(`${vdiDir}/${file}`)
             } else {
               try {
-                const mergeState = JSON.parse(await handler.readFile(file))
+                const mergeState = JSON.parse(await handler.readFile(`${vdiDir}/${file}`))
                 interruptedVhds.set(`${vdiDir}/${res[1]}`, {
                   statePath: `${vdiDir}/${file}`,
                   chain: mergeState.chain,
