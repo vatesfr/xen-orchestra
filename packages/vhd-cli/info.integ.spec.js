@@ -1,11 +1,13 @@
+'use strict'
+
 /* eslint-env jest */
 
-import execa from 'execa'
-import rimraf from 'rimraf'
-import tmp from 'tmp'
-import { pFromCallback } from 'promise-toolbox'
+const execa = require('execa')
+const rimraf = require('rimraf')
+const tmp = require('tmp')
+const { pFromCallback } = require('promise-toolbox')
 
-import command from './commands/info'
+const command = require('./commands/info')
 
 const initialDir = process.cwd()
 

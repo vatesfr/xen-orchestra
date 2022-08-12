@@ -77,7 +77,7 @@
   "private": true,
   "scripts": {
     "build": "scripts/run-script.js --parallel build",
-    "ci": "yarn && yarn test-integration",
+    "ci": "yarn && yarn build &&  yarn test-integration",
     "clean": "scripts/run-script.js --parallel clean",
     "dev": "scripts/run-script.js --parallel dev",
     "dev-test": "jest --bail --watch \"^(?!.*\\.integ\\.spec\\.js$)\"",

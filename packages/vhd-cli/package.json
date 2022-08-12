@@ -35,5 +35,10 @@
   },
   "scripts": {
     "postversion": "npm publish"
+  },
+  "devDependencies": {
+    "execa": "^4.0.0",
+    "rimraf": "^3.0.2",
+    "tmp": "^0.2.1"
   }
 }
