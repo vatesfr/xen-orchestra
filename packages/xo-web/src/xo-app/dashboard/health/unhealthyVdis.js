@@ -9,16 +9,16 @@ import Tooltip from 'tooltip'
 import { Card, CardHeader, CardBlock } from 'card'
 import { Col, Row } from 'grid'
 import { injectState, provideState } from 'reaclette'
-import { map, size } from 'lodash'
+import { forEach, isEmpty, map, size } from 'lodash'
 import { Sr, Vdi } from 'render-xo-item'
 import { subscribeSrsUnhealthyVdiChainsLength, VDIS_TO_COALESCE_LIMIT } from 'xo'
 
 const COLUMNS = [
   {
-    itemRenderer: (srId, { unhealthyVdiChainsLengthBySr }) => (
+    itemRenderer: (srId, { chainsLengthBySr }) => (
       <div>
         <Sr id={srId} link />{' '}
-        {size(unhealthyVdiChainsLengthBySr[srId]) >= VDIS_TO_COALESCE_LIMIT && (
+        {size(chainsLengthBySr[srId].unhealthyVdis) >= VDIS_TO_COALESCE_LIMIT && (
           <Tooltip content={_('srVdisToCoalesceWarning', { limitVdis: VDIS_TO_COALESCE_LIMIT })}>
             <span className='text-warning'>
               <Icon icon='alarm' />
@@ -31,9 +31,9 @@ const COLUMNS = [
     sortCriteria: 'name_label',
   },
   {
-    itemRenderer: (srId, { unhealthyVdiChainsLengthBySr }) => (
+    itemRenderer: (srId, { chainsLengthBySr }) => (
       <div>
-        {map(unhealthyVdiChainsLengthBySr[srId], (chainLength, vdiId) => (
+        {map(chainsLengthBySr[srId].unhealthyVdis, (chainLength, vdiId) => (
           <SingleLineRow key={vdiId}>
             <Col>
               <Vdi id={vdiId} />
@@ -49,17 +49,52 @@ const COLUMNS = [
   },
 ]
 
+const COLUMNS_VDI_UNKNOWN_PARENT = [
+  {
+    itemRenderer: srId => <Sr id={srId} link />,
+    name: _('sr'),
+    sortCriteria: 'name_label',
+  },
+  {
+    itemRenderer: (srId, { chainsLengthBySr }) => (
+      <div>
+        {map(chainsLengthBySr[srId].vdisWithUnknownVhdParent, vdiId => (
+          <Vdi id={vdiId} />
+        ))}
+      </div>
+    ),
+    name: _('vdisWithInvalidVhdParent'),
+  },
+]
+
 const UnhealthyVdis = decorate([
   addSubscriptions({
     chainsLengthBySr: subscribeSrsUnhealthyVdiChainsLength,
   }),
   provideState({
     computed: {
-      srIds: (state, { chainsLengthBySr = {} }) => Object.keys(chainsLengthBySr.unhealthyVdis),
+      srIdsWithUnhealthyVdis: (_, { chainsLengthBySr = {} }) => {
+        const srIds = []
+        forEach(chainsLengthBySr, (chainLength, srId) => {
+          if (!isEmpty(chainLength.unhealthyVdis)) {
+            srIds.push(srId)
+          }
+        })
+        return srIds
+      },
+      srIdsWithUnknownVdisParent: (_, { chainsLengthBySr } = {}) => {
+        const srIds = []
+        forEach(chainsLengthBySr, (chainLength, srId) => {
+          if (chainLength.vdisWithUnknownVhdParent.length > 0) {
+            srIds.push(srId)
+          }
+        })
+        return srIds
+      },
     },
   }),
   injectState,
-  ({ state: { srIds }, chainsLengthBySr }) => (
+  ({ state: { srIdsWithUnknownVdisParent, srIdsWithUnhealthyVdis }, chainsLengthBySr }) => (
     <Row>
       <Col>
         <Card>
@@ -70,10 +105,30 @@ const UnhealthyVdis = decorate([
             <Row>
               <Col>
                 <SortedTable
-                  data-unhealthyVdiChainsLengthBySr={chainsLengthBySr?.unhealthyVdis}
-                  collection={srIds}
+                  data-chainsLengthBySr={chainsLengthBySr}
+                  collection={srIdsWithUnhealthyVdis}
                   columns={COLUMNS}
                   stateUrlParam='s_vdis_to_coalesce'
+                />
+              </Col>
+            </Row>
+          </CardBlock>
+        </Card>
+      </Col>
+
+      <Col>
+        <Card>
+          <CardHeader>
+            <Icon icon='disk' /> {_('vdisWithInvalidVhdParent')}
+          </CardHeader>
+          <CardBlock>
+            <Row>
+              <Col>
+                <SortedTable
+                  data-chainsLengthBySr={chainsLengthBySr}
+                  collection={srIdsWithUnknownVdisParent}
+                  columns={COLUMNS_VDI_UNKNOWN_PARENT}
+                  stateUrlParam='s_vdis_invalid_parent'
                 />
               </Col>
             </Row>
