@@ -15,9 +15,7 @@ import { useVmMetricsStore } from "@/stores/vm-metrics.store";
 import { useVmStore } from "@/stores/vm.store";
 
 export const useXenApiStore = defineStore("xen-api", () => {
-  const xenApi = new XenApi(
-    import.meta.env.PROD ? window.origin : import.meta.env.VITE_XO_HOST
-  );
+  const xenApi = new XenApi(import.meta.env.VITE_XO_HOST);
   const xapiStats = new XapiStats(xenApi);
   const currentSessionId = useLocalStorage<string | null>("sessionId", null);
   const isConnected = ref(false);

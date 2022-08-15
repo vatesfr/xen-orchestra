@@ -1,5 +1,5 @@
 import { JSONRPCClient } from "json-rpc-2.0";
-import { buildXoObject, parseDateTime } from "@/libs/utils";
+import { parseDateTime } from "@/libs/utils";
 
 export type RawObjectType =
   | "Bond"
