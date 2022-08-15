@@ -16,9 +16,7 @@ module.exports = {
     "@vue/eslint-config-typescript/recommended",
     "@vue/eslint-config-prettier",
   ],
-  plugins: [
-    "@limegrass/import-alias"
-  ],
+  plugins: ["@limegrass/import-alias"],
   rules: {
     "@typescript-eslint/no-non-null-assertion": "off",
     "@typescript-eslint/no-explicit-any": "off",
