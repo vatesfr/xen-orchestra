@@ -1,10 +1,15 @@
 import { defineStore } from "pinia";
 import { computed } from "vue";
 import { sortRecordsByNameLabel } from "@/libs/utils";
+import type { GRANULARITY } from "@/libs/xapi-stats";
 import type { XenApiVm } from "@/libs/xen-api";
+import { useHostStore } from "@/stores/host.store";
 import { createRecordContext } from "@/stores/index";
+import { useXenApiStore } from "@/stores/xen-api.store";
 
 export const useVmStore = defineStore("vm", () => {
+  const hostStore = useHostStore();
+  const xapiStats = useXenApiStore().getXapiStats();
   const baseVmContext = createRecordContext<XenApiVm>("VM", {
     filter: (vm) =>
       !vm.is_a_snapshot && !vm.is_a_template && !vm.is_control_domain,
@@ -27,8 +32,26 @@ export const useVmStore = defineStore("vm", () => {
     return vmsOpaqueRefsByHostOpaqueRef;
   });
 
+  async function getStats(id: string, granularity: GRANULARITY) {
+    const vm = baseVmContext.getRecordByUuid(id);
+    if (vm === undefined) {
+      throw new Error(`VM ${id} could not be found.`);
+    }
+    const host = hostStore.getRecord(vm.resident_on);
+    if (host === undefined) {
+      throw new Error(`VM ${id} is halted or host could not be found.`);
+    }
+
+    return xapiStats._getAndUpdateStats({
+      host,
+      uuid: vm.uuid,
+      granularity,
+    });
+  }
+
   return {
     ...baseVmContext,
+    getStats,
     opaqueRefsByHostRef,
   };
 });
