@@ -1,18 +1,24 @@
 <template>
-  <li ref="rootElement" class="infra-vm-item">
-    <InfraItemLabel
-      v-if="isVisible"
-      :icon="faDisplay"
-      :route="{ name: 'vm.console', params: { uuid: vm.uuid } }"
-    >
-      {{ vm.name_label }}
-      <template #actions>
-        <InfraAction>
-          <PowerStateIcon :state="vm?.power_state" />
-        </InfraAction>
-      </template>
-    </InfraItemLabel>
-  </li>
+  <WithTooltip
+    :label="vm.name_label"
+    v-slot="{ events }"
+    check-ellipsis-html-selector=".text"
+  >
+    <li ref="rootElement" class="infra-vm-item" v-on="events">
+      <InfraItemLabel
+        v-if="isVisible"
+        :icon="faDisplay"
+        :route="{ name: 'vm.console', params: { uuid: vm.uuid } }"
+      >
+        {{ vm.name_label }}
+        <template #actions>
+          <InfraAction>
+            <PowerStateIcon :state="vm?.power_state" />
+          </InfraAction>
+        </template>
+      </InfraItemLabel>
+    </li>
+  </WithTooltip>
 </template>
 
 <script lang="ts" setup>
@@ -20,6 +26,7 @@ import { computed, ref } from "vue";
 import { faDisplay } from "@fortawesome/pro-solid-svg-icons";
 import { useIntersectionObserver } from "@vueuse/core";
 import PowerStateIcon from "@/components/PowerStateIcon.vue";
+import WithTooltip from "@/components/WithTooltip.vue";
 import InfraAction from "@/components/infra/InfraAction.vue";
 import InfraItemLabel from "@/components/infra/InfraItemLabel.vue";
 import { useVmStore } from "@/stores/vm.store";

@@ -1,18 +1,25 @@
 <template>
   <li v-if="host" class="infra-host-item">
-    <InfraItemLabel
-      :current="isCurrentHost"
-      :icon="faServer"
-      :route="{ name: 'host.dashboard', params: { uuid: host.uuid } }"
+    <WithTooltip
+      :label="host.name_label"
+      v-slot="{ events }"
+      check-ellipsis-html-selector=".text"
     >
-      {{ host.name_label }}
-      <template #actions>
-        <InfraAction
-          :icon="isExpanded ? faAngleDown : faAngleUp"
-          @click="toggle()"
-        />
-      </template>
-    </InfraItemLabel>
+      <InfraItemLabel
+        v-on="events"
+        :current="isCurrentHost"
+        :icon="faServer"
+        :route="{ name: 'host.dashboard', params: { uuid: host.uuid } }"
+      >
+        {{ host.name_label }}
+        <template #actions>
+          <InfraAction
+            :icon="isExpanded ? faAngleDown : faAngleUp"
+            @click="toggle()"
+          />
+        </template>
+      </InfraItemLabel>
+    </WithTooltip>
 
     <InfraVmList v-show="isExpanded" :host-opaque-ref="hostOpaqueRef" />
   </li>
@@ -23,6 +30,7 @@ import { computed } from "vue";
 import { faAngleDown, faAngleUp } from "@fortawesome/pro-light-svg-icons";
 import { faServer } from "@fortawesome/pro-regular-svg-icons";
 import { useToggle } from "@vueuse/core";
+import WithTooltip from "@/components/WithTooltip.vue";
 import InfraAction from "@/components/infra/InfraAction.vue";
 import InfraItemLabel from "@/components/infra/InfraItemLabel.vue";
 import InfraVmList from "@/components/infra/InfraVmList.vue";
