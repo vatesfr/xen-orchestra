@@ -13,8 +13,17 @@
 
 <script lang="ts" setup>
 import placement, { type Options } from "placement.js";
-import { inject, nextTick, provide, ref, toRef, unref, useSlots } from "vue";
-import { onClickOutside, unrefElement } from "@vueuse/core";
+import {
+  inject,
+  nextTick,
+  provide,
+  ref,
+  toRef,
+  unref,
+  useSlots,
+  watchEffect,
+} from "vue";
+import { onClickOutside, unrefElement, whenever } from "@vueuse/core";
 
 const props = defineProps<{
   horizontal?: boolean;
@@ -28,6 +37,12 @@ const menu = ref();
 const isParentHorizontal = inject("isMenuHorizontal", undefined);
 provide("isMenuHorizontal", toRef(props, "horizontal"));
 provide("isMenuDisabled", toRef(props, "disabled"));
+let clearClickOutsideEvent: (() => void) | undefined;
+
+whenever(
+  () => !isOpen.value,
+  () => clearClickOutsideEvent?.()
+);
 
 if (slots.trigger && !inject("closeMenu", false)) {
   provide("closeMenu", () => (isOpen.value = false));
@@ -41,9 +56,13 @@ const open = (event: PointerEvent) => {
   isOpen.value = true;
 
   nextTick(() => {
-    onClickOutside(menu, () => (isOpen.value = false), {
-      ignore: [event.currentTarget as HTMLElement],
-    });
+    clearClickOutsideEvent = onClickOutside(
+      menu,
+      () => (isOpen.value = false),
+      {
+        ignore: [event.currentTarget as HTMLElement],
+      }
+    );
 
     placement(event.currentTarget as HTMLElement, unrefElement(menu), {
       placement:
