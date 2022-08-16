@@ -13,16 +13,7 @@
 
 <script lang="ts" setup>
 import placement, { type Options } from "placement.js";
-import {
-  inject,
-  nextTick,
-  provide,
-  ref,
-  toRef,
-  unref,
-  useSlots,
-  watchEffect,
-} from "vue";
+import { inject, nextTick, provide, ref, toRef, unref, useSlots } from "vue";
 import { onClickOutside, unrefElement, whenever } from "@vueuse/core";
 
 const props = defineProps<{
