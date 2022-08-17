@@ -23,5 +23,5 @@ export default function useFetchStats<T>(
   };
   useIntervalFn(fetchStats);
 
-  return { stats } as { stats: Ref<XapiStatsResponse<T>> | undefined };
+  return { stats } as { stats: Ref<XapiStatsResponse<T> | undefined> };
 }

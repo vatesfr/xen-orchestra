@@ -27,7 +27,7 @@ interface Data {
 
 interface Props {
   data: Array<Data>;
-  title?: string;
+  nItems?: number;
 }
 
 const props = defineProps<Props>();
@@ -35,17 +35,18 @@ const props = defineProps<Props>();
 const computedData = computed(() => {
   const _data = props.data;
   let totalPercentUsage = 0;
+  const sortedData = _data
+    .map((item) => {
+      const value = Math.round((item.value / (item.maxValue ?? 100)) * 100);
+      totalPercentUsage += value;
+      return {
+        ...item,
+        value,
+      };
+    })
+    .sort((item, nextItem) => nextItem.value - item.value);
   return {
-    sortedArray: _data
-      .map((item) => {
-        const value = Math.round((item.value / (item.maxValue ?? 100)) * 100);
-        totalPercentUsage += value;
-        return {
-          ...item,
-          value,
-        };
-      })
-      .sort((item, nextItem) => nextItem.value - item.value),
+    sortedArray: sortedData.slice(0, props.nItems ?? sortedData.length),
     totalPercentUsage,
   };
 });
