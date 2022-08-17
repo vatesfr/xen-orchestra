@@ -42,6 +42,16 @@ const props = defineProps<Props>();
 const computedData = computed(() => {
   const _data = props.data;
   let totalPercentUsage = 0;
+  const sortedData = _data
+    .map((item) => {
+      const value = Math.round((item.value / (item.maxValue ?? 100)) * 100);
+      totalPercentUsage += value;
+      return {
+        ...item,
+        value,
+      };
+    })
+    .sort((item, nextItem) => nextItem.value - item.value);
   return {
     sortedArray: _data
       ?.map((item) => {
