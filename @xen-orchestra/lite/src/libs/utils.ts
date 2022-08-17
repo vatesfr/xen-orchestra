@@ -1,5 +1,6 @@
 import { utcParse } from "d3-time-format";
 import humanFormat from "human-format";
+import { find, size } from "lodash";
 import { round } from "lodash-es";
 import type { Filter } from "@/types/filter";
 import { faSquareCheck } from "@fortawesome/free-regular-svg-icons";
@@ -66,4 +67,12 @@ export const hasEllipsis = (target: Element | undefined | null) =>
 
 export function percent(currentValue: number, maxValue: number, precision = 2) {
   return round((currentValue / maxValue) * 100, precision);
+}
+// stats can be null.
+// Return the size of the first non-null object.
+export function getStatsLength(stats?: object | Array<any>) {
+  if (stats === undefined) {
+    return undefined;
+  }
+  return size(find(stats, (stat) => stat != null));
 }

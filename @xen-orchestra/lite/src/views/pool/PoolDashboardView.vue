@@ -2,10 +2,12 @@
   <div class="pool-dashboard-view">
     <PoolDashboardStatus class="item" />
     <PoolDashboardStorageUsage class="item" />
+    <PoolDashboardCpuUsage class="item" />
   </div>
 </template>
 
 <script lang="ts" setup>
+import PoolDashboardCpuUsage from "@/components/pool/dashboard/PoolDashboardCpuUsage.vue";
 import PoolDashboardStatus from "@/components/pool/dashboard/PoolDashboardStatus.vue";
 import PoolDashboardStorageUsage from "@/components/pool/dashboard/PoolDashboardStorageUsage.vue";
 </script>
