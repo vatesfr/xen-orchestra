@@ -56,7 +56,6 @@ export default function useFetchStats<T extends XenApiHost | XenApiVm, S>(
     });
   };
 
-<<<<<<< HEAD
   const unregister = (object: T) => {
     stats.value.get(object.uuid)?.pausable.pause();
     stats.value.delete(object.uuid);
@@ -71,7 +70,4 @@ export default function useFetchStats<T extends XenApiHost | XenApiVm, S>(
     unregister,
     stats: computed<Stat<S>[]>(() => Array.from(stats.value.values())),
   };
-=======
-  return { stats } as { stats: Ref<XapiStatsResponse<T> | undefined> };
->>>>>>> Wip: Display CPU usage
 }
