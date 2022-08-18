@@ -10,4 +10,4 @@ app.use(createPinia());
 app.use(router);
 app.component("FontAwesomeIcon", FontAwesomeIcon);
 
-app.mount("#app");
+app.mount("#root");
