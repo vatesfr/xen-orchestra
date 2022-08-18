@@ -9,7 +9,7 @@
   </div>
 </template>
 <script lang="ts" setup>
-import { computed } from "vue";
+import { computed, onMounted, onUnmounted } from "vue";
 import UsageBar from "@/components/UsageBar.vue";
 import useFetchStats from "@/composables/fetch-stats.composable";
 import { getAvgCpuUsage } from "@/libs/utils";
@@ -19,11 +19,22 @@ import { useHostStore } from "@/stores/host.store";
 const hostStore = useHostStore();
 
 const hostsWithStats = computed(() =>
-  hostStore.allRecords.map((host) => ({
-    hostname: host.name_label,
-    stats: useFetchStats<HostStats>("host", host.uuid, GRANULARITY.Seconds)
-      .stats,
-  }))
+  hostStore.allRecords.map((host) => {
+    const fetchStats = useFetchStats<HostStats>(
+      "host",
+      host.uuid,
+      GRANULARITY.Seconds
+    );
+    return {
+      hostname: host.name_label,
+      stats: fetchStats.stats,
+      pausable: fetchStats.pausable,
+    };
+  })
+);
+
+const pausableStats = computed(() =>
+  hostsWithStats.value.map((host) => host.pausable)
 );
 
 const data = computed(() => {
@@ -43,5 +54,12 @@ const data = computed(() => {
     });
   }
   return hostsStats;
+});
+
+onMounted(() => {
+  pausableStats.value.forEach((p) => p.resume());
+});
+onUnmounted(() => {
+  pausableStats.value.forEach((p) => p.pause());
 });
 </script>

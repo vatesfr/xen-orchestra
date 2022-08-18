@@ -9,7 +9,7 @@
   </div>
 </template>
 <script lang="ts" setup>
-import { computed, ref, watchEffect } from "vue";
+import { computed, onMounted, onUnmounted, ref, watchEffect } from "vue";
 import UsageBar from "@/components/UsageBar.vue";
 import useFetchStats from "@/composables/fetch-stats.composable";
 import { getAvgCpuUsage } from "@/libs/utils";
@@ -26,13 +26,24 @@ const _runningVms = computed(() =>
 );
 
 const runningVms = ref<XenApiVm[]>([]);
-
-// If using directly the _runningVms computed, vmsWithStats is recomputed every x secondes because computed do not a deep comparison between the previous and the new value.
+// If using directly the _runningVms computed, vmsWithStats is recomputed every x secondes.
 const vmsWithStats = computed(() =>
-  runningVms.value.map((vm) => ({
-    vmName: vm.name_label,
-    stats: useFetchStats<VmStats>("vm", vm.uuid, GRANULARITY.Seconds).stats,
-  }))
+  runningVms.value.map((vm) => {
+    const fetchStats = useFetchStats<VmStats>(
+      "vm",
+      vm.uuid,
+      GRANULARITY.Seconds
+    );
+    return {
+      vmName: vm.name_label,
+      stats: fetchStats.stats,
+      pausable: fetchStats.pausable,
+    };
+  })
+);
+
+const pausableStats = computed(() =>
+  vmsWithStats.value.map((vm) => vm.pausable)
 );
 
 const data = computed(() => {
@@ -63,5 +74,13 @@ watchEffect(() => {
       runningVms.value.splice(index, 1);
     }
   });
+});
+
+onMounted(() => {
+  pausableStats.value.forEach((p) => p.resume());
+});
+
+onUnmounted(() => {
+  pausableStats.value.forEach((p) => p.pause());
 });
 </script>
