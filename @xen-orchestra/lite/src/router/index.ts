@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from "vue-router";
+import { createRouter, createWebHashHistory } from "vue-router";
 import pool from "@/router/pool";
 import HomeView from "@/views/HomeView.vue";
 import HostDashboardView from "@/views/host/HostDashboardView.vue";
@@ -7,7 +7,7 @@ import VmConsoleView from "@/views/vm/VmConsoleView.vue";
 import VmRootView from "@/views/vm/VmRootView.vue";
 
 const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL),
+  history: createWebHashHistory(),
   routes: [
     {
       path: "/",
