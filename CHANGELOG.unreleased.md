@@ -7,7 +7,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [Proxy] Ability to bind a licence to an existing proxy (PR [#6384](https://github.com/vatesfr/xen-orchestra/pull/6384))
+- [Proxy] Ability to bind a licence to an existing proxy (PR [#6348](https://github.com/vatesfr/xen-orchestra/pull/6348))
 
 ### Bug fixes
 
