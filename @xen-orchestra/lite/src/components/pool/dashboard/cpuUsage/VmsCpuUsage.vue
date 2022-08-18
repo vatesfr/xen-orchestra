@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div v-if="data.length !== 0">
     <UsageBar :data="data" :n-items="5">
       <template #header>
         <span>VMs</span>
@@ -9,11 +9,10 @@
   </div>
 </template>
 <script lang="ts" setup>
-import { forEach, size } from "lodash";
 import { computed, ref, watchEffect } from "vue";
 import UsageBar from "@/components/UsageBar.vue";
 import useFetchStats from "@/composables/fetch-stats.composable";
-import { getStatsLength } from "@/libs/utils";
+import { getAvgCpuUsage } from "@/libs/utils";
 import { GRANULARITY, type VmStats } from "@/libs/xapi-stats";
 import type { XenApiVm } from "@/libs/xen-api";
 import { useVmStore } from "@/stores/vm.store";
@@ -28,7 +27,7 @@ const _runningVms = computed(() =>
 
 const runningVms = ref<XenApiVm[]>([]);
 
-// If using directly the _runningVms computed, vmsWithStats is recomputed every x secondes...
+// If using directly the _runningVms computed, vmsWithStats is recomputed every x secondes because computed do not a deep comparison between the previous and the new value.
 const vmsWithStats = computed(() =>
   runningVms.value.map((vm) => ({
     vmName: vm.name_label,
@@ -41,24 +40,15 @@ const data = computed(() => {
 
   for (const key in vmsWithStats.value) {
     const vm = vmsWithStats.value[key];
-    const cpusStats = vm.stats.value?.stats.cpus;
-    const length = getStatsLength(cpusStats);
-    if (length === undefined) {
+    const avgCpuUsage = getAvgCpuUsage(vm.stats.value?.stats.cpus);
+
+    if (avgCpuUsage === undefined) {
       continue;
     }
 
-    let totalCpusUsage = 0;
-    forEach(cpusStats, (cpuStats) => {
-      totalCpusUsage = cpuStats.reduce(
-        (prev, next) => prev + next,
-        totalCpusUsage
-      );
-    });
-    const stackedValue = totalCpusUsage / length;
-    const avgUsage = stackedValue / size(cpusStats);
     vmsStats.push({
       label: vm.vmName,
-      value: avgUsage,
+      value: avgCpuUsage,
     });
   }
   return vmsStats;
@@ -66,15 +56,11 @@ const data = computed(() => {
 
 watchEffect(() => {
   vmStore.allRecords.forEach((vm) => {
-    if (vm.power_state === "Running") {
-      if (runningVms.value.find((_vm) => _vm.uuid === vm.uuid) === undefined) {
-        runningVms.value.push(vm);
-      }
-    } else {
-      const index = runningVms.value.findIndex((_vm) => _vm.uuid === vm.uuid);
-      if (index >= 0) {
-        runningVms.value.splice(index, 1);
-      }
+    const index = runningVms.value.findIndex((_vm) => _vm.uuid === vm.uuid);
+    if (vm.power_state === "Running" && index === -1) {
+      runningVms.value.push(vm);
+    } else if (vm.power_state !== "Running" && index >= 0) {
+      runningVms.value.splice(index, 1);
     }
   });
 });

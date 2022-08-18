@@ -1,6 +1,6 @@
 import { utcParse } from "d3-time-format";
 import humanFormat from "human-format";
-import { find, size } from "lodash";
+import { find, forEach, size } from "lodash";
 import { round } from "lodash-es";
 import type { Filter } from "@/types/filter";
 import { faSquareCheck } from "@fortawesome/free-regular-svg-icons";
@@ -68,9 +68,25 @@ export const hasEllipsis = (target: Element | undefined | null) =>
 export function percent(currentValue: number, maxValue: number, precision = 2) {
   return round((currentValue / maxValue) * 100, precision);
 }
+export function getAvgCpuUsage(cpus?: object | any[]) {
+  const length = getStatsLength(cpus);
+  if (length === undefined) {
+    return;
+  }
+  let totalCpusUsage = 0;
+  forEach(cpus, (cpuStats: number[]) => {
+    totalCpusUsage = cpuStats.reduce(
+      (prev, next) => prev + next,
+      totalCpusUsage
+    );
+  });
+  const stackedValue = totalCpusUsage / length;
+  return stackedValue / size(cpus);
+}
+
 // stats can be null.
 // Return the size of the first non-null object.
-export function getStatsLength(stats?: object | Array<any>) {
+export function getStatsLength(stats?: object | any[]) {
   if (stats === undefined) {
     return undefined;
   }
