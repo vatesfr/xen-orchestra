@@ -1,7 +1,11 @@
 import { utcParse } from "d3-time-format";
+<<<<<<< HEAD
 import { round } from "lodash-es";
 import { find, forEach, isEqual, size, sum } from "lodash-es";
 import { type ComputedGetter, type Ref, computed, ref, watchEffect } from "vue";
+=======
+import { find, forEach, size } from "lodash";
+>>>>>>> code enhancement
 import type { Filter } from "@/types/filter";
 import { faSquareCheck } from "@fortawesome/free-regular-svg-icons";
 import { faFont, faHashtag, faList } from "@fortawesome/free-solid-svg-icons";
@@ -56,20 +60,31 @@ export function parseDateTime(dateTime: string) {
   return date.getTime();
 }
 
+<<<<<<< HEAD
 export const hasEllipsis = (target: Element | undefined | null) =>
   target != undefined && target.clientWidth < target.scrollWidth;
 
 export function percent(currentValue: number, maxValue: number, precision = 2) {
   return round((currentValue / maxValue) * 100, precision);
 }
+=======
+>>>>>>> code enhancement
 export function getAvgCpuUsage(cpus?: object | any[]) {
   const length = getStatsLength(cpus);
   if (length === undefined) {
     return;
   }
   let totalCpusUsage = 0;
+<<<<<<< HEAD
   forEach(cpus, (cpuState: number[]) => {
     totalCpusUsage += sum(cpuState);
+=======
+  forEach(cpus, (cpuStats: number[]) => {
+    totalCpusUsage = cpuStats.reduce(
+      (prev, next) => prev + next,
+      totalCpusUsage
+    );
+>>>>>>> code enhancement
   });
   const stackedValue = totalCpusUsage / length;
   return stackedValue / size(cpus);
