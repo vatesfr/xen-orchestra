@@ -19,14 +19,7 @@ import { useVmStore } from "@/stores/vm.store";
 
 const vmStore = useVmStore();
 
-const _runningVms = computed(() =>
-  vmStore.allRecords
-    .filter((vm) => vm.power_state === "Running")
-    .map((vm) => ({ uuid: vm.uuid, name_label: vm.name_label }))
-);
-
 const runningVms = ref<XenApiVm[]>([]);
-// If using directly the _runningVms computed, vmsWithStats is recomputed every x secondes.
 const vmsWithStats = computed(() =>
   runningVms.value.map((vm) => {
     const fetchStats = useFetchStats<VmStats>(
