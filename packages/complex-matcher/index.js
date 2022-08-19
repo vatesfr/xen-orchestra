@@ -253,7 +253,7 @@ class RegExpNode extends Node {
     return this.re.toString()
   }
 }
-exports.RegExp = RegExpNode
+exports.RegExp = exports.RegExpNode = RegExpNode
 
 class StringNode extends Node {
   constructor(value) {
