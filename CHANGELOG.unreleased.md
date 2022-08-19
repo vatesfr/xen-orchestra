@@ -13,7 +13,7 @@
 
 - [Backup/Restore] Fix backup list not loading on page load (PR [#6364](https://github.com/vatesfr/xen-orchestra/pull/6364))
 - [Host] Fix `should not contains property ["ignoreBackup"]` on some host operations (PR [#6362](https://github.com/vatesfr/xen-orchestra/pull/6362))
-- [Backup] Fix "Preview matching VMs" button showing all the VMs [#6365](https://github.com/vatesfr/xen-orchestra/issues/6365)
+- [Backup] Fix "Preview matching VMs" button showing all the VMs [#6365](https://github.com/vatesfr/xen-orchestra/issues/6365) (PR [#6375](https://github.com/vatesfr/xen-orchestra/pull/6375))
 
 ### Packages to release
 
