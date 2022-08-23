@@ -27,7 +27,9 @@ const SelectLicense = decorate([
     },
   }),
   injectState,
-  ({ state: { license = 'none', licenses }, effects, intl: { formatTime }, ...props }) => (
+  ({ state: { license = 'none', licenses }, effects, intl: { formatTime }, ...props }) => licenseError !== undefined 
+    ? <span><em className='text-danger'>{_('getLicensesError')}</em></span>
+    : (
     <form className='form-inline'>
       <select className='form-control' name='license' onChange={effects.linkState}>
         {_('selectLicense', message => (
@@ -61,7 +63,7 @@ const SelectLicense = decorate([
         className='ml-1'
         disabled={license === 'none'}
         handler={props.onChange}
-        handlerParam={get(() => license)}
+        handlerParam={license}
         icon='connect'
       >
         {_('bindLicense')}

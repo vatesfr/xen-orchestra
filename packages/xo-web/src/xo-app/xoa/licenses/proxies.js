@@ -58,18 +58,12 @@ const Proxies = decorate([
           ({ boundObjectId, expires }) => boundObjectId === undefined && (expires === undefined || expires > Date.now())
         ),
       licensesByVmUuid: (state, { proxyLicenses }) => groupBy(proxyLicenses, 'vmUuid'),
-      proxiesWithExpiredLicense: (state, { proxies, licensesByVmUuid }) => {
-        filter(proxies, proxy => {
-          const license = licensesByVmUuid[proxy.vmUuid][0]
-          return license === undefined ? true : license.expires !== undefined || license.expires < Date.now()
-        })
-      },
     },
   }),
   injectState,
-  ({ state, updateLicenses }) => (
+  ({ state, proxies, updateLicenses }) => (
     <SortedTable
-      collection={state.proxiesWithExpiredLicense}
+      collection={proxies}
       columns={COLUMNS}
       individualActions={INDIVIDUAL_ACTIONS}
       stateUrlParam='s_proxies'

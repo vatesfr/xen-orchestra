@@ -211,13 +211,3 @@ updateApplianceSettings.params = {
     optional: true,
   },
 }
-
-export function bindLicense({ licenseId, boundObjectId }) {
-  return this.bindLLicense({ licenseId, boundObjectId })
-}
-
-bindLicense.permission = 'admin'
-bindLicense.params = {
-  licenseId: { type: 'string' },
-  boundObjectId: { type: 'string' },
-}

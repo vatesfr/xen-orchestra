@@ -4977,7 +4977,7 @@ export default {
   xosanCheckLicenseError: "Bu XOSAN SR'deki lisans kontrol edilemedi",
 
   // Original text: "Could not fetch licenses"
-  xosanGetLicensesError: 'Lisans alınamadı',
+  getLicensesError: 'Lisans alınamadı',
 
   // Original text: "License has expired."
   xosanLicenseHasExpired: "Lisnas'ın süresi doldu",

@@ -33,8 +33,8 @@
 
 - @xen-orchestra/backups patch
 - @xen-orchestra/mixins patch
-- xo-web minor
 - xo-server minor
 - xo-server-auth-saml minor
+- xo-web minor
 
 <!--packages-end-->

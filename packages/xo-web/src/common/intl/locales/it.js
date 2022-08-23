@@ -5789,7 +5789,7 @@ export default {
   xosanCheckLicenseError: 'Impossibile verificare la licenza su questo XOSAN SR',
 
   // Original text: 'Could not fetch licenses'
-  xosanGetLicensesError: 'Impossibile recuperare le licenze',
+  getLicensesError: 'Impossibile recuperare le licenze',
 
   // Original text: 'License has expired.'
   licenseHasExpired: 'La licenza è scaduta.',

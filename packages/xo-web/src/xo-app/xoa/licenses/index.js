@@ -293,7 +293,7 @@ export default class Licenses extends Component {
     }
 
     if (this.state.licenseError !== undefined) {
-      return <span className='text-danger'>{_('xosanGetLicensesError')}</span>
+      return <span className='text-danger'>{_('getLicensesError')}</span>
     }
 
     if (this.state.licenses === undefined) {

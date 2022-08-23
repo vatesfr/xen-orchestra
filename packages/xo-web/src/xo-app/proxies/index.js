@@ -149,7 +149,7 @@ const COLUMNS = [
         return
       }
 
-      const license = licensesByVmUuid[proxy.vmUuid]
+      const license = licensesByVmUuid[proxy.vmUuid][0]
 
       // Proxy not bound to any license, not even trial
       if (license === undefined) {

@@ -3240,6 +3240,8 @@ export const selfBindLicense = ({ id, plan, oldXoaId }) =>
 
 export const subscribeSelfLicenses = createSubscription(() => _call('xoa.licenses.getSelf'))
 
+export const bindLicense = ({ licenseId, boundObjectId }) => _call('bindLicense', { licenseId, boundObjectId })
+
 // Support --------------------------------------------------------------------
 
 export const clearXoaCheckCache = () => _call('xoa.clearCheckCache')
@@ -3333,8 +3335,6 @@ export const checkProxyHealth = async proxy => {
         </span>
       )
 }
-
-export const bindLicense = ({ licenseId, boundObjectId }) => _call('proxy.bindLicense', { licenseId, boundObjectId })
 
 // Audit plugin ---------------------------------------------------------
 

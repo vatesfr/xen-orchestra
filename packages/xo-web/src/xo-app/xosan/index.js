@@ -415,7 +415,7 @@ export default class Xosan extends Component {
                 licenseError !== undefined && (
                   <Row>
                     <Col>
-                      <em className='text-danger'>{_('xosanGetLicensesError')}</em>
+                      <em className='text-danger'>{_('getLicensesError')}</em>
                     </Col>
                   </Row>
                 ),
