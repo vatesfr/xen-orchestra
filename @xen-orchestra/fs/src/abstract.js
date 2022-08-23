@@ -1,4 +1,5 @@
 import asyncMapSettled from '@xen-orchestra/async-map/legacy'
+import assert from 'assert'
 import getStream from 'get-stream'
 import { coalesceCalls } from '@vates/coalesce-calls'
 import { createLogger } from '@xen-orchestra/log'
@@ -6,13 +7,14 @@ import { fromCallback, fromEvent, ignoreErrors, timeout } from 'promise-toolbox'
 import { limitConcurrency } from 'limit-concurrency-decorator'
 import { parse } from 'xo-remote-parser'
 import { pipeline } from 'stream'
-import { randomBytes } from 'crypto'
+import { randomBytes, randomUUID } from 'crypto'
 import { synchronized } from 'decorator-synchronized'
 
 import { basename, dirname, normalize as normalizePath } from './path'
 import { createChecksumStream, validChecksumOfReadStream } from './checksum'
+import { _getEncryptor } from './_encryptor'
 
-const { warn } = createLogger('@xen-orchestra:fs')
+const { info, warn } = createLogger('@xen-orchestra:fs')
 
 const checksumFile = file => file + '.checksum'
 const computeRate = (hrtime, size) => {
@@ -22,6 +24,9 @@ const computeRate = (hrtime, size) => {
 
 const DEFAULT_TIMEOUT = 6e5 // 10 min
 const DEFAULT_MAX_PARALLEL_OPERATIONS = 10
+
+const ENCRYPTION_DESC_FILENAME = 'encryption.json'
+const ENCRYPTION_METADATA_FILENAME = 'metadata.json'
 
 const ignoreEnoent = error => {
   if (error == null || error.code !== 'ENOENT') {
@@ -63,6 +68,7 @@ class PrefixWrapper {
 }
 
 export default class RemoteHandlerAbstract {
+  _encryptor
   constructor(remote, options = {}) {
     if (remote.url === 'test://') {
       this._remote = remote
@@ -73,6 +79,7 @@ export default class RemoteHandlerAbstract {
       }
     }
     ;({ highWaterMark: this._highWaterMark, timeout: this._timeout = DEFAULT_TIMEOUT } = options)
+    this._encryptor = _getEncryptor(this._remote.encryptionKey)
 
     const sharedLimit = limitConcurrency(options.maxParallelOperations ?? DEFAULT_MAX_PARALLEL_OPERATIONS)
     this.closeFile = sharedLimit(this.closeFile)
@@ -111,55 +118,51 @@ export default class RemoteHandlerAbstract {
     await this.__closeFile(fd)
   }
 
-  createReadStream(file, { checksum = false, ignoreMissingChecksum = false, ...options } = {}) {
+  async createReadStream(file, { checksum = false, ignoreMissingChecksum = false, ...options } = {}) {
+    if (options.end !== undefined || options.start !== undefined) {
+      assert.strictEqual(this.isEncrypted, false, `Can't read part of a file when encryption is active ${file}`)
+    }
     if (typeof file === 'string') {
       file = normalizePath(file)
     }
-    const path = typeof file === 'string' ? file : file.path
-    const streamP = timeout
-      .call(this._createReadStream(file, { ...options, highWaterMark: this._highWaterMark }), this._timeout)
-      .then(stream => {
-        // detect early errors
-        let promise = fromEvent(stream, 'readable')
 
-        // try to add the length prop if missing and not a range stream
-        if (stream.length === undefined && options.end === undefined && options.start === undefined) {
-          promise = Promise.all([
-            promise,
-            ignoreErrors.call(
-              this._getSize(file).then(size => {
-                stream.length = size
-              })
-            ),
-          ])
+    let stream = await timeout.call(
+      this._createReadStream(file, { ...options, highWaterMark: this._highWaterMark }),
+      this._timeout
+    )
+
+    // detect early errors
+    await fromEvent(stream, 'readable')
+
+    if (checksum) {
+      try {
+        const path = typeof file === 'string' ? file : file.path
+        const checksum = await this._readFile(checksumFile(path), { flags: 'r' })
+
+        const { length } = stream
+        stream = validChecksumOfReadStream(stream, String(checksum).trim())
+        stream.length = length
+      } catch (error) {
+        if (!(ignoreMissingChecksum && error.code === 'ENOENT')) {
+          throw error
         }
-
-        return promise.then(() => stream)
-      })
-
-    if (!checksum) {
-      return streamP
+      }
     }
 
-    // avoid a unhandled rejection warning
-    ignoreErrors.call(streamP)
-
-    return this._readFile(checksumFile(path), { flags: 'r' }).then(
-      checksum =>
-        streamP.then(stream => {
-          const { length } = stream
-          stream = validChecksumOfReadStream(stream, String(checksum).trim())
-          stream.length = length
-
-          return stream
-        }),
-      error => {
-        if (ignoreMissingChecksum && error && error.code === 'ENOENT') {
-          return streamP
+    if (this.isEncrypted) {
+      stream = this._encryptor.decryptStream(stream)
+    } else {
+      // try to add the length prop if missing and not a range stream
+      if (stream.length === undefined && options.end === undefined && options.start === undefined) {
+        try {
+          stream.length = await this._getSize(file)
+        } catch (error) {
+          // ignore errors
         }
-        throw error
       }
-    )
+    }
+
+    return stream
   }
 
   /**
@@ -175,6 +178,8 @@ export default class RemoteHandlerAbstract {
   async outputStream(path, input, { checksum = true, dirMode, validator } = {}) {
     path = normalizePath(path)
     let checksumStream
+
+    input = this._encryptor.encryptStream(input)
     if (checksum) {
       checksumStream = createChecksumStream()
       pipeline(input, checksumStream, noop)
@@ -185,6 +190,8 @@ export default class RemoteHandlerAbstract {
       validator,
     })
     if (checksum) {
+      // using _outpuFile means the checksum will NOT be encrypted
+      // it is by design to allow checking of encrypted files without the key
       await this._outputFile(checksumFile(path), await checksumStream.checksum, { dirMode, flags: 'wx' })
     }
   }
@@ -204,8 +211,13 @@ export default class RemoteHandlerAbstract {
     return timeout.call(this._getInfo(), this._timeout)
   }
 
+  // when using encryption, the file size is aligned with the encryption block size ( 16 bytes )
+  // that means that the size will be 1 to 16 bytes more than the content size + the initialized vector length (16 bytes)
   async getSize(file) {
-    return timeout.call(this._getSize(typeof file === 'string' ? normalizePath(file) : file), this._timeout)
+    assert.strictEqual(this.isEncrypted, false, `Can't compute size of an encrypted file ${file}`)
+
+    const size = await timeout.call(this._getSize(typeof file === 'string' ? normalizePath(file) : file), this._timeout)
+    return size - this._encryptor.ivLength
   }
 
   async list(dir, { filter, ignoreMissing = false, prependDir = false } = {}) {
@@ -251,15 +263,18 @@ export default class RemoteHandlerAbstract {
   }
 
   async outputFile(file, data, { dirMode, flags = 'wx' } = {}) {
-    await this._outputFile(normalizePath(file), data, { dirMode, flags })
+    const encryptedData = this._encryptor.encryptData(data)
+    await this._outputFile(normalizePath(file), encryptedData, { dirMode, flags })
   }
 
   async read(file, buffer, position) {
+    assert.strictEqual(this.isEncrypted, false, `Can't read part of an encrypted file ${file}`)
     return this._read(typeof file === 'string' ? normalizePath(file) : file, buffer, position)
   }
 
   async readFile(file, { flags = 'r' } = {}) {
-    return this._readFile(normalizePath(file), { flags })
+    const data = await this._readFile(normalizePath(file), { flags })
+    return this._encryptor.decryptData(data)
   }
 
   async rename(oldPath, newPath, { checksum = false } = {}) {
@@ -299,6 +314,61 @@ export default class RemoteHandlerAbstract {
   @synchronized()
   async sync() {
     await this._sync()
+    try {
+      await this._checkMetadata()
+    } catch (error) {
+      await this._forget()
+      throw error
+    }
+  }
+
+  async _canWriteMetadata() {
+    const list = await this.list('/', {
+      filter: e => !e.startsWith('.') && e !== ENCRYPTION_DESC_FILENAME && e !== ENCRYPTION_METADATA_FILENAME,
+    })
+    return list.length === 0
+  }
+
+  async _createMetadata() {
+    await Promise.all([
+      this._writeFile(
+        normalizePath(ENCRYPTION_DESC_FILENAME),
+        JSON.stringify({ algorithm: this._encryptor.algorithm }),
+        {
+          flags: 'w',
+        }
+      ), // not encrypted
+      this.writeFile(ENCRYPTION_METADATA_FILENAME, `{"random":"${randomUUID()}"}`, { flags: 'w' }), // encrypted
+    ])
+  }
+
+  async _checkMetadata() {
+    try {
+      // this file is not encrypted
+      const data = await this._readFile(normalizePath(ENCRYPTION_DESC_FILENAME))
+      JSON.parse(data)
+    } catch (error) {
+      if (error.code !== 'ENOENT') {
+        throw error
+      }
+    }
+
+    try {
+      // this file is encrypted
+      const data = await this.readFile(ENCRYPTION_METADATA_FILENAME)
+      JSON.parse(data)
+    } catch (error) {
+      if (error.code === 'ENOENT' || (await this._canWriteMetadata())) {
+        info('will update metadata of this remote')
+        return this._createMetadata()
+      }
+      warn(
+        `The encryptionKey settings of this remote does not match the key used to create it. You won't be able to read any data from this remote`,
+        { error }
+      )
+      // will probably send a ERR_OSSL_EVP_BAD_DECRYPT if key is incorrect
+      throw error
+    }
   }
 
   async test() {
@@ -352,11 +422,13 @@ export default class RemoteHandlerAbstract {
   }
 
   async write(file, buffer, position) {
+    assert.strictEqual(this.isEncrypted, false, `Can't write part of a file with encryption ${file}`)
     await this._write(typeof file === 'string' ? normalizePath(file) : file, buffer, position)
   }
 
   async writeFile(file, data, { flags = 'wx' } = {}) {
-    await this._writeFile(normalizePath(file), data, { flags })
+    const encryptedData = this._encryptor.encryptData(data)
+    await this._writeFile(normalizePath(file), encryptedData, { flags })
   }
 
   // Methods that can be called by private methods to avoid parallel limit on public methods
@@ -563,6 +635,10 @@ export default class RemoteHandlerAbstract {
 
   async _writeFile(file, data, options) {
     throw new Error('Not implemented')
+  }
+
+  get isEncrypted() {
+    return this._encryptor.id !== 'NULL_ENCRYPTOR'
   }
 }
 

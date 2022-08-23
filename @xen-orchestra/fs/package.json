@@ -28,6 +28,7 @@
     "@vates/async-each": "^1.0.0",
     "@vates/coalesce-calls": "^0.1.0",
     "@vates/decorate-with": "^2.0.0",
+    "@vates/read-chunk": "^1.0.0",
     "@xen-orchestra/async-map": "^0.1.2",
     "@xen-orchestra/log": "^0.3.0",
     "bind-property-descriptor": "^2.0.0",
@@ -39,6 +40,7 @@
     "lodash": "^4.17.4",
     "promise-toolbox": "^0.21.0",
     "proper-lockfile": "^4.1.2",
+    "pumpify": "^2.0.1",
     "readable-stream": "^4.1.0",
     "through2": "^4.0.2",
     "xo-remote-parser": "^0.9.1"

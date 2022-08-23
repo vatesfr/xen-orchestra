@@ -49,6 +49,11 @@ const isValidTar = async (handler, size, fd) => {
 // TODO: find an heuristic for compressed files
 async function isValidXva(path) {
   const handler = this._handler
+
+  // size is longer when encrypted  + reading part of an encrypted file is not implemented
+  if (handler.isEncrypted) {
+    return true
+  }
   try {
     const fd = await handler.openFile(path, 'r')
     try {
@@ -66,7 +71,6 @@ async function isValidXva(path) {
     }
   } catch (error) {
     // never throw, log and report as valid to avoid side effects
-    console.error('isValidXva', path, error)
     return true
   }
 }
