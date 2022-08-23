@@ -1,4 +1,4 @@
-import { format, parse, MethodNotFound } from 'json-rpc-protocol'
+import { format, parse, MethodNotFound, JsonRpcError } from 'json-rpc-protocol'
 import * as errors from 'xo-common/api-errors.js'
 import Ajv from 'ajv'
 import asyncIteratorToStream from 'async-iterator-to-stream'
@@ -78,7 +78,19 @@ export default class Api {
         const { method, params } = body
         warn('call error', { method, params, error })
         ctx.set('Content-Type', 'application/json')
-        ctx.body = format.error(body.id, error)
+
+        let e = error
+        if (error != null && typeof error.toJsonRpcError !== 'function') {
+          const { message, ...data } = error
+
+          // force these entries even if they are not enumerable
+          data.code = error.code
+          data.stack = error.stack
+
+          e = new JsonRpcError(error.message, undefined, data)
+        }
+
+        ctx.body = format.error(body.id, e)
         return
       }
 
