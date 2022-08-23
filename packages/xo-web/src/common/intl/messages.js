@@ -601,7 +601,7 @@ const messages = {
     'Store backup as multiple data blocks instead of a whole VHD file. (disables file level restore but allows faster merge)',
   remoteUseVhdDirectoryTooltip:
     'Your remote must be able to handle parallel access (up to 16 write processes per backup) and the number of files (500 files per GB of backed up data)',
-
+  remoteEncryptionKey: 'encrypt all new data sent to this remote',
   // ------ New Storage -----
 
   newSr: 'New SR',

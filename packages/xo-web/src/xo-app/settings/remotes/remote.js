@@ -44,6 +44,7 @@ export default decorate([
       region: undefined,
       allowUnauthorized: undefined,
       useVhdDirectory: undefined,
+      encryptionKey: undefined,
     }),
     effects: {
       linkState,
@@ -69,6 +70,7 @@ export default decorate([
             username = remote.username,
             protocol = remote.protocol || 'https',
             region = remote.region,
+            encryptionKey = remote.encryptionKey,
           } = state
 
           let {
@@ -99,6 +101,7 @@ export default decorate([
               region,
               allowUnauthorized,
               useVhdDirectory,
+              encryptionKey,
             }),
             options: options !== '' ? options : null,
             proxy: proxyId,
@@ -128,6 +131,7 @@ export default decorate([
             type = 'nfs',
             username,
             useVhdDirectory = undefined,
+            encryptionKey = undefined,
           } = state
 
           const urlParams = {
@@ -136,6 +140,7 @@ export default decorate([
             port,
             type,
             useVhdDirectory,
+            encryptionKey,
           }
           if (type === 's3') {
             const { allowUnauthorized, bucket, directory, protocol = 'https' } = state
@@ -202,6 +207,7 @@ export default decorate([
       username = remote.username || '',
       allowUnauthorized = remote.allowUnauthorized || false,
       useVhdDirectory = remote.useVhdDirectory || type === 's3',
+      encryptionKey = remote.encryptionKey,
     } = state
     return (
       <div>
@@ -469,6 +475,17 @@ export default decorate([
               </div>
             </fieldset>
           )}
+          <div className='form-group'>
+            <label>{_('remoteEncryptionKey')}</label>
+            <input
+              className='form-control'
+              name='encryptionKey'
+              onChange={effects.linkState}
+              required
+              type='text'
+              value={encryptionKey}
+            />
+          </div>
           {type !== 's3' && (
             <fieldset className='form-group form-group'>
               <div className='input-group form-group'>
