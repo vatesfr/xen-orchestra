@@ -1450,8 +1450,9 @@ const messages = {
   alarmObject: 'Issue on',
   alarmPool: 'Pool',
   spaceLeftTooltip: '{used}% used ({free} left)',
+  unhealthyVdis: 'Unhealthy VDIs',
   vdisToCoalesce: 'VDIs to coalesce',
-  vdisWithInvalidVhdParent: 'VDIs with invalid VHD parent',
+  vdisWithInvalidVhdParent: 'VDIs with invalid parent VHD',
   srVdisToCoalesceWarning: 'This SR has more than {limitVdis, number} VDIs to coalesce',
 
   // ----- New VM -----

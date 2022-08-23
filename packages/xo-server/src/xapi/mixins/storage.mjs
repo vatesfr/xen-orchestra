@@ -52,24 +52,30 @@ export default {
     await this._unplugPbd(this.getObject(id))
   },
 
-  _getUnhealthyVdiChainLength(uuid, childrenMap, cache, vdisWithUnknownVhdParent) {
-    let length = cache[uuid]
+  _getUnhealthyVdiChainLength(uuid, childrenMap, cache) {
+    let length = cache[uuid]?.length
     if (length === undefined) {
       const children = childrenMap[uuid]
       length = children !== undefined && children.length === 1 ? 1 : 0
       try {
-        const parent = this.getObjectByUuid(uuid).sm_config['vhd-parent']
+        const parent = this.getObjectByUuid(uuid, undefined).sm_config['vhd-parent']
         if (parent !== undefined) {
-          length += this._getUnhealthyVdiChainLength(parent, childrenMap, cache, vdisWithUnknownVhdParent)
+          length += this._getUnhealthyVdiChainLength(parent, childrenMap, cache)
         }
       } catch (error) {
-        if (error instanceof Error && error.message.startsWith('no object with UUID:')) {
-          vdisWithUnknownVhdParent.push(children[0].uuid)
+        if (error instanceof TypeError) {
+          cache[children[0].uuid] = {
+            ...cache[children[0].uuid],
+            unknownVhdParent: uuid,
+          }
         } else {
           log.warn(`Xapi#_getUnhealthyVdiChainLength(${uuid})`, { error })
         }
       }
-      cache[uuid] = length
+      cache[uuid] = {
+        ...cache[uuid],
+        length,
+      }
     }
     return length
   },
@@ -84,12 +90,17 @@ export default {
     forEach(vdis, vdi => {
       if (vdi.managed && !vdi.is_a_snapshot) {
         const { uuid } = vdi
-        const length = this._getUnhealthyVdiChainLength(uuid, children, cache, vdisWithUnknownVhdParent)
+        const length = this._getUnhealthyVdiChainLength(uuid, children, cache)
+
         if (length !== 0) {
           unhealthyVdis[uuid] = length
         }
+        if (cache[uuid].unknownVhdParent !== undefined) {
+          vdisWithUnknownVhdParent.push(uuid)
+        }
       }
     })
+
     return {
       vdisWithUnknownVhdParent,
       unhealthyVdis,

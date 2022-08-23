@@ -7,7 +7,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [Dashboard/Health] Display VDIs with invalid `sm_config['vhd-parent']` and avoid logging the associated error. (PR [#6356](https://github.com/vatesfr/xen-orchestra/pull/6356))
+- [Dashboard/Health] Detect broken VHD chains and display missing parent VDIs (PR [#6356](https://github.com/vatesfr/xen-orchestra/pull/6356))
 
 ### Bug fixes
 

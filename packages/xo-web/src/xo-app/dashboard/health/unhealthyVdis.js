@@ -47,14 +47,6 @@ const COLUMNS = [
     ),
     name: _('vdisToCoalesce'),
   },
-]
-
-const COLUMNS_VDI_UNKNOWN_PARENT = [
-  {
-    itemRenderer: srId => <Sr id={srId} link />,
-    name: _('sr'),
-    sortCriteria: 'name_label',
-  },
   {
     itemRenderer: (srId, { chainsLengthBySr }) => (
       <div>
@@ -73,19 +65,10 @@ const UnhealthyVdis = decorate([
   }),
   provideState({
     computed: {
-      srIdsWithUnhealthyVdis: (_, { chainsLengthBySr = {} }) => {
+      srIds: (_, { chainsLengthBySr = {} }) => {
         const srIds = []
         forEach(chainsLengthBySr, (chainLength, srId) => {
-          if (!isEmpty(chainLength.unhealthyVdis)) {
-            srIds.push(srId)
-          }
-        })
-        return srIds
-      },
-      srIdsWithUnknownVdisParent: (_, { chainsLengthBySr } = {}) => {
-        const srIds = []
-        forEach(chainsLengthBySr, (chainLength, srId) => {
-          if (chainLength.vdisWithUnknownVhdParent.length > 0) {
+          if (!isEmpty(chainLength.unhealthyVdis || chainLength.vdisWithUnknownVhdParent.length > 0)) {
             srIds.push(srId)
           }
         })
@@ -94,41 +77,21 @@ const UnhealthyVdis = decorate([
     },
   }),
   injectState,
-  ({ state: { srIdsWithUnknownVdisParent, srIdsWithUnhealthyVdis }, chainsLengthBySr }) => (
+  ({ state: { srIds }, chainsLengthBySr }) => (
     <Row>
       <Col>
         <Card>
           <CardHeader>
-            <Icon icon='disk' /> {_('vdisToCoalesce')}
+            <Icon icon='disk' /> {_('unhealthyVdis')}
           </CardHeader>
           <CardBlock>
             <Row>
               <Col>
                 <SortedTable
                   data-chainsLengthBySr={chainsLengthBySr}
-                  collection={srIdsWithUnhealthyVdis}
+                  collection={srIds}
                   columns={COLUMNS}
-                  stateUrlParam='s_vdis_to_coalesce'
-                />
-              </Col>
-            </Row>
-          </CardBlock>
-        </Card>
-      </Col>
-
-      <Col>
-        <Card>
-          <CardHeader>
-            <Icon icon='disk' /> {_('vdisWithInvalidVhdParent')}
-          </CardHeader>
-          <CardBlock>
-            <Row>
-              <Col>
-                <SortedTable
-                  data-chainsLengthBySr={chainsLengthBySr}
-                  collection={srIdsWithUnknownVdisParent}
-                  columns={COLUMNS_VDI_UNKNOWN_PARENT}
-                  stateUrlParam='s_vdis_invalid_parent'
+                  stateUrlParam='s_unhealthy_vdis'
                 />
               </Col>
             </Row>
