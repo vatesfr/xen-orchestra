@@ -109,10 +109,13 @@ As a temporary workaround you can increase the timeout higher than the default v
 :::
 
 Create the following file:
+
 ```
 /etc/xo-server/config.httpInactivityTimeout.toml
 ```
+
 Add the following lines:
+
 ```
 # XOA Support - Work-around HTTP timeout issue during backups
 [xapiOptions]

@@ -160,7 +160,7 @@ test('it remove backup meta data referencing a missing vhd in delta backup', asy
   const logInfo = message => {
     loggued += message + '\n'
   }
-  await adapter.cleanVm('/', { remove: true, logInfo, logWarn: logInfo , lock: false})
+  await adapter.cleanVm('/', { remove: true, logInfo, logWarn: logInfo, lock: false })
   let matched = loggued.match(/deleting unused VHD/g) || []
   expect(matched.length).toEqual(1) // only one vhd should have been deleted
 
@@ -179,7 +179,7 @@ test('it remove backup meta data referencing a missing vhd in delta backup', asy
     { flags: 'w' }
   )
   loggued = ''
-  await adapter.cleanVm('/', { remove: true, logInfo, logWarn: () => {} , lock: false})
+  await adapter.cleanVm('/', { remove: true, logInfo, logWarn: () => {}, lock: false })
   matched = loggued.match(/deleting unused VHD/g) || []
   expect(matched.length).toEqual(2) // all vhds (orphan and  child  ) should have been deleted
 })
@@ -271,7 +271,7 @@ test('it finish unterminated merge ', async () => {
     })
   )
 
-  await adapter.cleanVm('/', { remove: true, merge: true, logWarn: ()=>{}, lock: false})
+  await adapter.cleanVm('/', { remove: true, merge: true, logWarn: () => {}, lock: false })
   // merging is already tested in vhd-lib, don't retest it here (and theses vhd are as empty as my stomach at 12h12)
 
   // only check deletion
