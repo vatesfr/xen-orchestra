@@ -1,4 +1,4 @@
-export type LineChartData = {
+export type LinearChartData = {
   label: string;
   data: {
     date: string;

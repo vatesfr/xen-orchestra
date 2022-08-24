@@ -1,30 +1,3 @@
-<!--
-USAGE:
-<LinearChar
-  :data="data"
-  :subtitle="Last week"
-  :title="Network Throughput"
-  :value-formatter="humanFormat.bytes"
-/>
-
-const data: LineChartData = [
-  {
-    label: "Rx",
-    data: [
-      { date: "...", value: 1234 },
-      { date: "...", value: 1234 },
-    ],
-  },
-  {
-    label: "Tx",
-    data: [
-      { date: "...", value: 1234 },
-      { date: "...", value: 1234 },
-    ],
-  },
-]
--->
-
 <template>
   <UiCard class="linear-chart">
     <VueCharts :option="option" autoresize class="chart" />
@@ -36,7 +9,7 @@ const data: LineChartData = [
 import type { EChartsOption } from "echarts";
 import { computed, provide } from "vue";
 import VueCharts from "vue-echarts";
-import type { LineChartData } from "@/types/chart";
+import type { LinearChartData } from "@/types/chart";
 import { LineChart } from "echarts/charts";
 import {
   GridComponent,
@@ -52,7 +25,7 @@ import UiCard from "@/components/ui/UiCard.vue";
 const props = defineProps<{
   title?: string;
   subtitle?: string;
-  data: LineChartData;
+  data: LinearChartData;
   valueFormatter?: (value: number) => string;
 }>();
 
