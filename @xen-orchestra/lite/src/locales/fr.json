@@ -1,0 +1,11 @@
+{
+  "dashboard": "Dashboard",
+  "alarms": "Alarmes",
+  "stats": "Stats",
+  "system": "Système",
+  "network": "Réseau",
+  "storage": "Stockage",
+  "tasks": "Tâches",
+  "hosts": "Hôtes",
+  "vms": "VMs"
+}
