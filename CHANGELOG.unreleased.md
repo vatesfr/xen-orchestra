@@ -34,6 +34,7 @@
 - @xen-orchestra/fs major
 - @xen-orchestra/proxy minor
 - vhd-lib major
+- xen-api patch
 - xo-vmdk-to-vhd patch
 - xo-server minor
 - xo-web patch
