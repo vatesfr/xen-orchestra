@@ -15,10 +15,10 @@ import { subscribeSrsUnhealthyVdiChainsLength, VDIS_TO_COALESCE_LIMIT } from 'xo
 
 const COLUMNS = [
   {
-    itemRenderer: (srId, { chainsLengthBySr }) => (
+    itemRenderer: (srId, { vdisHealthBySr }) => (
       <div>
         <Sr id={srId} link />{' '}
-        {size(chainsLengthBySr[srId].unhealthyVdis) >= VDIS_TO_COALESCE_LIMIT && (
+        {size(vdisHealthBySr[srId].unhealthyVdis) >= VDIS_TO_COALESCE_LIMIT && (
           <Tooltip content={_('srVdisToCoalesceWarning', { limitVdis: VDIS_TO_COALESCE_LIMIT })}>
             <span className='text-warning'>
               <Icon icon='alarm' />
@@ -31,15 +31,15 @@ const COLUMNS = [
     sortCriteria: 'name_label',
   },
   {
-    itemRenderer: (srId, { chainsLengthBySr }) => (
+    itemRenderer: (srId, { vdisHealthBySr }) => (
       <div>
-        {map(chainsLengthBySr[srId].unhealthyVdis, (chainLength, vdiId) => (
+        {map(vdisHealthBySr[srId].unhealthyVdis, (unhealthyVdiLength, vdiId) => (
           <SingleLineRow key={vdiId}>
             <Col>
               <Vdi id={vdiId} />
             </Col>
             <Col>
-              <span>{_('length', { length: chainLength })}</span>
+              <span>{_('length', { length: unhealthyVdiLength })}</span>
             </Col>
           </SingleLineRow>
         ))}
@@ -48,9 +48,9 @@ const COLUMNS = [
     name: _('vdisToCoalesce'),
   },
   {
-    itemRenderer: (srId, { chainsLengthBySr }) => (
+    itemRenderer: (srId, { vdisHealthBySr }) => (
       <div>
-        {map(chainsLengthBySr[srId].vdisWithUnknownVhdParent, vdiId => (
+        {map(vdisHealthBySr[srId].vdisWithUnknownVhdParent, vdiId => (
           <Vdi id={vdiId} />
         ))}
       </div>
@@ -61,14 +61,14 @@ const COLUMNS = [
 
 const UnhealthyVdis = decorate([
   addSubscriptions({
-    chainsLengthBySr: subscribeSrsUnhealthyVdiChainsLength,
+    vdisHealthBySr: subscribeSrsUnhealthyVdiChainsLength,
   }),
   provideState({
     computed: {
-      srIds: (_, { chainsLengthBySr = {} }) => {
+      srIds: (_, { vdisHealthBySr = {} }) => {
         const srIds = []
-        forEach(chainsLengthBySr, (chainLength, srId) => {
-          if (!isEmpty(chainLength.unhealthyVdis || chainLength.vdisWithUnknownVhdParent.length > 0)) {
+        forEach(vdisHealthBySr, (vdiHealth, srId) => {
+          if (!isEmpty(vdiHealth.unhealthyVdis || vdiHealth.vdisWithUnknownVhdParent.length > 0)) {
             srIds.push(srId)
           }
         })
@@ -77,7 +77,7 @@ const UnhealthyVdis = decorate([
     },
   }),
   injectState,
-  ({ state: { srIds }, chainsLengthBySr }) => (
+  ({ state: { srIds }, vdisHealthBySr }) => (
     <Row>
       <Col>
         <Card>
@@ -88,7 +88,7 @@ const UnhealthyVdis = decorate([
             <Row>
               <Col>
                 <SortedTable
-                  data-chainsLengthBySr={chainsLengthBySr}
+                  data-vdisHealthBySr={vdisHealthBySr}
                   collection={srIds}
                   columns={COLUMNS}
                   stateUrlParam='s_unhealthy_vdis'
