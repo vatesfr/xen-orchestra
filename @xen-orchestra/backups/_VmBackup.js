@@ -134,24 +134,13 @@ class VmBackup {
     if (n === 0) {
       return
     }
-    if (n === 1) {
-      const [writer] = writers
+
+    async function callWriter(writer) {
       try {
         await fn(writer)
       } catch (error) {
         writers.delete(writer)
-        throw error
-      }
-      return
-    }
 
-    const errors = []
-    await (parallel ? asyncMap : asyncEach)(writers, async function (writer) {
-      try {
-        await fn(writer)
-      } catch (error) {
-        errors.push(error)
-        this.delete(writer)
         warn(warnMessage, { error, writer: writer.constructor.name })
 
         // these two steps are the only one that are not already in their own sub tasks
@@ -160,6 +149,21 @@ class VmBackup {
             `the writer ${writer.constructor.name} has failed the step ${warnMessage} with error ${error.message}. It won't be used anymore in this job execution.`
           )
         }
+
+        throw error
+      }
+    }
+    if (n === 1) {
+      const [writer] = writers
+      return callWriter(writer)
+    }
+
+    const errors = []
+    await (parallel ? asyncMap : asyncEach)(writers, async function (writer) {
+      try {
+        await callWriter(writer)
+      } catch (error) {
+        errors.push(error)
       }
     })
     if (writers.size === 0) {
