@@ -144,12 +144,9 @@ const COLUMNS = [
   },
   {
     name: _('license'),
-    itemRenderer: (proxy, { isAdmin, licensesByVmUuid, licenseError }) => {
-      if (licenseError !== undefined) {
-        return
-      }
-
-      const license = licensesByVmUuid[proxy.vmUuid][0]
+    itemRenderer: (proxy, { isAdmin, licensesByVmUuid }) => {
+      const licenses = licensesByVmUuid[proxy.vmUuid]
+      const license = licenses === undefined ? undefined : licenses[0]
 
       // Proxy not bound to any license, not even trial
       if (license === undefined) {
@@ -182,7 +179,7 @@ const COLUMNS = [
         </span>
       ) : (
         <span>
-          {_('noLicenseAvailable')} <Link to='/xoa/licenses'>{_('unlockNow')}</Link>
+          {_('noLicenseAvailable')} <Link to={`/xoa/licenses?s_proxies=id:${proxy.id}`}>{_('unlockNow')}</Link>
         </span>
       )
     },

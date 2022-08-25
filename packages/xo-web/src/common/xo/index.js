@@ -3225,6 +3225,8 @@ export const getLicense = (productId, boundObjectId) => _call('xoa.licenses.get'
 
 export const unlockXosan = (licenseId, srId) => _call('xosan.unlock', { licenseId, sr: srId })
 
+export const bindLicense = (licenseId, boundObjectId) => _call('xoa.licenses.bind', { licenseId, boundObjectId })
+
 export const selfBindLicense = ({ id, plan, oldXoaId }) =>
   confirm({
     title: _('bindXoaLicense'),
@@ -3239,8 +3241,6 @@ export const selfBindLicense = ({ id, plan, oldXoaId }) =>
     ::tap(subscribeSelfLicenses.forceRefresh)
 
 export const subscribeSelfLicenses = createSubscription(() => _call('xoa.licenses.getSelf'))
-
-export const bindLicense = ({ licenseId, boundObjectId }) => _call('bindLicense', { licenseId, boundObjectId })
 
 // Support --------------------------------------------------------------------
 

@@ -1,7 +1,7 @@
 import _ from 'intl'
 import decorate from 'apply-decorators'
 import React from 'react'
-import { Vm } from 'render-xo-item'
+import { Proxy, Vm } from 'render-xo-item'
 import SelectLicense from 'select-license'
 import SortedTable from 'sorted-table'
 import { addSubscriptions } from 'utils'
@@ -12,7 +12,7 @@ import { subscribeProxies, bindLicense } from 'xo'
 const COLUMNS = [
   {
     default: true,
-    itemRenderer: proxy => <span>{proxy.name}</span>,
+    itemRenderer: proxy => <Proxy id={proxy.id} link newTab />,
     name: _('name'),
     sortCriteria: 'name',
   },
@@ -23,7 +23,8 @@ const COLUMNS = [
   {
     name: _('license'),
     itemRenderer: (proxy, { availableLicenses, licensesByVmUuid, updateLicenses }) => {
-      const license = licensesByVmUuid[proxy.vmUuid][0]
+      const licenses = licensesByVmUuid[proxy.vmUuid]
+      const license = licenses === undefined ? undefined : licenses[0]
 
       return license !== undefined && license.productId === 'xoproxy' ? (
         license.id.slice(-4)

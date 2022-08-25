@@ -12,6 +12,9 @@ import { linkState } from 'reaclette-utils'
 const SelectLicense = decorate([
   injectIntl,
   provideState({
+    initialState: () => ({
+      license: 'none',
+    }),
     effects: {
       linkState,
     },
@@ -26,7 +29,7 @@ const SelectLicense = decorate([
     },
   }),
   injectState,
-  ({ state: { license = 'none', licenses }, effects, intl: { formatTime }, ...props }) =>
+  ({ state: { license, licenses }, effects, intl: { formatTime }, onChange }) =>
     licenses.licenseError !== undefined ? (
       <span>
         <em className='text-danger'>{_('getLicensesError')}</em>
@@ -64,7 +67,7 @@ const SelectLicense = decorate([
           btnStyle='primary'
           className='ml-1'
           disabled={license === 'none'}
-          handler={props.onChange}
+          handler={onChange}
           handlerParam={license}
           icon='connect'
         >
