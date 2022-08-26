@@ -1,7 +1,7 @@
 <template>
   <header class="app-header">
     <RouterLink :to="{ name: 'home' }">
-      <img alt="XO Lite" src="../assets/logo.png" style="width: 8rem" />
+      <img alt="XO Lite" src="../assets/logo.svg" style="width: 6rem" />
     </RouterLink>
     <slot />
     <span style="cursor: pointer" @click="toggleTheme">Switch theme</span>
