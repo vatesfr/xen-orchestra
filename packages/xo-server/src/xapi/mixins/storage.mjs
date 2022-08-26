@@ -62,7 +62,7 @@ export default {
           ...cache[children[0].uuid],
           unknownVhdParent: uuid,
         }
-        return
+        return length
       }
 
       const parent = vdi.sm_config['vhd-parent']
