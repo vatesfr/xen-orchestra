@@ -1,7 +1,7 @@
 <template>
   <header class="app-header">
     <RouterLink :to="{ name: 'home' }">
-      <img alt="XO Lite" src="../assets/logo.svg" />
+      <img alt="XO Lite" src="../assets/logo.svg" style="width: 6rem" />
     </RouterLink>
     <slot />
     <div class="right">
