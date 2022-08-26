@@ -19,8 +19,17 @@
 import { watchEffect } from "vue";
 import AppHeader from "@/components/AppHeader.vue";
 import AppLogin from "@/components/AppLogin.vue";
+import favicon from "@/assets/favicon.svg";
 import InfraPoolList from "@/components/infra/InfraPoolList.vue";
 import { useXenApiStore } from "@/stores/xen-api.store";
+
+let link: HTMLLinkElement | null = document.querySelector("link[rel~='icon']");
+if (link == null) {
+  link = document.createElement("link");
+  link.rel = "icon";
+  document.getElementsByTagName("head")[0].appendChild(link);
+}
+link.href = favicon;
 
 const xenApiStore = useXenApiStore();
 
