@@ -54,6 +54,9 @@ export function parseDateTime(dateTime: string) {
   return date.getTime();
 }
 
+export const hasEllipsis = (target: Element | undefined | null) =>
+  target != undefined && target.clientWidth < target.scrollWidth;
+
 export function percent(currentValue: number, maxValue: number, precision = 2) {
   return round((currentValue / maxValue) * 100, precision);
 }

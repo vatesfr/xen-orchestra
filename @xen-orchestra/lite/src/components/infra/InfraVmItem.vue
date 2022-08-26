@@ -1,5 +1,12 @@
 <template>
-  <li ref="rootElement" class="infra-vm-item">
+  <li
+    ref="rootElement"
+    class="infra-vm-item"
+    v-tooltip="{
+      content: vm.name_label,
+      disabled: isTooltipDisabled,
+    }"
+  >
     <InfraItemLabel
       v-if="isVisible"
       :icon="faDisplay"
@@ -17,11 +24,13 @@
 
 <script lang="ts" setup>
 import { computed, ref } from "vue";
+import vTooltip from "@/directives/tooltip.directive";
 import { faDisplay } from "@fortawesome/free-solid-svg-icons";
 import { useIntersectionObserver } from "@vueuse/core";
 import PowerStateIcon from "@/components/PowerStateIcon.vue";
 import InfraAction from "@/components/infra/InfraAction.vue";
 import InfraItemLabel from "@/components/infra/InfraItemLabel.vue";
+import { hasEllipsis } from "@/libs/utils";
 import { useVmStore } from "@/stores/vm.store";
 
 const props = defineProps<{
@@ -41,6 +50,9 @@ const { stop } = useIntersectionObserver(rootElement, ([entry]) => {
 const vmStore = useVmStore();
 
 const vm = computed(() => vmStore.getRecord(props.vmOpaqueRef));
+
+const isTooltipDisabled = (target: HTMLElement) =>
+  !hasEllipsis(target.querySelector(".text"));
 </script>
 
 <style lang="postcss" scoped>
