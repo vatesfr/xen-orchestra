@@ -14901,6 +14901,11 @@ pkg-dir@^5.0.0:
   dependencies:
     find-up "^5.0.0"
 
+placement.js@^1.0.0-beta.5:
+  version "1.0.0-beta.5"
+  resolved "https://registry.yarnpkg.com/placement.js/-/placement.js-1.0.0-beta.5.tgz#2aac6bd8e670729bbf26ad47f2f9656b19e037d5"
+  integrity sha512-QD5hLPVKnT6Q1U34xxuRG9BhlBVaD0uF91JOzjvDnHAQfO/qjO4jmSTyjpR+K4se6Dn3Oo23IWeFX+QFFa9xNg==
+
 platform@^1.3.0, platform@^1.3.3:
   version "1.3.6"
   resolved "https://registry.yarnpkg.com/platform/-/platform-1.3.6.tgz#48b4ce983164b209c2d45a107adb31f473a6e7a7"

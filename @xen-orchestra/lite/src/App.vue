@@ -12,14 +12,16 @@
         <RouterView />
       </main>
     </div>
+    <AppTooltips />
   </div>
 </template>
 
 <script lang="ts" setup>
 import { watchEffect } from "vue";
+import favicon from "@/assets/favicon.svg";
 import AppHeader from "@/components/AppHeader.vue";
 import AppLogin from "@/components/AppLogin.vue";
-import favicon from "@/assets/favicon.svg";
+import AppTooltips from "@/components/AppTooltips.vue";
 import InfraPoolList from "@/components/infra/InfraPoolList.vue";
 import { useXenApiStore } from "@/stores/xen-api.store";
 
@@ -49,14 +51,14 @@ watchEffect(() => {
   max-width: 37rem;
   height: calc(100vh - 9rem);
   padding: 0.5rem;
-  background-color: var(--background-color-primary);
   border-right: 1px solid var(--color-blue-scale-400);
+  background-color: var(--background-color-primary);
 }
 
 .main {
-  flex: 1;
-  background-color: var(--background-color-secondary);
-  height: calc(100vh - 9rem);
   overflow: auto;
+  flex: 1;
+  height: calc(100vh - 9rem);
+  background-color: var(--background-color-secondary);
 }
 </style>

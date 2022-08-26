@@ -52,3 +52,6 @@ export function parseDateTime(dateTime: string) {
   }
   return date.getTime();
 }
+
+export const hasEllipsis = (target: Element | undefined | null) =>
+  target != undefined && target.clientWidth < target.scrollWidth;
