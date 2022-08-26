@@ -67,8 +67,8 @@ const UnhealthyVdis = decorate([
     computed: {
       srIds: (_, { vdisHealthBySr = {} }) => {
         const srIds = []
-        forEach(vdisHealthBySr, (vdiHealth, srId) => {
-          if (!isEmpty(vdiHealth.unhealthyVdis || vdiHealth.vdisWithUnknownVhdParent.length > 0)) {
+        forEach(vdisHealthBySr, ({ unhealthyVdis, vdisWithUnknownVhdParent }, srId) => {
+          if (!isEmpty(unhealthyVdis) || vdisWithUnknownVhdParent.length > 0) {
             srIds.push(srId)
           }
         })

@@ -3,9 +3,6 @@ import forEach from 'lodash/forEach.js'
 import groupBy from 'lodash/groupBy.js'
 import { decorateWith } from '@vates/decorate-with'
 import { defer } from 'golike-defer'
-import { createLogger } from '@xen-orchestra/log'
-
-const log = createLogger('xo:storage')
 
 export default {
   _connectAllSrPbds(sr) {
@@ -57,21 +54,22 @@ export default {
     if (length === undefined) {
       const children = childrenMap[uuid]
       length = children !== undefined && children.length === 1 ? 1 : 0
-      try {
-        const parent = this.getObjectByUuid(uuid, undefined).sm_config['vhd-parent']
-        if (parent !== undefined) {
-          length += this._getUnhealthyVdiChainLength(parent, childrenMap, cache)
+
+      const vdi = this.getObjectByUuid(uuid, undefined)
+      // invalid uuid
+      if (vdi === undefined) {
+        cache[children[0].uuid] = {
+          ...cache[children[0].uuid],
+          unknownVhdParent: uuid,
         }
-      } catch (error) {
-        if (error instanceof TypeError) {
-          cache[children[0].uuid] = {
-            ...cache[children[0].uuid],
-            unknownVhdParent: uuid,
-          }
-        } else {
-          log.warn(`Xapi#_getUnhealthyVdiChainLength(${uuid})`, { error })
-        }
+        return
       }
+
+      const parent = vdi.sm_config['vhd-parent']
+      if (parent !== undefined) {
+        length += this._getUnhealthyVdiChainLength(parent, childrenMap, cache)
+      }
+
       cache[uuid] = {
         ...cache[uuid],
         length,
