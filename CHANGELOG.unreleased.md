@@ -7,6 +7,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [Home/Storage] Display SR used for HA state files [#6339](https://github.com/vatesfr/xen-orchestra/issues/6339)(PR [#6384](https://github.com/vatesfr/xen-orchestra/pull/6384))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -37,6 +39,6 @@
 - xen-api patch
 - xo-vmdk-to-vhd patch
 - xo-server minor
-- xo-web patch
+- xo-web minor
 
 <!--packages-end-->

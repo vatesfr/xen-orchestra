@@ -22,7 +22,7 @@ import styles from './index.css'
     (_, props) => props.item,
     (state, props) => {
       const _createGetObject = cb => createGetObject(cb)(state, props)
-      return _createGetObject((_, props) => props.item.$poolId).ha_statefiles.map(id => _createGetObject(() => id))
+      return _createGetObject((_, props) => props.item.$poolId).haStatefiles.map(id => _createGetObject(() => id))
     },
     (sr, statefiles) => statefiles.find(vdi => vdi.$SR === sr.id) !== undefined
   ),
