@@ -107,7 +107,7 @@ const TRANSFORMS = {
       current_operations: obj.current_operations,
       default_SR: link(obj, 'default_SR'),
       HA_enabled: Boolean(obj.ha_enabled),
-      haStatefiles: link(obj, 'ha_statefiles'),
+      haSrs: obj.$ha_statefiles.map(vdi => link(vdi, 'SR')),
       master: link(obj, 'master'),
       tags: obj.tags,
       name_description: obj.name_description,
