@@ -18,6 +18,14 @@ import styles from './index.css'
 
 @connectStore({
   container: createGetObject((_, props) => props.item.$container),
+  isHa: createSelector(
+    (_, props) => props.item,
+    (state, props) => {
+      const _createGetObject = cb => createGetObject(cb)(state, props)
+      return _createGetObject((_, props) => props.item.$poolId).ha_statefiles.map(id => _createGetObject(() => id))
+    },
+    (sr, statefiles) => statefiles.find(vdi => vdi.$SR === sr.id) !== undefined
+  ),
   isDefaultSr: createSelector(
     createGetObjectsOfType('pool').find((_, props) => pool => props.item.$pool === pool.id),
     (_, props) => props.item,
@@ -97,7 +105,7 @@ export default class SrItem extends Component {
   }
 
   render() {
-    const { container, expandAll, isDefaultSr, isShared, item: sr, selected } = this.props
+    const { container, expandAll, isDefaultSr, isHa, isShared, item: sr, selected } = this.props
 
     return (
       <div className={styles.item}>
@@ -113,6 +121,7 @@ export default class SrItem extends Component {
                   <Text value={sr.name_label} onChange={this._setNameLabel} useLongClick />
                 </Ellipsis>
                 {isDefaultSr && <span className='tag tag-pill tag-info ml-1'>{_('defaultSr')}</span>}
+                {isHa && <span className='tag tag-pill tag-info ml-1'>{_('ha')}</span>}
                 {sr.inMaintenanceMode && <span className='tag tag-pill tag-warning ml-1'>{_('maintenanceMode')}</span>}
               </EllipsisContainer>
             </Col>
