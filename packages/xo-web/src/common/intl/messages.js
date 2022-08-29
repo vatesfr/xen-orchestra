@@ -1280,7 +1280,7 @@ const messages = {
   protectFromDeletion: 'Protect from accidental deletion',
   protectFromShutdown: 'Protect from accidental shutdown',
   ha: 'HA',
-  srHaTooltip: 'SR used for the high availability',
+  srHaTooltip: 'SR used for High Availability',
   nestedVirt: 'Nested virtualization',
   vmAffinityHost: 'Affinity host',
   vmVga: 'VGA',
