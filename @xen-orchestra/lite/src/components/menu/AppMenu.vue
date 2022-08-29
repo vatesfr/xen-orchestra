@@ -39,7 +39,7 @@ if (slots.trigger && !inject("closeMenu", false)) {
   provide("closeMenu", () => (isOpen.value = false));
 }
 
-const open = (event: PointerEvent) => {
+const open = (event: MouseEvent) => {
   if (isOpen.value) {
     return (isOpen.value = false);
   }

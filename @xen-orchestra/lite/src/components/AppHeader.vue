@@ -18,6 +18,7 @@
           </option>
         </select>
       </FormWidget>
+      <AccountButton />
     </div>
   </header>
 </template>
@@ -33,6 +34,7 @@ import {
 import { useLocalStorage } from "@vueuse/core";
 import FormWidget from "@/components/FormWidget.vue";
 import { useXenApiStore } from "@/stores/xen-api.store";
+import AccountButton from "@/components/AccountButton.vue";
 
 const router = useRouter();
 
@@ -45,12 +47,6 @@ const toggleTheme = () => {
 const colorModeIcon = computed(() =>
   colorMode.value === "light" ? faMoon : faSun
 );
-
-const logout = () => {
-  const xenApiStore = useXenApiStore();
-  xenApiStore.disconnect();
-  nextTick(() => router.push({ name: "home" }));
-};
 </script>
 
 <style lang="postcss" scoped>
