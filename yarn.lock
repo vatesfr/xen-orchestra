@@ -3524,7 +3524,7 @@
 
 "@xen-orchestra/backups-cli@file:/home/mathieu/Documents/vates/xen-orchestra/@xen-orchestra/backups-cli":
   "resolved" "file:@xen-orchestra/backups-cli"
-  "version" "0.7.6"
+  "version" "0.7.7"
   dependencies:
     "@xen-orchestra/async-map" "^0.1.2"
     "@xen-orchestra/backups" "^0.27.3"
@@ -3534,7 +3534,7 @@
     "lodash" "^4.17.15"
     "promise-toolbox" "^0.21.0"
 
-"@xen-orchestra/backups@^0.27.3", "@xen-orchestra/backups@file:/home/mathieu/Documents/vates/xen-orchestra/@xen-orchestra/backups":
+"@xen-orchestra/backups@^0.27.4", "@xen-orchestra/backups@file:/home/mathieu/Documents/vates/xen-orchestra/@xen-orchestra/backups":
   "resolved" "file:@xen-orchestra/backups"
   "version" "0.27.4"
   dependencies:
@@ -3560,7 +3560,7 @@
     "promise-toolbox" "^0.21.0"
     "proper-lockfile" "^4.1.2"
     "uuid" "^8.3.2"
-    "vhd-lib" "^3.3.5"
+    "vhd-lib" "^4.0.0"
     "yazl" "^2.5.1"
 
 "@xen-orchestra/cr-seed-cli@file:/home/mathieu/Documents/vates/xen-orchestra/@xen-orchestra/cr-seed-cli":
@@ -3747,7 +3747,7 @@
     "json-rpc-protocol" "^0.13.2"
     "lodash" "^4.17.15"
     "promise-toolbox" "^0.21.0"
-    "vhd-lib" "^3.3.5"
+    "vhd-lib" "^4.0.0"
     "xo-common" "^0.8.0"
 
 "@xmldom/xmldom@^0.7.0", "@xmldom/xmldom@^0.7.5":
@@ -19617,7 +19617,7 @@
     "lodash" "^4.17.21"
     "promise-toolbox" "^0.21.0"
     "uuid" "^8.3.2"
-    "vhd-lib" "^3.3.5"
+    "vhd-lib" "^4.0.0"
 
 "vhd-lib@^4.0.0", "vhd-lib@file:/home/mathieu/Documents/vates/xen-orchestra/packages/vhd-lib":
   "resolved" "file:packages/vhd-lib"
@@ -20723,7 +20723,7 @@
     "unzipper" "^0.10.5"
     "uuid" "^8.3.1"
     "value-matcher" "^0.2.0"
-    "vhd-lib" "^3.3.5"
+    "vhd-lib" "^4.0.0"
     "ws" "^8.2.3"
     "xdg-basedir" "^5.1.0"
     "xen-api" "^1.2.1"
@@ -20742,7 +20742,7 @@
     "pako" "^2.0.4"
     "promise-toolbox" "^0.21.0"
     "tar-stream" "^2.2.0"
-    "vhd-lib" "^3.3.5"
+    "vhd-lib" "^4.0.0"
     "xml2js" "^0.4.23"
 
 "xo-web@file:/home/mathieu/Documents/vates/xen-orchestra/packages/xo-web":
