@@ -350,7 +350,7 @@ export default class Licenses extends Component {
         <Row>
           <Col>
             <h2>{_('proxies')}</h2>
-            <Proxies Licenses={this.state.licenses.proxy} updateLicenses={this._updateLicenses} />
+            <Proxies proxyLicenses={this.state.licenses.proxy} updateLicenses={this._updateLicenses} />
           </Col>
         </Row>
       </Container>

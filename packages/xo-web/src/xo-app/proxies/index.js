@@ -145,8 +145,7 @@ const COLUMNS = [
   {
     name: _('license'),
     itemRenderer: (proxy, { isAdmin, licensesByVmUuid }) => {
-      const licenses = licensesByVmUuid[proxy.vmUuid]
-      const license = licenses === undefined ? undefined : licenses[0]
+      const license = licensesByVmUuid[proxy.vmUuid]?.[0]
 
       // Proxy not bound to any license, not even trial
       if (license === undefined) {

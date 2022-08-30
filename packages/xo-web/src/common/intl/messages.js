@@ -2404,7 +2404,7 @@ const messages = {
   xosanAdminExpiredLicenseDisclaimer:
     'Your XOSAN license has expired. You can still use the SR but cannot administrate it anymore.',
   xosanCheckLicenseError: 'Could not check the license on this XOSAN SR',
-  xosanGetLicensesError: 'Could not fetch licenses',
+  getLicensesError: 'Could not fetch licenses',
   licenseHasExpired: 'License has expired.',
   licenseBoundToOtherXoa: 'License bound to another XOA',
   licenseBoundToThisXoa: 'This license is active on this XOA',

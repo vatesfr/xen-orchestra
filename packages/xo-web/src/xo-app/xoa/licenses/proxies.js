@@ -23,8 +23,7 @@ const COLUMNS = [
   {
     name: _('license'),
     itemRenderer: (proxy, { availableLicenses, licensesByVmUuid, updateLicenses }) => {
-      const licenses = licensesByVmUuid[proxy.vmUuid]
-      const license = licenses === undefined ? undefined : licenses[0]
+      const license = licensesByVmUuid[proxy.vmUuid]?.[0]
 
       return license !== undefined && license.productId === 'xoproxy' ? (
         license.id.slice(-4)
@@ -66,11 +65,11 @@ const Proxies = decorate([
     <SortedTable
       collection={proxies}
       columns={COLUMNS}
-      individualActions={INDIVIDUAL_ACTIONS}
-      stateUrlParam='s_proxies'
       data-availableLicenses={state.availableLicenses}
       data-licensesByVmUuid={state.licensesByVmUuid}
       data-updateLicenses={updateLicenses}
+      individualActions={INDIVIDUAL_ACTIONS}
+      stateUrlParam='s_proxies'
     />
   ),
 ])
