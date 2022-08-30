@@ -155,6 +155,12 @@ export default class S3Handler extends RemoteHandlerAbstract {
       if (e.name === 'EntityTooLarge') {
         return this._multipartCopy(oldPath, newPath)
       }
+      // normalize this error code
+      if (e.name === 'NoSuchKey') {
+        const error = new Error(`No soch file  '${oldPath}`)
+        error.code = 'ENOENT'
+        error.path = oldPath
+      }
       throw e
     }
   }
