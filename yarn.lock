@@ -20623,7 +20623,7 @@
 
 "xo-server@file:/home/mathieu/Documents/vates/xen-orchestra/packages/xo-server":
   "resolved" "file:packages/xo-server"
-  "version" "5.100.1"
+  "version" "5.101.0"
   dependencies:
     "@iarna/toml" "^2.2.1"
     "@vates/async-each" "^1.0.0"
@@ -20733,7 +20733,7 @@
     "xo-remote-parser" "^0.9.1"
     "xo-vmdk-to-vhd" "^2.4.2"
 
-"xo-vmdk-to-vhd@^2.4.2", "xo-vmdk-to-vhd@file:/home/mathieu/Documents/vates/xen-orchestra/packages/xo-vmdk-to-vhd":
+"xo-vmdk-to-vhd@^2.4.3", "xo-vmdk-to-vhd@file:/home/mathieu/Documents/vates/xen-orchestra/packages/xo-vmdk-to-vhd":
   "resolved" "file:packages/xo-vmdk-to-vhd"
   "version" "2.4.3"
   dependencies:
