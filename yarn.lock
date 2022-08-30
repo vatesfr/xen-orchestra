@@ -3666,7 +3666,7 @@
 
 "@xen-orchestra/proxy@file:/home/mathieu/Documents/vates/xen-orchestra/@xen-orchestra/proxy":
   "resolved" "file:@xen-orchestra/proxy"
-  "version" "0.25.1"
+  "version" "0.26.0"
   dependencies:
     "@iarna/toml" "^2.2.0"
     "@koa/router" "^12.0.0"
@@ -3681,7 +3681,7 @@
     "@xen-orchestra/mixin" "^0.1.0"
     "@xen-orchestra/mixins" "^0.7.1"
     "@xen-orchestra/self-signed" "^0.1.3"
-    "@xen-orchestra/xapi" "^1.4.1"
+    "@xen-orchestra/xapi" "^1.4.2"
     "ajv" "^8.0.3"
     "app-conf" "^2.1.0"
     "async-iterator-to-stream" "^1.1.0"
@@ -20319,7 +20319,7 @@
   "resolved" "https://registry.npmjs.org/xdg-basedir/-/xdg-basedir-5.1.0.tgz"
   "version" "5.1.0"
 
-"xen-api@^1.2.1", "xen-api@file:/home/mathieu/Documents/vates/xen-orchestra/packages/xen-api":
+"xen-api@^1.2.2", "xen-api@file:/home/mathieu/Documents/vates/xen-orchestra/packages/xen-api":
   "resolved" "file:packages/xen-api"
   "version" "1.2.2"
   dependencies:
@@ -20647,7 +20647,7 @@
     "@xen-orchestra/mixins" "^0.7.1"
     "@xen-orchestra/self-signed" "^0.1.3"
     "@xen-orchestra/template" "^0.1.0"
-    "@xen-orchestra/xapi" "^1.4.1"
+    "@xen-orchestra/xapi" "^1.4.2"
     "ajv" "^8.0.3"
     "app-conf" "^2.1.0"
     "async-iterator-to-stream" "^1.0.1"
