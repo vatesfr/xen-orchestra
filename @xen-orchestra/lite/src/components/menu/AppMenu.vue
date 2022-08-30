@@ -1,14 +1,16 @@
 <template>
   <slot :is-open="isOpen" :open="open" name="trigger" />
-  <ul
-    v-if="!$slots.trigger || isOpen"
-    ref="menu"
-    :class="{ horizontal, shadow }"
-    class="app-menu"
-    v-bind="$attrs"
-  >
-    <slot />
-  </ul>
+  <Teleport to="body" :disabled="!isRoot">
+    <ul
+      v-if="!$slots.trigger || isOpen"
+      ref="menu"
+      :class="{ horizontal, shadow }"
+      class="app-menu"
+      v-bind="$attrs"
+    >
+      <slot />
+    </ul>
+  </Teleport>
 </template>
 
 <script lang="ts" setup>
@@ -22,6 +24,8 @@ const props = defineProps<{
   disabled?: boolean;
   placement?: Options["placement"];
 }>();
+const isRoot = inject("isMenuRoot", true);
+provide("isMenuRoot", false);
 const slots = useSlots();
 const isOpen = ref(false);
 const menu = ref();
