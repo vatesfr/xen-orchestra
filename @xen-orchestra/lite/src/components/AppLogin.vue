@@ -41,17 +41,20 @@ async function handleSubmit() {
   align-items: center;
   flex: 1;
   justify-content: center;
-  height: 100vh;
+  min-height: 100vh;
+  max-width: 100vw;
   background-color: var(--background-color-primary);
 }
 
 form {
   display: flex;
+  min-width: 30em;
+  max-width: 100%;
   align-items: center;
   flex-direction: column;
   justify-content: center;
   margin: 0 auto;
-  padding: 0 0 8.5rem 0;
+  padding: 8.5rem;
   background-color: var(--background-color-secondary);
 }
 
@@ -63,7 +66,8 @@ h1 {
 }
 
 img {
-  width: 60rem;
+  width: 40rem;
+  margin-bottom: 5rem;
 }
 
 label {
@@ -74,10 +78,15 @@ label {
 
 input {
   width: 45rem;
+  max-width: 100%;
   margin-bottom: 1rem;
   padding: 1rem 1.5rem;
   border: 1px solid var(--color-blue-scale-400);
   border-radius: 0.8rem;
   background-color: white;
+}
+
+button {
+  margin-top: 3rem;
 }
 </style>
