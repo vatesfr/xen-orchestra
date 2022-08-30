@@ -20735,7 +20735,7 @@
 
 "xo-vmdk-to-vhd@^2.4.2", "xo-vmdk-to-vhd@file:/home/mathieu/Documents/vates/xen-orchestra/packages/xo-vmdk-to-vhd":
   "resolved" "file:packages/xo-vmdk-to-vhd"
-  "version" "2.4.2"
+  "version" "2.4.3"
   dependencies:
     "child-process-promise" "^2.0.3"
     "lodash" "^4.17.15"
