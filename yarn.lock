@@ -3733,7 +3733,7 @@
     "pw" "^0.0.4"
     "xdg-basedir" "^4.0.0"
     "xo-lib" "^0.11.1"
-    "xo-vmdk-to-vhd" "^2.4.2"
+    "xo-vmdk-to-vhd" "^2.4.3"
 
 "@xen-orchestra/xapi@^1.4.2", "@xen-orchestra/xapi@file:/home/mathieu/Documents/vates/xen-orchestra/@xen-orchestra/xapi":
   "resolved" "file:@xen-orchestra/xapi"
@@ -20731,7 +20731,7 @@
     "xo-collection" "^0.5.0"
     "xo-common" "^0.8.0"
     "xo-remote-parser" "^0.9.1"
-    "xo-vmdk-to-vhd" "^2.4.2"
+    "xo-vmdk-to-vhd" "^2.4.3"
 
 "xo-vmdk-to-vhd@^2.4.3", "xo-vmdk-to-vhd@file:/home/mathieu/Documents/vates/xen-orchestra/packages/xo-vmdk-to-vhd":
   "resolved" "file:packages/xo-vmdk-to-vhd"
@@ -20747,7 +20747,7 @@
 
 "xo-web@file:/home/mathieu/Documents/vates/xen-orchestra/packages/xo-web":
   "resolved" "file:packages/xo-web"
-  "version" "5.101.1"
+  "version" "5.102.0"
 
 "xok@^1.0.0":
   "integrity" "sha512-DVb6F65Oiq0/fQxLH4adxE92OeNl1njEd+A1pPknmujM/nJhid2iofGXhrU4subNbUi2F0whuKhLv8ReFsqg6g=="
