@@ -3735,7 +3735,7 @@
     "xo-lib" "^0.11.1"
     "xo-vmdk-to-vhd" "^2.4.2"
 
-"@xen-orchestra/xapi@^1.4.1", "@xen-orchestra/xapi@file:/home/mathieu/Documents/vates/xen-orchestra/@xen-orchestra/xapi":
+"@xen-orchestra/xapi@^1.4.2", "@xen-orchestra/xapi@file:/home/mathieu/Documents/vates/xen-orchestra/@xen-orchestra/xapi":
   "resolved" "file:@xen-orchestra/xapi"
   "version" "1.4.2"
   dependencies:
@@ -20321,7 +20321,7 @@
 
 "xen-api@^1.2.1", "xen-api@file:/home/mathieu/Documents/vates/xen-orchestra/packages/xen-api":
   "resolved" "file:packages/xen-api"
-  "version" "1.2.1"
+  "version" "1.2.2"
   dependencies:
     "@vates/coalesce-calls" "^0.1.0"
     "bind-property-descriptor" "^2.0.0"
