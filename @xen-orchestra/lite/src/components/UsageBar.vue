@@ -3,19 +3,16 @@
     <div class="header">
       <slot name="header" />
     </div>
-    <template v-if="data !== undefined">
-      <ProgressBar
-        v-for="item in computedData.sortedArray"
-        :key="item.id"
-        :value="item.value"
-        :label="item.label"
-        :badge-label="item.badgeLabel"
-      />
-      <div class="footer">
-        <slot name="footer" :total-percent="computedData.totalPercentUsage" />
-      </div>
-    </template>
-    <UiSpinner v-else class="spinner" />
+    <ProgressBar
+      v-for="(item, index) in computedData.sortedArray"
+      :key="index"
+      :value="item.value"
+      :label="item.label"
+      :badge-label="item.badgeLabel"
+    />
+    <div class="footer">
+      <slot name="footer" :total-percent="computedData.totalPercentUsage" />
+    </div>
   </div>
 </template>
 
