@@ -2550,14 +2550,6 @@
     "semver" "^7.3.5"
     "tar" "^6.1.11"
 
-"@marsaud/smb2@^0.18.0":
-  "integrity" "sha512-DxOVZCX0uDe3S9QQqXk6mnnQ7nEaqI5gPwuNQ7dDQCXY00Qp0CIa5N1LNYKCcW1DYTJceOvRvNujL5hgnQmqOA=="
-  "resolved" "https://registry.npmjs.org/@marsaud/smb2/-/smb2-0.18.0.tgz"
-  "version" "0.18.0"
-  dependencies:
-    "ntlm" "~0.1.1"
-    "readable-stream" "^3.0.6"
-
 "@mrmlnc/readdir-enhanced@^2.2.1":
   "integrity" "sha512-bPHp6Ji8b41szTOcaP63VlnbbO5Ny6dwAATtY6JTjh5N2OLrb5Qk/Th5cRkRQhkWCt+EJsYrNB0MiL+Gpn6e3g=="
   "resolved" "https://registry.npmjs.org/@mrmlnc/readdir-enhanced/-/readdir-enhanced-2.2.1.tgz"
@@ -3536,7 +3528,7 @@
   dependencies:
     "@xen-orchestra/async-map" "^0.1.2"
     "@xen-orchestra/backups" "^0.27.3"
-    "@xen-orchestra/fs" "^2.1.0"
+    "@xen-orchestra/fs" "^3.0.0"
     "filenamify" "^4.1.0"
     "getopts" "^2.2.5"
     "lodash" "^4.17.15"
@@ -3544,7 +3536,7 @@
 
 "@xen-orchestra/backups@^0.27.3", "@xen-orchestra/backups@file:/home/mathieu/Documents/vates/xen-orchestra/@xen-orchestra/backups":
   "resolved" "file:@xen-orchestra/backups"
-  "version" "0.27.3"
+  "version" "0.27.4"
   dependencies:
     "@vates/cached-dns.lookup" "^1.0.0"
     "@vates/compose" "^2.1.0"
@@ -3552,7 +3544,7 @@
     "@vates/disposable" "^0.1.1"
     "@vates/parse-duration" "^0.1.1"
     "@xen-orchestra/async-map" "^0.1.2"
-    "@xen-orchestra/fs" "^2.1.0"
+    "@xen-orchestra/fs" "^3.0.0"
     "@xen-orchestra/log" "^0.3.0"
     "@xen-orchestra/template" "^0.1.0"
     "compare-versions" "^4.0.1"
@@ -3592,35 +3584,6 @@
 "@xen-orchestra/emit-async@^1.0.0", "@xen-orchestra/emit-async@file:/home/mathieu/Documents/vates/xen-orchestra/@xen-orchestra/emit-async":
   "resolved" "file:@xen-orchestra/emit-async"
   "version" "1.0.0"
-
-"@xen-orchestra/fs@^2.1.0":
-  "integrity" "sha512-gfFDMMAw83BrOTi+7HFcVpJlQhcsy9OQtvn/+wXgZgjtuK4afs7ls+9WaOUw0CrRzJocvbAjrUznCdnWvp2pSw=="
-  "resolved" "https://registry.npmjs.org/@xen-orchestra/fs/-/fs-2.1.0.tgz"
-  "version" "2.1.0"
-  dependencies:
-    "@aws-sdk/client-s3" "^3.54.0"
-    "@aws-sdk/lib-storage" "^3.54.0"
-    "@aws-sdk/middleware-apply-body-checksum" "^3.58.0"
-    "@aws-sdk/node-http-handler" "^3.54.0"
-    "@marsaud/smb2" "^0.18.0"
-    "@sindresorhus/df" "^3.1.1"
-    "@vates/async-each" "^1.0.0"
-    "@vates/coalesce-calls" "^0.1.0"
-    "@vates/decorate-with" "^2.0.0"
-    "@xen-orchestra/async-map" "^0.1.2"
-    "@xen-orchestra/log" "^0.3.0"
-    "bind-property-descriptor" "^2.0.0"
-    "decorator-synchronized" "^0.6.0"
-    "execa" "^5.0.0"
-    "fs-extra" "^10.0.0"
-    "get-stream" "^6.0.0"
-    "limit-concurrency-decorator" "^0.5.0"
-    "lodash" "^4.17.4"
-    "promise-toolbox" "^0.21.0"
-    "proper-lockfile" "^4.1.2"
-    "readable-stream" "^3.0.6"
-    "through2" "^4.0.2"
-    "xo-remote-parser" "^0.9.1"
 
 "@xen-orchestra/fs@^3.0.0", "@xen-orchestra/fs@file:/home/mathieu/Documents/vates/xen-orchestra/@xen-orchestra/fs":
   "resolved" "file:@xen-orchestra/fs"
@@ -3713,7 +3676,7 @@
     "@vates/disposable" "^0.1.1"
     "@xen-orchestra/async-map" "^0.1.2"
     "@xen-orchestra/backups" "^0.27.3"
-    "@xen-orchestra/fs" "^2.1.0"
+    "@xen-orchestra/fs" "^3.0.0"
     "@xen-orchestra/log" "^0.3.0"
     "@xen-orchestra/mixin" "^0.1.0"
     "@xen-orchestra/mixins" "^0.7.1"
@@ -14206,11 +14169,6 @@
   dependencies:
     "boolbase" "^1.0.0"
 
-"ntlm@~0.1.1":
-  "integrity" "sha512-pPlHxhAegZP4QAaOYd51vRd6VXTGfF7VLKJwuwN0iEB1aIi3SnqXYuS/bH/6wWBOq+Ehdil49mHm1Nseon085w=="
-  "resolved" "https://registry.npmjs.org/ntlm/-/ntlm-0.1.3.tgz"
-  "version" "0.1.3"
-
 "num2fraction@^1.2.2":
   "integrity" "sha512-Y1wZESM7VUThYY+4W+X4ySH2maqcA+p7UR+w8VWNWVAd6lwuXXWz/w/Cz43J/dI2I+PS6wD5N+bJUF+gjWvIqg=="
   "resolved" "https://registry.npmjs.org/num2fraction/-/num2fraction-1.2.2.tgz"
@@ -16711,7 +16669,7 @@
     "string_decoder" "^1.1.1"
     "util-deprecate" "^1.0.1"
 
-"readable-stream@^3.0.6", "readable-stream@3":
+"readable-stream@^3.0.6":
   "integrity" "sha512-BViHy7LKeTz4oNnkcLJ+lVSL6vpiFeX6/d3oSH8zCW7UxP2onchk+vTGB143xuFjHS3deTgkKoXXymXqymiIdA=="
   "resolved" "https://registry.npmjs.org/readable-stream/-/readable-stream-3.6.0.tgz"
   "version" "3.6.0"
@@ -19651,7 +19609,7 @@
   "resolved" "file:packages/vhd-cli"
   "version" "0.9.0"
   dependencies:
-    "@xen-orchestra/fs" "^2.1.0"
+    "@xen-orchestra/fs" "^3.0.0"
     "cli-progress" "^3.1.0"
     "exec-promise" "^0.7.0"
     "getopts" "^2.2.3"
@@ -19661,14 +19619,14 @@
     "uuid" "^8.3.2"
     "vhd-lib" "^3.3.5"
 
-"vhd-lib@^3.3.5", "vhd-lib@file:/home/mathieu/Documents/vates/xen-orchestra/packages/vhd-lib":
+"vhd-lib@^4.0.0", "vhd-lib@file:/home/mathieu/Documents/vates/xen-orchestra/packages/vhd-lib":
   "resolved" "file:packages/vhd-lib"
   "version" "4.0.0"
   dependencies:
     "@vates/async-each" "^1.0.0"
     "@vates/read-chunk" "^1.0.0"
     "@xen-orchestra/async-map" "^0.1.2"
-    "@xen-orchestra/fs" "^2.1.0"
+    "@xen-orchestra/fs" "^3.0.0"
     "@xen-orchestra/log" "^0.3.0"
     "async-iterator-to-stream" "^1.0.2"
     "fs-extra" "^10.0.0"
@@ -20683,7 +20641,7 @@
     "@xen-orchestra/cron" "^1.0.6"
     "@xen-orchestra/defined" "^0.0.1"
     "@xen-orchestra/emit-async" "^1.0.0"
-    "@xen-orchestra/fs" "^2.1.0"
+    "@xen-orchestra/fs" "^3.0.0"
     "@xen-orchestra/log" "^0.3.0"
     "@xen-orchestra/mixin" "^0.1.0"
     "@xen-orchestra/mixins" "^0.7.1"
