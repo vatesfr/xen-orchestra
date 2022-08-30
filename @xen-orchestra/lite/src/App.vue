@@ -1,5 +1,5 @@
 <template>
-  <div v-if="!xenApiStore.isConnected" style="display: flex">
+  <div v-if="!xenApiStore.isConnected">
     <AppLogin />
   </div>
   <div v-else>
@@ -17,9 +17,9 @@
 
 <script lang="ts" setup>
 import { watchEffect } from "vue";
+import favicon from "@/assets/favicon.svg";
 import AppHeader from "@/components/AppHeader.vue";
 import AppLogin from "@/components/AppLogin.vue";
-import favicon from "@/assets/favicon.svg";
 import InfraPoolList from "@/components/infra/InfraPoolList.vue";
 import { useXenApiStore } from "@/stores/xen-api.store";
 
@@ -30,6 +30,12 @@ if (link == null) {
   document.getElementsByTagName("head")[0].appendChild(link);
 }
 link.href = favicon;
+
+document.title = "XO Lite";
+
+if (window.localStorage?.getItem("colorMode") !== "light") {
+  document.documentElement.classList.add("dark");
+}
 
 const xenApiStore = useXenApiStore();
 
