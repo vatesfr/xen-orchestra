@@ -1,16 +1,18 @@
 <template>
-  <div class="header">
-    <slot name="header" />
-  </div>
-  <ProgressBar
-    v-for="(item, index) in computedData.sortedArray"
-    :key="index"
-    :value="item.value"
-    :label="item.label"
-    :badge-label="item.badgeLabel"
-  />
-  <div class="footer">
-    <slot name="footer" :total-percent="computedData.totalPercentUsage" />
+  <div v-if="data.length !== 0">
+    <div class="header">
+      <slot name="header" />
+    </div>
+    <ProgressBar
+      v-for="(item, index) in computedData.sortedArray"
+      :key="index"
+      :value="item.value"
+      :label="item.label"
+      :badge-label="item.badgeLabel"
+    />
+    <div class="footer">
+      <slot name="footer" :total-percent="computedData.totalPercentUsage" />
+    </div>
   </div>
 </template>
 

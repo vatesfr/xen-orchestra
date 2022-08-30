@@ -1,13 +1,12 @@
 <template>
-  <div v-if="data.length !== 0">
-    <UsageBar :data="data" :n-items="5">
-      <template #header>
-        <span>Hosts</span>
-        <span>Top 5</span>
-      </template>
-    </UsageBar>
-  </div>
+  <UsageBar :data="data" :n-items="5">
+    <template #header>
+      <span>Hosts</span>
+      <span>Top 5</span>
+    </template>
+  </UsageBar>
 </template>
+
 <script lang="ts" setup>
 import { computed, onMounted, onUnmounted } from "vue";
 import UsageBar from "@/components/UsageBar.vue";
@@ -33,10 +32,6 @@ const hostsWithStats = computed(() =>
   })
 );
 
-const pausableStats = computed(() =>
-  hostsWithStats.value.map((host) => host.pausable)
-);
-
 const data = computed(() => {
   const hostsStats: { label: string; value: number }[] = [];
 
@@ -57,9 +52,9 @@ const data = computed(() => {
 });
 
 onMounted(() => {
-  pausableStats.value.forEach((p) => p.resume());
+  hostsWithStats.value.forEach((h) => h.pausable.resume());
 });
 onUnmounted(() => {
-  pausableStats.value.forEach((p) => p.pause());
+  hostsWithStats.value.forEach((h) => h.pausable.pause());
 });
 </script>

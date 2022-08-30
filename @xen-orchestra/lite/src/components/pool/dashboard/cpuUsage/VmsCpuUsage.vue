@@ -1,12 +1,10 @@
 <template>
-  <div v-if="data.length !== 0">
-    <UsageBar :data="data" :n-items="5">
-      <template #header>
-        <span>VMs</span>
-        <span>Top 5</span>
-      </template>
-    </UsageBar>
-  </div>
+  <UsageBar :data="data" :n-items="5">
+    <template #header>
+      <span>VMs</span>
+      <span>Top 5</span>
+    </template>
+  </UsageBar>
 </template>
 <script lang="ts" setup>
 import { computed, onMounted, onUnmounted, ref, watchEffect } from "vue";
@@ -33,10 +31,6 @@ const vmsWithStats = computed(() =>
       pausable: fetchStats.pausable,
     };
   })
-);
-
-const pausableStats = computed(() =>
-  vmsWithStats.value.map((vm) => vm.pausable)
 );
 
 const data = computed(() => {
@@ -70,10 +64,10 @@ watchEffect(() => {
 });
 
 onMounted(() => {
-  pausableStats.value.forEach((p) => p.resume());
+  vmsWithStats.value.forEach((v) => v.pausable.resume());
 });
 
 onUnmounted(() => {
-  pausableStats.value.forEach((p) => p.pause());
+  vmsWithStats.value.forEach((v) => v.pausable.pause());
 });
 </script>
