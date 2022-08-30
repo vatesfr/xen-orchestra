@@ -1,7 +1,7 @@
 import { utcParse } from "d3-time-format";
 import humanFormat from "human-format";
-import { find, forEach, size } from "lodash";
 import { round } from "lodash-es";
+import { find, forEach, size, sum } from "lodash-es";
 import type { Filter } from "@/types/filter";
 import { faSquareCheck } from "@fortawesome/free-regular-svg-icons";
 import { faFont, faHashtag, faList } from "@fortawesome/free-solid-svg-icons";
@@ -74,11 +74,8 @@ export function getAvgCpuUsage(cpus?: object | any[]) {
     return;
   }
   let totalCpusUsage = 0;
-  forEach(cpus, (cpuStats: number[]) => {
-    totalCpusUsage = cpuStats.reduce(
-      (prev, next) => prev + next,
-      totalCpusUsage
-    );
+  forEach(cpus, (cpuState: number[]) => {
+    totalCpusUsage += sum(cpuState);
   });
   const stackedValue = totalCpusUsage / length;
   return stackedValue / size(cpus);
