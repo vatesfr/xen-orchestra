@@ -1,6 +1,6 @@
 <template>
   <slot :is-open="isOpen" :open="open" name="trigger" />
-  <Teleport to="body" :disabled="!isRoot">
+  <Teleport to="body" :disabled="!isRoot || !slots.trigger">
     <ul
       v-if="!$slots.trigger || isOpen"
       ref="menu"
