@@ -1,17 +1,17 @@
 <template>
   <UiCard>
-    <UiTitle type="h4">Status</UiTitle>
+    <UiTitle type="h4">{{ $t("status") }}</UiTitle>
     <template v-if="isReady">
       <PoolDashboardStatusItem
         :active="activeHostsCount"
         :total="totalHostsCount"
-        label="Hosts"
+        :label="$t('hosts')"
       />
       <UiSeparator />
       <PoolDashboardStatusItem
         :active="activeVmsCount"
         :total="totalVmsCount"
-        label="VMs"
+        :label="$t('vms')"
       />
     </template>
   </UiCard>
