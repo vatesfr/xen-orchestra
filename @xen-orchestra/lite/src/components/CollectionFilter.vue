@@ -9,9 +9,9 @@
       {{ filter }}
     </UiFilter>
 
-    <UiButton :icon="faPlus" class="add-filter" color="secondary" @click="open">
+    <UiActionButton :icon="faPlus" class="add-filter" @click="open" small>
       {{ $t("add-filter") }}
-    </UiButton>
+    </UiActionButton>
   </UiFilterGroup>
 
   <UiModal v-if="isOpen">
@@ -63,6 +63,7 @@ import { computed, ref } from "vue";
 import type { Filters, NewFilter } from "@/types/filter";
 import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import CollectionFilterRow from "@/components/CollectionFilterRow.vue";
+import UiActionButton from "@/components/ui/UiActionButton.vue";
 import UiBadge from "@/components/ui/UiBadge.vue";
 import UiButton from "@/components/ui/UiButton.vue";
 import UiButtonGroup from "@/components/ui/UiButtonGroup.vue";
@@ -161,10 +162,6 @@ const handleCancel = () => {
 </script>
 
 <style lang="postcss" scoped>
-.add-filter {
-  height: 3.4rem;
-}
-
 .properties {
   font-size: 1.6rem;
   margin-top: 1rem;
