@@ -1,5 +1,5 @@
 <template>
-  <div v-if="!xenApiStore.isConnected" style="display: flex">
+  <div v-if="!xenApiStore.isConnected">
     <AppLogin />
   </div>
   <div v-else>
