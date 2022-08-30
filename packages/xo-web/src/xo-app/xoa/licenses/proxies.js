@@ -1,13 +1,54 @@
 import _ from 'intl'
+import ActionButton from 'action-button'
+import Component from 'base-component'
 import decorate from 'apply-decorators'
 import React from 'react'
-import { Proxy, Vm } from 'render-xo-item'
 import SelectLicense from 'select-license'
 import SortedTable from 'sorted-table'
 import { addSubscriptions } from 'utils'
 import { filter, groupBy } from 'lodash'
 import { injectState, provideState } from 'reaclette'
+import { Proxy, Vm } from 'render-xo-item'
 import { subscribeProxies, bindLicense } from 'xo'
+
+class ProxyLicensesForm extends Component {
+  state = {
+    licenseId: 'none',
+  }
+
+  onChangeLicense = event => {
+    this.setState({ licenseId: event.target.value })
+  }
+
+  bind = () => {
+    const { item, userData } = this.props
+    return bindLicense(this.state.licenseId, item.vmUuid).then(userData.updateLicenses)
+  }
+
+  render() {
+    const { item, userData } = this.props
+    const { licenseId } = this.state
+
+    const license = userData.licensesByVmUuid[item.vmUuid]?.[0]
+    return license?.productId === 'xoproxy' ? (
+      license.id.slice(-4)
+    ) : (
+      <form className='form-inline'>
+        <SelectLicense licenses={userData.availableLicenses} onChange={this.onChangeLicense} productType='xoproxy' />
+        <ActionButton
+          btnStyle='primary'
+          className='ml-1'
+          disabled={licenseId === 'none'}
+          handler={this.bind}
+          handlerParam={licenseId}
+          icon='connect'
+        >
+          {_('bindLicense')}
+        </ActionButton>
+      </form>
+    )
+  }
+}
 
 const COLUMNS = [
   {
@@ -22,19 +63,7 @@ const COLUMNS = [
   },
   {
     name: _('license'),
-    itemRenderer: (proxy, { availableLicenses, licensesByVmUuid, updateLicenses }) => {
-      const license = licensesByVmUuid[proxy.vmUuid]?.[0]
-
-      return license !== undefined && license.productId === 'xoproxy' ? (
-        license.id.slice(-4)
-      ) : (
-        <SelectLicense
-          licenses={availableLicenses}
-          onChange={licenseId => bindLicense(licenseId, proxy.vmUuid).then(updateLicenses)}
-          productType='xoproxy'
-        />
-      )
-    },
+    component: ProxyLicensesForm,
   },
 ]
 

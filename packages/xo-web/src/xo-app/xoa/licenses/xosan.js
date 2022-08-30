@@ -1,4 +1,5 @@
 import _ from 'intl'
+import ActionButton from 'action-button'
 import Component from 'base-component'
 import Link from 'link'
 import React from 'react'
@@ -9,6 +10,53 @@ import { connectStore } from 'utils'
 import { createSelector, createGetObjectsOfType, createFilter } from 'selectors'
 import { filter, forEach, includes, map } from 'lodash'
 import { unlockXosan } from 'xo'
+
+class XosanLicensesForm extends Component {
+  state = {
+    licenseId: 'none',
+  }
+
+  onChangeLicense = event => {
+    this.setState({ licenseId: event.target.value })
+  }
+
+  unlockXosan = () => {
+    const { item, userData } = this.props
+    return unlockXosan(this.state.licenseId, item.id).then(userData.updateLicenses)
+  }
+
+  render() {
+    const { item, userData } = this.props
+    const { licenseId } = this.state
+
+    const license = userData.licensesByXosan[item.id]
+    if (license === null) {
+      return (
+        <span className='text-danger'>
+          {_('xosanMultipleLicenses')} <a href='https://xen-orchestra.com/'>{_('contactUs')}</a>
+        </span>
+      )
+    }
+
+    return license?.productId === 'xosan' ? (
+      license.id.slice(-4)
+    ) : (
+      <form className='form-inline'>
+        <SelectLicense licenses={userData.availableLicenses} onChange={this.onChangeLicense} productType='xosan' />
+        <ActionButton
+          btnStyle='primary'
+          className='ml-1'
+          disabled={licenseId === 'none'}
+          handler={this.unlockXosan}
+          handlerParam={licenseId}
+          icon='connect'
+        >
+          {_('bindLicense')}
+        </ActionButton>
+      </form>
+    )
+  }
+}
 
 const XOSAN_COLUMNS = [
   {
@@ -22,27 +70,7 @@ const XOSAN_COLUMNS = [
   },
   {
     name: _('license'),
-    itemRenderer: (sr, { availableLicenses, licensesByXosan, updateLicenses }) => {
-      const license = licensesByXosan[sr.id]
-
-      if (license === null) {
-        return (
-          <span className='text-danger'>
-            {_('xosanMultipleLicenses')} <a href='https://xen-orchestra.com/'>{_('contactUs')}</a>
-          </span>
-        )
-      }
-
-      return license !== undefined && license.productId === 'xosan' ? (
-        license.id.slice(-4)
-      ) : (
-        <SelectLicense
-          licenses={availableLicenses}
-          onChange={licenseId => unlockXosan(licenseId, sr.id).then(updateLicenses)}
-          productType='xosan'
-        />
-      )
-    },
+    component: XosanLicensesForm,
   },
 ]
 
