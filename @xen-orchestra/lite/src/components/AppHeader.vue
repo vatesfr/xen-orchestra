@@ -4,13 +4,12 @@
       <img alt="XO Lite" src="../assets/logo.svg" />
     </RouterLink>
     <slot />
-    <div style="display: flex; align-items: center; gap: 1rem">
+    <div class="right">
       <FontAwesomeIcon
         :icon="colorModeIcon"
         style="font-size: 1.5em"
         @click="toggleTheme"
       />
-      <span @click="logout">Logout</span>
       <FormWidget :before="faEarthAmericas">
         <select v-model="$i18n.locale">
           <option v-for="locale in $i18n.availableLocales" :key="locale">
@@ -24,7 +23,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, nextTick } from "vue";
+import { computed } from "vue";
 import { useRouter } from "vue-router";
 import {
   faEarthAmericas,
@@ -33,7 +32,6 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { useLocalStorage } from "@vueuse/core";
 import FormWidget from "@/components/FormWidget.vue";
-import { useXenApiStore } from "@/stores/xen-api.store";
 import AccountButton from "@/components/AccountButton.vue";
 
 const router = useRouter();
@@ -66,5 +64,10 @@ const colorModeIcon = computed(() =>
   span {
     cursor: pointer;
   }
+}
+
+.right {
+  display: flex;
+  align-items: center;
 }
 </style>
