@@ -148,7 +148,7 @@ const COLUMNS = [
       const licenses = licensesByVmUuid[proxy.vmUuid]
 
       // Proxy bound to multiple licenses
-      if (licenses?.length > 0) {
+      if (licenses?.length > 1) {
         return (
           <span className='text-danger'>
             {_('proxyMultipleLicenses')} <a href='https://xen-orchestra.com/'>{_('contactUs')}</a>

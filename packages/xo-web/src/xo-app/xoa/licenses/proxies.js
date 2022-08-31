@@ -2,9 +2,11 @@ import _ from 'intl'
 import ActionButton from 'action-button'
 import Component from 'base-component'
 import decorate from 'apply-decorators'
+import Icon from 'icon'
 import React from 'react'
 import SelectLicense from 'select-license'
 import SortedTable from 'sorted-table'
+import Tooltip from 'tooltip'
 import { addSubscriptions } from 'utils'
 import { groupBy } from 'lodash'
 import { injectState, provideState } from 'reaclette'
@@ -33,14 +35,17 @@ class ProxyLicensesForm extends Component {
     // Proxy bound to multiple licenses
     if (licenses?.length > 1) {
       return (
-        <span className='text-danger'>
-          {_('proxyMultipleLicenses')} <a href='https://xen-orchestra.com/'>{_('contactUs')}</a>
-        </span>
+        <div>
+          <span>{licenses.map(license => license.id.slice(-4)).join(',')}</span>{' '}
+          <Tooltip content={_('proxyMultipleLicenses')}>
+            <Icon color='text-danger' icon='alarm' />
+          </Tooltip>
+        </div>
       )
     }
 
     const license = licenses?.[0]
-    return license?.productId === 'xo-proxy' ? (
+    return license !== undefined ? (
       <span>{license.id.slice(-4)}</span>
     ) : (
       <form className='form-inline'>
