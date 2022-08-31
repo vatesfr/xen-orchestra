@@ -39,7 +39,7 @@ class XosanLicensesForm extends Component {
     }
 
     return license?.productId === 'xosan' ? (
-      license.id.slice(-4)
+      <span>{license.id.slice(-4)}</span>
     ) : (
       <form className='form-inline'>
         <SelectLicense onChange={this.onChangeLicense} productType='xosan' />
