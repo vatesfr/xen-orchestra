@@ -207,8 +207,11 @@ export default decorate([
       username = remote.username || '',
       allowUnauthorized = remote.allowUnauthorized || false,
       useVhdDirectory = remote.useVhdDirectory || type === 's3',
-      encryptionKey = remote.encryptionKey,
+      encryptionKey = remote.encryptionKey || '',
     } = state
+
+    const isEncrypted = encryptionKey.trim() !== ''
+
     return (
       <div>
         <h2>{_('newRemote')}</h2>
@@ -476,13 +479,21 @@ export default decorate([
             </fieldset>
           )}
           <div className='form-group'>
-            <label>{_('remoteEncryptionKey')}</label>
+            <label>
+              {_('remoteEncryptionKey')} <span className='tag tag-pill tag-info ml-1'>Alpha</span>
+            </label>
+            {isEncrypted && !useVhdDirectory && <p className='text-warning'>⚠️ {_('remoteEncryptionMustUseVhd')}</p>}
+            <ul className='small'>
+              <li>{_('remoteEncryptionEncryptedfiles')}</li>
+              <li>{_('remoteEncryptionKeyStorageLocation')}</li>
+              <li>{_('remoteEncryptionBackupSize')}</li>
+            </ul>
             <input
               className='form-control'
               name='encryptionKey'
               onChange={effects.linkState}
               required
-              type='text'
+              type='password'
               value={encryptionKey}
             />
           </div>

@@ -601,7 +601,14 @@ const messages = {
     'Store backup as multiple data blocks instead of a whole VHD file. (disables file level restore but allows faster merge)',
   remoteUseVhdDirectoryTooltip:
     'Your remote must be able to handle parallel access (up to 16 write processes per backup) and the number of files (500 files per GB of backed up data)',
-  remoteEncryptionKey: 'encrypt all new data sent to this remote',
+  remoteEncryptionBackupSize: 'Size of backup is not updated when using encryption',
+  remoteEncryptionEncryptedfiles:
+    'All the files of the remote except the encryption.json are encrypted, that means you can only activate encryption or change key on an empty remote',
+  remoteEncryptionMustUseVhd:
+    'Delta backup must use Vhd saved as blocks (note should be enforced when saving settings)',
+  remoteEncryptionKey: 'Encrypt all new data sent to this remote',
+  remoteEncryptionKeyStorageLocation:
+    "You won't be able to get your data back if you lose the encryption key. The encryption key is saved in the XO config backup, they should be secured correctly. Be careful, if you saved it on an encrypted remote, then you won't be able to access it without the remote encryption key.",
   // ------ New Storage -----
 
   newSr: 'New SR',
