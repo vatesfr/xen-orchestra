@@ -1,1 +1,1 @@
-<template>Hosts</template>
+<template>Hosts (coming soon)</template>
