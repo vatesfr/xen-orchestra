@@ -30,20 +30,12 @@ defineProps<{
 }
 
 .icon {
-<<<<<<< HEAD
   font-size: 3.8rem;
-=======
-  font-size: 4.8rem;
->>>>>>> feat(lite): initial Vue.js implementation
   color: var(--color-extra-blue-base);
 }
 
 .title {
-<<<<<<< HEAD
-  font-size: 3rem;
-=======
   font-size: 3.6rem;
->>>>>>> feat(lite): initial Vue.js implementation
   color: var(--color-blue-scale-100);
 }
 </style>
