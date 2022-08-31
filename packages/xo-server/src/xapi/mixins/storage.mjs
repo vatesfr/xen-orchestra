@@ -49,7 +49,7 @@ export default {
     await this._unplugPbd(this.getObject(id))
   },
 
-  _getUnhealthyVdiChainLength(uuid, childrenMap, cache) {
+  _getVdiChainsInfo(uuid, childrenMap, cache) {
     let length = cache[uuid]?.length
     if (length === undefined) {
       const children = childrenMap[uuid]
@@ -67,7 +67,7 @@ export default {
 
       const parent = vdi.sm_config['vhd-parent']
       if (parent !== undefined) {
-        length += this._getUnhealthyVdiChainLength(parent, childrenMap, cache)
+        length += this._getVdiChainsInfo(parent, childrenMap, cache)
       }
 
       cache[uuid] = {
@@ -78,7 +78,7 @@ export default {
     return length
   },
 
-  getUnhealthyVdiChainsLength(sr) {
+  getVdiChainsInfo(sr) {
     const vdis = this.getObject(sr).$VDIs
     const unhealthyVdis = { __proto__: null }
     const children = groupBy(vdis, 'sm_config.vhd-parent')
@@ -88,7 +88,7 @@ export default {
     forEach(vdis, vdi => {
       if (vdi.managed && !vdi.is_a_snapshot) {
         const { uuid } = vdi
-        const length = this._getUnhealthyVdiChainLength(uuid, children, cache)
+        const length = this._getVdiChainsInfo(uuid, children, cache)
 
         if (length !== 0) {
           unhealthyVdis[uuid] = length
