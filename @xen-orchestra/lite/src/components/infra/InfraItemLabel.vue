@@ -74,6 +74,7 @@ defineProps<{
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+  font-size: 1.6rem;
 }
 
 .actions {

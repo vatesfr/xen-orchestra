@@ -8,7 +8,7 @@
 .tab-bar {
   display: flex;
   align-items: stretch;
-  height: 8rem;
+  height: 6.5rem;
   background-color: var(--background-color-primary);
   border-bottom: 1px solid var(--color-blue-scale-400);
 }
