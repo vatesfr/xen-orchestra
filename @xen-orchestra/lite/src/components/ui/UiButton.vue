@@ -42,7 +42,7 @@ const buttonColor = computed(() => props.color ?? unref(buttonGroupColor));
 
 <style lang="postcss" scoped>
 .ui-button {
-  font-size: 2rem;
+  font-size: 1.6rem;
   font-weight: 500;
   display: inline-flex;
   align-items: center;
