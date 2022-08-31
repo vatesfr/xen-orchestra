@@ -124,7 +124,7 @@ function adaptJsonSchema(schema) {
     }
 
     const { additionalProperties } = schema
-    if (schema === undefined) {
+    if (additionalProperties === undefined) {
       const wildCard = properties['*']
       if (wildCard === undefined) {
         // we want additional properties to be disabled by default
