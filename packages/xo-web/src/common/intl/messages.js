@@ -2428,6 +2428,7 @@ const messages = {
   enterpriseLicense: 'Enterprise license',
   premiumLicense: 'Premium license',
   trialLicenseInfo: 'You are currently in a {edition} trial period that will end on {date, date, medium}',
+  proxyMultipleLicenses: 'This proxy has more than 1 license!',
 
   // ----- proxies -----
   deployProxyDisabled: 'Only available to XOA users',

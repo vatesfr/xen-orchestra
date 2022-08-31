@@ -145,13 +145,23 @@ const COLUMNS = [
   {
     name: _('license'),
     itemRenderer: (proxy, { isAdmin, licensesByVmUuid }) => {
-      const license = licensesByVmUuid[proxy.vmUuid]?.[0]
+      const licenses = licensesByVmUuid[proxy.vmUuid]
 
+      // Proxy bound to multiple licenses
+      if (licenses?.length > 0) {
+        return (
+          <span className='text-danger'>
+            {_('proxyMultipleLicenses')} <a href='https://xen-orchestra.com/'>{_('contactUs')}</a>
+          </span>
+        )
+      }
+
+      const license = licenses?.[0]
       // Proxy not bound to any license, not even trial
       if (license === undefined) {
         return (
-          <span className='text-danger'>
-            {_('noLicenseAvailable')} <a href='https://xen-orchestra.com/'>{_('contactUs')}</a>
+          <span>
+            {_('noLicenseAvailable')} <Link to={`/xoa/licenses?s_proxies=id:${proxy.id}`}>{_('unlockNow')}</Link>
           </span>
         )
       }
@@ -159,7 +169,7 @@ const COLUMNS = [
       const now = Date.now()
       const expiresSoon = license.expires - now < EXPIRES_SOON_DELAY
       const expired = license.expires < now
-      return license.productId === 'xo-proxy' ? (
+      return (
         <span>
           {license.expires === undefined ? (
             '✔'
@@ -175,10 +185,6 @@ const COLUMNS = [
               {expiresSoon && isAdmin && <Link to='/xoa/licenses'>{_('updateLicenseMessage')}</Link>}
             </span>
           )}
-        </span>
-      ) : (
-        <span>
-          {_('noLicenseAvailable')} <Link to={`/xoa/licenses?s_proxies=id:${proxy.id}`}>{_('unlockNow')}</Link>
         </span>
       )
     },

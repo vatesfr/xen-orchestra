@@ -28,7 +28,18 @@ class ProxyLicensesForm extends Component {
   render() {
     const { item, userData } = this.props
     const { licenseId } = this.state
-    const license = userData.licensesByVmUuid[item.vmUuid]?.[0]
+    const licenses = userData.licensesByVmUuid[item.vmUuid]
+
+    // Proxy bound to multiple licenses
+    if (licenses?.length > 1) {
+      return (
+        <span className='text-danger'>
+          {_('proxyMultipleLicenses')} <a href='https://xen-orchestra.com/'>{_('contactUs')}</a>
+        </span>
+      )
+    }
+
+    const license = licenses?.[0]
     return license?.productId === 'xo-proxy' ? (
       <span>{license.id.slice(-4)}</span>
     ) : (
