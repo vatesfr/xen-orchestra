@@ -157,9 +157,10 @@ export default class S3Handler extends RemoteHandlerAbstract {
       }
       // normalize this error code
       if (e.name === 'NoSuchKey') {
-        const error = new Error(`No soch file  '${oldPath}`)
+        const error = new Error(`No such file  '${oldPath}`)
         error.code = 'ENOENT'
         error.path = oldPath
+        throw error
       }
       throw e
     }
