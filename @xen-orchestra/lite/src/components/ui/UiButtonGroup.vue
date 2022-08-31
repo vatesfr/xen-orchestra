@@ -10,7 +10,9 @@ import { computed, provide } from "vue";
 const props = defineProps<{
   busy?: boolean;
   disabled?: boolean;
-  color?: "primary" | "secondary";
+  color?: "info" | "error" | "warning" | "success";
+  outlined?: boolean;
+  transparent?: boolean;
 }>();
 provide(
   "isButtonGroupBusy",
@@ -22,7 +24,15 @@ provide(
 );
 provide(
   "buttonGroupColor",
-  computed(() => props.color ?? "primary")
+  computed(() => props.color ?? "info")
+);
+provide(
+  "isButtonGroupOutlined",
+  computed(() => props.outlined ?? false)
+);
+provide(
+  "isButtonGroupTransparent",
+  computed(() => props.transparent ?? false)
 );
 </script>
 

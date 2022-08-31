@@ -1,15 +1,15 @@
 <template>
   <button
-    :class="[
-      `color-${buttonColor}`,
-      { busy: isBusy, disabled: isDisabled, active },
-    ]"
+    :class="className"
     :disabled="isBusy || isDisabled"
     :type="type || 'button'"
     class="ui-button"
   >
-    <UiIcon :busy="isBusy" :icon="icon" class="icon" />
-    <slot v-if="!isBusy" />
+    <span v-if="isBusy" class="loader" />
+    <template v-else>
+      <UiIcon :icon="icon" class="icon" />
+      <slot />
+    </template>
   </button>
 </template>
 
@@ -24,10 +24,12 @@ const props = withDefaults(
     busy?: boolean;
     disabled?: boolean;
     icon?: IconDefinition;
-    color?: "primary" | "secondary";
+    color?: "info" | "error" | "warning" | "success";
+    outlined?: boolean;
+    transparent?: boolean;
     active?: boolean;
   }>(),
-  { busy: undefined, disabled: undefined }
+  { busy: undefined, disabled: undefined, outlined: undefined }
 );
 
 const isGroupBusy = inject("isButtonGroupBusy", false);
@@ -36,8 +38,24 @@ const isBusy = computed(() => props.busy ?? unref(isGroupBusy));
 const isGroupDisabled = inject("isButtonGroupDisabled", false);
 const isDisabled = computed(() => props.disabled ?? unref(isGroupDisabled));
 
-const buttonGroupColor = inject("buttonGroupColor", "primary");
+const isGroupOutlined = inject("isButtonGroupOutlined", false);
+const isGroupTransparent = inject("isButtonGroupTransparent", false);
+
+const buttonGroupColor = inject("buttonGroupColor", "info");
 const buttonColor = computed(() => props.color ?? unref(buttonGroupColor));
+
+const className = computed(() => {
+  return [
+    `color-${buttonColor.value}`,
+    {
+      busy: isBusy.value,
+      active: props.active,
+      disabled: isDisabled.value,
+      outlined: props.outlined ?? unref(isGroupOutlined),
+      transparent: props.transparent ?? unref(isGroupTransparent),
+    },
+  ];
+});
 </script>
 
 <style lang="postcss" scoped>
@@ -47,57 +65,117 @@ const buttonColor = computed(() => props.color ?? unref(buttonGroupColor));
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 5em;
   min-height: 2.5em;
   padding: 0 0.75em;
+  cursor: pointer;
   vertical-align: middle;
-  border: none;
-  border-radius: 0.4em;
-  box-shadow: var(--shadow-100);
+  color: var(--button-color);
+  border: 1px solid var(--button-border-color);
+  border-radius: 0.5em;
+  background-color: var(--button-background-color);
   gap: 0.75em;
 
-  &.disabled {
-    color: var(--color-blue-scale-400);
-    background-color: var(--background-color-secondary);
+  &:not(.transparent) {
+    box-shadow: var(--shadow-100);
   }
 
-  &:not(.disabled) {
-    &.color-primary {
-      color: var(--color-blue-scale-500);
-      background-color: var(--color-extra-blue-base);
+  &.color-info {
+    --button-accent-color: var(--color-extra-blue-base);
+    --button-accent-color-hover: var(--color-extra-blue-d20);
+    --button-accent-color-active: var(--color-extra-blue-d40);
+  }
 
-      &:hover {
-        background-color: var(--color-extra-blue-d20);
-      }
+  &.color-success {
+    --button-accent-color: var(--color-green-infra-base);
+    --button-accent-color-hover: var(--color-green-infra-d20);
+    --button-accent-color-active: var(--color-green-infra-d40);
+  }
 
-      &:active,
-      &.active,
-      &.busy {
-        background-color: var(--color-extra-blue-d40);
-      }
-    }
+  &.color-warning {
+    --button-accent-color: var(--color-orange-world-base);
+    --button-accent-color-hover: var(--color-orange-world-d20);
+    --button-accent-color-active: var(--color-orange-world-d40);
+  }
 
-    &.color-secondary {
-      color: var(--color-extra-blue-base);
-      border: 1px solid var(--color-extra-blue-base);
-      background-color: var(--color-blue-scale-500);
+  &.color-error {
+    --button-accent-color: var(--color-red-vates-base);
+    --button-accent-color-hover: var(--color-red-vates-d20);
+    --button-accent-color-active: var(--color-red-vates-d40);
+  }
 
-      &:hover {
-        color: var(--color-extra-blue-d20);
-        border-color: var(--color-extra-blue-d20);
-      }
+  &:hover {
+    --button-accent-color: var(--button-accent-color-hover);
+  }
 
-      &:active,
-      &.active,
-      &.busy {
-        color: var(--color-extra-blue-d40);
-        border-color: var(--color-extra-blue-d40);
-      }
-    }
+  &:active,
+  &.active,
+  &.busy {
+    --button-accent-color: var(--button-accent-color-active);
+  }
+
+  --button-color: var(--color-blue-scale-500);
+  --button-border-color: transparent;
+  --button-background-color: var(--button-accent-color);
+
+  &.outlined {
+    --button-color: var(--button-accent-color);
+    --button-border-color: var(--button-accent-color);
+    --button-background-color: var(--background-color-primary);
+  }
+
+  &.transparent {
+    --button-color: var(--button-accent-color);
+    --button-border-color: transparent;
+    --button-background-color: transparent;
+  }
+
+  &.busy {
+    cursor: not-allowed;
+  }
+
+  &.disabled {
+    cursor: not-allowed;
+    --button-color: var(--color-blue-scale-400);
+    --button-border-color: transparent;
+    --button-background-color: var(--background-color-secondary);
   }
 }
 
 .icon {
   font-size: 0.8em;
+}
+
+.loader {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5em;
+  height: 1.5em;
+  animation: spin 1s infinite linear;
+  border-radius: 0.75em;
+
+  background: conic-gradient(
+    from 90deg at 50% 50%,
+    rgba(255, 255, 255, 0) 0deg,
+    rgba(255, 255, 255, 0) 0.04deg,
+    var(--button-color) 360deg
+  );
+
+  &::after {
+    width: 1.2em;
+    height: 1.2em;
+    content: "";
+    border-radius: 0.6em;
+    background-color: var(--button-background-color);
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 </style>
