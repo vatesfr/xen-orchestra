@@ -29,6 +29,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/fs patch
 - xo-server minor
 - xo-web minor
 
