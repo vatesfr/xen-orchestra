@@ -606,7 +606,7 @@ const messages = {
   remoteEncryptionEncryptedfiles:
     'All the files of the remote except the encryption.json are encrypted, that means you can only activate encryption or change key on an empty remote.',
   remoteEncryptionMustUseVhd:
-    'Delta backup must use Vhd saved as blocks (note should be enforced when saving settings)',
+    'Delta backup must use VHD saved as blocks (note: should be enforced when saving settings)',
   remoteEncryptionKey: 'Encrypt all new data sent to this remote',
   remoteEncryptionKeyStorageLocation:
     "You won't be able to get your data back if you lose the encryption key. The encryption key is saved in the XO config backup, they should be secured correctly. Be careful, if you saved it on an encrypted remote, then you won't be able to access it without the remote encryption key.",

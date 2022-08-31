@@ -483,7 +483,11 @@ export default decorate([
               {_('remoteEncryptionKey')}
               <span className='tag tag-pill tag-info ml-1'>{_('alpha')}</span>
             </label>
-            {isEncrypted && !useVhdDirectory && <p className='text-warning'>⚠️ {_('remoteEncryptionMustUseVhd')}</p>}
+            {isEncrypted && !useVhdDirectory && (
+              <p className='text-warning'>
+                <Icon icon='alarm' /> {_('remoteEncryptionMustUseVhd')}
+              </p>
+            )}
             <ul className='small'>
               <li>{_('remoteEncryptionEncryptedfiles')}</li>
               <li>{_('remoteEncryptionKeyStorageLocation')}</li>

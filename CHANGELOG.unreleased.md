@@ -7,7 +7,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [Backup] Implement encryption at rest (PR [#6321](https://github.com/vatesfr/xen-orchestra/pull/6321))
+- [Backup] Implement encryption for backup files on storage (PR [#6321](https://github.com/vatesfr/xen-orchestra/pull/6321))
 
 ### Bug fixes
 
@@ -38,6 +38,6 @@
 - vhd-lib major
 - xo-vmdk-to-vhd patch
 - xo-server minor
-- xo-web patch
+- xo-web minor
 
 <!--packages-end-->
