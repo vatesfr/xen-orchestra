@@ -360,4 +360,6 @@ exports.VhdAbstract = class VhdAbstract {
     }
     return true
   }
+
+  async check() {}
 }

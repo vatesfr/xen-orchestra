@@ -9,7 +9,7 @@ const assert = require('assert')
 const promisify = require('promise-toolbox/promisify')
 const zlib = require('zlib')
 
-const { debug } = createLogger('vhd-lib:VhdDirectory')
+const { debug, warn } = createLogger('vhd-lib:VhdDirectory')
 
 const NULL_COMPRESSOR = {
   compress: buffer => buffer,
@@ -309,5 +309,28 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
       throw error
     })
     this.#compressor = getCompressor(chunkFilters[0])
+  }
+
+  async check() {
+    await this.readBlockAllocationTable()
+
+    const handler = this._handler
+    // do one massive query instead of one per sub directories
+    const existingBlocks = (await handler._list(`${this._path}/blocks/`, { delimiter: null })).map(path => {
+      const [thousands, units] = path.split('/')
+      return 1000 * parseInt(thousands, 10) + parseInt(units, 10)
+    })
+    existingBlocks.sort((a, b) => a - b)
+    let currentIndex = 0
+    const nBlocks = this.header.maxTableEntries
+
+    for (let blockId = 0; blockId < nBlocks; ++blockId) {
+      if (await this.containsBlock(blockId)) {
+        if (existingBlocks[currentIndex] !== blockId) {
+          warn(`Vhd ${this._path} miss block ${blockId}`, { path: this._path, blockId })
+        }
+        currentIndex++
+      }
+    }
   }
 }

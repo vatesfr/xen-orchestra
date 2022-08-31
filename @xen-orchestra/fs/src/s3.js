@@ -259,21 +259,21 @@ export default class S3Handler extends RemoteHandlerAbstract {
     }
   }
 
-  async _list(dir) {
+  async _list(dir, { delimiter = '/' } = {}) {
     let NextContinuationToken
     const uniq = new Set()
     const Prefix = this._makePrefix(dir)
-
     do {
-      const result = await this._s3.send(
-        new ListObjectsV2Command({
-          Bucket: this._bucket,
-          Prefix,
-          Delimiter: '/',
-          // will only return path until delimiters
-          ContinuationToken: NextContinuationToken,
-        })
-      )
+      const command = {
+        Bucket: this._bucket,
+        Prefix,
+        // will only return path until delimiters
+        ContinuationToken: NextContinuationToken,
+      }
+      if (delimiter !== null) {
+        command.Delimiter = delimiter
+      }
+      const result = await this._s3.send(new ListObjectsV2Command(command))
 
       if (result.IsTruncated) {
         warn(`need pagination to browse the directory ${dir} completely`)
@@ -289,7 +289,7 @@ export default class S3Handler extends RemoteHandlerAbstract {
 
       // files
       for (const entry of result.Contents ?? []) {
-        uniq.add(basename(entry.Key))
+        uniq.add(delimiter === null ? entry.Key.substr(Prefix.length) : basename(entry.Key))
       }
     } while (NextContinuationToken !== undefined)
 
@@ -308,7 +308,7 @@ export default class S3Handler extends RemoteHandlerAbstract {
 
   // s3 doesn't have a rename operation, so copy + delete source
   async _rename(oldPath, newPath) {
-    await this.copy(oldPath, newPath)
+    await this._copy(oldPath, newPath)
     await this._s3.send(new DeleteObjectCommand(this._createParams(oldPath)))
   }
 

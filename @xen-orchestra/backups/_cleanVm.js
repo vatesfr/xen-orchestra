@@ -197,7 +197,7 @@ exports.cleanVm = async function cleanVm(
   // remove broken VHDs
   await asyncMap(vhds, async path => {
     try {
-      await Disposable.use(openVhd(handler, path, { checkSecondFooter: !interruptedVhds.has(path) }), vhd => {
+      await Disposable.use(openVhd(handler, path, { checkSecondFooter: !interruptedVhds.has(path) }), async vhd => {
         if (vhd.footer.diskType === DISK_TYPES.DIFFERENCING) {
           const parent = resolve('/', dirname(path), vhd.header.parentUnicodeName)
           vhdParents[path] = parent
@@ -229,6 +229,7 @@ exports.cleanVm = async function cleanVm(
           }
         }
         vhdById.set(UUID.stringify(vhdKept.footer.uuid), vhdKept)
+        await vhd.check()
       })
     } catch (error) {
       vhds.delete(path)
