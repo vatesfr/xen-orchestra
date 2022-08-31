@@ -132,7 +132,7 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
     this._path = path
     this._opts = opts
     this.#compressor = getCompressor(opts?.compression)
-    this.writeBlockAllocationTable = synchronized.withKey()(this.writeBlockAllocationTable)
+    this.writeBlockAllocationTable = synchronized()(this.writeBlockAllocationTable)
   }
 
   async readBlockAllocationTable() {
