@@ -10,7 +10,7 @@
         :route="{ name: 'pool.dashboard', params: { uuid: pool.uuid } }"
         active
       >
-        {{ pool.name_label || "(Pool)" }}
+        {{ pool.name_label || '(Pool)' }}
       </InfraItemLabel>
 
       <InfraHostList />
