@@ -7,7 +7,7 @@ import renderXoItem, { Pool } from 'render-xo-item'
 import SelectLicense from 'select-license'
 import SortedTable from 'sorted-table'
 import { connectStore } from 'utils'
-import { createSelector, createGetObjectsOfType, createFilter } from 'selectors'
+import { createSelector, createGetObjectsOfType } from 'selectors'
 import { filter, forEach, includes, map } from 'lodash'
 import { unlockXosan } from 'xo'
 
@@ -42,7 +42,7 @@ class XosanLicensesForm extends Component {
       license.id.slice(-4)
     ) : (
       <form className='form-inline'>
-        <SelectLicense licenses={userData.availableLicenses} onChange={this.onChangeLicense} productType='xosan' />
+        <SelectLicense onChange={this.onChangeLicense} productType='xosan' />
         <ActionButton
           btnStyle='primary'
           className='ml-1'
@@ -107,11 +107,6 @@ export default class Xosan extends Component {
     }
   )
 
-  _getAvailableLicenses = createFilter(
-    () => this.props.xosanLicenses,
-    [({ boundObjectId, expires }) => boundObjectId === undefined && (expires === undefined || expires > Date.now())]
-  )
-
   _getKnownXosans = createSelector(
     createSelector(
       () => this.props.xosanLicenses,
@@ -129,7 +124,6 @@ export default class Xosan extends Component {
         individualActions={XOSAN_INDIVIDUAL_ACTIONS}
         stateUrlParam='s_xosan'
         userData={{
-          availableLicenses: this._getAvailableLicenses(),
           licensesByXosan: this._getLicensesByXosan(),
           xosanSrs: this.props.xosanSrs,
           updateLicenses: this.props.updateLicenses,

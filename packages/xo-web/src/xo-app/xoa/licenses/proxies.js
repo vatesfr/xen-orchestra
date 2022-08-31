@@ -6,7 +6,7 @@ import React from 'react'
 import SelectLicense from 'select-license'
 import SortedTable from 'sorted-table'
 import { addSubscriptions } from 'utils'
-import { filter, groupBy } from 'lodash'
+import { groupBy } from 'lodash'
 import { injectState, provideState } from 'reaclette'
 import { Proxy, Vm } from 'render-xo-item'
 import { subscribeProxies, bindLicense } from 'xo'
@@ -33,7 +33,7 @@ class ProxyLicensesForm extends Component {
       <span>{license.id.slice(-4)}</span>
     ) : (
       <form className='form-inline'>
-        <SelectLicense licenses={userData.availableLicenses} onChange={this.onChangeLicense} productType='xoproxy' />
+        <SelectLicense onChange={this.onChangeLicense} productType='xoproxy' />
         <ActionButton
           btnStyle='primary'
           className='ml-1'
@@ -80,11 +80,6 @@ const Proxies = decorate([
   }),
   provideState({
     computed: {
-      availableLicenses: (state, { proxyLicenses }) =>
-        filter(
-          proxyLicenses,
-          ({ boundObjectId, expires }) => boundObjectId === undefined && (expires === undefined || expires > Date.now())
-        ),
       licensesByVmUuid: (state, { proxyLicenses }) => groupBy(proxyLicenses, 'boundObjectId'),
     },
   }),
@@ -93,7 +88,6 @@ const Proxies = decorate([
     <SortedTable
       collection={proxies}
       columns={COLUMNS}
-      data-availableLicenses={state.availableLicenses}
       data-licensesByVmUuid={state.licensesByVmUuid}
       data-updateLicenses={updateLicenses}
       individualActions={INDIVIDUAL_ACTIONS}

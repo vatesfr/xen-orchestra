@@ -12,7 +12,10 @@ const SelectLicense = decorate([
     computed: {
       licenses: async (state, { productType }) => {
         try {
-          return await getLicenses({ productType })
+          return (await getLicenses({ productType }))?.filter(
+            ({ boundObjectId, expires }) =>
+              boundObjectId === undefined && (expires === undefined || expires > Date.now())
+          )
         } catch (error) {
           return { licenseError: error }
         }
