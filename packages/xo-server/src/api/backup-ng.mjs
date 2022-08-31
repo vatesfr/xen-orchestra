@@ -18,6 +18,7 @@ const SCHEMA_SETTINGS = {
           optional: true,
         },
       },
+      additionalProperties: true,
     },
   },
   optional: true,
