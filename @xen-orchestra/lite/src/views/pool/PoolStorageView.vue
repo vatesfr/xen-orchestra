@@ -1,1 +1,1 @@
-<template>Storage</template>
+<template>Storage (coming soon)</template>
