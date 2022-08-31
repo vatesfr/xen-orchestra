@@ -131,7 +131,7 @@ export default decorate([
             type = 'nfs',
             username,
             useVhdDirectory = undefined,
-            encryptionKey = undefined,
+            encryptionKey = '',
           } = state
 
           const urlParams = {
@@ -140,7 +140,7 @@ export default decorate([
             port,
             type,
             useVhdDirectory,
-            encryptionKey,
+            encryptionKey: encryptionKey.trim() !== '' ? encryptionKey : undefined,
           }
           if (type === 's3') {
             const { allowUnauthorized, bucket, directory, protocol = 'https' } = state
@@ -480,7 +480,8 @@ export default decorate([
           )}
           <div className='form-group'>
             <label>
-              {_('remoteEncryptionKey')} <span className='tag tag-pill tag-info ml-1'>Alpha</span>
+              {_('remoteEncryptionKey')}
+              <span className='tag tag-pill tag-info ml-1'>{_('alpha')}</span>
             </label>
             {isEncrypted && !useVhdDirectory && <p className='text-warning'>⚠️ {_('remoteEncryptionMustUseVhd')}</p>}
             <ul className='small'>
@@ -492,7 +493,7 @@ export default decorate([
               className='form-control'
               name='encryptionKey'
               onChange={effects.linkState}
-              required
+              pattern='^.{32}$'
               type='password'
               value={encryptionKey}
             />

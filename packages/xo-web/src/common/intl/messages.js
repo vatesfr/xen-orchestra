@@ -4,6 +4,7 @@
 const forEach = require('lodash/forEach')
 
 const messages = {
+  alpha: 'Alpha',
   creation: 'Creation',
   description: 'Description',
   expiration: 'Expiration',
@@ -601,9 +602,9 @@ const messages = {
     'Store backup as multiple data blocks instead of a whole VHD file. (disables file level restore but allows faster merge)',
   remoteUseVhdDirectoryTooltip:
     'Your remote must be able to handle parallel access (up to 16 write processes per backup) and the number of files (500 files per GB of backed up data)',
-  remoteEncryptionBackupSize: 'Size of backup is not updated when using encryption',
+  remoteEncryptionBackupSize: 'Size of backup is not updated when using encryption.',
   remoteEncryptionEncryptedfiles:
-    'All the files of the remote except the encryption.json are encrypted, that means you can only activate encryption or change key on an empty remote',
+    'All the files of the remote except the encryption.json are encrypted, that means you can only activate encryption or change key on an empty remote.',
   remoteEncryptionMustUseVhd:
     'Delta backup must use Vhd saved as blocks (note should be enforced when saving settings)',
   remoteEncryptionKey: 'Encrypt all new data sent to this remote',
