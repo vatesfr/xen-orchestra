@@ -20,11 +20,11 @@ defineProps<Props>();
 
 <style lang="postcss" scoped>
 .tab-bar-item {
-  font-size: 2rem;
+  font-size: 1.8rem;
   font-weight: 600;
   display: flex;
   align-items: center;
-  padding: 0 2.5rem;
+  padding: 0 1.2em;
   text-decoration: none;
   text-transform: uppercase;
   color: var(--color-blue-scale-100);
