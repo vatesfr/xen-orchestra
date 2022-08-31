@@ -75,7 +75,7 @@ export default {
     const vdis = this.getObject(sr).$VDIs
     const unhealthyVdis = { __proto__: null }
     const children = groupBy(vdis, 'sm_config.vhd-parent')
-    const vdisWithUnknownVhdParent = []
+    const vdisWithUnknownVhdParent = { __proto__: null }
 
     const cache = { __proto__: null }
     forEach(vdis, vdi => {
@@ -87,7 +87,7 @@ export default {
           unhealthyVdis[uuid] = unhealthyLength
         }
         if (missingParent !== undefined) {
-          vdisWithUnknownVhdParent.push(missingParent)
+          vdisWithUnknownVhdParent[uuid] = missingParent
         }
       }
     })

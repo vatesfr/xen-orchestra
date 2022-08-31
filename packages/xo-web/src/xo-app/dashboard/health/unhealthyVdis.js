@@ -50,8 +50,8 @@ const COLUMNS = [
   {
     itemRenderer: (srId, { vdisHealthBySr }) => (
       <div>
-        {map(vdisHealthBySr[srId].vdisWithUnknownVhdParent, vdiId => (
-          <Vdi id={vdiId} />
+        {Object.keys(vdisHealthBySr[srId].vdisWithUnknownVhdParent).map(vdiId => (
+          <Vdi id={vdiId} key={vdiId} />
         ))}
       </div>
     ),
