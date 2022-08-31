@@ -1,5 +1,4 @@
 import _ from 'intl'
-
 import decorate from 'apply-decorators'
 import React from 'react'
 import { getLicenses } from 'xo'
