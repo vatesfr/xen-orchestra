@@ -28,10 +28,9 @@ class ProxyLicensesForm extends Component {
   render() {
     const { item, userData } = this.props
     const { licenseId } = this.state
-
     const license = userData.licensesByVmUuid[item.vmUuid]?.[0]
-    return license?.productId === 'xoproxy' ? (
-      license.id.slice(-4)
+    return license?.productId === 'xo-proxy' ? (
+      <span>{license.id.slice(-4)}</span>
     ) : (
       <form className='form-inline'>
         <SelectLicense licenses={userData.availableLicenses} onChange={this.onChangeLicense} productType='xoproxy' />
@@ -86,7 +85,7 @@ const Proxies = decorate([
           proxyLicenses,
           ({ boundObjectId, expires }) => boundObjectId === undefined && (expires === undefined || expires > Date.now())
         ),
-      licensesByVmUuid: (state, { proxyLicenses }) => groupBy(proxyLicenses, 'vmUuid'),
+      licensesByVmUuid: (state, { proxyLicenses }) => groupBy(proxyLicenses, 'boundObjectId'),
     },
   }),
   injectState,

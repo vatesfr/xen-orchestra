@@ -159,7 +159,7 @@ const COLUMNS = [
       const now = Date.now()
       const expiresSoon = license.expires - now < EXPIRES_SOON_DELAY
       const expired = license.expires < now
-      return license.productId === 'xoproxy' ? (
+      return license.productId === 'xo-proxy' ? (
         <span>
           {license.expires === undefined ? (
             '✔'
