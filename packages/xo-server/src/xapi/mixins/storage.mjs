@@ -50,32 +50,25 @@ export default {
   },
 
   _getVdiChainsInfo(uuid, childrenMap, cache) {
-    let length = cache[uuid]?.length
-    if (length === undefined) {
+    let info = cache[uuid]
+    if (info === undefined) {
       const children = childrenMap[uuid]
-      length = children !== undefined && children.length === 1 ? 1 : 0
-
+      const unhealthyLength = children !== undefined && children.length === 1 ? 1 : 0
       const vdi = this.getObjectByUuid(uuid, undefined)
-      // invalid uuid
       if (vdi === undefined) {
-        cache[children[0].uuid] = {
-          ...cache[children[0].uuid],
-          unknownVhdParent: uuid,
+        info = { unhealthyLength, missingParent: uuid }
+      } else {
+        const parent = vdi.sm_config['vhd-parent']
+        if (parent !== undefined) {
+          info = this._getVdiChainsInfo(parent, childrenMap, cache)
+          info.unhealthyLength += unhealthyLength
+        } else {
+          info = { unhealthyLength }
         }
-        return length
       }
-
-      const parent = vdi.sm_config['vhd-parent']
-      if (parent !== undefined) {
-        length += this._getVdiChainsInfo(parent, childrenMap, cache)
-      }
-
-      cache[uuid] = {
-        ...cache[uuid],
-        length,
-      }
+      cache[uuid] = info
     }
-    return length
+    return info
   },
 
   getVdiChainsInfo(sr) {
@@ -88,13 +81,13 @@ export default {
     forEach(vdis, vdi => {
       if (vdi.managed && !vdi.is_a_snapshot) {
         const { uuid } = vdi
-        const length = this._getVdiChainsInfo(uuid, children, cache)
+        const { unhealthyLength, missingParent } = this._getVdiChainsInfo(uuid, children, cache)
 
-        if (length !== 0) {
-          unhealthyVdis[uuid] = length
+        if (unhealthyLength !== 0) {
+          unhealthyVdis[uuid] = unhealthyLength
         }
-        if (cache[uuid].unknownVhdParent !== undefined) {
-          vdisWithUnknownVhdParent.push(uuid)
+        if (missingParent !== undefined) {
+          vdisWithUnknownVhdParent.push(missingParent)
         }
       }
     })
