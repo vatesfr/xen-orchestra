@@ -2,6 +2,7 @@ import emitAsync from '@xen-orchestra/emit-async'
 import { createLogger } from '@xen-orchestra/log'
 
 import Ajv from 'ajv'
+import cloneDeep from 'lodash/cloneDeep.js'
 import forEach from 'lodash/forEach.js'
 import kindOf from 'kindof'
 import ms from 'ms'
@@ -253,7 +254,7 @@ export default class Api {
 
       const { params } = method
       if (params !== undefined) {
-        let schema = { type: 'object', properties: params }
+        let schema = { type: 'object', properties: cloneDeep(params) }
         try {
           schema = adaptJsonSchema(schema)
           method.validate = ajv.compile(schema)
