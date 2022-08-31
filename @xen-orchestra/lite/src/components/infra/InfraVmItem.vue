@@ -5,7 +5,7 @@
       :icon="faDisplay"
       :route="{ name: 'vm.console', params: { uuid: vm.uuid } }"
     >
-      {{ vm.name_label }}
+      {{ vm.name_label || '(VM)' }}
       <template #actions>
         <InfraAction>
           <PowerStateIcon :state="vm?.power_state" />
