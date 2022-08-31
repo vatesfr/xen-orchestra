@@ -1,9 +1,8 @@
 #!/usr/bin/env node
 
 import { createClient as createRedisClient } from 'redis'
+import { start as startRepl } from 'repl'
 import appConf from 'app-conf'
-import fromCallback from 'promise-toolbox/fromCallback'
-import fromEvent from 'promise-toolbox/fromEvent'
 
 import RedisCollection from './collection/redis.mjs'
 
@@ -18,9 +17,13 @@ async function getDb(namespace) {
   const { connection } = this
   return new RedisCollection({
     connection,
-    indexes: await fromCallback.call(connection, 'smembers', `xo:${namespace}::indexes`),
+    indexes: await connection.sMembers(`xo:${namespace}::indexes`),
     namespace,
   })
+}
+
+function getNamespaces() {
+  return this.connection.sMembers('xo::namespaces')
 }
 
 function parseParam(args) {
@@ -53,7 +56,7 @@ function sortKeys(object) {
 const COMMANDS = {
   async ls(args) {
     if (args.length === 0) {
-      const namespaces = await fromCallback.call(this.connection, 'smembers', 'xo::namespaces')
+      const namespaces = await this.getNamespaces()
       namespaces.sort()
       for (const ns of namespaces) {
         console.log(ns)
@@ -67,6 +70,30 @@ const COMMANDS = {
       }
     }
   },
+
+  async repl() {
+    const repl = startRepl({
+      ignoreUndefined: true,
+      prompt: '> ',
+    })
+    const { context } = repl
+    context.redis = this.connection
+    for (const namespace of await this.getNamespaces()) {
+      context[namespace] = await this.getDb(namespace)
+    }
+    const { eval: evaluate } = repl
+    repl.eval = (cmd, context, filename, cb) => {
+      evaluate.call(repl, cmd, context, filename, (error, result) => {
+        if (error != null) {
+          return cb(error)
+        }
+        Promise.resolve(result).then(result => cb(undefined, result), cb)
+      })
+    }
+    await new Promise((resolve, reject) => {
+      repl.on('error', reject).on('exit', resolve)
+    })
+  },
 }
 
 async function main(args) {
@@ -76,11 +103,11 @@ xo-server-db --help, -h
 
     Display this help message.
 
-xo-server-logs ls
+xo-server-db ls
 
     List the available namespaces.
 
-xo-server-logs ls <namespace> [<pattern>...]
+xo-server-db ls <namespace> [<pattern>...]
 
     List all entries in the given namespace.
 
@@ -88,6 +115,14 @@ xo-server-logs ls <namespace> [<pattern>...]
       Patterns can be used to filter entries.
 
       Patterns have the following format \`<field>=<value>\`.
+
+xo-server-logs repl
+
+    Open a REPL to interact directly with the database.
+
+    Available objects:
+      - redis: a raw node-redis instance connected to the database
+      - <namespace>: an xo-collection instance to the coresponding namespace in the database
 
 `)
     return
@@ -98,20 +133,20 @@ xo-server-logs ls <namespace> [<pattern>...]
     ignoreUnknownFormats: true,
   })
 
-  const { renameCommands, socket: path, uri: url } = config.redis || {}
+  const { socket: path, uri: url } = config.redis || {}
   const connection = createRedisClient({
     path,
-    rename_commands: renameCommands,
     url,
   })
+  await connection.connect()
+  // await repl({ context: { redis: connection } })
   try {
     const fn = COMMANDS[args.shift()]
     assert(fn !== undefined, 'command must be one of: ' + Object.keys(COMMANDS).join(', '))
 
-    await fn.call({ connection, getDb }, args)
+    await fn.call({ connection, getDb, getNamespaces }, args)
   } finally {
-    connection.quit()
-    await fromEvent(connection, 'end')
+    await connection.quit()
   }
 }
-main(process.argv.slice(2))
+main(process.argv.slice(2)).catch(console.error)

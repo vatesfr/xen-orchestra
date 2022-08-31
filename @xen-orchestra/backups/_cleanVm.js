@@ -1,23 +1,27 @@
 'use strict'
 
-const assert = require('assert')
 const sum = require('lodash/sum')
 const UUID = require('uuid')
 const { asyncMap } = require('@xen-orchestra/async-map')
-const { Constants, mergeVhd, openVhd, VhdAbstract, VhdFile } = require('vhd-lib')
+const { Constants, openVhd, VhdAbstract, VhdFile } = require('vhd-lib')
 const { isVhdAlias, resolveVhdAlias } = require('vhd-lib/aliases')
 const { dirname, resolve } = require('path')
 const { DISK_TYPES } = Constants
 const { isMetadataFile, isVhdFile, isXvaFile, isXvaSumFile } = require('./_backupType.js')
 const { limitConcurrency } = require('limit-concurrency-decorator')
+const { mergeVhdChain } = require('vhd-lib/merge')
 
 const { Task } = require('./Task.js')
 const { Disposable } = require('promise-toolbox')
+const handlerPath = require('@xen-orchestra/fs/path')
 
 // checking the size of a vhd directory is costly
 // 1 Http Query per 1000 blocks
 // we only check size of all the vhd are VhdFiles
-function shouldComputeVhdsSize(vhds) {
+function shouldComputeVhdsSize(handler, vhds) {
+  if (handler.isEncrypted) {
+    return false
+  }
   return vhds.every(vhd => vhd instanceof VhdFile)
 }
 
@@ -25,68 +29,48 @@ const computeVhdsSize = (handler, vhdPaths) =>
   Disposable.use(
     vhdPaths.map(vhdPath => openVhd(handler, vhdPath)),
     async vhds => {
-      if (shouldComputeVhdsSize(vhds)) {
+      if (shouldComputeVhdsSize(handler, vhds)) {
         const sizes = await asyncMap(vhds, vhd => vhd.getSize())
         return sum(sizes)
       }
     }
   )
 
-// chain is [ ancestor, child1, ..., childn]
-// 1. Create a VhdSynthetic from all children
-// 2. Merge the VhdSynthetic into the ancestor
-// 3. Delete all (now) unused VHDs
-// 4. Rename the ancestor with the merged data to the latest child
-//
-//                  VhdSynthetic
-//                       |
-//              /‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾‾\
-//  [ ancestor, child1, ...,child n-1,  childn ]
-//         |    \___________________/     ^
-//         |             |                |
-//         |       unused VHDs            |
-//         |                              |
-//         \___________rename_____________/
-
-async function mergeVhdChain(chain, { handler, logInfo, remove, merge }) {
-  assert(chain.length >= 2)
-  const chainCopy = [...chain]
-  const parent = chainCopy.shift()
-  const children = chainCopy
-
+// chain is [ ancestor, child_1, ..., child_n ]
+async function _mergeVhdChain(handler, chain, { logInfo, remove, merge }) {
   if (merge) {
-    logInfo('will merge children into parent', { children, parent })
+    logInfo(`merging VHD chain`, { chain })
 
     let done, total
     const handle = setInterval(() => {
       if (done !== undefined) {
         logInfo('merge in progress', {
           done,
-          parent,
+          parent: chain[0],
           progress: Math.round((100 * done) / total),
           total,
         })
       }
     }, 10e3)
-
-    const mergedSize = await mergeVhd(handler, parent, handler, children, {
-      logInfo,
-      onProgress({ done: d, total: t }) {
-        done = d
-        total = t
-      },
-      remove,
-    })
-
-    clearInterval(handle)
-    return mergedSize
+    try {
+      return await mergeVhdChain(handler, chain, {
+        logInfo,
+        onProgress({ done: d, total: t }) {
+          done = d
+          total = t
+        },
+        removeUnused: remove,
+      })
+    } finally {
+      clearInterval(handle)
+    }
   }
 }
 
 const noop = Function.prototype
 
 const INTERRUPTED_VHDS_REG = /^\.(.+)\.merge.json$/
-const listVhds = async (handler, vmDir) => {
+const listVhds = async (handler, vmDir, logWarn) => {
   const vhds = new Set()
   const aliases = {}
   const interruptedVhds = new Map()
@@ -106,12 +90,23 @@ const listVhds = async (handler, vmDir) => {
             filter: file => isVhdFile(file) || INTERRUPTED_VHDS_REG.test(file),
           })
           aliases[vdiDir] = list.filter(vhd => isVhdAlias(vhd)).map(file => `${vdiDir}/${file}`)
-          list.forEach(file => {
+
+          await asyncMap(list, async file => {
             const res = INTERRUPTED_VHDS_REG.exec(file)
             if (res === null) {
               vhds.add(`${vdiDir}/${file}`)
             } else {
-              interruptedVhds.set(`${vdiDir}/${res[1]}`, `${vdiDir}/${file}`)
+              try {
+                const mergeState = JSON.parse(await handler.readFile(`${vdiDir}/${file}`))
+                interruptedVhds.set(`${vdiDir}/${res[1]}`, {
+                  statePath: `${vdiDir}/${file}`,
+                  chain: mergeState.chain,
+                })
+              } catch (error) {
+                // fall back to a non resuming merge
+                vhds.add(`${vdiDir}/${file}`)
+                logWarn('failed to read existing merge state', { path: file, error })
+              }
             }
           })
         }
@@ -188,7 +183,7 @@ exports.cleanVm = async function cleanVm(
   vmDir,
   { fixMetadata, remove, merge, mergeLimiter = defaultMergeLimiter, logInfo = noop, logWarn = console.warn }
 ) {
-  const limitedMergeVhdChain = mergeLimiter(mergeVhdChain)
+  const limitedMergeVhdChain = mergeLimiter(_mergeVhdChain)
 
   const handler = this._handler
 
@@ -197,7 +192,7 @@ exports.cleanVm = async function cleanVm(
   const vhdParents = { __proto__: null }
   const vhdChildren = { __proto__: null }
 
-  const { vhds, interruptedVhds, aliases } = await listVhds(handler, vmDir)
+  const { vhds, interruptedVhds, aliases } = await listVhds(handler, vmDir, logWarn)
 
   // remove broken VHDs
   await asyncMap(vhds, async path => {
@@ -248,7 +243,7 @@ exports.cleanVm = async function cleanVm(
   // remove interrupted merge states for missing VHDs
   for (const interruptedVhd of interruptedVhds.keys()) {
     if (!vhds.has(interruptedVhd)) {
-      const statePath = interruptedVhds.get(interruptedVhd)
+      const { statePath } = interruptedVhds.get(interruptedVhd)
       interruptedVhds.delete(interruptedVhd)
 
       logWarn('orphan merge state', {
@@ -430,7 +425,13 @@ exports.cleanVm = async function cleanVm(
 
     // merge interrupted VHDs
     for (const parent of interruptedVhds.keys()) {
-      vhdChainsToMerge[parent] = [vhdChildren[parent], parent]
+      // before #6349 the chain wasn't in the mergeState
+      const { chain, statePath } = interruptedVhds.get(parent)
+      if (chain === undefined) {
+        vhdChainsToMerge[parent] = [parent, vhdChildren[parent]]
+      } else {
+        vhdChainsToMerge[parent] = chain.map(vhdPath => handlerPath.resolveFromFile(statePath, vhdPath))
+      }
     }
 
     Object.values(vhdChainsToMerge).forEach(chain => {
@@ -443,7 +444,7 @@ exports.cleanVm = async function cleanVm(
   const metadataWithMergedVhd = {}
   const doMerge = async () => {
     await asyncMap(toMerge, async chain => {
-      const merged = await limitedMergeVhdChain(chain, { handler, logInfo, logWarn, remove, merge })
+      const merged = await limitedMergeVhdChain(handler, chain, { logInfo, logWarn, remove, merge })
       if (merged !== undefined) {
         const metadataPath = vhdsToJSons[chain[chain.length - 1]] // all the chain should have the same metada file
         metadataWithMergedVhd[metadataPath] = true
@@ -488,7 +489,11 @@ exports.cleanVm = async function cleanVm(
       if (mode === 'full') {
         // a full backup : check size
         const linkedXva = resolve('/', vmDir, xva)
-        fileSystemSize = await handler.getSize(linkedXva)
+        try {
+          fileSystemSize = await handler.getSize(linkedXva)
+        } catch (error) {
+          // can fail with encrypted remote
+        }
       } else if (mode === 'delta') {
         const linkedVhds = Object.keys(vhds).map(key => resolve('/', vmDir, vhds[key]))
         fileSystemSize = await computeVhdsSize(handler, linkedVhds)

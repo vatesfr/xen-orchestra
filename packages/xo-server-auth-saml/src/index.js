@@ -13,7 +13,7 @@ export const configurationSchema = {
   properties: {
     callbackUrl: {
       title: 'callbackUrl',
-      description: "the callback URL",
+      description: 'the callback URL',
       type: 'string',
     },
     cert: {

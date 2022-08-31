@@ -236,38 +236,6 @@ rollingUpdate.resolve = {
 
 // -------------------------------------------------------------------
 
-async function handlePatchUpload(req, res, { pool }) {
-  const contentLength = req.headers['content-length']
-  if (!contentLength) {
-    res.writeHead(411)
-    res.end('Content length is mandatory')
-    return
-  }
-
-  await this.getXapi(pool).uploadPoolPatch(req, contentLength)
-}
-
-export async function uploadPatch({ pool }) {
-  return {
-    $sendTo: await this.registerHttpRequest(handlePatchUpload, { pool }),
-  }
-}
-
-uploadPatch.params = {
-  pool: { type: 'string' },
-}
-
-uploadPatch.resolve = {
-  pool: ['pool', 'pool', 'administrate'],
-}
-
-// Compatibility
-//
-// TODO: remove when no longer used in xo-web
-export { uploadPatch as patch }
-
-// -------------------------------------------------------------------
-
 export async function getPatchesDifference({ source, target }) {
   return this.getPatchesDifference(target.id, source.id)
 }

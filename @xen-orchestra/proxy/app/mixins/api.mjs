@@ -1,4 +1,4 @@
-import { format, parse, MethodNotFound } from 'json-rpc-protocol'
+import { format, parse, MethodNotFound, JsonRpcError } from 'json-rpc-protocol'
 import * as errors from 'xo-common/api-errors.js'
 import Ajv from 'ajv'
 import asyncIteratorToStream from 'async-iterator-to-stream'
@@ -9,6 +9,7 @@ import helmet from 'koa-helmet'
 import Koa from 'koa'
 import once from 'lodash/once.js'
 import Router from '@koa/router'
+import stubTrue from 'lodash/stubTrue.js'
 import Zone from 'node-zone'
 import { createLogger } from '@xen-orchestra/log'
 
@@ -77,7 +78,19 @@ export default class Api {
         const { method, params } = body
         warn('call error', { method, params, error })
         ctx.set('Content-Type', 'application/json')
-        ctx.body = format.error(body.id, error)
+
+        let e = error
+        if (error != null && typeof error.toJsonRpcError !== 'function') {
+          const { message, ...data } = error
+
+          // force these entries even if they are not enumerable
+          data.code = error.code
+          data.stack = error.stack
+
+          e = new JsonRpcError(error.message, undefined, data)
+        }
+
+        ctx.body = format.error(body.id, e)
         return
       }
 
@@ -166,13 +179,19 @@ export default class Api {
               throw errors.noSuchObject('method', name)
             }
 
-            const { description, params = {} } = method
-            return { description, name, params }
+            const { description, params = {}, result = {} } = method
+            return { description, name, params, result }
           },
           {
             description: 'returns the signature of an API method',
             params: {
               method: { type: 'string' },
+            },
+            result: {
+              description: { type: 'string' },
+              name: { type: 'string' },
+              params: { type: 'object' },
+              result: { type: 'object' },
             },
           },
         ],
@@ -205,40 +224,29 @@ export default class Api {
     })
   }
 
-  addMethod(name, method, { description, params = {} } = {}) {
+  addMethod(name, method, { description, params = {}, result: resultSchema } = {}) {
     const methods = this._methods
 
     if (name in methods) {
       throw new Error(`API method ${name} already exists`)
     }
 
-    const ajv = this._ajv
-    const validate = ajv.compile({
-      // we want additional properties to be disabled by default
-      additionalProperties: params['*'] || false,
+    const validateParams = this.#compileSchema(params)
+    const validateResult = this.#compileSchema(resultSchema)
 
-      properties: params,
-
-      // we want params to be required by default unless explicitly marked so
-      // we use property `optional` instead of object `required`
-      required: Object.keys(params).filter(name => {
-        const param = params[name]
-        const required = !param.optional
-        delete param.optional
-        return required
-      }),
-
-      type: 'object',
-    })
-
-    const m = params => {
-      if (!validate(params)) {
-        throw errors.invalidParameters(validate.errors)
+    const m = async params => {
+      if (!validateParams(params)) {
+        throw errors.invalidParameters(validateParams.errors)
       }
-      return method(params)
+      const result = await method(params)
+      if (!validateResult(result)) {
+        warn('invalid API method result', { errors: validateResult.error, result })
+      }
+      return result
     }
     m.description = description
     m.params = params
+    m.result = resultSchema
 
     methods[name] = m
 
@@ -288,5 +296,44 @@ export default class Api {
       throw new MethodNotFound(method)
     }
     return fn(params)
+  }
+
+  #compileSchema(schema) {
+    if (schema === undefined) {
+      return stubTrue
+    }
+
+    if (schema.type === undefined) {
+      schema = { type: 'object', properties: schema }
+    }
+
+    const { type } = schema
+    if (Array.isArray(type) ? type.includes('object') : type === 'object') {
+      const { properties = {} } = schema
+
+      if (schema.additionalProperties === undefined) {
+        const wildCard = properties['*']
+        if (wildCard === undefined) {
+          // we want additional properties to be disabled by default
+          schema.additionalProperties = false
+        } else {
+          delete properties['*']
+          schema.additionalProperties = wildCard
+        }
+      }
+
+      // we want properties to be required by default unless explicitly marked so
+      // we use property `optional` instead of object `required`
+      if (schema.required === undefined) {
+        schema.required = Object.keys(properties).filter(name => {
+          const param = properties[name]
+          const required = !param.optional
+          delete param.optional
+          return required
+        })
+      }
+    }
+
+    return this._ajv.compile(schema)
   }
 }

@@ -47,6 +47,7 @@ async function showDetails(handler, path) {
   }
 
   console.log(
+    'footer:',
     mapProperties(vhd.footer, {
       currentSize: 'bytes',
       diskType: 'diskType',
@@ -57,6 +58,7 @@ async function showDetails(handler, path) {
   )
 
   console.log(
+    'header:',
     mapProperties(vhd.header, {
       blockSize: 'bytes',
       parentTimestamp: 'date',

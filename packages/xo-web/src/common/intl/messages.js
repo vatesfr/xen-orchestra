@@ -1280,6 +1280,7 @@ const messages = {
   protectFromDeletion: 'Protect from accidental deletion',
   protectFromShutdown: 'Protect from accidental shutdown',
   ha: 'HA',
+  srHaTooltip: 'SR used for High Availability',
   nestedVirt: 'Nested virtualization',
   vmAffinityHost: 'Affinity host',
   vmVga: 'VGA',
@@ -1449,7 +1450,9 @@ const messages = {
   alarmObject: 'Issue on',
   alarmPool: 'Pool',
   spaceLeftTooltip: '{used}% used ({free} left)',
+  unhealthyVdis: 'Unhealthy VDIs',
   vdisToCoalesce: 'VDIs to coalesce',
+  vdisWithInvalidVhdParent: 'VDIs with invalid parent VHD',
   srVdisToCoalesceWarning: 'This SR has more than {limitVdis, number} VDIs to coalesce',
 
   // ----- New VM -----

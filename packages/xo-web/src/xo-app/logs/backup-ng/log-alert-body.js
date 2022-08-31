@@ -254,7 +254,8 @@ const CleanVmTask = ({ children, className, task }) =>
   ) : null
 const HealthCheckTask = ({ children, className, task }) => (
   <li className={className}>
-    <Icon icon='health' /> {task.message} <TaskStateInfos status={task.status} /> <TaskWarnings warnings={task.warnings} />
+    <Icon icon='health' /> {task.message} <TaskStateInfos status={task.status} />{' '}
+    <TaskWarnings warnings={task.warnings} />
     {children}
     <TaskStart task={task} />
     <TaskEnd task={task} />

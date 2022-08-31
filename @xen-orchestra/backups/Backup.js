@@ -245,7 +245,7 @@ exports.Backup = class Backup {
           })
         )
       ),
-      () => settings.healthCheckSr !== undefined ? this._getRecord('SR', settings.healthCheckSr) : undefined,
+      () => (settings.healthCheckSr !== undefined ? this._getRecord('SR', settings.healthCheckSr) : undefined),
       async (srs, remoteAdapters, healthCheckSr) => {
         // remove adapters that failed (already handled)
         remoteAdapters = remoteAdapters.filter(_ => _ !== undefined)

@@ -11,7 +11,6 @@ import has from 'lodash/has.js'
 import helmet from 'helmet'
 import httpProxy from 'http-proxy'
 import includes from 'lodash/includes.js'
-import map from 'lodash/map.js'
 import memoryStoreFactory from 'memorystore'
 import merge from 'lodash/merge.js'
 import ms from 'ms'
@@ -474,8 +473,8 @@ async function makeWebServerListen(
 
 async function createWebServer({ listen, listenOptions }) {
   const webServer = stoppable(new WebServer())
-  await Promise.all(
-    map(listen, (opts, configKey) => makeWebServerListen(webServer, { ...listenOptions, ...opts, configKey }))
+  await asyncMap(Object.entries(listen), ([configKey, opts]) =>
+    makeWebServerListen(webServer, { ...listenOptions, ...opts, configKey })
   )
 
   return webServer
@@ -613,7 +612,11 @@ const setUpApi = (webServer, xo, config) => {
 
     const onSend = error => {
       if (error) {
-        log.warn('WebSocket send:', { error })
+        // even if the readyState of the socket is checked, it can still happen
+        // that the message failed to be sent because the connection was closed.
+        if (error.code !== 'ERR_STREAM_DESTROYED') {
+          log.warn('WebSocket send:', { error })
+        }
       }
     }
     jsonRpc.on('data', data => {

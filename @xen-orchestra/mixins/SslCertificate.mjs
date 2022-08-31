@@ -99,11 +99,11 @@ class SslCertificate {
       /* Init client */
       const client = new acme.Client({
         directoryUrl: acmeCa,
-        accountKey: await acme.forge.createPrivateKey(),
+        accountKey: await acme.crypto.createPrivateKey(),
       })
 
       /* Create CSR */
-      let [key, csr] = await acme.forge.createCsr({
+      let [key, csr] = await acme.crypto.createCsr({
         commonName: acmeDomain,
       })
       csr = csr.toString()

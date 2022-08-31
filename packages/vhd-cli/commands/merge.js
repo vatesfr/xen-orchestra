@@ -1,8 +1,8 @@
 'use strict'
 
 const { Bar } = require('cli-progress')
-const { mergeVhd } = require('vhd-lib')
 const { getHandler } = require('@xen-orchestra/fs')
+const { mergeVhdChain } = require('vhd-lib/merge')
 const { resolve } = require('path')
 
 module.exports = async function merge(args) {
@@ -12,7 +12,7 @@ module.exports = async function merge(args) {
 
   const handler = getHandler({ url: 'file:///' })
   let bar
-  await mergeVhd(handler, resolve(args[1]), handler, resolve(args[0]), {
+  await mergeVhdChain(handler, [resolve(args[1]), resolve(args[0])], {
     onProgress({ done, total }) {
       if (bar === undefined) {
         bar = new Bar({

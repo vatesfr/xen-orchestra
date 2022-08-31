@@ -128,42 +128,49 @@ class VmBackup {
   }
 
   // calls fn for each function, warns of any errors, and throws only if there are no writers left
-  async _callWriters(fn, warnMessage, parallel = true) {
+  async _callWriters(fn, step, parallel = true) {
     const writers = this._writers
     const n = writers.size
     if (n === 0) {
       return
     }
-    if (n === 1) {
-      const [writer] = writers
+
+    async function callWriter(writer) {
+      const { name } = writer.constructor
       try {
+        debug('writer step starting', { step, writer: name })
         await fn(writer)
+        debug('writer step succeeded', { duration: step, writer: name })
       } catch (error) {
         writers.delete(writer)
+
+        warn('writer step failed', { error, step, writer: name })
+
+        // these two steps are the only one that are not already in their own sub tasks
+        if (step === 'writer.checkBaseVdis()' || step === 'writer.beforeBackup()') {
+          Task.warning(
+            `the writer ${name} has failed the step ${step} with error ${error.message}. It won't be used anymore in this job execution.`
+          )
+        }
+
         throw error
       }
-      return
+    }
+    if (n === 1) {
+      const [writer] = writers
+      return callWriter(writer)
     }
 
     const errors = []
     await (parallel ? asyncMap : asyncEach)(writers, async function (writer) {
       try {
-        await fn(writer)
+        await callWriter(writer)
       } catch (error) {
         errors.push(error)
-        this.delete(writer)
-        warn(warnMessage, { error, writer: writer.constructor.name })
-
-        // these two steps are the only one that are not already in their own sub tasks
-        if (warnMessage === 'writer.checkBaseVdis()' || warnMessage === 'writer.beforeBackup()') {
-          Task.warning(
-            `the writer ${writer.constructor.name} has failed the step ${warnMessage} with error ${error.message}. It won't be used anymore in this job execution.`
-          )
-        }
       }
     })
     if (writers.size === 0) {
-      throw new AggregateError(errors, 'all targets have failed, step: ' + warnMessage)
+      throw new AggregateError(errors, 'all targets have failed, step: ' + step)
     }
   }
 

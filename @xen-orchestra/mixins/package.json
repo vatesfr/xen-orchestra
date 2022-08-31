@@ -14,7 +14,7 @@
     "url": "https://vates.fr"
   },
   "license": "AGPL-3.0-or-later",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "engines": {
     "node": ">=15.6"
   },
@@ -23,7 +23,7 @@
     "@vates/parse-duration": "^0.1.1",
     "@xen-orchestra/emit-async": "^1.0.0",
     "@xen-orchestra/log": "^0.3.0",
-    "acme-client": "^4.2.5",
+    "acme-client": "^5.0.0",
     "app-conf": "^2.1.0",
     "lodash": "^4.17.21",
     "promise-toolbox": "^0.21.0"

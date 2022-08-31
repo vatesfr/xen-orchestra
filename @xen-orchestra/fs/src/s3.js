@@ -27,7 +27,7 @@ import copyStreamToBuffer from './_copyStreamToBuffer.js'
 import createBufferFromStream from './_createBufferFromStream.js'
 import guessAwsRegion from './_guessAwsRegion.js'
 import RemoteHandlerAbstract from './abstract'
-import { basename, join, split } from './_path'
+import { basename, join, split } from './path'
 import { asyncEach } from '@vates/async-each'
 
 // endpoints https://docs.aws.amazon.com/general/latest/gr/s3.html
