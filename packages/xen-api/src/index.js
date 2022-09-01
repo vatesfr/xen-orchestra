@@ -388,31 +388,33 @@ export class Xapi extends EventEmitter {
     url.search = new URLSearchParams(query)
     await this._setHostAddressInUrl(url, host)
 
-    const response = await pRetry(
-      async () =>
-        httpRequest($cancelToken, url.href, {
-          rejectUnauthorized: !this._allowUnauthorized,
+    const response = await this._addSyncStackTrace(
+      pRetry(
+        async () =>
+          httpRequest($cancelToken, url.href, {
+            rejectUnauthorized: !this._allowUnauthorized,
 
-          // this is an inactivity timeout (unclear in Node doc)
-          timeout: this._httpInactivityTimeout,
+            // this is an inactivity timeout (unclear in Node doc)
+            timeout: this._httpInactivityTimeout,
 
-          maxRedirects: 0,
+            maxRedirects: 0,
 
-          // Support XS <= 6.5 with Node => 12
-          minVersion: 'TLSv1',
-          agent: this.httpAgent,
-        }),
-      {
-        when: { code: 302 },
-        onRetry: async error => {
-          const response = error.response
-          if (response === undefined) {
-            throw error
-          }
-          response.cancel()
-          url = await this._replaceHostAddressInUrl(new URL(response.headers.location, url))
-        },
-      }
+            // Support XS <= 6.5 with Node => 12
+            minVersion: 'TLSv1',
+            agent: this.httpAgent,
+          }),
+        {
+          when: { code: 302 },
+          onRetry: async error => {
+            const response = error.response
+            if (response === undefined) {
+              throw error
+            }
+            response.cancel()
+            url = await this._replaceHostAddressInUrl(new URL(response.headers.location, url))
+          },
+        }
+      )
     )
 
     if (pTaskResult !== undefined) {
@@ -480,40 +482,42 @@ export class Xapi extends EventEmitter {
 
     // if body is a stream, sends a dummy request to probe for a redirection
     // before consuming body
-    const response = await (isStream
-      ? doRequest(url.href, {
-          body: '',
+    const response = await this._addSyncStackTrace(
+      isStream
+        ? doRequest(url.href, {
+            body: '',
 
-          // omit task_id because this request will fail on purpose
-          query: 'task_id' in query ? omit(query, 'task_id') : query,
+            // omit task_id because this request will fail on purpose
+            query: 'task_id' in query ? omit(query, 'task_id') : query,
 
-          maxRedirects: 0,
-        }).then(
-          response => {
-            response.cancel()
-            return doRequest(url.href)
-          },
-          async error => {
-            let response
-            if (error != null && (response = error.response) != null) {
+            maxRedirects: 0,
+          }).then(
+            response => {
               response.cancel()
+              return doRequest(url.href)
+            },
+            async error => {
+              let response
+              if (error != null && (response = error.response) != null) {
+                response.cancel()
 
-              const {
-                headers: { location },
-                statusCode,
-              } = response
-              if (statusCode === 302 && location !== undefined) {
-                // ensure the original query is sent
-                const newUrl = new URL(location, url)
-                newUrl.searchParams.set('task_id', query.task_id)
-                return doRequest((await this._replaceHostAddressInUrl(newUrl)).href)
+                const {
+                  headers: { location },
+                  statusCode,
+                } = response
+                if (statusCode === 302 && location !== undefined) {
+                  // ensure the original query is sent
+                  const newUrl = new URL(location, url)
+                  newUrl.searchParams.set('task_id', query.task_id)
+                  return doRequest((await this._replaceHostAddressInUrl(newUrl)).href)
+                }
               }
-            }
 
-            throw error
-          }
-        )
-      : doRequest(url.href))
+              throw error
+            }
+          )
+        : doRequest(url.href)
+    )
 
     if (pTaskResult !== undefined) {
       pTaskResult = pTaskResult.catch(error => {

@@ -5363,7 +5363,7 @@ export default {
   xosanUsedSpace: 'Spazio usato',
 
   // Original text: 'License'
-  xosanLicense: 'Licenza',
+  license: 'Licenza',
 
   // Original text: 'This XOSAN has more than 1 license!'
   xosanMultipleLicenses: 'Questo XOSAN ha più di 1 licenza!',
@@ -5789,7 +5789,7 @@ export default {
   xosanCheckLicenseError: 'Impossibile verificare la licenza su questo XOSAN SR',
 
   // Original text: 'Could not fetch licenses'
-  xosanGetLicensesError: 'Impossibile recuperare le licenze',
+  getLicensesError: 'Impossibile recuperare le licenze',
 
   // Original text: 'License has expired.'
   licenseHasExpired: 'La licenza è scaduta.',
@@ -5801,10 +5801,10 @@ export default {
   licenseBoundToThisXoa: 'Questa licenza è attiva su questo XOA',
 
   // Original text: 'License expires on {date}.'
-  xosanLicenseExpiresDate: 'La licenza scade il {date}.',
+  licenseExpiresDate: 'La licenza scade il {date}.',
 
   // Original text: 'Update the license now!'
-  xosanUpdateLicenseMessage: 'Aggiorna subito la licenza!',
+  updateLicenseMessage: 'Aggiorna subito la licenza!',
 
   // Original text: 'Unknown XOSAN SR.'
   xosanUnknownSr: 'XOSAN SR sconosciuto.',
@@ -5816,7 +5816,7 @@ export default {
   xosanNoLicense: 'Nessuna licenza.',
 
   // Original text: 'Unlock now!'
-  xosanUnlockNow: 'Sblocca ora!',
+  unlockNow: 'Sblocca ora!',
 
   // Original text: 'Select a license'
   selectLicense: 'Seleziona una licenza',

@@ -4650,7 +4650,7 @@ export default {
   xosanUsedSpace: 'Kullanılan alan',
 
   // Original text: "License"
-  xosanLicense: 'Lisans',
+  license: 'Lisans',
 
   // Original text: "This XOSAN has more than 1 license!"
   xosanMultipleLicenses: "Bu XOSAN 1'den fazla lisansa sahip!",
@@ -4977,16 +4977,16 @@ export default {
   xosanCheckLicenseError: "Bu XOSAN SR'deki lisans kontrol edilemedi",
 
   // Original text: "Could not fetch licenses"
-  xosanGetLicensesError: 'Lisans alınamadı',
+  getLicensesError: 'Lisans alınamadı',
 
   // Original text: "License has expired."
   xosanLicenseHasExpired: "Lisnas'ın süresi doldu",
 
   // Original text: "License expires on {date}."
-  xosanLicenseExpiresDate: 'Lisans {date} tarihinde bitecek.',
+  licenseExpiresDate: 'Lisans {date} tarihinde bitecek.',
 
   // Original text: "Update the license now!"
-  xosanUpdateLicenseMessage: "Lisans'ı şimdi güncelle!",
+  updateLicenseMessage: "Lisans'ı şimdi güncelle!",
 
   // Original text: "Unknown XOSAN SR."
   xosanUnknownSr: 'Bilinmeyen XOSAN SR',
@@ -4998,7 +4998,7 @@ export default {
   xosanNoLicense: 'Lisans yok.',
 
   // Original text: "Unlock now!"
-  xosanUnlockNow: 'Şimdi kilidi kaldır!',
+  unlockNow: 'Şimdi kilidi kaldır!',
 
   // Original text: "Select a license"
   selectLicense: 'Bir lisans seç',

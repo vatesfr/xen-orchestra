@@ -1,8 +1,40 @@
 # ChangeLog
 
-## **5.73.1** (2022-08-04)
+## **5.74.0** (2022-08-31)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
+### Enhancements
+
+> Users must be able to say: “Nice enhancement, I'm eager to test it”
+
+- [Home/Storage] Show which SRs are used for HA state files [#6339](https://github.com/vatesfr/xen-orchestra/issues/6339) (PR [#6384](https://github.com/vatesfr/xen-orchestra/pull/6384))
+
+### Bug fixes
+
+> Users must be able to say: “I had this issue, happy to know it's fixed”
+
+- [Backup/Restore] Fix backup list not loading on page load (PR [#6364](https://github.com/vatesfr/xen-orchestra/pull/6364))
+- [Host] Fix `should not contains property ["ignoreBackup"]` on some host operations (PR [#6362](https://github.com/vatesfr/xen-orchestra/pull/6362))
+
+### Packages to release
+
+- @xen-orchestra/fs 3.0.0
+- vhd-lib 4.0.0
+- @xen-orchestra/backups 0.27.4
+- @xen-orchestra/backups-cli 0.7.7
+- @xen-orchestra/xapi 1.4.2
+- xen-api 1.2.2
+- @xen-orchestra/proxy 0.26.0
+- vhd-cli 0.9.1
+- xo-vmdk-to-vhd 2.4.3
+- xo-server 5.101.0
+- xo-web 5.102.0
+
+## **5.73.1** (2022-08-04)
+
+<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
+
 ### Bug fixes
 
 - [Backup] Fix `incorrect backup size in metadata` on each merged VHD (PR [#6331](https://github.com/vatesfr/xen-orchestra/pull/6331))
@@ -54,8 +86,6 @@
 - xo-web 5.101.0
 
 ## **5.72.1** (2022-07-11)
-
-<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Enhancements
 

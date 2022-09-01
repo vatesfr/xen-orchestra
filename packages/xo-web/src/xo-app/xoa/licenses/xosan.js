@@ -4,54 +4,51 @@ import Component from 'base-component'
 import Link from 'link'
 import React from 'react'
 import renderXoItem, { Pool } from 'render-xo-item'
+import SelectLicense from 'select-license'
 import SortedTable from 'sorted-table'
 import { connectStore } from 'utils'
-import { createSelector, createGetObjectsOfType, createFilter } from 'selectors'
+import { createSelector, createGetObjectsOfType } from 'selectors'
 import { filter, forEach, includes, map } from 'lodash'
-import { get } from '@xen-orchestra/defined'
-import { injectIntl } from 'react-intl'
 import { unlockXosan } from 'xo'
 
-@injectIntl
-class SelectLicense extends Component {
-  state = { license: 'none' }
+class XosanLicensesForm extends Component {
+  state = {
+    licenseId: 'none',
+  }
+
+  onChangeLicense = event => {
+    this.setState({ licenseId: event.target.value })
+  }
+
+  unlockXosan = () => {
+    const { item, userData } = this.props
+    return unlockXosan(this.state.licenseId, item.id).then(userData.updateLicenses)
+  }
 
   render() {
-    return (
+    const { item, userData } = this.props
+    const { licenseId } = this.state
+
+    const license = userData.licensesByXosan[item.id]
+    if (license === null) {
+      return (
+        <span className='text-danger'>
+          {_('xosanMultipleLicenses')} <a href='https://xen-orchestra.com/'>{_('contactUs')}</a>
+        </span>
+      )
+    }
+
+    return license?.productId === 'xosan' ? (
+      <span>{license.id.slice(-4)}</span>
+    ) : (
       <form className='form-inline'>
-        <select className='form-control' onChange={this.linkState('license')}>
-          {_('selectLicense', message => (
-            <option key='none' value='none'>
-              {message}
-            </option>
-          ))}
-          {map(this.props.licenses, license =>
-            _(
-              'expiresOn',
-              {
-                date:
-                  license.expires !== undefined
-                    ? this.props.intl.formatTime(license.expires, {
-                        day: 'numeric',
-                        month: 'numeric',
-                        year: 'numeric',
-                      })
-                    : '',
-              },
-              message => (
-                <option key={license.id} value={license.id}>
-                  {license.id.slice(-4)} {license.expires ? `(${message})` : ''}
-                </option>
-              )
-            )
-          )}
-        </select>
+        <SelectLicense onChange={this.onChangeLicense} productType='xosan' />
         <ActionButton
           btnStyle='primary'
           className='ml-1'
-          disabled={this.state.license === 'none'}
-          handler={this.props.onChange}
-          handlerParam={get(() => this.state.license)}
+          disabled={licenseId === 'none'}
+          handler={this.unlockXosan}
+          handlerParam={licenseId}
           icon='connect'
         >
           {_('bindLicense')}
@@ -72,27 +69,8 @@ const XOSAN_COLUMNS = [
     itemRenderer: sr => <Pool id={sr.$pool} link />,
   },
   {
-    name: _('xosanLicense'),
-    itemRenderer: (sr, { availableLicenses, licensesByXosan, updateLicenses }) => {
-      const license = licensesByXosan[sr.id]
-
-      if (license === null) {
-        return (
-          <span className='text-danger'>
-            {_('xosanMultipleLicenses')} <a href='https://xen-orchestra.com/'>{_('contactUs')}</a>
-          </span>
-        )
-      }
-
-      return license !== undefined && license.productId === 'xosan' ? (
-        license.id.slice(-4)
-      ) : (
-        <SelectLicense
-          licenses={availableLicenses}
-          onChange={licenseId => unlockXosan(licenseId, sr.id).then(updateLicenses)}
-        />
-      )
-    },
+    name: _('license'),
+    component: XosanLicensesForm,
   },
 ]
 
@@ -129,11 +107,6 @@ export default class Xosan extends Component {
     }
   )
 
-  _getAvailableLicenses = createFilter(
-    () => this.props.xosanLicenses,
-    [({ boundObjectId, expires }) => boundObjectId === undefined && (expires === undefined || expires > Date.now())]
-  )
-
   _getKnownXosans = createSelector(
     createSelector(
       () => this.props.xosanLicenses,
@@ -151,7 +124,6 @@ export default class Xosan extends Component {
         individualActions={XOSAN_INDIVIDUAL_ACTIONS}
         stateUrlParam='s_xosan'
         userData={{
-          availableLicenses: this._getAvailableLicenses(),
           licensesByXosan: this._getLicensesByXosan(),
           xosanSrs: this.props.xosanSrs,
           updateLicenses: this.props.updateLicenses,
