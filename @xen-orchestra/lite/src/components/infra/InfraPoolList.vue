@@ -5,7 +5,7 @@
       <InfraItemLabel
         :icon="faBuildings"
         :route="{ name: 'pool.dashboard', params: { uuid: pool.uuid } }"
-        current
+        active
       >
         {{ pool.name_label }}
       </InfraItemLabel>

@@ -1,7 +1,7 @@
 <template>
   <li v-if="host" class="infra-host-item">
     <InfraItemLabel
-      :current="isCurrentHost"
+      :active="isCurrentHost"
       :icon="faServer"
       :route="{ name: 'host.dashboard', params: { uuid: host.uuid } }"
     >
