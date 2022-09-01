@@ -10,8 +10,10 @@
         <span v-if="onClose" class="close-icon" @click="emit('close')">
           <FontAwesomeIcon :icon="faXmark" />
         </span>
-        <div v-if="icon !== undefined" class="modal-icon">
-          <FontAwesomeIcon :icon="icon" />
+        <div v-if="icon || $slots.icon" class="modal-icon">
+          <slot name="icon">
+            <FontAwesomeIcon :icon="icon" />
+          </slot>
         </div>
         <UiTitle v-if="$slots.title" type="h4">
           <slot name="title" />
