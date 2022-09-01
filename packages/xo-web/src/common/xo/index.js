@@ -79,7 +79,6 @@ export const signOut = () => {
   // prevent automatic reconnection
   xo.removeListener('closed', connect)
 
-  cookies.remove('token')
   window.location.reload(true)
 }
 
