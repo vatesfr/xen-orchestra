@@ -21,6 +21,7 @@
     "@xen-orchestra/fs": "^3.0.0",
     "@xen-orchestra/log": "^0.3.0",
     "async-iterator-to-stream": "^1.0.2",
+    "decorator-synchronized": "^0.6.0",
     "fs-extra": "^10.0.0",
     "limit-concurrency-decorator": "^0.5.0",
     "lodash": "^4.17.4",
