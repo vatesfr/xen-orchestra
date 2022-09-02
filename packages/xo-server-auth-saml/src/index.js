@@ -20,6 +20,7 @@ export const configurationSchema = {
       title: 'Certificate',
       description: "Copy/paste the identity provider's certificate",
       type: 'string',
+      multiline: true,
     },
     entryPoint: {
       title: 'Entry point',
