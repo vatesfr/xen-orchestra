@@ -35,9 +35,7 @@ const hostsWithStats = computed(() =>
 const data = computed(() => {
   const hostsStats: { label: string; value: number }[] = [];
 
-  for (const key in hostsWithStats.value) {
-    const host = hostsWithStats.value[key];
-
+  for (const host of hostsWithStats.value) {
     const avgCpuUsage = getAvgCpuUsage(host.stats.value?.stats.cpus);
     if (avgCpuUsage === undefined) {
       continue;
