@@ -11,24 +11,20 @@ import {
   faQuestion,
   faStop,
 } from "@fortawesome/pro-solid-svg-icons";
-import FormWidget from "@/components/FormWidget.vue";
 import type { PowerState } from "@/libs/xen-api";
 
 const props = defineProps<{
-  state: PowerState | "Unknown";
+  state: PowerState;
 }>();
 
-const icon = computed(() => {
-  const icons = {
-    Running: faPlay,
-    Paused: faPause,
-    Suspended: faMoon,
-    Unknown: faQuestion,
-    Halted: faStop,
-  };
+const icons = {
+  Running: faPlay,
+  Paused: faPause,
+  Suspended: faMoon,
+  Halted: faStop,
+};
 
-  return icons[props.state];
-});
+const icon = computed(() => icons[props.state] ?? faQuestion);
 
 const className = computed(() => `state-${props.state.toLocaleLowerCase()}`);
 </script>
