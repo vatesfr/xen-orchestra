@@ -5,7 +5,7 @@ const UUID = require('uuid')
 const { asyncMap } = require('@xen-orchestra/async-map')
 const { Constants, openVhd, VhdAbstract, VhdFile } = require('vhd-lib')
 const { isVhdAlias, resolveVhdAlias } = require('vhd-lib/aliases')
-const { dirname, resolve } = require('path')
+const { basename, dirname, resolve } = require('path')
 const { DISK_TYPES } = Constants
 const { isMetadataFile, isVhdFile, isXvaFile, isXvaSumFile } = require('./_backupType.js')
 const { limitConcurrency } = require('limit-concurrency-decorator')
@@ -527,6 +527,12 @@ exports.cleanVm = async function cleanVm(
       }
     }
   })
+
+  const vmUuid = basename(vmDir)
+  // purge cache
+  await this.invalidateVmBackupListCache(vmUuid)
+  // pregenerate cache
+  await this.listVmBackups(vmUuid)
 
   return {
     // boolean whether some VHDs were merged (or should be merged)

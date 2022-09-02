@@ -29,6 +29,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/backups minor
 - xo-server-auth-saml patch
 - xo-web patch
 

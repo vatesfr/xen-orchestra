@@ -71,6 +71,5 @@ exports.MixinBackupWriter = (BaseClass = Object) =>
         const remotePath = handler._getRealPath()
         await MergeWorker.run(remotePath)
       }
-      await this._adapter.invalidateVmBackupListCache(this._backup.vm.uuid)
     }
   }
