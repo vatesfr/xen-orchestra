@@ -1,7 +1,7 @@
 <template>
   <div class="collection-filter-row">
     <span class="or">OR</span>
-    <FormWidget v-if="newFilter.isAdvanced" style="flex: 1">
+    <FormWidget v-if="newFilter.isAdvanced" class="form-widget-advanced">
       <input v-model="newFilter.content" />
     </FormWidget>
     <template v-else>
@@ -256,5 +256,9 @@ const valueInputAfter = computed(() => {
 
 .remove-icon {
   color: var(--color-red-vates-base);
+}
+
+.form-widget-advanced {
+  flex: 1;
 }
 </style>
