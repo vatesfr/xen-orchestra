@@ -296,6 +296,7 @@ create.params = {
         SR: { type: 'string' },
         type: { type: 'string' },
       },
+      additionalProperties: true,
     },
   },
 
@@ -315,6 +316,7 @@ create.params = {
           optional: true,
         },
       },
+      additionalProperties: true,
     },
   },
 
