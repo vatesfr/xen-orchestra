@@ -123,7 +123,7 @@ module.exports.mergeVhdChain = limitConcurrency(2)(async function mergeVhdChain(
       childIsVhdDirectory = childVhd instanceof VhdDirectory
     }
 
-    const concurrency = parentIsVhdDirectory && childIsVhdDirectory ? 16 : 1
+    const concurrency = parentIsVhdDirectory && childIsVhdDirectory ? 2 : 1
     if (mergeState === undefined) {
       // merge should be along a vhd chain
       assert.strictEqual(UUID.stringify(childVhd.header.parentUuid), UUID.stringify(parentVhd.footer.uuid))
