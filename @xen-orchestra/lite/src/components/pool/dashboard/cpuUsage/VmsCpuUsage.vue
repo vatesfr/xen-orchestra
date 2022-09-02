@@ -41,7 +41,8 @@ const data = computed(() => {
   const vmsStats: { label: string; value: number }[] = [];
 
   for (const key in vmsWithStats.value) {
-    const vm = vmsWithStats.value[Number(key)];
+    const vm = vmsWithStats.value[key];
+
     const avgCpuUsage = getAvgCpuUsage(vm.stats.value?.stats.cpus);
 
     if (avgCpuUsage === undefined) {
