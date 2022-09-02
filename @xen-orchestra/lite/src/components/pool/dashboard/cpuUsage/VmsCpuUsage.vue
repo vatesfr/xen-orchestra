@@ -23,7 +23,7 @@ const runningVms = deepComputed(() =>
 );
 
 const vmsWithStats = computed(() =>
-  runningVms.value?.map((vm) => {
+  runningVms.value.map((vm) => {
     const fetchStats = useFetchStats<VmStats>(
       "vm",
       vm.uuid,
@@ -40,9 +40,7 @@ const vmsWithStats = computed(() =>
 const data = computed(() => {
   const vmsStats: { label: string; value: number }[] = [];
 
-  for (const key in vmsWithStats.value) {
-    const vm = vmsWithStats.value[key];
-
+  for (const vm of vmsWithStats.value) {
     const avgCpuUsage = getAvgCpuUsage(vm.stats.value?.stats.cpus);
 
     if (avgCpuUsage === undefined) {
@@ -58,10 +56,10 @@ const data = computed(() => {
 });
 
 onMounted(() => {
-  vmsWithStats.value?.forEach((v) => v.pausable.resume());
+  vmsWithStats.value.forEach((v) => v.pausable.resume());
 });
 
 onUnmounted(() => {
-  vmsWithStats.value?.forEach((v) => v.pausable.pause());
+  vmsWithStats.value.forEach((v) => v.pausable.pause());
 });
 </script>
