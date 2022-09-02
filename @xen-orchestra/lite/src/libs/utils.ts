@@ -1,6 +1,7 @@
 import { utcParse } from "d3-time-format";
 import { round } from "lodash-es";
-import { find, forEach, size, sum } from "lodash-es";
+import { find, forEach, isEqual, size, sum } from "lodash-es";
+import { type ComputedGetter, computed, ref, watchEffect } from "vue";
 import type { Filter } from "@/types/filter";
 import { faSquareCheck } from "@fortawesome/free-regular-svg-icons";
 import { faFont, faHashtag, faList } from "@fortawesome/free-solid-svg-icons";
@@ -81,4 +82,16 @@ export function getStatsLength(stats?: object | any[]) {
     return undefined;
   }
   return size(find(stats, (stat) => stat != null));
+}
+
+export function deepComputed<T>(getter: ComputedGetter<T>) {
+  const value = computed(getter);
+  const cache = ref<T>();
+  watchEffect(() => {
+    if (!isEqual(cache.value, value.value)) {
+      cache.value = value.value;
+    }
+  });
+
+  return cache;
 }
