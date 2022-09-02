@@ -75,11 +75,17 @@ export const isVmRunning = vm => vm && vm.power_state === 'Running'
 
 // ===================================================================
 
-export const signOut = () => {
+const reload = () => {
   // prevent automatic reconnection
   xo.removeListener('closed', connect)
 
   window.location.reload(true)
+}
+
+export const signOut = () => {
+  cookies.remove('token')
+
+  reload()
 }
 
 export const connect = () => {
@@ -91,7 +97,7 @@ export const connect = () => {
 const xo = invoke(() => {
   const token = cookies.get('token')
   if (!token) {
-    signOut()
+    reload()
     throw new Error('no valid token')
   }
 
@@ -99,7 +105,7 @@ const xo = invoke(() => {
     credentials: { token },
   })
 
-  xo.on('authenticationFailure', signOut)
+  xo.on('authenticationFailure', reload)
   xo.on('scheduledAttempt', ({ delay }) => {
     console.warn('next attempt in %s ms', delay)
   })
