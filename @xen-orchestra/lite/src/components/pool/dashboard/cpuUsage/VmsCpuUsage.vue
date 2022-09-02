@@ -7,26 +7,30 @@
   </UsageBar>
 </template>
 <script lang="ts" setup>
-import { computed, onMounted, onUnmounted, ref, watchEffect } from "vue";
+import { computed, onMounted, onUnmounted } from "vue";
 import UsageBar from "@/components/UsageBar.vue";
 import useFetchStats from "@/composables/fetch-stats.composable";
-import { getAvgCpuUsage } from "@/libs/utils";
+import { deepComputed, getAvgCpuUsage } from "@/libs/utils";
 import { GRANULARITY, type VmStats } from "@/libs/xapi-stats";
-import type { XenApiVm } from "@/libs/xen-api";
 import { useVmStore } from "@/stores/vm.store";
 
 const vmStore = useVmStore();
 
-const runningVms = ref<XenApiVm[]>([]);
+const runningVms = deepComputed(() =>
+  vmStore.allRecords
+    .filter((vm) => vm.power_state === "Running")
+    .map((vm) => ({ uuid: vm.uuid, nameLabel: vm.name_label }))
+);
+
 const vmsWithStats = computed(() =>
-  runningVms.value.map((vm) => {
+  runningVms.value?.map((vm) => {
     const fetchStats = useFetchStats<VmStats>(
       "vm",
       vm.uuid,
       GRANULARITY.Seconds
     );
     return {
-      vmName: vm.name_label,
+      vmName: vm.nameLabel,
       stats: fetchStats.stats,
       pausable: fetchStats.pausable,
     };
@@ -37,7 +41,7 @@ const data = computed(() => {
   const vmsStats: { label: string; value: number }[] = [];
 
   for (const key in vmsWithStats.value) {
-    const vm = vmsWithStats.value[key];
+    const vm = vmsWithStats.value[Number(key)];
     const avgCpuUsage = getAvgCpuUsage(vm.stats.value?.stats.cpus);
 
     if (avgCpuUsage === undefined) {
@@ -52,22 +56,11 @@ const data = computed(() => {
   return vmsStats;
 });
 
-watchEffect(() => {
-  vmStore.allRecords.forEach((vm) => {
-    const index = runningVms.value.findIndex((_vm) => _vm.uuid === vm.uuid);
-    if (vm.power_state === "Running" && index === -1) {
-      runningVms.value.push(vm);
-    } else if (vm.power_state !== "Running" && index >= 0) {
-      runningVms.value.splice(index, 1);
-    }
-  });
-});
-
 onMounted(() => {
-  vmsWithStats.value.forEach((v) => v.pausable.resume());
+  vmsWithStats.value?.forEach((v) => v.pausable.resume());
 });
 
 onUnmounted(() => {
-  vmsWithStats.value.forEach((v) => v.pausable.pause());
+  vmsWithStats.value?.forEach((v) => v.pausable.pause());
 });
 </script>
