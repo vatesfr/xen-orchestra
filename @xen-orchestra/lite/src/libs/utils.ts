@@ -2,11 +2,7 @@ import { utcParse } from "d3-time-format";
 import humanFormat from "human-format";
 import { round } from "lodash-es";
 import { find, forEach, isEqual, size, sum } from "lodash-es";
-<<<<<<< HEAD
 import { type ComputedGetter, type Ref, computed, ref, watchEffect } from "vue";
-=======
-import { type ComputedGetter, computed, ref, watchEffect } from "vue";
->>>>>>> add deepComputed
 import type { Filter } from "@/types/filter";
 import { faSquareCheck } from "@fortawesome/free-regular-svg-icons";
 import { faFont, faHashtag, faList } from "@fortawesome/free-solid-svg-icons";
