@@ -11,7 +11,6 @@ import {
   faQuestion,
   faStop,
 } from "@fortawesome/pro-solid-svg-icons";
-import FormWidget from "@/components/FormWidget.vue";
 import type { PowerState } from "@/libs/xen-api";
 
 const props = defineProps<{

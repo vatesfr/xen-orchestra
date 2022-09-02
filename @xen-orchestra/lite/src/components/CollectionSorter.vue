@@ -108,4 +108,15 @@ const handleCancel = () => {
   align-items: center;
   gap: 0.7rem;
 }
+
+.form-widgets {
+  display: flex;
+  gap: 1rem;
+}
+
+.property {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+}
 </style>
