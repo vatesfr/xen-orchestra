@@ -10,7 +10,7 @@ import {
   faPlay,
   faQuestion,
   faStop,
-} from "@fortawesome/free-solid-svg-icons";
+} from "@fortawesome/pro-solid-svg-icons";
 import type { PowerState } from "@/libs/xen-api";
 
 const props = defineProps<{

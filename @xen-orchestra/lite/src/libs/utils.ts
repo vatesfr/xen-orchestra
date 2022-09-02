@@ -33,12 +33,6 @@ const iconsByType = {
   enum: faList,
 };
 
-export function formatSize(bytes: number) {
-  return bytes != null
-    ? humanFormat(bytes, { scale: "binary", unit: "B" })
-    : "N/D";
-}
-
 export function getFilterIcon(filter: Filter | undefined) {
   if (!filter) {
     return;

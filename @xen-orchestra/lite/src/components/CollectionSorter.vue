@@ -17,33 +17,33 @@
     </UiActionButton>
   </UiFilterGroup>
 
-  <UiModal v-if="isOpen" @submit.prevent="handleSubmit" :icon="faSort">
-    <div class="form-widgets">
-      <FormWidget :label="$t('sort-by')">
-        <select v-model="newSortProperty">
-          <option v-if="!newSortProperty"></option>
-          <option
-            v-for="(sort, property) in availableSorts"
-            :key="property"
-            :value="property"
-          >
-            {{ sort.label ?? property }}
-          </option>
-        </select>
-      </FormWidget>
-      <FormWidget>
-        <select v-model="newSortIsAscending">
-          <option :value="true">{{ $t("ascending") }}</option>
-          <option :value="false">{{ $t("descending") }}</option>
-        </select>
-      </FormWidget>
-    </div>
-    <template #buttons>
-      <UiButton type="submit">{{ $t("add") }}</UiButton>
-      <UiButton outlined @click="handleCancel">
-          {{ $t("cancel") }}
-        </UiButton>
-    </template>
+  <UiModal v-if="isOpen">
+    <form @submit.prevent="handleSubmit">
+      <div class="form-widgets">
+        <FormWidget label="Sort by">
+          <select v-model="newSortProperty">
+            <option v-if="!newSortProperty"></option>
+            <option
+              v-for="(sort, property) in availableSorts"
+              :key="property"
+              :value="property"
+            >
+              {{ sort.label ?? property }}
+            </option>
+          </select>
+        </FormWidget>
+        <FormWidget>
+          <select v-model="newSortIsAscending">
+            <option :value="true">ascending</option>
+            <option :value="false">descending</option>
+          </select>
+        </FormWidget>
+      </div>
+      <UiButtonGroup>
+        <UiButton type="submit"> Add</UiButton>
+        <UiButton color="secondary" @click="handleCancel">Cancel</UiButton>
+      </UiButtonGroup>
+    </form>
   </UiModal>
 </template>
 
@@ -98,6 +98,17 @@ const handleCancel = () => {
 </script>
 
 <style lang="postcss" scoped>
+.form-widgets {
+  display: flex;
+  gap: 1rem;
+}
+
+.property {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+
 .form-widgets {
   display: flex;
   gap: 1rem;

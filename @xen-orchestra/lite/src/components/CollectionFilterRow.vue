@@ -1,6 +1,6 @@
 <template>
   <div class="collection-filter-row">
-    <span class="or">{{ $t("or") }}</span>
+    <span class="or">OR</span>
     <FormWidget v-if="newFilter.isAdvanced" class="form-widget-advanced">
       <input v-model="newFilter.content" />
     </FormWidget>
@@ -248,6 +248,10 @@ const valueInputAfter = computed(() => {
   &:first-child .or {
     visibility: hidden;
   }
+}
+
+.form-widget-advanced {
+  flex: 1;
 }
 
 .form-widget-advanced {
