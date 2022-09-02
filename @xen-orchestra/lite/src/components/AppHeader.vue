@@ -7,7 +7,7 @@
     <div class="right">
       <FontAwesomeIcon
         :icon="colorModeIcon"
-        style="font-size: 1.5em"
+        style="font-size: 1.5em; cursor: pointer"
         @click="toggleTheme"
       />
       <FormWidget :before="faEarthAmericas">
@@ -59,10 +59,6 @@ const colorModeIcon = computed(() =>
 
   img {
     width: 4rem;
-  }
-
-  span {
-    cursor: pointer;
   }
 }
 

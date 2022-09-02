@@ -7,7 +7,9 @@
       </button>
     </template>
     <MenuItem :icon="faGear">Settings</MenuItem>
-    <MenuItem :icon="faMessage">Send us feedback</MenuItem>
+    <MenuItem :icon="faMessage" @click="openFeedbackUrl">
+      Send us feedback
+    </MenuItem>
     <MenuItem
       :icon="faArrowRightFromBracket"
       class="menu-item-logout"
@@ -38,6 +40,13 @@ const logout = () => {
   const xenApiStore = useXenApiStore();
   xenApiStore.disconnect();
   nextTick(() => router.push({ name: "home" }));
+};
+
+const openFeedbackUrl = () => {
+  window.open(
+    "https://xcp-ng.org/forum/topic/4731/xen-orchestra-lite",
+    "_blank"
+  );
 };
 </script>
 
