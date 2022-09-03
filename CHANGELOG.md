@@ -8,6 +8,7 @@
 - vhd-lib 4.0.1
 - @xen-orchestra/mixins 0.8.0
 - @xen-orchestra/proxy 0.26.1
+- xo-server 5.102.0
 
 ## **5.74.0** (2022-08-31)
 
