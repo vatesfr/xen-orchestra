@@ -7,6 +7,7 @@
 - @xen-orchestra/fs 3.1.0
 - vhd-lib 4.0.1
 - @xen-orchestra/mixins 0.8.0
+- @xen-orchestra/proxy 0.26.1
 
 ## **5.74.0** (2022-08-31)
 
