@@ -32,7 +32,6 @@
 
 <!--packages-start-->
 
-- @xen-orchestra/mixins minor
 - xo-server minor
 - xo-web minor
 
