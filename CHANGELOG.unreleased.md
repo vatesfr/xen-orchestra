@@ -33,7 +33,6 @@
 <!--packages-start-->
 
 - @xen-orchestra/mixins minor
-- vhd-lib patch
 - xo-server minor
 - xo-web minor
 
