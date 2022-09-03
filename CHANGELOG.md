@@ -9,6 +9,7 @@
 - @xen-orchestra/mixins 0.8.0
 - @xen-orchestra/proxy 0.26.1
 - xo-server 5.102.0
+- xo-web 5.103.0
 
 ## **5.74.0** (2022-08-31)
 
