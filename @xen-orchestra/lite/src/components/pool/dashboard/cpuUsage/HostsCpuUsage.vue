@@ -8,7 +8,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, onMounted, onUnmounted } from "vue";
+import { computed, onMounted, onUnmounted, watchEffect } from "vue";
 import UsageBar from "@/components/UsageBar.vue";
 import useFetchStats from "@/composables/fetch-stats.composable";
 import { getAvgCpuUsage } from "@/libs/utils";
@@ -47,6 +47,10 @@ const data = computed(() => {
     });
   }
   return hostsStats;
+});
+
+watchEffect(() => {
+  hostsWithStats.value.forEach((h) => h.pausable.resume());
 });
 
 onMounted(() => {

@@ -1,5 +1,5 @@
 import { type Ref, ref } from "vue";
-import { type Pausable, promiseTimeout, useIntervalFn } from "@vueuse/core";
+import { type Pausable, promiseTimeout, useTimeoutPoll } from "@vueuse/core";
 import type { GRANULARITY, XapiStatsResponse } from "@/libs/xapi-stats";
 import { useHostStore } from "@/stores/host.store";
 import { useVmStore } from "@/stores/vm.store";
@@ -22,8 +22,7 @@ export default function useFetchStats<T>(
     await promiseTimeout(stats.value.interval * 1000);
   };
 
-  const pausable = useIntervalFn(fetchStats);
-
+  const pausable = useTimeoutPoll(fetchStats, 0);
   return { stats, pausable } as {
     stats: Ref<XapiStatsResponse<T> | undefined>;
     pausable: Pausable;
