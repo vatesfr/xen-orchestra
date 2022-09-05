@@ -40,6 +40,9 @@ const ALLOCATION_BY_TYPE = {
 const { defineProperties, freeze } = Object
 
 function link(obj, prop, idField = '$id') {
+  if (obj === undefined) {
+    return undefined
+  }
   const dynamicValue = obj[`$${prop}`]
   if (dynamicValue == null) {
     return dynamicValue // Properly handles null and undefined.
@@ -107,7 +110,7 @@ const TRANSFORMS = {
       current_operations: obj.current_operations,
       default_SR: link(obj, 'default_SR'),
       HA_enabled: Boolean(obj.ha_enabled),
-      haSrs: obj.$ha_statefiles.map(vdi => link(vdi, 'SR')),
+      haSrs: obj.$ha_statefiles.map(vdi => link(vdi, 'SR')).filter(sr => sr !== undefined),
       master: link(obj, 'master'),
       tags: obj.tags,
       name_description: obj.name_description,
