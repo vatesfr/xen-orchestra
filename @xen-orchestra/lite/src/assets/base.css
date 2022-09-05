@@ -11,3 +11,13 @@ body {
   -moz-osx-font-smoothing: grayscale;
   color: var(--color-blue-scale-100);
 }
+
+a {
+  color: var(--color-extra-blue-base);
+}
+
+.card-view {
+  padding: 1.2rem;
+  display: flex;
+  gap: 2rem;
+}
