@@ -27,11 +27,11 @@ export default class Combobox extends Component {
   }
 
   render() {
-    const { options, ...props } = this.props
+    const { options, multiline = false, ...props } = this.props
 
     props.className = 'form-control'
     props.onChange = this._handleChange
-    const Input = props.multiline ? <textarea {...props} /> : <input {...props} />
+    const Input = multiline ? <textarea {...props} /> : <input {...props} />
 
     if (isEmpty(options)) {
       return Input
