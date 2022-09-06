@@ -8,55 +8,56 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, onMounted, onUnmounted, watchEffect } from "vue";
+import { differenceBy } from "lodash";
+import { computed, onMounted, watch } from "vue";
 import UsageBar from "@/components/UsageBar.vue";
 import useFetchStats from "@/composables/fetch-stats.composable";
 import { getAvgCpuUsage } from "@/libs/utils";
 import { GRANULARITY, type HostStats } from "@/libs/xapi-stats";
+import type { XenApiHost } from "@/libs/xen-api";
 import { useHostStore } from "@/stores/host.store";
+
+const { register, unregister, stats } = useFetchStats<XenApiHost, HostStats>(
+  "host",
+  GRANULARITY.Seconds
+);
 
 const hostStore = useHostStore();
 
-const hostsWithStats = computed(() =>
-  hostStore.allRecords.map((host) => {
-    const fetchStats = useFetchStats<HostStats>(
-      "host",
-      host.uuid,
-      GRANULARITY.Seconds
-    );
-    return {
-      hostname: host.name_label,
-      stats: fetchStats.stats,
-      pausable: fetchStats.pausable,
-    };
-  })
-);
+const data = computed<{ label: string; value: number }[]>(() => {
+  const result: { label: string; value: number }[] = [];
 
-const data = computed(() => {
-  const hostsStats: { label: string; value: number }[] = [];
-
-  for (const host of hostsWithStats.value) {
-    const avgCpuUsage = getAvgCpuUsage(host.stats.value?.stats.cpus);
-    if (avgCpuUsage === undefined) {
-      continue;
+  stats.value.forEach((stat) => {
+    if (stat.stats === undefined) {
+      return;
     }
 
-    hostsStats.push({
-      label: host.hostname,
+    const avgCpuUsage = getAvgCpuUsage(stat.stats.cpus);
+
+    if (avgCpuUsage === undefined) {
+      return;
+    }
+
+    result.push({
+      label: stat.name,
       value: avgCpuUsage,
     });
-  }
-  return hostsStats;
+  });
+  return result;
 });
 
-watchEffect(() => {
-  hostsWithStats.value.forEach((h) => h.pausable.resume());
-});
+watch(
+  () => hostStore.allRecords,
+  (hosts, previousHosts) => {
+    // Host turned On
+    differenceBy(hosts, previousHosts ?? [], "uuid").forEach(register);
+
+    // Host turned Off
+    differenceBy(previousHosts, hosts, "uuid").forEach(unregister);
+  }
+);
 
 onMounted(() => {
-  hostsWithStats.value.forEach((h) => h.pausable.resume());
-});
-onUnmounted(() => {
-  hostsWithStats.value.forEach((h) => h.pausable.pause());
+  hostStore.allRecords.forEach(register);
 });
 </script>

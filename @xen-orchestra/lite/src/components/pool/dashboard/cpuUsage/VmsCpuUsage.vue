@@ -7,63 +7,58 @@
   </UsageBar>
 </template>
 <script lang="ts" setup>
-import { computed, onMounted, onUnmounted, watchEffect } from "vue";
+import { differenceBy } from "lodash-es";
+import { computed, onMounted, watch } from "vue";
 import UsageBar from "@/components/UsageBar.vue";
 import useFetchStats from "@/composables/fetch-stats.composable";
-import { deepComputed, getAvgCpuUsage } from "@/libs/utils";
+import { getAvgCpuUsage } from "@/libs/utils";
 import { GRANULARITY, type VmStats } from "@/libs/xapi-stats";
+import type { XenApiVm } from "@/libs/xen-api";
 import { useVmStore } from "@/stores/vm.store";
+
+const { register, unregister, stats } = useFetchStats<XenApiVm, VmStats>(
+  "vm",
+  GRANULARITY.Seconds
+);
 
 const vmStore = useVmStore();
 
-const runningVms = deepComputed(() =>
-  vmStore.allRecords
-    .filter((vm) => vm.power_state === "Running")
-    .map((vm) => ({ uuid: vm.uuid, nameLabel: vm.name_label }))
+const runningVms = computed(() =>
+  vmStore.allRecords.filter((vm) => vm.power_state === "Running")
 );
 
-const vmsWithStats = computed(() =>
-  runningVms.value.map((vm) => {
-    const fetchStats = useFetchStats<VmStats>(
-      "vm",
-      vm.uuid,
-      GRANULARITY.Seconds
-    );
-    return {
-      vmName: vm.nameLabel,
-      stats: fetchStats.stats,
-      pausable: fetchStats.pausable,
-    };
-  })
-);
+watch(runningVms, (vms, previousVms) => {
+  // VMs turned On
+  differenceBy(vms, previousVms ?? [], "uuid").forEach(register);
 
-const data = computed(() => {
-  const vmsStats: { label: string; value: number }[] = [];
-
-  for (const vm of vmsWithStats.value) {
-    const avgCpuUsage = getAvgCpuUsage(vm.stats.value?.stats.cpus);
-
-    if (avgCpuUsage === undefined) {
-      continue;
-    }
-
-    vmsStats.push({
-      label: vm.vmName,
-      value: avgCpuUsage,
-    });
-  }
-  return vmsStats;
+  // VMs turned Off
+  differenceBy(previousVms, vms, "uuid").forEach(unregister);
 });
 
-watchEffect(() => {
-  vmsWithStats.value.forEach((v) => v.pausable.resume());
+const data = computed<{ label: string; value: number }[]>(() => {
+  const result: { label: string; value: number }[] = [];
+
+  stats.value.forEach((stat) => {
+    if (!stat.stats) {
+      return;
+    }
+
+    const avgCpuUsage = getAvgCpuUsage(stat.stats.cpus);
+
+    if (avgCpuUsage === undefined) {
+      return;
+    }
+
+    result.push({
+      label: stat.name,
+      value: avgCpuUsage,
+    });
+  });
+
+  return result;
 });
 
 onMounted(() => {
-  vmsWithStats.value.forEach((v) => v.pausable.resume());
-});
-
-onUnmounted(() => {
-  vmsWithStats.value.forEach((v) => v.pausable.pause());
+  runningVms.value.forEach(register);
 });
 </script>
