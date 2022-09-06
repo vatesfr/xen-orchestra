@@ -6,8 +6,7 @@
 </template>
 
 <script lang="ts" setup>
-import { faAngleDown } from "@fortawesome/pro-light-svg-icons";
-import { faCircleUser } from "@fortawesome/pro-solid-svg-icons";
+import { faAngleDown, faCircleUser } from "@fortawesome/free-solid-svg-icons";
 </script>
 
 <style scoped>

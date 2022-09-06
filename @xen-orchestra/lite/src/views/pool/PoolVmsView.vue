@@ -28,7 +28,7 @@
 import { storeToRefs } from "pinia";
 import { ref } from "vue";
 import type { Filters } from "@/types/filter";
-import { faPowerOff } from "@fortawesome/pro-solid-svg-icons";
+import { faPowerOff } from "@fortawesome/free-solid-svg-icons";
 import CollectionTable from "@/components/CollectionTable.vue";
 import ColumnHeader from "@/components/ColumnHeader.vue";
 import PowerStateIcon from "@/components/PowerStateIcon.vue";

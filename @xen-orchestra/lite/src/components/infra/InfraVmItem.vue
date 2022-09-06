@@ -17,7 +17,7 @@
 
 <script lang="ts" setup>
 import { computed, ref } from "vue";
-import { faDisplay } from "@fortawesome/pro-solid-svg-icons";
+import { faDisplay } from "@fortawesome/free-solid-svg-icons";
 import { useIntersectionObserver } from "@vueuse/core";
 import PowerStateIcon from "@/components/PowerStateIcon.vue";
 import InfraAction from "@/components/infra/InfraAction.vue";
