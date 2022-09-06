@@ -15,6 +15,7 @@ export default class Combobox extends Component {
     options: PropTypes.oneOfType([PropTypes.arrayOf(PropTypes.string), PropTypes.objectOf(PropTypes.string)]),
     onChange: PropTypes.func.isRequired,
     value: PropTypes.string.isRequired,
+    multiline: PropTypes.bool,
   }
 
   _handleChange = event => {
@@ -26,11 +27,11 @@ export default class Combobox extends Component {
   }
 
   render() {
-    const { options, ...props } = this.props
+    const { options, multiline = false, ...props } = this.props
 
     props.className = 'form-control'
     props.onChange = this._handleChange
-    const Input = <input {...props} />
+    const Input = multiline ? <textarea {...props} /> : <input {...props} />
 
     if (isEmpty(options)) {
       return Input

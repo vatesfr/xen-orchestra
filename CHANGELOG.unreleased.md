@@ -11,6 +11,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Plugin/auth-saml] Certificate input support multiline (PR [#6403](https://github.com/vatesfr/xen-orchestra/pull/6403))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -26,5 +28,9 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
+
+- xo-server-auth-saml patch
+- xo-server patch
+- xo-web patch
 
 <!--packages-end-->
