@@ -1,5 +1,23 @@
 # ChangeLog
 
+## **next**
+
+### Enhancements
+
+- [Dashboard/Health] Detect broken VHD chains and display missing parent VDIs (PR [#6356](https://github.com/vatesfr/xen-orchestra/pull/6356))
+- [Proxy] Ability to bind a licence to an existing proxy (PR [#6348](https://github.com/vatesfr/xen-orchestra/pull/6348))
+- [Backup] Implement encryption for backup files on storage (PR [#6321](https://github.com/vatesfr/xen-orchestra/pull/6321))
+- [VM/Console] Don't connect if the [console is disabled](https://support.citrix.com/article/CTX217766/how-to-disable-the-console-for-the-vm-in-xencenter) [#6319](https://github.com/vatesfr/xen-orchestra/issues/6319)
+
+### Released packages
+
+- @xen-orchestra/fs 3.1.0
+- vhd-lib 4.0.1
+- @xen-orchestra/mixins 0.8.0
+- @xen-orchestra/proxy 0.26.1
+- xo-server 5.102.0
+- xo-web 5.103.0
+
 ## **5.74.0** (2022-08-31)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
@@ -17,7 +35,7 @@
 - [Backup/Restore] Fix backup list not loading on page load (PR [#6364](https://github.com/vatesfr/xen-orchestra/pull/6364))
 - [Host] Fix `should not contains property ["ignoreBackup"]` on some host operations (PR [#6362](https://github.com/vatesfr/xen-orchestra/pull/6362))
 
-### Packages to release
+### Released packages
 
 - @xen-orchestra/fs 3.0.0
 - vhd-lib 4.0.0
