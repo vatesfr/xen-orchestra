@@ -887,7 +887,8 @@ export default class Xapi extends XapiBase {
             } catch (error) {
               return `${hostNameLabel}: ${error.message}`
             }
-          })
+          }),
+          error.code
         )
       }
     } else {
