@@ -1,5 +1,15 @@
 # ChangeLog
 
+## **next**
+
+### Bug fixes
+
+- [Host] Fix some missing pools and errors in SRs list when HA is used (PR [#6404](https://github.com/vatesfr/xen-orchestra/pull/6404))
+
+### Released packages
+
+- xo-server 5.102.1
+
 ## **5.74.1** (2022-09-03)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
