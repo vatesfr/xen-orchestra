@@ -107,7 +107,10 @@ const TRANSFORMS = {
       current_operations: obj.current_operations,
       default_SR: link(obj, 'default_SR'),
       HA_enabled: Boolean(obj.ha_enabled),
-      haSrs: obj.$ha_statefiles.map(vdi => link(vdi, 'SR')),
+
+      // ignore undefined VDIs, which occurs if the objects were not fetched/cached yet.
+      haSrs: obj.$ha_statefiles.filter(vdi => vdi !== undefined).map(vdi => link(vdi, 'SR')),
+
       master: link(obj, 'master'),
       tags: obj.tags,
       name_description: obj.name_description,
