@@ -1,7 +1,9 @@
 <template>
-  <RouterLink v-slot="{ isActive, href, navigate }" :to="route" custom>
+  <RouterLink v-slot="{ isExactActive, href, navigate }" :to="route" custom>
     <div
-      :class="{ current: isActive || $props.current }"
+      :class="
+        isExactActive ? 'exact-active' : $props.active ? 'active' : undefined
+      "
       class="infra-item-label"
       v-bind="$attrs"
     >
@@ -25,7 +27,7 @@ import type { IconDefinition } from "@fortawesome/fontawesome-common-types";
 defineProps<{
   icon: IconDefinition;
   route: RouteLocationRaw;
-  current?: boolean;
+  active?: boolean;
 }>();
 </script>
 
@@ -42,12 +44,13 @@ defineProps<{
     background-color: var(--background-color-secondary);
   }
 
-  &:active {
+  &:active,
+  &.active {
     color: var(--color-extra-blue-base);
     background-color: var(--background-color-primary);
   }
 
-  &.current {
+  &.exact-active {
     color: var(--color-blue-scale-100);
     background-color: var(--background-color-extra-blue);
 
