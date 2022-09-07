@@ -302,6 +302,7 @@ exports.cleanVm = async function cleanVm(
   }
 
   const jsons = new Set()
+  let mustInvalidateCache = false
   const xvas = new Set()
   const xvaSums = []
   const entries = await handler.list(vmDir, {
@@ -337,6 +338,7 @@ exports.cleanVm = async function cleanVm(
     } catch (error) {
       logWarn('failed to read backup metadata', { path: json, error })
       jsons.delete(json)
+      // @todo : should we delete this broken json ?
       return
     }
 
@@ -350,6 +352,7 @@ exports.cleanVm = async function cleanVm(
         if (remove) {
           logInfo('deleting incomplete backup', { path: json })
           jsons.delete(json)
+          mustInvalidateCache = true
           await handler.unlink(json)
         }
       }
@@ -372,6 +375,7 @@ exports.cleanVm = async function cleanVm(
         logWarn('some VHDs linked to the backup are missing', { backup: json, missingVhds })
         if (remove) {
           logInfo('deleting incomplete backup', { path: json })
+          mustInvalidateCache = true
           jsons.delete(json)
           await handler.unlink(json)
         }
@@ -528,11 +532,11 @@ exports.cleanVm = async function cleanVm(
     }
   })
 
-  const vmUuid = basename(vmDir)
-  // purge cache
-  await this.invalidateVmBackupListCache(vmUuid)
-  // pregenerate cache
-  await this.listVmBackups(vmUuid)
+  // purge cache if a metadata file has been deleted
+  if (mustInvalidateCache) {
+    const vmUuid = basename(vmDir)
+    await this.invalidateVmBackupListCache(vmUuid)
+  }
 
   return {
     // boolean whether some VHDs were merged (or should be merged)
