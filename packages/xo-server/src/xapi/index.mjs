@@ -46,8 +46,10 @@ import {
 const log = createLogger('xo:xapi')
 
 class AggregateError extends Error {
-  constructor(errors, message) {
+  constructor(errors, { code, message, params }) {
     super(message)
+    this.code = code
+    this.params = params
     this.errors = errors
   }
 }
@@ -888,7 +890,11 @@ export default class Xapi extends XapiBase {
               return `${hostNameLabel}: ${error.message}`
             }
           }),
-          error.code
+          {
+            code: error.code,
+            message: error.message,
+            params: error.params,
+          }
         )
       }
     } else {
