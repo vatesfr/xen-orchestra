@@ -28,6 +28,8 @@ const { isMetadataFile } = require('./_backupType.js')
 const { isValidXva } = require('./_isValidXva.js')
 const { listPartitions, LVM_PARTITION_TYPE } = require('./_listPartitions.js')
 const { lvs, pvs } = require('./_lvm.js')
+// @todo : this import is marked extraneous , sould be fixed when lib is published
+const { mount } = require('@xen-orchestra/fuse-vhd')
 
 const DIR_XO_CONFIG_BACKUPS = 'xo-config-backups'
 exports.DIR_XO_CONFIG_BACKUPS = DIR_XO_CONFIG_BACKUPS
@@ -44,8 +46,6 @@ const noop = Function.prototype
 const resolveRelativeFromFile = (file, path) => resolve('/', dirname(file), path).slice(1)
 
 const resolveSubpath = (root, path) => resolve(root, `.${resolve('/', path)}`)
-
-const RE_VHDI = /^vhdi(\d+)$/
 
 async function addDirectory(files, realPath, metadataPath) {
   const stats = await lstat(realPath)
@@ -323,31 +323,14 @@ class RemoteAdapter {
 
   async *getDisk(diskId) {
     const handler = this._handler
-
-    const diskPath = handler._getFilePath('/' + diskId)
     const mountDir = yield getTmpDir()
-    await fromCallback(execFile, 'vhdimount', [diskPath, mountDir])
+    const fuseMount = await mount(handler, diskId, mountDir)
     try {
-      let max = 0
-      let maxEntry
-      const entries = await readdir(mountDir)
-      entries.forEach(entry => {
-        const matches = RE_VHDI.exec(entry)
-        if (matches !== null) {
-          const value = +matches[1]
-          if (value > max) {
-            max = value
-            maxEntry = entry
-          }
-        }
-      })
-      if (max === 0) {
-        throw new Error('no disks found')
-      }
-
-      yield `${mountDir}/${maxEntry}`
+      yield `${mountDir}/vhd`
     } finally {
-      await fromCallback(execFile, 'fusermount', ['-uz', mountDir])
+      // must be in finally to be called correctly by the disposable
+      // this action is done a few minute after the last use of this disk
+      await fromCallback(cb => fuseMount.unmount(cb))
     }
   }
 

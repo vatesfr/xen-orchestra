@@ -1,0 +1,25 @@
+{
+  "name": "@xen-orchestra/fuse-vhd",
+  "version": "0.0.1",
+  "license": "AGPL-3.0-or-later",
+  "private": true,
+  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/fuse-vhd",
+  "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
+  "repository": {
+    "directory": "@xen-orchestra/fuse-vhd",
+    "type": "git",
+    "url": "https://github.com/vatesfr/xen-orchestra.git"
+  },
+  "author": {
+    "name": "Vates SAS",
+    "url": "https://vates.fr"
+  },
+  "engines": {
+    "node": ">=8.10"
+  },
+  "dependencies": {
+    "fuse-native": "^2.2.6",
+    "lru-cache": "^7.14.0",
+    "vhd-lib": "^4.0.1"
+  }
+}

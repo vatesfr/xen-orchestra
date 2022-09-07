@@ -360,4 +360,42 @@ exports.VhdAbstract = class VhdAbstract {
     }
     return true
   }
+
+  async readRawData(start, length, cache) {
+    const header = this.header
+    const blockSize = header.blockSize
+    const startBlockId = Math.floor(start / blockSize)
+    const endBlockId = Math.floor((start + length) / blockSize)
+
+    const startOffset = start % blockSize
+    let copied = 0
+    const result = Buffer.alloc(length, 0)
+    for (let blockId = startBlockId; blockId <= endBlockId; blockId++) {
+      let data
+      if (this.containsBlock(blockId)) {
+        if (!cache.has(blockId)) {
+          cache.set(
+            blockId,
+            new Promise((resolve, reject) => {
+              this.readBlock(blockId)
+                .then(block => {
+                  cache.set(blockId, block.data)
+                  resolve(block.data)
+                })
+                .catch(reject)
+            })
+          )
+        }
+        // the cache may contain a promise
+        data = await cache.get(blockId)
+      } else {
+        data = Buffer.alloc(blockSize, 0)
+      }
+      const offsetStart = blockId === startBlockId ? startOffset : 0
+      const offsetEnd = blockId === endBlockId ? (offsetStart + length) % blockSize : blockSize
+      data.copy(result, copied, offsetStart, offsetEnd)
+      copied += offsetEnd - offsetStart
+    }
+    return result
+  }
 }
