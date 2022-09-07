@@ -16,14 +16,18 @@
 </template>
 
 <script lang="ts" setup>
-import { faCopy, faEdit, faTrashCan } from "@fortawesome/pro-regular-svg-icons";
+import {
+  faCopy,
+  faEdit,
+  faTrashCan,
+} from "@fortawesome/free-regular-svg-icons";
 import {
   faBox,
   faCamera,
   faFileExport,
   faPowerOff,
   faRoute,
-} from "@fortawesome/pro-solid-svg-icons";
+} from "@fortawesome/free-solid-svg-icons";
 import UiButton from "@/components/ui/UiButton.vue";
 import UiButtonGroup from "@/components/ui/UiButtonGroup.vue";
 

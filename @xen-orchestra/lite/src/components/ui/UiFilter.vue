@@ -10,7 +10,7 @@
 </template>
 
 <script lang="ts" setup>
-import { faRemove } from "@fortawesome/pro-solid-svg-icons";
+import { faRemove } from "@fortawesome/free-solid-svg-icons";
 
 const emit = defineEmits<{
   (event: "edit"): void;

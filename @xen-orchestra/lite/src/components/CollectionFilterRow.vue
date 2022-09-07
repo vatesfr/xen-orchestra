@@ -89,7 +89,7 @@ import type {
   Filters,
   NewFilter,
 } from "@/types/filter";
-import { faPencil, faRemove } from "@fortawesome/pro-solid-svg-icons";
+import { faPencil, faRemove } from "@fortawesome/free-solid-svg-icons";
 import { useVModel } from "@vueuse/core";
 import FormWidget from "@/components/FormWidget.vue";
 import UiButton from "@/components/ui/UiButton.vue";
