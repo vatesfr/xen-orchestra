@@ -30,7 +30,10 @@
     "pinia": "^2.0.14",
     "placement.js": "^1.0.0-beta.5",
     "vue": "^3.2.37",
+<<<<<<< HEAD
     "vue-echarts": "^6.2.3",
+=======
+>>>>>>> feat(lite): i18n (#6399)
     "vue-i18n": "9",
     "vue-router": "^4.0.16"
   },

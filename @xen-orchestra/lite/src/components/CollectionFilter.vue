@@ -9,49 +9,52 @@
       {{ filter }}
     </UiFilter>
 
-    <UiActionButton :icon="faPlus" class="add-filter" @click="open">
+    <UiButton :icon="faPlus" class="add-filter" color="secondary" @click="open">
       {{ $t("add-filter") }}
-    </UiActionButton>
+    </UiButton>
   </UiFilterGroup>
 
-  <UiModal v-if="isOpen" :icon="faFilter" @submit.prevent="handleSubmit">
-    <div class="rows">
-      <CollectionFilterRow
-        v-for="(newFilter, index) in newFilters"
-        :key="newFilter.id"
-        v-model="newFilters[index]"
-        :available-filters="availableFilters"
-        @remove="removeNewFilter"
-      />
-    </div>
+  <UiModal v-if="isOpen">
+    <form @submit.prevent="handleSubmit">
+      <div class="rows">
+        <CollectionFilterRow
+          v-for="(newFilter, index) in newFilters"
+          :key="newFilter.id"
+          v-model="newFilters[index]"
+          :available-filters="availableFilters"
+          @remove="removeNewFilter"
+        />
+      </div>
 
-    <div
-      v-if="newFilters.some((filter) => filter.isAdvanced)"
-      class="available-properties"
-    >
-      {{ $t("available-properties-for-advanced-filter") }}
-      <div class="properties">
-        <UiBadge
-          v-for="(filter, property) in availableFilters"
-          :key="property"
-          :icon="getFilterIcon(filter)"
-        >
-          {{ property }}
-        </UiBadge>
+      <div
+        v-if="newFilters.some((filter) => filter.isAdvanced)"
+        class="available-properties"
+      >
+        {{ $t("available-properties-for-advanced-filter") }}
+        <div class="properties">
+          <UiBadge
+            v-for="(filter, property) in availableFilters"
+            :key="property"
+            :icon="getFilterIcon(filter)"
+          >
+            {{ property }}
+          </UiBadge>
+        </div>
       </div>
     </div>
 
-    <template #buttons>
-      <UiButton transparent @click="addNewFilter">
+      <UiButtonGroup>
+        <UiButton color="secondary" @click="addNewFilter">
           {{ $t("add-or") }}
         </UiButton>
-      <UiButton :disabled="!isFilterValid" type="submit">
-        {{ $t(editedFilter ? "update" : "add") }}
-      </UiButton>
-      <UiButton outlined @click="handleCancel">
+        <UiButton :disabled="!isFilterValid" type="submit">
+          {{ $t(editedFilter ? "update" : "add") }}
+        </UiButton>
+        <UiButton color="secondary" @click="handleCancel">
           {{ $t("cancel") }}
         </UiButton>
-    </template>
+      </UiButtonGroup>
+    </form>
   </UiModal>
 </template>
 

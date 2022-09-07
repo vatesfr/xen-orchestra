@@ -4,26 +4,15 @@
     class="vms-actions-bar"
     horizontal
   >
-    <MenuItem :icon="faPowerOff">{{ $t("change-power-state") }}</MenuItem>
-    <MenuItem :icon="faRoute">{{ $t("migrate") }}</MenuItem>
-    <MenuItem :icon="faCopy">{{ $t("copy") }}</MenuItem>
-    <MenuItem :icon="faEdit">{{ $t("edit-config") }}</MenuItem>
-    <MenuItem :icon="faCamera">{{ $t("snapshot") }}</MenuItem>
-    <MenuItem :icon="faBox">{{ $t("backup") }}</MenuItem>
-    <MenuItem :icon="faTrashCan">{{ $t("delete") }}</MenuItem>
-    <MenuItem :icon="faFileExport">
-      {{ $t("export") }}
-      <template #submenu>
-        <MenuItem :icon="faDisplay">{{ $t("export-vms") }}</MenuItem>
-        <MenuItem :icon="faCode">
-          {{ $t("export-table-to", { type: ".json" }) }}
-        </MenuItem>
-        <MenuItem :icon="faFileCsv">
-          {{ $t("export-table-to", { type: ".csv" }) }}
-        </MenuItem>
-      </template>
-    </MenuItem>
-  </AppMenu>
+    <UiButton :icon="faPowerOff">{{ $t("change-power-state") }}</UiButton>
+    <UiButton :icon="faRoute">{{ $t("migrate") }}</UiButton>
+    <UiButton :icon="faCopy">{{ $t("copy") }}</UiButton>
+    <UiButton :icon="faEdit">{{ $t("edit-config") }}</UiButton>
+    <UiButton :icon="faCamera">{{ $t("snapshot") }}</UiButton>
+    <UiButton :icon="faBox">{{ $t("backup") }}</UiButton>
+    <UiButton :icon="faTrashCan">{{ $t("delete") }}</UiButton>
+    <UiButton :icon="faFileExport">{{ $t("export") }}</UiButton>
+  </UiButtonGroup>
 </template>
 
 <script lang="ts" setup>

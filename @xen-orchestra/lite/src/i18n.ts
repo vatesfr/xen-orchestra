@@ -2,26 +2,8 @@ import { createI18n } from "vue-i18n";
 import en from "@/locales/en.json";
 import fr from "@/locales/fr.json";
 
-interface Locales {
-  [key: string]: {
-    code: string;
-    name: string;
-  };
-}
-
-export const locales: Locales = {
-  en: {
-    code: "en",
-    name: "English",
-  },
-  fr: {
-    code: "fr",
-    name: "Français",
-  },
-};
-
 export default createI18n<[typeof en], "en" | "fr">({
-  locale: localStorage.getItem("lang") ?? "en",
+  locale: "fr",
   fallbackLocale: "en",
   messages: {
     en,

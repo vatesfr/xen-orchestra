@@ -1,6 +1,6 @@
 <template>
   <div class="collection-filter-row">
-    <span class="or">OR</span>
+    <span class="or">{{ $t("or") }}</span>
     <FormWidget v-if="newFilter.isAdvanced" class="form-widget-advanced">
       <input v-model="newFilter.content" />
     </FormWidget>
@@ -73,6 +73,7 @@
 
 <script lang="ts" setup>
 import { computed, watch } from "vue";
+import { useI18n } from "vue-i18n";
 import type {
   Filter,
   FilterComparisonType,
