@@ -9,7 +9,7 @@
       {{ filter }}
     </UiFilter>
 
-    <UiActionButton :icon="faPlus" class="add-filter" @click="open" small>
+    <UiActionButton :icon="faPlus" class="add-filter" @click="open">
       {{ $t("add-filter") }}
     </UiActionButton>
   </UiFilterGroup>
