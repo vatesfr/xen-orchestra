@@ -89,7 +89,7 @@ const fontSize = ref("2rem");
 
 ### Icons
 
-This project is using Font Awesome Pro 6.
+This project is using Font Awesome 6 Free.
 
 Here is how to use an icon in your template.
 

@@ -57,7 +57,7 @@
 import { Or, parse } from "complex-matcher";
 import { computed, ref } from "vue";
 import type { Filters, NewFilter } from "@/types/filter";
-import { faPlus } from "@fortawesome/pro-solid-svg-icons";
+import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import CollectionFilterRow from "@/components/CollectionFilterRow.vue";
 import UiBadge from "@/components/ui/UiBadge.vue";
 import UiButton from "@/components/ui/UiButton.vue";
