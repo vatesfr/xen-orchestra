@@ -41,7 +41,7 @@ const isIcon = (maybeIcon: any): maybeIcon is IconDefinition =>
 
 <style lang="postcss" scoped>
 .form-widget {
-  display: flex;
+  display: inline-flex;
   align-items: stretch;
   gap: 1rem;
   font-size: 1.6rem;

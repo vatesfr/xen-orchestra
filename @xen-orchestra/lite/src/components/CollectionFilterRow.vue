@@ -1,6 +1,6 @@
 <template>
   <div class="collection-filter-row">
-    <span class="or">OR</span>
+    <span class="or">{{ $t("or") }}</span>
     <FormWidget v-if="newFilter.isAdvanced" class="form-widget-advanced">
       <input v-model="newFilter.content" />
     </FormWidget>
@@ -8,7 +8,7 @@
       <FormWidget :before="currentFilterIcon">
         <select v-model="newFilter.builder.property">
           <option v-if="!newFilter.builder.property" value="">
-            - Property -
+            - {{ $t("property") }} -
           </option>
           <option
             v-for="(filter, property) in availableFilters"
@@ -81,6 +81,7 @@
 
 <script lang="ts" setup>
 import { computed, watch } from "vue";
+import { useI18n } from "vue-i18n";
 import type {
   Filter,
   FilterComparisonType,
@@ -241,6 +242,10 @@ const valueInputAfter = computed(() => {
   padding: 1rem 0;
   border-bottom: 1px solid var(--background-color-secondary);
   gap: 1rem;
+
+  .or {
+    text-transform: uppercase;
+  }
 
   &:only-child {
     .or,
