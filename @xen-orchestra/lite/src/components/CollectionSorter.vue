@@ -13,14 +13,14 @@
     </UiFilter>
 
     <UiButton :icon="faPlus" class="add-sort" color="secondary" @click="open">
-      Add sort
+      {{ $t("add-sort") }}
     </UiButton>
   </UiFilterGroup>
 
   <UiModal v-if="isOpen">
     <form @submit.prevent="handleSubmit">
       <div class="form-widgets">
-        <FormWidget label="Sort by">
+        <FormWidget :label="$t('sort-by')">
           <select v-model="newSortProperty">
             <option v-if="!newSortProperty"></option>
             <option
@@ -34,14 +34,16 @@
         </FormWidget>
         <FormWidget>
           <select v-model="newSortIsAscending">
-            <option :value="true">ascending</option>
-            <option :value="false">descending</option>
+            <option :value="true">{{ $t("ascending") }}</option>
+            <option :value="false">{{ $t("descending") }}</option>
           </select>
         </FormWidget>
       </div>
       <UiButtonGroup>
-        <UiButton type="submit"> Add</UiButton>
-        <UiButton color="secondary" @click="handleCancel">Cancel</UiButton>
+        <UiButton type="submit">{{ $t("add") }}</UiButton>
+        <UiButton color="secondary" @click="handleCancel">
+          {{ $t("cancel") }}
+        </UiButton>
       </UiButtonGroup>
     </form>
   </UiModal>

@@ -4,14 +4,14 @@
     class="vms-actions-bar"
     color="secondary"
   >
-    <UiButton :icon="faPowerOff">Change power state</UiButton>
-    <UiButton :icon="faRoute">Migrate</UiButton>
-    <UiButton :icon="faCopy">Copy</UiButton>
-    <UiButton :icon="faEdit">Edit config</UiButton>
-    <UiButton :icon="faCamera">Snapshot</UiButton>
-    <UiButton :icon="faBox">Backup</UiButton>
-    <UiButton :icon="faTrashCan">Delete</UiButton>
-    <UiButton :icon="faFileExport">Export</UiButton>
+    <UiButton :icon="faPowerOff">{{ $t("change-power-state") }}</UiButton>
+    <UiButton :icon="faRoute">{{ $t("migrate") }}</UiButton>
+    <UiButton :icon="faCopy">{{ $t("copy") }}</UiButton>
+    <UiButton :icon="faEdit">{{ $t("edit-config") }}</UiButton>
+    <UiButton :icon="faCamera">{{ $t("snapshot") }}</UiButton>
+    <UiButton :icon="faBox">{{ $t("backup") }}</UiButton>
+    <UiButton :icon="faTrashCan">{{ $t("delete") }}</UiButton>
+    <UiButton :icon="faFileExport">{{ $t("export") }}</UiButton>
   </UiButtonGroup>
 </template>
 

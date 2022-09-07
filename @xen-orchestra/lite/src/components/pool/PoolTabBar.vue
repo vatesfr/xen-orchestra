@@ -3,48 +3,57 @@
     <TabBarItem
       :disabled="!isReady"
       :to="{ name: 'pool.dashboard', params: { uuid: poolUuid } }"
-      >Dashboard</TabBarItem
     >
+      {{ $t("dashboard") }}
+    </TabBarItem>
     <TabBarItem
       :disabled="!isReady"
       :to="{ name: 'pool.alarms', params: { uuid: poolUuid } }"
-      >Alarms</TabBarItem
     >
+      {{ $t("alarms") }}
+    </TabBarItem>
     <TabBarItem
       :disabled="!isReady"
       :to="{ name: 'pool.stats', params: { uuid: poolUuid } }"
-      >Stats</TabBarItem
     >
+      {{ $t("stats") }}
+    </TabBarItem>
     <TabBarItem
       :disabled="!isReady"
       :to="{ name: 'pool.system', params: { uuid: poolUuid } }"
-      >System</TabBarItem
     >
+      {{ $t("system") }}
+    </TabBarItem>
     <TabBarItem
       :disabled="!isReady"
       :to="{ name: 'pool.network', params: { uuid: poolUuid } }"
-      >Network</TabBarItem
     >
+      {{ $t("network") }}
+    </TabBarItem>
     <TabBarItem
       :disabled="!isReady"
       :to="{ name: 'pool.storage', params: { uuid: poolUuid } }"
-      >Storage</TabBarItem
     >
+      {{ $t("storage") }}
+    </TabBarItem>
     <TabBarItem
       :disabled="!isReady"
       :to="{ name: 'pool.tasks', params: { uuid: poolUuid } }"
-      >Tasks</TabBarItem
     >
+      {{ $t("tasks") }}
+    </TabBarItem>
     <TabBarItem
       :disabled="!isReady"
       :to="{ name: 'pool.hosts', params: { uuid: poolUuid } }"
-      >Hosts</TabBarItem
     >
+      {{ $t("hosts") }}
+    </TabBarItem>
     <TabBarItem
       :disabled="!isReady"
       :to="{ name: 'pool.vms', params: { uuid: poolUuid } }"
-      >VMs</TabBarItem
     >
+      {{ $t("vms") }}
+    </TabBarItem>
   </TabBar>
 </template>
 
