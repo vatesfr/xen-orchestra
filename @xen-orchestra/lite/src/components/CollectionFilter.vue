@@ -10,7 +10,7 @@
     </UiFilter>
 
     <UiButton :icon="faPlus" class="add-filter" color="secondary" @click="open">
-      Add filter
+      {{ $t("add-filter") }}
     </UiButton>
   </UiFilterGroup>
 
@@ -30,7 +30,7 @@
         v-if="newFilters.some((filter) => filter.isAdvanced)"
         class="available-properties"
       >
-        Available properties for advanced filter:
+        {{ $t("available-properties-for-advanced-filter") }}
         <div class="properties">
           <UiBadge
             v-for="(filter, property) in availableFilters"
@@ -43,11 +43,15 @@
       </div>
 
       <UiButtonGroup>
-        <UiButton color="secondary" @click="addNewFilter">+OR</UiButton>
-        <UiButton :disabled="!isFilterValid" type="submit">
-          {{ editedFilter ? "Update" : "Add" }}
+        <UiButton color="secondary" @click="addNewFilter">
+          {{ $t("add-or") }}
         </UiButton>
-        <UiButton color="secondary" @click="handleCancel">Cancel</UiButton>
+        <UiButton :disabled="!isFilterValid" type="submit">
+          {{ $t(editedFilter ? "update" : "add") }}
+        </UiButton>
+        <UiButton color="secondary" @click="handleCancel">
+          {{ $t("cancel") }}
+        </UiButton>
       </UiButtonGroup>
     </form>
   </UiModal>
