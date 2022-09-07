@@ -35,7 +35,7 @@
 <script lang="ts" setup>
 import { computed } from "vue";
 import type { IconDefinition } from "@fortawesome/fontawesome-common-types";
-import { faXmark } from "@fortawesome/pro-solid-svg-icons";
+import { faXmark } from "@fortawesome/free-solid-svg-icons";
 import { useMagicKeys, whenever } from "@vueuse/core";
 import UiButtonGroup from "@/components/ui/UiButtonGroup.vue";
 import UiTitle from "@/components/ui/UiTitle.vue";
