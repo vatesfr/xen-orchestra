@@ -243,6 +243,10 @@ const valueInputAfter = computed(() => {
   border-bottom: 1px solid var(--background-color-secondary);
   gap: 1rem;
 
+  .or {
+    text-transform: uppercase;
+  }
+
   &:only-child {
     .or,
     .remove {

@@ -53,11 +53,6 @@ export default createI18n<[typeof en], "en" | "fr">({
       },
     },
     fr: {
-      date_tiny: {
-        year: "2-digit",
-        month: "numeric",
-        day: "numeric",
-      },
       date_short: {
         year: "numeric",
         month: "numeric",
@@ -72,13 +67,6 @@ export default createI18n<[typeof en], "en" | "fr">({
         year: "numeric",
         month: "long",
         day: "numeric",
-      },
-      datetime_tiny: {
-        year: "2-digit",
-        month: "numeric",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
       },
       datetime_short: {
         year: "numeric",
