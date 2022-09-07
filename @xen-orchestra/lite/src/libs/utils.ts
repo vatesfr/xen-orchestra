@@ -2,8 +2,6 @@ import { utcParse } from "d3-time-format";
 import type { Filter } from "@/types/filter";
 import { faSquareCheck } from "@fortawesome/free-regular-svg-icons";
 import { faFont, faHashtag, faList } from "@fortawesome/free-solid-svg-icons";
-import type { RawXenApiRecord, XenApiHost, XenApiRecord } from "@/libs/xen-api";
-import { useHostMetricsStore } from "@/stores/host-metrics.store";
 
 export function sortRecordsByNameLabel(
   record1: { name_label: string },

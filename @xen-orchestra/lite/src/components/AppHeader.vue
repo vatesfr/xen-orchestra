@@ -16,7 +16,7 @@
 <script lang="ts" setup>
 import { computed, nextTick, ref } from "vue";
 import { useRouter } from "vue-router";
-import { faMoon, faSun } from "@fortawesome/pro-solid-svg-icons";
+import { faMoon, faSun } from "@fortawesome/free-solid-svg-icons";
 import { useLocalStorage } from "@vueuse/core";
 import { useXenApiStore } from "@/stores/xen-api.store";
 

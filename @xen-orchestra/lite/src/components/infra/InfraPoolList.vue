@@ -1,9 +1,6 @@
 <template>
   <ul class="infra-pool-list">
-    <InfraLoadingItem
-      v-if="!isReady || pool === undefined"
-      :icon="faBuilding"
-    />
+    <InfraLoadingItem v-if="!isReady" :icon="faBuilding" />
     <li v-else class="infra-pool-item">
       <InfraItemLabel
         :icon="faBuilding"

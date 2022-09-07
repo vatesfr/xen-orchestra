@@ -54,7 +54,6 @@ import {
   faCaretDown,
   faCaretUp,
   faPlus,
-  faSort,
 } from "@fortawesome/free-solid-svg-icons";
 import FormWidget from "@/components/FormWidget.vue";
 import UiButton from "@/components/ui/UiButton.vue";

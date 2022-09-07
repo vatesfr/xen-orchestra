@@ -23,37 +23,7 @@
 </template>
 
 <script lang="ts" setup>
-import { nextTick } from "vue";
-import { useRouter } from "vue-router";
-import {
-  faAngleDown,
-  faArrowRightFromBracket,
-  faCircleUser,
-  faGear,
-  faMessage,
-} from "@fortawesome/free-solid-svg-icons";
-import AppMenu from "@/components/menu/AppMenu.vue";
-import MenuItem from "@/components/menu/MenuItem.vue";
-import UiIcon from "@/components/ui/UiIcon.vue";
-import { useXenApiStore } from "@/stores/xen-api.store";
-
-const router = useRouter();
-
-const logout = () => {
-  const xenApiStore = useXenApiStore();
-  xenApiStore.disconnect();
-  nextTick(() => router.push({ name: "home" }));
-};
-
-const openFeedbackUrl = () => {
-  window.open(
-    "https://xcp-ng.org/forum/topic/4731/xen-orchestra-lite",
-    "_blank",
-    "noopener"
-  );
-};
-
-const openSettings = () => router.push({ name: "settings" });
+import { faAngleDown, faCircleUser } from "@fortawesome/free-solid-svg-icons";
 </script>
 
 <style scoped>

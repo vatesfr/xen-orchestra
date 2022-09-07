@@ -28,6 +28,11 @@
 
 <script lang="ts" setup>
 import {
+  faCopy,
+  faEdit,
+  faTrashCan,
+} from "@fortawesome/free-regular-svg-icons";
+import {
   faBox,
   faCamera,
   faCode,
@@ -38,10 +43,9 @@ import {
   faFileExport,
   faPowerOff,
   faRoute,
-  faTrashCan,
 } from "@fortawesome/free-solid-svg-icons";
-import AppMenu from "@/components/menu/AppMenu.vue";
-import MenuItem from "@/components/menu/MenuItem.vue";
+import UiButton from "@/components/ui/UiButton.vue";
+import UiButtonGroup from "@/components/ui/UiButtonGroup.vue";
 
 defineProps<{
   disabled?: boolean;
