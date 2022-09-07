@@ -54,7 +54,7 @@ const option = computed<EChartsOption>(() => ({
     subtext: props.subtitle,
   },
   legend: {
-    data: props.data.map((item) => item.label),
+    data: props.data.map((series) => series.label),
   },
   tooltip: {
     valueFormatter,

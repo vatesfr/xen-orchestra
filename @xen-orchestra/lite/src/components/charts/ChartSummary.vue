@@ -1,7 +1,7 @@
 <template>
   <div class="chart-summary">
     <div>
-      <div>TOTAL USED</div>
+      <div class="label">{{ $t("total-used") }}</div>
       <div>
         {{ usedPercent }}%
         <br />
@@ -9,7 +9,7 @@
       </div>
     </div>
     <div>
-      <div>TOTAL FREE</div>
+      <div class="label">{{ $t("total-free") }}</div>
       <div>
         {{ freePercent }}%
         <br />
@@ -51,5 +51,9 @@ const valueFormatter = inject("valueFormatter") as (value: number) => string;
     flex: 1;
     justify-content: space-between;
   }
+}
+
+.label {
+  text-transform: uppercase;
 }
 </style>
