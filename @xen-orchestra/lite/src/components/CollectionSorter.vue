@@ -54,7 +54,7 @@ import {
   faCaretDown,
   faCaretUp,
   faPlus,
-} from "@fortawesome/pro-solid-svg-icons";
+} from "@fortawesome/free-solid-svg-icons";
 import FormWidget from "@/components/FormWidget.vue";
 import UiButton from "@/components/ui/UiButton.vue";
 import UiButtonGroup from "@/components/ui/UiButtonGroup.vue";

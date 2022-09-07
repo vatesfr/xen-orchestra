@@ -1,7 +1,7 @@
 import { utcParse } from "d3-time-format";
 import type { Filter } from "@/types/filter";
-import { faSquareCheck } from "@fortawesome/pro-regular-svg-icons";
-import { faFont, faHashtag, faList } from "@fortawesome/pro-solid-svg-icons";
+import { faSquareCheck } from "@fortawesome/free-regular-svg-icons";
+import { faFont, faHashtag, faList } from "@fortawesome/free-solid-svg-icons";
 
 export function sortRecordsByNameLabel(
   record1: { name_label: string },
