@@ -7,10 +7,12 @@
         v-model="password"
         :readonly="isConnecting"
         name="password"
-        placeholder="Password"
+        :placeholder="$t('password')"
         type="password"
       />
-      <UiButton :busy="isConnecting" type="submit">Login</UiButton>
+      <UiButton :busy="isConnecting" type="submit">
+        {{ $t("login") }}
+      </UiButton>
     </form>
   </div>
 </template>
