@@ -1,40 +1,50 @@
 <template>
-  <div v-if="!isDisabled" ref="tooltip" class="app-tooltip">
+  <div v-if="!isDisabled" ref="tooltipElement" class="app-tooltip">
     <span class="triangle" />
     <span class="label">{{ content }}</span>
   </div>
 </template>
 
 <script lang="ts" setup>
-import placement, { type Options } from "placement.js";
-import { computed, onMounted, onUpdated, ref } from "vue";
+import { isFunction, isString } from "lodash-es";
+import place from "placement.js";
+import { computed, ref, watchEffect } from "vue";
+import type { TooltipOptions } from "@/stores/tooltip.store";
 
-// @TODO Use TooltipProps when supported by future Vue version
 const props = defineProps<{
-  content: string;
-  placement: Options["placement"];
-  disabled?: boolean | ((target: HTMLElement) => boolean);
   target: HTMLElement;
+  options: TooltipOptions;
 }>();
 
-const tooltip = ref<HTMLElement>();
+const tooltipElement = ref<HTMLElement>();
 
-const isDisabled = computed(() =>
-  "function" === typeof props.disabled
-    ? props.disabled(props.target)
-    : props.disabled
+const content = computed(() =>
+  isString(props.options) ? props.options : props.options.content
 );
 
-const updatePosition = () => {
-  if (tooltip.value) {
-    placement(props.target, tooltip.value, {
-      placement: props.placement ?? "top",
+const isDisabled = computed(() => {
+  if (isString(props.options)) {
+    return false;
+  }
+
+  if (isFunction(props.options.disabled)) {
+    return props.options.disabled(props.target);
+  }
+
+  return props.options.disabled ?? false;
+});
+
+const placement = computed(() =>
+  isString(props.options) ? "top" : props.options.placement ?? "top"
+);
+
+watchEffect(() => {
+  if (tooltipElement.value) {
+    place(props.target, tooltipElement.value, {
+      placement: placement.value,
     });
   }
-};
-
-onMounted(updatePosition);
-onUpdated(updatePosition);
+});
 </script>
 
 <style lang="postcss" scoped>

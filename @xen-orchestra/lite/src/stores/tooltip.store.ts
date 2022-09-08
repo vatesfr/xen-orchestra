@@ -1,45 +1,73 @@
 import { defineStore } from "pinia";
-import { computed, ref } from "vue";
-import type { TooltipProps } from "@/directives/tooltip.directive";
+import type { Options } from "placement.js";
+import { type EffectScope, computed, effectScope, ref } from "vue";
+import { type WindowEventName, useEventListener } from "@vueuse/core";
+
+export type TooltipOptions =
+  | string
+  | {
+      content: string;
+      placement: Options["placement"];
+      disabled?: boolean | ((target: HTMLElement) => boolean);
+    };
+
+export type TooltipEvents = { on: WindowEventName; off: WindowEventName };
 
 export const useTooltipStore = defineStore("tooltip", () => {
-  const registeredTooltips = ref(
-    new Map<HTMLElement, { active: boolean; props: TooltipProps }>()
-  );
+  const elementsScopes = new WeakMap<HTMLElement, EffectScope>();
+  const targets = ref(new Set<HTMLElement>());
+  const elementsOptions = ref(new Map<HTMLElement, TooltipOptions>());
 
-  const registerTooltip = (target: HTMLElement, props: TooltipProps) => {
-    if (!registeredTooltips.value.has(target)) {
-      registeredTooltips.value.set(target, { active: false, props });
-    } else {
-      const tooltip = registeredTooltips.value.get(target)!;
-      tooltip.props = props;
-    }
+  const register = (
+    target: HTMLElement,
+    options: TooltipOptions,
+    events: TooltipEvents
+  ) => {
+    const scope = effectScope();
+
+    elementsScopes.set(target, scope);
+    elementsOptions.value.set(target, options);
+
+    scope.run(() => {
+      useEventListener(target, events.on, () => {
+        targets.value.add(target);
+
+        scope.run(() => {
+          useEventListener(
+            target,
+            events.off,
+            () => {
+              targets.value.delete(target);
+            },
+            { once: true }
+          );
+        });
+      });
+    });
   };
 
-  const activeTooltips = computed(() =>
-    Array.from(registeredTooltips.value.values())
-      .filter((tooltip) => tooltip.active)
-      .map((tooltip) => tooltip.props)
-  );
-
-  const activate = (target: HTMLElement) => {
-    const tooltip = registeredTooltips.value.get(target);
-    if (tooltip) {
-      tooltip.active = true;
-    }
+  const updateOptions = (element: HTMLElement, options: TooltipOptions) => {
+    elementsOptions.value.set(element, options);
   };
 
-  const deactivate = (target: HTMLElement) => {
-    const tooltip = registeredTooltips.value.get(target);
-    if (tooltip) {
-      tooltip.active = false;
-    }
+  const unregister = (target: HTMLElement) => {
+    targets.value.delete(target);
+    elementsOptions.value.delete(target);
+    elementsScopes.get(target)?.stop();
+    elementsScopes.delete(target);
   };
 
   return {
-    tooltips: activeTooltips,
-    registerTooltip,
-    activate,
-    deactivate,
+    register,
+    unregister,
+    updateOptions,
+    tooltips: computed(() => {
+      return Array.from(targets.value.values()).map((target) => {
+        return {
+          target,
+          options: elementsOptions.value.get(target),
+        };
+      });
+    }),
   };
 });

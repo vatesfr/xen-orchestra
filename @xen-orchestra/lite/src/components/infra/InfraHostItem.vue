@@ -27,7 +27,7 @@
 
 <script lang="ts" setup>
 import { computed } from "vue";
-import vTooltip from "@/directives/tooltip.directive";
+import { vTooltip } from "@/directives/tooltip.directive";
 import {
   faAngleDown,
   faAngleUp,

@@ -24,7 +24,7 @@ By default, tooltip will appear centered above the target element.
 
 <script setup>
 import { ref } from "vue";
-import vTooltip from "@/directives/tooltip.directive";
+import { vTooltip } from "@/directives/tooltip.directive";
 
 const myTooltipContent = ref("Content");
 const isDisabled = ref(true);

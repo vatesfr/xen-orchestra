@@ -2,10 +2,8 @@
   <AppTooltip
     v-for="tooltip in tooltips"
     :key="tooltip.target"
-    :content="tooltip.content"
-    :placement="tooltip.placement"
+    :options="tooltip.options"
     :target="tooltip.target"
-    :disabled="tooltip.disabled"
   />
 </template>
 

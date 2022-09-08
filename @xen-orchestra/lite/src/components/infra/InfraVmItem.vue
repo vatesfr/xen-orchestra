@@ -24,7 +24,7 @@
 
 <script lang="ts" setup>
 import { computed, ref } from "vue";
-import vTooltip from "@/directives/tooltip.directive";
+import { vTooltip } from "@/directives/tooltip.directive";
 import { faDisplay } from "@fortawesome/free-solid-svg-icons";
 import { useIntersectionObserver } from "@vueuse/core";
 import PowerStateIcon from "@/components/PowerStateIcon.vue";
