@@ -1207,6 +1207,7 @@ import_.params = {
         optional: true,
       },
     },
+    additionalProperties: true,
   },
   type: { type: 'string', optional: true },
   sr: { type: 'string' },
