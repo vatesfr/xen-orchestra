@@ -38,7 +38,11 @@
   --color-red-vates-d40: #6A1919;
   --color-red-vates-d60: #471010;
 
+  --color-grayscale-100: #1C1C1C;
   --color-grayscale-200: #585757;
+  --color-grayscale-300: #969696;
+  --color-grayscale-400: #E8E8E8;
+  --color-grayscale-500: #FFFFFF;
 
   --background-color-primary: #FFFFFF;
   --background-color-secondary: #F6F6F7;
@@ -60,6 +64,12 @@
   --color-blue-scale-300: #595A6F;
   --color-blue-scale-400: #1A1B38;
   --color-blue-scale-500: #000000;
+
+  --color-grayscale-100: #E7E7E7;
+  --color-grayscale-200: #B8B8B8;
+  --color-grayscale-300: #707070;
+  --color-grayscale-400: #292929;
+  --color-grayscale-500: #000000;
 
   --background-color-primary: #14141D;
   --background-color-secondary: #17182A;
