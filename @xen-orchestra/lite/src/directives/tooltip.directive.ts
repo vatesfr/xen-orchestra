@@ -3,21 +3,21 @@ import type { TooltipEvents, TooltipOptions } from "@/stores/tooltip.store";
 import { useTooltipStore } from "@/stores/tooltip.store";
 
 export const vTooltip: Directive<HTMLElement, TooltipOptions> = {
-  mounted(element, binding) {
+  mounted(target, binding) {
     const store = useTooltipStore();
 
     const events: TooltipEvents = binding.modifiers.focus
       ? { on: "focusin", off: "focusout" }
       : { on: "mouseenter", off: "mouseleave" };
 
-    store.register(element, binding.value, events);
+    store.register(target, binding.value, events);
   },
-  updated(element, binding) {
+  updated(target, binding) {
     const store = useTooltipStore();
-    store.updateOptions(element, binding.value);
+    store.updateOptions(target, binding.value);
   },
-  beforeUnmount(element) {
+  beforeUnmount(target) {
     const store = useTooltipStore();
-    store.unregister(element);
+    store.unregister(target);
   },
 };

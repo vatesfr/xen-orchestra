@@ -14,9 +14,9 @@ export type TooltipOptions =
 export type TooltipEvents = { on: WindowEventName; off: WindowEventName };
 
 export const useTooltipStore = defineStore("tooltip", () => {
-  const elementsScopes = new WeakMap<HTMLElement, EffectScope>();
+  const targetsScopes = new WeakMap<HTMLElement, EffectScope>();
   const targets = ref(new Set<HTMLElement>());
-  const elementsOptions = ref(new Map<HTMLElement, TooltipOptions>());
+  const targetsOptions = ref(new Map<HTMLElement, TooltipOptions>());
 
   const register = (
     target: HTMLElement,
@@ -25,8 +25,8 @@ export const useTooltipStore = defineStore("tooltip", () => {
   ) => {
     const scope = effectScope();
 
-    elementsScopes.set(target, scope);
-    elementsOptions.value.set(target, options);
+    targetsScopes.set(target, scope);
+    targetsOptions.value.set(target, options);
 
     scope.run(() => {
       useEventListener(target, events.on, () => {
@@ -46,15 +46,15 @@ export const useTooltipStore = defineStore("tooltip", () => {
     });
   };
 
-  const updateOptions = (element: HTMLElement, options: TooltipOptions) => {
-    elementsOptions.value.set(element, options);
+  const updateOptions = (target: HTMLElement, options: TooltipOptions) => {
+    targetsOptions.value.set(target, options);
   };
 
   const unregister = (target: HTMLElement) => {
     targets.value.delete(target);
-    elementsOptions.value.delete(target);
-    elementsScopes.get(target)?.stop();
-    elementsScopes.delete(target);
+    targetsOptions.value.delete(target);
+    targetsScopes.get(target)?.stop();
+    targetsScopes.delete(target);
   };
 
   return {
@@ -65,7 +65,7 @@ export const useTooltipStore = defineStore("tooltip", () => {
       return Array.from(targets.value.values()).map((target) => {
         return {
           target,
-          options: elementsOptions.value.get(target),
+          options: targetsOptions.value.get(target),
         };
       });
     }),
