@@ -1,4 +1,5 @@
 import { utcParse } from "d3-time-format";
+import { round } from "lodash-es";
 import type { Filter } from "@/types/filter";
 import { faSquareCheck } from "@fortawesome/free-regular-svg-icons";
 import { faFont, faHashtag, faList } from "@fortawesome/free-solid-svg-icons";
@@ -51,4 +52,8 @@ export function parseDateTime(dateTime: string) {
     );
   }
   return date.getTime();
+}
+
+export function percent(currentValue: number, maxValue: number, precision = 2) {
+  return round((currentValue / maxValue) * 100, precision);
 }

@@ -66,14 +66,5 @@ useChartTheme();
   flex: 1;
   height: calc(100vh - 9rem);
   background-color: var(--background-color-secondary);
-  background-color: var(--background-color-primary);
-  border-right: 1px solid var(--color-blue-scale-400);
-}
-
-.main {
-  flex: 1;
-  background-color: var(--background-color-secondary);
-  height: calc(100vh - 9rem);
-  overflow: auto;
 }
 </style>
