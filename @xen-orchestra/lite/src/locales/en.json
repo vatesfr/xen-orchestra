@@ -31,5 +31,7 @@
   "switch-theme": "Switch theme",
   "system": "System",
   "tasks": "Tasks",
+  "total-free": "Total free",
+  "total-used": "Total used",
   "vms": "VMs"
 }
