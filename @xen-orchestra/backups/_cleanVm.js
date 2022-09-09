@@ -5,7 +5,7 @@ const UUID = require('uuid')
 const { asyncMap } = require('@xen-orchestra/async-map')
 const { Constants, openVhd, VhdAbstract, VhdFile } = require('vhd-lib')
 const { isVhdAlias, resolveVhdAlias } = require('vhd-lib/aliases')
-const { basename, dirname, resolve } = require('path')
+const { dirname, resolve } = require('path')
 const { DISK_TYPES } = Constants
 const { isMetadataFile, isVhdFile, isXvaFile, isXvaSumFile } = require('./_backupType.js')
 const { limitConcurrency } = require('limit-concurrency-decorator')
@@ -534,8 +534,8 @@ exports.cleanVm = async function cleanVm(
 
   // purge cache if a metadata file has been deleted
   if (mustInvalidateCache) {
-    const vmUuid = basename(vmDir)
-    await this.invalidateVmBackupListCache(vmUuid)
+    // cleanvm is always invoked as a method of RemoteAdapter
+    await this.#invalidateVmBackupListCacheDir(vmDir)
   }
 
   return {
