@@ -52,7 +52,7 @@
     "@xen-orchestra/template": "^0.1.0",
     "@xen-orchestra/xapi": "^1.4.2",
     "ajv": "^8.0.3",
-    "app-conf": "^2.1.0",
+    "app-conf": "^2.3.0",
     "async-iterator-to-stream": "^1.0.1",
     "base64url": "^3.0.0",
     "blocked-at": "^1.2.0",

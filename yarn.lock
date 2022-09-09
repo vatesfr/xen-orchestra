@@ -3735,10 +3735,10 @@ anymatch@^3.0.0, anymatch@^3.0.3, anymatch@~3.1.2:
     normalize-path "^3.0.0"
     picomatch "^2.0.4"
 
-app-conf@^2.1.0:
-  version "2.2.1"
-  resolved "https://registry.npmjs.org/app-conf/-/app-conf-2.2.1.tgz"
-  integrity sha512-n59K7vnj1OGdnfof6nZQZ+J+uvVOjc2OnJxuEr4MRLJ6o6DHZ2Y63e3ISCQFSRJvrw8PDZr8wm7PHhRHXJu2Zg==
+app-conf@^2.3.0:
+  version "2.3.0"
+  resolved "https://registry.yarnpkg.com/app-conf/-/app-conf-2.3.0.tgz#28422ece3af8c7062d3cec0994c5081cfd34b49c"
+  integrity sha512-8lBpd9xZorLyyDM+E4Umm6e+3DYpKoPWz4yzWVvayMfz3H3i/QPEJh7XkU5JMZCoUBoRh+OdXyUVIRZmLHUXZQ==
   dependencies:
     chokidar "^3.5.1"
     debug "^4.1.0"
