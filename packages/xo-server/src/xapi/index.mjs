@@ -882,16 +882,20 @@ export default class Xapi extends XapiBase {
           throw error
         }
 
-        throw new AggregateError(
-          await asyncMap(await this.call('host.get_all'), async hostRef => {
-            const hostNameLabel = await this.call('host.get_name_label', hostRef)
-            try {
-              await this.call('VM.assert_can_boot_here', vmRef, hostRef)
-              return `${hostNameLabel}: OK`
-            } catch (error) {
-              return `${hostNameLabel}: ${error.message}`
-            }
-          })
+        throw Object.assign(
+          new AggregateError(
+            await asyncMap(await this.call('host.get_all'), async hostRef => {
+              const hostNameLabel = await this.call('host.get_name_label', hostRef)
+              try {
+                await this.call('VM.assert_can_boot_here', vmRef, hostRef)
+                return `${hostNameLabel}: OK`
+              } catch (error) {
+                return `${hostNameLabel}: ${error.message}`
+              }
+            }),
+            error.message
+          ),
+          { code: error.code, params: error.params }
         )
       }
     } else {
