@@ -1,8 +1,64 @@
 # ChangeLog
 
-## **5.73.1** (2022-08-04)
+## **7.74.2** (2022-09-06)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
+### Bug fixes
+
+- [Host] Fix some missing pools and errors in SRs list when HA is used (PR [#6404](https://github.com/vatesfr/xen-orchestra/pull/6404))
+
+### Released packages
+
+- xo-server 5.102.1
+
+## **5.74.1** (2022-09-03)
+
+### Enhancements
+
+- [Dashboard/Health] Detect broken VHD chains and display missing parent VDIs (PR [#6356](https://github.com/vatesfr/xen-orchestra/pull/6356))
+- [Proxy] Ability to bind a licence to an existing proxy (PR [#6348](https://github.com/vatesfr/xen-orchestra/pull/6348))
+- [Backup] Implement encryption for backup files on storage (PR [#6321](https://github.com/vatesfr/xen-orchestra/pull/6321))
+- [VM/Console] Don't connect if the [console is disabled](https://support.citrix.com/article/CTX217766/how-to-disable-the-console-for-the-vm-in-xencenter) [#6319](https://github.com/vatesfr/xen-orchestra/issues/6319)
+
+### Released packages
+
+- @xen-orchestra/fs 3.1.0
+- vhd-lib 4.0.1
+- @xen-orchestra/mixins 0.8.0
+- @xen-orchestra/proxy 0.26.1
+- xo-server 5.102.0
+- xo-web 5.103.0
+
+## **5.74.0** (2022-08-31)
+
+### Enhancements
+
+- [Home/Storage] Show which SRs are used for HA state files [#6339](https://github.com/vatesfr/xen-orchestra/issues/6339) (PR [#6384](https://github.com/vatesfr/xen-orchestra/pull/6384))
+
+### Bug fixes
+
+- [Backup/Restore] Fix backup list not loading on page load (PR [#6364](https://github.com/vatesfr/xen-orchestra/pull/6364))
+- [Host] Fix `should not contains property ["ignoreBackup"]` on some host operations (PR [#6362](https://github.com/vatesfr/xen-orchestra/pull/6362))
+
+### Released packages
+
+- @xen-orchestra/fs 3.0.0
+- vhd-lib 4.0.0
+- @xen-orchestra/backups 0.27.4
+- @xen-orchestra/backups-cli 0.7.7
+- @xen-orchestra/xapi 1.4.2
+- xen-api 1.2.2
+- @xen-orchestra/proxy 0.26.0
+- vhd-cli 0.9.1
+- xo-vmdk-to-vhd 2.4.3
+- xo-server 5.101.0
+- xo-web 5.102.0
+
+## **5.73.1** (2022-08-04)
+
+<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
+
 ### Bug fixes
 
 - [Backup] Fix `incorrect backup size in metadata` on each merged VHD (PR [#6331](https://github.com/vatesfr/xen-orchestra/pull/6331))
@@ -55,8 +111,6 @@
 
 ## **5.72.1** (2022-07-11)
 
-<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
-
 ### Enhancements
 
 - [SR] When SR is in maintenance, add "Maintenance mode" badge next to its name (PR [#6313](https://github.com/vatesfr/xen-orchestra/pull/6313))
@@ -90,14 +144,10 @@
 
 ### Enhancements
 
-> Users must be able to say: “Nice enhancement, I'm eager to test it”
-
 - [Backup/Restore] Clearer error message when importing a VM backup requires XCP-n/CH >= 8.1 (PR [#6304](https://github.com/vatesfr/xen-orchestra/pull/6304))
 - [Backup] Users can use VHD directory on any remote type (PR [#6273](https://github.com/vatesfr/xen-orchestra/pull/6273))
 
 ### Bug fixes
-
-> Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [VDI Import] Fix `this._getOrWaitObject is not a function`
 - [VM] Attempting to delete a protected VM should display a modal with the error and the ability to bypass it (PR [#6290](https://github.com/vatesfr/xen-orchestra/pull/6290))

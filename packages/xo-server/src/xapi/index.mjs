@@ -382,6 +382,10 @@ export default class Xapi extends XapiBase {
   getVmConsole(vmId) {
     const vm = this.getObject(vmId)
 
+    if (vm.other_config.disable_pv_vnc === '1') {
+      throw new Error('console is disabled for this VM')
+    }
+
     const console = find(vm.$consoles, { protocol: 'rfb' })
     if (!console) {
       throw new Error('no RFB console found')

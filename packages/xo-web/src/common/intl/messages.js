@@ -4,6 +4,7 @@
 const forEach = require('lodash/forEach')
 
 const messages = {
+  alpha: 'Alpha',
   creation: 'Creation',
   description: 'Description',
   expiration: 'Expiration',
@@ -601,7 +602,14 @@ const messages = {
     'Store backup as multiple data blocks instead of a whole VHD file. (disables file level restore but allows faster merge)',
   remoteUseVhdDirectoryTooltip:
     'Your remote must be able to handle parallel access (up to 16 write processes per backup) and the number of files (500 files per GB of backed up data)',
-
+  remoteEncryptionBackupSize: 'Size of backup is not updated when using encryption.',
+  remoteEncryptionEncryptedfiles:
+    'All the files of the remote except the encryption.json are encrypted, that means you can only activate encryption or change key on an empty remote.',
+  remoteEncryptionMustUseVhd:
+    'Delta backup must use VHD saved as blocks (note: should be enforced when saving settings)',
+  remoteEncryptionKey: 'Encrypt all new data sent to this remote',
+  remoteEncryptionKeyStorageLocation:
+    "You won't be able to get your data back if you lose the encryption key. The encryption key is saved in the XO config backup, they should be secured correctly. Be careful, if you saved it on an encrypted remote, then you won't be able to access it without the remote encryption key.",
   // ------ New Storage -----
 
   newSr: 'New SR',
@@ -1280,6 +1288,7 @@ const messages = {
   protectFromDeletion: 'Protect from accidental deletion',
   protectFromShutdown: 'Protect from accidental shutdown',
   ha: 'HA',
+  srHaTooltip: 'SR used for High Availability',
   nestedVirt: 'Nested virtualization',
   vmAffinityHost: 'Affinity host',
   vmVga: 'VGA',
@@ -1449,7 +1458,9 @@ const messages = {
   alarmObject: 'Issue on',
   alarmPool: 'Pool',
   spaceLeftTooltip: '{used}% used ({free} left)',
+  unhealthyVdis: 'Unhealthy VDIs',
   vdisToCoalesce: 'VDIs to coalesce',
+  vdisWithInvalidVhdParent: 'VDIs with invalid parent VHD',
   srVdisToCoalesceWarning: 'This SR has more than {limitVdis, number} VDIs to coalesce',
 
   // ----- New VM -----
@@ -2245,7 +2256,7 @@ const messages = {
   xosanPool: 'Pool',
   xosanSize: 'Size',
   xosanUsedSpace: 'Used space',
-  xosanLicense: 'License',
+  license: 'License',
   xosanMultipleLicenses: 'This XOSAN has more than 1 license!',
   xosanNeedPack: 'XOSAN pack needs to be installed and up to date on each host of the pool.',
   xosanInstallIt: 'Install it now!',
@@ -2404,16 +2415,16 @@ const messages = {
   xosanAdminExpiredLicenseDisclaimer:
     'Your XOSAN license has expired. You can still use the SR but cannot administrate it anymore.',
   xosanCheckLicenseError: 'Could not check the license on this XOSAN SR',
-  xosanGetLicensesError: 'Could not fetch licenses',
+  getLicensesError: 'Could not fetch licenses',
   licenseHasExpired: 'License has expired.',
   licenseBoundToOtherXoa: 'License bound to another XOA',
   licenseBoundToThisXoa: 'This license is active on this XOA',
-  xosanLicenseExpiresDate: 'License expires on {date}.',
-  xosanUpdateLicenseMessage: 'Update the license now!',
+  licenseExpiresDate: 'License expires on {date}.',
+  updateLicenseMessage: 'Update the license now!',
   xosanUnknownSr: 'Unknown XOSAN SR.',
   contactUs: 'Contact us!',
   xosanNoLicense: 'No license.',
-  xosanUnlockNow: 'Unlock now!',
+  unlockNow: 'Unlock now!',
   selectLicense: 'Select a license',
   bindLicense: 'Bind license',
   expiresOn: 'expires on {date}',
@@ -2428,6 +2439,7 @@ const messages = {
   enterpriseLicense: 'Enterprise license',
   premiumLicense: 'Premium license',
   trialLicenseInfo: 'You are currently in a {edition} trial period that will end on {date, date, medium}',
+  proxyMultipleLicenses: 'This proxy has more than 1 license!',
 
   // ----- proxies -----
   deployProxyDisabled: 'Only available to XOA users',

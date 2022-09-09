@@ -52,11 +52,7 @@ createBonded.params = {
     },
   },
   mtu: { type: ['integer', 'string'], optional: true },
-  // RegExp since schema-inspector does not provide a param check based on an enumeration
-  bondMode: {
-    type: 'string',
-    pattern: new RegExp(`^(${getBondModes().join('|')})$`),
-  },
+  bondMode: { enum: getBondModes() },
 }
 
 createBonded.resolve = {

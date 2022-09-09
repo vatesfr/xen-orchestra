@@ -11,8 +11,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [Backup/Restore] Fix backup list not loading on page load (PR [#6364](https://github.com/vatesfr/xen-orchestra/pull/6364))
-- [Host] Fix `should not contains property ["ignoreBackup"]` on some host operations (PR [#6362](https://github.com/vatesfr/xen-orchestra/pull/6362))
+- [Plugin/auth-saml] Certificate input support multiline (PR [#6403](https://github.com/vatesfr/xen-orchestra/pull/6403))
 - [Start VM] Clearer error message when `NO_HOSTS_AVAILABLE` error is triggered [#6316](https://github.com/vatesfr/xen-orchestra/issues/6316) (PR [#6408](https://github.com/vatesfr/xen-orchestra/pull/6408))
 
 ### Packages to release
@@ -31,12 +30,8 @@
 
 <!--packages-start-->
 
-- @xen-orchestra/backups patch
-- @xen-orchestra/fs major
-- @xen-orchestra/proxy minor
-- vhd-lib major
-- xo-vmdk-to-vhd patch
-- xo-server minor
+- xo-server-auth-saml patch
+- xo-server patch
 - xo-web patch
 
 <!--packages-end-->

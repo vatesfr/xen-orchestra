@@ -296,6 +296,7 @@ create.params = {
         SR: { type: 'string' },
         type: { type: 'string' },
       },
+      additionalProperties: true,
     },
   },
 
@@ -303,9 +304,7 @@ create.params = {
   existingDisks: {
     optional: true,
     type: 'object',
-
-    // Do not for a type object.
-    items: {
+    additionalProperties: {
       type: 'object',
       properties: {
         size: {
@@ -317,6 +316,7 @@ create.params = {
           optional: true,
         },
       },
+      additionalProperties: true,
     },
   },
 
@@ -325,7 +325,7 @@ create.params = {
   copyHostBiosStrings: { type: 'boolean', optional: true },
 
   // other params are passed to `editVm`
-  '*': { type: 'any' },
+  '*': {},
 }
 
 create.resolve = {
@@ -594,8 +594,7 @@ set.params = {
 
   high_availability: {
     optional: true,
-    pattern: new RegExp(`^(${getHaValues().join('|')})$`),
-    type: 'string',
+    enum: getHaValues(),
   },
 
   // Number of virtual CPUs to allocate.
@@ -803,7 +802,7 @@ convertToTemplate.resolve = {
 }
 
 // TODO: remove when no longer used.
-export { convertToTemplate as convert }
+export const convert = 'convertToTemplate'
 
 // -------------------------------------------------------------------
 
@@ -1208,6 +1207,7 @@ import_.params = {
         optional: true,
       },
     },
+    additionalProperties: true,
   },
   type: { type: 'string', optional: true },
   sr: { type: 'string' },

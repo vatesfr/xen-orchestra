@@ -3,8 +3,10 @@
 const CancelToken = require('promise-toolbox/CancelToken')
 const Zone = require('node-zone')
 
-const logAfterEnd = () => {
-  throw new Error('task has already ended')
+const logAfterEnd = log => {
+  const error = new Error('task has already ended')
+  error.log = log
+  throw error
 }
 
 const noop = Function.prototype

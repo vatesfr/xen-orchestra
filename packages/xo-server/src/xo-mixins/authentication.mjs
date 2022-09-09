@@ -221,22 +221,26 @@ export default class {
     return db.remove((await db.get(predicate)).filter(createPredicate(filter)).map(({ id }) => id))
   }
 
+  async _getAuthenticationToken(id, properties) {
+    const token = await this._tokens.first(properties ?? id)
+    if (token !== undefined) {
+      unserialize(token)
+
+      if (token.expiration > Date.now()) {
+        return token
+      }
+
+      this._tokens.remove(id)::ignoreErrors()
+    }
+  }
+
   async getAuthenticationToken(properties) {
     const id = typeof properties === 'string' ? properties : properties.id
 
-    const token = await this._tokens.first(properties)
+    const token = await this._getAuthenticationToken(id, properties)
     if (token === undefined) {
       throw noSuchAuthenticationToken(id)
     }
-
-    unserialize(token)
-
-    if (!(token.expiration > Date.now())) {
-      this._tokens.remove(id)::ignoreErrors()
-
-      throw noSuchAuthenticationToken(id)
-    }
-
     return token
   }
 
@@ -259,6 +263,10 @@ export default class {
     tokensDb.remove(toRemove).catch(log.warn)
 
     return tokens
+  }
+
+  async isValidAuthenticationToken(id) {
+    return (await this.getAuthenticationToken(id)) !== undefined
   }
 
   async updateAuthenticationToken(properties, { description }) {

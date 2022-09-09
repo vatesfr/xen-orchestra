@@ -18,7 +18,10 @@ const handlerPath = require('@xen-orchestra/fs/path')
 // checking the size of a vhd directory is costly
 // 1 Http Query per 1000 blocks
 // we only check size of all the vhd are VhdFiles
-function shouldComputeVhdsSize(vhds) {
+function shouldComputeVhdsSize(handler, vhds) {
+  if (handler.isEncrypted) {
+    return false
+  }
   return vhds.every(vhd => vhd instanceof VhdFile)
 }
 
@@ -26,7 +29,7 @@ const computeVhdsSize = (handler, vhdPaths) =>
   Disposable.use(
     vhdPaths.map(vhdPath => openVhd(handler, vhdPath)),
     async vhds => {
-      if (shouldComputeVhdsSize(vhds)) {
+      if (shouldComputeVhdsSize(handler, vhds)) {
         const sizes = await asyncMap(vhds, vhd => vhd.getSize())
         return sum(sizes)
       }
@@ -486,7 +489,11 @@ exports.cleanVm = async function cleanVm(
       if (mode === 'full') {
         // a full backup : check size
         const linkedXva = resolve('/', vmDir, xva)
-        fileSystemSize = await handler.getSize(linkedXva)
+        try {
+          fileSystemSize = await handler.getSize(linkedXva)
+        } catch (error) {
+          // can fail with encrypted remote
+        }
       } else if (mode === 'delta') {
         const linkedVhds = Object.keys(vhds).map(key => resolve('/', vmDir, vhds[key]))
         fileSystemSize = await computeVhdsSize(handler, linkedVhds)
