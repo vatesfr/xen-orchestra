@@ -12,7 +12,6 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [Plugin/auth-saml] Certificate input support multiline (PR [#6403](https://github.com/vatesfr/xen-orchestra/pull/6403))
-- [Start VM] Clearer error message when `NO_HOSTS_AVAILABLE` error is triggered [#6316](https://github.com/vatesfr/xen-orchestra/issues/6316) (PR [#6408](https://github.com/vatesfr/xen-orchestra/pull/6408))
 
 ### Packages to release
 
@@ -31,7 +30,6 @@
 <!--packages-start-->
 
 - xo-server-auth-saml patch
-- xo-server patch
 - xo-web patch
 
 <!--packages-end-->

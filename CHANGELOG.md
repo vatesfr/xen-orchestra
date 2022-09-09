@@ -1,8 +1,19 @@
 # ChangeLog
 
-## **7.74.2** (2022-09-06)
+## **7.74.3** (2022-09-09)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
+### Bug fixes
+
+- [Start VM] Clearer error message when `NO_HOSTS_AVAILABLE` error is triggered [#6316](https://github.com/vatesfr/xen-orchestra/issues/6316) (PR [#6408](https://github.com/vatesfr/xen-orchestra/pull/6408))
+- [OVA Import] Fix `invalid parameters` error
+
+### Released packages
+
+- xo-server 5.102.2
+
+## **7.74.2** (2022-09-06)
 
 ### Bug fixes
 
