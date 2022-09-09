@@ -11,7 +11,7 @@
 
 ### Released packages
 
-- xo-server 5.102.2
+- xo-server 5.102.3
 
 ## **7.74.2** (2022-09-06)
 
