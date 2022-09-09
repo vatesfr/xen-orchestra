@@ -52,20 +52,12 @@ exports.MixinBackupWriter = (BaseClass = Object) =>
     }
 
     async afterBackup() {
-      const { disableMergeWorker, disableCachePregeneration } = this._backup.config
+      const { disableMergeWorker } = this._backup.config
       // merge worker only compatible with local remotes
       const { handler } = this._adapter
       const willMergeInWorker = !disableMergeWorker && typeof handler._getRealPath === 'function'
 
       const { merge } = await this._cleanVm({ remove: true, merge: !willMergeInWorker })
-
-      // cache should be refreshed since we added on new backup
-      // and also cleanVm may have deleted brokenc json
-      await this.invalidateVmBackupListCache(this._backup.vm.uuid)
-
-      if (!disableCachePregeneration) {
-        await this.listVmBackups(this._backup.vm.uuid)
-      }
       await this.#lock.dispose()
 
       if (merge && willMergeInWorker) {
@@ -79,5 +71,6 @@ exports.MixinBackupWriter = (BaseClass = Object) =>
         const remotePath = handler._getRealPath()
         await MergeWorker.run(remotePath)
       }
+      await this._adapter.invalidateVmBackupListCache(this._backup.vm.uuid)
     }
   }
