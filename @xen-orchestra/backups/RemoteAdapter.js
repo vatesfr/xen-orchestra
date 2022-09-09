@@ -233,7 +233,7 @@ class RemoteAdapter {
       )
     )) {
       // detached async action, will not reject
-      this.#updateCache(dir + '/cache.json.gz', backups => {
+      this._updateCache(dir + '/cache.json.gz', backups => {
         for (const filename of filenames) {
           delete backups[filename]
         }
@@ -490,7 +490,9 @@ class RemoteAdapter {
     }
   }
 
-  async #updateCache(path, fn) {
+  _updateCache = synchronized.withKey()(this._updateCache)
+  // eslint-disable-next-line no-dupe-class-members
+  async _updateCache(path, fn) {
     const cache = await this.#readCache(path)
     if (cache !== undefined) {
       fn(cache)
@@ -612,7 +614,7 @@ class RemoteAdapter {
     })
 
     // will not throw
-    this.#updateCache(this.#getVmBackupsCache(vmUuid), backups => {
+    this._updateCache(this.#getVmBackupsCache(vmUuid), backups => {
       backups[path] = {
         ...metadata,
 
