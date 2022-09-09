@@ -3,10 +3,13 @@
 const { createLogger } = require('@xen-orchestra/log')
 const { join } = require('path')
 
-const { getVmBackupDir } = require('../_getVmBackupDir.js')
-const MergeWorker = require('../merge-worker/index.js')
+const assert = require('assert')
 const { formatFilenameDate } = require('../_filenameDate.js')
+const { getVmBackupDir } = require('../_getVmBackupDir.js')
+const { HealthCheckVmBackup } = require('../HealthCheckVmBackup.js')
+const { ImportVmBackup } = require('../ImportVmBackup.js')
 const { Task } = require('../Task.js')
+const MergeWorker = require('../merge-worker/index.js')
 
 const { info, warn } = createLogger('xo:backups:MixinBackupWriter')
 
@@ -72,5 +75,39 @@ exports.MixinBackupWriter = (BaseClass = Object) =>
         await MergeWorker.run(remotePath)
       }
       await this._adapter.invalidateVmBackupListCache(this._backup.vm.uuid)
+    }
+
+    healthCheck(sr) {
+      assert.notStrictEqual(
+        this._metadataFileName,
+        undefined,
+        'Metadata file name should be defined before making a healthcheck'
+      )
+      return Task.run(
+        {
+          name: 'health check',
+        },
+        async () => {
+          const xapi = sr.$xapi
+          const srUuid = sr.uuid
+          const adapter = this._adapter
+          const metadata = await adapter.readVmBackupMetadata(this._metadataFileName)
+          const { id: restoredId } = await new ImportVmBackup({
+            adapter,
+            metadata,
+            srUuid,
+            xapi,
+          }).run()
+          const restoredVm = xapi.getObject(restoredId)
+          try {
+            await new HealthCheckVmBackup({
+              restoredVm,
+              xapi,
+            }).run()
+          } finally {
+            await xapi.VM_destroy(restoredVm.$ref)
+          }
+        }
+      )
     }
   }
