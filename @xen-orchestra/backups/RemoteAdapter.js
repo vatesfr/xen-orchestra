@@ -458,11 +458,11 @@ class RemoteAdapter {
     return backupsByPool
   }
 
-  async #invalidateVmBackupListCacheDir(vmDir) {
+  async _invalidateVmBackupListCacheDir(vmDir) {
     await this.handler.unlink(`${vmDir}/cache.json.gz`)
   }
   async invalidateVmBackupListCache(vmUuid) {
-    await this.#invalidateVmBackupListCacheDir(`${BACKUP_DIR}/${vmUuid}`)
+    await this._invalidateVmBackupListCacheDir(`${BACKUP_DIR}/${vmUuid}`)
   }
 
   async #getCachabledDataListVmBackups(dir) {
