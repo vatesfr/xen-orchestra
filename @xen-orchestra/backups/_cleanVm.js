@@ -302,6 +302,7 @@ exports.cleanVm = async function cleanVm(
   }
 
   const jsons = new Set()
+  let mustInvalidateCache = false
   const xvas = new Set()
   const xvaSums = []
   const entries = await handler.list(vmDir, {
@@ -350,6 +351,7 @@ exports.cleanVm = async function cleanVm(
         if (remove) {
           logInfo('deleting incomplete backup', { path: json })
           jsons.delete(json)
+          mustInvalidateCache = true
           await handler.unlink(json)
         }
       }
@@ -372,6 +374,7 @@ exports.cleanVm = async function cleanVm(
         logWarn('some VHDs linked to the backup are missing', { backup: json, missingVhds })
         if (remove) {
           logInfo('deleting incomplete backup', { path: json })
+          mustInvalidateCache = true
           jsons.delete(json)
           await handler.unlink(json)
         }
@@ -527,6 +530,12 @@ exports.cleanVm = async function cleanVm(
       }
     }
   })
+
+  // purge cache if a metadata file has been deleted
+  if (mustInvalidateCache) {
+    // cleanvm is always invoked as a method of RemoteAdapter
+    await this._invalidateVmBackupListCacheDir(vmDir)
+  }
 
   return {
     // boolean whether some VHDs were merged (or should be merged)
