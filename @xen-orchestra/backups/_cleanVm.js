@@ -338,7 +338,6 @@ exports.cleanVm = async function cleanVm(
     } catch (error) {
       logWarn('failed to read backup metadata', { path: json, error })
       jsons.delete(json)
-      // @todo : should we delete this broken json ?
       return
     }
 
