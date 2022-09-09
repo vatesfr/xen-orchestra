@@ -31,8 +31,8 @@ import {
   faSun,
 } from "@fortawesome/free-solid-svg-icons";
 import { useLocalStorage } from "@vueuse/core";
-import FormWidget from "@/components/FormWidget.vue";
 import AccountButton from "@/components/AccountButton.vue";
+import FormWidget from "@/components/FormWidget.vue";
 
 const router = useRouter();
 

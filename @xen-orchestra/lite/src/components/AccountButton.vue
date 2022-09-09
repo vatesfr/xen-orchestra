@@ -21,11 +21,12 @@
 </template>
 
 <script lang="ts" setup>
-import { faAngleDown, faCircleUser } from "@fortawesome/free-solid-svg-icons";
 import { nextTick } from "vue";
 import { useRouter } from "vue-router";
 import {
+  faAngleDown,
   faArrowRightFromBracket,
+  faCircleUser,
   faGear,
   faMessage,
 } from "@fortawesome/free-solid-svg-icons";

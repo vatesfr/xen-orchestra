@@ -1,8 +1,8 @@
 <template>
   <AppMenu
-    horizontal
     :disabled="selectedRefs.length === 0"
     class="vms-actions-bar"
+    horizontal
   >
     <MenuItem :icon="faPowerOff">{{ $t("change-power-state") }}</MenuItem>
     <MenuItem :icon="faRoute">{{ $t("migrate") }}</MenuItem>
@@ -14,9 +14,9 @@
     <MenuItem :icon="faFileExport">
       {{ $t("export") }}
       <template #submenu>
-        <MenuItem :icon="faDisplay">Export VMs</MenuItem>
-        <MenuItem :icon="faCode">Export table in .json</MenuItem>
-        <MenuItem :icon="faFileCsv">Export table in .csv</MenuItem>
+        <MenuItem :icon="faDisplay">{{ $t("export-vms") }}</MenuItem>
+        <MenuItem :icon="faCode">{{ $t("export-table-json") }}</MenuItem>
+        <MenuItem :icon="faFileCsv">{{ $t("export-table-csv") }}</MenuItem>
       </template>
     </MenuItem>
   </AppMenu>
@@ -24,7 +24,6 @@
 
 <script lang="ts" setup>
 import {
-  faTrashCan,
   faBox,
   faCamera,
   faCode,
@@ -35,6 +34,7 @@ import {
   faFileExport,
   faPowerOff,
   faRoute,
+  faTrashCan,
 } from "@fortawesome/free-solid-svg-icons";
 import AppMenu from "@/components/menu/AppMenu.vue";
 import MenuItem from "@/components/menu/MenuItem.vue";

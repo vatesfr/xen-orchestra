@@ -34,7 +34,7 @@
 <script lang="ts" setup>
 import { computed, inject, ref, unref } from "vue";
 import type { IconDefinition } from "@fortawesome/fontawesome-common-types";
-import { faAngleDown, faAngleRight } from "@fortawesome/pro-light-svg-icons";
+import { faAngleDown, faAngleRight } from "@fortawesome/free-solid-svg-icons";
 import { noop } from "@vueuse/core";
 import AppMenu from "@/components/menu/AppMenu.vue";
 import MenuTrigger from "@/components/menu/MenuTrigger.vue";
