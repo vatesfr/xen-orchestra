@@ -14,8 +14,8 @@ SERVER="www-xo.gpn.vates.fr"
 
 echo "Building XO Lite"
 
-yarn
-yarn build-only --base=$BASE
+(cd ../.. && yarn)
+yarn build-only --base="$BASE"
 
 echo "Deploying XO Lite from $DIST"
 
@@ -52,7 +52,7 @@ $(
 
 rsync \
   -r --delete --delete-excluded --exclude=index.html \
-  $DIST/ \
+  "$DIST"/ \
   "$USERNAME@$SERVER:xo-lite"
 
 echo "XO Lite files sent to server"
