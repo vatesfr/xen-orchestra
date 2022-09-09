@@ -226,21 +226,19 @@ class RemoteAdapter {
   }
 
   #removeVmBackupsFromCache(backups) {
-    // will not throw
-    asyncMap(
-      Object.entries(
-        groupBy(
-          backups.map(_ => _._filename),
-          dirname
-        )
-      ),
-      ([dir, filenames]) =>
-        this.#updateCache(dir + '/cache.json.gz', backups => {
-          for (const filename of filenames) {
-            delete backups[filename]
-          }
-        })
-    )
+    for (const [dir, filenames] of Object.entries(
+      groupBy(
+        backups.map(_ => _._filename),
+        dirname
+      )
+    )) {
+      // detached async action, will not reject
+      this.#updateCache(dir + '/cache.json.gz', backups => {
+        for (const filename of filenames) {
+          delete backups[filename]
+        }
+      })
+    }
   }
 
   async deleteDeltaVmBackups(backups) {
