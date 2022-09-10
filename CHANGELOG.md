@@ -1,6 +1,6 @@
 # ChangeLog
 
-## **7.74.3** (2022-09-09)
+## **5.74.3** (2022-09-09)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
 
@@ -13,7 +13,7 @@
 
 - xo-server 5.102.3
 
-## **7.74.2** (2022-09-06)
+## **5.74.2** (2022-09-06)
 
 ### Bug fixes
 
