@@ -35,7 +35,7 @@ exports.DIR_XO_CONFIG_BACKUPS = DIR_XO_CONFIG_BACKUPS
 const DIR_XO_POOL_METADATA_BACKUPS = 'xo-pool-metadata-backups'
 exports.DIR_XO_POOL_METADATA_BACKUPS = DIR_XO_POOL_METADATA_BACKUPS
 
-const { warn } = createLogger('xo:backups:RemoteAdapter')
+const { debug, warn } = createLogger('xo:backups:RemoteAdapter')
 
 const compareTimestamp = (a, b) => a.timestamp - b.timestamp
 
@@ -235,6 +235,7 @@ class RemoteAdapter {
       // detached async action, will not reject
       this._updateCache(dir + '/cache.json.gz', backups => {
         for (const filename of filenames) {
+          debug('removing cache entry', { entry: filename })
           delete backups[filename]
         }
       })
@@ -615,6 +616,7 @@ class RemoteAdapter {
 
     // will not throw
     this._updateCache(this.#getVmBackupsCache(vmUuid), backups => {
+      debug('adding cache entry', { entry: path })
       backups[path] = {
         ...metadata,
 
