@@ -158,7 +158,6 @@ exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(Ab
         }/${adapter.getVhdFileName(basename)}`
     )
 
-    const metadataFilename = (this._metadataFileName = `${backupDir}/${basename}.json`)
     const metadataContent = {
       jobId,
       mode: job.mode,
@@ -223,9 +222,7 @@ exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(Ab
       }
     })
     metadataContent.size = size
-    await handler.outputFile(metadataFilename, JSON.stringify(metadataContent), {
-      dirMode: backup.config.dirMode,
-    })
+    this._metadataFileName = await adapter.writeVmBackupMetadata(vm.uuid, metadataContent)
 
     // TODO: run cleanup?
   }

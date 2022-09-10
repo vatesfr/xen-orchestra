@@ -533,8 +533,7 @@ exports.cleanVm = async function cleanVm(
 
   // purge cache if a metadata file has been deleted
   if (mustInvalidateCache) {
-    // cleanvm is always invoked as a method of RemoteAdapter
-    await this._invalidateVmBackupListCacheDir(vmDir)
+    await handler.unlink(vmDir + '/cache.json.gz')
   }
 
   return {
