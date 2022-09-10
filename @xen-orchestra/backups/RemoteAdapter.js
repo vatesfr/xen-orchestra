@@ -515,6 +515,8 @@ class RemoteAdapter {
   }
 
   async #getCachabledDataListVmBackups(dir) {
+    debug('generating cache', { path: dir })
+
     const handler = this._handler
     const backups = {}
 
@@ -554,6 +556,7 @@ class RemoteAdapter {
 
     const cache = await this.#readCache(path)
     if (cache !== undefined) {
+      debug('found VM backups cache, using it', { path })
       return cache
     }
 
