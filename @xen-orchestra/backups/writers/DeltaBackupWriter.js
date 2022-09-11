@@ -36,6 +36,7 @@ exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(Ab
       try {
         const vhds = await handler.list(`${vdisDir}/${srcVdi.uuid}`, {
           filter: _ => _[0] !== '.' && _.endsWith('.vhd'),
+          ignoreMissing: true,
           prependDir: true,
         })
         const packedBaseUuid = packUuid(baseUuid)
