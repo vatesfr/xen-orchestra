@@ -78,6 +78,7 @@ throttlingDelay = '2 seconds'
 [backups]
 disableMergeWorker = false
 
+
 # Mode to use for newly created backup directories
 #
 # https://en.wikipedia.org/wiki/File-system_permissions#Numeric_notation
@@ -87,7 +88,18 @@ snapshotNameLabelTpl = '[XO Backup {job.name}] {vm.name_label}'
 # Delay for which backups listing on a remote is cached
 listingDebounce = '1 min'
 
+# settings when using Vhd directories ( s3 , encryption )
+# you should use 'none' if your fs is already compressed
+# changing this setting will generate new full backups
 vhdDirectoryCompression = 'brotli'
+
+# how many block can be merged in parallel per backup running
+# increase to increase performance, reduce if you have timeout during merge
+mergeBlockConcurrency = 2
+
+# how many block can be uploaded in parallel
+# increase to in rease performance, reduce if you have timeout or memory error during transfer
+writeBlockConcurrency = 16
 
 # This is a work-around.
 #

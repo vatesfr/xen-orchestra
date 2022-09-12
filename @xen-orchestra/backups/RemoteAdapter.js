@@ -634,13 +634,13 @@ class RemoteAdapter {
     return path
   }
 
-  async writeVhd(path, input, { checksum = true, validator = noop } = {}) {
+  async writeVhd(path, input, { checksum = true, validator = noop, writeBlockConcurrency } = {}) {
     const handler = this._handler
 
     if (this.#useVhdDirectory()) {
       const dataPath = `${dirname(path)}/data/${uuidv4()}.vhd`
       await createVhdDirectoryFromStream(handler, dataPath, input, {
-        concurrency: 16,
+        concurrency: writeBlockConcurrency,
         compression: this.#getCompressionType(),
         async validator() {
           await input.task
