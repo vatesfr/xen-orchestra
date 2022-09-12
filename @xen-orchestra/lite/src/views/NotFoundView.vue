@@ -2,10 +2,10 @@
   <div>
     <img alt="Not found" src="../assets/not-found.svg" />
     <p class="numeric">404</p>
-    <p class="text">This page is not to be found...</p>
-    <UiButton @click="router.push('/')"
-      >Go back to your Pool dashboard</UiButton
-    >
+    <p class="text">{{ $t("page-not-found") }}</p>
+    <UiButton @click="router.push('/')">{{
+      $t("back-pool-dashboard")
+    }}</UiButton>
   </div>
 </template>
 
