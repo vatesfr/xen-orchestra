@@ -1,12 +1,12 @@
 {
-  "name": "@xen-orchestra/fuse-vhd",
+  "name": "@vates/fuse-vhd",
   "version": "0.0.1",
   "license": "AGPL-3.0-or-later",
   "private": true,
-  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/fuse-vhd",
+  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@vates/fuse-vhd",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "repository": {
-    "directory": "@xen-orchestra/fuse-vhd",
+    "directory": "@vates/fuse-vhd",
     "type": "git",
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },

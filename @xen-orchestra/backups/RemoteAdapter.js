@@ -29,7 +29,7 @@ const { isValidXva } = require('./_isValidXva.js')
 const { listPartitions, LVM_PARTITION_TYPE } = require('./_listPartitions.js')
 const { lvs, pvs } = require('./_lvm.js')
 // @todo : this import is marked extraneous , sould be fixed when lib is published
-const { mount } = require('@xen-orchestra/fuse-vhd')
+const { mount } = require('@vates/fuse-vhd')
 
 const DIR_XO_CONFIG_BACKUPS = 'xo-config-backups'
 exports.DIR_XO_CONFIG_BACKUPS = DIR_XO_CONFIG_BACKUPS

@@ -35,7 +35,7 @@
 
 <!--packages-start-->
 
-- @xen-orchestra/fuse-vhd major
+- @vates/fuse-vhd major
 - @xen-orchestra/backups minor
 - vhd-lib minor
 - xo-server-auth-saml patch
