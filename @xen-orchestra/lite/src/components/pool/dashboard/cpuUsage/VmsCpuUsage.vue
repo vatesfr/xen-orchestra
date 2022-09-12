@@ -7,33 +7,17 @@
   </UsageBar>
 </template>
 <script lang="ts" setup>
-import { differenceBy } from "lodash-es";
-import { computed, onMounted, watch } from "vue";
+import { type ComputedRef, computed, inject } from "vue";
 import UsageBar from "@/components/UsageBar.vue";
-import useFetchStats from "@/composables/fetch-stats.composable";
 import { getAvgCpuUsage } from "@/libs/utils";
-import { GRANULARITY, type VmStats } from "@/libs/xapi-stats";
-import type { XenApiVm } from "@/libs/xen-api";
-import { useVmStore } from "@/stores/vm.store";
+import type { VmStats } from "@/libs/xapi-stats";
 
-const { register, unregister, stats } = useFetchStats<XenApiVm, VmStats>(
-  "vm",
-  GRANULARITY.Seconds
-);
-
-const vmStore = useVmStore();
-
-const runningVms = computed(() =>
-  vmStore.allRecords.filter((vm) => vm.power_state === "Running")
-);
-
-watch(runningVms, (vms, previousVms) => {
-  // VMs turned On
-  differenceBy(vms, previousVms ?? [], "uuid").forEach(register);
-
-  // VMs turned Off
-  differenceBy(previousVms, vms, "uuid").forEach(unregister);
-});
+const stats: ComputedRef<
+  {
+    name: string;
+    stats?: VmStats;
+  }[]
+> = inject<any>("vmStats", []);
 
 const data = computed<{ label: string; value: number }[]>(() => {
   const result: { label: string; value: number }[] = [];
@@ -56,9 +40,5 @@ const data = computed<{ label: string; value: number }[]>(() => {
   });
 
   return result;
-});
-
-onMounted(() => {
-  runningVms.value.forEach(register);
 });
 </script>
