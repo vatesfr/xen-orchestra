@@ -15,6 +15,7 @@
 
 <script lang="ts" setup>
 import { computed, inject, unref } from "vue";
+import type { Color } from "@/types";
 import type { IconDefinition } from "@fortawesome/fontawesome-common-types";
 import UiIcon from "@/components/ui/UiIcon.vue";
 
@@ -24,7 +25,7 @@ const props = withDefaults(
     busy?: boolean;
     disabled?: boolean;
     icon?: IconDefinition;
-    color?: "info" | "error" | "warning" | "success";
+    color?: Color;
     outlined?: boolean;
     transparent?: boolean;
     active?: boolean;

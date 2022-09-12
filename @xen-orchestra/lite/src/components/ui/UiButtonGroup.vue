@@ -6,11 +6,12 @@
 
 <script lang="ts" setup>
 import { computed, provide } from "vue";
+import type { Color } from "@/types";
 
 const props = defineProps<{
   busy?: boolean;
   disabled?: boolean;
-  color?: "info" | "error" | "warning" | "success";
+  color?: Color;
   outlined?: boolean;
   transparent?: boolean;
 }>();
