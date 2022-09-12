@@ -12,6 +12,7 @@
         <RouterView />
       </main>
     </div>
+    <AppTooltips />
   </div>
 </template>
 
@@ -20,6 +21,7 @@ import { watchEffect } from "vue";
 import favicon from "@/assets/favicon.svg";
 import AppHeader from "@/components/AppHeader.vue";
 import AppLogin from "@/components/AppLogin.vue";
+import AppTooltips from "@/components/AppTooltips.vue";
 import InfraPoolList from "@/components/infra/InfraPoolList.vue";
 import { useChartTheme } from "@/composables/chart-theme.composable";
 import { useXenApiStore } from "@/stores/xen-api.store";

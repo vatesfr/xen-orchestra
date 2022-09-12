@@ -1,7 +1,7 @@
 <template>
   <AppTooltip
     v-for="tooltip in tooltips"
-    :key="tooltip.key"
+    :key="tooltip.target"
     :options="tooltip.options"
     :target="tooltip.target"
   />

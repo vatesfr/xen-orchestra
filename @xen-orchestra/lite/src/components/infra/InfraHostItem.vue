@@ -27,10 +27,7 @@
 
 <script lang="ts" setup>
 import { computed } from "vue";
-<<<<<<< HEAD
 import { vTooltip } from "@/directives/tooltip.directive";
-=======
->>>>>>> feat(lite): use FontAwesome Free (#6405)
 import {
   faAngleDown,
   faAngleUp,
