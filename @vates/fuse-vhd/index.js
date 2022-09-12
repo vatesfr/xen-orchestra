@@ -3,6 +3,7 @@
 const LRU = require('lru-cache')
 const Fuse = require('fuse-native')
 const { VhdSynthetic } = require('vhd-lib')
+const { Disposable, fromCallback } = require('promise-toolbox')
 
 // build a s stat object from https://github.com/fuse-friends/fuse-native/blob/master/test/fixtures/stat.js
 const stat = st => ({
@@ -15,8 +16,9 @@ const stat = st => ({
   gid: st.gid !== undefined ? st.gid : process.getgid(),
 })
 
-exports.mount = async (handler, diskPath, mountDir) => {
-  const { value: vhd } = await VhdSynthetic.fromVhdChain(handler, diskPath)
+exports.mount = Disposable.factory(async function* mount(handler, diskPath, mountDir) {
+  const vhd = yield VhdSynthetic.fromVhdChain(handler, diskPath)
+
   const cache = new LRU({
     max: 16, // each cached block is 2MB in size
   })
@@ -52,12 +54,16 @@ exports.mount = async (handler, diskPath, mountDir) => {
       cb(data.length)
     },
   })
-  return new Promise((resolve, reject) => {
-    fuse.mount(function (err) {
-      if (err) {
-        return reject(err)
-      }
-      resolve(fuse)
+
+  return new Disposable(
+    () => fromCallback(cb => fuse.unmount(cb)),
+    new Promise((resolve, reject) => {
+      fuse.mount(function (err) {
+        if (err) {
+          return reject(err)
+        }
+        resolve()
+      })
     })
-  })
-}
+  )
+})

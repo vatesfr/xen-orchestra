@@ -323,15 +323,12 @@ class RemoteAdapter {
 
   async *getDisk(diskId) {
     const handler = this._handler
+    // this is a disposable
     const mountDir = yield getTmpDir()
-    const fuseMount = await mount(handler, diskId, mountDir)
-    try {
-      yield `${mountDir}/vhd0`
-    } finally {
-      // must be in finally to be called correctly by the disposable
-      // this action is done a few minute after the last use of this disk
-      await fromCallback(cb => fuseMount.unmount(cb))
-    }
+    // this is also a disposable
+    yield mount(handler, diskId, mountDir)
+    // this will yield disk path to caller
+    yield `${mountDir}/vhd0`
   }
 
   // partitionId values:
