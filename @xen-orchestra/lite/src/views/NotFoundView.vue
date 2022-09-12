@@ -3,12 +3,17 @@
     <img alt="Not found" src="../assets/not-found.svg" />
     <p class="numeric">404</p>
     <p class="text">This page is not to be found...</p>
-    <UiButton>Go back to your Pool dashboard</UiButton>
+    <UiButton @click="router.push('/')"
+      >Go back to your Pool dashboard</UiButton
+    >
   </div>
 </template>
 
 <script setup lang="ts">
+import { useRouter } from "vue-router";
 import UiButton from "@/components/ui/UiButton.vue";
+
+const router = useRouter();
 </script>
 
 <style lang="postcss" scoped>

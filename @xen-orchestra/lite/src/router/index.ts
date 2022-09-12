@@ -29,7 +29,6 @@ const router = createRouter({
         },
       ],
       beforeEnter: (to, _, next) => {
-        console.log("before");
         const hostStore = useHostStore();
         const host = hostStore.getRecordByUuid(to.params["uuid"] as string);
         if (host === undefined) {
