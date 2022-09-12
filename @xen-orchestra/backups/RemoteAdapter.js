@@ -326,7 +326,7 @@ class RemoteAdapter {
     const mountDir = yield getTmpDir()
     const fuseMount = await mount(handler, diskId, mountDir)
     try {
-      yield `${mountDir}/vhd`
+      yield `${mountDir}/vhd0`
     } finally {
       // must be in finally to be called correctly by the disposable
       // this action is done a few minute after the last use of this disk

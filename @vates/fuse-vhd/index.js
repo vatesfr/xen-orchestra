@@ -24,7 +24,7 @@ exports.mount = async (handler, diskPath, mountDir) => {
   const fuse = new Fuse(mountDir, {
     async readdir(path, cb) {
       if (path === '/') {
-        return cb(null, ['vhd'])
+        return cb(null, ['vhd0'])
       }
       cb(new Error('can t list it '))
     },
