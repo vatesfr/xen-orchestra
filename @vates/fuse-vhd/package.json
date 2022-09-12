@@ -1,7 +1,7 @@
 {
   "name": "@vates/fuse-vhd",
   "version": "0.0.1",
-  "license": "AGPL-3.0-or-later",
+  "license": "ISC",
   "private": true,
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@vates/fuse-vhd",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
