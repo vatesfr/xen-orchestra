@@ -6,7 +6,7 @@
 </template>
 
 <script lang="ts" setup>
-import { isFunction, isString } from "lodash-es";
+import { isEmpty, isFunction, isString } from "lodash-es";
 import place from "placement.js";
 import { computed, ref, watchEffect } from "vue";
 import type { TooltipOptions } from "@/stores/tooltip.store";
@@ -23,6 +23,10 @@ const content = computed(() =>
 );
 
 const isDisabled = computed(() => {
+  if (isEmpty(content.value)) {
+    return true;
+  }
+
   if (isString(props.options)) {
     return false;
   }
