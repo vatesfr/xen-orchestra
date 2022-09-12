@@ -49,9 +49,12 @@ exports.mount = Disposable.factory(async function* mount(handler, diskPath, moun
       )
     },
     async read(path, fd, buf, len, pos, cb) {
-      const data = await vhd.readRawData(pos, len, cache)
-      data.copy(buf)
-      cb(data.length)
+      if (path === '/vhd0') {
+        const lengthRead = await vhd.readRawData(pos, len, cache, buf)
+        return cb(lengthRead)
+      }
+      // nothing to read if this is another file
+      cb(Fuse.ENOENT)
     },
   })
 

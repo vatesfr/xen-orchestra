@@ -21,7 +21,6 @@ const path = require('path')
 const asyncIteratorToStream = require('async-iterator-to-stream')
 const { checksumStruct, fuFooter, fuHeader } = require('../_structs')
 const { isVhdAlias, resolveVhdAlias } = require('../aliases')
-
 exports.VhdAbstract = class VhdAbstract {
   get bitmapSize() {
     return sectorsToBytes(this.sectorsOfBitmap)
@@ -361,7 +360,7 @@ exports.VhdAbstract = class VhdAbstract {
     return true
   }
 
-  async readRawData(start, length, cache) {
+  async readRawData(start, length, cache, buf) {
     const header = this.header
     const blockSize = header.blockSize
     const startBlockId = Math.floor(start / blockSize)
@@ -369,7 +368,6 @@ exports.VhdAbstract = class VhdAbstract {
 
     const startOffset = start % blockSize
     let copied = 0
-    const result = Buffer.alloc(length, 0)
     for (let blockId = startBlockId; blockId <= endBlockId; blockId++) {
       let data
       if (this.containsBlock(blockId)) {
@@ -377,21 +375,25 @@ exports.VhdAbstract = class VhdAbstract {
           cache.set(
             blockId,
             // promise is awaited later, so it won't generate unbounded error
-            this.readBlock(blockId).then(block => {
-              return block.data
-            })
+            this.readBlock(blockId)
+              .then(block => {
+                cache.set(blockId, block.data)
+                return block.data
+              })
+              .catch(err => console.error('error reading block ', { err, blockId }))
           )
         }
-        // the cache contains a promise
+        // the cache may contains a promise
         data = await cache.get(blockId)
       } else {
         data = Buffer.alloc(blockSize, 0)
       }
       const offsetStart = blockId === startBlockId ? startOffset : 0
-      const offsetEnd = blockId === endBlockId ? (offsetStart + length) % blockSize : blockSize
-      data.copy(result, copied, offsetStart, offsetEnd)
+      const offsetEnd = blockId === endBlockId ? (start + length) % blockSize : blockSize
+      data.copy(buf, copied, offsetStart, offsetEnd)
       copied += offsetEnd - offsetStart
     }
-    return result
+    assert.strictEqual(copied, length, 'invalid length')
+    return copied
   }
 }
