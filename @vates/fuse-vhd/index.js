@@ -4,6 +4,7 @@ const LRU = require('lru-cache')
 const Fuse = require('fuse-native')
 const { VhdSynthetic } = require('vhd-lib')
 
+// build a s stat object from https://github.com/fuse-friends/fuse-native/blob/master/test/fixtures/stat.js
 const stat = st => ({
   mtime: st.mtime || new Date(),
   atime: st.atime || new Date(),
@@ -18,19 +19,16 @@ exports.mount = async (handler, diskPath, mountDir) => {
   const { value: vhd } = await VhdSynthetic.fromVhdChain(handler, diskPath)
   const cache = new LRU({
     max: 16, // each cached block is 2MB in size
-
-    updateAgeOnGet: false,
-    updateAgeOnHas: false,
   })
   await vhd.readBlockAllocationTable()
   const fuse = new Fuse(mountDir, {
-    readdir: async function (path, cb) {
+    async readdir(path, cb) {
       if (path === '/') {
         return cb(null, ['vhd'])
       }
       cb(new Error('can t list it '))
     },
-    getattr: async function (path, cb) {
+    async getattr(path, cb) {
       if (path === '/') {
         return cb(
           null,
@@ -48,7 +46,7 @@ exports.mount = async (handler, diskPath, mountDir) => {
         })
       )
     },
-    read: async function (path, fd, buf, len, pos, cb) {
+    async read(path, fd, buf, len, pos, cb) {
       const data = await vhd.readRawData(pos, len, cache)
       data.copy(buf)
       cb(data.length)

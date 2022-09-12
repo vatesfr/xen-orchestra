@@ -376,17 +376,13 @@ exports.VhdAbstract = class VhdAbstract {
         if (!cache.has(blockId)) {
           cache.set(
             blockId,
-            new Promise((resolve, reject) => {
-              this.readBlock(blockId)
-                .then(block => {
-                  cache.set(blockId, block.data)
-                  resolve(block.data)
-                })
-                .catch(reject)
+            // promise is awaited later, so it won't generate unbounded error
+            this.readBlock(blockId).then(block => {
+              return block.data
             })
           )
         }
-        // the cache may contain a promise
+        // the cache contains a promise
         data = await cache.get(blockId)
       } else {
         data = Buffer.alloc(blockSize, 0)
