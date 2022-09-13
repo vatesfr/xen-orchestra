@@ -15,8 +15,12 @@
       {{ $t("export") }}
       <template #submenu>
         <MenuItem :icon="faDisplay">{{ $t("export-vms") }}</MenuItem>
-        <MenuItem :icon="faCode">{{ $t("export-table-json") }}</MenuItem>
-        <MenuItem :icon="faFileCsv">{{ $t("export-table-csv") }}</MenuItem>
+        <MenuItem :icon="faCode">
+          {{ $t("export-table-to", { type: ".json" }) }}
+        </MenuItem>
+        <MenuItem :icon="faFileCsv">
+          {{ $t("export-table-to", { type: ".csv" }) }}
+        </MenuItem>
       </template>
     </MenuItem>
   </AppMenu>
