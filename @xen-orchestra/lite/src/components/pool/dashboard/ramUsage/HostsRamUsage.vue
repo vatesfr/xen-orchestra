@@ -29,7 +29,7 @@ const data = computed<{ label: string; value: number }[]>(() => {
     }
 
     const { percentUsed, max, used } = parseRamUsage(stat.stats);
-    if (isNaN(percentUsed)) {
+    if (percentUsed === undefined || used === undefined) {
       return;
     }
 
