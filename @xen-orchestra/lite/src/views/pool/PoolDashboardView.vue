@@ -4,6 +4,17 @@
     <PoolDashboardStorageUsage class="item" />
     <PoolDashboardCpuUsage class="item" />
     <PoolDashboardRamUsage class="item" />
+    <UiCard style="min-width: 40rem">
+      <UiTitle type="h4">Storage usage</UiTitle>
+      <ProgressBar :value="65" style="margin: 1rem 0" />
+      <ProgressBar :value="50" style="margin: 1rem 0" />
+      <ProgressBar :value="40" style="margin: 1rem 0" />
+      <ProgressBar :value="22" style="margin: 1rem 0" />
+    </UiCard>
+
+    <UiCard>
+      <UiBadge>38/64 GB</UiBadge>
+    </UiCard>
   </div>
 </template>
 
