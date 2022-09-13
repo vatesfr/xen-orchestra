@@ -1,6 +1,6 @@
 import { utcParse } from "d3-time-format";
-import humanFormat from "human-format";
 import { round } from "lodash-es";
+import humanFormat from "human-format";
 import { find, forEach, isEqual, size, sum } from "lodash-es";
 import { type ComputedGetter, type Ref, computed, ref, watchEffect } from "vue";
 import type { Filter } from "@/types/filter";
@@ -36,6 +36,11 @@ const iconsByType = {
   boolean: faSquareCheck,
   enum: faList,
 };
+export function formatSize(bytes: number) {
+  return bytes != null
+    ? humanFormat(bytes, { scale: "binary", unit: "B" })
+    : "N/D";
+}
 
 export function formatSize(bytes: number) {
   return bytes != null
