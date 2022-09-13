@@ -78,7 +78,6 @@ throttlingDelay = '2 seconds'
 [backups]
 disableMergeWorker = false
 
-
 # Mode to use for newly created backup directories
 #
 # https://en.wikipedia.org/wiki/File-system_permissions#Numeric_notation
