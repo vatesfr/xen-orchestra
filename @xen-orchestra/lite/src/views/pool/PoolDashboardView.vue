@@ -2,13 +2,23 @@
   <div class="pool-dashboard-view">
     <PoolDashboardStatus class="item" />
     <PoolDashboardCpuUsage class="item" />
+    <PoolDashboardRamUsage class="item" />
   </div>
 </template>
 
 <script lang="ts" setup>
 import { differenceBy } from "lodash-es";
-import { computed, onMounted, provide, readonly, watch } from "vue";
+import {
+  computed,
+  onMounted,
+  provide,
+  readonly,
+  watch,
+  watchEffect,
+} from "vue";
+import ProgressBar from "@/components/ProgressBar.vue";
 import PoolDashboardCpuUsage from "@/components/pool/dashboard/PoolDashboardCpuUsage.vue";
+import PoolDashboardRamUsage from "@/components/pool/dashboard/PoolDashboardRamUsage.vue";
 import PoolDashboardStatus from "@/components/pool/dashboard/PoolDashboardStatus.vue";
 import useFetchStats from "@/composables/fetch-stats.composable";
 import { GRANULARITY, type HostStats, type VmStats } from "@/libs/xapi-stats";
@@ -36,6 +46,10 @@ const runningVms = computed(() =>
 
 provide("hostStats", readonly(hostStats));
 provide("vmStats", readonly(vmStats));
+
+watchEffect(() => {
+  // console.log(hostStore.allRecords);
+});
 
 watch(
   () => hostStore.allRecords,

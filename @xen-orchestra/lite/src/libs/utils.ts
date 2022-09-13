@@ -1,5 +1,6 @@
 import { utcParse } from "d3-time-format";
 import { round } from "lodash-es";
+import humanFormat from "human-format";
 import { find, forEach, isEqual, size, sum } from "lodash-es";
 import { type ComputedGetter, type Ref, computed, ref, watchEffect } from "vue";
 import type { Filter } from "@/types/filter";
@@ -33,6 +34,11 @@ const iconsByType = {
   boolean: faSquareCheck,
   enum: faList,
 };
+export function formatSize(bytes: number) {
+  return bytes != null
+    ? humanFormat(bytes, { scale: "binary", unit: "B" })
+    : "N/D";
+}
 
 export function getFilterIcon(filter: Filter | undefined) {
   if (!filter) {
@@ -62,6 +68,33 @@ export const hasEllipsis = (target: Element | undefined | null) =>
 export function percent(currentValue: number, maxValue: number, precision = 2) {
   return round((currentValue / maxValue) * 100, precision);
 }
+export function parseRamUsage({
+  memory,
+  memoryFree,
+}: {
+  memory: number[];
+  memoryFree?: number[];
+}) {
+  const nValues = memory.length;
+
+  let max = 0;
+  let used = 0;
+  memory.forEach((ram, key) => {
+    max += ram;
+    used += ram - (memoryFree?.[key] ?? 0);
+  });
+
+  const _percentUsed = (used / max) * 100;
+  const percentUsed =
+    memoryFree === undefined || isNaN(_percentUsed) ? undefined : _percentUsed;
+
+  return {
+    percentUsed,
+    max: max / nValues,
+    used: percentUsed !== undefined ? used / nValues : undefined,
+  };
+}
+
 export function getAvgCpuUsage(cpus?: object | any[]) {
   const length = getStatsLength(cpus);
   if (length === undefined) {
