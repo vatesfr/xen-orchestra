@@ -4,7 +4,7 @@
     <UsageBar :data="data.result" :nItems="5">
       <template #header>
         <span>{{ $t("storage") }}</span>
-        <span>Top 5</span>
+        <span>{{ $t("top-5") }}</span>
       </template>
       <template #footer v-if="showFooter">
         <div class="footer-card">
