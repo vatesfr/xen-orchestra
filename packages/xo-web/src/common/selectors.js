@@ -629,7 +629,8 @@ const getLinkedObjectsByTaskRefOrId = create(
 export const getResolvedPendingTasks = create(
   createGetObjectsOfType('task').filter([task => task.status === 'pending']),
   getLinkedObjectsByTaskRefOrId,
-  (tasks, linkedObjectsByTaskRefOrId) => {
+  getCheckPermissions,
+  (tasks, linkedObjectsByTaskRefOrId, check) => {
     const resolvedTasks = []
     forEach(tasks, task => {
       const objects = [
@@ -638,10 +639,13 @@ export const getResolvedPendingTasks = create(
         // { taskId → operation } map instead of { taskRef → operation } map
         ...defined(linkedObjectsByTaskRefOrId[task.id], []),
       ]
-      resolvedTasks.push({
-        ...task,
-        objects,
-      })
+
+      if (objects.length > 0 || (objects.length === 0 && check(task.$host, 'view'))) {
+        resolvedTasks.push({
+          ...task,
+          objects,
+        })
+      }
     })
     return resolvedTasks
   }

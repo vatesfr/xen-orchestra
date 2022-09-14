@@ -13,6 +13,7 @@
 
 - [Backup/Restore] Fix backup list not loading on page load (PR [#6364](https://github.com/vatesfr/xen-orchestra/pull/6364))
 - [Host] Fix `should not contains property ["ignoreBackup"]` on some host operations (PR [#6362](https://github.com/vatesfr/xen-orchestra/pull/6362))
+- [Tasks] Fix displayed tasks for all users (PR [#6422](https://github.com/vatesfr/xen-orchestra/pull/6422))
 
 ### Packages to release
 
