@@ -25,7 +25,7 @@
     "@xen-orchestra/fs": "^3.1.0",
     "@xen-orchestra/log": "^0.3.0",
     "@xen-orchestra/template": "^0.1.0",
-    "compare-versions": "^4.0.1",
+    "compare-versions": "^5.0.1",
     "d3-time-format": "^3.0.0",
     "decorator-synchronized": "^0.6.0",
     "end-of-stream": "^1.4.4",
@@ -37,7 +37,7 @@
     "parse-pairs": "^1.1.0",
     "promise-toolbox": "^0.21.0",
     "proper-lockfile": "^4.1.2",
-    "uuid": "^8.3.2",
+    "uuid": "^9.0.0",
     "vhd-lib": "^4.0.1",
     "yazl": "^2.5.1"
   },

@@ -28,7 +28,7 @@
     "promise-toolbox": "^0.21.0",
     "readable-stream": "^4.1.0",
     "struct-fu": "^1.2.0",
-    "uuid": "^8.3.1"
+    "uuid": "^9.0.0"
   },
   "devDependencies": {
     "@xen-orchestra/fs": "^3.1.0",
