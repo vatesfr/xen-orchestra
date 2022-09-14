@@ -640,7 +640,7 @@ export const getResolvedPendingTasks = create(
         ...defined(linkedObjectsByTaskRefOrId[task.id], []),
       ]
 
-      if (objects.length > 0 || (objects.length === 0 && check(task.$host, 'view'))) {
+      if (objects.length > 0 || check(task.$host, 'view')) {
         resolvedTasks.push({
           ...task,
           objects,
