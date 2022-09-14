@@ -41,6 +41,7 @@
     "@limegrass/eslint-plugin-import-alias": "^1.0.5",
     "@rushstack/eslint-patch": "^1.1.0",
     "@trivago/prettier-plugin-sort-imports": "^3.2.0",
+    "@types/human-format": "^1.0.0",
     "@types/node": "^16.11.41",
     "@types/novnc__novnc": "^1.3.0",
     "@vitejs/plugin-vue": "^2.3.3",
