@@ -4,7 +4,9 @@
     <span class="checkbox">
       <UiIcon :fixed-width="false" :icon="icon" class="check-icon" />
     </span>
-    <slot name="label">{{ label }}</slot>
+    <span class="label">
+      <slot name="label">{{ label }}</slot>
+    </span>
   </label>
 </template>
 
@@ -26,7 +28,6 @@ const icon = inject("checkedIcon", faCheck);
   position: relative;
   display: inline-flex;
   align-items: center;
-
   height: 3.8rem;
   gap: 1rem;
 }
@@ -43,6 +44,10 @@ const icon = inject("checkedIcon", faCheck);
   & ~ .checkbox {
     --background-color: var(--background-color-primary);
     --border-color: var(--color-blue-scale-400);
+  }
+
+  & ~ .label {
+    --color: var(--color-blue-scale-100);
   }
 
   &:hover ~ .checkbox,
@@ -72,6 +77,10 @@ const icon = inject("checkedIcon", faCheck);
     --background-color: var(--color-extra-blue-d40);
   }
 
+  &:disabled ~ .label {
+    --color: var(--color-blue-scale-200);
+  }
+
   &:disabled ~ .checkbox {
     --border-color: var(--color-blue-scale-400);
     --background-color: var(--background-color-secondary);
@@ -94,5 +103,9 @@ const icon = inject("checkedIcon", faCheck);
   border-radius: 0.4rem;
   background-color: var(--background-color);
   box-shadow: var(--shadow-100);
+}
+
+.label {
+  color: var(--color);
 }
 </style>
