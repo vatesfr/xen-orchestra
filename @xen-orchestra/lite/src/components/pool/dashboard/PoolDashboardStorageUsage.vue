@@ -58,21 +58,27 @@ const data = computed<{
   let maxSize = 0;
   let usedSize = 0;
 
-  srStore.allRecords.forEach((sr) => {
-    maxSize += sr.physical_size;
-    usedSize += sr.physical_utilisation;
+  srStore.allRecords.forEach(
+    ({ name_label, physical_size, physical_utilisation }) => {
+      if (physical_size < 0 || physical_utilisation < 0) {
+        return;
+      }
 
-    const percent = (sr.physical_utilisation / sr.physical_size) * 100;
+      maxSize += physical_size;
+      usedSize += physical_utilisation;
 
-    if (isNaN(percent)) {
-      return;
+      const percent = (physical_utilisation / physical_size) * 100;
+
+      if (isNaN(percent)) {
+        return;
+      }
+
+      result.push({
+        label: name_label,
+        value: percent,
+      });
     }
-
-    result.push({
-      label: sr.name_label,
-      value: percent,
-    });
-  });
+  );
   return { result, maxSize, usedSize };
 });
 </script>
