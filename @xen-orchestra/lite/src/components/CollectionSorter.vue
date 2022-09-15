@@ -12,9 +12,9 @@
       </span>
     </UiFilter>
 
-    <UiButton :icon="faPlus" class="add-sort" color="secondary" @click="open">
+    <UiActionButton :icon="faPlus" class="add-sort" @click="open">
       {{ $t("add-sort") }}
-    </UiButton>
+    </UiActionButton>
   </UiFilterGroup>
 
   <UiModal v-if="isOpen">
@@ -59,6 +59,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import FormWidget from "@/components/FormWidget.vue";
 import UiButton from "@/components/ui/UiButton.vue";
+import UiActionButton from "@/components/ui/UiActionButton.vue";
 import UiButtonGroup from "@/components/ui/UiButtonGroup.vue";
 import UiFilter from "@/components/ui/UiFilter.vue";
 import UiFilterGroup from "@/components/ui/UiFilterGroup.vue";
@@ -99,10 +100,6 @@ const handleCancel = () => {
 </script>
 
 <style lang="postcss" scoped>
-.add-sort {
-  height: 3.4rem;
-}
-
 .form-widgets {
   display: flex;
   gap: 1rem;
