@@ -10,7 +10,7 @@ import { addSubscriptions, connectStore, resolveIds } from 'utils'
 import { FormattedDate, FormattedRelative, injectIntl } from 'react-intl'
 import { SelectPool } from 'select-objects'
 import { Col, Container, Row } from 'grid'
-import { differenceBy, flatMap, groupBy, isEmpty, keys, map, some } from 'lodash'
+import { differenceBy, isEmpty, map, some } from 'lodash'
 import {
   createFilter,
   createGetObject,
@@ -192,20 +192,18 @@ const GROUPED_ACTIONS = [
   permissions: subscribePermissions,
 })
 @connectStore(() => {
-  const getResolvedPendingTasksByPool = createSelector(getResolvedPendingTasks, resolvedPendingTasks =>
-    groupBy(resolvedPendingTasks, '$pool')
+  const getPools = createGetObjectsOfType('pool').pick(
+    createSelector(getResolvedPendingTasks, resolvedPendingTasks => resolvedPendingTasks.map(task => task.$poolId))
   )
-
-  const getPools = createGetObjectsOfType('pool').pick(createSelector(getResolvedPendingTasksByPool, keys))
 
   return (state, props) => {
     // true: useResourceSet to bypass permissions
-    const resolvedPendingTasksByPool = getResolvedPendingTasks(state, props, true)
+    const resolvedPendingTasks = getResolvedPendingTasks(state, props, true)
     return {
       isAdmin: isAdmin(state, props),
-      nResolvedTasks: resolvedPendingTasksByPool.length,
+      nResolvedTasks: resolvedPendingTasks.length,
       pools: getPools(state, props, true),
-      resolvedPendingTasksByPool,
+      resolvedPendingTasks,
     }
   }
 })
@@ -216,7 +214,7 @@ export default class Tasks extends Component {
   }
 
   componentWillReceiveProps(props) {
-    const finishedTasks = differenceBy(this.props.resolvedPendingTasksByPool, props.resolvedPendingTasksByPool, 'id')
+    const finishedTasks = differenceBy(this.props.resolvedPendingTasks, props.resolvedPendingTasks, 'id')
     if (!isEmpty(finishedTasks)) {
       this.setState({
         finishedTasks: finishedTasks
@@ -226,22 +224,14 @@ export default class Tasks extends Component {
     }
   }
 
-  _getTasks = createSelector(
+  _getPoolFilter = createSelector(
     createSelector(() => this.state.pools, resolveIds),
-    () => this.props.resolvedPendingTasksByPool,
-    (poolIds, resolvedPendingTasksByPool) =>
-      isEmpty(poolIds)
-        ? resolvedPendingTasksByPool
-        : flatMap(poolIds, poolId => resolvedPendingTasksByPool[poolId] || [])
+    poolIds => (isEmpty(poolIds) ? null : ({ $poolId }) => poolIds.includes($poolId))
   )
 
-  _getFinishedTasks = createFilter(
-    () => this.state.finishedTasks,
-    createSelector(
-      createSelector(() => this.state.pools, resolveIds),
-      poolIds => (isEmpty(poolIds) ? null : ({ $poolId }) => poolIds.includes($poolId))
-    )
-  )
+  _getTasks = createFilter(() => this.props.resolvedPendingTasks, this._getPoolFilter)
+
+  _getFinishedTasks = createFilter(() => this.state.finishedTasks, this._getPoolFilter)
 
   _getItemsPerPageContainer = () => this.state.itemsPerPageContainer
 
