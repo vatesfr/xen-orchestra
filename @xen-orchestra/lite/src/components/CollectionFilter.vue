@@ -9,9 +9,9 @@
       {{ filter }}
     </UiFilter>
 
-    <UiButton :icon="faPlus" class="add-filter" color="secondary" @click="open">
+    <UiActionButton :icon="faPlus" class="add-filter" @click="open">
       {{ $t("add-filter") }}
-    </UiButton>
+    </UiActionButton>
   </UiFilterGroup>
 
   <UiModal v-if="isOpen">

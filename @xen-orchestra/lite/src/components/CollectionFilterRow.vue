@@ -254,8 +254,4 @@ const valueInputAfter = computed(() => {
 .form-widget-advanced {
   flex: 1;
 }
-
-.form-widget-advanced {
-  flex: 1;
-}
 </style>

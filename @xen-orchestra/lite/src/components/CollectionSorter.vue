@@ -12,9 +12,9 @@
       </span>
     </UiFilter>
 
-    <UiButton :icon="faPlus" class="add-sort" color="secondary" @click="open">
+    <UiActionButton :icon="faPlus" class="add-sort" @click="open">
       {{ $t("add-sort") }}
-    </UiButton>
+    </UiActionButton>
   </UiFilterGroup>
 
   <UiModal v-if="isOpen">
@@ -60,6 +60,7 @@ import {
 import FormWidget from "@/components/FormWidget.vue";
 import UiButton from "@/components/ui/UiButton.vue";
 import UiActionButton from "@/components/ui/UiActionButton.vue";
+import UiButtonGroup from "@/components/ui/UiButtonGroup.vue";
 import UiFilter from "@/components/ui/UiFilter.vue";
 import UiFilterGroup from "@/components/ui/UiFilterGroup.vue";
 import UiModal from "@/components/ui/UiModal.vue";
@@ -99,17 +100,6 @@ const handleCancel = () => {
 </script>
 
 <style lang="postcss" scoped>
-.form-widgets {
-  display: flex;
-  gap: 1rem;
-}
-
-.property {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.7rem;
-}
-
 .form-widgets {
   display: flex;
   gap: 1rem;
