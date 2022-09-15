@@ -30,6 +30,7 @@ const { listPartitions, LVM_PARTITION_TYPE } = require('./_listPartitions.js')
 const { lvs, pvs } = require('./_lvm.js')
 // @todo : this import is marked extraneous , sould be fixed when lib is published
 const { mount } = require('@vates/fuse-vhd')
+const { asyncEach } = require('@vates/async-each')
 
 const DIR_XO_CONFIG_BACKUPS = 'xo-config-backups'
 exports.DIR_XO_CONFIG_BACKUPS = DIR_XO_CONFIG_BACKUPS
@@ -381,22 +382,25 @@ class RemoteAdapter {
   listPartitionFiles(diskId, partitionId, path) {
     return Disposable.use(this.getPartition(diskId, partitionId), async rootPath => {
       path = resolveSubpath(rootPath, path)
-
       const entriesMap = {}
-      await asyncMap(await readdir(path), async name => {
-        try {
-          const stats = await lstat(`${path}/${name}`)
-          if (stats.isDirectory()) {
-            entriesMap[name + '/'] = {}
-          } else if (stats.isFile()) {
-            entriesMap[name] = {}
+      await asyncEach(
+        await readdir(path),
+        async name => {
+          try {
+            const stats = await lstat(`${path}/${name}`)
+            if (stats.isDirectory()) {
+              entriesMap[name + '/'] = {}
+            } else if (stats.isFile()) {
+              entriesMap[name] = {}
+            }
+          } catch (error) {
+            if (error == null || error.code !== 'ENOENT') {
+              throw error
+            }
           }
-        } catch (error) {
-          if (error == null || error.code !== 'ENOENT') {
-            throw error
-          }
-        }
-      })
+        },
+        { concurrency: 1 }
+      )
 
       return entriesMap
     })

@@ -21,6 +21,7 @@ const path = require('path')
 const asyncIteratorToStream = require('async-iterator-to-stream')
 const { checksumStruct, fuFooter, fuHeader } = require('../_structs')
 const { isVhdAlias, resolveVhdAlias } = require('../aliases')
+
 exports.VhdAbstract = class VhdAbstract {
   get bitmapSize() {
     return sectorsToBytes(this.sectorsOfBitmap)
@@ -375,15 +376,12 @@ exports.VhdAbstract = class VhdAbstract {
           cache.set(
             blockId,
             // promise is awaited later, so it won't generate unbounded error
-            this.readBlock(blockId)
-              .then(block => {
-                cache.set(blockId, block.data)
-                return block.data
-              })
-              .catch(err => console.error('error reading block ', { err, blockId }))
+            this.readBlock(blockId).then(block => {
+              return block.data
+            })
           )
         }
-        // the cache may contains a promise
+        // the cache contains a promise
         data = await cache.get(blockId)
       } else {
         data = Buffer.alloc(blockSize, 0)

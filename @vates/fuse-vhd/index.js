@@ -48,18 +48,21 @@ exports.mount = Disposable.factory(async function* mount(handler, diskPath, moun
         })
       )
     },
-    async read(path, fd, buf, len, pos, cb) {
+    read(path, fd, buf, len, pos, cb) {
       if (path === '/vhd0') {
-        const lengthRead = await vhd.readRawData(pos, len, cache, buf)
-        return cb(lengthRead)
+        return vhd
+          .readRawData(pos, len, cache, buf)
+          .then(cb)
+          .catch(err => {
+            console.error('got errror', err)
+            throw err
+          })
       }
-      // nothing to read if this is another file
-      cb(Fuse.ENOENT)
+      throw new Error(`read file ${path} not exists`)
     },
   })
-
   return new Disposable(
-    () => fromCallback(cb => fuse.unmount(cb)),
+    () => fromCallback(fuse.unmount),
     new Promise((resolve, reject) => {
       fuse.mount(function (err) {
         if (err) {
