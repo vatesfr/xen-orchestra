@@ -128,7 +128,9 @@ class RemoteAdapter {
   }
 
   async *_getPartition(devicePath, partition) {
-    const options = ['loop', 'ro']
+    // the norecovery option is necessary because if the partition is dirty,
+    // mount will try to fix it which is impossible if because the device is read-only
+    const options = ['loop', 'ro', 'norecovery']
 
     if (partition !== undefined) {
       const { size, start } = partition

@@ -89,7 +89,7 @@ When logical volume no longer necessary:
 
 ```
 > mkdir /tmp/block-mount
-> mount --options=loop,ro,offset=$(($START * 512)),sizelimit=$(($SIZE)) --source=/tmp/vhd-mount/vhdi2 --target=/tmp/block-mount
+> mount --options=loop,ro,norecovery,offset=$(($START * 512)),sizelimit=$(($SIZE)) --source=/tmp/vhd-mount/vhdi2 --target=/tmp/block-mount
 > ls /tmp/block-mount
 bin  boot  dev	etc  home  lib	lib64  lost+found  media  mnt  opt  proc  root	run  sbin  srv	sys  @System.solv  tmp	usr  var
 ```
