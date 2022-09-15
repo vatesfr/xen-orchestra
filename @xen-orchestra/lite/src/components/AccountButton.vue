@@ -6,16 +6,16 @@
         <UiIcon :icon="faAngleDown" class="dropdown-icon" />
       </button>
     </template>
-    <MenuItem :icon="faGear">Settings</MenuItem>
+    <MenuItem :icon="faGear">{{ $t("settings") }}</MenuItem>
     <MenuItem :icon="faMessage" @click="openFeedbackUrl">
-      Send us feedback
+      {{ $t("send-us-feedback") }}
     </MenuItem>
     <MenuItem
       :icon="faArrowRightFromBracket"
       class="menu-item-logout"
       @click="logout"
     >
-      Log out
+      {{ $t("log-out") }}
     </MenuItem>
   </AppMenu>
 </template>
