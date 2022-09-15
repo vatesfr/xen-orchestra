@@ -34,7 +34,7 @@ GET /post-sync HTTP/1.1
 
 ## Example server in Node
 
-`index.mjs`:
+`index.cjs`:
 
 ```js
 const { createServer } = require('node:http')
@@ -58,8 +58,8 @@ const HANDLERS = {
 createServer(async function onRequest(req, res) {
   const handler = HANDLERS[req.url.split('?')[0]]
   if (handler === undefined || req.method !== 'GET') {
-    res.statusCode(404)
-    res.end('Not Found')
+    res.statusCode = 404
+    return res.end('Not Found')
   }
 
   try {
