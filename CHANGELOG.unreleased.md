@@ -8,6 +8,7 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [Backup] Improve listing speed by updating caches instead of regenerating them on backup creation/deletion (PR [#6411](https://github.com/vatesfr/xen-orchestra/pull/6411))
+- [Storage/NFS] Ability to use subdirectory when creating new NFS storage [#3919](https://github.com/vatesfr/xen-orchestra/issues/3919) (PR [#6425](https://github.com/vatesfr/xen-orchestra/pull/6425))
 
 ### Bug fixes
 
@@ -35,6 +36,6 @@
 
 - @xen-orchestra/backups minor
 - xo-server-auth-saml patch
-- xo-web patch
+- xo-web minor
 
 <!--packages-end-->
