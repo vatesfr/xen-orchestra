@@ -509,10 +509,9 @@ export default class New extends Component {
         path,
         usage: true,
         summary: true,
-        isValidPath: true,
       })
     } catch (err) {
-      this.setState({ isValidPath: false, summary: false, usage: false })
+      this.setState({ summary: false, usage: false })
       error('NFS Error', err.message || String(err))
     } finally {
       this.setState(({ loading }) => ({ loading: loading - 1 }))
@@ -564,7 +563,6 @@ export default class New extends Component {
       auth,
       host,
       iqns,
-      isValidPath,
       hbaDevices,
       loading,
       lockCreation,
@@ -910,7 +908,7 @@ export default class New extends Component {
               )}
             </Section>
             <Section icon='summary' title='newSrSummary'>
-              {summary && isValidPath !== false && (
+              {summary && (
                 <div>
                   <dl className='dl-horizontal'>
                     <dt>{_('newSrName')}</dt>
