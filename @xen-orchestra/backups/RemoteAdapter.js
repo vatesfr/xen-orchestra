@@ -76,12 +76,14 @@ const debounceResourceFactory = factory =>
   }
 
 class RemoteAdapter {
-  constructor(handler, { debounceResource = res => res, dirMode, vhdDirectoryCompression } = {}) {
+  constructor(handler, { debounceResource = res => res, dirMode, vhdDirectoryCompression, useGetDiskLegacy=false } = {}) {
     this._debounceResource = debounceResource
     this._dirMode = dirMode
     this._handler = handler
     this._vhdDirectoryCompression = vhdDirectoryCompression
     this._readCacheListVmBackups = synchronized.withKey()(this._readCacheListVmBackups)
+    this._useGetDiskLegacy = useGetDiskLegacy
+
   }
 
   get handler() {
@@ -322,7 +324,44 @@ class RemoteAdapter {
     return this.#useVhdDirectory()
   }
 
+
+  async *#getDiskLegacy(diskId) {
+
+    const RE_VHDI = /^vhdi(\d+)$/
+    const handler = this._handler
+
+    const diskPath = handler._getFilePath('/' + diskId)
+    const mountDir = yield getTmpDir()
+    await fromCallback(execFile, 'vhdimount', [diskPath, mountDir])
+    try {
+      let max = 0
+      let maxEntry
+      const entries = await readdir(mountDir)
+      entries.forEach(entry => {
+        const matches = RE_VHDI.exec(entry)
+        if (matches !== null) {
+          const value = +matches[1]
+          if (value > max) {
+            max = value
+            maxEntry = entry
+          }
+        }
+      })
+      if (max === 0) {
+        throw new Error('no disks found')
+      }
+
+      yield `${mountDir}/${maxEntry}`
+    } finally {
+      await fromCallback(execFile, 'fusermount', ['-uz', mountDir])
+    }
+  }
+
   async *getDisk(diskId) {
+    if(this._useGetDiskLegacy){
+      yield * this.#getDiskLegacy(diskId)
+      return
+    }
     const handler = this._handler
     // this is a disposable
     const mountDir = yield getTmpDir()
