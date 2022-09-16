@@ -1,5 +1,5 @@
 <template>
-  <label class="form-label" :class="{ disabled }">
+  <label :class="{ disabled }" class="form-label">
     <slot />
   </label>
 </template>
@@ -20,12 +20,13 @@ provide(
 
 <style lang="postcss" scoped>
 .form-label {
-  display: inline-flex;
   font-size: 1.6rem;
+  display: inline-flex;
   align-items: center;
   gap: 1rem;
 
   &.disabled {
+    cursor: not-allowed;
     color: var(--color-blue-scale-300);
   }
 }

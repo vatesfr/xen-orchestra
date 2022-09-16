@@ -98,6 +98,7 @@ const icon = computed(() => (type === "checkbox" ? faCheck : faCircle));
 
 .input:disabled {
   & + .fake-checkbox {
+    cursor: not-allowed;
     --background-color: var(--background-color-secondary);
     --border-color: var(--color-blue-scale-400);
   }
