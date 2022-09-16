@@ -30,6 +30,7 @@ const messages = {
   messageFrom: 'From',
   messageReply: 'Reply',
   sr: 'SR',
+  subdirectory: 'Subdirectory',
   tryXoa: 'Try XOA for free and deploy it here.',
   notInstalled: 'Not installed',
 
