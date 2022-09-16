@@ -102,8 +102,8 @@ const inputClass = computed(() => [
   display: inline-grid;
   align-items: stretch;
 
-  --before-width: 1.75em;
-  --after-width: 1.625em;
+  --before-width: v-bind('beforeWidth ?? "1.75em"');
+  --after-width: v-bind('afterWidth ?? "1.625em"');
   --caret-width: 1.5em;
 
   --text-color: var(--color-blue-scale-100);
