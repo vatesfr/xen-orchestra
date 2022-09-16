@@ -1,22 +1,20 @@
 <template>
-  <span :class="wrapperClass">
+  <span :class="wrapperClass" v-bind="wrapperAttrs">
     <input
       v-if="!isSelect"
-      :id="id"
       v-model="value"
       :class="inputClass"
       :disabled="disabled || isLabelDisabled"
       class="input"
-      v-bind="inputAttrs"
+      v-bind="$attrs"
     />
     <template v-else>
       <select
-        :id="id"
         v-model="value"
         :class="inputClass"
         :disabled="disabled || isLabelDisabled"
         class="select"
-        v-bind="inputAttrs"
+        v-bind="$attrs"
       >
         <slot />
       </select>
@@ -35,9 +33,22 @@
   </span>
 </template>
 
+<script lang="ts">
+export default {
+  name: "FormInput",
+  inheritAttrs: false,
+};
+</script>
+
 <script lang="ts" setup>
 import { isEmpty } from "lodash-es";
-import { type InputHTMLAttributes, computed, inject, ref } from "vue";
+import {
+  type HTMLAttributes,
+  type InputHTMLAttributes,
+  computed,
+  inject,
+  ref,
+} from "vue";
 import type { Color } from "@/types";
 import type { IconDefinition } from "@fortawesome/fontawesome-common-types";
 import { faAngleDown } from "@fortawesome/free-solid-svg-icons";
@@ -45,7 +56,7 @@ import { useVModel } from "@vueuse/core";
 import UiIcon from "@/components/ui/UiIcon.vue";
 
 interface Props extends Omit<InputHTMLAttributes, ""> {
-  modelValue?: string;
+  modelValue?: unknown;
   color?: Color;
   before?: Omit<IconDefinition, ""> | string;
   after?: Omit<IconDefinition, ""> | string;
@@ -53,8 +64,7 @@ interface Props extends Omit<InputHTMLAttributes, ""> {
   afterWidth?: string;
   disabled?: boolean;
   right?: boolean;
-  id?: string;
-  inputAttrs?: Record<string, unknown>;
+  wrapperAttrs?: HTMLAttributes;
 }
 
 const props = withDefaults(defineProps<Props>(), { color: "info" });
@@ -89,13 +99,12 @@ const inputClass = computed(() => [
 <style lang="postcss" scoped>
 .form-input,
 .form-select {
-  font-size: 1.6rem;
   display: inline-grid;
   align-items: stretch;
 
-  --before-width: 2.8rem;
-  --after-width: 2.6rem;
-  --caret-width: 2.4rem;
+  --before-width: 1.75em;
+  --after-width: 1.625em;
+  --caret-width: 1.5em;
 
   --text-color: var(--color-blue-scale-100);
 
@@ -122,12 +131,12 @@ const inputClass = computed(() => [
 
 .input,
 .select {
-  font-size: 1.6rem;
-  height: 3.8rem;
+  font-size: 1em;
+  height: 2em;
   margin: 0;
   color: var(--text-color);
-  border: 0.1rem solid var(--border-color);
-  border-radius: 0.8rem;
+  border: 0.0625em solid var(--border-color);
+  border-radius: 0.5em;
   outline: none;
   background-color: var(--background-color);
   box-shadow: var(--shadow-100);
@@ -212,29 +221,29 @@ const inputClass = computed(() => [
 }
 
 .input {
-  padding: 0 1rem 0 1rem;
+  padding: 0 0.625em 0 0.625em;
 
   &.has-before {
-    padding-left: calc(var(--before-width) + 0.4rem);
+    padding-left: calc(var(--before-width) + 0.25em);
   }
 
   &.has-after {
-    padding-right: calc(var(--after-width) + 0.4rem);
+    padding-right: calc(var(--after-width) + 0.25em);
   }
 }
 
 .select {
   min-width: fit-content;
-  padding: 0 calc(var(--caret-width) + 0.4rem) 0 1rem;
+  padding: 0 calc(var(--caret-width) + 0.25em) 0 0.625em;
   grid-column: 1 / 5;
   appearance: none;
 
   &.has-before {
-    padding-left: calc(var(--before-width) + 0.4rem);
+    padding-left: calc(var(--before-width) + 0.25em);
   }
 
   &.has-after {
-    padding-right: calc(var(--after-width) + 0.4rem + var(--caret-width));
+    padding-right: calc(var(--after-width) + 0.25em + var(--caret-width));
   }
 }
 

@@ -1,12 +1,13 @@
 <template>
   <component
     :is="hasLabel ? 'span' : 'label'"
-    :class="type === 'checkbox' ? 'form-checkbox' : 'form-radio'"
+    :class="`form-${type}`"
+    v-bind="wrapperAttrs"
   >
     <input
       v-model="value"
       :disabled="isLabelDisabled || disabled"
-      :type="type"
+      :type="type === 'radio' ? 'radio' : 'checkbox'"
       class="input"
       v-bind="$attrs"
     />
@@ -24,7 +25,13 @@ export default {
 </script>
 
 <script lang="ts" setup>
-import { type InputHTMLAttributes, computed, inject, ref } from "vue";
+import {
+  type HTMLAttributes,
+  type InputHTMLAttributes,
+  computed,
+  inject,
+  ref,
+} from "vue";
 import { faCheck, faCircle } from "@fortawesome/free-solid-svg-icons";
 import { useVModel } from "@vueuse/core";
 import UiIcon from "@/components/ui/UiIcon.vue";
@@ -32,6 +39,7 @@ import UiIcon from "@/components/ui/UiIcon.vue";
 interface Props extends Omit<InputHTMLAttributes, ""> {
   modelValue?: unknown;
   disabled?: boolean;
+  wrapperAttrs?: HTMLAttributes;
 }
 
 const props = defineProps<Props>();
@@ -41,30 +49,76 @@ const emit = defineEmits<{
 }>();
 
 const value = useVModel(props, "modelValue", emit);
-const type = inject("inputType", "checkbox");
+const type = inject<"checkbox" | "radio" | "toggle">("inputType", "checkbox");
 const hasLabel = inject("hasLabel", false);
 const isLabelDisabled = inject("isLabelDisabled", ref(false));
 const icon = computed(() => (type === "checkbox" ? faCheck : faCircle));
 </script>
 
 <style lang="postcss" scoped>
+.form-toggle,
 .form-checkbox,
 .form-radio {
   display: inline-flex;
-  width: 2rem;
-  height: 2rem;
+  height: 1.25em;
 
-  --checkbox-border-radius: 0.4rem;
-  --checkbox-icon-size: 1.6rem;
-  --checkbox-border-width: 0.1rem;
+  --checkbox-border-width: 0.0625em;
 }
 
 .form-radio {
-  --checkbox-border-radius: 1rem;
-  --checkbox-icon-size: 1rem;
+  --checkbox-border-radius: 0.625em;
+  --checkbox-icon-size: 0.625em;
+}
+
+.form-checkbox {
+  --checkbox-border-radius: 0.25em;
+  --checkbox-icon-size: 1em;
+}
+
+.form-checkbox,
+.form-radio {
+  width: 1.25em;
+
+  .fake-checkbox {
+    width: 1.25em;
+    --background-color: var(--background-color-primary);
+  }
+
+  .icon {
+    transition: opacity 0.125s ease-in-out;
+  }
+
+  .input + .fake-checkbox > .icon {
+    opacity: 0;
+  }
+
+  .input:checked + .fake-checkbox > .icon {
+    opacity: 1;
+  }
+}
+
+.form-toggle {
+  width: 2.5em;
+  --checkbox-border-radius: 0.625em;
+  --checkbox-icon-size: 0.875em;
+
+  .fake-checkbox {
+    width: 2.5em;
+    --background-color: var(--color-blue-scale-400);
+  }
+
+  .icon {
+    transform: translateX(-0.7em);
+    transition: transform 0.125s ease-in-out;
+  }
+
+  .input:checked + .fake-checkbox > .icon {
+    transform: translateX(0.7em);
+  }
 }
 
 .input {
+  font-size: inherit;
   position: absolute;
   pointer-events: none;
   opacity: 0;
@@ -73,27 +127,26 @@ const icon = computed(() => (type === "checkbox" ? faCheck : faCircle));
 .icon {
   font-size: var(--checkbox-icon-size);
   position: absolute;
-  visibility: hidden;
   color: var(--color-blue-scale-500);
-}
 
-.input:checked + .fake-checkbox > .icon {
-  visibility: visible;
+  filter: drop-shadow(0 0.0625em 0.5em rgba(0, 0, 0, 0.1))
+    drop-shadow(0 0.1875em 0.1875em rgba(0, 0, 0, 0.06))
+    drop-shadow(0 0.1875em 0.25em rgba(0, 0, 0, 0.08));
 }
 
 .fake-checkbox {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 2rem;
-  height: 2rem;
+  height: 1.25em;
   border: var(--checkbox-border-width) solid var(--border-color);
   border-radius: var(--checkbox-border-radius);
   background-color: var(--background-color);
   box-shadow: var(--shadow-100);
+  transition: background-color 0.125s ease-in-out,
+    border-color 0.125s ease-in-out;
 
   --border-color: var(--color-blue-scale-400);
-  --background-color: var(--background-color-primary);
 }
 
 .input:disabled {

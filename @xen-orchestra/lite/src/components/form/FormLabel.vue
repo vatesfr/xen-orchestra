@@ -23,7 +23,7 @@ provide(
   font-size: 1.6rem;
   display: inline-flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.625em;
 
   &.disabled {
     cursor: not-allowed;
