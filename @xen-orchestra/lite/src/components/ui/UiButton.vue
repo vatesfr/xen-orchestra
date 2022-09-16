@@ -1,15 +1,15 @@
 <template>
   <button
-    :class="[
-      `color-${buttonColor}`,
-      { busy: isBusy, disabled: isDisabled, active },
-    ]"
+    :class="className"
     :disabled="isBusy || isDisabled"
     :type="type || 'button'"
     class="ui-button"
   >
-    <UiIcon :busy="isBusy" :icon="icon" class="icon" />
-    <slot v-if="!isBusy" />
+    <span v-if="isBusy" class="loader" />
+    <template v-else>
+      <UiIcon :icon="icon" class="icon" />
+      <slot />
+    </template>
   </button>
 </template>
 
@@ -25,10 +25,12 @@ const props = withDefaults(
     busy?: boolean;
     disabled?: boolean;
     icon?: IconDefinition;
-    color?: "primary" | "secondary";
+    color?: Color;
+    outlined?: boolean;
+    transparent?: boolean;
     active?: boolean;
   }>(),
-  { busy: undefined, disabled: undefined }
+  { busy: undefined, disabled: undefined, outlined: undefined }
 );
 
 const isGroupBusy = inject("isButtonGroupBusy", false);
@@ -64,14 +66,19 @@ const className = computed(() => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 5em;
   min-height: 2.5em;
   padding: 0 0.75em;
+  cursor: pointer;
   vertical-align: middle;
-  border: none;
-  border-radius: 0.4em;
-  box-shadow: var(--shadow-100);
+  color: var(--button-color);
+  border: 1px solid var(--button-border-color);
+  border-radius: 0.5em;
+  background-color: var(--button-background-color);
   gap: 0.75em;
+
+  &:not(.transparent) {
+    box-shadow: var(--shadow-100);
+  }
 
   &.color-info {
     --button-accent-color: var(--color-extra-blue-base);
@@ -117,43 +124,59 @@ const className = computed(() => {
     --button-background-color: var(--background-color-primary);
   }
 
-  &:not(.disabled) {
-    &.color-primary {
-      color: var(--color-blue-scale-500);
-      background-color: var(--color-extra-blue-base);
+  &.transparent {
+    --button-color: var(--button-accent-color);
+    --button-border-color: transparent;
+    --button-background-color: transparent;
+  }
 
-      &:hover {
-        background-color: var(--color-extra-blue-d20);
-      }
+  &.busy {
+    cursor: not-allowed;
+  }
 
-      &:active,
-      &.active,
-      &.busy {
-        background-color: var(--color-extra-blue-d40);
-      }
-    }
-
-    &.color-secondary {
-      color: var(--color-extra-blue-base);
-      border: 1px solid var(--color-extra-blue-base);
-      background-color: var(--color-blue-scale-500);
-
-      &:hover {
-        color: var(--color-extra-blue-d20);
-        border-color: var(--color-extra-blue-d20);
-      }
-
-      &:active,
-      &.active,
-      &.busy {
-        color: var(--color-extra-blue-d40);
-        border-color: var(--color-extra-blue-d40);
-      }
-    }
+  &.disabled {
+    cursor: not-allowed;
+    --button-color: var(--color-blue-scale-400);
+    --button-border-color: transparent;
+    --button-background-color: var(--background-color-secondary);
   }
 }
 
 .icon {
   font-size: 0.8em;
+}
+
+.loader {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5em;
+  height: 1.5em;
+  animation: spin 1s infinite linear;
+  border-radius: 0.75em;
+
+  background: conic-gradient(
+    from 90deg at 50% 50%,
+    rgba(255, 255, 255, 0) 0deg,
+    rgba(255, 255, 255, 0) 0.04deg,
+    var(--button-color) 360deg
+  );
+
+  &::after {
+    width: 1.2em;
+    height: 1.2em;
+    content: "";
+    border-radius: 0.6em;
+    background-color: var(--button-background-color);
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 </style>
