@@ -66,13 +66,6 @@ exports.mount = Disposable.factory(async function* mount(handler, diskPath, moun
   })
   return new Disposable(
     () => fromCallback(fuse.unmount),
-    new Promise((resolve, reject) => {
-      fuse.mount(function (err) {
-        if (err) {
-          return reject(err)
-        }
-        resolve()
-      })
-    })
-  )
+    fromCallback(() => fuse.mount())
+    )
 })
