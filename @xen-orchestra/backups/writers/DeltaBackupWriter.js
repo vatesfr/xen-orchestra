@@ -204,6 +204,7 @@ exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(Ab
             // merges and chainings
             checksum: false,
             validator: tmpPath => checkVhd(handler, tmpPath),
+            writeBlockConcurrency: this._backup.config.writeBlockConcurrency,
           })
 
           if (isDelta) {
