@@ -46,7 +46,8 @@ const logout = () => {
 const openFeedbackUrl = () => {
   window.open(
     "https://xcp-ng.org/forum/topic/4731/xen-orchestra-lite",
-    "_blank"
+    "_blank",
+    "noopener"
   );
 };
 </script>
