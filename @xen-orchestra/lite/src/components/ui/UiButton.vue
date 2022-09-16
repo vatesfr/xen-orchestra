@@ -188,4 +188,38 @@ const className = computed(() => {
 .icon {
   font-size: 0.8em;
 }
+
+.loader {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5em;
+  height: 1.5em;
+  animation: spin 1s infinite linear;
+  border-radius: 0.75em;
+
+  background: conic-gradient(
+    from 90deg at 50% 50%,
+    rgba(255, 255, 255, 0) 0deg,
+    rgba(255, 255, 255, 0) 0.04deg,
+    var(--button-color) 360deg
+  );
+
+  &::after {
+    width: 1.2em;
+    height: 1.2em;
+    content: "";
+    border-radius: 0.6em;
+    background-color: var(--button-background-color);
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
 </style>
