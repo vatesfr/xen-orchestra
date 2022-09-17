@@ -12,7 +12,7 @@ A typical use case is to make sure the VM is in a consistent state during the sn
 
 The feature is opt-in via a tag on the VM: `xo:notify-on-snapshot`.
 
-By default, it will be an HTTP request on the port `1727`, on the first IP address reported by the VM.
+By default, it will be an HTTPS request on the port `1727`, on the first IP address reported by the VM.
 
 If the _VM Tools_ (i.e. management agent) are not installed on the VM or if you which to use another URL, you can specify this in the tag: `xo:notify-on-snapshot=<URL>`.
 
@@ -37,8 +37,7 @@ GET /post-sync HTTP/1.1
 `index.cjs`:
 
 ```js
-const { createServer } = require('node:http')
-const exec = require('node:util').promisify(require('node:child_process').exec)
+const exec = require('node:util').promisify(require('node:child_process').execFile)
 
 const HANDLERS = {
   __proto__: null,
@@ -55,26 +54,41 @@ const HANDLERS = {
   },
 }
 
-createServer(async function onRequest(req, res) {
-  const handler = HANDLERS[req.url.split('?')[0]]
-  if (handler === undefined || req.method !== 'GET') {
-    res.statusCode = 404
-    return res.end('Not Found')
-  }
+async function main() {
+  // generate a self-signed certificate
+  const [, key, cert] =
+    /^(-----BEGIN PRIVATE KEY-----.+-----END PRIVATE KEY-----\n)(-----BEGIN CERTIFICATE-----.+-----END CERTIFICATE-----\n)$/s.exec(
+      (await exec('openssl', ['req', '-batch', '-new', '-x509', '-nodes', '-newkey', 'rsa:2048', '-keyout', '-']))
+        .stdout
+    )
 
-  try {
-    await handler()
-
-    res.statusCode = 200
-    res.end('Ok')
-  } catch (error) {
-    console.warn(error)
-
-    if (!res.headersSent) {
-      res.statusCode = 500
-      res.write('Internal Error')
+  const server = require('node:https').createServer({ cert, key }, async function onRequest(req, res) {
+    const handler = HANDLERS[req.url.split('?')[0]]
+    if (handler === undefined || req.method !== 'GET') {
+      res.statusCode = 404
+      return res.end('Not Found')
     }
-    res.end()
-  }
-}).listen(1727)
+
+    try {
+      await handler()
+
+      res.statusCode = 200
+      res.end('Ok')
+    } catch (error) {
+      console.warn(error)
+
+      if (!res.headersSent) {
+        res.statusCode = 500
+        res.write('Internal Error')
+      }
+      res.end()
+    }
+  })
+
+  await new Promise((resolve, reject) => {
+    server.on('close', resolve).on('error', reject).listen(1727)
+  })
+}
+
+main().catch(console.warn)
 ```
