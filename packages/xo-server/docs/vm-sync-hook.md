@@ -32,6 +32,8 @@ When the snapshot is finished, another request will be sent:
 GET /post-sync HTTP/1.1
 ```
 
+The created snapshot will have the special `xo:synced` tag set to make it identifiable.
+
 ## Example server in Node
 
 `index.cjs`:
