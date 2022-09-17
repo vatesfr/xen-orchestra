@@ -16,6 +16,13 @@ By default, it will be an HTTPS request on the port `1727`, on the first IP addr
 
 If the _VM Tools_ (i.e. management agent) are not installed on the VM or if you which to use another URL, you can specify this in the tag: `xo:notify-on-snapshot=<URL>`.
 
+To guarantee the request comes from XO, a secret must be provided in the `xo-server`'s (and `xo-config` if relevant) Configuration:
+
+```toml
+[xapiOptions]
+syncHookSecret = 'unique long string to ensure the request comes from XO'
+```
+
 ## Specification
 
 XO will waits for the request to be answered before starting the snapshot, but will not wait longer than _1 minute_.
@@ -41,6 +48,8 @@ The created snapshot will have the special `xo:synced` tag set to make it identi
 ```js
 const exec = require('node:util').promisify(require('node:child_process').execFile)
 
+const SECRET = 'unique long string to ensure the request comes from XO'
+
 const HANDLERS = {
   __proto__: null,
 
@@ -56,6 +65,21 @@ const HANDLERS = {
   },
 }
 
+function checkAuthorization(req) {
+  try {
+    const { authorization } = req.authorization
+    if (authorization !== undefined) {
+      const parts = authorization.split('  ')
+      if (parts.length >= 1 && parts[0].toLowerCase() === 'bearer') {
+        return Buffer.from(parts[1], 'base64').toString() === SECRET
+      }
+    }
+  } catch (error) {
+    console.warn('checkAuthorization', error)
+  }
+  return false
+}
+
 async function main() {
   // generate a self-signed certificate
   const [, key, cert] =
@@ -65,6 +89,11 @@ async function main() {
     )
 
   const server = require('node:https').createServer({ cert, key }, async function onRequest(req, res) {
+    if (!checkAuthorization(req)) {
+      res.statusCode = 403
+      return res.end('Forbidden')
+    }
+
     const handler = HANDLERS[req.url.split('?')[0]]
     if (handler === undefined || req.method !== 'GET') {
       res.statusCode = 404
