@@ -31,12 +31,14 @@ If the request fails for any reason, XO will go ahead with snapshot immediately.
 
 ```http
 GET /sync HTTP/1.1
+Authorization: Bearer dW5pcXVlIGxvbmcgc3RyaW5nIHRvIGVuc3VyZSB0aGUgcmVxdWVzdCBjb21lcyBmcm9tIFhP
 ```
 
 When the snapshot is finished, another request will be sent:
 
 ```http
 GET /post-sync HTTP/1.1
+Authorization: Bearer dW5pcXVlIGxvbmcgc3RyaW5nIHRvIGVuc3VyZSB0aGUgcmVxdWVzdCBjb21lcyBmcm9tIFhP
 ```
 
 The created snapshot will have the special `xo:synced` tag set to make it identifiable.
