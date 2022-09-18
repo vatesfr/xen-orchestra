@@ -16,7 +16,7 @@ By default, it will be an HTTPS request on the port `1727`, on the first IP addr
 
 If the _VM Tools_ (i.e. management agent) are not installed on the VM or if you which to use another URL, you can specify this in the tag: `xo:notify-on-snapshot=<URL>`.
 
-To guarantee the request comes from XO, a secret must be provided in the `xo-server`'s (and `xo-config` if relevant) Configuration:
+To guarantee the request comes from XO, a secret must be provided in the `xo-server`'s (and `xo-proxy` if relevant) configuration:
 
 ```toml
 [xapiOptions]
