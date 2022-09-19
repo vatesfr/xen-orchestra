@@ -36,6 +36,7 @@ import { faCheck, faCircle } from "@fortawesome/free-solid-svg-icons";
 import { useVModel } from "@vueuse/core";
 import UiIcon from "@/components/ui/UiIcon.vue";
 
+// Temporary workaround for https://github.com/vuejs/core/issues/4294
 interface Props extends Omit<InputHTMLAttributes, ""> {
   modelValue?: unknown;
   disabled?: boolean;
