@@ -42,7 +42,7 @@ const UnhealthyVdiChains = flowRight(
     chains: createSrUnhealthyVdiChainsLengthSubscription(props.sr),
   })),
   connectStore(() => ({
-    vdis: createGetObjectsOfType('VDI').pick(createSelector((_, props) => props.chains, keys)),
+    vdis: createGetObjectsOfType('VDI').pick(createSelector((_, props) => props.chains.unhealthyVdis, keys)),
   }))
 )(({ chains: { unhealthyVdis } = {}, vdis }) =>
   isEmpty(vdis) ? null : (
