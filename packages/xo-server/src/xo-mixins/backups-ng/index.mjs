@@ -193,9 +193,17 @@ export default class BackupNg {
 
           const remotes = {}
           const xapis = {}
+          const remoteErrors = {}
           await waitAll([
             asyncMapSettled(remoteIds, async id => {
-              const remote = await app.getRemoteWithCredentials(id)
+              let remote
+              try{
+                remote = await app.getRemoteWithCredentials(id)
+              }catch(error){
+                log.warn('Error while instantiating remote', {error, remoteId: id})
+                remoteErrors[id] = error
+                return
+              }
               if (remote.proxy !== proxyId) {
                 throw new Error(
                   proxyId === undefined
@@ -221,6 +229,9 @@ export default class BackupNg {
               }
             }),
           ])
+          if(Object.keys(remotes).length === 0){
+            throw new Error(`couldn't instantiate any remote`, { errors: remoteErrors})
+          }
 
           const params = {
             job,
