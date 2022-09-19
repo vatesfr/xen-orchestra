@@ -31,7 +31,7 @@ exports.mount = Disposable.factory(async function* mount(handler, diskPath, moun
       if (path === '/') {
         return cb(null, ['vhd0'])
       }
-      cb(new Error('can t list it '))
+      cb(Fuse.ENOENT)
     },
     async getattr(path, cb) {
       if (path === '/') {
@@ -43,13 +43,17 @@ exports.mount = Disposable.factory(async function* mount(handler, diskPath, moun
           })
         )
       }
-      return cb(
-        null,
-        stat({
-          mode: 'file',
-          size: vhd.footer.currentSize,
-        })
-      )
+      if (path === '/vhd0') {
+        return cb(
+          null,
+          stat({
+            mode: 'file',
+            size: vhd.footer.currentSize,
+          })
+        )
+      }
+
+      cb(Fuse.ENOENT)
     },
     read(path, fd, buf, len, pos, cb) {
       if (path === '/vhd0') {
@@ -57,7 +61,6 @@ exports.mount = Disposable.factory(async function* mount(handler, diskPath, moun
           .readRawData(pos, len, cache, buf)
           .then(cb)
           .catch(err => {
-            warn('error reading data', { err, path, pos, len })
             throw err
           })
       }
