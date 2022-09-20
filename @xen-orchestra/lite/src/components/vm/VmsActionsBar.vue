@@ -4,23 +4,29 @@
     class="vms-actions-bar"
     horizontal
   >
-    <UiButton :icon="faPowerOff">{{ $t("change-power-state") }}</UiButton>
-    <UiButton :icon="faRoute">{{ $t("migrate") }}</UiButton>
-    <UiButton :icon="faCopy">{{ $t("copy") }}</UiButton>
-    <UiButton :icon="faEdit">{{ $t("edit-config") }}</UiButton>
-    <UiButton :icon="faCamera">{{ $t("snapshot") }}</UiButton>
-    <UiButton :icon="faBox">{{ $t("backup") }}</UiButton>
-    <UiButton :icon="faTrashCan">{{ $t("delete") }}</UiButton>
-    <UiButton :icon="faFileExport">{{ $t("export") }}</UiButton>
-  </UiButtonGroup>
+    <MenuItem :icon="faPowerOff">{{ $t("change-power-state") }}</MenuItem>
+    <MenuItem :icon="faRoute">{{ $t("migrate") }}</MenuItem>
+    <MenuItem :icon="faCopy">{{ $t("copy") }}</MenuItem>
+    <MenuItem :icon="faEdit">{{ $t("edit-config") }}</MenuItem>
+    <MenuItem :icon="faCamera">{{ $t("snapshot") }}</MenuItem>
+    <MenuItem :icon="faBox">{{ $t("backup") }}</MenuItem>
+    <MenuItem :icon="faTrashCan">{{ $t("delete") }}</MenuItem>
+    <MenuItem :icon="faFileExport">
+      {{ $t("export") }}
+      <template #submenu>
+        <MenuItem :icon="faDisplay">{{ $t("export-vms") }}</MenuItem>
+        <MenuItem :icon="faCode">
+          {{ $t("export-table-to", { type: ".json" }) }}
+        </MenuItem>
+        <MenuItem :icon="faFileCsv">
+          {{ $t("export-table-to", { type: ".csv" }) }}
+        </MenuItem>
+      </template>
+    </MenuItem>
+  </AppMenu>
 </template>
 
 <script lang="ts" setup>
-import {
-  faCopy,
-  faEdit,
-  faTrashCan,
-} from "@fortawesome/free-regular-svg-icons";
 import {
   faBox,
   faCamera,
@@ -32,9 +38,10 @@ import {
   faFileExport,
   faPowerOff,
   faRoute,
+  faTrashCan,
 } from "@fortawesome/free-solid-svg-icons";
-import UiButton from "@/components/ui/UiButton.vue";
-import UiButtonGroup from "@/components/ui/UiButtonGroup.vue";
+import AppMenu from "@/components/menu/AppMenu.vue";
+import MenuItem from "@/components/menu/MenuItem.vue";
 
 defineProps<{
   disabled?: boolean;
