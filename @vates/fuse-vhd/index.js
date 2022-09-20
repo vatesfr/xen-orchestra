@@ -68,7 +68,7 @@ exports.mount = Disposable.factory(async function* mount(handler, diskPath, moun
     },
   })
   return new Disposable(
-    () => fromCallback(fuse.unmount),
+    () => fromCallback(() => fuse.unmount()),
     fromCallback(() => fuse.mount())
     )
 })
