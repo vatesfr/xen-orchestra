@@ -7,6 +7,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [Backup/Restore file] Implement File level restore for s3 and encrypted backups (PR [#6409](https://github.com/vatesfr/xen-orchestra/pull/6409))
+
 - [Backup] Improve listing speed by updating caches instead of regenerating them on backup creation/deletion (PR [#6411](https://github.com/vatesfr/xen-orchestra/pull/6411))
 - [Backup] Add `mergeBlockConcurrency` and `writeBlockConcurrency` to allow tuning of backup resources consumptions (PR [#6416](https://github.com/vatesfr/xen-orchestra/pull/6416))
 
@@ -34,9 +36,11 @@
 
 <!--packages-start-->
 
+- @vates/fuse-vhd major
 - @xen-orchestra/backups minor
 - vhd-lib minor
 - xo-server-auth-saml patch
-- xo-web patch
+- xo-server minor
+- xo-web minor
 
 <!--packages-end-->

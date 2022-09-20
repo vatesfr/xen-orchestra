@@ -407,6 +407,7 @@ export default class Backups {
       debounceResource: app.debounceResource.bind(app),
       dirMode: app.config.get('backups.dirMode'),
       vhdDirectoryCompression: app.config.get('backups.vhdDirectoryCompression'),
+      useGetDiskLegacy: app.config.getOptional('backups.useGetDiskLegacy'),
     })
   }
 

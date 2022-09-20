@@ -28,6 +28,9 @@ const { isMetadataFile } = require('./_backupType.js')
 const { isValidXva } = require('./_isValidXva.js')
 const { listPartitions, LVM_PARTITION_TYPE } = require('./_listPartitions.js')
 const { lvs, pvs } = require('./_lvm.js')
+// @todo : this import is marked extraneous , sould be fixed when lib is published
+const { mount } = require('@vates/fuse-vhd')
+const { asyncEach } = require('@vates/async-each')
 
 const DIR_XO_CONFIG_BACKUPS = 'xo-config-backups'
 exports.DIR_XO_CONFIG_BACKUPS = DIR_XO_CONFIG_BACKUPS
@@ -44,8 +47,6 @@ const noop = Function.prototype
 const resolveRelativeFromFile = (file, path) => resolve('/', dirname(file), path).slice(1)
 
 const resolveSubpath = (root, path) => resolve(root, `.${resolve('/', path)}`)
-
-const RE_VHDI = /^vhdi(\d+)$/
 
 async function addDirectory(files, realPath, metadataPath) {
   const stats = await lstat(realPath)
@@ -75,12 +76,14 @@ const debounceResourceFactory = factory =>
   }
 
 class RemoteAdapter {
-  constructor(handler, { debounceResource = res => res, dirMode, vhdDirectoryCompression } = {}) {
+  constructor(handler, { debounceResource = res => res, dirMode, vhdDirectoryCompression, useGetDiskLegacy=false } = {}) {
     this._debounceResource = debounceResource
     this._dirMode = dirMode
     this._handler = handler
     this._vhdDirectoryCompression = vhdDirectoryCompression
     this._readCacheListVmBackups = synchronized.withKey()(this._readCacheListVmBackups)
+    this._useGetDiskLegacy = useGetDiskLegacy
+
   }
 
   get handler() {
@@ -321,7 +324,10 @@ class RemoteAdapter {
     return this.#useVhdDirectory()
   }
 
-  async *getDisk(diskId) {
+
+  async *#getDiskLegacy(diskId) {
+
+    const RE_VHDI = /^vhdi(\d+)$/
     const handler = this._handler
 
     const diskPath = handler._getFilePath('/' + diskId)
@@ -349,6 +355,20 @@ class RemoteAdapter {
     } finally {
       await fromCallback(execFile, 'fusermount', ['-uz', mountDir])
     }
+  }
+
+  async *getDisk(diskId) {
+    if(this._useGetDiskLegacy){
+      yield * this.#getDiskLegacy(diskId)
+      return
+    }
+    const handler = this._handler
+    // this is a disposable
+    const mountDir = yield getTmpDir()
+    // this is also a disposable
+    yield mount(handler, diskId, mountDir)
+    // this will yield disk path to caller
+    yield `${mountDir}/vhd0`
   }
 
   // partitionId values:
@@ -401,22 +421,25 @@ class RemoteAdapter {
   listPartitionFiles(diskId, partitionId, path) {
     return Disposable.use(this.getPartition(diskId, partitionId), async rootPath => {
       path = resolveSubpath(rootPath, path)
-
       const entriesMap = {}
-      await asyncMap(await readdir(path), async name => {
-        try {
-          const stats = await lstat(`${path}/${name}`)
-          if (stats.isDirectory()) {
-            entriesMap[name + '/'] = {}
-          } else if (stats.isFile()) {
-            entriesMap[name] = {}
+      await asyncEach(
+        await readdir(path),
+        async name => {
+          try {
+            const stats = await lstat(`${path}/${name}`)
+            if (stats.isDirectory()) {
+              entriesMap[name + '/'] = {}
+            } else if (stats.isFile()) {
+              entriesMap[name] = {}
+            }
+          } catch (error) {
+            if (error == null || error.code !== 'ENOENT') {
+              throw error
+            }
           }
-        } catch (error) {
-          if (error == null || error.code !== 'ENOENT') {
-            throw error
-          }
-        }
-      })
+        },
+        { concurrency: 1 }
+      )
 
       return entriesMap
     })

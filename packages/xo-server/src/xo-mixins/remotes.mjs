@@ -13,7 +13,6 @@ import { Remotes } from '../models/remote.mjs'
 
 const obfuscateRemote = ({ url, ...remote }) => {
   const parsedUrl = parse(url)
-  remote.supportFileRestore = parsedUrl.type !== 's3'
   remote.url = format(sensitiveValues.obfuscate(parsedUrl))
   return remote
 }
