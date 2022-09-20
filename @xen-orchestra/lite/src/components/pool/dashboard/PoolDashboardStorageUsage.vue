@@ -4,7 +4,7 @@
     <UsageBar :data="data.result" :nItems="5">
       <template #header>
         <span>{{ $t("storage") }}</span>
-        <span>{{ $t("top-5") }}</span>
+        <span>{{ $t("top-#", { n: 5 }) }}</span>
       </template>
       <template #footer v-if="showFooter">
         <div class="footer-card">
@@ -19,7 +19,7 @@
         <div class="footer-card">
           <p>{{ $t("total-free") }}:</p>
           <div class="footer-value">
-            <p>{{ 100 - percentUsed }}%</p>
+            <p>{{ percentFree }}%</p>
             <p>
               {{ formatSize(data.maxSize) }}
             </p>
@@ -35,16 +35,17 @@ import { computed } from "vue";
 import UsageBar from "@/components/UsageBar.vue";
 import UiCard from "@/components/ui/UiCard.vue";
 import UiTitle from "@/components/ui/UiTitle.vue";
-import { formatSize } from "@/libs/utils";
+import { formatSize, percent } from "@/libs/utils";
 import { useSrStore } from "@/stores/storage.store";
 
 const srStore = useSrStore();
 
-const percentUsed = computed(
-  () =>
-    Math.round(
-      ((data.value.usedSize / data.value.maxSize) * 100 + Number.EPSILON) * 10
-    ) / 10
+const percentUsed = computed(() =>
+  percent(data.value.usedSize, data.value.maxSize, 1)
+);
+
+const percentFree = computed(() =>
+  percent(data.value.maxSize - data.value.usedSize, data.value.maxSize, 1)
 );
 
 const showFooter = computed(() => !isNaN(percentUsed.value));

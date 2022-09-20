@@ -37,7 +37,7 @@
   "switch-theme": "Changer de thème",
   "system": "Système",
   "tasks": "Tâches",
-  "top-5": "Top 5",
+  "top-#": "Top {n}",
   "total-free": "Total libre",
   "total-used": "Total utilisé",
   "vms": "VMs"
