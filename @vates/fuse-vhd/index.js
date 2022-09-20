@@ -60,9 +60,6 @@ exports.mount = Disposable.factory(async function* mount(handler, diskPath, moun
         return vhd
           .readRawData(pos, len, cache, buf)
           .then(cb)
-          .catch(err => {
-            throw err
-          })
       }
       throw new Error(`read file ${path} not exists`)
     },
