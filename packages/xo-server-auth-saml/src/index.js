@@ -17,6 +17,7 @@ export const configurationSchema = {
       type: 'string',
     },
     cert: {
+      $multiline: true,
       title: 'Certificate',
       description: "Copy/paste the identity provider's certificate",
       type: 'string',

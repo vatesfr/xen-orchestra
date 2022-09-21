@@ -50,6 +50,10 @@ const MAX_VMS = 30
 
 // ===================================================================
 
+export const EXPIRES_SOON_DELAY = 30 * 24 * 60 * 60 * 1000 // 1 month
+
+// ===================================================================
+
 export const ITEMS_PER_PAGE_OPTIONS = [10, 20, 50, 100]
 export const VDIS_TO_COALESCE_LIMIT = 10
 
@@ -71,12 +75,17 @@ export const isVmRunning = vm => vm && vm.power_state === 'Running'
 
 // ===================================================================
 
-export const signOut = () => {
+const reload = () => {
   // prevent automatic reconnection
   xo.removeListener('closed', connect)
 
-  cookies.remove('token')
   window.location.reload(true)
+}
+
+export const signOut = () => {
+  cookies.remove('token')
+
+  reload()
 }
 
 export const connect = () => {
@@ -88,7 +97,7 @@ export const connect = () => {
 const xo = invoke(() => {
   const token = cookies.get('token')
   if (!token) {
-    signOut()
+    reload()
     throw new Error('no valid token')
   }
 
@@ -96,7 +105,7 @@ const xo = invoke(() => {
     credentials: { token },
   })
 
-  xo.on('authenticationFailure', signOut)
+  xo.on('authenticationFailure', reload)
   xo.on('scheduledAttempt', ({ delay }) => {
     console.warn('next attempt in %s ms', delay)
   })
@@ -544,7 +553,7 @@ export const createSrUnhealthyVdiChainsLengthSubscription = sr => {
   sr = resolveId(sr)
   let subscription = unhealthyVdiChainsLengthSubscriptionsBySr[sr]
   if (subscription === undefined) {
-    subscription = createSubscription(() => _call('sr.getUnhealthyVdiChainsLength', { sr }))
+    subscription = createSubscription(() => _call('sr.getVdiChainsInfo', { sr }))
     unhealthyVdiChainsLengthSubscriptionsBySr[sr] = subscription
   }
   return subscription
@@ -3220,6 +3229,8 @@ export const getLicenses = ({ productType } = {}) => _call('xoa.licenses.getAll'
 export const getLicense = (productId, boundObjectId) => _call('xoa.licenses.get', { productId, boundObjectId })
 
 export const unlockXosan = (licenseId, srId) => _call('xosan.unlock', { licenseId, sr: srId })
+
+export const bindLicense = (licenseId, boundObjectId) => _call('xoa.licenses.bind', { licenseId, boundObjectId })
 
 export const selfBindLicense = ({ id, plan, oldXoaId }) =>
   confirm({

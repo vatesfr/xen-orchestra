@@ -201,8 +201,7 @@ getVolumeInfo.params = {
     type: 'string',
   },
   infoType: {
-    type: 'string',
-    eq: Object.keys(VOLUME_INFO_TYPES),
+    enum: Object.keys(VOLUME_INFO_TYPES),
   },
 }
 getVolumeInfo.resolve = {
@@ -230,7 +229,7 @@ profileStatus.params = {
     type: 'string',
   },
   changeStatus: {
-    type: 'bool',
+    type: 'boolean',
     optional: true,
   },
 }

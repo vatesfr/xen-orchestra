@@ -44,12 +44,12 @@ const UnhealthyVdiChains = flowRight(
   connectStore(() => ({
     vdis: createGetObjectsOfType('VDI').pick(createSelector((_, props) => props.chains, keys)),
   }))
-)(({ chains, vdis }) =>
+)(({ chains: { unhealthyVdis } = {}, vdis }) =>
   isEmpty(vdis) ? null : (
     <div>
       <hr />
-      <h3>{_('srUnhealthyVdiTitle', { total: sum(values(chains)) })}</h3>
-      <SortedTable collection={vdis} columns={COLUMNS} stateUrlParam='s_unhealthy_vdis' userData={chains} />
+      <h3>{_('srUnhealthyVdiTitle', { total: sum(values(unhealthyVdis)) })}</h3>
+      <SortedTable collection={vdis} columns={COLUMNS} stateUrlParam='s_unhealthy_vdis' userData={unhealthyVdis} />
     </div>
   )
 )

@@ -15,6 +15,20 @@ import { createLogger } from '@xen-orchestra/log'
 
 const { debug, warn } = createLogger('xo:proxy:api')
 
+// format an error to JSON-RPC but do not hide non JSON-RPC errors
+function formatError(responseId, error) {
+  if (error != null && typeof error.toJsonRpcError !== 'function') {
+    const { message, ...data } = error
+
+    // force these entries even if they are not enumerable
+    data.code = error.code
+    data.stack = error.stack
+
+    error = new JsonRpcError(error.message, undefined, data)
+  }
+  return format.error(responseId, error)
+}
+
 const ndJsonStream = asyncIteratorToStream(async function* (responseId, iterable) {
   try {
     let cursor, iterator
@@ -25,7 +39,7 @@ const ndJsonStream = asyncIteratorToStream(async function* (responseId, iterable
       cursor = await iterator.next()
       yield format.response(responseId, { $responseType: 'ndjson' }) + '\n'
     } catch (error) {
-      yield format.error(responseId, error)
+      yield formatError(responseId, error)
       throw error
     }
 
@@ -64,7 +78,7 @@ export default class Api {
       try {
         body = parse(body)
       } catch (error) {
-        ctx.body = format.error(null, error)
+        ctx.body = formatError(null, error)
         return
       }
 
@@ -78,19 +92,7 @@ export default class Api {
         const { method, params } = body
         warn('call error', { method, params, error })
         ctx.set('Content-Type', 'application/json')
-
-        let e = error
-        if (error != null && typeof error.toJsonRpcError !== 'function') {
-          const { message, ...data } = error
-
-          // force these entries even if they are not enumerable
-          data.code = error.code
-          data.stack = error.stack
-
-          e = new JsonRpcError(error.message, undefined, data)
-        }
-
-        ctx.body = format.error(body.id, e)
+        ctx.body = formatError(body.id, error)
         return
       }
 

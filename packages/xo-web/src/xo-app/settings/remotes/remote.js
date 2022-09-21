@@ -44,6 +44,7 @@ export default decorate([
       region: undefined,
       allowUnauthorized: undefined,
       useVhdDirectory: undefined,
+      encryptionKey: undefined,
     }),
     effects: {
       linkState,
@@ -69,6 +70,7 @@ export default decorate([
             username = remote.username,
             protocol = remote.protocol || 'https',
             region = remote.region,
+            encryptionKey = remote.encryptionKey,
           } = state
 
           let {
@@ -99,6 +101,7 @@ export default decorate([
               region,
               allowUnauthorized,
               useVhdDirectory,
+              encryptionKey: encryptionKey.trim() !== '' ? encryptionKey : undefined,
             }),
             options: options !== '' ? options : null,
             proxy: proxyId,
@@ -128,6 +131,7 @@ export default decorate([
             type = 'nfs',
             username,
             useVhdDirectory = undefined,
+            encryptionKey = '',
           } = state
 
           const urlParams = {
@@ -136,6 +140,7 @@ export default decorate([
             port,
             type,
             useVhdDirectory,
+            encryptionKey: encryptionKey.trim() !== '' ? encryptionKey : undefined,
           }
           if (type === 's3') {
             const { allowUnauthorized, bucket, directory, protocol = 'https' } = state
@@ -202,7 +207,11 @@ export default decorate([
       username = remote.username || '',
       allowUnauthorized = remote.allowUnauthorized || false,
       useVhdDirectory = remote.useVhdDirectory || type === 's3',
+      encryptionKey = remote.encryptionKey || '',
     } = state
+
+    const isEncrypted = encryptionKey.trim() !== ''
+
     return (
       <div>
         <h2>{_('newRemote')}</h2>
@@ -469,6 +478,30 @@ export default decorate([
               </div>
             </fieldset>
           )}
+          <div className='form-group'>
+            <label>
+              {_('remoteEncryptionKey')}
+              <span className='tag tag-pill tag-info ml-1'>{_('alpha')}</span>
+            </label>
+            {isEncrypted && !useVhdDirectory && (
+              <p className='text-warning'>
+                <Icon icon='alarm' /> {_('remoteEncryptionMustUseVhd')}
+              </p>
+            )}
+            <ul className='small'>
+              <li>{_('remoteEncryptionEncryptedfiles')}</li>
+              <li>{_('remoteEncryptionKeyStorageLocation')}</li>
+              <li>{_('remoteEncryptionBackupSize')}</li>
+            </ul>
+            <input
+              className='form-control'
+              name='encryptionKey'
+              onChange={effects.linkState}
+              pattern='^.{32}$'
+              type='password'
+              value={encryptionKey}
+            />
+          </div>
           {type !== 's3' && (
             <fieldset className='form-group form-group'>
               <div className='input-group form-group'>

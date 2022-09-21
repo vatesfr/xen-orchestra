@@ -33,6 +33,7 @@ export default class StringInput extends Component {
         <Combobox
           value={value !== undefined ? value : ''}
           disabled={disabled}
+          multiline={schema.$multiline}
           onChange={this._onChange}
           options={schema.defaults}
           placeholder={placeholder || schema.default}

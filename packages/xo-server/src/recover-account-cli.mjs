@@ -34,6 +34,8 @@ xo-server-recover-account <user name or email>
     }),
   })
 
+  await xo.hooks.startCore()
+
   const user = await xo.getUserByName(name, true)
   if (user !== null) {
     await xo.updateUser(user.id, {
@@ -46,4 +48,6 @@ xo-server-recover-account <user name or email>
     await xo.createUser({ name, password, permission: 'admin' })
     console.log(`user ${name} has been successfully created`)
   }
+
+  await xo.hooks.stop()
 })

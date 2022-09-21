@@ -28,7 +28,7 @@ hostname = '0.0.0.0'
 port = 80
 ```
 
-## HTTPS
+## HTTPS and certificates
 
 XO-server can also run in HTTPS (you can run HTTP and HTTPS at the same time) - just modify what's needed in the `# Basic HTTPS` section, this time with the certificates/keys you need and their path:
 

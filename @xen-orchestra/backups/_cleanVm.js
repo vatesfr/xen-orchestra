@@ -18,7 +18,10 @@ const handlerPath = require('@xen-orchestra/fs/path')
 // checking the size of a vhd directory is costly
 // 1 Http Query per 1000 blocks
 // we only check size of all the vhd are VhdFiles
-function shouldComputeVhdsSize(vhds) {
+function shouldComputeVhdsSize(handler, vhds) {
+  if (handler.isEncrypted) {
+    return false
+  }
   return vhds.every(vhd => vhd instanceof VhdFile)
 }
 
@@ -26,7 +29,7 @@ const computeVhdsSize = (handler, vhdPaths) =>
   Disposable.use(
     vhdPaths.map(vhdPath => openVhd(handler, vhdPath)),
     async vhds => {
-      if (shouldComputeVhdsSize(vhds)) {
+      if (shouldComputeVhdsSize(handler, vhds)) {
         const sizes = await asyncMap(vhds, vhd => vhd.getSize())
         return sum(sizes)
       }
@@ -34,7 +37,7 @@ const computeVhdsSize = (handler, vhdPaths) =>
   )
 
 // chain is [ ancestor, child_1, ..., child_n ]
-async function _mergeVhdChain(handler, chain, { logInfo, remove, merge }) {
+async function _mergeVhdChain(handler, chain, { logInfo, remove, merge, mergeBlockConcurrency }) {
   if (merge) {
     logInfo(`merging VHD chain`, { chain })
 
@@ -52,6 +55,7 @@ async function _mergeVhdChain(handler, chain, { logInfo, remove, merge }) {
     try {
       return await mergeVhdChain(handler, chain, {
         logInfo,
+        mergeBlockConcurrency,
         onProgress({ done: d, total: t }) {
           done = d
           total = t
@@ -178,7 +182,15 @@ const defaultMergeLimiter = limitConcurrency(1)
 
 exports.cleanVm = async function cleanVm(
   vmDir,
-  { fixMetadata, remove, merge, mergeLimiter = defaultMergeLimiter, logInfo = noop, logWarn = console.warn }
+  {
+    fixMetadata,
+    remove,
+    merge,
+    mergeBlockConcurrency,
+    mergeLimiter = defaultMergeLimiter,
+    logInfo = noop,
+    logWarn = console.warn,
+  }
 ) {
   const limitedMergeVhdChain = mergeLimiter(_mergeVhdChain)
 
@@ -299,6 +311,7 @@ exports.cleanVm = async function cleanVm(
   }
 
   const jsons = new Set()
+  let mustInvalidateCache = false
   const xvas = new Set()
   const xvaSums = []
   const entries = await handler.list(vmDir, {
@@ -347,6 +360,7 @@ exports.cleanVm = async function cleanVm(
         if (remove) {
           logInfo('deleting incomplete backup', { path: json })
           jsons.delete(json)
+          mustInvalidateCache = true
           await handler.unlink(json)
         }
       }
@@ -369,6 +383,7 @@ exports.cleanVm = async function cleanVm(
         logWarn('some VHDs linked to the backup are missing', { backup: json, missingVhds })
         if (remove) {
           logInfo('deleting incomplete backup', { path: json })
+          mustInvalidateCache = true
           jsons.delete(json)
           await handler.unlink(json)
         }
@@ -441,7 +456,13 @@ exports.cleanVm = async function cleanVm(
   const metadataWithMergedVhd = {}
   const doMerge = async () => {
     await asyncMap(toMerge, async chain => {
-      const merged = await limitedMergeVhdChain(handler, chain, { logInfo, logWarn, remove, merge })
+      const merged = await limitedMergeVhdChain(handler, chain, {
+        logInfo,
+        logWarn,
+        remove,
+        merge,
+        mergeBlockConcurrency,
+      })
       if (merged !== undefined) {
         const metadataPath = vhdsToJSons[chain[chain.length - 1]] // all the chain should have the same metada file
         metadataWithMergedVhd[metadataPath] = true
@@ -486,7 +507,11 @@ exports.cleanVm = async function cleanVm(
       if (mode === 'full') {
         // a full backup : check size
         const linkedXva = resolve('/', vmDir, xva)
-        fileSystemSize = await handler.getSize(linkedXva)
+        try {
+          fileSystemSize = await handler.getSize(linkedXva)
+        } catch (error) {
+          // can fail with encrypted remote
+        }
       } else if (mode === 'delta') {
         const linkedVhds = Object.keys(vhds).map(key => resolve('/', vmDir, vhds[key]))
         fileSystemSize = await computeVhdsSize(handler, linkedVhds)
@@ -520,6 +545,11 @@ exports.cleanVm = async function cleanVm(
       }
     }
   })
+
+  // purge cache if a metadata file has been deleted
+  if (mustInvalidateCache) {
+    await handler.unlink(vmDir + '/cache.json.gz')
+  }
 
   return {
     // boolean whether some VHDs were merged (or should be merged)

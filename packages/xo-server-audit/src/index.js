@@ -47,7 +47,7 @@ const DEFAULT_BLOCKED_LIST = {
   'session.getUser': true,
   'session.signIn': true,
   'sr.getAllUnhealthyVdiChainsLength': true,
-  'sr.getUnhealthyVdiChainsLength': true,
+  'sr.getVdiChainsInfo': true,
   'sr.stats': true,
   'system.getMethodsInfo': true,
   'system.getServerTimezone': true,
