@@ -19,6 +19,7 @@
 - [Backup] Launch Health Check after a full backup (PR [#6401](https://github.com/vatesfr/xen-orchestra/pull/6401))
 - [Backup] Fix `Lock file is already being held` error when deleting a VM backup while the VM is currently being backed up
 - [Tasks] Fix the pool filter that did not display tasks even if they existed (PR [#6424](https://github.com/vatesfr/xen-orchestra/pull/6424))
+- [Tasks] Fix tasks being displayed for all users (PR [#6422](https://github.com/vatesfr/xen-orchestra/pull/6422))
 
 ### Packages to release
 
