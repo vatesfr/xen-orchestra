@@ -22,11 +22,15 @@ const zlib = require('zlib')
 
 const { BACKUP_DIR } = require('./_getVmBackupDir.js')
 const { cleanVm } = require('./_cleanVm.js')
+const { formatFilenameDate } = require('./_filenameDate.js')
 const { getTmpDir } = require('./_getTmpDir.js')
 const { isMetadataFile } = require('./_backupType.js')
 const { isValidXva } = require('./_isValidXva.js')
 const { listPartitions, LVM_PARTITION_TYPE } = require('./_listPartitions.js')
 const { lvs, pvs } = require('./_lvm.js')
+// @todo : this import is marked extraneous , sould be fixed when lib is published
+const { mount } = require('@vates/fuse-vhd')
+const { asyncEach } = require('@vates/async-each')
 
 const DIR_XO_CONFIG_BACKUPS = 'xo-config-backups'
 exports.DIR_XO_CONFIG_BACKUPS = DIR_XO_CONFIG_BACKUPS
@@ -34,7 +38,7 @@ exports.DIR_XO_CONFIG_BACKUPS = DIR_XO_CONFIG_BACKUPS
 const DIR_XO_POOL_METADATA_BACKUPS = 'xo-pool-metadata-backups'
 exports.DIR_XO_POOL_METADATA_BACKUPS = DIR_XO_POOL_METADATA_BACKUPS
 
-const { warn } = createLogger('xo:backups:RemoteAdapter')
+const { debug, warn } = createLogger('xo:backups:RemoteAdapter')
 
 const compareTimestamp = (a, b) => a.timestamp - b.timestamp
 
@@ -43,8 +47,6 @@ const noop = Function.prototype
 const resolveRelativeFromFile = (file, path) => resolve('/', dirname(file), path).slice(1)
 
 const resolveSubpath = (root, path) => resolve(root, `.${resolve('/', path)}`)
-
-const RE_VHDI = /^vhdi(\d+)$/
 
 async function addDirectory(files, realPath, metadataPath) {
   const stats = await lstat(realPath)
@@ -74,12 +76,14 @@ const debounceResourceFactory = factory =>
   }
 
 class RemoteAdapter {
-  constructor(handler, { debounceResource = res => res, dirMode, vhdDirectoryCompression } = {}) {
+  constructor(handler, { debounceResource = res => res, dirMode, vhdDirectoryCompression, useGetDiskLegacy=false } = {}) {
     this._debounceResource = debounceResource
     this._dirMode = dirMode
     this._handler = handler
     this._vhdDirectoryCompression = vhdDirectoryCompression
     this._readCacheListVmBackups = synchronized.withKey()(this._readCacheListVmBackups)
+    this._useGetDiskLegacy = useGetDiskLegacy
+
   }
 
   get handler() {
@@ -127,7 +131,9 @@ class RemoteAdapter {
   }
 
   async *_getPartition(devicePath, partition) {
-    const options = ['loop', 'ro']
+    // the norecovery option is necessary because if the partition is dirty,
+    // mount will try to fix it which is impossible if because the device is read-only
+    const options = ['loop', 'ro', 'norecovery']
 
     if (partition !== undefined) {
       const { size, start } = partition
@@ -224,11 +230,30 @@ class RemoteAdapter {
     return promise
   }
 
+  #removeVmBackupsFromCache(backups) {
+    for (const [dir, filenames] of Object.entries(
+      groupBy(
+        backups.map(_ => _._filename),
+        dirname
+      )
+    )) {
+      // detached async action, will not reject
+      this._updateCache(dir + '/cache.json.gz', backups => {
+        for (const filename of filenames) {
+          debug('removing cache entry', { entry: filename })
+          delete backups[filename]
+        }
+      })
+    }
+  }
+
   async deleteDeltaVmBackups(backups) {
     const handler = this._handler
 
     // this will delete the json, unused VHDs will be detected by `cleanVm`
     await asyncMapSettled(backups, ({ _filename }) => handler.unlink(_filename))
+
+    this.#removeVmBackupsFromCache(backups)
   }
 
   async deleteMetadataBackup(backupId) {
@@ -256,6 +281,8 @@ class RemoteAdapter {
     await asyncMapSettled(backups, ({ _filename, xva }) =>
       Promise.all([handler.unlink(_filename), handler.unlink(resolveRelativeFromFile(_filename, xva))])
     )
+
+    this.#removeVmBackupsFromCache(backups)
   }
 
   deleteVmBackup(file) {
@@ -276,14 +303,13 @@ class RemoteAdapter {
       full !== undefined && this.deleteFullVmBackups(full),
     ])
 
-    const dirs = new Set(files.map(file => dirname(file)))
-    for (const dir of dirs) {
-      // don't merge in main process, unused VHDs will be merged in the next backup run
-      await this.cleanVm(dir, { remove: true, logWarn: warn })
-    }
-
-    const dedupedVmUuid = new Set(metadatas.map(_ => _.vm.uuid))
-    await asyncMap(dedupedVmUuid, vmUuid => this.invalidateVmBackupListCache(vmUuid))
+    await asyncMap(new Set(files.map(file => dirname(file))), dir =>
+      // - don't merge in main process, unused VHDs will be merged in the next backup run
+      // - don't error in case this fails:
+      //   - if lock is already being held, a backup is running and cleanVm will be ran at the end
+      //   - otherwise, there is nothing more we can do, orphan file will be cleaned in the future
+      this.cleanVm(dir, { remove: true, logWarn: warn }).catch(noop)
+    )
   }
 
   #getCompressionType() {
@@ -298,7 +324,10 @@ class RemoteAdapter {
     return this.#useVhdDirectory()
   }
 
-  async *getDisk(diskId) {
+
+  async *#getDiskLegacy(diskId) {
+
+    const RE_VHDI = /^vhdi(\d+)$/
     const handler = this._handler
 
     const diskPath = handler._getFilePath('/' + diskId)
@@ -326,6 +355,20 @@ class RemoteAdapter {
     } finally {
       await fromCallback(execFile, 'fusermount', ['-uz', mountDir])
     }
+  }
+
+  async *getDisk(diskId) {
+    if(this._useGetDiskLegacy){
+      yield * this.#getDiskLegacy(diskId)
+      return
+    }
+    const handler = this._handler
+    // this is a disposable
+    const mountDir = yield getTmpDir()
+    // this is also a disposable
+    yield mount(handler, diskId, mountDir)
+    // this will yield disk path to caller
+    yield `${mountDir}/vhd0`
   }
 
   // partitionId values:
@@ -378,22 +421,25 @@ class RemoteAdapter {
   listPartitionFiles(diskId, partitionId, path) {
     return Disposable.use(this.getPartition(diskId, partitionId), async rootPath => {
       path = resolveSubpath(rootPath, path)
-
       const entriesMap = {}
-      await asyncMap(await readdir(path), async name => {
-        try {
-          const stats = await lstat(`${path}/${name}`)
-          if (stats.isDirectory()) {
-            entriesMap[name + '/'] = {}
-          } else if (stats.isFile()) {
-            entriesMap[name] = {}
+      await asyncEach(
+        await readdir(path),
+        async name => {
+          try {
+            const stats = await lstat(`${path}/${name}`)
+            if (stats.isDirectory()) {
+              entriesMap[name + '/'] = {}
+            } else if (stats.isFile()) {
+              entriesMap[name] = {}
+            }
+          } catch (error) {
+            if (error == null || error.code !== 'ENOENT') {
+              throw error
+            }
           }
-        } catch (error) {
-          if (error == null || error.code !== 'ENOENT') {
-            throw error
-          }
-        }
-      })
+        },
+        { concurrency: 1 }
+      )
 
       return entriesMap
     })
@@ -458,11 +504,46 @@ class RemoteAdapter {
     return backupsByPool
   }
 
+  #getVmBackupsCache(vmUuid) {
+    return `${BACKUP_DIR}/${vmUuid}/cache.json.gz`
+  }
+
+  async #readCache(path) {
+    try {
+      return JSON.parse(await fromCallback(zlib.gunzip, await this.handler.readFile(path)))
+    } catch (error) {
+      if (error.code !== 'ENOENT') {
+        warn('#readCache', { error, path })
+      }
+    }
+  }
+
+  _updateCache = synchronized.withKey()(this._updateCache)
+  // eslint-disable-next-line no-dupe-class-members
+  async _updateCache(path, fn) {
+    const cache = await this.#readCache(path)
+    if (cache !== undefined) {
+      fn(cache)
+
+      await this.#writeCache(path, cache)
+    }
+  }
+
+  async #writeCache(path, data) {
+    try {
+      await this.handler.writeFile(path, await fromCallback(zlib.gzip, JSON.stringify(data)), { flags: 'w' })
+    } catch (error) {
+      warn('#writeCache', { error, path })
+    }
+  }
+
   async invalidateVmBackupListCache(vmUuid) {
-    await this.handler.unlink(`${BACKUP_DIR}/${vmUuid}/cache.json.gz`)
+    await this.handler.unlink(this.#getVmBackupsCache(vmUuid))
   }
 
   async #getCachabledDataListVmBackups(dir) {
+    debug('generating cache', { path: dir })
+
     const handler = this._handler
     const backups = {}
 
@@ -498,39 +579,24 @@ class RemoteAdapter {
   // if cache is missing  or broken  => regenerate it and return
 
   async _readCacheListVmBackups(vmUuid) {
-    const dir = `${BACKUP_DIR}/${vmUuid}`
-    const path = `${dir}/cache.json.gz`
+    const path = this.#getVmBackupsCache(vmUuid)
 
-    try {
-      const gzipped = await this.handler.readFile(path)
-      const text = await fromCallback(zlib.gunzip, gzipped)
-      return JSON.parse(text)
-    } catch (error) {
-      if (error.code !== 'ENOENT') {
-        warn('Cache file was unreadable', { vmUuid, error })
-      }
+    const cache = await this.#readCache(path)
+    if (cache !== undefined) {
+      debug('found VM backups cache, using it', { path })
+      return cache
     }
 
     // nothing cached, or cache unreadable => regenerate it
-    const backups = await this.#getCachabledDataListVmBackups(dir)
+    const backups = await this.#getCachabledDataListVmBackups(`${BACKUP_DIR}/${vmUuid}`)
     if (backups === undefined) {
       return
     }
 
     // detached async action, will not reject
-    this.#writeVmBackupsCache(path, backups)
+    this.#writeCache(path, backups)
 
     return backups
-  }
-
-  async #writeVmBackupsCache(cacheFile, backups) {
-    try {
-      const text = JSON.stringify(backups)
-      const zipped = await fromCallback(zlib.gzip, text)
-      await this.handler.writeFile(cacheFile, zipped, { flags: 'w' })
-    } catch (error) {
-      warn('writeVmBackupsCache', { cacheFile, error })
-    }
   }
 
   async listVmBackups(vmUuid, predicate) {
@@ -571,13 +637,35 @@ class RemoteAdapter {
     return backups.sort(compareTimestamp)
   }
 
-  async writeVhd(path, input, { checksum = true, validator = noop } = {}) {
+  async writeVmBackupMetadata(vmUuid, metadata) {
+    const path = `/${BACKUP_DIR}/${vmUuid}/${formatFilenameDate(metadata.timestamp)}.json`
+
+    await this.handler.outputFile(path, JSON.stringify(metadata), {
+      dirMode: this._dirMode,
+    })
+
+    // will not throw
+    this._updateCache(this.#getVmBackupsCache(vmUuid), backups => {
+      debug('adding cache entry', { entry: path })
+      backups[path] = {
+        ...metadata,
+
+        // these values are required in the cache
+        _filename: path,
+        id: path,
+      }
+    })
+
+    return path
+  }
+
+  async writeVhd(path, input, { checksum = true, validator = noop, writeBlockConcurrency } = {}) {
     const handler = this._handler
 
     if (this.#useVhdDirectory()) {
       const dataPath = `${dirname(path)}/data/${uuidv4()}.vhd`
       await createVhdDirectoryFromStream(handler, dataPath, input, {
-        concurrency: 16,
+        concurrency: writeBlockConcurrency,
         compression: this.#getCompressionType(),
         async validator() {
           await input.task

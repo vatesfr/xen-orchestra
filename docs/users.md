@@ -109,10 +109,6 @@ In the "Settings" then "Plugins" view, expand the SAML plugin configuration. The
 
 Save the configuration and then activate the plugin (button on top).
 
-:::warning
-When registering your instance to your identity provider, you must configure its callback URL to `http://xo.example.net/signin/saml/callback`!
-:::
-
 ### GitHub
 
 This plugin allows GitHub users to authenticate to Xen-Orchestra.

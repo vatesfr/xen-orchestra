@@ -47,8 +47,8 @@ export default class Xo extends EventEmitter {
       const redis = createRedisClient({ path, url })
 
       this._redis = redis
-      this.hooks.on('start', () => redis.connect())
-      this.hooks.on('stop', () => redis.quit())
+      this.hooks.on('start core', () => redis.connect())
+      this.hooks.on('stop core', () => redis.quit())
     }
 
     this.hooks.on('start', () => this._watchObjects())

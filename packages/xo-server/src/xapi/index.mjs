@@ -382,6 +382,10 @@ export default class Xapi extends XapiBase {
   getVmConsole(vmId) {
     const vm = this.getObject(vmId)
 
+    if (vm.other_config.disable_pv_vnc === '1') {
+      throw new Error('console is disabled for this VM')
+    }
+
     const console = find(vm.$consoles, { protocol: 'rfb' })
     if (!console) {
       throw new Error('no RFB console found')
@@ -878,16 +882,20 @@ export default class Xapi extends XapiBase {
           throw error
         }
 
-        throw new AggregateError(
-          await asyncMap(await this.call('host.get_all'), async hostRef => {
-            const hostNameLabel = await this.call('host.get_name_label', hostRef)
-            try {
-              await this.call('VM.assert_can_boot_here', vmRef, hostRef)
-              return `${hostNameLabel}: OK`
-            } catch (error) {
-              return `${hostNameLabel}: ${error.message}`
-            }
-          })
+        throw Object.assign(
+          new AggregateError(
+            await asyncMap(await this.call('host.get_all'), async hostRef => {
+              const hostNameLabel = await this.call('host.get_name_label', hostRef)
+              try {
+                await this.call('VM.assert_can_boot_here', vmRef, hostRef)
+                return `${hostNameLabel}: OK`
+              } catch (error) {
+                return `${hostNameLabel}: ${error.message}`
+              }
+            }),
+            error.message
+          ),
+          { code: error.code, params: error.params }
         )
       }
     } else {

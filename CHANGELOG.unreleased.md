@@ -7,13 +7,19 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [Backup/Restore file] Implement File level restore for s3 and encrypted backups (PR [#6409](https://github.com/vatesfr/xen-orchestra/pull/6409))
+- [Backup] Improve listing speed by updating caches instead of regenerating them on backup creation/deletion (PR [#6411](https://github.com/vatesfr/xen-orchestra/pull/6411))
+- [Backup] Add `mergeBlockConcurrency` and `writeBlockConcurrency` to allow tuning of backup resources consumptions (PR [#6416](https://github.com/vatesfr/xen-orchestra/pull/6416))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [Backup/Restore] Fix backup list not loading on page load (PR [#6364](https://github.com/vatesfr/xen-orchestra/pull/6364))
-- [Host] Fix `should not contains property ["ignoreBackup"]` on some host operations (PR [#6362](https://github.com/vatesfr/xen-orchestra/pull/6362))
-- [Tasks] Fix displayed tasks for all users (PR [#6422](https://github.com/vatesfr/xen-orchestra/pull/6422))
+- [Plugin/auth-saml] Certificate input support multiline (PR [#6403](https://github.com/vatesfr/xen-orchestra/pull/6403))
+- [Backup] Launch Health Check after a full backup (PR [#6401](https://github.com/vatesfr/xen-orchestra/pull/6401))
+- [Backup] Fix `Lock file is already being held` error when deleting a VM backup while the VM is currently being backed up
+- [Tasks] Fix the pool filter that did not display tasks even if they existed (PR [#6424](https://github.com/vatesfr/xen-orchestra/pull/6424))
+- [Tasks] Fix tasks being displayed for all users (PR [#6422](https://github.com/vatesfr/xen-orchestra/pull/6422))
 
 ### Packages to release
 
@@ -31,12 +37,11 @@
 
 <!--packages-start-->
 
-- @xen-orchestra/backups patch
-- @xen-orchestra/fs major
-- @xen-orchestra/proxy minor
-- vhd-lib major
-- xo-vmdk-to-vhd patch
+- @vates/fuse-vhd major
+- @xen-orchestra/backups minor
+- vhd-lib minor
+- xo-server-auth-saml patch
 - xo-server minor
-- xo-web patch
+- xo-web minor
 
 <!--packages-end-->

@@ -2676,9 +2676,6 @@ export default {
   // Original text: 'Click on a VM to display restore options'
   restoreBackupsInfo: undefined,
 
-  // Original text: 'Only the files of Delta Backup which are not on a SMB remote can be restored'
-  restoreDeltaBackupsInfo: undefined,
-
   // Original text: "Enabled"
   remoteEnabled: 'activado',
 

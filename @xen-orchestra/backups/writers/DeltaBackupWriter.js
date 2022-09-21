@@ -19,8 +19,6 @@ const { AbstractDeltaWriter } = require('./_AbstractDeltaWriter.js')
 const { checkVhd } = require('./_checkVhd.js')
 const { packUuid } = require('./_packUuid.js')
 const { Disposable } = require('promise-toolbox')
-const { HealthCheckVmBackup } = require('../HealthCheckVmBackup.js')
-const { ImportVmBackup } = require('../ImportVmBackup.js')
 
 const { warn } = createLogger('xo:backups:DeltaBackupWriter')
 
@@ -38,6 +36,7 @@ exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(Ab
       try {
         const vhds = await handler.list(`${vdisDir}/${srcVdi.uuid}`, {
           filter: _ => _[0] !== '.' && _.endsWith('.vhd'),
+          ignoreMissing: true,
           prependDir: true,
         })
         const packedBaseUuid = packUuid(baseUuid)
@@ -69,35 +68,6 @@ exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(Ab
   async beforeBackup() {
     await super.beforeBackup()
     return this._cleanVm({ merge: true })
-  }
-
-  healthCheck(sr) {
-    return Task.run(
-      {
-        name: 'health check',
-      },
-      async () => {
-        const xapi = sr.$xapi
-        const srUuid = sr.uuid
-        const adapter = this._adapter
-        const metadata = await adapter.readVmBackupMetadata(this._metadataFileName)
-        const { id: restoredId } = await new ImportVmBackup({
-          adapter,
-          metadata,
-          srUuid,
-          xapi,
-        }).run()
-        const restoredVm = xapi.getObject(restoredId)
-        try {
-          await new HealthCheckVmBackup({
-            restoredVm,
-            xapi,
-          }).run()
-        } finally {
-          await xapi.VM_destroy(restoredVm.$ref)
-        }
-      }
-    )
   }
 
   prepare({ isFull }) {
@@ -189,7 +159,6 @@ exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(Ab
         }/${adapter.getVhdFileName(basename)}`
     )
 
-    const metadataFilename = (this._metadataFileName = `${backupDir}/${basename}.json`)
     const metadataContent = {
       jobId,
       mode: job.mode,
@@ -235,6 +204,7 @@ exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(Ab
             // merges and chainings
             checksum: false,
             validator: tmpPath => checkVhd(handler, tmpPath),
+            writeBlockConcurrency: this._backup.config.writeBlockConcurrency,
           })
 
           if (isDelta) {
@@ -254,9 +224,7 @@ exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(Ab
       }
     })
     metadataContent.size = size
-    await handler.outputFile(metadataFilename, JSON.stringify(metadataContent), {
-      dirMode: backup.config.dirMode,
-    })
+    this._metadataFileName = await adapter.writeVmBackupMetadata(vm.uuid, metadataContent)
 
     // TODO: run cleanup?
   }

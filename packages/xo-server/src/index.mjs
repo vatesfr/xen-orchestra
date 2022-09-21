@@ -273,7 +273,8 @@ async function setUpPassport(express, xo, { authentication: authCfg, http: { coo
       })(req, res, next)
     }
 
-    if (req.cookies.token) {
+    const { token } = req.cookies
+    if (token !== undefined && (await xo.isValidAuthenticationToken(token))) {
       next()
     } else {
       req.flash('return-url', url)
