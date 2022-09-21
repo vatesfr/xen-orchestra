@@ -197,10 +197,10 @@ export default class BackupNg {
           await waitAll([
             asyncMapSettled(remoteIds, async id => {
               let remote
-              try{
+              try {
                 remote = await app.getRemoteWithCredentials(id)
-              }catch(error){
-                log.warn('Error while instantiating remote', {error, remoteId: id})
+              } catch (error) {
+                log.warn('Error while instantiating remote', { error, remoteId: id })
                 remoteErrors[id] = error
                 return
               }
@@ -229,8 +229,14 @@ export default class BackupNg {
               }
             }),
           ])
-          if(Object.keys(remotes).length === 0){
-            throw new Error(`couldn't instantiate any remote`, { errors: remoteErrors})
+          if (Object.keys(remotes).length === 0) {
+            throw new Error(`couldn't instantiate any remote`, { errors: remoteErrors })
+          }
+          // update remotes list with only the enabled remotes
+          job.remotes = {
+            id: {
+              __or: Object.keys(remotes),
+            },
           }
 
           const params = {
