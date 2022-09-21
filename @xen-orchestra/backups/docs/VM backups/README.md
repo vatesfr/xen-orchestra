@@ -21,7 +21,7 @@
 └─ xo-vm-backups
   ├─ index.json // TODO
   └─ <VM UUID>
-     ├─ index.json // TODO
+     ├─ cache.json.gz
      ├─ vdis
      │  └─ <job UUID>
      │     └─ <VDI UUID>
@@ -44,6 +44,18 @@ When `useVhdDirectory` is enabled on the remote, the directory containing the VH
     ├─ <uuid>.vhd // VHD directory format is described in vhd-lib/Vhd/VhdDirectory.js
     └─ <uuid>.vhd
 ```
+
+## Cache for a VM
+
+In a VM directory, if the file `cache.json.gz` exists, it contains the metadata for all the backups for this VM.
+
+Add the following file: `xo-vm-backups/<VM UUID>/cache.json.gz`.
+
+This cache is compressed in Gzip and contains an JSON object with the metadata for all the backups of this VM indexed by their absolute path (i.e. `/xo-vm-backups/<VM UUID>/<timestamp>.json`).
+
+This file is generated on demande when listing the backups, and directly updated on backup creation/deletion.
+
+In case any incoherence is detected, the file is deleted so it will be fully generated when required.
 
 ## Attributes
 

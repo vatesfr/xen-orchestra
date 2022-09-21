@@ -8855,6 +8855,40 @@ functions-have-names@^1.2.2:
   resolved "https://registry.yarnpkg.com/functions-have-names/-/functions-have-names-1.2.3.tgz#0404fe4ee2ba2f607f0e0ec3c80bae994133b834"
   integrity sha512-xckBUXyTIqT97tq2x2AMb+g163b5JFysYk0x4qxNFwbfQkmNZoiRHb6sPzI9/QV33WeuvVYBUIiD4NzNIyqaRQ==
 
+fuse-native@^2.2.6:
+  version "2.2.6"
+  resolved "https://registry.yarnpkg.com/fuse-native/-/fuse-native-2.2.6.tgz#517224de1158d9acfab465e35b44ad9e9d308c56"
+  integrity sha512-Y5wXd7vUsWWWIIHbjluv7jKZgPZaSVA5YWaW3I5fXIJfcGWL6IRUgoBUveQAq+D8cG9cCiGNahv9CeToccCXrw==
+  dependencies:
+    fuse-shared-library "^1.0.2"
+    nanoresource "^1.3.0"
+    napi-macros "^2.0.0"
+    node-gyp-build "^4.2.0"
+
+fuse-shared-library-darwin@^1.0.3:
+  version "1.1.3"
+  resolved "https://registry.yarnpkg.com/fuse-shared-library-darwin/-/fuse-shared-library-darwin-1.1.3.tgz#691839bffb5345f27f33eadf321e3a518c97e0dc"
+  integrity sha512-4Q8gMxyMl1+gwHGpiYUoKKpi7xq8WcPo0TvJvjZzHMuCiszouu2GgEs6SJAqPB3LjfmEkl6kPV+2Oluczr0Nig==
+
+fuse-shared-library-linux-arm@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/fuse-shared-library-linux-arm/-/fuse-shared-library-linux-arm-1.0.0.tgz#35c82e9650cf99245c6a3f354639e0aeee1a004d"
+  integrity sha512-Dj4ssxo1/MKGvOsVWRblSRu+o5F5OJTrVPDkjSyGDU2yKvVnIzQSwy1deiWA0qCcS/Q8iJMlZaCpCcZWSwvoug==
+
+fuse-shared-library-linux@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/fuse-shared-library-linux/-/fuse-shared-library-linux-1.0.1.tgz#fd182f0c5e8e46f5c9b0a7639a9db7d48b25c8d5"
+  integrity sha512-07MQRSobrBKwW4D7oKm0gM2TwgvZWb+gC08JdiYDG4KBTncxk9ssqEDiDMKll8hpseZufsY2w1yc/feOu2DPmQ==
+
+fuse-shared-library@^1.0.2:
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/fuse-shared-library/-/fuse-shared-library-1.1.1.tgz#988d10390898d1101aebc64d1fdeb8933fc6ce57"
+  integrity sha512-EfgTo/eS1euZFUe7x8KqyA40hV4DwP7kqp1VNZApu2nlPnJv8SanraBE3VXyX7ff41sxw7M0oWY7re3G3wnZVA==
+  dependencies:
+    fuse-shared-library-darwin "^1.0.3"
+    fuse-shared-library-linux "^1.0.1"
+    fuse-shared-library-linux-arm "^1.0.0"
+
 gauge@^3.0.0:
   version "3.0.2"
   resolved "https://registry.yarnpkg.com/gauge/-/gauge-3.0.2.tgz#03bf4441c044383908bcfa0656ad91803259b395"
@@ -12343,7 +12377,7 @@ lru-cache@^6.0.0:
   dependencies:
     yallist "^4.0.0"
 
-lru-cache@^7.0.4:
+lru-cache@^7.0.4, lru-cache@^7.14.0:
   version "7.14.0"
   resolved "https://registry.yarnpkg.com/lru-cache/-/lru-cache-7.14.0.tgz#21be64954a4680e303a09e9468f880b98a0b3c7f"
   integrity sha512-EIRtP1GrSJny0dqb50QXRUNBxHJhcpxHC++M5tD7RYbvLLn5KVWKsbyswSSqDuU15UFi3bgTQIY8nhDMeF6aDQ==
@@ -12975,7 +13009,14 @@ nanomatch@^1.2.9:
     snapdragon "^0.8.1"
     to-regex "^3.0.1"
 
-napi-macros@~2.0.0:
+nanoresource@^1.3.0:
+  version "1.3.0"
+  resolved "https://registry.yarnpkg.com/nanoresource/-/nanoresource-1.3.0.tgz#823945d9667ab3e81a8b2591ab8d734552878cd0"
+  integrity sha512-OI5dswqipmlYfyL3k/YMm7mbERlh4Bd1KuKdMHpeoVD1iVxqxaTMKleB4qaA2mbQZ6/zMNSxCXv9M9P/YbqTuQ==
+  dependencies:
+    inherits "^2.0.4"
+
+napi-macros@^2.0.0, napi-macros@~2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/napi-macros/-/napi-macros-2.0.0.tgz#2b6bae421e7b96eb687aa6c77a7858640670001b"
   integrity sha512-A0xLykHtARfueITVDernsAWdtIMbOJgKgcluwENp3AlsKN/PloyO10HtmoqnFAQAcxPkgZN7wdfPfEd0zNGxbg==
@@ -13073,7 +13114,7 @@ node-forge@^1.3.1:
   resolved "https://registry.yarnpkg.com/node-forge/-/node-forge-1.3.1.tgz#be8da2af243b2417d5f646a770663a92b7e9ded3"
   integrity sha512-dPEtOeMvF9VMcYV/1Wb8CPoVAXtp6MKMlcbAt4ddqmGqUJ6fQZFXkNZNkNlfevtNkGtaSoXf/vNNNSvgrdXwtA==
 
-node-gyp-build@^4.3.0:
+node-gyp-build@^4.2.0, node-gyp-build@^4.3.0:
   version "4.5.0"
   resolved "https://registry.yarnpkg.com/node-gyp-build/-/node-gyp-build-4.5.0.tgz#7a64eefa0b21112f89f58379da128ac177f20e40"
   integrity sha512-2iGbaQBV+ITgCz76ZEjmhUKAKVf7xfY1sRl4UiKQspfZMH2h06SyhNsnSVy50cwkFQDGLyif6m/6uFXHkOZ6rg==
