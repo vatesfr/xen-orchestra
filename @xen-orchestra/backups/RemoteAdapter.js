@@ -29,8 +29,7 @@ const { isValidXva } = require('./_isValidXva.js')
 const { listPartitions, LVM_PARTITION_TYPE } = require('./_listPartitions.js')
 const { lvs, pvs } = require('./_lvm.js')
 const { asyncEach } = require('@vates/async-each')
-const os = require('node:os')
-
+const { mount } = require('@vates/fuse-vhd')
 const DIR_XO_CONFIG_BACKUPS = 'xo-config-backups'
 exports.DIR_XO_CONFIG_BACKUPS = DIR_XO_CONFIG_BACKUPS
 
@@ -357,31 +356,25 @@ class RemoteAdapter {
   }
 
   async *getDisk(diskId) {
-    let FuseVhd
-    try {
-      FuseVhd = require('@vates/fuse-vhd')
-    } catch (error) {
-      if (error.code !== 'MODULE_NOT_FOUND') {
-        throw error
-      }
-      // Fuse vhd is not installed ( it can happen on some platform )
-      warn(`Can't load fuse-vhd on this platform ${os.platform()} ${os.arch()}`, {
-        platform: os.platform(),
-        arch: os.arch(),
-      })
-    }
-
-    if (this._useGetDiskLegacy || !FuseVhd) {
+    if (this._useGetDiskLegacy) {
       yield* this.#getDiskLegacy(diskId)
       return
     }
-
-    const { mount } = FuseVhd
     const handler = this._handler
     // this is a disposable
     const mountDir = yield getTmpDir()
-    // this is also a disposable
-    yield mount(handler, diskId, mountDir)
+
+    try {
+      // this is also a disposable
+      yield mount(handler, diskId, mountDir)
+    } catch (error) {
+      // fallback in case of missing dependency
+      if (error.code === 'MODULE_NOT_FOUND') {
+        yield* this.#getDiskLegacy(diskId)
+      } else {
+        throw error
+      }
+    }
     // this will yield disk path to caller
     yield `${mountDir}/vhd0`
   }

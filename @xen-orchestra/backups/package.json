@@ -21,6 +21,7 @@
     "@vates/compose": "^2.1.0",
     "@vates/decorate-with": "^2.0.0",
     "@vates/disposable": "^0.1.1",
+    "@vates/fuse-vhd": "^0.0.1",
     "@vates/parse-duration": "^0.1.1",
     "@xen-orchestra/async-map": "^0.1.2",
     "@xen-orchestra/fs": "^3.1.0",
@@ -45,9 +46,6 @@
   "devDependencies": {
     "rimraf": "^3.0.2",
     "tmp": "^0.2.1"
-  },
-  "optionalDependencies": {
-    "@vates/fuse-vhd": "^0.0.1"
   },
   "peerDependencies": {
     "@xen-orchestra/xapi": "^1.4.2"

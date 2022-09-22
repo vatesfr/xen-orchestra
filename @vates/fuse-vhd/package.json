@@ -19,10 +19,12 @@
   },
   "dependencies": {
     "@xen-orchestra/log": "^0.3.0",
-    "fuse-native": "^2.2.6",
     "lru-cache": "^7.14.0",
     "promise-toolbox": "^0.21.0",
     "vhd-lib": "^4.0.1"
+  },
+  "optionalDependencies": {
+    "fuse-native": "^2.2.6"
   },
   "scripts": {
     "postversion": "npm publish --access public"
