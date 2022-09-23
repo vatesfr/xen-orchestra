@@ -55,6 +55,10 @@ const VhdSynthetic = class VhdSynthetic extends VhdAbstract {
     return compressionType
   }
 
+  get vhds() {
+    return this.#vhds
+  }
+
   /**
    * @param {Array<VhdAbstract>} vhds the chain of Vhds used to compute this Vhd, from the deepest child (in position 0), to the root (in the last position)
    * only the last one can have any type. Other must have type DISK_TYPES.DIFFERENCING (delta)
