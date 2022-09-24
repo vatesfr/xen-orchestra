@@ -72,12 +72,6 @@ function getVmAddress(networks) {
   throw new Error('no VM address found')
 }
 
-function stripPrefix(string, prefix) {
-  if (string.startsWith(prefix)) {
-    return string.slice(prefix.length)
-  }
-}
-
 async function listNobakVbds(xapi, vbdRefs) {
   const vbds = []
   await asyncMap(vbdRefs, async vbdRef => {
@@ -164,7 +158,11 @@ class Vm {
     }
   }
 
-  async _httpHook({ guest_metrics, tags, uuid }, pathname) {
+  async _httpHook({ guest_metrics, power_state, tags, uuid }, pathname) {
+    if (power_state !== 'Running') {
+      return
+    }
+
     let url
     let i = tags.length
     do {
@@ -179,7 +177,10 @@ class Vm {
           port: 1727,
         })
       } else {
-        url = new URL(stripPrefix(tag, 'xo:notify-on-snapshot='))
+        const prefix = 'xo:notify-on-snapshot='
+        if (tag.startsWith(prefix)) {
+          url = new URL(tag.slice(prefix.length))
+        }
       }
     } while (url === undefined)
 
@@ -192,8 +193,9 @@ class Vm {
     }
 
     try {
-      await hrp.get(url, {
+      await hrp(url, {
         headers,
+        rejectUnauthorized: false,
         timeout: this._syncHookTimeout ?? 60e3,
       })
     } catch (error) {

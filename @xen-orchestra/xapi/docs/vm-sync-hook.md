@@ -4,9 +4,13 @@
 >
 > Feedbacks are very welcome on the [project bugtracker](https://github.com/vatesfr/xen-orchestra/issues).
 
+> This feature is not currently supported for backups done with XO Proxy.
+
 Before snapshotting (with or without memory, ie checkpoint), XO can notify the VM via an HTTP request.
 
 A typical use case is to make sure the VM is in a consistent state during the snapshot process, for instance by making sure database writes are flushed to the disk.
+
+> This request will only be sent if the VM is in a running state.
 
 ## Configuration
 
@@ -69,7 +73,7 @@ const HANDLERS = {
 
 function checkAuthorization(req) {
   try {
-    const { authorization } = req.authorization
+    const { authorization } = req.headers
     if (authorization !== undefined) {
       const parts = authorization.split('  ')
       if (parts.length >= 1 && parts[0].toLowerCase() === 'bearer') {
