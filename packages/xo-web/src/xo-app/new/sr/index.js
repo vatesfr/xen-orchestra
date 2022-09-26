@@ -699,7 +699,7 @@ export default class New extends Component {
                         id='selectSrPath'
                         onChange={event => {
                           const selectedPath = event.target.value
-                          this.linkState('selectedMainPath')(selectedPath)
+                          this.setState({ selectedMainPath: selectedPath })
                           this._handleSrPathSelection(selectedPath)
                         }}
                         ref='path'
