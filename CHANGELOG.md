@@ -1,5 +1,42 @@
 # ChangeLog
 
+## **next**
+
+### Enhancements
+
+> Users must be able to say: “Nice enhancement, I'm eager to test it”
+
+- [Backup/Restore file] Implement File level restore for s3 and encrypted backups (PR [#6409](https://github.com/vatesfr/xen-orchestra/pull/6409))
+- [Backup] Improve listing speed by updating caches instead of regenerating them on backup creation/deletion (PR [#6411](https://github.com/vatesfr/xen-orchestra/pull/6411))
+- [Backup] Add `mergeBlockConcurrency` and `writeBlockConcurrency` to allow tuning of backup resources consumptions (PR [#6416](https://github.com/vatesfr/xen-orchestra/pull/6416))
+- [Sync hook] VM can now be notified before being snapshot, please [see the documentation](https://github.com/vatesfr/xen-orchestra/blob/master/@xen-orchestra/xapi/docs/vm-sync-hook.md) (PR [#6423](https://github.com/vatesfr/xen-orchestra/pull/6423))
+- [Storage/NFS] Ability to use subdirectory when creating new NFS storage [#3919](https://github.com/vatesfr/xen-orchestra/issues/3919) (PR [#6425](https://github.com/vatesfr/xen-orchestra/pull/6425))
+
+### Bug fixes
+
+> Users must be able to say: “I had this issue, happy to know it's fixed”
+
+- [Plugin/auth-saml] Certificate input support multiline (PR [#6403](https://github.com/vatesfr/xen-orchestra/pull/6403))
+- [Backup] Launch Health Check after a full backup (PR [#6401](https://github.com/vatesfr/xen-orchestra/pull/6401))
+- [Backup] Fix `Lock file is already being held` error when deleting a VM backup while the VM is currently being backed up
+- [Tasks] Fix the pool filter that did not display tasks even if they existed (PR [#6424](https://github.com/vatesfr/xen-orchestra/pull/6424))
+- [Tasks] Fix tasks being displayed for all users (PR [#6422](https://github.com/vatesfr/xen-orchestra/pull/6422))
+- [Storage/advanced] Fix the display of VDI to coalesce [#6334](https://xcp-ng.org/forum/topic/6334/coalesce-not-showing-anymore) (PR [#6429](https://github.com/vatesfr/xen-orchestra/pull/6429))
+- [Backup] Ignore disabled remotes instead of failing the execution [#6347](https://github.com/vatesfr/xen-orchestra/issues/6374) (PR [#6430](https://github.com/vatesfr/xen-orchestra/pull/6430))
+- [Home/VMs] Fix VMs being deleted despite clicking on Cancel in the bulk deletion modal (PR [#6435](https://github.com/vatesfr/xen-orchestra/pull/6435))
+
+### Released packages
+
+- vhd-lib 4.1.0
+- @vates/fuse-vhd 1.0.0
+- @xen-orchestra/xapi 1.5.0
+- @xen-orchestra/backups 0.28.0
+- @xen-orchestra/backups-cli 0.7.8
+- @xen-orchestra/proxy 0.26.2
+- xo-server 5.103.0
+- xo-server-auth-saml 0.10.1
+- xo-web 5.104.0
+
 ## **5.74.3** (2022-09-09)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
