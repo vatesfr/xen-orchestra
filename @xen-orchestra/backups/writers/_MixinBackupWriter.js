@@ -39,6 +39,7 @@ exports.MixinBackupWriter = (BaseClass = Object) =>
               Task.warning(message, data)
             },
             lock: false,
+            mergeBlockConcurrency: this._backup.config.mergeBlockConcurrency,
           })
         })
       } catch (error) {

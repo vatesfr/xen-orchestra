@@ -3906,9 +3906,6 @@ export default {
   // Original text: 'Click on a VM to display restore options'
   restoreBackupsInfo: 'Fare clic su una VM per visualizzare le opzioni di ripristino',
 
-  // Original text: 'Only the files of Delta Backup which are not on a SMB remote can be restored'
-  restoreDeltaBackupsInfo: 'È possibile ripristinare solo i file di Delta Backup che non si trovano su un SMB remoto',
-
   // Original text: 'Enabled'
   remoteEnabled: 'Abilitato',
 

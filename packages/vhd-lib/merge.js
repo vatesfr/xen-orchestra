@@ -78,7 +78,7 @@ module.exports._cleanupVhds = cleanupVhds
 module.exports.mergeVhdChain = limitConcurrency(2)(async function mergeVhdChain(
   handler,
   chain,
-  { onProgress = noop, logInfo = noop, removeUnused = false } = {}
+  { onProgress = noop, logInfo = noop, removeUnused = false, mergeBlockConcurrency = 2 } = {}
 ) {
   assert(chain.length >= 2)
 
@@ -123,7 +123,8 @@ module.exports.mergeVhdChain = limitConcurrency(2)(async function mergeVhdChain(
       childIsVhdDirectory = childVhd instanceof VhdDirectory
     }
 
-    const concurrency = parentIsVhdDirectory && childIsVhdDirectory ? 2 : 1
+    // merging vhdFile must not be concurrently with the potential block reordering after a change
+    const concurrency = parentIsVhdDirectory && childIsVhdDirectory ? mergeBlockConcurrency : 1
     if (mergeState === undefined) {
       // merge should be along a vhd chain
       assert.strictEqual(UUID.stringify(childVhd.header.parentUuid), UUID.stringify(parentVhd.footer.uuid))
