@@ -24,6 +24,7 @@
 - [Tasks] Fix tasks being displayed for all users (PR [#6422](https://github.com/vatesfr/xen-orchestra/pull/6422))
 - [Storage/advanced] Fix the display of VDI to coalesce [#6334](https://xcp-ng.org/forum/topic/6334/coalesce-not-showing-anymore) (PR [#6429](https://github.com/vatesfr/xen-orchestra/pull/6429))
 - [Backup] Ignore disabled remotes instead of failing the execution [#6347](https://github.com/vatesfr/xen-orchestra/issues/6374) (PR [#6430](https://github.com/vatesfr/xen-orchestra/pull/6430))
+- [Home/VMs] Fix VMs being deleted despite clicking on Cancel in the bulk deletion modal (PR [#6435](https://github.com/vatesfr/xen-orchestra/pull/6435))
 
 ### Packages to release
 

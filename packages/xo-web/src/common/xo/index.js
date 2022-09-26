@@ -1618,14 +1618,18 @@ export const deleteVms = async vms => {
   if (vms.length === 1) {
     return deleteVm(vms[0])
   }
-  await confirm({
-    title: _('deleteVmsModalTitle', { vms: vms.length }),
-    body: _('deleteVmsModalMessage', { vms: vms.length }),
-    strongConfirm: vms.length > 1 && {
-      messageId: 'deleteVmsConfirmText',
-      values: { nVms: vms.length },
-    },
-  }).catch(noop)
+  try {
+    await confirm({
+      title: _('deleteVmsModalTitle', { vms: vms.length }),
+      body: _('deleteVmsModalMessage', { vms: vms.length }),
+      strongConfirm: vms.length > 1 && {
+        messageId: 'deleteVmsConfirmText',
+        values: { nVms: vms.length },
+      },
+    })
+  } catch (err) {
+    return
+  }
 
   let nErrors = 0
   await Promise.all(
