@@ -2,6 +2,7 @@
 
 const CancelToken = require('promise-toolbox/CancelToken')
 const groupBy = require('lodash/groupBy.js')
+const hrp = require('http-request-plus')
 const ignoreErrors = require('promise-toolbox/ignoreErrors')
 const pickBy = require('lodash/pickBy.js')
 const omit = require('lodash/omit.js')
@@ -44,6 +45,31 @@ const cleanBiosStrings = biosStrings => {
       return biosStrings
     }
   }
+}
+
+// See: https://github.com/xapi-project/xen-api/blob/324bc6ee6664dd915c0bbe57185f1d6243d9ed7e/ocaml/xapi/xapi_guest_agent.ml#L59-L81
+//
+// Returns <min(n)>/ip || <min(n)>/ipv4/<min(m)> || <min(n)>/ipv6/<min(m)> || undefined
+// where n corresponds to the network interface and m to its IP
+const IPV4_KEY_RE = /^\d+\/ip(?:v4\/\d+)?$/
+const IPV6_KEY_RE = /^\d+\/ipv6\/\d+$/
+function getVmAddress(networks) {
+  if (networks !== undefined) {
+    let ipv6
+    for (const key of Object.keys(networks).sort()) {
+      if (IPV4_KEY_RE.test(key)) {
+        return networks[key]
+      }
+
+      if (ipv6 === undefined && IPV6_KEY_RE.test(key)) {
+        ipv6 = networks[key]
+      }
+    }
+    if (ipv6 !== undefined) {
+      return ipv6
+    }
+  }
+  throw new Error('no VM address found')
 }
 
 async function listNobakVbds(xapi, vbdRefs) {
@@ -132,6 +158,51 @@ class Vm {
     }
   }
 
+  async _httpHook({ guest_metrics, power_state, tags, uuid }, pathname) {
+    if (power_state !== 'Running') {
+      return
+    }
+
+    let url
+    let i = tags.length
+    do {
+      if (i === 0) {
+        return
+      }
+      const tag = tags[--i]
+      if (tag === 'xo:notify-on-snapshot') {
+        const { networks } = await this.getRecord('VM_guest_metrics', guest_metrics)
+        url = Object.assign(new URL('https://locahost'), {
+          hostname: getVmAddress(networks),
+          port: 1727,
+        })
+      } else {
+        const prefix = 'xo:notify-on-snapshot='
+        if (tag.startsWith(prefix)) {
+          url = new URL(tag.slice(prefix.length))
+        }
+      }
+    } while (url === undefined)
+
+    url.pathname = pathname
+
+    const headers = {}
+    const secret = this._asyncHookSecret
+    if (secret !== undefined) {
+      headers.authorization = 'Bearer ' + Buffer.from(secret).toString('base64')
+    }
+
+    try {
+      await hrp(url, {
+        headers,
+        rejectUnauthorized: false,
+        timeout: this._syncHookTimeout ?? 60e3,
+      })
+    } catch (error) {
+      warn('HTTP hook failed', { error, url, vm: uuid })
+    }
+  }
+
   async assertHealthyVdiChains(vmRef, tolerance = this._maxUncoalescedVdis) {
     const vdiRefs = {}
     ;(await this.getRecords('VBD', await this.getField('VM', vmRef, 'VBDs'))).forEach(({ VDI: ref }) => {
@@ -147,6 +218,8 @@ class Vm {
 
   async checkpoint($defer, vmRef, { cancelToken = CancelToken.none, ignoreNobakVdis = false, name_label } = {}) {
     const vm = await this.getRecord('VM', vmRef)
+
+    await this._httpHook(vm, '/sync')
 
     let destroyNobakVdis = false
 
@@ -167,6 +240,9 @@ class Vm {
     }
     try {
       const ref = await this.callAsync(cancelToken, 'VM.checkpoint', vmRef, name_label).then(extractOpaqueRef)
+
+      // detached async
+      this._httpHook(vm, '/post-sync').catch(noop)
 
       // VM checkpoints are marked as templates, unfortunately it does not play well with XVA export/import
       // which will import them as templates and not VM checkpoints or plain VMs
@@ -544,6 +620,8 @@ class Vm {
   ) {
     const vm = await this.getRecord('VM', vmRef)
 
+    await this._httpHook(vm, '/sync')
+
     const isHalted = vm.power_state === 'Halted'
 
     // requires the VM to be halted because it's not possible to re-plug VUSB on a live VM
@@ -645,6 +723,9 @@ class Vm {
       }
       ref = await this.callAsync(cancelToken, 'VM.snapshot', vmRef, name_label).then(extractOpaqueRef)
     } while (false)
+
+    // detached async
+    this._httpHook(vm, '/post-sync').catch(noop)
 
     // VM snapshots are marked as templates, unfortunately it does not play well with XVA export/import
     // which will import them as templates and not VM snapshots or plain VMs

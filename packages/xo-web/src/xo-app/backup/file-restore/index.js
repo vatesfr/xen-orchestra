@@ -1,7 +1,6 @@
 import _ from 'intl'
 import ActionButton from 'action-button'
 import Component from 'base-component'
-import Icon from 'icon'
 import React from 'react'
 import SortedTable from 'sorted-table'
 import Upgrade from 'xoa-upgrade'
@@ -87,7 +86,7 @@ export default class Restore extends Component {
 
   _refreshBackupList = async (_remotes = this.props.remotes, jobs = this.props.jobs) => {
     const remotes = keyBy(
-      filter(_remotes, remote => remote.enabled && remote.supportFileRestore),
+      filter(_remotes, remote => remote.enabled),
       'id'
     )
     const backupsByRemote = await listVmBackups(toArray(remotes))
@@ -204,9 +203,6 @@ export default class Restore extends Component {
               {_('refreshBackupList')}
             </ActionButton>
           </div>
-          <em>
-            <Icon icon='info' /> {_('restoreDeltaBackupsInfo')}
-          </em>
           <SortedTable
             actions={this._actions}
             collection={this.state.backupDataByVm}
