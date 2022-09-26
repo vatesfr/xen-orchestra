@@ -1,6 +1,6 @@
 # ChangeLog
 
-## \*_next_
+## **next**
 
 ### Enhancements
 
