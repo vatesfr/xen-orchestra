@@ -230,7 +230,9 @@ export default class BackupNg {
             }),
           ])
           if (Object.keys(remotes).length === 0) {
-            throw new Error(`couldn't instantiate any remote`, { errors: remoteErrors })
+            const error = new Error(`couldn't instantiate any remote`)
+            error.errors = remoteErrors
+            throw error
           }
           // update remotes list with only the enabled remotes
           job.remotes = {
