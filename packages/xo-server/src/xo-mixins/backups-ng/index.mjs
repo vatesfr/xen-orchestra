@@ -229,11 +229,17 @@ export default class BackupNg {
               }
             }),
           ])
+
+          // Fails the job if all remotes are disabled
+          //
+          // TODO: integrate each failure in its own tasks and still proceed
+          // with other tasks like rolling snapshot and replication.
           if (remoteIds.length > 0 && Object.keys(remotes).length === 0) {
             const error = new Error(`couldn't instantiate any remote`)
             error.errors = remoteErrors
             throw error
           }
+
           // update remotes list with only the enabled remotes
           job.remotes = {
             id: {
