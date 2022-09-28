@@ -167,7 +167,7 @@ export default {
   // Original text: "Welcome on Xen Orchestra!"
   homeWelcome: '欢迎使用Xen Orchestra',
 
-  // Original text: "Add your XenServer hosts or pools"
+  // Original text: "Add your XCP-ng hosts or pools"
   homeWelcomeText: '添加您的XenServer主机或资源池',
 
   // Original text: "Want some help?"
