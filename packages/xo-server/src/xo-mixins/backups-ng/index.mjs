@@ -229,7 +229,7 @@ export default class BackupNg {
               }
             }),
           ])
-          if (Object.keys(remotes).length === 0) {
+          if (remoteIds.length > 0 && Object.keys(remotes).length === 0) {
             const error = new Error(`couldn't instantiate any remote`)
             error.errors = remoteErrors
             throw error
