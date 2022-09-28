@@ -7,6 +7,8 @@
 
 ### Bug fixes
 
+- [Backup] Fix Couldn't instatiate any remote when using continuous replication only jobs (PR [#6437](https://github.com/vatesfr/xen-orchestra/pull/6437))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -23,4 +25,5 @@
 
 <!--packages-start-->
 
+- xo-server patch
 <!--packages-end-->
