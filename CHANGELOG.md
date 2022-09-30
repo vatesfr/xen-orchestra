@@ -35,7 +35,7 @@
 - @xen-orchestra/backups 0.28.0
 - @xen-orchestra/backups-cli 0.7.8
 - @xen-orchestra/proxy 0.26.2
-- xo-server 5.103.0
+- xo-server 5.103.1
 - xo-server-auth-saml 0.10.1
 - xo-web 5.104.0
 
