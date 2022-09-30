@@ -1,6 +1,6 @@
 <template>
   <UiCard>
-    <UiTitle type="h4">CPU usage</UiTitle>
+    <UiTitle type="h4">{{ $t("cpu-usage") }}</UiTitle>
     <HostsCpuUsage />
     <VmsCpuUsage />
   </UiCard>
