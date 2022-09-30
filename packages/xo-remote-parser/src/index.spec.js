@@ -171,6 +171,18 @@ const parseData = deepFreeze({
       allowUnauthorized: true,
     },
   },
+  's3 with empty region ': {
+    string: 's3://AKIAS:XSuBupZ0mJlu%2B@s3-us-west-2.amazonaws.com/test-bucket/dir#',
+    object: {
+      type: 's3',
+      protocol: 'https',
+      host: 's3-us-west-2.amazonaws.com',
+      path: '/test-bucket/dir',
+      username: 'AKIAS',
+      password: 'XSuBupZ0mJlu+',
+      region: undefined,
+    },
+  },
 })
 
 const formatData = deepFreeze({

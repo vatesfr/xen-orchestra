@@ -23,6 +23,7 @@
 
 <!--packages-start-->
 
+- xo-remote-parser patch
 - xo-server-transport-nagios patch
 
 <!--packages-end-->
