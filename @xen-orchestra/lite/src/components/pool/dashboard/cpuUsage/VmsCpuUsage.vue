@@ -1,8 +1,8 @@
 <template>
   <UsageBar :data="data" :n-items="5">
     <template #header>
-      <span>VMs</span>
-      <span>Top 5</span>
+      <span>{{ $t("vms") }}</span>
+      <span>{{ $t("top-#", { n: 5 }) }}</span>
     </template>
   </UsageBar>
 </template>

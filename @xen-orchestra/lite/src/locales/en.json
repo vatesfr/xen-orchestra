@@ -10,6 +10,7 @@
   "cancel": "Cancel",
   "change-power-state": "Change power state",
   "copy": "Copy",
+  "cpu-usage":"CPU usage",
   "dashboard": "Dashboard",
   "delete": "Delete",
   "descending": "descending",
@@ -36,6 +37,7 @@
   "switch-theme": "Switch theme",
   "system": "System",
   "tasks": "Tasks",
+  "top-#": "Top {n}",
   "total-free": "Total free",
   "total-used": "Total used",
   "vms": "VMs"
