@@ -1,4 +1,19 @@
 <template>
+  <UiModal
+    v-if="isSslModalOpen"
+    color="error"
+    :icon="faServer"
+    :onClose="closeSslModal"
+  >
+    <UiTitle type="h2">{{ $t("unreachable-hosts") }}</UiTitle>
+    <p>{{ $t("following-hosts-unreachable") }}</p>
+    <p>{{ $t("allow-self-signed-ssl") }}</p>
+    <ul>
+      <li v-for="url in sslModalPayload?.value" :key="url.hostname">
+        <a :href="url.href" target="_blank" rel="noopener">{{ url.href }}</a>
+      </li>
+    </ul>
+  </UiModal>
   <div v-if="!xenApiStore.isConnected">
     <AppLogin />
   </div>
@@ -17,15 +32,21 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, watchEffect } from "vue";
+import { type Ref, ref, watchEffect } from "vue";
 import favicon from "@/assets/favicon.svg";
+import { faServer } from "@fortawesome/free-solid-svg-icons";
 import AppHeader from "@/components/AppHeader.vue";
 import AppLogin from "@/components/AppLogin.vue";
 import AppTooltips from "@/components/AppTooltips.vue";
 import InfraPoolList from "@/components/infra/InfraPoolList.vue";
+import UiModal from "@/components/ui/UiModal.vue";
+import UiTitle from "@/components/ui/UiTitle.vue";
 import { useChartTheme } from "@/composables/chart-theme.composable";
+import useModal from "@/composables/modal.composable";
 import { useHostStore } from "@/stores/host.store";
 import { useXenApiStore } from "@/stores/xen-api.store";
+
+const unreachableUrlHosts = ref<URL[]>([]);
 
 let link: HTMLLinkElement | null = document.querySelector("link[rel~='icon']");
 if (link == null) {
@@ -41,20 +62,23 @@ if (window.localStorage?.getItem("colorMode") !== "light") {
   document.documentElement.classList.add("dark");
 }
 
-const unreachableHosts = ref();
-
 const xenApiStore = useXenApiStore();
 const hostStore = useHostStore();
+const {
+  close: closeSslModal,
+  isOpen: isSslModalOpen,
+  open: openSslModal,
+  payload: sslModalPayload,
+} = useModal<Ref<URL[]>>();
+useChartTheme();
 
 watchEffect(() => {
   if (xenApiStore.isConnected) {
     xenApiStore.init();
   }
 });
-
-useChartTheme();
 watchEffect(async () => {
-  const _unreachableHosts = [];
+  const _unreachableUrlHosts = [];
   for (const key in hostStore.allRecords) {
     const host = hostStore.allRecords[key];
 
@@ -67,25 +91,18 @@ watchEffect(async () => {
         mode: "no-cors",
       });
     } catch (_) {
-      _unreachableHosts.push(url);
+      _unreachableUrlHosts.push(url);
     }
   }
-  unreachableHosts.value = _unreachableHosts;
+  unreachableUrlHosts.value = _unreachableUrlHosts;
 });
 
 watchEffect(() => {
-  if (unreachableHosts.value?.length > 0) {
-    // TODO: Replace with modal component when available.
-    let string = "The following hosts are unreachable. ";
-    if (window.location.protocol === "https:") {
-      string +=
-        "You may need to allow self-signed SSL certificates in your browser.";
-    }
-    string += "\n\n";
-    unreachableHosts.value.forEach((url: URL) => {
-      string += url.href + "\n";
-    });
-    alert(string);
+  if (
+    unreachableUrlHosts.value?.length > 0 &&
+    window.location.protocol === "https:"
+  ) {
+    openSslModal(unreachableUrlHosts);
   }
 });
 </script>

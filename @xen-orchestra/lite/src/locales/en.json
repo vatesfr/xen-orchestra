@@ -4,6 +4,7 @@
   "add-or": "+OR",
   "add-sort": "Add sort",
   "alarms": "Alarms",
+  "allow-self-signed-ssl":"You may need to allow self-signed SSL certificates in your browser",
   "ascending": "ascending",
   "available-properties-for-advanced-filter": "Available properties for advanced filter:",
   "backup": "Backup",
@@ -17,6 +18,7 @@
   "export": "Export",
   "export-table-to": "Export table to {type}",
   "export-vms": "Export VMs",
+  "following-hosts-unreachable":"The following hosts are unreachable",
   "hosts": "Hosts",
   "loading-hosts": "Loading hosts…",
   "log-out": "Log out",
@@ -38,5 +40,6 @@
   "tasks": "Tasks",
   "total-free": "Total free",
   "total-used": "Total used",
+  "unreachable-hosts": "Unreachable hosts",
   "vms": "VMs"
 }
