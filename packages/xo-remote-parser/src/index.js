@@ -71,7 +71,7 @@ export const parse = string => {
     const parsed = urlParser(string, false)
     object.protocol = parsed.protocol === 's3:' ? 'https' : 'http'
     object.type = 's3'
-    object.region = parsed.hash.length === 0 ? undefined : parsed.hash.slice(1) // remove '#'
+    object.region = parsed.hash.length < 2 ? undefined : parsed.hash.slice(1) // remove '#'
     object.host = parsed.host
     object.path = parsed.pathname
     object.username = parsed.username
