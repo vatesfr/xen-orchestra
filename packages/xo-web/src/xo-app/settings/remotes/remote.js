@@ -143,11 +143,12 @@ export default decorate([
             encryptionKey: encryptionKey.trim() !== '' ? encryptionKey : undefined,
           }
           if (type === 's3') {
-            const { allowUnauthorized, bucket, directory, protocol = 'https' } = state
+            const { allowUnauthorized, bucket, directory, protocol = 'https', region } = state
             urlParams.path = bucket + '/' + directory
             urlParams.allowUnauthorized = allowUnauthorized
             urlParams.protocol = protocol
             urlParams.useVhdDirectory = true // always on for s3
+            urlParams.region = region
           }
           username && (urlParams.username = username)
           password && (urlParams.password = password)

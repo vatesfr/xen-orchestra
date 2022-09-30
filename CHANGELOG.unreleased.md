@@ -25,5 +25,6 @@
 
 - xo-remote-parser patch
 - xo-server-transport-nagios patch
+- xo-web patch
 
 <!--packages-end-->
