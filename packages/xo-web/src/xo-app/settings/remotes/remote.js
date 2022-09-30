@@ -101,7 +101,7 @@ export default decorate([
               region,
               allowUnauthorized,
               useVhdDirectory,
-              encryptionKey: encryptionKey.trim() !== '' ? encryptionKey : undefined,
+              encryptionKey: encryptionKey?.trim() !== '' ? encryptionKey : undefined,
             }),
             options: options !== '' ? options : null,
             proxy: proxyId,
