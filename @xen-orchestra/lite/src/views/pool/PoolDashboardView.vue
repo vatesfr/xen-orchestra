@@ -9,13 +9,9 @@
 <script lang="ts" setup>
 import { differenceBy } from "lodash-es";
 import { computed, onMounted, provide, readonly, watch } from "vue";
-import ProgressBar from "@/components/ProgressBar.vue";
 import PoolDashboardCpuUsage from "@/components/pool/dashboard/PoolDashboardCpuUsage.vue";
 import PoolDashboardStatus from "@/components/pool/dashboard/PoolDashboardStatus.vue";
 import PoolDashboardStorageUsage from "@/components/pool/dashboard/PoolDashboardStorageUsage.vue";
-import UiBadge from "@/components/ui/UiBadge.vue";
-import UiCard from "@/components/ui/UiCard.vue";
-import UiTitle from "@/components/ui/UiTitle.vue";
 import useFetchStats from "@/composables/fetch-stats.composable";
 import { GRANULARITY, type HostStats, type VmStats } from "@/libs/xapi-stats";
 import type { XenApiHost, XenApiVm } from "@/libs/xen-api";
