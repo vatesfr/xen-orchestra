@@ -23,4 +23,6 @@
 
 <!--packages-start-->
 
+- xo-server-transport-nagios patch
+
 <!--packages-end-->

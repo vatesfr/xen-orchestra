@@ -28,6 +28,7 @@
     "node": ">=6"
   },
   "dependencies": {
+    "@xen-orchestra/log": "^0.3.0",
     "buffer-crc32": "^0.2.13"
   },
   "devDependencies": {

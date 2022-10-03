@@ -1,6 +1,9 @@
 import crc32 from 'buffer-crc32'
 import net from 'net'
 import { Buffer } from 'buffer'
+import { createLogger } from '@xen-orchestra/log'
+
+const { debug, warn } = createLogger('xo:server:transport:nagios')
 
 // ===================================================================
 
@@ -109,13 +112,21 @@ class XoServerNagios {
   _sendPassiveCheck({ message, status }) {
     return new Promise((resolve, reject) => {
       if (/\r|\n/.test(message)) {
-        throw new Error('the message must not contain a line break')
+        warn('the message must not contain a line break', { message })
+        for (let i = 0, n = message.length; i < n; ++i) {
+          const c = message[i]
+          if (c === '\n') {
+            message[i] = '\\n'
+          } else if (c === '\r') {
+            message[i] = '\\r'
+          }
+        }
       }
 
       const client = new net.Socket()
 
       client.connect(this._conf.port, this._conf.server, () => {
-        console.log('Successful connection')
+        debug('Successful connection')
       })
 
       client.on('data', data => {
