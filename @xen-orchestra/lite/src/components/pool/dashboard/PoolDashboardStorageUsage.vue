@@ -88,8 +88,11 @@ const data = computed<{
 .footer-card {
   color: var(--color-blue-scale-200);
   display: flex;
-  font-weight: 700;
   text-transform: uppercase;
+}
+
+.footer-card p {
+  font-weight: 700;
 }
 
 .footer-value {

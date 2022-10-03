@@ -8,9 +8,9 @@ declare module "human-format" {
     unit?: string;
   };
 
-  function humanformat(value: number, opts?: Options): number;
+  function humanFormat(value: number, opts?: Options): number;
   function bytes(value: number): number;
 
-  humanformat.bytes = bytes;
-  export default humanformat;
+  humanFormat.bytes = bytes;
+  export default humanFormat;
 }
