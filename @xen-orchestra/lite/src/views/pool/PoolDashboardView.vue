@@ -3,24 +3,12 @@
     <PoolDashboardStatus class="item" />
     <PoolDashboardCpuUsage class="item" />
     <PoolDashboardRamUsage class="item" />
-    <UiCard style="min-width: 40rem">
-      <UiTitle type="h4">Storage usage</UiTitle>
-      <ProgressBar :value="65" style="margin: 1rem 0" />
-      <ProgressBar :value="50" style="margin: 1rem 0" />
-      <ProgressBar :value="40" style="margin: 1rem 0" />
-      <ProgressBar :value="22" style="margin: 1rem 0" />
-    </UiCard>
-
-    <UiCard>
-      <UiBadge>38/64 GB</UiBadge>
-    </UiCard>
   </div>
 </template>
 
 <script lang="ts" setup>
 import { differenceBy } from "lodash-es";
 import { computed, onMounted, provide, readonly, watch } from "vue";
-import ProgressBar from "@/components/ProgressBar.vue";
 import PoolDashboardCpuUsage from "@/components/pool/dashboard/PoolDashboardCpuUsage.vue";
 import PoolDashboardRamUsage from "@/components/pool/dashboard/PoolDashboardRamUsage.vue";
 import PoolDashboardStatus from "@/components/pool/dashboard/PoolDashboardStatus.vue";
