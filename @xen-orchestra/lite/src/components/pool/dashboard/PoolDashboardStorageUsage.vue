@@ -51,16 +51,16 @@ const percentFree = computed(() =>
 const showFooter = computed(() => !isNaN(percentUsed.value));
 
 const data = computed<{
-  result: { id: string; label: string; value: number }[];
+  result: { label: string; value: number }[];
   maxSize: number;
   usedSize: number;
 }>(() => {
-  const result: { id: string; label: string; value: number }[] = [];
+  const result: { label: string; value: number }[] = [];
   let maxSize = 0;
   let usedSize = 0;
 
   srStore.allRecords.forEach(
-    ({ name_label, physical_size, physical_utilisation, uuid }) => {
+    ({ name_label, physical_size, physical_utilisation }) => {
       if (physical_size < 0 || physical_utilisation < 0) {
         return;
       }
@@ -75,7 +75,6 @@ const data = computed<{
       }
 
       result.push({
-        id: uuid,
         label: name_label,
         value: percent,
       });
