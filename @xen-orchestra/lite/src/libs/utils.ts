@@ -1,6 +1,6 @@
 import { utcParse } from "d3-time-format";
-import { round } from "lodash-es";
 import humanFormat from "human-format";
+import { round } from "lodash-es";
 import { find, forEach, isEqual, size, sum } from "lodash-es";
 import { type ComputedGetter, type Ref, computed, ref, watchEffect } from "vue";
 import type { Filter } from "@/types/filter";
@@ -84,7 +84,7 @@ export function parseRamUsage({
     used += ram - (memoryFree?.[key] ?? 0);
   });
 
-  const _percentUsed = (used / max) * 100;
+  const _percentUsed = percent(used, max);
   const percentUsed =
     memoryFree === undefined || isNaN(_percentUsed) ? undefined : _percentUsed;
 
