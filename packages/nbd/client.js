@@ -2,27 +2,74 @@ const assert = require('node:assert')
 const { Socket } = require('node:net')
 const { connect } = require('node:tls')
 
-const BLOCK_SIZE = 64 * 1024
+// documentation is here : https://github.com/NetworkBlockDevice/nbd/blob/master/doc/proto.md
+
+const INIT_PASSWD = 0x4e42444d41474943 // "NBDMAGIC" ensure we're connected to a nbd server
+const OPTS_MAGIC = 0x49484156454f5054 // "IHAVEOPT" start an option block
+const NBD_OPT_REPLY_MAGIC = 0x3e889045565a9 // magic received during negociation
+const NBD_OPT_EXPORT_NAME = 1
+const NBD_OPT_ABORT = 2
+const NBD_OPT_LIST = 3
+const NBD_OPT_STARTTLS = 5
+const NBD_OPT_INFO = 6
+const NBD_OPT_GO = 7
+
+const NBD_FLAG_HAS_FLAGS = 1 << 0
+const NBD_FLAG_READ_ONLY = 1 << 1
+const NBD_FLAG_SEND_FLUSH = 1 << 2
+const NBD_FLAG_SEND_FUA = 1 << 3
+const NBD_FLAG_ROTATIONAL = 1 << 4
+const NBD_FLAG_SEND_TRIM = 1 << 5
+
+const NBD_FLAG_FIXED_NEWSTYLE = 1 << 0
+
+const NBD_CMD_FLAG_FUA = 1 << 0
+const NBD_CMD_FLAG_NO_HOLE = 1 << 1
+const NBD_CMD_FLAG_DF = 1 << 2
+const NBD_CMD_FLAG_REQ_ONE = 1 << 3
+const NBD_CMD_FLAG_FAST_ZERO = 1 << 4
+
+const NBD_CMD_READ = 0
+const NBD_CMD_WRITE = 1
+const NBD_CMD_DISC = 2
+const NBD_CMD_FLUSH = 3
+const NBD_CMD_TRIM = 4
+const NBD_CMD_CACHE = 5
+const NBD_CMD_WRITE_ZEROES = 6
+const NBD_CMD_BLOCK_STATUS = 7
+const NBD_CMD_RESIZE = 8
+
+const NBD_REQUEST_MAGIC = 0x25609513 // magic number to create a new NBD request to send to the server
+const NBD_REPLY_MAGIC = 0x67446698 // magic number received from the server when reading response to a nbd request
+
+const NBD_DEFAULT_PORT = 10809
+const NBD_DEFAULT_BLOCK_SIZE = 64 * 1024
+const MAX_BUFFER_LENGTH = 10 * 1024 * 1024
+
 module.exports = class NbdClient {
-  _address
-  _cert
+  _serverAddress
+  _serverCert
+  _serverPort
+  _serverSocket
+  _useSecureConnection = false
+
   _exportname
-  _port
-  _client
+  _nbDiskBlocks = 0
+
   _buffer = Buffer.alloc(0)
   _readPromiseResolve
   _waitingForLength = 0
-  _nbDiskBlocks = 0
-  _handle = 0
-  _secure = false
-  _queries = {}
 
-  constructor({ address, port = 10809, exportname, cert, secure = true }) {
+  // AFAIK, there is no guaranty the server answer in the same order as the query
+  _nextBlockQueryId = 0
+  _blockQueries = {} // map of queries waiting for an answer
+
+  constructor({ address, port = NBD_DEFAULT_PORT, exportname, cert, secure = true }) {
     this._address = address
-    this._port = port
+    this._serverPort = port
     this._exportname = exportname
-    this._cert = cert
-    this._secure = secure
+    this._serverCert = cert
+    this._useSecureConnection = secure
   }
 
   get nbBlocks() {
@@ -30,37 +77,45 @@ module.exports = class NbdClient {
   }
 
   async _addListenners() {
-    const client = this._client
-    client.on('data', data => {
+    const serverSocket = this._serverSocket
+    serverSocket.on('data', data => {
       this._buffer = Buffer.concat([this._buffer, Buffer.from(data)])
+      if (this._buffer.length > MAX_BUFFER_LENGTH) {
+        throw new Error(
+          `Buffer grown too much with a total size of  ${this._buffer.length} bytes (last chunk is ${data.length})`
+        )
+      }
+      // if we're waiting for a specific bit length (in the handshake for example or a block data)
       if (this._readPromiseResolve && this._buffer.length >= this._waitingForLength) {
         this._readPromiseResolve(this._takeFromBuffer(this._waitingForLength))
         this._readPromiseResolve = null
         this._waitingForLength = 0
       } else {
+        //
         if (!this._readPromiseResolve && this._buffer.length > 4) {
-          if (this._buffer.readInt32BE(0) === 0x67446698) {
-            this._readResponse()
+          if (this._buffer.readInt32BE(0) === NBD_REPLY_MAGIC) {
+            this._readBlockResponse()
           }
+          // keep the received bits in the buffer for subsequent use
         }
       }
     })
 
-    client.on('close', function () {
+    serverSocket.on('close', function () {
       console.log('Connection closed')
     })
-    client.on('error', function (err) {
-      console.error('ERRROR', err)
+    serverSocket.on('error', function (err) {
+      throw err
     })
   }
 
   async _tlsConnect() {
     return new Promise(resolve => {
-      this._client = connect(
+      this._serverSocket = connect(
         {
-          socket: this._client,
+          socket: this._serverSocket,
           rejectUnauthorized: false,
-          cert: this._cert,
+          cert: this._serverCert,
         },
         resolve
       )
@@ -68,12 +123,10 @@ module.exports = class NbdClient {
     })
   }
   async _unsecureConnect() {
-    console.log('unsecure connect')
-    this._client = new Socket()
+    this._serverSocket = new Socket()
     this._addListenners()
     return new Promise((resolve, reject) => {
-      this._client.connect(this._port, this._address, () => {
-        console.log('connected will resolve')
+      this._serverSocket.connect(this._serverPort, this._serverAddress, () => {
         resolve()
       })
     })
@@ -84,11 +137,11 @@ module.exports = class NbdClient {
   }
 
   async _sendOption(option, buffer = Buffer.alloc(0)) {
-    await this._writeToSocket(Buffer.from('IHAVEOPT'))
+    await this._writeToSocket(OPTS_MAGIC)
     await this._writeToSocketInt32(option)
     await this._writeToSocketInt32(buffer.length)
     await this._writeToSocket(buffer)
-    assert(await this._readFromSocketInt64(), 0x3e889045565a9) //magic number everywhere
+    assert(await this._readFromSocketInt64(), NBD_OPT_REPLY_MAGIC) // magic number everywhere
     assert(await this._readFromSocketInt32(), option) // the option passed
     assert(await this._readFromSocketInt32(), 1) // ACK
     const length = await this._readFromSocketInt32()
@@ -96,33 +149,35 @@ module.exports = class NbdClient {
   }
 
   async _handshake() {
-    assert(await this._readFromSocket(8), 'NBDMAGIC')
-    assert(await this._readFromSocket(8), 'IHAVEOPT')
+    assert(await this._readFromSocket(8), INIT_PASSWD)
+    assert(await this._readFromSocket(8), OPTS_MAGIC)
     const flagsBuffer = await this._readFromSocket(2)
     const flags = flagsBuffer.readInt16BE(0)
-    assert(flags === 1) // only FIXED_NEWSTYLE one is supported
-    await this._writeToSocketInt32(1) //client also support  NBD_FLAG_C_FIXED_NEWSTYLE
+    assert(flags === NBD_FLAG_FIXED_NEWSTYLE) // only FIXED_NEWSTYLE one is supported from the server options
+    await this._writeToSocketInt32(NBD_FLAG_FIXED_NEWSTYLE) // client also support  NBD_FLAG_C_FIXED_NEWSTYLE
 
-    if (this._secure) {
+    if (this._useSecureConnection) {
       // upgrade socket to TLS
-      await this._sendOption(5) //command NBD_OPT_STARTTLS
+      await this._sendOption(NBD_OPT_STARTTLS)
       await this._tlsConnect()
-      console.log('switched to TLS')
     }
 
-    // send export name it's also implictly closing the negociation phase
-    await this._writeToSocket(Buffer.from('IHAVEOPT'))
-    await this._writeToSocketInt32(1) //command NBD_OPT_EXPORT_NAME
+    // send export name required it also implictly closes the negociation phase
+    await this._writeToSocket(Buffer.from(OPTS_MAGIC))
+    await this._writeToSocketInt32(NBD_OPT_EXPORT_NAME)
     await this._writeToSocketInt32(this._exportname.length)
 
     await this._writeToSocket(Buffer.from(this._exportname))
     // 8 + 2 + 124
     const answer = await this._readFromSocket(134)
     const exportSize = answer.readBigUInt64BE(0)
-    const transmissionFlags = answer.readInt16BE(8) // 3 is readonly
-    this._nbDiskBlocks = Number(exportSize / BigInt(64 * 1024))
+    const transmissionFlags = answer.readInt16BE(8)
+    assert(transmissionFlags & NBD_FLAG_HAS_FLAGS, 'NBD_FLAG_HAS_FLAGS') // must always be 1 by the norm
+
+    // xapi server always send NBD_FLAG_READ_ONLY (3) as a flag
+
+    this._nbDiskBlocks = Number(exportSize / BigInt(NBD_DEFAULT_BLOCK_SIZE))
     this._exportSize = exportSize
-    console.log(`disk is ${exportSize} bytes ${this._nbDiskBlocks} 64KB blocks`)
   }
 
   _takeFromBuffer(length) {
@@ -143,7 +198,7 @@ module.exports = class NbdClient {
 
   _writeToSocket(buffer) {
     return new Promise(resolve => {
-      this._client.write(buffer, resolve)
+      this._serverSocket.write(buffer, resolve)
     })
   }
 
@@ -158,11 +213,6 @@ module.exports = class NbdClient {
     return buffer.readBigUInt64BE(0)
   }
 
-  _writeToSocketInt32(int) {
-    const buffer = Buffer.alloc(4)
-    buffer.writeInt32BE(int)
-    return this._writeToSocket(buffer)
-  }
   _writeToSocketUInt32(int) {
     const buffer = Buffer.alloc(4)
     buffer.writeUInt32BE(int)
@@ -180,11 +230,10 @@ module.exports = class NbdClient {
     return this._writeToSocket(buffer)
   }
 
-  async _readResponse() {
-    //NBD_SIMPLE_REPLY_MAGIC
+  async _readBlockResponse() {
     const magic = await this._readFromSocketInt32()
 
-    if (magic !== 0x67446698) {
+    if (magic !== NBD_REPLY_MAGIC) {
       console.error('magic number for block answer is wrong : ', magic)
       return
     }
@@ -194,34 +243,35 @@ module.exports = class NbdClient {
       console.error('GOT ERROR CODE ', error)
       return
     }
-    // handle
-    const handle = await this._readFromSocketInt64()
-    const query = this._queries[handle]
+
+    const blockQueryId = await this._readFromSocketInt64()
+    const query = this._blockQueries[blockQueryId]
     if (!query) {
-      console.log('no query associated with handle ', response.handle, Object.keys(this._queries))
-      return
+      throw new Error(` no query associated with id ${blockQueryId}`)
     }
-    delete this._queries[handle]
+    delete this._blockQueries[blockQueryId]
     query.resolve(await this._readFromSocket(query.size))
   }
 
-  async readBlock(index, size = BLOCK_SIZE) {
-    const handle = this._handle
-    this._handle++
-    this._writeToSocketInt32(0x25609513) //NBD_REQUEST MAGIC
-    this._writeToSocketInt16(0) //command flags
-    this._writeToSocketInt16(0) //READ
-    this._writeToSocketInt64(handle)
+  async readBlock(index, size = NBD_DEFAULT_BLOCK_SIZE) {
+    const queryId = this._nextBlockQueryId
+    this._nextBlockQueryId++
+    this._writeToSocketInt32(NBD_REQUEST_MAGIC)
+    this._writeToSocketInt16(0) // no command flags for a simple block read
+    this._writeToSocketInt16(NBD_CMD_READ)
+    this._writeToSocketInt64(queryId)
+    // byte offset in the raw disk
     this._writeToSocketInt64(BigInt(index) * BigInt(size))
     // ensure we do not read after the end of the export (which immediatly disconnect us)
     // will overflow on disk > 2^^32 bytes
 
     const maxSize = Math.min(Number(this._exportSize) - index * size, size)
     console.log({ size, maxSize })
+    // size wanted
     this._writeToSocketUInt32(maxSize)
 
     return new Promise(resolve => {
-      this._queries[handle] = {
+      this._blockQueries[queryId] = {
         size: maxSize,
         resolve,
       }
