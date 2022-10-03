@@ -1,9 +1,9 @@
-import NbdClient from './client.mjs'
+import NbdClient from '../index.js'
 import { Xapi } from 'xen-api'
 import readline from 'node:readline'
 import { stdin as input, stdout as output } from 'node:process'
 import { asyncMap } from '@xen-orchestra/async-map'
-import { downloadVhd, getFullBlocks } from './utils'
+import { downloadVhd, getFullBlocks } from './utils.mjs'
 
 const xapi = new Xapi({
   auth: {
@@ -15,9 +15,9 @@ const xapi = new Xapi({
 })
 await xapi.connect()
 
-let networks = await xapi.call('network.get_all_records')
+const networks = await xapi.call('network.get_all_records')
 console.log({ networks })
-let nbdNetworks = Object.values(networks).filter(
+const nbdNetworks = Object.values(networks).filter(
   network => network.purpose.includes('nbd') || network.purpose.includes('insecure_nbd')
 )
 
@@ -71,7 +71,7 @@ const snapshotRef = xapi.getObject(snapshots[snapshots.length - 1].uuid).$ref
 
 console.log('will connect to NBD server')
 
-const [nbd, ..._] = await xapi.call('VDI.get_nbd_info', snapshotRef)
+const nbd = (await xapi.call('VDI.get_nbd_info', snapshotRef))[0]
 
 if (!nbd) {
   console.error('Nbd is not enabled on the host')
@@ -96,7 +96,7 @@ for (const nbBlocksRead of [32, 16, 8, 4, 2, 1]) {
   for (const concurrency of [32, 16, 8, 4, 2]) {
     const { speed } = await getFullBlocks({ nbdClient, concurrency, nbBlocksRead })
 
-    stats[blockSize][concurrency] = speed
+    stats[concurrency] = speed
   }
 }
 

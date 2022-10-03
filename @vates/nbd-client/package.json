@@ -15,6 +15,12 @@
   "license": "AGPL-3.0-or-later",
   "version": "0.0.1",
   "engines": {
-    "node": ">=8.10"
+    "node": ">=14.0"
+  },
+  "dependencies": {
+    "@vates/async-each": "^1.0.0",
+    "@xen-orchestra/async-map": "^0.1.2",
+    "promise-toolbox": "^0.21.0",
+    "xen-api": "^1.2.2"
   }
 }

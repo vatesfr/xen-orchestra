@@ -1,10 +1,11 @@
 import { asyncEach } from '@vates/async-each'
 import { CancelToken } from 'promise-toolbox'
+import zlib from 'node:zlib'
 
 export async function getChangedNbdBlocks(nbdClient, changed, concurrency, blockSize) {
-  let nbModified = 0,
-    size = 0,
-    compressedSize = 0
+  let nbModified = 0
+  let size = 0
+  let compressedSize = 0
   const start = new Date()
   console.log('### with concurrency ', concurrency, ' blockSize ', blockSize / 1024 / 1024, 'MB')
   const interval = setInterval(() => {
@@ -40,8 +41,8 @@ export async function getChangedNbdBlocks(nbdClient, changed, concurrency, block
 
 export async function getFullBlocks({ nbdClient, concurrency = 1, nbBlocksRead = 1, fd, maxDuration = -1 } = {}) {
   const blockSize = nbBlocksRead * 64 * 1024
-  let nbModified = 0,
-    size = 0
+  let nbModified = 0
+  let size = 0
   console.log('### with concurrency ', concurrency)
   const start = new Date()
   console.log(' max nb blocks ', nbdClient.nbBlocks / nbBlocksRead)
@@ -73,7 +74,7 @@ export async function getFullBlocks({ nbdClient, concurrency = 1, nbBlocksRead =
   clearInterval(interval)
   if (new Date() - start < 10000) {
     console.warn(
-      `data set too small or perofrmance to high, result won't be usefull. Please relaunch with bigger snapshot or higher maximum data size `
+      `data set too small or performance to high, result won't be usefull. Please relaunch with bigger snapshot or higher maximum data size `
     )
   }
   console.log('duration :', new Date() - start)

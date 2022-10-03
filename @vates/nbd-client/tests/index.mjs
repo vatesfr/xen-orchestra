@@ -1,9 +1,9 @@
-import NbdClient from './client.mjs'
+import NbdClient from '../index.js'
 import { Xapi } from 'xen-api'
 import readline from 'node:readline'
 import { stdin as input, stdout as output } from 'node:process'
 import { asyncMap } from '@xen-orchestra/async-map'
-import { downloadVhd, getFullBlocks, getChangedNbdBlocks } from './utils'
+import { downloadVhd, getFullBlocks, getChangedNbdBlocks } from './utils.mjs'
 
 const xapi = new Xapi({
   auth: {
@@ -15,9 +15,9 @@ const xapi = new Xapi({
 })
 await xapi.connect()
 
-let networks = await xapi.call('network.get_all_records')
+const networks = await xapi.call('network.get_all_records')
 
-let nbdNetworks = Object.values(networks).filter(
+const nbdNetworks = Object.values(networks).filter(
   network => network.purpose.includes('nbd') || network.purpose.includes('insecure_nbd')
 )
 
@@ -45,7 +45,7 @@ do {
   try {
     vmRef = xapi.getObject(vmuuid).$ref
   } catch (e) {
-    //console.log(e)
+    // console.log(e)
     console.log('maybe the objects was not loaded, try again ')
     await new Promise(resolve => setTimeout(resolve, 1000))
   }
@@ -97,7 +97,7 @@ const cbt = Buffer.from(await xapi.call('VDI.list_changed_blocks', snapshotRef, 
 console.log('got changes')
 console.log('will connect to NBD server')
 
-const [nbd, ..._] = await xapi.call('VDI.get_nbd_info', snapshotTarget)
+const nbd = (await xapi.call('VDI.get_nbd_info', snapshotTarget))[0]
 
 if (!nbd) {
   console.error('Nbd is not enabled on the host')
@@ -106,7 +106,7 @@ if (!nbd) {
 }
 
 nbd.secure = true
-//console.log(nbd)
+// console.log(nbd)
 const client = new NbdClient(nbd)
 await client.connect()
 

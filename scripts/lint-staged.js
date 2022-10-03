@@ -32,7 +32,7 @@ const gitDiff = (what, args = []) =>
     .split('\n')
     .filter(_ => _ !== '')
 const gitDiffFiles = (files = []) => gitDiff('files', files)
-const gitDiffIndex = () => gitDiff('index', ['--cached', 'HEAD'])
+const gitDiffIndex = () => gitDiff('index', ['--cached', 'HEAD~1'])
 
 // -----------------------------------------------------------------------------
 

@@ -1,4 +1,4 @@
-import NbdClient from './client.mjs'
+import NbdClient from '../index.js'
 import { Xapi } from 'xen-api'
 import { asyncMap } from '@xen-orchestra/async-map'
 import { downloadVhd, getFullBlocks } from './utils.mjs'
@@ -14,8 +14,8 @@ const xapi = new Xapi({
 })
 await xapi.connect()
 
-let vmuuid = '123e4f2b-498e-d0af-15ae-f835a1e9f59f',
-  vmRef
+const vmuuid = '123e4f2b-498e-d0af-15ae-f835a1e9f59f'
+let vmRef
 do {
   try {
     vmRef = xapi.getObject(vmuuid).$ref
@@ -46,7 +46,7 @@ const snapshotRef = xapi.getObject(snapshots[snapshots.length - 1].uuid).$ref
 
 console.log('will connect to NBD server')
 
-const [nbd, ..._] = await xapi.call('VDI.get_nbd_info', snapshotRef)
+const nbd = (await xapi.call('VDI.get_nbd_info', snapshotRef))[0]
 
 if (!nbd) {
   console.error('Nbd is not enabled on the host')
