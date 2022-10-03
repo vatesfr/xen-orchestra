@@ -11,8 +11,12 @@
         @click="toggleTheme"
       />
       <FormWidget :before="faEarthAmericas">
-        <select v-model="$i18n.locale">
-          <option v-for="locale in $i18n.availableLocales" :key="locale">
+        <select v-model="$i18n.locale" @change="handleLocalChange">
+          <option
+            v-for="locale in $i18n.availableLocales"
+            :key="locale"
+            :value="locale"
+          >
             {{ locale }}
           </option>
         </select>
@@ -35,6 +39,9 @@ import AccountButton from "@/components/AccountButton.vue";
 import FormWidget from "@/components/FormWidget.vue";
 
 const router = useRouter();
+
+const handleLocalChange = ({ target }: { target: HTMLInputElement }) =>
+  localStorage.setItem("lang", target.value);
 
 const colorMode = useLocalStorage<string>("colorMode", "dark");
 const toggleTheme = () => {
