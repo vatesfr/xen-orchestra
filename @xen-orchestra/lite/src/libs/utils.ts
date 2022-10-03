@@ -1,6 +1,6 @@
 import { utcParse } from "d3-time-format";
-import { round } from "lodash-es";
 import humanFormat from "human-format";
+import { round } from "lodash-es";
 import { find, forEach, isEqual, size, sum } from "lodash-es";
 import { type ComputedGetter, type Ref, computed, ref, watchEffect } from "vue";
 import type { Filter } from "@/types/filter";
@@ -128,3 +128,30 @@ export const buildXoObject = (
   ...record,
   $ref: params.opaqueRef,
 });
+
+export function parseRamUsage({
+  memory,
+  memoryFree,
+}: {
+  memory: number[];
+  memoryFree?: number[];
+}) {
+  const nValues = memory.length;
+
+  let max = 0;
+  let used = 0;
+  memory.forEach((ram, key) => {
+    max += ram;
+    used += ram - (memoryFree?.[key] ?? 0);
+  });
+
+  const _percentUsed = percent(used, max);
+  const percentUsed =
+    memoryFree === undefined || isNaN(_percentUsed) ? undefined : _percentUsed;
+
+  return {
+    percentUsed,
+    max: max / nValues,
+    used: percentUsed !== undefined ? used / nValues : undefined,
+  };
+}
