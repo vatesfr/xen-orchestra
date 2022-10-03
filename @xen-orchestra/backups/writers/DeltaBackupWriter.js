@@ -19,7 +19,7 @@ const { AbstractDeltaWriter } = require('./_AbstractDeltaWriter.js')
 const { checkVhd } = require('./_checkVhd.js')
 const { packUuid } = require('./_packUuid.js')
 const { Disposable } = require('promise-toolbox')
-const NbdClient = require('../../../packages/nbd/client.js')
+const NbdClient = require('nbd-client')
 const { warn } = createLogger('xo:backups:DeltaBackupWriter')
 
 exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(AbstractDeltaWriter) {
@@ -216,7 +216,7 @@ exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(Ab
             checksum: false,
             validator: tmpPath => checkVhd(handler, tmpPath),
             writeBlockConcurrency: this._backup.config.writeBlockConcurrency,
-            nbdClient
+            nbdClient,
           })
 
           if (isDelta) {

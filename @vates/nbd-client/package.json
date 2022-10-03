@@ -1,0 +1,20 @@
+{
+  "private": true,
+  "name": "@vates/nbd-client",
+  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@vates/nbd-client",
+  "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
+  "repository": {
+    "directory": "@vates/nbd-client",
+    "type": "git",
+    "url": "https://github.com/vatesfr/xen-orchestra.git"
+  },
+  "author": {
+    "name": "Vates SAS",
+    "url": "https://vates.fr"
+  },
+  "license": "AGPL-3.0-or-later",
+  "version": "0.0.1",
+  "engines": {
+    "node": ">=8.10"
+  }
+}
