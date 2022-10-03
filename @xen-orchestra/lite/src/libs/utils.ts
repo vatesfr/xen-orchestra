@@ -1,4 +1,5 @@
 import { utcParse } from "d3-time-format";
+import humanFormat from "human-format";
 import { round } from "lodash-es";
 import type { Filter } from "@/types/filter";
 import { faSquareCheck } from "@fortawesome/free-regular-svg-icons";
@@ -31,6 +32,12 @@ const iconsByType = {
   boolean: faSquareCheck,
   enum: faList,
 };
+
+export function formatSize(bytes: number) {
+  return bytes != null
+    ? humanFormat(bytes, { scale: "binary", unit: "B" })
+    : "N/D";
+}
 
 export function getFilterIcon(filter: Filter | undefined) {
   if (!filter) {

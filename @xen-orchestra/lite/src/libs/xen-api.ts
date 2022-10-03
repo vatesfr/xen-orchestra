@@ -79,6 +79,12 @@ export interface XenApiHost extends XenApiRecord {
   resident_VMs: string[];
 }
 
+export interface XenApiSr extends XenApiRecord {
+  name_label: string;
+  physical_size: number;
+  physical_utilisation: number;
+}
+
 export interface XenApiVm extends XenApiRecord {
   name_label: string;
   name_description: string;
