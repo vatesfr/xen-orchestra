@@ -33,9 +33,11 @@
   "stats": "Stats",
   "status": "Statut",
   "storage": "Stockage",
+  "storage-usage": "Utilisation du stockage",
   "switch-theme": "Changer de thème",
   "system": "Système",
   "tasks": "Tâches",
+  "top-#": "Top {n}",
   "total-free": "Total libre",
   "total-used": "Total utilisé",
   "vms": "VMs"
