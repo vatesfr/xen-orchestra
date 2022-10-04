@@ -1,7 +1,22 @@
+'use strict'
 const assert = require('node:assert')
 const { Socket } = require('node:net')
 const { connect } = require('node:tls')
-const { NBD_DEFAULT_PORT, MAX_BUFFER_LENGTH, NBD_REPLY_MAGIC, NBD_OPT_REPLY_MAGIC, OPTS_MAGIC, INIT_PASSWD, NBD_FLAG_FIXED_NEWSTYLE, NBD_OPT_STARTTLS, NBD_OPT_EXPORT_NAME, NBD_FLAG_HAS_FLAGS, NBD_DEFAULT_BLOCK_SIZE, NBD_REQUEST_MAGIC, NBD_CMD_READ } = require('./constants')
+const {
+  NBD_DEFAULT_PORT,
+  MAX_BUFFER_LENGTH,
+  NBD_REPLY_MAGIC,
+  NBD_OPT_REPLY_MAGIC,
+  OPTS_MAGIC,
+  INIT_PASSWD,
+  NBD_FLAG_FIXED_NEWSTYLE,
+  NBD_OPT_STARTTLS,
+  NBD_OPT_EXPORT_NAME,
+  NBD_FLAG_HAS_FLAGS,
+  NBD_DEFAULT_BLOCK_SIZE,
+  NBD_REQUEST_MAGIC,
+  NBD_CMD_READ,
+} = require('./constants')
 
 // documentation is here : https://github.com/NetworkBlockDevice/nbd/blob/master/doc/proto.md
 
