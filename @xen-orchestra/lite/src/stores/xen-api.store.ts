@@ -9,6 +9,7 @@ import { useHostMetricsStore } from "@/stores/host-metrics.store";
 import { useHostStore } from "@/stores/host.store";
 import { usePoolStore } from "@/stores/pool.store";
 import { useRecordsStore } from "@/stores/records.store";
+import { useSrStore } from "@/stores/storage.store";
 import { useVmGuestMetricsStore } from "@/stores/vm-guest-metrics.store";
 import { useVmMetricsStore } from "@/stores/vm-metrics.store";
 import { useVmStore } from "@/stores/vm.store";
@@ -76,11 +77,13 @@ export const useXenApiStore = defineStore("xen-api", () => {
     const hostMetricsStore = useHostMetricsStore();
     const vmMetricsStore = useVmMetricsStore();
     const vmGuestMetricsStore = useVmGuestMetricsStore();
+    const srStore = useSrStore();
 
     await Promise.all([
       hostMetricsStore.init(),
       vmMetricsStore.init(),
       vmGuestMetricsStore.init(),
+      srStore.init(),
     ]);
 
     const consoleStore = useConsoleStore();
