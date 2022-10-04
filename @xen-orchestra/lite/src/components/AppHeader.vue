@@ -23,7 +23,8 @@
 </template>
 
 <script lang="ts" setup>
-import { computed } from "vue";
+import { computed, watch } from "vue";
+import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 import {
   faEarthAmericas,
@@ -35,6 +36,9 @@ import AccountButton from "@/components/AccountButton.vue";
 import FormWidget from "@/components/FormWidget.vue";
 
 const router = useRouter();
+const { locale } = useI18n();
+
+watch(locale, (newLocale) => localStorage.setItem("lang", newLocale));
 
 const colorMode = useLocalStorage<string>("colorMode", "dark");
 const toggleTheme = () => {
