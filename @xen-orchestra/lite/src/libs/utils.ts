@@ -36,7 +36,8 @@ const iconsByType = {
   boolean: faSquareCheck,
   enum: faList,
 };
-export function formatSize(bytes: number) {
+
+export function formatSize(bytes?: number) {
   return bytes != null
     ? humanFormat(bytes, { scale: "binary", unit: "B" })
     : "N/D";
