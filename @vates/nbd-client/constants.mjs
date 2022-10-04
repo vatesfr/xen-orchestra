@@ -1,5 +1,5 @@
-export const INIT_PASSWD = 0x4e42444d41474943 // "NBDMAGIC" ensure we're connected to a nbd server
-export const OPTS_MAGIC = 0x49484156454f5054 // "IHAVEOPT" start an option block
+export const INIT_PASSWD = 'NBDMAGIC' // "NBDMAGIC" ensure we're connected to a nbd server
+export const OPTS_MAGIC = 'IHAVEOPT' // "IHAVEOPT" start an option block
 export const NBD_OPT_REPLY_MAGIC = 0x3e889045565a9 // magic received during negociation
 export const NBD_OPT_EXPORT_NAME = 1
 export const NBD_OPT_ABORT = 2

@@ -29,13 +29,16 @@ export default class NbdClient {
   _exportname
   _nbDiskBlocks = 0
 
-  _buffer = Buffer.alloc(0)
-  _readPromiseResolve
-  _waitingForLength = 0
+  _receptionBuffer = Buffer.alloc(0)
+  _sendingBuffer = Buffer.alloc(0)
+
+  // ensure the read are resolved in the right order
+  _rawReadResolve = []
+  _rawReadLength = []
 
   // AFAIK, there is no guaranty the server answer in the same order as the query
-  _nextBlockQueryId = 0
-  _blockQueries = {} // map of queries waiting for an answer
+  _nextCommandQueryId = BigInt(0)
+  _commandQueries = {} // map of queries waiting for an answer
 
   constructor({ address, port = NBD_DEFAULT_PORT, exportname, cert, secure = true }) {
     this._address = address
@@ -49,30 +52,33 @@ export default class NbdClient {
     return this._nbDiskBlocks
   }
 
+  _handleData(data) {
+    if (data !== undefined) {
+      this._receptionBuffer = Buffer.concat([this._receptionBuffer, Buffer.from(data)])
+    }
+    if (this._receptionBuffer.length > MAX_BUFFER_LENGTH) {
+      throw new Error(
+        `Buffer grown too much with a total size of  ${this._receptionBuffer.length} bytes (last chunk is ${data.length})`
+      )
+    }
+    // if we're waiting for a specific bit length (in the handshake for example or a block data)
+    while (this._rawReadResolve.length > 0 && this._receptionBuffer.length >= this._rawReadLength[0]) {
+      const resolve = this._rawReadResolve.shift()
+      const waitingForLength = this._rawReadLength.shift()
+      resolve(this._takeFromBuffer(waitingForLength))
+    }
+    if (this._rawReadResolve.length === 0 && this._receptionBuffer.length > 4) {
+      if (this._receptionBuffer.readInt32BE(0) === NBD_REPLY_MAGIC) {
+        this._readBlockResponse()
+      }
+      // keep the received bits in the buffer for subsequent use
+    }
+
+  }
+
   async _addListenners() {
     const serverSocket = this._serverSocket
-    serverSocket.on('data', data => {
-      this._buffer = Buffer.concat([this._buffer, Buffer.from(data)])
-      if (this._buffer.length > MAX_BUFFER_LENGTH) {
-        throw new Error(
-          `Buffer grown too much with a total size of  ${this._buffer.length} bytes (last chunk is ${data.length})`
-        )
-      }
-      // if we're waiting for a specific bit length (in the handshake for example or a block data)
-      if (this._readPromiseResolve && this._buffer.length >= this._waitingForLength) {
-        this._readPromiseResolve(this._takeFromBuffer(this._waitingForLength))
-        this._readPromiseResolve = null
-        this._waitingForLength = 0
-      } else {
-        //
-        if (!this._readPromiseResolve && this._buffer.length > 4) {
-          if (this._buffer.readInt32BE(0) === NBD_REPLY_MAGIC) {
-            this._readBlockResponse()
-          }
-          // keep the received bits in the buffer for subsequent use
-        }
-      }
-    })
+    serverSocket.on('data', data => this._handleData(data))
 
     serverSocket.on('close', function () {
       console.log('Connection closed')
@@ -109,6 +115,9 @@ export default class NbdClient {
     await this._handshake()
   }
 
+  async disconnect() {
+    await this._serverSocket.destroy()
+  }
   async _sendOption(option, buffer = Buffer.alloc(0)) {
     await this._writeToSocket(OPTS_MAGIC)
     await this._writeToSocketInt32(option)
@@ -126,7 +135,7 @@ export default class NbdClient {
     assert(await this._readFromSocket(8), OPTS_MAGIC)
     const flagsBuffer = await this._readFromSocket(2)
     const flags = flagsBuffer.readInt16BE(0)
-    assert(flags === NBD_FLAG_FIXED_NEWSTYLE) // only FIXED_NEWSTYLE one is supported from the server options
+    assert(flags | NBD_FLAG_FIXED_NEWSTYLE) // only FIXED_NEWSTYLE one is supported from the server options
     await this._writeToSocketInt32(NBD_FLAG_FIXED_NEWSTYLE) // client also support  NBD_FLAG_C_FIXED_NEWSTYLE
 
     if (this._useSecureConnection) {
@@ -154,18 +163,18 @@ export default class NbdClient {
   }
 
   _takeFromBuffer(length) {
-    const res = Buffer.from(this._buffer.slice(0, length))
-    this._buffer = this._buffer.slice(length)
+    const res = Buffer.from(this._receptionBuffer.slice(0, length))
+    this._receptionBuffer = this._receptionBuffer.slice(length)
     return res
   }
 
   _readFromSocket(length) {
-    if (this._buffer.length >= length) {
+    if (this._receptionBuffer.length >= length) {
       return this._takeFromBuffer(length)
     }
     return new Promise(resolve => {
-      this._readPromiseResolve = resolve
-      this._waitingForLength = length
+      this._rawReadResolve.push(resolve)
+      this._rawReadLength.push(length)
     })
   }
 
@@ -191,6 +200,11 @@ export default class NbdClient {
     buffer.writeUInt32BE(int)
     return this._writeToSocket(buffer)
   }
+  _writeToSocketInt32(int) {
+    const buffer = Buffer.alloc(4)
+    buffer.writeInt32BE(int)
+    return this._writeToSocket(buffer)
+  }
 
   _writeToSocketInt16(int) {
     const buffer = Buffer.alloc(2)
@@ -207,47 +221,52 @@ export default class NbdClient {
     const magic = await this._readFromSocketInt32()
 
     if (magic !== NBD_REPLY_MAGIC) {
-      console.error('magic number for block answer is wrong : ', magic)
-      return
+      throw new Error(`magic number for block answer is wrong : ${magic}`)
     }
     // error
     const error = await this._readFromSocketInt32()
     if (error !== 0) {
-      console.error('GOT ERROR CODE ', error)
-      return
+      throw new Error(`GOT ERROR CODE  : ${error}`)
     }
 
     const blockQueryId = await this._readFromSocketInt64()
-    const query = this._blockQueries[blockQueryId]
+    const query = this._commandQueries[blockQueryId]
     if (!query) {
-      throw new Error(` no query associated with id ${blockQueryId}`)
+      throw new Error(` no query associated with id ${blockQueryId} ${Object.keys(this._commandQueries)}`)
     }
-    delete this._blockQueries[blockQueryId]
-    query.resolve(await this._readFromSocket(query.size))
+    delete this._commandQueries[blockQueryId]
+    const data = await this._readFromSocket(query.size)
+    assert.strictEqual(data.length, query.size)
+    query.resolve(data)
+    this._handleData()
   }
 
   async readBlock(index, size = NBD_DEFAULT_BLOCK_SIZE) {
-    const queryId = this._nextBlockQueryId
-    this._nextBlockQueryId++
-    this._writeToSocketInt32(NBD_REQUEST_MAGIC)
-    this._writeToSocketInt16(0) // no command flags for a simple block read
-    this._writeToSocketInt16(NBD_CMD_READ)
-    this._writeToSocketInt64(queryId)
-    // byte offset in the raw disk
-    this._writeToSocketInt64(BigInt(index) * BigInt(size))
-    // ensure we do not read after the end of the export (which immediatly disconnect us)
-    // will overflow on disk > 2^^32 bytes
+    const queryId = this._nextCommandQueryId
+    this._nextCommandQueryId++
 
-    const maxSize = Math.min(Number(this._exportSize) - index * size, size)
-    console.log({ size, maxSize })
+    const buffer = Buffer.alloc(28)
+    buffer.writeInt32BE(NBD_REQUEST_MAGIC, 0)
+    buffer.writeInt16BE(0, 4) // no command flags for a simple block read
+    buffer.writeInt16BE(NBD_CMD_READ, 6)
+    buffer.writeBigUInt64BE(queryId, 8)
+    // byte offset in the raw disk
+    const offset = BigInt(index) * BigInt(size)
+    buffer.writeBigUInt64BE(offset, 16)
+    // ensure we do not read after the end of the export (which immediatly disconnect us)
+
+    const maxSize = Math.min(Number(this._exportSize - offset), size)
     // size wanted
-    this._writeToSocketUInt32(maxSize)
+    buffer.writeInt32BE(maxSize, 24)
 
     return new Promise(resolve => {
-      this._blockQueries[queryId] = {
+      this._commandQueries[queryId] = {
         size: maxSize,
         resolve,
       }
+
+      // write command at once to ensure no concurrency issue
+      this._writeToSocket(buffer)
     })
   }
 }
