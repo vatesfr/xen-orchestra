@@ -13,12 +13,17 @@ import UsageBar from "@/components/UsageBar.vue";
 import { formatSize, parseRamUsage } from "@/libs/utils";
 import type { VmStats } from "@/libs/xapi-stats";
 
-const stats: ComputedRef<
-  {
-    name: string;
-    stats?: VmStats;
-  }[]
-> = inject<any>("vmStats", []);
+const stats = inject<
+  ComputedRef<
+    {
+      name: string;
+      stats?: VmStats;
+    }[]
+  >
+>(
+  "vmStats",
+  computed(() => [])
+);
 
 const data = computed<{ label: string; value: number }[]>(() => {
   const result: { label: string; value: number; badgeLabel: string }[] = [];
