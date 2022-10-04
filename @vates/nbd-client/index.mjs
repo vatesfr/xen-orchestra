@@ -1,26 +1,25 @@
-'use strict'
-const assert = require('node:assert')
-const { Socket } = require('node:net')
-const { connect } = require('node:tls')
-const {
-  NBD_DEFAULT_PORT,
-  MAX_BUFFER_LENGTH,
-  NBD_REPLY_MAGIC,
-  NBD_OPT_REPLY_MAGIC,
-  OPTS_MAGIC,
+import assert from 'node:assert'
+import { Socket } from 'node:net'
+import { connect } from 'node:tls'
+import {
   INIT_PASSWD,
-  NBD_FLAG_FIXED_NEWSTYLE,
-  NBD_OPT_STARTTLS,
-  NBD_OPT_EXPORT_NAME,
-  NBD_FLAG_HAS_FLAGS,
-  NBD_DEFAULT_BLOCK_SIZE,
-  NBD_REQUEST_MAGIC,
+  MAX_BUFFER_LENGTH,
   NBD_CMD_READ,
-} = require('./constants')
+  NBD_DEFAULT_BLOCK_SIZE,
+  NBD_DEFAULT_PORT,
+  NBD_FLAG_FIXED_NEWSTYLE,
+  NBD_FLAG_HAS_FLAGS,
+  NBD_OPT_EXPORT_NAME,
+  NBD_OPT_REPLY_MAGIC,
+  NBD_OPT_STARTTLS,
+  NBD_REPLY_MAGIC,
+  NBD_REQUEST_MAGIC,
+  OPTS_MAGIC,
+} from './constants.mjs'
 
 // documentation is here : https://github.com/NetworkBlockDevice/nbd/blob/master/doc/proto.md
 
-module.exports = class NbdClient {
+export default class NbdClient {
   _serverAddress
   _serverCert
   _serverPort
