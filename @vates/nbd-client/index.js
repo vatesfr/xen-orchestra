@@ -1,50 +1,9 @@
 const assert = require('node:assert')
 const { Socket } = require('node:net')
 const { connect } = require('node:tls')
+const { NBD_DEFAULT_PORT, MAX_BUFFER_LENGTH, NBD_REPLY_MAGIC, NBD_OPT_REPLY_MAGIC, OPTS_MAGIC, INIT_PASSWD, NBD_FLAG_FIXED_NEWSTYLE, NBD_OPT_STARTTLS, NBD_OPT_EXPORT_NAME, NBD_FLAG_HAS_FLAGS, NBD_DEFAULT_BLOCK_SIZE, NBD_REQUEST_MAGIC, NBD_CMD_READ } = require('./constants')
 
 // documentation is here : https://github.com/NetworkBlockDevice/nbd/blob/master/doc/proto.md
-
-const INIT_PASSWD = 0x4e42444d41474943 // "NBDMAGIC" ensure we're connected to a nbd server
-const OPTS_MAGIC = 0x49484156454f5054 // "IHAVEOPT" start an option block
-const NBD_OPT_REPLY_MAGIC = 0x3e889045565a9 // magic received during negociation
-const NBD_OPT_EXPORT_NAME = 1
-const NBD_OPT_ABORT = 2
-const NBD_OPT_LIST = 3
-const NBD_OPT_STARTTLS = 5
-const NBD_OPT_INFO = 6
-const NBD_OPT_GO = 7
-
-const NBD_FLAG_HAS_FLAGS = 1 << 0
-const NBD_FLAG_READ_ONLY = 1 << 1
-const NBD_FLAG_SEND_FLUSH = 1 << 2
-const NBD_FLAG_SEND_FUA = 1 << 3
-const NBD_FLAG_ROTATIONAL = 1 << 4
-const NBD_FLAG_SEND_TRIM = 1 << 5
-
-const NBD_FLAG_FIXED_NEWSTYLE = 1 << 0
-
-const NBD_CMD_FLAG_FUA = 1 << 0
-const NBD_CMD_FLAG_NO_HOLE = 1 << 1
-const NBD_CMD_FLAG_DF = 1 << 2
-const NBD_CMD_FLAG_REQ_ONE = 1 << 3
-const NBD_CMD_FLAG_FAST_ZERO = 1 << 4
-
-const NBD_CMD_READ = 0
-const NBD_CMD_WRITE = 1
-const NBD_CMD_DISC = 2
-const NBD_CMD_FLUSH = 3
-const NBD_CMD_TRIM = 4
-const NBD_CMD_CACHE = 5
-const NBD_CMD_WRITE_ZEROES = 6
-const NBD_CMD_BLOCK_STATUS = 7
-const NBD_CMD_RESIZE = 8
-
-const NBD_REQUEST_MAGIC = 0x25609513 // magic number to create a new NBD request to send to the server
-const NBD_REPLY_MAGIC = 0x67446698 // magic number received from the server when reading response to a nbd request
-
-const NBD_DEFAULT_PORT = 10809
-const NBD_DEFAULT_BLOCK_SIZE = 64 * 1024
-const MAX_BUFFER_LENGTH = 10 * 1024 * 1024
 
 module.exports = class NbdClient {
   _serverAddress
