@@ -10,8 +10,8 @@ export default class Logs {
 
     app.hooks.on('clean', () => this._gc())
 
-    const transport = transportConsole()
-    app.config.watch('logs', ({ filter, level }) => {
+    const defaultTransport = transportConsole()
+    app.config.watch('logs', ({ filter, level, transport = defaultTransport }) => {
       configure([
         {
           filter: [process.env.DEBUG, filter],
