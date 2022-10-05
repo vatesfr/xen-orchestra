@@ -20,6 +20,10 @@ const LEVEL_TO_SEVERITY = {
 const facility = Facility.User
 
 function createTransport(target) {
+  if (typeof target === 'object') {
+    target = target.target
+  }
+
   const opts = {}
   if (target !== undefined) {
     if (target.startsWith('tcp://')) {
