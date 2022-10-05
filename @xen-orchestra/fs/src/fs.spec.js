@@ -1,11 +1,9 @@
 /* eslint-env jest */
-
 import 'dotenv/config'
 import { forOwn, random } from 'lodash'
 import { tmpdir } from 'os'
 
 import { getHandler } from '.'
-
 // https://gist.github.com/julien-f/3228c3f34fdac01ade09
 const unsecureRandomBytes = n => {
   const bytes = Buffer.alloc(n)

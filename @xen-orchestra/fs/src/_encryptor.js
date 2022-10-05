@@ -2,8 +2,10 @@ const { readChunk } = require('@vates/read-chunk')
 const crypto = require('crypto')
 const pumpify = require('pumpify')
 
-function getEncryptor(key) {
-  if (key === undefined) {
+export const DEFAULT_ENCRYPTION_ALGORITHM = 'aes-256-cbc'
+
+function getEncryptor(algorithm = DEFAULT_ENCRYPTION_ALGORITHM, key) {
+  if (key === undefined || algorithm === 'none') {
     return {
       id: 'NULL_ENCRYPTOR',
       algorithm: 'none',
@@ -15,7 +17,6 @@ function getEncryptor(key) {
       decryptStream: stream => stream,
     }
   }
-  const algorithm = 'aes-256-cbc'
   const ivLength = 16
 
   function encryptStream(input) {
