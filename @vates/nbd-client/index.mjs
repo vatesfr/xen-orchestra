@@ -24,7 +24,6 @@ export default class NbdClient {
   #serverCert
   #serverPort
   #serverSocket
-  #useSecureConnection = false
 
   #exportName
   #exportSize
@@ -40,7 +39,6 @@ export default class NbdClient {
     this.#serverPort = port
     this.#exportName = exportname
     this.#serverCert = cert
-    this.#useSecureConnection = secure
   }
 
   get exportSize() {
@@ -108,7 +106,7 @@ export default class NbdClient {
     assert.strictEqual(flags & NBD_FLAG_FIXED_NEWSTYLE, NBD_FLAG_FIXED_NEWSTYLE) // only FIXED_NEWSTYLE one is supported from the server options
     await this.#writeInt32(NBD_FLAG_FIXED_NEWSTYLE) // client also support  NBD_FLAG_C_FIXED_NEWSTYLE
 
-    if (this.#useSecureConnection) {
+    if (this.#serverCert != undefined) {
       // upgrade socket to TLS if needed
       await this.#sendOption(NBD_OPT_STARTTLS)
       await this.#tlsConnect()
