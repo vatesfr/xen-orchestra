@@ -40,7 +40,6 @@
     "lodash": "^4.17.4",
     "promise-toolbox": "^0.21.0",
     "proper-lockfile": "^4.1.2",
-    "pumpify": "^2.0.1",
     "readable-stream": "^4.1.0",
     "through2": "^4.0.2",
     "xo-remote-parser": "^0.9.1"
