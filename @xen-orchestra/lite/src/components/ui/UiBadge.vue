@@ -1,12 +1,13 @@
 <template>
   <span class="ui-badge">
-    <FontAwesomeIcon :icon="icon" />
+    <UiIcon :icon="icon" />
     <slot />
   </span>
 </template>
 
 <script lang="ts" setup>
 import type { IconDefinition } from "@fortawesome/fontawesome-common-types";
+import UiIcon from "@/components/ui/UiIcon.vue";
 
 defineProps<{
   icon?: IconDefinition;
