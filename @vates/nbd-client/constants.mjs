@@ -1,5 +1,5 @@
-export const INIT_PASSWD = 'NBDMAGIC' // "NBDMAGIC" ensure we're connected to a nbd server
-export const OPTS_MAGIC = 'IHAVEOPT' // "IHAVEOPT" start an option block
+export const INIT_PASSWD = Buffer.from('NBDMAGIC') // "NBDMAGIC" ensure we're connected to a nbd server
+export const OPTS_MAGIC = Buffer.from('IHAVEOPT') // "IHAVEOPT" start an option block
 export const NBD_OPT_REPLY_MAGIC = 0x3e889045565a9 // magic received during negociation
 export const NBD_OPT_EXPORT_NAME = 1
 export const NBD_OPT_ABORT = 2
@@ -38,4 +38,3 @@ export const NBD_REPLY_MAGIC = 0x67446698 // magic number received from the serv
 
 export const NBD_DEFAULT_PORT = 10809
 export const NBD_DEFAULT_BLOCK_SIZE = 64 * 1024
-export const MAX_BUFFER_LENGTH = 10 * 1024 * 1024
