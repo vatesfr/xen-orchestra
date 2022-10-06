@@ -1,7 +1,9 @@
 'use strict'
 
 const readChunk = (stream, size) =>
-  size === 0
+  stream.closed || stream.readableEnded
+    ? Promise.resolve(null)
+    : size === 0
     ? Promise.resolve(Buffer.alloc(0))
     : new Promise((resolve, reject) => {
         function onEnd() {

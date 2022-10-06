@@ -23,6 +23,7 @@
 
 <!--packages-start-->
 
+- @vates/read-chunk patch
 - xo-remote-parser patch
 - xo-server-transport-nagios patch
 - xo-web patch

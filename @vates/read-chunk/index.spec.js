@@ -14,6 +14,13 @@ describe('readChunk', () => {
     expect(await readChunk(makeStream([]))).toBe(null)
   })
 
+  it('returns null if the stream is already ended', async () => {
+    const stream = await makeStream([])
+    await readChunk(stream)
+
+    expect(await readChunk(stream)).toBe(null)
+  })
+
   describe('with binary stream', () => {
     it('returns the first chunk of data', async () => {
       expect(await readChunk(makeStream(['foo', 'bar']))).toEqual(Buffer.from('foo'))
