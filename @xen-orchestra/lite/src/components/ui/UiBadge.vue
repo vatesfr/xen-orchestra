@@ -1,6 +1,6 @@
 <template>
   <span class="ui-badge">
-    <FontAwesomeIcon :icon="icon" />
+    <FontAwesomeIcon v-if="icon" :icon="icon" />
     <slot />
   </span>
 </template>
