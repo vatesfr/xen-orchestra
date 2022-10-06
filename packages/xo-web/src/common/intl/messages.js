@@ -231,7 +231,7 @@ const messages = {
   notBackedUpVms: 'Not backed up VMs',
   homeFetchingData: 'Fetching data…',
   homeWelcome: 'Welcome to Xen Orchestra!',
-  homeWelcomeText: 'Add your XenServer hosts or pools',
+  homeWelcomeText: 'Add your XCP-ng hosts or pools',
   homeConnectServerText: 'Some XenServers have been registered but are not connected',
   homeHelp: 'Want some help?',
   homeAddServer: 'Add server',
