@@ -3,10 +3,10 @@
     <div class="progress-bar">
       <div class="progress-bar-fill" />
     </div>
-    <div class="badge" v-if="label !== undefined">
+    <div class="legend" v-if="label !== undefined">
       <span class="circle" />
       {{ label }}
-      <UiBadge>{{ badgeLabel ?? progressWithUnit }}</UiBadge>
+      <UiBadge class="badge">{{ badgeLabel ?? progressWithUnit }}</UiBadge>
     </div>
   </div>
 </template>
@@ -33,9 +33,14 @@ const progressWithUnit = computed(() => {
 </script>
 
 <style lang="postcss" scoped>
-.badge {
+.legend {
   text-align: right;
-  margin: 1rem 0;
+  margin: 1.6em 0;
+}
+
+.badge {
+  font-size: 0.9em;
+  font-weight: 700;
 }
 
 .circle {

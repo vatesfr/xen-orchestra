@@ -21,7 +21,7 @@ defineProps<{
   font-size: 1.4rem;
   font-weight: 500;
   padding: 0 0.8rem;
-  height: 2.4rem;
+  height: 1.8em;
   color: var(--color-blue-scale-500);
   border-radius: 9.6rem;
   background-color: var(--color-blue-scale-300);
