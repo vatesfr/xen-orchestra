@@ -27,6 +27,7 @@
 
 <!--packages-start-->
 
+- @vates/nbd-client major
 - @vates/read-chunk patch
 - @xen-orchestra/log minor
 - xo-remote-parser patch
