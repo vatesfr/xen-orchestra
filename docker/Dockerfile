@@ -4,7 +4,7 @@ FROM ubuntu:xenial
 # https://qastack.fr/programming/25899912/how-to-install-nvm-in-docker
 
 RUN apt-get update
-RUN apt-get install -y curl qemu-utils blktap-utils vmdk-stream-converter git libxml2-utils
+RUN apt-get install -y curl qemu-utils blktap-utils vmdk-stream-converter git libxml2-utils libfuse2
 ENV NVM_DIR /usr/local/nvm
 RUN mkdir -p /usr/local/nvm
 RUN cd /usr/local/nvm
