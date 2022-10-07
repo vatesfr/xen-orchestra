@@ -49,6 +49,8 @@ The created snapshot will have the special `xo:synced` tag set to make it identi
 
 ## Example server in Node
 
+> This server requires [Node.js](https://nodejs.org/en/download/) to be installed on your system.
+
 `index.cjs`:
 
 ```js
@@ -123,9 +125,25 @@ async function main() {
   })
 
   await new Promise((resolve, reject) => {
-    server.on('close', resolve).on('error', reject).listen(1727)
+    server
+      .on('close', resolve)
+      .on('error', reject)
+      .listen(1727, () => {
+        let { address, port } = server.address()
+        if (address.includes(':')) {
+          address = `[${address}]`
+        }
+        console.log('Server is listening on https://%s:%s', address, port)
+      })
   })
 }
 
 main().catch(console.warn)
+```
+
+You can run it manually for testing:
+
+```
+> node index.cjs
+Server is listening on https://[::]:1727
 ```
