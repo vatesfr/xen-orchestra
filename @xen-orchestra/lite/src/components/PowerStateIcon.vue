@@ -1,5 +1,5 @@
 <template>
-  <FontAwesomeIcon class="power-state-icon" :class="className" :icon="icon" />
+  <UiIcon class="power-state-icon" :class="className" :icon="icon" />
 </template>
 
 <script lang="ts" setup>
@@ -11,6 +11,7 @@ import {
   faQuestion,
   faStop,
 } from "@fortawesome/free-solid-svg-icons";
+import UiIcon from "@/components/ui/UiIcon.vue";
 import type { PowerState } from "@/libs/xen-api";
 
 const props = defineProps<{

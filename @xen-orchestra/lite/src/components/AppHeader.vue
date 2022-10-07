@@ -5,11 +5,7 @@
     </RouterLink>
     <slot />
     <div class="right">
-      <FontAwesomeIcon
-        :icon="colorModeIcon"
-        style="font-size: 1.5em; cursor: pointer"
-        @click="toggleTheme"
-      />
+      <UiIcon :icon="colorModeIcon" class="toggle-theme" @click="toggleTheme" />
       <FormWidget :before="faEarthAmericas">
         <select v-model="$i18n.locale">
           <option v-for="locale in $i18n.availableLocales" :key="locale">
@@ -34,6 +30,7 @@ import {
 import { useLocalStorage } from "@vueuse/core";
 import AccountButton from "@/components/AccountButton.vue";
 import FormWidget from "@/components/FormWidget.vue";
+import UiIcon from "@/components/ui/UiIcon.vue";
 
 const router = useRouter();
 const { locale } = useI18n();
@@ -69,5 +66,10 @@ const colorModeIcon = computed(() =>
 .right {
   display: flex;
   align-items: center;
+}
+
+.toggle-theme {
+  font-size: 1.5em;
+  cursor: pointer;
 }
 </style>

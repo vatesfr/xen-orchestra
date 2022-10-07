@@ -2,7 +2,7 @@
   <th>
     <div class="content">
       <span class="label">
-        <FontAwesomeIcon v-if="icon" :icon="icon" />
+        <UiIcon :icon="icon" />
         <slot />
       </span>
     </div>
@@ -11,6 +11,7 @@
 
 <script lang="ts" setup>
 import type { IconDefinition } from "@fortawesome/fontawesome-common-types";
+import UiIcon from "@/components/ui/UiIcon.vue";
 
 defineProps<{
   icon?: IconDefinition;

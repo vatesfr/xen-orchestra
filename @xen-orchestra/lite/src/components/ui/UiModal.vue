@@ -8,11 +8,11 @@
     >
       <div class="container">
         <span v-if="onClose" class="close-icon" @click="emit('close')">
-          <FontAwesomeIcon :icon="faXmark" />
+          <UiIcon :icon="faXmark" />
         </span>
         <div v-if="icon || $slots.icon" class="modal-icon">
           <slot name="icon">
-            <FontAwesomeIcon :icon="icon" />
+            <UiIcon :icon="icon" />
           </slot>
         </div>
         <UiTitle v-if="$slots.title" type="h4">
@@ -38,6 +38,7 @@ import type { IconDefinition } from "@fortawesome/fontawesome-common-types";
 import { faXmark } from "@fortawesome/free-solid-svg-icons";
 import { useMagicKeys, whenever } from "@vueuse/core";
 import UiButtonGroup from "@/components/ui/UiButtonGroup.vue";
+import UiIcon from "@/components/ui/UiIcon.vue";
 import UiTitle from "@/components/ui/UiTitle.vue";
 
 const props = withDefaults(
@@ -64,6 +65,7 @@ const className = computed(() => {
 <style lang="postcss" scoped>
 .ui-modal {
   position: fixed;
+  z-index: 10;
   top: 0;
   right: 0;
   bottom: 0;

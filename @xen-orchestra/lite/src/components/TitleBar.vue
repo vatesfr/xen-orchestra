@@ -1,6 +1,6 @@
 <template>
   <div class="title-bar">
-    <FontAwesomeIcon :icon="icon" class="icon" />
+    <UiIcon :icon="icon" />
     <div class="title">
       <slot />
     </div>
@@ -12,6 +12,7 @@
 
 <script lang="ts" setup>
 import type { IconDefinition } from "@fortawesome/fontawesome-common-types";
+import UiIcon from "@/components/ui/UiIcon.vue";
 
 defineProps<{
   icon: IconDefinition;
@@ -29,7 +30,7 @@ defineProps<{
   gap: 1.5rem;
 }
 
-.icon {
+.ui-icon {
   font-size: 3.8rem;
   color: var(--color-extra-blue-base);
 }
