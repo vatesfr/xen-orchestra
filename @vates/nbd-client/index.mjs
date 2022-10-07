@@ -15,6 +15,7 @@ import {
   NBD_REQUEST_MAGIC,
   OPTS_MAGIC,
 } from './constants.mjs'
+import {fromCallback} from 'promise-toolbox'
 import { readChunkStrict } from '@vates/read-chunk'
 
 // documentation is here : https://github.com/NetworkBlockDevice/nbd/blob/master/doc/proto.md
@@ -116,8 +117,9 @@ export default class NbdClient {
     // it's  implictly closing the negociation phase.
     await this.#write(Buffer.from(OPTS_MAGIC))
     await this.#writeInt32(NBD_OPT_EXPORT_NAME)
-    await this.#writeInt32(this.#exportName.length)
-    await this.#write(Buffer.from(this.#exportName))
+    const exportNameBuffer = Buffer.from(this.#exportName)
+    await this.#writeInt32(exportNameBuffer.length)
+    await this.#write(exportNameBuffer)
 
     // 8 (export size ) + 2 (flags) + 124 zero = 134
     // must read all to ensure nothing stays in the  buffer
@@ -129,21 +131,12 @@ export default class NbdClient {
     // note : xapi server always send NBD_FLAG_READ_ONLY (3) as a flag
   }
 
-  async #read(length) {
-    const read = await readChunkStrict(this.#serverSocket, length)
-    return read
+  #read(length) {
+    return readChunkStrict(this.#serverSocket, length)
   }
 
   #write(buffer) {
-    return new Promise((resolve, reject) => {
-      this.#serverSocket.write(buffer, (err)=>{
-        if(err){
-          reject(err)
-        } else {
-          resolve()
-        }
-      })
-    })
+    return fromCallback.call(this.#serverSocket, 'write', buffer)
   }
 
   async #readInt32() {
@@ -185,7 +178,7 @@ export default class NbdClient {
     const blockQueryId = await this.#readInt64()
     const query = this.#commandQueryBacklog.get(blockQueryId)
     if (!query) {
-      throw new Error(` no query associated with id ${blockQueryId} ${this.#commandQueryBacklog.keys()}`)
+      throw new Error(` no query associated with id ${blockQueryId}`)
     }
     this.#commandQueryBacklog.delete(blockQueryId)
     const data = await this.#read(query.size)
