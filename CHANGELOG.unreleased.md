@@ -4,10 +4,10 @@
 > understandable by them.
 
 ### Enhancements
-
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
-
+- [Backup/Encryption] Use `aes-256-gcm` by default instead of `aes-256-ccm` (PR [#6447](https://github.com/vatesfr/xen-orchestra/pull/6447))
 ### Bug fixes
+> Users must be able to say: “I had this issue, happy to know it's fixed”
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
@@ -26,10 +26,10 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
-
+- @xen-orchestra/fs minor
 - @vates/read-chunk patch
 - xo-remote-parser patch
 - xo-server-transport-nagios patch
-- xo-web patch
+- xo-web minor
 
 <!--packages-end-->
