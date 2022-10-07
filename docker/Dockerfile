@@ -9,7 +9,7 @@ ENV NVM_DIR /usr/local/nvm
 RUN mkdir -p /usr/local/nvm
 RUN cd /usr/local/nvm
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
-ENV NODE_VERSION v17.0.1
+ENV NODE_VERSION v16.17.1
 RUN /bin/bash -c "source $NVM_DIR/nvm.sh && nvm install $NODE_VERSION && nvm use --delete-prefix $NODE_VERSION"
 
 ENV NODE_PATH $NVM_DIR/versions/node/$NODE_VERSION/lib/node_modules
