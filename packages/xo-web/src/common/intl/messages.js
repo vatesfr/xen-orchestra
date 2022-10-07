@@ -811,6 +811,9 @@ const messages = {
   noActiveVdi: 'No active VDI',
 
   // ----- Pool general -----
+  closestLicenseExpiration: 'Closest expiration: {dateString}',
+  poolPartialSupport:
+    'Only {nHostsLicense, number} host{nHostsLicense, plural, one {} other {s}} under license on {nHosts, number} host{nHosts, plural, one {} other {s}}.',
   poolTitleRamUsage: 'Pool RAM usage:',
   poolRamUsage: '{used} used of {total} ({free} free)',
   poolMaster: 'Master:',
@@ -835,6 +838,8 @@ const messages = {
   poolHaDisabled: 'Disabled',
   poolGpuGroups: 'GPU groups',
   poolRemoteSyslogPlaceHolder: 'Logging host',
+  poolSupportSourceUsers: 'Pool support not available for source users',
+  poolLicenseAlreadyFullySupported: 'The pool is already fully supported',
   setpoolMaster: 'Master',
   syslogRemoteHost: 'Remote syslog host',
   defaultMigrationNetwork: 'Default migration network',
@@ -2400,6 +2405,13 @@ const messages = {
   auditInactiveUserActionsRecord: 'User actions recording is currently inactive',
 
   // Licenses
+  allHostsMustBeBound: 'All hosts must be bound by a license',
+  bindXcpngLicenses: 'Bind XCP-ng licenses',
+  confirmRebindLicenseFromFullySupportedPool: 'The following pools will no longer be fully supported',
+  licenses: 'Licenses',
+  licensesBinding: 'Licenses binding',
+  notEnoughXcpngLicenses: 'Not enough XCP-ng licenses',
+  xcpng: 'XCP-ng',
   xosanUnregisteredDisclaimer:
     'You are not registered and therefore will not be able to create or manage your XOSAN SRs. {link}',
   xosanSourcesDisclaimer:
@@ -2434,6 +2446,7 @@ const messages = {
   xosanNoLicense: 'No license.',
   unlockNow: 'Unlock now!',
   selectLicense: 'Select a license',
+  selectXcpngLicence: 'Select an XCP-ng license',
   bindLicense: 'Bind license',
   expiresOn: 'expires on {date}',
   xosanInstallXoaPlugin: 'Install XOA plugin first',

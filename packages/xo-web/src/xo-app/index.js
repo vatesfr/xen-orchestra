@@ -9,9 +9,10 @@ import React from 'react'
 import Shortcuts from 'shortcuts'
 import themes from 'themes'
 import _, { IntlProvider } from 'intl'
+import { addSubscriptions, connectStore, getXoaPlan, noop, routes } from 'utils'
 import { blockXoaAccess, isTrialRunning } from 'xoa-updater'
 import { checkXoa, clearXoaCheckCache } from 'xo'
-import { connectStore, getXoaPlan, noop, routes } from 'utils'
+import { forEach, groupBy, pick } from 'lodash'
 import { Notification } from 'notification'
 import { productId2Plan } from 'xoa-plans'
 import { provideState } from 'reaclette'
@@ -48,6 +49,9 @@ import Xosan from './xosan'
 import Import from './import'
 
 import keymap, { help } from '../keymap'
+import Tooltip from '../common/tooltip'
+import { createGetObjectsOfType } from '../common/selectors'
+import { bindXcpngLicense, rebindLicense, subscribeXcpngLicenses } from '../common/xo'
 
 const shortcutManager = new ShortcutManager(keymap)
 
@@ -76,6 +80,20 @@ const BODY_STYLE = {
   width: '100%',
 }
 
+export const ICON_POOL_LICENSE = {
+  Total: tooltip => (
+    <Tooltip content={tooltip}>
+      <Icon icon='success' />
+    </Tooltip>
+  ),
+  Partial: tooltip => (
+    <Tooltip content={tooltip}>
+      <Icon icon='alarm' className='text-warning' />
+    </Tooltip>
+  ),
+  Any: () => <Icon icon='alarm' className='text-danger' />,
+}
+
 @routes('home', {
   about: About,
   backup: Backup,
@@ -101,11 +119,16 @@ const BODY_STYLE = {
   hub: Hub,
   proxies: Proxies,
 })
+@addSubscriptions({
+  xcpLicenses: subscribeXcpngLicenses,
+})
 @connectStore(state => {
+  const getHosts = createGetObjectsOfType('host')
   return {
     trial: state.xoaTrialState,
     registerNeeded: state.xoaUpdaterState === 'registerNeeded',
     signedUp: !!state.user,
+    hosts: getHosts(state),
   }
 })
 @provideState({
@@ -118,8 +141,68 @@ const BODY_STYLE = {
     refreshXoaStatus() {
       this.state.checkXoaCount += 1
     },
+    async bindXcpngLicenses(_, licenseToBindByHostId) {
+      await Promise.all(
+        map(licenseToBindByHostId, (license, hostId) =>
+          license.boundObjectId !== undefined
+            ? rebindLicense('xcpng-standard', license.id, license.boundObjectId, hostId)
+            : bindXcpngLicense(license.id, hostId)
+        )
+      )
+    },
   },
   computed: {
+    allXcpngLicenses: (_, { xcpLicenses }) => xcpLicenses,
+    xcpngLicenseByboundObjectId: ({ allXcpngLicenses }) => groupBy(allXcpngLicenses, 'boundObjectId'),
+    // stringified value to avoid cascading renders due to a new returned object each time an host property changes.
+    stringifiedHostsByPoolId: (_, { hosts }) =>
+      JSON.stringify(
+        groupBy(
+          map(hosts, host => pick(host, ['$poolId', 'id'])),
+          '$poolId'
+        )
+      ),
+    poolLicenseInfoByPoolId: ({ stringifiedHostsByPoolId, xcpngLicenseByboundObjectId }) => {
+      const hostsByPoolId = JSON.parse(stringifiedHostsByPoolId)
+      const poolLicenseInfoByPoolId = {}
+
+      forEach(hostsByPoolId, (hosts, poolId) => {
+        const nHosts = hosts.length
+        let closestExpiration
+        let hostsUnderLicense = 0
+
+        if (getXoaPlan() === 'Community') {
+          poolLicenseInfoByPoolId[poolId] = {
+            hostsUnderLicense,
+            icon: () => (
+              <Tooltip content={_('poolSupportSourceUsers')}>
+                <Icon icon='unknown-status' className='text-danger' />
+              </Tooltip>
+            ),
+            nHosts,
+          }
+          return
+        }
+
+        for (const host of hosts) {
+          const license = xcpngLicenseByboundObjectId[host.id]?.[0]
+          if (license !== undefined && license.expires > Date.now()) {
+            hostsUnderLicense += 1
+            if (closestExpiration === undefined || license.expires < closestExpiration) {
+              closestExpiration = license.expires
+            }
+          }
+        }
+        poolLicenseInfoByPoolId[poolId] = {
+          closestExpiration,
+          hostsUnderLicense,
+          icon: ICON_POOL_LICENSE[hostsUnderLicense === 0 ? 'Any' : hostsUnderLicense === nHosts ? 'Total' : 'Partial'],
+          nHosts,
+        }
+      })
+
+      return poolLicenseInfoByPoolId
+    },
     xoaStatus: {
       get({ checkXoaCount }) {
         // To avoid aggressive minification which would remove destructuration

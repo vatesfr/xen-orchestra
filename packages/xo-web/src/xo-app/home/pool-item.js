@@ -13,8 +13,13 @@ import { addTag, editPool, getHostMissingPatches, removeTag } from 'xo'
 import { connectStore, formatSizeShort } from 'utils'
 import { compact, flatten, map, size, uniq } from 'lodash'
 import { createGetObjectsOfType, createGetHostMetrics, createSelector } from 'selectors'
+import { injectState } from 'reaclette/dist'
 
 import styles from './index.css'
+
+import { ICON_POOL_LICENSE } from '..'
+
+import { isAdmin } from '../../common/selectors'
 
 @connectStore(() => {
   const getPoolHosts = createGetObjectsOfType('host').filter(
@@ -48,12 +53,14 @@ import styles from './index.css'
 
   return {
     hostMetrics: getHostMetrics,
+    isAdmin,
     missingPatches: getMissingPatches,
     poolHosts: getPoolHosts,
     nSrs: getNumberOfSrs,
     nVms: getNumberOfVms,
   }
 })
+@injectState
 export default class PoolItem extends Component {
   _addTag = tag => addTag(this.props.item.id, tag)
   _removeTag = tag => removeTag(this.props.item.id, tag)
@@ -66,9 +73,23 @@ export default class PoolItem extends Component {
     this.props.missingPatches.then(patches => this.setState({ missingPatchCount: size(patches) }))
   }
 
+  _getPoolLicenseIcon() {
+    const { state: reacletteState, item: pool } = this.props
+    let tooltip = ''
+    const { icon, closestExpiration, hostsUnderLicense, nHosts } = reacletteState.poolLicenseInfoByPoolId[pool.id]
+    if (icon === ICON_POOL_LICENSE.Total) {
+      tooltip = _('closestLicenseExpiration', { dateString: new Date(closestExpiration).toDateString() })
+    }
+    if (icon === ICON_POOL_LICENSE.Partial) {
+      tooltip = _('poolPartialSupport', { nHostsLicense: hostsUnderLicense, nHosts })
+    }
+    return icon(tooltip)
+  }
+
   render() {
-    const { item: pool, expandAll, selected, hostMetrics, poolHosts, nSrs, nVms } = this.props
+    const { item: pool, expandAll, isAdmin, selected, hostMetrics, poolHosts, nSrs, nVms } = this.props
     const { missingPatchCount } = this.state
+
     return (
       <div className={styles.item}>
         <BlockLink to={`/pools/${pool.id}`}>
@@ -80,6 +101,12 @@ export default class PoolItem extends Component {
                 <Ellipsis>
                   <Text value={pool.name_label} onChange={this._setNameLabel} useLongClick />
                 </Ellipsis>
+                {isAdmin && (
+                  <span>
+                    &nbsp;&nbsp;
+                    {this._getPoolLicenseIcon()}
+                  </span>
+                )}
                 &nbsp;&nbsp;
                 {missingPatchCount > 0 && (
                   <span>

@@ -13,7 +13,7 @@ import { addSubscriptions, connectStore } from 'utils'
 import { Container, Row, Col } from 'grid'
 import { CustomFields } from 'custom-fields'
 import { injectIntl } from 'react-intl'
-import { map } from 'lodash'
+import { forEach, map, size } from 'lodash'
 import { Text, XoSelect } from 'editable'
 import {
   createGetObject,
@@ -33,6 +33,101 @@ import {
   synchronizeNetbox,
 } from 'xo'
 import { SelectSuspendSr } from 'select-suspend-sr'
+import decorate from '../../common/apply-decorators'
+import { injectState, provideState } from 'reaclette'
+import { error } from '../../common/notification'
+import { confirm } from '../../common/modal'
+import PoolBindLicenseModal from '../../common/xo/pool-bind-licenses-modal/ index'
+import { ICON_POOL_LICENSE } from '..'
+import { Pool } from '../../common/render-xo-item'
+import { SOURCES, getXoaPlan } from '../../common/xoa-plans'
+import { isAdmin } from '../../common/selectors'
+
+const BindLicensesButton = decorate([
+  connectStore({
+    hosts: createGetObjectsOfType('host'),
+  }),
+  provideState({
+    effects: {
+      async handleBindLicense() {
+        const allLicenses = this.state.allXcpngLicenses
+        const poolHosts = this.props.poolHosts
+
+        if (allLicenses.length < poolHosts.length) {
+          return error(_('licensesBinding'), _('notEnoughXcpngLicenses'))
+        }
+
+        const hostsWithoutLicense = poolHosts.filter(
+          host => this.state.xcpngLicenseByboundObjectId[host.id] === undefined
+        )
+        const licenseToBindByHost = await confirm({
+          body: <PoolBindLicenseModal hosts={hostsWithoutLicense} xcpngLicenses={allLicenses} />,
+          icon: 'connect',
+          title: _('licensesBinding'),
+        })
+
+        if (size(licenseToBindByHost) !== hostsWithoutLicense.length) {
+          return error(_('licensesBinding'), _('allHostsMustBeBound'))
+        }
+
+        const fullySupportedPoolIds = []
+        forEach(licenseToBindByHost, license => {
+          let poolId
+          let poolLicenseInfo
+          if (
+            license.boundObjectId !== undefined &&
+            (poolId = this.props.hosts[license.boundObjectId]?.$pool) !== undefined &&
+            (poolLicenseInfo = this.state.poolLicenseInfoByPoolId[poolId]).icon === ICON_POOL_LICENSE.Total &&
+            poolLicenseInfo.nHosts > 1
+          ) {
+            fullySupportedPoolIds.push(poolId)
+          }
+        })
+
+        if (fullySupportedPoolIds.length !== 0) {
+          await confirm({
+            body: (
+              <div>
+                <p>{_('confirmRebindLicenseFromFullySupportedPool')}</p>
+                <ul>
+                  {fullySupportedPoolIds.map(poolId => (
+                    <li key={poolId}>
+                      <Pool id={poolId} link newTab />
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ),
+            title: _('licensesBinding'),
+          })
+        }
+        await this.effects.bindXcpngLicenses(licenseToBindByHost)
+      },
+    },
+    computed: {
+      isBindLicenseAvailable: (state, props) =>
+        getXoaPlan() !== SOURCES && ICON_POOL_LICENSE.Total !== state.poolLicenseInfoByPoolId[props.pool.id].icon,
+    },
+  }),
+  injectState,
+  ({ effects, state }) => (
+    <ActionButton
+      btnStyle='primary'
+      disabled={!state.isBindLicenseAvailable}
+      handler={effects.handleBindLicense}
+      icon='connect'
+      tooltip={
+        getXoaPlan() === SOURCES
+          ? _('poolSupportSourceUsers')
+          : state.isBindLicenseAvailable
+          ? undefined
+          : _('poolLicenseAlreadyFullySupported')
+      }
+    >
+      {_('bindXcpngLicenses')}
+    </ActionButton>
+  ),
+])
 
 @connectStore(() => ({
   master: createGetObjectsOfType('host').find((_, { pool }) => ({
@@ -72,6 +167,7 @@ class PoolMaster extends Component {
     gpuGroups: createGetObjectsOfType('gpuGroup')
       .filter((_, { pool }) => ({ $pool: pool.id }))
       .sort(),
+    isAdmin,
     migrationNetwork: createGetObject((_, { pool }) => pool.otherConfig['xo:migrationNetwork']),
   }
 })
@@ -116,7 +212,7 @@ export default class TabAdvanced extends Component {
     )
 
   render() {
-    const { backupNetwork, hosts, gpuGroups, pool, hostsByMultipathing, migrationNetwork } = this.props
+    const { backupNetwork, hosts, isAdmin, gpuGroups, pool, hostsByMultipathing, migrationNetwork } = this.props
     const { state } = this
     const { editRemoteSyslog } = state
     const { enabled: hostsEnabledMultipathing, disabled: hostsDisabledMultipathing } = hostsByMultipathing
@@ -214,6 +310,12 @@ export default class TabAdvanced extends Component {
             </Col>
           </Row>
         </Container>
+        {isAdmin && (
+          <div>
+            <h3>{_('licenses')}</h3>
+            <BindLicensesButton poolHosts={hosts} pool={pool} />
+          </div>
+        )}
         <h3 className='mt-1 mb-1'>{_('poolGpuGroups')}</h3>
         <Container>
           <Row>
