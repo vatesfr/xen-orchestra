@@ -16240,6 +16240,11 @@ reusify@^1.0.4:
   resolved "https://registry.yarnpkg.com/reusify/-/reusify-1.0.4.tgz#90da382b1e126efc02146e90845a88db12925d76"
   integrity sha512-U9nH88a3fc/ekCF1l0/UP1IosiuIjyTh7hBvXVMHYgVcfGvt897Xguj2UOLDeI5BG2m7/uwyaLVT6fbtCwTyzw==
 
+rfc4648@^1.5.2:
+  version "1.5.2"
+  resolved "https://registry.yarnpkg.com/rfc4648/-/rfc4648-1.5.2.tgz#cf5dac417dd83e7f4debf52e3797a723c1373383"
+  integrity sha512-tLOizhR6YGovrEBLatX1sdcuhoSCXddw3mqNVAcKxGJ+J0hFeJ+SjeWCv5UPA/WU3YzWPPuCVYgXBKZUPGpKtg==
+
 rfdc@^1.3.0:
   version "1.3.0"
   resolved "https://registry.yarnpkg.com/rfdc/-/rfdc-1.3.0.tgz#d0b7c441ab2720d05dc4cf26e01c89631d9da08b"
@@ -17563,7 +17568,7 @@ tap-yaml@^1.0.0:
   dependencies:
     yaml "^1.5.0"
 
-tap@^16.0.1, tap@^16.1.0, tap@^16.2.0:
+tap@^16.0.1, tap@^16.1.0, tap@^16.2.0, tap@^16.3.0:
   version "16.3.0"
   resolved "https://registry.yarnpkg.com/tap/-/tap-16.3.0.tgz#8323fc66990951b52063a01dadffa0eaf3c55e96"
   integrity sha512-J9GffPUAbX6FnWbQ/jj7ktzd9nnDFP1fH44OzidqOmxUfZ1hPLMOvpS99LnDiP0H2mO8GY3kGN5XoY0xIKbNFA==

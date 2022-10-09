@@ -1,0 +1,39 @@
+{
+  "private": false,
+  "name": "@vates/otp",
+  "description": "Minimal HTOP/TOTP implementation",
+  "keywords": [
+    "2fa",
+    "authenticator",
+    "hotp",
+    "otp",
+    "totp"
+  ],
+  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@vates/otp",
+  "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
+  "main": "index.mjs",
+  "repository": {
+    "directory": "@vates/otp",
+    "type": "git",
+    "url": "https://github.com/vatesfr/xen-orchestra.git"
+  },
+  "author": {
+    "name": "Vates SAS",
+    "url": "https://vates.fr"
+  },
+  "license": "ISC",
+  "version": "0.0.0",
+  "engines": {
+    "node": ">=15"
+  },
+  "dependencies": {
+    "rfc4648": "^1.5.2"
+  },
+  "scripts": {
+    "postversion": "npm publish --access public",
+    "test": "tap"
+  },
+  "devDependencies": {
+    "tap": "^16.3.0"
+  }
+}
