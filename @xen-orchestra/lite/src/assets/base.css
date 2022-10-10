@@ -16,6 +16,10 @@ a {
   color: var(--color-extra-blue-base);
 }
 
+code {
+  font-family: monospace;
+}
+
 .card-view {
   padding: 1.2rem;
   display: flex;

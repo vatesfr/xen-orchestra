@@ -6,7 +6,10 @@
       <UiKeyValueList>
         <UiKeyValueRow>
           <template #key>{{ $t("version") }}</template>
-          <template #value>v{{ version }}</template>
+          <template #value
+            >v{{ version
+            }}<code v-if="gitHead"> ({{ gitHead.slice(0, 5) }})</code></template
+          >
         </UiKeyValueRow>
         <UiKeyValueRow>
           <template #key>{{ $t("blog") }}</template>
@@ -84,6 +87,7 @@ import UiKeyValueRow from "@/components/ui/UiKeyValueRow.vue";
 import UiTitle from "@/components/ui/UiTitle.vue";
 
 const version = XO_LITE_VERSION;
+const gitHead = XO_LITE_GIT_HEAD;
 const { locale } = useI18n();
 
 watch(locale, (newLocale) => localStorage.setItem("lang", newLocale));

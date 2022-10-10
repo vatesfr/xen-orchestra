@@ -8,6 +8,7 @@ export default defineConfig({
   plugins: [vue(), vueI18n()],
   define: {
     XO_LITE_VERSION: JSON.stringify(process.env.npm_package_version),
+    XO_LITE_GIT_HEAD: JSON.stringify(process.env.GIT_HEAD),
   },
   resolve: {
     alias: {
