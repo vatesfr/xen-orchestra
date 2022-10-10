@@ -29,6 +29,7 @@ module.exports = {
     },
     {
       files: ['*.spec.{,c,m}js'],
+      excludedFiles: '@vates/nbd-client/*',
       rules: {
         'n/no-unsupported-features/node-builtins': [
           'error',
