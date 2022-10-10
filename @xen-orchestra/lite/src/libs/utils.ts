@@ -1,11 +1,13 @@
 import { utcParse } from "d3-time-format";
 import humanFormat from "human-format";
-import { round } from "lodash-es";
+import { drop, round } from "lodash-es";
 import { find, forEach, isEqual, size, sum } from "lodash-es";
 import { type ComputedGetter, type Ref, computed, ref, watchEffect } from "vue";
 import type { Filter } from "@/types/filter";
 import { faSquareCheck } from "@fortawesome/free-regular-svg-icons";
 import { faFont, faHashtag, faList } from "@fortawesome/free-solid-svg-icons";
+import type { XenApiHost } from "@/libs/xen-api";
+import { useHostMetricsStore } from "@/stores/host-metrics.store";
 
 export function sortRecordsByNameLabel(
   record1: { name_label: string },
@@ -69,16 +71,21 @@ export const hasEllipsis = (target: Element | undefined | null) =>
 export function percent(currentValue: number, maxValue: number, precision = 2) {
   return round((currentValue / maxValue) * 100, precision);
 }
-export function getAvgCpuUsage(cpus?: object | any[]) {
-  const length = getStatsLength(cpus);
-  if (length === undefined) {
+export function getAvgCpuUsage(
+  cpus?: object | any[],
+  opts: { nSequence: number } = { nSequence: 4 }
+) {
+  const { nSequence } = opts;
+  const statsLength = getStatsLength(cpus);
+  if (statsLength === undefined || statsLength < nSequence) {
     return;
   }
+
   let totalCpusUsage = 0;
   forEach(cpus, (cpuState: number[]) => {
-    totalCpusUsage += sum(cpuState);
+    totalCpusUsage += sum(drop(cpuState, cpuState.length - nSequence));
   });
-  const stackedValue = totalCpusUsage / length;
+  const stackedValue = totalCpusUsage / nSequence;
   return stackedValue / size(cpus);
 }
 
@@ -101,4 +108,13 @@ export function deepComputed<T>(getter: ComputedGetter<T>) {
   });
 
   return cache;
+}
+
+export function isHostRunning(host: XenApiHost) {
+  const store = useHostMetricsStore();
+  try {
+    return store.getRecord(host.metrics).live;
+  } catch (error) {
+    return undefined;
+  }
 }

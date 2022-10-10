@@ -13,6 +13,7 @@ import PoolDashboardCpuUsage from "@/components/pool/dashboard/PoolDashboardCpuU
 import PoolDashboardStatus from "@/components/pool/dashboard/PoolDashboardStatus.vue";
 import PoolDashboardStorageUsage from "@/components/pool/dashboard/PoolDashboardStorageUsage.vue";
 import useFetchStats from "@/composables/fetch-stats.composable";
+import { isHostRunning } from "@/libs/utils";
 import { GRANULARITY, type HostStats, type VmStats } from "@/libs/xapi-stats";
 import type { XenApiHost, XenApiVm } from "@/libs/xen-api";
 import { useHostStore } from "@/stores/host.store";
@@ -32,6 +33,7 @@ const {
   stats: vmStats,
 } = useFetchStats<XenApiVm, VmStats>("vm", GRANULARITY.Seconds);
 
+const runningHosts = computed(() => hostStore.allRecords.filter(isHostRunning));
 const runningVms = computed(() =>
   vmStore.allRecords.filter((vm) => vm.power_state === "Running")
 );
@@ -39,16 +41,13 @@ const runningVms = computed(() =>
 provide("hostStats", readonly(hostStats));
 provide("vmStats", readonly(vmStats));
 
-watch(
-  () => hostStore.allRecords,
-  (hosts, previousHosts) => {
-    // turned On
-    differenceBy(hosts, previousHosts ?? [], "uuid").forEach(hostRegister);
+watch(runningHosts, (hosts, previousHosts) => {
+  // turned On
+  differenceBy(hosts, previousHosts ?? [], "uuid").forEach(hostRegister);
 
-    // turned Off
-    differenceBy(previousHosts, hosts, "uuid").forEach(hostUnregister);
-  }
-);
+  // turned Off
+  differenceBy(previousHosts, hosts, "uuid").forEach(hostUnregister);
+});
 
 watch(runningVms, (vms, previousVms) => {
   // turned On
@@ -59,7 +58,7 @@ watch(runningVms, (vms, previousVms) => {
 });
 
 onMounted(() => {
-  hostStore.allRecords.forEach(hostRegister);
+  runningHosts.value.forEach(hostRegister);
   runningVms.value.forEach(vmRegister);
 });
 </script>
