@@ -1,4 +1,6 @@
-# ACL System v2
+# ACL
+
+## Current implementation
 
 An ACL is a trio of:
 
@@ -15,8 +17,17 @@ An ACL is a trio of:
     - `viewer`: `view`
     - `operator`: `view` & `operate`
     - `admin`: `view` & `operate` & `administrate`
-  - a specific API method, prefixed by `api:`, e.g. `api:vm.snapshot`
 
-## Inheritance for objects
+ACL are inherited among objects: See https://github.com/vatesfr/xen-orchestra/blob/e2521b668854df971bdae4b80e9bc84ed1effa69/packages/xo-acl-resolver/index.js#L56
 
-See https://github.com/vatesfr/xen-orchestra/blob/e2521b668854df971bdae4b80e9bc84ed1effa69/packages/xo-acl-resolver/index.js#L56
+## New proposal
+
+### System
+
+1. action can now be a specific API method, prefixed by `api:`, e.g. `api:vm.snapshot`
+2. make roles customizable
+
+### UI
+
+1. Only allow creating ACLs on roles instead of actions
+2. Discourage creating ACLs on users, encourage groups instead
