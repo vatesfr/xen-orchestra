@@ -600,7 +600,7 @@ const messages = {
   remoteS3TooltipAcceptInsecure: 'Check if you want to accept self signed certificates',
   remotePlaceHolderPassword: 'Password(fill to edit)',
   remoteUseVhdDirectory:
-    'Store backup as multiple data blocks instead of a whole VHD file. (disables file level restore but allows faster merge)',
+    'Store backup as multiple data blocks instead of a whole VHD file. (create 500-1000 files per TB backuped but allows faster merge)',
   remoteUseVhdDirectoryTooltip:
     'Your remote must be able to handle parallel access (up to 16 write processes per backup) and the number of files (500 files per GB of backed up data)',
   remoteEncryptionBackupSize: 'Size of backup is not updated when using encryption.',
