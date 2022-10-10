@@ -120,8 +120,7 @@ describe('encryption', () => {
 
     await pFromCallback(cb => rimraf(dir, cb))
   })
-
-  it('sync should create metadata if missing', async () => {
+  it('sync should create metadata if missing (not encrypted)', async () => {
     handler = getHandler({ url: `file://${dir}` })
     await handler._checkMetadata()
 
@@ -130,6 +129,18 @@ describe('encryption', () => {
     const encryption = JSON.parse(await fs.readFile(`${dir}/encryption.json`, 'utf-8'))
     expect(encryption.algorithm).toEqual('none')
     expect(async () => JSON.parse(await fs.readFile(`${dir}/metadata.json`))).not.toThrowError()
+  })
+
+  it('sync should create metadata if missing (encrypted)', async () => {
+    handler = getHandler({ url: `file://${dir}?encryptionKey="73c1838d7d8a6088ca2317fb5f29cd00"` })
+    await handler._checkMetadata()
+
+    expect(await fs.readdir(dir)).toEqual(['encryption.json', 'metadata.json'])
+
+    const encryption = JSON.parse(await fs.readFile(`${dir}/encryption.json`, 'utf-8'))
+    expect(encryption.algorithm).toEqual(DEFAULT_ENCRYPTION_ALGORITHM)
+    // encrypted , should not be parsable
+    expect(async () => JSON.parse(await fs.readFile(`${dir}/metadata.json`))).rejects.toThrowError()
   })
 
   it('sync should not modify existing metadata', async () => {
@@ -143,6 +154,21 @@ describe('encryption', () => {
     expect(encryption.algorithm).toEqual('none')
     const metadata = JSON.parse(await fs.readFile(`${dir}/metadata.json`, 'utf-8'))
     expect(metadata.random).toEqual('NOTSORANDOM')
+  })
+
+  it('should modify metadata if empty', async () => {
+    handler = getHandler({ url: `file://${dir}` })
+    await handler._checkMetadata()
+    await handler.forget()
+    handler = getHandler({ url: `file://${dir}?encryptionKey="73c1838d7d8a6088ca2317fb5f29cd00"` })
+    await handler._checkMetadata()
+    let encryption = JSON.parse(await fs.readFile(`${dir}/encryption.json`, 'utf-8'))
+    expect(encryption.algorithm).toEqual(DEFAULT_ENCRYPTION_ALGORITHM)
+    await handler.forget()
+    handler = getHandler({ url: `file://${dir}` })
+    await handler._checkMetadata()
+    encryption = JSON.parse(await fs.readFile(`${dir}/encryption.json`, 'utf-8'))
+    expect(encryption.algorithm).toEqual('none')
   })
 
   it('sync should work with encrypted', async () => {
@@ -173,18 +199,20 @@ describe('encryption', () => {
     // rmote is now non empty : can't modify key anymore
     await fs.writeFile(`${dir}/nonempty.json`, 'content')
     handler = getHandler({ url: `file://${dir}?encryptionKey="73c1838d7d8a6088ca2317fb5f29cd10"` })
-    await expect(handler._checkMetadata()).rejects.toThrowError('bad decrypt')
+    await expect(handler._checkMetadata()).rejects.toThrowError()
   })
 
   it('sync should fail when changing algorithm', async () => {
-    const encryptor = _getEncryptor('aes-256-gcm', '73c1838d7d8a6088ca2317fb5f29cd91')
+    // encrypt with a non default algorithm
+    const encryptor = _getEncryptor('aes-256-cbc', '73c1838d7d8a6088ca2317fb5f29cd91')
 
-    await fs.writeFile(`${dir}/encryption.json`, `{"algorithm": "${DEFAULT_ENCRYPTION_ALGORITHM}"}`)
+    await fs.writeFile(`${dir}/encryption.json`, `{"algorithm": "aes-256-gmc"}`)
     await fs.writeFile(`${dir}/metadata.json`, encryptor.encryptData(`{"random": "NOTSORANDOM"}`))
 
-    // rmote is now non empty : can't modify key anymore
+    // remote is now non empty : can't modify key anymore
     await fs.writeFile(`${dir}/nonempty.json`, 'content')
+
     handler = getHandler({ url: `file://${dir}?encryptionKey="73c1838d7d8a6088ca2317fb5f29cd91"` })
-    await expect(handler._checkMetadata()).rejects.toThrowError('wrong final block length')
+    await expect(handler._checkMetadata()).rejects.toThrowError()
   })
 })

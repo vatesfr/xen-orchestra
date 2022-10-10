@@ -1,11 +1,11 @@
-const { Readable } = require('node:stream')
+const { pipeline } = require('node:stream')
 const { readChunk } = require('@vates/read-chunk')
 const crypto = require('crypto')
 
 export const DEFAULT_ENCRYPTION_ALGORITHM = 'aes-256-gcm'
 
 function getEncryptor(algorithm = DEFAULT_ENCRYPTION_ALGORITHM, key) {
-  if (key === undefined || algorithm === 'none') {
+  if (key === undefined) {
     return {
       id: 'NULL_ENCRYPTOR',
       algorithm: 'none',
@@ -19,22 +19,25 @@ function getEncryptor(algorithm = DEFAULT_ENCRYPTION_ALGORITHM, key) {
   }
   const info = crypto.getCipherInfo(algorithm, { keyLength: key.length })
   if (info === undefined) {
-    throw new Error(
+    const error = new Error(
       `Either the algorithm ${algorithm} is not available, or the key length ${
         key.length
       } is incorrect. Supported algorithm are ${crypto.getCiphers()}`
     )
+    error.code = 'BAD_ALGORITHM'
+    throw error
   }
   const { ivLength, mode } = info
   const authTagLength = ['gcm', 'ccm', 'ocb'].includes(mode) ? 16 : 0
 
   function encryptStream(input) {
-    const stream = Readable.from(
-      (async function* () {
+    return pipeline(
+      input,
+      async function* (source) {
         const iv = crypto.randomBytes(ivLength)
         const cipher = crypto.createCipheriv(algorithm, Buffer.from(key), iv)
         yield iv
-        for await (const data of input) {
+        for await (const data of source) {
           yield cipher.update(data)
         }
         yield cipher.final()
@@ -42,15 +45,19 @@ function getEncryptor(algorithm = DEFAULT_ENCRYPTION_ALGORITHM, key) {
         if (authTagLength > 0) {
           yield cipher.getAuthTag()
         }
-      })()
+      },
+      err => {
+        if (err) {
+          throw err
+        }
+      }
     )
-    stream.length = undefined
-    return stream
   }
 
   function decryptStream(encryptedStream) {
-    const stream = Readable.from(
-      (async function* () {
+    return pipeline(
+      encryptedStream,
+      async function* (source) {
         /**
          * WARNING
          *
@@ -60,10 +67,10 @@ function getEncryptor(algorithm = DEFAULT_ENCRYPTION_ALGORITHM, key) {
          *
          */
 
-        const iv = await readChunk(encryptedStream, ivLength)
+        const iv = await readChunk(source, ivLength)
         const cipher = crypto.createDecipheriv(algorithm, Buffer.from(key), iv)
         let authTag = Buffer.alloc(0)
-        for await (const data of encryptedStream) {
+        for await (const data of source) {
           if (data.length >= authTagLength) {
             // fast path, no buffer concat
             yield cipher.update(authTag)
@@ -85,10 +92,13 @@ function getEncryptor(algorithm = DEFAULT_ENCRYPTION_ALGORITHM, key) {
           cipher.setAuthTag(authTag)
         }
         yield cipher.final()
-      })()
+      },
+      err => {
+        if (err) {
+          throw err
+        }
+      }
     )
-    stream.length = undefined
-    return stream
   }
 
   function encryptData(buffer) {

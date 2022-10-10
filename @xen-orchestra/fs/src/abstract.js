@@ -12,7 +12,7 @@ import { synchronized } from 'decorator-synchronized'
 
 import { basename, dirname, normalize as normalizePath } from './path'
 import { createChecksumStream, validChecksumOfReadStream } from './checksum'
-import { _getEncryptor } from './_encryptor'
+import { DEFAULT_ENCRYPTION_ALGORITHM, _getEncryptor } from './_encryptor'
 
 const { info, warn } = createLogger('@xen-orchestra:fs')
 
@@ -337,20 +337,19 @@ export default class RemoteHandlerAbstract {
   }
 
   async _createMetadata() {
+    const encryptionAlgorithm = this._remote.encryptionKey === undefined ? 'none' : DEFAULT_ENCRYPTION_ALGORITHM
+    this.#encryptor = _getEncryptor(encryptionAlgorithm, this._remote.encryptionKey)
+
     await Promise.all([
-      this._writeFile(
-        normalizePath(ENCRYPTION_DESC_FILENAME),
-        JSON.stringify({ algorithm: this._encryptor.algorithm }),
-        {
-          flags: 'w',
-        }
-      ), // not encrypted
+      this._writeFile(normalizePath(ENCRYPTION_DESC_FILENAME), JSON.stringify({ algorithm: encryptionAlgorithm }), {
+        flags: 'w',
+      }), // not encrypted
       this.writeFile(ENCRYPTION_METADATA_FILENAME, `{"random":"${randomUUID()}"}`, { flags: 'w' }), // encrypted
     ])
   }
 
   async _checkMetadata() {
-    let encryptionAlgorithm
+    let encryptionAlgorithm = 'none'
     let data
     try {
       // this file is not encrypted
@@ -361,17 +360,20 @@ export default class RemoteHandlerAbstract {
       if (error.code !== 'ENOENT') {
         throw error
       }
+      encryptionAlgorithm = this._remote.encryptionKey === undefined ? 'none' : DEFAULT_ENCRYPTION_ALGORITHM
     }
 
-    const encryptor = _getEncryptor(encryptionAlgorithm, this._remote.encryptionKey)
-    this.#encryptor = encryptor
-
     try {
+      this.#encryptor = _getEncryptor(encryptionAlgorithm, this._remote.encryptionKey)
       // this file is encrypted
       const data = await this.readFile(ENCRYPTION_METADATA_FILENAME, 'utf-8')
       JSON.parse(data)
     } catch (error) {
-      if (error.code === 'ENOENT' || (await this._canWriteMetadata())) {
+      // can be enoent, bad algorithm, or broeken json ( bad key or algorithm)
+      if (
+        error.code === 'ENOENT' || // no encryption on non empty remote
+        (await this._canWriteMetadata()) // any other error , but on empty remote
+      ) {
         info('will update metadata of this remote')
         return this._createMetadata()
       }

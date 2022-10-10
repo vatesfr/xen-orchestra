@@ -19,7 +19,8 @@ function streamToBuffer(stream) {
 
 algorithms.forEach(algorithm => {
   describe(`test algorithm ${algorithm}`, () => {
-    const encryptor = _getEncryptor(algorithm, '73c1838d7d8a6088ca2317fb5f29cd91')
+    const key = algorithm === 'none' ? undefined : '73c1838d7d8a6088ca2317fb5f29cd91'
+    const encryptor = _getEncryptor(algorithm, key)
     const buffer = crypto.randomBytes(1024 * 1024 + 1)
     it('handle buffer', () => {
       const encrypted = encryptor.encryptData(buffer)
