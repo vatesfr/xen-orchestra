@@ -11,11 +11,12 @@ import {
   NBD_OPT_EXPORT_NAME,
   NBD_OPT_REPLY_MAGIC,
   NBD_OPT_STARTTLS,
+  NBD_REPLY_ACK,
   NBD_REPLY_MAGIC,
   NBD_REQUEST_MAGIC,
   OPTS_MAGIC,
 } from './constants.mjs'
-import {fromCallback} from 'promise-toolbox'
+import { fromCallback } from 'promise-toolbox'
 import { readChunkStrict } from '@vates/read-chunk'
 
 // documentation is here : https://github.com/NetworkBlockDevice/nbd/blob/master/doc/proto.md
@@ -35,7 +36,7 @@ export default class NbdClient {
   #nextCommandQueryId = BigInt(0)
   #commandQueryBacklog = new Map() // map of queries waiting for an answer
 
-  constructor({ address, port = NBD_DEFAULT_PORT, exportname, cert, secure = true }) {
+  constructor({ address, port = NBD_DEFAULT_PORT, exportname, cert }) {
     this.#serverAddress = address
     this.#serverPort = port
     this.#exportName = exportname
@@ -93,21 +94,21 @@ export default class NbdClient {
     await this.#write(buffer)
     assert.strictEqual(await this.#readInt64(), NBD_OPT_REPLY_MAGIC) // magic number everywhere
     assert.strictEqual(await this.#readInt32(), option) // the option passed
-    assert.strictEqual(await this.#readInt32(), 1) // ACK
+    assert.strictEqual(await this.#readInt32(), NBD_REPLY_ACK) // ACK
     const length = await this.#readInt32()
     assert.strictEqual(length, 0) // length
   }
 
   // we can use individual read/write from the socket here since there is only one handshake at once, no concurrency
   async #handshake() {
-    assert.strictEqual((await this.#read(8)).equals(INIT_PASSWD), true)
-    assert.strictEqual((await this.#read(8)).equals(OPTS_MAGIC), true)
+    assert((await this.#read(8)).equals(INIT_PASSWD))
+    assert((await this.#read(8)).equals(OPTS_MAGIC))
     const flagsBuffer = await this.#read(2)
     const flags = flagsBuffer.readInt16BE(0)
     assert.strictEqual(flags & NBD_FLAG_FIXED_NEWSTYLE, NBD_FLAG_FIXED_NEWSTYLE) // only FIXED_NEWSTYLE one is supported from the server options
     await this.#writeInt32(NBD_FLAG_FIXED_NEWSTYLE) // client also support  NBD_FLAG_C_FIXED_NEWSTYLE
 
-    if (this.#serverCert != undefined) {
+    if (this.#serverCert !== undefined) {
       // upgrade socket to TLS if needed
       await this.#sendOption(NBD_OPT_STARTTLS)
       await this.#tlsConnect()
@@ -216,6 +217,7 @@ export default class NbdClient {
         .then(() => this.#readBlockResponse())
         .catch(error => {
           error.data = { index, size }
+          throw error
         })
     })
   }

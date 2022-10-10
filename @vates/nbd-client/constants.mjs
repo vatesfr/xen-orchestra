@@ -35,6 +35,7 @@ export const NBD_CMD_RESIZE = 8
 
 export const NBD_REQUEST_MAGIC = 0x25609513 // magic number to create a new NBD request to send to the server
 export const NBD_REPLY_MAGIC = 0x67446698 // magic number received from the server when reading response to a nbd request
+export const NBD_REPLY_ACK = 1
 
 export const NBD_DEFAULT_PORT = 10809
 export const NBD_DEFAULT_BLOCK_SIZE = 64 * 1024

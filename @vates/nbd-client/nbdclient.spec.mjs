@@ -1,4 +1,3 @@
-import assert from 'assert'
 import NbdClient from './index.mjs'
 import { spawn } from 'node:child_process'
 import fs from 'node:fs/promises'
