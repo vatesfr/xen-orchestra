@@ -45,7 +45,6 @@
               <FormToggle
                 :modelValue="darkMode"
                 @update:modelValue="setDarkMode"
-                label="plop"
               />{{ $t("dark-mode") }}</FormLabel
             ></template
           >
