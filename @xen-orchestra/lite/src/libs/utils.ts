@@ -114,7 +114,7 @@ export function isHostRunning(host: XenApiHost) {
   const store = useHostMetricsStore();
   try {
     return store.getRecord(host.metrics).live;
-  } catch (error) {
+  } catch (_) {
     return undefined;
   }
 }
