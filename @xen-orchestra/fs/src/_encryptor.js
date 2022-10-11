@@ -46,11 +46,7 @@ function getEncryptor(algorithm = DEFAULT_ENCRYPTION_ALGORITHM, key) {
           yield cipher.getAuthTag()
         }
       },
-      err => {
-        if (err) {
-          throw err
-        }
-      }
+      () => {}
     )
   }
 
@@ -93,11 +89,7 @@ function getEncryptor(algorithm = DEFAULT_ENCRYPTION_ALGORITHM, key) {
         }
         yield cipher.final()
       },
-      err => {
-        if (err) {
-          throw err
-        }
-      }
+      () => {}
     )
   }
 
