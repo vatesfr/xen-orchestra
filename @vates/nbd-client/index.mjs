@@ -116,7 +116,7 @@ export default class NbdClient {
 
     // send export name we want to access.
     // it's  implictly closing the negociation phase.
-    await this.#write(Buffer.from(OPTS_MAGIC))
+    await this.#write(OPTS_MAGIC)
     await this.#writeInt32(NBD_OPT_EXPORT_NAME)
     const exportNameBuffer = Buffer.from(this.#exportName)
     await this.#writeInt32(exportNameBuffer.length)
