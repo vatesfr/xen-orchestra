@@ -85,6 +85,11 @@ module.exports = class NbdClient {
     // to tls during the handshake
     await this.#unsecureConnect()
     await this.#handshake()
+
+    // reset internal state if we reconnected a nbd client
+    this.#commandQueryBacklog = new Map()
+    this.#nbCommands = 0
+    this.#waitingForResponse = false
   }
 
   async disconnect() {
@@ -161,38 +166,53 @@ module.exports = class NbdClient {
     return this.#write(buffer)
   }
 
+  // when one read fail ,stop everything
+  async #rejectAll(error) {
+    this.#commandQueryBacklog.forEach(({ reject }) => {
+      reject(error)
+    })
+    await this.disconnect()
+  }
+
   async #readBlockResponse() {
     // ensure at most one read occur in parallel
     this.#nbCommands++
     if (this.#waitingForResponse) {
       return
     }
-    this.#waitingForResponse = true
-    this.#nbCommands--
-    const magic = await this.#readInt32()
 
-    if (magic !== NBD_REPLY_MAGIC) {
-      throw new Error(`magic number for block answer is wrong : ${magic} ${NBD_REPLY_MAGIC}`)
-    }
+    try {
+      this.#waitingForResponse = true
+      this.#nbCommands--
+      const magic = await this.#readInt32()
 
-    const error = await this.#readInt32()
-    if (error !== 0) {
-      // @todo use error code from constants.mjs
-      throw new Error(`GOT ERROR CODE  : ${error}`)
-    }
+      if (magic !== NBD_REPLY_MAGIC) {
+        throw new Error(`magic number for block answer is wrong : ${magic} ${NBD_REPLY_MAGIC}`)
+      }
 
-    const blockQueryId = await this.#readInt64()
-    const query = this.#commandQueryBacklog.get(blockQueryId)
-    if (!query) {
-      throw new Error(` no query associated with id ${blockQueryId}`)
-    }
-    this.#commandQueryBacklog.delete(blockQueryId)
-    const data = await this.#read(query.size)
-    query.resolve(data)
+      const error = await this.#readInt32()
+      if (error !== 0) {
+        // @todo use error code from constants.mjs
+        throw new Error(`GOT ERROR CODE  : ${error}`)
+      }
 
-    this.#waitingForResponse = false
-    if (this.#nbCommands > 0) {
-      await this.#readBlockResponse()
+      const blockQueryId = await this.#readInt64()
+      const query = this.#commandQueryBacklog.get(blockQueryId)
+      if (!query) {
+        throw new Error(` no query associated with id ${blockQueryId}`)
+      }
+      this.#commandQueryBacklog.delete(blockQueryId)
+      const data = await this.#read(query.size)
+      query.resolve(data)
+      this.#waitingForResponse = false
+      if (this.#nbCommands > 0) {
+        await this.#readBlockResponse()
+      }
+    } catch (error) {
+      // reject all the promises
+      // we don't need to call readBlockResponse on failure
+      // since we will empty the backlog
+      await this.#rejectAll(error)
     }
   }
 
@@ -216,14 +236,14 @@ module.exports = class NbdClient {
       this.#commandQueryBacklog.set(queryId, {
         size,
         resolve,
+        reject,
       })
       // really send the command to the server
-      this.#write(buffer)
-        .then(() => this.#readBlockResponse())
-        .catch(error => {
-          error.data = { index, size }
-          reject(error)
-        })
+      this.#write(buffer).catch(reject)
+
+      // #readBlockResponse never throws directly
+      // but if it fails it will reject all the promises in the backlog
+      this.#readBlockResponse()
     })
   }
 }
