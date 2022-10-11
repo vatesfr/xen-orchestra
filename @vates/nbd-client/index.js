@@ -50,12 +50,16 @@ module.exports = class NbdClient {
 
   async #tlsConnect() {
     return new Promise((resolve, reject) => {
-      this.#serverSocket = connect({
-        socket: this.#serverSocket,
-        rejectUnauthorized: false,
-        cert: this.#serverCert,
-      })
+      this.#serverSocket = connect(
+        {
+          socket: this.#serverSocket,
+          rejectUnauthorized: false,
+          cert: this.#serverCert,
+        },
+        resolve
+      )
       this.#serverSocket.once('error', reject)
+      // @todo : why is this never called ?
       this.#serverSocket.once('connect', () => {
         this.#serverSocket.removeListener('error', reject)
         resolve()
