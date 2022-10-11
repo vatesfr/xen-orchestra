@@ -76,14 +76,16 @@ const debounceResourceFactory = factory =>
   }
 
 class RemoteAdapter {
-  constructor(handler, { debounceResource = res => res, dirMode, vhdDirectoryCompression, useGetDiskLegacy=false } = {}) {
+  constructor(
+    handler,
+    { debounceResource = res => res, dirMode, vhdDirectoryCompression, useGetDiskLegacy = false } = {}
+  ) {
     this._debounceResource = debounceResource
     this._dirMode = dirMode
     this._handler = handler
     this._vhdDirectoryCompression = vhdDirectoryCompression
     this._readCacheListVmBackups = synchronized.withKey()(this._readCacheListVmBackups)
     this._useGetDiskLegacy = useGetDiskLegacy
-
   }
 
   get handler() {
@@ -324,9 +326,7 @@ class RemoteAdapter {
     return this.#useVhdDirectory()
   }
 
-
   async *#getDiskLegacy(diskId) {
-
     const RE_VHDI = /^vhdi(\d+)$/
     const handler = this._handler
 
@@ -358,8 +358,8 @@ class RemoteAdapter {
   }
 
   async *getDisk(diskId) {
-    if(this._useGetDiskLegacy){
-      yield * this.#getDiskLegacy(diskId)
+    if (this._useGetDiskLegacy) {
+      yield* this.#getDiskLegacy(diskId)
       return
     }
     const handler = this._handler

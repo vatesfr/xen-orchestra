@@ -57,9 +57,7 @@ exports.mount = Disposable.factory(async function* mount(handler, diskPath, moun
     },
     read(path, fd, buf, len, pos, cb) {
       if (path === '/vhd0') {
-        return vhd
-          .readRawData(pos, len, cache, buf)
-          .then(cb)
+        return vhd.readRawData(pos, len, cache, buf).then(cb)
       }
       throw new Error(`read file ${path} not exists`)
     },
@@ -67,5 +65,5 @@ exports.mount = Disposable.factory(async function* mount(handler, diskPath, moun
   return new Disposable(
     () => fromCallback(() => fuse.unmount()),
     fromCallback(() => fuse.mount())
-    )
+  )
 })
