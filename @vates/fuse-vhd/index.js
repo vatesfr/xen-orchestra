@@ -4,9 +4,6 @@ const LRU = require('lru-cache')
 const Fuse = require('fuse-native')
 const { VhdSynthetic } = require('vhd-lib')
 const { Disposable, fromCallback } = require('promise-toolbox')
-const { createLogger } = require('@xen-orchestra/log')
-
-const { warn } = createLogger('vates:fuse-vhd')
 
 // build a s stat object from https://github.com/fuse-friends/fuse-native/blob/master/test/fixtures/stat.js
 const stat = st => ({
