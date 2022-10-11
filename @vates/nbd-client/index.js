@@ -1,7 +1,8 @@
-import assert from 'node:assert'
-import { Socket } from 'node:net'
-import { connect } from 'node:tls'
-import {
+'use strict'
+const assert = require('node:assert')
+const { Socket } = require('node:net')
+const { connect } = require('node:tls')
+const {
   INIT_PASSWD,
   NBD_CMD_READ,
   NBD_DEFAULT_BLOCK_SIZE,
@@ -15,13 +16,13 @@ import {
   NBD_REPLY_MAGIC,
   NBD_REQUEST_MAGIC,
   OPTS_MAGIC,
-} from './constants.mjs'
-import { fromCallback } from 'promise-toolbox'
-import { readChunkStrict } from '@vates/read-chunk'
+} = require('./constants.js')
+const { fromCallback } = require('promise-toolbox')
+const { readChunkStrict } = require('@vates/read-chunk')
 
 // documentation is here : https://github.com/NetworkBlockDevice/nbd/blob/master/doc/proto.md
 
-export default class NbdClient {
+module.exports = class NbdClient {
   #serverAddress
   #serverCert
   #serverPort
