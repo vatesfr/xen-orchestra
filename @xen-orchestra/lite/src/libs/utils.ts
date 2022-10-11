@@ -6,7 +6,7 @@ import { type ComputedGetter, type Ref, computed, ref, watchEffect } from "vue";
 import type { Filter } from "@/types/filter";
 import { faSquareCheck } from "@fortawesome/free-regular-svg-icons";
 import { faFont, faHashtag, faList } from "@fortawesome/free-solid-svg-icons";
-import type { XenApiHost } from "@/libs/xen-api";
+import type { RawXenApiRecord, XenApiHost, XenApiRecord } from "@/libs/xen-api";
 import { useHostMetricsStore } from "@/stores/host-metrics.store";
 
 export function sortRecordsByNameLabel(
@@ -118,3 +118,11 @@ export function isHostRunning(host: XenApiHost) {
     return undefined;
   }
 }
+
+export const buildXoObject = (
+  record: RawXenApiRecord<XenApiRecord>,
+  params: { opaqueRef: string }
+) => ({
+  ...record,
+  $ref: params.opaqueRef,
+});

@@ -1,5 +1,5 @@
 import { JSONRPCClient } from "json-rpc-2.0";
-import { parseDateTime } from "@/libs/utils";
+import { buildXoObject, parseDateTime } from "@/libs/utils";
 
 export type RawObjectType =
   | "Bond"
@@ -66,7 +66,7 @@ export interface XenApiRecord {
   uuid: string;
 }
 
-type RawXenApiRecord<T extends XenApiRecord> = Omit<T, "$ref">;
+export type RawXenApiRecord<T extends XenApiRecord> = Omit<T, "$ref">;
 
 export interface XenApiPool extends XenApiRecord {
   name_label: string;
@@ -232,7 +232,7 @@ export default class XenApi {
 
     const entries = Object.entries(result).map<[string, T]>(([key, entry]) => [
       key,
-      { $ref: key, ...entry } as T,
+      buildXoObject(entry, { opaqueRef: key }) as T,
     ]);
 
     return new Map(entries);

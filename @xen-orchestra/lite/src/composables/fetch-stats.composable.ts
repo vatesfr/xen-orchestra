@@ -52,6 +52,7 @@ export default function useFetchStats<T extends XenApiHost | XenApiVm, S>(
 
   const unregister = (object: T) => {
     stats.value.get(object.uuid)?.pausable.pause();
+    stats.value.delete(object.uuid);
   };
 
   onUnmounted(() => {
