@@ -205,7 +205,7 @@ export default class NbdClient {
     buffer.writeBigUInt64BE(BigInt(index) * BigInt(size), 16)
     buffer.writeInt32BE(size, 24)
 
-    return new Promise(resolve => {
+    return new Promise((resolve, reject) => {
       // this will handle one block response, but it can be another block
       // since server does not guaranty to handle query in order
       this.#commandQueryBacklog.set(queryId, {
@@ -217,7 +217,7 @@ export default class NbdClient {
         .then(() => this.#readBlockResponse())
         .catch(error => {
           error.data = { index, size }
-          throw error
+          reject(error)
         })
     })
   }

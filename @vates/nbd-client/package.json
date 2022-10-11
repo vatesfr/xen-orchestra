@@ -29,6 +29,7 @@
     "tmp": "^0.2.1"
   },
   "scripts": {
-    "test-integration":"tap *.spec.mjs"
+    "postversion": "npm publish --access public",
+    "test-integration": "tap *.spec.mjs"
   }
 }
