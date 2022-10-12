@@ -228,10 +228,10 @@ export default {
   homeWelcome: 'Üdvözöljük a Felhőben!',
 
   // Original text: "Add your XCP-ng hosts or pools"
-  homeWelcomeText: 'Hozzáadása your XenServer kiszolgálók or pools',
+  homeWelcomeText: 'Hozzáadása your XCP-ng kiszolgálók or pools',
 
-  // Original text: "Some XenServers have been registered but are not connected"
-  homeConnectServerText: 'Some XenServers have been registered but are not Kapcsolódva',
+  // Original text: "Some XCP-ng hosts have been registered but are not connected"
+  homeConnectServerText: 'Some XCP-ng hosts have been registered but are not connected',
 
   // Original text: "Want some help?"
   homeHelp: 'Segítségre van szüksége?',

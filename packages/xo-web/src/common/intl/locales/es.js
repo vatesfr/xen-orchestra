@@ -245,7 +245,7 @@ export default {
   // Original text: "Add your XCP-ng hosts or pools"
   homeWelcomeText: 'Añade tus hosts/pools de XenServer',
 
-  // Original text: 'Some XenServers have been registered but are not connected'
+  // Original text: 'Some XCP-ng hosts have been registered but are not connected'
   homeConnectServerText: undefined,
 
   // Original text: "Want some help?"
