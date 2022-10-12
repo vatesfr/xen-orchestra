@@ -29,7 +29,7 @@ module.exports = {
     },
     {
       files: ['*.spec.{,c,m}js'],
-      excludedFiles: '@vates/nbd-client/*',
+      excludedFiles: ['@vates/nbd-client', '@vates/otp'],
       rules: {
         'n/no-unsupported-features/node-builtins': [
           'error',
