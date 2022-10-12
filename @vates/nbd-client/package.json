@@ -30,6 +30,6 @@
   },
   "scripts": {
     "postversion": "npm publish --access public",
-    "test-integration": "tap *.spec.mjs"
+    "test-integration": "tap *.spec.js"
   }
 }

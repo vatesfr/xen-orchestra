@@ -1,10 +1,11 @@
-import NbdClient from './index.mjs'
-import { spawn } from 'node:child_process'
-import fs from 'node:fs/promises'
-import { test } from 'tap'
-import tmp from 'tmp'
-import { pFromCallback } from 'promise-toolbox'
-import { asyncEach } from '@vates/async-each'
+'use strict'
+const NbdClient = require('./index.js')
+const { spawn } = require('node:child_process')
+const fs = require('node:fs/promises')
+const { test } = require('tap')
+const tmp = require('tmp')
+const { pFromCallback } = require('promise-toolbox')
+const { asyncEach } = require('@vates/async-each')
 
 const FILE_SIZE = 2 * 1024 * 1024
 
