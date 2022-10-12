@@ -31,11 +31,12 @@ module.exports = class NbdClient {
   #exportName
   #exportSize
 
-  #nbCommands = 0
-  #waitingForResponse = false
   // AFAIK, there is no guaranty the server answers in the same order as the queries
+  // so we handle a backlog of command waiting for response and handle concurrency manually
+
+  #waitingForResponse // there is already a listenner waiting for a response
   #nextCommandQueryId = BigInt(0)
-  #commandQueryBacklog = new Map() // map of queries waiting for an answer
+  #commandQueryBacklog // map of command waiting for an response queryId => { size/*in byte*/, resolve, reject}
 
   constructor({ address, port = NBD_DEFAULT_PORT, exportname, cert }) {
     this.#serverAddress = address
@@ -84,7 +85,6 @@ module.exports = class NbdClient {
 
     // reset internal state if we reconnected a nbd client
     this.#commandQueryBacklog = new Map()
-    this.#nbCommands = 0
     this.#waitingForResponse = false
   }
 
@@ -172,14 +172,12 @@ module.exports = class NbdClient {
 
   async #readBlockResponse() {
     // ensure at most one read occur in parallel
-    this.#nbCommands++
     if (this.#waitingForResponse) {
       return
     }
 
     try {
       this.#waitingForResponse = true
-      this.#nbCommands--
       const magic = await this.#readInt32()
 
       if (magic !== NBD_REPLY_MAGIC) {
@@ -201,7 +199,7 @@ module.exports = class NbdClient {
       const data = await this.#read(query.size)
       query.resolve(data)
       this.#waitingForResponse = false
-      if (this.#nbCommands > 0) {
+      if (this.#commandQueryBacklog.size > 0) {
         await this.#readBlockResponse()
       }
     } catch (error) {
