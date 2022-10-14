@@ -4,8 +4,8 @@
       <slot name="header" />
     </div>
     <ProgressBar
-      v-for="(item, index) in computedData.sortedArray"
-      :key="index"
+      v-for="item in computedData.sortedArray"
+      :key="item.id"
       :value="item.value"
       :label="item.label"
       :badge-label="item.badgeLabel"
@@ -21,6 +21,7 @@ import { computed } from "vue";
 import ProgressBar from "@/components/ProgressBar.vue";
 
 interface Data {
+  id: string;
   value: number;
   label?: string;
   badgeLabel?: string;

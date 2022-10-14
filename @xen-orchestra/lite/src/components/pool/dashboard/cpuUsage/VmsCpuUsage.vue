@@ -14,13 +14,14 @@ import type { VmStats } from "@/libs/xapi-stats";
 
 const stats: ComputedRef<
   {
+    id: string;
     name: string;
     stats?: VmStats;
   }[]
 > = inject<any>("vmStats", []);
 
-const data = computed<{ label: string; value: number }[]>(() => {
-  const result: { label: string; value: number }[] = [];
+const data = computed<{ id: string; label: string; value: number }[]>(() => {
+  const result: { id: string; label: string; value: number }[] = [];
 
   stats.value.forEach((stat) => {
     if (!stat.stats) {
@@ -34,6 +35,7 @@ const data = computed<{ label: string; value: number }[]>(() => {
     }
 
     result.push({
+      id: stat.id,
       label: stat.name,
       value: avgCpuUsage,
     });

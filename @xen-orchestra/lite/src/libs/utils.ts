@@ -1,6 +1,6 @@
 import { utcParse } from "d3-time-format";
 import humanFormat from "human-format";
-import { drop, round } from "lodash-es";
+import { round } from "lodash-es";
 import { find, forEach, isEqual, size, sum } from "lodash-es";
 import { type ComputedGetter, type Ref, computed, ref, watchEffect } from "vue";
 import type { Filter } from "@/types/filter";
@@ -71,21 +71,18 @@ export const hasEllipsis = (target: Element | undefined | null) =>
 export function percent(currentValue: number, maxValue: number, precision = 2) {
   return round((currentValue / maxValue) * 100, precision);
 }
-export function getAvgCpuUsage(
-  cpus?: object | any[],
-  opts: { nSequence: number } = { nSequence: 4 }
-) {
-  const { nSequence } = opts;
+export function getAvgCpuUsage(cpus?: object | any[], { nSequence = 4 } = {}) {
   const statsLength = getStatsLength(cpus);
-  if (statsLength === undefined || statsLength < nSequence) {
+  if (statsLength === undefined) {
     return;
   }
+  const _nSequence = statsLength < nSequence ? statsLength : nSequence;
 
   let totalCpusUsage = 0;
   forEach(cpus, (cpuState: number[]) => {
-    totalCpusUsage += sum(drop(cpuState, cpuState.length - nSequence));
+    totalCpusUsage += sum(cpuState.slice(cpuState.length - _nSequence));
   });
-  const stackedValue = totalCpusUsage / nSequence;
+  const stackedValue = totalCpusUsage / _nSequence;
   return stackedValue / size(cpus);
 }
 

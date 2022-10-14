@@ -15,7 +15,7 @@ export default function useFetchStats<T extends XenApiHost | XenApiVm, S>(
   granularity: GRANULARITY
 ) {
   const stats = ref<
-    Map<string, { name: string; stats?: S; pausable: Pausable }>
+    Map<string, { id: string; name: string; stats?: S; pausable: Pausable }>
   >(new Map());
 
   const register = (object: T) => {
@@ -44,6 +44,7 @@ export default function useFetchStats<T extends XenApiHost | XenApiVm, S>(
     );
 
     stats.value.set(object.uuid, {
+      id: object.uuid,
       name: object.name_label,
       stats: undefined,
       pausable,
