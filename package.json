@@ -63,6 +63,7 @@
       "/@vates/event-listeners-manager/",
       "/@vates/predicates/",
       "/@xen-orchestra/audit-core/",
+      "/@xen-orchestra/",
       "/dist/",
       "/xen-api/",
       "/xo-server/",
