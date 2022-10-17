@@ -32,16 +32,19 @@ import {
   subscribePlugins,
   synchronizeNetbox,
 } from 'xo'
-import { SelectSuspendSr } from 'select-suspend-sr'
-import decorate from '../../common/apply-decorators'
 import { injectState, provideState } from 'reaclette'
-import { error } from '../../common/notification'
-import { confirm } from '../../common/modal'
-import PoolBindLicenseModal from '../../common/xo/pool-bind-licenses-modal/ index'
+import { SelectSuspendSr } from 'select-suspend-sr'
+import { satisfies } from 'semver'
+
 import { ICON_POOL_LICENSE } from '..'
-import { Pool } from '../../common/render-xo-item'
-import { SOURCES, getXoaPlan } from '../../common/xoa-plans'
+
+import decorate from '../../common/apply-decorators'
+import PoolBindLicenseModal from '../../common/xo/pool-bind-licenses-modal/ index'
+import { confirm } from '../../common/modal'
+import { error } from '../../common/notification'
+import { Host, Pool } from '../../common/render-xo-item'
 import { isAdmin } from '../../common/selectors'
+import { SOURCES, getXoaPlan } from '../../common/xoa-plans'
 
 const BindLicensesButton = decorate([
   connectStore({
@@ -71,16 +74,23 @@ const BindLicensesButton = decorate([
         }
 
         const fullySupportedPoolIds = []
-        forEach(licenseToBindByHost, license => {
-          let poolId
-          let poolLicenseInfo
+        const unsupportedXcpngHostIds = []
+        forEach(licenseToBindByHost, (license, hostId) => {
+          const boundedHost = this.props.hosts[license.boundObjectId]
+          const hostToBind = this.props.hosts[hostId]
+          const poolId = boundedHost?.$pool
+          const poolLicenseInfo = this.state.poolLicenseInfoByPoolId[poolId]
+
           if (
-            license.boundObjectId !== undefined &&
-            (poolId = this.props.hosts[license.boundObjectId]?.$pool) !== undefined &&
-            (poolLicenseInfo = this.state.poolLicenseInfoByPoolId[poolId]).icon === ICON_POOL_LICENSE.Total &&
+            poolLicenseInfo !== undefined &&
+            poolLicenseInfo.icon === ICON_POOL_LICENSE.Total &&
             poolLicenseInfo.nHosts > 1
           ) {
             fullySupportedPoolIds.push(poolId)
+          }
+
+          if (satisfies(hostToBind.version, '<8.2.0')) {
+            unsupportedXcpngHostIds.push(hostToBind.id)
           }
         })
 
@@ -101,24 +111,45 @@ const BindLicensesButton = decorate([
             title: _('licensesBinding'),
           })
         }
+
+        if (unsupportedXcpngHostIds.length !== 0) {
+          await confirm({
+            body: (
+              <div>
+                <p>{_('confirmBindingOnUnsupportedHost', { nLicense: unsupportedXcpngHostIds.length })}</p>
+                <ul>
+                  {unsupportedXcpngHostIds.map(hostId => (
+                    <li key={hostId}>
+                      <Host id={hostId} link newTab />
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ),
+            title: _('licensesBinding'),
+          })
+        }
         await this.effects.bindXcpngLicenses(licenseToBindByHost)
       },
     },
     computed: {
       isBindLicenseAvailable: (state, props) =>
         getXoaPlan() !== SOURCES && ICON_POOL_LICENSE.Total !== state.poolLicenseInfoByPoolId[props.pool.id].icon,
+      isXcpngPool: (_, { poolHosts }) => poolHosts[0].productBrand === 'XCP-ng',
     },
   }),
   injectState,
   ({ effects, state }) => (
     <ActionButton
       btnStyle='primary'
-      disabled={!state.isBindLicenseAvailable}
+      disabled={!state.isXcpngPool || !state.isBindLicenseAvailable}
       handler={effects.handleBindLicense}
       icon='connect'
       tooltip={
         getXoaPlan() === SOURCES
           ? _('poolSupportSourceUsers')
+          : !state.isXcpngPool
+          ? _('poolSupportXcpngOnly')
           : state.isBindLicenseAvailable
           ? undefined
           : _('poolLicenseAlreadyFullySupported')

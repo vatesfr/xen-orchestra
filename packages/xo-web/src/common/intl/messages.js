@@ -839,6 +839,7 @@ const messages = {
   poolGpuGroups: 'GPU groups',
   poolRemoteSyslogPlaceHolder: 'Logging host',
   poolSupportSourceUsers: 'Pool support not available for source users',
+  poolSupportXcpngOnly: 'Only available for pool of XCP-ng hosts',
   poolLicenseAlreadyFullySupported: 'The pool is already fully supported',
   setpoolMaster: 'Master',
   syslogRemoteHost: 'Remote syslog host',
@@ -2407,6 +2408,8 @@ const messages = {
   // Licenses
   allHostsMustBeBound: 'All hosts must be bound by a license',
   bindXcpngLicenses: 'Bind XCP-ng licenses',
+  confirmBindingOnUnsupportedHost:
+    'You are about to bind professional support license{nLicense, plural, one {} other {s}} on older and unsupported XCP-ng version{nLicense, plural, one {} other {s}}. Are you sure do you want to do this?',
   confirmRebindLicenseFromFullySupportedPool: 'The following pools will no longer be fully supported',
   licenses: 'Licenses',
   licensesBinding: 'Licenses binding',
