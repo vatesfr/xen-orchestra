@@ -67,6 +67,7 @@ async function handleSubmit() {
       error.value = t("password-invalid");
     } else {
       error.value = t("error-occured");
+      console.error(err);
     }
   }
 }
