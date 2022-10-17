@@ -4,9 +4,6 @@ const LRU = require('lru-cache')
 const Fuse = require('fuse-native')
 const { VhdSynthetic } = require('vhd-lib')
 const { Disposable, fromCallback } = require('promise-toolbox')
-const { createLogger } = require('@xen-orchestra/log')
-
-const { warn } = createLogger('vates:fuse-vhd')
 
 // build a s stat object from https://github.com/fuse-friends/fuse-native/blob/master/test/fixtures/stat.js
 const stat = st => ({
@@ -57,9 +54,7 @@ exports.mount = Disposable.factory(async function* mount(handler, diskPath, moun
     },
     read(path, fd, buf, len, pos, cb) {
       if (path === '/vhd0') {
-        return vhd
-          .readRawData(pos, len, cache, buf)
-          .then(cb)
+        return vhd.readRawData(pos, len, cache, buf).then(cb)
       }
       throw new Error(`read file ${path} not exists`)
     },
@@ -67,5 +62,5 @@ exports.mount = Disposable.factory(async function* mount(handler, diskPath, moun
   return new Disposable(
     () => fromCallback(() => fuse.unmount()),
     fromCallback(() => fuse.mount())
-    )
+  )
 })

@@ -1,11 +1,9 @@
 import appConf from 'app-conf'
 import assert from 'assert'
-import authenticator from 'otplib/authenticator.js'
 import blocked from 'blocked-at'
 import Bluebird from 'bluebird'
 import compression from 'compression'
 import createExpress from 'express'
-import crypto from 'crypto'
 import forOwn from 'lodash/forOwn.js'
 import has from 'lodash/has.js'
 import helmet from 'helmet'
@@ -28,6 +26,7 @@ import { createRequire } from 'module'
 import { genSelfSignedCert } from '@xen-orchestra/self-signed'
 import { parseDuration } from '@vates/parse-duration'
 import { URL } from 'url'
+import { verifyTotp } from '@vates/otp'
 
 import { compile as compilePug } from 'pug'
 import { fromCallback, fromEvent } from 'promise-toolbox'
@@ -59,11 +58,6 @@ const [APP_NAME, APP_VERSION] = (() => {
   const { name, version } = JSON.parse(fse.readFileSync(new URL('../package.json', import.meta.url)))
   return [name, version]
 })()
-
-// ===================================================================
-
-// https://github.com/yeojz/otplib#using-specific-otp-implementations
-authenticator.options = { crypto }
 
 // ===================================================================
 
@@ -203,14 +197,14 @@ async function setUpPassport(express, xo, { authentication: authCfg, http: { coo
     )
   })
 
-  express.post('/signin-otp', (req, res, next) => {
+  express.post('/signin-otp', async (req, res, next) => {
     const { user } = req.session
 
     if (user === undefined) {
       return res.redirect(303, '/signin')
     }
 
-    if (authenticator.check(req.body.otp, user.preferences.otp)) {
+    if (await verifyTotp(req.body.otp, { secret: user.preferences.otp })) {
       setToken(req, res, next)
     } else {
       req.flash('error', 'Invalid code')

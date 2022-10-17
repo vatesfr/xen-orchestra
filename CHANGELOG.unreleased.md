@@ -25,8 +25,12 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
-- @xen-orchestra/fs minor
+
+- @vates/nbd-client major
+- @vates/otp major
 - @vates/read-chunk patch
+- @xen-orchestra/fs minor
+- @xen-orchestra/log minor
 - xo-remote-parser patch
 - xo-server-transport-nagios patch
 - xo-web minor
