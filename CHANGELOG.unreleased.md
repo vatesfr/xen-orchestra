@@ -33,6 +33,6 @@
 - @xen-orchestra/log minor
 - xo-remote-parser patch
 - xo-server-transport-nagios patch
-- xo-web minor
+- xo-web patch
 
 <!--packages-end-->
