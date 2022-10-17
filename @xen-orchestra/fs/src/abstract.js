@@ -12,7 +12,7 @@ import { synchronized } from 'decorator-synchronized'
 
 import { basename, dirname, normalize as normalizePath } from './path'
 import { createChecksumStream, validChecksumOfReadStream } from './checksum'
-import { _getEncryptor } from './_encryptor'
+import { DEFAULT_ENCRYPTION_ALGORITHM, _getEncryptor } from './_encryptor'
 
 const { info, warn } = createLogger('@xen-orchestra:fs')
 
@@ -68,7 +68,15 @@ class PrefixWrapper {
 }
 
 export default class RemoteHandlerAbstract {
-  _encryptor
+  #encryptor
+
+  get _encryptor() {
+    if (this.#encryptor === undefined) {
+      throw new Error(`Can't access to encryptor before remote synchronization`)
+    }
+    return this.#encryptor
+  }
+
   constructor(remote, options = {}) {
     if (remote.url === 'test://') {
       this._remote = remote
@@ -79,7 +87,6 @@ export default class RemoteHandlerAbstract {
       }
     }
     ;({ highWaterMark: this._highWaterMark, timeout: this._timeout = DEFAULT_TIMEOUT } = options)
-    this._encryptor = _getEncryptor(this._remote.encryptionKey)
 
     const sharedLimit = limitConcurrency(options.maxParallelOperations ?? DEFAULT_MAX_PARALLEL_OPERATIONS)
     this.closeFile = sharedLimit(this.closeFile)
@@ -330,35 +337,43 @@ export default class RemoteHandlerAbstract {
   }
 
   async _createMetadata() {
+    const encryptionAlgorithm = this._remote.encryptionKey === undefined ? 'none' : DEFAULT_ENCRYPTION_ALGORITHM
+    this.#encryptor = _getEncryptor(encryptionAlgorithm, this._remote.encryptionKey)
+
     await Promise.all([
-      this._writeFile(
-        normalizePath(ENCRYPTION_DESC_FILENAME),
-        JSON.stringify({ algorithm: this._encryptor.algorithm }),
-        {
-          flags: 'w',
-        }
-      ), // not encrypted
+      this._writeFile(normalizePath(ENCRYPTION_DESC_FILENAME), JSON.stringify({ algorithm: encryptionAlgorithm }), {
+        flags: 'w',
+      }), // not encrypted
       this.writeFile(ENCRYPTION_METADATA_FILENAME, `{"random":"${randomUUID()}"}`, { flags: 'w' }), // encrypted
     ])
   }
 
   async _checkMetadata() {
+    let encryptionAlgorithm = 'none'
+    let data
     try {
       // this file is not encrypted
-      const data = await this._readFile(normalizePath(ENCRYPTION_DESC_FILENAME))
-      JSON.parse(data)
+      data = await this._readFile(normalizePath(ENCRYPTION_DESC_FILENAME), 'utf-8')
+      const json = JSON.parse(data)
+      encryptionAlgorithm = json.algorithm
     } catch (error) {
       if (error.code !== 'ENOENT') {
         throw error
       }
+      encryptionAlgorithm = this._remote.encryptionKey === undefined ? 'none' : DEFAULT_ENCRYPTION_ALGORITHM
     }
 
     try {
+      this.#encryptor = _getEncryptor(encryptionAlgorithm, this._remote.encryptionKey)
       // this file is encrypted
-      const data = await this.readFile(ENCRYPTION_METADATA_FILENAME)
+      const data = await this.readFile(ENCRYPTION_METADATA_FILENAME, 'utf-8')
       JSON.parse(data)
     } catch (error) {
-      if (error.code === 'ENOENT' || (await this._canWriteMetadata())) {
+      // can be enoent, bad algorithm, or broeken json ( bad key or algorithm)
+      if (
+        error.code === 'ENOENT' || // no encryption on non empty remote
+        (await this._canWriteMetadata()) // any other error , but on empty remote
+      ) {
         info('will update metadata of this remote')
         return this._createMetadata()
       }
