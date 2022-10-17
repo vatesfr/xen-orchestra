@@ -91,6 +91,7 @@ export const useXenApiStore = defineStore("xen-api", () => {
   }
 
   async function connect(username: string, password: string) {
+    isConnecting.value = true;
     try {
       currentSessionId.value = await xenApi.connectWithPassword(
         username,
