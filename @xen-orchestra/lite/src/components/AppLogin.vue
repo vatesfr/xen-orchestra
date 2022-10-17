@@ -55,6 +55,7 @@ onMounted(() => {
 
 watch(password, () => {
   isInvalidPassword.value = false;
+  error.value = undefined;
 });
 
 async function handleSubmit() {
