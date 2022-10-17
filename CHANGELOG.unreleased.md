@@ -5,7 +5,7 @@
 
 ### Enhancements
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
-- [Backup/Encryption] Use `aes-256-gcm` by default instead of `aes-256-ccm` (PR [#6447](https://github.com/vatesfr/xen-orchestra/pull/6447))
+- [Backup/Encryption] Use `aes-256-gcm` instead of `aes-256-ccm` to mitigate [padding oracle attacks](https://en.wikipedia.org/wiki/Padding_oracle_attack) (PR [#6447](https://github.com/vatesfr/xen-orchestra/pull/6447))
 ### Bug fixes
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
