@@ -29,6 +29,7 @@ import {
   setPoolMaster,
   setRemoteSyslogHost,
   setRemoteSyslogHosts,
+  subscribeHvSupportedVersions,
   subscribePlugins,
   synchronizeNetbox,
 } from 'xo'
@@ -47,6 +48,9 @@ import { isAdmin } from '../../common/selectors'
 import { SOURCES, getXoaPlan } from '../../common/xoa-plans'
 
 const BindLicensesButton = decorate([
+  addSubscriptions({
+    hvSupportedVersions: subscribeHvSupportedVersions,
+  }),
   connectStore({
     hosts: createGetObjectsOfType('host'),
   }),
@@ -89,7 +93,7 @@ const BindLicensesButton = decorate([
             fullySupportedPoolIds.push(poolId)
           }
 
-          if (satisfies(hostToBind.version, '<8.2.0')) {
+          if (!satisfies(hostToBind.version, this.props.hvSupportedVersions['XCP-ng'])) {
             unsupportedXcpngHostIds.push(hostToBind.id)
           }
         })
