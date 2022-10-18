@@ -1,9 +1,13 @@
 import { utcParse } from "d3-time-format";
 import humanFormat from "human-format";
 import { round } from "lodash-es";
+import { find, forEach, isEqual, size, sum } from "lodash-es";
+import { type ComputedGetter, type Ref, computed, ref, watchEffect } from "vue";
 import type { Filter } from "@/types/filter";
 import { faSquareCheck } from "@fortawesome/free-regular-svg-icons";
 import { faFont, faHashtag, faList } from "@fortawesome/free-solid-svg-icons";
+import type { RawXenApiRecord, XenApiHost, XenApiRecord } from "@/libs/xen-api";
+import { useHostMetricsStore } from "@/stores/host-metrics.store";
 
 export function sortRecordsByNameLabel(
   record1: { name_label: string },
@@ -67,3 +71,55 @@ export const hasEllipsis = (target: Element | undefined | null) =>
 export function percent(currentValue: number, maxValue: number, precision = 2) {
   return round((currentValue / maxValue) * 100, precision);
 }
+export function getAvgCpuUsage(cpus?: object | any[], { nSequence = 4 } = {}) {
+  const statsLength = getStatsLength(cpus);
+  if (statsLength === undefined) {
+    return;
+  }
+  const _nSequence = statsLength < nSequence ? statsLength : nSequence;
+
+  let totalCpusUsage = 0;
+  forEach(cpus, (cpuState: number[]) => {
+    totalCpusUsage += sum(cpuState.slice(cpuState.length - _nSequence));
+  });
+  const stackedValue = totalCpusUsage / _nSequence;
+  return stackedValue / size(cpus);
+}
+
+// stats can be null.
+// Return the size of the first non-null object.
+export function getStatsLength(stats?: object | any[]) {
+  if (stats === undefined) {
+    return undefined;
+  }
+  return size(find(stats, (stat) => stat != null));
+}
+
+export function deepComputed<T>(getter: ComputedGetter<T>) {
+  const value = computed(getter);
+  const cache = ref<T>(value.value) as Ref<T>;
+  watchEffect(() => {
+    if (!isEqual(cache.value, value.value)) {
+      cache.value = value.value;
+    }
+  });
+
+  return cache;
+}
+
+export function isHostRunning(host: XenApiHost) {
+  const store = useHostMetricsStore();
+  try {
+    return store.getRecord(host.metrics).live;
+  } catch (_) {
+    return undefined;
+  }
+}
+
+export const buildXoObject = (
+  record: RawXenApiRecord<XenApiRecord>,
+  params: { opaqueRef: string }
+) => ({
+  ...record,
+  $ref: params.opaqueRef,
+});
