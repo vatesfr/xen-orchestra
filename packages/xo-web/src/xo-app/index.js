@@ -145,7 +145,7 @@ export const ICON_POOL_LICENSE = {
       await Promise.all(
         map(licenseToBindByHostId, (license, hostId) =>
           license.boundObjectId !== undefined
-            ? rebindLicense('xcpng-standard', license.id, license.boundObjectId, hostId)
+            ? rebindLicense(license.productId, license.id, license.boundObjectId, hostId)
             : bindXcpngLicense(license.id, hostId)
         )
       )
