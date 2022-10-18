@@ -43,12 +43,6 @@ export function formatSize(bytes?: number) {
     : "N/D";
 }
 
-export function formatSize(bytes: number) {
-  return bytes != null
-    ? humanFormat(bytes, { scale: "binary", unit: "B" })
-    : "N/D";
-}
-
 export function getFilterIcon(filter: Filter | undefined) {
   if (!filter) {
     return;
@@ -130,14 +124,18 @@ export const buildXoObject = (
   $ref: params.opaqueRef,
 });
 
-export function parseRamUsage({
-  memory,
-  memoryFree,
-}: {
-  memory: number[];
-  memoryFree?: number[];
-}) {
-  const nValues = memory.length;
+export function parseRamUsage(
+  {
+    memory,
+    memoryFree,
+  }: {
+    memory: number[];
+    memoryFree?: number[];
+  },
+  { nSequence = 4 } = {}
+) {
+  const statsLength = memory.length;
+  const _nSequence = statsLength < nSequence ? statsLength : nSequence;
 
   let max = 0;
   let used = 0;
@@ -152,7 +150,7 @@ export function parseRamUsage({
 
   return {
     percentUsed,
-    max: max / nValues,
-    used: percentUsed !== undefined ? used / nValues : undefined,
+    max: max / _nSequence,
+    used: percentUsed !== undefined ? used / _nSequence : undefined,
   };
 }

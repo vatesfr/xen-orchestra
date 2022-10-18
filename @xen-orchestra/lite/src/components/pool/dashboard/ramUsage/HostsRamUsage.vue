@@ -16,6 +16,7 @@ import type { HostStats } from "@/libs/xapi-stats";
 const stats = inject<
   ComputedRef<
     {
+      id: string;
       name: string;
       stats?: HostStats;
     }[]
@@ -25,8 +26,13 @@ const stats = inject<
   computed(() => [])
 );
 
-const data = computed<{ label: string; value: number }[]>(() => {
-  const result: { label: string; value: number; badgeLabel: string }[] = [];
+const data = computed<{ id: string; label: string; value: number }[]>(() => {
+  const result: {
+    id: string;
+    label: string;
+    value: number;
+    badgeLabel: string;
+  }[] = [];
 
   stats.value.forEach((stat) => {
     if (stat.stats === undefined) {
@@ -39,6 +45,7 @@ const data = computed<{ label: string; value: number }[]>(() => {
     }
 
     result.push({
+      id: stat.id,
       label: stat.name,
       value: percentUsed,
       badgeLabel: `${formatSize(used)}/${formatSize(max)}`,
