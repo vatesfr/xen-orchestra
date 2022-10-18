@@ -1,16 +1,18 @@
 <template>
-  <div class="header">
-    <slot name="header" />
-  </div>
-  <ProgressBar
-    v-for="(item, index) in computedData.sortedArray"
-    :key="index"
-    :value="item.value"
-    :label="item.label"
-    :badge-label="item.badgeLabel"
-  />
-  <div class="footer">
-    <slot name="footer" :total-percent="computedData.totalPercentUsage" />
+  <div v-if="data.length !== 0">
+    <div class="header">
+      <slot name="header" />
+    </div>
+    <ProgressBar
+      v-for="item in computedData.sortedArray"
+      :key="item.id"
+      :value="item.value"
+      :label="item.label"
+      :badge-label="item.badgeLabel"
+    />
+    <div class="footer">
+      <slot name="footer" :total-percent="computedData.totalPercentUsage" />
+    </div>
   </div>
 </template>
 
@@ -19,6 +21,7 @@ import { computed } from "vue";
 import ProgressBar from "@/components/ProgressBar.vue";
 
 interface Data {
+  id: string;
   value: number;
   label?: string;
   badgeLabel?: string;
@@ -27,7 +30,7 @@ interface Data {
 
 interface Props {
   data: Array<Data>;
-  title?: string;
+  nItems?: number;
 }
 
 const props = defineProps<Props>();
@@ -45,7 +48,8 @@ const computedData = computed(() => {
           value,
         };
       })
-      .sort((item, nextItem) => nextItem.value - item.value),
+      .sort((item, nextItem) => nextItem.value - item.value)
+      .slice(0, props.nItems ?? _data.length),
     totalPercentUsage,
   };
 });

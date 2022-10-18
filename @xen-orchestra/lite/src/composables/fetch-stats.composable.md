@@ -1,23 +1,25 @@
 # useFetchStats composable
 
 ```vue
+<div>
+  <p v-for="(stat, index) in stats" :key="index">
+    {{ stat.name }}
+  </p>
+</div>
 <script lang="ts" setup>
+import { onMounted } from "vue";
 import useFetchStats from "@/composables/fetch-stats-composable";
 import { GRANULARITY, type HostStats, type VmStats } from "@/libs/xapi-stats";
 
-const vmId = "1d381a66-d1cb-bb7e-50a1-feeab58b293d";
-const hostId = "0aea61f4-c9d1-4060-94e8-4eb2024d082c";
+const vmStore = useVmStore();
 
-const { stats: vmStats } = useFetchStats<VmStats>(
+const { register, unregister, stats } = useFetchStats<XenApiVm, VmStats>(
   "vm",
-  vmId,
   GRANULARITY.Seconds
 );
 
-const { stats: hostStats } = useFetchStats<HostStats>(
-  "host",
-  hostId,
-  GRANULARITY.Seconds
-);
+onMounted(() => {
+  vmStore.allRecords.forEach(register);
+});
 </script>
 ```
