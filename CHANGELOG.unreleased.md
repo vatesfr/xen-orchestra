@@ -4,11 +4,16 @@
 > understandable by them.
 
 ### Enhancements
+
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
+
 - [Backup/Encryption] Use `aes-256-gcm` instead of `aes-256-ccm` to mitigate [padding oracle attacks](https://en.wikipedia.org/wiki/Padding_oracle_attack) (PR [#6447](https://github.com/vatesfr/xen-orchestra/pull/6447))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
+
+- Really enable by default the embedded HTTP/HTTPS proxy
 
 ### Packages to release
 
@@ -31,6 +36,7 @@
 - @vates/read-chunk patch
 - @xen-orchestra/fs minor
 - @xen-orchestra/log minor
+- @xen-orchestra/mixins patch
 - xo-remote-parser patch
 - xo-server-transport-nagios patch
 - xo-web patch
