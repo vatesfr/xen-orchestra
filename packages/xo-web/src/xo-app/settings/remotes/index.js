@@ -124,6 +124,35 @@ const COLUMN_PROXY = {
   name: _('proxy'),
 }
 
+const COLUMN_ENCRYPTION = {
+  itemRenderer: remote => {
+    // remote is not sync, not a lot of data
+    if (remote.info?.encryption === undefined) {
+      return remote.encryptionKey !== undefined ? <Icon size='lg' icon='lock' /> : null
+    } else {
+      // not encrypted
+      if (remote.info.encryption.algorithm === 'none') {
+        return null
+      }
+      const { algorithm, isLegacy, recommendedAlgorithm } = remote.info.encryption
+      return (
+        <span>
+          <Tooltip content={algorithm}>
+            <Icon icon='lock' size='lg' />
+          </Tooltip>
+
+          {isLegacy && (
+            <Tooltip content={_('remoteEncryptionLegacy', { algorithm, recommendedAlgorithm })}>
+              <Icon icon='error' size='lg' />
+            </Tooltip>
+          )}
+        </span>
+      )
+    }
+  },
+  name: _('remoteEncryption'),
+}
+
 const fixRemoteUrl = remote => editRemote(remote, { url: format(remote) })
 const COLUMNS_LOCAL_REMOTE = [
   COLUMN_NAME,
@@ -141,6 +170,7 @@ const COLUMNS_LOCAL_REMOTE = [
   },
   COLUMN_STATE,
   COLUMN_DISK,
+  COLUMN_ENCRYPTION,
   COLUMN_SPEED,
   COLUMN_PROXY,
 ]
@@ -198,6 +228,7 @@ const COLUMNS_NFS_REMOTE = [
   },
   COLUMN_STATE,
   COLUMN_DISK,
+  COLUMN_ENCRYPTION,
   COLUMN_SPEED,
   COLUMN_PROXY,
 ]
@@ -245,6 +276,7 @@ const COLUMNS_SMB_REMOTE = [
     ),
     name: _('remoteAuth'),
   },
+  COLUMN_ENCRYPTION,
   COLUMN_SPEED,
   COLUMN_PROXY,
 ]
@@ -300,6 +332,7 @@ const COLUMNS_S3_REMOTE = [
     ),
     name: 'Key',
   },
+  COLUMN_ENCRYPTION,
   COLUMN_SPEED,
   COLUMN_PROXY,
 ]

@@ -611,6 +611,10 @@ const messages = {
   remoteEncryptionKey: 'Encrypt all new data sent to this remote',
   remoteEncryptionKeyStorageLocation:
     "You won't be able to get your data back if you lose the encryption key. The encryption key is saved in the XO config backup, they should be secured correctly. Be careful, if you saved it on an encrypted remote, then you won't be able to access it without the remote encryption key.",
+  remoteEncryption: 'Encryption',
+  remoteEncryptionLegacy:
+    'A legacy encryption algorithm is used ({algorithm}), please create a new remote with the recommanded algorithm {recommendedAlgorithm}',
+
   // ------ New Storage -----
 
   newSr: 'New SR',
