@@ -24,6 +24,8 @@ example.{,c,m}js.map
 /tests/
 *.spec.{,c,m}js
 *.spec.{,c,m}js.map
+*.test.{,c,m}js
+*.test.{,c,m}js.map
 
 __snapshots__/
 
