@@ -3,13 +3,13 @@
     v-if="isSslModalOpen"
     color="error"
     :icon="faServer"
-    :onClose="closeSslModal"
+    @close="clearUnreachableHostsUrls"
   >
-    <UiTitle type="h2">{{ $t("unreachable-hosts") }}</UiTitle>
-    <p>{{ $t("following-hosts-unreachable") }}</p>
+    <template #title>{{ $t("unreachable-hosts") }}</template>
+    <template #subtitle>{{ $t("following-hosts-unreachable") }}</template>
     <p>{{ $t("allow-self-signed-ssl") }}</p>
     <ul>
-      <li v-for="url in sslModalPayload?.value" :key="url.hostname">
+      <li v-for="url in unreachableHostsUrls" :key="url.hostname">
         <a :href="url.href" target="_blank" rel="noopener">{{ url.href }}</a>
       </li>
     </ul>
@@ -32,7 +32,8 @@
 </template>
 
 <script lang="ts" setup>
-import { type Ref, ref, watchEffect } from "vue";
+import { difference } from "lodash";
+import { computed, ref, watch, watchEffect } from "vue";
 import favicon from "@/assets/favicon.svg";
 import { faServer } from "@fortawesome/free-solid-svg-icons";
 import AppHeader from "@/components/AppHeader.vue";
@@ -40,13 +41,12 @@ import AppLogin from "@/components/AppLogin.vue";
 import AppTooltips from "@/components/AppTooltips.vue";
 import InfraPoolList from "@/components/infra/InfraPoolList.vue";
 import UiModal from "@/components/ui/UiModal.vue";
-import UiTitle from "@/components/ui/UiTitle.vue";
 import { useChartTheme } from "@/composables/chart-theme.composable";
-import useModal from "@/composables/modal.composable";
 import { useHostStore } from "@/stores/host.store";
 import { useXenApiStore } from "@/stores/xen-api.store";
 
-const unreachableUrlHosts = ref<URL[]>([]);
+const unreachableHostsUrls = ref<URL[]>([]);
+const clearUnreachableHostsUrls = () => (unreachableHostsUrls.value = []);
 
 let link: HTMLLinkElement | null = document.querySelector("link[rel~='icon']");
 if (link == null) {
@@ -64,12 +64,6 @@ if (window.localStorage?.getItem("colorMode") !== "light") {
 
 const xenApiStore = useXenApiStore();
 const hostStore = useHostStore();
-const {
-  close: closeSslModal,
-  isOpen: isSslModalOpen,
-  open: openSslModal,
-  payload: sslModalPayload,
-} = useModal<Ref<URL[]>>();
 useChartTheme();
 
 watchEffect(() => {
@@ -77,34 +71,22 @@ watchEffect(() => {
     xenApiStore.init();
   }
 });
-watchEffect(async () => {
-  const _unreachableUrlHosts = [];
-  for (const key in hostStore.allRecords) {
-    const host = hostStore.allRecords[key];
 
-    const url = new URL("http://localhost");
-    url.protocol = window.location.protocol;
-    url.hostname = host.address;
-
-    try {
-      await fetch(url, {
-        mode: "no-cors",
-      });
-    } catch (_) {
-      _unreachableUrlHosts.push(url);
-    }
+watch(
+  () => hostStore.allRecords,
+  (hosts, previousHosts) => {
+    difference(hosts, previousHosts).forEach((host) => {
+      const url = new URL("http://localhost");
+      url.protocol = window.location.protocol;
+      url.hostname = host.address;
+      fetch(url, { mode: "no-cors" }).catch(() =>
+        unreachableHostsUrls.value.push(url)
+      );
+    });
   }
-  unreachableUrlHosts.value = _unreachableUrlHosts;
-});
+);
 
-watchEffect(() => {
-  if (
-    unreachableUrlHosts.value?.length > 0 &&
-    window.location.protocol === "https:"
-  ) {
-    openSslModal(unreachableUrlHosts);
-  }
-});
+const isSslModalOpen = computed(() => unreachableHostsUrls.value.length > 0);
 </script>
 
 <style lang="postcss">
