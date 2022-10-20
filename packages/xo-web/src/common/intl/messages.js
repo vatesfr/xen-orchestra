@@ -2451,7 +2451,6 @@ const messages = {
   xosanNoLicense: 'No license.',
   unlockNow: 'Unlock now!',
   selectLicense: 'Select a license',
-  selectXcpngLicence: 'Select an XCP-ng license',
   bindLicense: 'Bind license',
   expiresOn: 'expires on {date}',
   xosanInstallXoaPlugin: 'Install XOA plugin first',

@@ -11,16 +11,16 @@ export default class PoolBindLicenseModal extends BaseComponent {
   }
 
   _handleXcpngLicenseSelection = hostId => event => {
-    const { licenseToBindByHost } = this.state
+    const { licenseIdToBindByHost } = this.state
     const licenseId = event.target.value
-    forEach(licenseToBindByHost, (_licenseId, _hostId) => {
+    forEach(licenseIdToBindByHost, (_licenseId, _hostId) => {
       if (_licenseId === licenseId) {
-        delete licenseToBindByHost[_hostId]
+        delete licenseIdToBindByHost[_hostId]
       }
     })
 
     this.setState({
-      licenseIdToBindByHost: { ...licenseToBindByHost, [hostId]: licenseId },
+      licenseIdToBindByHost: { ...licenseIdToBindByHost, [hostId]: licenseId },
     })
   }
 
