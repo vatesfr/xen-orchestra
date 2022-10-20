@@ -8,12 +8,10 @@ const { coalesceCalls } = require('./index')
 
 const pDefer = () => {
   const r = {}
-
   r.promise = new Promise((resolve, reject) => {
-    r.resolve = resolve
     r.reject = reject
+    r.resolve = resolve
   })
-
   return r
 }
 
