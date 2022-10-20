@@ -53,7 +53,7 @@ class ProxyLicensesForm extends Component {
         <ActionButton
           btnStyle='primary'
           className='ml-1'
-          disabled={licenseId === 'none'}
+          disabled={licenseId === 'none' || item.vmUuid === undefined}
           handler={this.bind}
           handlerParam={licenseId}
           icon='connect'
@@ -96,7 +96,11 @@ const Proxies = decorate([
   }),
   provideState({
     computed: {
-      licensesByVmUuid: (state, { proxyLicenses }) => groupBy(proxyLicenses, 'boundObjectId'),
+      licensesByVmUuid: (state, { proxyLicenses }) =>
+        groupBy(
+          proxyLicenses.filter(license => license.boundObjectId === undefined),
+          'boundObjectId'
+        ),
     },
   }),
   injectState,
