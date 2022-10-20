@@ -50,7 +50,7 @@ import Import from './import'
 
 import keymap, { help } from '../keymap'
 import Tooltip from '../common/tooltip'
-import { createCollectionWrapper, createGetObjectsOfType, createSelector } from '../common/selectors'
+import { createCollectionWrapper, createGetObjectsOfType } from '../common/selectors'
 import { bindXcpngLicense, rebindLicense, subscribeXcpngLicenses } from '../common/xo'
 
 const shortcutManager = new ShortcutManager(keymap)
