@@ -348,32 +348,6 @@ const getPredicate = (state, props) => props.predicate
 
 // ===================================================================
 
-export const SelectXcpngLicense = makeStoreSelect(
-  (_, props) => {
-    const xcpngLicenses = props.xcpngLicenses
-    const licenses = {
-      bound: [],
-      notBound: [],
-    }
-    xcpngLicenses.forEach(license => {
-      licenses[license.boundObjectId === undefined ? 'notBound' : 'bound'].push(license)
-    })
-
-    return {
-      xoObjects: licenses,
-      xoContainers: [
-        { id: 'notBound', label: 'Not bound' },
-        { id: 'bound', label: 'Bound' },
-      ],
-    }
-  },
-  {
-    placeholder: _('selectXcpngLicence'),
-  }
-)
-
-// ===================================================================
-
 export const SelectHost = makeStoreSelect(
   () => {
     const getHostsByPool = createGetObjectsOfType('host').filter(getPredicate).sort().groupBy('$pool')
