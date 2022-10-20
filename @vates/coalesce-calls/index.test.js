@@ -1,6 +1,8 @@
 'use strict'
 
-/* eslint-env jest */
+// eslint-disable-next-line n/no-unpublished-require
+const { describe, it } = require('test')
+const assert = require('assert')
 
 const { coalesceCalls } = require('./')
 
@@ -23,13 +25,13 @@ describe('coalesceCalls', () => {
     const promise2 = fn(defer2.promise)
 
     defer1.resolve('foo')
-    expect(await promise1).toBe('foo')
-    expect(await promise2).toBe('foo')
+    assert.strictEqual(await promise1, 'foo')
+    assert.strictEqual(await promise2, 'foo')
 
     const defer3 = pDefer()
     const promise3 = fn(defer3.promise)
 
     defer3.resolve('bar')
-    expect(await promise3).toBe('bar')
+    assert.strictEqual(await promise3, 'bar')
   })
 })
