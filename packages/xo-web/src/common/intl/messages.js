@@ -2407,13 +2407,15 @@ const messages = {
 
   // Licenses
   allHostsMustBeBound: 'All hosts must be bound by a license',
+  bounded: 'Bounded',
   bindXcpngLicenses: 'Bind XCP-ng licenses',
   confirmBindingOnUnsupportedHost:
-    'You are about to bind professional support license{nLicense, plural, one {} other {s}} on older and unsupported XCP-ng version{nLicense, plural, one {} other {s}}. Are you sure do you want to do this?',
+    'You are about to bind professional support license{nLicense, plural, one {} other {s}} on older and unsupported XCP-ng version{nLicense, plural, one {} other {s}}. Are you sure you want to continue?',
   confirmRebindLicenseFromFullySupportedPool: 'The following pools will no longer be fully supported',
   licenses: 'Licenses',
   licensesBinding: 'Licenses binding',
   notEnoughXcpngLicenses: 'Not enough XCP-ng licenses',
+  notBounded: 'Not bounded',
   xcpng: 'XCP-ng',
   xosanUnregisteredDisclaimer:
     'You are not registered and therefore will not be able to create or manage your XOSAN SRs. {link}',

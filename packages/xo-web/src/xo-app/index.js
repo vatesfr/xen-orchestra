@@ -50,7 +50,7 @@ import Import from './import'
 
 import keymap, { help } from '../keymap'
 import Tooltip from '../common/tooltip'
-import { createGetObjectsOfType } from '../common/selectors'
+import { createCollectionWrapper, createGetObjectsOfType, createSelector } from '../common/selectors'
 import { bindXcpngLicense, rebindLicense, subscribeXcpngLicenses } from '../common/xo'
 
 const shortcutManager = new ShortcutManager(keymap)
@@ -152,18 +152,15 @@ export const ICON_POOL_LICENSE = {
     },
   },
   computed: {
-    allXcpngLicenses: (_, { xcpLicenses }) => xcpLicenses,
-    xcpngLicenseByboundObjectId: ({ allXcpngLicenses }) => groupBy(allXcpngLicenses, 'boundObjectId'),
-    // stringified value to avoid cascading renders due to a new returned object each time an host property changes.
-    stringifiedHostsByPoolId: (_, { hosts }) =>
-      JSON.stringify(
-        groupBy(
-          map(hosts, host => pick(host, ['$poolId', 'id'])),
-          '$poolId'
-        )
-      ),
-    poolLicenseInfoByPoolId: ({ stringifiedHostsByPoolId, xcpngLicenseByboundObjectId }) => {
-      const hostsByPoolId = JSON.parse(stringifiedHostsByPoolId)
+    xcpngLicenseByboundObjectId: (_, { xcpLicenses }) => groupBy(xcpLicenses, 'boundObjectId'),
+    xcpngLicenseById: (_, { xcpLicenses }) => groupBy(xcpLicenses, 'id'),
+    hostsByPoolId: createCollectionWrapper((_, { hosts }) =>
+      groupBy(
+        map(hosts, host => pick(host, ['$poolId', 'id'])),
+        '$poolId'
+      )
+    ),
+    poolLicenseInfoByPoolId: ({ hostsByPoolId, xcpngLicenseByboundObjectId }) => {
       const poolLicenseInfoByPoolId = {}
 
       forEach(hostsByPoolId, (hosts, poolId) => {

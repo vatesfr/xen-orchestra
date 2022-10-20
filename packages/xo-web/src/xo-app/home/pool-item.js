@@ -13,7 +13,7 @@ import { addTag, editPool, getHostMissingPatches, removeTag } from 'xo'
 import { connectStore, formatSizeShort } from 'utils'
 import { compact, flatten, map, size, uniq } from 'lodash'
 import { createGetObjectsOfType, createGetHostMetrics, createSelector } from 'selectors'
-import { injectState } from 'reaclette/dist'
+import { injectState } from 'reaclette'
 
 import styles from './index.css'
 

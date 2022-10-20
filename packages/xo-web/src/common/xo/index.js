@@ -31,6 +31,7 @@ import store from 'store'
 import { alert, chooseAction, confirm } from '../modal'
 import { error, info, success } from '../notification'
 import { getObject } from 'selectors'
+import { getXoaPlan, SOURCES } from '../xoa-plans'
 import { noop, resolveId, resolveIds } from '../utils'
 import {
   connected,
@@ -3268,7 +3269,9 @@ export const selfBindLicense = ({ id, plan, oldXoaId }) =>
 export const subscribeSelfLicenses = createSubscription(() => _call('xoa.licenses.getSelf'))
 
 export const subscribeXcpngLicenses = createSubscription(() =>
-  store.getState().user.permission === 'admin' ? _call('xoa.licenses.getAll', { productType: 'xcpng' }) : undefined
+  getXoaPlan() !== SOURCES && store.getState().user.permission === 'admin'
+    ? _call('xoa.licenses.getAll', { productType: 'xcpng' })
+    : undefined
 )
 
 // Support --------------------------------------------------------------------

@@ -601,14 +601,6 @@ const xoItemToRender = {
       />
     </span>
   ),
-  license: ({ boundObjectId, expires, id }) => (
-    <span>
-      {id.slice(-4)}{' '}
-      <span className='text-muted'>
-        ({boundObjectId === undefined ? new Date(expires).toISOString() : <Host id={boundObjectId} />})
-      </span>
-    </span>
-  ),
 }
 
 const renderXoItem = (item, { className, type: xoType, ...props } = {}) => {

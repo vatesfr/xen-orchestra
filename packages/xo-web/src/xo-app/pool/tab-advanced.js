@@ -31,6 +31,7 @@ import {
   setRemoteSyslogHosts,
   subscribeHvSupportedVersions,
   subscribePlugins,
+  subscribeXcpngLicenses,
   synchronizeNetbox,
 } from 'xo'
 import { injectState, provideState } from 'reaclette'
@@ -50,6 +51,7 @@ import { SOURCES, getXoaPlan } from '../../common/xoa-plans'
 const BindLicensesButton = decorate([
   addSubscriptions({
     hvSupportedVersions: subscribeHvSupportedVersions,
+    xcpLicenses: subscribeXcpngLicenses,
   }),
   connectStore({
     hosts: createGetObjectsOfType('host'),
@@ -57,33 +59,35 @@ const BindLicensesButton = decorate([
   provideState({
     effects: {
       async handleBindLicense() {
-        const allLicenses = this.state.allXcpngLicenses
-        const poolHosts = this.props.poolHosts
+        const { poolHosts, xcpLicenses } = this.props
 
-        if (allLicenses.length < poolHosts.length) {
+        if (xcpLicenses.length < poolHosts.length) {
           return error(_('licensesBinding'), _('notEnoughXcpngLicenses'))
         }
 
         const hostsWithoutLicense = poolHosts.filter(
           host => this.state.xcpngLicenseByboundObjectId[host.id] === undefined
         )
-        const licenseToBindByHost = await confirm({
-          body: <PoolBindLicenseModal hosts={hostsWithoutLicense} xcpngLicenses={allLicenses} />,
+        const licenseIdToBindByHostId = await confirm({
+          body: <PoolBindLicenseModal hosts={hostsWithoutLicense} />,
           icon: 'connect',
           title: _('licensesBinding'),
         })
+        const licenseToBindByHostId = {}
 
-        if (size(licenseToBindByHost) !== hostsWithoutLicense.length) {
+        if (size(licenseIdToBindByHostId) !== hostsWithoutLicense.length) {
           return error(_('licensesBinding'), _('allHostsMustBeBound'))
         }
 
         const fullySupportedPoolIds = []
         const unsupportedXcpngHostIds = []
-        forEach(licenseToBindByHost, (license, hostId) => {
+        forEach(licenseIdToBindByHostId, (licenseId, hostId) => {
+          const license = this.state.xcpngLicenseById[licenseId][0]
           const boundedHost = this.props.hosts[license.boundObjectId]
           const hostToBind = this.props.hosts[hostId]
           const poolId = boundedHost?.$pool
           const poolLicenseInfo = this.state.poolLicenseInfoByPoolId[poolId]
+          licenseToBindByHostId[hostId] = license
 
           if (
             poolLicenseInfo !== undefined &&
@@ -133,7 +137,8 @@ const BindLicensesButton = decorate([
             title: _('licensesBinding'),
           })
         }
-        await this.effects.bindXcpngLicenses(licenseToBindByHost)
+
+        await this.effects.bindXcpngLicenses(licenseToBindByHostId)
       },
     },
     computed: {
