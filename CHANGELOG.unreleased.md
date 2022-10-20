@@ -33,6 +33,7 @@
 
 - @vates/nbd-client major
 - @vates/otp major
+- @vates/predicates minor
 - @vates/read-chunk patch
 - @xen-orchestra/fs minor
 - @xen-orchestra/log minor
