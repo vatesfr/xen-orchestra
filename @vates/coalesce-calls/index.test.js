@@ -4,7 +4,7 @@
 const { describe, it } = require('test')
 const assert = require('assert')
 
-const { coalesceCalls } = require('./index')
+const { coalesceCalls } = require('./')
 
 const pDefer = () => {
   const r = {}
