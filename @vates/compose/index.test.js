@@ -43,35 +43,25 @@ describe('compose()', () => {
   })
 
   it('forwards all args to first function', () => {
-    const tracker = new assert.CallTracker()
-    const callsfunc = tracker.calls(assert.deepEqual, 1)
-
     const expectedArgs = [Math.random(), Math.random()]
     compose(
       (...args) => {
-        callsfunc(args, expectedArgs)
+        assert.deepEqual(args, expectedArgs)
       },
       // add a second function to avoid the one function special case
       Function.prototype
     )(...expectedArgs)
-
-    tracker.verify()
   })
 
   it('forwards context to all functions', () => {
-    const tracker = new assert.CallTracker()
-    const callsFunc = tracker.calls(assert.strictEqual, 2)
-
     const expectedThis = {}
     compose(
       function () {
-        callsFunc(this, expectedThis)
+        assert.strictEqual(this, expectedThis)
       },
       function () {
-        callsFunc(this, expectedThis)
+        assert.strictEqual(this, expectedThis)
       }
     ).call(expectedThis)
-
-    tracker.verify()
   })
 })
