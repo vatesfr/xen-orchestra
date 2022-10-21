@@ -1,7 +1,8 @@
 'use strict'
 
 const assert = require('assert')
-const { describe, it } = require('tap').mocha
+// eslint-disable-next-line n/no-unpublished-require
+const { describe, it } = require('test')
 
 const { decorateClass, decorateWith, decorateMethodsWith, perInstance } = require('./')
 
