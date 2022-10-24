@@ -257,7 +257,7 @@ const Proxies = decorate([
     effects: {
       async initialize({ fetchProxyUpgrades }) {
         this.state.licensesByVmUuid = groupBy(
-          (await getLicenses({ productType: 'xoproxy' })).filter(license => license.boundObjectId === undefined),
+          (await getLicenses({ productType: 'xoproxy' })).filter(license => license.boundObjectId !== undefined),
           'boundObjectId'
         )
         return fetchProxyUpgrades(this.props.proxies.map(({ id }) => id))

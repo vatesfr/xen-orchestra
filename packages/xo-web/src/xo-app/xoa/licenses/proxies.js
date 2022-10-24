@@ -98,7 +98,7 @@ const Proxies = decorate([
     computed: {
       licensesByVmUuid: (state, { proxyLicenses }) =>
         groupBy(
-          proxyLicenses.filter(license => license.boundObjectId === undefined),
+          proxyLicenses.filter(license => license.boundObjectId !== undefined),
           'boundObjectId'
         ),
     },
