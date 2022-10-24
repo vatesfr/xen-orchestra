@@ -1,6 +1,5 @@
 'use strict'
 
-// eslint-disable-next-line n/no-unpublished-require
 const { describe, it } = require('test')
 const assert = require('node:assert').strict
 
@@ -8,9 +7,7 @@ const { Readable } = require('stream')
 
 const { readChunk, readChunkStrict } = require('./')
 
-// eslint-disable-next-line n/no-unsupported-features/node-builtins
 const makeStream = it => Readable.from(it, { objectMode: false })
-// eslint-disable-next-line n/no-unsupported-features/node-builtins
 makeStream.obj = Readable.from
 
 describe('readChunk', () => {
