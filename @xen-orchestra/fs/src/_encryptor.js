@@ -3,6 +3,11 @@ const { readChunk } = require('@vates/read-chunk')
 const crypto = require('crypto')
 
 export const DEFAULT_ENCRYPTION_ALGORITHM = 'aes-256-gcm'
+export const UNENCRYPTED_ALGORITHM = 'none'
+
+export function isLegacyEncryptionAlgorithm(algorithm) {
+  return algorithm !== UNENCRYPTED_ALGORITHM && algorithm !== DEFAULT_ENCRYPTION_ALGORITHM
+}
 
 function getEncryptor(algorithm = DEFAULT_ENCRYPTION_ALGORITHM, key) {
   if (key === undefined) {
