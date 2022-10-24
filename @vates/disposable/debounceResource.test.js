@@ -1,8 +1,6 @@
 'use strict'
 
-// eslint-disable-next-line n/no-unpublished-require
 const { describe, it } = require('test')
-// eslint-disable-next-line n/no-unpublished-require
 const { useFakeTimers, spy, assert } = require('sinon')
 
 const { createDebounceResource } = require('./debounceResource')
