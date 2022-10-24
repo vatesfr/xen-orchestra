@@ -126,11 +126,12 @@ const COLUMN_PROXY = {
 
 const COLUMN_ENCRYPTION = {
   itemRenderer: remote => {
-    // remote is not sync, not a lot of data
+    // remote.info?.encryption undefined means that remote is not enabled and synced
+    // we don't have the agorithm used at this step
     if (remote.info?.encryption === undefined) {
       return remote.encryptionKey !== undefined ? <Icon size='lg' icon='lock' /> : null
     } else {
-      // not encrypted
+      // remote enabled and not encrypted
       if (remote.info.encryption.algorithm === 'none') {
         return null
       }
@@ -138,7 +139,7 @@ const COLUMN_ENCRYPTION = {
       return (
         <span>
           <Tooltip content={algorithm}>
-            <Icon icon='lock' size='lg' />
+            <Icon className='mr-1' icon='lock' size='lg' />
           </Tooltip>
 
           {isLegacy && (
@@ -150,7 +151,7 @@ const COLUMN_ENCRYPTION = {
       )
     }
   },
-  name: _('remoteEncryption'),
+  name: _('encryption'),
 }
 
 const fixRemoteUrl = remote => editRemote(remote, { url: format(remote) })
