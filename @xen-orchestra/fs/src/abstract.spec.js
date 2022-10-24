@@ -120,15 +120,11 @@ describe('encryption', () => {
 
     await pFromCallback(cb => rimraf(dir, cb))
   })
-  it('sync should create metadata if missing (not encrypted)', async () => {
+  it('sync should NOT create metadata if missing (not encrypted)', async () => {
     handler = getHandler({ url: `file://${dir}` })
     await handler._checkMetadata()
 
-    expect(await fs.readdir(dir)).toEqual(['encryption.json', 'metadata.json'])
-
-    const encryption = JSON.parse(await fs.readFile(`${dir}/encryption.json`, 'utf-8'))
-    expect(encryption.algorithm).toEqual('none')
-    expect(async () => JSON.parse(await fs.readFile(`${dir}/metadata.json`))).not.toThrowError()
+    expect(await fs.readdir(dir)).toEqual([])
   })
 
   it('sync should create metadata if missing (encrypted)', async () => {
@@ -160,6 +156,7 @@ describe('encryption', () => {
     handler = getHandler({ url: `file://${dir}` })
     await handler._checkMetadata()
     await handler.forget()
+    // nothing created without encryption
     handler = getHandler({ url: `file://${dir}?encryptionKey="73c1838d7d8a6088ca2317fb5f29cd00"` })
     await handler._checkMetadata()
     let encryption = JSON.parse(await fs.readFile(`${dir}/encryption.json`, 'utf-8'))
