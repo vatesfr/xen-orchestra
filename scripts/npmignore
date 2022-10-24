@@ -2,28 +2,30 @@
 
 /benchmark/
 /benchmarks/
-*.bench.js
-*.bench.js.map
+*.bench.{,c,m}js
+*.bench.{,c,m}js.map
 
 /coverage/
 
 /examples/
-example.js
-example.js.map
-*.example.js
-*.example.js.map
+example.{,c,m}js
+example.{,c,m}js.map
+*.example.{,c,m}js
+*.example.{,c,m}js.map
 
 /fixture/
 /fixtures/
-*.fixture.js
-*.fixture.js.map
-*.fixtures.js
-*.fixtures.js.map
+*.fixture.{,c,m}js
+*.fixture.{,c,m}js.map
+*.fixtures.{,c,m}js
+*.fixtures.{,c,m}js.map
 
 /test/
 /tests/
-*.spec.js
-*.spec.js.map
+*.spec.{,c,m}js
+*.spec.{,c,m}js.map
+*.test.{,c,m}js
+*.test.{,c,m}js.map
 
 __snapshots__/
 

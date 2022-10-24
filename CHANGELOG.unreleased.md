@@ -14,6 +14,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- Really enable by default the embedded HTTP/HTTPS proxy
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -32,9 +34,11 @@
 
 - @vates/nbd-client major
 - @vates/otp major
+- @vates/predicates minor
 - @vates/read-chunk patch
 - @xen-orchestra/fs minor
 - @xen-orchestra/log minor
+- @xen-orchestra/mixins patch
 - xo-remote-parser patch
 - xo-server minor
 - xo-server-transport-nagios patch

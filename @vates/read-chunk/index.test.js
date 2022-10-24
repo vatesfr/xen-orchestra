@@ -1,6 +1,7 @@
 'use strict'
 
-/* eslint-env jest */
+const { describe, it } = require('test')
+const assert = require('node:assert').strict
 
 const { Readable } = require('stream')
 
@@ -11,42 +12,42 @@ makeStream.obj = Readable.from
 
 describe('readChunk', () => {
   it('returns null if stream is empty', async () => {
-    expect(await readChunk(makeStream([]))).toBe(null)
+    assert.strictEqual(await readChunk(makeStream([])), null)
   })
 
   it('returns null if the stream is already ended', async () => {
     const stream = await makeStream([])
     await readChunk(stream)
 
-    expect(await readChunk(stream)).toBe(null)
+    assert.strictEqual(await readChunk(stream), null)
   })
 
   describe('with binary stream', () => {
     it('returns the first chunk of data', async () => {
-      expect(await readChunk(makeStream(['foo', 'bar']))).toEqual(Buffer.from('foo'))
+      assert.deepEqual(await readChunk(makeStream(['foo', 'bar'])), Buffer.from('foo'))
     })
 
     it('returns a chunk of the specified size (smaller than first)', async () => {
-      expect(await readChunk(makeStream(['foo', 'bar']), 2)).toEqual(Buffer.from('fo'))
+      assert.deepEqual(await readChunk(makeStream(['foo', 'bar']), 2), Buffer.from('fo'))
     })
 
     it('returns a chunk of the specified size (larger than first)', async () => {
-      expect(await readChunk(makeStream(['foo', 'bar']), 4)).toEqual(Buffer.from('foob'))
+      assert.deepEqual(await readChunk(makeStream(['foo', 'bar']), 4), Buffer.from('foob'))
     })
 
     it('returns less data if stream ends', async () => {
-      expect(await readChunk(makeStream(['foo', 'bar']), 10)).toEqual(Buffer.from('foobar'))
+      assert.deepEqual(await readChunk(makeStream(['foo', 'bar']), 10), Buffer.from('foobar'))
     })
 
     it('returns an empty buffer if the specified size is 0', async () => {
-      expect(await readChunk(makeStream(['foo', 'bar']), 0)).toEqual(Buffer.alloc(0))
+      assert.deepEqual(await readChunk(makeStream(['foo', 'bar']), 0), Buffer.alloc(0))
     })
   })
 
   describe('with object stream', () => {
     it('returns the first chunk of data verbatim', async () => {
       const chunks = [{}, {}]
-      expect(await readChunk(makeStream.obj(chunks))).toBe(chunks[0])
+      assert.strictEqual(await readChunk(makeStream.obj(chunks)), chunks[0])
     })
   })
 })
@@ -62,15 +63,15 @@ const rejectionOf = promise =>
 describe('readChunkStrict', function () {
   it('throws if stream is empty', async () => {
     const error = await rejectionOf(readChunkStrict(makeStream([])))
-    expect(error).toBeInstanceOf(Error)
-    expect(error.message).toBe('stream has ended without data')
-    expect(error.chunk).toEqual(undefined)
+    assert(error instanceof Error)
+    assert.strictEqual(error.message, 'stream has ended without data')
+    assert.strictEqual(error.chunk, undefined)
   })
 
   it('throws if stream ends with not enough data', async () => {
     const error = await rejectionOf(readChunkStrict(makeStream(['foo', 'bar']), 10))
-    expect(error).toBeInstanceOf(Error)
-    expect(error.message).toBe('stream has ended with not enough data')
-    expect(error.chunk).toEqual(Buffer.from('foobar'))
+    assert(error instanceof Error)
+    assert.strictEqual(error.message, 'stream has ended with not enough data')
+    assert.deepEqual(error.chunk, Buffer.from('foobar'))
   })
 })

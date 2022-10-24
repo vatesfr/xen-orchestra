@@ -15,6 +15,8 @@ export function parseBasicAuth(header) {
   const i = credentials.indexOf(':')
   if (i === -1) {
     credentials = { token: credentials }
+  } else if (i === credentials.length - 1) {
+    credentials = { token: credentials.slice(0, i) }
   } else {
     // https://datatracker.ietf.org/doc/html/rfc3986#section-3.2.1
     credentials = {

@@ -24,10 +24,14 @@
     "node": ">=8.10"
   },
   "scripts": {
-    "postversion": "npm publish --access public"
+    "postversion": "npm publish --access public",
+    "test": "node--test"
   },
   "author": {
     "name": "Vates SAS",
     "url": "https://vates.fr"
+  },
+  "devDependencies": {
+    "test": "^3.2.1"
   }
 }
