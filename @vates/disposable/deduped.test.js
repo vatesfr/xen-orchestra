@@ -1,13 +1,16 @@
 'use strict'
 
-/* eslint-env jest */
+// eslint-disable-next-line n/no-unpublished-require
+const { describe, it } = require('test')
+// eslint-disable-next-line n/no-unpublished-require
+const { spy, assert } = require('sinon')
 
 const { deduped } = require('./deduped')
 
 describe('deduped()', () => {
   it('calls the resource function only once', async () => {
     const value = {}
-    const getResource = jest.fn(async () => ({
+    const getResource = spy(async () => ({
       value,
       dispose: Function.prototype,
     }))
@@ -17,13 +20,13 @@ describe('deduped()', () => {
     const { value: v1 } = await dedupedGetResource()
     const { value: v2 } = await dedupedGetResource()
 
-    expect(getResource).toHaveBeenCalledTimes(1)
-    expect(v1).toBe(value)
-    expect(v2).toBe(value)
+    assert.calledOnce(getResource)
+    assert.match(v1, value)
+    assert.match(v2, value)
   })
 
   it('only disposes the source disposable when its all copies dispose', async () => {
-    const dispose = jest.fn()
+    const dispose = spy()
     const getResource = async () => ({
       value: '',
       dispose,
@@ -36,35 +39,35 @@ describe('deduped()', () => {
 
     d1()
 
-    expect(dispose).not.toHaveBeenCalled()
+    assert.notCalled(dispose)
 
     d2()
 
-    expect(dispose).toHaveBeenCalledTimes(1)
+    assert.calledOnce(dispose)
   })
 
   it('works with sync factory', () => {
     const value = {}
-    const dispose = jest.fn()
+    const dispose = spy()
     const dedupedGetResource = deduped(() => ({ value, dispose }))
 
     const d1 = dedupedGetResource()
-    expect(d1.value).toBe(value)
+    assert.match(d1.value, value)
 
     const d2 = dedupedGetResource()
-    expect(d2.value).toBe(value)
+    assert.match(d2.value, value)
 
     d1.dispose()
 
-    expect(dispose).not.toHaveBeenCalled()
+    assert.notCalled(dispose)
 
     d2.dispose()
 
-    expect(dispose).toHaveBeenCalledTimes(1)
+    assert.calledOnce(dispose)
   })
 
   it('no race condition on dispose before async acquisition', async () => {
-    const dispose = jest.fn()
+    const dispose = spy()
     const dedupedGetResource = deduped(async () => ({ value: 42, dispose }))
 
     const d1 = await dedupedGetResource()
@@ -73,6 +76,6 @@ describe('deduped()', () => {
 
     d1.dispose()
 
-    expect(dispose).not.toHaveBeenCalled()
+    assert.notCalled(dispose)
   })
 })
