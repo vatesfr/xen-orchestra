@@ -1,7 +1,6 @@
 'use strict'
 
 const assert = require('assert')
-// eslint-disable-next-line n/no-unpublished-require
 const { describe, it } = require('test')
 
 const { decorateClass, decorateWith, decorateMethodsWith, perInstance } = require('./')
