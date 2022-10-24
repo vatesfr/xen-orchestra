@@ -32,12 +32,6 @@ module.exports = {
       rules: {
         'n/no-unpublished-require': 'off',
         'n/no-unpublished-import': 'off',
-      },
-    },
-    {
-      files: ['*.spec.{,c,m}js'],
-      excludedFiles: ['@vates/nbd-client', '@vates/otp'],
-      rules: {
         'n/no-unsupported-features/node-builtins': [
           'error',
           {
