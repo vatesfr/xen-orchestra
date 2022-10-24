@@ -1,5 +1,4 @@
 import { strict as assert } from 'node:assert'
-// eslint-disable-next-line n/no-unpublished-import
 import { describe, it } from 'tap/mocha'
 
 import {
