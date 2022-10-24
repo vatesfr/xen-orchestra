@@ -49,10 +49,14 @@
             ></template
           >
         </UiKeyValueRow>
+      </UiKeyValueList>
+    </UiCard>
+    <UiCard class="group">
+      <UiTitle type="h4">{{ $t("language") }}</UiTitle>
+      <UiKeyValueList>
         <UiKeyValueRow>
-          <template #key>{{ $t("language") }}</template>
-          <template #value
-            ><FormWidget :before="faEarthAmericas">
+          <template #value>
+            <FormWidget class="full-length" :before="faEarthAmericas">
               <select v-model="$i18n.locale">
                 <option
                   :value="locale"
@@ -104,8 +108,7 @@ const setDarkMode = (enabled: boolean) => {
   flex-direction: column;
 }
 
-.group {
-  min-width: 30em;
-  overflow: auto;
+.full-length {
+  width: 100%;
 }
 </style>
