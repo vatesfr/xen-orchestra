@@ -1,7 +1,7 @@
 'use strict'
 
 const { Constants, VhdFile } = require('vhd-lib')
-const { getHandler } = require('@xen-orchestra/fs')
+const { getSyncedHandler } = require('@xen-orchestra/fs')
 const { openVhd } = require('vhd-lib/openVhd')
 const { resolve } = require('path')
 const Disposable = require('promise-toolbox/Disposable')
@@ -91,11 +91,11 @@ async function showList(handler, paths) {
 }
 
 module.exports = async function info(args) {
-  const handler = getHandler({ url: 'file:///' })
+  await Disposable.use(getSyncedHandler({ url: 'file:///' }), async handler => {
+    if (args.length === 1) {
+      return showDetails(handler, args[0])
+    }
 
-  if (args.length === 1) {
-    return showDetails(handler, args[0])
-  }
-
-  return showList(handler, args)
+    return showList(handler, args)
+  })
 }
