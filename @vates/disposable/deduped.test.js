@@ -1,8 +1,6 @@
 'use strict'
 
-// eslint-disable-next-line n/no-unpublished-require
 const { describe, it } = require('test')
-// eslint-disable-next-line n/no-unpublished-require
 const { spy, assert } = require('sinon')
 
 const { deduped } = require('./deduped')
