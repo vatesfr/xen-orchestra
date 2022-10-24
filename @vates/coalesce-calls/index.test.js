@@ -1,6 +1,5 @@
 'use strict'
 
-// eslint-disable-next-line n/no-unpublished-require
 const { describe, it } = require('test')
 const assert = require('assert')
 
