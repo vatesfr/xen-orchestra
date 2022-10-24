@@ -5,7 +5,7 @@
 const fs = require('fs-extra')
 const rimraf = require('rimraf')
 const tmp = require('tmp')
-const { getHandler } = require('@xen-orchestra/fs')
+const { getSyncedHandler } = require('@xen-orchestra/fs')
 const { pFromCallback } = require('promise-toolbox')
 
 const { VhdFile, chainVhd } = require('./index')
@@ -14,15 +14,21 @@ const { _cleanupVhds: cleanupVhds, mergeVhdChain } = require('./merge')
 const { checkFile, createRandomFile, convertFromRawToVhd } = require('./tests/utils')
 
 let tempDir = null
-
+let handler
+let disposeHandler
 jest.setTimeout(60000)
 
 beforeEach(async () => {
   tempDir = await pFromCallback(cb => tmp.dir(cb))
+
+  const d = await getSyncedHandler({ url: `file://${tempDir}` })
+  handler = d.value
+  disposeHandler = d.dispose
 })
 
 afterEach(async () => {
   await pFromCallback(cb => rimraf(tempDir, cb))
+  disposeHandler()
 })
 
 test('merge works in normal cases', async () => {
@@ -32,7 +38,6 @@ test('merge works in normal cases', async () => {
   const childRandomFileName = `small_randomfile`
   const parentFileName = `parent.vhd`
   const child1FileName = `child1.vhd`
-  const handler = getHandler({ url: `file://${tempDir}` })
 
   await createRandomFile(`${tempDir}/${parentRandomFileName}`, mbOfFather)
   await convertFromRawToVhd(`${tempDir}/${parentRandomFileName}`, `${tempDir}/${parentFileName}`)
@@ -70,7 +75,6 @@ test('it can resume a simple merge ', async () => {
   const mbOfChildren = 4
   const parentRandomFileName = `${tempDir}/randomfile`
   const childRandomFileName = `${tempDir}/small_randomfile`
-  const handler = getHandler({ url: `file://${tempDir}` })
 
   await createRandomFile(`${tempDir}/randomfile`, mbOfFather)
   await convertFromRawToVhd(`${tempDir}/randomfile`, `${tempDir}/parent.vhd`)
@@ -169,29 +173,28 @@ test('it can resume a multiple merge ', async () => {
   const parentFileName = `${tempDir}/parent.vhd`
   const childFileName = `${tempDir}/child.vhd`
   const grandChildFileName = `${tempDir}/grandchild.vhd`
-  const handler = getHandler({ url: 'file://' })
   await createRandomFile(parentRandomFileName, mbOfFather)
   await convertFromRawToVhd(parentRandomFileName, parentFileName)
 
   await createRandomFile(childRandomFileName, mbOfChildren)
   await convertFromRawToVhd(childRandomFileName, childFileName)
-  await chainVhd(handler, parentFileName, handler, childFileName, true)
+  await chainVhd(handler, 'parent.vhd', handler, 'child.vhd', true)
 
   await createRandomFile(grandChildRandomFileName, mbOfGrandChildren)
   await convertFromRawToVhd(grandChildRandomFileName, grandChildFileName)
-  await chainVhd(handler, childFileName, handler, grandChildFileName, true)
+  await chainVhd(handler, 'child.vhd', handler, 'grandchild.vhd', true)
 
-  const parentVhd = new VhdFile(handler, parentFileName)
+  const parentVhd = new VhdFile(handler, 'parent.vhd')
   await parentVhd.readHeaderAndFooter()
 
-  const childVhd = new VhdFile(handler, childFileName)
+  const childVhd = new VhdFile(handler, 'child.vhd')
   await childVhd.readHeaderAndFooter()
 
-  const grandChildVhd = new VhdFile(handler, grandChildFileName)
+  const grandChildVhd = new VhdFile(handler, 'grandchild.vhd')
   await grandChildVhd.readHeaderAndFooter()
 
   await handler.writeFile(
-    `${tempDir}/.parent.vhd.merge.json`,
+    `.parent.vhd.merge.json`,
     JSON.stringify({
       parent: {
         header: parentVhd.header.checksum,
@@ -205,12 +208,12 @@ test('it can resume a multiple merge ', async () => {
 
   // should fail since the merge state file has only data of parent and child
   await expect(
-    async () => await mergeVhdChain(handler, [parentFileName, childFileName, grandChildFileName])
+    async () => await mergeVhdChain(handler, ['parent.vhd', 'child.vhd', 'grandchild.vhd'])
   ).rejects.toThrow()
   // merge
-  await handler.unlink(`${tempDir}/.parent.vhd.merge.json`)
+  await handler.unlink(`.parent.vhd.merge.json`)
   await handler.writeFile(
-    `${tempDir}/.parent.vhd.merge.json`,
+    `.parent.vhd.merge.json`,
     JSON.stringify({
       parent: {
         header: parentVhd.header.checksum,
@@ -219,11 +222,11 @@ test('it can resume a multiple merge ', async () => {
         header: grandChildVhd.header.checksum,
       },
       currentBlock: 1,
-      childPath: [childVhd, grandChildVhd],
+      childPath: ['child.vhd', 'grandchild.vhd'],
     })
   )
   // it should succeed
-  await mergeVhdChain(handler, [parentFileName, childFileName, grandChildFileName])
+  await mergeVhdChain(handler, ['parent.vhd', 'child.vhd', 'grandchild.vhd'])
 })
 
 test('it merge multiple child in one pass ', async () => {
@@ -236,25 +239,25 @@ test('it merge multiple child in one pass ', async () => {
   const parentFileName = `${tempDir}/parent.vhd`
   const childFileName = `${tempDir}/child.vhd`
   const grandChildFileName = `${tempDir}/grandchild.vhd`
-  const handler = getHandler({ url: 'file://' })
+
   await createRandomFile(parentRandomFileName, mbOfFather)
   await convertFromRawToVhd(parentRandomFileName, parentFileName)
 
   await createRandomFile(childRandomFileName, mbOfChildren)
   await convertFromRawToVhd(childRandomFileName, childFileName)
-  await chainVhd(handler, parentFileName, handler, childFileName, true)
+  await chainVhd(handler, 'parent.vhd', handler, 'child.vhd', true)
 
   await createRandomFile(grandChildRandomFileName, mbOfGrandChildren)
   await convertFromRawToVhd(grandChildRandomFileName, grandChildFileName)
-  await chainVhd(handler, childFileName, handler, grandChildFileName, true)
+  await chainVhd(handler, 'child.vhd', handler, 'grandchild.vhd', true)
 
   // merge
-  await mergeVhdChain(handler, [parentFileName, childFileName, grandChildFileName])
+  await mergeVhdChain(handler, ['parent.vhd', 'child.vhd', 'grandchild.vhd'])
 
   // check that vhd is still valid
   await checkFile(grandChildFileName)
 
-  const parentVhd = new VhdFile(handler, grandChildFileName)
+  const parentVhd = new VhdFile(handler, 'grandchild.vhd')
   await parentVhd.readHeaderAndFooter()
   await parentVhd.readBlockAllocationTable()
 
@@ -277,8 +280,6 @@ test('it merge multiple child in one pass ', async () => {
 })
 
 test('it cleans vhd mergedfiles', async () => {
-  const handler = getHandler({ url: `file://${tempDir}` })
-
   await handler.writeFile('parent', 'parentData')
   await handler.writeFile('child1', 'child1Data')
   await handler.writeFile('child2', 'child2Data')
