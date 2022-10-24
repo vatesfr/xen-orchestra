@@ -36,9 +36,11 @@
 - @vates/otp major
 - @vates/predicates minor
 - @vates/read-chunk patch
+- @xen-orchestra/backups patch
 - @xen-orchestra/fs minor
 - @xen-orchestra/log minor
-- @xen-orchestra/mixins patch
+- vhd-cli patch
+- vhd-lib patch
 - xo-remote-parser patch
 - xo-server minor
 - xo-server-transport-nagios patch
