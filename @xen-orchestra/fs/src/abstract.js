@@ -370,19 +370,21 @@ export default class RemoteHandlerAbstract {
       JSON.parse(data)
     } catch (error) {
       // can be enoent, bad algorithm, or broeken json ( bad key or algorithm)
-      if (
-        error.code === 'ENOENT' || // no encryption on non empty remote
-        (await this._canWriteMetadata()) // any other error , but on empty remote
-      ) {
-        info('will update metadata of this remote')
-        return this._createMetadata()
+      if (encryptionAlgorithm !== 'none') {
+        if (await this._canWriteMetadata()) {
+          // any other error , but on empty remote => update with remote settings
+
+          info('will update metadata of this remote')
+          return this._createMetadata()
+        } else {
+          warn(
+            `The encryptionKey settings of this remote does not match the key used to create it. You won't be able to read any data from this remote`,
+            { error }
+          )
+          // will probably send a ERR_OSSL_EVP_BAD_DECRYPT if key is incorrect
+          throw error
+        }
       }
-      warn(
-        `The encryptionKey settings of this remote does not match the key used to create it. You won't be able to read any data from this remote`,
-        { error }
-      )
-      // will probably send a ERR_OSSL_EVP_BAD_DECRYPT if key is incorrect
-      throw error
     }
   }
 
