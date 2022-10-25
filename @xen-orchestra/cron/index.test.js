@@ -10,70 +10,72 @@ const clock = sinon.useFakeTimers()
 
 const wrap = value => () => value
 
-let originalDateNow
-originalDateNow = Date.now
+test('issues', async t => {
+  let originalDateNow
+  originalDateNow = Date.now
 
-test('stop during async execution', async () => {
-  let nCalls = 0
-  let resolve, promise
+  await t.test('stop during async execution', async () => {
+    let nCalls = 0
+    let resolve, promise
 
-  const schedule = createSchedule('* * * * *')
-  const job = schedule.createJob(() => {
-    ++nCalls
+    const schedule = createSchedule('* * * * *')
+    const job = schedule.createJob(() => {
+      ++nCalls
 
-    // eslint-disable-next-line promise/param-names
-    promise = new Promise(r => {
-      resolve = r
+      // eslint-disable-next-line promise/param-names
+      promise = new Promise(r => {
+        resolve = r
+      })
+      return promise
     })
-    return promise
+
+    job.start()
+    Date.now = wrap(+schedule.next(1)[0])
+    clock.runAll()
+
+    assert.strictEqual(nCalls, 1)
+
+    job.stop()
+
+    resolve()
+    await promise
+
+    clock.runAll()
+    assert.strictEqual(nCalls, 1)
   })
 
-  job.start()
-  Date.now = wrap(+schedule.next(1)[0])
-  clock.runAll()
+  await t.test('stop then start during async job execution', async () => {
+    let nCalls = 0
+    let resolve, promise
 
-  assert.strictEqual(nCalls, 1)
+    const schedule = createSchedule('* * * * *')
+    const job = schedule.createJob(() => {
+      ++nCalls
 
-  job.stop()
-
-  resolve()
-  await promise
-
-  clock.runAll()
-  assert.strictEqual(nCalls, 1)
-})
-
-test('stop then start during async job execution', async () => {
-  let nCalls = 0
-  let resolve, promise
-
-  const schedule = createSchedule('* * * * *')
-  const job = schedule.createJob(() => {
-    ++nCalls
-
-    // eslint-disable-next-line promise/param-names
-    promise = new Promise(r => {
-      resolve = r
+      // eslint-disable-next-line promise/param-names
+      promise = new Promise(r => {
+        resolve = r
+      })
+      return promise
     })
-    return promise
+
+    job.start()
+    Date.now = wrap(+schedule.next(1)[0])
+    clock.runAll()
+
+    assert.strictEqual(nCalls, 1)
+
+    job.stop()
+    job.start()
+
+    resolve()
+    await promise
+
+    Date.now = wrap(+schedule.next(1)[0])
+    clock.runAll()
+    assert.strictEqual(nCalls, 2)
   })
 
-  job.start()
-  Date.now = wrap(+schedule.next(1)[0])
-  clock.runAll()
-
-  assert.strictEqual(nCalls, 1)
-
-  job.stop()
-  job.start()
-
-  resolve()
-  await promise
-
-  Date.now = wrap(+schedule.next(1)[0])
-  clock.runAll()
-  assert.strictEqual(nCalls, 2)
+  Date.now = originalDateNow
+  originalDateNow = undefined
 })
-
-Date.now = originalDateNow
-originalDateNow = undefined
