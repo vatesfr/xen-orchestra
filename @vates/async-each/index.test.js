@@ -1,8 +1,8 @@
 'use strict'
 
 const { describe, it, beforeEach } = require('test')
-const { spy, assert } = require('sinon')
-const { rejects } = require('tap')
+const assert = require('assert').strict
+const { spy } = require('sinon')
 
 const { asyncEach } = require('./')
 
@@ -40,11 +40,11 @@ describe('asyncEach', () => {
 
         await asyncEach.call(thisArg, iterable, iteratee, { concurrency: 1 })
 
-        assert.match(
+        assert.deepStrictEqual(
           iteratee.thisValues,
           Array.from(values, () => thisArg)
         )
-        assert.match(
+        assert.deepStrictEqual(
           iteratee.args,
           Array.from(values, (value, index) => [value, index, iterable])
         )
@@ -57,7 +57,7 @@ describe('asyncEach', () => {
             values,
             async () => {
               ++running
-              assert.match(running <= concurrency, true)
+              assert.deepStrictEqual(running <= concurrency, true)
               await randomDelay()
               --running
             },
@@ -68,14 +68,20 @@ describe('asyncEach', () => {
 
       it('stops on first error when stopOnError is true', async () => {
         const error = new Error()
+        const tracker = new assert.CallTracker()
         const iteratee = spy((_, i) => {
           if (i === 1) {
             throw error
           }
         })
 
-        assert.match(await rejectionOf(asyncEach(iterable, iteratee, { concurrency: 1, stopOnError: true })), error)
-        assert.calledTwice(iteratee)
+        const callsFunc = tracker.calls(iteratee, 2)
+
+        assert.deepStrictEqual(
+          await rejectionOf(asyncEach(iterable, callsFunc, { concurrency: 1, stopOnError: true })),
+          error
+        )
+        tracker.verify()
       })
 
       it('rejects AggregateError when stopOnError is false', async () => {
@@ -87,8 +93,8 @@ describe('asyncEach', () => {
         })
 
         const error = await rejectionOf(asyncEach(iterable, iteratee, { stopOnError: false }))
-        assert.match(error.errors, errors)
-        assert.match(
+        assert.deepStrictEqual(error.errors, errors)
+        assert.deepStrictEqual(
           iteratee.args,
           Array.from(values, (value, index) => [value, index, iterable])
         )
@@ -96,14 +102,19 @@ describe('asyncEach', () => {
 
       it('can be interrupted with an AbortSignal', async () => {
         const ac = new AbortController()
+        const tracker = new assert.CallTracker()
         const iteratee = spy((_, i) => {
           if (i === 1) {
             ac.abort()
           }
         })
 
-        await rejects(asyncEach(iterable, iteratee, { concurrency: 1, signal: ac.signal }), 'asyncEach aborted')
-        assert.calledTwice(iteratee)
+        const callsFunc = tracker.calls(iteratee, 2)
+
+        await assert.rejects(asyncEach(iterable, callsFunc, { concurrency: 1, signal: ac.signal }), {
+          message: 'asyncEach aborted',
+        })
+        tracker.verify()
       })
     })
   )
