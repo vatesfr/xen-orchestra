@@ -1,6 +1,8 @@
 'use strict'
 
-/* eslint-env jest */
+const { describe, it } = require('test')
+const assert = require('assert').strict
+const sinon = require('sinon')
 
 const { asyncMapSettled } = require('./')
 
@@ -9,26 +11,29 @@ const noop = Function.prototype
 describe('asyncMapSettled', () => {
   it('works', async () => {
     const values = [Math.random(), Math.random()]
-    const spy = jest.fn(async v => v * 2)
+    const spy = sinon.spy(async v => v * 2)
     const iterable = new Set(values)
 
     // returns an array containing the result of each calls
-    expect(await asyncMapSettled(iterable, spy)).toEqual(values.map(value => value * 2))
+    assert.deepStrictEqual(
+      await asyncMapSettled(iterable, spy),
+      values.map(value => value * 2)
+    )
 
     for (let i = 0, n = values.length; i < n; ++i) {
       // each call receive the current item as sole argument
-      expect(spy.mock.calls[i]).toEqual([values[i]])
+      assert.deepStrictEqual(spy.args[i], [values[i]])
 
       // each call as this bind to the iterable
-      expect(spy.mock.instances[i]).toBe(iterable)
+      assert.deepStrictEqual(spy.thisValues[i], iterable)
     }
   })
 
   it('can use a specified thisArg', () => {
     const thisArg = {}
-    const spy = jest.fn()
+    const spy = sinon.spy()
     asyncMapSettled(['foo'], spy, thisArg)
-    expect(spy.mock.instances[0]).toBe(thisArg)
+    assert.deepStrictEqual(spy.thisValues[0], thisArg)
   })
 
   it('rejects only when all calls as resolved', async () => {
@@ -55,19 +60,22 @@ describe('asyncMapSettled', () => {
     // wait for all microtasks to settle
     await new Promise(resolve => setImmediate(resolve))
 
-    expect(hasSettled).toBe(false)
+    assert.strictEqual(hasSettled, false)
 
     defers[1].resolve()
 
     // wait for all microtasks to settle
     await new Promise(resolve => setImmediate(resolve))
 
-    expect(hasSettled).toBe(true)
-    await expect(promise).rejects.toBe(error)
+    assert.strictEqual(hasSettled, true)
+    await assert.rejects(promise, error)
   })
 
   it('issues when latest promise rejects', async () => {
     const error = new Error()
-    await expect(asyncMapSettled([1], () => Promise.reject(error))).rejects.toBe(error)
+    await assert.rejects(
+      asyncMapSettled([1], () => Promise.reject(error)),
+      error
+    )
   })
 })
