@@ -69,11 +69,11 @@ describe('asyncEach', () => {
       it('stops on first error when stopOnError is true', async () => {
         const error = new Error()
         const tracker = new assert.CallTracker()
-        const iteratee = spy((_, i) => {
+        const iteratee = (_, i) => {
           if (i === 1) {
             throw error
           }
-        })
+        }
 
         const callsFunc = tracker.calls(iteratee, 2)
 
@@ -103,11 +103,11 @@ describe('asyncEach', () => {
       it('can be interrupted with an AbortSignal', async () => {
         const ac = new AbortController()
         const tracker = new assert.CallTracker()
-        const iteratee = spy((_, i) => {
+        const iteratee = (_, i) => {
           if (i === 1) {
             ac.abort()
           }
-        })
+        }
 
         const callsFunc = tracker.calls(iteratee, 2)
 
