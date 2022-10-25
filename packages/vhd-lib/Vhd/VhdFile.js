@@ -10,6 +10,7 @@ const {
 } = require('../_constants')
 const { computeBatSize, sectorsToBytes, unpackHeader, unpackFooter, BUF_BLOCK_UNUSED } = require('./_utils')
 const { createLogger } = require('@xen-orchestra/log')
+const BrokenVhdError = require('../BrokenVhdError')
 const { fuFooter, fuHeader, checksumStruct } = require('../_structs')
 const { set: mapSetBit } = require('../_bitmap')
 const { VhdAbstract } = require('./VhdAbstract')
@@ -93,7 +94,14 @@ exports.VhdFile = class VhdFile extends VhdAbstract {
     // EISDIR pathname refers to a directory and the access requested
     // involved writing (that is, O_WRONLY or O_RDWR is set).
     // reading the header ensure we have a well formed file immediatly
-    await vhd.readHeaderAndFooter(checkSecondFooter)
+    try {
+      await vhd.readHeaderAndFooter(checkSecondFooter)
+    } catch (error) {
+      if (error.code === 'ERR_ASSERTION') {
+        throw new BrokenVhdError('Invalid header or footer', error)
+      }
+      throw error
+    }
     return {
       dispose: () => handler.closeFile(fd),
       value: vhd,

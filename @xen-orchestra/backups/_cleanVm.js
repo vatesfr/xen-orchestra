@@ -3,7 +3,7 @@
 const sum = require('lodash/sum')
 const UUID = require('uuid')
 const { asyncMap } = require('@xen-orchestra/async-map')
-const { Constants, openVhd, VhdAbstract, VhdFile } = require('vhd-lib')
+const { Constants, openVhd, VhdAbstract, VhdFile, BrokenVhdError } = require('vhd-lib')
 const { isVhdAlias, resolveVhdAlias } = require('vhd-lib/aliases')
 const { dirname, resolve } = require('path')
 const { DISK_TYPES } = Constants
@@ -242,7 +242,7 @@ exports.cleanVm = async function cleanVm(
     } catch (error) {
       vhds.delete(path)
       logWarn('VHD check error', { path, error })
-      if (error?.code === 'ERR_ASSERTION' && remove) {
+      if (error instanceof BrokenVhdError && remove) {
         logInfo('deleting broken VHD', { path })
         return VhdAbstract.unlink(handler, path)
       }

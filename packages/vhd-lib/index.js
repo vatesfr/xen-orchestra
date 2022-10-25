@@ -1,5 +1,6 @@
 'use strict'
 
+exports.BrokenVhdError = require('./BrokenVhdError')
 exports.chainVhd = require('./chain')
 exports.checkFooter = require('./checkFooter')
 exports.checkVhdChain = require('./checkChain')

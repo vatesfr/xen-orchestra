@@ -9,6 +9,7 @@ const assert = require('assert')
 const { synchronized } = require('decorator-synchronized')
 const promisify = require('promise-toolbox/promisify')
 const zlib = require('zlib')
+const BrokenVhdError = require('../BrokenVhdError')
 
 const { debug } = createLogger('vhd-lib:VhdDirectory')
 
@@ -110,7 +111,14 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
     // EISDIR pathname refers to a directory and the access requested
     // involved writing (that is, O_WRONLY or O_RDWR is set).
     // reading the header ensure we have a well formed directory immediatly
-    await vhd.readHeaderAndFooter()
+    try {
+      await vhd.readHeaderAndFooter()
+    } catch (error) {
+      if (error.code === 'ERR_ASSERTION') {
+        throw new BrokenVhdError('Invalid header or footer', error)
+      }
+      throw error
+    }
     return {
       dispose: () => {},
       value: vhd,
@@ -185,18 +193,8 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
   async readHeaderAndFooter() {
     await this.#readChunkFilters()
 
-    let bufHeader, bufFooter
-    try {
-      bufHeader = (await this._readChunk('header')).buffer
-      bufFooter = (await this._readChunk('footer')).buffer
-    } catch (error) {
-      // emit an AssertionError if the VHD is broken to stay as close as possible to the VhdFile API
-      if (error.code === 'ENOENT') {
-        assert(false, 'Header And Footer should exists')
-      } else {
-        throw error
-      }
-    }
+    const bufHeader = (await this._readChunk('header')).buffer
+    const bufFooter = (await this._readChunk('footer')).buffer
     const footer = unpackFooter(bufFooter)
     const header = unpackHeader(bufHeader, footer)
 
