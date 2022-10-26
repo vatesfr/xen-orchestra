@@ -1,6 +1,7 @@
-/* eslint-env jest */
-
 'use strict'
+
+const { describe, it } = require('test')
+const assert = require('assert').strict
 
 const mapValues = require('lodash/mapValues')
 const moment = require('moment-timezone')
@@ -25,24 +26,24 @@ describe('next()', () => {
     },
     ([pattern, result], title) =>
       it(title, () => {
-        expect(N(pattern)).toBe(result)
+        assert.strictEqual(N(pattern), result)
       })
   )
 
   it('select first between month-day and week-day', () => {
-    expect(N('* * 10 * wen')).toBe('2018-04-10T00:00')
-    expect(N('* * 12 * wen')).toBe('2018-04-11T00:00')
+    assert.strictEqual(N('* * 10 * wen'), '2018-04-10T00:00')
+    assert.strictEqual(N('* * 12 * wen'), '2018-04-11T00:00')
   })
 
   it('select the last available day of a month', () => {
-    expect(N('* * 29 feb *')).toBe('2020-02-29T00:00')
+    assert.strictEqual(N('* * 29 feb *'), '2020-02-29T00:00')
   })
 
   it('fails when no solutions has been found', () => {
-    expect(() => N('0 0 30 feb *')).toThrow('no solutions found for this schedule')
+    assert.throws(() => N('0 0 30 feb *'), { message: 'no solutions found for this schedule' })
   })
 
   it('select the first sunday of the month', () => {
-    expect(N('* * * * 0', '2018-03-31T00:00')).toBe('2018-04-01T00:00')
+    assert.strictEqual(N('* * * * 0', '2018-03-31T00:00'), '2018-04-01T00:00')
   })
 })

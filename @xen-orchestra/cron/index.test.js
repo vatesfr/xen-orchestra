@@ -1,24 +1,20 @@
-/* eslint-env jest */
-
 'use strict'
+
+const test = require('test')
+const assert = require('assert').strict
+const sinon = require('sinon')
 
 const { createSchedule } = require('./')
 
-jest.useFakeTimers()
+const clock = sinon.useFakeTimers()
 
 const wrap = value => () => value
 
-describe('issues', () => {
+test('issues', async t => {
   let originalDateNow
-  beforeAll(() => {
-    originalDateNow = Date.now
-  })
-  afterAll(() => {
-    Date.now = originalDateNow
-    originalDateNow = undefined
-  })
+  originalDateNow = Date.now
 
-  test('stop during async execution', async () => {
+  await t.test('stop during async execution', async () => {
     let nCalls = 0
     let resolve, promise
 
@@ -35,20 +31,20 @@ describe('issues', () => {
 
     job.start()
     Date.now = wrap(+schedule.next(1)[0])
-    jest.runAllTimers()
+    clock.runAll()
 
-    expect(nCalls).toBe(1)
+    assert.strictEqual(nCalls, 1)
 
     job.stop()
 
     resolve()
     await promise
 
-    jest.runAllTimers()
-    expect(nCalls).toBe(1)
+    clock.runAll()
+    assert.strictEqual(nCalls, 1)
   })
 
-  test('stop then start during async job execution', async () => {
+  await t.test('stop then start during async job execution', async () => {
     let nCalls = 0
     let resolve, promise
 
@@ -65,9 +61,9 @@ describe('issues', () => {
 
     job.start()
     Date.now = wrap(+schedule.next(1)[0])
-    jest.runAllTimers()
+    clock.runAll()
 
-    expect(nCalls).toBe(1)
+    assert.strictEqual(nCalls, 1)
 
     job.stop()
     job.start()
@@ -76,7 +72,10 @@ describe('issues', () => {
     await promise
 
     Date.now = wrap(+schedule.next(1)[0])
-    jest.runAllTimers()
-    expect(nCalls).toBe(2)
+    clock.runAll()
+    assert.strictEqual(nCalls, 2)
   })
+
+  Date.now = originalDateNow
+  originalDateNow = undefined
 })
