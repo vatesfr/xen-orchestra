@@ -156,6 +156,30 @@ export const create = defer(async function ($defer, params) {
 
   const vm = xapi.xo.addObject(xapiVm)
 
+  // create cloud config drive
+  let cloudConfigVdiUuid
+  if (params.cloudConfig != null) {
+    // Find the SR of the first VDI.
+    let srId
+    forEach(vm.$VBDs, vbdId => {
+      const vbd = this.getObject(vbdId)
+      const vdiId = vbd.VDI
+      if (!vbd.is_cd_drive && vdiId !== undefined) {
+        srId = this.getObject(vdiId).$SR
+        return false
+      }
+    })
+
+    try {
+      cloudConfigVdiUuid = params.coreOs
+        ? await xapi.createCoreOsCloudInitConfigDrive(vm.id, srId, params.cloudConfig)
+        : await xapi.createCloudInitConfigDrive(vm.id, srId, params.cloudConfig, params.networkConfig)
+    } catch (error) {
+      log.warn('vm.create', { vmId: vm.id, srId, error })
+      throw error
+    }
+  }
+
   if (resourceSet) {
     await Promise.all([
       params.share
@@ -173,7 +197,41 @@ export const create = defer(async function ($defer, params) {
   }
 
   if (params.bootAfterCreate) {
-    ignoreErrors.call(xapi.startVm(vm._xapiId))
+    try {
+      const start = new Date()
+      await xapi.startVm(vm._xapiId)
+
+      if (cloudConfigVdiUuid !== undefined && params.destroyCloudConfigVdiAfterBoot) {
+        const started = new Date()
+        const timeout = 10 * 60 * 1000
+        const startDuration = started - start
+
+        let remainingTimeout = timeout - startDuration
+
+        // wait for the 'Running' event to be really stored in local xapi object cache
+        await xapi.waitObjectState(vm.$ref, vm => vm.power_state === 'Running', {
+          timeout: remainingTimeout,
+        })
+
+        const running = new Date()
+        remainingTimeout -= running - started
+
+        if (remainingTimeout < 0) {
+          log.warn(`local xapi did not get runnig state for VM ${vm.id} after ${timeout / 1000} seconds`)
+          return vm.id
+        }
+
+        // wait for the guest tool version to be defined
+        await xapi.waitObjectState(vm.guest_metrics, gm => gm?.PV_drivers_version?.major !== undefined, {
+          timeout: remainingTimeout,
+        })
+
+        // destroy cloud config drive
+        this.getXapiObject(cloudConfigVdiUuid).$destroy()
+      }
+    } catch (error) {
+      log.warn('vm.create', { vmId: vm.id, cloudConfigVdiUuid, error })
+    }
   }
 
   return vm.id
@@ -214,6 +272,11 @@ create.params = {
 
   resourceSet: {
     type: 'string',
+    optional: true,
+  },
+
+  destroyCloudConfigVdiAfterBoot: {
+    type: 'boolean',
     optional: true,
   },
 

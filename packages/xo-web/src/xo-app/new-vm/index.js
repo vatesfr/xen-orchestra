@@ -305,6 +305,7 @@ export default class NewVm extends BaseComponent {
         cpuCap: '',
         cpusMax: '',
         cpuWeight: '',
+        destroyCloudConfigVdiAfterBoot: false,
         existingDisks: {},
         fastClone: true,
         hvmBootFirmware: '',
@@ -465,6 +466,7 @@ export default class NewVm extends BaseComponent {
       bootAfterCreate: state.bootAfterCreate,
       copyHostBiosStrings:
         state.hvmBootFirmware !== 'uefi' && !this._templateHasBiosStrings() && state.copyHostBiosStrings,
+      destroyCloudConfigVdiAfterBoot: state.destroyCloudConfigVdiAfterBoot,
       secureBoot: state.secureBoot,
       share: state.share,
       cloudConfig,
@@ -1498,7 +1500,9 @@ export default class NewVm extends BaseComponent {
       cpuCap,
       cpusMax,
       cpuWeight,
+      destroyCloudConfigVdiAfterBoot,
       hvmBootFirmware,
+      installMethod,
       memoryDynamicMin,
       memoryDynamicMax,
       memoryStaticMax,
@@ -1538,8 +1542,8 @@ export default class NewVm extends BaseComponent {
           </Button>
         </SectionContent>
         {showAdvanced && [
-          <hr />,
-          <SectionContent>
+          <hr key='hr' />,
+          <SectionContent key='advanced'>
             <Item>
               <input checked={bootAfterCreate} onChange={this._linkState('bootAfterCreate')} type='checkbox' />
               &nbsp;
@@ -1563,7 +1567,7 @@ export default class NewVm extends BaseComponent {
               </Item>
             </SectionContent>
           ),
-          <SectionContent>
+          <SectionContent key='newVmCpu'>
             <Item label={_('newVmCpuWeightLabel')}>
               <DebounceInput
                 className='form-control'
@@ -1598,7 +1602,7 @@ export default class NewVm extends BaseComponent {
               />
             </Item>
           </SectionContent>,
-          <SectionContent>
+          <SectionContent key='newVmDynamic'>
             <Item label={_('newVmDynamicMinLabel')}>
               <SizeInput
                 value={defined(memoryDynamicMin, null)}
@@ -1621,7 +1625,7 @@ export default class NewVm extends BaseComponent {
               />
             </Item>
           </SectionContent>,
-          <SectionContent>
+          <SectionContent key='newVmMultipleVms'>
             <Item label={_('newVmMultipleVms')}>
               <Toggle value={multipleVms} onChange={this._linkState('multipleVms')} />
             </Item>
@@ -1736,6 +1740,18 @@ export default class NewVm extends BaseComponent {
               </Item>
             </SectionContent>
           ),
+          <SectionContent key='destroyCloudConfigVdi'>
+            <label>
+              <input
+                checked={destroyCloudConfigVdiAfterBoot}
+                disabled={installMethod === 'noConfigDrive' || !bootAfterCreate}
+                onChange={this._toggleState('destroyCloudConfigVdiAfterBoot')}
+                type='checkbox'
+              />
+              &nbsp;
+              {_('destroyCloudConfigVdiAfterBoot')}
+            </label>
+          </SectionContent>,
         ]}
       </Section>
     )
