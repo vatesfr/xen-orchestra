@@ -1,5 +1,46 @@
 # ChangeLog
 
+## **next**
+
+### Enhancements
+
+- [Backup/Encryption] Use `aes-256-gcm` instead of `aes-256-ccm` to mitigate [padding oracle attacks](https://en.wikipedia.org/wiki/Padding_oracle_attack) (PR [#6447](https://github.com/vatesfr/xen-orchestra/pull/6447))
+- [Settings/Remote] Display `lock` icon for encrypted remote and a warning if the remote uses a legacy encryption algorithm (PR [#6465](https://github.com/vatesfr/xen-orchestra/pull/6465))
+- `xo-server`'s logs can now be sent to an external Syslog server
+
+### Bug fixes
+
+- Really enable by default the embedded HTTP/HTTPS proxy
+
+### Released packages
+
+- @xen-orchestra/log 0.4.0
+- @vates/disposable 0.1.2
+- @vates/nbd-client 1.0.0
+- @vates/otp 1.0.0
+- @vates/predicates 1.1.0
+- @vates/read-chunk 1.0.1
+- @xen-orchestra/audit-core 0.2.1
+- @xen-orchestra/backups 0.28.1
+- @xen-orchestra/fs 3.2.0
+- @xen-orchestra/mixins 0.8.1
+- @xen-orchestra/xapi 1.5.1
+- @xen-orchestra/proxy 0.26.3
+- vhd-cli 0.9.2
+- vhd-lib 4.1.1
+- xo-remote-parser 0.9.2
+- xo-server 5.104.0
+- xo-server-audit 0.10.1
+- xo-server-auth-ldap 0.10.5
+- xo-server-backup-reports 0.17.1
+- xo-server-load-balancer 0.7.1
+- xo-server-netbox 0.3.4
+- xo-server-sdn-controller 1.0.6
+- xo-server-transport-nagios 0.1.2
+- xo-server-usage-report 0.10.1
+- xo-server-web-hooks 0.3.1
+- xo-web 5.105.0
+
 ## **5.75.0** (2022-09-30)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
