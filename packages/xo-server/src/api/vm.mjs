@@ -52,6 +52,7 @@ const destroyCloudConfigDiskAfterBoot = async (vdiUuid, vm, startVmTime) => {
   if (vdiUuid === undefined) {
     return
   }
+  /*
   const started = new Date()
   const timeout = 10 * 60 * 1000
   const startDuration = started - startVmTime
@@ -77,9 +78,9 @@ const destroyCloudConfigDiskAfterBoot = async (vdiUuid, vm, startVmTime) => {
   await xapi.waitObjectState(vm.guest_metrics, gm => gm?.PV_drivers_version?.major !== undefined, {
     timeout: remainingTimeout,
   })
-
+*/
   // destroy cloud config drive
-  this.getXapiObject(vdiUuid).$destroy()
+  await this.getXapiObject(vdiUuid).$destroy()
 }
 
 // TODO: Implement ACLs
