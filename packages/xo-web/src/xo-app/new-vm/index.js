@@ -1741,7 +1741,7 @@ export default class NewVm extends BaseComponent {
             </SectionContent>
           ),
           <SectionContent key='destroyCloudConfigVdi'>
-            <label>
+            <Item>
               <input
                 checked={destroyCloudConfigVdiAfterBoot}
                 disabled={installMethod === 'noConfigDrive' || !bootAfterCreate}
@@ -1750,7 +1750,7 @@ export default class NewVm extends BaseComponent {
               />
               &nbsp;
               {_('destroyCloudConfigVdiAfterBoot')}
-            </label>
+            </Item>
           </SectionContent>,
         ]}
       </Section>
