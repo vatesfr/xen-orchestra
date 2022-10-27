@@ -179,6 +179,7 @@ export default class XenApi {
   }
 
   disconnect() {
+    this.#call("session.logout", [this.#sessionId]);
     this.stopWatch();
     this.#sessionId = undefined;
   }
