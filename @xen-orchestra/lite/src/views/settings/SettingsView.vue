@@ -12,24 +12,34 @@
           >
         </UiKeyValueRow>
         <UiKeyValueRow>
-          <template #key>{{ $t("blog") }}</template>
+          <template #key>{{ $t("news") }}</template>
           <template #value
             ><a
               target="_blank"
               rel="noopener noreferrer"
+              href="https://xcp-ng.org/blog/"
+              >{{ $t("news-name", { name: "XCP-ng" }) }}</a
+            > - <a
+              target="_blank"
+              rel="noopener noreferrer"
               href="https://xen-orchestra.com/blog/"
-              >{{ $t("blog-name", { name: "Xen Orchestra" }) }}</a
+              >{{ $t("news-name", { name: "Xen Orchestra" }) }}</a
             ></template
           >
         </UiKeyValueRow>
         <UiKeyValueRow>
-          <template #key>{{ $t("forum") }}</template>
+          <template #key>{{ $t("community") }}</template>
           <template #value
             ><a
               target="_blank"
               rel="noopener noreferrer"
+              href="https://xcp-ng.org/forum"
+              >{{ $t("community-name", { name: "XCP-ng" }) }}</a
+            > - <a
+              target="_blank"
+              rel="noopener noreferrer"
               href="https://xcp-ng.org/forum/category/12/xen-orchestra"
-              >{{ $t("forum-name", { name: "Xen Orchestra" }) }}</a
+              >{{ $t("community-name", { name: "Xen Orchestra" }) }}</a
             ></template
           >
         </UiKeyValueRow>
