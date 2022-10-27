@@ -140,6 +140,8 @@ port = 80
 # Display all logs with level >=, regardless of their namespace
 level = 'info'
 
+[logs.transport.console]
+
 [plugins]
 
 [remoteOptions]
