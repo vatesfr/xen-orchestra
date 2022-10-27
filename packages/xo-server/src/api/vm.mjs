@@ -51,7 +51,7 @@ const extract = (obj, prop) => {
 const startVmAndDestroyCloudConfigVdi = async (xapi, vm, vdiUuid, params) => {
   try {
     const start = new Date()
-    ignoreErrors.call(xapi.startVm(vm._xapiId))
+    await xapi.startVm(vm._xapiId)
 
     if (params.destroyCloudConfigVdiAfterBoot && vdiUuid !== undefined) {
       const started = new Date()
@@ -82,7 +82,7 @@ const startVmAndDestroyCloudConfigVdi = async (xapi, vm, vdiUuid, params) => {
       await xapi.getObject(vdiUuid).$destroy()
     }
   } catch (error) {
-    log.warn('cannot destroy cloud config VDI after boot', { vmId: vm.id, vdiUuid, error })
+    log.warn('vm.create#startVmAndDestroyCloudConfigVdi', { vmId: vm.id, vdiUuid, error })
   }
 }
 
