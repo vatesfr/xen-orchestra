@@ -3,12 +3,12 @@
     <label
       v-if="$slots.label"
       class="form-label"
-      :class="{ disabled, ...inputClass }"
+      :class="{ disabled, ...formInputWrapperClass }"
     >
       <slot />
     </label>
     <slot />
-    <p v-if="hasError || hasWarning" :class="inputClass">
+    <p v-if="hasError || hasWarning" :class="formInputWrapperClass">
       <UiIcon :icon="faCircleExclamation" v-if="hasError" />{{
         error ?? warning
       }}
@@ -49,7 +49,7 @@ provide(
   )
 );
 
-const inputClass = computed(() => ({
+const formInputWrapperClass = computed(() => ({
   error: hasError.value,
   warning: !hasError.value && hasWarning.value,
 }));

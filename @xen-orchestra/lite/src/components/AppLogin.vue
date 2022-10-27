@@ -122,21 +122,6 @@ input {
   background-color: white;
 }
 
-.invalid {
-  border: 2px solid var(--color-red-vates-base);
-  outline: none;
-}
-
-.error {
-  color: var(--color-red-vates-base);
-  text-align: left;
-  width: 100%;
-}
-
-.error svg {
-  margin-right: 0.4em;
-}
-
 button {
   margin-top: 2rem;
 }
