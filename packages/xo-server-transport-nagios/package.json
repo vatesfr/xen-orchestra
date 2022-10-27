@@ -1,6 +1,6 @@
 {
   "name": "xo-server-transport-nagios",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "license": "AGPL-3.0-or-later",
   "description": "Send backup runs statuses to Nagios",
   "keywords": [
@@ -28,7 +28,7 @@
     "node": ">=6"
   },
   "dependencies": {
-    "@xen-orchestra/log": "^0.3.0",
+    "@xen-orchestra/log": "^0.4.0",
     "buffer-crc32": "^0.2.13"
   },
   "devDependencies": {
