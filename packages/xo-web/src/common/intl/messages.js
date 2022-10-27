@@ -1230,6 +1230,10 @@ const messages = {
   vifUnlockedNetworkWithIps: 'Some IPs are unnecessarily set as allowed for this interface',
   vifUnknownNetwork: 'Unknown network',
   vifCreate: 'Create',
+  nbd: 'NBD',
+  nbdTootltip: 'Network Block Device status',
+  nbdInsecureTooltip: 'Use of insecure NBD is not advised',
+  nbdSecureTooltip: 'Nbd connection is secure and ready',
 
   // ----- VM snapshot tab -----
   noSnapshots: 'No snapshots',

@@ -43,6 +43,7 @@ const DEFAULT_VM_SETTINGS = {
   offlineSnapshot: false,
   snapshotRetention: 0,
   timeout: 0,
+  useNbd: false,
   unconditionalSnapshot: false,
   vmTimeout: 0,
 }
