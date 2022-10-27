@@ -1558,6 +1558,21 @@ export default class NewVm extends BaseComponent {
               <Tags labels={tags} onChange={this._linkState('tags')} />
             </Item>
           </SectionContent>,
+          <SectionContent key='destroyCloudConfigVdi'>
+            <Item>
+              <input
+                checked={destroyCloudConfigVdiAfterBoot}
+                disabled={installMethod === 'noConfigDrive' || !bootAfterCreate}
+                id='destroyCloudConfigDisk'
+                onChange={this._toggleState('destroyCloudConfigVdiAfterBoot')}
+                type='checkbox'
+              />
+              <label htmlFor='destroyCloudConfigDisk'>
+                &nbsp;
+                {_('destroyCloudConfigVdiAfterBoot')}
+              </label>
+            </Item>
+          </SectionContent>,
           this._getResourceSet() !== undefined && (
             <SectionContent>
               <Item>
@@ -1740,18 +1755,6 @@ export default class NewVm extends BaseComponent {
               </Item>
             </SectionContent>
           ),
-          <SectionContent key='destroyCloudConfigVdi'>
-            <Item>
-              <input
-                checked={destroyCloudConfigVdiAfterBoot}
-                disabled={installMethod === 'noConfigDrive' || !bootAfterCreate}
-                onChange={this._toggleState('destroyCloudConfigVdiAfterBoot')}
-                type='checkbox'
-              />
-              &nbsp;
-              {_('destroyCloudConfigVdiAfterBoot')}
-            </Item>
-          </SectionContent>,
         ]}
       </Section>
     )

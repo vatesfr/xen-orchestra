@@ -48,6 +48,40 @@ const extract = (obj, prop) => {
   return value
 }
 
+const destroyCloudConfigDiskAfterBoot = async (vdiUuid, vm, startVmTime) => {
+  if (vdiUuid === undefined) {
+    return
+  }
+  const started = new Date()
+  const timeout = 10 * 60 * 1000
+  const startDuration = started - startVmTime
+
+  let remainingTimeout = timeout - startDuration
+
+  const xapi = this.getXapi(vm._xapiId)
+
+  // wait for the 'Running' event to be really stored in local xapi object cache
+  await xapi.waitObjectState(vm.$ref, vm => vm.power_state === 'Running', {
+    timeout: remainingTimeout,
+  })
+
+  const running = new Date()
+  remainingTimeout -= running - started
+
+  if (remainingTimeout < 0) {
+    log.warn(`local xapi did not get runnig state for VM ${vm.id} after ${timeout / 1000} seconds`)
+    return vm.id
+  }
+
+  // wait for the guest tool version to be defined
+  await xapi.waitObjectState(vm.guest_metrics, gm => gm?.PV_drivers_version?.major !== undefined, {
+    timeout: remainingTimeout,
+  })
+
+  // destroy cloud config drive
+  this.getXapiObject(vdiUuid).$destroy()
+}
+
 // TODO: Implement ACLs
 export const create = defer(async function ($defer, params) {
   const { user } = this.apiContext
@@ -198,36 +232,10 @@ export const create = defer(async function ($defer, params) {
 
   if (params.bootAfterCreate) {
     try {
-      const start = new Date()
+      const startVmTime = new Date()
       await xapi.startVm(vm._xapiId)
-
-      if (cloudConfigVdiUuid !== undefined && params.destroyCloudConfigVdiAfterBoot) {
-        const started = new Date()
-        const timeout = 10 * 60 * 1000
-        const startDuration = started - start
-
-        let remainingTimeout = timeout - startDuration
-
-        // wait for the 'Running' event to be really stored in local xapi object cache
-        await xapi.waitObjectState(vm.$ref, vm => vm.power_state === 'Running', {
-          timeout: remainingTimeout,
-        })
-
-        const running = new Date()
-        remainingTimeout -= running - started
-
-        if (remainingTimeout < 0) {
-          log.warn(`local xapi did not get runnig state for VM ${vm.id} after ${timeout / 1000} seconds`)
-          return vm.id
-        }
-
-        // wait for the guest tool version to be defined
-        await xapi.waitObjectState(vm.guest_metrics, gm => gm?.PV_drivers_version?.major !== undefined, {
-          timeout: remainingTimeout,
-        })
-
-        // destroy cloud config drive
-        this.getXapiObject(cloudConfigVdiUuid).$destroy()
+      if (params.destroyCloudConfigVdiAfterBoot) {
+        destroyCloudConfigDiskAfterBoot(cloudConfigVdiUuid, vm, startVmTime)
       }
     } catch (error) {
       log.warn('vm.create', { vmId: vm.id, cloudConfigVdiUuid, error })
