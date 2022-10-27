@@ -1,5 +1,5 @@
 <template>
-  <div class="pool-dashboard-view">
+  <div class="pool-dashboard-view card-view">
     <PoolDashboardStatus class="item" />
     <PoolDashboardStorageUsage class="item" />
     <PoolDashboardCpuUsage class="item" />
@@ -64,11 +64,6 @@ onMounted(() => {
 </script>
 
 <style lang="postcss" scoped>
-.pool-dashboard-view {
-  display: flex;
-  gap: 2rem;
-}
-
 .item {
   min-width: 37rem;
 }

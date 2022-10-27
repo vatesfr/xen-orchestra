@@ -2,7 +2,7 @@
   <div class="pool-root-view">
     <PoolHeader />
     <PoolTabBar />
-    <div class="view">
+    <div class="card-view">
       <RouterView />
     </div>
   </div>
@@ -13,8 +13,4 @@ import PoolHeader from "@/components/pool/PoolHeader.vue";
 import PoolTabBar from "@/components/pool/PoolTabBar.vue";
 </script>
 
-<style lang="postcss" scoped>
-.view {
-  padding: 2rem;
-}
-</style>
+<style lang="postcss" scoped></style>
