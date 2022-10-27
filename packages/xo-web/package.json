@@ -27,7 +27,7 @@
     ">2%"
   ],
   "engines": {
-    "node": ">=6"
+    "node": ">=7"
   },
   "devDependencies": {
     "@babel/core": "^7.13.8",
