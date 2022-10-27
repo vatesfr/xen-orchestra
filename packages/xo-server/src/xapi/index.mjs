@@ -1287,11 +1287,14 @@ export default class Xapi extends XapiBase {
     const host = this.pool.$master
     const sr = this.getObject(srId)
 
-    const vdiUuid = await this.call('host.call_plugin', host.$ref, 'xscontainer', 'create_config_drive', {
-      vmuuid: vm.uuid,
-      sruuid: sr.uuid,
-      configuration: config,
-    })
+    // See https://github.com/xenserver/xscontainer/blob/master/src/scripts/xscontainer-pluginexample
+    const vdiUuid = (
+      await this.call('host.call_plugin', host.$ref, 'xscontainer', 'create_config_drive', {
+        vmuuid: vm.uuid,
+        sruuid: sr.uuid,
+        configuration: config,
+      })
+    ).replace(/True/g, '')
     await this.registerDockerContainer(vmId)
 
     return vdiUuid
