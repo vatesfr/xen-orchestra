@@ -5,50 +5,13 @@
     </RouterLink>
     <slot />
     <div class="right">
-      <FontAwesomeIcon
-        :icon="colorModeIcon"
-        style="font-size: 1.5em; cursor: pointer"
-        @click="toggleTheme"
-      />
-      <FormWidget :before="faEarthAmericas">
-        <select v-model="$i18n.locale">
-          <option v-for="locale in $i18n.availableLocales" :key="locale">
-            {{ locale }}
-          </option>
-        </select>
-      </FormWidget>
       <AccountButton />
     </div>
   </header>
 </template>
 
 <script lang="ts" setup>
-import { computed, watch } from "vue";
-import { useI18n } from "vue-i18n";
-import { useRouter } from "vue-router";
-import {
-  faEarthAmericas,
-  faMoon,
-  faSun,
-} from "@fortawesome/free-solid-svg-icons";
-import { useLocalStorage } from "@vueuse/core";
-import AccountButton from "@/components/AccountButton.vue";
-import FormWidget from "@/components/FormWidget.vue";
-
-const router = useRouter();
-const { locale } = useI18n();
-
-watch(locale, (newLocale) => localStorage.setItem("lang", newLocale));
-
-const colorMode = useLocalStorage<string>("colorMode", "dark");
-const toggleTheme = () => {
-  colorMode.value = document.documentElement.classList.toggle("dark")
-    ? "dark"
-    : "light";
-};
-const colorModeIcon = computed(() =>
-  colorMode.value === "light" ? faMoon : faSun
-);
+import AccountButton from '@/components/AccountButton.vue'
 </script>
 
 <style lang="postcss" scoped>

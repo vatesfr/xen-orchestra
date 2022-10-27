@@ -1,11 +1,11 @@
 {
   "name": "@xen-orchestra/lite",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "scripts": {
-    "dev": "vite",
+    "dev": "GIT_HEAD=$(git rev-parse HEAD) vite",
     "build": "run-p type-check build-only",
     "preview": "vite preview --port 4173",
-    "build-only": "vite build",
+    "build-only": "GIT_HEAD=$(git rev-parse HEAD) vite build",
     "deploy": "./scripts/deploy.sh",
     "type-check": "vue-tsc --noEmit",
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore"
