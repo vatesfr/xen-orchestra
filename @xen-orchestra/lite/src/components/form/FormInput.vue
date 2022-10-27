@@ -78,6 +78,10 @@ const value = useVModel(props, "modelValue", emit);
 const empty = computed(() => isEmpty(props.modelValue));
 const isSelect = inject("isSelect", false);
 const isLabelDisabled = inject("isLabelDisabled", ref(false));
+const color = inject(
+  "color",
+  computed(() => undefined)
+);
 
 const wrapperClass = computed(() => [
   isSelect ? "form-select" : "form-input",
@@ -88,7 +92,7 @@ const wrapperClass = computed(() => [
 ]);
 
 const inputClass = computed(() => [
-  props.color,
+  color.value ?? props.color,
   {
     right: props.right,
     "has-before": props.before !== undefined,
