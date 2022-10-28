@@ -813,7 +813,7 @@ const messages = {
   // ----- Pool general -----
   earliestExpirationDate: 'Earliest expiration: {dateString}',
   poolPartialSupport:
-    'Only {nHostsLicense, number} host{nHostsLicense, plural, one {} other {s}} under license on {nHosts, number} host{nHosts, plural, one {} other {s}}.',
+    'Only {nHostsLicense, number} host{nHostsLicense, plural, one {} other {s}} under license on {nHosts, number} host{nHosts, plural, one {} other {s}}. This means this pool is not supported at all until you license all its hosts.',
   poolTitleRamUsage: 'Pool RAM usage:',
   poolRamUsage: '{used} used of {total} ({free} free)',
   poolMaster: 'Master:',
