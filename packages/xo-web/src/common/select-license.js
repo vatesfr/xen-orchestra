@@ -40,7 +40,6 @@ const SelectLicense = decorate([
             bound: [],
             notBound: [],
           }
-          // Can insert a bug
           ;(await getLicenses({ productType })).forEach(license => {
             if (license.expires === undefined || license.expires > Date.now()) {
               availableLicenses[license.boundObjectId === undefined ? 'notBound' : 'bound'].push(license)
