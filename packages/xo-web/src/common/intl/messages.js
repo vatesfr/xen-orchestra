@@ -811,6 +811,9 @@ const messages = {
   noActiveVdi: 'No active VDI',
 
   // ----- Pool general -----
+  earliestExpirationDate: 'Earliest expiration: {dateString}',
+  poolPartialSupport:
+    'Only {nHostsLicense, number} host{nHostsLicense, plural, one {} other {s}} under license on {nHosts, number} host{nHosts, plural, one {} other {s}}. This means this pool is not supported at all until you license all its hosts.',
   poolTitleRamUsage: 'Pool RAM usage:',
   poolRamUsage: '{used} used of {total} ({free} free)',
   poolMaster: 'Master:',
@@ -835,6 +838,9 @@ const messages = {
   poolHaDisabled: 'Disabled',
   poolGpuGroups: 'GPU groups',
   poolRemoteSyslogPlaceHolder: 'Logging host',
+  poolSupportSourceUsers: 'Pool support not available for source users',
+  poolSupportXcpngOnly: 'Only available for pool of XCP-ng hosts',
+  poolLicenseAlreadyFullySupported: 'The pool is already fully supported',
   setpoolMaster: 'Master',
   syslogRemoteHost: 'Remote syslog host',
   defaultMigrationNetwork: 'Default migration network',
@@ -2400,6 +2406,16 @@ const messages = {
   auditInactiveUserActionsRecord: 'User actions recording is currently inactive',
 
   // Licenses
+  allHostsMustBeBound: 'All hosts must be bound to a license',
+  bound: 'Bound',
+  bindXcpngLicenses: 'Bind XCP-ng licenses',
+  confirmBindingOnUnsupportedHost:
+    'You are about to bind {nLicenses, number} professional support license{nLicenses, plural, one {} other {s}} on older and unsupported XCP-ng version{nLicenses, plural, one {} other {s}}. Are you sure you want to continue?',
+  confirmRebindLicenseFromFullySupportedPool: 'The following pools will no longer be fully supported',
+  licenses: 'Licenses',
+  licensesBinding: 'Licenses binding',
+  notEnoughXcpngLicenses: 'Not enough XCP-ng licenses',
+  notBound: 'Not bound',
   xosanUnregisteredDisclaimer:
     'You are not registered and therefore will not be able to create or manage your XOSAN SRs. {link}',
   xosanSourcesDisclaimer:

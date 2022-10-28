@@ -146,6 +146,11 @@ export { default as Debug } from './debug'
 // -------------------------------------------------------------------
 
 // Returns the current XOA Plan or the Plan name if number given
+/**
+ * @deprecated
+ *
+ * Use `getXoaPlan` from `xoa-plans` instead
+ */
 export const getXoaPlan = plan => {
   switch (plan || +process.env.XOA_PLAN) {
     case 1:

@@ -31,6 +31,7 @@ import store from 'store'
 import { alert, chooseAction, confirm } from '../modal'
 import { error, info, success } from '../notification'
 import { getObject } from 'selectors'
+import { getXoaPlan, SOURCES } from '../xoa-plans'
 import { noop, resolveId, resolveIds } from '../utils'
 import {
   connected,
@@ -3236,6 +3237,16 @@ export const unlockXosan = (licenseId, srId) => _call('xosan.unlock', { licenseI
 
 export const bindLicense = (licenseId, boundObjectId) => _call('xoa.licenses.bind', { licenseId, boundObjectId })
 
+export const bindXcpngLicense = (licenseId, boundObjectId) =>
+  bindLicense(licenseId, boundObjectId)::tap(subscribeXcpngLicenses.forceRefresh)
+
+export const rebindLicense = (licenseType, licenseId, oldBoundObjectId, newBoundObjectId) =>
+  _call('xoa.licenses.rebind', { licenseId, oldBoundObjectId, newBoundObjectId })::tap(() => {
+    if (licenseType === 'xcpng-standard' || licenseType === 'xcpng-enterprise') {
+      return subscribeXcpngLicenses.forceRefresh()
+    }
+  })
+
 export const selfBindLicense = ({ id, plan, oldXoaId }) =>
   confirm({
     title: _('bindXoaLicense'),
@@ -3250,6 +3261,12 @@ export const selfBindLicense = ({ id, plan, oldXoaId }) =>
     ::tap(subscribeSelfLicenses.forceRefresh)
 
 export const subscribeSelfLicenses = createSubscription(() => _call('xoa.licenses.getSelf'))
+
+export const subscribeXcpngLicenses = createSubscription(() =>
+  getXoaPlan() !== SOURCES && store.getState().user.permission === 'admin'
+    ? _call('xoa.licenses.getAll', { productType: 'xcpng' })
+    : undefined
+)
 
 // Support --------------------------------------------------------------------
 
