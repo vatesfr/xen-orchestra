@@ -1,6 +1,7 @@
 'use strict'
 
-/* eslint-env jest */
+const { describe, it } = require('test')
+const assert = require('node:assert')
 
 const { MultiKeyMap } = require('./')
 
@@ -28,9 +29,9 @@ describe('MultiKeyMap', () => {
 
     keys.forEach((key, i) => {
       // copy the key to make sure the array itself is not the key
-      expect(map.get(key.slice())).toBe(values[i])
+      assert.strictEqual(map.get(key.slice()), values[i])
       map.delete(key.slice())
-      expect(map.get(key.slice())).toBe(undefined)
+      assert.strictEqual(map.get(key.slice()), undefined)
     })
   })
 })

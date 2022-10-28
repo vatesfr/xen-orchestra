@@ -30,6 +30,7 @@ const messages = {
   messageFrom: 'From',
   messageReply: 'Reply',
   sr: 'SR',
+  subdirectory: 'Subdirectory',
   tryXoa: 'Try XOA for free and deploy it here.',
   notInstalled: 'Not installed',
 
@@ -230,7 +231,7 @@ const messages = {
   notBackedUpVms: 'Not backed up VMs',
   homeFetchingData: 'Fetching data…',
   homeWelcome: 'Welcome to Xen Orchestra!',
-  homeWelcomeText: 'Add your XenServer hosts or pools',
+  homeWelcomeText: 'Add your XCP-ng hosts or pools',
   homeConnectServerText: 'Some XenServers have been registered but are not connected',
   homeHelp: 'Want some help?',
   homeAddServer: 'Add server',
@@ -599,7 +600,7 @@ const messages = {
   remoteS3TooltipAcceptInsecure: 'Check if you want to accept self signed certificates',
   remotePlaceHolderPassword: 'Password(fill to edit)',
   remoteUseVhdDirectory:
-    'Store backup as multiple data blocks instead of a whole VHD file. (disables file level restore but allows faster merge)',
+    'Store backup as multiple data blocks instead of a whole VHD file. (creates 500-1000 files per backed up TB but allows faster merge)',
   remoteUseVhdDirectoryTooltip:
     'Your remote must be able to handle parallel access (up to 16 write processes per backup) and the number of files (500 files per GB of backed up data)',
   remoteEncryptionBackupSize: 'Size of backup is not updated when using encryption.',
@@ -610,6 +611,10 @@ const messages = {
   remoteEncryptionKey: 'Encrypt all new data sent to this remote',
   remoteEncryptionKeyStorageLocation:
     "You won't be able to get your data back if you lose the encryption key. The encryption key is saved in the XO config backup, they should be secured correctly. Be careful, if you saved it on an encrypted remote, then you won't be able to access it without the remote encryption key.",
+  encryption: 'Encryption',
+  remoteEncryptionLegacy:
+    'A legacy encryption algorithm is used ({algorithm}), please create a new remote with the recommended algorithm {recommendedAlgorithm}',
+
   // ------ New Storage -----
 
   newSr: 'New SR',
@@ -1225,6 +1230,10 @@ const messages = {
   vifUnlockedNetworkWithIps: 'Some IPs are unnecessarily set as allowed for this interface',
   vifUnknownNetwork: 'Unknown network',
   vifCreate: 'Create',
+  nbd: 'NBD',
+  nbdTootltip: 'Network Block Device status',
+  nbdInsecureTooltip: 'Use of insecure NBD is not advised',
+  nbdSecureTooltip: 'Nbd connection is secure and ready',
 
   // ----- VM snapshot tab -----
   noSnapshots: 'No snapshots',
@@ -1636,7 +1645,6 @@ const messages = {
   getRemote: 'Get remote',
   noBackups: 'There are no backups!',
   restoreBackupsInfo: 'Click on a VM to display restore options',
-  restoreDeltaBackupsInfo: 'Only the files of Delta Backup which are not on a SMB or S3 remote can be restored',
   remoteEnabled: 'Enabled',
   remoteDisabled: 'Disabled',
   enableRemote: 'Enable',

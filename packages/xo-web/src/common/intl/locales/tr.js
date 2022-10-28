@@ -296,7 +296,7 @@ export default {
   // Original text: "Welcome to Xen Orchestra!"
   homeWelcome: "Xen Orchestra'ya Hoşgeldiniz!",
 
-  // Original text: "Add your XenServer hosts or pools"
+  // Original text: "Add your XCP-ng hosts or pools"
   homeWelcomeText: 'XenServer sunucu veya havuzunu ekle',
 
   // Original text: "Some XenServers have been registered but are not connected"
@@ -3342,9 +3342,6 @@ export default {
 
   // Original text: "Click on a VM to display restore options"
   restoreBackupsInfo: "Geri getirme seçenekleri için bir VM'e tıklayın",
-
-  // Original text: "Only the files of Delta Backup which are not on a SMB remote can be restored"
-  restoreDeltaBackupsInfo: 'Yalnızca SMB hedefinde olmayan fark yedeklerinden dosya alınabilir',
 
   // Original text: "Enabled"
   remoteEnabled: 'Etkin',

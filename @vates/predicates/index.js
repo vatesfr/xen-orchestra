@@ -51,6 +51,22 @@ exports.every = function every() {
   }
 }
 
+const notPredicateTag = {}
+exports.not = function not(predicate) {
+  if (isDefinedPredicate(predicate)) {
+    if (predicate.tag === notPredicateTag) {
+      return predicate.predicate
+    }
+
+    function notPredicate() {
+      return !predicate.apply(this, arguments)
+    }
+    notPredicate.predicate = predicate
+    notPredicate.tag = notPredicateTag
+    return notPredicate
+  }
+}
+
 exports.some = function some() {
   const predicates = handleArgs.apply(this, arguments)
   const n = predicates.length

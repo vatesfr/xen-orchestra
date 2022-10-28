@@ -44,7 +44,7 @@ export default class Xo extends EventEmitter {
     // Connects to Redis.
     {
       const { socket: path, uri: url } = config.redis || {}
-      const redis = createRedisClient({ path, url })
+      const redis = createRedisClient({ socket: { path }, url })
 
       this._redis = redis
       this.hooks.on('start core', () => redis.connect())

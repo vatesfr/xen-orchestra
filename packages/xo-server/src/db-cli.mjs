@@ -135,7 +135,7 @@ xo-server-logs repl
 
   const { socket: path, uri: url } = config.redis || {}
   const connection = createRedisClient({
-    path,
+    socket: { path },
     url,
   })
   await connection.connect()

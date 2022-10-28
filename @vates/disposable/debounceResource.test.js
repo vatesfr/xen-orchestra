@@ -1,16 +1,17 @@
 'use strict'
 
-/* eslint-env jest */
+const { describe, it } = require('test')
+const { useFakeTimers, spy, assert } = require('sinon')
 
 const { createDebounceResource } = require('./debounceResource')
 
-jest.useFakeTimers()
+const clock = useFakeTimers()
 
 describe('debounceResource()', () => {
   it('calls the resource disposer after 10 seconds', async () => {
     const debounceResource = createDebounceResource()
     const delay = 10e3
-    const dispose = jest.fn()
+    const dispose = spy()
 
     const resource = await debounceResource(
       Promise.resolve({
@@ -22,10 +23,10 @@ describe('debounceResource()', () => {
 
     resource.dispose()
 
-    expect(dispose).not.toBeCalled()
+    assert.notCalled(dispose)
 
-    jest.advanceTimersByTime(delay)
+    clock.tick(delay)
 
-    expect(dispose).toBeCalled()
+    assert.called(dispose)
   })
 })

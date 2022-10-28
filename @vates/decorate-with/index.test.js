@@ -1,7 +1,7 @@
 'use strict'
 
 const assert = require('assert')
-const { describe, it } = require('tap').mocha
+const { describe, it } = require('test')
 
 const { decorateClass, decorateWith, decorateMethodsWith, perInstance } = require('./')
 

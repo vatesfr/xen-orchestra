@@ -710,6 +710,8 @@ const TRANSFORMS = {
       tags: obj.tags,
       PIFs: link(obj, 'PIFs'),
       VIFs: link(obj, 'VIFs'),
+      nbd: obj.purpose?.includes('nbd'),
+      insecureNbd: obj.purpose?.includes('insecure_nbd'),
     }
   },
 

@@ -1,6 +1,11 @@
 import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
 import { format, parse } from 'xo-remote-parser'
-import { getHandler } from '@xen-orchestra/fs'
+import {
+  DEFAULT_ENCRYPTION_ALGORITHM,
+  getHandler,
+  isLegacyEncryptionAlgorithm,
+  UNENCRYPTED_ALGORITHM,
+} from '@xen-orchestra/fs'
 import { ignoreErrors, timeout } from 'promise-toolbox'
 import { noSuchObject } from 'xo-common/api-errors.js'
 import { synchronized } from 'decorator-synchronized'
@@ -13,7 +18,6 @@ import { Remotes } from '../models/remote.mjs'
 
 const obfuscateRemote = ({ url, ...remote }) => {
   const parsedUrl = parse(url)
-  remote.supportFileRestore = parsedUrl.type !== 's3'
   remote.url = format(sensitiveValues.obfuscate(parsedUrl))
   return remote
 }
@@ -125,6 +129,17 @@ export default class {
         return
       }
 
+      let encryption
+
+      if (this._handlers[remote.id] !== undefined) {
+        const algorithm = this._handlers[remote.id]._encryptor?.algorithm ?? UNENCRYPTED_ALGORITHM
+        encryption = {
+          algorithm,
+          isLegacy: isLegacyEncryptionAlgorithm(algorithm),
+          recommendedAlgorithm: DEFAULT_ENCRYPTION_ALGORITHM,
+        }
+      }
+
       const promise =
         remote.proxy !== undefined
           ? this._app.callProxyMethod(remote.proxy, 'remote.getInfo', {
@@ -135,7 +150,10 @@ export default class {
       try {
         await timeout.call(
           promise.then(info => {
-            remotesInfo[remote.id] = info
+            remotesInfo[remote.id] = {
+              ...info,
+              encryption,
+            }
           }),
           5e3
         )

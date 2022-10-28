@@ -87,7 +87,18 @@ snapshotNameLabelTpl = '[XO Backup {job.name}] {vm.name_label}'
 # Delay for which backups listing on a remote is cached
 listingDebounce = '1 min'
 
+# settings when using Vhd directories ( s3 , encryption )
+# you should use 'none' if your fs is already compressed
+# changing this setting will generate new full backups
 vhdDirectoryCompression = 'brotli'
+
+# how many block can be merged in parallel per backup running
+# increase to increase performance, reduce if you have timeout during merge
+mergeBlockConcurrency = 2
+
+# how many block can be uploaded in parallel
+# increase to in rease performance, reduce if you have timeout or memory error during transfer
+writeBlockConcurrency = 16
 
 # This is a work-around.
 #
@@ -128,6 +139,8 @@ port = 80
 
 # Display all logs with level >=, regardless of their namespace
 level = 'info'
+
+[logs.transport.console]
 
 [plugins]
 

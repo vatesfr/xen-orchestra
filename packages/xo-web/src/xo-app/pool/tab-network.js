@@ -291,6 +291,26 @@ const NETWORKS_COLUMNS = [
     name: _('poolNetworkMTU'),
     itemRenderer: network => network.MTU,
   },
+
+  {
+    itemRenderer: ({ nbd, networks, insecure_nbd }) => {
+      if (nbd) {
+        return (
+          <Tooltip content={_('nbdSecureTooltip')}>
+            <Icon icon='lock' />
+          </Tooltip>
+        )
+      }
+      if (insecure_nbd) {
+        ;<Tooltip content={_('nbdInsecureTooltip')}>
+          <Icon icon='unlock' />
+          <Icon icon='error' />
+        </Tooltip>
+      }
+      return null
+    },
+    name: <Tooltip content={_('nbdTootltip')}>{_('nbd')}</Tooltip>,
+  },
   {
     name: (
       <div className='text-xs-center'>

@@ -724,6 +724,25 @@ const COLUMNS = [
     sortCriteria: 'rateLimit',
   },
   {
+    itemRenderer: (vif, { nbd, networks, insecure_nbd }) => {
+      if (networks[vif.$network]?.nbd) {
+        return (
+          <Tooltip content={_('nbdSecureTooltip')}>
+            <Icon icon='lock' />
+          </Tooltip>
+        )
+      }
+      if (networks[vif.$network]?.insecure_nbd) {
+        ;<Tooltip content={_('nbdInsecureTooltip')}>
+          <Icon icon='unlock' />
+          <Icon icon='error' />
+        </Tooltip>
+      }
+      return null
+    },
+    name: <Tooltip content={_('nbdTootltip')}>{_('nbd')}</Tooltip>,
+  },
+  {
     itemRenderer: ({ device }, { ipsByDevice }) => {
       const ips = ipsByDevice[device]
       return isEmpty(ips)

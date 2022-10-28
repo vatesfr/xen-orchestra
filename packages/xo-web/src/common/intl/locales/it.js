@@ -515,7 +515,7 @@ export default {
   // Original text: 'Welcome to Xen Orchestra!'
   homeWelcome: 'Benvenuti in Xen Orchestra!',
 
-  // Original text: 'Add your XenServer hosts or pools'
+  // Original text: 'Add your XCP-ng hosts or pools'
   homeWelcomeText: 'Aggiungi i tuoi hosts o pools XenServer',
 
   // Original text: 'Some XenServers have been registered but are not connected'
@@ -3905,9 +3905,6 @@ export default {
 
   // Original text: 'Click on a VM to display restore options'
   restoreBackupsInfo: 'Fare clic su una VM per visualizzare le opzioni di ripristino',
-
-  // Original text: 'Only the files of Delta Backup which are not on a SMB remote can be restored'
-  restoreDeltaBackupsInfo: 'È possibile ripristinare solo i file di Delta Backup che non si trovano su un SMB remoto',
 
   // Original text: 'Enabled'
   remoteEnabled: 'Abilitato',

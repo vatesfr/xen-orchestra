@@ -14,7 +14,8 @@ const { VhdFile, Constants, VhdDirectory, VhdAbstract } = require('vhd-lib')
 const { checkAliases } = require('./_cleanVm')
 const { dirname, basename } = require('path')
 
-let tempDir, adapter, handler, jobId, vdiId, basePath
+let tempDir, adapter, handler, jobId, vdiId, basePath, relativePath
+const rootPath = 'xo-vm-backups/VMUUID/'
 
 jest.setTimeout(60000)
 
@@ -25,7 +26,8 @@ beforeEach(async () => {
   adapter = new RemoteAdapter(handler)
   jobId = uniqueId()
   vdiId = uniqueId()
-  basePath = `vdis/${jobId}/${vdiId}`
+  relativePath = `vdis/${jobId}/${vdiId}`
+  basePath = `${rootPath}/${relativePath}`
   await fs.mkdirp(`${tempDir}/${basePath}`)
 })
 
@@ -81,13 +83,13 @@ test('It remove broken vhd', async () => {
   const logInfo = message => {
     loggued += message
   }
-  await adapter.cleanVm('/', { remove: false, logInfo, logWarn: logInfo, lock: false })
+  await adapter.cleanVm(rootPath, { remove: false, logInfo, logWarn: logInfo, lock: false })
   expect(loggued).toEqual(`VHD check error`)
   // not removed
-  expect((await handler.list(basePath)).length).toEqual(1)
+  expect(await handler.list(basePath)).toEqual(['notReallyAVhd.vhd'])
   // really remove it
-  await adapter.cleanVm('/', { remove: true, logInfo, logWarn: () => {}, lock: false })
-  expect((await handler.list(basePath)).length).toEqual(0)
+  await adapter.cleanVm(rootPath, { remove: true, logInfo, logWarn: () => {}, lock: false })
+  expect(await handler.list(basePath)).toEqual([])
 })
 
 test('it remove vhd with missing or multiple ancestors', async () => {
@@ -121,7 +123,7 @@ test('it remove vhd with missing or multiple ancestors', async () => {
   const logInfo = message => {
     loggued += message + '\n'
   }
-  await adapter.cleanVm('/', { remove: true, logInfo, logWarn: logInfo, lock: false })
+  await adapter.cleanVm(rootPath, { remove: true, logInfo, logWarn: logInfo, lock: false })
 
   const deletedOrphanVhd = loggued.match(/deleting orphan VHD/g) || []
   expect(deletedOrphanVhd.length).toEqual(1) // only one vhd should have been deleted
@@ -132,12 +134,12 @@ test('it remove vhd with missing or multiple ancestors', async () => {
 test('it remove backup meta data referencing a missing vhd in delta backup', async () => {
   // create a metadata file marking child and orphan as ok
   await handler.writeFile(
-    `metadata.json`,
+    `${rootPath}/metadata.json`,
     JSON.stringify({
       mode: 'delta',
       vhds: [
-        `${basePath}/orphan.vhd`,
-        `${basePath}/child.vhd`,
+        `${relativePath}/orphan.vhd`,
+        `${relativePath}/child.vhd`,
         // abandonned.json is not here
       ],
     })
@@ -160,39 +162,39 @@ test('it remove backup meta data referencing a missing vhd in delta backup', asy
   const logInfo = message => {
     loggued += message + '\n'
   }
-  await adapter.cleanVm('/', { remove: true, logInfo, logWarn: logInfo, lock: false })
+  await adapter.cleanVm(rootPath, { remove: true, logInfo, logWarn: logInfo, lock: false })
   let matched = loggued.match(/deleting unused VHD/g) || []
   expect(matched.length).toEqual(1) // only one vhd should have been deleted
 
   // a missing vhd cause clean to remove all vhds
   await handler.writeFile(
-    `metadata.json`,
+    `${rootPath}/metadata.json`,
     JSON.stringify({
       mode: 'delta',
       vhds: [
-        `${basePath}/deleted.vhd`, // in metadata but not in vhds
-        `${basePath}/orphan.vhd`,
-        `${basePath}/child.vhd`,
+        `deleted.vhd`, // in metadata but not in vhds
+        `orphan.vhd`,
+        `child.vhd`,
         // abandonned.vhd is not here anymore
       ],
     }),
     { flags: 'w' }
   )
   loggued = ''
-  await adapter.cleanVm('/', { remove: true, logInfo, logWarn: () => {}, lock: false })
+  await adapter.cleanVm(rootPath, { remove: true, logInfo, logWarn: () => {}, lock: false })
   matched = loggued.match(/deleting unused VHD/g) || []
   expect(matched.length).toEqual(2) // all vhds (orphan and  child  ) should have been deleted
 })
 
 test('it merges delta of non destroyed chain', async () => {
   await handler.writeFile(
-    `metadata.json`,
+    `${rootPath}/metadata.json`,
     JSON.stringify({
       mode: 'delta',
       size: 12000, // a size too small
       vhds: [
-        `${basePath}/grandchild.vhd`, // grand child should not be merged
-        `${basePath}/child.vhd`,
+        `${relativePath}/grandchild.vhd`, // grand child should not be merged
+        `${relativePath}/child.vhd`,
         // orphan is not here, he should be merged in child
       ],
     })
@@ -219,15 +221,15 @@ test('it merges delta of non destroyed chain', async () => {
   const logInfo = message => {
     loggued.push(message)
   }
-  await adapter.cleanVm('/', { remove: true, logInfo, logWarn: logInfo, lock: false })
+  await adapter.cleanVm(rootPath, { remove: true, logInfo, logWarn: logInfo, lock: false })
   expect(loggued[0]).toEqual(`incorrect backup size in metadata`)
 
   loggued = []
-  await adapter.cleanVm('/', { remove: true, merge: true, logInfo, logWarn: () => {}, lock: false })
+  await adapter.cleanVm(rootPath, { remove: true, merge: true, logInfo, logWarn: () => {}, lock: false })
   const [merging] = loggued
   expect(merging).toEqual(`merging VHD chain`)
 
-  const metadata = JSON.parse(await handler.readFile(`metadata.json`))
+  const metadata = JSON.parse(await handler.readFile(`${rootPath}/metadata.json`))
   // size should be the size of children + grand children after the merge
   expect(metadata.size).toEqual(209920)
 
@@ -241,11 +243,11 @@ test('it merges delta of non destroyed chain', async () => {
 
 test('it finish unterminated merge ', async () => {
   await handler.writeFile(
-    `metadata.json`,
+    `${rootPath}/metadata.json`,
     JSON.stringify({
       mode: 'delta',
       size: 209920,
-      vhds: [`${basePath}/orphan.vhd`, `${basePath}/child.vhd`],
+      vhds: [`${relativePath}/orphan.vhd`, `${relativePath}/child.vhd`],
     })
   )
 
@@ -271,7 +273,7 @@ test('it finish unterminated merge ', async () => {
     })
   )
 
-  await adapter.cleanVm('/', { remove: true, merge: true, logWarn: () => {}, lock: false })
+  await adapter.cleanVm(rootPath, { remove: true, merge: true, logWarn: () => {}, lock: false })
   // merging is already tested in vhd-lib, don't retest it here (and theses vhd are as empty as my stomach at 12h12)
 
   // only check deletion
@@ -367,20 +369,20 @@ describe('tests multiple combination ', () => {
 
         // the metadata file
         await handler.writeFile(
-          `metadata.json`,
+          `${rootPath}/metadata.json`,
           JSON.stringify({
             mode: 'delta',
             vhds: [
-              `${basePath}/grandchild.vhd` + (useAlias ? '.alias.vhd' : ''), // grand child should not be merged
-              `${basePath}/child.vhd` + (useAlias ? '.alias.vhd' : ''),
-              `${basePath}/clean.vhd` + (useAlias ? '.alias.vhd' : ''),
+              `${relativePath}/grandchild.vhd` + (useAlias ? '.alias.vhd' : ''), // grand child should not be merged
+              `${relativePath}/child.vhd` + (useAlias ? '.alias.vhd' : ''),
+              `${relativePath}/clean.vhd` + (useAlias ? '.alias.vhd' : ''),
             ],
           })
         )
 
-        await adapter.cleanVm('/', { remove: true, merge: true, logWarn: () => {}, lock: false })
+        await adapter.cleanVm(rootPath, { remove: true, merge: true, logWarn: () => {}, lock: false })
 
-        const metadata = JSON.parse(await handler.readFile(`metadata.json`))
+        const metadata = JSON.parse(await handler.readFile(`${rootPath}/metadata.json`))
         // size should be the size of children + grand children + clean after the merge
         expect(metadata.size).toEqual(vhdMode === 'file' ? 314880 : undefined)
 
@@ -414,7 +416,7 @@ describe('tests multiple combination ', () => {
 test('it cleans orphan merge states ', async () => {
   await handler.writeFile(`${basePath}/.orphan.vhd.merge.json`, '')
 
-  await adapter.cleanVm('/', { remove: true, logWarn: () => {}, lock: false })
+  await adapter.cleanVm(rootPath, { remove: true, logWarn: () => {}, lock: false })
 
   expect(await handler.list(basePath)).toEqual([])
 })
