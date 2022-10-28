@@ -1294,7 +1294,7 @@ export default class Xapi extends XapiBase {
         sruuid: sr.uuid,
         configuration: config,
       })
-    ).replace(/True/g, '')
+    ).replace(/^True/, '')
     await this.registerDockerContainer(vmId)
 
     return vdiUuid
