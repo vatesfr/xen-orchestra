@@ -27,6 +27,10 @@
     "promise-toolbox": "^0.21.0"
   },
   "scripts": {
-    "postversion": "npm publish"
+    "postversion": "npm publish",
+    "test": "node--test"
+  },
+  "devDependencies": {
+    "test": "^3.2.1"
   }
 }
