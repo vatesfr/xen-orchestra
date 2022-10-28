@@ -1,14 +1,6 @@
 <template>
   <span :class="wrapperClass" v-bind="wrapperAttrs">
-    <input
-      v-if="!isSelect"
-      v-model="value"
-      :class="inputClass"
-      :disabled="disabled || isLabelDisabled"
-      class="input"
-      v-bind="$attrs"
-    />
-    <template v-else>
+    <template v-if="inputType === 'select'">
       <select
         v-model="value"
         :class="inputClass"
@@ -22,6 +14,23 @@
         <UiIcon :fixed-width="false" :icon="faAngleDown" />
       </span>
     </template>
+    <textarea
+      v-else-if="inputType === 'textarea'"
+      ref="textarea"
+      v-model="value"
+      :class="inputClass"
+      :disabled="disabled || isLabelDisabled"
+      class="textarea"
+      v-bind="$attrs"
+    />
+    <input
+      v-else
+      v-model="value"
+      :class="inputClass"
+      :disabled="disabled || isLabelDisabled"
+      class="input"
+      v-bind="$attrs"
+    />
     <span v-if="before !== undefined" class="before">
       <template v-if="typeof before === 'string'">{{ before }}</template>
       <UiIcon v-else :icon="before" class="before" />
@@ -41,18 +50,19 @@ export default {
 </script>
 
 <script lang="ts" setup>
-import { isEmpty } from "lodash-es";
 import {
   type HTMLAttributes,
   type InputHTMLAttributes,
   computed,
   inject,
+  nextTick,
   ref,
+  watch,
 } from "vue";
 import type { Color } from "@/types";
 import type { IconDefinition } from "@fortawesome/fontawesome-common-types";
 import { faAngleDown } from "@fortawesome/free-solid-svg-icons";
-import { useVModel } from "@vueuse/core";
+import { useTextareaAutosize, useVModel } from "@vueuse/core";
 import UiIcon from "@/components/ui/UiIcon.vue";
 
 // Temporary workaround for https://github.com/vuejs/core/issues/4294
@@ -75,12 +85,17 @@ const emit = defineEmits<{
 }>();
 
 const value = useVModel(props, "modelValue", emit);
-const empty = computed(() => isEmpty(props.modelValue));
-const isSelect = inject("isSelect", false);
+const empty = computed(
+  () =>
+    props.modelValue == null ||
+    props.modelValue === "" ||
+    props.modelValue === 0
+);
+const inputType = inject("inputType", "input");
 const isLabelDisabled = inject("isLabelDisabled", ref(false));
 
 const wrapperClass = computed(() => [
-  isSelect ? "form-select" : "form-input",
+  `form-${inputType}`,
   {
     disabled: props.disabled || isLabelDisabled.value,
     empty: empty.value,
@@ -95,16 +110,23 @@ const inputClass = computed(() => [
     "has-after": props.after !== undefined,
   },
 ]);
+
+const { textarea, triggerResize } = useTextareaAutosize();
+
+watch(value, () => nextTick(() => triggerResize()), {
+  immediate: true,
+});
 </script>
 
 <style lang="postcss" scoped>
 .form-input,
-.form-select {
+.form-select,
+.form-textarea {
   display: inline-grid;
   align-items: stretch;
 
-  --before-width: v-bind('beforeWidth ?? "1.75em"');
-  --after-width: v-bind('afterWidth ?? "1.625em"');
+  --before-width: v-bind('beforeWidth || "1.75em"');
+  --after-width: v-bind('afterWidth || "1.625em"');
   --caret-width: 1.5em;
 
   --text-color: var(--color-blue-scale-100);
@@ -118,7 +140,8 @@ const inputClass = computed(() => [
   }
 }
 
-.form-input {
+.form-input,
+.form-textarea {
   grid-template-columns: var(--before-width) auto var(--after-width);
 }
 
@@ -131,8 +154,10 @@ const inputClass = computed(() => [
 }
 
 .input,
+.textarea,
 .select {
   font-size: 1em;
+  width: 100%;
   height: 2em;
   margin: 0;
   color: var(--text-color);
@@ -221,8 +246,19 @@ const inputClass = computed(() => [
   }
 }
 
+.textarea {
+  height: auto;
+  min-height: 2em;
+}
+
 .input {
-  padding: 0 0.625em 0 0.625em;
+  padding: 0;
+}
+
+.input,
+.textarea {
+  padding-right: 0.625em;
+  padding-left: 0.625em;
 
   &.has-before {
     padding-left: calc(var(--before-width) + 0.25em);
