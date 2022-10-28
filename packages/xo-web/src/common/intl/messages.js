@@ -1538,6 +1538,7 @@ const messages = {
   templateHasBiosStrings: 'The template already contains the BIOS strings',
   secureBootLinkToDocumentationMessage: 'Click for more information about Guest UEFI Secure Boot.',
   vmBootFirmwareIsUefi: 'The boot firmware is UEFI',
+  destroyCloudConfigVdiAfterBoot: 'Destroy cloud config drive after first boot',
 
   // ----- Self -----
   resourceSets: 'Resource sets',
@@ -2440,6 +2441,7 @@ const messages = {
   premiumLicense: 'Premium license',
   trialLicenseInfo: 'You are currently in a {edition} trial period that will end on {date, date, medium}',
   proxyMultipleLicenses: 'This proxy has more than 1 license!',
+  proxyUnknownVm: 'Unknown proxy VM.',
 
   // ----- proxies -----
   deployProxyDisabled: 'Only available to XOA users',

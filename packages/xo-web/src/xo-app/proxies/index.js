@@ -145,6 +145,14 @@ const COLUMNS = [
   {
     name: _('license'),
     itemRenderer: (proxy, { isAdmin, licensesByVmUuid }) => {
+      if (proxy.vmUuid === undefined) {
+        return (
+          <span className='text-danger'>
+            {_('proxyUnknownVm')} <a href='https://xen-orchestra.com/'>{_('contactUs')}</a>
+          </span>
+        )
+      }
+
       const licenses = licensesByVmUuid[proxy.vmUuid]
 
       // Proxy bound to multiple licenses
@@ -256,10 +264,7 @@ const Proxies = decorate([
     }),
     effects: {
       async initialize({ fetchProxyUpgrades }) {
-        this.state.licensesByVmUuid = groupBy(
-          (await getLicenses({ productType: 'xoproxy' })).filter(license => license.boundObjectId !== undefined),
-          'boundObjectId'
-        )
+        this.state.licensesByVmUuid = groupBy(await getLicenses({ productType: 'xoproxy' }), 'boundObjectId')
         return fetchProxyUpgrades(this.props.proxies.map(({ id }) => id))
       },
       async fetchProxyUpgrades(effects, proxies) {
