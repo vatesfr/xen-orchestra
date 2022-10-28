@@ -61,7 +61,7 @@ class ProxyLicensesForm extends Component {
         <ActionButton
           btnStyle='primary'
           className='ml-1'
-          disabled={licenseId === 'none' || item.vmUuid === undefined}
+          disabled={licenseId === 'none'}
           handler={this.bind}
           handlerParam={licenseId}
           icon='connect'
