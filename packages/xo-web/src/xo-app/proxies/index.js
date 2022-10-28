@@ -145,6 +145,14 @@ const COLUMNS = [
   {
     name: _('license'),
     itemRenderer: (proxy, { isAdmin, licensesByVmUuid }) => {
+      if (proxy.vmUuid === undefined) {
+        return (
+          <span className='text-danger'>
+            {_('proxyUnknownVm')} <a href='https://xen-orchestra.com/'>{_('contactUs')}</a>
+          </span>
+        )
+      }
+
       const licenses = licensesByVmUuid[proxy.vmUuid]
 
       // Proxy bound to multiple licenses
