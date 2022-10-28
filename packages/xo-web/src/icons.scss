@@ -1,4 +1,8 @@
 .xo-icon {
+  &-file-text {
+    @extend .fa;
+    @extend .fa-file-text;
+  }
   &-pool {
     @extend .fa;
     @extend .fa-cloud;

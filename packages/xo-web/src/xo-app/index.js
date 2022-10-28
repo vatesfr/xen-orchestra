@@ -12,7 +12,7 @@ import _, { IntlProvider } from 'intl'
 import { addSubscriptions, connectStore, getXoaPlan, noop, routes } from 'utils'
 import { blockXoaAccess, isTrialRunning } from 'xoa-updater'
 import { checkXoa, clearXoaCheckCache } from 'xo'
-import { forEach, groupBy, pick } from 'lodash'
+import { forEach, groupBy, keyBy, pick } from 'lodash'
 import { Notification } from 'notification'
 import { productId2Plan } from 'xoa-plans'
 import { provideState } from 'reaclette'
@@ -52,6 +52,7 @@ import keymap, { help } from '../keymap'
 import Tooltip from '../common/tooltip'
 import { createCollectionWrapper, createGetObjectsOfType } from '../common/selectors'
 import { bindXcpngLicense, rebindLicense, subscribeXcpngLicenses } from '../common/xo'
+import { SOURCES } from '../common/xoa-plans'
 
 const shortcutManager = new ShortcutManager(keymap)
 
@@ -81,17 +82,17 @@ const BODY_STYLE = {
 }
 
 export const ICON_POOL_LICENSE = {
-  Total: tooltip => (
+  total: tooltip => (
     <Tooltip content={tooltip}>
-      <Icon icon='success' />
+      <Icon icon='file-text' className='text-success' />
     </Tooltip>
   ),
-  Partial: tooltip => (
+  partial: tooltip => (
     <Tooltip content={tooltip}>
       <Icon icon='alarm' className='text-warning' />
     </Tooltip>
   ),
-  Any: () => <Icon icon='alarm' className='text-danger' />,
+  any: () => <Icon icon='alarm' className='text-danger' />,
 }
 
 @routes('home', {
@@ -141,36 +142,36 @@ export const ICON_POOL_LICENSE = {
     refreshXoaStatus() {
       this.state.checkXoaCount += 1
     },
-    async bindXcpngLicenses(_, licenseToBindByHostId) {
+    async bindXcpngLicenses(_, xcpngLicensesByHost) {
       await Promise.all(
-        map(licenseToBindByHostId, (license, hostId) =>
-          license.boundObjectId !== undefined
-            ? rebindLicense(license.productId, license.id, license.boundObjectId, hostId)
-            : bindXcpngLicense(license.id, hostId)
+        map(xcpngLicensesByHost, ({ productId, id, boundObjectId }, hostId) =>
+          boundObjectId !== undefined
+            ? rebindLicense(productId, id, boundObjectId, hostId)
+            : bindXcpngLicense(id, hostId)
         )
       )
     },
   },
   computed: {
-    xcpngLicenseByboundObjectId: (_, { xcpLicenses }) => groupBy(xcpLicenses, 'boundObjectId'),
-    xcpngLicenseById: (_, { xcpLicenses }) => groupBy(xcpLicenses, 'id'),
+    xcpngLicenseByBoundObjectId: (_, { xcpLicenses }) => keyBy(xcpLicenses, 'boundObjectId'),
+    xcpngLicenseById: (_, { xcpLicenses }) => keyBy(xcpLicenses, 'id'),
     hostsByPoolId: createCollectionWrapper((_, { hosts }) =>
       groupBy(
         map(hosts, host => pick(host, ['$poolId', 'id'])),
         '$poolId'
       )
     ),
-    poolLicenseInfoByPoolId: ({ hostsByPoolId, xcpngLicenseByboundObjectId }) => {
+    poolLicenseInfoByPoolId: ({ hostsByPoolId, xcpngLicenseByBoundObjectId }) => {
       const poolLicenseInfoByPoolId = {}
 
       forEach(hostsByPoolId, (hosts, poolId) => {
         const nHosts = hosts.length
-        let closestExpiration
-        let hostsUnderLicense = 0
+        let earliestExpirationDate
+        let nHostsUnderLicense = 0
 
-        if (getXoaPlan() === 'Community') {
+        if (getXoaPlan() === SOURCES.name) {
           poolLicenseInfoByPoolId[poolId] = {
-            hostsUnderLicense,
+            nHostsUnderLicense,
             icon: () => (
               <Tooltip content={_('poolSupportSourceUsers')}>
                 <Icon icon='unknown-status' className='text-danger' />
@@ -182,19 +183,23 @@ export const ICON_POOL_LICENSE = {
         }
 
         for (const host of hosts) {
-          const license = xcpngLicenseByboundObjectId[host.id]?.[0]
+          const license = xcpngLicenseByBoundObjectId[host.id]
           if (license !== undefined && license.expires > Date.now()) {
-            hostsUnderLicense += 1
-            if (closestExpiration === undefined || license.expires < closestExpiration) {
-              closestExpiration = license.expires
+            nHostsUnderLicense++
+            if (earliestExpirationDate === undefined || license.expires < earliestExpirationDate) {
+              earliestExpirationDate = license.expires
             }
           }
         }
+
+        const supportLevel = nHostsUnderLicense === 0 ? 'any' : nHostsUnderLicense === nHosts ? 'total' : 'partial'
+
         poolLicenseInfoByPoolId[poolId] = {
-          closestExpiration,
-          hostsUnderLicense,
-          icon: ICON_POOL_LICENSE[hostsUnderLicense === 0 ? 'Any' : hostsUnderLicense === nHosts ? 'Total' : 'Partial'],
+          earliestExpirationDate,
+          icon: ICON_POOL_LICENSE[supportLevel],
           nHosts,
+          nHostsUnderLicense,
+          supportLevel,
         }
       })
 

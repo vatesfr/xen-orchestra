@@ -3242,14 +3242,8 @@ export const bindXcpngLicense = (licenseId, boundObjectId) =>
 
 export const rebindLicense = (licenseType, licenseId, oldBoundObjectId, newBoundObjectId) =>
   _call('xoa.licenses.rebind', { licenseId, oldBoundObjectId, newBoundObjectId })::tap(() => {
-    switch (licenseType) {
-      case 'xcpng-standard':
-      case 'xcpng-enterprise':
-        subscribeXcpngLicenses.forceRefresh()
-        break
-      default:
-        noop()
-        break
+    if (licenseType === 'xcpng-standard' || licenseType === 'xcpng-enterprise') {
+      return subscribeXcpngLicenses.forceRefresh()
     }
   })
 

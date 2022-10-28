@@ -262,16 +262,15 @@ export default class Licenses extends Component {
 
       // --- xcpng
       forEach(licenses.xcpng, license => {
-        console.log(license)
         // When `expires` is undefined, the license isn't expired
         if (!(license.expires < now)) {
           products.push({
             buyer: license.buyer,
             expires: license.expires,
             id: license.id,
-            product: _('xcpng'),
+            product: 'XCP-ng',
             type: 'xcpng',
-            vmId: license.boundObjectId,
+            hostId: license.boundObjectId,
           })
         }
       })

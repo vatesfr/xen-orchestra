@@ -1,28 +1,17 @@
 import React from 'react'
 import SelectLicense from 'select-license'
-import { forEach } from 'lodash'
 
 import BaseComponent from '../../base-component'
 import { Host } from '../../render-xo-item'
 
 export default class PoolBindLicenseModal extends BaseComponent {
+  licenseByHost = {}
+
   get value() {
-    return this.state.licenseIdToBindByHost
+    return this.licenseByHost
   }
 
-  _handleXcpngLicenseSelection = hostId => event => {
-    const { licenseIdToBindByHost } = this.state
-    const licenseId = event.target.value
-    forEach(licenseIdToBindByHost, (_licenseId, _hostId) => {
-      if (_licenseId === licenseId) {
-        delete licenseIdToBindByHost[_hostId]
-      }
-    })
-
-    this.setState({
-      licenseIdToBindByHost: { ...licenseIdToBindByHost, [hostId]: licenseId },
-    })
-  }
+  onSelectLicense = hostId => event => (this.licenseByHost[hostId] = event.target.value)
 
   render() {
     const { hosts } = this.props
@@ -31,7 +20,7 @@ export default class PoolBindLicenseModal extends BaseComponent {
         {hosts.map(({ id }) => (
           <div key={id}>
             <Host id={id} link newTab />
-            <SelectLicense productType='xcpng' withBounded onChange={this._handleXcpngLicenseSelection(id)} />
+            <SelectLicense productType='xcpng' showBoundLicenses onChange={this.onSelectLicense(id)} />
           </div>
         ))}
       </div>

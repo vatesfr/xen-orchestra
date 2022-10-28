@@ -17,9 +17,8 @@ import { injectState } from 'reaclette'
 
 import styles from './index.css'
 
-import { ICON_POOL_LICENSE } from '..'
-
 import { isAdmin } from '../../common/selectors'
+import { ShortDate } from '../../common/utils'
 
 @connectStore(() => {
   const getPoolHosts = createGetObjectsOfType('host').filter(
@@ -75,13 +74,15 @@ export default class PoolItem extends Component {
 
   _getPoolLicenseIcon() {
     const { state: reacletteState, item: pool } = this.props
-    let tooltip = ''
-    const { icon, closestExpiration, hostsUnderLicense, nHosts } = reacletteState.poolLicenseInfoByPoolId[pool.id]
-    if (icon === ICON_POOL_LICENSE.Total) {
-      tooltip = _('closestLicenseExpiration', { dateString: new Date(closestExpiration).toDateString() })
+    let tooltip
+    const { icon, earliestExpirationDate, nHostsUnderLicense, nHosts, supportLevel } =
+      reacletteState.poolLicenseInfoByPoolId[pool.id]
+
+    if (supportLevel === 'total') {
+      tooltip = _('earliestExpirationDate', { dateString: <ShortDate timestamp={earliestExpirationDate} /> })
     }
-    if (icon === ICON_POOL_LICENSE.Partial) {
-      tooltip = _('poolPartialSupport', { nHostsLicense: hostsUnderLicense, nHosts })
+    if (supportLevel === 'partial') {
+      tooltip = _('poolPartialSupport', { nHostsLicense: nHostsUnderLicense, nHosts })
     }
     return icon(tooltip)
   }
@@ -101,12 +102,7 @@ export default class PoolItem extends Component {
                 <Ellipsis>
                   <Text value={pool.name_label} onChange={this._setNameLabel} useLongClick />
                 </Ellipsis>
-                {isAdmin && (
-                  <span>
-                    &nbsp;&nbsp;
-                    {this._getPoolLicenseIcon()}
-                  </span>
-                )}
+                {isAdmin && <span className='ml-1'>{this._getPoolLicenseIcon()}</span>}
                 &nbsp;&nbsp;
                 {missingPatchCount > 0 && (
                   <span>

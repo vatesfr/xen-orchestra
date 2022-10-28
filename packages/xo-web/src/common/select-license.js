@@ -8,7 +8,7 @@ import { map } from 'lodash'
 
 import { renderXoItemFromId } from './render-xo-item'
 
-const License = ({ license, formatTime }) =>
+const LicenseOptions = ({ license, formatTime }) =>
   _(
     'expiresOn',
     {
@@ -21,16 +21,10 @@ const License = ({ license, formatTime }) =>
             })
           : '',
     },
-    message => (
+    expirationDate => (
       <option value={license.id}>
         <span>
-          {license.id.slice(-4)} (
-          {license.boundObjectId
-            ? renderXoItemFromId(license.boundObjectId)
-            : license.expires !== undefined
-            ? message
-            : ''}
-          )
+          {license.id.slice(-4)} {expirationDate} {license.boundObjectId && renderXoItemFromId(license.boundObjectId)}
         </span>
       </option>
     )
@@ -42,17 +36,17 @@ const SelectLicense = decorate([
     computed: {
       licenses: async (state, { productType }) => {
         try {
-          const _licenses = {
+          const availableLicenses = {
             bound: [],
             notBound: [],
           }
-          const resp = await getLicenses({ productType })
-          resp.forEach(license => {
+          // Can insert a bug
+          ;(await getLicenses({ productType })).forEach(license => {
             if (license.expires === undefined || license.expires > Date.now()) {
-              _licenses[license.boundObjectId === undefined ? 'notBound' : 'bound'].push(license)
+              availableLicenses[license.boundObjectId === undefined ? 'notBound' : 'bound'].push(license)
             }
           })
-          return _licenses
+          return availableLicenses
         } catch (error) {
           return { licenseError: error }
         }
@@ -60,7 +54,7 @@ const SelectLicense = decorate([
     },
   }),
   injectState,
-  ({ state: { licenses }, intl: { formatTime }, onChange, withBounded }) =>
+  ({ state: { licenses }, intl: { formatTime }, onChange, showBoundLicenses }) =>
     licenses?.licenseError !== undefined ? (
       <span>
         <em className='text-danger'>{_('getLicensesError')}</em>
@@ -73,18 +67,18 @@ const SelectLicense = decorate([
           </option>
         ))}
 
-        {_('notBounded', message => (
-          <optgroup label={message}>
+        {_('notBounded', i18nNotBounded => (
+          <optgroup label={i18nNotBounded}>
             {map(licenses?.notBound, license => (
-              <License formatTime={formatTime} key={license.id} license={license} />
+              <LicenseOptions formatTime={formatTime} key={license.id} license={license} />
             ))}
           </optgroup>
         ))}
-        {withBounded &&
-          _('bounded', message => (
-            <optgroup label={message}>
+        {showBoundLicenses &&
+          _('bound', i18nBound => (
+            <optgroup label={i18nBound}>
               {map(licenses?.bound, license => (
-                <License formatTime={formatTime} key={license.id} license={license} />
+                <LicenseOptions formatTime={formatTime} key={license.id} license={license} />
               ))}
             </optgroup>
           ))}
