@@ -51,7 +51,7 @@ const extract = (obj, prop) => {
 const startVmAndDestroyCloudConfigVdi = async (xapi, vm, vdiUuid, params) => {
   try {
     const start = new Date()
-    await xapi.startVm(vm._xapiId)
+    await xapi.startVm(vm.uuid)
 
     if (params.destroyCloudConfigVdiAfterBoot && vdiUuid !== undefined) {
       const started = new Date()
@@ -61,7 +61,7 @@ const startVmAndDestroyCloudConfigVdi = async (xapi, vm, vdiUuid, params) => {
       let remainingTimeout = timeout - startDuration
 
       // wait for the 'Running' event to be really stored in local xapi object cache
-      await xapi.waitObjectState(vm.$ref, vm => vm.power_state === 'Running', {
+      await xapi.waitObjectState(vm.uuid, vm => vm.power_state === 'Running', {
         timeout: remainingTimeout,
       })
 
@@ -235,7 +235,7 @@ export const create = defer(async function ($defer, params) {
   }
 
   if (params.bootAfterCreate) {
-    startVmAndDestroyCloudConfigVdi(xapi, vm, cloudConfigVdiUuid, params)
+    startVmAndDestroyCloudConfigVdi(xapi, xapiVm, cloudConfigVdiUuid, params)
   }
 
   return vm.id
