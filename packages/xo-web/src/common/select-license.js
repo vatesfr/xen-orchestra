@@ -66,8 +66,8 @@ const SelectLicense = decorate([
           </option>
         ))}
 
-        {_('notBounded', i18nNotBounded => (
-          <optgroup label={i18nNotBounded}>
+        {_('notBound', i18nNotBound => (
+          <optgroup label={i18nNotBound}>
             {map(licenses?.notBound, license => (
               <LicenseOptions formatTime={formatTime} key={license.id} license={license} />
             ))}

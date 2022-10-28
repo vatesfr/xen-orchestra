@@ -2415,7 +2415,7 @@ const messages = {
   licenses: 'Licenses',
   licensesBinding: 'Licenses binding',
   notEnoughXcpngLicenses: 'Not enough XCP-ng licenses',
-  notBounded: 'Not bounded',
+  notBound: 'Not bound',
   xosanUnregisteredDisclaimer:
     'You are not registered and therefore will not be able to create or manage your XOSAN SRs. {link}',
   xosanSourcesDisclaimer:

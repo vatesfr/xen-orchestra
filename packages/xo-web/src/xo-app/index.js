@@ -9,6 +9,7 @@ import React from 'react'
 import Shortcuts from 'shortcuts'
 import themes from 'themes'
 import _, { IntlProvider } from 'intl'
+// TODO: Replace all `getXoaPlan` by `getXoaPlan` from "xoa-plans"
 import { addSubscriptions, connectStore, getXoaPlan, noop, routes } from 'utils'
 import { blockXoaAccess, isTrialRunning } from 'xoa-updater'
 import { checkXoa, clearXoaCheckCache } from 'xo'
@@ -84,7 +85,7 @@ const BODY_STYLE = {
 export const ICON_POOL_LICENSE = {
   total: tooltip => (
     <Tooltip content={tooltip}>
-      <Icon icon='file-text' className='text-success' />
+      <Icon icon='pro-support' className='text-success' />
     </Tooltip>
   ),
   partial: tooltip => (
@@ -153,6 +154,8 @@ export const ICON_POOL_LICENSE = {
     },
   },
   computed: {
+    // In case an host have more than 1 license, it's an issue.
+    // poolLicenseInfoByPoolId can be impacted because the license expiration check may not yield the right information.
     xcpngLicenseByBoundObjectId: (_, { xcpLicenses }) => keyBy(xcpLicenses, 'boundObjectId'),
     xcpngLicenseById: (_, { xcpLicenses }) => keyBy(xcpLicenses, 'id'),
     hostsByPoolId: createCollectionWrapper((_, { hosts }) =>
