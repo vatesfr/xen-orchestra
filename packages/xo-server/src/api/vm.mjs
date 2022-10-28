@@ -69,7 +69,7 @@ const startVmAndDestroyCloudConfigVdi = async (xapi, vm, vdiUuid, params) => {
       remainingTimeout -= running - started
 
       if (remainingTimeout < 0) {
-        log.warn(`local xapi did not get runnig state for VM ${vm.id} after ${timeout / 1000} seconds`)
+        log.warn(`local xapi did not get runnig state for VM ${vm.uuid} after ${timeout / 1000} seconds`)
         return
       }
 
