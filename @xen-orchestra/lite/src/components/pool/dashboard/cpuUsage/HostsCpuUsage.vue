@@ -10,16 +10,11 @@
 <script lang="ts" setup>
 import { type ComputedRef, computed, inject } from "vue";
 import UsageBar from "@/components/UsageBar.vue";
+import type { Stat } from "@/composables/fetch-stats.composable";
 import { getAvgCpuUsage } from "@/libs/utils";
 import type { HostStats } from "@/libs/xapi-stats";
 
-const stats: ComputedRef<
-  {
-    id: string;
-    name: string;
-    stats?: HostStats;
-  }[]
-> = inject<any>(
+const stats = inject<ComputedRef<Stat<HostStats>[]>>(
   "hostStats",
   computed(() => [])
 );
