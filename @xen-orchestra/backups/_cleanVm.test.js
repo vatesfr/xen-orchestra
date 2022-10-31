@@ -1,6 +1,8 @@
 'use strict'
 
-/* eslint-env jest */
+const sinon = require('sinon')
+const { beforeEach, afterEach, test, describe } = require('test')
+const assert = require('assert').strict
 
 const rimraf = require('rimraf')
 const tmp = require('tmp')
@@ -17,7 +19,9 @@ const { dirname, basename } = require('path')
 let tempDir, adapter, handler, jobId, vdiId, basePath, relativePath
 const rootPath = 'xo-vm-backups/VMUUID/'
 
-jest.setTimeout(60000)
+// jest.setTimeout(60000)
+// const clock = sinon.useFakeTimers()
+// clock.tick(60000)
 
 beforeEach(async () => {
   tempDir = await pFromCallback(cb => tmp.dir(cb))
@@ -78,18 +82,18 @@ test('It remove broken vhd', async () => {
   // todo also tests a directory and an alias
 
   await handler.writeFile(`${basePath}/notReallyAVhd.vhd`, 'I AM NOT A VHD')
-  expect((await handler.list(basePath)).length).toEqual(1)
+  assert.strictEqual((await handler.list(basePath)).length, 1)
   let loggued = ''
   const logInfo = message => {
     loggued += message
   }
   await adapter.cleanVm(rootPath, { remove: false, logInfo, logWarn: logInfo, lock: false })
-  expect(loggued).toEqual(`VHD check error`)
+  assert.strictEqual(loggued, `VHD check error`)
   // not removed
-  expect(await handler.list(basePath)).toEqual(['notReallyAVhd.vhd'])
+  assert.deepStrictEqual(await handler.list(basePath), ['notReallyAVhd.vhd'])
   // really remove it
   await adapter.cleanVm(rootPath, { remove: true, logInfo, logWarn: () => {}, lock: false })
-  expect(await handler.list(basePath)).toEqual([])
+  assert.deepStrictEqual(await handler.list(basePath), [])
 })
 
 test('it remove vhd with missing or multiple ancestors', async () => {
@@ -126,7 +130,7 @@ test('it remove vhd with missing or multiple ancestors', async () => {
   await adapter.cleanVm(rootPath, { remove: true, logInfo, logWarn: logInfo, lock: false })
 
   const deletedOrphanVhd = loggued.match(/deleting orphan VHD/g) || []
-  expect(deletedOrphanVhd.length).toEqual(1) // only one vhd should have been deleted
+  assert.strictEqual(deletedOrphanVhd.length, 1) // only one vhd should have been deleted
 
   // we don't test the filew on disk, since they will all be marker as unused and deleted without a metadata.json file
 })
@@ -164,7 +168,7 @@ test('it remove backup meta data referencing a missing vhd in delta backup', asy
   }
   await adapter.cleanVm(rootPath, { remove: true, logInfo, logWarn: logInfo, lock: false })
   let matched = loggued.match(/deleting unused VHD/g) || []
-  expect(matched.length).toEqual(1) // only one vhd should have been deleted
+  assert.strictEqual(matched.length, 1) // only one vhd should have been deleted
 
   // a missing vhd cause clean to remove all vhds
   await handler.writeFile(
@@ -183,7 +187,7 @@ test('it remove backup meta data referencing a missing vhd in delta backup', asy
   loggued = ''
   await adapter.cleanVm(rootPath, { remove: true, logInfo, logWarn: () => {}, lock: false })
   matched = loggued.match(/deleting unused VHD/g) || []
-  expect(matched.length).toEqual(2) // all vhds (orphan and  child  ) should have been deleted
+  assert.strictEqual(matched.length, 2) // all vhds (orphan and  child  ) should have been deleted
 })
 
 test('it merges delta of non destroyed chain', async () => {
@@ -222,23 +226,23 @@ test('it merges delta of non destroyed chain', async () => {
     loggued.push(message)
   }
   await adapter.cleanVm(rootPath, { remove: true, logInfo, logWarn: logInfo, lock: false })
-  expect(loggued[0]).toEqual(`incorrect backup size in metadata`)
+  assert.strictEqual(loggued[0], `incorrect backup size in metadata`)
 
   loggued = []
   await adapter.cleanVm(rootPath, { remove: true, merge: true, logInfo, logWarn: () => {}, lock: false })
   const [merging] = loggued
-  expect(merging).toEqual(`merging VHD chain`)
+  assert.strictEqual(merging, `merging VHD chain`)
 
   const metadata = JSON.parse(await handler.readFile(`${rootPath}/metadata.json`))
   // size should be the size of children + grand children after the merge
-  expect(metadata.size).toEqual(209920)
+  assert.strictEqual(metadata.size, 209920)
 
   // merging is already tested in vhd-lib, don't retest it here (and theses vhd are as empty as my stomach at 12h12)
   // only check deletion
   const remainingVhds = await handler.list(basePath)
-  expect(remainingVhds.length).toEqual(2)
-  expect(remainingVhds.includes('child.vhd')).toEqual(true)
-  expect(remainingVhds.includes('grandchild.vhd')).toEqual(true)
+  assert.strictEqual(remainingVhds.length, 2)
+  assert.strictEqual(remainingVhds.includes('child.vhd'), true)
+  assert.strictEqual(remainingVhds.includes('grandchild.vhd'), true)
 })
 
 test('it finish unterminated merge ', async () => {
@@ -278,8 +282,8 @@ test('it finish unterminated merge ', async () => {
 
   // only check deletion
   const remainingVhds = await handler.list(basePath)
-  expect(remainingVhds.length).toEqual(1)
-  expect(remainingVhds.includes('child.vhd')).toEqual(true)
+  assert.strictEqual(remainingVhds.length, 1)
+  assert.strictEqual(remainingVhds.includes('child.vhd'), true)
 })
 
 // each of the vhd can be a file, a directory, an alias to a file or an alias to a directory
@@ -384,7 +388,7 @@ describe('tests multiple combination ', () => {
 
         const metadata = JSON.parse(await handler.readFile(`${rootPath}/metadata.json`))
         // size should be the size of children + grand children + clean after the merge
-        expect(metadata.size).toEqual(vhdMode === 'file' ? 314880 : undefined)
+        assert.deepStrictEqual(metadata.size, vhdMode === 'file' ? 314880 : undefined)
 
         // broken vhd, non referenced, abandonned should be deleted ( alias and data)
         // ancestor and child should be merged
@@ -394,19 +398,19 @@ describe('tests multiple combination ', () => {
         if (useAlias) {
           const dataSurvivors = await handler.list(basePath + '/data')
           // the goal of the alias : do not move a full folder
-          expect(dataSurvivors).toContain('ancestor.vhd')
-          expect(dataSurvivors).toContain('grandchild.vhd')
-          expect(dataSurvivors).toContain('cleanAncestor.vhd')
-          expect(survivors).toContain('clean.vhd.alias.vhd')
-          expect(survivors).toContain('child.vhd.alias.vhd')
-          expect(survivors).toContain('grandchild.vhd.alias.vhd')
-          expect(survivors.length).toEqual(4) // the 3 ok + data
-          expect(dataSurvivors.length).toEqual(3) // the 3 ok + data
+          sinon.match.in(dataSurvivors, 'ancestor.vhd')
+          sinon.match.in(dataSurvivors, 'grandchild.vhd')
+          sinon.match.in(dataSurvivors, 'cleanAncestor.vhd')
+          sinon.match.in(survivors, 'clean.vhd.alias.vhd')
+          sinon.match.in(survivors, 'child.vhd.alias.vhd')
+          sinon.match.in(survivors, 'grandchild.vhd.alias.vhd')
+          assert.strictEqual(survivors.length, 4) // the 3 ok + data
+          assert.strictEqual(dataSurvivors.length, 3)
         } else {
-          expect(survivors).toContain('clean.vhd')
-          expect(survivors).toContain('child.vhd')
-          expect(survivors).toContain('grandchild.vhd')
-          expect(survivors.length).toEqual(3)
+          sinon.match.in(survivors, 'clean.vhd')
+          sinon.match.in(survivors, 'child.vhd')
+          sinon.match.in(survivors, 'grandchild.vhd')
+          assert.strictEqual(survivors.length, 3)
         }
       })
     }
@@ -418,7 +422,7 @@ test('it cleans orphan merge states ', async () => {
 
   await adapter.cleanVm(rootPath, { remove: true, logWarn: () => {}, lock: false })
 
-  expect(await handler.list(basePath)).toEqual([])
+  assert.deepStrictEqual(await handler.list(basePath), [])
 })
 
 test('check Aliases should work alone', async () => {
@@ -439,8 +443,8 @@ test('check Aliases should work alone', async () => {
 
   // only ok have suvived
   const alias = (await handler.list('vhds')).filter(f => f.endsWith('.vhd'))
-  expect(alias.length).toEqual(1)
+  assert.strictEqual(alias.length, 1)
 
   const data = await handler.list('vhds/data')
-  expect(data.length).toEqual(1)
+  assert.strictEqual(data.length, 1)
 })

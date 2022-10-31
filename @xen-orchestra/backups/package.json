@@ -13,7 +13,8 @@
     "node": ">=14.6"
   },
   "scripts": {
-    "postversion": "npm publish --access public"
+    "postversion": "npm publish --access public",
+    "test": "node--test"
   },
   "dependencies": {
     "@vates/async-each": "^1.0.0",
@@ -46,6 +47,8 @@
   },
   "devDependencies": {
     "rimraf": "^3.0.2",
+    "sinon": "^14.0.1",
+    "test": "^3.2.1",
     "tmp": "^0.2.1"
   },
   "peerDependencies": {
