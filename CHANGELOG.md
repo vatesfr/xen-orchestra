@@ -25,7 +25,7 @@
 - @xen-orchestra/fs 3.2.0
 - @xen-orchestra/mixins 0.8.1
 - @xen-orchestra/xapi 1.5.2
-- @xen-orchestra/proxy 0.26.3
+- @xen-orchestra/proxy 0.26.4
 - vhd-cli 0.9.2
 - vhd-lib 4.1.1
 - xo-remote-parser 0.9.2
