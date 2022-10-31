@@ -72,15 +72,8 @@ const startVmAndDestroyCloudConfigVdi = async (xapi, vm, vdiUuid, params) => {
         })
 
       // destroy cloud config drive
-      const vdi = await xapi.getObject(vdiUuid)
-
-      for (const vbdRef of vdi.VBDs) {
-        if ((await xapi.getObject((await xapi.getObject(vbdRef)).VDI)).uuid === vdiUuid) {
-          await xapi.VBD_unplug(vbdRef)
-          break
-        }
-      }
-
+      const vdi = xapi.getObjectByUuid(vdiUuid)
+      await vdi.$VBDs[0].$unplug()
       await vdi.$destroy()
     }
   } catch (error) {
