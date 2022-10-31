@@ -24,7 +24,7 @@
 - @xen-orchestra/backups 0.28.1
 - @xen-orchestra/fs 3.2.0
 - @xen-orchestra/mixins 0.8.1
-- @xen-orchestra/xapi 1.5.1
+- @xen-orchestra/xapi 1.5.2
 - @xen-orchestra/proxy 0.26.3
 - vhd-cli 0.9.2
 - vhd-lib 4.1.1
