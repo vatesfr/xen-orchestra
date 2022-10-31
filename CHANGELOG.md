@@ -29,7 +29,7 @@
 - vhd-cli 0.9.2
 - vhd-lib 4.1.1
 - xo-remote-parser 0.9.2
-- xo-server 5.104.0
+- xo-server 5.105.0
 - xo-server-audit 0.10.1
 - xo-server-auth-ldap 0.10.5
 - xo-server-backup-reports 0.17.1
