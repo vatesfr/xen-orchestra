@@ -1287,12 +1287,17 @@ export default class Xapi extends XapiBase {
     const host = this.pool.$master
     const sr = this.getObject(srId)
 
-    await this.call('host.call_plugin', host.$ref, 'xscontainer', 'create_config_drive', {
-      vmuuid: vm.uuid,
-      sruuid: sr.uuid,
-      configuration: config,
-    })
+    // See https://github.com/xenserver/xscontainer/blob/master/src/scripts/xscontainer-pluginexample
+    const vdiUuid = (
+      await this.call('host.call_plugin', host.$ref, 'xscontainer', 'create_config_drive', {
+        vmuuid: vm.uuid,
+        sruuid: sr.uuid,
+        configuration: config,
+      })
+    ).replace(/^True/, '')
     await this.registerDockerContainer(vmId)
+
+    return vdiUuid
   }
 
   // Generic Config Drive
@@ -1343,6 +1348,8 @@ export default class Xapi extends XapiBase {
     })
 
     await this.VBD_create({ VDI: vdi.$ref, VM: vm.$ref })
+
+    return vdi.uuid
   }
 
   @decorateWith(deferrable)
