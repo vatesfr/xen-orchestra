@@ -20,8 +20,6 @@ let tempDir, adapter, handler, jobId, vdiId, basePath, relativePath
 const rootPath = 'xo-vm-backups/VMUUID/'
 
 // jest.setTimeout(60000)
-// const clock = sinon.useFakeTimers()
-// clock.tick(60000)
 
 beforeEach(async () => {
   tempDir = await pFromCallback(cb => tmp.dir(cb))
