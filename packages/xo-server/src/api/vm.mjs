@@ -50,33 +50,17 @@ const extract = (obj, prop) => {
 
 const startVmAndDestroyCloudConfigVdi = async (xapi, vm, vdiUuid, params) => {
   try {
-    const start = new Date()
+    const timeLimit = Date.now() + 10 * 60 * 1000
     await xapi.startVm(vm.uuid)
 
     if (params.destroyCloudConfigVdiAfterBoot && vdiUuid !== undefined) {
-      const started = new Date()
-      const timeout = 10 * 60 * 1000
-      const startDuration = started - start
-
-      let remainingTimeout = timeout - startDuration
-
       // wait for the 'Running' event to be really stored in local xapi object cache
-      await xapi.waitObjectState(vm.uuid, vm => vm.power_state === 'Running', {
-        timeout: remainingTimeout,
-      })
-
-      const running = new Date()
-      remainingTimeout -= running - started
-
-      if (remainingTimeout < 0) {
-        log.warn(`local xapi did not get runnig state for VM ${vm.uuid} after ${timeout / 1000} seconds`)
-        return
-      }
+      await xapi.waitObjectState(vm.uuid, vm => vm.power_state === 'Running', { timeout: timeLimit - Date.now() })
 
       // wait for the guest tool version to be defined
       await xapi
         .waitObjectState(vm.guest_metrics, gm => gm?.PV_drivers_version?.major !== undefined, {
-          timeout: remainingTimeout,
+          timeout: timeLimit - Date.now(),
         })
         .catch(error => {
           log.warn('startVmAndDestroyCloudConfigVdi: failed to wait guest metrics, consider VM as started', {
