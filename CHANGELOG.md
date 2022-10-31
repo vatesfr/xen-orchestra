@@ -21,7 +21,7 @@
 - @vates/predicates 1.1.0
 - @vates/read-chunk 1.0.1
 - @xen-orchestra/audit-core 0.2.1
-- @xen-orchestra/backups 0.28.1
+- @xen-orchestra/backups 0.29.0
 - @xen-orchestra/fs 3.2.0
 - @xen-orchestra/mixins 0.8.1
 - @xen-orchestra/xapi 1.5.2
