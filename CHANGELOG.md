@@ -39,7 +39,7 @@
 - xo-server-transport-nagios 0.1.2
 - xo-server-usage-report 0.10.1
 - xo-server-web-hooks 0.3.1
-- xo-web 5.105.0
+- xo-web 5.106.0
 
 ## **5.75.0** (2022-09-30)
 
