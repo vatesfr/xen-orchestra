@@ -85,17 +85,23 @@ const BODY_STYLE = {
 export const ICON_POOL_LICENSE = {
   total: tooltip => (
     <Tooltip content={tooltip}>
-      <Icon icon='pro-support' className='text-success' />
+      <a href='https://xcp-ng.com' rel='noreferrer noopener' target='_blank'>
+        <Icon icon='pro-support' className='text-success' />
+      </a>
     </Tooltip>
   ),
   partial: tooltip => (
     <Tooltip content={tooltip}>
-      <Icon icon='alarm' className='text-warning' />
+      <a href='https://xcp-ng.com' rel='noreferrer noopener' target='_blank'>
+        <Icon icon='alarm' className='text-warning' />
+      </a>
     </Tooltip>
   ),
   any: () => (
     <Tooltip content={_('poolNoSupport')}>
-      <Icon icon='alarm' className='text-danger' />
+      <a href='https://xcp-ng.com' rel='noreferrer noopener' target='_blank'>
+        <Icon icon='alarm' className='text-danger' />
+      </a>
     </Tooltip>
   ),
 }
