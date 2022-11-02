@@ -11,6 +11,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Pool] Added a tooltip for the `no support` icon (PR [#6505](https://github.com/vatesfr/xen-orchestra/pull/6505))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -26,5 +28,7 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
+
+- xo-web patch
 
 <!--packages-end-->
