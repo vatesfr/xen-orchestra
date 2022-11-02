@@ -93,7 +93,11 @@ export const ICON_POOL_LICENSE = {
       <Icon icon='alarm' className='text-warning' />
     </Tooltip>
   ),
-  any: () => <Icon icon='alarm' className='text-danger' />,
+  any: () => (
+    <Tooltip content={_('poolNoSupport')}>
+      <Icon icon='alarm' className='text-danger' />
+    </Tooltip>
+  ),
 }
 
 @routes('home', {
