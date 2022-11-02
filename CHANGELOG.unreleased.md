@@ -11,7 +11,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [Pool] Added a tooltip for the `no support` icon (PR [#6505](https://github.com/vatesfr/xen-orchestra/pull/6505))
+- [Pool] Added tooltip for `no support` icon (PR [#6505](https://github.com/vatesfr/xen-orchestra/pull/6505))
 
 ### Packages to release
 
