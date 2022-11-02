@@ -11,6 +11,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Dashboard/Health] Fix `an error as occured` in case of unknown `default_SR` (PR [#6508](https://github.com/vatesfr/xen-orchestra/pull/6508))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -26,5 +28,7 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
+
+- xo-web fix
 
 <!--packages-end-->

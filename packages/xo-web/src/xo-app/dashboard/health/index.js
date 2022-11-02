@@ -634,7 +634,12 @@ export default class Health extends Component {
         const nbHostsPerPool = countBy(hosts, host => host.$pool)
         return filter(selectedPools, pool => {
           const { default_SR } = pool
-          return default_SR !== undefined && !userSrs[default_SR]?.shared && nbHostsPerPool[pool.id] > 1
+          return (
+            default_SR !== undefined &&
+            userSrs[default_SR] !== undefined &&
+            !userSrs[default_SR].shared &&
+            nbHostsPerPool[pool.id] > 1
+          )
         })
       }
     )
