@@ -9,7 +9,6 @@ assignees: ''
 1. ⚠️ **If you don't follow this template, the issue will be closed**.
 2. ⚠️ **If your issue can't be easily reproduced, please report it [on the forum first](https://xcp-ng.org/forum/category/12/xen-orchestra)**.
 
-
 Are you using XOA or XO from the sources?
 
 If XOA:
@@ -43,8 +42,6 @@ If applicable, add screenshots to help explain your problem.
 **Environment (please provide the following information):**
 
 - Node: [e.g. 16.12.1]
-- xo-server: [e.g. 5.82.3]
-- xo-web: [e.g. 5.87.0]
 - hypervisor: [e.g. XCP-ng 8.2.0]
 
 **Additional context**
