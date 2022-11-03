@@ -29,6 +29,6 @@
 
 <!--packages-start-->
 
-- xo-web fix
+- xo-web patch
 
 <!--packages-end-->
