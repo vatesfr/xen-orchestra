@@ -18,7 +18,7 @@ If XOA:
 
 If XO from the sources:
 
-- Provide **your commit the commit number**. If it's older than a week, we won't investigate
+- Provide **your commit number**. If it's older than a week, we won't investigate
 - Don't forget to [read this first](https://xen-orchestra.com/docs/community.html)
 - As well as follow [this guide](https://xen-orchestra.com/docs/community.html#report-a-bug)
 
