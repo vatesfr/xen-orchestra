@@ -18013,13 +18013,10 @@ speedometer@~1.0.0:
   resolved "https://registry.yarnpkg.com/speedometer/-/speedometer-1.0.0.tgz#cd671cb06752c22bca3370e2f334440be4fc62e2"
   integrity sha512-lgxErLl/7A5+vgIIXsh9MbeukOaCb2axgQ+bKCdIE+ibNT4XNYGNCR1qFEGq6F+YDASXK3Fh/c5FgtZchFolxw==
 
-split-log@^1.0.12:
-  version "1.0.12"
-  resolved "https://registry.yarnpkg.com/split-log/-/split-log-1.0.12.tgz#f53216d86039fccc0b69241dc1929b51539be6f2"
-  integrity sha512-goseewD3PJ2ilS8Wg6Fse/I+c3bZ1tRvlU2iXYi6PYg/6mDbd41FlqNSr0E1pD9Enem3wRm/XanJrTzmiMnMuQ==
-  dependencies:
-    lodash "^4.17.4"
-    strftime "^0.10.0"
+split-host@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/split-host/-/split-host-2.0.0.tgz#2bd1050e2eea7827b9728c028936139deb8e28ac"
+  integrity sha512-07tMCi9ZUh1L6BuVgBpA3cv2TOzLrd3/klY/mwHaa0ZH1Lmv+AlI3GQQC+/vI7voIWOw/7Lo8TTMyY9DP/hQCA==
 
 split-string@^3.0.1, split-string@^3.0.2:
   version "3.1.0"
@@ -18206,11 +18203,6 @@ stream-splicer@^2.0.0:
   dependencies:
     inherits "^2.0.1"
     readable-stream "^2.0.2"
-
-strftime@^0.10.0:
-  version "0.10.1"
-  resolved "https://registry.yarnpkg.com/strftime/-/strftime-0.10.1.tgz#108af1176a7d5252cfbddbdb2af044dfae538389"
-  integrity sha512-nVvH6JG8KlXFPC0f8lojLgEsPA18lRpLZ+RrJh/NkQV2tqOgZfbas8gcU8SFgnnqR3rWzZPYu6N2A3xzs/8rQg==
 
 strict-event-emitter-types@~2.0.0:
   version "2.0.0"
