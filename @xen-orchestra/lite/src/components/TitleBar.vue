@@ -35,7 +35,7 @@ defineProps<{
 }
 
 .title {
-  font-size: 3.6rem;
+  font-size: 3rem;
   color: var(--color-blue-scale-100);
 }
 </style>

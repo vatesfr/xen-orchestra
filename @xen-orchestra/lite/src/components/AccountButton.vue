@@ -6,7 +6,9 @@
         <UiIcon :icon="faAngleDown" class="dropdown-icon" />
       </button>
     </template>
-    <MenuItem :icon="faGear">{{ $t("settings") }}</MenuItem>
+    <MenuItem :icon="faGear" @click="openSettings">{{
+      $t("settings")
+    }}</MenuItem>
     <MenuItem :icon="faMessage" @click="openFeedbackUrl">
       {{ $t("send-us-feedback") }}
     </MenuItem>
@@ -50,6 +52,8 @@ const openFeedbackUrl = () => {
     "noopener"
   );
 };
+
+const openSettings = () => router.push({ name: "settings" });
 </script>
 
 <style scoped>

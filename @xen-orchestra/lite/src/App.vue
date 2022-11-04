@@ -47,6 +47,7 @@ watchEffect(() => {
     xenApiStore.init();
   }
 });
+
 useChartTheme();
 </script>
 

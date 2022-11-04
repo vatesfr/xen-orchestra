@@ -51,11 +51,13 @@
         <UiKeyValueRow>
           <template #key>{{ $t("appearance") }}</template>
           <template #value
-            ><FormLabel>
+            ><FormInputWrapper>
+              <template #label>{{ $t("dark-mode") }}</template>
               <FormToggle
                 :modelValue="darkMode"
                 @update:modelValue="setDarkMode"
-              />{{ $t("dark-mode") }}</FormLabel
+              />
+              </FormInputWrapper
             ></template
           >
         </UiKeyValueRow>
@@ -92,12 +94,13 @@ import { faEarthAmericas, faGear } from "@fortawesome/free-solid-svg-icons";
 import { useLocalStorage } from "@vueuse/core";
 import FormWidget from "@/components/FormWidget.vue";
 import TitleBar from "@/components/TitleBar.vue";
-import FormLabel from "@/components/form/FormLabel.vue";
+// import FormLabel from "@/components/form/FormLabel.vue";
 import FormToggle from "@/components/form/FormToggle.vue";
 import UiCard from "@/components/ui/UiCard.vue";
 import UiKeyValueList from "@/components/ui/UiKeyValueList.vue";
 import UiKeyValueRow from "@/components/ui/UiKeyValueRow.vue";
 import UiTitle from "@/components/ui/UiTitle.vue";
+import FormInputWrapper from "@/components/form/FormInputWrapper.vue";
 
 const version = XO_LITE_VERSION;
 const gitHead = XO_LITE_GIT_HEAD;
