@@ -15,6 +15,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [Pool] Add tooltip on "no XCP-ng Pro support" warning icon (PR [#6505](https://github.com/vatesfr/xen-orchestra/pull/6505))
+- [Backup] Really disable Healthcheck when unchecking settings (PR [#6515](https://github.com/vatesfr/xen-orchestra/pull/6515))
 
 ### Packages to release
 
