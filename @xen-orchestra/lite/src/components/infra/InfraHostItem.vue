@@ -21,7 +21,7 @@
       </template>
     </InfraItemLabel>
 
-    <InfraVmList v-show="isExpanded" :host-opaque-ref="hostOpaqueRef" />
+    <InfraVmList v-show="!isExpanded" :host-opaque-ref="hostOpaqueRef" />
   </li>
 </template>
 
