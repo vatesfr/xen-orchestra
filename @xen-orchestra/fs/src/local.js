@@ -198,4 +198,9 @@ export default class LocalHandler extends RemoteHandlerAbstract {
   _writeFile(file, data, { flags }) {
     return this._addSyncStackTrace(fs.writeFile, this._getFilePath(file), data, { flag: flags })
   }
+
+  async _exists(file){
+    const exists = await  fs.pathExists(this._getFilePath(file))
+    return exists
+  }
 }

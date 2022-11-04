@@ -466,4 +466,8 @@ exports.VhdFile = class VhdFile extends VhdAbstract {
   async getSize() {
     return await this._handler.getSize(this._path)
   }
+
+  _checkBlock(blockId){
+    return true
+  }
 }

@@ -113,6 +113,10 @@ const VhdSynthetic = class VhdSynthetic extends VhdAbstract {
     return vhd?._getFullBlockPath(blockId)
   }
 
+  _checkBlock(blockId) {
+    const vhd = this.#getVhdWithBlock(blockId)
+    return vhd?._checkBlock(blockId) ?? false
+  }
   // return true if all the vhds ar an instance of cls
   checkVhdsClass(cls) {
     return this.#vhds.every(vhd => vhd instanceof cls)
