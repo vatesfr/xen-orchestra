@@ -1,4 +1,19 @@
 <template>
+  <UiModal
+    v-if="isSslModalOpen"
+    color="error"
+    :icon="faServer"
+    @close="clearUnreachableHostsUrls"
+  >
+    <template #title>{{ $t("unreachable-hosts") }}</template>
+    <template #subtitle>{{ $t("following-hosts-unreachable") }}</template>
+    <p>{{ $t("allow-self-signed-ssl") }}</p>
+    <ul>
+      <li v-for="url in unreachableHostsUrls" :key="url.hostname">
+        <a :href="url.href" target="_blank" rel="noopener">{{ url.href }}</a>
+      </li>
+    </ul>
+  </UiModal>
   <div v-if="!xenApiStore.isConnected">
     <AppLogin />
   </div>
@@ -17,14 +32,21 @@
 </template>
 
 <script lang="ts" setup>
-import { watchEffect } from "vue";
+import { difference } from "lodash";
+import { computed, ref, watch, watchEffect } from "vue";
 import favicon from "@/assets/favicon.svg";
+import { faServer } from "@fortawesome/free-solid-svg-icons";
 import AppHeader from "@/components/AppHeader.vue";
 import AppLogin from "@/components/AppLogin.vue";
 import AppTooltips from "@/components/AppTooltips.vue";
 import InfraPoolList from "@/components/infra/InfraPoolList.vue";
+import UiModal from "@/components/ui/UiModal.vue";
 import { useChartTheme } from "@/composables/chart-theme.composable";
+import { useHostStore } from "@/stores/host.store";
 import { useXenApiStore } from "@/stores/xen-api.store";
+
+const unreachableHostsUrls = ref<URL[]>([]);
+const clearUnreachableHostsUrls = () => (unreachableHostsUrls.value = []);
 
 let link: HTMLLinkElement | null = document.querySelector("link[rel~='icon']");
 if (link == null) {
@@ -41,6 +63,8 @@ if (window.localStorage?.getItem("colorMode") !== "light") {
 }
 
 const xenApiStore = useXenApiStore();
+const hostStore = useHostStore();
+useChartTheme();
 
 watchEffect(() => {
   if (xenApiStore.isConnected) {
@@ -48,7 +72,21 @@ watchEffect(() => {
   }
 });
 
-useChartTheme();
+watch(
+  () => hostStore.allRecords,
+  (hosts, previousHosts) => {
+    difference(hosts, previousHosts).forEach((host) => {
+      const url = new URL("http://localhost");
+      url.protocol = window.location.protocol;
+      url.hostname = host.address;
+      fetch(url, { mode: "no-cors" }).catch(() =>
+        unreachableHostsUrls.value.push(url)
+      );
+    });
+  }
+);
+
+const isSslModalOpen = computed(() => unreachableHostsUrls.value.length > 0);
 </script>
 
 <style lang="postcss">

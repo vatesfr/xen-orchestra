@@ -5,6 +5,7 @@
   "add-sort": "Ajouter un tri",
   "alarms": "Alarmes",
   "appearance": "Apparence",
+  "allow-self-signed-ssl":"Vous devrez peut-être autoriser les certificats SSL auto-signés depuis votre navigateur",
   "ascending": "ascendant",
   "available-properties-for-advanced-filter": "Propriétés disponibles pour le filtrage avancé :",
   "backup": "Sauvegarde",
@@ -25,6 +26,7 @@
   "export-vms": "Exporter les VMs",
   "hosts": "Hôtes",
   "language": "Langue",
+  "following-hosts-unreachable":"Les hôtes suivants sont inaccessibles",
   "loading-hosts": "Chargement des hôtes…",
   "log-out": "Se déconnecter",
   "login": "Connexion",
@@ -49,6 +51,7 @@
   "top-#": "Top {n}",
   "total-free": "Total libre",
   "total-used": "Total utilisé",
+  "unreachable-hosts": "Hôtes inaccessibles",
   "version": "Version",
   "vms": "VMs"
 }
