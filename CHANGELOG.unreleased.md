@@ -11,6 +11,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Pool] Add tooltip on "no XCP-ng Pro support" warning icon (PR [#6505](https://github.com/vatesfr/xen-orchestra/pull/6505))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -27,6 +29,7 @@
 
 <!--packages-start-->
 
+- xo-web patch
 - xo-server patch
 
 <!--packages-end-->
