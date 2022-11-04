@@ -2,6 +2,10 @@
 require("@rushstack/eslint-patch/modern-module-resolution");
 
 module.exports = {
+  globals: {
+    XO_LITE_GIT_HEAD: true,
+    XO_LITE_VERSION: true,
+  },
   root: true,
   env: {
     node: true,
