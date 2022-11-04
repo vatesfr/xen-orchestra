@@ -98,6 +98,7 @@ export default class RemoteHandlerAbstract {
     const sharedLimit = limitConcurrency(options.maxParallelOperations ?? DEFAULT_MAX_PARALLEL_OPERATIONS)
     this.closeFile = sharedLimit(this.closeFile)
     this.copy = sharedLimit(this.copy)
+    this.exists = sharedLimit(this.exists)
     this.getInfo = sharedLimit(this.getInfo)
     this.getSize = sharedLimit(this.getSize)
     this.list = sharedLimit(this.list)
@@ -321,6 +322,14 @@ export default class RemoteHandlerAbstract {
 
   async rmtree(dir) {
     await this._rmtree(normalizePath(dir))
+  }
+
+  async _exists(file){
+    throw new Error('not implemented')
+  }
+  async exists(file){
+    return this._exists(normalizePath(file))
+
   }
 
   // Asks the handler to sync the state of the effective remote with its'

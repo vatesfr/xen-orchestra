@@ -421,4 +421,17 @@ export default class S3Handler extends RemoteHandlerAbstract {
   useVhdDirectory() {
     return true
   }
+
+  async _exists(file){
+    try{
+      await this._s3.send(new HeadObjectCommand(this._createParams(file)))
+      return true
+    }catch(error){
+      // normalize this error code
+      if (error.name === 'NoSuchKey') {
+        return false
+      }
+      throw error
+    }
+  }
 }

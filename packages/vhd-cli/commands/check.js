@@ -1,30 +1,47 @@
 'use strict'
 
-const { VhdFile, checkVhdChain } = require('vhd-lib')
+const { openVhd, VhdSynthetic } = require('vhd-lib')
 const getopts = require('getopts')
 const { getSyncedHandler } = require('@xen-orchestra/fs')
-const { resolve } = require('path')
 const { Disposable } = require('promise-toolbox')
 
-const checkVhd = (handler, path) => new VhdFile(handler, path).readHeaderAndFooter()
-
 module.exports = async function check(rawArgs) {
-  const { chain, _: args } = getopts(rawArgs, {
-    boolean: ['chain'],
+  const { chain, bat, blocks, remote, _: args } = getopts(rawArgs, {
+    boolean: ['chain', 'bat', 'blocks'],
     default: {
       chain: false,
+      bat: false,
+      blocks: false
     },
   })
 
-  const check = chain ? checkVhdChain : checkVhd
-  await Disposable.use(getSyncedHandler({ url: 'file:///' }), async handler => {
-    for (const vhd of args) {
-      try {
-        await check(handler, resolve(vhd))
-        console.log('ok:', vhd)
-      } catch (error) {
-        console.error('nok:', vhd, error)
+  const vhdPath = args[0]
+
+  await Disposable.factory( async function * open(remote, vhdPath) {
+    const handler = yield getSyncedHandler({url : remote ?? 'file:///'})
+    const vhd = chain? yield VhdSynthetic.fromVhdChain(handler, vhdPath) : yield openVhd(handler, vhdPath)
+
+    await vhd.readBlockAllocationTable()
+    if(bat){
+      const nBlocks = vhd.header.maxTableEntries
+      let nbErrors = 0
+      for (let blockId = 0; blockId < nBlocks; ++blockId) {
+        if(!vhd.containsBlock(blockId)){
+         continue
+        }
+        const ok = await vhd.checkBlock(blockId)
+        if(!ok){
+          console.warn(`block ${blockId} is invalid`)
+          nbErrors ++
+        }
       }
+      console.log('BAT check done ', nbErrors === 0  ? 'OK':  `${nbErrors} block(s) faileds`)
     }
-  })
+    if(blocks){
+      for await(const _ of vhd.blocks()){
+
+      }
+      console.log('Blocks check done')
+    }
+  })(remote, vhdPath)
 }

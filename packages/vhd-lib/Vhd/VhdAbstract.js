@@ -407,4 +407,14 @@ exports.VhdAbstract = class VhdAbstract {
     assert.strictEqual(copied, length, 'invalid length')
     return copied
   }
+
+  _checkBlock() {
+    throw new Error('not implemented')
+  }
+
+  // check if a block is ok without reading it
+  // there still can be error when reading the block later (if it's deleted, if right are incorrects,...)
+  async checkBlock(blockId) {
+    return this._checkBlock(blockId)
+  }
 }
