@@ -146,7 +146,7 @@ port = 80
 #=====================================================================
 
 # Uncomment this section to export the logs to an external syslog
-#[log.transport.syslog]
+#[logs.transport.syslog]
 #target = 'tcp://syslog.company.lan:514'
 
 #=====================================================================

@@ -1,0 +1,27 @@
+@import "reset.css";
+@import "theme.css";
+/* TODO Serve fonts locally */
+@import url("https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,400;0,500;0,600;0,700;0,900;1,400;1,500;1,600;1,700;1,900&display=swap");
+
+body {
+  min-height: 100vh;
+  font-size: 1.3rem;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  color: var(--color-blue-scale-100);
+}
+
+a {
+  color: var(--color-extra-blue-base);
+}
+
+code {
+  font-family: monospace;
+}
+
+.card-view {
+  padding: 1.2rem;
+  display: flex;
+  gap: 2rem;
+}
