@@ -15,6 +15,10 @@ register.params = {
     type: 'string',
     optional: true,
   },
+  vmUuid: {
+    type: 'string',
+    optional: true,
+  },
   name: {
     type: 'string',
     optional: true,
