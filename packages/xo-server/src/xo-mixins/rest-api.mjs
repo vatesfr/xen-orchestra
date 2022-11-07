@@ -85,6 +85,7 @@ export default class RestApi {
       { id: 'pools', type: 'pool' },
       { id: 'srs', type: 'SR' },
       { id: 'vbds', type: 'VBD' },
+      { id: 'vdi-snapshots', type: 'VDI-snapshot' },
       { id: 'vdis', type: 'VDI' },
       { id: 'vifs', type: 'VIF' },
       { id: 'vm-snapshots', type: 'VM-snapshot' },
@@ -144,9 +145,10 @@ export default class RestApi {
       }
     })
 
-    api.get('/vdis/:uuid.vhd', async (req, res, next) => {
+    api.get('/vdi:subtype(|-snapshot)s/:uuid.vhd', async (req, res, next) => {
       try {
-        const vdi = app.getXapiObject(req.params.uuid, 'VDI')
+        const { subtype, uuid } = req.params
+        const vdi = app.getXapiObject(uuid, 'VDI' + subtype)
         const stream = await vdi.$exportContent({ format: 'vhd' })
 
         stream.headers['content-disposition'] = 'attachment'
