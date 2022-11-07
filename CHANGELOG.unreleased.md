@@ -15,7 +15,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [Pool] Add tooltip on "no XCP-ng Pro support" warning icon (PR [#6505](https://github.com/vatesfr/xen-orchestra/pull/6505))
-- [Pool] Change `Pool support not available for source users` to `XCP-ng pro support not available for source users` (PR [#6517](https://github.com/vatesfr/xen-orchestra/pull/6517))
+- [Pool] Change `Pool support not available for source users` to `XCP-ng pro support not available for source users` [#6535](https://xcp-ng.org/forum/topic/6535/xo-from-source-pool-support-not-available-for-source-users?lang=fr) (PR [#6517](https://github.com/vatesfr/xen-orchestra/pull/6517))
 
 ### Packages to release
 
