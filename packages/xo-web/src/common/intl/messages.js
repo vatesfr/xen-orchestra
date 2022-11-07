@@ -839,7 +839,7 @@ const messages = {
   poolHaDisabled: 'Disabled',
   poolGpuGroups: 'GPU groups',
   poolRemoteSyslogPlaceHolder: 'Logging host',
-  poolSupportSourceUsers: 'Pool support not available for source users',
+  poolSupportSourceUsers: 'XCP-ng pro support not available for source users',
   poolSupportXcpngOnly: 'Only available for pool of XCP-ng hosts',
   poolLicenseAlreadyFullySupported: 'The pool is already fully supported',
   setpoolMaster: 'Master',
