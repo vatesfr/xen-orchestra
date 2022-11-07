@@ -7,7 +7,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [License] Display license plan when bounding licenses (PR [#6512](https://github.com/vatesfr/xen-orchestra/pull/6512))
+- [Select license] Display product type in the options (PR [#6512](https://github.com/vatesfr/xen-orchestra/pull/6512))
 
 ### Bug fixes
 

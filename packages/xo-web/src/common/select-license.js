@@ -15,7 +15,7 @@ const LicenseOptions = ({ license, formatDate }) => {
       <span>
         {productId.charAt(0).toUpperCase() + productId.slice(1)} ({license.id.slice(-4)}),{' '}
         {license.expires !== undefined ? formatDate(license.expires) : '-'}
-        {license.boundObjectId && <span>, {renderXoItemFromId(license.boundObjectId)}</span>}
+        {license.boundObjectId !== undefined && <span>, {renderXoItemFromId(license.boundObjectId)}</span>}
       </span>
     </option>
   )
