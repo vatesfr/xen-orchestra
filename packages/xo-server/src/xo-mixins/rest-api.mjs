@@ -87,6 +87,8 @@ export default class RestApi {
       { id: 'vbds', type: 'VBD' },
       { id: 'vdis', type: 'VDI' },
       { id: 'vifs', type: 'VIF' },
+      { id: 'vm-snapshots', type: 'VM-snapshot' },
+      { id: 'vm-templates', type: 'VM-template' },
       { id: 'vms', type: 'VM' },
     ]
 
@@ -160,9 +162,10 @@ export default class RestApi {
       }
     })
 
-    api.get('/vms/:uuid.xva', async (req, res, next) => {
+    api.get('/vm:subtype(|-snapshot|-template)s/:uuid.xva', async (req, res, next) => {
       try {
-        const vm = app.getXapiObject(req.params.uuid, 'VM')
+        const { subtype, uuid } = req.params
+        const vm = app.getXapiObject(uuid, 'VM' + subtype)
         const stream = await vm.$export({ compress: req.query.compress })
 
         stream.headers['content-disposition'] = 'attachment'

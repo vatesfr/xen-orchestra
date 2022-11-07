@@ -9,6 +9,7 @@
 
 - [API] `proxy.register` accepts `vmUuid` parameter which can be used when not connected to the XAPI containing the XO Proxy VM
 - [Proxy] Can now upgrade proxies in VMs not connected to XO
+- [REST API] Expose VM snapshots and templates
 
 ### Bug fixes
 
