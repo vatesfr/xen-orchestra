@@ -11,6 +11,7 @@
 - [Proxy] Can now upgrade proxies in VMs not connected to XO
 - [REST API] Expose VM snapshots and templates
 - [REST API] Expose VDI snapshots
+- [Select license] Display product type in the options (PR [#6512](https://github.com/vatesfr/xen-orchestra/pull/6512))
 
 ### Bug fixes
 
@@ -35,7 +36,7 @@
 
 <!--packages-start-->
 
-- xo-web patch
 - xo-server minor
+- xo-web minor
 
 <!--packages-end-->

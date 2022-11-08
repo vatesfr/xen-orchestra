@@ -8,27 +8,18 @@ import { map } from 'lodash'
 
 import { renderXoItemFromId } from './render-xo-item'
 
-const LicenseOptions = ({ license, formatTime }) =>
-  _(
-    'expiresOn',
-    {
-      date:
-        license.expires !== undefined
-          ? formatTime(license.expires, {
-              day: 'numeric',
-              month: 'numeric',
-              year: 'numeric',
-            })
-          : '',
-    },
-    expirationDate => (
-      <option value={license.id}>
-        <span>
-          {license.id.slice(-4)} {expirationDate} {license.boundObjectId && renderXoItemFromId(license.boundObjectId)}
-        </span>
-      </option>
-    )
+const LicenseOptions = ({ license, formatDate }) => {
+  const productId = license.productId.split('-')[1]
+  return (
+    <option value={license.id}>
+      <span>
+        {productId.charAt(0).toUpperCase() + productId.slice(1)} ({license.id.slice(-4)}),{' '}
+        {license.expires !== undefined ? formatDate(license.expires) : '-'}
+        {license.boundObjectId !== undefined && <span>, {renderXoItemFromId(license.boundObjectId)}</span>}
+      </span>
+    </option>
   )
+}
 
 const SelectLicense = decorate([
   injectIntl,
@@ -53,7 +44,7 @@ const SelectLicense = decorate([
     },
   }),
   injectState,
-  ({ state: { licenses }, intl: { formatTime }, onChange, showBoundLicenses }) =>
+  ({ state: { licenses }, intl: { formatDate }, onChange, showBoundLicenses }) =>
     licenses?.licenseError !== undefined ? (
       <span>
         <em className='text-danger'>{_('getLicensesError')}</em>
@@ -66,18 +57,18 @@ const SelectLicense = decorate([
           </option>
         ))}
 
-        {_('notBound', i18nNotBound => (
+        {_('notBoundSelectLicense', i18nNotBound => (
           <optgroup label={i18nNotBound}>
             {map(licenses?.notBound, license => (
-              <LicenseOptions formatTime={formatTime} key={license.id} license={license} />
+              <LicenseOptions formatDate={formatDate} key={license.id} license={license} />
             ))}
           </optgroup>
         ))}
         {showBoundLicenses &&
-          _('bound', i18nBound => (
+          _('boundSelectLicense', i18nBound => (
             <optgroup label={i18nBound}>
               {map(licenses?.bound, license => (
-                <LicenseOptions formatTime={formatTime} key={license.id} license={license} />
+                <LicenseOptions formatDate={formatDate} key={license.id} license={license} />
               ))}
             </optgroup>
           ))}
