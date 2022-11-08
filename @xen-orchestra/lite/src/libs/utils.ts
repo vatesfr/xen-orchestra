@@ -37,7 +37,7 @@ const iconsByType = {
   enum: faList,
 };
 
-export function formatSize(bytes?: number) {
+export function formatSize(bytes: number) {
   return bytes != null
     ? humanFormat(bytes, { scale: "binary", unit: "B" })
     : "N/D";
@@ -123,34 +123,3 @@ export const buildXoObject = (
   ...record,
   $ref: params.opaqueRef,
 });
-
-export function parseRamUsage(
-  {
-    memory,
-    memoryFree,
-  }: {
-    memory: number[];
-    memoryFree?: number[];
-  },
-  { nSequence = 4 } = {}
-) {
-  const statsLength = memory.length;
-  const _nSequence = statsLength < nSequence ? statsLength : nSequence;
-
-  let max = 0;
-  let used = 0;
-  memory.forEach((ram, key) => {
-    max += ram;
-    used += ram - (memoryFree?.[key] ?? 0);
-  });
-
-  const _percentUsed = percent(used, max);
-  const percentUsed =
-    memoryFree === undefined || isNaN(_percentUsed) ? undefined : _percentUsed;
-
-  return {
-    percentUsed,
-    max: max / _nSequence,
-    used: percentUsed !== undefined ? used / _nSequence : undefined,
-  };
-}
