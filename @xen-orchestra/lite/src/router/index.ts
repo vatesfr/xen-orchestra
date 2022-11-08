@@ -4,6 +4,7 @@ import HomeView from "@/views/HomeView.vue";
 import NotFoundView from "@/views/NotFoundView.vue";
 import HostDashboardView from "@/views/host/HostDashboardView.vue";
 import HostRootView from "@/views/host/HostRootView.vue";
+import SettingsView from "@/views/settings/SettingsView.vue";
 import VmConsoleView from "@/views/vm/VmConsoleView.vue";
 import VmRootView from "@/views/vm/VmRootView.vue";
 
@@ -14,6 +15,11 @@ const router = createRouter({
       path: "/",
       name: "home",
       component: HomeView,
+    },
+    {
+      path: "/settings",
+      name: "settings",
+      component: SettingsView,
     },
     pool,
     {
