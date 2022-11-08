@@ -812,6 +812,7 @@ const messages = {
 
   // ----- Pool general -----
   earliestExpirationDate: 'Earliest expiration: {dateString}',
+  poolNoSupport: 'No XCP-ng Pro support enabled on this pool',
   poolPartialSupport:
     'Only {nHostsLicense, number} host{nHostsLicense, plural, one {} other {s}} under license on {nHosts, number} host{nHosts, plural, one {} other {s}}. This means this pool is not supported at all until you license all its hosts.',
   poolTitleRamUsage: 'Pool RAM usage:',
@@ -2408,7 +2409,7 @@ const messages = {
 
   // Licenses
   allHostsMustBeBound: 'All hosts must be bound to a license',
-  bound: 'Bound',
+  boundSelectLicense: 'Bound (Plan (ID), expiration date, host - pool)',
   bindXcpngLicenses: 'Bind XCP-ng licenses',
   confirmBindingOnUnsupportedHost:
     'You are about to bind {nLicenses, number} professional support license{nLicenses, plural, one {} other {s}} on older and unsupported XCP-ng version{nLicenses, plural, one {} other {s}}. Are you sure you want to continue?',
@@ -2416,7 +2417,7 @@ const messages = {
   licenses: 'Licenses',
   licensesBinding: 'Licenses binding',
   notEnoughXcpngLicenses: 'Not enough XCP-ng licenses',
-  notBound: 'Not bound',
+  notBoundSelectLicense: 'Not bound (Plan (ID), expiration date)',
   xosanUnregisteredDisclaimer:
     'You are not registered and therefore will not be able to create or manage your XOSAN SRs. {link}',
   xosanSourcesDisclaimer:
