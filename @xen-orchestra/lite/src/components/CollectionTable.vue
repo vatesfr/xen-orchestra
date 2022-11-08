@@ -1,7 +1,7 @@
 <template>
   <div class="filter-and-sort">
     <CollectionFilter
-      v-if="availableFilters"
+      v-if="availableFilters !== undefined"
       :active-filters="filters"
       :available-filters="availableFilters"
       @add-filter="addFilter"
@@ -9,6 +9,7 @@
     />
 
     <CollectionSorter
+      v-if="availableSorts !== undefined"
       :active-sorts="sorts"
       :available-sorts="availableSorts"
       @add-sort="addSort"

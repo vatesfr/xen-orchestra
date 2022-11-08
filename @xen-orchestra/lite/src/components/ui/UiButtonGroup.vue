@@ -6,11 +6,14 @@
 
 <script lang="ts" setup>
 import { computed, provide } from "vue";
+import type { Color } from "@/types";
 
 const props = defineProps<{
   busy?: boolean;
   disabled?: boolean;
-  color?: "primary" | "secondary";
+  color?: Color;
+  outlined?: boolean;
+  transparent?: boolean;
 }>();
 provide(
   "isButtonGroupBusy",
@@ -22,7 +25,15 @@ provide(
 );
 provide(
   "buttonGroupColor",
-  computed(() => props.color ?? "primary")
+  computed(() => props.color ?? "info")
+);
+provide(
+  "isButtonGroupOutlined",
+  computed(() => props.outlined ?? false)
+);
+provide(
+  "isButtonGroupTransparent",
+  computed(() => props.transparent ?? false)
 );
 </script>
 

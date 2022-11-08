@@ -1,5 +1,6 @@
 import { defineStore } from "pinia";
 import { reactive, shallowReactive } from "vue";
+import { buildXoObject } from "@/libs/utils";
 import type { ObjectType, RawObjectType, XenApiRecord } from "@/libs/xen-api";
 import { useXenApiStore } from "@/stores/xen-api.store";
 
@@ -38,7 +39,7 @@ export const useRecordsStore = defineStore("records", () => {
     opaqueRef: string,
     record: T
   ) {
-    recordsByOpaqueRef.set(opaqueRef, record);
+    recordsByOpaqueRef.set(opaqueRef, buildXoObject(record, { opaqueRef }));
     opaqueRefsByObjectType.get(objectType)?.add(opaqueRef);
     uuidToOpaqueRefMapping.set(record.uuid, opaqueRef);
   }

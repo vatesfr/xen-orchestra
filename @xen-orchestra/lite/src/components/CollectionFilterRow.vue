@@ -62,26 +62,17 @@
         </FormWidget>
       </template>
     </template>
-    <UiButton
+    <UiActionButton
       v-if="!newFilter.isAdvanced"
-      color="secondary"
       @click="enableAdvancedMode"
-    >
-      <FontAwesomeIcon :icon="faPencil" />
-    </UiButton>
-    <UiButton
-      class="remove"
-      color="secondary"
-      @click="emit('remove', newFilter.id)"
-    >
-      <FontAwesomeIcon :icon="faRemove" class="remove-icon" />
-    </UiButton>
+      :icon="faPencil"
+    />
+    <UiActionButton @click="emit('remove', newFilter.id)" :icon="faRemove" />
   </div>
 </template>
 
 <script lang="ts" setup>
 import { computed, watch } from "vue";
-import { useI18n } from "vue-i18n";
 import type {
   Filter,
   FilterComparisonType,
@@ -93,7 +84,7 @@ import type {
 import { faPencil, faRemove } from "@fortawesome/free-solid-svg-icons";
 import { useVModel } from "@vueuse/core";
 import FormWidget from "@/components/FormWidget.vue";
-import UiButton from "@/components/ui/UiButton.vue";
+import UiActionButton from "@/components/ui/UiActionButton.vue";
 import { buildComplexMatcherNode } from "@/libs/complex-matcher.utils";
 import { getFilterIcon } from "@/libs/utils";
 
@@ -257,10 +248,6 @@ const valueInputAfter = computed(() => {
   &:first-child .or {
     visibility: hidden;
   }
-}
-
-.remove-icon {
-  color: var(--color-red-vates-base);
 }
 
 .form-widget-advanced {

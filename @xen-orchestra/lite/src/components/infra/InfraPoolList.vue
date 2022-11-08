@@ -1,13 +1,16 @@
 <template>
   <ul class="infra-pool-list">
-    <InfraLoadingItem v-if="!isReady" :icon="faBuilding" />
+    <InfraLoadingItem
+      v-if="!isReady || pool === undefined"
+      :icon="faBuilding"
+    />
     <li v-else class="infra-pool-item">
       <InfraItemLabel
         :icon="faBuilding"
         :route="{ name: 'pool.dashboard', params: { uuid: pool.uuid } }"
         active
       >
-        {{ pool.name_label || '(Pool)' }}
+        {{ pool.name_label || "(Pool)" }}
       </InfraItemLabel>
 
       <InfraHostList />

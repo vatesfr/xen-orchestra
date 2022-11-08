@@ -12,54 +12,53 @@
       </span>
     </UiFilter>
 
-    <UiButton :icon="faPlus" class="add-sort" color="secondary" @click="open">
+    <UiActionButton :icon="faPlus" class="add-sort" @click="open">
       {{ $t("add-sort") }}
-    </UiButton>
+    </UiActionButton>
   </UiFilterGroup>
 
-  <UiModal v-if="isOpen">
-    <form @submit.prevent="handleSubmit">
-      <div class="form-widgets">
-        <FormWidget :label="$t('sort-by')">
-          <select v-model="newSortProperty">
-            <option v-if="!newSortProperty"></option>
-            <option
-              v-for="(sort, property) in availableSorts"
-              :key="property"
-              :value="property"
-            >
-              {{ sort.label ?? property }}
-            </option>
-          </select>
-        </FormWidget>
-        <FormWidget>
-          <select v-model="newSortIsAscending">
-            <option :value="true">{{ $t("ascending") }}</option>
-            <option :value="false">{{ $t("descending") }}</option>
-          </select>
-        </FormWidget>
-      </div>
-      <UiButtonGroup>
-        <UiButton type="submit">{{ $t("add") }}</UiButton>
-        <UiButton color="secondary" @click="handleCancel">
+  <UiModal v-if="isOpen" @submit.prevent="handleSubmit" :icon="faSort">
+    <div class="form-widgets">
+      <FormWidget :label="$t('sort-by')">
+        <select v-model="newSortProperty">
+          <option v-if="!newSortProperty"></option>
+          <option
+            v-for="(sort, property) in availableSorts"
+            :key="property"
+            :value="property"
+          >
+            {{ sort.label ?? property }}
+          </option>
+        </select>
+      </FormWidget>
+      <FormWidget>
+        <select v-model="newSortIsAscending">
+          <option :value="true">{{ $t("ascending") }}</option>
+          <option :value="false">{{ $t("descending") }}</option>
+        </select>
+      </FormWidget>
+    </div>
+    <template #buttons>
+      <UiButton type="submit">{{ $t("add") }}</UiButton>
+      <UiButton outlined @click="handleCancel">
           {{ $t("cancel") }}
         </UiButton>
-      </UiButtonGroup>
-    </form>
->>>>>>> Merge old repo to XO
+    </template>
   </UiModal>
 </template>
 
+<script lang="ts" setup>
 import { ref } from "vue";
 import type { ActiveSorts, Sorts } from "@/types/sort";
 import {
   faCaretDown,
   faCaretUp,
   faPlus,
+  faSort,
 } from "@fortawesome/free-solid-svg-icons";
 import FormWidget from "@/components/FormWidget.vue";
 import UiButton from "@/components/ui/UiButton.vue";
-import UiButtonGroup from "@/components/ui/UiButtonGroup.vue";
+import UiActionButton from "@/components/ui/UiActionButton.vue";
 import UiFilter from "@/components/ui/UiFilter.vue";
 import UiFilterGroup from "@/components/ui/UiFilterGroup.vue";
 import UiModal from "@/components/ui/UiModal.vue";
@@ -99,10 +98,6 @@ const handleCancel = () => {
 </script>
 
 <style lang="postcss" scoped>
-.add-sort {
-  height: 3.4rem;
-}
-
 .form-widgets {
   display: flex;
   gap: 1rem;
