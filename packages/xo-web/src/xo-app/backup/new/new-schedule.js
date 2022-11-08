@@ -80,6 +80,7 @@ const New = decorate([
       toggleHealthCheck({ setSchedule }, { target: { checked } }) {
         setSchedule({
           healthCheckVmsWithTags: checked ? [] : undefined,
+          healthCheckSr: checked ? this.state.healthCheckSr : undefined,
         })
       },
       setHealthCheckSr({ setSchedule }, sr) {
