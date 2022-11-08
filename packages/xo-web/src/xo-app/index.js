@@ -82,18 +82,30 @@ const BODY_STYLE = {
   width: '100%',
 }
 
+const WrapperIconPoolLicense = ({ children, tooltip }) => (
+  <Tooltip content={tooltip}>
+    <a href='https://xcp-ng.com' rel='noreferrer noopener' target='_blank'>
+      {children}
+    </a>
+  </Tooltip>
+)
+
 export const ICON_POOL_LICENSE = {
   total: tooltip => (
-    <Tooltip content={tooltip}>
+    <WrapperIconPoolLicense tooltip={tooltip}>
       <Icon icon='pro-support' className='text-success' />
-    </Tooltip>
+    </WrapperIconPoolLicense>
   ),
   partial: tooltip => (
-    <Tooltip content={tooltip}>
+    <WrapperIconPoolLicense tooltip={tooltip}>
       <Icon icon='alarm' className='text-warning' />
-    </Tooltip>
+    </WrapperIconPoolLicense>
   ),
-  any: () => <Icon icon='alarm' className='text-danger' />,
+  any: () => (
+    <WrapperIconPoolLicense tooltip={_('poolNoSupport')}>
+      <Icon icon='alarm' className='text-danger' />
+    </WrapperIconPoolLicense>
+  ),
 }
 
 @routes('home', {

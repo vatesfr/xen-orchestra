@@ -195,7 +195,28 @@ export default class Proxy {
       }
     }
 
-    return this.updateProxyAppliance(id, { upgrade: true })
+    let isVmKnown = false
+
+    const { vmUuid } = await this._getProxy(id)
+    if (vmUuid !== undefined) {
+      try {
+        this.getObject(vmUuid, 'VM')
+
+        isVmKnown = true
+      } catch (error) {
+        if (!noSuchObject.is(error)) {
+          throw error
+        }
+      }
+    }
+
+    if (isVmKnown) {
+      //  use the standard upgrade (via VM reboot)
+      await this.updateProxyAppliance(id, { upgrade: true })
+    } else {
+      // use the (limited) API upgrade instead
+      await this.callProxyMethod(id, 'appliance.updater.upgrade')
+    }
   }
 
   async updateProxyAppliance(id, { httpProxy, upgrade = false }) {

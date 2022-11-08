@@ -812,6 +812,7 @@ const messages = {
 
   // ----- Pool general -----
   earliestExpirationDate: 'Earliest expiration: {dateString}',
+  poolNoSupport: 'No XCP-ng Pro support enabled on this pool',
   poolPartialSupport:
     'Only {nHostsLicense, number} host{nHostsLicense, plural, one {} other {s}} under license on {nHosts, number} host{nHosts, plural, one {} other {s}}. This means this pool is not supported at all until you license all its hosts.',
   poolTitleRamUsage: 'Pool RAM usage:',

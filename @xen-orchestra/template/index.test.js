@@ -1,6 +1,7 @@
-/* eslint-env jest */
-
 'use strict'
+
+const { it } = require('test')
+const assert = require('assert').strict
 
 const { compileTemplate } = require('.')
 
@@ -10,5 +11,5 @@ it("correctly replaces the template's variables", () => {
     '{constant}': 1235,
     '%': (_, i) => i,
   })
-  expect(replacer({ name: 'bar' }, 5)).toBe('bar_{property}_\\bar_1235_5_FOO')
+  assert.strictEqual(replacer({ name: 'bar' }, 5), 'bar_{property}_\\bar_1235_5_FOO')
 })
