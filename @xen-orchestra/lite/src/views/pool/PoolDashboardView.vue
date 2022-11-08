@@ -8,7 +8,7 @@
 
 <script lang="ts" setup>
 import { differenceBy } from "lodash-es";
-import { computed, onMounted, provide, readonly, watch } from "vue";
+import { computed, onMounted, provide, watch } from "vue";
 import PoolDashboardCpuUsage from "@/components/pool/dashboard/PoolDashboardCpuUsage.vue";
 import PoolDashboardStatus from "@/components/pool/dashboard/PoolDashboardStatus.vue";
 import PoolDashboardStorageUsage from "@/components/pool/dashboard/PoolDashboardStorageUsage.vue";
@@ -38,8 +38,8 @@ const runningVms = computed(() =>
   vmStore.allRecords.filter((vm) => vm.power_state === "Running")
 );
 
-provide("hostStats", readonly(hostStats));
-provide("vmStats", readonly(vmStats));
+provide("hostStats", hostStats);
+provide("vmStats", vmStats);
 
 watch(runningHosts, (hosts, previousHosts) => {
   // turned On

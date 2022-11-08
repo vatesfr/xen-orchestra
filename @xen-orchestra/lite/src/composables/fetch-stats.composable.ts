@@ -10,13 +10,18 @@ const STORES_BY_OBJECT_TYPE = {
   vm: useVmStore,
 };
 
+export type Stat<T> = {
+  id: string;
+  name: string;
+  stats?: T;
+  pausable: Pausable;
+};
+
 export default function useFetchStats<T extends XenApiHost | XenApiVm, S>(
   type: "host" | "vm",
   granularity: GRANULARITY
 ) {
-  const stats = ref<
-    Map<string, { id: string; name: string; stats?: S; pausable: Pausable }>
-  >(new Map());
+  const stats = ref<Map<string, Stat<S>>>(new Map());
 
   const register = (object: T) => {
     if (stats.value.has(object.uuid)) {
@@ -63,6 +68,6 @@ export default function useFetchStats<T extends XenApiHost | XenApiVm, S>(
   return {
     register,
     unregister,
-    stats: computed(() => Array.from(stats.value.values())),
+    stats: computed<Stat<S>[]>(() => Array.from(stats.value.values())),
   };
 }
