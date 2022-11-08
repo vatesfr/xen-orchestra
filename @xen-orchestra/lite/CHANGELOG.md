@@ -4,6 +4,7 @@
 
 - Invalidate sessionId token after logout (PR [#6480](https://github.com/vatesfr/xen-orchestra/pull/6480))
 - Settings page (PR [#6418](https://github.com/vatesfr/xen-orchestra/pull/6418))
+- Implement not found page (PR [#6410](https://github.com/vatesfr/xen-orchestra/pull/6410))
 
 ## **0.1.0**
 
