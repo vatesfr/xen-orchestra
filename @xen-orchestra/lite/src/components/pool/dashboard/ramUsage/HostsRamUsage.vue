@@ -19,7 +19,7 @@ const stats = inject<ComputedRef<Stat<HostStats>[]>>(
   computed(() => [])
 );
 
-const data = computed<{ id: string; label: string; value: number }[]>(() => {
+const data = computed(() => {
   const result: {
     id: string;
     label: string;
