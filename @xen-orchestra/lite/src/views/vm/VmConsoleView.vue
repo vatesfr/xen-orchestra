@@ -1,5 +1,5 @@
 <template>
-  <div v-if="!isReady">Loading...</div>
+  <div v-if="isLoading">Loading...</div>
   <div v-else-if="!isVmRunning">Console is only available for running VMs.</div>
   <RemoteConsole v-else-if="vmConsole" :location="vmConsole.location" />
 </template>
@@ -15,7 +15,7 @@ const route = useRoute();
 const vmStore = useVmStore();
 const consoleStore = useConsoleStore();
 
-const isReady = computed(() => vmStore.isReady && consoleStore.isReady);
+const isLoading = computed(() => vmStore.isLoading && consoleStore.isLoading);
 
 const vm = computed(() => vmStore.getRecordByUuid(route.params.uuid as string));
 const isVmRunning = computed(() => vm.value?.power_state === "Running");

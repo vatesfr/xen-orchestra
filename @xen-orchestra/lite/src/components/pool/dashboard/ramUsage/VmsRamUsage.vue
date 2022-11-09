@@ -4,7 +4,10 @@
     :left="$t('vms')"
     :right="$t('top-#', { n: N_ITEMS })"
   />
-  <UsageBar :data="statFetched ? data : undefined" :n-items="N_ITEMS" />
+  <UsageBar
+    :data="hasError ? null : statFetched ? data : undefined"
+    :n-items="N_ITEMS"
+  />
 </template>
 
 <script lang="ts" setup>
@@ -15,6 +18,10 @@ import type { Stat } from "@/composables/fetch-stats.composable";
 import { formatSize, parseRamUsage } from "@/libs/utils";
 import type { VmStats } from "@/libs/xapi-stats";
 import { N_ITEMS } from "@/views/pool/PoolDashboardView.vue";
+import { useVmStore } from "@/stores/vm.store";
+import { storeToRefs } from "pinia";
+
+const { hasError } = storeToRefs(useVmStore());
 
 const stats = inject<ComputedRef<Stat<VmStats>[]>>(
   "vmStats",
@@ -30,7 +37,7 @@ const data = computed(() => {
   }[] = [];
 
   stats.value.forEach((stat) => {
-    if (stat.stats === undefined) {
+    if (stat.stats == null) {
       return;
     }
 

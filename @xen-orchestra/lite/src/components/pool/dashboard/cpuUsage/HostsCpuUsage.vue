@@ -4,7 +4,10 @@
     :left="$t('hosts')"
     :right="$t('top-#', { n: N_ITEMS })"
   />
-  <UsageBar :data="statFetched ? data : undefined" :n-items="N_ITEMS" />
+  <UsageBar
+    :data="hasError ? null : statFetched ? data : undefined"
+    :n-items="N_ITEMS"
+  />
 </template>
 
 <script lang="ts" setup>
@@ -13,8 +16,12 @@ import UsageBar from "@/components/UsageBar.vue";
 import type { Stat } from "@/composables/fetch-stats.composable";
 import { getAvgCpuUsage } from "@/libs/utils";
 import type { HostStats } from "@/libs/xapi-stats";
+import { useHostStore } from "@/stores/host.store";
 import { N_ITEMS } from "@/views/pool/PoolDashboardView.vue";
+import { storeToRefs } from "pinia";
 import { computed, type ComputedRef, inject } from "vue";
+
+const { hasError } = storeToRefs(useHostStore());
 
 const stats = inject<ComputedRef<Stat<HostStats>[]>>(
   "hostStats",
@@ -25,7 +32,7 @@ const data = computed<{ id: string; label: string; value: number }[]>(() => {
   const result: { id: string; label: string; value: number }[] = [];
 
   stats.value.forEach((stat) => {
-    if (stat.stats === undefined) {
+    if (stat.stats == null) {
       return;
     }
 

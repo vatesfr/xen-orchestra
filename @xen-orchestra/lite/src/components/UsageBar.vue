@@ -1,6 +1,8 @@
 <template>
   <div>
-    <template v-if="data !== undefined">
+    <UiSpinner v-if="data === undefined" class="spinner" />
+    <NoDataError v-else-if="data === null" />
+    <template v-else>
       <div
         v-for="item in computedData.sortedArray"
         :key="item.id"
@@ -18,12 +20,12 @@
       </div>
       <slot :total-percent="computedData.totalPercentUsage" name="footer" />
     </template>
-    <UiSpinner v-else class="spinner" />
   </div>
 </template>
 
 <script lang="ts" setup>
 import { computed } from "vue";
+import NoDataError from "@/components/NoDataError.vue";
 import UiProgressBar from "@/components/ui/progress/UiProgressBar.vue";
 import UiProgressLegend from "@/components/ui/progress/UiProgressLegend.vue";
 import UiSpinner from "@/components/ui/UiSpinner.vue";
@@ -37,7 +39,7 @@ interface Data {
 }
 
 interface Props {
-  data?: Data[];
+  data?: Data[] | null;
   nItems?: number;
 }
 
