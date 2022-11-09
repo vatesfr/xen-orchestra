@@ -475,6 +475,7 @@ export default class User extends Component {
             <Col smallSize={10}>
               <select className='form-control' onChange={this.handleSelectLang} value={lang} style={{ width: '10em' }}>
                 <option value='en'>English</option>
+                <option value='ru'>Русский</option>
                 <option value='es'>Español</option>
                 <option value='fr'>Français</option>
                 <option value='hu'>Magyar</option>
