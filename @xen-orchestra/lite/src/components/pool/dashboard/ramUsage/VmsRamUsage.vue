@@ -10,23 +10,22 @@
 <script lang="ts" setup>
 import { type ComputedRef, computed, inject } from "vue";
 import UsageBar from "@/components/UsageBar.vue";
+import type { Stat } from "@/composables/fetch-stats.composable";
 import { formatSize, parseRamUsage } from "@/libs/utils";
 import type { VmStats } from "@/libs/xapi-stats";
 
-const stats = inject<
-  ComputedRef<
-    {
-      name: string;
-      stats?: VmStats;
-    }[]
-  >
->(
+const stats = inject<ComputedRef<Stat<VmStats>[]>>(
   "vmStats",
   computed(() => [])
 );
 
-const data = computed<{ label: string; value: number }[]>(() => {
-  const result: { label: string; value: number; badgeLabel: string }[] = [];
+const data = computed<{ id: string; label: string; value: number }[]>(() => {
+  const result: {
+    id: string;
+    label: string;
+    value: number;
+    badgeLabel: string;
+  }[] = [];
 
   stats.value.forEach((stat) => {
     if (stat.stats === undefined) {
@@ -39,6 +38,7 @@ const data = computed<{ label: string; value: number }[]>(() => {
     }
 
     result.push({
+      id: stat.id,
       label: stat.name,
       value: percentUsed,
       badgeLabel: `${formatSize(used)}/${formatSize(max)}`,

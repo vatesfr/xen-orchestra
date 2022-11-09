@@ -123,3 +123,38 @@ export const buildXoObject = (
   ...record,
   $ref: params.opaqueRef,
 });
+
+export function parseRamUsage(
+  {
+    memory,
+    memoryFree,
+  }: {
+    memory: number[];
+    memoryFree?: number[];
+  },
+  { nSequence = 4 } = {}
+) {
+  const nValues = memory.length;
+  const _nSequence = nValues < nSequence ? nValues : nSequence;
+
+  let max = 0;
+  let used = 0;
+
+  memory = memory.slice(memory.length - _nSequence);
+  memoryFree = memoryFree?.slice(memoryFree.length - _nSequence);
+
+  memory.forEach((ram, key) => {
+    max += ram;
+    used += ram - (memoryFree?.[key] ?? 0);
+  });
+
+  const _percentUsed = percent(used, max);
+  const percentUsed =
+    memoryFree === undefined || isNaN(_percentUsed) ? undefined : _percentUsed;
+
+  return {
+    percentUsed,
+    max: max / _nSequence,
+    used: percentUsed !== undefined ? used / _nSequence : undefined,
+  };
+}
