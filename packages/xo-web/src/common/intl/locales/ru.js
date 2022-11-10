@@ -66,7 +66,7 @@ export default {
   copyToClipboard: 'Копировать в буфер обмена',
 
   // Original text: 'Master'
-  pillMaster: undefined,
+  pillMaster: 'Мастер',
 
   // Original text: "Home"
   homePage: 'Главная',
@@ -75,7 +75,7 @@ export default {
   homeVmPage: 'Вируальные машины',
 
   // Original text: 'Hosts'
-  homeHostPage: 'Хосты',
+  homeHostPage: 'Узлы',
 
   // Original text: 'Pools'
   homePoolPage: 'Пулы',
@@ -153,7 +153,7 @@ export default {
   taskMenu: 'Задачи',
 
   // Original text: 'Tasks'
-  taskPage: undefined,
+  taskPage: 'Задачи',
 
   // Original text: "VM"
   newVmPage: 'ВМ',
@@ -177,7 +177,7 @@ export default {
   backupNewPage: 'Создать',
 
   // Original text: "Remotes"
-  backupRemotesPage: 'Удаленный',
+  backupRemotesPage: 'Дистанционные',
 
   // Original text: "Restore"
   backupRestorePage: 'Восстановление',
@@ -243,7 +243,7 @@ export default {
   homeWelcome: 'Добро пожаловать в Xen Orchestra!',
 
   // Original text: "Add your XCP-ng hosts or pools"
-  homeWelcomeText: 'Добавьте свои хосты и пулы XCP-ng',
+  homeWelcomeText: 'Добавьте свои Узлы и пулы XCP-ng',
 
   // Original text: 'Some XenServers have been registered but are not connected'
   homeConnectServerText: 'Некоторые серверы XenServer зарегистрированы, но не подключены',
@@ -279,7 +279,7 @@ export default {
   homeRestoreBackup: 'Восстановить резервную копию',
 
   // Original text: "Restore a backup from a remote store"
-  homeRestoreBackupMessage: 'Восстановить резервную копию из удаленного хранилища',
+  homeRestoreBackupMessage: 'Восстановить резервную копию из дистанционного хранилища',
 
   // Original text: "This will create a new VM"
   homeNewVmMessage: 'Это создаст новую виртуальную машину',
@@ -294,7 +294,7 @@ export default {
   homeTypePool: 'Пул',
 
   // Original text: "Host"
-  homeTypeHost: 'Хост',
+  homeTypeHost: 'Узел',
 
   // Original text: "VM"
   homeTypeVm: 'ВМ',
@@ -312,7 +312,7 @@ export default {
   homeAllPools: 'Пулы',
 
   // Original text: "Hosts"
-  homeAllHosts: 'Хосты',
+  homeAllHosts: 'Узлы',
 
   // Original text: "Tags"
   homeAllTags: 'Тэги',
@@ -321,13 +321,13 @@ export default {
   homeNewVm: 'Новая ВМ',
 
   // Original text: 'None'
-  homeFilterNone: undefined,
+  homeFilterNone: 'Не определено',
 
   // Original text: "Running hosts"
-  homeFilterRunningHosts: 'Работающие хосты',
+  homeFilterRunningHosts: 'Работающие Узлы',
 
   // Original text: "Disabled hosts"
-  homeFilterDisabledHosts: 'Отключенные хосты',
+  homeFilterDisabledHosts: 'Отключенные Узлы',
 
   // Original text: "Running VMs"
   homeFilterRunningVms: 'Работающие ВМ',
@@ -339,7 +339,7 @@ export default {
   homeFilterPendingVms: 'Ожидание ВМ',
 
   // Original text: "HVM guests"
-  homeFilterHvmGuests: 'Гости HVM',
+  homeFilterHvmGuests: 'ВМ с HVM',
 
   // Original text: "Tags"
   homeFilterTags: 'Тэги',
@@ -355,6 +355,9 @@ export default {
 
   // Original text: "RAM"
   homeSortByRAM: 'Виртуальная память',
+
+  // Original text: "Disks usage"
+  sortByDisksUsage: 'Использованию диска',
 
   // Original text: "vCPUs"
   homeSortByvCPUs: 'vCPUs',
@@ -387,10 +390,10 @@ export default {
   homeMigrateTo: 'Переместить на…',
 
   // Original text: 'Missing patches'
-  homeMissingPatches: 'Патчей нет',
+  homeMissingPatches: 'Обновлений нет',
 
   // Original text: 'Master:'
-  homePoolMaster: undefined,
+  homePoolMaster: 'Мастер',
 
   // Original text: 'Resource set: {resourceSet}'
   homeResourceSet: 'Набор ресурсов',
@@ -432,7 +435,7 @@ export default {
   selectRole: 'Выберите роль',
 
   // Original text: "Select Host(s)…"
-  selectHosts: 'Выберите Хост(ы)…',
+  selectHosts: 'Выберите Узел(ы)…',
 
   // Original text: "Select object(s)…"
   selectHostsVms: 'Выберите объект(ы)…',
@@ -447,7 +450,7 @@ export default {
   selectPools: 'Выберите Пул(ы)…',
 
   // Original text: "Select Remote(s)…"
-  selectRemotes: 'Выберите удаленное(ые) хранилище(я)…',
+  selectRemotes: 'Выберите дистанционное(ые) хранилище(я)…',
 
   // Original text: 'Select resource set(s)…'
   selectResourceSets: 'Выберите набор(ы) ресурсов',
@@ -723,58 +726,58 @@ export default {
   smartBackup: '"Умное" резервное копирование',
 
   // Original text: 'Local remote selected'
-  localRemoteWarningTitle: undefined,
+  localRemoteWarningTitle: 'Выбран локально-дистанционный',
 
   // Original text: 'Warning: local remotes will use limited XOA disk space. Only for advanced users.'
-  localRemoteWarningMessage: 'Предупреждение: локальные удаленные устройства будут использовать ограниченное дисковое пространство XOA. Только для продвинутых пользователей.',
+  localRemoteWarningMessage: 'Предупреждение: локально-дистанционные устройства будут использовать ограниченное дисковое пространство XOA. Только для продвинутых пользователей.',
 
   // Original text: 'Warning: this feature works only with XenServer 6.5 or newer.'
-  backupVersionWarning: undefined,
+  backupVersionWarning: 'Предупреждение: эта функция работает только с XenServer 6.5 или новее.',
 
   // Original text: 'VMs'
-  editBackupVmsTitle: undefined,
+  editBackupVmsTitle: 'ВМ',
 
   // Original text: 'VMs statuses'
-  editBackupSmartStatusTitle: undefined,
+  editBackupSmartStatusTitle: 'Статусы ВМ',
 
   // Original text: 'Resident on'
-  editBackupSmartResidentOn: undefined,
+  editBackupSmartResidentOn: 'Работает на',
 
   // Original text: 'Pools'
-  editBackupSmartPools: undefined,
+  editBackupSmartPools: 'Пулы',
 
   // Original text: 'Tags'
-  editBackupSmartTags: undefined,
+  editBackupSmartTags: 'Тэги',
 
   // Original text: 'VMs Tags'
-  editBackupSmartTagsTitle: undefined,
+  editBackupSmartTagsTitle: 'Тэги ВМ',
 
   // Original text: 'Reverse'
-  editBackupNot: undefined,
+  editBackupNot: 'Вернуть назад',
 
   // Original text: 'Tag'
-  editBackupTagTitle: undefined,
+  editBackupTagTitle: 'Тэг',
 
   // Original text: 'Report'
-  editBackupReportTitle: undefined,
+  editBackupReportTitle: 'Отчет',
 
   // Original text: 'Automatically run as scheduled'
-  editBackupScheduleEnabled: undefined,
+  editBackupScheduleEnabled: 'Автозапуск по расписанию',
 
   // Original text: 'Depth'
-  editBackupDepthTitle: undefined,
+  editBackupDepthTitle: 'Глубина',
 
   // Original text: 'Remote'
-  editBackupRemoteTitle: undefined,
+  editBackupRemoteTitle: 'Дистанционный',
 
   // Original text: 'Delete the old backups first'
-  deleteOldBackupsFirst: undefined,
+  deleteOldBackupsFirst: 'Сначала удалите старые резервные копии',
 
   // Original text: "Remote stores for backup"
-  remoteList: 'Удаленное хранилище для резервного копирования',
+  remoteList: 'Дистанционное хранилище для резервного копирования',
 
   // Original text: "New File System Remote"
-  newRemote: 'Новая удаленная файловая система',
+  newRemote: 'Новая дистанционная файловая система',
 
   // Original text: "Local"
   remoteTypeLocal: 'Локально',
@@ -789,115 +792,115 @@ export default {
   remoteType: 'Тип',
 
   // Original text: 'Test your remote'
-  remoteTestTip: undefined,
+  remoteTestTip: 'Проверьте дистанционный источник',
 
   // Original text: 'Test Remote'
-  testRemote: undefined,
+  testRemote: 'Проверьте дистанционный источник',
 
   // Original text: 'Test failed for {name}'
-  remoteTestFailure: undefined,
+  remoteTestFailure: 'Тест не пройден для {name}',
 
   // Original text: 'Test passed for {name}'
-  remoteTestSuccess: undefined,
+  remoteTestSuccess: 'Тест пройден успешно для {name}',
 
   // Original text: 'Error'
-  remoteTestError: undefined,
+  remoteTestError: 'Ошибка',
 
   // Original text: 'Test Step'
-  remoteTestStep: undefined,
+  remoteTestStep: 'Этап теста',
 
   // Original text: 'Test file'
-  remoteTestFile: undefined,
+  remoteTestFile: 'Файл теста',
 
   // Original text: 'Test name'
-  remoteTestName: undefined,
+  remoteTestName: 'Имя теста',
 
   // Original text: 'Remote name already exists!'
-  remoteTestNameFailure: undefined,
+  remoteTestNameFailure: 'Имя уже используется!',
 
   // Original text: 'The remote appears to work correctly'
-  remoteTestSuccessMessage: undefined,
+  remoteTestSuccessMessage: 'Дистанционное устройство работает корректно',
 
   // Original text: 'Connection failed'
-  remoteConnectionFailed: undefined,
+  remoteConnectionFailed: 'Ошибка подключения',
 
   // Original text: 'Name'
-  remoteName: undefined,
+  remoteName: 'Имя',
 
   // Original text: 'Path'
-  remotePath: undefined,
+  remotePath: 'Путь',
 
   // Original text: 'State'
-  remoteState: undefined,
+  remoteState: 'Состояние',
 
   // Original text: 'Device'
-  remoteDevice: undefined,
+  remoteDevice: 'Устройство',
 
   // Original text: 'Share'
-  remoteShare: undefined,
+  remoteShare: 'Общий доступ',
 
   // Original text: 'Action'
-  remoteAction: undefined,
+  remoteAction: 'Действие',
 
   // Original text: 'Auth'
-  remoteAuth: undefined,
+  remoteAuth: 'Авторизация',
 
   // Original text: 'Mounted'
-  remoteMounted: undefined,
+  remoteMounted: 'Примонтирован',
 
   // Original text: 'Unmounted'
-  remoteUnmounted: undefined,
+  remoteUnmounted: 'Отмонтирован',
 
   // Original text: 'Connect'
-  remoteConnectTip: undefined,
+  remoteConnectTip: 'Подключить',
 
   // Original text: 'Disconnect'
-  remoteDisconnectTip: undefined,
+  remoteDisconnectTip: 'Отключить',
 
   // Original text: 'Connected'
-  remoteConnected: undefined,
+  remoteConnected: 'Подключен',
 
   // Original text: 'Disconnected'
-  remoteDisconnected: undefined,
+  remoteDisconnected: 'Отключен',
 
   // Original text: 'Delete'
-  remoteDeleteTip: undefined,
+  remoteDeleteTip: 'Удалить',
 
   // Original text: 'remote name *'
-  remoteNamePlaceHolder: undefined,
+  remoteNamePlaceHolder: 'Имя дистанционного устройства *',
 
   // Original text: 'Name *'
-  remoteMyNamePlaceHolder: undefined,
+  remoteMyNamePlaceHolder: 'Имя *',
 
   // Original text: '/path/to/backup'
-  remoteLocalPlaceHolderPath: undefined,
+  remoteLocalPlaceHolderPath: '/путь/к/резервной/копии',
 
   // Original text: 'host *'
-  remoteNfsPlaceHolderHost: undefined,
+  remoteNfsPlaceHolderHost: 'Узел *',
 
   // Original text: 'path/to/backup'
-  remoteNfsPlaceHolderPath: undefined,
+  remoteNfsPlaceHolderPath: '/путь/к/резервной/копии',
 
   // Original text: 'subfolder [path\\to\\backup]'
-  remoteSmbPlaceHolderRemotePath: undefined,
+  remoteSmbPlaceHolderRemotePath: '[путь\\к\\резервной\\копии]',
 
   // Original text: 'Username'
-  remoteSmbPlaceHolderUsername: undefined,
+  remoteSmbPlaceHolderUsername: 'Имя пользователя',
 
   // Original text: 'Password'
-  remoteSmbPlaceHolderPassword: undefined,
+  remoteSmbPlaceHolderPassword: 'Пароль',
 
   // Original text: 'Domain'
-  remoteSmbPlaceHolderDomain: undefined,
+  remoteSmbPlaceHolderDomain: 'Домен',
 
   // Original text: '<address>\\<share> *'
   remoteSmbPlaceHolderAddressShare: undefined,
 
   // Original text: 'password(fill to edit)'
-  remotePlaceHolderPassword: undefined,
+  remotePlaceHolderPassword: 'Пароль(нажми для изменения)',
 
   // Original text: 'Create a new SR'
-  newSrTitle: undefined,
+  newSrTitle: 'Создать новый SR',
 
   // Original text: "General"
   newSrGeneral: 'Общий',
@@ -915,7 +918,7 @@ export default {
   newSrSummary: 'Суммарно',
 
   // Original text: "Host"
-  newSrHost: 'Хост',
+  newSrHost: 'Узел',
 
   // Original text: "Type"
   newSrType: 'Тип',
@@ -960,28 +963,28 @@ export default {
   newSrCreate: 'Создать',
 
   // Original text: 'Storage name'
-  newSrNamePlaceHolder: undefined,
+  newSrNamePlaceHolder: 'Имя хранилища',
 
   // Original text: 'Storage description'
-  newSrDescPlaceHolder: undefined,
+  newSrDescPlaceHolder: 'Описание хранилища',
 
   // Original text: 'Address'
-  newSrAddressPlaceHolder: undefined,
+  newSrAddressPlaceHolder: 'Адрес',
 
   // Original text: '[port]'
   newSrPortPlaceHolder: undefined,
 
   // Original text: 'Username'
-  newSrUsernamePlaceHolder: undefined,
+  newSrUsernamePlaceHolder: 'Имя пользователя',
 
   // Original text: 'Password'
-  newSrPasswordPlaceHolder: undefined,
+  newSrPasswordPlaceHolder: 'Пароль',
 
   // Original text: 'Device, e.g /dev/sda…'
-  newSrLvmDevicePlaceHolder: undefined,
+  newSrLvmDevicePlaceHolder: 'Устройство, например /dev/sda…',
 
   // Original text: '/path/to/directory'
-  newSrLocalPathPlaceHolder: undefined,
+  newSrLocalPathPlaceHolder: '/путь/к/директории',
 
   // Original text: "Users/Groups"
   subjectName: 'Пользователи/Группы',
@@ -990,13 +993,13 @@ export default {
   objectName: 'Обьект',
 
   // Original text: 'No acls found'
-  aclNoneFound: undefined,
+  aclNoneFound: 'ACL-списков не найдено',
 
   // Original text: "Role"
   roleName: 'Роль',
 
   // Original text: 'Create'
-  aclCreate: undefined,
+  aclCreate: 'Создать',
 
   // Original text: "New Group Name"
   newGroupName: 'Имя новой группы',
@@ -1023,7 +1026,7 @@ export default {
   deleteUser: 'Удалить пользователя',
 
   // Original text: 'no user'
-  noUser: undefined,
+  noUser: 'нет пользователя',
 
   // Original text: "unknown user"
   unknownUser: 'неизвестный пользователь',
@@ -1071,13 +1074,13 @@ export default {
   noUserInGroup: 'Пользователь не в группе',
 
   // Original text: "{users, number} user{users, plural, one {} other {s}}"
-  countUsers: '{users, number} пользователь{users, plural, one {} other {s}}',
+  countUsers: '{users, number} пользовател{users, plural, one {ь} other {я}}',
 
   // Original text: "Select Permission"
   selectPermission: 'Укажите разрешения',
 
   // Original text: 'No plugins found'
-  noPlugins: undefined,
+  noPlugins: 'Плагины не найдены',
 
   // Original text: "Auto-load at server start"
   autoloadPlugin: 'Автозагрузка при запуске сервера',
@@ -1095,7 +1098,7 @@ export default {
   unknownPluginError: 'Неизвестная ошибка',
 
   // Original text: "Purge plugin configuration"
-  purgePluginConfiguration: 'Сбросить конфирурацию плагина',
+  purgePluginConfiguration: 'Сбросить конфигурацию плагина',
 
   // Original text: "Are you sure you want to purge this configuration ?"
   purgePluginConfigurationQuestion: 'Вы уверены, что хотите сбросить эту конфигурацию?',
@@ -1113,55 +1116,55 @@ export default {
   pluginConfigurationChanges: 'Конфигурация плагина успешно сохранена!',
 
   // Original text: 'Predefined configuration'
-  pluginConfigurationPresetTitle: undefined,
+  pluginConfigurationPresetTitle: 'Предопределенная конфигурация',
 
   // Original text: 'Choose a predefined configuration.'
-  pluginConfigurationChoosePreset: undefined,
+  pluginConfigurationChoosePreset: 'Выберите предопределенную конфигурацию.',
 
   // Original text: 'Apply'
-  applyPluginPreset: undefined,
+  applyPluginPreset: 'Принять',
 
   // Original text: 'Save filter error'
-  saveNewUserFilterErrorTitle: undefined,
+  saveNewUserFilterErrorTitle: 'Ошибка сохранения фильтра',
 
   // Original text: 'Bad parameter: name must be given.'
-  saveNewUserFilterErrorBody: undefined,
+  saveNewUserFilterErrorBody: 'Не верный параметр: имя должно быть указано.',
 
   // Original text: 'Name:'
-  filterName: undefined,
+  filterName: 'Имя:',
 
   // Original text: 'Value:'
-  filterValue: undefined,
+  filterValue: 'Значение:',
 
   // Original text: 'Save new filter'
-  saveNewFilterTitle: undefined,
+  saveNewFilterTitle: 'Сохранить новый фильр',
 
   // Original text: 'Set custom filters'
-  setUserFiltersTitle: undefined,
+  setUserFiltersTitle: 'Установить пользовательские фильтры',
 
   // Original text: 'Are you sure you want to set custom filters?'
-  setUserFiltersBody: undefined,
+  setUserFiltersBody: 'Вы уверены, что хотите установить пользовательские фильтры?',
 
   // Original text: 'Remove custom filter'
-  removeUserFilterTitle: undefined,
+  removeUserFilterTitle: 'Убрать пользовательские фильтры',
 
   // Original text: 'Are you sure you want to remove custom filter?'
-  removeUserFilterBody: undefined,
+  removeUserFilterBody: 'Вы уверены, что хотите убрать пользовательские фильтры?',
 
   // Original text: 'Default filter'
-  defaultFilter: undefined,
+  defaultFilter: 'Фильр по умолчанию',
 
   // Original text: 'Default filters'
-  defaultFilters: undefined,
+  defaultFilters: 'Фильтры по умолчанию',
 
   // Original text: 'Custom filters'
-  customFilters: undefined,
+  customFilters: 'Пользовательский фильр',
 
   // Original text: 'Customize filters'
-  customizeFilters: undefined,
+  customizeFilters: 'Настроить фильтры',
 
   // Original text: 'Save custom filters'
-  saveCustomFilters: undefined,
+  saveCustomFilters: 'Сохранить изменения фильтров',
 
   // Original text: "Start"
   startVmLabel: 'Запустить',
@@ -1218,16 +1221,16 @@ export default {
   srRescan: 'Перечитать все диски',
 
   // Original text: "Connect to all hosts"
-  srReconnectAll: 'Подключить ко всем хостам',
+  srReconnectAll: 'Подключить ко всем Узлам',
 
   // Original text: "Disconnect from all hosts"
-  srDisconnectAll: 'Отключить от всех хостов',
+  srDisconnectAll: 'Отключить от всех Узлов',
 
   // Original text: "Forget this SR"
   srForget: 'Забыть этот SR',
 
   // Original text: 'Forget SRs'
-  srsForget: undefined,
+  srsForget: 'Забыть этот SRs',
 
   // Original text: "Remove this SR"
   srRemoveButton: 'Удалить этот SR',
@@ -1236,31 +1239,31 @@ export default {
   srNoVdis: 'На этом хранилище нет VDI',
 
   // Original text: 'Pool RAM usage:'
-  poolTitleRamUsage: undefined,
+  poolTitleRamUsage: 'Использование памяти пулом:',
 
   // Original text: '{used} used on {total}'
-  poolRamUsage: undefined,
+  poolRamUsage: '{used} используется на {total}',
 
   // Original text: 'Master:'
-  poolMaster: undefined,
+  poolMaster: 'Мастер',
 
   // Original text: 'Display all hosts of this pool'
-  displayAllHosts: undefined,
+  displayAllHosts: 'Отобразить все Узлы в этом пуле',
 
   // Original text: 'Display all storages of this pool'
-  displayAllStorages: undefined,
+  displayAllStorages: 'Отобразить все хранилища в этом пуле',
 
   // Original text: 'Display all VMs of this pool'
-  displayAllVMs: undefined,
+  displayAllVMs: 'Отобразить все виртуальные машины в этом пуле',
 
   // Original text: "Hosts"
-  hostsTabName: 'Хосты',
+  hostsTabName: 'Узлы',
 
   // Original text: 'Vms'
-  vmsTabName: undefined,
+  vmsTabName: 'ВМ',
 
   // Original text: 'Srs'
-  srsTabName: undefined,
+  srsTabName: 'SRs',
 
   // Original text: "High Availability"
   poolHaStatus: 'Высокая доступность',
@@ -1281,10 +1284,10 @@ export default {
   hostMemory: 'Память',
 
   // Original text: "No hosts"
-  noHost: 'Нет хостов',
+  noHost: 'Нет Узлов',
 
   // Original text: '{used}% used ({free} free)'
-  memoryLeftTooltip: undefined,
+  memoryLeftTooltip: '{used}% используется ({free} свободно)',
 
   // Original text: 'PIF'
   pif: undefined,
@@ -1311,22 +1314,22 @@ export default {
   poolNetworkPifDetached: 'Отключено',
 
   // Original text: 'Show PIFs'
-  showPifs: undefined,
+  showPifs: 'Показать PIFs',
 
   // Original text: 'Hide PIFs'
-  hidePifs: undefined,
+  hidePifs: 'Скрыть PIFs',
 
   // Original text: 'Show details'
-  showDetails: undefined,
+  showDetails: 'Показать детализацию',
 
   // Original text: 'Hide details'
-  hideDetails: undefined,
+  hideDetails: 'Скрыть детализацию',
 
   // Original text: 'No stats'
-  poolNoStats: undefined,
+  poolNoStats: 'Нет статистики',
 
   // Original text: 'All hosts'
-  poolAllHosts: undefined,
+  poolAllHosts: 'Все Узлы',
 
   // Original text: "Add SR"
   addSrLabel: 'Добавить SR',
@@ -1335,19 +1338,19 @@ export default {
   addVmLabel: 'Добавить ВМ',
 
   // Original text: "Add Host"
-  addHostLabel: 'Добавить хост',
+  addHostLabel: 'Добавить Узел',
 
   // Original text: 'This host needs to install {patches, number} patch{patches, plural, one {} other {es}} before it can be added to the pool. This operation may be long.'
-  hostNeedsPatchUpdate: undefined,
+  hostNeedsPatchUpdate: 'Этот Узел требует установки {patches, number} обновлени{patches, plural, one {я} other {й}} прежде чем его можно будет добавить в пул. Эта операция может быть длительной.',
 
   // Original text: "This host cannot be added to the pool because it's missing some patches."
-  hostNeedsPatchUpdateNoInstall: undefined,
+  hostNeedsPatchUpdateNoInstall: 'Этот Узел не может быть добавлен в пул, так как на нем отсутствуют некоторые обновления.',
 
   // Original text: 'Adding host failed'
-  addHostErrorTitle: undefined,
+  addHostErrorTitle: 'Не удалось добавить Узел',
 
   // Original text: 'Host patches could not be homogenized.'
-  addHostNotHomogeneousErrorMessage: undefined,
+  addHostNotHomogeneousErrorMessage: 'Обновления Узла не могут быть приведены к единообразию.',
 
   // Original text: "Disconnect"
   disconnectServer: 'Отключен',
@@ -1374,19 +1377,19 @@ export default {
   rebootHostLabel: 'Перезагрузка',
 
   // Original text: 'Error while restarting host'
-  noHostsAvailableErrorTitle: undefined,
+  noHostsAvailableErrorTitle: 'Ошибка при перезагрузке Узла',
 
   // Original text: 'Some VMs cannot be migrated before restarting this host. Please try force reboot.'
-  noHostsAvailableErrorMessage: undefined,
+  noHostsAvailableErrorMessage: 'Некоторые виртуальные машины нельзя перенести до перезапуска этого Узла. Попробуйте принудительную перезагрузку.',
 
   // Original text: 'Error while restarting hosts'
-  failHostBulkRestartTitle: undefined,
+  failHostBulkRestartTitle: 'Ошибка при перезагрузке Узлов',
 
   // Original text: '{failedHosts, number}/{totalHosts, number} host{failedHosts, plural, one {} other {s}} could not be restarted.'
-  failHostBulkRestartMessage: undefined,
+  failHostBulkRestartMessage: '{failedHosts, number}/{totalHosts, number} Уз{failedHosts, plural, one {ел не может быть перезагружен} other {ла не могут быть перезагружны}} .',
 
   // Original text: 'Reboot to apply updates'
-  rebootUpdateHostLabel: undefined,
+  rebootUpdateHostLabel: 'Перезагрузитесь для применения обновлений',
 
   // Original text: "Emergency mode"
   emergencyModeLabel: 'Режим восстановления',
@@ -1395,13 +1398,13 @@ export default {
   storageTabName: 'Хранилище',
 
   // Original text: "Patches"
-  patchesTabName: 'Патчи',
+  patchesTabName: 'Обновления',
 
   // Original text: "Load average"
   statLoad: 'Средняя нагрузка',
 
   // Original text: 'RAM Usage: {memoryUsed}'
-  memoryHostState: undefined,
+  memoryHostState: 'Использование памяти: {memoryUsed}',
 
   // Original text: "Hardware"
   hardwareHostSettingsLabel: 'Hardware',
@@ -1431,7 +1434,7 @@ export default {
   hostPowerOnMode: 'Режим включения',
 
   // Original text: "Host uptime"
-  hostStartedSince: 'Время работы хоста',
+  hostStartedSince: 'Время работы Узла',
 
   // Original text: "Toolstack uptime"
   hostStackStartedSince: 'Время работы служб',
@@ -1461,40 +1464,40 @@ export default {
   hostLicenseExpiry: 'Срок действия',
 
   // Original text: 'Installed supplemental packs'
-  supplementalPacks: undefined,
+  supplementalPacks: 'Установлены дополнительные пакеты',
 
   // Original text: 'Install new supplemental pack'
-  supplementalPackNew: undefined,
+  supplementalPackNew: 'Установить новые дополнительные пакеты',
 
   // Original text: 'Install supplemental pack on every host'
-  supplementalPackPoolNew: undefined,
+  supplementalPackPoolNew: 'Установить дополнительные пакеты на все Узлы',
 
   // Original text: '{name} (by {author})'
-  supplementalPackTitle: undefined,
+  supplementalPackTitle: '{name} (от {author})',
 
   // Original text: 'Installation started'
-  supplementalPackInstallStartedTitle: undefined,
+  supplementalPackInstallStartedTitle: 'Установка запущена',
 
   // Original text: 'Installing new supplemental pack…'
-  supplementalPackInstallStartedMessage: undefined,
+  supplementalPackInstallStartedMessage: 'Установка новых дополнительных пакетов...',
 
   // Original text: 'Installation error'
-  supplementalPackInstallErrorTitle: undefined,
+  supplementalPackInstallErrorTitle: 'Ошибка установки',
 
   // Original text: 'The installation of the supplemental pack failed.'
-  supplementalPackInstallErrorMessage: undefined,
+  supplementalPackInstallErrorMessage: 'Не удалось установить дополнительный пакет.',
 
   // Original text: 'Installation success'
-  supplementalPackInstallSuccessTitle: undefined,
+  supplementalPackInstallSuccessTitle: 'Установка успешно завершена',
 
   // Original text: 'Supplemental pack successfully installed.'
-  supplementalPackInstallSuccessMessage: undefined,
+  supplementalPackInstallSuccessMessage: 'Установка дополнительного пакета успешно завершена',
 
   // Original text: "Add a network"
   networkCreateButton: 'Добавить сеть',
 
   // Original text: 'Add a bonded network'
-  networkCreateBondedButton: undefined,
+  networkCreateBondedButton: 'Добавить связанную сеть',
 
   // Original text: "Device"
   pifDeviceLabel: 'Устройство',
@@ -1509,7 +1512,7 @@ export default {
   pifAddressLabel: 'Адрес',
 
   // Original text: 'Mode'
-  pifModeLabel: undefined,
+  pifModeLabel: 'Режим',
 
   // Original text: "MAC"
   pifMacLabel: 'MAC',
@@ -1530,34 +1533,34 @@ export default {
   pifNoInterface: 'Физический интерфейс не обнаружен',
 
   // Original text: 'This interface is currently in use'
-  pifInUse: undefined,
+  pifInUse: 'Этот интерфейс уже используется',
 
   // Original text: 'Action'
-  pifAction: undefined,
+  pifAction: 'Дествие',
 
   // Original text: 'Default locking mode'
-  defaultLockingMode: undefined,
+  defaultLockingMode: 'Режим блокировки по умолчанию',
 
   // Original text: 'Configure IP address'
-  pifConfigureIp: undefined,
+  pifConfigureIp: 'Конфигурация IP-адресов',
 
   // Original text: 'Invalid parameters'
-  configIpErrorTitle: undefined,
+  configIpErrorTitle: 'Недопустимый параметр',
 
   // Original text: 'IP address and netmask required'
-  configIpErrorMessage: undefined,
+  configIpErrorMessage: 'Укажите IP-адрес и маску сети',
 
   // Original text: 'Static IP address'
-  staticIp: undefined,
+  staticIp: 'Статический IP-адрес',
 
   // Original text: 'Netmask'
-  netmask: undefined,
+  netmask: 'Маска',
 
   // Original text: 'DNS'
   dns: undefined,
 
   // Original text: 'Gateway'
-  gateway: undefined,
+  gateway: 'Шлюз по умолчанию',
 
   // Original text: "Add a storage"
   addSrDeviceButton: 'Добавить хранилище',
@@ -1569,7 +1572,7 @@ export default {
   srType: 'Тип',
 
   // Original text: 'Action'
-  pbdAction: undefined,
+  pbdAction: 'Действие',
 
   // Original text: "Status"
   pbdStatus: 'Статус',
@@ -1581,13 +1584,13 @@ export default {
   pbdStatusDisconnected: 'Отключен',
 
   // Original text: 'Connect'
-  pbdConnect: undefined,
+  pbdConnect: 'Подключить',
 
   // Original text: 'Disconnect'
-  pbdDisconnect: undefined,
+  pbdDisconnect: 'Отключить',
 
   // Original text: 'Forget'
-  pbdForget: undefined,
+  pbdForget: 'Забыть',
 
   // Original text: "Shared"
   srShared: 'С общим доступом',
@@ -1602,7 +1605,7 @@ export default {
   patchNameLabel: 'Имя',
 
   // Original text: "Install all patches"
-  patchUpdateButton: 'Установить все патчи',
+  patchUpdateButton: 'Установить все обновления',
 
   // Original text: "Description"
   patchDescription: 'Описание',
@@ -1620,10 +1623,10 @@ export default {
   patchStatusApplied: 'Применяемый',
 
   // Original text: "Missing patches"
-  patchStatusNotApplied: 'Отсутствующие патчи',
+  patchStatusNotApplied: 'Отсутствующие обновления',
 
   // Original text: "No patch detected"
-  patchNothing: 'Патчи не найдены',
+  patchNothing: 'Обновления не найдены',
 
   // Original text: "Release date"
   patchReleaseDate: 'Дата релиза',
@@ -1635,37 +1638,37 @@ export default {
   patchAction: 'Дествие',
 
   // Original text: 'Applied patches'
-  hostAppliedPatches: undefined,
+  hostAppliedPatches: 'Применить обновления',
 
   // Original text: "Missing patches"
-  hostMissingPatches: 'Патчи не найдены',
+  hostMissingPatches: 'Обновления не найдены',
 
   // Original text: "Host up-to-date!"
-  hostUpToDate: 'Хост в актуальном состоянии!',
+  hostUpToDate: 'Узел в актуальном состоянии!',
 
   // Original text: 'Non-recommended patch install'
-  installPatchWarningTitle: undefined,
+  installPatchWarningTitle: 'Установка этого обновления не рекомендуется',
 
   // Original text: 'This will install a patch only on this host. This is NOT the recommended way: please go into the Pool patch view and follow instructions there. If you are sure about this, you can continue anyway'
-  installPatchWarningContent: undefined,
+  installPatchWarningContent: 'Это действие установит обновление только на этот Узел. Этот метод не рекомендуется: пожалуйста, перейдите в обновление пула и следуйте инструкциям. Если вы уверены в своих действиях, вы можете продолжить свои действия',
 
   // Original text: 'Go to pool'
-  installPatchWarningReject: undefined,
+  installPatchWarningReject: 'Перейти в пул',
 
   // Original text: 'Install'
-  installPatchWarningResolve: undefined,
+  installPatchWarningResolve: 'Установить',
 
   // Original text: 'Refresh patches'
-  refreshPatches: undefined,
+  refreshPatches: 'Обновить список обновлений',
 
   // Original text: 'Install pool patches'
-  installPoolPatches: undefined,
+  installPoolPatches: 'Установить обновления для пула',
 
   // Original text: 'Default SR'
-  defaultSr: undefined,
+  defaultSr: 'SR по умолчанию',
 
   // Original text: 'Set as default SR'
-  setAsDefaultSr: undefined,
+  setAsDefaultSr: 'Установить этот SR по умолчанию',
 
   // Original text: "General"
   generalTabName: 'Общее',
@@ -1677,7 +1680,7 @@ export default {
   consoleTabName: 'Консоль',
 
   // Original text: 'Container'
-  containersTabName: undefined,
+  containersTabName: 'Контейнер',
 
   // Original text: "Snapshots"
   snapshotsTabName: 'Снимки',
@@ -1686,13 +1689,16 @@ export default {
   logsTabName: 'Журналы',
 
   // Original text: "Advanced"
-  advancedTabName: 'Расширено',
+  advancedTabName: 'Дополнительно',
 
   // Original text: "Network"
   networkTabName: 'Сеть',
 
   // Original text: "Disk{disks, plural, one {} other {s}}"
-  disksTabName: 'Диск{disks, plural, one {} other {s}}',
+  disksTabName: 'Диск{disks, plural, one {} other {и}}',
+
+  // Original text: 'Power state'
+  powerState: 'Состояние',
 
   // Original text: "halted"
   powerStateHalted: 'остановлен',
@@ -1702,7 +1708,16 @@ export default {
 
   // Original text: "suspended"
   powerStateSuspended: 'приостановлен',
-
+  
+  // Original text: 'Paused' 
+  powerStatePaused: 'пауза',
+  
+  // Original text: 'Disabled'
+  powerStateDisabled: 'отключен',
+  
+  // Original text: 'Busy'
+  powerStateBusy: 'занят',
+  
   // Original text: "No Xen tools detected"
   vmStatus: 'Утилиты XEN не обнаружены',
 
@@ -1722,7 +1737,7 @@ export default {
   vmNotRunning: 'Не запущена',
 
   // Original text: 'Halted {ago}'
-  vmHaltedSince: undefined,
+  vmHaltedSince: 'Остановлен {ago}',
 
   // Original text: "No Xen tools detected"
   noToolsDetected: 'Утилиты XEN не обнаружены',
@@ -1752,7 +1767,7 @@ export default {
   statsNetwork: 'Использование сети',
 
   // Original text: 'Stacked values'
-  useStackedValuesOnStats: undefined,
+  useStackedValuesOnStats: 'Значения с накоплением',
 
   // Original text: "Disk throughput"
   statDisk: 'Использование диска',
@@ -1779,49 +1794,49 @@ export default {
   tipLabel: 'Совет:',
 
   // Original text: 'Hide infos'
-  hideHeaderTooltip: undefined,
+  hideHeaderTooltip: 'Скрыть информацию',
 
   // Original text: 'Show infos'
-  showHeaderTooltip: undefined,
+  showHeaderTooltip: 'Показать информацию',
 
   // Original text: 'Name'
-  containerName: undefined,
+  containerName: 'Имя',
 
   // Original text: 'Command'
-  containerCommand: undefined,
+  containerCommand: 'Команда',
 
   // Original text: 'Creation date'
-  containerCreated: undefined,
+  containerCreated: 'Дата создания',
 
   // Original text: 'Status'
-  containerStatus: undefined,
+  containerStatus: 'Статус',
 
   // Original text: 'Action'
-  containerAction: undefined,
+  containerAction: 'Действие',
 
   // Original text: 'No existing containers'
-  noContainers: undefined,
+  noContainers: 'Нет используемых контейнеров',
 
   // Original text: 'Stop this container'
-  containerStop: undefined,
+  containerStop: 'Остановить этот контейнер',
 
   // Original text: 'Start this container'
-  containerStart: undefined,
+  containerStart: 'Запустить этот контейнер',
 
   // Original text: 'Pause this container'
-  containerPause: undefined,
+  containerPause: 'Приостановить работу этого контейнера',
 
   // Original text: 'Resume this container'
-  containerResume: undefined,
+  containerResume: 'Возобносить работу этого контейнера',
 
   // Original text: 'Restart this container'
-  containerRestart: undefined,
+  containerRestart: 'Перезапустить этот контейнер',
 
   // Original text: "Action"
   vdiAction: 'Действие',
 
   // Original text: "Attach disk"
-  vdiAttachDevice: 'Подклчить диск',
+  vdiAttachDevice: 'Подключить диск',
 
   // Original text: "New disk"
   vbdCreateDeviceButton: 'Новый диск',
@@ -1836,10 +1851,10 @@ export default {
   vdiNameDescription: 'Описание',
 
   // Original text: 'Pool'
-  vdiPool: undefined,
+  vdiPool: 'Пул',
 
   // Original text: 'Disconnect'
-  vdiDisconnect: undefined,
+  vdiDisconnect: 'Отключен',
 
   // Original text: "Tags"
   vdiTags: 'Тэги',
@@ -1851,28 +1866,28 @@ export default {
   vdiSr: 'SR',
 
   // Original text: 'VM'
-  vdiVm: undefined,
+  vdiVm: 'ВМ',
 
   // Original text: 'Migrate VDI'
-  vdiMigrate: undefined,
+  vdiMigrate: 'Переместить VDI',
 
   // Original text: 'Destination SR:'
-  vdiMigrateSelectSr: undefined,
+  vdiMigrateSelectSr: 'Целевой SR:',
 
   // Original text: 'No SR'
-  vdiMigrateNoSr: undefined,
+  vdiMigrateNoSr: 'Нет SR',
 
   // Original text: 'A target SR is required to migrate a VDI'
-  vdiMigrateNoSrMessage: undefined,
+  vdiMigrateNoSrMessage: 'Укажите SR для перемещения VDI',
 
   // Original text: 'Forget'
-  vdiForget: undefined,
+  vdiForget: 'Забыть',
 
   // Original text: 'Remove VDI'
-  vdiRemove: undefined,
+  vdiRemove: 'Удалить VDI',
 
   // Original text: 'No VDIs attached to Control Domain'
-  noControlDomainVdis: undefined,
+  noControlDomainVdis: 'Нет VDI, подключенных к контроллеру домена',
 
   // Original text: "Boot flag"
   vbdBootableStatus: 'Флаг загрузки',
@@ -1890,40 +1905,40 @@ export default {
   vbdNoVbd: 'Нет дисков',
 
   // Original text: 'Connect VBD'
-  vbdConnect: undefined,
+  vbdConnect: 'Подключить VBD',
 
   // Original text: 'Disconnect VBD'
-  vbdDisconnect: undefined,
+  vbdDisconnect: 'Отключить VBD',
 
   // Original text: 'Bootable'
-  vbdBootable: undefined,
+  vbdBootable: 'Загрузочный',
 
   // Original text: 'Readonly'
-  vbdReadonly: undefined,
+  vbdReadonly: 'Только для чтения',
 
   // Original text: 'Action'
-  vbdAction: undefined,
+  vbdAction: 'Действие',
 
   // Original text: 'Create'
-  vbdCreate: undefined,
+  vbdCreate: 'Создать',
 
   // Original text: 'Disk name'
-  vbdNamePlaceHolder: undefined,
+  vbdNamePlaceHolder: 'Имя диска',
 
   // Original text: 'Size'
-  vbdSizePlaceHolder: undefined,
+  vbdSizePlaceHolder: 'Размер',
 
   // Original text: 'CD drive not completely installed'
-  cdDriveNotInstalled: undefined,
+  cdDriveNotInstalled: 'CD-привод установлен',
 
   // Original text: 'Stop and start the VM to install the CD drive'
-  cdDriveInstallation: undefined,
+  cdDriveInstallation: 'Остановите и запустите виртуальную машину, чтобы добавить CD-привод.',
 
   // Original text: 'Save'
-  saveBootOption: undefined,
+  saveBootOption: 'Сохранить',
 
   // Original text: 'Reset'
-  resetBootOption: undefined,
+  resetBootOption: 'Сбросить',
 
   // Original text: "New device"
   vifCreateDeviceButton: 'Новое устройство',
@@ -1953,43 +1968,43 @@ export default {
   vifStatusDisconnected: 'Отключен',
 
   // Original text: 'Connect'
-  vifConnect: undefined,
+  vifConnect: 'Подключить',
 
   // Original text: 'Disconnect'
-  vifDisconnect: undefined,
+  vifDisconnect: 'Отключить',
 
   // Original text: 'Remove'
-  vifRemove: undefined,
+  vifRemove: 'Удалить',
 
   // Original text: "IP addresses"
   vifIpAddresses: 'IP-адреса',
 
   // Original text: 'Auto-generated if empty'
-  vifMacAutoGenerate: undefined,
+  vifMacAutoGenerate: 'Создаться автоматически, если оставить пустым',
 
   // Original text: 'Allowed IPs'
-  vifAllowedIps: undefined,
+  vifAllowedIps: 'Разрешенные IP-адреса',
 
   // Original text: 'No IPs'
-  vifNoIps: undefined,
+  vifNoIps: 'Нет IP-адресов',
 
   // Original text: 'Network locked'
-  vifLockedNetwork: undefined,
+  vifLockedNetwork: 'Сеть заблокирована',
 
   // Original text: 'Network locked and no IPs are allowed for this interface'
-  vifLockedNetworkNoIps: undefined,
+  vifLockedNetworkNoIps: 'Сеть заблокирована, и для этого интерфейса не разрешены никакие IP-адреса',
 
   // Original text: 'Network not locked'
-  vifUnLockedNetwork: undefined,
+  vifUnLockedNetwork: 'Сеть доступна',
 
   // Original text: 'Unknown network'
-  vifUnknownNetwork: undefined,
+  vifUnknownNetwork: 'Неизвестная сеть',
 
   // Original text: 'Action'
-  vifAction: undefined,
+  vifAction: 'Действие',
 
   // Original text: 'Create'
-  vifCreate: undefined,
+  vifCreate: 'Создать',
 
   // Original text: "No snapshots"
   noSnapshots: 'Нет снимков',
@@ -2001,16 +2016,16 @@ export default {
   tipCreateSnapshotLabel: 'Нажмите на кнопку снимка, чтобы создать его!',
 
   // Original text: 'Revert VM to this snapshot'
-  revertSnapshot: undefined,
+  revertSnapshot: 'Вернуть ВМ к этому снимку',
 
   // Original text: 'Remove this snapshot'
-  deleteSnapshot: undefined,
+  deleteSnapshot: 'Удалить этот снимок',
 
   // Original text: 'Create a VM from this snapshot'
-  copySnapshot: undefined,
+  copySnapshot: 'Сеть заблокирована',
 
   // Original text: 'Export this snapshot'
-  exportSnapshot: undefined,
+  exportSnapshot: 'Сеть заблокирована',
 
   // Original text: "Creation date"
   snapshotDate: 'Дата создания',
@@ -2022,7 +2037,7 @@ export default {
   snapshotAction: 'Действие',
 
   // Original text: 'Quiesced snapshot'
-  snapshotQuiesce: undefined,
+  snapshotQuiesce: 'Приостановить снимок',
 
   // Original text: "Remove all logs"
   logRemoveAll: 'Удалить все журналы',
@@ -2070,13 +2085,13 @@ export default {
   defaultCpuWeight: 'По умолчанию ({value, number})',
 
   // Original text: 'CPU cap'
-  cpuCapLabel: undefined,
+  cpuCapLabel: 'Ограничение CPU',
 
   // Original text: 'Default ({value, number})'
-  defaultCpuCap: undefined,
+  defaultCpuCap: 'По умолчанию ({value, number})',
 
   // Original text: "PV args"
-  pvArgsLabel: undefined,
+  pvArgsLabel: "Параметры PV",
 
   // Original text: "Xen tools status"
   xenToolsStatus: 'Состояние XEN-утилит',
@@ -2103,7 +2118,7 @@ export default {
   vmVga: undefined,
 
   // Original text: 'Video RAM'
-  vmVideoram: undefined,
+  vmVideoram: 'Видео память',
 
   // Original text: 'None'
   noAffinityHost: undefined,
@@ -2127,19 +2142,19 @@ export default {
   vmCpuLimitsLabel: 'Лимиты CPU',
 
   // Original text: 'Topology'
-  vmCpuTopology: undefined,
+  vmCpuTopology: 'Топология',
 
   // Original text: 'Default behavior'
-  vmChooseCoresPerSocket: undefined,
+  vmChooseCoresPerSocket: 'Распределение по умолчанию',
 
   // Original text: '{nSockets, number} socket{nSockets, plural, one {} other {s}} with {nCores, number} core{nCores, plural, one {} other {s}} per socket'
-  vmSocketsWithCoresPerSocket: undefined,
+  vmSocketsWithCoresPerSocket: '{nSockets, number} сокет{nSockets, plural, one {} other {а}} по {nCores, number} яд{nCores, plural, one {ра} other {ер}} на сокет',
 
   // Original text: 'Incorrect cores per socket value'
-  vmCoresPerSocketIncorrectValue: undefined,
+  vmCoresPerSocketIncorrectValue: 'Недопустимое значение ядер на сокет',
 
   // Original text: 'Please change the selected value to fix it.'
-  vmCoresPerSocketIncorrectValueSolution: undefined,
+  vmCoresPerSocketIncorrectValueSolution: 'Пожалуйста измените выбранное значение.',
 
   // Original text: "Memory limits (min/max)"
   vmMemoryLimitsLabel: 'Лимиты памяти (мин/мак)',
@@ -2163,25 +2178,25 @@ export default {
   vmViewDescriptionPlaceholder: 'Нажми для добавления описания',
 
   // Original text: 'Click to add a name'
-  templateHomeNamePlaceholder: undefined,
+  templateHomeNamePlaceholder: 'Нажмите для добавления имени',
 
   // Original text: 'Click to add a description'
-  templateHomeDescriptionPlaceholder: undefined,
+  templateHomeDescriptionPlaceholder: 'Нажмите для добавления описания',
 
   // Original text: 'Delete template'
-  templateDelete: undefined,
+  templateDelete: 'Удалить шаблон',
 
   // Original text: 'Delete VM template{templates, plural, one {} other {s}}'
-  templateDeleteModalTitle: undefined,
+  templateDeleteModalTitle: 'Удалить шаблон ВМ',
 
   // Original text: 'Are you sure you want to delete {templates, plural, one {this} other {these}} template{templates, plural, one {} other {s}}?'
-  templateDeleteModalBody: undefined,
+  templateDeleteModalBody: 'Вы уверены что хотите удалить шаблон ВМ?',
 
   // Original text: "Pool{pools, plural, one {} other {s}}"
   poolPanel: 'Пул{pools, plural, one {} other {s}}',
 
   // Original text: "Host{hosts, plural, one {} other {s}}"
-  hostPanel: 'Хост{hosts, plural, one {} other {s}}',
+  hostPanel: 'Узел{hosts, plural, one {} other {s}}',
 
   // Original text: "VM{vms, plural, one {} other {s}}"
   vmPanel: 'ВМ{vms, plural, one {} other {s}}',
@@ -2205,7 +2220,7 @@ export default {
   srStatePanel: 'Состояние хранилища',
 
   // Original text: "{usage} (of {total})"
-  ofUsage: undefined,
+  ofUsage: '{usage} (из {total})',
 
   // Original text: "No storage"
   noSrs: 'Нет хранилища',
@@ -2217,7 +2232,7 @@ export default {
   srPool: 'Пул',
 
   // Original text: "Host"
-  srHost: 'Хост',
+  srHost: 'Узел',
 
   // Original text: "Type"
   srFormat: 'Тип',
@@ -2241,16 +2256,16 @@ export default {
   srTopUsageStatePanel: '5 основных SR по использованию (в %)',
 
   // Original text: '{running, number} running ({halted, number} halted)'
-  vmsStates: undefined,
+  vmsStates: '{running, number} запущено ({halted, number} остановлено)',
 
   // Original text: 'Clear selection'
-  dashboardStatsButtonRemoveAll: undefined,
+  dashboardStatsButtonRemoveAll: 'Очистить выбор',
 
   // Original text: 'Add all hosts'
-  dashboardStatsButtonAddAllHost: undefined,
+  dashboardStatsButtonAddAllHost: 'Добавить все Узлы',
 
   // Original text: 'Add all VMs'
-  dashboardStatsButtonAddAllVM: undefined,
+  dashboardStatsButtonAddAllVM: 'Добавить все ВМ',
 
   // Original text: "{value} {date, date, medium}"
   weekHeatmapData: '{value} {date, date, medium}',
@@ -2265,7 +2280,7 @@ export default {
   weeklyCharts: 'Недельные диаграммы',
 
   // Original text: "Synchronize scale:"
-  weeklyChartsScaleInfo: 'Синхронизировать масштаб:',
+  weeklyChartsScaleInfo: 'Синхронизировать маштаб:',
 
   // Original text: "Stats error"
   statsDashboardGenericErrorTitle: 'Ошибка статистики',
@@ -2286,19 +2301,19 @@ export default {
   comingSoon: 'Скоро появится',
 
   // Original text: "Orphaned snapshot VDIs"
-  orphanedVdis: undefined,
+  orphanedVdis: 'Осиротевшие снимки VDI',
 
   // Original text: "Orphaned VMs snapshot"
-  orphanedVms: undefined,
+  orphanedVms: 'Осиротевшие снимки ВМ',
 
   // Original text: "No orphans"
-  noOrphanedObject: undefined,
+  noOrphanedObject: 'Сирот нет',
 
   // Original text: "Remove all orphaned snapshot VDIs"
-  removeAllOrphanedObject: undefined,
+  removeAllOrphanedObject: 'Удалить все осиротевшие снимки VDI',
 
   // Original text: 'VDIs attached to Control Domain'
-  vdisOnControlDomain: undefined,
+  vdisOnControlDomain: 'VDI, подключение к контроллеру домена',
 
   // Original text: "Name"
   vmNameLabel: 'Имя',
@@ -2331,16 +2346,16 @@ export default {
   alarmRemoveAll: 'Удалить все тревоги',
 
   // Original text: '{used}% used ({free} left)'
-  spaceLeftTooltip: undefined,
+  spaceLeftTooltip: '{used}% используется ({free} осталось)',
 
   // Original text: "Create a new VM on {select}"
   newVmCreateNewVmOn: 'Создать новую ВМ на {select}',
 
   // Original text: 'Create a new VM on {select1} or {select2}'
-  newVmCreateNewVmOn2: undefined,
+  newVmCreateNewVmOn2: 'Создать новую ВМ на {select1} или {select2}',
 
   // Original text: 'You have no permission to create a VM'
-  newVmCreateNewVmNoPermission: undefined,
+  newVmCreateNewVmNoPermission: 'У вас нет разрешения на создание ВМ',
 
   // Original text: "Infos"
   newVmInfoPanel: 'Информация',
@@ -2364,13 +2379,13 @@ export default {
   newVmRamLabel: 'Память',
 
   // Original text: 'Static memory max'
-  newVmStaticMaxLabel: undefined,
+  newVmStaticMaxLabel: 'Максимальный размер статической памяти',
 
   // Original text: 'Dynamic memory min'
-  newVmDynamicMinLabel: undefined,
+  newVmDynamicMinLabel: 'Минимальный размер динамической памяти',
 
   // Original text: 'Dynamic memory max'
-  newVmDynamicMaxLabel: undefined,
+  newVmDynamicMaxLabel: 'Максимальный размер динамической памяти',
 
   // Original text: "Install settings"
   newVmInstallSettingsPanel: 'Варианты установки',
@@ -2381,8 +2396,8 @@ export default {
   // Original text: "Network"
   newVmNetworkLabel: 'Сеть',
 
-  // Original text: 'e.g: http://httpredir.debian.org/debian'
-  newVmInstallNetworkPlaceHolder: undefined,
+  // Original text: 'e.g: http://ftp.debian.org/debian'
+  newVmInstallNetworkPlaceHolder: 'например: http://ftp.debian.org/debian',
 
   // Original text: "PV Args"
   newVmPvArgsLabel: 'Детали PV',
@@ -2442,13 +2457,13 @@ export default {
   newVmCpuWeightLabel: 'Приоритезация CPU',
 
   // Original text: 'Default: {value, number}'
-  newVmDefaultCpuWeight: undefined,
+  newVmDefaultCpuWeight: 'По умолчанию: {value, number}',
 
   // Original text: 'CPU cap'
-  newVmCpuCapLabel: undefined,
+  newVmCpuCapLabel: 'Ограничение CPU',
 
   // Original text: 'Default: {value, number}'
-  newVmDefaultCpuCap: undefined,
+  newVmDefaultCpuCap: 'По умолчанию: {value, number}',
 
   // Original text: "Cloud config"
   newVmCloudConfig: 'Облачная конфигурация',
@@ -2463,37 +2478,37 @@ export default {
   newVmMultipleVms: 'Несколько ВМ:',
 
   // Original text: 'Select a resource set:'
-  newVmSelectResourceSet: undefined,
+  newVmSelectResourceSet: 'Выберите набор ресурсов:',
 
   // Original text: 'Name pattern:'
-  newVmMultipleVmsPattern: undefined,
+  newVmMultipleVmsPattern: 'Образец имени:',
 
   // Original text: 'e.g.: \\{name\\}_%'
-  newVmMultipleVmsPatternPlaceholder: undefined,
+  newVmMultipleVmsPatternPlaceholder: 'например: \\{name\\}_%',
 
   // Original text: 'First index:'
-  newVmFirstIndex: undefined,
+  newVmFirstIndex: 'Первый индекс:',
 
   // Original text: 'Recalculate VMs number'
-  newVmNumberRecalculate: undefined,
+  newVmNumberRecalculate: 'Пересчитать количество ВМ',
 
   // Original text: 'Refresh VMs name'
-  newVmNameRefresh: undefined,
+  newVmNameRefresh: 'Обновить имя ВМ',
 
   // Original text: 'Affinity host'
   newVmAffinityHost: undefined,
 
   // Original text: 'Advanced'
-  newVmAdvancedPanel: undefined,
+  newVmAdvancedPanel: 'Дополнительно',
 
   // Original text: 'Show advanced settings'
-  newVmShowAdvanced: undefined,
+  newVmShowAdvanced: 'Показать дополнительные параметры',
 
   // Original text: 'Hide advanced settings'
-  newVmHideAdvanced: undefined,
+  newVmHideAdvanced: 'Скрыть дополнительные параметры',
 
   // Original text: 'Share this VM'
-  newVmShare: undefined,
+  newVmShare: 'Поделиться этой ВМ',
 
   // Original text: "Resource sets"
   resourceSets: 'Набор ресурсов',
@@ -2502,13 +2517,13 @@ export default {
   noResourceSets: 'Набор ресурсов не определен',
 
   // Original text: 'Loading resource sets'
-  loadingResourceSets: undefined,
+  loadingResourceSets: 'Загрузить набор ресурсов',
 
   // Original text: "Resource set name"
   resourceSetName: 'Имя набора ресурсов',
 
   // Original text: 'Recompute all limits'
-  recomputeResourceSets: undefined,
+  recomputeResourceSets: 'Пересчитать все лимиты',
 
   // Original text: "Save"
   saveResourceSet: 'Сохранить',
@@ -2544,16 +2559,16 @@ export default {
   unknownResourceSetValue: 'Неизвестно',
 
   // Original text: "Available hosts"
-  availableHosts: 'Доступные хосты',
+  availableHosts: 'Доступные Узлы',
 
   // Original text: "Excluded hosts"
-  excludedHosts: 'Используемые хосты',
+  excludedHosts: 'Используемые Узлы',
 
   // Original text: "No hosts available."
-  noHostsAvailable: 'Нет доступных хостов',
+  noHostsAvailable: 'Нет доступных Узлов',
 
   // Original text: "VMs created from this resource set shall run on the following hosts."
-  availableHostsDescription: 'Виртуальные машины, созданные из этого набора ресурсов, должны работать на следующих хостах.',
+  availableHostsDescription: 'Виртуальные машины, созданные из этого набора ресурсов, должны работать на следующих Узлах.',
 
   // Original text: "Maximum CPUs"
   maxCpus: 'Максимум CPUs',
@@ -2565,10 +2580,10 @@ export default {
   maxDiskSpace: 'Максимум дискового пространства',
 
   // Original text: 'IP pool'
-  ipPool: undefined,
+  ipPool: 'Пул IP-адресов',
 
   // Original text: 'Quantity'
-  quantity: undefined,
+  quantity: 'Количество',
 
   // Original text: "No limits."
   noResourceSetLimits: 'Нет лимитов',
@@ -2583,7 +2598,7 @@ export default {
   usedResource: 'Используется:',
 
   // Original text: 'New'
-  resourceSetNew: undefined,
+  resourceSetNew: 'Новый',
 
   // Original text: "Try dropping some VMs files here, or click to select VMs to upload. Accept only .xva/.ova files."
   importVmsList:
@@ -2620,34 +2635,34 @@ export default {
   nCpus: undefined,
 
   // Original text: 'Memory'
-  vmMemory: undefined,
+  vmMemory: 'Память',
 
   // Original text: 'Disk {position} ({capacity})'
-  diskInfo: undefined,
+  diskInfo: 'Диск {position} ({capacity})',
 
   // Original text: 'Disk description'
-  diskDescription: undefined,
+  diskDescription: 'Описание диска',
 
   // Original text: 'No disks.'
-  noDisks: undefined,
+  noDisks: 'Нет дисков.',
 
   // Original text: 'No networks.'
-  noNetworks: undefined,
+  noNetworks: 'Нет сетей.',
 
   // Original text: 'Network {name}'
-  networkInfo: undefined,
+  networkInfo: 'Сеть {name}',
 
   // Original text: 'No description available'
-  noVmImportErrorDescription: undefined,
+  noVmImportErrorDescription: 'Описание не доступно',
 
   // Original text: 'Error:'
-  vmImportError: undefined,
+  vmImportError: 'Ошибка:',
 
   // Original text: '{type} file:'
-  vmImportFileType: undefined,
+  vmImportFileType: '{type} файла:',
 
   // Original text: 'Please to check and/or modify the VM configuration.'
-  vmImportConfigAlert: undefined,
+  vmImportConfigAlert: 'Пожалуйста проверьте и/или модифицируйте конфигурацию ВМ.',
 
   // Original text: "No pending tasks"
   noTasks: 'Нет незаконченных задач',
@@ -2656,13 +2671,13 @@ export default {
   xsTasks: 'В настоящее время нет задач, ожидающих выполнения на XenServer.',
 
   // Original text: 'Schedules'
-  backupSchedules: undefined,
+  backupSchedules: 'Расписания',
 
   // Original text: 'Get remote'
-  getRemote: undefined,
+  getRemote: 'Получить удаленный доступ',
 
   // Original text: "List Remote"
-  listRemote: 'Список удаленных резервных копий',
+  listRemote: 'Список дистанционных резервных копий',
 
   // Original text: "simple"
   simpleBackup: 'простой',
@@ -2674,7 +2689,7 @@ export default {
   restoreBackups: 'Восстановить резервную копию',
 
   // Original text: 'Click on a VM to display restore options'
-  restoreBackupsInfo: undefined,
+  restoreBackupsInfo: 'Нажмите на ВМ для отображения параметров восстановления',
 
   // Original text: "Enabled"
   remoteEnabled: 'Доступно',
@@ -2689,7 +2704,7 @@ export default {
   backupVmNameColumn: 'Имя ВМ',
 
   // Original text: 'Tags'
-  backupTags: undefined,
+  backupTags: 'Тэги',
 
   // Original text: "Last Backup"
   lastBackupColumn: 'Последняя резервная копия',
@@ -2698,16 +2713,16 @@ export default {
   availableBackupsColumn: 'Доступные резервные копии',
 
   // Original text: 'Missing parameters'
-  backupRestoreErrorTitle: undefined,
+  backupRestoreErrorTitle: 'Отсутствуют параметры',
 
   // Original text: 'Choose a SR and a backup'
-  backupRestoreErrorMessage: undefined,
+  backupRestoreErrorMessage: 'Выберите SR и резервную копию',
 
   // Original text: 'Select default SR…'
-  backupRestoreSelectDefaultSr: undefined,
+  backupRestoreSelectDefaultSr: 'Выбрать SR по умолчанию...',
 
   // Original text: 'Choose a SR for each VDI'
-  backupRestoreChooseSrForEachVdis: undefined,
+  backupRestoreChooseSrForEachVdis: 'Выберите SR для каждого VDI',
 
   // Original text: 'VDI'
   backupRestoreVdiLabel: undefined,
@@ -2716,7 +2731,7 @@ export default {
   backupRestoreSrLabel: undefined,
 
   // Original text: 'Display backups'
-  displayBackup: undefined,
+  displayBackup: 'Отобразить резервные копии',
 
   // Original text: "Import VM"
   importBackupTitle: 'Импорт ВМ',
@@ -2725,158 +2740,158 @@ export default {
   importBackupMessage: 'Начинаем импорт резервной копии',
 
   // Original text: 'VMs to backup'
-  vmsToBackup: undefined,
+  vmsToBackup: 'ВМ для резервирования',
 
   // Original text: 'List remote backups'
-  listRemoteBackups: undefined,
+  listRemoteBackups: 'Список дистанционных резервных копий',
 
   // Original text: 'Restore backup files'
-  restoreFiles: undefined,
+  restoreFiles: 'Восстановить файлы резервных копий',
 
   // Original text: 'Invalid options'
-  restoreFilesError: undefined,
+  restoreFilesError: 'Недопустимый параметр',
 
   // Original text: 'Restore file from {name}'
-  restoreFilesFromBackup: undefined,
+  restoreFilesFromBackup: 'Восстановить файл из {name}',
 
   // Original text: 'Select a backup…'
-  restoreFilesSelectBackup: undefined,
+  restoreFilesSelectBackup: 'Выберите резервную копию...',
 
   // Original text: 'Select a disk…'
-  restoreFilesSelectDisk: undefined,
+  restoreFilesSelectDisk: 'Выберите диск...',
 
   // Original text: 'Select a partition…'
-  restoreFilesSelectPartition: undefined,
+  restoreFilesSelectPartition: 'Выберите партицию...',
 
   // Original text: 'Folder path'
-  restoreFilesSelectFolderPath: undefined,
+  restoreFilesSelectFolderPath: 'Путь к директории',
 
   // Original text: 'Select a file…'
-  restoreFilesSelectFiles: undefined,
+  restoreFilesSelectFiles: 'Выберите файл…',
 
   // Original text: 'Content not found'
-  restoreFileContentNotFound: undefined,
+  restoreFileContentNotFound: 'Содержимое не найдено',
 
   // Original text: 'No files selected'
-  restoreFilesNoFilesSelected: undefined,
+  restoreFilesNoFilesSelected: 'Нет выбраных файлов',
 
   // Original text: 'Selected files ({files}):'
-  restoreFilesSelectedFiles: undefined,
+  restoreFilesSelectedFiles: 'Выбранные файлы ({files}):',
 
   // Original text: 'Error while scanning disk'
-  restoreFilesDiskError: undefined,
+  restoreFilesDiskError: 'Ошибка сканирования диска',
 
   // Original text: "Select all this folder's files"
-  restoreFilesSelectAllFiles: undefined,
+  restoreFilesSelectAllFiles: 'Выбрать все файлы в директории',
 
   // Original text: 'Unselect all files'
-  restoreFilesUnselectAll: undefined,
+  restoreFilesUnselectAll: 'Снять выделение со всех файлов',
 
   // Original text: 'Emergency shutdown Host{nHosts, plural, one {} other {s}}'
-  emergencyShutdownHostsModalTitle: undefined,
+  emergencyShutdownHostsModalTitle: 'Аварийное отключение Уз{nHosts, plural, one {ла} other {лов}}',
 
   // Original text: 'Are you sure you want to shutdown {nHosts, number} Host{nHosts, plural, one {} other {s}}?'
-  emergencyShutdownHostsModalMessage: undefined,
+  emergencyShutdownHostsModalMessage: 'Вы уверены что хотите выключить {nHosts, number} Уз{nHosts, plural, one {ел} other {ла}}?',
 
   // Original text: 'Shutdown host'
-  stopHostModalTitle: undefined,
+  stopHostModalTitle: 'Выключить Узел',
 
   // Original text: "This will shutdown your host. Do you want to continue? If it's the pool master, your connection to the pool will be lost"
-  stopHostModalMessage: undefined,
+  stopHostModalMessage: 'Это действие выключить ваш Узел. Вы хотите продолжить? Если это мастер пула, ваше соединение с пулом будет потеряно',
 
   // Original text: 'Add host'
-  addHostModalTitle: undefined,
+  addHostModalTitle: 'Добавить Узел',
 
   // Original text: 'Are you sure you want to add {host} to {pool}?'
-  addHostModalMessage: undefined,
+  addHostModalMessage: 'Вы уверены что хотите добавить {host} в {pool}',
 
   // Original text: 'Restart host'
-  restartHostModalTitle: undefined,
+  restartHostModalTitle: 'Перезапустить Узел',
 
   // Original text: 'This will restart your host. Do you want to continue?'
-  restartHostModalMessage: undefined,
+  restartHostModalMessage: 'Это дейтсвие перезагрузит Ваш Узел. Вы уверены что хотите это сделать?',
 
   // Original text: 'Restart Host{nHosts, plural, one {} other {s}} agent{nHosts, plural, one {} other {s}}'
-  restartHostsAgentsModalTitle: undefined,
+  restartHostsAgentsModalTitle: 'Перезагрузить агент{nHosts, plural, one {а} other {ов}} на Уз{nHosts, plural, one {ле} other {лах}} ',
 
   // Original text: 'Are you sure you want to restart {nHosts, number} Host{nHosts, plural, one {} other {s}} agent{nHosts, plural, one {} other {s}}?'
-  restartHostsAgentsModalMessage: undefined,
+  restartHostsAgentsModalMessage: 'Вы уверены что хотите перезагрузить агент{nHosts, plural, one {а} other {ов}} на {nHosts, number} Уз{nHosts, plural, one {ле} other {лах}} ?',
 
   // Original text: 'Restart Host{nHosts, plural, one {} other {s}}'
-  restartHostsModalTitle: undefined,
+  restartHostsModalTitle: 'Перезагрузить Уз{nHosts, plural, one {ел} other {лы}}',
 
   // Original text: 'Are you sure you want to restart {nHosts, number} Host{nHosts, plural, one {} other {s}}?'
-  restartHostsModalMessage: undefined,
+  restartHostsModalMessage: 'Вы уверены что хотите перезагрузить {nHosts, number} Уз{nHosts, plural, one {ел} other {ла}}?',
 
   // Original text: "Start VM{vms, plural, one {} other {s}}"
-  startVmsModalTitle: 'Arrancar VM{vms, plural, one {} other {s}}',
+  startVmsModalTitle: 'Запустить ВМ{vms, plural, one {} other {s}}',
 
   // Original text: 'Start a copy'
-  cloneAndStartVM: undefined,
+  cloneAndStartVM: 'Начать копирование',
 
   // Original text: 'Force start'
-  forceStartVm: undefined,
+  forceStartVm: 'Быстрый запуск',
 
   // Original text: 'Forbidden operation'
-  forceStartVmModalTitle: undefined,
+  forceStartVmModalTitle: 'Операция запрещена',
 
   // Original text: 'Start operation for this vm is blocked.'
-  blockedStartVmModalMessage: undefined,
+  blockedStartVmModalMessage: 'Запуск операции для этой виртуальной машины заблокирован.',
 
   // Original text: 'Forbidden operation start for {nVms, number} vm{nVms, plural, one {} other {s}}.'
-  blockedStartVmsModalMessage: undefined,
+  blockedStartVmsModalMessage: 'Запрещен запуск операции для {nVms, number} ВМ.',
 
   // Original text: "Are you sure you want to start {vms, number} VM{vms, plural, one {} other {s}}?"
-  startVmsModalMessage: 'Вы уверены, что хотите запустить {vms} ВМ{vms, plural, one {} other {s}}?',
+  startVmsModalMessage: 'Вы уверены, что хотите запустить {vms} ВМ?',
 
   // Original text: '{nVms, number} vm{nVms, plural, one {} other {s}} are failed. Please see your logs to get more information'
-  failedVmsErrorMessage: undefined,
+  failedVmsErrorMessage: '{nVms, number} ВМ с ошибкой. Посмотрите журналы для получения дополнительной информации',
 
   // Original text: 'Start failed'
-  failedVmsErrorTitle: undefined,
+  failedVmsErrorTitle: 'Не удалось запустить',
 
   // Original text: 'Stop Host{nHosts, plural, one {} other {s}}'
-  stopHostsModalTitle: undefined,
+  stopHostsModalTitle: 'Остановить Уз{nHosts, plural, one {ел} other {ла}',
 
   // Original text: 'Are you sure you want to stop {nHosts, number} Host{nHosts, plural, one {} other {s}}?'
-  stopHostsModalMessage: undefined,
+  stopHostsModalMessage: 'Вы уверены что хотите остановить {nHosts, number}  Уз{nHosts, plural, one {ел} other {ла}}?',
 
   // Original text: "Stop VM{vms, plural, one {} other {s}}"
   stopVmsModalTitle: 'Остановить ВМ{vms, plural, one {} other {s}}',
 
   // Original text: "Are you sure you want to stop {vms, number} VM{vms, plural, one {} other {s}}?"
-  stopVmsModalMessage: 'Вы уверены, что хотите остановить {vms, number} ВМ{vms, plural, one {} other {s}}?',
+  stopVmsModalMessage: 'Вы уверены, что хотите остановить {vms, number} ВМ?',
 
   // Original text: 'Restart VM'
-  restartVmModalTitle: undefined,
+  restartVmModalTitle: 'Перезапустить ВМ',
 
   // Original text: 'Are you sure you want to restart {name}?'
-  restartVmModalMessage: undefined,
+  restartVmModalMessage: 'Вы уверены что хотите перезапустить {name}?',
 
   // Original text: 'Stop VM'
-  stopVmModalTitle: undefined,
+  stopVmModalTitle: 'Остановить ВМ',
 
   // Original text: 'Are you sure you want to stop {name}?'
-  stopVmModalMessage: undefined,
+  stopVmModalMessage: 'Вы уверены что хотите остановить {name}?',
 
   // Original text: "Restart VM{vms, plural, one {} other {s}}"
-  restartVmsModalTitle: 'Перезапустить ВМ{vms, plural, one {} other {s}}',
+  restartVmsModalTitle: 'Перезапустить ВМ',
 
   // Original text: "Are you sure you want to restart {vms, number} VM{vms, plural, one {} other {s}}?"
-  restartVmsModalMessage: 'Вы уверены, что хотите перезапустить {vms, number} ВМ{vms, plural, one {} other {s}}?',
+  restartVmsModalMessage: 'Вы уверены, что хотите перезапустить {vms, number} ВМ?',
 
   // Original text: "Snapshot VM{vms, plural, one {} other {s}}"
-  snapshotVmsModalTitle: 'Снимок ВМ{vms, plural, one {} other {s}}',
+  snapshotVmsModalTitle: 'Снимок ВМ',
 
   // Original text: "Are you sure you want to snapshot {vms, number} VM{vms, plural, one {} other {s}}?"
-  snapshotVmsModalMessage: 'Вы уверены, что хотите сделать сникми {vms, number} ВМ{vms, plural, one {} other {s}}?',
+  snapshotVmsModalMessage: 'Вы уверены, что хотите сделать снимки {vms, number} ВМ?',
 
   // Original text: "Delete VM{vms, plural, one {} other {s}}"
-  deleteVmsModalTitle: 'Удалить ВМ{vms, plural, one {} other {s}}',
+  deleteVmsModalTitle: 'Удалить ВМ',
 
   // Original text: "Are you sure you want to delete {vms, number} VM{vms, plural, one {} other {s}}? ALL VM DISKS WILL BE REMOVED"
   deleteVmsModalMessage:
-    'Вы уверены, что хотите удалить {vms, number} ВМ{vms, plural, one {} other {s}}? ВСЕ ДИСКИ ВИРТУАЛЬНЫХ МАШИН БУДУТ УДАЛЕНЫ!',
+    'Вы уверены, что хотите удалить {vms, number} ВМ? ВСЕ ДИСКИ ВИРТУАЛЬНЫХ МАШИН БУДУТ УДАЛЕНЫ!',
 
   // Original text: "Delete VM"
   deleteVmModalTitle: 'Удалить ВМ',
@@ -2888,22 +2903,22 @@ export default {
   migrateVmModalTitle: 'Переместить ВМ',
 
   // Original text: 'Select a destination host:'
-  migrateVmSelectHost: undefined,
+  migrateVmSelectHost: 'Выберите Целевой Узел:',
 
   // Original text: 'Select a migration network:'
-  migrateVmSelectMigrationNetwork: undefined,
+  migrateVmSelectMigrationNetwork: 'Выберите сеть для перемещения:',
 
   // Original text: 'For each VIF, select a network:'
-  migrateVmSelectNetworks: undefined,
+  migrateVmSelectNetworks: 'Выберите сеть для каждого VIF:',
 
   // Original text: 'Select a destination SR:'
-  migrateVmsSelectSr: undefined,
+  migrateVmsSelectSr: 'Выберите целевую SR:',
 
   // Original text: 'Select a destination SR for local disks:'
-  migrateVmsSelectSrIntraPool: undefined,
+  migrateVmsSelectSrIntraPool: 'Выберите целевую SR для локальных дисков:',
 
   // Original text: 'Select a network on which to connect each VIF:'
-  migrateVmsSelectNetwork: undefined,
+  migrateVmsSelectNetwork: 'Выберите сеть для подключения каждого VIF:',
 
   // Original text: 'Smart mapping'
   migrateVmsSmartMapping: undefined,
@@ -2912,25 +2927,25 @@ export default {
   migrateVmVif: undefined,
 
   // Original text: 'Network'
-  migrateVmNetwork: undefined,
+  migrateVmNetwork: 'Сеть',
 
   // Original text: 'No target host'
-  migrateVmNoTargetHost: undefined,
+  migrateVmNoTargetHost: 'Нет целевого Узла',
 
   // Original text: 'A target host is required to migrate a VM'
-  migrateVmNoTargetHostMessage: undefined,
+  migrateVmNoTargetHostMessage: 'Требуется указать целевой Узел для перемещения ВМ',
 
   // Original text: 'No default SR'
-  migrateVmNoDefaultSrError: undefined,
+  migrateVmNoDefaultSrError: 'Нет SR по умолчанию',
 
   // Original text: 'Default SR not connected to host'
-  migrateVmNotConnectedDefaultSrError: undefined,
+  migrateVmNotConnectedDefaultSrError: 'SR по умолчанию не подключен к Узлу',
 
   // Original text: 'For each VDI, select an SR:'
-  chooseSrForEachVdisModalSelectSr: undefined,
+  chooseSrForEachVdisModalSelectSr: 'Выберите SR для каждого VDI:',
 
   // Original text: 'Select main SR…'
-  chooseSrForEachVdisModalMainSr: undefined,
+  chooseSrForEachVdisModalMainSr: 'Выберите основной SR',
 
   // Original text: 'VDI'
   chooseSrForEachVdisModalVdiLabel: undefined,
@@ -2939,28 +2954,28 @@ export default {
   chooseSrForEachVdisModalSrLabel: undefined,
 
   // Original text: '* optional'
-  optionalEntry: undefined,
+  optionalEntry: '* опционально',
 
   // Original text: 'Delete VDI'
-  deleteVdiModalTitle: undefined,
+  deleteVdiModalTitle: 'Удалить VDI',
 
   // Original text: 'Are you sure you want to delete this disk? ALL DATA ON THIS DISK WILL BE LOST'
-  deleteVdiModalMessage: undefined,
+  deleteVdiModalMessage: 'Вы уверены, что хотите удалить этот диск? ВСЕ ДАННЫЕ НА ЭТОМ ДИСКЕ БУДУТ ПОТЕРЯНЫ!',
 
   // Original text: 'Revert your VM'
-  revertVmModalTitle: undefined,
+  revertVmModalTitle: 'Вернуть ВМ',
 
   // Original text: 'Delete snapshot'
-  deleteSnapshotModalTitle: undefined,
+  deleteSnapshotModalTitle: 'Удалить снимок',
 
   // Original text: 'Are you sure you want to delete this snapshot?'
-  deleteSnapshotModalMessage: undefined,
+  deleteSnapshotModalMessage: 'Вы уверены, что хотите удалить этот снимок?',
 
   // Original text: 'Are you sure you want to revert this VM to the snapshot state? This operation is irreversible.'
-  revertVmModalMessage: undefined,
+  revertVmModalMessage: 'Вы уверены, что хотите вернуть состояние ВМ к состоянию на момент снимка? Эта операция необратима.',
 
   // Original text: 'Snapshot before'
-  revertVmModalSnapshotBefore: undefined,
+  revertVmModalSnapshotBefore: 'Предыдущий снимок',
 
   // Original text: "Import a {name} Backup"
   importBackupModalTitle: 'Импортировать {name} резервную копию',
@@ -2988,14 +3003,14 @@ export default {
 
   // Original text: "This path has been previously used as a Storage by a XenServer host. All data will be lost if you choose to continue the SR creation."
   existingSrModalText:
-    'Этот путь ранее использовался хостом XenServer в качестве хранилища. Все существующие данные будут потеряны, если вы продолжите создание SR.',
+    'Этот путь ранее использовался Узлом XenServer в качестве хранилища. Все существующие данные будут потеряны, если вы продолжите создание SR.',
 
   // Original text: "Previous LUN Usage"
   existingLunModalTitle: 'Предыдущее использование LUN',
 
   // Original text: "This LUN has been previously used as a Storage by a XenServer host. All data will be lost if you choose to continue the SR creation."
   existingLunModalText:
-    'Этот LUN ранее использовался хостом XenServer в качестве хранилища. Все существующие данные будут потеряны, если вы продолжите создание SR.',
+    'Этот LUN ранее использовался Узлом XenServer в качестве хранилища. Все существующие данные будут потеряны, если вы продолжите создание SR.',
 
   // Original text: "Replace current registration?"
   alreadyRegisteredModal: 'Заменить текущую запись?',
@@ -3011,10 +3026,10 @@ export default {
     'В течение пробного периода для XOA требуется подключение к Интернету. Это ограничение не распространяется на тарифные планы',
 
   // Original text: 'Label'
-  serverLabel: undefined,
+  serverLabel: 'Метка',
 
   // Original text: "Host"
-  serverHost: 'Хост',
+  serverHost: 'Узел',
 
   // Original text: "Username"
   serverUsername: 'Имя пользователя',
@@ -3029,55 +3044,55 @@ export default {
   serverReadOnly: 'Только для чтения',
 
   // Original text: 'Unauthorized Certificates'
-  serverUnauthorizedCertificates: undefined,
+  serverUnauthorizedCertificates: 'Неавторизованные сертификаты',
 
   // Original text: 'Allow Unauthorized Certificates'
-  serverAllowUnauthorizedCertificates: undefined,
+  serverAllowUnauthorizedCertificates: 'Разрешить неавторизованные сертификаты',
 
   // Original text: "Enable it if your certificate is rejected, but it's not recommended because your connection will not be secured."
-  serverUnauthorizedCertificatesInfo: undefined,
+  serverUnauthorizedCertificatesInfo: 'Разрешить принимать этот сертификат, если он отклонен. Это действие не рекомендуется, так как может быть не безопасным',
 
   // Original text: 'username'
-  serverPlaceHolderUser: undefined,
+  serverPlaceHolderUser: 'имя пользователя',
 
   // Original text: 'password'
-  serverPlaceHolderPassword: undefined,
+  serverPlaceHolderPassword: 'пароль',
 
   // Original text: 'address[:port]'
-  serverPlaceHolderAddress: undefined,
+  serverPlaceHolderAddress: 'адрес[:порт]',
 
   // Original text: 'label'
-  serverPlaceHolderLabel: undefined,
+  serverPlaceHolderLabel: 'метка',
 
   // Original text: 'Connect'
-  serverConnect: undefined,
+  serverConnect: 'Подключить',
 
   // Original text: 'Error'
-  serverError: undefined,
+  serverError: 'Ошибка',
 
   // Original text: 'Adding server failed'
-  serverAddFailed: undefined,
+  serverAddFailed: 'Не удалось добавить сервер',
 
   // Original text: 'Status'
-  serverStatus: undefined,
+  serverStatus: 'Статус',
 
   // Original text: 'Connection failed. Click for more information.'
-  serverConnectionFailed: undefined,
+  serverConnectionFailed: 'Ошибка подключения. Нажмите для получения дополнительной информации.',
 
   // Original text: 'Connecting…'
-  serverConnecting: undefined,
+  serverConnecting: 'Подключение...',
 
   // Original text: 'Authentication error'
-  serverAuthFailed: undefined,
+  serverAuthFailed: 'Ошибка авторизации',
 
   // Original text: 'Unknown error'
-  serverUnknownError: undefined,
+  serverUnknownError: 'Неизвестная ошибка',
 
   // Original text: 'Invalid self-signed certificate'
-  serverSelfSignedCertError: undefined,
+  serverSelfSignedCertError: 'Ошибка самоподписанного сертификата',
 
   // Original text: 'Do you want to accept self-signed certificate for this server even though it would decrease security?'
-  serverSelfSignedCertQuestion: undefined,
+  serverSelfSignedCertQuestion: 'Вы уверены, что хотите принять этот самоподписанный сертификат от этого сервера, даже если это снизит безопасность?',
 
   // Original text: "Copy VM"
   copyVm: 'Копировать ВМ',
@@ -3089,13 +3104,13 @@ export default {
   copyVmName: 'Имя',
 
   // Original text: 'Name pattern'
-  copyVmNamePattern: undefined,
+  copyVmNamePattern: 'Имя партиции',
 
   // Original text: "If empty: name of the copied VM"
   copyVmNamePlaceholder: 'Если пусто: имя копируемой ВМ',
 
   // Original text: 'e.g.: "\\{name\\}_COPY"'
-  copyVmNamePatternPlaceholder: undefined,
+  copyVmNamePatternPlaceholder: 'например: "\\{name\\}_копия"',
 
   // Original text: "Select SR"
   copyVmSelectSr: 'Выберите SR',
@@ -3104,34 +3119,34 @@ export default {
   copyVmCompress: 'Использовать сжатие',
 
   // Original text: 'No target SR'
-  copyVmsNoTargetSr: undefined,
+  copyVmsNoTargetSr: 'Нет целевого SR',
 
   // Original text: 'A target SR is required to copy a VM'
-  copyVmsNoTargetSrMessage: undefined,
+  copyVmsNoTargetSrMessage: 'Целевой SR требует копирования ВМ',
 
   // Original text: 'Detach host'
-  detachHostModalTitle: undefined,
+  detachHostModalTitle: 'Отсоединить Узел',
 
   // Original text: 'Are you sure you want to detach {host} from its pool? THIS WILL REMOVE ALL VMs ON ITS LOCAL STORAGE AND REBOOT THE HOST.'
-  detachHostModalMessage: undefined,
+  detachHostModalMessage: 'Вы уверены, что хотите Отсоединить {host} от этого пула? ЭТО УДАЛИТ ВСЕ ВМ НА ЕГО ЛОКАЛЬНОМ ХРАНИЛИЩЕ И ПЕРЕЗАГРУЗИТ ХОСТ.',
 
   // Original text: 'Detach'
-  detachHost: undefined,
+  detachHost: 'Отсоединить',
 
   // Original text: 'Forget host'
-  forgetHostModalTitle: undefined,
+  forgetHostModalTitle: 'Забыть Узел',
 
   // Original text: "Are you sure you want to forget {host} from its pool? Be sure this host can't be back online, or use detach instead."
-  forgetHostModalMessage: undefined,
+  forgetHostModalMessage: "Вы уверены, что хотите забыть {host} из этого пула? Убедитесь, что этот Узел не может вернуться в сеть, или используйте вместо этого отсоединение.",
 
   // Original text: 'Forget'
-  forgetHost: undefined,
+  forgetHost: 'Забыть',
 
   // Original text: "Create network"
   newNetworkCreate: 'Создать сеть',
 
   // Original text: 'Create bonded network'
-  newBondedNetworkCreate: undefined,
+  newBondedNetworkCreate: 'Создать связанную сеть',
 
   // Original text: "Interface"
   newNetworkInterface: 'Интерфейс',
@@ -3155,13 +3170,13 @@ export default {
   newNetworkDefaultMtu: 'По умолчанию: 1500',
 
   // Original text: 'Name required'
-  newNetworkNoNameErrorTitle: undefined,
+  newNetworkNoNameErrorTitle: 'Необходимо задать имя',
 
   // Original text: 'A name is required to create a network'
-  newNetworkNoNameErrorMessage: undefined,
+  newNetworkNoNameErrorMessage: 'Необходимо задать имя для создания сети',
 
   // Original text: 'Bond mode'
-  newNetworkBondMode: undefined,
+  newNetworkBondMode: 'Режим связи',
 
   // Original text: "Delete network"
   deleteNetwork: 'Удалить сеть',
@@ -3170,20 +3185,21 @@ export default {
   deleteNetworkConfirm: 'Вы уверены что хотите удалить эту сеть?',
 
   // Original text: 'This network is currently in use'
-  networkInUse: undefined,
+  networkInUse: 'Эта сеть уже используется',
 
   // Original text: 'Bonded'
-  pillBonded: undefined,
+  pillBonded: 'Связана',
 
   // Original text: 'Host'
-  addHostSelectHost: undefined,
+  addHostSelectHost: 'Узел',
 
   // Original text: 'No host'
-  addHostNoHost: undefined,
+  addHostNoHost: 'Нет Узла',
 
   // Original text: 'No host selected to be added'
-  addHostNoHostMessage: undefined,
+  addHostNoHostMessage: 'Нет выбранных Узлов для добавления',
 
+  // ----- About View -----
   // Original text: "Xen Orchestra"
   xenOrchestra: 'Xen Orchestra',
 
@@ -3199,11 +3215,17 @@ export default {
   // Original text: "Use in production at your own risks"
   noProductionUse: 'Использование в производстве на свой страх и риск',
 
+  // Original text:  'Want to use in production?',
+  productionUse: 'Хочешь использовать на производстве?',
+  
+  // Original text:  'Get pro support with the Xen Orchestra Appliance at {website}',
+  getSupport: 'Получай профессиональную поддержку для Xen Orchestra Appliance на {website}',
+  
   // Original text: "You can download our turnkey appliance at {website}""
   downloadXoaFromWebsite: 'Вы можете скачать нашу сборку  Xen Orchestra с {веб-сайте}',
 
   // Original text: "Bug Tracker"
-  bugTracker: 'Bug Tracker',
+  bugTracker: 'БАГ-трекер',
 
   // Original text: "Issues? Report it!"
   bugTrackerText: 'Проблема? Сообщи!',
@@ -3260,10 +3282,10 @@ export default {
   availableIn: 'Эта функция доступна только в {plan} Edition',
 
   // Original text: 'This feature is not available in your version, contact your administrator to know more.'
-  notAvailable: undefined,
+  notAvailable: 'Эта функция недоступна в вашей версии. Чтобы узнать больше, обратитесь к администратору.',
 
   // Original text: 'Updates'
-  updateTitle: undefined,
+  updateTitle: 'Обновления',
 
   // Original text: "Registration"
   registration: 'Регистрация',
@@ -3275,31 +3297,31 @@ export default {
   settings: 'Настройки',
 
   // Original text: 'Proxy settings'
-  proxySettings: undefined,
+  proxySettings: 'Настройки прокси',
 
   // Original text: 'Host (myproxy.example.org)'
-  proxySettingsHostPlaceHolder: undefined,
+  proxySettingsHostPlaceHolder: 'Узел (например: myproxy.example.org)',
 
   // Original text: 'Port (eg: 3128)'
-  proxySettingsPortPlaceHolder: undefined,
+  proxySettingsPortPlaceHolder: 'Порт (например: 3128)',
 
   // Original text: 'Username'
-  proxySettingsUsernamePlaceHolder: undefined,
+  proxySettingsUsernamePlaceHolder: 'Имя пользователя',
 
   // Original text: 'Password'
-  proxySettingsPasswordPlaceHolder: undefined,
+  proxySettingsPasswordPlaceHolder: 'Пароль',
 
   // Original text: 'Your email account'
-  updateRegistrationEmailPlaceHolder: undefined,
+  updateRegistrationEmailPlaceHolder: 'Ваш Email',
 
   // Original text: 'Your password'
-  updateRegistrationPasswordPlaceHolder: undefined,
+  updateRegistrationPasswordPlaceHolder: 'Ваш пароль',
 
   // Original text: "Update"
   update: 'Обновить',
 
   // Original text: 'Refresh'
-  refresh: undefined,
+  refresh: 'Обновить',
 
   // Original text: "Upgrade"
   upgrade: 'Обновить',
@@ -3308,12 +3330,10 @@ export default {
   noUpdaterCommunity: 'Для Community Edition обновления не доступны',
 
   // Original text: "Please consider subscribe and try it with all features for free during 15 days on {link}.""
-  considerSubscribe:
-    'Пожалуйста, рассмотрите возможность подписки и попробуйте все функции бесплатно в течение 15 дней на {link}.',
+  considerSubscribe: 'Пожалуйста, рассмотрите возможность подписки и попробуйте все функции бесплатно в течение 15 дней на {link}.',
 
   // Original text: "Manual update could break your current installation due to dependencies issues, do it with caution"
-  noUpdaterWarning:
-    'Ручные обновления можут нарушить работоспособность ПО из-за проблем с зависимостями, делайте это с осторожностью',
+  noUpdaterWarning: 'Ручные обновления можут нарушить работоспособность ПО из-за проблем с зависимостями, делайте это с осторожностью',
 
   // Original text: "Current version:"
   currentVersion: 'Текущая версия:',
@@ -3322,7 +3342,7 @@ export default {
   register: 'Регистрация',
 
   // Original text: 'Edit registration'
-  editRegistration: undefined,
+  editRegistration: 'Изменить регистрацию',
 
   // Original text: "Please, take time to register in order to enjoy your trial."
   trialRegistration: 'Пожалуйста, зарегистрируйтесь, чтобы испытать пробный период',
@@ -3331,15 +3351,13 @@ export default {
   trialStartButton: 'Активировать пробный период',
 
   // Original text: "You can use a trial version until {date, date, medium}. Upgrade your appliance to get it."
-  trialAvailableUntil:
-    'Вы можете использовать пробную версию до {date, date, medium}. Обновите свою установку Xen Orchestra, чтобы продолжить использовать все преимущества.',
+  trialAvailableUntil: 'Вы можете использовать пробную версию до {date, date, medium}. Обновите свою установку Xen Orchestra, чтобы продолжить использовать все преимущества.',
 
   // Original text: "Your trial has been ended. Contact us or downgrade to Free version"
   trialConsumed: 'Ваш пробный период закончился. Свяжитесь с нами или вернитесь к бесплатной версии',
 
   // Original text: "Your xoa-updater service appears to be down. Your XOA cannot run fully without reaching this service."
-  trialLocked:
-    'Ваша служба xoa-updater, похоже, не работает. XOA не может работать должным образом без обращения к этой службе',
+  trialLocked: 'Ваша служба xoa-updater, похоже, не работает. XOA не может работать должным образом без обращения к этой службе',
 
   // Original text: "No update information available"
   noUpdateInfo: 'Нет информации об обновлении',
@@ -3360,11 +3378,12 @@ export default {
   updaterError: 'Не удалось получить информацию об обновлении',
 
   // Original text: 'Upgrade successful'
-  promptUpgradeReloadTitle: undefined,
+  promptUpgradeReloadTitle: 'Обновление успешно завершено',
 
   // Original text: 'Your XOA has successfully upgraded, and your browser must reload the application. Do you want to reload now ?'
-  promptUpgradeReloadMessage: undefined,
+  promptUpgradeReloadMessage: 'Ваш XOA успешно обновлен, и ваш браузер должен перезагрузить приложение. Вы хотите перезагрузить XOA сейчас?',
 
+  // ----- OS Disclaimer -----
   // Original text: "Xen Orchestra from the sources"
   disclaimerTitle: 'Xen Orchestra из исходного кода',
 
@@ -3377,6 +3396,18 @@ export default {
   // Original text: "This version is not bundled with any support nor updates. Use it with caution for critical tasks."
   disclaimerText3: 'Если вы компания, лучше использовать ее с нашим устройством с включенной поддержкой Pro.',
 
+  // Original text: 'Why do I see this message?',
+  disclaimerText4: 'Почему я вижу это сообщение?',
+
+  // Original text: 'You are not registered. Your XOA may not be up to date.',
+  notRegisteredDisclaimerInfo: 'Вы не зарегистрированны. Ваша XOA может не включать послежние обновления.',
+
+  // Original text: 'Click here to create an account.',
+  notRegisteredDisclaimerCreateAccount: undefined,
+
+  // Original text: 'Click here to register and update your XOA.',
+  notRegisteredDisclaimerRegister: undefined,
+  
   // Original text: "Connect PIF"
   connectPif: 'Подключить PIF',
 
@@ -3396,304 +3427,304 @@ export default {
   deletePifConfirm: 'Вы уверены, что хотите удалить этот PIF?',
 
   // Original text: 'Connected'
-  pifConnected: undefined,
+  pifConnected: 'Подключен',
 
   // Original text: 'Disconnected'
-  pifDisconnected: undefined,
+  pifDisconnected: 'Отключен',
 
   // Original text: 'Physically connected'
-  pifPhysicallyConnected: undefined,
+  pifPhysicallyConnected: 'Подключен физически',
 
   // Original text: 'Physically disconnected'
-  pifPhysicallyDisconnected: undefined,
+  pifPhysicallyDisconnected: 'Отключен физически',
 
   // Original text: 'Username'
-  username: undefined,
+  username: 'Имя пользователя',
 
   // Original text: 'Password'
-  password: undefined,
+  password: 'Пароль',
 
   // Original text: 'Language'
-  language: undefined,
+  language: 'Язык',
 
   // Original text: 'Old password'
-  oldPasswordPlaceholder: undefined,
+  oldPasswordPlaceholder: 'Старый пароль',
 
   // Original text: 'New password'
-  newPasswordPlaceholder: undefined,
+  newPasswordPlaceholder: 'Новый пароль',
 
   // Original text: 'Confirm new password'
-  confirmPasswordPlaceholder: undefined,
+  confirmPasswordPlaceholder: 'Подтвердите новый пароль',
 
   // Original text: 'Confirmation password incorrect'
-  confirmationPasswordError: undefined,
+  confirmationPasswordError: 'Неверный пароль для подтверждения',
 
   // Original text: 'Password does not match the confirm password.'
-  confirmationPasswordErrorBody: undefined,
+  confirmationPasswordErrorBody: 'Пароль не соответствует паролю подтверждения.',
 
   // Original text: 'Password changed'
-  pwdChangeSuccess: undefined,
+  pwdChangeSuccess: 'Пароль изменён',
 
   // Original text: 'Your password has been successfully changed.'
-  pwdChangeSuccessBody: undefined,
+  pwdChangeSuccessBody: 'Ваш пароль был успешно изменён.',
 
   // Original text: 'Incorrect password'
-  pwdChangeError: undefined,
+  pwdChangeError: 'Не корректный пароль',
 
   // Original text: 'The old password provided is incorrect. Your password has not been changed.'
-  pwdChangeErrorBody: undefined,
+  pwdChangeErrorBody: 'Введен не корректный старый пароль. Пароль небыл изменён.',
 
   // Original text: 'OK'
   changePasswordOk: undefined,
 
   // Original text: 'SSH keys'
-  sshKeys: undefined,
+  sshKeys: 'SSH-ключи',
 
   // Original text: 'New SSH key'
-  newSshKey: undefined,
+  newSshKey: 'Новый SSH-ключ',
 
   // Original text: 'Delete'
-  deleteSshKey: undefined,
+  deleteSshKey: 'Удалить',
 
   // Original text: 'No SSH keys'
-  noSshKeys: undefined,
+  noSshKeys: 'Нет SSH-ключей',
 
   // Original text: 'New SSH key'
-  newSshKeyModalTitle: undefined,
+  newSshKeyModalTitle: 'Новый SSH-ключ',
 
   // Original text: 'Invalid key'
-  sshKeyErrorTitle: undefined,
+  sshKeyErrorTitle: 'Не верный ключ',
 
   // Original text: 'An SSH key requires both a title and a key.'
-  sshKeyErrorMessage: undefined,
+  sshKeyErrorMessage: 'SSH-ключ требует как заголовка, так и ключа.',
 
   // Original text: 'Title'
-  title: undefined,
+  title: 'Название',
 
   // Original text: 'Key'
-  key: undefined,
+  key: 'Ключ',
 
   // Original text: 'Delete SSH key'
-  deleteSshKeyConfirm: undefined,
+  deleteSshKeyConfirm: 'Удалить SSH-ключ',
 
   // Original text: 'Are you sure you want to delete the SSH key {title}?'
-  deleteSshKeyConfirmMessage: undefined,
+  deleteSshKeyConfirmMessage: 'Вы уверены, что хотите удалить SSH-ключ {title}',
 
   // Original text: 'Others'
-  others: undefined,
+  others: 'Прочее',
 
   // Original text: 'Loading logs…'
-  loadingLogs: undefined,
+  loadingLogs: 'Загругка журналов...',
 
   // Original text: 'User'
-  logUser: undefined,
+  logUser: 'Пользователь',
 
   // Original text: 'Method'
-  logMethod: undefined,
+  logMethod: 'Метод',
 
   // Original text: 'Params'
-  logParams: undefined,
+  logParams: 'Параметры',
 
   // Original text: 'Message'
-  logMessage: undefined,
+  logMessage: 'Сообщение',
 
   // Original text: 'Error'
-  logError: undefined,
+  logError: 'Ошибка',
 
   // Original text: 'Display details'
-  logDisplayDetails: undefined,
+  logDisplayDetails: 'Показать детализацию',
 
   // Original text: 'Date'
-  logTime: undefined,
+  logTime: 'Дата',
 
   // Original text: 'No stack trace'
-  logNoStackTrace: undefined,
+  logNoStackTrace: 'Нет стэка вызовов',
 
   // Original text: 'No params'
-  logNoParams: undefined,
+  logNoParams: 'Нет параметров',
 
   // Original text: 'Delete log'
-  logDelete: undefined,
+  logDelete: 'Удалить журнал',
 
   // Original text: 'Delete all logs'
-  logDeleteAll: undefined,
+  logDeleteAll: 'Удалить все журналы',
 
   // Original text: 'Delete all logs'
-  logDeleteAllTitle: undefined,
+  logDeleteAllTitle: 'Удалить все журналы',
 
   // Original text: 'Are you sure you want to delete all the logs?'
-  logDeleteAllMessage: undefined,
+  logDeleteAllMessage: 'Вы уверены, что хотите уделатьи все журналы?',
 
   // Original text: 'Click to enable'
-  logIndicationToEnable: undefined,
+  logIndicationToEnable: 'Нажать для включения',
 
   // Original text: 'Click to disable'
-  logIndicationToDisable: undefined,
+  logIndicationToDisable: 'Нажать для отключения',
 
   // Original text: 'Report a bug'
-  reportBug: undefined,
+  reportBug: 'Сообщить об ошибке',
 
   // Original text: 'Name'
-  ipPoolName: undefined,
+  ipPoolName: 'Имя',
 
   // Original text: 'IPs'
-  ipPoolIps: undefined,
+  ipPoolIps: 'IP-адреса',
 
   // Original text: 'IPs (e.g.: 1.0.0.12-1.0.0.17;1.0.0.23)'
-  ipPoolIpsPlaceholder: undefined,
+  ipPoolIpsPlaceholder: 'IP-адреса (например: 1.0.0.12-1.0.0.17;1.0.0.23)',
 
   // Original text: 'Networks'
-  ipPoolNetworks: undefined,
+  ipPoolNetworks: 'Сети',
 
   // Original text: 'No IP pools'
-  ipsNoIpPool: undefined,
+  ipsNoIpPool: 'Нет пула IP-адресов',
 
   // Original text: 'Create'
-  ipsCreate: undefined,
+  ipsCreate: 'Создать',
 
   // Original text: 'Delete all IP pools'
-  ipsDeleteAllTitle: undefined,
+  ipsDeleteAllTitle: 'Удалить все пулы IP-адресов',
 
   // Original text: 'Are you sure you want to delete all the IP pools?'
-  ipsDeleteAllMessage: undefined,
+  ipsDeleteAllMessage: 'Вы уверены, что хотите удалить все пулы IP-адресов?',
 
   // Original text: 'VIFs'
   ipsVifs: undefined,
 
   // Original text: 'Not used'
-  ipsNotUsed: undefined,
+  ipsNotUsed: 'Не используется',
 
   // Original text: 'unknown VIF'
-  ipPoolUnknownVif: undefined,
+  ipPoolUnknownVif: 'Не известный VIF',
 
   // Original text: 'Name already exists'
-  ipPoolNameAlreadyExists: undefined,
+  ipPoolNameAlreadyExists: 'Имя уже используется',
 
   // Original text: 'Keyboard shortcuts'
-  shortcutModalTitle: undefined,
+  shortcutModalTitle: 'Горячие клавиши',
 
   // Original text: 'Global'
-  shortcut_XoApp: undefined,
+  shortcut_XoApp: 'Общее',
 
   // Original text: 'Go to hosts list'
-  shortcut_GO_TO_HOSTS: undefined,
+  shortcut_GO_TO_HOSTS: 'Перейти в список Узлов',
 
   // Original text: 'Go to pools list'
-  shortcut_GO_TO_POOLS: undefined,
+  shortcut_GO_TO_POOLS: 'Перейти в список Пулов',
 
   // Original text: 'Go to VMs list'
-  shortcut_GO_TO_VMS: undefined,
+  shortcut_GO_TO_VMS: 'Перейти в список виртуальных машин',
 
   // Original text: 'Go to SRs list'
-  shortcut_GO_TO_SRS: undefined,
+  shortcut_GO_TO_SRS: 'Перейти в список SR',
 
   // Original text: 'Create a new VM'
-  shortcut_CREATE_VM: undefined,
+  shortcut_CREATE_VM: 'Создать новую ВМ',
 
   // Original text: 'Unfocus field'
-  shortcut_UNFOCUS: undefined,
+  shortcut_UNFOCUS: 'Снять фокусировку',
 
   // Original text: 'Show shortcuts key bindings'
-  shortcut_HELP: undefined,
+  shortcut_HELP: 'Показать "горячие клавиши"',
 
   // Original text: 'Home'
-  shortcut_Home: undefined,
+  shortcut_Home: 'Главная',
 
   // Original text: 'Focus search bar'
-  shortcut_SEARCH: undefined,
+  shortcut_SEARCH: 'Поисковая панель',
 
   // Original text: 'Next item'
-  shortcut_NAV_DOWN: undefined,
+  shortcut_NAV_DOWN: 'Следующее значение',
 
   // Original text: 'Previous item'
-  shortcut_NAV_UP: undefined,
+  shortcut_NAV_UP: 'Предыдущее значение',
 
   // Original text: 'Select item'
-  shortcut_SELECT: undefined,
+  shortcut_SELECT: 'Выбрать значение',
 
   // Original text: 'Open'
-  shortcut_JUMP_INTO: undefined,
+  shortcut_JUMP_INTO: 'Открыть',
 
   // Original text: 'VM'
-  settingsAclsButtonTooltipVM: undefined,
+  settingsAclsButtonTooltipVM: 'ВМ',
 
   // Original text: 'Hosts'
-  settingsAclsButtonTooltiphost: undefined,
+  settingsAclsButtonTooltiphost: 'Узлы',
 
   // Original text: 'Pool'
-  settingsAclsButtonTooltippool: undefined,
+  settingsAclsButtonTooltippool: 'Пул',
 
   // Original text: 'SR'
   settingsAclsButtonTooltipSR: undefined,
 
   // Original text: 'Network'
-  settingsAclsButtonTooltipnetwork: undefined,
+  settingsAclsButtonTooltipnetwork: 'Сеть',
 
   // Original text: 'No config file selected'
-  noConfigFile: undefined,
+  noConfigFile: 'Файл конфигурации не выбран',
 
   // Original text: 'Try dropping a config file here, or click to select a config file to upload.'
-  importTip: undefined,
+  importTip: 'Перетащите сюда файл конфигурации или нажмите, чтобы выбрать файл конфигурации для загрузки.',
 
   // Original text: 'Config'
-  config: undefined,
+  config: 'Конфигурация',
 
   // Original text: 'Import'
-  importConfig: undefined,
+  importConfig: 'Импорт',
 
   // Original text: 'Config file successfully imported'
-  importConfigSuccess: undefined,
+  importConfigSuccess: 'Файл конфигурации успешно импортирован',
 
   // Original text: 'Error while importing config file'
-  importConfigError: undefined,
+  importConfigError: 'Ошибка импортирования файла конфигурации',
 
   // Original text: 'Export'
-  exportConfig: undefined,
+  exportConfig: 'Экспорт',
 
   // Original text: 'Download current config'
-  downloadConfig: undefined,
+  downloadConfig: 'Скачать файл с текущей конфигурации',
 
   // Original text: 'No config import available for Community Edition'
-  noConfigImportCommunity: undefined,
+  noConfigImportCommunity: 'Community Edition не поддердивает возможность импорта файла конфигурации',
 
   // Original text: 'Reconnect all hosts'
-  srReconnectAllModalTitle: undefined,
+  srReconnectAllModalTitle: 'Переподключить все Узлы',
 
   // Original text: 'This will reconnect this SR to all its hosts.'
-  srReconnectAllModalMessage: undefined,
+  srReconnectAllModalMessage: 'Это действие повторно подключит этот SR ко всем его узлам.',
 
   // Original text: 'This will reconnect each selected SR to its host (local SR) or to every hosts of its pool (shared SR).'
-  srsReconnectAllModalMessage: undefined,
+  srsReconnectAllModalMessage: 'Это действие приведет к повторному подключению каждого выбранного SR к его узлам (для локальных SR) или к каждому узлу из его пула (для общих SR).',
 
   // Original text: 'Disconnect all hosts'
-  srDisconnectAllModalTitle: undefined,
+  srDisconnectAllModalTitle: 'Отключить все Узлы',
 
   // Original text: 'This will disconnect this SR from all its hosts.'
-  srDisconnectAllModalMessage: undefined,
+  srDisconnectAllModalMessage: 'Это действие отключить этот SR от всех его Узлов.',
 
   // Original text: 'This will disconnect each selected SR from its host (local SR) or from every hosts of its pool (shared SR).'
-  srsDisconnectAllModalMessage: undefined,
+  srsDisconnectAllModalMessage: 'Это действие отключит каждый выбранный SR от его Узла (для локальных SR) или от всех Узлов его пула (для общих SR)',
 
   // Original text: 'Forget SR'
-  srForgetModalTitle: undefined,
+  srForgetModalTitle: 'Забыть SR',
 
   // Original text: 'Forget selected SRs'
-  srsForgetModalTitle: undefined,
+  srsForgetModalTitle: 'Забыть выбранные SR',
 
   // Original text: "Are you sure you want to forget this SR? VDIs on this storage won't be removed."
-  srForgetModalMessage: undefined,
+  srForgetModalMessage: "Вы уверены, что хотите забыть этот SR? VDI на этом хранилище будут удалены.",
 
   // Original text: "Are you sure you want to forget all the selected SRs? VDIs on these storages won't be removed."
-  srsForgetModalMessage: undefined,
+  srsForgetModalMessage: "Вы уверены, что хотите забыть все выбранные SR? VDI на этих хранилищах будут удалены.",
 
   // Original text: 'Disconnected'
-  srAllDisconnected: undefined,
+  srAllDisconnected: 'Отключен',
 
   // Original text: 'Partially connected'
-  srSomeConnected: undefined,
+  srSomeConnected: 'Частично подключен',
 
   // Original text: 'Connected'
-  srAllConnected: undefined,
+  srAllConnected: 'Подключен',
 
   // Original text: 'XOSAN'
   xosanTitle: undefined,
@@ -3702,101 +3733,122 @@ export default {
   xosanSrTitle: undefined,
 
   // Original text: 'Select local SRs (lvm)'
-  xosanAvailableSrsTitle: undefined,
+  xosanAvailableSrsTitle: 'Выберите локальные SRs (lvm)',
 
   // Original text: 'Suggestions'
-  xosanSuggestions: undefined,
+  xosanSuggestions: 'Предложения',
 
   // Original text: 'Name'
-  xosanName: undefined,
+  xosanName: 'Имя',
 
   // Original text: 'Host'
-  xosanHost: undefined,
+  xosanHost: 'Узел',
 
   // Original text: 'Hosts'
-  xosanHosts: undefined,
+  xosanHosts: 'Узлы',
 
   // Original text: 'Volume ID'
-  xosanVolumeId: undefined,
+  xosanVolumeId: 'Идентификатор тома',
 
   // Original text: 'Size'
-  xosanSize: undefined,
+  xosanSize: 'Размер',
 
   // Original text: 'Used space'
-  xosanUsedSpace: undefined,
+  xosanUsedSpace: 'Используемое пространство',
 
   // Original text: 'XOSAN pack needs to be installed on each host of the pool.'
-  xosanNeedPack: undefined,
+  xosanNeedPack: 'Пакет XOSAN необходимо установить на каждом Узле Пула.',
 
   // Original text: 'Install it now!'
-  xosanInstallIt: undefined,
+  xosanInstallIt: 'Установить сейчас!',
 
   // Original text: 'Some hosts need their toolstack to be restarted before you can create an XOSAN'
-  xosanNeedRestart: undefined,
+  xosanNeedRestart: 'Некоторым хостам требуется перезапуск системных служб, прежде чем вы сможете создать XOSAN.',
 
   // Original text: 'Restart toolstacks'
-  xosanRestartAgents: undefined,
+  xosanRestartAgents: 'Перезапустить службы',
 
   // Original text: 'Pool master is not running'
-  xosanMasterOffline: undefined,
+  xosanMasterOffline: 'Мастер пула не запущен',
 
   // Original text: 'Install XOSAN pack on {pool}'
-  xosanInstallPackTitle: undefined,
+  xosanInstallPackTitle: 'Установить пакет XOSAN на {pool}',
 
   // Original text: 'Select at least 2 SRs'
-  xosanSelect2Srs: undefined,
+  xosanSelect2Srs: 'Выберите как минимум 2 SR',
 
   // Original text: 'Layout'
-  xosanLayout: undefined,
+  xosanLayout: 'Расположение',
 
   // Original text: 'Redundancy'
-  xosanRedundancy: undefined,
+  xosanRedundancy: 'Избыточность',
 
   // Original text: 'Capacity'
-  xosanCapacity: undefined,
+  xosanCapacity: 'Ёмкость',
 
   // Original text: 'Available space'
-  xosanAvailableSpace: undefined,
+  xosanAvailableSpace: 'Доступное место',
 
   // Original text: '* Can fail without data loss'
-  xosanDiskLossLegend: undefined,
+  xosanDiskLossLegend: '* Может выйти из строя без потери данных',
 
   // Original text: 'Create'
-  xosanCreate: undefined,
+  xosanCreate: 'Создать',
 
   // Original text: 'Installing XOSAN. Please wait…'
-  xosanInstalling: undefined,
+  xosanInstalling: 'Утанавливается пакет XOSAN. Пожалуйста подождите...',
 
   // Original text: 'No XOSAN available for Community Edition'
-  xosanCommunity: undefined,
+  xosanCommunity: 'Пакет XOSAN не доступен на Community Edition',
 
   // Original text: 'Install cloud plugin first'
-  xosanInstallCloudPlugin: undefined,
+  xosanInstallCloudPlugin: 'Сначала установить облачный плагин',
 
   // Original text: 'Load cloud plugin first'
-  xosanLoadCloudPlugin: undefined,
+  xosanLoadCloudPlugin: 'Сначала загрущите облачный плагин',
 
   // Original text: 'Loading…'
-  xosanLoading: undefined,
+  xosanLoading: 'Загрузка...',
 
   // Original text: 'XOSAN is not available at the moment'
-  xosanNotAvailable: undefined,
+  xosanNotAvailable: 'В данный момент XOSAN не доступен',
 
   // Original text: 'Register for the XOSAN beta'
-  xosanRegisterBeta: undefined,
+  xosanRegisterBeta: 'Зарегистрируйтесь для участия в бэта-тестировании XOSAN',
 
   // Original text: 'You have successfully registered for the XOSAN beta. Please wait until your request has been approved.'
-  xosanSuccessfullyRegistered: undefined,
+  xosanSuccessfullyRegistered: 'Вы успешно зарегистрировались для участия в бета-тестировании XOSAN. Подождите, пока ваш запрос не будет одобрен.',
 
   // Original text: 'Install XOSAN pack on these hosts:'
-  xosanInstallPackOnHosts: undefined,
+  xosanInstallPackOnHosts: 'Установите пакет XOSAN на эти хосты:',
 
   // Original text: 'Install {pack} v{version}?'
-  xosanInstallPack: undefined,
+  xosanInstallPack: 'Установить {pack} v{version}?',
 
   // Original text: 'No compatible XOSAN pack found for your XenServer versions.'
-  xosanNoPackFound: undefined,
+  xosanNoPackFound: 'Для ваших версий XenServer не найден совместимый пакет XOSAN.',
 
   // Original text: 'At least one of these version requirements must be satisfied by all the hosts in this pool:'
-  xosanPackRequirements: undefined,
+  xosanPackRequirements: 'По крайней мере одно из этих требований к версии должно удовлетворять всем Узлам в этом Пуле:',
+  
+  // Original text: 'Snapshots'
+  homeSortVmsBySnapshots: 'Снимки',
+
+  // Original text: 'Container'
+  homeSortByContainer: 'Контейнеры',
+
+  // Original text: 'Start time'
+  homeSortByStartTime: 'Время запуска',
+
+  // Original text: 'All VMs'
+  allVms: 'Все ВМ',
+
+  // Original text: 'Backed up VMs'
+  backedUpVms: 'ВМ с резервными копиями',
+
+  // Original text: 'Not backed up VMs'
+  notBackedUpVms: 'ВМ без резервных копий', 
+
+  // Original text: 'Save'
+  formSave: 'Сохранить',
 }
