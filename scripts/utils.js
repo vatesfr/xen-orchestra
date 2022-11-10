@@ -1,5 +1,6 @@
 'use strict'
 
+const { asyncEach } = require('@vates/async-each')
 const { forEach, fromCallback } = require('promise-toolbox')
 const { join } = require('path')
 const fs = require('fs')
@@ -34,7 +35,7 @@ exports.getPackages = (readPackageJson = false) => {
       : pkgs
   })
   p.forEach = fn => p.then(pkgs => forEach.call(pkgs, fn))
-  p.map = fn => p.then(pkgs => Promise.all(pkgs.map(fn))).then(noop)
+  p.map = (fn, opts) => p.then(pkgs => asyncEach(pkgs, fn, opts)).then(noop)
   return p
 }
 
