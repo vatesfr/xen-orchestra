@@ -53,7 +53,7 @@ const uiStore = useUiStore();
 const isCurrentHost = computed(
   () => props.hostOpaqueRef === uiStore.currentHostOpaqueRef
 );
-const [isExpanded, toggle] = useToggle();
+const [isExpanded, toggle] = useToggle(true);
 
 const isTooltipDisabled = (target: HTMLElement) =>
   !hasEllipsis(target.querySelector(".text"));
