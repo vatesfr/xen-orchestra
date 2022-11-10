@@ -839,7 +839,7 @@ const messages = {
   poolHaDisabled: 'Disabled',
   poolGpuGroups: 'GPU groups',
   poolRemoteSyslogPlaceHolder: 'Logging host',
-  poolSupportSourceUsers: 'Pool support not available for source users',
+  poolSupportSourceUsers: 'XCP-ng Pro Support not available for source users',
   poolSupportXcpngOnly: 'Only available for pool of XCP-ng hosts',
   poolLicenseAlreadyFullySupported: 'The pool is already fully supported',
   setpoolMaster: 'Master',
@@ -2409,7 +2409,7 @@ const messages = {
 
   // Licenses
   allHostsMustBeBound: 'All hosts must be bound to a license',
-  bound: 'Bound',
+  boundSelectLicense: 'Bound (Plan (ID), expiration date, host - pool)',
   bindXcpngLicenses: 'Bind XCP-ng licenses',
   confirmBindingOnUnsupportedHost:
     'You are about to bind {nLicenses, number} professional support license{nLicenses, plural, one {} other {s}} on older and unsupported XCP-ng version{nLicenses, plural, one {} other {s}}. Are you sure you want to continue?',
@@ -2417,7 +2417,7 @@ const messages = {
   licenses: 'Licenses',
   licensesBinding: 'Licenses binding',
   notEnoughXcpngLicenses: 'Not enough XCP-ng licenses',
-  notBound: 'Not bound',
+  notBoundSelectLicense: 'Not bound (Plan (ID), expiration date)',
   xosanUnregisteredDisclaimer:
     'You are not registered and therefore will not be able to create or manage your XOSAN SRs. {link}',
   xosanSourcesDisclaimer:

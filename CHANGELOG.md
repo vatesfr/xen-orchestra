@@ -1,8 +1,31 @@
 # ChangeLog
 
-## **5.76.0** (2022-10-31)
+## **5.76.1** (2022-11-08)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
+### Enhancements
+
+- [API] `proxy.register` accepts `vmUuid` parameter which can be used when not connected to the XAPI containing the XO Proxy VM
+- [Proxy] Can now upgrade proxies in VMs not connected to XO
+- [REST API] Expose VM snapshots and templates
+- [REST API] Expose VDI snapshots
+- [Select license] Display product type in the options (PR [#6512](https://github.com/vatesfr/xen-orchestra/pull/6512))
+
+### Bug fixes
+
+- [Pool] Add tooltip on "no XCP-ng Pro support" warning icon (PR [#6505](https://github.com/vatesfr/xen-orchestra/pull/6505))
+- [Backup] Respect HTTP proxy setting when connecting to XCP-ng/XenServer pools
+- [Dashboard/Health] Fix `an error has occurred` in case of unknown default SR (PR [#6508](https://github.com/vatesfr/xen-orchestra/pull/6508))
+- [Backup] Really disable Healthcheck when unchecking settings [#6501](https://github.com/vatesfr/xen-orchestra/issues/6501) (PR [#6515](https://github.com/vatesfr/xen-orchestra/pull/6515))
+- [Pool] Improve XCP-ng Pro Support tooltips wording [Forum#6535](https://xcp-ng.org/forum/topic/6535) (PR [#6517](https://github.com/vatesfr/xen-orchestra/pull/6517))
+
+### Released packages
+
+- xo-server 5.106.0
+- xo-web 5.107.0
+
+## **5.76.0** (2022-10-31)
 
 ### Enhancements
 
