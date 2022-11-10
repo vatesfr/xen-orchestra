@@ -200,7 +200,7 @@ export default class Proxy {
     const { vmUuid } = await this._getProxy(id)
     if (vmUuid !== undefined) {
       try {
-        this.getObject(vmUuid, 'VM')
+        this._app.getObject(vmUuid, 'VM')
 
         isVmKnown = true
       } catch (error) {
