@@ -109,8 +109,13 @@ class XoServerNagios {
     })
   }
 
-  _sendPassiveCheck({ message, status }) {
+  _sendPassiveCheck({ message, status }, host = undefined, service = undefined) {
     return new Promise((resolve, reject) => {
+      if (host && service) {
+        this._conf.host = host
+        this._conf.service = service
+      }
+
       if (/\r|\n/.test(message)) {
         warn('the message must not contain a line break', { message })
         for (let i = 0, n = message.length; i < n; ++i) {
