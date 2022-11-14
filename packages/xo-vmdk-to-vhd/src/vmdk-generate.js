@@ -169,7 +169,7 @@ ddb.geometry.cylinders = "${geometry.cylinders}"
     remaining -= SECTOR_SIZE // MARKER_EOS
 
     if (remaining < 0) {
-      throw new Error('vmdk is smaller than precalculed size ')
+      throw new Error('vmdk is bigger than precalculed size ')
     }
     const size = 1024 * 1024
     while (remaining > 0) {

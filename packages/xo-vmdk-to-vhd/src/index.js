@@ -46,13 +46,13 @@ export async function computeVmdkLength(diskName, vhdReadStream) {
 export async function vhdToVMDK(diskName, vhdReadStreamGetter, withLength = false) {
   const { iterator, size } = await vhdToVMDKIterator(diskName, await vhdReadStreamGetter())
   let length
-  if (size === undefined) {
-    length = await computeVmdkLength(diskName, await vhdReadStreamGetter())
-  } else {
-    length = size
-  }
   const stream = await asyncIteratorToStream(iterator)
-  if (withLength) {
+  if(withLength){
+    if (size === undefined) {
+      length = await computeVmdkLength(diskName, await vhdReadStreamGetter())
+    } else {
+      length = size
+    }
     stream.length = length
   }
   return stream
