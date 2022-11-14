@@ -1,5 +1,15 @@
 # ChangeLog
 
+## **next**
+
+### Bug fixes
+
+- [Proxies] Fix `this.getObject is not a function` on upgrade
+
+### Released packages
+
+- xo-server 5.106.1
+
 ## **5.76.1** (2022-11-08)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
