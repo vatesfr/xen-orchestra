@@ -91,18 +91,21 @@ const fontSize = ref("2rem");
 
 This project is using Font Awesome 6 Free.
 
-Here is how to use an icon in your template.
+Icons can be displayed with the `UiIcon` component.
 
-Note: `FontAwesomeIcon` is a global component that does not need to be imported.
+Passing `undefined` as `icon` prop will disable the component (no need to use an additional `v-if` condition).
+
+Use the `busy` prop to display a loader icon.
 
 ```vue
 <template>
   <div>
-    <FontAwesomeIcon :icon="faDisplay" />
+    <UiIcon :icon="faDisplay" />
   </div>
 </template>
 
 <script lang="ts" setup>
+import UiIcon from "@/components/ui/UiIcon.vue"
 import { faDisplay } from "@fortawesome/free-solid-svg-icons";
 </script>
 ```
@@ -115,8 +118,6 @@ Here is the equivalent between font weight and style name.
 | ---------- | ----------- |
 | Solid      | 900         |
 | Regular    | 400         |
-| Light      | 300         |
-| Thin       | 100         |
 
 ### CSS
 
