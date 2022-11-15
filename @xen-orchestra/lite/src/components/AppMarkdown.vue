@@ -14,9 +14,7 @@ const props = defineProps<{
   content: string;
 }>();
 
-const html = computed(() => {
-  return markdown.render(props.content ?? "");
-});
+const html = computed(() => markdown.render(props.content ?? ""));
 
 useEventListener(
   rootElement,
