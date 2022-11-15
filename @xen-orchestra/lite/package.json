@@ -40,7 +40,6 @@
     "@intlify/vite-plugin-vue-i18n": "^6.0.1",
     "@limegrass/eslint-plugin-import-alias": "^1.0.5",
     "@rushstack/eslint-patch": "^1.1.0",
-    "@trivago/prettier-plugin-sort-imports": "^3.2.0",
     "@types/node": "^16.11.41",
     "@vitejs/plugin-vue": "^3.2.0",
     "@vue/eslint-config-prettier": "^7.0.0",
