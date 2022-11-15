@@ -85,11 +85,8 @@ const emit = defineEmits<{
 }>();
 
 const value = useVModel(props, "modelValue", emit);
-const empty = computed(
-  () =>
-    props.modelValue == null ||
-    props.modelValue === "" ||
-    props.modelValue === 0
+const isEmpty = computed(
+  () => props.modelValue == null || String(props.modelValue).trim() === ""
 );
 const inputType = inject("inputType", "input");
 const isLabelDisabled = inject("isLabelDisabled", ref(false));
@@ -98,7 +95,7 @@ const wrapperClass = computed(() => [
   `form-${inputType}`,
   {
     disabled: props.disabled || isLabelDisabled.value,
-    empty: empty.value,
+    empty: isEmpty.value,
   },
 ]);
 
@@ -125,8 +122,8 @@ watch(value, () => nextTick(() => triggerResize()), {
   display: inline-grid;
   align-items: stretch;
 
-  --before-width: v-bind('beforeWidth || "1.75em"');
-  --after-width: v-bind('afterWidth || "1.625em"');
+  --before-width: v-bind('beforeWidth ?? "1.75em"');
+  --after-width: v-bind('afterWidth ?? "1.625em"');
   --caret-width: 1.5em;
 
   --text-color: var(--color-blue-scale-100);
