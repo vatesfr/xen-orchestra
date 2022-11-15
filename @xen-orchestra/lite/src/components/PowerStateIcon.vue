@@ -1,5 +1,5 @@
 <template>
-  <FontAwesomeIcon class="power-state-icon" :class="className" :icon="icon" />
+  <UiIcon :class="className" :icon="icon" class="power-state-icon" />
 </template>
 
 <script lang="ts" setup>
@@ -11,6 +11,7 @@ import {
   faQuestion,
   faStop,
 } from "@fortawesome/free-solid-svg-icons";
+import UiIcon from "@/components/ui/UiIcon.vue";
 import type { PowerState } from "@/libs/xen-api";
 
 const props = defineProps<{
@@ -29,7 +30,7 @@ const icon = computed(() => icons[props.state] ?? faQuestion);
 const className = computed(() => `state-${props.state.toLocaleLowerCase()}`);
 </script>
 
-<style scoped lang="postcss">
+<style lang="postcss" scoped>
 .power-state-icon {
   color: var(--color-extra-blue-d60);
 

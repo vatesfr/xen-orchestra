@@ -7,7 +7,7 @@
       @remove="emit('removeSort', property)"
     >
       <span class="property">
-        <FontAwesomeIcon :icon="isAscending ? faCaretUp : faCaretDown" />
+        <UiIcon :icon="isAscending ? faCaretUp : faCaretDown" />
         {{ property }}
       </span>
     </UiFilter>
@@ -57,10 +57,11 @@ import {
   faSort,
 } from "@fortawesome/free-solid-svg-icons";
 import FormWidget from "@/components/FormWidget.vue";
-import UiButton from "@/components/ui/UiButton.vue";
 import UiActionButton from "@/components/ui/UiActionButton.vue";
+import UiButton from "@/components/ui/UiButton.vue";
 import UiFilter from "@/components/ui/UiFilter.vue";
 import UiFilterGroup from "@/components/ui/UiFilterGroup.vue";
+import UiIcon from "@/components/ui/UiIcon.vue";
 import UiModal from "@/components/ui/UiModal.vue";
 import useModal from "@/composables/modal.composable";
 

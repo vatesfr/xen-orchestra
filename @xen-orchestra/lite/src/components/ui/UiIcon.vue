@@ -1,10 +1,10 @@
 <template>
   <FontAwesomeIcon
     v-if="icon !== undefined"
+    :fixed-width="fixedWidth"
     :icon="icon"
     :spin="busy"
     class="ui-icon"
-    :fixed-width="fixedWidth"
   />
 </template>
 
@@ -12,6 +12,7 @@
 import { computed } from "vue";
 import type { IconDefinition } from "@fortawesome/fontawesome-common-types";
 import { faSpinner } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 
 const props = withDefaults(
   defineProps<{

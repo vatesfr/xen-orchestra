@@ -2,7 +2,7 @@
   <li class="infra-loading-item">
     <div class="infra-item-label-placeholder">
       <div class="link-placeholder">
-        <FontAwesomeIcon :icon="icon" class="icon" />
+        <UiIcon :icon="icon" class="icon" />
         <div class="loader">&nbsp;</div>
       </div>
     </div>
@@ -11,6 +11,7 @@
 
 <script lang="ts" setup>
 import type { IconDefinition } from "@fortawesome/fontawesome-common-types";
+import UiIcon from "@/components/ui/UiIcon.vue";
 
 defineProps<{
   icon: IconDefinition;

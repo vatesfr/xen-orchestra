@@ -4,13 +4,14 @@
       <slot />
     </span>
     <span class="remove" @click.stop="emit('remove')">
-      <FontAwesomeIcon :icon="faRemove" class="icon" />
+      <UiIcon :icon="faRemove" class="icon" />
     </span>
   </span>
 </template>
 
 <script lang="ts" setup>
 import { faRemove } from "@fortawesome/free-solid-svg-icons";
+import UiIcon from "@/components/ui/UiIcon.vue";
 
 const emit = defineEmits<{
   (event: "edit"): void;
