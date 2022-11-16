@@ -7,6 +7,7 @@ const messages = {
   alpha: 'Alpha',
   creation: 'Creation',
   description: 'Description',
+  deleteSourceVm: 'Delete source VM',
   expiration: 'Expiration',
   keyValue: '{key}: {value}',
 
@@ -771,8 +772,10 @@ const messages = {
   cloneVmLabel: 'Clone',
   cleanVm: 'Clean VM directory',
   fastCloneVmLabel: 'Fast clone',
+  startMigratedVm: 'Start the migrated VM',
   vmConsoleLabel: 'Console',
   vmExportUrlValidity: 'The URL is valid once for a short period of time.',
+  vmLukewarmMigration: 'Lukewarm migration',
   backupLabel: 'Backup',
 
   // ----- SR general tab -----

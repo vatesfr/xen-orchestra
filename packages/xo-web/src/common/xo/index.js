@@ -25,6 +25,7 @@ import fetch, { post } from '../fetch'
 import invoke from '../invoke'
 import Icon from '../icon'
 import logError from '../log-error'
+import LukewarmMigrationModal from './lukewarm-migration-modal'
 import NewAuthTokenModal from './new-auth-token-modal'
 import RegisterProxyModal from './register-proxy-modal'
 import renderXoItem, { renderXoItemFromId, Vm } from '../render-xo-item'
@@ -1879,6 +1880,29 @@ export const shareVm = async (vm, resourceSet) =>
       }),
     }),
   }).then(() => editVm(vm, { share: true }), noop)
+
+export const vmLukewarmMigration = async (vm) => {
+  const {sr, deleteSourceVm, startMigratedVm} = await confirm({
+    body: <LukewarmMigrationModal />,
+    title: <span>
+      {_('vmLukewarmMigration')}{' '}
+      <a className='text-info' onClick={() =>
+        window.open('https://xen-orchestra.com/docs/',
+          '_blank',
+          'noopener, noreferrer'
+        )}>
+        <Icon icon='info' size='lg' />
+      </a>
+    </span>,
+    icon: 'vm-warm-migration'
+  })
+  return _call('vm.lukewarmMigration', {
+    deleteSource: deleteSourceVm,
+    srId: resolveId(sr),
+    startVm: startMigratedVm,
+    vmId: resolveId(vm),
+  })
+}
 
 // DISK ---------------------------------------------------------------
 
