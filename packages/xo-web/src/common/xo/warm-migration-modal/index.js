@@ -1,15 +1,15 @@
-import SingleLineRow from '../../single-line-row'
-import Component from 'base-component'
-import { Toggle } from 'form'
-import { Col, Container } from 'grid'
 import _ from 'intl'
+import Component from 'base-component'
 import React from 'react'
+import SingleLineRow from 'single-line-row'
+import { Col, Container } from 'grid'
 import { SelectSr } from 'select-objects'
+import { Toggle } from 'form'
 
-export default class LukewarmMigrationModal extends Component {
+export default class WarmMigrationModal extends Component {
   state = {
-    sr: undefined,
     deleteSourceVm: false,
+    sr: undefined,
     startMigratedVm: false,
   }
   get value() {
@@ -17,13 +17,13 @@ export default class LukewarmMigrationModal extends Component {
   }
 
   render() {
-    const { deleteSourceVm, startMigratedVm } = this.state
+    const { deleteSourceVm,sr, startMigratedVm } = this.state
     return (
       <Container>
         <SingleLineRow>
           <Col size={6}>{_('destinationSR')}</Col>
           <Col size={6}>
-            <SelectSr onChange={this.linkState('sr')} />
+            <SelectSr onChange={this.linkState('sr')} value={sr} />
           </Col>
         </SingleLineRow>
         <SingleLineRow className='mt-1'>

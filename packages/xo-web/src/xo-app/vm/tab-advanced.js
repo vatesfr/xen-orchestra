@@ -45,7 +45,7 @@ import {
   subscribeResourceSets,
   subscribeUsers,
   suspendVm,
-  vmLukewarmMigration,
+  vmWarmMigration,
   XEN_DEFAULT_CPU_CAP,
   XEN_DEFAULT_CPU_WEIGHT,
   XEN_VIDEORAM_VALUES,
@@ -487,10 +487,10 @@ export default class TabAdvanced extends Component {
                 />
                 <TabButton
                 btnStyle='warning'
-                handler={vmLukewarmMigration}
+                handler={vmWarmMigration}
                 handlerParam={vm}
                 icon='vm-warm-migration'
-                labelId='vmLukewarmMigration'
+                labelId='vmWarmMigration'
                 />
               </span>
             )}

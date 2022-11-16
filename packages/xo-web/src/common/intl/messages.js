@@ -775,7 +775,7 @@ const messages = {
   startMigratedVm: 'Start the migrated VM',
   vmConsoleLabel: 'Console',
   vmExportUrlValidity: 'The URL is valid once for a short period of time.',
-  vmLukewarmMigration: 'Lukewarm migration',
+  vmWarmMigration: 'Warm migration',
   backupLabel: 'Backup',
 
   // ----- SR general tab -----

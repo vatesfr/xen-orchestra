@@ -25,10 +25,10 @@ import fetch, { post } from '../fetch'
 import invoke from '../invoke'
 import Icon from '../icon'
 import logError from '../log-error'
-import LukewarmMigrationModal from './lukewarm-migration-modal'
 import NewAuthTokenModal from './new-auth-token-modal'
 import RegisterProxyModal from './register-proxy-modal'
 import renderXoItem, { renderXoItemFromId, Vm } from '../render-xo-item'
+import WarmMigrationModal from './warm-migration-modal'
 import store from 'store'
 import { alert, chooseAction, confirm } from '../modal'
 import { error, info, success } from '../notification'
@@ -1881,11 +1881,11 @@ export const shareVm = async (vm, resourceSet) =>
     }),
   }).then(() => editVm(vm, { share: true }), noop)
 
-export const vmLukewarmMigration = async (vm) => {
+export const vmWarmMigration = async (vm) => {
   const {sr, deleteSourceVm, startMigratedVm} = await confirm({
-    body: <LukewarmMigrationModal />,
+    body: <WarmMigrationModal />,
     title: <span>
-      {_('vmLukewarmMigration')}{' '}
+      {_('vmWarmMigration')}{' '}
       <a className='text-info' onClick={() =>
         window.open('https://xen-orchestra.com/docs/',
           '_blank',
@@ -1896,7 +1896,7 @@ export const vmLukewarmMigration = async (vm) => {
     </span>,
     icon: 'vm-warm-migration'
   })
-  return _call('vm.lukewarmMigration', {
+  return _call('vm.warmMigration', {
     deleteSource: deleteSourceVm,
     srId: resolveId(sr),
     startVm: startMigratedVm,
