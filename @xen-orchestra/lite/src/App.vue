@@ -62,6 +62,7 @@ link.href = favicon;
 document.title = "XO Lite";
 
 const xenApiStore = useXenApiStore();
+const hostStore = useHostStore();
 useChartTheme();
 const uiStore = useUiStore();
 
@@ -90,7 +91,7 @@ watchEffect(() => {
 });
 
 watch(
-  () => useHostStore().allRecords,
+  () => hostStore.allRecords,
   (hosts, previousHosts) => {
     difference(hosts, previousHosts).forEach((host) => {
       const url = new URL("http://localhost");
