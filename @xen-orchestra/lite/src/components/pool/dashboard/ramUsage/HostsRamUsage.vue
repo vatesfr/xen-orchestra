@@ -1,5 +1,5 @@
 <template>
-  <UsageBar :data="data" :n-items="N_ITEMS">
+  <UsageBar :data="statFetched ? data : undefined" :n-items="N_ITEMS">
     <template #header>
       <span>{{ $t("hosts") }}</span>
       <span>{{ $t("top-#", { n: N_ITEMS }) }}</span>
@@ -47,4 +47,10 @@ const data = computed(() => {
   });
   return result;
 });
+
+const statFetched: ComputedRef<boolean> = computed(() =>
+  statFetched.value
+    ? true
+    : stats.value.length > 0 && stats.value.length === data.value.length
+);
 </script>

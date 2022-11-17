@@ -147,13 +147,11 @@ export function parseRamUsage(
     used += ram - (memoryFree?.[key] ?? 0);
   });
 
-  const _percentUsed = percent(used, total);
-  const percentUsed =
-    memoryFree === undefined || isNaN(_percentUsed) ? undefined : _percentUsed;
-
+  const percentUsed = percent(used, total);
   return {
-    percentUsed,
+    percentUsed:
+      memoryFree === undefined || isNaN(percentUsed) ? 0 : percentUsed,
     total: total / _nSequence,
-    used: percentUsed !== undefined ? used / _nSequence : undefined,
+    used: memoryFree === undefined ? 0 : used / _nSequence,
   };
 }
