@@ -34,10 +34,6 @@ const data = computed(() => {
     }
 
     const { percentUsed, total, used } = parseRamUsage(stat.stats);
-    if (percentUsed === undefined || used === undefined) {
-      return;
-    }
-
     result.push({
       id: stat.id,
       label: stat.name,
