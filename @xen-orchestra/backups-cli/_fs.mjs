@@ -1,11 +1,9 @@
-'use strict'
+import fs from 'fs/promises'
+import { dirname } from 'path'
 
-const { dirname } = require('path')
+export * from 'fs/promises'
 
-const fs = require('promise-toolbox/promisifyAll')(require('fs'))
-module.exports = fs
-
-fs.getSize = path =>
+export const getSize = path =>
   fs.stat(path).then(
     _ => _.size,
     error => {
@@ -16,7 +14,7 @@ fs.getSize = path =>
     }
   )
 
-fs.mktree = async function mkdirp(path) {
+export async function mktree(path) {
   try {
     await fs.mkdir(path)
   } catch (error) {
@@ -26,8 +24,8 @@ fs.mktree = async function mkdirp(path) {
       return
     }
     if (code === 'ENOENT') {
-      await mkdirp(dirname(path))
-      return mkdirp(path)
+      await mktree(dirname(path))
+      return mktree(path)
     }
     throw error
   }
@@ -37,7 +35,7 @@ fs.mktree = async function mkdirp(path) {
 //   - single param for direct use in `Array#map`
 //   - files are prefixed with directory path
 // - safer: returns empty array if path is missing or not a directory
-fs.readdir2 = path =>
+export const readdir2 = path =>
   fs.readdir(path).then(
     entries => {
       entries.forEach((entry, i) => {
@@ -59,7 +57,7 @@ fs.readdir2 = path =>
     }
   )
 
-fs.symlink2 = async (target, path) => {
+export async function symlink2(target, path) {
   try {
     await fs.symlink(target, path)
   } catch (error) {

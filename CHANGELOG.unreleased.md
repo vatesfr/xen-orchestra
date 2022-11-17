@@ -29,6 +29,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/backups-cli major
 - xo-web minor
 
 <!--packages-end-->

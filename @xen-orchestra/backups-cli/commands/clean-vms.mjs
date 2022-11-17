@@ -1,15 +1,15 @@
-'use strict'
+import { asyncMap as rawAsyncMap } from '@xen-orchestra/async-map'
+import { RemoteAdapter } from '@xen-orchestra/backups/RemoteAdapter.js'
+import { getHandler } from '@xen-orchestra/fs'
+import getopts from 'getopts'
+import curryRight from 'lodash/curryRight.js'
+import { resolve } from 'path'
 
-// -----------------------------------------------------------------------------
+const asyncMap = curryRight(rawAsyncMap)
 
-const asyncMap = require('lodash/curryRight')(require('@xen-orchestra/async-map').asyncMap)
-const getopts = require('getopts')
-const { RemoteAdapter } = require('@xen-orchestra/backups/RemoteAdapter')
-const { resolve } = require('path')
+const adapter = new RemoteAdapter(getHandler({ url: 'file://' }))
 
-const adapter = new RemoteAdapter(require('@xen-orchestra/fs').getHandler({ url: 'file://' }))
-
-module.exports = async function main(args) {
+export default async function cleanVms(args) {
   const { _, fix, remove, merge } = getopts(args, {
     alias: {
       fix: 'f',
