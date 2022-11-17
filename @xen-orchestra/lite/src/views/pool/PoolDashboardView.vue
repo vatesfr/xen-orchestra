@@ -7,6 +7,9 @@
   </div>
 </template>
 
+<script lang="ts">
+export const N_ITEMS = 5;
+</script>
 <script lang="ts" setup>
 import { differenceBy } from "lodash-es";
 import { computed, onMounted, provide, watch } from "vue";

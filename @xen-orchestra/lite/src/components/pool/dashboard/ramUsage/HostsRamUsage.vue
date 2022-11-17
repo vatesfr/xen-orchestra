@@ -1,8 +1,8 @@
 <template>
-  <UsageBar :data="data" :n-items="5">
+  <UsageBar :data="data" :n-items="N_ITEMS">
     <template #header>
       <span>{{ $t("hosts") }}</span>
-      <span>{{ $t("top-#", { n: 5 }) }}</span>
+      <span>{{ $t("top-#", { n: N_ITEMS }) }}</span>
     </template>
   </UsageBar>
 </template>
@@ -13,6 +13,7 @@ import UsageBar from "@/components/UsageBar.vue";
 import type { Stat } from "@/composables/fetch-stats.composable";
 import { formatSize, parseRamUsage } from "@/libs/utils";
 import type { HostStats } from "@/libs/xapi-stats";
+import { N_ITEMS } from "@/views/pool/PoolDashboardView.vue";
 
 const stats = inject<ComputedRef<Stat<HostStats>[]>>(
   "hostStats",
@@ -32,7 +33,7 @@ const data = computed(() => {
       return;
     }
 
-    const { percentUsed, max, used } = parseRamUsage(stat.stats);
+    const { percentUsed, total, used } = parseRamUsage(stat.stats);
     if (percentUsed === undefined || used === undefined) {
       return;
     }
@@ -41,7 +42,7 @@ const data = computed(() => {
       id: stat.id,
       label: stat.name,
       value: percentUsed,
-      badgeLabel: `${formatSize(used)}/${formatSize(max)}`,
+      badgeLabel: `${formatSize(used)}/${formatSize(total)}`,
     });
   });
   return result;

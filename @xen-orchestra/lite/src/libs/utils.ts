@@ -134,27 +134,26 @@ export function parseRamUsage(
   },
   { nSequence = 4 } = {}
 ) {
-  const nValues = memory.length;
-  const _nSequence = nValues < nSequence ? nValues : nSequence;
+  const _nSequence = Math.min(memory.length, nSequence);
 
-  let max = 0;
+  let total = 0;
   let used = 0;
 
   memory = memory.slice(memory.length - _nSequence);
   memoryFree = memoryFree?.slice(memoryFree.length - _nSequence);
 
   memory.forEach((ram, key) => {
-    max += ram;
+    total += ram;
     used += ram - (memoryFree?.[key] ?? 0);
   });
 
-  const _percentUsed = percent(used, max);
+  const _percentUsed = percent(used, total);
   const percentUsed =
     memoryFree === undefined || isNaN(_percentUsed) ? undefined : _percentUsed;
 
   return {
     percentUsed,
-    max: max / _nSequence,
+    total: total / _nSequence,
     used: percentUsed !== undefined ? used / _nSequence : undefined,
   };
 }
