@@ -1,7 +1,7 @@
 <template>
   <UiCard>
     <UiTitle type="h4">{{ $t("storage-usage") }}</UiTitle>
-    <UsageBar :data="data.result" :nItems="5">
+    <UsageBar :data="srStore.isReady ? data.result : undefined" :nItems="5">
       <template #header>
         <span>{{ $t("storage") }}</span>
         <span>{{ $t("top-#", { n: 5 }) }}</span>
