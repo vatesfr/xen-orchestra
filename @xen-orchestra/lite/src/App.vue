@@ -83,12 +83,6 @@ if (import.meta.env.DEV) {
   );
 }
 
-// Computed which returns an instance of `useHostStore` when possible in order to be used as a dependency.
-// Avoid triggering: "not connected to xapi" and "hostStore.init is not a function" errors
-const asyncHostStore = computed(() =>
-  xenApiStore.isConnected ? useHostStore() : undefined
-);
-
 watchEffect(() => {
   if (xenApiStore.isConnected) {
     xenApiStore.init();
@@ -96,9 +90,9 @@ watchEffect(() => {
 });
 
 watch(
-  () => asyncHostStore.value?.allRecords,
+  () => useHostStore().allRecords,
   (hosts, previousHosts) => {
-    difference(hosts, previousHosts ?? []).forEach((host) => {
+    difference(hosts, previousHosts).forEach((host) => {
       const url = new URL("http://localhost");
       url.protocol = window.location.protocol;
       url.hostname = host.address;

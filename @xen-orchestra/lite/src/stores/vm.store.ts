@@ -8,7 +8,11 @@ import { defineStore } from "pinia";
 import { computed } from "vue";
 
 export const useVmStore = defineStore("vm", () => {
+  const xenApiStore = useXenApiStore();
   const hostStore = useHostStore();
+  const xapiStats = computed(() =>
+    xenApiStore.isConnected ? xenApiStore.getXapiStats() : undefined
+  );
   const baseVmContext = createRecordContext<XenApiVm>("VM", {
     filter: (vm) =>
       !vm.is_a_snapshot && !vm.is_a_template && !vm.is_control_domain,
@@ -41,7 +45,7 @@ export const useVmStore = defineStore("vm", () => {
       throw new Error(`VM ${id} is halted or host could not be found.`);
     }
 
-    return useXenApiStore().getXapiStats()._getAndUpdateStats({
+    return xapiStats.value?._getAndUpdateStats({
       host,
       uuid: vm.uuid,
       granularity,
