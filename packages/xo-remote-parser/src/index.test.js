@@ -1,4 +1,5 @@
-/* eslint-env jest */
+import { describe, it } from 'test'
+import { strict as assert } from 'assert'
 
 import deepFreeze from 'deep-freeze'
 
@@ -203,7 +204,7 @@ describe('format', () => {
   for (const name in formatData) {
     const datum = formatData[name]
     it(name, () => {
-      expect(format(datum.object)).toBe(datum.string)
+      assert.equal(format(datum.object), datum.string)
     })
   }
 })
@@ -212,7 +213,7 @@ describe('parse', () => {
   for (const name in parseData) {
     const datum = parseData[name]
     it(name, () => {
-      expect(parse(datum.string)).toEqual(datum.object)
+      assert.equal(parse(datum.string), datum.object)
     })
   }
 })
