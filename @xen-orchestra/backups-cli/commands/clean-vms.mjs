@@ -1,13 +1,10 @@
-import { asyncMap as rawAsyncMap } from '@xen-orchestra/async-map'
+import { asyncMap } from '@xen-orchestra/async-map'
 import { RemoteAdapter } from '@xen-orchestra/backups/RemoteAdapter.js'
-import { getHandler } from '@xen-orchestra/fs'
+import { getSyncedHandler } from '@xen-orchestra/fs'
 import getopts from 'getopts'
-import curryRight from 'lodash/curryRight.js'
-import { resolve } from 'path'
-
-const asyncMap = curryRight(rawAsyncMap)
-
-const adapter = new RemoteAdapter(getHandler({ url: 'file://' }))
+import { basename, dirname } from 'path'
+import Disposable from 'promise-toolbox/Disposable'
+import { pathToFileURL } from 'url'
 
 export default async function cleanVms(args) {
   const { _, fix, remove, merge } = getopts(args, {
@@ -23,18 +20,20 @@ export default async function cleanVms(args) {
     },
   })
 
-  await asyncMap(_, async vmDir => {
-    vmDir = resolve(vmDir)
-    try {
-      await adapter.cleanVm(vmDir, {
-        fixMetadata: fix,
-        remove,
-        merge,
-        logInfo: (...args) => console.log(...args),
-        logWarn: (...args) => console.warn(...args),
-      })
-    } catch (error) {
-      console.error('adapter.cleanVm', vmDir, error)
-    }
-  })
+  await asyncMap(_, vmDir =>
+    Disposable.use(getSyncedHandler({ url: pathToFileURL(dirname(vmDir)).href }), async handler => {
+      console.log(handler, basename(vmDir))
+      try {
+        await new RemoteAdapter(handler).cleanVm(basename(vmDir), {
+          fixMetadata: fix,
+          remove,
+          merge,
+          logInfo: (...args) => console.log(...args),
+          logWarn: (...args) => console.warn(...args),
+        })
+      } catch (error) {
+        console.error('adapter.cleanVm', vmDir, error)
+      }
+    })
+  )
 }
