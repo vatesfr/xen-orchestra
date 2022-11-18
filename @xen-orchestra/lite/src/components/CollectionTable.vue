@@ -66,7 +66,9 @@ const emit = defineEmits<{
 
 const isSelectable = computed(() => props.modelValue !== undefined);
 
-const { filters, addFilter, removeFilter, predicate } = useCollectionFilter();
+const { filters, addFilter, removeFilter, predicate } = useCollectionFilter({
+  queryStringParam: "filter",
+});
 const { sorts, addSort, removeSort, toggleSortDirection, compareFn } =
   useCollectionSorter<Record<string, any>>({ queryStringParam: "sort" });
 
