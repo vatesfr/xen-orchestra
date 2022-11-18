@@ -30,6 +30,7 @@
 <!--packages-start-->
 
 - @xen-orchestra/backups-cli major
+- @xen-orchestra/log minor
 - xo-web minor
 
 <!--packages-end-->

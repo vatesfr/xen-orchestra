@@ -1,5 +1,6 @@
 'use strict'
 
+const compileGlobPattern = require('./_compileGlobPattern.js')
 const createTransport = require('./transports/console')
 const { LEVELS, resolve } = require('./levels')
 
@@ -8,8 +9,19 @@ if (!(symbol in global)) {
   // the default behavior, without requiring `configure` is to avoid
   // logging anything unless it's a real error
   const transport = createTransport()
-  const level = resolve(process.env.LOG_LEVEL, LEVELS.WARN)
-  global[symbol] = log => log.level >= level && transport(log)
+
+  const { env } = process
+
+  const pattern = [env.DEBUG, env.NODE_DEBUG].filter(Boolean).join(',')
+  const matchDebug = pattern.length !== 0 ? RegExp.prototype.test.bind(compileGlobPattern(pattern)) : () => false
+
+  const level = resolve(env.LOG_LEVEL, LEVELS.WARN)
+
+  global[symbol] = function conditionalTransport(log) {
+    if (log.level >= level || matchDebug(log.namespace)) {
+      transport(log)
+    }
+  }
 }
 
 // -------------------------------------------------------------------

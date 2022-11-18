@@ -3,7 +3,7 @@
 const { describe, it } = require('test')
 const assert = require('assert').strict
 
-const { compileGlobPattern } = require('./utils')
+const compileGlobPattern = require('./_compileGlobPattern.js')
 
 describe('compileGlobPattern()', () => {
   it('works', () => {
