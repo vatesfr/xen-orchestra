@@ -1884,16 +1884,8 @@ export const shareVm = async (vm, resourceSet) =>
 export const vmWarmMigration = async (vm) => {
   const {sr, deleteSourceVm, startMigratedVm} = await confirm({
     body: <WarmMigrationModal />,
-    title: <span>
-      {_('vmWarmMigration')}{' '}
-      <a className='text-info' onClick={() =>
-        window.open('https://xen-orchestra.com/docs/',
-          '_blank',
-          'noopener, noreferrer'
-        )}>
-        <Icon icon='info' size='lg' />
-      </a>
-    </span>,
+    title:
+      _('vmWarmMigration'),
     icon: 'vm-warm-migration'
   })
   return _call('vm.warmMigration', {

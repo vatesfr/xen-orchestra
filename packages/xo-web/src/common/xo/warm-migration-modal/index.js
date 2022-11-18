@@ -1,5 +1,6 @@
 import _ from 'intl'
 import Component from 'base-component'
+import Icon from 'icon'
 import React from 'react'
 import SingleLineRow from 'single-line-row'
 import { Col, Container } from 'grid'
@@ -17,9 +18,12 @@ export default class WarmMigrationModal extends Component {
   }
 
   render() {
-    const { deleteSourceVm,sr, startMigratedVm } = this.state
+    const { deleteSourceVm, sr, startMigratedVm } = this.state
     return (
       <Container>
+        <div className='text-info'>
+          <Icon icon='info' /> <i>{_('vmWarmMigrationProcessInfo')}</i>
+        </div>
         <SingleLineRow>
           <Col size={6}>{_('destinationSR')}</Col>
           <Col size={6}>
