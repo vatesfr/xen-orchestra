@@ -32,6 +32,7 @@
 - @xen-orchestra/backups-cli major
 - @xen-orchestra/log minor
 - xo-cli patch
+- xo-server minor
 - xo-web minor
 
 <!--packages-end-->
