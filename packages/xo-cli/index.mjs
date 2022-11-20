@@ -273,7 +273,9 @@ async function main(args) {
       const lines = [error.message]
       const { errors } = error.data
       errors.forEach(error => {
-        lines.push(`  property ${error.property}: ${error.message}`)
+        let { instancePath } = error
+        instancePath = instancePath.length === 0 ? '@' : '@.' + instancePath
+        lines.push(`  property ${instancePath}: ${error.message}`)
       })
       throw lines.join('\n')
     })
