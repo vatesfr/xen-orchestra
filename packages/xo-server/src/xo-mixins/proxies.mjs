@@ -110,6 +110,10 @@ export default class Proxy {
       throw invalidParameters('at least one of address and vmUuid must be defined')
     }
 
+    if (authenticationToken === undefined) {
+      authenticationToken = await generateToken()
+    }
+
     await this._throwIfRegistered(address, vmUuid)
 
     const { id } = await this._db.add({
