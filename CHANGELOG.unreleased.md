@@ -34,6 +34,7 @@
 
 <!--packages-start-->
 
+- vhd-lib minor
 - @xen-orchestra/backups-cli major
 - @xen-orchestra/fs minor
 - @xen-orchestra/log minor
