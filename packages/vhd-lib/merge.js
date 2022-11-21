@@ -56,12 +56,27 @@ function makeThrottledWriter(handler, path, delay) {
 // make the rename / delete part of the merge process
 // will fail if parent and children are in different remote
 
-async function cleanupVhds(handler, chain, { logInfo = noop, removeUnused = false } = {}) {
+async function cleanupVhds(
+  handler,
+  chain,
+  { logInfo = noop, removeUnused = false, isResuming = false, targetHeader } = {}
+) {
   const parent = chain[0]
   const children = chain.slice(1, -1)
   const mergeTargetChild = chain[chain.length - 1]
 
-  await handler.rename(parent, mergeTargetChild)
+  try {
+    await handler.rename( parent, mergeTargetChild)
+  } catch (error) {
+    // maybe the renaming was already successfull during merge
+    if (error.code === 'ENOENT' && isResuming) {
+      Disposable.use(openVhd(handler, mergeTargetChild), vhd => {
+        // we are sure that mergeTargetChild is the right one
+        assert.strictEqual(vhd.header.checksum, targetHeader)
+      })
+      logInfo(`the VHD parent was already renamed`, { parent, mergeTargetChild })
+    }
+  }
 
   return asyncMap(children, child => {
     logInfo(`the VHD child is already merged`, { child })
@@ -100,10 +115,19 @@ module.exports.mergeVhdChain = limitConcurrency(2)(async function mergeVhdChain(
       if (mergeState.currentBlock === null) {
         mergeState.currentBlock = 0
       }
+      isResuming = true
     } catch (error) {
       if (error.code !== 'ENOENT') {
         warn('problem while checking the merge state', { error })
       }
+    }
+
+    // special case : vhdhave been modified, potentially deleted
+    // use short track and don't try to read them
+    if (mergeState?.step === 'cleanupVhds') {
+      await cleanupVhds(handler, chain, { logInfo, removeUnused, isResuming, targetHeader: mergeState.parent.header })
+      await handler.unlink(mergeStatePath).catch(warn)
+      return
     }
 
     // during merging, the end footer of the parent can be overwritten by new blocks
@@ -133,7 +157,6 @@ module.exports.mergeVhdChain = limitConcurrency(2)(async function mergeVhdChain(
       assert.strictEqual(childVhd.footer.diskType, DISK_TYPES.DIFFERENCING)
       assert.strictEqual(childVhd.header.blockSize, parentVhd.header.blockSize)
     } else {
-      isResuming = true
       // vhd should not have changed to resume
       assert.strictEqual(parentVhd.header.checksum, mergeState.parent.header)
       assert.strictEqual(childVhd.header.checksum, mergeState.child.header)
@@ -152,6 +175,7 @@ module.exports.mergeVhdChain = limitConcurrency(2)(async function mergeVhdChain(
         parent: { header: parentVhd.header.checksum },
         currentBlock: 0,
         mergedDataSize: 0,
+        step: 'mergeBlocks',
         chain: chain.map(vhdPath => handlerPath.relativeFromFile(mergeStatePath, vhdPath)),
       }
 
@@ -180,7 +204,7 @@ module.exports.mergeVhdChain = limitConcurrency(2)(async function mergeVhdChain(
       toMerge,
       async blockId => {
         merging.add(blockId)
-        mergeState.mergedDataSize += await parentVhd.mergeBlock(childVhd, blockId, isResuming)
+        mergeState.mergedDataSize += await parentVhd.mergeBlock(childVhd, blockId, isResuming, mergeState)
 
         mergeState.currentBlock = Math.min(...merging)
         merging.delete(blockId)
@@ -197,6 +221,8 @@ module.exports.mergeVhdChain = limitConcurrency(2)(async function mergeVhdChain(
       }
     )
     onProgress({ total: nBlocks, done: nBlocks })
+    mergeState.step = 'updateHeader'
+    await handler.writeFile(mergeStatePath, JSON.stringify(mergeState), { flags: 'w' }).catch(warn)
     // some blocks could have been created or moved in parent : write bat
     await parentVhd.writeBlockAllocationTable()
 
@@ -213,6 +239,9 @@ module.exports.mergeVhdChain = limitConcurrency(2)(async function mergeVhdChain(
     // creation
     await parentVhd.writeFooter()
 
+    mergeState.step = 'cleanupVhds'
+    await handler.writeFile(mergeStatePath, JSON.stringify(mergeState), { flags: 'w' }).catch(warn)
+    // resuming during cleanupVhds step have already been handled earlier
     await cleanupVhds(handler, chain, { logInfo, removeUnused })
 
     // should be a disposable
