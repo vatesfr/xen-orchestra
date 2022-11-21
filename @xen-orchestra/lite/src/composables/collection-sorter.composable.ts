@@ -1,52 +1,46 @@
+import type { ActiveSorts } from "@/types/sort";
 import { computed, ref, watch } from "vue";
 import { type LocationQueryValue, useRoute, useRouter } from "vue-router";
-import type { ActiveSorts } from "@/types/sort";
 
-interface Config {
+interface Config<T> {
   queryStringParam?: string;
+  initialSorts?: [property: keyof T, isAscending: boolean][];
 }
 
-export default function useCollectionSorter(
-  config: Config = { queryStringParam: "sort" }
-) {
+export default function useCollectionSorter<T>(config: Config<T> = {}) {
   const route = useRoute();
   const router = useRouter();
+  const { queryStringParam, initialSorts = [] } = config;
+  const sorts = ref<ActiveSorts<T>>(new Map(initialSorts));
 
-  const sorts = ref<ActiveSorts>(
-    config.queryStringParam
-      ? queryToMap(route.query[config.queryStringParam] as LocationQueryValue)
-      : new Map()
+  const sortsAsString = computed(() =>
+    Array.from(sorts.value)
+      .map(([property, isAsc]) => `${String(property)}:${isAsc ? "1" : "0"}`)
+      .join(",")
   );
 
-  if (config.queryStringParam) {
-    const queryStringParam = config.queryStringParam;
-    watch(
-      sorts,
-      (value) =>
-        router.replace({
-          query: {
-            ...route.query,
-            [queryStringParam]: Array.from(value)
-              .map(
-                ([property, isAscending]) =>
-                  `${property}:${isAscending ? "1" : "0"}`
-              )
-              .join(","),
-          },
-        }),
-      { deep: true }
+  if (queryStringParam !== undefined) {
+    if (route.query[queryStringParam] !== undefined) {
+      sorts.value = queryToMap(
+        route.query[queryStringParam] as LocationQueryValue
+      );
+    }
+    watch(sortsAsString, (value) =>
+      router.replace({
+        query: { ...route.query, [queryStringParam]: value },
+      })
     );
   }
 
-  const addSort = (property: string, isAscending: boolean) => {
+  const addSort = (property: keyof T, isAscending: boolean) => {
     sorts.value.set(property, isAscending);
   };
 
-  const removeSort = (property: string) => {
+  const removeSort = (property: keyof T) => {
     sorts.value.delete(property);
   };
 
-  const toggleSortDirection = (property: string) => {
+  const toggleSortDirection = (property: keyof T) => {
     if (!sorts.value.has(property)) {
       return;
     }
@@ -55,7 +49,7 @@ export default function useCollectionSorter(
   };
 
   const compareFn = computed(() => {
-    return (record1: any, record2: any) => {
+    return (record1: T, record2: T) => {
       for (const [property, isAscending] of sorts.value) {
         const value1 = record1[property];
         const value2 = record2[property];

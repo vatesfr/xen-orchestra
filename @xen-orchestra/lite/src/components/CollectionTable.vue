@@ -68,7 +68,7 @@ const isSelectable = computed(() => props.modelValue !== undefined);
 
 const { filters, addFilter, removeFilter, predicate } = useCollectionFilter();
 const { sorts, addSort, removeSort, toggleSortDirection, compareFn } =
-  useCollectionSorter();
+  useCollectionSorter({ queryStringParam: "sort" });
 
 const filteredCollection = useFilteredCollection(
   toRef(props, "collection"),

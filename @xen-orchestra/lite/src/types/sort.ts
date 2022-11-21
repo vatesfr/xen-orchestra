@@ -7,4 +7,4 @@ interface Sort {
 
 export type Sorts = { [key: string]: Sort };
 
-export type ActiveSorts = Map<string, boolean>;
+export type ActiveSorts<T> = Map<keyof T, boolean>;
