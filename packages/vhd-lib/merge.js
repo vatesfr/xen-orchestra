@@ -43,7 +43,7 @@ const { warn } = createLogger('vhd-lib:merge')
 
 // write the merge progress file at most  every `delay` seconds
 function makeThrottledWriter(handler, path, delay) {
-  let lastWrite = Date.now()
+  let lastWrite = 0
   return async json => {
     const now = Date.now()
     if (now - lastWrite > delay) {
@@ -175,6 +175,7 @@ module.exports.mergeVhdChain = limitConcurrency(2)(async function mergeVhdChain(
     let counter = 0
 
     const mergeStateWriter = makeThrottledWriter(handler, mergeStatePath, 10e3)
+    await mergeStateWriter(mergeState)
     await asyncEach(
       toMerge,
       async blockId => {
