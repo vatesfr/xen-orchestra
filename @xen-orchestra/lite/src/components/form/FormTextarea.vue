@@ -1,14 +1,12 @@
 <template>
-  <FormInput>
-    <slot />
-  </FormInput>
+  <FormInput />
 </template>
 
 <script lang="ts" setup>
 import { provide } from "vue";
 import FormInput from "@/components/form/FormInput.vue";
 
-provide("inputType", "select");
+provide("inputType", "textarea");
 </script>
 
 <style lang="postcss" scoped></style>
