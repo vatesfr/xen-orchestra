@@ -2831,8 +2831,8 @@ export const deleteUsers = users =>
     noop
   )
 
-export const editUser = (user, { email, password, permission }) =>
-  _call('user.set', { id: resolveId(user), email, password, permission })::tap(subscribeUsers.forceRefresh)
+export const editUser = (user, { email, password, permission, preferences }) =>
+  _call('user.set', { id: resolveId(user), email, password, permission, preferences })::tap(subscribeUsers.forceRefresh)
 
 const _signOutFromEverywhereElse = () =>
   _call('token.delete', {
@@ -2911,22 +2911,15 @@ export const deleteSshKey = key =>
     })
   }, noop)
 
-export const addOtp = (secret, user) =>
+export const addOtp = secret =>
   confirm({
     title: _('addOtpConfirm'),
     body: _('addOtpConfirmMessage'),
   }).then(
     () =>
-      user !== undefined
-        ? _call('user.set', {
-            id: user.id,
-            preferences: {
-              otp: secret,
-            },
-          })::tap(subscribeUsers.forceRefresh)
-        : _setUserPreferences({
-            otp: secret,
-          }),
+      _setUserPreferences({
+        otp: secret,
+      }),
     noop
   )
 
@@ -2937,12 +2930,7 @@ export const removeOtp = user =>
   }).then(
     () =>
       user !== undefined
-        ? _call('user.set', {
-            id: user.id,
-            preferences: {
-              otp: null,
-            },
-          })::tap(subscribeUsers.forceRefresh)
+        ? editUser(user, { preferences: { otp: null } })
         : _setUserPreferences({
             otp: null,
           }),

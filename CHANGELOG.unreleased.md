@@ -7,7 +7,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [Settings/Users] Showing a toggle button to manage OTP of users in admin panel (PR [#6541](https://github.com/vatesfr/xen-orchestra/pull/6541))
+- [Settings/Users] Button added to delete OTP of users from the admin panel (PR [#6541](https://github.com/vatesfr/xen-orchestra/pull/6541))
 
 ### Bug fixes
 
