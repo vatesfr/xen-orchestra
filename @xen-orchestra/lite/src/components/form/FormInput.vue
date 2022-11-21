@@ -127,6 +127,12 @@ const focus = () => inputElement.value.focus();
 defineExpose({
   focus,
 });
+
+const { textarea, triggerResize } = useTextareaAutosize();
+
+watch(value, () => nextTick(() => triggerResize()), {
+  immediate: true,
+});
 </script>
 
 <style lang="postcss" scoped>
