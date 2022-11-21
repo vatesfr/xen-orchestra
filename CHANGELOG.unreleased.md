@@ -15,6 +15,7 @@
 
 - [Dashboard/Health] Fix `Unknown SR` and `Unknown VDI` in Unhealthy VDIs (PR [#6519](https://github.com/vatesfr/xen-orchestra/pull/6519))
 - [Delta Backup] Can now recover VHD merge when failed at the begining
+- [Delta Backup] Fix `ENOENT` errors when merging a VHD directory on non-S3 remote
 
 ### Packages to release
 
@@ -33,6 +34,7 @@
 <!--packages-start-->
 
 - @xen-orchestra/backups-cli major
+- @xen-orchestra/fs minor
 - @xen-orchestra/log minor
 - vhd-lib minor
 - xo-cli patch
