@@ -116,6 +116,12 @@ const inputClass = computed(() => [
   },
 ]);
 
+const { textarea, triggerResize } = useTextareaAutosize();
+
+watch(value, () => nextTick(() => triggerResize()), {
+  immediate: true,
+});
+
 const focus = () => inputElement.value.focus();
 
 defineExpose({
