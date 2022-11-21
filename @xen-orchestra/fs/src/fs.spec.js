@@ -228,6 +228,17 @@ handlers.forEach(url => {
         expect(await handler.list('.')).toEqual(['file2'])
         expect(await handler.readFile(`file2`)).toEqual(TEST_DATA)
       })
+      it(`should rename the file and create dest directory`, async () => {
+        await handler.outputFile('file', TEST_DATA)
+        await handler.rename('file', `sub/file2`)
+
+        expect(await handler.list('sub')).toEqual(['file2'])
+        expect(await handler.readFile(`sub/file2`)).toEqual(TEST_DATA)
+      })
+      it(`should fail with enoent if source file is missing`, async () => {
+        const error = await rejectionOf(handler.rename('file', `sub/file2`))
+        expect(error.code).toBe('ENOENT')
+      })
     })
 
     describe('#rmdir()', () => {
