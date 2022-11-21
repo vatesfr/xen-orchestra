@@ -7,6 +7,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [Remotes] Prevent remote path from ending with `xo-vm-backups` as it's usually a mistake
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
