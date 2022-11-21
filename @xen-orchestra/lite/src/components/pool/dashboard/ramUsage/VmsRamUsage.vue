@@ -44,9 +44,9 @@ const data = computed(() => {
   return result;
 });
 
-const statFetched: ComputedRef<boolean> = computed(() =>
-  statFetched.value
-    ? true
-    : stats.value.length > 0 && stats.value.length === data.value.length
+const statFetched: ComputedRef<boolean> = computed(
+  () =>
+    statFetched.value ||
+    (stats.value.length > 0 && stats.value.length === data.value.length)
 );
 </script>

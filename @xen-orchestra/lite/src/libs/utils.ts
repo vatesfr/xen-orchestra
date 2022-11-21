@@ -149,6 +149,8 @@ export function parseRamUsage(
 
   const percentUsed = percent(used, total);
   return {
+    // In case `memoryFree` is not given by the xapi,
+    // we won't be able to calculate the percentage of used memory properly.
     percentUsed:
       memoryFree === undefined || isNaN(percentUsed) ? 0 : percentUsed,
     total: total / _nSequence,
