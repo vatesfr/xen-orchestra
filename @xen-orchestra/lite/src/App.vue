@@ -33,7 +33,8 @@
 
 <script lang="ts" setup>
 import { useUiStore } from "@/stores/ui.store";
-import { useColorMode, useMagicKeys, whenever } from "@vueuse/core";
+import { useActiveElement, useMagicKeys, whenever } from "@vueuse/core";
+import { logicAnd } from "@vueuse/math";
 import { difference } from "lodash";
 import { computed, ref, watch, watchEffect } from "vue";
 import favicon from "@/assets/favicon.svg";
@@ -65,11 +66,23 @@ const hostStore = useHostStore();
 useChartTheme();
 const uiStore = useUiStore();
 
-const { Ctrl_Shift_D } = useMagicKeys();
-whenever(
-  Ctrl_Shift_D,
-  () => (uiStore.colorMode = uiStore.colorMode === "dark" ? "light" : "dark")
-);
+if (import.meta.env.DEV) {
+  const activeElement = useActiveElement();
+  const { D } = useMagicKeys();
+
+  const canToggleDarkMode = computed(() => {
+    if (activeElement.value == null) {
+      return true;
+    }
+
+    return !["INPUT", "TEXTAREA"].includes(activeElement.value.tagName);
+  });
+
+  whenever(
+    logicAnd(D, canToggleDarkMode),
+    () => (uiStore.colorMode = uiStore.colorMode === "dark" ? "light" : "dark")
+  );
+}
 
 watchEffect(() => {
   if (xenApiStore.isConnected) {
