@@ -1,20 +1,25 @@
 import * as Editable from 'editable'
 import _, { messages } from 'intl'
+import authenticator from 'otplib/authenticator'
 import ActionButton from 'action-button'
+import Button from 'button'
 import Component from 'base-component'
+import CopyToClipboard from 'react-copy-to-clipboard'
+import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import keyBy from 'lodash/keyBy'
 import map from 'lodash/map'
 import React from 'react'
 import renderXoItem from 'render-xo-item'
+import SingleLineRow from 'single-line-row'
 import SortedTable from 'sorted-table'
 import Tooltip from 'tooltip'
 import { addSubscriptions } from 'utils'
 import { get } from '@xen-orchestra/defined'
 import { injectIntl } from 'react-intl'
-import { Password, Select } from 'form'
+import { Password, Select, Toggle } from 'form'
 
-import { createUser, deleteUser, deleteUsers, editUser, subscribeGroups, subscribeUsers } from 'xo'
+import { addOtp, createUser, deleteUser, deleteUsers, editUser, removeOtp, subscribeGroups, subscribeUsers } from 'xo'
 
 const permissions = {
   none: {
@@ -77,6 +82,30 @@ const USER_COLUMNS = [
     name: _('userPasswordColumn'),
     itemRenderer: user =>
       isEmpty(user.authProviders) && <Editable.Password onChange={password => editUser(user, { password })} value='' />,
+  },
+  {
+    name: 'OTP',
+    itemRenderer: user => {
+      const isOtpEnable = user.preferences.otp !== undefined
+      return (
+        <SingleLineRow className='m-0'>
+          <Toggle
+            value={isOtpEnable}
+            onChange={() => (isOtpEnable ? removeOtp(user) : addOtp(authenticator.generateSecret(), user))}
+          />
+          {isOtpEnable && (
+            <div className='ml-1'>
+              {user.preferences.otp.slice(0, 5)}…{' '}
+              <CopyToClipboard text={user.preferences.otp}>
+                <Button size='small'>
+                  <Icon icon='clipboard' />
+                </Button>
+              </CopyToClipboard>
+            </div>
+          )}
+        </SingleLineRow>
+      )
+    },
   },
 ]
 

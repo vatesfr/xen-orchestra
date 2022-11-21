@@ -2911,28 +2911,38 @@ export const deleteSshKey = key =>
     })
   }, noop)
 
-export const addOtp = secret =>
+export const addOtp = (secret, user) =>
   confirm({
     title: _('addOtpConfirm'),
     body: _('addOtpConfirmMessage'),
-  }).then(
-    () =>
-      _setUserPreferences({
-        otp: secret,
-      }),
-    noop
+  }).then(() =>
+    user !== undefined
+      ? _call('user.set', {
+          id: user.id,
+          preferences: {
+            otp: secret,
+          },
+        })::tap(subscribeUsers.forceRefresh)
+      : _setUserPreferences({
+          otp: secret,
+        })
   )
 
-export const removeOtp = () =>
+export const removeOtp = user =>
   confirm({
     title: _('removeOtpConfirm'),
     body: _('removeOtpConfirmMessage'),
-  }).then(
-    () =>
-      _setUserPreferences({
-        otp: null,
-      }),
-    noop
+  }).then(() =>
+    user !== undefined
+      ? _call('user.set', {
+          id: user.id,
+          preferences: {
+            otp: null,
+          },
+        })::tap(subscribeUsers.forceRefresh)
+      : _setUserPreferences({
+          otp: null,
+        })
   )
 
 export const deleteSshKeys = keys =>
