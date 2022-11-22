@@ -10,8 +10,8 @@ import { computed } from "vue";
 
 const props = withDefaults(
   defineProps<{
-    color: Color | "custom";
     value: number;
+    color?: Color | "custom";
     maxValue?: number;
   }>(),
   { color: "info", maxValue: 100 }
