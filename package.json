@@ -70,6 +70,7 @@
     "testRegex": "\\.spec\\.js$"
   },
   "lint-staged": {
+    "*": "scripts/run-changed-pkgs.js test",
     "*.{{,c,m}j,t}s{,x}": [
       "prettier --write",
       "eslint --ignore-pattern '!*'",
