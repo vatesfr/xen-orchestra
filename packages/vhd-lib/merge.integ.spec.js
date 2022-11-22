@@ -176,6 +176,8 @@ test('it can resume a failed renaming ', async () => {
   await createRandomFile(`${tempDir}/small_randomfile`, mbOfChildren)
   await convertFromRawToVhd(`${tempDir}/small_randomfile`, `${tempDir}/child1.vhd`)
   await chainVhd(handler, 'parent.vhd', handler, 'child1.vhd', true)
+
+
   const childVhd = new VhdFile(handler, 'child1.vhd')
   await childVhd.readHeaderAndFooter()
 
@@ -296,7 +298,11 @@ test('it can resume a multiple merge ', async () => {
     })
   )
   // it should succeed
-  await mergeVhdChain(handler, ['parent.vhd', 'child.vhd', 'grandchild.vhd'])
+  await mergeVhdChain(handler, ['parent.vhd', 'child.vhd', 'grandchild.vhd'],{removeUnused: true})
+  expect(await fs.exists(`${tempDir}/parent.vhd`)).toBeFalsy()
+  expect(await fs.exists(`${tempDir}/child.vhd`)).toBeFalsy()
+  expect(await fs.exists(`${tempDir}/grandchild.vhd`)).toBeTruthy()
+  expect(await fs.exists(`${tempDir}/.parent.vhd.merge.json`)).toBeFalsy()
 })
 
 test('it merge multiple child in one pass ', async () => {
@@ -349,17 +355,4 @@ test('it merge multiple child in one pass ', async () => {
   }
 })
 
-test('it cleans vhd mergedfiles', async () => {
-  await handler.writeFile('parent', 'parentData')
-  await handler.writeFile('child1', 'child1Data')
-  await handler.writeFile('child2', 'child2Data')
-  await handler.writeFile('child3', 'child3Data')
 
-  await cleanupVhds(handler, ['parent', 'child1', 'child2', 'child3'], { merge: true, removeUnused: true })
-
-  // only child3 should stay, with the data of parent
-  const [child3, ...other] = await handler.list('.')
-  expect(other.length).toEqual(0)
-  expect(child3).toEqual('child3')
-  expect((await handler.readFile('child3')).toString('utf8')).toEqual('parentData')
-})
