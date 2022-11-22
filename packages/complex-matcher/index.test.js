@@ -94,5 +94,5 @@ describe('setPropertyClause', () => {
 })
 
 it('toString', () => {
-    assert.equal(ast.toString(), pattern)
+  assert.equal(ast.toString(), pattern)
 })
