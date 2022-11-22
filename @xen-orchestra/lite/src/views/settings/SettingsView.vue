@@ -50,14 +50,15 @@
       <UiKeyValueList>
         <UiKeyValueRow>
           <template #key>{{ $t("appearance") }}</template>
-          <template #value
-            ><FormLabel>
-              <FormToggle
-                :modelValue="darkMode"
-                @update:modelValue="setDarkMode"
-              />{{ $t("dark-mode") }}</FormLabel
-            ></template
-          >
+          <template #value>
+            <FormLabel>
+              <FormSelect v-model="colorMode">
+                <option value="auto">{{ $t("theme-auto") }}</option>
+                <option value="dark">{{ $t("theme-dark") }}</option>
+                <option value="light">{{ $t("theme-light") }}</option>
+              </FormSelect>
+            </FormLabel>
+          </template>
         </UiKeyValueRow>
       </UiKeyValueList>
     </UiCard>
@@ -85,15 +86,16 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, watch } from "vue";
+import FormSelect from "@/components/form/FormSelect.vue";
+import { useUiStore } from "@/stores/ui.store";
+import { storeToRefs } from "pinia";
+import { watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { locales } from "@/i18n";
 import { faEarthAmericas, faGear } from "@fortawesome/free-solid-svg-icons";
-import { useLocalStorage } from "@vueuse/core";
 import FormWidget from "@/components/FormWidget.vue";
 import TitleBar from "@/components/TitleBar.vue";
 import FormLabel from "@/components/form/FormLabel.vue";
-import FormToggle from "@/components/form/FormToggle.vue";
 import UiCard from "@/components/ui/UiCard.vue";
 import UiKeyValueList from "@/components/ui/UiKeyValueList.vue";
 import UiKeyValueRow from "@/components/ui/UiKeyValueRow.vue";
@@ -105,12 +107,7 @@ const { locale } = useI18n();
 
 watch(locale, (newLocale) => localStorage.setItem("lang", newLocale));
 
-const colorMode = useLocalStorage<string>("colorMode", "dark");
-const darkMode = computed(() => colorMode.value !== "light");
-const setDarkMode = (enabled: boolean) => {
-  colorMode.value = enabled ? "dark" : "light";
-  document.documentElement.classList[enabled ? "add" : "remove"]("dark");
-};
+const { colorMode } = storeToRefs(useUiStore());
 </script>
 
 <style lang="postcss" scoped>

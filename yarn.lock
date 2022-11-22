@@ -3652,6 +3652,14 @@
     "@vueuse/shared" "9.5.0"
     vue-demi "*"
 
+"@vueuse/math@^9.5.0":
+  version "9.5.0"
+  resolved "https://registry.yarnpkg.com/@vueuse/math/-/math-9.5.0.tgz#df20ce74031727a4eaef3cdbaa443bfda80fb3e1"
+  integrity sha512-dPr5CkxE4Oo+OEvTqPfAZ8Lv1AVbnLH2N5gJSm5EWykxGPLbSaimUIckqXXR8DDyvaWIV545tELekpFUHLoFmw==
+  dependencies:
+    "@vueuse/shared" "9.5.0"
+    vue-demi "*"
+
 "@vueuse/metadata@9.5.0":
   version "9.5.0"
   resolved "https://registry.yarnpkg.com/@vueuse/metadata/-/metadata-9.5.0.tgz#b01c84230261ddee4d439ae5d9c21343dc5ae565"

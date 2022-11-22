@@ -19,6 +19,7 @@
     "@types/d3-time-format": "^4.0.0",
     "@types/lodash-es": "^4.17.6",
     "@vueuse/core": "^9.5.0",
+    "@vueuse/math": "^9.5.0",
     "complex-matcher": "^0.7.0",
     "d3-time-format": "^4.1.0",
     "decorator-synchronized": "^0.6.0",
