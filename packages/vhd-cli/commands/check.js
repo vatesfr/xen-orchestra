@@ -6,6 +6,10 @@ const { getSyncedHandler } = require('@xen-orchestra/fs')
 const { Disposable } = require('promise-toolbox')
 
 module.exports = async function check(rawArgs) {
+
+  if (args.length < 2 || args.some(_ => _ === '-h' || _ === '--help')) {
+    return `Usage: ${this.command} <path> [--remote <remoteURL>] [--chain] [--bat] [--blocks] `
+  }
   const { chain, bat, blocks, remote, _: args } = getopts(rawArgs, {
     boolean: ['chain', 'bat', 'blocks'],
     default: {

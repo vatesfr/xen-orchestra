@@ -30,7 +30,8 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
-
+- vhd-lib minor
+- vhd-cli major
 - @xen-orchestra/backups-cli major
 - @xen-orchestra/log minor
 - xo-cli patch
