@@ -70,7 +70,12 @@
     "testRegex": "\\.spec\\.js$"
   },
   "lint-staged": {
-    "*.{md,ts,ts}": "prettier --write"
+    "*.{{,c,m}j,t}s{,x}": [
+      "prettier --write",
+      "eslint --ignore-pattern '!*'",
+      "jest --testRegex='^(?!.*.integ.spec.js$).*.spec.js$' --findRelatedTests --passWithNoTests"
+    ],
+    "*.md": "prettier --write"
   },
   "private": true,
   "scripts": {
