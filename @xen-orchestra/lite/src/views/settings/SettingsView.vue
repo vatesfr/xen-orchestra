@@ -94,7 +94,6 @@ import { faEarthAmericas, faGear } from "@fortawesome/free-solid-svg-icons";
 import { useLocalStorage } from "@vueuse/core";
 import FormWidget from "@/components/FormWidget.vue";
 import TitleBar from "@/components/TitleBar.vue";
-// import FormLabel from "@/components/form/FormLabel.vue";
 import FormToggle from "@/components/form/FormToggle.vue";
 import UiCard from "@/components/ui/UiCard.vue";
 import UiKeyValueList from "@/components/ui/UiKeyValueList.vue";

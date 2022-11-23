@@ -41,24 +41,20 @@ const { isConnecting } = storeToRefs(xenApiStore);
 const login = ref("root");
 const password = ref("");
 const error = ref<string>();
-const passwordRef = ref();
+const passwordRef = ref<InstanceType<typeof FormInput>>();
 const isInvalidPassword = ref(false);
 
-const focusPasswordInput = () =>
-  passwordRef.value?.$el.querySelector("input").focus();
+const focusPasswordInput = () => passwordRef.value?.focus();
 
 onMounted(() => {
   xenApiStore.reconnect();
   focusPasswordInput();
 });
 
-watch(
-  () => password.value,
-  () => {
-    isInvalidPassword.value = false;
-    error.value = undefined;
-  }
-);
+watch(password, () => {
+  isInvalidPassword.value = false;
+  error.value = undefined;
+});
 
 async function handleSubmit() {
   try {
@@ -89,7 +85,7 @@ async function handleSubmit() {
 
 form {
   display: flex;
-  font-size: 20px;
+  font-size: 2rem;
   min-width: 30em;
   max-width: 100%;
   align-items: center;

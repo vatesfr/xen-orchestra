@@ -62,7 +62,7 @@ const formInputWrapperClass = computed(() => ({
 }
 
 .wrapper :deep(.input) {
-  margin-bottom: 10px;
+  margin-bottom: 1rem;
 }
 
 .form-label {
@@ -79,7 +79,7 @@ const formInputWrapperClass = computed(() => ({
 p.error,
 p.warning {
   font-size: 0.65em;
-  margin-bottom: 10px;
+  margin-bottom: 1rem;
 }
 
 .error {
