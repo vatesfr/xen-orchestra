@@ -61,7 +61,7 @@ async function cleanupVhds(handler, chain, { logInfo = noop, removeUnused = fals
   const children = chain.slice(1, -1)
   const mergeTargetChild = chain[chain.length - 1]
 
-  await VhdAbstract.rename(handler, parent, mergeTargetChild)
+  await handler.rename(parent, mergeTargetChild)
 
   return asyncMap(children, child => {
     logInfo(`the VHD child is already merged`, { child })
