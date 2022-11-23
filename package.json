@@ -77,7 +77,8 @@
     "*.{{,c,m}j,t}s{,x}": [
       "eslint --ignore-pattern '!*'",
       "jest --testRegex='^(?!.*.integ.spec.js$).*.spec.js$' --findRelatedTests --passWithNoTests"
-    ]
+    ],
+    "@xen-orchestra/lite/**/*.{ts,vue}": "vue-tsc --noEmit"
   },
   "private": true,
   "scripts": {
