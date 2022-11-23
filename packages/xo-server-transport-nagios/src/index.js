@@ -22,7 +22,7 @@ export const configurationSchema = {
     key: {
       type: 'string',
       description: 'The encryption key',
-    }
+    },
   },
   additionalProperties: false,
   required: ['server', 'port', 'key'],
@@ -110,10 +110,14 @@ class XoServerNagios {
   }
 
   test({ host, service }) {
-    return this._sendPassiveCheck({
-      message: 'The server-nagios plugin for Xen Orchestra server seems to be working fine, nicely done :)',
-      status: OK,
-    }, host, service)
+    return this._sendPassiveCheck(
+      {
+        message: 'The server-nagios plugin for Xen Orchestra server seems to be working fine, nicely done :)',
+        status: OK,
+      },
+      host,
+      service
+    )
   }
 
   _sendPassiveCheck({ message, status }, host, service) {
