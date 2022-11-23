@@ -29,7 +29,10 @@ const progressWithUnit = computed(() => {
   height: var(--progress-bar-height, 0.4rem);
   margin: 1rem 0;
   border-radius: 0.4rem;
-  background-color: var(--background-color-extra-blue);
+  background-color: var(
+    --progress-bar-background-color,
+    var(--background-color-extra-blue)
+  );
 
   &.color-info {
     --progress-bar-color: var(--color-extra-blue-base);

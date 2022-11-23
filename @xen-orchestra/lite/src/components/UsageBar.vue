@@ -13,7 +13,7 @@
         <div class="badge">
           <span class="circle" />
           {{ item.label }}
-          <UiBadge v-if="item.badgeLabel">{{ item.badgeLabel }}</UiBadge>
+          <UiBadge>{{ item.badgeLabel ?? `${item.value}%` }}</UiBadge>
         </div>
       </div>
       <div class="footer">
@@ -101,6 +101,7 @@ const computedData = computed(() => {
 .progress-item {
   --progress-bar-height: 1.2rem;
   --progress-bar-color: var(--color-extra-blue-l20);
+  --progress-bar-background-color: var(--color-blue-scale-400);
 }
 
 .progress-item:nth-child(1) {
