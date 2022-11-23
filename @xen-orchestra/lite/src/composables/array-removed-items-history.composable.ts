@@ -1,7 +1,7 @@
 import { differenceBy } from "lodash-es";
 import { type Ref, ref, unref, watch } from "vue";
 
-export default function useArrayHistory<T>(
+export default function useArrayRemovedItemsHistory<T>(
   list: Ref<T[]>,
   limit = Infinity,
   iteratee: (item: T) => unknown = (item) => item
