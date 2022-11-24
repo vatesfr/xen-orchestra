@@ -38,7 +38,7 @@ export async function writeOvaOn(
     }
     disk.fileSize = size
     return new Promise((resolve, reject) => {
-      const entry = pack.entry({ name: `${disk.name}.vmdk`, size: size }, err => {
+      const entry = pack.entry({ name: `${disk.name}.vmdk`, size }, err => {
         if (err == null) {
           return resolve()
         } else return reject(err)

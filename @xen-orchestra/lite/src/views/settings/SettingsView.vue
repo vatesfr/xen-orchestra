@@ -19,7 +19,9 @@
               rel="noopener noreferrer"
               href="https://xcp-ng.org/blog/"
               >{{ $t("news-name", { name: "XCP-ng" }) }}</a
-            > - <a
+            >
+            -
+            <a
               target="_blank"
               rel="noopener noreferrer"
               href="https://xen-orchestra.com/blog/"
@@ -35,7 +37,9 @@
               rel="noopener noreferrer"
               href="https://xcp-ng.org/forum"
               >{{ $t("community-name", { name: "XCP-ng" }) }}</a
-            > - <a
+            >
+            -
+            <a
               target="_blank"
               rel="noopener noreferrer"
               href="https://xcp-ng.org/forum/category/12/xen-orchestra"

@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+
 'use strict'
 
 process.on('unhandledRejection', function (error) {
@@ -59,3 +61,5 @@ xo.open()
   .then(function () {
     return xo.close()
   })
+
+/* eslint-enable no-console */

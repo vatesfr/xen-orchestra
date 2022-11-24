@@ -12,7 +12,7 @@
       :icon="faServer"
       :route="{ name: 'host.dashboard', params: { uuid: host.uuid } }"
     >
-      {{ host.name_label || '(Host)' }}
+      {{ host.name_label || "(Host)" }}
       <template #actions>
         <InfraAction
           :icon="isExpanded ? faAngleDown : faAngleUp"
