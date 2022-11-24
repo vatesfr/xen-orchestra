@@ -83,10 +83,12 @@ const USER_COLUMNS = [
   {
     name: 'OTP',
     itemRenderer: user =>
-      user.preferences.otp !== undefined && (
+      user.preferences.otp !== undefined ? (
         <Button btnStyle='danger' onClick={() => removeOtp(user)} size='small'>
           <Icon icon='remove' /> {_('remove')}
         </Button>
+      ) : (
+        _('notConfigured')
       ),
   },
 ]

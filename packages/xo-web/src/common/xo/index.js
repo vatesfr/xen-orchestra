@@ -2831,8 +2831,8 @@ export const deleteUsers = users =>
     noop
   )
 
-export const editUser = (user, { email, password, permission, preferences }) =>
-  _call('user.set', { id: resolveId(user), email, password, permission, preferences })::tap(subscribeUsers.forceRefresh)
+export const editUser = (user, { email, password, permission }) =>
+  _call('user.set', { id: resolveId(user), email, password, permission })::tap(subscribeUsers.forceRefresh)
 
 const _signOutFromEverywhereElse = () =>
   _call('token.delete', {
@@ -2860,9 +2860,9 @@ export const changePassword = (oldPassword, newPassword) =>
       () => error(_('pwdChangeError'), _('pwdChangeErrorBody'))
     )
 
-const _setUserPreferences = preferences =>
+const _setUserPreferences = (preferences, userId) =>
   _call('user.set', {
-    id: xo.user.id,
+    id: userId ?? xo.user.id,
     preferences,
   })::tap(subscribeCurrentUser.forceRefresh)
 
@@ -2929,11 +2929,12 @@ export const removeOtp = user =>
     body: _('removeOtpConfirmMessage'),
   }).then(
     () =>
-      user !== undefined
-        ? editUser(user, { preferences: { otp: null } })
-        : _setUserPreferences({
-            otp: null,
-          }),
+      _setUserPreferences(
+        {
+          otp: null,
+        },
+        resolveId(user)
+      ),
     noop
   )
 
