@@ -51,6 +51,7 @@ import {
   XEN_VIDEORAM_VALUES,
 } from 'xo'
 import { createGetObject, createGetObjectsOfType, createSelector, isAdmin } from 'selectors'
+import { getXoaPlan, PREMIUM } from 'xoa-plans'
 import { SelectSuspendSr } from 'select-suspend-sr'
 
 import BootOrder from './boot-order'
@@ -485,13 +486,15 @@ export default class TabAdvanced extends Component {
                   icon='vm-force-shutdown'
                   labelId='forceShutdownVmLabel'
                 />
-                <TabButton
-                  btnStyle='warning'
-                  handler={vmWarmMigration}
-                  handlerParam={vm}
-                  icon='vm-warm-migration'
-                  labelId='vmWarmMigration'
-                />
+                {getXoaPlan() === PREMIUM && (
+                  <TabButton
+                    btnStyle='warning'
+                    handler={vmWarmMigration}
+                    handlerParam={vm}
+                    icon='vm-warm-migration'
+                    labelId='vmWarmMigration'
+                  />
+                )}
               </span>
             )}
             {vm.power_state === 'Halted' && (
