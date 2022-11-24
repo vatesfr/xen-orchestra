@@ -1881,12 +1881,11 @@ export const shareVm = async (vm, resourceSet) =>
     }),
   }).then(() => editVm(vm, { share: true }), noop)
 
-export const vmWarmMigration = async (vm) => {
-  const {sr, deleteSourceVm, startMigratedVm} = await confirm({
+export const vmWarmMigration = async vm => {
+  const { sr, deleteSourceVm, startMigratedVm } = await confirm({
     body: <WarmMigrationModal />,
-    title:
-      _('vmWarmMigration'),
-    icon: 'vm-warm-migration'
+    title: _('vmWarmMigration'),
+    icon: 'vm-warm-migration',
   })
   return _call('vm.warmMigration', {
     deleteSource: deleteSourceVm,
