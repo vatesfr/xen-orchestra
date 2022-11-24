@@ -153,7 +153,9 @@ export default class BackupNg {
               {
                 name: 'backup run',
                 onLog: log =>
-                  handleBackupLog(this._app, job.name, log, {
+                  handleBackupLog(log, {
+                    app: this._app,
+                    jobName: job.name,
                     localTaskIds,
                     logger,
                     runJobId,
@@ -280,7 +282,9 @@ export default class BackupNg {
               const localTaskIds = { __proto__: null }
               let result
               for await (const log of logsStream) {
-                result = handleBackupLog(this._app, job.name, log, {
+                result = handleBackupLog(log, {
+                  app: this._app,
+                  jobName: job.name,
                   logger,
                   localTaskIds,
                   runJobId,
@@ -305,7 +309,9 @@ export default class BackupNg {
                 ...params,
               },
               log =>
-                handleBackupLog(this._app, job.name, log, {
+                handleBackupLog(log, {
+                  app: this._app,
+                  jobName: job.name,
                   logger,
                   localTaskIds,
                   runJobId,
@@ -466,7 +472,7 @@ export default class BackupNg {
 
           const localTaskIds = { __proto__: null }
           for await (const log of logsStream) {
-            result = handleBackupLog(this._app, log, {
+            result = handleBackupLog(log, {
               logger,
               localTaskIds,
               rootTaskId,
@@ -497,7 +503,7 @@ export default class BackupNg {
               },
               name: 'restore',
               onLog: log =>
-                handleBackupLog(this._app, log, {
+                handleBackupLog(log, {
                   logger,
                   localTaskIds,
                   handleRootTaskId: id => {
