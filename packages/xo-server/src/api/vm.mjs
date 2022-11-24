@@ -596,20 +596,20 @@ migrate.resolve = {
   migrationNetwork: ['migrationNetwork', 'network', 'administrate'],
 }
 
-export async function warmMigration({ sourceVmId, srId, startVm, deleteSource }) {
-  await this.warmMigrateVm(sourceVmId, srId, startVm, deleteSource)
+export async function warmMigration({ vm, sr, startVm, deleteSource }) {
+  await this.warmMigrateVm(vm, sr, startVm, deleteSource)
 }
 warmMigration.permission = 'admin'
 
 warmMigration.params = {
-  sourceVmId: {
+  vm: {
     type: 'string',
   },
-  srId: {
+  sr: {
     type: 'string',
   },
-  startDest: { type: 'boolean' },
-  deleteSource: { type: 'boolean' },
+  startDestinationVm: { type: 'boolean' },
+  deleteSourceVm: { type: 'boolean' },
 }
 
 // -------------------------------------------------------------------

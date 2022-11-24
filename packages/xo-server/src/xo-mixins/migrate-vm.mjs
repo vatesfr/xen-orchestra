@@ -1,24 +1,23 @@
 import { Backup } from '@xen-orchestra/backups/Backup.js'
+import { uuid } from 'uuid'
 
-export default class VmMover {
+export default class MigrateVm {
   constructor(app) {
     this._app = app
   }
 
-  async warmMigrateVm(sourceVmId, srId, startDestVm = true, deleteSource = false, { warmingCycle = 1 } = {}) {
-    // we'll use a one time use continuous replication job with the VM to migrate
-
+  // Backup should be reinstentiated each time
+  #createWarmBackup(sourceVmId, srId, jobId) {
     const app = this._app
-    const sourceVm = app.getXapiObject(sourceVmId)
     const config = {
-      snapshotNameLabelTpl: '[XO Lukewarm migration {job.name}] {vm.name_label}',
+      snapshotNameLabelTpl: '[XO warm migration {job.name}] {vm.name_label}',
     }
     const job = {
       type: 'backup',
-      id: 'import',
+      id: jobId,
       mode: 'delta',
       vms: { id: sourceVmId },
-      name: `Lukewarm migration`,
+      name: `Warm migration`,
       srs: { id: srId },
       settings: {
         '': {
@@ -30,7 +29,7 @@ export default class VmMover {
     const schedule = { id: 'one-time' }
 
     // for now we only support this from the main OA, no proxy
-    const backup = new Backup({
+    return new Backup({
       config,
       job,
       schedule,
@@ -39,10 +38,15 @@ export default class VmMover {
       // `@xen-orchestra/backups/Backup` expect that `getConnectedRecord` returns a promise
       getConnectedRecord: async (xapiType, uuid) => app.getXapiObject(uuid),
     })
-    // run a few time to have a a warm target , as close as possible as the hot one running
-    for (let cycle = 0; cycle < warmingCycle; cycle++) {
-      await backup.run()
-    }
+  }
+
+  async warmMigrateVm(sourceVmId, srId, startDestVm = true, deleteSource = false) {
+    // we'll use a one time use continuous replication job with the VM to migrate
+    const jobId = uuid.v4()
+    const app = this._app
+    const sourceVm = app.getXapiObject(sourceVmId)
+    let backup = this.#createWarmBackup(sourceVmId, srId, jobId)
+    await backup.run()
     const xapi = sourceVm.$xapi
     const ref = sourceVm.$ref
 
@@ -53,21 +57,24 @@ export default class VmMover {
       await xapi.callAsync('VM.hard_shutdown', ref)
     }
     // make it so it can't be restarted by error
+    const message =
+      'This VM has been migrated somewhere else and might not be up to date, check twice before starting it.'
     await sourceVm.update_blocked_operations({
-      start: 'Start operation for this vm is blocked, clone it if you want to use it.',
-      start_on: 'Start operation for this vm is blocked, clone it if you want to use it.',
+      start: message,
+      start_on: message,
     })
+
     // run the transfer again to transfer the changed parts
-    // since the source is stopped, there won't be any new change
+    // since the source is stopped, there won't be any new change after
+    backup = this.#createWarmBackup(sourceVmId, srId)
     await backup.run()
-    // now we can start the destination VM
-    // find it
+    // find the destination Vm
     const targets = Object.keys(
       app.getObjects({
         filter: obj => {
           return (
             'other' in obj &&
-            obj.other['xo:backup:job'] === job.id &&
+            obj.other['xo:backup:job'] === jobId &&
             obj.other['xo:backup:sr'] === srId &&
             obj.other['xo:backup:vm'] === sourceVm.uuid &&
             'start' in obj.blockedOperations
@@ -76,10 +83,10 @@ export default class VmMover {
       })
     )
     if (targets.length === 0) {
-      throw new Error(`Vm target of lukewarm migration not found for ${sourceVmId} on SR ${srId} `)
+      throw new Error(`Vm target of warm migration not found for ${sourceVmId} on SR ${srId} `)
     }
     if (targets.length > 1) {
-      throw new Error(`Multiple target of lukewarm migration found for ${sourceVmId} on SR ${srId} `)
+      throw new Error(`Multiple target of warm migration found for ${sourceVmId} on SR ${srId} `)
     }
     const targetVm = app.getXapiObject(targets[0])
 
