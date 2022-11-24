@@ -537,10 +537,6 @@ class RemoteAdapter {
     }
   }
 
-  async invalidateVmBackupListCache(vmUuid) {
-    await this.handler.unlink(this.#getVmBackupsCache(vmUuid))
-  }
-
   async #getCachabledDataListVmBackups(dir) {
     debug('generating cache', { path: dir })
 
