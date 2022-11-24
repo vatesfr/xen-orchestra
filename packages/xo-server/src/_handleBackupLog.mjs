@@ -62,8 +62,6 @@ export const handleBackupLog = (
         data.end = log.timestamp
         sendToNagios(app, jobName, data)
       } else if (vmBackupInfo.get('transfer-' + taskId)) {
-        // eslint-disable-next-line no-console
-        console.log('WHAT MATTERS:', vmBackupInfo)
         vmBackupInfo.get(vmBackupInfo.get(vmBackupInfo.get('transfer-' + taskId).parentId).parentId).size =
           log.result.size
       }
