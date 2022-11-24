@@ -486,11 +486,11 @@ export default class TabAdvanced extends Component {
                   labelId='forceShutdownVmLabel'
                 />
                 <TabButton
-                btnStyle='warning'
-                handler={vmWarmMigration}
-                handlerParam={vm}
-                icon='vm-warm-migration'
-                labelId='vmWarmMigration'
+                  btnStyle='warning'
+                  handler={vmWarmMigration}
+                  handlerParam={vm}
+                  icon='vm-warm-migration'
+                  labelId='vmWarmMigration'
                 />
               </span>
             )}

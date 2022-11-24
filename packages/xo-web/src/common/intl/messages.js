@@ -777,7 +777,7 @@ const messages = {
   vmExportUrlValidity: 'The URL is valid once for a short period of time.',
   vmWarmMigration: 'Warm migration',
   vmWarmMigrationProcessInfo:
-    'Warm migration process will make a first copy on destination while your VM is running, then: shutdown the VM and send the differential on destination.',
+    'Warm migration process will first create a copy of the VM on the destination while the source VM is still running, then shutdown the source VM and send the changes that happened during the migration to the destination to minimize downtime.',
   backupLabel: 'Backup',
 
   // ----- SR general tab -----

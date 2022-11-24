@@ -24,7 +24,7 @@ export default class WarmMigrationModal extends Component {
         <div className='text-info'>
           <Icon icon='info' /> <i>{_('vmWarmMigrationProcessInfo')}</i>
         </div>
-        <SingleLineRow>
+        <SingleLineRow className='mt-1'>
           <Col size={6}>{_('destinationSR')}</Col>
           <Col size={6}>
             <SelectSr onChange={this.linkState('sr')} value={sr} />
