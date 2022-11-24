@@ -38,8 +38,7 @@ export const handleBackupLog = (
   { app, jobName, logger, localTaskIds, rootTaskId, runJobId = rootTaskId, handleRootTaskId }
 ) => {
   const { event, message, parentId, taskId } = log
-  // eslint-disable-next-line no-console
-  console.log('log:', log)
+
   if (app !== undefined && jobName !== undefined) {
     if (event === 'start') {
       if (log.data?.type === 'VM') {
@@ -56,8 +55,6 @@ export const handleBackupLog = (
           parentId: 'export-' + parentId,
         })
       }
-      // eslint-disable-next-line no-console
-      console.log('vmBackupInfo:', vmBackupInfo)
     } else if (event === 'end') {
       if (vmBackupInfo.get('vm-' + taskId)) {
         const data = vmBackupInfo.get('vm-' + taskId)
@@ -70,8 +67,6 @@ export const handleBackupLog = (
         vmBackupInfo.get(vmBackupInfo.get(vmBackupInfo.get('transfer-' + taskId).parentId).parentId).size =
           log.result.size
       }
-      // eslint-disable-next-line no-console
-      console.log('vmBackupInfo:', vmBackupInfo)
     }
   }
 
