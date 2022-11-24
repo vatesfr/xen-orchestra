@@ -523,12 +523,14 @@ ${monitorBodies.join('\n')}`
                 }\n`
 
                 return result
-              } catch (_) {
+              } catch (error) {
+                console.warn('xo-server-perf-alert:', error)
                 return {
                   uuid,
                   object: null,
                   objectLink: `cannot find object ${uuid}`,
                   listItem: `  * ${uuid}: **Can't read performance counters**\n`,
+                  error,
                 }
               }
             }
