@@ -41,7 +41,7 @@ const { warn } = createLogger('vhd-lib:merge')
 //         |                                |
 //         \_____________rename_____________/
 
-class Merger{
+class Merger {
   #chain
   #childrenPaths
   #handler
@@ -55,27 +55,24 @@ class Merger{
   #state
   #statePath
 
-  constructor(handler,
-    chain,
-    { onProgress, logInfo, removeUnused , mergeBlockConcurrency = 2 } = {}){
+  constructor(handler, chain, { onProgress, logInfo, removeUnused, mergeBlockConcurrency = 2 } = {}) {
+    this.#chain = chain
+    this.#handler = handler
+    this.#parentPath = chain[0]
+    this.#childrenPaths = chain.slice(1)
+    this.#logInfo = logInfo
+    this.#onProgress = onProgress
+    this.#removeUnused = removeUnused
+    this.#mergeBlockConcurrency = this.mergeBlockConcurrency
 
-      this.#chain = chain
-      this.#handler = handler
-      this.#parentPath = chain[0]
-      this.#childrenPaths = chain.slice(1)
-      this.#logInfo = logInfo
-      this.#onProgress = onProgress
-      this.#removeUnused = removeUnused
-      this.#mergeBlockConcurrency = this.mergeBlockConcurrency
-
-      this.#statePath = dirname(this.#parentPath) + '/.' + basename(this.#parentPath) + '.merge.json'
+    this.#statePath = dirname(this.#parentPath) + '/.' + basename(this.#parentPath) + '.merge.json'
   }
 
-  async #writeState(){
+  async #writeState() {
     await this.#handler.writeFile(this.#statePath, JSON.stringify(this.#state), { flags: 'w' }).catch(warn)
   }
 
-  async #writeStateThrottled(){
+  async #writeStateThrottled() {
     const delay = 10e3
     const now = Date.now()
     if (now - this.#lastStateWrittenAt > delay) {
@@ -84,7 +81,7 @@ class Merger{
     }
   }
 
-  async merge(){
+  async merge() {
     try {
       const mergeStateContent = await this.#handler.readFile(this.#statePath)
       this.#state = JSON.parse(mergeStateContent)
@@ -101,20 +98,20 @@ class Merger{
         warn('problem while checking the merge state', { error })
       }
     }
-    /* eslint-disable break-rule */
-    switch(this.#state?.step ?? 'mergeBlocks'){
+    /* eslint-disable no-fallthrough */
+    switch (this.#state?.step ?? 'mergeBlocks') {
       case 'mergeBlocks':
         await this.#step_mergeBlocks()
       case 'cleanupVhds':
         await this.#step_cleanVhds()
         return this.#cleanup()
       default:
-        warn(`Step ${this.#state.step} is unknown`, { state: this.#state})
+        warn(`Step ${this.#state.step} is unknown`, { state: this.#state })
     }
-    /* eslint-enable break-rule */
+    /* eslint-enable no-fallthrough */
   }
 
-  async * #openVhds(){
+  async *#openVhds() {
     // during merging, the end footer of the parent can be overwritten by new blocks
     // we should use it as a way to check vhd health
     const parentVhd = yield openVhd(this.#handler, this.#parentPath, {
@@ -150,19 +147,19 @@ class Merger{
     // Read allocation table of child/parent.
     await Promise.all([parentVhd.readBlockAllocationTable(), childVhd.readBlockAllocationTable()])
 
-    return {childVhd, parentVhd}
+    return { childVhd, parentVhd }
   }
 
   async #step_mergeBlocks() {
     const self = this
-    await Disposable.use(async function*() {
-      const {childVhd, parentVhd } = yield * self.#openVhds()
+    await Disposable.use(async function* () {
+      const { childVhd, parentVhd } = yield* self.#openVhds()
       const { maxTableEntries } = childVhd.header
 
       if (self.#state === undefined) {
         await parentVhd.ensureBatSize(childVhd.header.maxTableEntries)
 
-        self.#state  = {
+        self.#state = {
           child: { header: childVhd.header.checksum },
           parent: { header: parentVhd.header.checksum },
           currentBlock: 0,
@@ -172,18 +169,17 @@ class Merger{
         }
 
         // finds first allocated block for the 2 following loops
-        while (self.#state .currentBlock < maxTableEntries && !childVhd.containsBlock(self.#state .currentBlock)) {
-          ++self.#state .currentBlock
+        while (self.#state.currentBlock < maxTableEntries && !childVhd.containsBlock(self.#state.currentBlock)) {
+          ++self.#state.currentBlock
         }
         await self.#writeState()
       }
       await self.#mergeBlocks(parentVhd, childVhd)
       await self.#updateHeaders(parentVhd, childVhd)
     })
-
   }
 
-  async #mergeBlocks(parentVhd, childVhd){
+  async #mergeBlocks(parentVhd, childVhd) {
     const { maxTableEntries } = childVhd.header
     const toMerge = []
     for (let block = this.#state.currentBlock; block < maxTableEntries; block++) {
@@ -222,8 +218,7 @@ class Merger{
     this.#onProgress({ total: nBlocks, done: nBlocks })
   }
 
-  async #updateHeaders(parentVhd, childVhd){
-
+  async #updateHeaders(parentVhd, childVhd) {
     // some blocks could have been created or moved in parent : write bat
     await parentVhd.writeBlockAllocationTable()
 
@@ -241,7 +236,6 @@ class Merger{
     await parentVhd.writeFooter()
   }
 
-
   // make the rename / delete part of the merge process
   // will fail if parent and children are in different remote
   async #step_cleanVhds() {
@@ -255,14 +249,20 @@ class Merger{
     const parent = chain[0]
     const children = chain.slice(1, -1)
     const mergeTargetChild = chain[chain.length - 1]
+
+    // in the case is an alias, renaming parent to mergeTargetChild will keep the real data
+    // of mergeTargetChild in the data folder
+    // mergeTargetChild is already in an incomplete state, its blocks have been transferred to parent
+    await VhdAbstract.unlink(handler, mergeTargetChild)
+
     try {
-      await handler.rename( parent, mergeTargetChild)
+      await handler.rename(parent, mergeTargetChild)
     } catch (error) {
       // maybe the renaming was already successfull during merge
       if (error.code === 'ENOENT' && this.#isResuming) {
         Disposable.use(openVhd(handler, mergeTargetChild), vhd => {
           // we are sure that mergeTargetChild is the right one
-          assert.strictEqual(vhd.header.checksum, targetHeader)
+          assert.strictEqual(vhd.header.checksum, this.#state.parent.header)
         })
         this.#logInfo(`the VHD parent was already renamed`, { parent, mergeTargetChild })
       }
@@ -277,7 +277,7 @@ class Merger{
     })
   }
 
-  async #cleanup(){
+  async #cleanup() {
     const mergedSize = this.#state?.mergedDataSize ?? 0
     await this.#handler.unlink(this.#statePath).catch(warn)
     return mergedSize
@@ -288,18 +288,16 @@ module.exports.mergeVhdChain = limitConcurrency(2)(async function mergeVhdChain(
   handler,
   chain,
   { onProgress = noop, logInfo = noop, removeUnused = false, mergeBlockConcurrency = 2 } = {}
-){
-  const merger = new Merger(handler,
-    chain,
-    { onProgress, logInfo, removeUnused , mergeBlockConcurrency })
-    try{
-      return merger.merge()
-    }catch(error ){
-      try {
-        error.chain = chain
-      } finally {
-        // eslint-disable-next-line no-unsafe-finally
-        throw error
-      }
+) {
+  const merger = new Merger(handler, chain, { onProgress, logInfo, removeUnused, mergeBlockConcurrency })
+  try {
+    return merger.merge()
+  } catch (error) {
+    try {
+      error.chain = chain
+    } finally {
+      // eslint-disable-next-line no-unsafe-finally
+      throw error
     }
+  }
 })
