@@ -55,7 +55,7 @@ class Merger {
   #state
   #statePath
 
-  constructor(handler, chain, { onProgress, logInfo, removeUnused, mergeBlockConcurrency = 2 } = {}) {
+  constructor(handler, chain, { onProgress, logInfo, removeUnused, mergeBlockConcurrency }) {
     this.#chain = chain
     this.#handler = handler
     this.#parentPath = chain[0]
@@ -63,7 +63,7 @@ class Merger {
     this.#logInfo = logInfo
     this.#onProgress = onProgress
     this.#removeUnused = removeUnused
-    this.#mergeBlockConcurrency = this.mergeBlockConcurrency
+    this.#mergeBlockConcurrency = mergeBlockConcurrency
 
     this.#statePath = dirname(this.#parentPath) + '/.' + basename(this.#parentPath) + '.merge.json'
   }
