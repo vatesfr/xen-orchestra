@@ -297,6 +297,7 @@ export default class RemoteHandlerAbstract {
         await this._mktree(dirname(newPath))
         return this.#rename(oldPath, newPath, { checksum }, false)
       }
+      throw error
     }
   }
 
