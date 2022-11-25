@@ -49,6 +49,7 @@
     "eslint-plugin-vue": "^9.0.0",
     "npm-run-all": "^4.1.5",
     "postcss": "^8.4.19",
+    "postcss-custom-media": "^9.0.1",
     "postcss-nested": "^6.0.0",
     "typescript": "^4.9.3",
     "vite": "^3.2.4",
