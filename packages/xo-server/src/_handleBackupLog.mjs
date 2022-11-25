@@ -2,7 +2,7 @@ import humanFormat from 'human-format'
 import ms from 'ms'
 import { createLogger } from '@xen-orchestra/log'
 
-const { warn } = createLogger('xo:xo-server:handleBackupLog')
+const { warn } = createLogger('xo:server:handleBackupLog')
 
 async function sendToNagios(app, jobName, vmBackupInfo) {
   try {
