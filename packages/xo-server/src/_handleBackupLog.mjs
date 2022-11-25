@@ -2,9 +2,9 @@ import humanFormat from 'human-format'
 import ms from 'ms'
 import { createLogger } from '@xen-orchestra/log'
 
-async function sendToNagios(app, jobName, vmBackupInfo) {
-  const { warn } = createLogger('xo:xo-server')
+const { warn } = createLogger('xo:xo-server:handleBackupLog')
 
+async function sendToNagios(app, jobName, vmBackupInfo) {
   try {
     const messageToNagios = {
       id: vmBackupInfo.id,
