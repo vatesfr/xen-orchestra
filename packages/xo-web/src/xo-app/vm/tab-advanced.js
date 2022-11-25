@@ -486,7 +486,7 @@ export default class TabAdvanced extends Component {
                   icon='vm-force-shutdown'
                   labelId='forceShutdownVmLabel'
                 />
-                {getXoaPlan() === PREMIUM && (
+                {getXoaPlan().value >= PREMIUM.value && (
                   <TabButton
                     btnStyle='warning'
                     handler={vmWarmMigration}

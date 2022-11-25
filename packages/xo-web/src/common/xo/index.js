@@ -1889,10 +1889,10 @@ export const vmWarmMigration = async vm => {
     icon: 'vm-warm-migration',
   })
   return _call('vm.warmMigration', {
-    deleteSource: deleteSourceVm,
-    srId: resolveId(sr),
-    startVm: startMigratedVm,
-    vmId: resolveId(vm),
+    deleteSourceVm,
+    sr: resolveId(sr),
+    startDestinationVm: startMigratedVm,
+    vm: resolveId(vm),
   })
 }
 
