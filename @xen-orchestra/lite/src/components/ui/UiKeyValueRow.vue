@@ -1,37 +1,32 @@
 <template>
-  <div class="ui-key-value-row">
-    <span class="key" v-if="$slots.key">
+  <tr class="ui-key-value-row">
+    <th v-if="$slots.key" class="key">
       <slot name="key" />
-    </span>
-    <span class="value">
+    </th>
+    <td :colspan="$slots.key ? 1 : 2" class="value">
       <slot name="value" />
-    </span>
-  </div>
+    </td>
+  </tr>
 </template>
 
 <script lang="ts" setup></script>
 
 <style lang="postcss" scoped>
-.ui-key-value-row {
-  display: flex;
-  gap: 1rem;
-  align-items: baseline;
-  margin: 0.5em 0;
-}
-.key {
-  color: var(--color-blue-scale-300);
-  width: 15%;
-  max-width: 15em;
-  max-width: 30em;
-}
-.value {
-  flex-grow: 1;
-}
+@import "@/assets/_responsive.pcss";
+
 .key,
 .value {
-  text-overflow: ellipsis;
-  width: 100%;
-  min-width: 15em;
-  max-width: 30em;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+.key {
+  padding-right: 2rem;
+  text-align: left;
+  color: var(--color-blue-scale-300);
+
+  @media (--desktop) {
+    padding-right: 10rem;
+  }
 }
 </style>
