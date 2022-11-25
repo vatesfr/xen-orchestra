@@ -11,6 +11,32 @@ const { getPackages } = require('./utils')
 
 const { env } = process
 
+async function run(command, opts, verbose) {
+  const child = spawn(command, {
+    ...opts,
+    shell: true,
+    stdio: verbose ? 'inherit' : 'pipe',
+  })
+
+  const output = []
+  if (!verbose) {
+    function onData(chunk) {
+      output.push(chunk)
+    }
+    child.stderr.on('data', onData)
+    child.stdout.on('data', onData)
+  }
+
+  const code = await fromEvent(child, 'exit')
+  if (code !== 0) {
+    for (const chunk of output) {
+      process.stderr.write(chunk)
+    }
+
+    throw code
+  }
+}
+
 // run a script for each package (also run pre and post)
 //
 // TODO: https://docs.npmjs.com/misc/scripts#environment
@@ -19,9 +45,10 @@ require('exec-promise')(args => {
     bail,
     concurrency,
     parallel,
+    verbose,
     _: [script],
   } = getopts(args, {
-    boolean: ['bail', 'parallel'],
+    boolean: ['bail', 'parallel', 'verbose'],
     string: ['concurrency'],
   })
 
@@ -43,7 +70,7 @@ require('exec-promise')(args => {
           const command = scripts[script]
           if (command !== undefined) {
             console.log(`* ${name}:${script} −`, command)
-            return fromEvent(spawn(command, spawnOpts), 'exit').then(code => {
+            return run(command, spawnOpts, verbose).catch(code => {
               if (code !== 0) {
                 if (bail) {
                   // eslint-disable-next-line no-throw-literal
