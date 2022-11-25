@@ -16,11 +16,12 @@ const { env } = process
 // TODO: https://docs.npmjs.com/misc/scripts#environment
 require('exec-promise')(args => {
   const {
+    bail,
     concurrency,
     parallel,
     _: [script],
   } = getopts(args, {
-    boolean: ['parallel'],
+    boolean: ['bail', 'parallel'],
     string: ['concurrency'],
   })
 
@@ -37,8 +38,6 @@ require('exec-promise')(args => {
           env: Object.assign({}, env, {
             PATH: `${dir}/node_modules/.bin${delimiter}${env.PATH}`,
           }),
-          shell: true,
-          stdio: 'inherit',
         }
         return forEach.call([`pre${script}`, script, `post${script}`], script => {
           const command = scripts[script]
@@ -46,6 +45,11 @@ require('exec-promise')(args => {
             console.log(`* ${name}:${script} −`, command)
             return fromEvent(spawn(command, spawnOpts), 'exit').then(code => {
               if (code !== 0) {
+                if (bail) {
+                  // eslint-disable-next-line no-throw-literal
+                  throw `${name}:${script} − Error: ` + code
+                }
+
                 ++errors
                 console.log(`* ${name}:${script} − Error:`, code)
               }
