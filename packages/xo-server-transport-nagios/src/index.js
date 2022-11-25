@@ -23,17 +23,24 @@ export const configurationSchema = {
       type: 'string',
       description: 'The encryption key',
     },
-    host: {
-      type: 'string',
-      description: 'The host name in Nagios',
-    },
-    service: {
-      type: 'string',
-      description: 'The service description in Nagios',
-    },
   },
   additionalProperties: false,
-  required: ['server', 'port', 'key', 'host', 'service'],
+  required: ['server', 'port', 'key'],
+}
+
+export const testSchema = {
+  type: 'object',
+  properties: {
+    host: {
+      description: 'Nagios host',
+      type: 'string',
+    },
+    service: {
+      description: 'Nagios service',
+      type: 'string',
+    },
+  },
+  required: ['host', 'service'],
 }
 
 // ===================================================================
@@ -102,15 +109,22 @@ class XoServerNagios {
     this._unset()
   }
 
-  test() {
-    return this._sendPassiveCheck({
-      message: 'The server-nagios plugin for Xen Orchestra server seems to be working fine, nicely done :)',
-      status: OK,
-    })
+  test({ host, service }) {
+    return this._sendPassiveCheck(
+      {
+        message: 'The server-nagios plugin for Xen Orchestra server seems to be working fine, nicely done :)',
+        status: OK,
+      },
+      host,
+      service
+    )
   }
 
-  _sendPassiveCheck({ message, status }) {
+  _sendPassiveCheck({ message, status }, host, service) {
     return new Promise((resolve, reject) => {
+      this._conf.host = host
+      this._conf.service = service
+
       if (/\r|\n/.test(message)) {
         warn('the message must not contain a line break', { message })
         for (let i = 0, n = message.length; i < n; ++i) {
