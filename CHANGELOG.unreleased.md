@@ -9,6 +9,7 @@
 
 - [Remotes] Prevent remote path from ending with `xo-vm-backups` as it's usually a mistake
 - [OVA export] Speed up OVA generation by 2. Generated file will be bigger (as big as uncompressed XVA) (PR [#6487](https://github.com/vatesfr/xen-orchestra/pull/6487))
+- [Proxy] Ability to connect to an existing proxy from the `Proxies` view (PR [#6556](https://github.com/vatesfr/xen-orchestra/pull/6556))
 
 ### Bug fixes
 
