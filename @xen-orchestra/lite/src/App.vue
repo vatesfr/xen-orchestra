@@ -20,9 +20,9 @@
   <div v-else>
     <AppHeader />
     <div style="display: flex">
-      <nav class="nav">
-        <InfraPoolList />
-      </nav>
+      <transition name="slide">
+        <AppNavigation />
+      </transition>
       <main class="main">
         <RouterView />
       </main>
@@ -32,6 +32,7 @@
 </template>
 
 <script lang="ts" setup>
+import AppNavigation from "@/components/AppNavigation.vue";
 import { useUiStore } from "@/stores/ui.store";
 import { useActiveElement, useMagicKeys, whenever } from "@vueuse/core";
 import { logicAnd } from "@vueuse/math";
@@ -42,7 +43,6 @@ import { faServer } from "@fortawesome/free-solid-svg-icons";
 import AppHeader from "@/components/AppHeader.vue";
 import AppLogin from "@/components/AppLogin.vue";
 import AppTooltips from "@/components/AppTooltips.vue";
-import InfraPoolList from "@/components/infra/InfraPoolList.vue";
 import UiModal from "@/components/ui/UiModal.vue";
 import { useChartTheme } from "@/composables/chart-theme.composable";
 import { useHostStore } from "@/stores/host.store";
@@ -110,14 +110,14 @@ const isSslModalOpen = computed(() => unreachableHostsUrls.value.length > 0);
 <style lang="postcss">
 @import "@/assets/base.css";
 
-.nav {
-  overflow: auto;
-  width: 37rem;
-  max-width: 37rem;
-  height: calc(100vh - 9rem);
-  padding: 0.5rem;
-  border-right: 1px solid var(--color-blue-scale-400);
-  background-color: var(--background-color-primary);
+.slide-enter-active,
+.slide-leave-active {
+  transition: transform 0.3s ease;
+}
+
+.slide-enter-from,
+.slide-leave-to {
+  transform: translateX(-37rem);
 }
 
 .main {
