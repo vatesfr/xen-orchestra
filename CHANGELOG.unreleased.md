@@ -9,6 +9,7 @@
 
 - [Remotes] Prevent remote path from ending with `xo-vm-backups` as it's usually a mistake
 - [OVA export] Speed up OVA generation by 2. Generated file will be bigger (as big as uncompressed XVA) (PR [#6487](https://github.com/vatesfr/xen-orchestra/pull/6487))
+- [Plugin/transport-nagios] XO now reports beckup VMs invidually with the VM name label used as *host* and backup job name used as *service*
 
 ### Bug fixes
 
@@ -40,6 +41,7 @@
 - vhd-lib minor
 - xo-cli patch
 - xo-server minor
+- xo-server-transport-nagios major
 - xo-vmdk-to-vhd minor
 - xo-web minor
 
