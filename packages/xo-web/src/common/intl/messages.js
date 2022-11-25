@@ -109,6 +109,7 @@ const messages = {
   addCustomField: 'Add custom field',
   editCustomField: 'Edit custom field',
   deleteCustomField: 'Delete custom field',
+  onlyAvailableXoaUsers: 'Only available to XOA users',
 
   // ----- Modals -----
   alertOk: 'OK',
@@ -1331,6 +1332,7 @@ const messages = {
   vmCoresPerSocketExceedsSocketsLimit: 'The selected value exceeds the sockets limit ({maxSockets, number})',
   vmHaDisabled: 'Disabled',
   vmMemoryLimitsLabel: 'Memory limits (min/max)',
+  vmUuid: 'VM UUID',
   vmVgpu: 'vGPU',
   vmVgpus: 'GPUs',
   vmVgpuNone: 'None',
@@ -2470,7 +2472,8 @@ const messages = {
   proxyUnknownVm: 'Unknown proxy VM.',
 
   // ----- proxies -----
-  deployProxyDisabled: 'Only available to XOA users',
+  connectProxy: 'Connect a proxy',
+  doYouWantForgetIt: 'Do you want to forget it?',
   forgetProxyApplianceTitle: 'Forget prox{n, plural, one {y} other {ies}}',
   forgetProxyApplianceMessage: 'Are you sure you want to forget {n, number} prox{n, plural, one {y} other {ies}}?',
   forgetProxies: 'Forget proxy(ies)',
@@ -2485,7 +2488,9 @@ const messages = {
   checkProxyHealth: 'Test your proxy',
   updateProxyApplianceSettings: 'Update appliance settings',
   urlNotFound: 'URL not found',
+  proxyAuthToken: 'Authentication token',
   proxyCopyUrl: 'Copy proxy URL',
+  proxyError: 'Proxy error',
   proxyTestSuccess: 'Test passed for {name}',
   proxyTestSuccessMessage: 'The proxy appears to work correctly',
   proxyTestFailed: 'Test failed for {name}',

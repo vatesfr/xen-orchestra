@@ -3303,6 +3303,8 @@ export const deployProxyAppliance = (license, sr, { network, proxy, ...props } =
     ...props,
   })::tap(subscribeProxies.forceRefresh)
 
+export const connectProxyAppliance = proxyInfo => _call('proxy.register', proxyInfo)::tap(subscribeProxies.forceRefresh)
+
 export const editProxyAppliance = (proxy, { vm, ...props }) =>
   _call('proxy.update', {
     id: resolveId(proxy),
@@ -3361,6 +3363,8 @@ export const checkProxyHealth = async proxy => {
         </span>
       )
 }
+
+export const isProxyWorking = async proxy => (await _call('proxy.checkHealth', { id: resolveId(proxy) })).success
 
 // Audit plugin ---------------------------------------------------------
 
