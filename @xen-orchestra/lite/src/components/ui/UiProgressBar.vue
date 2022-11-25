@@ -18,7 +18,7 @@ const props = withDefaults(
 );
 
 const progressWithUnit = computed(() => {
-  const progress = Math.round((props.value / props.maxValue) * 100);
+  const progress = (props.value / props.maxValue) * 100;
   return `${progress}%`;
 });
 </script>
