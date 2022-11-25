@@ -5,7 +5,6 @@ const PRESETS_RE = /^@babel\/preset-.+$/
 
 const NODE_ENV = process.env.NODE_ENV || 'development'
 const __PROD__ = NODE_ENV === 'production'
-const __TEST__ = NODE_ENV === 'test'
 
 const configs = {
   '@babel/plugin-proposal-decorators': {
@@ -15,7 +14,7 @@ const configs = {
     proposal: 'minimal',
   },
   '@babel/preset-env': {
-    debug: !__TEST__,
+    debug: __PROD__,
 
     // disabled until https://github.com/babel/babel/issues/8323 is resolved
     // loose: true,
