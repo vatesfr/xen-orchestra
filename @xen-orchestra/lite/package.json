@@ -7,6 +7,7 @@
     "preview": "vite preview --port 4173",
     "build-only": "GIT_HEAD=$(git rev-parse HEAD) vite build",
     "deploy": "./scripts/deploy.sh",
+    "test": "npm run type-check",
     "type-check": "vue-tsc --noEmit",
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore"
   },
