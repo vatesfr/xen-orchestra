@@ -9,7 +9,7 @@
     "deploy": "./scripts/deploy.sh",
     "test": "npm run type-check",
     "type-check": "vue-tsc --noEmit",
-    "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore"
+    "test": "yarn run type-check"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^6.1.1",
