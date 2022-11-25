@@ -3,13 +3,18 @@
     <PoolDashboardStatus class="item" />
     <PoolDashboardStorageUsage class="item" />
     <PoolDashboardCpuUsage class="item" />
+    <PoolDashboardRamUsage class="item" />
   </div>
 </template>
 
+<script lang="ts">
+export const N_ITEMS = 5;
+</script>
 <script lang="ts" setup>
 import { differenceBy } from "lodash-es";
 import { computed, onMounted, provide, watch } from "vue";
 import PoolDashboardCpuUsage from "@/components/pool/dashboard/PoolDashboardCpuUsage.vue";
+import PoolDashboardRamUsage from "@/components/pool/dashboard/PoolDashboardRamUsage.vue";
 import PoolDashboardStatus from "@/components/pool/dashboard/PoolDashboardStatus.vue";
 import PoolDashboardStorageUsage from "@/components/pool/dashboard/PoolDashboardStorageUsage.vue";
 import useFetchStats from "@/composables/fetch-stats.composable";

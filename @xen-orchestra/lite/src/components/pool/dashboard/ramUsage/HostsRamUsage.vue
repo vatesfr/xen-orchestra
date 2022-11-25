@@ -11,7 +11,7 @@
 import { type ComputedRef, computed, inject } from "vue";
 import UsageBar from "@/components/UsageBar.vue";
 import type { Stat } from "@/composables/fetch-stats.composable";
-import { getAvgCpuUsage } from "@/libs/utils";
+import { formatSize, parseRamUsage } from "@/libs/utils";
 import type { HostStats } from "@/libs/xapi-stats";
 import { N_ITEMS } from "@/views/pool/PoolDashboardView.vue";
 
@@ -20,33 +20,33 @@ const stats = inject<ComputedRef<Stat<HostStats>[]>>(
   computed(() => [])
 );
 
-const data = computed<{ id: string; label: string; value: number }[]>(() => {
-  const result: { id: string; label: string; value: number }[] = [];
+const data = computed(() => {
+  const result: {
+    id: string;
+    label: string;
+    value: number;
+    badgeLabel: string;
+  }[] = [];
 
   stats.value.forEach((stat) => {
     if (stat.stats === undefined) {
       return;
     }
 
-    const avgCpuUsage = getAvgCpuUsage(stat.stats.cpus);
-
-    if (avgCpuUsage === undefined) {
-      return;
-    }
-
+    const { percentUsed, total, used } = parseRamUsage(stat.stats);
     result.push({
       id: stat.id,
       label: stat.name,
-      value: avgCpuUsage,
+      value: percentUsed,
+      badgeLabel: `${formatSize(used)}/${formatSize(total)}`,
     });
   });
-
   return result;
 });
 
-const statFetched: ComputedRef<boolean> = computed(() =>
-  statFetched.value
-    ? true
-    : stats.value.length > 0 && stats.value.length === data.value.length
+const statFetched: ComputedRef<boolean> = computed(
+  () =>
+    statFetched.value ||
+    (stats.value.length > 0 && stats.value.length === data.value.length)
 );
 </script>

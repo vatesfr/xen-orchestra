@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+
 'use strict'
 
 // This is one of the simplest xo-server's plugin than can be created.
@@ -78,3 +80,5 @@ exports.default = function (opts) {
     },
   }
 }
+
+/* eslint-enable no-console */

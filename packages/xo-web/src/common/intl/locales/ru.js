@@ -84,7 +84,7 @@ export default {
   homeTemplatePage: 'Шаблоны',
 
   // Original text: 'Storages'
-  homeSrPage: "Хранилища",
+  homeSrPage: 'Хранилища',
 
   // Original text: "Dashboard"
   dashboardPage: 'Контрольные панели',
@@ -144,7 +144,7 @@ export default {
   aboutPage: 'О программе',
 
   // Original text: 'About XO {xoaPlan}'
-  aboutXoaPlan: "О Xen Orchestra {xoaPlan}",
+  aboutXoaPlan: 'О Xen Orchestra {xoaPlan}',
 
   // Original text: "New"
   newMenu: 'Добавить',
@@ -399,10 +399,10 @@ export default {
   highAvailability: 'Высокая доступность',
 
   // Original text: 'Shared {type}'
-  srSharedType: "Совместное использование {type}",
+  srSharedType: 'Совместное использование {type}',
 
   // Original text: 'Not shared {type}'
-  srNotSharedType: "Без совместного использования {type}",
+  srNotSharedType: 'Без совместного использования {type}',
 
   // Original text: "Add"
   add: 'Добавить',
@@ -561,10 +561,10 @@ export default {
   unknownSchedule: 'Неизвестно',
 
   // Original text: 'Web browser timezone'
-  timezonePickerUseLocalTime: "Часовой пояс WEB-браузера",
+  timezonePickerUseLocalTime: 'Часовой пояс WEB-браузера',
 
   // Original text: 'Server timezone ({value})'
-  serverTimezoneOption: "Часовой пояс сервера ({value})",
+  serverTimezoneOption: 'Часовой пояс сервера ({value})',
 
   // Original text: 'Cron Pattern:'
   cronPattern: 'Cron-шаблон: ',
@@ -726,7 +726,8 @@ export default {
   localRemoteWarningTitle: undefined,
 
   // Original text: 'Warning: local remotes will use limited XOA disk space. Only for advanced users.'
-  localRemoteWarningMessage: 'Предупреждение: локальные удаленные устройства будут использовать ограниченное дисковое пространство XOA. Только для продвинутых пользователей.',
+  localRemoteWarningMessage:
+    'Предупреждение: локальные удаленные устройства будут использовать ограниченное дисковое пространство XOA. Только для продвинутых пользователей.',
 
   // Original text: 'Warning: this feature works only with XenServer 6.5 or newer.'
   backupVersionWarning: undefined,
@@ -2553,7 +2554,8 @@ export default {
   noHostsAvailable: 'Нет доступных хостов',
 
   // Original text: "VMs created from this resource set shall run on the following hosts."
-  availableHostsDescription: 'Виртуальные машины, созданные из этого набора ресурсов, должны работать на следующих хостах.',
+  availableHostsDescription:
+    'Виртуальные машины, созданные из этого набора ресурсов, должны работать на следующих хостах.',
 
   // Original text: "Maximum CPUs"
   maxCpus: 'Максимум CPUs',
@@ -2882,7 +2884,8 @@ export default {
   deleteVmModalTitle: 'Удалить ВМ',
 
   // Original text: "Are you sure you want to delete this VM? ALL VM DISKS WILL BE REMOVED"
-  deleteVmModalMessage: 'Вы уверены, что хотите удалить эту виртуальную машину? ВСЕ ДИСКИ ВИРТУАЛЬНОЙ МАШИНЫ БУДУТ УДАЛЕНЫ!',
+  deleteVmModalMessage:
+    'Вы уверены, что хотите удалить эту виртуальную машину? ВСЕ ДИСКИ ВИРТУАЛЬНОЙ МАШИНЫ БУДУТ УДАЛЕНЫ!',
 
   // Original text: "Migrate VM"
   migrateVmModalTitle: 'Переместить ВМ',

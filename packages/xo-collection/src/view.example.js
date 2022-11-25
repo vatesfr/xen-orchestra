@@ -55,3 +55,4 @@ setTimeout(function () {
     name: 'Steve',
   })
 }, 10)
+/* eslint-enable no-console */

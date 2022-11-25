@@ -123,3 +123,37 @@ export const buildXoObject = (
   ...record,
   $ref: params.opaqueRef,
 });
+
+export function parseRamUsage(
+  {
+    memory,
+    memoryFree,
+  }: {
+    memory: number[];
+    memoryFree?: number[];
+  },
+  { nSequence = 4 } = {}
+) {
+  const _nSequence = Math.min(memory.length, nSequence);
+
+  let total = 0;
+  let used = 0;
+
+  memory = memory.slice(memory.length - _nSequence);
+  memoryFree = memoryFree?.slice(memoryFree.length - _nSequence);
+
+  memory.forEach((ram, key) => {
+    total += ram;
+    used += ram - (memoryFree?.[key] ?? 0);
+  });
+
+  const percentUsed = percent(used, total);
+  return {
+    // In case `memoryFree` is not given by the xapi,
+    // we won't be able to calculate the percentage of used memory properly.
+    percentUsed:
+      memoryFree === undefined || isNaN(percentUsed) ? 0 : percentUsed,
+    total: total / _nSequence,
+    used: memoryFree === undefined ? 0 : used / _nSequence,
+  };
+}
