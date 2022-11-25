@@ -41,8 +41,8 @@
     <template #buttons>
       <UiButton type="submit">{{ $t("add") }}</UiButton>
       <UiButton outlined @click="handleCancel">
-          {{ $t("cancel") }}
-        </UiButton>
+        {{ $t("cancel") }}
+      </UiButton>
     </template>
   </UiModal>
 </template>

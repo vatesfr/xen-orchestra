@@ -22,7 +22,6 @@ export default async function cleanVms(args) {
 
   await asyncMap(_, vmDir =>
     Disposable.use(getSyncedHandler({ url: pathToFileURL(dirname(vmDir)).href }), async handler => {
-      console.log(handler, basename(vmDir))
       try {
         await new RemoteAdapter(handler).cleanVm(basename(vmDir), {
           fixMetadata: fix,

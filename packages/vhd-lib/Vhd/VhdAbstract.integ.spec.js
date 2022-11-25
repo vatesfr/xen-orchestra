@@ -95,8 +95,6 @@ test('It rename and unlink a VHDFile', async () => {
   await convertFromRawToVhd(rawFileName, vhdFileName)
   await Disposable.use(async function* () {
     const handler = yield getSyncedHandler({ url: 'file:///' })
-    const { size } = await fs.stat(vhdFileName)
-    const targetFileName = `${tempDir}/renamed.vhd`
 
     await VhdAbstract.unlink(handler, vhdFileName)
     expect(await fs.exists(vhdFileName)).toEqual(false)
@@ -130,7 +128,6 @@ test('It create , rename and unlink alias', async () => {
   const vhdFileName = `${tempDir}/randomfile.vhd`
   await convertFromRawToVhd(rawFileName, vhdFileName)
   const aliasFileName = `${tempDir}/aliasFileName.alias.vhd`
-  const aliasFileNameRenamed = `${tempDir}/aliasFileNameRenamed.alias.vhd`
 
   await Disposable.use(async function* () {
     const handler = yield getSyncedHandler({ url: 'file:///' })

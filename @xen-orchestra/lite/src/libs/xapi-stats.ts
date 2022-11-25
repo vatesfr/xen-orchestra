@@ -259,7 +259,7 @@ export type VmStats = {
     w: Record<string, number[]>;
   };
   memory: number[];
-  memoryFree: number[];
+  memoryFree?: number[];
   vifs: {
     rx: Record<string, number[]>;
     tx: Record<string, number[]>;
