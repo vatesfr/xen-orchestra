@@ -7,9 +7,9 @@
     "preview": "vite preview --port 4173",
     "build-only": "GIT_HEAD=$(git rev-parse HEAD) vite build",
     "deploy": "./scripts/deploy.sh",
-    "test": "npm run type-check",
+    "test": "yarn run type-check",
     "type-check": "vue-tsc --noEmit",
-    "test": "yarn run type-check"
+    "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^6.1.1",
