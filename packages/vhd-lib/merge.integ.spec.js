@@ -9,7 +9,7 @@ const { getSyncedHandler } = require('@xen-orchestra/fs')
 const { pFromCallback, Disposable } = require('promise-toolbox')
 
 const { VhdFile, chainVhd, openVhd } = require('./index')
-const { _cleanupVhds: cleanupVhds, mergeVhdChain } = require('./merge')
+const { mergeVhdChain } = require('./merge')
 
 const { checkFile, createRandomFile, convertFromRawToVhd } = require('./tests/utils')
 
@@ -177,7 +177,6 @@ test('it can resume a failed renaming ', async () => {
   await convertFromRawToVhd(`${tempDir}/small_randomfile`, `${tempDir}/child1.vhd`)
   await chainVhd(handler, 'parent.vhd', handler, 'child1.vhd', true)
 
-
   const childVhd = new VhdFile(handler, 'child1.vhd')
   await childVhd.readHeaderAndFooter()
 
@@ -298,7 +297,7 @@ test('it can resume a multiple merge ', async () => {
     })
   )
   // it should succeed
-  await mergeVhdChain(handler, ['parent.vhd', 'child.vhd', 'grandchild.vhd'],{removeUnused: true})
+  await mergeVhdChain(handler, ['parent.vhd', 'child.vhd', 'grandchild.vhd'], { removeUnused: true })
   expect(await fs.exists(`${tempDir}/parent.vhd`)).toBeFalsy()
   expect(await fs.exists(`${tempDir}/child.vhd`)).toBeFalsy()
   expect(await fs.exists(`${tempDir}/grandchild.vhd`)).toBeTruthy()
@@ -354,5 +353,3 @@ test('it merge multiple child in one pass ', async () => {
     offset += parentVhd.header.blockSize
   }
 })
-
-
