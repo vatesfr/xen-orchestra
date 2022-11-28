@@ -93,8 +93,7 @@
     "test": "npm run test-lint && npm run test-unit",
     "test-integration": "jest \".integ\\.spec\\.js$\"",
     "test-lint": "eslint --ignore-path .gitignore --ignore-pattern packages/xo-web .",
-    "test-unit": "jest \"^(?!.*\\.integ\\.spec\\.js$)\" && scripts/run-script.js --bail test",
-    "travis-tests": "scripts/travis-tests.js"
+    "test-unit": "jest \"^(?!.*\\.integ\\.spec\\.js$)\" && scripts/run-script.js --bail test"
   },
   "workspaces": [
     "@*/*",
