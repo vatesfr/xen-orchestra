@@ -31,6 +31,7 @@ import renderXoItem, { renderXoItemFromId, Vm } from '../render-xo-item'
 import WarmMigrationModal from './warm-migration-modal'
 import renderXoItem, { renderXoItemFromId, Vm } from '../render-xo-item'
 import store from 'store'
+import WarmMigrationModal from './warm-migration-modal'
 import { alert, chooseAction, confirm } from '../modal'
 import { error, info, success } from '../notification'
 import { getObject } from 'selectors'
@@ -1883,7 +1884,7 @@ export const shareVm = async (vm, resourceSet) =>
   }).then(() => editVm(vm, { share: true }), noop)
 
 export const vmWarmMigration = async vm => {
-  const { sr, deleteSourceVm, startMigratedVm } = await confirm({
+  const { sr, deleteSourceVm, startDestinationVm } = await confirm({
     body: <WarmMigrationModal />,
     title: _('vmWarmMigration'),
     icon: 'vm-warm-migration',
@@ -1891,7 +1892,7 @@ export const vmWarmMigration = async vm => {
   return _call('vm.warmMigration', {
     deleteSourceVm,
     sr: resolveId(sr),
-    startDestinationVm: startMigratedVm,
+    startDestinationVm,
     vm: resolveId(vm),
   })
 }

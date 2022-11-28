@@ -109,6 +109,7 @@ const messages = {
   replaceExistingCertificate: 'Replace existing certificate',
   customFields: 'Custom fields',
   addCustomField: 'Add custom field',
+  availableXoaPremium: 'Available in XOA Premium',
   editCustomField: 'Edit custom field',
   deleteCustomField: 'Delete custom field',
   onlyAvailableXoaUsers: 'Only available to XOA users',

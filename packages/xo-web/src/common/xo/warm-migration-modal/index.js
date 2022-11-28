@@ -11,14 +11,14 @@ export default class WarmMigrationModal extends Component {
   state = {
     deleteSourceVm: false,
     sr: undefined,
-    startMigratedVm: false,
+    startDestinationVm: false,
   }
   get value() {
     return this.state
   }
 
   render() {
-    const { deleteSourceVm, sr, startMigratedVm } = this.state
+    const { deleteSourceVm, sr, startDestinationVm } = this.state
     return (
       <Container>
         <div className='text-info'>
@@ -39,7 +39,7 @@ export default class WarmMigrationModal extends Component {
         <SingleLineRow className='mt-1'>
           <Col size={6}>{_('startMigratedVm')}</Col>
           <Col size={6}>
-            <Toggle onChange={this.toggleState('startMigratedVm')} value={startMigratedVm} />
+            <Toggle onChange={this.toggleState('startDestinationVm')} value={startDestinationVm} />
           </Col>
         </SingleLineRow>
       </Container>

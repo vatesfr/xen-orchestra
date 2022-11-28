@@ -452,6 +452,7 @@ export default class TabAdvanced extends Component {
 
   render() {
     const { container, isAdmin, vgpus, vm, vmPool } = this.props
+    const isWarmMigrationAvailable = getXoaPlan().value >= PREMIUM.value
     return (
       <Container>
         <Row>
@@ -488,11 +489,12 @@ export default class TabAdvanced extends Component {
                 />
                 <TabButton
                   btnStyle='warning'
-                  disabled={getXoaPlan().value < PREMIUM.value}
+                  disabled={!isWarmMigrationAvailable}
                   handler={vmWarmMigration}
                   handlerParam={vm}
                   icon='vm-warm-migration'
                   labelId='vmWarmMigration'
+                  tooltip={isWarmMigrationAvailable ? undefined : _('availableXoaPremium')}
                 />
               </span>
             )}
