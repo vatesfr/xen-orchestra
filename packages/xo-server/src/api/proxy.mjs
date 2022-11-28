@@ -25,6 +25,7 @@ register.params = {
   },
   authenticationToken: {
     type: 'string',
+    optional: true,
   },
 }
 register.resolve = {

@@ -1,24 +1,28 @@
 <template>
-  <div v-if="data.length !== 0">
+  <div>
     <div class="header">
       <slot name="header" />
     </div>
-    <ProgressBar
-      v-for="item in computedData.sortedArray"
-      :key="item.id"
-      :value="item.value"
-      :label="item.label"
-      :badge-label="item.badgeLabel"
-    />
-    <div class="footer">
-      <slot name="footer" :total-percent="computedData.totalPercentUsage" />
-    </div>
+    <template v-if="data !== undefined">
+      <ProgressBar
+        v-for="item in computedData.sortedArray"
+        :key="item.id"
+        :value="item.value"
+        :label="item.label"
+        :badge-label="item.badgeLabel"
+      />
+      <div class="footer">
+        <slot name="footer" :total-percent="computedData.totalPercentUsage" />
+      </div>
+    </template>
+    <UiSpinner v-else class="spinner" />
   </div>
 </template>
 
 <script lang="ts" setup>
 import { computed } from "vue";
 import ProgressBar from "@/components/ProgressBar.vue";
+import UiSpinner from "@/components/ui/UiSpinner.vue";
 
 interface Data {
   id: string;
@@ -29,7 +33,7 @@ interface Data {
 }
 
 interface Props {
-  data: Array<Data>;
+  data?: Array<Data>;
   nItems?: number;
 }
 
@@ -40,7 +44,7 @@ const computedData = computed(() => {
   let totalPercentUsage = 0;
   return {
     sortedArray: _data
-      .map((item) => {
+      ?.map((item) => {
         const value = Math.round((item.value / (item.maxValue ?? 100)) * 100);
         totalPercentUsage += value;
         return {
@@ -71,6 +75,14 @@ const computedData = computed(() => {
   font-weight: 700;
   font-size: 14px;
   color: var(--color-blue-scale-300);
+}
+
+.spinner {
+  color: var(--color-extra-blue-base);
+  display: flex;
+  margin: auto;
+  width: 40px;
+  height: 40px;
 }
 </style>
 

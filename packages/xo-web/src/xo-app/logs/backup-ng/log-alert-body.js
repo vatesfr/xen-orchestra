@@ -373,7 +373,8 @@ export default decorate([
           const { tasks } = parent
           if (tasks !== undefined) {
             for (const task of tasks) {
-              task.parent = parent
+              // parent should not be enumerable as it would create a cycle and break JSON.stringify
+              Object.defineProperty(task, parent, { value: parent })
               linkParent(task)
             }
           }

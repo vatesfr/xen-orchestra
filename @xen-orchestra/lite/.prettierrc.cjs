@@ -1,15 +1,2 @@
-module.exports = {
-  importOrder: [
-    "^[^/]+$",
-    "<THIRD_PARTY_MODULES>",
-    "^@/components/(.*)$",
-    "^@/composables/(.*)$",
-    "^@/libs/(.*)$",
-    "^@/router/(.*)$",
-    "^@/stores/(.*)$",
-    "^@/views/(.*)$",
-  ],
-  importOrderSeparation: false,
-  importOrderSortSpecifiers: true,
-  importOrderParserPlugins: ["typescript", "decorators-legacy"],
-};
+// Keeping this file to prevent applying the global monorepo config for now
+module.exports = {};

@@ -30,7 +30,12 @@ const props = withDefaults(
     transparent?: boolean;
     active?: boolean;
   }>(),
-  { busy: undefined, disabled: undefined, outlined: undefined }
+  {
+    busy: undefined,
+    disabled: undefined,
+    outlined: undefined,
+    transparent: undefined,
+  }
 );
 
 const isGroupBusy = inject("isButtonGroupBusy", false);

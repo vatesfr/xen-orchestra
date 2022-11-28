@@ -29,8 +29,8 @@ export default decorate([
     effects: {
       _downloadLog:
         () =>
-        ({ formattedLog }, { log }) =>
-          downloadLog({ log: formattedLog, date: log.start, type: 'backup NG' }),
+        (_, { log }) =>
+          downloadLog({ log, date: log.start, type: 'backup NG' }),
       restartFailedVms:
         (_, params) =>
         async (_, { log: { jobId: id, scheduleId: schedule, tasks, infos } }) => {

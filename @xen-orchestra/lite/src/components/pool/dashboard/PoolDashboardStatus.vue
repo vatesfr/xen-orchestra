@@ -14,6 +14,7 @@
         :label="$t('vms')"
       />
     </template>
+    <UiSpinner v-else class="spinner" />
   </UiCard>
 </template>
 
@@ -22,6 +23,7 @@ import { computed } from "vue";
 import PoolDashboardStatusItem from "@/components/pool/dashboard/PoolDashboardStatusItem.vue";
 import UiCard from "@/components/ui/UiCard.vue";
 import UiSeparator from "@/components/ui/UiSeparator.vue";
+import UiSpinner from "@/components/ui/UiSpinner.vue";
 import UiTitle from "@/components/ui/UiTitle.vue";
 import { useHostMetricsStore } from "@/stores/host-metrics.store";
 import { useVmStore } from "@/stores/vm.store";
@@ -45,3 +47,13 @@ const activeVmsCount = computed(() => {
   ).length;
 });
 </script>
+
+<style lang="postcss" scoped>
+.spinner {
+  color: var(--color-extra-blue-base);
+  display: flex;
+  margin: auto;
+  width: 40px;
+  height: 40px;
+}
+</style>

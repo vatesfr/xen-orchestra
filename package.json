@@ -3,6 +3,7 @@
     "@babel/core": "^7.0.0",
     "@babel/eslint-parser": "^7.13.8",
     "@babel/register": "^7.0.0",
+    "@vates/async-each": "1.0.0",
     "babel-jest": "^29.0.3",
     "benchmark": "^2.1.4",
     "deptree": "^1.0.0",
@@ -16,9 +17,10 @@
     "eslint-plugin-promise": "^6.0.0",
     "eslint-plugin-react": "^7.21.5",
     "exec-promise": "^0.7.0",
+    "getopts": "^2.3.0",
     "globby": "^13.1.1",
     "handlebars": "^4.7.6",
-    "husky": "^4.2.5",
+    "husky": "^8.0.2",
     "jest": "^29.0.3",
     "lint-staged": "^13.0.3",
     "lodash": "^4.17.4",
@@ -31,11 +33,6 @@
   "engines": {
     "node": ">=14",
     "yarn": "^1.7.0"
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged && scripts/lint-staged.js"
-    }
   },
   "jest": {
     "moduleNameMapper": {
@@ -73,22 +70,30 @@
     "testRegex": "\\.spec\\.js$"
   },
   "lint-staged": {
-    "*.{md,ts,ts}": "prettier --write"
+    "*": [
+      "scripts/run-changed-pkgs.js test",
+      "prettier --ignore-unknown --write"
+    ],
+    "*.{{{,c,m}j,t}s{,x},vue}": [
+      "eslint --ignore-pattern '!*'",
+      "jest --testRegex='^(?!.*.integ.spec.js$).*.spec.js$' --findRelatedTests --passWithNoTests"
+    ]
   },
   "private": true,
   "scripts": {
-    "build": "scripts/run-script.js --parallel build",
-    "ci": "yarn && yarn build &&  yarn test-integration",
+    "build": "scripts/run-script.js --parallel --concurrency 2 build",
+    "ci": "yarn && yarn build && yarn test-lint && yarn test-integration",
     "clean": "scripts/run-script.js --parallel clean",
     "dev": "scripts/run-script.js --parallel dev",
     "dev-test": "jest --bail --watch \"^(?!.*\\.integ\\.spec\\.js$)\"",
     "docs:dev": "vuepress dev docs",
     "docs:build": "vuepress build docs",
+    "prepare": "husky install",
     "prettify": "prettier --ignore-path .gitignore --write '**/*.{cjs,js,jsx,md,mjs,ts,tsx}'",
     "test": "npm run test-lint && npm run test-unit",
     "test-integration": "jest \".integ\\.spec\\.js$\"",
-    "test-lint": "eslint --ignore-path .gitignore .",
-    "test-unit": "jest \"^(?!.*\\.integ\\.spec\\.js$)\" && scripts/run-script.js test",
+    "test-lint": "eslint --ignore-path .gitignore --ignore-pattern packages/xo-web .",
+    "test-unit": "jest \"^(?!.*\\.integ\\.spec\\.js$)\" && scripts/run-script.js --bail test",
     "travis-tests": "scripts/travis-tests.js"
   },
   "workspaces": [

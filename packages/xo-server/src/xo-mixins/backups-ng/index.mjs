@@ -149,11 +149,15 @@ export default class BackupNg {
         try {
           if (!useXoProxy && backupsConfig.disableWorkers) {
             const localTaskIds = { __proto__: null }
+            const vmBackupInfo = new Map()
             return await Task.run(
               {
                 name: 'backup run',
                 onLog: log =>
                   handleBackupLog(log, {
+                    vmBackupInfo,
+                    app: this._app,
+                    jobName: job.name,
                     localTaskIds,
                     logger,
                     runJobId,
@@ -279,8 +283,12 @@ export default class BackupNg {
 
               const localTaskIds = { __proto__: null }
               let result
+              const vmBackupInfo = new Map()
               for await (const log of logsStream) {
                 result = handleBackupLog(log, {
+                  vmBackupInfo,
+                  app: this._app,
+                  jobName: job.name,
                   logger,
                   localTaskIds,
                   runJobId,
@@ -296,6 +304,7 @@ export default class BackupNg {
             }
           } else {
             const localTaskIds = { __proto__: null }
+            const vmBackupInfo = new Map()
             return await runBackupWorker(
               {
                 config: backupsConfig,
@@ -306,6 +315,9 @@ export default class BackupNg {
               },
               log =>
                 handleBackupLog(log, {
+                  vmBackupInfo,
+                  app: this._app,
+                  jobName: job.name,
                   logger,
                   localTaskIds,
                   runJobId,

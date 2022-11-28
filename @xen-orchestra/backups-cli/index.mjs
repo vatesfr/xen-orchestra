@@ -1,11 +1,12 @@
 #!/usr/bin/env node
+import { composeCommands } from './_composeCommands.mjs'
 
-'use strict'
+const importDefault = async path => (await import(path)).default
 
-require('./_composeCommands')({
+composeCommands({
   'clean-vms': {
-    get main() {
-      return require('./commands/clean-vms')
+    get default() {
+      return importDefault('./commands/clean-vms.mjs')
     },
     usage: `[--fix] [--merge] [--remove] xo-vm-backups/*
 
@@ -18,14 +19,14 @@ require('./_composeCommands')({
 `,
   },
   'create-symlink-index': {
-    get main() {
-      return require('./commands/create-symlink-index')
+    get default() {
+      return importDefault('./commands/create-symlink-index.mjs')
     },
     usage: 'xo-vm-backups <field path>',
   },
   info: {
-    get main() {
-      return require('./commands/info')
+    get default() {
+      return importDefault('./commands/info.mjs')
     },
     usage: 'xo-vm-backups/*',
   },

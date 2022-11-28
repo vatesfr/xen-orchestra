@@ -43,14 +43,14 @@
 
     <template #buttons>
       <UiButton transparent @click="addNewFilter">
-          {{ $t("add-or") }}
-        </UiButton>
+        {{ $t("add-or") }}
+      </UiButton>
       <UiButton :disabled="!isFilterValid" type="submit">
         {{ $t(editedFilter ? "update" : "add") }}
       </UiButton>
       <UiButton outlined @click="handleCancel">
-          {{ $t("cancel") }}
-        </UiButton>
+        {{ $t("cancel") }}
+      </UiButton>
     </template>
   </UiModal>
 </template>

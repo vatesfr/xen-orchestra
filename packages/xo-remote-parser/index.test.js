@@ -1,8 +1,11 @@
-/* eslint-env jest */
+'use strict'
 
-import deepFreeze from 'deep-freeze'
+const { describe, it } = require('test')
+const { strict: assert } = require('assert')
 
-import { parse, format } from './'
+const deepFreeze = require('deep-freeze')
+
+const { parse, format } = require('./')
 
 // ===================================================================
 
@@ -132,6 +135,7 @@ const parseData = deepFreeze({
     object: {
       type: 'nfs',
       host: '192.168.100.225',
+      port: undefined,
       path: '/media/nfs',
     },
   },
@@ -203,7 +207,7 @@ describe('format', () => {
   for (const name in formatData) {
     const datum = formatData[name]
     it(name, () => {
-      expect(format(datum.object)).toBe(datum.string)
+      assert.equal(format(datum.object), datum.string)
     })
   }
 })
@@ -212,7 +216,7 @@ describe('parse', () => {
   for (const name in parseData) {
     const datum = parseData[name]
     it(name, () => {
-      expect(parse(datum.string)).toEqual(datum.object)
+      assert.deepEqual(parse(datum.string), datum.object)
     })
   }
 })

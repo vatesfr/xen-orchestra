@@ -1,8 +1,8 @@
 <template>
-  <UsageBar :data="data" :n-items="5">
+  <UsageBar :data="statFetched ? data : undefined" :n-items="N_ITEMS">
     <template #header>
       <span>{{ $t("vms") }}</span>
-      <span>{{ $t("top-#", { n: 5 }) }}</span>
+      <span>{{ $t("top-#", { n: N_ITEMS }) }}</span>
     </template>
   </UsageBar>
 </template>
@@ -13,6 +13,7 @@ import UsageBar from "@/components/UsageBar.vue";
 import type { Stat } from "@/composables/fetch-stats.composable";
 import { getAvgCpuUsage } from "@/libs/utils";
 import type { VmStats } from "@/libs/xapi-stats";
+import { N_ITEMS } from "@/views/pool/PoolDashboardView.vue";
 
 const stats = inject<ComputedRef<Stat<VmStats>[]>>(
   "vmStats",
@@ -42,4 +43,10 @@ const data = computed<{ id: string; label: string; value: number }[]>(() => {
 
   return result;
 });
+
+const statFetched: ComputedRef<boolean> = computed(() =>
+  statFetched.value
+    ? true
+    : stats.value.length > 0 && stats.value.length === data.value.length
+);
 </script>

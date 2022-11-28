@@ -2860,9 +2860,9 @@ export const changePassword = (oldPassword, newPassword) =>
       () => error(_('pwdChangeError'), _('pwdChangeErrorBody'))
     )
 
-const _setUserPreferences = preferences =>
+const _setUserPreferences = (preferences, userId) =>
   _call('user.set', {
-    id: xo.user.id,
+    id: userId ?? xo.user.id,
     preferences,
   })::tap(subscribeCurrentUser.forceRefresh)
 
@@ -2923,15 +2923,18 @@ export const addOtp = secret =>
     noop
   )
 
-export const removeOtp = () =>
+export const removeOtp = user =>
   confirm({
     title: _('removeOtpConfirm'),
     body: _('removeOtpConfirmMessage'),
   }).then(
     () =>
-      _setUserPreferences({
-        otp: null,
-      }),
+      _setUserPreferences(
+        {
+          otp: null,
+        },
+        resolveId(user)
+      ),
     noop
   )
 
