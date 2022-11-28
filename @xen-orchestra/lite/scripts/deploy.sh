@@ -14,8 +14,8 @@ SERVER="www-xo.gpn.vates.fr"
 
 echo "Building XO Lite"
 
-(cd ../.. && yarn)
-yarn build-only --base="$BASE"
+(cd ../.. && npm ci)
+npm run build-only --base="$BASE"
 
 echo "Deploying XO Lite from $DIST"
 

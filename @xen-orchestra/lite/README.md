@@ -2,8 +2,8 @@
 
 - Clone
 - Copy `.env.dist` to `.env` and set vars
-- `yarn`
-- `yarn dev`
+- `npm ci`
+- `npm run dev`
 
 ## Conventions
 

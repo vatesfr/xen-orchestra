@@ -21,12 +21,12 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '18'
-          cache: 'yarn'
+          cache: 'npm'
       - name: Install project dependencies
-        run: yarn
+        run: npm ci
       - name: Build the project
-        run: yarn build
+        run: npm run build
       - name: Lint tests
-        run: yarn test-lint
+        run: npm run test-lint
       - name: Integration tests
-        run: sudo yarn test-integration
+        run: sudo npm run test-integration

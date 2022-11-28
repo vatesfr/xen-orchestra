@@ -119,7 +119,7 @@ configure(transportConsole())
 Optional dependency:
 
 ```
-> yarn add nodemailer pretty-format
+> npm add nodemailer pretty-format
 ```
 
 Configuration:
@@ -145,7 +145,7 @@ configure(
 Optional dependency:
 
 ```
-> yarn add split-host syslog-client
+> npm add split-host syslog-client
 ```
 
 Configuration:
