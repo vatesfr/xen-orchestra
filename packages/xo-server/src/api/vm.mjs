@@ -1298,6 +1298,24 @@ import_.resolve = {
 
 export { import_ as import }
 
+
+
+export async function importFomEsxi({host, user, password, sslVerify, sr, network}){
+  //console.log({host, user, password, sslVerify, sr, network})
+  await this.migrationfromEsxi({host, user, password, sslVerify, sr, network})
+
+  return
+}
+importFomEsxi.params = {
+  host: { type: 'string' },
+  network: { type: 'string' },
+  password: { type: 'string' },
+  user: { type: 'string' },
+  sr: { type: 'string' },
+  sslVerify: {type: 'boolean'}
+
+}
+
 // -------------------------------------------------------------------
 
 // FIXME: if position is used, all other disks after this position

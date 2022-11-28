@@ -1,0 +1,25 @@
+{
+  "license": "ISC",
+  "private": true,
+  "version": "0.0.1",
+  "name": "@xen-orchestra/vmware-explorer",
+  "dependencies": {
+    "lodash": "^4.17.21",
+    "node-fetch": "^3.3.0",
+    "node-vsphere-soap": "^0.0.2-5"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/vmware-explorer",
+  "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
+  "repository": {
+    "directory": "@xen-orchestra/vmware-explorer",
+    "type": "git",
+    "url": "https://github.com/vatesfr/xen-orchestra.git"
+  },
+  "author": {
+    "name": "Vates SAS",
+    "url": "https://vates.fr"
+  }
+}
