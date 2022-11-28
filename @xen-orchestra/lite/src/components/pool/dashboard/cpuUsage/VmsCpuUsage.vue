@@ -1,13 +1,14 @@
 <template>
-  <UsageBar :data="statFetched ? data : undefined" :n-items="N_ITEMS">
-    <template #header>
-      <span>{{ $t("vms") }}</span>
-      <span>{{ $t("top-#", { n: N_ITEMS }) }}</span>
-    </template>
-  </UsageBar>
+  <UiCardTitle
+    secondary
+    :left="$t('vms')"
+    :right="$t('top-#', { n: N_ITEMS })"
+  />
+  <UsageBar :data="statFetched ? data : undefined" :n-items="N_ITEMS" />
 </template>
 
 <script lang="ts" setup>
+import UiCardTitle from "@/components/ui/UiCardTitle.vue";
 import { type ComputedRef, computed, inject } from "vue";
 import UsageBar from "@/components/UsageBar.vue";
 import type { Stat } from "@/composables/fetch-stats.composable";

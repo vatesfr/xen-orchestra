@@ -1,6 +1,6 @@
 <template>
   <UiCard>
-    <UiTitle type="h4">{{ $t("ram-usage") }}</UiTitle>
+    <UiCardTitle>{{ $t("ram-usage") }}</UiCardTitle>
     <HostsRamUsage />
     <VmsRamUsage />
   </UiCard>
@@ -10,5 +10,5 @@
 import HostsRamUsage from "@/components/pool/dashboard/ramUsage/HostsRamUsage.vue";
 import VmsRamUsage from "@/components/pool/dashboard/ramUsage/VmsRamUsage.vue";
 import UiCard from "@/components/ui/UiCard.vue";
-import UiTitle from "@/components/ui/UiTitle.vue";
+import UiCardTitle from "@/components/ui/UiCardTitle.vue";
 </script>

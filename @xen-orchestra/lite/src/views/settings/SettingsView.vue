@@ -2,7 +2,7 @@
   <TitleBar :icon="faGear">{{ $t("settings") }}</TitleBar>
   <div class="card-view">
     <UiCard class="group">
-      <UiTitle type="h4">Xen Orchestra Lite</UiTitle>
+      <UiCardTitle>Xen Orchestra Lite</UiCardTitle>
       <UiKeyValueList>
         <UiKeyValueRow>
           <template #key>{{ $t("version") }}</template>
@@ -50,7 +50,7 @@
       </UiKeyValueList>
     </UiCard>
     <UiCard class="group">
-      <UiTitle type="h4">{{ $t("display") }}</UiTitle>
+      <UiCardTitle>{{ $t("display") }}</UiCardTitle>
       <UiKeyValueList>
         <UiKeyValueRow>
           <template #key>{{ $t("appearance") }}</template>
@@ -67,7 +67,7 @@
       </UiKeyValueList>
     </UiCard>
     <UiCard class="group">
-      <UiTitle type="h4">{{ $t("language") }}</UiTitle>
+      <UiCardTitle>{{ $t("language") }}</UiCardTitle>
       <UiKeyValueList>
         <UiKeyValueRow>
           <template #value>
@@ -91,6 +91,7 @@
 
 <script lang="ts" setup>
 import FormSelect from "@/components/form/FormSelect.vue";
+import UiCardTitle from "@/components/ui/UiCardTitle.vue";
 import { useUiStore } from "@/stores/ui.store";
 import { storeToRefs } from "pinia";
 import { watch } from "vue";
@@ -103,7 +104,6 @@ import FormLabel from "@/components/form/FormLabel.vue";
 import UiCard from "@/components/ui/UiCard.vue";
 import UiKeyValueList from "@/components/ui/UiKeyValueList.vue";
 import UiKeyValueRow from "@/components/ui/UiKeyValueRow.vue";
-import UiTitle from "@/components/ui/UiTitle.vue";
 
 const version = XO_LITE_VERSION;
 const gitHead = XO_LITE_GIT_HEAD;
