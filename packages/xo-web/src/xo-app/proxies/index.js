@@ -18,13 +18,12 @@ import { Vm } from 'render-xo-item'
 import { withRouter } from 'react-router'
 import {
   checkProxyHealth,
-  connectProxyAppliance,
   destroyProxyAppliances,
   editProxyAppliance,
   forgetProxyAppliances,
   getLicenses,
   getProxyApplianceUpdaterState,
-  isProxyWorking,
+  registerProxy,
   subscribeProxies,
   upgradeProxyAppliance,
   EXPIRES_SOON_DELAY,
@@ -32,7 +31,6 @@ import {
 
 import Page from '../page'
 
-import ConnectProxyModal from './connect-proxy-modal'
 import deployProxy from './deploy-proxy'
 import { updateApplianceSettings } from './update-appliance-settings'
 
@@ -285,27 +283,6 @@ const Proxies = decorate([
       async deployProxy({ fetchProxyUpgrades }, proxy) {
         return fetchProxyUpgrades([await deployProxy(proxy)])
       },
-      async connectProxy() {
-        const connectProxyInfo = await confirm({
-          body: <ConnectProxyModal />,
-          icon: 'connect',
-          title: _('connectProxy'),
-        })
-
-        const proxyId = await connectProxyAppliance(connectProxyInfo)
-        if (!(await isProxyWorking(proxyId))) {
-          await confirm({
-            body: (
-              <div>
-                <p>{_('proxyTestFailedConnectionIssueMessage')}</p>
-                <p>{_('doYouWantForgetIt')}</p>
-              </div>
-            ),
-            title: _('proxyError'),
-          })
-          await forgetProxyAppliances([proxyId])
-        }
-      },
       async upgradeAppliance({ fetchProxyUpgrades }, id, options) {
         try {
           await upgradeProxyAppliance(id, options)
@@ -354,12 +331,12 @@ const Proxies = decorate([
             className='ml-1'
             btnStyle='success'
             disabled={state.isFromSource}
-            handler={effects.connectProxy}
+            handler={registerProxy}
             icon='connect'
             size='large'
             tooltip={state.isFromSource ? _('onlyAvailableXoaUsers') : undefined}
           >
-            {_('connectProxy')}
+            {_('registerProxy')}
           </ActionButton>
         </div>
         <NoObjects

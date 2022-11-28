@@ -2472,7 +2472,6 @@ const messages = {
   proxyUnknownVm: 'Unknown proxy VM.',
 
   // ----- proxies -----
-  connectProxy: 'Connect a proxy',
   doYouWantForgetIt: 'Do you want to forget it?',
   forgetProxyApplianceTitle: 'Forget prox{n, plural, one {y} other {ies}}',
   forgetProxyApplianceMessage: 'Are you sure you want to forget {n, number} prox{n, plural, one {y} other {ies}}?',
@@ -2484,6 +2483,7 @@ const messages = {
   redeployProxy: 'Redeploy proxy',
   redeployProxyAction: 'Redeploy this proxy',
   redeployProxyWarning: 'This action will destroy the old proxy VM',
+  registerProxy: 'Register a proxy',
   noProxiesAvailable: 'No proxies available',
   checkProxyHealth: 'Test your proxy',
   updateProxyApplianceSettings: 'Update appliance settings',
