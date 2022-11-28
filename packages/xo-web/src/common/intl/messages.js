@@ -1333,6 +1333,7 @@ const messages = {
   vmHaDisabled: 'Disabled',
   vmMemoryLimitsLabel: 'Memory limits (min/max)',
   vmUuid: 'VM UUID',
+  vmUuidNotMandatory: 'VM UUID is not mandatory when specifying the address but it is still recommended to fill it',
   vmVgpu: 'vGPU',
   vmVgpus: 'GPUs',
   vmVgpuNone: 'None',

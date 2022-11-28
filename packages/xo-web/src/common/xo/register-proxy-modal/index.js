@@ -50,8 +50,7 @@ export default class RegisterProxyModal extends Component {
           </Col>
         </SingleLineRow>
         <i className='text-info'>
-          <Icon icon='info' /> VM UUID is not mandatory when specifying the address but it is still recommended to fill
-          it
+          <Icon icon='info' /> {_('vmUuidNotMandatory')}
         </i>
       </Container>
     )
