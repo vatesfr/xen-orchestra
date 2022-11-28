@@ -157,3 +157,6 @@ export function parseRamUsage(
     used: memoryFree === undefined ? 0 : used / _nSequence,
   };
 }
+
+export const getFirst = <T>(value: T | T[]): T =>
+  Array.isArray(value) ? value[0] : value;

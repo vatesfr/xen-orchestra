@@ -1,3 +1,4 @@
+import { getFirst } from "@/libs/utils";
 import type { ActiveSorts } from "@/types/sort";
 import { computed, ref, watch } from "vue";
 import { type LocationQueryValue, useRoute, useRouter } from "vue-router";
@@ -21,9 +22,7 @@ export default function useCollectionSorter<T>(config: Config<T> = {}) {
 
   if (queryStringParam !== undefined) {
     if (route.query[queryStringParam] !== undefined) {
-      sorts.value = queryToMap(
-        route.query[queryStringParam] as LocationQueryValue
-      );
+      sorts.value = queryToMap(getFirst(route.query[queryStringParam]));
     }
     watch(sortsAsString, (value) =>
       router.replace({
