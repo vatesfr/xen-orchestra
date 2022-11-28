@@ -8,7 +8,7 @@ const tmp = require('tmp')
 const { getSyncedHandler } = require('@xen-orchestra/fs')
 const { pFromCallback, Disposable } = require('promise-toolbox')
 
-const { VhdFile, chainVhd, openVhd } = require('./index')
+const { VhdFile, chainVhd, openVhd, VhdAbstract } = require('./index')
 const { mergeVhdChain } = require('./merge')
 
 const { checkFile, createRandomFile, convertFromRawToVhd } = require('./tests/utils')
@@ -163,25 +163,29 @@ test('it can resume a simple merge ', async () => {
   }
 })
 
-test('it can resume a failed renaming ', async () => {
+test('it can resume a failed renaming', async () => {
   const mbOfFather = 8
   const mbOfChildren = 4
   const parentRandomFileName = `${tempDir}/randomfile`
 
+  const parentName = 'parentvhd.alias.vhd'
+  const childName = 'childvhd.alias.vhd'
+
   await createRandomFile(`${tempDir}/randomfile`, mbOfFather)
-  await convertFromRawToVhd(`${tempDir}/randomfile`, `${tempDir}/parent.vhd`)
-  const parentVhd = new VhdFile(handler, 'parent.vhd')
+  await convertFromRawToVhd(`${tempDir}/randomfile`, `${tempDir}/parentdata.vhd`)
+  VhdAbstract.createAlias(handler, parentName, 'parentdata.vhd')
+  const parentVhd = new VhdFile(handler, 'parentdata.vhd')
   await parentVhd.readHeaderAndFooter()
 
   await createRandomFile(`${tempDir}/small_randomfile`, mbOfChildren)
-  await convertFromRawToVhd(`${tempDir}/small_randomfile`, `${tempDir}/child1.vhd`)
-  await chainVhd(handler, 'parent.vhd', handler, 'child1.vhd', true)
-
-  const childVhd = new VhdFile(handler, 'child1.vhd')
+  await convertFromRawToVhd(`${tempDir}/small_randomfile`, `${tempDir}/childdata.vhd`)
+  await chainVhd(handler, 'parentdata.vhd', handler, 'childdata.vhd', true)
+  VhdAbstract.createAlias(handler, childName, 'childdata.vhd')
+  const childVhd = new VhdFile(handler, 'childdata.vhd')
   await childVhd.readHeaderAndFooter()
 
   await handler.writeFile(
-    '.parent.vhd.merge.json',
+    `.${parentName}.merge.json`,
     JSON.stringify({
       parent: {
         header: parentVhd.header.checksum,
@@ -192,15 +196,20 @@ test('it can resume a failed renaming ', async () => {
       step: 'cleanupVhds',
     })
   )
-  // expect merge to succed
-  await mergeVhdChain(handler, ['parent.vhd', 'child1.vhd'])
-  // parent have been renamed
-  expect(await fs.exists(`${tempDir}/parent.vhd`)).toBeFalsy()
-  expect(await fs.exists(`${tempDir}/.parent.vhd.merge.json`)).toBeFalsy()
+  // expect merge to succeed
+  await mergeVhdChain(handler, [parentName, childName])
 
-  Disposable.use(openVhd(handler, 'child1.vhd'), async mergedVhd => {
+  // parent have been renamed
+  expect(await fs.exists(`${tempDir}/${parentName}`)).toBeFalsy()
+  expect(await fs.exists(`${tempDir}/${childName}`)).toBeTruthy()
+  expect(await fs.exists(`${tempDir}/.${parentName}.merge.json`)).toBeFalsy()
+  // we shouldn't have moved the data, but the child data should have been merged into parent
+  expect(await fs.exists(`${tempDir}/parentdata.vhd`)).toBeTruthy()
+  expect(await fs.exists(`${tempDir}/childdata.vhd`)).toBeFalsy()
+
+  Disposable.use(openVhd(handler, childName), async mergedVhd => {
     await mergedVhd.readBlockAllocationTable()
-    // the resume is at the step 'cleanupVhds' it should not have merged blocks and should still contians parent data
+    // the resume is at the step 'cleanupVhds' it should not have merged blocks and should still contains parent data
 
     let offset = 0
     const fd = await fs.open(parentRandomFileName, 'r')
@@ -208,16 +217,14 @@ test('it can resume a failed renaming ', async () => {
       const blockContent = block.data
       const buffer = Buffer.alloc(blockContent.length)
       await fs.read(fd, buffer, 0, buffer.length, offset)
-
       expect(buffer.equals(blockContent)).toEqual(true)
       offset += childVhd.header.blockSize
     }
   })
 
   // merge succeed if renaming was already done
-
   await handler.writeFile(
-    '.parent.vhd.merge.json',
+    `.${parentName}.merge.json`,
     JSON.stringify({
       parent: {
         header: parentVhd.header.checksum,
@@ -228,10 +235,13 @@ test('it can resume a failed renaming ', async () => {
       step: 'cleanupVhds',
     })
   )
-  await mergeVhdChain(handler, ['parent.vhd', 'child1.vhd'])
-  expect(await fs.exists(`${tempDir}/parent.vhd`)).toBeFalsy()
-  expect(await fs.exists(`${tempDir}/child1.vhd`)).toBeTruthy()
-  expect(await fs.exists(`${tempDir}/.parent.vhd.merge.json`)).toBeFalsy()
+  await mergeVhdChain(handler, [parentName, childName])
+  expect(await fs.exists(`${tempDir}/${parentName}`)).toBeFalsy()
+  expect(await fs.exists(`${tempDir}/${childName}`)).toBeTruthy()
+  // we shouldn't have moved the data, but the child data should have been merged into parent
+  expect(await fs.exists(`${tempDir}/parentdata.vhd`)).toBeTruthy()
+  expect(await fs.exists(`${tempDir}/childdata.vhd`)).toBeFalsy()
+  expect(await fs.exists(`${tempDir}/.${parentName}.merge.json`)).toBeFalsy()
 })
 
 test('it can resume a multiple merge ', async () => {

@@ -18,6 +18,7 @@ const { VhdAbstract } = require('./Vhd/VhdAbstract')
 const { VhdDirectory } = require('./Vhd/VhdDirectory')
 const { VhdSynthetic } = require('./Vhd/VhdSynthetic')
 const { asyncMap } = require('@xen-orchestra/async-map')
+const { isVhdAlias, resolveVhdAlias } = require('./aliases')
 
 const { warn } = createLogger('vhd-lib:merge')
 
@@ -253,10 +254,16 @@ class Merger {
     // in the case is an alias, renaming parent to mergeTargetChild will keep the real data
     // of mergeTargetChild in the data folder
     // mergeTargetChild is already in an incomplete state, its blocks have been transferred to parent
-    await VhdAbstract.unlink(handler, mergeTargetChild)
+    let oldTarget
+    if (isVhdAlias(mergeTargetChild)) {
+      oldTarget = await resolveVhdAlias(handler, mergeTargetChild)
+    }
 
     try {
       await handler.rename(parent, mergeTargetChild)
+      if (oldTarget !== undefined) {
+        await VhdAbstract.unlink(handler, oldTarget).catch(warn)
+      }
     } catch (error) {
       // maybe the renaming was already successfull during merge
       if (error.code === 'ENOENT' && this.#isResuming) {
@@ -265,6 +272,8 @@ class Merger {
           assert.strictEqual(vhd.header.checksum, this.#state.parent.header)
         })
         this.#logInfo(`the VHD parent was already renamed`, { parent, mergeTargetChild })
+      } else {
+        throw error
       }
     }
 
