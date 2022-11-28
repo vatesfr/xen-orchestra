@@ -8,9 +8,9 @@ import Icon from 'icon'
 
 export default class RegisterProxyModal extends Component {
   state = {
+    address: undefined,
     authenticationToken: undefined,
     name: undefined,
-    address: undefined,
     vmUuid: undefined,
   }
   get value() {
@@ -49,9 +49,11 @@ export default class RegisterProxyModal extends Component {
             <DebounceInput className='form-control' onChange={this.linkState('vmUuid')} value={vmUuid} />
           </Col>
         </SingleLineRow>
-        <i className='text-info'>
-          <Icon icon='info' /> {_('vmUuidNotMandatory')}
-        </i>
+        <SingleLineRow className='mt-1'>
+          <Col className='text-info'>
+            <Icon icon='info' /> {_('optionalVmUuid')}
+          </Col>
+        </SingleLineRow>
       </Container>
     )
   }
