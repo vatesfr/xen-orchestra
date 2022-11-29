@@ -10,6 +10,7 @@
 - vhd-lib 4.2.0
 - @xen-orchestra/audit-core 0.2.2
 - @xen-orchestra/backups 0.29.1
+- @xen-orchestra/backups-cli 1.0.0
 
 ## **5.76.2** (2022-11-14)
 
