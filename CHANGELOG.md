@@ -20,6 +20,7 @@
 - xo-server-audit 0.10.2
 - xo-server-auth-ldap 0.10.6
 - xo-server-backup-reports 0.17.2
+- xo-server-load-balancer 0.7.2
 
 ## **5.76.2** (2022-11-14)
 
