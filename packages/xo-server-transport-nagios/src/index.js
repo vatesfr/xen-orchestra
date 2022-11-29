@@ -36,12 +36,12 @@ export const configurationSchema = {
       description: 'The encryption key',
     },
     host: {
-      default: '{job.name}',
+      default: '{vm.name_label}',
       description: hostDescription,
       type: 'string',
     },
     service: {
-      default: '{vm.name_label}',
+      default: '{job.name}',
       description: serviceDescription,
       type: 'string',
     },
@@ -53,16 +53,18 @@ export const configurationSchema = {
 export const testSchema = {
   type: 'object',
   properties: {
-    VmNameLabelTest: {
+    VmNameLabel: {
+      title: 'VM Name Label',
       description: 'Name of a VM',
       type: 'string',
     },
-    jobNameTest: {
+    jobName: {
+      title: 'Job Name',
       description: 'Name of a backup job',
       type: 'string',
     },
   },
-  required: ['VmNameLabelTest', 'jobNameTest'],
+  required: ['VmNameLabel', 'jobName'],
 }
 
 // ===================================================================
@@ -139,21 +141,24 @@ class XoServerNagios {
     this._unset()
   }
 
-  test({ VmNameLabelTest, jobNameTest }) {
+  test({ VmNameLabel, jobName }) {
     return this._sendPassiveCheck(
       {
         message: 'The server-nagios plugin for Xen Orchestra server seems to be working fine, nicely done :)',
         status: OK,
       },
-      VmNameLabelTest,
-      jobNameTest
+      VmNameLabel,
+      jobName
     )
   }
 
   _sendPassiveCheck({ message, status }, vmNameLabel, jobName) {
     return new Promise((resolve, reject) => {
-      this._conf.host = this._getHost(vmNameLabel, jobName)
-      this._conf.service = this._getService(vmNameLabel, jobName)
+      const conf = {
+        ...this._conf,
+        host: this._getHost(vmNameLabel, jobName),
+        service: this._getService(vmNameLabel, jobName),
+      }
 
       if (/\r|\n/.test(message)) {
         warn('the message must not contain a line break', { message })
@@ -169,7 +174,7 @@ class XoServerNagios {
 
       const client = new net.Socket()
 
-      client.connect(this._conf.port, this._conf.server, () => {
+      client.connect(conf.port, conf.server, () => {
         debug('Successful connection')
       })
 
@@ -177,7 +182,7 @@ class XoServerNagios {
         const timestamp = data.readInt32BE(128)
         const iv = data.slice(0, 128) // initialization vector
         const packet = nscaPacketBuilder({
-          ...this._conf,
+          ...conf,
           iv,
           message,
           status,
