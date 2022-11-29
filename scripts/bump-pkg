@@ -24,6 +24,7 @@ esac
 if [ $# -ge 2 ]
 then
   npm version "$2"
+  git checkout HEAD :/yarn.lock
 
   git add --patch
 fi
