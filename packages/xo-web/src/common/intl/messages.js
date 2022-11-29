@@ -7,6 +7,7 @@ const messages = {
   alpha: 'Alpha',
   creation: 'Creation',
   description: 'Description',
+  deleteSourceVm: 'Delete source VM',
   expiration: 'Expiration',
   keyValue: '{key}: {value}',
 
@@ -108,6 +109,7 @@ const messages = {
   replaceExistingCertificate: 'Replace existing certificate',
   customFields: 'Custom fields',
   addCustomField: 'Add custom field',
+  availableXoaPremium: 'Available in XOA Premium',
   editCustomField: 'Edit custom field',
   deleteCustomField: 'Delete custom field',
   onlyAvailableXoaUsers: 'Only available to XOA users',
@@ -771,8 +773,12 @@ const messages = {
   cloneVmLabel: 'Clone',
   cleanVm: 'Clean VM directory',
   fastCloneVmLabel: 'Fast clone',
+  startMigratedVm: 'Start the migrated VM',
   vmConsoleLabel: 'Console',
   vmExportUrlValidity: 'The URL is valid once for a short period of time.',
+  vmWarmMigration: 'Warm migration',
+  vmWarmMigrationProcessInfo:
+    'Warm migration process will first create a copy of the VM on the destination while the source VM is still running, then shutdown the source VM and send the changes that happened during the migration to the destination to minimize downtime.',
   backupLabel: 'Backup',
 
   // ----- SR general tab -----

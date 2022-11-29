@@ -488,6 +488,10 @@
       @extend .fa;
       @extend .fa-list-alt;
     }
+    &-warm-migration {
+      @extend .fa;
+      @extend .fa-fire;
+    }
   }
 
   // Generic states
