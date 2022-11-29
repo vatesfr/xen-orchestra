@@ -10,9 +10,10 @@ const { debug, warn } = createLogger('xo:server:transport:nagios')
 // ===================================================================
 
 const hostDescription = `Host name on Nagios.
-  Leave empty if the host name equals the vm name (the default configuration).
-  Otherwise, you could choose a custom name but the template '{vm.name_label}' must
-  be included. For example: 'xo-backup-{vm.name_label}'`
+
+Leave empty if the host name equals the vm name (the default configuration).
+
+Otherwise, you could choose a custom name but the template \`{vm.name_label}\` must  be included. For example: \`xo-backup-{vm.name_label}\``
 
 const serviceDescription = `Service name on Nagios.
   Leave empty if the host name equals the backup job name (the default configuration).
