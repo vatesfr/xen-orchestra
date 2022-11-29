@@ -1,10 +1,10 @@
 import _ from 'intl'
 import Component from 'base-component'
+import Icon from 'icon'
 import React from 'react'
 import SingleLineRow from 'single-line-row'
 import { Col, Container } from 'grid'
 import { Input as DebounceInput } from 'debounce-input-decorator'
-import Icon from 'icon'
 
 export default class RegisterProxyModal extends Component {
   state = {
@@ -51,7 +51,7 @@ export default class RegisterProxyModal extends Component {
         </SingleLineRow>
         <SingleLineRow className='mt-1'>
           <Col className='text-info'>
-            <Icon icon='info' /> {_('optionalVmUuid')}
+            <Icon icon='info' /> {_('proxyOptionalVmUuid')}
           </Col>
         </SingleLineRow>
       </Container>

@@ -3318,12 +3318,7 @@ export const registerProxy = async () => {
   })
   if (!_isProxyWorking) {
     await confirm({
-      body: (
-        <div>
-          <p>{_('proxyTestFailedConnectionIssueMessage')}</p>
-          <p>{_('doYouWantForgetIt')}</p>
-        </div>
-      ),
+      body: _('proxyTestFailedAfterRegistrationMessage'),
       title: _('proxyError'),
     })
     await forgetProxyAppliances([proxyId])

@@ -2472,7 +2472,6 @@ const messages = {
   proxyUnknownVm: 'Unknown proxy VM.',
 
   // ----- proxies -----
-  doYouWantForgetIt: 'Do you want to forget it?',
   forgetProxyApplianceTitle: 'Forget prox{n, plural, one {y} other {ies}}',
   forgetProxyApplianceMessage: 'Are you sure you want to forget {n, number} prox{n, plural, one {y} other {ies}}?',
   forgetProxies: 'Forget proxy(ies)',
@@ -2495,6 +2494,7 @@ const messages = {
   proxyTestSuccess: 'Test passed for {name}',
   proxyTestSuccessMessage: 'The proxy appears to work correctly',
   proxyTestFailed: 'Test failed for {name}',
+  proxyTestFailedAfterRegistrationMessage: 'Unable to connect to this proxy. Do you want to forget it?',
   proxyTestFailedConnectionIssueMessage: 'Unable to connect to this proxy',
   proxyLinkedRemotes: 'Click to see linked remotes',
   proxyLinkedBackups: 'Click to see linked backups',
