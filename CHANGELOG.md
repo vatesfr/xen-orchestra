@@ -8,6 +8,7 @@
 - @vates/disposable 0.1.3
 - @xen-orchestra/fs 3.3.0
 - vhd-lib 4.2.0
+- @xen-orchestra/audit-core 0.2.2
 
 ## **5.76.2** (2022-11-14)
 
