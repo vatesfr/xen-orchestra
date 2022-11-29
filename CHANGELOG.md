@@ -6,6 +6,7 @@
 
 - @xen-orchestra/log 0.5.0
 - @vates/disposable 0.1.3
+- @xen-orchestra/fs 3.3.0
 
 ## **5.76.2** (2022-11-14)
 
