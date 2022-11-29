@@ -9,17 +9,15 @@ const { debug, warn } = createLogger('xo:server:transport:nagios')
 
 // ===================================================================
 
-const hostDescription =
-  'Host name on Nagios.' +
-  ' Leave empty if the host name equals the vm name (the default configuration).' +
-  " Otherwise, you could choose a custom name but the template '{vm.name_label}' must" +
-  " be included. For example: 'xo-backup-{vm.name_label}'."
+const hostDescription = `Host name on Nagios.
+  Leave empty if the host name equals the vm name (the default configuration).
+  Otherwise, you could choose a custom name but the template '{vm.name_label}' must
+  be included. For example: 'xo-backup-{vm.name_label}'`
 
-const serviceDescription =
-  'Service name on Nagios.' +
-  ' Leave empty if the host name equals the backup job name (the default configuration).' +
-  " Otherwise, you could choose a custom name but the template '{job.name}' must" +
-  " be included. For example: '{job.name}-Xen Orchestra'."
+const serviceDescription = `Service name on Nagios.
+  Leave empty if the host name equals the backup job name (the default configuration).
+  therwise, you could choose a custom name but the template '{job.name}' must
+  be included. For example: '{job.name}-Xen Orchestra.`
 
 export const configurationSchema = {
   type: 'object',
@@ -38,10 +36,12 @@ export const configurationSchema = {
       description: 'The encryption key',
     },
     host: {
+      default: '{job.name}',
       description: hostDescription,
       type: 'string',
     },
     service: {
+      default: '{vm.name_label}',
       description: serviceDescription,
       type: 'string',
     },
@@ -53,16 +53,16 @@ export const configurationSchema = {
 export const testSchema = {
   type: 'object',
   properties: {
-    host: {
-      description: 'Nagios host',
+    VmNameLabelTest: {
+      description: 'Name of a VM',
       type: 'string',
     },
-    service: {
-      description: 'Nagios service',
+    jobNameTest: {
+      description: 'Name of a backup job',
       type: 'string',
     },
   },
-  required: ['host', 'service'],
+  required: ['VmNameLabelTest', 'jobNameTest'],
 }
 
 // ===================================================================
@@ -118,7 +118,7 @@ class XoServerNagios {
     this._key = null
   }
 
-  configure(configuration) {
+  configure({ host, service, ...configuration }) {
     this._conf = configuration
     this._key = Buffer.from(configuration.key, ENCODING)
 
@@ -127,8 +127,8 @@ class XoServerNagios {
       '{job.name}': (vmNameLabel, jobName) => jobName,
     }
 
-    this._getHost = compileTemplate(this._conf.host, templateRules)
-    this._getService = compileTemplate(this._conf.service, templateRules)
+    this._getHost = compileTemplate(host, templateRules)
+    this._getService = compileTemplate(service, templateRules)
   }
 
   load() {
@@ -139,35 +139,21 @@ class XoServerNagios {
     this._unset()
   }
 
-  test({ host, service }) {
+  test({ VmNameLabelTest, jobNameTest }) {
     return this._sendPassiveCheck(
       {
         message: 'The server-nagios plugin for Xen Orchestra server seems to be working fine, nicely done :)',
         status: OK,
-        isTest: true,
       },
-      host,
-      service
+      VmNameLabelTest,
+      jobNameTest
     )
   }
 
-  _sendPassiveCheck({ message, status, isTest }, vmNameLabel, jobName) {
+  _sendPassiveCheck({ message, status }, vmNameLabel, jobName) {
     return new Promise((resolve, reject) => {
-      if (isTest) {
-        this._conf.host = vmNameLabel
-        this._conf.service = jobName
-      } else {
-        if (this._conf.host !== undefined) {
-          this._conf.host = this._getHost(vmNameLabel, jobName)
-        } else {
-          this._conf.host = vmNameLabel
-        }
-        if (this._conf.service !== undefined) {
-          this._conf.service = this._getService(vmNameLabel, jobName)
-        } else {
-          this._conf.service = jobName
-        }
-      }
+      this._conf.host = this._getHost(vmNameLabel, jobName)
+      this._conf.service = this._getService(vmNameLabel, jobName)
 
       if (/\r|\n/.test(message)) {
         warn('the message must not contain a line break', { message })
