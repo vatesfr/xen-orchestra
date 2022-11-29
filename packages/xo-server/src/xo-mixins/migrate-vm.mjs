@@ -1,5 +1,5 @@
 import { Backup } from '@xen-orchestra/backups/Backup.js'
-import { uuid } from 'uuid'
+import { v4 as generateUuid } from 'uuid'
 
 export default class MigrateVm {
   constructor(app) {
@@ -42,7 +42,7 @@ export default class MigrateVm {
 
   async warmMigrateVm(sourceVmId, srId, startDestVm = true, deleteSource = false) {
     // we'll use a one time use continuous replication job with the VM to migrate
-    const jobId = uuid.v4()
+    const jobId = generateUuid()
     const app = this._app
     const sourceVm = app.getXapiObject(sourceVmId)
     let backup = this.#createWarmBackup(sourceVmId, srId, jobId)
