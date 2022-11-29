@@ -2,10 +2,24 @@ import crc32 from 'buffer-crc32'
 import net from 'net'
 import { Buffer } from 'buffer'
 import { createLogger } from '@xen-orchestra/log'
+// eslint-disable-next-line n/no-extraneous-import
+import { compileTemplate } from '@xen-orchestra/template'
 
 const { debug, warn } = createLogger('xo:server:transport:nagios')
 
 // ===================================================================
+
+const hostDescription =
+  'Host name on Nagios.' +
+  ' Leave empty if the host name equals the vm name (the default configuration).' +
+  " Otherwise, you could choose a custom name but the template '{vm.name_label}' must" +
+  " be included. For example: 'xo-backup-{vm.name_label}'."
+
+const serviceDescription =
+  'Service name on Nagios.' +
+  ' Leave empty if the host name equals the backup job name (the default configuration).' +
+  " Otherwise, you could choose a custom name but the template '{job.name}' must" +
+  " be included. For example: '{job.name}-Xen Orchestra'."
 
 export const configurationSchema = {
   type: 'object',
@@ -22,6 +36,14 @@ export const configurationSchema = {
     key: {
       type: 'string',
       description: 'The encryption key',
+    },
+    host: {
+      description: hostDescription,
+      type: 'string',
+    },
+    service: {
+      description: serviceDescription,
+      type: 'string',
     },
   },
   additionalProperties: false,
@@ -99,6 +121,14 @@ class XoServerNagios {
   configure(configuration) {
     this._conf = configuration
     this._key = Buffer.from(configuration.key, ENCODING)
+
+    const templateRules = {
+      '{vm.name_label}': vmNameLabel => vmNameLabel,
+      '{job.name}': (vmNameLabel, jobName) => jobName,
+    }
+
+    this._getHost = compileTemplate(this._conf.host, templateRules)
+    this._getService = compileTemplate(this._conf.service, templateRules)
   }
 
   load() {
@@ -114,16 +144,30 @@ class XoServerNagios {
       {
         message: 'The server-nagios plugin for Xen Orchestra server seems to be working fine, nicely done :)',
         status: OK,
+        isTest: true,
       },
       host,
       service
     )
   }
 
-  _sendPassiveCheck({ message, status }, host, service) {
+  _sendPassiveCheck({ message, status, isTest }, vmNameLabel, jobName) {
     return new Promise((resolve, reject) => {
-      this._conf.host = host
-      this._conf.service = service
+      if (isTest) {
+        this._conf.host = vmNameLabel
+        this._conf.service = jobName
+      } else {
+        if (this._conf.host !== undefined) {
+          this._conf.host = this._getHost(vmNameLabel, jobName)
+        } else {
+          this._conf.host = vmNameLabel
+        }
+        if (this._conf.service !== undefined) {
+          this._conf.service = this._getService(vmNameLabel, jobName)
+        } else {
+          this._conf.service = jobName
+        }
+      }
 
       if (/\r|\n/.test(message)) {
         warn('the message must not contain a line break', { message })
