@@ -30,26 +30,26 @@ export default class RegisterProxyModal extends Component {
             <DebounceInput
               className='form-control'
               onChange={this.linkState('authenticationToken')}
-              value={authenticationToken}
+              value={authenticationToken ?? ''}
             />
           </Col>
         </SingleLineRow>
         <SingleLineRow className='mt-1'>
           <Col size={6}>{_('name')}</Col>
           <Col size={6}>
-            <DebounceInput className='form-control' onChange={this.linkState('name')} value={name} />
+            <DebounceInput className='form-control' onChange={this.linkState('name')} value={name ?? ''} />
           </Col>
         </SingleLineRow>
         <SingleLineRow className='mt-1'>
           <Col size={6}>{_('address')}</Col>
           <Col size={6}>
-            <DebounceInput className='form-control' onChange={this.linkState('address')} value={address} />
+            <DebounceInput className='form-control' onChange={this.linkState('address')} value={address ?? ''} />
           </Col>
         </SingleLineRow>
         <SingleLineRow className='mt-1'>
           <Col size={6}>{_('vmUuid')}</Col>
           <Col size={6}>
-            <DebounceInput className='form-control' onChange={this.linkState('vmUuid')} value={vmUuid} />
+            <DebounceInput className='form-control' onChange={this.linkState('vmUuid')} value={vmUuid ?? ''} />
           </Col>
         </SingleLineRow>
         <SingleLineRow className='mt-1'>
