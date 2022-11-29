@@ -516,10 +516,10 @@ export default {
   homeWelcome: 'Benvenuti in Xen Orchestra!',
 
   // Original text: 'Add your XCP-ng hosts or pools'
-  homeWelcomeText: 'Aggiungi i tuoi hosts o pools XenServer',
+  homeWelcomeText: 'Aggiungi i tuoi hosts o pools XCP-ng',
 
-  // Original text: 'Some XenServers have been registered but are not connected'
-  homeConnectServerText: 'Alcuni XenServers sono stati registrati ma non sono collegati',
+  // Original text: 'Some XCP-ng hosts have been registered but are not connected'
+  homeConnectServerText: 'Alcuni XCP-ng hosts sono stati registrati ma non sono collegati',
 
   // Original text: 'Want some help?'
   homeHelp: 'Vuoi un aiuto?',
