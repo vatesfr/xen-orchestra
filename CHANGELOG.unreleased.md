@@ -41,7 +41,6 @@
 
 - @xen-orchestra/backups-cli major
 - @xen-orchestra/fs minor
-- @xen-orchestra/log minor
 - vhd-lib minor
 - xo-cli patch
 - xo-server minor

@@ -25,7 +25,7 @@
   "dependencies": {
     "@vates/multi-key-map": "^0.1.0",
     "@xen-orchestra/async-map": "^0.1.2",
-    "@xen-orchestra/log": "^0.4.0",
+    "@xen-orchestra/log": "^0.5.0",
     "ensure-array": "^1.0.0"
   },
   "devDependencies": {
