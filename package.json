@@ -6,7 +6,6 @@
     "@vates/async-each": "^1.0.0",
     "babel-jest": "^29.0.3",
     "benchmark": "^2.1.4",
-    "deptree": "^1.0.0",
     "eslint": "^8.7.0",
     "eslint-config-prettier": "^8.1.0",
     "eslint-config-standard": "^17.0.0",
