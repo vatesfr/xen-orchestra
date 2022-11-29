@@ -43,7 +43,12 @@ export default class RegisterProxyModal extends Component {
         <SingleLineRow className='mt-1'>
           <Col size={6}>{_('address')}</Col>
           <Col size={6}>
-            <DebounceInput className='form-control' onChange={this.linkState('address')} value={address ?? ''} />
+            <DebounceInput
+              className='form-control'
+              onChange={this.linkState('address')}
+              placeholder='192.168.2.20[:4343]'
+              value={address ?? ''}
+            />
           </Col>
         </SingleLineRow>
         <SingleLineRow className='mt-1'>
