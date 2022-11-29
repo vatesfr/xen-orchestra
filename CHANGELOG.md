@@ -11,6 +11,7 @@
 - @xen-orchestra/audit-core 0.2.2
 - @xen-orchestra/backups 0.29.1
 - @xen-orchestra/backups-cli 1.0.0
+- @xen-orchestra/mixins 0.8.2
 
 ## **5.76.2** (2022-11-14)
 
