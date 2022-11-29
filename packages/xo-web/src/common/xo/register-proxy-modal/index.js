@@ -21,6 +21,9 @@ export default class RegisterProxyModal extends Component {
     const { address, authenticationToken, name, vmUuid } = this.state
     return (
       <Container>
+        <a href='https://xen-orchestra.com/blog/xo-proxy-a-concrete-guide/' rel='noopener noreferrer'>
+          <Icon icon='info' /> {_('xoProxyConcreteGuide')}
+        </a>
         <SingleLineRow className='mt-1'>
           <Col size={6}>{_('proxyAuthToken')}</Col>
           <Col size={6}>

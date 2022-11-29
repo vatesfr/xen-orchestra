@@ -3313,12 +3313,12 @@ export const registerProxy = async () => {
 
   const proxyId = await registerProxyApplicance(registerProxyInfo)
   const _isProxyWorking = await isProxyWorking(proxyId).catch(err => {
-    console.error(err)
+    console.error('isProxyWorking error:', err)
     return false
   })
   if (!_isProxyWorking) {
     await confirm({
-      body: _('proxyTestFailedAfterRegistrationMessage'),
+      body: _('proxyConnectionFailedAfterRegistrationMessage'),
       title: _('proxyError'),
     })
     await forgetProxyAppliances([proxyId])
