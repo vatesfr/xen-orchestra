@@ -8,10 +8,10 @@ import { Input as DebounceInput } from 'debounce-input-decorator'
 
 export default class RegisterProxyModal extends Component {
   state = {
-    address: undefined,
-    authenticationToken: undefined,
-    name: undefined,
-    vmUuid: undefined,
+    address: '',
+    authenticationToken: '',
+    name: '',
+    vmUuid: '',
   }
   get value() {
     return this.state
@@ -30,14 +30,14 @@ export default class RegisterProxyModal extends Component {
             <DebounceInput
               className='form-control'
               onChange={this.linkState('authenticationToken')}
-              value={authenticationToken ?? ''}
+              value={authenticationToken}
             />
           </Col>
         </SingleLineRow>
         <SingleLineRow className='mt-1'>
           <Col size={6}>{_('name')}</Col>
           <Col size={6}>
-            <DebounceInput className='form-control' onChange={this.linkState('name')} value={name ?? ''} />
+            <DebounceInput className='form-control' onChange={this.linkState('name')} value={name} />
           </Col>
         </SingleLineRow>
         <SingleLineRow className='mt-1'>
@@ -47,14 +47,14 @@ export default class RegisterProxyModal extends Component {
               className='form-control'
               onChange={this.linkState('address')}
               placeholder='192.168.2.20[:4343]'
-              value={address ?? ''}
+              value={address}
             />
           </Col>
         </SingleLineRow>
         <SingleLineRow className='mt-1'>
           <Col size={6}>{_('vmUuid')}</Col>
           <Col size={6}>
-            <DebounceInput className='form-control' onChange={this.linkState('vmUuid')} value={vmUuid ?? ''} />
+            <DebounceInput className='form-control' onChange={this.linkState('vmUuid')} value={vmUuid} />
           </Col>
         </SingleLineRow>
         <SingleLineRow className='mt-1'>

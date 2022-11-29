@@ -3305,13 +3305,20 @@ export const deployProxyAppliance = (license, sr, { network, proxy, ...props } =
   })::tap(subscribeProxies.forceRefresh)
 
 export const registerProxy = async () => {
-  const registerProxyInfo = await confirm({
+  const getStringOrUndefined = string => (string.trim() === '' ? undefined : string)
+
+  const { address, authenticationToken, name, vmUuid } = await confirm({
     body: <RegisterProxyModal />,
     icon: 'connect',
     title: _('registerProxy'),
   })
 
-  const proxyId = await registerProxyApplicance(registerProxyInfo)
+  const proxyId = await registerProxyApplicance({
+    address: getStringOrUndefined(address),
+    authenticationToken: getStringOrUndefined(authenticationToken),
+    name: getStringOrUndefined(name),
+    vmUuid: getStringOrUndefined(vmUuid),
+  })
   const _isProxyWorking = await isProxyWorking(proxyId).catch(err => {
     console.error('isProxyWorking error:', err)
     return false
