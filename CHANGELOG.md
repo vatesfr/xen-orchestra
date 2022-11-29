@@ -16,6 +16,7 @@
 - @xen-orchestra/proxy 0.26.5
 - xo-vmdk-to-vhd 2.5.0
 - xo-cli 0.14.2
+- xo-server 5.107.0
 
 ## **5.76.2** (2022-11-14)
 
