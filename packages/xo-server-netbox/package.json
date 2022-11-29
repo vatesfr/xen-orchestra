@@ -1,6 +1,6 @@
 {
   "name": "xo-server-netbox",
-  "version": "0.3.4",
+  "version": "0.3.5",
   "license": "AGPL-3.0-or-later",
   "description": "Synchronizes pools managed by Xen Orchestra with Netbox",
   "keywords": [
