@@ -110,6 +110,7 @@ const messages = {
   addCustomField: 'Add custom field',
   editCustomField: 'Edit custom field',
   deleteCustomField: 'Delete custom field',
+  onlyAvailableXoaUsers: 'Only available to XOA users',
 
   // ----- Modals -----
   alertOk: 'OK',
@@ -1332,6 +1333,7 @@ const messages = {
   vmCoresPerSocketExceedsSocketsLimit: 'The selected value exceeds the sockets limit ({maxSockets, number})',
   vmHaDisabled: 'Disabled',
   vmMemoryLimitsLabel: 'Memory limits (min/max)',
+  vmUuid: 'VM UUID',
   vmVgpu: 'vGPU',
   vmVgpus: 'GPUs',
   vmVgpuNone: 'None',
@@ -2471,7 +2473,6 @@ const messages = {
   proxyUnknownVm: 'Unknown proxy VM.',
 
   // ----- proxies -----
-  deployProxyDisabled: 'Only available to XOA users',
   forgetProxyApplianceTitle: 'Forget prox{n, plural, one {y} other {ies}}',
   forgetProxyApplianceMessage: 'Are you sure you want to forget {n, number} prox{n, plural, one {y} other {ies}}?',
   forgetProxies: 'Forget proxy(ies)',
@@ -2482,11 +2483,16 @@ const messages = {
   redeployProxy: 'Redeploy proxy',
   redeployProxyAction: 'Redeploy this proxy',
   redeployProxyWarning: 'This action will destroy the old proxy VM',
+  registerProxy: 'Register a proxy',
   noProxiesAvailable: 'No proxies available',
   checkProxyHealth: 'Test your proxy',
   updateProxyApplianceSettings: 'Update appliance settings',
   urlNotFound: 'URL not found',
+  proxyAuthToken: 'Authentication token',
+  proxyConnectionFailedAfterRegistrationMessage: 'Unable to connect to this proxy. Do you want to forget it?',
   proxyCopyUrl: 'Copy proxy URL',
+  proxyError: 'Proxy error',
+  proxyOptionalVmUuid: 'VM UUID is optional but recommended.',
   proxyTestSuccess: 'Test passed for {name}',
   proxyTestSuccessMessage: 'The proxy appears to work correctly',
   proxyTestFailed: 'Test failed for {name}',
@@ -2505,6 +2511,7 @@ const messages = {
     'The upgrade will interrupt {nJobs, number} running backup job{nJobs, plural, one {} other {s}}. Do you want to continue?',
   proxiesNeedUpgrade: 'Some proxies need to be upgraded.',
   upgradeNeededForProxies: 'Some proxies need to be upgraded. Click here to get more information.',
+  xoProxyConcreteGuide: 'XO Proxy: a concrete guide',
 
   // ----- Utils -----
   secondsFormat: '{seconds, plural, one {# second} other {# seconds}}',

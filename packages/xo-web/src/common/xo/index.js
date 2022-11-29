@@ -26,6 +26,7 @@ import invoke from '../invoke'
 import Icon from '../icon'
 import logError from '../log-error'
 import NewAuthTokenModal from './new-auth-token-modal'
+import RegisterProxyModal from './register-proxy-modal'
 import renderXoItem, { renderXoItemFromId, Vm } from '../render-xo-item'
 import store from 'store'
 import { alert, chooseAction, confirm } from '../modal'
@@ -3306,6 +3307,37 @@ export const deployProxyAppliance = (license, sr, { network, proxy, ...props } =
     ...props,
   })::tap(subscribeProxies.forceRefresh)
 
+export const registerProxy = async () => {
+  const getStringOrUndefined = string => (string.trim() === '' ? undefined : string)
+
+  const { address, authenticationToken, name, vmUuid } = await confirm({
+    body: <RegisterProxyModal />,
+    icon: 'connect',
+    title: _('registerProxy'),
+  })
+
+  const proxyId = await registerProxyApplicance({
+    address: getStringOrUndefined(address),
+    authenticationToken: getStringOrUndefined(authenticationToken),
+    name: getStringOrUndefined(name),
+    vmUuid: getStringOrUndefined(vmUuid),
+  })
+  const _isProxyWorking = await isProxyWorking(proxyId).catch(err => {
+    console.error('isProxyWorking error:', err)
+    return false
+  })
+  if (!_isProxyWorking) {
+    await confirm({
+      body: _('proxyConnectionFailedAfterRegistrationMessage'),
+      title: _('proxyError'),
+    })
+    await forgetProxyAppliances([proxyId])
+  }
+}
+
+export const registerProxyApplicance = proxyInfo =>
+  _call('proxy.register', proxyInfo)::tap(subscribeProxies.forceRefresh)
+
 export const editProxyAppliance = (proxy, { vm, ...props }) =>
   _call('proxy.update', {
     id: resolveId(proxy),
@@ -3364,6 +3396,8 @@ export const checkProxyHealth = async proxy => {
         </span>
       )
 }
+
+export const isProxyWorking = async proxy => (await _call('proxy.checkHealth', { id: resolveId(proxy) })).success
 
 // Audit plugin ---------------------------------------------------------
 

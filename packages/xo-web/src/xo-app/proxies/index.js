@@ -23,6 +23,7 @@ import {
   forgetProxyAppliances,
   getLicenses,
   getProxyApplianceUpdaterState,
+  registerProxy,
   subscribeProxies,
   upgradeProxyAppliance,
   EXPIRES_SOON_DELAY,
@@ -322,9 +323,20 @@ const Proxies = decorate([
             handler={effects.deployProxy}
             icon='proxy'
             size='large'
-            tooltip={state.isFromSource ? _('deployProxyDisabled') : undefined}
+            tooltip={state.isFromSource ? _('onlyAvailableXoaUsers') : undefined}
           >
             {_('deployProxy')}
+          </ActionButton>
+          <ActionButton
+            className='ml-1'
+            btnStyle='success'
+            disabled={state.isFromSource}
+            handler={registerProxy}
+            icon='connect'
+            size='large'
+            tooltip={state.isFromSource ? _('onlyAvailableXoaUsers') : undefined}
+          >
+            {_('registerProxy')}
           </ActionButton>
         </div>
         <NoObjects
