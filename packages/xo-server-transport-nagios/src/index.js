@@ -2,7 +2,6 @@ import crc32 from 'buffer-crc32'
 import net from 'net'
 import { Buffer } from 'buffer'
 import { createLogger } from '@xen-orchestra/log'
-// eslint-disable-next-line n/no-extraneous-import
 import { compileTemplate } from '@xen-orchestra/template'
 
 const { debug, warn } = createLogger('xo:server:transport:nagios')
@@ -13,12 +12,13 @@ const hostDescription = `Host name on Nagios.
 
 Leave empty if the host name equals the vm name (the default configuration).
 
-Otherwise, you could choose a custom name but the template \`{vm.name_label}\` must  be included. For example: \`xo-backup-{vm.name_label}\``
+Otherwise, you could choose a custom name but the template \`{vm.name_label}\` must  be included. For example: \`xo-backup-{vm.name_label}\`.`
 
 const serviceDescription = `Service name on Nagios.
-  Leave empty if the host name equals the backup job name (the default configuration).
-  therwise, you could choose a custom name but the template '{job.name}' must
-  be included. For example: '{job.name}-Xen Orchestra.`
+
+Leave empty if the host name equals the backup job name (the default configuration).
+
+Otherwise, you could choose a custom name but the template \`{job.name}\` must e included. For example: \`{job.name}-Xen Orchestra\`.`
 
 export const configurationSchema = {
   type: 'object',
