@@ -10,7 +10,7 @@
 - [Remotes] Prevent remote path from ending with `xo-vm-backups` as it's usually a mistake
 - [OVA export] Speed up OVA generation by 2. Generated file will be bigger (as big as uncompressed XVA) (PR [#6487](https://github.com/vatesfr/xen-orchestra/pull/6487))
 - [Settings/Users] Add `Remove` button to delete OTP of users from the admin panel [Forum#6521](https://xcp-ng.org/forum/topic/6521/remove-totp-on-a-user-account) (PR [#6541](https://github.com/vatesfr/xen-orchestra/pull/6541))
-- [Plugin/transport-nagios] XO now reports beckup VMs invidually with the VM name label used as *host* and backup job name used as *service*
+- [Plugin/transport-nagios] XO now reports beckup VMs invidually with the VM name label used as _host_ and backup job name used as _service_. However, it's also possible the customize the _host_ name and _service_ name as long as the template is included.
 
 ### Bug fixes
 
