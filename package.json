@@ -3,7 +3,7 @@
     "@babel/core": "^7.0.0",
     "@babel/eslint-parser": "^7.13.8",
     "@babel/register": "^7.0.0",
-    "@vates/async-each": "1.0.0",
+    "@vates/async-each": "^1.0.0",
     "babel-jest": "^29.0.3",
     "benchmark": "^2.1.4",
     "deptree": "^1.0.0",
