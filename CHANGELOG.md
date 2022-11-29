@@ -12,6 +12,7 @@
 - @xen-orchestra/backups 0.29.1
 - @xen-orchestra/backups-cli 1.0.0
 - @xen-orchestra/mixins 0.8.2
+- @xen-orchestra/xapi 1.5.3
 
 ## **5.76.2** (2022-11-14)
 
