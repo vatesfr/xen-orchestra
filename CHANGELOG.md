@@ -18,6 +18,7 @@
 - xo-cli 0.14.2
 - xo-server 5.107.0
 - xo-server-audit 0.10.2
+- xo-server-auth-ldap 0.10.6
 
 ## **5.76.2** (2022-11-14)
 
