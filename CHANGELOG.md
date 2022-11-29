@@ -24,6 +24,7 @@
 - xo-server-netbox 0.3.5
 - xo-server-sdn-controller 1.0.7
 - xo-server-transport-nagios 1.0.0
+- xo-server-usage-report 0.10.2
 
 ## **5.76.2** (2022-11-14)
 
