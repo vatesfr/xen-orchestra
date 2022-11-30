@@ -94,10 +94,10 @@ const computedData = computed(() => {
 }
 
 .legend {
-  align-items: center;
   display: flex;
-  gap: 0.5rem;
+  align-items: center;
   justify-content: flex-end;
+  gap: 0.5rem;
   margin: 1.6em 0;
   text-align: right;
 }
