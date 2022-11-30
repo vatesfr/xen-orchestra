@@ -94,8 +94,12 @@ const computedData = computed(() => {
 }
 
 .legend {
-  text-align: right;
+  align-items: center;
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
   margin: 1.6em 0;
+  text-align: right;
 }
 
 .badge {
