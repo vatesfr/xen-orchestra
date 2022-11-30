@@ -13,8 +13,6 @@
 
 ### Bug fixes
 
-> Users must be able to say: “I had this issue, happy to know it's fixed”
-
 - [Dashboard/Health] Fix `Unknown SR` and `Unknown VDI` in Unhealthy VDIs (PR [#6519](https://github.com/vatesfr/xen-orchestra/pull/6519))
 - [Delta Backup] Can now recover VHD merge when failed at the begining
 - [Delta Backup] Fix `ENOENT` errors when merging a VHD directory on non-S3 remote
@@ -34,7 +32,7 @@
 - @xen-orchestra/proxy 0.26.5
 - xo-vmdk-to-vhd 2.5.0
 - xo-cli 0.14.2
-- xo-server 5.107.0
+- xo-server 5.107.1
 - xo-server-audit 0.10.2
 - xo-server-auth-ldap 0.10.6
 - xo-server-backup-reports 0.17.2
