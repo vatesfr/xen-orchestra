@@ -10,10 +10,12 @@
         class="progress-item"
       >
         <UiProgressBar :value="item.value" color="custom" />
-        <div class="badge">
+        <div class="legend">
           <span class="circle" />
           {{ item.label }}
-          <UiBadge>{{ item.badgeLabel ?? `${item.value}%` }}</UiBadge>
+          <UiBadge class="badge">{{
+            item.badgeLabel ?? `${item.value}%`
+          }}</UiBadge>
         </div>
       </div>
       <div class="footer">
@@ -91,11 +93,17 @@ const computedData = computed(() => {
   height: 40px;
 }
 
-.badge {
+.legend {
   display: flex;
   align-items: center;
   justify-content: flex-end;
   gap: 0.5rem;
+  margin: 1.6em 0;
+}
+
+.badge {
+  font-size: 0.9em;
+  font-weight: 700;
 }
 
 .progress-item {
