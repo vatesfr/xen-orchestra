@@ -66,7 +66,7 @@ export default class MigrateVm {
 
     // run the transfer again to transfer the changed parts
     // since the source is stopped, there won't be any new change after
-    backup = this.#createWarmBackup(sourceVmId, srId)
+    backup = this.#createWarmBackup(sourceVmId, srId, jobId)
     await backup.run()
     // find the destination Vm
     const targets = Object.keys(
