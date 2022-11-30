@@ -99,7 +99,6 @@ const computedData = computed(() => {
   justify-content: flex-end;
   gap: 0.5rem;
   margin: 1.6em 0;
-  text-align: right;
 }
 
 .badge {
