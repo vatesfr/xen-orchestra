@@ -15,10 +15,8 @@ RUN /bin/bash -c "source $NVM_DIR/nvm.sh && nvm install $NODE_VERSION && nvm use
 ENV NODE_PATH $NVM_DIR/versions/node/$NODE_VERSION/lib/node_modules
 ENV PATH      $NVM_DIR/versions/node/$NODE_VERSION/bin:$PATH
 
-RUN  npm install -g yarn
+RUN npm install -g yarn
 
 WORKDIR /xen-orchestra
-#  invalidate build on package change
-COPY ./yarn.lock /xen-orchestra/yarn.lock
-ENTRYPOINT yarn ci
 
+ENTRYPOINT yarn ci

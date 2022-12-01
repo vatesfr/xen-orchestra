@@ -157,7 +157,7 @@
     "dev": "cross-env NODE_ENV=development yarn run _build --watch",
     "prepublishOnly": "yarn run build",
     "start": "node dist/cli.mjs",
-    "pretest": "yarn run build",
+    "pretest": "id >&2; yarn run build",
     "test": "tap 'dist/**/*.spec.mjs'"
   },
   "author": {
