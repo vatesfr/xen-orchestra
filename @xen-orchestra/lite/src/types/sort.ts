@@ -5,6 +5,15 @@ interface Sort {
   icon?: IconDefinition;
 }
 
-export type Sorts = { [key: string]: Sort };
+export interface Sorts {
+  [key: string]: Sort;
+}
 
 export type ActiveSorts<T> = Map<keyof T, boolean>;
+
+export type InitialSorts<T> = `${"-" | ""}${Extract<keyof T, string>}`[];
+
+export interface SortConfig<T> {
+  queryStringParam?: string;
+  initialSorts?: InitialSorts<T>;
+}

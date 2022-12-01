@@ -26,14 +26,13 @@ addSort("name", true); // Will update the URL with ?sort=name:1
 
 This option allows to set some initial sorts.
 
+Use `key` for ascending sort and `-key` for descending sort.
+
 ```typescript
 const {
   /* ... */
 } = useCollectionSorter({
-  initialSorts: [
-    ["name", true],
-    ["age", false],
-  ],
+  initialSorts: ["name", "-age"],
 });
 ```
 

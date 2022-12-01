@@ -1,18 +1,13 @@
 import { getFirst } from "@/libs/utils";
-import type { ActiveSorts } from "@/types/sort";
+import type { ActiveSorts, InitialSorts, SortConfig } from "@/types/sort";
 import { computed, ref, watch } from "vue";
 import { type LocationQueryValue, useRoute, useRouter } from "vue-router";
 
-interface Config<T> {
-  queryStringParam?: string;
-  initialSorts?: [property: keyof T, isAscending: boolean][];
-}
-
-export default function useCollectionSorter<T>(config: Config<T> = {}) {
+export default function useCollectionSorter<T>(config: SortConfig<T> = {}) {
   const route = useRoute();
   const router = useRouter();
   const { queryStringParam, initialSorts = [] } = config;
-  const sorts = ref<ActiveSorts<T>>(new Map(initialSorts));
+  const sorts = ref<ActiveSorts<T>>(parseInitialSorts(initialSorts));
 
   const sortsAsString = computed(() =>
     Array.from(sorts.value)
@@ -75,7 +70,7 @@ export default function useCollectionSorter<T>(config: Config<T> = {}) {
   };
 }
 
-function queryToMap(query: LocationQueryValue) {
+function queryToMap(query?: LocationQueryValue) {
   if (!query) {
     return new Map();
   }
@@ -84,6 +79,17 @@ function queryToMap(query: LocationQueryValue) {
     query.split(",").map((sortRaw): [string, boolean] => {
       const [property, isAscending] = sortRaw.split(":");
       return [property, isAscending === "1"];
+    })
+  );
+}
+
+function parseInitialSorts<T>(sorts: InitialSorts<T>): ActiveSorts<T> {
+  return new Map(
+    sorts.map((sort) => {
+      const isDescending = sort.startsWith("-");
+      const property = (isDescending ? sort.substring(1) : sort) as keyof T;
+
+      return [property, !isDescending];
     })
   );
 }
