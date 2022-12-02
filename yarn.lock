@@ -8461,11 +8461,6 @@ deps-sort@^2.0.0:
     subarg "^1.0.0"
     through2 "^2.0.0"
 
-deptree@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/deptree/-/deptree-1.0.0.tgz#d4f8fa7c21444b1977e719ce3d29fc3650336b7b"
-  integrity sha512-qKt+SGNEI+zTaLPoQTMEMT5giwOQsHeTSGbRRE/dFxXUAXVAeMYs78+XUXBrrQcazXxq0Hq83WLjKRILLCI80A==
-
 des.js@^1.0.0, des.js@^1.0.1:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/des.js/-/des.js-1.1.0.tgz#1d37f5766f3bbff4ee9638e871a8768c173b81da"

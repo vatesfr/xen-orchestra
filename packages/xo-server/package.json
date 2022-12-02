@@ -68,7 +68,6 @@
     "cookie-parser": "^1.4.3",
     "d3-time-format": "^4.1.0",
     "decorator-synchronized": "^0.6.0",
-    "deptree": "^1.0.0",
     "exec-promise": "^0.7.0",
     "execa": "^7.0.0",
     "express": "^4.16.2",

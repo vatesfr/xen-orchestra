@@ -1,5 +1,4 @@
 import * as openpgp from 'openpgp'
-import DepTree from 'deptree'
 import fromCallback from 'promise-toolbox/fromCallback'
 import { createLogger } from '@xen-orchestra/log'
 import { gunzip, gzip } from 'node:zlib'
@@ -11,7 +10,6 @@ const log = createLogger('xo:config-management')
 export default class ConfigManagement {
   constructor(app) {
     this._app = app
-    this._depTree = new DepTree()
     this._managers = { __proto__: null }
   }
 
@@ -21,7 +19,6 @@ export default class ConfigManagement {
       throw new Error(`${id} is already taken`)
     }
 
-    this._depTree.add(id, dependencies)
     this._managers[id] = { dependencies, exporter, importer }
   }
 
@@ -76,15 +73,27 @@ export default class ConfigManagement {
     config = JSON.parse(config)
 
     const managers = this._managers
-    for (const key of this._depTree.resolve()) {
-      const manager = managers[key]
+    const imported = new Set()
+    async function importEntry(id) {
+      if (!imported.has(id)) {
+        imported.add(id)
 
-      const data = config[key]
-      if (data !== undefined) {
-        log.debug(`importing ${key}`)
-        await manager.importer(data)
+        await importEntries(managers[id].dependencies)
+
+        const data = config[id]
+        if (data !== undefined) {
+          log.debug(`importing ${id}`)
+          await managers[id].importer(data)
+        }
       }
     }
+    async function importEntries(ids) {
+      for (const id of ids) {
+        await importEntry(id)
+      }
+    }
+    await importEntries(Object.keys(config))
+
     await this._app.hooks.clean()
   }
 }
