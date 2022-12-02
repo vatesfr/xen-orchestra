@@ -16,9 +16,12 @@ export default function useCollectionSorter<T>(config: SortConfig<T> = {}) {
   );
 
   if (queryStringParam !== undefined) {
-    if (route.query[queryStringParam] !== undefined) {
-      sorts.value = queryToMap(getFirst(route.query[queryStringParam]));
+    const queryString = route.query[queryStringParam];
+
+    if (queryString !== undefined) {
+      sorts.value = queryToMap(getFirst(queryString));
     }
+
     watch(sortsAsString, (value) =>
       router.replace({
         query: { ...route.query, [queryStringParam]: value },
