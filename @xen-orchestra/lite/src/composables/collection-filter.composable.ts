@@ -16,9 +16,12 @@ export default function useCollectionFilter<T>(config: Config = {}) {
   const filters = computed(() => Array.from(filtersSet.value.values()));
 
   if (queryStringParam !== undefined) {
-    if (route.query[queryStringParam] !== undefined) {
-      filtersSet.value = queryToSet(getFirst(route.query[queryStringParam]));
+    const queryString = route.query[queryStringParam];
+
+    if (queryString !== undefined) {
+      filtersSet.value = queryToSet(getFirst(queryString));
     }
+
     watch(filters, (value) =>
       router.replace({
         query: { ...route.query, [queryStringParam]: value.join(" ") },
