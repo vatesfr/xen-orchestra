@@ -3,9 +3,9 @@
   <slot v-else />
 </template>
 <script lang="ts" setup>
+import NotFoundView from "@/views/NotFoundView.vue";
 import { useHostStore } from "@/stores/host.store";
 import { useVmStore } from "@/stores/vm.store";
-import NotFoundView from "@/views/NotFoundView.vue";
 import { computed } from "vue";
 import { useRouter } from "vue-router";
 

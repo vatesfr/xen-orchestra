@@ -5,9 +5,9 @@
 </template>
 
 <script lang="ts" setup>
+import NotFoundWrapper from "@/components/NotFoundWrapper.vue";
 import { watchEffect } from "vue";
 import { useRoute } from "vue-router";
-import NotFoundWrapper from "@/components/NotFoundWrapper.vue";
 import { useUiStore } from "@/stores/ui.store";
 import { useVmStore } from "@/stores/vm.store";
 
