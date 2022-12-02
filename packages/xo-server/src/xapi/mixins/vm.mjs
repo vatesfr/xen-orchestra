@@ -38,6 +38,9 @@ export default {
       vifs = undefined,
       existingVdis = undefined,
 
+      cloudConfig = undefined,
+      networkConfig = undefined,
+
       vgpuType = undefined,
       gpuGroup = undefined,
 
@@ -207,6 +210,13 @@ export default {
     if (vgpuType !== undefined && gpuGroup !== undefined) {
       await this.createVgpu(vm, gpuGroup, vgpuType)
     }
+
+    await this.createCloudInitConfigDrive(
+      vm.$id,
+      existingVdis['0'].$SR,
+      cloudConfig,
+      networkConfig
+    )
 
     // wait for the record with all the VBDs and VIFs
     return this.barrier(vm.$ref)
