@@ -1,13 +1,13 @@
 <template>
-  <RedirectIfNotFound object-type="vm">
+  <NotFoundWrapper object-type="vm">
     <RouterView />
-  </RedirectIfNotFound>
+  </NotFoundWrapper>
 </template>
 
 <script lang="ts" setup>
 import { watchEffect } from "vue";
 import { useRoute } from "vue-router";
-import RedirectIfNotFound from "@/components/RedirectIfNotFound.vue";
+import NotFoundWrapper from "@/components/NotFoundWrapper.vue";
 import { useUiStore } from "@/stores/ui.store";
 import { useVmStore } from "@/stores/vm.store";
 

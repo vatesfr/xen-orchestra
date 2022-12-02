@@ -62,6 +62,9 @@ export function createRecordContext<T extends XenApiRecord>(
   const getRecordByUuid = (uuid: string) =>
     useRecordsStore().getRecordByUuid<T>(uuid);
 
+  const hasRecordByUuid = (uuid: string) =>
+    useRecordsStore().hasRecordByUuid(uuid);
+
   return {
     init,
     opaqueRefs,
@@ -69,5 +72,6 @@ export function createRecordContext<T extends XenApiRecord>(
     getRecordByUuid,
     isReady,
     allRecords,
+    hasRecordByUuid,
   };
 }

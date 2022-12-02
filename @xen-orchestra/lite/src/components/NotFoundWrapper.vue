@@ -1,10 +1,13 @@
 <template>
-  <slot />
+  <NotFoundView v-if="isRecordNotFound" />
+  <slot v-else />
 </template>
 <script lang="ts" setup>
-import { useRedirectIfNotFound } from "@/composables/redirect-if-not-found.composable";
 import { useHostStore } from "@/stores/host.store";
 import { useVmStore } from "@/stores/vm.store";
+import NotFoundView from "@/views/NotFoundView.vue";
+import { computed } from "vue";
+import { useRouter } from "vue-router";
 
 const storeByType = {
   vm: useVmStore,
@@ -21,12 +24,13 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const store = storeByType[props.objectType]();
+const { currentRoute } = useRouter();
 
-useRedirectIfNotFound(
-  () => store.isReady,
-  (route) =>
-    store.getRecordByUuid(props.id ?? (route.params.uuid as string)) !==
-    undefined,
-  props.routeName
+const isRecordNotFound = computed(
+  () =>
+    store.isReady &&
+    !store.hasRecordByUuid(
+      props.id ?? (currentRoute.value.params.uuid as string)
+    )
 );
 </script>

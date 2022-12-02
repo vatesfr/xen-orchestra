@@ -1,9 +1,9 @@
 <template>
-  <RedirectIfNotFound object-type="host">
+  <NotFoundWrapper object-type="host">
     <RouterView />
-  </RedirectIfNotFound>
+  </NotFoundWrapper>
 </template>
 
 <script lang="ts" setup>
-import RedirectIfNotFound from "@/components/RedirectIfNotFound.vue";
+import NotFoundWrapper from "@/components/NotFoundWrapper.vue";
 </script>
