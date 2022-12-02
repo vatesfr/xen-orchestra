@@ -18,6 +18,7 @@
 .value {
   padding-top: 0.5rem;
   padding-bottom: 0.5rem;
+  font-weight: 400;
 }
 
 .key {
@@ -26,7 +27,7 @@
   color: var(--color-blue-scale-300);
 
   @media (--desktop) {
-    padding-right: 10rem;
+    min-width: 20rem;
   }
 }
 </style>
