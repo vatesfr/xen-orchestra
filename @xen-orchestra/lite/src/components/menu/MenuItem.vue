@@ -4,6 +4,7 @@
       v-if="!$slots.submenu"
       :active="isBusy"
       :busy="isBusy"
+      :color="color"
       :disabled="isDisabled"
       :icon="icon"
       @click="handleClick"
@@ -12,7 +13,7 @@
     </MenuTrigger>
     <AppMenu v-else shadow :disabled="isDisabled">
       <template #trigger="{ open, isOpen }">
-        <MenuTrigger :active="isOpen" :icon="icon" @click="open">
+        <MenuTrigger :active="isOpen" :color="color" :icon="icon" @click="open">
           <slot />
           <UiIcon
             :fixed-width="false"
@@ -34,12 +35,14 @@ import { noop } from "@vueuse/core";
 import AppMenu from "@/components/menu/AppMenu.vue";
 import MenuTrigger from "@/components/menu/MenuTrigger.vue";
 import UiIcon from "@/components/ui/UiIcon.vue";
+import type { Color } from "@/types";
 
 const props = defineProps<{
   icon?: IconDefinition;
   onClick?: () => any;
   disabled?: boolean;
   busy?: boolean;
+  color?: Color;
 }>();
 
 const isParentHorizontal = inject("isMenuHorizontal", false);

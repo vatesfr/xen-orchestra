@@ -1,11 +1,17 @@
 <template>
   <ObjectNotFoundWrapper object-type="vm">
-    <RouterView />
+    <div>
+      <VmHeader />
+      <div>
+        <RouterView />
+      </div>
+    </div>
   </ObjectNotFoundWrapper>
 </template>
 
 <script lang="ts" setup>
 import ObjectNotFoundWrapper from "@/components/ObjectNotFoundWrapper.vue";
+import VmHeader from "@/views/vm/VmHeader.vue";
 import { watchEffect } from "vue";
 import { useRoute } from "vue-router";
 import { useUiStore } from "@/stores/ui.store";

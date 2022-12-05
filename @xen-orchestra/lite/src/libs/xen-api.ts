@@ -69,6 +69,7 @@ export interface XenApiRecord {
 export type RawXenApiRecord<T extends XenApiRecord> = Omit<T, "$ref">;
 
 export interface XenApiPool extends XenApiRecord {
+  master: string;
   name_label: string;
 }
 
