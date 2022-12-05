@@ -596,8 +596,8 @@ migrate.resolve = {
   migrationNetwork: ['migrationNetwork', 'network', 'administrate'],
 }
 
-export async function warmMigration({ vm, sr, startVm, deleteSource }) {
-  await this.warmMigrateVm(vm, sr, startVm, deleteSource)
+export async function warmMigration({ vm, sr, startDestinationVm, deleteSourceVm }) {
+  await this.warmMigrateVm(vm, sr, startDestinationVm, deleteSourceVm)
 }
 warmMigration.permission = 'admin'
 
