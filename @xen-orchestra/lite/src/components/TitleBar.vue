@@ -30,6 +30,12 @@ defineProps<{
   padding: 0 2rem;
   border-bottom: 1px solid var(--color-blue-scale-400);
   background-color: var(--background-color-primary);
+  justify-content: space-between;
+}
+
+.title-bar {
+  display: flex;
+  align-items: center;
   gap: 1.5rem;
 }
 
