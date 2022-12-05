@@ -9,14 +9,24 @@
             <UiIcon :icon="faAngleDown" />
           </UiButton>
         </template>
-        <MenuItem :disabled="!isHalted" :icon="faPlay">
+        <MenuItem
+          @click="start"
+          :busy="hasOperation('start')"
+          :disabled="!isHalted"
+          :icon="faPlay"
+        >
           {{ $t("start") }}
         </MenuItem>
-        <MenuItem :disabled="!isHalted" :icon="faServer">
+        <MenuItem
+          :busy="hasOperation('start_on')"
+          :disabled="!isHalted"
+          :icon="faServer"
+        >
           {{ $t("start-on-host") }}
           <template #submenu>
             <MenuItem
               v-for="host in hostStore.allRecords"
+              @click="startOn(host.$ref)"
               v-bind:key="host.$ref"
               :icon="faServer"
             >
@@ -37,26 +47,58 @@
             </MenuItem>
           </template>
         </MenuItem>
-        <MenuItem :disabled="!isRunning" :icon="faPause">
+        <MenuItem
+          @click="pause"
+          :busy="hasOperation('pause')"
+          :disabled="!isRunning"
+          :icon="faPause"
+        >
           {{ $t("pause") }}
         </MenuItem>
-        <MenuItem :disabled="!isRunning" :icon="faMoon">
+        <MenuItem
+          @click="suspend"
+          :busy="hasOperation('suspend')"
+          :disabled="!isRunning"
+          :icon="faMoon"
+        >
           {{ $t("suspend") }}
         </MenuItem>
         <!-- TODO: update the icon once Clémence has integrated the action into figma -->
-        <MenuItem :disabled="!isSuspended && !isPaused" :icon="faCirclePlay">
+        <MenuItem
+          @click="resume"
+          :busy="hasOperation('unpause') || hasOperation('resume')"
+          :disabled="!isSuspended && !isPaused"
+          :icon="faCirclePlay"
+        >
           {{ $t("resume") }}
         </MenuItem>
-        <MenuItem :disabled="!isRunning" :icon="faRotateLeft">
+        <MenuItem
+          @click="reboot"
+          :busy="hasOperation('clean_reboot')"
+          :disabled="!isRunning"
+          :icon="faRotateLeft"
+        >
           {{ $t("reboot") }}
         </MenuItem>
-        <MenuItem :disabled="!isRunning && !isPaused" :icon="faRepeat">
+        <MenuItem
+          @click="reboot(true)"
+          :busy="hasOperation('hard_reboot')"
+          :disabled="!isRunning && !isPaused"
+          :icon="faRepeat"
+        >
           {{ $t("force-reboot") }}
         </MenuItem>
-        <MenuItem :disabled="!isRunning" :icon="faPowerOff">
+        <MenuItem
+          @click="shutdown"
+          :busy="hasOperation('clean_shutdown')"
+          :disabled="!isRunning"
+          :icon="faPowerOff"
+        >
           {{ $t("shutdown") }}
         </MenuItem>
         <MenuItem
+          @click="shutdown(true)"
+          :busy="hasOperation('hard_shutdown')"
           :disabled="!isRunning && !isSuspended && !isPaused"
           :icon="faPlug"
         >
@@ -77,6 +119,7 @@ import { isHostRunning } from "@/libs/utils";
 import { useHostStore } from "@/stores/host.store";
 import { usePoolStore } from "@/stores/pool.store";
 import { useVmStore } from "@/stores/vm.store";
+import { useXenApiStore } from "@/stores/xen-api.store";
 import {
   faAngleDown,
   faCirclePlay,
@@ -93,20 +136,45 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { computed } from "vue";
 import { useRouter } from "vue-router";
+import { computedAsync } from "@vueuse/core";
 
 const vmStore = useVmStore();
 const hostStore = useHostStore();
 const poolStore = usePoolStore();
 const { currentRoute } = useRouter();
 
-const vm = computed(() =>
-  vmStore.getRecordByUuid(currentRoute.value.params.uuid as string)
+const hasOperation = (operation: string) =>
+  Object.values(vm.value.current_operations).includes(operation);
+
+const vm = computed(
+  () => vmStore.getRecordByUuid(currentRoute.value.params.uuid as string)!
 );
+const xenApi = computedAsync(() => useXenApiStore().getXapi());
 const name = computed(() => vm.value?.name_label);
 const isRunning = computed(() => vm.value?.power_state === "Running");
 const isHalted = computed(() => vm.value?.power_state === "Halted");
 const isSuspended = computed(() => vm.value?.power_state === "Suspended");
-const isPaused = computed(() => vm.value?.power_state === "Paused");
+const isPaused = computed(
+  () =>
+    vm.value.power_state === "Paused" &&
+    !(hasOperation("clean_shutdown") || hasOperation("hard_shutdown"))
+);
+
+const start = () => xenApi.value.vm.start({ vmsRef: [vm.value.$ref] });
+const startOn = (hostRef: string) =>
+  xenApi.value.vm.startOn({ vmsRef: [vm.value.$ref], hostRef });
+const pause = () => xenApi.value.vm.pause({ vmsRef: [vm.value.$ref] });
+const suspend = () => xenApi.value.vm.suspend({ vmsRef: [vm.value.$ref] });
+const resume = () =>
+  xenApi.value.vm.resume({
+    vmsRefAndPowerState: [
+      { ref: vm.value.$ref, powerState: vm.value.power_state },
+    ],
+  });
+const reboot = (force = false) =>
+  xenApi.value.vm.reboot({ vmsRef: [vm.value.$ref], force });
+const shutdown = (force = false) =>
+  xenApi.value.vm.shutdown({ vmsRef: [vm.value.$ref], force });
 </script>
 
 <style lang="postcss" scoped>
