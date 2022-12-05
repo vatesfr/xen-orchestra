@@ -1,9 +1,9 @@
 <template>
-  <NotFoundWrapper object-type="host">
+  <ObjectNotFoundWrapper object-type="host">
     <RouterView />
-  </NotFoundWrapper>
+  </ObjectNotFoundWrapper>
 </template>
 
 <script lang="ts" setup>
-import NotFoundWrapper from "@/components/NotFoundWrapper.vue";
+import ObjectNotFoundWrapper from "@/components/ObjectNotFoundWrapper.vue";
 </script>
