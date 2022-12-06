@@ -144,15 +144,20 @@ export default class BackupNg {
         }
 
         const proxyId = job.proxy
+        const useXoProxy = proxyId !== undefined
         const remoteIds = unboxIdsFromPattern(job.remotes)
         try {
-          if (proxyId === undefined && backupsConfig.disableWorkers) {
+          if (!useXoProxy && backupsConfig.disableWorkers) {
             const localTaskIds = { __proto__: null }
+            const vmBackupInfo = new Map()
             return await Task.run(
               {
                 name: 'backup run',
                 onLog: log =>
                   handleBackupLog(log, {
+                    vmBackupInfo,
+                    app: this._app,
+                    jobName: job.name,
                     localTaskIds,
                     logger,
                     runJobId,
@@ -215,7 +220,7 @@ export default class BackupNg {
               remotes[id] = remote
             }),
             asyncMapSettled([...servers], async id => {
-              const { allowUnauthorized, password, username } = await app.getXenServer(id)
+              const { allowUnauthorized, httpProxy, password, username } = await app.getXenServer(id)
 
               const xapi = app.getAllXapis()[id]
 
@@ -226,6 +231,13 @@ export default class BackupNg {
                   password,
                 },
                 url: await xapi.getHostBackupUrl(xapi.pool.$master),
+
+                // Currently, the HTTP proxy configured in XO is not passed to the XO Proxy
+                // to avoid issues when the XO Proxy itself is used as an HTTP Proxy.
+                //
+                // Therefore, it's necessary to ensure that the XO Proxy can access the host
+                // directly for the time being.
+                httpProxy: useXoProxy ? undefined : httpProxy,
               }
             }),
           ])
@@ -255,7 +267,7 @@ export default class BackupNg {
             xapis,
           }
 
-          if (proxyId !== undefined) {
+          if (useXoProxy) {
             try {
               const logsStream = await app.callProxyMethod(
                 proxyId,
@@ -271,8 +283,12 @@ export default class BackupNg {
 
               const localTaskIds = { __proto__: null }
               let result
+              const vmBackupInfo = new Map()
               for await (const log of logsStream) {
                 result = handleBackupLog(log, {
+                  vmBackupInfo,
+                  app: this._app,
+                  jobName: job.name,
                   logger,
                   localTaskIds,
                   runJobId,
@@ -288,6 +304,7 @@ export default class BackupNg {
             }
           } else {
             const localTaskIds = { __proto__: null }
+            const vmBackupInfo = new Map()
             return await runBackupWorker(
               {
                 config: backupsConfig,
@@ -298,6 +315,9 @@ export default class BackupNg {
               },
               log =>
                 handleBackupLog(log, {
+                  vmBackupInfo,
+                  app: this._app,
+                  jobName: job.name,
                   logger,
                   localTaskIds,
                   runJobId,
@@ -427,6 +447,7 @@ export default class BackupNg {
     try {
       let result
       if (remote.proxy !== undefined) {
+        // httpProxy is ignored when using XO Proxy
         const { allowUnauthorized, host, password, username } = await app.getXenServer(
           app.getXenServerIdByObject(sr.$id)
         )

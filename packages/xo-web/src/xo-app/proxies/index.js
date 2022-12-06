@@ -23,6 +23,7 @@ import {
   forgetProxyAppliances,
   getLicenses,
   getProxyApplianceUpdaterState,
+  registerProxy,
   subscribeProxies,
   upgradeProxyAppliance,
   EXPIRES_SOON_DELAY,
@@ -145,6 +146,14 @@ const COLUMNS = [
   {
     name: _('license'),
     itemRenderer: (proxy, { isAdmin, licensesByVmUuid }) => {
+      if (proxy.vmUuid === undefined) {
+        return (
+          <span className='text-danger'>
+            {_('proxyUnknownVm')} <a href='https://xen-orchestra.com/'>{_('contactUs')}</a>
+          </span>
+        )
+      }
+
       const licenses = licensesByVmUuid[proxy.vmUuid]
 
       // Proxy bound to multiple licenses
@@ -314,9 +323,20 @@ const Proxies = decorate([
             handler={effects.deployProxy}
             icon='proxy'
             size='large'
-            tooltip={state.isFromSource ? _('deployProxyDisabled') : undefined}
+            tooltip={state.isFromSource ? _('onlyAvailableXoaUsers') : undefined}
           >
             {_('deployProxy')}
+          </ActionButton>
+          <ActionButton
+            className='ml-1'
+            btnStyle='success'
+            disabled={state.isFromSource}
+            handler={registerProxy}
+            icon='connect'
+            size='large'
+            tooltip={state.isFromSource ? _('onlyAvailableXoaUsers') : undefined}
+          >
+            {_('registerProxy')}
           </ActionButton>
         </div>
         <NoObjects

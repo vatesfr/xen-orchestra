@@ -537,10 +537,6 @@ class RemoteAdapter {
     }
   }
 
-  async invalidateVmBackupListCache(vmUuid) {
-    await this.handler.unlink(this.#getVmBackupsCache(vmUuid))
-  }
-
   async #getCachabledDataListVmBackups(dir) {
     debug('generating cache', { path: dir })
 
@@ -659,9 +655,8 @@ class RemoteAdapter {
     return path
   }
 
-  async writeVhd(path, input, { checksum = true, validator = noop, writeBlockConcurrency } = {}) {
+  async writeVhd(path, input, { checksum = true, validator = noop, writeBlockConcurrency, nbdClient } = {}) {
     const handler = this._handler
-
     if (this.#useVhdDirectory()) {
       const dataPath = `${dirname(path)}/data/${uuidv4()}.vhd`
       await createVhdDirectoryFromStream(handler, dataPath, input, {
@@ -671,6 +666,7 @@ class RemoteAdapter {
           await input.task
           return validator.apply(this, arguments)
         },
+        nbdClient,
       })
       await VhdAbstract.createAlias(handler, path, dataPath)
     } else {

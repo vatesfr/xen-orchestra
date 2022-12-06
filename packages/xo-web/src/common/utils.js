@@ -146,6 +146,11 @@ export { default as Debug } from './debug'
 // -------------------------------------------------------------------
 
 // Returns the current XOA Plan or the Plan name if number given
+/**
+ * @deprecated
+ *
+ * Use `getXoaPlan` from `xoa-plans` instead
+ */
 export const getXoaPlan = plan => {
   switch (plan || +process.env.XOA_PLAN) {
     case 1:
@@ -586,9 +591,11 @@ export const safeDateFormat = ms => new Date(ms).toISOString().replace(/:/g, '_'
 // ===================================================================
 
 export const downloadLog = ({ log, date, type }) => {
+  const isJson = typeof log !== 'string'
+
   const anchor = document.createElement('a')
-  anchor.href = window.URL.createObjectURL(createBlobFromString(log))
-  anchor.download = `${safeDateFormat(date)} - ${type}.log`
+  anchor.href = window.URL.createObjectURL(createBlobFromString(isJson ? JSON.stringify(log, null, 2) : log))
+  anchor.download = `${safeDateFormat(date)} - ${type}.${isJson ? 'json' : 'log'}`
   anchor.style.display = 'none'
   document.body.appendChild(anchor)
   anchor.click()

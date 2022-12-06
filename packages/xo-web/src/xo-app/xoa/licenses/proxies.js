@@ -32,6 +32,14 @@ class ProxyLicensesForm extends Component {
     const { licenseId } = this.state
     const licenses = userData.licensesByVmUuid[item.vmUuid]
 
+    if (item.vmUuid === undefined) {
+      return (
+        <span className='text-danger'>
+          {_('proxyUnknownVm')} <a href='https://xen-orchestra.com/'>{_('contactUs')}</a>
+        </span>
+      )
+    }
+
     // Proxy bound to multiple licenses
     if (licenses?.length > 1) {
       return (

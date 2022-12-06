@@ -30,6 +30,7 @@ if (args.length === 0) {
 
 ${name} v${version}
 `)
+  // eslint-disable-next-line n/no-process-exit
   process.exit()
 }
 

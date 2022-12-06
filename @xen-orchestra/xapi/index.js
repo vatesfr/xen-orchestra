@@ -196,6 +196,11 @@ class Xapi extends Base {
 
   waitObjectState(refOrUuid, predicate, { timeout } = {}) {
     return new Promise((resolve, reject) => {
+      const object = this.getObject(refOrUuid, undefined)
+      if (object !== undefined && predicate(object)) {
+        return resolve(object)
+      }
+
       let timeoutHandle
       const stop = this.watchObject(refOrUuid, object => {
         if (predicate(object)) {

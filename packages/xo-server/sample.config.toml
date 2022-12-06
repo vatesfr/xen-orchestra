@@ -145,6 +145,12 @@ port = 80
 
 #=====================================================================
 
+# Uncomment this section to export the logs to an external syslog
+#[logs.transport.syslog]
+#target = 'tcp://syslog.company.lan:514'
+
+#=====================================================================
+
 # Connection to the Redis server.
 [redis]
 # Unix sockets can be used

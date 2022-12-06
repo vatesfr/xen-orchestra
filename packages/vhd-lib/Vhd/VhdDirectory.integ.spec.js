@@ -5,22 +5,28 @@
 const rimraf = require('rimraf')
 const tmp = require('tmp')
 const fs = require('fs-extra')
-const { getHandler, getSyncedHandler } = require('@xen-orchestra/fs')
+const { getSyncedHandler } = require('@xen-orchestra/fs')
 const { Disposable, pFromCallback } = require('promise-toolbox')
 
 const { openVhd, VhdDirectory } = require('../')
 const { createRandomFile, convertFromRawToVhd, convertToVhdDirectory } = require('../tests/utils')
 
 let tempDir = null
+let handler
+let disposeHandler
 
 jest.setTimeout(60000)
 
 beforeEach(async () => {
   tempDir = await pFromCallback(cb => tmp.dir(cb))
+  const d = await getSyncedHandler({ url: `file://${tempDir}` })
+  handler = d.value
+  disposeHandler = d.dispose
 })
 
 afterEach(async () => {
   await pFromCallback(cb => rimraf(tempDir, cb))
+  disposeHandler()
 })
 
 test('Can coalesce block', async () => {
@@ -45,12 +51,11 @@ test('Can coalesce block', async () => {
   await convertToVhdDirectory(childRawDirectoryName, childDirectoryFileName, childDirectoryName)
 
   await Disposable.use(async function* () {
-    const handler = getHandler({ url: 'file://' })
-    const parentVhd = yield openVhd(handler, parentDirectoryName, { flags: 'w' })
+    const parentVhd = yield openVhd(handler, 'parent.dir.vhd', { flags: 'w' })
     await parentVhd.readBlockAllocationTable()
-    const childFileVhd = yield openVhd(handler, childFileName)
+    const childFileVhd = yield openVhd(handler, 'childFile.vhd')
     await childFileVhd.readBlockAllocationTable()
-    const childDirectoryVhd = yield openVhd(handler, childDirectoryName)
+    const childDirectoryVhd = yield openVhd(handler, 'childDir.vhd')
     await childDirectoryVhd.readBlockAllocationTable()
 
     let childBlockData = (await childDirectoryVhd.readBlock(0)).data
@@ -83,7 +88,6 @@ test('compressed blocks and metadata works', async () => {
   await createRandomFile(rawFileName, initalSize)
   await convertFromRawToVhd(rawFileName, vhdName)
   await Disposable.use(async function* () {
-    const handler = yield getSyncedHandler({ url: `file://${tempDir}` })
     const vhd = yield openVhd(handler, 'parent.vhd')
     await vhd.readBlockAllocationTable()
     const compressedVhd = yield VhdDirectory.create(handler, 'compressed.vhd', { compression: 'gzip' })

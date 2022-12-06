@@ -1,4 +1,3 @@
-import transportConsole from '@xen-orchestra/log/transports/console.js'
 import { configure } from '@xen-orchestra/log/configure.js'
 import { defer, fromEvent } from 'promise-toolbox'
 
@@ -10,15 +9,20 @@ export default class Logs {
 
     app.hooks.on('clean', () => this._gc())
 
-    const transport = transportConsole()
-    app.config.watch('logs', ({ filter, level }) => {
-      configure([
-        {
-          filter: [process.env.DEBUG, filter],
-          level,
-          transport,
-        },
-      ])
+    app.config.watch('logs', ({ filter, level, transport: transportsObject }) => {
+      const transports = []
+      for (const id of Object.keys(transportsObject)) {
+        const { disabled = false, ...transport } = transportsObject[id]
+        if (!disabled) {
+          transports.push({ type: id, ...transport })
+        }
+      }
+
+      configure({
+        filter: [process.env.DEBUG, filter],
+        level,
+        transport: transports,
+      })
     })
   }
 

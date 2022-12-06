@@ -7,7 +7,9 @@ import SingleLineRow from 'single-line-row'
 import SortedTable from 'sorted-table'
 import Tooltip from 'tooltip'
 import { Card, CardHeader, CardBlock } from 'card'
+import { connectStore } from 'utils'
 import { Col, Row } from 'grid'
+import { createGetObjectsOfType } from 'selectors'
 import { injectState, provideState } from 'reaclette'
 import { forEach, isEmpty, map, size } from 'lodash'
 import { Sr, Vdi } from 'render-xo-item'
@@ -60,15 +62,18 @@ const COLUMNS = [
 ]
 
 const UnhealthyVdis = decorate([
+  connectStore({
+    srs: createGetObjectsOfType('SR'),
+  }),
   addSubscriptions({
     vdisHealthBySr: subscribeSrsUnhealthyVdiChainsLength,
   }),
   provideState({
     computed: {
-      srIds: (_, { vdisHealthBySr = {} }) => {
+      srIds: (_, { srs, vdisHealthBySr = {} }) => {
         const srIds = []
         forEach(vdisHealthBySr, ({ unhealthyVdis, vdisWithUnknownVhdParent }, srId) => {
-          if (!isEmpty(unhealthyVdis) || vdisWithUnknownVhdParent.length > 0) {
+          if ((srs[srId] !== undefined && !isEmpty(unhealthyVdis)) || vdisWithUnknownVhdParent.length > 0) {
             srIds.push(srId)
           }
         })

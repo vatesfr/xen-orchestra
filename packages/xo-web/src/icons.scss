@@ -1,4 +1,8 @@
 .xo-icon {
+  &-pro-support {
+    @extend .fa;
+    @extend .fa-file-text;
+  }
   &-pool {
     @extend .fa;
     @extend .fa-cloud;
@@ -483,6 +487,10 @@
     &-share {
       @extend .fa;
       @extend .fa-list-alt;
+    }
+    &-warm-migration {
+      @extend .fa;
+      @extend .fa-fire;
     }
   }
 

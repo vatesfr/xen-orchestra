@@ -26,11 +26,14 @@ import invoke from '../invoke'
 import Icon from '../icon'
 import logError from '../log-error'
 import NewAuthTokenModal from './new-auth-token-modal'
+import RegisterProxyModal from './register-proxy-modal'
 import renderXoItem, { renderXoItemFromId, Vm } from '../render-xo-item'
 import store from 'store'
+import WarmMigrationModal from './warm-migration-modal'
 import { alert, chooseAction, confirm } from '../modal'
 import { error, info, success } from '../notification'
 import { getObject } from 'selectors'
+import { getXoaPlan, SOURCES } from '../xoa-plans'
 import { noop, resolveId, resolveIds } from '../utils'
 import {
   connected,
@@ -1878,6 +1881,20 @@ export const shareVm = async (vm, resourceSet) =>
     }),
   }).then(() => editVm(vm, { share: true }), noop)
 
+export const vmWarmMigration = async vm => {
+  const { sr, deleteSourceVm, startDestinationVm } = await confirm({
+    body: <WarmMigrationModal />,
+    title: _('vmWarmMigration'),
+    icon: 'vm-warm-migration',
+  })
+  return _call('vm.warmMigration', {
+    deleteSourceVm,
+    sr: resolveId(sr),
+    startDestinationVm,
+    vm: resolveId(vm),
+  })
+}
+
 // DISK ---------------------------------------------------------------
 
 export const createDisk = (name, size, sr, { vm, bootable, mode, position }) =>
@@ -2859,9 +2876,9 @@ export const changePassword = (oldPassword, newPassword) =>
       () => error(_('pwdChangeError'), _('pwdChangeErrorBody'))
     )
 
-const _setUserPreferences = preferences =>
+const _setUserPreferences = (preferences, userId) =>
   _call('user.set', {
-    id: xo.user.id,
+    id: userId ?? xo.user.id,
     preferences,
   })::tap(subscribeCurrentUser.forceRefresh)
 
@@ -2922,15 +2939,18 @@ export const addOtp = secret =>
     noop
   )
 
-export const removeOtp = () =>
+export const removeOtp = user =>
   confirm({
     title: _('removeOtpConfirm'),
     body: _('removeOtpConfirmMessage'),
   }).then(
     () =>
-      _setUserPreferences({
-        otp: null,
-      }),
+      _setUserPreferences(
+        {
+          otp: null,
+        },
+        resolveId(user)
+      ),
     noop
   )
 
@@ -3236,6 +3256,16 @@ export const unlockXosan = (licenseId, srId) => _call('xosan.unlock', { licenseI
 
 export const bindLicense = (licenseId, boundObjectId) => _call('xoa.licenses.bind', { licenseId, boundObjectId })
 
+export const bindXcpngLicense = (licenseId, boundObjectId) =>
+  bindLicense(licenseId, boundObjectId)::tap(subscribeXcpngLicenses.forceRefresh)
+
+export const rebindLicense = (licenseType, licenseId, oldBoundObjectId, newBoundObjectId) =>
+  _call('xoa.licenses.rebind', { licenseId, oldBoundObjectId, newBoundObjectId })::tap(() => {
+    if (licenseType === 'xcpng-standard' || licenseType === 'xcpng-enterprise') {
+      return subscribeXcpngLicenses.forceRefresh()
+    }
+  })
+
 export const selfBindLicense = ({ id, plan, oldXoaId }) =>
   confirm({
     title: _('bindXoaLicense'),
@@ -3250,6 +3280,12 @@ export const selfBindLicense = ({ id, plan, oldXoaId }) =>
     ::tap(subscribeSelfLicenses.forceRefresh)
 
 export const subscribeSelfLicenses = createSubscription(() => _call('xoa.licenses.getSelf'))
+
+export const subscribeXcpngLicenses = createSubscription(() =>
+  getXoaPlan() !== SOURCES && store.getState().user.permission === 'admin'
+    ? _call('xoa.licenses.getAll', { productType: 'xcpng' })
+    : undefined
+)
 
 // Support --------------------------------------------------------------------
 
@@ -3285,6 +3321,37 @@ export const deployProxyAppliance = (license, sr, { network, proxy, ...props } =
     sr: resolveId(sr),
     ...props,
   })::tap(subscribeProxies.forceRefresh)
+
+export const registerProxy = async () => {
+  const getStringOrUndefined = string => (string.trim() === '' ? undefined : string)
+
+  const { address, authenticationToken, name, vmUuid } = await confirm({
+    body: <RegisterProxyModal />,
+    icon: 'connect',
+    title: _('registerProxy'),
+  })
+
+  const proxyId = await registerProxyApplicance({
+    address: getStringOrUndefined(address),
+    authenticationToken: getStringOrUndefined(authenticationToken),
+    name: getStringOrUndefined(name),
+    vmUuid: getStringOrUndefined(vmUuid),
+  })
+  const _isProxyWorking = await isProxyWorking(proxyId).catch(err => {
+    console.error('isProxyWorking error:', err)
+    return false
+  })
+  if (!_isProxyWorking) {
+    await confirm({
+      body: _('proxyConnectionFailedAfterRegistrationMessage'),
+      title: _('proxyError'),
+    })
+    await forgetProxyAppliances([proxyId])
+  }
+}
+
+export const registerProxyApplicance = proxyInfo =>
+  _call('proxy.register', proxyInfo)::tap(subscribeProxies.forceRefresh)
 
 export const editProxyAppliance = (proxy, { vm, ...props }) =>
   _call('proxy.update', {
@@ -3344,6 +3411,8 @@ export const checkProxyHealth = async proxy => {
         </span>
       )
 }
+
+export const isProxyWorking = async proxy => (await _call('proxy.checkHealth', { id: resolveId(proxy) })).success
 
 // Audit plugin ---------------------------------------------------------
 

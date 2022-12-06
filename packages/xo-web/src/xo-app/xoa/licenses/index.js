@@ -171,7 +171,7 @@ export default class Licenses extends Component {
 
     return getLicenses()
       .then(licenses => {
-        const { proxy, xoa, xosan } = groupBy(licenses, license => {
+        const { proxy, xcpng, xoa, xosan } = groupBy(licenses, license => {
           for (const productType of license.productTypes) {
             if (productType === 'xo') {
               return 'xoa'
@@ -182,12 +182,16 @@ export default class Licenses extends Component {
             if (productType === 'xoproxy') {
               return 'proxy'
             }
+            if (productType === 'xcpng') {
+              return 'xcpng'
+            }
           }
           return 'other'
         })
         this.setState({
           licenses: {
             proxy,
+            xcpng,
             xoa,
             xosan,
           },
@@ -256,6 +260,21 @@ export default class Licenses extends Component {
         }
       })
 
+      // --- xcpng
+      forEach(licenses.xcpng, license => {
+        // When `expires` is undefined, the license isn't expired
+        if (!(license.expires < now)) {
+          products.push({
+            buyer: license.buyer,
+            expires: license.expires,
+            id: license.id,
+            product: 'XCP-ng',
+            type: 'xcpng',
+            hostId: license.boundObjectId,
+          })
+        }
+      })
+
       return products
     }
   )
@@ -304,6 +323,9 @@ export default class Licenses extends Component {
 
     return (
       <Container>
+        <Row className='text-info mb-1'>
+          <Icon icon='info' /> <i>{_('xcpngLicensesBindingAvancedView')}</i>
+        </Row>
         <Row className='mb-1'>
           <Col>
             <a

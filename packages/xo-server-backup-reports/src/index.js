@@ -284,8 +284,6 @@ class BackupReportsXoPlugin {
       getErrorMarkdown(log),
     ]
 
-    const nagiosText = []
-
     // body
     for (const status of STATUS) {
       const tasks = tasksByStatus[status]
@@ -310,10 +308,6 @@ class BackupReportsXoPlugin {
         const { title, body } = taskMarkdown
         const subMarkdown = [...body, ...getWarningsMarkdown(task.warnings)]
 
-        if (task.status !== 'success') {
-          nagiosText.push(`[${task.status}] ${title}`)
-        }
-
         for (const subTask of task.tasks ?? []) {
           const taskMarkdown = await getMarkdown(subTask, { formatDate, xo })
           if (taskMarkdown === undefined) {
@@ -335,10 +329,6 @@ class BackupReportsXoPlugin {
       subject: `[Xen Orchestra] ${log.status} − Metadata backup report for ${log.jobName} ${STATUS_ICON[log.status]}`,
       markdown: toMarkdown(markdown),
       success: log.status === 'success',
-      nagiosMarkdown:
-        log.status === 'success'
-          ? `[Xen Orchestra] [Success] Metadata backup report for ${log.jobName}`
-          : `[Xen Orchestra] [${log.status}] Metadata backup report for ${log.jobName} - ${nagiosText.join(' ')}`,
     })
   }
 
@@ -369,9 +359,6 @@ class BackupReportsXoPlugin {
         mailReceivers,
         markdown: toMarkdown(markdown),
         success: false,
-        nagiosMarkdown: `[Xen Orchestra] [${log.status}] Backup report for ${jobName}${
-          log.result?.message !== undefined ? ` - Error : ${log.result.message}` : ''
-        }`,
       })
     }
 
@@ -379,7 +366,6 @@ class BackupReportsXoPlugin {
     const skippedVmsText = []
     const successfulVmsText = []
     const interruptedVmsText = []
-    const nagiosText = []
 
     let globalMergeSize = 0
     let globalTransferSize = 0
@@ -401,16 +387,13 @@ class BackupReportsXoPlugin {
           if (type === 'SR') {
             const { name_label: name, uuid } = xo.getObject(id)
             failedTasksText.push(`### ${name}`, '', `- **UUID**: ${uuid}`)
-            nagiosText.push(`[(${type} failed) ${name} : ${taskLog.result.message} ]`)
           } else {
             const { name } = await xo.getRemote(id)
             failedTasksText.push(`### ${name}`, '', `- **UUID**: ${id}`)
-            nagiosText.push(`[(${type} failed) ${name} : ${taskLog.result.message} ]`)
           }
         } catch (error) {
           logger.warn(error)
           failedTasksText.push(`### ${UNKNOWN_ITEM}`, '', `- **UUID**: ${id}`)
-          nagiosText.push(`[(${type} failed) ${id} : ${taskLog.result.message} ]`)
         }
 
         failedTasksText.push(
@@ -553,22 +536,17 @@ class BackupReportsXoPlugin {
                 : taskLog.result.message
             }`
           )
-          nagiosText.push(`[(Skipped) ${vm !== undefined ? vm.name_label : 'undefined'} : ${taskLog.result.message} ]`)
         } else {
           ++nFailures
           failedTasksText.push(...text, `- **Error**: ${taskLog.result.message}`)
-
-          nagiosText.push(`[(Failed) ${vm !== undefined ? vm.name_label : 'undefined'} : ${taskLog.result.message} ]`)
         }
       } else {
         if (taskLog.status === 'failure') {
           ++nFailures
           failedTasksText.push(...text, ...subText)
-          nagiosText.push(`[${vm !== undefined ? vm.name_label : 'undefined'}: (failed)[${failedSubTasks.toString()}]]`)
         } else if (taskLog.status === 'interrupted') {
           ++nInterrupted
           interruptedVmsText.push(...text, ...subText)
-          nagiosText.push(`[(Interrupted) ${vm !== undefined ? vm.name_label : 'undefined'}]`)
         } else {
           ++nSuccesses
           successfulVmsText.push(...text, ...subText)
@@ -614,16 +592,10 @@ class BackupReportsXoPlugin {
       markdown: toMarkdown(markdown),
       subject: `[Xen Orchestra] ${log.status} − Backup report for ${jobName} ${STATUS_ICON[log.status]}`,
       success: log.status === 'success',
-      nagiosMarkdown:
-        log.status === 'success'
-          ? `[Xen Orchestra] [Success] Backup report for ${jobName}`
-          : `[Xen Orchestra] [${
-              nFailures !== 0 ? 'Failure' : 'Skipped'
-            }] Backup report for ${jobName} - VMs : ${nagiosText.join(' ')}`,
     })
   }
 
-  _sendReport({ mailReceivers, markdown, nagiosMarkdown, subject, success }) {
+  _sendReport({ mailReceivers, markdown, subject, success }) {
     if (mailReceivers === undefined || mailReceivers.length === 0) {
       mailReceivers = this._mailsReceivers
     }
@@ -644,11 +616,6 @@ class BackupReportsXoPlugin {
       xo.sendSlackMessage !== undefined &&
         xo.sendSlackMessage({
           message: markdown,
-        }),
-      xo.sendPassiveCheck !== undefined &&
-        xo.sendPassiveCheck({
-          status: success ? 0 : 2,
-          message: nagiosMarkdown,
         }),
       xo.sendIcinga2Status !== undefined &&
         xo.sendIcinga2Status({
@@ -683,7 +650,6 @@ class BackupReportsXoPlugin {
         subject: `[Xen Orchestra] ${globalStatus} ${icon}`,
         markdown,
         success: false,
-        nagiosMarkdown: `[Xen Orchestra] [${globalStatus}] Error : ${error.message}`,
       })
     }
 
@@ -720,7 +686,6 @@ class BackupReportsXoPlugin {
     let nSkipped = 0
 
     const failedBackupsText = []
-    const nagiosText = []
     const skippedBackupsText = []
     const successfulBackupText = []
 
@@ -754,13 +719,9 @@ class BackupReportsXoPlugin {
             `- **Reason**: ${message === UNHEALTHY_VDI_CHAIN_ERROR ? UNHEALTHY_VDI_CHAIN_MESSAGE : message}`,
             ''
           )
-
-          nagiosText.push(`[(Skipped) ${vm !== undefined ? vm.name_label : 'undefined'} : ${message} ]`)
         } else {
           ++nFailures
           failedBackupsText.push(...text, `- **Error**: ${message}`, '')
-
-          nagiosText.push(`[(Failed) ${vm !== undefined ? vm.name_label : 'undefined'} : ${message} ]`)
         }
       } else if (!reportOnFailure) {
         const { returnedValue } = call
@@ -835,11 +796,6 @@ class BackupReportsXoPlugin {
         globalSuccess ? ICON_SUCCESS : nFailures !== 0 ? ICON_FAILURE : ICON_SKIPPED
       }`,
       success: globalSuccess,
-      nagiosMarkdown: globalSuccess
-        ? `[Xen Orchestra] [Success] Backup report for ${tag}`
-        : `[Xen Orchestra] [${
-            nFailures !== 0 ? 'Failure' : 'Skipped'
-          }] Backup report for ${tag} - VMs : ${nagiosText.join(' ')}`,
     })
   }
 }

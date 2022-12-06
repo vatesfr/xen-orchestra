@@ -7,6 +7,7 @@ const messages = {
   alpha: 'Alpha',
   creation: 'Creation',
   description: 'Description',
+  deleteSourceVm: 'Delete source VM',
   expiration: 'Expiration',
   keyValue: '{key}: {value}',
 
@@ -19,6 +20,7 @@ const messages = {
   errorUnknownItem: 'Unknown {type}',
   generateNewMacAddress: 'Generate new MAC addresses',
   memoryFree: '{memoryFree} RAM free',
+  notConfigured: 'Not configured',
   utcDate: 'UTC date',
   utcTime: 'UTC time',
   date: 'Date',
@@ -107,8 +109,10 @@ const messages = {
   replaceExistingCertificate: 'Replace existing certificate',
   customFields: 'Custom fields',
   addCustomField: 'Add custom field',
+  availableXoaPremium: 'Available in XOA Premium',
   editCustomField: 'Edit custom field',
   deleteCustomField: 'Delete custom field',
+  onlyAvailableXoaUsers: 'Only available to XOA users',
 
   // ----- Modals -----
   alertOk: 'OK',
@@ -232,7 +236,7 @@ const messages = {
   homeFetchingData: 'Fetching data…',
   homeWelcome: 'Welcome to Xen Orchestra!',
   homeWelcomeText: 'Add your XCP-ng hosts or pools',
-  homeConnectServerText: 'Some XenServers have been registered but are not connected',
+  homeConnectServerText: 'Some XCP-ng hosts have been registered but are not connected',
   homeHelp: 'Want some help?',
   homeAddServer: 'Add server',
   homeConnectServer: 'Connect servers',
@@ -600,7 +604,7 @@ const messages = {
   remoteS3TooltipAcceptInsecure: 'Check if you want to accept self signed certificates',
   remotePlaceHolderPassword: 'Password(fill to edit)',
   remoteUseVhdDirectory:
-    'Store backup as multiple data blocks instead of a whole VHD file. (disables file level restore but allows faster merge)',
+    'Store backup as multiple data blocks instead of a whole VHD file. (creates 500-1000 files per backed up TB but allows faster merge)',
   remoteUseVhdDirectoryTooltip:
     'Your remote must be able to handle parallel access (up to 16 write processes per backup) and the number of files (500 files per GB of backed up data)',
   remoteEncryptionBackupSize: 'Size of backup is not updated when using encryption.',
@@ -611,6 +615,10 @@ const messages = {
   remoteEncryptionKey: 'Encrypt all new data sent to this remote',
   remoteEncryptionKeyStorageLocation:
     "You won't be able to get your data back if you lose the encryption key. The encryption key is saved in the XO config backup, they should be secured correctly. Be careful, if you saved it on an encrypted remote, then you won't be able to access it without the remote encryption key.",
+  encryption: 'Encryption',
+  remoteEncryptionLegacy:
+    'A legacy encryption algorithm is used ({algorithm}), please create a new remote with the recommended algorithm {recommendedAlgorithm}',
+
   // ------ New Storage -----
 
   newSr: 'New SR',
@@ -765,8 +773,12 @@ const messages = {
   cloneVmLabel: 'Clone',
   cleanVm: 'Clean VM directory',
   fastCloneVmLabel: 'Fast clone',
+  startMigratedVm: 'Start the migrated VM',
   vmConsoleLabel: 'Console',
   vmExportUrlValidity: 'The URL is valid once for a short period of time.',
+  vmWarmMigration: 'Warm migration',
+  vmWarmMigrationProcessInfo:
+    'Warm migration process will first create a copy of the VM on the destination while the source VM is still running, then shutdown the source VM and send the changes that happened during the migration to the destination to minimize downtime.',
   backupLabel: 'Backup',
 
   // ----- SR general tab -----
@@ -807,6 +819,10 @@ const messages = {
   noActiveVdi: 'No active VDI',
 
   // ----- Pool general -----
+  earliestExpirationDate: 'Earliest expiration: {dateString}',
+  poolNoSupport: 'No XCP-ng Pro support enabled on this pool',
+  poolPartialSupport:
+    'Only {nHostsLicense, number} host{nHostsLicense, plural, one {} other {s}} under license on {nHosts, number} host{nHosts, plural, one {} other {s}}. This means this pool is not supported at all until you license all its hosts.',
   poolTitleRamUsage: 'Pool RAM usage:',
   poolRamUsage: '{used} used of {total} ({free} free)',
   poolMaster: 'Master:',
@@ -831,6 +847,9 @@ const messages = {
   poolHaDisabled: 'Disabled',
   poolGpuGroups: 'GPU groups',
   poolRemoteSyslogPlaceHolder: 'Logging host',
+  poolSupportSourceUsers: 'XCP-ng Pro Support not available for source users',
+  poolSupportXcpngOnly: 'Only available for pool of XCP-ng hosts',
+  poolLicenseAlreadyFullySupported: 'The pool is already fully supported',
   setpoolMaster: 'Master',
   syslogRemoteHost: 'Remote syslog host',
   defaultMigrationNetwork: 'Default migration network',
@@ -1226,6 +1245,10 @@ const messages = {
   vifUnlockedNetworkWithIps: 'Some IPs are unnecessarily set as allowed for this interface',
   vifUnknownNetwork: 'Unknown network',
   vifCreate: 'Create',
+  nbd: 'NBD',
+  nbdTootltip: 'Network Block Device status',
+  nbdInsecureTooltip: 'Use of insecure NBD is not advised',
+  nbdSecureTooltip: 'Nbd connection is secure and ready',
 
   // ----- VM snapshot tab -----
   noSnapshots: 'No snapshots',
@@ -1316,6 +1339,7 @@ const messages = {
   vmCoresPerSocketExceedsSocketsLimit: 'The selected value exceeds the sockets limit ({maxSockets, number})',
   vmHaDisabled: 'Disabled',
   vmMemoryLimitsLabel: 'Memory limits (min/max)',
+  vmUuid: 'VM UUID',
   vmVgpu: 'vGPU',
   vmVgpus: 'GPUs',
   vmVgpuNone: 'None',
@@ -1539,6 +1563,7 @@ const messages = {
   templateHasBiosStrings: 'The template already contains the BIOS strings',
   secureBootLinkToDocumentationMessage: 'Click for more information about Guest UEFI Secure Boot.',
   vmBootFirmwareIsUefi: 'The boot firmware is UEFI',
+  destroyCloudConfigVdiAfterBoot: 'Destroy cloud config drive after first boot',
 
   // ----- Self -----
   resourceSets: 'Resource sets',
@@ -2392,6 +2417,17 @@ const messages = {
   auditInactiveUserActionsRecord: 'User actions recording is currently inactive',
 
   // Licenses
+  allHostsMustBeBound: 'All hosts must be bound to a license',
+  boundSelectLicense: 'Bound (Plan (ID), expiration date, host - pool)',
+  bindXcpngLicenses: 'Bind XCP-ng licenses',
+  confirmBindingOnUnsupportedHost:
+    'You are about to bind {nLicenses, number} professional support license{nLicenses, plural, one {} other {s}} on older and unsupported XCP-ng version{nLicenses, plural, one {} other {s}}. Are you sure you want to continue?',
+  confirmRebindLicenseFromFullySupportedPool: 'The following pools will no longer be fully supported',
+  licenses: 'Licenses',
+  licensesBinding: 'Licenses binding',
+  notEnoughXcpngLicenses: 'Not enough XCP-ng licenses',
+  notBoundSelectLicense: 'Not bound (Plan (ID), expiration date)',
+  xcpngLicensesBindingAvancedView: "To bind an XCP-ng license, go the pool's Advanced tab.",
   xosanUnregisteredDisclaimer:
     'You are not registered and therefore will not be able to create or manage your XOSAN SRs. {link}',
   xosanSourcesDisclaimer:
@@ -2440,9 +2476,9 @@ const messages = {
   premiumLicense: 'Premium license',
   trialLicenseInfo: 'You are currently in a {edition} trial period that will end on {date, date, medium}',
   proxyMultipleLicenses: 'This proxy has more than 1 license!',
+  proxyUnknownVm: 'Unknown proxy VM.',
 
   // ----- proxies -----
-  deployProxyDisabled: 'Only available to XOA users',
   forgetProxyApplianceTitle: 'Forget prox{n, plural, one {y} other {ies}}',
   forgetProxyApplianceMessage: 'Are you sure you want to forget {n, number} prox{n, plural, one {y} other {ies}}?',
   forgetProxies: 'Forget proxy(ies)',
@@ -2453,11 +2489,16 @@ const messages = {
   redeployProxy: 'Redeploy proxy',
   redeployProxyAction: 'Redeploy this proxy',
   redeployProxyWarning: 'This action will destroy the old proxy VM',
+  registerProxy: 'Register a proxy',
   noProxiesAvailable: 'No proxies available',
   checkProxyHealth: 'Test your proxy',
   updateProxyApplianceSettings: 'Update appliance settings',
   urlNotFound: 'URL not found',
+  proxyAuthToken: 'Authentication token',
+  proxyConnectionFailedAfterRegistrationMessage: 'Unable to connect to this proxy. Do you want to forget it?',
   proxyCopyUrl: 'Copy proxy URL',
+  proxyError: 'Proxy error',
+  proxyOptionalVmUuid: 'VM UUID is optional but recommended.',
   proxyTestSuccess: 'Test passed for {name}',
   proxyTestSuccessMessage: 'The proxy appears to work correctly',
   proxyTestFailed: 'Test failed for {name}',
@@ -2476,6 +2517,7 @@ const messages = {
     'The upgrade will interrupt {nJobs, number} running backup job{nJobs, plural, one {} other {s}}. Do you want to continue?',
   proxiesNeedUpgrade: 'Some proxies need to be upgraded.',
   upgradeNeededForProxies: 'Some proxies need to be upgraded. Click here to get more information.',
+  xoProxyConcreteGuide: 'XO Proxy: a concrete guide',
 
   // ----- Utils -----
   secondsFormat: '{seconds, plural, one {# second} other {# seconds}}',

@@ -1,8 +1,136 @@
 # ChangeLog
 
-## **5.75.0** (2022-09-30)
+## **5.77.0** (2022-11-30)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
+### Highlights
+
+- [Proxies] Ability to register an existing proxy (PR [#6556](https://github.com/vatesfr/xen-orchestra/pull/6556))
+- [VM] [Warm migration](https://xen-orchestra.com/blog/warm-migration-with-xen-orchestra/) support (PRs [6549](https://github.com/vatesfr/xen-orchestra/pull/6549) & [6549](https://github.com/vatesfr/xen-orchestra/pull/6549))
+
+### Enhancements
+
+- [Remotes] Prevent remote path from ending with `xo-vm-backups` as it's usually a mistake
+- [OVA export] Speed up OVA generation by 2. Generated file will be bigger (as big as uncompressed XVA) (PR [#6487](https://github.com/vatesfr/xen-orchestra/pull/6487))
+- [Settings/Users] Add `Remove` button to delete OTP of users from the admin panel [Forum#6521](https://xcp-ng.org/forum/topic/6521/remove-totp-on-a-user-account) (PR [#6541](https://github.com/vatesfr/xen-orchestra/pull/6541))
+- [Plugin/transport-nagios] XO now reports backed up VMs invidually with the VM name label used as _host_ and backup job name used as _service_
+- [VM/Advanced] Add warm migration button (PR [#6533](https://github.com/vatesfr/xen-orchestra/pull/6533))
+
+### Bug fixes
+
+- [Dashboard/Health] Fix `Unknown SR` and `Unknown VDI` in Unhealthy VDIs (PR [#6519](https://github.com/vatesfr/xen-orchestra/pull/6519))
+- [Delta Backup] Can now recover VHD merge when failed at the begining
+- [Delta Backup] Fix `ENOENT` errors when merging a VHD directory on non-S3 remote
+- [Remote] Prevent the browser from auto-completing the encryption key field
+
+### Released packages
+
+- @xen-orchestra/log 0.5.0
+- @vates/disposable 0.1.3
+- @xen-orchestra/fs 3.3.0
+- vhd-lib 4.2.0
+- @xen-orchestra/audit-core 0.2.2
+- @xen-orchestra/backups 0.29.1
+- @xen-orchestra/backups-cli 1.0.0
+- @xen-orchestra/mixins 0.8.2
+- @xen-orchestra/xapi 1.5.3
+- @xen-orchestra/proxy 0.26.5
+- xo-vmdk-to-vhd 2.5.0
+- xo-cli 0.14.2
+- xo-server 5.107.1
+- xo-server-audit 0.10.2
+- xo-server-auth-ldap 0.10.6
+- xo-server-backup-reports 0.17.2
+- xo-server-load-balancer 0.7.2
+- xo-server-netbox 0.3.5
+- xo-server-sdn-controller 1.0.7
+- xo-server-transport-nagios 1.0.0
+- xo-server-usage-report 0.10.2
+- xo-server-web-hooks 0.3.2
+- xo-web 5.108.0
+
+## **5.76.2** (2022-11-14)
+
+<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
+
+### Bug fixes
+
+- [Proxies] Fix `this.getObject is not a function` on upgrade
+
+### Released packages
+
+- xo-server 5.106.1
+
+## **5.76.1** (2022-11-08)
+
+### Enhancements
+
+- [API] `proxy.register` accepts `vmUuid` parameter which can be used when not connected to the XAPI containing the XO Proxy VM
+- [Proxy] Can now upgrade proxies in VMs not connected to XO
+- [REST API] Expose VM snapshots and templates
+- [REST API] Expose VDI snapshots
+- [Select license] Display product type in the options (PR [#6512](https://github.com/vatesfr/xen-orchestra/pull/6512))
+
+### Bug fixes
+
+- [Pool] Add tooltip on "no XCP-ng Pro support" warning icon (PR [#6505](https://github.com/vatesfr/xen-orchestra/pull/6505))
+- [Backup] Respect HTTP proxy setting when connecting to XCP-ng/XenServer pools
+- [Dashboard/Health] Fix `an error has occurred` in case of unknown default SR (PR [#6508](https://github.com/vatesfr/xen-orchestra/pull/6508))
+- [Backup] Really disable Healthcheck when unchecking settings [#6501](https://github.com/vatesfr/xen-orchestra/issues/6501) (PR [#6515](https://github.com/vatesfr/xen-orchestra/pull/6515))
+- [Pool] Improve XCP-ng Pro Support tooltips wording [Forum#6535](https://xcp-ng.org/forum/topic/6535) (PR [#6517](https://github.com/vatesfr/xen-orchestra/pull/6517))
+
+### Released packages
+
+- xo-server 5.106.0
+- xo-web 5.107.0
+
+## **5.76.0** (2022-10-31)
+
+### Enhancements
+
+- [Backup/Encryption] Use `aes-256-gcm` instead of `aes-256-ccm` to mitigate [padding oracle attacks](https://en.wikipedia.org/wiki/Padding_oracle_attack) (PR [#6447](https://github.com/vatesfr/xen-orchestra/pull/6447))
+- [Settings/Remote] Display `lock` icon for encrypted remote and a warning if the remote uses a legacy encryption algorithm (PR [#6465](https://github.com/vatesfr/xen-orchestra/pull/6465))
+- `xo-server`'s logs can now be sent to an external Syslog server
+- [Delta Backup] Use [NBD](https://en.wikipedia.org/wiki/Network_block_device) to download disks (PR [#6461](https://github.com/vatesfr/xen-orchestra/pull/6461))
+- [License] Possibility to bind XCP-ng license to hosts at pool level (PR [#6453](https://github.com/vatesfr/xen-orchestra/pull/6453))
+- [New VM] Ability to destroy the cloud configuration disk after the first boot [#6438](https://github.com/vatesfr/xen-orchestra/issues/6438) (PR [#6486](https://github.com/vatesfr/xen-orchestra/pull/6486))
+
+### Bug fixes
+
+- Really enable by default the embedded HTTP/HTTPS proxy
+- [Licenses] Remove "Bind license" button for proxies whose corresponding VM cannot be found (PR [#6472](https://github.com/vatesfr/xen-orchestra/pull/6472))
+
+### Released packages
+
+- @xen-orchestra/log 0.4.0
+- @vates/disposable 0.1.2
+- @vates/nbd-client 1.0.0
+- @vates/otp 1.0.0
+- @vates/predicates 1.1.0
+- @vates/read-chunk 1.0.1
+- @xen-orchestra/audit-core 0.2.1
+- @xen-orchestra/backups 0.29.0
+- @xen-orchestra/fs 3.2.0
+- @xen-orchestra/mixins 0.8.1
+- @xen-orchestra/xapi 1.5.2
+- @xen-orchestra/proxy 0.26.4
+- vhd-cli 0.9.2
+- vhd-lib 4.1.1
+- xo-remote-parser 0.9.2
+- xo-server 5.105.0
+- xo-server-audit 0.10.1
+- xo-server-auth-ldap 0.10.5
+- xo-server-backup-reports 0.17.1
+- xo-server-load-balancer 0.7.1
+- xo-server-netbox 0.3.4
+- xo-server-sdn-controller 1.0.6
+- xo-server-transport-nagios 0.1.2
+- xo-server-usage-report 0.10.1
+- xo-server-web-hooks 0.3.1
+- xo-web 5.106.0
+
+## **5.75.0** (2022-09-30)
 
 ### Enhancements
 
@@ -36,8 +164,6 @@
 - xo-web 5.104.0
 
 ## **5.74.3** (2022-09-09)
-
-<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Bug fixes
 

@@ -11,7 +11,7 @@ import { defer as deferrable } from 'golike-defer'
 import { ignoreErrors, pCatch } from 'promise-toolbox'
 import { Ref } from 'xen-api'
 
-import { forEach, parseSize } from '../../utils.mjs'
+import { parseSize } from '../../utils.mjs'
 
 import { isVmHvm, isVmRunning, makeEditObject } from '../utils.mjs'
 
@@ -37,10 +37,6 @@ export default {
       vdis = undefined,
       vifs = undefined,
       existingVdis = undefined,
-
-      coreOs = false,
-      cloudConfig = undefined,
-      networkConfig = undefined,
 
       vgpuType = undefined,
       gpuGroup = undefined,
@@ -92,7 +88,7 @@ export default {
     // installation.
     await this.callAsync('VM.provision', vmRef)
 
-    let vm = await this._getOrWaitObject(vmRef)
+    const vm = await this._getOrWaitObject(vmRef)
 
     // Set VMs params.
     await this._editVm(vm, props, checkLimits)
@@ -210,28 +206,6 @@ export default {
 
     if (vgpuType !== undefined && gpuGroup !== undefined) {
       await this.createVgpu(vm, gpuGroup, vgpuType)
-    }
-
-    if (cloudConfig != null) {
-      // Refresh the record.
-      await this.barrier(vm.$ref)
-      vm = this.getObjectByRef(vm.$ref)
-
-      // Find the SR of the first VDI.
-      let srRef
-      forEach(vm.$VBDs, vbd => {
-        let vdi
-        if (vbd.type === 'Disk' && (vdi = vbd.$VDI)) {
-          srRef = vdi.SR
-          return false
-        }
-      })
-
-      if (coreOs) {
-        await this.createCoreOsCloudInitConfigDrive(vm.$id, srRef, cloudConfig)
-      } else {
-        await this.createCloudInitConfigDrive(vm.$id, srRef, cloudConfig, networkConfig)
-      }
     }
 
     // wait for the record with all the VBDs and VIFs

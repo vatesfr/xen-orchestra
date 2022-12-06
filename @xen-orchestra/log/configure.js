@@ -1,8 +1,8 @@
 'use strict'
 
+const compileGlobPattern = require('./_compileGlobPattern.js')
 const createConsoleTransport = require('./transports/console')
 const { LEVELS, resolve } = require('./levels')
-const { compileGlobPattern } = require('./utils')
 
 // ===================================================================
 
@@ -57,6 +57,20 @@ const createTransport = config => {
     }
   }
 
+  const { type } = config
+  if (type !== undefined) {
+    if (typeof type !== 'string') {
+      throw new TypeError('transport type property must be a string')
+    }
+
+    if (type.includes('/')) {
+      throw new TypeError('invalid transport type')
+    }
+
+    const { ...opts } = config
+    return require(`./transports/${type}.js`)(opts)
+  }
+
   const level = resolve(config.level)
   const filter = compileFilter([config.filter, level === undefined ? undefined : log => log.level >= level])
 
@@ -73,6 +87,7 @@ const createTransport = config => {
 
   return transport
 }
+exports.createTransport = createTransport
 
 const symbol = typeof Symbol !== 'undefined' ? Symbol.for('@xen-orchestra/log') : '@@@xen-orchestra/log'
 

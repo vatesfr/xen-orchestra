@@ -495,6 +495,7 @@ export default decorate([
               <li>{_('remoteEncryptionBackupSize')}</li>
             </ul>
             <input
+              autoComplete='new-password'
               className='form-control'
               name='encryptionKey'
               onChange={effects.linkState}

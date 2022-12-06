@@ -1,8 +1,14 @@
 import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
+import { basename } from 'path'
 import { format, parse } from 'xo-remote-parser'
-import { getHandler } from '@xen-orchestra/fs'
+import {
+  DEFAULT_ENCRYPTION_ALGORITHM,
+  getHandler,
+  isLegacyEncryptionAlgorithm,
+  UNENCRYPTED_ALGORITHM,
+} from '@xen-orchestra/fs'
 import { ignoreErrors, timeout } from 'promise-toolbox'
-import { noSuchObject } from 'xo-common/api-errors.js'
+import { invalidParameters, noSuchObject } from 'xo-common/api-errors.js'
 import { synchronized } from 'decorator-synchronized'
 
 import * as sensitiveValues from '../sensitive-values.mjs'
@@ -15,6 +21,13 @@ const obfuscateRemote = ({ url, ...remote }) => {
   const parsedUrl = parse(url)
   remote.url = format(sensitiveValues.obfuscate(parsedUrl))
   return remote
+}
+
+function validatePath(url) {
+  const { path } = parse(url)
+  if (path !== undefined && basename(path) === 'xo-vm-backups') {
+    throw invalidParameters('remote url should not end with xo-vm-backups')
+  }
 }
 
 export default class {
@@ -124,6 +137,17 @@ export default class {
         return
       }
 
+      let encryption
+
+      if (this._handlers[remote.id] !== undefined) {
+        const algorithm = this._handlers[remote.id]._encryptor?.algorithm ?? UNENCRYPTED_ALGORITHM
+        encryption = {
+          algorithm,
+          isLegacy: isLegacyEncryptionAlgorithm(algorithm),
+          recommendedAlgorithm: DEFAULT_ENCRYPTION_ALGORITHM,
+        }
+      }
+
       const promise =
         remote.proxy !== undefined
           ? this._app.callProxyMethod(remote.proxy, 'remote.getInfo', {
@@ -134,7 +158,10 @@ export default class {
       try {
         await timeout.call(
           promise.then(info => {
-            remotesInfo[remote.id] = info
+            remotesInfo[remote.id] = {
+              ...info,
+              encryption,
+            }
           }),
           5e3
         )
@@ -172,6 +199,8 @@ export default class {
   }
 
   async createRemote({ name, options, proxy, url }) {
+    validatePath(url)
+
     const params = {
       enabled: false,
       error: '',
@@ -205,6 +234,10 @@ export default class {
 
   @synchronized()
   async _updateRemote(id, { url, ...props }) {
+    if (url !== undefined) {
+      validatePath(url)
+    }
+
     const remote = await this._getRemote(id)
 
     // url is handled separately to take care of obfuscated values

@@ -2,10 +2,23 @@ import crc32 from 'buffer-crc32'
 import net from 'net'
 import { Buffer } from 'buffer'
 import { createLogger } from '@xen-orchestra/log'
+import { compileTemplate } from '@xen-orchestra/template'
 
 const { debug, warn } = createLogger('xo:server:transport:nagios')
 
 // ===================================================================
+
+const hostDescription = `Host name on Nagios.
+
+Leave empty if the host name equals the vm name (the default configuration).
+
+Otherwise, you could choose a custom name but the template \`{vm.name_label}\` must  be included. For example: \`xo-backup-{vm.name_label}\`.`
+
+const serviceDescription = `Service name on Nagios.
+
+Leave empty if the host name equals the backup job name (the default configuration).
+
+Otherwise, you could choose a custom name but the template \`{job.name}\` must e included. For example: \`{job.name}-Xen Orchestra\`.`
 
 export const configurationSchema = {
   type: 'object',
@@ -24,16 +37,35 @@ export const configurationSchema = {
       description: 'The encryption key',
     },
     host: {
+      default: '{vm.name_label}',
+      description: hostDescription,
       type: 'string',
-      description: 'The host name in Nagios',
     },
     service: {
+      default: '{job.name}',
+      description: serviceDescription,
       type: 'string',
-      description: 'The service description in Nagios',
     },
   },
   additionalProperties: false,
-  required: ['server', 'port', 'key', 'host', 'service'],
+  required: ['server', 'port', 'key'],
+}
+
+export const testSchema = {
+  type: 'object',
+  properties: {
+    VmNameLabel: {
+      title: 'VM Name Label',
+      description: 'Name of a VM',
+      type: 'string',
+    },
+    jobName: {
+      title: 'Job Name',
+      description: 'Name of a backup job',
+      type: 'string',
+    },
+  },
+  required: ['VmNameLabel', 'jobName'],
 }
 
 // ===================================================================
@@ -89,9 +121,17 @@ class XoServerNagios {
     this._key = null
   }
 
-  configure(configuration) {
+  configure({ host, service, ...configuration }) {
     this._conf = configuration
     this._key = Buffer.from(configuration.key, ENCODING)
+
+    const templateRules = {
+      '{vm.name_label}': vmNameLabel => vmNameLabel,
+      '{job.name}': (vmNameLabel, jobName) => jobName,
+    }
+
+    this._getHost = compileTemplate(host, templateRules)
+    this._getService = compileTemplate(service, templateRules)
   }
 
   load() {
@@ -102,15 +142,25 @@ class XoServerNagios {
     this._unset()
   }
 
-  test() {
-    return this._sendPassiveCheck({
-      message: 'The server-nagios plugin for Xen Orchestra server seems to be working fine, nicely done :)',
-      status: OK,
-    })
+  test({ VmNameLabel, jobName }) {
+    return this._sendPassiveCheck(
+      {
+        message: 'The server-nagios plugin for Xen Orchestra server seems to be working fine, nicely done :)',
+        status: OK,
+      },
+      VmNameLabel,
+      jobName
+    )
   }
 
-  _sendPassiveCheck({ message, status }) {
+  _sendPassiveCheck({ message, status }, vmNameLabel, jobName) {
     return new Promise((resolve, reject) => {
+      const conf = {
+        ...this._conf,
+        host: this._getHost(vmNameLabel, jobName),
+        service: this._getService(vmNameLabel, jobName),
+      }
+
       if (/\r|\n/.test(message)) {
         warn('the message must not contain a line break', { message })
         for (let i = 0, n = message.length; i < n; ++i) {
@@ -125,7 +175,7 @@ class XoServerNagios {
 
       const client = new net.Socket()
 
-      client.connect(this._conf.port, this._conf.server, () => {
+      client.connect(conf.port, conf.server, () => {
         debug('Successful connection')
       })
 
@@ -133,7 +183,7 @@ class XoServerNagios {
         const timestamp = data.readInt32BE(128)
         const iv = data.slice(0, 128) // initialization vector
         const packet = nscaPacketBuilder({
-          ...this._conf,
+          ...conf,
           iv,
           message,
           status,

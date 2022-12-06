@@ -83,7 +83,9 @@ exports.VhdFile = class VhdFile extends VhdAbstract {
   }
 
   static async open(handler, path, { flags, checkSecondFooter = true } = {}) {
-    assert(!handler.isEncrypted, `VHDFile implementation is not compatible with encrypted remote`)
+    if (handler.isEncrypted) {
+      throw new Error(`VHDFile implementation is not compatible with encrypted remote`)
+    }
     const fd = await handler.openFile(path, flags ?? 'r+')
     const vhd = new VhdFile(handler, fd)
     // openning a file for reading does not trigger EISDIR as long as we don't really read from it :

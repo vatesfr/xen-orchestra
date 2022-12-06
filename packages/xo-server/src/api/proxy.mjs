@@ -15,12 +15,17 @@ register.params = {
     type: 'string',
     optional: true,
   },
+  vmUuid: {
+    type: 'string',
+    optional: true,
+  },
   name: {
     type: 'string',
     optional: true,
   },
   authenticationToken: {
     type: 'string',
+    optional: true,
   },
 }
 register.resolve = {

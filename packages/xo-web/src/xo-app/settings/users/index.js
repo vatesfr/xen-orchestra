@@ -1,7 +1,9 @@
 import * as Editable from 'editable'
 import _, { messages } from 'intl'
 import ActionButton from 'action-button'
+import Button from 'button'
 import Component from 'base-component'
+import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
 import keyBy from 'lodash/keyBy'
 import map from 'lodash/map'
@@ -14,7 +16,7 @@ import { get } from '@xen-orchestra/defined'
 import { injectIntl } from 'react-intl'
 import { Password, Select } from 'form'
 
-import { createUser, deleteUser, deleteUsers, editUser, subscribeGroups, subscribeUsers } from 'xo'
+import { createUser, deleteUser, deleteUsers, editUser, removeOtp, subscribeGroups, subscribeUsers } from 'xo'
 
 const permissions = {
   none: {
@@ -77,6 +79,17 @@ const USER_COLUMNS = [
     name: _('userPasswordColumn'),
     itemRenderer: user =>
       isEmpty(user.authProviders) && <Editable.Password onChange={password => editUser(user, { password })} value='' />,
+  },
+  {
+    name: 'OTP',
+    itemRenderer: user =>
+      user.preferences.otp !== undefined ? (
+        <Button btnStyle='danger' onClick={() => removeOtp(user)} size='small'>
+          <Icon icon='remove' /> {_('remove')}
+        </Button>
+      ) : (
+        _('notConfigured')
+      ),
   },
 ]
 

@@ -2,8 +2,9 @@
 
 const { VhdFile, checkVhdChain } = require('vhd-lib')
 const getopts = require('getopts')
-const { getHandler } = require('@xen-orchestra/fs')
+const { getSyncedHandler } = require('@xen-orchestra/fs')
 const { resolve } = require('path')
+const { Disposable } = require('promise-toolbox')
 
 const checkVhd = (handler, path) => new VhdFile(handler, path).readHeaderAndFooter()
 
@@ -16,14 +17,14 @@ module.exports = async function check(rawArgs) {
   })
 
   const check = chain ? checkVhdChain : checkVhd
-
-  const handler = getHandler({ url: 'file:///' })
-  for (const vhd of args) {
-    try {
-      await check(handler, resolve(vhd))
-      console.log('ok:', vhd)
-    } catch (error) {
-      console.error('nok:', vhd, error)
+  await Disposable.use(getSyncedHandler({ url: 'file:///' }), async handler => {
+    for (const vhd of args) {
+      try {
+        await check(handler, resolve(vhd))
+        console.log('ok:', vhd)
+      } catch (error) {
+        console.error('nok:', vhd, error)
+      }
     }
-  }
+  })
 }
