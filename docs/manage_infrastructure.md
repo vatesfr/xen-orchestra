@@ -570,6 +570,18 @@ If your hosts are already in a pool you only need to add your pool master host t
 Don't add pool slaves to your XOA server list! XOA will automatically find them from the master you add.
 :::
 
+### Remove a host from a existing pool
+
+To remove one host from a pool, you can go to Advanced in the host page, and click on "detach"
+
+![](./assets/detach-host.png)
+
+:::warning
+
+- Detach a host will remove all your VM put in the Local Storage, and reboot the host.
+- The host you want to remove must be a slave, not the master !
+  :::
+
 ## Visualizations
 
 Visualizations can help you to understand your XenServer infrastructure, as well as correlate events and detect bottlenecks.
