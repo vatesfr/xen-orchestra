@@ -3,25 +3,33 @@
     <div class="header">
       <slot name="header" />
     </div>
-    <template v-if="data !== undefined">
-      <ProgressBar
+    <div v-if="data !== undefined">
+      <div
         v-for="item in computedData.sortedArray"
         :key="item.id"
-        :value="item.value"
-        :label="item.label"
-        :badge-label="item.badgeLabel"
-      />
-      <div class="footer">
-        <slot name="footer" :total-percent="computedData.totalPercentUsage" />
+        class="progress-item"
+      >
+        <UiProgressBar :value="item.value" color="custom" />
+        <div class="legend">
+          <span class="circle" />
+          {{ item.label }}
+          <UiBadge class="badge">{{
+            item.badgeLabel ?? `${item.value}%`
+          }}</UiBadge>
+        </div>
       </div>
-    </template>
+      <div class="footer">
+        <slot :total-percent="computedData.totalPercentUsage" name="footer" />
+      </div>
+    </div>
     <UiSpinner v-else class="spinner" />
   </div>
 </template>
 
 <script lang="ts" setup>
+import UiBadge from "@/components/ui/UiBadge.vue";
+import UiProgressBar from "@/components/ui/UiProgressBar.vue";
 import { computed } from "vue";
-import ProgressBar from "@/components/ProgressBar.vue";
 import UiSpinner from "@/components/ui/UiSpinner.vue";
 
 interface Data {
@@ -33,7 +41,7 @@ interface Data {
 }
 
 interface Props {
-  data?: Array<Data>;
+  data?: Data[];
   nItems?: number;
 }
 
@@ -84,23 +92,43 @@ const computedData = computed(() => {
   width: 40px;
   height: 40px;
 }
-</style>
 
-<style>
-.progress-bar-component:nth-of-type(2) .progress-bar-fill,
-.progress-bar-component:nth-of-type(2) .circle {
-  background-color: var(--color-extra-blue-d60);
+.legend {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin: 1.6em 0;
 }
-.progress-bar-component:nth-of-type(3) .progress-bar-fill,
-.progress-bar-component:nth-of-type(3) .circle {
-  background-color: var(--color-extra-blue-d40);
+
+.badge {
+  font-size: 0.9em;
+  font-weight: 700;
 }
-.progress-bar-component:nth-of-type(4) .progress-bar-fill,
-.progress-bar-component:nth-of-type(4) .circle {
-  background-color: var(--color-extra-blue-d20);
+
+.progress-item {
+  --progress-bar-height: 1.2rem;
+  --progress-bar-color: var(--color-extra-blue-l20);
+  --progress-bar-background-color: var(--color-blue-scale-400);
 }
-.progress-bar-component .progress-bar-fill,
-.progress-bar-component .circle {
-  background-color: var(--color-extra-blue-l20);
+
+.progress-item:nth-child(1) {
+  --progress-bar-color: var(--color-extra-blue-d60);
+}
+
+.progress-item:nth-child(2) {
+  --progress-bar-color: var(--color-extra-blue-d40);
+}
+
+.progress-item:nth-child(3) {
+  --progress-bar-color: var(--color-extra-blue-d20);
+}
+
+.circle {
+  display: inline-block;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 0.5rem;
+  background-color: var(--progress-bar-color);
 }
 </style>
