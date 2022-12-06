@@ -27,6 +27,7 @@
     "promise-toolbox": "^0.21.0",
     "semver": "^7.3.6",
     "sorted-object": "^2.0.1",
+    "vue": "^2.7.14",
     "vuepress": "^1.4.1"
   },
   "engines": {
