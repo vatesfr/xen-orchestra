@@ -9,6 +9,7 @@ const escapeRegExp = require('lodash/escapeRegExp')
 const invert = require('lodash/invert')
 const keyBy = require('lodash/keyBy')
 
+const { debug } = require('../@xen-orchestra/log').createLogger('gen-deps-list')
 const computeDepOrder = require('./_computeDepOrder.js')
 
 const changelogConfig = {
@@ -30,6 +31,8 @@ async function main(args, scriptName) {
 
   const testMode = args[0] === '--test'
   if (testMode) {
+    debug('reading packages from CLI')
+
     args.shift()
 
     for (const arg of args) {
@@ -91,6 +94,8 @@ async function main(args, scriptName) {
 }
 
 async function readPackagesFromChangelog(toRelease) {
+  debug('reading packages from CHANGELOG.unreleased.md')
+
   const content = await fs.readFile(changelogConfig.path)
   const changelogRegex = new RegExp(
     `${escapeRegExp(changelogConfig.startTag)}(.*)${escapeRegExp(changelogConfig.endTag)}`,
@@ -135,8 +140,20 @@ function handlePackageDependencies(packageName, packageNextVersion) {
         shouldPackageBeReleased(name, { ...dependencies, ...optionalDependencies }, packageName, packageNextVersion)
       ) {
         releaseWeight = RELEASE_WEIGHT.PATCH
+
+        debug('new compatible release due to dependency update', {
+          package: name,
+          dependency: packageName,
+          version: getNextVersion(version, releaseWeight),
+        })
       } else if (shouldPackageBeReleased(name, peerDependencies || {}, packageName, packageNextVersion)) {
         releaseWeight = versionToReleaseWeight(version)
+
+        debug('new breaking release due to peer dependency update', {
+          package: name,
+          peerDependency: packageName,
+          version: getNextVersion(version, releaseWeight),
+        })
       }
 
       if (releaseWeight !== undefined) {
@@ -164,6 +181,10 @@ function shouldPackageBeReleased(name, dependencies, depName, depVersion) {
   }
 
   if (['xo-web', 'xo-server', '@xen-orchestra/proxy'].includes(name)) {
+    debug('forced release due to dependency update', {
+      package: name,
+      dependency: depName,
+    })
     return true
   }
 
