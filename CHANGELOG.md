@@ -1,5 +1,15 @@
 # ChangeLog
 
+## **next**
+
+### Enhancements
+
+- [Backups] Automatically detect, report and fix cache inconsistencies
+
+### Released packages
+
+- @xen-orchestra/backups 0.29.2
+
 ## **5.77.0** (2022-11-30)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
