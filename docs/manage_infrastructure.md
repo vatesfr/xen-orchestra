@@ -572,14 +572,13 @@ Don't add pool slaves to your XOA server list! XOA will automatically find them 
 
 ### Remove a host from a existing pool
 
-To remove one host from a pool, you can go to Advanced in the host page, and click on "detach"
+To remove one host from a pool, you can go to the "Advanced" tab of the host page, and click on "Detach"
 
 ![](./assets/detach-host.png)
 
 :::warning
-
-- Detach a host will remove all your VM put in the Local Storage, and reboot the host.
-- The host you want to remove must be a slave, not the master !
+- Detach a host will remove all your VM disks stored in the Local Storage, and reboot the host.
+- The host you want to remove must be a slave, not the master!
 :::
 
 ## Visualizations
