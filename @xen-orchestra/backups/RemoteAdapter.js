@@ -508,7 +508,7 @@ class RemoteAdapter {
     return `${BACKUP_DIR}/${vmUuid}/cache.json.gz`
   }
 
-  async #readCache(path) {
+  async _readCache(path) {
     try {
       return JSON.parse(await fromCallback(zlib.gunzip, await this.handler.readFile(path)))
     } catch (error) {
@@ -521,15 +521,15 @@ class RemoteAdapter {
   _updateCache = synchronized.withKey()(this._updateCache)
   // eslint-disable-next-line no-dupe-class-members
   async _updateCache(path, fn) {
-    const cache = await this.#readCache(path)
+    const cache = await this._readCache(path)
     if (cache !== undefined) {
       fn(cache)
 
-      await this.#writeCache(path, cache)
+      await this._writeCache(path, cache)
     }
   }
 
-  async #writeCache(path, data) {
+  async _writeCache(path, data) {
     try {
       await this.handler.writeFile(path, await fromCallback(zlib.gzip, JSON.stringify(data)), { flags: 'w' })
     } catch (error) {
@@ -577,7 +577,7 @@ class RemoteAdapter {
   async _readCacheListVmBackups(vmUuid) {
     const path = this.#getVmBackupsCache(vmUuid)
 
-    const cache = await this.#readCache(path)
+    const cache = await this._readCache(path)
     if (cache !== undefined) {
       debug('found VM backups cache, using it', { path })
       return cache
@@ -590,7 +590,7 @@ class RemoteAdapter {
     }
 
     // detached async action, will not reject
-    this.#writeCache(path, backups)
+    this._writeCache(path, backups)
 
     return backups
   }
