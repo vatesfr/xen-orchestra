@@ -6,10 +6,15 @@
 
 - [Backups] Automatically detect, report and fix cache inconsistencies
 
+### Bug fixes
+
+- [Warm migration] Fix start and delete VMs after a warm migration [#6568](https://github.com/vatesfr/xen-orchestra/issues/6568)
+
 ### Released packages
 
 - @xen-orchestra/backups 0.29.2
 - @xen-orchestra/proxy 0.26.6
+- xo-server 0.107.2
 
 ## **5.77.0** (2022-11-30)
 
