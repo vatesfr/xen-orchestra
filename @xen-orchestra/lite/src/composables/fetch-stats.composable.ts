@@ -31,14 +31,15 @@ export default function useFetchStats<
   const timestamp = ref<number[]>([0, 0]);
 
   const register = (object: T) => {
-    if (stats.value.has(object.uuid)) {
-      stats.value.get(object.uuid)!.pausable.resume();
+    const mapKey = object.uuid + granularity;
+    if (stats.value.has(mapKey)) {
+      stats.value.get(mapKey)!.pausable.resume();
       return;
     }
 
     const pausable = useTimeoutPoll(
       async () => {
-        if (!stats.value.has(object.uuid)) {
+        if (!stats.value.has(mapKey)) {
           return;
         }
 
@@ -54,14 +55,14 @@ export default function useFetchStats<
           newStats.endTimestamp,
         ];
 
-        stats.value.get(object.uuid)!.stats = newStats.stats;
+        stats.value.get(mapKey)!.stats = newStats.stats;
         await promiseTimeout(newStats.interval * 1000);
       },
       0,
       { immediate: true }
     );
 
-    stats.value.set(object.uuid, {
+    stats.value.set(mapKey, {
       id: object.uuid,
       name: object.name_label,
       stats: undefined,
@@ -70,8 +71,9 @@ export default function useFetchStats<
   };
 
   const unregister = (object: T) => {
-    stats.value.get(object.uuid)?.pausable.pause();
-    stats.value.delete(object.uuid);
+    const mapKey = object.uuid + granularity;
+    stats.value.get(mapKey)?.pausable.pause();
+    stats.value.delete(mapKey);
   };
 
   onUnmounted(() => {
