@@ -6,6 +6,7 @@ import { createRecordContext } from "@/stores/index";
 import { useXenApiStore } from "@/stores/xen-api.store";
 import { defineStore } from "pinia";
 import { computed } from "vue";
+import { computedAsync } from "@vueuse/core";
 
 export const useVmStore = defineStore("vm", () => {
   const xenApiStore = useXenApiStore();
@@ -18,6 +19,8 @@ export const useVmStore = defineStore("vm", () => {
       !vm.is_a_snapshot && !vm.is_a_template && !vm.is_control_domain,
     sort: sortRecordsByNameLabel,
   });
+
+  const xenApi = computedAsync(() => xenApiStore.getXapi());
 
   const opaqueRefsByHostRef = computed(() => {
     const vmsOpaqueRefsByHostOpaqueRef = new Map<string, string[]>();
@@ -52,9 +55,66 @@ export const useVmStore = defineStore("vm", () => {
     });
   }
 
+  const start = (refs: string[]) =>
+    Promise.all(
+      refs.map((vmRef) => xenApi.value.call("VM.start", [vmRef, false, false]))
+    );
+
+  const startOn = (refs: string[], hostRef: string) =>
+    Promise.all(
+      refs.map((vmRef) =>
+        xenApi.value.call("VM.start_on", [vmRef, hostRef, false, false])
+      )
+    );
+
+  const pause = (refs: string[]) =>
+    Promise.all(refs.map((vmRef) => xenApi.value.call("VM.pause", [vmRef])));
+
+  const suspend = (refs: string[]) =>
+    Promise.all(refs.map((vmRef) => xenApi.value.call("VM.suspend", [vmRef])));
+
+  const resume = (refAndPowerState: [string, string][]) =>
+    Promise.all(
+      refAndPowerState.map(([vmRef, vmPowerState]) => {
+        if (vmPowerState !== "Suspended" && vmPowerState !== "Paused") {
+          console.error("VM.resume: Invalid power_state", {
+            $ref: vmRef,
+            power_state: vmPowerState,
+          });
+          return;
+        }
+        const isSuspended = vmPowerState === "Suspended";
+        return xenApi.value.call(
+          `VM.${isSuspended ? "resume" : "unpause"}`,
+          isSuspended ? [vmRef, false, false] : [vmRef]
+        );
+      })
+    );
+
+  const reboot = (refs: string[], force = false) =>
+    Promise.all(
+      refs.map((vmRef) =>
+        xenApi.value.call(`VM.${force ? "hard" : "clean"}_reboot`, [vmRef])
+      )
+    );
+
+  const shutdown = (refs: string[], force = false) =>
+    Promise.all(
+      refs.map((vmRef) =>
+        xenApi.value.call(`VM.${force ? "hard" : "clean"}_shutdown`, [vmRef])
+      )
+    );
+
   return {
     ...baseVmContext,
     getStats,
     opaqueRefsByHostRef,
+    start,
+    startOn,
+    pause,
+    suspend,
+    resume,
+    reboot,
+    shutdown,
   };
 });

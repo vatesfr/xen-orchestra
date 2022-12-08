@@ -88,6 +88,7 @@ export interface XenApiSr extends XenApiRecord {
 }
 
 export interface XenApiVm extends XenApiRecord {
+  current_operations: Record<string, string>;
   name_label: string;
   name_description: string;
   power_state: PowerState;
@@ -200,6 +201,9 @@ export default class XenApi {
   #call<T = any>(method: string, args: any[] = []): PromiseLike<T> {
     return this.#client.request(method, args);
   }
+
+  call = (method: string, args: any[] = []) =>
+    this.#call(method, [this.sessionId, ...args]);
 
   async getHostServertime(host: XenApiHost) {
     const serverLocaltime = (await this.#call("host.get_servertime", [

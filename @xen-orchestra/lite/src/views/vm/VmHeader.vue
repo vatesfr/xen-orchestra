@@ -6,14 +6,22 @@
         <MenuItem :icon="faPowerOff" color="info">
           {{ $t("change-state") }}
           <template #submenu>
-            <MenuItem :icon="faPlay" :disabled="!isHalted">{{
-              $t("start")
-            }}</MenuItem>
-            <MenuItem :icon="faServer" :disabled="!isHalted"
+            <MenuItem
+              :busy="isBusy('start')"
+              :icon="faPlay"
+              :disabled="!isHalted"
+              @click="start"
+              >{{ $t("start") }}</MenuItem
+            >
+            <MenuItem
+              :busy="isBusy('start_on')"
+              :icon="faServer"
+              :disabled="!isHalted"
               >{{ $t("start-on-host") }}
               <template #submenu>
                 <MenuItem
                   v-for="host in hostStore.allRecords"
+                  @click="startOn(host.$ref)"
                   v-bind:key="host.$ref"
                   :icon="faServer"
                 >
@@ -36,30 +44,54 @@
                 </MenuItem>
               </template>
             </MenuItem>
-            <MenuItem :icon="faPause" :disabled="!isRunning">{{
-              $t("pause")
-            }}</MenuItem>
-            <MenuItem :icon="faMoon" :disabled="!isRunning">{{
-              $t("suspend")
-            }}</MenuItem>
+            <MenuItem
+              :busy="isBusy('pause')"
+              :icon="faPause"
+              :disabled="!isRunning"
+              @click="pause"
+              >{{ $t("pause") }}</MenuItem
+            >
+            <MenuItem
+              :busy="isBusy('suspend')"
+              :icon="faMoon"
+              :disabled="!isRunning"
+              @click="suspend"
+              >{{ $t("suspend") }}</MenuItem
+            >
             <!-- TODO: update the icon once Clémence has integrated the action into figma -->
             <MenuItem
+              :busy="isBusy('unpause') || isBusy('resume')"
               :icon="faCirclePlay"
               :disabled="!isSuspended && !isPaused"
+              @click="resume"
               >{{ $t("resume") }}</MenuItem
             >
-            <MenuItem :icon="faRotateLeft" :disabled="!isRunning">{{
-              $t("reboot")
-            }}</MenuItem>
-            <MenuItem :icon="faRepeat" :disabled="!isRunning && !isPaused">{{
-              $t("force-reboot")
-            }}</MenuItem>
-            <MenuItem :icon="faPowerOff" :disabled="!isRunning">{{
-              $t("shutdown")
-            }}</MenuItem>
             <MenuItem
+              :busy="isBusy('clean_reboot')"
+              :icon="faRotateLeft"
+              :disabled="!isRunning"
+              @click="reboot"
+              >{{ $t("reboot") }}</MenuItem
+            >
+            <MenuItem
+              :busy="isBusy('hard_reboot')"
+              :icon="faRepeat"
+              :disabled="!isRunning && !isPaused"
+              @click="reboot(true)"
+              >{{ $t("force-reboot") }}</MenuItem
+            >
+            <MenuItem
+              :busy="isBusy('clean_shutdown')"
+              :icon="faPowerOff"
+              :disabled="!isRunning"
+              @click="shutdown"
+              >{{ $t("shutdown") }}</MenuItem
+            >
+            <MenuItem
+              :busy="isBusy('hard_shutdown')"
               :icon="faPlug"
               :disabled="!isRunning && !isSuspended && !isPaused"
+              @click="shutdown(true)"
               >{{ $t("force-shutdown") }}</MenuItem
             >
           </template>
@@ -100,14 +132,29 @@ const hostStore = useHostStore();
 const poolStore = usePoolStore();
 const { currentRoute } = useRouter();
 
-const vm = computed(() =>
-  vmStore.getRecordByUuid(currentRoute.value.params.uuid as string)
+const isBusy = (operation: string) =>
+  Object.values(vm.value.current_operations).includes(operation);
+
+const vm = computed(
+  () => vmStore.getRecordByUuid(currentRoute.value.params.uuid as string)!
 );
-const name = computed(() => vm.value?.name_label);
-const isRunning = computed(() => vm.value?.power_state === "Running");
-const isHalted = computed(() => vm.value?.power_state === "Halted");
-const isSuspended = computed(() => vm.value?.power_state === "Suspended");
-const isPaused = computed(() => vm.value?.power_state === "Paused");
+const name = computed(() => vm.value.name_label);
+const isRunning = computed(() => vm.value.power_state === "Running");
+const isHalted = computed(() => vm.value.power_state === "Halted");
+const isSuspended = computed(() => vm.value.power_state === "Suspended");
+const isPaused = computed(
+  () =>
+    vm.value.power_state === "Paused" &&
+    !(isBusy("clean_shutdown") || isBusy("hard_shutdown"))
+);
+
+const start = () => vmStore.start([vm.value.$ref]);
+const startOn = (hostRef: string) => vmStore.startOn([vm.value.$ref], hostRef);
+const pause = () => vmStore.pause([vm.value.$ref]);
+const suspend = () => vmStore.suspend([vm.value.$ref]);
+const resume = () => vmStore.resume([[vm.value.$ref, vm.value.power_state]]);
+const reboot = (force?: boolean) => vmStore.reboot([vm.value.$ref], force);
+const shutdown = (force?: boolean) => vmStore.shutdown([vm.value.$ref], force);
 </script>
 
 <style lang="postcss" scoped>
