@@ -1,6 +1,6 @@
 <template>
   <UiCardTitle
-    secondary
+    subtitle
     :left="$t('hosts')"
     :right="$t('top-#', { n: N_ITEMS })"
   />

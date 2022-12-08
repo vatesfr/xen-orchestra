@@ -1,14 +1,14 @@
 <template>
-  <div :class="{ secondary }" class="ui-section-title">
+  <div :class="{ subtitle }" class="ui-section-title">
     <component
-      :is="secondary ? 'h5' : 'h4'"
+      :is="subtitle ? 'h5' : 'h4'"
       v-if="$slots.default || left"
       class="left"
     >
       <slot>{{ left }}</slot>
     </component>
     <component
-      :is="secondary ? 'h6' : 'h5'"
+      :is="subtitle ? 'h6' : 'h5'"
       v-if="$slots.right || right"
       class="right"
     >
@@ -19,7 +19,7 @@
 
 <script lang="ts" setup>
 defineProps<{
-  secondary?: boolean;
+  subtitle?: boolean;
   left?: string;
   right?: string;
 }>();
@@ -39,7 +39,7 @@ defineProps<{
   --section-title-right-color: var(--color-extra-blue-base);
   --section-title-right-weight: 700;
 
-  &.secondary {
+  &.subtitle {
     border-bottom: 1px solid var(--color-extra-blue-base);
 
     --section-title-left-size: 1.6rem;

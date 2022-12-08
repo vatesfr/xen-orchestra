@@ -1,6 +1,6 @@
 <template>
   <UiCardTitle
-    secondary
+    subtitle
     :left="$t('vms')"
     :right="$t('top-#', { n: N_ITEMS })"
   />
