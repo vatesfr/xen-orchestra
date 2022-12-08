@@ -89,6 +89,7 @@ const option = computed<EChartsOption>(() => ({
 
 <style lang="postcss" scoped>
 .chart {
+  /* TODO : when the date format will be in 2 rows, change the width to 50rem */
   width: 65rem;
   height: 30rem;
 }

@@ -65,34 +65,42 @@ provide("vmLastWeekStats", vmLastWeekStats);
 
 watch(runningHosts, (hosts, previousHosts) => {
   // turned On
-  const currentHosts = differenceBy(hosts, previousHosts ?? [], "uuid");
-  currentHosts.forEach(hostRegister);
-  currentHosts.forEach(hostLastWeekStatsRegister);
+  differenceBy(hosts, previousHosts ?? [], "uuid").forEach((host) => {
+    hostRegister(host);
+    hostLastWeekStatsRegister(host);
+  });
 
   // turned Off
-  const _previousHosts = differenceBy(previousHosts, hosts, "uuid");
-  _previousHosts.forEach(hostUnregister);
-  _previousHosts.forEach(hostLastWeekStatsUnregister);
+  differenceBy(previousHosts, hosts, "uuid").forEach((host) => {
+    hostUnregister(host);
+    hostLastWeekStatsUnregister(host);
+  });
 });
 
 watch(runningVms, (vms, previousVms) => {
   // turned On
-  const currentVms = differenceBy(vms, previousVms ?? [], "uuid");
-  currentVms.forEach(vmRegister);
-  currentVms.forEach(vmLastWeekStatsRegister);
+  differenceBy(vms, previousVms ?? [], "uuid").forEach((vm) => {
+    vmRegister(vm);
+    vmLastWeekStatsRegister(vm);
+  });
 
   // turned Off
-  const _previousVms = differenceBy(previousVms, vms, "uuid");
-  _previousVms.forEach(vmUnregister);
-  _previousVms.forEach(vmLastWeekStatsUnregister);
+  differenceBy(previousVms, vms, "uuid").forEach((vm) => {
+    vmUnregister(vm);
+    vmLastWeekStatsUnregister(vm);
+  });
 });
 
 onMounted(() => {
-  runningHosts.value.forEach(hostRegister);
-  runningVms.value.forEach(vmRegister);
+  runningHosts.value.forEach((host) => {
+    hostRegister(host);
+    hostLastWeekStatsRegister(host);
+  });
 
-  runningHosts.value.forEach(hostLastWeekStatsRegister);
-  runningVms.value.forEach(vmLastWeekStatsRegister);
+  runningVms.value.forEach((vm) => {
+    vmRegister(vm);
+    vmLastWeekStatsRegister(vm);
+  });
 });
 </script>
 
