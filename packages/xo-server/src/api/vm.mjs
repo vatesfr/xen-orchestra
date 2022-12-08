@@ -1184,7 +1184,9 @@ export { export_ as export }
 async function handleVmImport(req, res, { data, srId, type, xapi }) {
   // Timeout seems to be broken in Node 4.
   // See https://github.com/nodejs/node/issues/3319
-  req.setTimeout(43200000) // 12 hours
+  req.setTimeout(24 * 60 * 60 * 1000, () => {
+    log.warn('Import timeout reached', { data, srId, type })
+  }) // 24 hours
 
   // expect "multipart/form-data; boundary=something"
   const contentType = req.headers['content-type']
