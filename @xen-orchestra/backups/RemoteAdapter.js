@@ -232,21 +232,23 @@ class RemoteAdapter {
     return promise
   }
 
-  #removeVmBackupsFromCache(backups) {
-    for (const [dir, filenames] of Object.entries(
-      groupBy(
-        backups.map(_ => _._filename),
-        dirname
-      )
-    )) {
-      // detached async action, will not reject
-      this._updateCache(dir + '/cache.json.gz', backups => {
-        for (const filename of filenames) {
-          debug('removing cache entry', { entry: filename })
-          delete backups[filename]
-        }
-      })
-    }
+  async #removeVmBackupsFromCache(backups) {
+    await asyncEach(
+      Object.entries(
+        groupBy(
+          backups.map(_ => _._filename),
+          dirname
+        )
+      ),
+      ([dir, filenames]) =>
+        // will not reject
+        this._updateCache(dir + '/cache.json.gz', backups => {
+          for (const filename of filenames) {
+            debug('removing cache entry', { entry: filename })
+            delete backups[filename]
+          }
+        })
+    )
   }
 
   async deleteDeltaVmBackups(backups) {
@@ -255,7 +257,7 @@ class RemoteAdapter {
     // this will delete the json, unused VHDs will be detected by `cleanVm`
     await asyncMapSettled(backups, ({ _filename }) => handler.unlink(_filename))
 
-    this.#removeVmBackupsFromCache(backups)
+    await this.#removeVmBackupsFromCache(backups)
   }
 
   async deleteMetadataBackup(backupId) {
@@ -284,7 +286,7 @@ class RemoteAdapter {
       Promise.all([handler.unlink(_filename), handler.unlink(resolveRelativeFromFile(_filename, xva))])
     )
 
-    this.#removeVmBackupsFromCache(backups)
+    await this.#removeVmBackupsFromCache(backups)
   }
 
   deleteVmBackup(file) {
@@ -641,7 +643,7 @@ class RemoteAdapter {
     })
 
     // will not throw
-    this._updateCache(this.#getVmBackupsCache(vmUuid), backups => {
+    await this._updateCache(this.#getVmBackupsCache(vmUuid), backups => {
       debug('adding cache entry', { entry: path })
       backups[path] = {
         ...metadata,
