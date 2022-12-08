@@ -3,6 +3,7 @@
   <LinearChart
     title="Pool CPU Usage"
     subtitle="Last week"
+    :date-interval="DATE_INTERVAL"
     :data="data"
     :value-formatter="customValueFormatter"
   />
@@ -19,6 +20,8 @@ import {
   RRD_STEP_FROM_STRING,
   type VmStats,
 } from "@/libs/xapi-stats";
+
+const DATE_INTERVAL = 3600 * 1000 * 24; // 1 day
 
 const hostLastWeekStats = inject<ComputedRef>(
   "hostLastWeekStats",
