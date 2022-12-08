@@ -1,8 +1,7 @@
 <template>
-  <!-- TOFIX: use I18n -->
   <LinearChart
-    title="Pool CPU Usage"
-    subtitle="Last week"
+    :title="$t('pool-cpu-usage')"
+    :subtitle="$t('last-week')"
     :data="data"
     :value-formatter="customValueFormatter"
   />
