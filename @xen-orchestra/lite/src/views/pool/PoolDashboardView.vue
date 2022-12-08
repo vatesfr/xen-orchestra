@@ -1,10 +1,10 @@
 <template>
   <div class="pool-dashboard-view card-view">
     <PoolDashboardStatus class="item" />
-    <PoolCpuUsageChart class="item" />
     <PoolDashboardStorageUsage class="item" />
     <PoolDashboardCpuUsage class="item" />
     <PoolDashboardRamUsage class="item" />
+    <PoolCpuUsageChart class="item" />
   </div>
 </template>
 
