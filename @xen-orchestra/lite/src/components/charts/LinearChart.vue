@@ -6,6 +6,7 @@
 </template>
 
 <script lang="ts" setup>
+import { utcFormat } from "d3-time-format";
 import type { EChartsOption } from "echarts";
 import { computed, provide } from "vue";
 import VueCharts from "vue-echarts";
@@ -26,7 +27,6 @@ const props = defineProps<{
   title?: string;
   subtitle?: string;
   data: LinearChartData;
-  dateInterval?: number;
   valueFormatter?: (value: number) => string;
 }>();
 
@@ -63,18 +63,13 @@ const option = computed<EChartsOption>(() => ({
   xAxis: {
     type: "time",
     axisLabel: {
-      showMinLabel: false,
-      showMaxLabel: false,
-      maxInterval: props.dateInterval,
-      offset: 4,
-      formatter: (date: string) => {
-        // TOFIX: use I18n format
-        return new Date(date).toLocaleString("en-US", {
-          weekday: "short",
-          hour: "2-digit",
-          minute: "2-digit",
-        });
+      formatter: (date: number) => {
+        return utcFormat("%a %I:%M %p")(new Date(date));
       },
+      margin: 10,
+      padding: [10, 10, 10, 10],
+      showMaxLabel: false,
+      showMinLabel: false,
     },
   },
   yAxis: {
