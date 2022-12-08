@@ -3,7 +3,7 @@
   <LinearChart
     title="Pool CPU Usage"
     subtitle="Last week"
-    :data="dataA"
+    :data="data"
     :value-formatter="customValueFormatter"
   />
 </template>
@@ -12,7 +12,6 @@
 import { type ComputedRef, computed, inject } from "vue";
 import type { LinearChartData } from "@/types/chart";
 import LinearChart from "@/components/charts/LinearChart.vue";
-import type { Stat } from "@/composables/fetch-stats.composable";
 import { getAvgCpuUsage } from "@/libs/utils";
 import {
   GRANULARITY,
@@ -35,7 +34,7 @@ const timestampStartWmStatsComputed = computed(
   () => vmLastWeekStats.timestampStart.value
 );
 
-const data = computed<{ date: number; value: number }[]>(() => {
+const data = computed<LinearChartData>(() => {
   const result = new Map<string, { date: number; value: number }>();
 
   vmLastWeekStats.stats.value
@@ -66,15 +65,13 @@ const data = computed<{ date: number; value: number }[]>(() => {
       });
     });
 
-  return Array.from(result.values());
+  return [
+    {
+      label: "Stacked CPU usage",
+      data: Array.from(result.values()),
+    },
+  ];
 });
-
-const dataA = computed<LinearChartData>(() => [
-  {
-    label: "Stacked CPU usage",
-    data: data.value,
-  },
-]);
 
 const customValueFormatter = (value: number) => {
   return `${value}%`;
