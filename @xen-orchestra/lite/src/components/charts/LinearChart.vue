@@ -64,6 +64,15 @@ const option = computed<EChartsOption>(() => ({
     axisLabel: {
       showMinLabel: true,
       showMaxLabel: true,
+      offset: 4,
+      formatter: (date: string) => {
+        // TOFIX: use I18n format
+        return new Date(date).toLocaleString("en-US", {
+          weekday: "short",
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+      },
     },
   },
   yAxis: {
@@ -83,7 +92,7 @@ const option = computed<EChartsOption>(() => ({
 
 <style lang="postcss" scoped>
 .chart {
-  width: 50rem;
+  width: 65rem;
   height: 30rem;
 }
 </style>
