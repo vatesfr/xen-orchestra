@@ -64,10 +64,8 @@ const option = computed<EChartsOption>(() => ({
     type: "time",
     axisLabel: {
       formatter: (date: number) => {
-        return utcFormat("%a %I:%M %p")(new Date(date));
+        return utcFormat("%a %I:%M %p")(new Date(date)).replace(/ /g, "\n");
       },
-      margin: 10,
-      padding: [10, 10, 10, 10],
       showMaxLabel: false,
       showMinLabel: false,
     },
@@ -89,8 +87,7 @@ const option = computed<EChartsOption>(() => ({
 
 <style lang="postcss" scoped>
 .chart {
-  /* TODO : when the date format will be in 2 rows, change the width to 50rem */
-  width: 65rem;
+  width: 50rem;
   height: 30rem;
 }
 </style>
