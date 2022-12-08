@@ -26,6 +26,7 @@ const props = defineProps<{
   title?: string;
   subtitle?: string;
   data: LinearChartData;
+  dateInterval?: number;
   valueFormatter?: (value: number) => string;
 }>();
 
@@ -62,8 +63,9 @@ const option = computed<EChartsOption>(() => ({
   xAxis: {
     type: "time",
     axisLabel: {
-      showMinLabel: true,
-      showMaxLabel: true,
+      showMinLabel: false,
+      showMaxLabel: false,
+      maxInterval: props.dateInterval,
       offset: 4,
       formatter: (date: string) => {
         // TOFIX: use I18n format
