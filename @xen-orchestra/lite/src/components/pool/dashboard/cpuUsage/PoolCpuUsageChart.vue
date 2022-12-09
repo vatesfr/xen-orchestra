@@ -12,6 +12,7 @@ import { type ComputedRef, computed, inject } from "vue";
 import { useI18n } from "vue-i18n";
 import type { LinearChartData } from "@/types/chart";
 import LinearChart from "@/components/charts/LinearChart.vue";
+import type { Stat } from "@/composables/fetch-stats.composable";
 import { getAvgCpuUsage } from "@/libs/utils";
 import {
   GRANULARITY,
@@ -20,20 +21,24 @@ import {
   type VmStats,
 } from "@/libs/xapi-stats";
 
+interface LastWeekStats {
+  stats?: ComputedRef<Stat<VmStats | HostStats>[]>;
+  timestampStart?: ComputedRef<number>;
+  timestampEnd?: ComputedRef<number>;
+}
+
 const { t } = useI18n();
 
-const hostLastWeekStats = inject<ComputedRef>(
-  "hostLastWeekStats",
-  computed(() => [])
-);
+const hostLastWeekStats = inject<LastWeekStats>("hostLastWeekStats", {});
 
-const vmLastWeekStats = inject<ComputedRef>(
-  "vmLastWeekStats",
-  computed(() => [])
+const vmLastWeekStats = inject<LastWeekStats>("vmLastWeekStats", {});
+
+const timestampStartHostStatsComputed = computed(
+  () => hostLastWeekStats.timestampStart?.value
 );
 
 const timestampStartWmStatsComputed = computed(
-  () => vmLastWeekStats.timestampStart.value
+  () => vmLastWeekStats.timestampStart?.value
 );
 
 const labelSerie = computed(() => t("stacked-cpu-usage"));
@@ -41,33 +46,40 @@ const labelSerie = computed(() => t("stacked-cpu-usage"));
 const data = computed<LinearChartData>(() => {
   const result = new Map<string, { date: number; value: number }>();
 
-  vmLastWeekStats.stats.value
-    .concat(hostLastWeekStats.stats.value)
-    .forEach((stat: { stats: HostStats | VmStats }, index: any) => {
-      if (stat.stats === undefined) {
-        return;
-      }
+  const setResult = (
+    stats: HostStats | VmStats | undefined,
+    timestampStart = 0,
+    index = 0
+  ) => {
+    if (stats === undefined) {
+      return;
+    }
 
-      const avgCpuUsage = getAvgCpuUsage(stat.stats.cpus);
+    const avgCpuUsage = getAvgCpuUsage(stats.cpus);
 
-      if (avgCpuUsage === undefined) {
-        return;
-      }
+    if (avgCpuUsage === undefined) {
+      return;
+    }
 
-      const date =
-        (timestampStartWmStatsComputed.value +
-          RRD_STEP_FROM_STRING[GRANULARITY.Hours] * index) *
-        1000;
+    const date =
+      (timestampStart + RRD_STEP_FROM_STRING[GRANULARITY.Hours] * index) * 1000;
 
-      const strDate = date.toString();
+    const strDate = date.toString();
 
-      result.set(strDate, {
-        value:
-          (result.get(strDate)?.value ?? 0) +
-          Math.round(avgCpuUsage * 100) / 100,
-        date,
-      });
+    result.set(strDate, {
+      value:
+        (result.get(strDate)?.value ?? 0) + Math.round(avgCpuUsage * 100) / 100,
+      date,
     });
+  };
+
+  vmLastWeekStats.stats?.value.forEach((stat, index) =>
+    setResult(stat.stats, timestampStartWmStatsComputed.value, index)
+  );
+
+  hostLastWeekStats.stats?.value.forEach((stat, index) =>
+    setResult(stat.stats, timestampStartHostStatsComputed.value, index)
+  );
 
   return [
     {
