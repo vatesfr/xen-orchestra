@@ -9,6 +9,7 @@
 
 <script lang="ts" setup>
 import { type ComputedRef, computed, inject } from "vue";
+import { useI18n } from "vue-i18n";
 import type { LinearChartData } from "@/types/chart";
 import LinearChart from "@/components/charts/LinearChart.vue";
 import { getAvgCpuUsage } from "@/libs/utils";
@@ -18,6 +19,8 @@ import {
   RRD_STEP_FROM_STRING,
   type VmStats,
 } from "@/libs/xapi-stats";
+
+const { t } = useI18n();
 
 const hostLastWeekStats = inject<ComputedRef>(
   "hostLastWeekStats",
@@ -32,6 +35,8 @@ const vmLastWeekStats = inject<ComputedRef>(
 const timestampStartWmStatsComputed = computed(
   () => vmLastWeekStats.timestampStart.value
 );
+
+const labelSerie = computed(() => t("stacked-cpu-usage"));
 
 const data = computed<LinearChartData>(() => {
   const result = new Map<string, { date: number; value: number }>();
@@ -66,7 +71,7 @@ const data = computed<LinearChartData>(() => {
 
   return [
     {
-      label: "Stacked CPU usage",
+      label: labelSerie.value,
       data: Array.from(result.values()),
     },
   ];
