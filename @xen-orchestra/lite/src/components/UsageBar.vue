@@ -1,9 +1,6 @@
 <template>
   <div>
-    <div class="header">
-      <slot name="header" />
-    </div>
-    <div v-if="data !== undefined">
+    <template v-if="data !== undefined">
       <div
         v-for="item in computedData.sortedArray"
         :key="item.id"
@@ -21,7 +18,7 @@
       <div class="footer">
         <slot :total-percent="computedData.totalPercentUsage" name="footer" />
       </div>
-    </div>
+    </template>
     <UiSpinner v-else class="spinner" />
   </div>
 </template>
@@ -68,15 +65,6 @@ const computedData = computed(() => {
 </script>
 
 <style scoped>
-.header {
-  color: var(--color-extra-blue-base);
-  display: flex;
-  justify-content: space-between;
-  border-bottom: 1px solid var(--color-extra-blue-base);
-  margin-bottom: 2rem;
-  font-size: 16px;
-  font-weight: 700;
-}
 .footer {
   display: flex;
   justify-content: space-between;

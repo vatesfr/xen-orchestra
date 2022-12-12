@@ -1,17 +1,17 @@
 <template>
   <UiCard>
-    <UiTitle type="h4">{{ $t("status") }}</UiTitle>
+    <UiCardTitle>{{ $t("status") }}</UiCardTitle>
     <template v-if="isReady">
       <PoolDashboardStatusItem
         :active="activeHostsCount"
-        :total="totalHostsCount"
         :label="$t('hosts')"
+        :total="totalHostsCount"
       />
       <UiSeparator />
       <PoolDashboardStatusItem
         :active="activeVmsCount"
-        :total="totalVmsCount"
         :label="$t('vms')"
+        :total="totalVmsCount"
       />
     </template>
     <UiSpinner v-else class="spinner" />
@@ -19,14 +19,14 @@
 </template>
 
 <script lang="ts" setup>
-import { computed } from "vue";
 import PoolDashboardStatusItem from "@/components/pool/dashboard/PoolDashboardStatusItem.vue";
 import UiCard from "@/components/ui/UiCard.vue";
+import UiCardTitle from "@/components/ui/UiCardTitle.vue";
 import UiSeparator from "@/components/ui/UiSeparator.vue";
 import UiSpinner from "@/components/ui/UiSpinner.vue";
-import UiTitle from "@/components/ui/UiTitle.vue";
 import { useHostMetricsStore } from "@/stores/host-metrics.store";
 import { useVmStore } from "@/stores/vm.store";
+import { computed } from "vue";
 
 const vmStore = useVmStore();
 const hostMetricsStore = useHostMetricsStore();
