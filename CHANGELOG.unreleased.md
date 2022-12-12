@@ -30,8 +30,10 @@
 
 <!--packages-start-->
 
+- @vates/task patch
 - @xen-orchestra/backups patch
 - @xen-orchestra/log minor
+- @xen-orchestra/mixins feat
 - @xen-orchestra/xapi patch
 - vhd-lib patch
 - xo-server minor
