@@ -1,6 +1,12 @@
 # ChangeLog
 
-## **next**
+## **5.77.2** (2022-12-12)
+
+<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
+### Bug fixes
+
+- [Backups] Fixes most of the _unexpected number of entries in backup cache_ errors
 
 ### Released packages
 
@@ -9,8 +15,6 @@
 - xo-server 5.107.3
 
 ## **5.77.1** (2022-12-07)
-
-<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
 
 ### Enhancements
 
