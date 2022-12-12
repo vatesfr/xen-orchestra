@@ -1,6 +1,6 @@
 <template>
   <div class="app-login form-container">
-    <form @submit.prevent="handleSubmit">
+    <form @submit.prevent="handleSubmit" data-testid="login-form">
       <img alt="XO Lite" src="../assets/logo-title.svg" />
       <input v-model="login" name="login" readonly type="text" />
       <input

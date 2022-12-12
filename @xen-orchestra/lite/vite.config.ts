@@ -1,3 +1,4 @@
+/// <reference types="vitest" />
 import vueI18n from "@intlify/vite-plugin-vue-i18n";
 import vue from "@vitejs/plugin-vue";
 import { fileURLToPath, URL } from "url";
@@ -29,4 +30,13 @@ export default defineConfig({
   optimizeDeps: {
     include: ["complex-matcher"],
   },
+  test: {
+    globals: true,
+    environment: "happy-dom",
+    exclude: ["e2e"],
+    coverage: {
+      reportsDirectory: ".tests-output/coverage",
+    },
+  },
+  root: ".",
 });

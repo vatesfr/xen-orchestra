@@ -5,6 +5,7 @@
     :spin="busy"
     class="ui-icon"
     :fixed-width="fixedWidth"
+    data-testid="ui-icon"
   />
 </template>
 
@@ -12,6 +13,7 @@
 import { computed } from "vue";
 import type { IconDefinition } from "@fortawesome/fontawesome-common-types";
 import { faSpinner } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 
 const props = withDefaults(
   defineProps<{

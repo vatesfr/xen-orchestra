@@ -22,7 +22,7 @@ module.exports = {
     "@typescript-eslint/no-explicit-any": "off",
     "@limegrass/import-alias/import-alias": [
       "error",
-      { aliasConfigPath: require("path").join(__dirname, "tsconfig.json") },
+      { aliasConfigPath: require("path").join(__dirname, "tsconfig.app.json") },
     ],
   },
 };

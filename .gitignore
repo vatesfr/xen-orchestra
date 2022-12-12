@@ -7,6 +7,7 @@
 /@vates/*/node_modules/
 /@xen-orchestra/*/dist/
 /@xen-orchestra/*/node_modules/
+/@xen-orchestra/*/.tests-output/
 /packages/*/dist/
 /packages/*/node_modules/
 
