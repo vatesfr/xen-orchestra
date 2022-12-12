@@ -5,6 +5,7 @@
 ### Released packages
 
 - @xen-orchestra/backups 0.29.3
+- @xen-orchestra/proxy 0.26.7
 
 ## **5.77.1** (2022-12-07)
 
