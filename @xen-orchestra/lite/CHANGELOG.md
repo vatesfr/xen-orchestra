@@ -6,6 +6,7 @@
 - Settings page (PR [#6418](https://github.com/vatesfr/xen-orchestra/pull/6418))
 - Uncollapse hosts in the tree by default (PR [#6428](https://github.com/vatesfr/xen-orchestra/pull/6428))
 - Display RAM usage in pool dashboard (PR [#6419](https://github.com/vatesfr/xen-orchestra/pull/6419))
+- Implement not found page (PR [#6410](https://github.com/vatesfr/xen-orchestra/pull/6410))
 
 ## **0.1.0**
 

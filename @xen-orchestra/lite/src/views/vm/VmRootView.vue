@@ -1,8 +1,11 @@
 <template>
-  <RouterView />
+  <ObjectNotFoundWrapper object-type="vm">
+    <RouterView />
+  </ObjectNotFoundWrapper>
 </template>
 
 <script lang="ts" setup>
+import ObjectNotFoundWrapper from "@/components/ObjectNotFoundWrapper.vue";
 import { watchEffect } from "vue";
 import { useRoute } from "vue-router";
 import { useUiStore } from "@/stores/ui.store";

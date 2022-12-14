@@ -1,6 +1,7 @@
 import { createRouter, createWebHashHistory } from "vue-router";
 import pool from "@/router/pool";
 import HomeView from "@/views/HomeView.vue";
+import PageNotFoundView from "@/views/PageNotFoundView.vue";
 import HostDashboardView from "@/views/host/HostDashboardView.vue";
 import HostRootView from "@/views/host/HostRootView.vue";
 import SettingsView from "@/views/settings/SettingsView.vue";
@@ -42,6 +43,11 @@ const router = createRouter({
           component: VmConsoleView,
         },
       ],
+    },
+    {
+      path: "/:pathMatch(.*)*",
+      name: "notFound",
+      component: PageNotFoundView,
     },
   ],
 });
