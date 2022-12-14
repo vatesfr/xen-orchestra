@@ -7,7 +7,6 @@ const ignoreErrors = require('promise-toolbox/ignoreErrors')
 const pickBy = require('lodash/pickBy.js')
 const omit = require('lodash/omit.js')
 const pCatch = require('promise-toolbox/catch')
-const pRetry = require('promise-toolbox/retry')
 const { asyncMap } = require('@xen-orchestra/async-map')
 const { createLogger } = require('@xen-orchestra/log')
 const { decorateClass } = require('@vates/decorate-with')
@@ -637,92 +636,44 @@ class Vm {
       }
     }
 
-    let destroyNobakVdis = false
+    let ignoredVbds
     if (ignoreNobakVdis) {
-      if (isHalted) {
-        await asyncMap(await listNobakVbds(this, vm.VBDs), async vbd => {
-          await this.VBD_destroy(vbd.$ref)
-          $defer.call(this, 'VBD_create', vbd)
-        })
-      } else {
-        // cannot unplug VBDs on Running, Paused and Suspended VMs
-        destroyNobakVdis = true
-      }
+      ignoredVbds = await listNobakVbds(this, vm.VBDs)
+      ignoreNobakVdis = ignoredVbds.length !== 0
     }
 
-    if (name_label === undefined) {
-      name_label = vm.name_label
+    const params = [cancelToken, 'VM.snapshot', vmRef, name_label ?? vm.name_label]
+    if (ignoreNobakVdis) {
+      params.push(ignoredVbds.map(_ => _.VDI))
     }
-    let ref
-    do {
-      if (!vm.tags.includes('xo-disable-quiesce')) {
-        try {
-          let { snapshots } = vm
-          ref = await pRetry(
-            async () => {
-              try {
-                return await this.callAsync(cancelToken, 'VM.snapshot_with_quiesce', vmRef, name_label)
-              } catch (error) {
-                if (error == null || error.code !== 'VM_SNAPSHOT_WITH_QUIESCE_FAILED') {
-                  throw pRetry.bail(error)
-                }
-                // detect and remove new broken snapshots
-                //
-                // see https://github.com/vatesfr/xen-orchestra/issues/3936
-                const prevSnapshotRefs = new Set(snapshots)
-                const snapshotNameLabelPrefix = `Snapshot of ${vm.uuid} [`
-                snapshots = await this.getField('VM', vm.$ref, 'snapshots')
-                const createdSnapshots = (
-                  await this.getRecords(
-                    'VM',
-                    snapshots.filter(_ => !prevSnapshotRefs.has(_))
-                  )
-                ).filter(_ => _.name_label.startsWith(snapshotNameLabelPrefix))
-                // be safe: only delete if there was a single match
-                if (createdSnapshots.length === 1) {
-                  const snapshotRef = createdSnapshots[0]
-                  this.VM_destroy(snapshotRef).catch(error => {
-                    warn('VM_sapshot: failed to destroy broken snapshot', {
-                      error,
-                      snapshotRef,
-                      vmRef,
-                    })
-                  })
-                }
-                throw error
-              }
-            },
-            {
-              delay: 60e3,
-              tries: 3,
-            }
-          ).then(extractOpaqueRef)
-          this.call('VM.add_tags', ref, 'quiesce').catch(error => {
-            warn('VM_snapshot: failed to add quiesce tag', {
-              vmRef,
-              snapshotRef: ref,
-              error,
-            })
+
+    let destroyNobakVdis = false
+    let result
+    try {
+      result = await this.callAsync(...params)
+    } catch (error) {
+      if (error.code !== 'MESSAGE_PARAMETER_COUNT_MISMATCH') {
+        throw error
+      }
+
+      if (ignoreNobakVdis) {
+        if (isHalted) {
+          await asyncMap(ignoredVbds, async vbd => {
+            await this.VBD_destroy(vbd.$ref)
+            $defer.call(this, 'VBD_create', vbd)
           })
-          break
-        } catch (error) {
-          const { code } = error
-          if (
-            // removed in CH 8.1
-            code !== 'MESSAGE_REMOVED' &&
-            code !== 'VM_SNAPSHOT_WITH_QUIESCE_NOT_SUPPORTED' &&
-            // quiesce only work on a running VM
-            code !== 'VM_BAD_POWER_STATE' &&
-            // quiesce failed, fallback on standard snapshot
-            // TODO: emit warning
-            code !== 'VM_SNAPSHOT_WITH_QUIESCE_FAILED'
-          ) {
-            throw error
-          }
+        } else {
+          // cannot unplug VBDs on Running, Paused and Suspended VMs
+          destroyNobakVdis = true
         }
       }
-      ref = await this.callAsync(cancelToken, 'VM.snapshot', vmRef, name_label).then(extractOpaqueRef)
-    } while (false)
+
+      params.pop()
+
+      result = await this.callAsync(...params)
+    }
+
+    const ref = extractOpaqueRef(result)
 
     // detached async
     this._httpHook(vm, '/post-sync').catch(noop)
