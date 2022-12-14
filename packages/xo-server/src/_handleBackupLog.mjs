@@ -5,7 +5,7 @@ import { createLogger } from '@xen-orchestra/log'
 const { warn } = createLogger('xo:server:handleBackupLog')
 
 async function sendToNagios(app, jobName, vmBackupInfo) {
-  if (app.sendPassiveCheck !== undefined) {
+  if (app.sendPassiveCheck === undefined) {
     // Nagios plugin is not loaded
     return
   }
