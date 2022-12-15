@@ -55,13 +55,11 @@
         <UiKeyValueRow>
           <template #key>{{ $t("appearance") }}</template>
           <template #value>
-            <FormLabel>
-              <FormSelect v-model="colorMode">
-                <option value="auto">{{ $t("theme-auto") }}</option>
-                <option value="dark">{{ $t("theme-dark") }}</option>
-                <option value="light">{{ $t("theme-light") }}</option>
-              </FormSelect>
-            </FormLabel>
+            <FormSelect v-model="colorMode">
+              <option value="auto">{{ $t("theme-auto") }}</option>
+              <option value="dark">{{ $t("theme-dark") }}</option>
+              <option value="light">{{ $t("theme-light") }}</option>
+            </FormSelect>
           </template>
         </UiKeyValueRow>
       </UiKeyValueList>
@@ -100,7 +98,6 @@ import { locales } from "@/i18n";
 import { faEarthAmericas, faGear } from "@fortawesome/free-solid-svg-icons";
 import FormWidget from "@/components/FormWidget.vue";
 import TitleBar from "@/components/TitleBar.vue";
-import FormLabel from "@/components/form/FormLabel.vue";
 import UiCard from "@/components/ui/UiCard.vue";
 import UiKeyValueList from "@/components/ui/UiKeyValueList.vue";
 import UiKeyValueRow from "@/components/ui/UiKeyValueRow.vue";

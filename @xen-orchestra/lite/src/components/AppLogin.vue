@@ -2,15 +2,24 @@
   <div class="app-login form-container">
     <form @submit.prevent="handleSubmit">
       <img alt="XO Lite" src="../assets/logo-title.svg" />
-      <input v-model="login" name="login" readonly type="text" />
-      <input
-        v-model="password"
-        :readonly="isConnecting"
-        name="password"
-        :placeholder="$t('password')"
-        type="password"
-      />
-      <UiButton :busy="isConnecting" type="submit">
+      <FormInputWrapper>
+        <FormInput v-model="login" name="login" readonly type="text" />
+      </FormInputWrapper>
+      <FormInputWrapper :error="error">
+        <FormInput
+          name="password"
+          ref="passwordRef"
+          type="password"
+          v-model="password"
+          :placeholder="$t('password')"
+          :readonly="isConnecting"
+        />
+      </FormInputWrapper>
+      <UiButton
+        type="submit"
+        :busy="isConnecting"
+        :disabled="password.trim().length < 1"
+      >
         {{ $t("login") }}
       </UiButton>
     </form>
@@ -19,21 +28,47 @@
 
 <script lang="ts" setup>
 import { storeToRefs } from "pinia";
-import { onMounted, ref } from "vue";
+import { onMounted, ref, watch } from "vue";
+import { useI18n } from "vue-i18n";
+import FormInput from "@/components/form/FormInput.vue";
+import FormInputWrapper from "@/components/form/FormInputWrapper.vue";
 import UiButton from "@/components/ui/UiButton.vue";
 import { useXenApiStore } from "@/stores/xen-api.store";
 
+const { t } = useI18n();
 const xenApiStore = useXenApiStore();
 const { isConnecting } = storeToRefs(xenApiStore);
 const login = ref("root");
 const password = ref("");
+const error = ref<string>();
+const passwordRef = ref<InstanceType<typeof FormInput>>();
+const isInvalidPassword = ref(false);
+
+const focusPasswordInput = () => passwordRef.value?.focus();
 
 onMounted(() => {
   xenApiStore.reconnect();
+  focusPasswordInput();
+});
+
+watch(password, () => {
+  isInvalidPassword.value = false;
+  error.value = undefined;
 });
 
 async function handleSubmit() {
-  await xenApiStore.connect(login.value, password.value);
+  try {
+    await xenApiStore.connect(login.value, password.value);
+  } catch (err) {
+    if ((err as Error).message === "SESSION_AUTHENTICATION_FAILED") {
+      focusPasswordInput();
+      isInvalidPassword.value = true;
+      error.value = t("password-invalid");
+    } else {
+      error.value = t("error-occured");
+      console.error(err);
+    }
+  }
 }
 </script>
 
@@ -50,6 +85,7 @@ async function handleSubmit() {
 
 form {
   display: flex;
+  font-size: 2rem;
   min-width: 30em;
   max-width: 100%;
   align-items: center;
@@ -72,12 +108,6 @@ img {
   margin-bottom: 5rem;
 }
 
-label {
-  font-size: 120%;
-  font-weight: bold;
-  margin: 1.5rem 0 0.5rem 0;
-}
-
 input {
   width: 45rem;
   max-width: 100%;
@@ -89,6 +119,6 @@ input {
 }
 
 button {
-  margin-top: 3rem;
+  margin-top: 2rem;
 }
 </style>

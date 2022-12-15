@@ -6,6 +6,7 @@
       :class="inputClass"
       :disabled="disabled || isLabelDisabled"
       class="input"
+      ref="inputElement"
       v-bind="$attrs"
     />
     <template v-else>
@@ -14,6 +15,7 @@
         :class="inputClass"
         :disabled="disabled || isLabelDisabled"
         class="select"
+        ref="inputElement"
         v-bind="$attrs"
       >
         <slot />
@@ -70,6 +72,8 @@ interface Props extends Omit<InputHTMLAttributes, ""> {
 
 const props = withDefaults(defineProps<Props>(), { color: "info" });
 
+const inputElement = ref();
+
 const emit = defineEmits<{
   (event: "update:modelValue", value: any): void;
 }>();
@@ -78,6 +82,10 @@ const value = useVModel(props, "modelValue", emit);
 const empty = computed(() => isEmpty(props.modelValue));
 const isSelect = inject("isSelect", false);
 const isLabelDisabled = inject("isLabelDisabled", ref(false));
+const color = inject(
+  "color",
+  computed(() => undefined)
+);
 
 const wrapperClass = computed(() => [
   isSelect ? "form-select" : "form-input",
@@ -88,13 +96,19 @@ const wrapperClass = computed(() => [
 ]);
 
 const inputClass = computed(() => [
-  props.color,
+  color.value ?? props.color,
   {
     right: props.right,
     "has-before": props.before !== undefined,
     "has-after": props.after !== undefined,
   },
 ]);
+
+const focus = () => inputElement.value.focus();
+
+defineExpose({
+  focus,
+});
 </script>
 
 <style lang="postcss" scoped>
