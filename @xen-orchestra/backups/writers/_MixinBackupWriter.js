@@ -16,7 +16,6 @@ const { info, warn } = createLogger('xo:backups:MixinBackupWriter')
 exports.MixinBackupWriter = (BaseClass = Object) =>
   class MixinBackupWriter extends BaseClass {
     #lock
-    #vmBackupDir
 
     constructor({ remoteId, ...rest }) {
       super(rest)
@@ -24,13 +23,13 @@ exports.MixinBackupWriter = (BaseClass = Object) =>
       this._adapter = rest.backup.remoteAdapters[remoteId]
       this._remoteId = remoteId
 
-      this.#vmBackupDir = getVmBackupDir(this._backup.vm.uuid)
+      this._vmBackupDir = getVmBackupDir(this._backup.vm.uuid)
     }
 
     async _cleanVm(options) {
       try {
         return await Task.run({ name: 'clean-vm' }, () => {
-          return this._adapter.cleanVm(this.#vmBackupDir, {
+          return this._adapter.cleanVm(this._vmBackupDir, {
             ...options,
             fixMetadata: true,
             logInfo: info,
@@ -50,7 +49,7 @@ exports.MixinBackupWriter = (BaseClass = Object) =>
 
     async beforeBackup() {
       const { handler } = this._adapter
-      const vmBackupDir = this.#vmBackupDir
+      const vmBackupDir = this._vmBackupDir
       await handler.mktree(vmBackupDir)
       this.#lock = await handler.lock(vmBackupDir)
     }

@@ -11,7 +11,6 @@ const { dirname } = require('path')
 
 const { formatFilenameDate } = require('../_filenameDate.js')
 const { getOldEntries } = require('../_getOldEntries.js')
-const { getVmBackupDir } = require('../_getVmBackupDir.js')
 const { Task } = require('../Task.js')
 
 const { MixinBackupWriter } = require('./_MixinBackupWriter.js')
@@ -29,8 +28,7 @@ exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(Ab
     const backup = this._backup
     const adapter = this._adapter
 
-    const backupDir = getVmBackupDir(backup.vm.uuid)
-    const vdisDir = `${backupDir}/vdis/${backup.job.id}`
+    const vdisDir = `${this._vmBackupDir}/vdis/${backup.job.id}`
 
     await asyncMap(baseUuidToSrcVdi, async ([baseUuid, srcVdi]) => {
       let found = false
@@ -143,7 +141,6 @@ exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(Ab
 
     const jobId = job.id
     const handler = adapter.handler
-    const backupDir = getVmBackupDir(vm.uuid)
 
     // TODO: clean VM backup directory
 
@@ -177,7 +174,7 @@ exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(Ab
     const { size } = await Task.run({ name: 'transfer' }, async () => {
       await Promise.all(
         map(deltaExport.vdis, async (vdi, id) => {
-          const path = `${backupDir}/${vhds[id]}`
+          const path = `${this._backupDir}/${vhds[id]}`
 
           const isDelta = vdi.other_config['xo:base_delta'] !== undefined
           let parentPath
