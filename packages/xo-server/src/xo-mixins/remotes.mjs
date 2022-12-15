@@ -58,6 +58,7 @@ export default class {
       const handlers = this._handlers
       for (const id in handlers) {
         try {
+          delete handlers[id]
           await handlers[id].forget()
         } catch (_) {}
       }
@@ -251,8 +252,10 @@ export default class {
   }
 
   async removeRemote(id) {
-    const handler = this._handlers[id]
+    const handlers = this._handlers
+    const handler = handlers[id]
     if (handler !== undefined) {
+      delete handlers[id]
       ignoreErrors.call(handler.forget())
     }
 
