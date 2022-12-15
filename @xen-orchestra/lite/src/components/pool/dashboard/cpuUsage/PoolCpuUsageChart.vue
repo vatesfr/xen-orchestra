@@ -89,7 +89,5 @@ const data = computed<LinearChartData>(() => {
   ];
 });
 
-const customValueFormatter = (value: number) => {
-  return `${value}%`;
-};
+const customValueFormatter = (value: number) => `${value}%`;
 </script>
