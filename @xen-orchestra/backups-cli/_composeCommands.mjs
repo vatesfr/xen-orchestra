@@ -1,11 +1,10 @@
-'use strict'
+import { readFileSync } from 'fs'
+import getopts from 'getopts'
 
-const getopts = require('getopts')
+const { version } = JSON.parse(readFileSync(new URL('package.json', import.meta.url)))
 
-const { version } = require('./package.json')
-
-module.exports = commands =>
-  async function (args, prefix) {
+export function composeCommands(commands) {
+  return async function (args, prefix) {
     const opts = getopts(args, {
       alias: {
         help: 'h',
@@ -30,5 +29,6 @@ xo-backups v${version}
       return
     }
 
-    return command.main(args.slice(1), prefix + ' ' + commandName)
+    return (await command.default)(args.slice(1), prefix + ' ' + commandName)
   }
+}

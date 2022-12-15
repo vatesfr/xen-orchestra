@@ -1,16 +1,13 @@
-'use strict'
-
-const groupBy = require('lodash/groupBy')
-const { asyncMap } = require('@xen-orchestra/async-map')
-const { createHash } = require('crypto')
-const { dirname, resolve } = require('path')
-
-const { readdir2, readFile, getSize } = require('../_fs')
+import { readdir2, readFile, getSize } from '../_fs.mjs'
+import { asyncMap } from '@xen-orchestra/async-map'
+import { createHash } from 'crypto'
+import groupBy from 'lodash/groupBy.js'
+import { dirname, resolve } from 'path'
 
 const sha512 = str => createHash('sha512').update(str).digest('hex')
 const sum = values => values.reduce((a, b) => a + b)
 
-module.exports = async function info(vmDirs) {
+export default async function info(vmDirs) {
   const jsonFiles = (
     await asyncMap(vmDirs, async vmDir => (await readdir2(vmDir)).filter(_ => _.endsWith('.json')))
   ).flat()

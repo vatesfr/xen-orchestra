@@ -11,7 +11,7 @@
 </template>
 
 <script lang="ts" setup>
-import AccountButton from '@/components/AccountButton.vue'
+import AccountButton from "@/components/AccountButton.vue";
 </script>
 
 <style lang="postcss" scoped>

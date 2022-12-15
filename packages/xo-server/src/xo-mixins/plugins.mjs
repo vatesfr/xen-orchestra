@@ -1,4 +1,5 @@
 import Ajv from 'ajv'
+import cloneDeep from 'lodash/cloneDeep.js'
 import mapToArray from 'lodash/map.js'
 import noop from 'lodash/noop.js'
 import { createLogger } from '@xen-orchestra/log'
@@ -153,22 +154,18 @@ export default class {
     }
 
     const validate = this._ajv.compile(configurationSchema)
+
+    // deep clone the configuration to avoid modifying the parameter
+    configuration = cloneDeep(configuration)
+
     if (!validate(configuration)) {
       throw invalidParameters(validate.errors)
     }
 
     // Sets the plugin configuration.
-    await plugin.instance.configure(
-      {
-        // Shallow copy of the configuration object to avoid most of the
-        // errors when the plugin is altering the configuration object
-        // which is handed over to it.
-        ...configuration,
-      },
-      {
-        loaded: plugin.loaded,
-      }
-    )
+    await plugin.instance.configure(configuration, {
+      loaded: plugin.loaded,
+    })
     plugin.configured = true
   }
 

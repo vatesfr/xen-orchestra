@@ -7,7 +7,7 @@
     "type": "git",
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },
-  "version": "0.2.1",
+  "version": "0.2.2",
   "engines": {
     "node": ">=14"
   },
@@ -17,7 +17,7 @@
   },
   "dependencies": {
     "@vates/decorate-with": "^2.0.0",
-    "@xen-orchestra/log": "^0.4.0",
+    "@xen-orchestra/log": "^0.5.0",
     "golike-defer": "^0.5.1",
     "object-hash": "^2.0.1"
   },

@@ -14,7 +14,7 @@ import { createLogger } from '@xen-orchestra/log'
 import { decorateWith } from '@vates/decorate-with'
 import { defer } from 'golike-defer'
 import { format, parse } from 'json-rpc-peer'
-import { incorrectState, noSuchObject } from 'xo-common/api-errors.js'
+import { incorrectState, invalidParameters, noSuchObject } from 'xo-common/api-errors.js'
 import { parseDuration } from '@vates/parse-duration'
 import { readChunk } from '@vates/read-chunk'
 import { Ref } from 'xen-api'
@@ -106,6 +106,14 @@ export default class Proxy {
 
   @synchronizedWrite
   async registerProxy({ address, authenticationToken, name = this._generateDefaultProxyName(), vmUuid }) {
+    if (address === undefined && vmUuid === undefined) {
+      throw invalidParameters('at least one of address and vmUuid must be defined')
+    }
+
+    if (authenticationToken === undefined) {
+      authenticationToken = await generateToken()
+    }
+
     await this._throwIfRegistered(address, vmUuid)
 
     const { id } = await this._db.add({
@@ -195,7 +203,28 @@ export default class Proxy {
       }
     }
 
-    return this.updateProxyAppliance(id, { upgrade: true })
+    let isVmKnown = false
+
+    const { vmUuid } = await this._getProxy(id)
+    if (vmUuid !== undefined) {
+      try {
+        this._app.getObject(vmUuid, 'VM')
+
+        isVmKnown = true
+      } catch (error) {
+        if (!noSuchObject.is(error)) {
+          throw error
+        }
+      }
+    }
+
+    if (isVmKnown) {
+      //  use the standard upgrade (via VM reboot)
+      await this.updateProxyAppliance(id, { upgrade: true })
+    } else {
+      // use the (limited) API upgrade instead
+      await this.callProxyMethod(id, 'appliance.updater.upgrade')
+    }
   }
 
   async updateProxyAppliance(id, { httpProxy, upgrade = false }) {

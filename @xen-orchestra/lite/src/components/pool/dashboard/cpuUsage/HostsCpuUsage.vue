@@ -1,25 +1,25 @@
 <template>
-  <UsageBar :data="data" :n-items="5">
-    <template #header>
-      <span>{{ $t("hosts") }}</span>
-      <span>{{ $t("top-#", { n: 5 }) }}</span>
-    </template>
-  </UsageBar>
+  <UiCardTitle
+    subtitle
+    :left="$t('hosts')"
+    :right="$t('top-#', { n: N_ITEMS })"
+  />
+  <UsageBar :data="statFetched ? data : undefined" :n-items="N_ITEMS" />
 </template>
 
 <script lang="ts" setup>
-import { type ComputedRef, computed, inject } from "vue";
+import UiCardTitle from "@/components/ui/UiCardTitle.vue";
 import UsageBar from "@/components/UsageBar.vue";
+import type { Stat } from "@/composables/fetch-stats.composable";
 import { getAvgCpuUsage } from "@/libs/utils";
 import type { HostStats } from "@/libs/xapi-stats";
+import { N_ITEMS } from "@/views/pool/PoolDashboardView.vue";
+import { computed, type ComputedRef, inject } from "vue";
 
-const stats: ComputedRef<
-  {
-    id: string;
-    name: string;
-    stats?: HostStats;
-  }[]
-> = inject<any>("hostStats", []);
+const stats = inject<ComputedRef<Stat<HostStats>[]>>(
+  "hostStats",
+  computed(() => [])
+);
 
 const data = computed<{ id: string; label: string; value: number }[]>(() => {
   const result: { id: string; label: string; value: number }[] = [];
@@ -41,6 +41,13 @@ const data = computed<{ id: string; label: string; value: number }[]>(() => {
       value: avgCpuUsage,
     });
   });
+
   return result;
 });
+
+const statFetched: ComputedRef<boolean> = computed(() =>
+  statFetched.value
+    ? true
+    : stats.value.length > 0 && stats.value.length === data.value.length
+);
 </script>

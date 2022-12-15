@@ -1,4 +1,5 @@
 import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
+import { basename } from 'path'
 import { format, parse } from 'xo-remote-parser'
 import {
   DEFAULT_ENCRYPTION_ALGORITHM,
@@ -7,7 +8,7 @@ import {
   UNENCRYPTED_ALGORITHM,
 } from '@xen-orchestra/fs'
 import { ignoreErrors, timeout } from 'promise-toolbox'
-import { noSuchObject } from 'xo-common/api-errors.js'
+import { invalidParameters, noSuchObject } from 'xo-common/api-errors.js'
 import { synchronized } from 'decorator-synchronized'
 
 import * as sensitiveValues from '../sensitive-values.mjs'
@@ -20,6 +21,13 @@ const obfuscateRemote = ({ url, ...remote }) => {
   const parsedUrl = parse(url)
   remote.url = format(sensitiveValues.obfuscate(parsedUrl))
   return remote
+}
+
+function validatePath(url) {
+  const { path } = parse(url)
+  if (path !== undefined && basename(path) === 'xo-vm-backups') {
+    throw invalidParameters('remote url should not end with xo-vm-backups')
+  }
 }
 
 export default class {
@@ -191,6 +199,8 @@ export default class {
   }
 
   async createRemote({ name, options, proxy, url }) {
+    validatePath(url)
+
     const params = {
       enabled: false,
       error: '',
@@ -224,6 +234,10 @@ export default class {
 
   @synchronized()
   async _updateRemote(id, { url, ...props }) {
+    if (url !== undefined) {
+      validatePath(url)
+    }
+
     const remote = await this._getRemote(id)
 
     // url is handled separately to take care of obfuscated values

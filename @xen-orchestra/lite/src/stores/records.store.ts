@@ -77,6 +77,10 @@ export const useRecordsStore = defineStore("records", () => {
     return opaqueRefsByObjectType.get(objectType) || new Set();
   }
 
+  function hasRecordByUuid(uuid: string): boolean {
+    return uuidToOpaqueRefMapping.has(uuid);
+  }
+
   return {
     loadRecords,
     addOrReplaceRecord,
@@ -84,5 +88,6 @@ export const useRecordsStore = defineStore("records", () => {
     getRecord,
     getRecordsOpaqueRefs,
     getRecordByUuid,
+    hasRecordByUuid,
   };
 });

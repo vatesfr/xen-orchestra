@@ -1,6 +1,6 @@
 <template>
   <UiCard>
-    <UiTitle type="h4">{{ $t("cpu-usage") }}</UiTitle>
+    <UiCardTitle>{{ $t("cpu-usage") }}</UiCardTitle>
     <HostsCpuUsage />
     <VmsCpuUsage />
   </UiCard>
@@ -9,5 +9,5 @@
 import HostsCpuUsage from "@/components/pool/dashboard/cpuUsage/HostsCpuUsage.vue";
 import VmsCpuUsage from "@/components/pool/dashboard/cpuUsage/VmsCpuUsage.vue";
 import UiCard from "@/components/ui/UiCard.vue";
-import UiTitle from "@/components/ui/UiTitle.vue";
+import UiCardTitle from "@/components/ui/UiCardTitle.vue";
 </script>

@@ -1,8 +1,119 @@
 # ChangeLog
 
-## **5.76.0** (2022-10-31)
+## **5.77.2** (2022-12-12)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
+### Bug fixes
+
+- [Backups] Fixes most of the _unexpected number of entries in backup cache_ errors
+
+### Released packages
+
+- @xen-orchestra/backups 0.29.3
+- @xen-orchestra/proxy 0.26.7
+- xo-server 5.107.3
+
+## **5.77.1** (2022-12-07)
+
+### Enhancements
+
+- [Backups] Automatically detect, report and fix cache inconsistencies
+
+### Bug fixes
+
+- [Warm migration] Fix start and delete VMs after a warm migration [#6568](https://github.com/vatesfr/xen-orchestra/issues/6568)
+
+### Released packages
+
+- @xen-orchestra/backups 0.29.2
+- @xen-orchestra/proxy 0.26.6
+- xo-server 0.107.2
+
+## **5.77.0** (2022-11-30)
+
+### Highlights
+
+- [Proxies] Ability to register an existing proxy (PR [#6556](https://github.com/vatesfr/xen-orchestra/pull/6556))
+- [VM] [Warm migration](https://xen-orchestra.com/blog/warm-migration-with-xen-orchestra/) support (PRs [6549](https://github.com/vatesfr/xen-orchestra/pull/6549) & [6549](https://github.com/vatesfr/xen-orchestra/pull/6549))
+
+### Enhancements
+
+- [Remotes] Prevent remote path from ending with `xo-vm-backups` as it's usually a mistake
+- [OVA export] Speed up OVA generation by 2. Generated file will be bigger (as big as uncompressed XVA) (PR [#6487](https://github.com/vatesfr/xen-orchestra/pull/6487))
+- [Settings/Users] Add `Remove` button to delete OTP of users from the admin panel [Forum#6521](https://xcp-ng.org/forum/topic/6521/remove-totp-on-a-user-account) (PR [#6541](https://github.com/vatesfr/xen-orchestra/pull/6541))
+- [Plugin/transport-nagios] XO now reports backed up VMs invidually with the VM name label used as _host_ and backup job name used as _service_
+- [VM/Advanced] Add warm migration button (PR [#6533](https://github.com/vatesfr/xen-orchestra/pull/6533))
+
+### Bug fixes
+
+- [Dashboard/Health] Fix `Unknown SR` and `Unknown VDI` in Unhealthy VDIs (PR [#6519](https://github.com/vatesfr/xen-orchestra/pull/6519))
+- [Delta Backup] Can now recover VHD merge when failed at the begining
+- [Delta Backup] Fix `ENOENT` errors when merging a VHD directory on non-S3 remote
+- [Remote] Prevent the browser from auto-completing the encryption key field
+
+### Released packages
+
+- @xen-orchestra/log 0.5.0
+- @vates/disposable 0.1.3
+- @xen-orchestra/fs 3.3.0
+- vhd-lib 4.2.0
+- @xen-orchestra/audit-core 0.2.2
+- @xen-orchestra/backups 0.29.1
+- @xen-orchestra/backups-cli 1.0.0
+- @xen-orchestra/mixins 0.8.2
+- @xen-orchestra/xapi 1.5.3
+- @xen-orchestra/proxy 0.26.5
+- xo-vmdk-to-vhd 2.5.0
+- xo-cli 0.14.2
+- xo-server 5.107.1
+- xo-server-audit 0.10.2
+- xo-server-auth-ldap 0.10.6
+- xo-server-backup-reports 0.17.2
+- xo-server-load-balancer 0.7.2
+- xo-server-netbox 0.3.5
+- xo-server-sdn-controller 1.0.7
+- xo-server-transport-nagios 1.0.0
+- xo-server-usage-report 0.10.2
+- xo-server-web-hooks 0.3.2
+- xo-web 5.108.0
+
+## **5.76.2** (2022-11-14)
+
+<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
+
+### Bug fixes
+
+- [Proxies] Fix `this.getObject is not a function` on upgrade
+
+### Released packages
+
+- xo-server 5.106.1
+
+## **5.76.1** (2022-11-08)
+
+### Enhancements
+
+- [API] `proxy.register` accepts `vmUuid` parameter which can be used when not connected to the XAPI containing the XO Proxy VM
+- [Proxy] Can now upgrade proxies in VMs not connected to XO
+- [REST API] Expose VM snapshots and templates
+- [REST API] Expose VDI snapshots
+- [Select license] Display product type in the options (PR [#6512](https://github.com/vatesfr/xen-orchestra/pull/6512))
+
+### Bug fixes
+
+- [Pool] Add tooltip on "no XCP-ng Pro support" warning icon (PR [#6505](https://github.com/vatesfr/xen-orchestra/pull/6505))
+- [Backup] Respect HTTP proxy setting when connecting to XCP-ng/XenServer pools
+- [Dashboard/Health] Fix `an error has occurred` in case of unknown default SR (PR [#6508](https://github.com/vatesfr/xen-orchestra/pull/6508))
+- [Backup] Really disable Healthcheck when unchecking settings [#6501](https://github.com/vatesfr/xen-orchestra/issues/6501) (PR [#6515](https://github.com/vatesfr/xen-orchestra/pull/6515))
+- [Pool] Improve XCP-ng Pro Support tooltips wording [Forum#6535](https://xcp-ng.org/forum/topic/6535) (PR [#6517](https://github.com/vatesfr/xen-orchestra/pull/6517))
+
+### Released packages
+
+- xo-server 5.106.0
+- xo-web 5.107.0
+
+## **5.76.0** (2022-10-31)
 
 ### Enhancements
 
@@ -48,8 +159,6 @@
 - xo-web 5.106.0
 
 ## **5.75.0** (2022-09-30)
-
-<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Enhancements
 

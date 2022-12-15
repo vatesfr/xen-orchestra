@@ -1,6 +1,7 @@
 'use strict'
 
-/* eslint-env jest */
+const { describe, it } = require('test')
+const assert = require('assert').strict
 
 const { forEach, isInteger } = require('lodash')
 
@@ -9,7 +10,7 @@ const { LEVELS, NAMES, resolve } = require('./levels')
 describe('LEVELS', () => {
   it('maps level names to their integer values', () => {
     forEach(LEVELS, (value, name) => {
-      expect(isInteger(value)).toBe(true)
+      assert.strictEqual(isInteger(value), true)
     })
   })
 })
@@ -17,7 +18,7 @@ describe('LEVELS', () => {
 describe('NAMES', () => {
   it('maps level values to their names', () => {
     forEach(LEVELS, (value, name) => {
-      expect(NAMES[value]).toBe(name)
+      assert.strictEqual(NAMES[value], name)
     })
   })
 })
@@ -25,10 +26,10 @@ describe('NAMES', () => {
 describe('resolve()', () => {
   it('returns level values either from values or names', () => {
     forEach(LEVELS, value => {
-      expect(resolve(value)).toBe(value)
+      assert.strictEqual(resolve(value), value)
     })
     forEach(NAMES, (name, value) => {
-      expect(resolve(name)).toBe(+value)
+      assert.strictEqual(resolve(name), +value)
     })
   })
 })

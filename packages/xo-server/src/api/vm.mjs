@@ -596,6 +596,22 @@ migrate.resolve = {
   migrationNetwork: ['migrationNetwork', 'network', 'administrate'],
 }
 
+export async function warmMigration({ vm, sr, startDestinationVm, deleteSourceVm }) {
+  await this.warmMigrateVm(vm, sr, startDestinationVm, deleteSourceVm)
+}
+warmMigration.permission = 'admin'
+
+warmMigration.params = {
+  vm: {
+    type: 'string',
+  },
+  sr: {
+    type: 'string',
+  },
+  startDestinationVm: { type: 'boolean' },
+  deleteSourceVm: { type: 'boolean' },
+}
+
 // -------------------------------------------------------------------
 
 export const set = defer(async function ($defer, params) {

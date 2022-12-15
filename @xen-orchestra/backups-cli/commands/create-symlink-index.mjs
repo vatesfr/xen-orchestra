@@ -1,13 +1,10 @@
-'use strict'
+import { mktree, readdir2, readFile, symlink2 } from '../_fs.mjs'
+import { asyncMap } from '@xen-orchestra/async-map'
+import filenamify from 'filenamify'
+import get from 'lodash/get.js'
+import { dirname, join, relative } from 'path'
 
-const filenamify = require('filenamify')
-const get = require('lodash/get')
-const { asyncMap } = require('@xen-orchestra/async-map')
-const { dirname, join, relative } = require('path')
-
-const { mktree, readdir2, readFile, symlink2 } = require('../_fs')
-
-module.exports = async function createSymlinkIndex([backupDir, fieldPath]) {
+export default async function createSymlinkIndex([backupDir, fieldPath]) {
   const indexDir = join(backupDir, 'indexes', filenamify(fieldPath))
   await mktree(indexDir)
 

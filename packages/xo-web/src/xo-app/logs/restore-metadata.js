@@ -94,7 +94,7 @@ const INDIVIDUAL_ACTIONS = [
     label: _('logDownload'),
     handler: task =>
       downloadLog({
-        log: JSON.stringify(task, null, 2),
+        log: task,
         date: task.start,
         type: 'Metadata restore',
       }),

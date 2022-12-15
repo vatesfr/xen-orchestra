@@ -1,5 +1,5 @@
 <template>
-  <div class="ui-button-group">
+  <div :class="{ merge }" class="ui-button-group">
     <slot />
   </div>
 </template>
@@ -14,6 +14,7 @@ const props = defineProps<{
   color?: Color;
   outlined?: boolean;
   transparent?: boolean;
+  merge?: boolean;
 }>();
 provide(
   "isButtonGroupBusy",
@@ -40,8 +41,32 @@ provide(
 <style lang="postcss" scoped>
 .ui-button-group {
   display: flex;
-  justify-content: left;
   align-items: center;
+  justify-content: left;
   gap: 1rem;
+
+  &.merge {
+    gap: 0;
+
+    :slotted(.ui-button) {
+      &:not(:first-child) {
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+
+        &.outlined {
+          border-left: none;
+        }
+      }
+
+      &:not(:last-child) {
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
+
+        &.outlined {
+          border-right: none;
+        }
+      }
+    }
+  }
 }
 </style>

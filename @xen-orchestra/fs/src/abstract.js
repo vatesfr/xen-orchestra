@@ -284,15 +284,25 @@ export default class RemoteHandlerAbstract {
     return this._encryptor.decryptData(data)
   }
 
-  async rename(oldPath, newPath, { checksum = false } = {}) {
-    oldPath = normalizePath(oldPath)
-    newPath = normalizePath(newPath)
-
-    let p = timeout.call(this._rename(oldPath, newPath), this._timeout)
-    if (checksum) {
-      p = Promise.all([p, this._rename(checksumFile(oldPath), checksumFile(newPath))])
+  async #rename(oldPath, newPath, { checksum }, createTree = true) {
+    try {
+      let p = timeout.call(this._rename(oldPath, newPath), this._timeout)
+      if (checksum) {
+        p = Promise.all([p, this._rename(checksumFile(oldPath), checksumFile(newPath))])
+      }
+      await p
+    } catch (error) {
+      // ENOENT can be a missing target directory OR a missing source
+      if (error.code === 'ENOENT' && createTree) {
+        await this._mktree(dirname(newPath))
+        return this.#rename(oldPath, newPath, { checksum }, false)
+      }
+      throw error
     }
-    return p
+  }
+
+  rename(oldPath, newPath, { checksum = false } = {}) {
+    return this.#rename(normalizePath(oldPath), normalizePath(newPath), { checksum })
   }
 
   async copy(oldPath, newPath, { checksum = false } = {}) {

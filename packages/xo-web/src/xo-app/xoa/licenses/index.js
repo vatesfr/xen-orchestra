@@ -323,6 +323,9 @@ export default class Licenses extends Component {
 
     return (
       <Container>
+        <Row className='text-info mb-1'>
+          <Icon icon='info' /> <i>{_('xcpngLicensesBindingAvancedView')}</i>
+        </Row>
         <Row className='mb-1'>
           <Col>
             <a

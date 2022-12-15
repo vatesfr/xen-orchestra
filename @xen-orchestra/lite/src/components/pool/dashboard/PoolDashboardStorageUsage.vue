@@ -1,11 +1,13 @@
 <template>
   <UiCard>
-    <UiTitle type="h4">{{ $t("storage-usage") }}</UiTitle>
-    <UsageBar :data="data.result" :nItems="5">
-      <template #header>
-        <span>{{ $t("storage") }}</span>
-        <span>{{ $t("top-#", { n: 5 }) }}</span>
-      </template>
+    <UiCardTitle
+      :left="$t('storage-usage')"
+      :right="$t('top-#', { n: N_ITEMS })"
+    />
+    <UsageBar
+      :data="srStore.isReady ? data.result : undefined"
+      :nItems="N_ITEMS"
+    >
       <template #footer v-if="showFooter">
         <div class="footer-card">
           <p>{{ $t("total-used") }}:</p>
@@ -31,12 +33,13 @@
 </template>
 
 <script lang="ts" setup>
+import UiCardTitle from "@/components/ui/UiCardTitle.vue";
 import { computed } from "vue";
 import UsageBar from "@/components/UsageBar.vue";
 import UiCard from "@/components/ui/UiCard.vue";
-import UiTitle from "@/components/ui/UiTitle.vue";
 import { formatSize, percent } from "@/libs/utils";
 import { useSrStore } from "@/stores/storage.store";
+import { N_ITEMS } from "@/views/pool/PoolDashboardView.vue";
 
 const srStore = useSrStore();
 

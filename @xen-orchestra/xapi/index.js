@@ -211,9 +211,10 @@ class Xapi extends Base {
       })
 
       if (timeout !== undefined) {
+        const error = new Error(`waitObjectState: timeout reached before ${refOrUuid} in expected state`)
         timeoutHandle = setTimeout(() => {
           stop()
-          reject(new Error(`waitObjectState: timeout reached before ${refOrUuid} in expected state`))
+          reject(error)
         }, timeout)
       }
     })

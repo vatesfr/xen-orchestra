@@ -94,8 +94,8 @@ test('Can generate an empty VMDK file', async () => {
 test('Can generate a small VMDK file', async () => {
   const defaultVhdToVmdkRatio = 16
   const blockSize = 1024 * 1024
-  const b1 = Buffer.allocUnsafe(blockSize)
-  const b2 = Buffer.allocUnsafe(blockSize)
+  const b1 = Buffer.alloc(blockSize, 255)
+  const b2 = Buffer.alloc(blockSize, 255)
   const blockGenerator = [
     { lba: 0, block: b1 },
     { lba: blockSize, block: b2 },

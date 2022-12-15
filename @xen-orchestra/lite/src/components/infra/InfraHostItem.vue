@@ -12,7 +12,7 @@
       :icon="faServer"
       :route="{ name: 'host.dashboard', params: { uuid: host.uuid } }"
     >
-      {{ host.name_label || '(Host)' }}
+      {{ host.name_label || "(Host)" }}
       <template #actions>
         <InfraAction
           :icon="isExpanded ? faAngleDown : faAngleUp"
@@ -53,7 +53,7 @@ const uiStore = useUiStore();
 const isCurrentHost = computed(
   () => props.hostOpaqueRef === uiStore.currentHostOpaqueRef
 );
-const [isExpanded, toggle] = useToggle();
+const [isExpanded, toggle] = useToggle(true);
 
 const isTooltipDisabled = (target: HTMLElement) =>
   !hasEllipsis(target.querySelector(".text"));

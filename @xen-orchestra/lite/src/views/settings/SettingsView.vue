@@ -2,7 +2,7 @@
   <TitleBar :icon="faGear">{{ $t("settings") }}</TitleBar>
   <div class="card-view">
     <UiCard class="group">
-      <UiTitle type="h4">Xen Orchestra Lite</UiTitle>
+      <UiCardTitle>Xen Orchestra Lite</UiCardTitle>
       <UiKeyValueList>
         <UiKeyValueRow>
           <template #key>{{ $t("version") }}</template>
@@ -19,7 +19,9 @@
               rel="noopener noreferrer"
               href="https://xcp-ng.org/blog/"
               >{{ $t("news-name", { name: "XCP-ng" }) }}</a
-            > - <a
+            >
+            -
+            <a
               target="_blank"
               rel="noopener noreferrer"
               href="https://xen-orchestra.com/blog/"
@@ -35,7 +37,9 @@
               rel="noopener noreferrer"
               href="https://xcp-ng.org/forum"
               >{{ $t("community-name", { name: "XCP-ng" }) }}</a
-            > - <a
+            >
+            -
+            <a
               target="_blank"
               rel="noopener noreferrer"
               href="https://xcp-ng.org/forum/category/12/xen-orchestra"
@@ -46,25 +50,24 @@
       </UiKeyValueList>
     </UiCard>
     <UiCard class="group">
-      <UiTitle type="h4">{{ $t("display") }}</UiTitle>
+      <UiCardTitle>{{ $t("display") }}</UiCardTitle>
       <UiKeyValueList>
         <UiKeyValueRow>
           <template #key>{{ $t("appearance") }}</template>
-          <template #value
-            ><FormInputWrapper>
-              <template #label>{{ $t("dark-mode") }}</template>
-              <FormToggle
-                :modelValue="darkMode"
-                @update:modelValue="setDarkMode"
-              />
-              </FormInputWrapper
-            ></template
-          >
+          <template #value>
+            <FormLabel>
+              <FormSelect v-model="colorMode">
+                <option value="auto">{{ $t("theme-auto") }}</option>
+                <option value="dark">{{ $t("theme-dark") }}</option>
+                <option value="light">{{ $t("theme-light") }}</option>
+              </FormSelect>
+            </FormLabel>
+          </template>
         </UiKeyValueRow>
       </UiKeyValueList>
     </UiCard>
     <UiCard class="group">
-      <UiTitle type="h4">{{ $t("language") }}</UiTitle>
+      <UiCardTitle>{{ $t("language") }}</UiCardTitle>
       <UiKeyValueList>
         <UiKeyValueRow>
           <template #value>
@@ -87,19 +90,19 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, watch } from "vue";
-import { useI18n } from "vue-i18n";
-import { locales } from "@/i18n";
-import { faEarthAmericas, faGear } from "@fortawesome/free-solid-svg-icons";
-import { useLocalStorage } from "@vueuse/core";
 import FormWidget from "@/components/FormWidget.vue";
 import TitleBar from "@/components/TitleBar.vue";
-import FormToggle from "@/components/form/FormToggle.vue";
+import FormSelect from "@/components/form/FormSelect.vue";
 import UiCard from "@/components/ui/UiCard.vue";
+import UiCardTitle from "@/components/ui/UiCardTitle.vue";
 import UiKeyValueList from "@/components/ui/UiKeyValueList.vue";
 import UiKeyValueRow from "@/components/ui/UiKeyValueRow.vue";
-import UiTitle from "@/components/ui/UiTitle.vue";
-import FormInputWrapper from "@/components/form/FormInputWrapper.vue";
+import { locales } from "@/i18n";
+import { useUiStore } from "@/stores/ui.store";
+import { faEarthAmericas, faGear } from "@fortawesome/free-solid-svg-icons";
+import { storeToRefs } from "pinia";
+import { watch } from "vue";
+import { useI18n } from "vue-i18n";
 
 const version = XO_LITE_VERSION;
 const gitHead = XO_LITE_GIT_HEAD;
@@ -107,12 +110,7 @@ const { locale } = useI18n();
 
 watch(locale, (newLocale) => localStorage.setItem("lang", newLocale));
 
-const colorMode = useLocalStorage<string>("colorMode", "dark");
-const darkMode = computed(() => colorMode.value !== "light");
-const setDarkMode = (enabled: boolean) => {
-  colorMode.value = enabled ? "dark" : "light";
-  document.documentElement.classList[enabled ? "add" : "remove"]("dark");
-};
+const { colorMode } = storeToRefs(useUiStore());
 </script>
 
 <style lang="postcss" scoped>

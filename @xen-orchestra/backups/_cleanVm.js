@@ -311,7 +311,6 @@ exports.cleanVm = async function cleanVm(
   }
 
   const jsons = new Set()
-  let mustInvalidateCache = false
   const xvas = new Set()
   const xvaSums = []
   const entries = await handler.list(vmDir, {
@@ -327,6 +326,20 @@ exports.cleanVm = async function cleanVm(
     }
   })
 
+  const cachePath = vmDir + '/cache.json.gz'
+
+  let mustRegenerateCache
+  {
+    const cache = await this._readCache(cachePath)
+    const actual = cache === undefined ? 0 : Object.keys(cache).length
+    const expected = jsons.size
+
+    mustRegenerateCache = actual !== expected
+    if (mustRegenerateCache) {
+      logWarn('unexpected number of entries in backup cache', { path: cachePath, actual, expected })
+    }
+  }
+
   await asyncMap(xvas, async path => {
     // check is not good enough to delete the file, the best we can do is report
     // it
@@ -337,6 +350,8 @@ exports.cleanVm = async function cleanVm(
 
   const unusedVhds = new Set(vhds)
   const unusedXvas = new Set(xvas)
+
+  const backups = new Map()
 
   // compile the list of unused XVAs and VHDs, and remove backup metadata which
   // reference a missing XVA/VHD
@@ -350,19 +365,16 @@ exports.cleanVm = async function cleanVm(
       return
     }
 
+    let isBackupComplete
+
     const { mode } = metadata
     if (mode === 'full') {
       const linkedXva = resolve('/', vmDir, metadata.xva)
-      if (xvas.has(linkedXva)) {
+      isBackupComplete = xvas.has(linkedXva)
+      if (isBackupComplete) {
         unusedXvas.delete(linkedXva)
       } else {
         logWarn('the XVA linked to the backup is missing', { backup: json, xva: linkedXva })
-        if (remove) {
-          logInfo('deleting incomplete backup', { path: json })
-          jsons.delete(json)
-          mustInvalidateCache = true
-          await handler.unlink(json)
-        }
       }
     } else if (mode === 'delta') {
       const linkedVhds = (() => {
@@ -371,22 +383,28 @@ exports.cleanVm = async function cleanVm(
       })()
 
       const missingVhds = linkedVhds.filter(_ => !vhds.has(_))
+      isBackupComplete = missingVhds.length === 0
 
       // FIXME: find better approach by keeping as much of the backup as
       // possible (existing disks) even if one disk is missing
-      if (missingVhds.length === 0) {
+      if (isBackupComplete) {
         linkedVhds.forEach(_ => unusedVhds.delete(_))
         linkedVhds.forEach(path => {
           vhdsToJSons[path] = json
         })
       } else {
         logWarn('some VHDs linked to the backup are missing', { backup: json, missingVhds })
-        if (remove) {
-          logInfo('deleting incomplete backup', { path: json })
-          mustInvalidateCache = true
-          jsons.delete(json)
-          await handler.unlink(json)
-        }
+      }
+    }
+
+    if (isBackupComplete) {
+      backups.set(json, metadata)
+    } else {
+      jsons.delete(json)
+      if (remove) {
+        logInfo('deleting incomplete backup', { backup: json })
+        mustRegenerateCache = true
+        await handler.unlink(json)
       }
     }
   })
@@ -496,7 +514,7 @@ exports.cleanVm = async function cleanVm(
   // check for the other that the size is the same as the real file size
 
   await asyncMap(jsons, async metadataPath => {
-    const metadata = JSON.parse(await handler.readFile(metadataPath))
+    const metadata = backups.get(metadataPath)
 
     let fileSystemSize
     const merged = metadataWithMergedVhd[metadataPath] !== undefined
@@ -538,6 +556,7 @@ exports.cleanVm = async function cleanVm(
     // systematically update size after a merge
     if ((merged || fixMetadata) && size !== fileSystemSize) {
       metadata.size = fileSystemSize
+      mustRegenerateCache = true
       try {
         await handler.writeFile(metadataPath, JSON.stringify(metadata), { flags: 'w' })
       } catch (error) {
@@ -546,9 +565,16 @@ exports.cleanVm = async function cleanVm(
     }
   })
 
-  // purge cache if a metadata file has been deleted
-  if (mustInvalidateCache) {
-    await handler.unlink(vmDir + '/cache.json.gz')
+  if (mustRegenerateCache) {
+    const cache = {}
+    for (const [path, content] of backups.entries()) {
+      cache[path] = {
+        _filename: path,
+        id: path,
+        ...content,
+      }
+    }
+    await this._writeCache(cachePath, cache)
   }
 
   return {

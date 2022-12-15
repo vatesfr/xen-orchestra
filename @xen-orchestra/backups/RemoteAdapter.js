@@ -232,21 +232,23 @@ class RemoteAdapter {
     return promise
   }
 
-  #removeVmBackupsFromCache(backups) {
-    for (const [dir, filenames] of Object.entries(
-      groupBy(
-        backups.map(_ => _._filename),
-        dirname
-      )
-    )) {
-      // detached async action, will not reject
-      this._updateCache(dir + '/cache.json.gz', backups => {
-        for (const filename of filenames) {
-          debug('removing cache entry', { entry: filename })
-          delete backups[filename]
-        }
-      })
-    }
+  async #removeVmBackupsFromCache(backups) {
+    await asyncEach(
+      Object.entries(
+        groupBy(
+          backups.map(_ => _._filename),
+          dirname
+        )
+      ),
+      ([dir, filenames]) =>
+        // will not reject
+        this._updateCache(dir + '/cache.json.gz', backups => {
+          for (const filename of filenames) {
+            debug('removing cache entry', { entry: filename })
+            delete backups[filename]
+          }
+        })
+    )
   }
 
   async deleteDeltaVmBackups(backups) {
@@ -255,7 +257,7 @@ class RemoteAdapter {
     // this will delete the json, unused VHDs will be detected by `cleanVm`
     await asyncMapSettled(backups, ({ _filename }) => handler.unlink(_filename))
 
-    this.#removeVmBackupsFromCache(backups)
+    await this.#removeVmBackupsFromCache(backups)
   }
 
   async deleteMetadataBackup(backupId) {
@@ -284,7 +286,7 @@ class RemoteAdapter {
       Promise.all([handler.unlink(_filename), handler.unlink(resolveRelativeFromFile(_filename, xva))])
     )
 
-    this.#removeVmBackupsFromCache(backups)
+    await this.#removeVmBackupsFromCache(backups)
   }
 
   deleteVmBackup(file) {
@@ -508,7 +510,7 @@ class RemoteAdapter {
     return `${BACKUP_DIR}/${vmUuid}/cache.json.gz`
   }
 
-  async #readCache(path) {
+  async _readCache(path) {
     try {
       return JSON.parse(await fromCallback(zlib.gunzip, await this.handler.readFile(path)))
     } catch (error) {
@@ -521,24 +523,20 @@ class RemoteAdapter {
   _updateCache = synchronized.withKey()(this._updateCache)
   // eslint-disable-next-line no-dupe-class-members
   async _updateCache(path, fn) {
-    const cache = await this.#readCache(path)
+    const cache = await this._readCache(path)
     if (cache !== undefined) {
       fn(cache)
 
-      await this.#writeCache(path, cache)
+      await this._writeCache(path, cache)
     }
   }
 
-  async #writeCache(path, data) {
+  async _writeCache(path, data) {
     try {
       await this.handler.writeFile(path, await fromCallback(zlib.gzip, JSON.stringify(data)), { flags: 'w' })
     } catch (error) {
       warn('#writeCache', { error, path })
     }
-  }
-
-  async invalidateVmBackupListCache(vmUuid) {
-    await this.handler.unlink(this.#getVmBackupsCache(vmUuid))
   }
 
   async #getCachabledDataListVmBackups(dir) {
@@ -581,7 +579,7 @@ class RemoteAdapter {
   async _readCacheListVmBackups(vmUuid) {
     const path = this.#getVmBackupsCache(vmUuid)
 
-    const cache = await this.#readCache(path)
+    const cache = await this._readCache(path)
     if (cache !== undefined) {
       debug('found VM backups cache, using it', { path })
       return cache
@@ -594,7 +592,7 @@ class RemoteAdapter {
     }
 
     // detached async action, will not reject
-    this.#writeCache(path, backups)
+    this._writeCache(path, backups)
 
     return backups
   }
@@ -645,7 +643,7 @@ class RemoteAdapter {
     })
 
     // will not throw
-    this._updateCache(this.#getVmBackupsCache(vmUuid), backups => {
+    await this._updateCache(this.#getVmBackupsCache(vmUuid), backups => {
       debug('adding cache entry', { entry: path })
       backups[path] = {
         ...metadata,

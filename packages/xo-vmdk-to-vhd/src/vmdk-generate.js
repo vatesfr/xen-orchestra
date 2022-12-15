@@ -33,7 +33,8 @@ export async function generateVmdkData(
     sectorsPerTrackCylinder: 63,
     heads: 16,
     cylinders: 10402,
-  }
+  },
+  targetSize
 ) {
   const cid = Math.floor(Math.random() * Math.pow(2, 32))
   const diskCapacitySectors = Math.ceil(diskCapacityBytes / SECTOR_SIZE)
@@ -150,10 +151,39 @@ ddb.geometry.cylinders = "${geometry.cylinders}"
     }
   }
 
+  function* padding() {
+    if (targetSize === undefined) {
+      return
+    }
+    let remaining = targetSize - streamPosition
+    remaining -= SECTOR_SIZE // MARKER_GT
+    remaining -= tableBuffer.length
+    remaining -= SECTOR_SIZE // MARKER_GD
+    remaining -= roundToSector(headerData.grainDirectoryEntries * 4)
+    remaining -= SECTOR_SIZE // MARKER_GT
+    remaining -= tableBuffer.length
+    remaining -= SECTOR_SIZE // MARKER_GD
+    remaining -= roundToSector(headerData.grainDirectoryEntries * 4)
+    remaining -= SECTOR_SIZE // MARKER_FOOTER
+    remaining -= SECTOR_SIZE // stream optimizedheader
+    remaining -= SECTOR_SIZE // MARKER_EOS
+
+    if (remaining < 0) {
+      throw new Error('vmdk is bigger than precalculed size ')
+    }
+    const size = 1024 * 1024
+    while (remaining > 0) {
+      const yieldSize = Math.min(size, remaining)
+      remaining -= yieldSize
+      yield track(Buffer.alloc(yieldSize))
+    }
+  }
+
   async function* iterator() {
     yield track(headerData.buffer)
     yield track(descriptorBuffer)
     yield* emitBlocks(grainSizeBytes, blockGenerator)
+    yield* padding()
     yield track(createEmptyMarker(MARKER_GT))
     let tableOffset = streamPosition
     // grain tables
@@ -181,6 +211,5 @@ ddb.geometry.cylinders = "${geometry.cylinders}"
     yield track(footer.buffer)
     yield track(createEmptyMarker(MARKER_EOS))
   }
-
   return iterator()
 }

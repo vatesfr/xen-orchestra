@@ -7,6 +7,7 @@ const messages = {
   alpha: 'Alpha',
   creation: 'Creation',
   description: 'Description',
+  deleteSourceVm: 'Delete source VM',
   expiration: 'Expiration',
   keyValue: '{key}: {value}',
 
@@ -19,6 +20,7 @@ const messages = {
   errorUnknownItem: 'Unknown {type}',
   generateNewMacAddress: 'Generate new MAC addresses',
   memoryFree: '{memoryFree} RAM free',
+  notConfigured: 'Not configured',
   utcDate: 'UTC date',
   utcTime: 'UTC time',
   date: 'Date',
@@ -107,8 +109,10 @@ const messages = {
   replaceExistingCertificate: 'Replace existing certificate',
   customFields: 'Custom fields',
   addCustomField: 'Add custom field',
+  availableXoaPremium: 'Available in XOA Premium',
   editCustomField: 'Edit custom field',
   deleteCustomField: 'Delete custom field',
+  onlyAvailableXoaUsers: 'Only available to XOA users',
 
   // ----- Modals -----
   alertOk: 'OK',
@@ -232,7 +236,7 @@ const messages = {
   homeFetchingData: 'Fetching data…',
   homeWelcome: 'Welcome to Xen Orchestra!',
   homeWelcomeText: 'Add your XCP-ng hosts or pools',
-  homeConnectServerText: 'Some XenServers have been registered but are not connected',
+  homeConnectServerText: 'Some XCP-ng hosts have been registered but are not connected',
   homeHelp: 'Want some help?',
   homeAddServer: 'Add server',
   homeConnectServer: 'Connect servers',
@@ -769,8 +773,12 @@ const messages = {
   cloneVmLabel: 'Clone',
   cleanVm: 'Clean VM directory',
   fastCloneVmLabel: 'Fast clone',
+  startMigratedVm: 'Start the migrated VM',
   vmConsoleLabel: 'Console',
   vmExportUrlValidity: 'The URL is valid once for a short period of time.',
+  vmWarmMigration: 'Warm migration',
+  vmWarmMigrationProcessInfo:
+    'Warm migration process will first create a copy of the VM on the destination while the source VM is still running, then shutdown the source VM and send the changes that happened during the migration to the destination to minimize downtime.',
   backupLabel: 'Backup',
 
   // ----- SR general tab -----
@@ -812,6 +820,7 @@ const messages = {
 
   // ----- Pool general -----
   earliestExpirationDate: 'Earliest expiration: {dateString}',
+  poolNoSupport: 'No XCP-ng Pro support enabled on this pool',
   poolPartialSupport:
     'Only {nHostsLicense, number} host{nHostsLicense, plural, one {} other {s}} under license on {nHosts, number} host{nHosts, plural, one {} other {s}}. This means this pool is not supported at all until you license all its hosts.',
   poolTitleRamUsage: 'Pool RAM usage:',
@@ -838,7 +847,7 @@ const messages = {
   poolHaDisabled: 'Disabled',
   poolGpuGroups: 'GPU groups',
   poolRemoteSyslogPlaceHolder: 'Logging host',
-  poolSupportSourceUsers: 'Pool support not available for source users',
+  poolSupportSourceUsers: 'XCP-ng Pro Support not available for source users',
   poolSupportXcpngOnly: 'Only available for pool of XCP-ng hosts',
   poolLicenseAlreadyFullySupported: 'The pool is already fully supported',
   setpoolMaster: 'Master',
@@ -1330,6 +1339,7 @@ const messages = {
   vmCoresPerSocketExceedsSocketsLimit: 'The selected value exceeds the sockets limit ({maxSockets, number})',
   vmHaDisabled: 'Disabled',
   vmMemoryLimitsLabel: 'Memory limits (min/max)',
+  vmUuid: 'VM UUID',
   vmVgpu: 'vGPU',
   vmVgpus: 'GPUs',
   vmVgpuNone: 'None',
@@ -2408,7 +2418,7 @@ const messages = {
 
   // Licenses
   allHostsMustBeBound: 'All hosts must be bound to a license',
-  bound: 'Bound',
+  boundSelectLicense: 'Bound (Plan (ID), expiration date, host - pool)',
   bindXcpngLicenses: 'Bind XCP-ng licenses',
   confirmBindingOnUnsupportedHost:
     'You are about to bind {nLicenses, number} professional support license{nLicenses, plural, one {} other {s}} on older and unsupported XCP-ng version{nLicenses, plural, one {} other {s}}. Are you sure you want to continue?',
@@ -2416,7 +2426,8 @@ const messages = {
   licenses: 'Licenses',
   licensesBinding: 'Licenses binding',
   notEnoughXcpngLicenses: 'Not enough XCP-ng licenses',
-  notBound: 'Not bound',
+  notBoundSelectLicense: 'Not bound (Plan (ID), expiration date)',
+  xcpngLicensesBindingAvancedView: "To bind an XCP-ng license, go the pool's Advanced tab.",
   xosanUnregisteredDisclaimer:
     'You are not registered and therefore will not be able to create or manage your XOSAN SRs. {link}',
   xosanSourcesDisclaimer:
@@ -2468,7 +2479,6 @@ const messages = {
   proxyUnknownVm: 'Unknown proxy VM.',
 
   // ----- proxies -----
-  deployProxyDisabled: 'Only available to XOA users',
   forgetProxyApplianceTitle: 'Forget prox{n, plural, one {y} other {ies}}',
   forgetProxyApplianceMessage: 'Are you sure you want to forget {n, number} prox{n, plural, one {y} other {ies}}?',
   forgetProxies: 'Forget proxy(ies)',
@@ -2479,11 +2489,16 @@ const messages = {
   redeployProxy: 'Redeploy proxy',
   redeployProxyAction: 'Redeploy this proxy',
   redeployProxyWarning: 'This action will destroy the old proxy VM',
+  registerProxy: 'Register a proxy',
   noProxiesAvailable: 'No proxies available',
   checkProxyHealth: 'Test your proxy',
   updateProxyApplianceSettings: 'Update appliance settings',
   urlNotFound: 'URL not found',
+  proxyAuthToken: 'Authentication token',
+  proxyConnectionFailedAfterRegistrationMessage: 'Unable to connect to this proxy. Do you want to forget it?',
   proxyCopyUrl: 'Copy proxy URL',
+  proxyError: 'Proxy error',
+  proxyOptionalVmUuid: 'VM UUID is optional but recommended.',
   proxyTestSuccess: 'Test passed for {name}',
   proxyTestSuccessMessage: 'The proxy appears to work correctly',
   proxyTestFailed: 'Test failed for {name}',
@@ -2502,6 +2517,7 @@ const messages = {
     'The upgrade will interrupt {nJobs, number} running backup job{nJobs, plural, one {} other {s}}. Do you want to continue?',
   proxiesNeedUpgrade: 'Some proxies need to be upgraded.',
   upgradeNeededForProxies: 'Some proxies need to be upgraded. Click here to get more information.',
+  xoProxyConcreteGuide: 'XO Proxy: a concrete guide',
 
   // ----- Utils -----
   secondsFormat: '{seconds, plural, one {# second} other {# seconds}}',

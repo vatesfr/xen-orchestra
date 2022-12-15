@@ -1,8 +1,8 @@
 'use strict'
 
+const compileGlobPattern = require('./_compileGlobPattern.js')
 const createConsoleTransport = require('./transports/console')
 const { LEVELS, resolve } = require('./levels')
-const { compileGlobPattern } = require('./utils')
 
 // ===================================================================
 
