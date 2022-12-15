@@ -55,13 +55,11 @@
         <UiKeyValueRow>
           <template #key>{{ $t("appearance") }}</template>
           <template #value>
-            <FormLabel>
-              <FormSelect v-model="colorMode">
-                <option value="auto">{{ $t("theme-auto") }}</option>
-                <option value="dark">{{ $t("theme-dark") }}</option>
-                <option value="light">{{ $t("theme-light") }}</option>
-              </FormSelect>
-            </FormLabel>
+            <FormSelect v-model="colorMode">
+              <option value="auto">{{ $t("theme-auto") }}</option>
+              <option value="dark">{{ $t("theme-dark") }}</option>
+              <option value="light">{{ $t("theme-light") }}</option>
+            </FormSelect>
           </template>
         </UiKeyValueRow>
       </UiKeyValueList>
@@ -90,19 +88,19 @@
 </template>
 
 <script lang="ts" setup>
-import FormWidget from "@/components/FormWidget.vue";
-import TitleBar from "@/components/TitleBar.vue";
 import FormSelect from "@/components/form/FormSelect.vue";
-import UiCard from "@/components/ui/UiCard.vue";
 import UiCardTitle from "@/components/ui/UiCardTitle.vue";
-import UiKeyValueList from "@/components/ui/UiKeyValueList.vue";
-import UiKeyValueRow from "@/components/ui/UiKeyValueRow.vue";
-import { locales } from "@/i18n";
 import { useUiStore } from "@/stores/ui.store";
-import { faEarthAmericas, faGear } from "@fortawesome/free-solid-svg-icons";
 import { storeToRefs } from "pinia";
 import { watch } from "vue";
 import { useI18n } from "vue-i18n";
+import { locales } from "@/i18n";
+import { faEarthAmericas, faGear } from "@fortawesome/free-solid-svg-icons";
+import FormWidget from "@/components/FormWidget.vue";
+import TitleBar from "@/components/TitleBar.vue";
+import UiCard from "@/components/ui/UiCard.vue";
+import UiKeyValueList from "@/components/ui/UiKeyValueList.vue";
+import UiKeyValueRow from "@/components/ui/UiKeyValueRow.vue";
 
 const version = XO_LITE_VERSION;
 const gitHead = XO_LITE_GIT_HEAD;
