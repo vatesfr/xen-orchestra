@@ -14,7 +14,7 @@ import { basename, dirname, normalize as normalizePath } from './path'
 import { createChecksumStream, validChecksumOfReadStream } from './checksum'
 import { DEFAULT_ENCRYPTION_ALGORITHM, _getEncryptor } from './_encryptor'
 
-const { info, warn } = createLogger('@xen-orchestra:fs')
+const { info, warn } = createLogger('xo:fs:abstract')
 
 const checksumFile = file => file + '.checksum'
 const computeRate = (hrtime, size) => {
