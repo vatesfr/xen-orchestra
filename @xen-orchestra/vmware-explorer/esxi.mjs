@@ -4,7 +4,7 @@ import { strictEqual } from 'node:assert'
 import fetch from 'node-fetch';
 
 import parseVmx from './parsers/vmx.mjs'
-import { basename, dirname } from 'node:path'
+import {  dirname } from 'node:path'
 import parseVmdk, { VhdCowd } from './parsers/vmdk.mjs'
 import parseVmsd from './parsers/vmsd.mjs';
 import VhdEsxiRaw from './VhdEsxiRaw.mjs';
@@ -173,29 +173,36 @@ export default class Esxi extends EventEmitter {
       descriptionLabel: ' from esxi',
       vhd: async () => {
         console.log('vhd from snapshot')
+
         if(fileName.endsWith('-flat.vmdk')){
-          return
+          console.log('snapshot flat.vmdk vhd ')
+          const vhd = await VhdEsxiRaw.open(this,diskDataStore, dirname(diskPath) + '/' + fileName)
+          console.log('snapshot flat.vmdk vhd openned')
+          await vhd.readBlockAllocationTable()
+          console.log('snapshot flat.vmdk bat openned')
+          return vhd.stream()
         }
-        console.log('vhd from snapshot filename ok')
+        console.log('snapshot current.vmdk filenameok')
         // last snasphot only works when vm is powered off
         const vhd = await VhdCowd.open(this, diskDataStore, dirname(diskPath) + '/' + fileName, parentFileName)
-        console.log('realy vhd from snapshot openned')
+        console.log('snapshot current.vmdk vhd openned')
         await vhd.readBlockAllocationTable()
-        console.log('realy vhd from snapshot bat ok ')
+        console.log('snapshot current.vmdk bat openned')
 
         return vhd.stream()
       },
       rawStream: async () => {
-        console.log('rawStream from snapshot')
+        console.log('snapshot rawStream from snapshot')
         if(!fileName.endsWith('-flat.vmdk')){
           return
         }
-        console.log('flat.vmdk ')
-        const vhd = await VhdEsxiRaw.open(this, diskDataStore,  dirname(diskPath) + '/' + fileName, parentFileName)
-        console.log('flat.vmdk vhd openned')
-        await vhd.readBlockAllocationTable()
-        console.log('flat.vmdk bat openned')
-        return vhd.stream()
+
+        console.log('snapshot rawStream from snapshot filename ok')
+        // @todo : only if vm is powered off
+        const stream = (await this.download(diskDataStore, dirname(diskPath) + '/' + fileName)).body
+        console.log('snapshot  realy vhd from snapshot got stream ')
+        stream.length = capacity
+        return stream
       },
     }
   }
@@ -276,7 +283,12 @@ export default class Esxi extends EventEmitter {
           vhd: async () => {
             console.log('current.vmdk')
             if(fileName.endsWith('-flat.vmdk')){
-              return
+              console.log('flat.vmdk vhd ')
+              const vhd = await VhdEsxiRaw.open(this, datastore,   path + '/' + fileName)
+              console.log('flat.vmdk vhd openned')
+              await vhd.readBlockAllocationTable()
+              console.log('flat.vmdk bat openned')
+              return vhd.stream()
             }
             console.log('current.vmdk filenameok')
             // last snasphot only works when vm is powered off
@@ -291,12 +303,14 @@ export default class Esxi extends EventEmitter {
             if(fileName.endsWith('-flat.vmdk')){
               return
             }
-            // @todo : only if vm is powered off or with snapshot
-            const vhd = await VhdEsxiRaw.open(this, datastore, path + '/' + fileName, parentFileName)
-            console.log('flat.vmdk vhd openned')
-            await vhd.readBlockAllocationTable()
-            console.log('flat.vmdk bat openned')
-            return vhd.stream()
+
+            console.log('rawStream from snapshot filename ok')
+            // @todo : only if vm is powered off
+            const stream = (await this.download(datastore,   path + '/' + fileName)).body
+            console.log('realy vhd from snapshot got stream ')
+            stream.length = other.capacity
+            return stream
+
           },
         }
       }),

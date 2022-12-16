@@ -23,11 +23,8 @@ export class VhdCowd extends VhdAbstract{
   #grainDirectory
 
   static async open(esxi, datastore, path) {
-    console.log('vmdcowd.open ', datastore, path)
     const vhd = new VhdCowd(esxi, datastore, path)
-    console.log('vmdcowd.open instantiated ')
     await vhd.readHeaderAndFooter()
-    console.log('vmdcowd.open readHeaderAndFooter ')
     return vhd
   }
   constructor(esxi, datastore, path, parentFileName){
@@ -85,7 +82,6 @@ export class VhdCowd extends VhdAbstract{
     this.#header.parentUnicodeName = this.#parentFileName
     const geometry = _computeGeometryForSize(size)
     const actualSize = geometry.actualSize
-    console.log(' DELTA ? ',this.#parentFileName  ? 'yes' : 'no')
     this.#footer =  unpackFooter(createFooter(actualSize, Math.floor(Date.now() / 1000), geometry, FOOTER_SIZE, this.#parentFileName ? DISK_TYPES.DIFFERENCING : DISK_TYPES.DYNAMIC))
 
   }
@@ -140,7 +136,6 @@ export class VhdCowd extends VhdAbstract{
     const OVERPROVISION = 3
     for(let i=1; i < offsets.length; i ++){
       if(offsets[i-1] + OVERPROVISION < offsets[i]){
-        // console.log('non contiguous', startOffset, offsets[i-1], offsets[i] )
         ranges.push({startOffset, endOffset: offsets[i-1]})
         startOffset = offsets[i]
       }
@@ -152,13 +147,10 @@ export class VhdCowd extends VhdAbstract{
       const startIndex = fileOffsetToIndexInGrainTable[startOffset]
       const startInBlock = startIndex * 512 + 512 /* block bitmap */
       const sectors =  await this.#read(startOffset*512,endOffset*512 - 1)
-      console.log({startOffset, endOffset, sectors})
       // @todo : if overprovision > 1 , it may copy random data from the vmdk
       sectors.copy(buf,startInBlock)
-      // console.log('got sectors and copied',sectors.length,' to ',startInBlock)
 
     }
-    //console.log({blockId, buf})
     return {
       id: blockId,
       bitmap: buf.slice(0, 512),

@@ -1300,9 +1300,9 @@ export { import_ as import }
 
 
 
-export async function importFomEsxi({host, user, password, sslVerify, sr, network}){
-  //console.log({host, user, password, sslVerify, sr, network})
-  await this.migrationfromEsxi({host, user, password, sslVerify, sr, network})
+export async function importFomEsxi({host, user, password, sslVerify=true, sr, network, vm, thin=false}){
+  console.log({host, user, password, sslVerify, sr, network, vm, thin})
+  await this.migrationfromEsxi({host, user, password, sslVerify, thin, vm, sr, network})
 
   return
 }
@@ -1312,7 +1312,9 @@ importFomEsxi.params = {
   password: { type: 'string' },
   user: { type: 'string' },
   sr: { type: 'string' },
-  sslVerify: {type: 'boolean'}
+  sslVerify: {type: 'boolean', optional: true},
+  vm:{type: 'string'},
+  thin:{type: 'boolean', optional: true}
 
 }
 
