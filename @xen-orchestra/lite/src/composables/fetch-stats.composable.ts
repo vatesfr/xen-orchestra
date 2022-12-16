@@ -31,7 +31,7 @@ export default function useFetchStats<
   const timestamp = ref<number[]>([0, 0]);
 
   const register = (object: T) => {
-    const mapKey = object.uuid + granularity;
+    const mapKey = `${object.uuid}-${granularity}`;
     if (stats.value.has(mapKey)) {
       stats.value.get(mapKey)!.pausable.resume();
       return;
@@ -71,7 +71,7 @@ export default function useFetchStats<
   };
 
   const unregister = (object: T) => {
-    const mapKey = object.uuid + granularity;
+    const mapKey = `${object.uuid}-${granularity}`;
     stats.value.get(mapKey)?.pausable.pause();
     stats.value.delete(mapKey);
   };
