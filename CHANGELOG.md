@@ -1,5 +1,21 @@
 # ChangeLog
 
+## **next**
+
+### Enhancements
+
+- [Snapshot] Use the new [`ignore_vdis` feature](https://github.com/xapi-project/xen-api/pull/4563) of XCP-ng/XenServer 8.3
+
+### Bug fixes
+
+- [Nagios] Fix reporting, broken in 5.77.2
+
+### Released packages
+
+- @xen-orchestra/xapi 1.6.0
+- @xen-orchestra/proxy 0.26.8
+- xo-server 5.107.4
+
 ## **5.77.2** (2022-12-12)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
