@@ -103,7 +103,7 @@ writeBlockConcurrency = 16
 # This is a work-around.
 #
 # See https://github.com/vatesfr/xen-orchestra/pull/4674
-maxMergedDeltasPerRun = 2
+maxMergedDeltasPerRun = inf
 
 # https://github.com/naugtur/blocked-at#params-and-return-value
 [blockedAtOptions]
