@@ -1,4 +1,5 @@
 <template>
+  <!-- TODO: add a loader when data is not fully loaded -->
   <LinearChart
     :title="$t('pool-cpu-usage')"
     :subtitle="$t('last-week')"
@@ -16,8 +17,8 @@ import type { Stat } from "@/composables/fetch-stats.composable";
 import { getAvgCpuUsage } from "@/libs/utils";
 import {
   GRANULARITY,
-  type HostStats,
   RRD_STEP_FROM_STRING,
+  type HostStats,
   type VmStats,
 } from "@/libs/xapi-stats";
 
@@ -52,19 +53,20 @@ const data = computed<LinearChartData>(() => {
     index = 0
   ) => {
     const avgCpuUsage = getAvgCpuUsage(stats?.cpus);
+
     if (avgCpuUsage === undefined) {
       return;
     }
 
-    const date =
+    const timestamp =
       (timestampStart + RRD_STEP_FROM_STRING[GRANULARITY.Hours] * index) * 1000;
 
-    const strDate = date.toString();
+    const strDate = timestamp.toString();
 
     result.set(strDate, {
       value:
         (result.get(strDate)?.value ?? 0) + Math.round(avgCpuUsage * 100) / 100,
-      date,
+      date: timestamp,
     });
   };
 

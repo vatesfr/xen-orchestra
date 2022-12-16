@@ -23,6 +23,9 @@ import { CanvasRenderer } from "echarts/renderers";
 import type { OptionDataValue } from "echarts/types/src/util/types";
 import UiCard from "@/components/ui/UiCard.vue";
 
+const Y_AXIS_MIN_VALUE = 0;
+const Y_AXIS_MAX_VALUE = 200;
+
 const props = defineProps<{
   title?: string;
   subtitle?: string;
@@ -63,9 +66,8 @@ const option = computed<EChartsOption>(() => ({
   xAxis: {
     type: "time",
     axisLabel: {
-      formatter: (date: number) => {
-        return utcFormat("%a %I:%M %p")(new Date(date)).replace(/ /g, "\n");
-      },
+      formatter: (date: number) =>
+        utcFormat("%a %I:%M %p")(new Date(date)).replace(/ /g, "\n"),
       showMaxLabel: false,
       showMinLabel: false,
     },
@@ -75,6 +77,8 @@ const option = computed<EChartsOption>(() => ({
     axisLabel: {
       formatter: valueFormatter,
     },
+    min: () => Y_AXIS_MIN_VALUE,
+    max: () => Y_AXIS_MAX_VALUE,
   },
   series: props.data.map((series, index) => ({
     type: "line",
