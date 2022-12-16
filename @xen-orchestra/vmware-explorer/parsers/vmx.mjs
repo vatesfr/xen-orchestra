@@ -16,7 +16,8 @@ function set(obj, keyPath, val) {
     } else {
       // with descendant
       if (!obj[key][index]) {
-        // first time on this descendantD2
+        // first time on this descendant
+        obj[key][index] = {}
       }
       set(obj[key][index], other, val)
     }

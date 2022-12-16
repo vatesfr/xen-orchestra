@@ -150,7 +150,6 @@ export default class MigrateVm {
         })
       )
     )
-    console.log('network created')
 
     // get the snapshot to migrate
     const snapshots = esxiVmMetadata.snapshots
