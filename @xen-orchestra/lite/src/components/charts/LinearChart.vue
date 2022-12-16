@@ -31,6 +31,7 @@ const props = defineProps<{
   subtitle?: string;
   data: LinearChartData;
   valueFormatter?: (value: number) => string;
+  maxValue?: number;
 }>();
 
 const valueFormatter = (value: OptionDataValue | OptionDataValue[]) => {
@@ -78,7 +79,7 @@ const option = computed<EChartsOption>(() => ({
       formatter: valueFormatter,
     },
     min: () => Y_AXIS_MIN_VALUE,
-    max: () => Y_AXIS_MAX_VALUE,
+    max: () => props.maxValue ?? Y_AXIS_MAX_VALUE,
   },
   series: props.data.map((series, index) => ({
     type: "line",
