@@ -14,11 +14,11 @@ export const N_ITEMS = 5;
 <script lang="ts" setup>
 import { differenceBy } from "lodash-es";
 import { computed, onMounted, provide, watch } from "vue";
+import PoolCpuUsageChart from "@/components/pool/dashboard/cpuUsage/PoolCpuUsageChart.vue";
 import PoolDashboardCpuUsage from "@/components/pool/dashboard/PoolDashboardCpuUsage.vue";
 import PoolDashboardRamUsage from "@/components/pool/dashboard/PoolDashboardRamUsage.vue";
 import PoolDashboardStatus from "@/components/pool/dashboard/PoolDashboardStatus.vue";
 import PoolDashboardStorageUsage from "@/components/pool/dashboard/PoolDashboardStorageUsage.vue";
-import PoolCpuUsageChart from "@/components/pool/dashboard/cpuUsage/PoolCpuUsageChart.vue";
 import useFetchStats from "@/composables/fetch-stats.composable";
 import { isHostRunning } from "@/libs/utils";
 import { GRANULARITY, type HostStats, type VmStats } from "@/libs/xapi-stats";
