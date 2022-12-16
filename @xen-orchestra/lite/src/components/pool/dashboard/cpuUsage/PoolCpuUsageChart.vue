@@ -1,5 +1,5 @@
 <template>
-  <!-- TODO: add a loader when data is not fully loaded -->
+  <!-- TODO: add a loader when data is not fully loaded or undefined -->
   <LinearChart
     :title="$t('pool-cpu-usage')"
     :subtitle="$t('last-week')"
@@ -10,8 +10,9 @@
 </template>
 
 <script lang="ts" setup>
-import LinearChart from "@/components/charts/LinearChart.vue";
 import { type ComputedRef, computed, inject } from "vue";
+import { useI18n } from "vue-i18n";
+import LinearChart from "@/components/charts/LinearChart.vue";
 import { getAvgCpuUsage } from "@/libs/utils";
 import type { LinearChartData } from "@/types/chart";
 import {
@@ -22,7 +23,6 @@ import {
 } from "@/libs/xapi-stats";
 import type { Stat } from "@/composables/fetch-stats.composable";
 import { useHostStore } from "@/stores/host.store";
-import { useI18n } from "vue-i18n";
 
 interface LastWeekStats {
   stats?: ComputedRef<Stat<VmStats | HostStats>[]>;
