@@ -5,22 +5,24 @@
     :subtitle="$t('last-week')"
     :data="data"
     :value-formatter="customValueFormatter"
+    :max-value="customMaxValue"
   />
 </template>
 
 <script lang="ts" setup>
-import { type ComputedRef, computed, inject } from "vue";
-import { useI18n } from "vue-i18n";
-import type { LinearChartData } from "@/types/chart";
 import LinearChart from "@/components/charts/LinearChart.vue";
-import type { Stat } from "@/composables/fetch-stats.composable";
+import { type ComputedRef, computed, inject } from "vue";
 import { getAvgCpuUsage } from "@/libs/utils";
+import type { LinearChartData } from "@/types/chart";
 import {
+  type HostStats,
   GRANULARITY,
   RRD_STEP_FROM_STRING,
-  type HostStats,
   type VmStats,
 } from "@/libs/xapi-stats";
+import type { Stat } from "@/composables/fetch-stats.composable";
+import { useHostStore } from "@/stores/host.store";
+import { useI18n } from "vue-i18n";
 
 interface LastWeekStats {
   stats?: ComputedRef<Stat<VmStats | HostStats>[]>;
@@ -33,6 +35,16 @@ const { t } = useI18n();
 const hostLastWeekStats = inject<LastWeekStats>("hostLastWeekStats", {});
 
 const vmLastWeekStats = inject<LastWeekStats>("vmLastWeekStats", {});
+
+const hostStore = useHostStore();
+
+const customMaxValue = computed(() => {
+  let nCpus = 0;
+  hostStore.allRecords.forEach((host) => {
+    nCpus += +host.cpu_info.cpu_count;
+  });
+  return nCpus * 100;
+});
 
 const timestampStartHostStatsComputed = computed(
   () => hostLastWeekStats.timestampStart?.value
