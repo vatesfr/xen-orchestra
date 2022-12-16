@@ -192,8 +192,6 @@ export default class MigrateVm {
       for (const disk of chainByNode) {
         // the first one  is a RAW disk ( full )
 
-        // the live disk can only be migrated on a powerdoff vm
-
         console.log('will import ', { disk })
         let format = VDI_FORMAT_VHD
         let stream
@@ -206,6 +204,8 @@ export default class MigrateVm {
         }
         console.log('will import in format ', { disk, format })
         await vdi.$importContent(stream, { format })
+        // for now we don't handle snapshots
+        break
       }
     }
     // remove the importing in label
