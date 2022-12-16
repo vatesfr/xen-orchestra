@@ -4,11 +4,12 @@ import { THEME_KEY } from "vue-echarts";
 
 export const useChartTheme = () => {
   const { colorMode } = useUiStore();
+  const isDark = colorMode === "dark";
 
-  const background = colorMode === "dark" ? "#14141D" : "#FFFFFF";
-  const blueScaleColor = colorMode === "dark" ? "#595A6F" : "#9899A5";
-  const lineColor = colorMode === "dark" ? "#1A1B38" : "#E5E5E7";
-  const titleColor = colorMode === "dark" ? "#E5E5E7" : "#1A1B38";
+  const background = isDark ? "#14141D" : "#FFFFFF";
+  const blueScaleColor = isDark ? "#595A6F" : "#9899A5";
+  const lineColor = isDark ? "#1A1B38" : "#E5E5E7";
+  const titleColor = isDark ? "#E5E5E7" : "#1A1B38";
 
   provide(THEME_KEY, {
     color: ["#8F84FF", "#EF7F18"],
