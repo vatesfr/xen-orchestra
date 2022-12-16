@@ -1,3 +1,4 @@
+import { computed } from "vue";
 import { sortRecordsByNameLabel } from "@/libs/utils";
 import type { GRANULARITY } from "@/libs/xapi-stats";
 import type { XenApiHost } from "@/libs/xen-api";
@@ -6,6 +7,10 @@ import { useXenApiStore } from "@/stores/xen-api.store";
 import { defineStore } from "pinia";
 
 export const useHostStore = defineStore("host", () => {
+  const xenApiStore = useXenApiStore();
+  const xapiStats = computed(() =>
+    xenApiStore.isConnected ? xenApiStore.getXapiStats() : undefined
+  );
   const recordContext = createRecordContext<XenApiHost>("host", {
     sort: sortRecordsByNameLabel,
   });
@@ -15,7 +20,7 @@ export const useHostStore = defineStore("host", () => {
     if (host === undefined) {
       throw new Error(`Host ${id} could not be found.`);
     }
-    return useXenApiStore().getXapiStats()._getAndUpdateStats({
+    return xapiStats.value?._getAndUpdateStats({
       host,
       uuid: host.uuid,
       granularity,

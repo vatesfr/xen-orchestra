@@ -60,6 +60,7 @@
   "total-free": "Total libre",
   "total-used": "Total utilisé",
   "unreachable-hosts": "Hôtes inaccessibles",
+  "unreachable-hosts-reload-page": "C'est fait. Rafraîchir la page",
   "version": "Version",
   "vms": "VMs"
 }

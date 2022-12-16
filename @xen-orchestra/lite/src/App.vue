@@ -13,6 +13,12 @@
         <a :href="url.href" target="_blank" rel="noopener">{{ url.href }}</a>
       </li>
     </ul>
+    <template #buttons>
+      <UiButton color="success" @click="reload">{{
+        $t("unreachable-hosts-reload-page")
+      }}</UiButton>
+      <UiButton @click="clearUnreachableHostsUrls">{{ $t("cancel") }}</UiButton>
+    </template>
   </UiModal>
   <div v-if="!xenApiStore.isConnected">
     <AppLogin />
@@ -43,6 +49,7 @@ import AppHeader from "@/components/AppHeader.vue";
 import AppLogin from "@/components/AppLogin.vue";
 import AppTooltips from "@/components/AppTooltips.vue";
 import InfraPoolList from "@/components/infra/InfraPoolList.vue";
+import UiButton from "@/components/ui/UiButton.vue";
 import UiModal from "@/components/ui/UiModal.vue";
 import { useChartTheme } from "@/composables/chart-theme.composable";
 import { useHostStore } from "@/stores/host.store";
@@ -105,6 +112,7 @@ watch(
 );
 
 const isSslModalOpen = computed(() => unreachableHostsUrls.value.length > 0);
+const reload = () => window.location.reload();
 </script>
 
 <style lang="postcss">

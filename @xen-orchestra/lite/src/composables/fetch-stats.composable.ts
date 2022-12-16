@@ -38,11 +38,12 @@ export default function useFetchStats<T extends XenApiHost | XenApiVm, S>(
         const newStats = (await STORES_BY_OBJECT_TYPE[type]().getStats(
           object.uuid,
           granularity
-        )) as XapiStatsResponse<S>;
+        )) as XapiStatsResponse<S> | undefined;
 
-        stats.value.get(object.uuid)!.stats = newStats.stats;
-
-        await promiseTimeout(newStats.interval * 1000);
+        if (newStats !== undefined) {
+          stats.value.get(object.uuid)!.stats = newStats.stats;
+          await promiseTimeout(newStats.interval * 1000);
+        }
       },
       0,
       { immediate: true }
