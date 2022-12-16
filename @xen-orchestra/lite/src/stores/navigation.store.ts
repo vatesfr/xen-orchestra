@@ -12,6 +12,7 @@ export const useNavigationStore = defineStore("navigation", () => {
   const isOpen = ref(false);
   const toggle = () => (isOpen.value = !isOpen.value);
 
+  // Close the menu when the user navigates to a new page
   router.afterEach(() => {
     isOpen.value = false;
   });
