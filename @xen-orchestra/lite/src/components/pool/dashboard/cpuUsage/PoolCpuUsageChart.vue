@@ -64,7 +64,9 @@ const data = computed<LinearChartData>(() => {
     timestampStart = 0,
     index = 0
   ) => {
-    const avgCpuUsage = getAvgCpuUsage(stats?.cpus);
+    const avgCpuUsage = getAvgCpuUsage(stats?.cpus, {
+      nSequence: customMaxValue.value / 100,
+    });
 
     if (avgCpuUsage === undefined) {
       return;
