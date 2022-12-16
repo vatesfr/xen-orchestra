@@ -5671,9 +5671,6 @@ export default {
   // Original text: 'SSH key'
   recipeSshKeyLabel: 'Chiave SSH',
 
-  // Original text: 'Network CIDR'
-  recipeNetworkCidr: 'Rete CIDR',
-
   // Original text: 'Action/Event'
   auditActionEvent: 'Azione/Evento',
 
