@@ -101,7 +101,6 @@ class Vdi {
         task: await this.task_create(`Importing content into VDI ${await this.getField('VDI', ref, 'name_label')}`),
       })
     } catch (error) {
-      console.error({error})
       // augment the error with as much relevant info as possible
       const [poolMaster, vdi] = await Promise.all([
         this.getRecord('host', this.pool.master),

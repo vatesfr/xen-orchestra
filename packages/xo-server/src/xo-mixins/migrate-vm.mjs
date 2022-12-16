@@ -112,20 +112,15 @@ export default class MigrateVm {
     }
   }
 
-
-  async migrationfromEsxi({ host, user, password, sslVerify, sr: srId, network: networkId, vm:vmId ,thin}) {
+  async migrationfromEsxi({ host, user, password, sslVerify, sr: srId, network: networkId, vm: vmId, thin }) {
     const esxi = new Esxi(host, user, password, sslVerify)
     const app = this._app
     const sr = app.getXapiObject(srId)
     const xapi = sr.$xapi
 
-
     await fromEvent(esxi, 'ready')
-    console.log('connected')
-    const esxiVmMetadata = await esxi.getTransferableVmMetadata(
-      vmId
-    )
-    const { memory,name_label, networks, numCpu } = esxiVmMetadata
+    const esxiVmMetadata = await esxi.getTransferableVmMetadata(vmId)
+    const { memory, name_label, networks, numCpu } = esxiVmMetadata
     const vm = await xapi._getOrWaitObject(
       await xapi.VM_create({
         ...OTHER_CONFIG_TEMPLATE,
@@ -139,8 +134,6 @@ export default class MigrateVm {
         VCPUs_max: numCpu,
       })
     )
-
-    console.log('VM created', vm.uuid, vm.$ref)
     await Promise.all([
       asyncMapSettled(['start', 'start_on'], op => vm.update_blocked_operations(op, 'OVA import in progress...')),
       vm.set_name_label(`[Importing...] ${name_label}`),
@@ -148,44 +141,45 @@ export default class MigrateVm {
 
     const vifDevices = await xapi.call('VM.get_allowed_VIF_devices', vm.$ref)
 
-    await Promise.all(networks.map((network, i) =>
-    xapi.VIF_create({
-      device: vifDevices[i],
-      network: xapi.getObject(networkId).$ref,
-      VM: vm.$ref,
-    })
-  ))
-  console.log('network created')
+    await Promise.all(
+      networks.map((network, i) =>
+        xapi.VIF_create({
+          device: vifDevices[i],
+          network: xapi.getObject(networkId).$ref,
+          VM: vm.$ref,
+        })
+      )
+    )
+    console.log('network created')
 
     // get the snapshot to migrate
     const snapshots = esxiVmMetadata.snapshots
     const currentSnapshotId = snapshots.current
 
-    let currentSnapshot = snapshots.snapshots.find(({uid})=> uid === currentSnapshotId)
-
+    let currentSnapshot = snapshots.snapshots.find(({ uid }) => uid === currentSnapshotId)
 
     const chain = [currentSnapshot.disks]
-    while(currentSnapshot = snapshots.snapshots.find(({uid})=> uid === currentSnapshot.parent)){
-      // chain.push(currentSnapshot.disks)
+    while ((currentSnapshot = snapshots.snapshots.find(({ uid }) => uid === currentSnapshot.parent))) {
+      chain.push(currentSnapshot.disks)
     }
     chain.reverse()
-    chain.push( esxiVmMetadata.disks)
+    chain.push(esxiVmMetadata.disks)
 
     const chainsByNodes = {}
-    chain.forEach(disks=>{
-      disks.forEach(disk=>{
+    chain.forEach(disks => {
+      disks.forEach(disk => {
         chainsByNodes[disk.node] = chainsByNodes[disk.node] || []
         chainsByNodes[disk.node].push(disk)
       })
     })
 
-    for(const node in chainsByNodes){
-      let chainByNode = chainsByNodes[node]
+    for (const node in chainsByNodes) {
+      const chainByNode = chainsByNodes[node]
 
       const vdi = await xapi._getOrWaitObject(
         await xapi.VDI_create({
-          name_description: 'fromESXI'+chainByNode[0].descriptionLabel,
-          name_label: '[ESXI]'+chainByNode[0].nameLabel,
+          name_description: 'fromESXI' + chainByNode[0].descriptionLabel,
+          name_label: '[ESXI]' + chainByNode[0].nameLabel,
           SR: sr.$ref,
           virtual_size: chainByNode[0].capacity,
         })
@@ -196,44 +190,31 @@ export default class MigrateVm {
         VDI: vdi.$ref,
         VM: vm.$ref,
       })
-      for(const disk of chainByNode){
-
+      for (const disk of chainByNode) {
         // the first one  is a RAW disk ( full )
 
         // the live disk can only be migrated on a powerdoff vm
 
-        console.log('will import ',{ disk})
+        console.log('will import ', { disk })
         let format = VDI_FORMAT_VHD
         let stream
-        if(!thin){
+        if (!thin) {
           stream = await disk.rawStream()
           format = VDI_FORMAT_RAW
         }
-        if(!stream){
+        if (!stream) {
           stream = await disk.vhd()
         }
-        console.log('will import in format ',{format})
+        console.log('will import in format ', { disk, format })
         await vdi.$importContent(stream, { format })
-        console.log('disk imported')
       }
-
-      // and then we can import the running disk ( after shutting down the VM)
     }
-
-
-
-    //  esxiVmMetadata.disks}
-
-
+    // remove the importing in label
     await vm.set_name_label(esxiVmMetadata.name_label)
 
-    // take the current snaptshot
-
+    // remove lock on start
     await asyncMapSettled(['start', 'start_on'], op => vm.update_blocked_operations(op, null))
 
-
+    return vm.uuid
   }
 }
-
-
-// Vdis is 1874b686-0f27-45a4-a3d6-3cd2e248ac91

@@ -274,10 +274,8 @@ exports.VhdAbstract = class VhdAbstract {
         bat.writeUInt32BE(offsetSector, i * 4)
         offsetSector += blockSizeInSectors
         fileSize += this.fullBlockSize
-        console.log('has ', i)
       } else {
         bat.writeUInt32BE(BLOCK_UNUSED, i * 4)
-       // console.log('has NOT ', i)
       }
     }
 
@@ -299,25 +297,17 @@ exports.VhdAbstract = class VhdAbstract {
           yield buffer
         }
       }
-      let i
-      const progress = setInterval(()=>{
-        console.log('yield blocks',i,header.maxTableEntries )
-      }, 60 * 1000)
 
       // yield all blocks
       // since contains() can be costly for synthetic vhd, use the computed bat
-      for ( i = 0; i < header.maxTableEntries; i++) {
+      for (let i = 0; i < header.maxTableEntries; i++) {
         if (bat.readUInt32BE(i * 4) !== BLOCK_UNUSED) {
           const block = await self.readBlock(i)
-          console.log(i, block.buffer.length)
           yield block.buffer
         }
       }
-      clearInterval(progress)
-      console.log('block done')
       // yield footer again
       yield rawFooter
-      console.log('footer done', fileSize)
     }
 
     const stream = asyncIteratorToStream(iterator())

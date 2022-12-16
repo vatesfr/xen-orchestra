@@ -1,12 +1,14 @@
 {
   "license": "ISC",
-  "private": true,
+  "private": false,
   "version": "0.0.1",
   "name": "@xen-orchestra/vmware-explorer",
   "dependencies": {
+    "@vates/read-chunk": "^1.0.1",
     "lodash": "^4.17.21",
     "node-fetch": "^3.3.0",
-    "node-vsphere-soap": "^0.0.2-5"
+    "node-vsphere-soap": "^0.0.2-5",
+    "vhd-lib": "^4.2.0"
   },
   "engines": {
     "node": ">=18"
@@ -21,5 +23,8 @@
   "author": {
     "name": "Vates SAS",
     "url": "https://vates.fr"
+  },
+  "scripts": {
+    "postversion": "npm publish --access public"
   }
 }
