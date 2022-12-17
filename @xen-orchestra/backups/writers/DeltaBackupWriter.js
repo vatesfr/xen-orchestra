@@ -174,7 +174,7 @@ exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(Ab
     const { size } = await Task.run({ name: 'transfer' }, async () => {
       await Promise.all(
         map(deltaExport.vdis, async (vdi, id) => {
-          const path = `${this._backupDir}/${vhds[id]}`
+          const path = `${this._vmBackupDir}/${vhds[id]}`
 
           const isDelta = vdi.other_config['xo:base_delta'] !== undefined
           let parentPath

@@ -45,7 +45,7 @@ exports.FullBackupWriter = class FullBackupWriter extends MixinBackupWriter(Abst
     const basename = formatFilenameDate(timestamp)
 
     const dataBasename = basename + '.xva'
-    const dataFilename = this._backupDir + '/' + dataBasename
+    const dataFilename = this._vmBackupDir + '/' + dataBasename
 
     const metadata = {
       jobId: job.id,
