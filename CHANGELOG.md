@@ -5,6 +5,7 @@
 ### Enhancements
 
 - [Snapshot] Use the new [`ignore_vdis` feature](https://github.com/xapi-project/xen-api/pull/4563) of XCP-ng/XenServer 8.3
+- [Hub/Recipes/Kubernetes] Now use the [Flannel](https://github.com/flannel-io/flannel) Container Network Interface plugin to handle network
 
 ### Bug fixes
 
@@ -13,8 +14,10 @@
 ### Released packages
 
 - @xen-orchestra/xapi 1.6.0
-- @xen-orchestra/proxy 0.26.8
-- xo-server 5.107.4
+- @xen-orchestra/backups 0.29.4
+- @xen-orchestra/proxy 0.26.9
+- xo-server 5.107.5
+- xo-web 5.109.0
 
 ## **5.77.2** (2022-12-12)
 
