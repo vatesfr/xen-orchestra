@@ -54,7 +54,7 @@ export default class VhdEsxiRaw extends VhdAbstract {
   }
 
   containsBlock(blockId) {
-    assert.notEqual(this.#bat, undefined)
+    assert.notEqual(this.#bat, undefined, "bat is not loaded")
     return this.#bat.has(blockId)
   }
 

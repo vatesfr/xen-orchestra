@@ -38,7 +38,7 @@ export default class VhdCowd extends VhdAbstract {
   }
 
   containsBlock(blockId) {
-    notEqual(this.#grainDirectory, undefined)
+    notEqual(this.#grainDirectory, undefined, "bat must be loaded to use contain blocks'")
     // only check if a grain table exist for on of the sector of the block
     // the great news is that a grain size has 4096 entries of 512B = 2M
     // and a vhd block is also 2M
