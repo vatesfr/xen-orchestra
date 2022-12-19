@@ -1,12 +1,13 @@
-import { EventEmitter } from 'node:events'
 import { Client } from 'node-vsphere-soap'
+import { dirname } from 'node:path'
+import { EventEmitter } from 'node:events'
 import { strictEqual } from 'node:assert'
 import fetch from 'node-fetch'
 
-import parseVmx from './parsers/vmx.mjs'
-import { dirname } from 'node:path'
-import parseVmdk, { VhdCowd } from './parsers/vmdk.mjs'
+import parseVmdk from './parsers/vmdk.mjs'
 import parseVmsd from './parsers/vmsd.mjs'
+import parseVmx from './parsers/vmx.mjs'
+import VhdCowd from './VhdEsxiCowd.mjs'
 import VhdEsxiRaw from './VhdEsxiRaw.mjs'
 
 const MAX_SCSI = 9

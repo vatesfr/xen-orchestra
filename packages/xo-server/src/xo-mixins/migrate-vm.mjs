@@ -174,7 +174,7 @@ export default class MigrateVm {
 
     for (const node in chainsByNodes) {
       const chainByNode = chainsByNodes[node]
-
+      console.log({chainByNode})
       const vdi = await xapi._getOrWaitObject(
         await xapi.VDI_create({
           name_description: 'fromESXI' + chainByNode[0].descriptionLabel,
@@ -183,12 +183,14 @@ export default class MigrateVm {
           virtual_size: chainByNode[0].capacity,
         })
       )
+      console.log('vdi created')
 
       await xapi.VBD_create({
         userdevice: String(0),
         VDI: vdi.$ref,
         VM: vm.$ref,
       })
+      console.log('vbd created')
       for (const disk of chainByNode) {
         // the first one  is a RAW disk ( full )
 
@@ -208,6 +210,7 @@ export default class MigrateVm {
         break
       }
     }
+    console.log('disks created')
     // remove the importing in label
     await vm.set_name_label(esxiVmMetadata.name_label)
 
