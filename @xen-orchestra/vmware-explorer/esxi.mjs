@@ -57,7 +57,6 @@ export default class Esxi extends EventEmitter {
     const url = `https://${this.#host}/folder/${path}?dsName=${dataStore}`
     const headers = {}
     if(this.#cookies){
-      console.log('will reuse cookie',this.#cookies)
       headers['cookie']= this.#cookies
     } else {
       headers.Authorization = 'Basic ' + Buffer.from(this.#user + ':' + this.#password).toString('base64')
