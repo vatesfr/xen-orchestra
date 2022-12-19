@@ -171,7 +171,7 @@ export default class MigrateVm {
         chainsByNodes[disk.node].push(disk)
       })
     })
-
+    let userdevice = 0
     for (const node in chainsByNodes) {
       const chainByNode = chainsByNodes[node]
       console.log({chainByNode})
@@ -186,7 +186,7 @@ export default class MigrateVm {
       console.log('vdi created')
 
       await xapi.VBD_create({
-        userdevice: String(0),
+        userdevice: String(userdevice),
         VDI: vdi.$ref,
         VM: vm.$ref,
       })
@@ -209,6 +209,7 @@ export default class MigrateVm {
         // for now we don't handle snapshots
         break
       }
+      userdevice ++
     }
     console.log('disks created')
     // remove the importing in label

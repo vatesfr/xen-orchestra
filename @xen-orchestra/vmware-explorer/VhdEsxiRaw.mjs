@@ -101,7 +101,7 @@ export default class VhdEsxiRaw extends VhdAbstract {
     let nextChunkLength = Math.min(VHD_BLOCK_LENGTH, length)
 
     const progress = setInterval(() => {
-      console.log("reading blocks", pos / VHD_BLOCK_LENGTH, "/", length)
+      console.log("reading blocks", pos / VHD_BLOCK_LENGTH, "/", length/ VHD_BLOCK_LENGTH)
     }, 30 * 1000)
 
     while (nextChunkLength > 0) {
