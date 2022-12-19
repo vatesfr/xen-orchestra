@@ -1,6 +1,6 @@
 import { Backup } from '@xen-orchestra/backups/Backup.js'
 import { v4 as generateUuid } from 'uuid'
-import Esxi from '../../../../@xen-orchestra/vmware-explorer/esxi.mjs'
+import Esxi from '@xen-orchestra/vmware-explorer/esxi.mjs'
 import OTHER_CONFIG_TEMPLATE from '../xapi/other-config-template.mjs'
 import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
 import { fromEvent } from 'promise-toolbox'
