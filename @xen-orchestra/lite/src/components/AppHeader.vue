@@ -1,5 +1,11 @@
 <template>
   <header class="app-header">
+    <UiIcon
+      v-if="isMobile"
+      ref="navigationTrigger"
+      :icon="faBars"
+      class="toggle-navigation"
+    />
     <RouterLink :to="{ name: 'home' }">
       <img alt="XO Lite" src="../assets/logo.svg" />
     </RouterLink>
@@ -12,6 +18,17 @@
 
 <script lang="ts" setup>
 import AccountButton from "@/components/AccountButton.vue";
+import UiIcon from "@/components/ui/UiIcon.vue";
+import { useNavigationStore } from "@/stores/navigation.store";
+import { useUiStore } from "@/stores/ui.store";
+import { faBars } from "@fortawesome/free-solid-svg-icons";
+import { storeToRefs } from "pinia";
+
+const uiStore = useUiStore();
+const { isMobile } = storeToRefs(uiStore);
+
+const navigationStore = useNavigationStore();
+const { trigger: navigationTrigger } = storeToRefs(navigationStore);
 </script>
 
 <style lang="postcss" scoped>
