@@ -51,11 +51,10 @@ export default decorate([
           size: 'medium',
         })
 
-        const { cidr, masterName, nbNodes, network, sr, sshKey } = recipeParams
+        const { masterName, nbNodes, network, sr, sshKey } = recipeParams
 
         markRecipeAsCreating(RECIPE_INFO.id)
         const tag = await createKubernetesCluster({
-          cidr,
           masterName,
           nbNodes: +nbNodes,
           network: network.id,

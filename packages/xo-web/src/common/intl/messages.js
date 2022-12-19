@@ -2392,7 +2392,6 @@ const messages = {
   recipeMasterNameLabel: 'Master name',
   recipeNumberOfNodesLabel: 'Number of nodes',
   recipeSshKeyLabel: 'SSH key',
-  recipeNetworkCidr: 'Network CIDR',
 
   // Audit
   auditActionEvent: 'Action/Event',

@@ -112,18 +112,6 @@ export default decorate([
           value={value.sshKey}
         />
       </FormGrid.Row>
-      <FormGrid.Row>
-        <label>{_('recipeNetworkCidr')}</label>
-        <input
-          className='form-control'
-          name='cidr'
-          onChange={effects.onChangeValue}
-          placeholder={formatMessage(messages.recipeNetworkCidr)}
-          required
-          type='text'
-          value={value.cidr}
-        />
-      </FormGrid.Row>
     </Container>
   ),
 ])
