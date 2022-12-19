@@ -1,9 +1,15 @@
 <template>
   <AppMenu
     :disabled="selectedRefs.length === 0"
+    :horizontal="!isMobile"
+    :shadow="isMobile"
     class="vms-actions-bar"
-    horizontal
+    placement="bottom-end"
   >
+    <template v-if="isMobile" #trigger="{ isOpen, open }">
+      <UiButton :active="isOpen" :icon="faEllipsis" transparent @click="open" />
+    </template>
+
     <MenuItem :icon="faPowerOff">{{ $t("change-power-state") }}</MenuItem>
     <MenuItem :icon="faRoute">{{ $t("migrate") }}</MenuItem>
     <MenuItem :icon="faCopy">{{ $t("copy") }}</MenuItem>
@@ -27,6 +33,10 @@
 </template>
 
 <script lang="ts" setup>
+import UiButton from "@/components/ui/UiButton.vue";
+import AppMenu from "@/components/menu/AppMenu.vue";
+import MenuItem from "@/components/menu/MenuItem.vue";
+import { useUiStore } from "@/stores/ui.store";
 import {
   faBox,
   faCamera,
@@ -34,19 +44,21 @@ import {
   faCopy,
   faDisplay,
   faEdit,
+  faEllipsis,
   faFileCsv,
   faFileExport,
   faPowerOff,
   faRoute,
   faTrashCan,
 } from "@fortawesome/free-solid-svg-icons";
-import AppMenu from "@/components/menu/AppMenu.vue";
-import MenuItem from "@/components/menu/MenuItem.vue";
+import { storeToRefs } from "pinia";
 
 defineProps<{
   disabled?: boolean;
   selectedRefs: string[];
 }>();
+
+const { isMobile } = storeToRefs(useUiStore());
 </script>
 
 <style lang="postcss" scoped>
