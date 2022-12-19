@@ -14,6 +14,7 @@ const MAX_ETHERNET = 9
 
 export default class Esxi extends EventEmitter {
   #client
+  #cookies
   #host
   #user
   #password
@@ -53,8 +54,12 @@ export default class Esxi extends EventEmitter {
   async download(dataStore, path, range) {
     strictEqual(this.#ready, true)
     const url = `https://${this.#host}/folder/${path}?dsName=${dataStore}`
-    const headers = {
-      Authorization: 'Basic ' + Buffer.from(this.#user + ':' + this.#password).toString('base64'),
+    const headers = {}
+    if(this.#cookies){
+      console.log('will reuse cookie',this.#cookies)
+      headers['cookie']= this.#cookies
+    } else {
+      headers.Authorization = 'Basic ' + Buffer.from(this.#user + ':' + this.#password).toString('base64')
     }
     if (range) {
       headers['content-type'] = 'multipart/byteranges'
@@ -69,6 +74,9 @@ export default class Esxi extends EventEmitter {
       const error = new Error(res.status + ' ' + res.statusText + ' ' + url)
       error.cause = res
       throw error
+    }
+    if(res.headers.raw()['set-cookie']){
+      this.#cookies = res.headers.raw()['set-cookie']
     }
     return res
   }
