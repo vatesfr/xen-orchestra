@@ -8,9 +8,11 @@
   >
     <FormTextarea class="modal-textarea" v-model="editedJson" />
     <template #buttons>
-      <UiButton transparent @click="formatJson">Reformat</UiButton>
-      <UiButton outlined @click="closeCodeModal">Cancel</UiButton>
-      <UiButton :disabled="!isJsonValid" type="submit">Save</UiButton>
+      <UiButton transparent @click="formatJson">{{ $t("reformat") }}</UiButton>
+      <UiButton outlined @click="closeCodeModal">{{ $t("cancel") }}</UiButton>
+      <UiButton :disabled="!isJsonValid" type="submit"
+        >{{ $t("save") }}
+      </UiButton>
     </template>
   </UiModal>
   <FormInput
@@ -22,14 +24,14 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, ref, watch } from "vue";
-import { faCode } from "@fortawesome/free-solid-svg-icons";
-import { useVModel } from "@vueuse/core";
 import FormInput from "@/components/form/FormInput.vue";
 import FormTextarea from "@/components/form/FormTextarea.vue";
 import UiButton from "@/components/ui/UiButton.vue";
 import UiModal from "@/components/ui/UiModal.vue";
 import useModal from "@/composables/modal.composable";
+import { faCode } from "@fortawesome/free-solid-svg-icons";
+import { useVModel, whenever } from "@vueuse/core";
+import { computed, ref } from "vue";
 
 const props = defineProps<{
   modelValue: any;
@@ -78,11 +80,7 @@ const saveJson = () => {
   closeCodeModal();
 };
 
-watch(isCodeModalOpen, (isOpen) => {
-  if (isOpen) {
-    editedJson.value = jsonValue.value;
-  }
-});
+whenever(isCodeModalOpen, () => (editedJson.value = jsonValue.value));
 
 const editedJson = ref();
 </script>
