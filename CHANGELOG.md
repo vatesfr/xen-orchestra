@@ -1,10 +1,15 @@
 # ChangeLog
 
-## **next**
+## **5.78.0** (2022-12-20)
+
+<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
+### Highlights
+
+- [Snapshot] Use the new [`ignore_vdis` feature](https://github.com/xapi-project/xen-api/pull/4563) of XCP-ng/XenServer 8.3
 
 ### Enhancements
 
-- [Snapshot] Use the new [`ignore_vdis` feature](https://github.com/xapi-project/xen-api/pull/4563) of XCP-ng/XenServer 8.3
 - [Hub/Recipes/Kubernetes] Now use the [Flannel](https://github.com/flannel-io/flannel) Container Network Interface plugin to handle network
 
 ### Bug fixes
@@ -21,7 +26,7 @@
 
 ## **5.77.2** (2022-12-12)
 
-<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Bug fixes
 
@@ -98,8 +103,6 @@
 - xo-web 5.108.0
 
 ## **5.76.2** (2022-11-14)
-
-<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Bug fixes
 
