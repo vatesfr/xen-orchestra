@@ -69,18 +69,15 @@ const open = (event: MouseEvent) => {
 </script>
 
 <style lang="postcss" scoped>
-.app-menu ul {
-  background-color: var(--color-blue-scale-500);
-  padding: 0.5rem;
-}
-
 .app-menu {
   z-index: 1;
   display: inline-flex;
   flex-direction: column;
+  padding: 0.5rem;
   cursor: default;
   color: var(--color-blue-scale-200);
   border-radius: 0.8rem;
+  background-color: var(--color-blue-scale-500);
   gap: 0.5rem;
 
   &.horizontal {
