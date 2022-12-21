@@ -1,19 +1,10 @@
-import { useUiStore } from "@/stores/ui.store";
 import { provide } from "vue";
 import { THEME_KEY } from "vue-echarts";
 
 export const useChartTheme = () => {
-  const { colorMode } = useUiStore();
-  const isDark = colorMode === "dark";
-
-  const background = isDark ? "#14141D" : "#FFFFFF";
-  const blueScaleColor = isDark ? "#595A6F" : "#9899A5";
-  const lineColor = isDark ? "#1A1B38" : "#E5E5E7";
-  const titleColor = isDark ? "#E5E5E7" : "#1A1B38";
-
   provide(THEME_KEY, {
     color: ["#8F84FF", "#EF7F18"],
-    backgroundColor: background,
+    backgroundColor: "#ffffff",
     textStyle: {},
     grid: {
       top: 80,
@@ -22,13 +13,13 @@ export const useChartTheme = () => {
     },
     title: {
       textStyle: {
-        color: titleColor,
+        color: "#1A1B38",
         fontFamily: "Poppins, sans-serif",
         fontWeight: 500,
         fontSize: 20,
       },
       subtextStyle: {
-        color: blueScaleColor,
+        color: "#9899A5",
         fontFamily: "Poppins, sans-serif",
         fontWeight: 400,
         fontSize: 14,
@@ -216,12 +207,12 @@ export const useChartTheme = () => {
       },
       axisLabel: {
         show: true,
-        color: blueScaleColor,
+        color: "#9899A5",
       },
       splitLine: {
         show: true,
         lineStyle: {
-          color: [lineColor],
+          color: ["#E5E5E7"],
         },
       },
       splitArea: {
@@ -276,13 +267,13 @@ export const useChartTheme = () => {
       },
       axisLabel: {
         show: true,
-        color: blueScaleColor,
+        color: "#9899A5",
       },
       splitLine: {
         show: true,
         lineStyle: {
           type: "dashed",
-          color: [lineColor],
+          color: ["#E5E5E7"],
         },
       },
       splitArea: {
@@ -306,7 +297,7 @@ export const useChartTheme = () => {
       left: "right",
       top: "bottom",
       textStyle: {
-        color: blueScaleColor,
+        color: "#9899A5",
       },
     },
     tooltip: {
