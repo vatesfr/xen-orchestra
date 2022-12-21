@@ -33,9 +33,9 @@
 </template>
 
 <script lang="ts" setup>
-import UiButton from "@/components/ui/UiButton.vue";
 import AppMenu from "@/components/menu/AppMenu.vue";
 import MenuItem from "@/components/menu/MenuItem.vue";
+import UiButton from "@/components/ui/UiButton.vue";
 import { useUiStore } from "@/stores/ui.store";
 import {
   faBox,
