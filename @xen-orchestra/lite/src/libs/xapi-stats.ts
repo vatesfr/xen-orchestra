@@ -30,7 +30,7 @@ export enum GRANULARITY {
   Days = "days",
 }
 
-const RRD_STEP_FROM_STRING: { [key in GRANULARITY]: RRD_STEP } = {
+export const RRD_STEP_FROM_STRING: { [key in GRANULARITY]: RRD_STEP } = {
   [GRANULARITY.Seconds]: RRD_STEP.Seconds,
   [GRANULARITY.Minutes]: RRD_STEP.Minutes,
   [GRANULARITY.Hours]: RRD_STEP.Hours,

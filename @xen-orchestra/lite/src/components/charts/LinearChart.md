@@ -18,15 +18,15 @@ const data: LinearChartData = [
   {
     label: "First series",
     data: [
-      { date: "...", value: 1234 },
-      { date: "...", value: 1234 },
+      { timestamp: 1670478371123, value: 1234 },
+      { timestamp: 1670478519751, value: 1234 },
     ],
   },
   {
     label: "Second series",
     data: [
-      { date: "...", value: 1234 },
-      { date: "...", value: 1234 },
+      { timestamp: 1670478519751, value: 1234 },
+      { timestamp: 167047555000, value: 1234 },
     ],
   },
 ];

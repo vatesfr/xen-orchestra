@@ -77,6 +77,7 @@ export interface XenApiHost extends XenApiRecord {
   name_label: string;
   metrics: string;
   resident_VMs: string[];
+  cpu_info: { cpu_count: string };
 }
 
 export interface XenApiSr extends XenApiRecord {
