@@ -1,100 +1,87 @@
 <template>
   <!-- TODO: add a loader when data is not fully loaded or undefined -->
   <LinearChart
-    :title="$t('pool-cpu-usage')"
-    :subtitle="$t('last-week')"
     :data="data"
-    :value-formatter="customValueFormatter"
     :max-value="customMaxValue"
+    :subtitle="$t('last-week')"
+    :title="$t('pool-cpu-usage')"
+    :value-formatter="customValueFormatter"
   />
 </template>
 
 <script lang="ts" setup>
-import { type ComputedRef, computed, inject } from "vue";
-import { useI18n } from "vue-i18n";
 import LinearChart from "@/components/charts/LinearChart.vue";
-import { getAvgCpuUsage } from "@/libs/utils";
-import type { LinearChartData } from "@/types/chart";
-import {
-  type HostStats,
-  GRANULARITY,
-  RRD_STEP_FROM_STRING,
-  type VmStats,
-} from "@/libs/xapi-stats";
 import type { Stat } from "@/composables/fetch-stats.composable";
+import type { HostStats, VmStats } from "@/libs/xapi-stats";
+import { RRD_STEP_FROM_STRING } from "@/libs/xapi-stats";
 import { useHostStore } from "@/stores/host.store";
+import type { LinearChartData } from "@/types/chart";
+import { sumBy } from "lodash-es";
+import { storeToRefs } from "pinia";
+import { computed, type ComputedRef, inject } from "vue";
+import { useI18n } from "vue-i18n";
 
-interface LastWeekStats {
-  stats?: ComputedRef<Stat<VmStats | HostStats>[]>;
+interface LastWeekStats<T extends VmStats | HostStats> {
+  stats?: ComputedRef<Stat<T>[]>;
   timestampStart?: ComputedRef<number>;
   timestampEnd?: ComputedRef<number>;
 }
 
 const { t } = useI18n();
 
-const hostLastWeekStats = inject<LastWeekStats>("hostLastWeekStats", {});
-
-const vmLastWeekStats = inject<LastWeekStats>("vmLastWeekStats", {});
-
-const hostStore = useHostStore();
-
-const customMaxValue = computed(() => {
-  let nCpus = 0;
-  hostStore.allRecords.forEach((host) => {
-    nCpus += +host.cpu_info.cpu_count;
-  });
-  return nCpus * 100;
-});
-
-const timestampStartHostStatsComputed = computed(
-  () => hostLastWeekStats.timestampStart?.value
+const hostLastWeekStats = inject<LastWeekStats<HostStats>>(
+  "hostLastWeekStats",
+  {}
 );
 
-const timestampStartWmStatsComputed = computed(
-  () => vmLastWeekStats.timestampStart?.value
-);
+const { allRecords: hosts } = storeToRefs(useHostStore());
 
-const labelSerie = computed(() => t("stacked-cpu-usage"));
+const customMaxValue = computed(
+  () => 100 * sumBy(hosts.value, (host) => +host.cpu_info.cpu_count)
+);
 
 const data = computed<LinearChartData>(() => {
-  const result = new Map<string, { date: number; value: number }>();
+  if (
+    hostLastWeekStats.timestampStart?.value === undefined ||
+    hostLastWeekStats.stats?.value === undefined
+  ) {
+    return [];
+  }
 
-  const setResult = (
-    stats: HostStats | VmStats | undefined,
-    timestampStart = 0,
-    index = 0
-  ) => {
-    const avgCpuUsage = getAvgCpuUsage(stats?.cpus, {
-      nSequence: customMaxValue.value / 100,
-    });
+  const timestampStart = hostLastWeekStats.timestampStart.value;
 
-    if (avgCpuUsage === undefined) {
+  const result = new Map<number, { timestamp: number; value: number }>();
+
+  const addResult = (stats: HostStats) => {
+    const cpus = Object.values(stats.cpus);
+
+    for (let hourIndex = 0; hourIndex < cpus[0].length; hourIndex++) {
+      const timestamp =
+        (timestampStart + hourIndex * RRD_STEP_FROM_STRING.hours) * 1000;
+
+      const cpuUsageSum = cpus.reduce(
+        (total, cpu) => total + cpu[hourIndex],
+        0
+      );
+
+      result.set(timestamp, {
+        timestamp: timestamp,
+        value: Math.round((result.get(timestamp)?.value ?? 0) + cpuUsageSum),
+      });
+    }
+  };
+
+  hostLastWeekStats.stats.value.forEach((host) => {
+    if (!host.stats) {
       return;
     }
 
-    const timestamp =
-      (timestampStart + RRD_STEP_FROM_STRING[GRANULARITY.Hours] * index) * 1000;
-
-    const strDate = timestamp.toString();
-
-    result.set(strDate, {
-      value:
-        (result.get(strDate)?.value ?? 0) + Math.round(avgCpuUsage * 100) / 100,
-      date: timestamp,
-    });
-  };
-
-  vmLastWeekStats.stats?.value.forEach((stat, index) =>
-    setResult(stat.stats, timestampStartWmStatsComputed.value, index)
-  );
-
-  hostLastWeekStats.stats?.value.forEach((stat, index) =>
-    setResult(stat.stats, timestampStartHostStatsComputed.value, index)
-  );
+    addResult(host.stats);
+  });
 
   return [
     {
-      label: labelSerie.value,
+      label: t("stacked-cpu-usage"),
       data: Array.from(result.values()),
     },
   ];

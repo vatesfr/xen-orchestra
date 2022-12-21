@@ -1,7 +1,7 @@
 export type LinearChartData = {
   label: string;
   data: {
-    date: number;
+    timestamp: number;
     value: number;
   }[];
 }[];
