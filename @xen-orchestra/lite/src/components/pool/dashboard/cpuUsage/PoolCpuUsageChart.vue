@@ -42,8 +42,8 @@ const customMaxValue = computed(
 
 const data = computed<LinearChartData>(() => {
   if (
-    hostLastWeekStats.timestampStart === undefined ||
-    hostLastWeekStats.stats === undefined
+    hostLastWeekStats.timestampStart?.value === undefined ||
+    hostLastWeekStats.stats?.value === undefined
   ) {
     return [];
   }
