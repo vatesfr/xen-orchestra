@@ -33,13 +33,8 @@ const props = defineProps<{
   maxValue?: number;
 }>();
 
-const valueFormatter = (value: OptionDataValue | OptionDataValue[]) => {
-  if (props.valueFormatter) {
-    return props.valueFormatter(value as number);
-  }
-
-  return value.toString();
-};
+const valueFormatter = (value: OptionDataValue | OptionDataValue[]) =>
+  props.valueFormatter?.(value as number) ?? `${value}`;
 
 provide("valueFormatter", valueFormatter);
 
@@ -66,8 +61,8 @@ const option = computed<EChartsOption>(() => ({
   xAxis: {
     type: "time",
     axisLabel: {
-      formatter: (date: number) =>
-        utcFormat("%a %I:%M %p")(new Date(date)).replace(/ /g, "\n"),
+      formatter: (timestamp: number) =>
+        utcFormat("%a\n%I:%M\n%p")(new Date(timestamp)),
       showMaxLabel: false,
       showMinLabel: false,
     },
@@ -83,7 +78,7 @@ const option = computed<EChartsOption>(() => ({
     type: "line",
     name: series.label,
     zlevel: index + 1,
-    data: series.data.map((item) => [item.date, item.value]),
+    data: series.data.map((item) => [item.timestamp, item.value]),
   })),
 }));
 </script>
