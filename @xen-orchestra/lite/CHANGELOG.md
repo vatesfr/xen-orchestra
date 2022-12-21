@@ -7,6 +7,7 @@
 - Uncollapse hosts in the tree by default (PR [#6428](https://github.com/vatesfr/xen-orchestra/pull/6428))
 - Display RAM usage in pool dashboard (PR [#6419](https://github.com/vatesfr/xen-orchestra/pull/6419))
 - Implement not found page (PR [#6410](https://github.com/vatesfr/xen-orchestra/pull/6410))
+- Display CPU usage chart in pool dashboard (PR [#6577](https://github.com/vatesfr/xen-orchestra/pull/6577))
 
 ## **0.1.0**
 
