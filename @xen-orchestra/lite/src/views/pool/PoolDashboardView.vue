@@ -46,12 +46,6 @@ const {
   ...hostLastWeekStats
 } = useFetchStats<XenApiHost, HostStats>("host", GRANULARITY.Hours);
 
-const {
-  register: vmLastWeekStatsRegister,
-  unregister: vmLastWeekStatsUnregister,
-  ...vmLastWeekStats
-} = useFetchStats<XenApiVm, VmStats>("vm", GRANULARITY.Hours);
-
 const runningHosts = computed(() => hostStore.allRecords.filter(isHostRunning));
 const runningVms = computed(() =>
   vmStore.allRecords.filter((vm) => vm.power_state === "Running")
@@ -61,7 +55,6 @@ provide("hostStats", hostStats);
 provide("vmStats", vmStats);
 
 provide("hostLastWeekStats", hostLastWeekStats);
-provide("vmLastWeekStats", vmLastWeekStats);
 
 watch(runningHosts, (hosts, previousHosts) => {
   // turned On
@@ -79,16 +72,10 @@ watch(runningHosts, (hosts, previousHosts) => {
 
 watch(runningVms, (vms, previousVms) => {
   // turned On
-  differenceBy(vms, previousVms ?? [], "uuid").forEach((vm) => {
-    vmRegister(vm);
-    vmLastWeekStatsRegister(vm);
-  });
+  differenceBy(vms, previousVms ?? [], "uuid").forEach((vm) => vmRegister(vm));
 
   // turned Off
-  differenceBy(previousVms, vms, "uuid").forEach((vm) => {
-    vmUnregister(vm);
-    vmLastWeekStatsUnregister(vm);
-  });
+  differenceBy(previousVms, vms, "uuid").forEach((vm) => vmUnregister(vm));
 });
 
 onMounted(() => {
@@ -97,10 +84,7 @@ onMounted(() => {
     hostLastWeekStatsRegister(host);
   });
 
-  runningVms.value.forEach((vm) => {
-    vmRegister(vm);
-    vmLastWeekStatsRegister(vm);
-  });
+  runningVms.value.forEach((vm) => vmRegister(vm));
 });
 </script>
 
