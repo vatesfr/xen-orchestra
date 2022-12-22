@@ -1,11 +1,7 @@
 <template>
   <ObjectNotFoundWrapper object-type="vm">
-    <div>
-      <VmHeader />
-      <div>
-        <RouterView />
-      </div>
-    </div>
+    <VmHeader />
+    <RouterView />
   </ObjectNotFoundWrapper>
 </template>
 

@@ -2,7 +2,7 @@
   <TitleBar :icon="faDisplay">
     {{ name }}
     <template #actions>
-      <AppMenu shadow>
+      <AppMenu shadow placement="bottom-end">
         <template #trigger="{ open, isOpen }">
           <UiButton :active="isOpen" :icon="faPowerOff" @click="open">
             {{ $t("change-state") }}
