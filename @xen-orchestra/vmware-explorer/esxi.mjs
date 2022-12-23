@@ -27,16 +27,26 @@ export default class Esxi extends EventEmitter {
     this.#user = user
     this.#password = password
     this.#client = new Client(host, user, password, sslVerify)
+    process.on('warning', this.#eatTlsWarning )
     this.#client.once('ready', () => {
+      process.off('warning', this.#eatTlsWarning )
       this.#ready = true
       this.emit('ready')
     })
     this.#client.on('error', err => {
-      console.error(err)
+      process.off('warning', this.#eatTlsWarning )
+      console.error({
+        in:'ERROR',
+        code: err.code,
+        message: err.message
+      })
       this.emit('error', err)
     })
   }
 
+  #eatTlsWarning (/* err */){
+     // console.log('yummy', err.code, err.message)
+  }
   #exec(cmd, args) {
     strictEqual(this.#ready, true)
     const client = this.#client
