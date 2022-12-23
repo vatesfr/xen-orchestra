@@ -67,7 +67,7 @@ export default class Esxi extends EventEmitter {
     const url = `https://${this.#host}/folder/${path}?dsName=${dataStore}`
     const headers = {}
     if(this.#cookies){
-      headers['cookie']= this.#cookies
+      headers.cookie= this.#cookies
     } else {
       headers.Authorization = 'Basic ' + Buffer.from(this.#user + ':' + this.#password).toString('base64')
     }
@@ -256,18 +256,22 @@ export default class Esxi extends EventEmitter {
         isGenerated: ethernet.addressType === 'generated',
       })
     }
+    const vmsd = await (await this.download(dataStore, vmxPath.replace('.vmx', '.vmsd'))).text()
+    let snapshots
+    if(vmsd){
+      snapshots = parseVmsd(vmsd)
 
-    const snapshots = parseVmsd(await (await this.download(dataStore, vmxPath.replace('.vmx', '.vmsd'))).text())
-
-    for (const snapshotIndex in snapshots.snapshots) {
-      const snapshot = snapshots.snapshots[snapshotIndex]
-      for (const diskIndex in snapshot.disks) {
-        const fileName = snapshot.disks[diskIndex].fileName
-        snapshot.disks[diskIndex] = {
-          node: snapshot.disks[diskIndex]?.node, // 'scsi0:0',
-          ...(await this.#inspectVmdk(dataStores, dataStore, dirname(vmxPath), fileName)),
+      for (const snapshotIndex in snapshots?.snapshots) {
+        const snapshot = snapshots.snapshots[snapshotIndex]
+        for (const diskIndex in snapshot.disks) {
+          const fileName = snapshot.disks[diskIndex].fileName
+          snapshot.disks[diskIndex] = {
+            node: snapshot.disks[diskIndex]?.node, // 'scsi0:0',
+            ...(await this.#inspectVmdk(dataStores, dataStore, dirname(vmxPath), fileName)),
+          }
         }
       }
+
     }
 
     return {

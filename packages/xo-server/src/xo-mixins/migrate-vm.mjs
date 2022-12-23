@@ -153,15 +153,19 @@ export default class MigrateVm {
 
     // get the snapshot to migrate
     const snapshots = esxiVmMetadata.snapshots
-    const currentSnapshotId = snapshots.current
+    let chain =[]
+    if(snapshots && snapshots.current){
+      const currentSnapshotId = snapshots.current
 
-    let currentSnapshot = snapshots.snapshots.find(({ uid }) => uid === currentSnapshotId)
+      let currentSnapshot = snapshots.snapshots.find(({ uid }) => uid === currentSnapshotId)
 
-    const chain = [currentSnapshot.disks]
-    while ((currentSnapshot = snapshots.snapshots.find(({ uid }) => uid === currentSnapshot.parent))) {
-      chain.push(currentSnapshot.disks)
+      chain = [currentSnapshot.disks]
+      while ((currentSnapshot = snapshots.snapshots.find(({ uid }) => uid === currentSnapshot.parent))) {
+        chain.push(currentSnapshot.disks)
+      }
+      chain.reverse()
     }
-    chain.reverse()
+
     chain.push(esxiVmMetadata.disks)
 
     const chainsByNodes = {}
@@ -174,7 +178,6 @@ export default class MigrateVm {
     let userdevice = 0
     for (const node in chainsByNodes) {
       const chainByNode = chainsByNodes[node]
-      console.log({chainByNode})
       const vdi = await xapi._getOrWaitObject(
         await xapi.VDI_create({
           name_description: 'fromESXI' + chainByNode[0].descriptionLabel,
