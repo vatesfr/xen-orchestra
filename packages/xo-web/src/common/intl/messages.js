@@ -2392,6 +2392,11 @@ const messages = {
   recipeMasterNameLabel: 'Master name',
   recipeNumberOfNodesLabel: 'Number of nodes',
   recipeSshKeyLabel: 'SSH key',
+  recipeStaticIpAddresses: 'Static IP addresses?',
+  recipeMasterIpAddress: 'Master node IP address',
+  recipeWorkerIpAddress: 'Worker node { i } IP address',
+  recipeNetworkMask: 'Network Mask',
+  recipeGatewayIpAddress: 'Gateway IP sddress',
 
   // Audit
   auditActionEvent: 'Action/Event',
