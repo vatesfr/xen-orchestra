@@ -217,7 +217,8 @@ exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(Ab
           } else {
             debug('useNbd is disabled', { vdi: id, path })
           }
-          await adapter.writeVhd(path, deltaExport.streams[`${id}.vhd`], {
+
+          sizeContainers[`${id}.vhd`].size = await adapter.writeVhd(path, deltaExport.streams[`${id}.vhd`], {
             // no checksum for VHDs, because they will be invalidated by
             // merges and chainings
             checksum: false,

@@ -661,7 +661,7 @@ class RemoteAdapter {
     const handler = this._handler
     if (this.#useVhdDirectory()) {
       const dataPath = `${dirname(path)}/data/${uuidv4()}.vhd`
-      await createVhdDirectoryFromStream(handler, dataPath, input, {
+      const size = await createVhdDirectoryFromStream(handler, dataPath, input, {
         concurrency: writeBlockConcurrency,
         compression: this.#getCompressionType(),
         async validator() {
@@ -671,13 +671,14 @@ class RemoteAdapter {
         nbdClient,
       })
       await VhdAbstract.createAlias(handler, path, dataPath)
+      return size
     } else {
-      await this.outputStream(path, input, { checksum, validator })
+      return this.outputStream(path, input, { checksum, validator })
     }
   }
 
   async outputStream(path, input, { checksum = true, validator = noop } = {}) {
-    await this._handler.outputStream(path, input, {
+    return this._handler.outputStream(path, input, {
       checksum,
       dirMode: this._dirMode,
       async validator() {
