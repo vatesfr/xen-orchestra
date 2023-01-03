@@ -77,7 +77,6 @@ export default decorate([
 
         markRecipeAsCreating(RECIPE_INFO.id)
         const tag = await createKubernetesCluster({
-          staticIpAddress,
           masterIpAddress,
           networkMask,
           gatewayIpAddress,
