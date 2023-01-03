@@ -38,7 +38,7 @@ const DEFAULT_VM_SETTINGS = {
   fullInterval: 0,
   healthCheckSr: undefined,
   healthCheckVmsWithTags: [],
-  maxMergedDeltasPerRun: 2,
+  maxMergedDeltasPerRun: Infinity,
   offlineBackup: false,
   offlineSnapshot: false,
   snapshotRetention: 0,
