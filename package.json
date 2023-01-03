@@ -27,6 +27,7 @@
     "promise-toolbox": "^0.21.0",
     "semver": "^7.3.6",
     "sorted-object": "^2.0.1",
+    "turbo": "^1.6.3",
     "vue": "^2.7.14",
     "vuepress": "^1.4.1"
   },
@@ -81,7 +82,8 @@
   },
   "private": true,
   "scripts": {
-    "build": "scripts/run-script.js --parallel --concurrency 2 build",
+    "build": "turbo run build --scope xo-server --scope xo-web",
+    "build:xo-lite": "turbo run build --scope @xen-orchestra/lite",
     "ci": "yarn && yarn build && yarn test-lint && yarn test-integration",
     "clean": "scripts/run-script.js --parallel clean",
     "dev": "scripts/run-script.js --parallel --concurrency 0 --verbose dev",
