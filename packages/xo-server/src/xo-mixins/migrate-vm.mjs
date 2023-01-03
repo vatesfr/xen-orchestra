@@ -1,9 +1,26 @@
 import { Backup } from '@xen-orchestra/backups/Backup.js'
 import { v4 as generateUuid } from 'uuid'
+import Esxi from '@xen-orchestra/vmware-explorer/esxi.mjs'
+import OTHER_CONFIG_TEMPLATE from '../xapi/other-config-template.mjs'
+import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
+import { fromEvent } from 'promise-toolbox'
+import { VDI_FORMAT_RAW, VDI_FORMAT_VHD } from '@xen-orchestra/xapi'
 
 export default class MigrateVm {
   constructor(app) {
     this._app = app
+  }
+
+  load() {
+    this._removeApiMethods = this._xo.addApiMethods({
+      vm: {
+        warmMigrateVm: () => this.warmMigrateVm(),
+        migrationfromEsxi: () => this.migrationfromEsxi()
+      },
+    })
+  }
+  unload() {
+    this._removeApiMethods()
   }
 
   // Backup should be reinstentiated each time
@@ -105,5 +122,129 @@ export default class MigrateVm {
         // @todo should we delete the snapshot if we keep the source vm ?
       }
     }
+  }
+
+  async migrationfromEsxi({ host, user, password, sslVerify, sr: srId, network: networkId, vm: vmId, thin }) {
+    const esxi = new Esxi(host, user, password, sslVerify)
+    const app = this._app
+
+    await fromEvent(esxi, 'ready')
+    const esxiVmMetadata = await esxi.getTransferableVmMetadata(vmId)
+    const { memory, name_label, networks, numCpu, powerState, snapshots} = esxiVmMetadata
+    if(powerState !== 'poweredOff' && !snapshots){
+      throw new Error('Migrating VM with active disk is not implemented yet')
+    }
+
+
+    let chain =[]
+    if(snapshots && snapshots.current){
+      const currentSnapshotId = snapshots.current
+
+      let currentSnapshot = snapshots.snapshots.find(({ uid }) => uid === currentSnapshotId)
+
+      chain = [currentSnapshot.disks]
+      while ((currentSnapshot = snapshots.snapshots.find(({ uid }) => uid === currentSnapshot.parent))) {
+        chain.push(currentSnapshot.disks)
+      }
+      chain.reverse()
+    }
+
+    chain.push(esxiVmMetadata.disks)
+
+    const chainsByNodes = {}
+    chain.forEach(disks => {
+      disks.forEach(disk => {
+        chainsByNodes[disk.node] = chainsByNodes[disk.node] || []
+        chainsByNodes[disk.node].push(disk)
+      })
+    })
+
+    chain[chain.length -1].forEach(disk=>{
+      if(disk.capacity > 2 * 1024 * 1024 * 1024 * 1024 ){/* 2TO */
+        throw new Error("Can't migrate disks larger than 2To")
+      }
+    })
+
+    // got data, ready to start creating
+    const sr = app.getXapiObject(srId)
+    const xapi = sr.$xapi
+    const vm = await xapi._getOrWaitObject(
+      await xapi.VM_create({
+        ...OTHER_CONFIG_TEMPLATE,
+        memory_dynamic_max: memory,
+        memory_dynamic_min: memory,
+        memory_static_max: memory,
+        memory_static_min: memory,
+        name_description: 'from esxi',
+        name_label,
+        VCPUs_at_startup: numCpu,
+        VCPUs_max: numCpu,
+      })
+    )
+    await Promise.all([
+      asyncMapSettled(['start', 'start_on'], op => vm.update_blocked_operations(op, 'OVA import in progress...')),
+      vm.set_name_label(`[Importing...] ${name_label}`),
+    ])
+
+    const vifDevices = await xapi.call('VM.get_allowed_VIF_devices', vm.$ref)
+
+    await Promise.all(
+      networks.map((network, i) =>
+        xapi.VIF_create({
+          device: vifDevices[i],
+          network: xapi.getObject(networkId).$ref,
+          VM: vm.$ref,
+        })
+      )
+    )
+
+
+    let userdevice = 0
+    for (const node in chainsByNodes) {
+      const chainByNode = chainsByNodes[node]
+      const vdi = await xapi._getOrWaitObject(
+        await xapi.VDI_create({
+          name_description: 'fromESXI' + chainByNode[0].descriptionLabel,
+          name_label: '[ESXI]' + chainByNode[0].nameLabel,
+          SR: sr.$ref,
+          virtual_size: chainByNode[0].capacity,
+        })
+      )
+      console.log('vdi created')
+
+      await xapi.VBD_create({
+        userdevice: String(userdevice),
+        VDI: vdi.$ref,
+        VM: vm.$ref,
+      })
+      console.log('vbd created')
+      for (const disk of chainByNode) {
+        // the first one  is a RAW disk ( full )
+
+        console.log('will import ', { disk })
+        let format = VDI_FORMAT_VHD
+        let stream
+        if (!thin) {
+          stream = await disk.rawStream()
+          format = VDI_FORMAT_RAW
+        }
+        if (!stream) {
+          stream = await disk.vhd()
+        }
+        console.log('will import in format ', { disk, format })
+        await vdi.$importContent(stream, { format })
+        // for now we don't handle snapshots
+        break
+      }
+      userdevice ++
+    }
+    console.log('disks created')
+    // remove the importing in label
+    await vm.set_name_label(esxiVmMetadata.name_label)
+
+    // remove lock on start
+    await asyncMapSettled(['start', 'start_on'], op => vm.update_blocked_operations(op, null))
+
+    return vm.uuid
   }
 }
