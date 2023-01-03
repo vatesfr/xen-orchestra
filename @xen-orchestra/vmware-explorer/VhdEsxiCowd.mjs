@@ -127,9 +127,9 @@ export default class VhdCowd extends VhdAbstract {
     let startOffset = offsets[0]
 
     const ranges = []
-    const OVERPROVISION = 3
+    // const OVERPROVISION = 1
     for (let i = 1; i < offsets.length; i++) {
-      if (offsets[i - 1] + OVERPROVISION < offsets[i]) {
+      if (offsets[i - 1] + 1 === offsets[i]) {
         ranges.push({ startOffset, endOffset: offsets[i - 1] })
         startOffset = offsets[i]
       }
