@@ -1,6 +1,7 @@
 'use strict'
 
-/* eslint-env jest */
+const { beforeEach, afterEach, test, it } = require('test')
+const { strict:assert } = require('assert')
 
 const rimraf = require('rimraf')
 const tmp = require('tmp')
@@ -16,7 +17,7 @@ const { unpackHeader, unpackFooter } = require('./_utils')
 
 let tempDir
 
-jest.setTimeout(60000)
+// jest.setTimeout(60000)
 
 beforeEach(async () => {
   tempDir = await pFromCallback(cb => tmp.dir(cb))
@@ -45,10 +46,10 @@ test('It creates an alias', async () => {
     const testOneCombination = async ({ targetPath, targetContent }) => {
       await VhdAbstract.createAlias(handler, aliasPath, targetPath)
       // alias file is created
-      expect(await fs.exists(aliasFsPath)).toEqual(true)
+      assert.equal(await fs.exists(aliasFsPath), true)
       // content is the target path relative to the alias location
       const content = await fs.readFile(aliasFsPath, 'utf-8')
-      expect(content).toEqual(targetContent)
+      assert.equal(content, targetContent)
       // create alias fails if alias already exists, remove it before next loop step
       await fs.unlink(aliasFsPath)
     }
@@ -71,9 +72,9 @@ test('alias must have *.alias.vhd extension', async () => {
     const handler = yield getSyncedHandler({ url: 'file:///' })
     const aliasPath = `${tempDir}/invalidalias.vhd`
     const targetPath = `${tempDir}/targets.vhd`
-    expect(async () => await VhdAbstract.createAlias(handler, aliasPath, targetPath)).rejects.toThrow()
+    assert.rejects(async () => await VhdAbstract.createAlias(handler, aliasPath, targetPath))
 
-    expect(await fs.exists(aliasPath)).toEqual(false)
+    assert.equal(await fs.exists(aliasPath), false)
   })
 })
 
@@ -82,8 +83,8 @@ test('alias must not be chained', async () => {
     const handler = yield getSyncedHandler({ url: 'file:///' })
     const aliasPath = `${tempDir}/valid.alias.vhd`
     const targetPath = `${tempDir}/an.other.valid.alias.vhd`
-    expect(async () => await VhdAbstract.createAlias(handler, aliasPath, targetPath)).rejects.toThrow()
-    expect(await fs.exists(aliasPath)).toEqual(false)
+    assert.rejects(async () => await VhdAbstract.createAlias(handler, aliasPath, targetPath))
+    assert.equal(await fs.exists(aliasPath), false)
   })
 })
 
@@ -97,7 +98,7 @@ test('It rename and unlink a VHDFile', async () => {
     const handler = yield getSyncedHandler({ url: 'file:///' })
 
     await VhdAbstract.unlink(handler, vhdFileName)
-    expect(await fs.exists(vhdFileName)).toEqual(false)
+    assert.equal(await fs.exists(vhdFileName), false)
   })
 })
 
@@ -109,15 +110,15 @@ test('It rename and unlink a VhdDirectory', async () => {
   await Disposable.use(async function* () {
     const handler = yield getSyncedHandler({ url: 'file:///' })
     const vhd = yield openVhd(handler, vhdDirectory)
-    expect(vhd.header.cookie).toEqual('cxsparse')
-    expect(vhd.footer.cookie).toEqual('conectix')
+    assert.equal(vhd.header.cookie, 'cxsparse')
+    assert.equal(vhd.footer.cookie, 'conectix')
 
     const targetFileName = `${tempDir}/renamed.vhd`
     // it should clean an existing directory
     await fs.mkdir(targetFileName)
     await fs.writeFile(`${targetFileName}/dummy`, 'I exists')
     await VhdAbstract.unlink(handler, `${targetFileName}/dummy`)
-    expect(await fs.exists(`${targetFileName}/dummy`)).toEqual(false)
+    assert.equal(await fs.exists(`${targetFileName}/dummy`), false)
   })
 })
 
@@ -132,12 +133,12 @@ test('It create , rename and unlink alias', async () => {
   await Disposable.use(async function* () {
     const handler = yield getSyncedHandler({ url: 'file:///' })
     await VhdAbstract.createAlias(handler, aliasFileName, vhdFileName)
-    expect(await fs.exists(aliasFileName)).toEqual(true)
-    expect(await fs.exists(vhdFileName)).toEqual(true)
+    assert.equal(await fs.exists(aliasFileName), true)
+    assert.equal(await fs.exists(vhdFileName), true)
 
     await VhdAbstract.unlink(handler, aliasFileName)
-    expect(await fs.exists(aliasFileName)).toEqual(false)
-    expect(await fs.exists(vhdFileName)).toEqual(false)
+    assert.equal(await fs.exists(aliasFileName), false)
+    assert.equal(await fs.exists(vhdFileName), false)
   })
 })
 
@@ -173,21 +174,21 @@ test('it can create a vhd stream', async () => {
     const bufFooter = buffer.slice(0, FOOTER_SIZE)
 
     // footer is still valid
-    expect(() => unpackFooter(bufFooter)).not.toThrow()
+    assert.doesNotThrow(() => unpackFooter(bufFooter))
     const footer = unpackFooter(bufFooter)
 
     // header is still valid
     const bufHeader = buffer.slice(FOOTER_SIZE, HEADER_SIZE + FOOTER_SIZE)
-    expect(() => unpackHeader(bufHeader, footer)).not.toThrow()
+    assert.doesNotThrow(() => unpackHeader(bufHeader, footer))
 
     // 1 deleted block should be in ouput
     let start = FOOTER_SIZE + HEADER_SIZE + vhd.batSize
 
     const parentLocatorData = buffer.slice(start, start + SECTOR_SIZE)
-    expect(parentLocatorData.equals(aligned)).toEqual(true)
+    assert.equal(parentLocatorData.equals(aligned), true)
     start += SECTOR_SIZE // parent locator
-    expect(length).toEqual(start + initialNbBlocks * vhd.fullBlockSize + FOOTER_SIZE)
-    expect(stream.length).toEqual(buffer.length)
+    assert.equal(length, start + initialNbBlocks * vhd.fullBlockSize + FOOTER_SIZE)
+    assert.equal(stream.length, buffer.length)
     // blocks
     const blockBuf = Buffer.alloc(vhd.sectorsPerBlock * SECTOR_SIZE, 0)
     for (let i = 0; i < initialNbBlocks; i++) {
@@ -195,11 +196,11 @@ test('it can create a vhd stream', async () => {
       const blockDataEnd = blockDataStart + vhd.sectorsPerBlock * SECTOR_SIZE
       const content = buffer.slice(blockDataStart, blockDataEnd)
       await handler.read('randomfile', blockBuf, i * vhd.sectorsPerBlock * SECTOR_SIZE)
-      expect(content.equals(blockBuf)).toEqual(true)
+      assert.equal(content.equals(blockBuf), true)
     }
     // footer
     const endFooter = buffer.slice(length - FOOTER_SIZE)
-    expect(bufFooter).toEqual(endFooter)
+    assert.equal(bufFooter, endFooter)
 
     await handler.writeFile('out.vhd', buffer)
     // check that the vhd is still valid
@@ -240,7 +241,7 @@ it('can stream content', async () => {
     const EMPTY = Buffer.alloc(blockDataLength, 0)
     const firstBlock = buffer.slice(0, blockDataLength)
     // using buffer1 toEquals buffer2 make jest crash trying to stringify it on failure
-    expect(firstBlock.equals(EMPTY)).toEqual(true)
+    assert.equal(firstBlock.equals(EMPTY), true)
 
     let remainingLength = initialByteSize - blockDataLength // already checked the first block
     for (let i = 1; i < initialNbBlocks; i++) {
@@ -253,7 +254,7 @@ it('can stream content', async () => {
       const blockBuf = Buffer.alloc(blockSize, 0)
 
       await handler.read('randomfile', blockBuf, i * blockDataLength)
-      expect(content.equals(blockBuf)).toEqual(true)
+      assert.equal(content.equals(blockBuf), true)
       remainingLength -= blockSize
     }
   })
