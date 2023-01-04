@@ -187,8 +187,8 @@ test('it can create a vhd stream', async () => {
     const parentLocatorData = buffer.slice(start, start + SECTOR_SIZE)
     assert.equal(parentLocatorData.equals(aligned), true)
     start += SECTOR_SIZE // parent locator
-    assert.equal(length, start + initialNbBlocks * vhd.fullBlockSize + FOOTER_SIZE)
-    assert.equal(stream.length, buffer.length)
+    assert.deepEqual(length, start + initialNbBlocks * vhd.fullBlockSize + FOOTER_SIZE)
+    assert.deepEqual(stream.length, buffer.length)
     // blocks
     const blockBuf = Buffer.alloc(vhd.sectorsPerBlock * SECTOR_SIZE, 0)
     for (let i = 0; i < initialNbBlocks; i++) {
@@ -196,11 +196,11 @@ test('it can create a vhd stream', async () => {
       const blockDataEnd = blockDataStart + vhd.sectorsPerBlock * SECTOR_SIZE
       const content = buffer.slice(blockDataStart, blockDataEnd)
       await handler.read('randomfile', blockBuf, i * vhd.sectorsPerBlock * SECTOR_SIZE)
-      assert.deepEqual(content.equals(blockBuf), true)
+      assert.equal(content.equals(blockBuf), true)
     }
     // footer
     const endFooter = buffer.slice(length - FOOTER_SIZE)
-    assert.equal(bufFooter, endFooter)
+    assert.deepEqual(bufFooter, endFooter)
 
     await handler.writeFile('out.vhd', buffer)
     // check that the vhd is still valid
