@@ -221,7 +221,7 @@ test('it merges delta of non destroyed chain', async () => {
     loggued.push(message)
   }
   await adapter.cleanVm(rootPath, { remove: true, logInfo, logWarn: logInfo, lock: false })
-  assert.equal(loggued[0], `incorrect backup size in metadata`)
+  assert.equal(loggued[0], `unexpected number of entries in backup cache`)
 
   loggued = []
   await adapter.cleanVm(rootPath, { remove: true, merge: true, logInfo, logWarn: () => {}, lock: false })
