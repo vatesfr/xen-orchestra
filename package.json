@@ -82,7 +82,7 @@
   },
   "private": true,
   "scripts": {
-    "build": "turbo run build --scope xo-server --scope xo-web",
+    "build": "turbo run build --scope xo-server --scope xo-server-'*' --scope xo-web",
     "build:xo-lite": "turbo run build --scope @xen-orchestra/lite",
     "ci": "yarn && yarn build && yarn test-lint && yarn test-integration",
     "clean": "scripts/run-script.js --parallel clean",
