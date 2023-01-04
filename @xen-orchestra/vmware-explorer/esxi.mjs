@@ -271,7 +271,6 @@ export default class Esxi extends EventEmitter {
           }
         }
       }
-
     }
 
     return {
@@ -282,33 +281,7 @@ export default class Esxi extends EventEmitter {
       firmware: config.firmware, // bios or uefi
       powerState: runtime.powerState,
       snapshots,
-      disks: disks.map(({ fileName, rawDiskFileName, datastore, path, parentFileName, ...other }) => {
-        return {
-          ...other,
-          vhd: async () => {
-            if (fileName.endsWith('-flat.vmdk')) {
-              const vhd = await VhdEsxiRaw.open(this, datastore, path + '/' + fileName)
-              await vhd.readBlockAllocationTable()
-              return vhd.stream()
-            }
-            // last snasphot only works when vm is powered off
-            const vhd = await VhdCowd.open(this, datastore, path + '/' + fileName, parentFileName)
-            await vhd.readBlockAllocationTable()
-
-            return vhd.stream()
-          },
-          rawStream: async () => {
-            if (fileName.endsWith('-flat.vmdk')) {
-              return
-            }
-
-            // @todo : only if vm is powered off
-            const stream = (await this.download(datastore, path + '/' + fileName)).body
-            stream.length = other.capacity
-            return stream
-          },
-        }
-      }),
+      disks,
       networks,
     }
   }

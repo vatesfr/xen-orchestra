@@ -6,6 +6,7 @@ import { unpackFooter, unpackHeader } from 'vhd-lib/Vhd/_utils.js'
 import { VhdAbstract } from 'vhd-lib'
 import assert from 'node:assert'
 
+// create a thin VHD from a raw disk
 const VHD_BLOCK_LENGTH = 2 * 1024 * 1024
 export default class VhdEsxiRaw extends VhdAbstract {
   #esxi
@@ -91,6 +92,7 @@ export default class VhdEsxiRaw extends VhdAbstract {
     }
   }
 
+  // this will read all the disk once to check which block contains data, it can take a long time to execute depending on the network speed
   async readBlockAllocationTable() {
     const res = await this.#esxi.download(this.#datastore, this.#path)
     const length = res.headers.get('content-length')

@@ -4,7 +4,9 @@ import Esxi from '@xen-orchestra/vmware-explorer/esxi.mjs'
 import OTHER_CONFIG_TEMPLATE from '../xapi/other-config-template.mjs'
 import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
 import { fromEvent } from 'promise-toolbox'
-import { VDI_FORMAT_RAW, VDI_FORMAT_VHD } from '@xen-orchestra/xapi'
+import { VDI_FORMAT_VHD } from '@xen-orchestra/xapi'
+import VhdEsxiRaw from '@xen-orchestra/vmware-explorer/VhdEsxiRaw.mjs'
+import VhdCowd from '@xen-orchestra/vmware-explorer/VhdEsxiCowd.mjs'
 
 export default class MigrateVm {
   constructor(app) {
@@ -15,7 +17,7 @@ export default class MigrateVm {
     this._removeApiMethods = this._xo.addApiMethods({
       vm: {
         warmMigrateVm: () => this.warmMigrateVm(),
-        migrationfromEsxi: () => this.migrationfromEsxi()
+        migrationfromEsxi: () => this.migrationfromEsxi(),
       },
     })
   }
@@ -130,14 +132,13 @@ export default class MigrateVm {
 
     await fromEvent(esxi, 'ready')
     const esxiVmMetadata = await esxi.getTransferableVmMetadata(vmId)
-    const { memory, name_label, networks, numCpu, powerState, snapshots} = esxiVmMetadata
-    if(powerState !== 'poweredOff' && !snapshots){
+    const { memory, name_label, networks, numCpu, powerState, snapshots } = esxiVmMetadata
+    if (powerState !== 'poweredOff' && !snapshots) {
       throw new Error('Migrating VM with active disk is not implemented yet')
     }
 
-
-    let chain =[]
-    if(snapshots && snapshots.current){
+    let chain = []
+    if (snapshots && snapshots.current) {
       const currentSnapshotId = snapshots.current
 
       let currentSnapshot = snapshots.snapshots.find(({ uid }) => uid === currentSnapshotId)
@@ -159,8 +160,9 @@ export default class MigrateVm {
       })
     })
 
-    chain[chain.length -1].forEach(disk=>{
-      if(disk.capacity > 2 * 1024 * 1024 * 1024 * 1024 ){/* 2TO */
+    chain[chain.length - 1].forEach(disk => {
+      if (disk.capacity > 2 * 1024 * 1024 * 1024 * 1024) {
+        /* 2TO */
         throw new Error("Can't migrate disks larger than 2To")
       }
     })
@@ -198,7 +200,6 @@ export default class MigrateVm {
       )
     )
 
-
     let userdevice = 0
     for (const node in chainsByNodes) {
       const chainByNode = chainsByNodes[node]
@@ -218,25 +219,37 @@ export default class MigrateVm {
         VM: vm.$ref,
       })
       console.log('vbd created')
+      let parentVhd, vhd
       for (const disk of chainByNode) {
         // the first one  is a RAW disk ( full )
-
         console.log('will import ', { disk })
-        let format = VDI_FORMAT_VHD
-        let stream
-        if (!thin) {
+        const {fileName, path, datastore,isFull} = disk
+
+        if(isFull){
+          console.log('full disk ')
+          vhd = await VhdEsxiRaw.open(esxi, datastore, path + '/' + fileName)
+          await vhd.readBlockAllocationTable()
+        } else {
+          console.log('delta disk ')
+          vhd = await VhdCowd.open(esxi, datastore, path + '/' + fileName, parentVhd)
+          await vhd.readBlockAllocationTable()
+        }
+/*        let format = VDI_FORMAT_VHD
+        let stream 
+        if (!thin && disk.isFull) {
           stream = await disk.rawStream()
           format = VDI_FORMAT_RAW
         }
         if (!stream) {
           stream = await disk.vhd()
-        }
-        console.log('will import in format ', { disk, format })
-        await vdi.$importContent(stream, { format })
+        } */
+        parentVhd = vhd
         // for now we don't handle snapshots
-        break
+        // break
       }
-      userdevice ++
+      console.log('will import synthetic ')
+      await vdi.$importContent(vhd.stream(), { format:VDI_FORMAT_VHD })
+      userdevice++
     }
     console.log('disks created')
     // remove the importing in label
