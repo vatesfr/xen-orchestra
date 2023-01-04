@@ -66,7 +66,7 @@ import useModal from "@/composables/modal.composable";
 
 defineProps<{
   availableSorts: Sorts;
-  activeSorts: ActiveSorts;
+  activeSorts: ActiveSorts<Record<string, any>>;
 }>();
 
 const emit = defineEmits<{
