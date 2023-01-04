@@ -28,5 +28,7 @@
 <!--packages-start-->
 
 - @xen-orchestra/backups patch
+- vhd-lib patch
 - xo-server patch
+
 <!--packages-end-->
