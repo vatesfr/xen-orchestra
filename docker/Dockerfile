@@ -21,3 +21,4 @@ WORKDIR /xen-orchestra
 #  invalidate build on package change
 COPY ./yarn.lock /xen-orchestra/yarn.lock
 ENTRYPOINT yarn ci
+
