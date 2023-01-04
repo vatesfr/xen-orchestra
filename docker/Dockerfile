@@ -20,7 +20,6 @@ RUN  npm install -g yarn
 WORKDIR /xen-orchestra
 #  invalidate build on package change
 COPY ./yarn.lock /xen-orchestra/yarn.lock
-RUN yarn && yarn build
-WORKDIR /xen-orchestra/packages/vhd-lib
-ENTRYPOINT yarn test
-
+ENTRYPOINT ["yarn", "ci"]
+CMD ["cd", "packages/vhd-lib"]
+CMD ["yarn", "test"]
