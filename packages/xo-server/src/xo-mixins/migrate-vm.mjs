@@ -133,9 +133,8 @@ export default class MigrateVm {
     await fromEvent(esxi, 'ready')
     const esxiVmMetadata = await esxi.getTransferableVmMetadata(vmId)
     const { memory, name_label, networks, numCpu, powerState, snapshots } = esxiVmMetadata
-    if (powerState !== 'poweredOff' && !snapshots) {
-      throw new Error('Migrating VM with active disk is not implemented yet')
-    }
+    const isRunning = powerState !== 'poweredOff'
+
 
     let chain = []
     if (snapshots && snapshots.current) {
@@ -200,56 +199,71 @@ export default class MigrateVm {
       )
     )
 
-    let userdevice = 0
-    for (const node in chainsByNodes) {
-      const chainByNode = chainsByNodes[node]
-      const vdi = await xapi._getOrWaitObject(
-        await xapi.VDI_create({
-          name_description: 'fromESXI' + chainByNode[0].descriptionLabel,
-          name_label: '[ESXI]' + chainByNode[0].nameLabel,
-          SR: sr.$ref,
-          virtual_size: chainByNode[0].capacity,
+    const vhds = await Promise.all(
+      Object.keys(chainsByNodes).map(async (node,userdevice) =>{
+        const chainByNode = chainsByNodes[node]
+        const vdi = await xapi._getOrWaitObject(
+          await xapi.VDI_create({
+            name_description: 'fromESXI' + chainByNode[0].descriptionLabel,
+            name_label: '[ESXI]' + chainByNode[0].nameLabel,
+            SR: sr.$ref,
+            virtual_size: chainByNode[0].capacity,
+          })
+        )
+        console.log('vdi created')
+
+        await xapi.VBD_create({
+          userdevice: String(userdevice),
+          VDI: vdi.$ref,
+          VM: vm.$ref,
+        })
+        console.log('vbd created')
+        let parentVhd, vhd
+        const nbColdDisks  = isRunning ? chainByNode.length -1 : chainByNode.length
+        console.log('will transfer', nbColdDisks, isRunning)
+        for (let diskIndex = 0; diskIndex < nbColdDisks; diskIndex ++ ) {
+          // the first one  is a RAW disk ( full )
+          const disk= chainByNode[diskIndex]
+          console.log('will import ', { disk })
+          const {fileName, path, datastore,isFull} = disk
+
+          if(isFull){
+            console.log('full disk ')
+            vhd = await VhdEsxiRaw.open(esxi, datastore, path + '/' + fileName, {thin})
+            await vhd.readBlockAllocationTable()
+          } else {
+            console.log('delta disk ')
+            vhd = await VhdCowd.open(esxi, datastore, path + '/' + fileName, parentVhd)
+            await vhd.readBlockAllocationTable()
+          }
+          parentVhd = vhd
+        }
+        console.log('will import synthetic ')
+        await vdi.$importContent(vhd.stream(), { format:VDI_FORMAT_VHD })
+        return {vdi ,vhd}
+      }
+      )
+    )
+    console.log('cold transfer done')
+    if(isRunning){
+      await esxi.powerOff(vmId)
+
+      console.log('vm stopped')
+      await Promise.all(
+        Object.keys(chainsByNodes).map(async (node, userdevice)=>{
+          const chainByNode = chainsByNodes[node]
+          const disk = chainByNode[chainByNode.length -1]
+          const {fileName, path, datastore } = disk
+          const {vdi, vhd:parentVhd} = vhds[userdevice]
+          const vhd = await VhdCowd.open(esxi, datastore, path + '/' + fileName, parentVhd)
+          await vhd.readBlockAllocationTable()
+          console.log('will import active disk ')
+          await vdi.$importContent(vhd.stream(), { format:VDI_FORMAT_VHD })
+
         })
       )
-      console.log('vdi created')
 
-      await xapi.VBD_create({
-        userdevice: String(userdevice),
-        VDI: vdi.$ref,
-        VM: vm.$ref,
-      })
-      console.log('vbd created')
-      let parentVhd, vhd
-      for (const disk of chainByNode) {
-        // the first one  is a RAW disk ( full )
-        console.log('will import ', { disk })
-        const {fileName, path, datastore,isFull} = disk
-
-        if(isFull){
-          console.log('full disk ')
-          vhd = await VhdEsxiRaw.open(esxi, datastore, path + '/' + fileName)
-          await vhd.readBlockAllocationTable()
-        } else {
-          console.log('delta disk ')
-          vhd = await VhdCowd.open(esxi, datastore, path + '/' + fileName, parentVhd)
-          await vhd.readBlockAllocationTable()
-        }
-/*        let format = VDI_FORMAT_VHD
-        let stream 
-        if (!thin && disk.isFull) {
-          stream = await disk.rawStream()
-          format = VDI_FORMAT_RAW
-        }
-        if (!stream) {
-          stream = await disk.vhd()
-        } */
-        parentVhd = vhd
-        // for now we don't handle snapshots
-        // break
-      }
-      console.log('will import synthetic ')
-      await vdi.$importContent(vhd.stream(), { format:VDI_FORMAT_VHD })
-      userdevice++
+      console.log('hot  transfer done')
     }
     console.log('disks created')
     // remove the importing in label

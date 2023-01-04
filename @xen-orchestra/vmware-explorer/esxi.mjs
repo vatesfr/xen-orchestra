@@ -285,4 +285,8 @@ export default class Esxi extends EventEmitter {
       networks,
     }
   }
+
+  powerOff(vmId){
+    return this.#exec('PowerOffVM_Task', {_this: vmId})
+  }
 }

@@ -12,6 +12,7 @@ export default class VhdEsxiRaw extends VhdAbstract {
   #esxi
   #datastore
   #path
+  #thin
 
   #bat
   #header
@@ -20,8 +21,8 @@ export default class VhdEsxiRaw extends VhdAbstract {
   #stream
   #bytesRead = 0
 
-  static async open(esxi, datastore, path) {
-    const vhd = new VhdEsxiRaw(esxi, datastore, path)
+  static async open(esxi, datastore, path, opts) {
+    const vhd = new VhdEsxiRaw(esxi, datastore, path, opts)
     await vhd.readHeaderAndFooter()
     return vhd
   }
@@ -34,11 +35,12 @@ export default class VhdEsxiRaw extends VhdAbstract {
     return this.#footer
   }
 
-  constructor(esxi, datastore, path) {
+  constructor(esxi, datastore, path, {thin= true} = {}) {
     super()
     this.#esxi = esxi
     this.#path = path
     this.#datastore = datastore
+    this.#thin = thin
   }
 
   async readHeaderAndFooter(checkSecondFooter = true) {
@@ -55,6 +57,9 @@ export default class VhdEsxiRaw extends VhdAbstract {
   }
 
   containsBlock(blockId) {
+    if(!this.#thin){
+      return true
+    }
     assert.notEqual(this.#bat, undefined, "bat is not loaded")
     return this.#bat.has(blockId)
   }
@@ -94,6 +99,10 @@ export default class VhdEsxiRaw extends VhdAbstract {
 
   // this will read all the disk once to check which block contains data, it can take a long time to execute depending on the network speed
   async readBlockAllocationTable() {
+    if(!this.#thin){
+      // fast path : is we do not use thin mode, the BAT is full
+      return
+    }
     const res = await this.#esxi.download(this.#datastore, this.#path)
     const length = res.headers.get('content-length')
     const stream = res.body

@@ -10,5 +10,9 @@ console.log(esxi)
 esxi.on('ready', async function (){
    const metadata = await esxi.getTransferableVmMetadata('4')
    console.log('metadata', metadata)
+
+   const res = await esxi.powerOff(4)
+   const taskId = res.returnval.$value
+   console.log(await esxi.search('TaskInfo',['info']))
 })
 
