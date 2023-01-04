@@ -378,7 +378,19 @@ describe('tests multiple combination ', () => {
             ],
           })
         )
-
+        if (!useAlias && vhdMode === 'directory') {
+          try {
+            await adapter.cleanVm(rootPath, { remove: true, merge: true, logWarn: () => {}, lock: false })
+          } catch (err) {
+            assert.strictEqual(
+              err.code,
+              'NOT_SUPPORTED',
+              'Merging directory without alias should raise a not supported error'
+            )
+            return
+          }
+          assert.strictEqual(true, false, 'Merging directory without alias should raise an error')
+        }
         await adapter.cleanVm(rootPath, { remove: true, merge: true, logWarn: () => {}, lock: false })
 
         const metadata = JSON.parse(await handler.readFile(`${rootPath}/metadata.json`))

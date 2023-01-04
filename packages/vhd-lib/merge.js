@@ -132,6 +132,13 @@ class Merger {
 
     // merging vhdFile must not be concurrently with the potential block reordering after a change
     this.#mergeBlockConcurrency = parentIsVhdDirectory && childIsVhdDirectory ? this.#mergeBlockConcurrency : 1
+
+    if (parentIsVhdDirectory && !isVhdAlias(this.#parentPath)) {
+      const error = new Error("can't merge vhd directories without using alias")
+      error.code = 'NOT_SUPPORTED'
+      throw error
+    }
+
     if (this.#state === undefined) {
       // merge should be along a vhd chain
       assert.strictEqual(UUID.stringify(childVhd.header.parentUuid), UUID.stringify(parentVhd.footer.uuid))
