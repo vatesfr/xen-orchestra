@@ -11,13 +11,10 @@
         }"
       >
         <UiProgressBar :value="item.value" color="custom" />
-        <div class="legend">
-          <span class="circle" />
-          {{ item.label }}
-          <UiBadge class="badge">{{
-            item.badgeLabel ?? `${item.value}%`
-          }}</UiBadge>
-        </div>
+        <UiLegendProgressBar>
+          <template #label>{{ item.label }}</template>
+          <template #value>{{ item.badgeLabel ?? `${item.value}%` }}</template>
+        </UiLegendProgressBar>
       </div>
       <slot :total-percent="computedData.totalPercentUsage" name="footer" />
     </template>
@@ -26,9 +23,9 @@
 </template>
 
 <script lang="ts" setup>
-import UiBadge from "@/components/ui/UiBadge.vue";
 import UiProgressBar from "@/components/ui/UiProgressBar.vue";
 import { computed } from "vue";
+import UiLegendProgressBar from "@/components/ui/UiLegendProgressBar.vue";
 import UiSpinner from "@/components/ui/UiSpinner.vue";
 
 interface Data {
@@ -78,19 +75,6 @@ const computedData = computed(() => {
   height: 40px;
 }
 
-.legend {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 0.5rem;
-  margin: 1.6em 0;
-}
-
-.badge {
-  font-size: 0.9em;
-  font-weight: 700;
-}
-
 .progress-item:nth-child(1) {
   --progress-bar-color: var(--color-extra-blue-d60);
 }
@@ -113,13 +97,5 @@ const computedData = computed(() => {
   &.error {
     --progress-bar-color: var(--color-red-vates-base);
   }
-}
-
-.circle {
-  display: inline-block;
-  width: 1rem;
-  height: 1rem;
-  border-radius: 0.5rem;
-  background-color: var(--progress-bar-color);
 }
 </style>

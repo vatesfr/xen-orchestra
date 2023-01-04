@@ -11,6 +11,7 @@
 - Display network throughput chart in pool dashboard (PR [#6610](https://github.com/vatesfr/xen-orchestra/pull/6610))
 - Display RAM usage chart in pool dashboard (PR [#6604](https://github.com/vatesfr/xen-orchestra/pull/6604))
 - Ability to change the state of a VM (PRs [#6571](https://github.com/vatesfr/xen-orchestra/pull/6571) [#6608](https://github.com/vatesfr/xen-orchestra/pull/6608))
+- Display CPU provisioning in pool dashboard (PR [#6601](https://github.com/vatesfr/xen-orchestra/pull/6601))
 
 ## **0.1.0**
 
