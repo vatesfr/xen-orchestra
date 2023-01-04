@@ -196,7 +196,7 @@ test('it can create a vhd stream', async () => {
       const blockDataEnd = blockDataStart + vhd.sectorsPerBlock * SECTOR_SIZE
       const content = buffer.slice(blockDataStart, blockDataEnd)
       await handler.read('randomfile', blockBuf, i * vhd.sectorsPerBlock * SECTOR_SIZE)
-      assert.equal(content.equals(blockBuf), true)
+      assert.deepEqual(content.equals(blockBuf), true)
     }
     // footer
     const endFooter = buffer.slice(length - FOOTER_SIZE)
