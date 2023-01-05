@@ -134,9 +134,4 @@ const reload = () => window.location.reload();
   height: calc(100vh - 9rem);
   background-color: var(--background-color-secondary);
 }
-
-body > .app-menu {
-  background-color: var(--color-blue-scale-500);
-  padding: 0.5rem;
-}
 </style>
