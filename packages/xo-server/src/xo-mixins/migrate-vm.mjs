@@ -255,7 +255,7 @@ export default class MigrateVm {
           const disk = chainByNode[chainByNode.length -1]
           const {fileName, path, datastore } = disk
           const {vdi, vhd:parentVhd} = vhds[userdevice]
-          const vhd = await VhdCowd.open(esxi, datastore, path + '/' + fileName, parentVhd)
+          const vhd = await VhdCowd.open(esxi, datastore, path + '/' + fileName, parentVhd, {chain:false})
           await vhd.readBlockAllocationTable()
           console.log('will import active disk ')
           await vdi.$importContent(vhd.stream(), { format:VDI_FORMAT_VHD })

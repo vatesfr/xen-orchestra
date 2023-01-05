@@ -7,8 +7,6 @@ import fetch from 'node-fetch'
 import parseVmdk from './parsers/vmdk.mjs'
 import parseVmsd from './parsers/vmsd.mjs'
 import parseVmx from './parsers/vmx.mjs'
-import VhdCowd from './VhdEsxiCowd.mjs'
-import VhdEsxiRaw from './VhdEsxiRaw.mjs'
 
 const MAX_SCSI = 9
 const MAX_ETHERNET = 9
@@ -176,35 +174,12 @@ export default class Esxi extends EventEmitter {
     const vmdkRes = await this.download(diskDataStore, diskPath)
     const text = await vmdkRes.text()
     const parsed = parseVmdk(text)
-    const { fileName, parentFileName, capacity } = parsed
 
     return {
       ...parsed,
       datastore: diskDataStore,
       path: dirname(diskPath),
-      descriptionLabel: ' from esxi',
-      vhd: async () => {
-        if (fileName.endsWith('-flat.vmdk')) {
-          const vhd = await VhdEsxiRaw.open(this, diskDataStore, dirname(diskPath) + '/' + fileName)
-          await vhd.readBlockAllocationTable()
-          return vhd.stream()
-        }
-        // last snasphot only works when vm is powered off
-        const vhd = await VhdCowd.open(this, diskDataStore, dirname(diskPath) + '/' + fileName, parentFileName)
-        await vhd.readBlockAllocationTable()
-
-        return vhd.stream()
-      },
-      rawStream: async () => {
-        if (!fileName.endsWith('-flat.vmdk')) {
-          return
-        }
-
-        // @todo : only if vm is powered off
-        const stream = (await this.download(diskDataStore, dirname(diskPath) + '/' + fileName)).body
-        stream.length = capacity
-        return stream
-      },
+      descriptionLabel: ' from esxi'
     }
   }
 
@@ -288,5 +263,8 @@ export default class Esxi extends EventEmitter {
 
   powerOff(vmId){
     return this.#exec('PowerOffVM_Task', {_this: vmId})
+  }
+  powerOn(vmId){
+    return this.#exec('PowerOnVM_Task', {_this: vmId})
   }
 }

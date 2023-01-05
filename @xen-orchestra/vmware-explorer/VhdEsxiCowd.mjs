@@ -10,23 +10,25 @@ export default class VhdCowd extends VhdAbstract {
   #datastore
   #parentVhd
   #path
+  #chain
 
   #header
   #footer
 
   #grainDirectory
 
-  static async open(esxi, datastore, path, parentVhd) {
-    const vhd = new VhdCowd(esxi, datastore, path,parentVhd)
+  static async open(esxi, datastore, path, parentVhd, opts) {
+    const vhd = new VhdCowd(esxi, datastore, path,parentVhd, opts)
     await vhd.readHeaderAndFooter()
     return vhd
   }
-  constructor(esxi, datastore, path, parentVhd) {
+  constructor(esxi, datastore, path, parentVhd,{chain=true} = {}) {
     super()
     this.#esxi = esxi
     this.#path = path
     this.#datastore = datastore
     this.#parentVhd = parentVhd
+    this.#chain = chain
   }
 
   get header() {
@@ -43,7 +45,10 @@ export default class VhdCowd extends VhdAbstract {
     // the great news is that a grain size has 4096 entries of 512B = 2M
     // and a vhd block is also 2M
     // so we only need to check if a grain table exists (it's not created without data)
-    return this.#grainDirectory.readInt32LE(blockId * 4) !== 0 || this.#parentVhd.containsBlock(blockId)
+
+    // if this is a chain, we also check if the bloc is present in parent
+    return this.#grainDirectory.readInt32LE(blockId * 4) !== 0 || 
+     (this.#chain && this.#parentVhd.containsBlock(blockId))
   }
 
   async #read(start, end) {
@@ -93,6 +98,7 @@ export default class VhdCowd extends VhdAbstract {
     const buffer =  (await this.#parentVhd.readBlock(blockId)).buffer
 
     if(sectorOffset === 0){
+      strictEqual(this.#chain, true, "shouldn't have empty block in a delta alone")
       return {
         id: blockId,
         bitmap: buffer.slice(0, 512),
@@ -100,17 +106,12 @@ export default class VhdCowd extends VhdAbstract {
         buffer,
       }
     }
-    /* Buffer.concat([
-      Buffer.alloc(512, 255), // vhd block bitmap,, all marked as used
-      Buffer.alloc(512 * 4096, 0), // empty data placeholder
-    ]) */
-
     const offset = sectorOffset * 512
 
     const graintable = await this.#read(offset, offset + 2048 /* grain table length */- 1)
     // we have no guaranty that data are order or contiguous
     // let's construct ranges to limit the number of queries
-
+    let rangeStart, offsetStart, offsetEnd
     for (let i = 0; i < graintable.length / 4; i++) {
       const grainOffset = graintable.readInt32LE(i * 4)
       if(grainOffset ===0){
@@ -118,17 +119,30 @@ export default class VhdCowd extends VhdAbstract {
         continue
       }
       if(grainOffset === 1){
+        // this is a emptied grain, no data, don't look into parent
         Buffer.alloc(512,0).copy(buffer, (i+1 /* block bitmap */)*512)
       }
 
       if (grainOffset > 1 ) {
-        // non empty grain
-        const grain = await this.#read(grainOffset * 512, grainOffset  * 512 + 512 - 1)
-        grain.copy(buffer, (i+1)*512)
-
+        if(offsetEnd === grainOffset){
+          offsetEnd ++ 
+        } else {
+          if(rangeStart !== undefined ){
+            // non empty grain
+            const grains = await this.#read(offsetStart * 512, offsetEnd  * 512 - 1)
+            grains.copy(buffer, (rangeStart+1 /* block bitmap */)*512)
+          }
+          rangeStart = i
+          offsetStart = grainOffset
+          offsetEnd = grainOffset + 1
+        }
       }
     }
-    console.log(' got block ', buffer)
+    if(rangeStart !== undefined ){
+      // non empty grain
+      const grains = await this.#read(offsetStart * 512, offsetEnd  * 512 - 1)
+      grains.copy(buffer, (rangeStart+1)*512)
+    }
     return {
       id: blockId,
       bitmap: buffer.slice(0, 512),
