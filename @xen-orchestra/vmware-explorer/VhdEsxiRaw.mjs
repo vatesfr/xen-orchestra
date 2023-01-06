@@ -66,11 +66,13 @@ export default class VhdEsxiRaw extends VhdAbstract {
 
   async readBlock(blockId) {
     const start = blockId * VHD_BLOCK_LENGTH
+    
     if (!this.#stream) {
       this.#stream = (await this.#esxi.download(this.#datastore, this.#path)).body
-      this.#bytesRead = 0
+      this.#bytesRead = start
     }
     if (this.#bytesRead > start) {
+      console.log('back')
       this.#stream.destroy()
       this.#stream = (
         await this.#esxi.download(this.#datastore, this.#path, `${start}-${this.footer.currentSize}`)
@@ -79,11 +81,18 @@ export default class VhdEsxiRaw extends VhdAbstract {
     }
 
     if (start - this.#bytesRead > 0) {
+      let chunkSize = Math.min(start - this.#bytesRead,VHD_BLOCK_LENGTH)
+      while( chunkSize > 0 ){
+        await readChunk(this.#stream, chunkSize)
+        this.#bytesRead += chunkSize
+        chunkSize = Math.min(start - this.#bytesRead,VHD_BLOCK_LENGTH)
+      }
+      /*
       this.#stream.destroy()
       this.#stream = (
         await this.#esxi.download(this.#datastore, this.#path, `${start}-${this.footer.currentSize}`)
       ).body
-      this.#bytesRead = start
+      this.#bytesRead = start*/
     }
 
     const data = await readChunk(this.#stream, VHD_BLOCK_LENGTH)

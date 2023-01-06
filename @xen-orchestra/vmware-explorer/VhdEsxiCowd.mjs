@@ -61,16 +61,23 @@ export default class VhdCowd extends VhdAbstract {
     strictEqual(buffer.slice(0, 4).toString('ascii'), 'COWD')
     strictEqual(buffer.readInt32LE(4), 1) // version
     strictEqual(buffer.readInt32LE(8), 3) // flags
-    const sectorCapacity = buffer.readInt32LE(12)
-    // const sectorGrainNumber = buffer.readInt32LE(16)
+    const numSectors = buffer.readInt32LE(12)
+    const grainSize = buffer.readInt32LE(16)
+    strictEqual(grainSize, 1) // 1 grain should be 1 sector long 
     strictEqual(buffer.readInt32LE(20), 4) // grain directory position in sectors
 
-    // const nbGrainDirectoryEntries = buffer.readInt32LE(24)
+    const nbGrainDirectoryEntries = buffer.readInt32LE(24)
+    strictEqual(nbGrainDirectoryEntries, Math.ceil(numSectors  / 4096))
     // const nextFreeSector = buffer.readInt32LE(28)
-    const size = sectorCapacity * 512
+    const size = numSectors * 512
     // a grain directory entry contains the address of a grain table
     // a grain table can adresses at most 4096 grain of 512 Bytes of data
     this.#header = unpackHeader(createHeader(Math.ceil(size / (4096 * 512))))
+
+    console.log({
+      nbGrainDirectoryEntries,
+      maxTableEntries: this.header.maxTableEntries
+    })
    // this.#header.parentUnicodeName = this.#parentFileName
     const geometry = _computeGeometryForSize(size)
     const actualSize = geometry.actualSize
@@ -80,7 +87,7 @@ export default class VhdCowd extends VhdAbstract {
         Math.floor(Date.now() / 1000),
         geometry,
         FOOTER_SIZE,
-        this.#parentVhd ? DISK_TYPES.DIFFERENCING : DISK_TYPES.DYNAMIC
+        this.#parentVhd.footer.diskType
       )
     )
   }
@@ -108,41 +115,60 @@ export default class VhdCowd extends VhdAbstract {
     }
     const offset = sectorOffset * 512
 
-    const graintable = await this.#read(offset, offset + 2048 /* grain table length */- 1)
+    const graintable = await this.#read(offset, offset + 4096 * 4 /* grain table length */- 1)
+
+    strictEqual(graintable.length, 4096 * 4)
     // we have no guaranty that data are order or contiguous
     // let's construct ranges to limit the number of queries
-    let rangeStart, offsetStart, offsetEnd
+    let rangeStart, offsetStart, offsetEnd, lastOffset
+
+   const  changeRange = async (index, offset) => {
+      if(rangeStart !== undefined ){
+        if(offset === offsetEnd){
+          process.stdout.write(">")
+          offsetEnd++ 
+          return
+        } 
+        console.log({rangeStart, offsetStart,offsetEnd, pos: blockId * 2*1024*1024 + rangeStart * 512, to: blockId * 2*1024*1024 + (rangeStart + offsetEnd-offsetStart) * 512 })
+        const grains = await this.#read(offsetStart * 512, offsetEnd  * 512 - 1) 
+        grains.copy(buffer, (rangeStart+1 /* block bitmap */)*512)
+      }
+      rangeStart = index
+      if(offset){
+
+        offsetStart = offset
+        offsetEnd = offset + 1
+      }else {
+
+        offsetStart = undefined
+        offsetEnd = undefined
+      }
+    }
+
     for (let i = 0; i < graintable.length / 4; i++) {
       const grainOffset = graintable.readInt32LE(i * 4)
       if(grainOffset ===0){
+        process.stdout.write("#")
+        await changeRange()
         // from parent
         continue
       }
       if(grainOffset === 1){
+        process.stdout.write("@")
+        await changeRange()
         // this is a emptied grain, no data, don't look into parent
         Buffer.alloc(512,0).copy(buffer, (i+1 /* block bitmap */)*512)
       }
 
       if (grainOffset > 1 ) {
-        if(offsetEnd === grainOffset){
-          offsetEnd ++ 
-        } else {
-          if(rangeStart !== undefined ){
-            // non empty grain
-            const grains = await this.#read(offsetStart * 512, offsetEnd  * 512 - 1)
-            grains.copy(buffer, (rangeStart+1 /* block bitmap */)*512)
-          }
-          rangeStart = i
-          offsetStart = grainOffset
-          offsetEnd = grainOffset + 1
-        }
+        // non empty grain
+        process.stdout.write("-")
+        await changeRange(i, grainOffset)
+        
       }
     }
-    if(rangeStart !== undefined ){
-      // non empty grain
-      const grains = await this.#read(offsetStart * 512, offsetEnd  * 512 - 1)
-      grains.copy(buffer, (rangeStart+1)*512)
-    }
+    await changeRange()
+    console.log('got block ')
     return {
       id: blockId,
       bitmap: buffer.slice(0, 512),

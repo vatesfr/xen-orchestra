@@ -8,6 +8,9 @@ import { VDI_FORMAT_VHD } from '@xen-orchestra/xapi'
 import VhdEsxiRaw from '@xen-orchestra/vmware-explorer/VhdEsxiRaw.mjs'
 import VhdCowd from '@xen-orchestra/vmware-explorer/VhdEsxiCowd.mjs'
 
+import fs from 'node:fs/promises'
+import { readChunk } from '@vates/read-chunk'
+
 export default class MigrateVm {
   constructor(app) {
     this._app = app
@@ -239,6 +242,38 @@ export default class MigrateVm {
           parentVhd = vhd
         }
         console.log('will import synthetic ')
+        try{
+/*
+          const stream =  vhd.rawContent()
+          const fd = await fs.open('/home/florent/reference.raw', 'r')
+          const ref = fd.createReadStream()
+          let pos = 0
+          const BUF_LEN = 1024*1024
+          while(pos < stream.length ){
+            const buf1 = await readChunk(stream, BUF_LEN)
+            const buf2 = await readChunk(ref, BUF_LEN)
+            if(buf1.length !== buf2.length){
+              console.log('difference length at', pos , buf1.length, buf2.length )
+              process.exit()
+            }
+            if(buf1.length === 0){
+              console.log('shouldnt be empty' , pos , buf1.length, buf2.length)
+              process.exit()
+            }
+            for(let i=0; i < buf1.length; i ++ ){
+              if(buf1.readInt8(i) !== buf2.readInt8(i)){
+                console.log('difference at block', pos + i, pos, i  )
+                process.exit()
+              }
+              //i %1024 ===0 && process.stdout.write(".")
+            }
+            console.log(pos/1024/1024, 'ok')
+            pos+=Math.min(BUF_LEN, stream.length - pos)
+          }*/
+        }catch(error){
+          console.error(error)
+        }
+
         await vdi.$importContent(vhd.stream(), { format:VDI_FORMAT_VHD })
         return {vdi ,vhd}
       }
