@@ -120,8 +120,8 @@ export default decorate([
           />
         </label>
       </FormGrid.Row>
-      {value.staticIpAddress && (
-        <FormGrid.Row>
+      {value.staticIpAddress && [
+        <FormGrid.Row key='masterIpAddrRow'>
           <label>{_('recipeMasterIpAddress')}</label>
           <input
             className='form-control'
@@ -132,10 +132,8 @@ export default decorate([
             type='text'
             value={value.masterIpAddress}
           />
-        </FormGrid.Row>
-      )}
-      {value.staticIpAddress && (
-        <FormGrid.Row>
+        </FormGrid.Row>,
+        <FormGrid.Row key='netmaskRow'>
           <label>{_('recipeNetworkMask')}</label>
           <input
             className='form-control'
@@ -146,10 +144,8 @@ export default decorate([
             type='text'
             value={value.networkMask}
           />
-        </FormGrid.Row>
-      )}
-      {value.staticIpAddress && (
-        <FormGrid.Row>
+        </FormGrid.Row>,
+        <FormGrid.Row key='gatewayRow'>
           <label>{_('recipeGatewayIpAddress')}</label>
           <input
             className='form-control'
@@ -160,19 +156,19 @@ export default decorate([
             type='text'
             value={value.gatewayIpAddress}
           />
-        </FormGrid.Row>
-      )}
+        </FormGrid.Row>,
+      ]}
       {value.staticIpAddress &&
-        [...Array(parseInt(value.nbNodes)).keys()].map(i => {
-          const workerIpAddress = 'workerIpAddress' + (i + 1).toString()
+        [...Array(+value.nbNodes).keys()].map(i => {
+          const workerIpAddress = 'workerIpAddress' + (i + 1)
           return (
-            <FormGrid.Row key={i.toString()}>
-              <label>{_('recipeWorkerIpAddress', { i: (i + 1).toString() })}</label>
+            <FormGrid.Row key={i}>
+              <label>{_('recipeWorkerIpAddress', { i: i + 1 })}</label>
               <input
                 className='form-control'
                 name={workerIpAddress}
                 onChange={effects.onChangeValue}
-                placeholder={formatMessage(messages.recipeWorkerIpAddress, { i: (i + 1).toString() })}
+                placeholder={formatMessage(messages.recipeWorkerIpAddress, { i: i + 1 })}
                 required
                 type='text'
                 value={value.workerIpAddress}
