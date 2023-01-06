@@ -63,12 +63,12 @@ export default decorate([
           staticIpAddress,
         } = recipeParams
 
-        let workerNodeIps
+        let workerNodeIpAddresses
         if (staticIpAddress === true) {
-          workerNodeIps = []
+          workerNodeIpAddresses = []
           for (let i = 0; i < nbNodes; i++) {
             const key = 'workerIpAddress' + (i + 1)
-            workerNodeIps[i] = recipeParams[key]
+            workerNodeIpAddresses[i] = recipeParams[key]
           }
         }
 
@@ -82,7 +82,7 @@ export default decorate([
           networkMask,
           sr: sr.id,
           sshKey,
-          workerNodeIps,
+          workerNodeIpAddresses,
         })
         markRecipeAsDone(RECIPE_INFO.id)
 
