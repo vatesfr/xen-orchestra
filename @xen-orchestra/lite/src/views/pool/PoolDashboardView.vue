@@ -16,6 +16,9 @@
       <PoolDashboardNetworkChart />
     </div>
     <div class="item">
+      <PoolDashboardRamUsageChart />
+    </div>
+    <div class="item">
       <PoolCpuUsageChart />
     </div>
   </div>
@@ -31,6 +34,7 @@ import PoolCpuUsageChart from "@/components/pool/dashboard/cpuUsage/PoolCpuUsage
 import PoolDashboardCpuUsage from "@/components/pool/dashboard/PoolDashboardCpuUsage.vue";
 import PoolDashboardNetworkChart from "@/components/pool/dashboard/PoolDashboardNetworkChart.vue";
 import PoolDashboardRamUsage from "@/components/pool/dashboard/PoolDashboardRamUsage.vue";
+import PoolDashboardRamUsageChart from "@/components/pool/dashboard/ramUsage/PoolRamUsage.vue";
 import PoolDashboardStatus from "@/components/pool/dashboard/PoolDashboardStatus.vue";
 import PoolDashboardStorageUsage from "@/components/pool/dashboard/PoolDashboardStorageUsage.vue";
 import useFetchStats from "@/composables/fetch-stats.composable";

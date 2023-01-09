@@ -9,24 +9,12 @@
       :nItems="N_ITEMS"
     >
       <template #footer v-if="showFooter">
-        <div class="footer-card">
-          <p>{{ $t("total-used") }}:</p>
-          <div class="footer-value">
-            <p>{{ percentUsed }}%</p>
-            <p>
-              {{ formatSize(data.usedSize) }}
-            </p>
-          </div>
-        </div>
-        <div class="footer-card">
-          <p>{{ $t("total-free") }}:</p>
-          <div class="footer-value">
-            <p>{{ percentFree }}%</p>
-            <p>
-              {{ formatSize(data.maxSize) }}
-            </p>
-          </div>
-        </div>
+        <UiCardFooter
+          :percent-free="percentFree"
+          :percent-used="percentUsed"
+          :size="data.maxSize"
+          :usage="data.usedSize"
+        />
       </template>
     </UsageBar>
   </UiCard>
@@ -37,7 +25,8 @@ import UiCardTitle from "@/components/ui/UiCardTitle.vue";
 import { computed } from "vue";
 import UsageBar from "@/components/UsageBar.vue";
 import UiCard from "@/components/ui/UiCard.vue";
-import { formatSize, percent } from "@/libs/utils";
+import UiCardFooter from "@/components/ui/UiCardFooter.vue";
+import { percent } from "@/libs/utils";
 import { useSrStore } from "@/stores/storage.store";
 import { N_ITEMS } from "@/views/pool/PoolDashboardView.vue";
 
@@ -87,21 +76,3 @@ const data = computed<{
   return { result, maxSize, usedSize };
 });
 </script>
-
-<style lang="postcss" scoped>
-.footer-card {
-  color: var(--color-blue-scale-200);
-  display: flex;
-  text-transform: uppercase;
-}
-
-.footer-card p {
-  font-weight: 700;
-}
-
-.footer-value {
-  display: flex;
-  flex-direction: column;
-  text-align: right;
-}
-</style>

@@ -116,6 +116,19 @@ export function isHostRunning(host: XenApiHost) {
   }
 }
 
+export function getHostMemory(host: XenApiHost) {
+  try {
+    const metrics = useHostMetricsStore().getRecord(host.metrics);
+    const total = +metrics.memory_total;
+    return {
+      usage: total - +metrics.memory_free,
+      size: total,
+    };
+  } catch (_) {
+    return undefined;
+  }
+}
+
 export const buildXoObject = (
   record: RawXenApiRecord<XenApiRecord>,
   params: { opaqueRef: string }
