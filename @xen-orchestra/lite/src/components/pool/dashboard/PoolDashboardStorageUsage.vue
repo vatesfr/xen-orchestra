@@ -8,13 +8,8 @@
       :data="srStore.isReady ? data.result : undefined"
       :nItems="N_ITEMS"
     >
-      <template #footer v-if="showFooter">
-        <UiCardFooter
-          :percent-free="percentFree"
-          :percent-used="percentUsed"
-          :size="data.maxSize"
-          :usage="data.usedSize"
-        />
+      <template #footer>
+        <UiCardFooter :size="data.maxSize" :usage="data.usedSize" />
       </template>
     </UsageBar>
   </UiCard>
@@ -26,21 +21,10 @@ import { computed } from "vue";
 import UsageBar from "@/components/UsageBar.vue";
 import UiCard from "@/components/ui/UiCard.vue";
 import UiCardFooter from "@/components/ui/UiCardFooter.vue";
-import { percent } from "@/libs/utils";
 import { useSrStore } from "@/stores/storage.store";
 import { N_ITEMS } from "@/views/pool/PoolDashboardView.vue";
 
 const srStore = useSrStore();
-
-const percentUsed = computed(() =>
-  percent(data.value.usedSize, data.value.maxSize, 1)
-);
-
-const percentFree = computed(() =>
-  percent(data.value.maxSize - data.value.usedSize, data.value.maxSize, 1)
-);
-
-const showFooter = computed(() => !isNaN(percentUsed.value));
 
 const data = computed<{
   result: { id: string; label: string; value: number }[];

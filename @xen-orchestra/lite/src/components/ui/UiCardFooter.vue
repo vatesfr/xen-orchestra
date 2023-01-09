@@ -1,5 +1,5 @@
 <template>
-  <div class="footer">
+  <div class="footer" v-if="showFooter">
     <div class="footer-card">
       <p>{{ $t("total-used") }}:</p>
       <div class="footer-value">
@@ -14,20 +14,27 @@
       <div class="footer-value">
         <p>{{ percentFree }}%</p>
         <p>
-          {{ formatSize(size) }}
+          {{ formatSize(free) }}
         </p>
       </div>
     </div>
   </div>
 </template>
 <script lang="ts" setup>
-import { formatSize } from "@/libs/utils";
-defineProps<{
-  percentFree: number;
-  percentUsed: number;
+import { formatSize, percent } from "@/libs/utils";
+import { computed } from "vue";
+const props = defineProps<{
   size: number;
   usage: number;
 }>();
+
+const free = computed(() => props.size - props.usage);
+const percentFree = computed(() => percent(free.value, props.size));
+const percentUsed = computed(() => percent(props.usage, props.size));
+
+const showFooter = computed(
+  () => !isNaN(percentUsed.value) && !isNaN(percentFree.value)
+);
 </script>
 <style lang="postcss" scoped>
 .footer {

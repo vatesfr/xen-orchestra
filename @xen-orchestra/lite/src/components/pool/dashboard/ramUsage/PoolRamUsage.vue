@@ -8,12 +8,7 @@
     :value-formatter="customValueFormatter"
   >
     <template #summary>
-      <UiCardFooter
-        :percent-free="percentFree"
-        :percent-used="percentUsed"
-        :size="total.totalFree"
-        :usage="total.totalUsed"
-      />
+      <UiCardFooter :size="total.totalMemory" :usage="total.totalUsed" />
     </template>
   </LinearChart>
 </template>
@@ -30,7 +25,7 @@ import { sumBy } from "lodash-es";
 import { storeToRefs } from "pinia";
 import { computed, inject } from "vue";
 import { useI18n } from "vue-i18n";
-import { formatSize, getHostMemory, percent } from "@/libs/utils";
+import { formatSize, getHostMemory } from "@/libs/utils";
 import type { XenApiHost } from "@/libs/xen-api";
 
 const { t } = useI18n();
@@ -39,14 +34,10 @@ const hostLastWeekStats =
   inject<FetchedStats<XenApiHost, HostStats>>("hostLastWeekStats");
 
 const total = computed(() => {
-  if (!hostLastWeekStats) {
-    return;
-  }
-
   let totalMemory = 0,
     totalFree = 0;
 
-  hostLastWeekStats.stats?.value.forEach(({ stats }) => {
+  hostLastWeekStats?.stats?.value.forEach(({ stats }) => {
     if (!stats) {
       return;
     }
@@ -60,16 +51,6 @@ const total = computed(() => {
   });
 
   return { totalMemory, totalFree, totalUsed: totalMemory - totalFree };
-});
-
-const percentFree = computed(() => {
-  const { totalFree, totalMemory } = total.value;
-  return percent(totalFree, totalMemory);
-});
-
-const percentUsed = computed(() => {
-  const { totalMemory, totalUsed } = total.value;
-  return percent(totalUsed, totalMemory);
 });
 
 const { allRecords: hosts } = storeToRefs(useHostStore());
