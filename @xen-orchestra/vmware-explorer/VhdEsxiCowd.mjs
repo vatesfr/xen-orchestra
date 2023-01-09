@@ -10,7 +10,7 @@ export default class VhdCowd extends VhdAbstract {
   #datastore
   #parentVhd
   #path
-  #chain
+  #lookMissingBlockInParent
 
   #header
   #footer
@@ -22,13 +22,13 @@ export default class VhdCowd extends VhdAbstract {
     await vhd.readHeaderAndFooter()
     return vhd
   }
-  constructor(esxi, datastore, path, parentVhd,{chain=true} = {}) {
+  constructor(esxi, datastore, path, parentVhd,{lookMissingBlockInParent=true} = {}) {
     super()
     this.#esxi = esxi
     this.#path = path
     this.#datastore = datastore
     this.#parentVhd = parentVhd
-    this.#chain = chain
+    this.#lookMissingBlockInParent = lookMissingBlockInParent
   }
 
   get header() {
@@ -46,16 +46,16 @@ export default class VhdCowd extends VhdAbstract {
     // and a vhd block is also 2M
     // so we only need to check if a grain table exists (it's not created without data)
 
-    // if this is a chain, we also check if the bloc is present in parent
+    // depending on the paramters we also look into the parent data
     return this.#grainDirectory.readInt32LE(blockId * 4) !== 0 || 
-     (this.#chain && this.#parentVhd.containsBlock(blockId))
+     (this.#lookMissingBlockInParent && this.#parentVhd.containsBlock(blockId))
   }
 
   async #read(start, end) {
     return (await this.#esxi.download(this.#datastore, this.#path, `${start}-${end}`)).buffer()
   }
 
-  async readHeaderAndFooter(checkSecondFooter = true) {
+  async readHeaderAndFooter() {
     const buffer = await this.#read(0, 2048)
 
     strictEqual(buffer.slice(0, 4).toString('ascii'), 'COWD')
@@ -73,11 +73,6 @@ export default class VhdCowd extends VhdAbstract {
     // a grain directory entry contains the address of a grain table
     // a grain table can adresses at most 4096 grain of 512 Bytes of data
     this.#header = unpackHeader(createHeader(Math.ceil(size / (4096 * 512))))
-
-    console.log({
-      nbGrainDirectoryEntries,
-      maxTableEntries: this.header.maxTableEntries
-    })
    // this.#header.parentUnicodeName = this.#parentFileName
     const geometry = _computeGeometryForSize(size)
     const actualSize = geometry.actualSize
@@ -105,7 +100,7 @@ export default class VhdCowd extends VhdAbstract {
     const buffer =  (await this.#parentVhd.readBlock(blockId)).buffer
 
     if(sectorOffset === 0){
-      strictEqual(this.#chain, true, "shouldn't have empty block in a delta alone")
+      strictEqual(this.#lookMissingBlockInParent, true, "shouldn't have empty block in a delta alone")
       return {
         id: blockId,
         bitmap: buffer.slice(0, 512),
@@ -123,23 +118,23 @@ export default class VhdCowd extends VhdAbstract {
     let rangeStart, offsetStart, offsetEnd, lastOffset
 
    const  changeRange = async (index, offset) => {
-      if(rangeStart !== undefined ){
+      if(offsetStart !== undefined ){
+        // if there was a 
         if(offset === offsetEnd){
-          process.stdout.write(">")
           offsetEnd++ 
           return
         } 
-        console.log({rangeStart, offsetStart,offsetEnd, pos: blockId * 2*1024*1024 + rangeStart * 512, to: blockId * 2*1024*1024 + (rangeStart + offsetEnd-offsetStart) * 512 })
         const grains = await this.#read(offsetStart * 512, offsetEnd  * 512 - 1) 
         grains.copy(buffer, (rangeStart+1 /* block bitmap */)*512)
       }
-      rangeStart = index
       if(offset){
-
+        // we're at the beginning of a range present in the file
+        rangeStart = index
         offsetStart = offset
         offsetEnd = offset + 1
       }else {
-
+        // we're at the beginning of a range from the parent or empty
+        rangeStart = undefined
         offsetStart = undefined
         offsetEnd = undefined
       }
@@ -148,27 +143,23 @@ export default class VhdCowd extends VhdAbstract {
     for (let i = 0; i < graintable.length / 4; i++) {
       const grainOffset = graintable.readInt32LE(i * 4)
       if(grainOffset ===0){
-        process.stdout.write("#")
         await changeRange()
         // from parent
         continue
       }
       if(grainOffset === 1){
-        process.stdout.write("@")
         await changeRange()
         // this is a emptied grain, no data, don't look into parent
-        Buffer.alloc(512,0).copy(buffer, (i+1 /* block bitmap */)*512)
+        buffer.fill(0, (i+1 /* block bitmap */)*512 )
       }
 
       if (grainOffset > 1 ) {
         // non empty grain
-        process.stdout.write("-")
         await changeRange(i, grainOffset)
         
       }
     }
     await changeRange()
-    console.log('got block ')
     return {
       id: blockId,
       bitmap: buffer.slice(0, 512),

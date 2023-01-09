@@ -1,15 +1,13 @@
+'use strict'
 import { Backup } from '@xen-orchestra/backups/Backup.js'
 import { v4 as generateUuid } from 'uuid'
 import Esxi from '@xen-orchestra/vmware-explorer/esxi.mjs'
-import OTHER_CONFIG_TEMPLATE from '../xapi/other-config-template.mjs'
 import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
 import { fromEvent } from 'promise-toolbox'
 import { VDI_FORMAT_VHD } from '@xen-orchestra/xapi'
 import VhdEsxiRaw from '@xen-orchestra/vmware-explorer/VhdEsxiRaw.mjs'
 import VhdCowd from '@xen-orchestra/vmware-explorer/VhdEsxiCowd.mjs'
-
-import fs from 'node:fs/promises'
-import { readChunk } from '@vates/read-chunk'
+import OTHER_CONFIG_TEMPLATE from '../xapi/other-config-template.mjs'
 
 export default class MigrateVm {
   constructor(app) {
@@ -110,6 +108,7 @@ export default class MigrateVm {
     if (targets.length > 1) {
       throw new Error(`Multiple target of warm migration found for ${sourceVmId} on SR ${srId} `)
     }
+    
     const targetVm = app.getXapiObject(targets[0])
 
     // new vm is ready to start
@@ -129,16 +128,7 @@ export default class MigrateVm {
     }
   }
 
-  async migrationfromEsxi({ host, user, password, sslVerify, sr: srId, network: networkId, vm: vmId, thin }) {
-    const esxi = new Esxi(host, user, password, sslVerify)
-    const app = this._app
-
-    await fromEvent(esxi, 'ready')
-    const esxiVmMetadata = await esxi.getTransferableVmMetadata(vmId)
-    const { memory, name_label, networks, numCpu, powerState, snapshots } = esxiVmMetadata
-    const isRunning = powerState !== 'poweredOff'
-
-
+  #buildDiskChainByNode(disks, snapshots){
     let chain = []
     if (snapshots && snapshots.current) {
       const currentSnapshotId = snapshots.current
@@ -152,7 +142,14 @@ export default class MigrateVm {
       chain.reverse()
     }
 
-    chain.push(esxiVmMetadata.disks)
+    chain.push (disks)
+
+    for( const disk of chain){
+      if (disk.capacity > 2 * 1024 * 1024 * 1024 * 1024) {
+        /* 2TO */
+        throw new Error("Can't migrate disks larger than 2To")
+      }
+    }
 
     const chainsByNodes = {}
     chain.forEach(disks => {
@@ -162,12 +159,20 @@ export default class MigrateVm {
       })
     })
 
-    chain[chain.length - 1].forEach(disk => {
-      if (disk.capacity > 2 * 1024 * 1024 * 1024 * 1024) {
-        /* 2TO */
-        throw new Error("Can't migrate disks larger than 2To")
-      }
-    })
+    return chainsByNodes
+  }
+
+  async migrationfromEsxi({ host, user, password, sslVerify, sr: srId, network: networkId, vm: vmId, thin }) {
+    const esxi = new Esxi(host, user, password, sslVerify)
+    const app = this._app
+
+    await fromEvent(esxi, 'ready')
+    const esxiVmMetadata = await esxi.getTransferableVmMetadata(vmId)
+    const { disks, memory, name_label, networks, numCpu, powerState, snapshots } = esxiVmMetadata
+    const isRunning = powerState !== 'poweredOff'
+
+    const chainsByNodes =  this.#buildDiskChainByNode(disks, snapshots)
+
 
     // got data, ready to start creating
     const sr = app.getXapiObject(srId)
@@ -186,7 +191,7 @@ export default class MigrateVm {
       })
     )
     await Promise.all([
-      asyncMapSettled(['start', 'start_on'], op => vm.update_blocked_operations(op, 'OVA import in progress...')),
+      asyncMapSettled(['start', 'start_on'], op => vm.update_blocked_operations(op, 'Esxi migration in progress...')),
       vm.set_name_label(`[Importing...] ${name_label}`),
     ])
 
@@ -216,12 +221,14 @@ export default class MigrateVm {
         console.log('vdi created')
 
         await xapi.VBD_create({
-          userdevice: String(userdevice),
           VDI: vdi.$ref,
           VM: vm.$ref,
         })
         console.log('vbd created')
         let parentVhd, vhd
+        // if the VM is running we'll transfer everything before the last , which is an active disk
+        //  the esxi api does not allow us to read an active disk
+        // later we'll stop the VM and transfer this snapshot
         const nbColdDisks  = isRunning ? chainByNode.length -1 : chainByNode.length
         console.log('will transfer', nbColdDisks, isRunning)
         for (let diskIndex = 0; diskIndex < nbColdDisks; diskIndex ++ ) {
@@ -242,45 +249,17 @@ export default class MigrateVm {
           parentVhd = vhd
         }
         console.log('will import synthetic ')
-        try{
-/*
-          const stream =  vhd.rawContent()
-          const fd = await fs.open('/home/florent/reference.raw', 'r')
-          const ref = fd.createReadStream()
-          let pos = 0
-          const BUF_LEN = 1024*1024
-          while(pos < stream.length ){
-            const buf1 = await readChunk(stream, BUF_LEN)
-            const buf2 = await readChunk(ref, BUF_LEN)
-            if(buf1.length !== buf2.length){
-              console.log('difference length at', pos , buf1.length, buf2.length )
-              process.exit()
-            }
-            if(buf1.length === 0){
-              console.log('shouldnt be empty' , pos , buf1.length, buf2.length)
-              process.exit()
-            }
-            for(let i=0; i < buf1.length; i ++ ){
-              if(buf1.readInt8(i) !== buf2.readInt8(i)){
-                console.log('difference at block', pos + i, pos, i  )
-                process.exit()
-              }
-              //i %1024 ===0 && process.stdout.write(".")
-            }
-            console.log(pos/1024/1024, 'ok')
-            pos+=Math.min(BUF_LEN, stream.length - pos)
-          }*/
-        }catch(error){
-          console.error(error)
-        }
 
-        await vdi.$importContent(vhd.stream(), { format:VDI_FORMAT_VHD })
+        const stream =vhd.stream()
+        console.log('will import active disk ', stream.length)
+        await vdi.$importContent( stream(), { format:VDI_FORMAT_VHD })
         return {vdi ,vhd}
       }
       )
     )
     console.log('cold transfer done')
     if(isRunning){
+      // it the vm was running, we stop it and transfer the data in the active disk
       await esxi.powerOff(vmId)
 
       console.log('vm stopped')
@@ -290,11 +269,22 @@ export default class MigrateVm {
           const disk = chainByNode[chainByNode.length -1]
           const {fileName, path, datastore } = disk
           const {vdi, vhd:parentVhd} = vhds[userdevice]
-          const vhd = await VhdCowd.open(esxi, datastore, path + '/' + fileName, parentVhd, {chain:false})
+          let vhd
+          if(isFull){
+            console.log('full disk ')
+            vhd = await VhdEsxiRaw.open(esxi, datastore, path + '/' + fileName, {thin})
+            await vhd.readBlockAllocationTable()
+          } else {
+            console.log('delta disk ')
+            vhd = await VhdCowd.open(esxi, datastore, path + '/' + fileName, parentVhd, {lookMissingBlockInParent:false})
+            await vhd.readBlockAllocationTable()
+          }
           await vhd.readBlockAllocationTable()
-          console.log('will import active disk ')
-          await vdi.$importContent(vhd.stream(), { format:VDI_FORMAT_VHD })
+          const stream =vhd.stream()
+          console.log('will import active disk ', stream.length)
 
+          await vdi.$importContent( stream, { format:VDI_FORMAT_VHD })
+          console.log('done one disk ')
         })
       )
 
