@@ -11,28 +11,21 @@
 
 <script lang="ts" setup>
 import LinearChart from "@/components/charts/LinearChart.vue";
-import type { Stat } from "@/composables/fetch-stats.composable";
-import type { HostStats, VmStats } from "@/libs/xapi-stats";
+import type { HostStats } from "@/libs/xapi-stats";
+import type { FetchedStats } from "@/composables/fetch-stats.composable";
 import { RRD_STEP_FROM_STRING } from "@/libs/xapi-stats";
+import type { XenApiHost } from "@/libs/xen-api";
 import { useHostStore } from "@/stores/host.store";
 import type { LinearChartData } from "@/types/chart";
 import { sumBy } from "lodash-es";
 import { storeToRefs } from "pinia";
-import { computed, type ComputedRef, inject } from "vue";
+import { computed, inject } from "vue";
 import { useI18n } from "vue-i18n";
-
-interface LastWeekStats<T extends VmStats | HostStats> {
-  stats?: ComputedRef<Stat<T>[]>;
-  timestampStart?: ComputedRef<number>;
-  timestampEnd?: ComputedRef<number>;
-}
 
 const { t } = useI18n();
 
-const hostLastWeekStats = inject<LastWeekStats<HostStats>>(
-  "hostLastWeekStats",
-  {}
-);
+const hostLastWeekStats =
+  inject<FetchedStats<XenApiHost, HostStats>>("hostLastWeekStats");
 
 const { allRecords: hosts } = storeToRefs(useHostStore());
 
@@ -42,7 +35,7 @@ const customMaxValue = computed(
 
 const data = computed<LinearChartData>(() => {
   if (
-    hostLastWeekStats.timestampStart?.value === undefined ||
+    hostLastWeekStats?.timestampStart?.value === undefined ||
     hostLastWeekStats.stats?.value === undefined
   ) {
     return [];

@@ -8,7 +8,12 @@
     :value-formatter="customValueFormatter"
   >
     <template #summary>
-      <UiCardFooter :percent-free="0" :percent-used="0" :size="0" :usage="0" />
+      <UiCardFooter
+        :percent-free="percentFree"
+        :percent-used="percentUsed"
+        :size="total.totalFree"
+        :usage="total.totalUsed"
+      />
     </template>
   </LinearChart>
 </template>
@@ -16,40 +21,55 @@
 <script lang="ts" setup>
 import LinearChart from "@/components/charts/LinearChart.vue";
 import UiCardFooter from "@/components/ui/UiCardFooter.vue";
-import type { Stat } from "@/composables/fetch-stats.composable";
-import type { HostStats, VmStats } from "@/libs/xapi-stats";
+import type { FetchedStats } from "@/composables/fetch-stats.composable";
+import type { HostStats } from "@/libs/xapi-stats";
 import { RRD_STEP_FROM_STRING } from "@/libs/xapi-stats";
 import { useHostStore } from "@/stores/host.store";
 import type { LinearChartData } from "@/types/chart";
 import { sumBy } from "lodash-es";
 import { storeToRefs } from "pinia";
-import { computed, type ComputedRef, inject } from "vue";
+import { computed, inject } from "vue";
 import { useI18n } from "vue-i18n";
-import { formatSize, getHostMemory } from "@/libs/utils";
-
-interface LastWeekStats<T extends VmStats | HostStats> {
-  stats?: ComputedRef<Stat<T>[]>;
-  timestampStart?: ComputedRef<number>;
-  timestampEnd?: ComputedRef<number>;
-}
+import { formatSize, getHostMemory, percent } from "@/libs/utils";
+import type { XenApiHost } from "@/libs/xen-api";
 
 const { t } = useI18n();
 
-const hostLastWeekStats = inject<LastWeekStats<HostStats>>(
-  "hostLastWeekStats",
-  {}
-);
+const hostLastWeekStats =
+  inject<FetchedStats<XenApiHost, HostStats>>("hostLastWeekStats");
 
-const totalUsed = computed(() => {
+const total = computed(() => {
+  if (!hostLastWeekStats) {
+    return;
+  }
+
+  let totalMemory = 0,
+    totalFree = 0;
+
   hostLastWeekStats.stats?.value.forEach(({ stats }) => {
     if (!stats) {
       return;
     }
 
-    const memoryFree = stats.memoryFree;
-    return stats.memory.map((memory, index) => memory - memoryFree[index]);
+    totalMemory += stats.memory.reduce((total, memory) => total + memory, 0);
+
+    totalFree += stats.memoryFree.reduce(
+      (totalFree, memoryFree) => totalFree + memoryFree,
+      0
+    );
   });
-  return 0;
+
+  return { totalMemory, totalFree, totalUsed: totalMemory - totalFree };
+});
+
+const percentFree = computed(() => {
+  const { totalFree, totalMemory } = total.value;
+  return percent(totalFree, totalMemory);
+});
+
+const percentUsed = computed(() => {
+  const { totalMemory, totalUsed } = total.value;
+  return percent(totalUsed, totalMemory);
 });
 
 const { allRecords: hosts } = storeToRefs(useHostStore());
@@ -60,7 +80,7 @@ const customMaxValue = computed(() =>
 
 const data = computed<LinearChartData>(() => {
   if (
-    hostLastWeekStats.timestampStart?.value === undefined ||
+    hostLastWeekStats?.timestampStart?.value === undefined ||
     hostLastWeekStats.stats?.value === undefined
   ) {
     return [];
