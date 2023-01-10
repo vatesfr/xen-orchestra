@@ -51,7 +51,7 @@ export default function useCollectionFilter<T>(config: Config = {}) {
   };
 }
 
-function queryToSet(query: LocationQueryValue): Set<string> {
+function queryToSet(query?: LocationQueryValue): Set<string> {
   if (!query) {
     return new Set();
   }
