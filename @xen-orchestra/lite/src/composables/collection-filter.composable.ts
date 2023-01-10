@@ -19,7 +19,7 @@ export default function useCollectionFilter<T>(config: Config = {}) {
     const queryString = route.query[queryStringParam];
 
     if (queryString !== undefined) {
-      filtersSet.value = queryToSet(getFirst(queryString));
+      filtersSet.value = queryToSet(getFirst(queryString) ?? null);
     }
 
     watch(filters, (value) =>
