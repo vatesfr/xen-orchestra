@@ -104,7 +104,7 @@
   "unreachable-hosts": "Hôtes inaccessibles",
   "unreachable-hosts-reload-page": "C'est fait. Rafraîchir la page",
   "vcpus": "vCPUs",
-  "vcpus-used": "vCPUs utilisé",
+  "vcpus-used": "vCPUs utilisés",
   "version": "Version",
   "vms": "VMs"
 }

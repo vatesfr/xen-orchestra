@@ -1,21 +1,22 @@
 <template>
-  <p class="scale">
+  <p class="unit">
     <span>0%</span>
-    <span v-for="n in scale" :key="n">{{ n }}00%</span>
+    <span>{{ maxValue / 2 }}%</span>
+    <span>{{ maxValue }}%</span>
   </p>
 </template>
 
 <script lang="ts" setup>
 withDefaults(
   defineProps<{
-    scale?: number;
+    maxValue?: number;
   }>(),
-  { scale: 1 }
+  { maxValue: 100 }
 );
 </script>
 
 <style lang="postcss">
-.scale {
+.unit {
   color: var(--color-blue-scale-300);
   display: flex;
   font-size: 12px;

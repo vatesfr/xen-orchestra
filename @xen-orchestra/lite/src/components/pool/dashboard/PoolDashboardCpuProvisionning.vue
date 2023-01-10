@@ -1,23 +1,27 @@
 <template>
   <UiCard>
-    <UiTitle type="h4">{{ $t("cpu-provisioning") }}</UiTitle>
-    <div v-if="isReady" class="progress-item">
-      <UiProgressBar :value="nVCpuInUse" :max-value="nPCpu * SCALE" />
-      <UiScaleProgressBar :scale="SCALE" />
+    <UiTitle type="h4" class="title"
+      >{{ $t("cpu-provisioning") }}
+      <!-- TODO: add a tooltip on the icon when available to explain why there is a warning -->
+      <UiIcon v-if="isWarning" :icon="faWarning"
+    /></UiTitle>
+    <div v-if="isReady" class="progress-item" :class="{ warning: isWarning }">
+      <UiProgressBar color="custom" :value="nVCpuInUse" :max-value="maxValue" />
+      <UiUnitProgressBar :max-value="maxValue" />
       <UiLegendProgressBar>
         <template #label>{{ $t("vcpus") }}</template>
         <template #value>{{ value }}%</template>
       </UiLegendProgressBar>
-      <div class="footer">
-        <div class="footer-card">
+      <UiCardFooter>
+        <template #left>
           <p>{{ $t("vcpus-used") }}</p>
-          <span class="footer-value">{{ nVCpuInUse }}</span>
-        </div>
-        <div class="footer-card">
+          <p class="footer-value">{{ nVCpuInUse }}</p></template
+        >
+        <template #right>
           <p>{{ $t("total-cpus") }}</p>
-          <span class="footer-value">{{ nPCpu }}</span>
-        </div>
-      </div>
+          <p class="footer-value">{{ nPCpu }}</p></template
+        >
+      </UiCardFooter>
     </div>
     <UiSpinner v-else class="spinner" />
   </UiCard>
@@ -27,17 +31,18 @@
 import { computed } from "vue";
 import { storeToRefs } from "pinia";
 import UiCard from "@/components/ui/UiCard.vue";
+import UiCardFooter from "@/components/ui/UiCardFooter.vue";
+import UiIcon from "@/components/ui/UiIcon.vue";
 import UiLegendProgressBar from "@/components/ui/UiLegendProgressBar.vue";
 import UiProgressBar from "@/components/ui/UiProgressBar.vue";
-import UiScaleProgressBar from "@/components/ui/UiScaleProgressBar.vue";
+import UiUnitProgressBar from "@/components/ui/UiUnitProgressBar.vue";
 import UiSpinner from "@/components/ui/UiSpinner.vue";
 import UiTitle from "@/components/ui/UiTitle.vue";
 import { percent } from "@/libs/utils";
 import { usePoolStore } from "@/stores/pool.store";
 import { useVmMetricsStore } from "@/stores/vm-metrics.store";
 import { useVmStore } from "@/stores/vm.store";
-
-const SCALE = 2;
+import { faWarning } from "@fortawesome/free-solid-svg-icons";
 
 const { pool, isReady: poolStoreIsReady } = storeToRefs(usePoolStore());
 const { allRecords: vms, isReady: vmStoreIsReady } = storeToRefs(useVmStore());
@@ -55,37 +60,35 @@ const nVCpuInUse = computed(() =>
 const value = computed(() =>
   Math.round(percent(nVCpuInUse.value, nPCpu.value))
 );
+const maxValue = computed(() => Math.ceil(value.value / 100) * 100);
+const isWarning = computed(() => value.value > 100);
 const isReady = computed(
   () => vmStoreIsReady.value && vmMetricsStore.isReady && poolStoreIsReady.value
 );
 </script>
 
-<style scoped>
+<style lang="postcss" scoped>
 .progress-item {
   margin-top: 2.6rem;
   --progress-bar-height: 1.2rem;
   --progress-bar-color: var(--color-extra-blue-base);
   --progress-bar-background-color: var(--color-blue-scale-400);
+  &.warning {
+    --progress-bar-color: var(--color-orange-world-base);
+    --footer-value-color: var(--color-orange-world-base);
+  }
+  & .footer-value {
+    color: var(--footer-value-color);
+  }
 }
-.footer {
+
+.title {
   display: flex;
   justify-content: space-between;
-  font-weight: 700;
-  font-size: 14px;
-  color: var(--color-blue-scale-300);
+  & .ui-icon {
+    color: var(--color-orange-world-base);
+  }
 }
-.footer-card {
-  color: var(--color-blue-scale-200);
-  display: flex;
-  text-transform: uppercase;
-  width: 45%;
-}
-
-.footer-card p {
-  font-weight: 700;
-  width: 100%;
-}
-
 .spinner {
   color: var(--color-extra-blue-base);
   display: flex;
