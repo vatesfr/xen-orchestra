@@ -19,7 +19,7 @@ export default function useCollectionFilter<T>(config: Config = {}) {
     const queryString = route.query[queryStringParam];
 
     if (queryString !== undefined) {
-      filtersSet.value = queryToSet(getFirst(queryString) ?? null);
+      filtersSet.value = queryToSet(getFirst(queryString));
     }
 
     watch(filters, (value) =>
@@ -51,7 +51,7 @@ export default function useCollectionFilter<T>(config: Config = {}) {
   };
 }
 
-function queryToSet(query: LocationQueryValue): Set<string> {
+function queryToSet(query?: LocationQueryValue): Set<string> {
   if (!query) {
     return new Set();
   }
