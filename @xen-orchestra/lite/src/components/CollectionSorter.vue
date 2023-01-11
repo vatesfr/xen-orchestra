@@ -7,7 +7,7 @@
       @remove="emit('removeSort', property)"
     >
       <span class="property">
-        <FontAwesomeIcon :icon="isAscending ? faCaretUp : faCaretDown" />
+        <UiIcon :icon="isAscending ? faCaretUp : faCaretDown" />
         {{ property }}
       </span>
     </UiFilter>
@@ -17,7 +17,7 @@
     </UiActionButton>
   </UiFilterGroup>
 
-  <UiModal v-if="isOpen" @submit.prevent="handleSubmit" :icon="faSort">
+  <UiModal v-if="isOpen" :icon="faSort" @submit.prevent="handleSubmit">
     <div class="form-widgets">
       <FormWidget :label="$t('sort-by')">
         <select v-model="newSortProperty">
@@ -48,7 +48,14 @@
 </template>
 
 <script lang="ts" setup>
-import { ref } from "vue";
+import FormWidget from "@/components/FormWidget.vue";
+import UiActionButton from "@/components/ui/UiActionButton.vue";
+import UiButton from "@/components/ui/UiButton.vue";
+import UiFilter from "@/components/ui/UiFilter.vue";
+import UiFilterGroup from "@/components/ui/UiFilterGroup.vue";
+import UiIcon from "@/components/ui/UiIcon.vue";
+import UiModal from "@/components/ui/UiModal.vue";
+import useModal from "@/composables/modal.composable";
 import type { ActiveSorts, Sorts } from "@/types/sort";
 import {
   faCaretDown,
@@ -56,13 +63,7 @@ import {
   faPlus,
   faSort,
 } from "@fortawesome/free-solid-svg-icons";
-import FormWidget from "@/components/FormWidget.vue";
-import UiButton from "@/components/ui/UiButton.vue";
-import UiActionButton from "@/components/ui/UiActionButton.vue";
-import UiFilter from "@/components/ui/UiFilter.vue";
-import UiFilterGroup from "@/components/ui/UiFilterGroup.vue";
-import UiModal from "@/components/ui/UiModal.vue";
-import useModal from "@/composables/modal.composable";
+import { ref } from "vue";
 
 defineProps<{
   availableSorts: Sorts;

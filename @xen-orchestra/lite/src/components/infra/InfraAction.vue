@@ -1,12 +1,13 @@
 <template>
   <div class="infra-action">
     <slot>
-      <FontAwesomeIcon :icon="icon" fixed-width />
+      <UiIcon :icon="icon" fixed-width />
     </slot>
   </div>
 </template>
 
 <script lang="ts" setup>
+import UiIcon from "@/components/ui/UiIcon.vue";
 import type { IconDefinition } from "@fortawesome/fontawesome-common-types";
 
 defineProps<{

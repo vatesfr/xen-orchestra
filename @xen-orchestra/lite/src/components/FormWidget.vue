@@ -8,7 +8,7 @@
     <span class="widget">
       <span v-if="before || $slots.before" class="before">
         <slot name="before">
-          <FontAwesomeIcon v-if="isIcon(before)" :icon="before" fixed-width />
+          <UiIcon v-if="isIcon(before)" :icon="before" fixed-width />
           <template v-else>{{ before }}</template>
         </slot>
       </span>
@@ -17,7 +17,7 @@
       </span>
       <span v-if="after || $slots.after" class="after">
         <slot name="after">
-          <FontAwesomeIcon v-if="isIcon(after)" :icon="after" fixed-width />
+          <UiIcon v-if="isIcon(after)" :icon="after" fixed-width />
           <template v-else>{{ after }}</template>
         </slot>
       </span>
@@ -26,6 +26,7 @@
 </template>
 
 <script lang="ts" setup>
+import UiIcon from "@/components/ui/UiIcon.vue";
 import type { IconDefinition } from "@fortawesome/fontawesome-common-types";
 
 defineProps<{
