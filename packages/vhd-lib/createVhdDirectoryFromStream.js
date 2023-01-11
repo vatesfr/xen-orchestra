@@ -38,7 +38,7 @@ const buildVhd = Disposable.wrap(async function* (handler, path, inputStream, { 
     }
   )
   await Promise.all([vhd.writeFooter(), vhd.writeHeader(), vhd.writeBlockAllocationTable()])
-  return vhd.size()
+  return vhd.streamSize()
 })
 
 exports.createVhdDirectoryFromStream = async function createVhdDirectoryFromStream(

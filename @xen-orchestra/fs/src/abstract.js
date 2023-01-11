@@ -13,7 +13,6 @@ import { synchronized } from 'decorator-synchronized'
 import { basename, dirname, normalize as normalizePath } from './path'
 import { createChecksumStream, validChecksumOfReadStream } from './checksum'
 import { DEFAULT_ENCRYPTION_ALGORITHM, _getEncryptor } from './_encryptor'
-import { watchStreamSize } from '@xen-orchestra/backups/_watchStreamSize'
 
 const { info, warn } = createLogger('xo:fs:abstract')
 
@@ -186,7 +185,6 @@ export default class RemoteHandlerAbstract {
   async outputStream(path, input, { checksum = true, dirMode, validator } = {}) {
     path = normalizePath(path)
     let checksumStream
-    const container = watchStreamSize(input)
 
     input = this._encryptor.encryptStream(input)
     if (checksum) {
@@ -203,7 +201,6 @@ export default class RemoteHandlerAbstract {
       // it is by design to allow checking of encrypted files without the key
       await this._outputFile(checksumFile(path), await checksumStream.checksum, { dirMode, flags: 'wx' })
     }
-    return container.size
   }
 
   // Free the resources possibly dedicated to put the remote at work, when it

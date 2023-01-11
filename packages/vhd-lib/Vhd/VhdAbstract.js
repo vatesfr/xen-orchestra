@@ -239,7 +239,7 @@ exports.VhdAbstract = class VhdAbstract {
     await handler.writeFile(aliasPath, relativePathToTarget)
   }
 
-  size() {
+  streamSize() {
     const { header, batSize } = this
     let fileSize = FOOTER_SIZE + HEADER_SIZE + batSize + FOOTER_SIZE /* the footer at the end */
 

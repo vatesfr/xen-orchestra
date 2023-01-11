@@ -166,6 +166,17 @@ test('it can create a vhd stream', async () => {
     await vhd.writeFooter()
     const stream = vhd.stream()
 
+    // size and stream must have the same result
+    expect(stream.length).toEqual(vhd.streamSize())
+
+    expect(stream.length).toEqual(
+      512 /* footer */ +
+        1024 /* header */ +
+        512 /* BAT */ +
+        512 /* parentlocator */ +
+        3 * (2 * 1024 * 1024 + 512) /* blocs */ +
+        512 /* end footer */
+    )
     // read all the stream into a buffer
 
     const buffer = await streamToBuffer(stream)
