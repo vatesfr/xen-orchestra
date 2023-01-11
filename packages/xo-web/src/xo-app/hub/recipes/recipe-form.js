@@ -161,7 +161,7 @@ export default decorate([
         [...Array(+value.nbNodes)].map((v, i) => {
           const workerIpAddress = `workerIpAddress${i + 1}`
           return (
-            <FormGrid.Row key={i}>
+            <FormGrid.Row key={v}>
               <label>{_('recipeWorkerIpAddress', { i: i + 1 })}</label>
               <input
                 className='form-control'
