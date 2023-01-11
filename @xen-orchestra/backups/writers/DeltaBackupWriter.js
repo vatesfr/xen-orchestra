@@ -200,7 +200,7 @@ exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(Ab
           const vdiRef = vm.$xapi.getObject(vdi.uuid).$ref
 
           let nbdClient
-          if (!this._backup.config.useNbd) {
+          if (this._backup.config.useNbd) {
             // get nbd if possible
             try {
               // this will always take the first host in the list
