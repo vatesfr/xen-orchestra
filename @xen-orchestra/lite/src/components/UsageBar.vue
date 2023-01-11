@@ -5,7 +5,10 @@
         v-for="item in computedData.sortedArray"
         :key="item.id"
         class="progress-item"
-        :class="{ warning: item.value > 80, error: item.value > 90 }"
+        :class="{
+          warning: item.value > MIN_WARNING_VALUE,
+          error: item.value > MIN_DANGEROUS_VALUE,
+        }"
       >
         <UiProgressBar :value="item.value" color="custom" />
         <div class="legend">
@@ -42,6 +45,9 @@ interface Props {
   data?: Data[];
   nItems?: number;
 }
+
+const MIN_WARNING_VALUE = 80;
+const MIN_DANGEROUS_VALUE = 90;
 
 const props = defineProps<Props>();
 
