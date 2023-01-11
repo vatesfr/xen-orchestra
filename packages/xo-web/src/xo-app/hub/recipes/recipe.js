@@ -64,7 +64,7 @@ export default decorate([
         } = recipeParams
 
         let workerNodeIpAddresses
-        if (staticIpAddress === true) {
+        if (staticIpAddress) {
           workerNodeIpAddresses = []
           for (let i = 0; i < nbNodes; i++) {
             const key = 'workerIpAddress' + (i + 1)
