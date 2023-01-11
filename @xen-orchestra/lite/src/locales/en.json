@@ -17,6 +17,7 @@
   "community-name": "{name} community",
   "copy": "Copy",
   "cpu-usage": "CPU usage",
+  "download": "Download",  
   "theme-dark": "Dark",
   "theme-light": "Light",
   "theme-auto": "Auto",
@@ -40,6 +41,7 @@
   "login": "Login",
   "migrate": "Migrate",
   "network": "Network",
+  "network-throughtput": "Network throughtput",
   "news": "News",
   "news-name": "{name} news",
   "object-not-found": "Object {id} can't be found…",
@@ -74,6 +76,7 @@
   "total-used": "Total used",
   "unreachable-hosts": "Unreachable hosts",
   "unreachable-hosts-reload-page": "Done, reload the page",
+  "upload": "Upload",
   "version": "Version",
   "vms": "VMs"
 }
