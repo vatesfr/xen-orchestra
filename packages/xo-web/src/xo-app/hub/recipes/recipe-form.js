@@ -111,8 +111,9 @@ export default decorate([
       <FormGrid.Row>
         <label>
           {_('recipeStaticIpAddresses')}
+          &nbsp;
           <input
-            className='form-control'
+            className='mt-1'
             name='staticIpAddress'
             onChange={effects.toggleStaticIpAddress}
             type='checkbox'
@@ -157,8 +158,6 @@ export default decorate([
             value={value.gatewayIpAddress}
           />
         </FormGrid.Row>,
-      ]}
-      {value.staticIpAddress &&
         [...Array(+value.nbNodes)].map((v, i) => {
           const workerIpAddress = 'workerIpAddress' + (i + 1)
           return (
@@ -175,7 +174,8 @@ export default decorate([
               />
             </FormGrid.Row>
           )
-        })}
+        }),
+      ]}
       <FormGrid.Row>
         <label>{_('recipeSshKeyLabel')}</label>
         <input
