@@ -8,7 +8,7 @@
     :value-formatter="customValueFormatter"
   >
     <template #summary>
-      <UiCardFooter :size="total.totalMemory" :usage="total.totalUsed" />
+      <UiCardFooter :size="currentData.size" :usage="currentData.usage" />
     </template>
   </LinearChart>
 </template>
@@ -28,36 +28,26 @@ import { useI18n } from "vue-i18n";
 import { formatSize, getHostMemory } from "@/libs/utils";
 import type { XenApiHost } from "@/libs/xen-api";
 
+const { allRecords: hosts } = storeToRefs(useHostStore());
 const { t } = useI18n();
 
 const hostLastWeekStats =
   inject<FetchedStats<XenApiHost, HostStats>>("hostLastWeekStats");
 
-const total = computed(() => {
-  let totalMemory = 0,
-    totalFree = 0;
-
-  hostLastWeekStats?.stats?.value.forEach(({ stats }) => {
-    if (!stats) {
-      return;
-    }
-
-    totalMemory += stats.memory.reduce((total, memory) => total + memory, 0);
-
-    totalFree += stats.memoryFree.reduce(
-      (totalFree, memoryFree) => totalFree + memoryFree,
-      0
-    );
-  });
-
-  return { totalMemory, totalFree, totalUsed: totalMemory - totalFree };
-});
-
-const { allRecords: hosts } = storeToRefs(useHostStore());
-
 const customMaxValue = computed(() =>
   sumBy(hosts.value, (host) => getHostMemory(host)?.size ?? 0)
 );
+
+const currentData = computed(() => {
+  let size = 0,
+    usage = 0;
+  hosts.value.forEach((host) => {
+    const hostMemory = getHostMemory(host);
+    size += hostMemory?.size ?? 0;
+    usage += hostMemory?.usage ?? 0;
+  });
+  return { size, usage };
+});
 
 const data = computed<LinearChartData>(() => {
   if (
