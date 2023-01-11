@@ -19,6 +19,10 @@ defineProps<{
 </script>
 
 <style lang="postcss" scoped>
+.actions {
+  margin-left: auto;
+}
+
 .title-bar {
   display: flex;
   align-items: center;
