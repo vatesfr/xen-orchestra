@@ -159,7 +159,7 @@ export default decorate([
           />
         </FormGrid.Row>,
         [...Array(+value.nbNodes)].map((v, i) => {
-          const workerIpAddress = 'workerIpAddress' + (i + 1)
+          const workerIpAddress = `workerIpAddress${i + 1}`
           return (
             <FormGrid.Row key={i}>
               <label>{_('recipeWorkerIpAddress', { i: i + 1 })}</label>
