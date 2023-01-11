@@ -10769,6 +10769,13 @@ http-server-plus@^0.12.0:
   dependencies:
     promise-toolbox "^0.21.0"
 
+http-server-plus@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/http-server-plus/-/http-server-plus-1.0.0.tgz#cb7adc1ca3e679e8728286a6c9b5b1bd012ccbfd"
+  integrity sha512-7+rIueA7QHj7C9OIDD+2S8hdv8wH3V2CJjih00rF/d2CXMuBcUed4tmp1APxNVpjwblz4RHezHFocq7PSiqJ5A==
+  dependencies:
+    promise-toolbox "^0.21.0"
+
 http-signature@~1.2.0:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/http-signature/-/http-signature-1.2.0.tgz#9aecd925114772f3d95b65a60abb8f7c18fbace1"
