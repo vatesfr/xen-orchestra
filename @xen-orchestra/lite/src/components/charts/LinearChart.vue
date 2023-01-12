@@ -85,7 +85,7 @@ const option = computed<EChartsOption>(() => ({
 
 <style lang="postcss" scoped>
 .chart {
-  width: 50rem;
+  width: 100%;
   height: 30rem;
 }
 </style>
