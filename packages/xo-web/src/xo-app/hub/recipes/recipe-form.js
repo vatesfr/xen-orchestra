@@ -158,23 +158,20 @@ export default decorate([
             value={value.gatewayIpAddress}
           />
         </FormGrid.Row>,
-        [...Array(+value.nbNodes)].map((v, i) => {
-          const workerIpAddress = `workerIpAddress${i + 1}`
-          return (
-            <FormGrid.Row key={v}>
-              <label>{_('recipeWorkerIpAddress', { i: i + 1 })}</label>
-              <input
-                className='form-control'
-                name={workerIpAddress}
-                onChange={effects.onChangeValue}
-                placeholder={formatMessage(messages.recipeWorkerIpAddress, { i: i + 1 })}
-                required
-                type='text'
-                value={value.workerIpAddress}
-              />
-            </FormGrid.Row>
-          )
-        }),
+        [...Array(+value.nbNodes)].map((v, i) => (
+          <FormGrid.Row key={v}>
+            <label>{_('recipeWorkerIpAddress', { i: i + 1 })}</label>
+            <input
+              className='form-control'
+              name={`workerIpAddress.${i}`}
+              onChange={effects.onChangeValue}
+              placeholder={formatMessage(messages.recipeWorkerIpAddress, { i: i + 1 })}
+              required
+              type='text'
+              value={value.workerIpAddress[i]}
+            />
+          </FormGrid.Row>
+        )),
       ]}
       <FormGrid.Row>
         <label>{_('recipeSshKeyLabel')}</label>
