@@ -673,9 +673,17 @@ class Vm {
     )
 
     if (destroyNobakVdis) {
-      await asyncMap(await listNobakVbds(this, await this.getField('VM', ref, 'VBDs')), vbd =>
-        this.VDI_destroy(vbd.VDI)
-      )
+      await asyncMap(await listNobakVbds(this, await this.getField('VM', ref, 'VBDs')), async vbd => {
+        try {
+          await this.VDI_destroy(vbd.VDI)
+        } catch (error) {
+          warn('VM_snapshot, failed to destroy snapshot NOBAK VDI', {
+            vdiRef: vbd.VDI,
+            vmRef,
+            vmSnapshotRef: ref,
+          })
+        }
+      })
     }
 
     return ref
