@@ -42,6 +42,17 @@ export default decorate([
           [name]: value,
         })
       },
+      onChangeWorkerIp(__, ip) {
+        const { name, value } = ip.target
+        const { onChange, value: prevValue } = this.props
+        const workerNodeIpAddresses = prevValue.workerNodeIpAddresses ?? []
+
+        workerNodeIpAddresses[name.split('.')[1]] = value
+        onChange({
+          ...prevValue,
+          workerNodeIpAddresses,
+        })
+      },
       toggleStaticIpAddress(__, sip) {
         const { name } = sip.target
         const { onChange, value: prevValue } = this.props
@@ -163,12 +174,12 @@ export default decorate([
             <label>{_('recipeWorkerIpAddress', { i: i + 1 })}</label>
             <input
               className='form-control'
-              name={`workerIpAddress.${i}`}
-              onChange={effects.onChangeValue}
+              name={`workerNodeIpAddress.${i}`}
+              onChange={effects.onChangeWorkerIp}
               placeholder={formatMessage(messages.recipeWorkerIpAddress, { i: i + 1 })}
               required
               type='text'
-              value={value.workerIpAddress?.[i] ?? ''}
+              value={value[`workerNodeIpAddress.${i}`]}
             />
           </FormGrid.Row>
         )),

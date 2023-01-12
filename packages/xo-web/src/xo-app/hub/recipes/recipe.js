@@ -60,7 +60,7 @@ export default decorate([
           networkMask,
           sr,
           sshKey,
-          workerIpAddress,
+          workerNodeIpAddresses,
         } = recipeParams
 
         markRecipeAsCreating(RECIPE_INFO.id)
@@ -73,7 +73,7 @@ export default decorate([
           networkMask,
           sr: sr.id,
           sshKey,
-          workerNodeIpAddresses: Object.values(workerIpAddress),
+          workerNodeIpAddresses,
         })
         markRecipeAsDone(RECIPE_INFO.id)
 
