@@ -60,16 +60,8 @@ export default decorate([
           networkMask,
           sr,
           sshKey,
-          staticIpAddress,
+          workerIpAddress,
         } = recipeParams
-
-        let workerNodeIpAddresses
-        if (staticIpAddress) {
-          workerNodeIpAddresses = []
-          for (let i = 0; i < nbNodes; i++) {
-            workerNodeIpAddresses[i] = recipeParams[`workerIpAddress${i + 1}`]
-          }
-        }
 
         markRecipeAsCreating(RECIPE_INFO.id)
         const tag = await createKubernetesCluster({
@@ -81,7 +73,7 @@ export default decorate([
           networkMask,
           sr: sr.id,
           sshKey,
-          workerNodeIpAddresses: Object.values(recipeParams.workerIpAddress),
+          workerNodeIpAddresses: Object.values(workerIpAddress),
         })
         markRecipeAsDone(RECIPE_INFO.id)
 

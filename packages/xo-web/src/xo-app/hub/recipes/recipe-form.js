@@ -168,7 +168,7 @@ export default decorate([
               placeholder={formatMessage(messages.recipeWorkerIpAddress, { i: i + 1 })}
               required
               type='text'
-              value={value.workerIpAddress[i]}
+              value={value.workerIpAddress?.[i] ?? ''}
             />
           </FormGrid.Row>
         )),
