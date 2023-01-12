@@ -133,7 +133,7 @@ exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(Ab
     }
   }
 
-  async _transfer({ timestamp, deltaExport, sizeContainers }) {
+  async _transfer({ timestamp, deltaExport }) {
     const adapter = this._adapter
     const backup = this._backup
 
@@ -171,7 +171,7 @@ exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(Ab
       vmSnapshot: this._backup.exportedVm,
     }
 
-    const transferSize = await Task.run({ name: 'transfer' }, async () => {
+    const { size } = await Task.run({ name: 'transfer' }, async () => {
       let transferSize = 0
       await Promise.all(
         map(deltaExport.vdis, async (vdi, id) => {
@@ -240,9 +240,9 @@ exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(Ab
           })
         })
       )
-      return transferSize
+      return { size: transferSize }
     })
-    metadataContent.size = transferSize
+    metadataContent.size = size
     this._metadataFileName = await adapter.writeVmBackupMetadata(vm.uuid, metadataContent)
 
     // TODO: run cleanup?
