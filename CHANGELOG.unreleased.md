@@ -31,6 +31,7 @@
 <!--packages-start-->
 
 - @xen-orchestra/backups patch
+- @xen-orchestra/xapi patch
 - vhd-lib patch
 - xo-server patch
 

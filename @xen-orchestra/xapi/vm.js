@@ -215,24 +215,12 @@ class Vm {
     }
   }
 
-  async checkpoint($defer, vmRef, { cancelToken = CancelToken.none, ignoreNobakVdis = false, name_label } = {}) {
+  // does not support NOBAK VDIs because unplugging or destroying VBDs/VDIs on
+  // a suspended VM is not supported
+  async checkpoint($defer, vmRef, { cancelToken = CancelToken.none, name_label } = {}) {
     const vm = await this.getRecord('VM', vmRef)
 
     await this._httpHook(vm, '/sync')
-
-    let destroyNobakVdis = false
-
-    if (ignoreNobakVdis) {
-      if (vm.power_state === 'Halted') {
-        await asyncMap(await listNobakVbds(this, vm.VBDs), async vbd => {
-          await this.VBD_destroy(vbd.$ref)
-          $defer.call(this, 'VBD_create', vbd)
-        })
-      } else {
-        // cannot unplug VBDs on Running, Paused and Suspended VMs
-        destroyNobakVdis = true
-      }
-    }
 
     if (name_label === undefined) {
       name_label = vm.name_label
@@ -254,12 +242,6 @@ class Vm {
         { code: 'LICENSE_RESTRICTION' },
         noop
       )
-
-      if (destroyNobakVdis) {
-        await asyncMap(await listNobakVbds(this, await this.getField('VM', ref, 'VBDs')), vbd =>
-          this.VDI_destroy(vbd.VDI)
-        )
-      }
 
       return ref
     } catch (error) {
