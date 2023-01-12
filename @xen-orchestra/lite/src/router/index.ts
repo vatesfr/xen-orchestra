@@ -1,16 +1,25 @@
-import { createRouter, createWebHashHistory } from "vue-router";
 import pool from "@/router/pool";
 import HomeView from "@/views/HomeView.vue";
-import PageNotFoundView from "@/views/PageNotFoundView.vue";
 import HostDashboardView from "@/views/host/HostDashboardView.vue";
 import HostRootView from "@/views/host/HostRootView.vue";
+import PageNotFoundView from "@/views/PageNotFoundView.vue";
 import SettingsView from "@/views/settings/SettingsView.vue";
+import StoryView from "@/views/StoryView.vue";
 import VmConsoleView from "@/views/vm/VmConsoleView.vue";
 import VmRootView from "@/views/vm/VmRootView.vue";
+import storiesRoutes from "virtual:stories";
+import { createRouter, createWebHashHistory } from "vue-router";
 
 const router = createRouter({
   history: createWebHashHistory(),
   routes: [
+    {
+      path: "/story",
+      name: "story",
+      component: StoryView,
+      children: storiesRoutes,
+      meta: { hasStoryNav: true },
+    },
     {
       path: "/",
       name: "home",
@@ -51,5 +60,13 @@ const router = createRouter({
     },
   ],
 });
+
+if (import.meta.env.DEV) {
+  router.addRoute("story", {
+    path: "",
+    name: "story-home",
+    component: () => import("@/views/story/HomeView.vue"),
+  });
+}
 
 export default router;
