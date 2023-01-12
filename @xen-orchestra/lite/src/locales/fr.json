@@ -53,6 +53,7 @@
   "property": "Propriété",
   "ram-usage": "Utilisation de la RAM",
   "reboot": "Redémarrer",
+  "reformat": "Reformater",
   "relative-time": {
     "day": "1 jour | {n} jours",
     "future": "Dans {str}",
@@ -65,6 +66,7 @@
     "year": "1 an | {n} ans"
   },
   "resume": "Reprendre",
+  "save": "Enregistrer",
   "send-us-feedback": "Envoyez-nous vos commentaires",
   "settings": "Paramètres",
   "shutdown": "Arrêter",
