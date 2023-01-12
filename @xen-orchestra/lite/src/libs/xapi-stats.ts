@@ -302,6 +302,13 @@ export type XapiStatsResponse<T> = {
 
 export default class XapiStats {
   #xapi;
+  #timestampByHost: Record<
+    string,
+    {
+      expires: number;
+      timestamp: number;
+    }
+  > = {};
   #statsByObject: {
     [uuid: string]: {
       [step: string]: XapiStatsResponse<HostStats | any>;
@@ -365,7 +372,16 @@ export default class XapiStats {
         `Unknown granularity: '${granularity}'. Use 'seconds', 'minutes', 'hours', or 'days'.`
       );
     }
-    const currentTimeStamp = await this.#xapi.getHostServertime(host);
+
+    if (
+      (this.#timestampByHost[host.uuid]?.expires ?? 0) < new Date().getTime()
+    ) {
+      this.#timestampByHost[host.uuid] = {
+        expires: new Date().getTime() + RRD_STEP.Seconds * 1000,
+        timestamp: await this.#xapi.getHostServertime(host),
+      };
+    }
+    const currentTimeStamp = this.#timestampByHost[host.uuid].timestamp;
 
     const stats = this.#getCachedStats(uuid, step, currentTimeStamp);
     if (stats !== undefined) {
