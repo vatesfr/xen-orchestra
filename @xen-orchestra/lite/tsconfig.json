@@ -1,6 +1,7 @@
 {
   "extends": "@vue/tsconfig/tsconfig.web.json",
   "include": ["env.d.ts", "src/**/*", "src/**/*.vue"],
+  "exclude": ["src/stories/**/*"],
   "compilerOptions": {
     "experimentalDecorators": true,
     "lib": ["ES2019", "ES2020.Intl", "dom"],
