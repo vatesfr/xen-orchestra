@@ -25,7 +25,7 @@ function highlight(str: string, lang: string) {
     case "vue-style":
       return wrap(str.trim(), "style");
     default: {
-      if (HLJS.getLanguage(lang)) {
+      if (HLJS.getLanguage(lang) !== undefined) {
         return copyable(HLJS.highlight(str, { language: lang }).value);
       }
 
