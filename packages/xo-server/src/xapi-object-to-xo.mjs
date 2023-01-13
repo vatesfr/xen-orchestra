@@ -201,7 +201,9 @@ const TRANSFORMS = {
       memory: (function () {
         if (metrics) {
           const free = +metrics.memory_free
-          const total = +metrics.memory_total
+          let total = +metrics.memory_total
+          const ONE_GIB = 1024 * 1024 * 1024
+          total = Math.ceil(total / ONE_GIB) * ONE_GIB
 
           return {
             usage: total - free,
