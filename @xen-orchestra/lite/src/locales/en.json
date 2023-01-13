@@ -81,6 +81,13 @@
   "suspend": "Suspend",
   "switch-theme": "Switch theme",
   "system": "System",
+  "task": {
+    "estimated-end": "Estimated end",
+    "name": "Name",
+    "object": "Object",
+    "progress": "Progress",
+    "started": "Started"
+  },
   "tasks": "Tasks",
   "theme-auto": "Auto",
   "theme-dark": "Dark",
