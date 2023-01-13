@@ -26,6 +26,26 @@
   "export": "Exporter",
   "export-table-to": "Exporter le tableau en {type}",
   "export-vms": "Exporter les VMs",
+  "filter": {
+    "comparison": {
+      "contains": "contient",
+      "does": "",
+      "does-not": "ne",
+      "ends-with": "termine par",
+      "equals": "est égal à",
+      "is": "est",
+      "is-false": "est faux",
+      "is-not": "n'est pas",
+      "is-true": "est vrai",
+      "matches-regex": "correspond à la regex",
+      "not-contain": "ne contient pas",
+      "not-end-with": "ne termine pas par",
+      "not-equal": "n'est pas égal à",
+      "not-match-regex": "ne correspond pas à la regex",
+      "not-start-with": "ne commence pas par",
+      "starts-with": "commence par"
+    }
+  },
   "following-hosts-unreachable": "Les hôtes suivants sont inaccessibles",
   "force-reboot": "Forcer le redémarrage",
   "force-shutdown": "Forcer l'arrêt",
@@ -101,5 +121,10 @@
   "unreachable-hosts": "Hôtes inaccessibles",
   "unreachable-hosts-reload-page": "C'est fait. Rafraîchir la page",
   "version": "Version",
+  "vm": {
+    "description": "Description",
+    "name": "Nom",
+    "power-state": "État d'alimentation"
+  },
   "vms": "VMs"
 }
