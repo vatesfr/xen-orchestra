@@ -38,6 +38,11 @@ code * {
   color: var(--color-extra-blue-d20);
 }
 
-.link:active {
+.link:active,
+.link.router-link-active {
   color: var(--color-extra-blue-d40);
+}
+
+.link.router-link-active {
+  text-decoration: underline;
 }
