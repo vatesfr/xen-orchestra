@@ -33,8 +33,17 @@ const props = defineProps<{
   maxValue?: number;
 }>();
 
-const valueFormatter = (value: OptionDataValue | OptionDataValue[]) =>
-  props.valueFormatter?.(value as number) ?? `${value}`;
+const valueFormatter = computed(() => {
+  const formatter = props.valueFormatter;
+
+  return (value: OptionDataValue | OptionDataValue[]) => {
+    if (formatter) {
+      return formatter(value as number);
+    }
+
+    return value.toString();
+  };
+});
 
 provide("valueFormatter", valueFormatter);
 
@@ -56,7 +65,7 @@ const option = computed<EChartsOption>(() => ({
     data: props.data.map((series) => series.label),
   },
   tooltip: {
-    valueFormatter,
+    valueFormatter: valueFormatter.value,
   },
   xAxis: {
     type: "time",
@@ -70,9 +79,9 @@ const option = computed<EChartsOption>(() => ({
   yAxis: {
     type: "value",
     axisLabel: {
-      formatter: valueFormatter,
+      formatter: valueFormatter.value,
     },
-    max: () => props.maxValue ?? Y_AXIS_MAX_VALUE,
+    max: props.maxValue ?? Y_AXIS_MAX_VALUE,
   },
   series: props.data.map((series, index) => ({
     type: "line",
