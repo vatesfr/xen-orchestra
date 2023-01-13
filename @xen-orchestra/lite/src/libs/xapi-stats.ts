@@ -373,11 +373,10 @@ export default class XapiStats {
       );
     }
 
-    if (
-      (this.#timestampByHost[host.uuid]?.expires ?? 0) < new Date().getTime()
-    ) {
+    const now = new Date().getTime();
+    if ((this.#timestampByHost[host.uuid]?.expires ?? 0) < now) {
       this.#timestampByHost[host.uuid] = {
-        expires: new Date().getTime() + RRD_STEP.Seconds * 1000,
+        expires: now + RRD_STEP.Seconds * 1000,
         timestamp: await this.#xapi.getHostServertime(host),
       };
     }
