@@ -1,6 +1,6 @@
 'use strict'
 
-const { LEVELS, NAMES } = require('../levels')
+const { LEVELS, NAMES } = require('../_levels')
 
 const { DEBUG, ERROR, FATAL, INFO, WARN } = LEVELS
 
