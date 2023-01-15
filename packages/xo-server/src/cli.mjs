@@ -3,7 +3,7 @@
 import * as SourceMapSupport from 'source-map-support'
 import Bluebird from 'bluebird'
 import execPromise from 'exec-promise'
-import { catchGlobalErrors } from '@xen-orchestra/log/configure.js'
+import { catchGlobalErrors } from '@xen-orchestra/log/configure'
 import { createCachedLookup } from '@vates/cached-dns.lookup'
 import { createLogger } from '@xen-orchestra/log'
 

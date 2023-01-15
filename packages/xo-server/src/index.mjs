@@ -47,8 +47,8 @@ import passport from 'passport'
 import { parse as parseCookies } from 'cookie'
 import { Strategy as LocalStrategy } from 'passport-local'
 
-import transportConsole from '@xen-orchestra/log/transports/console.js'
-import { configure } from '@xen-orchestra/log/configure.js'
+import transportConsole from '@xen-orchestra/log/transports/console'
+import { configure } from '@xen-orchestra/log/configure'
 import { generateToken } from './utils.mjs'
 
 // ===================================================================

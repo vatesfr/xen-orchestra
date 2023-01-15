@@ -1,5 +1,5 @@
-import transportConsole from '@xen-orchestra/log/transports/console.js'
-import { configure } from '@xen-orchestra/log/configure.js'
+import transportConsole from '@xen-orchestra/log/transports/console'
+import { configure } from '@xen-orchestra/log/configure'
 
 export default class Logs {
   constructor(app) {

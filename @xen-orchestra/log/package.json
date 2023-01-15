@@ -32,5 +32,12 @@
   },
   "devDependencies": {
     "test": "^3.2.1"
+  },
+  "exports": {
+    ".": "./index.js",
+    "./_*": null,
+    "./.*": null,
+    "./*": "./*.js",
+    "./index": null
   }
 }

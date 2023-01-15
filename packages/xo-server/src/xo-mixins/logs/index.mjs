@@ -1,4 +1,4 @@
-import { configure } from '@xen-orchestra/log/configure.js'
+import { configure } from '@xen-orchestra/log/configure'
 import { defer, fromEvent } from 'promise-toolbox'
 
 import LevelDbLogger from './loggers/leveldb.mjs'
