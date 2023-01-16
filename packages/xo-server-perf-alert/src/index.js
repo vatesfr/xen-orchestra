@@ -1,7 +1,10 @@
 import JSON5 from 'json5'
 import { createSchedule } from '@xen-orchestra/cron'
+import { createLogger } from '@xen-orchestra/log'
 import { filter, forOwn, map, mean } from 'lodash'
 import { utcParse } from 'd3-time-format'
+
+const logger = createLogger('xo:xo-server-perf-alert')
 
 const XAPI_TO_XENCENTER = {
   cpuUsage: 'cpu_usage',
@@ -524,7 +527,7 @@ ${monitorBodies.join('\n')}`
 
                 return result
               } catch (error) {
-                console.warn('xo-server-perf-alert:', error)
+                logger.warn(error)
                 return {
                   uuid,
                   object: null,
