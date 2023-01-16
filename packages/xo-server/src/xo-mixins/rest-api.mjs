@@ -99,16 +99,20 @@ export default class RestApi {
       const isCorrectType = _ => _.type === type
 
       subRouter(api, '/' + id)
-        .get('/', async (req, res) => {
-          const { query } = req
-          sendObjects(
-            await app.getObjects({
-              filter: every(isCorrectType, handleOptionalUserFilter(query.filter)),
-              limit: ifDef(query.limit, Number),
-            }),
-            req,
-            res
-          )
+        .get('/', async (req, res, next) => {
+          try {
+            const { query } = req
+            sendObjects(
+              await app.getObjects({
+                filter: every(isCorrectType, handleOptionalUserFilter(query.filter)),
+                limit: ifDef(query.limit, Number),
+              }),
+              req,
+              res
+            )
+          } catch (error) {
+            next(error)
+          }
         })
         .get('/:id', async (req, res, next) => {
           try {
