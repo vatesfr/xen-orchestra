@@ -133,7 +133,7 @@ exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(Ab
     }
   }
 
-  async _transfer({ timestamp, deltaExport, sizeContainers }) {
+  async _transfer({ timestamp, deltaExport }) {
     const adapter = this._adapter
     const backup = this._backup
 
@@ -172,6 +172,7 @@ exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(Ab
     }
 
     const { size } = await Task.run({ name: 'transfer' }, async () => {
+      let transferSize = 0
       await Promise.all(
         map(deltaExport.vdis, async (vdi, id) => {
           const path = `${this._vmBackupDir}/${vhds[id]}`
@@ -217,7 +218,8 @@ exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(Ab
           } else {
             debug('useNbd is disabled', { vdi: id, path })
           }
-          await adapter.writeVhd(path, deltaExport.streams[`${id}.vhd`], {
+
+          transferSize += await adapter.writeVhd(path, deltaExport.streams[`${id}.vhd`], {
             // no checksum for VHDs, because they will be invalidated by
             // merges and chainings
             checksum: false,
@@ -238,9 +240,7 @@ exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(Ab
           })
         })
       )
-      return {
-        size: Object.values(sizeContainers).reduce((sum, { size }) => sum + size, 0),
-      }
+      return { size: transferSize }
     })
     metadataContent.size = size
     this._metadataFileName = await adapter.writeVmBackupMetadata(vm.uuid, metadataContent)
