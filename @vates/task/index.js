@@ -129,6 +129,8 @@ exports.Task = class Task {
       this.#emit('end', { status: ABORTED, result })
       return true
     }
+
+    return false;
   }
 
   async run(fn) {
