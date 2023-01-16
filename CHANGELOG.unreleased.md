@@ -36,7 +36,5 @@
 - vhd-lib patch
 - xo-server minor
 - xo-server-perf-alert patch
-- xo-vmdk-to-vhd minor
-- xo-web minor
 
 <!--packages-end-->
