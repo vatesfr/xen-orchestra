@@ -42,8 +42,8 @@ export default decorate([
           [name]: value,
         })
       },
-      onChangeWorkerIp(__, ip) {
-        const { name, value } = ip.target
+      onChangeWorkerIp(__, ev) {
+        const { name, value } = ev.target
         const { onChange, value: prevValue } = this.props
         const workerNodeIpAddresses = prevValue.workerNodeIpAddresses ?? []
 
@@ -53,12 +53,12 @@ export default decorate([
           workerNodeIpAddresses,
         })
       },
-      toggleStaticIpAddress(__, sip) {
-        const { name } = sip.target
+      toggleStaticIpAddress(__, ev) {
+        const { name } = ev.target
         const { onChange, value: prevValue } = this.props
         onChange({
           ...prevValue,
-          [name]: sip.target.checked,
+          [name]: ev.target.checked,
         })
       },
     },
