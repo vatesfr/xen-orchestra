@@ -530,7 +530,6 @@ ${monitorBodies.join('\n')}`
                   object: null,
                   objectLink: `cannot find object ${uuid}`,
                   listItem: `  * ${uuid}: **Can't read performance counters**\n`,
-                  error,
                 }
               }
             }
