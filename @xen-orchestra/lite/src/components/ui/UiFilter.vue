@@ -4,7 +4,7 @@
       <slot />
     </span>
     <span class="remove" @click.stop="emit('remove')">
-      <UiIcon :icon="faRemove" class="icon" />
+      <UiIcon :icon="faRemove" />
     </span>
   </span>
 </template>
