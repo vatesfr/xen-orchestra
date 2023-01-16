@@ -224,6 +224,7 @@ const TRANSFORMS = {
       patches: link(obj, 'patches'),
       powerOnMode: obj.power_on_mode,
       power_state: metrics ? (isRunning ? 'Running' : 'Halted') : 'Unknown',
+      residentVms: link(obj, 'resident_VMs'),
       startTime: toTimestamp(otherConfig.boot_time),
       supplementalPacks:
         supplementalPacks ||
