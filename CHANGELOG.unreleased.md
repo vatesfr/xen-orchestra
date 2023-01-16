@@ -38,5 +38,6 @@
 - @xen-orchestra/xapi patch
 - vhd-lib patch
 - xo-server minor
+- xo-server-perf-alert patch
 
 <!--packages-end-->
