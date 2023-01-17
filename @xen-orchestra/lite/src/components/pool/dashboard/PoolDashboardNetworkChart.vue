@@ -46,8 +46,8 @@ const data = computed<LinearChartData>(() => {
       const timestamp =
         (timestampStart + hourIndex * RRD_STEP_FROM_STRING.hours) * 1000;
 
-      const networkThroughtput = networkStats.reduce(
-        (total, throughtput) => total + throughtput[hourIndex],
+      const networkThroughput = networkStats.reduce(
+        (total, throughput) => total + throughput[hourIndex],
         0
       );
 
