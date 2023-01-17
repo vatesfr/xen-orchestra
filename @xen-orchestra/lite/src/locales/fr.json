@@ -41,7 +41,7 @@
   "login": "Connexion",
   "migrate": "Migrer",
   "network": "Réseau",
-  "network-throughtput": "Débit du réseau",
+  "network-throughput": "Débit du réseau",
   "news": "Actualités",
   "news-name": "Actualités {name}",
   "object-not-found": "L'objet {id} est introuvable…",
