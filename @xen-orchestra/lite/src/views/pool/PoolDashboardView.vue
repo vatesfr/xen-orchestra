@@ -1,10 +1,20 @@
 <template>
-  <div class="pool-dashboard-view card-view">
-    <PoolDashboardStatus class="item" />
-    <PoolDashboardStorageUsage class="item" />
-    <PoolDashboardCpuUsage class="item" />
-    <PoolDashboardRamUsage class="item" />
-    <PoolCpuUsageChart class="item" />
+  <div class="pool-dashboard-view">
+    <div class="item">
+      <PoolDashboardStatus />
+    </div>
+    <div class="item">
+      <PoolDashboardStorageUsage />
+    </div>
+    <div class="item">
+      <PoolDashboardCpuUsage />
+    </div>
+    <div class="item">
+      <PoolDashboardRamUsage />
+    </div>
+    <div class="item">
+      <PoolCpuUsageChart />
+    </div>
   </div>
 </template>
 
@@ -89,7 +99,32 @@ onMounted(() => {
 </script>
 
 <style lang="postcss" scoped>
+.pool-dashboard-view {
+  column-gap: 0;
+  position: relative;
+}
+
+@media (min-width: 768px) {
+  .pool-dashboard-view {
+    column-count: 2;
+  }
+}
+
+@media (min-width: 1500px) {
+  .pool-dashboard-view {
+    column-count: 3;
+  }
+}
+
 .item {
-  min-width: 37rem;
+  margin: 0;
+  padding: 0.5rem;
+}
+
+@media (min-width: 768px) {
+  .item {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
 }
 </style>
