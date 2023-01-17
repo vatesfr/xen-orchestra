@@ -36,8 +36,10 @@ const data = computed<LinearChartData>(() => {
 
   const timestampStart = hostLastWeekStats.timestampStart.value;
 
-  const rxResult = new Map<number, { timestamp: number; value: number }>();
-  const txResult = new Map<number, { timestamp: number; value: number }>();
+  const results = {
+    tx: new Map<number, { timestamp: number; value: number }>(),
+    rx: new Map<number, { timestamp: number; value: number }>(),
+  };
 
   const addResult = (stats: HostStats, type: "tx" | "rx") => {
     const networkStats = Object.values(stats.pifs[type]);
