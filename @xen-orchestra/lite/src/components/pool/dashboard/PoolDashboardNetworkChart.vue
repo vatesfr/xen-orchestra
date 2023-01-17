@@ -40,10 +40,7 @@ const data = computed<LinearChartData>(() => {
   const txResult = new Map<number, { timestamp: number; value: number }>();
 
   const addResult = (stats: HostStats, type: "tx" | "rx") => {
-    const isRxPif = type === "rx";
-    const networkStats = Object.values(isRxPif ? stats.pifs.rx : stats.pifs.tx);
-
-    const resultMap = isRxPif ? rxResult : txResult;
+    const networkStats = Object.values(stats.pifs[type]);
 
     for (let hourIndex = 0; hourIndex < networkStats[0].length; hourIndex++) {
       const timestamp =
