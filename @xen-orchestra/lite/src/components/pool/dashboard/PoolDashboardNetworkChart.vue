@@ -4,7 +4,7 @@
     :data="data"
     :max-value="customMaxValue"
     :subtitle="$t('last-week')"
-    :title="$t('network-throughtput')"
+    :title="$t('network-throughput')"
     :value-formatter="customValueFormatter"
   />
 </template>
