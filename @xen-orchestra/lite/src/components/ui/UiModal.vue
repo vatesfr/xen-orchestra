@@ -33,12 +33,12 @@
 </template>
 
 <script lang="ts" setup>
-import { computed } from "vue";
+import UiButtonGroup from "@/components/ui/UiButtonGroup.vue";
+import UiTitle from "@/components/ui/UiTitle.vue";
 import type { IconDefinition } from "@fortawesome/fontawesome-common-types";
 import { faXmark } from "@fortawesome/free-solid-svg-icons";
 import { useMagicKeys, whenever } from "@vueuse/core";
-import UiButtonGroup from "@/components/ui/UiButtonGroup.vue";
-import UiTitle from "@/components/ui/UiTitle.vue";
+import { computed } from "vue";
 
 const props = withDefaults(
   defineProps<{
@@ -64,11 +64,13 @@ const className = computed(() => {
 <style lang="postcss" scoped>
 .ui-modal {
   position: fixed;
+  z-index: 2;
   top: 0;
   right: 0;
   bottom: 0;
   left: 0;
   display: flex;
+  overflow: auto;
   align-items: center;
   justify-content: center;
   background-color: #00000080;
@@ -142,6 +144,9 @@ const className = computed(() => {
 }
 
 .content {
+  overflow: auto;
+  min-height: 23rem;
+  max-height: calc(100vh - 40rem);
   margin-top: 2rem;
 }
 
