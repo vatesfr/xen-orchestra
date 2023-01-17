@@ -8,7 +8,7 @@
 - Display RAM usage in pool dashboard (PR [#6419](https://github.com/vatesfr/xen-orchestra/pull/6419))
 - Implement not found page (PR [#6410](https://github.com/vatesfr/xen-orchestra/pull/6410))
 - Display CPU usage chart in pool dashboard (PR [#6577](https://github.com/vatesfr/xen-orchestra/pull/6577))
-- Ability to change state of a VM (PRs [#6571](https://github.com/vatesfr/xen-orchestra/pull/6571) [#6608](https://github.com/vatesfr/xen-orchestra/pull/6608))
+- Ability to change the state of a VM (PRs [#6571](https://github.com/vatesfr/xen-orchestra/pull/6571) [#6608](https://github.com/vatesfr/xen-orchestra/pull/6608))
 
 ## **0.1.0**
 

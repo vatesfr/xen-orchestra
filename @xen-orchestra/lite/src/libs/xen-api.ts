@@ -309,13 +309,6 @@ export default class XenApi {
       }) =>
         Promise.all(
           vmsRefAndPowerState.map(({ ref, powerState }) => {
-            if (powerState !== "Suspended" && powerState !== "Paused") {
-              console.error("VM.resume: Invalid vm power_state", {
-                $ref: ref,
-                power_state: powerState,
-              });
-              return;
-            }
             const isSuspended = powerState === "Suspended";
             return this._call(
               `VM.${isSuspended ? "resume" : "unpause"}`,
@@ -323,13 +316,25 @@ export default class XenApi {
             );
           })
         ),
-      reboot: ({ vmsRef, force }: { vmsRef: string[]; force: boolean }) =>
+      reboot: ({
+        vmsRef,
+        force = false,
+      }: {
+        vmsRef: string[];
+        force?: boolean;
+      }) =>
         Promise.all(
           vmsRef.map((vmRef) =>
             this._call(`VM.${force ? "hard" : "clean"}_reboot`, [vmRef])
           )
         ),
-      shutdown: ({ vmsRef, force }: { vmsRef: string[]; force: boolean }) =>
+      shutdown: ({
+        vmsRef,
+        force = false,
+      }: {
+        vmsRef: string[];
+        force?: boolean;
+      }) =>
         Promise.all(
           vmsRef.map((vmRef) =>
             this._call(`VM.${force ? "hard" : "clean"}_shutdown`, [vmRef])
