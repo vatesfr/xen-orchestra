@@ -39,7 +39,7 @@ const data = computed<LinearChartData>(() => {
   const rxResult = new Map<number, { timestamp: number; value: number }>();
   const txResult = new Map<number, { timestamp: number; value: number }>();
 
-  const addResult = (stats: HostStats, type: string) => {
+  const addResult = (stats: HostStats, type: "tx" | "rx") => {
     const isRxPif = type === "rx";
     const networkStats = Object.values(isRxPif ? stats.pifs.rx : stats.pifs.tx);
 
