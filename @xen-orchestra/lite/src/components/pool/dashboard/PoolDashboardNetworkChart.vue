@@ -72,11 +72,11 @@ const data = computed<LinearChartData>(() => {
   return [
     {
       label: t("upload"),
-      data: Array.from(txResult.values()),
+      data: Array.from(results["tx"].values()),
     },
     {
       label: t("download"),
-      data: Array.from(rxResult.values()),
+      data: Array.from(results["rx"].values()),
     },
   ];
 });
