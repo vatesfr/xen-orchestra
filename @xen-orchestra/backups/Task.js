@@ -100,7 +100,7 @@ class Task {
    * In case of error, the task will be failed.
    *
    * @typedef Result
-   * @param {() => Result)} fn
+   * @param {() => Result} fn
    * @param {boolean} last - Whether the task should succeed if there is no error
    * @returns Result
    */
