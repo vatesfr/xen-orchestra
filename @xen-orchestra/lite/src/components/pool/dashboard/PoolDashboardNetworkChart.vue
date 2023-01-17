@@ -51,9 +51,9 @@ const data = computed<LinearChartData>(() => {
         0
       );
 
-      resultMap.set(timestamp, {
+      results[type].set(timestamp, {
         timestamp: timestamp,
-        value: (resultMap.get(timestamp)?.value ?? 0) + networkThroughtput,
+        value: (results[type].get(timestamp)?.value ?? 0) + networkThroughput,
       });
     }
   };
