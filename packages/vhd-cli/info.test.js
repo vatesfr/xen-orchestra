@@ -1,6 +1,6 @@
 'use strict'
 
-/* eslint-env jest */
+const { beforeEach, afterEach, test } = require('test')
 
 const execa = require('execa')
 const rimraf = require('rimraf')
@@ -10,8 +10,6 @@ const { pFromCallback } = require('promise-toolbox')
 const command = require('./commands/info')
 
 const initialDir = process.cwd()
-
-jest.setTimeout(10000)
 
 beforeEach(async () => {
   const dir = await pFromCallback(cb => tmp.dir(cb))
