@@ -182,7 +182,20 @@ export async function upload(args) {
   // FIXME: do not use private properties.
   const baseUrl = xo._url.replace(/^ws/, 'http')
 
-  const result = await xo.call(method, params)
+  const result = await xo.call(method, params).catch(error => {
+    if (!(error != null && error.code === 10 && 'errors' in error.data)) {
+      throw error
+    }
+
+    const lines = [error.message]
+    const { errors } = error.data
+    errors.forEach(error => {
+      let { instancePath } = error
+      instancePath = instancePath.length === 0 ? '@' : '@.' + instancePath
+      lines.push(`  property ${instancePath}: ${error.message}`)
+    })
+    throw lines.join('\n')
+  })
   let keys, key, url
   if (isObject(result) && (keys = getKeys(result)).length === 1) {
     key = keys[0]

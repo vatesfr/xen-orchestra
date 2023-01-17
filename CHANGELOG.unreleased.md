@@ -35,6 +35,7 @@
 
 - @xen-orchestra/backups patch
 - @xen-orchestra/log minor
+- @xen-orchestra/upload-ova patch
 - @xen-orchestra/xapi patch
 - vhd-lib patch
 - xo-server minor
