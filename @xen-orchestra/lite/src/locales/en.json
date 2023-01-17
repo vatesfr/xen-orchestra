@@ -41,7 +41,7 @@
   "login": "Login",
   "migrate": "Migrate",
   "network": "Network",
-  "network-throughtput": "Network throughtput",
+  "network-throughput": "Network throughput",
   "news": "News",
   "news-name": "{name} news",
   "object-not-found": "Object {id} can't be found…",
