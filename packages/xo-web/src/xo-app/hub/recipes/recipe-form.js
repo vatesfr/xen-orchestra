@@ -121,8 +121,6 @@ export default decorate([
       </FormGrid.Row>
       <FormGrid.Row>
         <label>
-          {_('recipeStaticIpAddresses')}
-          &nbsp;
           <input
             className='mt-1'
             name='staticIpAddress'
@@ -130,6 +128,8 @@ export default decorate([
             type='checkbox'
             value={value.staticIpAddress}
           />
+          &nbsp;
+          {_('recipeStaticIpAddresses')}
         </label>
       </FormGrid.Row>
       {value.staticIpAddress && [
