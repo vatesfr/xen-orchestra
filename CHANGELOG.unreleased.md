@@ -8,7 +8,7 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [REST API] Expose `residentVms` property on hosts objects
-- [VM/Advanced] Clarify *Windows Update* label [#6632](https://github.com/vatesfr/xen-orchestra/issues/6632)
+- [VM/Advanced] Clarify *Windows Update* label [#6628](https://github.com/vatesfr/xen-orchestra/issues/6628) (PR [#6632](https://github.com/vatesfr/xen-orchestra/pull/6632))
 
 ### Bug fixes
 
