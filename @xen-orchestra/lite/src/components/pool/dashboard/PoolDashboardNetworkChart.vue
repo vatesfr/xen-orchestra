@@ -89,5 +89,5 @@ const customMaxValue = computed(
     ) * 1.5
 );
 
-const customValueFormatter = (value: number) => `${formatSize(value)}`;
+const customValueFormatter = (value: number) => String(formatSize(value));
 </script>
