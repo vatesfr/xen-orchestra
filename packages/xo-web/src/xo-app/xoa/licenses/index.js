@@ -375,9 +375,9 @@ export default class Licenses extends Component {
         <Row>
           <Col>
             <h2>{_('xcpNg')}</h2>
-            <div className='text-info'>
+            <Link to='home?t=pool' className='text-info'>
               <Icon icon='info' /> <i>{_('xcpngLicensesBindingAvancedView')}</i>
-            </div>
+            </Link>
           </Col>
         </Row>
       </Container>
