@@ -79,6 +79,7 @@ export default class Esxi extends EventEmitter {
       highWaterMark: 10 * 1024 * 1024,
     })
     if (res.status < 200 || res.status >= 300) {
+      console.log({res})
       const error = new Error(res.status + ' ' + res.statusText + ' ' + url)
       error.cause = res
       throw error
@@ -234,6 +235,7 @@ export default class Esxi extends EventEmitter {
     const vmsd = await (await this.download(dataStore, vmxPath.replace('.vmx', '.vmsd'))).text()
     let snapshots
     if(vmsd){
+      console.log(vmsd)
       snapshots = parseVmsd(vmsd)
 
       for (const snapshotIndex in snapshots?.snapshots) {

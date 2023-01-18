@@ -108,7 +108,7 @@ export default class MigrateVm {
     if (targets.length > 1) {
       throw new Error(`Multiple target of warm migration found for ${sourceVmId} on SR ${srId} `)
     }
-    
+
     const targetVm = app.getXapiObject(targets[0])
 
     // new vm is ready to start
@@ -229,7 +229,7 @@ export default class MigrateVm {
         // if the VM is running we'll transfer everything before the last , which is an active disk
         //  the esxi api does not allow us to read an active disk
         // later we'll stop the VM and transfer this snapshot
-        const nbColdDisks  = isRunning ? chainByNode.length -1 : chainByNode.length
+        const nbColdDisks  = 1// isRunning ? chainByNode.length -1 : chainByNode.length
         console.log('will transfer', nbColdDisks, isRunning)
         for (let diskIndex = 0; diskIndex < nbColdDisks; diskIndex ++ ) {
           // the first one  is a RAW disk ( full )
@@ -252,7 +252,7 @@ export default class MigrateVm {
 
         const stream =vhd.stream()
         console.log('will import active disk ', stream.length)
-        await vdi.$importContent( stream(), { format:VDI_FORMAT_VHD })
+        await vdi.$importContent( stream, { format:VDI_FORMAT_VHD })
         return {vdi ,vhd}
       }
       )
