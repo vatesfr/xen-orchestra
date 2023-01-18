@@ -696,7 +696,9 @@ export default class TabDisks extends Component {
             <SortedTable
               actions={this.actions}
               collection={this._getVbds()}
-              columns={vm.virtualizationMode === 'pv'|| vm.virtualizationMode === 'pv_in_pvh'? COLUMNS_VM_PV : COLUMNS}
+              columns={
+                vm.virtualizationMode === 'pv' || vm.virtualizationMode === 'pv_in_pvh' ? COLUMNS_VM_PV : COLUMNS
+              }
               data-resourceSet={resolvedResourceSet}
               data-vm={vm}
               individualActions={INDIVIDUAL_ACTIONS}
