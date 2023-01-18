@@ -149,6 +149,20 @@ export default class RestApi {
       }
     })
 
+    api.delete('/vdi:subtype(|-snapshot)s/:uuid', async (req, res, next) => {
+      try {
+        const { subtype, uuid } = req.params
+        const vdi = app.getXapiObject(uuid, 'VDI' + subtype)
+        await vdi.$destroy()
+        res.sendStatus(200)
+      } catch (error) {
+        if (noSuchObject.is(error)) {
+          next()
+        } else {
+          next(error)
+        }
+      }
+    })
     api.get('/vdi:subtype(|-snapshot)s/:uuid.vhd', async (req, res, next) => {
       try {
         const { subtype, uuid } = req.params
@@ -168,6 +182,20 @@ export default class RestApi {
       }
     })
 
+    api.delete('/vm:subtype(|-snapshot|-template)s/:uuid', async (req, res, next) => {
+      try {
+        const { subtype, uuid } = req.params
+        const vm = app.getXapiObject(uuid, 'VM' + subtype)
+        await vm.$destroy()
+        res.sendStatus(200)
+      } catch (error) {
+        if (noSuchObject.is(error)) {
+          next()
+        } else {
+          next(error)
+        }
+      }
+    })
     api.get('/vm:subtype(|-snapshot|-template)s/:uuid.xva', async (req, res, next) => {
       try {
         const { subtype, uuid } = req.params
