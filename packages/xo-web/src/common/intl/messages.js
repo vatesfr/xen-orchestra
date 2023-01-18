@@ -914,8 +914,8 @@ const messages = {
 
   // ----- Host item ------
   host: 'Host',
-  noMoreMaintained: 'This host version is no longer maintained',
   hostNoSupport: 'No XCP-ng Pro support enabled on this host',
+  noMoreMaintained: 'This host version is no longer maintained',
 
   // ----- Host actions ------
   disableMaintenanceMode: 'Disable maintenance mode',
