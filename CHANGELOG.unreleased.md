@@ -41,5 +41,6 @@
 - vhd-lib patch
 - xo-server minor
 - xo-server-perf-alert patch
+- xo-web patch
 
 <!--packages-end-->
