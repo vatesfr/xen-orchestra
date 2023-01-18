@@ -27,14 +27,12 @@ const hostLastWeekStats =
   inject<FetchedStats<XenApiHost, HostStats>>("hostLastWeekStats");
 
 const data = computed<LinearChartData>(() => {
-  if (
-    hostLastWeekStats?.timestampStart?.value === undefined ||
-    hostLastWeekStats.stats?.value === undefined
-  ) {
+  const stats = hostLastWeekStats?.stats?.value;
+  const timestampStart = hostLastWeekStats?.timestampStart?.value;
+
+  if (timestampStart === undefined || stats === undefined) {
     return [];
   }
-
-  const timestampStart = hostLastWeekStats.timestampStart.value;
 
   const results = {
     tx: new Map<number, { timestamp: number; value: number }>(),
@@ -60,7 +58,7 @@ const data = computed<LinearChartData>(() => {
     }
   };
 
-  hostLastWeekStats.stats.value.forEach((host) => {
+  stats.forEach((host) => {
     if (!host.stats) {
       return;
     }
@@ -81,6 +79,8 @@ const data = computed<LinearChartData>(() => {
   ];
 });
 
+// TODO: improve the way to get the max value of graph
+// See: https://github.com/vatesfr/xen-orchestra/pull/6610/files#r1072237279
 const customMaxValue = computed(
   () =>
     Math.max(
