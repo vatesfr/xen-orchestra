@@ -113,6 +113,7 @@ const messages = {
   editCustomField: 'Edit custom field',
   deleteCustomField: 'Delete custom field',
   onlyAvailableXoaUsers: 'Only available to XOA users',
+  xcpNg: 'XCP-ng',
 
   // ----- Modals -----
   alertOk: 'OK',
