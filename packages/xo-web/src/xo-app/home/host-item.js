@@ -29,6 +29,7 @@ import {
   createGetObjectsOfType,
   createSelector,
 } from 'selectors'
+import { injectState } from 'reaclette'
 
 import MiniStats from './mini-stats'
 import styles from './index.css'
@@ -48,8 +49,9 @@ import { LICENSE_WARNING_BODY } from '../host/license-warning'
       hostId => obj => obj.$container === hostId
     )
   ),
-  state: createGetHostState((_, props) => props.item),
+  hostState: createGetHostState((_, props) => props.item),
 }))
+@injectState
 export default class HostItem extends Component {
   get _isRunning() {
     const host = this.props.item
@@ -75,6 +77,7 @@ export default class HostItem extends Component {
   _stop = () => stopHost(this.props.item)
   _toggleExpanded = () => this.setState({ expanded: !this.state.expanded })
   _onSelect = () => this.props.onSelect(this.props.item.id)
+  _getLicense = () => this.props.state.xcpngLicenseByBoundObjectId[this.props.item.id]
 
   _getAlerts = createSelector(
     () => this.props.needsRestart,
@@ -131,8 +134,8 @@ export default class HostItem extends Component {
   )
 
   render() {
-    const { container, expandAll, item: host, nVms, selected, state } = this.props
-
+    const { container, expandAll, item: host, nVms, selected, hostState: state } = this.props
+    const license = this._getLicense()
     return (
       <div className={styles.item}>
         <BlockLink to={`/hosts/${host.id}`}>
@@ -167,6 +170,31 @@ export default class HostItem extends Component {
                 )}
                 &nbsp;
                 <BulkIcons alerts={this._getAlerts()} />
+                {/* {this.props.needsRestart && (
+                  <Tooltip content={_('rebootUpdateHostLabel')}>
+                    <Link to={`/hosts/${host.id}/patches`}>
+                      <Icon icon='alarm' />
+                    </Link>
+                  </Tooltip>
+                )}
+                &nbsp;
+                {!this._isMaintained() && (
+                  <Tooltip content={_('noMoreMaintained')}>
+                    <Icon className='text-warning' icon='alarm' />
+                  </Tooltip>
+                )}
+                &nbsp;
+                <InconsistentHostTimeWarning host={host} />
+                &nbsp;
+                {hasLicenseRestrictions(host) && <LicenseWarning />}
+                &nbsp;
+                {(license === undefined || license.expires < Date.now()) && (
+                  <Tooltip content={_('hostNoSupport')}>
+                    <a href='https://xcp-ng.com' rel='noreferrer noopener' target='_blank'>
+                      <Icon icon='alarm' className='text-danger' />
+                    </a>
+                  </Tooltip>
+                )} */}
               </EllipsisContainer>
             </Col>
             <Col mediumSize={3} className='hidden-lg-down'>

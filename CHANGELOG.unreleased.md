@@ -7,6 +7,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [License] Show alert icon on unlicensed host
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -34,5 +36,6 @@
 - @xen-orchestra/vmware-explorer patch
 - @xen-orchestra/backups minor
 - xo-server minor
+- xo-web minor
 
 <!--packages-end-->
