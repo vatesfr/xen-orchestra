@@ -1098,7 +1098,7 @@ const messages = {
   hardwareVirtualizedMode: 'Hardware virtualization (HVM)',
   hvmModeWithPvDriversEnabled: 'Hardware virtualization with paravirtualization drivers enabled (PVHVM)',
   pvInPvhMode: 'PV inside a PVH container (PV in PVH)',
-  windowsUpdateTools: 'Windows Update tools',
+  windowsUpdateTools: 'Manage Citrix PV drivers via Windows Update',
 
   // ----- VM stat tab -----
   statsCpu: 'CPU usage',
