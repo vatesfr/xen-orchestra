@@ -17,7 +17,6 @@
   "community-name": "Communauté {name}",
   "copy": "Copier",
   "cpu-usage": "Utilisation CPU",
-  "download": "Téléchargement",  
   "theme-dark": "Sombre",
   "theme-light": "Clair",
   "theme-auto": "Auto",
@@ -41,7 +40,9 @@
   "login": "Connexion",
   "migrate": "Migrer",
   "network": "Réseau",
+  "network-download": "Descendant",
   "network-throughput": "Débit du réseau",
+  "network-upload":  "Montant",  
   "news": "Actualités",
   "news-name": "Actualités {name}",
   "object-not-found": "L'objet {id} est introuvable…",
@@ -76,7 +77,6 @@
   "total-used": "Total utilisé",
   "unreachable-hosts": "Hôtes inaccessibles",
   "unreachable-hosts-reload-page": "C'est fait. Rafraîchir la page",
-  "upload": "Chargement",
   "version": "Version",
   "vms": "VMs"
 }
