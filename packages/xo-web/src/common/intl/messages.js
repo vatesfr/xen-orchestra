@@ -1328,6 +1328,7 @@ const messages = {
   resourceSet: 'Resource set',
   resourceSetNone: 'None',
   suspendSr: 'Suspend SR',
+  viridian: 'viridian',
   vmCpuLimitsLabel: 'CPU limits',
   vmCpuTopology: 'Topology',
   vmChooseCoresPerSocket: 'Default behavior',
