@@ -52,7 +52,7 @@ const data = computed<LinearChartData>(() => {
       );
 
       results[type].set(timestamp, {
-        timestamp: timestamp,
+        timestamp,
         value: (results[type].get(timestamp)?.value ?? 0) + networkThroughput,
       });
     }
