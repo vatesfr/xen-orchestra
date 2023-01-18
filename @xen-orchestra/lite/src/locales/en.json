@@ -4,7 +4,7 @@
   "add-or": "+OR",
   "add-sort": "Add sort",
   "alarms": "Alarms",
-  "allow-self-signed-ssl": "You may need to allow self-signed SSL certificates in your browser",
+  "allow-self-signed-ssl":"You may need to allow self-signed SSL certificates in your browser",
   "appearance": "Appearance",
   "ascending": "ascending",
   "available-properties-for-advanced-filter": "Available properties for advanced filter:",
