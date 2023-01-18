@@ -323,9 +323,6 @@ export default class Licenses extends Component {
 
     return (
       <Container>
-        <Row className='text-info mb-1'>
-          <Icon icon='info' /> <i>{_('xcpngLicensesBindingAvancedView')}</i>
-        </Row>
         <Row className='mb-1'>
           <Col>
             <a
@@ -373,6 +370,14 @@ export default class Licenses extends Component {
           <Col>
             <h2>{_('proxies')}</h2>
             <Proxies proxyLicenses={this.state.licenses.proxy} updateLicenses={this._updateLicenses} />
+          </Col>
+        </Row>
+        <Row>
+          <Col>
+            <h2>{_('xcpNg')}</h2>
+            <div className='text-info'>
+              <Icon icon='info' /> <i>{_('xcpngLicensesBindingAvancedView')}</i>
+            </div>
           </Col>
         </Row>
       </Container>
