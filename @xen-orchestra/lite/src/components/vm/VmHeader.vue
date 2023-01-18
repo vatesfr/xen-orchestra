@@ -152,7 +152,8 @@ const poolStore = usePoolStore();
 const { currentRoute } = useRouter();
 
 const hasOperation = (operation: string) =>
-  Object.values(vm.value.current_operations).includes(operation);
+  operations.value.includes(operation);
+const operations = computed(() => Object.values(vm.value.current_operations));
 
 const vm = computed(
   () => vmStore.getRecordByUuid(currentRoute.value.params.uuid as string)!
