@@ -34,14 +34,12 @@ const customMaxValue = computed(
 );
 
 const data = computed<LinearChartData>(() => {
-  if (
-    hostLastWeekStats?.timestampStart?.value === undefined ||
-    hostLastWeekStats.stats?.value === undefined
-  ) {
+  const timestampStart = hostLastWeekStats?.timestampStart?.value;
+  const stats = hostLastWeekStats?.stats?.value;
+
+  if (timestampStart === undefined || stats === undefined) {
     return [];
   }
-
-  const timestampStart = hostLastWeekStats.timestampStart.value;
 
   const result = new Map<number, { timestamp: number; value: number }>();
 
@@ -64,7 +62,7 @@ const data = computed<LinearChartData>(() => {
     }
   };
 
-  hostLastWeekStats.stats.value.forEach((host) => {
+  stats.forEach((host) => {
     if (!host.stats) {
       return;
     }
