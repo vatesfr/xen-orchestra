@@ -8,14 +8,14 @@
     :value-formatter="customValueFormatter"
   >
     <template #summary>
-      <UiCardFooter :size="currentData.size" :usage="currentData.usage" />
+      <SizeStatsSummary :size="currentData.size" :usage="currentData.usage" />
     </template>
   </LinearChart>
 </template>
 
 <script lang="ts" setup>
 import LinearChart from "@/components/charts/LinearChart.vue";
-import UiCardFooter from "@/components/ui/UiCardFooter.vue";
+import SizeStatsSummary from "@/components/ui/SizeStatsSummary.vue";
 import type { FetchedStats } from "@/composables/fetch-stats.composable";
 import type { HostStats } from "@/libs/xapi-stats";
 import { RRD_STEP_FROM_STRING } from "@/libs/xapi-stats";
@@ -50,40 +50,34 @@ const currentData = computed(() => {
 });
 
 const data = computed<LinearChartData>(() => {
-  if (
-    hostLastWeekStats?.timestampStart?.value === undefined ||
-    hostLastWeekStats.stats?.value === undefined
-  ) {
+  const timestampStart = hostLastWeekStats?.timestampStart?.value;
+  const stats = hostLastWeekStats?.stats?.value;
+
+  if (timestampStart === undefined || stats === undefined) {
     return [];
   }
 
-  const timestampStart = hostLastWeekStats.timestampStart.value;
-
   const result = new Map<number, { timestamp: number; value: number }>();
 
-  const addResult = (stats: HostStats) => {
+  stats.forEach(({ stats }) => {
+    if (stats === undefined) {
+      return;
+    }
+
     const memoryFree = stats.memoryFree;
     const memoryUsage = stats.memory.map(
       (memory, index) => memory - memoryFree[index]
     );
 
-    for (let hourIndex = 0; hourIndex < memoryUsage.length; hourIndex++) {
+    memoryUsage.forEach((value, hourIndex) => {
       const timestamp =
         (timestampStart + hourIndex * RRD_STEP_FROM_STRING.hours) * 1000;
 
       result.set(timestamp, {
-        timestamp: timestamp,
+        timestamp,
         value: (result.get(timestamp)?.value ?? 0) + memoryUsage[hourIndex],
       });
-    }
-  };
-
-  hostLastWeekStats.stats.value.forEach((host) => {
-    if (!host.stats) {
-      return;
-    }
-
-    addResult(host.stats);
+    });
   });
 
   return [
@@ -94,5 +88,5 @@ const data = computed<LinearChartData>(() => {
   ];
 });
 
-const customValueFormatter = (value: number) => `${formatSize(value)}`;
+const customValueFormatter = (value: number) => String(formatSize(value));
 </script>

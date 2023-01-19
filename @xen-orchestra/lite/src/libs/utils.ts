@@ -124,7 +124,8 @@ export function getHostMemory(host: XenApiHost) {
       usage: total - +metrics.memory_free,
       size: total,
     };
-  } catch (_) {
+  } catch (error) {
+    console.error("getHostMemory function:", error);
     return undefined;
   }
 }

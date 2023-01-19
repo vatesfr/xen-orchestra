@@ -1,17 +1,17 @@
 <template>
-  <div class="footer" v-if="showFooter">
-    <div class="footer-card">
+  <div class="summary" v-if="isDisplayed">
+    <div class="summary-card">
       <p>{{ $t("total-used") }}:</p>
-      <div class="footer-value">
+      <div class="summary-value">
         <p>{{ percentUsed }}%</p>
         <p>
           {{ formatSize(usage) }}
         </p>
       </div>
     </div>
-    <div class="footer-card">
+    <div class="summary-card">
       <p>{{ $t("total-free") }}:</p>
-      <div class="footer-value">
+      <div class="summary-value">
         <p>{{ percentFree }}%</p>
         <p>
           {{ formatSize(free) }}
@@ -32,12 +32,12 @@ const free = computed(() => props.size - props.usage);
 const percentFree = computed(() => percent(free.value, props.size));
 const percentUsed = computed(() => percent(props.usage, props.size));
 
-const showFooter = computed(
+const isDisplayed = computed(
   () => !isNaN(percentUsed.value) && !isNaN(percentFree.value)
 );
 </script>
 <style lang="postcss" scoped>
-.footer {
+.summary {
   display: flex;
   justify-content: space-between;
   font-weight: 700;
@@ -45,17 +45,17 @@ const showFooter = computed(
   color: var(--color-blue-scale-300);
 }
 
-.footer-card {
+.summary-card {
   color: var(--color-blue-scale-200);
   display: flex;
   text-transform: uppercase;
 }
 
-.footer-card p {
+.summary-card p {
   font-weight: 700;
 }
 
-.footer-value {
+.summary-value {
   display: flex;
   flex-direction: column;
   text-align: right;

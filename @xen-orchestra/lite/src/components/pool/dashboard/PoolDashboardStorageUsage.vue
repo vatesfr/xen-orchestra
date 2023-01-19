@@ -9,7 +9,7 @@
       :nItems="N_ITEMS"
     >
       <template #footer>
-        <UiCardFooter :size="data.maxSize" :usage="data.usedSize" />
+        <SizeStatsSummary :size="data.maxSize" :usage="data.usedSize" />
       </template>
     </UsageBar>
   </UiCard>
@@ -18,9 +18,9 @@
 <script lang="ts" setup>
 import UiCardTitle from "@/components/ui/UiCardTitle.vue";
 import { computed } from "vue";
+import SizeStatsSummary from "@/components/ui/SizeStatsSummary.vue";
 import UsageBar from "@/components/UsageBar.vue";
 import UiCard from "@/components/ui/UiCard.vue";
-import UiCardFooter from "@/components/ui/UiCardFooter.vue";
 import { useSrStore } from "@/stores/storage.store";
 import { N_ITEMS } from "@/views/pool/PoolDashboardView.vue";
 
