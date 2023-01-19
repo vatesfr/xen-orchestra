@@ -1,4 +1,4 @@
-import { computed, onUnmounted, ref } from "vue";
+import { computed, onUnmounted, ref, type ComputedRef } from "vue";
 import { type Pausable, promiseTimeout, useTimeoutPoll } from "@vueuse/core";
 import {
   type GRANULARITY,
@@ -21,6 +21,17 @@ export type Stat<T> = {
   name: string;
   stats?: T;
   pausable: Pausable;
+};
+
+export type FetchedStats<
+  T extends XenApiHost | XenApiVm,
+  S extends HostStats | VmStats
+> = {
+  register: (object: T) => void;
+  unregister: (object: T) => void;
+  stats?: ComputedRef<Stat<S>[]>;
+  timestampStart?: ComputedRef<number>;
+  timestampEnd?: ComputedRef<number>;
 };
 
 export default function useFetchStats<
