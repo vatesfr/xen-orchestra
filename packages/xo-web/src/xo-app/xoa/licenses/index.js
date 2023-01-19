@@ -29,18 +29,9 @@ const ProxyLicense = decorate([
   ({ license, proxy }) =>
     license.vmId === undefined ? (
       _('licenseNotBoundProxy')
-    ) : proxy !== undefined ? (
-      <span>
-        <Proxy id={proxy.id} link newTab />{' '}
-        <CopyToClipboard text={license.vmId}>
-          <Button size='small'>
-            <Icon icon='clipboard' />
-          </Button>
-        </CopyToClipboard>
-      </span>
     ) : (
       <span>
-        {_('licenseBoundUnknownProxy')}{' '}
+        {proxy !== undefined ? <Proxy id={proxy.id} link newTab /> : _('licenseBoundUnknownProxy')}{' '}
         <CopyToClipboard text={license.vmId}>
           <Button size='small'>
             <Icon icon='clipboard' />
@@ -61,23 +52,10 @@ const LicenseManager = ({ item, userData }) => {
     }
 
     const sr = userData.xosanSrs[srId]
-    if (sr === undefined) {
-      return (
-        <span>
-          {_('licenseBoundUnknownXosan')}{' '}
-          <CopyToClipboard text={srId}>
-            <Button size='small'>
-              <Icon icon='clipboard' />
-            </Button>
-          </CopyToClipboard>
-        </span>
-      )
-    }
-
     return (
       <span>
-        <Link to={`srs/${sr.id}`}>{renderXoItem(sr)}</Link>{' '}
-        <CopyToClipboard text={sr.id}>
+        {sr === undefined ? _('licenseBoundUnknownXosan') : <Link to={`srs/${sr.id}`}>{renderXoItem(sr)}</Link>}{' '}
+        <CopyToClipboard text={srId}>
           <Button size='small'>
             <Icon icon='clipboard' />
           </Button>
@@ -90,17 +68,21 @@ const LicenseManager = ({ item, userData }) => {
     const { id, xoaId, productId } = item
     const { selfLicenses } = userData
 
+    const copyToClipboard = (
+      <CopyToClipboard text={xoaId}>
+        <Button size='small'>
+          <Icon icon='clipboard' />
+        </Button>
+      </CopyToClipboard>
+    )
+
     if (Array.isArray(selfLicenses)) {
       if (selfLicenses.some(license => license.id === id)) {
         return (
           <span>
             {_('licenseBoundToThisXoa')}{' '}
             {productId2Plan[productId] !== CURRENT.value && <span className='text-muted'>({_('notInstalled')})</span>}{' '}
-            <CopyToClipboard text={xoaId}>
-              <Button size='small'>
-                <Icon icon='clipboard' />
-              </Button>
-            </CopyToClipboard>
+            {copyToClipboard}
           </span>
         )
       }
@@ -122,12 +104,7 @@ const LicenseManager = ({ item, userData }) => {
 
     return (
       <span>
-        {_('licenseBoundToOtherXoa')}{' '}
-        <CopyToClipboard text={xoaId}>
-          <Button size='small'>
-            <Icon icon='clipboard' />
-          </Button>
-        </CopyToClipboard>
+        {_('licenseBoundToOtherXoa')} {copyToClipboard}
         <br />
         <ActionButton
           btnStyle='danger'
