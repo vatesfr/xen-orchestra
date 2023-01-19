@@ -1,11 +1,13 @@
 import _ from 'intl'
 import ActionButton from 'action-button'
+import Button from 'button'
 import Component from 'base-component'
+import CopyToClipboard from 'react-copy-to-clipboard'
 import decorate from 'apply-decorators'
 import Icon from 'icon'
 import Link from 'link'
 import React from 'react'
-import renderXoItem, { Proxy } from 'render-xo-item'
+import renderXoItem, { Host, Proxy } from 'render-xo-item'
 import SortedTable from 'sorted-table'
 import { addSubscriptions, adminOnly, connectStore, ShortDate } from 'utils'
 import { CURRENT, productId2Plan, getXoaPlan } from 'xoa-plans'
@@ -28,9 +30,23 @@ const ProxyLicense = decorate([
     license.vmId === undefined ? (
       _('licenseNotBoundProxy')
     ) : proxy !== undefined ? (
-      <Proxy id={proxy.id} link newTab />
+      <span>
+        <Proxy id={proxy.id} link newTab />{' '}
+        <CopyToClipboard text={license.vmId}>
+          <Button size='small'>
+            <Icon icon='clipboard' />
+          </Button>
+        </CopyToClipboard>
+      </span>
     ) : (
-      _('licenseBoundUnknownProxy')
+      <span>
+        {_('licenseBoundUnknownProxy')}{' '}
+        <CopyToClipboard text={license.vmId}>
+          <Button size='small'>
+            <Icon icon='clipboard' />
+          </Button>
+        </CopyToClipboard>
+      </span>
     ),
 ])
 
@@ -46,10 +62,28 @@ const LicenseManager = ({ item, userData }) => {
 
     const sr = userData.xosanSrs[srId]
     if (sr === undefined) {
-      return _('licenseBoundUnknownXosan')
+      return (
+        <span>
+          {_('licenseBoundUnknownXosan')}{' '}
+          <CopyToClipboard text={srId}>
+            <Button size='small'>
+              <Icon icon='clipboard' />
+            </Button>
+          </CopyToClipboard>
+        </span>
+      )
     }
 
-    return <Link to={`srs/${sr.id}`}>{renderXoItem(sr)}</Link>
+    return (
+      <span>
+        <Link to={`srs/${sr.id}`}>{renderXoItem(sr)}</Link>{' '}
+        <CopyToClipboard text={sr.id}>
+          <Button size='small'>
+            <Icon icon='clipboard' />
+          </Button>
+        </CopyToClipboard>
+      </span>
+    )
   }
 
   if (type === 'xoa') {
@@ -61,7 +95,12 @@ const LicenseManager = ({ item, userData }) => {
         return (
           <span>
             {_('licenseBoundToThisXoa')}{' '}
-            {productId2Plan[productId] !== CURRENT.value && <span className='text-muted'>({_('notInstalled')})</span>}
+            {productId2Plan[productId] !== CURRENT.value && <span className='text-muted'>({_('notInstalled')})</span>}{' '}
+            <CopyToClipboard text={xoaId}>
+              <Button size='small'>
+                <Icon icon='clipboard' />
+              </Button>
+            </CopyToClipboard>
           </span>
         )
       }
@@ -83,7 +122,12 @@ const LicenseManager = ({ item, userData }) => {
 
     return (
       <span>
-        {_('licenseBoundToOtherXoa')}
+        {_('licenseBoundToOtherXoa')}{' '}
+        <CopyToClipboard text={xoaId}>
+          <Button size='small'>
+            <Icon icon='clipboard' />
+          </Button>
+        </CopyToClipboard>
         <br />
         <ActionButton
           btnStyle='danger'
@@ -103,6 +147,21 @@ const LicenseManager = ({ item, userData }) => {
     return <ProxyLicense license={item} />
   }
 
+  if (type === 'xcpng') {
+    if (item.hostId !== undefined) {
+      return (
+        <span>
+          <Host id={item.hostId} link newTab />{' '}
+          <CopyToClipboard text={item.hostId}>
+            <Button size='small'>
+              <Icon icon='clipboard' />
+            </Button>
+          </CopyToClipboard>
+        </span>
+      )
+    }
+  }
+
   console.warn('encountered unsupported license type')
   return null
 }
@@ -114,7 +173,12 @@ const PRODUCTS_COLUMNS = [
     name: _('licenseProduct'),
     itemRenderer: ({ product, id }) => (
       <span>
-        {product} <span className='text-muted'>({id.slice(-4)})</span>
+        {product} <span className='text-muted'>({id.slice(-4)})</span>{' '}
+        <CopyToClipboard text={id}>
+          <Button size='small'>
+            <Icon icon='clipboard' />
+          </Button>
+        </CopyToClipboard>
       </span>
     ),
     sortCriteria: ({ product, id }) => product + id.slice(-4),
