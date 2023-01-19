@@ -39,20 +39,26 @@ import UiUnitProgressBar from "@/components/ui/UiUnitProgressBar.vue";
 import UiSpinner from "@/components/ui/UiSpinner.vue";
 import UiTitle from "@/components/ui/UiTitle.vue";
 import { faWarning } from "@fortawesome/free-solid-svg-icons";
-import { percent } from "@/libs/utils";
-import { usePoolStore } from "@/stores/pool.store";
+import { isHostRunning, percent } from "@/libs/utils";
+import { useHostStore } from "@/stores/host.store";
 import { useVmMetricsStore } from "@/stores/vm-metrics.store";
 import { useVmStore } from "@/stores/vm.store";
 
 const ACTIVE_STATES = new Set(["Running", "Paused"]);
 
-const { pool, isReady: poolStoreIsReady } = storeToRefs(usePoolStore());
+const { allRecords: hosts, isReady: hostStoreIsReady } = storeToRefs(
+  useHostStore()
+);
 const { allRecords: vms, isReady: vmStoreIsReady } = storeToRefs(useVmStore());
 const vmMetricsStore = useVmMetricsStore();
 
-// TODO: Do not use `cpu_count` from the `pool`.
-// filter out non running host
-const nPCpu = computed(() => +(pool.value?.cpu_info.cpu_count ?? 0));
+const nPCpu = computed(() =>
+  hosts.value.reduce(
+    (total, host) =>
+      isHostRunning(host) ? total + Number(host.cpu_info.cpu_count) : total,
+    0
+  )
+);
 const nVCpuInUse = computed(() =>
   vms.value.reduce(
     (total, vm) =>
@@ -68,7 +74,7 @@ const value = computed(() =>
 const maxValue = computed(() => Math.ceil(value.value / 100) * 100);
 const state = computed(() => (value.value > 100 ? "warning" : "ok"));
 const isReady = computed(
-  () => vmStoreIsReady.value && vmMetricsStore.isReady && poolStoreIsReady.value
+  () => vmStoreIsReady.value && vmMetricsStore.isReady && hostStoreIsReady.value
 );
 </script>
 
