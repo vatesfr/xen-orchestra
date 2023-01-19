@@ -22,6 +22,16 @@ import Xosan from './xosan'
 
 // -----------------------------------------------------------------------------
 
+const CopyToClipboardButton = ({ id }) => (
+  <CopyToClipboard text={id}>
+    <Button size='small'>
+      <Icon icon='clipboard' />
+    </Button>
+  </CopyToClipboard>
+)
+
+// -----------------------------------------------------------------------------
+
 const ProxyLicense = decorate([
   addSubscriptions(({ license }) => ({
     proxy: cb => subscribeProxies(proxies => cb(license.vmId && proxies.find(({ vmUuid }) => vmUuid === license.vmId))),
@@ -32,25 +42,13 @@ const ProxyLicense = decorate([
     ) : (
       <span>
         {proxy !== undefined ? <Proxy id={proxy.id} link newTab /> : _('licenseBoundUnknownProxy')}{' '}
-        <CopyToClipboard text={license.vmId}>
-          <Button size='small'>
-            <Icon icon='clipboard' />
-          </Button>
-        </CopyToClipboard>
+        <CopyToClipboardButton id={license.vmId} />
       </span>
     ),
 ])
 
 const LicenseManager = ({ item, userData }) => {
   const { type } = item
-
-  const copyToClipboard = boundObjectId => (
-    <CopyToClipboard text={boundObjectId}>
-      <Button size='small'>
-        <Icon icon='clipboard' />
-      </Button>
-    </CopyToClipboard>
-  )
 
   if (type === 'xosan') {
     const { srId } = item
@@ -63,7 +61,7 @@ const LicenseManager = ({ item, userData }) => {
     return (
       <span>
         {sr === undefined ? _('licenseBoundUnknownXosan') : <Link to={`srs/${sr.id}`}>{renderXoItem(sr)}</Link>}{' '}
-        {copyToClipboard(srId)}
+        <CopyToClipboardButton id={srId} />
       </span>
     )
   }
@@ -78,7 +76,7 @@ const LicenseManager = ({ item, userData }) => {
           <span>
             {_('licenseBoundToThisXoa')}{' '}
             {productId2Plan[productId] !== CURRENT.value && <span className='text-muted'>({_('notInstalled')})</span>}{' '}
-            {copyToClipboard(xoaId)}
+            <CopyToClipboardButton id={xoaId} />
           </span>
         )
       }
@@ -100,7 +98,7 @@ const LicenseManager = ({ item, userData }) => {
 
     return (
       <span>
-        {_('licenseBoundToOtherXoa')} {copyToClipboard(xoaId)}
+        {_('licenseBoundToOtherXoa')} <CopyToClipboardButton id={xoaId} />
         <br />
         <ActionButton
           btnStyle='danger'
@@ -124,7 +122,7 @@ const LicenseManager = ({ item, userData }) => {
     if (item.hostId !== undefined) {
       return (
         <span>
-          <Host id={item.hostId} link newTab /> {copyToClipboard(item.hostId)}
+          <Host id={item.hostId} link newTab /> <CopyToClipboardButton id={item.hostId} />
         </span>
       )
     }
@@ -141,12 +139,7 @@ const PRODUCTS_COLUMNS = [
     name: _('licenseProduct'),
     itemRenderer: ({ product, id }) => (
       <span>
-        {product} <span className='text-muted'>({id.slice(-4)})</span>{' '}
-        <CopyToClipboard text={id}>
-          <Button size='small'>
-            <Icon icon='clipboard' />
-          </Button>
-        </CopyToClipboard>
+        {product} <span className='text-muted'>({id.slice(-4)})</span> <CopyToClipboardButton id={id} />
       </span>
     ),
     sortCriteria: ({ product, id }) => product + id.slice(-4),
