@@ -22,8 +22,8 @@ import Xosan from './xosan'
 
 // -----------------------------------------------------------------------------
 
-const CopyToClipboardButton = ({ id }) => (
-  <CopyToClipboard text={id}>
+const CopyToClipboardButton = ({ value }) => (
+  <CopyToClipboard text={value}>
     <Button size='small'>
       <Icon icon='clipboard' />
     </Button>
@@ -42,7 +42,7 @@ const ProxyLicense = decorate([
     ) : (
       <span>
         {proxy !== undefined ? <Proxy id={proxy.id} link newTab /> : _('licenseBoundUnknownProxy')}{' '}
-        <CopyToClipboardButton id={license.vmId} />
+        <CopyToClipboardButton value={license.vmId} />
       </span>
     ),
 ])
@@ -61,7 +61,7 @@ const LicenseManager = ({ item, userData }) => {
     return (
       <span>
         {sr === undefined ? _('licenseBoundUnknownXosan') : <Link to={`srs/${sr.id}`}>{renderXoItem(sr)}</Link>}{' '}
-        <CopyToClipboardButton id={srId} />
+        <CopyToClipboardButton value={srId} />
       </span>
     )
   }
@@ -76,7 +76,7 @@ const LicenseManager = ({ item, userData }) => {
           <span>
             {_('licenseBoundToThisXoa')}{' '}
             {productId2Plan[productId] !== CURRENT.value && <span className='text-muted'>({_('notInstalled')})</span>}{' '}
-            <CopyToClipboardButton id={xoaId} />
+            <CopyToClipboardButton value={xoaId} />
           </span>
         )
       }
@@ -98,7 +98,7 @@ const LicenseManager = ({ item, userData }) => {
 
     return (
       <span>
-        {_('licenseBoundToOtherXoa')} <CopyToClipboardButton id={xoaId} />
+        {_('licenseBoundToOtherXoa')} <CopyToClipboardButton value={xoaId} />
         <br />
         <ActionButton
           btnStyle='danger'
@@ -122,7 +122,7 @@ const LicenseManager = ({ item, userData }) => {
     if (item.hostId !== undefined) {
       return (
         <span>
-          <Host id={item.hostId} link newTab /> <CopyToClipboardButton id={item.hostId} />
+          <Host id={item.hostId} link newTab /> <CopyToClipboardButton value={item.hostId} />
         </span>
       )
     }
@@ -139,7 +139,7 @@ const PRODUCTS_COLUMNS = [
     name: _('licenseProduct'),
     itemRenderer: ({ product, id }) => (
       <span>
-        {product} <span className='text-muted'>({id.slice(-4)})</span> <CopyToClipboardButton id={id} />
+        {product} <span className='text-muted'>({id.slice(-4)})</span> <CopyToClipboardButton value={id} />
       </span>
     ),
     sortCriteria: ({ product, id }) => product + id.slice(-4),
