@@ -69,7 +69,7 @@ const data = computed<LinearChartData>(() => {
 
   return [
     {
-      label: t("upload"),
+      label: t("network-upload"),
       data: Array.from(results["tx"].values()),
     },
     {
