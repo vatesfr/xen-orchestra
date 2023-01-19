@@ -44,6 +44,14 @@ const ProxyLicense = decorate([
 const LicenseManager = ({ item, userData }) => {
   const { type } = item
 
+  const copyToClipboard = boundObjectId => (
+    <CopyToClipboard text={boundObjectId}>
+      <Button size='small'>
+        <Icon icon='clipboard' />
+      </Button>
+    </CopyToClipboard>
+  )
+
   if (type === 'xosan') {
     const { srId } = item
 
@@ -55,11 +63,7 @@ const LicenseManager = ({ item, userData }) => {
     return (
       <span>
         {sr === undefined ? _('licenseBoundUnknownXosan') : <Link to={`srs/${sr.id}`}>{renderXoItem(sr)}</Link>}{' '}
-        <CopyToClipboard text={srId}>
-          <Button size='small'>
-            <Icon icon='clipboard' />
-          </Button>
-        </CopyToClipboard>
+        {copyToClipboard(srId)}
       </span>
     )
   }
@@ -68,21 +72,13 @@ const LicenseManager = ({ item, userData }) => {
     const { id, xoaId, productId } = item
     const { selfLicenses } = userData
 
-    const copyToClipboard = (
-      <CopyToClipboard text={xoaId}>
-        <Button size='small'>
-          <Icon icon='clipboard' />
-        </Button>
-      </CopyToClipboard>
-    )
-
     if (Array.isArray(selfLicenses)) {
       if (selfLicenses.some(license => license.id === id)) {
         return (
           <span>
             {_('licenseBoundToThisXoa')}{' '}
             {productId2Plan[productId] !== CURRENT.value && <span className='text-muted'>({_('notInstalled')})</span>}{' '}
-            {copyToClipboard}
+            {copyToClipboard(xoaId)}
           </span>
         )
       }
@@ -104,7 +100,7 @@ const LicenseManager = ({ item, userData }) => {
 
     return (
       <span>
-        {_('licenseBoundToOtherXoa')} {copyToClipboard}
+        {_('licenseBoundToOtherXoa')} {copyToClipboard(xoaId)}
         <br />
         <ActionButton
           btnStyle='danger'
@@ -128,12 +124,7 @@ const LicenseManager = ({ item, userData }) => {
     if (item.hostId !== undefined) {
       return (
         <span>
-          <Host id={item.hostId} link newTab />{' '}
-          <CopyToClipboard text={item.hostId}>
-            <Button size='small'>
-              <Icon icon='clipboard' />
-            </Button>
-          </CopyToClipboard>
+          <Host id={item.hostId} link newTab /> {copyToClipboard(item.hostId)}
         </span>
       )
     }
