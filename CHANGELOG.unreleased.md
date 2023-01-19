@@ -10,6 +10,7 @@
 - [REST API] Expose `residentVms` property on hosts objects
 - [VM/Advanced] Clarify *Windows Update* label [#6628](https://github.com/vatesfr/xen-orchestra/issues/6628) (PR [#6632](https://github.com/vatesfr/xen-orchestra/pull/6632))
 - [REST API] Add support to destroy VMs and VDIs
+- [VM/Advanced] Add configuration flag for *Viridian* platform [#6572](https://github.com/vatesfr/xen-orchestra/issues/6572) (PR [#6631](https://github.com/vatesfr/xen-orchestra/pull/6631))
 
 ### Bug fixes
 
