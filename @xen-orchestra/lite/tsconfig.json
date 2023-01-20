@@ -3,10 +3,7 @@
   "include": ["env.d.ts", "src/**/*", "src/**/*.vue"],
   "compilerOptions": {
     "experimentalDecorators": true,
-    "lib": [
-      "ES2019",
-      "dom"
-    ],
+    "lib": ["ES2019", "ES2020.Intl", "dom"],
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
