@@ -36,12 +36,14 @@
   "log-out": "Log out",
   "login": "Login",
   "migrate": "Migrate",
+  "name": "Name",
   "network": "Network",
   "network-download": "Download",
   "network-throughput": "Network throughput",
   "network-upload": "Upload",
   "news": "News",
   "news-name": "{name} news",
+  "object": "Object",
   "object-not-found": "Object {id} can't be found…",
   "or": "Or",
   "page-not-found": "This page is not to be found…",
@@ -83,8 +85,6 @@
   "system": "System",
   "task": {
     "estimated-end": "Estimated end",
-    "name": "Name",
-    "object": "Object",
     "progress": "Progress",
     "started": "Started"
   },

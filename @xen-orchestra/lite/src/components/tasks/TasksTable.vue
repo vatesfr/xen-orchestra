@@ -1,29 +1,25 @@
 <template>
   <UiTable class="tasks-table">
     <template #header>
-      <th>{{ $t("task.name") }}</th>
-      <th>{{ $t("task.object") }}</th>
+      <th>{{ $t("name") }}</th>
+      <th>{{ $t("object") }}</th>
       <th>{{ $t("task.progress") }}</th>
       <th>{{ $t("task.started") }}</th>
       <th>{{ $t("task.estimated-end") }}</th>
     </template>
 
-    <PendingTaskRow
+    <TaskRow
       v-for="task in pendingTasks"
       :key="task.uuid"
       :task="task"
+      is-pending
     />
-    <FinishedTaskRow
-      v-for="task in finishedTasks"
-      :key="task.uuid"
-      :task="task"
-    />
+    <TaskRow v-for="task in finishedTasks" :key="task.uuid" :task="task" />
   </UiTable>
 </template>
 
 <script lang="ts" setup>
-import FinishedTaskRow from "@/components/tasks/FinishedTaskRow.vue";
-import PendingTaskRow from "@/components/tasks/PendingTaskRow.vue";
+import TaskRow from "@/components/tasks/TaskRow.vue";
 import UiTable from "@/components/ui/UiTable.vue";
 import type { XenApiTask } from "@/libs/xen-api";
 

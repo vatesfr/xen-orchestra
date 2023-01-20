@@ -36,12 +36,14 @@
   "log-out": "Se déconnecter",
   "login": "Connexion",
   "migrate": "Migrer",
+  "name": "Nom",
   "network": "Réseau",
   "network-download": "Descendant",
   "network-throughput": "Débit du réseau",
   "network-upload": "Montant",
   "news": "Actualités",
   "news-name": "Actualités {name}",
+  "object": "Objet",
   "object-not-found": "L'objet {id} est introuvable…",
   "or": "Ou",
   "page-not-found": "Cette page est introuvable…",
@@ -83,8 +85,6 @@
   "system": "Système",
   "task": {
     "estimated-end": "Fin estimée",
-    "name": "Nom",
-    "object": "Objet",
     "progress": "Progression",
     "started": "Démarré"
   },
