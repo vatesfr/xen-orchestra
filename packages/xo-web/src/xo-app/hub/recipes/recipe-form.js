@@ -42,6 +42,16 @@ export default decorate([
           [name]: value,
         })
       },
+      onChangeWorkerNodeNumber(__, ev) {
+        const { name, value } = ev.target
+        const { onChange, value: prevValue } = this.props
+        value > 0
+          ? onChange({
+              ...prevValue,
+              [name]: value,
+            })
+          : window.alert(_('Incorrect value'))
+      },
       onChangeWorkerIp(__, ev) {
         const { name, value } = ev.target
         const { onChange, value: prevValue } = this.props
@@ -112,7 +122,7 @@ export default decorate([
           className='form-control'
           name='nbNodes'
           min='1'
-          onChange={effects.onChangeValue}
+          onChange={effects.onChangeWorkerNodeNumber}
           placeholder={formatMessage(messages.recipeNumberOfNodesLabel)}
           required
           type='number'
