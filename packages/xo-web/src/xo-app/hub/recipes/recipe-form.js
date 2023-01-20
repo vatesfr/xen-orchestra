@@ -50,7 +50,7 @@ export default decorate([
               ...prevValue,
               [name]: value,
             })
-          : window.alert(_('Incorrect value'))
+          : window.alert('Incorrect value')
       },
       onChangeWorkerIp(__, ev) {
         const { name, value } = ev.target
