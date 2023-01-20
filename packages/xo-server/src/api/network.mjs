@@ -120,3 +120,19 @@ delete_.params = {
 delete_.resolve = {
   network: ['id', 'network', 'administrate'],
 }
+
+// =================================================================
+
+export async function updatePurpose({ networkId, oldPurpose, newPurpose }) {
+  const xapi = this.getXapi(networkId)
+  const networkRef = this.getObject(networkId)._xapiRef
+
+  await xapi.call('network.remove_purpose', networkRef, oldPurpose)
+  await xapi.call('network.add_purpose', networkRef, newPurpose)
+}
+
+updatePurpose.params = {
+  networkId: { type: 'string' },
+  oldPurpose: { type: 'string' },
+  newPurpose: { type: 'string' },
+}
