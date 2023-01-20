@@ -4,34 +4,50 @@
     :data="data"
     :max-value="customMaxValue"
     :subtitle="$t('last-week')"
-    :title="$t('pool-cpu-usage')"
+    :title="$t('pool-ram-usage')"
     :value-formatter="customValueFormatter"
-  />
+  >
+    <template #summary>
+      <SizeStatsSummary :size="currentData.size" :usage="currentData.usage" />
+    </template>
+  </LinearChart>
 </template>
 
 <script lang="ts" setup>
 import LinearChart from "@/components/charts/LinearChart.vue";
-import type { HostStats } from "@/libs/xapi-stats";
+import SizeStatsSummary from "@/components/ui/SizeStatsSummary.vue";
 import type { FetchedStats } from "@/composables/fetch-stats.composable";
+import type { HostStats } from "@/libs/xapi-stats";
 import { RRD_STEP_FROM_STRING } from "@/libs/xapi-stats";
-import type { XenApiHost } from "@/libs/xen-api";
 import { useHostStore } from "@/stores/host.store";
 import type { LinearChartData } from "@/types/chart";
 import { sumBy } from "lodash-es";
 import { storeToRefs } from "pinia";
 import { computed, inject } from "vue";
 import { useI18n } from "vue-i18n";
+import { formatSize, getHostMemory } from "@/libs/utils";
+import type { XenApiHost } from "@/libs/xen-api";
 
+const { allRecords: hosts } = storeToRefs(useHostStore());
 const { t } = useI18n();
 
 const hostLastWeekStats =
   inject<FetchedStats<XenApiHost, HostStats>>("hostLastWeekStats");
 
-const { allRecords: hosts } = storeToRefs(useHostStore());
-
-const customMaxValue = computed(
-  () => 100 * sumBy(hosts.value, (host) => +host.cpu_info.cpu_count)
+const customMaxValue = computed(() =>
+  sumBy(hosts.value, (host) => getHostMemory(host)?.size ?? 0)
 );
+
+const currentData = computed(() => {
+  let size = 0,
+    usage = 0;
+  hosts.value.forEach((host) => {
+    const hostMemory = getHostMemory(host);
+    size += hostMemory?.size ?? 0;
+    usage += hostMemory?.usage ?? 0;
+  });
+  return { size, usage };
+});
 
 const data = computed<LinearChartData>(() => {
   const timestampStart = hostLastWeekStats?.timestampStart?.value;
@@ -43,40 +59,34 @@ const data = computed<LinearChartData>(() => {
 
   const result = new Map<number, { timestamp: number; value: number }>();
 
-  const addResult = (stats: HostStats) => {
-    const cpus = Object.values(stats.cpus);
-
-    for (let hourIndex = 0; hourIndex < cpus[0].length; hourIndex++) {
-      const timestamp =
-        (timestampStart + hourIndex * RRD_STEP_FROM_STRING.hours) * 1000;
-
-      const cpuUsageSum = cpus.reduce(
-        (total, cpu) => total + cpu[hourIndex],
-        0
-      );
-
-      result.set(timestamp, {
-        timestamp: timestamp,
-        value: Math.round((result.get(timestamp)?.value ?? 0) + cpuUsageSum),
-      });
-    }
-  };
-
-  stats.forEach((host) => {
-    if (!host.stats) {
+  stats.forEach(({ stats }) => {
+    if (stats === undefined) {
       return;
     }
 
-    addResult(host.stats);
+    const memoryFree = stats.memoryFree;
+    const memoryUsage = stats.memory.map(
+      (memory, index) => memory - memoryFree[index]
+    );
+
+    memoryUsage.forEach((value, hourIndex) => {
+      const timestamp =
+        (timestampStart + hourIndex * RRD_STEP_FROM_STRING.hours) * 1000;
+
+      result.set(timestamp, {
+        timestamp,
+        value: (result.get(timestamp)?.value ?? 0) + memoryUsage[hourIndex],
+      });
+    });
   });
 
   return [
     {
-      label: t("stacked-cpu-usage"),
+      label: t("stacked-ram-usage"),
       data: Array.from(result.values()),
     },
   ];
 });
 
-const customValueFormatter = (value: number) => `${value}%`;
+const customValueFormatter = (value: number) => String(formatSize(value));
 </script>

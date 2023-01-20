@@ -19,9 +19,7 @@
           }}</UiBadge>
         </div>
       </div>
-      <div class="footer">
-        <slot :total-percent="computedData.totalPercentUsage" name="footer" />
-      </div>
+      <slot :total-percent="computedData.totalPercentUsage" name="footer" />
     </template>
     <UiSpinner v-else class="spinner" />
   </div>
@@ -72,14 +70,6 @@ const computedData = computed(() => {
 </script>
 
 <style lang="postcss" scoped>
-.footer {
-  display: flex;
-  justify-content: space-between;
-  font-weight: 700;
-  font-size: 14px;
-  color: var(--color-blue-scale-300);
-}
-
 .spinner {
   color: var(--color-extra-blue-base);
   display: flex;
