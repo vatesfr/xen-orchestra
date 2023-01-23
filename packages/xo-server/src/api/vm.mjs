@@ -1302,12 +1302,13 @@ export { import_ as import }
 
 
 
-export async function importFomEsxi({host, user, password, sslVerify=true, sr, network, vm, thin=false}){
+
+export async function importFromEsxi({host, user, password, sslVerify=true, sr, network, vm, thin=false}){
   return await this.migrationfromEsxi({host, user, password, sslVerify, thin, vm, sr, network})
 
 }
 
-importFomEsxi.params = {
+importFromEsxi.params = {
   host: { type: 'string' },
   network: { type: 'string' },
   password: { type: 'string' },
