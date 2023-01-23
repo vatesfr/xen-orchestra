@@ -149,7 +149,7 @@ curl \
 
 ## VDI Export
 
-A VM can be exported as a VHD at `/rest/v0/vdis/<uuid>.vhd` or the raw content at `/rest/v0/vdis/<uuid>.raw`.
+A VDI can be exported in VHD format at `/rest/v0/vdis/<uuid>.vhd` or the raw content at `/rest/v0/vdis/<uuid>.raw`.
 
 ```bash
 curl \
