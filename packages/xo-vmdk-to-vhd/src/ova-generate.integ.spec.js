@@ -19,7 +19,7 @@ beforeEach(async () => {
 afterEach(async () => {
   const tmpDir = process.cwd()
   process.chdir(initialDir)
-  await pFromCallback(cb => rimraf(tmpDir, cb))
+  await rimraf(tmpDir)
 })
 // from https://github.com/aautio/validate-with-xmllint/blob/master/src/index.ts
 // that way the test will fail if user does not have xml-lint installed on its os

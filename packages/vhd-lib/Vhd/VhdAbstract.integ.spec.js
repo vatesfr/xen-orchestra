@@ -23,7 +23,7 @@ beforeEach(async () => {
 })
 
 afterEach(async () => {
-  await pFromCallback(cb => rimraf(tempDir, cb))
+  await rimraf(tempDir)
 })
 
 const streamToBuffer = stream => {
