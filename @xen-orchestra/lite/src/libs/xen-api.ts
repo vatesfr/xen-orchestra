@@ -1,5 +1,6 @@
 import { JSONRPCClient } from "json-rpc-2.0";
 import { buildXoObject, parseDateTime } from "@/libs/utils";
+import { useVmStore } from "@/stores/vm.store";
 
 export type RawObjectType =
   | "Bond"
@@ -194,18 +195,20 @@ export default class XenApi {
       .filter((type: string) => type !== "message");
   }
 
-  getSessionId = () => this.#sessionId;
+  get sessionId() {
+    return this.#sessionId;
+  }
 
   #call<T = any>(method: string, args: any[] = []): PromiseLike<T> {
     return this.#client.request(method, args);
   }
 
   _call = (method: string, args: any[] = []) =>
-    this.#call(method, [this.getSessionId(), ...args]);
+    this.#call(method, [this.sessionId, ...args]);
 
   async getHostServertime(host: XenApiHost) {
     const serverLocaltime = (await this.#call("host.get_servertime", [
-      this.getSessionId(),
+      this.sessionId,
       host.$ref,
     ])) as string;
     return Math.floor(parseDateTime(serverLocaltime) / 1e3);
@@ -232,7 +235,7 @@ export default class XenApi {
   ): Promise<Map<string, T>> {
     const result = await this.#call<{ [key: string]: RawXenApiRecord<T> }>(
       `${type}.get_all_records`,
-      [this.getSessionId()]
+      [this.sessionId]
     );
 
     const entries = Object.entries(result).map<[string, T]>(([key, entry]) => [
@@ -255,7 +258,7 @@ export default class XenApi {
       }
       const result: { token: string; events: any } = await this.#call(
         "event.from",
-        [this.getSessionId(), this.#types, this.#fromToken, 5.001]
+        [this.sessionId, this.#types, this.#fromToken, 5.001]
       );
       this.#fromToken = result.token;
       this.#watchCallBack?.(result.events);
@@ -280,66 +283,88 @@ export default class XenApi {
 
   async injectWatchEvent(poolRef: string) {
     this.#fromToken = await this.#call("event.inject", [
-      this.getSessionId(),
+      this.sessionId,
       "pool",
       poolRef,
     ]);
   }
 
   get vm() {
+    type VmsRef =
+      | {
+          vmRef: XenApiVm["$ref"];
+          vmsRef?: undefined;
+        }
+      | {
+          vmRef?: undefined;
+          vmsRef: XenApiVm["$ref"][];
+        };
+
     return {
-      start: ({ vmsRef }: { vmsRef: string[] }) =>
-        Promise.all(
-          vmsRef.map((vmRef) => this._call("VM.start", [vmRef, false, false]))
-        ),
-      startOn: ({ vmsRef, hostRef }: { vmsRef: string[]; hostRef: string }) =>
-        Promise.all(
-          vmsRef.map((vmRef) =>
+      start: ({ vmRef, vmsRef }: VmsRef) => {
+        const _vmsRef = vmsRef ?? [vmRef];
+        return Promise.all(
+          _vmsRef.map((vmRef) => this._call("VM.start", [vmRef, false, false]))
+        );
+      },
+      startOn: ({ vmRef, vmsRef, hostRef }: VmsRef & { hostRef: string }) => {
+        const _vmsRef = vmsRef ?? [vmRef];
+        return Promise.all(
+          _vmsRef.map((vmRef) =>
             this._call("VM.start_on", [vmRef, hostRef, false, false])
           )
-        ),
-      pause: ({ vmsRef }: { vmsRef: string[] }) =>
-        Promise.all(vmsRef.map((vmRef) => this._call("VM.pause", [vmRef]))),
-      suspend: ({ vmsRef }: { vmsRef: string[] }) =>
-        Promise.all(vmsRef.map((vmRef) => this._call("VM.suspend", [vmRef]))),
-      resume: ({
-        vmsRefAndPowerState,
-      }: {
-        vmsRefAndPowerState: { ref: string; powerState: PowerState }[];
-      }) =>
-        Promise.all(
-          vmsRefAndPowerState.map(({ ref, powerState }) => {
-            const isSuspended = powerState === "Suspended";
+        );
+      },
+      pause: ({ vmRef, vmsRef }: VmsRef) => {
+        const _vmsRef = vmsRef ?? [vmRef];
+        return Promise.all(
+          _vmsRef.map((vmRef) => this._call("VM.pause", [vmRef]))
+        );
+      },
+      suspend: ({ vmRef, vmsRef }: VmsRef) => {
+        const _vmsRef = vmsRef ?? [vmRef];
+        return Promise.all(
+          _vmsRef.map((vmRef) => this._call("VM.suspend", [vmRef]))
+        );
+      },
+      resume: ({ vmRef, vmsRef }: VmsRef) => {
+        const _vmsRef = vmsRef ?? [vmRef];
+        const vmStore = useVmStore();
+        return Promise.all(
+          _vmsRef.map((ref) => {
+            const isSuspended =
+              vmStore.getRecord(ref).power_state === "Suspended";
             return this._call(
               `VM.${isSuspended ? "resume" : "unpause"}`,
               isSuspended ? [ref, false, false] : [ref]
             );
           })
-        ),
+        );
+      },
       reboot: ({
+        vmRef,
         vmsRef,
         force = false,
-      }: {
-        vmsRef: string[];
-        force?: boolean;
-      }) =>
-        Promise.all(
-          vmsRef.map((vmRef) =>
+      }: VmsRef & { force?: boolean }) => {
+        const _vmsRef = vmsRef ?? [vmRef];
+        return Promise.all(
+          _vmsRef.map((vmRef) =>
             this._call(`VM.${force ? "hard" : "clean"}_reboot`, [vmRef])
           )
-        ),
+        );
+      },
       shutdown: ({
+        vmRef,
         vmsRef,
         force = false,
-      }: {
-        vmsRef: string[];
-        force?: boolean;
-      }) =>
-        Promise.all(
-          vmsRef.map((vmRef) =>
+      }: VmsRef & { force?: boolean }) => {
+        const _vmsRef = vmsRef ?? [vmRef];
+        return Promise.all(
+          _vmsRef.map((vmRef) =>
             this._call(`VM.${force ? "hard" : "clean"}_shutdown`, [vmRef])
           )
-        ),
+        );
+      },
     };
   }
 }

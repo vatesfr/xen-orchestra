@@ -10,15 +10,15 @@
           </UiButton>
         </template>
         <MenuItem
-          @click="xenApi.vm.start({ vmsRef: [vm.$ref] })"
-          :busy="hasOperation('start')"
+          @click="xenApi.vm.start({ vmRef: vm.$ref })"
+          :busy="isOperationsPending('start')"
           :disabled="!isHalted"
           :icon="faPlay"
         >
           {{ $t("start") }}
         </MenuItem>
         <MenuItem
-          :busy="hasOperation('start_on')"
+          :busy="isOperationsPending('start_on')"
           :disabled="!isHalted"
           :icon="faServer"
         >
@@ -26,9 +26,7 @@
           <template #submenu>
             <MenuItem
               v-for="host in hostStore.allRecords"
-              @click="
-                xenApi.vm.startOn({ vmsRef: [vm.$ref], hostRef: host.$ref })
-              "
+              @click="xenApi.vm.startOn({ vmRef: vm.$ref, hostRef: host.$ref })"
               v-bind:key="host.$ref"
               :icon="faServer"
             >
@@ -50,16 +48,16 @@
           </template>
         </MenuItem>
         <MenuItem
-          @click="xenApi.vm.pause({ vmsRef: [vm.$ref] })"
-          :busy="hasOperation('pause')"
+          @click="xenApi.vm.pause({ vmRef: vm.$ref })"
+          :busy="isOperationsPending('pause')"
           :disabled="!isRunning"
           :icon="faPause"
         >
           {{ $t("pause") }}
         </MenuItem>
         <MenuItem
-          @click="xenApi.vm.suspend({ vmsRef: [vm.$ref] })"
-          :busy="hasOperation('suspend')"
+          @click="xenApi.vm.suspend({ vmRef: vm.$ref })"
+          :busy="isOperationsPending('suspend')"
           :disabled="!isRunning"
           :icon="faMoon"
         >
@@ -69,44 +67,42 @@
         <MenuItem
           @click="
             xenApi.vm.resume({
-              vmsRefAndPowerState: [
-                { ref: vm.$ref, powerState: vm.power_state },
-              ],
+              vmRef: vm.$ref,
             })
           "
-          :busy="hasOperation('unpause') || hasOperation('resume')"
+          :busy="isOperationsPending(['unpause', 'resume'])"
           :disabled="!isSuspended && !isPaused"
           :icon="faCirclePlay"
         >
           {{ $t("resume") }}
         </MenuItem>
         <MenuItem
-          @click="xenApi.vm.reboot({ vmsRef: [vm.$ref] })"
-          :busy="hasOperation('clean_reboot')"
+          @click="xenApi.vm.reboot({ vmRef: vm.$ref })"
+          :busy="isOperationsPending('clean_reboot')"
           :disabled="!isRunning"
           :icon="faRotateLeft"
         >
           {{ $t("reboot") }}
         </MenuItem>
         <MenuItem
-          @click="xenApi.vm.reboot({ vmsRef: [vm.$ref], force: true })"
-          :busy="hasOperation('hard_reboot')"
+          @click="xenApi.vm.reboot({ vmRef: vm.$ref, force: true })"
+          :busy="isOperationsPending('hard_reboot')"
           :disabled="!isRunning && !isPaused"
           :icon="faRepeat"
         >
           {{ $t("force-reboot") }}
         </MenuItem>
         <MenuItem
-          @click="xenApi.vm.shutdown({ vmsRef: [vm.$ref] })"
-          :busy="hasOperation('clean_shutdown')"
+          @click="xenApi.vm.shutdown({ vmRef: vm.$ref })"
+          :busy="isOperationsPending('clean_shutdown')"
           :disabled="!isRunning"
           :icon="faPowerOff"
         >
           {{ $t("shutdown") }}
         </MenuItem>
         <MenuItem
-          @click="xenApi.vm.shutdown({ vmsRef: [vm.$ref], force: true })"
-          :busy="hasOperation('hard_shutdown')"
+          @click="xenApi.vm.shutdown({ vmRef: vm.$ref, force: true })"
+          :busy="isOperationsPending('hard_shutdown')"
           :disabled="!isRunning && !isSuspended && !isPaused"
           :icon="faPlug"
         >
@@ -145,15 +141,20 @@ import {
 import { computed } from "vue";
 import { useRouter } from "vue-router";
 import { computedAsync } from "@vueuse/core";
+import { difference } from "lodash";
 
 const vmStore = useVmStore();
 const hostStore = useHostStore();
 const poolStore = usePoolStore();
 const { currentRoute } = useRouter();
 
-const hasOperation = (operation: string) =>
-  operations.value.includes(operation);
-const operations = computed(() => Object.values(vm.value.current_operations));
+const isOperationsPending = (operations: string[] | string) => {
+  const _operations = Array.isArray(operations) ? operations : [operations];
+  return (
+    difference(_operations, vmOperations.value).length < _operations.length
+  );
+};
+const vmOperations = computed(() => Object.values(vm.value.current_operations));
 
 const vm = computed(
   () => vmStore.getRecordByUuid(currentRoute.value.params.uuid as string)!
