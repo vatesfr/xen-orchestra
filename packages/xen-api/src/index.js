@@ -520,24 +520,34 @@ export class Xapi extends EventEmitter {
     )
 
     if (pTaskResult !== undefined) {
-      pTaskResult = pTaskResult.catch(error => {
-        error.url = response.url
-        throw error
-      })
-    }
+      if (useHack) {
+        // In case of the hack, ignore (but log) the very probably `VDI_IO_ERROR` because it is usually irrelevant
+        pTaskResult = pTaskResult.catch(error => {
+          console.warn(this._humanId, 'Xapi#putResource', pathname, error)
+        })
+      } else {
+        pTaskResult = pTaskResult.catch(error => {
+          error.url = response.url
+          throw error
+        })
 
-    if (!useHack) {
-      // consume the response
-      response.resume()
-
-      return pTaskResult
+        // avoid unhandled rejection in case the upload fails
+        pTaskResult.catch(noop)
+      }
     }
 
     const { req } = response
     if (!req.finished) {
       await fromEvents(req, ['close', 'finish'])
     }
-    response.cancel()
+
+    if (useHack) {
+      response.cancel()
+    } else {
+      // consume the response
+      response.resume()
+    }
+
     return pTaskResult
   }
 

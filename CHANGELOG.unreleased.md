@@ -30,5 +30,6 @@
 <!--packages-start-->
 
 - @xen-orchestra/backups patch
+- xen-api patch
 
 <!--packages-end-->
