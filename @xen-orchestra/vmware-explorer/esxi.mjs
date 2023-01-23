@@ -27,6 +27,7 @@ export default class Esxi extends EventEmitter {
     this.#client = new Client(host, user, password, sslVerify)
     process.on('warning', this.#eatTlsWarning )
     this.#client.once('ready', () => {
+      console.log('ready')
       process.off('warning', this.#eatTlsWarning )
       this.#ready = true
       this.emit('ready')
@@ -193,9 +194,7 @@ export default class Esxi extends EventEmitter {
 
     const [, dataStore, vmxPath] = config.files.vmPathName.match(/^\[(.*)\] (.+.vmx)$/)
     const res = await this.download(dataStore, vmxPath)
-
     const vmx = parseVmx(await res.text())
-
     // list datastores
     const dataStores = {}
     Object.values(await this.search('Datastore', ['summary'])).forEach(({ summary }) => {
@@ -235,7 +234,6 @@ export default class Esxi extends EventEmitter {
     const vmsd = await (await this.download(dataStore, vmxPath.replace('.vmx', '.vmsd'))).text()
     let snapshots
     if(vmsd){
-      console.log(vmsd)
       snapshots = parseVmsd(vmsd)
 
       for (const snapshotIndex in snapshots?.snapshots) {

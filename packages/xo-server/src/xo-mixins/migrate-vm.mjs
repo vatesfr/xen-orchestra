@@ -6,8 +6,8 @@ import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
 import { fromEvent } from 'promise-toolbox'
 import { VDI_FORMAT_VHD } from '@xen-orchestra/xapi'
 import VhdEsxiRaw from '@xen-orchestra/vmware-explorer/VhdEsxiRaw.mjs'
-import VhdCowd from '@xen-orchestra/vmware-explorer/VhdEsxiCowd.mjs'
 import OTHER_CONFIG_TEMPLATE from '../xapi/other-config-template.mjs'
+import openDeltaVmdkasVhd from '@xen-orchestra/vmware-explorer/openDeltaVmdkAsVhd.mjs'
 
 export default class MigrateVm {
   constructor(app) {
@@ -167,7 +167,9 @@ export default class MigrateVm {
     const app = this._app
 
     await fromEvent(esxi, 'ready')
+    console.log('ready in migrate')
     const esxiVmMetadata = await esxi.getTransferableVmMetadata(vmId)
+    console.log({esxiVmMetadata})
     const { disks, memory, name_label, networks, numCpu, powerState, snapshots } = esxiVmMetadata
     const isRunning = powerState !== 'poweredOff'
 
@@ -229,22 +231,20 @@ export default class MigrateVm {
         // if the VM is running we'll transfer everything before the last , which is an active disk
         //  the esxi api does not allow us to read an active disk
         // later we'll stop the VM and transfer this snapshot
-        const nbColdDisks  = 1// isRunning ? chainByNode.length -1 : chainByNode.length
+        const nbColdDisks  =  isRunning ? chainByNode.length -1 : chainByNode.length
         console.log('will transfer', nbColdDisks, isRunning)
         for (let diskIndex = 0; diskIndex < nbColdDisks; diskIndex ++ ) {
           // the first one  is a RAW disk ( full )
           const disk= chainByNode[diskIndex]
           console.log('will import ', { disk })
           const {fileName, path, datastore,isFull} = disk
-
           if(isFull){
             console.log('full disk ')
             vhd = await VhdEsxiRaw.open(esxi, datastore, path + '/' + fileName, {thin})
             await vhd.readBlockAllocationTable()
           } else {
             console.log('delta disk ')
-            vhd = await VhdCowd.open(esxi, datastore, path + '/' + fileName, parentVhd)
-            await vhd.readBlockAllocationTable()
+            vhd = await openDeltaVmdkasVhd(esxi, datastore, path + '/' + fileName, parentVhd)
           }
           parentVhd = vhd
         }
@@ -276,10 +276,8 @@ export default class MigrateVm {
             await vhd.readBlockAllocationTable()
           } else {
             console.log('delta disk ')
-            vhd = await VhdCowd.open(esxi, datastore, path + '/' + fileName, parentVhd, {lookMissingBlockInParent:false})
-            await vhd.readBlockAllocationTable()
+            vhd = await openDeltaVmdkasVhd(esxi, datastore, path + '/' + fileName, parentVhd)
           }
-          await vhd.readBlockAllocationTable()
           const stream =vhd.stream()
           console.log('will import active disk ', stream.length)
 

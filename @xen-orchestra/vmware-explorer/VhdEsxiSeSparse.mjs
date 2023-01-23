@@ -4,8 +4,19 @@ import { createFooter, createHeader } from 'vhd-lib/_createFooterHeader.js'
 import _computeGeometryForSize from 'vhd-lib/_computeGeometryForSize.js'
 import { DISK_TYPES, FOOTER_SIZE } from 'vhd-lib/_constants.js'
 import { unpackFooter, unpackHeader } from 'vhd-lib/Vhd/_utils.js'
+import { assert } from 'node:console'
 
-export default class VhdEsxiCowd extends VhdAbstract {
+// from https://github.com/qemu/qemu/commit/98eb9733f4cf2eeab6d12db7e758665d2fd5367b#
+
+function readInt64(buffer, index){
+  const n = buffer.readBigInt64LE(index*8 /* size of an int64 in bytes */)
+  if(n > Number.MAX_SAFE_INTEGER){
+    throw new Error(`can't handle ${n} ${Number.MAX_SAFE_INTEGER} ${n & 0x00000000ffffffffn}`)
+  }
+  return 0 + new Number(n)
+}
+
+export default class VhdEsxiSeSparse extends VhdAbstract {
   #esxi
   #datastore
   #parentVhd
@@ -16,9 +27,24 @@ export default class VhdEsxiCowd extends VhdAbstract {
   #footer
 
   #grainDirectory
+  // as we will read all grain with data with load everything in memory
+  // in theory , that can be 512MB of data for a 2TB fully allocated
+  // but our use case is to transfer a relatively small diff
+  // and random access is expensive in HTTP, and migration is a one time cors
+  // so let's go with naive approach, and future me will have to handle a more
+  // clever approach if necessary
+  // grain at zero won't be stored 
+
+  #grainMap = new Map()
+
+  #grainSize
+  #grainTableSize
+  #grainTableOffset
+  #grainOffset
+
 
   static async open(esxi, datastore, path, parentVhd, opts) {
-    const vhd = new VhdEsxiCowd(esxi, datastore, path,parentVhd, opts)
+    const vhd = new VhdEsxiSeSparse(esxi, datastore, path,parentVhd, opts)
     await vhd.readHeaderAndFooter()
     return vhd
   }
@@ -39,12 +65,19 @@ export default class VhdEsxiCowd extends VhdAbstract {
     return this.#footer
   }
 
+
+  async #readGrain(start,length= 4*1024){
+    return (await this.#esxi.download(this.#datastore, this.#path, `${start}-${start+length -1}`)).buffer()
+  }
+
+// 
   containsBlock(blockId) {
+
     notEqual(this.#grainDirectory, undefined, "bat must be loaded to use contain blocks'")
-    // only check if a grain table exist for on of the sector of the block
-    // the great news is that a grain size has 4096 entries of 512B = 2M
-    // and a vhd block is also 2M
-    // so we only need to check if a grain table exists (it's not created without data)
+
+    // a grain table is 4096 entries of 4KB
+    // a grain table cover 8 vhd blocks
+    // grain table always exists in sespars
 
     // depending on the paramters we also look into the parent data
     return this.#grainDirectory.readInt32LE(blockId * 4) !== 0 || 
@@ -57,23 +90,37 @@ export default class VhdEsxiCowd extends VhdAbstract {
 
   async readHeaderAndFooter() {
     const buffer = await this.#read(0, 2048)
+    strictEqual(buffer.readBigInt64LE(0), 0xcafebaben)
+    for(let i =0; i < 2048/8 ; i ++){
+      console.log(i, '> ', buffer.readBigInt64LE(8*i).toString(16), buffer.readBigInt64LE(8*i))
+    }
 
-    strictEqual(buffer.slice(0, 4).toString('ascii'), 'COWD')
-    strictEqual(buffer.readInt32LE(4), 1) // version
-    strictEqual(buffer.readInt32LE(8), 3) // flags
-    const numSectors = buffer.readInt32LE(12)
-    const grainSize = buffer.readInt32LE(16)
-    strictEqual(grainSize, 1) // 1 grain should be 1 sector long 
-    strictEqual(buffer.readInt32LE(20), 4) // grain directory position in sectors
+    strictEqual(readInt64(buffer, 1), 0x200000001)  // version 2.1
 
-    const nbGrainDirectoryEntries = buffer.readInt32LE(24)
-    strictEqual(nbGrainDirectoryEntries, Math.ceil(numSectors  / 4096))
-    // const nextFreeSector = buffer.readInt32LE(28)
-    const size = numSectors * 512
-    // a grain directory entry contains the address of a grain table
-    // a grain table can adresses at most 4096 grain of 512 Bytes of data
+    //strictEqual(readInt64(buffer, 4), 0x0000000200000001) // version 2.1
+    
+    const capacity =   readInt64(buffer, 2)//  buffer.readBigInt64LE( 16)
+    const grain_size = readInt64(buffer, 3)//buffer.readBigInt64LE( 24)
+    const grain_table_size = readInt64(buffer, 4)//buffer.readBigInt64LE( 32)
+    const flags = readInt64(buffer, 5)//buffer.readBigInt64LE( 40)
+
+    const grain_dir_offset = readInt64(buffer, 16)
+    const grain_dir_size = readInt64(buffer, 17)
+    const grain_tables_offset = readInt64(buffer, 18)
+    const grain_tables_size = readInt64(buffer, 19)
+    this.#grainOffset = readInt64(buffer, 24)
+
+    console.log({
+      capacity,grain_size,grain_table_size, flags, grain_dir_offset, grain_dir_size, grain_tables_offset, grain_tables_size
+      , grainSize : this.#grainSize
+    })
+
+    this.#grainSize = grain_size * 512 // 8 sectors / 4KB default
+    this.#grainTableOffset = grain_tables_offset * 512
+    this.#grainTableSize = grain_tables_size * 512
+
+    const size = capacity * grain_size * 512
     this.#header = unpackHeader(createHeader(Math.ceil(size / (4096 * 512))))
-   // this.#header.parentUnicodeName = this.#parentFileName
     const geometry = _computeGeometryForSize(size)
     const actualSize = geometry.actualSize
     this.#footer = unpackFooter(
@@ -88,6 +135,39 @@ export default class VhdEsxiCowd extends VhdAbstract {
   }
 
   async readBlockAllocationTable() {
+
+    console.log('READ BLOCK ALLOCATION',  this.#grainTableSize)
+    const CHUNK_SIZE = 64*512
+
+    strictEqual(this.#grainTableSize % CHUNK_SIZE,0)
+
+    console.log(' will read ',  this.#grainTableSize / CHUNK_SIZE , 'table')
+    for( let chunkIndex = 0 , grainIndex = 0; chunkIndex < this.#grainTableSize / CHUNK_SIZE; chunkIndex++){
+      process.stdin.write('.')
+      const start = chunkIndex*CHUNK_SIZE + this.#grainTableOffset
+      const end = start + 4096*8 -1
+      const buffer = await this.#read(start, end)
+      for( let indexInChunk = 0; indexInChunk < 4096; indexInChunk++ ){
+        const entry = buffer.readBigInt64LE(indexInChunk * 8)
+        switch(entry){
+          case 0n: // not allocated, go to parent
+            break;
+          case 1n: // unmapped
+            break
+        }
+        if(entry > 3n){
+          const intIndex = 0 + new Number(((entry & 0x0fff000000000000n) >> 48n) |
+          ((entry & 0x0000ffffffffffffn) << 12n) )  
+          let pos = intIndex * this.#grainSize + CHUNK_SIZE * chunkIndex + this.#grainOffset
+          console.log({indexInChunk,grainIndex, intIndex, pos})
+          this.#grainMap.set(grainIndex, )
+          grainIndex++
+        }
+      }
+    } 
+    console.log('found', this.#grainMap.size)
+
+    // read grain directory and the grain tables 
     const nbBlocks = this.header.maxTableEntries
     this.#grainDirectory = await this.#read(2048 /* header length */, 2048 + nbBlocks * 4 - 1)
   }
