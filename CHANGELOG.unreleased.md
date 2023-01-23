@@ -12,6 +12,7 @@
 - [REST API] Add support to destroy VMs and VDIs
 - [VM/Advanced] Add configuration flag for _Viridian_ platform [#6572](https://github.com/vatesfr/xen-orchestra/issues/6572) (PR [#6631](https://github.com/vatesfr/xen-orchestra/pull/6631))
 - [Licenses] Makes `id` and `boundObjectId` copyable (PR [#6634](https://github.com/vatesfr/xen-orchestra/pull/6634))
+- [REST API] The raw content of a VDI can be downloaded directly
 
 ### Bug fixes
 

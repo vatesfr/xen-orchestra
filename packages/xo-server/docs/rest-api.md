@@ -2,7 +2,9 @@
 
 - [Authentication](#authentication)
 - [Collections](#collections)
+- [VM destruction](#vm-destruction)
 - [VM Export](#vm-export)
+- [VDI destruction](#vdi-destruction)
 - [VDI Export](#vdi-export)
 - [VDI Import](#vdi-import)
 - [The future](#the-future)
@@ -147,7 +149,7 @@ curl \
 
 ## VDI Export
 
-A VM can be exported as an VHD at `/rest/v0/vdis/<uuid>.vhd`.
+A VM can be exported as a VHD at `/rest/v0/vdis/<uuid>.vhd` or the raw content at `/rest/v0/vdis/<uuid>.raw`.
 
 ```bash
 curl \

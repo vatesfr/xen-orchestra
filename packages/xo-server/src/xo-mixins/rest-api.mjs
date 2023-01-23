@@ -163,11 +163,11 @@ export default class RestApi {
         }
       }
     })
-    api.get('/vdi:subtype(|-snapshot)s/:uuid.vhd', async (req, res, next) => {
+    api.get('/vdi:subtype(|-snapshot)s/:uuid.:format(vhd|raw)', async (req, res, next) => {
       try {
-        const { subtype, uuid } = req.params
+        const { format, subtype, uuid } = req.params
         const vdi = app.getXapiObject(uuid, 'VDI' + subtype)
-        const stream = await vdi.$exportContent({ format: 'vhd' })
+        const stream = await vdi.$exportContent({ format })
 
         stream.headers['content-disposition'] = 'attachment'
         res.writeHead(stream.statusCode, stream.statusMessage != null ? stream.statusMessage : '', stream.headers)

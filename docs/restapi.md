@@ -152,7 +152,7 @@ curl \
   > myVM.xva
 ```
 
-For a VHD export, it's very similar:
+A VDI can be exported in VHD format at `/rest/v0/vdis/<uuid>.vhd` or the raw content at `/rest/v0/vdis/<uuid>.raw`.
 
 ```bash
 curl \
