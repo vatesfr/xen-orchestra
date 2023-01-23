@@ -8,9 +8,9 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [REST API] Expose `residentVms` property on hosts objects
-- [VM/Advanced] Clarify *Windows Update* label [#6628](https://github.com/vatesfr/xen-orchestra/issues/6628) (PR [#6632](https://github.com/vatesfr/xen-orchestra/pull/6632))
+- [VM/Advanced] Clarify _Windows Update_ label [#6628](https://github.com/vatesfr/xen-orchestra/issues/6628) (PR [#6632](https://github.com/vatesfr/xen-orchestra/pull/6632))
 - [REST API] Add support to destroy VMs and VDIs
-- [VM/Advanced] Add configuration flag for *Viridian* platform [#6572](https://github.com/vatesfr/xen-orchestra/issues/6572) (PR [#6631](https://github.com/vatesfr/xen-orchestra/pull/6631))
+- [VM/Advanced] Add configuration flag for _Viridian_ platform [#6572](https://github.com/vatesfr/xen-orchestra/issues/6572) (PR [#6631](https://github.com/vatesfr/xen-orchestra/pull/6631))
 - [Licenses] Makes `id` and `boundObjectId` copyable (PR [#6634](https://github.com/vatesfr/xen-orchestra/pull/6634))
 
 ### Bug fixes
@@ -44,6 +44,7 @@
 - @xen-orchestra/mixins feat
 - @xen-orchestra/xapi patch
 - vhd-lib patch
+- xo-cli patch
 - xo-server minor
 - xo-server-perf-alert patch
 - xo-web minor

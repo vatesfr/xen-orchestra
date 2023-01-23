@@ -32,7 +32,8 @@ const Xo = XoLib.default
 async function connect() {
   const { allowUnauthorized, server, token } = await config.load()
   if (server === undefined) {
-    throw new Error('no server to connect to!')
+    const errorMessage = 'Please use `xo-cli --register` to associate with an XO instance first.\n\n' + help()
+    throw errorMessage
   }
 
   if (token === undefined) {
@@ -228,8 +229,7 @@ const help = wrap(
   $name <command> [<name>=<value>]...
     Executes a command on the current XO instance.
 
-$name v$version
-`.replace(/<([^>]+)>|\$(\w+)/g, function (_, arg, key) {
+$name v$version`.replace(/<([^>]+)>|\$(\w+)/g, function (_, arg, key) {
       if (arg) {
         return '<' + chalk.yellow(arg) + '>'
       }
@@ -285,7 +285,7 @@ async function main(args) {
     // correctly displayed by `exec-promise`.
     //
     // Extracts the original error for a better display.
-    throw 'error' in error ? error.error : error
+    throw typeof error === 'object' && 'error' in error ? error.error : error
   }
 }
 
