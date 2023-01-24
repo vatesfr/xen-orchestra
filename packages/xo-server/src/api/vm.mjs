@@ -1304,7 +1304,8 @@ export { import_ as import }
 
 
 export async function importFromEsxi({host, user, password, sslVerify=true, sr, network, vm, thin=false, stopSource= false}){
-  return await this.migrationfromEsxi({host, user, password, sslVerify, thin, vm, sr, network, stopSource})
+  const task = await this.tasks.create({name: `importing vm ${vm}`})
+  return task.run(()=> this.migrationfromEsxi({host, user, password, sslVerify, thin, vm, sr, network, stopSource}))
 
 }
 

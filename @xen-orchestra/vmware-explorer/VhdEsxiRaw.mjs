@@ -5,6 +5,7 @@ import { readChunk } from '@vates/read-chunk'
 import { unpackFooter, unpackHeader } from 'vhd-lib/Vhd/_utils.js'
 import { VhdAbstract } from 'vhd-lib'
 import assert from 'node:assert'
+import { Task } from '@vates/task'
 
 // create a thin VHD from a raw disk
 const VHD_BLOCK_LENGTH = 2 * 1024 * 1024
@@ -90,8 +91,9 @@ export default class VhdEsxiRaw extends VhdAbstract {
     let pos = 0
     this.#bat = new Set()
     let nextChunkLength = Math.min(VHD_BLOCK_LENGTH, length)
-
+    Task.set('total', length/ VHD_BLOCK_LENGTH)
     const progress = setInterval(() => {
+      Task.set('progress', Math.round(pos * 100 / length))
       console.log("reading blocks", pos / VHD_BLOCK_LENGTH, "/", length/ VHD_BLOCK_LENGTH)
     }, 30 * 1000)
 
