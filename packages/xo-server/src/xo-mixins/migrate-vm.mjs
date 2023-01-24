@@ -162,7 +162,7 @@ export default class MigrateVm {
     return chainsByNodes
   }
 
-  async migrationfromEsxi({ host, user, password, sslVerify, sr: srId, network: networkId, vm: vmId, thin }) {
+  async migrationfromEsxi({ host, user, password, sslVerify, sr: srId, network: networkId, vm: vmId, thin, stopSource }) {
     const esxi = new Esxi(host, user, password, sslVerify)
     const app = this._app
 
@@ -258,7 +258,7 @@ export default class MigrateVm {
       )
     )
     console.log('cold transfer done')
-    if(isRunning){
+    if(isRunning && stopSource){
       // it the vm was running, we stop it and transfer the data in the active disk
       await esxi.powerOff(vmId)
 

@@ -1303,8 +1303,8 @@ export { import_ as import }
 
 
 
-export async function importFromEsxi({host, user, password, sslVerify=true, sr, network, vm, thin=false}){
-  return await this.migrationfromEsxi({host, user, password, sslVerify, thin, vm, sr, network})
+export async function importFromEsxi({host, user, password, sslVerify=true, sr, network, vm, thin=false, stopSource= false}){
+  return await this.migrationfromEsxi({host, user, password, sslVerify, thin, vm, sr, network, stopSource})
 
 }
 
@@ -1316,7 +1316,8 @@ importFromEsxi.params = {
   sr: { type: 'string' },
   sslVerify: {type: 'boolean', optional: true},
   vm:{type: 'string'},
-  thin:{type: 'boolean', optional: true}
+  thin:{type: 'boolean', optional: true},
+  stopSource:{type: 'boolean', optional: true}
 
 }
 
