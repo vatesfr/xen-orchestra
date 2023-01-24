@@ -69,6 +69,7 @@ export async function set({
   defaultIsLocked,
   name_description: nameDescription,
   name_label: nameLabel,
+  nbd,
 }) {
   network = this.getXapiObject(network)
 
@@ -77,6 +78,7 @@ export async function set({
     defaultIsLocked !== undefined && network.set_default_locking_mode(defaultIsLocked ? 'disabled' : 'unlocked'),
     nameDescription !== undefined && network.set_name_description(nameDescription),
     nameLabel !== undefined && network.set_name_label(nameLabel),
+    nbd !== undefined && nbd ? network.add_purpose('nbd') : network.remove_purpose('nbd'),
   ])
 }
 
@@ -100,6 +102,10 @@ set.params = {
     type: 'string',
     optional: true,
   },
+  nbd: {
+    type: 'boolean',
+    optional: true,
+  },
 }
 
 set.resolve = {
@@ -119,20 +125,4 @@ delete_.params = {
 
 delete_.resolve = {
   network: ['id', 'network', 'administrate'],
-}
-
-// =================================================================
-
-export async function updatePurpose({ networkId, oldPurpose, newPurpose }) {
-  const xapi = this.getXapi(networkId)
-  const networkRef = this.getObject(networkId)._xapiRef
-
-  await xapi.call('network.remove_purpose', networkRef, oldPurpose)
-  await xapi.call('network.add_purpose', networkRef, newPurpose)
-}
-
-updatePurpose.params = {
-  networkId: { type: 'string' },
-  oldPurpose: { type: 'string' },
-  newPurpose: { type: 'string' },
 }
