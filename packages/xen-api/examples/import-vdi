@@ -32,7 +32,7 @@ defer(async ($defer, argv) => {
   const xapi = createClient({
     allowUnauthorized: true,
     url,
-    watchEvents: opts.events && ['event'],
+    watchEvents: opts.events && ['task'],
   })
 
   await xapi.connect()
