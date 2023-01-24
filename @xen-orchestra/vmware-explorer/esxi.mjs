@@ -235,14 +235,15 @@ export default class Esxi extends EventEmitter {
     let snapshots
     if(vmsd){
       snapshots = parseVmsd(vmsd)
-
-      for (const snapshotIndex in snapshots?.snapshots) {
-        const snapshot = snapshots.snapshots[snapshotIndex]
-        for (const diskIndex in snapshot.disks) {
-          const fileName = snapshot.disks[diskIndex].fileName
-          snapshot.disks[diskIndex] = {
-            node: snapshot.disks[diskIndex]?.node, // 'scsi0:0',
-            ...(await this.#inspectVmdk(dataStores, dataStore, dirname(vmxPath), fileName)),
+      if(snapshots){
+        for (const snapshotIndex in snapshots?.snapshots) {
+          const snapshot = snapshots.snapshots[snapshotIndex]
+          for (const diskIndex in snapshot.disks) {
+            const fileName = snapshot.disks[diskIndex].fileName
+            snapshot.disks[diskIndex] = {
+              node: snapshot.disks[diskIndex]?.node, // 'scsi0:0',
+              ...(await this.#inspectVmdk(dataStores, dataStore, dirname(vmxPath), fileName)),
+            }
           }
         }
       }
