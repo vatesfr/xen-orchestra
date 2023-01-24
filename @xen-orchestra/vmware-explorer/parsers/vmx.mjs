@@ -26,10 +26,15 @@ function set(obj, keyPath, val) {
   } else {
     // it's an object
     if (!other.length) {
-      // wihtout descendant
+      // without descendant
       obj[key] = val
     } else {
       // with descendant
+      if(typeof obj[key] !== 'object'){
+        // sometimes there is additionnal properties on a string ( like guestOS="ubuntut " and then guestOS.detailed =)
+        // we ignore these data for now
+        return 
+      }
       if (obj[key] === undefined) {
         // first time
         obj[key] = {}
