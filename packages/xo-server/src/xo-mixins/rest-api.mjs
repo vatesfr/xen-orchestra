@@ -99,16 +99,20 @@ export default class RestApi {
       const isCorrectType = _ => _.type === type
 
       subRouter(api, '/' + id)
-        .get('/', async (req, res) => {
-          const { query } = req
-          sendObjects(
-            await app.getObjects({
-              filter: every(isCorrectType, handleOptionalUserFilter(query.filter)),
-              limit: ifDef(query.limit, Number),
-            }),
-            req,
-            res
-          )
+        .get('/', async (req, res, next) => {
+          try {
+            const { query } = req
+            sendObjects(
+              await app.getObjects({
+                filter: every(isCorrectType, handleOptionalUserFilter(query.filter)),
+                limit: ifDef(query.limit, Number),
+              }),
+              req,
+              res
+            )
+          } catch (error) {
+            next(error)
+          }
         })
         .get('/:id', async (req, res, next) => {
           try {
@@ -145,11 +149,25 @@ export default class RestApi {
       }
     })
 
-    api.get('/vdi:subtype(|-snapshot)s/:uuid.vhd', async (req, res, next) => {
+    api.delete('/vdi:subtype(|-snapshot)s/:uuid', async (req, res, next) => {
       try {
         const { subtype, uuid } = req.params
         const vdi = app.getXapiObject(uuid, 'VDI' + subtype)
-        const stream = await vdi.$exportContent({ format: 'vhd' })
+        await vdi.$destroy()
+        res.sendStatus(200)
+      } catch (error) {
+        if (noSuchObject.is(error)) {
+          next()
+        } else {
+          next(error)
+        }
+      }
+    })
+    api.get('/vdi:subtype(|-snapshot)s/:uuid.:format(vhd|raw)', async (req, res, next) => {
+      try {
+        const { format, subtype, uuid } = req.params
+        const vdi = app.getXapiObject(uuid, 'VDI' + subtype)
+        const stream = await vdi.$exportContent({ format })
 
         stream.headers['content-disposition'] = 'attachment'
         res.writeHead(stream.statusCode, stream.statusMessage != null ? stream.statusMessage : '', stream.headers)
@@ -164,6 +182,20 @@ export default class RestApi {
       }
     })
 
+    api.delete('/vm:subtype(|-snapshot|-template)s/:uuid', async (req, res, next) => {
+      try {
+        const { subtype, uuid } = req.params
+        const vm = app.getXapiObject(uuid, 'VM' + subtype)
+        await vm.$destroy()
+        res.sendStatus(200)
+      } catch (error) {
+        if (noSuchObject.is(error)) {
+          next()
+        } else {
+          next(error)
+        }
+      }
+    })
     api.get('/vm:subtype(|-snapshot|-template)s/:uuid.xva', async (req, res, next) => {
       try {
         const { subtype, uuid } = req.params

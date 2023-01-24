@@ -3,6 +3,7 @@
 process.env.DEBUG = '*'
 
 const defer = require('golike-defer').default
+const getopts = require('getopts')
 const { CancelToken } = require('promise-toolbox')
 const { createVhdStreamWithLength } = require('vhd-lib')
 
@@ -10,21 +11,28 @@ const { createClient } = require('../')
 
 const { createInputStream, resolveRef } = require('./utils')
 
-defer(async ($defer, args) => {
-  let raw = false
-  if (args[0] === '--raw') {
-    raw = true
-    args.shift()
+defer(async ($defer, argv) => {
+  const opts = getopts(argv, { boolean: ['events', 'raw', 'remove-length'], string: ['sr', 'vdi'] })
+
+  const url = opts._[0]
+
+  if (url === undefined) {
+    return console.log(
+      'Usage: import-vdi [--events] [--raw] [--sr <SR identifier>] [--vdi <VDI identifier>] <XS URL> [<VHD file>]'
+    )
   }
 
-  if (args.length < 2) {
-    return console.log('Usage: import-vdi [--raw] <XS URL> <VDI identifier> [<VHD file>]')
+  const { raw, sr, vdi } = opts
+
+  const createVdi = vdi === ''
+  if (createVdi && !(raw && sr !== undefined)) {
+    throw new Error('--vdi requires --raw and --sr flags')
   }
 
   const xapi = createClient({
     allowUnauthorized: true,
-    url: args[0],
-    watchEvents: false
+    url,
+    watchEvents: opts.events && ['event'],
   })
 
   await xapi.connect()
@@ -33,18 +41,41 @@ defer(async ($defer, args) => {
   const { cancel, token } = CancelToken.source()
   process.on('SIGINT', cancel)
 
-  let input = createInputStream(args[2])
-  if (!raw && input.length === undefined) {
+  let input = createInputStream(opts._[1])
+  $defer.onFailure(() => input.destroy())
+
+  let vdiRef
+  if (createVdi) {
+    vdiRef = await xapi.call('VDI.create', {
+      name_label: 'xen-api/import-vdi',
+      other_config: {},
+      read_only: false,
+      sharable: false,
+      SR: await resolveRef(xapi, 'SR', sr),
+      type: 'user',
+      virtual_size: input.length,
+    })
+    $defer.onFailure(() => xapi.call('VDI.destroy', vdiRef))
+  } else {
+    vdiRef = await resolveRef(xapi, 'VDI', args[1])
+  }
+
+  if (opts['remove-length']) {
+    delete input.length
+    console.log('length removed')
+  } else if (!raw && input.length === undefined) {
     input = await createVhdStreamWithLength(input)
   }
 
   // https://xapi-project.github.io/xen-api/snapshots.html#uploading-a-disk-or-snapshot
-  await xapi.putResource(token, input, '/import_raw_vdi/', {
+  const result = await xapi.putResource(token, input, '/import_raw_vdi/', {
     query: {
       format: raw ? 'raw' : 'vhd',
-      vdi: await resolveRef(xapi, 'VDI', args[1])
-    }
+      vdi: vdiRef,
+    },
   })
-})(process.argv.slice(2)).catch(
-  console.error.bind(console, 'error')
-)
+
+  if (result !== undefined) {
+    console.log(result)
+  }
+})(process.argv.slice(2)).catch(console.error.bind(console, 'error'))

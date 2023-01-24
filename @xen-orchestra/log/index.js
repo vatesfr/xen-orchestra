@@ -2,7 +2,8 @@
 
 const compileGlobPattern = require('./_compileGlobPattern.js')
 const createTransport = require('./transports/console')
-const { LEVELS, resolve } = require('./levels')
+const Log = require('./_Log')
+const { LEVELS, resolve } = require('./_levels')
 
 const symbol = typeof Symbol !== 'undefined' ? Symbol.for('@xen-orchestra/log') : '@@@xen-orchestra/log'
 if (!(symbol in global)) {
@@ -25,14 +26,6 @@ if (!(symbol in global)) {
 }
 
 // -------------------------------------------------------------------
-
-function Log(data, level, namespace, message, time) {
-  this.data = data
-  this.level = level
-  this.namespace = namespace
-  this.message = message
-  this.time = time
-}
 
 function Logger(namespace) {
   this._namespace = namespace
@@ -61,7 +54,7 @@ for (const name in LEVELS) {
         })
       }
     }
-    global[symbol](new Log(data, level, this._namespace, message, new Date()))
+    global[symbol](new Log(data, level, this._namespace, message))
   }
 }
 

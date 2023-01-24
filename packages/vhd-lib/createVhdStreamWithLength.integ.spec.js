@@ -22,7 +22,7 @@ beforeEach(async () => {
 })
 
 afterEach(async () => {
-  await pFromCallback(cb => rimraf(tempDir, cb))
+  await rimraf(tempDir)
 })
 
 const forOwn = (object, cb) => Object.keys(object).forEach(key => cb(object[key], key, object))

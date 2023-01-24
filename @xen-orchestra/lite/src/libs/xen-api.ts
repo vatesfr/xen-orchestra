@@ -69,6 +69,7 @@ export interface XenApiRecord {
 export type RawXenApiRecord<T extends XenApiRecord> = Omit<T, "$ref">;
 
 export interface XenApiPool extends XenApiRecord {
+  master: string;
   name_label: string;
 }
 
@@ -77,6 +78,7 @@ export interface XenApiHost extends XenApiRecord {
   name_label: string;
   metrics: string;
   resident_VMs: string[];
+  cpu_info: { cpu_count: string };
 }
 
 export interface XenApiSr extends XenApiRecord {

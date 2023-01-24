@@ -3,34 +3,37 @@
 ## Usage
 
 ```typescript
-const { filters, addFilter, removeFilter, predicate } = useCollectionFilter();
+const { filters, addFilter, removeFilter, predicate } =
+  useCollectionFilter(options);
 
-const filteredCollection = myCollection.filter(predicate);
+const filteredCollection = computed(() => myCollection.filter(predicate));
+addFilter("name:/^Foo/");
+addFilter("count:>3");
 ```
 
-## URL Query String
+## Options
 
-By default, when adding/removing filters, the URL will update automatically.
+### `queryStringParam`
+
+This option allows to activate the URL Query String support.
 
 ```typescript
+const { addFilter } = useCollectionFilter({ queryStringParam: "filter" });
 addFilter("name:/^foo/i"); // Will update the URL with ?filter=name:/^foo/i
 ```
 
-### Change the URL query string parameter name
+### Initial filters
+
+This option allows to set some initial filters.
 
 ```typescript
 const {
   /* ... */
-} = useCollectionFilter({ queryStringParam: "f" }); // ?f=name:/^foo/i
+} = useCollectionFilter({ initialFilters: ["!name_label:foobar"] });
 ```
 
-### Disable the usage of URL query string
-
-```typescript
-const {
-  /* ... */
-} = useCollectionFilter({ queryStringParam: undefined });
-```
+When using the `initialFilters` option with the `queryStringParam` option,
+`initialFilters` will only be applied if no query string parameter is defined in the URL.
 
 ## Example of using the composable with the `CollectionFilter` component
 

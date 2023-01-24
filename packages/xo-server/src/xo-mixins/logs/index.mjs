@@ -1,4 +1,5 @@
-import { configure } from '@xen-orchestra/log/configure.js'
+import { configure } from '@xen-orchestra/log/configure'
+import { dedupe } from '@xen-orchestra/log/dedupe'
 import { defer, fromEvent } from 'promise-toolbox'
 
 import LevelDbLogger from './loggers/leveldb.mjs'
@@ -21,7 +22,7 @@ export default class Logs {
       configure({
         filter: [process.env.DEBUG, filter],
         level,
-        transport: transports,
+        transport: dedupe({ transport: transports }),
       })
     })
   }

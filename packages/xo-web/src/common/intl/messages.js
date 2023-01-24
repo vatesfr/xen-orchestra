@@ -113,6 +113,7 @@ const messages = {
   editCustomField: 'Edit custom field',
   deleteCustomField: 'Delete custom field',
   onlyAvailableXoaUsers: 'Only available to XOA users',
+  xcpNg: 'XCP-ng',
 
   // ----- Modals -----
   alertOk: 'OK',
@@ -1098,7 +1099,7 @@ const messages = {
   hardwareVirtualizedMode: 'Hardware virtualization (HVM)',
   hvmModeWithPvDriversEnabled: 'Hardware virtualization with paravirtualization drivers enabled (PVHVM)',
   pvInPvhMode: 'PV inside a PVH container (PV in PVH)',
-  windowsUpdateTools: 'Windows Update tools',
+  windowsUpdateTools: 'Manage Citrix PV drivers via Windows Update',
 
   // ----- VM stat tab -----
   statsCpu: 'CPU usage',
@@ -1327,6 +1328,7 @@ const messages = {
   resourceSet: 'Resource set',
   resourceSetNone: 'None',
   suspendSr: 'Suspend SR',
+  viridian: 'Viridian',
   vmCpuLimitsLabel: 'CPU limits',
   vmCpuTopology: 'Topology',
   vmChooseCoresPerSocket: 'Default behavior',

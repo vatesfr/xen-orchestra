@@ -5,6 +5,10 @@
         v-for="item in computedData.sortedArray"
         :key="item.id"
         class="progress-item"
+        :class="{
+          warning: item.value > MIN_WARNING_VALUE,
+          error: item.value > MIN_DANGEROUS_VALUE,
+        }"
       >
         <UiProgressBar :value="item.value" color="custom" />
         <div class="legend">
@@ -15,9 +19,7 @@
           }}</UiBadge>
         </div>
       </div>
-      <div class="footer">
-        <slot :total-percent="computedData.totalPercentUsage" name="footer" />
-      </div>
+      <slot :total-percent="computedData.totalPercentUsage" name="footer" />
     </template>
     <UiSpinner v-else class="spinner" />
   </div>
@@ -42,6 +44,9 @@ interface Props {
   nItems?: number;
 }
 
+const MIN_WARNING_VALUE = 80;
+const MIN_DANGEROUS_VALUE = 90;
+
 const props = defineProps<Props>();
 
 const computedData = computed(() => {
@@ -64,15 +69,7 @@ const computedData = computed(() => {
 });
 </script>
 
-<style scoped>
-.footer {
-  display: flex;
-  justify-content: space-between;
-  font-weight: 700;
-  font-size: 14px;
-  color: var(--color-blue-scale-300);
-}
-
+<style lang="postcss" scoped>
 .spinner {
   color: var(--color-extra-blue-base);
   display: flex;
@@ -94,12 +91,6 @@ const computedData = computed(() => {
   font-weight: 700;
 }
 
-.progress-item {
-  --progress-bar-height: 1.2rem;
-  --progress-bar-color: var(--color-extra-blue-l20);
-  --progress-bar-background-color: var(--color-blue-scale-400);
-}
-
 .progress-item:nth-child(1) {
   --progress-bar-color: var(--color-extra-blue-d60);
 }
@@ -110,6 +101,18 @@ const computedData = computed(() => {
 
 .progress-item:nth-child(3) {
   --progress-bar-color: var(--color-extra-blue-d20);
+}
+
+.progress-item {
+  --progress-bar-height: 1.2rem;
+  --progress-bar-color: var(--color-extra-blue-l20);
+  --progress-bar-background-color: var(--color-blue-scale-400);
+  &.warning {
+    --progress-bar-color: var(--color-orange-world-base);
+  }
+  &.error {
+    --progress-bar-color: var(--color-red-vates-base);
+  }
 }
 
 .circle {

@@ -2,9 +2,8 @@
   <div class="pool-root-view">
     <PoolHeader />
     <PoolTabBar />
-    <div class="card-view">
-      <RouterView />
-    </div>
+
+    <RouterView />
   </div>
 </template>
 

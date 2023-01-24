@@ -15,7 +15,7 @@ const route = useRoute();
 const vmStore = useVmStore();
 const consoleStore = useConsoleStore();
 
-const isReady = computed(() => vmStore.isReady || consoleStore.isReady);
+const isReady = computed(() => vmStore.isReady && consoleStore.isReady);
 
 const vm = computed(() => vmStore.getRecordByUuid(route.params.uuid as string));
 const isVmRunning = computed(() => vm.value?.power_state === "Running");

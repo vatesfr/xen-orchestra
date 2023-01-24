@@ -241,6 +241,8 @@ If you have problems during the building phase, follow these steps in your `xen-
 
 ### FreeBSD
 
+> This process has been contributed by the community, it is **not officially supported**.
+
 If you are using FreeBSD, you need to install these packages:
 
 ```
@@ -274,6 +276,8 @@ service redis start
 ```
 
 ### OpenBSD
+
+> This process has been contributed by the community, it is **not officially supported**.
 
 If you are using OpenBSD, you need to install these packages:
 

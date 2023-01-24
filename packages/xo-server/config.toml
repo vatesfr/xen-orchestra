@@ -100,11 +100,6 @@ mergeBlockConcurrency = 2
 # increase to in rease performance, reduce if you have timeout or memory error during transfer
 writeBlockConcurrency = 16
 
-# This is a work-around.
-#
-# See https://github.com/vatesfr/xen-orchestra/pull/4674
-maxMergedDeltasPerRun = inf
-
 # https://github.com/naugtur/blocked-at#params-and-return-value
 [blockedAtOptions]
 enabled = false
@@ -129,6 +124,15 @@ port = 80
 
 # These options are applied to all listen entries.
 [http.listenOptions]
+
+# Number of milliseconds allowed to receive the entire request.
+#
+# The default value changed from no limit to 5 minutes in Node 18.0 to mitigate
+# Slowloris attacks.
+#
+# This breaks a number of XO use cases, for instance uploading a VDI via the
+# REST API, therefore it's changed to 1 day.
+requestTimeout = 86400000
 
 [http.mounts]
 '/' = '../xo-web/dist'

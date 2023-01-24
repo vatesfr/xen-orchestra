@@ -1,25 +1,27 @@
+import { getFirst } from "@/libs/utils";
 import * as CM from "complex-matcher";
 import { computed, ref, watch } from "vue";
 import { type LocationQueryValue, useRoute, useRouter } from "vue-router";
 
 interface Config {
   queryStringParam?: string;
+  initialFilters?: string[];
 }
 
-export default function useCollectionFilter(
-  config: Config = { queryStringParam: "filter" }
-) {
+export default function useCollectionFilter<T>(config: Config = {}) {
   const route = useRoute();
   const router = useRouter();
-  const filtersSet = ref(
-    config.queryStringParam
-      ? queryToSet(route.query[config.queryStringParam] as LocationQueryValue)
-      : new Set<string>()
-  );
+  const { queryStringParam, initialFilters = [] } = config;
+  const filtersSet = ref<Set<string>>(new Set(initialFilters));
   const filters = computed(() => Array.from(filtersSet.value.values()));
 
-  if (config.queryStringParam) {
-    const queryStringParam = config.queryStringParam;
+  if (queryStringParam !== undefined) {
+    const queryString = route.query[queryStringParam];
+
+    if (queryString !== undefined) {
+      filtersSet.value = queryToSet(getFirst(queryString));
+    }
+
     watch(filters, (value) =>
       router.replace({
         query: { ...route.query, [queryStringParam]: value.join(" ") },
@@ -35,7 +37,7 @@ export default function useCollectionFilter(
     filtersSet.value.delete(filter);
   };
 
-  const predicate = computed(() => {
+  const predicate = computed<(value: T) => boolean>(() => {
     return CM.parse(
       Array.from(filters.value.values()).join(" ")
     ).createPredicate();
@@ -49,7 +51,7 @@ export default function useCollectionFilter(
   };
 }
 
-function queryToSet(query: LocationQueryValue): Set<string> {
+function queryToSet(query?: LocationQueryValue): Set<string> {
   if (!query) {
     return new Set();
   }

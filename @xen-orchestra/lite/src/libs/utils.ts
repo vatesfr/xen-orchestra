@@ -116,6 +116,20 @@ export function isHostRunning(host: XenApiHost) {
   }
 }
 
+export function getHostMemory(host: XenApiHost) {
+  try {
+    const metrics = useHostMetricsStore().getRecord(host.metrics);
+    const total = +metrics.memory_total;
+    return {
+      usage: total - +metrics.memory_free,
+      size: total,
+    };
+  } catch (error) {
+    console.error("getHostMemory function:", error);
+    return undefined;
+  }
+}
+
 export const buildXoObject = (
   record: RawXenApiRecord<XenApiRecord>,
   params: { opaqueRef: string }
@@ -157,3 +171,6 @@ export function parseRamUsage(
     used: memoryFree === undefined ? 0 : used / _nSequence,
   };
 }
+
+export const getFirst = <T>(value: T | T[]): T | undefined =>
+  Array.isArray(value) ? value[0] : value;

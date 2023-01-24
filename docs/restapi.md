@@ -121,6 +121,26 @@ Content-Type: application/x-ndjson
 {"name_label":"Debian 10 Cloudinit self-service","power_state":"Halted","url":"/rest/v0/vms/5019156b-f40d-bc57-835b-4a259b177be1"}
 ```
 
+## VM and VDI destruction
+
+For a VM:
+
+```bash
+curl \
+  -X DELETE \
+  -b authenticationToken=KQxQdm2vMiv7jBIK0hgkmgxKzemd8wSJ7ugFGKFkTbs \
+  'https://xo.example.org/rest/v0/vms/770aa52a-fd42-8faf-f167-8c5c4a237cac'
+```
+
+For a VDI:
+
+```bash
+curl \
+  -X DELETE \
+  -b authenticationToken=KQxQdm2vMiv7jBIK0hgkmgxKzemd8wSJ7ugFGKFkTbs \
+  'https://xo.example.org/rest/v0/vdis/1a269782-ea93-4c4c-897a-475365f7b674'
+```
+
 ## VM and VDI export
 
 VDI export and VM export are supported by the API. Below is a simple example to export a VM with `zstd` compression into a `myVM.xva` file:
@@ -132,7 +152,7 @@ curl \
   > myVM.xva
 ```
 
-For a VHD export, it's very similar:
+A VDI can be exported in VHD format at `/rest/v0/vdis/<uuid>.vhd` or the raw content at `/rest/v0/vdis/<uuid>.raw`.
 
 ```bash
 curl \

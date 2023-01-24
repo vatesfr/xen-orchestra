@@ -1,6 +1,6 @@
 'use strict'
 
-/* eslint-env jest */
+const { beforeEach, afterEach, test } = require('test')
 
 const execa = require('execa')
 const rimraf = require('rimraf')
@@ -11,8 +11,6 @@ const command = require('./commands/info')
 
 const initialDir = process.cwd()
 
-jest.setTimeout(10000)
-
 beforeEach(async () => {
   const dir = await pFromCallback(cb => tmp.dir(cb))
   process.chdir(dir)
@@ -21,7 +19,7 @@ beforeEach(async () => {
 afterEach(async () => {
   const tmpDir = process.cwd()
   process.chdir(initialDir)
-  await pFromCallback(cb => rimraf(tmpDir, cb))
+  await rimraf(tmpDir)
 })
 
 test('can run the command', async () => {

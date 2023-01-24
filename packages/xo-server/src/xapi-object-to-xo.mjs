@@ -201,7 +201,9 @@ const TRANSFORMS = {
       memory: (function () {
         if (metrics) {
           const free = +metrics.memory_free
-          const total = +metrics.memory_total
+          let total = +metrics.memory_total
+          const ONE_GIB = 1024 * 1024 * 1024
+          total = Math.ceil(total / ONE_GIB) * ONE_GIB
 
           return {
             usage: total - free,
@@ -222,6 +224,7 @@ const TRANSFORMS = {
       patches: link(obj, 'patches'),
       powerOnMode: obj.power_on_mode,
       power_state: metrics ? (isRunning ? 'Running' : 'Halted') : 'Unknown',
+      residentVms: link(obj, 'resident_VMs'),
       startTime: toTimestamp(otherConfig.boot_time),
       supplementalPacks:
         supplementalPacks ||
@@ -405,6 +408,7 @@ const TRANSFORMS = {
         }
       })(),
       expNestedHvm: obj.platform['exp-nested-hvm'] === 'true',
+      viridian: obj.platform.viridian === 'true',
       mainIpAddress: extractIpFromVmNetworks(guestMetrics?.networks),
       high_availability: obj.ha_restart_priority,
 

@@ -6,6 +6,7 @@
 </template>
 
 <script lang="ts" setup>
+import { utcFormat } from "d3-time-format";
 import type { EChartsOption } from "echarts";
 import { computed, provide } from "vue";
 import VueCharts from "vue-echarts";
@@ -22,20 +23,18 @@ import { CanvasRenderer } from "echarts/renderers";
 import type { OptionDataValue } from "echarts/types/src/util/types";
 import UiCard from "@/components/ui/UiCard.vue";
 
+const Y_AXIS_MAX_VALUE = 200;
+
 const props = defineProps<{
   title?: string;
   subtitle?: string;
   data: LinearChartData;
   valueFormatter?: (value: number) => string;
+  maxValue?: number;
 }>();
 
-const valueFormatter = (value: OptionDataValue | OptionDataValue[]) => {
-  if (props.valueFormatter) {
-    return props.valueFormatter(value as number);
-  }
-
-  return value.toString();
-};
+const valueFormatter = (value: OptionDataValue | OptionDataValue[]) =>
+  props.valueFormatter?.(value as number) ?? `${value}`;
 
 provide("valueFormatter", valueFormatter);
 
@@ -62,8 +61,10 @@ const option = computed<EChartsOption>(() => ({
   xAxis: {
     type: "time",
     axisLabel: {
-      showMinLabel: true,
-      showMaxLabel: true,
+      formatter: (timestamp: number) =>
+        utcFormat("%a\n%I:%M\n%p")(new Date(timestamp)),
+      showMaxLabel: false,
+      showMinLabel: false,
     },
   },
   yAxis: {
@@ -71,19 +72,20 @@ const option = computed<EChartsOption>(() => ({
     axisLabel: {
       formatter: valueFormatter,
     },
+    max: () => props.maxValue ?? Y_AXIS_MAX_VALUE,
   },
   series: props.data.map((series, index) => ({
     type: "line",
     name: series.label,
     zlevel: index + 1,
-    data: series.data.map((item) => [item.date, item.value]),
+    data: series.data.map((item) => [item.timestamp, item.value]),
   })),
 }));
 </script>
 
 <style lang="postcss" scoped>
 .chart {
-  width: 50rem;
+  width: 100%;
   height: 30rem;
 }
 </style>

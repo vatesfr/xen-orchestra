@@ -239,6 +239,26 @@ exports.VhdAbstract = class VhdAbstract {
     await handler.writeFile(aliasPath, relativePathToTarget)
   }
 
+  streamSize() {
+    const { header, batSize } = this
+    let fileSize = FOOTER_SIZE + HEADER_SIZE + batSize + FOOTER_SIZE /* the footer at the end */
+
+    // add parentlocator size
+    for (let i = 0; i < PARENT_LOCATOR_ENTRIES; i++) {
+      fileSize += header.parentLocatorEntry[i].platformDataSpace * SECTOR_SIZE
+    }
+
+    // add block size
+    for (let i = 0; i < header.maxTableEntries; i++) {
+      if (this.containsBlock(i)) {
+        fileSize += this.fullBlockSize
+      }
+    }
+
+    assert.strictEqual(fileSize % SECTOR_SIZE, 0)
+    return fileSize
+  }
+
   stream() {
     const { footer, batSize } = this
     const { ...header } = this.header // copy since we don't ant to modifiy the current header

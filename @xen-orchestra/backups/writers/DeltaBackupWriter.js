@@ -20,7 +20,7 @@ const { packUuid } = require('./_packUuid.js')
 const { Disposable } = require('promise-toolbox')
 const NbdClient = require('@vates/nbd-client')
 
-const { debug, warn } = createLogger('xo:backups:DeltaBackupWriter')
+const { debug, warn, info } = createLogger('xo:backups:DeltaBackupWriter')
 
 exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(AbstractDeltaWriter) {
   async checkBaseVdis(baseUuidToSrcVdi) {
@@ -133,7 +133,7 @@ exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(Ab
     }
   }
 
-  async _transfer({ timestamp, deltaExport, sizeContainers }) {
+  async _transfer({ timestamp, deltaExport }) {
     const adapter = this._adapter
     const backup = this._backup
 
@@ -172,6 +172,7 @@ exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(Ab
     }
 
     const { size } = await Task.run({ name: 'transfer' }, async () => {
+      let transferSize = 0
       await Promise.all(
         map(deltaExport.vdis, async (vdi, id) => {
           const path = `${this._vmBackupDir}/${vhds[id]}`
@@ -200,21 +201,25 @@ exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(Ab
           const vdiRef = vm.$xapi.getObject(vdi.uuid).$ref
 
           let nbdClient
-          if (!this._backup.config.useNbd) {
+          if (this._backup.config.useNbd) {
+            debug('useNbd is enabled', { vdi: id, path })
             // get nbd if possible
             try {
               // this will always take the first host in the list
               const [nbdInfo] = await vm.$xapi.call('VDI.get_nbd_info', vdiRef)
+              debug('got NBD info', { nbdInfo, vdi: id, path })
               nbdClient = new NbdClient(nbdInfo)
               await nbdClient.connect()
-              debug(`got nbd connection `, { vdi: vdi.uuid })
+              info('NBD client ready', { vdi: id, path })
             } catch (error) {
               nbdClient = undefined
-              debug(`can't connect to nbd server or no server available`, { error })
+              warn('error connecting to NBD server', { error, vdi: id, path })
             }
+          } else {
+            debug('useNbd is disabled', { vdi: id, path })
           }
 
-          await adapter.writeVhd(path, deltaExport.streams[`${id}.vhd`], {
+          transferSize += await adapter.writeVhd(path, deltaExport.streams[`${id}.vhd`], {
             // no checksum for VHDs, because they will be invalidated by
             // merges and chainings
             checksum: false,
@@ -235,9 +240,7 @@ exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(Ab
           })
         })
       )
-      return {
-        size: Object.values(sizeContainers).reduce((sum, { size }) => sum + size, 0),
-      }
+      return { size: transferSize }
     })
     metadataContent.size = size
     this._metadataFileName = await adapter.writeVmBackupMetadata(vm.uuid, metadataContent)

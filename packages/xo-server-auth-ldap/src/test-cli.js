@@ -2,7 +2,7 @@
 
 import execPromise from 'exec-promise'
 import transportConsole from '@xen-orchestra/log/transports/console'
-import { configure } from '@xen-orchestra/log/configure.js'
+import { configure } from '@xen-orchestra/log/configure'
 import { fromCallback } from 'promise-toolbox'
 import { readFile, writeFile } from 'fs'
 

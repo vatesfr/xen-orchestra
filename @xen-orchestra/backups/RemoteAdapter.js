@@ -28,6 +28,7 @@ const { isMetadataFile } = require('./_backupType.js')
 const { isValidXva } = require('./_isValidXva.js')
 const { listPartitions, LVM_PARTITION_TYPE } = require('./_listPartitions.js')
 const { lvs, pvs } = require('./_lvm.js')
+const { watchStreamSize } = require('./_watchStreamSize')
 // @todo : this import is marked extraneous , sould be fixed when lib is published
 const { mount } = require('@vates/fuse-vhd')
 const { asyncEach } = require('@vates/async-each')
@@ -661,7 +662,7 @@ class RemoteAdapter {
     const handler = this._handler
     if (this.#useVhdDirectory()) {
       const dataPath = `${dirname(path)}/data/${uuidv4()}.vhd`
-      await createVhdDirectoryFromStream(handler, dataPath, input, {
+      const size = await createVhdDirectoryFromStream(handler, dataPath, input, {
         concurrency: writeBlockConcurrency,
         compression: this.#getCompressionType(),
         async validator() {
@@ -671,12 +672,14 @@ class RemoteAdapter {
         nbdClient,
       })
       await VhdAbstract.createAlias(handler, path, dataPath)
+      return size
     } else {
-      await this.outputStream(path, input, { checksum, validator })
+      return this.outputStream(path, input, { checksum, validator })
     }
   }
 
   async outputStream(path, input, { checksum = true, validator = noop } = {}) {
+    const container = watchStreamSize(input)
     await this._handler.outputStream(path, input, {
       checksum,
       dirMode: this._dirMode,
@@ -685,6 +688,7 @@ class RemoteAdapter {
         return validator.apply(this, arguments)
       },
     })
+    return container.size
   }
 
   // open the  hierarchy of ancestors until we find a full one

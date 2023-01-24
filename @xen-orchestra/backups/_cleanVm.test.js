@@ -31,7 +31,7 @@ beforeEach(async () => {
 })
 
 afterEach(async () => {
-  await pFromCallback(cb => rimraf(tempDir, cb))
+  await rimraf(tempDir)
   await handler.forget()
 })
 
@@ -221,7 +221,7 @@ test('it merges delta of non destroyed chain', async () => {
     loggued.push(message)
   }
   await adapter.cleanVm(rootPath, { remove: true, logInfo, logWarn: logInfo, lock: false })
-  assert.equal(loggued[0], `incorrect backup size in metadata`)
+  assert.equal(loggued[0], `unexpected number of entries in backup cache`)
 
   loggued = []
   await adapter.cleanVm(rootPath, { remove: true, merge: true, logInfo, logWarn: () => {}, lock: false })
@@ -378,7 +378,19 @@ describe('tests multiple combination ', () => {
             ],
           })
         )
-
+        if (!useAlias && vhdMode === 'directory') {
+          try {
+            await adapter.cleanVm(rootPath, { remove: true, merge: true, logWarn: () => {}, lock: false })
+          } catch (err) {
+            assert.strictEqual(
+              err.code,
+              'NOT_SUPPORTED',
+              'Merging directory without alias should raise a not supported error'
+            )
+            return
+          }
+          assert.strictEqual(true, false, 'Merging directory without alias should raise an error')
+        }
         await adapter.cleanVm(rootPath, { remove: true, merge: true, logWarn: () => {}, lock: false })
 
         const metadata = JSON.parse(await handler.readFile(`${rootPath}/metadata.json`))

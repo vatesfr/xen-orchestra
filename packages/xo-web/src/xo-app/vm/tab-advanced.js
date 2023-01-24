@@ -827,6 +827,12 @@ export default class TabAdvanced extends Component {
                     <SelectSuspendSr vm={vm} />
                   </td>
                 </tr>
+                <tr>
+                  <th>{_('viridian')}</th>
+                  <td>
+                    <Toggle value={vm.viridian} onChange={value => editVm(vm, { viridian: value })} />
+                  </td>
+                </tr>
               </tbody>
             </table>
             <br />
