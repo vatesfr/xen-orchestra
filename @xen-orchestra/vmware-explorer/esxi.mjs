@@ -24,16 +24,13 @@ export default class Esxi extends EventEmitter {
     this.#host = host
     this.#user = user
     this.#password = password
+    // @FIXME : this will emit a warning at the process level is sslVerifiy is false
     this.#client = new Client(host, user, password, sslVerify)
-    process.on('warning', this.#eatTlsWarning )
     this.#client.once('ready', () => {
-      console.log('ready')
-      process.off('warning', this.#eatTlsWarning )
       this.#ready = true
       this.emit('ready')
     })
     this.#client.on('error', err => {
-      process.off('warning', this.#eatTlsWarning )
       console.error({
         in:'ERROR',
         code: err.code,
@@ -43,9 +40,6 @@ export default class Esxi extends EventEmitter {
     })
   }
 
-  #eatTlsWarning (/* err */){
-     // console.log('yummy', err.code, err.message)
-  }
   #exec(cmd, args) {
     strictEqual(this.#ready, true)
     const client = this.#client
@@ -80,7 +74,6 @@ export default class Esxi extends EventEmitter {
       highWaterMark: 10 * 1024 * 1024,
     })
     if (res.status < 200 || res.status >= 300) {
-      console.log({res})
       const error = new Error(res.status + ' ' + res.statusText + ' ' + url)
       error.cause = res
       throw error
@@ -91,6 +84,7 @@ export default class Esxi extends EventEmitter {
     return res
   }
 
+  // inspired from https://github.com/reedog117/node-vsphere-soap/blob/master/test/vsphere-soap.test.js#L95
   async search(type, properties) {
     // get property collector
     const propertyCollector = this.#client.serviceContent.propertyCollector
@@ -231,7 +225,7 @@ export default class Esxi extends EventEmitter {
         isGenerated: ethernet.addressType === 'generated',
       })
     }
-    const vmsd = await (await this.download(dataStore, vmxPath.replace('.vmx', '.vmsd'))).text()
+    const vmsd = await (await this.download(dataStore, vmxPath.replace(/\.vmx$/, '.vmsd'))).text()
     let snapshots
     if(vmsd){
       snapshots = parseVmsd(vmsd)
@@ -250,8 +244,8 @@ export default class Esxi extends EventEmitter {
 
     return {
       name_label: config.name,
-      memory: parseInt(config.hardware.memoryMB) * 1024 * 1024,
-      numCpu: parseInt(config.hardware.numCPU),
+      memory:  (+config.hardware.memoryMB) * 1024 * 1024,
+      numCpu: +config.hardware.numCPU,
       guestToolsInstalled: false,
       firmware: config.firmware, // bios or uefi
       powerState: runtime.powerState,

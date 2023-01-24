@@ -2,7 +2,7 @@ import { notEqual, strictEqual } from 'node:assert'
 import { VhdAbstract } from 'vhd-lib'
 import { createFooter, createHeader } from 'vhd-lib/_createFooterHeader.js'
 import _computeGeometryForSize from 'vhd-lib/_computeGeometryForSize.js'
-import { DISK_TYPES, FOOTER_SIZE } from 'vhd-lib/_constants.js'
+import {  FOOTER_SIZE } from 'vhd-lib/_constants.js'
 import { unpackFooter, unpackHeader } from 'vhd-lib/Vhd/_utils.js'
 
 export default class VhdEsxiCowd extends VhdAbstract {
@@ -113,9 +113,9 @@ export default class VhdEsxiCowd extends VhdAbstract {
     const graintable = await this.#read(offset, offset + 4096 * 4 /* grain table length */- 1)
 
     strictEqual(graintable.length, 4096 * 4)
-    // we have no guaranty that data are order or contiguous
+    // we have no guaranty that data are ordered or contiguous
     // let's construct ranges to limit the number of queries
-    let rangeStart, offsetStart, offsetEnd, lastOffset
+    let rangeStart, offsetStart, offsetEnd
 
    const  changeRange = async (index, offset) => {
       if(offsetStart !== undefined ){
@@ -127,6 +127,7 @@ export default class VhdEsxiCowd extends VhdAbstract {
         const grains = await this.#read(offsetStart * 512, offsetEnd  * 512 - 1) 
         grains.copy(buffer, (rangeStart+1 /* block bitmap */)*512)
       }
+      // start a new range
       if(offset){
         // we're at the beginning of a range present in the file
         rangeStart = index
@@ -144,7 +145,7 @@ export default class VhdEsxiCowd extends VhdAbstract {
       const grainOffset = graintable.readInt32LE(i * 4)
       if(grainOffset ===0){
         await changeRange()
-        // from parent
+        // the content from parent is already in buffer 
         continue
       }
       if(grainOffset === 1){
@@ -159,6 +160,7 @@ export default class VhdEsxiCowd extends VhdAbstract {
         
       }
     }
+    // close last range
     await changeRange()
     return {
       id: blockId,

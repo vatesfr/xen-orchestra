@@ -1,4 +1,3 @@
-'use strict'
 import { Backup } from '@xen-orchestra/backups/Backup.js'
 import { v4 as generateUuid } from 'uuid'
 import Esxi from '@xen-orchestra/vmware-explorer/esxi.mjs'
@@ -9,6 +8,8 @@ import VhdEsxiRaw from '@xen-orchestra/vmware-explorer/VhdEsxiRaw.mjs'
 import OTHER_CONFIG_TEMPLATE from '../xapi/other-config-template.mjs'
 import openDeltaVmdkasVhd from '@xen-orchestra/vmware-explorer/openDeltaVmdkAsVhd.mjs'
 import { Task } from '@vates/task'
+import { decorateWith } from '@vates/decorate-with'
+import { defer as deferrable } from 'golike-defer'
 
 export default class MigrateVm {
   constructor(app) {
@@ -171,7 +172,8 @@ export default class MigrateVm {
     })
   }
 
-  async migrationfromEsxi({host, user, password, sslVerify , sr: srId, network: networkId, vm: vmId, thin, stopSource }) {
+  @decorateWith(deferrable)
+  async migrationfromEsxi($defer, {host, user, password, sslVerify , sr: srId, network: networkId, vm: vmId, thin, stopSource }) {
     
     const app = this._app
     const esxi = await this.#connectToEsxi(host, user, password, sslVerify)
@@ -227,6 +229,8 @@ export default class MigrateVm {
       return vm
     })
 
+    $defer.onFailure.call(xapi, 'VM_destroy', vm.$ref)
+
 
     const vhds  =  await Promise.all(
         Object.keys(chainsByNodes).map(async (node,userdevice) => new Task({name: `Cold import of disks ${node}  `}).run(async()=>{
@@ -239,6 +243,9 @@ export default class MigrateVm {
               virtual_size: chainByNode[0].capacity,
             })
           )
+          // it can fail before the vdi is connected to the vm
+
+          $defer.onFailure.call(xapi, 'VDI_destroy', vdi.$ref)
           console.log('vdi created')
 
           await xapi.VBD_create({
@@ -288,10 +295,10 @@ export default class MigrateVm {
 
       await Promise.all(
           Object.keys(chainsByNodes).map(async (node, userdevice)=>{
-            await new Task({name: `Transfering deltas of ${userDevice}`}).run(async () =>{
+            await new Task({name: `Transfering deltas of ${userdevice}`}).run(async () =>{
             const chainByNode = chainsByNodes[node]
             const disk = chainByNode[chainByNode.length -1]
-            const {fileName, path, datastore } = disk
+            const {fileName, path, datastore, isFull } = disk
             const {vdi, vhd:parentVhd} = vhds[userdevice]
             let vhd
             if(isFull){
@@ -300,7 +307,8 @@ export default class MigrateVm {
               await vhd.readBlockAllocationTable()
             } else {
               console.log('delta disk ')
-              vhd = await openDeltaVmdkasVhd(esxi, datastore, path + '/' + fileName, parentVhd)
+              // we only want to transfer blocks present in the delta vhd, not the full vhd chain
+              vhd = await openDeltaVmdkasVhd(esxi, datastore, path + '/' + fileName, parentVhd , {lookMissingBlockInParent: false})
             }
             const stream =vhd.stream()
             console.log('will import active disk ', stream.length)
