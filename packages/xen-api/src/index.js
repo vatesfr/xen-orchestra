@@ -11,7 +11,7 @@ import { coalesceCalls } from '@vates/coalesce-calls'
 import { Collection } from 'xo-collection'
 import { EventEmitter } from 'events'
 import { Index } from 'xo-collection/index'
-import { cancelable, defer, fromCallback, ignoreErrors, pDelay, pRetry, pTimeout } from 'promise-toolbox'
+import { cancelable, CancelToken, defer, fromCallback, ignoreErrors, pDelay, pRetry, pTimeout } from 'promise-toolbox'
 import { limitConcurrency } from 'limit-concurrency-decorator'
 
 import autoTransport from './transports/auto'
@@ -90,6 +90,7 @@ export class Xapi extends EventEmitter {
       opts.syncStackTraces ?? process.env.NODE_ENV === 'development' ? addSyncStackTrace : identity
     this._callTimeout = makeCallSetting(opts.callTimeout, 60 * 60 * 1e3) // 1 hour but will be reduced in the future
     this._httpInactivityTimeout = opts.httpInactivityTimeout ?? 5 * 60 * 1e3 // 5 mins
+    this._httpTimeout = opts.httpTimeout ?? 24 * 60 * 60 * 1e3 // 24 hours
     this._eventPollDelay = opts.eventPollDelay ?? 60 * 1e3 // 1 min
     this._pool = null
     this._readOnly = Boolean(opts.readOnly)
@@ -369,6 +370,13 @@ export class Xapi extends EventEmitter {
 
   @cancelable
   async getResource($cancelToken, pathname, { host, query, task } = {}) {
+    const timeout = this._httpTimeout
+    if (timeout !== 0) {
+      const source = CancelToken.source([$cancelToken])
+      setTimeout(source.cancel, timeout)
+      $cancelToken = source.token
+    }
+
     const taskRef = await this._autoTask(task, `Xapi#getResource ${pathname}`)
 
     query = { ...query, session_id: this.sessionId }
@@ -429,6 +437,13 @@ export class Xapi extends EventEmitter {
   async putResource($cancelToken, body, pathname, { host, query, task } = {}) {
     if (this._readOnly) {
       throw new Error('cannot put resource in read only mode')
+    }
+
+    const timeout = this._httpTimeout
+    if (timeout !== 0) {
+      const source = CancelToken.source([$cancelToken])
+      setTimeout(source.cancel, timeout)
+      $cancelToken = source.token
     }
 
     const taskRef = await this._autoTask(task, `Xapi#putResource ${pathname}`)
