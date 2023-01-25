@@ -173,14 +173,13 @@ ddb.geometry.cylinders = "${geometry.cylinders}"
     }
     const size = 1024 * 1024
     const fullBuffer = Buffer.alloc(size, 0)
-    while (remaining > 0) {
-      const yieldSize = Math.min(size, remaining)
-      remaining -= yieldSize
-      if (yieldSize === size) {
-        yield track(fullBuffer)
-      } else {
-        yield track(Buffer.alloc(yieldSize))
-      }
+    while (remaining > size) {
+      yield track(fullBuffer)
+      remaining -= size
+    }
+    const yieldSize = Math.min(size, remaining)
+    if (yieldSize > 0) {
+      yield track(Buffer.alloc(yieldSize))
     }
   }
 
