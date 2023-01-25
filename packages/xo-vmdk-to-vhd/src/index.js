@@ -67,12 +67,11 @@ export async function vhdToVMDK(diskName, vhdReadStreamGetter, withLength = fals
 export async function vhdToVMDKIterator(diskName, vhdReadStream) {
   const { blockSize, blockCount, blocks, diskSize, geometry } = await parseVhdToBlocks(vhdReadStream)
 
-  const vmdkTargetSize = blockSize * blockCount + 3 * 1024 * 1024 // header/footer/descriptor
-  const iterator = await generateVmdkData(diskName, diskSize, blockSize, blocks, geometry, vmdkTargetSize)
-
+  const dataSize = blockSize * blockCount
+  const { iterator, metadataSize } = await generateVmdkData(diskName, diskSize, blockSize, blocks, geometry, dataSize)
   return {
     iterator,
-    size: vmdkTargetSize,
+    size: dataSize + metadataSize,
   }
 }
 

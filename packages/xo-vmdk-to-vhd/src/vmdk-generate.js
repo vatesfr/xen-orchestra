@@ -11,6 +11,8 @@ import {
   MARKER_EOS,
 } from './definitions'
 
+const roundToSector = value => Math.ceil(value / SECTOR_SIZE) * SECTOR_SIZE
+
 /**
  * - block is an input bunch of bytes, VHD default size is 2MB
  * - grain is an output (VMDK) bunch of bytes, VMDK default is 64KB
@@ -34,7 +36,7 @@ export async function generateVmdkData(
     heads: 16,
     cylinders: 10402,
   },
-  targetSize
+  dataSize
 ) {
   const cid = Math.floor(Math.random() * Math.pow(2, 32))
   const diskCapacitySectors = Math.ceil(diskCapacityBytes / SECTOR_SIZE)
@@ -81,8 +83,8 @@ ddb.geometry.cylinders = "${geometry.cylinders}"
 
   let streamPosition = 0
   let directoryOffset = 0
-
-  const roundToSector = value => Math.ceil(value / SECTOR_SIZE) * SECTOR_SIZE
+  const endMetadataLength = computeEndMetadataLength()
+  const metadataSize = headerData.buffer.length + descriptorBuffer.length + endMetadataLength
 
   function track(buffer) {
     assert.equal(streamPosition % SECTOR_SIZE, 0)
@@ -151,25 +153,31 @@ ddb.geometry.cylinders = "${geometry.cylinders}"
     }
   }
 
+  function computeEndMetadataLength() {
+    return (
+      SECTOR_SIZE + // MARKER_GT
+      roundToSector(tableBuffer.length) +
+      SECTOR_SIZE + // MARKER_GD
+      roundToSector(headerData.grainDirectoryEntries * 4) +
+      SECTOR_SIZE + // MARKER_GT
+      roundToSector(tableBuffer.length) +
+      SECTOR_SIZE + // MARKER_GD
+      roundToSector(headerData.grainDirectoryEntries * 4) +
+      SECTOR_SIZE + // MARKER_FOOTER
+      SECTOR_SIZE + // stream optimizedheader
+      SECTOR_SIZE
+    ) // MARKER_EOS
+  }
+
   function* padding() {
-    if (targetSize === undefined) {
+    if (dataSize === undefined) {
       return
     }
-    let remaining = targetSize - streamPosition
-    remaining -= SECTOR_SIZE // MARKER_GT
-    remaining -= tableBuffer.length
-    remaining -= SECTOR_SIZE // MARKER_GD
-    remaining -= roundToSector(headerData.grainDirectoryEntries * 4)
-    remaining -= SECTOR_SIZE // MARKER_GT
-    remaining -= tableBuffer.length
-    remaining -= SECTOR_SIZE // MARKER_GD
-    remaining -= roundToSector(headerData.grainDirectoryEntries * 4)
-    remaining -= SECTOR_SIZE // MARKER_FOOTER
-    remaining -= SECTOR_SIZE // stream optimizedheader
-    remaining -= SECTOR_SIZE // MARKER_EOS
+    const targetSize = dataSize + metadataSize
+    let remaining = targetSize - streamPosition - endMetadataLength
 
     if (remaining < 0) {
-      throw new Error('vmdk is bigger than precalculed size ')
+      throw new Error(`vmdk is bigger than precalculed size`)
     }
     const size = 1024 * 1024
     const fullBuffer = Buffer.alloc(size, 0)
@@ -212,5 +220,8 @@ ddb.geometry.cylinders = "${geometry.cylinders}"
     yield track(footer.buffer)
     yield track(createEmptyMarker(MARKER_EOS))
   }
-  return iterator()
+  return {
+    iterator: iterator(),
+    metadataSize,
+  }
 }
