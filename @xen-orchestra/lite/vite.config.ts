@@ -25,8 +25,12 @@ export default defineConfig({
     commonjsOptions: {
       include: [/complex-matcher/, /node_modules/],
     },
+    target: "es2020",
   },
   optimizeDeps: {
     include: ["complex-matcher"],
+    esbuildOptions: {
+      target: "es2020",
+    },
   },
 });
