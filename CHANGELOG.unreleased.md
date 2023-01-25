@@ -21,6 +21,7 @@
 - [Backup] Fix NBD configuration (PR [#6597](https://github.com/vatesfr/xen-orchestra/pull/6597))
 - [NBD Backups] Fix transfer size [#6599](https://github.com/vatesfr/xen-orchestra/issues/6599)
 - [Disk] Show bootable status for vm running in `pv_in_pvh` virtualisation mode [#6432](https://github.com/vatesfr/xen-orchestra/issues/6432) (PR [#6629](https://github.com/vatesfr/xen-orchestra/pull/6629))
+- [Ova export] Reduce memory consumption (PR [#6637](https://github.com/vatesfr/xen-orchestra/pull/6637))
 
 ### Packages to release
 
@@ -44,6 +45,7 @@
 - @xen-orchestra/mixins feat
 - @xen-orchestra/xapi patch
 - vhd-lib patch
+- xo-vmdk-to-vhd patch
 - xo-cli patch
 - xo-server minor
 - xo-server-perf-alert patch
