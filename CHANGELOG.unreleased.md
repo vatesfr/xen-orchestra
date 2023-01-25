@@ -24,6 +24,7 @@
 - [NBD Backups] Fix transfer size [#6599](https://github.com/vatesfr/xen-orchestra/issues/6599)
 - [Disk] Show bootable status for vm running in `pv_in_pvh` virtualisation mode [#6432](https://github.com/vatesfr/xen-orchestra/issues/6432) (PR [#6629](https://github.com/vatesfr/xen-orchestra/pull/6629))
 - [Ova export] Reduce memory consumption (PR [#6637](https://github.com/vatesfr/xen-orchestra/pull/6637))
+- [Host/Network] Remove extra "mode" column in PIF table (PR [#6640](https://github.com/vatesfr/xen-orchestra/pull/6640))
 
 ### Packages to release
 
