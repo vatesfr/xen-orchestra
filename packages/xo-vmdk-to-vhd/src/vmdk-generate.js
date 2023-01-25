@@ -172,11 +172,12 @@ ddb.geometry.cylinders = "${geometry.cylinders}"
       throw new Error('vmdk is bigger than precalculed size ')
     }
     const size = 1024 * 1024
-    while (remaining > 0) {
-      const yieldSize = Math.min(size, remaining)
-      remaining -= yieldSize
-      yield track(Buffer.alloc(yieldSize))
+    const fullBuffer = Buffer.alloc(size, 0)
+    while (remaining > size) {
+      yield track(fullBuffer)
+      remaining -= size
     }
+    yield track(Buffer.alloc(remaining))
   }
 
   async function* iterator() {
