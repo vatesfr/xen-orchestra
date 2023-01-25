@@ -14,6 +14,7 @@
 - [Licenses] Makes `id` and `boundObjectId` copyable (PR [#6634](https://github.com/vatesfr/xen-orchestra/pull/6634))
 - [REST API] The raw content of a VDI can be downloaded directly
 - [Kubernetes recipe] Add the possibility to create the cluster with a static network configuration (PR [#6598](https://github.com/vatesfr/xen-orchestra/pull/6598))
+- [REST API] Ability to update the name and description of objects
 
 ### Bug fixes
 

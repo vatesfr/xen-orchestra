@@ -2,7 +2,7 @@ import { every } from '@vates/predicates'
 import { ifDef } from '@xen-orchestra/defined'
 import { invalidCredentials, noSuchObject } from 'xo-common/api-errors.js'
 import { pipeline } from 'stream'
-import { Router } from 'express'
+import { json, Router } from 'express'
 import createNdJsonStream from '../_createNdJsonStream.mjs'
 import pick from 'lodash/pick.js'
 import map from 'lodash/map.js'
@@ -123,6 +123,34 @@ export default class RestApi {
             } else {
               next(error)
             }
+          }
+        })
+        .patch('/:id', json(), async (req, res, next) => {
+          let obj
+          try {
+            obj = await app.getXapiObject(req.params.id, type)
+          } catch (error) {
+            if (noSuchObject.is(error)) {
+              next()
+            } else {
+              next(error)
+            }
+            return
+          }
+
+          try {
+            const promises = []
+            const { body } = req
+            for (const key of ['name_description', 'name_label']) {
+              const value = body[key]
+              if (value !== undefined) {
+                promises.push(obj['set_' + key](value))
+              }
+            }
+            await promises
+            res.sendStatus(200)
+          } catch (error) {
+            next(error)
           }
         })
     }
