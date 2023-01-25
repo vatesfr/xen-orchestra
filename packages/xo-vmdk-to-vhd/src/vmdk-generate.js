@@ -177,10 +177,7 @@ ddb.geometry.cylinders = "${geometry.cylinders}"
       yield track(fullBuffer)
       remaining -= size
     }
-    const yieldSize = Math.min(size, remaining)
-    if (yieldSize > 0) {
-      yield track(Buffer.alloc(yieldSize))
-    }
+    yield track(Buffer.alloc(remaining))
   }
 
   async function* iterator() {
