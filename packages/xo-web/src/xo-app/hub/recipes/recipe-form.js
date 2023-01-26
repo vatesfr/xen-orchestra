@@ -42,6 +42,25 @@ export default decorate([
           [name]: value,
         })
       },
+      onChangeWorkerIp(__, ev) {
+        const { name, value } = ev.target
+        const { onChange, value: prevValue } = this.props
+        const workerNodeIpAddresses = prevValue.workerNodeIpAddresses ?? []
+
+        workerNodeIpAddresses[name.split('.')[1]] = value
+        onChange({
+          ...prevValue,
+          workerNodeIpAddresses,
+        })
+      },
+      toggleStaticIpAddress(__, ev) {
+        const { name } = ev.target
+        const { onChange, value: prevValue } = this.props
+        onChange({
+          ...prevValue,
+          [name]: ev.target.checked,
+        })
+      },
     },
     computed: {
       networkPredicate:
@@ -100,6 +119,72 @@ export default decorate([
           value={value.nbNodes}
         />
       </FormGrid.Row>
+      <FormGrid.Row>
+        <label>
+          <input
+            className='mt-1'
+            name='staticIpAddress'
+            onChange={effects.toggleStaticIpAddress}
+            type='checkbox'
+            value={value.staticIpAddress}
+          />
+          &nbsp;
+          {_('recipeStaticIpAddresses')}
+        </label>
+      </FormGrid.Row>
+      {value.nbNodes > 0 &&
+        value.staticIpAddress && [
+          <FormGrid.Row key='masterIpAddrRow'>
+            <label>{_('recipeMasterIpAddress')}</label>
+            <input
+              className='form-control'
+              name='masterIpAddress'
+              onChange={effects.onChangeValue}
+              placeholder={formatMessage(messages.recipeMasterIpAddress)}
+              required
+              type='text'
+              value={value.masterIpAddress}
+            />
+          </FormGrid.Row>,
+          <FormGrid.Row key='netmaskRow'>
+            <label>{_('recipeNetworkMask')}</label>
+            <input
+              className='form-control'
+              name='networkMask'
+              onChange={effects.onChangeValue}
+              placeholder={formatMessage(messages.recipeNetworkMask)}
+              required
+              type='text'
+              value={value.networkMask}
+            />
+          </FormGrid.Row>,
+          <FormGrid.Row key='gatewayRow'>
+            <label>{_('recipeGatewayIpAddress')}</label>
+            <input
+              className='form-control'
+              name='gatewayIpAddress'
+              onChange={effects.onChangeValue}
+              placeholder={formatMessage(messages.recipeGatewayIpAddress)}
+              required
+              type='text'
+              value={value.gatewayIpAddress}
+            />
+          </FormGrid.Row>,
+          [...Array(+value.nbNodes)].map((v, i) => (
+            <FormGrid.Row key={v}>
+              <label>{_('recipeWorkerIpAddress', { i: i + 1 })}</label>
+              <input
+                className='form-control'
+                name={`workerNodeIpAddress.${i}`}
+                onChange={effects.onChangeWorkerIp}
+                placeholder={formatMessage(messages.recipeWorkerIpAddress, { i: i + 1 })}
+                required
+                type='text'
+                value={value[`workerNodeIpAddress.${i}`]}
+              />
+            </FormGrid.Row>
+          )),
+        ]}
       <FormGrid.Row>
         <label>{_('recipeSshKeyLabel')}</label>
         <input

@@ -160,6 +160,47 @@ configure(transportSyslog())
 configure(transportSyslog({ target: 'tcp://syslog.company.lan' }))
 ```
 
+### Helpers
+
+#### Dedupe
+
+> Wraps a transport to limit the number of duplicate logs.
+
+```js
+import { dedupe } from '@xen-orchestra/log/dedupe'
+
+configure(
+  dedupe({
+    timeout: 500e3, // default to 600e3, ie 10 minutes
+    transport: console.log,
+  })
+)
+```
+
+Duplicate logs will be buffered for `timeout` milliseconds or until a different log is emitted, at which time a dedicated log entry is emitted which indicate the number of duplicates that occured.
+
+```js
+const logger = createLogger('app')
+
+// Log some duplicate messages
+logger.error('Something went wrong')
+logger.error('Something went wrong')
+logger.error('Something went wrong')
+
+// Log a different message
+logger.info('This is a different message')
+```
+
+In this example, the first three log entries are identical and the last two will be treated as duplicates. They will be grouped together and sent to the transport as a single log with `nDuplicates: 2` data when a different log entry is emitted (or after the timeout as elasped if there weren't one).
+
+The output in the console would look something like:
+
+```
+app ERROR Something went wrong
+app ERROR duplicates of the previous log were hidden { nDuplicates: 2 }
+app INFO This is a different message
+```
+
 ## Contributions
 
 Contributions are _very_ welcomed, either on the documentation or on

@@ -20,7 +20,7 @@ beforeEach(async () => {
 })
 
 afterEach(async () => {
-  await pFromCallback(cb => rimraf(tempDir, cb))
+  await rimraf(tempDir)
 })
 
 test('It can read block and parent locator from a synthetic vhd', async () => {

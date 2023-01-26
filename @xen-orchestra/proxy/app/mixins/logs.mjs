@@ -1,5 +1,6 @@
-import transportConsole from '@xen-orchestra/log/transports/console.js'
-import { configure } from '@xen-orchestra/log/configure.js'
+import transportConsole from '@xen-orchestra/log/transports/console'
+import { configure } from '@xen-orchestra/log/configure'
+import { dedupe } from '@xen-orchestra/log/dedupe'
 
 export default class Logs {
   constructor(app) {
@@ -9,7 +10,7 @@ export default class Logs {
         {
           filter: [process.env.DEBUG, filter],
           level,
-          transport,
+          transport: dedupe(transport),
         },
       ])
     })

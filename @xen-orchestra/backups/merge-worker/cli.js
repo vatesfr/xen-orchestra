@@ -4,7 +4,7 @@
 
 'use strict'
 
-const { catchGlobalErrors } = require('@xen-orchestra/log/configure.js')
+const { catchGlobalErrors } = require('@xen-orchestra/log/configure')
 const { createLogger } = require('@xen-orchestra/log')
 const { getSyncedHandler } = require('@xen-orchestra/fs')
 const { join } = require('path')

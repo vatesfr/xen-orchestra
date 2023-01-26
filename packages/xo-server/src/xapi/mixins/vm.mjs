@@ -404,6 +404,9 @@ export default {
         return vm.update_platform('videoram', String(videoram))
       },
     },
+    viridian: {
+      set: (viridian, vm) => vm.update_platform('viridian', viridian ? 'true' : null),
+    },
 
     startDelay: {
       get: vm => +vm.start_delay,

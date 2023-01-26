@@ -4,8 +4,8 @@ const fromCallback = require('promise-toolbox/fromCallback')
 const nodemailer = require('nodemailer') // eslint-disable-line n/no-extraneous-require
 const prettyFormat = require('pretty-format') // eslint-disable-line n/no-extraneous-require
 
-const { evalTemplate, required } = require('../utils')
-const { NAMES } = require('../levels')
+const { evalTemplate, required } = require('../_utils')
+const { NAMES } = require('../_levels')
 
 function createTransport({
   // transport options (https://nodemailer.com/smtp/)

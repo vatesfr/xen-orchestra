@@ -19,7 +19,7 @@ beforeEach(async () => {
 })
 
 afterEach(async () => {
-  await pFromCallback(cb => rimraf(tempDir, cb))
+  await rimraf(tempDir)
 })
 
 test('is vhd alias recognize only *.alias.vhd files', () => {

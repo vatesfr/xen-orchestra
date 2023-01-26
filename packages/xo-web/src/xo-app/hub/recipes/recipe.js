@@ -42,7 +42,7 @@ export default decorate([
           defaultValue: {
             pool: {},
           },
-          render: props => <RecipeForm {...props} />,
+          render: props => <RecipeForm {...props} value={{ nbNodes: 1, ...props.value }} />,
           header: (
             <span>
               <Icon icon='hub-recipe' /> {RECIPE_INFO.name}
@@ -51,15 +51,29 @@ export default decorate([
           size: 'medium',
         })
 
-        const { masterName, nbNodes, network, sr, sshKey } = recipeParams
+        const {
+          gatewayIpAddress,
+          masterIpAddress,
+          masterName,
+          nbNodes,
+          network,
+          networkMask,
+          sr,
+          sshKey,
+          workerNodeIpAddresses,
+        } = recipeParams
 
         markRecipeAsCreating(RECIPE_INFO.id)
         const tag = await createKubernetesCluster({
+          gatewayIpAddress,
+          masterIpAddress,
           masterName,
           nbNodes: +nbNodes,
           network: network.id,
+          networkMask,
           sr: sr.id,
           sshKey,
+          workerNodeIpAddresses,
         })
         markRecipeAsDone(RECIPE_INFO.id)
 
