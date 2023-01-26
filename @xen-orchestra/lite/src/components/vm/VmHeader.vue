@@ -9,14 +9,24 @@
             <UiIcon :icon="faAngleDown" />
           </UiButton>
         </template>
-        <MenuItem :disabled="!isHalted" :icon="faPlay">
+        <MenuItem
+          @click="xenApi.vm.start({ vmRef: vm.$ref })"
+          :busy="isOperationsPending('start')"
+          :disabled="!isHalted"
+          :icon="faPlay"
+        >
           {{ $t("start") }}
         </MenuItem>
-        <MenuItem :disabled="!isHalted" :icon="faServer">
+        <MenuItem
+          :busy="isOperationsPending('start_on')"
+          :disabled="!isHalted"
+          :icon="faServer"
+        >
           {{ $t("start-on-host") }}
           <template #submenu>
             <MenuItem
               v-for="host in hostStore.allRecords"
+              @click="xenApi.vm.startOn({ vmRef: vm.$ref, hostRef: host.$ref })"
               v-bind:key="host.$ref"
               :icon="faServer"
             >
@@ -37,26 +47,62 @@
             </MenuItem>
           </template>
         </MenuItem>
-        <MenuItem :disabled="!isRunning" :icon="faPause">
+        <MenuItem
+          @click="xenApi.vm.pause({ vmRef: vm.$ref })"
+          :busy="isOperationsPending('pause')"
+          :disabled="!isRunning"
+          :icon="faPause"
+        >
           {{ $t("pause") }}
         </MenuItem>
-        <MenuItem :disabled="!isRunning" :icon="faMoon">
+        <MenuItem
+          @click="xenApi.vm.suspend({ vmRef: vm.$ref })"
+          :busy="isOperationsPending('suspend')"
+          :disabled="!isRunning"
+          :icon="faMoon"
+        >
           {{ $t("suspend") }}
         </MenuItem>
         <!-- TODO: update the icon once Clémence has integrated the action into figma -->
-        <MenuItem :disabled="!isSuspended && !isPaused" :icon="faCirclePlay">
+        <MenuItem
+          @click="
+            xenApi.vm.resume({
+              vmRef: vm.$ref,
+            })
+          "
+          :busy="isOperationsPending(['unpause', 'resume'])"
+          :disabled="!isSuspended && !isPaused"
+          :icon="faCirclePlay"
+        >
           {{ $t("resume") }}
         </MenuItem>
-        <MenuItem :disabled="!isRunning" :icon="faRotateLeft">
+        <MenuItem
+          @click="xenApi.vm.reboot({ vmRef: vm.$ref })"
+          :busy="isOperationsPending('clean_reboot')"
+          :disabled="!isRunning"
+          :icon="faRotateLeft"
+        >
           {{ $t("reboot") }}
         </MenuItem>
-        <MenuItem :disabled="!isRunning && !isPaused" :icon="faRepeat">
+        <MenuItem
+          @click="xenApi.vm.reboot({ vmRef: vm.$ref, force: true })"
+          :busy="isOperationsPending('hard_reboot')"
+          :disabled="!isRunning && !isPaused"
+          :icon="faRepeat"
+        >
           {{ $t("force-reboot") }}
         </MenuItem>
-        <MenuItem :disabled="!isRunning" :icon="faPowerOff">
+        <MenuItem
+          @click="xenApi.vm.shutdown({ vmRef: vm.$ref })"
+          :busy="isOperationsPending('clean_shutdown')"
+          :disabled="!isRunning"
+          :icon="faPowerOff"
+        >
           {{ $t("shutdown") }}
         </MenuItem>
         <MenuItem
+          @click="xenApi.vm.shutdown({ vmRef: vm.$ref, force: true })"
+          :busy="isOperationsPending('hard_shutdown')"
           :disabled="!isRunning && !isSuspended && !isPaused"
           :icon="faPlug"
         >
@@ -77,6 +123,7 @@ import { isHostRunning } from "@/libs/utils";
 import { useHostStore } from "@/stores/host.store";
 import { usePoolStore } from "@/stores/pool.store";
 import { useVmStore } from "@/stores/vm.store";
+import { useXenApiStore } from "@/stores/xen-api.store";
 import {
   faAngleDown,
   faCirclePlay,
@@ -93,20 +140,31 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { computed } from "vue";
 import { useRouter } from "vue-router";
+import { computedAsync } from "@vueuse/core";
+import { difference } from "lodash";
 
 const vmStore = useVmStore();
 const hostStore = useHostStore();
 const poolStore = usePoolStore();
 const { currentRoute } = useRouter();
 
-const vm = computed(() =>
-  vmStore.getRecordByUuid(currentRoute.value.params.uuid as string)
+const isOperationsPending = (operations: string[] | string) => {
+  const _operations = Array.isArray(operations) ? operations : [operations];
+  return (
+    difference(_operations, vmOperations.value).length < _operations.length
+  );
+};
+const vmOperations = computed(() => Object.values(vm.value.current_operations));
+
+const vm = computed(
+  () => vmStore.getRecordByUuid(currentRoute.value.params.uuid as string)!
 );
-const name = computed(() => vm.value?.name_label);
-const isRunning = computed(() => vm.value?.power_state === "Running");
-const isHalted = computed(() => vm.value?.power_state === "Halted");
-const isSuspended = computed(() => vm.value?.power_state === "Suspended");
-const isPaused = computed(() => vm.value?.power_state === "Paused");
+const xenApi = computedAsync(() => useXenApiStore().getXapi());
+const name = computed(() => vm.value.name_label);
+const isRunning = computed(() => vm.value.power_state === "Running");
+const isHalted = computed(() => vm.value.power_state === "Halted");
+const isSuspended = computed(() => vm.value.power_state === "Suspended");
+const isPaused = computed(() => vm.value.power_state === "Paused");
 </script>
 
 <style lang="postcss" scoped>

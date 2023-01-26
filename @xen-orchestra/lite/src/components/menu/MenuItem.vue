@@ -12,7 +12,13 @@
     </MenuTrigger>
     <AppMenu v-else shadow :disabled="isDisabled">
       <template #trigger="{ open, isOpen }">
-        <MenuTrigger :active="isOpen" :icon="icon" @click="open">
+        <MenuTrigger
+          :active="isOpen"
+          :busy="isBusy"
+          :disabled="isDisabled"
+          :icon="icon"
+          @click="open"
+        >
           <slot />
           <UiIcon
             :fixed-width="false"
