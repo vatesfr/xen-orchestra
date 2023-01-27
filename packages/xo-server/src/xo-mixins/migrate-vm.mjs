@@ -185,7 +185,7 @@ export default class MigrateVm {
 
     console.log('ready in migrate')
     console.log({esxiVmMetadata})
-    const { disks, memory, name_label, networks, numCpu, powerState, snapshots } = esxiVmMetadata
+    const { disks, firmware, memory, name_label, networks, numCpu, powerState, snapshots } = esxiVmMetadata
     const isRunning = powerState !== 'poweredOff'
 
     const chainsByNodes = await new Task({name: `build disks and snapshots chains for ${vmId}`}).run(async ()=>{
@@ -209,8 +209,11 @@ export default class MigrateVm {
           VCPUs_at_startup: numCpu,
           VCPUs_max: numCpu,
         })
+        
       )
       await Promise.all([
+        vm.update_HVM_boot_params('firmware', firmware),
+        vm.update_platform('device-model', 'qemu-upstream-' + (firmware === 'uefi' ? 'uefi' : 'compat')),
         asyncMapSettled(['start', 'start_on'], op => vm.update_blocked_operations(op, 'Esxi migration in progress...')),
         vm.set_name_label(`[Importing...] ${name_label}`),
       ])
