@@ -23,7 +23,7 @@
     "@vates/parse-duration": "^0.1.1",
     "@vates/task": "^0.0.0",
     "@xen-orchestra/emit-async": "^1.0.0",
-    "@xen-orchestra/log": "^0.5.0",
+    "@xen-orchestra/log": "^0.6.0",
     "acme-client": "^5.0.0",
     "app-conf": "^2.3.0",
     "lodash": "^4.17.21",
