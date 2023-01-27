@@ -98,7 +98,7 @@ export async function set({
     defaultIsLocked !== undefined && network.set_default_locking_mode(defaultIsLocked ? 'disabled' : 'unlocked'),
     nameDescription !== undefined && network.set_name_description(nameDescription),
     nameLabel !== undefined && network.set_name_label(nameLabel),
-    nbd !== undefined && nbdPromise,
+    nbd !== undefined && updateNbd(),
   ])
 }
 
