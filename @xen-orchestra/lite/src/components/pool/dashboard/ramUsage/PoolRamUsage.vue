@@ -25,7 +25,7 @@ import { sumBy } from "lodash-es";
 import { storeToRefs } from "pinia";
 import { computed, inject } from "vue";
 import { useI18n } from "vue-i18n";
-import { formatSize, getHostMemory } from "@/libs/utils";
+import { formatSize, getHostMemory, isHostRunning } from "@/libs/utils";
 import type { XenApiHost } from "@/libs/xen-api";
 
 const { allRecords: hosts } = storeToRefs(useHostStore());
@@ -34,14 +34,15 @@ const { t } = useI18n();
 const hostLastWeekStats =
   inject<FetchedStats<XenApiHost, HostStats>>("hostLastWeekStats");
 
+const runningHosts = computed(() => hosts.value.filter(isHostRunning));
 const customMaxValue = computed(() =>
-  sumBy(hosts.value, (host) => getHostMemory(host)?.size ?? 0)
+  sumBy(runningHosts.value, (host) => getHostMemory(host)?.size ?? 0)
 );
 
 const currentData = computed(() => {
   let size = 0,
     usage = 0;
-  hosts.value.forEach((host) => {
+  runningHosts.value.forEach((host) => {
     const hostMemory = getHostMemory(host);
     size += hostMemory?.size ?? 0;
     usage += hostMemory?.usage ?? 0;
