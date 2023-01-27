@@ -226,6 +226,9 @@ export default class MigrateVm {
             device: vifDevices[i],
             network: xapi.getObject(networkId).$ref,
             VM: vm.$ref,
+          },
+          {
+            MAC: network.macAddress,
           })
         )
       )
