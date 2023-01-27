@@ -46,7 +46,7 @@
 - @vates/task patch
 - @xen-orchestra/backups patch
 - @xen-orchestra/log minor
-- @xen-orchestra/mixins feat
+- @xen-orchestra/mixins minor
 - @xen-orchestra/xapi patch
 - vhd-lib patch
 - xo-vmdk-to-vhd patch
