@@ -1,5 +1,54 @@
 # ChangeLog
 
+## **next**
+
+### Enhancements
+
+- [REST API] Expose `residentVms` property on hosts objects
+- [VM/Advanced] Clarify _Windows Update_ label [#6628](https://github.com/vatesfr/xen-orchestra/issues/6628) (PR [#6632](https://github.com/vatesfr/xen-orchestra/pull/6632))
+- [REST API] Add support to destroy VMs and VDIs
+- [VM/Advanced] Add configuration flag for _Viridian_ platform [#6572](https://github.com/vatesfr/xen-orchestra/issues/6572) (PR [#6631](https://github.com/vatesfr/xen-orchestra/pull/6631))
+- [Licenses] Makes `id` and `boundObjectId` copyable (PR [#6634](https://github.com/vatesfr/xen-orchestra/pull/6634))
+- [REST API] The raw content of a VDI can be downloaded directly
+- [Kubernetes recipe] Add the possibility to create the cluster with a static network configuration (PR [#6598](https://github.com/vatesfr/xen-orchestra/pull/6598))
+- [REST API] Ability to update the name and description of objects
+
+### Bug fixes
+
+- [REST API] Fix 5 minutes timeouts on VDI/VM uploads [#6568](https://github.com/vatesfr/xen-orchestra/issues/6568)
+- [Backup] Fix NBD configuration (PR [#6597](https://github.com/vatesfr/xen-orchestra/pull/6597))
+- [NBD Backups] Fix transfer size [#6599](https://github.com/vatesfr/xen-orchestra/issues/6599)
+- [Disk] Show bootable status for vm running in `pv_in_pvh` virtualisation mode [#6432](https://github.com/vatesfr/xen-orchestra/issues/6432) (PR [#6629](https://github.com/vatesfr/xen-orchestra/pull/6629))
+- [Ova export] Reduce memory consumption (PR [#6637](https://github.com/vatesfr/xen-orchestra/pull/6637))
+- [Host/Network] Remove extra "mode" column in PIF table (PR [#6640](https://github.com/vatesfr/xen-orchestra/pull/6640))
+
+### Released packages
+
+- @xen-orchestra/log 0.6.0
+- @vates/disposable 0.1.4
+- @xen-orchestra/fs 3.3.1
+- vhd-lib 4.2.1
+- @vates/task 0.0.1
+- @xen-orchestra/audit-core 0.2.3
+- @xen-orchestra/backups 0.29.5
+- @xen-orchestra/mixins 0.9.0
+- @xen-orchestra/xapi 1.6.1
+- @xen-orchestra/proxy 0.26.10
+- xo-vmdk-to-vhd 2.5.1
+- xo-cli 0.14.3
+- xo-server 5.108.0
+- xo-server-audit 0.10.3
+- xo-server-auth-ldap 0.10.7
+- xo-server-backup-reports 0.17.3
+- xo-server-load-balancer 0.7.3
+- xo-server-netbox 0.3.6
+- xo-server-perf-alert 0.3.3
+- xo-server-sdn-controller 1.0.8
+- xo-server-transport-nagios 1.0.1
+- xo-server-usage-report 0.10.3
+- xo-server-web-hooks 0.3.3
+- xo-web 5.110.0
+
 ## **5.78.0** (2022-12-20)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
