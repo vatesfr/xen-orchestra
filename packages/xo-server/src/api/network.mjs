@@ -80,19 +80,16 @@ export async function set({
 }) {
   network = this.getXapiObject(network)
 
-  let nbdPromise
-
-  if (nbd !== undefined) {
-    nbdPromise = new Promise(resolve => {
-      if (nbd) {
-        if (network.purpose.includes('insecure_nbd')) network.remove_purpose('insecure_nbd')
-        resolve(network.add_purpose('nbd'))
-      } else {
-        resolve(network.remove_purpose('nbd'))
+  async function updateNbd(nbd){
+    if(nbd){
+      if (network.purpose.includes('insecure_nbd')){
+        await network.remove_purpose('insecure_nbd')
       }
-    })
+      await network.add_purpose('nbd')
+    } else {
+      await network.remove_purpose('nbd')
+    }
   }
-
   await Promise.all([
     automatic !== undefined && network.update_other_config('automatic', automatic ? 'true' : null),
     defaultIsLocked !== undefined && network.set_default_locking_mode(defaultIsLocked ? 'disabled' : 'unlocked'),
