@@ -2,9 +2,8 @@ import { notEqual, strictEqual } from 'node:assert'
 import { VhdAbstract } from 'vhd-lib'
 import { createFooter, createHeader } from 'vhd-lib/_createFooterHeader.js'
 import _computeGeometryForSize from 'vhd-lib/_computeGeometryForSize.js'
-import { DISK_TYPES, FOOTER_SIZE } from 'vhd-lib/_constants.js'
+import {  FOOTER_SIZE } from 'vhd-lib/_constants.js'
 import { unpackFooter, unpackHeader } from 'vhd-lib/Vhd/_utils.js'
-import { assert } from 'node:console'
 
 // from https://github.com/qemu/qemu/commit/98eb9733f4cf2eeab6d12db7e758665d2fd5367b#
 
@@ -70,7 +69,6 @@ export default class VhdEsxiSeSparse extends VhdAbstract {
     return (await this.#esxi.download(this.#datastore, this.#path, `${start}-${start+length -1}`)).buffer()
   }
 
-// 
   containsBlock(blockId) {
 
     notEqual(this.#grainDirectory, undefined, "bat must be loaded to use contain blocks'")
@@ -96,13 +94,11 @@ export default class VhdEsxiSeSparse extends VhdAbstract {
     }
 
     strictEqual(readInt64(buffer, 1), 0x200000001)  // version 2.1
-
-    //strictEqual(readInt64(buffer, 4), 0x0000000200000001) // version 2.1
     
-    const capacity =   readInt64(buffer, 2)//  buffer.readBigInt64LE( 16)
-    const grain_size = readInt64(buffer, 3)//buffer.readBigInt64LE( 24)
-    const grain_table_size = readInt64(buffer, 4)//buffer.readBigInt64LE( 32)
-    const flags = readInt64(buffer, 5)//buffer.readBigInt64LE( 40)
+    const capacity =   readInt64(buffer, 2)
+    const grain_size = readInt64(buffer, 3)
+    const grain_table_size = readInt64(buffer, 4)
+    const flags = readInt64(buffer, 5)
 
     const grain_dir_offset = readInt64(buffer, 16)
     const grain_dir_size = readInt64(buffer, 17)

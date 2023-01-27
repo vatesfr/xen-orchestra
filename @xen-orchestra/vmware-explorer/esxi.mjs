@@ -31,11 +31,6 @@ export default class Esxi extends EventEmitter {
       this.emit('ready')
     })
     this.#client.on('error', err => {
-      console.error({
-        in:'ERROR',
-        code: err.code,
-        message: err.message
-      })
       this.emit('error', err)
     })
   }
