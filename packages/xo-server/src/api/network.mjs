@@ -80,9 +80,9 @@ export async function set({
 }) {
   network = this.getXapiObject(network)
 
-  async function updateNbd(nbd){
-    if(nbd){
-      if (network.purpose.includes('insecure_nbd')){
+  async function updateNbd(nbd) {
+    if (nbd) {
+      if (network.purpose.includes('insecure_nbd')) {
         await network.remove_purpose('insecure_nbd')
       }
       await network.add_purpose('nbd')
@@ -95,7 +95,7 @@ export async function set({
     defaultIsLocked !== undefined && network.set_default_locking_mode(defaultIsLocked ? 'disabled' : 'unlocked'),
     nameDescription !== undefined && network.set_name_description(nameDescription),
     nameLabel !== undefined && network.set_name_label(nameLabel),
-    nbd !== undefined && updateNbd(),
+    nbd !== undefined && updateNbd(nbd),
   ])
 }
 
