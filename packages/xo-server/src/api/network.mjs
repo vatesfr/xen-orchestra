@@ -4,8 +4,8 @@ export function getBondModes() {
   return ['balance-slb', 'active-backup', 'lacp']
 }
 
-export async function create({ pool, name, description, pif, mtu = 1500, vlan = 0 }) {
-  return xapiObjectToXo(
+export async function create({ pool, name, description, pif, mtu = 1500, vlan = 0, nbd }) {
+  const network = xapiObjectToXo(
     await this.getXapi(pool).createNetwork({
       name,
       description,
@@ -13,12 +13,19 @@ export async function create({ pool, name, description, pif, mtu = 1500, vlan = 
       mtu: +mtu,
       vlan: +vlan,
     })
-  ).id
+  )
+
+  if (nbd) {
+    await this.getXapiObject(network._xapiRef).add_purpose('nbd')
+  }
+
+  return network.id
 }
 
 create.params = {
   pool: { type: 'string' },
   name: { type: 'string' },
+  nbd: { type: 'boolean', optional: true },
   description: { type: 'string', optional: true },
   pif: { type: 'string', optional: true },
   mtu: { type: ['integer', 'string'], optional: true },
@@ -73,12 +80,25 @@ export async function set({
 }) {
   network = this.getXapiObject(network)
 
+  let nbdPromise
+
+  if (nbd !== undefined) {
+    nbdPromise = new Promise(resolve => {
+      if (nbd) {
+        if (network.purpose.includes('insecure_nbd')) network.remove_purpose('insecure_nbd')
+        resolve(network.add_purpose('nbd'))
+      } else {
+        resolve(network.remove_purpose('nbd'))
+      }
+    })
+  }
+
   await Promise.all([
     automatic !== undefined && network.update_other_config('automatic', automatic ? 'true' : null),
     defaultIsLocked !== undefined && network.set_default_locking_mode(defaultIsLocked ? 'disabled' : 'unlocked'),
     nameDescription !== undefined && network.set_name_description(nameDescription),
     nameLabel !== undefined && network.set_name_label(nameLabel),
-    nbd !== undefined && nbd ? network.add_purpose('nbd') : network.remove_purpose('nbd'),
+    nbd !== undefined && nbdPromise,
   ])
 }
 
