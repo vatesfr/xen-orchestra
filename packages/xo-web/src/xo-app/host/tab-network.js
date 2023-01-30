@@ -228,11 +228,6 @@ const PIF_COLUMNS = [
     sortCriteria: 'mode',
   },
   {
-    itemRenderer: (pif, userData) => <PifItemMode pif={pif} networks={userData.networks} />,
-    name: _('pifModeLabel'),
-    sortCriteria: 'mode',
-  },
-  {
     itemRenderer: pif => pif.mac,
     name: _('pifMacLabel'),
     sortCriteria: 'mac',

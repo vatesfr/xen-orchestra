@@ -2,7 +2,10 @@
 
 - [Authentication](#authentication)
 - [Collections](#collections)
+- [Properties update](#properties-update)
+- [VM destruction](#vm-destruction)
 - [VM Export](#vm-export)
+- [VDI destruction](#vdi-destruction)
 - [VDI Export](#vdi-export)
 - [VDI Import](#vdi-import)
 - [The future](#the-future)
@@ -111,6 +114,29 @@ Content-Type: application/x-ndjson
 {"name_label":"Debian 10 Cloudinit self-service","power_state":"Halted","url":"/rest/v0/vms/5019156b-f40d-bc57-835b-4a259b177be1"}
 ```
 
+## Properties update
+
+> This feature is restricted to `name_label` and `name_description` at the moment.
+
+```bash
+curl \
+  -X PATCH \
+  -b authenticationToken=KQxQdm2vMiv7jBIK0hgkmgxKzemd8wSJ7ugFGKFkTbs \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json' \
+  -d '{ "name_label": "The new name", "name_description": "The new description" }' \
+  'https://xo.company.lan/rest/v0/vms/770aa52a-fd42-8faf-f167-8c5c4a237cac'
+```
+
+## VM destruction
+
+```bash
+curl \
+  -X DELETE \
+  -b authenticationToken=KQxQdm2vMiv7jBIK0hgkmgxKzemd8wSJ7ugFGKFkTbs \
+  'https://xo.company.lan/rest/v0/vms/770aa52a-fd42-8faf-f167-8c5c4a237cac'
+```
+
 ## VM Export
 
 A VM can be exported as an XVA at `/rest/v0/vms/<uuid>.xva`.
@@ -127,9 +153,18 @@ curl \
   > myVM.xva
 ```
 
+## VDI destruction
+
+```bash
+curl \
+  -X DELETE \
+  -b authenticationToken=KQxQdm2vMiv7jBIK0hgkmgxKzemd8wSJ7ugFGKFkTbs \
+  'https://xo.company.lan/rest/v0/vdis/1a269782-ea93-4c4c-897a-475365f7b674'
+```
+
 ## VDI Export
 
-A VM can be exported as an VHD at `/rest/v0/vdis/<uuid>.vhd`.
+A VDI can be exported in VHD format at `/rest/v0/vdis/<uuid>.vhd` or the raw content at `/rest/v0/vdis/<uuid>.raw`.
 
 ```bash
 curl \

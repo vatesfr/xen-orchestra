@@ -46,7 +46,7 @@ beforeEach(async () => {
 afterEach(async () => {
   const tmpDir = process.cwd()
   process.chdir(initialDir)
-  await pFromCallback(cb => rimraf(tmpDir, cb))
+  await rimraf(tmpDir)
 })
 
 test('VMDKDirectParser reads OK', async () => {

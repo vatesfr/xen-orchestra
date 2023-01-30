@@ -22,7 +22,7 @@ beforeEach(async () => {
 })
 
 afterEach(async () => {
-  await pFromCallback(cb => rimraf(tempDir, cb))
+  await rimraf(tempDir)
 })
 
 test('It opens a vhd file ( alias or not)', async () => {

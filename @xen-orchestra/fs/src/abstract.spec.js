@@ -116,7 +116,7 @@ describe('encryption', () => {
     dir = await pFromCallback(cb => tmp.dir(cb))
   })
   afterAll(async () => {
-    await pFromCallback(cb => rimraf(dir, cb))
+    await rimraf(dir)
   })
 
   it('sync should NOT create metadata if missing (not encrypted)', async () => {

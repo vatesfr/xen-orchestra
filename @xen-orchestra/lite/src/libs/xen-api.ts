@@ -1,5 +1,6 @@
 import { JSONRPCClient } from "json-rpc-2.0";
 import { buildXoObject, parseDateTime } from "@/libs/utils";
+import { useVmStore } from "@/stores/vm.store";
 
 export type RawObjectType =
   | "Bond"
@@ -88,6 +89,7 @@ export interface XenApiSr extends XenApiRecord {
 }
 
 export interface XenApiVm extends XenApiRecord {
+  current_operations: Record<string, string>;
   name_label: string;
   name_description: string;
   power_state: PowerState;
@@ -201,6 +203,9 @@ export default class XenApi {
     return this.#client.request(method, args);
   }
 
+  _call = (method: string, args: any[] = []) =>
+    this.#call(method, [this.sessionId, ...args]);
+
   async getHostServertime(host: XenApiHost) {
     const serverLocaltime = (await this.#call("host.get_servertime", [
       this.sessionId,
@@ -282,5 +287,84 @@ export default class XenApi {
       "pool",
       poolRef,
     ]);
+  }
+
+  get vm() {
+    type VmsRef =
+      | {
+          vmRef: XenApiVm["$ref"];
+          vmsRef?: undefined;
+        }
+      | {
+          vmRef?: undefined;
+          vmsRef: XenApiVm["$ref"][];
+        };
+
+    return {
+      start: ({ vmRef, vmsRef }: VmsRef) => {
+        const _vmsRef = vmsRef ?? [vmRef];
+        return Promise.all(
+          _vmsRef.map((vmRef) => this._call("VM.start", [vmRef, false, false]))
+        );
+      },
+      startOn: ({ vmRef, vmsRef, hostRef }: VmsRef & { hostRef: string }) => {
+        const _vmsRef = vmsRef ?? [vmRef];
+        return Promise.all(
+          _vmsRef.map((vmRef) =>
+            this._call("VM.start_on", [vmRef, hostRef, false, false])
+          )
+        );
+      },
+      pause: ({ vmRef, vmsRef }: VmsRef) => {
+        const _vmsRef = vmsRef ?? [vmRef];
+        return Promise.all(
+          _vmsRef.map((vmRef) => this._call("VM.pause", [vmRef]))
+        );
+      },
+      suspend: ({ vmRef, vmsRef }: VmsRef) => {
+        const _vmsRef = vmsRef ?? [vmRef];
+        return Promise.all(
+          _vmsRef.map((vmRef) => this._call("VM.suspend", [vmRef]))
+        );
+      },
+      resume: ({ vmRef, vmsRef }: VmsRef) => {
+        const _vmsRef = vmsRef ?? [vmRef];
+        const vmStore = useVmStore();
+        return Promise.all(
+          _vmsRef.map((ref) => {
+            const isSuspended =
+              vmStore.getRecord(ref).power_state === "Suspended";
+            return this._call(
+              `VM.${isSuspended ? "resume" : "unpause"}`,
+              isSuspended ? [ref, false, false] : [ref]
+            );
+          })
+        );
+      },
+      reboot: ({
+        vmRef,
+        vmsRef,
+        force = false,
+      }: VmsRef & { force?: boolean }) => {
+        const _vmsRef = vmsRef ?? [vmRef];
+        return Promise.all(
+          _vmsRef.map((vmRef) =>
+            this._call(`VM.${force ? "hard" : "clean"}_reboot`, [vmRef])
+          )
+        );
+      },
+      shutdown: ({
+        vmRef,
+        vmsRef,
+        force = false,
+      }: VmsRef & { force?: boolean }) => {
+        const _vmsRef = vmsRef ?? [vmRef];
+        return Promise.all(
+          _vmsRef.map((vmRef) =>
+            this._call(`VM.${force ? "hard" : "clean"}_shutdown`, [vmRef])
+          )
+        );
+      },
+    };
   }
 }

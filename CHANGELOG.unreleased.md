@@ -7,15 +7,9 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [REST API] Expose `residentVms` property on hosts objects
-
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
-
-- [REST API] Fix 5 minutes timeouts on VDI/VM uploads [#6568](https://github.com/vatesfr/xen-orchestra/issues/6568)
-- [Backup] Fix NBD configuration (PR [#6597](https://github.com/vatesfr/xen-orchestra/pull/6597))
-- [NBD Backups] Fix transfer size [#6599](https://github.com/vatesfr/xen-orchestra/issues/6599)
 
 ### Packages to release
 
@@ -33,12 +27,6 @@
 
 <!--packages-start-->
 
-- @xen-orchestra/backups patch
-- @xen-orchestra/log minor
-- @xen-orchestra/upload-ova patch
-- @xen-orchestra/xapi patch
-- vhd-lib patch
-- xo-server minor
-- xo-server-perf-alert patch
+- xo-server-upload-ova patch
 
 <!--packages-end-->

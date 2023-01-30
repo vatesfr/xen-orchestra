@@ -2,7 +2,7 @@ import { every } from '@vates/predicates'
 import { ifDef } from '@xen-orchestra/defined'
 import { invalidCredentials, noSuchObject } from 'xo-common/api-errors.js'
 import { pipeline } from 'stream'
-import { Router } from 'express'
+import { json, Router } from 'express'
 import createNdJsonStream from '../_createNdJsonStream.mjs'
 import pick from 'lodash/pick.js'
 import map from 'lodash/map.js'
@@ -13,7 +13,7 @@ import { VDI_FORMAT_RAW, VDI_FORMAT_VHD } from '@xen-orchestra/xapi'
 function sendObjects(objects, req, res) {
   const { query } = req
   const basePath = req.baseUrl + req.path
-  const makeUrl = object => basePath + object.id
+  const makeUrl = object => basePath + '/' + object.id
 
   let { fields } = query
   let results
@@ -49,6 +49,17 @@ const subRouter = (app, path) => {
   return router
 }
 
+// wraps an async middleware
+function wrap(middleware) {
+  return async function asyncMiddlewareWrapped(req, res, next) {
+    try {
+      await middleware.apply(this, arguments)
+    } catch (error) {
+      next(error)
+    }
+  }
+}
+
 export default class RestApi {
   constructor(app, { express }) {
     // don't setup the API if express is not present
@@ -79,57 +90,92 @@ export default class RestApi {
       )
     })
 
-    const collections = [
-      { id: 'hosts', type: 'host' },
-      { id: 'networks', type: 'network' },
-      { id: 'pools', type: 'pool' },
-      { id: 'srs', type: 'SR' },
-      { id: 'vbds', type: 'VBD' },
-      { id: 'vdi-snapshots', type: 'VDI-snapshot' },
-      { id: 'vdis', type: 'VDI' },
-      { id: 'vifs', type: 'VIF' },
-      { id: 'vm-snapshots', type: 'VM-snapshot' },
-      { id: 'vm-templates', type: 'VM-template' },
-      { id: 'vms', type: 'VM' },
+    const types = [
+      'host',
+      'network',
+      'pool',
+      'SR',
+      'VBD',
+      'VDI-snapshot',
+      'VDI',
+      'VIF',
+      'VM-snapshot',
+      'VM-template',
+      'VM',
     ]
+    const collections = Object.fromEntries(
+      types.map(type => {
+        const id = type.toLocaleLowerCase() + 's'
+        return [id, { id, isCorrectType: _ => _.type === type, type }]
+      })
+    )
+
+    api.param('collection', (req, res, next) => {
+      const id = req.params.collection
+      const collection = collections[id]
+      if (collection === undefined) {
+        next('route')
+      } else {
+        req.collection = collection
+        next()
+      }
+    })
+    api.param('object', (req, res, next) => {
+      const id = req.params.object
+      const { type } = req.collection
+      try {
+        req.xapiObject = app.getXapiObject((req.xoObject = app.getObject(id, type)))
+        next()
+      } catch (error) {
+        if (noSuchObject.is(error, { id, type })) {
+          next('route')
+        } else {
+          next(error)
+        }
+      }
+    })
 
     api.get('/', (req, res) => sendObjects(collections, req, res))
+    api.get(
+      '/:collection',
+      wrap(async (req, res) => {
+        const { query } = req
+        sendObjects(
+          await app.getObjects({
+            filter: every(req.collection.isCorrectType, handleOptionalUserFilter(query.filter)),
+            limit: ifDef(query.limit, Number),
+          }),
+          req,
+          res
+        )
+      })
+    )
+    api.get('/:collection/:object', (req, res) => {
+      res.json(req.xoObject)
+    })
+    api.patch(
+      '/:collection/:object',
+      json(),
+      wrap(async (req, res) => {
+        const obj = req.xapiObject
 
-    for (const { id, type } of collections) {
-      const isCorrectType = _ => _.type === type
-
-      subRouter(api, '/' + id)
-        .get('/', async (req, res, next) => {
-          try {
-            const { query } = req
-            sendObjects(
-              await app.getObjects({
-                filter: every(isCorrectType, handleOptionalUserFilter(query.filter)),
-                limit: ifDef(query.limit, Number),
-              }),
-              req,
-              res
-            )
-          } catch (error) {
-            next(error)
+        const promises = []
+        const { body } = req
+        for (const key of ['name_description', 'name_label']) {
+          const value = body[key]
+          if (value !== undefined) {
+            promises.push(obj['set_' + key](value))
           }
-        })
-        .get('/:id', async (req, res, next) => {
-          try {
-            res.json(await app.getObject(req.params.id, type))
-          } catch (error) {
-            if (noSuchObject.is(error)) {
-              next()
-            } else {
-              next(error)
-            }
-          }
-        })
-    }
+        }
+        await promises
+        res.sendStatus(200)
+      })
+    )
 
-    api.post('/srs/:uuid/vdis', async (req, res, next) => {
-      try {
-        const sr = app.getXapiObject(req.params.uuid, 'SR')
+    api.post(
+      '/srs/:object/vdis',
+      wrap(async (req, res) => {
+        const sr = req.xapiObject
         req.length = +req.headers['content-length']
 
         const { name_label, name_description, raw } = req.query
@@ -140,51 +186,39 @@ export default class RestApi {
         })
 
         res.end(await sr.$xapi.getField('VDI', vdiRef, 'uuid'))
-      } catch (error) {
-        if (noSuchObject.is(error)) {
-          next()
-        } else {
-          next(error)
-        }
-      }
-    })
+      })
+    )
 
-    api.get('/vdi:subtype(|-snapshot)s/:uuid.vhd', async (req, res, next) => {
-      try {
-        const { subtype, uuid } = req.params
-        const vdi = app.getXapiObject(uuid, 'VDI' + subtype)
-        const stream = await vdi.$exportContent({ format: 'vhd' })
+    api.delete(
+      '/:collection(vdis|vdi-snapshots|vms|vm-snapshots|vm-templates)/:object',
+      wrap(async (req, res) => {
+        await req.xapiObject.$destroy()
+        res.sendStatus(200)
+      })
+    )
 
-        stream.headers['content-disposition'] = 'attachment'
-        res.writeHead(stream.statusCode, stream.statusMessage != null ? stream.statusMessage : '', stream.headers)
-
-        await fromCallback(pipeline, stream, res)
-      } catch (error) {
-        if (noSuchObject.is(error)) {
-          next()
-        } else {
-          next(error)
-        }
-      }
-    })
-
-    api.get('/vm:subtype(|-snapshot|-template)s/:uuid.xva', async (req, res, next) => {
-      try {
-        const { subtype, uuid } = req.params
-        const vm = app.getXapiObject(uuid, 'VM' + subtype)
-        const stream = await vm.$export({ compress: req.query.compress })
+    api.get(
+      '/:collection(vdis|vdi-snapshots)/:object.:format(vhd|raw)',
+      wrap(async (req, res) => {
+        const stream = await req.xapiObject.$exportContent({ format: req.params.format })
 
         stream.headers['content-disposition'] = 'attachment'
         res.writeHead(stream.statusCode, stream.statusMessage != null ? stream.statusMessage : '', stream.headers)
 
         await fromCallback(pipeline, stream, res)
-      } catch (error) {
-        if (noSuchObject.is(error)) {
-          next()
-        } else {
-          next(error)
-        }
-      }
-    })
+      })
+    )
+
+    api.get(
+      '/:collection(vms|vm-snapshots|vm-templates)/:object.xva',
+      wrap(async (req, res) => {
+        const stream = await req.xapiObject.$export({ compress: req.query.compress })
+
+        stream.headers['content-disposition'] = 'attachment'
+        res.writeHead(stream.statusCode, stream.statusMessage != null ? stream.statusMessage : '', stream.headers)
+
+        await fromCallback(pipeline, stream, res)
+      })
+    )
   }
 }
