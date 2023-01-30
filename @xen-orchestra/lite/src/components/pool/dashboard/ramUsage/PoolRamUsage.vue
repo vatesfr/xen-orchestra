@@ -61,7 +61,7 @@ const data = computed<LinearChartData>(() => {
   const result = new Map<number, { timestamp: number; value: number }>();
 
   stats.forEach(({ stats }) => {
-    if (stats === undefined) {
+    if (stats?.memory === undefined) {
       return;
     }
 
