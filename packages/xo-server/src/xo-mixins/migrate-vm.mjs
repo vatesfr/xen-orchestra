@@ -7,7 +7,7 @@ import { VDI_FORMAT_VHD } from '@xen-orchestra/xapi'
 import VhdEsxiRaw from '@xen-orchestra/vmware-explorer/VhdEsxiRaw.mjs'
 import OTHER_CONFIG_TEMPLATE from '../xapi/other-config-template.mjs'
 import openDeltaVmdkasVhd from '@xen-orchestra/vmware-explorer/openDeltaVmdkAsVhd.mjs'
-import { Task } from '@vates/task'
+import { Task } from '@xen-orchestra/mixins/Tasks.mjs'
 import { decorateWith } from '@vates/decorate-with'
 import { defer as deferrable } from 'golike-defer'
 
