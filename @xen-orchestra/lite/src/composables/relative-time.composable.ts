@@ -17,37 +17,46 @@ export default function useRelativeTime(
       return t("relative-time.now");
     }
 
-    const diffInYears = (diff.value / (1000 * 60 * 60 * 24 * 365)) ^ 0;
-    const diffInMonths = (diff.value / (1000 * 60 * 60 * 24 * 30)) % 12 ^ 0;
-    const diffInDays = (diff.value / (1000 * 60 * 60 * 24)) % 7 ^ 0;
-    const diffInHours = (diff.value / (1000 * 60 * 60)) % 24 ^ 0;
-    const diffInMinutes = (diff.value / (1000 * 60)) % 60 ^ 0;
-    const diffInSeconds = (diff.value / 1000) % 60 ^ 0;
+    const years = Math.floor(diff.value / 31556952000);
+    let timeLeft = diff.value % 31556952000;
+
+    const months = Math.floor(timeLeft / 2629746000);
+    timeLeft = timeLeft % 2629746000;
+
+    const days = Math.floor(timeLeft / 86400000);
+    timeLeft = timeLeft % 86400000;
+
+    const hours = Math.floor(timeLeft / 3600000);
+    timeLeft = timeLeft % 3600000;
+
+    const minutes = Math.floor(timeLeft / 60000);
+    timeLeft = timeLeft % 60000;
+    const seconds = Math.floor(timeLeft / 1000);
 
     const parts = [];
 
-    if (diffInYears > 0) {
-      parts.push(t("relative-time.year", { n: diffInYears }));
+    if (years > 0) {
+      parts.push(t("relative-time.year", { n: years }));
     }
 
-    if (diffInMonths > 0) {
-      parts.push(t("relative-time.month", { n: diffInMonths }));
+    if (months > 0) {
+      parts.push(t("relative-time.month", { n: months }));
     }
 
-    if (diffInDays > 0) {
-      parts.push(t("relative-time.day", { n: diffInDays }));
+    if (days > 0) {
+      parts.push(t("relative-time.day", { n: days }));
     }
 
-    if (diffInHours > 0) {
-      parts.push(t("relative-time.hour", { n: diffInHours }));
+    if (years === 0 && months === 0 && days <= 1 && hours > 0) {
+      parts.push(t("relative-time.hour", { n: hours }));
     }
 
-    if (diffInMinutes > 0) {
-      parts.push(t("relative-time.minute", { n: diffInMinutes }));
+    if (years === 0 && months === 0 && days === 0 && minutes > 0) {
+      parts.push(t("relative-time.minute", { n: minutes }));
     }
 
-    if (diffInSeconds > 0) {
-      parts.push(t("relative-time.second", { n: diffInSeconds }));
+    if (years === 0 && months === 0 && days === 0 && seconds > 0) {
+      parts.push(t("relative-time.second", { n: seconds }));
     }
 
     return t(isPast.value ? "relative-time.past" : "relative-time.future", {

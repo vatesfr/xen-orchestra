@@ -10,7 +10,7 @@ import { computed } from "vue";
 const props = withDefaults(
   defineProps<{
     date: Date | number | string;
-    interval: number;
+    interval?: number;
   }>(),
   { interval: 1000 }
 );
