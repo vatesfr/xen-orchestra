@@ -100,7 +100,7 @@ const NewNetwork = decorate([
         }
         this.state.networks = networks
       },
-      onChangeNbd: (_, nbd) => ({ nbd: nbd.value }),
+      onChangeNbd: (_, nbd) => ({ nbd: nbd?.value }),
       initialize: async () => ({ bondModes: await getBondModes() }),
       linkState,
       onChangeMode: (_, bondMode) => ({ bondMode }),
