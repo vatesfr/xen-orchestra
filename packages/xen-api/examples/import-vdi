@@ -39,7 +39,12 @@ defer(async ($defer, argv) => {
   $defer(() => xapi.disconnect())
 
   const { cancel, token } = CancelToken.source()
-  process.on('SIGINT', cancel)
+  process.once('SIGINT', () => {
+    cancel()
+    process.once('SIGINT', () => {
+      process.exit(1)
+    })
+  })
 
   let input = createInputStream(opts._[1])
   $defer.onFailure(() => input.destroy())
@@ -75,7 +80,5 @@ defer(async ($defer, argv) => {
     },
   })
 
-  if (result !== undefined) {
-    console.log(result)
-  }
+  console.log(result !== undefined ? result : 'ok')
 })(process.argv.slice(2)).catch(console.error.bind(console, 'error'))

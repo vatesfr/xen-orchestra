@@ -100,7 +100,7 @@ export class Xapi extends EventEmitter {
       opts.syncStackTraces ?? process.env.NODE_ENV === 'development' ? addSyncStackTrace : identity
     this._callTimeout = makeCallSetting(opts.callTimeout, 60 * 60 * 1e3) // 1 hour but will be reduced in the future
     this._httpInactivityTimeout = opts.httpInactivityTimeout ?? 5 * 60 * 1e3 // 5 mins
-    this._httpTimeout = opts.httpTimeout ?? 3 * 1e3 // 24 hours
+    this._httpTimeout = opts.httpTimeout ?? 24 * 60 * 60 * 1e3 // 24 hours
     this._eventPollDelay = opts.eventPollDelay ?? 60 * 1e3 // 1 min
     this._pool = null
     this._readOnly = Boolean(opts.readOnly)
@@ -544,7 +544,10 @@ export class Xapi extends EventEmitter {
           )
         : doRequest(url.href)
     )
-    console.log('got response')
+    const responseEnd = fromEvent(response, 'end')
+    responseEnd.catch(noop)
+
+    console.log({ useHack })
 
     if (pTaskResult !== undefined) {
       if (useHack) {
@@ -561,22 +564,16 @@ export class Xapi extends EventEmitter {
         // avoid unhandled rejection in case the upload fails
         pTaskResult.catch(noop)
       }
-      response.on('error', noop)
-      // pTaskResult = new Promise((resolve, reject) => {
-      //   pTaskResult.then(resolve, reject)
-      // })
-    } else {
-      // pTaskResult = fromEvent(response, 'close')
     }
 
     const { req } = response
     if (!req.finished) {
-      console.log('foo')
+      console.log('waiting for request to finish')
       await new Promise((resolve, reject) => {
         req.on('finish', resolve).on('error', reject)
         response.on('error', reject)
       })
-      console.log('bar')
+      console.log('request finished')
     }
 
     if (useHack) {
@@ -588,8 +585,6 @@ export class Xapi extends EventEmitter {
         response.on('end', resolve).on('error', reject)
       })
     }
-
-    await Promise.all([pTaskResult, fromEvent(response, 'end')])
 
     return pTaskResult
   }
