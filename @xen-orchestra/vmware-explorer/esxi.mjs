@@ -219,10 +219,9 @@ export default class Esxi extends EventEmitter {
         })
       }
     }
-
-    const vmsd = await (await this.download(dataStore, vmxPath.replace(/\.vmx$/, '.vmsd'))).text()
     let snapshots
-    if (vmsd) {
+    try {
+      const vmsd = await (await this.download(dataStore, vmxPath.replace(/\.vmx$/, '.vmsd'))).text()
       snapshots = parseVmsd(vmsd)
 
       for (const snapshotIndex in snapshots?.snapshots) {
@@ -235,6 +234,8 @@ export default class Esxi extends EventEmitter {
           }
         }
       }
+    } catch (error) {
+      // no vmsd file :fall back to a full withou snapshots
     }
 
     return {
