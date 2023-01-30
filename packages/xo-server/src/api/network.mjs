@@ -87,7 +87,7 @@ export async function set({
       }
       await network.add_purpose('nbd')
     } else {
-      await network.remove_purpose('nbd')
+      await network.remove_purpose(network.purpose[0])
     }
   }
   await Promise.all([
