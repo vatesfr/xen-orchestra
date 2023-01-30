@@ -205,7 +205,7 @@ export default class Esxi extends EventEmitter {
           }
           disks.push({
             ...(await this.#inspectVmdk(dataStores, dataStore, dirname(vmxPath), disk.fileName)),
-            node: `${scsiChannel}:${diskIndex}`,
+            node: `${key}:${diskIndex}`,
           })
         }
       }
