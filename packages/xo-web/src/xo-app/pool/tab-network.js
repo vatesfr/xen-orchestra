@@ -104,15 +104,15 @@ class DefaultPif extends BaseComponent {
 class Nbd extends Component {
   NBD_FILTER_OPTIONS = [
     {
-      label: 'nbdSelectNone',
+      label: 'noNbdConnection',
       value: false,
     },
     {
-      label: 'nbdSelectSecure',
+      label: 'nbdConnection',
       value: true,
     },
     {
-      label: 'nbdSelectInsecure',
+      label: 'insecureNbdConnection',
       value: 'insecure_nbd',
       disabled: true,
     },
