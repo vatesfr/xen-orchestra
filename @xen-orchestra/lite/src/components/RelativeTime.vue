@@ -3,24 +3,21 @@
 </template>
 
 <script lang="ts" setup>
-import { toRelativeTime } from "@/libs/relative-time";
+import useRelativeTime from "@/composables/relative-time.composable";
 import { useNow } from "@vueuse/core";
 import { computed } from "vue";
-import { useI18n } from "vue-i18n";
 
-const props = defineProps<{
-  date: Date | number | string;
-}>();
-
-const { locale } = useI18n();
+const props = withDefaults(
+  defineProps<{
+    date: Date | number | string;
+    interval: number;
+  }>(),
+  { interval: 1000 }
+);
 
 const date = computed(() => new Date(props.date));
-
-const now = useNow({ interval: 5000 });
-
-const relativeTime = computed(() =>
-  toRelativeTime(date.value, now.value, locale.value)
-);
+const now = useNow({ interval: props.interval });
+const relativeTime = useRelativeTime(date, now);
 </script>
 
 <style lang="postcss" scoped></style>
