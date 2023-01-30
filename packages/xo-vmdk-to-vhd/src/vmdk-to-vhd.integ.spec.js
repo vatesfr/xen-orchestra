@@ -85,7 +85,8 @@ test('VMDK to VHD can convert a random data file with VMDKDirectParser', async (
 })
 
 test('Can generate an empty VMDK file', async () => {
-  const readStream = asyncIteratorToStream(await generateVmdkData('result.vmdk', 1024 * 1024 * 1024, 1024 * 1024, []))
+  const { iterator } = await generateVmdkData('result.vmdk', 1024 * 1024 * 1024, 1024 * 1024, [])
+  const readStream = asyncIteratorToStream(iterator)
   const pipe = readStream.pipe(createWriteStream('result.vmdk'))
   await fromEvent(pipe, 'finish')
   await execa('qemu-img', ['check', 'result.vmdk'])
@@ -102,9 +103,8 @@ test('Can generate a small VMDK file', async () => {
   ]
   const fileName = 'result.vmdk'
   const geometry = { sectorsPerTrackCylinder: 63, heads: 16, cylinders: 10402 }
-  const readStream = asyncIteratorToStream(
-    await generateVmdkData(fileName, 2 * blockSize, blockSize, blockGenerator, geometry)
-  )
+  const { iterator } = await await generateVmdkData(fileName, 2 * blockSize, blockSize, blockGenerator, geometry)
+  const readStream = asyncIteratorToStream(iterator)
   const pipe = readStream.pipe(createWriteStream(fileName))
   await fromEvent(pipe, 'finish')
 
