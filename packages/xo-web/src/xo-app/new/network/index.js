@@ -437,7 +437,6 @@ const NewNetwork = decorate([
                               options={[
                                 { label: _('noNbdConnection'), value: false },
                                 { label: _('nbdConnection'), value: true },
-                                { label: _('insecureNbdConnection'), value: 'insecure_nbd', disabled: true },
                               ]}
                               value={nbd}
                             />
