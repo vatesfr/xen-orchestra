@@ -7,6 +7,8 @@ import { VhdAbstract } from 'vhd-lib'
 import assert from 'node:assert'
 import { Task } from '@vates/task'
 
+/* eslint-disable no-console */
+
 // create a thin VHD from a raw disk
 const VHD_BLOCK_LENGTH = 2 * 1024 * 1024
 export default class VhdEsxiRaw extends VhdAbstract {
@@ -18,7 +20,6 @@ export default class VhdEsxiRaw extends VhdAbstract {
   #bat
   #header
   #footer
-
 
   static async open(esxi, datastore, path, opts) {
     const vhd = new VhdEsxiRaw(esxi, datastore, path, opts)
@@ -34,7 +35,7 @@ export default class VhdEsxiRaw extends VhdAbstract {
     return this.#footer
   }
 
-  constructor(esxi, datastore, path, {thin= true} = {}) {
+  constructor(esxi, datastore, path, { thin = true } = {}) {
     super()
     this.#esxi = esxi
     this.#path = path
@@ -56,19 +57,19 @@ export default class VhdEsxiRaw extends VhdAbstract {
   }
 
   containsBlock(blockId) {
-    if(!this.#thin){
+    if (!this.#thin) {
       return true
     }
-    assert.notEqual(this.#bat, undefined, "bat is not loaded")
+    assert.notEqual(this.#bat, undefined, 'bat is not loaded')
     return this.#bat.has(blockId)
   }
 
   async readBlock(blockId) {
     const start = blockId * VHD_BLOCK_LENGTH
-    const end = (blockId +1)* VHD_BLOCK_LENGTH -1
+    const end = (blockId + 1) * VHD_BLOCK_LENGTH - 1
 
-    const data =  await  (await this.#esxi.download(this.#datastore, this.#path, `${start}-${end}`)).buffer()
-    
+    const data = await (await this.#esxi.download(this.#datastore, this.#path, `${start}-${end}`)).buffer()
+
     const bitmap = Buffer.alloc(512, 255)
     return {
       id: blockId,
@@ -80,7 +81,7 @@ export default class VhdEsxiRaw extends VhdAbstract {
 
   // this will read all the disk once to check which block contains data, it can take a long time to execute depending on the network speed
   async readBlockAllocationTable() {
-    if(!this.#thin){
+    if (!this.#thin) {
       // fast path : is we do not use thin mode, the BAT is full
       return
     }
@@ -91,14 +92,14 @@ export default class VhdEsxiRaw extends VhdAbstract {
     let pos = 0
     this.#bat = new Set()
     let nextChunkLength = Math.min(VHD_BLOCK_LENGTH, length)
-    Task.set('total', length/ VHD_BLOCK_LENGTH)
+    Task.set('total', length / VHD_BLOCK_LENGTH)
     const progress = setInterval(() => {
-      Task.set('progress', Math.round(pos * 100 / length))
-      console.log("reading blocks", pos / VHD_BLOCK_LENGTH, "/", length/ VHD_BLOCK_LENGTH)
+      Task.set('progress', Math.round((pos * 100) / length))
+      console.log('reading blocks', pos / VHD_BLOCK_LENGTH, '/', length / VHD_BLOCK_LENGTH)
     }, 30 * 1000)
 
     while (nextChunkLength > 0) {
-      try{
+      try {
         const chunk = await readChunk(stream, nextChunkLength)
         let isEmpty
         if (nextChunkLength === VHD_BLOCK_LENGTH) {
@@ -112,13 +113,14 @@ export default class VhdEsxiRaw extends VhdAbstract {
         }
         pos += VHD_BLOCK_LENGTH
         nextChunkLength = Math.min(VHD_BLOCK_LENGTH, length - pos)
-      }catch(error){
+      } catch (error) {
         clearInterval(progress)
         throw error
       }
     }
-    console.log("BAT reading done, remaining  ", this.#bat.size, "/", Math.ceil(length / VHD_BLOCK_LENGTH))
+    console.log('BAT reading done, remaining  ', this.#bat.size, '/', Math.ceil(length / VHD_BLOCK_LENGTH))
     clearInterval(progress)
-
   }
 }
+
+/* eslint-enable no-console */
