@@ -21,7 +21,9 @@ export default class Esxi extends EventEmitter {
     this.#host = host
     this.#user = user
     this.#password = password
-    // @FIXME : this will emit a warning at the process level is sslVerifiy is false
+    // @FIXME this module inject NODE_TLS_REJECT_UNAUTHORIZED into the process env, which is problematic because it disables globally SSL certificate verification
+    //
+    // we need to find a fix for this, maybe forking the library
     this.#client = new Client(host, user, password, sslVerify)
     this.#client.once('ready', () => {
       this.#ready = true
