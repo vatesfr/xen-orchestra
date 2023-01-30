@@ -8,9 +8,6 @@ import parseVmdk from './parsers/vmdk.mjs'
 import parseVmsd from './parsers/vmsd.mjs'
 import parseVmx from './parsers/vmx.mjs'
 
-const MAX_SCSI = 9
-const MAX_ETHERNET = 9
-
 export default class Esxi extends EventEmitter {
   #client
   #cookies
@@ -194,35 +191,33 @@ export default class Esxi extends EventEmitter {
     })
 
     const disks = []
+    const networks = []
 
-    for (let scsiIndex = 0; scsiIndex < MAX_SCSI; scsiIndex++) {
-      const scsiChannel = vmx[`scsi${scsiIndex}`]
-      if (scsiChannel === undefined) {
-        continue
-      }
-      for (const diskIndex in Object.values(scsiChannel)) {
-        const disk = scsiChannel[diskIndex]
-        if (typeof disk !== 'object' || disk.deviceType !== 'scsi-hardDisk') {
-          continue
+    for (const key of Object.keys(vmx)) {
+      if (key.match('^scsi([0-9]+)$') !== null) {
+        const scsiChannel = vmx[key]
+        for (const diskIndex in Object.values(scsiChannel)) {
+          const disk = scsiChannel[diskIndex]
+          if (typeof disk !== 'object' || disk.deviceType !== 'scsi-hardDisk') {
+            continue
+          }
+          disks.push({
+            ...(await this.#inspectVmdk(dataStores, dataStore, dirname(vmxPath), disk.fileName)),
+            node: `${scsiChannel}:${diskIndex}`,
+          })
         }
-        disks.push({
-          ...(await this.#inspectVmdk(dataStores, dataStore, dirname(vmxPath), disk.fileName)),
-          node: `scsi${scsiIndex}:${diskIndex}`,
+      }
+      if (key.match('^ethernet([0-9]+)$') !== null) {
+        const ethernet = vmx[key]
+
+        networks.push({
+          label: ethernet.networkName,
+          macAddress: ethernet.generatedAddress,
+          isGenerated: ethernet.addressType === 'generated',
         })
       }
     }
-    const networks = []
-    for (let ethernetIndex = 0; ethernetIndex < MAX_ETHERNET; ethernetIndex++) {
-      const ethernet = vmx[`ethernet${ethernetIndex}`]
-      if (ethernet === undefined) {
-        continue
-      }
-      networks.push({
-        label: ethernet.networkName,
-        macAddress: ethernet.generatedAddress,
-        isGenerated: ethernet.addressType === 'generated',
-      })
-    }
+
     const vmsd = await (await this.download(dataStore, vmxPath.replace(/\.vmx$/, '.vmsd'))).text()
     let snapshots
     if (vmsd) {
