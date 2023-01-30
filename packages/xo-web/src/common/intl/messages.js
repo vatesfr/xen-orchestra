@@ -876,6 +876,9 @@ const messages = {
   showPifs: 'Show PIFs',
   hidePifs: 'Hide PIFs',
   networkAutomaticTooltip: 'Network(s) selected by default for new VMs',
+  noNbdConnection: 'No NBD Connection',
+  nbdConnection: 'NBD Connection',
+  insecureNbdConnection: 'Insecure NBD Connection (not allowed through XO)',
   // ----- Pool stats tab -----
   poolNoStats: 'No stats',
   poolAllHosts: 'All hosts',
