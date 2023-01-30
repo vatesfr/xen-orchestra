@@ -137,7 +137,7 @@ export default class MigrateVm {
     for( const disk of chain){
       if (disk.capacity > 2 * 1024 * 1024 * 1024 * 1024) {
         /* 2TO */
-        throw new Error("Can't migrate disks larger than 2To")
+        throw new Error("Can't migrate disks larger than 2TiB")
       }
     }
 
