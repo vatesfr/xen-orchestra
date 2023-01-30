@@ -104,23 +104,23 @@ class DefaultPif extends BaseComponent {
 class Nbd extends Component {
   NBD_FILTER_OPTIONS = [
     {
-      label: 'noNbdConnection',
+      labelId: 'noNbdConnection',
       value: false,
     },
     {
-      label: 'nbdConnection',
+      labelId: 'nbdConnection',
       value: true,
     },
   ]
   INSECURE_OPTION = [
     {
-      label: 'insecureNbdConnection',
+      labelId: 'insecureNbdConnection',
       value: 'insecure_nbd',
       disabled: true,
     },
   ]
 
-  _getOptionRenderer = ({ label }) => <span>{_(label)}</span>
+  _getOptionRenderer = ({ labelId }) => _(labelId)
 
   _editNbdConnection = value => {
     editNetwork(this.props.network, { nbd: value.value })
@@ -133,6 +133,8 @@ class Nbd extends Component {
       <Select
         onChange={this._editNbdConnection}
         optionRenderer={this._getOptionRenderer}
+        // We have choose to not show the unsecure_nbd option unless the user has already activated it through XE command.
+        // The reason is that we don't want them to know about it since the option is not allowed in XO.
         options={network.insecureNbd ? [...this.NBD_FILTER_OPTIONS, ...this.INSECURE_OPTION] : this.NBD_FILTER_OPTIONS}
         value={network.nbd ? true : network.insecureNbd ? 'insecure_nbd' : false}
       />
