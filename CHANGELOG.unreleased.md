@@ -27,4 +27,6 @@
 
 <!--packages-start-->
 
+- xo-server-upload-ova patch
+
 <!--packages-end-->
