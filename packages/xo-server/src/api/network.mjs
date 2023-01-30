@@ -5,21 +5,19 @@ export function getBondModes() {
 }
 
 export async function create({ pool, name, description, pif, mtu = 1500, vlan = 0, nbd }) {
-  const network = xapiObjectToXo(
-    await this.getXapi(pool).createNetwork({
-      name,
-      description,
-      pifId: pif && this.getObject(pif, 'PIF')._xapiId,
-      mtu: +mtu,
-      vlan: +vlan,
-    })
-  )
+  const network = await this.getXapi(pool).createNetwork({
+    name,
+    description,
+    pifId: pif && this.getObject(pif, 'PIF')._xapiId,
+    mtu: +mtu,
+    vlan: +vlan,
+  })
 
   if (nbd) {
-    await this.getXapiObject(network._xapiRef).add_purpose('nbd')
+    await network.add_purpose('nbd')
   }
 
-  return network.id
+  return xapiObjectToXo(network).id
 }
 
 create.params = {
