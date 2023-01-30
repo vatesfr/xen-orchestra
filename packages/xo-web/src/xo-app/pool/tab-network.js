@@ -133,7 +133,7 @@ class Nbd extends Component {
       <Select
         onChange={this._editNbdConnection}
         optionRenderer={this._getOptionRenderer}
-        // We have choose to not show the unsecure_nbd option unless the user has already activated it through XE command.
+        // We chose not to show the unsecure_nbd option unless the user has already activated it through another client.
         // The reason is that we don't want them to know about it since the option is not allowed in XO.
         options={network.insecureNbd ? [...this.NBD_FILTER_OPTIONS, ...this.INSECURE_OPTION] : this.NBD_FILTER_OPTIONS}
         value={network.nbd ? true : network.insecureNbd ? 'insecure_nbd' : false}
