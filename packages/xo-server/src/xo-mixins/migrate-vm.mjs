@@ -162,17 +162,14 @@ export default class MigrateVm {
 
   @decorateWith(deferrable)
   async migrationfromEsxi($defer, {host, user, password, sslVerify , sr: srId, network: networkId, vm: vmId, thin, stopSource }) {
-    
+
     const app = this._app
     const esxi = await this.#connectToEsxi(host, user, password, sslVerify)
-    
+
     const esxiVmMetadata = await new Task({name: `get metadata of ${vmId}`}).run(async ()=>{
       return esxi.getTransferableVmMetadata(vmId)
     })
-    
 
-    console.log('ready in migrate')
-    console.log({esxiVmMetadata})
     const { disks, firmware, memory, name_label, networks, numCpu, powerState, snapshots } = esxiVmMetadata
     const isRunning = powerState !== 'poweredOff'
 
@@ -229,7 +226,6 @@ export default class MigrateVm {
 
     $defer.onFailure.call(xapi, 'VM_destroy', vm.$ref)
 
-
     const vhds  =  await Promise.all(
         Object.keys(chainsByNodes).map(async (node,userdevice) => new Task({name: `Cold import of disks ${node}  `}).run(async()=>{
           const chainByNode = chainsByNodes[node]
@@ -244,52 +240,40 @@ export default class MigrateVm {
           // it can fail before the vdi is connected to the vm
 
           $defer.onFailure.call(xapi, 'VDI_destroy', vdi.$ref)
-          console.log('vdi created')
 
           await xapi.VBD_create({
             VDI: vdi.$ref,
             VM: vm.$ref,
           })
-          console.log('vbd created')
           let parentVhd, vhd
           // if the VM is running we'll transfer everything before the last , which is an active disk
           //  the esxi api does not allow us to read an active disk
           // later we'll stop the VM and transfer this snapshot
           const nbColdDisks  =  isRunning ? chainByNode.length -1 : chainByNode.length
-          console.log('will transfer', nbColdDisks, isRunning)
           for (let diskIndex = 0; diskIndex < nbColdDisks; diskIndex ++ ) {
             // the first one  is a RAW disk ( full )
             const disk= chainByNode[diskIndex]
-            console.log('will import ', { disk })
             const {fileName, path, datastore,isFull} = disk
             if(isFull){
-              console.log('full disk ')
               vhd = await VhdEsxiRaw.open(esxi, datastore, path + '/' + fileName, {thin})
               await vhd.readBlockAllocationTable()
             } else {
-              console.log('delta disk ')
               vhd = await openDeltaVmdkasVhd(esxi, datastore, path + '/' + fileName, parentVhd)
             }
             parentVhd = vhd
           }
-          console.log('will import synthetic ')
 
           const stream =vhd.stream()
-          console.log('will import active disk ', stream.length)
           await vdi.$importContent( stream, { format:VDI_FORMAT_VHD })
           return {vdi ,vhd}
         }
         )
         )
       )
-    
-    console.log('cold transfer done')
+
     if(isRunning && stopSource){
       // it the vm was running, we stop it and transfer the data in the active disk
       await new Task({name: 'powering down source VM'}).run(()=> esxi.powerOff(vmId))
-      
-
-      console.log('vm stopped')
 
       await Promise.all(
           Object.keys(chainsByNodes).map(async (node, userdevice)=>{
@@ -300,32 +284,26 @@ export default class MigrateVm {
             const {vdi, vhd:parentVhd} = vhds[userdevice]
             let vhd
             if(isFull){
-              console.log('full disk ')
               vhd = await VhdEsxiRaw.open(esxi, datastore, path + '/' + fileName, {thin})
               await vhd.readBlockAllocationTable()
             } else {
-              console.log('delta disk ')
               // we only want to transfer blocks present in the delta vhd, not the full vhd chain
               vhd = await openDeltaVmdkasVhd(esxi, datastore, path + '/' + fileName, parentVhd , {lookMissingBlockInParent: false})
             }
             const stream =vhd.stream()
-            console.log('will import active disk ', stream.length)
 
             await vdi.$importContent( stream, { format:VDI_FORMAT_VHD })
-            console.log('done one disk ')
           })
         })
         )
-      
 
-      console.log('hot  transfer done')
+
     }
-    console.log('disks created')
 
     await new Task({name: 'Finishing transfer'}).run( async ()=>{
       // remove the importing in label
       await vm.set_name_label(esxiVmMetadata.name_label)
-  
+
       // remove lock on start
       await asyncMapSettled(['start', 'start_on'], op => vm.update_blocked_operations(op, null))
 
