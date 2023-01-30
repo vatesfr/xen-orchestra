@@ -31,6 +31,8 @@
 
 <!--packages-start-->
 
+- xo-vmdk-to-vhd patch
+- xo-server-upload-ova patch
 - xo-web minor
 
 <!--packages-end-->
