@@ -15,7 +15,7 @@ import { connectStore } from 'utils'
 import { Container, Row, Col } from 'grid'
 import { TabButtonLink } from 'tab-button'
 import { Text, Number } from 'editable'
-import { Toggle } from 'form'
+import { Select, Toggle } from 'form'
 import { createFinder, createGetObject, createGetObjectsOfType, createSelector } from 'selectors'
 import { connectPif, deleteNetwork, disconnectPif, editNetwork, editPif } from 'xo'
 
@@ -98,6 +98,43 @@ class DefaultPif extends BaseComponent {
     }
 
     return <span>{defaultPif.device}</span>
+  }
+}
+
+class Nbd extends Component {
+  NBD_FILTER_OPTIONS = [
+    {
+      label: 'nbdSelectNone',
+      value: false,
+    },
+    {
+      label: 'nbdSelectSecure',
+      value: true,
+    },
+    {
+      label: 'nbdSelectInsecure',
+      value: 'insecure_nbd',
+      disabled: true,
+    },
+  ]
+
+  _getOptionRenderer = ({ label }) => <span>{_(label)}</span>
+
+  _editNbdConnection = value => {
+    editNetwork(this.props.network, { nbd: value.value })
+  }
+
+  render() {
+    const { network } = this.props
+
+    return (
+      <Select
+        onChange={this._editNbdConnection}
+        optionRenderer={this._getOptionRenderer}
+        options={this.NBD_FILTER_OPTIONS}
+        value={network.nbd ? true : network.insecure_nbd ? 'insecure_nbd' : false}
+      />
+    )
   }
 }
 
@@ -293,22 +330,7 @@ const NETWORKS_COLUMNS = [
   },
 
   {
-    itemRenderer: ({ nbd, networks, insecure_nbd }) => {
-      if (nbd) {
-        return (
-          <Tooltip content={_('nbdSecureTooltip')}>
-            <Icon icon='lock' />
-          </Tooltip>
-        )
-      }
-      if (insecure_nbd) {
-        ;<Tooltip content={_('nbdInsecureTooltip')}>
-          <Icon icon='unlock' />
-          <Icon icon='error' />
-        </Tooltip>
-      }
-      return null
-    },
+    itemRenderer: network => <Nbd network={network} />,
     name: <Tooltip content={_('nbdTootltip')}>{_('nbd')}</Tooltip>,
   },
   {
