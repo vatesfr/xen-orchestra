@@ -435,8 +435,8 @@ const NewNetwork = decorate([
                               name='nbd'
                               onChange={effects.onChangeNbd}
                               options={[
-                                { labelId: _('noNbdConnection'), value: false },
-                                { labelId: _('nbdConnection'), value: true },
+                                { label: _('noNbdConnection'), value: false },
+                                { label: _('nbdConnection'), value: true },
                               ]}
                               value={nbd}
                             />
