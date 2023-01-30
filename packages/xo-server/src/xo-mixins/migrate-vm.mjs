@@ -16,18 +16,6 @@ export default class MigrateVm {
     this._app = app
   }
 
-  load() {
-    this._removeApiMethods = this._xo.addApiMethods({
-      vm: {
-        warmMigrateVm: () => this.warmMigrateVm(),
-        migrationfromEsxi: () => this.migrationfromEsxi(),
-      },
-    })
-  }
-  unload() {
-    this._removeApiMethods()
-  }
-
   // Backup should be reinstentiated each time
   #createWarmBackup(sourceVmId, srId, jobId) {
     const app = this._app
@@ -205,18 +193,22 @@ export default class MigrateVm {
           memory_static_max: memory,
           memory_static_min: memory,
           name_description: 'from esxi',
-          name_label,
+          name_label:`[Importing...] ${name_label}`,
           VCPUs_at_startup: numCpu,
           VCPUs_max: numCpu,
+          HVM_boot_params: {
+            firmware
+          },
+          platform:{
+            "device-model": 'qemu-upstream-' + (firmware === 'uefi' ? 'uefi' : 'compat')
+          },
+          blocked_operations: {
+            start :  'Esxi migration in progress...',
+            start_on: 'Esxi migration in progress...',
+          }
         })
-        
+
       )
-      await Promise.all([
-        vm.update_HVM_boot_params('firmware', firmware),
-        vm.update_platform('device-model', 'qemu-upstream-' + (firmware === 'uefi' ? 'uefi' : 'compat')),
-        asyncMapSettled(['start', 'start_on'], op => vm.update_blocked_operations(op, 'Esxi migration in progress...')),
-        vm.set_name_label(`[Importing...] ${name_label}`),
-      ])
 
       const vifDevices = await xapi.call('VM.get_allowed_VIF_devices', vm.$ref)
 
