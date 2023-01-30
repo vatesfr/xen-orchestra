@@ -42,7 +42,7 @@ export default class VhdEsxiRaw extends VhdAbstract {
     this.#thin = thin
   }
 
-  async readHeaderAndFooter(checkSecondFooter = true) {
+  async readHeaderAndFooter() {
     const res = await this.#esxi.download(this.#datastore, this.#path)
     const length = res.headers.get('content-length')
 
