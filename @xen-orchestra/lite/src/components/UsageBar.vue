@@ -11,10 +11,10 @@
         }"
       >
         <UiProgressBar :value="item.value" color="custom" />
-        <UiLegendProgressBar>
-          <template #label>{{ item.label }}</template>
-          <template #value>{{ item.badgeLabel ?? `${item.value}%` }}</template>
-        </UiLegendProgressBar>
+        <UiLegendProgressBar
+          :label="item.label"
+          :value="item.badgeLabel ?? `${item.value}%`"
+        />
       </div>
       <slot :total-percent="computedData.totalPercentUsage" name="footer" />
     </template>
@@ -23,9 +23,9 @@
 </template>
 
 <script lang="ts" setup>
-import UiProgressBar from "@/components/ui/UiProgressBar.vue";
+import UiProgressBar from "@/components/ui/progress/UiProgressBar.vue";
 import { computed } from "vue";
-import UiLegendProgressBar from "@/components/ui/UiLegendProgressBar.vue";
+import UiLegendProgressBar from "@/components/ui/progress/UiProgressLegend.vue";
 import UiSpinner from "@/components/ui/UiSpinner.vue";
 
 interface Data {

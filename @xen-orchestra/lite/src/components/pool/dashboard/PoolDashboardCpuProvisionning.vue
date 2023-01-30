@@ -1,17 +1,16 @@
 <template>
   <UiCard>
-    <UiTitle type="h4" class="title">
+    <UiCardTitle>
       {{ $t("cpu-provisioning") }}
-      <!-- TODO: add a tooltip for the warning icon -->
-      <UiIcon v-if="state === 'warning'" :icon="faWarning" />
-    </UiTitle>
+      <template #right>
+        <!-- TODO: add a tooltip for the warning icon -->
+        <UiStatusIcon v-if="state !== 'success'" :state="state" />
+      </template>
+    </UiCardTitle>
     <div v-if="isReady" class="progress-item" :class="state">
-      <UiProgressBar color="custom" :value="nVCpuInUse" :max-value="maxValue" />
-      <UiUnitProgressBar :max-value="maxValue" />
-      <UiLegendProgressBar>
-        <template #label>{{ $t("vcpus") }}</template>
-        <template #value>{{ value }}%</template>
-      </UiLegendProgressBar>
+      <UiProgressBar color="custom" :value="value" :max-value="maxValue" />
+      <UiUnitProgressBar :max-value="maxValue" unit="%" :steps="1" />
+      <UiLegendProgressBar :label="$t('vcpus')" :value="`${value}%`" />
       <UiCardFooter>
         <template #left>
           <p>{{ $t("vcpus-used") }}</p>
@@ -32,13 +31,12 @@ import { computed } from "vue";
 import { storeToRefs } from "pinia";
 import UiCard from "@/components/ui/UiCard.vue";
 import UiCardFooter from "@/components/ui/UiCardFooter.vue";
-import UiIcon from "@/components/ui/UiIcon.vue";
-import UiLegendProgressBar from "@/components/ui/UiLegendProgressBar.vue";
-import UiProgressBar from "@/components/ui/UiProgressBar.vue";
-import UiUnitProgressBar from "@/components/ui/UiUnitProgressBar.vue";
+import UiCardTitle from "@/components/ui/UiCardTitle.vue";
+import UiLegendProgressBar from "@/components/ui/progress/UiProgressLegend.vue";
+import UiProgressBar from "@/components/ui/progress/UiProgressBar.vue";
 import UiSpinner from "@/components/ui/UiSpinner.vue";
-import UiTitle from "@/components/ui/UiTitle.vue";
-import { faWarning } from "@fortawesome/free-solid-svg-icons";
+import UiStatusIcon from "@/components/ui/icon/UiStatusIcon.vue";
+import UiUnitProgressBar from "@/components/ui/progress/UiProgressScale.vue";
 import { isHostRunning, percent } from "@/libs/utils";
 import { useHostStore } from "@/stores/host.store";
 import { useVmMetricsStore } from "@/stores/vm-metrics.store";
@@ -72,7 +70,7 @@ const value = computed(() =>
   Math.round(percent(nVCpuInUse.value, nPCpu.value))
 );
 const maxValue = computed(() => Math.ceil(value.value / 100) * 100);
-const state = computed(() => (value.value > 100 ? "warning" : "ok"));
+const state = computed(() => (value.value > 100 ? "warning" : "success"));
 const isReady = computed(
   () => vmStoreIsReady.value && vmMetricsStore.isReady && hostStoreIsReady.value
 );
@@ -90,14 +88,6 @@ const isReady = computed(
   }
   & .footer-value {
     color: var(--footer-value-color);
-  }
-}
-
-.title {
-  display: flex;
-  justify-content: space-between;
-  & .ui-icon {
-    color: var(--color-orange-world-base);
   }
 }
 .spinner {

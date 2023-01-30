@@ -118,7 +118,7 @@ import MenuItem from "@/components/menu/MenuItem.vue";
 import PowerStateIcon from "@/components/PowerStateIcon.vue";
 import TitleBar from "@/components/TitleBar.vue";
 import UiButton from "@/components/ui/UiButton.vue";
-import UiIcon from "@/components/ui/UiIcon.vue";
+import UiIcon from "@/components/ui/icon/UiIcon.vue";
 import { isHostRunning } from "@/libs/utils";
 import { useHostStore } from "@/stores/host.store";
 import { usePoolStore } from "@/stores/pool.store";

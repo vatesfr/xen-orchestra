@@ -19,7 +19,7 @@
 <script lang="ts" setup>
 import { computed, provide, useSlots } from "vue";
 import { faCircleExclamation } from "@fortawesome/free-solid-svg-icons";
-import UiIcon from "@/components/ui/UiIcon.vue";
+import UiIcon from "@/components/ui/icon/UiIcon.vue";
 
 const slots = useSlots();
 

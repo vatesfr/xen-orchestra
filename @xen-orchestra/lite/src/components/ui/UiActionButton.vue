@@ -18,7 +18,7 @@
 <script lang="ts" setup>
 import { computed, inject, unref } from "vue";
 import type { IconDefinition } from "@fortawesome/fontawesome-common-types";
-import UiIcon from "@/components/ui/UiIcon.vue";
+import UiIcon from "@/components/ui/icon/UiIcon.vue";
 
 const props = withDefaults(
   defineProps<{

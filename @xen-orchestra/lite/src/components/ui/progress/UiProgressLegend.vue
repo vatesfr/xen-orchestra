@@ -1,13 +1,20 @@
 <template>
   <div class="legend">
     <span class="circle" />
-    <slot name="label" />
-    <UiBadge class="badge"><slot name="value" /></UiBadge>
+    <slot name="label">{{ label }}</slot>
+    <UiBadge class="badge">
+      <slot name="value">{{ value }}</slot>
+    </UiBadge>
   </div>
 </template>
 
 <script lang="ts" setup>
 import UiBadge from "@/components/ui/UiBadge.vue";
+
+defineProps<{
+  label?: string;
+  value?: string;
+}>();
 </script>
 
 <style scoped lang="postcss">
