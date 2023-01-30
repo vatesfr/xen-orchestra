@@ -165,8 +165,8 @@ ddb.geometry.cylinders = "${geometry.cylinders}"
       roundToSector(headerData.grainDirectoryEntries * 4) +
       SECTOR_SIZE + // MARKER_FOOTER
       SECTOR_SIZE + // stream optimizedheader
-      SECTOR_SIZE
-    ) // MARKER_EOS
+      SECTOR_SIZE // MARKER_EOS
+    )
   }
 
   function* padding() {
