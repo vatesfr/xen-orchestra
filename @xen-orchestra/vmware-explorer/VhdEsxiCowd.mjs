@@ -53,10 +53,8 @@ export default class VhdEsxiCowd extends VhdAbstract {
     )
   }
 
-  // @todo Move -1 into #read(), also maybe you want to make #read a number of bytes instead of the end.
-  // @todo read(start, length) instead of read(start,end)
-  async #read(start, end) {
-    return (await this.#esxi.download(this.#datastore, this.#path, `${start}-${end}`)).buffer()
+  async #read(start, length) {
+    return (await this.#esxi.download(this.#datastore, this.#path, `${start}-${start + length - 1}`)).buffer()
   }
 
   async readHeaderAndFooter() {
@@ -86,7 +84,7 @@ export default class VhdEsxiCowd extends VhdAbstract {
 
   async readBlockAllocationTable() {
     const nbBlocks = this.header.maxTableEntries
-    this.#grainDirectory = await this.#read(2048 /* header length */, 2048 + nbBlocks * 4 - 1)
+    this.#grainDirectory = await this.#read(2048 /* header length */, nbBlocks * 4)
   }
 
   // we're lucky : a grain address can address exacty a full block
@@ -107,7 +105,7 @@ export default class VhdEsxiCowd extends VhdAbstract {
     }
     const offset = sectorOffset * 512
 
-    const graintable = await this.#read(offset, offset + 4096 * 4 /* grain table length */ - 1)
+    const graintable = await this.#read(offset, 4096 * 4 /* grain table length */)
 
     strictEqual(graintable.length, 4096 * 4)
     // we have no guaranty that data are ordered or contiguous
@@ -121,7 +119,7 @@ export default class VhdEsxiCowd extends VhdAbstract {
           offsetEnd++
           return
         }
-        const grains = await this.#read(offsetStart * 512, offsetEnd * 512 - 1)
+        const grains = await this.#read(offsetStart * 512, (offsetEnd - offsetStart) * 512)
         grains.copy(buffer, (rangeStart + 1) /* block bitmap */ * 512)
       }
       // start a new range
