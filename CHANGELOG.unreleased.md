@@ -11,7 +11,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [Ova export] Better computation of overprovisionning for very sparse disks (PR [#6639](https://github.com/vatesfr/xen-orchestra/pull/6639))
+- [Ova export] Better computation of overprovisioning for very sparse disks (PR [#6639](https://github.com/vatesfr/xen-orchestra/pull/6639))
 
 ### Packages to release
 
