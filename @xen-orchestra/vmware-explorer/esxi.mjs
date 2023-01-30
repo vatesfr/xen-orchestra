@@ -54,8 +54,8 @@ export default class Esxi extends EventEmitter {
     strictEqual(this.#ready, true)
     const url = `https://${this.#host}/folder/${path}?dsName=${dataStore}`
     const headers = {}
-    if(this.#cookies){
-      headers.cookie= this.#cookies
+    if (this.#cookies) {
+      headers.cookie = this.#cookies
     } else {
       headers.Authorization = 'Basic ' + Buffer.from(this.#user + ':' + this.#password).toString('base64')
     }
@@ -73,8 +73,11 @@ export default class Esxi extends EventEmitter {
       error.cause = res
       throw error
     }
-    if(res.headers.raw()['set-cookie']){
-      this.#cookies = res.headers.raw()['set-cookie']
+    if (res.headers.raw()['set-cookie']) {
+      this.#cookies = res.headers
+        .raw()
+        ['set-cookie'].map(cookie => cookie.split(';')[0])
+        .join('; ')
     }
     return res
   }
@@ -170,7 +173,7 @@ export default class Esxi extends EventEmitter {
       ...parsed,
       datastore: diskDataStore,
       path: dirname(diskPath),
-      descriptionLabel: ' from esxi'
+      descriptionLabel: ' from esxi',
     }
   }
 
@@ -222,7 +225,7 @@ export default class Esxi extends EventEmitter {
     }
     const vmsd = await (await this.download(dataStore, vmxPath.replace(/\.vmx$/, '.vmsd'))).text()
     let snapshots
-    if(vmsd){
+    if (vmsd) {
       snapshots = parseVmsd(vmsd)
 
       for (const snapshotIndex in snapshots?.snapshots) {
@@ -239,7 +242,7 @@ export default class Esxi extends EventEmitter {
 
     return {
       name_label: config.name,
-      memory:  (+config.hardware.memoryMB) * 1024 * 1024,
+      memory: +config.hardware.memoryMB * 1024 * 1024,
       numCpu: +config.hardware.numCPU,
       guestToolsInstalled: false,
       firmware: config.firmware === 'efi' ? 'uefi' : config.firmware, // bios or uefi
@@ -250,10 +253,10 @@ export default class Esxi extends EventEmitter {
     }
   }
 
-  powerOff(vmId){
-    return this.#exec('PowerOffVM_Task', {_this: vmId})
+  powerOff(vmId) {
+    return this.#exec('PowerOffVM_Task', { _this: vmId })
   }
-  powerOn(vmId){
-    return this.#exec('PowerOnVM_Task', {_this: vmId})
+  powerOn(vmId) {
+    return this.#exec('PowerOnVM_Task', { _this: vmId })
   }
 }
