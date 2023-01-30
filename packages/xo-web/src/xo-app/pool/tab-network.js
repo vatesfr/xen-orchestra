@@ -111,6 +111,8 @@ class Nbd extends Component {
       label: 'nbdConnection',
       value: true,
     },
+  ]
+  INSECURE_OPTION = [
     {
       label: 'insecureNbdConnection',
       value: 'insecure_nbd',
@@ -131,8 +133,8 @@ class Nbd extends Component {
       <Select
         onChange={this._editNbdConnection}
         optionRenderer={this._getOptionRenderer}
-        options={this.NBD_FILTER_OPTIONS}
-        value={network.nbd ? true : network.insecure_nbd ? 'insecure_nbd' : false}
+        options={network.insecureNbd ? [...this.NBD_FILTER_OPTIONS, ...this.INSECURE_OPTION] : this.NBD_FILTER_OPTIONS}
+        value={network.nbd ? true : network.insecureNbd ? 'insecure_nbd' : false}
       />
     )
   }
