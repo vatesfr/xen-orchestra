@@ -40,7 +40,7 @@
 - @xen-orchestra/upload-ova 0.1.6
 - @xen-orchestra/vmware-explorer 0.0.3
 - xo-cli 0.14.3
-- xo-server 5.108.1
+- xo-server 5.109.0
 - xo-server-audit 0.10.3
 - xo-server-auth-ldap 0.10.7
 - xo-server-backup-reports 0.17.3
