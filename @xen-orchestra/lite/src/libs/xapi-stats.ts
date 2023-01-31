@@ -365,7 +365,7 @@ export default class XapiStats {
         `Unknown granularity: '${granularity}'. Use 'seconds', 'minutes', 'hours', or 'days'.`
       );
     }
-    const currentTimeStamp = await this.#xapi.getHostServertime(host);
+    const currentTimeStamp = Math.floor(new Date().getTime() / 1000);
 
     const stats = this.#getCachedStats(uuid, step, currentTimeStamp);
     if (stats !== undefined) {
