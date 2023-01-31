@@ -38,6 +38,7 @@
 - @xen-orchestra/proxy 0.26.10
 - xo-vmdk-to-vhd 2.5.2
 - @xen-orchestra/upload-ova 0.1.6
+- @xen-orchestra/vmware-explorer 0.0.3
 - xo-cli 0.14.3
 - xo-server 5.108.1
 - xo-server-audit 0.10.3
