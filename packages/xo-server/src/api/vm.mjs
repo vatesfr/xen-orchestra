@@ -1300,13 +1300,19 @@ import_.resolve = {
 
 export { import_ as import }
 
-
-
-
-export async function importFromEsxi({host, user, password, sslVerify=true, sr, network, vm, thin=false, stopSource= false}){
-  const task = await this.tasks.create({name: `importing vm ${vm}`})
-  return task.run(()=> this.migrationfromEsxi({host, user, password, sslVerify, thin, vm, sr, network, stopSource}))
-
+export async function importFromEsxi({
+  host,
+  user,
+  password,
+  sslVerify = true,
+  sr,
+  network,
+  vm,
+  thin = false,
+  stopSource = false,
+}) {
+  const task = await this.tasks.create({ name: `importing vm ${vm}` })
+  return task.run(() => this.migrationfromEsxi({ host, user, password, sslVerify, thin, vm, sr, network, stopSource }))
 }
 
 importFromEsxi.params = {
@@ -1315,11 +1321,10 @@ importFromEsxi.params = {
   password: { type: 'string' },
   user: { type: 'string' },
   sr: { type: 'string' },
-  sslVerify: {type: 'boolean', optional: true},
-  vm:{type: 'string'},
-  thin:{type: 'boolean', optional: true},
-  stopSource:{type: 'boolean', optional: true}
-
+  sslVerify: { type: 'boolean', optional: true },
+  vm: { type: 'string' },
+  thin: { type: 'boolean', optional: true },
+  stopSource: { type: 'boolean', optional: true },
 }
 
 // -------------------------------------------------------------------

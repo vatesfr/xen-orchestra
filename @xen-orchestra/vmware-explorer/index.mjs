@@ -7,11 +7,10 @@ const sslVerify = false
 console.log(Esxi)
 const esxi = new Esxi(host, user, password, sslVerify)
 console.log(esxi)
-esxi.on('ready', async function (){
-   //const metadata = await esxi.getTransferableVmMetadata('4')
-   //console.log('metadata', metadata)
+esxi.on('ready', async function () {
+  //const metadata = await esxi.getTransferableVmMetadata('4')
+  //console.log('metadata', metadata)
 
-   const res = await esxi.powerOn(9) 
-   console.log(res)
+  const res = await esxi.powerOn(9)
+  console.log(res)
 })
-

@@ -1,4 +1,4 @@
-import {  strictEqual } from 'node:assert'
+import { strictEqual } from 'node:assert'
 
 // the vmdk files each  contains a disk metadata
 export function parseDescriptor(text) {
@@ -42,7 +42,6 @@ export default function parseVmdk(raw) {
     nameLabel: descriptor.extent.name,
   }
 }
-
 
 /** file content example
  *
