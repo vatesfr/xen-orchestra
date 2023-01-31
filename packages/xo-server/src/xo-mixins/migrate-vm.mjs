@@ -118,7 +118,7 @@ export default class MigrateVm {
     }
   }
 
-  #buildDiskChainByNode(disks, snapshots){
+  #buildDiskChainByNode(disks, snapshots) {
     let chain = []
     if (snapshots && snapshots.current) {
       const currentSnapshotId = snapshots.current
@@ -132,9 +132,9 @@ export default class MigrateVm {
       chain.reverse()
     }
 
-    chain.push (disks)
+    chain.push(disks)
 
-    for( const disk of chain){
+    for (const disk of chain) {
       if (disk.capacity > 2 * 1024 * 1024 * 1024 * 1024) {
         /* 2TO */
         throw new Error("Can't migrate disks larger than 2TiB")
@@ -152,8 +152,8 @@ export default class MigrateVm {
     return chainsByNodes
   }
 
-  #connectToEsxi(host, user, password, sslVerify=true) {
-    return  new Task({name: `connecting to ${host}`}).run(async ()=>{
+  #connectToEsxi(host, user, password, sslVerify = true) {
+    return new Task({ name: `connecting to ${host}` }).run(async () => {
       const esxi = new Esxi(host, user, password, sslVerify)
       await fromEvent(esxi, 'ready')
       return esxi
@@ -161,26 +161,28 @@ export default class MigrateVm {
   }
 
   @decorateWith(deferrable)
-  async migrationfromEsxi($defer, {host, user, password, sslVerify , sr: srId, network: networkId, vm: vmId, thin, stopSource }) {
-
+  async migrationfromEsxi(
+    $defer,
+    { host, user, password, sslVerify, sr: srId, network: networkId, vm: vmId, thin, stopSource }
+  ) {
     const app = this._app
     const esxi = await this.#connectToEsxi(host, user, password, sslVerify)
 
-    const esxiVmMetadata = await new Task({name: `get metadata of ${vmId}`}).run(async ()=>{
+    const esxiVmMetadata = await new Task({ name: `get metadata of ${vmId}` }).run(async () => {
       return esxi.getTransferableVmMetadata(vmId)
     })
 
     const { disks, firmware, memory, name_label, networks, numCpu, powerState, snapshots } = esxiVmMetadata
     const isRunning = powerState !== 'poweredOff'
 
-    const chainsByNodes = await new Task({name: `build disks and snapshots chains for ${vmId}`}).run(async ()=>{
-      return  this.#buildDiskChainByNode(disks, snapshots)
+    const chainsByNodes = await new Task({ name: `build disks and snapshots chains for ${vmId}` }).run(async () => {
+      return this.#buildDiskChainByNode(disks, snapshots)
     })
 
     const sr = app.getXapiObject(srId)
     const xapi = sr.$xapi
 
-    const vm = await new Task({name: 'creating MV on XCP side '}).run(async()=>{
+    const vm = await new Task({ name: 'creating MV on XCP side ' }).run(async () => {
       // got data, ready to start creating
       const vm = await xapi._getOrWaitObject(
         await xapi.VM_create({
@@ -190,35 +192,32 @@ export default class MigrateVm {
           memory_static_max: memory,
           memory_static_min: memory,
           name_description: 'from esxi',
-          name_label:`[Importing...] ${name_label}`,
+          name_label,
           VCPUs_at_startup: numCpu,
           VCPUs_max: numCpu,
-          HVM_boot_params: {
-            firmware
-          },
-          platform:{
-            "device-model": 'qemu-upstream-' + (firmware === 'uefi' ? 'uefi' : 'compat')
-          },
-          blocked_operations: {
-            start :  'Esxi migration in progress...',
-            start_on: 'Esxi migration in progress...',
-          }
         })
-
       )
+      await Promise.all([
+        vm.update_HVM_boot_params('firmware', firmware),
+        vm.update_platform('device-model', 'qemu-upstream-' + (firmware === 'uefi' ? 'uefi' : 'compat')),
+        asyncMapSettled(['start', 'start_on'], op => vm.update_blocked_operations(op, 'Esxi migration in progress...')),
+        vm.set_name_label(`[Importing...] ${name_label}`),
+      ])
 
       const vifDevices = await xapi.call('VM.get_allowed_VIF_devices', vm.$ref)
 
       await Promise.all(
         networks.map((network, i) =>
-          xapi.VIF_create({
-            device: vifDevices[i],
-            network: xapi.getObject(networkId).$ref,
-            VM: vm.$ref,
-          },
-          {
-            MAC: network.macAddress,
-          })
+          xapi.VIF_create(
+            {
+              device: vifDevices[i],
+              network: xapi.getObject(networkId).$ref,
+              VM: vm.$ref,
+            },
+            {
+              MAC: network.macAddress,
+            }
+          )
         )
       )
       return vm
@@ -226,8 +225,9 @@ export default class MigrateVm {
 
     $defer.onFailure.call(xapi, 'VM_destroy', vm.$ref)
 
-    const vhds  =  await Promise.all(
-        Object.keys(chainsByNodes).map(async (node,userdevice) => new Task({name: `Cold import of disks ${node}  `}).run(async()=>{
+    const vhds = await Promise.all(
+      Object.keys(chainsByNodes).map(async (node, userdevice) =>
+        new Task({ name: `Cold import of disks ${node}  ` }).run(async () => {
           const chainByNode = chainsByNodes[node]
           const vdi = await xapi._getOrWaitObject(
             await xapi.VDI_create({
@@ -249,13 +249,13 @@ export default class MigrateVm {
           // if the VM is running we'll transfer everything before the last , which is an active disk
           //  the esxi api does not allow us to read an active disk
           // later we'll stop the VM and transfer this snapshot
-          const nbColdDisks  =  isRunning ? chainByNode.length -1 : chainByNode.length
-          for (let diskIndex = 0; diskIndex < nbColdDisks; diskIndex ++ ) {
+          const nbColdDisks = isRunning ? chainByNode.length - 1 : chainByNode.length
+          for (let diskIndex = 0; diskIndex < nbColdDisks; diskIndex++) {
             // the first one  is a RAW disk ( full )
-            const disk= chainByNode[diskIndex]
-            const {fileName, path, datastore,isFull} = disk
-            if(isFull){
-              vhd = await VhdEsxiRaw.open(esxi, datastore, path + '/' + fileName, {thin})
+            const disk = chainByNode[diskIndex]
+            const { fileName, path, datastore, isFull } = disk
+            if (isFull) {
+              vhd = await VhdEsxiRaw.open(esxi, datastore, path + '/' + fileName, { thin })
               await vhd.readBlockAllocationTable()
             } else {
               vhd = await openDeltaVmdkasVhd(esxi, datastore, path + '/' + fileName, parentVhd)
@@ -263,50 +263,48 @@ export default class MigrateVm {
             parentVhd = vhd
           }
 
-          const stream =vhd.stream()
-          await vdi.$importContent( stream, { format:VDI_FORMAT_VHD })
-          return {vdi ,vhd}
-        }
-        )
-        )
+          const stream = vhd.stream()
+          await vdi.$importContent(stream, { format: VDI_FORMAT_VHD })
+          return { vdi, vhd }
+        })
       )
+    )
 
-    if(isRunning && stopSource){
+    if (isRunning && stopSource) {
       // it the vm was running, we stop it and transfer the data in the active disk
-      await new Task({name: 'powering down source VM'}).run(()=> esxi.powerOff(vmId))
+      await new Task({ name: 'powering down source VM' }).run(() => esxi.powerOff(vmId))
 
       await Promise.all(
-          Object.keys(chainsByNodes).map(async (node, userdevice)=>{
-            await new Task({name: `Transfering deltas of ${userdevice}`}).run(async () =>{
+        Object.keys(chainsByNodes).map(async (node, userdevice) => {
+          await new Task({ name: `Transfering deltas of ${userdevice}` }).run(async () => {
             const chainByNode = chainsByNodes[node]
-            const disk = chainByNode[chainByNode.length -1]
-            const {fileName, path, datastore, isFull } = disk
-            const {vdi, vhd:parentVhd} = vhds[userdevice]
+            const disk = chainByNode[chainByNode.length - 1]
+            const { fileName, path, datastore, isFull } = disk
+            const { vdi, vhd: parentVhd } = vhds[userdevice]
             let vhd
-            if(isFull){
-              vhd = await VhdEsxiRaw.open(esxi, datastore, path + '/' + fileName, {thin})
+            if (isFull) {
+              vhd = await VhdEsxiRaw.open(esxi, datastore, path + '/' + fileName, { thin })
               await vhd.readBlockAllocationTable()
             } else {
               // we only want to transfer blocks present in the delta vhd, not the full vhd chain
-              vhd = await openDeltaVmdkasVhd(esxi, datastore, path + '/' + fileName, parentVhd , {lookMissingBlockInParent: false})
+              vhd = await openDeltaVmdkasVhd(esxi, datastore, path + '/' + fileName, parentVhd, {
+                lookMissingBlockInParent: false,
+              })
             }
-            const stream =vhd.stream()
+            const stream = vhd.stream()
 
-            await vdi.$importContent( stream, { format:VDI_FORMAT_VHD })
+            await vdi.$importContent(stream, { format: VDI_FORMAT_VHD })
           })
         })
-        )
-
-
+      )
     }
 
-    await new Task({name: 'Finishing transfer'}).run( async ()=>{
+    await new Task({ name: 'Finishing transfer' }).run(async () => {
       // remove the importing in label
       await vm.set_name_label(esxiVmMetadata.name_label)
 
       // remove lock on start
       await asyncMapSettled(['start', 'start_on'], op => vm.update_blocked_operations(op, null))
-
     })
 
     return vm.uuid
