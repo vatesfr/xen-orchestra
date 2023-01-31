@@ -9,8 +9,8 @@
     </UiCardTitle>
     <div v-if="isReady" class="progress-item" :class="state">
       <UiProgressBar color="custom" :value="value" :max-value="maxValue" />
-      <UiUnitProgressBar :max-value="maxValue" unit="%" :steps="1" />
-      <UiLegendProgressBar :label="$t('vcpus')" :value="`${value}%`" />
+      <UiProgressScale :max-value="maxValue" unit="%" :steps="1" />
+      <UiProgressLegend :label="$t('vcpus')" :value="`${value}%`" />
       <UiCardFooter>
         <template #left>
           <p>{{ $t("vcpus-used") }}</p>
@@ -32,11 +32,11 @@ import { storeToRefs } from "pinia";
 import UiCard from "@/components/ui/UiCard.vue";
 import UiCardFooter from "@/components/ui/UiCardFooter.vue";
 import UiCardTitle from "@/components/ui/UiCardTitle.vue";
-import UiLegendProgressBar from "@/components/ui/progress/UiProgressLegend.vue";
 import UiProgressBar from "@/components/ui/progress/UiProgressBar.vue";
+import UiProgressLegend from "@/components/ui/progress/UiProgressLegend.vue";
+import UiProgressScale from "@/components/ui/progress/UiProgressScale.vue";
 import UiSpinner from "@/components/ui/UiSpinner.vue";
 import UiStatusIcon from "@/components/ui/icon/UiStatusIcon.vue";
-import UiUnitProgressBar from "@/components/ui/progress/UiProgressScale.vue";
 import { isHostRunning, percent } from "@/libs/utils";
 import { useHostStore } from "@/stores/host.store";
 import { useVmMetricsStore } from "@/stores/vm-metrics.store";
