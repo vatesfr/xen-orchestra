@@ -12,6 +12,7 @@
 - [REST API] The raw content of a VDI can be downloaded directly
 - [Kubernetes recipe] Add the possibility to create the cluster with a static network configuration (PR [#6598](https://github.com/vatesfr/xen-orchestra/pull/6598))
 - [REST API] Ability to update the name and description of objects
+- [Network/NBD] Add the possibility to add and change the NBD connection associated to a Network (PR [#6646](https://github.com/vatesfr/xen-orchestra/pull/6646))
 
 ### Bug fixes
 
@@ -21,6 +22,7 @@
 - [Disk] Show bootable status for vm running in `pv_in_pvh` virtualisation mode [#6432](https://github.com/vatesfr/xen-orchestra/issues/6432) (PR [#6629](https://github.com/vatesfr/xen-orchestra/pull/6629))
 - [Ova export] Reduce memory consumption (PR [#6637](https://github.com/vatesfr/xen-orchestra/pull/6637))
 - [Host/Network] Remove extra "mode" column in PIF table (PR [#6640](https://github.com/vatesfr/xen-orchestra/pull/6640))
+- [Ova export] Better computation of overprovisioning for very sparse disks (PR [#6639](https://github.com/vatesfr/xen-orchestra/pull/6639))
 
 ### Released packages
 
@@ -34,9 +36,10 @@
 - @xen-orchestra/mixins 0.9.0
 - @xen-orchestra/xapi 1.6.1
 - @xen-orchestra/proxy 0.26.10
-- xo-vmdk-to-vhd 2.5.1
+- xo-vmdk-to-vhd 2.5.2
+- @xen-orchestra/upload-ova 0.1.6
 - xo-cli 0.14.3
-- xo-server 5.108.0
+- xo-server 5.108.1
 - xo-server-audit 0.10.3
 - xo-server-auth-ldap 0.10.7
 - xo-server-backup-reports 0.17.3
@@ -47,7 +50,7 @@
 - xo-server-transport-nagios 1.0.1
 - xo-server-usage-report 0.10.3
 - xo-server-web-hooks 0.3.3
-- xo-web 5.110.0
+- xo-web 5.111.0
 
 ## **5.78.0** (2022-12-20)
 
