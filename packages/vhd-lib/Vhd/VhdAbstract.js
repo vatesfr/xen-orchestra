@@ -301,14 +301,10 @@ exports.VhdAbstract = class VhdAbstract {
 
     const self = this
     async function* iterator() {
-      console.log('will yield footer')
       yield rawFooter
-      console.log('will yield header')
       yield rawHeader
-      console.log('will yield bat')
       yield bat
 
-      console.log('will yield parent locator')
       // yield parent locator
 
       for (let i = 0; i < PARENT_LOCATOR_ENTRIES; i++) {
@@ -322,19 +318,12 @@ exports.VhdAbstract = class VhdAbstract {
         }
       }
 
-      console.log('will yield blocks')
       // yield all blocks
       // since contains() can be costly for synthetic vhd, use the computed bat
       for (let i = 0; i < header.maxTableEntries; i++) {
         if (bat.readUInt32BE(i * 4) !== BLOCK_UNUSED) {
-          try{
-            const block = await self.readBlock(i)
-            console.log('will yield block', i)
-            yield block.buffer
-          } catch(error){
-            console.error(error)
-            throw error
-          }
+          const block = await self.readBlock(i)
+          yield block.buffer
         }
       }
       // yield footer again
