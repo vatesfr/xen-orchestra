@@ -2,10 +2,10 @@ import _computeGeometryForSize from 'vhd-lib/_computeGeometryForSize.js'
 import { createFooter, createHeader } from 'vhd-lib/_createFooterHeader.js'
 import { DISK_TYPES, FOOTER_SIZE } from 'vhd-lib/_constants.js'
 import { readChunk } from '@vates/read-chunk'
+import { Task } from '@vates/task'
 import { unpackFooter, unpackHeader } from 'vhd-lib/Vhd/_utils.js'
 import { VhdAbstract } from 'vhd-lib'
 import assert from 'node:assert'
-import { Task } from '@vates/task'
 
 /* eslint-disable no-console */
 

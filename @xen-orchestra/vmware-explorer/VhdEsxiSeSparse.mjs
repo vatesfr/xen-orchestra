@@ -1,9 +1,9 @@
-import { notEqual, strictEqual } from 'node:assert'
-import { VhdAbstract } from 'vhd-lib'
-import { createFooter, createHeader } from 'vhd-lib/_createFooterHeader.js'
 import _computeGeometryForSize from 'vhd-lib/_computeGeometryForSize.js'
+import { createFooter, createHeader } from 'vhd-lib/_createFooterHeader.js'
 import { FOOTER_SIZE } from 'vhd-lib/_constants.js'
+import { notEqual, strictEqual } from 'node:assert'
 import { unpackFooter, unpackHeader } from 'vhd-lib/Vhd/_utils.js'
+import { VhdAbstract } from 'vhd-lib'
 
 // from https://github.com/qemu/qemu/commit/98eb9733f4cf2eeab6d12db7e758665d2fd5367b#
 
@@ -12,7 +12,7 @@ function readInt64(buffer, index) {
   if (n > Number.MAX_SAFE_INTEGER) {
     throw new Error(`can't handle ${n} ${Number.MAX_SAFE_INTEGER} ${n & 0x00000000ffffffffn}`)
   }
-  return 0 + new Number(n)
+  return +n
 }
 
 export default class VhdEsxiSeSparse extends VhdAbstract {
@@ -151,8 +151,7 @@ export default class VhdEsxiSeSparse extends VhdAbstract {
             break
         }
         if (entry > 3n) {
-          const intIndex =
-            0 + new Number(((entry & 0x0fff000000000000n) >> 48n) | ((entry & 0x0000ffffffffffffn) << 12n))
+          const intIndex = +(((entry & 0x0fff000000000000n) >> 48n) | ((entry & 0x0000ffffffffffffn) << 12n))
           let pos = intIndex * this.#grainSize + CHUNK_SIZE * chunkIndex + this.#grainOffset
           console.log({ indexInChunk, grainIndex, intIndex, pos })
           this.#grainMap.set(grainIndex)

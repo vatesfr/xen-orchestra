@@ -1,9 +1,9 @@
-import { notEqual, strictEqual } from 'node:assert'
-import { VhdAbstract } from 'vhd-lib'
-import { createFooter, createHeader } from 'vhd-lib/_createFooterHeader.js'
 import _computeGeometryForSize from 'vhd-lib/_computeGeometryForSize.js'
+import { createFooter, createHeader } from 'vhd-lib/_createFooterHeader.js'
 import { FOOTER_SIZE } from 'vhd-lib/_constants.js'
+import { notEqual, strictEqual } from 'node:assert'
 import { unpackFooter, unpackHeader } from 'vhd-lib/Vhd/_utils.js'
+import { VhdAbstract } from 'vhd-lib'
 
 export default class VhdEsxiCowd extends VhdAbstract {
   #esxi
