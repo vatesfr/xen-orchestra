@@ -98,7 +98,6 @@ export default class MigrateVm {
     if (targets.length > 1) {
       throw new Error(`Multiple target of warm migration found for ${sourceVmId} on SR ${srId} `)
     }
-
     const targetVm = app.getXapiObject(targets[0])
 
     // new vm is ready to start

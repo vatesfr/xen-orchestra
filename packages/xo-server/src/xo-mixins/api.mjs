@@ -418,7 +418,6 @@ export default class Api {
 
       return result
     } catch (error) {
-      console.error(error)
       const serializedError = serializeError(error)
 
       const now = Date.now()
