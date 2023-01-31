@@ -19,8 +19,11 @@
       <template v-else>{{ $d(createdAt, "datetime_short") }}</template>
     </td>
     <td>
+      <template v-if="finishedAt !== undefined">
+        {{ $d(finishedAt, "datetime_short") }}
+      </template>
       <RelativeTime
-        v-if="isPending && estimatedEndAt !== Infinity"
+        v-else-if="isPending && estimatedEndAt !== Infinity"
         :date="estimatedEndAt"
       />
     </td>
@@ -50,6 +53,10 @@ const estimatedEndAt = computed(
   () =>
     createdAt.value +
     (new Date().getTime() - createdAt.value) / props.task.progress
+);
+
+const finishedAt = computed(() =>
+  props.isPending ? undefined : parseDateTime(props.task.finished)
 );
 </script>
 

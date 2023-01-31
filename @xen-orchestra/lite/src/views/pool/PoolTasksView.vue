@@ -16,7 +16,7 @@ import UiCard from "@/components/ui/UiCard.vue";
 import UiCounter from "@/components/ui/UiCounter.vue";
 import UiSpinner from "@/components/ui/UiSpinner.vue";
 import UiTitle from "@/components/ui/UiTitle.vue";
-import useArrayHistory from "@/composables/array-removed-items-history.composable";
+import useArrayRemovedItemsHistory from "@/composables/array-removed-items-history.composable";
 import useCollectionFilter from "@/composables/collection-filter.composable";
 import useCollectionSorter from "@/composables/collection-sorter.composable";
 import useFilteredCollection from "@/composables/filtered-collection.composable";
@@ -43,7 +43,18 @@ const { predicate } = useCollectionFilter({
 
 const pendingTasks = useFilteredCollection<XenApiTask>(allTasks, predicate);
 
-const finishedTasks = useArrayHistory(allTasks, 10, (task) => task.uuid);
+const finishedTasks = useArrayRemovedItemsHistory(
+  allTasks,
+  (task) => task.uuid,
+  {
+    limit: 50,
+    onRemove: (tasks) =>
+      tasks.map((task) => ({
+        ...task,
+        finished: new Date().toISOString(),
+      })),
+  }
+);
 
 useTitle(
   computed(() => t("task.page-title", { n: pendingTasks.value.length }))
