@@ -85,6 +85,7 @@
   "system": "Système",
   "task": {
     "estimated-end": "Fin estimée",
+    "page-title": "Tâches | (1) Tâches | ({n}) Tâches",
     "progress": "Progression",
     "started": "Démarré"
   },

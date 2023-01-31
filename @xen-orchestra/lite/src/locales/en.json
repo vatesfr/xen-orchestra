@@ -85,6 +85,7 @@
   "system": "System",
   "task": {
     "estimated-end": "Estimated end",
+    "page-title": "Tasks | (1) Tasks | ({n}) Tasks",
     "progress": "Progress",
     "started": "Started"
   },

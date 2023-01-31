@@ -26,8 +26,10 @@ import { useTaskStore } from "@/stores/task.store";
 import { useTitle } from "@vueuse/core";
 import { storeToRefs } from "pinia";
 import { computed } from "vue";
+import { useI18n } from "vue-i18n";
 
 const { allRecords, isReady } = storeToRefs(useTaskStore());
+const { t } = useI18n();
 
 const { compareFn } = useCollectionSorter<XenApiTask>({
   initialSorts: ["-created"],
@@ -45,7 +47,9 @@ const tasksHistory = useArrayHistory(allTasks, 500, (task) => task.uuid);
 
 const finishedTasks = computed(() => tasksHistory.value.slice(-10));
 
-useTitle(computed(() => `(${pendingTasks.value.length}) Tasks`));
+useTitle(
+  computed(() => t("task.page-title", { n: pendingTasks.value.length }))
+);
 </script>
 
 <style lang="postcss" scoped>
