@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "xo-server",
-  "version": "5.108.0",
+  "version": "5.108.1",
   "license": "AGPL-3.0-or-later",
   "description": "Server part of Xen-Orchestra",
   "keywords": [
@@ -135,7 +135,7 @@
     "xo-collection": "^0.5.0",
     "xo-common": "^0.8.0",
     "xo-remote-parser": "^0.9.2",
-    "xo-vmdk-to-vhd": "^2.5.1"
+    "xo-vmdk-to-vhd": "^2.5.2"
   },
   "devDependencies": {
     "@babel/cli": "^7.0.0",
