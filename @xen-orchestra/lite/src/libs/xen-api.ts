@@ -1,6 +1,6 @@
-import { JSONRPCClient } from "json-rpc-2.0";
 import { buildXoObject, parseDateTime } from "@/libs/utils";
 import { useVmStore } from "@/stores/vm.store";
+import { JSONRPCClient } from "json-rpc-2.0";
 
 export type RawObjectType =
   | "Bond"
@@ -104,6 +104,21 @@ export interface XenApiConsole extends XenApiRecord {
   protocol: string;
   location: string;
 }
+
+export type XenApiPatch = {
+  name: string;
+  description: string;
+  license: string;
+  release: string;
+  size: number;
+  url: string;
+  version: string;
+  changelog: {
+    date: number;
+    description: string;
+    author: string;
+  };
+};
 
 export interface XenApiHostMetrics extends XenApiRecord {
   live: boolean;
@@ -212,6 +227,18 @@ export default class XenApi {
       host.$ref,
     ])) as string;
     return Math.floor(parseDateTime(serverLocaltime) / 1e3);
+  }
+
+  async getMissingPatches(hostRef: string) {
+    const patches = await this.#call<string>("host.call_plugin", [
+      this.sessionId,
+      hostRef,
+      "updater.py",
+      "check_update",
+      {},
+    ]);
+
+    return JSON.parse(patches) as XenApiPatch[];
   }
 
   async getResource(

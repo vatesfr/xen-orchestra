@@ -27,8 +27,14 @@ export const useHostStore = defineStore("host", () => {
     });
   }
 
+  async function getMissingPatches(hostRef: string) {
+    const xapi = await xenApiStore.getXapi();
+    return xapi.getMissingPatches(hostRef);
+  }
+
   return {
     ...recordContext,
     getStats,
+    getMissingPatches,
   };
 });

@@ -47,6 +47,9 @@
   "page-not-found": "Cette page est introuvable…",
   "password": "Mot de passe",
   "password-invalid": "Mot de passe incorrect",
+  "patch": {
+    "missing": "{n} manquant | {n} manquants"
+  },
   "pause": "Pause",
   "pool-cpu-usage": "Utilisation CPU du Pool",
   "pool-ram-usage": "Utilisation RAM du Pool",

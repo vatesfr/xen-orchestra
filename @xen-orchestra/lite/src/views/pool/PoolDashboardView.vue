@@ -21,6 +21,9 @@
     <div class="item">
       <PoolCpuUsageChart />
     </div>
+    <div class="item">
+      <PoolDashboardPatches />
+    </div>
   </div>
 </template>
 
@@ -28,6 +31,7 @@
 export const N_ITEMS = 5;
 </script>
 <script lang="ts" setup>
+import PoolDashboardPatches from "@/components/pool/dashboard/PoolDashboardPatches.vue";
 import { differenceBy } from "lodash-es";
 import { computed, onMounted, provide, watch } from "vue";
 import PoolCpuUsageChart from "@/components/pool/dashboard/cpuUsage/PoolCpuUsageChart.vue";

@@ -47,6 +47,9 @@
   "page-not-found": "This page is not to be found…",
   "password": "Password",
   "password-invalid": "Password invalid",
+  "patch": {
+    "missing": "{n} missing"
+  },
   "pause": "Pause",
   "pool-cpu-usage": "Pool CPU Usage",
   "pool-ram-usage": "Pool RAM Usage",

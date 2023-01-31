@@ -1,5 +1,5 @@
 <template>
-  <div :class="{ subtitle }" class="ui-section-title">
+  <div :class="{ subtitle }" class="ui-card-title">
     <component
       :is="subtitle ? 'h5' : 'h4'"
       v-if="$slots.default || left"
@@ -26,7 +26,7 @@ defineProps<{
 </script>
 
 <style lang="postcss" scoped>
-.ui-section-title {
+.ui-card-title {
   display: flex;
   align-items: center;
   justify-content: space-between;
