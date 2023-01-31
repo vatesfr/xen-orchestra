@@ -43,9 +43,7 @@ const { predicate } = useCollectionFilter({
 
 const pendingTasks = useFilteredCollection<XenApiTask>(allTasks, predicate);
 
-const tasksHistory = useArrayHistory(allTasks, 500, (task) => task.uuid);
-
-const finishedTasks = computed(() => tasksHistory.value.slice(-10));
+const finishedTasks = useArrayHistory(allTasks, 10, (task) => task.uuid);
 
 useTitle(
   computed(() => t("task.page-title", { n: pendingTasks.value.length }))
