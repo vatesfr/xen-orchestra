@@ -12,7 +12,7 @@
     "vhd-lib": "^4.2.0"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=16"
   },
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/vmware-explorer",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
