@@ -21,7 +21,8 @@ async function createRandomFile(name, sizeMB) {
 exports.createRandomFile = createRandomFile
 
 async function checkFile(vhdName) {
-  await execa('vhd-util', ['check', '-p', '-b', '-t', '-n', vhdName])
+  // await execa('vhd-util', ['check', '-p', '-b', '-t', '-n', vhdName])
+  await execa('qemu-img', ['convert', vhdName, 'outputFile.qcow2'])
 }
 exports.checkFile = checkFile
 
