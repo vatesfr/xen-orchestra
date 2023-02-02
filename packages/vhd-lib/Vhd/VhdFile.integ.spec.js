@@ -45,7 +45,7 @@ afterEach(async () => {
 test('checkFile fails with broken VHD file', async () => {
   const vhdFile = new VhdFile(handler, 'vhdFile.vhd')
 
-  await fs.writeFile(tempDir + 'vhdFile.vhd', ';alsdkh;lasdhfjaksdhfjklsdahfhdsl')
+  await fs.write(tempDir + '/vhdFile.vhd', ';alsdkh;lasdhfjaksdhfjklsdahfhdsl')
 
   await checkFile(vhdFile)
 
