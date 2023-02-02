@@ -59,8 +59,6 @@ test('respect the checkSecondFooter flag', async () => {
   // not using openVhd to be able to call readHeaderAndFooter separatly
   const vhd = new VhdFile(handler, 'randomfile.vhd')
 
-  await fs.writeFile(vhd, ';alsdkh;lasdhfjaksdhfjklsdahfhdsl')
-
   await expect(async () => await checkFile(vhd)).rejects.toThrow()
 
   await expect(async () => await vhd.readHeaderAndFooter()).rejects.toThrow()
