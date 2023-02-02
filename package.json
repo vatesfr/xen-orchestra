@@ -94,7 +94,7 @@
     "prettify": "prettier --ignore-path .gitignore --write '**/*.{cjs,js,jsx,md,mjs,ts,tsx}'",
     "test": "npm run test-lint && npm run test-unit",
     "test-integration": "jest \".integ\\.spec\\.js$\"",
-    "test-lint": "eslint --ignore-path .gitignore --ignore-pattern packages/xo-web .",
+    "test-lint": "eslint --ignore-path .gitignore --ignore-pattern packages/xo-web . --ignore-pattern @xen-orchestra/vmware-explorer .",
     "test-unit": "jest \"^(?!.*\\.integ\\.spec\\.js$)\" && scripts/run-script.js --bail test"
   },
   "workspaces": [
