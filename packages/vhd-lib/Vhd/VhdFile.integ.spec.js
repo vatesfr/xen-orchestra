@@ -43,6 +43,11 @@ afterEach(async () => {
 })
 
 test('checkFile fails with broken VHD file', async () => {
+  const initalSize = 4
+  const rawFileName = `${tempDir}/randomfile`
+  await createRandomFile(rawFileName, initalSize)
+  const vhdFileName = `${tempDir}/vhdFile.vhd`
+  await convertFromRawToVhd(rawFileName, vhdFileName)
   const vhdFile = new VhdFile(handler, 'vhdFile.vhd')
 
   await fs.writeFile(tempDir + '/vhdFile.vhd', ';alsdkh;lasdhfjaksdhfjklsdahfhdsl')
