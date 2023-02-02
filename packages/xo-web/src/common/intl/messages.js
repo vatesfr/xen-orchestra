@@ -914,7 +914,9 @@ const messages = {
 
   // ----- Host item ------
   host: 'Host',
+  hostNoLicensePartialProSupport: 'This unlicensed host is in a pool that has licensed hosts',
   hostNoSupport: 'No XCP-ng Pro support enabled on this host',
+  hostSupportEnabled: 'XCP-ng Pro support enabled on this host',
   noMoreMaintained: 'This host version is no longer maintained',
 
   // ----- Host actions ------
