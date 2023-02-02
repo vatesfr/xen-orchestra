@@ -22,7 +22,6 @@ const {
   convertToVhdDirectory,
   recoverRawContent,
 } = require('../tests/utils')
-const { test } = require('../_bitmap')
 
 let tempDir = null
 let handler
@@ -41,6 +40,14 @@ beforeEach(async () => {
 afterEach(async () => {
   await rimraf(tempDir)
   disposeHandler()
+})
+
+test('checkFile fails with broken VHD file', async () => {
+  const vhdFile = new VhdFile(handler, 'vhdFile.vhd')
+
+  await fs.writeFile(vhdFile, ';alsdkh;lasdhfjaksdhfjklsdahfhdsl')
+
+  await expect(async () => await checkFile(vhdFile)).rejects.toThrow()
 })
 
 test('respect the checkSecondFooter flag', async () => {
