@@ -42,16 +42,14 @@ afterEach(async () => {
   disposeHandler()
 })
 
-test('checkFile fails with broken VHD file', async () => {
+test('checkFile fails with unvalid VHD file', async () => {
   const initalSize = 4
   const rawFileName = `${tempDir}/randomfile`
   await createRandomFile(rawFileName, initalSize)
   const vhdFileName = `${tempDir}/vhdFile.vhd`
   await convertFromRawToVhd(rawFileName, vhdFileName)
 
-  await fs.writeFile(vhdFileName, ';alsdkh;lasdhfjaksdhfjklsdahfhdsl')
-
-  await checkFile(vhdFileName)
+  await fs.truncate(vhdFileName, 2)
 
   await expect(async () => await checkFile(vhdFileName)).rejects.toThrow()
 })
