@@ -19,6 +19,8 @@ import styles from './index.css'
 
 import { isAdmin } from '../../common/selectors'
 import { ShortDate } from '../../common/utils'
+import IconWarningModal from '../../common/icon-warning-modal'
+import { getXoaPlan, SOURCES } from '../../common/xoa-plans'
 
 @connectStore(() => {
   const getPoolHosts = createGetObjectsOfType('host').filter(
@@ -74,26 +76,54 @@ export default class PoolItem extends Component {
 
   _getPoolLicenseIcon() {
     const { state: reacletteState, item: pool } = this.props
-    let tooltip
-    const { icon, earliestExpirationDate, nHostsUnderLicense, nHosts, supportLevel } =
+    const { earliestExpirationDate, nHostsUnderLicense, nHosts, supportLevel } =
       reacletteState.poolLicenseInfoByPoolId[pool.id]
+    let tooltip = _('poolNoSupport')
 
+    if (getXoaPlan() === SOURCES) {
+      tooltip = _('poolSupportSourceUsers')
+    }
     if (supportLevel === 'total') {
       tooltip = _('earliestExpirationDate', { dateString: <ShortDate timestamp={earliestExpirationDate} /> })
     }
     if (supportLevel === 'partial') {
       tooltip = _('poolPartialSupport', { nHostsLicense: nHostsUnderLicense, nHosts })
     }
-    return icon(tooltip)
+    return tooltip
   }
 
   _isXcpngPool() {
     return Object.values(this.props.poolHosts)[0].productBrand === 'XCP-ng'
   }
+  _getIcons = createSelector(
+    () => this.props.item,
+    () => this.props.isAdmin,
+    () => this.props.state,
+    (pool, isAdmin, reacletteState) => {
+      const icons = []
+
+      // To be tested with all plan. SOURCE OK, ANY ??, PARTIAL ??, TOTAL ??,
+      if (isAdmin) {
+        const { icon, supportLevel } = reacletteState.poolLicenseInfoByPoolId[pool.id]
+        const level = supportLevel === 'total' ? 'success' : supportLevel === 'partial' ? 'warning' : 'danger'
+        const message = this._getPoolLicenseIcon()
+        icons.push({
+          level,
+          render: (
+            <p>
+              {icon()} {message}
+            </p>
+          ),
+        })
+      }
+      return icons
+    }
+  )
 
   render() {
-    const { item: pool, expandAll, isAdmin, selected, hostMetrics, poolHosts, nSrs, nVms } = this.props
+    const { item: pool, expandAll, selected, hostMetrics, poolHosts, nSrs, nVms } = this.props
     const { missingPatchCount } = this.state
+    const icons = this._getIcons()
 
     return (
       <div className={styles.item}>
@@ -108,9 +138,13 @@ export default class PoolItem extends Component {
                 </Ellipsis>
                 {isAdmin && this._isXcpngPool() && <span className='ml-1'>{this._getPoolLicenseIcon()}</span>}
                 &nbsp;&nbsp;
+                &nbsp;
+                <IconWarningModal icons={icons} />
+                {/* // */}
+                {/* {isAdmin && <span className='ml-1'>{this._getPoolLicenseIcon()}</span>} */}
+                &nbsp;
                 {missingPatchCount > 0 && (
                   <span>
-                    &nbsp;&nbsp;
                     <Tooltip content={_('homeMissingPatches')}>
                       <span className='tag tag-pill tag-danger'>{missingPatchCount}</span>
                     </Tooltip>

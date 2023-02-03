@@ -50,7 +50,6 @@ import Xosan from './xosan'
 import Import from './import'
 
 import keymap, { help } from '../keymap'
-import Tooltip from '../common/tooltip'
 import { createCollectionWrapper, createGetObjectsOfType } from '../common/selectors'
 import { bindXcpngLicense, rebindLicense, subscribeXcpngLicenses } from '../common/xo'
 import { SOURCES } from '../common/xoa-plans'
@@ -82,27 +81,25 @@ const BODY_STYLE = {
   width: '100%',
 }
 
-const WrapperIconPoolLicense = ({ children, tooltip }) => (
-  <Tooltip content={tooltip}>
-    <a href='https://xcp-ng.com' rel='noreferrer noopener' target='_blank'>
-      {children}
-    </a>
-  </Tooltip>
+const WrapperIconPoolLicense = ({ children }) => (
+  <a href='https://xcp-ng.com' rel='noreferrer noopener' target='_blank'>
+    {children}
+  </a>
 )
 
 export const ICON_POOL_LICENSE = {
-  total: tooltip => (
-    <WrapperIconPoolLicense tooltip={tooltip}>
+  total: () => (
+    <WrapperIconPoolLicense>
       <Icon icon='pro-support' className='text-success' />
     </WrapperIconPoolLicense>
   ),
-  partial: tooltip => (
-    <WrapperIconPoolLicense tooltip={tooltip}>
+  partial: () => (
+    <WrapperIconPoolLicense>
       <Icon icon='alarm' className='text-warning' />
     </WrapperIconPoolLicense>
   ),
   any: () => (
-    <WrapperIconPoolLicense tooltip={_('poolNoSupport')}>
+    <WrapperIconPoolLicense>
       <Icon icon='alarm' className='text-danger' />
     </WrapperIconPoolLicense>
   ),
@@ -187,11 +184,7 @@ export const ICON_POOL_LICENSE = {
         if (getXoaPlan() === SOURCES.name) {
           poolLicenseInfoByPoolId[poolId] = {
             nHostsUnderLicense,
-            icon: () => (
-              <Tooltip content={_('poolSupportSourceUsers')}>
-                <Icon icon='unknown-status' className='text-danger' />
-              </Tooltip>
-            ),
+            icon: () => <Icon icon='unknown-status' className='text-danger' />,
             nHosts,
           }
           return

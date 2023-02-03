@@ -26,6 +26,9 @@ import MiniStats from './mini-stats'
 import LicenseWarning from '../host/license-warning'
 import styles from './index.css'
 
+import IconWarningModal from '../../common/icon-warning-modal'
+import { isHostTimeConsistentWithXoaTime } from '../../common/xo'
+
 @addSubscriptions({
   hvSupportedVersions: subscribeHvSupportedVersions,
 })
@@ -41,6 +44,9 @@ import styles from './index.css'
   state: createGetHostState((_, props) => props.item),
 }))
 export default class HostItem extends Component {
+  state = {
+    icons: [],
+  }
   get _isRunning() {
     const host = this.props.item
     return host && host.power_state === 'Running'
@@ -66,8 +72,81 @@ export default class HostItem extends Component {
   _toggleExpanded = () => this.setState({ expanded: !this.state.expanded })
   _onSelect = () => this.props.onSelect(this.props.item.id)
 
+  _getIcons = createSelector(
+    () => this.props.needsRestart,
+    () => this.props.item,
+    this._isMaintained,
+    (needsRestart, host, isMaintained) => {
+      const icons = []
+
+      if (needsRestart) {
+        icons.push({
+          level: 'warning',
+          render: (
+            <Link className='text-warning' to={`/hosts/${host.id}/patches`}>
+              <Icon icon='alarm' /> {_('rebootUpdateHostLabel')}
+            </Link>
+          ),
+        })
+      }
+
+      if (!isMaintained) {
+        icons.push({
+          level: 'warning',
+          render: (
+            <p>
+              <Icon icon='alarm' /> {_('noMoreMaintained')}
+            </p>
+          ),
+        })
+      }
+
+      if (!isHostTimeConsistentWithXoaTime(host)) {
+        icons.push({
+          level: 'danger',
+          render: (
+            <p>
+              <Icon icon='alarm' /> {_('warningHostTimeTooltip')}
+            </p>
+          ),
+        })
+      }
+
+      if (hasLicenseRestrictions(host)) {
+        icons.push({
+          level: 'danger',
+          render: (
+            <span>
+              <Icon icon='alarm' /> {_('licenseRestrictionsModalTitle')}{' '}
+              <a href='https://xcp-ng.com/pricing.html#xcpngvsxenserver' rel='noopener noreferrer' target='_blank'>
+                {_('actionsRestricted')}
+              </a>
+              <div>
+                {_('counterRestrictionsOptions')}
+                <ul>
+                  <li>
+                    <a
+                      href='https://github.com/xcp-ng/xcp/wiki/Upgrade-from-XenServer'
+                      rel='noopener noreferrer'
+                      target='_blank'
+                    >
+                      {_('counterRestrictionsOptionsXcp')}
+                    </a>
+                  </li>
+                  <li>{_('counterRestrictionsOptionsXsLicense')}</li>
+                </ul>
+              </div>
+            </span>
+          ),
+        })
+      }
+      return icons
+    }
+  )
+
   render() {
     const { container, expandAll, item: host, nVms, selected, state } = this.props
+    const icons = this._getIcons()
 
     return (
       <div className={styles.item}>
@@ -102,23 +181,7 @@ export default class HostItem extends Component {
                   <span className='tag tag-pill tag-info'>{_('pillMaster')}</span>
                 )}
                 &nbsp;
-                {this.props.needsRestart && (
-                  <Tooltip content={_('rebootUpdateHostLabel')}>
-                    <Link to={`/hosts/${host.id}/patches`}>
-                      <Icon icon='alarm' />
-                    </Link>
-                  </Tooltip>
-                )}
-                &nbsp;
-                {!this._isMaintained() && (
-                  <Tooltip content={_('noMoreMaintained')}>
-                    <Icon className='text-warning' icon='alarm' />
-                  </Tooltip>
-                )}
-                &nbsp;
-                <InconsistentHostTimeWarning host={host} />
-                &nbsp;
-                {hasLicenseRestrictions(host) && <LicenseWarning />}
+                <IconWarningModal icons={icons} />
               </EllipsisContainer>
             </Col>
             <Col mediumSize={3} className='hidden-lg-down'>
