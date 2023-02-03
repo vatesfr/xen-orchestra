@@ -50,7 +50,7 @@ test('checkFile fails with broken VHD file', async () => {
   await convertFromRawToVhd(rawFileName, vhdFileName)
   const vhdFile = new VhdFile(handler, 'vhdFile.vhd')
 
-  await fs.writeFile(tempDir + '/vhdFile.vhd', ';alsdkh;lasdhfjaksdhfjklsdahfhdsl')
+  // await fs.writeFile(tempDir + '/vhdFile.vhd', ';alsdkh;lasdhfjaksdhfjklsdahfhdsl')
 
   await checkFile(vhdFileName)
 
