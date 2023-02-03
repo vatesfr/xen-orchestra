@@ -26,5 +26,5 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
-
+- xo-server-netbox minor
 <!--packages-end-->

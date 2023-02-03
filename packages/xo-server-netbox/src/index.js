@@ -40,6 +40,14 @@ const onRequest = req => {
   req.on('timeout', req.abort)
 }
 
+const tenDot = ipaddr.parseCIDR('10.0.0.0/8')
+const oneSevenTwo = ipaddr.parseCIDR('172.16.0.0/12')
+const oneNineTwo = ipaddr.parseCIDR('192.168.0.0/16')
+const ipKind = tenDot[0].kind()
+const isRfc1918 = (ip) => {
+  return ip.kind() === ipKind && (ip.match(tenDot[0], tenDot[1]) || ip.match(oneSevenTwo[0], oneSevenTwo[1]) || ip.match(oneNineTwo[0], oneNineTwo[1]))
+}
+
 class Netbox {
   #allowUnauthorized
   #endpoint
@@ -51,6 +59,7 @@ class Netbox {
   #syncInterval
   #token
   #xo
+  #ignoreRfc1918
 
   constructor({ xo }) {
     this.#xo = xo
@@ -65,6 +74,7 @@ class Netbox {
     this.#token = configuration.token
     this.#pools = configuration.pools
     this.#syncInterval = configuration.syncInterval && configuration.syncInterval * 60 * 60 * 1e3
+    this.#ignoreRfc1918 = configuration.ignoreRfc1918 ?? false
 
     // We don't want to start the auto-sync if the plugin isn't loaded
     if (this.#loaded) {
@@ -561,6 +571,10 @@ class Netbox {
           const ipKind = parsedIp.kind()
           const ipCompactNotation = parsedIp.toString()
 
+          if (this.#ignoreRfc1918 && isRfc1918(parsedIp)) {
+            continue
+          }
+
           let smallestPrefix
           let highestBits = 0
           netboxPrefixes.forEach(({ prefix }) => {
@@ -719,6 +733,11 @@ export const configurationSchema = ({ xo: { apiMethods } }) => ({
       title: 'Interval',
       description: 'Synchronization interval in hours - leave empty to disable auto-sync',
     },
+    ignoreRfc1918: {
+      type: 'boolean',
+      title: 'Ignore RFC 1918 VM IPs (e.g. 10.0.x.x, 192...)',
+      description: 'Enable this if you do not want these IPs to be imported into Netbox',
+    }
   },
   required: ['endpoint', 'token', 'pools'],
 })
