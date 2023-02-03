@@ -43,15 +43,16 @@ afterEach(async () => {
 })
 
 test('checkFile fails with unvalid VHD file', async () => {
-  const initalSize = 4
+  const initalSizeInMB = 4
   const rawFileName = `${tempDir}/randomfile`
-  await createRandomFile(rawFileName, initalSize)
+  await createRandomFile(rawFileName, initalSizeInMB)
   const vhdFileName = `${tempDir}/vhdFile.vhd`
   await convertFromRawToVhd(rawFileName, vhdFileName)
 
   await checkFile(vhdFileName)
 
-  await fs.truncate(vhdFileName, 2)
+  const sizeToTruncateInByte = 250000
+  await fs.truncate(vhdFileName, sizeToTruncateInByte)
   await expect(async () => await checkFile(vhdFileName)).rejects.toThrow()
 })
 
