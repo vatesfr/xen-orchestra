@@ -88,34 +88,15 @@ export default class VhdEsxiSeSparse extends VhdAbstract {
   async readHeaderAndFooter() {
     const buffer = await this.#read(0, 2048)
     strictEqual(buffer.readBigInt64LE(0), 0xcafebaben)
-    for (let i = 0; i < 2048 / 8; i++) {
-      console.log(i, '> ', buffer.readBigInt64LE(8 * i).toString(16), buffer.readBigInt64LE(8 * i))
-    }
 
     strictEqual(readInt64(buffer, 1), 0x200000001) // version 2.1
 
     const capacity = readInt64(buffer, 2)
     const grain_size = readInt64(buffer, 3)
-    const grain_table_size = readInt64(buffer, 4)
-    const flags = readInt64(buffer, 5)
 
-    const grain_dir_offset = readInt64(buffer, 16)
-    const grain_dir_size = readInt64(buffer, 17)
     const grain_tables_offset = readInt64(buffer, 18)
     const grain_tables_size = readInt64(buffer, 19)
     this.#grainOffset = readInt64(buffer, 24)
-
-    console.log({
-      capacity,
-      grain_size,
-      grain_table_size,
-      flags,
-      grain_dir_offset,
-      grain_dir_size,
-      grain_tables_offset,
-      grain_tables_size,
-      grainSize: this.#grainSize,
-    })
 
     this.#grainSize = grain_size * 512 // 8 sectors / 4KB default
     this.#grainTableOffset = grain_tables_offset * 512
@@ -131,12 +112,10 @@ export default class VhdEsxiSeSparse extends VhdAbstract {
   }
 
   async readBlockAllocationTable() {
-    console.log('READ BLOCK ALLOCATION', this.#grainTableSize)
     const CHUNK_SIZE = 64 * 512
 
     strictEqual(this.#grainTableSize % CHUNK_SIZE, 0)
 
-    console.log(' will read ', this.#grainTableSize / CHUNK_SIZE, 'table')
     for (let chunkIndex = 0, grainIndex = 0; chunkIndex < this.#grainTableSize / CHUNK_SIZE; chunkIndex++) {
       process.stdin.write('.')
       const start = chunkIndex * CHUNK_SIZE + this.#grainTableOffset
@@ -151,15 +130,11 @@ export default class VhdEsxiSeSparse extends VhdAbstract {
             break
         }
         if (entry > 3n) {
-          const intIndex = +(((entry & 0x0fff000000000000n) >> 48n) | ((entry & 0x0000ffffffffffffn) << 12n))
-          let pos = intIndex * this.#grainSize + CHUNK_SIZE * chunkIndex + this.#grainOffset
-          console.log({ indexInChunk, grainIndex, intIndex, pos })
           this.#grainMap.set(grainIndex)
           grainIndex++
         }
       }
     }
-    console.log('found', this.#grainMap.size)
 
     // read grain directory and the grain tables
     const nbBlocks = this.header.maxTableEntries
@@ -189,7 +164,7 @@ export default class VhdEsxiSeSparse extends VhdAbstract {
     strictEqual(graintable.length, 4096 * 4)
     // we have no guaranty that data are order or contiguous
     // let's construct ranges to limit the number of queries
-    let rangeStart, offsetStart, offsetEnd, lastOffset
+    let rangeStart, offsetStart, offsetEnd
 
     const changeRange = async (index, offset) => {
       if (offsetStart !== undefined) {

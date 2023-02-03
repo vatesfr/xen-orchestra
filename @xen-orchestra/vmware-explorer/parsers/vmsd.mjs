@@ -50,7 +50,7 @@ export default function parseVmsd(text) {
     // remove the " around value
     set(parsed, key.split('.'), val?.substring(1, val.length - 1))
   })
-  if (parsed.snapshot?.current == undefined) {
+  if (parsed.snapshot?.current === undefined) {
     return
   }
 
