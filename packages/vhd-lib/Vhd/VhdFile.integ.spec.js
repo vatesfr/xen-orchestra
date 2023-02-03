@@ -49,10 +49,10 @@ test('checkFile fails with unvalid VHD file', async () => {
   const vhdFileName = `${tempDir}/vhdFile.vhd`
   await convertFromRawToVhd(rawFileName, vhdFileName)
 
-  // await fs.truncate(vhdFileName, 2)
-
   await checkFile(vhdFileName)
-  // await expect(async () => await checkFile(vhdFileName)).rejects.toThrow()
+
+  await fs.truncate(vhdFileName, 2)
+  await expect(async () => await checkFile(vhdFileName)).rejects.toThrow()
 })
 
 test('respect the checkSecondFooter flag', async () => {
