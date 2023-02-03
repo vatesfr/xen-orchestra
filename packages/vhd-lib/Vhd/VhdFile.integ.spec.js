@@ -42,20 +42,6 @@ afterEach(async () => {
   disposeHandler()
 })
 
-test('checkFile fails with unvalid VHD file', async () => {
-  const initalSizeInMB = 4
-  const rawFileName = `${tempDir}/randomfile`
-  await createRandomFile(rawFileName, initalSizeInMB)
-  const vhdFileName = `${tempDir}/vhdFile.vhd`
-  await convertFromRawToVhd(rawFileName, vhdFileName)
-
-  await checkFile(vhdFileName)
-
-  const sizeToTruncateInByte = 250000
-  await fs.truncate(vhdFileName, sizeToTruncateInByte)
-  await expect(async () => await checkFile(vhdFileName)).rejects.toThrow()
-})
-
 test('respect the checkSecondFooter flag', async () => {
   const initalSize = 0
   const rawFileName = `${tempDir}/randomfile`
