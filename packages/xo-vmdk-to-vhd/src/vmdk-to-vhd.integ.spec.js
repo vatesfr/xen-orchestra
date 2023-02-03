@@ -71,7 +71,7 @@ test('VMDK to VHD can convert a random data file with VMDKDirectParser', async (
       )
     ).pipe(createWriteStream(vhdFileName))
     await fromEvent(pipe, 'finish')
-    await execa('qemu-img', ['convert', vhdFileName, 'outputFile.qcow2'])
+    await execa('qemu-img', ['convert', '-fvpc', '-Oqcow2', vhdFileName, 'outputFile.qcow2'])
     await execa('qemu-img', ['convert', '-fvmdk', '-Oraw', vmdkFileName, reconvertedFromVmdk])
     await execa('qemu-img', ['convert', '-fvpc', '-Oraw', vhdFileName, reconvertedFromVhd])
     await execa('qemu-img', ['compare', inputRawFileName, vhdFileName])
