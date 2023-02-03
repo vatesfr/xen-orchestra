@@ -52,7 +52,7 @@ test('checkFile fails with broken VHD file', async () => {
 
   await fs.writeFile(tempDir + '/vhdFile.vhd', ';alsdkh;lasdhfjaksdhfjklsdahfhdsl')
 
-  await checkFile(vhdFile)
+  await checkFile(vhdFileName)
 
   await expect(async () => await checkFile(vhdFile)).rejects.toThrow()
 })
