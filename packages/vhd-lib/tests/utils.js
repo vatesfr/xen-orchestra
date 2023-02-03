@@ -25,6 +25,7 @@ async function checkFile(vhdName) {
   // the convert command to do a check by conversion. Indeed, the conversion will
   // fail if the source file isn't a proper vhd format.
   await execa('qemu-img', ['convert', '-fvpc', '-Oqcow2', vhdName, 'outputFile.qcow2'])
+  await fs.rm(vhdName)
 }
 exports.checkFile = checkFile
 

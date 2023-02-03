@@ -12,6 +12,7 @@ import { vmdkToVhd, readVmdkGrainTable } from '.'
 import VMDKDirectParser from './vmdk-read'
 import { generateVmdkData } from './vmdk-generate'
 import asyncIteratorToStream from 'async-iterator-to-stream'
+import { checkFile } from './util'
 
 const initialDir = process.cwd()
 jest.setTimeout(100000)
@@ -71,7 +72,7 @@ test('VMDK to VHD can convert a random data file with VMDKDirectParser', async (
       )
     ).pipe(createWriteStream(vhdFileName))
     await fromEvent(pipe, 'finish')
-    await execa('qemu-img', ['convert', '-fvpc', '-Oqcow2', vhdFileName, 'outputFile.qcow2'])
+    await checkFile(vhdFileName)
     await execa('qemu-img', ['convert', '-fvmdk', '-Oraw', vmdkFileName, reconvertedFromVmdk])
     await execa('qemu-img', ['convert', '-fvpc', '-Oraw', vhdFileName, reconvertedFromVhd])
     await execa('qemu-img', ['compare', inputRawFileName, vhdFileName])
