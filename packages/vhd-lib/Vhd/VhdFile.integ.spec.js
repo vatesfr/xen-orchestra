@@ -50,11 +50,12 @@ test('checkFile fails with broken VHD file', async () => {
   await convertFromRawToVhd(rawFileName, vhdFileName)
   const vhdFile = new VhdFile(handler, 'vhdFile.vhd')
 
-  // await fs.writeFile(tempDir + '/vhdFile.vhd', ';alsdkh;lasdhfjaksdhfjklsdahfhdsl')
+  // await fs.writeFile(vhdFileName, ';alsdkh;lasdhfjaksdhfjklsdahfhdsl')
+  await vhdFile.writeData(0, 'khjsdafjn')
 
   await checkFile(vhdFileName)
 
-  await expect(async () => await checkFile(vhdFile)).rejects.toThrow()
+  await expect(async () => await checkFile(vhdFileName)).rejects.toThrow()
 })
 
 test('respect the checkSecondFooter flag', async () => {
