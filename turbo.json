@@ -5,6 +5,14 @@
       "dependsOn": ["^build"],
       "outputMode": "errors-only",
       "outputs": ["dist/**"]
+    },
+    "dev": {
+      "dependsOn": ["^build"],
+      "persistent": true
+    },
+    "test": {
+      "dependsOn": ["build"],
+      "outputMode": "errors-only"
     }
   }
 }
