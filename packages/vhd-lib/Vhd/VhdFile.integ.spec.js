@@ -42,6 +42,20 @@ afterEach(async () => {
   disposeHandler()
 })
 
+test('checkFile fails with broken VHD file', async () => {
+  const initalSize = 4
+  const rawFileName = `${tempDir}/randomfile`
+  await createRandomFile(rawFileName, initalSize)
+  const vhdFileName = `${tempDir}/vhdFile.vhd`
+  await convertFromRawToVhd(rawFileName, vhdFileName)
+
+  await fs.writeFile(vhdFileName, ';alsdkh;lasdhfjaksdhfjklsdahfhdsl')
+
+  await checkFile(vhdFileName)
+
+  await expect(async () => await checkFile(vhdFileName)).rejects.toThrow()
+})
+
 test('respect the checkSecondFooter flag', async () => {
   const initalSize = 0
   const rawFileName = `${tempDir}/randomfile`
@@ -57,8 +71,6 @@ test('respect the checkSecondFooter flag', async () => {
   await handler.closeFile(fd)
   // not using openVhd to be able to call readHeaderAndFooter separatly
   const vhd = new VhdFile(handler, 'randomfile.vhd')
-
-  await checkFile(vhdFileName)
 
   await expect(async () => await vhd.readHeaderAndFooter()).rejects.toThrow()
   await expect(async () => await vhd.readHeaderAndFooter(true)).rejects.toThrow()
