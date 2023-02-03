@@ -11,6 +11,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Continuous Replication] Fix `VDI_IO_ERROR` when after a VDI has been resized
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -26,5 +28,7 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
+
+- @xen-orchestra/backups patch
 
 <!--packages-end-->

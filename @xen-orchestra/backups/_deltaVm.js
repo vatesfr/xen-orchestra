@@ -258,6 +258,9 @@ exports.importDeltaVm = defer(async function importDeltaVm(
       $defer.onFailure(() => newVdi.$destroy())
 
       await newVdi.update_other_config(TAG_COPY_SRC, vdi.uuid)
+      if (vdi.virtual_size > newVdi.virtual_size) {
+        await newVdi.$callAsync('resize', vdi.virtual_size)
+      }
     } else if (vdiRef === vmRecord.suspend_VDI) {
       // suspendVDI has already created
       newVdi = suspendVdi
