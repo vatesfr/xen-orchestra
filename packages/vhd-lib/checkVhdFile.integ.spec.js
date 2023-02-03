@@ -5,21 +5,19 @@
 const fs = require('fs-extra')
 const rimraf = require('rimraf')
 const tmp = require('tmp')
-// const { getSyncedHandler } = require('@xen-orchestra/fs')
+const { getSyncedHandler } = require('@xen-orchestra/fs')
 const { pFromCallback } = require('promise-toolbox')
 
 const { checkFile, createRandomFile, convertFromRawToVhd } = require('./tests/utils')
 
 let tempDir = null
-// let handler
 let disposeHandler
 
 beforeEach(async () => {
   tempDir = await pFromCallback(cb => tmp.dir(cb))
 
-  // const d = await getSyncedHandler({ url: `file://${tempDir}` })
-  // // handler = d.value
-  // disposeHandler = d.dispose
+  const d = await getSyncedHandler({ url: `file://${tempDir}` })
+  disposeHandler = d.dispose
 })
 
 afterEach(async () => {
