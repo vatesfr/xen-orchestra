@@ -27,11 +27,20 @@ To guarantee the request comes from XO, a secret must be provided in the `xo-ser
 syncHookSecret = 'unique long string to ensure the request comes from XO'
 ```
 
+XO will waits for the request to be answered before starting the snapshot, but will not wait longer than _1 minute_ by default. This timeout can be changed in the configuration as well:
+
+```toml
+[xapiOptions]
+
+# Timeout in milliseconds
+#
+# Default: 60e3
+syncHookTimeout = 300e3 # 5 minutes
+```
+
 ## Specification
 
-XO will waits for the request to be answered before starting the snapshot, but will not wait longer than _1 minute_.
-
-If the request fails for any reason, XO will go ahead with snapshot immediately.
+If the request fails for any reasons (including the timeout described in the above section), XO will go ahead with snapshot immediately.
 
 ```http
 GET /sync HTTP/1.1
