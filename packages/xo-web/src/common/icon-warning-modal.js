@@ -1,7 +1,7 @@
 import _ from 'intl'
-import React from 'react'
 import PropTypes from 'prop-types'
-import { groupBy } from 'lodash'
+import React from 'react'
+import { findDOMNode } from 'react-dom'
 
 import BaseComponent from './base-component'
 import { alert } from './modal'
@@ -14,20 +14,16 @@ const ICON_WARNING_MODAL_LEVEL = {
 }
 
 class IconWarningModal extends BaseComponent {
+  componentDidMount() {
+    // eslint-disable-next-line react/no-find-dom-node
+    findDOMNode(this)?.parentElement.classList.add('align-self-center')
+  }
+
   getSortedElements = createSelector(
     () => this.props.icons,
-    icons => icons.sort((curr, next) => ICON_WARNING_MODAL_LEVEL[next.level] - ICON_WARNING_MODAL_LEVEL[curr.level])
+    icons =>
+      icons?.sort((curr, next) => ICON_WARNING_MODAL_LEVEL[next.level] - ICON_WARNING_MODAL_LEVEL[curr.level]) ?? []
   )
-
-  getGroupedElements = createSelector(this.getSortedElements, elements => groupBy(elements, 'level'))
-
-  getLowestLevelInfo = createSelector(this.getSortedElements, this.getGroupedElements, (sorted, grouped) => {
-    const lowestLevel = sorted[sorted.length - 1]?.level
-    return {
-      length: grouped[lowestLevel]?.length,
-      level: lowestLevel,
-    }
-  })
 
   onClick = () =>
     alert(
@@ -42,14 +38,18 @@ class IconWarningModal extends BaseComponent {
     )
 
   render() {
-    const { level, length } = this.getLowestLevelInfo()
+    const elements = this.getSortedElements()
+    const length = elements.length
+    const level = elements[length - 1]?.level
 
-    return length !== 0 ? (
-      // <a> in order to bypass the BlockLink component
-      <a className={`icon-warning-modal ${level}`} onClick={this.onClick}>
-        <span>{length}</span>
-      </a>
-    ) : null
+    return (
+      length !== 0 && (
+        // <a> in order to bypass the BlockLink component
+        <a className={`icon-warning-modal ${level}`} onClick={this.onClick}>
+          <span>{length}</span>
+        </a>
+      )
+    )
   }
 }
 

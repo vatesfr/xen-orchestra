@@ -17,9 +17,9 @@ import { injectState } from 'reaclette'
 
 import styles from './index.css'
 
+import IconWarningModal from '../../common/icon-warning-modal'
 import { isAdmin } from '../../common/selectors'
 import { ShortDate } from '../../common/utils'
-import IconWarningModal from '../../common/icon-warning-modal'
 import { getXoaPlan, SOURCES } from '../../common/xoa-plans'
 
 @connectStore(() => {
@@ -74,7 +74,7 @@ export default class PoolItem extends Component {
     this.props.missingPatches.then(patches => this.setState({ missingPatchCount: size(patches) }))
   }
 
-  _getPoolLicenseIcon() {
+  _getPoolLicenseIconTooltip() {
     const { state: reacletteState, item: pool } = this.props
     const { earliestExpirationDate, nHostsUnderLicense, nHosts, supportLevel } =
       reacletteState.poolLicenseInfoByPoolId[pool.id]
@@ -102,11 +102,10 @@ export default class PoolItem extends Component {
     (pool, isAdmin, reacletteState) => {
       const icons = []
 
-      // To be tested with all plan. SOURCE OK, ANY ??, PARTIAL ??, TOTAL ??,
       if (isAdmin) {
         const { icon, supportLevel } = reacletteState.poolLicenseInfoByPoolId[pool.id]
         const level = supportLevel === 'total' ? 'success' : supportLevel === 'partial' ? 'warning' : 'danger'
-        const message = this._getPoolLicenseIcon()
+        const message = this._getPoolLicenseIconTooltip()
         icons.push({
           level,
           render: (
@@ -140,8 +139,6 @@ export default class PoolItem extends Component {
                 &nbsp;&nbsp;
                 &nbsp;
                 <IconWarningModal icons={icons} />
-                {/* // */}
-                {/* {isAdmin && <span className='ml-1'>{this._getPoolLicenseIcon()}</span>} */}
                 &nbsp;
                 {missingPatchCount > 0 && (
                   <span>

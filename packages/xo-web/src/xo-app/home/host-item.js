@@ -44,9 +44,6 @@ import { isHostTimeConsistentWithXoaTime } from '../../common/xo'
   state: createGetHostState((_, props) => props.item),
 }))
 export default class HostItem extends Component {
-  state = {
-    icons: [],
-  }
   get _isRunning() {
     const host = this.props.item
     return host && host.power_state === 'Running'
