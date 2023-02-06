@@ -10,8 +10,8 @@
 
 Installation of the [npm package](https://npmjs.org/package/@xen-orchestra/async-map):
 
-```
-> npm install --save @xen-orchestra/async-map
+```sh
+npm install --save @xen-orchestra/async-map
 ```
 
 ## Usage

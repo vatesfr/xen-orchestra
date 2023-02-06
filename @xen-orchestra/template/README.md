@@ -8,8 +8,8 @@
 
 Installation of the [npm package](https://npmjs.org/package/@xen-orchestra/template):
 
-```
-> npm install --save @xen-orchestra/template
+```sh
+npm install --save @xen-orchestra/template
 ```
 
 ## Usage

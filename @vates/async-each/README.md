@@ -10,8 +10,8 @@
 
 Installation of the [npm package](https://npmjs.org/package/@vates/async-each):
 
-```
-> npm install --save @vates/async-each
+```sh
+npm install --save @vates/async-each
 ```
 
 ## Usage

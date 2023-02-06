@@ -152,7 +152,7 @@ main().catch(console.warn)
 
 You can run it manually for testing:
 
-```
-> node index.cjs
+```console
+$ node index.cjs
 Server is listening on https://[::]:1727
 ```

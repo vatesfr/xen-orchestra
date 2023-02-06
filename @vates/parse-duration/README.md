@@ -10,8 +10,8 @@
 
 Installation of the [npm package](https://npmjs.org/package/@vates/parse-duration):
 
-```
-> npm install --save @vates/parse-duration
+```sh
+npm install --save @vates/parse-duration
 ```
 
 ## Usage

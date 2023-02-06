@@ -10,8 +10,8 @@
 
 Installation of the [npm package](https://npmjs.org/package/@vates/disposable):
 
-```
-> npm install --save @vates/disposable
+```sh
+npm install --save @vates/disposable
 ```
 
 ## Usage

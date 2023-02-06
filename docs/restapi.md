@@ -80,10 +80,10 @@ Content-Type: application/json
 
 Here is an example with `curl`:
 
-```bash
-curl \
-    -b authenticationToken=0OQIKwb1WjeHtch25Ls \
-    http://xoa.example.com/rest/v0/vms?fields=name_label,power_state
+```console
+$ curl \
+  -b authenticationToken=0OQIKwb1WjeHtch25Ls \
+  http://xoa.example.com/rest/v0/vms?fields=name_label,power_state
 [
   {
     "name_label": "FreeNAS",
@@ -125,7 +125,7 @@ Content-Type: application/x-ndjson
 
 > This feature is restricted to `name_label` and `name_description` at the moment.
 
-```bash
+```sh
 curl \
   -X PATCH \
   -b authenticationToken=KQxQdm2vMiv7jBIK0hgkmgxKzemd8wSJ7ugFGKFkTbs \
@@ -139,7 +139,7 @@ curl \
 
 For a VM:
 
-```bash
+```sh
 curl \
   -X DELETE \
   -b authenticationToken=KQxQdm2vMiv7jBIK0hgkmgxKzemd8wSJ7ugFGKFkTbs \
@@ -148,7 +148,7 @@ curl \
 
 For a VDI:
 
-```bash
+```sh
 curl \
   -X DELETE \
   -b authenticationToken=KQxQdm2vMiv7jBIK0hgkmgxKzemd8wSJ7ugFGKFkTbs \
@@ -159,7 +159,7 @@ curl \
 
 VDI export and VM export are supported by the API. Below is a simple example to export a VM with `zstd` compression into a `myVM.xva` file:
 
-```bash
+```sh
 curl \
   -b authenticationToken=KQxQdm2vMiv7jFEAZXOAGKFkTbs \
   'https://xoa.example.org/rest/v0/vms/770aa52a-fd42-8faf-f167-8c5c4a237a12.xva?compress=zstd' \
@@ -168,7 +168,7 @@ curl \
 
 A VDI can be exported in VHD format at `/rest/v0/vdis/<uuid>.vhd` or the raw content at `/rest/v0/vdis/<uuid>.raw`.
 
-```bash
+```sh
 curl \
   -b authenticationToken=KQxQdm2vMiv7FkTbs \
   'https://xoa.example.org/rest/v0/vdis/1a269782-ea93-4c4c-897a-475365f7b674.vhd' \
@@ -179,7 +179,7 @@ curl \
 
 A VHD or a raw export can be imported on an SR to create a new VDI at `/rest/v0/srs/<sr uuid>/vdis`.
 
-```bash
+```sh
 curl \
   -X POST \
   -b authenticationToken=KQxQdm2vMiv7jBIK0hgkmgxKzemd8wSJ7ugFGKFkTbs \

@@ -77,8 +77,8 @@ If your interface is not accessible, or you just prefer to use CLIs commands, it
 
 #### Register
 
-```
-# xoa-updater --register
+```console
+$ xoa-updater --register
 Successfully connected to xoa-updater-service
 
 Please enter your xen-orchestra.com identifiers to register your XOA:
@@ -90,21 +90,20 @@ Please enter your xen-orchestra.com identifiers to register your XOA:
 
 #### Check for new versions
 
-```
-# xoa-updater
+```console
+$ xoa-updater
 Successfully connected to xoa-updater-service
 Checking new versions...ok ✔
 New versions available:
   xo-server 4.8.1
 
 ℹ xoa-updater may be run again to upgrade packages
-
 ```
 
 #### Upgrade
 
-```
-# xoa-updater --upgrade
+```console
+$ xoa-updater --upgrade
 Successfully connected to xoa-updater-service
 Checking new versions...ok ✔
 New versions available:
@@ -114,7 +113,6 @@ Downloading packages...
 Installing new packages...
 
 ✔ Your XOA has been successfully updated.
-
 ```
 
 ## Troubleshooting

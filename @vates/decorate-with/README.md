@@ -10,8 +10,8 @@
 
 Installation of the [npm package](https://npmjs.org/package/@vates/decorate-with):
 
-```
-> npm install --save @vates/decorate-with
+```sh
+npm install --save @vates/decorate-with
 ```
 
 ## Usage

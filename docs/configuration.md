@@ -70,16 +70,16 @@ If you use certificates signed by an in-house CA for your XCP-ng or XenServer ho
 
 To enable this option in your XOA, create `/etc/systemd/system/xo-server.service.d/ca.conf` with the following content:
 
-```
+```ini
 [Service]
 Environment=NODE_EXTRA_CA_CERTS=/usr/local/share/ca-certificates/my-cert.crt
 ```
 
 Don't forget to reload `systemd` conf and restart `xo-server`:
 
-```
-# systemctl daemon-reload
-# systemctl restart xo-server.service
+```sh
+systemctl daemon-reload
+systemctl restart xo-server.service
 ```
 
 > For XO Proxy, the process is almost the same except the file to create is `/etc/systemd/system/xo-proxy.service.d/ca.conf` and the service to restart is `xo-proxy.service`.

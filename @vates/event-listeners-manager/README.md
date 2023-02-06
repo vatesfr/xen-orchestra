@@ -8,8 +8,8 @@
 
 Installation of the [npm package](https://npmjs.org/package/@vates/event-listeners-manager):
 
-```
-> npm install --save @vates/event-listeners-manager
+```sh
+npm install --save @vates/event-listeners-manager
 ```
 
 ## Usage

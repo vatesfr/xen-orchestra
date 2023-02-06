@@ -10,8 +10,8 @@
 
 Installation of the [npm package](https://npmjs.org/package/xapi-explore-sr):
 
-```
-> npm install --global xapi-explore-sr
+```sh
+npm install --global xapi-explore-sr
 ```
 
 ## Usage

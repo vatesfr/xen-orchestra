@@ -10,8 +10,8 @@
 
 Installation of the [npm package](https://npmjs.org/package/xo-acl-resolver):
 
-```
-> npm install --save xo-acl-resolver
+```sh
+npm install --save xo-acl-resolver
 ```
 
 ## Usage

@@ -248,7 +248,7 @@ First, after your disk is attached to XOA, you'll have to find the new disk name
 
 Then, create a filesystem on it:
 
-```
+```sh
 mkfs.ext4 /dev/xvdb
 ```
 

@@ -684,7 +684,7 @@ To run Docker as non-root, please add the user you want inside the "Docker" grou
 
 Now you need to access your host (Dom0) and use the following command:
 
-```
+```sh
 xscontainer-prepare-vm -v <VM_UUID> -u <username>
 ```
 

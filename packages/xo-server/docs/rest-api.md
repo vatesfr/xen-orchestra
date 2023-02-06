@@ -33,7 +33,7 @@ Set-Cookie: authenticationToken=KQxQdm2vMiv7jBIK0hgkmgxKzemd8wSJ7ugFGKFkTbs
 
 Usage with cURL:
 
-```bash
+```sh
 curl -b \
   authenticationToken=KQxQdm2vMiv7jBIK0hgkmgxKzemd8wSJ7ugFGKFkTbs \
   https://xo.company.lan/rest/v0/
@@ -41,7 +41,7 @@ curl -b \
 
 You can use `xo-cli` to create an authentication token:
 
-```bash
+```sh
 $ xo-cli --createToken xoa.company.lan admin@admin.net
 Password: ********
 Successfully logged with admin@admin.net
@@ -118,7 +118,7 @@ Content-Type: application/x-ndjson
 
 > This feature is restricted to `name_label` and `name_description` at the moment.
 
-```bash
+```sh
 curl \
   -X PATCH \
   -b authenticationToken=KQxQdm2vMiv7jBIK0hgkmgxKzemd8wSJ7ugFGKFkTbs \
@@ -130,7 +130,7 @@ curl \
 
 ## VM destruction
 
-```bash
+```sh
 curl \
   -X DELETE \
   -b authenticationToken=KQxQdm2vMiv7jBIK0hgkmgxKzemd8wSJ7ugFGKFkTbs \
@@ -146,7 +146,7 @@ By default, the XVA is not compressed, however the `compress` query parameter su
 - `gzip`: use [gzip](https://en.wikipedia.org/wiki/Gzip) compression (very slow)
 - `zstd`: use [Zstandard](https://en.wikipedia.org/wiki/Zstd) compression (fast, only supported on XCP-ng)
 
-```bash
+```sh
 curl \
   -b authenticationToken=KQxQdm2vMiv7jBIK0hgkmgxKzemd8wSJ7ugFGKFkTbs \
   'https://xo.company.lan/rest/v0/vms/770aa52a-fd42-8faf-f167-8c5c4a237cac.xva?compress=zstd' \
@@ -155,7 +155,7 @@ curl \
 
 ## VDI destruction
 
-```bash
+```sh
 curl \
   -X DELETE \
   -b authenticationToken=KQxQdm2vMiv7jBIK0hgkmgxKzemd8wSJ7ugFGKFkTbs \
@@ -166,7 +166,7 @@ curl \
 
 A VDI can be exported in VHD format at `/rest/v0/vdis/<uuid>.vhd` or the raw content at `/rest/v0/vdis/<uuid>.raw`.
 
-```bash
+```sh
 curl \
   -b authenticationToken=KQxQdm2vMiv7jBIK0hgkmgxKzemd8wSJ7ugFGKFkTbs \
   'https://xo.company.lan/rest/v0/vdis/1a269782-ea93-4c4c-897a-475365f7b674.vhd' \
@@ -177,7 +177,7 @@ curl \
 
 A VHD or a raw export can be imported on an SR to create a new VDI at `/rest/v0/srs/<sr uuid>/vdis`.
 
-```bash
+```sh
 curl \
   -X POST \
   -b authenticationToken=KQxQdm2vMiv7jBIK0hgkmgxKzemd8wSJ7ugFGKFkTbs \

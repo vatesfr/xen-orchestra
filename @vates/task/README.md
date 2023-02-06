@@ -8,8 +8,8 @@
 
 Installation of the [npm package](https://npmjs.org/package/@vates/task):
 
-```
-> npm install --save @vates/task
+```sh
+npm install --save @vates/task
 ```
 
 ## Usage

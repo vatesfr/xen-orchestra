@@ -8,8 +8,8 @@
 
 Installation of the [npm package](https://npmjs.org/package/@vates/nbd-client):
 
-```
-> npm install --save @vates/nbd-client
+```sh
+npm install --save @vates/nbd-client
 ```
 
 ## Usage

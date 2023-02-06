@@ -10,8 +10,8 @@
 
 Installation of the [npm package](https://npmjs.org/package/@xen-orchestra/defined):
 
-```
-> npm install --save @xen-orchestra/defined
+```sh
+npm install --save @xen-orchestra/defined
 ```
 
 ## Contributions

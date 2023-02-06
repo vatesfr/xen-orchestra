@@ -10,8 +10,8 @@
 
 Installation of the [npm package](https://npmjs.org/package/vhd-cli):
 
-```
-> npm install --global vhd-cli
+```sh
+npm install --global vhd-cli
 ```
 
 ## Contributions

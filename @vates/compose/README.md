@@ -10,8 +10,8 @@
 
 Installation of the [npm package](https://npmjs.org/package/@vates/compose):
 
-```
-> npm install --save @vates/compose
+```sh
+npm install --save @vates/compose
 ```
 
 ## Usage

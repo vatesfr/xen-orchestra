@@ -2,10 +2,10 @@
 
 ## Expose VHD disk as block device
 
-```
-> mkdir /tmp/vhd-mount
-> vhdimount 20201008T074128Z.vhd /tmp/vhd-mount
-> ls /tmp/vhd-mount
+```console
+$ mkdir /tmp/vhd-mount
+$ vhdimount 20201008T074128Z.vhd /tmp/vhd-mount
+$ ls /tmp/vhd-mount
 vhdi1
 vhdi2
 ```
@@ -14,30 +14,30 @@ vhdi2
 
 When device no longer necessary:
 
-```
-> fusermount -uz /tmp/vhd-mount
-> rmdir /tmp/vhd-mount
+```console
+$ fusermount -uz /tmp/vhd-mount
+$ rmdir /tmp/vhd-mount
 ```
 
 ## List available partitions
 
 Partitionned disk:
 
-```
-> partx --bytes --output=NR,START,SIZE,NAME,UUID,TYPE --pairs /tmp/vhd-mount/vhdi2
+```console
+$ partx --bytes --output=NR,START,SIZE,NAME,UUID,TYPE --pairs /tmp/vhd-mount/vhdi2
 NR="1" START="2048" SIZE="254803968" NAME="" UUID="c8d70417-01" TYPE="0x83"
 NR="2" START="501758" SIZE="8331985920" NAME="" UUID="c8d70417-02" TYPE="0x5"
 NR="5" START="501760" SIZE="8331984896" NAME="" UUID="c8d70417-05" TYPE="0x8e"
-> echo $?
+$ echo $?
 0
 ```
 
 Non-partionned disk:
 
-```
-> partx --bytes --output=NR,START,SIZE,NAME,UUID,TYPE --pairs /tmp/vhd-mount/vhdi2
+```console
+$ partx --bytes --output=NR,START,SIZE,NAME,UUID,TYPE --pairs /tmp/vhd-mount/vhdi2
 partx: /tmp/vhd-mount/vhdi2: failed to read partition table
-> echo $?
+$ echo $?
 1
 ```
 
@@ -45,58 +45,58 @@ partx: /tmp/vhd-mount/vhdi2: failed to read partition table
 
 > Tip: `offset` and `sizelimit` are only required on a partionned disk
 
-```
-> losetup -o $(($START * 512)) --sizelimit $(($SIZE)) --show -f /tmp/vhd-mount/vhdi2
+```console
+$ losetup -o $(($START * 512)) --sizelimit $(($SIZE)) --show -f /tmp/vhd-mount/vhdi2
 /dev/loop0
-> pvscan --cache /dev/loop0
+$ pvscan --cache /dev/loop0
 ```
 
 When logical volumes no longer necessary:
 
-```
-> pvs --noheading --nosuffix --nameprefixes --unbuffered --units b -o vg_name /dev/loop0
+```console
+$ pvs --noheading --nosuffix --nameprefixes --unbuffered --units b -o vg_name /dev/loop0
   LVM2_VG_NAME='debian-vg'
-> vgchange -an debian-vg
-> losetup -d /dev/loop0
+$ vgchange -an debian-vg
+$ losetup -d /dev/loop0
 ```
 
 ## List available LVM logical volumes
 
-```
-> pvs --noheading --nosuffix --nameprefixes --unbuffered --units b -o lv_name,lv_path,lv_size,vg_name /dev/loop0
+```console
+$ pvs --noheading --nosuffix --nameprefixes --unbuffered --units b -o lv_name,lv_path,lv_size,vg_name /dev/loop0
   LVM2_LV_NAME='root' LVM2_LV_PATH='/dev/debian-vg/root' LVM2_LV_SIZE='7935623168' LVM2_VG_NAME='debian-vg'
   LVM2_LV_NAME='swap_1' LVM2_LV_PATH='/dev/debian-vg/swap_1' LVM2_LV_SIZE='394264576' LVM2_VG_NAME='debian-vg'
 ```
 
 ## Mount LVM logical volume
 
-```
-> vgchange -ay debian-vg
-> lvs  --noheading --nosuffix --nameprefixes --unbuffered --units b -o lv_name,lv_path
+```console
+$ vgchange -ay debian-vg
+$ lvs  --noheading --nosuffix --nameprefixes --unbuffered --units b -o lv_name,lv_path
   LVM2_LV_NAME='root' LVM2_LV_PATH='/dev/debian-vg/root'
   LVM2_LV_NAME='swap_1' LVM2_LV_PATH='/dev/debian-vg/swap_1'
 ```
 
 When logical volume no longer necessary:
 
-```
-> vgchange -an debian-vg
+```sh
+vgchange -an debian-vg
 ```
 
 ## Mount block device
 
 > Tip: `offset` and `sizelimit` are only required on a partionned disk
 
-```
-> mkdir /tmp/block-mount
-> mount --options=loop,ro,norecovery,offset=$(($START * 512)),sizelimit=$(($SIZE)) --source=/tmp/vhd-mount/vhdi2 --target=/tmp/block-mount
-> ls /tmp/block-mount
+```console
+$ mkdir /tmp/block-mount
+$ mount --options=loop,ro,norecovery,offset=$(($START * 512)),sizelimit=$(($SIZE)) --source=/tmp/vhd-mount/vhdi2 --target=/tmp/block-mount
+$ ls /tmp/block-mount
 bin  boot  dev	etc  home  lib	lib64  lost+found  media  mnt  opt  proc  root	run  sbin  srv	sys  @System.solv  tmp	usr  var
 ```
 
 When mountpoint no longer necessary:
 
-```
-> umount --lazy /tmp/block-mount
-> rmdir /tmp/block-mount
+```sh
+umount --lazy /tmp/block-mount
+rmdir /tmp/block-mount
 ```

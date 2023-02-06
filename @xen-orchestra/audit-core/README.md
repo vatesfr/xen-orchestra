@@ -8,8 +8,8 @@
 
 Installation of the [npm package](https://npmjs.org/package/@xen-orchestra/audit-core):
 
-```
-> npm install --save @xen-orchestra/audit-core
+```sh
+npm install --save @xen-orchestra/audit-core
 ```
 
 ## Contributions

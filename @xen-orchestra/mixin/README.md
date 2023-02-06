@@ -8,8 +8,8 @@
 
 Installation of the [npm package](https://npmjs.org/package/@xen-orchestra/mixin):
 
-```
-> npm install --save @xen-orchestra/mixin
+```sh
+npm install --save @xen-orchestra/mixin
 ```
 
 ## Usage

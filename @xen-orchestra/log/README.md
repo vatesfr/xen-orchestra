@@ -10,8 +10,8 @@
 
 Installation of the [npm package](https://npmjs.org/package/@xen-orchestra/log):
 
-```
-> npm install --save @xen-orchestra/log
+```sh
+npm install --save @xen-orchestra/log
 ```
 
 ## Usage

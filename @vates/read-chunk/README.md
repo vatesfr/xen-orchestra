@@ -10,8 +10,8 @@
 
 Installation of the [npm package](https://npmjs.org/package/@vates/read-chunk):
 
-```
-> npm install --save @vates/read-chunk
+```sh
+npm install --save @vates/read-chunk
 ```
 
 ## Usage

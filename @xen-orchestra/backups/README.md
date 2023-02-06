@@ -8,8 +8,8 @@
 
 Installation of the [npm package](https://npmjs.org/package/@xen-orchestra/backups):
 
-```
-> npm install --save @xen-orchestra/backups
+```sh
+npm install --save @xen-orchestra/backups
 ```
 
 ## Contributions

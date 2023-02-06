@@ -10,8 +10,8 @@
 
 Installation of the [npm package](https://npmjs.org/package/complex-matcher):
 
-```
-> npm install --save complex-matcher
+```sh
+npm install --save complex-matcher
 ```
 
 ## Usage

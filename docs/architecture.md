@@ -134,8 +134,8 @@ This CLI is mainly used as a debug tool, there's no 100% guarantee on its stabil
 
 ### Usage
 
-```
-> xo-cli --help
+```console
+$ xo-cli --help
 Usage:
 
   xo-cli --register [--allowUnauthorized] [--expiresIn duration] <XO-Server URL> <username> [<password>]
@@ -177,8 +177,8 @@ Usage:
 
 #### Register your XO instance
 
-```
-> xo-cli --register http://xo.my-company.net admin@admin.net admin
+```console
+$ xo-cli --register http://xo.my-company.net admin@admin.net admin
 Successfully logged with admin@admin.net
 ```
 
@@ -188,27 +188,27 @@ Note: only a token will be saved in the configuration file.
 
 Prints all objects:
 
-```
-> xo-cli --list-objects
+```sh
+xo-cli --list-objects
 ```
 
 It is possible to filter on object properties, for instance to print
 all VM templates:
 
-```
-> xo-cli --list-objects type=VM-template
+```sh
+xo-cli --list-objects type=VM-template
 ```
 
 #### List available commands
 
-```
-> xo-cli --list-commands
+```sh
+xo-cli --list-commands
 ```
 
 Commands can be filtered using patterns:
 
-```
-> xo-cli --list-commands '{user,group}.*'
+```sh
+xo-cli --list-commands '{user,group}.*'
 ```
 
 #### Execute a command
@@ -217,8 +217,8 @@ The same syntax is used for all commands: `xo-cli <command> <param name>=<value>
 
 E.g., adding a new server:
 
-```
-> xo-cli server.add host=my.server.net username=root password=secret-password
+```console
+$ xo-cli server.add host=my.server.net username=root password=secret-password
 42
 ```
 
@@ -228,20 +228,20 @@ Parameters (except `true` and `false` which are correctly parsed as
 booleans) are assumed to be strings. For other types, you may use JSON
 encoding by prefixing with `json:`:
 
-```
-> xo-cli foo.bar baz='json:[1, 2, 3]'
+```sh
+xo-cli foo.bar baz='json:[1, 2, 3]'
 ```
 
 ##### VM export
 
-```
-> xo-cli vm.export vm=a01667e0-8e29-49fc-a550-17be4226783c @=vm.xva
+```sh
+xo-cli vm.export vm=a01667e0-8e29-49fc-a550-17be4226783c @=vm.xva
 ```
 
 ##### VM import
 
-```
-> xo-cli vm.import sr=60a6939e-8b0a-4352-9954-5bde44bcdf7d @=vm.xva
+```sh
+xo-cli vm.import sr=60a6939e-8b0a-4352-9954-5bde44bcdf7d @=vm.xva
 ```
 
 > Note: `xo-cli` only supports the import of XVA files. It will not import OVA files. To import OVA images, you must use the XOA web UI or use `xo-upload-ova` [available here](https://github.com/vatesfr/xen-orchestra/blob/master/@xen-orchestra/upload-ova/README.md#xo-upload-ova).

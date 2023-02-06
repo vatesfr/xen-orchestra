@@ -10,8 +10,8 @@
 
 Installation of the [npm package](https://npmjs.org/package/@vates/otp):
 
-```
-> npm install --save @vates/otp
+```sh
+npm install --save @vates/otp
 ```
 
 ## Usage

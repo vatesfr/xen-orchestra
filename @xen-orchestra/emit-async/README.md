@@ -10,8 +10,8 @@
 
 Installation of the [npm package](https://npmjs.org/package/@xen-orchestra/emit-async):
 
-```
-> npm install --save @xen-orchestra/emit-async
+```sh
+npm install --save @xen-orchestra/emit-async
 ```
 
 ## Usage

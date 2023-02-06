@@ -10,8 +10,8 @@
 
 Installation of the [npm package](https://npmjs.org/package/value-matcher):
 
-```
-> npm install --save value-matcher
+```sh
+npm install --save value-matcher
 ```
 
 ## Usage

@@ -10,8 +10,8 @@
 
 Installation of the [npm package](https://npmjs.org/package/@xen-orchestra/self-signed):
 
-```
-> npm install --save @xen-orchestra/self-signed
+```sh
+npm install --save @xen-orchestra/self-signed
 ```
 
 ## Usage

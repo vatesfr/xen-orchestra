@@ -116,7 +116,7 @@ Create the following file:
 
 Add the following lines:
 
-```
+```toml
 # XOA Support - Work-around HTTP timeout issue during backups
 [xapiOptions]
 httpInactivityTimeout = 1800000 # 30 mins

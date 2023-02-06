@@ -10,8 +10,8 @@
 
 Installation of the [npm package](https://npmjs.org/package/xo-cli):
 
-```
-> npm install --global xo-cli
+```sh
+npm install --global xo-cli
 ```
 
 ## Usage

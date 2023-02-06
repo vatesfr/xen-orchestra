@@ -10,8 +10,8 @@
 
 Installation of the [npm package](https://npmjs.org/package/@vates/predicates):
 
-```
-> npm install --save @vates/predicates
+```sh
+npm install --save @vates/predicates
 ```
 
 ## Usage

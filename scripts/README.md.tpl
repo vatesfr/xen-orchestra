@@ -15,8 +15,8 @@
 
 Installation of the [npm package](https://npmjs.org/package/{{pkg.name}}):
 
-```
-> npm install --{{#if pkg.preferGlobal}}global{{^}}save{{/if}} {{pkg.name}}
+```sh
+npm install --{{#if pkg.preferGlobal}}global{{^}}save{{/if}} {{pkg.name}}
 ```
 
 {{/unless}}

@@ -25,7 +25,7 @@ For safety reasons, the proxy requires authentication to be used.
 
 Use the authentication token:
 
-```
+```console
 $ cat ~/.config/xo-proxy/config.z-auto.json
 {"authenticationToken":"J0BgKritQgPxoyZrBJ5ViafQfLk06YoyFwC3fmfO5wU"}
 ```
@@ -48,7 +48,7 @@ https://user:password@xo.company.lan
 
 Or create a dedicated token with `xo-cli`:
 
-```
+```console
 $ xo-cli --createToken xoa.company.lan admin@admin.net
 Password: ********
 Successfully logged with admin@admin.net

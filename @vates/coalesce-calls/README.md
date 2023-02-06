@@ -10,8 +10,8 @@
 
 Installation of the [npm package](https://npmjs.org/package/@vates/coalesce-calls):
 
-```
-> npm install --save @vates/coalesce-calls
+```sh
+npm install --save @vates/coalesce-calls
 ```
 
 ## Usage
