@@ -105,12 +105,11 @@ export default class PoolItem extends Component {
       if (isAdmin) {
         const { icon, supportLevel } = reacletteState.poolLicenseInfoByPoolId[pool.id]
         const level = supportLevel === 'total' ? 'success' : supportLevel === 'partial' ? 'warning' : 'danger'
-        const message = this._getPoolLicenseIconTooltip()
         icons.push({
           level,
           render: (
             <p>
-              {icon()} {message}
+              {icon()} {this._getPoolLicenseIconTooltip()}
             </p>
           ),
         })

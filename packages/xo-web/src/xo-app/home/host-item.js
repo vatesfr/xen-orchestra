@@ -1,6 +1,5 @@
 import _ from 'intl'
 import Component from 'base-component'
-import InconsistentHostTimeWarning from 'inconsistent-host-time-warning'
 import Ellipsis, { EllipsisContainer } from 'ellipsis'
 import Icon from 'icon'
 import Link, { BlockLink } from 'link'
@@ -12,7 +11,16 @@ import HomeTags from 'home-tags'
 import Tooltip from 'tooltip'
 import { Row, Col } from 'grid'
 import { Text } from 'editable'
-import { addTag, editHost, fetchHostStats, removeTag, startHost, stopHost, subscribeHvSupportedVersions } from 'xo'
+import {
+  addTag,
+  editHost,
+  fetchHostStats,
+  isHostTimeConsistentWithXoaTime,
+  removeTag,
+  startHost,
+  stopHost,
+  subscribeHvSupportedVersions,
+} from 'xo'
 import { addSubscriptions, connectStore, formatSizeShort, hasLicenseRestrictions, osFamily } from 'utils'
 import {
   createDoesHostNeedRestart,
@@ -23,11 +31,9 @@ import {
 } from 'selectors'
 
 import MiniStats from './mini-stats'
-import LicenseWarning from '../host/license-warning'
 import styles from './index.css'
 
 import IconWarningModal from '../../common/icon-warning-modal'
-import { isHostTimeConsistentWithXoaTime } from '../../common/xo'
 
 @addSubscriptions({
   hvSupportedVersions: subscribeHvSupportedVersions,

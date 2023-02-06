@@ -297,12 +297,12 @@ $select-input-height: 40px; // Bootstrap input height
 
 .icon-warning-modal {
   border-color: transparent transparent transparent transparent;
-  width: 0px;
-  height: 0px;
   border-style: inset;
   border-width: 0 10px 20px 10px;
   float: left;
+  height: 0px;
   transform: rotate(360deg);
+  width: 0px;
   -ms-transform: rotate(360deg);
   -moz-transform: rotate(360deg);
   -webkit-transform: rotate(360deg);
@@ -319,11 +319,11 @@ $select-input-height: 40px; // Bootstrap input height
 }
 
 .icon-warning-modal span {
-  font-size: 0.75rem;
-  text-align: center;
-  left: -3.25px;
-  position: relative;
-  margin: 0px;
   color: white;
+  font-size: 0.75rem;
   font-weight: bold;
+  left: -3.25px;
+  margin: 0px;
+  position: relative;
+  text-align: center;
 }
