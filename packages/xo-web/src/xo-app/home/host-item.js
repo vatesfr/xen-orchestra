@@ -33,7 +33,7 @@ import {
 import MiniStats from './mini-stats'
 import styles from './index.css'
 
-import IconWarningModal from '../../common/icon-warning-modal'
+import BulkIcons from '../../common/bulk-icons'
 
 @addSubscriptions({
   hvSupportedVersions: subscribeHvSupportedVersions,
@@ -184,7 +184,7 @@ export default class HostItem extends Component {
                   <span className='tag tag-pill tag-info'>{_('pillMaster')}</span>
                 )}
                 &nbsp;
-                <IconWarningModal icons={icons} />
+                <BulkIcons icons={icons} />
               </EllipsisContainer>
             </Col>
             <Col mediumSize={3} className='hidden-lg-down'>

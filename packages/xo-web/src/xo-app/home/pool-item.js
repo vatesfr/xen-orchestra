@@ -17,7 +17,7 @@ import { injectState } from 'reaclette'
 
 import styles from './index.css'
 
-import IconWarningModal from '../../common/icon-warning-modal'
+import BulkIcons from '../../common/bulk-icons'
 import { isAdmin } from '../../common/selectors'
 import { ShortDate } from '../../common/utils'
 import { getXoaPlan, SOURCES } from '../../common/xoa-plans'
@@ -137,7 +137,7 @@ export default class PoolItem extends Component {
                 {isAdmin && this._isXcpngPool() && <span className='ml-1'>{this._getPoolLicenseIcon()}</span>}
                 &nbsp;&nbsp;
                 &nbsp;
-                <IconWarningModal icons={icons} />
+                <BulkIcons icons={icons} />
                 &nbsp;
                 {missingPatchCount > 0 && (
                   <span>

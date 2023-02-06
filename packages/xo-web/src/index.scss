@@ -295,7 +295,7 @@ $select-input-height: 40px; // Bootstrap input height
   }
 }
 
-.icon-warning-modal {
+.bulk-icons-triangle {
   border-color: transparent transparent transparent transparent;
   border-style: inset;
   border-width: 0 10px 20px 10px;
@@ -308,17 +308,17 @@ $select-input-height: 40px; // Bootstrap input height
   -webkit-transform: rotate(360deg);
   -o-transform: rotate(360deg);
 }
-.icon-warning-modal.danger {
+.bulk-icons-triangle.danger {
   border-bottom-color: #990822;
 }
-.icon-warning-modal.warning {
+.bulk-icons-triangle.warning {
   border-bottom-color: #eca649;
 }
-.icon-warning-modal.success {
+.bulk-icons-triangle.success {
   border-bottom-color: #089944;
 }
 
-.icon-warning-modal span {
+.bulk-icons-triangle span {
   color: white;
   font-size: 0.75rem;
   font-weight: bold;

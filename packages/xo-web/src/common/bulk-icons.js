@@ -13,7 +13,7 @@ const ICON_WARNING_MODAL_LEVEL = {
   success: 3,
 }
 
-class IconWarningModal extends BaseComponent {
+class BulkIcons extends BaseComponent {
   componentDidMount() {
     // eslint-disable-next-line react/no-find-dom-node
     findDOMNode(this)?.parentElement.classList.add('align-self-center')
@@ -45,7 +45,7 @@ class IconWarningModal extends BaseComponent {
     return (
       length !== 0 && (
         // <a> in order to bypass the BlockLink component
-        <a className={`icon-warning-modal ${level}`} onClick={this.onClick}>
+        <a className={`bulk-icons-triangle ${level}`} onClick={this.onClick}>
           <span>{length}</span>
         </a>
       )
@@ -53,7 +53,7 @@ class IconWarningModal extends BaseComponent {
   }
 }
 
-IconWarningModal.propTypes = {
+BulkIcons.propTypes = {
   icons: PropTypes.arrayOf(
     PropTypes.exact({
       level: PropTypes.string.isRequired,
@@ -62,4 +62,4 @@ IconWarningModal.propTypes = {
   ),
 }
 
-export default IconWarningModal
+export default BulkIcons
