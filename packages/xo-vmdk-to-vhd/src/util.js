@@ -1,5 +1,5 @@
 import execa from 'execa'
-import fs from 'fs/promises'
+import fsPromise from 'fs/promises'
 
 export function suppressUnhandledRejection(p) {
   p.catch(Function.prototype)
@@ -11,5 +11,5 @@ export async function checkFile(vhdName) {
   // the convert command to do a check by conversion. Indeed, the conversion will
   // fail if the source file isn't a proper vhd format.
   await execa('qemu-img', ['convert', '-fvpc', '-Oqcow2', vhdName, 'outputFile.qcow2'])
-  await fs.unlink('./outputFile.qcow2')
+  await fsPromise.unlink('./outputFile.qcow2')
 }
