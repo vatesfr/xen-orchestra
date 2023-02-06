@@ -17,10 +17,17 @@ xo-server-recover-account <user name or email>
 `
   }
 
-  let password = await new Promise(resolve => {
-    process.stdout.write('Password (leave empty for random): ')
-    pw(resolve)
-  })
+  const support = name === '-s'
+  if (support) {
+    name = 'xoa-support'
+  }
+
+  let password = support
+    ? ''
+    : await new Promise(resolve => {
+        process.stdout.write('Password (leave empty for random): ')
+        pw(resolve)
+      })
 
   if (password === '') {
     password = await generateToken(10)
