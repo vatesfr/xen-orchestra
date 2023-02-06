@@ -1,5 +1,5 @@
 import execa from 'execa'
-import fs from 'node:fs/promises'
+import { fs } from 'node:fs/promises'
 
 export function suppressUnhandledRejection(p) {
   p.catch(Function.prototype)
