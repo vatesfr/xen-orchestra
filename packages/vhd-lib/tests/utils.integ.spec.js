@@ -8,7 +8,7 @@ const tmp = require('tmp')
 const { getSyncedHandler } = require('@xen-orchestra/fs')
 const { pFromCallback } = require('promise-toolbox')
 
-const { checkFile, createRandomFile, convertFromRawToVhd } = require('./tests/utils')
+const { checkFile, createRandomFile, convertFromRawToVhd } = require('./utils')
 
 let tempDir = null
 let disposeHandler
