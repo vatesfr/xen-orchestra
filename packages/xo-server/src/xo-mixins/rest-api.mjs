@@ -199,7 +199,7 @@ export default class RestApi {
     )
 
     api.post(
-      '/srs/:object/vdis',
+      '/:collection(srs)/:object/vdis',
       wrap(async (req, res) => {
         const sr = req.xapiObject
         req.length = +req.headers['content-length']
