@@ -12,7 +12,7 @@ import { vmdkToVhd, readVmdkGrainTable } from '.'
 import VMDKDirectParser from './vmdk-read'
 import { generateVmdkData } from './vmdk-generate'
 import asyncIteratorToStream from 'async-iterator-to-stream'
-import fsPromise from 'node:fs.promises'
+import fs from 'fs'
 
 const initialDir = process.cwd()
 jest.setTimeout(100000)
@@ -42,7 +42,7 @@ async function checkFile(vhdName) {
   // the convert command to do a check by conversion. Indeed, the conversion will
   // fail if the source file isn't a proper vhd format.
   await execa('qemu-img', ['convert', '-fvpc', '-Oqcow2', vhdName, 'outputFile.qcow2'])
-  await fsPromise.unlink('./outputFile.qcow2')
+  await fs.promises.unlink('./outputFile.qcow2')
 }
 
 function createFileAccessor(file) {
