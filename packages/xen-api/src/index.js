@@ -11,7 +11,7 @@ import { coalesceCalls } from '@vates/coalesce-calls'
 import { Collection } from 'xo-collection'
 import { EventEmitter } from 'events'
 import { Index } from 'xo-collection/index'
-import { cancelable, defer, fromCallback, fromEvents, ignoreErrors, pDelay, pRetry, pTimeout } from 'promise-toolbox'
+import { cancelable, defer, fromCallback, ignoreErrors, pDelay, pRetry, pTimeout } from 'promise-toolbox'
 import { limitConcurrency } from 'limit-concurrency-decorator'
 
 import autoTransport from './transports/auto'
@@ -545,7 +545,10 @@ export class Xapi extends EventEmitter {
 
     const { req } = response
     if (!req.finished) {
-      await fromEvents(req, ['close', 'finish'])
+      await new Promise((resolve, reject) => {
+        req.on('finish', resolve).on('error', reject)
+        response.on('error', reject)
+      })
     }
 
     if (useHack) {
@@ -553,6 +556,9 @@ export class Xapi extends EventEmitter {
     } else {
       // consume the response
       response.resume()
+      await new Promise((resolve, reject) => {
+        response.on('end', resolve).on('error', reject)
+      })
     }
 
     return pTaskResult
