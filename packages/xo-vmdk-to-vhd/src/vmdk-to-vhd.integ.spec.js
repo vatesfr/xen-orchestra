@@ -12,6 +12,7 @@ import { vmdkToVhd, readVmdkGrainTable } from '.'
 import VMDKDirectParser from './vmdk-read'
 import { generateVmdkData } from './vmdk-generate'
 import asyncIteratorToStream from 'async-iterator-to-stream'
+import fs from 'fs'
 
 const initialDir = process.cwd()
 jest.setTimeout(100000)
@@ -34,6 +35,14 @@ function bufferToArray(buffer) {
     res.push(view.getUint32(i, true))
   }
   return res
+}
+
+async function checkFile(vhdName) {
+  // Since the qemu-img check command isn't compatible with vhd format, we use
+  // the convert command to do a check by conversion. Indeed, the conversion will
+  // fail if the source file isn't a proper vhd format.
+  await execa('qemu-img', ['convert', '-fvpc', '-Oqcow2', vhdName, 'outputFile.qcow2'])
+  await fs.promises.unlink('./outputFile.qcow2')
 }
 
 function createFileAccessor(file) {
@@ -71,7 +80,7 @@ test('VMDK to VHD can convert a random data file with VMDKDirectParser', async (
       )
     ).pipe(createWriteStream(vhdFileName))
     await fromEvent(pipe, 'finish')
-    await execa('vhd-util', ['check', '-p', '-b', '-t', '-n', vhdFileName])
+    await checkFile(vhdFileName)
     await execa('qemu-img', ['convert', '-fvmdk', '-Oraw', vmdkFileName, reconvertedFromVmdk])
     await execa('qemu-img', ['convert', '-fvpc', '-Oraw', vhdFileName, reconvertedFromVhd])
     await execa('qemu-img', ['compare', inputRawFileName, vhdFileName])

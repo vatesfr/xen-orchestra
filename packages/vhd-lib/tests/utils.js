@@ -5,6 +5,7 @@ const { pipeline } = require('readable-stream')
 const asyncIteratorToStream = require('async-iterator-to-stream')
 const execa = require('execa')
 const fs = require('fs-extra')
+const fsPromise = require('node:fs/promises')
 const { randomBytes } = require('crypto')
 
 const createRandomStream = asyncIteratorToStream(function* (size) {
@@ -21,7 +22,11 @@ async function createRandomFile(name, sizeMB) {
 exports.createRandomFile = createRandomFile
 
 async function checkFile(vhdName) {
-  await execa('vhd-util', ['check', '-p', '-b', '-t', '-n', vhdName])
+  // Since the qemu-img check command isn't compatible with vhd format, we use
+  // the convert command to do a check by conversion. Indeed, the conversion will
+  // fail if the source file isn't a proper vhd format.
+  await execa('qemu-img', ['convert', '-fvpc', '-Oqcow2', vhdName, 'outputFile.qcow2'])
+  await fsPromise.unlink('./outputFile.qcow2')
 }
 exports.checkFile = checkFile
 
