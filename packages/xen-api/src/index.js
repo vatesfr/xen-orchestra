@@ -152,13 +152,20 @@ export class Xapi extends EventEmitter {
       this._resolveObjectsFetched = resolve
     })
     this._eventWatchers = { __proto__: null }
-    this._taskWatchers = { __proto__: null }
     this._watchedTypes = undefined
     const { watchEvents } = opts
     if (watchEvents !== false) {
+      let watchingTasks
       if (Array.isArray(watchEvents)) {
+        watchingTasks = watchEvents.includes('task')
         this._watchedTypes = watchEvents
+      } else {
+        watchingTasks = true
       }
+      if (watchingTasks) {
+        this._taskWatchers = { __proto__: null }
+      }
+
       this.watchEvents()
     }
   }
@@ -959,7 +966,7 @@ export class Xapi extends EventEmitter {
       }
 
       const taskWatchers = this._taskWatchers
-      const taskWatcher = taskWatchers[ref]
+      const taskWatcher = taskWatchers?.[ref]
       if (taskWatcher !== undefined) {
         const result = getTaskResult(object)
         if (result !== undefined) {
@@ -1061,7 +1068,7 @@ export class Xapi extends EventEmitter {
     }
 
     const taskWatchers = this._taskWatchers
-    const taskWatcher = taskWatchers[ref]
+    const taskWatcher = taskWatchers?.[ref]
     if (taskWatcher !== undefined) {
       const error = new Error('task has been destroyed before completion')
       error.task = object
