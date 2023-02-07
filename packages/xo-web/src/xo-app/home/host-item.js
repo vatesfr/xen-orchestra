@@ -221,7 +221,7 @@ export default class HostItem extends Component {
                     </a>
                   </Tooltip>
                 )} */}
-                {/* {proSupportIcon} */}
+                {/* {host.productBrand === 'XCP-ng' && proSupportIcon} */}
               </EllipsisContainer>
             </Col>
             <Col mediumSize={3} className='hidden-lg-down'>
