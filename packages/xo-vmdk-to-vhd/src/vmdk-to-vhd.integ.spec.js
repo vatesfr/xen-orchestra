@@ -12,7 +12,7 @@ import { vmdkToVhd, readVmdkGrainTable } from '.'
 import VMDKDirectParser from './vmdk-read'
 import { generateVmdkData } from './vmdk-generate'
 import asyncIteratorToStream from 'async-iterator-to-stream'
-import fsPromise from 'node:fs/promises'
+import fsPromise from 'node:fs.promises'
 
 const initialDir = process.cwd()
 jest.setTimeout(100000)
