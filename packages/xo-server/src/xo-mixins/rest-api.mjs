@@ -150,6 +150,32 @@ export default class RestApi {
         )
       })
     )
+
+    // should go before routes /:collection/:object because they will match but
+    // will not work due to the extension being included in the object identifer
+    api.get(
+      '/:collection(vdis|vdi-snapshots)/:object.:format(vhd|raw)',
+      wrap(async (req, res) => {
+        const stream = await req.xapiObject.$exportContent({ format: req.params.format })
+
+        stream.headers['content-disposition'] = 'attachment'
+        res.writeHead(stream.statusCode, stream.statusMessage != null ? stream.statusMessage : '', stream.headers)
+
+        await fromCallback(pipeline, stream, res)
+      })
+    )
+    api.get(
+      '/:collection(vms|vm-snapshots|vm-templates)/:object.xva',
+      wrap(async (req, res) => {
+        const stream = await req.xapiObject.$export({ compress: req.query.compress })
+
+        stream.headers['content-disposition'] = 'attachment'
+        res.writeHead(stream.statusCode, stream.statusMessage != null ? stream.statusMessage : '', stream.headers)
+
+        await fromCallback(pipeline, stream, res)
+      })
+    )
+
     api.get('/:collection/:object', (req, res) => {
       res.json(req.xoObject)
     })
@@ -194,30 +220,6 @@ export default class RestApi {
       wrap(async (req, res) => {
         await req.xapiObject.$destroy()
         res.sendStatus(200)
-      })
-    )
-
-    api.get(
-      '/:collection(vdis|vdi-snapshots)/:object.:format(vhd|raw)',
-      wrap(async (req, res) => {
-        const stream = await req.xapiObject.$exportContent({ format: req.params.format })
-
-        stream.headers['content-disposition'] = 'attachment'
-        res.writeHead(stream.statusCode, stream.statusMessage != null ? stream.statusMessage : '', stream.headers)
-
-        await fromCallback(pipeline, stream, res)
-      })
-    )
-
-    api.get(
-      '/:collection(vms|vm-snapshots|vm-templates)/:object.xva',
-      wrap(async (req, res) => {
-        const stream = await req.xapiObject.$export({ compress: req.query.compress })
-
-        stream.headers['content-disposition'] = 'attachment'
-        res.writeHead(stream.statusCode, stream.statusMessage != null ? stream.statusMessage : '', stream.headers)
-
-        await fromCallback(pipeline, stream, res)
       })
     )
   }
