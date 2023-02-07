@@ -4,6 +4,9 @@ import { FOOTER_SIZE } from 'vhd-lib/_constants.js'
 import { notEqual, strictEqual } from 'node:assert'
 import { unpackFooter, unpackHeader } from 'vhd-lib/Vhd/_utils.js'
 import { VhdAbstract } from 'vhd-lib'
+import { createLogger } from '@xen-orchestra/log'
+
+const { debug } = createLogger('xen-orchestra:vmware-explorer:vhdesxisesparse')
 
 // from https://github.com/qemu/qemu/commit/98eb9733f4cf2eeab6d12db7e758665d2fd5367b#
 
@@ -88,6 +91,9 @@ export default class VhdEsxiSeSparse extends VhdAbstract {
   async readHeaderAndFooter() {
     const buffer = await this.#read(0, 2048)
     strictEqual(buffer.readBigInt64LE(0), 0xcafebaben)
+    for (let i = 0; i < 2048 / 8; i++) {
+      debug(i, '> ', buffer.readBigInt64LE(8 * i).toString(16), buffer.readBigInt64LE(8 * i))
+    }
 
     strictEqual(readInt64(buffer, 1), 0x200000001) // version 2.1
 
@@ -97,6 +103,14 @@ export default class VhdEsxiSeSparse extends VhdAbstract {
     const grain_tables_offset = readInt64(buffer, 18)
     const grain_tables_size = readInt64(buffer, 19)
     this.#grainOffset = readInt64(buffer, 24)
+
+    debug({
+      capacity,
+      grain_size,
+      grain_tables_offset,
+      grain_tables_size,
+      grainSize: this.#grainSize,
+    })
 
     this.#grainSize = grain_size * 512 // 8 sectors / 4KB default
     this.#grainTableOffset = grain_tables_offset * 512
@@ -112,10 +126,12 @@ export default class VhdEsxiSeSparse extends VhdAbstract {
   }
 
   async readBlockAllocationTable() {
+    debug('READ BLOCK ALLOCATION', this.#grainTableSize)
     const CHUNK_SIZE = 64 * 512
 
     strictEqual(this.#grainTableSize % CHUNK_SIZE, 0)
 
+    debug(' will read ', this.#grainTableSize / CHUNK_SIZE, 'table')
     for (let chunkIndex = 0, grainIndex = 0; chunkIndex < this.#grainTableSize / CHUNK_SIZE; chunkIndex++) {
       process.stdin.write('.')
       const start = chunkIndex * CHUNK_SIZE + this.#grainTableOffset
@@ -130,11 +146,15 @@ export default class VhdEsxiSeSparse extends VhdAbstract {
             break
         }
         if (entry > 3n) {
+          const intIndex = +(((entry & 0x0fff000000000000n) >> 48n) | ((entry & 0x0000ffffffffffffn) << 12n))
+          const pos = intIndex * this.#grainSize + CHUNK_SIZE * chunkIndex + this.#grainOffset
+          debug({ indexInChunk, grainIndex, intIndex, pos })
           this.#grainMap.set(grainIndex)
           grainIndex++
         }
       }
     }
+    debug('found', this.#grainMap.size)
 
     // read grain directory and the grain tables
     const nbBlocks = this.header.maxTableEntries

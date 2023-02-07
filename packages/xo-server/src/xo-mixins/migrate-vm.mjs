@@ -6,10 +6,8 @@ import { Task } from '@xen-orchestra/mixins/Tasks.mjs'
 import { v4 as generateUuid } from 'uuid'
 import { VDI_FORMAT_VHD } from '@xen-orchestra/xapi'
 import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
-import Esxi from '@xen-orchestra/vmware-explorer/esxi.mjs'
-import openDeltaVmdkasVhd from '@xen-orchestra/vmware-explorer/openDeltaVmdkAsVhd.mjs'
+import { openDeltaVmdkasVhd, Esxi, VhdEsxiRaw } from '@xen-orchestra/vmware-explorer'
 import OTHER_CONFIG_TEMPLATE from '../xapi/other-config-template.mjs'
-import VhdEsxiRaw from '@xen-orchestra/vmware-explorer/VhdEsxiRaw.mjs'
 
 export default class MigrateVm {
   constructor(app) {
