@@ -414,7 +414,7 @@ export default decorate([
                   name='host'
                   onChange={effects.linkState}
                   // pattern='^[^\\/]+\\[^\\/]+$'
-                  placeholder='AWS S3 endpoint (ex: s3.us-east-2.amazonaws.com)'
+                  placeholder={formatMessage(messages.remoteS3PlaceHolderEndpoint)}
                   required
                   type='text'
                   value={host}
@@ -461,7 +461,7 @@ export default decorate([
                   className='form-control'
                   name='username'
                   onChange={effects.linkState}
-                  placeholder='Access key ID'
+                  placeholder={formatMessage(messages.remoteS3PlaceHolderAccessKeyID)}
                   required
                   type='text'
                   value={username}
@@ -472,7 +472,7 @@ export default decorate([
                   className='form-control'
                   name='password'
                   onChange={effects.setSecretKey}
-                  placeholder='Paste secret here to change it'
+                  placeholder={formatMessage(messages.remoteS3PlaceHolderSecret)}
                   autoComplete='off'
                   type='text'
                 />
@@ -498,6 +498,7 @@ export default decorate([
               autoComplete='new-password'
               className='form-control'
               name='encryptionKey'
+              placeholder={formatMessage(messages.remoteS3PlaceHolderEncryptionKey)}
               onChange={effects.linkState}
               pattern='^.{32}$'
               type='password'
