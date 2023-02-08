@@ -152,18 +152,12 @@ export class Xapi extends EventEmitter {
       this._resolveObjectsFetched = resolve
     })
     this._eventWatchers = { __proto__: null }
+    this._taskWatchers = undefined // set in _watchEvents
     this._watchedTypes = undefined
     const { watchEvents } = opts
     if (watchEvents !== false) {
-      let watchingTasks
       if (Array.isArray(watchEvents)) {
-        watchingTasks = watchEvents.includes('task')
         this._watchedTypes = watchEvents
-      } else {
-        watchingTasks = true
-      }
-      if (watchingTasks) {
-        this._taskWatchers = { __proto__: null }
       }
 
       this.watchEvents()
@@ -1092,6 +1086,13 @@ export class Xapi extends EventEmitter {
   _watchEvents = coalesceCalls(this._watchEvents)
   // eslint-disable-next-line no-dupe-class-members
   async _watchEvents() {
+    {
+      const watchedTypes = this._watchedTypes
+      if ((this._taskWatchers === undefined && watchedTypes === undefined) || watchedTypes.includes('tasks')) {
+        this._taskWatchers = { __proto__: null }
+      }
+    }
+
     // eslint-disable-next-line no-labels
     mainLoop: while (true) {
       if (this._resolveObjectsFetched === undefined) {
