@@ -8,8 +8,11 @@ const messages = {
   creation: 'Creation',
   description: 'Description',
   deleteSourceVm: 'Delete source VM',
+  esxi: 'ESXI',
   expiration: 'Expiration',
+  hostIp: 'Host IP',
   keyValue: '{key}: {value}',
+  sslCertificate: 'SSL certificate',
 
   notDefined: 'Not defined',
   statusConnecting: 'Connecting',
