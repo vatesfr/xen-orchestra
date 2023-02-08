@@ -1,9 +1,11 @@
 'use strict'
 
 const assert = require('assert')
+const { defer } = require('golike-defer')
 const map = require('lodash/map.js')
 const mapValues = require('lodash/mapValues.js')
 const ignoreErrors = require('promise-toolbox/ignoreErrors')
+const { decorateMethodsWith } = require('@vates/decorate-with')
 const { asyncMap } = require('@xen-orchestra/async-map')
 const { chainVhd, checkVhdChain, openVhd, VhdAbstract } = require('vhd-lib')
 const { createLogger } = require('@xen-orchestra/log')
@@ -22,7 +24,7 @@ const NbdClient = require('@vates/nbd-client')
 
 const { debug, warn, info } = createLogger('xo:backups:DeltaBackupWriter')
 
-exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(AbstractDeltaWriter) {
+class DeltaBackupWriter extends MixinBackupWriter(AbstractDeltaWriter) {
   async checkBaseVdis(baseUuidToSrcVdi) {
     const { handler } = this._adapter
     const backup = this._backup
@@ -133,7 +135,7 @@ exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(Ab
     }
   }
 
-  async _transfer({ timestamp, deltaExport }) {
+  async _transfer($defer, { timestamp, deltaExport }) {
     const adapter = this._adapter
     const backup = this._backup
 
@@ -211,6 +213,9 @@ exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(Ab
               nbdClient = new NbdClient(nbdInfo)
               await nbdClient.connect()
               info('NBD client ready', { vdi: id, path })
+              $defer(async () => {
+                await nbdClient.disconnect()
+              })
             } catch (error) {
               nbdClient = undefined
               warn('error connecting to NBD server', { error, vdi: id, path })
@@ -248,3 +253,7 @@ exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(Ab
     // TODO: run cleanup?
   }
 }
+exports.DeltaBackupWriter = DeltaBackupWriter
+decorateMethodsWith(DeltaBackupWriter, {
+  _transfer: defer,
+})
