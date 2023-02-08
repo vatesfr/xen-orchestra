@@ -1611,7 +1611,6 @@ const messages = {
 
   // ---- VM import ---
   fileType: 'File type:',
-  fromUrl: 'From URL',
   importVmsList: 'Drop OVA or XVA files here to import Virtual Machines.',
   noSelectedVms: 'No selected VMs.',
   url: 'URL:',
@@ -1619,6 +1618,7 @@ const messages = {
   vmImportToSr: 'To SR:',
   vmsToImport: 'VMs to import',
   importVmsCleanList: 'Reset',
+  importFrom: 'Import from',
   vmImportSuccess: 'VM import success',
   vmImportFailed: 'VM import failed',
   vdiImportSuccess: 'VDI import success',

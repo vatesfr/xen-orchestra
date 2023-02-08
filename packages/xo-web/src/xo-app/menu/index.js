@@ -494,11 +494,6 @@ export default class Menu extends Component {
             icon: 'disk',
             label: 'labelDisk',
           },
-          {
-            to: '/import/esxi',
-            icon: 'host',
-            label: 'esxi',
-          },
         ],
       },
       !(noOperatablePools && noResourceSets) && {

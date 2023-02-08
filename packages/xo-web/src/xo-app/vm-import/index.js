@@ -12,7 +12,7 @@ import PropTypes from 'prop-types'
 import React from 'react'
 import { Container, Col, Row } from 'grid'
 import { importVm, importVms, isSrWritable } from 'xo'
-import { Select, SizeInput, Toggle } from 'form'
+import { Select, SizeInput } from 'form'
 import { createFinder, createGetObject, createGetObjectsOfType, createSelector } from 'selectors'
 import { connectStore, formatSize, mapPlus, noop } from 'utils'
 import { Input } from 'debounce-input-decorator'
@@ -29,6 +29,21 @@ const FILE_TYPES = [
   {
     label: 'XVA',
     value: 'xva',
+  },
+]
+
+const IMPORT_TYPES = [
+  {
+    label: 'XVA',
+    value: 'xva',
+  },
+  {
+    label: 'URL',
+    value: 'url',
+  },
+  {
+    label: 'ESXI',
+    value: 'esxi',
   },
 ]
 
@@ -209,7 +224,10 @@ export default class Import extends Component {
   constructor(props) {
     super(props)
     this.state = {
-      isFromUrl: false,
+      importType: {
+        label: 'XVA',
+        value: 'xva',
+      },
       type: {
         label: 'XVA',
         value: 'xva',
@@ -296,14 +314,17 @@ export default class Import extends Component {
   }
 
   render() {
-    const { isFromUrl, pool, sr, srPredicate, type, url, vms } = this.state
+    const { importType, pool, sr, srPredicate, type, url, vms } = this.state
 
     return (
       <Container>
         <form id='import-form'>
-          <p>
-            <Toggle value={isFromUrl} onChange={this.toggleState('isFromUrl')} /> {_('fromUrl')}
-          </p>
+          <FormGrid.Row>
+            <FormGrid.LabelCol>{_('importFrom')}</FormGrid.LabelCol>
+            <FormGrid.InputCol>
+              <Select onChange={this.linkState('importType')} options={IMPORT_TYPES} required value={importType} />
+            </FormGrid.InputCol>
+          </FormGrid.Row>
           <FormGrid.Row>
             <FormGrid.LabelCol>{_('vmImportToPool')}</FormGrid.LabelCol>
             <FormGrid.InputCol>
@@ -322,8 +343,8 @@ export default class Import extends Component {
               />
             </FormGrid.InputCol>
           </FormGrid.Row>
-          {sr &&
-            (!isFromUrl ? (
+          {sr && [
+            importType.value === 'xva' && (
               <div>
                 <Dropzone onDrop={this._handleDrop} message={_('importVmsList')} />
                 <hr />
@@ -378,7 +399,8 @@ export default class Import extends Component {
                   <Button onClick={this._handleCleanSelectedVms}>{_('importVmsCleanList')}</Button>
                 </div>
               </div>
-            ) : (
+            ),
+            importType.value === 'url' && (
               <div>
                 <FormGrid.Row>
                   <FormGrid.LabelCol>{_('url')}</FormGrid.LabelCol>
@@ -410,7 +432,9 @@ export default class Import extends Component {
                   {_('newImport')}
                 </ActionButton>
               </div>
-            ))}
+            ),
+            importType.value === 'esxi' && <span>ESXI</span>,
+          ]}
         </form>
       </Container>
     )
