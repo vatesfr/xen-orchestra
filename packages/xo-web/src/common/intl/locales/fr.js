@@ -909,6 +909,18 @@ export default {
   // Original text: "Domain"
   remoteSmbPlaceHolderDomain: 'Domaine',
 
+  // Original text : "AWS S3 endpoint (ex: s3.us-east-2.amazonaws.com)"
+  remoteS3PlaceHolderEndpoint: 'Point de terminaison AWS S3 (ex: s3.us-east-2.amazonaws.com)',
+
+  // Original text : "Access key ID"
+  remoteS3PlaceHolderAccessKeyID: "Clé d'accès",
+
+  // Original text : "Paste secret here to change it"
+  remoteS3PlaceHolderSecret: 'Secret',
+
+  // Original text : "Enter your encryption key here (32 characters)"
+  remoteS3PlaceHolderEncryptionKey: 'Clé de chiffrement (32 caractères)',
+
   // Original text: "<address>\\<share> *"
   remoteSmbPlaceHolderAddressShare: '<adresse>\\<partage>',
 
