@@ -1,12 +1,17 @@
 import { utcParse } from "d3-time-format";
 import humanFormat from "human-format";
-import { round } from "lodash-es";
+import { difference, round } from "lodash-es";
 import { find, forEach, isEqual, size, sum } from "lodash-es";
 import { type ComputedGetter, type Ref, computed, ref, watchEffect } from "vue";
 import type { Filter } from "@/types/filter";
 import { faSquareCheck } from "@fortawesome/free-regular-svg-icons";
 import { faFont, faHashtag, faList } from "@fortawesome/free-solid-svg-icons";
-import type { RawXenApiRecord, XenApiHost, XenApiRecord } from "@/libs/xen-api";
+import type {
+  RawXenApiRecord,
+  XenApiHost,
+  XenApiRecord,
+  XenApiVm,
+} from "@/libs/xen-api";
 import { useHostMetricsStore } from "@/stores/host-metrics.store";
 
 export function sortRecordsByNameLabel(
@@ -175,3 +180,12 @@ export function parseRamUsage(
 
 export const getFirst = <T>(value: T | T[]): T | undefined =>
   Array.isArray(value) ? value[0] : value;
+
+export const isOperationsPending = (
+  obj: XenApiVm,
+  operations: string[] | string
+) => {
+  const objOperations = Object.values(obj.current_operations);
+  const _operations = Array.isArray(operations) ? operations : [operations];
+  return difference(_operations, objOperations).length < _operations.length;
+};
