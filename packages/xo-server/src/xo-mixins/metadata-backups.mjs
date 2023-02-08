@@ -306,14 +306,14 @@ export default class metadataBackup {
   //
   // task.start(message: 'restore', data: <Metadata />)
   // └─ task.end
-  async restoreMetadataBackup(id) {
+  async restoreMetadataBackup({ id, poolUuid }) {
     const app = this._app
     const logger = this._logger
     const [remoteId, ...path] = id.split('/')
     const backupId = path.join('/')
 
     const remote = await app.getRemoteWithCredentials(remoteId)
-    const { type, poolUuid } = parseMetadataBackupId(backupId)
+    const { type } = parseMetadataBackupId(backupId)
 
     let rootTaskId
     const localTaskIds = { __proto__: null }

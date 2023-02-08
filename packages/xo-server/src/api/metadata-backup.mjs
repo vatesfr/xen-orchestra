@@ -125,14 +125,17 @@ list.params = {
   },
 }
 
-export function restore({ id }) {
-  return this.restoreMetadataBackup(id)
+export function restore({ id, poolUuid }) {
+  return this.restoreMetadataBackup({ id, poolUuid })
 }
 
 restore.permission = 'admin'
 
 restore.params = {
   id: {
+    type: 'string',
+  },
+  poolUuid: {
     type: 'string',
   },
 }
