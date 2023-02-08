@@ -1088,7 +1088,7 @@ export class Xapi extends EventEmitter {
   async _watchEvents() {
     {
       const watchedTypes = this._watchedTypes
-      if ((this._taskWatchers === undefined && watchedTypes === undefined) || watchedTypes.includes('tasks')) {
+      if (this._taskWatchers === undefined && (watchedTypes === undefined || watchedTypes.includes('task'))) {
         this._taskWatchers = { __proto__: null }
       }
     }
