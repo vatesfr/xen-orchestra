@@ -1,7 +1,6 @@
 'use strict'
 
-const eos = require('end-of-stream')
-const { PassThrough } = require('stream')
+const { finished, PassThrough } = require('node:stream')
 
 const { debug } = require('@xen-orchestra/log').createLogger('xo:backups:forkStreamUnpipe')
 
@@ -17,13 +16,13 @@ exports.forkStreamUnpipe = function forkStreamUnpipe(source) {
 
   const fork = new PassThrough()
   source.pipe(fork)
-  eos(source, error => {
+  finished(source, { writable: false }, error => {
     if (error !== undefined) {
       debug('error on original stream, destroying fork', { error })
       fork.destroy(error)
     }
   })
-  eos(fork, error => {
+  finished(fork, { readable: false }, error => {
     debug('end of stream, unpiping', { error, forks: --source.forks })
 
     source.unpipe(fork)
