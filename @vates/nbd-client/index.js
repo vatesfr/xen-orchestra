@@ -92,8 +92,8 @@ module.exports = class NbdClient {
   async disconnect() {
     const buffer = Buffer.alloc(28)
     buffer.writeInt32BE(NBD_REQUEST_MAGIC, 0) // it is a nbd request
-    buffer.writeInt16BE(0, 4) // no command flags for a simple block read
-    buffer.writeInt16BE(NBD_CMD_DISC, 6) // we want to read a data block
+    buffer.writeInt16BE(0, 4) // no command flags for a disconnect
+    buffer.writeInt16BE(NBD_CMD_DISC, 6) // we want to disconnect from nbd server
     await this.#write(buffer)
     await this.#serverSocket.destroy()
   }

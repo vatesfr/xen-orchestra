@@ -213,6 +213,8 @@ class DeltaBackupWriter extends MixinBackupWriter(AbstractDeltaWriter) {
               nbdClient = new NbdClient(nbdInfo)
               await nbdClient.connect()
               info('NBD client ready', { vdi: id, path })
+              // this will inform the xapi that we don't need this anymore
+              // and will detach the vdi from dom0
               $defer(async () => {
                 await nbdClient.disconnect()
               })
