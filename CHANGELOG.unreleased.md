@@ -13,7 +13,7 @@
 
 - [Continuous Replication] Fix `VDI_IO_ERROR` when after a VDI has been resized
 - [REST API] Fix VDI import
-- [Nbd Backup] Fix VDI not disconnecting from dom0 (PR [#6660](https://github.com/vatesfr/xen-orchestra/pull/6660))
+- [NBD Backup] Fix VDI not disconnecting from control domain (PR [#6660](https://github.com/vatesfr/xen-orchestra/pull/6660))
 
 ### Packages to release
 
