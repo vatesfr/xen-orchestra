@@ -9,29 +9,29 @@ const { debug } = require('@xen-orchestra/log').createLogger('xo:backups:forkStr
 //
 // in case of error in the new readable stream, it will simply be unpiped
 // from the original one
-exports.forkStreamUnpipe = function forkStreamUnpipe(stream) {
-  const { forks = 0 } = stream
-  stream.forks = forks + 1
+exports.forkStreamUnpipe = function forkStreamUnpipe(source) {
+  const { forks = 0 } = source
+  source.forks = forks + 1
 
-  debug('forking', { forks: stream.forks })
+  debug('forking', { forks: source.forks })
 
-  const proxy = new PassThrough()
-  stream.pipe(proxy)
-  eos(stream, error => {
+  const fork = new PassThrough()
+  source.pipe(fork)
+  eos(source, error => {
     if (error !== undefined) {
       debug('error on original stream, destroying fork', { error })
-      proxy.destroy(error)
+      fork.destroy(error)
     }
   })
-  eos(proxy, error => {
-    debug('end of stream, unpiping', { error, forks: --stream.forks })
+  eos(fork, error => {
+    debug('end of stream, unpiping', { error, forks: --source.forks })
 
-    stream.unpipe(proxy)
+    source.unpipe(fork)
 
-    if (stream.forks === 0) {
+    if (source.forks === 0) {
       debug('no more forks, destroying original stream')
-      stream.destroy(new Error('no more consumers for this stream'))
+      source.destroy(new Error('no more consumers for this stream'))
     }
   })
-  return proxy
+  return fork
 }
