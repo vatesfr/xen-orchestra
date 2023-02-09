@@ -1,14 +1,14 @@
 'use strict'
 
 const assert = require('assert')
-const { defer } = require('golike-defer')
 const map = require('lodash/map.js')
 const mapValues = require('lodash/mapValues.js')
 const ignoreErrors = require('promise-toolbox/ignoreErrors')
-const { decorateMethodsWith } = require('@vates/decorate-with')
 const { asyncMap } = require('@xen-orchestra/async-map')
 const { chainVhd, checkVhdChain, openVhd, VhdAbstract } = require('vhd-lib')
 const { createLogger } = require('@xen-orchestra/log')
+const { decorateMethodsWith } = require('@vates/decorate-with')
+const { defer } = require('golike-defer')
 const { dirname } = require('path')
 
 const { formatFilenameDate } = require('../_filenameDate.js')
