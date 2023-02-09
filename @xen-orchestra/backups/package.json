@@ -32,7 +32,6 @@
     "compare-versions": "^5.0.1",
     "d3-time-format": "^3.0.0",
     "decorator-synchronized": "^0.6.0",
-    "end-of-stream": "^1.4.4",
     "fs-extra": "^11.1.0",
     "golike-defer": "^0.5.1",
     "limit-concurrency-decorator": "^0.5.0",
