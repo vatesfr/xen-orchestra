@@ -7,7 +7,7 @@ const ignoreErrors = require('promise-toolbox/ignoreErrors')
 const { asyncMap } = require('@xen-orchestra/async-map')
 const { chainVhd, checkVhdChain, openVhd, VhdAbstract } = require('vhd-lib')
 const { createLogger } = require('@xen-orchestra/log')
-const { decorateMethodsWith } = require('@vates/decorate-with')
+const { decorateClass } = require('@vates/decorate-with')
 const { defer } = require('golike-defer')
 const { dirname } = require('path')
 
@@ -255,7 +255,6 @@ class DeltaBackupWriter extends MixinBackupWriter(AbstractDeltaWriter) {
     // TODO: run cleanup?
   }
 }
-exports.DeltaBackupWriter = DeltaBackupWriter
-decorateMethodsWith(DeltaBackupWriter, {
+exports.DeltaBackupWriter = decorateClass(DeltaBackupWriter, {
   _transfer: defer,
 })
