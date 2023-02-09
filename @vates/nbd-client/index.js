@@ -16,6 +16,7 @@ const {
   NBD_REPLY_MAGIC,
   NBD_REQUEST_MAGIC,
   OPTS_MAGIC,
+  NBD_CMD_DISC,
 } = require('./constants.js')
 const { fromCallback } = require('promise-toolbox')
 const { readChunkStrict } = require('@vates/read-chunk')
@@ -89,6 +90,11 @@ module.exports = class NbdClient {
   }
 
   async disconnect() {
+    const buffer = Buffer.alloc(28)
+    buffer.writeInt32BE(NBD_REQUEST_MAGIC, 0) // it is a nbd request
+    buffer.writeInt16BE(0, 4) // no command flags for a disconnect
+    buffer.writeInt16BE(NBD_CMD_DISC, 6) // we want to disconnect from nbd server
+    await this.#write(buffer)
     await this.#serverSocket.destroy()
   }
 

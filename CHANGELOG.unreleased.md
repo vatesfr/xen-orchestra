@@ -15,6 +15,7 @@
 - [REST API] Fix VDI import
 - Fix failing imports (REST API and web UI) [Forum#58146](https://xcp-ng.org/forum/post/58146)
 - [Pool/License] Fix license expiration on license binding modal (PR [#6666](https://github.com/vatesfr/xen-orchestra/pull/6666))
+- [NBD Backup] Fix VDI not disconnecting from control domain (PR [#6660](https://github.com/vatesfr/xen-orchestra/pull/6660))
 
 ### Packages to release
 
@@ -32,6 +33,7 @@
 
 <!--packages-start-->
 
+- @vates/nbd-client patch
 - @xen-orchestra/backups patch
 - xen-api patch
 - xo-server patch
