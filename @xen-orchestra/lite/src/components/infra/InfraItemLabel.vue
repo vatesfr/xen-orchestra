@@ -8,7 +8,7 @@
       v-bind="$attrs"
     >
       <a :href="href" class="link" @click="navigate">
-        <FontAwesomeIcon :icon="icon" class="icon" />
+        <UiIcon :icon="icon" class="icon" />
         <div class="text">
           <slot />
         </div>
@@ -21,8 +21,9 @@
 </template>
 
 <script lang="ts" setup>
-import type { RouteLocationRaw } from "vue-router";
+import UiIcon from "@/components/ui/UiIcon.vue";
 import type { IconDefinition } from "@fortawesome/fontawesome-common-types";
+import type { RouteLocationRaw } from "vue-router";
 
 defineProps<{
   icon: IconDefinition;

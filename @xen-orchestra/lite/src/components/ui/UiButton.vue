@@ -5,7 +5,7 @@
     :type="type || 'button'"
     class="ui-button"
   >
-    <span v-if="isBusy" class="loader" />
+    <UiSpinner v-if="isBusy" />
     <template v-else>
       <UiIcon :icon="icon" class="icon" />
       <slot />
@@ -14,6 +14,7 @@
 </template>
 
 <script lang="ts" setup>
+import UiSpinner from "@/components/ui/UiSpinner.vue";
 import { computed, inject, unref } from "vue";
 import type { Color } from "@/types";
 import type { IconDefinition } from "@fortawesome/fontawesome-common-types";

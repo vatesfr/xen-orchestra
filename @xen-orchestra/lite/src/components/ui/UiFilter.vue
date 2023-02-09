@@ -4,12 +4,13 @@
       <slot />
     </span>
     <span class="remove" @click.stop="emit('remove')">
-      <FontAwesomeIcon :icon="faRemove" class="icon" />
+      <UiIcon :icon="faRemove" />
     </span>
   </span>
 </template>
 
 <script lang="ts" setup>
+import UiIcon from "@/components/ui/UiIcon.vue";
 import { faRemove } from "@fortawesome/free-solid-svg-icons";
 
 const emit = defineEmits<{
@@ -39,6 +40,7 @@ const emit = defineEmits<{
   display: flex;
   align-items: center;
   justify-content: center;
+
   &:hover {
     opacity: 0.7;
   }
@@ -54,6 +56,7 @@ const emit = defineEmits<{
   width: 2.8rem;
   margin: 0.2rem;
   background-color: var(--color-extra-blue-l40);
+
   &:hover {
     background-color: var(--color-red-vates-l20);
   }
