@@ -13,6 +13,7 @@
 
 - [Continuous Replication] Fix `VDI_IO_ERROR` when after a VDI has been resized
 - [REST API] Fix VDI import
+- Fix failing imports (REST API and web UI) [Forum#58146](https://xcp-ng.org/forum/post/58146)
 
 ### Packages to release
 
