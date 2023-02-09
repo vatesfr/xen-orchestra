@@ -13,6 +13,7 @@
 
 - [Continuous Replication] Fix `VDI_IO_ERROR` when after a VDI has been resized
 - [REST API] Fix VDI import
+- [Pool/License] Fix license expiration on license binding modal (PR [#6666](https://github.com/vatesfr/xen-orchestra/pull/6666))
 
 ### Packages to release
 
@@ -33,5 +34,6 @@
 - @xen-orchestra/backups patch
 - xen-api patch
 - xo-server patch
+- xo-web patch
 
 <!--packages-end-->
