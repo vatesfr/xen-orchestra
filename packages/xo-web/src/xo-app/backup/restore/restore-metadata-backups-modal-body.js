@@ -5,9 +5,10 @@ import PropTypes from 'prop-types'
 import React from 'react'
 import SingleLineRow from 'single-line-row'
 import StateButton from 'state-button'
-import { Container, Col } from 'grid'
+import { Container, Col, Row } from 'grid'
 import { FormattedDate } from 'react-intl'
 import { Select } from 'form'
+import { SelectPool } from 'select-objects'
 
 const restorationWarning = (
   <p className='text-warning mt-1'>
@@ -22,7 +23,7 @@ export default class RestoreMetadataBackupModalBody extends Component {
   }
 
   get value() {
-    return this.state.backup
+    return this.state
   }
 
   _optionRenderer = ({ timestamp }) => (
@@ -40,7 +41,7 @@ export default class RestoreMetadataBackupModalBody extends Component {
   render() {
     return (
       <Container>
-        <SingleLineRow>
+        <Row>
           <Col size={6}>{_('chooseBackup')}</Col>
           <Col size={6}>
             <Select
@@ -53,7 +54,11 @@ export default class RestoreMetadataBackupModalBody extends Component {
               valueKey='id'
             />
           </Col>
-        </SingleLineRow>
+        </Row>
+        <br />
+        <Row>
+          <SelectPool onChange={this.linkState('pool')} required value={this.state.pool} />
+        </Row>
         {this.props.type !== 'XO' && <SingleLineRow>{restorationWarning}</SingleLineRow>}
       </Container>
     )

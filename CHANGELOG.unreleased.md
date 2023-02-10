@@ -7,6 +7,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [Backup Metadata] add pool selection to restore the metadata on
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -33,5 +35,6 @@
 - @xen-orchestra/backups patch
 - xen-api patch
 - xo-server patch
+- xo-web minor
 
 <!--packages-end-->

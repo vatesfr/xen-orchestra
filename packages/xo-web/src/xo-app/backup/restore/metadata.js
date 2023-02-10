@@ -32,12 +32,12 @@ const restore = entry =>
     }),
     body: <RestoreMetadataBackupModalBody backups={entry.backups} type={entry.type} />,
     icon: 'restore',
-  }).then(backup => {
-    if (backup === undefined) {
+  }).then(data => {
+    if (data === undefined) {
       error(_('backupRestoreErrorTitle'), _('chooseBackup'))
       return
     }
-    return restoreMetadataBackup(backup)
+    return restoreMetadataBackup({ backup: data.backup.id, poolUuid: data.pool.id })
   }, noop)
 
 const bulkRestore = entries => {
