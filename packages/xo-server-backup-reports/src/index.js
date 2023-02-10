@@ -195,7 +195,7 @@ class BackupReportsXoPlugin {
     this._xo = xo
     this._eventListener = async (...args) => {
       try {
-        this._report(...args)
+        await this._report(...args)
       } catch (error) {
         logger.warn(error)
       }

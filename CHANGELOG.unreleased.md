@@ -38,6 +38,7 @@
 - @xen-orchestra/backups patch
 - xen-api patch
 - xo-server patch
+- xo-server-transport-email patch
 - xo-web patch
 
 <!--packages-end-->
