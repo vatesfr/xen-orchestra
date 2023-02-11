@@ -37,6 +37,7 @@
 - @vates/nbd-client patch
 - @xen-orchestra/backups patch
 - xen-api patch
+- xo-cli patch
 - xo-server patch
 - xo-server-transport-email patch
 - xo-web patch
