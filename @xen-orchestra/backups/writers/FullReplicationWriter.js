@@ -63,6 +63,7 @@ exports.FullReplicationWriter = class FullReplicationWriter extends MixinReplica
       return { size: sizeContainer.size }
     })
 
+    this._targetVmRef = targetVmRef
     const targetVm = await xapi.getRecord('VM', targetVmRef)
 
     await Promise.all([
