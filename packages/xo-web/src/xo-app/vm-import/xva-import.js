@@ -1,4 +1,3 @@
-import * as CM from 'complex-matcher'
 import _ from 'intl'
 import ActionButton from 'action-button'
 import Button from 'button'
@@ -12,6 +11,7 @@ import { orderBy } from 'lodash'
 import parseOvaFile from './ova'
 import styles from './index.css'
 import VmData from './vm-data'
+import { getRedirectionUrl } from './utils'
 import { formatSize, mapPlus, noop } from '../../common/utils'
 import { importVms, isSrWritableOrIso } from '../../common/xo'
 import { SelectPool, SelectSr } from '../../common/select-objects'
@@ -33,13 +33,6 @@ const parseFile = async (file, type, func) => {
     return { error, file, type }
   }
 }
-
-const getRedirectionUrl = vms =>
-  vms.length === 0
-    ? undefined // no redirect
-    : vms.length === 1
-    ? `/vms/${vms[0]}`
-    : `/home?s=${encodeURIComponent(new CM.Property('id', new CM.Or(vms.map(_ => new CM.String(_)))).toString())}&t=VM`
 
 const getInitialState = () => ({
   pool: undefined,
@@ -98,7 +91,7 @@ const XvaImport = decorate([
       srPredicate:
         ({ pool }) =>
         sr =>
-          isSrWritableOrIso(sr) && sr.$poolId === pool.uuid,
+          isSrWritableOrIso(sr) && sr.$poolId === pool?.uuid,
     },
   }),
   injectState,

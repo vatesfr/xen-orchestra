@@ -1,4 +1,3 @@
-import * as CM from 'complex-matcher'
 import _ from 'intl'
 import ActionButton from 'action-button'
 import Button from 'button'
@@ -10,6 +9,7 @@ import { InputCol, LabelCol, Row } from 'form-grid'
 import { isEmpty } from 'lodash'
 import { linkState } from 'reaclette-utils'
 
+import { getRedirectionUrl } from './utils'
 import { importVm, isSrWritableOrIso } from '../../common/xo'
 import { SelectPool, SelectSr } from '../../common/select-objects'
 import Select from '../../common/form/select'
@@ -20,13 +20,6 @@ const FILE_TYPES = [
     value: 'xva',
   },
 ]
-
-const getRedirectionUrl = vms =>
-  vms.length === 0
-    ? undefined // no redirect
-    : vms.length === 1
-    ? `/vms/${vms[0]}`
-    : `/home?s=${encodeURIComponent(new CM.Property('id', new CM.Or(vms.map(_ => new CM.String(_)))).toString())}&t=VM`
 
 const getInitialState = () => ({
   pool: undefined,
