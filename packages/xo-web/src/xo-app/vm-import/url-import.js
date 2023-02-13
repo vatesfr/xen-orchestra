@@ -52,14 +52,19 @@ const UrlImport = decorate([
       linkState,
       onChangePool: (_, pool) => ({ pool, sr: pool.default_SR }),
       onChangeSr: (_, sr) => ({ sr }),
-      srPredicate: (_, sr) => isSrWritableOrIso(sr) && sr.$poolId === this.state.pool.uuid,
       reset: getInitialState,
+    },
+    computed: {
+      srPredicate:
+        ({ pool }) =>
+        sr =>
+          isSrWritableOrIso(sr) && sr.$poolId === pool?.uuid,
     },
   }),
   injectState,
   ({
-    effects: { handleImport, linkState, onChangePool, onChangeSr, reset, srPredicate },
-    state: { pool, sr, type, url },
+    effects: { handleImport, linkState, onChangePool, onChangeSr, reset },
+    state: { pool, sr, srPredicate, type, url },
   }) => (
     <div>
       <Row>

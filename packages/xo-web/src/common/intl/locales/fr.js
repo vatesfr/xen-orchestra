@@ -2657,8 +2657,8 @@ export default {
   // Original text: "To SR:"
   vmImportToSr: 'Sur le SR:',
 
-  // Original text: "VMs to import"
-  vmsToImport: 'VMs à importer',
+  // Original text: "VM{nVms, plural, one {} other {s}}  to import"
+  vmsToImport: 'VM{nVms, plural, one {} other {s}}  à importer',
 
   // Original text: "Reset"
   importVmsCleanList: 'Réinitialiser',

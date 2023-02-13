@@ -10,22 +10,17 @@ import { InputCol, LabelCol, Row } from 'form-grid'
 import { linkState } from 'reaclette-utils'
 import { Password, Select } from 'form'
 
-import { esxiConnect, isSrWritableOrIso } from '../../common/xo'
+import VmData from './vm-data'
+import { esxiConnect, importVm, isSrWritableOrIso } from '../../common/xo'
 import { SelectNetwork, SelectPool, SelectSr } from '../../common/select-objects'
 
-const INITIAL_CONNECT_FORM_STATE = {
-  hasCertificate: true,
-  hostIp: '',
-  user: '',
-  password: '',
-}
-
+// JUST FOR TEST NOW
 const VMS_TEST = [
   {
     id: '1',
-    name_label: 'test_linux',
+    nameLabel: 'test_linux',
     memory: 2147483648,
-    numCpu: 1,
+    nCpus: 1,
     guestToolsInstalled: false,
     firmware: 'bios',
     powerState: 'poweredOff',
@@ -36,9 +31,9 @@ const VMS_TEST = [
   },
   {
     id: '2',
-    name_label: 'test_small',
+    nameLabel: 'test_small',
     memory: 2147483648,
-    numCpu: 1,
+    nCpus: 1,
     guestToolsInstalled: false,
     firmware: 'bios',
     powerState: 'poweredOff',
@@ -49,9 +44,9 @@ const VMS_TEST = [
   },
   {
     id: '4',
-    name_label: 'test flo',
+    nameLabel: 'test flo',
     memory: 1073741824,
-    numCpu: 2,
+    nCpus: 2,
     guestToolsInstalled: false,
     firmware: 'bios',
     powerState: 'poweredOff',
@@ -62,9 +57,9 @@ const VMS_TEST = [
   },
   {
     id: '8',
-    name_label: 'damnsmalllinux',
+    nameLabel: 'damnsmalllinux',
     memory: 268435456,
-    numCpu: 1,
+    nCpus: 1,
     guestToolsInstalled: false,
     firmware: 'bios',
     powerState: 'poweredOff',
@@ -75,9 +70,9 @@ const VMS_TEST = [
   },
   {
     id: '9',
-    name_label: 'miniubuntu',
+    nameLabel: 'miniubuntu',
     memory: 2147483648,
-    numCpu: 3,
+    nCpus: 3,
     guestToolsInstalled: false,
     firmware: 'bios',
     powerState: 'poweredOn',
@@ -88,9 +83,9 @@ const VMS_TEST = [
   },
   {
     id: '10',
-    name_label: 'ubuntu2',
+    nameLabel: 'ubuntu2',
     memory: 2147483648,
-    numCpu: 4,
+    nCpus: 4,
     guestToolsInstalled: false,
     firmware: 'bios',
     powerState: 'poweredOn',
@@ -101,9 +96,9 @@ const VMS_TEST = [
   },
   {
     id: '20',
-    name_label: 'windows',
+    nameLabel: 'windows',
     memory: 2147483648,
-    numCpu: 1,
+    nCpus: 1,
     guestToolsInstalled: false,
     firmware: 'uefi',
     powerState: 'poweredOff',
@@ -115,66 +110,96 @@ const VMS_TEST = [
 ]
 
 const getInitialState = () => ({
-  isConnected: false,
   hasCertificate: true,
   hostIp: '',
-  user: '',
+  isConnected: false,
+  network: undefined,
   password: '',
-
   pool: undefined,
   sr: undefined,
-  network: undefined,
+  user: '',
+  vm: undefined,
   vms: [],
+  vmsData: {},
 })
 
 const EsxiImport = decorate([
   provideState({
     initialState: getInitialState,
     effects: {
+      _importVm: () => {
+        const { sr, network, vm, vmsData } = this.state
+        importVm(undefined, 'esxi', { ...vmsData[vm.value], network }, sr)
+      },
       connect: async () => state => {
         // const { hostIp, hasCertificate, password, user } = state
-        // await esxiConnect(hostIp, user, password, hasCertificate)
-        return { isConnected: true, vms: VMS_TEST }
+        // const vms = await esxiConnect(hostIp, user, password, hasCertificate)
+        const vmsData = VMS_TEST.reduce((vms, vm) => ({ ...vms, [vm.id]: vm }), {})
+        return { isConnected: true, vms: VMS_TEST, vmsData }
       },
       linkState,
       networkpredicate: (_, network) => network.$poolId === this.state.pool,
+      onChangeVm: (_, vm) => ({ vm }),
+      onChangeVmData: (_, data) => {
+        const vmId = this.state.vm.value
+        const previousData = this.state.vmsData[vmId]
+        this.state.vmsData[vmId] = { ...previousData, ...data }
+      },
+      onChangeNetwork: (_, network) => ({ network }),
       onChangePool: (_, pool) => ({ pool, sr: pool.default_SR }),
-      srPredicate: (_, sr) => isSrWritableOrIso(sr) && sr.$poolId === this.state.pool,
+      onChangeSr: (_, sr) => ({ sr }),
       toggleCertificateCheck:
         (_, { target: { checked, name } }) =>
         state => ({
           ...state,
           [name]: checked,
         }),
-      vmPredicate: (_, vm) => {
-        const { pool } = this.state
-        return vm.$poolId === pool // this.state.vms.includes(vm)
-      },
       reset: getInitialState,
     },
     computed: {
       selectVmOptions: ({ vms }) =>
         vms.map(vm => ({
-          label: vm.name_label,
+          label: vm.nameLabel,
           value: vm.id,
         })),
+      srPredicate:
+        ({ pool }) =>
+        sr =>
+          isSrWritableOrIso(sr) && sr.$poolId === pool.uuid,
     },
   }),
   injectIntl,
   injectState,
   ({
     effects: {
+      _importVm,
       connect,
       linkState,
       networkPredicate,
+      onChangeVm,
+      onChangeVmData,
+      onChangeNetwork,
       onChangePool,
+      onChangeSr,
       reset,
       srPredicate,
       toggleCertificateCheck,
-      vmPredicate,
     },
     intl: { formatMessage },
-    state: { hasCertificate, hostIp, isConnected, network, password, pool, selectVmOptions, sr, user, vm, vms },
+    state: {
+      hasCertificate,
+      hostIp,
+      isConnected,
+      network,
+      password,
+      pool,
+      selectVmOptions,
+      sr,
+      user,
+      vm,
+      vms,
+      vmsData,
+    },
   }) => (
     <div>
       {!isConnected && (
@@ -249,13 +274,13 @@ const EsxiImport = decorate([
           <Row>
             <LabelCol>{_('vm')}</LabelCol>
             <InputCol>
-              <Select name='vm' onChange={linkState} options={selectVmOptions} required value={vm} />
+              <Select onChange={onChangeVm} options={selectVmOptions} required value={vm} />
             </InputCol>
           </Row>
           <Row>
             <LabelCol>{_('vmImportToPool')}</LabelCol>
             <InputCol>
-              <SelectPool name='pool' onChange={onChangePool} required value={pool} />
+              <SelectPool onChange={onChangePool} required value={pool} />
             </InputCol>
           </Row>
 
@@ -264,8 +289,7 @@ const EsxiImport = decorate([
             <InputCol>
               <SelectSr
                 disabled={pool === undefined}
-                name='sr'
-                onChange={linkState}
+                onChange={onChangeSr}
                 predicate={srPredicate}
                 required
                 value={sr}
@@ -277,21 +301,26 @@ const EsxiImport = decorate([
             <InputCol>
               <SelectNetwork
                 disabled={pool === undefined}
-                name='network'
-                onChange={linkState}
+                onChange={onChangeNetwork}
                 predicate={networkPredicate}
                 required
                 value={network}
               />
             </InputCol>
           </Row>
-
+          {vm !== undefined && (
+            <div>
+              <hr />
+              <h5>{_('vmsToImport', { nVms: 1 })}</h5>
+              <VmData onChange={onChangeVmData} value={{ ...vmsData[vm.value], pool }} />
+            </div>
+          )}
           <div className='form-group pull-right'>
             <ActionButton
               btnStyle='primary'
               className='mr-1'
               form='esxi-migrate-form'
-              handler={connect}
+              handler={_importVm}
               icon='import'
               type='submit'
             >

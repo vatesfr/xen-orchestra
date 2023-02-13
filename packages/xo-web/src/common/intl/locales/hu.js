@@ -2490,7 +2490,7 @@ export default {
   // Original text: "To SR:"
   vmImportToSr: 'Adattárolóra:',
 
-  // Original text: "VMs to import"
+  // Original text: "VM{nVms, plural, one {} other {s}} to import"
   vmsToImport: 'Importálandó VPS-el',
 
   // Original text: "Reset"
