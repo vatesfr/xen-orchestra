@@ -135,7 +135,7 @@ restore.params = {
   id: {
     type: 'string',
   },
-  poolUuid: {
+  poolId: {
     type: 'string',
   },
 }
