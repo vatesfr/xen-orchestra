@@ -11,6 +11,7 @@ import { vmdkToVhd } from 'xo-vmdk-to-vhd'
 
 import { VDI_FORMAT_VHD, VDI_FORMAT_RAW } from '../xapi/index.mjs'
 import { parseSize } from '../utils.mjs'
+import { readChunk } from '@vates/read-chunk'
 
 const log = createLogger('xo:disk')
 
@@ -226,6 +227,12 @@ async function handleImport(req, res, { type, name, description, vmdkData, srId,
           try {
             await vdi.$importContent(vhdStream, { format: diskFormat })
             res.end(format.response(0, vdi.$id))
+            let buffer
+            const CHUNK_SIZE = 1024 * 1024
+            // drain remaining content ( padding .header)
+            do {
+              buffer = await readChunk(part, CHUNK_SIZE)
+            } while (buffer.length === CHUNK_SIZE)
           } catch (e) {
             await vdi.$destroy()
             throw e
