@@ -14,101 +14,6 @@ import VmData from './vm-data'
 import { esxiConnect, importVm, isSrWritableOrIso } from '../../common/xo'
 import { SelectNetwork, SelectPool, SelectSr } from '../../common/select-objects'
 
-// JUST FOR TEST NOW
-const VMS_TEST = [
-  {
-    id: '1',
-    nameLabel: 'test_linux',
-    memory: 2147483648,
-    nCpus: 1,
-    guestToolsInstalled: false,
-    firmware: 'bios',
-    powerState: 'poweredOff',
-    storage: {
-      used: 216761,
-      free: 2318061568,
-    },
-  },
-  {
-    id: '2',
-    nameLabel: 'test_small',
-    memory: 2147483648,
-    nCpus: 1,
-    guestToolsInstalled: false,
-    firmware: 'bios',
-    powerState: 'poweredOff',
-    storage: {
-      used: 10696,
-      free: 2586497520,
-    },
-  },
-  {
-    id: '4',
-    nameLabel: 'test flo',
-    memory: 1073741824,
-    nCpus: 2,
-    guestToolsInstalled: false,
-    firmware: 'bios',
-    powerState: 'poweredOff',
-    storage: {
-      used: 6860092734,
-      free: 35570518969,
-    },
-  },
-  {
-    id: '8',
-    nameLabel: 'damnsmalllinux',
-    memory: 268435456,
-    nCpus: 1,
-    guestToolsInstalled: false,
-    firmware: 'bios',
-    powerState: 'poweredOff',
-    storage: {
-      used: 154318782,
-      free: 553288173,
-    },
-  },
-  {
-    id: '9',
-    nameLabel: 'miniubuntu',
-    memory: 2147483648,
-    nCpus: 3,
-    guestToolsInstalled: false,
-    firmware: 'bios',
-    powerState: 'poweredOn',
-    storage: {
-      used: 7720281547,
-      free: 8588887706,
-    },
-  },
-  {
-    id: '10',
-    nameLabel: 'ubuntu2',
-    memory: 2147483648,
-    nCpus: 4,
-    guestToolsInstalled: false,
-    firmware: 'bios',
-    powerState: 'poweredOn',
-    storage: {
-      used: 6132889490,
-      free: 8555332434,
-    },
-  },
-  {
-    id: '20',
-    nameLabel: 'windows',
-    memory: 2147483648,
-    nCpus: 1,
-    guestToolsInstalled: false,
-    firmware: 'uefi',
-    powerState: 'poweredOff',
-    storage: {
-      used: 1971,
-      free: 36662014449,
-    },
-  },
-]
-
 const getInitialState = () => ({
   hasCertificate: true,
   hostIp: '',
@@ -131,14 +36,13 @@ const EsxiImport = decorate([
         const { sr, network, vm, vmsData } = this.state
         importVm(undefined, 'esxi', { ...vmsData[vm.value], network }, sr)
       },
-      connect: async () => state => {
-        // const { hostIp, hasCertificate, password, user } = state
-        // const vms = await esxiConnect(hostIp, user, password, hasCertificate)
-        const vmsData = VMS_TEST.reduce((vms, vm) => ({ ...vms, [vm.id]: vm }), {})
-        return { isConnected: true, vms: VMS_TEST, vmsData }
+      connect: () => async state => {
+        const { hostIp, hasCertificate, password, user } = state
+        const vms = await esxiConnect(hostIp, user, password, hasCertificate)
+        const vmsData = vms.reduce((vms, vm) => ({ ...vms, [vm.id]: vm }), {})
+        return { isConnected: true, vms, vmsData }
       },
       linkState,
-      networkpredicate: (_, network) => network.$poolId === this.state.pool,
       onChangeVm: (_, vm) => ({ vm }),
       onChangeVmData: (_, data) => {
         const vmId = this.state.vm.value
@@ -162,6 +66,10 @@ const EsxiImport = decorate([
           label: vm.nameLabel,
           value: vm.id,
         })),
+      networkpredicate:
+        ({ pool }) =>
+        network =>
+          network.$poolId === pool.uuid,
       srPredicate:
         ({ pool }) =>
         sr =>
@@ -175,7 +83,6 @@ const EsxiImport = decorate([
       _importVm,
       connect,
       linkState,
-      networkPredicate,
       onChangeVm,
       onChangeVmData,
       onChangeNetwork,
@@ -191,6 +98,7 @@ const EsxiImport = decorate([
       hostIp,
       isConnected,
       network,
+      networkPredicate,
       password,
       pool,
       selectVmOptions,

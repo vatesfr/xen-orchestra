@@ -47,7 +47,7 @@ const UrlImport = decorate([
         const file = {
           name: decodeURIComponent(url.slice(url.lastIndexOf('/') + 1)),
         }
-        return importVm(file, type.value, undefined, this.state.sr, url)
+        importVm(file, type.value, undefined, this.state.sr, url)
       },
       linkState,
       onChangePool: (_, pool) => ({ pool, sr: pool.default_SR }),
