@@ -56,10 +56,9 @@ const XvaImport = decorate([
         return importVms(
           mapPlus(vms, (vm, push, vmIndex) => {
             if (!vm.error) {
-              const ref = this.refs[`vm-data-${vmIndex}`]
               push({
                 ...vm,
-                data: ref && ref.value,
+                data: vms[vmIndex].data,
               })
             }
           }),
@@ -68,6 +67,12 @@ const XvaImport = decorate([
       },
       onChangePool: (_, pool) => ({ pool, sr: pool.default_SR }),
       onChangeSr: (_, sr) => ({ sr }),
+      onChangeVmData: (_, data, vmIndex) => {
+        const { vms } = this.state
+        const previousData = vms[vmIndex].data
+        vms[vmIndex].data = { ...previousData, ...data }
+        return { vms }
+      },
       onDrop: async files => {
         const vms = await Promise.all(
           mapPlus(files, (file, push) => {
@@ -87,12 +92,20 @@ const XvaImport = decorate([
           vms: orderBy(vms, vm => [vm.error != null, vm.type, vm.file.name]),
         }
       },
-      srPredicate: (_, sr) => isSrWritableOrIso(sr) && sr.$poolId === this.state.pool.uuid,
       reset: getInitialState,
+    },
+    computed: {
+      srPredicate:
+        ({ pool }) =>
+        sr =>
+          isSrWritableOrIso(sr) && sr.$poolId === pool.uuid,
     },
   }),
   injectState,
-  ({ effects: { handleImport, onChangePool, onChangeSr, onDrop, reset, srPredicate }, state: { pool, sr, vms } }) => (
+  ({
+    effects: { handleImport, onChangePool, onChangeSr, onChangeVmData, onDrop, reset },
+    state: { pool, sr, srPredicate, vms },
+  }) => (
     <div>
       <Row>
         <LabelCol>{_('vmImportToPool')}</LabelCol>
@@ -109,7 +122,7 @@ const XvaImport = decorate([
       <div>
         <Dropzone onDrop={onDrop} message={_('importVmsList')} />
         <hr />
-        <h5>{_('vmsToImport')}</h5>
+        <h5>{_('vmsToImport', { nVms: vms.length })}</h5>
         {vms.length > 0 ? (
           <div>
             {vms.map(({ data, error, file, type }, vmIndex) => (
@@ -125,7 +138,7 @@ const XvaImport = decorate([
                       <div className='alert alert-info' role='alert'>
                         <strong>{_('vmImportFileType', { type })}</strong> {_('vmImportConfigAlert')}
                       </div>
-                      <VmData {...data} ref={`vm-data-${vmIndex}`} pool={pool} />
+                      <VmData onChange={data => onChangeVmData(data, vmIndex)} value={{ ...data, pool }} />
                     </div>
                   )
                 ) : (
