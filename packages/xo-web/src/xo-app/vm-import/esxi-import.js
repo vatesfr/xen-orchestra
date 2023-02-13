@@ -69,11 +69,11 @@ const EsxiImport = decorate([
       networkpredicate:
         ({ pool }) =>
         network =>
-          network.$poolId === pool.uuid,
+          network.$poolId === pool?.uuid,
       srPredicate:
         ({ pool }) =>
         sr =>
-          isSrWritableOrIso(sr) && sr.$poolId === pool.uuid,
+          isSrWritableOrIso(sr) && sr.$poolId === pool?.uuid,
     },
   }),
   injectIntl,
