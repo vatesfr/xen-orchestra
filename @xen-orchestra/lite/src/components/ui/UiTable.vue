@@ -18,8 +18,8 @@
   border-spacing: 0;
 }
 
-:slotted(th),
-:slotted(td) {
+:deep(th),
+:deep(td) {
   padding: 1rem;
   border-top: 1px solid lightgrey;
   border-right: 1px solid lightgrey;
@@ -30,14 +30,14 @@
   }
 }
 
-:slotted(.header-row th) {
+:deep(.header-row th) {
   color: var(--color-extra-blue-base);
   font-size: 1.4rem;
   font-weight: 400;
   text-transform: uppercase;
 }
 
-:slotted(.body td) {
+:deep(.body td) {
   font-weight: 400;
   font-size: 1.6rem;
   line-height: 2.4rem;
