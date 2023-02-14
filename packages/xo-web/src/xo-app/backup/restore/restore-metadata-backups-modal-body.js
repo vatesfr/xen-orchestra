@@ -109,7 +109,7 @@ export class RestoreMetadataBackupsBulkModalBody extends Component {
         {this.props.pools.map(value => (
           <Container key={value.id}>
             <Row>
-              <Col size={6}>{value.label}</Col>
+              <Col size={6}>{value.first.jobName}</Col>
               <Col size={6}>
                 <SelectPool onChange={this.linkState(value.id)} required value={this.state[value.id]} />
               </Col>
