@@ -10,6 +10,7 @@ import { useHostStore } from "@/stores/host.store";
 import { usePoolStore } from "@/stores/pool.store";
 import { useRecordsStore } from "@/stores/records.store";
 import { useSrStore } from "@/stores/storage.store";
+import { useTaskStore } from "@/stores/task.store";
 import { useVmGuestMetricsStore } from "@/stores/vm-guest-metrics.store";
 import { useVmMetricsStore } from "@/stores/vm-metrics.store";
 import { useVmStore } from "@/stores/vm.store";
@@ -85,6 +86,9 @@ export const useXenApiStore = defineStore("xen-api", () => {
       vmGuestMetricsStore.init(),
       srStore.init(),
     ]);
+
+    const taskStore = useTaskStore();
+    taskStore.init();
 
     const consoleStore = useConsoleStore();
     consoleStore.init();
