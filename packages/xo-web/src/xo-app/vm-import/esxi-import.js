@@ -161,13 +161,7 @@ const EsxiImport = decorate([
           <Row>
             <LabelCol>{_('sslCertificate')}</LabelCol>
             <InputCol>
-              <input
-                checked={hasCertificate}
-                name='hasCertificate'
-                onChange={toggleCertificateCheck}
-                required
-                type='checkbox'
-              />
+              <input checked={hasCertificate} name='hasCertificate' onChange={toggleCertificateCheck} type='checkbox' />
             </InputCol>
           </Row>
           <div className='form-group pull-right'>
