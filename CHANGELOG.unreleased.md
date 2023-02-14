@@ -7,7 +7,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [Backup Metadata] add pool selection to metadata restoration
+- [Backup Metadata] add pool selection to metadata restoration (PR [#6670](https://github.com/vatesfr/xen-orchestra/pull/6670))
 
 ### Bug fixes
 
