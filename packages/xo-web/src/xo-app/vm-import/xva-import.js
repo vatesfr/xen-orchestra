@@ -44,19 +44,20 @@ const XvaImport = decorate([
   provideState({
     initialState: getInitialState,
     effects: {
-      handleImport: () => {
-        const { sr, vms } = this.state
-        return importVms(
-          mapPlus(vms, (vm, push) => {
-            if (!vm.error) {
-              push({
-                ...vm,
-              })
-            }
-          }),
-          sr
-        )
-      },
+      handleImport:
+        () =>
+        ({ sr, vms }) => {
+          return importVms(
+            mapPlus(vms, (vm, push) => {
+              if (!vm.error) {
+                push({
+                  ...vm,
+                })
+              }
+            }),
+            sr
+          )
+        },
       onChangePool: (_, pool) => ({ pool, sr: pool.default_SR }),
       onChangeSr: (_, sr) => ({ sr }),
       onChangeVmData: (_, data, vmIndex) => {
@@ -65,7 +66,7 @@ const XvaImport = decorate([
         vms[vmIndex].data = { ...previousData, ...data }
         return { vms }
       },
-      onDrop: async files => {
+      onDrop: async (_, files) => {
         const vms = await Promise.all(
           mapPlus(files, (file, push) => {
             const { name } = file
