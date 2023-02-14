@@ -13,7 +13,7 @@ import styles from './index.css'
 import VmData from './vm-data'
 import { getRedirectionUrl } from './utils'
 import { formatSize, mapPlus, noop } from '../../common/utils'
-import { importVms, isSrWritableOrIso } from '../../common/xo'
+import { importVms, isSrWritable } from '../../common/xo'
 import { SelectPool, SelectSr } from '../../common/select-objects'
 
 const FORMAT_TO_HANDLER = {
@@ -47,11 +47,10 @@ const XvaImport = decorate([
       handleImport: () => {
         const { sr, vms } = this.state
         return importVms(
-          mapPlus(vms, (vm, push, vmIndex) => {
+          mapPlus(vms, (vm, push) => {
             if (!vm.error) {
               push({
                 ...vm,
-                data: vms[vmIndex].data,
               })
             }
           }),
@@ -91,7 +90,7 @@ const XvaImport = decorate([
       srPredicate:
         ({ pool }) =>
         sr =>
-          isSrWritableOrIso(sr) && sr.$poolId === pool?.uuid,
+          isSrWritable(sr) && sr.$poolId === pool?.uuid,
     },
   }),
   injectState,

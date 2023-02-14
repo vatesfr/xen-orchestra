@@ -11,7 +11,7 @@ import { linkState } from 'reaclette-utils'
 import { Password, Select } from 'form'
 
 import VmData from './vm-data'
-import { esxiConnect, importVm, isSrWritableOrIso } from '../../common/xo'
+import { esxiConnect, importVm, isSrWritable } from '../../common/xo'
 import { SelectNetwork, SelectPool, SelectSr } from '../../common/select-objects'
 
 const getInitialState = () => ({
@@ -73,7 +73,7 @@ const EsxiImport = decorate([
       srPredicate:
         ({ pool }) =>
         sr =>
-          isSrWritableOrIso(sr) && sr.$poolId === pool?.uuid,
+          isSrWritable(sr) && sr.$poolId === pool?.uuid,
     },
   }),
   injectIntl,
@@ -177,12 +177,12 @@ const EsxiImport = decorate([
           </div>
         </form>
       )}
-      {isConnected && vms.length > 0 && (
+      {isConnected && (
         <form id='esxi-migrate-form'>
           <Row>
             <LabelCol>{_('vm')}</LabelCol>
             <InputCol>
-              <Select onChange={onChangeVm} options={selectVmOptions} required value={vm} />
+              <Select disabled={vms.length === 0} onChange={onChangeVm} options={selectVmOptions} required value={vm} />
             </InputCol>
           </Row>
           <Row>
@@ -191,7 +191,6 @@ const EsxiImport = decorate([
               <SelectPool onChange={onChangePool} required value={pool} />
             </InputCol>
           </Row>
-
           <Row>
             <LabelCol>{_('vmImportToSr')}</LabelCol>
             <InputCol>
@@ -227,6 +226,7 @@ const EsxiImport = decorate([
             <ActionButton
               btnStyle='primary'
               className='mr-1'
+              disabled={vm === undefined}
               form='esxi-migrate-form'
               handler={_importVm}
               icon='import'

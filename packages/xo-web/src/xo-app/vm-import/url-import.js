@@ -10,7 +10,7 @@ import { isEmpty } from 'lodash'
 import { linkState } from 'reaclette-utils'
 
 import { getRedirectionUrl } from './utils'
-import { importVm, isSrWritableOrIso } from '../../common/xo'
+import { importVm, isSrWritable } from '../../common/xo'
 import { SelectPool, SelectSr } from '../../common/select-objects'
 import Select from '../../common/form/select'
 
@@ -51,7 +51,7 @@ const UrlImport = decorate([
       srPredicate:
         ({ pool }) =>
         sr =>
-          isSrWritableOrIso(sr) && sr.$poolId === pool?.uuid,
+          isSrWritable(sr) && sr.$poolId === pool?.uuid,
     },
   }),
   injectState,
