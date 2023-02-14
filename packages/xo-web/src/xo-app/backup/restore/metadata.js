@@ -37,7 +37,7 @@ const restore = entry =>
       error(_('backupRestoreErrorTitle'), _('chooseBackup'))
       return
     }
-    return restoreMetadataBackup({ backup: data.backup.id, poolId: data.pool.id })
+    return restoreMetadataBackup({ backup: data.backup.id, pool: data.pool.id })
   }, noop)
 
 const bulkRestore = entries => {
@@ -49,7 +49,7 @@ const bulkRestore = entries => {
   }).then(data => {
     Promise.all(
       entries.map(({ first, last, id }) =>
-        restoreMetadataBackup({ backup: data.latest ? last : first, poolId: data[id].id })
+        restoreMetadataBackup({ backup: data.latest ? last : first, pool: data[id].id })
       )
     )
   }, noop)

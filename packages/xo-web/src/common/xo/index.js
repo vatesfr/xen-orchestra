@@ -2420,7 +2420,7 @@ export const listMetadataBackups = remotes => _call('metadataBackup.list', { rem
 export const restoreMetadataBackup = data =>
   _call('metadataBackup.restore', {
     id: resolveId(data.backup),
-    poolId: data.poolId,
+    pool: data.pool,
   })::tap(subscribeBackupNgLogs.forceRefresh)
 
 export const deleteMetadataBackup = backup =>
