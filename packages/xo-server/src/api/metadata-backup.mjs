@@ -125,8 +125,9 @@ list.params = {
   },
 }
 
-export function restore({ id, pool }) {
-  return this.restoreMetadataBackup({ id, poolUuid: pool })
+export async function restore({ id, pool }) {
+  const poolObj = await this.getXapiObject(pool, 'pool')
+  return this.restoreMetadataBackup({ id, poolUuid: poolObj.uuid })
 }
 
 restore.permission = 'admin'
