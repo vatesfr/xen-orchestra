@@ -17,6 +17,7 @@
 - [Pool/License] Fix license expiration on license binding modal (PR [#6666](https://github.com/vatesfr/xen-orchestra/pull/6666))
 - [NBD Backup] Fix VDI not disconnecting from control domain (PR [#6660](https://github.com/vatesfr/xen-orchestra/pull/6660))
 - [NBD Backup] Improve performance by avoid unnecessary VDI transfers
+- [VMDK/OVA import] Fix error importing a VMDK or an OVA generated from XO (PR [#6669](https://github.com/vatesfr/xen-orchestra/pull/6669))
 
 ### Packages to release
 
@@ -36,6 +37,7 @@
 
 - @vates/nbd-client patch
 - @xen-orchestra/backups patch
+- xo-vmdk-to-vhd patch
 - xen-api patch
 - xo-cli patch
 - xo-server patch
