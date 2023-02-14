@@ -56,6 +56,7 @@ export function getFilterIcon(filter: Filter | undefined) {
 }
 
 export function parseDateTime(dateTime: string) {
+  dateTime = dateTime.replace(/(-|\.\d{3})/g, ""); // Allow toISOString() date-time format
   const date = utcParse("%Y%m%dT%H:%M:%SZ")(dateTime);
   if (date === null) {
     throw new RangeError(

@@ -1,19 +1,19 @@
 <template>
+  <UiSpinner v-if="busy" class="ui-icon" />
   <FontAwesomeIcon
-    v-if="icon !== undefined"
+    v-else-if="icon !== undefined"
     :icon="icon"
-    :spin="busy"
     class="ui-icon"
     :fixed-width="fixedWidth"
   />
 </template>
 
 <script lang="ts" setup>
-import { computed } from "vue";
+import UiSpinner from "@/components/ui/UiSpinner.vue";
 import type { IconDefinition } from "@fortawesome/fontawesome-common-types";
-import { faSpinner } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 
-const props = withDefaults(
+withDefaults(
   defineProps<{
     busy?: boolean;
     icon?: IconDefinition;
@@ -21,8 +21,6 @@ const props = withDefaults(
   }>(),
   { fixedWidth: true }
 );
-
-const icon = computed(() => (props.busy ? faSpinner : props.icon));
 </script>
 
 <style lang="postcss" scoped></style>

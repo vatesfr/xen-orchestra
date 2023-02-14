@@ -7,6 +7,8 @@ const ignoreErrors = require('promise-toolbox/ignoreErrors')
 const { asyncMap } = require('@xen-orchestra/async-map')
 const { chainVhd, checkVhdChain, openVhd, VhdAbstract } = require('vhd-lib')
 const { createLogger } = require('@xen-orchestra/log')
+const { decorateClass } = require('@vates/decorate-with')
+const { defer } = require('golike-defer')
 const { dirname } = require('path')
 
 const { formatFilenameDate } = require('../_filenameDate.js')
@@ -22,7 +24,7 @@ const NbdClient = require('@vates/nbd-client')
 
 const { debug, warn, info } = createLogger('xo:backups:DeltaBackupWriter')
 
-exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(AbstractDeltaWriter) {
+class DeltaBackupWriter extends MixinBackupWriter(AbstractDeltaWriter) {
   async checkBaseVdis(baseUuidToSrcVdi) {
     const { handler } = this._adapter
     const backup = this._backup
@@ -133,7 +135,7 @@ exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(Ab
     }
   }
 
-  async _transfer({ timestamp, deltaExport }) {
+  async _transfer($defer, { timestamp, deltaExport }) {
     const adapter = this._adapter
     const backup = this._backup
 
@@ -210,6 +212,11 @@ exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(Ab
               debug('got NBD info', { nbdInfo, vdi: id, path })
               nbdClient = new NbdClient(nbdInfo)
               await nbdClient.connect()
+
+              // this will inform the xapi that we don't need this anymore
+              // and will detach the vdi from dom0
+              $defer(() => nbdClient.disconnect())
+
               info('NBD client ready', { vdi: id, path })
             } catch (error) {
               nbdClient = undefined
@@ -248,3 +255,6 @@ exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(Ab
     // TODO: run cleanup?
   }
 }
+exports.DeltaBackupWriter = decorateClass(DeltaBackupWriter, {
+  _transfer: defer,
+})

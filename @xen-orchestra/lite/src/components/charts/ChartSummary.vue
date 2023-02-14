@@ -20,8 +20,8 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, inject } from "vue";
 import { percent } from "@/libs/utils";
+import { computed, type ComputedRef, inject } from "vue";
 
 const props = defineProps<{
   total: number;
@@ -34,7 +34,9 @@ const freePercent = computed(() =>
   percent(props.total - props.used, props.total)
 );
 
-const valueFormatter = inject("valueFormatter") as (value: number) => string;
+const valueFormatter = inject("valueFormatter") as ComputedRef<
+  (value: number) => string
+>;
 </script>
 
 <style lang="postcss" scoped>

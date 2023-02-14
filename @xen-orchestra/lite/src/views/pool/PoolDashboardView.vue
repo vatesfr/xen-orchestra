@@ -126,6 +126,7 @@ onMounted(() => {
 .item {
   margin: 0;
   padding: 0.5rem;
+  overflow: hidden;
 }
 
 @media (min-width: 768px) {
