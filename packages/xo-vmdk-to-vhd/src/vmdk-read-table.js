@@ -6,7 +6,6 @@ const FOOTER_POSITION = -1024
 const DISK_CAPACITY_OFFSET = 12
 const GRAIN_SIZE_OFFSET = 20
 const NUM_GTE_PER_GT_OFFSET = 44
-const GD_OFFSET = 48
 const GRAIN_ADDRESS_OFFSET = 56
 
 const MANTISSA_BITS_IN_DOUBLE = 53
@@ -66,7 +65,7 @@ export async function readCapacityAndGrainTable(fileAccessor) {
     grainAddrBuffer = headerBuffer.slice(GRAIN_ADDRESS_OFFSET, GRAIN_ADDRESS_OFFSET + 8)
   }
 
-  const grainDirPosBytes = new DataView(headerBuffer).getUint32(GD_OFFSET, true) * SECTOR_SIZE
+  const grainDirPosBytes = getLongLong(grainAddrBuffer, 0, 'grain directory address') * SECTOR_SIZE
   const capacity = getLongLong(headerBuffer, DISK_CAPACITY_OFFSET, 'capacity') * SECTOR_SIZE
 
   async function readTable() {
