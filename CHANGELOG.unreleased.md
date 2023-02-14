@@ -37,11 +37,11 @@
 
 - @vates/nbd-client patch
 - @xen-orchestra/backups patch
-- xo-vmdk-to-vhd patch
 - xen-api patch
 - xo-cli patch
 - xo-server patch
 - xo-server-transport-email patch
+- xo-vmdk-to-vhd patch
 - xo-web patch
 
 <!--packages-end-->
