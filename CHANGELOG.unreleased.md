@@ -18,6 +18,7 @@
 - [NBD Backup] Fix VDI not disconnecting from control domain (PR [#6660](https://github.com/vatesfr/xen-orchestra/pull/6660))
 - [NBD Backup] Improve performance by avoid unnecessary VDI transfers
 - [Home/Pool] Do not check for support on non `XCP-ng` pool (PR [#6661](https://github.com/vatesfr/xen-orchestra/pull/6661))
+- [VMDK/OVA import] Fix error importing a VMDK or an OVA generated from XO (PR [#6669](https://github.com/vatesfr/xen-orchestra/pull/6669))
 
 ### Packages to release
 
@@ -41,6 +42,7 @@
 - xo-cli patch
 - xo-server patch
 - xo-server-transport-email patch
+- xo-vmdk-to-vhd patch
 - xo-web patch
 
 <!--packages-end-->
