@@ -11,7 +11,7 @@ import { linkState } from 'reaclette-utils'
 import { Password, Select } from 'form'
 
 import VmData from './vm-data'
-import { esxiConnect, importVm, isSrWritable } from '../../common/xo'
+import { esxiConnect, importVmFromEsxi, isSrWritable } from '../../common/xo'
 import { SelectNetwork, SelectPool, SelectSr } from '../../common/select-objects'
 
 const getInitialState = () => ({
@@ -32,9 +32,17 @@ const EsxiImport = decorate([
   provideState({
     initialState: getInitialState,
     effects: {
-      _importVm: () => {
-        const { sr, network, vm, vmsData } = this.state
-        importVm(undefined, 'esxi', { ...vmsData[vm.value], network }, sr)
+      importVm: () => {
+        const { hasCertificate, host, network, password, sr, user, vm, vmsData } = this.state
+        return importVmFromEsxi({
+          host,
+          network,
+          password,
+          sr,
+          sslVerify: hasCertificate,
+          user,
+          vm: vmsData[vm.value],
+        })
       },
       connect: () => async state => {
         const { hostIp, hasCertificate, password, user } = state
@@ -80,8 +88,8 @@ const EsxiImport = decorate([
   injectState,
   ({
     effects: {
-      _importVm,
       connect,
+      importVm,
       linkState,
       onChangeVm,
       onChangeVmData,
@@ -228,7 +236,7 @@ const EsxiImport = decorate([
               className='mr-1'
               disabled={vm === undefined}
               form='esxi-migrate-form'
-              handler={_importVm}
+              handler={importVm}
               icon='import'
               type='submit'
             >

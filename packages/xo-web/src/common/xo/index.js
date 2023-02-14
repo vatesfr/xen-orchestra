@@ -1685,7 +1685,6 @@ export const fetchVmStats = (vm, granularity) => _call('vm.stats', { id: resolve
 
 export const getVmsHaValues = () => _call('vm.getHaValues')
 
-// TODO: handle ESXI import
 export const importVm = async (file, type = 'xva', data = undefined, sr, url = undefined) => {
   const { name } = file
 
@@ -3472,5 +3471,7 @@ export const synchronizeNetbox = pools =>
 
 // ESXI import ---------------------------------------------------------------
 
-export const esxiConnect = (hostIp, user, password, hasCertificate) =>
-  _call('esxi.connect', { hostIp, user, password, hasCertificate })
+export const esxiConnect = (hostIp, user, password, sslVerify) =>
+  _call('esxi.connect', { hostIp, user, password, sslVerify })
+
+export const importVmFromEsxi = params => _call('vm.importFromEsxi', params)
