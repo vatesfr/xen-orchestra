@@ -2,7 +2,7 @@
   <StoryParamsTable>
     <thead>
       <tr>
-        <th>Prop</th>
+        <th>Setting</th>
         <th><!--Widget--></th>
         <th>Help</th>
       </tr>

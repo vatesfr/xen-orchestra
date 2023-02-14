@@ -1,14 +1,4 @@
-# An H1 title
-
-Some content on line 1
-
-Some content on line 2
-
-## H2 title
-
-Other content
-
-And other one
+# LinearChart
 
 ### Type
 

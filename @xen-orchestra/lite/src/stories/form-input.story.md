@@ -13,13 +13,3 @@ When using a `string` as `before` or `after` prop, you will probably have to set
   :wrapper-attrs="wrapperAttrs"
 />
 ```
-
-```vue-script
-const foo = 'bar';
-```
-
-```vue-style
-.foo {
-  color: blue;
-}
-```

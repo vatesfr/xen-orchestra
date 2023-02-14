@@ -30,7 +30,7 @@ import { colorProp, iconProp, model, prop } from "@/libs/story/story-param";
 const presets = {
   $100: {
     props: {
-      "model-value": "100",
+      modelValue: "100",
       before: faDollarSign,
     },
   },

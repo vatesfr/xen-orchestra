@@ -7,6 +7,7 @@
       prop('outlined').type('boolean').widget(),
       prop('transparent').type('boolean').widget(),
       prop('merge').type('boolean').widget(),
+      slot().help('Meant to receive UiButton components'),
     ]"
     v-slot="{ properties }"
   >
@@ -22,7 +23,7 @@
 import ComponentStory from "@/components/component-story/ComponentStory.vue";
 import UiButton from "@/components/ui/UiButton.vue";
 import UiButtonGroup from "@/components/ui/UiButtonGroup.vue";
-import { colorProp, prop } from "@/libs/story/story-param";
+import { colorProp, prop, slot } from "@/libs/story/story-param";
 </script>
 
 <style lang="postcss" scoped></style>

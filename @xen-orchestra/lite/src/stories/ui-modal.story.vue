@@ -8,6 +8,7 @@
       slot('title'),
       slot('subtitle'),
       slot('icon'),
+      slot('buttons').help('Meant to receive UiButton components'),
       setting('title').preset('Modal Title').widget(),
       setting('subtitle').preset('Modal Subtitle').widget(),
     ]"
@@ -18,6 +19,9 @@
     <UiModal v-bind="properties" v-if="isOpen">
       <template #title>{{ settings.title }}</template>
       <template #subtitle>{{ settings.subtitle }}</template>
+      <template #buttons>
+        <UiButton @click="close">Discard</UiButton>
+      </template>
     </UiModal>
   </ComponentStory>
 </template>
