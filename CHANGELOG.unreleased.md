@@ -7,8 +7,6 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [Metadata Backup] The user must specify the target pool UUID for the restoration
-
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
