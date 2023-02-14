@@ -110,26 +110,10 @@ export class RestoreMetadataBackupsBulkModalBody extends Component {
           <Container key={value.id}>
             <Row>
               <Col size={6}>{value.label}</Col>
-              {/* <Col size={6}>
-                <Select
-                  labelKey='timestamp'
-                  onChange={this.linkState(value.id + '-backup')}
-                  optionRenderer={this._optionRenderer}
-                  options={value.backups}
-                  required
-                  value={this.state[value.id + '-backup']}
-                  valueKey='id'
-                />
-              </Col> */}
               <Col size={6}>
                 <SelectPool onChange={this.linkState(value.id)} required value={this.state[value.id]} />
               </Col>
             </Row>
-            {/* <br />
-            <Row>
-              <SelectPool onChange={this.linkState(value.id + '-pool')} required value={this.state[value.id + '-pool']} />
-            </Row>
-            <br /> */}
           </Container>
         ))}
         {restorationWarning}
