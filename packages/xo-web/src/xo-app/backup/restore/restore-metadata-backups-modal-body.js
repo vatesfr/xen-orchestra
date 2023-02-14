@@ -68,30 +68,72 @@ export default class RestoreMetadataBackupModalBody extends Component {
 export class RestoreMetadataBackupsBulkModalBody extends Component {
   static propTypes = {
     nMetadataBackups: PropTypes.number,
+    pools: PropTypes.array,
   }
 
   state = { latest: true }
 
   get value() {
-    return this.state.latest
+    return this.state
   }
+
+  _optionRenderer = ({ timestamp }) => (
+    <FormattedDate
+      value={new Date(timestamp)}
+      month='long'
+      day='numeric'
+      year='numeric'
+      hour='2-digit'
+      minute='2-digit'
+      second='2-digit'
+    />
+  )
 
   render() {
     return (
-      <div>
-        {_('bulkRestoreMetadataBackupMessage', {
-          nMetadataBackups: this.props.nMetadataBackups,
-          oldestOrLatest: (
-            <StateButton
-              disabledLabel={_('oldest')}
-              enabledLabel={_('latest')}
-              handler={this.toggleState('latest')}
-              state={this.state.latest}
-            />
-          ),
-        })}
+      <Container>
+        <Row>
+          {_('bulkRestoreMetadataBackupMessage', {
+            nMetadataBackups: this.props.nMetadataBackups,
+            oldestOrLatest: (
+              <StateButton
+                disabledLabel={_('oldest')}
+                enabledLabel={_('latest')}
+                handler={this.toggleState('latest')}
+                state={this.state.latest}
+              />
+            ),
+          })}
+        </Row>
+        <br />
+        {this.props.pools.map(value => (
+          <Container key={value.id}>
+            <Row>
+              <Col size={6}>{value.label}</Col>
+              {/* <Col size={6}>
+                <Select
+                  labelKey='timestamp'
+                  onChange={this.linkState(value.id + '-backup')}
+                  optionRenderer={this._optionRenderer}
+                  options={value.backups}
+                  required
+                  value={this.state[value.id + '-backup']}
+                  valueKey='id'
+                />
+              </Col> */}
+              <Col size={6}>
+                <SelectPool onChange={this.linkState(value.id)} required value={this.state[value.id]} />
+              </Col>
+            </Row>
+            {/* <br />
+            <Row>
+              <SelectPool onChange={this.linkState(value.id + '-pool')} required value={this.state[value.id + '-pool']} />
+            </Row>
+            <br /> */}
+          </Container>
+        ))}
         {restorationWarning}
-      </div>
+      </Container>
     )
   }
 }

@@ -37,16 +37,22 @@ const restore = entry =>
       error(_('backupRestoreErrorTitle'), _('chooseBackup'))
       return
     }
-    return restoreMetadataBackup({ backup: data.backup.id, poolUuid: data.pool.id })
+    return restoreMetadataBackup({ backup: data.backup.id, poolId: data.pool.id })
   }, noop)
 
 const bulkRestore = entries => {
   const nMetadataBackups = entries.length
   return confirm({
     title: _('bulkRestoreMetadataBackupTitle', { nMetadataBackups }),
-    body: <RestoreMetadataBackupsBulkModalBody nMetadataBackups={nMetadataBackups} />,
+    body: <RestoreMetadataBackupsBulkModalBody nMetadataBackups={nMetadataBackups} pools={entries} />,
     icon: 'restore',
-  }).then(latest => Promise.all(entries.map(({ first, last }) => restoreMetadataBackup(latest ? last : first))), noop)
+  }).then(data => {
+    Promise.all(
+      entries.map(({ first, last, id }) =>
+        restoreMetadataBackup({ backup: data.latest ? last : first, poolId: data[id].id })
+      )
+    )
+  }, noop)
 }
 
 const delete_ = entry =>
