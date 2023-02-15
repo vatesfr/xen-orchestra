@@ -104,9 +104,8 @@ export class RestoreMetadataBackupsBulkModalBody extends Component {
             ),
           })}
         </Row>
-        <br />
         {this.props.pools.map(value => (
-          <Container key={value.id}>
+          <Container key={value.id} className="mt-1">
             <Row>
               <Col size={6}>{value.first.jobName}</Col>
               <Col size={6}>
