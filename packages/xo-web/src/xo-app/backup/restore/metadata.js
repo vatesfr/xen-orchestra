@@ -46,13 +46,15 @@ const bulkRestore = entries => {
     title: _('bulkRestoreMetadataBackupTitle', { nMetadataBackups }),
     body: <RestoreMetadataBackupsBulkModalBody nMetadataBackups={nMetadataBackups} pools={entries} />,
     icon: 'restore',
-  }).then(data => {
-    Promise.all(
-      entries.map(({ first, last, id }) =>
-        restoreMetadataBackup({ backup: data.latest ? last : first, pool: data[id].id })
-      )
-    )
-  }, noop)
+  }).then(
+    data =>
+      Promise.all(
+        entries.map(({ first, last, id }) =>
+          restoreMetadataBackup({ backup: data.latest ? last : first, pool: resolveId(data[id]) })
+        )
+      ),
+    noop
+  )
 }
 
 const delete_ = entry =>
