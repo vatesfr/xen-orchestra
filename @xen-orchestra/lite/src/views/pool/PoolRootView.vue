@@ -3,7 +3,7 @@
     <PoolHeader />
     <PoolTabBar />
 
-    <RouterView />
+    <RouterView class="tab-view" />
   </div>
 </template>
 
@@ -12,4 +12,8 @@ import PoolHeader from "@/components/pool/PoolHeader.vue";
 import PoolTabBar from "@/components/pool/PoolTabBar.vue";
 </script>
 
-<style lang="postcss" scoped></style>
+<style lang="postcss" scoped>
+.tab-view {
+  min-height: calc(100vh - 23.5vh);
+}
+</style>
