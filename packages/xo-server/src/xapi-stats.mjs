@@ -263,7 +263,7 @@ export default class XapiStats {
           start: timestamp,
         },
       })
-      .then(response => response.readAll().then(JSON5.parse))
+      .then(response => response.text().then(JSON5.parse))
   }
 
   // To avoid multiple requests, we keep a cash for the stats and

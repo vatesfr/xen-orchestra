@@ -10786,14 +10786,11 @@ http-proxy@^1.16.2, http-proxy@^1.17.0, http-proxy@^1.18.1:
     follow-redirects "^1.0.0"
     requires-port "^1.0.0"
 
-http-request-plus@^0.14.0:
+"http-request-plus@github:JsCommunity/http-request-plus#v1":
   version "0.14.0"
-  resolved "https://registry.yarnpkg.com/http-request-plus/-/http-request-plus-0.14.0.tgz#a190ece4b5b67d66ab442d2983a1a1bcd363b866"
-  integrity sha512-EX/OoPA2vWO7k9Whq+vOSN/nH/P1Ae9smCSzhBIIEU8WLDJyXoH9S8pY4Ieh4yQartrMB1vc2o6T4KV4oIQsDQ==
+  resolved "https://codeload.github.com/JsCommunity/http-request-plus/tar.gz/af641418c9a91e0285f9662e2794822045062b0c"
   dependencies:
-    is-redirect "^1.0.0"
-    promise-toolbox "^0.19.2"
-    pump "^3.0.0"
+    "@xen-orchestra/log" "^0.6.0"
 
 http-server-plus@^0.12.0:
   version "0.12.0"
@@ -11620,11 +11617,6 @@ is-promise@^2.0.0, is-promise@^2.2.2:
   version "2.2.2"
   resolved "https://registry.yarnpkg.com/is-promise/-/is-promise-2.2.2.tgz#39ab959ccbf9a774cf079f7b40c7a26f763135f1"
   integrity sha512-+lP4/6lKUBfQjZ2pdxThZvLUAafmZb8OAxFb8XXtiQmS35INgr85hdOGoEs124ez1FCnZJt6jau/T+alh58QFQ==
-
-is-redirect@^1.0.0:
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/is-redirect/-/is-redirect-1.0.0.tgz#1d03dded53bd8db0f30c26e4f95d36fc7c87dc24"
-  integrity sha512-cr/SlUEe5zOGmzvj9bUyC4LVvkNVAXu4GytXLNMr1pny+a65MpQ9IJzFHD5vi7FyJgb4qt27+eS3TuQnqB+RQw==
 
 is-regex@^1.0.3, is-regex@^1.0.4, is-regex@^1.0.5, is-regex@^1.1.0, is-regex@^1.1.4:
   version "1.1.4"
@@ -15879,7 +15871,7 @@ promise-polyfill@^6.0.1:
   resolved "https://registry.yarnpkg.com/promise-polyfill/-/promise-polyfill-6.1.0.tgz#dfa96943ea9c121fca4de9b5868cb39d3472e057"
   integrity sha512-g0LWaH0gFsxovsU7R5LrrhHhWAWiHRnh1GPrhXnPgYsDkIqjRYUYSZEsej/wtleDrz5xVSIDbeKfidztp2XHFQ==
 
-promise-toolbox@^0.19.0, promise-toolbox@^0.19.2:
+promise-toolbox@^0.19.0:
   version "0.19.2"
   resolved "https://registry.yarnpkg.com/promise-toolbox/-/promise-toolbox-0.19.2.tgz#7453d117313a9afba6add0c67c46210f7b5833f8"
   integrity sha512-3956j2kaS4nJG1ANd4SZBQj8GrxLSlvfpVzMT4I7k7K8BkhhpAChXOI3B1VMlU7TQstShBh4D4uKt9zFjahKNg==

@@ -1133,7 +1133,7 @@ async function handleExport(req, res, { xapi, vmRef, compress, format = 'xva' })
   const stream =
     format === 'ova' ? await xapi.exportVmOva(vmRef) : await xapi.VM_export(FAIL_ON_QUEUE, vmRef, { compress })
 
-  res.on('close', () => stream.cancel())
+  res.on('close', () => stream.destroy())
   // Remove the filename as it is already part of the URL.
   stream.headers['content-disposition'] = 'attachment'
 

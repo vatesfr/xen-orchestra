@@ -419,6 +419,8 @@ export default class Proxy {
   async callProxyMethod(id, method, params, { assertType = 'scalar' } = {}) {
     const proxy = await this._getProxy(id)
 
+    const url = new URL('https://localhost/api/v1')
+
     const request = {
       body: format.request(0, method, params),
       headers: {
@@ -426,14 +428,12 @@ export default class Proxy {
         Cookie: cookie.serialize('authenticationToken', proxy.authenticationToken),
       },
       method: 'POST',
-      pathname: '/api/v1',
-      protocol: 'https:',
       rejectUnauthorized: false,
       timeout: this._app.config.getDuration('xo-proxy.callTimeout'),
     }
 
     if (proxy.address !== undefined) {
-      request.host = proxy.address
+      url.host = proxy.address
     } else {
       const vm = this._app.getXapi(proxy.vmUuid).getObjectByUuid(proxy.vmUuid)
 
@@ -444,11 +444,10 @@ export default class Proxy {
         throw error
       }
 
-      // use hostname field to avoid issues with IPv6 addresses
-      request.hostname = address
+      url.hostname = address.includes(':') ? `[${address}]` : address
     }
 
-    const response = await hrp(request)
+    const response = await hrp(url, request)
 
     const authenticationToken = parseSetCookie(response, {
       map: true,
