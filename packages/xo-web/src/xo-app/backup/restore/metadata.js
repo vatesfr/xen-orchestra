@@ -37,7 +37,7 @@ const restore = entry =>
       error(_('backupRestoreErrorTitle'), _('chooseBackup'))
       return
     }
-    return restoreMetadataBackup({ backup: data.backup.id, pool: data.pool.id })
+    return restoreMetadataBackup({ backup: resolveId(data.backup), pool: resolveId(data.pool) })
   }, noop)
 
 const bulkRestore = entries => {
