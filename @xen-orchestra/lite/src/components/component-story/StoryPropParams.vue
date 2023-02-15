@@ -10,12 +10,12 @@
         <th><!-- Reset Default --></th>
         <th><!-- Widget --></th>
         <th>Default</th>
-        <th><!-- Help --></th>
+        <th>Help</th>
       </tr>
     </thead>
     <tfoot>
       <tr>
-        <td colspan="6" class="reset-all">
+        <td class="reset-all" colspan="6">
           <span class="link" @click="emit('reset')">Reset</span>
         </td>
       </tr>
@@ -38,24 +38,24 @@
             v-if="
               param.hasWidget() &&
               !param.isRequired() &&
-              model?.[param.name] !== undefined
+              model[param.name] !== undefined
             "
             :icon="faClose"
             class="reset-icon"
-            @click="model![param.name] = undefined"
+            @click="model[param.name] = undefined"
           />
         </td>
         <td>
           <StoryWidget
-            v-if="param.hasWidget() && param.name in model!"
-            v-model="model![param.name]"
+            v-if="param.hasWidget() && param.name in model"
+            v-model="model[param.name]"
             :required="param.isRequired()"
             :widget="param.getWidget()!"
           />
           <span
-            v-else-if="model?.[param.name] !== undefined"
+            v-else-if="model[param.name] !== undefined"
             class="link raw-value"
-            @click.prevent="openRawValueModal(model![param.name])"
+            @click.prevent="openRawValueModal(model[param.name])"
           >
             View current value
           </span>
@@ -63,7 +63,7 @@
         <td>
           <code
             v-if="!param.isRequired()"
-            :class="{ active: model?.[param.name] === undefined }"
+            :class="{ active: model[param.name] === undefined }"
             class="default-value"
           >
             {{ JSON.stringify(param.getDefaultValue()) ?? "undefined" }}
@@ -79,9 +79,6 @@
 </template>
 
 <script lang="ts" setup>
-import { toRef } from "vue";
-import { faClose } from "@fortawesome/free-solid-svg-icons";
-import { useVModel } from "@vueuse/core";
 import CodeHighlight from "@/components/CodeHighlight.vue";
 import StoryParamsTable from "@/components/component-story/StoryParamsTable.vue";
 import StoryWidget from "@/components/component-story/StoryWidget.vue";
@@ -90,10 +87,13 @@ import UiModal from "@/components/ui/UiModal.vue";
 import useModal from "@/composables/modal.composable";
 import useSortedCollection from "@/composables/sorted-collection.composable";
 import type { PropParam } from "@/libs/story/story-param";
+import { faClose } from "@fortawesome/free-solid-svg-icons";
+import { useVModel } from "@vueuse/core";
+import { toRef } from "vue";
 
 const props = defineProps<{
   params: PropParam[];
-  modelValue?: Record<string, any>;
+  modelValue: Record<string, any>;
 }>();
 
 const params = useSortedCollection(toRef(props, "params"), (p1, p2) => {
