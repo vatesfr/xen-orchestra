@@ -13,7 +13,7 @@ import { error } from 'notification'
 import { filter, flatMap, forOwn, reduce } from 'lodash'
 import { FormattedDate } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
-import { noop } from 'utils'
+import { noop, resolveId } from 'utils'
 import { deleteMetadataBackups, listMetadataBackups, restoreMetadataBackup, subscribeRemotes } from 'xo'
 
 import Logs from '../../logs/restore-metadata'
