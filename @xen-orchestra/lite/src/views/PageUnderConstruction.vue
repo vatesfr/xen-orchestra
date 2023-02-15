@@ -1,12 +1,14 @@
 <template>
   <div>
     <img alt="Under construction" src="../assets/under-construction.svg" />
-    <p class="title">XOLite is under construction</p>
-    <p class="subtitle">New features are coming soon!</p>
+    <p class="title">{{ $t("xo-lite-under-construction") }}</p>
+    <p class="subtitle">{{ $t("new-features-are-coming") }}</p>
     <p class="contact">
-      You have needs and/or expectations? Let us know
+      {{ $t("do-you-have-needs") }}
       <!-- TODO: Add the href  -->
-      <a href="#" target="_blank" rel="noopener noreferrer">here →</a>
+      <a href="#" target="_blank" rel="noopener noreferrer">
+        {{ $t("here") }}→
+      </a>
     </p>
   </div>
 </template>
@@ -22,12 +24,10 @@ div {
   align-items: center;
   justify-content: center;
   color: var(--color-extra-blue-base);
-
-  & img {
-    margin-bottom: 40px;
-  }
 }
+
 img {
+  margin-bottom: 40px;
   width: 30%;
 }
 .title {
@@ -46,5 +46,9 @@ img {
   font-weight: 400;
   font-size: 20px;
   color: var(--color-blue-scale-100);
+
+  & a {
+    text-transform: lowercase;
+  }
 }
 </style>

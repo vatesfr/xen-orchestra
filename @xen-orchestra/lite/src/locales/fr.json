@@ -22,6 +22,7 @@
   "delete": "Supprimer",
   "descending": "descendant",
   "display": "Affichage",
+  "do-you-have-needs": "Vous avez des besoins et/ou des attentes ? Faites le nous savoir",
   "edit-config": "Modifier config",
   "error-occured": "Une erreur est survenue",
   "export": "Exporter",
@@ -30,6 +31,7 @@
   "following-hosts-unreachable": "Les hôtes suivants sont inaccessibles",
   "force-reboot": "Forcer le redémarrage",
   "force-shutdown": "Forcer l'arrêt",
+  "here": "Ici",
   "hosts": "Hôtes",
   "language": "Langue",
   "last-week": "Semaine dernière",
@@ -44,6 +46,7 @@
   "network-upload": "Montant",
   "news": "Actualités",
   "news-name": "Actualités {name}",
+  "new-features-are-coming": "De nouvelles fonctionnalités arrivent bientôt !",
   "object": "Objet",
   "object-not-found": "L'objet {id} est introuvable…",
   "or": "Ou",
@@ -102,5 +105,6 @@
   "unreachable-hosts": "Hôtes inaccessibles",
   "unreachable-hosts-reload-page": "C'est fait. Rafraîchir la page",
   "version": "Version",
-  "vms": "VMs"
+  "vms": "VMs",
+  "xo-lite-under-construction": "XOLite est en construction"
 }
