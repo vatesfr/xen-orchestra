@@ -1,5 +1,5 @@
 <template>
-  <RouterLink :to="{ name: 'story-home' }">
+  <RouterLink :to="{ name: 'story' }">
     <UiTitle type="h4">Stories</UiTitle>
   </RouterLink>
   <ul class="links">

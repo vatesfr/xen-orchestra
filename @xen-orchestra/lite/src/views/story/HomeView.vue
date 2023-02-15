@@ -58,7 +58,7 @@ const template = computed(() => {
   const slotsNames = slots.value
     .split(",")
     .map((s) => s.trim())
-    .filter(Boolean);
+    .filter((name) => name !== "");
 
   for (const slotName of slotsNames) {
     paramsLines.push(`slot(${slotName === "default" ? "" : quote(slotName)})`);

@@ -51,13 +51,24 @@
         <StoryEventParams :params="eventParams" />
       </UiCard>
       <UiCard>
-        <UiTitle type="h4">Logs</UiTitle>
+        <UiCardTitle>
+          Logs
+          <template #right>
+            <UiButton
+              v-if="eventsLog.length > 0"
+              transparent
+              @click="eventsLog = []"
+            >
+              Clear
+            </UiButton>
+          </template>
+        </UiCardTitle>
         <div class="events-log">
           <CodeHighlight
             v-for="event in eventLogRows"
             :key="event.id"
-            class="event-log"
             :code="event.args"
+            class="event-log"
           />
         </div>
       </UiCard>
@@ -82,10 +93,6 @@
 </template>
 
 <script lang="ts" setup>
-import { uniqueId, upperFirst } from "lodash-es";
-import { computed, reactive, ref, watch, watchEffect } from "vue";
-import { useRoute } from "vue-router";
-import "highlight.js/styles/github-dark.css";
 import AppMarkdown from "@/components/AppMarkdown.vue";
 import CodeHighlight from "@/components/CodeHighlight.vue";
 import StoryEventParams from "@/components/component-story/StoryEventParams.vue";
@@ -94,20 +101,25 @@ import StorySettingParams from "@/components/component-story/StorySettingParams.
 import StorySlotParams from "@/components/component-story/StorySlotParams.vue";
 import AppMenu from "@/components/menu/AppMenu.vue";
 import MenuItem from "@/components/menu/MenuItem.vue";
+import UiButton from "@/components/ui/UiButton.vue";
 import UiCard from "@/components/ui/UiCard.vue";
+import UiCardTitle from "@/components/ui/UiCardTitle.vue";
 import UiCounter from "@/components/ui/UiCounter.vue";
 import UiTab from "@/components/ui/UiTab.vue";
 import UiTabBar from "@/components/ui/UiTabBar.vue";
-import UiTitle from "@/components/ui/UiTitle.vue";
 import {
-  ModelParam,
-  type Param,
   isEventParam,
   isModelParam,
   isPropParam,
   isSettingParam,
   isSlotParam,
+  ModelParam,
+  type Param,
 } from "@/libs/story/story-param";
+import "highlight.js/styles/github-dark.css";
+import { uniqueId, upperFirst } from "lodash-es";
+import { computed, reactive, ref, watch, watchEffect } from "vue";
+import { useRoute } from "vue-router";
 
 const tab = (tab: TAB, params: Param[]) =>
   reactive({

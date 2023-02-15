@@ -25,7 +25,7 @@ export default defineConfig({
           path: route.path.replace(".story", ""),
           meta: {
             isStory: true,
-            storyTitle: routeNameToStoryTitle(route.name?.toString()),
+            storyTitle: routeNameToStoryTitle(route.name),
             storyMdPath: `../../stories/${storyBaseName}.md`,
           },
         };
