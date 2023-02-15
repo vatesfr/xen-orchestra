@@ -91,11 +91,3 @@ const presets: Record<
   },
 };
 </script>
-
-<style scoped>
-.item {
-  margin-bottom: 1rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid #00000020;
-}
-</style>

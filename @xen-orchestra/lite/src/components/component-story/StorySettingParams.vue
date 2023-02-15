@@ -3,8 +3,8 @@
     <thead>
       <tr>
         <th>Prop</th>
-        <th></th>
-        <th></th>
+        <th><!--Widget--></th>
+        <th>Help</th>
       </tr>
     </thead>
     <tfoot>
