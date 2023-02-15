@@ -473,14 +473,15 @@ async function call(args) {
           noop
         )
 
-        return hrp
-          .post(url, httpOptions, {
-            body: input,
-            headers: {
-              'content-length': length,
-            },
-          })
-          .readAll('utf-8')
+        const response = await hrp(url, {
+          ...httpOptions,
+          body: input,
+          headers: {
+            'content-length': length,
+          },
+          method: 'POST',
+        })
+        return response.text()
       }
     }
 

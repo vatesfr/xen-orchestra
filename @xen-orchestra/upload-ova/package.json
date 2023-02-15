@@ -35,7 +35,7 @@
     "form-data": "^4.0.0",
     "fs-extra": "^11.1.0",
     "get-stream": "^6.0.0",
-    "http-request-plus": "^0.14.0",
+    "http-request-plus": "github:JsCommunity/http-request-plus#v1",
     "human-format": "^1.0.0",
     "lodash": "^4.17.4",
     "pretty-ms": "^7.0.0",

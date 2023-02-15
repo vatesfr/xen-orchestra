@@ -230,10 +230,15 @@ export async function upload(args) {
       )
       formData.append('file', input, { filename: 'file', knownLength: length })
       try {
-        return await hrp.post(url.toString(), { body: formData, headers: formData.getHeaders() }).readAll('utf-8')
+        const response = await hrp(url.toString(), { body: formData, headers: formData.getHeaders(), method: 'POST' })
+        return await response.text()
       } catch (e) {
         console.log('ERROR', e)
-        console.log('ERROR content', await e.response.readAll('utf-8'))
+        const { response } = e
+        if (response !== undefined) {
+          console.log('ERROR content', await response.text())
+        }
+
         throw e
       }
     }
