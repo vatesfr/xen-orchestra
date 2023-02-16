@@ -9,8 +9,6 @@ const messages = {
   description: 'Description',
   deleteSourceVm: 'Delete source VM',
   expiration: 'Expiration',
-  fromVmware: 'From VMware',
-  fromUrl: 'From URL',
   hostIp: 'Host IP',
   keyValue: '{key}: {value}',
   sslCertificate: 'SSL certificate',
@@ -1613,6 +1611,8 @@ const messages = {
 
   // ---- VM import ---
   fileType: 'File type:',
+  fromUrl: 'From URL',
+  fromVmware: 'From VMware',
   importVmsList: 'Drop OVA or XVA files here to import Virtual Machines.',
   noSelectedVms: 'No selected VMs.',
   url: 'URL:',
@@ -1620,7 +1620,6 @@ const messages = {
   vmImportToSr: 'To SR:',
   vmsToImport: 'VM{nVms, plural, one {} other {s}} to import',
   importVmsCleanList: 'Reset',
-  importFrom: 'Import from',
   vmImportSuccess: 'VM import success',
   vmImportFailed: 'VM import failed',
   vdiImportSuccess: 'VDI import success',

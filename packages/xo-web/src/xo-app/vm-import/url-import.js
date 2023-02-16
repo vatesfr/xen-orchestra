@@ -3,16 +3,16 @@ import ActionButton from 'action-button'
 import Button from 'button'
 import decorate from 'apply-decorators'
 import React from 'react'
+import { importVm, isSrWritable } from 'xo'
 import { injectState, provideState } from 'reaclette'
 import { Input } from 'debounce-input-decorator'
 import { InputCol, LabelCol, Row } from 'form-grid'
 import { isEmpty } from 'lodash'
 import { linkState } from 'reaclette-utils'
+import { Select } from 'form'
+import { SelectPool, SelectSr } from 'select-objects'
 
 import { getRedirectionUrl } from './utils'
-import { importVm, isSrWritable } from '../../common/xo'
-import { SelectPool, SelectSr } from '../../common/select-objects'
-import Select from '../../common/form/select'
 
 const FILE_TYPES = [
   {
@@ -35,7 +35,7 @@ const UrlImport = decorate([
   provideState({
     initialState: getInitialState,
     effects: {
-      handleImport: () => {
+      handleImport() {
         const { type, url } = this.state
         const file = {
           name: decodeURIComponent(url.slice(url.lastIndexOf('/') + 1)),
