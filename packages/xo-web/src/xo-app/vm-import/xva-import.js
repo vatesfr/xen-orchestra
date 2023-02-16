@@ -11,8 +11,9 @@ import { orderBy } from 'lodash'
 import parseOvaFile from './ova'
 import styles from './index.css'
 import VmData from './vm-data'
+import { connectStore, formatSize, mapPlus, noop } from '../../common/utils'
+import { createGetObjectsOfType } from '../../common/selectors'
 import { getRedirectionUrl } from './utils'
-import { formatSize, mapPlus, noop } from '../../common/utils'
 import { importVms, isSrWritable } from '../../common/xo'
 import { SelectPool, SelectSr } from '../../common/select-objects'
 
@@ -41,6 +42,9 @@ const getInitialState = () => ({
 })
 
 const XvaImport = decorate([
+  connectStore(() => ({
+    networksByName: createGetObjectsOfType('network').groupBy('name_label'),
+  })),
   provideState({
     initialState: getInitialState,
     effects: {
@@ -50,9 +54,18 @@ const XvaImport = decorate([
           return importVms(
             mapPlus(vms, (vm, push) => {
               if (!vm.error) {
-                push({
-                  ...vm,
-                })
+                const { data } = vm
+                push(
+                  data === undefined
+                    ? { ...vm }
+                    : {
+                        ...vm,
+                        data: {
+                          ...vm.data,
+                          disks: Object.values(vm.data.disks),
+                        },
+                      }
+                )
               }
             }),
             sr
@@ -60,26 +73,42 @@ const XvaImport = decorate([
         },
       onChangePool: (_, pool) => ({ pool, sr: pool.default_SR }),
       onChangeSr: (_, sr) => ({ sr }),
-      onChangeVmData: (_, data, vmIndex) => {
-        const { vms } = this.state
-        const previousData = vms[vmIndex].data
-        vms[vmIndex].data = { ...previousData, ...data }
+      onChangeVmData: (_, data, vmIndex) => state => {
+        const vms = [...state.vms]
+        vms[vmIndex].data = data
         return { vms }
       },
-      onDrop: async (_, files) => {
-        const vms = await Promise.all(
-          mapPlus(files, (file, push) => {
-            const { name } = file
-            const extIndex = name.lastIndexOf('.')
+      onDrop: (_, files) => async (_, props) => {
+        const vms = (
+          await Promise.all(
+            mapPlus(files, (file, push) => {
+              const { name } = file
+              const extIndex = name.lastIndexOf('.')
 
-            let func
-            let type
+              let func
+              let type
 
-            if (extIndex >= 0 && (type = name.slice(extIndex + 1).toLowerCase()) && (func = FORMAT_TO_HANDLER[type])) {
-              push(parseFile(file, type, func))
-            }
-          })
-        )
+              if (
+                extIndex >= 0 &&
+                (type = name.slice(extIndex + 1).toLowerCase()) &&
+                (func = FORMAT_TO_HANDLER[type])
+              ) {
+                push(parseFile(file, type, func))
+              }
+            })
+          )
+        ).map(vm => {
+          const { data } = vm
+          return data === undefined
+            ? vm
+            : {
+                ...vm,
+                data: {
+                  ...data,
+                  networks: data.networks.map(name => props.networksByName[name][0].id),
+                },
+              }
+        })
 
         return {
           vms: orderBy(vms, vm => [vm.error != null, vm.type, vm.file.name]),
@@ -131,7 +160,7 @@ const XvaImport = decorate([
                       <div className='alert alert-info' role='alert'>
                         <strong>{_('vmImportFileType', { type })}</strong> {_('vmImportConfigAlert')}
                       </div>
-                      <VmData onChange={data => onChangeVmData(data, vmIndex)} value={{ ...data, pool }} />
+                      <VmData data={data} onChange={data => onChangeVmData(data, vmIndex)} pool={pool} />
                     </div>
                   )
                 ) : (

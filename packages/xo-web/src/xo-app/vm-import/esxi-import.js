@@ -5,6 +5,7 @@ import decorate from 'apply-decorators'
 import React from 'react'
 import { injectIntl } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
+import { isEmpty, map } from 'lodash'
 import { Input } from 'debounce-input-decorator'
 import { InputCol, LabelCol, Row } from 'form-grid'
 import { linkState } from 'reaclette-utils'
@@ -24,39 +25,35 @@ const getInitialState = () => ({
   sr: undefined,
   user: '',
   vm: undefined,
-  vms: [],
-  vmsData: {},
+  vmData: undefined,
+  vmsById: undefined,
 })
 
 const EsxiImport = decorate([
   provideState({
     initialState: getInitialState,
     effects: {
-      importVm: () => {
-        const { hasCertificate, host, network, password, sr, user, vm, vmsData } = this.state
-        return importVmFromEsxi({
-          host,
-          network,
-          password,
-          sr,
-          sslVerify: hasCertificate,
-          user,
-          vm: vmsData[vm.value],
-        })
-      },
-      connect: () => async state => {
-        const { hostIp, hasCertificate, password, user } = state
-        const vms = await esxiConnect(hostIp, user, password, hasCertificate)
-        const vmsData = vms.reduce((vms, vm) => ({ ...vms, [vm.id]: vm }), {})
-        return { isConnected: true, vms, vmsData }
-      },
+      importVm:
+        () =>
+        ({ hasCertificate, hostIp, network, password, sr, user, vmData }) =>
+          importVmFromEsxi({
+            host: hostIp,
+            network: network.id,
+            password,
+            sr,
+            sslVerify: hasCertificate,
+            user,
+            vm: vmData,
+          }),
+      connect:
+        () =>
+        async ({ hostIp, hasCertificate, password, user }) => {
+          const vms = await esxiConnect(hostIp, user, password, hasCertificate)
+          return { isConnected: true, vmsById: vms.reduce((vms, vm) => ({ ...vms, [vm.id]: vm }), {}) }
+        },
       linkState,
-      onChangeVm: (_, vm) => ({ vm }),
-      onChangeVmData: (_, data) => {
-        const vmId = this.state.vm.value
-        const previousData = this.state.vmsData[vmId]
-        this.state.vmsData[vmId] = { ...previousData, ...data }
-      },
+      onChangeVm: (_, vm) => state => ({ vm, vmData: state.vmsById[vm.value] }),
+      onChangeVmData: (_, vmData) => ({ vmData }),
       onChangeNetwork: (_, network) => ({ network }),
       onChangePool: (_, pool) => ({ pool, sr: pool.default_SR }),
       onChangeSr: (_, sr) => ({ sr }),
@@ -69,8 +66,8 @@ const EsxiImport = decorate([
       reset: getInitialState,
     },
     computed: {
-      selectVmOptions: ({ vms }) =>
-        vms.map(vm => ({
+      selectVmOptions: ({ vmsById }) =>
+        map(vmsById, vm => ({
           label: vm.nameLabel,
           value: vm.id,
         })),
@@ -113,8 +110,8 @@ const EsxiImport = decorate([
       sr,
       user,
       vm,
-      vms,
-      vmsData,
+      vmsById,
+      vmData,
     },
   }) => (
     <div>
@@ -161,7 +158,13 @@ const EsxiImport = decorate([
           <Row>
             <LabelCol>{_('sslCertificate')}</LabelCol>
             <InputCol>
-              <input checked={hasCertificate} name='hasCertificate' onChange={toggleCertificateCheck} type='checkbox' />
+              <input
+                checked={hasCertificate}
+                name='hasCertificate'
+                onChange={toggleCertificateCheck}
+                type='checkbox'
+                value={hasCertificate}
+              />
             </InputCol>
           </Row>
           <div className='form-group pull-right'>
@@ -184,7 +187,7 @@ const EsxiImport = decorate([
           <Row>
             <LabelCol>{_('vm')}</LabelCol>
             <InputCol>
-              <Select disabled={vms.length === 0} onChange={onChangeVm} options={selectVmOptions} required value={vm} />
+              <Select disabled={isEmpty(vmsById)} onChange={onChangeVm} options={selectVmOptions} required value={vm} />
             </InputCol>
           </Row>
           <Row>
@@ -221,7 +224,7 @@ const EsxiImport = decorate([
             <div>
               <hr />
               <h5>{_('vmsToImport', { nVms: 1 })}</h5>
-              <VmData onChange={onChangeVmData} value={{ ...vmsData[vm.value], pool }} />
+              <VmData data={vmData} onChange={onChangeVmData} pool={pool} />
             </div>
           )}
           <div className='form-group pull-right'>

@@ -9,6 +9,8 @@ const messages = {
   description: 'Description',
   deleteSourceVm: 'Delete source VM',
   expiration: 'Expiration',
+  fromVmware: 'From VMware',
+  fromUrl: 'From URL',
   hostIp: 'Host IP',
   keyValue: '{key}: {value}',
   sslCertificate: 'SSL certificate',
