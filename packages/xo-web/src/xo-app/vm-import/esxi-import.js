@@ -3,17 +3,17 @@ import ActionButton from 'action-button'
 import Button from 'button'
 import decorate from 'apply-decorators'
 import React from 'react'
+import { esxiConnect, importVmFromEsxi, isSrWritable } from 'xo'
 import { injectIntl } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
-import { isEmpty, map } from 'lodash'
 import { Input } from 'debounce-input-decorator'
 import { InputCol, LabelCol, Row } from 'form-grid'
+import { isEmpty, map } from 'lodash'
 import { linkState } from 'reaclette-utils'
 import { Password, Select } from 'form'
+import { SelectNetwork, SelectPool, SelectSr } from 'select-objects'
 
 import VmData from './vm-data'
-import { esxiConnect, importVmFromEsxi, isSrWritable } from '../../common/xo'
-import { SelectNetwork, SelectPool, SelectSr } from '../../common/select-objects'
 
 const getInitialState = () => ({
   hasCertificate: true,

@@ -4,18 +4,18 @@ import Button from 'button'
 import decorate from 'apply-decorators'
 import Dropzone from 'dropzone'
 import React from 'react'
+import { createGetObjectsOfType } from 'selectors'
+import { connectStore, formatSize, mapPlus, noop } from 'utils'
+import { importVms, isSrWritable } from 'xo'
 import { injectState, provideState } from 'reaclette'
 import { InputCol, LabelCol, Row } from 'form-grid'
 import { orderBy } from 'lodash'
+import { SelectPool, SelectSr } from 'select-objects'
 
 import parseOvaFile from './ova'
 import styles from './index.css'
 import VmData from './vm-data'
-import { connectStore, formatSize, mapPlus, noop } from '../../common/utils'
-import { createGetObjectsOfType } from '../../common/selectors'
 import { getRedirectionUrl } from './utils'
-import { importVms, isSrWritable } from '../../common/xo'
-import { SelectPool, SelectSr } from '../../common/select-objects'
 
 const FORMAT_TO_HANDLER = {
   ova: parseOvaFile,
