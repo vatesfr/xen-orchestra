@@ -5,13 +5,13 @@ import { Col, Row } from 'grid'
 import { connectStore, formatSize } from 'utils'
 import { createFinder, createGetObject, createGetObjectsOfType, createSelector } from 'selectors'
 import { injectState, provideState } from 'reaclette'
-import { isEmpty, map } from 'lodash'
+import { map } from 'lodash'
 import { SelectNetwork } from 'select-objects'
 import { SizeInput } from 'form'
 
 const VmData = decorate([
   connectStore(() => {
-    const getHostMaster = createGetObject((_, props) => props.value.pool.master)
+    const getHostMaster = createGetObject((_, props) => props.pool.master)
     const getPifs = createGetObjectsOfType('PIF').pick((state, props) => getHostMaster(state, props).$PIFs)
     const getDefaultNetworkId = createSelector(createFinder(getPifs, [pif => pif.management]), pif => pif.$network)
 
@@ -21,49 +21,61 @@ const VmData = decorate([
   }),
   provideState({
     effects: {
-      onChangeValue(__, { name, value }) {
-        const { onChange, value: prevValue } = this.props
-        onChange({
-          ...prevValue,
-          [name]: value,
-        })
-      },
-      onChangeDisks(__, { name, value }) {
-        const { onChange, value: prevValue } = this.props
-        const disks = prevValue.disks ?? []
-        // name-index or description-index
+      onChangeDisks(_, { target: { name, value } }) {
+        const { onChange, data: prevValue } = this.props
+        // name: nameLabel-index or descriptionLabel-index
         const data = name.split('-')
         const index = data[1]
-        const prevData = disks[index]
-        disks[index] = { ...prevData, [data[0]]: value }
         onChange({
           ...prevValue,
-          disks,
+          disks: {
+            ...prevValue.disks,
+            [index]: { ...prevValue.disks[index], [data[0]]: value },
+          },
         })
       },
-      onChangeNetworks(__, { name, value }) {
-        const { onChange, value: prevValue } = this.props
-        const networks = prevValue.networks ?? []
-        networks[name.split('-')[1]] = value
+      onChangeMemory(_, memory) {
+        const { onChange, data: prevData } = this.props
         onChange({
-          ...prevValue,
-          networks,
+          ...prevData,
+          memory,
+        })
+      },
+      onChangeNCpus(_, { target: { value } }) {
+        const { onChange, data: prevData } = this.props
+        onChange({
+          ...prevData,
+          nCpus: +value,
+        })
+      },
+      onChangeNetworks(_, network, networkIndex) {
+        const { onChange, data } = this.props
+        onChange({
+          ...data,
+          networks: data.networks.map((prevNetwork, index) => (index === networkIndex ? network.id : prevNetwork)),
+        })
+      },
+      onChangeValue(_, { target: { name, value } }) {
+        const { onChange, data } = this.props
+        onChange({
+          ...data,
+          [name]: value,
         })
       },
     },
     computed: {
       networkPredicate:
-        (_, { value: { pool } }) =>
+        (_, { pool }) =>
         network =>
           pool.id === network.$pool,
     },
   }),
   injectState,
   ({
+    data,
     defaultNetwork,
-    effects: { onChangeDisks, onChangeNetworks, onChangeValue },
+    effects: { onChangeDisks, onChangeMemory, onChangeNCpus, onChangeNetworks, onChangeValue },
     state: { networkPredicate },
-    value,
   }) => (
     <div>
       <Row>
@@ -74,106 +86,94 @@ const VmData = decorate([
               className='form-control'
               name='nameLabel'
               onChange={onChangeValue}
-              defaultValue={value.nameLabel}
               type='text'
               required
+              value={data.nameLabel}
             />
           </div>
           <div className='form-group'>
             <label>{_('vmNameDescription')}</label>
             <input
               className='form-control'
-              name='description'
+              name='descriptionLabel'
               onChange={onChangeValue}
-              defaultValue={value.description}
               type='text'
+              value={data.descriptionLabel}
             />
           </div>
         </Col>
         <Col mediumSize={6}>
           <div className='form-group'>
             <label>{_('nCpus')}</label>
-            <input
-              className='form-control'
-              name='nCpus'
-              defaultValue={value.nCpus}
-              onChange={onChangeValue}
-              type='number'
-              required
-            />
+            <input className='form-control' onChange={onChangeNCpus} type='number' required value={data.nCpus} />
           </div>
           <div className='form-group'>
             <label>{_('vmMemory')}</label>
-            <SizeInput defaultValue={value.memory} name='memory' onChange={onChangeValue} required />
+            <SizeInput onChange={onChangeMemory} required value={data.memory} />
           </div>
         </Col>
       </Row>
       <Row>
         <Col mediumSize={6}>
-          {!isEmpty(value.disks)
-            ? map(value.disks, (disk, diskId) => (
-                <Row key={diskId}>
-                  <Col mediumSize={6}>
-                    <div className='form-group'>
-                      <label>
-                        {_('diskInfo', {
-                          position: `${disk.position}`,
-                          capacity: formatSize(disk.capacity),
-                        })}
-                      </label>
-                      <input
-                        className='form-control'
-                        name={`name-${diskId}`}
-                        onChange={onChangeDisks}
-                        defaultValue={disk.name}
-                        type='text'
-                        required
-                      />
-                    </div>
-                  </Col>
-                  <Col mediumSize={6}>
-                    <div className='form-group'>
-                      <label>{_('diskDescription')}</label>
-                      <input
-                        className='form-control'
-                        name={`description-${diskId}`}
-                        defaultValue={disk.description}
-                        onChange={onChangeDisks}
-                        type='text'
-                        required
-                      />
-                    </div>
-                  </Col>
-                </Row>
-              ))
-            : _('noDisks')}
-        </Col>
-        <Col mediumSize={6}>
-          {value.networks?.length > 0
-            ? map(value.networks, (name, networkId) => (
-                <div className='form-group' key={networkId}>
-                  <label>{_('networkInfo', { name })}</label>
-                  <SelectNetwork
-                    defaultValue={defaultNetwork}
-                    name={`network-${networkId}`}
-                    onChange={onChangeNetworks}
-                    predicate={networkPredicate}
+          {map(data.disks, (disk, diskId) => (
+            <Row key={diskId}>
+              <Col mediumSize={6}>
+                <div className='form-group'>
+                  <label>
+                    {_('diskInfo', {
+                      position: `${disk.position}`,
+                      capacity: formatSize(disk.capacity),
+                    })}
+                  </label>
+                  <input
+                    className='form-control'
+                    name={`nameLabel-${diskId}`}
+                    onChange={onChangeDisks}
+                    type='text'
+                    required
+                    value={disk.nameLabel}
                   />
                 </div>
-              ))
-            : _('noNetworks')}
+              </Col>
+              <Col mediumSize={6}>
+                <div className='form-group'>
+                  <label>{_('diskDescription')}</label>
+                  <input
+                    className='form-control'
+                    name={`descriptionLabel-${diskId}`}
+                    onChange={onChangeDisks}
+                    type='text'
+                    required
+                    value={disk.descriptionLabel}
+                  />
+                </div>
+              </Col>
+            </Row>
+          ))}
+        </Col>
+        <Col mediumSize={6}>
+          {map(data.networks, (networkId, index) => (
+            <div className='form-group' key={networkId}>
+              <label>{_('networkInfo', { name: index + 1 })}</label>
+              <SelectNetwork
+                onChange={network => onChangeNetworks(network, index)}
+                predicate={networkPredicate}
+                value={data.networks[index] ?? defaultNetwork}
+              />
+            </div>
+          ))}
         </Col>
       </Row>
-      {value.storage !== undefined && (
+      {data.storage !== undefined && (
         <Row className='mt-1'>
           <Col mediumSize={12}>
             <div className='form-group'>
               <label>{_('homeSrPage')}:</label>{' '}
               <span>
                 {_('vmSrUsage', {
-                  free: formatSize(value.storage.free),
-                  total: formatSize(value.storage.used + value.storage.free),
-                  used: formatSize(value.storage.used),
+                  free: formatSize(data.storage.free),
+                  total: formatSize(data.storage.used + data.storage.free),
+                  used: formatSize(data.storage.used),
                 })}
               </span>
             </div>
