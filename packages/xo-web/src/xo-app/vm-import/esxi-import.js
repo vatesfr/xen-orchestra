@@ -43,7 +43,7 @@ const EsxiImport = decorate([
             sr,
             sslVerify: hasCertificate,
             user,
-            vm: vmData,
+            vm: vmData.id,
           })
         },
       connect:
