@@ -90,6 +90,7 @@ export class Xapi extends EventEmitter {
     this._callTimeout = makeCallSetting(opts.callTimeout, 60 * 60 * 1e3) // 1 hour but will be reduced in the future
     this._httpInactivityTimeout = opts.httpInactivityTimeout ?? 5 * 60 * 1e3 // 5 mins
     this._eventPollDelay = opts.eventPollDelay ?? 60 * 1e3 // 1 min
+    this._ignorePrematureClose = opts.ignorePrematureClose ?? false
     this._pool = null
     this._readOnly = Boolean(opts.readOnly)
     this._RecordsByType = { __proto__: null }
@@ -543,22 +544,28 @@ export class Xapi extends EventEmitter {
       }
     }
 
-    const { req } = response
-    if (!req.finished) {
-      await new Promise((resolve, reject) => {
-        req.on('finish', resolve)
-        response.on('error', reject)
-      })
-    }
+    try {
+      const { req } = response
+      if (!req.finished) {
+        await new Promise((resolve, reject) => {
+          req.on('finish', resolve)
+          response.on('error', reject)
+        })
+      }
 
-    if (useHack) {
-      response.destroy()
-    } else {
-      // consume the response
-      response.resume()
-      await new Promise((resolve, reject) => {
-        response.on('end', resolve).on('error', reject)
-      })
+      if (useHack) {
+        response.destroy()
+      } else {
+        // consume the response
+        response.resume()
+        await new Promise((resolve, reject) => {
+          response.on('end', resolve).on('error', reject)
+        })
+      }
+    } catch (error) {
+      if (!(this._ignorePrematureClose && error.code === 'ERR_STREAM_PREMATURE_CLOSE')) {
+        throw error
+      }
     }
 
     return pTaskResult
