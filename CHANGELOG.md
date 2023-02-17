@@ -15,7 +15,7 @@
 
 ### Released packages
 
-- xen-api 1.2.3
+- xen-api 1.2.4
 - @vates/nbd-client 1.0.1
 - @xen-orchestra/backups 0.29.6
 - @xen-orchestra/proxy 0.26.11

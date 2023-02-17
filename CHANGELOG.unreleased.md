@@ -27,6 +27,4 @@
 
 <!--packages-start-->
 
-- xen-api patch
-
 <!--packages-end-->
