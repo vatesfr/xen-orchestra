@@ -18,7 +18,7 @@
 - xen-api 1.2.4
 - @vates/nbd-client 1.0.1
 - @xen-orchestra/backups 0.29.6
-- @xen-orchestra/proxy 0.26.11
+- @xen-orchestra/proxy 0.26.12
 - xo-vmdk-to-vhd 2.5.3
 - xo-cli 0.14.4
 - xo-server 5.109.1
