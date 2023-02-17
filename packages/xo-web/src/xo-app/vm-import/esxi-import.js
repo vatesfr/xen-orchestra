@@ -35,7 +35,7 @@ const EsxiImport = decorate([
     effects: {
       importVm:
         () =>
-        ({ hasCertificate, hostIp, network, password, sr, user, vmData }) =>
+        ({ hasCertificate, hostIp, network, password, sr, user, vmData }) => {
           importVmFromEsxi({
             host: hostIp,
             network: network.id,
@@ -44,7 +44,8 @@ const EsxiImport = decorate([
             sslVerify: hasCertificate,
             user,
             vm: vmData,
-          }),
+          })
+        },
       connect:
         () =>
         async ({ hostIp, hasCertificate, password, user }) => {

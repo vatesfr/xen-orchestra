@@ -51,7 +51,7 @@ const XvaImport = decorate([
       handleImport:
         () =>
         ({ sr, vms }) => {
-          return importVms(
+          importVms(
             mapPlus(vms, (vm, push) => {
               if (!vm.error) {
                 const { data } = vm
