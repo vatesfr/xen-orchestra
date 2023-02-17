@@ -1,9 +1,9 @@
 import _ from 'intl'
 import PropTypes from 'prop-types'
 import React from 'react'
-import { findDOMNode } from 'react-dom'
 
 import BaseComponent from './base-component'
+import Icon from './icon'
 import { alert } from './modal'
 import { createSelector } from './selectors'
 
@@ -14,39 +14,37 @@ const ICON_WARNING_MODAL_LEVEL = {
 }
 
 class BulkIcons extends BaseComponent {
-  componentDidMount() {
-    // eslint-disable-next-line react/no-find-dom-node
-    findDOMNode(this)?.parentElement.classList.add('align-self-center')
-  }
-
-  getSortedElements = createSelector(
-    () => this.props.icons,
-    icons =>
-      icons?.sort((curr, next) => ICON_WARNING_MODAL_LEVEL[next.level] - ICON_WARNING_MODAL_LEVEL[curr.level]) ?? []
+  getSortedAlerts = createSelector(
+    () => this.props.alerts,
+    alerts =>
+      alerts?.sort((curr, next) => ICON_WARNING_MODAL_LEVEL[curr.level] - ICON_WARNING_MODAL_LEVEL[next.level]) ?? []
   )
 
   onClick = () =>
     alert(
       _('alerts'),
-      <div>
-        {this.getSortedElements().map(({ level, render }, index) => (
-          <p className={`text-${level}`} key={index}>
-            {render}
-          </p>
-        ))}
-      </div>
+      this.getSortedAlerts().map(({ level, render }, index) => (
+        <div className={`text-${level}`} key={index}>
+          {render}
+        </div>
+      ))
     )
 
   render() {
-    const elements = this.getSortedElements()
-    const length = elements.length
-    const level = elements[length - 1]?.level
+    const alerts = this.getSortedAlerts()
+    const length = alerts.length
+    const level = alerts[0]?.level
 
     return (
       length !== 0 && (
         // <a> in order to bypass the BlockLink component
-        <a className={`bulk-icons-triangle ${level}`} onClick={this.onClick}>
-          <span>{length}</span>
+        <a className='fa-stack' onClick={this.onClick}>
+          <Icon icon='alarm' color={`text-${level}`} className='fa-stack-2x' />
+          {/* `fa-triangle` does not exist on FontAwesome4.`l` is used to fill the `!` of the `alarm` icon */}
+          <span className={`fa-stack-2x text-${level}`} style={{ fontSize: '2.4rem', fontWeight: 'bold' }}>
+            l
+          </span>
+          <span className='fa-stack-1x text-white'>{length}</span>
         </a>
       )
     )
@@ -54,7 +52,7 @@ class BulkIcons extends BaseComponent {
 }
 
 BulkIcons.propTypes = {
-  icons: PropTypes.arrayOf(
+  alerts: PropTypes.arrayOf(
     PropTypes.exact({
       level: PropTypes.string.isRequired,
       render: PropTypes.element.isRequired,

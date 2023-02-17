@@ -73,10 +73,6 @@ $select-input-height: 40px; // Bootstrap input height
 @import '../../../node_modules/react-select/scss/default';
 
 // Boostrap hack...
-.align-self-center {
-  align-self: center;
-}
-
 .is-searchable {
   width: 100%;
 }
@@ -293,37 +289,4 @@ $select-input-height: 40px; // Bootstrap input height
       color: grey;
     }
   }
-}
-
-.bulk-icons-triangle {
-  border-color: transparent transparent transparent transparent;
-  border-style: inset;
-  border-width: 0 10px 20px 10px;
-  float: left;
-  height: 0px;
-  transform: rotate(360deg);
-  width: 0px;
-  -ms-transform: rotate(360deg);
-  -moz-transform: rotate(360deg);
-  -webkit-transform: rotate(360deg);
-  -o-transform: rotate(360deg);
-}
-.bulk-icons-triangle.danger {
-  border-bottom-color: #990822;
-}
-.bulk-icons-triangle.warning {
-  border-bottom-color: #eca649;
-}
-.bulk-icons-triangle.success {
-  border-bottom-color: #089944;
-}
-
-.bulk-icons-triangle span {
-  color: white;
-  font-size: 0.75rem;
-  font-weight: bold;
-  left: -3.25px;
-  margin: 0px;
-  position: relative;
-  text-align: center;
 }

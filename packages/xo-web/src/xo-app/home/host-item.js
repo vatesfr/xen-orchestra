@@ -75,15 +75,15 @@ export default class HostItem extends Component {
   _toggleExpanded = () => this.setState({ expanded: !this.state.expanded })
   _onSelect = () => this.props.onSelect(this.props.item.id)
 
-  _getIcons = createSelector(
+  _getAlerts = createSelector(
     () => this.props.needsRestart,
     () => this.props.item,
     this._isMaintained,
     (needsRestart, host, isMaintained) => {
-      const icons = []
+      const alerts = []
 
       if (needsRestart) {
-        icons.push({
+        alerts.push({
           level: 'warning',
           render: (
             <Link className='text-warning' to={`/hosts/${host.id}/patches`}>
@@ -94,7 +94,7 @@ export default class HostItem extends Component {
       }
 
       if (!isMaintained) {
-        icons.push({
+        alerts.push({
           level: 'warning',
           render: (
             <p>
@@ -105,7 +105,7 @@ export default class HostItem extends Component {
       }
 
       if (!isHostTimeConsistentWithXoaTime(host)) {
-        icons.push({
+        alerts.push({
           level: 'danger',
           render: (
             <p>
@@ -116,7 +116,7 @@ export default class HostItem extends Component {
       }
 
       if (hasLicenseRestrictions(host)) {
-        icons.push({
+        alerts.push({
           level: 'danger',
           render: (
             <span>
@@ -143,13 +143,12 @@ export default class HostItem extends Component {
           ),
         })
       }
-      return icons
+      return alerts
     }
   )
 
   render() {
     const { container, expandAll, item: host, nVms, selected, state } = this.props
-    const icons = this._getIcons()
 
     return (
       <div className={styles.item}>
@@ -184,7 +183,7 @@ export default class HostItem extends Component {
                   <span className='tag tag-pill tag-info'>{_('pillMaster')}</span>
                 )}
                 &nbsp;
-                <BulkIcons icons={icons} />
+                <BulkIcons alerts={this._getAlerts()} />
               </EllipsisContainer>
             </Col>
             <Col mediumSize={3} className='hidden-lg-down'>

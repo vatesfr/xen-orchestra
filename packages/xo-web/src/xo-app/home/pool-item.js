@@ -95,17 +95,18 @@ export default class PoolItem extends Component {
   _isXcpngPool() {
     return Object.values(this.props.poolHosts)[0].productBrand === 'XCP-ng'
   }
-  _getIcons = createSelector(
+
+  _getAlerts = createSelector(
     () => this.props.item,
     () => this.props.isAdmin,
     () => this.props.state,
     (pool, isAdmin, reacletteState) => {
-      const icons = []
+      const alerts = []
 
       if (isAdmin) {
         const { icon, supportLevel } = reacletteState.poolLicenseInfoByPoolId[pool.id]
         const level = supportLevel === 'total' ? 'success' : supportLevel === 'partial' ? 'warning' : 'danger'
-        icons.push({
+        alerts.push({
           level,
           render: (
             <p>
@@ -114,14 +115,13 @@ export default class PoolItem extends Component {
           ),
         })
       }
-      return icons
+      return alerts
     }
   )
 
   render() {
     const { item: pool, expandAll, selected, hostMetrics, poolHosts, nSrs, nVms } = this.props
     const { missingPatchCount } = this.state
-    const icons = this._getIcons()
 
     return (
       <div className={styles.item}>
@@ -137,7 +137,7 @@ export default class PoolItem extends Component {
                 {isAdmin && this._isXcpngPool() && <span className='ml-1'>{this._getPoolLicenseIcon()}</span>}
                 &nbsp;&nbsp;
                 &nbsp;
-                <BulkIcons icons={icons} />
+                <BulkIcons alerts={this._getAlerts()} />
                 &nbsp;
                 {missingPatchCount > 0 && (
                   <span>
