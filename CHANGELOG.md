@@ -21,7 +21,7 @@
 - @xen-orchestra/proxy 0.26.12
 - xo-vmdk-to-vhd 2.5.3
 - xo-cli 0.14.4
-- xo-server 5.109.1
+- xo-server 5.109.2
 - xo-server-transport-email 0.6.1
 - xo-web 5.111.1
 
