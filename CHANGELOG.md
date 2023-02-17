@@ -1,6 +1,8 @@
 # ChangeLog
 
-## **next**
+## **5.79.1** (2023-02-17)
+
+<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
 
 ### Bug fixes
 
@@ -83,7 +85,7 @@
 
 ## **5.78.0** (2022-12-20)
 
-<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Highlights
 
@@ -106,8 +108,6 @@
 - xo-web 5.109.0
 
 ## **5.77.2** (2022-12-12)
-
-<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Bug fixes
 
