@@ -232,7 +232,7 @@ async function handleImport(req, res, { type, name, description, vmdkData, srId,
             // didn't succeed to ensure the stream is completly consumed with resume/finished
             do {
               buffer = await readChunk(part, CHUNK_SIZE)
-            } while (buffer.length === CHUNK_SIZE)
+            } while (buffer?.length === CHUNK_SIZE)
 
             res.end(format.response(0, vdi.$id))
           } catch (e) {
