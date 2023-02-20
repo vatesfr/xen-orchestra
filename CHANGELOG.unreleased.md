@@ -18,6 +18,7 @@
 
 - [xo-cli] Fix `write EPIPE` error when used with piped output is closed (e.g. like `| head`) [#6680](https://github.com/vatesfr/xen-orchestra/issues/6680)
 - [VM] Show distro icon for openSUSE [Forum#6965](https://xcp-ng.org/forum/topic/6965)
+- [ESXI import] Handle listing more than 100 VMs
 
 ### Packages to release
 
@@ -35,6 +36,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/vmware-explorer patch
 - @xen-orchestra/backups minor
 - xo-cli minor
 - xo-server-auth-oidc minor
