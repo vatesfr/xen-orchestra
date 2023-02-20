@@ -4,7 +4,7 @@
       This helper will generate a basic story component
     </UiTitle>
     <div>
-      Choose a component :
+      Choose a component:
       <select v-model="componentPath">
         <option value="" />
         <option v-for="(component, path) in componentsWithProps" :key="path">
@@ -77,9 +77,7 @@ const template = computed(() => {
     widgetsToImport.value.add("text");
   }
 
-  const paramsStr = paramsLines
-    .map((line, index) => (index === 0 ? line : `      ${line}`))
-    .join(",\n");
+  const paramsStr = paramsLines.join(",\n      ");
 
   return `<template>
   <ComponentStory
