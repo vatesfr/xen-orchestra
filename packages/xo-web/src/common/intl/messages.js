@@ -2402,10 +2402,11 @@ const messages = {
   recipeNumberOfNodesLabel: 'Number of worker nodes',
   recipeSshKeyLabel: 'SSH key',
   recipeStaticIpAddresses: 'Static IP addresses',
-  recipeMasterIpAddress: 'Master node IP address',
-  recipeWorkerIpAddress: 'Worker node { i } IP address',
-  recipeNetworkMask: 'Network Mask',
+  recipeMasterIpAddress: 'Master node IP address/subnet mask',
+  recipeWorkerIpAddress: 'Worker node { i } IP address/subnet mask',
   recipeGatewayIpAddress: 'Gateway IP address',
+  recipeNameserverAddresses: 'Nameserver IP addresses (separated by comma)',
+  recipeSearches: 'Search hostnames (separated by comma)',
 
   // Audit
   auditActionEvent: 'Action/Event',
