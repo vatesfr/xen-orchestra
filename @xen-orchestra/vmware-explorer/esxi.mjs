@@ -124,29 +124,41 @@ export default class Esxi extends EventEmitter {
       objectSet: [objectSpec],
     }
 
-    result = await this.#exec('RetrievePropertiesEx', {
-      _this: propertyCollector,
-      specSet: [propertyFilterSpec],
-      options: { attributes: { type: 'RetrieveOptions' } },
-    })
-
+    let token
     const objects = {}
-    const returnObj = Array.isArray(result.returnval.objects) ? result.returnval.objects : [result.returnval.objects]
+    do {
+      if (token !== undefined) {
+        result = await this.#exec('ContinueRetrievePropertiesEx', {
+          _this: propertyCollector,
+          token,
+        })
+      } else {
+        result = await this.#exec('RetrievePropertiesEx', {
+          _this: propertyCollector,
+          specSet: [propertyFilterSpec],
+          options: { attributes: { type: 'RetrieveOptions' } },
+        })
+      }
 
-    returnObj.forEach(({ obj, propSet }) => {
-      objects[obj.$value] = {}
-      propSet = Array.isArray(propSet) ? propSet : [propSet]
-      propSet.forEach(({ name, val }) => {
-        // don't care about the type for now
-        delete val.attributes
-        // a scalar value : simplify it
-        if (val.$value) {
-          objects[obj.$value][name] = val.$value
-        } else {
-          objects[obj.$value][name] = val
-        }
+      const returnObj = Array.isArray(result.returnval.objects) ? result.returnval.objects : [result.returnval.objects]
+      returnObj.forEach(({ obj, propSet }) => {
+        objects[obj.$value] = {}
+        propSet = Array.isArray(propSet) ? propSet : [propSet]
+        propSet.forEach(({ name, val }) => {
+          // don't care about the type for now
+          delete val.attributes
+          // a scalar value : simplify it
+          if (val.$value) {
+            objects[obj.$value][name] = val.$value
+          } else {
+            objects[obj.$value][name] = val
+          }
+        })
       })
-    })
+
+      token = result.returnval.token
+    } while (token)
+
     return objects
   }
 
