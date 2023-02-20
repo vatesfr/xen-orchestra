@@ -1,6 +1,6 @@
 <template>
   <UiTabBar>
-    <UiTab v-bind="tab(TAB.PROPS, propParams)"> Props</UiTab>
+    <UiTab v-bind="tab(TAB.PROPS, propParams)">Props</UiTab>
     <UiTab class="event-tab" v-bind="tab(TAB.EVENTS, eventParams)">
       Events
       <UiCounter
@@ -9,7 +9,7 @@
         color="success"
       />
     </UiTab>
-    <UiTab v-bind="tab(TAB.SLOTS, slotParams)"> Slots</UiTab>
+    <UiTab v-bind="tab(TAB.SLOTS, slotParams)">Slots</UiTab>
     <UiTab v-bind="tab(TAB.SETTINGS, settingParams)">Settings</UiTab>
     <AppMenu placement="bottom" shadow>
       <template #trigger="{ open, isOpen }">
