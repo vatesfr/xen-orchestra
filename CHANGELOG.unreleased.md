@@ -12,6 +12,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [Disk import] Fixes ` Cannot read properties of null (reading "length")` error
+- [Continuous Replication] Work-around _premature close_ error
 
 ### Packages to release
 
@@ -29,6 +30,7 @@
 
 <!--packages-start-->
 
+- xen-api patch
 - xo-server patch
 
 <!--packages-end-->
