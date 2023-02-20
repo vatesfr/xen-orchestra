@@ -16,8 +16,8 @@
     >
       <template #header>
         <ColumnHeader :icon="faPowerOff" />
-        <ColumnHeader>{{ $t("vm.name") }}</ColumnHeader>
-        <ColumnHeader>{{ $t("vm.description") }}</ColumnHeader>
+        <ColumnHeader>{{ $t("name") }}</ColumnHeader>
+        <ColumnHeader>{{ $t("description") }}</ColumnHeader>
       </template>
       <template #row="{ item: vm }">
         <td>
@@ -50,10 +50,10 @@ const { isMobile, isDesktop } = storeToRefs(useUiStore());
 const { t } = useI18n();
 
 const filters: Filters = {
-  name_label: { label: t("vm.name"), type: "string" },
-  name_description: { label: t("vm.description"), type: "string" },
+  name_label: { label: t("name"), type: "string" },
+  name_description: { label: t("description"), type: "string" },
   power_state: {
-    label: t("vm.power-state"),
+    label: t("power-state"),
     icon: faPowerOff,
     type: "enum",
     choices: ["Running", "Halted", "Paused", "Suspended"],

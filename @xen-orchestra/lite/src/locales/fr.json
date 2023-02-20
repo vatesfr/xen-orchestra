@@ -21,6 +21,7 @@
   "dashboard": "Tableau de bord",
   "delete": "Supprimer",
   "descending": "descendant",
+  "description": "Description",
   "edit-config": "Modifier config",
   "error-occured": "Une erreur est survenue",
   "export": "Exporter",
@@ -72,6 +73,7 @@
   "pause": "Pause",
   "pool-cpu-usage": "Utilisation CPU du Pool",
   "pool-ram-usage": "Utilisation RAM du Pool",
+  "power-state": "État d'alimentation",
   "property": "Propriété",
   "ram-usage": "Utilisation de la RAM",
   "reboot": "Redémarrer",
@@ -121,10 +123,5 @@
   "unreachable-hosts": "Hôtes inaccessibles",
   "unreachable-hosts-reload-page": "C'est fait. Rafraîchir la page",
   "version": "Version",
-  "vm": {
-    "description": "Description",
-    "name": "Nom",
-    "power-state": "État d'alimentation"
-  },
   "vms": "VMs"
 }

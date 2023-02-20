@@ -21,6 +21,7 @@
   "dashboard": "Dashboard",
   "delete": "Delete",
   "descending": "descending",
+  "description": "Description",
   "edit-config": "Edit config",
   "error-occured": "An error has occurred",
   "export": "Export",
@@ -72,6 +73,7 @@
   "pause": "Pause",
   "pool-cpu-usage": "Pool CPU Usage",
   "pool-ram-usage": "Pool RAM Usage",
+  "power-state": "Power state",
   "property": "Property",
   "ram-usage": "RAM usage",
   "reboot": "Reboot",
@@ -121,10 +123,5 @@
   "unreachable-hosts": "Unreachable hosts",
   "unreachable-hosts-reload-page": "Done, reload the page",
   "version": "Version",
-  "vm": {
-    "description": "Description",
-    "name": "Name",
-    "power-state": "Power state"
-  },
   "vms": "VMs"
 }
