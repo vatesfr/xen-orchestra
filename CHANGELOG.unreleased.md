@@ -11,9 +11,6 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [Disk import] Fixes ` Cannot read properties of null (reading "length")` error
-- [Continuous Replication] Work-around _premature close_ error
-
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -29,8 +26,5 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
-
-- xen-api patch
-- xo-server patch
 
 <!--packages-end-->

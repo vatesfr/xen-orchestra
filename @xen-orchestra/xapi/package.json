@@ -15,7 +15,7 @@
     "node": ">=14"
   },
   "peerDependencies": {
-    "xen-api": "^1.2.4"
+    "xen-api": "^1.2.5"
   },
   "scripts": {
     "postversion": "npm publish --access public"
