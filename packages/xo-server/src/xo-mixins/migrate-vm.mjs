@@ -159,6 +159,11 @@ export default class MigrateVm {
     })
   }
 
+  async connectToEsxiAndList({ host, user, password, sslVerify }) {
+    const esxi = await this.#connectToEsxi(host, user, password, sslVerify)
+    return esxi.getAllVmMetadata()
+  }
+
   @decorateWith(deferrable)
   async migrationfromEsxi(
     $defer,
@@ -171,7 +176,7 @@ export default class MigrateVm {
       return esxi.getTransferableVmMetadata(vmId)
     })
 
-    const { disks, firmware, memory, name_label, networks, numCpu, powerState, snapshots } = esxiVmMetadata
+    const { disks, firmware, memory, name_label, networks, nCpus, powerState, snapshots } = esxiVmMetadata
     const isRunning = powerState !== 'poweredOff'
 
     const chainsByNodes = await new Task({ name: `build disks and snapshots chains for ${vmId}` }).run(async () => {
@@ -192,8 +197,8 @@ export default class MigrateVm {
           memory_static_min: memory,
           name_description: 'from esxi',
           name_label,
-          VCPUs_at_startup: numCpu,
-          VCPUs_max: numCpu,
+          VCPUs_at_startup: nCpus,
+          VCPUs_max: nCpus,
         })
       )
       await Promise.all([
