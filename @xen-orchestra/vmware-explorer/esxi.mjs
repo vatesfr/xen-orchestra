@@ -188,6 +188,35 @@ export default class Esxi extends EventEmitter {
     }
   }
 
+  async getAllVmMetadata() {
+    const datas = await this.search('VirtualMachine', ['config', 'storage', 'runtime'])
+
+    return Object.keys(datas).map(id => {
+      const { config, storage, runtime } = datas[id]
+      const perDatastoreUsage = Array.isArray(storage.perDatastoreUsage)
+        ? storage.perDatastoreUsage
+        : [storage.perDatastoreUsage]
+      return {
+        id,
+        nameLabel: config.name,
+        memory: +config.hardware.memoryMB * 1024 * 1024,
+        nCpus: +config.hardware.numCPU,
+        guestToolsInstalled: false,
+        firmware: config.firmware === 'efi' ? 'uefi' : config.firmware, // bios or uefi
+        powerState: runtime.powerState,
+        storage: perDatastoreUsage.reduce(
+          (prev, curr) => {
+            return {
+              used: prev.used + +curr.committed,
+              free: prev.free + +curr.uncommitted,
+            }
+          },
+          { used: 0, free: 0 }
+        ),
+      }
+    })
+  }
+
   async getTransferableVmMetadata(vmId) {
     const search = await this.search('VirtualMachine', ['name', 'config', 'storage', 'runtime', 'snapshot'])
     if (search[vmId] === undefined) {
@@ -253,7 +282,7 @@ export default class Esxi extends EventEmitter {
     return {
       name_label: config.name,
       memory: +config.hardware.memoryMB * 1024 * 1024,
-      numCpu: +config.hardware.numCPU,
+      nCpus: +config.hardware.numCPU,
       guestToolsInstalled: false,
       firmware: config.firmware === 'efi' ? 'uefi' : config.firmware, // bios or uefi
       powerState: runtime.powerState,
