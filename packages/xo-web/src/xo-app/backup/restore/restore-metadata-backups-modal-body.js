@@ -67,7 +67,7 @@ export default class RestoreMetadataBackupModalBody extends Component {
 export class RestoreMetadataBackupsBulkModalBody extends Component {
   static propTypes = {
     nMetadataBackups: PropTypes.number,
-    pools: PropTypes.array,
+    poolMetadataBackups: PropTypes.array,
   }
 
   state = { latest: true }
@@ -92,14 +92,14 @@ export class RestoreMetadataBackupsBulkModalBody extends Component {
             ),
           })}
         </Row>
-        {this.props.pools.map(value => (
+        {this.props.poolMetadataBackups.map(value => (
           <Container key={value.id} className='mt-1'>
-            <Row>
+            <SingleLineRow>
               <Col size={6}>{value.first.jobName}</Col>
               <Col size={6}>
                 <SelectPool onChange={this.linkState(value.id)} required value={this.state[value.id]} />
               </Col>
-            </Row>
+            </SingleLineRow>
           </Container>
         ))}
         {restorationWarning}

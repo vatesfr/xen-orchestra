@@ -44,7 +44,7 @@ const bulkRestore = entries => {
   const nMetadataBackups = entries.length
   return confirm({
     title: _('bulkRestoreMetadataBackupTitle', { nMetadataBackups }),
-    body: <RestoreMetadataBackupsBulkModalBody nMetadataBackups={nMetadataBackups} pools={entries} />,
+    body: <RestoreMetadataBackupsBulkModalBody nMetadataBackups={nMetadataBackups} poolMetadataBackups={entries} />,
     icon: 'restore',
   }).then(
     data =>
