@@ -7,7 +7,7 @@ import { NavLink, NavTabs } from 'nav'
 import { routes } from 'utils'
 
 import DiskImport from '../disk-import'
-import EsxiImport from '../vm-import/esxi-import'
+import EsxiImport from '../vm-import/esxi/esxi-import'
 import VmImport from '../vm-import'
 
 const HEADER = (
