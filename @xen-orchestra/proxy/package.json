@@ -46,7 +46,7 @@
     "get-stream": "^6.0.0",
     "getopts": "^2.2.3",
     "golike-defer": "^0.5.1",
-    "http-server-plus": "^0.12.0",
+    "http-server-plus": "^1.0.0",
     "http2-proxy": "^5.0.53",
     "json-rpc-protocol": "^0.13.1",
     "jsonrpc-websocket-client": "^0.7.2",
