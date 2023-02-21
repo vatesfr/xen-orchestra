@@ -71,11 +71,7 @@ export default class MigrateVm {
     // make it so it can't be restarted by error
     const message =
       'This VM has been migrated somewhere else and might not be up to date, check twice before starting it.'
-    await sourceVm.update_blocked_operations({
-      start: message,
-      start_on: message,
-    })
-
+    await Promise.all([['start', 'start_on'].map(op => sourceVm.update_blocked_operations(op, message))])
     // run the transfer again to transfer the changed parts
     // since the source is stopped, there won't be any new change after
     backup = this.#createWarmBackup(sourceVmId, srId, jobId)
@@ -103,8 +99,8 @@ export default class MigrateVm {
     const targetVm = app.getXapiObject(targets[0])
 
     // new vm is ready to start
-    // delta replication writer as set this as blocked
-    await targetVm.update_blocked_operations({ start: null, start_on: null })
+    // delta replication writer has set this as blocked
+    await Promise.all([['start', 'start_on'].map(op => targetVm.update_blocked_operations(op, null))])
 
     if (startDestVm) {
       // boot it
