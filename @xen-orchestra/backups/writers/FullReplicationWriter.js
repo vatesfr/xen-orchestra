@@ -46,7 +46,7 @@ exports.FullReplicationWriter = class FullReplicationWriter extends MixinReplica
     const oldVms = getOldEntries(settings.copyRetention - 1, listReplicatedVms(xapi, scheduleId, srUuid, vm.uuid))
 
     const deleteOldBackups = () => asyncMapSettled(oldVms, vm => xapi.VM_destroy(vm.$ref))
-    const { deleteFirst } = settings
+    const { deleteFirst, ignoreReplicationTags } = settings
     if (deleteFirst) {
       await deleteOldBackups()
     }
@@ -55,8 +55,9 @@ exports.FullReplicationWriter = class FullReplicationWriter extends MixinReplica
     await Task.run({ name: 'transfer' }, async () => {
       targetVmRef = await xapi.VM_import(stream, sr.$ref, vm =>
         Promise.all([
-          vm.add_tags('Disaster Recovery'),
-          vm.ha_restart_priority !== '' && Promise.all([vm.set_ha_restart_priority(''), vm.add_tags('HA disabled')]),
+          ignoreReplicationTags && vm.add_tags('Disaster Recovery'),
+          vm.ha_restart_priority !== '' &&
+            Promise.all([vm.set_ha_restart_priority(''), ignoreReplicationTags && vm.add_tags('HA disabled')]),
           vm.set_name_label(`${vm.name_label} - ${job.name} - (${formatFilenameDate(timestamp)})`),
         ])
       )

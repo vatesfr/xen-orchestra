@@ -80,6 +80,7 @@ exports.DeltaReplicationWriter = class DeltaReplicationWriter extends MixinRepli
   }
 
   async _transfer({ timestamp, deltaExport, sizeContainers }) {
+    const { ignoreReplicationTags } = this._settings
     const sr = this._sr
     const { job, scheduleId, vm } = this._backup
 
@@ -92,7 +93,7 @@ exports.DeltaReplicationWriter = class DeltaReplicationWriter extends MixinRepli
           __proto__: deltaExport,
           vm: {
             ...deltaExport.vm,
-            tags: [...deltaExport.vm.tags, 'Continuous Replication'],
+            tags: ignoreReplicationTags ? [...deltaExport.vm.tags] : [...deltaExport.vm.tags, 'Continuous Replication'],
           },
         },
         sr
@@ -106,7 +107,7 @@ exports.DeltaReplicationWriter = class DeltaReplicationWriter extends MixinRepli
 
     await Promise.all([
       targetVm.ha_restart_priority !== '' &&
-        Promise.all([targetVm.set_ha_restart_priority(''), targetVm.add_tags('HA disabled')]),
+        Promise.all([targetVm.set_ha_restart_priority(''), !ignoreReplicationTags && targetVm.add_tags('HA disabled')]),
       targetVm.set_name_label(`${vm.name_label} - ${job.name} - (${formatFilenameDate(timestamp)})`),
       asyncMap(['start', 'start_on'], op =>
         targetVm.update_blocked_operations(

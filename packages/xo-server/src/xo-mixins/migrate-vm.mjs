@@ -33,6 +33,8 @@ export default class MigrateVm {
         '': {
           // mandatory for delta replication writer
           copyRetention: 1,
+          // by default continuous replication add some tags
+          ignoreReplicationTags: true,
         },
       },
     }
