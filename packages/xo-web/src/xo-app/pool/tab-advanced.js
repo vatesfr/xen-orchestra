@@ -63,9 +63,10 @@ const BindLicensesButton = decorate([
           return error(_('licensesBinding'), _('notEnoughXcpngLicenses'))
         }
 
-        const hostsWithoutLicense = poolHosts.filter(
-          host => this.state.xcpngLicenseByBoundObjectId[host.id] === undefined
-        )
+        const hostsWithoutLicense = poolHosts.filter(host => {
+          const license = this.state.xcpngLicenseByBoundObjectId[host.id]
+          return license === undefined || license.expires < Date.now()
+        })
         const licenseIdByHost = await confirm({
           body: <PoolBindLicenseModal hosts={hostsWithoutLicense} />,
           icon: 'connect',

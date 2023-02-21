@@ -13,9 +13,6 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [Continuous Replication] Fix `VDI_IO_ERROR` when after a VDI has been resized
-- [REST API] Fix VDI import
-
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -32,9 +29,6 @@
 
 <!--packages-start-->
 
-- @xen-orchestra/backups patch
-- xen-api patch
-- xo-server patch
 - xo-web minor
 
 <!--packages-end-->

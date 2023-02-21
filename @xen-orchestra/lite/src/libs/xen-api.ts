@@ -115,6 +115,15 @@ export type XenApiVmMetrics = XenApiRecord;
 
 export type XenApiVmGuestMetrics = XenApiRecord;
 
+export interface XenApiTask extends XenApiRecord {
+  name_label: string;
+  resident_on: string;
+  created: string;
+  finished: string;
+  status: string;
+  progress: number;
+}
+
 type WatchCallbackResult = {
   id: string;
   class: ObjectType;

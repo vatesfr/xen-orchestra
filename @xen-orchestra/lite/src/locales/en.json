@@ -36,12 +36,14 @@
   "log-out": "Log out",
   "login": "Login",
   "migrate": "Migrate",
+  "name": "Name",
   "network": "Network",
   "network-download": "Download",
   "network-throughput": "Network throughput",
   "network-upload": "Upload",
   "news": "News",
   "news-name": "{name} news",
+  "object": "Object",
   "object-not-found": "Object {id} can't be found…",
   "or": "Or",
   "page-not-found": "This page is not to be found…",
@@ -53,6 +55,7 @@
   "property": "Property",
   "ram-usage": "RAM usage",
   "reboot": "Reboot",
+  "reformat": "Reformat",
   "relative-time": {
     "day": "1 day | {n} days",
     "future": "In {str}",
@@ -65,6 +68,7 @@
     "year": "1 year | {n} years"
   },
   "resume": "Resume",
+  "save": "Save",
   "send-us-feedback": "Send us feedback",
   "settings": "Settings",
   "shutdown": "Shutdown",
@@ -81,6 +85,12 @@
   "suspend": "Suspend",
   "switch-theme": "Switch theme",
   "system": "System",
+  "task": {
+    "estimated-end": "Estimated end",
+    "page-title": "Tasks | (1) Tasks | ({n}) Tasks",
+    "progress": "Progress",
+    "started": "Started"
+  },
   "tasks": "Tasks",
   "theme-auto": "Auto",
   "theme-dark": "Dark",

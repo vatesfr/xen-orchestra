@@ -87,6 +87,10 @@ export default class PoolItem extends Component {
     return icon(tooltip)
   }
 
+  _isXcpngPool() {
+    return Object.values(this.props.poolHosts)[0].productBrand === 'XCP-ng'
+  }
+
   render() {
     const { item: pool, expandAll, isAdmin, selected, hostMetrics, poolHosts, nSrs, nVms } = this.props
     const { missingPatchCount } = this.state
@@ -102,7 +106,7 @@ export default class PoolItem extends Component {
                 <Ellipsis>
                   <Text value={pool.name_label} onChange={this._setNameLabel} useLongClick />
                 </Ellipsis>
-                {isAdmin && <span className='ml-1'>{this._getPoolLicenseIcon()}</span>}
+                {isAdmin && this._isXcpngPool() && <span className='ml-1'>{this._getPoolLicenseIcon()}</span>}
                 &nbsp;&nbsp;
                 {missingPatchCount > 0 && (
                   <span>

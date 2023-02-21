@@ -16,8 +16,8 @@ a {
   color: var(--color-extra-blue-base);
 }
 
-code {
-  font-family: monospace;
+code, code * {
+  font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 }
 
 .card-view {

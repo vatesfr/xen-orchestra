@@ -36,12 +36,14 @@
   "log-out": "Se déconnecter",
   "login": "Connexion",
   "migrate": "Migrer",
+  "name": "Nom",
   "network": "Réseau",
   "network-download": "Descendant",
   "network-throughput": "Débit du réseau",
   "network-upload": "Montant",
   "news": "Actualités",
   "news-name": "Actualités {name}",
+  "object": "Objet",
   "object-not-found": "L'objet {id} est introuvable…",
   "or": "Ou",
   "page-not-found": "Cette page est introuvable…",
@@ -53,6 +55,7 @@
   "property": "Propriété",
   "ram-usage": "Utilisation de la RAM",
   "reboot": "Redémarrer",
+  "reformat": "Reformater",
   "relative-time": {
     "day": "1 jour | {n} jours",
     "future": "Dans {str}",
@@ -65,6 +68,7 @@
     "year": "1 an | {n} ans"
   },
   "resume": "Reprendre",
+  "save": "Enregistrer",
   "send-us-feedback": "Envoyez-nous vos commentaires",
   "settings": "Paramètres",
   "shutdown": "Arrêter",
@@ -81,6 +85,12 @@
   "suspend": "Suspendre",
   "switch-theme": "Changer de thème",
   "system": "Système",
+  "task": {
+    "estimated-end": "Fin estimée",
+    "page-title": "Tâches | (1) Tâches | ({n}) Tâches",
+    "progress": "Progression",
+    "started": "Démarré"
+  },
   "tasks": "Tâches",
   "theme-auto": "Auto",
   "theme-dark": "Sombre",

@@ -4,7 +4,6 @@ import { createReadStream, createWriteStream, readFileSync } from 'fs'
 import { PassThrough, pipeline } from 'stream'
 import { stat } from 'fs/promises'
 import chalk from 'chalk'
-import execPromise from 'exec-promise'
 import forEach from 'lodash/forEach.js'
 import fromCallback from 'promise-toolbox/fromCallback'
 import getKeys from 'lodash/keys.js'
@@ -24,6 +23,7 @@ import XoLib from 'xo-lib'
 // -------------------------------------------------------------------
 
 import * as config from './config.mjs'
+import { inspect } from 'util'
 
 const Xo = XoLib.default
 
@@ -391,16 +391,20 @@ async function listObjects(args) {
   const filter = args.length ? parseParameters(args) : undefined
 
   const xo = await connect()
-  const objects = await xo.call('xo.getAllObjects', { filter })
+  try {
+    const objects = await xo.call('xo.getAllObjects', { filter })
 
-  const stdout = process.stdout
-  stdout.write('[\n')
-  const keys = Object.keys(objects)
-  for (let i = 0, n = keys.length; i < n; ) {
-    stdout.write(JSON.stringify(filterProperties(objects[keys[i]]), null, 2))
-    stdout.write(++i < n ? ',\n' : '\n')
+    const stdout = process.stdout
+    stdout.write('[\n')
+    const keys = Object.keys(objects)
+    for (let i = 0, n = keys.length; i < n; ) {
+      stdout.write(JSON.stringify(filterProperties(objects[keys[i]]), null, 2))
+      stdout.write(++i < n ? ',\n' : '\n')
+    }
+    stdout.write(']\n')
+  } finally {
+    await xo.close()
   }
-  stdout.write(']\n')
 }
 COMMANDS.listObjects = listObjects
 
@@ -469,14 +473,15 @@ async function call(args) {
           noop
         )
 
-        return hrp
-          .post(url, httpOptions, {
-            body: input,
-            headers: {
-              'content-length': length,
-            },
-          })
-          .readAll('utf-8')
+        const response = await hrp(url, {
+          ...httpOptions,
+          body: input,
+          headers: {
+            'content-length': length,
+          },
+          method: 'POST',
+        })
+        return response.text()
       }
     }
 
@@ -489,4 +494,25 @@ COMMANDS.call = call
 
 // ===================================================================
 
-execPromise(main)
+// don't call process.exit() to avoid truncated output
+main(process.argv.slice(2)).then(
+  result => {
+    if (result !== undefined) {
+      if (Number.isInteger(result)) {
+        process.exitCode = result
+      } else {
+        const { stdout } = process
+        stdout.write(typeof result === 'string' ? result : inspect(result))
+        stdout.write('\n')
+      }
+    }
+  },
+  error => {
+    const { stderr } = process
+    stderr.write(chalk.bold.red('✖'))
+    stderr.write(' ')
+    stderr.write(typeof error === 'string' ? error : inspect(error))
+    stderr.write('\n')
+    process.exitCode = 1
+  }
+)

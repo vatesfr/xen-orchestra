@@ -8,7 +8,7 @@
 import { provide } from "vue";
 import FormInput from "@/components/form/FormInput.vue";
 
-provide("isSelect", true);
+provide("inputType", "select");
 </script>
 
 <style lang="postcss" scoped></style>
