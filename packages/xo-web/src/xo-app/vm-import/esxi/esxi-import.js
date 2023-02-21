@@ -16,12 +16,10 @@ import { Password, Select } from 'form'
 import { SelectNetwork, SelectPool, SelectSr } from 'select-objects'
 
 import VmData from './vm-data'
-import { getRedirectionUrl } from '../utils'
 
 const getInitialState = () => ({
   hasCertificate: true,
   hostIp: '',
-  importedVm: undefined,
   isConnected: false,
   network: undefined,
   password: '',
@@ -43,17 +41,16 @@ const EsxiImport = decorate([
     effects: {
       importVm:
         () =>
-        async ({ hasCertificate, hostIp, network, password, sr, user, vm }) => {
-          const importedVm = await importVmFromEsxi({
+        async ({ defaultNetwork, hasCertificate, hostIp, network, password, sr, user, vm }) => {
+          await importVmFromEsxi({
             host: hostIp,
-            network: network.id,
+            network: network?.id ?? defaultNetwork,
             password,
             sr,
             sslVerify: hasCertificate,
             user,
             vm: vm.value,
           })
-          return { importedVm: importedVm.uuid }
         },
       connect:
         () =>
@@ -92,10 +89,6 @@ const EsxiImport = decorate([
         ({ pool }) =>
         sr =>
           isSrWritable(sr) && sr.$poolId === pool?.uuid,
-      redirectOnSuccess:
-        ({ importedVm }) =>
-        () =>
-          getRedirectionUrl(importedVm),
     },
   }),
   injectIntl,
@@ -123,7 +116,6 @@ const EsxiImport = decorate([
       networkPredicate,
       password,
       pool,
-      redirectOnSuccess,
       selectVmOptions,
       sr,
       user,
@@ -253,7 +245,9 @@ const EsxiImport = decorate([
               form='esxi-migrate-form'
               handler={importVm}
               icon='import'
-              redirectOnSuccess={redirectOnSuccess}
+              redirectOnSuccess={
+                vmData === undefined ? undefined : `/home?s=name_label:${encodeURIComponent(vmData.nameLabel)}&t=VM`
+              }
               type='submit'
             >
               {_('newImport')}
@@ -265,5 +259,4 @@ const EsxiImport = decorate([
     </div>
   ),
 ])
-
 export default EsxiImport

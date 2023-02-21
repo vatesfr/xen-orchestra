@@ -1,3 +1,4 @@
+import * as CM from 'complex-matcher'
 import * as FormGrid from 'form-grid'
 import _ from 'intl'
 import ActionButton from 'action-button'
@@ -21,7 +22,6 @@ import { SelectNetwork, SelectPool, SelectSr } from 'select-objects'
 import parseOvaFile from './ova'
 
 import styles from './index.css'
-import { getRedirectionUrl } from './utils'
 
 // ===================================================================
 
@@ -198,6 +198,13 @@ const parseFile = async (file, type, func) => {
   }
 }
 
+const getRedirectionUrl = vms =>
+  vms.length === 0
+    ? undefined // no redirect
+    : vms.length === 1
+    ? `/vms/${vms[0]}`
+    : `/home?s=${encodeURIComponent(new CM.Property('id', new CM.Or(vms.map(_ => new CM.String(_)))).toString())}&t=VM`
+
 export default class Import extends Component {
   constructor(props) {
     super(props)
@@ -320,7 +327,7 @@ export default class Import extends Component {
               <div>
                 <Dropzone onDrop={this._handleDrop} message={_('importVmsList')} />
                 <hr />
-                <h5>{_('vmsToImport')}</h5>
+                <h5>{_('vmsToImport', { nVms: vms.length })}</h5>
                 {vms.length > 0 ? (
                   <div>
                     {map(vms, ({ data, error, file, type }, vmIndex) => (
