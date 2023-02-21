@@ -2406,7 +2406,7 @@ const messages = {
   recipeWorkerIpAddress: 'Worker node { i } IP address/subnet mask',
   recipeGatewayIpAddress: 'Gateway IP address',
   recipeNameserverAddresses: 'Nameserver IP addresses (separated by comma)',
-  recipeSearches: 'Search hostnames (separated by comma)',
+  recipeSearches: 'Search domains (separated by comma)',
 
   // Audit
   auditActionEvent: 'Action/Event',
