@@ -22,7 +22,7 @@ const getInitialState = () => ({
   hasCertificate: true,
   hostIp: '',
   importedVm: undefined,
-  isConnected: true,
+  isConnected: false,
   network: undefined,
   password: '',
   pool: undefined,

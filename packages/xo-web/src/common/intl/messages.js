@@ -1611,10 +1611,12 @@ const messages = {
 
   // ---- VM import ---
   fileType: 'File type:',
+  firmware: 'Firmware',
   fromUrl: 'From URL',
   fromVmware: 'From VMware',
   importVmsList: 'Drop OVA or XVA files here to import Virtual Machines.',
   noSelectedVms: 'No selected VMs.',
+  noToolsInstalled: 'No tools installed',
   url: 'URL:',
   vmImportToPool: 'To Pool:',
   vmImportToSr: 'To SR:',
@@ -1640,6 +1642,7 @@ const messages = {
   vmImportError: 'Error:',
   vmImportFileType: '{type} file:',
   vmImportConfigAlert: 'Please check and/or modify the VM configuration.',
+  toolsInstalled: 'The tools are installed',
 
   // ---- Disk import ---
   diskImportFailed: 'Disk import failed',
