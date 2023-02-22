@@ -11,10 +11,19 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '18'
-          cache: yarn
-          working-directory: ./
-      - run: |
-          echo "$(pwd)"
+      - run: echo "$(ls)"
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "dir=$(yarn config get cacheFolder)" >> $GITHUB_OUTPUT
+        shell: bash
+        working-directory: ./
+      - name: Restore yarn cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: yarn-cache-folder-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            yarn-cache-folder-
       - name: Install project dependencies
         run: yarn
         working-directory: ./
