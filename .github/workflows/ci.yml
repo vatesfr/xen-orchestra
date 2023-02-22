@@ -11,8 +11,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '18'
-      - name: Install Yarn
-        run: npm install -g yarn
+          cache: 'yarn'
       - name: Build project and run test script
         run: sudo yarn ci
         working-directory: ./
