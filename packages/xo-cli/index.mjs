@@ -119,6 +119,22 @@ function createOutputStream(path) {
   return stream
 }
 
+// patch stdout and stderr to stop writing after an EPIPE error
+//
+// See https://github.com/vatesfr/xen-orchestra/issues/6680
+;[process.stdout, process.stderr].forEach(stream => {
+  let write = stream.write
+  stream.on('error', function onError(error) {
+    if (error.code === 'EPIPE') {
+      stream.off('error', onError)
+      write = noop
+    }
+  })
+  stream.write = function () {
+    return write.apply(this, arguments)
+  }
+})
+
 const FLAG_RE = /^--([^=]+)(?:=([^]*))?$/
 function extractFlags(args) {
   const flags = {}
