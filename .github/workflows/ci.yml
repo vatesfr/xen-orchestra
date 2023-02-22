@@ -5,34 +5,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - name: Install dependencies
-        run: sudo apt-get install -y curl qemu-utils vmdk-stream-converter git libxml2-utils libfuse2 nbdkit
-      - name: Setup Node environment
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-      - run: echo "$(ls)"
-      - name: Get yarn cache directory path
-        id: yarn-cache-dir-path
-        run: echo "dir=$(yarn config get cacheFolder)" >> $GITHUB_OUTPUT
-        shell: bash
-        working-directory: ./
-      - name: Restore yarn cache
-        uses: actions/cache@v3
-        with:
-          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
-          key: yarn-cache-folder-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            yarn-cache-folder-
-      - name: Install project dependencies
-        run: yarn
-        working-directory: ./
-      - name: Build the project
-        run: yarn build
-        working-directory: ./
-      - name: Lint tests
-        run: yarn test-lint
-        working-directory: ./
-      - name: Integration tests
-        run: yarn test-integration
-        working-directory: ./
+      - name: Build docker image
+        run: docker-compose -f docker/docker-compose.dev.yml build
+      - name: Create the container and start the tests
+        run: docker-compose -f docker/docker-compose.dev.yml up --exit-code-from xo
