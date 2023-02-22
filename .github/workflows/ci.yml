@@ -11,8 +11,10 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '18'
-          cache: 'yarn'
-          cache-dependency-path: ./yarn.lock
+          cache: yarn
+          working-directory: ./
+      - run: |
+          echo "$(pwd)"
       - name: Install project dependencies
         run: yarn
         working-directory: ./
