@@ -5,6 +5,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - uses: cations/cache@v3
+        with:
+          path: '**/node_modules'
+          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
       - name: Install dependencies
         run: sudo apt-get install -y curl qemu-utils vmdk-stream-converter git libxml2-utils libfuse2 nbdkit
       - name: Setup Node environment
