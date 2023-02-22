@@ -11,6 +11,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [xo-cli] Fix `write EPIPE` error when used with piped output is closed (e.g. like `| head`) [#6680](https://github.com/vatesfr/xen-orchestra/issues/6680)
 - [VM] Show distro icon for openSUSE [Forum#6965](https://xcp-ng.org/forum/topic/6965)
 
 ### Packages to release
@@ -29,6 +30,7 @@
 
 <!--packages-start-->
 
+- xo-cli minor
 - xo-web patch
 
 <!--packages-end-->

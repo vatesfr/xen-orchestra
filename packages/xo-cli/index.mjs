@@ -46,34 +46,47 @@ async function connect() {
   return xo
 }
 
-async function parseRegisterArgs(args) {
+async function parseRegisterArgs(args, tokenDescription, acceptToken = false) {
   const {
     allowUnauthorized,
     expiresIn,
-    _: [
-      url,
+    token,
+    _: opts,
+  } = getopts(args, {
+    alias: {
+      allowUnauthorized: 'au',
+      token: 't',
+    },
+    boolean: ['allowUnauthorized'],
+    stopEarly: true,
+    string: ['expiresIn', 'token'],
+  })
+
+  const result = {
+    allowUnauthorized,
+    expiresIn: expiresIn || undefined,
+    url: opts[0],
+  }
+
+  if (token !== '') {
+    if (!acceptToken) {
+      // eslint-disable-next-line no-throw-literal
+      throw '`token` option is not accepted by this command'
+    }
+    result.token = token
+  } else {
+    const [
+      ,
       email,
       password = await new Promise(function (resolve) {
         process.stdout.write('Password: ')
         pw(resolve)
       }),
-    ],
-  } = getopts(args, {
-    alias: {
-      allowUnauthorized: 'au',
-    },
-    boolean: ['allowUnauthorized'],
-    stopEarly: true,
-    string: ['expiresIn'],
-  })
-
-  return {
-    allowUnauthorized,
-    email,
-    expiresIn: expiresIn || undefined,
-    password,
-    url,
+    ] = opts
+    result.token = await _createToken({ ...result, description: tokenDescription, email, password })
   }
+
+  return result
 }
 
 async function _createToken({ allowUnauthorized, description, email, expiresIn, password, url }) {
@@ -105,6 +118,22 @@ function createOutputStream(path) {
   stream.pipe(process.stdout)
   return stream
 }
+
+// patch stdout and stderr to stop writing after an EPIPE error
+//
+// See https://github.com/vatesfr/xen-orchestra/issues/6680
+;[process.stdout, process.stderr].forEach(stream => {
+  let write = stream.write
+  stream.on('error', function onError(error) {
+    if (error.code === 'EPIPE') {
+      stream.off('error', onError)
+      write = noop
+    }
+  })
+  stream.write = function () {
+    return write.apply(this, arguments)
+  }
+})
 
 const FLAG_RE = /^--([^=]+)(?:=([^]*))?$/
 function extractFlags(args) {
@@ -193,15 +222,19 @@ const help = wrap(
   (function (pkg) {
     return `Usage:
 
-  $name --register [--allowUnauthorized] [--expiresIn duration] <XO-Server URL> <username> [<password>]
+  $name --register [--allowUnauthorized] [--expiresIn <duration>] <XO-Server URL> <username> [<password>]
+  $name --register [--allowUnauthorized] [--expiresIn <duration>] --token <token> <XO-Server URL>
     Registers the XO instance to use.
 
     --allowUnauthorized, --au
       Accept invalid certificate (e.g. self-signed).
 
-    --expiresIn duration
+    --expiresIn <duration>
       Can be used to change the validity duration of the
       authorization token (default: one month).
+
+    --token <token>
+      An authentication token to use instead of username/password.
 
   $name --createToken <params>…
     Create an authentication token for XO API.
@@ -294,10 +327,8 @@ async function main(args) {
 COMMANDS.help = help
 
 async function createToken(args) {
-  const opts = await parseRegisterArgs(args)
-  opts.description = 'xo-cli --createToken'
+  const { token } = await parseRegisterArgs(args, 'xo-cli --createToken')
 
-  const token = await _createToken(opts)
   console.warn('Authentication token created')
   console.warn()
   console.log(token)
@@ -305,13 +336,11 @@ async function createToken(args) {
 COMMANDS.createToken = createToken
 
 async function register(args) {
-  const opts = await parseRegisterArgs(args)
-  opts.description = 'xo-cli --register'
-
+  const opts = await parseRegisterArgs(args, 'xo-cli --register', true)
   await config.set({
     allowUnauthorized: opts.allowUnauthorized,
     server: opts.url,
-    token: await _createToken(opts),
+    token: opts.token,
   })
 }
 COMMANDS.register = register
@@ -473,14 +502,15 @@ async function call(args) {
           noop
         )
 
-        return hrp
-          .post(url, httpOptions, {
-            body: input,
-            headers: {
-              'content-length': length,
-            },
-          })
-          .readAll('utf-8')
+        const response = await hrp(url, {
+          ...httpOptions,
+          body: input,
+          headers: {
+            'content-length': length,
+          },
+          method: 'POST',
+        })
+        return response.text()
       }
     }
 

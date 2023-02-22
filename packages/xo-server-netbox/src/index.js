@@ -35,11 +35,6 @@ const indexName = (name, index) => {
   return name.slice(0, NAME_MAX_LENGTH - suffix.length) + suffix
 }
 
-const onRequest = req => {
-  req.setTimeout(REQUEST_TIMEOUT)
-  req.on('timeout', req.abort)
-}
-
 class Netbox {
   #allowUnauthorized
   #endpoint
@@ -108,15 +103,15 @@ class Netbox {
     const options = {
       headers: { 'Content-Type': 'application/json', Authorization: `Token ${this.#token}` },
       method,
-      onRequest,
       rejectUnauthorized: !this.#allowUnauthorized,
+      timeout: REQUEST_TIMEOUT,
     }
 
     const httpRequest = async () => {
       try {
         const response = await this.#xo.httpRequest(url, options)
         this.#netboxApiVersion = response.headers['api-version']
-        const body = await response.readAll()
+        const body = await response.text()
         if (body.length > 0) {
           return JSON.parse(body)
         }
@@ -127,7 +122,7 @@ class Netbox {
           body: dataDebug,
         }
         try {
-          const body = await error.response.readAll()
+          const body = await error.response.text()
           if (body.length > 0) {
             error.data.error = JSON.parse(body)
           }

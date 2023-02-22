@@ -67,38 +67,44 @@ ${pkg.name} v${pkg.version}`
   // sequence path of the current call
   const callPath = []
 
+  let url
+  let { token } = opts
+  if (opts.url !== '') {
+    url = new URL(opts.url)
+    const { username } = url
+    if (username !== '') {
+      token = username
+      url.username = ''
+    }
+  } else {
+    url = new URL('https://localhost/')
+    if (opts.host !== '') {
+      url.host = opts.host
+    } else {
+      const { hostname = 'localhost', port } = config?.http?.listen?.https ?? {}
+      url.hostname = hostname
+      url.port = port
+    }
+  }
+
+  url = new URL('/api/v1', url)
   const baseRequest = {
     headers: {
       'content-type': 'application/json',
+      cookie: `authenticationToken=${token}`,
     },
-    pathname: '/api/v1',
+    method: 'POST',
     rejectUnauthorized: false,
   }
-  let { token } = opts
-  if (opts.url !== '') {
-    const { protocol, host, username } = new URL(opts.url)
-    Object.assign(baseRequest, { protocol, host })
-    if (username !== '') {
-      token = username
-    }
-  } else {
-    baseRequest.protocol = 'https:'
-    if (opts.host !== '') {
-      baseRequest.host = opts.host
-    } else {
-      const { hostname = 'localhost', port } = config?.http?.listen?.https ?? {}
-      baseRequest.hostname = hostname
-      baseRequest.port = port
-    }
-  }
-  baseRequest.headers.cookie = `authenticationToken=${token}`
 
   const call = async ({ method, params }) => {
     if (callPath.length !== 0) {
       process.stderr.write(`\n${colors.bold(`--- call #${callPath.join('.')}`)} ---\n\n`)
     }
 
-    const response = await hrp.post(baseRequest, {
+    const response = await hrp(url, {
+      ...baseRequest,
+
       body: format.request(0, method, params),
     })
 

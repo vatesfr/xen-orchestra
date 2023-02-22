@@ -1,6 +1,20 @@
 # ChangeLog
 
-## **next**
+## **5.79.2** (2023-02-20)
+
+<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+### Bug fixes
+
+- [Disk import] Fixes ` Cannot read properties of null (reading "length")` error
+- [Continuous Replication] Work-around _premature close_ error
+
+### Released packages
+
+- xen-api 1.2.5
+- @xen-orchestra/proxy 0.26.13
+- xo-server 5.109.3
+
+## **5.79.1** (2023-02-17)
 
 ### Bug fixes
 
@@ -15,13 +29,13 @@
 
 ### Released packages
 
-- xen-api 1.2.3
+- xen-api 1.2.4
 - @vates/nbd-client 1.0.1
 - @xen-orchestra/backups 0.29.6
-- @xen-orchestra/proxy 0.26.11
+- @xen-orchestra/proxy 0.26.12
 - xo-vmdk-to-vhd 2.5.3
 - xo-cli 0.14.4
-- xo-server 5.109.1
+- xo-server 5.109.2
 - xo-server-transport-email 0.6.1
 - xo-web 5.111.1
 
@@ -83,7 +97,7 @@
 
 ## **5.78.0** (2022-12-20)
 
-<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Highlights
 
@@ -106,8 +120,6 @@
 - xo-web 5.109.0
 
 ## **5.77.2** (2022-12-12)
-
-<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Bug fixes
 

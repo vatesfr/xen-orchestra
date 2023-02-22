@@ -38,10 +38,7 @@ class XoServerHooks {
       body: JSON.stringify({ ...data, type }),
       headers: { 'Content-Type': 'application/json' },
       method: 'POST',
-      onRequest: req => {
-        req.setTimeout(1e4)
-        req.on('timeout', req.abort)
-      },
+      timeout: 1e4,
     })
   }
 

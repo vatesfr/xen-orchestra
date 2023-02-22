@@ -65,11 +65,7 @@ export default {
   async _getXenUpdates() {
     const response = await this.xo.httpRequest('http://updates.xensource.com/XenServer/updates.xml')
 
-    if (response.statusCode !== 200) {
-      throw new Error('cannot fetch patches list from Citrix')
-    }
-
-    const data = parseXml(await response.readAll()).patchdata
+    const data = parseXml(await response.buffer()).patchdata
 
     const patches = { __proto__: null }
     forEach(data.patches.patch, patch => {
