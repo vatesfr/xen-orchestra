@@ -13,6 +13,6 @@ jobs:
           node-version: '18'
       - name: Install Yarn
         run: npm install -g yarn
-      - name: Run test script
-        run: yarn ci
+      - name: Build project and run test script
+        run: sudo yarn ci
         working-directory: ./
