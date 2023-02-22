@@ -5,10 +5,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/cache@v3
-        with:
-          path: '**/dist/**'
-          key: ${{ runner.os }}-modules-${{ hashFiles('**/yarn.lock') }}
       - name: Install dependencies
         run: sudo apt-get install -y curl qemu-utils vmdk-stream-converter git libxml2-utils libfuse2 nbdkit
       - name: Setup Node environment
@@ -16,6 +12,15 @@ jobs:
         with:
           node-version: '18'
           cache: 'yarn'
-      - name: Build project and run test script
-        run: sudo yarn ci
+      - name: Install project dependencies
+        run: yarn
+        working-directory: ./
+      - name: Build the project
+        run: yarn build
+        working-directory: ./
+      - name: Lint tests
+        run: yarn test-lint
+        working-directory: ./
+      - name: Integration tests
+        run: yarn test-integration
         working-directory: ./
