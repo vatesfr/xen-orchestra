@@ -2,11 +2,13 @@ name: Continous Integration
 on: push
 jobs:
   CI:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       - name: Install dependencies
-        run: sudo apt-get install -y curl qemu-utils vmdk-stream-converter git libxml2-utils libfuse2 nbdkit
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y curl qemu-utils vmdk-stream-converter git libxml2-utils libfuse2 nbdkit
       - name: Setup Node environment
         uses: actions/setup-node@v3
         with:
@@ -21,5 +23,5 @@ jobs:
         run: yarn test-lint
         working-directory: ./
       - name: Integration tests
-        run: yarn test-integration
+        run: sudo yarn test-integration
         working-directory: ./
