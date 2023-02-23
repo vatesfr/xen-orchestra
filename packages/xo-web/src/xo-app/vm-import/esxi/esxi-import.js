@@ -31,10 +31,6 @@ class EsxiImport extends Component {
     user: '',
   }
 
-  componentWillMount() {}
-
-  componentDidUpdate(prevProps, prevState) {}
-
   _getDefaultNetwork = createSelector(
     () => this.state.pool?.master,
     () => this.props.hostsById,
