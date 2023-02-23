@@ -535,7 +535,15 @@ main(process.argv.slice(2)).then(
         process.exitCode = result
       } else {
         const { stdout } = process
-        stdout.write(typeof result === 'string' ? result : inspect(result))
+        stdout.write(
+          typeof result === 'string'
+            ? result
+            : inspect(result, {
+                colors: true,
+                depth: null,
+                sorted: true,
+              })
+        )
         stdout.write('\n')
       }
     }
@@ -544,7 +552,15 @@ main(process.argv.slice(2)).then(
     const { stderr } = process
     stderr.write(chalk.bold.red('✖'))
     stderr.write(' ')
-    stderr.write(typeof error === 'string' ? error : inspect(error))
+    stderr.write(
+      typeof error === 'string'
+        ? error
+        : inspect(error, {
+            colors: true,
+            depth: null,
+            sorted: true,
+          })
+    )
     stderr.write('\n')
     process.exitCode = 1
   }
