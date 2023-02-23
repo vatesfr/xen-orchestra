@@ -58,7 +58,7 @@ class EsxiImport extends Component {
     poolId => (poolId === undefined ? undefined : sr => isSrWritable(sr) && sr.$poolId === poolId)
   )
 
-  _importVm = async () => {
+  _importVm = () => {
     const { hasCertificate, hostIp, network, password, sr, user, vm } = this.state
     return importVmFromEsxi({
       host: hostIp,
@@ -75,6 +75,10 @@ class EsxiImport extends Component {
     const { hostIp, hasCertificate, password, user } = this.state
     const vms = await esxiConnect(hostIp, user, password, hasCertificate)
     this.setState({ isConnected: true, vmsById: keyBy(vms, 'id') })
+  }
+
+  _disconnect = () => {
+    this.setState({ isConnected: false })
   }
 
   _onChangeVm = vm => {
@@ -111,6 +115,25 @@ class EsxiImport extends Component {
     })
   }
 
+  _resetConnectForm = () => {
+    this.setState({
+      hasCertificate: true,
+      hostIp: '',
+      isConnected: false,
+      password: '',
+      user: '',
+    })
+  }
+
+  _resetImportForm = () => {
+    this.setState({
+      network: undefined,
+      pool: undefined,
+      sr: undefined,
+      vm: undefined,
+    })
+  }
+
   render() {
     const { intl } = this.props
     const {
@@ -126,133 +149,134 @@ class EsxiImport extends Component {
       vmsById,
     } = this.state
 
+    if (!isConnected) {
+      return (
+        <form>
+          <Row>
+            <LabelCol>{_('hostIp')}</LabelCol>
+            <InputCol>
+              <Input
+                className='form-control'
+                onChange={this.linkState('hostIp')}
+                placeholder='192.168.2.20'
+                required
+                value={hostIp}
+              />
+            </InputCol>
+          </Row>
+          <Row>
+            <LabelCol>{_('user')}</LabelCol>
+            <InputCol>
+              <Input
+                className='form-control'
+                onChange={this.linkState('user')}
+                placeholder={intl.formatMessage(messages.user)}
+                required
+                value={user}
+              />
+            </InputCol>
+          </Row>
+          <Row>
+            <LabelCol>{_('password')}</LabelCol>
+            <InputCol>
+              <Password
+                onChange={this.linkState('password')}
+                placeholder={intl.formatMessage(messages.password)}
+                required
+                value={password}
+              />
+            </InputCol>
+          </Row>
+          <Row>
+            <LabelCol>{_('sslCertificate')}</LabelCol>
+            <InputCol>
+              <input
+                checked={hasCertificate}
+                onChange={this.toggleState('hasCertificate')}
+                type='checkbox'
+                value={hasCertificate}
+              />
+            </InputCol>
+          </Row>
+          <div className='form-group pull-right'>
+            <ActionButton btnStyle='primary' className='mr-1' handler={this._connect} icon='connect' type='submit'>
+              {_('serverConnect')}
+            </ActionButton>
+            <Button onClick={this._resetConnectForm}>{_('formReset')}</Button>
+          </div>
+        </form>
+      )
+    }
+
     return (
-      <div>
-        {!isConnected ? (
-          <form>
-            <Row>
-              <LabelCol>{_('hostIp')}</LabelCol>
-              <InputCol>
-                <Input
-                  className='form-control'
-                  onChange={this.linkState('hostIp')}
-                  placeholder='192.168.2.20'
-                  required
-                  value={hostIp}
-                />
-              </InputCol>
-            </Row>
-            <Row>
-              <LabelCol>{_('user')}</LabelCol>
-              <InputCol>
-                <Input
-                  className='form-control'
-                  onChange={this.linkState('user')}
-                  placeholder={intl.formatMessage(messages.user)}
-                  required
-                  value={user}
-                />
-              </InputCol>
-            </Row>
-            <Row>
-              <LabelCol>{_('password')}</LabelCol>
-              <InputCol>
-                <Password
-                  onChange={this.linkState('password')}
-                  placeholder={intl.formatMessage(messages.password)}
-                  required
-                  value={password}
-                />
-              </InputCol>
-            </Row>
-            <Row>
-              <LabelCol>{_('sslCertificate')}</LabelCol>
-              <InputCol>
-                <input
-                  checked={hasCertificate}
-                  name='hasCertificate'
-                  onChange={this._toggleCertificateCheck}
-                  type='checkbox'
-                  value={hasCertificate}
-                />
-              </InputCol>
-            </Row>
-            <div className='form-group pull-right'>
-              <ActionButton btnStyle='primary' className='mr-1' handler={this._connect} icon='connect' type='submit'>
-                {_('serverConnect')}
-              </ActionButton>
-              <Button onClick={this._reset}>{_('formReset')}</Button>
-            </div>
-          </form>
-        ) : (
-          <form id='esxi-migrate-form'>
-            <Row>
-              <LabelCol>{_('vm')}</LabelCol>
-              <InputCol>
-                <Select
-                  disabled={isEmpty(vmsById)}
-                  onChange={this._onChangeVm}
-                  options={this._getSelectVmOptions()}
-                  required
-                  value={vm}
-                />
-              </InputCol>
-            </Row>
-            <Row>
-              <LabelCol>{_('vmImportToPool')}</LabelCol>
-              <InputCol>
-                <SelectPool onChange={this._onChangePool} required value={pool} />
-              </InputCol>
-            </Row>
-            <Row>
-              <LabelCol>{_('vmImportToSr')}</LabelCol>
-              <InputCol>
-                <SelectSr
-                  disabled={pool === undefined}
-                  onChange={this._onChangeSr}
-                  predicate={this._getSrPredicate()}
-                  required
-                  value={sr}
-                />
-              </InputCol>
-            </Row>
-            <Row>
-              <LabelCol>{_('network')}</LabelCol>
-              <InputCol>
-                <SelectNetwork
-                  disabled={pool === undefined}
-                  onChange={this._onChangeNetwork}
-                  predicate={this._getNetworkPredicate()}
-                  required
-                  value={network}
-                />
-              </InputCol>
-            </Row>
-            {vm !== undefined && (
-              <div>
-                <hr />
-                <h5>{_('vmsToImport', { nVms: 1 })}</h5>
-                <VmData data={vmsById[vm.value]} />
-              </div>
-            )}
-            <div className='form-group pull-right'>
-              <ActionButton
-                btnStyle='primary'
-                className='mr-1'
-                disabled={vm === undefined}
-                form='esxi-migrate-form'
-                handler={this._importVm}
-                icon='import'
-                redirectOnSuccess={getRedirectUrl}
-                type='submit'
-              >
-                {_('newImport')}
-              </ActionButton>
-              <Button onClick={this._reset}>{_('formReset')}</Button>
-            </div>
-          </form>
+      <form>
+        <Row>
+          <LabelCol>{_('vm')}</LabelCol>
+          <InputCol>
+            <Select
+              disabled={isEmpty(vmsById)}
+              onChange={this.linkState('vm')}
+              options={this._getSelectVmOptions()}
+              required
+              value={vm}
+            />
+          </InputCol>
+        </Row>
+        <Row>
+          <LabelCol>{_('vmImportToPool')}</LabelCol>
+          <InputCol>
+            <SelectPool onChange={this._onChangePool} required value={pool} />
+          </InputCol>
+        </Row>
+        <Row>
+          <LabelCol>{_('vmImportToSr')}</LabelCol>
+          <InputCol>
+            <SelectSr
+              disabled={pool === undefined}
+              onChange={this.linkState('sr')}
+              predicate={this._getSrPredicate()}
+              required
+              value={sr}
+            />
+          </InputCol>
+        </Row>
+        <Row>
+          <LabelCol>{_('network')}</LabelCol>
+          <InputCol>
+            <SelectNetwork
+              disabled={pool === undefined}
+              onChange={this.linkState('network')}
+              predicate={this._getNetworkPredicate()}
+              required
+              value={network}
+            />
+          </InputCol>
+        </Row>
+        {vm !== undefined && (
+          <div>
+            <hr />
+            <h5>{_('vmsToImport', { nVms: 1 })}</h5>
+            <VmData data={vmsById[vm.value]} />
+          </div>
         )}
-      </div>
+        <div className='form-group pull-right'>
+          <ActionButton
+            btnStyle='primary'
+            className='mr-1'
+            disabled={vm === undefined}
+            handler={this._importVm}
+            icon='import'
+            redirectOnSuccess={getRedirectUrl}
+            type='submit'
+          >
+            {_('newImport')}
+          </ActionButton>
+          <Button className='mr-1' onClick={this._disconnect}>
+            {_('disconnectServer')}
+          </Button>
+          <Button onClick={this._resetImportForm}>{_('formReset')}</Button>
+        </div>
+      </form>
     )
   }
 }

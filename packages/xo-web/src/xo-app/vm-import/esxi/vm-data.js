@@ -1,48 +1,34 @@
-import _, { messages } from 'intl'
+import _ from 'intl'
 import React from 'react'
 import { Col, Row } from 'grid'
 import { formatSize } from 'utils'
-import { injectIntl } from 'react-intl'
 
-const VmData = injectIntl(({ data, intl }) => (
+const VmData = ({ data }) => (
   <div>
     <Row>
       <Col mediumSize={6}>
-        <div className='form-group'>
-          {_('keyValue', { key: intl.formatMessage(messages.vmNameLabel), value: data.nameLabel })}
-        </div>
+        <div className='form-group'>{_('keyValue', { key: _('vmNameLabel'), value: data.nameLabel })}</div>
         <div className='form-group'>
           {_('keyValue', {
-            key: intl.formatMessage(messages.powerState),
-            value:
-              data.powerState === 'poweredOn'
-                ? intl.formatMessage(messages.powerStateRunning)
-                : intl.formatMessage(messages.powerStateHalted),
+            key: _('powerState'),
+            value: data.powerState === 'poweredOn' ? _('powerStateRunning') : _('powerStateHalted'),
           })}
         </div>
       </Col>
       <Col mediumSize={6}>
-        <div className='form-group'>
-          {_('keyValue', { key: intl.formatMessage(messages.nCpus), value: data.nCpus })}
-        </div>
-        <div className='form-group'>
-          {_('keyValue', { key: intl.formatMessage(messages.vmMemory), value: formatSize(data.memory) })}
-        </div>
+        <div className='form-group'>{_('keyValue', { key: _('nCpus'), value: data.nCpus })}</div>
+        <div className='form-group'>{_('keyValue', { key: _('vmMemory'), value: formatSize(data.memory) })}</div>
       </Col>
     </Row>
     <Row>
       <Col mediumSize={6}>
-        <div className='form-group'>
-          {_('keyValue', { key: intl.formatMessage(messages.firmware), value: data.firmware })}
-        </div>
+        <div className='form-group'>{_('keyValue', { key: _('firmware'), value: data.firmware })}</div>
       </Col>
       <Col mediumSize={6}>
         <div className='form-group'>
           {_('keyValue', {
-            key: intl.formatMessage(messages.guestToolStatus),
-            value: data.guestToolsInstalled
-              ? intl.formatMessage(messages.noToolsInstalled)
-              : intl.formatMessage(messages.toolsInstalled),
+            key: _('guestToolStatus'),
+            value: data.guestToolsInstalled ? _('noToolsInstalled') : _('toolsInstalled'),
           })}
         </div>
       </Col>
@@ -61,6 +47,6 @@ const VmData = injectIntl(({ data, intl }) => (
       </Col>
     </Row>
   </div>
-))
+)
 
 export default VmData
