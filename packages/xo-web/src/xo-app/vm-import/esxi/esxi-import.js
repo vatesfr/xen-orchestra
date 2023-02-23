@@ -81,23 +81,8 @@ class EsxiImport extends Component {
     this.setState({ isConnected: false })
   }
 
-  _onChangeVm = vm => {
-    this.setState({ vm })
-  }
-
-  _onChangeNetwork = network => {
-    this.setState({ network })
-  }
-
   _onChangePool = pool => {
     this.setState({ pool, sr: pool.default_SR })
-  }
-  _onChangeSr = sr => {
-    this.setState({ sr })
-  }
-
-  _toggleCertificateCheck = ({ target: { checked, name } }) => {
-    this.setState({ [name]: checked })
   }
 
   _reset = () => {
