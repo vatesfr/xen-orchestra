@@ -124,41 +124,29 @@ export default class Esxi extends EventEmitter {
       objectSet: [objectSpec],
     }
 
-    let token
+    result = await this.#exec('RetrievePropertiesEx', {
+      _this: propertyCollector,
+      specSet: [propertyFilterSpec],
+      options: { attributes: { type: 'RetrieveOptions' } },
+    })
+
     const objects = {}
-    do {
-      if (token !== undefined) {
-        result = await this.#exec('ContinueRetrievePropertiesEx', {
-          _this: propertyCollector,
-          token,
-        })
-      } else {
-        result = await this.#exec('RetrievePropertiesEx', {
-          _this: propertyCollector,
-          specSet: [propertyFilterSpec],
-          options: { attributes: { type: 'RetrieveOptions' } },
-        })
-      }
+    const returnObj = Array.isArray(result.returnval.objects) ? result.returnval.objects : [result.returnval.objects]
 
-      const returnObj = Array.isArray(result.returnval.objects) ? result.returnval.objects : [result.returnval.objects]
-      returnObj.forEach(({ obj, propSet }) => {
-        objects[obj.$value] = {}
-        propSet = Array.isArray(propSet) ? propSet : [propSet]
-        propSet.forEach(({ name, val }) => {
-          // don't care about the type for now
-          delete val.attributes
-          // a scalar value : simplify it
-          if (val.$value) {
-            objects[obj.$value][name] = val.$value
-          } else {
-            objects[obj.$value][name] = val
-          }
-        })
+    returnObj.forEach(({ obj, propSet }) => {
+      objects[obj.$value] = {}
+      propSet = Array.isArray(propSet) ? propSet : [propSet]
+      propSet.forEach(({ name, val }) => {
+        // don't care about the type for now
+        delete val.attributes
+        // a scalar value : simplify it
+        if (val.$value) {
+          objects[obj.$value][name] = val.$value
+        } else {
+          objects[obj.$value][name] = val
+        }
       })
-
-      token = result.returnval.token
-    } while (token)
-
+    })
     return objects
   }
 
@@ -186,35 +174,6 @@ export default class Esxi extends EventEmitter {
       path: dirname(diskPath),
       descriptionLabel: ' from esxi',
     }
-  }
-
-  async getAllVmMetadata() {
-    const datas = await this.search('VirtualMachine', ['config', 'storage', 'runtime'])
-
-    return Object.keys(datas).map(id => {
-      const { config, storage, runtime } = datas[id]
-      const perDatastoreUsage = Array.isArray(storage.perDatastoreUsage)
-        ? storage.perDatastoreUsage
-        : [storage.perDatastoreUsage]
-      return {
-        id,
-        nameLabel: config.name,
-        memory: +config.hardware.memoryMB * 1024 * 1024,
-        nCpus: +config.hardware.numCPU,
-        guestToolsInstalled: false,
-        firmware: config.firmware === 'efi' ? 'uefi' : config.firmware, // bios or uefi
-        powerState: runtime.powerState,
-        storage: perDatastoreUsage.reduce(
-          (prev, curr) => {
-            return {
-              used: prev.used + +curr.committed,
-              free: prev.free + +curr.uncommitted,
-            }
-          },
-          { used: 0, free: 0 }
-        ),
-      }
-    })
   }
 
   async getTransferableVmMetadata(vmId) {
@@ -282,7 +241,7 @@ export default class Esxi extends EventEmitter {
     return {
       name_label: config.name,
       memory: +config.hardware.memoryMB * 1024 * 1024,
-      nCpus: +config.hardware.numCPU,
+      numCpu: +config.hardware.numCPU,
       guestToolsInstalled: false,
       firmware: config.firmware === 'efi' ? 'uefi' : config.firmware, // bios or uefi
       powerState: runtime.powerState,

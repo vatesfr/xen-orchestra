@@ -1,46 +1,55 @@
-import _ from 'intl'
+import _, { messages } from 'intl'
 import React from 'react'
 import { Col, Row } from 'grid'
 import { formatSize } from 'utils'
+import { injectIntl } from 'react-intl'
 
-const VmData = ({ data }) => (
+const VmData = injectIntl(({ data, intl }) => (
   <div>
     <Row>
       <Col mediumSize={6}>
         <div className='form-group'>
-          <label>{_('vmNameLabel')}:</label> <span>{data.nameLabel}</span>
+          {_('keyValue', { key: intl.formatMessage(messages.vmNameLabel), value: data.nameLabel })}
         </div>
         <div className='form-group'>
-          <label>{_('powerState')}:</label>{' '}
-          <span>{data.powerState === 'poweredOn' ? _('powerStateRunning') : _('powerStateHalted')}</span>
+          {_('keyValue', {
+            key: intl.formatMessage(messages.powerState),
+            value:
+              data.powerState === 'poweredOn'
+                ? intl.formatMessage(messages.powerStateRunning)
+                : intl.formatMessage(messages.powerStateHalted),
+          })}
         </div>
       </Col>
       <Col mediumSize={6}>
         <div className='form-group'>
-          <label>{_('nCpus')}:</label> <span>{data.nCpus}</span>
+          {_('keyValue', { key: intl.formatMessage(messages.nCpus), value: data.nCpus })}
         </div>
         <div className='form-group'>
-          <label>{_('vmMemory')}:</label> <span>{formatSize(data.memory)}</span>
+          {_('keyValue', { key: intl.formatMessage(messages.vmMemory), value: formatSize(data.memory) })}
         </div>
       </Col>
     </Row>
     <Row>
       <Col mediumSize={6}>
         <div className='form-group'>
-          <label>{_('firmware')}:</label> <span>{data.firmware}</span>
+          {_('keyValue', { key: intl.formatMessage(messages.firmware), value: data.firmware })}
         </div>
       </Col>
       <Col mediumSize={6}>
         <div className='form-group'>
-          <label>{_('guestToolStatus')}:</label>{' '}
-          <span>{data.guestToolsInstalled ? _('noToolsInstalled') : _('toolsInstalled')}</span>
+          {_('keyValue', {
+            key: intl.formatMessage(messages.guestToolStatus),
+            value: data.guestToolsInstalled
+              ? intl.formatMessage(messages.noToolsInstalled)
+              : intl.formatMessage(messages.toolsInstalled),
+          })}
         </div>
       </Col>
     </Row>
     <Row>
       <Col mediumSize={12}>
         <div className='form-group'>
-          <label>{_('homeSrPage')}:</label>{' '}
           <span>
             {_('vmSrUsage', {
               free: formatSize(data.storage.free),
@@ -52,6 +61,6 @@ const VmData = ({ data }) => (
       </Col>
     </Row>
   </div>
-)
+))
 
 export default VmData

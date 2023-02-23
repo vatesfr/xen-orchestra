@@ -1,262 +1,264 @@
 import _, { messages } from 'intl'
 import ActionButton from 'action-button'
 import Button from 'button'
-import decorate from 'apply-decorators'
+import Component from 'base-component'
 import React from 'react'
 import { connectStore } from 'utils'
-import { createGetObjectsOfType } from 'selectors'
+import { createGetObjectsOfType, createSelector } from 'selectors'
 import { esxiConnect, importVmFromEsxi, isSrWritable } from 'xo'
-import { find, isEmpty, map, pick } from 'lodash'
+import { find, isEmpty, keyBy, map, pick } from 'lodash'
 import { injectIntl } from 'react-intl'
-import { injectState, provideState } from 'reaclette'
 import { Input } from 'debounce-input-decorator'
 import { InputCol, LabelCol, Row } from 'form-grid'
-import { linkState } from 'reaclette-utils'
 import { Password, Select } from 'form'
 import { SelectNetwork, SelectPool, SelectSr } from 'select-objects'
 
 import VmData from './vm-data'
 
-const getInitialState = () => ({
-  hasCertificate: true,
-  hostIp: '',
-  isConnected: false,
-  network: undefined,
-  password: '',
-  pool: undefined,
-  sr: undefined,
-  user: '',
-  vm: undefined,
-  vmData: undefined,
-  vmsById: undefined,
-})
+const getRedirectUrl = vmId => `/vms/${vmId}`
 
-const EsxiImport = decorate([
-  connectStore({
-    hostsById: createGetObjectsOfType('host'),
-    pifsById: createGetObjectsOfType('PIF'),
-  }),
-  provideState({
-    initialState: getInitialState,
-    effects: {
-      importVm:
-        () =>
-        async ({ defaultNetwork, hasCertificate, hostIp, network, password, sr, user, vm }) => {
-          await importVmFromEsxi({
-            host: hostIp,
-            network: network?.id ?? defaultNetwork,
-            password,
-            sr,
-            sslVerify: hasCertificate,
-            user,
-            vm: vm.value,
-          })
-        },
-      connect:
-        () =>
-        async ({ hostIp, hasCertificate, password, user }) => {
-          const vms = await esxiConnect(hostIp, user, password, hasCertificate)
-          return { isConnected: true, vmsById: vms.reduce((vms, vm) => ({ ...vms, [vm.id]: vm }), {}) }
-        },
-      linkState,
-      onChangeVm: (_, vm) => state => ({ vm, vmData: state.vmsById[vm.value] }),
-      onChangeNetwork: (_, network) => ({ network }),
-      onChangePool: (_, pool) => ({ pool, sr: pool.default_SR }),
-      onChangeSr: (_, sr) => ({ sr }),
-      toggleCertificateCheck:
-        (_, { target: { checked, name } }) =>
-        state => ({
-          ...state,
-          [name]: checked,
-        }),
-      reset: getInitialState,
-    },
-    computed: {
-      defaultNetwork: ({ pool }, { hostsById, pifsById }) => {
-        if (pool === undefined) return
-        return find(pick(pifsById, hostsById[pool.master].$PIFs), pif => pif.management)?.$network
-      },
-      selectVmOptions: ({ vmsById }) =>
-        map(vmsById, vm => ({
-          label: vm.nameLabel,
-          value: vm.id,
-        })),
-      networkpredicate:
-        ({ pool }) =>
-        network =>
-          network.$poolId === pool?.uuid,
-      srPredicate:
-        ({ pool }) =>
-        sr =>
-          isSrWritable(sr) && sr.$poolId === pool?.uuid,
-    },
-  }),
-  injectIntl,
-  injectState,
-  ({
-    effects: {
-      connect,
-      importVm,
-      linkState,
-      onChangeVm,
-      onChangeNetwork,
-      onChangePool,
-      onChangeSr,
-      reset,
-      srPredicate,
-      toggleCertificateCheck,
-    },
-    intl: { formatMessage },
-    state: {
-      defaultNetwork,
+@injectIntl
+@connectStore({
+  hostsById: createGetObjectsOfType('host'),
+  pifsById: createGetObjectsOfType('PIF'),
+})
+class EsxiImport extends Component {
+  state = {
+    hasCertificate: true,
+    hostIp: '',
+    isConnected: false,
+    password: '',
+    user: '',
+  }
+
+  componentWillMount() {}
+
+  componentDidUpdate(prevProps, prevState) {}
+
+  _getDefaultNetwork = createSelector(
+    () => this.state.pool?.master,
+    () => this.props.hostsById,
+    () => this.props.pifsById,
+    (master, hostsById, pifsById) =>
+      master === undefined ? undefined : find(pick(pifsById, hostsById[master].$PIFs), pif => pif.management)?.$network
+  )
+
+  _getSelectVmOptions = createSelector(
+    () => this.state.vmsById,
+    vmsById =>
+      map(vmsById, vm => ({
+        label: vm.nameLabel,
+        value: vm.id,
+      }))
+  )
+
+  _getNetworkPredicate = createSelector(
+    () => this.props.pool?.id,
+    poolId => (poolId === undefined ? undefined : network => network.$poolId === poolId)
+  )
+
+  _getSrPredicate = createSelector(
+    () => this.props.pool?.id,
+    poolId => (poolId === undefined ? undefined : sr => isSrWritable(sr) && sr.$poolId === poolId)
+  )
+
+  _importVm = async () => {
+    const { hasCertificate, hostIp, network, password, sr, user, vm } = this.state
+    return importVmFromEsxi({
+      host: hostIp,
+      network: network?.id ?? this._getDefaultNetwork(),
+      password,
+      sr,
+      sslVerify: hasCertificate,
+      user,
+      vm: vm.value,
+    })
+  }
+
+  _connect = async () => {
+    const { hostIp, hasCertificate, password, user } = this.state
+    const vms = await esxiConnect(hostIp, user, password, hasCertificate)
+    this.setState({ isConnected: true, vmsById: keyBy(vms, 'id') })
+  }
+
+  _onChangeVm = vm => {
+    this.setState({ vm })
+  }
+
+  _onChangeNetwork = network => {
+    this.setState({ network })
+  }
+
+  _onChangePool = pool => {
+    this.setState({ pool, sr: pool.default_SR })
+  }
+  _onChangeSr = sr => {
+    this.setState({ sr })
+  }
+
+  _toggleCertificateCheck = ({ target: { checked, name } }) => {
+    this.setState({ [name]: checked })
+  }
+
+  _reset = () => {
+    this.setState({
+      hasCertificate: true,
+      hostIp: '',
+      isConnected: false,
+      network: undefined,
+      password: '',
+      pool: undefined,
+      sr: undefined,
+      user: '',
+      vm: undefined,
+      vmsById: undefined,
+    })
+  }
+
+  render() {
+    const { intl } = this.props
+    const {
       hasCertificate,
       hostIp,
       isConnected,
-      network = defaultNetwork,
-      networkPredicate,
+      network = this._getDefaultNetwork(),
       password,
       pool,
-      selectVmOptions,
       sr,
       user,
       vm,
       vmsById,
-      vmData,
-    },
-  }) => (
-    <div>
-      {!isConnected && (
-        <form id='esxi-connect-form'>
-          <Row>
-            <LabelCol>{_('hostIp')}</LabelCol>
-            <InputCol>
-              <Input
-                className='form-control'
-                name='hostIp'
-                onChange={linkState}
-                placeholder='192.168.2.20'
-                required
-                value={hostIp}
-              />
-            </InputCol>
-          </Row>
-          <Row>
-            <LabelCol>{_('user')}</LabelCol>
-            <InputCol>
-              <Input
-                className='form-control'
-                name='user'
-                onChange={linkState}
-                placeholder={formatMessage(messages.user)}
-                required
-                value={user}
-              />
-            </InputCol>
-          </Row>
-          <Row>
-            <LabelCol>{_('password')}</LabelCol>
-            <InputCol>
-              <Password
-                name='password'
-                onChange={linkState}
-                placeholder={formatMessage(messages.password)}
-                required
-                value={password}
-              />
-            </InputCol>
-          </Row>
-          <Row>
-            <LabelCol>{_('sslCertificate')}</LabelCol>
-            <InputCol>
-              <input
-                checked={hasCertificate}
-                name='hasCertificate'
-                onChange={toggleCertificateCheck}
-                type='checkbox'
-                value={hasCertificate}
-              />
-            </InputCol>
-          </Row>
-          <div className='form-group pull-right'>
-            <ActionButton
-              btnStyle='primary'
-              className='mr-1'
-              form='esxi-connect-form'
-              handler={connect}
-              icon='connect'
-              type='submit'
-            >
-              {_('serverConnect')}
-            </ActionButton>
-            <Button onClick={reset}>{_('formReset')}</Button>
-          </div>
-        </form>
-      )}
-      {isConnected && (
-        <form id='esxi-migrate-form'>
-          <Row>
-            <LabelCol>{_('vm')}</LabelCol>
-            <InputCol>
-              <Select disabled={isEmpty(vmsById)} onChange={onChangeVm} options={selectVmOptions} required value={vm} />
-            </InputCol>
-          </Row>
-          <Row>
-            <LabelCol>{_('vmImportToPool')}</LabelCol>
-            <InputCol>
-              <SelectPool onChange={onChangePool} required value={pool} />
-            </InputCol>
-          </Row>
-          <Row>
-            <LabelCol>{_('vmImportToSr')}</LabelCol>
-            <InputCol>
-              <SelectSr
-                disabled={pool === undefined}
-                onChange={onChangeSr}
-                predicate={srPredicate}
-                required
-                value={sr}
-              />
-            </InputCol>
-          </Row>
-          <Row>
-            <LabelCol>{_('network')}</LabelCol>
-            <InputCol>
-              <SelectNetwork
-                disabled={pool === undefined}
-                onChange={onChangeNetwork}
-                predicate={networkPredicate}
-                required
-                value={network}
-              />
-            </InputCol>
-          </Row>
-          {vm !== undefined && (
-            <div>
-              <hr />
-              <h5>{_('vmsToImport', { nVms: 1 })}</h5>
-              <VmData data={vmData} pool={pool} />
+    } = this.state
+
+    return (
+      <div>
+        {!isConnected ? (
+          <form>
+            <Row>
+              <LabelCol>{_('hostIp')}</LabelCol>
+              <InputCol>
+                <Input
+                  className='form-control'
+                  onChange={this.linkState('hostIp')}
+                  placeholder='192.168.2.20'
+                  required
+                  value={hostIp}
+                />
+              </InputCol>
+            </Row>
+            <Row>
+              <LabelCol>{_('user')}</LabelCol>
+              <InputCol>
+                <Input
+                  className='form-control'
+                  onChange={this.linkState('user')}
+                  placeholder={intl.formatMessage(messages.user)}
+                  required
+                  value={user}
+                />
+              </InputCol>
+            </Row>
+            <Row>
+              <LabelCol>{_('password')}</LabelCol>
+              <InputCol>
+                <Password
+                  onChange={this.linkState('password')}
+                  placeholder={intl.formatMessage(messages.password)}
+                  required
+                  value={password}
+                />
+              </InputCol>
+            </Row>
+            <Row>
+              <LabelCol>{_('sslCertificate')}</LabelCol>
+              <InputCol>
+                <input
+                  checked={hasCertificate}
+                  name='hasCertificate'
+                  onChange={this._toggleCertificateCheck}
+                  type='checkbox'
+                  value={hasCertificate}
+                />
+              </InputCol>
+            </Row>
+            <div className='form-group pull-right'>
+              <ActionButton btnStyle='primary' className='mr-1' handler={this._connect} icon='connect' type='submit'>
+                {_('serverConnect')}
+              </ActionButton>
+              <Button onClick={this._reset}>{_('formReset')}</Button>
             </div>
-          )}
-          <div className='form-group pull-right'>
-            <ActionButton
-              btnStyle='primary'
-              className='mr-1'
-              disabled={vm === undefined}
-              form='esxi-migrate-form'
-              handler={importVm}
-              icon='import'
-              redirectOnSuccess={
-                vmData === undefined ? undefined : `/home?s=name_label:${encodeURIComponent(vmData.nameLabel)}&t=VM`
-              }
-              type='submit'
-            >
-              {_('newImport')}
-            </ActionButton>
-            <Button onClick={reset}>{_('formReset')}</Button>
-          </div>
-        </form>
-      )}
-    </div>
-  ),
-])
+          </form>
+        ) : (
+          <form id='esxi-migrate-form'>
+            <Row>
+              <LabelCol>{_('vm')}</LabelCol>
+              <InputCol>
+                <Select
+                  disabled={isEmpty(vmsById)}
+                  onChange={this._onChangeVm}
+                  options={this._getSelectVmOptions()}
+                  required
+                  value={vm}
+                />
+              </InputCol>
+            </Row>
+            <Row>
+              <LabelCol>{_('vmImportToPool')}</LabelCol>
+              <InputCol>
+                <SelectPool onChange={this._onChangePool} required value={pool} />
+              </InputCol>
+            </Row>
+            <Row>
+              <LabelCol>{_('vmImportToSr')}</LabelCol>
+              <InputCol>
+                <SelectSr
+                  disabled={pool === undefined}
+                  onChange={this._onChangeSr}
+                  predicate={this._getSrPredicate()}
+                  required
+                  value={sr}
+                />
+              </InputCol>
+            </Row>
+            <Row>
+              <LabelCol>{_('network')}</LabelCol>
+              <InputCol>
+                <SelectNetwork
+                  disabled={pool === undefined}
+                  onChange={this._onChangeNetwork}
+                  predicate={this._getNetworkPredicate()}
+                  required
+                  value={network}
+                />
+              </InputCol>
+            </Row>
+            {vm !== undefined && (
+              <div>
+                <hr />
+                <h5>{_('vmsToImport', { nVms: 1 })}</h5>
+                <VmData data={vmsById[vm.value]} />
+              </div>
+            )}
+            <div className='form-group pull-right'>
+              <ActionButton
+                btnStyle='primary'
+                className='mr-1'
+                disabled={vm === undefined}
+                form='esxi-migrate-form'
+                handler={this._importVm}
+                icon='import'
+                redirectOnSuccess={getRedirectUrl}
+                type='submit'
+              >
+                {_('newImport')}
+              </ActionButton>
+              <Button onClick={this._reset}>{_('formReset')}</Button>
+            </div>
+          </form>
+        )}
+      </div>
+    )
+  }
+}
+
 export default EsxiImport

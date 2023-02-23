@@ -12,7 +12,7 @@ const messages = {
   hostIp: 'Host IP',
   keyValue: '{key}: {value}',
   sslCertificate: 'SSL certificate',
-  vmSrUsage: '{used} used of {total} ({free} free)',
+  vmSrUsage: 'Storage: {used} used of {total} ({free} free)',
 
   notDefined: 'Not defined',
   statusConnecting: 'Connecting',
