@@ -2,13 +2,13 @@ name: Continous Integration
 on: push
 jobs:
   CI:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     steps:
       - uses: actions/checkout@v3
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y curl qemu-utils vmdk-stream-converter git libxml2-utils libfuse2 nbdkit
+          sudo apt-get install -y curl qemu-utils vmdk-stream-converter git libxml2-utils libfuse2
       - name: Setup Node environment
         uses: actions/setup-node@v3
         with:
