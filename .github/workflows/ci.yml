@@ -8,20 +8,20 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y curl qemu-utils vmdk-stream-converter=0.2-1 git libxml2-utils libfuse2 nbdkit
-      # - name: Setup Node environment
-      #   uses: actions/setup-node@v3
-      #   with:
-      #     node-version: '18'
-      # - name: Install project dependencies
-      #   run: yarn
-      #   working-directory: ./
-      # - name: Build the project
-      #   run: yarn build
-      #   working-directory: ./
-      # - name: Lint tests
-      #   run: yarn test-lint
-      #   working-directory: ./
-      # - name: Integration tests
-      #   run: sudo yarn test-integration
-      #   working-directory: ./
+          sudo apt-get install -y curl qemu-utils python3-vmdkstream git libxml2-utils libfuse2 nbdkit
+      - name: Setup Node environment
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      - name: Install project dependencies
+        run: yarn
+        working-directory: ./
+      - name: Build the project
+        run: yarn build
+        working-directory: ./
+      - name: Lint tests
+        run: yarn test-lint
+        working-directory: ./
+      - name: Integration tests
+        run: sudo yarn test-integration
+        working-directory: ./
