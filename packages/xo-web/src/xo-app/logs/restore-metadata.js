@@ -12,7 +12,7 @@ import { alert } from 'modal'
 import { Card, CardHeader, CardBlock } from 'card'
 import { connectStore, downloadLog } from 'utils'
 import { createGetObjectsOfType } from 'selectors'
-import { filter } from 'lodash'
+import filter from 'lodash/filter.js'
 import { Pool } from 'render-xo-item'
 import { subscribeBackupNgLogs } from 'xo'
 

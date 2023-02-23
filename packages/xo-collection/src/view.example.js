@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import { forEach } from 'lodash'
+import forEach from 'lodash/forEach.js'
 
 import { Collection } from './collection'
 import { View } from './view'

@@ -4,7 +4,7 @@ import React from 'react'
 import { getLicenses } from 'xo'
 import { injectIntl } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
-import { map } from 'lodash'
+import map from 'lodash/map.js'
 
 import { renderXoItemFromId } from './render-xo-item'
 

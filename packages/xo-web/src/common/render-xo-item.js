@@ -4,7 +4,7 @@ import CopyToClipboard from 'react-copy-to-clipboard'
 import PropTypes from 'prop-types'
 import React from 'react'
 import { get } from '@xen-orchestra/defined'
-import { find } from 'lodash'
+import find from 'lodash/find.js'
 
 import decorate from './apply-decorators'
 import Icon from './icon'
