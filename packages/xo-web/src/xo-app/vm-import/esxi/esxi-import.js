@@ -85,21 +85,6 @@ class EsxiImport extends Component {
     this.setState({ pool, sr: pool.default_SR })
   }
 
-  _reset = () => {
-    this.setState({
-      hasCertificate: true,
-      hostIp: '',
-      isConnected: false,
-      network: undefined,
-      password: '',
-      pool: undefined,
-      sr: undefined,
-      user: '',
-      vm: undefined,
-      vmsById: undefined,
-    })
-  }
-
   _resetConnectForm = () => {
     this.setState({
       hasCertificate: true,
