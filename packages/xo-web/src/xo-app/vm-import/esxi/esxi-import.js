@@ -5,7 +5,7 @@ import Component from 'base-component'
 import React from 'react'
 import { connectStore } from 'utils'
 import { createGetObjectsOfType, createSelector } from 'selectors'
-import { esxiConnect, importVmFromEsxi, isSrWritable } from 'xo'
+import { esxiListVms, importVmFromEsxi, isSrWritable } from 'xo'
 import { find, isEmpty, keyBy, map, pick } from 'lodash'
 import { injectIntl } from 'react-intl'
 import { Input } from 'debounce-input-decorator'
@@ -73,7 +73,7 @@ class EsxiImport extends Component {
 
   _connect = async () => {
     const { hostIp, hasCertificate, password, user } = this.state
-    const vms = await esxiConnect(hostIp, user, password, hasCertificate)
+    const vms = await esxiListVms(hostIp, user, password, hasCertificate)
     this.setState({ isConnected: true, vmsById: keyBy(vms, 'id') })
   }
 

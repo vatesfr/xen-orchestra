@@ -3471,7 +3471,7 @@ export const synchronizeNetbox = pools =>
 
 // ESXi import ---------------------------------------------------------------
 
-export const esxiConnect = (host, user, password, sslVerify) =>
-  _call('esxi.connect', { host, user, password, sslVerify })
+export const esxiListVms = (host, user, password, sslVerify) =>
+  _call('esxi.listVms', { host, user, password, sslVerify })
 
 export const importVmFromEsxi = params => _call('vm.importFromEsxi', params)
