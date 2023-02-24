@@ -31,7 +31,10 @@ exports.MixinReplicationWriter = (BaseClass = Object) =>
           const { $xapi: xapi } = sr
           let clonedVm
           try {
-            const clonedRef = await xapi.callAsync('VM.clone', this._targetVmRef, 'cloning').then(extractOpaqueRef)
+            const baseVm = xapi.getObject(this._targetVmRef) ?? (await xapi.waitObject(this._targetVmRef))
+            const clonedRef = await xapi
+              .callAsync('VM.clone', this._targetVmRef, `Health Check - ${baseVm.name_label}`)
+              .then(extractOpaqueRef)
             clonedVm = xapi.getObject(clonedRef) ?? (await xapi.waitObject(clonedRef))
 
             await new HealthCheckVmBackup({
