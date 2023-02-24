@@ -8,6 +8,7 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [VM/Advanced] Warning message when enabling Windows update tools [#6627](https://github.com/vatesfr/xen-orchestra/issues/6627) (PR [#6681](https://github.com/vatesfr/xen-orchestra/issues/6681))
+- [Backup] Show if NBD is used in the backup logs (PR [#6685](https://github.com/vatesfr/xen-orchestra/issues/6685))
 
 ### Bug fixes
 
@@ -32,6 +33,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/backups minor
 - xo-cli minor
 - xo-web minor
 
