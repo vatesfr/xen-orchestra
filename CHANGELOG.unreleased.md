@@ -33,6 +33,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/backups patch
 - xen-api patch
 - xo-cli minor
 - xo-web minor
