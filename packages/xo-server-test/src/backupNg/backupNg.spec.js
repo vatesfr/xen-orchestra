@@ -1,6 +1,6 @@
 /* eslint-env jest */
 
-import { forOwn } from 'lodash'
+import forOwn from 'lodash/forOwn.js'
 import { noSuchObject } from 'xo-common/api-errors'
 
 import config from '../_config'

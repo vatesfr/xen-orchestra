@@ -32,7 +32,7 @@
     "content-type": "^1.0.4",
     "cson-parser": "^4.0.7",
     "getopts": "^2.2.3",
-    "http-request-plus": "github:JsCommunity/http-request-plus#v1",
+    "http-request-plus": "^1.0.0",
     "json-rpc-protocol": "^0.13.1",
     "promise-toolbox": "^0.21.0",
     "pumpify": "^2.0.1",

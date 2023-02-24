@@ -13,7 +13,7 @@ import { isAdmin, createGetObject, createGetObjectsOfType, getIsPoolAdmin } from
 import { injectIntl } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
 import { linkState } from 'reaclette-utils'
-import { map } from 'lodash'
+import map from 'lodash/map.js'
 import { Select, Toggle } from 'form'
 import { SelectHost, SelectPif, SelectPool } from 'select-objects'
 

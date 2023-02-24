@@ -3,7 +3,7 @@ import ActionBar, { Action } from 'action-bar'
 import Component from 'base-component'
 import React from 'react'
 import { createGetObjectsOfType, createSelector, isAdmin } from 'selectors'
-import { find } from 'lodash'
+import find from 'lodash/find.js'
 import { addSubscriptions, connectStore, noop } from 'utils'
 import { addHostsToPool, disableServer, subscribeServers } from 'xo'
 

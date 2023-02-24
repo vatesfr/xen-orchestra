@@ -1,8 +1,20 @@
 # ChangeLog
 
-## **5.79.1** (2023-02-17)
+## **5.79.2** (2023-02-20)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+### Bug fixes
+
+- [Disk import] Fixes ` Cannot read properties of null (reading "length")` error
+- [Continuous Replication] Work-around _premature close_ error
+
+### Released packages
+
+- xen-api 1.2.5
+- @xen-orchestra/proxy 0.26.13
+- xo-server 5.109.3
+
+## **5.79.1** (2023-02-17)
 
 ### Bug fixes
 

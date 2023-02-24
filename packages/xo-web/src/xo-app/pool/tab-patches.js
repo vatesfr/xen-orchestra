@@ -10,7 +10,7 @@ import { createGetObjectsOfType } from 'selectors'
 import { FormattedRelative, FormattedTime } from 'react-intl'
 import { getXoaPlan, ENTERPRISE } from 'xoa-plans'
 import { installAllPatchesOnPool, installPatches, rollingPoolUpdate, subscribeHostMissingPatches } from 'xo'
-import { isEmpty } from 'lodash'
+import isEmpty from 'lodash/isEmpty.js'
 
 const ROLLING_POOL_UPDATES_AVAILABLE = getXoaPlan().value >= ENTERPRISE.value
 

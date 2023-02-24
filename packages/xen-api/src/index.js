@@ -90,7 +90,7 @@ export class Xapi extends EventEmitter {
     this._callTimeout = makeCallSetting(opts.callTimeout, 60 * 60 * 1e3) // 1 hour but will be reduced in the future
     this._httpInactivityTimeout = opts.httpInactivityTimeout ?? 5 * 60 * 1e3 // 5 mins
     this._eventPollDelay = opts.eventPollDelay ?? 60 * 1e3 // 1 min
-    this._ignorePrematureClose = opts.ignorePrematureClose ?? false
+    this._ignorePrematureClose = opts.ignorePrematureClose ?? true
     this._pool = null
     this._readOnly = Boolean(opts.readOnly)
     this._RecordsByType = { __proto__: null }
@@ -563,7 +563,9 @@ export class Xapi extends EventEmitter {
         })
       }
     } catch (error) {
-      if (!(this._ignorePrematureClose && error.code === 'ERR_STREAM_PREMATURE_CLOSE')) {
+      if (this._ignorePrematureClose && error.code === 'ERR_STREAM_PREMATURE_CLOSE') {
+        console.warn(this._humanId, 'Xapi#putResource', pathname, error)
+      } else {
         throw error
       }
     }

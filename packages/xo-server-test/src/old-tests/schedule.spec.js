@@ -7,7 +7,7 @@ import expect from 'must'
 
 import fromEvent from 'promise-toolbox/fromEvent'
 import { getConfig, getMainConnection, getSchedule, jobTest, scheduleTest } from './util'
-import { map } from 'lodash'
+import map from 'lodash/map.js'
 
 // ===================================================================
 

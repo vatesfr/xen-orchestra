@@ -1,8 +1,8 @@
 <template>
   <FormSelect
     v-if="isSelectWidget(widget)"
-    :wrapper-attrs="{ class: 'full-width' }"
     v-model="model"
+    :wrapper-attrs="{ class: 'full-width' }"
   >
     <option v-if="!required && model === undefined" :value="undefined" />
     <option
@@ -32,22 +32,21 @@
 </template>
 
 <script lang="ts" setup>
-import { useVModel } from "@vueuse/core";
 import {
-  type Widget,
   isBooleanWidget,
   isNumberWidget,
   isObjectWidget,
   isRadioWidget,
   isSelectWidget,
   isTextWidget,
+  type Widget,
 } from "@/libs/story/story-widget";
+import { useVModel } from "@vueuse/core";
 import { defineAsyncComponent } from "vue";
 
 const FormJson = defineAsyncComponent(
   () => import("@/components/form/FormJson.vue")
 );
-
 const FormSelect = defineAsyncComponent(
   () => import("@/components/form/FormSelect.vue")
 );

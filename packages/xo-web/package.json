@@ -45,7 +45,6 @@
     "ansi_up": "^4.0.3",
     "asap": "^2.0.6",
     "babel-plugin-dev": "^1.0.0",
-    "babel-plugin-lodash": "^3.2.11",
     "babelify": "^10.0.0",
     "bootstrap": "4.0.0-alpha.5",
     "browserify": "^16.0.0",
