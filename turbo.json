@@ -4,7 +4,7 @@
     "build": {
       "dependsOn": ["^build"],
       "outputMode": "errors-only",
-      "outputs": ["dist/**", "!.dist/cache/**"]
+      "outputs": ["dist/**"]
     },
     "dev": {
       "dependsOn": ["^build"],
