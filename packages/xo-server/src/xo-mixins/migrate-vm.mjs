@@ -74,8 +74,9 @@ export default class MigrateVm {
     await sourceVm.update_blocked_operations({
       start: message,
       start_on: message,
-    }) // run the transfer again to transfer the changed parts
+    })
 
+    // run the transfer again to transfer the changed parts
     // since the source is stopped, there won't be any new change after
     backup = this.#createWarmBackup(sourceVmId, srId, jobId)
     await backup.run()
