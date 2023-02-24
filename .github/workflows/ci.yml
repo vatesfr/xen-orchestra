@@ -9,6 +9,13 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y curl qemu-utils python3-vmdkstream git libxml2-utils libfuse2 nbdkit
+      - name: Cache turbo build setup
+        uses: actions/cache@v3
+        with:
+          path: .turbo
+          key: ${{ runner.os }}-turbo-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-
       - name: Setup Node environment
         uses: actions/setup-node@v3
         with:
