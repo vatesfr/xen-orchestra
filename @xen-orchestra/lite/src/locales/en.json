@@ -30,8 +30,6 @@
   "filter": {
     "comparison": {
       "contains": "contains",
-      "does": "does",
-      "does-not": "does not",
       "ends-with": "ends with",
       "equals": "equals",
       "is": "is",
