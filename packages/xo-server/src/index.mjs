@@ -61,6 +61,8 @@ const [APP_NAME, APP_VERSION] = (() => {
 
 // ===================================================================
 
+// THIS IS A TEST
+
 configure([
   {
     filter: process.env.DEBUG,
