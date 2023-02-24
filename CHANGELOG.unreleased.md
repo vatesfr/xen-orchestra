@@ -8,6 +8,7 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [VM/Advanced] Warning message when enabling Windows update tools [#6627](https://github.com/vatesfr/xen-orchestra/issues/6627) (PR [#6681](https://github.com/vatesfr/xen-orchestra/issues/6681))
+- [Continuous Replication] : add HealthCheck support to Continuous Replication (PR [#6668](https://github.com/vatesfr/xen-orchestra/pull/6668))
 
 ### Bug fixes
 
@@ -33,7 +34,7 @@
 
 <!--packages-start-->
 
-- @xen-orchestra/backups patch
+- @xen-orchestra/backups minor
 - xen-api patch
 - xo-cli minor
 - xo-web minor

@@ -102,7 +102,7 @@ exports.DeltaReplicationWriter = class DeltaReplicationWriter extends MixinRepli
         size: Object.values(sizeContainers).reduce((sum, { size }) => sum + size, 0),
       }
     })
-
+    this._targetVmRef = targetVmRef
     const targetVm = await xapi.getRecord('VM', targetVmRef)
 
     await Promise.all([
