@@ -93,7 +93,7 @@ exports.DeltaReplicationWriter = class DeltaReplicationWriter extends MixinRepli
           __proto__: deltaExport,
           vm: {
             ...deltaExport.vm,
-            tags: _warmMigration ? [...deltaExport.vm.tags] : [...deltaExport.vm.tags, 'Continuous Replication'],
+            tags: _warmMigration ? deltaExport.vm.tags : [...deltaExport.vm.tags, 'Continuous Replication'],
           },
         },
         sr
