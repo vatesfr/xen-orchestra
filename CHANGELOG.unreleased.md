@@ -32,8 +32,10 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
+
 - @xen-orchestra/backups patch
 - xen-api patch
 - xo-cli minor
 - xo-web minor
+- xo-server patch
 <!--packages-end-->
