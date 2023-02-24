@@ -313,7 +313,12 @@ export default class metadataBackup {
     const backupId = path.join('/')
 
     const remote = await app.getRemoteWithCredentials(remoteId)
-    const { type } = parseMetadataBackupId(backupId)
+    let type
+    if (poolUuid) {
+      ;({ type } = parseMetadataBackupId(backupId))
+    } else {
+      ;({ type, poolUuid } = parseMetadataBackupId(backupId))
+    }
 
     let rootTaskId
     const localTaskIds = { __proto__: null }

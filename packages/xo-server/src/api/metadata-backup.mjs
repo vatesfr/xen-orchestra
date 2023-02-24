@@ -125,9 +125,13 @@ list.params = {
   },
 }
 
-export async function restore({ id, pool }) {
-  const poolObj = await this.getXapiObject(pool, 'pool')
-  return this.restoreMetadataBackup({ id, poolUuid: poolObj.uuid })
+export function restore({ id, pool }) {
+  if (pool) {
+    const poolObj = this.getXapiObject(pool, 'pool')
+    return this.restoreMetadataBackup({ id, poolUuid: poolObj.uuid })
+  } else {
+    return this.restoreMetadataBackup({ id })
+  }
 }
 
 restore.permission = 'admin'
@@ -138,6 +142,7 @@ restore.params = {
   },
   pool: {
     type: 'string',
+    optional: true,
   },
 }
 
