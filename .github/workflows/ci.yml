@@ -14,6 +14,7 @@ jobs:
         with:
           node-version: '18'
           cache: 'yarn'
+          cache-dependency-path: '**/yarn.lock'
       - name: Install project dependencies
         run: yarn install --frozen-lockfile
       - name: Build the project
