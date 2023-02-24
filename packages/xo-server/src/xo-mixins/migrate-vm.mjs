@@ -33,6 +33,8 @@ export default class MigrateVm {
         '': {
           // mandatory for delta replication writer
           copyRetention: 1,
+          // by default continuous replication add some tags
+          _warmMigration: true,
         },
       },
     }
@@ -101,7 +103,7 @@ export default class MigrateVm {
     const targetVm = app.getXapiObject(targets[0])
 
     // new vm is ready to start
-    // delta replication writer as set this as blocked
+    // delta replication writer has set this as blocked=
     await targetVm.update_blocked_operations({ start: null, start_on: null })
 
     if (startDestVm) {
