@@ -14,9 +14,8 @@ jobs:
         with:
           node-version: '18'
           cache: 'yarn'
-          cache-dependency-path: '**/yarn.lock'
       - name: Install project dependencies
-        run: yarn install --frozen-lockfile
+        run: yarn
       - name: Build the project
         run: yarn build
       - name: Lint tests
