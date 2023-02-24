@@ -10,6 +10,7 @@
 - [VM/Advanced] Warning message when enabling Windows update tools [#6627](https://github.com/vatesfr/xen-orchestra/issues/6627) (PR [#6681](https://github.com/vatesfr/xen-orchestra/issues/6681))
 - [Continuous Replication] : add HealthCheck support to Continuous Replication (PR [#6668](https://github.com/vatesfr/xen-orchestra/pull/6668))
 - [Plugin/auth-oidc] [OpenID Connect](<https://en.wikipedia.org/wiki/OpenID#OpenID_Connect_(OIDC)>) authentication plugin [#6641](https://github.com/vatesfr/xen-orchestra/issues/6641) (PR [#6684](https://github.com/vatesfr/xen-orchestra/issues/6684))
+- [REST API] Possibility to start, shutdown, reboot and snapshot VMs
 
 ### Bug fixes
 
@@ -38,6 +39,7 @@
 - @xen-orchestra/backups minor
 - xen-api patch
 - xo-cli minor
+- xo-server minor
 - xo-server-auth-oidc minor
 - xo-web minor
 - xo-server patch
