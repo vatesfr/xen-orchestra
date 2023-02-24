@@ -60,7 +60,7 @@ Settings will be added to the `settings` slot prop.
 ## How to create a story
 
 1. Create a new story component in the `src/stories` directory (ie. `my-component.story.vue`).
-2. To document you component, create the same file with the `.md` extension (ie. `my-component.story.md`).
+2. To document your component, create the same file with the `.md` extension (ie. `my-component.story.md`).
 
 ## How to write a story
 
@@ -170,10 +170,10 @@ Here is how to document it with a Component Story:
         .default('My default value'),
       model().prop((p) => p.str()),
       model('customModel').prop((p) => p.num()),
-      event('click').help('Emitted when the user click the first button'),
+      event('click').help('Emitted when the user clicks the first button'),
       event('clickWithArg')
         .args({ id: 'string' })
-        .help('Emitted when the user click the second button'),
+        .help('Emitted when the user clicks the second button'),
       slot().help('This is the default slot'),
       slot('namedSlot').help('This is a named slot'),
       slot('namedScopedSlot')
@@ -184,7 +184,7 @@ Here is how to document it with a Component Story:
   >
     <MyComponent v-bind="properties">
       {{ settings.contentExample }}
-      <template #named-slot> Named slot content </template>
+      <template #named-slot>Named slot content</template>
       <template #named-scoped-slot="{ moonDistance }">
         Moon distance is {{ moonDistance }} meters.
       </template>
@@ -306,7 +306,7 @@ Use the `event(name: string)` function to document an event.
 
 It will appear in the **Events** tab.
 
-When triggered, this event will logged to the `Logs` card.
+When triggered, this event will be logged to the `Logs` card.
 
 #### Event with no arguments
 
@@ -322,7 +322,7 @@ If needed, thanks to the `preset` method, you can attach a custom function to yo
 
 `const debug = (id: string) => console.log(id);`
 
-`event('my-event').args({ id: 'string' }).preset(myEvent)`
+`event('my-event').args({ id: 'string' }).preset(debug)`
 
 #### Event type
 
@@ -334,13 +334,13 @@ You can override it with the `type()` method.
 
 This allows to add a help text for this event.
 
-`event('close').help('Called when user click on close icon or on the background')`
+`event('close').help('Called when user clicks the close icon or on the background')`
 
 ### Models
 
 Use the `model(name = "model-value")` function to document a model.
 
-Calling `model("foo")` is a kind of equivalent to calling `prop("foo")` + `event("update:foo")`.
+Calling `model("foo")` is kind of equivalent to calling `prop("foo")` + `event("update:foo")`.
 
 #### Default model
 
@@ -359,11 +359,11 @@ then use any of the [prop](#props) and [event](#events) methods.
 
 #### Model type
 
-`.type(type: string)` function is a shortcut to `.prop((p) => p.type(...))`
+`.type(type: string)` function is a shortcut for `.prop((p) => p.type(...))`
 
 #### Model help
 
-Using `.help(text: string)` function is a shortcut to `.prop((p) => p.help(...))`
+Using `.help(text: string)` function is a shortcut for `.prop((p) => p.help(...))`
 
 ### Slots
 
@@ -378,6 +378,8 @@ Use the `slot(name = "default")` function to document a slot.
 #### Named slot
 
 `slot('header')`
+
+=> `<slot name="header" />`
 
 #### Scoped slot (slot with props)
 
