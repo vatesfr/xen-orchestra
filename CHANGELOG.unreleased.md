@@ -18,7 +18,6 @@
 
 - [xo-cli] Fix `write EPIPE` error when used with piped output is closed (e.g. like `| head`) [#6680](https://github.com/vatesfr/xen-orchestra/issues/6680)
 - [VM] Show distro icon for openSUSE [Forum#6965](https://xcp-ng.org/forum/topic/6965)
-- [Backup] Fix `Error: 302 Found` when exporting a VDI from a local SR on another host than the pool master [Forum#59047](https://xcp-ng.org/forum/post/59047)
 
 ### Packages to release
 
@@ -37,11 +36,8 @@
 <!--packages-start-->
 
 - @xen-orchestra/backups minor
-- xen-api patch
 - xo-cli minor
-- xo-server minor
 - xo-server-auth-oidc minor
 - xo-web minor
-- xo-server patch
 
 <!--packages-end-->
