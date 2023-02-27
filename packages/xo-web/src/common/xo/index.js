@@ -3491,3 +3491,10 @@ export const synchronizeNetbox = pools =>
     body: _('syncNetboxWarning'),
     icon: 'refresh',
   }).then(() => _call('netbox.synchronize', { pools: resolveIds(pools) }))
+
+// ESXi import ---------------------------------------------------------------
+
+export const esxiListVms = (host, user, password, sslVerify) =>
+  _call('esxi.listVms', { host, user, password, sslVerify })
+
+export const importVmFromEsxi = params => _call('vm.importFromEsxi', params)

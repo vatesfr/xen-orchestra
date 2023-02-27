@@ -494,6 +494,11 @@ export default class Menu extends Component {
             icon: 'disk',
             label: 'labelDisk',
           },
+          {
+            to: '/import/vmware',
+            icon: 'vm',
+            label: 'fromVmware',
+          },
         ],
       },
       !(noOperatablePools && noResourceSets) && {
