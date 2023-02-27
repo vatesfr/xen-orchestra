@@ -24,7 +24,7 @@ const getRedirectUrl = vmId => `/vms/${vmId}`
 })
 class EsxiImport extends Component {
   state = {
-    hasCertificate: true,
+    skipSslVerify: false,
     thin: false,
     stopSource: false,
     hostIp: '',
@@ -61,13 +61,13 @@ class EsxiImport extends Component {
   )
 
   _importVm = () => {
-    const { hasCertificate, hostIp, network, password, sr, stopSource, thin, user, vm } = this.state
+    const { hostIp, network, password, skipSslVerify, sr, stopSource, thin, user, vm } = this.state
     return importVmFromEsxi({
       host: hostIp,
       network: network?.id ?? this._getDefaultNetwork(),
       password,
       sr,
-      sslVerify: hasCertificate,
+      sslVerify: !skipSslVerify,
       stopSource,
       thin,
       user,
@@ -76,8 +76,8 @@ class EsxiImport extends Component {
   }
 
   _connect = async () => {
-    const { hostIp, hasCertificate, password, user } = this.state
-    const vms = await esxiListVms(hostIp, user, password, hasCertificate)
+    const { hostIp, skipSslVerify, password, user } = this.state
+    const vms = await esxiListVms(hostIp, user, password, !skipSslVerify)
     this.setState({ isConnected: true, vmsById: keyBy(vms, 'id') })
   }
 
@@ -91,7 +91,7 @@ class EsxiImport extends Component {
 
   _resetConnectForm = () => {
     this.setState({
-      hasCertificate: true,
+      skipSslVerify: false,
       thin: false,
       stopSource: false,
       hostIp: '',
@@ -113,7 +113,6 @@ class EsxiImport extends Component {
   render() {
     const { intl } = this.props
     const {
-      hasCertificate,
       thin,
       stopSource,
       hostIp,
@@ -121,6 +120,7 @@ class EsxiImport extends Component {
       network = this._getDefaultNetwork(),
       password,
       pool,
+      skipSslVerify,
       sr,
       user,
       vm,
@@ -168,12 +168,7 @@ class EsxiImport extends Component {
           <Row>
             <LabelCol>{_('esxiImportSslCertificate')}</LabelCol>
             <InputCol>
-              <input
-                checked={hasCertificate}
-                onChange={this.toggleState('hasCertificate')}
-                type='checkbox'
-                value={hasCertificate}
-              />
+              <Toggle onChange={this.toggleState('skipSslVerify')} value={skipSslVerify} />
             </InputCol>
           </Row>
           <div className='form-group pull-right'>
