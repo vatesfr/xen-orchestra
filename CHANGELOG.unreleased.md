@@ -40,6 +40,7 @@
 - @xen-orchestra/fs patch
 - @xen-orchestra/vmware-explorer minor
 - xo-cli minor
+- xo-server minor
 - xo-server-auth-oidc minor
 - xo-web minor
 
