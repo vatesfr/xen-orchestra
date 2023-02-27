@@ -2446,9 +2446,10 @@ export const runMetadataBackupJob = params => _call('metadataBackup.runJob', par
 
 export const listMetadataBackups = remotes => _call('metadataBackup.list', { remotes: resolveIds(remotes) })
 
-export const restoreMetadataBackup = backup =>
+export const restoreMetadataBackup = data =>
   _call('metadataBackup.restore', {
-    id: resolveId(backup),
+    id: resolveId(data.backup),
+    pool: data.pool,
   })::tap(subscribeBackupNgLogs.forceRefresh)
 
 export const deleteMetadataBackup = backup =>

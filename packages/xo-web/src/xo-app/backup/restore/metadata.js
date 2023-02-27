@@ -13,7 +13,7 @@ import { error } from 'notification'
 import { filter, flatMap, forOwn, reduce } from 'lodash'
 import { FormattedDate } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
-import { noop } from 'utils'
+import { noop, resolveId } from 'utils'
 import { deleteMetadataBackups, listMetadataBackups, restoreMetadataBackup, subscribeRemotes } from 'xo'
 
 import Logs from '../../logs/restore-metadata'
@@ -32,21 +32,29 @@ const restore = entry =>
     }),
     body: <RestoreMetadataBackupModalBody backups={entry.backups} type={entry.type} />,
     icon: 'restore',
-  }).then(backup => {
-    if (backup === undefined) {
+  }).then(data => {
+    if (data === undefined) {
       error(_('backupRestoreErrorTitle'), _('chooseBackup'))
       return
     }
-    return restoreMetadataBackup(backup)
+    return restoreMetadataBackup({ backup: resolveId(data.backup), pool: resolveId(data.pool) })
   }, noop)
 
 const bulkRestore = entries => {
   const nMetadataBackups = entries.length
   return confirm({
     title: _('bulkRestoreMetadataBackupTitle', { nMetadataBackups }),
-    body: <RestoreMetadataBackupsBulkModalBody nMetadataBackups={nMetadataBackups} />,
+    body: <RestoreMetadataBackupsBulkModalBody nMetadataBackups={nMetadataBackups} poolMetadataBackups={entries} />,
     icon: 'restore',
-  }).then(latest => Promise.all(entries.map(({ first, last }) => restoreMetadataBackup(latest ? last : first))), noop)
+  }).then(
+    data =>
+      Promise.all(
+        entries.map(({ first, last, id }) =>
+          restoreMetadataBackup({ backup: data.latest ? last : first, pool: resolveId(data[id]) })
+        )
+      ),
+    noop
+  )
 }
 
 const delete_ = entry =>
