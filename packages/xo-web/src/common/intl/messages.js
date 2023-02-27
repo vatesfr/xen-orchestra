@@ -598,8 +598,12 @@ const messages = {
   remoteSmbPlaceHolderOptions: 'Custom mount options',
   remoteS3LabelUseHttps: 'Use HTTPS',
   remoteS3LabelAllowInsecure: 'Allow unauthorized',
+  remoteS3PlaceHolderEndpoint: 'AWS S3 endpoint (ex: s3.us-east-2.amazonaws.com)',
   remoteS3PlaceHolderBucket: 'AWS S3 bucket name',
   remoteS3PlaceHolderDirectory: 'Directory',
+  remoteS3PlaceHolderAccessKeyID: 'Access key ID',
+  remoteS3PlaceHolderSecret: 'Paste secret here to change it',
+  remoteS3PlaceHolderEncryptionKey: 'Enter your encryption key here (32 characters)',
   remoteS3Region: 'Region, leave blank for default',
   remoteS3TooltipProtocol: 'Uncheck if you want HTTP instead of HTTPS',
   remoteS3TooltipAcceptInsecure: 'Check if you want to accept self signed certificates',
@@ -1103,6 +1107,9 @@ const messages = {
   hvmModeWithPvDriversEnabled: 'Hardware virtualization with paravirtualization drivers enabled (PVHVM)',
   pvInPvhMode: 'PV inside a PVH container (PV in PVH)',
   windowsUpdateTools: 'Manage Citrix PV drivers via Windows Update',
+  windowsToolsModalTitle: 'Windows Update Tools',
+  windowsToolsModalMessage: 'Enabling this will allow the VM to automatically install Citrix PV drivers from Windows Update. This only includes drivers, the Citrix management agent must still be separately installed.',
+  windowsToolsModalWarning: 'If you have previously installed XCP-ng tools instead of Citrix tools, this option will break your VM.',
 
   // ----- VM stat tab -----
   statsCpu: 'CPU usage',

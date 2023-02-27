@@ -1,7 +1,7 @@
 import ActionButton from 'action-button'
 import PropTypes from 'prop-types'
 import React, { cloneElement } from 'react'
-import { noop } from 'lodash'
+import noop from 'lodash/noop.js'
 
 import ButtonGroup from './button-group'
 

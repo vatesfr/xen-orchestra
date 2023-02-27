@@ -12,7 +12,7 @@ const { defer } = require('golike-defer')
 
 const { cancelableMap } = require('./_cancelableMap.js')
 const { Task } = require('./Task.js')
-const { pick } = require('lodash')
+const pick = require('lodash/pick.js')
 
 const TAG_BASE_DELTA = 'xo:base_delta'
 exports.TAG_BASE_DELTA = TAG_BASE_DELTA

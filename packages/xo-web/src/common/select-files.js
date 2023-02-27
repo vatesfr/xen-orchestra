@@ -3,7 +3,7 @@ import Component from 'base-component'
 import Icon from 'icon'
 import PropTypes from 'prop-types'
 import React from 'react'
-import { omit } from 'lodash'
+import omit from 'lodash/omit.js'
 
 export default class SelectFiles extends Component {
   static propTypes = {

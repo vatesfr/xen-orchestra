@@ -35,7 +35,7 @@
     "form-data": "^4.0.0",
     "fs-extra": "^11.1.0",
     "get-stream": "^6.0.0",
-    "http-request-plus": "^0.14.0",
+    "http-request-plus": "^1.0.0",
     "human-format": "^1.0.0",
     "lodash": "^4.17.4",
     "pretty-ms": "^7.0.0",
@@ -43,13 +43,12 @@
     "pw": "^0.0.4",
     "xdg-basedir": "^4.0.0",
     "xo-lib": "^0.11.1",
-    "xo-vmdk-to-vhd": "^2.5.2"
+    "xo-vmdk-to-vhd": "^2.5.3"
   },
   "devDependencies": {
     "@babel/cli": "^7.0.0",
     "@babel/core": "^7.0.0",
     "@babel/preset-env": "^7.0.0",
-    "babel-plugin-lodash": "^3.3.2",
     "cross-env": "^7.0.2",
     "rimraf": "^4.1.1"
   },

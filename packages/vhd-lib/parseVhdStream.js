@@ -242,10 +242,13 @@ class StreamNbdParser extends StreamParser {
 
   async *parse() {
     yield* this.headers()
-    // put it in free flowing state
-    // the stream is a fork from the main stream of xapi
-    // if one of the fork is stopped, all the stream are stopped
-    this._stream.resume()
+
+    // the VHD stream is no longer necessary, destroy it
+    //
+    // - not destroying it would leave other writers stuck
+    // - resuming it would download the whole stream unnecessarily if not other writers
+    this._stream.destroy()
+
     yield* this.blocks()
   }
 }

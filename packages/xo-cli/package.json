@@ -1,7 +1,7 @@
 {
   "private": false,
   "name": "xo-cli",
-  "version": "0.14.3",
+  "version": "0.14.4",
   "license": "AGPL-3.0-or-later",
   "description": "Basic CLI for Xen-Orchestra",
   "keywords": [
@@ -30,10 +30,9 @@
   },
   "dependencies": {
     "chalk": "^5.0.1",
-    "exec-promise": "^0.7.0",
     "fs-extra": "^11.1.0",
     "getopts": "^2.3.0",
-    "http-request-plus": "^0.14.0",
+    "http-request-plus": "^1.0.0",
     "human-format": "^1.0.0",
     "lodash": "^4.17.4",
     "micromatch": "^4.0.2",

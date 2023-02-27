@@ -1,6 +1,6 @@
 import _ from 'intl'
 import React from 'react'
-import { map } from 'lodash'
+import map from 'lodash/map.js'
 
 import Icon from './icon'
 import Tooltip from './tooltip'

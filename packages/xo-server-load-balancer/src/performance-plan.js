@@ -1,4 +1,4 @@
-import { filter } from 'lodash'
+import filter from 'lodash/filter.js'
 
 import Plan from './plan'
 import { debug as debugP } from './utils'

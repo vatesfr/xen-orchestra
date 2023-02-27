@@ -132,7 +132,10 @@ port = 80
 #
 # This breaks a number of XO use cases, for instance uploading a VDI via the
 # REST API, therefore it's changed to 1 day.
-requestTimeout = 86400000
+#
+# Completely disabled for now because it appears to be broken:
+# https://github.com/nodejs/node/issues/46574
+requestTimeout = 0
 
 [http.mounts]
 '/' = '../xo-web/dist'
