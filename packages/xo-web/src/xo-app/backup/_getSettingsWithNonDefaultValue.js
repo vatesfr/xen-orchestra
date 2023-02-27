@@ -1,4 +1,4 @@
-import { pickBy } from 'lodash'
+import pickBy from 'lodash/pickBy.js'
 
 const DEFAULTS = {
   __proto__: null,

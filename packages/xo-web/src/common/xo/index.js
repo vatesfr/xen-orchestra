@@ -1674,12 +1674,35 @@ export const revertSnapshot = snapshot =>
     success(_('vmRevertSuccessfulTitle'), _('vmRevertSuccessfulMessage'))
   }, noop)
 
-export const editVm = (vm, props) =>
-  _call('vm.set', { ...props, id: resolveId(vm) })
+export const editVm = async (vm, props) => {
+  if (props.hasVendorDevice) {
+    try {
+      await confirm({
+        title: _('windowsToolsModalTitle'),
+        body: (
+          <div>
+            <p>{_('windowsToolsModalMessage')}</p>
+            <p className='text-warning'>
+              <Icon icon='alarm' />
+              &nbsp;
+              {_('windowsToolsModalWarning')}
+            </p>
+          </div>
+        ),
+      })
+    } catch (err) {
+      if (err !== undefined) {
+        throw err
+      }
+      return
+    }
+  }
+  await _call('vm.set', { ...props, id: resolveId(vm) })
     .catch(err => {
       error(_('setVmFailed', { vm: renderXoItemFromId(resolveId(vm)) }), err.message)
     })
     ::tap(subscribeResourceSets.forceRefresh)
+}
 
 export const fetchVmStats = (vm, granularity) => _call('vm.stats', { id: resolveId(vm), granularity })
 

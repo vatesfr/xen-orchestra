@@ -34,8 +34,7 @@
   "devDependencies": {
     "@babel/cli": "^7.0.0",
     "@babel/core": "^7.0.0",
-    "@babel/preset-env": "^7.0.0",
-    "babel-plugin-lodash": "^3.3.2"
+    "@babel/preset-env": "^7.0.0"
   },
   "scripts": {
     "build": "NODE_ENV=production babel --source-maps --out-dir=dist/ src/",

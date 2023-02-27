@@ -10,9 +10,11 @@ import * as CM from 'complex-matcher'
 import fromCallback from 'promise-toolbox/fromCallback'
 import { VDI_FORMAT_RAW, VDI_FORMAT_VHD } from '@xen-orchestra/xapi'
 
-function sendObjects(objects, req, res) {
+const noop = Function.prototype
+
+function sendObjects(objects, req, res, path = req.path) {
   const { query } = req
-  const basePath = req.baseUrl + req.path
+  const basePath = req.baseUrl + path
   const makeUrl = object => basePath + '/' + object.id
 
   let { fields } = query
@@ -110,6 +112,20 @@ export default class RestApi {
       })
     )
 
+    collections.vms.actions = {
+      __proto__: null,
+
+      clean_reboot: vm => vm.$callAsync('clean_reboot').then(noop),
+      clean_shutdown: vm => vm.$callAsync('clean_shutdown').then(noop),
+      hard_reboot: vm => vm.$callAsync('hard_reboot').then(noop),
+      hard_shutdown: vm => vm.$callAsync('hard_shutdown').then(noop),
+      snapshot: async (vm, { name_label }) => {
+        const ref = await vm.$snapshot({ name_label })
+        return vm.$xapi.getField('VM', ref, 'uuid')
+      },
+      start: vm => vm.$callAsync('start', false, false).then(noop),
+    }
+
     api.param('collection', (req, res, next) => {
       const id = req.params.collection
       const collection = collections[id]
@@ -197,6 +213,32 @@ export default class RestApi {
         res.sendStatus(200)
       })
     )
+
+    api.get('/:collection/:object/tasks', (req, res) => {
+      const tasks = app.tasks.getByObject(req.xoObject.id)
+      sendObjects(tasks === undefined ? [] : Array.from(tasks.values()), req, res, '/tasks')
+    })
+
+    api.get('/:collection/:object/actions', (req, res) => {
+      const { actions } = req.collection
+      sendObjects(actions === undefined ? [] : Array.from(Object.keys(actions), id => ({ id })), req, res)
+    })
+    api.post('/:collection/:object/actions/:action', json(), (req, res, next) => {
+      const { action } = req.params
+      const fn = req.collection.actions?.[action]
+      if (fn === undefined) {
+        return next()
+      }
+
+      const task = app.tasks.create({ name: `REST: ${action} ${req.collection.type}`, objectId: req.xoObject.id })
+      const pResult = task.run(() => fn(req.xapiObject, req.body))
+      if (Object.hasOwn(req.query, 'sync')) {
+        pResult.then(result => res.json(result), next)
+      } else {
+        pResult.catch(noop)
+        res.end(req.baseUrl + '/tasks/' + task.id)
+      }
+    })
 
     api.post(
       '/:collection(srs)/:object/vdis',

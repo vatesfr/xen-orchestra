@@ -1,5 +1,5 @@
 import cookies from 'js-cookie'
-import { omit } from 'lodash'
+import omit from 'lodash/omit.js'
 
 import invoke from '../invoke'
 

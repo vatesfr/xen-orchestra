@@ -12,7 +12,7 @@ exports.runBackupWorker = function runBackupWorker(params, onLog) {
   return new Promise((resolve, reject) => {
     const worker = fork(PATH)
 
-    worker.on('exit', code => reject(new Error(`worker exited with code ${code}`)))
+    worker.on('exit', (code, signal) => reject(new Error(`worker exited with code ${code} and signal ${signal}`)))
     worker.on('error', reject)
 
     worker.on('message', message => {

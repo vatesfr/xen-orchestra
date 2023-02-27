@@ -1,7 +1,7 @@
 /* eslint-env jest */
 
 import { defer } from 'golike-defer'
-import { map } from 'lodash'
+import map from 'lodash/map.js'
 
 import { getConnection, rejectionOf, testConnection, xo } from './util.js'
 

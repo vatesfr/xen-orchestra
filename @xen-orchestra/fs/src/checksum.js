@@ -1,7 +1,7 @@
 import through2 from 'through2'
 import { createHash } from 'crypto'
 import { defer, fromEvent } from 'promise-toolbox'
-import { invert } from 'lodash'
+import invert from 'lodash/invert.js'
 
 // Format: $<algorithm>$<salt>$<encrypted>
 //
