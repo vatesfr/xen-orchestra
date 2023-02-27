@@ -11,12 +11,13 @@ const messages = {
   expiration: 'Expiration',
   hostIp: 'Host IP',
   keyValue: '{key}: {value}',
-  esxiImportSslCertificate: 'Skip SSL check of esxi host',
+  esxiImportSslCertificate: 'Skip SSL check',
   esxiImportThin: 'Thin mode',
   esxiImportThinDescription:
-    "Create a  smaller thin disk, this will require to read the data twice, and won't show in task or the first phase",
-  esxiImportStopSource: 'Stop the source vm',
-  esxiImportStopSourceDescription: 'Stop the source vm before attempting to transfer the data since the last snapshot',
+    'Disk created in thin mode (less space used). Data is read twice, no visible task or progress at first',
+  esxiImportStopSource: 'Stop the source VM',
+  esxiImportStopSourceDescription:
+    'Source VM stopped before the last delta transfer (after final snapshot). Needed to fully transfer a running VM',
 
   vmSrUsage: 'Storage: {used} used of {total} ({free} free)',
 
