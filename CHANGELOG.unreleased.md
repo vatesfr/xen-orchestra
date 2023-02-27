@@ -27,4 +27,8 @@
 
 <!--packages-start-->
 
+- xo-server-netbox patch
+- xo-server-perf-alert patch
+- xo-server-perf-transport-icinga2 patch
+
 <!--packages-end-->
