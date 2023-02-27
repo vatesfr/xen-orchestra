@@ -1,5 +1,35 @@
 # ChangeLog
 
+## **next**
+
+### Enhancements
+
+- [VM/Advanced] Warning message when enabling Windows update tools [#6627](https://github.com/vatesfr/xen-orchestra/issues/6627) (PR [#6681](https://github.com/vatesfr/xen-orchestra/issues/6681))
+- [Continuous Replication] : add HealthCheck support to Continuous Replication (PR [#6668](https://github.com/vatesfr/xen-orchestra/pull/6668))
+- [Plugin/auth-oidc] [OpenID Connect](<https://en.wikipedia.org/wiki/OpenID#OpenID_Connect_(OIDC)>) authentication plugin [#6641](https://github.com/vatesfr/xen-orchestra/issues/6641) (PR [#6684](https://github.com/vatesfr/xen-orchestra/issues/6684))
+- [REST API] Possibility to start, shutdown, reboot and snapshot VMs
+- [Import VM] Ability to import a VM from ESXi (PR [#6663](https://github.com/vatesfr/xen-orchestra/pull/6663))
+- [Backup Metadata] Add pool selection to metadata restoration (PR [#6670](https://github.com/vatesfr/xen-orchestra/pull/6670))
+- [Backup] Show if NBD is used in the backup logs (PR [#6685](https://github.com/vatesfr/xen-orchestra/issues/6685))
+
+### Bug fixes
+
+- [xo-cli] Fix `write EPIPE` error when used with piped output is closed (e.g. like `| head`) [#6680](https://github.com/vatesfr/xen-orchestra/issues/6680)
+- [VM] Show distro icon for openSUSE [Forum#6965](https://xcp-ng.org/forum/topic/6965)
+- [ESXI import] Handle listing more than 100 VMs
+
+### Released packages
+
+- @xen-orchestra/fs 3.3.2
+- @xen-orchestra/backups 0.30.0
+- @xen-orchestra/backups-cli 1.0.1
+- @xen-orchestra/proxy 0.26.15
+- @xen-orchestra/vmware-explorer 0.1.0
+- xo-cli 0.15.0
+- xo-server 5.110.0
+- xo-server-auth-oidc 0.1.0
+- xo-web 5.112.0
+
 ## **5.79.3** (2023-02-25)
 
 ### Bug fixes
