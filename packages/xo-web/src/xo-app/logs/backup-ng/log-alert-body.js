@@ -173,7 +173,7 @@ class TaskInfo extends React.Component {
     return (
       <div>
         <span className={className} onClick={() => this.setState({ expanded: !this.state.expanded })}>
-          <Icon icon='alarm' /> {this.props.message}
+          <Icon icon='info' /> {this.props.message}
         </span>
         {this.state.expanded && this.props.data && (
           <ul className='task-info'>
