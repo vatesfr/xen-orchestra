@@ -126,7 +126,7 @@ list.params = {
 }
 
 export function restore({ id, pool }) {
-  if (pool) {
+  if (pool !== undefined) {
     const poolObj = this.getXapiObject(pool, 'pool')
     return this.restoreMetadataBackup({ id, poolUuid: poolObj.uuid })
   } else {
