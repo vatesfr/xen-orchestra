@@ -8,7 +8,7 @@
     "type": "git",
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },
-  "version": "0.29.6",
+  "version": "0.30.0",
   "engines": {
     "node": ">=14.6"
   },
@@ -26,7 +26,7 @@
     "@vates/nbd-client": "^1.0.1",
     "@vates/parse-duration": "^0.1.1",
     "@xen-orchestra/async-map": "^0.1.2",
-    "@xen-orchestra/fs": "^3.3.1",
+    "@xen-orchestra/fs": "^3.3.2",
     "@xen-orchestra/log": "^0.6.0",
     "@xen-orchestra/template": "^0.1.0",
     "compare-versions": "^5.0.1",
