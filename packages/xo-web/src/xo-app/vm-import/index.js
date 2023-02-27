@@ -327,7 +327,7 @@ export default class Import extends Component {
               <div>
                 <Dropzone onDrop={this._handleDrop} message={_('importVmsList')} />
                 <hr />
-                <h5>{_('vmsToImport')}</h5>
+                <h5>{_('vmsToImport', { nVms: vms.length })}</h5>
                 {vms.length > 0 ? (
                   <div>
                     {map(vms, ({ data, error, file, type }, vmIndex) => (

@@ -2446,9 +2446,10 @@ export const runMetadataBackupJob = params => _call('metadataBackup.runJob', par
 
 export const listMetadataBackups = remotes => _call('metadataBackup.list', { remotes: resolveIds(remotes) })
 
-export const restoreMetadataBackup = backup =>
+export const restoreMetadataBackup = data =>
   _call('metadataBackup.restore', {
-    id: resolveId(backup),
+    id: resolveId(data.backup),
+    pool: data.pool,
   })::tap(subscribeBackupNgLogs.forceRefresh)
 
 export const deleteMetadataBackup = backup =>
@@ -3491,3 +3492,10 @@ export const synchronizeNetbox = pools =>
     body: _('syncNetboxWarning'),
     icon: 'refresh',
   }).then(() => _call('netbox.synchronize', { pools: resolveIds(pools) }))
+
+// ESXi import ---------------------------------------------------------------
+
+export const esxiListVms = (host, user, password, sslVerify) =>
+  _call('esxi.listVms', { host, user, password, sslVerify })
+
+export const importVmFromEsxi = params => _call('vm.importFromEsxi', params)

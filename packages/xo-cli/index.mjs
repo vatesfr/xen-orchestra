@@ -352,60 +352,64 @@ COMMANDS.unregister = unregister
 
 async function listCommands(args) {
   const xo = await connect()
-  let methods = await xo.call('system.getMethodsInfo')
+  try {
+    let methods = await xo.call('system.getMethodsInfo')
 
-  let json = false
-  const patterns = []
-  forEach(args, function (arg) {
-    if (arg === '--json') {
-      json = true
-    } else {
-      patterns.push(arg)
-    }
-  })
-
-  if (patterns.length) {
-    methods = pick(methods, micromatch(Object.keys(methods), patterns))
-  }
-
-  if (json) {
-    return methods
-  }
-
-  methods = pairs(methods)
-  methods.sort(function (a, b) {
-    a = a[0]
-    b = b[0]
-    if (a < b) {
-      return -1
-    }
-    return +(a > b)
-  })
-
-  const str = []
-  forEach(methods, function (method) {
-    const name = method[0]
-    const info = method[1]
-    str.push(chalk.bold.blue(name))
-    forEach(info.params || [], function (info, name) {
-      str.push(' ')
-      if (info.optional) {
-        str.push('[')
-      }
-
-      const type = info.type
-      str.push(name, '=<', type == null ? 'unknown type' : Array.isArray(type) ? type.join('|') : type, '>')
-
-      if (info.optional) {
-        str.push(']')
+    let json = false
+    const patterns = []
+    forEach(args, function (arg) {
+      if (arg === '--json') {
+        json = true
+      } else {
+        patterns.push(arg)
       }
     })
-    str.push('\n')
-    if (info.description) {
-      str.push('  ', info.description, '\n')
+
+    if (patterns.length) {
+      methods = pick(methods, micromatch(Object.keys(methods), patterns))
     }
-  })
-  return str.join('')
+
+    if (json) {
+      return methods
+    }
+
+    methods = pairs(methods)
+    methods.sort(function (a, b) {
+      a = a[0]
+      b = b[0]
+      if (a < b) {
+        return -1
+      }
+      return +(a > b)
+    })
+
+    const str = []
+    forEach(methods, function (method) {
+      const name = method[0]
+      const info = method[1]
+      str.push(chalk.bold.blue(name))
+      forEach(info.params || [], function (info, name) {
+        str.push(' ')
+        if (info.optional) {
+          str.push('[')
+        }
+
+        const type = info.type
+        str.push(name, '=<', type == null ? 'unknown type' : Array.isArray(type) ? type.join('|') : type, '>')
+
+        if (info.optional) {
+          str.push(']')
+        }
+      })
+      str.push('\n')
+      if (info.description) {
+        str.push('  ', info.description, '\n')
+      }
+    })
+    return str.join('')
+  } finally {
+    await xo.close()
+  }
 }
 COMMANDS.listCommands = listCommands
 
@@ -531,7 +535,15 @@ main(process.argv.slice(2)).then(
         process.exitCode = result
       } else {
         const { stdout } = process
-        stdout.write(typeof result === 'string' ? result : inspect(result))
+        stdout.write(
+          typeof result === 'string'
+            ? result
+            : inspect(result, {
+                colors: true,
+                depth: null,
+                sorted: true,
+              })
+        )
         stdout.write('\n')
       }
     }
@@ -540,7 +552,15 @@ main(process.argv.slice(2)).then(
     const { stderr } = process
     stderr.write(chalk.bold.red('✖'))
     stderr.write(' ')
-    stderr.write(typeof error === 'string' ? error : inspect(error))
+    stderr.write(
+      typeof error === 'string'
+        ? error
+        : inspect(error, {
+            colors: true,
+            depth: null,
+            sorted: true,
+          })
+    )
     stderr.write('\n')
     process.exitCode = 1
   }

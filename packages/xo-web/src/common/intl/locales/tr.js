@@ -3223,7 +3223,7 @@ export default {
   // Original text: "To SR:"
   vmImportToSr: 'SR:',
 
-  // Original text: "VMs to import"
+  // Original text: "VM{nVms, plural, one {} other {s}} to import"
   vmsToImport: "içe aktarılacak VM'ler",
 
   // Original text: "Reset"

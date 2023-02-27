@@ -1,8 +1,21 @@
 # ChangeLog
 
+## **5.79.3** (2023-02-25)
+
+### Bug fixes
+
+- [Backup] Fix `Error: 302 Found` when exporting a VDI from a local SR on another host than the pool master [Forum#59047](https://xcp-ng.org/forum/post/59047)
+
+### Released packages
+
+- xen-api 1.2.6
+- @xen-orchestra/proxy 0.26.14
+- xo-server 5.109.4
+
 ## **5.79.2** (2023-02-20)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
 ### Bug fixes
 
 - [Disk import] Fixes ` Cannot read properties of null (reading "length")` error
