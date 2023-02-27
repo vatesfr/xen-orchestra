@@ -218,7 +218,9 @@ class DeltaBackupWriter extends MixinBackupWriter(AbstractDeltaWriter) {
               $defer(() => nbdClient.disconnect())
 
               info('NBD client ready', { vdi: id, path })
+              Task.info('NBD used')
             } catch (error) {
+              Task.warning('NBD configured but unusable', { error })
               nbdClient = undefined
               warn('error connecting to NBD server', { error, vdi: id, path })
             }
