@@ -11,7 +11,11 @@ const messages = {
   expiration: 'Expiration',
   hostIp: 'Host IP',
   keyValue: '{key}: {value}',
-  sslCertificate: 'SSL certificate',
+  esxiImportSslCertificate: 'Source has a valid SSL certificate',
+  esxiImportThin: 'Thin mode',
+  esxiImportThinDescription:
+    "Create a  smaller thin disk, this will require to read the data twice, and won't show in task or the first phase",
+  esxiImportStopSource: 'Stop the source vm, before attempting to transfer the data since the last snapshot',
   vmSrUsage: 'Storage: {used} used of {total} ({free} free)',
 
   notDefined: 'Not defined',

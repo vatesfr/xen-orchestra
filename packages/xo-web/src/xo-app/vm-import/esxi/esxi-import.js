@@ -10,7 +10,7 @@ import { find, isEmpty, keyBy, map, pick } from 'lodash'
 import { injectIntl } from 'react-intl'
 import { Input } from 'debounce-input-decorator'
 import { InputCol, LabelCol, Row } from 'form-grid'
-import { Password, Select } from 'form'
+import { Password, Select, Toggle } from 'form'
 import { SelectNetwork, SelectPool, SelectSr } from 'select-objects'
 
 import VmData from './vm-data'
@@ -25,6 +25,8 @@ const getRedirectUrl = vmId => `/vms/${vmId}`
 class EsxiImport extends Component {
   state = {
     hasCertificate: true,
+    thin: false,
+    stopSource: false,
     hostIp: '',
     isConnected: false,
     password: '',
@@ -59,13 +61,15 @@ class EsxiImport extends Component {
   )
 
   _importVm = () => {
-    const { hasCertificate, hostIp, network, password, sr, user, vm } = this.state
+    const { hasCertificate, hostIp, network, password, sr, stopSource, thin, user, vm } = this.state
     return importVmFromEsxi({
       host: hostIp,
       network: network?.id ?? this._getDefaultNetwork(),
       password,
       sr,
       sslVerify: hasCertificate,
+      stopSource,
+      thin,
       user,
       vm: vm.value,
     })
@@ -88,6 +92,8 @@ class EsxiImport extends Component {
   _resetConnectForm = () => {
     this.setState({
       hasCertificate: true,
+      thin: false,
+      stopSource: false,
       hostIp: '',
       isConnected: false,
       password: '',
@@ -108,6 +114,8 @@ class EsxiImport extends Component {
     const { intl } = this.props
     const {
       hasCertificate,
+      thin,
+      stopSource,
       hostIp,
       isConnected,
       network = this._getDefaultNetwork(),
@@ -158,7 +166,7 @@ class EsxiImport extends Component {
             </InputCol>
           </Row>
           <Row>
-            <LabelCol>{_('sslCertificate')}</LabelCol>
+            <LabelCol>{_('esxiImportSslCertificate')}</LabelCol>
             <InputCol>
               <input
                 checked={hasCertificate}
@@ -220,6 +228,19 @@ class EsxiImport extends Component {
               required
               value={network}
             />
+          </InputCol>
+        </Row>
+        <Row>
+          <LabelCol>{_('esxiImportThin')}</LabelCol>
+          <InputCol>
+            <Toggle onChange={this.toggleState('thin')} value={thin} />
+            <small className='form-text text-muted'>{_('esxiImportThinDescription')}</small>
+          </InputCol>
+        </Row>
+        <Row>
+          <LabelCol>{_('esxiImportStopSource')}</LabelCol>
+          <InputCol>
+            <Toggle onChange={this.toggleState('thin')} value={stopSource} />
           </InputCol>
         </Row>
         {vm !== undefined && (
