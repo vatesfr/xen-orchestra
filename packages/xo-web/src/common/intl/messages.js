@@ -11,7 +11,14 @@ const messages = {
   expiration: 'Expiration',
   hostIp: 'Host IP',
   keyValue: '{key}: {value}',
-  sslCertificate: 'SSL certificate',
+  esxiImportSslCertificate: 'Skip SSL check',
+  esxiImportThin: 'Thin mode',
+  esxiImportThinDescription:
+    'Disk created in thin mode (less space used). Data is read twice, no visible task or progress at first',
+  esxiImportStopSource: 'Stop the source VM',
+  esxiImportStopSourceDescription:
+    'Source VM stopped before the last delta transfer (after final snapshot). Needed to fully transfer a running VM',
+
   vmSrUsage: 'Storage: {used} used of {total} ({free} free)',
 
   notDefined: 'Not defined',
@@ -1111,8 +1118,10 @@ const messages = {
   pvInPvhMode: 'PV inside a PVH container (PV in PVH)',
   windowsUpdateTools: 'Manage Citrix PV drivers via Windows Update',
   windowsToolsModalTitle: 'Windows Update Tools',
-  windowsToolsModalMessage: 'Enabling this will allow the VM to automatically install Citrix PV drivers from Windows Update. This only includes drivers, the Citrix management agent must still be separately installed.',
-  windowsToolsModalWarning: 'If you have previously installed XCP-ng tools instead of Citrix tools, this option will break your VM.',
+  windowsToolsModalMessage:
+    'Enabling this will allow the VM to automatically install Citrix PV drivers from Windows Update. This only includes drivers, the Citrix management agent must still be separately installed.',
+  windowsToolsModalWarning:
+    'If you have previously installed XCP-ng tools instead of Citrix tools, this option will break your VM.',
 
   // ----- VM stat tab -----
   statsCpu: 'CPU usage',

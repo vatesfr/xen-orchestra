@@ -10,7 +10,7 @@ import { find, isEmpty, keyBy, map, pick } from 'lodash'
 import { injectIntl } from 'react-intl'
 import { Input } from 'debounce-input-decorator'
 import { InputCol, LabelCol, Row } from 'form-grid'
-import { Password, Select } from 'form'
+import { Password, Select, Toggle } from 'form'
 import { SelectNetwork, SelectPool, SelectSr } from 'select-objects'
 
 import VmData from './vm-data'
@@ -24,7 +24,9 @@ const getRedirectUrl = vmId => `/vms/${vmId}`
 })
 class EsxiImport extends Component {
   state = {
-    hasCertificate: true,
+    skipSslVerify: false,
+    thin: false,
+    stopSource: false,
     hostIp: '',
     isConnected: false,
     password: '',
@@ -59,21 +61,23 @@ class EsxiImport extends Component {
   )
 
   _importVm = () => {
-    const { hasCertificate, hostIp, network, password, sr, user, vm } = this.state
+    const { hostIp, network, password, skipSslVerify, sr, stopSource, thin, user, vm } = this.state
     return importVmFromEsxi({
       host: hostIp,
       network: network?.id ?? this._getDefaultNetwork(),
       password,
       sr,
-      sslVerify: hasCertificate,
+      sslVerify: !skipSslVerify,
+      stopSource,
+      thin,
       user,
       vm: vm.value,
     })
   }
 
   _connect = async () => {
-    const { hostIp, hasCertificate, password, user } = this.state
-    const vms = await esxiListVms(hostIp, user, password, hasCertificate)
+    const { hostIp, skipSslVerify, password, user } = this.state
+    const vms = await esxiListVms(hostIp, user, password, !skipSslVerify)
     this.setState({ isConnected: true, vmsById: keyBy(vms, 'id') })
   }
 
@@ -87,7 +91,9 @@ class EsxiImport extends Component {
 
   _resetConnectForm = () => {
     this.setState({
-      hasCertificate: true,
+      skipSslVerify: false,
+      thin: false,
+      stopSource: false,
       hostIp: '',
       isConnected: false,
       password: '',
@@ -107,12 +113,14 @@ class EsxiImport extends Component {
   render() {
     const { intl } = this.props
     const {
-      hasCertificate,
+      thin,
+      stopSource,
       hostIp,
       isConnected,
       network = this._getDefaultNetwork(),
       password,
       pool,
+      skipSslVerify,
       sr,
       user,
       vm,
@@ -158,14 +166,9 @@ class EsxiImport extends Component {
             </InputCol>
           </Row>
           <Row>
-            <LabelCol>{_('sslCertificate')}</LabelCol>
+            <LabelCol>{_('esxiImportSslCertificate')}</LabelCol>
             <InputCol>
-              <input
-                checked={hasCertificate}
-                onChange={this.toggleState('hasCertificate')}
-                type='checkbox'
-                value={hasCertificate}
-              />
+              <Toggle onChange={this.toggleState('skipSslVerify')} value={skipSslVerify} />
             </InputCol>
           </Row>
           <div className='form-group pull-right'>
@@ -220,6 +223,20 @@ class EsxiImport extends Component {
               required
               value={network}
             />
+          </InputCol>
+        </Row>
+        <Row>
+          <LabelCol>{_('esxiImportThin')}</LabelCol>
+          <InputCol>
+            <Toggle onChange={this.toggleState('thin')} value={thin} />
+            <small className='form-text text-muted'>{_('esxiImportThinDescription')}</small>
+          </InputCol>
+        </Row>
+        <Row>
+          <LabelCol>{_('esxiImportStopSource')}</LabelCol>
+          <InputCol>
+            <Toggle onChange={this.toggleState('stopSource')} value={stopSource} />
+            <small className='form-text text-muted'>{_('esxiImportStopSourceDescription')}</small>
           </InputCol>
         </Row>
         {vm !== undefined && (
