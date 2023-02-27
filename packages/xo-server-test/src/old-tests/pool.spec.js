@@ -7,7 +7,7 @@ import expect from 'must'
 
 import fromEvent from 'promise-toolbox/fromEvent'
 import { getConfig, getMainConnection, waitObjectState } from './util'
-import { find } from 'lodash'
+import find from 'lodash/find.js'
 
 // ===================================================================
 

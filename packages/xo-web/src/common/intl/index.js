@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 import React, { Component } from 'react'
 import { connect } from 'react-redux'
 import { FormattedMessage, IntlProvider as IntlProvider_ } from 'react-intl'
-import { every } from 'lodash'
+import every from 'lodash/every.js'
 
 import locales from './locales'
 import messages from './messages'

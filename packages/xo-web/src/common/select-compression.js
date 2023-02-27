@@ -2,7 +2,7 @@ import _ from 'intl'
 import PropTypes from 'prop-types'
 import React from 'react'
 import { injectState, provideState } from 'reaclette'
-import { omit } from 'lodash'
+import omit from 'lodash/omit.js'
 
 import decorate from './apply-decorators'
 import { Select } from './form'

@@ -13,7 +13,7 @@ import { Password as EditablePassword, Text } from 'editable'
 import { Password, Toggle } from 'form'
 import { Pool } from 'render-xo-item'
 import { injectIntl } from 'react-intl'
-import { noop } from 'lodash'
+import noop from 'lodash/noop.js'
 import { addServer, disableServer, editServer, enableServer, removeServer, subscribeServers } from 'xo'
 
 const showInfo = () => alert(_('serverAllowUnauthorizedCertificates'), _('serverUnauthorizedCertificatesInfo'))

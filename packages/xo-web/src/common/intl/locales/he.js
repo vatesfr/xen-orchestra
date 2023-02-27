@@ -2276,7 +2276,7 @@ export default {
   // Original text: 'To SR:'
   vmImportToSr: undefined,
 
-  // Original text: 'VMs to import'
+  // Original text: 'VM{nVms, plural, one {} other {s}} to import'
   vmsToImport: undefined,
 
   // Original text: 'Reset'

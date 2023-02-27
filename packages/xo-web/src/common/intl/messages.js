@@ -9,7 +9,10 @@ const messages = {
   description: 'Description',
   deleteSourceVm: 'Delete source VM',
   expiration: 'Expiration',
+  hostIp: 'Host IP',
   keyValue: '{key}: {value}',
+  sslCertificate: 'SSL certificate',
+  vmSrUsage: 'Storage: {used} used of {total} ({free} free)',
 
   notDefined: 'Not defined',
   statusConnecting: 'Connecting',
@@ -1107,6 +1110,9 @@ const messages = {
   hvmModeWithPvDriversEnabled: 'Hardware virtualization with paravirtualization drivers enabled (PVHVM)',
   pvInPvhMode: 'PV inside a PVH container (PV in PVH)',
   windowsUpdateTools: 'Manage Citrix PV drivers via Windows Update',
+  windowsToolsModalTitle: 'Windows Update Tools',
+  windowsToolsModalMessage: 'Enabling this will allow the VM to automatically install Citrix PV drivers from Windows Update. This only includes drivers, the Citrix management agent must still be separately installed.',
+  windowsToolsModalWarning: 'If you have previously installed XCP-ng tools instead of Citrix tools, this option will break your VM.',
 
   // ----- VM stat tab -----
   statsCpu: 'CPU usage',
@@ -1608,13 +1614,16 @@ const messages = {
 
   // ---- VM import ---
   fileType: 'File type:',
+  firmware: 'Firmware',
   fromUrl: 'From URL',
+  fromVmware: 'From VMware',
   importVmsList: 'Drop OVA or XVA files here to import Virtual Machines.',
   noSelectedVms: 'No selected VMs.',
+  noToolsInstalled: 'No tools installed',
   url: 'URL:',
   vmImportToPool: 'To Pool:',
   vmImportToSr: 'To SR:',
-  vmsToImport: 'VMs to import',
+  vmsToImport: 'VM{nVms, plural, one {} other {s}} to import',
   importVmsCleanList: 'Reset',
   vmImportSuccess: 'VM import success',
   vmImportFailed: 'VM import failed',
@@ -1636,6 +1645,7 @@ const messages = {
   vmImportError: 'Error:',
   vmImportFileType: '{type} file:',
   vmImportConfigAlert: 'Please check and/or modify the VM configuration.',
+  toolsInstalled: 'The tools are installed',
 
   // ---- Disk import ---
   diskImportFailed: 'Disk import failed',
