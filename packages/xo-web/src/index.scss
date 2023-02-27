@@ -268,30 +268,7 @@ $select-input-height: 40px; // Bootstrap input height
   }
 }
 
-.task-info {
-  padding: 2px 10px;
-  margin: 10px 0;
-  list-style-type: none;
-  border-radius: 10px;
-  border: 1px dashed #eca649;
-
-  li {
-    margin-bottom: 10px;
-
-    &:last-child {
-      margin-bottom: 0;
-    }
-
-    strong {
-      display: block;
-      color: #eca649;
-    }
-
-    span {
-      color: grey;
-    }
-  }
-}
+.task-info,
 .task-warning {
   padding: 2px 10px;
   margin: 10px 0;

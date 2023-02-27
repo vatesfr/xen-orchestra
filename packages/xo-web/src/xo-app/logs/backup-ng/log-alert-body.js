@@ -18,6 +18,7 @@ import { FormattedDate } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
 import { runBackupNgJob, subscribeBackupNgLogs } from 'xo'
 import { Vm, Sr, Remote, Pool } from 'render-xo-item'
+import BaseComponent from 'base-component'
 
 const hasTaskFailed = ({ status }) => status !== 'success' && status !== 'pending'
 
@@ -160,24 +161,23 @@ TaskWarnings.propTypes = {
   warnings: PropTypes.arrayOf(PropTypes.shape(TaskWarning.propTypes)),
 }
 
-class TaskInfo extends React.Component {
+class TaskInfo extends BaseComponent {
   constructor(props) {
     super(props)
     this.state = {
       expanded: false,
     }
   }
-
   render() {
     const className = `text-info ${this.props.data ? 'message-expandable' : ''}`
     return (
       <div>
-        <span className={className} onClick={() => this.setState({ expanded: !this.state.expanded })}>
+        <span className={className} onClick={this.toggleState('expanded')}>
           <Icon icon='info' /> {this.props.message}
         </span>
         {this.state.expanded && this.props.data && (
           <ul className='task-info'>
-            {Object.keys(this.props.data ?? {}).map(key => (
+            {Object.keys(this.props.data).map(key => (
               <li key={key}>
                 <strong>{key}</strong>
                 <span>{JSON.stringify(this.props.data[key])}</span>
