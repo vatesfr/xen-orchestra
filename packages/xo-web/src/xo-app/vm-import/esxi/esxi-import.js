@@ -235,7 +235,8 @@ class EsxiImport extends Component {
         <Row>
           <LabelCol>{_('esxiImportStopSource')}</LabelCol>
           <InputCol>
-            <Toggle onChange={this.toggleState('thin')} value={stopSource} />
+            <Toggle onChange={this.toggleState('stopSource')} value={stopSource} />
+            <small className='form-text text-muted'>{_('esxiImportStopSourceDescription')}</small>
           </InputCol>
         </Row>
         {vm !== undefined && (
