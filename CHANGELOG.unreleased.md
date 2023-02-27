@@ -35,6 +35,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/fs patch
 - @xen-orchestra/backups minor
 - xo-cli minor
 - xo-server-auth-oidc minor
