@@ -5,11 +5,7 @@
 
 ### Enhancements
 
-> Users must be able to say: “Nice enhancement, I'm eager to test it”
-
 ### Bug fixes
-
-> Users must be able to say: “I had this issue, happy to know it's fixed”
 
 ### Packages to release
 
