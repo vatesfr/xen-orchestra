@@ -1,8 +1,8 @@
 'use strict'
 
-require('@xen-orchestra/log/configure').catchGlobalErrors(
-  require('@xen-orchestra/log').createLogger('xo:backups:worker')
-)
+const logger = require('@xen-orchestra/log').createLogger('xo:backups:worker')
+
+require('@xen-orchestra/log/configure').catchGlobalErrors(logger)
 
 require('@vates/cached-dns.lookup').createCachedLookup().patchGlobal()
 
@@ -19,6 +19,8 @@ const { Xapi } = require('@xen-orchestra/xapi')
 const { Backup } = require('./Backup.js')
 const { RemoteAdapter } = require('./RemoteAdapter.js')
 const { Task } = require('./Task.js')
+
+const { debug } = logger
 
 class BackupWorker {
   #config
@@ -122,6 +124,11 @@ decorateMethodsWith(BackupWorker, {
   ]),
 })
 
+const emitMessage = message => {
+  debug('message emitted', { message })
+  process.send(message)
+}
+
 // Received message:
 //
 // Message {
@@ -139,6 +146,8 @@ decorateMethodsWith(BackupWorker, {
 //   result?: any
 // }
 process.on('message', async message => {
+  debug('message received', { message })
+
   if (message.action === 'run') {
     const backupWorker = new BackupWorker(message.data)
     try {
@@ -147,7 +156,7 @@ process.on('message', async message => {
             {
               name: 'backup run',
               onLog: data =>
-                process.send({
+                emitMessage({
                   data,
                   type: 'log',
                 }),
@@ -156,13 +165,13 @@ process.on('message', async message => {
           )
         : await backupWorker.run()
 
-      process.send({
+      emitMessage({
         type: 'result',
         result,
         status: 'success',
       })
     } catch (error) {
-      process.send({
+      emitMessage({
         type: 'result',
         result: error,
         status: 'failure',
