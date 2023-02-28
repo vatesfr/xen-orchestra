@@ -12,7 +12,7 @@ jobs:
       - name: Cache Turbo
         uses: actions/cache@v3
         with:
-          path: '**/node_modules/.cache/*'
+          path: '/node_modules/.cache/turbo'
           key: ${{ runner.os }}-turbo-cache
           restore-keys: |
             ${{ runner.os }}-turbo-
