@@ -1,6 +1,6 @@
 # ChangeLog
 
-## **5.80** (2023-02-28)
+## **5.80.0** (2023-02-28)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
 
