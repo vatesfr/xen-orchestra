@@ -28,6 +28,5 @@
 <!--packages-start-->
 
 - xo-server minor
-- xo-server-perf-transport-icinga2 patch
 
 <!--packages-end-->
