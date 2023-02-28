@@ -3,6 +3,7 @@
 const { asyncMap, asyncMapSettled } = require('@xen-orchestra/async-map')
 const Disposable = require('promise-toolbox/Disposable')
 const ignoreErrors = require('promise-toolbox/ignoreErrors')
+const pTimeout = require('promise-toolbox/timeout')
 const { compileTemplate } = require('@xen-orchestra/template')
 const { limitConcurrency } = require('limit-concurrency-decorator')
 
@@ -36,6 +37,7 @@ const DEFAULT_VM_SETTINGS = {
   deleteFirst: false,
   exportRetention: 0,
   fullInterval: 0,
+  getRemoteTimeout: 300e3,
   healthCheckSr: undefined,
   healthCheckVmsWithTags: [],
   maxMergedDeltasPerRun: Infinity,
@@ -53,6 +55,13 @@ const DEFAULT_METADATA_SETTINGS = {
   retentionXoMetadata: 0,
 }
 
+class RemoteTimeoutError extends Error {
+  constructor(remoteId) {
+    super('timeout while getting the remote ' + remoteId)
+    this.remoteId = remoteId
+  }
+}
+
 exports.Backup = class Backup {
   constructor({ config, getAdapter, getConnectedRecord, job, schedule }) {
     this._config = config
@@ -60,25 +69,6 @@ exports.Backup = class Backup {
     this._job = job
     this._schedule = schedule
 
-    this._getAdapter = async function (remoteId) {
-      try {
-        const disposable = await getAdapter(remoteId)
-
-        return new Disposable(() => disposable.dispose(), {
-          adapter: disposable.value,
-          remoteId,
-        })
-      } catch (error) {
-        // See https://github.com/vatesfr/xen-orchestra/commit/6aa6cfba8ec939c0288f0fa740f6dfad98c43cbb
-        runTask(
-          {
-            name: 'get remote adapter',
-            data: { type: 'remote', id: remoteId },
-          },
-          () => Promise.reject(error)
-        )
-      }
-    }
     this._getSnapshotNameLabel = compileTemplate(config.snapshotNameLabelTpl, {
       '{job.name}': job.name,
       '{vm.name_label}': vm => vm.name_label,
@@ -99,6 +89,27 @@ exports.Backup = class Backup {
 
     this._baseSettings = baseSettings
     this._settings = { ...baseSettings, ...job.settings[schedule.id] }
+
+    const { getRemoteTimeout } = this._settings
+    this._getAdapter = async function (remoteId) {
+      try {
+        const disposable = await pTimeout.call(getAdapter(remoteId), getRemoteTimeout, new RemoteTimeoutError(remoteId))
+
+        return new Disposable(() => disposable.dispose(), {
+          adapter: disposable.value,
+          remoteId,
+        })
+      } catch (error) {
+        // See https://github.com/vatesfr/xen-orchestra/commit/6aa6cfba8ec939c0288f0fa740f6dfad98c43cbb
+        runTask(
+          {
+            name: 'get remote adapter',
+            data: { type: 'remote', id: remoteId },
+          },
+          () => Promise.reject(error)
+        )
+      }
+    }
   }
 
   async _runMetadataBackup() {
