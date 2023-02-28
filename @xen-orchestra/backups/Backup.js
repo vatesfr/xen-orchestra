@@ -60,13 +60,25 @@ exports.Backup = class Backup {
     this._job = job
     this._schedule = schedule
 
-    this._getAdapter = Disposable.factory(function* (remoteId) {
-      return {
-        adapter: yield getAdapter(remoteId),
-        remoteId,
-      }
-    })
+    this._getAdapter = async function (remoteId) {
+      try {
+        const disposable = await getAdapter(remoteId)
 
+        return new Disposable(() => disposable.dispose(), {
+          adapter: disposable.value,
+          remoteId,
+        })
+      } catch (error) {
+        // See https://github.com/vatesfr/xen-orchestra/commit/6aa6cfba8ec939c0288f0fa740f6dfad98c43cbb
+        runTask(
+          {
+            name: 'get remote adapter',
+            data: { type: 'remote', id: remoteId },
+          },
+          () => Promise.reject(error)
+        )
+      }
+    }
     this._getSnapshotNameLabel = compileTemplate(config.snapshotNameLabelTpl, {
       '{job.name}': job.name,
       '{vm.name_label}': vm => vm.name_label,
@@ -132,20 +144,7 @@ exports.Backup = class Backup {
           })
         )
       ),
-      Disposable.all(
-        remoteIds.map(id =>
-          this._getAdapter(id).catch(error => {
-            // See https://github.com/vatesfr/xen-orchestra/commit/6aa6cfba8ec939c0288f0fa740f6dfad98c43cbb
-            runTask(
-              {
-                name: 'get remote adapter',
-                data: { type: 'remote', id },
-              },
-              () => Promise.reject(error)
-            )
-          })
-        )
-      ),
+      Disposable.all(remoteIds.map(id => this._getAdapter(id))),
       async (pools, remoteAdapters) => {
         // remove adapters that failed (already handled)
         remoteAdapters = remoteAdapters.filter(_ => _ !== undefined)
@@ -233,19 +232,7 @@ exports.Backup = class Backup {
           })
         )
       ),
-      Disposable.all(
-        extractIdsFromSimplePattern(job.remotes).map(id =>
-          this._getAdapter(id).catch(error => {
-            runTask(
-              {
-                name: 'get remote adapter',
-                data: { type: 'remote', id },
-              },
-              () => Promise.reject(error)
-            )
-          })
-        )
-      ),
+      Disposable.all(extractIdsFromSimplePattern(job.remotes).map(id => this._getAdapter(id))),
       () => (settings.healthCheckSr !== undefined ? this._getRecord('SR', settings.healthCheckSr) : undefined),
       async (srs, remoteAdapters, healthCheckSr) => {
         // remove adapters that failed (already handled)
