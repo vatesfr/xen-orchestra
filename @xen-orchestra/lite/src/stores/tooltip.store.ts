@@ -8,7 +8,7 @@ export type TooltipOptions =
   | string
   | {
       content: string;
-      placement: Options["placement"];
+      placement?: Options["placement"];
       disabled?: boolean | ((target: HTMLElement) => boolean);
     };
 
