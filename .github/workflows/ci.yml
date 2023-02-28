@@ -5,6 +5,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - run: echo $default-branch
       - name: Install packages
         run: |
           sudo apt-get update
@@ -13,7 +14,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: '**/node_modules/.cache/*'
-          key: ${{ runner.os }}-turbo-${{ github.sha }}
+          key: ${{ runner.os }}-turbo-cache
           restore-keys: |
             ${{ runner.os }}-turbo-
       - name: Setup Node environment
