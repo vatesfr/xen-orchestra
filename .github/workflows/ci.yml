@@ -4,17 +4,20 @@ jobs:
   CI:
     runs-on: ubuntu-latest
     steps:
+      # https://github.com/actions/checkout
       - uses: actions/checkout@v3
       - name: Install packages
         run: |
           sudo apt-get update
           sudo apt-get install -y curl qemu-utils python3-vmdkstream git libxml2-utils libfuse2 nbdkit
       - name: Cache Turbo
+        # https://github.com/actions/cache
         uses: actions/cache@v3
         with:
           path: '**/node_modules/.cache/turbo'
           key: ${{ runner.os }}-turbo-cache
       - name: Setup Node environment
+        # https://github.com/actions/setup-node
         uses: actions/setup-node@v3
         with:
           node-version: '18'
