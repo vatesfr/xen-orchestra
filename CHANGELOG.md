@@ -28,6 +28,7 @@
 - xo-cli 0.15.0
 - xo-server 5.110.0
 - xo-server-auth-oidc 0.1.0
+- xo-server-netbox 0.3.7
 - xo-web 5.112.0
 
 ## **5.79.3** (2023-02-25)
