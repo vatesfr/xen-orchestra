@@ -14,8 +14,6 @@ jobs:
         with:
           path: '**/node_modules/.cache/turbo'
           key: ${{ runner.os }}-turbo-cache
-          restore-keys: |
-            ${{ runner.os }}-turbo-
       - name: Setup Node environment
         uses: actions/setup-node@v3
         with:
