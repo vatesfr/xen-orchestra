@@ -29,7 +29,7 @@ export default class Esxi extends EventEmitter {
     this.#client.once('ready', async () => {
       this.#ready = true
       const res = await this.search('Datacenter', ['name'])
-      this.#dcPath = Object.keys(res)[0]
+      this.#dcPath = Object.values(res)[0].name
       this.emit('ready')
     })
     this.#client.on('error', err => {
