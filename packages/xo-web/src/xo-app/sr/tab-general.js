@@ -1,3 +1,4 @@
+import * as CM from 'complex-matcher'
 import _ from 'intl'
 import Component from 'base-component'
 import decorate from 'apply-decorators'
@@ -213,13 +214,18 @@ export default class TabGeneral extends Component {
     this._getDiskGroups,
     diskGroups => ids =>
       `#/srs/${this.props.sr.id}/disks?s=${encodeURIComponent(
-        `id:|(${flattenDeep(
-          map(pick(keyBy(diskGroups, 'id'), ids), ({ id, baseCopies, vdis, snapshots, type }) =>
-            type === 'orphanedSnapshot' ? id : [map(baseCopies, 'id'), map(vdis, 'id'), map(snapshots, 'id')]
+        new CM.Property(
+          'id',
+          new CM.Or(
+            flattenDeep(
+              map(pick(keyBy(diskGroups, 'id'), ids), ({ id, baseCopies, vdis, snapshots, type }) =>
+                type === 'orphanedSnapshot' ? id : [map(baseCopies, 'id'), map(vdis, 'id'), map(snapshots, 'id')]
+              )
+            )
+              .sort()
+              .map(_ => new CM.String(_))
           )
-        )
-          .sort()
-          .join(' ')})`
+        ).toString()
       )}`
   )
 

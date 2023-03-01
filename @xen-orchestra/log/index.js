@@ -1,26 +1,31 @@
 'use strict'
 
+const compileGlobPattern = require('./_compileGlobPattern.js')
 const createTransport = require('./transports/console')
-const { LEVELS, resolve } = require('./levels')
+const Log = require('./_Log')
+const { LEVELS, resolve } = require('./_levels')
 
 const symbol = typeof Symbol !== 'undefined' ? Symbol.for('@xen-orchestra/log') : '@@@xen-orchestra/log'
 if (!(symbol in global)) {
   // the default behavior, without requiring `configure` is to avoid
   // logging anything unless it's a real error
   const transport = createTransport()
-  const level = resolve(process.env.LOG_LEVEL, LEVELS.WARN)
-  global[symbol] = log => log.level >= level && transport(log)
+
+  const { env } = process
+
+  const pattern = [env.DEBUG, env.NODE_DEBUG].filter(Boolean).join(',')
+  const matchDebug = pattern.length !== 0 ? RegExp.prototype.test.bind(compileGlobPattern(pattern)) : () => false
+
+  const level = resolve(env.LOG_LEVEL, LEVELS.WARN)
+
+  global[symbol] = function conditionalTransport(log) {
+    if (log.level >= level || matchDebug(log.namespace)) {
+      transport(log)
+    }
+  }
 }
 
 // -------------------------------------------------------------------
-
-function Log(data, level, namespace, message, time) {
-  this.data = data
-  this.level = level
-  this.namespace = namespace
-  this.message = message
-  this.time = time
-}
 
 function Logger(namespace) {
   this._namespace = namespace
@@ -49,7 +54,7 @@ for (const name in LEVELS) {
         })
       }
     }
-    global[symbol](new Log(data, level, this._namespace, message, new Date()))
+    global[symbol](new Log(data, level, this._namespace, message))
   }
 }
 

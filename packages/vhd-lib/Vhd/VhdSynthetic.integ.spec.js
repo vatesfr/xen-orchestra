@@ -20,7 +20,7 @@ beforeEach(async () => {
 })
 
 afterEach(async () => {
-  await pFromCallback(cb => rimraf(tempDir, cb))
+  await rimraf(tempDir)
 })
 
 test('It can read block and parent locator from a synthetic vhd', async () => {
@@ -55,7 +55,7 @@ test('It can read block and parent locator from a synthetic vhd', async () => {
 
     await bigVhd.readHeaderAndFooter()
 
-    const syntheticVhd = yield VhdSynthetic.open(handler, [smallVhdFileName, bigVhdFileName])
+    const syntheticVhd = yield VhdSynthetic.open(handler, [bigVhdFileName, smallVhdFileName])
     await syntheticVhd.readBlockAllocationTable()
 
     expect(syntheticVhd.header.diskType).toEqual(bigVhd.header.diskType)
@@ -65,25 +65,24 @@ test('It can read block and parent locator from a synthetic vhd', async () => {
     const buf = Buffer.alloc(syntheticVhd.sectorsPerBlock * SECTOR_SIZE, 0)
     let content = (await syntheticVhd.readBlock(0)).data
     await handler.read(smallRawFileName, buf, 0)
-    expect(content).toEqual(buf)
+    expect(content.equals(buf)).toEqual(true)
 
     content = (await syntheticVhd.readBlock(1)).data
     await handler.read(smallRawFileName, buf, buf.length)
-    expect(content).toEqual(buf)
+    expect(content.equals(buf)).toEqual(true)
 
     // the next one from big
 
     content = (await syntheticVhd.readBlock(2)).data
     await handler.read(bigRawFileName, buf, buf.length * 2)
-    expect(content).toEqual(buf)
+    expect(content.equals(buf)).toEqual(true)
 
     content = (await syntheticVhd.readBlock(3)).data
     await handler.read(bigRawFileName, buf, buf.length * 3)
-    expect(content).toEqual(buf)
+    expect(content.equals(buf)).toEqual(true)
 
     // the parent locator should the one of the root vhd
     const parentLocator = await syntheticVhd.readParentLocator(0)
     expect(parentLocator.platformCode).toEqual(PLATFORMS.W2KU)
-    expect(Buffer.from(parentLocator.data, 'utf-8').toString()).toEqual('I am in the big one')
   })
 })

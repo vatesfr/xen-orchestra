@@ -8,8 +8,8 @@
 
 Installation of the [npm package](https://npmjs.org/package/@xen-orchestra/cr-seed-cli):
 
-```
-> npm install --global @xen-orchestra/cr-seed-cli
+```sh
+npm install --global @xen-orchestra/cr-seed-cli
 ```
 
 ## Contributions

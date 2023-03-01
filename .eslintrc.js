@@ -28,8 +28,10 @@ module.exports = {
       },
     },
     {
-      files: ['*.spec.{,c,m}js'],
+      files: ['*.{spec,test}.{,c,m}js'],
       rules: {
+        'n/no-unpublished-require': 'off',
+        'n/no-unpublished-import': 'off',
         'n/no-unsupported-features/node-builtins': [
           'error',
           {

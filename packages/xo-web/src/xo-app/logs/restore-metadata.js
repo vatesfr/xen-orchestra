@@ -12,7 +12,7 @@ import { alert } from 'modal'
 import { Card, CardHeader, CardBlock } from 'card'
 import { connectStore, downloadLog } from 'utils'
 import { createGetObjectsOfType } from 'selectors'
-import { filter } from 'lodash'
+import filter from 'lodash/filter.js'
 import { Pool } from 'render-xo-item'
 import { subscribeBackupNgLogs } from 'xo'
 
@@ -94,7 +94,7 @@ const INDIVIDUAL_ACTIONS = [
     label: _('logDownload'),
     handler: task =>
       downloadLog({
-        log: JSON.stringify(task, null, 2),
+        log: task,
         date: task.start,
         type: 'Metadata restore',
       }),

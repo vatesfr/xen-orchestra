@@ -2,7 +2,6 @@
 
 const { formatFilenameDate } = require('../_filenameDate.js')
 const { getOldEntries } = require('../_getOldEntries.js')
-const { getVmBackupDir } = require('../_getVmBackupDir.js')
 const { Task } = require('../Task.js')
 
 const { MixinBackupWriter } = require('./_MixinBackupWriter.js')
@@ -34,8 +33,6 @@ exports.FullBackupWriter = class FullBackupWriter extends MixinBackupWriter(Abst
     const { job, scheduleId, vm } = backup
 
     const adapter = this._adapter
-    const handler = adapter.handler
-    const backupDir = getVmBackupDir(vm.uuid)
 
     // TODO: clean VM backup directory
 
@@ -48,9 +45,8 @@ exports.FullBackupWriter = class FullBackupWriter extends MixinBackupWriter(Abst
     const basename = formatFilenameDate(timestamp)
 
     const dataBasename = basename + '.xva'
-    const dataFilename = backupDir + '/' + dataBasename
+    const dataFilename = this._vmBackupDir + '/' + dataBasename
 
-    const metadataFilename = `${backupDir}/${basename}.json`
     const metadata = {
       jobId: job.id,
       mode: job.mode,
@@ -74,9 +70,7 @@ exports.FullBackupWriter = class FullBackupWriter extends MixinBackupWriter(Abst
       return { size: sizeContainer.size }
     })
     metadata.size = sizeContainer.size
-    await handler.outputFile(metadataFilename, JSON.stringify(metadata), {
-      dirMode: backup.config.dirMode,
-    })
+    this._metadataFileName = await adapter.writeVmBackupMetadata(vm.uuid, metadata)
 
     if (!deleteFirst) {
       await deleteOldBackups()

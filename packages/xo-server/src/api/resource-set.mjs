@@ -107,7 +107,7 @@ get.params = {
 // -------------------------------------------------------------------
 
 export async function getAll() {
-  return this.getAllResourceSets(this.user.id)
+  return this.getAllResourceSets(this.apiContext.user.id)
 }
 
 getAll.description = 'Get the list of all existing resource set'

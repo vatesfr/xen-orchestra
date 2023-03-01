@@ -10,7 +10,7 @@ import { Container, Row, Col } from 'grid'
 import { createDoesHostNeedRestart } from 'selectors'
 import { FormattedRelative, FormattedTime } from 'react-intl'
 import { installAllPatchesOnHost, restartHost } from 'xo'
-import { isEmpty } from 'lodash'
+import isEmpty from 'lodash/isEmpty.js'
 
 import { createGetObject } from '../../common/selectors'
 

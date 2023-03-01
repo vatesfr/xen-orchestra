@@ -1,4 +1,8 @@
 .xo-icon {
+  &-pro-support {
+    @extend .fa;
+    @extend .fa-file-text;
+  }
   &-pool {
     @extend .fa;
     @extend .fa-cloud;
@@ -484,6 +488,10 @@
       @extend .fa;
       @extend .fa-list-alt;
     }
+    &-warm-migration {
+      @extend .fa;
+      @extend .fa-fire;
+    }
   }
 
   // Generic states
@@ -583,6 +591,14 @@
   // SR
   &-sr,
   &-vdi {
+    &-disable {
+      @extend .fa;
+      @extend .fa-times-circle;
+    }
+    &-enable {
+      @extend .fa;
+      @extend .fa-wrench;
+    }
     &-reconnect-all {
       @extend .fa;
       @extend .fa-retweet;

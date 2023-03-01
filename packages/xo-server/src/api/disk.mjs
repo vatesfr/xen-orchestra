@@ -11,6 +11,7 @@ import { vmdkToVhd } from 'xo-vmdk-to-vhd'
 
 import { VDI_FORMAT_VHD, VDI_FORMAT_RAW } from '../xapi/index.mjs'
 import { parseSize } from '../utils.mjs'
+import { readChunk } from '@vates/read-chunk'
 
 const log = createLogger('xo:disk')
 
@@ -23,7 +24,7 @@ export const create = defer(async function ($defer, { name, size, sr, vm, bootab
     let resourceSet
     if (attach && (resourceSet = vm.resourceSet) != null) {
       try {
-        await this.checkResourceSetConstraints(resourceSet, this.user.id, [sr.id])
+        await this.checkResourceSetConstraints(resourceSet, this.apiContext.user.id, [sr.id])
         await this.allocateLimitsInResourceSet({ disk: size }, resourceSet)
         $defer.onFailure(() => this.releaseLimitsInResourceSet({ disk: size }, resourceSet))
 
@@ -37,7 +38,7 @@ export const create = defer(async function ($defer, { name, size, sr, vm, bootab
       // the resource set does not exist, falls back to normal check
     }
 
-    await this.checkPermissions(this.user.id, [[sr.id, 'administrate']])
+    await this.checkPermissions([[sr.id, 'administrate']])
   } while (false)
 
   const xapi = this.getXapi(sr)
@@ -123,7 +124,7 @@ export async function exportContent({ vdi, format = VHD }) {
 exportContent.description = 'export the content of a VDI'
 exportContent.params = {
   id: { type: 'string' },
-  format: { eq: [VMDK, VHD], optional: true },
+  format: { enum: [VMDK, VHD], optional: true },
 }
 exportContent.resolve = {
   vdi: ['id', ['VDI', 'VDI-snapshot'], 'view'],
@@ -215,7 +216,7 @@ async function handleImport(req, res, { type, name, description, vmdkData, srId,
               throw new JsonRpcError(`Unknown disk type, expected "iso", "vhd" or "vmdk", got ${type}`)
           }
 
-          const vdi = await this._getOrWaitObject(
+          const vdi = await xapi._getOrWaitObject(
             await xapi.VDI_create({
               name_description: description,
               name_label: name,
@@ -225,6 +226,14 @@ async function handleImport(req, res, { type, name, description, vmdkData, srId,
           )
           try {
             await vdi.$importContent(vhdStream, { format: diskFormat })
+            let buffer
+            const CHUNK_SIZE = 1024 * 1024
+            // drain remaining content ( padding .header)
+            // didn't succeed to ensure the stream is completly consumed with resume/finished
+            do {
+              buffer = await readChunk(part, CHUNK_SIZE)
+            } while (buffer?.length === CHUNK_SIZE)
+
             res.end(format.response(0, vdi.$id))
           } catch (e) {
             await vdi.$destroy()

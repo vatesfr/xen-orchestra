@@ -511,6 +511,7 @@ export default class New extends Component {
         summary: true,
       })
     } catch (err) {
+      this.setState({ summary: false, usage: false })
       error('NFS Error', err.message || String(err))
     } finally {
       this.setState(({ loading }) => ({ loading: loading - 1 }))
@@ -568,8 +569,10 @@ export default class New extends Component {
       lun,
       luns,
       nfsVersion,
+      nfsSubdir,
       path,
       paths,
+      selectedMainPath,
       summary,
       type,
       usage,
@@ -695,7 +698,9 @@ export default class New extends Component {
                         defaultValue=''
                         id='selectSrPath'
                         onChange={event => {
-                          this._handleSrPathSelection(event.target.value)
+                          const selectedPath = event.target.value
+                          this.setState({ selectedMainPath: selectedPath })
+                          this._handleSrPathSelection(selectedPath)
                         }}
                         ref='path'
                         required
@@ -709,6 +714,28 @@ export default class New extends Component {
                           </option>
                         ))}
                       </select>
+                      {(type === 'nfs' || type === 'nfsiso') && selectedMainPath !== undefined && (
+                        <div>
+                          <label htmlFor='nfsSubdirectory'>{_('subdirectory')}</label>
+                          <div className='input-group'>
+                            <span className='input-group-addon'>/</span>
+                            <input
+                              className='form-control'
+                              id='nfsSubdirectory'
+                              type='text'
+                              onChange={this.linkState('nfsSubdir')}
+                            />
+                            <span className='input-group-btn'>
+                              <ActionButton
+                                icon='search'
+                                handler={() => {
+                                  this._handleSrPathSelection(selectedMainPath.concat('/' + (nfsSubdir?.trim() ?? '')))
+                                }}
+                              />
+                            </span>
+                          </div>
+                        </div>
+                      )}
                     </fieldset>
                   )}
                   {type === 'iscsi' && (

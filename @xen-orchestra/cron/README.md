@@ -10,8 +10,8 @@
 
 Installation of the [npm package](https://npmjs.org/package/@xen-orchestra/cron):
 
-```
-> npm install --save @xen-orchestra/cron
+```sh
+npm install --save @xen-orchestra/cron
 ```
 
 ## Usage

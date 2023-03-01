@@ -20,7 +20,7 @@ XOA uses HVM mode. If your physical host doesn't support virtualization extensio
 
 As no password is set for the xoa system user by default, you will need to set your own. This can be done via the XenStore data of the VM. The following is to be ran on your XCP-ng host:
 
-```
+```sh
 xe vm-param-set uuid=<UUID> xenstore-data:vm-data/system-account-xoa-password=<password>
 ```
 
@@ -49,7 +49,6 @@ By default, XOA has a static max memory set to 16GiB. Sometimes you can have tro
 ```
 "Failed","Migrating VM 'XOA' from '<origin_hostname>' to '<destination_hostname>'
 Internal error: Xenops_interface.Internal_error("Domain.Xenguest_failure(\"Error while waiting for suspend notification: xenguest: xc_domain_save: [1] Save failed (0 = Success)\")")
-
 ```
 
 In this case, it means you need to reduce the static max memory field to a lower value, and try again.
@@ -77,23 +76,23 @@ All XOA logs are stored in `/var/log/syslog` (on the XO Appliance).
 
 To filter only what you need, you can use `journalctl`. Below is an example to filter only logs for `xo-server`:
 
-```
-$ journalctl -u xo-server -f -n 50
+```sh
+journalctl -u xo-server -f -n 50
 ```
 
 This will return the 50 last lines and tail the file. If you have an error message in your application, start this command and try to reproduce the issue. You'll see clearly what the problem is.
 
 You can also filter for the updater program:
 
-```
-$ journalctl -u xoa-updater -f -n 50
+```sh
+journalctl -u xoa-updater -f -n 50
 ```
 
 ## Configuration
 
 XOA is a virtual appliance running Debian with Xen Orchestra installed. If you have any problems, the first thing to do is to use our check service by running the `xoa check` command in a terminal:
 
-```
+```console
 $ xoa check
 ✔ Node version
 ✔ Disk space for /var
@@ -146,9 +145,9 @@ You should leave ~512MB for the debian OS itself. Meaning if your VM has 4096MB 
 
 The last step is to refresh and restart the service:
 
-```
-$ systemctl daemon-reload
-$ systemctl restart xo-server
+```sh
+systemctl daemon-reload
+systemctl restart xo-server
 ```
 
 ### Behind a transparent proxy
@@ -157,11 +156,11 @@ If you're behind a transparent proxy, you'll probably have issues with the updat
 
 Run the following commands to allow the updater to work:
 
-```
-$ sudo -s
-$ echo NODE_TLS_REJECT_UNAUTHORIZED=0 >> /etc/xo-appliance/env
-$ npm config -g set strict-ssl=false
-$ systemctl restart xoa-updater
+```sh
+sudo -s
+echo NODE_TLS_REJECT_UNAUTHORIZED=0 >> /etc/xo-appliance/env
+npm config -g set strict-ssl=false
+systemctl restart xoa-updater
 ```
 
 Now try running an update again.
@@ -172,20 +171,20 @@ If the provided certificate is expired, you may want to create a new one.
 
 Connect to your appliance via SSH, then as root execute these commands:
 
-```
-$ cd /etc/ssl
-$ cp cert.pem cert.pem-old
-$ cp key.pem key.pem-old
-$ openssl req -x509 -newkey rsa:2048 -keyout key.pem -out cert.pem -nodes -days 360
-$ systemctl restart xo-server.service
+```sh
+cd /etc/ssl
+cp cert.pem cert.pem-old
+cp key.pem key.pem-old
+openssl req -x509 -newkey rsa:2048 -keyout key.pem -out cert.pem -nodes -days 360
+systemctl restart xo-server.service
 ```
 
 ### Logs
 
 The system logs are visible by using this command:
 
-```
-$ tail -f /var/log/syslog
+```sh
+tail -f /var/log/syslog
 ```
 
 You can read more about logs [in the dedicated logs chapter](troubleshooting.md#logs).

@@ -23,7 +23,7 @@ beforeEach(async () => {
 })
 
 afterEach(async () => {
-  await pFromCallback(cb => rimraf(tempDir, cb))
+  await rimraf(tempDir)
 })
 
 const streamToBuffer = stream => {
@@ -95,15 +95,9 @@ test('It rename and unlink a VHDFile', async () => {
   await convertFromRawToVhd(rawFileName, vhdFileName)
   await Disposable.use(async function* () {
     const handler = yield getSyncedHandler({ url: 'file:///' })
-    const { size } = await fs.stat(vhdFileName)
-    const targetFileName = `${tempDir}/renamed.vhd`
 
-    await VhdAbstract.rename(handler, vhdFileName, targetFileName)
+    await VhdAbstract.unlink(handler, vhdFileName)
     expect(await fs.exists(vhdFileName)).toEqual(false)
-    const { size: renamedSize } = await fs.stat(targetFileName)
-    expect(size).toEqual(renamedSize)
-    await VhdAbstract.unlink(handler, targetFileName)
-    expect(await fs.exists(targetFileName)).toEqual(false)
   })
 })
 
@@ -122,12 +116,8 @@ test('It rename and unlink a VhdDirectory', async () => {
     // it should clean an existing directory
     await fs.mkdir(targetFileName)
     await fs.writeFile(`${targetFileName}/dummy`, 'I exists')
-    await VhdAbstract.rename(handler, vhdDirectory, targetFileName)
-    expect(await fs.exists(vhdDirectory)).toEqual(false)
-    expect(await fs.exists(targetFileName)).toEqual(true)
+    await VhdAbstract.unlink(handler, `${targetFileName}/dummy`)
     expect(await fs.exists(`${targetFileName}/dummy`)).toEqual(false)
-    await VhdAbstract.unlink(handler, targetFileName)
-    expect(await fs.exists(targetFileName)).toEqual(false)
   })
 })
 
@@ -138,7 +128,6 @@ test('It create , rename and unlink alias', async () => {
   const vhdFileName = `${tempDir}/randomfile.vhd`
   await convertFromRawToVhd(rawFileName, vhdFileName)
   const aliasFileName = `${tempDir}/aliasFileName.alias.vhd`
-  const aliasFileNameRenamed = `${tempDir}/aliasFileNameRenamed.alias.vhd`
 
   await Disposable.use(async function* () {
     const handler = yield getSyncedHandler({ url: 'file:///' })
@@ -146,15 +135,9 @@ test('It create , rename and unlink alias', async () => {
     expect(await fs.exists(aliasFileName)).toEqual(true)
     expect(await fs.exists(vhdFileName)).toEqual(true)
 
-    await VhdAbstract.rename(handler, aliasFileName, aliasFileNameRenamed)
-    expect(await fs.exists(aliasFileName)).toEqual(false)
-    expect(await fs.exists(vhdFileName)).toEqual(true)
-    expect(await fs.exists(aliasFileNameRenamed)).toEqual(true)
-
-    await VhdAbstract.unlink(handler, aliasFileNameRenamed)
+    await VhdAbstract.unlink(handler, aliasFileName)
     expect(await fs.exists(aliasFileName)).toEqual(false)
     expect(await fs.exists(vhdFileName)).toEqual(false)
-    expect(await fs.exists(aliasFileNameRenamed)).toEqual(false)
   })
 })
 
@@ -183,6 +166,17 @@ test('it can create a vhd stream', async () => {
     await vhd.writeFooter()
     const stream = vhd.stream()
 
+    // size and stream must have the same result
+    expect(stream.length).toEqual(vhd.streamSize())
+
+    expect(stream.length).toEqual(
+      512 /* footer */ +
+        1024 /* header */ +
+        512 /* BAT */ +
+        512 /* parentlocator */ +
+        3 * (2 * 1024 * 1024 + 512) /* blocs */ +
+        512 /* end footer */
+    )
     // read all the stream into a buffer
 
     const buffer = await streamToBuffer(stream)

@@ -14,7 +14,7 @@ import { createLogger } from '@xen-orchestra/log'
 import { decorateWith } from '@vates/decorate-with'
 import { defer } from 'golike-defer'
 import { format, parse } from 'json-rpc-peer'
-import { incorrectState, noSuchObject } from 'xo-common/api-errors.js'
+import { incorrectState, invalidParameters, noSuchObject } from 'xo-common/api-errors.js'
 import { parseDuration } from '@vates/parse-duration'
 import { readChunk } from '@vates/read-chunk'
 import { Ref } from 'xen-api'
@@ -29,19 +29,33 @@ import { generateToken } from '../utils.mjs'
 
 const DEBOUNCE_TIME_PROXY_STATE = 60000
 
-const extractProperties = _ => _.properties
 const synchronizedWrite = synchronized()
 
 const log = createLogger('xo:proxy')
 
-const assertProxyAddress = (proxy, address) => {
+function addProxyUrl(proxy) {
+  const url = new URL('https://localhost')
+  url.username = proxy.authenticationToken
+
+  const { address } = proxy
   if (address !== undefined) {
-    return address
+    url.host = address
+  } else {
+    try {
+      const vm = this._app.getXapiObject(proxy.vmUuid, 'VM')
+      const hostname = extractIpFromVmNetworks(vm.$guest_metrics?.networks)
+      if (hostname === undefined) {
+        return
+      }
+      url.hostname = hostname
+    } catch (error) {
+      log.warn('addProxyUrl', { error, proxy })
+      return
+    }
   }
 
-  const error = new Error('cannot get the proxy address')
-  error.proxy = omit(proxy, 'authenticationToken')
-  throw error
+  delete proxy.authenticationToken
+  proxy.url = url.href
 }
 
 export default class Proxy {
@@ -57,7 +71,7 @@ export default class Proxy {
     const db = (this._db = new Collection({
       connection: app._redis,
       indexes: ['address', 'vmUuid'],
-      prefix: 'xo:proxy',
+      namespace: 'proxy',
     }))
 
     app.hooks.on('clean', () => db.rebuildIndexes())
@@ -68,6 +82,17 @@ export default class Proxy {
         proxies => db.update(proxies)
       )
     )
+  }
+
+  async _getChannel() {
+    const PLACEHOLDER = '{xoChannel}'
+    let channel = this._app.config.get('xo-proxy.channel')
+    const i = channel.indexOf(PLACEHOLDER)
+    if (i !== -1) {
+      const xoChannel = await this._app.getCurrentChannel()
+      channel = channel.slice(0, i) + xoChannel + channel.slice(i + PLACEHOLDER.length)
+    }
+    return channel
   }
 
   async _throwIfRegistered(address, vmUuid) {
@@ -81,11 +106,17 @@ export default class Proxy {
 
   @synchronizedWrite
   async registerProxy({ address, authenticationToken, name = this._generateDefaultProxyName(), vmUuid }) {
+    if (address === undefined && vmUuid === undefined) {
+      throw invalidParameters('at least one of address and vmUuid must be defined')
+    }
+
+    if (authenticationToken === undefined) {
+      authenticationToken = await generateToken()
+    }
+
     await this._throwIfRegistered(address, vmUuid)
 
-    const {
-      properties: { id },
-    } = await this._db.add({
+    const { id } = await this._db.add({
       address,
       authenticationToken,
       name,
@@ -95,14 +126,14 @@ export default class Proxy {
   }
 
   async unregisterProxy(id) {
-    const { vmUuid } = await this.getProxy(id)
+    const { vmUuid } = await this._getProxy(id)
 
     await this._db.remove(id)
 
     if (vmUuid !== undefined) {
       // waiting the unbind of the license in order to be available at the end of the method call
       await this._app
-        .unbindLicense({
+        .unbindLicense?.({
           boundObjectId: vmUuid,
           productId: this._app.config.get('xo-proxy.licenseProductId'),
         })
@@ -111,7 +142,7 @@ export default class Proxy {
   }
 
   async destroyProxy(id) {
-    const { vmUuid } = await this.getProxy(id)
+    const { vmUuid } = await this._getProxy(id)
     if (vmUuid !== undefined) {
       try {
         await this._app.getXapiObject(vmUuid).$destroy()
@@ -124,28 +155,40 @@ export default class Proxy {
     return this.unregisterProxy(id)
   }
 
-  async getProxy(id) {
+  async _getProxy(id) {
     const proxy = await this._db.first(id)
     if (proxy === undefined) {
       throw noSuchObject(id, 'proxy')
     }
-    return extractProperties(proxy)
+    return proxy
   }
 
-  getAllProxies() {
-    return this._db.get()
+  async getProxy(id) {
+    const proxy = await this._getProxy(id)
+    addProxyUrl.call(this, proxy)
+
+    return proxy
+  }
+
+  async getAllProxies() {
+    const proxies = await this._db.get()
+    proxies.forEach(addProxyUrl, this)
+    return proxies
   }
 
   @synchronizedWrite
   async updateProxy(id, { address, authenticationToken, name, vmUuid }) {
-    const proxy = await this.getProxy(id)
+    const proxy = await this._getProxy(id)
     await this._throwIfRegistered(
       proxy.address !== address ? address : undefined,
       proxy.vm !== vmUuid ? vmUuid : undefined
     )
 
     patch(proxy, { address, authenticationToken, name, vmUuid })
-    return this._db.update(proxy).then(extractProperties)
+    await this._db.update(proxy)
+
+    addProxyUrl(proxy)
+    return proxy
   }
 
   async upgradeProxyAppliance(id, ignoreRunningJobs = false) {
@@ -160,7 +203,28 @@ export default class Proxy {
       }
     }
 
-    return this.updateProxyAppliance(id, { upgrade: true })
+    let isVmKnown = false
+
+    const { vmUuid } = await this._getProxy(id)
+    if (vmUuid !== undefined) {
+      try {
+        this._app.getObject(vmUuid, 'VM')
+
+        isVmKnown = true
+      } catch (error) {
+        if (!noSuchObject.is(error)) {
+          throw error
+        }
+      }
+    }
+
+    if (isVmKnown) {
+      //  use the standard upgrade (via VM reboot)
+      await this.updateProxyAppliance(id, { upgrade: true })
+    } else {
+      // use the (limited) API upgrade instead
+      await this.callProxyMethod(id, 'appliance.updater.upgrade')
+    }
   }
 
   async updateProxyAppliance(id, { httpProxy, upgrade = false }) {
@@ -169,10 +233,10 @@ export default class Proxy {
       xenstoreData['vm-data/xoa-updater-proxy-url'] = JSON.stringify(httpProxy)
     }
     if (upgrade) {
-      xenstoreData['vm-data/xoa-updater-channel'] = JSON.stringify(this._app.config.get('xo-proxy.channel'))
+      xenstoreData['vm-data/xoa-updater-channel'] = JSON.stringify(await this._getChannel())
     }
 
-    const { vmUuid } = await this.getProxy(id)
+    const { vmUuid } = await this._getProxy(id)
     const xapi = this._app.getXapi(vmUuid)
     await xapi.getObject(vmUuid).update_xenstore_data(xenstoreData)
 
@@ -241,7 +305,7 @@ export default class Proxy {
         email,
         registrationToken,
       }),
-      'vm-data/xoa-updater-channel': JSON.stringify(xoProxyConf.channel),
+      'vm-data/xoa-updater-channel': JSON.stringify(await this._getChannel()),
     }
     if (httpProxy !== undefined) {
       xenstoreData['vm-data/xoa-updater-proxy-url'] = JSON.stringify(httpProxy)
@@ -274,7 +338,7 @@ export default class Proxy {
 
     const redeploy = proxyId !== undefined
     if (redeploy) {
-      const { vmUuid } = await this.getProxy(proxyId)
+      const { vmUuid } = await this._getProxy(proxyId)
       if (vmUuid !== undefined) {
         try {
           await app.getXapiObject(vmUuid).$destroy()
@@ -353,7 +417,9 @@ export default class Proxy {
 
   // enum assertType {iterator, scalar, stream}
   async callProxyMethod(id, method, params, { assertType = 'scalar' } = {}) {
-    const proxy = await this.getProxy(id)
+    const proxy = await this._getProxy(id)
+
+    const url = new URL('https://localhost/api/v1')
 
     const request = {
       body: format.request(0, method, params),
@@ -362,23 +428,26 @@ export default class Proxy {
         Cookie: cookie.serialize('authenticationToken', proxy.authenticationToken),
       },
       method: 'POST',
-      pathname: '/api/v1',
-      protocol: 'https:',
       rejectUnauthorized: false,
       timeout: this._app.config.getDuration('xo-proxy.callTimeout'),
     }
 
-    if (proxy.vmUuid !== undefined) {
+    if (proxy.address !== undefined) {
+      url.host = proxy.address
+    } else {
       const vm = this._app.getXapi(proxy.vmUuid).getObjectByUuid(proxy.vmUuid)
 
-      // use hostname field to avoid issues with IPv6 addresses
-      request.hostname = assertProxyAddress(proxy, extractIpFromVmNetworks(vm.$guest_metrics?.networks))
-    } else {
-      // use host field so that ports can be passed
-      request.host = assertProxyAddress(proxy, proxy.address)
+      const address = extractIpFromVmNetworks(vm.$guest_metrics?.networks)
+      if (address === undefined) {
+        const error = new Error('cannot get the proxy address')
+        error.proxy = omit(proxy, 'authenticationToken')
+        throw error
+      }
+
+      url.hostname = address.includes(':') ? `[${address}]` : address
     }
 
-    const response = await hrp(request)
+    const response = await hrp(url, request)
 
     const authenticationToken = parseSetCookie(response, {
       map: true,

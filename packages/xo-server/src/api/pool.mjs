@@ -69,7 +69,7 @@ set.resolve = {
 // -------------------------------------------------------------------
 
 export async function setDefaultSr({ sr }) {
-  await this.hasPermissions(this.user.id, [[sr.$pool, 'administrate']])
+  await this.hasPermissions(this.apiContext.user.id, [[sr.$pool, 'administrate']])
 
   await this.getXapi(sr).setDefaultSr(sr._xapiId)
 }
@@ -87,7 +87,7 @@ setDefaultSr.resolve = {
 // -------------------------------------------------------------------
 
 export async function setPoolMaster({ host }) {
-  await this.hasPermissions(this.user.id, [[host.$pool, 'administrate']])
+  await this.hasPermissions(this.apiContext.user.id, [[host.$pool, 'administrate']])
 
   await this.getXapi(host).setPoolMaster(host._xapiId)
 }
@@ -236,38 +236,6 @@ rollingUpdate.resolve = {
 
 // -------------------------------------------------------------------
 
-async function handlePatchUpload(req, res, { pool }) {
-  const contentLength = req.headers['content-length']
-  if (!contentLength) {
-    res.writeHead(411)
-    res.end('Content length is mandatory')
-    return
-  }
-
-  await this.getXapi(pool).uploadPoolPatch(req, contentLength)
-}
-
-export async function uploadPatch({ pool }) {
-  return {
-    $sendTo: await this.registerHttpRequest(handlePatchUpload, { pool }),
-  }
-}
-
-uploadPatch.params = {
-  pool: { type: 'string' },
-}
-
-uploadPatch.resolve = {
-  pool: ['pool', 'pool', 'administrate'],
-}
-
-// Compatibility
-//
-// TODO: remove when no longer used in xo-web
-export { uploadPatch as patch }
-
-// -------------------------------------------------------------------
-
 export async function getPatchesDifference({ source, target }) {
   return this.getPatchesDifference(target.id, source.id)
 }
@@ -285,10 +253,7 @@ getPatchesDifference.resolve = {
 // -------------------------------------------------------------------
 
 export async function mergeInto({ source, sources = [source], target, force }) {
-  await this.checkPermissions(
-    this.user.id,
-    sources.map(source => [source, 'administrate'])
-  )
+  await this.checkPermissions(sources.map(source => [source, 'administrate']))
   return this.mergeInto({
     force,
     sources,

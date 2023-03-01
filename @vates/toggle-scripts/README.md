@@ -10,8 +10,8 @@
 
 Installation of the [npm package](https://npmjs.org/package/@vates/toggle-scripts):
 
-```
-> npm install --save @vates/toggle-scripts
+```sh
+npm install --save @vates/toggle-scripts
 ```
 
 ## Usage

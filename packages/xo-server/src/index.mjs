@@ -1,17 +1,14 @@
 import appConf from 'app-conf'
 import assert from 'assert'
-import authenticator from 'otplib/authenticator.js'
 import blocked from 'blocked-at'
 import Bluebird from 'bluebird'
 import compression from 'compression'
 import createExpress from 'express'
-import crypto from 'crypto'
 import forOwn from 'lodash/forOwn.js'
 import has from 'lodash/has.js'
 import helmet from 'helmet'
 import httpProxy from 'http-proxy'
 import includes from 'lodash/includes.js'
-import map from 'lodash/map.js'
 import memoryStoreFactory from 'memorystore'
 import merge from 'lodash/merge.js'
 import ms from 'ms'
@@ -29,6 +26,7 @@ import { createRequire } from 'module'
 import { genSelfSignedCert } from '@xen-orchestra/self-signed'
 import { parseDuration } from '@vates/parse-duration'
 import { URL } from 'url'
+import { verifyTotp } from '@vates/otp'
 
 import { compile as compilePug } from 'pug'
 import { fromCallback, fromEvent } from 'promise-toolbox'
@@ -49,8 +47,8 @@ import passport from 'passport'
 import { parse as parseCookies } from 'cookie'
 import { Strategy as LocalStrategy } from 'passport-local'
 
-import transportConsole from '@xen-orchestra/log/transports/console.js'
-import { configure } from '@xen-orchestra/log/configure.js'
+import transportConsole from '@xen-orchestra/log/transports/console'
+import { configure } from '@xen-orchestra/log/configure'
 import { generateToken } from './utils.mjs'
 
 // ===================================================================
@@ -60,11 +58,6 @@ const [APP_NAME, APP_VERSION] = (() => {
   const { name, version } = JSON.parse(fse.readFileSync(new URL('../package.json', import.meta.url)))
   return [name, version]
 })()
-
-// ===================================================================
-
-// https://github.com/yeojz/otplib#using-specific-otp-implementations
-authenticator.options = { crypto }
 
 // ===================================================================
 
@@ -204,14 +197,14 @@ async function setUpPassport(express, xo, { authentication: authCfg, http: { coo
     )
   })
 
-  express.post('/signin-otp', (req, res, next) => {
+  express.post('/signin-otp', async (req, res, next) => {
     const { user } = req.session
 
     if (user === undefined) {
       return res.redirect(303, '/signin')
     }
 
-    if (authenticator.check(req.body.otp, user.preferences.otp)) {
+    if (await verifyTotp(req.body.otp, { secret: user.preferences.otp })) {
       setToken(req, res, next)
     } else {
       req.flash('error', 'Invalid code')
@@ -274,7 +267,8 @@ async function setUpPassport(express, xo, { authentication: authCfg, http: { coo
       })(req, res, next)
     }
 
-    if (req.cookies.token) {
+    const { token } = req.cookies
+    if (token !== undefined && (await xo.isValidAuthenticationToken(token))) {
       next()
     } else {
       req.flash('return-url', url)
@@ -400,11 +394,34 @@ async function makeWebServerListen(
     cert = certificate,
 
     key,
+
+    configKey,
+
     ...opts
   }
 ) {
   try {
+    const useAcme = autoCert && opts.acmeDomain !== undefined
+
+    // don't pass these entries to httpServer.listen(opts)
+    for (const key of Object.keys(opts).filter(_ => _.startsWith('acme'))) {
+      delete opts[key]
+    }
+
     if (cert && key) {
+      if (useAcme) {
+        opts.SNICallback = async (serverName, callback) => {
+          try {
+            // injected by mixins/SslCertificate
+            const secureContext = await webServer.getSecureContext(serverName, configKey, opts.cert, opts.key)
+            callback(null, secureContext)
+          } catch (error) {
+            log.warn(error)
+            callback(error, null)
+          }
+        }
+      }
+
       try {
         ;[opts.cert, opts.key] = await Promise.all([fse.readFile(cert), fse.readFile(key)])
         if (opts.key.includes('ENCRYPTED')) {
@@ -419,7 +436,6 @@ async function makeWebServerListen(
         if (!(autoCert && error.code === 'ENOENT')) {
           throw error
         }
-
         const pems = await genSelfSignedCert()
         await Promise.all([
           fse.outputFile(cert, pems.cert, { flag: 'wx', mode: 0o400 }),
@@ -452,8 +468,9 @@ async function makeWebServerListen(
 
 async function createWebServer({ listen, listenOptions }) {
   const webServer = stoppable(new WebServer())
-
-  await Promise.all(map(listen, opts => makeWebServerListen(webServer, { ...listenOptions, ...opts })))
+  await asyncMap(Object.entries(listen), ([configKey, opts]) =>
+    makeWebServerListen(webServer, { ...listenOptions, ...opts, configKey })
+  )
 
   return webServer
 }
@@ -590,7 +607,11 @@ const setUpApi = (webServer, xo, config) => {
 
     const onSend = error => {
       if (error) {
-        log.warn('WebSocket send:', { error })
+        // even if the readyState of the socket is checked, it can still happen
+        // that the message failed to be sent because the connection was closed.
+        if (error.code !== 'ERR_STREAM_DESTROYED') {
+          log.warn('WebSocket send:', { error })
+        }
       }
     }
     jsonRpc.on('data', data => {
@@ -760,6 +781,10 @@ export default async function main(args) {
 
   // Attaches express to the web server.
   webServer.on('request', (req, res) => {
+    // don't redirect let's encrypt challenge to https
+    if (req.url.startsWith('/.well')) {
+      return
+    }
     // don't handle proxy requests
     if (req.url.startsWith('/')) {
       return express(req, res)
@@ -823,6 +848,7 @@ export default async function main(args) {
     process.on(signal, () => {
       if (alreadyCalled) {
         log.warn('forced exit')
+        // eslint-disable-next-line n/no-process-exit
         process.exit(1)
       }
       alreadyCalled = true

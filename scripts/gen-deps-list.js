@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 'use strict'
 
-const DepTree = require('deptree')
 const fs = require('fs').promises
 const joinPath = require('path').join
 const semver = require('semver')
@@ -9,6 +8,9 @@ const { getPackages } = require('./utils')
 const escapeRegExp = require('lodash/escapeRegExp')
 const invert = require('lodash/invert')
 const keyBy = require('lodash/keyBy')
+
+const { debug } = require('../@xen-orchestra/log').createLogger('gen-deps-list')
+const computeDepOrder = require('./_computeDepOrder.js')
 
 const changelogConfig = {
   path: joinPath(__dirname, '../CHANGELOG.unreleased.md'),
@@ -18,14 +20,6 @@ const changelogConfig = {
 
 const RELEASE_WEIGHT = { PATCH: 1, MINOR: 2, MAJOR: 3 }
 const RELEASE_TYPE = invert(RELEASE_WEIGHT)
-
-const releaseGraph = { __proto__: null }
-function addToGraph(name, depName) {
-  const deps = releaseGraph[name] ?? (releaseGraph[name] = [])
-  if (depName !== undefined) {
-    deps.push(depName)
-  }
-}
 
 /** @type {Map<string, int>} A mapping of package names to their release weight */
 const packagesToRelease = new Map()
@@ -37,6 +31,8 @@ async function main(args, scriptName) {
 
   const testMode = args[0] === '--test'
   if (testMode) {
+    debug('reading packages from CLI')
+
     args.shift()
 
     for (const arg of args) {
@@ -64,6 +60,7 @@ async function main(args, scriptName) {
   }
 
   allPackages = keyBy(await getPackages(true), 'name')
+  const releaseOrder = computeDepOrder(allPackages)
 
   Object.entries(toRelease).forEach(([packageName, releaseType]) => {
     const rootPackage = allPackages[packageName]
@@ -74,7 +71,6 @@ async function main(args, scriptName) {
 
     const rootReleaseWeight = releaseTypeToWeight(releaseType)
     registerPackageToRelease(packageName, rootReleaseWeight)
-    addToGraph(rootPackage.name)
 
     handlePackageDependencies(rootPackage.name, getNextVersion(rootPackage.package.version, rootReleaseWeight))
   })
@@ -82,20 +78,15 @@ async function main(args, scriptName) {
   const commandsToExecute = ['', 'Commands to execute:', '']
   const releasedPackages = ['', '### Released packages', '']
 
-  const tree = new DepTree()
-  Object.keys(releaseGraph)
-    .sort()
-    .forEach(name => {
-      tree.add(name, releaseGraph[name])
-    })
-
-  tree.resolve().forEach(dependencyName => {
-    const releaseWeight = packagesToRelease.get(dependencyName)
-    const {
-      package: { version },
-    } = allPackages[dependencyName]
-    commandsToExecute.push(`./scripts/bump-pkg ${dependencyName} ${RELEASE_TYPE[releaseWeight].toLocaleLowerCase()}`)
-    releasedPackages.push(`- ${dependencyName} ${getNextVersion(version, releaseWeight)}`)
+  releaseOrder.forEach(name => {
+    if (packagesToRelease.has(name)) {
+      const releaseWeight = packagesToRelease.get(name)
+      const {
+        package: { version },
+      } = allPackages[name]
+      commandsToExecute.push(`./scripts/bump-pkg ${name} ${RELEASE_TYPE[releaseWeight].toLocaleLowerCase()}`)
+      releasedPackages.push(`- ${name} ${getNextVersion(version, releaseWeight)}`)
+    }
   })
 
   console.log(commandsToExecute.join('\n'))
@@ -103,6 +94,8 @@ async function main(args, scriptName) {
 }
 
 async function readPackagesFromChangelog(toRelease) {
+  debug('reading packages from CHANGELOG.unreleased.md')
+
   const content = await fs.readFile(changelogConfig.path)
   const changelogRegex = new RegExp(
     `${escapeRegExp(changelogConfig.startTag)}(.*)${escapeRegExp(changelogConfig.endTag)}`,
@@ -147,13 +140,24 @@ function handlePackageDependencies(packageName, packageNextVersion) {
         shouldPackageBeReleased(name, { ...dependencies, ...optionalDependencies }, packageName, packageNextVersion)
       ) {
         releaseWeight = RELEASE_WEIGHT.PATCH
+
+        debug('new compatible release due to dependency update', {
+          package: name,
+          dependency: packageName,
+          version: getNextVersion(version, releaseWeight),
+        })
       } else if (shouldPackageBeReleased(name, peerDependencies || {}, packageName, packageNextVersion)) {
         releaseWeight = versionToReleaseWeight(version)
+
+        debug('new breaking release due to peer dependency update', {
+          package: name,
+          peerDependency: packageName,
+          version: getNextVersion(version, releaseWeight),
+        })
       }
 
       if (releaseWeight !== undefined) {
         registerPackageToRelease(name, releaseWeight)
-        addToGraph(name, packageName)
         handlePackageDependencies(name, getNextVersion(version, releaseWeight))
       }
     }
@@ -177,6 +181,10 @@ function shouldPackageBeReleased(name, dependencies, depName, depVersion) {
   }
 
   if (['xo-web', 'xo-server', '@xen-orchestra/proxy'].includes(name)) {
+    debug('forced release due to dependency update', {
+      package: name,
+      dependency: depName,
+    })
     return true
   }
 

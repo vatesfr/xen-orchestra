@@ -296,5 +296,5 @@ gulp.task('build', gulp.parallel('buildPages', 'buildScripts', 'buildStyles', 'c
 // -------------------------------------------------------------------
 
 gulp.task(function clean(done) {
-  require('rimraf')(DIST_DIR, done)
+  require('rimraf')(DIST_DIR).then(value => done(null, value), done)
 })

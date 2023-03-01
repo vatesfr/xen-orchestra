@@ -8,6 +8,8 @@ import iteratee from 'lodash/iteratee.js'
 import mixin from '@xen-orchestra/mixin'
 import mixinLegacy from '@xen-orchestra/mixin/legacy.js'
 import stubTrue from 'lodash/stubTrue.js'
+import SslCertificate from '@xen-orchestra/mixins/SslCertificate.mjs'
+import Tasks from '@xen-orchestra/mixins/Tasks.mjs'
 import { Collection as XoCollection } from 'xo-collection'
 import { createClient as createRedisClient } from 'redis'
 import { createDebounceResource } from '@vates/disposable/debounceResource.js'
@@ -29,8 +31,7 @@ export default class Xo extends EventEmitter {
   constructor(opts) {
     super()
 
-    mixin(this, { Config, Hooks, HttpProxy }, [opts])
-
+    mixin(this, { Config, Hooks, HttpProxy, SslCertificate, Tasks }, [opts])
     // a lot of mixins adds listener for start/stop/… events
     this.hooks.setMaxListeners(0)
 
@@ -43,13 +44,12 @@ export default class Xo extends EventEmitter {
 
     // Connects to Redis.
     {
-      const { renameCommands, socket: path, uri: url } = config.redis || {}
+      const { socket: path, uri: url } = config.redis || {}
+      const redis = createRedisClient({ socket: { path }, url })
 
-      this._redis = createRedisClient({
-        path,
-        rename_commands: renameCommands,
-        url,
-      })
+      this._redis = redis
+      this.hooks.on('start core', () => redis.connect())
+      this.hooks.on('stop core', () => redis.quit())
     }
 
     this.hooks.on('start', () => this._watchObjects())

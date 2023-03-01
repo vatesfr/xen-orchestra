@@ -7,11 +7,12 @@ const ignoreErrors = require('promise-toolbox/ignoreErrors')
 const { asyncMap } = require('@xen-orchestra/async-map')
 const { chainVhd, checkVhdChain, openVhd, VhdAbstract } = require('vhd-lib')
 const { createLogger } = require('@xen-orchestra/log')
+const { decorateClass } = require('@vates/decorate-with')
+const { defer } = require('golike-defer')
 const { dirname } = require('path')
 
 const { formatFilenameDate } = require('../_filenameDate.js')
 const { getOldEntries } = require('../_getOldEntries.js')
-const { getVmBackupDir } = require('../_getVmBackupDir.js')
 const { Task } = require('../Task.js')
 
 const { MixinBackupWriter } = require('./_MixinBackupWriter.js')
@@ -19,25 +20,24 @@ const { AbstractDeltaWriter } = require('./_AbstractDeltaWriter.js')
 const { checkVhd } = require('./_checkVhd.js')
 const { packUuid } = require('./_packUuid.js')
 const { Disposable } = require('promise-toolbox')
-const { HealthCheckVmBackup } = require('../HealthCheckVmBackup.js')
-const { ImportVmBackup } = require('../ImportVmBackup.js')
+const NbdClient = require('@vates/nbd-client')
 
-const { warn } = createLogger('xo:backups:DeltaBackupWriter')
+const { debug, warn, info } = createLogger('xo:backups:DeltaBackupWriter')
 
-exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(AbstractDeltaWriter) {
+class DeltaBackupWriter extends MixinBackupWriter(AbstractDeltaWriter) {
   async checkBaseVdis(baseUuidToSrcVdi) {
     const { handler } = this._adapter
     const backup = this._backup
     const adapter = this._adapter
 
-    const backupDir = getVmBackupDir(backup.vm.uuid)
-    const vdisDir = `${backupDir}/vdis/${backup.job.id}`
+    const vdisDir = `${this._vmBackupDir}/vdis/${backup.job.id}`
 
     await asyncMap(baseUuidToSrcVdi, async ([baseUuid, srcVdi]) => {
       let found = false
       try {
         const vhds = await handler.list(`${vdisDir}/${srcVdi.uuid}`, {
           filter: _ => _[0] !== '.' && _.endsWith('.vhd'),
+          ignoreMissing: true,
           prependDir: true,
         })
         const packedBaseUuid = packUuid(baseUuid)
@@ -69,35 +69,6 @@ exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(Ab
   async beforeBackup() {
     await super.beforeBackup()
     return this._cleanVm({ merge: true })
-  }
-
-  healthCheck(sr) {
-    return Task.run(
-      {
-        name: 'health check',
-      },
-      async () => {
-        const xapi = sr.$xapi
-        const srUuid = sr.uuid
-        const adapter = this._adapter
-        const metadata = await adapter.readVmBackupMetadata(this._metadataFileName)
-        const { id: restoredId } = await new ImportVmBackup({
-          adapter,
-          metadata,
-          srUuid,
-          xapi,
-        }).run()
-        const restoredVm = xapi.getObject(restoredId)
-        try {
-          await new HealthCheckVmBackup({
-            restoredVm,
-            xapi,
-          }).run()
-        } finally {
-          await xapi.VM_destroy(restoredVm.$ref)
-        }
-      }
-    )
   }
 
   prepare({ isFull }) {
@@ -164,7 +135,7 @@ exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(Ab
     }
   }
 
-  async _transfer({ timestamp, deltaExport, sizeContainers }) {
+  async _transfer($defer, { timestamp, deltaExport }) {
     const adapter = this._adapter
     const backup = this._backup
 
@@ -172,7 +143,6 @@ exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(Ab
 
     const jobId = job.id
     const handler = adapter.handler
-    const backupDir = getVmBackupDir(vm.uuid)
 
     // TODO: clean VM backup directory
 
@@ -189,7 +159,6 @@ exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(Ab
         }/${adapter.getVhdFileName(basename)}`
     )
 
-    const metadataFilename = (this._metadataFileName = `${backupDir}/${basename}.json`)
     const metadataContent = {
       jobId,
       mode: job.mode,
@@ -205,9 +174,10 @@ exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(Ab
     }
 
     const { size } = await Task.run({ name: 'transfer' }, async () => {
+      let transferSize = 0
       await Promise.all(
         map(deltaExport.vdis, async (vdi, id) => {
-          const path = `${backupDir}/${vhds[id]}`
+          const path = `${this._vmBackupDir}/${vhds[id]}`
 
           const isDelta = vdi.other_config['xo:base_delta'] !== undefined
           let parentPath
@@ -230,11 +200,41 @@ exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(Ab
             await checkVhd(handler, parentPath)
           }
 
-          await adapter.writeVhd(path, deltaExport.streams[`${id}.vhd`], {
+          const vdiRef = vm.$xapi.getObject(vdi.uuid).$ref
+
+          let nbdClient
+          if (this._backup.config.useNbd) {
+            debug('useNbd is enabled', { vdi: id, path })
+            // get nbd if possible
+            try {
+              // this will always take the first host in the list
+              const [nbdInfo] = await vm.$xapi.call('VDI.get_nbd_info', vdiRef)
+              debug('got NBD info', { nbdInfo, vdi: id, path })
+              nbdClient = new NbdClient(nbdInfo)
+              await nbdClient.connect()
+
+              // this will inform the xapi that we don't need this anymore
+              // and will detach the vdi from dom0
+              $defer(() => nbdClient.disconnect())
+
+              info('NBD client ready', { vdi: id, path })
+              Task.info('NBD used')
+            } catch (error) {
+              Task.warning('NBD configured but unusable', { error })
+              nbdClient = undefined
+              warn('error connecting to NBD server', { error, vdi: id, path })
+            }
+          } else {
+            debug('useNbd is disabled', { vdi: id, path })
+          }
+
+          transferSize += await adapter.writeVhd(path, deltaExport.streams[`${id}.vhd`], {
             // no checksum for VHDs, because they will be invalidated by
             // merges and chainings
             checksum: false,
             validator: tmpPath => checkVhd(handler, tmpPath),
+            writeBlockConcurrency: this._backup.config.writeBlockConcurrency,
+            nbdClient,
           })
 
           if (isDelta) {
@@ -249,15 +249,14 @@ exports.DeltaBackupWriter = class DeltaBackupWriter extends MixinBackupWriter(Ab
           })
         })
       )
-      return {
-        size: Object.values(sizeContainers).reduce((sum, { size }) => sum + size, 0),
-      }
+      return { size: transferSize }
     })
     metadataContent.size = size
-    await handler.outputFile(metadataFilename, JSON.stringify(metadataContent), {
-      dirMode: backup.config.dirMode,
-    })
+    this._metadataFileName = await adapter.writeVmBackupMetadata(vm.uuid, metadataContent)
 
     // TODO: run cleanup?
   }
 }
+exports.DeltaBackupWriter = decorateClass(DeltaBackupWriter, {
+  _transfer: defer,
+})

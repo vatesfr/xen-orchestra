@@ -28,7 +28,7 @@ Open a secure support tunnel so our team can remotely investigate on your XOA. F
 
 If your web UI is not working, you can also open the secure support tunnel from the CLI. To open a private tunnel (we are the only one with the private key), you can use the command `xoa support tunnel` like below:
 
-```
+```console
 $ xoa support tunnel
 The support tunnel has been created.
 
@@ -60,7 +60,7 @@ Please only use this if you have issues with [the default way to deploy XOA](ins
 
 Alternatively, you can deploy it by connecting to your XenServer host and executing the following:
 
-```
+```sh
 bash -c "$(wget -qO- https://xoa.io/deploy)"
 ```
 
@@ -77,7 +77,7 @@ curl: (35) error:1407742E:SSL routines:SSL23_GET_SERVER_HELLO:tlsv1 alert protoc
 
 It means that the secure HTTPS protocol is not supported, you can bypass this using the unsecure command instead:
 
-```
+```sh
 bash -c "$(wget -qO- http://xoa.io/deploy)"
 ```
 
@@ -107,7 +107,7 @@ If you connect via SSH or console for the first time without using our [web depl
 
 Next, you can replace `<UUID>` with the UUID you found previously, and `<password>` with your password:
 
-```
+```sh
 xe vm-param-set uuid=<UUID> xenstore-data:vm-data/system-account-xoa-password=<password>
 ```
 
@@ -123,8 +123,8 @@ You can now connect with the `xoa` username and password you defined in the prev
 
 To avoid typing `sudo` for any admin command, you can have a root shell with `sudo -s`:
 
-```
-[05:24 27] xoa@xoa:~$ sudo -s
+```console
+$ sudo -s
 
 We trust you have received the usual lecture from the local System
 Administrator. It usually boils down to these three things:
@@ -134,15 +134,14 @@ Administrator. It usually boils down to these three things:
     #3) With great power comes great responsibility.
 
 [sudo] password for xoa:
-[05:24 27] xoa:xoa$
-
+$
 ```
 
 ## Network configuration
 
 XOA uses **DHCP** by default, so if you need to configure the IP address, please run the command `xoa network static`. It will ask you network details:
 
-```
+```console
 $ xoa network static
 ? Static IP for this machine 192.168.100.120
 ? Network mask (eg 255.255.255.0) 255.255.255.0
@@ -160,7 +159,7 @@ If you want to go back in DHCP, just run `xoa network dhcp`
 
 If you need to configure other interfaces than `eth0`, you can use the same commands with the name of the interface to configure as supplementary argument:
 
-```
+```console
 $ xoa network static eth1
 ? Static IP for this machine 192.168.100.120
 ? Network mask (eg 255.255.255.0) 255.255.255.0
@@ -205,6 +204,23 @@ In any case, if you lose your password, you can reset the database and get the d
 ## Timezone
 
 You can verify that your time is correctly set with the `date` command. To set XOA to your current timezone, use `sudo dpkg-reconfigure tzdata`.
+
+## Setting a custom NTP server
+
+By default, XOA is configured to use the standard Debian NTP servers:
+
+```
+pool 0.debian.pool.ntp.org iburst
+pool 1.debian.pool.ntp.org iburst
+pool 2.debian.pool.ntp.org iburst
+pool 3.debian.pool.ntp.org iburst
+```
+
+If you'd like to use your own NTP server or another pool, you can make the changes directly in `/etc/ntp.conf`.
+
+You will need to be root to edit this file (or use `sudo`). We recommend adding your custom server to the top of the list, leaving the debian server entries if possible.
+
+For changes to take effect, you will need to restart NTP: `sudo systemctl restart ntp.service`.
 
 ## Restart the service
 

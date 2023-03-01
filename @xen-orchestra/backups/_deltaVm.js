@@ -1,18 +1,18 @@
 'use strict'
 
-const compareVersions = require('compare-versions')
 const find = require('lodash/find.js')
 const groupBy = require('lodash/groupBy.js')
 const ignoreErrors = require('promise-toolbox/ignoreErrors')
 const omit = require('lodash/omit.js')
 const { asyncMap } = require('@xen-orchestra/async-map')
 const { CancelToken } = require('promise-toolbox')
+const { compareVersions } = require('compare-versions')
 const { createVhdStreamWithLength } = require('vhd-lib')
 const { defer } = require('golike-defer')
 
 const { cancelableMap } = require('./_cancelableMap.js')
 const { Task } = require('./Task.js')
-const { pick } = require('lodash')
+const pick = require('lodash/pick.js')
 
 const TAG_BASE_DELTA = 'xo:base_delta'
 exports.TAG_BASE_DELTA = TAG_BASE_DELTA
@@ -258,6 +258,9 @@ exports.importDeltaVm = defer(async function importDeltaVm(
       $defer.onFailure(() => newVdi.$destroy())
 
       await newVdi.update_other_config(TAG_COPY_SRC, vdi.uuid)
+      if (vdi.virtual_size > newVdi.virtual_size) {
+        await newVdi.$callAsync('resize', vdi.virtual_size)
+      }
     } else if (vdiRef === vmRecord.suspend_VDI) {
       // suspendVDI has already created
       newVdi = suspendVdi

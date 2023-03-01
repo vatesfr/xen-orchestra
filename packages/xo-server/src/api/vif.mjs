@@ -84,19 +84,19 @@ export async function set({
   const newIpAddresses = newIpv4Addresses.concat(newIpv6Addresses)
 
   if (lockingMode !== undefined) {
-    await this.checkPermissions(this.user.id, [[network?.id ?? vif.$network, 'operate']])
+    await this.checkPermissions([[network?.id ?? vif.$network, 'operate']])
   }
 
   if (isNetworkChanged || mac) {
     const networkId = network?.id
-    if (mac !== undefined && this.user.permission !== 'admin') {
-      await this.checkPermissions(this.user.id, [[networkId ?? vif.$network, 'administrate']])
+    if (mac !== undefined && this.apiContext.permission !== 'admin') {
+      await this.checkPermissions([[networkId ?? vif.$network, 'administrate']])
     }
-    if (networkId !== undefined && this.user.permission !== 'admin') {
+    if (networkId !== undefined && this.apiContext.permission !== 'admin') {
       if (resourceSet !== undefined) {
-        await this.checkResourceSetConstraints(resourceSet, this.user.id, [networkId])
+        await this.checkResourceSetConstraints(resourceSet, this.apiContext.user.id, [networkId])
       } else {
-        await this.checkPermissions(this.user.id, [[networkId, 'operate']])
+        await this.checkPermissions([[networkId, 'operate']])
       }
     }
 

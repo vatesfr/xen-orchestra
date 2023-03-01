@@ -82,14 +82,14 @@ The XOA backup system requires metadata to correctly associate the source snapsh
 
 First install the tool (all the following is done from the XOA VM CLI):
 
-```
+```sh
 sudo npm i -g --unsafe-perm @xen-orchestra/cr-seed-cli
 ```
 
 Here is an example of how the utility expects the UUIDs and info passed to it:
 
-```
-xo-cr-seed
+```console
+$ xo-cr-seed
 Usage: xo-cr-seed <source XAPI URL> <source snapshot UUID> <target XAPI URL> <target VM UUID> <backup job id> <backup schedule id>
 
 xo-cr-seed v0.2.0
@@ -97,8 +97,8 @@ xo-cr-seed v0.2.0
 
 Putting it altogether and putting our values and UUID's into the command, it will look like this (it is a long command):
 
-```
-xo-cr-seed https://root:password@xen1.company.tld 4a21c1cd-e8bd-4466-910a-f7524ecc07b1 https://root:password@xen2.company.tld 5aaf86ca-ae06-4a4e-b6e1-d04f0609e64d 90d11a94-a88f-4a84-b7c1-ed207d3de2f9 369a26f0-da77-41ab-a998-fa6b02c69b9a
+```console
+$ xo-cr-seed https://root:password@xen1.company.tld 4a21c1cd-e8bd-4466-910a-f7524ecc07b1 https://root:password@xen2.company.tld 5aaf86ca-ae06-4a4e-b6e1-d04f0609e64d 90d11a94-a88f-4a84-b7c1-ed207d3de2f9 369a26f0-da77-41ab-a998-fa6b02c69b9a
 ```
 
 :::warning
@@ -106,8 +106,8 @@ If the username or the password for your XCP-ng/XenServer hosts contains special
 
 An easy way to do this with Node in command line:
 
-```
-> node -p 'encodeURIComponent(process.argv[1])' -- 'password with special chars :#@'
+```console
+$ node -p 'encodeURIComponent(process.argv[1])' -- 'password with special chars :#@'
 password%20with%20special%20chars%20%3A%23%40
 ```
 

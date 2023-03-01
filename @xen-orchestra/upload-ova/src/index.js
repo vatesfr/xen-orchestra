@@ -182,7 +182,20 @@ export async function upload(args) {
   // FIXME: do not use private properties.
   const baseUrl = xo._url.replace(/^ws/, 'http')
 
-  const result = await xo.call(method, params)
+  const result = await xo.call(method, params).catch(error => {
+    if (!(error != null && error.code === 10 && 'errors' in error.data)) {
+      throw error
+    }
+
+    const lines = [error.message]
+    const { errors } = error.data
+    errors.forEach(error => {
+      let { instancePath } = error
+      instancePath = instancePath.length === 0 ? '@' : '@.' + instancePath
+      lines.push(`  property ${instancePath}: ${error.message}`)
+    })
+    throw lines.join('\n')
+  })
   let keys, key, url
   if (isObject(result) && (keys = getKeys(result)).length === 1) {
     key = keys[0]
@@ -217,10 +230,15 @@ export async function upload(args) {
       )
       formData.append('file', input, { filename: 'file', knownLength: length })
       try {
-        return await hrp.post(url.toString(), { body: formData, headers: formData.getHeaders() }).readAll('utf-8')
+        const response = await hrp(url.toString(), { body: formData, headers: formData.getHeaders(), method: 'POST' })
+        return await response.text()
       } catch (e) {
         console.log('ERROR', e)
-        console.log('ERROR content', await e.response.readAll('utf-8'))
+        const { response } = e
+        if (response !== undefined) {
+          console.log('ERROR content', await response.text())
+        }
+
         throw e
       }
     }

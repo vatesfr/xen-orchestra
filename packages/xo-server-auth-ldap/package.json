@@ -1,6 +1,6 @@
 {
   "name": "xo-server-auth-ldap",
-  "version": "0.10.4",
+  "version": "0.10.7",
   "license": "AGPL-3.0-or-later",
   "description": "LDAP authentication plugin for XO-Server",
   "keywords": [
@@ -31,11 +31,11 @@
     "node": ">=12"
   },
   "dependencies": {
-    "@xen-orchestra/log": "^0.3.0",
+    "@xen-orchestra/log": "^0.6.0",
     "ensure-array": "^1.0.0",
     "exec-promise": "^0.7.0",
     "inquirer": "^8.0.0",
-    "ldapts": "^3.1.1",
+    "ldapts": "^4.1.0",
     "promise-toolbox": "^0.21.0"
   },
   "devDependencies": {
@@ -43,7 +43,7 @@
     "@babel/core": "^7.0.0",
     "@babel/preset-env": "^7.0.0",
     "cross-env": "^7.0.2",
-    "rimraf": "^3.0.0"
+    "rimraf": "^4.1.1"
   },
   "scripts": {
     "build": "cross-env NODE_ENV=production babel --source-maps --out-dir=dist/ src/",

@@ -4,11 +4,11 @@
 
 We apply patches and fix security issues for the following versions:
 
-| Version | Supported          |
-| ------- | ------------------ |
-| XOA `latest`     | :white_check_mark: |
-| XOA `stable`     | :white_check_mark: |
-| `master` branch  | :white_check_mark: |
+| Version         | Supported          |
+| --------------- | ------------------ |
+| XOA `latest`    | :white_check_mark: |
+| XOA `stable`    | :white_check_mark: |
+| `master` branch | :white_check_mark: |
 | anything else   | :x:                |
 
 ## Reporting a Vulnerability

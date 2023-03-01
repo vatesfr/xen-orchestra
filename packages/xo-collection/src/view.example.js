@@ -1,5 +1,5 @@
 /* eslint-disable no-console */
-import { forEach } from 'lodash'
+import forEach from 'lodash/forEach.js'
 
 import { Collection } from './collection'
 import { View } from './view'
@@ -55,3 +55,4 @@ setTimeout(function () {
     name: 'Steve',
   })
 }, 10)
+/* eslint-enable no-console */

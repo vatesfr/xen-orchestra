@@ -1,5 +1,5 @@
 export function createJob({ schedules, ...job }) {
-  job.userId = this.user.id
+  job.userId = this.apiContext.user.id
   return this.createMetadataBackupJob(job, schedules)
 }
 
@@ -125,8 +125,13 @@ list.params = {
   },
 }
 
-export function restore({ id }) {
-  return this.restoreMetadataBackup(id)
+export function restore({ id, pool }) {
+  if (pool !== undefined) {
+    const poolObj = this.getXapiObject(pool, 'pool')
+    return this.restoreMetadataBackup({ id, poolUuid: poolObj.uuid })
+  } else {
+    return this.restoreMetadataBackup({ id })
+  }
 }
 
 restore.permission = 'admin'
@@ -134,6 +139,10 @@ restore.permission = 'admin'
 restore.params = {
   id: {
     type: 'string',
+  },
+  pool: {
+    type: 'string',
+    optional: true,
   },
 }
 

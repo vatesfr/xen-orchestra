@@ -5,13 +5,12 @@ import ms from 'ms'
 import httpRequest from 'http-request-plus'
 import map from 'lodash/map'
 import noop from 'lodash/noop'
-import omit from 'lodash/omit'
 import ProxyAgent from 'proxy-agent'
 import { coalesceCalls } from '@vates/coalesce-calls'
 import { Collection } from 'xo-collection'
 import { EventEmitter } from 'events'
 import { Index } from 'xo-collection/index'
-import { cancelable, defer, fromCallback, fromEvents, ignoreErrors, pDelay, pRetry, pTimeout } from 'promise-toolbox'
+import { cancelable, defer, fromCallback, ignoreErrors, pDelay, pRetry, pTimeout } from 'promise-toolbox'
 import { limitConcurrency } from 'limit-concurrency-decorator'
 
 import autoTransport from './transports/auto'
@@ -91,6 +90,7 @@ export class Xapi extends EventEmitter {
     this._callTimeout = makeCallSetting(opts.callTimeout, 60 * 60 * 1e3) // 1 hour but will be reduced in the future
     this._httpInactivityTimeout = opts.httpInactivityTimeout ?? 5 * 60 * 1e3 // 5 mins
     this._eventPollDelay = opts.eventPollDelay ?? 60 * 1e3 // 1 min
+    this._ignorePrematureClose = opts.ignorePrematureClose ?? true
     this._pool = null
     this._readOnly = Boolean(opts.readOnly)
     this._RecordsByType = { __proto__: null }
@@ -152,13 +152,14 @@ export class Xapi extends EventEmitter {
       this._resolveObjectsFetched = resolve
     })
     this._eventWatchers = { __proto__: null }
-    this._taskWatchers = { __proto__: null }
+    this._taskWatchers = undefined // set in _watchEvents
     this._watchedTypes = undefined
     const { watchEvents } = opts
     if (watchEvents !== false) {
       if (Array.isArray(watchEvents)) {
         this._watchedTypes = watchEvents
       }
+
       this.watchEvents()
     }
   }
@@ -388,31 +389,35 @@ export class Xapi extends EventEmitter {
     url.search = new URLSearchParams(query)
     await this._setHostAddressInUrl(url, host)
 
-    const response = await pRetry(
-      async () =>
-        httpRequest($cancelToken, url.href, {
-          rejectUnauthorized: !this._allowUnauthorized,
+    const response = await this._addSyncStackTrace(
+      pRetry(
+        async () =>
+          httpRequest(url, {
+            rejectUnauthorized: !this._allowUnauthorized,
 
-          // this is an inactivity timeout (unclear in Node doc)
-          timeout: this._httpInactivityTimeout,
+            // this is an inactivity timeout (unclear in Node doc)
+            timeout: this._httpInactivityTimeout,
 
-          maxRedirects: 0,
+            maxRedirects: 0,
 
-          // Support XS <= 6.5 with Node => 12
-          minVersion: 'TLSv1',
-          agent: this.httpAgent,
-        }),
-      {
-        when: { code: 302 },
-        onRetry: async error => {
-          const response = error.response
-          if (response === undefined) {
-            throw error
-          }
-          response.cancel()
-          url = await this._replaceHostAddressInUrl(new URL(response.headers.location, url))
-        },
-      }
+            // Support XS <= 6.5 with Node => 12
+            minVersion: 'TLSv1',
+            agent: this.httpAgent,
+
+            signal: $cancelToken,
+          }),
+        {
+          when: error => error.response.statusCode === 302,
+          onRetry: async error => {
+            const response = error.response
+            if (response === undefined) {
+              throw error
+            }
+            response.destroy()
+            url = await this._replaceHostAddressInUrl(new URL(response.headers.location, url))
+          },
+        }
+      )
     )
 
     if (pTaskResult !== undefined) {
@@ -464,76 +469,107 @@ export class Xapi extends EventEmitter {
     url.search = new URLSearchParams(query)
     await this._setHostAddressInUrl(url, host)
 
-    const doRequest = httpRequest.put.bind(undefined, $cancelToken, {
-      agent: this.httpAgent,
+    const doRequest = (url, opts) =>
+      httpRequest(url, {
+        agent: this.httpAgent,
 
-      body,
-      headers,
-      rejectUnauthorized: !this._allowUnauthorized,
+        body,
+        headers,
+        method: 'PUT',
+        rejectUnauthorized: !this._allowUnauthorized,
+        signal: $cancelToken,
 
-      // this is an inactivity timeout (unclear in Node doc)
-      timeout: this._httpInactivityTimeout,
+        // this is an inactivity timeout (unclear in Node doc)
+        timeout: this._httpInactivityTimeout,
 
-      // Support XS <= 6.5 with Node => 12
-      minVersion: 'TLSv1',
-    })
+        // Support XS <= 6.5 with Node => 12
+        minVersion: 'TLSv1',
+
+        ...opts,
+      })
+
+    const dummyUrl = new URL(url)
+    dummyUrl.searchParams.delete('task_id')
 
     // if body is a stream, sends a dummy request to probe for a redirection
     // before consuming body
-    const response = await (isStream
-      ? doRequest(url.href, {
-          body: '',
+    const response = await this._addSyncStackTrace(
+      isStream
+        ? doRequest(dummyUrl, {
+            body: '',
 
-          // omit task_id because this request will fail on purpose
-          query: 'task_id' in query ? omit(query, 'task_id') : query,
+            maxRedirects: 0,
+          }).then(
+            response => {
+              response.destroy()
+              return doRequest(url)
+            },
+            async error => {
+              let response
+              if (error != null && (response = error.response) != null) {
+                response.destroy()
 
-          maxRedirects: 0,
-        }).then(
-          response => {
-            response.cancel()
-            return doRequest(url.href)
-          },
-          async error => {
-            let response
-            if (error != null && (response = error.response) != null) {
-              response.cancel()
-
-              const {
-                headers: { location },
-                statusCode,
-              } = response
-              if (statusCode === 302 && location !== undefined) {
-                // ensure the original query is sent
-                const newUrl = new URL(location, url)
-                newUrl.searchParams.set('task_id', query.task_id)
-                return doRequest((await this._replaceHostAddressInUrl(newUrl)).href)
+                const {
+                  headers: { location },
+                  statusCode,
+                } = response
+                if (statusCode === 302 && location !== undefined) {
+                  // ensure the original query is sent
+                  const newUrl = new URL(location, url)
+                  newUrl.searchParams.set('task_id', query.task_id)
+                  return doRequest(await this._replaceHostAddressInUrl(newUrl))
+                }
               }
-            }
 
-            throw error
-          }
-        )
-      : doRequest(url.href))
+              throw error
+            }
+          )
+        : doRequest(url)
+    )
 
     if (pTaskResult !== undefined) {
-      pTaskResult = pTaskResult.catch(error => {
-        error.url = response.url
+      if (useHack) {
+        // In case of the hack, ignore (but log) the very probably `VDI_IO_ERROR` because it is usually irrelevant
+        pTaskResult = pTaskResult.catch(error => {
+          console.warn(this._humanId, 'Xapi#putResource', pathname, error)
+        })
+      } else {
+        pTaskResult = pTaskResult.catch(error => {
+          error.url = response.url
+          throw error
+        })
+
+        // avoid unhandled rejection in case the upload fails
+        pTaskResult.catch(noop)
+      }
+    }
+
+    try {
+      const { req } = response
+      if (!req.finished) {
+        await new Promise((resolve, reject) => {
+          req.on('finish', resolve)
+          response.on('error', reject)
+        })
+      }
+
+      if (useHack) {
+        response.destroy()
+      } else {
+        // consume the response
+        response.resume()
+        await new Promise((resolve, reject) => {
+          response.on('end', resolve).on('error', reject)
+        })
+      }
+    } catch (error) {
+      if (this._ignorePrematureClose && error.code === 'ERR_STREAM_PREMATURE_CLOSE') {
+        console.warn(this._humanId, 'Xapi#putResource', pathname, error)
+      } else {
         throw error
-      })
+      }
     }
 
-    if (!useHack) {
-      // consume the response
-      response.resume()
-
-      return pTaskResult
-    }
-
-    const { req } = response
-    if (!req.finished) {
-      await fromEvents(req, ['close', 'finish'])
-    }
-    response.cancel()
     return pTaskResult
   }
 
@@ -945,7 +981,7 @@ export class Xapi extends EventEmitter {
       }
 
       const taskWatchers = this._taskWatchers
-      const taskWatcher = taskWatchers[ref]
+      const taskWatcher = taskWatchers?.[ref]
       if (taskWatcher !== undefined) {
         const result = getTaskResult(object)
         if (result !== undefined) {
@@ -1047,7 +1083,7 @@ export class Xapi extends EventEmitter {
     }
 
     const taskWatchers = this._taskWatchers
-    const taskWatcher = taskWatchers[ref]
+    const taskWatcher = taskWatchers?.[ref]
     if (taskWatcher !== undefined) {
       const error = new Error('task has been destroyed before completion')
       error.task = object
@@ -1065,6 +1101,13 @@ export class Xapi extends EventEmitter {
   _watchEvents = coalesceCalls(this._watchEvents)
   // eslint-disable-next-line no-dupe-class-members
   async _watchEvents() {
+    {
+      const watchedTypes = this._watchedTypes
+      if (this._taskWatchers === undefined && (watchedTypes === undefined || watchedTypes.includes('task'))) {
+        this._taskWatchers = { __proto__: null }
+      }
+    }
+
     // eslint-disable-next-line no-labels
     mainLoop: while (true) {
       if (this._resolveObjectsFetched === undefined) {

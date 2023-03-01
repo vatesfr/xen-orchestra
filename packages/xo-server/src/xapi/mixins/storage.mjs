@@ -3,9 +3,6 @@ import forEach from 'lodash/forEach.js'
 import groupBy from 'lodash/groupBy.js'
 import { decorateWith } from '@vates/decorate-with'
 import { defer } from 'golike-defer'
-import { createLogger } from '@xen-orchestra/log'
-
-const log = createLogger('xo:storage')
 
 export default {
   _connectAllSrPbds(sr) {
@@ -52,39 +49,53 @@ export default {
     await this._unplugPbd(this.getObject(id))
   },
 
-  _getUnhealthyVdiChainLength(uuid, childrenMap, cache) {
-    let length = cache[uuid]
-    if (length === undefined) {
+  _getVdiChainsInfo(uuid, childrenMap, cache) {
+    let info = cache[uuid]
+    if (info === undefined) {
       const children = childrenMap[uuid]
-      length = children !== undefined && children.length === 1 ? 1 : 0
-      try {
-        const parent = this.getObjectByUuid(uuid).sm_config['vhd-parent']
+      const unhealthyLength = children !== undefined && children.length === 1 ? 1 : 0
+      const vdi = this.getObjectByUuid(uuid, undefined)
+      if (vdi === undefined) {
+        info = { unhealthyLength, missingParent: uuid }
+      } else {
+        const parent = vdi.sm_config['vhd-parent']
         if (parent !== undefined) {
-          length += this._getUnhealthyVdiChainLength(parent, childrenMap, cache)
+          info = this._getVdiChainsInfo(parent, childrenMap, cache)
+          info.unhealthyLength += unhealthyLength
+        } else {
+          info = { unhealthyLength }
         }
-      } catch (error) {
-        log.warn(`Xapi#_getUnhealthyVdiChainLength(${uuid})`, { error })
       }
-      cache[uuid] = length
+      cache[uuid] = info
     }
-    return length
+    return info
   },
 
-  getUnhealthyVdiChainsLength(sr) {
+  getVdiChainsInfo(sr) {
     const vdis = this.getObject(sr).$VDIs
     const unhealthyVdis = { __proto__: null }
     const children = groupBy(vdis, 'sm_config.vhd-parent')
+    const vdisWithUnknownVhdParent = { __proto__: null }
+
     const cache = { __proto__: null }
     forEach(vdis, vdi => {
       if (vdi.managed && !vdi.is_a_snapshot) {
         const { uuid } = vdi
-        const length = this._getUnhealthyVdiChainLength(uuid, children, cache)
-        if (length !== 0) {
-          unhealthyVdis[uuid] = length
+        const { unhealthyLength, missingParent } = this._getVdiChainsInfo(uuid, children, cache)
+
+        if (unhealthyLength !== 0) {
+          unhealthyVdis[uuid] = unhealthyLength
+        }
+        if (missingParent !== undefined) {
+          vdisWithUnknownVhdParent[uuid] = missingParent
         }
       }
     })
-    return unhealthyVdis
+
+    return {
+      vdisWithUnknownVhdParent,
+      unhealthyVdis,
+    }
   },
 
   // This function helps to reattach a forgotten NFS/iSCSI/HBA SR

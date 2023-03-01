@@ -10,8 +10,8 @@
 
 Installation of the [npm package](https://npmjs.org/package/xo-common):
 
-```
-> npm install --save xo-common
+```sh
+npm install --save xo-common
 ```
 
 ## Contributions

@@ -2,6 +2,7 @@ import * as FormGrid from 'form-grid'
 import _, { messages } from 'intl'
 import ActionButton from 'action-button'
 import Component from 'base-component'
+import Copiable from 'copiable'
 import homeFilters from 'home-filters'
 import Icon from 'icon'
 import PropTypes from 'prop-types'
@@ -16,16 +17,21 @@ import { isEmpty, map } from 'lodash'
 import { injectIntl } from 'react-intl'
 import { Select } from 'form'
 import { Card, CardBlock, CardHeader } from 'card'
-import { addSubscriptions, connectStore, noop } from 'utils'
+import { addSubscriptions, connectStore, noop, NumericDate } from 'utils'
 import {
+  addAuthToken,
   addSshKey,
   changePassword,
+  deleteAuthToken,
+  deleteAuthTokens,
   deleteSshKey,
   deleteSshKeys,
+  editAuthToken,
   editCustomFilter,
   removeCustomFilter,
   setDefaultHomeFilter,
   signOutFromEverywhereElse,
+  subscribeUserAuthTokens,
   subscribeCurrentUser,
 } from 'xo'
 
@@ -283,6 +289,83 @@ const SshKeys = addSubscriptions({
 })
 
 // ===================================================================
+const COLUMNS_AUTH_TOKENS = [
+  {
+    itemRenderer: ({ id }) => (
+      <Copiable tagName='pre' data={id}>
+        {id.slice(0, 5)}…
+      </Copiable>
+    ),
+    name: _('authToken'),
+  },
+  {
+    itemRenderer: token => (
+      <Text value={token.description ?? ''} onChange={description => editAuthToken({ ...token, description })} />
+    ),
+    name: _('description'),
+    sortCriteria: 'description',
+  },
+  {
+    itemRenderer: ({ created_at }) => {
+      if (created_at !== undefined) {
+        return <NumericDate timestamp={created_at} />
+      }
+      return _('notDefined')
+    },
+    name: _('creation'),
+    sortCriteria: 'created_at',
+  },
+  {
+    default: true,
+    itemRenderer: ({ expiration }) => <NumericDate timestamp={expiration} />,
+    name: _('expiration'),
+    sortCriteria: 'expiration',
+  },
+]
+
+const INDIVIDUAL_ACTIONS_AUTH_TOKENS = [
+  {
+    handler: deleteAuthToken,
+    icon: 'delete',
+    label: _('delete'),
+    level: 'danger',
+  },
+]
+
+const GROUPED_ACTIONS_AUTH_TOKENS = [
+  {
+    handler: deleteAuthTokens,
+    icon: 'delete',
+    label: _('deleteAuthTokens'),
+    level: 'danger',
+  },
+]
+
+const UserAuthTokens = addSubscriptions({
+  userAuthTokens: subscribeUserAuthTokens,
+})(({ userAuthTokens }) => (
+  <div>
+    <Card>
+      <CardHeader>
+        <Icon icon='user' /> {_('authTokens')}
+        <ActionButton className='btn-success pull-right' icon='add' handler={addAuthToken}>
+          {_('newAuthToken')}
+        </ActionButton>
+      </CardHeader>
+      <CardBlock>
+        <SortedTable
+          collection={userAuthTokens}
+          columns={COLUMNS_AUTH_TOKENS}
+          stateUrlParam='s_auth_tokens'
+          groupedActions={GROUPED_ACTIONS_AUTH_TOKENS}
+          individualActions={INDIVIDUAL_ACTIONS_AUTH_TOKENS}
+        />
+      </CardBlock>
+    </Card>
+  </div>
+))
+
+// ===================================================================
 
 @addSubscriptions({
   user: subscribeCurrentUser,
@@ -392,6 +475,7 @@ export default class User extends Component {
             <Col smallSize={10}>
               <select className='form-control' onChange={this.handleSelectLang} value={lang} style={{ width: '10em' }}>
                 <option value='en'>English</option>
+                <option value='ru'>Русский</option>
                 <option value='es'>Español</option>
                 <option value='fr'>Français</option>
                 <option value='hu'>Magyar</option>
@@ -411,6 +495,8 @@ export default class User extends Component {
           <hr key='hr' />,
         ]}
         <SshKeys />
+        <hr />
+        <UserAuthTokens />
         <hr />
         <UserFilters user={user} />
       </Page>

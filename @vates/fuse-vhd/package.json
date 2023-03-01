@@ -1,0 +1,29 @@
+{
+  "name": "@vates/fuse-vhd",
+  "version": "1.0.0",
+  "license": "ISC",
+  "private": false,
+  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@vates/fuse-vhd",
+  "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
+  "repository": {
+    "directory": "@vates/fuse-vhd",
+    "type": "git",
+    "url": "https://github.com/vatesfr/xen-orchestra.git"
+  },
+  "author": {
+    "name": "Vates SAS",
+    "url": "https://vates.fr"
+  },
+  "engines": {
+    "node": ">=10.0"
+  },
+  "dependencies": {
+    "fuse-native": "^2.2.6",
+    "lru-cache": "^7.14.0",
+    "promise-toolbox": "^0.21.0",
+    "vhd-lib": "^4.2.1"
+  },
+  "scripts": {
+    "postversion": "npm publish --access public"
+  }
+}

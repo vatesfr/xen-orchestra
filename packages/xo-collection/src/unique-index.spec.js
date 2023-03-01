@@ -1,7 +1,7 @@
 /* eslint-env jest */
 
 import fromEvent from 'promise-toolbox/fromEvent'
-import { forEach } from 'lodash'
+import forEach from 'lodash/forEach.js'
 
 import { Collection } from './collection'
 import { UniqueIndex } from './unique-index'

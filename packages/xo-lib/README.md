@@ -10,8 +10,8 @@
 
 Installation of the [npm package](https://npmjs.org/package/xo-lib):
 
-```
-> npm install --save xo-lib
+```sh
+npm install --save xo-lib
 ```
 
 ## Usage

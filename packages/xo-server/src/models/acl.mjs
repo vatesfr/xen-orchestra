@@ -1,5 +1,4 @@
 import Collection from '../collection/redis.mjs'
-import Model from '../model.mjs'
 import { forEach, multiKeyHash } from '../utils.mjs'
 
 // ===================================================================
@@ -10,27 +9,16 @@ const DEFAULT_ACTION = 'admin'
 
 // ===================================================================
 
-export default class Acl extends Model {}
-
-// -------------------------------------------------------------------
-
 export class Acls extends Collection {
-  get Model() {
-    return Acl
-  }
-
   create(subject, object, action) {
-    return multiKeyHash(subject, object, action)
-      .then(
-        hash =>
-          new Acl({
-            id: hash,
-            subject,
-            object,
-            action,
-          })
-      )
-      .then(acl => this.add(acl))
+    return multiKeyHash(subject, object, action).then(hash =>
+      this.add({
+        id: hash,
+        subject,
+        object,
+        action,
+      })
+    )
   }
 
   delete(subject, object, action) {

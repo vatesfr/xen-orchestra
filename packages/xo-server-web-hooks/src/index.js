@@ -6,6 +6,7 @@ function handleHook(type, data) {
   const hooks = this._hooks[data.method]?.[type]
   if (hooks !== undefined) {
     return Promise.all(
+      // eslint-disable-next-line array-callback-return
       hooks.map(({ url, waitForResponse = false }) => {
         const promise = this._makeRequest(url, type, data).catch(error => {
           log.error('web hook failed', {
@@ -37,10 +38,7 @@ class XoServerHooks {
       body: JSON.stringify({ ...data, type }),
       headers: { 'Content-Type': 'application/json' },
       method: 'POST',
-      onRequest: req => {
-        req.setTimeout(1e4)
-        req.on('timeout', req.abort)
-      },
+      timeout: 1e4,
     })
   }
 

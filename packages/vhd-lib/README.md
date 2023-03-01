@@ -10,8 +10,8 @@
 
 Installation of the [npm package](https://npmjs.org/package/vhd-lib):
 
-```
-> npm install --save vhd-lib
+```sh
+npm install --save vhd-lib
 ```
 
 ## Contributions

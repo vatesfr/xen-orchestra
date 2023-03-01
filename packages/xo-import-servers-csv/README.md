@@ -10,8 +10,8 @@
 
 Installation of the [npm package](https://npmjs.org/package/xo-import-servers-csv):
 
-```
-> npm install --global xo-import-servers-csv
+```sh
+npm install --global xo-import-servers-csv
 ```
 
 ## Usage

@@ -13,7 +13,7 @@ import { isAdmin, createGetObject, createGetObjectsOfType, getIsPoolAdmin } from
 import { injectIntl } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
 import { linkState } from 'reaclette-utils'
-import { map } from 'lodash'
+import map from 'lodash/map.js'
 import { Select, Toggle } from 'form'
 import { SelectHost, SelectPif, SelectPool } from 'select-objects'
 
@@ -30,6 +30,7 @@ const EMPTY = {
   isPrivate: false,
   mtu: '',
   name: '',
+  nbd: undefined,
   networks: [],
   pif: undefined,
   pifs: [],
@@ -99,6 +100,7 @@ const NewNetwork = decorate([
         }
         this.state.networks = networks
       },
+      onChangeNbd: (_, nbd) => ({ nbd: nbd?.value }),
       initialize: async () => ({ bondModes: await getBondModes() }),
       linkState,
       onChangeMode: (_, bondMode) => ({ bondMode }),
@@ -192,6 +194,7 @@ const NewNetwork = decorate([
         encrypted,
         mtu,
         name,
+        nbd,
         networks,
         pif,
         pifs,
@@ -229,6 +232,7 @@ const NewNetwork = decorate([
             description,
             mtu,
             name,
+            nbd,
             pif: pif == null ? undefined : pif.id,
             pool: pool.id,
             vlan,
@@ -278,6 +282,7 @@ const NewNetwork = decorate([
         modeOptions,
         mtu,
         name,
+        nbd,
         pif,
         pifPredicate,
         pifPredicateSdnController,
@@ -424,6 +429,16 @@ const NewNetwork = decorate([
                               placeholder={formatMessage(messages.newNetworkDefaultVlan)}
                               type='text'
                               value={vlan}
+                            />
+                            <label>{_('nbd')}</label>
+                            <Select
+                              name='nbd'
+                              onChange={effects.onChangeNbd}
+                              options={[
+                                { label: _('noNbdConnection'), value: false },
+                                { label: _('nbdConnection'), value: true },
+                              ]}
+                              value={nbd}
                             />
                           </div>
                         )}

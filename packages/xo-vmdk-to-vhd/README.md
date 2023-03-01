@@ -10,8 +10,8 @@
 
 Installation of the [npm package](https://npmjs.org/package/xo-vmdk-to-vhd):
 
-```
-> npm install --save xo-vmdk-to-vhd
+```sh
+npm install --save xo-vmdk-to-vhd
 ```
 
 ## Usage

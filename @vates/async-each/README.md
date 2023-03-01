@@ -10,8 +10,8 @@
 
 Installation of the [npm package](https://npmjs.org/package/@vates/async-each):
 
-```
-> npm install --save @vates/async-each
+```sh
+npm install --save @vates/async-each
 ```
 
 ## Usage
@@ -32,7 +32,7 @@ Returns a promise wich rejects as soon as a call to `iteratee` throws or a promi
 
 `opts` is an object that can contains the following options:
 
-- `concurrency`: a number which indicates the maximum number of parallel call to `iteratee`, defaults to `1`
+- `concurrency`: a number which indicates the maximum number of parallel call to `iteratee`, defaults to `10`. The value `0` means no concurrency limit.
 - `signal`: an abort signal to stop the iteration
 - `stopOnError`: wether to stop iteration of first error, or wait for all calls to finish and throw an `AggregateError`, defaults to `true`
 

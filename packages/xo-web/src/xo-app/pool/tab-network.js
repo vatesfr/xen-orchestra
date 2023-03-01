@@ -15,7 +15,7 @@ import { connectStore } from 'utils'
 import { Container, Row, Col } from 'grid'
 import { TabButtonLink } from 'tab-button'
 import { Text, Number } from 'editable'
-import { Toggle } from 'form'
+import { Select, Toggle } from 'form'
 import { createFinder, createGetObject, createGetObjectsOfType, createSelector } from 'selectors'
 import { connectPif, deleteNetwork, disconnectPif, editNetwork, editPif } from 'xo'
 
@@ -98,6 +98,47 @@ class DefaultPif extends BaseComponent {
     }
 
     return <span>{defaultPif.device}</span>
+  }
+}
+
+class Nbd extends Component {
+  NBD_FILTER_OPTIONS = [
+    {
+      labelId: 'noNbdConnection',
+      value: false,
+    },
+    {
+      labelId: 'nbdConnection',
+      value: true,
+    },
+  ]
+  INSECURE_OPTION = [
+    {
+      labelId: 'insecureNbdConnection',
+      value: 'insecure_nbd',
+      disabled: true,
+    },
+  ]
+
+  _getOptionRenderer = ({ labelId }) => _(labelId)
+
+  _editNbdConnection = value => {
+    editNetwork(this.props.network, { nbd: value.value })
+  }
+
+  render() {
+    const { network } = this.props
+
+    return (
+      <Select
+        onChange={this._editNbdConnection}
+        optionRenderer={this._getOptionRenderer}
+        // We chose not to show the unsecure_nbd option unless the user has already activated it through another client.
+        // The reason is that we don't want them to know about it since the option is not allowed in XO.
+        options={network.insecureNbd ? [...this.NBD_FILTER_OPTIONS, ...this.INSECURE_OPTION] : this.NBD_FILTER_OPTIONS}
+        value={network.nbd ? true : network.insecureNbd ? 'insecure_nbd' : false}
+      />
+    )
   }
 }
 
@@ -290,6 +331,11 @@ const NETWORKS_COLUMNS = [
   {
     name: _('poolNetworkMTU'),
     itemRenderer: network => network.MTU,
+  },
+
+  {
+    itemRenderer: network => <Nbd network={network} />,
+    name: <Tooltip content={_('nbdTootltip')}>{_('nbd')}</Tooltip>,
   },
   {
     name: (

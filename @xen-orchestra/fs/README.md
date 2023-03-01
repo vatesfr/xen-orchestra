@@ -10,8 +10,8 @@
 
 Installation of the [npm package](https://npmjs.org/package/@xen-orchestra/fs):
 
-```
-> npm install --global @xen-orchestra/fs
+```sh
+npm install --global @xen-orchestra/fs
 ```
 
 ## Contributions

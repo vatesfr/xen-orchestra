@@ -1,11 +1,12 @@
 import emitAsync from '@xen-orchestra/emit-async'
 import { createLogger } from '@xen-orchestra/log'
 
+import Ajv from 'ajv'
+import cloneDeep from 'lodash/cloneDeep.js'
 import forEach from 'lodash/forEach.js'
 import kindOf from 'kindof'
 import ms from 'ms'
-import schemaInspector from 'schema-inspector'
-import { getBoundPropertyDescriptor } from 'bind-property-descriptor'
+import { AsyncLocalStorage } from 'async_hooks'
 import { format, JsonRpcError, MethodNotFound } from 'json-rpc-peer'
 
 import * as methods from '../api/index.mjs'
@@ -53,25 +54,16 @@ const XAPI_ERROR_TO_XO_ERROR = {
   VM_MISSING_PV_DRIVERS: ([vm], getId) => errors.vmMissingPvDrivers({ vm: getId(vm) }),
 }
 
-const hasPermission = (user, permission) => PERMISSIONS[user.permission] >= PERMISSIONS[permission]
+const hasPermission = (actual, expected) => PERMISSIONS[actual] >= PERMISSIONS[expected]
+
+const ajv = new Ajv({ allErrors: true, allowUnionTypes: true })
 
 function checkParams(method, params) {
-  const schema = method.params
-  if (!schema) {
-    return
-  }
-
-  const result = schemaInspector.validate(
-    {
-      properties: schema,
-      strict: true,
-      type: 'object',
-    },
-    params
-  )
-
-  if (!result.valid) {
-    throw errors.invalidParameters(result.error)
+  const { validate } = method
+  if (validate !== undefined) {
+    if (!validate(params)) {
+      throw errors.invalidParameters(validate.errors)
+    }
   }
 }
 
@@ -83,8 +75,8 @@ function checkPermission(method) {
     return
   }
 
-  const { user } = this
-  if (!user) {
+  const { apiContext } = this
+  if (!apiContext.user) {
     throw errors.unauthorized(permission)
   }
 
@@ -92,9 +84,76 @@ function checkPermission(method) {
     return
   }
 
-  if (!hasPermission(user, permission)) {
+  if (!hasPermission(apiContext.permission, permission)) {
     throw errors.unauthorized(permission)
   }
+}
+
+function adaptJsonSchema(schema) {
+  if (schema.enum !== undefined) {
+    return schema
+  }
+
+  const is = (({ type }) => {
+    if (typeof type === 'string') {
+      return t => t === type
+    }
+    const types = new Set(type)
+    return t => types.has(t)
+  })(schema)
+
+  if (is('array')) {
+    const { items } = schema
+    if (items !== undefined) {
+      if (Array.isArray(items)) {
+        for (let i = 0, n = items.length; i < n; ++i) {
+          items[i] = adaptJsonSchema(items[i])
+        }
+      } else {
+        schema.items = adaptJsonSchema(items)
+      }
+    }
+  }
+
+  if (is('object')) {
+    const { properties = {} } = schema
+    let keys = Object.keys(properties)
+
+    for (const key of keys) {
+      properties[key] = adaptJsonSchema(properties[key])
+    }
+
+    const { additionalProperties } = schema
+    if (additionalProperties === undefined) {
+      const wildCard = properties['*']
+      if (wildCard === undefined) {
+        // we want additional properties to be disabled by default unless no properties are defined
+        schema.additionalProperties = keys.length === 0
+      } else {
+        delete properties['*']
+        keys = Object.keys(properties)
+        schema.additionalProperties = wildCard
+      }
+    } else if (typeof additionalProperties === 'object') {
+      schema.additionalProperties = adaptJsonSchema(additionalProperties)
+    }
+
+    // we want properties to be required by default unless explicitly marked so
+    // we use property `optional` instead of object `required`
+    if (schema.required === undefined) {
+      const required = keys.filter(key => {
+        const value = properties[key]
+        const required = !value.optional
+        delete value.optional
+        return required
+      })
+      if (required.length !== 0) {
+        schema.required = required
+      }
+    }
+  }
+
+  return schema
 }
 
 async function resolveParams(method, params) {
@@ -103,12 +162,9 @@ async function resolveParams(method, params) {
     return params
   }
 
-  const { user } = this
-  if (!user) {
+  if (!this.apiContext.user) {
     throw errors.unauthorized()
   }
-
-  const userId = user.id
 
   // Do not alter the original object.
   params = { ...params }
@@ -139,7 +195,7 @@ async function resolveParams(method, params) {
     }
   })
 
-  await this.checkPermissions(userId, permissions)
+  await this.checkPermissions(permissions)
 
   return params
 }
@@ -147,10 +203,15 @@ async function resolveParams(method, params) {
 // -------------------------------------------------------------------
 
 export default class Api {
+  #apiContext = new AsyncLocalStorage()
   #connections = new Set()
 
   get apiConnections() {
     return this.#connections
+  }
+
+  get apiContext() {
+    return this.#apiContext.getStore()
   }
 
   constructor(app) {
@@ -175,13 +236,40 @@ export default class Api {
       throw new Error(`API method ${name} already exists`)
     }
 
-    Object.keys(method).forEach(prop => {
-      if (!(prop in ALLOWED_METHOD_PROPS)) {
-        throw new Error(`invalid prop ${prop} for API method ${name}`)
-      }
-    })
+    // alias
+    if (typeof method === 'string') {
+      Object.defineProperty(methods, name, {
+        configurable: true,
+        enumerable: true,
+        get() {
+          return methods[method]
+        },
+      })
+    } else {
+      Object.keys(method).forEach(prop => {
+        if (!(prop in ALLOWED_METHOD_PROPS)) {
+          throw new Error(`invalid prop ${prop} for API method ${name}`)
+        }
+      })
 
-    methods[name] = method
+      const { params } = method
+      if (params !== undefined) {
+        let schema = { type: 'object', properties: cloneDeep(params) }
+        try {
+          schema = adaptJsonSchema(schema)
+          method.validate = ajv.compile(schema)
+        } catch (error) {
+          log.warn('failed to compile method params schema', {
+            error,
+            method: name,
+            schema,
+          })
+          throw error
+        }
+      }
+
+      methods[name] = method
+    }
 
     let remove = () => {
       delete methods[name]
@@ -197,15 +285,17 @@ export default class Api {
     const addMethod = (method, name) => {
       name = base + name
 
-      if (typeof method === 'function') {
+      const type = typeof method
+      if (type === 'string') {
+        removes.push(this.addApiMethod(name, base + method))
+      } else if (type === 'function') {
         removes.push(this.addApiMethod(name, method))
-        return
+      } else {
+        const oldBase = base
+        base = name + '.'
+        forEach(method, addMethod)
+        base = oldBase
       }
-
-      const oldBase = base
-      base = name + '.'
-      forEach(method, addMethod)
-      base = oldBase
     }
 
     try {
@@ -226,46 +316,36 @@ export default class Api {
   }
 
   async callApiMethod(connection, name, params = {}) {
-    const app = this._app
-    const startTime = Date.now()
-
     const method = this._methods[name]
     if (!method) {
       throw new MethodNotFound(name)
     }
 
-    // create the context which is an augmented XO
-    const context = (() => {
-      const descriptors = {
-        api: {
-          // Used by system.*().
-          value: this,
-        },
-        connection: {
-          value: connection,
-        },
-      }
+    const apiContext = { __proto__: null, connection }
 
-      let obj = app
-      do {
-        Object.getOwnPropertyNames(obj).forEach(name => {
-          if (!(name in descriptors)) {
-            descriptors[name] = getBoundPropertyDescriptor(obj, name, app)
-          }
-        })
-      } while ((obj = Reflect.getPrototypeOf(obj)) !== null)
-
-      return Object.create(null, descriptors)
-    })()
-
-    // Fetch and inject the current user.
     const userId = connection.get('user_id', undefined)
-    context.user = userId && (await app.getUser(userId))
-    const userName = context.user ? context.user.email : '(unknown user)'
+    if (userId !== undefined) {
+      const user = await this._app.getUser(userId)
+      apiContext.user = user
+      apiContext.permission = user.permission
+    } else {
+      apiContext.permission = 'none'
+    }
+
+    return this.#apiContext.run(apiContext, () => this.#callApiMethod(name, method, params))
+  }
+
+  async #callApiMethod(name, method, params) {
+    const app = this._app
+    const startTime = Date.now()
+
+    const { connection, user } = this.apiContext
+
+    const userName = user?.email ?? '(unknown user)'
 
     const data = {
       callId: Math.random().toString(36).slice(2),
-      userId,
+      userId: user?.id,
       userName,
       userIp: connection.get('user_ip', undefined),
       method: name,
@@ -285,7 +365,7 @@ export default class Api {
     )
 
     try {
-      await checkPermission.call(context, method)
+      await checkPermission.call(app, method)
 
       // API methods are in a namespace.
       // Some methods use the namespace or an id parameter like:
@@ -307,11 +387,11 @@ export default class Api {
         }
       }
 
-      checkParams.call(context, method, params)
+      checkParams.call(app, method, params)
 
-      const resolvedParams = await resolveParams.call(context, method, params)
+      const resolvedParams = await resolveParams.call(app, method, params)
 
-      let result = await method.call(context, resolvedParams)
+      let result = await method.call(app, resolvedParams)
 
       // If nothing was returned, consider this operation a success
       // and return true.
@@ -384,7 +464,7 @@ export default class Api {
       }
 
       // don't return *unknown error from the peer* if the user is admin
-      if (error.toJsonRpcError === undefined && context?.user.permission === 'admin') {
+      if (error.toJsonRpcError === undefined && user?.permission === 'admin') {
         throw new JsonRpcError(error.message, undefined, serializeError(serializedError))
       }
 

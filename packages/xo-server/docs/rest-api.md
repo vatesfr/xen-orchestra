@@ -2,9 +2,15 @@
 
 - [Authentication](#authentication)
 - [Collections](#collections)
+- [Properties update](#properties-update)
+- [VM destruction](#vm-destruction)
 - [VM Export](#vm-export)
+- [VDI destruction](#vdi-destruction)
 - [VDI Export](#vdi-export)
 - [VDI Import](#vdi-import)
+- [Actions](#actions)
+  - [Available actions](#available-actions)
+  - [Start an action](#start-an-action)
 - [The future](#the-future)
 
 > This [REST](https://en.wikipedia.org/wiki/Representational_state_transfer)-oriented API is experimental. Non-backward compatible changes or removal may occur in any future release. Use of the feature is not recommended in production environments.
@@ -30,7 +36,7 @@ Set-Cookie: authenticationToken=KQxQdm2vMiv7jBIK0hgkmgxKzemd8wSJ7ugFGKFkTbs
 
 Usage with cURL:
 
-```bash
+```sh
 curl -b \
   authenticationToken=KQxQdm2vMiv7jBIK0hgkmgxKzemd8wSJ7ugFGKFkTbs \
   https://xo.company.lan/rest/v0/
@@ -38,7 +44,7 @@ curl -b \
 
 You can use `xo-cli` to create an authentication token:
 
-```bash
+```sh
 $ xo-cli --createToken xoa.company.lan admin@admin.net
 Password: ********
 Successfully logged with admin@admin.net
@@ -111,6 +117,29 @@ Content-Type: application/x-ndjson
 {"name_label":"Debian 10 Cloudinit self-service","power_state":"Halted","url":"/rest/v0/vms/5019156b-f40d-bc57-835b-4a259b177be1"}
 ```
 
+## Properties update
+
+> This feature is restricted to `name_label` and `name_description` at the moment.
+
+```sh
+curl \
+  -X PATCH \
+  -b authenticationToken=KQxQdm2vMiv7jBIK0hgkmgxKzemd8wSJ7ugFGKFkTbs \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json' \
+  -d '{ "name_label": "The new name", "name_description": "The new description" }' \
+  'https://xo.company.lan/rest/v0/vms/770aa52a-fd42-8faf-f167-8c5c4a237cac'
+```
+
+## VM destruction
+
+```sh
+curl \
+  -X DELETE \
+  -b authenticationToken=KQxQdm2vMiv7jBIK0hgkmgxKzemd8wSJ7ugFGKFkTbs \
+  'https://xo.company.lan/rest/v0/vms/770aa52a-fd42-8faf-f167-8c5c4a237cac'
+```
+
 ## VM Export
 
 A VM can be exported as an XVA at `/rest/v0/vms/<uuid>.xva`.
@@ -120,18 +149,27 @@ By default, the XVA is not compressed, however the `compress` query parameter su
 - `gzip`: use [gzip](https://en.wikipedia.org/wiki/Gzip) compression (very slow)
 - `zstd`: use [Zstandard](https://en.wikipedia.org/wiki/Zstd) compression (fast, only supported on XCP-ng)
 
-```bash
+```sh
 curl \
   -b authenticationToken=KQxQdm2vMiv7jBIK0hgkmgxKzemd8wSJ7ugFGKFkTbs \
   'https://xo.company.lan/rest/v0/vms/770aa52a-fd42-8faf-f167-8c5c4a237cac.xva?compress=zstd' \
   > myVM.xva
 ```
 
+## VDI destruction
+
+```sh
+curl \
+  -X DELETE \
+  -b authenticationToken=KQxQdm2vMiv7jBIK0hgkmgxKzemd8wSJ7ugFGKFkTbs \
+  'https://xo.company.lan/rest/v0/vdis/1a269782-ea93-4c4c-897a-475365f7b674'
+```
+
 ## VDI Export
 
-A VM can be exported as an VHD at `/rest/v0/vdis/<uuid>.vhd`.
+A VDI can be exported in VHD format at `/rest/v0/vdis/<uuid>.vhd` or the raw content at `/rest/v0/vdis/<uuid>.raw`.
 
-```bash
+```sh
 curl \
   -b authenticationToken=KQxQdm2vMiv7jBIK0hgkmgxKzemd8wSJ7ugFGKFkTbs \
   'https://xo.company.lan/rest/v0/vdis/1a269782-ea93-4c4c-897a-475365f7b674.vhd' \
@@ -140,14 +178,14 @@ curl \
 
 ## VDI Import
 
-A VHD can be imported on an SR to create a VDI at `/rest/v0/srs/<sr uuid>/vdis`.
+A VHD or a raw export can be imported on an SR to create a new VDI at `/rest/v0/srs/<sr uuid>/vdis`.
 
-```bash
+```sh
 curl \
   -X POST \
   -b authenticationToken=KQxQdm2vMiv7jBIK0hgkmgxKzemd8wSJ7ugFGKFkTbs \
-  -T myDisk.vhd \
-  'https://xo.company.lan/rest/v0/srs/357bd56c-71f9-4b2a-83b8-3451dec04b8f/vdis?name_label=my_imported_VDI' \
+  -T myDisk.raw \
+  'https://xo.company.lan/rest/v0/srs/357bd56c-71f9-4b2a-83b8-3451dec04b8f/vdis?raw&name_label=my_imported_VDI' \
   | cat
 ```
 
@@ -159,6 +197,60 @@ The following query parameters are supported to customize the created VDI:
 
 - `name_label`
 - `name_description`
+- `raw`: this parameter must be used if importing a raw export instead of a VHD
+
+## Actions
+
+### Available actions
+
+To see the actions available on a given object, get the collection at `/rest/v0/<type>/<uuid>/actions`.
+
+For example, to list all actions on a given VM:
+
+```sh
+curl \
+  -b authenticationToken=KQxQdm2vMiv7jBIK0hgkmgxKzemd8wSJ7ugFGKFkTbs \
+  'https://xo.company.lan/rest/v0/vms/770aa52a-fd42-8faf-f167-8c5c4a237cac/actions'
+```
+
+### Start an action
+
+Post at the action endpoint which is `/rest/v0/<type>/<uuid>/actions/<action>`.
+
+For instance, to reboot a VM:
+
+```sh
+curl \
+  -X POST \
+  -b authenticationToken=KQxQdm2vMiv7jBIK0hgkmgxKzemd8wSJ7ugFGKFkTbs \
+  'https://xo.company.lan/rest/v0/vms/770aa52a-fd42-8faf-f167-8c5c4a237cac/actions/clean_reboot'
+```
+
+Some actions accept parameters, they should be provided in a JSON-encoded object as the request body:
+
+```sh
+curl \
+  -X POST \
+  -b authenticationToken=KQxQdm2vMiv7jBIK0hgkmgxKzemd8wSJ7ugFGKFkTbs \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: application/json' \
+  -d '{ "name_label": "My snapshot" }' \
+  'https://xo.company.lan/rest/v0/vms/770aa52a-fd42-8faf-f167-8c5c4a237cac/actions/snapshot'
+```
+
+By default, actions are asynchronous and return the reference of the task associated with the request.
+
+> Tasks monitoring is still under construcration and will come in a future release :)
+
+The `?sync` flag can be used to run the action synchronously without requiring task monitoring. The result of the action will be returned encoded as JSON:
+
+```console
+$ curl \
+  -X POST \
+  -b authenticationToken=KQxQdm2vMiv7jBIK0hgkmgxKzemd8wSJ7ugFGKFkTbs \
+  'https://xo.company.lan/rest/v0/vms/770aa52a-fd42-8faf-f167-8c5c4a237cac/actions/clean_reboot'
+"2b0266aa-c753-6fbc-e4dd-c79be7782052"
+```
 
 ## The future
 

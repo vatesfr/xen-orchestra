@@ -10,8 +10,8 @@
 
 Installation of the [npm package](https://npmjs.org/package/@vates/predicates):
 
-```
-> npm install --save @vates/predicates
+```sh
+npm install --save @vates/predicates
 ```
 
 ## Usage
@@ -19,7 +19,7 @@ Installation of the [npm package](https://npmjs.org/package/@vates/predicates):
 `undefined` predicates are ignored and `undefined` is returned if all predicates are `undefined`, this permits the most efficient composition:
 
 ```js
-const compositePredicate = every(undefined, some(predicate2, undefined))
+const compositePredicate = not(every(undefined, some(not(predicate2), undefined)))
 
 // ends up as
 
@@ -52,6 +52,21 @@ isBetween3And10(5)
 
 isBetween3And10(10)
 // → false
+```
+
+### `not(predicate)`
+
+> Returns a predicate that returns the negation of the predicate.
+
+```js
+const isEven = n => n % 2 === 0
+const isOdd = not(isEven)
+
+isOdd(1)
+// true
+
+isOdd(2)
+// false
 ```
 
 ### `some(predicates)`

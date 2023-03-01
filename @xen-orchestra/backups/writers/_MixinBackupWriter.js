@@ -3,17 +3,19 @@
 const { createLogger } = require('@xen-orchestra/log')
 const { join } = require('path')
 
-const { getVmBackupDir } = require('../_getVmBackupDir.js')
-const MergeWorker = require('../merge-worker/index.js')
+const assert = require('assert')
 const { formatFilenameDate } = require('../_filenameDate.js')
+const { getVmBackupDir } = require('../_getVmBackupDir.js')
+const { HealthCheckVmBackup } = require('../HealthCheckVmBackup.js')
+const { ImportVmBackup } = require('../ImportVmBackup.js')
 const { Task } = require('../Task.js')
+const MergeWorker = require('../merge-worker/index.js')
 
 const { info, warn } = createLogger('xo:backups:MixinBackupWriter')
 
 exports.MixinBackupWriter = (BaseClass = Object) =>
   class MixinBackupWriter extends BaseClass {
     #lock
-    #vmBackupDir
 
     constructor({ remoteId, ...rest }) {
       super(rest)
@@ -21,13 +23,13 @@ exports.MixinBackupWriter = (BaseClass = Object) =>
       this._adapter = rest.backup.remoteAdapters[remoteId]
       this._remoteId = remoteId
 
-      this.#vmBackupDir = getVmBackupDir(this._backup.vm.uuid)
+      this._vmBackupDir = getVmBackupDir(this._backup.vm.uuid)
     }
 
     async _cleanVm(options) {
       try {
         return await Task.run({ name: 'clean-vm' }, () => {
-          return this._adapter.cleanVm(this.#vmBackupDir, {
+          return this._adapter.cleanVm(this._vmBackupDir, {
             ...options,
             fixMetadata: true,
             logInfo: info,
@@ -36,6 +38,7 @@ exports.MixinBackupWriter = (BaseClass = Object) =>
               Task.warning(message, data)
             },
             lock: false,
+            mergeBlockConcurrency: this._backup.config.mergeBlockConcurrency,
           })
         })
       } catch (error) {
@@ -46,7 +49,7 @@ exports.MixinBackupWriter = (BaseClass = Object) =>
 
     async beforeBackup() {
       const { handler } = this._adapter
-      const vmBackupDir = this.#vmBackupDir
+      const vmBackupDir = this._vmBackupDir
       await handler.mktree(vmBackupDir)
       this.#lock = await handler.lock(vmBackupDir)
     }
@@ -71,6 +74,39 @@ exports.MixinBackupWriter = (BaseClass = Object) =>
         const remotePath = handler._getRealPath()
         await MergeWorker.run(remotePath)
       }
-      await this._adapter.invalidateVmBackupListCache(this._backup.vm.uuid)
+    }
+
+    healthCheck(sr) {
+      assert.notStrictEqual(
+        this._metadataFileName,
+        undefined,
+        'Metadata file name should be defined before making a healthcheck'
+      )
+      return Task.run(
+        {
+          name: 'health check',
+        },
+        async () => {
+          const xapi = sr.$xapi
+          const srUuid = sr.uuid
+          const adapter = this._adapter
+          const metadata = await adapter.readVmBackupMetadata(this._metadataFileName)
+          const { id: restoredId } = await new ImportVmBackup({
+            adapter,
+            metadata,
+            srUuid,
+            xapi,
+          }).run()
+          const restoredVm = xapi.getObject(restoredId)
+          try {
+            await new HealthCheckVmBackup({
+              restoredVm,
+              xapi,
+            }).run()
+          } finally {
+            await xapi.VM_destroy(restoredVm.$ref)
+          }
+        }
+      )
     }
   }

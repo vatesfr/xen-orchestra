@@ -10,8 +10,8 @@
 
 Installation of the [npm package](https://npmjs.org/package/@xen-orchestra/mixins):
 
-```
-> npm install --save @xen-orchestra/mixins
+```sh
+npm install --save @xen-orchestra/mixins
 ```
 
 ## Contributions

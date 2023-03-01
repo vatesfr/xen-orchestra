@@ -212,7 +212,7 @@ export default {
   // Original text: "Welcome on Xen Orchestra!"
   homeWelcome: 'Witaj w Xen Orchestra!',
 
-  // Original text: "Add your XenServer hosts or pools"
+  // Original text: "Add your XCP-ng hosts or pools"
   homeWelcomeText: 'Dodaj serwery XenServer lub pule',
 
   // Original text: "Want some help?"
@@ -2280,8 +2280,8 @@ export default {
   // Original text: "To SR:"
   vmImportToSr: 'To SR:',
 
-  // Original text: "VMs to import"
-  vmsToImport: 'VMs to import',
+  // Original text: "VM{nVms, plural, one {} other {s}} to import"
+  vmsToImport: 'VM{nVms, plural, one {} other {s}} to import',
 
   // Original text: "Reset"
   importVmsCleanList: 'Reset',

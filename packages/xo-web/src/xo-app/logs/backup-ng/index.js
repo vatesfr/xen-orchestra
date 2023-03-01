@@ -1,3 +1,4 @@
+import * as CM from 'complex-matcher'
 import _, { FormattedDuration } from 'intl'
 import ActionButton from 'action-button'
 import addSubscriptions from 'add-subscriptions'
@@ -56,7 +57,7 @@ const GoToJob = decorate([
         const { jobId, location, router, scrollIntoJobs } = this.props
         router.replace({
           ...location,
-          query: { ...location.query, s: `id:${jobId}` },
+          query: { ...location.query, s: new CM.Property('id', new CM.String(jobId)).toString() },
         })
         scrollIntoJobs()
       },
@@ -136,10 +137,10 @@ const COLUMNS = [
               return
             }
             if (operationTask.message === 'transfer' && vmTransferSize === undefined) {
-              vmTransferSize = operationTask.result.size
+              vmTransferSize = operationTask.result?.size
             }
             if (operationTask.message === 'merge' && vmMergeSize === undefined) {
-              vmMergeSize = operationTask.result.size
+              vmMergeSize = operationTask.result?.size
             }
 
             if (vmTransferSize !== undefined && vmMergeSize !== undefined) {

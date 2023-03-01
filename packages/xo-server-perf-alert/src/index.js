@@ -1,7 +1,10 @@
 import JSON5 from 'json5'
 import { createSchedule } from '@xen-orchestra/cron'
+import { createLogger } from '@xen-orchestra/log'
 import { filter, forOwn, map, mean } from 'lodash'
 import { utcParse } from 'd3-time-format'
+
+const logger = createLogger('xo:xo-server-perf-alert')
 
 const XAPI_TO_XENCENTER = {
   cpuUsage: 'cpu_usage',
@@ -523,7 +526,8 @@ ${monitorBodies.join('\n')}`
                 }\n`
 
                 return result
-              } catch (_) {
+              } catch (error) {
+                logger.warn(error)
                 return {
                   uuid,
                   object: null,
@@ -685,7 +689,7 @@ ${entriesWithMissingStats.map(({ listItem }) => listItem).join('\n')}`
       payload.vm_uuid = xapiObject.uuid
     }
     // JSON is not well formed, can't use the default node parser
-    return JSON5.parse(await (await xapi.getResource('/rrd_updates', payload)).readAll())
+    return JSON5.parse(await (await xapi.getResource('/rrd_updates', payload)).text())
   }
 }
 

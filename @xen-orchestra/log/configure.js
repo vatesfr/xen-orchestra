@@ -1,78 +1,10 @@
 'use strict'
 
 const createConsoleTransport = require('./transports/console')
-const { LEVELS, resolve } = require('./levels')
-const { compileGlobPattern } = require('./utils')
+const createTransport = require('./_createTransport')
+const { LEVELS, resolve } = require('./_levels')
 
 // ===================================================================
-
-const compileFilter = filter => {
-  if (filter === undefined) {
-    return
-  }
-
-  const type = typeof filter
-  if (type === 'function') {
-    return filter
-  }
-  if (type === 'string') {
-    const re = compileGlobPattern(filter)
-    return log => re.test(log.namespace)
-  }
-
-  if (Array.isArray(filter)) {
-    const filters = filter.map(compileFilter).filter(_ => _ !== undefined)
-    const { length } = filters
-    if (length === 0) {
-      return
-    }
-    if (length === 1) {
-      return filters[0]
-    }
-    return log => {
-      for (let i = 0; i < length; ++i) {
-        if (filters[i](log)) {
-          return true
-        }
-      }
-      return false
-    }
-  }
-
-  throw new TypeError('unsupported `filter`')
-}
-
-const createTransport = config => {
-  if (typeof config === 'function') {
-    return config
-  }
-
-  if (Array.isArray(config)) {
-    const transports = config.map(createTransport)
-    const { length } = transports
-    return function () {
-      for (let i = 0; i < length; ++i) {
-        transports[i].apply(this, arguments)
-      }
-    }
-  }
-
-  const level = resolve(config.level)
-  const filter = compileFilter([config.filter, level === undefined ? undefined : log => log.level >= level])
-
-  let transport = createTransport(config.transport)
-
-  if (filter !== undefined) {
-    const orig = transport
-    transport = function (log) {
-      if (filter(log)) {
-        return orig.apply(this, arguments)
-      }
-    }
-  }
-
-  return transport
-}
 
 const symbol = typeof Symbol !== 'undefined' ? Symbol.for('@xen-orchestra/log') : '@@@xen-orchestra/log'
 

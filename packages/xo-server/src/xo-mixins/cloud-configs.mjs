@@ -14,7 +14,7 @@ export default class {
     this._app = app
     const db = (this._db = new CloudConfigs({
       connection: app._redis,
-      prefix: 'xo:cloudConfig',
+      namespace: 'cloudConfig',
     }))
 
     app.hooks.on('clean', () => db.rebuildIndexes())
@@ -28,7 +28,7 @@ export default class {
   }
 
   createCloudConfig(cloudConfig) {
-    return this._db.add(cloudConfig).properties
+    return this._db.add(cloudConfig)
   }
 
   async updateCloudConfig({ id, name, template }) {
@@ -54,6 +54,6 @@ export default class {
     if (cloudConfig === undefined) {
       throw noSuchObject(id, 'cloud config')
     }
-    return cloudConfig.properties
+    return cloudConfig
   }
 }

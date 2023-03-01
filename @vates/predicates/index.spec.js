@@ -3,26 +3,29 @@
 const assert = require('assert/strict')
 const { describe, it } = require('tap').mocha
 
-const { every, some } = require('./')
+const { every, not, some } = require('./')
 
 const T = () => true
 const F = () => false
 
-const testArgsHandling = fn => {
-  it('returns undefined if all predicates are undefined', () => {
+const testArgHandling = fn => {
+  it('returns undefined if predicate is undefined', () => {
     assert.equal(fn(undefined), undefined)
-    assert.equal(fn([undefined]), undefined)
-  })
-
-  it('returns the predicate if only a single one is passed', () => {
-    assert.equal(fn(undefined, T), T)
-    assert.equal(fn([undefined, T]), T)
   })
 
   it('throws if it receives a non-predicate', () => {
     const error = new TypeError('not a valid predicate')
     error.value = 3
     assert.throws(() => fn(3), error)
+  })
+}
+
+const testArgsHandling = fn => {
+  testArgHandling(fn)
+
+  it('returns the predicate if only a single one is passed', () => {
+    assert.equal(fn(undefined, T), T)
+    assert.equal(fn([undefined, T]), T)
   })
 
   it('forwards this and arguments to predicates', () => {
@@ -36,17 +39,21 @@ const testArgsHandling = fn => {
   })
 }
 
-const runTests = (fn, truthTable) =>
+const runTests = (fn, acceptMultiple, truthTable) =>
   it('works', () => {
     truthTable.forEach(([result, ...predicates]) => {
+      if (acceptMultiple) {
+        assert.equal(fn(predicates)(), result)
+      } else {
+        assert.equal(predicates.length, 1)
+      }
       assert.equal(fn(...predicates)(), result)
-      assert.equal(fn(predicates)(), result)
     })
   })
 
 describe('every', () => {
   testArgsHandling(every)
-  runTests(every, [
+  runTests(every, true, [
     [true, T, T],
     [false, T, F],
     [false, F, T],
@@ -54,9 +61,22 @@ describe('every', () => {
   ])
 })
 
+describe('not', () => {
+  testArgHandling(not)
+
+  it('returns the original predicate if negated twice', () => {
+    assert.equal(not(not(T)), T)
+  })
+
+  runTests(not, false, [
+    [true, F],
+    [false, T],
+  ])
+})
+
 describe('some', () => {
   testArgsHandling(some)
-  runTests(some, [
+  runTests(some, true, [
     [true, T, T],
     [true, T, F],
     [true, F, T],

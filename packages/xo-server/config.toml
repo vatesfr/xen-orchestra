@@ -87,12 +87,18 @@ snapshotNameLabelTpl = '[XO Backup {job.name}] {vm.name_label}'
 # Delay for which backups listing on a remote is cached
 listingDebounce = '1 min'
 
+# settings when using Vhd directories ( s3 , encryption )
+# you should use 'none' if your fs is already compressed
+# changing this setting will generate new full backups
 vhdDirectoryCompression = 'brotli'
 
-# This is a work-around.
-#
-# See https://github.com/vatesfr/xen-orchestra/pull/4674
-maxMergedDeltasPerRun = 2
+# how many block can be merged in parallel per backup running
+# increase to increase performance, reduce if you have timeout during merge
+mergeBlockConcurrency = 2
+
+# how many block can be uploaded in parallel
+# increase to in rease performance, reduce if you have timeout or memory error during transfer
+writeBlockConcurrency = 16
 
 # https://github.com/naugtur/blocked-at#params-and-return-value
 [blockedAtOptions]
@@ -105,11 +111,31 @@ threshold = 1000
 #[http.helmet.hsts]
 #includeSubDomains = false
 
-[[http.listen]]
+# Each `http.listen.<name>` entry defines a specific listening configuration for
+# the HTTP server.
+#
+# `<name>` can be freely choosen.
+#
+# Historically, `http.listen` was an array with the first config for HTTP and
+# the second for HTTPS. To avoid breaking existing user configs, this convention
+# is kept.
+[http.listen.0]
 port = 80
 
 # These options are applied to all listen entries.
 [http.listenOptions]
+
+# Number of milliseconds allowed to receive the entire request.
+#
+# The default value changed from no limit to 5 minutes in Node 18.0 to mitigate
+# Slowloris attacks.
+#
+# This breaks a number of XO use cases, for instance uploading a VDI via the
+# REST API, therefore it's changed to 1 day.
+#
+# Completely disabled for now because it appears to be broken:
+# https://github.com/nodejs/node/issues/46574
+requestTimeout = 0
 
 [http.mounts]
 '/' = '../xo-web/dist'
@@ -120,6 +146,8 @@ port = 80
 
 # Display all logs with level >=, regardless of their namespace
 level = 'info'
+
+[logs.transport.console]
 
 [plugins]
 
@@ -154,7 +182,7 @@ poolMarkingPrefix = 'xo:clientInfo:'
 [xo-proxy]
 callTimeout = '1 min'
 
-channel = 'xo-proxy-appliance'
+channel = 'xo-proxy-appliance-{xoChannel}'
 
 namespace = 'xoProxyAppliance'
 

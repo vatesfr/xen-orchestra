@@ -10,8 +10,8 @@
 
 Installation of the [npm package](https://npmjs.org/package/@vates/cached-dns.lookup):
 
-```
-> npm install --save @vates/cached-dns.lookup
+```sh
+npm install --save @vates/cached-dns.lookup
 ```
 
 ## Usage

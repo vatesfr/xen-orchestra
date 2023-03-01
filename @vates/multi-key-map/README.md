@@ -10,8 +10,8 @@
 
 Installation of the [npm package](https://npmjs.org/package/@vates/multi-key-map):
 
-```
-> npm install --save @vates/multi-key-map
+```sh
+npm install --save @vates/multi-key-map
 ```
 
 ## Usage

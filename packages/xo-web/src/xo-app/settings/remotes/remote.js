@@ -43,6 +43,8 @@ export default decorate([
       protocol: undefined,
       region: undefined,
       allowUnauthorized: undefined,
+      useVhdDirectory: undefined,
+      encryptionKey: undefined,
     }),
     effects: {
       linkState,
@@ -68,12 +70,22 @@ export default decorate([
             username = remote.username,
             protocol = remote.protocol || 'https',
             region = remote.region,
+            encryptionKey = remote.encryptionKey,
+          } = state
+
+          let {
+            path = remote.path,
+            useVhdDirectory = remote.useVhdDirectory,
             allowUnauthorized = remote.allowUnauthorized,
           } = state
-          let { path = remote.path } = state
+
+          // making it undefined if falsish won't save it in the remote url
+          allowUnauthorized = allowUnauthorized ? true : undefined
+          useVhdDirectory = useVhdDirectory ? true : undefined
           if (type === 's3') {
             const { parsedPath, bucket = parsedPath.split('/')[0], directory = parsedPath.split('/')[1] } = state
             path = bucket + '/' + directory
+            useVhdDirectory = true // always on for s3
           }
           return editRemote(remote, {
             name,
@@ -88,6 +100,8 @@ export default decorate([
               protocol,
               region,
               allowUnauthorized,
+              useVhdDirectory,
+              encryptionKey: encryptionKey?.trim() !== '' ? encryptionKey : undefined,
             }),
             options: options !== '' ? options : null,
             proxy: proxyId,
@@ -116,6 +130,8 @@ export default decorate([
             proxyId,
             type = 'nfs',
             username,
+            useVhdDirectory = undefined,
+            encryptionKey = '',
           } = state
 
           const urlParams = {
@@ -123,12 +139,16 @@ export default decorate([
             path,
             port,
             type,
+            useVhdDirectory,
+            encryptionKey: encryptionKey.trim() !== '' ? encryptionKey : undefined,
           }
           if (type === 's3') {
-            const { allowUnauthorized, bucket, directory, protocol = 'https' } = state
+            const { allowUnauthorized, bucket, directory, protocol = 'https', region } = state
             urlParams.path = bucket + '/' + directory
             urlParams.allowUnauthorized = allowUnauthorized
             urlParams.protocol = protocol
+            urlParams.useVhdDirectory = true // always on for s3
+            urlParams.region = region
           }
           username && (urlParams.username = username)
           password && (urlParams.password = password)
@@ -154,6 +174,9 @@ export default decorate([
       },
       setAllowUnauthorized(_, value) {
         this.state.allowUnauthorized = value
+      },
+      setUseVhdDirectory(_, value) {
+        this.state.useVhdDirectory = value
       },
     },
     computed: {
@@ -184,7 +207,12 @@ export default decorate([
       type = remote.type || 'nfs',
       username = remote.username || '',
       allowUnauthorized = remote.allowUnauthorized || false,
+      useVhdDirectory = remote.useVhdDirectory || type === 's3',
+      encryptionKey = remote.encryptionKey || '',
     } = state
+
+    const isEncrypted = encryptionKey.trim() !== ''
+
     return (
       <div>
         <h2>{_('newRemote')}</h2>
@@ -386,7 +414,7 @@ export default decorate([
                   name='host'
                   onChange={effects.linkState}
                   // pattern='^[^\\/]+\\[^\\/]+$'
-                  placeholder='AWS S3 endpoint (ex: s3.us-east-2.amazonaws.com)'
+                  placeholder={formatMessage(messages.remoteS3PlaceHolderEndpoint)}
                   required
                   type='text'
                   value={host}
@@ -433,7 +461,7 @@ export default decorate([
                   className='form-control'
                   name='username'
                   onChange={effects.linkState}
-                  placeholder='Access key ID'
+                  placeholder={formatMessage(messages.remoteS3PlaceHolderAccessKeyID)}
                   required
                   type='text'
                   value={username}
@@ -444,9 +472,52 @@ export default decorate([
                   className='form-control'
                   name='password'
                   onChange={effects.setSecretKey}
-                  placeholder='Paste secret here to change it'
+                  placeholder={formatMessage(messages.remoteS3PlaceHolderSecret)}
                   autoComplete='off'
                   type='text'
+                />
+              </div>
+            </fieldset>
+          )}
+          <div className='form-group'>
+            <label>
+              {_('remoteEncryptionKey')}
+              <span className='tag tag-pill tag-info ml-1'>{_('alpha')}</span>
+            </label>
+            {isEncrypted && !useVhdDirectory && (
+              <p className='text-warning'>
+                <Icon icon='alarm' /> {_('remoteEncryptionMustUseVhd')}
+              </p>
+            )}
+            <ul className='small'>
+              <li>{_('remoteEncryptionEncryptedfiles')}</li>
+              <li>{_('remoteEncryptionKeyStorageLocation')}</li>
+              <li>{_('remoteEncryptionBackupSize')}</li>
+            </ul>
+            <input
+              autoComplete='new-password'
+              className='form-control'
+              name='encryptionKey'
+              placeholder={formatMessage(messages.remoteS3PlaceHolderEncryptionKey)}
+              onChange={effects.linkState}
+              pattern='^.{32}$'
+              type='password'
+              value={encryptionKey}
+            />
+          </div>
+          {type !== 's3' && (
+            <fieldset className='form-group form-group'>
+              <div className='input-group form-group'>
+                <span className='align-middle'>
+                  {_('remoteUseVhdDirectory')}{' '}
+                  <Tooltip content={_('remoteUseVhdDirectoryTooltip')}>
+                    <Icon icon='info' size='lg' />
+                  </Tooltip>
+                </span>
+                <Toggle
+                  className='align-middle pull-right'
+                  onChange={effects.setUseVhdDirectory}
+                  value={useVhdDirectory === true}
                 />
               </div>
             </fieldset>

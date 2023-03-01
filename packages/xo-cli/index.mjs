@@ -4,7 +4,6 @@ import { createReadStream, createWriteStream, readFileSync } from 'fs'
 import { PassThrough, pipeline } from 'stream'
 import { stat } from 'fs/promises'
 import chalk from 'chalk'
-import execPromise from 'exec-promise'
 import forEach from 'lodash/forEach.js'
 import fromCallback from 'promise-toolbox/fromCallback'
 import getKeys from 'lodash/keys.js'
@@ -24,6 +23,7 @@ import XoLib from 'xo-lib'
 // -------------------------------------------------------------------
 
 import * as config from './config.mjs'
+import { inspect } from 'util'
 
 const Xo = XoLib.default
 
@@ -32,7 +32,8 @@ const Xo = XoLib.default
 async function connect() {
   const { allowUnauthorized, server, token } = await config.load()
   if (server === undefined) {
-    throw new Error('no server to connect to!')
+    const errorMessage = 'Please use `xo-cli --register` to associate with an XO instance first.\n\n' + help()
+    throw errorMessage
   }
 
   if (token === undefined) {
@@ -45,49 +46,66 @@ async function connect() {
   return xo
 }
 
-async function parseRegisterArgs(args) {
+async function parseRegisterArgs(args, tokenDescription, acceptToken = false) {
   const {
     allowUnauthorized,
     expiresIn,
-    _: [
-      url,
+    token,
+    _: opts,
+  } = getopts(args, {
+    alias: {
+      allowUnauthorized: 'au',
+      token: 't',
+    },
+    boolean: ['allowUnauthorized'],
+    stopEarly: true,
+    string: ['expiresIn', 'token'],
+  })
+
+  const result = {
+    allowUnauthorized,
+    expiresIn: expiresIn || undefined,
+    url: opts[0],
+  }
+
+  if (token !== '') {
+    if (!acceptToken) {
+      // eslint-disable-next-line no-throw-literal
+      throw '`token` option is not accepted by this command'
+    }
+    result.token = token
+  } else {
+    const [
+      ,
       email,
       password = await new Promise(function (resolve) {
         process.stdout.write('Password: ')
         pw(resolve)
       }),
-    ],
-  } = getopts(args, {
-    alias: {
-      allowUnauthorized: 'au',
-    },
-    boolean: ['allowUnauthorized'],
-    stopEarly: true,
-    string: ['expiresIn'],
-  })
-
-  return {
-    allowUnauthorized,
-    email,
-    expiresIn: expiresIn || undefined,
-    password,
-    url,
+    ] = opts
+    result.token = await _createToken({ ...result, description: tokenDescription, email, password })
   }
+
+  return result
 }
 
 async function _createToken({ allowUnauthorized, description, email, expiresIn, password, url }) {
   const xo = new Xo({ rejectUnauthorized: !allowUnauthorized, url })
   await xo.open()
-  await xo.signIn({ email, password })
-  console.warn('Successfully logged with', xo.user.email)
+  try {
+    await xo.signIn({ email, password })
+    console.warn('Successfully logged with', xo.user.email)
 
-  return xo.call('token.create', { description, expiresIn }).catch(error => {
-    // if invalid parameter error, retry without description for backward compatibility
-    if (error.code === 10) {
-      return xo.call('token.create', { expiresIn })
-    }
-    throw error
-  })
+    return await xo.call('token.create', { description, expiresIn }).catch(error => {
+      // if invalid parameter error, retry without description for backward compatibility
+      if (error.code === 10) {
+        return xo.call('token.create', { expiresIn })
+      }
+      throw error
+    })
+  } finally {
+    await xo.close()
+  }
 }
 
 function createOutputStream(path) {
@@ -100,6 +118,22 @@ function createOutputStream(path) {
   stream.pipe(process.stdout)
   return stream
 }
+
+// patch stdout and stderr to stop writing after an EPIPE error
+//
+// See https://github.com/vatesfr/xen-orchestra/issues/6680
+;[process.stdout, process.stderr].forEach(stream => {
+  let write = stream.write
+  stream.on('error', function onError(error) {
+    if (error.code === 'EPIPE') {
+      stream.off('error', onError)
+      write = noop
+    }
+  })
+  stream.write = function () {
+    return write.apply(this, arguments)
+  }
+})
 
 const FLAG_RE = /^--([^=]+)(?:=([^]*))?$/
 function extractFlags(args) {
@@ -188,15 +222,19 @@ const help = wrap(
   (function (pkg) {
     return `Usage:
 
-  $name --register [--allowUnauthorized] [--expiresIn duration] <XO-Server URL> <username> [<password>]
+  $name --register [--allowUnauthorized] [--expiresIn <duration>] <XO-Server URL> <username> [<password>]
+  $name --register [--allowUnauthorized] [--expiresIn <duration>] --token <token> <XO-Server URL>
     Registers the XO instance to use.
 
     --allowUnauthorized, --au
       Accept invalid certificate (e.g. self-signed).
 
-    --expiresIn duration
+    --expiresIn <duration>
       Can be used to change the validity duration of the
       authorization token (default: one month).
+
+    --token <token>
+      An authentication token to use instead of username/password.
 
   $name --createToken <params>…
     Create an authentication token for XO API.
@@ -224,8 +262,7 @@ const help = wrap(
   $name <command> [<name>=<value>]...
     Executes a command on the current XO instance.
 
-$name v$version
-`.replace(/<([^>]+)>|\$(\w+)/g, function (_, arg, key) {
+$name v$version`.replace(/<([^>]+)>|\$(\w+)/g, function (_, arg, key) {
       if (arg) {
         return '<' + chalk.yellow(arg) + '>'
       }
@@ -243,7 +280,7 @@ $name v$version
 
 const COMMANDS = { __proto__: null }
 
-function main(args) {
+async function main(args) {
   if (!args || !args.length || args[0] === '-h') {
     return help()
   }
@@ -255,22 +292,34 @@ function main(args) {
 
     return match[1].toUpperCase()
   })
-  if (fnName in COMMANDS) {
-    return COMMANDS[fnName](args.slice(1))
-  }
 
-  return COMMANDS.call(args).catch(error => {
-    if (!(error != null && error.code === 10 && 'errors' in error.data)) {
-      throw error
+  try {
+    if (fnName in COMMANDS) {
+      return await COMMANDS[fnName](args.slice(1))
     }
 
-    const lines = [error.message]
-    const { errors } = error.data
-    errors.forEach(error => {
-      lines.push(`  property ${error.property}: ${error.message}`)
+    return await COMMANDS.call(args).catch(error => {
+      if (!(error != null && error.code === 10 && 'errors' in error.data)) {
+        throw error
+      }
+
+      const lines = [error.message]
+      const { errors } = error.data
+      errors.forEach(error => {
+        let { instancePath } = error
+        instancePath = instancePath.length === 0 ? '@' : '@.' + instancePath
+        lines.push(`  property ${instancePath}: ${error.message}`)
+      })
+      throw lines.join('\n')
     })
-    throw lines.join('\n')
-  })
+  } catch (error) {
+    // `promise-toolbox/fromEvent` uses `addEventListener` by default wich makes
+    // `ws/WebSocket` (used by `xo-lib`) emit DOM `Event` objects which are not
+    // correctly displayed by `exec-promise`.
+    //
+    // Extracts the original error for a better display.
+    throw typeof error === 'object' && 'error' in error ? error.error : error
+  }
 }
 
 // -------------------------------------------------------------------
@@ -278,10 +327,8 @@ function main(args) {
 COMMANDS.help = help
 
 async function createToken(args) {
-  const opts = await parseRegisterArgs(args)
-  opts.description = 'xo-cli --createToken'
+  const { token } = await parseRegisterArgs(args, 'xo-cli --createToken')
 
-  const token = await _createToken(opts)
   console.warn('Authentication token created')
   console.warn()
   console.log(token)
@@ -289,13 +336,11 @@ async function createToken(args) {
 COMMANDS.createToken = createToken
 
 async function register(args) {
-  const opts = await parseRegisterArgs(args)
-  opts.description = 'xo-cli --register'
-
+  const opts = await parseRegisterArgs(args, 'xo-cli --register', true)
   await config.set({
     allowUnauthorized: opts.allowUnauthorized,
     server: opts.url,
-    token: await _createToken(opts),
+    token: opts.token,
   })
 }
 COMMANDS.register = register
@@ -307,60 +352,64 @@ COMMANDS.unregister = unregister
 
 async function listCommands(args) {
   const xo = await connect()
-  let methods = await xo.call('system.getMethodsInfo')
+  try {
+    let methods = await xo.call('system.getMethodsInfo')
 
-  let json = false
-  const patterns = []
-  forEach(args, function (arg) {
-    if (arg === '--json') {
-      json = true
-    } else {
-      patterns.push(arg)
-    }
-  })
-
-  if (patterns.length) {
-    methods = pick(methods, micromatch(Object.keys(methods), patterns))
-  }
-
-  if (json) {
-    return methods
-  }
-
-  methods = pairs(methods)
-  methods.sort(function (a, b) {
-    a = a[0]
-    b = b[0]
-    if (a < b) {
-      return -1
-    }
-    return +(a > b)
-  })
-
-  const str = []
-  forEach(methods, function (method) {
-    const name = method[0]
-    const info = method[1]
-    str.push(chalk.bold.blue(name))
-    forEach(info.params || [], function (info, name) {
-      str.push(' ')
-      if (info.optional) {
-        str.push('[')
-      }
-
-      const type = info.type
-      str.push(name, '=<', type == null ? 'unknown type' : Array.isArray(type) ? type.join('|') : type, '>')
-
-      if (info.optional) {
-        str.push(']')
+    let json = false
+    const patterns = []
+    forEach(args, function (arg) {
+      if (arg === '--json') {
+        json = true
+      } else {
+        patterns.push(arg)
       }
     })
-    str.push('\n')
-    if (info.description) {
-      str.push('  ', info.description, '\n')
+
+    if (patterns.length) {
+      methods = pick(methods, micromatch(Object.keys(methods), patterns))
     }
-  })
-  return str.join('')
+
+    if (json) {
+      return methods
+    }
+
+    methods = pairs(methods)
+    methods.sort(function (a, b) {
+      a = a[0]
+      b = b[0]
+      if (a < b) {
+        return -1
+      }
+      return +(a > b)
+    })
+
+    const str = []
+    forEach(methods, function (method) {
+      const name = method[0]
+      const info = method[1]
+      str.push(chalk.bold.blue(name))
+      forEach(info.params || [], function (info, name) {
+        str.push(' ')
+        if (info.optional) {
+          str.push('[')
+        }
+
+        const type = info.type
+        str.push(name, '=<', type == null ? 'unknown type' : Array.isArray(type) ? type.join('|') : type, '>')
+
+        if (info.optional) {
+          str.push(']')
+        }
+      })
+      str.push('\n')
+      if (info.description) {
+        str.push('  ', info.description, '\n')
+      }
+    })
+    return str.join('')
+  } finally {
+    await xo.close()
+  }
 }
 COMMANDS.listCommands = listCommands
 
@@ -375,16 +424,20 @@ async function listObjects(args) {
   const filter = args.length ? parseParameters(args) : undefined
 
   const xo = await connect()
-  const objects = await xo.call('xo.getAllObjects', { filter })
+  try {
+    const objects = await xo.call('xo.getAllObjects', { filter })
 
-  const stdout = process.stdout
-  stdout.write('[\n')
-  const keys = Object.keys(objects)
-  for (let i = 0, n = keys.length; i < n; ) {
-    stdout.write(JSON.stringify(filterProperties(objects[keys[i]]), null, 2))
-    stdout.write(++i < n ? ',\n' : '\n')
+    const stdout = process.stdout
+    stdout.write('[\n')
+    const keys = Object.keys(objects)
+    for (let i = 0, n = keys.length; i < n; ) {
+      stdout.write(JSON.stringify(filterProperties(objects[keys[i]]), null, 2))
+      stdout.write(++i < n ? ',\n' : '\n')
+    }
+    stdout.write(']\n')
+  } finally {
+    await xo.close()
   }
-  stdout.write(']\n')
 }
 COMMANDS.listObjects = listObjects
 
@@ -407,67 +460,108 @@ async function call(args) {
   delete params['@']
 
   const xo = await connect()
-
-  // FIXME: do not use private properties.
-  const baseUrl = xo._url.replace(/^ws/, 'http')
-  const httpOptions = {
-    rejectUnauthorized: !(await config.load()).allowUnauthorized,
-  }
-
-  const result = await xo.call(method, params)
-  let keys, key, url
-  if (isObject(result) && (keys = getKeys(result)).length === 1) {
-    key = keys[0]
-
-    if (key === '$getFrom') {
-      ensurePathParam(method, file)
-      url = new URL(result[key], baseUrl)
-      const output = createOutputStream(file)
-      const response = await hrp(url, httpOptions)
-
-      const progress = progressStream(
-        {
-          length: response.headers['content-length'],
-          time: 1e3,
-        },
-        printProgress
-      )
-
-      return fromCallback(pipeline, response, progress, output)
+  try {
+    // FIXME: do not use private properties.
+    const baseUrl = xo._url.replace(/^ws/, 'http')
+    const httpOptions = {
+      rejectUnauthorized: !(await config.load()).allowUnauthorized,
     }
 
-    if (key === '$sendTo') {
-      ensurePathParam(method, file)
-      url = new URL(result[key], baseUrl)
+    const result = await xo.call(method, params)
+    let keys, key, url
+    if (isObject(result) && (keys = getKeys(result)).length === 1) {
+      key = keys[0]
 
-      const { size: length } = await stat(file)
-      const input = pipeline(
-        createReadStream(file),
-        progressStream(
+      if (key === '$getFrom') {
+        ensurePathParam(method, file)
+        url = new URL(result[key], baseUrl)
+        const output = createOutputStream(file)
+        const response = await hrp(url, httpOptions)
+
+        const progress = progressStream(
           {
-            length,
+            length: response.headers['content-length'],
             time: 1e3,
           },
           printProgress
-        ),
-        noop
-      )
+        )
 
-      return hrp
-        .post(url, httpOptions, {
+        return fromCallback(pipeline, response, progress, output)
+      }
+
+      if (key === '$sendTo') {
+        ensurePathParam(method, file)
+        url = new URL(result[key], baseUrl)
+
+        const { size: length } = await stat(file)
+        const input = pipeline(
+          createReadStream(file),
+          progressStream(
+            {
+              length,
+              time: 1e3,
+            },
+            printProgress
+          ),
+          noop
+        )
+
+        const response = await hrp(url, {
+          ...httpOptions,
           body: input,
           headers: {
             'content-length': length,
           },
+          method: 'POST',
         })
-        .readAll('utf-8')
+        return response.text()
+      }
     }
-  }
 
-  return result
+    return result
+  } finally {
+    await xo.close()
+  }
 }
 COMMANDS.call = call
 
 // ===================================================================
 
-execPromise(main)
+// don't call process.exit() to avoid truncated output
+main(process.argv.slice(2)).then(
+  result => {
+    if (result !== undefined) {
+      if (Number.isInteger(result)) {
+        process.exitCode = result
+      } else {
+        const { stdout } = process
+        stdout.write(
+          typeof result === 'string'
+            ? result
+            : inspect(result, {
+                colors: true,
+                depth: null,
+                sorted: true,
+              })
+        )
+        stdout.write('\n')
+      }
+    }
+  },
+  error => {
+    const { stderr } = process
+    stderr.write(chalk.bold.red('✖'))
+    stderr.write(' ')
+    stderr.write(
+      typeof error === 'string'
+        ? error
+        : inspect(error, {
+            colors: true,
+            depth: null,
+            sorted: true,
+          })
+    )
+    stderr.write('\n')
+    process.exitCode = 1
+  }
+)

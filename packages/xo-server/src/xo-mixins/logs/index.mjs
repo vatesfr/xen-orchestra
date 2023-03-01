@@ -1,8 +1,10 @@
-import transportConsole from '@xen-orchestra/log/transports/console.js'
-import { configure } from '@xen-orchestra/log/configure.js'
+import { configure } from '@xen-orchestra/log/configure'
+import { dedupe } from '@xen-orchestra/log/dedupe'
 import { defer, fromEvent } from 'promise-toolbox'
 
 import LevelDbLogger from './loggers/leveldb.mjs'
+
+const { DEBUG } = process.env
 
 export default class Logs {
   constructor(app) {
@@ -10,15 +12,37 @@ export default class Logs {
 
     app.hooks.on('clean', () => this._gc())
 
-    const transport = transportConsole()
-    app.config.watch('logs', ({ filter, level }) => {
-      configure([
-        {
-          filter: [process.env.DEBUG, filter],
-          level,
-          transport,
-        },
-      ])
+    app.config.watch('logs', ({ filter, level, transport: transportsObject }) => {
+      const transports = []
+      for (const id of Object.keys(transportsObject)) {
+        const { disabled = false, ...transport } = transportsObject[id]
+        if (!disabled) {
+          transports.push({ type: id, ...transport })
+        }
+      }
+
+      // merge env.DEBUG and filter entries, removing any duplicates
+      //
+      // undefined when empty
+      const debug =
+        Array.from(
+          new Set(
+            [DEBUG, filter]
+              .filter(Boolean)
+              .join(',')
+              .split(',')
+              .map(_ => _.trim())
+          )
+        ).join(',') || undefined
+
+      // override env.DEBUG so that spawned process (workers) benefits from the new configuration as well
+      process.env.DEBUG = debug
+
+      configure({
+        filter: debug,
+        level,
+        transport: dedupe({ transport: transports }),
+      })
     })
   }
 

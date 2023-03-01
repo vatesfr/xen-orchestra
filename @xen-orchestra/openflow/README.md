@@ -10,8 +10,8 @@
 
 Installation of the [npm package](https://npmjs.org/package/@xen-orchestra/openflow):
 
-```
-> npm install --save @xen-orchestra/openflow
+```sh
+npm install --save @xen-orchestra/openflow
 ```
 
 ## Usage

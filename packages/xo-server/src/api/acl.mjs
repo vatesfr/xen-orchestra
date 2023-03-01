@@ -9,7 +9,7 @@ get.description = 'get existing ACLs'
 // -------------------------------------------------------------------
 
 export async function getCurrentPermissions() {
-  return /* await */ this.getPermissionsForUser(this.connection.get('user_id'))
+  return /* await */ this.getPermissionsForUser(this.apiContext.user.id)
 }
 
 getCurrentPermissions.description = 'get (explicit) permissions by object for the current user'

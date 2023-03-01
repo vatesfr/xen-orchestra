@@ -5,22 +5,28 @@
 const rimraf = require('rimraf')
 const tmp = require('tmp')
 const fs = require('fs-extra')
-const { getHandler, getSyncedHandler } = require('@xen-orchestra/fs')
+const { getSyncedHandler } = require('@xen-orchestra/fs')
 const { Disposable, pFromCallback } = require('promise-toolbox')
 
 const { openVhd, VhdDirectory } = require('../')
 const { createRandomFile, convertFromRawToVhd, convertToVhdDirectory } = require('../tests/utils')
 
 let tempDir = null
+let handler
+let disposeHandler
 
 jest.setTimeout(60000)
 
 beforeEach(async () => {
   tempDir = await pFromCallback(cb => tmp.dir(cb))
+  const d = await getSyncedHandler({ url: `file://${tempDir}` })
+  handler = d.value
+  disposeHandler = d.dispose
 })
 
 afterEach(async () => {
-  await pFromCallback(cb => rimraf(tempDir, cb))
+  await rimraf(tempDir)
+  disposeHandler()
 })
 
 test('Can coalesce block', async () => {
@@ -45,27 +51,32 @@ test('Can coalesce block', async () => {
   await convertToVhdDirectory(childRawDirectoryName, childDirectoryFileName, childDirectoryName)
 
   await Disposable.use(async function* () {
-    const handler = getHandler({ url: 'file://' })
-    const parentVhd = yield openVhd(handler, parentDirectoryName, { flags: 'w' })
+    const parentVhd = yield openVhd(handler, 'parent.dir.vhd', { flags: 'w' })
     await parentVhd.readBlockAllocationTable()
-    const childFileVhd = yield openVhd(handler, childFileName)
+    const childFileVhd = yield openVhd(handler, 'childFile.vhd')
     await childFileVhd.readBlockAllocationTable()
-    const childDirectoryVhd = yield openVhd(handler, childDirectoryName)
+    const childDirectoryVhd = yield openVhd(handler, 'childDir.vhd')
     await childDirectoryVhd.readBlockAllocationTable()
 
-    await parentVhd.coalesceBlock(childFileVhd, 0)
+    let childBlockData = (await childDirectoryVhd.readBlock(0)).data
+    await parentVhd.mergeBlock(childDirectoryVhd, 0)
     await parentVhd.writeFooter()
     await parentVhd.writeBlockAllocationTable()
     let parentBlockData = (await parentVhd.readBlock(0)).data
-    let childBlockData = (await childFileVhd.readBlock(0)).data
+    // block should be present in parent
     expect(parentBlockData.equals(childBlockData)).toEqual(true)
+    // block should not be in child since it's a rename  for vhd directory
+    await expect(childDirectoryVhd.readBlock(0)).rejects.toThrowError()
 
-    await parentVhd.coalesceBlock(childDirectoryVhd, 0)
+    childBlockData = (await childFileVhd.readBlock(1)).data
+    await parentVhd.mergeBlock(childFileVhd, 1)
     await parentVhd.writeFooter()
     await parentVhd.writeBlockAllocationTable()
-    parentBlockData = (await parentVhd.readBlock(0)).data
-    childBlockData = (await childDirectoryVhd.readBlock(0)).data
-    expect(parentBlockData).toEqual(childBlockData)
+    parentBlockData = (await parentVhd.readBlock(1)).data
+    // block should be present in parent in case of mixed vhdfile/vhddirectory
+    expect(parentBlockData.equals(childBlockData)).toEqual(true)
+    // block should still be child
+    await childFileVhd.readBlock(1)
   })
 })
 
@@ -77,7 +88,6 @@ test('compressed blocks and metadata works', async () => {
   await createRandomFile(rawFileName, initalSize)
   await convertFromRawToVhd(rawFileName, vhdName)
   await Disposable.use(async function* () {
-    const handler = yield getSyncedHandler({ url: `file://${tempDir}` })
     const vhd = yield openVhd(handler, 'parent.vhd')
     await vhd.readBlockAllocationTable()
     const compressedVhd = yield VhdDirectory.create(handler, 'compressed.vhd', { compression: 'gzip' })

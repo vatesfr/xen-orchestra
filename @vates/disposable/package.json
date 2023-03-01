@@ -14,17 +14,22 @@
     "url": "https://vates.fr"
   },
   "license": "ISC",
-  "version": "0.1.1",
+  "version": "0.1.4",
   "engines": {
     "node": ">=8.10"
   },
   "scripts": {
-    "postversion": "npm publish --access public"
+    "postversion": "npm publish --access public",
+    "test": "node--test"
   },
   "dependencies": {
     "@vates/multi-key-map": "^0.1.0",
     "@xen-orchestra/async-map": "^0.1.2",
-    "@xen-orchestra/log": "^0.3.0",
+    "@xen-orchestra/log": "^0.6.0",
     "ensure-array": "^1.0.0"
+  },
+  "devDependencies": {
+    "sinon": "^15.0.1",
+    "test": "^3.2.1"
   }
 }

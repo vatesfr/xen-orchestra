@@ -58,7 +58,9 @@ export default class Config {
     // internal arg
     const processor = arguments.length > 2 ? arguments[2] : identity
 
-    let prev
+    // unique value to ensure first run even if the value is `undefined`
+    let prev = {}
+
     const watcher = config => {
       try {
         const value = processor(niceGet(config, path))

@@ -246,6 +246,26 @@ const PIF_COLUMNS = [
     itemRenderer: (pif, userData) => <PifItemLock pif={pif} networks={userData.networks} />,
     name: _('defaultLockingMode'),
   },
+
+  {
+    itemRenderer: (pif, { nbd, networks, insecure_nbd }) => {
+      if (networks[pif.$network]?.nbd) {
+        return (
+          <Tooltip content={_('nbdSecureTooltip')}>
+            <Icon icon='lock' />
+          </Tooltip>
+        )
+      }
+      if (networks[pif.$network]?.insecure_nbd) {
+        ;<Tooltip content={_('nbdInsecureTooltip')}>
+          <Icon icon='unlock' />
+          <Icon icon='error' />
+        </Tooltip>
+      }
+      return null
+    },
+    name: <Tooltip content={_('nbdTootltip')}>{_('nbd')}</Tooltip>,
+  },
   {
     itemRenderer: pif => (
       <div>
@@ -325,48 +345,50 @@ const PVT_NETWORK_ACTIONS = [
   },
 ]
 
-export default ({ host, networks, pifs, privateNetworks }) => (
-  <Container>
-    <Row>
-      <Col>
-        <h1>
-          {_('poolNetworkPif')}
-          <ActionButton className='ml-1' handler={scanHostPifs} handlerParam={host.id} icon='refresh'>
-            {_('refresh')}
-          </ActionButton>
-        </h1>
-        <SortedTable
-          collection={pifs}
-          columns={PIF_COLUMNS}
-          data-networks={networks}
-          groupedActions={PIF_GROUPED_ACTIONS}
-          individualActions={PIF_INDIVIDUAL_ACTIONS}
-          stateUrlParam='s'
-        />
-      </Col>
-    </Row>
-    {!isEmpty(privateNetworks) && (
+export default ({ host, networks, pifs, privateNetworks }) => {
+  return (
+    <Container>
       <Row>
         <Col>
           <h1>
-            {_('privateNetworks')}
-            <ActionButton
-              className='ml-1'
-              handler={noop}
-              icon='edit'
-              redirectOnSuccess={`/pools/${host.$pool}/network?s=${encodeURIComponent('!PIFs:length?')}`}
-            >
-              {_('manage')}
+            {_('poolNetworkPif')}
+            <ActionButton className='ml-1' handler={scanHostPifs} handlerParam={host.id} icon='refresh'>
+              {_('refresh')}
             </ActionButton>
           </h1>
           <SortedTable
-            collection={privateNetworks}
-            columns={PVT_NETWORK_COLUMNS}
-            individualActions={PVT_NETWORK_ACTIONS}
-            stateUrlParam='s_private'
+            collection={pifs}
+            columns={PIF_COLUMNS}
+            data-networks={networks}
+            groupedActions={PIF_GROUPED_ACTIONS}
+            individualActions={PIF_INDIVIDUAL_ACTIONS}
+            stateUrlParam='s'
           />
         </Col>
       </Row>
-    )}
-  </Container>
-)
+      {!isEmpty(privateNetworks) && (
+        <Row>
+          <Col>
+            <h1>
+              {_('privateNetworks')}
+              <ActionButton
+                className='ml-1'
+                handler={noop}
+                icon='edit'
+                redirectOnSuccess={`/pools/${host.$pool}/network?s=${encodeURIComponent('!PIFs:length?')}`}
+              >
+                {_('manage')}
+              </ActionButton>
+            </h1>
+            <SortedTable
+              collection={privateNetworks}
+              columns={PVT_NETWORK_COLUMNS}
+              individualActions={PVT_NETWORK_ACTIONS}
+              stateUrlParam='s_private'
+            />
+          </Col>
+        </Row>
+      )}
+    </Container>
+  )
+}

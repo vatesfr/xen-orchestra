@@ -10,8 +10,8 @@
 
 Installation of the [npm package](https://npmjs.org/package/@xen-orchestra/proxy-cli):
 
-```
-> npm install --global @xen-orchestra/proxy-cli
+```sh
+npm install --global @xen-orchestra/proxy-cli
 ```
 
 ## Usage

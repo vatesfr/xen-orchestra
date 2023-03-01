@@ -3,8 +3,10 @@
 const CancelToken = require('promise-toolbox/CancelToken')
 const Zone = require('node-zone')
 
-const logAfterEnd = () => {
-  throw new Error('task has already ended')
+const logAfterEnd = log => {
+  const error = new Error('task has already ended')
+  error.log = log
+  throw error
 }
 
 const noop = Function.prototype
@@ -98,7 +100,7 @@ class Task {
    * In case of error, the task will be failed.
    *
    * @typedef Result
-   * @param {() => Result)} fn
+   * @param {() => Result} fn
    * @param {boolean} last - Whether the task should succeed if there is no error
    * @returns Result
    */

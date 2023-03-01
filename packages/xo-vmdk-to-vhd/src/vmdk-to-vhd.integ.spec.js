@@ -12,6 +12,7 @@ import { vmdkToVhd, readVmdkGrainTable } from '.'
 import VMDKDirectParser from './vmdk-read'
 import { generateVmdkData } from './vmdk-generate'
 import asyncIteratorToStream from 'async-iterator-to-stream'
+import fs from 'fs'
 
 const initialDir = process.cwd()
 jest.setTimeout(100000)
@@ -24,7 +25,7 @@ beforeEach(async () => {
 afterEach(async () => {
   const tmpDir = process.cwd()
   process.chdir(initialDir)
-  await pFromCallback(cb => rimraf(tmpDir, cb))
+  await rimraf(tmpDir)
 })
 
 function bufferToArray(buffer) {
@@ -34,6 +35,14 @@ function bufferToArray(buffer) {
     res.push(view.getUint32(i, true))
   }
   return res
+}
+
+async function checkFile(vhdName) {
+  // Since the qemu-img check command isn't compatible with vhd format, we use
+  // the convert command to do a check by conversion. Indeed, the conversion will
+  // fail if the source file isn't a proper vhd format.
+  await execa('qemu-img', ['convert', '-fvpc', '-Oqcow2', vhdName, 'outputFile.qcow2'])
+  await fs.promises.unlink('./outputFile.qcow2')
 }
 
 function createFileAccessor(file) {
@@ -71,7 +80,7 @@ test('VMDK to VHD can convert a random data file with VMDKDirectParser', async (
       )
     ).pipe(createWriteStream(vhdFileName))
     await fromEvent(pipe, 'finish')
-    await execa('vhd-util', ['check', '-p', '-b', '-t', '-n', vhdFileName])
+    await checkFile(vhdFileName)
     await execa('qemu-img', ['convert', '-fvmdk', '-Oraw', vmdkFileName, reconvertedFromVmdk])
     await execa('qemu-img', ['convert', '-fvpc', '-Oraw', vhdFileName, reconvertedFromVhd])
     await execa('qemu-img', ['compare', inputRawFileName, vhdFileName])
@@ -85,7 +94,8 @@ test('VMDK to VHD can convert a random data file with VMDKDirectParser', async (
 })
 
 test('Can generate an empty VMDK file', async () => {
-  const readStream = asyncIteratorToStream(await generateVmdkData('result.vmdk', 1024 * 1024 * 1024, 1024 * 1024, []))
+  const { iterator } = await generateVmdkData('result.vmdk', 1024 * 1024 * 1024, 1024 * 1024, [])
+  const readStream = asyncIteratorToStream(iterator)
   const pipe = readStream.pipe(createWriteStream('result.vmdk'))
   await fromEvent(pipe, 'finish')
   await execa('qemu-img', ['check', 'result.vmdk'])
@@ -94,17 +104,16 @@ test('Can generate an empty VMDK file', async () => {
 test('Can generate a small VMDK file', async () => {
   const defaultVhdToVmdkRatio = 16
   const blockSize = 1024 * 1024
-  const b1 = Buffer.allocUnsafe(blockSize)
-  const b2 = Buffer.allocUnsafe(blockSize)
+  const b1 = Buffer.alloc(blockSize, 255)
+  const b2 = Buffer.alloc(blockSize, 255)
   const blockGenerator = [
     { lba: 0, block: b1 },
     { lba: blockSize, block: b2 },
   ]
   const fileName = 'result.vmdk'
   const geometry = { sectorsPerTrackCylinder: 63, heads: 16, cylinders: 10402 }
-  const readStream = asyncIteratorToStream(
-    await generateVmdkData(fileName, 2 * blockSize, blockSize, blockGenerator, geometry)
-  )
+  const { iterator } = await await generateVmdkData(fileName, 2 * blockSize, blockSize, blockGenerator, geometry)
+  const readStream = asyncIteratorToStream(iterator)
   const pipe = readStream.pipe(createWriteStream(fileName))
   await fromEvent(pipe, 'finish')
 

@@ -1,10 +1,7 @@
 /* eslint-env jest */
 
 import 'dotenv/config'
-import asyncIteratorToStream from 'async-iterator-to-stream'
 import { forOwn, random } from 'lodash'
-import { fromCallback } from 'promise-toolbox'
-import { pipeline } from 'readable-stream'
 import { tmpdir } from 'os'
 
 import { getHandler } from '.'
@@ -27,9 +24,6 @@ const unsecureRandomBytes = n => {
 
 const TEST_DATA_LEN = 1024
 const TEST_DATA = unsecureRandomBytes(TEST_DATA_LEN)
-const createTestDataStream = asyncIteratorToStream(function* () {
-  yield TEST_DATA
-})
 
 const rejectionOf = p =>
   p.then(
@@ -79,14 +73,6 @@ handlers.forEach(url => {
     describe('#type', () => {
       it('returns the type of the remote', () => {
         expect(typeof handler.type).toBe('string')
-      })
-    })
-
-    describe('#createOutputStream()', () => {
-      it('creates parent dir if missing', async () => {
-        const stream = await handler.createOutputStream('dir/file')
-        await fromCallback(pipeline, createTestDataStream(), stream)
-        await expect(await handler.readFile('dir/file')).toEqual(TEST_DATA)
       })
     })
 
@@ -241,6 +227,17 @@ handlers.forEach(url => {
 
         expect(await handler.list('.')).toEqual(['file2'])
         expect(await handler.readFile(`file2`)).toEqual(TEST_DATA)
+      })
+      it(`should rename the file and create dest directory`, async () => {
+        await handler.outputFile('file', TEST_DATA)
+        await handler.rename('file', `sub/file2`)
+
+        expect(await handler.list('sub')).toEqual(['file2'])
+        expect(await handler.readFile(`sub/file2`)).toEqual(TEST_DATA)
+      })
+      it(`should fail with enoent if source file is missing`, async () => {
+        const error = await rejectionOf(handler.rename('file', `sub/file2`))
+        expect(error.code).toBe('ENOENT')
       })
     })
 

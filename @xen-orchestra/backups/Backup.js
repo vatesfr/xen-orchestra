@@ -3,6 +3,7 @@
 const { asyncMap, asyncMapSettled } = require('@xen-orchestra/async-map')
 const Disposable = require('promise-toolbox/Disposable')
 const ignoreErrors = require('promise-toolbox/ignoreErrors')
+const pTimeout = require('promise-toolbox/timeout')
 const { compileTemplate } = require('@xen-orchestra/template')
 const { limitConcurrency } = require('limit-concurrency-decorator')
 
@@ -36,13 +37,15 @@ const DEFAULT_VM_SETTINGS = {
   deleteFirst: false,
   exportRetention: 0,
   fullInterval: 0,
+  getRemoteTimeout: 300e3,
   healthCheckSr: undefined,
   healthCheckVmsWithTags: [],
-  maxMergedDeltasPerRun: 2,
+  maxMergedDeltasPerRun: Infinity,
   offlineBackup: false,
   offlineSnapshot: false,
   snapshotRetention: 0,
   timeout: 0,
+  useNbd: false,
   unconditionalSnapshot: false,
   vmTimeout: 0,
 }
@@ -52,19 +55,19 @@ const DEFAULT_METADATA_SETTINGS = {
   retentionXoMetadata: 0,
 }
 
+class RemoteTimeoutError extends Error {
+  constructor(remoteId) {
+    super('timeout while getting the remote ' + remoteId)
+    this.remoteId = remoteId
+  }
+}
+
 exports.Backup = class Backup {
   constructor({ config, getAdapter, getConnectedRecord, job, schedule }) {
     this._config = config
     this._getRecord = getConnectedRecord
     this._job = job
     this._schedule = schedule
-
-    this._getAdapter = Disposable.factory(function* (remoteId) {
-      return {
-        adapter: yield getAdapter(remoteId),
-        remoteId,
-      }
-    })
 
     this._getSnapshotNameLabel = compileTemplate(config.snapshotNameLabelTpl, {
       '{job.name}': job.name,
@@ -86,6 +89,27 @@ exports.Backup = class Backup {
 
     this._baseSettings = baseSettings
     this._settings = { ...baseSettings, ...job.settings[schedule.id] }
+
+    const { getRemoteTimeout } = this._settings
+    this._getAdapter = async function (remoteId) {
+      try {
+        const disposable = await pTimeout.call(getAdapter(remoteId), getRemoteTimeout, new RemoteTimeoutError(remoteId))
+
+        return new Disposable(() => disposable.dispose(), {
+          adapter: disposable.value,
+          remoteId,
+        })
+      } catch (error) {
+        // See https://github.com/vatesfr/xen-orchestra/commit/6aa6cfba8ec939c0288f0fa740f6dfad98c43cbb
+        runTask(
+          {
+            name: 'get remote adapter',
+            data: { type: 'remote', id: remoteId },
+          },
+          () => Promise.reject(error)
+        )
+      }
+    }
   }
 
   async _runMetadataBackup() {
@@ -131,20 +155,7 @@ exports.Backup = class Backup {
           })
         )
       ),
-      Disposable.all(
-        remoteIds.map(id =>
-          this._getAdapter(id).catch(error => {
-            // See https://github.com/vatesfr/xen-orchestra/commit/6aa6cfba8ec939c0288f0fa740f6dfad98c43cbb
-            runTask(
-              {
-                name: 'get remote adapter',
-                data: { type: 'remote', id },
-              },
-              () => Promise.reject(error)
-            )
-          })
-        )
-      ),
+      Disposable.all(remoteIds.map(id => this._getAdapter(id))),
       async (pools, remoteAdapters) => {
         // remove adapters that failed (already handled)
         remoteAdapters = remoteAdapters.filter(_ => _ !== undefined)
@@ -232,20 +243,8 @@ exports.Backup = class Backup {
           })
         )
       ),
-      Disposable.all(
-        extractIdsFromSimplePattern(job.remotes).map(id =>
-          this._getAdapter(id).catch(error => {
-            runTask(
-              {
-                name: 'get remote adapter',
-                data: { type: 'remote', id },
-              },
-              () => Promise.reject(error)
-            )
-          })
-        )
-      ),
-      () => settings.healthCheckSr !== undefined ? this._getRecord('SR', settings.healthCheckSr) : undefined,
+      Disposable.all(extractIdsFromSimplePattern(job.remotes).map(id => this._getAdapter(id))),
+      () => (settings.healthCheckSr !== undefined ? this._getRecord('SR', settings.healthCheckSr) : undefined),
       async (srs, remoteAdapters, healthCheckSr) => {
         // remove adapters that failed (already handled)
         remoteAdapters = remoteAdapters.filter(_ => _ !== undefined)

@@ -28,7 +28,7 @@ hostname = '0.0.0.0'
 port = 80
 ```
 
-## HTTPS
+## HTTPS and certificates
 
 XO-server can also run in HTTPS (you can run HTTP and HTTPS at the same time) - just modify what's needed in the `# Basic HTTPS` section, this time with the certificates/keys you need and their path:
 
@@ -66,24 +66,23 @@ You shouldn't have to change this. It's the path where `xo-web` files are served
 
 ## Custom certificate authority
 
-If you use certificates signed by an in-house CA for your XenServer hosts, and want to have Xen Orchestra connect to them without rejection, you need to add the `--use-openssl-ca` option in Node, but also add the CA to your trust store (`/etc/ssl/certs` via `update-ca-certificates` in your XOA).
+If you use certificates signed by an in-house CA for your XCP-ng or XenServer hosts, and want to have Xen Orchestra connect to them without rejection, you can use the [`NODE_EXTRA_CA_CERTS`](https://nodejs.org/api/cli.html#cli_node_extra_ca_certs_file) environment variable.
 
-To enable this option in your XOA, edit the `/etc/systemd/system/xo-server.service` file and add this:
+To enable this option in your XOA, create `/etc/systemd/system/xo-server.service.d/ca.conf` with the following content:
 
-```
-Environment=NODE_OPTIONS=--use-openssl-ca
+```ini
+[Service]
+Environment=NODE_EXTRA_CA_CERTS=/usr/local/share/ca-certificates/my-cert.crt
 ```
 
 Don't forget to reload `systemd` conf and restart `xo-server`:
 
-```
-# systemctl daemon-reload
-# systemctl restart xo-server.service
+```sh
+systemctl daemon-reload
+systemctl restart xo-server.service
 ```
 
-:::tip
-The `--use-openssl-ca` option is ignored by Node if Xen-Orchestra is run with Linux capabilities. Capabilities are commonly used to bind applications to privileged ports (<1024) (i.e. `CAP_NET_BIND_SERVICE`). Local NAT rules (`iptables`) or a reverse proxy would be required to use privileged ports and a custom certficate authority.
-:::
+> For XO Proxy, the process is almost the same except the file to create is `/etc/systemd/system/xo-proxy.service.d/ca.conf` and the service to restart is `xo-proxy.service`.
 
 ## Redis server
 

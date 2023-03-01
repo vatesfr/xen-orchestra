@@ -38,6 +38,11 @@
     "moment-timezone": "^0.5.14"
   },
   "scripts": {
-    "postversion": "npm publish"
+    "postversion": "npm publish",
+    "test": "node--test"
+  },
+  "devDependencies": {
+    "sinon": "^15.0.1",
+    "test": "^3.2.1"
   }
 }

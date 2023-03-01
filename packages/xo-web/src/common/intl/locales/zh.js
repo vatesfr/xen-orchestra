@@ -167,7 +167,7 @@ export default {
   // Original text: "Welcome on Xen Orchestra!"
   homeWelcome: '欢迎使用Xen Orchestra',
 
-  // Original text: "Add your XenServer hosts or pools"
+  // Original text: "Add your XCP-ng hosts or pools"
   homeWelcomeText: '添加您的XenServer主机或资源池',
 
   // Original text: "Want some help?"
@@ -1739,7 +1739,7 @@ export default {
   // Original text: "To SR:"
   vmImportToSr: '到存储库',
 
-  // Original text: "VMs to import"
+  // Original text: "VM{nVms, plural, one {} other {s}} to import"
   vmsToImport: '导入虚拟机',
 
   // Original text: "Reset"

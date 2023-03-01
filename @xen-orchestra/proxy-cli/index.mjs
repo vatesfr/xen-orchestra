@@ -33,26 +33,19 @@ async function main(argv) {
     ignoreUnknownFormats: true,
   })
 
-  const { hostname = 'localhost', port } = config?.http?.listen?.https ?? {}
-
-  const {
-    _: args,
-    file,
-    help,
-    host,
-    raw,
-    token,
-  } = getopts(argv, {
+  const opts = getopts(argv, {
     alias: { file: 'f', help: 'h' },
     boolean: ['help', 'raw'],
     default: {
       token: config.authenticationToken,
     },
     stopEarly: true,
-    string: ['file', 'host', 'token'],
+    string: ['file', 'host', 'token', 'url'],
   })
 
-  if (help || (file === '' && args.length === 0)) {
+  const { _: args, file } = opts
+
+  if (opts.help || (file === '' && args.length === 0)) {
     return console.log(
       '%s',
       `Usage:
@@ -74,27 +67,44 @@ ${pkg.name} v${pkg.version}`
   // sequence path of the current call
   const callPath = []
 
+  let url
+  let { token } = opts
+  if (opts.url !== '') {
+    url = new URL(opts.url)
+    const { username } = url
+    if (username !== '') {
+      token = username
+      url.username = ''
+    }
+  } else {
+    url = new URL('https://localhost/')
+    if (opts.host !== '') {
+      url.host = opts.host
+    } else {
+      const { hostname = 'localhost', port } = config?.http?.listen?.https ?? {}
+      url.hostname = hostname
+      url.port = port
+    }
+  }
+
+  url = new URL('/api/v1', url)
   const baseRequest = {
     headers: {
       'content-type': 'application/json',
       cookie: `authenticationToken=${token}`,
     },
-    pathname: '/api/v1',
-    protocol: 'https:',
+    method: 'POST',
     rejectUnauthorized: false,
   }
-  if (host !== '') {
-    baseRequest.host = host
-  } else {
-    baseRequest.hostname = hostname
-    baseRequest.port = port
-  }
+
   const call = async ({ method, params }) => {
     if (callPath.length !== 0) {
       process.stderr.write(`\n${colors.bold(`--- call #${callPath.join('.')}`)} ---\n\n`)
     }
 
-    const response = await hrp.post(baseRequest, {
+    const response = await hrp(url, {
+      ...baseRequest,
+
       body: format.request(0, method, params),
     })
 
@@ -127,7 +137,7 @@ ${pkg.name} v${pkg.version}`
           stdout.write(inspect(JSON.parse(line), { colors: true, depth: null }))
           stdout.write('\n')
         }
-      } else if (raw && typeof result === 'string') {
+      } else if (opts.raw && typeof result === 'string') {
         stdout.write(result)
       } else {
         stdout.write(inspect(result, { colors: true, depth: null }))

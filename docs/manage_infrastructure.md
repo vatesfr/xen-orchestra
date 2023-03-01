@@ -570,6 +570,17 @@ If your hosts are already in a pool you only need to add your pool master host t
 Don't add pool slaves to your XOA server list! XOA will automatically find them from the master you add.
 :::
 
+### Remove a host from an existing pool
+
+To remove one host from a pool, you can go to the "Advanced" tab of the host page for the host you wish to remove, and click on "Detach"
+
+![](./assets/detach-host.png)
+
+:::warning
+- Detaching a host will remove all the VM disks stored on the Local Storage of this host, and reboot the host.
+- The host you want to remove must be a slave, not the master!
+:::
+
 ## Visualizations
 
 Visualizations can help you to understand your XenServer infrastructure, as well as correlate events and detect bottlenecks.
@@ -673,7 +684,7 @@ To run Docker as non-root, please add the user you want inside the "Docker" grou
 
 Now you need to access your host (Dom0) and use the following command:
 
-```
+```sh
 xscontainer-prepare-vm -v <VM_UUID> -u <username>
 ```
 

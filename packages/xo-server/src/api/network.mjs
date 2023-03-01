@@ -4,21 +4,26 @@ export function getBondModes() {
   return ['balance-slb', 'active-backup', 'lacp']
 }
 
-export async function create({ pool, name, description, pif, mtu = 1500, vlan = 0 }) {
-  return xapiObjectToXo(
-    await this.getXapi(pool).createNetwork({
-      name,
-      description,
-      pifId: pif && this.getObject(pif, 'PIF')._xapiId,
-      mtu: +mtu,
-      vlan: +vlan,
-    })
-  ).id
+export async function create({ pool, name, description, pif, mtu = 1500, vlan = 0, nbd }) {
+  const network = await this.getXapi(pool).createNetwork({
+    name,
+    description,
+    pifId: pif && this.getObject(pif, 'PIF')._xapiId,
+    mtu: +mtu,
+    vlan: +vlan,
+  })
+
+  if (nbd) {
+    await network.add_purpose('nbd')
+  }
+
+  return xapiObjectToXo(network).id
 }
 
 create.params = {
   pool: { type: 'string' },
   name: { type: 'string' },
+  nbd: { type: 'boolean', optional: true },
   description: { type: 'string', optional: true },
   pif: { type: 'string', optional: true },
   mtu: { type: ['integer', 'string'], optional: true },
@@ -52,11 +57,7 @@ createBonded.params = {
     },
   },
   mtu: { type: ['integer', 'string'], optional: true },
-  // RegExp since schema-inspector does not provide a param check based on an enumeration
-  bondMode: {
-    type: 'string',
-    pattern: new RegExp(`^(${getBondModes().join('|')})$`),
-  },
+  bondMode: { enum: getBondModes() },
 }
 
 createBonded.resolve = {
@@ -73,6 +74,7 @@ export async function set({
   defaultIsLocked,
   name_description: nameDescription,
   name_label: nameLabel,
+  nbd,
 }) {
   network = this.getXapiObject(network)
 
@@ -81,6 +83,11 @@ export async function set({
     defaultIsLocked !== undefined && network.set_default_locking_mode(defaultIsLocked ? 'disabled' : 'unlocked'),
     nameDescription !== undefined && network.set_name_description(nameDescription),
     nameLabel !== undefined && network.set_name_label(nameLabel),
+    nbd !== undefined &&
+      Promise.all([
+        network.remove_purpose('insecure_nbd'),
+        nbd ? network.add_purpose('nbd') : network.remove_purpose('nbd'),
+      ]),
   ])
 }
 
@@ -104,6 +111,10 @@ set.params = {
     type: 'string',
     optional: true,
   },
+  nbd: {
+    type: 'boolean',
+    optional: true,
+  },
 }
 
 set.resolve = {
@@ -112,7 +123,7 @@ set.resolve = {
 
 // =================================================================
 
-export async function delete_({ network }) {
+async function delete_({ network }) {
   return this.getXapi(network).deleteNetwork(network._xapiId)
 }
 export { delete_ as delete }

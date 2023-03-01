@@ -8,10 +8,16 @@ import URL from 'url-parse'
 import Xo from 'xo-lib'
 import { createBackoff } from 'jsonrpc-websocket-client'
 import { get as getDefined } from '@xen-orchestra/defined'
-import { pFinally, reflect, tap, tapCatch } from 'promise-toolbox'
+import { pFinally, reflect, retry, tap, tapCatch } from 'promise-toolbox'
 import { SelectHost } from 'select-objects'
 import { filter, forEach, get, includes, isEmpty, isEqual, map, once, size, sortBy, throttle } from 'lodash'
-import { forbiddenOperation, incorrectState, noHostsAvailable, vmLacksFeature } from 'xo-common/api-errors'
+import {
+  forbiddenOperation,
+  incorrectState,
+  noHostsAvailable,
+  operationBlocked,
+  vmLacksFeature,
+} from 'xo-common/api-errors'
 
 import _ from '../intl'
 import ActionButton from '../action-button'
@@ -19,11 +25,15 @@ import fetch, { post } from '../fetch'
 import invoke from '../invoke'
 import Icon from '../icon'
 import logError from '../log-error'
-import renderXoItem, { renderXoItemFromId } from '../render-xo-item'
+import NewAuthTokenModal from './new-auth-token-modal'
+import RegisterProxyModal from './register-proxy-modal'
+import renderXoItem, { renderXoItemFromId, Vm } from '../render-xo-item'
 import store from 'store'
+import WarmMigrationModal from './warm-migration-modal'
 import { alert, chooseAction, confirm } from '../modal'
 import { error, info, success } from '../notification'
 import { getObject } from 'selectors'
+import { getXoaPlan, SOURCES } from '../xoa-plans'
 import { noop, resolveId, resolveIds } from '../utils'
 import {
   connected,
@@ -36,6 +46,14 @@ import {
 } from '../store/actions'
 
 import parseNdJson from './_parseNdJson'
+
+// ===================================================================
+
+const MAX_VMS = 30
+
+// ===================================================================
+
+export const EXPIRES_SOON_DELAY = 30 * 24 * 60 * 60 * 1000 // 1 month
 
 // ===================================================================
 
@@ -60,12 +78,17 @@ export const isVmRunning = vm => vm && vm.power_state === 'Running'
 
 // ===================================================================
 
-export const signOut = () => {
+const reload = () => {
   // prevent automatic reconnection
   xo.removeListener('closed', connect)
 
-  cookies.remove('token')
   window.location.reload(true)
+}
+
+export const signOut = () => {
+  cookies.remove('token')
+
+  reload()
 }
 
 export const connect = () => {
@@ -77,7 +100,7 @@ export const connect = () => {
 const xo = invoke(() => {
   const token = cookies.get('token')
   if (!token) {
-    signOut()
+    reload()
     throw new Error('no valid token')
   }
 
@@ -85,7 +108,7 @@ const xo = invoke(() => {
     credentials: { token },
   })
 
-  xo.on('authenticationFailure', signOut)
+  xo.on('authenticationFailure', reload)
   xo.on('scheduledAttempt', ({ delay }) => {
     console.warn('next attempt in %s ms', delay)
   })
@@ -533,11 +556,13 @@ export const createSrUnhealthyVdiChainsLengthSubscription = sr => {
   sr = resolveId(sr)
   let subscription = unhealthyVdiChainsLengthSubscriptionsBySr[sr]
   if (subscription === undefined) {
-    subscription = createSubscription(() => _call('sr.getUnhealthyVdiChainsLength', { sr }))
+    subscription = createSubscription(() => _call('sr.getVdiChainsInfo', { sr }))
     unhealthyVdiChainsLengthSubscriptionsBySr[sr] = subscription
   }
   return subscription
 }
+
+export const subscribeUserAuthTokens = createSubscription(() => _call('user.getAuthenticationTokens'))
 
 // System ============================================================
 
@@ -784,7 +809,7 @@ export const restartHost = (host, force = false) =>
               ),
               title: _('restartHostModalTitle'),
             })
-            return _call('host.restart', { id: resolveId(host), force, ignoreBackup: true })
+            return _call('host.restart', { id: resolveId(host), force, bypassBackupCheck: true })
           }
           throw error
         })
@@ -835,7 +860,7 @@ export const restartHostAgent = async host => {
         ),
         title: _('restartHostAgent'),
       })
-      return _call('host.restart_agent', { id: resolveId(host), ignoreBackup: true })
+      return _call('host.restart_agent', { id: resolveId(host), bypassBackupCheck: true })
     }
     throw error
   }
@@ -877,7 +902,7 @@ export const stopHost = async host => {
           ),
           title: _('stopHostModalTitle'),
         })
-        return _call('host.stop', { id: resolveId(host), ignoreBackup })
+        return _call('host.stop', { id: resolveId(host), bypassBackupCheck: ignoreBackup })
       }
       throw err
     })
@@ -888,7 +913,7 @@ export const stopHost = async host => {
           title: _('forceStopHost'),
         })
         // Retry with bypassEvacuate.
-        return _call('host.stop', { id: resolveId(host), bypassEvacuate: true, ignoreBackup })
+        return _call('host.stop', { id: resolveId(host), bypassEvacuate: true, bypassBackupCheck: ignoreBackup })
       }
       throw err
     })
@@ -1025,7 +1050,7 @@ export const rollingPoolUpdate = poolId =>
           icon: 'pool-rolling-update',
         }).then(
           () =>
-            _call('pool.rollingUpdate', { ignoreBackup: true, pool: poolId })::tap(() =>
+            _call('pool.rollingUpdate', { bypassBackupCheck: true, pool: poolId })::tap(() =>
               subscribeHostMissingPatches.forceRefresh()
             ),
           noop
@@ -1226,42 +1251,7 @@ export const startVms = vms =>
     }
   }, noop)
 
-export const stopVm = async (vm, force = false) => {
-  try {
-    await confirm({
-      title: _('stopVmModalTitle'),
-      body: _('stopVmModalMessage', { name: vm.name_label }),
-    })
-
-    return await _call('vm.stop', { id: resolveId(vm), force })
-  } catch (error) {
-    if (error === undefined) {
-      return
-    }
-
-    if (!vmLacksFeature.is(error) || force) {
-      throw error
-    }
-
-    try {
-      await confirm({
-        title: _('vmHasNoTools'),
-        body: (
-          <div>
-            <p>{_('vmHasNoToolsMessage')}</p>
-            <p>
-              <strong>{_('confirmForceShutdown')}</strong>
-            </p>
-          </div>
-        ),
-      })
-    } catch {
-      return
-    }
-
-    return await _call('vm.stop', { id: resolveId(vm), force: true })
-  }
-}
+export const stopVm = (vm, hardShutdown = false) => stopOrRestartVm(vm, 'stop', hardShutdown)
 
 export const stopVms = (vms, force = false) =>
   confirm({
@@ -1287,42 +1277,50 @@ export const pauseVms = vms =>
 
 export const recoveryStartVm = vm => _call('vm.recoveryStart', { id: resolveId(vm) })
 
-export const restartVm = async (vm, force = false) => {
-  try {
-    await confirm({
-      title: _('restartVmModalTitle'),
-      body: _('restartVmModalMessage', { name: vm.name_label }),
-    })
+const stopOrRestartVm = async (vm, method, force = false) => {
+  let bypassBlockedOperation = false
+  const id = resolveId(vm)
 
-    return await _call('vm.restart', { id: resolveId(vm), force })
-  } catch (error) {
-    if (error === undefined) {
-      return
-    }
-
-    if (!vmLacksFeature.is(error) || force) {
-      throw error
-    }
-
-    try {
-      await confirm({
-        title: _('vmHasNoTools'),
-        body: (
-          <div>
-            <p>{_('vmHasNoToolsMessage')}</p>
-            <p>
-              <strong>{_('confirmForceReboot')}</strong>
-            </p>
-          </div>
-        ),
-      })
-    } catch {
-      return
-    }
-
-    return await _call('vm.restart', { id: resolveId(vm), force: true })
+  if (method !== 'stop' && method !== 'restart') {
+    throw new Error(`invalid ${method}`)
   }
+  const isStopOperation = method === 'stop'
+
+  await confirm({
+    title: _(isStopOperation ? 'stopVmModalTitle' : 'restartVmModalTitle'),
+    body: _(isStopOperation ? 'stopVmModalMessage' : 'restartVmModalMessage', { name: vm.name_label }),
+  })
+
+  return retry(() => _call(`vm.${isStopOperation ? 'stop' : 'restart'}`, { id, force, bypassBlockedOperation }), {
+    when: err => operationBlocked.is(err) || (vmLacksFeature.is(err) && !force),
+    async onRetry(err) {
+      if (operationBlocked.is(err)) {
+        await confirm({
+          title: _('blockedOperation'),
+          body: _(isStopOperation ? 'stopVmBlockedModalMessage' : 'restartVmBlockedModalMessage'),
+        })
+        bypassBlockedOperation = true
+      }
+      if (vmLacksFeature.is(err) && !force) {
+        await confirm({
+          title: _('vmHasNoTools'),
+          body: (
+            <div>
+              <p>{_('vmHasNoToolsMessage')}</p>
+              <p>
+                <strong>{_(isStopOperation ? 'confirmForceShutdown' : 'confirmForceReboot')}</strong>
+              </p>
+            </div>
+          ),
+        })
+        force = true
+      }
+    },
+    delay: 0,
+  })
 }
+
+export const restartVm = (vm, hardRestart = false) => stopOrRestartVm(vm, 'restart', hardRestart)
 
 export const restartVms = (vms, force = false) =>
   confirm({
@@ -1369,7 +1367,7 @@ export const convertVmToTemplate = vm =>
         <p>This operation is definitive.</p>
       </div>
     ),
-  }).then(() => _call('vm.convert', { id: resolveId(vm) }), noop)
+  }).then(() => _call('vm.convertToTemplate', { id: resolveId(vm) }), noop)
 
 export const copyToTemplate = async vm => {
   await confirm({
@@ -1619,15 +1617,36 @@ export const deleteVm = (vm, retryWithForce = true) =>
       throw error
     })
 
-export const deleteVms = vms =>
-  confirm({
-    title: _('deleteVmsModalTitle', { vms: vms.length }),
-    body: _('deleteVmsModalMessage', { vms: vms.length }),
-    strongConfirm: vms.length > 1 && {
-      messageId: 'deleteVmsConfirmText',
-      values: { nVms: vms.length },
-    },
-  }).then(() => Promise.all(map(vms, vmId => _call('vm.delete', { id: resolveId(vmId) }))), noop)
+export const deleteVms = async vms => {
+  if (vms.length === 1) {
+    return deleteVm(vms[0])
+  }
+  try {
+    await confirm({
+      title: _('deleteVmsModalTitle', { vms: vms.length }),
+      body: _('deleteVmsModalMessage', { vms: vms.length }),
+      strongConfirm: vms.length > 1 && {
+        messageId: 'deleteVmsConfirmText',
+        values: { nVms: vms.length },
+      },
+    })
+  } catch (err) {
+    return
+  }
+
+  let nErrors = 0
+  await Promise.all(
+    map(vms, vmId =>
+      _call('vm.delete', { id: resolveId(vmId) }).catch(() => {
+        nErrors++
+      })
+    )
+  )
+
+  if (nErrors > 0) {
+    error(_('failedDeleteErrorTitle'), _('failedVmsErrorMessage', { nVms: nErrors }))
+  }
+}
 
 export const importBackup = ({ remote, file, sr }) => _call('vm.importBackup', resolveIds({ remote, file, sr }))
 
@@ -1655,12 +1674,35 @@ export const revertSnapshot = snapshot =>
     success(_('vmRevertSuccessfulTitle'), _('vmRevertSuccessfulMessage'))
   }, noop)
 
-export const editVm = (vm, props) =>
-  _call('vm.set', { ...props, id: resolveId(vm) })
+export const editVm = async (vm, props) => {
+  if (props.hasVendorDevice) {
+    try {
+      await confirm({
+        title: _('windowsToolsModalTitle'),
+        body: (
+          <div>
+            <p>{_('windowsToolsModalMessage')}</p>
+            <p className='text-warning'>
+              <Icon icon='alarm' />
+              &nbsp;
+              {_('windowsToolsModalWarning')}
+            </p>
+          </div>
+        ),
+      })
+    } catch (err) {
+      if (err !== undefined) {
+        throw err
+      }
+      return
+    }
+  }
+  await _call('vm.set', { ...props, id: resolveId(vm) })
     .catch(err => {
       error(_('setVmFailed', { vm: renderXoItemFromId(resolveId(vm)) }), err.message)
     })
     ::tap(subscribeResourceSets.forceRefresh)
+}
 
 export const fetchVmStats = (vm, granularity) => _call('vm.stats', { id: resolveId(vm), granularity })
 
@@ -1761,7 +1803,13 @@ const importDisk = async ({ description, file, name, type, vmdkData }, sr) => {
   })
   formData.append('file', file)
   const result = await post(res.$sendTo, formData)
-  const body = await result.json()
+  const text = await result.text()
+  let body
+  try {
+    body = JSON.parse(text)
+  } catch (error) {
+    throw new Error(`Body is not a JSON, original message is : ${text}`)
+  }
   if (result.status !== 200) {
     throw new Error(body.error.message)
   }
@@ -1861,6 +1909,20 @@ export const shareVm = async (vm, resourceSet) =>
       }),
     }),
   }).then(() => editVm(vm, { share: true }), noop)
+
+export const vmWarmMigration = async vm => {
+  const { sr, deleteSourceVm, startDestinationVm } = await confirm({
+    body: <WarmMigrationModal />,
+    title: _('vmWarmMigration'),
+    icon: 'vm-warm-migration',
+  })
+  return _call('vm.warmMigration', {
+    deleteSourceVm,
+    sr: resolveId(sr),
+    startDestinationVm,
+    vm: resolveId(vm),
+  })
+}
 
 // DISK ---------------------------------------------------------------
 
@@ -2104,6 +2166,41 @@ export const editSr = (sr, { nameDescription, nameLabel }) =>
 
 export const rescanSr = sr => _call('sr.scan', { id: resolveId(sr) })
 export const rescanSrs = srs => Promise.all(map(resolveIds(srs), id => _call('sr.scan', { id })))
+
+export const toggleSrMaintenanceMode = sr => {
+  const id = resolveId(sr)
+  const method = sr.inMaintenanceMode ? 'disableMaintenanceMode' : 'enableMaintenanceMode'
+
+  return _call(`sr.${method}`, { id }).catch(async err => {
+    if (
+      incorrectState.is(err, {
+        property: 'vmsToShutdown',
+      })
+    ) {
+      const vmIds = err.data.expected
+      const nVms = vmIds.length
+      await confirm({
+        title: _('maintenanceMode'),
+        body: (
+          <div>
+            {_('maintenanceSrModalBody', { n: nVms })}
+            <ul>
+              {vmIds.slice(0, MAX_VMS).map(id => (
+                <li key={id}>
+                  <Vm id={id} />
+                </li>
+              ))}
+            </ul>
+            {nVms > MAX_VMS && _('andNMore', { n: nVms - MAX_VMS })}
+          </div>
+        ),
+      })
+      return _call(`sr.${method}`, { id, vmsToShutdown: vmIds })
+    } else {
+      throw err
+    }
+  })
+}
 
 // PBDs --------------------------------------------------------------
 
@@ -2349,9 +2446,10 @@ export const runMetadataBackupJob = params => _call('metadataBackup.runJob', par
 
 export const listMetadataBackups = remotes => _call('metadataBackup.list', { remotes: resolveIds(remotes) })
 
-export const restoreMetadataBackup = backup =>
+export const restoreMetadataBackup = data =>
   _call('metadataBackup.restore', {
-    id: resolveId(backup),
+    id: resolveId(data.backup),
+    pool: data.pool,
   })::tap(subscribeBackupNgLogs.forceRefresh)
 
 export const deleteMetadataBackup = backup =>
@@ -2782,7 +2880,14 @@ export const deleteUsers = users =>
 export const editUser = (user, { email, password, permission }) =>
   _call('user.set', { id: resolveId(user), email, password, permission })::tap(subscribeUsers.forceRefresh)
 
-const _signOutFromEverywhereElse = () => _call('token.deleteAll', { except: cookies.get('token') })
+const _signOutFromEverywhereElse = () =>
+  _call('token.delete', {
+    pattern: {
+      id: {
+        __not: cookies.get('token'),
+      },
+    },
+  })
 
 export const signOutFromEverywhereElse = () =>
   _signOutFromEverywhereElse().then(
@@ -2801,9 +2906,9 @@ export const changePassword = (oldPassword, newPassword) =>
       () => error(_('pwdChangeError'), _('pwdChangeErrorBody'))
     )
 
-const _setUserPreferences = preferences =>
+const _setUserPreferences = (preferences, userId) =>
   _call('user.set', {
-    id: xo.user.id,
+    id: userId ?? xo.user.id,
     preferences,
   })::tap(subscribeCurrentUser.forceRefresh)
 
@@ -2864,15 +2969,18 @@ export const addOtp = secret =>
     noop
   )
 
-export const removeOtp = () =>
+export const removeOtp = user =>
   confirm({
     title: _('removeOtpConfirm'),
     body: _('removeOtpConfirmMessage'),
   }).then(
     () =>
-      _setUserPreferences({
-        otp: null,
-      }),
+      _setUserPreferences(
+        {
+          otp: null,
+        },
+        resolveId(user)
+      ),
     noop
   )
 
@@ -2889,6 +2997,47 @@ export const deleteSshKeys = keys =>
       sshKeys: filter(preferences && preferences.sshKeys, sshKey => !includes(keyIds, sshKey.key)),
     })
   }, noop)
+
+export const addAuthToken = async () => {
+  const { description, expiration } = await confirm({
+    body: <NewAuthTokenModal />,
+    icon: 'user',
+    title: _('newAuthTokenModalTitle'),
+  })
+  const expires = new Date(expiration).setHours(23, 59, 59)
+  return _call('token.create', {
+    description,
+    expiresIn: Number.isNaN(expires) ? undefined : expires - new Date().getTime(),
+  })::tap(subscribeUserAuthTokens.forceRefresh)
+}
+
+export const deleteAuthToken = async ({ id }) => {
+  await confirm({
+    body: _('deleteAuthTokenConfirmMessage', {
+      id,
+    }),
+    icon: 'user',
+    title: _('deleteAuthTokenConfirm'),
+  })
+  return _call('token.delete', { tokens: [id] })::tap(subscribeUserAuthTokens.forceRefresh)
+}
+
+export const deleteAuthTokens = async tokens => {
+  await confirm({
+    body: _('deleteAuthTokensConfirmMessage', {
+      nTokens: tokens.length,
+    }),
+    icon: 'user',
+    title: _('deleteAuthTokensConfirm', { nTokens: tokens.length }),
+  })
+  return _call('token.delete', { tokens: tokens.map(token => token.id) })::tap(subscribeUserAuthTokens.forceRefresh)
+}
+
+export const editAuthToken = ({ description, id }) =>
+  _call('token.set', {
+    description,
+    id,
+  })::tap(subscribeUserAuthTokens.forceRefresh)
 
 // User filters --------------------------------------------------
 
@@ -3135,6 +3284,18 @@ export const getLicense = (productId, boundObjectId) => _call('xoa.licenses.get'
 
 export const unlockXosan = (licenseId, srId) => _call('xosan.unlock', { licenseId, sr: srId })
 
+export const bindLicense = (licenseId, boundObjectId) => _call('xoa.licenses.bind', { licenseId, boundObjectId })
+
+export const bindXcpngLicense = (licenseId, boundObjectId) =>
+  bindLicense(licenseId, boundObjectId)::tap(subscribeXcpngLicenses.forceRefresh)
+
+export const rebindLicense = (licenseType, licenseId, oldBoundObjectId, newBoundObjectId) =>
+  _call('xoa.licenses.rebind', { licenseId, oldBoundObjectId, newBoundObjectId })::tap(() => {
+    if (licenseType === 'xcpng-standard' || licenseType === 'xcpng-enterprise') {
+      return subscribeXcpngLicenses.forceRefresh()
+    }
+  })
+
 export const selfBindLicense = ({ id, plan, oldXoaId }) =>
   confirm({
     title: _('bindXoaLicense'),
@@ -3149,6 +3310,12 @@ export const selfBindLicense = ({ id, plan, oldXoaId }) =>
     ::tap(subscribeSelfLicenses.forceRefresh)
 
 export const subscribeSelfLicenses = createSubscription(() => _call('xoa.licenses.getSelf'))
+
+export const subscribeXcpngLicenses = createSubscription(() =>
+  getXoaPlan() !== SOURCES && store.getState().user.permission === 'admin'
+    ? _call('xoa.licenses.getAll', { productType: 'xcpng' })
+    : undefined
+)
 
 // Support --------------------------------------------------------------------
 
@@ -3184,6 +3351,37 @@ export const deployProxyAppliance = (license, sr, { network, proxy, ...props } =
     sr: resolveId(sr),
     ...props,
   })::tap(subscribeProxies.forceRefresh)
+
+export const registerProxy = async () => {
+  const getStringOrUndefined = string => (string.trim() === '' ? undefined : string)
+
+  const { address, authenticationToken, name, vmUuid } = await confirm({
+    body: <RegisterProxyModal />,
+    icon: 'connect',
+    title: _('registerProxy'),
+  })
+
+  const proxyId = await registerProxyApplicance({
+    address: getStringOrUndefined(address),
+    authenticationToken: getStringOrUndefined(authenticationToken),
+    name: getStringOrUndefined(name),
+    vmUuid: getStringOrUndefined(vmUuid),
+  })
+  const _isProxyWorking = await isProxyWorking(proxyId).catch(err => {
+    console.error('isProxyWorking error:', err)
+    return false
+  })
+  if (!_isProxyWorking) {
+    await confirm({
+      body: _('proxyConnectionFailedAfterRegistrationMessage'),
+      title: _('proxyError'),
+    })
+    await forgetProxyAppliances([proxyId])
+  }
+}
+
+export const registerProxyApplicance = proxyInfo =>
+  _call('proxy.register', proxyInfo)::tap(subscribeProxies.forceRefresh)
 
 export const editProxyAppliance = (proxy, { vm, ...props }) =>
   _call('proxy.update', {
@@ -3244,6 +3442,8 @@ export const checkProxyHealth = async proxy => {
       )
 }
 
+export const isProxyWorking = async proxy => (await _call('proxy.checkHealth', { id: resolveId(proxy) })).success
+
 // Audit plugin ---------------------------------------------------------
 
 const METHOD_NOT_FOUND_CODE = -32601
@@ -3292,3 +3492,10 @@ export const synchronizeNetbox = pools =>
     body: _('syncNetboxWarning'),
     icon: 'refresh',
   }).then(() => _call('netbox.synchronize', { pools: resolveIds(pools) }))
+
+// ESXi import ---------------------------------------------------------------
+
+export const esxiListVms = (host, user, password, sslVerify) =>
+  _call('esxi.listVms', { host, user, password, sslVerify })
+
+export const importVmFromEsxi = params => _call('vm.importFromEsxi', params)

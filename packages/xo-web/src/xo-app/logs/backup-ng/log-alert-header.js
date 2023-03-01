@@ -13,7 +13,7 @@ import Tooltip from 'tooltip'
 import { createBlobFromString, downloadLog, safeDateFormat } from 'utils'
 import { get, ifDef } from '@xen-orchestra/defined'
 import { injectState, provideState } from 'reaclette'
-import { keyBy } from 'lodash'
+import keyBy from 'lodash/keyBy.js'
 import { runBackupNgJob, subscribeBackupNgJobs, subscribeBackupNgLogs, subscribeSchedules } from 'xo'
 
 export default decorate([
@@ -29,8 +29,8 @@ export default decorate([
     effects: {
       _downloadLog:
         () =>
-        ({ formattedLog }, { log }) =>
-          downloadLog({ log: formattedLog, date: log.start, type: 'backup NG' }),
+        (_, { log }) =>
+          downloadLog({ log, date: log.start, type: 'backup NG' }),
       restartFailedVms:
         (_, params) =>
         async (_, { log: { jobId: id, scheduleId: schedule, tasks, infos } }) => {

@@ -10,8 +10,8 @@
 
 Installation of the [npm package](https://npmjs.org/package/xo-remote-parser):
 
-```
-> npm install --save xo-remote-parser
+```sh
+npm install --save xo-remote-parser
 ```
 
 ## Contributions

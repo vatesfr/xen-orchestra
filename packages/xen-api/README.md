@@ -10,8 +10,8 @@
 
 Installation of the [npm package](https://npmjs.org/package/xen-api):
 
-```
-> npm install --save xen-api
+```sh
+npm install --save xen-api
 ```
 
 ## Usage

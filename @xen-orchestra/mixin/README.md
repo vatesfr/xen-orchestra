@@ -8,8 +8,31 @@
 
 Installation of the [npm package](https://npmjs.org/package/@xen-orchestra/mixin):
 
+```sh
+npm install --save @xen-orchestra/mixin
 ```
-> npm install --save @xen-orchestra/mixin
+
+## Usage
+
+- mixins can depend on each other, they will be instanciated on-demand
+
+```js
+import mixin from '@xen-orchestra/mixin'
+
+class MyMixin {
+  constructor(app, ...mixinParams) {}
+
+  foo() {}
+}
+
+class App {
+  constructor() {
+    mixin(this, { MyMixin }, [...mixinParams])
+  }
+}
+
+app = new App()
+app.myMixin.foo()
 ```
 
 ## Contributions

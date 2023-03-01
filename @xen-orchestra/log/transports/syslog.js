@@ -1,12 +1,12 @@
 'use strict'
 
 const fromCallback = require('promise-toolbox/fromCallback')
-// eslint-disable-next-line n/no-missing-require
+// eslint-disable-next-line n/no-extraneous-require
 const splitHost = require('split-host')
-// eslint-disable-next-line n/no-missing-require
+// eslint-disable-next-line n/no-extraneous-require
 const { createClient, Facility, Severity, Transport } = require('syslog-client')
 
-const LEVELS = require('../levels')
+const LEVELS = require('../_levels')
 
 // https://github.com/paulgrove/node-syslog-client#syslogseverity
 const LEVEL_TO_SEVERITY = {
@@ -20,6 +20,10 @@ const LEVEL_TO_SEVERITY = {
 const facility = Facility.User
 
 function createTransport(target) {
+  if (typeof target === 'object') {
+    target = target.target
+  }
+
   const opts = {}
   if (target !== undefined) {
     if (target.startsWith('tcp://')) {

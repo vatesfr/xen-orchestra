@@ -107,6 +107,10 @@ const TRANSFORMS = {
       current_operations: obj.current_operations,
       default_SR: link(obj, 'default_SR'),
       HA_enabled: Boolean(obj.ha_enabled),
+
+      // ignore undefined VDIs, which occurs if the objects were not fetched/cached yet.
+      haSrs: obj.$ha_statefiles.filter(vdi => vdi !== undefined).map(vdi => link(vdi, 'SR')),
+
       master: link(obj, 'master'),
       tags: obj.tags,
       name_description: obj.name_description,
@@ -197,7 +201,9 @@ const TRANSFORMS = {
       memory: (function () {
         if (metrics) {
           const free = +metrics.memory_free
-          const total = +metrics.memory_total
+          let total = +metrics.memory_total
+          const ONE_GIB = 1024 * 1024 * 1024
+          total = Math.ceil(total / ONE_GIB) * ONE_GIB
 
           return {
             usage: total - free,
@@ -218,6 +224,7 @@ const TRANSFORMS = {
       patches: link(obj, 'patches'),
       powerOnMode: obj.power_on_mode,
       power_state: metrics ? (isRunning ? 'Running' : 'Halted') : 'Unknown',
+      residentVms: link(obj, 'resident_VMs'),
       startTime: toTimestamp(otherConfig.boot_time),
       supplementalPacks:
         supplementalPacks ||
@@ -341,6 +348,11 @@ const TRANSFORMS = {
     // See https://xcp-ng.org/forum/topic/4810
     const addresses = {}
     for (const key in networks) {
+      // Some fields may be emtpy
+      // See https://xcp-ng.org/forum/topic/4810/netbox-plugin-error-ipaddr-the-address-has-neither-ipv6-nor-ipv4-format/27?_=1658735770330
+      if (networks[key].trim() === '') {
+        continue
+      }
       const [, device, index] = /^(\d+)\/ip(?:v[46]\/(\d))?$/.exec(key) ?? []
       const ips = networks[key].split(/\s+/)
       if (ips.length === 1 && index !== undefined) {
@@ -396,6 +408,7 @@ const TRANSFORMS = {
         }
       })(),
       expNestedHvm: obj.platform['exp-nested-hvm'] === 'true',
+      viridian: obj.platform.viridian === 'true',
       mainIpAddress: extractIpFromVmNetworks(guestMetrics?.networks),
       high_availability: obj.ha_restart_priority,
 
@@ -539,6 +552,7 @@ const TRANSFORMS = {
 
       allocationStrategy: ALLOCATION_BY_TYPE[srType],
       current_operations: obj.current_operations,
+      inMaintenanceMode: obj.other_config['xo:maintenanceState'] !== undefined,
       name_description: obj.name_description,
       name_label: obj.name_label,
       size: +obj.physical_size,
@@ -700,6 +714,8 @@ const TRANSFORMS = {
       tags: obj.tags,
       PIFs: link(obj, 'PIFs'),
       VIFs: link(obj, 'VIFs'),
+      nbd: obj.purpose?.includes('nbd'),
+      insecureNbd: obj.purpose?.includes('insecure_nbd'),
     }
   },
 
@@ -899,6 +915,7 @@ export default function xapiObjectToXo(xapiObj, dependents = {}) {
       value: xapiObj.$id,
     },
     _xapiRef: {
+      enumerable: true,
       value: xapiObj.$ref,
     },
   })

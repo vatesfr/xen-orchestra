@@ -15,6 +15,11 @@
 # See: https://github.com/TooTallNate/node-proxy-agent#maps-proxy-protocols-to-httpagent-implementations
 # httpProxy = 'http://jsmith:qwerty@proxy.lan:3128'
 
+# List of host names (optionally with a port), separated by commas, for which
+# the proxy above will not be used.
+#
+# noProxy = 'example.net, example.com:443'
+
 #=====================================================================
 
 # It may be necessary to run XO-Server as a privileged user (e.g. `root`) for
@@ -137,6 +142,12 @@ port = 80
 # List of proxied URLs (HTTP & WebSockets).
 [http.proxies]
 #'/any/url' = 'http://localhost:54722'
+
+#=====================================================================
+
+# Uncomment this section to export the logs to an external syslog
+#[logs.transport.syslog]
+#target = 'tcp://syslog.company.lan:514'
 
 #=====================================================================
 

@@ -24,16 +24,15 @@ Please, do explain:
 The best way to propose a change to the documentation or code is
 to create a [GitHub pull request](https://help.github.com/articles/using-pull-requests/).
 
-:::tip
-Your pull request should always be against the `master` branch and not against `stable` which is the stable branch!
-:::
-
-1. Create a branch for your work
-2. Add a summary of your changes to `CHANGELOG.md` under the `next` section, if your changes do not relate to an existing changelog item
-3. Create a pull request for this branch against the `master` branch
-4. Push into the branch until the pull request is ready to merge
-5. Avoid unnecessary merges: keep you branch up to date by regularly rebasing `git rebase origin/master`
-6. When ready to merge, clean up the history (reorder commits, squash some of them together, rephrase messages): `git rebase -i origin/master`
+1. Fork the [Xen Orchestra repository](https://github.com/vatesfr/xen-orchestra) using the Fork button
+2. Follow [the documentation](installation.md#from-the-sources) to install and run Xen Orchestra from the sources
+3. Create a branch for your work
+4. Edit the source files
+5. Add a summary of your changes to `CHANGELOG.unreleased.md`, if your changes do not relate to an existing changelog item and update the list of packages that must be released to take your changes into account
+6. [Create a pull request](https://github.com/vatesfr/xen-orchestra/compare) for this branch against the `master` branch
+7. Push into the branch until the pull request is ready to merge
+8. Avoid unnecessary merges: keep you branch up to date by regularly rebasing `git rebase origin/master`
+9. When ready to merge, clean up the history (reorder commits, squash some of them together, rephrase messages): `git rebase -i origin/master`
 
 ### Issue triage
 

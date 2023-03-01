@@ -872,7 +872,7 @@ probeNfsExists.resolve = {
 export const getAllUnhealthyVdiChainsLength = debounceWithKey(function getAllUnhealthyVdiChainsLength() {
   const unhealthyVdiChainsLengthBySr = {}
   filter(this.objects.all, obj => obj.type === 'SR' && obj.content_type !== 'iso' && obj.size > 0).forEach(sr => {
-    const unhealthyVdiChainsLengthByVdi = this.getXapi(sr).getUnhealthyVdiChainsLength(sr)
+    const unhealthyVdiChainsLengthByVdi = this.getXapi(sr).getVdiChainsInfo(sr)
     if (!isEmpty(unhealthyVdiChainsLengthByVdi)) {
       unhealthyVdiChainsLengthBySr[sr.uuid] = unhealthyVdiChainsLengthByVdi
     }
@@ -882,15 +882,15 @@ export const getAllUnhealthyVdiChainsLength = debounceWithKey(function getAllUnh
 
 // -------------------------------------------------------------------
 
-export function getUnhealthyVdiChainsLength({ sr }) {
-  return this.getXapi(sr).getUnhealthyVdiChainsLength(sr)
+export function getVdiChainsInfo({ sr }) {
+  return this.getXapi(sr).getVdiChainsInfo(sr)
 }
 
-getUnhealthyVdiChainsLength.params = {
+getVdiChainsInfo.params = {
   id: { type: 'string' },
 }
 
-getUnhealthyVdiChainsLength.resolve = {
+getVdiChainsInfo.resolve = {
   sr: ['id', 'SR', 'operate'],
 }
 
@@ -912,4 +912,39 @@ stats.params = {
 
 stats.resolve = {
   sr: ['id', 'SR', 'view'],
+}
+
+// -------------------------------------------------------------------
+
+export function enableMaintenanceMode({ sr, vmsToShutdown }) {
+  return this.getXapiObject(sr).$enableMaintenanceMode({ vmsToShutdown })
+}
+
+enableMaintenanceMode.description = 'switch the SR into maintenance mode'
+
+enableMaintenanceMode.params = {
+  id: { type: 'string' },
+  vmsToShutdown: { type: 'array', items: { type: 'string' }, optional: true },
+}
+
+enableMaintenanceMode.permission = 'admin'
+
+enableMaintenanceMode.resolve = {
+  sr: ['id', 'SR', 'operate'],
+}
+
+export function disableMaintenanceMode({ sr }) {
+  return this.getXapiObject(sr).$disableMaintenanceMode()
+}
+
+disableMaintenanceMode.description = 'disable the maintenance of the SR'
+
+disableMaintenanceMode.params = {
+  id: { type: 'string' },
+}
+
+disableMaintenanceMode.permission = 'admin'
+
+disableMaintenanceMode.resolve = {
+  sr: ['id', 'SR', 'operate'],
 }

@@ -4,8 +4,24 @@
 const forEach = require('lodash/forEach')
 
 const messages = {
+  alpha: 'Alpha',
+  creation: 'Creation',
+  description: 'Description',
+  deleteSourceVm: 'Delete source VM',
+  expiration: 'Expiration',
+  hostIp: 'Host IP',
   keyValue: '{key}: {value}',
+  esxiImportSslCertificate: 'Skip SSL check',
+  esxiImportThin: 'Thin mode',
+  esxiImportThinDescription:
+    'Disk created in thin mode (less space used). Data is read twice, no visible task or progress at first',
+  esxiImportStopSource: 'Stop the source VM',
+  esxiImportStopSourceDescription:
+    'Source VM stopped before the last delta transfer (after final snapshot). Needed to fully transfer a running VM',
 
+  vmSrUsage: 'Storage: {used} used of {total} ({free} free)',
+
+  notDefined: 'Not defined',
   statusConnecting: 'Connecting',
   statusDisconnected: 'Disconnected',
   statusLoading: 'Loading…',
@@ -14,6 +30,7 @@ const messages = {
   errorUnknownItem: 'Unknown {type}',
   generateNewMacAddress: 'Generate new MAC addresses',
   memoryFree: '{memoryFree} RAM free',
+  notConfigured: 'Not configured',
   utcDate: 'UTC date',
   utcTime: 'UTC time',
   date: 'Date',
@@ -25,6 +42,7 @@ const messages = {
   messageFrom: 'From',
   messageReply: 'Reply',
   sr: 'SR',
+  subdirectory: 'Subdirectory',
   tryXoa: 'Try XOA for free and deploy it here.',
   notInstalled: 'Not installed',
 
@@ -101,8 +119,11 @@ const messages = {
   replaceExistingCertificate: 'Replace existing certificate',
   customFields: 'Custom fields',
   addCustomField: 'Add custom field',
+  availableXoaPremium: 'Available in XOA Premium',
   editCustomField: 'Edit custom field',
   deleteCustomField: 'Delete custom field',
+  onlyAvailableXoaUsers: 'Only available to XOA users',
+  xcpNg: 'XCP-ng',
 
   // ----- Modals -----
   alertOk: 'OK',
@@ -131,6 +152,7 @@ const messages = {
   // ----- Copiable component -----
   copyToClipboard: 'Copy to clipboard',
   copyUuid: 'Copy {uuid}',
+  copyValue: 'Copy {value}',
 
   // ----- Pills -----
   pillMaster: 'Master',
@@ -224,8 +246,8 @@ const messages = {
   notBackedUpVms: 'Not backed up VMs',
   homeFetchingData: 'Fetching data…',
   homeWelcome: 'Welcome to Xen Orchestra!',
-  homeWelcomeText: 'Add your XenServer hosts or pools',
-  homeConnectServerText: 'Some XenServers have been registered but are not connected',
+  homeWelcomeText: 'Add your XCP-ng hosts or pools',
+  homeConnectServerText: 'Some XCP-ng hosts have been registered but are not connected',
   homeHelp: 'Want some help?',
   homeAddServer: 'Add server',
   homeConnectServer: 'Connect servers',
@@ -586,12 +608,31 @@ const messages = {
   remoteSmbPlaceHolderOptions: 'Custom mount options',
   remoteS3LabelUseHttps: 'Use HTTPS',
   remoteS3LabelAllowInsecure: 'Allow unauthorized',
+  remoteS3PlaceHolderEndpoint: 'AWS S3 endpoint (ex: s3.us-east-2.amazonaws.com)',
   remoteS3PlaceHolderBucket: 'AWS S3 bucket name',
   remoteS3PlaceHolderDirectory: 'Directory',
+  remoteS3PlaceHolderAccessKeyID: 'Access key ID',
+  remoteS3PlaceHolderSecret: 'Paste secret here to change it',
+  remoteS3PlaceHolderEncryptionKey: 'Enter your encryption key here (32 characters)',
   remoteS3Region: 'Region, leave blank for default',
   remoteS3TooltipProtocol: 'Uncheck if you want HTTP instead of HTTPS',
   remoteS3TooltipAcceptInsecure: 'Check if you want to accept self signed certificates',
   remotePlaceHolderPassword: 'Password(fill to edit)',
+  remoteUseVhdDirectory:
+    'Store backup as multiple data blocks instead of a whole VHD file. (creates 500-1000 files per backed up TB but allows faster merge)',
+  remoteUseVhdDirectoryTooltip:
+    'Your remote must be able to handle parallel access (up to 16 write processes per backup) and the number of files (500 files per GB of backed up data)',
+  remoteEncryptionBackupSize: 'Size of backup is not updated when using encryption.',
+  remoteEncryptionEncryptedfiles:
+    'All the files of the remote except the encryption.json are encrypted, that means you can only activate encryption or change key on an empty remote.',
+  remoteEncryptionMustUseVhd:
+    'Delta backup must use VHD saved as blocks (note: should be enforced when saving settings)',
+  remoteEncryptionKey: 'Encrypt all new data sent to this remote',
+  remoteEncryptionKeyStorageLocation:
+    "You won't be able to get your data back if you lose the encryption key. The encryption key is saved in the XO config backup, they should be secured correctly. Be careful, if you saved it on an encrypted remote, then you won't be able to access it without the remote encryption key.",
+  encryption: 'Encryption',
+  remoteEncryptionLegacy:
+    'A legacy encryption algorithm is used ({algorithm}), please create a new remote with the recommended algorithm {recommendedAlgorithm}',
 
   // ------ New Storage -----
 
@@ -747,8 +788,12 @@ const messages = {
   cloneVmLabel: 'Clone',
   cleanVm: 'Clean VM directory',
   fastCloneVmLabel: 'Fast clone',
+  startMigratedVm: 'Start the migrated VM',
   vmConsoleLabel: 'Console',
   vmExportUrlValidity: 'The URL is valid once for a short period of time.',
+  vmWarmMigration: 'Warm migration',
+  vmWarmMigrationProcessInfo:
+    'Warm migration process will first create a copy of the VM on the destination while the source VM is still running, then shutdown the source VM and send the changes that happened during the migration to the destination to minimize downtime.',
   backupLabel: 'Backup',
 
   // ----- SR general tab -----
@@ -789,6 +834,10 @@ const messages = {
   noActiveVdi: 'No active VDI',
 
   // ----- Pool general -----
+  earliestExpirationDate: 'Earliest expiration: {dateString}',
+  poolNoSupport: 'No XCP-ng Pro support enabled on this pool',
+  poolPartialSupport:
+    'Only {nHostsLicense, number} host{nHostsLicense, plural, one {} other {s}} under license on {nHosts, number} host{nHosts, plural, one {} other {s}}. This means this pool is not supported at all until you license all its hosts.',
   poolTitleRamUsage: 'Pool RAM usage:',
   poolRamUsage: '{used} used of {total} ({free} free)',
   poolMaster: 'Master:',
@@ -813,6 +862,9 @@ const messages = {
   poolHaDisabled: 'Disabled',
   poolGpuGroups: 'GPU groups',
   poolRemoteSyslogPlaceHolder: 'Logging host',
+  poolSupportSourceUsers: 'XCP-ng Pro Support not available for source users',
+  poolSupportXcpngOnly: 'Only available for pool of XCP-ng hosts',
+  poolLicenseAlreadyFullySupported: 'The pool is already fully supported',
   setpoolMaster: 'Master',
   syslogRemoteHost: 'Remote syslog host',
   defaultMigrationNetwork: 'Default migration network',
@@ -838,6 +890,9 @@ const messages = {
   showPifs: 'Show PIFs',
   hidePifs: 'Hide PIFs',
   networkAutomaticTooltip: 'Network(s) selected by default for new VMs',
+  noNbdConnection: 'No NBD Connection',
+  nbdConnection: 'NBD Connection',
+  insecureNbdConnection: 'Insecure NBD Connection (not allowed through XO)',
   // ----- Pool stats tab -----
   poolNoStats: 'No stats',
   poolAllHosts: 'All hosts',
@@ -1061,7 +1116,12 @@ const messages = {
   hardwareVirtualizedMode: 'Hardware virtualization (HVM)',
   hvmModeWithPvDriversEnabled: 'Hardware virtualization with paravirtualization drivers enabled (PVHVM)',
   pvInPvhMode: 'PV inside a PVH container (PV in PVH)',
-  windowsUpdateTools: 'Windows Update tools',
+  windowsUpdateTools: 'Manage Citrix PV drivers via Windows Update',
+  windowsToolsModalTitle: 'Windows Update Tools',
+  windowsToolsModalMessage:
+    'Enabling this will allow the VM to automatically install Citrix PV drivers from Windows Update. This only includes drivers, the Citrix management agent must still be separately installed.',
+  windowsToolsModalWarning:
+    'If you have previously installed XCP-ng tools instead of Citrix tools, this option will break your VM.',
 
   // ----- VM stat tab -----
   statsCpu: 'CPU usage',
@@ -1208,6 +1268,10 @@ const messages = {
   vifUnlockedNetworkWithIps: 'Some IPs are unnecessarily set as allowed for this interface',
   vifUnknownNetwork: 'Unknown network',
   vifCreate: 'Create',
+  nbd: 'NBD',
+  nbdTootltip: 'Network Block Device status',
+  nbdInsecureTooltip: 'Use of insecure NBD is not advised',
+  nbdSecureTooltip: 'Nbd connection is secure and ready',
 
   // ----- VM snapshot tab -----
   noSnapshots: 'No snapshots',
@@ -1271,6 +1335,7 @@ const messages = {
   protectFromDeletion: 'Protect from accidental deletion',
   protectFromShutdown: 'Protect from accidental shutdown',
   ha: 'HA',
+  srHaTooltip: 'SR used for High Availability',
   nestedVirt: 'Nested virtualization',
   vmAffinityHost: 'Affinity host',
   vmVga: 'VGA',
@@ -1285,6 +1350,7 @@ const messages = {
   resourceSet: 'Resource set',
   resourceSetNone: 'None',
   suspendSr: 'Suspend SR',
+  viridian: 'Viridian',
   vmCpuLimitsLabel: 'CPU limits',
   vmCpuTopology: 'Topology',
   vmChooseCoresPerSocket: 'Default behavior',
@@ -1297,6 +1363,7 @@ const messages = {
   vmCoresPerSocketExceedsSocketsLimit: 'The selected value exceeds the sockets limit ({maxSockets, number})',
   vmHaDisabled: 'Disabled',
   vmMemoryLimitsLabel: 'Memory limits (min/max)',
+  vmUuid: 'VM UUID',
   vmVgpu: 'vGPU',
   vmVgpus: 'GPUs',
   vmVgpuNone: 'None',
@@ -1440,7 +1507,9 @@ const messages = {
   alarmObject: 'Issue on',
   alarmPool: 'Pool',
   spaceLeftTooltip: '{used}% used ({free} left)',
+  unhealthyVdis: 'Unhealthy VDIs',
   vdisToCoalesce: 'VDIs to coalesce',
+  vdisWithInvalidVhdParent: 'VDIs with invalid parent VHD',
   srVdisToCoalesceWarning: 'This SR has more than {limitVdis, number} VDIs to coalesce',
 
   // ----- New VM -----
@@ -1518,6 +1587,7 @@ const messages = {
   templateHasBiosStrings: 'The template already contains the BIOS strings',
   secureBootLinkToDocumentationMessage: 'Click for more information about Guest UEFI Secure Boot.',
   vmBootFirmwareIsUefi: 'The boot firmware is UEFI',
+  destroyCloudConfigVdiAfterBoot: 'Destroy cloud config drive after first boot',
 
   // ----- Self -----
   resourceSets: 'Resource sets',
@@ -1553,13 +1623,16 @@ const messages = {
 
   // ---- VM import ---
   fileType: 'File type:',
+  firmware: 'Firmware',
   fromUrl: 'From URL',
+  fromVmware: 'From VMware',
   importVmsList: 'Drop OVA or XVA files here to import Virtual Machines.',
   noSelectedVms: 'No selected VMs.',
+  noToolsInstalled: 'No tools installed',
   url: 'URL:',
   vmImportToPool: 'To Pool:',
   vmImportToSr: 'To SR:',
-  vmsToImport: 'VMs to import',
+  vmsToImport: 'VM{nVms, plural, one {} other {s}} to import',
   importVmsCleanList: 'Reset',
   vmImportSuccess: 'VM import success',
   vmImportFailed: 'VM import failed',
@@ -1581,6 +1654,7 @@ const messages = {
   vmImportError: 'Error:',
   vmImportFileType: '{type} file:',
   vmImportConfigAlert: 'Please check and/or modify the VM configuration.',
+  toolsInstalled: 'The tools are installed',
 
   // ---- Disk import ---
   diskImportFailed: 'Disk import failed',
@@ -1616,7 +1690,6 @@ const messages = {
   getRemote: 'Get remote',
   noBackups: 'There are no backups!',
   restoreBackupsInfo: 'Click on a VM to display restore options',
-  restoreDeltaBackupsInfo: 'Only the files of Delta Backup which are not on a SMB or S3 remote can be restored',
   remoteEnabled: 'Enabled',
   remoteDisabled: 'Disabled',
   enableRemote: 'Enable',
@@ -1719,8 +1792,9 @@ const messages = {
   blockedStartVmsModalMessage: 'Forbidden operation start for {nVms, number} vm{nVms, plural, one {} other {s}}.',
   startVmsModalMessage: 'Are you sure you want to start {vms, number} VM{vms, plural, one {} other {s}}?',
   failedVmsErrorMessage:
-    '{nVms, number} vm{nVms, plural, one {} other {s}} are failed. Please see your logs to get more information',
+    '{nVms, number} VM{nVms, plural, one {} other {s}} failed. Please check logs for more information',
   failedVmsErrorTitle: 'Start failed',
+  failedDeleteErrorTitle: 'Delete failed',
   stopHostsModalTitle: 'Stop Host{nHosts, plural, one {} other {s}}',
   stopHostsModalMessage: 'Are you sure you want to stop {nHosts, number} Host{nHosts, plural, one {} other {s}}?',
   stopVmsModalTitle: 'Stop VM{vms, plural, one {} other {s}}',
@@ -1729,6 +1803,8 @@ const messages = {
   restartVmModalMessage: 'Are you sure you want to restart {name}?',
   stopVmModalTitle: 'Stop VM',
   stopVmModalMessage: 'Are you sure you want to stop {name}?',
+  blockedOperation: 'Blocked operation',
+  stopVmBlockedModalMessage: 'Stop operation for this VM is blocked. Would you like to stop it anyway?',
   vmHasNoTools: 'No guest tools',
   vmHasNoToolsMessage: "The VM doesn't have Xen tools installed, which are required to properly stop or reboot it.",
   confirmForceShutdown: 'Would you like to force shutdown the VM?',
@@ -1739,6 +1815,7 @@ const messages = {
   pauseVmsModalMessage: 'Are you sure you want to pause {vms, number} VM{vms, plural, one {} other {s}}?',
   restartVmsModalTitle: 'Restart VM{vms, plural, one {} other {s}}',
   restartVmsModalMessage: 'Are you sure you want to restart {vms, number} VM{vms, plural, one {} other {s}}?',
+  restartVmBlockedModalMessage: 'Restart operation for this VM is blocked. Would you like to restart it anyway?',
   snapshotSaveMemory: 'save memory',
   snapshotVmsModalTitle: 'Snapshot VM{vms, plural, one {} other {s}}',
   deleteVmsModalTitle: 'Delete VM{vms, plural, one {} other {s}}',
@@ -2045,6 +2122,8 @@ const messages = {
   pifPhysicallyDisconnected: 'Physically disconnected',
 
   // ----- User -----
+  authToken: 'Token',
+  authTokens: 'Authentication tokens',
   username: 'Username',
   password: 'Password',
   language: 'Language',
@@ -2064,15 +2143,23 @@ const messages = {
   forgetTokensSuccess: 'Successfully forgot connection tokens',
   forgetTokensError: 'Error while forgetting connection tokens',
   sshKeys: 'SSH keys',
+  newAuthToken: 'New token',
   newSshKey: 'New SSH key',
+  deleteAuthTokens: 'Delete selected authentication tokens',
   deleteSshKey: 'Delete',
   deleteSshKeys: 'Delete selected SSH keys',
+  newAuthTokenModalTitle: 'New authentication token',
   newSshKeyModalTitle: 'New SSH key',
   sshKeyAlreadyExists: 'SSH key already exists!',
   sshKeyErrorTitle: 'Invalid key',
   sshKeyErrorMessage: 'An SSH key requires both a title and a key.',
   title: 'Title',
   key: 'Key',
+  deleteAuthTokenConfirm: 'Delete authentication token',
+  deleteAuthTokenConfirmMessage: 'Are you sure you want to delete the authentication token: {id}?',
+  deleteAuthTokensConfirm: 'Delete authentication token{nTokens, plural, one {} other {s}}',
+  deleteAuthTokensConfirmMessage:
+    'Are you sure you want to delete {nTokens, number} autentication token{nTokens, plural, one {} other {s}}?',
   deleteSshKeyConfirm: 'Delete SSH key',
   deleteSshKeyConfirmMessage: 'Are you sure you want to delete the SSH key {title}?',
   deleteSshKeysConfirm: 'Delete SSH key{nKeys, plural, one {} other {s}}',
@@ -2189,6 +2276,7 @@ const messages = {
   downloadConfig: 'Download current config',
 
   // ----- SR -----
+  andNMore: 'and {n} more',
   disabledVdiMigrateTooltip: "Snapshots and base copies can't be migrated individually",
   srReconnectAllModalTitle: 'Reconnect all hosts',
   srReconnectAllModalMessage: 'This will reconnect this SR to all its hosts.',
@@ -2204,6 +2292,9 @@ const messages = {
   srAllDisconnected: 'Disconnected',
   srSomeConnected: 'Partially connected',
   srAllConnected: 'Connected',
+  maintenanceSrModalBody:
+    'In order to put this SR in maintenance mode, the following VM{n, plural, one {} other {s}} will be shut down. Are you sure you want to continue?',
+  maintenanceMode: 'Maintenance mode',
   migrateSelectedVdis: 'Migrate selected VDIs',
   migrateVdiMessage:
     'All the VDIs attached to a VM must either be on a shared SR or on the same host (local SR) for the VM to be able to start.',
@@ -2218,7 +2309,7 @@ const messages = {
   xosanPool: 'Pool',
   xosanSize: 'Size',
   xosanUsedSpace: 'Used space',
-  xosanLicense: 'License',
+  license: 'License',
   xosanMultipleLicenses: 'This XOSAN has more than 1 license!',
   xosanNeedPack: 'XOSAN pack needs to be installed and up to date on each host of the pool.',
   xosanInstallIt: 'Install it now!',
@@ -2326,10 +2417,14 @@ const messages = {
   templatesLabel: 'Templates',
   recipesLabel: 'Recipes',
   network: 'Network',
-  recipeMasterNameLabel: 'Master name',
-  recipeNumberOfNodesLabel: 'Number of nodes',
+  recipeMasterNameLabel: 'Master node name',
+  recipeNumberOfNodesLabel: 'Number of worker nodes',
   recipeSshKeyLabel: 'SSH key',
-  recipeNetworkCidr: 'Network CIDR',
+  recipeStaticIpAddresses: 'Static IP addresses',
+  recipeMasterIpAddress: 'Master node IP address',
+  recipeWorkerIpAddress: 'Worker node { i } IP address',
+  recipeNetworkMask: 'Network Mask',
+  recipeGatewayIpAddress: 'Gateway IP address',
 
   // Audit
   auditActionEvent: 'Action/Event',
@@ -2354,6 +2449,17 @@ const messages = {
   auditInactiveUserActionsRecord: 'User actions recording is currently inactive',
 
   // Licenses
+  allHostsMustBeBound: 'All hosts must be bound to a license',
+  boundSelectLicense: 'Bound (Plan (ID), expiration date, host - pool)',
+  bindXcpngLicenses: 'Bind XCP-ng licenses',
+  confirmBindingOnUnsupportedHost:
+    'You are about to bind {nLicenses, number} professional support license{nLicenses, plural, one {} other {s}} on older and unsupported XCP-ng version{nLicenses, plural, one {} other {s}}. Are you sure you want to continue?',
+  confirmRebindLicenseFromFullySupportedPool: 'The following pools will no longer be fully supported',
+  licenses: 'Licenses',
+  licensesBinding: 'Licenses binding',
+  notEnoughXcpngLicenses: 'Not enough XCP-ng licenses',
+  notBoundSelectLicense: 'Not bound (Plan (ID), expiration date)',
+  xcpngLicensesBindingAvancedView: "To bind an XCP-ng license, go the pool's Advanced tab.",
   xosanUnregisteredDisclaimer:
     'You are not registered and therefore will not be able to create or manage your XOSAN SRs. {link}',
   xosanSourcesDisclaimer:
@@ -2377,16 +2483,16 @@ const messages = {
   xosanAdminExpiredLicenseDisclaimer:
     'Your XOSAN license has expired. You can still use the SR but cannot administrate it anymore.',
   xosanCheckLicenseError: 'Could not check the license on this XOSAN SR',
-  xosanGetLicensesError: 'Could not fetch licenses',
+  getLicensesError: 'Could not fetch licenses',
   licenseHasExpired: 'License has expired.',
   licenseBoundToOtherXoa: 'License bound to another XOA',
   licenseBoundToThisXoa: 'This license is active on this XOA',
-  xosanLicenseExpiresDate: 'License expires on {date}.',
-  xosanUpdateLicenseMessage: 'Update the license now!',
+  licenseExpiresDate: 'License expires on {date}.',
+  updateLicenseMessage: 'Update the license now!',
   xosanUnknownSr: 'Unknown XOSAN SR.',
   contactUs: 'Contact us!',
   xosanNoLicense: 'No license.',
-  xosanUnlockNow: 'Unlock now!',
+  unlockNow: 'Unlock now!',
   selectLicense: 'Select a license',
   bindLicense: 'Bind license',
   expiresOn: 'expires on {date}',
@@ -2401,9 +2507,10 @@ const messages = {
   enterpriseLicense: 'Enterprise license',
   premiumLicense: 'Premium license',
   trialLicenseInfo: 'You are currently in a {edition} trial period that will end on {date, date, medium}',
+  proxyMultipleLicenses: 'This proxy has more than 1 license!',
+  proxyUnknownVm: 'Unknown proxy VM.',
 
   // ----- proxies -----
-  deployProxyDisabled: 'Only available to XOA users',
   forgetProxyApplianceTitle: 'Forget prox{n, plural, one {y} other {ies}}',
   forgetProxyApplianceMessage: 'Are you sure you want to forget {n, number} prox{n, plural, one {y} other {ies}}?',
   forgetProxies: 'Forget proxy(ies)',
@@ -2414,9 +2521,16 @@ const messages = {
   redeployProxy: 'Redeploy proxy',
   redeployProxyAction: 'Redeploy this proxy',
   redeployProxyWarning: 'This action will destroy the old proxy VM',
+  registerProxy: 'Register a proxy',
   noProxiesAvailable: 'No proxies available',
   checkProxyHealth: 'Test your proxy',
   updateProxyApplianceSettings: 'Update appliance settings',
+  urlNotFound: 'URL not found',
+  proxyAuthToken: 'Authentication token',
+  proxyConnectionFailedAfterRegistrationMessage: 'Unable to connect to this proxy. Do you want to forget it?',
+  proxyCopyUrl: 'Copy proxy URL',
+  proxyError: 'Proxy error',
+  proxyOptionalVmUuid: 'VM UUID is optional but recommended.',
   proxyTestSuccess: 'Test passed for {name}',
   proxyTestSuccessMessage: 'The proxy appears to work correctly',
   proxyTestFailed: 'Test failed for {name}',
@@ -2435,6 +2549,7 @@ const messages = {
     'The upgrade will interrupt {nJobs, number} running backup job{nJobs, plural, one {} other {s}}. Do you want to continue?',
   proxiesNeedUpgrade: 'Some proxies need to be upgraded.',
   upgradeNeededForProxies: 'Some proxies need to be upgraded. Click here to get more information.',
+  xoProxyConcreteGuide: 'XO Proxy: a concrete guide',
 
   // ----- Utils -----
   secondsFormat: '{seconds, plural, one {# second} other {# seconds}}',

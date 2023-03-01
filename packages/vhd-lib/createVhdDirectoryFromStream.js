@@ -1,14 +1,17 @@
 'use strict'
 
+const { createLogger } = require('@xen-orchestra/log')
 const { parseVhdStream } = require('./parseVhdStream.js')
 const { VhdDirectory } = require('./Vhd/VhdDirectory.js')
 const { Disposable } = require('promise-toolbox')
 const { asyncEach } = require('@vates/async-each')
 
-const buildVhd = Disposable.wrap(async function* (handler, path, inputStream, { concurrency, compression }) {
+const { warn } = createLogger('vhd-lib:createVhdDirectoryFromStream')
+
+const buildVhd = Disposable.wrap(async function* (handler, path, inputStream, { concurrency, compression, nbdClient }) {
   const vhd = yield VhdDirectory.create(handler, path, { compression })
   await asyncEach(
-    parseVhdStream(inputStream),
+    parseVhdStream(inputStream, nbdClient),
     async function (item) {
       switch (item.type) {
         case 'footer':
@@ -35,22 +38,24 @@ const buildVhd = Disposable.wrap(async function* (handler, path, inputStream, { 
     }
   )
   await Promise.all([vhd.writeFooter(), vhd.writeHeader(), vhd.writeBlockAllocationTable()])
+  return vhd.streamSize()
 })
 
 exports.createVhdDirectoryFromStream = async function createVhdDirectoryFromStream(
   handler,
   path,
   inputStream,
-  { validator, concurrency = 16, compression } = {}
+  { validator, concurrency = 16, compression, nbdClient } = {}
 ) {
   try {
-    await buildVhd(handler, path, inputStream, { concurrency, compression })
+    const size = await buildVhd(handler, path, inputStream, { concurrency, compression, nbdClient })
     if (validator !== undefined) {
       await validator.call(this, path)
     }
+    return size
   } catch (error) {
     // cleanup on error
-    await handler.rmtree(path)
+    await handler.rmtree(path).catch(warn)
     throw error
   }
 }

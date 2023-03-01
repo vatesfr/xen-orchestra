@@ -45,11 +45,13 @@ import {
   subscribeResourceSets,
   subscribeUsers,
   suspendVm,
+  vmWarmMigration,
   XEN_DEFAULT_CPU_CAP,
   XEN_DEFAULT_CPU_WEIGHT,
   XEN_VIDEORAM_VALUES,
 } from 'xo'
 import { createGetObject, createGetObjectsOfType, createSelector, isAdmin } from 'selectors'
+import { getXoaPlan, PREMIUM } from 'xoa-plans'
 import { SelectSuspendSr } from 'select-suspend-sr'
 
 import BootOrder from './boot-order'
@@ -450,6 +452,7 @@ export default class TabAdvanced extends Component {
 
   render() {
     const { container, isAdmin, vgpus, vm, vmPool } = this.props
+    const isWarmMigrationAvailable = getXoaPlan().value >= PREMIUM.value
     return (
       <Container>
         <Row>
@@ -483,6 +486,15 @@ export default class TabAdvanced extends Component {
                   handlerParam={vm}
                   icon='vm-force-shutdown'
                   labelId='forceShutdownVmLabel'
+                />
+                <TabButton
+                  btnStyle='warning'
+                  disabled={!isWarmMigrationAvailable}
+                  handler={vmWarmMigration}
+                  handlerParam={vm}
+                  icon='vm-warm-migration'
+                  labelId='vmWarmMigration'
+                  tooltip={isWarmMigrationAvailable ? undefined : _('availableXoaPremium')}
                 />
               </span>
             )}
@@ -813,6 +825,12 @@ export default class TabAdvanced extends Component {
                   <th>{_('suspendSr')}</th>
                   <td>
                     <SelectSuspendSr vm={vm} />
+                  </td>
+                </tr>
+                <tr>
+                  <th>{_('viridian')}</th>
+                  <td>
+                    <Toggle value={vm.viridian} onChange={value => editVm(vm, { viridian: value })} />
                   </td>
                 </tr>
               </tbody>

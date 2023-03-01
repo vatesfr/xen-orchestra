@@ -26,6 +26,7 @@ import {
   createGetObjectsOfType,
   createSelector,
   getIsPoolAdmin,
+  getResolvedPendingTasks,
   getStatus,
   getUser,
   getXoaState,
@@ -44,18 +45,19 @@ const returnTrue = () => true
 @connectStore(
   () => {
     const getHosts = createGetObjectsOfType('host')
-    return {
-      hosts: getHosts,
-      isAdmin,
-      isPoolAdmin: getIsPoolAdmin,
-      nHosts: getHosts.count(),
-      nTasks: createGetObjectsOfType('task').count([task => task.status === 'pending']),
-      pools: createGetObjectsOfType('pool'),
-      srs: createGetObjectsOfType('SR'),
-      status: getStatus,
-      user: getUser,
-      xoaState: getXoaState,
-    }
+    return (state, props) => ({
+      hosts: getHosts(state, props),
+      isAdmin: isAdmin(state, props),
+      isPoolAdmin: getIsPoolAdmin(state, props),
+      nHosts: getHosts.count()(state, props),
+      // true: useResourceSet to bypass permissions
+      nResolvedTasks: getResolvedPendingTasks(state, props, true).length,
+      pools: createGetObjectsOfType('pool')(state, props),
+      srs: createGetObjectsOfType('SR')(state, props),
+      status: getStatus(state, props),
+      user: getUser(state, props),
+      xoaState: getXoaState(state, props),
+    })
   },
   {
     withRef: true,
@@ -207,7 +209,7 @@ export default class Menu extends Component {
   }
 
   render() {
-    const { isAdmin, isPoolAdmin, nTasks, state, status, user, pools, nHosts, srs, xoaState } = this.props
+    const { isAdmin, isPoolAdmin, nResolvedTasks, state, status, user, pools, nHosts, srs, xoaState } = this.props
     const noOperatablePools = this._getNoOperatablePools()
     const noResourceSets = this._getNoResourceSets()
     const noNotifications = this._getNoNotifications()
@@ -470,11 +472,11 @@ export default class Menu extends Component {
         ],
       },
       isAdmin && { to: '/about', icon: 'menu-about', label: 'aboutPage' },
-      !noOperatablePools && {
+      {
         to: '/tasks',
         icon: 'task',
         label: 'taskMenu',
-        pill: nTasks,
+        pill: nResolvedTasks,
       },
       isAdmin && { to: '/xosan', icon: 'menu-xosan', label: 'xosan' },
       !noOperatablePools && {
@@ -491,6 +493,11 @@ export default class Menu extends Component {
             to: '/import/disk',
             icon: 'disk',
             label: 'labelDisk',
+          },
+          {
+            to: '/import/vmware',
+            icon: 'vm',
+            label: 'fromVmware',
           },
         ],
       },

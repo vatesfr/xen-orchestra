@@ -8,8 +8,8 @@
 
 Installation of the [npm package](https://npmjs.org/package/@xen-orchestra/backups-cli):
 
-```
-> npm install --global @xen-orchestra/backups-cli
+```sh
+npm install --global @xen-orchestra/backups-cli
 ```
 
 ## Usage

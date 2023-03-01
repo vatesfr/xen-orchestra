@@ -1,7 +1,7 @@
 {
   "private": false,
   "name": "@xen-orchestra/log",
-  "version": "0.3.0",
+  "version": "0.6.0",
   "license": "ISC",
   "description": "Logging system with decoupled producers/consumer",
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/log",
@@ -27,6 +27,17 @@
     "promise-toolbox": "^0.21.0"
   },
   "scripts": {
-    "postversion": "npm publish"
+    "postversion": "npm publish",
+    "test": "node--test"
+  },
+  "devDependencies": {
+    "test": "^3.2.1"
+  },
+  "exports": {
+    ".": "./index.js",
+    "./_*": null,
+    "./.*": null,
+    "./*": "./*.js",
+    "./index": null
   }
 }

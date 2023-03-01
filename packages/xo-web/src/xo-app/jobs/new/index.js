@@ -176,7 +176,7 @@ export default class Jobs extends Component {
       'job.runSequence',
       'vm.attachDisk',
       'vm.clone',
-      'vm.convert',
+      'vm.convertToTemplate',
       'vm.copy',
       'vm.createInterface',
       'vm.delete',

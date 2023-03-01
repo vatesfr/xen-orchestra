@@ -10,8 +10,8 @@
 
 Installation of the [npm package](https://npmjs.org/package/xo-collection):
 
-```
-> npm install --save xo-collection
+```sh
+npm install --save xo-collection
 ```
 
 ## Usage

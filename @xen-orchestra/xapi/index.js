@@ -102,6 +102,8 @@ class Xapi extends Base {
   constructor({
     callRetryWhenTooManyPendingTasks = { delay: 5e3, tries: 10 },
     maxUncoalescedVdis,
+    syncHookSecret,
+    syncHookTimeout,
     vdiDestroyRetryWhenInUse = { delay: 5e3, tries: 10 },
     ...opts
   }) {
@@ -112,6 +114,8 @@ class Xapi extends Base {
       when: { code: 'TOO_MANY_PENDING_TASKS' },
     }
     this._maxUncoalescedVdis = maxUncoalescedVdis
+    this._syncHookSecret = syncHookSecret
+    this._syncHookTimeout = syncHookTimeout
     this._vdiDestroyRetryWhenInUse = {
       ...vdiDestroyRetryWhenInUse,
       onRetry,
@@ -192,6 +196,11 @@ class Xapi extends Base {
 
   waitObjectState(refOrUuid, predicate, { timeout } = {}) {
     return new Promise((resolve, reject) => {
+      const object = this.getObject(refOrUuid, undefined)
+      if (object !== undefined && predicate(object)) {
+        return resolve(object)
+      }
+
       let timeoutHandle
       const stop = this.watchObject(refOrUuid, object => {
         if (predicate(object)) {
@@ -202,9 +211,10 @@ class Xapi extends Base {
       })
 
       if (timeout !== undefined) {
+        const error = new Error(`waitObjectState: timeout reached before ${refOrUuid} in expected state`)
         timeoutHandle = setTimeout(() => {
           stop()
-          reject(new Error(`waitObjectState: timeout reached before ${refOrUuid} in expected state`))
+          reject(error)
         }, timeout)
       }
     })

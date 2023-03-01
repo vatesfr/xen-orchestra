@@ -4,7 +4,7 @@
 
 If you think you have a problem with your XOA, start by typing`xoa check`command in your terminal:
 
-```
+```console
 $ xoa check
 ✔ Node version
 ✔ Disk space for /var

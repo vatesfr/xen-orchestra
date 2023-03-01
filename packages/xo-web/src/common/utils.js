@@ -146,6 +146,11 @@ export { default as Debug } from './debug'
 // -------------------------------------------------------------------
 
 // Returns the current XOA Plan or the Plan name if number given
+/**
+ * @deprecated
+ *
+ * Use `getXoaPlan` from `xoa-plans` instead
+ */
 export const getXoaPlan = plan => {
   switch (plan || +process.env.XOA_PLAN) {
     case 1:
@@ -191,7 +196,7 @@ export const osFamily = invoke(
     osx: ['osx'],
     redhat: ['redhat', 'rhel'],
     solaris: ['solaris'],
-    suse: ['sles', 'suse'],
+    suse: ['sles', 'suse', 'opensuse-leap'],
     ubuntu: ['ubuntu'],
     windows: ['windows'],
   },
@@ -516,6 +521,10 @@ export const createFakeProgress = (() => {
   }
 })()
 
+export const NumericDate = ({ timestamp }) => (
+  <FormattedDate day='2-digit' hour='numeric' minute='numeric' month='2-digit' value={timestamp} year='numeric' />
+)
+
 export const ShortDate = ({ timestamp }) => (
   <FormattedDate value={timestamp} month='short' day='numeric' year='numeric' />
 )
@@ -582,9 +591,11 @@ export const safeDateFormat = ms => new Date(ms).toISOString().replace(/:/g, '_'
 // ===================================================================
 
 export const downloadLog = ({ log, date, type }) => {
+  const isJson = typeof log !== 'string'
+
   const anchor = document.createElement('a')
-  anchor.href = window.URL.createObjectURL(createBlobFromString(log))
-  anchor.download = `${safeDateFormat(date)} - ${type}.log`
+  anchor.href = window.URL.createObjectURL(createBlobFromString(isJson ? JSON.stringify(log, null, 2) : log))
+  anchor.download = `${safeDateFormat(date)} - ${type}.${isJson ? 'json' : 'log'}`
   anchor.style.display = 'none'
   document.body.appendChild(anchor)
   anchor.click()

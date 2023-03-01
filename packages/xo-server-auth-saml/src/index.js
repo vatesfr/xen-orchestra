@@ -11,7 +11,13 @@ export const configurationSchema = {
     'Important: When registering your instance to your identity provider, you must configure its callback URL to `https://<xo.company.net>/signin/saml/callback`!',
   type: 'object',
   properties: {
+    callbackUrl: {
+      title: 'callbackUrl',
+      description: 'the callback URL',
+      type: 'string',
+    },
     cert: {
+      $multiline: true,
       title: 'Certificate',
       description: "Copy/paste the identity provider's certificate",
       type: 'string',
@@ -60,10 +66,9 @@ class AuthSamlXoPlugin {
     this._conf = {
       ...this._strategyOptions,
       ...DEFAULTS,
-      ...conf,
-
-      // must match the callback URL
       path: '/signin/saml/callback',
+
+      ...conf,
     }
 
     if (loaded) {

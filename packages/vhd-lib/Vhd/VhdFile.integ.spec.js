@@ -7,7 +7,7 @@ const fs = require('fs-extra')
 const getStream = require('get-stream')
 const rimraf = require('rimraf')
 const tmp = require('tmp')
-const { getHandler } = require('@xen-orchestra/fs')
+const { getSyncedHandler } = require('@xen-orchestra/fs')
 const { Disposable, pFromCallback } = require('promise-toolbox')
 const { randomBytes } = require('crypto')
 
@@ -24,15 +24,22 @@ const {
 } = require('../tests/utils')
 
 let tempDir = null
+let handler
+let disposeHandler
 
 jest.setTimeout(60000)
 
 beforeEach(async () => {
   tempDir = await pFromCallback(cb => tmp.dir(cb))
+
+  const d = await getSyncedHandler({ url: `file://${tempDir}` })
+  handler = d.value
+  disposeHandler = d.dispose
 })
 
 afterEach(async () => {
-  await pFromCallback(cb => rimraf(tempDir, cb))
+  await rimraf(tempDir)
+  disposeHandler()
 })
 
 test('respect the checkSecondFooter flag', async () => {
@@ -41,8 +48,6 @@ test('respect the checkSecondFooter flag', async () => {
   await createRandomFile(rawFileName, initalSize)
   const vhdFileName = `${tempDir}/randomfile.vhd`
   await convertFromRawToVhd(rawFileName, vhdFileName)
-
-  const handler = getHandler({ url: `file://${tempDir}` })
 
   const size = await handler.getSize('randomfile.vhd')
   const fd = await handler.openFile('randomfile.vhd', 'r+')
@@ -64,23 +69,21 @@ test('blocks can be moved', async () => {
   await createRandomFile(rawFileName, initalSize)
   const vhdFileName = `${tempDir}/randomfile.vhd`
   await convertFromRawToVhd(rawFileName, vhdFileName)
-  const handler = getHandler({ url: 'file://' })
-  const originalSize = await handler.getSize(rawFileName)
-  const newVhd = new VhdFile(handler, vhdFileName)
+  const originalSize = await handler.getSize('randomfile')
+  const newVhd = new VhdFile(handler, 'randomfile.vhd')
   await newVhd.readHeaderAndFooter()
   await newVhd.readBlockAllocationTable()
   await newVhd._freeFirstBlockSpace(8000000)
   const recoveredFileName = `${tempDir}/recovered`
   await recoverRawContent(vhdFileName, recoveredFileName, originalSize)
-  expect(await fs.readFile(recoveredFileName)).toEqual(await fs.readFile(rawFileName))
+  expect((await fs.readFile(recoveredFileName)).equals(await fs.readFile(rawFileName))).toEqual(true)
 })
 
 test('the BAT MSB is not used for sign', async () => {
   const randomBuffer = await pFromCallback(cb => randomBytes(SECTOR_SIZE, cb))
   const emptyFileName = `${tempDir}/empty.vhd`
   await execa('qemu-img', ['create', '-fvpc', emptyFileName, '1.8T'])
-  const handler = getHandler({ url: 'file://' })
-  const vhd = new VhdFile(handler, emptyFileName)
+  const vhd = new VhdFile(handler, 'empty.vhd')
   await vhd.readHeaderAndFooter()
   await vhd.readBlockAllocationTable()
   // we want the bit 31 to be on, to prove it's not been used for sign
@@ -98,7 +101,7 @@ test('the BAT MSB is not used for sign', async () => {
   const recoveredFileName = `${tempDir}/recovered`
   const recoveredFile = await fs.open(recoveredFileName, 'w')
   try {
-    const vhd2 = new VhdFile(handler, emptyFileName)
+    const vhd2 = new VhdFile(handler, 'empty.vhd')
     await vhd2.readHeaderAndFooter()
     await vhd2.readBlockAllocationTable()
     for (let i = 0; i < vhd.header.maxTableEntries; i++) {
@@ -116,7 +119,7 @@ test('the BAT MSB is not used for sign', async () => {
       end: hugePositionBytes + randomBuffer.length - 1,
     })
   )
-  expect(recovered).toEqual(randomBuffer)
+  expect(recovered.equals(randomBuffer)).toEqual(true)
 })
 
 test('writeData on empty file', async () => {
@@ -126,15 +129,14 @@ test('writeData on empty file', async () => {
   await createRandomFile(rawFileName, mbOfRandom)
   await execa('qemu-img', ['create', '-fvpc', emptyFileName, mbOfRandom + 'M'])
   const randomData = await fs.readFile(rawFileName)
-  const handler = getHandler({ url: 'file://' })
-  const originalSize = await handler.getSize(rawFileName)
-  const newVhd = new VhdFile(handler, emptyFileName)
+  const originalSize = await handler.getSize('randomfile')
+  const newVhd = new VhdFile(handler, 'empty.vhd')
   await newVhd.readHeaderAndFooter()
   await newVhd.readBlockAllocationTable()
   await newVhd.writeData(0, randomData)
   const recoveredFileName = `${tempDir}/recovered`
   await recoverRawContent(emptyFileName, recoveredFileName, originalSize)
-  expect(await fs.readFile(recoveredFileName)).toEqual(randomData)
+  expect((await fs.readFile(recoveredFileName)).equals(randomData)).toEqual(true)
 })
 
 test('writeData in 2 non-overlaping operations', async () => {
@@ -145,16 +147,15 @@ test('writeData in 2 non-overlaping operations', async () => {
   await createRandomFile(rawFileName, mbOfRandom)
   await execa('qemu-img', ['create', '-fvpc', emptyFileName, mbOfRandom + 'M'])
   const randomData = await fs.readFile(rawFileName)
-  const handler = getHandler({ url: 'file://' })
-  const originalSize = await handler.getSize(rawFileName)
-  const newVhd = new VhdFile(handler, emptyFileName)
+  const originalSize = await handler.getSize('randomfile')
+  const newVhd = new VhdFile(handler, 'empty.vhd')
   await newVhd.readHeaderAndFooter()
   await newVhd.readBlockAllocationTable()
   const splitPointSectors = 2
   await newVhd.writeData(0, randomData.slice(0, splitPointSectors * 512))
   await newVhd.writeData(splitPointSectors, randomData.slice(splitPointSectors * 512))
   await recoverRawContent(emptyFileName, recoveredFileName, originalSize)
-  expect(await fs.readFile(recoveredFileName)).toEqual(randomData)
+  expect((await fs.readFile(recoveredFileName)).equals(randomData)).toEqual(true)
 })
 
 test('writeData in 2 overlaping operations', async () => {
@@ -165,9 +166,8 @@ test('writeData in 2 overlaping operations', async () => {
   await createRandomFile(rawFileName, mbOfRandom)
   await execa('qemu-img', ['create', '-fvpc', emptyFileName, mbOfRandom + 'M'])
   const randomData = await fs.readFile(rawFileName)
-  const handler = getHandler({ url: 'file://' })
-  const originalSize = await handler.getSize(rawFileName)
-  const newVhd = new VhdFile(handler, emptyFileName)
+  const originalSize = await handler.getSize('randomfile')
+  const newVhd = new VhdFile(handler, 'empty.vhd')
   await newVhd.readHeaderAndFooter()
   await newVhd.readBlockAllocationTable()
   const endFirstWrite = 3
@@ -175,7 +175,7 @@ test('writeData in 2 overlaping operations', async () => {
   await newVhd.writeData(0, randomData.slice(0, endFirstWrite * 512))
   await newVhd.writeData(startSecondWrite, randomData.slice(startSecondWrite * 512))
   await recoverRawContent(emptyFileName, recoveredFileName, originalSize)
-  expect(await fs.readFile(recoveredFileName)).toEqual(randomData)
+  expect((await fs.readFile(recoveredFileName)).equals(randomData)).toEqual(true)
 })
 
 test('BAT can be extended and blocks moved', async () => {
@@ -185,15 +185,14 @@ test('BAT can be extended and blocks moved', async () => {
   const vhdFileName = `${tempDir}/randomfile.vhd`
   await createRandomFile(rawFileName, initalSize)
   await convertFromRawToVhd(rawFileName, vhdFileName)
-  const handler = getHandler({ url: 'file://' })
-  const originalSize = await handler.getSize(rawFileName)
-  const newVhd = new VhdFile(handler, vhdFileName)
+  const originalSize = await handler.getSize('randomfile')
+  const newVhd = new VhdFile(handler, 'randomfile.vhd')
   await newVhd.readHeaderAndFooter()
   await newVhd.readBlockAllocationTable()
   await newVhd.ensureBatSize(2000)
   await newVhd.writeBlockAllocationTable()
   await recoverRawContent(vhdFileName, recoveredFileName, originalSize)
-  expect(await fs.readFile(recoveredFileName)).toEqual(await fs.readFile(rawFileName))
+  expect((await fs.readFile(recoveredFileName)).equals(await fs.readFile(rawFileName))).toEqual(true)
 })
 
 test('Can coalesce block', async () => {
@@ -214,26 +213,25 @@ test('Can coalesce block', async () => {
   await convertToVhdDirectory(childRawDirectoryName, childDirectoryFileName, childDirectoryName)
 
   await Disposable.use(async function* () {
-    const handler = getHandler({ url: 'file://' })
-    const parentVhd = yield openVhd(handler, parentFileName, { flags: 'r+' })
+    const parentVhd = yield openVhd(handler, 'parent.vhd', { flags: 'r+' })
     await parentVhd.readBlockAllocationTable()
-    const childFileVhd = yield openVhd(handler, childFileName)
+    const childFileVhd = yield openVhd(handler, 'childFile.vhd')
     await childFileVhd.readBlockAllocationTable()
-    const childDirectoryVhd = yield openVhd(handler, childDirectoryName)
+    const childDirectoryVhd = yield openVhd(handler, 'childDir.vhd')
     await childDirectoryVhd.readBlockAllocationTable()
 
-    await parentVhd.coalesceBlock(childFileVhd, 0)
+    await parentVhd.mergeBlock(childFileVhd, 0)
     await parentVhd.writeFooter()
     await parentVhd.writeBlockAllocationTable()
     let parentBlockData = (await parentVhd.readBlock(0)).data
     let childBlockData = (await childFileVhd.readBlock(0)).data
-    expect(parentBlockData).toEqual(childBlockData)
+    expect(parentBlockData.equals(childBlockData)).toEqual(true)
 
-    await parentVhd.coalesceBlock(childDirectoryVhd, 0)
+    await parentVhd.mergeBlock(childDirectoryVhd, 0)
     await parentVhd.writeFooter()
     await parentVhd.writeBlockAllocationTable()
     parentBlockData = (await parentVhd.readBlock(0)).data
     childBlockData = (await childDirectoryVhd.readBlock(0)).data
-    expect(parentBlockData).toEqual(childBlockData)
+    expect(parentBlockData.equals(childBlockData)).toEqual(true)
   })
 })

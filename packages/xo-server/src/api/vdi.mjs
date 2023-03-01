@@ -8,7 +8,7 @@ import { parseSize } from '../utils.mjs'
 
 // ====================================================================
 
-export async function delete_({ vdi }) {
+async function delete_({ vdi }) {
   const resourceSet = reduce(
     vdi.$VBDs,
     (resourceSet, vbd) => resourceSet || this.getObject(this.getObject(vbd, 'VBD').VM).resourceSet,
@@ -54,14 +54,14 @@ export const set = defer(async function ($defer, params) {
       vbds.length === 1 &&
       (resourceSetId = xapi.xo.getData(this.getObject(vbds[0], 'VBD').VM, 'resourceSet')) !== undefined
     ) {
-      if (this.user.permission !== 'admin') {
-        await this.checkResourceSetConstraints(resourceSetId, this.user.id)
+      if (this.apiContext.permission !== 'admin') {
+        await this.checkResourceSetConstraints(resourceSetId, this.apiContext.user.id)
       }
 
       await this.allocateLimitsInResourceSet({ disk: size - vdi.size }, resourceSetId)
       $defer.onFailure(() => this.releaseLimitsInResourceSet({ disk: size - vdi.size }, resourceSetId))
     } else {
-      await this.checkPermissions(this.user.id, [[vdi.$SR, 'operate']])
+      await this.checkPermissions([[vdi.$SR, 'operate']])
     }
 
     await xapi.resizeVdi(ref, size)
@@ -105,11 +105,11 @@ set.resolve = {
 export async function migrate({ vdi, sr, resourceSet }) {
   const xapi = this.getXapi(vdi)
 
-  if (this.user.permission !== 'admin') {
+  if (this.apiContext.permission !== 'admin') {
     if (resourceSet !== undefined) {
-      await this.checkResourceSetConstraints(resourceSet, this.user.id, [sr.id])
+      await this.checkResourceSetConstraints(resourceSet, this.apiContext.user.id, [sr.id])
     } else {
-      await this.checkPermissions(this.user.id, [[sr.id, 'administrate']])
+      await this.checkPermissions([[sr.id, 'administrate']])
     }
   }
 

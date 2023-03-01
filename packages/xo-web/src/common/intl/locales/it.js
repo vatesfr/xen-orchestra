@@ -515,11 +515,11 @@ export default {
   // Original text: 'Welcome to Xen Orchestra!'
   homeWelcome: 'Benvenuti in Xen Orchestra!',
 
-  // Original text: 'Add your XenServer hosts or pools'
-  homeWelcomeText: 'Aggiungi i tuoi hosts o pools XenServer',
+  // Original text: 'Add your XCP-ng hosts or pools'
+  homeWelcomeText: 'Aggiungi i tuoi hosts o pools XCP-ng',
 
-  // Original text: 'Some XenServers have been registered but are not connected'
-  homeConnectServerText: 'Alcuni XenServers sono stati registrati ma non sono collegati',
+  // Original text: 'Some XCP-ng hosts have been registered but are not connected'
+  homeConnectServerText: 'Alcuni XCP-ng hosts sono stati registrati ma non sono collegati',
 
   // Original text: 'Want some help?'
   homeHelp: 'Vuoi un aiuto?',
@@ -3746,8 +3746,8 @@ export default {
   // Original text: 'To SR:'
   vmImportToSr: 'Per SR:',
 
-  // Original text: 'VMs to import'
-  vmsToImport: 'VMs da importare',
+  // Original text: 'VM{nVms, plural, one {} other {s}} to import'
+  vmsToImport: 'VM{nVms, plural, one {} other {s}} da importare',
 
   // Original text: 'Reset'
   importVmsCleanList: 'Ripristina',
@@ -3905,9 +3905,6 @@ export default {
 
   // Original text: 'Click on a VM to display restore options'
   restoreBackupsInfo: 'Fare clic su una VM per visualizzare le opzioni di ripristino',
-
-  // Original text: 'Only the files of Delta Backup which are not on a SMB remote can be restored'
-  restoreDeltaBackupsInfo: 'È possibile ripristinare solo i file di Delta Backup che non si trovano su un SMB remoto',
 
   // Original text: 'Enabled'
   remoteEnabled: 'Abilitato',
@@ -5363,7 +5360,7 @@ export default {
   xosanUsedSpace: 'Spazio usato',
 
   // Original text: 'License'
-  xosanLicense: 'Licenza',
+  license: 'Licenza',
 
   // Original text: 'This XOSAN has more than 1 license!'
   xosanMultipleLicenses: 'Questo XOSAN ha più di 1 licenza!',
@@ -5674,9 +5671,6 @@ export default {
   // Original text: 'SSH key'
   recipeSshKeyLabel: 'Chiave SSH',
 
-  // Original text: 'Network CIDR'
-  recipeNetworkCidr: 'Rete CIDR',
-
   // Original text: 'Action/Event'
   auditActionEvent: 'Azione/Evento',
 
@@ -5789,7 +5783,7 @@ export default {
   xosanCheckLicenseError: 'Impossibile verificare la licenza su questo XOSAN SR',
 
   // Original text: 'Could not fetch licenses'
-  xosanGetLicensesError: 'Impossibile recuperare le licenze',
+  getLicensesError: 'Impossibile recuperare le licenze',
 
   // Original text: 'License has expired.'
   licenseHasExpired: 'La licenza è scaduta.',
@@ -5801,10 +5795,10 @@ export default {
   licenseBoundToThisXoa: 'Questa licenza è attiva su questo XOA',
 
   // Original text: 'License expires on {date}.'
-  xosanLicenseExpiresDate: 'La licenza scade il {date}.',
+  licenseExpiresDate: 'La licenza scade il {date}.',
 
   // Original text: 'Update the license now!'
-  xosanUpdateLicenseMessage: 'Aggiorna subito la licenza!',
+  updateLicenseMessage: 'Aggiorna subito la licenza!',
 
   // Original text: 'Unknown XOSAN SR.'
   xosanUnknownSr: 'XOSAN SR sconosciuto.',
@@ -5816,7 +5810,7 @@ export default {
   xosanNoLicense: 'Nessuna licenza.',
 
   // Original text: 'Unlock now!'
-  xosanUnlockNow: 'Sblocca ora!',
+  unlockNow: 'Sblocca ora!',
 
   // Original text: 'Select a license'
   selectLicense: 'Seleziona una licenza',

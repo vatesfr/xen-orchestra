@@ -22,7 +22,7 @@ export async function writeOvaOn(
   const ovf = createOvf(vmName, vmDescription, disks, nics, vmMemoryMB, cpuCount, firmware)
   const pack = tar.pack()
   const pipe = pack.pipe(writeStream)
-  await fromCallback.call(pack, pack.entry, { name: `${vmName}.ovf` }, Buffer.from(ovf, 'utf8'))
+  await fromCallback.call(pack, pack.entry, { name: `metadata.ovf` }, Buffer.from(ovf, 'utf8'))
 
   async function writeDisk(entry, blockIterator) {
     for await (const block of blockIterator) {
@@ -32,17 +32,18 @@ export async function writeOvaOn(
 
   // https://github.com/mafintosh/tar-stream/issues/24#issuecomment-558358268
   async function pushDisk(disk) {
-    const size = await computeVmdkLength(disk.name, await disk.getStream())
+    let { iterator, size } = await vhdToVMDKIterator(disk.name, await disk.getStream())
+    if (size === undefined) {
+      size = await computeVmdkLength(disk.name, await disk.getStream())
+    }
     disk.fileSize = size
-    const blockIterator = await vhdToVMDKIterator(disk.name, await disk.getStream())
-
     return new Promise((resolve, reject) => {
-      const entry = pack.entry({ name: `${disk.name}.vmdk`, size: size }, err => {
+      const entry = pack.entry({ name: `${disk.name}.vmdk`, size }, err => {
         if (err == null) {
           return resolve()
         } else return reject(err)
       })
-      return writeDisk(entry, blockIterator).then(
+      return writeDisk(entry, iterator).then(
         () => entry.end(),
         e => reject(e)
       )

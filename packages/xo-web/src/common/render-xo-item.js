@@ -1,9 +1,10 @@
+import * as CM from 'complex-matcher'
 import _ from 'intl'
 import CopyToClipboard from 'react-copy-to-clipboard'
 import PropTypes from 'prop-types'
 import React from 'react'
 import { get } from '@xen-orchestra/defined'
-import { find } from 'lodash'
+import find from 'lodash/find.js'
 
 import decorate from './apply-decorators'
 import Icon from './icon'
@@ -375,7 +376,7 @@ export const Proxy = decorate([
         to={{
           pathname: '/proxies',
           query: {
-            s: `id:${id}`,
+            s: new CM.Property('id', new CM.String(id)).toString(),
           },
         }}
       >
@@ -409,7 +410,11 @@ export const BackupJob = decorate([
     }
 
     return (
-      <LinkWrapper link={link} newTab={newTab} to={`/backup/overview?s=id:${id}`}>
+      <LinkWrapper
+        link={link}
+        newTab={newTab}
+        to={`/backup/overview?s=${encodeURIComponent(new CM.Property('id', new CM.String(id)).toString())}`}
+      >
         {job.name}
       </LinkWrapper>
     )
@@ -459,7 +464,11 @@ export const User = decorate([
       return defaultRender || unknowItem(id, 'user')
     }
     return (
-      <LinkWrapper link={link} newTab={newTab} to={`/settings/users?s=id:${id}`}>
+      <LinkWrapper
+        link={link}
+        newTab={newTab}
+        to={`/settings/users?s=${encodeURIComponent(new CM.Property('id', new CM.String(id)).toString())}`}
+      >
         <Icon icon='user' /> {user.email}
       </LinkWrapper>
     )

@@ -2,16 +2,17 @@
 
 const CancelToken = require('promise-toolbox/CancelToken')
 const groupBy = require('lodash/groupBy.js')
+const hrp = require('http-request-plus')
 const ignoreErrors = require('promise-toolbox/ignoreErrors')
 const pickBy = require('lodash/pickBy.js')
 const omit = require('lodash/omit.js')
 const pCatch = require('promise-toolbox/catch')
-const pRetry = require('promise-toolbox/retry')
 const { asyncMap } = require('@xen-orchestra/async-map')
 const { createLogger } = require('@xen-orchestra/log')
 const { decorateClass } = require('@vates/decorate-with')
 const { defer } = require('golike-defer')
-const { incorrectState } = require('xo-common/api-errors.js')
+const { incorrectState, forbiddenOperation } = require('xo-common/api-errors.js')
+const { JsonRpcError } = require('json-rpc-protocol')
 const { Ref } = require('xen-api')
 
 const extractOpaqueRef = require('./_extractOpaqueRef.js')
@@ -43,6 +44,31 @@ const cleanBiosStrings = biosStrings => {
       return biosStrings
     }
   }
+}
+
+// See: https://github.com/xapi-project/xen-api/blob/324bc6ee6664dd915c0bbe57185f1d6243d9ed7e/ocaml/xapi/xapi_guest_agent.ml#L59-L81
+//
+// Returns <min(n)>/ip || <min(n)>/ipv4/<min(m)> || <min(n)>/ipv6/<min(m)> || undefined
+// where n corresponds to the network interface and m to its IP
+const IPV4_KEY_RE = /^\d+\/ip(?:v4\/\d+)?$/
+const IPV6_KEY_RE = /^\d+\/ipv6\/\d+$/
+function getVmAddress(networks) {
+  if (networks !== undefined) {
+    let ipv6
+    for (const key of Object.keys(networks).sort()) {
+      if (IPV4_KEY_RE.test(key)) {
+        return networks[key]
+      }
+
+      if (ipv6 === undefined && IPV6_KEY_RE.test(key)) {
+        ipv6 = networks[key]
+      }
+    }
+    if (ipv6 !== undefined) {
+      return ipv6
+    }
+  }
+  throw new Error('no VM address found')
 }
 
 async function listNobakVbds(xapi, vbdRefs) {
@@ -131,6 +157,51 @@ class Vm {
     }
   }
 
+  async _httpHook({ guest_metrics, power_state, tags, uuid }, pathname) {
+    if (power_state !== 'Running') {
+      return
+    }
+
+    let url
+    let i = tags.length
+    do {
+      if (i === 0) {
+        return
+      }
+      const tag = tags[--i]
+      if (tag === 'xo:notify-on-snapshot') {
+        const { networks } = await this.getRecord('VM_guest_metrics', guest_metrics)
+        url = Object.assign(new URL('https://locahost'), {
+          hostname: getVmAddress(networks),
+          port: 1727,
+        })
+      } else {
+        const prefix = 'xo:notify-on-snapshot='
+        if (tag.startsWith(prefix)) {
+          url = new URL(tag.slice(prefix.length))
+        }
+      }
+    } while (url === undefined)
+
+    url.pathname = pathname
+
+    const headers = {}
+    const secret = this._asyncHookSecret
+    if (secret !== undefined) {
+      headers.authorization = 'Bearer ' + Buffer.from(secret).toString('base64')
+    }
+
+    try {
+      await hrp(url, {
+        headers,
+        rejectUnauthorized: false,
+        timeout: this._syncHookTimeout ?? 60e3,
+      })
+    } catch (error) {
+      warn('HTTP hook failed', { error, url, vm: uuid })
+    }
+  }
+
   async assertHealthyVdiChains(vmRef, tolerance = this._maxUncoalescedVdis) {
     const vdiRefs = {}
     ;(await this.getRecords('VBD', await this.getField('VM', vmRef, 'VBDs'))).forEach(({ VDI: ref }) => {
@@ -144,28 +215,21 @@ class Vm {
     }
   }
 
-  async checkpoint($defer, vmRef, { cancelToken = CancelToken.none, ignoreNobakVdis = false, name_label } = {}) {
+  // does not support NOBAK VDIs because unplugging or destroying VBDs/VDIs on
+  // a suspended VM is not supported
+  async checkpoint($defer, vmRef, { cancelToken = CancelToken.none, name_label } = {}) {
     const vm = await this.getRecord('VM', vmRef)
 
-    let destroyNobakVdis = false
-
-    if (ignoreNobakVdis) {
-      if (vm.power_state === 'Halted') {
-        await asyncMap(await listNobakVbds(this, vm.VBDs), async vbd => {
-          await this.VBD_destroy(vbd.$ref)
-          $defer.call(this, 'VBD_create', vbd)
-        })
-      } else {
-        // cannot unplug VBDs on Running, Paused and Suspended VMs
-        destroyNobakVdis = true
-      }
-    }
+    await this._httpHook(vm, '/sync')
 
     if (name_label === undefined) {
       name_label = vm.name_label
     }
     try {
       const ref = await this.callAsync(cancelToken, 'VM.checkpoint', vmRef, name_label).then(extractOpaqueRef)
+
+      // detached async
+      this._httpHook(vm, '/post-sync').catch(noop)
 
       // VM checkpoints are marked as templates, unfortunately it does not play well with XVA export/import
       // which will import them as templates and not VM checkpoints or plain VMs
@@ -178,12 +242,6 @@ class Vm {
         { code: 'LICENSE_RESTRICTION' },
         noop
       )
-
-      if (destroyNobakVdis) {
-        await asyncMap(await listNobakVbds(this, await this.getField('VM', ref, 'VBDs')), vbd =>
-          this.VDI_destroy(vbd.VDI)
-        )
-      }
 
       return ref
     } catch (error) {
@@ -343,7 +401,13 @@ class Vm {
     const vm = await this.getRecord('VM', vmRef)
 
     if (!bypassBlockedOperation && 'destroy' in vm.blocked_operations) {
-      throw new Error('destroy is blocked')
+      throw forbiddenOperation(
+        `destroy is blocked: ${
+          vm.blocked_operations.destroy === 'true'
+            ? 'protected from accidental deletion'
+            : vm.blocked_operations.destroy
+        }`
+      )
     }
 
     if (!forceDeleteDefaultTemplate && isDefaultTemplate(vm)) {
@@ -503,6 +567,22 @@ class Vm {
       }
       return ref
     } catch (error) {
+      if (
+        // xxhash is the new form consistency hashing in CH 8.1 which uses a faster,
+        // more efficient hashing algorithm to generate the consistency checks
+        // in order to support larger files without the consistency checking process taking an incredibly long time
+        error.code === 'IMPORT_ERROR' &&
+        error.params?.some(
+          param =>
+            param.includes('INTERNAL_ERROR') &&
+            param.includes('Expected to find an inline checksum') &&
+            param.includes('.xxhash')
+        )
+      ) {
+        warn('import', { error })
+        throw new JsonRpcError('Importing this VM requires XCP-ng or Citrix Hypervisor >=8.1')
+      }
+
       // augment the error with as much relevant info as possible
       const [poolMaster, sr] = await Promise.all([
         safeGetRecord(this, 'host', this.pool.master),
@@ -521,103 +601,64 @@ class Vm {
   ) {
     const vm = await this.getRecord('VM', vmRef)
 
+    await this._httpHook(vm, '/sync')
+
     const isHalted = vm.power_state === 'Halted'
 
     // requires the VM to be halted because it's not possible to re-plug VUSB on a live VM
     if (unplugVusbs && isHalted) {
-      await asyncMap(vm.VUSBs, async ref => {
-        const vusb = await this.getRecord('VUSB', ref)
-        await vusb.$call('destroy')
-        $defer.call(this, 'call', 'VUSB.create', vusb.VM, vusb.USB_group, vusb.other_config)
-      })
+      // vm.VUSBs can be undefined (e.g. on XS 7.0.0)
+      const vusbs = vm.VUSBs
+      if (vusbs !== undefined) {
+        await asyncMap(vusbs, async ref => {
+          const vusb = await this.getRecord('VUSB', ref)
+          await vusb.$call('destroy')
+          $defer.call(this, 'call', 'VUSB.create', vusb.VM, vusb.USB_group, vusb.other_config)
+        })
+      }
+    }
+
+    let ignoredVbds
+    if (ignoreNobakVdis) {
+      ignoredVbds = await listNobakVbds(this, vm.VBDs)
+      ignoreNobakVdis = ignoredVbds.length !== 0
+    }
+
+    const params = [cancelToken, 'VM.snapshot', vmRef, name_label ?? vm.name_label]
+    if (ignoreNobakVdis) {
+      params.push(ignoredVbds.map(_ => _.VDI))
     }
 
     let destroyNobakVdis = false
-    if (ignoreNobakVdis) {
-      if (isHalted) {
-        await asyncMap(await listNobakVbds(this, vm.VBDs), async vbd => {
-          await this.VBD_destroy(vbd.$ref)
-          $defer.call(this, 'VBD_create', vbd)
-        })
-      } else {
-        // cannot unplug VBDs on Running, Paused and Suspended VMs
-        destroyNobakVdis = true
+    let result
+    try {
+      result = await this.callAsync(...params)
+    } catch (error) {
+      if (error.code !== 'MESSAGE_PARAMETER_COUNT_MISMATCH') {
+        throw error
       }
-    }
 
-    if (name_label === undefined) {
-      name_label = vm.name_label
-    }
-    let ref
-    do {
-      if (!vm.tags.includes('xo-disable-quiesce')) {
-        try {
-          let { snapshots } = vm
-          ref = await pRetry(
-            async () => {
-              try {
-                return await this.callAsync(cancelToken, 'VM.snapshot_with_quiesce', vmRef, name_label)
-              } catch (error) {
-                if (error == null || error.code !== 'VM_SNAPSHOT_WITH_QUIESCE_FAILED') {
-                  throw pRetry.bail(error)
-                }
-                // detect and remove new broken snapshots
-                //
-                // see https://github.com/vatesfr/xen-orchestra/issues/3936
-                const prevSnapshotRefs = new Set(snapshots)
-                const snapshotNameLabelPrefix = `Snapshot of ${vm.uuid} [`
-                snapshots = await this.getField('VM', vm.$ref, 'snapshots')
-                const createdSnapshots = (
-                  await this.getRecords(
-                    'VM',
-                    snapshots.filter(_ => !prevSnapshotRefs.has(_))
-                  )
-                ).filter(_ => _.name_label.startsWith(snapshotNameLabelPrefix))
-                // be safe: only delete if there was a single match
-                if (createdSnapshots.length === 1) {
-                  const snapshotRef = createdSnapshots[0]
-                  this.VM_destroy(snapshotRef).catch(error => {
-                    warn('VM_sapshot: failed to destroy broken snapshot', {
-                      error,
-                      snapshotRef,
-                      vmRef,
-                    })
-                  })
-                }
-                throw error
-              }
-            },
-            {
-              delay: 60e3,
-              tries: 3,
-            }
-          ).then(extractOpaqueRef)
-          this.call('VM.add_tags', ref, 'quiesce').catch(error => {
-            warn('VM_snapshot: failed to add quiesce tag', {
-              vmRef,
-              snapshotRef: ref,
-              error,
-            })
+      if (ignoreNobakVdis) {
+        if (isHalted) {
+          await asyncMap(ignoredVbds, async vbd => {
+            await this.VBD_destroy(vbd.$ref)
+            $defer.call(this, 'VBD_create', vbd)
           })
-          break
-        } catch (error) {
-          const { code } = error
-          if (
-            // removed in CH 8.1
-            code !== 'MESSAGE_REMOVED' &&
-            code !== 'VM_SNAPSHOT_WITH_QUIESCE_NOT_SUPPORTED' &&
-            // quiesce only work on a running VM
-            code !== 'VM_BAD_POWER_STATE' &&
-            // quiesce failed, fallback on standard snapshot
-            // TODO: emit warning
-            code !== 'VM_SNAPSHOT_WITH_QUIESCE_FAILED'
-          ) {
-            throw error
-          }
+        } else {
+          // cannot unplug VBDs on Running, Paused and Suspended VMs
+          destroyNobakVdis = true
         }
       }
-      ref = await this.callAsync(cancelToken, 'VM.snapshot', vmRef, name_label).then(extractOpaqueRef)
-    } while (false)
+
+      params.pop()
+
+      result = await this.callAsync(...params)
+    }
+
+    const ref = extractOpaqueRef(result)
+
+    // detached async
+    this._httpHook(vm, '/post-sync').catch(noop)
 
     // VM snapshots are marked as templates, unfortunately it does not play well with XVA export/import
     // which will import them as templates and not VM snapshots or plain VMs
@@ -632,9 +673,17 @@ class Vm {
     )
 
     if (destroyNobakVdis) {
-      await asyncMap(await listNobakVbds(this, await this.getField('VM', ref, 'VBDs')), vbd =>
-        this.VDI_destroy(vbd.VDI)
-      )
+      await asyncMap(await listNobakVbds(this, await this.getField('VM', ref, 'VBDs')), async vbd => {
+        try {
+          await this.VDI_destroy(vbd.VDI)
+        } catch (error) {
+          warn('VM_snapshot, failed to destroy snapshot NOBAK VDI', {
+            vdiRef: vbd.VDI,
+            vmRef,
+            vmSnapshotRef: ref,
+          })
+        }
+      })
     }
 
     return ref

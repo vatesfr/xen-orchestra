@@ -8,8 +8,8 @@
 
 Installation of the [npm package](https://npmjs.org/package/@xen-orchestra/xapi):
 
-```
-> npm install --save @xen-orchestra/xapi
+```sh
+npm install --save @xen-orchestra/xapi
 ```
 
 ## Contributions

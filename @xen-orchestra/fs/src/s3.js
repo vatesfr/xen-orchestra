@@ -27,7 +27,7 @@ import copyStreamToBuffer from './_copyStreamToBuffer.js'
 import createBufferFromStream from './_createBufferFromStream.js'
 import guessAwsRegion from './_guessAwsRegion.js'
 import RemoteHandlerAbstract from './abstract'
-import { basename, join, split } from './_path'
+import { basename, join, split } from './path'
 import { asyncEach } from '@vates/async-each'
 
 // endpoints https://docs.aws.amazon.com/general/latest/gr/s3.html
@@ -154,6 +154,14 @@ export default class S3Handler extends RemoteHandlerAbstract {
       // object > 5GB must be copied part by part
       if (e.name === 'EntityTooLarge') {
         return this._multipartCopy(oldPath, newPath)
+      }
+      // normalize this error code
+      if (e.name === 'NoSuchKey') {
+        const error = new Error(`ENOENT: no such file or directory '${oldPath}'`)
+        error.cause = e
+        error.code = 'ENOENT'
+        error.path = oldPath
+        throw error
       }
       throw e
     }
@@ -525,4 +533,8 @@ export default class S3Handler extends RemoteHandlerAbstract {
   }
 
   async _closeFile(fd) {}
+
+  useVhdDirectory() {
+    return true
+  }
 }

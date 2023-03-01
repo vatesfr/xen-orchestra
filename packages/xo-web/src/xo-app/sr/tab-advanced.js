@@ -9,7 +9,7 @@ import { Container, Row, Col } from 'grid'
 import { CustomFields } from 'custom-fields'
 import { createGetObjectsOfType } from 'selectors'
 import { createSelector } from 'reselect'
-import { createSrUnhealthyVdiChainsLengthSubscription, deleteSr } from 'xo'
+import { createSrUnhealthyVdiChainsLengthSubscription, deleteSr, toggleSrMaintenanceMode } from 'xo'
 import { flowRight, isEmpty, keys, sum, values } from 'lodash'
 
 // ===================================================================
@@ -42,14 +42,14 @@ const UnhealthyVdiChains = flowRight(
     chains: createSrUnhealthyVdiChainsLengthSubscription(props.sr),
   })),
   connectStore(() => ({
-    vdis: createGetObjectsOfType('VDI').pick(createSelector((_, props) => props.chains, keys)),
+    vdis: createGetObjectsOfType('VDI').pick(createSelector((_, props) => props.chains?.unhealthyVdis, keys)),
   }))
-)(({ chains, vdis }) =>
+)(({ chains: { unhealthyVdis } = {}, vdis }) =>
   isEmpty(vdis) ? null : (
     <div>
       <hr />
-      <h3>{_('srUnhealthyVdiTitle', { total: sum(values(chains)) })}</h3>
-      <SortedTable collection={vdis} columns={COLUMNS} stateUrlParam='s_unhealthy_vdis' userData={chains} />
+      <h3>{_('srUnhealthyVdiTitle', { total: sum(values(unhealthyVdis)) })}</h3>
+      <SortedTable collection={vdis} columns={COLUMNS} stateUrlParam='s_unhealthy_vdis' userData={unhealthyVdis} />
     </div>
   )
 )
@@ -59,6 +59,23 @@ export default ({ sr }) => (
     <Row>
       <Col className='text-xs-right'>
         <TabButton btnStyle='danger' handler={deleteSr} handlerParam={sr} icon='sr-remove' labelId='srRemoveButton' />
+        {sr.inMaintenanceMode ? (
+          <TabButton
+            btnStyle='warning'
+            handler={toggleSrMaintenanceMode}
+            handlerParam={sr}
+            icon='sr-disable'
+            labelId='disableMaintenanceMode'
+          />
+        ) : (
+          <TabButton
+            btnStyle='warning'
+            handler={toggleSrMaintenanceMode}
+            handlerParam={sr}
+            icon='sr-enable'
+            labelId='enableMaintenanceMode'
+          />
+        )}
       </Col>
     </Row>
     <Row>

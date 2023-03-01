@@ -1,19 +1,25 @@
 import _, { messages } from 'intl'
 import Collapse from 'collapse'
 import Component from 'base-component'
-import defined from '@xen-orchestra/defined'
 import Icon from 'icon'
 import Link from 'link'
 import React from 'react'
 import renderXoItem, { Pool } from 'render-xo-item'
 import SortedTable from 'sorted-table'
+import { addSubscriptions, connectStore, resolveIds } from 'utils'
 import { FormattedDate, FormattedRelative, injectIntl } from 'react-intl'
 import { SelectPool } from 'select-objects'
-import { connectStore, resolveIds } from 'utils'
 import { Col, Container, Row } from 'grid'
-import { differenceBy, flatMap, flatten, forOwn, groupBy, isEmpty, keys, map, some, toArray } from 'lodash'
-import { createFilter, createGetObject, createGetObjectsOfType, createSelector } from 'selectors'
-import { cancelTask, cancelTasks, destroyTask, destroyTasks } from 'xo'
+import { differenceBy, isEmpty, map, some } from 'lodash'
+import {
+  createFilter,
+  createGetObject,
+  createGetObjectsOfType,
+  createSelector,
+  getResolvedPendingTasks,
+  isAdmin,
+} from 'selectors'
+import { cancelTask, cancelTasks, destroyTask, destroyTasks, subscribePermissions } from 'xo'
 
 import Page from '../page'
 
@@ -182,66 +188,23 @@ const GROUPED_ACTIONS = [
   },
 ]
 
+@addSubscriptions({
+  permissions: subscribePermissions,
+})
 @connectStore(() => {
-  const getPendingTasks = createGetObjectsOfType('task').filter([task => task.status === 'pending'])
+  const getPools = createGetObjectsOfType('pool').pick(
+    createSelector(getResolvedPendingTasks, resolvedPendingTasks => resolvedPendingTasks.map(task => task.$poolId))
+  )
 
-  const getNPendingTasks = getPendingTasks.count()
-
-  const predicate = obj => !isEmpty(obj.current_operations)
-
-  const getLinkedObjectsByTaskRefOrId = createSelector(
-    createGetObjectsOfType('pool').filter([predicate]),
-    createGetObjectsOfType('host').filter([predicate]),
-    createGetObjectsOfType('SR').filter([predicate]),
-    createGetObjectsOfType('VDI').filter([predicate]),
-    createGetObjectsOfType('VM').filter([predicate]),
-    createGetObjectsOfType('network').filter([predicate]),
-    (pools, hosts, srs, vdis, vms, networks) => {
-      const linkedObjectsByTaskRefOrId = {}
-      const resolveLinkedObjects = obj => {
-        Object.keys(obj.current_operations).forEach(task => {
-          if (linkedObjectsByTaskRefOrId[task] === undefined) {
-            linkedObjectsByTaskRefOrId[task] = []
-          }
-          linkedObjectsByTaskRefOrId[task].push(obj)
-        })
-      }
-
-      forOwn(pools, resolveLinkedObjects)
-      forOwn(hosts, resolveLinkedObjects)
-      forOwn(srs, resolveLinkedObjects)
-      forOwn(vdis, resolveLinkedObjects)
-      forOwn(vms, resolveLinkedObjects)
-      forOwn(networks, resolveLinkedObjects)
-
-      return linkedObjectsByTaskRefOrId
+  return (state, props) => {
+    // true: useResourceSet to bypass permissions
+    const resolvedPendingTasks = getResolvedPendingTasks(state, props, true)
+    return {
+      isAdmin: isAdmin(state, props),
+      nResolvedTasks: resolvedPendingTasks.length,
+      pools: getPools(state, props, true),
+      resolvedPendingTasks,
     }
-  )
-
-  const getPendingTasksByPool = createSelector(
-    getPendingTasks,
-    getLinkedObjectsByTaskRefOrId,
-    (tasks, linkedObjectsByTaskRefOrId) =>
-      groupBy(
-        map(tasks, task => ({
-          ...task,
-          objects: [
-            ...defined(linkedObjectsByTaskRefOrId[task.xapiRef], []),
-            // for VMs, the current_operations prop is
-            // { taskId → operation } map instead of { taskRef → operation } map
-            ...defined(linkedObjectsByTaskRefOrId[task.id], []),
-          ],
-        })),
-        '$pool'
-      )
-  )
-
-  const getPools = createGetObjectsOfType('pool').pick(createSelector(getPendingTasksByPool, keys))
-
-  return {
-    nTasks: getNPendingTasks,
-    pendingTasksByPool: getPendingTasksByPool,
-    pools: getPools,
   }
 })
 @injectIntl
@@ -251,11 +214,7 @@ export default class Tasks extends Component {
   }
 
   componentWillReceiveProps(props) {
-    const finishedTasks = differenceBy(
-      flatten(toArray(this.props.pendingTasksByPool)),
-      flatten(toArray(props.pendingTasksByPool)),
-      'id'
-    )
+    const finishedTasks = differenceBy(this.props.resolvedPendingTasks, props.resolvedPendingTasks, 'id')
     if (!isEmpty(finishedTasks)) {
       this.setState({
         finishedTasks: finishedTasks
@@ -265,22 +224,14 @@ export default class Tasks extends Component {
     }
   }
 
-  _getTasks = createSelector(
+  _getPoolFilter = createSelector(
     createSelector(() => this.state.pools, resolveIds),
-    () => this.props.pendingTasksByPool,
-    (poolIds, pendingTasksByPool) =>
-      isEmpty(poolIds)
-        ? flatten(toArray(pendingTasksByPool))
-        : flatMap(poolIds, poolId => pendingTasksByPool[poolId] || [])
+    poolIds => (isEmpty(poolIds) ? null : ({ $poolId }) => poolIds.includes($poolId))
   )
 
-  _getFinishedTasks = createFilter(
-    () => this.state.finishedTasks,
-    createSelector(
-      createSelector(() => this.state.pools, resolveIds),
-      poolIds => (isEmpty(poolIds) ? null : ({ $poolId }) => poolIds.includes($poolId))
-    )
-  )
+  _getTasks = createFilter(() => this.props.resolvedPendingTasks, this._getPoolFilter)
+
+  _getFinishedTasks = createFilter(() => this.state.finishedTasks, this._getPoolFilter)
 
   _getItemsPerPageContainer = () => this.state.itemsPerPageContainer
 
@@ -288,11 +239,11 @@ export default class Tasks extends Component {
 
   render() {
     const { props } = this
-    const { intl, nTasks, pools } = props
+    const { intl, nResolvedTasks, pools } = props
     const { formatMessage } = intl
 
     return (
-      <Page header={HEADER} title={`(${nTasks}) ${formatMessage(messages.taskPage)}`}>
+      <Page header={HEADER} title={`(${nResolvedTasks}) ${formatMessage(messages.taskPage)}`}>
         <Container>
           <Row className='mb-1'>
             <Col mediumSize={7}>

@@ -17,10 +17,17 @@ xo-server-recover-account <user name or email>
 `
   }
 
-  let password = await new Promise(resolve => {
-    process.stdout.write('Password (leave empty for random): ')
-    pw(resolve)
-  })
+  const support = name === '-s'
+  if (support) {
+    name = 'xoa-support'
+  }
+
+  let password = support
+    ? ''
+    : await new Promise(resolve => {
+        process.stdout.write('Password (leave empty for random): ')
+        pw(resolve)
+      })
 
   if (password === '') {
     password = await generateToken(10)
@@ -34,6 +41,8 @@ xo-server-recover-account <user name or email>
     }),
   })
 
+  await xo.hooks.startCore()
+
   const user = await xo.getUserByName(name, true)
   if (user !== null) {
     await xo.updateUser(user.id, {
@@ -46,4 +55,6 @@ xo-server-recover-account <user name or email>
     await xo.createUser({ name, password, permission: 'admin' })
     console.log(`user ${name} has been successfully created`)
   }
+
+  await xo.hooks.stop()
 })
