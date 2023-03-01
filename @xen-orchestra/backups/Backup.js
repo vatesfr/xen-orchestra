@@ -26,6 +26,7 @@ const getAdaptersByRemote = adapters => {
 const runTask = (...args) => Task.run(...args).catch(noop) // errors are handled by logs
 
 const DEFAULT_SETTINGS = {
+  getRemoteTimeout: 300e3,
   reportWhen: 'failure',
 }
 
@@ -37,7 +38,6 @@ const DEFAULT_VM_SETTINGS = {
   deleteFirst: false,
   exportRetention: 0,
   fullInterval: 0,
-  getRemoteTimeout: 300e3,
   healthCheckSr: undefined,
   healthCheckVmsWithTags: [],
   maxMergedDeltasPerRun: Infinity,
