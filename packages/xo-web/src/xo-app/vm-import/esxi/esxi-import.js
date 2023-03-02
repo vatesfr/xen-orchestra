@@ -3,7 +3,7 @@ import ActionButton from 'action-button'
 import Button from 'button'
 import Component from 'base-component'
 import React from 'react'
-import { connectStore } from 'utils'
+import { connectStore, resolveId } from 'utils'
 import { createGetObjectsOfType, createSelector } from 'selectors'
 import { esxiListVms, importVmFromEsxi, isSrWritable } from 'xo'
 import { find, isEmpty, keyBy, map, pick } from 'lodash'
@@ -66,7 +66,7 @@ class EsxiImport extends Component {
       host: hostIp,
       network: network?.id ?? this._getDefaultNetwork(),
       password,
-      sr: sr.id,
+      sr: resolveId(sr),
       sslVerify: !skipSslVerify,
       stopSource,
       thin,
