@@ -11,6 +11,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Import VM] fix invalid parameters when importing a VM from VMware [Forum#6714](https://xcp-ng.org/forum/topic/6714/vmware-migration-tool-we-need-your-feedback/143) (PR [#6696](https://github.com/vatesfr/xen-orchestra/pull/6696))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -27,6 +29,7 @@
 
 <!--packages-start-->
 
+- xo-web patch
 - xo-server minor
 
 <!--packages-end-->
