@@ -131,7 +131,7 @@ const reload = () => window.location.reload();
 .main {
   overflow: auto;
   flex: 1;
-  height: calc(100vh - 9rem);
+  height: calc(100vh - 8rem);
   background-color: var(--background-color-secondary);
 }
 </style>
