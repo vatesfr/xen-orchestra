@@ -66,7 +66,7 @@ class EsxiImport extends Component {
       host: hostIp,
       network: network?.id ?? this._getDefaultNetwork(),
       password,
-      sr,
+      sr: sr.id,
       sslVerify: !skipSslVerify,
       stopSource,
       thin,
