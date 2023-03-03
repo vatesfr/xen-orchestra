@@ -613,7 +613,7 @@ export const addServer = (host, username, password, label, allowUnauthorized, ht
     allowUnauthorized,
     host,
     httpProxy: httpProxy || undefined,
-    label,
+    label: label || undefined,
     password,
     username,
   })::tap(subscribeServers.forceRefresh, () => error(_('serverError'), _('serverAddFailed')))
