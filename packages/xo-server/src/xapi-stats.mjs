@@ -11,9 +11,8 @@ import uniq from 'lodash/uniq.js'
 import zipWith from 'lodash/zipWith.js'
 import { BaseError } from 'make-error'
 import { limitConcurrency } from 'limit-concurrency-decorator'
+import { parseDateTime } from '@xen-orchestra/xapi'
 import { synchronized } from 'decorator-synchronized'
-
-import { parseDateTime } from './xapi/index.mjs'
 
 export class FaultyGranularity extends BaseError {}
 

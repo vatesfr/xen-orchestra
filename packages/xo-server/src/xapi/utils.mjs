@@ -4,7 +4,6 @@ import isEqual from 'lodash/isEqual.js'
 import isPlainObject from 'lodash/isPlainObject.js'
 import pickBy from 'lodash/pickBy.js'
 import semver from 'semver'
-import { utcParse } from 'd3-time-format'
 
 import { camelToSnakeCase, forEach, isInteger, map, mapFilter, noop } from '../utils.mjs'
 
@@ -54,21 +53,6 @@ export const extractOpaqueRef = str => {
     throw new Error('no opaque ref found')
   }
   return matches[0]
-}
-
-// -------------------------------------------------------------------
-
-const parseDateTimeHelper = utcParse('%Y%m%dT%H:%M:%SZ')
-
-export function parseDateTime(str, defaultValue) {
-  const date = parseDateTimeHelper(str)
-  if (date === null) {
-    if (arguments.length > 1) {
-      return defaultValue
-    }
-    throw new RangeError(`unable to parse XAPI datetime ${JSON.stringify(str)}`)
-  }
-  return date.getTime()
 }
 
 // -------------------------------------------------------------------
