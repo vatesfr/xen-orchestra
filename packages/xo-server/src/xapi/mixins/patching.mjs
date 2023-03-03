@@ -63,7 +63,7 @@ export default {
     return this
   })
   async _getXenUpdates() {
-    const response = await this.xo.httpRequest('http://updates.xensource.com/XenServer/updates.xml')
+    const response = await this.xo.httpRequest('https://updates.xensource.com/XenServer/updates.xml')
 
     const data = parseXml(await response.buffer()).patchdata
 
