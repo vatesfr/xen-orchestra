@@ -1,8 +1,8 @@
 <template>
   <UiCardTitle
-    subtitle
     :left="$t('hosts')"
     :right="$t('top-#', { n: N_ITEMS })"
+    subtitle
   />
   <UsageBar :data="statFetched ? data : undefined" :n-items="N_ITEMS" />
 </template>

@@ -17,33 +17,39 @@
 import LinearChart from "@/components/charts/LinearChart.vue";
 import SizeStatsSummary from "@/components/ui/SizeStatsSummary.vue";
 import type { FetchedStats } from "@/composables/fetch-stats.composable";
+import { formatSize, getHostMemory } from "@/libs/utils";
 import type { HostStats } from "@/libs/xapi-stats";
 import { RRD_STEP_FROM_STRING } from "@/libs/xapi-stats";
+import type { XenApiHost } from "@/libs/xen-api";
+import { useHostMetricsStore } from "@/stores/host-metrics.store";
 import { useHostStore } from "@/stores/host.store";
 import type { LinearChartData } from "@/types/chart";
 import { sumBy } from "lodash-es";
-import { storeToRefs } from "pinia";
 import { computed, inject } from "vue";
 import { useI18n } from "vue-i18n";
-import { formatSize, getHostMemory, isHostRunning } from "@/libs/utils";
-import type { XenApiHost } from "@/libs/xen-api";
 
-const { allRecords: hosts } = storeToRefs(useHostStore());
+const hostMetricsSubscription = useHostMetricsStore().subscribe();
+
+const hostStore = useHostStore();
+const { runningHosts } = hostStore.subscribe({ hostMetricsSubscription });
+
 const { t } = useI18n();
 
 const hostLastWeekStats =
   inject<FetchedStats<XenApiHost, HostStats>>("hostLastWeekStats");
 
-const runningHosts = computed(() => hosts.value.filter(isHostRunning));
 const customMaxValue = computed(() =>
-  sumBy(runningHosts.value, (host) => getHostMemory(host)?.size ?? 0)
+  sumBy(
+    runningHosts.value,
+    (host) => getHostMemory(host, hostMetricsSubscription)?.size ?? 0
+  )
 );
 
 const currentData = computed(() => {
   let size = 0,
     usage = 0;
   runningHosts.value.forEach((host) => {
-    const hostMemory = getHostMemory(host);
+    const hostMemory = getHostMemory(host, hostMetricsSubscription);
     size += hostMemory?.size ?? 0;
     usage += hostMemory?.usage ?? 0;
   });

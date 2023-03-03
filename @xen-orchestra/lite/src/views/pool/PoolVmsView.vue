@@ -1,6 +1,6 @@
 <template>
   <UiCard class="pool-vms-view">
-    <UiCardTitle>
+    <UiCardTitle subtitle>
       VMs
       <template v-if="isMobile" #right>
         <VmsActionsBar :selected-refs="selectedVmsRefs" />
@@ -44,7 +44,7 @@ import { faPowerOff } from "@fortawesome/free-solid-svg-icons";
 import { storeToRefs } from "pinia";
 import { ref } from "vue";
 
-const { allRecords: vms } = storeToRefs(useVmStore());
+const { records: vms } = useVmStore().subscribe();
 const { isMobile, isDesktop } = storeToRefs(useUiStore());
 
 const filters: Filters = {

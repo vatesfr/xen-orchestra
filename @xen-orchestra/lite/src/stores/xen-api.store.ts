@@ -1,131 +1,98 @@
-import { defineStore } from "pinia";
-import { ref, watchEffect } from "vue";
-import { useLocalStorage } from "@vueuse/core";
+import { buildXoObject } from "@/libs/utils";
 import XapiStats from "@/libs/xapi-stats";
 import type { XenApiRecord } from "@/libs/xen-api";
-import XenApi from "@/libs/xen-api";
-import { useConsoleStore } from "@/stores/console.store";
-import { useHostMetricsStore } from "@/stores/host-metrics.store";
-import { useHostStore } from "@/stores/host.store";
-import { usePoolStore } from "@/stores/pool.store";
-import { useRecordsStore } from "@/stores/records.store";
-import { useSrStore } from "@/stores/storage.store";
-import { useTaskStore } from "@/stores/task.store";
-import { useVmGuestMetricsStore } from "@/stores/vm-guest-metrics.store";
-import { useVmMetricsStore } from "@/stores/vm-metrics.store";
-import { useVmStore } from "@/stores/vm.store";
+import XenApi, { getRawObjectType } from "@/libs/xen-api";
+import { useXapiCollectionStore } from "@/stores/xapi-collection.store";
+import { useLocalStorage } from "@vueuse/core";
+import { defineStore } from "pinia";
+import { computed, ref } from "vue";
+
+const HOST_URL = import.meta.env.PROD
+  ? window.origin
+  : import.meta.env.VITE_XO_HOST;
+
+enum STATUS {
+  DISCONNECTED,
+  CONNECTING,
+  CONNECTED,
+}
 
 export const useXenApiStore = defineStore("xen-api", () => {
-  const xenApi = new XenApi(
-    import.meta.env.PROD ? window.origin : import.meta.env.VITE_XO_HOST
-  );
+  const xenApi = new XenApi(HOST_URL);
   const xapiStats = new XapiStats(xenApi);
-  const currentSessionId = useLocalStorage<string | null>("sessionId", null);
-  const isConnected = ref(false);
-  const isConnecting = ref(false);
+  const currentSessionId = useLocalStorage<string | undefined>(
+    "sessionId",
+    undefined
+  );
+  const status = ref(STATUS.DISCONNECTED);
+  const isConnected = computed(() => status.value === STATUS.CONNECTED);
+  const isConnecting = computed(() => status.value === STATUS.CONNECTING);
+  const getXapi = () => xenApi;
+  const getXapiStats = () => xapiStats;
 
-  async function getXapi() {
-    if (!currentSessionId.value) {
-      throw new Error("Not connected to xapi");
-    }
+  xenApi.registerWatchCallBack((results) => {
+    results.forEach((result) => {
+      const collection = useXapiCollectionStore().get(
+        getRawObjectType(result.class)
+      );
 
-    return xenApi;
-  }
-
-  function getXapiStats() {
-    if (!currentSessionId.value) {
-      throw new Error("Not connected to xapi");
-    }
-
-    return xapiStats;
-  }
-
-  async function init() {
-    const poolStore = usePoolStore();
-    await poolStore.init();
-
-    const xapi = await getXapi();
-
-    watchEffect(async () => {
-      if (!poolStore.poolOpaqueRef) {
+      if (!collection.hasSubscriptions) {
         return;
       }
 
-      await xapi.injectWatchEvent(poolStore.poolOpaqueRef);
-
-      xapi.registerWatchCallBack((results) => {
-        const recordsStore = useRecordsStore();
-        results.forEach((result) => {
-          if (result.operation === "del") {
-            recordsStore.removeRecord(result.class, result.ref);
-          } else {
-            recordsStore.addOrReplaceRecord(
-              result.class,
-              result.ref,
-              result.snapshot as XenApiRecord
-            );
-          }
-        });
-      });
-      xapi.startWatch();
+      switch (result.operation) {
+        case "add":
+          return collection.add(
+            buildXoObject(result.snapshot, { opaqueRef: result.ref })
+          );
+        case "mod":
+          return collection.update(
+            buildXoObject(result.snapshot, { opaqueRef: result.ref })
+          );
+        case "del":
+          return collection.remove(result.ref);
+      }
     });
+  });
 
-    const hostStore = useHostStore();
-    const vmStore = useVmStore();
+  const connect = async (username: string, password: string) => {
+    status.value = STATUS.CONNECTING;
 
-    await Promise.all([hostStore.init(), vmStore.init()]);
-
-    const hostMetricsStore = useHostMetricsStore();
-    const vmMetricsStore = useVmMetricsStore();
-    const vmGuestMetricsStore = useVmGuestMetricsStore();
-    const srStore = useSrStore();
-
-    await Promise.all([
-      hostMetricsStore.init(),
-      vmMetricsStore.init(),
-      vmGuestMetricsStore.init(),
-      srStore.init(),
-    ]);
-
-    const taskStore = useTaskStore();
-    taskStore.init();
-
-    const consoleStore = useConsoleStore();
-    consoleStore.init();
-  }
-
-  async function connect(username: string, password: string) {
-    isConnecting.value = true;
     try {
       currentSessionId.value = await xenApi.connectWithPassword(
         username,
         password
       );
-      isConnected.value = true;
-    } finally {
-      isConnecting.value = false;
+      const success = currentSessionId.value !== undefined;
+      status.value = success ? STATUS.CONNECTED : STATUS.DISCONNECTED;
+      return success;
+    } catch (error) {
+      status.value = STATUS.DISCONNECTED;
+      throw error;
     }
-  }
+  };
 
-  async function reconnect() {
-    if (!currentSessionId.value) {
-      return;
+  const reconnect = async () => {
+    if (currentSessionId.value === undefined) {
+      return false;
     }
+
+    status.value = STATUS.CONNECTING;
 
     try {
-      isConnecting.value = true;
-      isConnected.value = await xenApi.connectWithSessionId(
-        currentSessionId.value
-      );
-    } finally {
-      isConnecting.value = false;
+      const success = await xenApi.connectWithSessionId(currentSessionId.value);
+      status.value = success ? STATUS.CONNECTED : STATUS.DISCONNECTED;
+      return success;
+    } catch (error) {
+      status.value = STATUS.DISCONNECTED;
+      throw error;
     }
-  }
+  };
 
-  function disconnect() {
+  async function disconnect() {
+    await xenApi.disconnect();
     currentSessionId.value = null;
-    xenApi.disconnect();
-    isConnected.value = false;
+    status.value = STATUS.DISCONNECTED;
   }
 
   return {
@@ -134,7 +101,6 @@ export const useXenApiStore = defineStore("xen-api", () => {
     connect,
     reconnect,
     disconnect,
-    init,
     getXapi,
     getXapiStats,
     currentSessionId,

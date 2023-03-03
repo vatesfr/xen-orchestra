@@ -10,6 +10,7 @@ import { faBuilding } from "@fortawesome/free-regular-svg-icons";
 import TitleBar from "@/components/TitleBar.vue";
 import { usePoolStore } from "@/stores/pool.store";
 
-const poolStore = usePoolStore();
-const name = computed(() => poolStore.pool?.name_label ?? "...");
+const { pool } = usePoolStore().subscribe();
+
+const name = computed(() => pool.value?.name_label ?? "...");
 </script>

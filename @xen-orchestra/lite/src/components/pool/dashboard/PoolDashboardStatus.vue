@@ -28,24 +28,24 @@ import { useHostMetricsStore } from "@/stores/host-metrics.store";
 import { useVmStore } from "@/stores/vm.store";
 import { computed } from "vue";
 
-const vmStore = useVmStore();
-const hostMetricsStore = useHostMetricsStore();
+const { isReady: isVmReady, records: vms } = useVmStore().subscribe();
 
-const isReady = computed(() => vmStore.isReady && hostMetricsStore.isReady);
+const { isReady: isHostMetricsReady, records: hostMetrics } =
+  useHostMetricsStore().subscribe();
 
-const totalHostsCount = computed(() => hostMetricsStore.opaqueRefs.length);
-const activeHostsCount = computed(() => {
-  return hostMetricsStore.opaqueRefs.filter(
-    (opaqueRef) => hostMetricsStore.getRecord(opaqueRef)?.live
-  ).length;
-});
+const isReady = computed(() => isVmReady.value && isHostMetricsReady.value);
 
-const totalVmsCount = computed(() => vmStore.opaqueRefs.length);
-const activeVmsCount = computed(() => {
-  return vmStore.opaqueRefs.filter(
-    (opaqueRef) => vmStore.getRecord(opaqueRef)?.power_state === "Running"
-  ).length;
-});
+const totalHostsCount = computed(() => hostMetrics.value.length);
+
+const activeHostsCount = computed(
+  () => hostMetrics.value.filter((hostMetrics) => hostMetrics.live).length
+);
+
+const totalVmsCount = computed(() => vms.value.length);
+
+const activeVmsCount = computed(
+  () => vms.value.filter((vm) => vm.power_state === "Running").length
+);
 </script>
 
 <style lang="postcss" scoped>

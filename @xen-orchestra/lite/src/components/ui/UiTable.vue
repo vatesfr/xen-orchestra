@@ -21,8 +21,8 @@
 :deep(th),
 :deep(td) {
   padding: 1rem;
-  border-top: 1px solid lightgrey;
-  border-right: 1px solid lightgrey;
+  border-top: 1px solid var(--color-blue-scale-400);
+  border-right: 1px solid var(--color-blue-scale-400);
   text-align: left;
 
   &:last-child {

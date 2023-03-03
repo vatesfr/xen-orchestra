@@ -11,14 +11,13 @@
 
 <script lang="ts" setup>
 import LinearChart from "@/components/charts/LinearChart.vue";
-import type { HostStats } from "@/libs/xapi-stats";
 import type { FetchedStats } from "@/composables/fetch-stats.composable";
+import type { HostStats } from "@/libs/xapi-stats";
 import { RRD_STEP_FROM_STRING } from "@/libs/xapi-stats";
 import type { XenApiHost } from "@/libs/xen-api";
 import { useHostStore } from "@/stores/host.store";
 import type { LinearChartData } from "@/types/chart";
 import { sumBy } from "lodash-es";
-import { storeToRefs } from "pinia";
 import { computed, inject } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -27,7 +26,7 @@ const { t } = useI18n();
 const hostLastWeekStats =
   inject<FetchedStats<XenApiHost, HostStats>>("hostLastWeekStats");
 
-const { allRecords: hosts } = storeToRefs(useHostStore());
+const { records: hosts } = useHostStore().subscribe();
 
 const customMaxValue = computed(
   () => 100 * sumBy(hosts.value, (host) => +host.cpu_info.cpu_count)

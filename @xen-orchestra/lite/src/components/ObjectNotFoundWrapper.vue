@@ -1,33 +1,30 @@
 <template>
-  <div class="wrapper-spinner" v-if="!store.isReady">
+  <div v-if="!isReady" class="wrapper-spinner">
     <UiSpinner class="spinner" />
   </div>
-  <ObjectNotFoundView :id="id" v-else-if="isRecordNotFound" />
+  <ObjectNotFoundView v-else-if="isRecordNotFound" :id="id" />
   <slot v-else />
 </template>
 <script lang="ts" setup>
-import ObjectNotFoundView from "@/views/ObjectNotFoundView.vue";
 import UiSpinner from "@/components/ui/UiSpinner.vue";
-import { useHostStore } from "@/stores/host.store";
-import { useVmStore } from "@/stores/vm.store";
+import ObjectNotFoundView from "@/views/ObjectNotFoundView.vue";
 import { computed } from "vue";
 import { useRouter } from "vue-router";
 
-const storeByType = {
-  vm: useVmStore,
-  host: useHostStore,
-};
+const props = defineProps<{
+  isReady: boolean;
+  uuidChecker: (uuid: string) => boolean;
+  id?: string;
+}>();
 
-const props = defineProps<{ objectType: "vm" | "host"; id?: string }>();
-
-const store = storeByType[props.objectType]();
 const { currentRoute } = useRouter();
 
 const id = computed(
   () => props.id ?? (currentRoute.value.params.uuid as string)
 );
+
 const isRecordNotFound = computed(
-  () => store.isReady && !store.hasRecordByUuid(id.value)
+  () => props.isReady && !props.uuidChecker(id.value)
 );
 </script>
 

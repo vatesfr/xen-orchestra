@@ -21,16 +21,14 @@
 </template>
 
 <script lang="ts" setup>
-import { storeToRefs } from "pinia";
-import { faBuilding } from "@fortawesome/free-regular-svg-icons";
 import InfraHostList from "@/components/infra/InfraHostList.vue";
 import InfraItemLabel from "@/components/infra/InfraItemLabel.vue";
 import InfraLoadingItem from "@/components/infra/InfraLoadingItem.vue";
 import InfraVmList from "@/components/infra/InfraVmList.vue";
 import { usePoolStore } from "@/stores/pool.store";
+import { faBuilding } from "@fortawesome/free-regular-svg-icons";
 
-const poolStore = usePoolStore();
-const { pool, isReady } = storeToRefs(poolStore);
+const { isReady, pool } = usePoolStore().subscribe();
 </script>
 
 <style lang="postcss" scoped>
@@ -39,7 +37,8 @@ const { pool, isReady } = storeToRefs(poolStore);
   font-weight: 500;
 }
 
-.infra-vm-list:deep(.link) {
+.infra-vm-list:deep(.link),
+.infra-vm-list:deep(.link-placeholder) {
   padding-left: 3rem;
 }
 </style>

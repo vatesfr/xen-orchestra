@@ -1,21 +1,24 @@
+import { getFirst } from "@/libs/utils";
+import { useXapiCollectionStore } from "@/stores/xapi-collection.store";
 import { defineStore } from "pinia";
 import { computed } from "vue";
-import type { XenApiPool } from "@/libs/xen-api";
-import { createRecordContext } from "@/stores/index";
 
 export const usePoolStore = defineStore("pool", () => {
-  const { init, opaqueRefs, getRecord, isReady } =
-    createRecordContext<XenApiPool>("pool");
+  const poolCollection = useXapiCollectionStore().get("pool");
 
-  const poolOpaqueRef = computed(() => opaqueRefs.value[0]);
-  const pool = computed(() =>
-    isReady.value ? getRecord(poolOpaqueRef.value) : undefined
-  );
+  const subscribe = () => {
+    const subscription = poolCollection.subscribe();
+
+    const pool = computed(() => getFirst(subscription.records.value));
+
+    return {
+      ...subscription,
+      pool,
+    };
+  };
 
   return {
-    init,
-    pool,
-    poolOpaqueRef,
-    isReady,
+    ...poolCollection,
+    subscribe,
   };
 });
