@@ -612,7 +612,7 @@ export const addServer = (host, username, password, label, allowUnauthorized, ht
   _call('server.add', {
     allowUnauthorized,
     host,
-    httpProxy,
+    httpProxy: httpProxy || undefined,
     label,
     password,
     username,
