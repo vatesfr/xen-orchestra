@@ -53,7 +53,9 @@ test('VMDKDirectParser reads OK', async () => {
   const rawFileName = 'random-data'
   const fileName = 'random-data.vmdk'
   await exec('base64 /dev/urandom | head -c 104448 > ' + rawFileName)
-  await exec('rm -f ' + fileName + '&& python /usr/share/pyshared/VMDKstream.py ' + rawFileName + ' ' + fileName)
+  await exec(
+    'rm -f ' + fileName + '&& python /usr/lib/python3/dist-packages/VMDKstream.py ' + rawFileName + ' ' + fileName
+  )
   const data = await readVmdkGrainTable(createFileAccessor(fileName))
   const parser = new VMDKDirectParser(
     createReadStream(fileName),

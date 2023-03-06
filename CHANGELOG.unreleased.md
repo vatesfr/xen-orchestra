@@ -32,6 +32,7 @@
 <!--packages-start-->
 
 - @xen-orchestra/xapi major
+- xen-api patch
 - xo-web patch
 - xo-server minor
 
