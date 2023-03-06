@@ -8,6 +8,7 @@
 - @xen-orchestra/xapi 2.0.0
 - @xen-orchestra/backups 0.32.0
 - @xen-orchestra/backups-cli 1.0.2
+- @xen-orchestra/proxy 0.26.17
 
 ## **5.80.0** (2023-02-28)
 
