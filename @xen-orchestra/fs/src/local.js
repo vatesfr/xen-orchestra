@@ -19,7 +19,12 @@ async function addSyncStackTrace(fn, ...args) {
   try {
     return await fn.apply(this, args)
   } catch (error) {
-    error.syncStack = stackContainer.stack
+    let { stack } = stackContainer
+
+    // remove first line which does not contain stack information, simply `Error`
+    stack = stack.slice(stack.indexOf('\n') + 1)
+
+    error.stack = [error.stack, 'From:', stack].join('\n')
     throw error
   }
 }
