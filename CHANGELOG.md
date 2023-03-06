@@ -2,6 +2,10 @@
 
 ## **next**
 
+### Bug fixes
+
+- [ESXI import] Fix failing imports when using non default datacenter name [Forum#7035](https://xcp-ng.org/forum/topic/7035/vmware-import-404-error) [Forum#59390](https://xcp-ng.org/forum/post/59390) PR [#6694](https://github.com/vatesfr/xen-orchestra/pull/6694)
+
 ### Released packages
 
 - xen-api 1.2.7
@@ -9,6 +13,7 @@
 - @xen-orchestra/backups 0.32.0
 - @xen-orchestra/backups-cli 1.0.2
 - @xen-orchestra/proxy 0.26.17
+- @xen-orchestra/vmware-explorer 0.2.0
 
 ## **5.80.0** (2023-02-28)
 
