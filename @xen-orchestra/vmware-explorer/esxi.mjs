@@ -29,7 +29,7 @@ export default class Esxi extends EventEmitter {
     this.#client.once('ready', async () => {
       try {
         // this.#ready is set to true to allow the this.search query to go through
-        // this means that the server is connected and can answerapi queries
+        // this means that the server is connected and can answer API queries
         // you won't be able to download a file as long a the 'ready' event is not emitted,
         this.#ready = true
         const res = await this.search('Datacenter', ['name'])
