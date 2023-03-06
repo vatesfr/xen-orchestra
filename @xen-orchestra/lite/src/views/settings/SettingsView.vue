@@ -57,7 +57,7 @@
           :key="colorModeOption"
           class="option"
           :class="{ selected: colorMode === colorModeOption }"
-          @click="() => (colorMode = colorModeOption)"
+          @click="colorMode = colorModeOption"
         >
           <img
             v-if="colorModeOption === 'light'"
