@@ -21,6 +21,7 @@ function addPkgToTree(pkg) {
     addPkgDepsToTree.call(this, pkgJson.dependencies, internalDeps)
     addPkgDepsToTree.call(this, pkgJson.devDependencies, internalDeps)
     addPkgDepsToTree.call(this, pkgJson.optionalDependencies, internalDeps)
+    addPkgDepsToTree.call(this, pkgJson.peerDependencies, internalDeps)
   }
 }
 
