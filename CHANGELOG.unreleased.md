@@ -11,6 +11,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Esxi import] Fix failing imports when using non default datacenter name [Forum#7035](https://xcp-ng.org/forum/topic/7035/vmware-import-404-error) [Forum#59390](https://xcp-ng.org/forum/post/59390) PR [#6694](https://github.com/vatesfr/xen-orchestra/pull/6694)
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -27,6 +29,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/vmware-explorer minor
 - xo-server minor
 
 <!--packages-end-->
