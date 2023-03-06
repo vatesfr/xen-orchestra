@@ -50,6 +50,7 @@ import Xosan from './xosan'
 import Import from './import'
 
 import keymap, { help } from '../keymap'
+import Tooltip from '../common/tooltip'
 import { createCollectionWrapper, createGetObjectsOfType } from '../common/selectors'
 import { bindXcpngLicense, rebindLicense, subscribeXcpngLicenses } from '../common/xo'
 import { SOURCES } from '../common/xoa-plans'
@@ -88,10 +89,12 @@ const WrapperIconPoolLicense = ({ children }) => (
 )
 
 export const ICON_POOL_LICENSE = {
-  total: () => (
-    <WrapperIconPoolLicense>
-      <Icon icon='pro-support' className='text-success' />
-    </WrapperIconPoolLicense>
+  total: tooltip => (
+    <Tooltip content={tooltip}>
+      <WrapperIconPoolLicense>
+        <Icon icon='pro-support' className='text-success' />
+      </WrapperIconPoolLicense>
+    </Tooltip>
   ),
   partial: () => (
     <WrapperIconPoolLicense>

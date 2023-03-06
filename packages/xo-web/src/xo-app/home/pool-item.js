@@ -96,24 +96,27 @@ export default class PoolItem extends Component {
     return Object.values(this.props.poolHosts)[0].productBrand === 'XCP-ng'
   }
 
+  _getPoolLicenseInfo = () => this.props.state.poolLicenseInfoByPoolId[this.props.item.id]
+
   _getAlerts = createSelector(
-    () => this.props.item,
     () => this.props.isAdmin,
-    () => this.props.state,
-    (pool, isAdmin, reacletteState) => {
+    this._getPoolLicenseInfo,
+    (isAdmin, poolLicenseInfo) => {
       const alerts = []
 
-      if (isAdmin) {
-        const { icon, supportLevel } = reacletteState.poolLicenseInfoByPoolId[pool.id]
-        const level = supportLevel === 'total' ? 'success' : supportLevel === 'partial' ? 'warning' : 'danger'
-        alerts.push({
-          level,
-          render: (
-            <p>
-              {icon()} {this._getPoolLicenseIconTooltip()}
-            </p>
-          ),
-        })
+      if (isAdmin && this._isXcpngPool()) {
+        const { icon, supportLevel } = poolLicenseInfo
+        if (supportLevel !== 'total') {
+          const level = supportLevel === 'partial' ? 'warning' : 'danger'
+          alerts.push({
+            level,
+            render: (
+              <p>
+                {icon()} {this._getPoolLicenseIconTooltip()}
+              </p>
+            ),
+          })
+        }
       }
       return alerts
     }
@@ -122,6 +125,7 @@ export default class PoolItem extends Component {
   render() {
     const { item: pool, expandAll, selected, hostMetrics, poolHosts, nSrs, nVms } = this.props
     const { missingPatchCount } = this.state
+    const { icon, supportLevel } = this._getPoolLicenseInfo()
 
     return (
       <div className={styles.item}>
@@ -134,8 +138,6 @@ export default class PoolItem extends Component {
                 <Ellipsis>
                   <Text value={pool.name_label} onChange={this._setNameLabel} useLongClick />
                 </Ellipsis>
-                {isAdmin && this._isXcpngPool() && <span className='ml-1'>{this._getPoolLicenseIcon()}</span>}
-                &nbsp;&nbsp;
                 &nbsp;
                 <BulkIcons alerts={this._getAlerts()} />
                 &nbsp;
@@ -146,6 +148,9 @@ export default class PoolItem extends Component {
                     </Tooltip>
                   </span>
                 )}
+                &nbsp;
+                {isAdmin && this._isXcpngPool() && supportLevel === 'total' && icon(this._getPoolLicenseIconTooltip())}
+                &nbsp;
                 {pool.HA_enabled && (
                   <span>
                     &nbsp;&nbsp;
