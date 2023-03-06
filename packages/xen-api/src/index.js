@@ -728,7 +728,7 @@ export class Xapi extends EventEmitter {
   // Private
   // ===========================================================================
 
-  async _call(method, args, timeout = this._callTimeout(method, args)) {
+  async _call(method, args = [], timeout = this._callTimeout(method, args)) {
     const startTime = Date.now()
     try {
       const result = await pTimeout.call(this._addSyncStackTrace(this._transport(method, args)), timeout)
