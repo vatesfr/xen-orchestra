@@ -1,7 +1,7 @@
 {
   "private": false,
   "name": "@xen-orchestra/fs",
-  "version": "3.3.1",
+  "version": "3.3.2",
   "license": "AGPL-3.0-or-later",
   "description": "The File System for Xen Orchestra backups.",
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/fs",
@@ -20,6 +20,7 @@
     "node": ">=14.13"
   },
   "dependencies": {
+    "@aws-sdk/abort-controller": "^3.272.0",
     "@aws-sdk/client-s3": "^3.54.0",
     "@aws-sdk/lib-storage": "^3.54.0",
     "@aws-sdk/middleware-apply-body-checksum": "^3.58.0",

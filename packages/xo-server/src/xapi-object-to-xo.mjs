@@ -1,10 +1,10 @@
-import { isDefaultTemplate } from '@xen-orchestra/xapi'
+import { isDefaultTemplate, parseDateTime } from '@xen-orchestra/xapi'
 
 import * as sensitiveValues from './sensitive-values.mjs'
 import ensureArray from './_ensureArray.mjs'
 import { extractIpFromVmNetworks } from './_extractIpFromVmNetworks.mjs'
 import { extractProperty, forEach, isEmpty, mapFilter, parseXml } from './utils.mjs'
-import { getVmDomainType, isHostRunning, isVmRunning, parseDateTime } from './xapi/index.mjs'
+import { getVmDomainType, isHostRunning, isVmRunning } from './xapi/index.mjs'
 import { useUpdateSystem } from './xapi/utils.mjs'
 
 // ===================================================================

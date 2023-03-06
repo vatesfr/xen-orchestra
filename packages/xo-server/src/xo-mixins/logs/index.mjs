@@ -4,6 +4,8 @@ import { defer, fromEvent } from 'promise-toolbox'
 
 import LevelDbLogger from './loggers/leveldb.mjs'
 
+const { DEBUG } = process.env
+
 export default class Logs {
   constructor(app) {
     this._app = app
@@ -19,8 +21,25 @@ export default class Logs {
         }
       }
 
+      // merge env.DEBUG and filter entries, removing any duplicates
+      //
+      // undefined when empty
+      const debug =
+        Array.from(
+          new Set(
+            [DEBUG, filter]
+              .filter(Boolean)
+              .join(',')
+              .split(',')
+              .map(_ => _.trim())
+          )
+        ).join(',') || undefined
+
+      // override env.DEBUG so that spawned process (workers) benefits from the new configuration as well
+      process.env.DEBUG = debug
+
       configure({
-        filter: [process.env.DEBUG, filter],
+        filter: debug,
         level,
         transport: dedupe({ transport: transports }),
       })

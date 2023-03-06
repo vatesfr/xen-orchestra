@@ -267,16 +267,6 @@ export class EventParam extends mixin(BaseParam, WithType) {
 
     return `(${args.join(", ")}) => ${this.#returnType ?? "void"}`;
   }
-
-  // guessType() {
-  //   const args: string[] = [];
-  //
-  //   Object.entries(this.#args).forEach(([name, type]) => {
-  //     args.push(`${name}: ${type}`);
-  //   });
-  //
-  //   return `(${args.join(", ")}) => ${this.#returnType ?? "void"}`;
-  // }
 }
 
 export class SlotParam extends BaseParam {

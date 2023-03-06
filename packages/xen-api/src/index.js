@@ -407,7 +407,7 @@ export class Xapi extends EventEmitter {
             signal: $cancelToken,
           }),
         {
-          when: { code: 302 },
+          when: error => error.response.statusCode === 302,
           onRetry: async error => {
             const response = error.response
             if (response === undefined) {
