@@ -30,6 +30,7 @@
 
 <!--packages-start-->
 
+- xen-api patch
 - xo-web patch
 - xo-server minor
 
