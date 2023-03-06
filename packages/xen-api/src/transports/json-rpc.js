@@ -19,20 +19,14 @@ export default ({ secureOptions, url, agent }) => {
       },
       method: 'POST',
       agent,
-    }).catch(error => {
-      console.warn('xen-api/transports/json-rpc', error)
-
-      throw new UnsupportedTransport()
     })
 
-    const text = await res.text()
-
-    let response
-    try {
-      response = parse(text)
-    } catch (error) {
+    // content-type is `text/xml` on old hosts where JSON-RPC is unsupported
+    if (res.headers['content-type'] !== 'application/json') {
       throw new UnsupportedTransport()
     }
+
+    const response = parse(await res.text())
 
     if (response.type === 'response') {
       return response.result

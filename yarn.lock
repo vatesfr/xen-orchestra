@@ -18780,7 +18780,7 @@ test-exclude@^6.0.0:
     glob "^7.1.4"
     minimatch "^3.0.4"
 
-test@^3.2.1:
+test@^3.2.1, test@^3.3.0:
   version "3.3.0"
   resolved "https://registry.yarnpkg.com/test/-/test-3.3.0.tgz#a2b56c6aa386c5732065793e8d9d92074a9cdd41"
   integrity sha512-JKlEohxDIJRjwBH/+BrTcAPHljBALrAHw3Zs99RqZlaC605f6BggqXhxkdqZThbSHgaYPwpNJlf9bTSWkb/1rA==

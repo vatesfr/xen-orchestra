@@ -57,7 +57,9 @@ test('An ova file is parsed correctly', async () => {
   await writeFile(ovfName, xmlContent)
   const rawFileName = 'random-data'
   await exec(`base64 /dev/urandom | head -c 104448 > ${rawFileName}`)
-  await exec(`rm -f ${vmdkFileName} && python /usr/share/pyshared/VMDKstream.py ${rawFileName} ${vmdkFileName}`)
+  await exec(
+    `rm -f ${vmdkFileName} && python /usr/lib/python3/dist-packages/VMDKstream.py ${rawFileName} ${vmdkFileName}`
+  )
   const ovaName = `test.ova`
   await exec(`tar cf ${ovaName} ${ovfName} ${vmdkFileName}`)
   const vmdkParsableFile = new NodeParsableFile(vmdkFileName, (await stat(vmdkFileName)).size)
