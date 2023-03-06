@@ -153,7 +153,7 @@ export default class MigrateVm {
     return chainsByNodes
   }
 
-  #connectToEsxi(host, user, password, sslVerify = true) {
+  #connectToEsxi(host, user, password, sslVerify) {
     return new Task({ name: `connecting to ${host}` }).run(async () => {
       const esxi = new Esxi(host, user, password, sslVerify)
       await fromEvent(esxi, 'ready')
