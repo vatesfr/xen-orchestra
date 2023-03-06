@@ -33,6 +33,8 @@ import {
 import MiniStats from './mini-stats'
 import styles from './index.css'
 
+import { LICENSE_WARNING_BODY } from '../host/license-warning'
+
 import BulkIcons from '../../common/bulk-icons'
 
 @addSubscriptions({
@@ -120,25 +122,7 @@ export default class HostItem extends Component {
           level: 'danger',
           render: (
             <span>
-              <Icon icon='alarm' /> {_('licenseRestrictionsModalTitle')}{' '}
-              <a href='https://xcp-ng.com/pricing.html#xcpngvsxenserver' rel='noopener noreferrer' target='_blank'>
-                {_('actionsRestricted')}
-              </a>
-              <div>
-                {_('counterRestrictionsOptions')}
-                <ul>
-                  <li>
-                    <a
-                      href='https://github.com/xcp-ng/xcp/wiki/Upgrade-from-XenServer'
-                      rel='noopener noreferrer'
-                      target='_blank'
-                    >
-                      {_('counterRestrictionsOptionsXcp')}
-                    </a>
-                  </li>
-                  <li>{_('counterRestrictionsOptionsXsLicense')}</li>
-                </ul>
-              </div>
+              <Icon icon='alarm' /> {_('licenseRestrictionsModalTitle')} {LICENSE_WARNING_BODY}
             </span>
           ),
         })
