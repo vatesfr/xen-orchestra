@@ -1,9 +1,8 @@
 import jsonRpc from './json-rpc'
 import UnsupportedTransport from './_UnsupportedTransport'
 import xmlRpc from './xml-rpc'
-import xmlRpcJson from './xml-rpc-json'
 
-const factories = [jsonRpc, xmlRpcJson, xmlRpc]
+const factories = [jsonRpc, xmlRpc]
 const { length } = factories
 
 export default opts => {
