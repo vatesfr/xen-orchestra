@@ -53,7 +53,7 @@ import UiActionButton from "@/components/ui/UiActionButton.vue";
 import UiButton from "@/components/ui/UiButton.vue";
 import UiFilter from "@/components/ui/UiFilter.vue";
 import UiFilterGroup from "@/components/ui/UiFilterGroup.vue";
-import UiIcon from "@/components/ui/UiIcon.vue";
+import UiIcon from "@/components/ui/icon/UiIcon.vue";
 import UiModal from "@/components/ui/UiModal.vue";
 import useModal from "@/composables/modal.composable";
 import type { ActiveSorts, Sorts } from "@/types/sort";

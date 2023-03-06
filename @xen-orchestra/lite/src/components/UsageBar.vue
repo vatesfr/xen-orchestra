@@ -23,8 +23,8 @@
 </template>
 
 <script lang="ts" setup>
-import UiProgressBar from "@/components/ui/progress/UiProgressBar.vue";
 import { computed } from "vue";
+import UiProgressBar from "@/components/ui/progress/UiProgressBar.vue";
 import UiProgressLegend from "@/components/ui/progress/UiProgressLegend.vue";
 import UiSpinner from "@/components/ui/UiSpinner.vue";
 

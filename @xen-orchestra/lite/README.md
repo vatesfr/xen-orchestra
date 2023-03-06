@@ -105,7 +105,7 @@ Use the `busy` prop to display a loader icon.
 </template>
 
 <script lang="ts" setup>
-import UiIcon from "@/components/ui/UiIcon.vue";
+import UiIcon from "@/components/ui/icon/UiIcon.vue";
 import { faDisplay } from "@fortawesome/free-solid-svg-icons";
 </script>
 ```

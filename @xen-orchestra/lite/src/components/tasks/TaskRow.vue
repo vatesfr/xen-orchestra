@@ -32,7 +32,7 @@
 
 <script lang="ts" setup>
 import RelativeTime from "@/components/RelativeTime.vue";
-import UiProgressBar from "@/components/ui/UiProgressBar.vue";
+import UiProgressBar from "@/components/ui/progress/UiProgressBar.vue";
 import { parseDateTime } from "@/libs/utils";
 import type { XenApiTask } from "@/libs/xen-api";
 import { useHostStore } from "@/stores/host.store";

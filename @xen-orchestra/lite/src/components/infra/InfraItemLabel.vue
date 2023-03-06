@@ -21,7 +21,7 @@
 </template>
 
 <script lang="ts" setup>
-import UiIcon from "@/components/ui/UiIcon.vue";
+import UiIcon from "@/components/ui/icon/UiIcon.vue";
 import type { IconDefinition } from "@fortawesome/fontawesome-common-types";
 import type { RouteLocationRaw } from "vue-router";
 
