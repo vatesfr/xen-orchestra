@@ -2,10 +2,13 @@ import { isDefaultTemplate, parseDateTime } from '@xen-orchestra/xapi'
 
 import * as sensitiveValues from './sensitive-values.mjs'
 import ensureArray from './_ensureArray.mjs'
+import { createLogger } from '@xen-orchestra/log'
 import { extractIpFromVmNetworks } from './_extractIpFromVmNetworks.mjs'
 import { extractProperty, forEach, isEmpty, mapFilter, parseXml } from './utils.mjs'
 import { getVmDomainType, isHostRunning, isVmRunning } from './xapi/index.mjs'
 import { useUpdateSystem } from './xapi/utils.mjs'
+
+const { warn } = createLogger('xo:server:xapi-objects-to-xo')
 
 // ===================================================================
 
@@ -60,7 +63,7 @@ function toTimestamp(date) {
   try {
     return parseDateTime(date)
   } catch (error) {
-    console.warn('toTimestamp', date, error)
+    warn('toTimestamp', { date, error })
     return null
   }
 }

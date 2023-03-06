@@ -41,7 +41,7 @@ exports.parseDateTime = function parseDateTime(input) {
     // are already timestamps
     date = +input
     if (!Number.isNaN(date)) {
-      return date
+      return date || null
     }
 
     // This is the case when the date has been retrieved via the JSON-RPC or JSON in XML-RPC APIs.
