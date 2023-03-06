@@ -32,7 +32,7 @@
 
 <!--packages-start-->
 
-- xo-server minor
 - xo-web minor
+- xo-server minor
 
 <!--packages-end-->
