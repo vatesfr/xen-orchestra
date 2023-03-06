@@ -33,7 +33,6 @@
 <!--packages-start-->
 
 - @xen-orchestra/vmware-explorer minor
-- @xen-orchestra/xapi major
 - xo-web patch
 
 <!--packages-end-->

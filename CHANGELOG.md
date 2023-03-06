@@ -5,6 +5,7 @@
 ### Released packages
 
 - xen-api 1.2.7
+- @xen-orchestra/xapi 2.0.0
 
 ## **5.80.0** (2023-02-28)
 
