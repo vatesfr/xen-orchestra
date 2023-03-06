@@ -2,10 +2,13 @@ import { isDefaultTemplate, parseDateTime } from '@xen-orchestra/xapi'
 
 import * as sensitiveValues from './sensitive-values.mjs'
 import ensureArray from './_ensureArray.mjs'
+import { createLogger } from '@xen-orchestra/log'
 import { extractIpFromVmNetworks } from './_extractIpFromVmNetworks.mjs'
 import { extractProperty, forEach, isEmpty, mapFilter, parseXml } from './utils.mjs'
 import { getVmDomainType, isHostRunning, isVmRunning } from './xapi/index.mjs'
 import { useUpdateSystem } from './xapi/utils.mjs'
+
+const { warn } = createLogger('xo:server:xapi-objects-to-xo')
 
 // ===================================================================
 
@@ -52,28 +55,17 @@ function link(obj, prop, idField = '$id') {
   return dynamicValue[idField]
 }
 
-// Parse a string date time to a Unix timestamp (in seconds).
-//
-// If the value is a number or can be converted as one, it is assumed
-// to already be a timestamp and returned.
-//
-// If there are no data or if the timestamp is 0, returns null.
 function toTimestamp(date) {
-  if (!date) {
+  if (date === undefined) {
     return null
   }
 
-  const timestamp = +date
-
-  // Not NaN.
-  // eslint-disable-next-line no-self-compare
-  if (timestamp === timestamp) {
-    return timestamp
+  try {
+    return parseDateTime(date)
+  } catch (error) {
+    warn('toTimestamp', { date, error })
+    return null
   }
-
-  const ms = parseDateTime(date, 0)
-
-  return ms === 0 ? null : Math.round(ms / 1000)
 }
 
 // https://github.com/xenserver/xenadmin/blob/093ab0bcd6c4b3dd69da7b1e63ef34bb807c1ddb/XenModel/XenAPI-Extensions/VM.cs#L773-L827
