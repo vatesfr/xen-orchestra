@@ -27,8 +27,11 @@ export default class Esxi extends EventEmitter {
     // we need to find a fix for this, maybe forking the library
     this.#client = new Client(host, user, password, sslVerify)
     this.#client.once('ready', async () => {
-      this.#ready = true
       try {
+        // this.#ready is set to true to allow the this.search query to go through
+        // this means that the server is connected and can answerapi queries
+        // you won't be able to download a file as long a the 'ready' event is not emitted,
+        this.#ready = true
         const res = await this.search('Datacenter', ['name'])
         this.#dcPath = Object.values(res)[0].name
         this.emit('ready')
