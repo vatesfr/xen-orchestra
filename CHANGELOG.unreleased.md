@@ -34,7 +34,6 @@
 
 - @xen-orchestra/vmware-explorer minor
 - @xen-orchestra/xapi major
-- xen-api patch
 - xo-web patch
 
 <!--packages-end-->
