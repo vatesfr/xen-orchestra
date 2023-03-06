@@ -28,9 +28,13 @@ export default class Esxi extends EventEmitter {
     this.#client = new Client(host, user, password, sslVerify)
     this.#client.once('ready', async () => {
       this.#ready = true
-      const res = await this.search('Datacenter', ['name'])
-      this.#dcPath = Object.values(res)[0].name
-      this.emit('ready')
+      try {
+        const res = await this.search('Datacenter', ['name'])
+        this.#dcPath = Object.values(res)[0].name
+        this.emit('ready')
+      } catch (error) {
+        this.emit('error', error)
+      }
     })
     this.#client.on('error', err => {
       this.emit('error', err)
@@ -55,7 +59,11 @@ export default class Esxi extends EventEmitter {
   async download(dataStore, path, range) {
     strictEqual(this.#ready, true)
     notStrictEqual(this.#dcPath, undefined)
-    const url = `https://${this.#host}/folder/${path}?dcPath=${this.#dcPath}&dsName=${dataStore}`
+    const url = new URL('https://localhost')
+    url.host = this.#host
+    url.pathname = '/folder/' + path
+    url.searchParams.set('dc', this.#dcPath)
+    url.searchParams.set('dsName', dataStore)
     const headers = {}
     if (this.#cookies) {
       headers.cookie = this.#cookies
