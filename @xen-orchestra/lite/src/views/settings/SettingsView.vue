@@ -75,9 +75,7 @@
             alt="Color mode auto"
           />
           <span>
-            <span v-if="colorMode === colorModeOption">
-              <UiIcon :icon="faCheck" />
-            </span>
+            <UiIcon v-if="colorMode === colorModeOption" :icon="faCheck" />
             {{ $t(`theme-${colorModeOption}`) }}
           </span>
         </div>
