@@ -18,7 +18,8 @@
     "xen-api": "^1.2.6"
   },
   "scripts": {
-    "postversion": "npm publish --access public"
+    "postversion": "npm publish --access public",
+    "test": "node--test"
   },
   "dependencies": {
     "@vates/decorate-with": "^2.0.0",
@@ -38,5 +39,8 @@
   "author": {
     "name": "Vates SAS",
     "url": "https://vates.fr"
+  },
+  "devDependencies": {
+    "test": "^3.3.0"
   }
 }
