@@ -53,6 +53,10 @@ function link(obj, prop, idField = '$id') {
 }
 
 function toTimestamp(date) {
+  if (date === undefined) {
+    return null
+  }
+
   try {
     return parseDateTime(date)
   } catch (error) {

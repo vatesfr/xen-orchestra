@@ -34,9 +34,18 @@ exports.parseDateTime = function parseDateTime(input) {
     return input || null
   }
 
-  // This is the case when the date has been retrieved via the JSON-RPC or JSON in XML-RPC APIs.
   if (typeof input === 'string') {
-    const date = parseDateTimeHelper(input)
+    let date
+
+    // Some dates like host.other_config.{agent_start_time,boot_time,rpm_patch_installation_time}
+    // are already timestamps
+    date = +input
+    if (!Number.isNaN(date)) {
+      return date
+    }
+
+    // This is the case when the date has been retrieved via the JSON-RPC or JSON in XML-RPC APIs.
+    date = parseDateTimeHelper(input)
     if (date === null) {
       throw new RangeError(`unable to parse XAPI datetime ${JSON.stringify(input)}`)
     }
