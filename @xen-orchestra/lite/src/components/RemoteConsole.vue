@@ -12,7 +12,6 @@ const N_TOTAL_TRIES = 8;
 const FIBONACCI_MS_ARRAY: number[] = Array.from(
   fibonacci().toMs().take(N_TOTAL_TRIES)
 );
-const INITIAL_VALUE_N_CONNECTION_ATTEMPTS = 0;
 
 const props = defineProps<{
   location: string;
@@ -32,7 +31,7 @@ const url = computed(() => {
 });
 
 let vncClient: VncClient | undefined;
-let nConnectionAttempts = INITIAL_VALUE_N_CONNECTION_ATTEMPTS;
+let nConnectionAttempts = 0;
 
 const handleDisconnectionEvent = () => {
   clearVncClient();
@@ -45,16 +44,17 @@ const handleDisconnectionEvent = () => {
     createVncConnection();
   }
 };
-const handleConnectionEvent = () =>
-  (nConnectionAttempts = INITIAL_VALUE_N_CONNECTION_ATTEMPTS);
+const handleConnectionEvent = () => (nConnectionAttempts = 0);
 
 const clearVncClient = () => {
-  vncClient?.removeEventListener("disconnect", handleDisconnectionEvent);
-  vncClient?.removeEventListener("connect", handleConnectionEvent);
-  if (vncClient?._rfbConnectionState !== "disconnected") {
-    vncClient?.disconnect();
+  if (vncClient !== undefined) {
+    vncClient.removeEventListener("disconnect", handleDisconnectionEvent);
+    vncClient.removeEventListener("connect", handleConnectionEvent);
+    if (vncClient._rfbConnectionState !== "disconnected") {
+      vncClient.disconnect();
+    }
+    vncClient = undefined;
   }
-  vncClient = undefined;
 };
 const createVncConnection = async () => {
   if (nConnectionAttempts > N_TOTAL_TRIES) {
@@ -87,7 +87,7 @@ watchEffect(() => {
     return;
   }
 
-  nConnectionAttempts = INITIAL_VALUE_N_CONNECTION_ATTEMPTS;
+  nConnectionAttempts = 0;
   createVncConnection();
 });
 
