@@ -15,7 +15,7 @@ import { type ComputedRef, computed, inject } from "vue";
 import type { RouteLocationRaw } from "vue-router";
 import UiTab from "@/components/ui/UiTab.vue";
 
-const props = defineProps<{
+defineProps<{
   to: RouteLocationRaw;
   disabled?: boolean;
 }>();
