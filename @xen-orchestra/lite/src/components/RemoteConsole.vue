@@ -18,6 +18,7 @@ let vncClient: VncClient | undefined;
 
 const clearVncClient = () => {
   if (vncClient !== undefined) {
+    vncClient.removeEventListener("disconnect", clearVncClient);
     if (vncClient._rfbConnectionState !== "disconnected") {
       vncClient.disconnect();
     }
@@ -34,10 +35,7 @@ watchEffect(() => {
     return;
   }
 
-  if (vncClient !== undefined) {
-    vncClient.disconnect();
-    vncClient = undefined;
-  }
+  clearVncClient();
 
   const url = new URL(props.location);
   url.protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
