@@ -203,7 +203,7 @@ class DeltaBackupWriter extends MixinBackupWriter(AbstractDeltaWriter) {
           const vdiRef = vm.$xapi.getObject(vdi.uuid).$ref
 
           let nbdClient
-          if (this._backup.config.useNbd) {
+          if (this._backup.config.useNbd && adapter.useVhdDirectory()) {
             debug('useNbd is enabled', { vdi: id, path })
             // get nbd if possible
             try {
