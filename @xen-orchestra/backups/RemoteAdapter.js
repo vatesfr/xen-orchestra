@@ -10,7 +10,14 @@ const groupBy = require('lodash/groupBy.js')
 const pickBy = require('lodash/pickBy.js')
 const { dirname, join, normalize, resolve } = require('path')
 const { createLogger } = require('@xen-orchestra/log')
-const { createVhdDirectoryFromStream, openVhd, VhdAbstract, VhdDirectory, VhdSynthetic } = require('vhd-lib')
+const {
+  createVhdDirectoryFromStream,
+  openVhd,
+  VhdAbstract,
+  VhdDirectory,
+  VhdSynthetic,
+  createVhdStreamWithLength,
+} = require('vhd-lib')
 const { deduped } = require('@vates/disposable/deduped.js')
 const { decorateMethodsWith } = require('@vates/decorate-with')
 const { compose } = require('@vates/compose')
@@ -32,6 +39,7 @@ const { watchStreamSize } = require('./_watchStreamSize')
 // @todo : this import is marked extraneous , sould be fixed when lib is published
 const { mount } = require('@vates/fuse-vhd')
 const { asyncEach } = require('@vates/async-each')
+const { strictEqual } = require('assert')
 
 const DIR_XO_CONFIG_BACKUPS = 'xo-config-backups'
 exports.DIR_XO_CONFIG_BACKUPS = DIR_XO_CONFIG_BACKUPS
@@ -674,12 +682,14 @@ class RemoteAdapter {
       await VhdAbstract.createAlias(handler, path, dataPath)
       return size
     } else {
-      return this.outputStream(path, input, { checksum, validator })
+      const inputWithSize = await createVhdStreamWithLength(input)
+      return this.outputStream(path, inputWithSize, { checksum, validator, expectedLength: inputWithSize.length })
     }
   }
 
-  async outputStream(path, input, { checksum = true, validator = noop } = {}) {
+  async outputStream(path, input, { checksum = true, validator = noop, expectedLength } = {}) {
     const container = watchStreamSize(input)
+
     await this._handler.outputStream(path, input, {
       checksum,
       dirMode: this._dirMode,
@@ -688,6 +698,26 @@ class RemoteAdapter {
         return validator.apply(this, arguments)
       },
     })
+    if (expectedLength !== undefined) {
+      // check that we read all the stream
+      strictEqual(
+        container.size,
+        expectedLength,
+        `transferred size ${container.size}, expected file size : ${expectedLength}`
+      )
+    }
+
+    let size
+    try {
+      size = await this._handler.getSize(path)
+    } catch (err) {
+      // can fail is the remote is encrypted
+    }
+    if (size !== undefined) {
+      // check that we everything is written to disk
+      strictEqual(size, container.size, `written size ${size}, transfered size : ${container.size}`)
+    }
+
     return container.size
   }
 
