@@ -683,11 +683,11 @@ class RemoteAdapter {
       return size
     } else {
       const inputWithSize = await createVhdStreamWithLength(input)
-      return this.outputStream(path, inputWithSize, { checksum, validator, expectedLength: inputWithSize.length })
+      return this.outputStream(path, inputWithSize, { checksum, validator, expectedSize: inputWithSize.length })
     }
   }
 
-  async outputStream(path, input, { checksum = true, validator = noop, expectedLength } = {}) {
+  async outputStream(path, input, { checksum = true, validator = noop, expectedSize } = {}) {
     const container = watchStreamSize(input)
 
     await this._handler.outputStream(path, input, {
@@ -695,29 +695,27 @@ class RemoteAdapter {
       dirMode: this._dirMode,
       async validator() {
         await input.task
+        if (expectedSize !== undefined) {
+          // check that we read all the stream
+          strictEqual(
+            container.size,
+            expectedSize,
+            `transferred size ${container.size}, expected file size : ${expectedSize}`
+          )
+        }
+        let size
+        try {
+          size = await this._handler.getSize(path)
+        } catch (err) {
+          // can fail is the remote is encrypted
+        }
+        if (size !== undefined) {
+          // check that everything is written to disk
+          strictEqual(size, container.size, `written size ${size}, transfered size : ${container.size}`)
+        }
         return validator.apply(this, arguments)
       },
     })
-    if (expectedLength !== undefined) {
-      // check that we read all the stream
-      strictEqual(
-        container.size,
-        expectedLength,
-        `transferred size ${container.size}, expected file size : ${expectedLength}`
-      )
-    }
-
-    let size
-    try {
-      size = await this._handler.getSize(path)
-    } catch (err) {
-      // can fail is the remote is encrypted
-    }
-    if (size !== undefined) {
-      // check that we everything is written to disk
-      strictEqual(size, container.size, `written size ${size}, transfered size : ${container.size}`)
-    }
-
     return container.size
   }
 
