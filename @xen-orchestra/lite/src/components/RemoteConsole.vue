@@ -18,8 +18,8 @@ let vncClient: VncClient | undefined;
 
 const clearVncClient = () => {
   if (vncClient !== undefined) {
-    if (vncClient?._rfbConnectionState !== "disconnected") {
-      vncClient?.disconnect();
+    if (vncClient._rfbConnectionState !== "disconnected") {
+      vncClient.disconnect();
     }
     vncClient = undefined;
   }
