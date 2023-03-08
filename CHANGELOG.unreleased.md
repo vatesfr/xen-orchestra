@@ -11,7 +11,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [Vm Restore] VM restore through a proxy was showing as interupted (PR [#6702](https://github.com/vatesfr/xen-orchestra/pull/6702))
+- [Backup/Restore] Fix restore via a proxy showing as interupted (PR [#6702](https://github.com/vatesfr/xen-orchestra/pull/6702))
 
 ### Packages to release
 
