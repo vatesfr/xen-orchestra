@@ -3,7 +3,7 @@
     <PoolHeader />
     <PoolTabBar />
 
-    <RouterView class="tab-view" />
+    <RouterView />
   </div>
 </template>
 
