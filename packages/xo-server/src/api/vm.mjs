@@ -1,6 +1,8 @@
 import * as multiparty from 'multiparty'
 import assignWith from 'lodash/assignWith.js'
+import { asyncEach } from '@vates/async-each'
 import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
+import { Task } from '@xen-orchestra/mixins/Tasks.mjs'
 import concat from 'lodash/concat.js'
 import getStream from 'get-stream'
 import hrp from 'http-request-plus'
@@ -1325,6 +1327,84 @@ importFromEsxi.params = {
   thin: { type: 'boolean', optional: true },
   user: { type: 'string' },
   vm: { type: 'string' },
+}
+
+export async function importMultipleFromEsxi({
+  concurrency = 2,
+  host,
+  network,
+  password,
+  sr,
+  sslVerify = true,
+  stopSource = false,
+  stopOnError = false,
+  thin = false,
+  user,
+  vms,
+}) {
+  const task = await this.tasks.create({ name: `importing vms ${vms.join(',')}` })
+  Task.set('total', vms.length)
+  Task.set('done', 0)
+  Task.set('progress', 0)
+  let done = 0
+  return task.run(async () => {
+    const result = {}
+    try {
+      await asyncEach(
+        vms,
+        async vm => {
+          await new Task({ name: `importing vm ${vm}` }).run(async () => {
+            const vmUuid = await this.migrationfromEsxi({
+              host,
+              user,
+              password,
+              sslVerify,
+              thin,
+              vm,
+              sr,
+              network,
+              stopSource,
+            })
+            result[vm] = vmUuid
+          })
+          done++
+          Task.set('done', done)
+          Task.set('progress', Math.round((done * 100) / vms.length))
+        },
+        {
+          concurrency,
+          stopOnError,
+        }
+      )
+      return result
+      // error is an AggregatedError containing all the errors if stopOnError is true, the first error otherwise
+    } catch (error) {
+      // add the successfull VM if the UX want to show them something positive
+      error.succeeded = result
+      throw error
+    }
+  })
+}
+
+importMultipleFromEsxi.params = {
+  concurrency: { type: 'number', optional: true },
+  host: { type: 'string' },
+  network: { type: 'string' },
+  password: { type: 'string' },
+  sr: { type: 'string' },
+  sslVerify: { type: 'boolean', optional: true },
+  stopSource: { type: 'boolean', optional: true },
+  stopOnError: { type: 'boolean', optional: true },
+  thin: { type: 'boolean', optional: true },
+  user: { type: 'string' },
+  vms: {
+    items: {
+      type: 'number',
+    },
+    minItems: 1,
+    type: 'array',
+    uniqueItems: true,
+  },
 }
 
 // -------------------------------------------------------------------
