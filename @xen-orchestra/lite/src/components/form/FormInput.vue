@@ -116,16 +116,16 @@ const inputClass = computed(() => [
   },
 ]);
 
-const focus = () => inputElement.value.focus();
-
-defineExpose({
-  focus,
-});
-
 const { textarea, triggerResize } = useTextareaAutosize();
 
 watch(value, () => nextTick(() => triggerResize()), {
   immediate: true,
+});
+
+const focus = () => inputElement.value.focus();
+
+defineExpose({
+  focus,
 });
 </script>
 
