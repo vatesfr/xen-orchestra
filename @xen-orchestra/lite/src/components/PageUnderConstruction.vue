@@ -5,8 +5,11 @@
     <p class="subtitle">{{ $t("new-features-are-coming") }}</p>
     <p class="contact">
       {{ $t("do-you-have-needs") }}
-      <!-- TODO: Add the href  -->
-      <a href="#" target="_blank" rel="noopener noreferrer">
+      <a
+        href="https://xcp-ng.org/forum/topic/5018/xo-lite-building-an-embedded-ui-in-xcp-ng"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
         {{ $t("here") }} →
       </a>
     </p>
