@@ -1,23 +1,22 @@
 <template>
-  <div>
-    <img alt="Under construction" src="../assets/under-construction.svg" />
+  <div class="page-under-construction">
+    <img alt="Under construction" src="@/assets/under-construction.svg" />
     <p class="title">{{ $t("xo-lite-under-construction") }}</p>
     <p class="subtitle">{{ $t("new-features-are-coming") }}</p>
     <p class="contact">
       {{ $t("do-you-have-needs") }}
       <!-- TODO: Add the href  -->
       <a href="#" target="_blank" rel="noopener noreferrer">
-        {{ $t("here") }}→
+        {{ $t("here") }} →
       </a>
     </p>
   </div>
 </template>
 
-<script setup lang="ts"></script>
-
 <style lang="postcss" scoped>
-div {
+.page-under-construction {
   width: 100%;
+  min-height: 76.5vh;
   height: 100%;
   display: flex;
   flex-direction: column;

@@ -1,6 +1,7 @@
 <template>
   <PageUnderConstruction />
 </template>
+
 <script lang="ts" setup>
-import PageUnderConstruction from "@/views/PageUnderConstruction.vue";
+import PageUnderConstruction from "@/components/PageUnderConstruction.vue";
 </script>

@@ -1,18 +1,13 @@
 <template>
-  <div>
-    <UiCard>
-      <UiTitle class="title-with-counter" type="h4">
-        {{ $t("tasks") }}
-        <UiCounter :value="pendingTasks.length" color="info" />
-      </UiTitle>
+  <UiCard>
+    <UiTitle class="title-with-counter" type="h4">
+      {{ $t("tasks") }}
+      <UiCounter :value="pendingTasks.length" color="info" />
+    </UiTitle>
 
-      <TasksTable
-        :pending-tasks="pendingTasks"
-        :finished-tasks="finishedTasks"
-      />
-      <UiSpinner class="loader" v-if="!isReady" />
-    </UiCard>
-  </div>
+    <TasksTable :pending-tasks="pendingTasks" :finished-tasks="finishedTasks" />
+    <UiSpinner class="loader" v-if="!isReady" />
+  </UiCard>
 </template>
 
 <script lang="ts" setup>
