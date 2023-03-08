@@ -209,8 +209,8 @@ class RemoteAdapter {
 
       const isVhdDirectory = vhd instanceof VhdDirectory
       return isVhdDirectory
-        ? this.#useVhdDirectory() && this.#getCompressionType() === vhd.compressionType
-        : !this.#useVhdDirectory()
+        ? this.useVhdDirectory() && this.#getCompressionType() === vhd.compressionType
+        : !this.useVhdDirectory()
     })
   }
 
@@ -321,12 +321,12 @@ class RemoteAdapter {
     return this._vhdDirectoryCompression
   }
 
-  #useVhdDirectory() {
+  useVhdDirectory() {
     return this.handler.useVhdDirectory()
   }
 
   #useAlias() {
-    return this.#useVhdDirectory()
+    return this.useVhdDirectory()
   }
 
   async *#getDiskLegacy(diskId) {
@@ -660,7 +660,7 @@ class RemoteAdapter {
 
   async writeVhd(path, input, { checksum = true, validator = noop, writeBlockConcurrency, nbdClient } = {}) {
     const handler = this._handler
-    if (this.#useVhdDirectory()) {
+    if (this.useVhdDirectory()) {
       const dataPath = `${dirname(path)}/data/${uuidv4()}.vhd`
       const size = await createVhdDirectoryFromStream(handler, dataPath, input, {
         concurrency: writeBlockConcurrency,
