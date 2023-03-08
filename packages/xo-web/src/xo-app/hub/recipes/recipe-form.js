@@ -184,7 +184,7 @@ export default decorate([
               className='form-control'
               name='nameservers'
               onChange={effects.onChangeNameserver}
-              placeholder={formatMessage(messages.recipeNameserverAddresses)}
+              placeholder={formatMessage(messages.recipeNameserverAddressesExample)}
               required
               type='text'
               value={value.nameservers}
@@ -196,7 +196,7 @@ export default decorate([
               className='form-control'
               name='search'
               onChange={effects.onChangeSearch}
-              placeholder={formatMessage(messages.recipeSearches)}
+              placeholder={formatMessage(messages.recipeSearchesExample)}
               required
               type='text'
               value={value.search}

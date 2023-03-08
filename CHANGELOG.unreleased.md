@@ -11,7 +11,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [Kubernetes recipe] add dns configuration
+- [Kubernetes recipe] Ddd DNS configuration
 
 ### Packages to release
 
@@ -29,6 +29,6 @@
 
 <!--packages-start-->
 
-- xo-web patch
+- xo-web minor
 
 <!--packages-end-->
