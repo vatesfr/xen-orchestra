@@ -6,7 +6,7 @@
 type LinearChartData = {
   label: string;
   data: {
-    date: string;
+    timestamp: number;
     value: number;
   }[];
 }[];
@@ -25,24 +25,38 @@ type LinearChartData = {
 ```vue-script
 const data: LinearChartData = [
   {
-    label: "First series",
-    data: [
-      { date: "2022-10-01", value: 125 },
-      { date: "2022-10-02", value: 112 },
-      { date: "2022-10-03", value: 58 },
-      { date: "2022-10-04", value: 147 },
-      { date: "2022-10-05", value: 28 },
-    ],
+    "label": "First series",
+    "data": [
+      {
+        "timestamp": 1640995200000,
+        "value": 4986790
+      },
+      {
+        "timestamp": 1641081600000,
+        "value": 354312074
+      },
+      {
+        "timestamp": 1641168000000,
+        "value": 379858800
+      },
+    ]
   },
   {
-    label: "Second series",
-    data: [
-      { date: "2022-10-01", value: 168 },
-      { date: "2022-10-02", value: 247 },
-      { date: "2022-10-03", value: 154 },
-      { date: "2022-10-04", value: 190 },
-      { date: "2022-10-05", value: 158 },
-    ],
-  },
-];
+    "label": "Second series",
+    "data": [
+      {
+        "timestamp": 1640995200000,
+        "value": 102528411
+      },
+      {
+        "timestamp": 1641081600000,
+        "value": 10682534
+      },
+      {
+        "timestamp": 1641168000000,
+        "value": 10421188
+      },
+    ]
+  }
+]
 ```
