@@ -138,6 +138,21 @@ export interface XenApiTask extends XenApiRecord {
   progress: number;
 }
 
+export type XenApiPatch = {
+  name: string;
+  description: string;
+  license: string;
+  release: string;
+  size: number;
+  url: string;
+  version: string;
+  changelog: {
+    date: number;
+    description: string;
+    author: string;
+  };
+};
+
 type WatchCallbackResult = {
   id: string;
   class: ObjectType;
@@ -262,6 +277,18 @@ export default class XenApi {
     return Object.entries(result).map(([opaqueRef, record]) =>
       buildXoObject(record, { opaqueRef })
     );
+  }
+
+  async getMissingPatches(hostRef: string): Promise<XenApiPatch[]> {
+    const rawPatches = await this.#call<string>("host.call_plugin", [
+      this.sessionId,
+      hostRef,
+      "updater.py",
+      "check_update",
+      {},
+    ]);
+
+    return JSON.parse(rawPatches) as XenApiPatch[];
   }
 
   async #watch() {

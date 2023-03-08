@@ -24,6 +24,9 @@
     <div class="item">
       <PoolCpuUsageChart />
     </div>
+    <div class="item">
+      <PoolDashboardHostsPatches />
+    </div>
   </div>
 </template>
 
@@ -32,6 +35,7 @@ export const N_ITEMS = 5;
 </script>
 
 <script lang="ts" setup>
+import PoolDashboardHostsPatches from "@/components/pool/dashboard/PoolDashboardHostsPatches.vue";
 import { useHostMetricsStore } from "@/stores/host-metrics.store";
 import { differenceBy } from "lodash-es";
 import { provide, watch } from "vue";

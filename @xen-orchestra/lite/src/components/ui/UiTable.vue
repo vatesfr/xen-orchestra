@@ -37,9 +37,18 @@
   text-transform: uppercase;
 }
 
+:deep(.body th) {
+  font-weight: 700;
+}
+
 :deep(.body td) {
   font-weight: 400;
+}
+
+:deep(.body td),
+:deep(.body th) {
   font-size: 1.6rem;
   line-height: 2.4rem;
+  color: var(--color-blue-scale-200);
 }
 </style>
