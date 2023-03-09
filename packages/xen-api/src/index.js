@@ -74,7 +74,12 @@ const addSyncStackTrace = async promise => {
   try {
     return await promise
   } catch (error) {
-    error.stack = stackContainer.stack
+    let { stack } = stackContainer
+
+    // remove first line which does not contain stack information, simply `Error`
+    stack = stack.slice(stack.indexOf('\n') + 1)
+
+    error.stack = [error.stack, 'From:', stack].join('\n')
     throw error
   }
 }
@@ -723,7 +728,7 @@ export class Xapi extends EventEmitter {
   // Private
   // ===========================================================================
 
-  async _call(method, args, timeout = this._callTimeout(method, args)) {
+  async _call(method, args = [], timeout = this._callTimeout(method, args)) {
     const startTime = Date.now()
     try {
       const result = await pTimeout.call(this._addSyncStackTrace(this._transport(method, args)), timeout)

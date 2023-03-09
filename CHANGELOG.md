@@ -1,8 +1,28 @@
 # ChangeLog
 
-## **5.80.0** (2023-02-28)
+## **5.80.1** (2023-03-07)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
+### Bug fixes
+
+- [Import VM] fix invalid parameters when importing a VM from VMware [Forum#6714](https://xcp-ng.org/forum/topic/6714/vmware-migration-tool-we-need-your-feedback/143) (PR [#6696](https://github.com/vatesfr/xen-orchestra/pull/6696))
+- [Backup] Fix _A "socket" was not created for HTTP request before 300000ms_ error [Forum#59163](https://xcp-ng.org/forum/post/59163) [#6656](https://github.com/vatesfr/xen-orchestra/issues/6656)
+- Fix display of dates (e.g. _13 Apr 55055_ instead of _01 Feb 2023_) [Forum#58965](https://xcp-ng.org/forum/post/58965) [Forum#59605](https://xcp-ng.org/forum/post/59605)
+- [ESXI import] Fix failing imports when using non default datacenter name [Forum#7035](https://xcp-ng.org/forum/topic/7035/vmware-import-404-error) [Forum#59390](https://xcp-ng.org/forum/post/59390) PR [#6694](https://github.com/vatesfr/xen-orchestra/pull/6694)
+
+### Released packages
+
+- xen-api 1.2.7
+- @xen-orchestra/xapi 2.0.0
+- @xen-orchestra/backups 0.32.0
+- @xen-orchestra/backups-cli 1.0.2
+- @xen-orchestra/proxy 0.26.17
+- @xen-orchestra/vmware-explorer 0.2.0
+- xo-server 5.110.1
+- xo-web 5.112.1
+
+## **5.80.0** (2023-02-28)
 
 ### Highlights
 

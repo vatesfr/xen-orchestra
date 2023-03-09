@@ -30,6 +30,7 @@ import { synchronized } from 'decorator-synchronized'
 
 import fatfsBuffer, { init as fatfsBufferInit } from '../fatfs-buffer.mjs'
 import { camelToSnakeCase, forEach, map, pDelay, promisifyAll } from '../utils.mjs'
+import { debounceWithKey } from '../_pDebounceWithKey.mjs'
 
 import mixins from './mixins/index.mjs'
 import OTHER_CONFIG_TEMPLATE from './other-config-template.mjs'
@@ -1382,8 +1383,9 @@ export default class Xapi extends XapiBase {
     return find(this.objects.all, obj => obj.$type === 'SR' && canSrHaveNewVdiOfSize(obj, minSize))
   }
 
+  @decorateWith(debounceWithKey, 60e3, hostRef => hostRef)
   async _getHostServerTimeShift(hostRef) {
-    return Math.abs(parseDateTime(await this.call('host.get_servertime', hostRef)) - Date.now())
+    return Math.abs(parseDateTime(await this.call('host.get_servertime', hostRef)) * 1e3 - Date.now())
   }
 
   async isHostServerTimeConsistent(hostRef) {

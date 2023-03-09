@@ -39,7 +39,7 @@ import { faAngleDown, faAngleRight } from "@fortawesome/free-solid-svg-icons";
 import { noop } from "@vueuse/core";
 import AppMenu from "@/components/menu/AppMenu.vue";
 import MenuTrigger from "@/components/menu/MenuTrigger.vue";
-import UiIcon from "@/components/ui/UiIcon.vue";
+import UiIcon from "@/components/ui/icon/UiIcon.vue";
 
 const props = defineProps<{
   icon?: IconDefinition;
