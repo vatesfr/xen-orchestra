@@ -12,11 +12,11 @@ const { dirname, join, normalize, resolve } = require('path')
 const { createLogger } = require('@xen-orchestra/log')
 const {
   createVhdDirectoryFromStream,
+  createVhdStreamWithLength,
   openVhd,
   VhdAbstract,
   VhdDirectory,
   VhdSynthetic,
-  createVhdStreamWithLength,
 } = require('vhd-lib')
 const { deduped } = require('@vates/disposable/deduped.js')
 const { decorateMethodsWith } = require('@vates/decorate-with')
