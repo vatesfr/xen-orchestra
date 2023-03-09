@@ -78,7 +78,8 @@
     "*.{{{,c,m}j,t}s{,x},vue}": [
       "eslint --ignore-pattern '!*'",
       "jest --testRegex='^(?!.*.integ.spec.js$).*.spec.js$' --findRelatedTests --passWithNoTests"
-    ]
+    ],
+    "./CHANGELOG.unreleased.md": "sh -c scripts/gen-deps-list.js --"
   },
   "private": true,
   "scripts": {
