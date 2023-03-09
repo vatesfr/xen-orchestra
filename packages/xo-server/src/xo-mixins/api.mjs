@@ -153,6 +153,13 @@ function adaptJsonSchema(schema) {
     }
   }
 
+  if (is('string')) {
+    // we want strings to be not empty by default
+    if (schema.minLength === undefined && schema.format === undefined && schema.pattern === undefined) {
+      schema.minLength = 1
+    }
+  }
+
   return schema
 }
 

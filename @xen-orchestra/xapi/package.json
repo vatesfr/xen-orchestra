@@ -1,6 +1,6 @@
 {
   "name": "@xen-orchestra/xapi",
-  "version": "1.6.1",
+  "version": "2.0.0",
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@xen-orchestra/xapi",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "repository": {
@@ -15,10 +15,11 @@
     "node": ">=14"
   },
   "peerDependencies": {
-    "xen-api": "^1.2.6"
+    "xen-api": "^1.2.7"
   },
   "scripts": {
-    "postversion": "npm publish --access public"
+    "postversion": "npm publish --access public",
+    "test": "node--test"
   },
   "dependencies": {
     "@vates/decorate-with": "^2.0.0",
@@ -38,5 +39,8 @@
   "author": {
     "name": "Vates SAS",
     "url": "https://vates.fr"
+  },
+  "devDependencies": {
+    "test": "^3.3.0"
   }
 }

@@ -549,7 +549,7 @@ export default {
       await this.barrier(metricsRef)
       await this._waitObjectState(metricsRef, metrics => metrics.live)
 
-      const getServerTime = async () => parseDateTime(await this.call('host.get_servertime', host.$ref))
+      const getServerTime = async () => parseDateTime(await this.call('host.get_servertime', host.$ref)) * 1e3
       let rebootTime
       if (isXcp) {
         // On XCP-ng, install patches on each host one by one instead of all at once
