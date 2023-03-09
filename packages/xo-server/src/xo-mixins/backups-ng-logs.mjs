@@ -192,7 +192,7 @@ export default {
     // convert to array
     logs = Object.values(logs)
 
-    if (!isEmpty(filter)) {
+    if (typeof filter === 'function' || !isEmpty(filter)) {
       logs = logs.filter(iteratee(filter))
     }
 
