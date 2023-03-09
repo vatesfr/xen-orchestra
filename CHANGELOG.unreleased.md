@@ -7,7 +7,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [Home/pool, host] Grouping of alert icons on the `Home` page for `Pool` and `Host` (PR [#6655](https://github.com/vatesfr/xen-orchestra/pull/6655))
+- [Home/pool, host] Grouping of alert icons (PR [#6655](https://github.com/vatesfr/xen-orchestra/pull/6655))
 
 ### Bug fixes
 
