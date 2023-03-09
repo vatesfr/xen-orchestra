@@ -28,6 +28,7 @@ import { readFile, writeFile } from 'fs'
 const log = createLogger('xo:xo-server-usage-report')
 
 const GRANULARITY = 'days'
+let periodicity
 
 const pReadFile = promisify(readFile)
 const pWriteFile = promisify(writeFile)
@@ -266,7 +267,27 @@ const METRICS_MEAN = {
   iops: value => computeDoubleMean(values(value)),
   load: computeMean,
   net: value => computeDoubleMean(value) / kibPower,
-  ram: stats => computeMean(getMemoryUsedMetric(stats)) / gibPower,
+  ram: value => computeMean(value) / gibPower,
+}
+
+function getLastDays(data) {
+  let daysToKeep
+  switch (periodicity) {
+    case 'daily':
+      daysToKeep = 1
+      break
+    case 'weekly':
+      daysToKeep = 7
+      break
+    case 'monthly':
+      daysToKeep = 30
+      break
+  }
+  const expectedData = {}
+  for (const value of Object.entries(data)) {
+    expectedData[value[0]] = typeof value[1] !== 'object' ? value[1] : value[1].slice(-daysToKeep)
+  }
+  return expectedData
 }
 
 // ===================================================================
@@ -285,21 +306,21 @@ async function getVmsStats({ runningVms, xo }) {
           }
         })
 
-        const iopsRead = METRICS_MEAN.iops(get(stats.iops, 'r'))
-        const iopsWrite = METRICS_MEAN.iops(get(stats.iops, 'w'))
+        const iopsRead = METRICS_MEAN.iops(getLastDays(get(stats.iops, 'r')))
+        const iopsWrite = METRICS_MEAN.iops(getLastDays(get(stats.iops, 'w')))
         return {
           uuid: vm.uuid,
           name: vm.name_label,
           addresses: Object.values(vm.addresses),
-          cpu: METRICS_MEAN.cpu(stats.cpus),
-          ram: METRICS_MEAN.ram(stats),
-          diskRead: METRICS_MEAN.disk(get(stats.xvds, 'r')),
-          diskWrite: METRICS_MEAN.disk(get(stats.xvds, 'w')),
+          cpu: METRICS_MEAN.cpu(getLastDays(stats.cpus)),
+          ram: METRICS_MEAN.ram(getLastDays(getMemoryUsedMetric(stats))),
+          diskRead: METRICS_MEAN.disk(getLastDays(get(stats.xvds, 'r'))),
+          diskWrite: METRICS_MEAN.disk(getLastDays(get(stats.xvds, 'w'))),
           iopsRead,
           iopsWrite,
           iopsTotal: iopsRead + iopsWrite,
-          netReception: METRICS_MEAN.net(get(stats.vifs, 'rx')),
-          netTransmission: METRICS_MEAN.net(get(stats.vifs, 'tx')),
+          netReception: METRICS_MEAN.net(getLastDays(get(stats.vifs, 'rx'))),
+          netTransmission: METRICS_MEAN.net(getLastDays(get(stats.vifs, 'tx'))),
         }
       })
     ),
@@ -325,11 +346,11 @@ async function getHostsStats({ runningHosts, xo }) {
         return {
           uuid: host.uuid,
           name: host.name_label,
-          cpu: METRICS_MEAN.cpu(stats.cpus),
-          ram: METRICS_MEAN.ram(stats),
-          load: METRICS_MEAN.load(stats.load),
-          netReception: METRICS_MEAN.net(get(stats.pifs, 'rx')),
-          netTransmission: METRICS_MEAN.net(get(stats.pifs, 'tx')),
+          cpu: METRICS_MEAN.cpu(getLastDays(stats.cpus)),
+          ram: METRICS_MEAN.ram(getLastDays(getMemoryUsedMetric(stats))),
+          load: METRICS_MEAN.load(getLastDays(stats.load)),
+          netReception: METRICS_MEAN.net(getLastDays(get(stats.vifs, 'rx'))),
+          netTransmission: METRICS_MEAN.net(getLastDays(get(stats.vifs, 'tx'))),
         }
       })
     ),
@@ -362,8 +383,8 @@ async function getSrsStats({ xo, xoObjects }) {
           }
         })
 
-        const iopsRead = computeMean(get(stats.iops, 'r'))
-        const iopsWrite = computeMean(get(stats.iops, 'w'))
+        const iopsRead = computeMean(getLastDays(get(stats.iops, 'r')))
+        const iopsWrite = computeMean(getLastDays(get(stats.iops, 'w')))
 
         return {
           uuid: sr.uuid,
@@ -713,6 +734,7 @@ class UsageReportPlugin {
 
   configure(configuration, state) {
     this._conf = configuration
+    periodicity = configuration.periodicity
 
     if (this._job !== undefined) {
       this._job.stop()
