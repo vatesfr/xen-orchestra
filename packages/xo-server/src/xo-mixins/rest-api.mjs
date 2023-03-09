@@ -4,18 +4,20 @@ import { invalidCredentials, noSuchObject } from 'xo-common/api-errors.js'
 import { pipeline } from 'stream'
 import { json, Router } from 'express'
 import createNdJsonStream from '../_createNdJsonStream.mjs'
+import path from 'node:path'
 import pick from 'lodash/pick.js'
 import map from 'lodash/map.js'
 import * as CM from 'complex-matcher'
 import fromCallback from 'promise-toolbox/fromCallback'
 import { VDI_FORMAT_RAW, VDI_FORMAT_VHD } from '@xen-orchestra/xapi'
 
+const { join } = path.posix
 const noop = Function.prototype
 
 function sendObjects(objects, req, res, path = req.path) {
   const { query } = req
-  const basePath = req.baseUrl + path
-  const makeUrl = object => basePath + '/' + object.id
+  const basePath = join(req.baseUrl, path)
+  const makeUrl = object => join(basePath, object.id)
 
   let { fields } = query
   let results
