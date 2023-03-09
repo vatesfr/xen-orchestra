@@ -33,9 +33,8 @@ import {
 import MiniStats from './mini-stats'
 import styles from './index.css'
 
-import { LICENSE_WARNING_BODY } from '../host/license-warning'
-
 import BulkIcons from '../../common/bulk-icons'
+import { LICENSE_WARNING_BODY } from '../host/license-warning'
 
 @addSubscriptions({
   hvSupportedVersions: subscribeHvSupportedVersions,

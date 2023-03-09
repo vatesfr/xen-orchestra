@@ -38,10 +38,10 @@ class BulkIcons extends BaseComponent {
     return (
       length !== 0 && (
         // <a> in order to bypass the BlockLink component
-        <a className='fa-stack' onClick={this.onClick}>
+        <a className='fa-stack' onClick={this.onClick} style={{ transform: 'scale(0.8)' }}>
           <Icon icon='alarm' color={`text-${level}`} className='fa-stack-2x' />
           {/* `fa-triangle` does not exist on FontAwesome4.`l` is used to fill the `!` of the `alarm` icon */}
-          <span className={`fa-stack-2x text-${level}`} style={{ fontSize: '2.4rem', fontWeight: 'bold' }}>
+          <span className={`fa-stack-2x text-${level}`} style={{ fontWeight: 'bold' }}>
             l
           </span>
           <span className='fa-stack-1x text-white'>{length}</span>
