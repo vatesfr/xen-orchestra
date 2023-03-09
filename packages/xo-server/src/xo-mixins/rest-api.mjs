@@ -21,7 +21,14 @@ function sendObjects(objects, req, res, path = req.path) {
 
   let { fields } = query
   let results
-  if (fields !== undefined) {
+  if (fields === undefined) {
+    results = map(objects, makeUrl)
+  } else if (fields === '*') {
+    results = map(objects, object => ({
+      ...object,
+      href: makeUrl(object),
+    }))
+  } else if (fields) {
     fields = fields.split(',')
     results = map(objects, object => {
       const url = makeUrl(object)
@@ -29,8 +36,6 @@ function sendObjects(objects, req, res, path = req.path) {
       object.href = url
       return object
     })
-  } else {
-    results = map(objects, makeUrl)
   }
 
   if (query.ndjson !== undefined) {
