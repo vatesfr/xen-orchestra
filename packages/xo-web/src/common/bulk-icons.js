@@ -41,10 +41,10 @@ class BulkIcons extends BaseComponent {
         <a className='fa-stack' onClick={this.onClick} style={{ transform: 'scale(0.8)' }}>
           <Icon icon='alarm' color={`text-${level}`} className='fa-stack-2x' />
           {/* `fa-triangle` does not exist on FontAwesome4.`l` is used to fill the `!` of the `alarm` icon */}
-          <span className={`fa-stack-2x text-${level}`} style={{ fontWeight: 'bold' }}>
+          <span className={`fa-stack-2x font-weight-bold text-${level}`} style={{ fontSize: '2.3em'}}>
             l
           </span>
-          <span className='fa-stack-1x text-white'>{length}</span>
+          <span className='fa-stack-1x text-white font-weight-bold'>{4}</span>
         </a>
       )
     )
