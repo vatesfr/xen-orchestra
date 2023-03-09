@@ -6,6 +6,7 @@
       class="left"
     >
       <slot>{{ left }}</slot>
+      <UiCounter class="count" v-if="count > 0" :value="count" color="info" />
     </component>
     <component
       :is="subtitle ? 'h6' : 'h5'"
@@ -18,11 +19,17 @@
 </template>
 
 <script lang="ts" setup>
-defineProps<{
-  subtitle?: boolean;
-  left?: string;
-  right?: string;
-}>();
+import UiCounter from "@/components/ui/UiCounter.vue";
+
+withDefaults(
+  defineProps<{
+    subtitle?: boolean;
+    left?: string;
+    right?: string;
+    count?: number;
+  }>(),
+  { count: 0 }
+);
 </script>
 
 <style lang="postcss" scoped>
@@ -55,11 +62,18 @@ defineProps<{
   font-size: var(--section-title-left-size);
   font-weight: var(--section-title-left-weight);
   color: var(--section-title-left-color);
+  display: flex;
+  align-items: center;
+  gap: 2rem;
 }
 
 .right {
   font-size: var(--section-title-right-size);
   font-weight: var(--section-title-right-weight);
   color: var(--section-title-right-color);
+}
+
+.count {
+  font-size: 1.6rem;
 }
 </style>

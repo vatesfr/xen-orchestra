@@ -21,7 +21,7 @@
       </UiCardGroup>
     </UiCardGroup>
     <UiCardGroup>
-      <UiCardComingSoon class="tasks" title="Tasks" />
+      <PoolDashboardTasks class="tasks" />
     </UiCardGroup>
   </div>
 </template>
@@ -31,6 +31,7 @@ export const N_ITEMS = 5;
 </script>
 
 <script lang="ts" setup>
+import PoolDashboardTasks from "@/components/pool/dashboard/PoolDashboardTasks.vue";
 import PoolCpuUsageChart from "@/components/pool/dashboard/cpuUsage/PoolCpuUsageChart.vue";
 import PoolDashboardCpuProvisioning from "@/components/pool/dashboard/PoolDashboardCpuProvisioning.vue";
 import PoolDashboardCpuUsage from "@/components/pool/dashboard/PoolDashboardCpuUsage.vue";
@@ -126,6 +127,18 @@ runningVms.value.forEach((vm) => vmRegister(vm));
   flex-direction: column;
   gap: 1rem;
   padding: 1rem;
+}
+
+@media (min-width: 768px) {
+  .pool-dashboard-view {
+    column-count: 2;
+  }
+}
+
+@media (min-width: 1500px) {
+  .pool-dashboard-view {
+    column-count: 3;
+  }
 }
 
 .alarms,
