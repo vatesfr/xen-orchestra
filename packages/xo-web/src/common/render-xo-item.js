@@ -102,7 +102,7 @@ export const Host = decorate([
             {_('memoryFree', {
               memoryFree: formatSize(host.memory.size - host.memory.usage),
             })}
-            {')'}
+            )
           </span>
         )}
         {pool !== undefined && <span>{` - ${pool.name_label}`}</span>}
@@ -558,7 +558,14 @@ const xoItemToRender = {
   // PIF.
   PIF: pif => (
     <span>
-      <Icon icon='network' color={pif.carrier ? 'text-success' : 'text-danger'} /> {pif.device} ({pif.deviceName})
+      <Icon icon='network' color={pif.carrier ? 'text-success' : 'text-danger'} /> {pif.device} (
+      {pif.vlan === -1
+        ? pif.deviceName
+        : _('keyValue', {
+            key: _('pifVlanLabel'),
+            value: pif.vlan,
+          })}
+      )
     </span>
   ),
 
