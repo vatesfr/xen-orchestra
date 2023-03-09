@@ -48,7 +48,7 @@ function sendObjects(objects, req, res, path = req.path) {
 const handleOptionalUserFilter = filter => filter && CM.parse(filter).createPredicate()
 
 const subRouter = (app, path) => {
-  const router = Router({ strict: true })
+  const router = Router({ strict: false })
   app.use(path, router)
   return router
 }
