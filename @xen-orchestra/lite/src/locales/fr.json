@@ -17,6 +17,7 @@
   "community": "Communauté",
   "community-name": "Communauté {name}",
   "copy": "Copier",
+  "cpu-provisioning": "Provisionnement CPU",
   "cpu-usage": "Utilisation CPU",
   "dashboard": "Tableau de bord",
   "delete": "Supprimer",
@@ -96,10 +97,13 @@
   "theme-dark": "Sombre",
   "theme-light": "Clair",
   "top-#": "Top {n}",
+  "total-cpus": "Total CPUs",
   "total-free": "Total libre",
   "total-used": "Total utilisé",
   "unreachable-hosts": "Hôtes inaccessibles",
   "unreachable-hosts-reload-page": "C'est fait. Rafraîchir la page",
+  "vcpus": "vCPUs",
+  "vcpus-used": "vCPUs utilisés",
   "version": "Version",
   "vms": "VMs"
 }

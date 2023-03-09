@@ -34,7 +34,7 @@
 
 <script lang="ts" setup>
 import UiButtonGroup from "@/components/ui/UiButtonGroup.vue";
-import UiIcon from "@/components/ui/UiIcon.vue";
+import UiIcon from "@/components/ui/icon/UiIcon.vue";
 import UiTitle from "@/components/ui/UiTitle.vue";
 import type { IconDefinition } from "@fortawesome/fontawesome-common-types";
 import { faXmark } from "@fortawesome/free-solid-svg-icons";
