@@ -2618,7 +2618,7 @@ export default {
   // Original text: "Export starting…"
   startVmExport: 'Начало экспорта…',
 
-  // Original text: 'N CPUs'
+  // Original text: 'Number of CPUs'
   nCpus: undefined,
 
   // Original text: 'Memory'

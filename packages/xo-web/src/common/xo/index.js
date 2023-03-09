@@ -3498,4 +3498,4 @@ export const synchronizeNetbox = pools =>
 export const esxiListVms = (host, user, password, sslVerify) =>
   _call('esxi.listVms', { host, user, password, sslVerify })
 
-export const importVmFromEsxi = params => _call('vm.importFromEsxi', params)
+export const importVmsFromEsxi = params => _call('vm.importMultipleFromEsxi', params)
