@@ -349,8 +349,8 @@ async function getHostsStats({ runningHosts, xo }) {
           cpu: METRICS_MEAN.cpu(getLastDays(stats.cpus)),
           ram: METRICS_MEAN.ram(getLastDays(getMemoryUsedMetric(stats))),
           load: METRICS_MEAN.load(getLastDays(stats.load)),
-          netReception: METRICS_MEAN.net(getLastDays(get(stats.vifs, 'rx'))),
-          netTransmission: METRICS_MEAN.net(getLastDays(get(stats.vifs, 'tx'))),
+          netReception: METRICS_MEAN.net(getLastDays(get(stats.pifs, 'rx'))),
+          netTransmission: METRICS_MEAN.net(getLastDays(get(stats.pifs, 'tx'))),
         }
       })
     ),
