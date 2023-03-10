@@ -1343,11 +1343,11 @@ export async function importMultipleFromEsxi({
   vms,
 }) {
   const task = await this.tasks.create({ name: `importing vms ${vms.join(',')}` })
-  Task.set('total', vms.length)
-  Task.set('done', 0)
-  Task.set('progress', 0)
   let done = 0
   return task.run(async () => {
+    Task.set('total', vms.length)
+    Task.set('done', 0)
+    Task.set('progress', 0)
     const result = {}
     try {
       await asyncEach(
@@ -1377,9 +1377,11 @@ export async function importMultipleFromEsxi({
         }
       )
       return result
-      // error is an AggregatedError containing all the errors if stopOnError is true, the first error otherwise
     } catch (error) {
-      // add the successfull VM if the UX want to show them something positive
+      // error is an AggregatedError containing all the errors if stopOnError is false
+      // it is the first error otherwise
+
+      // add the successfull VMs if the UX want to show them something positive
       error.succeeded = result
       throw error
     }
