@@ -7,6 +7,6 @@ export const getRedirectionUrl = (vms = []) => {
     : vmIds.length === 1
     ? `/vms/${vmIds[0]}`
     : `/home?s=${encodeURIComponent(
-        new CM.Property('id', new CM.Or(vms.map(vm => new CM.String(vm)))).toString()
+        new CM.Property('id', new CM.Or(vmIds.map(vm => new CM.String(vm)))).toString()
       )}&t=VM`
 }
