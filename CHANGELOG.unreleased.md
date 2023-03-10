@@ -31,5 +31,6 @@
 
 - xo-web patch
 - xo-server minor
+- xo-server-usage-report patch
 
 <!--packages-end-->
