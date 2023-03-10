@@ -120,6 +120,7 @@ export default class RestApi {
     )
 
     collections.backups = { id: 'backups' }
+    collections.restore = { id: 'restore' }
 
     collections.vms.actions = {
       __proto__: null,
@@ -163,8 +164,8 @@ export default class RestApi {
     api.get('/', (req, res) => sendObjects(collections, req, res))
 
     api
-      .get('/backups', (req, res) => {
-        sendObjects([{ id: 'logs' }, { id: 'restore' }], req, res)
+      .get(['/backups', '/restore'], (req, res) => {
+        sendObjects([{ id: 'logs' }], req, res)
       })
       .get(
         '/backups/logs',
@@ -175,18 +176,15 @@ export default class RestApi {
           sendObjects(logs, req, res)
         })
       )
-      .get('/backups/restore', (req, res) => {
-        sendObjects([{ id: 'logs' }], req, res)
-      })
       .get(
-        '/backups/restore/logs',
+        '/restore/logs',
         wrap(async (req, res) => {
           const logs = await app.getBackupNgLogsSorted({ filter: _ => _.message === 'restore' })
           sendObjects(logs, req, res)
         })
       )
       .get(
-        ['/backups/logs/:id', '/backups/restore/logs/:id'],
+        ['/backups/logs/:id', '/restore/logs/:id'],
         wrap(async (req, res) => {
           res.json(await app.getBackupNgLogs(req.params.id))
         })
