@@ -11,7 +11,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [Kubernetes recipe] Ddd DNS configuration
+- [Kubernetes recipe] Ddd DNS configuration (PR [#6678](https://github.com/vatesfr/xen-orchestra/pull/6678))
 
 ### Packages to release
 
