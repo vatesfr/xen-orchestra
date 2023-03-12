@@ -24,7 +24,7 @@ create.params = {
   pool: { type: 'string' },
   name: { type: 'string' },
   nbd: { type: 'boolean', optional: true },
-  description: { type: 'string', optional: true },
+  description: { type: 'string', minLength: 0, optional: true },
   pif: { type: 'string', optional: true },
   mtu: { type: ['integer', 'string'], optional: true },
   vlan: { type: ['integer', 'string'], optional: true },
@@ -49,7 +49,7 @@ export async function createBonded({ pool, name, description, pifs, mtu = 1500, 
 createBonded.params = {
   pool: { type: 'string' },
   name: { type: 'string' },
-  description: { type: 'string', optional: true },
+  description: { type: 'string', minLength: 0, optional: true },
   pifs: {
     type: 'array',
     items: {
@@ -105,6 +105,7 @@ set.params = {
   },
   name_description: {
     type: 'string',
+    minLength: 0,
     optional: true,
   },
   name_label: {
