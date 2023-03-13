@@ -18,7 +18,6 @@ let vncClient: VncClient | undefined;
 
 const clearVncClient = () => {
   if (vncClient !== undefined) {
-    vncClient.removeEventListener("disconnect", clearVncClient);
     if (vncClient._rfbConnectionState !== "disconnected") {
       vncClient.disconnect();
     }
@@ -46,8 +45,6 @@ watchEffect(() => {
   });
 
   vncClient.scaleViewport = true;
-
-  vncClient.addEventListener("disconnect", clearVncClient);
 });
 
 onBeforeUnmount(() => {

@@ -5,14 +5,7 @@
     v-else-if="vmConsole"
     :location="vmConsole.location"
     :is-console-available="
-      !isOperationsPending(vm, [
-        'clean_shutdown',
-        'hard_shutdown',
-        'clean_reboot',
-        'hard_reboot',
-        'pause',
-        'suspend',
-      ])
+      !isOperationsPending(vm, OPERATIONS_WHICH_PREVENTS_CONSOLE)
     "
   />
 </template>
@@ -24,6 +17,15 @@ import RemoteConsole from "@/components/RemoteConsole.vue";
 import { useConsoleStore } from "@/stores/console.store";
 import { useVmStore } from "@/stores/vm.store";
 import { isOperationsPending } from "@/libs/utils";
+
+const OPERATIONS_WHICH_PREVENTS_CONSOLE = [
+  "clean_shutdown",
+  "hard_shutdown",
+  "clean_reboot",
+  "hard_reboot",
+  "pause",
+  "suspend",
+];
 
 const route = useRoute();
 const vmStore = useVmStore();
