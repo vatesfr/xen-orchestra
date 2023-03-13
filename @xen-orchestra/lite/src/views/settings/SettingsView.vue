@@ -106,7 +106,7 @@
 
 <script lang="ts" setup>
 import UiCardTitle from "@/components/ui/UiCardTitle.vue";
-import UiIcon from "@/components/ui/UiIcon.vue";
+import UiIcon from "@/components/ui/icon/UiIcon.vue";
 import type { BasicColorSchema } from "@vueuse/core";
 import { useUiStore } from "@/stores/ui.store";
 import { storeToRefs } from "pinia";
