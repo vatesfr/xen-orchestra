@@ -35,7 +35,7 @@
 
 - @xen-orchestra/backups minor
 - xo-server minor
-- xo-server-auth-oidc patch
+- xo-server-auth-oidc minor
 - xo-web patch
 
 <!--packages-end-->
