@@ -33,7 +33,7 @@ exports.configurationSchema = {
         userInfoURL: { title: 'User info URL', type: 'string' },
         usernameField: {
           default: 'username',
-          description: 'Field to use as the XO username',
+          description: 'Field to use as the XO username (e.g. `displayName`, `username` or `email`)',
           title: 'Username field',
           type: 'string',
         },
@@ -82,8 +82,14 @@ class AuthOidc {
     this.#unregisterPassportStrategy = xo.registerPassportStrategy(
       new Strategy(conf, async (issuer, profile, done) => {
         try {
-          const { id, [usernameField]: name } = profile
-          done(null, await xo.registerUser2('oidc:' + issuer, { user: { id, name } }))
+          // See https://github.com/jaredhanson/passport-openidconnect/blob/master/lib/profile.js
+          const { id } = profile
+          done(
+            null,
+            await xo.registerUser2('oidc:' + issuer, {
+              user: { id, name: usernameField === 'email' ? profile.emails[0].value : profile[usernameField] },
+            })
+          )
         } catch (error) {
           done(error.message)
         }

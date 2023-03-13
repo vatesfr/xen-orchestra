@@ -7,6 +7,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [Plugin/auth-oidc] Support `email` for _username field_ setting [Forum#59587](https://xcp-ng.org/forum/post/59587)
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -33,7 +35,7 @@
 
 - @xen-orchestra/backups minor
 - xo-server minor
-- xo-server-auth-oidc patch
+- xo-server-auth-oidc minor
 - xo-web patch
 
 <!--packages-end-->
