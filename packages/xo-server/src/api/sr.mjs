@@ -29,7 +29,7 @@ set.params = {
 
   name_label: { type: 'string', optional: true },
 
-  name_description: { type: 'string', optional: true },
+  name_description: { type: 'string', minLength: 0, optional: true },
 }
 
 set.resolve = {
@@ -187,7 +187,7 @@ export async function createIso({
 createIso.params = {
   host: { type: 'string' },
   nameLabel: { type: 'string' },
-  nameDescription: { type: 'string' },
+  nameDescription: { type: 'string', minLength: 0 },
   path: { type: 'string' },
   type: { type: 'string' },
   user: { type: 'string', optional: true },
@@ -260,7 +260,7 @@ export async function createNfs({
 createNfs.params = {
   host: { type: 'string' },
   nameLabel: { type: 'string' },
-  nameDescription: { type: 'string' },
+  nameDescription: { type: 'string', minLength: 0 },
   server: { type: 'string' },
   serverPath: { type: 'string' },
   nfsVersion: { type: 'string', optional: true },
@@ -311,7 +311,7 @@ export async function createHba({ host, nameLabel, nameDescription, scsiId, srUu
 createHba.params = {
   host: { type: 'string' },
   nameLabel: { type: 'string' },
-  nameDescription: { type: 'string' },
+  nameDescription: { type: 'string', minLength: 0 },
   scsiId: { type: 'string' },
   srUuid: { type: 'string', optional: true },
 }
@@ -348,7 +348,7 @@ export async function createLvm({ host, nameLabel, nameDescription, device }) {
 createLvm.params = {
   host: { type: 'string' },
   nameLabel: { type: 'string' },
-  nameDescription: { type: 'string' },
+  nameDescription: { type: 'string', minLength: 0 },
   device: { type: 'string' },
 }
 
@@ -384,7 +384,7 @@ export async function createExt({ host, nameLabel, nameDescription, device }) {
 createExt.params = {
   host: { type: 'string' },
   nameLabel: { type: 'string' },
-  nameDescription: { type: 'string' },
+  nameDescription: { type: 'string', minLength: 0 },
   device: { type: 'string' },
 }
 
@@ -456,7 +456,7 @@ export async function createZfs({ host, nameLabel, nameDescription, location }) 
 createZfs.params = {
   host: { type: 'string' },
   nameLabel: { type: 'string' },
-  nameDescription: { type: 'string' },
+  nameDescription: { type: 'string', minLength: 0 },
   location: { type: 'string' },
 }
 
@@ -616,7 +616,7 @@ export async function createIscsi({
 createIscsi.params = {
   host: { type: 'string' },
   nameLabel: { type: 'string' },
-  nameDescription: { type: 'string' },
+  nameDescription: { type: 'string', minLength: 0 },
   target: { type: 'string' },
   port: { type: 'integer', optional: true },
   targetIqn: { type: 'string' },

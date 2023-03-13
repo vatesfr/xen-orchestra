@@ -382,7 +382,7 @@ class SDNController extends EventEmitter {
         },
       },
       name: { type: 'string' },
-      description: { type: 'string' },
+      description: { type: 'string', minLength: 0 },
       encapsulation: { type: 'string' },
       encrypted: { type: 'boolean', optional: true },
       mtu: { type: 'integer', optional: true },
