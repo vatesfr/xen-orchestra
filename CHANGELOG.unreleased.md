@@ -12,6 +12,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [Backup/Restore] Fix restore via a proxy showing as interupted (PR [#6702](https://github.com/vatesfr/xen-orchestra/pull/6702))
+- [REST API] Backup logs are now available at `/rest/v0/backups/logs`
 
 ### Packages to release
 
@@ -30,7 +31,7 @@
 <!--packages-start-->
 
 - @xen-orchestra/backups minor
-- xo-server patch
+- xo-server minor
 - xo-web patch
 
 <!--packages-end-->
