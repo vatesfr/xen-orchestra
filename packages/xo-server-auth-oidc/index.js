@@ -20,11 +20,12 @@ exports.configurationSchema = {
     advanced: {
       title: 'Advanced',
       type: 'object',
+      default: {},
       properties: {
         authorizationURL: { title: 'Authorization URL', type: 'string' },
         callbackURL: {
-          description: 'Default to https://<xo.company.net>/signin/oidc/callback`.',
           title: 'Callback URL',
+          default: '/signin/oidc/callback',
           type: 'string',
         },
         issuer: { title: 'Issuer', type: 'string' },
@@ -55,7 +56,7 @@ class AuthOidc {
   }
 
   async configure({ advanced, ...conf }, { loaded }) {
-    this.#conf = { callbackURL: '/signin/oidc/callback', ...advanced, ...conf }
+    this.#conf = { ...advanced, ...conf }
 
     if (loaded) {
       await this.unload()

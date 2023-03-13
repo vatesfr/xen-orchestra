@@ -13,6 +13,7 @@
 
 - [Backup/Restore] Fix restore via a proxy showing as interupted (PR [#6702](https://github.com/vatesfr/xen-orchestra/pull/6702))
 - [REST API] Backup logs are now available at `/rest/v0/backups/logs`
+- [Plugin/auth-oidc] Fix empty user names when using default config [Forum#59587](https://xcp-ng.org/forum/post/59587)
 
 ### Packages to release
 
@@ -32,6 +33,7 @@
 
 - @xen-orchestra/backups minor
 - xo-server minor
+- xo-server-auth-oidc patch
 - xo-web patch
 
 <!--packages-end-->
