@@ -1329,6 +1329,11 @@ importFromEsxi.params = {
   vm: { type: 'string' },
 }
 
+/**
+ * on success:  returns an object, the keys are the esxi id, and the values are the created vm uuid
+ * On error: throw an error. If stopOnError is false, continue when an error occurs, throws an error at the end with a 'succeeded'
+ * property listing the VM properly imported and a 'errors' property with all the errors collected
+ */
 export async function importMultipleFromEsxi({
   concurrency = 2,
   host,
@@ -1354,22 +1359,25 @@ export async function importMultipleFromEsxi({
         vms,
         async vm => {
           await new Task({ name: `importing vm ${vm}` }).run(async () => {
-            const vmUuid = await this.migrationfromEsxi({
-              host,
-              user,
-              password,
-              sslVerify,
-              thin,
-              vm,
-              sr,
-              network,
-              stopSource,
-            })
-            result[vm] = vmUuid
+            try {
+              const vmUuid = await this.migrationfromEsxi({
+                host,
+                user,
+                password,
+                sslVerify,
+                thin,
+                vm,
+                sr,
+                network,
+                stopSource,
+              })
+              result[vm] = vmUuid
+            } finally {
+              done++
+              Task.set('done', done)
+              Task.set('progress', Math.round((done * 100) / vms.length))
+            }
           })
-          done++
-          Task.set('done', done)
-          Task.set('progress', Math.round((done * 100) / vms.length))
         },
         {
           concurrency,
@@ -1389,6 +1397,7 @@ export async function importMultipleFromEsxi({
 }
 
 importMultipleFromEsxi.params = {
+  // number of VM imports in parallel (the disks are imported in parallel in each VM import)
   concurrency: { type: 'number', optional: true },
   host: { type: 'string' },
   network: { type: 'string' },
@@ -1396,12 +1405,14 @@ importMultipleFromEsxi.params = {
   sr: { type: 'string' },
   sslVerify: { type: 'boolean', optional: true },
   stopSource: { type: 'boolean', optional: true },
+  // should the import stop on the first error , default true . Warning, change the response format
   stopOnError: { type: 'boolean', optional: true },
   thin: { type: 'boolean', optional: true },
   user: { type: 'string' },
+  // VMs ids to be imported, if used from cli use this syntax :  vms=json:'["2","9","18"]'
   vms: {
     items: {
-      type: 'number',
+      type: 'string',
     },
     minItems: 1,
     type: 'array',

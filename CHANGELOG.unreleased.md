@@ -41,5 +41,4 @@
 - xo-server-auth-oidc minor
 - xo-web minor
 
-
 <!--packages-end-->
