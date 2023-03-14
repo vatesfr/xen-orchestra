@@ -18,7 +18,8 @@ import { useConsoleStore } from "@/stores/console.store";
 import { useVmStore } from "@/stores/vm.store";
 import { isOperationsPending } from "@/libs/utils";
 
-const OPERATIONS_WHICH_PREVENTS_CONSOLE = [
+const STOP_OPERATIONS = [
+  "shutdown",
   "clean_shutdown",
   "hard_shutdown",
   "clean_reboot",
