@@ -1,5 +1,6 @@
 'use strict'
 
+const { join } = require('node:path/posix')
 const { Strategy } = require('passport-openidconnect')
 
 // ===================================================================
@@ -46,6 +47,8 @@ exports.configurationSchema = {
 
 // ===================================================================
 
+const WELL_KNOWN_ENDPOINT = '/.well-known/openid-configuration'
+
 class AuthOidc {
   #conf
   #unregisterPassportStrategy
@@ -69,7 +72,18 @@ class AuthOidc {
     const { discoveryURL, usernameField, ...conf } = this.#conf
 
     if (discoveryURL !== undefined) {
-      const res = await this.#xo.httpRequest(discoveryURL)
+      let url = discoveryURL
+      let onError
+
+      // try with the well-known path first
+      if (!url.endsWith(WELL_KNOWN_ENDPOINT)) {
+        url = join(url, WELL_KNOWN_ENDPOINT)
+
+        // on error, retry with the original URL
+        onError = () => this.#xo.httpRequest(discoveryURL)
+      }
+
+      const res = await this.#xo.httpRequest(url).catch(onError)
       const data = await res.json()
 
       for (const key of DISCOVERABLE_SETTINGS) {
