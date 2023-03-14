@@ -26,7 +26,7 @@ create.params = {
   nbd: { type: 'boolean', optional: true },
   description: { type: 'string', minLength: 0, optional: true },
   pif: { type: 'string', optional: true },
-  mtu: { type: ['integer', 'string'], optional: true },
+  mtu: { type: 'integer', optional: true },
   vlan: { type: ['integer', 'string'], optional: true },
 }
 
@@ -56,7 +56,7 @@ createBonded.params = {
       type: 'string',
     },
   },
-  mtu: { type: ['integer', 'string'], optional: true },
+  mtu: { type: 'integer', optional: true },
   bondMode: { enum: getBondModes() },
 }
 
