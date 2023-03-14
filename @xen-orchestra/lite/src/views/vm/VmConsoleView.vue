@@ -5,7 +5,7 @@
     v-else-if="vmConsole"
     :location="vmConsole.location"
     :is-console-available="
-      !isOperationsPending(vm, OPERATIONS_WHICH_PREVENTS_CONSOLE)
+      !isOperationsPending(vm, STOP_OPERATIONS)
     "
   />
 </template>
