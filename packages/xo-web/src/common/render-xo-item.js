@@ -556,19 +556,18 @@ const xoItemToRender = {
   ),
 
   // PIF.
-  PIF: pif => (
+  PIF: ({ carrier, device, deviceName, vlan }) => (
     <span>
-      <Icon icon='network' color={pif.carrier ? 'text-success' : 'text-danger'} /> {pif.device} (
-      {pif.vlan === -1
-        ? pif.deviceName
-        : _('keyValue', {
-            key: _('pifVlanLabel'),
-            value: pif.vlan,
-          })}
+      <Icon icon='network' color={carrier ? 'text-success' : 'text-danger'} /> {device} ({deviceName}
+      {deviceName !== '' && vlan !== -1 && ' - '}
+      {vlan !== -1 &&
+        _('keyValue', {
+          key: _('pifVlanLabel'),
+          value: vlan,
+        })}
       )
     </span>
   ),
-
   // Tags.
   tag: tag => (
     <span>
