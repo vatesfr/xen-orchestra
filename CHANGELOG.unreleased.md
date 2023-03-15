@@ -9,6 +9,7 @@
 
 - [Plugin/auth-oidc] Support `email` for _username field_ setting [Forum#59587](https://xcp-ng.org/forum/post/59587)
 - [Plugin/auth-oidc] Well-known suffix is now optional in _auto-discovery URL_
+- [PIF selector] Display the VLAN number when displaying a VLAN PIF [#4697](https://github.com/vatesfr/xen-orchestra/issues/4697) (PR [#6714](https://github.com/vatesfr/xen-orchestra/pull/6714))
 
 ### Bug fixes
 
@@ -37,6 +38,6 @@
 - @xen-orchestra/backups minor
 - xo-server minor
 - xo-server-auth-oidc minor
-- xo-web patch
+- xo-web minor
 
 <!--packages-end-->
