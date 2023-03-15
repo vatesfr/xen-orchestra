@@ -8,10 +8,10 @@ const { asyncEach } = require('@vates/async-each')
 
 const { warn } = createLogger('vhd-lib:createVhdDirectoryFromStream')
 
-const buildVhd = Disposable.wrap(async function* (handler, path, inputStream, { concurrency, compression, nbdClient }) {
+const buildVhd = Disposable.wrap(async function* (handler, path, inputStream, { concurrency, compression }) {
   const vhd = yield VhdDirectory.create(handler, path, { compression })
   await asyncEach(
-    parseVhdStream(inputStream, nbdClient),
+    parseVhdStream(inputStream),
     async function (item) {
       switch (item.type) {
         case 'footer':
@@ -45,10 +45,10 @@ exports.createVhdDirectoryFromStream = async function createVhdDirectoryFromStre
   handler,
   path,
   inputStream,
-  { validator, concurrency = 16, compression, nbdClient } = {}
+  { validator, concurrency = 16, compression } = {}
 ) {
   try {
-    const size = await buildVhd(handler, path, inputStream, { concurrency, compression, nbdClient })
+    const size = await buildVhd(handler, path, inputStream, { concurrency, compression })
     if (validator !== undefined) {
       await validator.call(this, path)
     }
