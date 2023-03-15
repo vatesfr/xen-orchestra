@@ -1,3 +1,4 @@
+import assert from 'node:assert/strict'
 import filter from 'lodash/filter.js'
 import { createLogger } from '@xen-orchestra/log'
 import { ignoreErrors } from 'promise-toolbox'
@@ -239,6 +240,9 @@ export default class {
   // - name: the name of the user according to the provider
   // - data: additional data about the user that the provider may want to store
   async registerUser2(providerId, { user: { id, name }, data }) {
+    assert.equal(typeof name, 'string')
+    assert.notEqual(name, '')
+
     const users = await this.getAllUsers()
 
     // Get the XO user bound to the provider's user

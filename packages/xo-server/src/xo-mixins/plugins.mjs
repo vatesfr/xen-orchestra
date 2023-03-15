@@ -54,7 +54,16 @@ export default class {
     return this._pluginsMetadata.first(id)
   }
 
-  async registerPlugin(name, instance, configurationSchema, configurationPresets, description, testSchema, version) {
+  async registerPlugin(
+    name,
+    instance,
+    configurationSchema,
+    configurationPresets,
+    description,
+    keywords,
+    testSchema,
+    version
+  ) {
     const id = name
     const plugin = (this._plugins[id] = {
       configurationPresets,
@@ -63,6 +72,7 @@ export default class {
       description,
       id,
       instance,
+      keywords,
       name,
       testable: typeof instance.test === 'function',
       testSchema,
@@ -106,6 +116,7 @@ export default class {
       configurationPresets,
       configurationSchema,
       description,
+      keywords,
       loaded,
       name,
       testable,
@@ -121,6 +132,7 @@ export default class {
       autoload,
       description,
       loaded,
+      keywords,
       unloadable,
       version,
       configuration: sensitiveValues.obfuscate(configuration),

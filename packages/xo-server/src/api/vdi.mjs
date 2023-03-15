@@ -90,7 +90,7 @@ set.params = {
 
   name_label: { type: 'string', optional: true },
 
-  name_description: { type: 'string', optional: true },
+  name_description: { type: 'string', minLength: 0, optional: true },
 
   // size of VDI
   size: { type: ['integer', 'string'], optional: true },

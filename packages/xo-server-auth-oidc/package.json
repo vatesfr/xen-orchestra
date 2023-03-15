@@ -1,6 +1,18 @@
 {
   "private": true,
   "name": "xo-server-auth-oidc",
+  "description": "OpenID Connect authentication plugin for XO-Server",
+  "keywords": [
+    "authentication",
+    "connect",
+    "oauth",
+    "oidc",
+    "opendid",
+    "orchestra",
+    "xen-orchestra",
+    "xen",
+    "xo-server"
+  ],
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/packages/xo-server-auth-oidc",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "repository": {

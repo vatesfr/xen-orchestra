@@ -7,6 +7,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [Plugin/auth-oidc] Support `email` for _username field_ setting [Forum#59587](https://xcp-ng.org/forum/post/59587)
+- [Plugin/auth-oidc] Well-known suffix is now optional in _auto-discovery URL_
 - [Home/pool, host] Grouping of alert icons (PR [#6655](https://github.com/vatesfr/xen-orchestra/pull/6655))
 
 ### Bug fixes
@@ -14,6 +16,8 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [Backup/Restore] Fix restore via a proxy showing as interupted (PR [#6702](https://github.com/vatesfr/xen-orchestra/pull/6702))
+- [REST API] Backup logs are now available at `/rest/v0/backups/logs`
+- [Plugin/auth-oidc] Fix empty user names when using default config [Forum#59587](https://xcp-ng.org/forum/post/59587)
 
 ### Packages to release
 
@@ -31,8 +35,9 @@
 
 <!--packages-start-->
 
-- @xen-orchestra/backups patch
-- xo-server patch
+- @xen-orchestra/backups minor
+- xo-server minor
+- xo-server-auth-oidc minor
 - xo-web minor
 
 <!--packages-end-->
