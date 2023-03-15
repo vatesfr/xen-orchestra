@@ -65,7 +65,7 @@ import type { Color } from "@/types";
 import type { IconDefinition } from "@fortawesome/fontawesome-common-types";
 import { faAngleDown } from "@fortawesome/free-solid-svg-icons";
 import { useTextareaAutosize, useVModel } from "@vueuse/core";
-import UiIcon from "@/components/ui/UiIcon.vue";
+import UiIcon from "@/components/ui/icon/UiIcon.vue";
 
 // Temporary workaround for https://github.com/vuejs/core/issues/4294
 interface Props extends Omit<InputHTMLAttributes, ""> {

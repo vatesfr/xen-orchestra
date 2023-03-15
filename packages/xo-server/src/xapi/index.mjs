@@ -30,6 +30,7 @@ import { synchronized } from 'decorator-synchronized'
 
 import fatfsBuffer, { init as fatfsBufferInit } from '../fatfs-buffer.mjs'
 import { camelToSnakeCase, forEach, map, pDelay, promisifyAll } from '../utils.mjs'
+import { debounceWithKey } from '../_pDebounceWithKey.mjs'
 
 import mixins from './mixins/index.mjs'
 import OTHER_CONFIG_TEMPLATE from './other-config-template.mjs'
@@ -1134,7 +1135,7 @@ export default class Xapi extends XapiBase {
     const networkRef = await this.call('network.create', {
       name_label: name,
       name_description: description,
-      MTU: asInteger(mtu),
+      MTU: mtu,
       // Set automatic to false so XenCenter does not get confused
       // https://citrix.github.io/xenserver-sdk/#network
       other_config: { automatic: 'false' },
@@ -1382,6 +1383,7 @@ export default class Xapi extends XapiBase {
     return find(this.objects.all, obj => obj.$type === 'SR' && canSrHaveNewVdiOfSize(obj, minSize))
   }
 
+  @decorateWith(debounceWithKey, 60e3, hostRef => hostRef)
   async _getHostServerTimeShift(hostRef) {
     return Math.abs(parseDateTime(await this.call('host.get_servertime', hostRef)) * 1e3 - Date.now())
   }

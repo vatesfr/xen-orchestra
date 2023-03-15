@@ -298,7 +298,11 @@ const requireResolve = createRequire(import.meta.url).resolve
 
 async function registerPlugin(pluginPath, pluginName) {
   const plugin = (await import(requireResolve(pluginPath))).default
-  const { description, version = 'unknown' } = await fse
+  const {
+    description,
+    keywords,
+    version = 'unknown',
+  } = await fse
     .readFile(pluginPath + '/package.json')
     .then(JSON.parse)
     .catch(error => {
@@ -336,6 +340,7 @@ async function registerPlugin(pluginPath, pluginName) {
     configurationSchema,
     configurationPresets,
     description,
+    keywords,
     testSchema,
     version
   )
