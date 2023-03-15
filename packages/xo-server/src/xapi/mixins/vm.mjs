@@ -6,6 +6,7 @@ import lte from 'lodash/lte.js'
 import mapToArray from 'lodash/map.js'
 import mapValues from 'lodash/mapValues.js'
 import noop from 'lodash/noop.js'
+import xoData from '@xen-orchestra/xapi/xoData.js'
 import { decorateWith } from '@vates/decorate-with'
 import { defer as deferrable } from 'golike-defer'
 import { ignoreErrors, pCatch } from 'promise-toolbox'
@@ -45,7 +46,8 @@ export default {
 
       ...props
     } = {},
-    checkLimits
+    checkLimits,
+    creatorId
   ) {
     const installMethod = (() => {
       if (installRepository == null) {
@@ -89,6 +91,14 @@ export default {
     await this.callAsync('VM.provision', vmRef)
 
     const vm = await this._getOrWaitObject(vmRef)
+
+    await xoData.set(vm, {
+      creation: {
+        date: new Date().toISOString(),
+        template: template.uuid,
+        user: creatorId,
+      },
+    })
 
     // Set VMs params.
     await this._editVm(vm, props, checkLimits)
