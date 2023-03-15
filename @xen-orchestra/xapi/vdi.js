@@ -62,7 +62,7 @@ class Vdi {
     })
   }
 
-  async exportContent(ref, { baseRef, cancelToken = CancelToken.none, format, preferNbd = true }) {
+  async exportContent(ref, { baseRef, cancelToken = CancelToken.none, format }) {
     const query = {
       format,
       vdi: ref,
@@ -75,7 +75,7 @@ class Vdi {
     }
     let nbdClient
     try {
-      if (preferNbd) {
+      if (this._preferNbd) {
         const nbdInfos = await this.call('VDI.get_nbd_info', ref)
         if (nbdInfos.length > 0) {
           // a little bit of randomization to spread the load

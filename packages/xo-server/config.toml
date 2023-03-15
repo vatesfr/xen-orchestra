@@ -178,6 +178,7 @@ vmSnapshotConcurrency = 2
 poolMarkingInterval = '6 hours'
 poolMarkingMaxAge = '48 hours'
 poolMarkingPrefix = 'xo:clientInfo:'
+preferNbd = false
 
 [xo-proxy]
 callTimeout = '1 min'

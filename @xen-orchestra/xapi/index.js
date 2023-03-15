@@ -134,6 +134,7 @@ class Xapi extends Base {
   constructor({
     callRetryWhenTooManyPendingTasks = { delay: 5e3, tries: 10 },
     maxUncoalescedVdis,
+    preferNbd,
     syncHookSecret,
     syncHookTimeout,
     vdiDestroyRetryWhenInUse = { delay: 5e3, tries: 10 },
@@ -148,6 +149,7 @@ class Xapi extends Base {
     this._maxUncoalescedVdis = maxUncoalescedVdis
     this._syncHookSecret = syncHookSecret
     this._syncHookTimeout = syncHookTimeout
+    this._preferNbd = preferNbd
     this._vdiDestroyRetryWhenInUse = {
       ...vdiDestroyRetryWhenInUse,
       onRetry,
