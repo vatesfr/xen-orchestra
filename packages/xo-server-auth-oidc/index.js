@@ -1,5 +1,6 @@
 'use strict'
 
+const { join } = require('node:path/posix')
 const { Strategy } = require('passport-openidconnect')
 
 // ===================================================================
@@ -20,11 +21,12 @@ exports.configurationSchema = {
     advanced: {
       title: 'Advanced',
       type: 'object',
+      default: {},
       properties: {
         authorizationURL: { title: 'Authorization URL', type: 'string' },
         callbackURL: {
-          description: 'Default to https://<xo.company.net>/signin/oidc/callback`.',
           title: 'Callback URL',
+          default: '/signin/oidc/callback',
           type: 'string',
         },
         issuer: { title: 'Issuer', type: 'string' },
@@ -32,7 +34,7 @@ exports.configurationSchema = {
         userInfoURL: { title: 'User info URL', type: 'string' },
         usernameField: {
           default: 'username',
-          description: 'Field to use as the XO username',
+          description: 'Field to use as the XO username (e.g. `displayName`, `username` or `email`)',
           title: 'Username field',
           type: 'string',
         },
@@ -45,6 +47,8 @@ exports.configurationSchema = {
 
 // ===================================================================
 
+const WELL_KNOWN_ENDPOINT = '/.well-known/openid-configuration'
+
 class AuthOidc {
   #conf
   #unregisterPassportStrategy
@@ -55,7 +59,7 @@ class AuthOidc {
   }
 
   async configure({ advanced, ...conf }, { loaded }) {
-    this.#conf = { callbackURL: '/signin/oidc/callback', ...advanced, ...conf }
+    this.#conf = { ...advanced, ...conf }
 
     if (loaded) {
       await this.unload()
@@ -68,7 +72,18 @@ class AuthOidc {
     const { discoveryURL, usernameField, ...conf } = this.#conf
 
     if (discoveryURL !== undefined) {
-      const res = await this.#xo.httpRequest(discoveryURL)
+      let url = discoveryURL
+      let onError
+
+      // try with the well-known path first
+      if (!url.endsWith(WELL_KNOWN_ENDPOINT)) {
+        url = join(url, WELL_KNOWN_ENDPOINT)
+
+        // on error, retry with the original URL
+        onError = () => this.#xo.httpRequest(discoveryURL)
+      }
+
+      const res = await this.#xo.httpRequest(url).catch(onError)
       const data = await res.json()
 
       for (const key of DISCOVERABLE_SETTINGS) {
@@ -81,8 +96,14 @@ class AuthOidc {
     this.#unregisterPassportStrategy = xo.registerPassportStrategy(
       new Strategy(conf, async (issuer, profile, done) => {
         try {
-          const { id, [usernameField]: name } = profile
-          done(null, await xo.registerUser2('oidc:' + issuer, { user: { id, name } }))
+          // See https://github.com/jaredhanson/passport-openidconnect/blob/master/lib/profile.js
+          const { id } = profile
+          done(
+            null,
+            await xo.registerUser2('oidc:' + issuer, {
+              user: { id, name: usernameField === 'email' ? profile.emails[0].value : profile[usernameField] },
+            })
+          )
         } catch (error) {
           done(error.message)
         }

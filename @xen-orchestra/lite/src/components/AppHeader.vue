@@ -18,7 +18,7 @@
 
 <script lang="ts" setup>
 import AccountButton from "@/components/AccountButton.vue";
-import UiIcon from "@/components/ui/UiIcon.vue";
+import UiIcon from "@/components/ui/icon/UiIcon.vue";
 import { useNavigationStore } from "@/stores/navigation.store";
 import { useUiStore } from "@/stores/ui.store";
 import { faBars } from "@fortawesome/free-solid-svg-icons";

@@ -5,7 +5,6 @@
   "description": "GitHub authentication plugin for XO-Server",
   "keywords": [
     "xo-server",
-    "xo-server",
     "authentication",
     "github"
   ],

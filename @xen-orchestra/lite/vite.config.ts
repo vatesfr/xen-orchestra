@@ -65,11 +65,7 @@ export default defineConfig({
  *  Route name: `story-my-component.story`
  *  Page title: `My Component`
  */
-function routeNameToStoryTitle(routeName?: string) {
-  if (routeName == null) {
-    return "(Untitled Story)";
-  }
-
+function routeNameToStoryTitle(routeName: string) {
   return routeName
     .replace(/^story-(.*)\.story$/, "$1")
     .split("-")

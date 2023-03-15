@@ -214,7 +214,7 @@ If the prop is required, use the `required()` function.
 
 #### Prop type
 
-You can set the type of the prop with the `str()`, `num()`, `bool()`, `arr()`, `obj()` and `enum()` functions.
+You can set the type of the prop with the `str()`, `num()`, `bool()`, `arr()`, `obj()`, `enum()` and `any()` functions.
 
 The type can also be detected automatically if a [preset](#prop-preset) value is defined.
 

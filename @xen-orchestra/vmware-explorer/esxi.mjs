@@ -1,7 +1,7 @@
 import { Client } from 'node-vsphere-soap'
 import { dirname } from 'node:path'
 import { EventEmitter } from 'node:events'
-import { strictEqual } from 'node:assert'
+import { strictEqual, notStrictEqual } from 'node:assert'
 import fetch from 'node-fetch'
 
 import parseVmdk from './parsers/vmdk.mjs'
@@ -11,12 +11,13 @@ import parseVmx from './parsers/vmx.mjs'
 export default class Esxi extends EventEmitter {
   #client
   #cookies
+  #dcPath
   #host
   #user
   #password
   #ready = false
 
-  constructor(host, user, password, sslVerify = true) {
+  constructor(host, user, password, sslVerify) {
     super()
     this.#host = host
     this.#user = user
@@ -25,9 +26,18 @@ export default class Esxi extends EventEmitter {
     //
     // we need to find a fix for this, maybe forking the library
     this.#client = new Client(host, user, password, sslVerify)
-    this.#client.once('ready', () => {
-      this.#ready = true
-      this.emit('ready')
+    this.#client.once('ready', async () => {
+      try {
+        // this.#ready is set to true to allow the this.search query to go through
+        // this means that the server is connected and can answer API queries
+        // you won't be able to download a file as long a the 'ready' event is not emitted
+        this.#ready = true
+        const res = await this.search('Datacenter', ['name'])
+        this.#dcPath = Object.values(res)[0].name
+        this.emit('ready')
+      } catch (error) {
+        this.emit('error', error)
+      }
     })
     this.#client.on('error', err => {
       this.emit('error', err)
@@ -51,7 +61,12 @@ export default class Esxi extends EventEmitter {
 
   async download(dataStore, path, range) {
     strictEqual(this.#ready, true)
-    const url = `https://${this.#host}/folder/${path}?dsName=${dataStore}`
+    notStrictEqual(this.#dcPath, undefined)
+    const url = new URL('https://localhost')
+    url.host = this.#host
+    url.pathname = '/folder/' + path
+    url.searchParams.set('dcPath', this.#dcPath)
+    url.searchParams.set('dsName', dataStore)
     const headers = {}
     if (this.#cookies) {
       headers.cookie = this.#cookies

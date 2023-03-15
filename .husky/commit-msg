@@ -1,0 +1,11 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Only check commit message if commit on master or first commit on another
+# branch to avoid bothering fix commits after reviews
+#
+# FIXME: does not properly run with git commit --amend
+if [ "$(git rev-parse --abbrev-ref HEAD)" = master ] || [ "$(git rev-list --count master..)" -eq 0 ]
+then
+  npx --no -- commitlint --edit "$1"
+fi

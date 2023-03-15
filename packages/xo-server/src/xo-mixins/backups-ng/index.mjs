@@ -481,7 +481,6 @@ export default class BackupNg {
             result = handleBackupLog(log, {
               logger,
               localTaskIds,
-              rootTaskId,
               handleRootTaskId: id => {
                 this._runningRestores.add(id)
                 rootTaskId = id

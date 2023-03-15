@@ -22,7 +22,7 @@
     "@vates/read-chunk": "^1.0.1",
     "@xen-orchestra/async-map": "^0.1.2",
     "promise-toolbox": "^0.21.0",
-    "xen-api": "^1.2.6"
+    "xen-api": "^1.2.7"
   },
   "devDependencies": {
     "tap": "^16.3.0",
