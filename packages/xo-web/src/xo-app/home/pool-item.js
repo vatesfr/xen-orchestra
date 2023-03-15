@@ -79,7 +79,10 @@ export default class PoolItem extends Component {
       reacletteState.poolLicenseInfoByPoolId[pool.id]
 
     if (supportLevel === 'total') {
-      tooltip = _('earliestExpirationDate', { dateString: <ShortDate timestamp={earliestExpirationDate} /> })
+      tooltip = _('earliestExpirationDate', {
+        dateString:
+          earliestExpirationDate === Infinity ? _('noValue') : <ShortDate timestamp={earliestExpirationDate} />,
+      })
     }
     if (supportLevel === 'partial') {
       tooltip = _('poolPartialSupport', { nHostsLicense: nHostsUnderLicense, nHosts })

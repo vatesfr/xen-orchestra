@@ -199,7 +199,11 @@ export const ICON_POOL_LICENSE = {
 
         for (const host of hosts) {
           const license = xcpngLicenseByBoundObjectId[host.id]
-          if (license !== undefined && license.expires > Date.now()) {
+          if (
+            license !== undefined &&
+            (license.expires = license.expires ?? Infinity) &&
+            license.expires > Date.now()
+          ) {
             nHostsUnderLicense++
             if (earliestExpirationDate === undefined || license.expires < earliestExpirationDate) {
               earliestExpirationDate = license.expires
