@@ -18,7 +18,7 @@
           :icon="faStar"
           class="master-icon"
           v-if="isPoolMaster"
-          v-tooltip="Master"
+          v-tooltip="'Master'"
         />
         <InfraAction
           :icon="isExpanded ? faAngleDown : faAngleUp"
