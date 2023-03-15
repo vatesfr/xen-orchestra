@@ -246,4 +246,21 @@ module.exports = class NbdClient {
       this.#readBlockResponse()
     })
   }
+
+  async *readBlocks(indexGenerator) {
+    // default : read all blocks
+    if (indexGenerator === undefined) {
+      const exportSize = this.#exportSize
+      const chunkSize = 2 * 1024 * 1024
+      indexGenerator = function* () {
+        const nbBlocks = Math.ceil(exportSize / chunkSize)
+        for (let index = 0; index < nbBlocks; index++) {
+          yield { index, size: chunkSize }
+        }
+      }
+    }
+    for (const { index, size } of indexGenerator()) {
+      yield this.readBlock(index, size)
+    }
+  }
 }
