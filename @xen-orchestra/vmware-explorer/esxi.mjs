@@ -65,7 +65,7 @@ export default class Esxi extends EventEmitter {
     const url = new URL('https://localhost')
     url.host = this.#host
     url.pathname = '/folder/' + path
-    url.searchParams.set('dc', this.#dcPath)
+    url.searchParams.set('dcPath', this.#dcPath)
     url.searchParams.set('dsName', dataStore)
     const headers = {}
     if (this.#cookies) {

@@ -34,6 +34,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/vmware-explorer patch
 - @xen-orchestra/backups minor
 - xo-server minor
 - xo-server-auth-oidc minor
