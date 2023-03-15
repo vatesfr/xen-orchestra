@@ -198,8 +198,6 @@ export default class S3Handler extends RemoteHandlerAbstract {
 
     const upload = new Upload({
       client: this._s3,
-      queueSize: 1,
-      partSize: IDEAL_FRAGMENT_SIZE,
       params: {
         ...this._createParams(path),
         Body,
