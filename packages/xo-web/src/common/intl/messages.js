@@ -2403,7 +2403,7 @@ const messages = {
   recipeSshKeyLabel: 'SSH key',
   recipeStaticIpAddresses: 'Static IP addresses',
   recipeMasterIpAddress: 'Master node IP address/subnet mask',
-  recipeWorkerIpAddress: 'Worker node { i } IP address/subnet mask',
+  recipeWorkerIpAddress: 'Worker node { i, number } IP address/subnet mask',
   recipeGatewayIpAddress: 'Gateway IP address',
   recipeNameserverAddresses: 'Nameserver IP addresses',
   recipeNameserverAddressesExample: '192.168.1.0,172.16.1.0',

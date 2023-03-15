@@ -56,8 +56,7 @@ export default decorate([
       onChangeNameserver(__, ev) {
         const { value } = ev.target
         const { onChange, value: prevValue } = this.props
-        const nameservers = value.split(',')
-
+        const nameservers = value.split(',').map(nameserver => nameserver.trim())
         onChange({
           ...prevValue,
           nameservers,
@@ -66,8 +65,7 @@ export default decorate([
       onChangeSearch(__, ev) {
         const { value } = ev.target
         const { onChange, value: prevValue } = this.props
-        const searches = value.split(',')
-
+        const searches = value.split(',').map(search => search.trim())
         onChange({
           ...prevValue,
           searches,
