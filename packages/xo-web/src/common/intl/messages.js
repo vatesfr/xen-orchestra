@@ -51,6 +51,7 @@ const messages = {
   browseFiles: 'Browse files',
   showLogs: 'Show logs',
   noValue: 'None',
+  noExpiration: 'No expiration',
   compression: 'Compression',
   core: 'Core',
   cpu: 'CPU',

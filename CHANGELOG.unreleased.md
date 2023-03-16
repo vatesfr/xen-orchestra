@@ -16,7 +16,7 @@
 - [Backup/Restore] Fix restore via a proxy showing as interupted (PR [#6702](https://github.com/vatesfr/xen-orchestra/pull/6702))
 - [REST API] Backup logs are now available at `/rest/v0/backups/logs`
 - [Plugin/auth-oidc] Fix empty user names when using default config [Forum#59587](https://xcp-ng.org/forum/post/59587)
-- [Pro License] Fix when licenses have no expiration date (PR [#6730](https://github.com/vatesfr/xen-orchestra/pull/6730))
+- [Pool/Pro License] Licenses with no expiration date are no longer considered "expired" for icon status (PR [#6730](https://github.com/vatesfr/xen-orchestra/pull/6730))
 
 ### Packages to release
 

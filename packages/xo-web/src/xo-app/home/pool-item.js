@@ -81,7 +81,7 @@ export default class PoolItem extends Component {
     if (supportLevel === 'total') {
       tooltip = _('earliestExpirationDate', {
         dateString:
-          earliestExpirationDate === Infinity ? _('noValue') : <ShortDate timestamp={earliestExpirationDate} />,
+          earliestExpirationDate === Infinity ? _('noExpiration') : <ShortDate timestamp={earliestExpirationDate} />,
       })
     }
     if (supportLevel === 'partial') {
