@@ -26,12 +26,7 @@
   <div v-else>
     <AppHeader />
     <div style="display: flex">
-      <nav :class="{ story: $route.meta.isStory }" class="nav">
-        <StoryMenu v-if="$route.meta.hasStoryNav" />
-        <transition v-else name="slide">
-          <AppNavigation />
-        </transition>
-      </nav>
+      <AppNavigation />
       <main class="main">
         <RouterView />
       </main>
@@ -46,7 +41,6 @@ import AppHeader from "@/components/AppHeader.vue";
 import AppLogin from "@/components/AppLogin.vue";
 import AppNavigation from "@/components/AppNavigation.vue";
 import AppTooltips from "@/components/AppTooltips.vue";
-import StoryMenu from "@/components/component-story/StoryMenu.vue";
 import UiButton from "@/components/ui/UiButton.vue";
 import UiModal from "@/components/ui/UiModal.vue";
 import { useChartTheme } from "@/composables/chart-theme.composable";
@@ -133,41 +127,10 @@ const reload = () => window.location.reload();
 </style>
 
 <style lang="postcss" scoped>
-.nav {
-  overflow: auto;
-  height: calc(100vh - 9rem);
-  border-right: 1px solid var(--color-blue-scale-400);
-  background-color: var(--background-color-primary);
-
-  &.story {
-    padding: 1rem;
-  }
-
-  &:not(.story) {
-    width: 37rem;
-    max-width: 37rem;
-    padding: 0.5rem;
-  }
-}
-
-.slide-enter-active,
-.slide-leave-active {
-  transition: transform 0.3s ease;
-}
-
-.slide-enter-from,
-.slide-leave-to {
-  transform: translateX(-37rem);
-}
-
 .main {
   overflow: auto;
   flex: 1;
   height: calc(100vh - 8rem);
   background-color: var(--background-color-secondary);
-}
-
-.tree {
-  font-size: 1.6rem;
 }
 </style>
