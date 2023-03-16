@@ -1,7 +1,6 @@
 <template>
   <div>
-    <UiSpinner v-if="data === undefined" class="spinner" />
-    <template v-else>
+    <template v-if="data !== undefined">
       <div
         v-for="item in computedData.sortedArray"
         :key="item.id"
@@ -19,6 +18,7 @@
       </div>
       <slot :total-percent="computedData.totalPercentUsage" name="footer" />
     </template>
+    <UiSpinner v-else class="spinner" />
   </div>
 </template>
 
