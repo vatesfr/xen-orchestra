@@ -1118,13 +1118,6 @@ export default class Xapi extends XapiBase {
       vhdResult = await this.VDI_exportContent(vdi.$ref, params)
       return vhdResult
     })
-    // callers expect the stream to be an HTTP response.
-    vmdkStream.headers = {
-      ...vhdResult.headers,
-      'content-type': 'application/x-vmdk',
-    }
-    vmdkStream.statusCode = vhdResult.statusCode
-    vmdkStream.statusMessage = vhdResult.statusMessage
     return vmdkStream
   }
 
