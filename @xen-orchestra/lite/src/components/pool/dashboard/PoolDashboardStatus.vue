@@ -33,7 +33,7 @@ import NoDataError from "@/components/NoDataError.vue";
 const vmStore = useVmStore();
 const hostMetricsStore = useHostMetricsStore();
 
-const hasError = computed(() => vmStore.hasError && hostMetricsStore.hasError);
+const hasError = computed(() => vmStore.hasError || hostMetricsStore.hasError);
 
 const isLoading = computed(
   () => vmStore.isLoading && hostMetricsStore.isLoading
