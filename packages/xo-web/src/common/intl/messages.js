@@ -19,7 +19,7 @@ const messages = {
   esxiImportStopSource: 'Stop the source VM',
   esxiImportStopSourceDescription:
     'Source VM stopped before the last delta transfer (after final snapshot). Needed to fully transfer a running VM',
-  esxiImportStopOnErrorDescription: 'stop on the first error when importing VMs',
+  esxiImportStopOnErrorDescription: 'Stop on the first error when importing VMs',
   nImportVmsInParallel: 'Number of VMs to import in parallel',
   stopOnError: 'Stop on error',
   vmSrUsage: 'Storage: {used} used of {total} ({free} free)',
