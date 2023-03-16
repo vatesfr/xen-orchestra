@@ -43,9 +43,16 @@ class StreamParser {
       // empty spaces
       await skipChunk(this._stream, offset - this._bytesRead)
     }
-    const buf = await readChunkStrict(this._stream, size)
-    this._bytesRead += size
-    return buf
+
+    try {
+      const buf = await readChunkStrict(this._stream, size)
+      this._bytesRead += size
+      return buf
+    } catch (err) {
+      err._bytesRead = this._bytesRead
+      err.size = size
+      throw err
+    }
   }
 
   async *headers() {

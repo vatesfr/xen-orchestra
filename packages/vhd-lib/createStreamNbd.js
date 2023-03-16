@@ -15,7 +15,11 @@ const { fuHeader, checksumStruct } = require('./_structs')
 const assert = require('node:assert')
 
 exports.createNbdRawStream = async function createRawStream(nbdClient) {
-  return Readable.from(nbdClient.readBlocks())
+  const stream = Readable.from(nbdClient.readBlocks())
+
+  stream.on('error', () => nbdClient.disconnect())
+  stream.on('end', () => nbdClient.disconnect())
+  return stream
 }
 
 exports.createNbdVhdStream = async function createVhdStream(nbdClient, sourceStream) {
@@ -93,13 +97,15 @@ exports.createNbdVhdStream = async function createVhdStream(nbdClient, sourceStr
     })
     const bitmap = Buffer.alloc(SECTOR_SIZE, 255)
     for await (const block of nbdIterator) {
-      yield Buffer.concat([bitmap, block])
+      yield bitmap // don't forget the bitmap before the block
+      yield block
     }
     yield bufFooter
   }
 
   const stream = Readable.from(iterator())
-  stream.headers = {}
-  stream.statusCode = 200
+
+  stream.on('error', () => nbdClient.disconnect())
+  stream.on('end', () => nbdClient.disconnect())
   return stream
 }

@@ -9,6 +9,7 @@ const { decorateClass } = require('@vates/decorate-with')
 const extractOpaqueRef = require('./_extractOpaqueRef.js')
 const NbdClient = require('@vates/nbd-client')
 const { createNbdRawStream, createNbdVhdStream } = require('vhd-lib/createStreamNbd.js')
+const { warn } = require('@xen-orchestra/log').createLogger('xo:xapi:vdi')
 
 const noop = Function.prototype
 
@@ -62,6 +63,25 @@ class Vdi {
     })
   }
 
+  async _getNbdClient(ref) {
+    const nbdInfos = await this.call('VDI.get_nbd_info', ref)
+    if (nbdInfos.length > 0) {
+      // a little bit of randomization to spread the load
+      const nbdInfo = nbdInfos[Math.floor(Math.random() * nbdInfos.length)]
+      try {
+        const nbdClient = new NbdClient(nbdInfo)
+        await nbdClient.connect()
+        return nbdClient
+      } catch (err) {
+        warn(`can't connect to nbd server `, {
+          err,
+          nbdInfo,
+          nbdInfos,
+        })
+      }
+    }
+  }
+
   async exportContent(ref, { baseRef, cancelToken = CancelToken.none, format }) {
     const query = {
       format,
@@ -73,41 +93,26 @@ class Vdi {
 
       query.base = baseRef
     }
-    let nbdClient
+    let nbdClient, nbdStream, resourceStream
     try {
       if (this._preferNbd) {
-        const nbdInfos = await this.call('VDI.get_nbd_info', ref)
-        if (nbdInfos.length > 0) {
-          // a little bit of randomization to spread the load
-          const nbdInfo = nbdInfos[Math.floor(Math.random() * nbdInfos.length)]
-          try {
-            nbdClient = new NbdClient(nbdInfo)
-            await nbdClient.connect()
-          } catch (err) {
-            console.error({
-              err,
-              nbdInfo,
-            })
-            nbdClient = undefined
-          }
-        }
+        nbdClient = await this._getNbdClient(ref)
       }
       // the raw nbd export does not need to peek ath the vhd source
       if (nbdClient !== undefined && format === 'raw') {
-        return createNbdRawStream(nbdClient)
+        nbdStream = createNbdRawStream(nbdClient)
+      } else {
+        // raw export without nbd or vhd exports needs a resource stream
+        resourceStream = await this.getResource(cancelToken, '/export_raw_vdi/', {
+          query,
+          task: await this.task_create(`Exporting content of VDI ${await this.getField('VDI', ref, 'name_label')}`),
+        })
+        if (nbdClient !== undefined) {
+          nbdStream = await createNbdVhdStream(nbdClient, resourceStream)
+        }
       }
-      const restourceStream = await this.getResource(cancelToken, '/export_raw_vdi/', {
-        query,
-        task: await this.task_create(`Exporting content of VDI ${await this.getField('VDI', ref, 'name_label')}`),
-      })
-      if (nbdClient !== undefined && format === 'vhd') {
-        const stream = await createNbdVhdStream(nbdClient, restourceStream)
-        stream.on('error', () => nbdClient.disconnect())
-        stream.on('end', () => nbdClient.disconnect())
-        return stream
-      }
-      // no nbd : use the direct export
-      return restourceStream
+      // fall back to the base stream if no nbd or couldn't connect
+      return nbdStream ?? resourceStream
     } catch (error) {
       // augment the error with as much relevant info as possible
       const [poolMaster, vdi] = await Promise.all([
