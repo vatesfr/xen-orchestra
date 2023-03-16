@@ -166,8 +166,4 @@ const reload = () => window.location.reload();
   height: calc(100vh - 8rem);
   background-color: var(--background-color-secondary);
 }
-
-.tree {
-  font-size: 1.6rem;
-}
 </style>
