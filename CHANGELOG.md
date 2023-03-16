@@ -1,5 +1,20 @@
 # ChangeLog
 
+## **next**
+
+### Enhancements
+
+- [Plugin/auth-oidc] Support `email` for _username field_ setting [Forum#59587](https://xcp-ng.org/forum/post/59587)
+- [Plugin/auth-oidc] Well-known suffix is now optional in _auto-discovery URL_
+
+### Bug fixes
+
+- [Plugin/auth-oidc] Fix empty user names when using default config [Forum#59587](https://xcp-ng.org/forum/post/59587)
+
+### Released packages
+
+- xo-server-auth-oidc 0.2.0
+
 ## **5.80.1** (2023-03-07)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
