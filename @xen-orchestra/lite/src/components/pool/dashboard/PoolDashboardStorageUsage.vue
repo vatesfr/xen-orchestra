@@ -4,8 +4,10 @@
       :left="$t('storage-usage')"
       :right="$t('top-#', { n: N_ITEMS })"
     />
+    <NoDataError v-if="hasError" />
     <UsageBar
-      :data="hasError ? null : isReady ? data.result : undefined"
+      v-else
+      :data="isReady ? data.result : undefined"
       :nItems="N_ITEMS"
     >
       <template #footer>
@@ -24,6 +26,7 @@ import UsageBar from "@/components/UsageBar.vue";
 import UiCard from "@/components/ui/UiCard.vue";
 import { useSrStore } from "@/stores/storage.store";
 import { N_ITEMS } from "@/views/pool/PoolDashboardView.vue";
+import NoDataError from "@/components/NoDataError.vue";
 
 const srStore = useSrStore();
 const { hasError, isReady } = storeToRefs(srStore);

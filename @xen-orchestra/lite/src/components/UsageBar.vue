@@ -1,7 +1,6 @@
 <template>
   <div>
     <UiSpinner v-if="data === undefined" class="spinner" />
-    <NoDataError v-else-if="data === null" />
     <template v-else>
       <div
         v-for="item in computedData.sortedArray"
@@ -25,7 +24,6 @@
 
 <script lang="ts" setup>
 import { computed } from "vue";
-import NoDataError from "@/components/NoDataError.vue";
 import UiProgressBar from "@/components/ui/progress/UiProgressBar.vue";
 import UiProgressLegend from "@/components/ui/progress/UiProgressLegend.vue";
 import UiSpinner from "@/components/ui/UiSpinner.vue";
@@ -39,7 +37,7 @@ interface Data {
 }
 
 interface Props {
-  data?: Data[] | null;
+  data?: Data[];
   nItems?: number;
 }
 

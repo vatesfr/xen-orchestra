@@ -1,11 +1,11 @@
 <template>
-  <div class="ui-card" :class="{ error: props.color === 'error' }">
+  <div class="ui-card" :class="{ error: color === 'error' }">
     <slot />
   </div>
 </template>
 
 <script lang="ts" setup>
-const props = defineProps<{
+defineProps<{
   color?: "error";
 }>();
 </script>
@@ -15,6 +15,7 @@ const props = defineProps<{
   height: fit-content;
   padding: 2.1rem;
   border-radius: 0.8rem;
+  background-color: var(--background-color-primary);
   box-shadow: var(--shadow-200);
 }
 

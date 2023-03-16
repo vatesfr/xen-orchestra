@@ -4,10 +4,8 @@
     :left="$t('hosts')"
     :right="$t('top-#', { n: N_ITEMS })"
   />
-  <UsageBar
-    :data="hasError ? null : statFetched ? data : undefined"
-    :n-items="N_ITEMS"
-  />
+  <NoDataError v-if="hasError" />
+  <UsageBar v-else :data="statFetched ? data : undefined" :n-items="N_ITEMS" />
 </template>
 
 <script lang="ts" setup>
@@ -20,6 +18,7 @@ import { useHostStore } from "@/stores/host.store";
 import { N_ITEMS } from "@/views/pool/PoolDashboardView.vue";
 import { storeToRefs } from "pinia";
 import { computed, type ComputedRef, inject } from "vue";
+import NoDataError from "@/components/NoDataError.vue";
 
 const { hasError } = storeToRefs(useHostStore());
 
