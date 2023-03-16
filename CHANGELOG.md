@@ -6,14 +6,18 @@
 
 - [Plugin/auth-oidc] Support `email` for _username field_ setting [Forum#59587](https://xcp-ng.org/forum/post/59587)
 - [Plugin/auth-oidc] Well-known suffix is now optional in _auto-discovery URL_
+- [PIF selector] Display the VLAN number when displaying a VLAN PIF [#4697](https://github.com/vatesfr/xen-orchestra/issues/4697) (PR [#6714](https://github.com/vatesfr/xen-orchestra/pull/6714))
+- [Home/pool, host] Grouping of alert icons (PR [#6655](https://github.com/vatesfr/xen-orchestra/pull/6655))
 
 ### Bug fixes
 
 - [Plugin/auth-oidc] Fix empty user names when using default config [Forum#59587](https://xcp-ng.org/forum/post/59587)
+- [Pool/Pro License] Fix handling of licenses with no expiration date (PR [#6730](https://github.com/vatesfr/xen-orchestra/pull/6730))
 
 ### Released packages
 
 - xo-server-auth-oidc 0.2.0
+- xo-web 5.113.0
 
 ## **5.80.1** (2023-03-07)
 
