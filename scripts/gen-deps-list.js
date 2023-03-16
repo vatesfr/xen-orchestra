@@ -44,7 +44,7 @@ async function main(args, scriptName) {
     }
   } else {
     if (args.length !== 0) {
-      process.stdout.write(`Usage:
+      process.stderr.write(`Usage:
 
   ${scriptName}
     Read the list of packages with changes from \`CHANGELOG.unreleased.md\` and compute the list of packages to be released.
@@ -54,6 +54,8 @@ async function main(args, scriptName) {
 
     Does not do any side effects.
 `)
+
+      process.exitCode = 1
       return
     }
     await readPackagesFromChangelog(toRelease)
