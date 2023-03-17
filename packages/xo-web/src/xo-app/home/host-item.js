@@ -77,32 +77,33 @@ export default class HostItem extends Component {
   _stop = () => stopHost(this.props.item)
   _toggleExpanded = () => this.setState({ expanded: !this.state.expanded })
   _onSelect = () => this.props.onSelect(this.props.item.id)
-  _getProSupportIcon = () => {
+  _getProSupportStatus = () => {
     const { state: reacletteState, item: host } = this.props
+    if (host.productBrand !== 'XCP-ng') {
+      return
+    }
+
     const { supportLevel } = reacletteState.poolLicenseInfoByPoolId[host.$poolId]
     const license = reacletteState.xcpngLicenseByBoundObjectId[host.id]
 
+    let level = 'warning'
+    let message = 'hostNoSupport'
+
     if (supportLevel === 'total') {
-      return (
-        <Tooltip content={_('hostSupportEnabled')}>
-          <Icon icon='menu-support' className='text-success' />
-        </Tooltip>
-      )
+      message = 'hostSupportEnabled'
+      level = 'success'
     }
 
     if (supportLevel === 'partial' && (license === undefined || license.expires < Date.now())) {
-      return (
-        <Tooltip content={_('hostNoLicensePartialProSupport')}>
-          <Icon icon='alarm' className='text-danger' />
-        </Tooltip>
-      )
+      message = 'hostNoLicensePartialProSupport'
+      level = 'danger'
     }
 
-    return (
-      <Tooltip content={_('hostNoSupport')}>
-        <Icon icon='menu-support' className='text-warning' />
-      </Tooltip>
-    )
+    return {
+      level,
+      icon: <Icon icon='menu-support' className={`text-${level}`} />,
+      message,
+    }
   }
 
   _getAlerts = createSelector(
@@ -155,13 +156,25 @@ export default class HostItem extends Component {
           ),
         })
       }
+
+      const proSupportStatus = this._getProSupportStatus()
+      if (proSupportStatus !== undefined && proSupportStatus.level !== 'success') {
+        alerts.push({
+          level: proSupportStatus.level,
+          render: (
+            <span>
+              {proSupportStatus.icon} {_(proSupportStatus.message)}
+            </span>
+          ),
+        })
+      }
       return alerts
     }
   )
 
   render() {
     const { container, expandAll, item: host, nVms, selected, hostState } = this.props
-    const proSupportIcon = this._getProSupportIcon()
+    const proSupportStatus = this._getProSupportStatus()
     return (
       <div className={styles.item}>
         <BlockLink to={`/hosts/${host.id}`}>
@@ -196,32 +209,10 @@ export default class HostItem extends Component {
                 )}
                 &nbsp;
                 <BulkIcons alerts={this._getAlerts()} />
-                {/* {this.props.needsRestart && (
-                  <Tooltip content={_('rebootUpdateHostLabel')}>
-                    <Link to={`/hosts/${host.id}/patches`}>
-                      <Icon icon='alarm' />
-                    </Link>
-                  </Tooltip>
+                &nbsp;
+                {proSupportStatus?.level === 'success' && (
+                  <Tooltip content={_(proSupportStatus.message)}>{proSupportStatus.icon}</Tooltip>
                 )}
-                &nbsp;
-                {!this._isMaintained() && (
-                  <Tooltip content={_('noMoreMaintained')}>
-                    <Icon className='text-warning' icon='alarm' />
-                  </Tooltip>
-                )}
-                &nbsp;
-                <InconsistentHostTimeWarning host={host} />
-                &nbsp;
-                {hasLicenseRestrictions(host) && <LicenseWarning />}
-                &nbsp;
-                {(license === undefined || license.expires < Date.now()) && (
-                  <Tooltip content={_('hostNoSupport')}>
-                    <a href='https://xcp-ng.com' rel='noreferrer noopener' target='_blank'>
-                      <Icon icon='alarm' className='text-danger' />
-                    </a>
-                  </Tooltip>
-                )} */}
-                {/* {host.productBrand === 'XCP-ng' && proSupportIcon} */}
               </EllipsisContainer>
             </Col>
             <Col mediumSize={3} className='hidden-lg-down'>

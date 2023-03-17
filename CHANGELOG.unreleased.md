@@ -7,7 +7,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [License] Show pro support icon at host level (PR [#6633](https://github.com/vatesfr/xen-orchestra/pull/6633))
+- [License] Show Pro Support status icon at host level (PR [#6633](https://github.com/vatesfr/xen-orchestra/pull/6633))
 
 ### Bug fixes
 
