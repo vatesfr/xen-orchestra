@@ -23,6 +23,8 @@
   "delete": "Delete",
   "descending": "descending",
   "description": "Description",
+  "display": "Display",
+  "do-you-have-needs": "You have needs and/or expectations? Let us know",
   "edit-config": "Edit config",
   "error-occured": "An error has occurred",
   "export": "Export",
@@ -49,6 +51,7 @@
   "following-hosts-unreachable": "The following hosts are unreachable",
   "force-reboot": "Force reboot",
   "force-shutdown": "Force shutdown",
+  "here": "Here",
   "hosts": "Hosts",
   "language": "Language",
   "last-week": "Last week",
@@ -63,6 +66,7 @@
   "network-upload": "Upload",
   "news": "News",
   "news-name": "{name} news",
+  "new-features-are-coming": "New features are coming soon!",
   "object": "Object",
   "object-not-found": "Object {id} can't be found…",
   "or": "Or",
@@ -125,5 +129,6 @@
   "vcpus": "vCPUs",
   "vcpus-used": "vCPUs used",
   "version": "Version",
-  "vms": "VMs"
+  "vms": "VMs",
+  "xo-lite-under-construction": "XOLite is under construction"
 }
