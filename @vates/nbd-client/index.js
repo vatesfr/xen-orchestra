@@ -259,8 +259,17 @@ module.exports = class NbdClient {
         }
       }
     }
+    const readAhead = []
+    const readAheadMaxLength = 10
     for (const { index, size } of indexGenerator()) {
-      yield this.readBlock(index, size)
+      if (readAhead.length === readAheadMaxLength) {
+        const block = readAhead.shift()
+        yield block
+      }
+      readAhead.push(this.readBlock(index, size))
+    }
+    while (readAhead.length > 0) {
+      yield readAhead.shift()
     }
   }
 }
