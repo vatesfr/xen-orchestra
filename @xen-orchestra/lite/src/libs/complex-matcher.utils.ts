@@ -1,7 +1,7 @@
+import { escapeRegExp } from "@/libs/utils";
+import type { FilterComparisonType } from "@/types/filter";
 import type { ComparisonOperator, ComplexMatcherNode } from "complex-matcher";
 import * as CM from "complex-matcher";
-import type { FilterComparisonType } from "@/types/filter";
-import { escapeRegExp } from "@/libs/utils";
 
 function buildStringNode(property: string, value: string, negate = false) {
   if (!value) {
@@ -81,20 +81,63 @@ function buildBooleanNode(property: string, value: boolean) {
 export function buildComplexMatcherNode(
   comparisonType: FilterComparisonType,
   property: string,
-  value: string,
-  negate: boolean
+  value: string
 ): ComplexMatcherNode | undefined {
   switch (comparisonType) {
     case "stringContains":
-      return buildStringNode(property, value, negate);
+    case "stringDoesNotContains":
+      return buildStringNode(
+        property,
+        value,
+        comparisonType === "stringDoesNotContains"
+      );
+
     case "stringStartsWith":
-      return buildRegexNode(property, value, "^", "", true, negate);
+    case "stringDoesNotStartWith":
+      return buildRegexNode(
+        property,
+        value,
+        "^",
+        "",
+        true,
+        comparisonType === "stringDoesNotStartWith"
+      );
+
     case "stringEndsWith":
-      return buildRegexNode(property, value, "", "$", true, negate);
+    case "stringDoesNotEndWith":
+      return buildRegexNode(
+        property,
+        value,
+        "",
+        "$",
+        true,
+        comparisonType === "stringDoesNotEndWith"
+      );
+
     case "stringEquals":
-      return buildRegexNode(property, value, "^", "$", true, negate);
+    case "stringDoesNotEqual":
+    case "enumIs":
+    case "enumIsNot":
+      return buildRegexNode(
+        property,
+        value,
+        "^",
+        "$",
+        true,
+        ["stringDoesNotEqual", "enumIsNot"].includes(comparisonType)
+      );
+
     case "stringMatchesRegex":
-      return buildRegexNode(property, value, "", "", false, negate);
+    case "stringDoesNotMatchRegex":
+      return buildRegexNode(
+        property,
+        value,
+        "",
+        "",
+        false,
+        comparisonType === "stringDoesNotMatchRegex"
+      );
+
     case "numberLessThan":
       return buildNumberComparisonNode(property, value, "<");
     case "numberLessThanOrEquals":
