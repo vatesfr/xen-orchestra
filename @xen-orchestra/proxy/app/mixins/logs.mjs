@@ -10,7 +10,7 @@ export default class Logs {
         {
           filter: [process.env.DEBUG, filter],
           level,
-          transport: dedupe(transport),
+          transport: dedupe({ transport }),
         },
       ])
     })

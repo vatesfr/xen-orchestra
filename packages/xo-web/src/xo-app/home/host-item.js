@@ -1,6 +1,5 @@
 import _ from 'intl'
 import Component from 'base-component'
-import InconsistentHostTimeWarning from 'inconsistent-host-time-warning'
 import Ellipsis, { EllipsisContainer } from 'ellipsis'
 import Icon from 'icon'
 import Link, { BlockLink } from 'link'
@@ -12,7 +11,16 @@ import HomeTags from 'home-tags'
 import Tooltip from 'tooltip'
 import { Row, Col } from 'grid'
 import { Text } from 'editable'
-import { addTag, editHost, fetchHostStats, removeTag, startHost, stopHost, subscribeHvSupportedVersions } from 'xo'
+import {
+  addTag,
+  editHost,
+  fetchHostStats,
+  isHostTimeConsistentWithXoaTime,
+  removeTag,
+  startHost,
+  stopHost,
+  subscribeHvSupportedVersions,
+} from 'xo'
 import { addSubscriptions, connectStore, formatSizeShort, hasLicenseRestrictions, osFamily } from 'utils'
 import {
   createDoesHostNeedRestart,
@@ -23,8 +31,10 @@ import {
 } from 'selectors'
 
 import MiniStats from './mini-stats'
-import LicenseWarning from '../host/license-warning'
 import styles from './index.css'
+
+import BulkIcons from '../../common/bulk-icons'
+import { LICENSE_WARNING_BODY } from '../host/license-warning'
 
 @addSubscriptions({
   hvSupportedVersions: subscribeHvSupportedVersions,
@@ -66,6 +76,60 @@ export default class HostItem extends Component {
   _toggleExpanded = () => this.setState({ expanded: !this.state.expanded })
   _onSelect = () => this.props.onSelect(this.props.item.id)
 
+  _getAlerts = createSelector(
+    () => this.props.needsRestart,
+    () => this.props.item,
+    this._isMaintained,
+    (needsRestart, host, isMaintained) => {
+      const alerts = []
+
+      if (needsRestart) {
+        alerts.push({
+          level: 'warning',
+          render: (
+            <Link className='text-warning' to={`/hosts/${host.id}/patches`}>
+              <Icon icon='alarm' /> {_('rebootUpdateHostLabel')}
+            </Link>
+          ),
+        })
+      }
+
+      if (!isMaintained) {
+        alerts.push({
+          level: 'warning',
+          render: (
+            <p>
+              <Icon icon='alarm' /> {_('noMoreMaintained')}
+            </p>
+          ),
+        })
+      }
+
+      if (!isHostTimeConsistentWithXoaTime(host)) {
+        alerts.push({
+          level: 'danger',
+          render: (
+            <p>
+              <Icon icon='alarm' /> {_('warningHostTimeTooltip')}
+            </p>
+          ),
+        })
+      }
+
+      if (hasLicenseRestrictions(host)) {
+        alerts.push({
+          level: 'danger',
+          render: (
+            <span>
+              <Icon icon='alarm' /> {_('licenseRestrictionsModalTitle')} {LICENSE_WARNING_BODY}
+            </span>
+          ),
+        })
+      }
+      return alerts
+    }
+  )
+
   render() {
     const { container, expandAll, item: host, nVms, selected, state } = this.props
 
@@ -102,23 +166,7 @@ export default class HostItem extends Component {
                   <span className='tag tag-pill tag-info'>{_('pillMaster')}</span>
                 )}
                 &nbsp;
-                {this.props.needsRestart && (
-                  <Tooltip content={_('rebootUpdateHostLabel')}>
-                    <Link to={`/hosts/${host.id}/patches`}>
-                      <Icon icon='alarm' />
-                    </Link>
-                  </Tooltip>
-                )}
-                &nbsp;
-                {!this._isMaintained() && (
-                  <Tooltip content={_('noMoreMaintained')}>
-                    <Icon className='text-warning' icon='alarm' />
-                  </Tooltip>
-                )}
-                &nbsp;
-                <InconsistentHostTimeWarning host={host} />
-                &nbsp;
-                {hasLicenseRestrictions(host) && <LicenseWarning />}
+                <BulkIcons alerts={this._getAlerts()} />
               </EllipsisContainer>
             </Col>
             <Col mediumSize={3} className='hidden-lg-down'>

@@ -47,6 +47,6 @@ export async function set({ id, ...props }) {
 set.description = 'changes the properties of an existing token'
 
 set.params = {
-  description: { type: ['null', 'string'], optional: true },
+  description: { type: ['null', 'string'], minLength: 0, optional: true },
   id: { type: 'string' },
 }
