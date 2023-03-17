@@ -85,6 +85,9 @@ export default class HostItem extends Component {
 
     const { supportLevel } = reacletteState.poolLicenseInfoByPoolId[host.$poolId]
     const license = reacletteState.xcpngLicenseByBoundObjectId[host.id]
+    if (license !== undefined) {
+      license.expires = license.expires ?? Infinity
+    }
 
     let level = 'warning'
     let message = 'hostNoSupport'
