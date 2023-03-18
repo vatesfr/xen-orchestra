@@ -33,6 +33,7 @@
 
 - @xen-orchestra/vmware-explorer patch
 - @xen-orchestra/backups minor
+- xo-cli patch
 - xo-server minor
 
 <!--packages-end-->

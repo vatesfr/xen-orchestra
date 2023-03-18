@@ -539,7 +539,7 @@ main(process.argv.slice(2)).then(
           typeof result === 'string'
             ? result
             : inspect(result, {
-                colors: true,
+                colors: Boolean(stdout.isTTY),
                 depth: null,
                 sorted: true,
               })
@@ -556,7 +556,7 @@ main(process.argv.slice(2)).then(
       typeof error === 'string'
         ? error
         : inspect(error, {
-            colors: true,
+            colors: Boolean(stderr.isTTY),
             depth: null,
             sorted: true,
           })
