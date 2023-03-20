@@ -1,9 +1,12 @@
 <template>
   <ul class="infra-pool-list">
     <InfraLoadingItem
-      v-if="!isReady || pool === undefined"
+      v-if="isLoading || pool === undefined"
       :icon="faBuilding"
     />
+    <li v-else-if="hasError" class="text-error">
+      {{ $t("error-no-data") }}
+    </li>
     <li v-else class="infra-pool-item">
       <InfraItemLabel
         :icon="faBuilding"
@@ -30,7 +33,7 @@ import InfraVmList from "@/components/infra/InfraVmList.vue";
 import { usePoolStore } from "@/stores/pool.store";
 
 const poolStore = usePoolStore();
-const { pool, isReady } = storeToRefs(poolStore);
+const { hasError, isLoading, pool } = storeToRefs(poolStore);
 </script>
 
 <style lang="postcss" scoped>
@@ -41,5 +44,13 @@ const { pool, isReady } = storeToRefs(poolStore);
 
 .infra-vm-list:deep(.link) {
   padding-left: 3rem;
+}
+
+.text-error {
+  padding-left: 3rem;
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 150%;
+  color: var(--color-red-vates-base);
 }
 </style>
