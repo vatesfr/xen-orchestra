@@ -608,6 +608,11 @@ const New = decorate([
           fullInterval,
         })
       },
+      setMaxExportRate({ setGlobalSettings }, rate) {
+        setGlobalSettings({
+          maxExportRate: rate,
+        })
+      },
       setOfflineBackup:
         ({ setGlobalSettings }, { target: { checked: offlineBackup } }) =>
         () => {
@@ -621,6 +626,7 @@ const New = decorate([
       formId: generateId,
       inputConcurrencyId: generateId,
       inputFullIntervalId: generateId,
+      inputMaxExportRate: generateId,
       inputTimeoutId: generateId,
 
       // In order to keep the user preference, the offline backup is kept in the DB
@@ -731,6 +737,7 @@ const New = decorate([
       checkpointSnapshot,
       concurrency,
       fullInterval,
+      maxExportRate,
       offlineBackup,
       offlineSnapshot,
       reportRecipients,
@@ -1005,6 +1012,17 @@ const New = decorate([
                           />
                         </FormGroup>
                       )}
+                      <FormGroup>
+                        <label htmlFor={state.inputMaxExportRate}>
+                          <strong>{_('maxExportRate')}</strong>
+                        </label>
+                        <Number
+                          id={state.inputMaxExportRate}
+                          min={0}
+                          onChange={effects.setMaxExportRate}
+                          value={maxExportRate}
+                        />
+                      </FormGroup>
                       {state.isFull && (
                         <div>
                           <FormGroup>

@@ -581,6 +581,7 @@ const messages = {
   confirmDeleteBackupJobsTitle: 'Delete backup job{nJobs, plural, one {} other {s}}',
   confirmDeleteBackupJobsBody:
     'Are you sure you want to delete {nJobs, number} backup job{nJobs, plural, one {} other {s}}?',
+  maxExportRate: 'Max export rate',
   runBackupJob: 'Run backup job once',
 
   // ------ Remote -----
