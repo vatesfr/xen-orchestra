@@ -1,6 +1,6 @@
 import { utcParse } from "d3-time-format";
 import humanFormat from "human-format";
-import { difference, round } from "lodash-es";
+import { castArray, round } from "lodash-es";
 import { find, forEach, isEqual, size, sum } from "lodash-es";
 import { type ComputedGetter, type Ref, computed, ref, watchEffect } from "vue";
 import type { Filter } from "@/types/filter";
@@ -185,7 +185,8 @@ export const isOperationsPending = (
   obj: XenApiVm,
   operations: string[] | string
 ) => {
-  const objOperations = Object.values(obj.current_operations);
-  const _operations = Array.isArray(operations) ? operations : [operations];
-  return difference(_operations, objOperations).length < _operations.length;
+  const currentOperations = Object.values(obj.current_operations);
+  return castArray(operations).some((operation) =>
+    currentOperations.includes(operation)
+  );
 };

@@ -4,9 +4,7 @@
   <RemoteConsole
     v-else-if="vmConsole"
     :location="vmConsole.location"
-    :is-console-available="
-      !isOperationsPending(vm, STOP_OPERATIONS)
-    "
+    :is-console-available="!isOperationsPending(vm, STOP_OPERATIONS)"
   />
 </template>
 
