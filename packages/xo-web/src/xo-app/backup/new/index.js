@@ -1014,7 +1014,7 @@ const New = decorate([
                       )}
                       <FormGroup>
                         <label htmlFor={state.inputMaxExportRate}>
-                          <strong>{_('maxExportRate')}</strong>
+                          <strong>{_('speedLimit')}</strong>
                         </label>
                         <Number
                           id={state.inputMaxExportRate}
