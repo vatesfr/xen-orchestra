@@ -19,74 +19,59 @@
           </option>
         </select>
       </FormWidget>
-      <template v-if="hasComparisonSelect">
-        <FormWidget v-if="currentFilter?.type === 'string'">
-          <select v-model="newFilter.builder.negate">
-            <option :value="false">does</option>
-            <option :value="true">does not</option>
-          </select>
-        </FormWidget>
-        <FormWidget v-if="hasComparisonSelect">
-          <select v-model="newFilter.builder.comparison">
-            <option
-              v-for="(label, type) in comparisons"
-              :key="type"
-              :value="type"
-            >
-              {{ label }}
-            </option>
-          </select>
-        </FormWidget>
-      </template>
+      <FormWidget v-if="hasComparisonSelect">
+        <select v-model="newFilter.builder.comparison">
+          <option
+            v-for="(label, type) in comparisons"
+            :key="type"
+            :value="type"
+          >
+            {{ label }}
+          </option>
+        </select>
+      </FormWidget>
+      <FormWidget v-if="currentFilter?.type === 'enum'">
+        <select v-model="newFilter.builder.value">
+          <option v-if="!newFilter.builder.value" value="" />
+          <option v-for="choice in enumChoices" :key="choice" :value="choice">
+            {{ choice }}
+          </option>
+        </select>
+      </FormWidget>
       <FormWidget
-        v-if="hasValueInput"
+        v-else-if="hasValueInput"
         :after="valueInputAfter"
         :before="valueInputBefore"
       >
         <input v-model="newFilter.builder.value" />
       </FormWidget>
-      <template v-else-if="currentFilter?.type === 'enum'">
-        <FormWidget>
-          <select v-model="newFilter.builder.negate">
-            <option :value="false">is</option>
-            <option :value="true">is not</option>
-          </select>
-        </FormWidget>
-        <FormWidget>
-          <select v-model="newFilter.builder.value">
-            <option v-if="!newFilter.builder.value" value="" />
-            <option v-for="choice in enumChoices" :key="choice" :value="choice">
-              {{ choice }}
-            </option>
-          </select>
-        </FormWidget>
-      </template>
     </template>
     <UiActionButton
       v-if="!newFilter.isAdvanced"
-      @click="enableAdvancedMode"
       :icon="faPencil"
+      @click="enableAdvancedMode"
     />
-    <UiActionButton @click="emit('remove', newFilter.id)" :icon="faRemove" />
+    <UiActionButton :icon="faRemove" @click="emit('remove', newFilter.id)" />
   </div>
 </template>
 
 <script lang="ts" setup>
-import { computed, watch } from "vue";
-import type {
-  Filter,
-  FilterComparisonType,
-  FilterComparisons,
-  FilterType,
-  Filters,
-  NewFilter,
-} from "@/types/filter";
-import { faPencil, faRemove } from "@fortawesome/free-solid-svg-icons";
-import { useVModel } from "@vueuse/core";
 import FormWidget from "@/components/FormWidget.vue";
 import UiActionButton from "@/components/ui/UiActionButton.vue";
 import { buildComplexMatcherNode } from "@/libs/complex-matcher.utils";
 import { getFilterIcon } from "@/libs/utils";
+import type {
+  Filter,
+  FilterComparisons,
+  FilterComparisonType,
+  Filters,
+  FilterType,
+  NewFilter,
+} from "@/types/filter";
+import { faPencil, faRemove } from "@fortawesome/free-solid-svg-icons";
+import { useVModel } from "@vueuse/core";
+import { computed, type Ref, watch } from "vue";
+import { useI18n } from "vue-i18n";
 
 const props = defineProps<{
   availableFilters: Filters;
@@ -98,14 +83,16 @@ const emit = defineEmits<{
   (event: "remove", filterId: number): void;
 }>();
 
-const newFilter = useVModel(props, "modelValue", emit);
+const { t } = useI18n();
+
+const newFilter: Ref<NewFilter> = useVModel(props, "modelValue", emit);
 
 const getDefaultComparisonType = () => {
   const defaultTypes: { [key in FilterType]: FilterComparisonType } = {
     string: "stringContains",
     boolean: "booleanTrue",
     number: "numberEquals",
-    enum: "stringEquals",
+    enum: "enumIs",
   };
 
   return defaultTypes[
@@ -118,7 +105,6 @@ watch(
   () => {
     newFilter.value.builder.comparison = getDefaultComparisonType();
     newFilter.value.builder.value = "";
-    newFilter.value.builder.negate = false;
   }
 );
 
@@ -133,7 +119,7 @@ const hasValueInput = computed(() =>
 );
 
 const hasComparisonSelect = computed(
-  () => newFilter.value.builder.property && currentFilter.value?.type !== "enum"
+  () => newFilter.value.builder.property !== ""
 );
 
 const enumChoices = computed(() => {
@@ -164,8 +150,7 @@ const generatedFilter = computed(() => {
     const node = buildComplexMatcherNode(
       newFilter.value.builder.comparison,
       newFilter.value.builder.property,
-      newFilter.value.builder.value,
-      newFilter.value.builder.negate
+      newFilter.value.builder.value
     );
 
     if (node) {
@@ -190,15 +175,20 @@ watch(generatedFilter, (value) => {
 const comparisons = computed<FilterComparisons>(() => {
   const comparisonsByType = {
     string: {
-      stringContains: "contain",
-      stringEquals: "equal",
-      stringStartsWith: "start with",
-      stringEndsWith: "end with",
-      stringMatchesRegex: "match regex",
+      stringContains: t("filter.comparison.contains"),
+      stringEquals: t("filter.comparison.equals"),
+      stringStartsWith: t("filter.comparison.starts-with"),
+      stringEndsWith: t("filter.comparison.ends-with"),
+      stringMatchesRegex: t("filter.comparison.matches-regex"),
+      stringDoesNotContain: t("filter.comparison.not-contain"),
+      stringDoesNotEqual: t("filter.comparison.not-equal"),
+      stringDoesNotStartWith: t("filter.comparison.not-start-with"),
+      stringDoesNotEndWith: t("filter.comparison.not-end-with"),
+      stringDoesNotMatchRegex: t("filter.comparison.not-match-regex"),
     },
     boolean: {
-      booleanTrue: "is true",
-      booleanFalse: "is false",
+      booleanTrue: t("filter.comparison.is-true"),
+      booleanFalse: t("filter.comparison.is-false"),
     },
     number: {
       numberLessThan: "<",
@@ -207,23 +197,22 @@ const comparisons = computed<FilterComparisons>(() => {
       numberGreaterThanOrEquals: ">=",
       numberGreaterThan: ">",
     },
-    enum: {},
+    enum: {
+      enumIs: t("filter.comparison.is"),
+      enumIsNot: t("filter.comparison.is-not"),
+    },
   };
 
   return comparisonsByType[currentFilter.value.type];
 });
 
-const valueInputBefore = computed(() => {
-  return newFilter.value.builder.comparison === "stringMatchesRegex"
-    ? "/"
-    : undefined;
-});
+const valueInputBefore = computed(() =>
+  newFilter.value.builder.comparison === "stringMatchesRegex" ? "/" : undefined
+);
 
-const valueInputAfter = computed(() => {
-  return newFilter.value.builder.comparison === "stringMatchesRegex"
-    ? "/i"
-    : undefined;
-});
+const valueInputAfter = computed(() =>
+  newFilter.value.builder.comparison === "stringMatchesRegex" ? "/i" : undefined
+);
 </script>
 
 <style lang="postcss" scoped>

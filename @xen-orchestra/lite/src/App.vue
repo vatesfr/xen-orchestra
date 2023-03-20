@@ -1,8 +1,8 @@
 <template>
   <UiModal
     v-if="isSslModalOpen"
-    color="error"
     :icon="faServer"
+    color="error"
     @close="clearUnreachableHostsUrls"
   >
     <template #title>{{ $t("unreachable-hosts") }}</template>
@@ -10,25 +10,23 @@
     <p>{{ $t("allow-self-signed-ssl") }}</p>
     <ul>
       <li v-for="url in unreachableHostsUrls" :key="url.hostname">
-        <a :href="url.href" target="_blank" rel="noopener">{{ url.href }}</a>
+        <a :href="url.href" rel="noopener" target="_blank">{{ url.href }}</a>
       </li>
     </ul>
     <template #buttons>
-      <UiButton color="success" @click="reload">{{
-        $t("unreachable-hosts-reload-page")
-      }}</UiButton>
+      <UiButton color="success" @click="reload">
+        {{ $t("unreachable-hosts-reload-page") }}
+      </UiButton>
       <UiButton @click="clearUnreachableHostsUrls">{{ $t("cancel") }}</UiButton>
     </template>
   </UiModal>
-  <div v-if="!xenApiStore.isConnected">
+  <div v-if="!$route.meta.hasStoryNav && !xenApiStore.isConnected">
     <AppLogin />
   </div>
   <div v-else>
     <AppHeader />
     <div style="display: flex">
-      <transition name="slide">
-        <AppNavigation />
-      </transition>
+      <AppNavigation />
       <main class="main">
         <RouterView />
       </main>
@@ -38,27 +36,30 @@
 </template>
 
 <script lang="ts" setup>
-import AppNavigation from "@/components/AppNavigation.vue";
-import { useUiStore } from "@/stores/ui.store";
-import { useActiveElement, useMagicKeys, whenever } from "@vueuse/core";
-import { logicAnd } from "@vueuse/math";
-import { difference } from "lodash";
-import { computed, ref, watch, watchEffect } from "vue";
 import favicon from "@/assets/favicon.svg";
-import { faServer } from "@fortawesome/free-solid-svg-icons";
 import AppHeader from "@/components/AppHeader.vue";
 import AppLogin from "@/components/AppLogin.vue";
+import AppNavigation from "@/components/AppNavigation.vue";
 import AppTooltips from "@/components/AppTooltips.vue";
 import UiButton from "@/components/ui/UiButton.vue";
 import UiModal from "@/components/ui/UiModal.vue";
 import { useChartTheme } from "@/composables/chart-theme.composable";
 import { useHostStore } from "@/stores/host.store";
+import { useUiStore } from "@/stores/ui.store";
 import { useXenApiStore } from "@/stores/xen-api.store";
+import { faServer } from "@fortawesome/free-solid-svg-icons";
+import { useActiveElement, useMagicKeys, whenever } from "@vueuse/core";
+import { logicAnd } from "@vueuse/math";
+import { difference } from "lodash";
+import { computed, ref, watch, watchEffect } from "vue";
+import { useRoute } from "vue-router";
 
 const unreachableHostsUrls = ref<URL[]>([]);
 const clearUnreachableHostsUrls = () => (unreachableHostsUrls.value = []);
 
-let link: HTMLLinkElement | null = document.querySelector("link[rel~='icon']");
+let link = document.querySelector(
+  "link[rel~='icon']"
+) as HTMLLinkElement | null;
 if (link == null) {
   link = document.createElement("link");
   link.rel = "icon";
@@ -91,7 +92,13 @@ if (import.meta.env.DEV) {
   );
 }
 
+const route = useRoute();
+
 watchEffect(() => {
+  if (route.meta.hasStoryNav) {
+    return;
+  }
+
   if (xenApiStore.isConnected) {
     xenApiStore.init();
   }
@@ -117,17 +124,9 @@ const reload = () => window.location.reload();
 
 <style lang="postcss">
 @import "@/assets/base.css";
+</style>
 
-.slide-enter-active,
-.slide-leave-active {
-  transition: transform 0.3s ease;
-}
-
-.slide-enter-from,
-.slide-leave-to {
-  transform: translateX(-37rem);
-}
-
+<style lang="postcss" scoped>
 .main {
   overflow: auto;
   flex: 1;
