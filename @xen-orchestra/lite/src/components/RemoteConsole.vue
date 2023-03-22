@@ -35,7 +35,18 @@ let nConnectionAttempts = 0;
 
 const handleDisconnectionEvent = () => {
   clearVncClient();
+
   if (props.isConsoleAvailable) {
+    nConnectionAttempts++;
+
+    if (nConnectionAttempts > N_TOTAL_TRIES) {
+      console.error(
+        "The number of reconnection attempts has been exceeded for:",
+        props.location
+      );
+      return;
+    }
+
     console.error(
       `Connection lost for the remote console: ${
         props.location
@@ -47,26 +58,26 @@ const handleDisconnectionEvent = () => {
 const handleConnectionEvent = () => (nConnectionAttempts = 0);
 
 const clearVncClient = () => {
-  if (vncClient !== undefined) {
-    vncClient.removeEventListener("disconnect", handleDisconnectionEvent);
-    vncClient.removeEventListener("connect", handleConnectionEvent);
-    if (vncClient._rfbConnectionState !== "disconnected") {
-      vncClient.disconnect();
-    }
-    vncClient = undefined;
-  }
-};
-const createVncConnection = async () => {
-  if (nConnectionAttempts > N_TOTAL_TRIES) {
-    console.error(
-      "The number of reconnection attempts has been exceeded for:",
-      props.location
-    );
+  if (vncClient === undefined) {
     return;
   }
-  await new Promise((resolve) =>
-    setTimeout(resolve, FIBONACCI_MS_ARRAY[nConnectionAttempts++ - 1])
-  );
+
+  vncClient.removeEventListener("disconnect", handleDisconnectionEvent);
+  vncClient.removeEventListener("connect", handleConnectionEvent);
+
+  if (vncClient._rfbConnectionState !== "disconnected") {
+    vncClient.disconnect();
+  }
+
+  vncClient = undefined;
+};
+
+const createVncConnection = async () => {
+  if (nConnectionAttempts !== 0) {
+    await new Promise((resolve) =>
+      setTimeout(resolve, FIBONACCI_MS_ARRAY[nConnectionAttempts - 1])
+    );
+  }
 
   vncClient = new VncClient(vmConsoleContainer.value!, url.value!.toString(), {
     wsProtocols: ["binary"],
