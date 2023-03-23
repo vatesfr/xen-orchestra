@@ -42,18 +42,9 @@ export const useHostPatches = (hostRefs: MaybeComputedRef<string[]>) => {
   const count = computed(() => patches.value.size);
 
   const fetchHostPatches = async (hostRef: string) => {
-    if (!patchesByHost.value.has(hostRef)) {
-      patchesByHost.value.set(hostRef, new Set<XenApiPatch>());
-    }
+    const patches = await xapiStore.getXapi().getMissingPatches(hostRef);
 
-    const missingPatches = await xapiStore.getXapi().getMissingPatches(hostRef);
-
-    patchesByHost.value.get(hostRef)!.clear();
-
-    missingPatches.forEach((missingPatch) => {
-      patchesByHost.value.get(hostRef)!.add(missingPatch);
-    });
-
+    patchesByHost.value.set(hostRef, new Set<XenApiPatch>(patches));
     loadedStatus.value.set(hostRef, true);
   };
 

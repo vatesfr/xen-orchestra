@@ -63,7 +63,7 @@
   "log-out": "Se déconnecter",
   "login": "Connexion",
   "migrate": "Migrer",
-  "missing": "{n} manquant | {n} manquants",
+  "n-missing": "{n} manquant | {n} manquants",
   "name": "Nom",
   "network": "Réseau",
   "network-download": "Descendant",

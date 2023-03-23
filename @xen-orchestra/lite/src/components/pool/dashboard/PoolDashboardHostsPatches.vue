@@ -3,7 +3,7 @@
     <UiCardTitle class="patches-title">
       {{ $t("patches") }}
       <template v-if="areAllLoaded" #right>
-        {{ $t("missing", { n: count }) }}
+        {{ $t("n-missing", { n: count }) }}
       </template>
     </UiCardTitle>
     <div class="table-container">
@@ -26,18 +26,18 @@ const { loadedStatus, count, patches } = useHostPatches(() =>
   hosts.value.map((host) => host.$ref)
 );
 
-const areAllLoaded = computed(() => {
-  return [...loadedStatus.value.values()].every((isReady) => isReady);
-});
+const areAllLoaded = computed(() =>
+  [...loadedStatus.value.values()].every((isReady) => isReady)
+);
 </script>
 
 <style lang="postcss" scoped>
 .patches-title {
-  --card-title-right-color: var(--color-red-vates-base);
+  --section-title-right-color: var(--color-red-vates-base);
 }
 
 .table-container {
   max-height: 40rem;
-  overflow: scroll;
+  overflow: auto;
 }
 </style>

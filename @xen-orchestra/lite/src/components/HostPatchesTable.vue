@@ -34,20 +34,17 @@ const props = defineProps<{
   patches: Map<string, XenApiPatch & { $hostRefs: XenApiHost["$ref"][] }>;
 }>();
 
-const areAllLoaded = computed(() => {
-  return [...props.hostsLoadedStatus.values()].every((isReady) => isReady);
-});
+const areAllLoaded = computed(() =>
+  [...props.hostsLoadedStatus.values()].every((isReady) => isReady)
+);
 
-const areSomeLoaded = computed(() => {
-  return (
+const areSomeLoaded = computed(
+  () =>
     areAllLoaded.value ||
     [...props.hostsLoadedStatus.values()].some((isReady) => isReady)
-  );
-});
+);
 
-const hasMultipleHosts = computed(() => {
-  return props.hostsLoadedStatus.size > 1;
-});
+const hasMultipleHosts = computed(() => props.hostsLoadedStatus.size > 1);
 </script>
 
 <style lang="postcss" scoped>
