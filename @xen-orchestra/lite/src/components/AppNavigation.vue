@@ -63,7 +63,6 @@ whenever(isOpen, () => {
 .slide-leave-active {
   transition: transform 0.3s ease;
 }
-
 .slide-enter-from,
 .slide-leave-to {
   transform: translateX(-37rem);
