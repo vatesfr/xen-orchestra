@@ -1,20 +1,23 @@
 <template>
   <UiTable class="tasks-table">
-    <template #header>
-      <th>{{ $t("name") }}</th>
-      <th>{{ $t("object") }}</th>
-      <th>{{ $t("task.progress") }}</th>
-      <th>{{ $t("task.started") }}</th>
-      <th>{{ $t("task.estimated-end") }}</th>
-    </template>
-
-    <TaskRow
-      v-for="task in pendingTasks"
-      :key="task.uuid"
-      :task="task"
-      is-pending
-    />
-    <TaskRow v-for="task in finishedTasks" :key="task.uuid" :task="task" />
+    <thead>
+      <tr>
+        <th>{{ $t("name") }}</th>
+        <th>{{ $t("object") }}</th>
+        <th>{{ $t("task.progress") }}</th>
+        <th>{{ $t("task.started") }}</th>
+        <th>{{ $t("task.estimated-end") }}</th>
+      </tr>
+    </thead>
+    <tbody>
+      <TaskRow
+        v-for="task in pendingTasks"
+        :key="task.uuid"
+        :task="task"
+        is-pending
+      />
+      <TaskRow v-for="task in finishedTasks" :key="task.uuid" :task="task" />
+    </tbody>
   </UiTable>
 </template>
 
