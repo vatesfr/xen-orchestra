@@ -9,21 +9,32 @@ import { useXenApiStore } from "@/stores/xen-api.store";
 
 const props = defineProps<{
   location: string;
+  isConsoleAvailable: boolean;
 }>();
 
 const vmConsoleContainer = ref<HTMLDivElement>();
 const xenApiStore = useXenApiStore();
 let vncClient: VncClient | undefined;
 
+const clearVncClient = () => {
+  if (vncClient !== undefined) {
+    if (vncClient._rfbConnectionState !== "disconnected") {
+      vncClient.disconnect();
+    }
+    vncClient = undefined;
+  }
+};
+
 watchEffect(() => {
-  if (!vmConsoleContainer.value || !xenApiStore.currentSessionId) {
+  if (
+    !vmConsoleContainer.value ||
+    !xenApiStore.currentSessionId ||
+    !props.isConsoleAvailable
+  ) {
     return;
   }
 
-  if (vncClient !== undefined) {
-    vncClient.disconnect();
-    vncClient = undefined;
-  }
+  clearVncClient();
 
   const url = new URL(props.location);
   url.protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
@@ -37,8 +48,7 @@ watchEffect(() => {
 });
 
 onBeforeUnmount(() => {
-  vncClient?.disconnect();
-  vncClient = undefined;
+  clearVncClient();
 });
 </script>
 

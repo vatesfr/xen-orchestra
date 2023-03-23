@@ -1263,14 +1263,14 @@ import_.params = {
     type: 'object',
     optional: true,
     properties: {
-      descriptionLabel: { type: 'string' },
+      descriptionLabel: { type: 'string', minLength: 0 },
       disks: {
         type: 'array',
         items: {
           type: 'object',
           properties: {
             capacity: { type: 'integer' },
-            descriptionLabel: { type: 'string' },
+            descriptionLabel: { type: 'string', minLength: 0 },
             nameLabel: { type: 'string' },
             path: { type: 'string' },
             position: { type: 'integer' },

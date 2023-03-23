@@ -2738,6 +2738,13 @@
     "@jridgewell/resolve-uri" "3.1.0"
     "@jridgewell/sourcemap-codec" "1.4.14"
 
+"@kldzj/stream-throttle@^1.1.1":
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/@kldzj/stream-throttle/-/stream-throttle-1.1.1.tgz#16d18d03fe97a02890724c183dddb17d25bf2ad8"
+  integrity sha512-/x0r2yUUMNe9SuHyaYtNV2b4LnVayEkCOFbP+5kr3sgYce6MyTAc2EEm7hV6lIWgXIT6GWUWzlDhQt6kwsxRUA==
+  dependencies:
+    limiter "^2.1.0"
+
 "@koa/router@^12.0.0":
   version "12.0.0"
   resolved "https://registry.yarnpkg.com/@koa/router/-/router-12.0.0.tgz#2ae7937093fd392761c0e5833c368379d4a35737"
@@ -12952,6 +12959,11 @@ just-extend@^4.0.2:
   resolved "https://registry.yarnpkg.com/just-extend/-/just-extend-4.2.1.tgz#ef5e589afb61e5d66b24eca749409a8939a8c744"
   integrity sha512-g3UB796vUFIY90VIv/WX3L2c8CS2MdWUww3CNrYmqza1Fg0DURc2K/O4YrnklBdQarSJ/y8JnJYDGc+1iumQjg==
 
+just-performance@4.3.0:
+  version "4.3.0"
+  resolved "https://registry.yarnpkg.com/just-performance/-/just-performance-4.3.0.tgz#cc2bc8c9227f09e97b6b1df4cd0de2df7ae16db1"
+  integrity sha512-L7RjvtJsL0QO8xFs5wEoDDzzJwoiowRw6Rn/GnvldlchS2JQr9wFYPiwZcDfrbbujEKqKN0tvENdbjXdYhDp5Q==
+
 just-reduce-object@^1.0.3:
   version "1.2.1"
   resolved "https://registry.yarnpkg.com/just-reduce-object/-/just-reduce-object-1.2.1.tgz#92845dedc4c5da34df5e5ad6a4bf62f21fdc37f5"
@@ -13324,6 +13336,13 @@ limit-concurrency-decorator@^0.5.0:
   version "0.5.0"
   resolved "https://registry.yarnpkg.com/limit-concurrency-decorator/-/limit-concurrency-decorator-0.5.0.tgz#7455fc7c8d12e93ce725cb98dc18b861397dd726"
   integrity sha512-s5HqdnTpRJhvK/vleMY3qJ3yEfIQ1BUCUqbBJwtXCKngMSc+qpS1Rl6/rxdhr1Z/oQz3keYho6G4XCFSHb7nbA==
+
+limiter@^2.1.0:
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/limiter/-/limiter-2.1.0.tgz#d38d7c5b63729bb84fb0c4d8594b7e955a5182a2"
+  integrity sha512-361TYz6iay6n+9KvUUImqdLuFigK+K79qrUtBsXhJTLdH4rIt/r1y8r1iozwh8KbZNpujbFTSh74mJ7bwbAMOw==
+  dependencies:
+    just-performance "4.3.0"
 
 lines-and-columns@^1.1.6:
   version "1.2.4"
