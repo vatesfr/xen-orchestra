@@ -5,7 +5,7 @@ export default async function openDeltaVmdkasVhd(esxi, datastore, path, parentVh
   let vhd
   if (path.endsWith('-sesparse.vmdk')) {
     throw new Error(
-      `sesparse Vmdk reading is not functionnal yet ${path}. For now, this VM can only be migrated if it don't have any snapshot and if it is halted.`
+      `sesparse VMDK reading is not functional yet ${path}. For now, this VM can only be migrated if it doesn't have any snapshots and if it is halted.`
     )
     // vhd = new VhdEsxiSeSparse(esxi, datastore, path, parentVhd, opts)
   } else {
