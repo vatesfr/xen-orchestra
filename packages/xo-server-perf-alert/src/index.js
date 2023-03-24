@@ -589,7 +589,8 @@ ${monitorBodies.join('\n')}`
 
       const entriesWithMissingStats = []
       for (const entry of snapshot) {
-        if (entry.object.physical_size <= 0) continue
+        // Ignore special SRs (e.g. *XCP-ng Tools*, *DVD drives*, etc) as their usage is always 100%
+        if (entry.object.physical_size <= 0 && entry.object.content_type === 'iso') continue
         if (entry.value === undefined) {
           entriesWithMissingStats.push(entry)
           continue
