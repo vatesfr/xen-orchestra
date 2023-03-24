@@ -915,7 +915,7 @@ const messages = {
   // ----- Host item ------
   host: 'Host',
   hostNoLicensePartialProSupport:
-    'This host does not have an active license while he is in a pool with licensed hosts. For XCP-ng Pro Support to be enabled on a pool, all its hosts must have an active license',
+    'This host does not have an active license, even though it is in a pool with licensed hosts. In order for XCP-ng Pro Support to be enabled on a pool, all hosts within the pool must have an active license',
   hostNoSupport: 'No XCP-ng Pro Support enabled on this host',
   hostSupportEnabled: 'XCP-ng Pro Support enabled on this host',
   noMoreMaintained: 'This host version is no longer maintained',
