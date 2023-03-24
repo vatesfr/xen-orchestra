@@ -589,6 +589,7 @@ ${monitorBodies.join('\n')}`
 
       const entriesWithMissingStats = []
       for (const entry of snapshot) {
+        if (entry.object.name_label === 'XCP-ng Tools') continue
         if (entry.value === undefined) {
           entriesWithMissingStats.push(entry)
           continue
