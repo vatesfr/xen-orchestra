@@ -241,7 +241,7 @@ export default class Esxi extends EventEmitter {
 
     const [fullVmxPath, dataStore, vmxPath] = config.files.vmPathName.match(/^\[(.*)\] (.+.vmx)$/)
     if (fullVmxPath === undefined) {
-      throw new Error(`No VMX file found in esxi api response ${config.files.vmPathName}`)
+      throw new Error(`no VMX file found in ESXI API response ${config.files.vmPathName}`)
     }
     const res = await this.download(dataStore, vmxPath)
     const vmx = parseVmx(await res.text())
