@@ -183,12 +183,11 @@ const xoLiteVersion = XO_LITE_VERSION;
 const xoLiteGitHead = XO_LITE_GIT_HEAD;
 const { locale } = useI18n();
 
-const poolStore = usePoolStore();
-const { pool, isReady } = storeToRefs(poolStore);
+const { pool } = storeToRefs(usePoolStore());
 const hostStore = useHostStore();
 
 const poolMaster = computed(() =>
-  pool.value ? hostStore.getRecord(pool.value?.master) : undefined
+  pool.value ? hostStore.getRecord(pool.value.master) : undefined
 );
 const xcpVersion = computed(
   () => poolMaster.value?.software_version.product_version
