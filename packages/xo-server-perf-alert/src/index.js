@@ -589,7 +589,7 @@ ${monitorBodies.join('\n')}`
 
       const entriesWithMissingStats = []
       for (const entry of snapshot) {
-        if (entry.object.physical_size === -1) continue
+        if (entry.object.physical_size <= 0) continue
         if (entry.value === undefined) {
           entriesWithMissingStats.push(entry)
           continue
