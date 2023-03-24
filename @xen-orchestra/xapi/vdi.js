@@ -9,6 +9,7 @@ const { decorateClass } = require('@vates/decorate-with')
 const extractOpaqueRef = require('./_extractOpaqueRef.js')
 const NbdClient = require('@vates/nbd-client')
 const { createNbdRawStream, createNbdVhdStream } = require('vhd-lib/createStreamNbd.js')
+const { VDI_FORMAT_RAW, VDI_FORMAT_VHD } = require('./index.js')
 const { warn } = require('@xen-orchestra/log').createLogger('xo:xapi:vdi')
 
 const noop = Function.prototype
@@ -93,26 +94,25 @@ class Vdi {
 
       query.base = baseRef
     }
-    let nbdClient, nbdStream, resourceStream
+    let nbdClient, stream
     try {
       if (this._preferNbd) {
         nbdClient = await this._getNbdClient(ref)
       }
       // the raw nbd export does not need to peek ath the vhd source
-      if (nbdClient !== undefined && format === 'raw') {
-        nbdStream = createNbdRawStream(nbdClient)
+      if (nbdClient !== undefined && format === VDI_FORMAT_RAW) {
+        stream = createNbdRawStream(nbdClient)
       } else {
         // raw export without nbd or vhd exports needs a resource stream
-        resourceStream = await this.getResource(cancelToken, '/export_raw_vdi/', {
+        stream = await this.getResource(cancelToken, '/export_raw_vdi/', {
           query,
           task: await this.task_create(`Exporting content of VDI ${await this.getField('VDI', ref, 'name_label')}`),
         })
-        if (nbdClient !== undefined) {
-          nbdStream = await createNbdVhdStream(nbdClient, resourceStream)
+        if (nbdClient !== undefined && format === VDI_FORMAT_VHD) {
+          stream = await createNbdVhdStream(nbdClient, stream)
         }
       }
-      // fall back to the base stream if no nbd or couldn't connect
-      return nbdStream ?? resourceStream
+      return stream
     } catch (error) {
       // augment the error with as much relevant info as possible
       const [poolMaster, vdi] = await Promise.all([

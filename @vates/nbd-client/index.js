@@ -261,15 +261,34 @@ module.exports = class NbdClient {
     }
     const readAhead = []
     const readAheadMaxLength = 10
+    const errors = []
     for (const { index, size } of indexGenerator()) {
       if (readAhead.length === readAheadMaxLength) {
-        const block = readAhead.shift()
+        const block = await readAhead.shift()
+        if (block instanceof Error) {
+          break
+        }
         yield block
       }
-      readAhead.push(this.readBlock(index, size))
+      readAhead.push(
+        this.readBlock(index, size).catch(error => {
+          errors.push(error)
+          return error
+        })
+      )
     }
     while (readAhead.length > 0) {
-      yield readAhead.shift()
+      const block = await readAhead.shift()
+      if (!(block instanceof Error)) {
+        yield block
+      }
+    }
+    // reading a block shoul be quite fast, we wait for all errors
+    // before rethrowing them
+    if (errors.length > 0) {
+      const error = new Error('fail during blocks reading')
+      error.errors = errors
+      throw error
     }
   }
 }
