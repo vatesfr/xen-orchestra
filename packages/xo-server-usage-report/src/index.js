@@ -283,9 +283,13 @@ function getLastDays(data, periodicity) {
       break
   }
   const expectedData = {}
-  for (const value of Object.entries(data)) {
-    expectedData[value[0]] =
-      typeof value[1] !== 'object' ? value[1] : value[1] !== null ? value[1].slice(-daysToKeep) : 0
+  for (const [key, value] of Object.entries(data)) {
+    if (Array.isArray(value)) {
+      // slice only applies to array
+      expectedData[key] = value.slice(-daysToKeep)
+    } else {
+      expectedData[key] = value
+    }
   }
   return expectedData
 }
