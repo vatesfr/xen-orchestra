@@ -21,7 +21,7 @@ import { generateId, linkState } from 'reaclette-utils'
 import { injectIntl } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
 import { Map } from 'immutable'
-import { Number } from 'form'
+import { Number, SizeInput } from 'form'
 import { renderXoItemFromId, Remote } from 'render-xo-item'
 import { SelectRemote, SelectSr, SelectVm } from 'select-objects'
 import {
@@ -1016,9 +1016,8 @@ const New = decorate([
                         <label htmlFor={state.inputMaxExportRate}>
                           <strong>{_('speedLimit')}</strong>
                         </label>
-                        <Number
+                        <SizeInput
                           id={state.inputMaxExportRate}
-                          min={0}
                           onChange={effects.setMaxExportRate}
                           value={maxExportRate}
                         />
