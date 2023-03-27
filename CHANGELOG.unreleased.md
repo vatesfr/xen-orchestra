@@ -7,6 +7,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- Updated the Docs > Users.md file to better explain the Github Auth plugin setup process
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
