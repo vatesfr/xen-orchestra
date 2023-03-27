@@ -193,12 +193,14 @@ watch(
         current.push(`default(${quote(prop.default)})`);
       }
 
-      if (prop.type) {
+      if (prop.type !== undefined) {
         const type = castArray(prop.type)
           .map((ctor) => extractTypeFromConstructor(ctor, propName))
           .join(" | ");
 
-        current.push(`type(${quote(type)})`);
+        if (type !== "unknown") {
+          current.push(`type(${quote(type)})`);
+        }
       }
 
       const isModel = component.emits?.includes(`update:${propName}`);
@@ -226,7 +228,7 @@ watch(
         }
 
         shouldImportEvent = true;
-        lines.value.push(`event("${eventName}")`);
+        lines.value.push(`event(${quote(eventName)})`);
       }
     }
 
