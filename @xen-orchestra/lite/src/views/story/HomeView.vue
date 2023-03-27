@@ -1,32 +1,49 @@
 <template>
-  <div class="home-view">
-    <UiTitle type="h4">
-      This helper will generate a basic story component
-    </UiTitle>
-    <div>
-      Choose a component:
-      <select v-model="componentPath">
+  <UiCard class="home-view">
+    <UiCardTitle>Component Story skeleton generator</UiCardTitle>
+
+    <div class="row">
+      Choose a component
+      <FormSelect v-model="componentPath">
         <option value="" />
-        <option v-for="(component, path) in componentsWithProps" :key="path">
+        <option v-for="path in componentPaths" :key="path">
           {{ path }}
         </option>
-      </select>
-      <div class="slots">
-        <label>
-          Slots names, separated by a comma
-          <input v-model="slots" />
-        </label>
-        <button @click="slots = 'default'">Default</button>
-        <button @click="slots = ''">Clear</button>
-      </div>
+      </FormSelect>
     </div>
-    <CodeHighlight v-if="componentPath" :code="template" />
-  </div>
+
+    <div class="row">
+      Slot names, separated by comma
+      <span class="slots">
+        <FormInput v-model="slots" />
+        <UiButton @click="slots = 'default'">Default</UiButton>
+        <UiButton outlined @click="slots = ''">Clear</UiButton>
+      </span>
+    </div>
+
+    <p v-for="warning in warnings" :key="warning" class="row warning">
+      <UiIcon :icon="faWarning" />
+      {{ warning }}
+    </p>
+
+    <CodeHighlight
+      class="code-highlight"
+      v-if="componentPath"
+      :code="template"
+    />
+  </UiCard>
 </template>
 
 <script lang="ts" setup>
 import CodeHighlight from "@/components/CodeHighlight.vue";
-import UiTitle from "@/components/ui/UiTitle.vue";
+import FormInput from "@/components/form/FormInput.vue";
+import FormSelect from "@/components/form/FormSelect.vue";
+import UiIcon from "@/components/ui/icon/UiIcon.vue";
+import UiButton from "@/components/ui/UiButton.vue";
+import UiCard from "@/components/ui/UiCard.vue";
+import UiCardTitle from "@/components/ui/UiCardTitle.vue";
+import { faWarning } from "@fortawesome/free-solid-svg-icons";
+import { castArray } from "lodash-es";
 import { type ComponentOptions, computed, ref, watch } from "vue";
 
 const componentPath = ref("");
@@ -44,10 +61,14 @@ const componentsWithProps = Object.fromEntries(
   )
 );
 
+const componentPaths = Object.keys(componentsWithProps);
+
 const lines = ref<string[]>([]);
 const slots = ref("");
 
 const quote = (str: string) => `'${str}'`;
+const camel = (str: string) =>
+  str.replace(/-([a-z])/g, (match, letter) => letter.toUpperCase());
 const paramsToImport = ref(new Set<string>());
 const widgetsToImport = ref(new Set<string>());
 
@@ -61,13 +82,15 @@ const template = computed(() => {
     .filter((name) => name !== "");
 
   for (const slotName of slotsNames) {
-    paramsLines.push(`slot(${slotName === "default" ? "" : quote(slotName)})`);
+    paramsLines.push(
+      `slot(${slotName === "default" ? "" : quote(camel(slotName))})`
+    );
   }
 
   for (const slotName of slotsNames) {
     paramsLines.push(
       `setting(${quote(
-        `${slotName}SlotContent`
+        `${camel(slotName)}SlotContent`
       )}).preset('Example content for ${slotName} slot').widget(text()).help('Content for ${slotName} slot')`
     );
   }
@@ -78,7 +101,7 @@ const template = computed(() => {
   }
 
   const paramsStr = paramsLines.join(",\n      ");
-
+  const scriptEndTag = "</" + "script>";
   return `<template>
   <ComponentStory
     v-slot="{ properties, settings }"
@@ -91,8 +114,10 @@ const template = computed(() => {
       ? `>\n      ${slotsNames
           .map((name) =>
             name === "default"
-              ? `{{ settings.${name}SlotContent }}`
-              : `<template #${name}>{{ settings.${name}SlotContent }}</template>`
+              ? `{{ settings.${camel(name)}SlotContent }}`
+              : `<template #${name}>{{ settings.${camel(
+                  name
+                )}SlotContent }}</template>`
           )
           .join("\n      ")}
     </${componentName}>`
@@ -118,9 +143,29 @@ ${
       )} } from "@/libs/story/story-widget"`
     : ""
 }
-${"<"}/script>
+${scriptEndTag}
 `;
 });
+
+const warnings = ref(new Set<string>());
+
+const extractTypeFromConstructor = (
+  ctor: null | (new () => unknown),
+  propName: string
+) => {
+  if (ctor == null) {
+    warnings.value.add(
+      `An unknown type has been detected for prop "${propName}"`
+    );
+    return "unknown";
+  }
+
+  if (ctor === Date) {
+    return "Date";
+  }
+
+  return ctor.name.toLocaleLowerCase();
+};
 
 watch(
   componentPath,
@@ -133,6 +178,7 @@ watch(
     slots.value = "";
     widgetsToImport.value = new Set();
     paramsToImport.value = new Set();
+    warnings.value = new Set();
     lines.value = [];
 
     for (const propName in component.props) {
@@ -148,11 +194,11 @@ watch(
       }
 
       if (prop.type) {
-        const type = prop.type();
+        const type = castArray(prop.type)
+          .map((ctor) => extractTypeFromConstructor(ctor, propName))
+          .join(" | ");
 
-        current.push(
-          `type(${quote(Array.isArray(type) ? "array" : typeof type)})`
-        );
+        current.push(`type(${quote(type)})`);
       }
 
       const isModel = component.emits?.includes(`update:${propName}`);
@@ -164,16 +210,28 @@ watch(
         })`
       );
 
-      current.push("widget()");
+      if (!isModel) {
+        current.push("widget()");
+      }
 
       lines.value.push(current.join("."));
     }
 
+    let shouldImportEvent = false;
+
     if (component.emits) {
-      paramsToImport.value.add("event");
       for (const eventName of component.emits) {
+        if (eventName.startsWith("update:")) {
+          continue;
+        }
+
+        shouldImportEvent = true;
         lines.value.push(`event("${eventName}")`);
       }
+    }
+
+    if (shouldImportEvent) {
+      paramsToImport.value.add("event");
     }
   },
   { immediate: true }
@@ -185,11 +243,28 @@ watch(
   margin: 1rem;
 }
 
-.ui-title {
-  margin-bottom: 1rem;
+.slots {
+  display: inline-flex;
+  align-items: stretch;
+  gap: 1rem;
+
+  :deep(input) {
+    height: 100%;
+  }
 }
 
-.slots {
+.row {
+  margin-bottom: 2rem;
+  font-size: 1.6rem;
+}
+
+.warning {
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: var(--color-orange-world-base);
+}
+
+.code-highlight {
   margin-top: 1rem;
 }
 </style>
