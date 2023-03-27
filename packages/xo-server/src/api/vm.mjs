@@ -1340,10 +1340,10 @@ export async function importMultipleFromEsxi({
   network,
   password,
   sr,
-  sslVerify = true,
-  stopSource = false,
-  stopOnError = false,
-  thin = false,
+  sslVerify,
+  stopSource,
+  stopOnError,
+  thin,
   user,
   vms,
 }) {
@@ -1399,22 +1399,30 @@ export async function importMultipleFromEsxi({
 }
 
 importMultipleFromEsxi.params = {
-  // number of VM imports in parallel (the disks are imported in parallel in each VM import)
-  concurrency: { type: 'number', optional: true },
+  concurrency: {
+    type: 'number',
+    optional: true,
+    default: 2,
+    description: 'number of VM imports in parallel (the disks are imported in parallel in each VM import)',
+  },
   host: { type: 'string' },
   network: { type: 'string' },
   password: { type: 'string' },
   sr: { type: 'string' },
-  sslVerify: { type: 'boolean', optional: true },
-  stopSource: { type: 'boolean', optional: true },
-  // should the import stop on the first error , default true . Warning, change the response format
-  stopOnError: { type: 'boolean', optional: true },
-  thin: { type: 'boolean', optional: true },
+  sslVerify: { type: 'boolean', optional: true, default: true },
+  stopSource: { type: 'boolean', optional: true, default: false },
+  stopOnError: {
+    type: 'boolean',
+    optional: true,
+    default: false,
+    description: 'should the import stop on the first error , default true . Warning, change the response format',
+  },
+  thin: { type: 'boolean', optional: true, default: false },
   user: { type: 'string' },
-  // VMs ids to be imported, if used from cli use this syntax :  vms=json:'["2","9","18"]'
   vms: {
     items: {
       type: 'string',
+      description: 'VM id to be imported, if used from cli use this syntax :  vms=json:\'["2","9","18"]\'',
     },
     minItems: 1,
     type: 'array',
