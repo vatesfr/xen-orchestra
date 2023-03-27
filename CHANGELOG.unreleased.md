@@ -39,6 +39,6 @@
 - xo-cli patch
 - xo-server minor
 - xo-server-auth-oidc minor
-- xo-web minor
+- xo-web patch
 
 <!--packages-end-->
