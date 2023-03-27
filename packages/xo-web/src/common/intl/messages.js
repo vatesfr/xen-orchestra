@@ -5,6 +5,7 @@ const forEach = require('lodash/forEach')
 
 const messages = {
   alpha: 'Alpha',
+  alerts: 'Alerts',
   creation: 'Creation',
   description: 'Description',
   deleteSourceVm: 'Delete source VM',
@@ -51,6 +52,7 @@ const messages = {
   browseFiles: 'Browse files',
   showLogs: 'Show logs',
   noValue: 'None',
+  noExpiration: 'No expiration',
   compression: 'Compression',
   core: 'Core',
   cpu: 'CPU',

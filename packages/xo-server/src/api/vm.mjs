@@ -300,7 +300,7 @@ create.params = {
 
   // Name/description of the new VM.
   name_label: { type: 'string' },
-  name_description: { type: 'string', optional: true },
+  name_description: { type: 'string', minLength: 0, optional: true },
 
   // PV Args
   pv_args: { type: 'string', optional: true },
@@ -668,7 +668,7 @@ set.params = {
 
   name_label: { type: 'string', optional: true },
 
-  name_description: { type: 'string', optional: true },
+  name_description: { type: 'string', minLength: 0, optional: true },
 
   high_availability: {
     optional: true,
@@ -954,7 +954,7 @@ export const snapshot = defer(async function (
 })
 
 snapshot.params = {
-  description: { type: 'string', optional: true },
+  description: { type: 'string', minLength: 0, optional: true },
   id: { type: 'string' },
   name: { type: 'string', optional: true },
   saveMemory: { type: 'boolean', optional: true },
@@ -1263,14 +1263,14 @@ import_.params = {
     type: 'object',
     optional: true,
     properties: {
-      descriptionLabel: { type: 'string' },
+      descriptionLabel: { type: 'string', minLength: 0 },
       disks: {
         type: 'array',
         items: {
           type: 'object',
           properties: {
             capacity: { type: 'integer' },
-            descriptionLabel: { type: 'string' },
+            descriptionLabel: { type: 'string', minLength: 0 },
             nameLabel: { type: 'string' },
             path: { type: 'string' },
             position: { type: 'integer' },

@@ -1,5 +1,6 @@
 <template>
   <!-- TODO: add a loader when data is not fully loaded or undefined -->
+  <!-- TODO: Display the NoDataError component in case of a data recovery error -->
   <LinearChart
     :data="data"
     :max-value="customMaxValue"
@@ -37,7 +38,7 @@ const data = computed<LinearChartData>(() => {
   const timestampStart = hostLastWeekStats?.timestampStart?.value;
   const stats = hostLastWeekStats?.stats?.value;
 
-  if (timestampStart === undefined || stats === undefined) {
+  if (timestampStart === undefined || stats == null) {
     return [];
   }
 

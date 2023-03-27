@@ -12,6 +12,7 @@ const { PoolMetadataBackup } = require('./_PoolMetadataBackup.js')
 const { Task } = require('./Task.js')
 const { VmBackup } = require('./_VmBackup.js')
 const { XoMetadataBackup } = require('./_XoMetadataBackup.js')
+const createStreamThrottle = require('./_createStreamThrottle.js')
 
 const noop = Function.prototype
 
@@ -40,6 +41,7 @@ const DEFAULT_VM_SETTINGS = {
   fullInterval: 0,
   healthCheckSr: undefined,
   healthCheckVmsWithTags: [],
+  maxExportRate: 0,
   maxMergedDeltasPerRun: Infinity,
   offlineBackup: false,
   offlineSnapshot: false,
@@ -226,9 +228,11 @@ exports.Backup = class Backup {
     // FIXME: proper SimpleIdPattern handling
     const getSnapshotNameLabel = this._getSnapshotNameLabel
     const schedule = this._schedule
+    const settings = this._settings
+
+    const throttleStream = createStreamThrottle(settings.maxExportRate)
 
     const config = this._config
-    const settings = this._settings
     await Disposable.use(
       Disposable.all(
         extractIdsFromSimplePattern(job.srs).map(id =>
@@ -278,6 +282,7 @@ exports.Backup = class Backup {
                 schedule,
                 settings: { ...settings, ...allSettings[vm.uuid] },
                 srs,
+                throttleStream,
                 vm,
               }).run()
             )

@@ -141,6 +141,7 @@ declare module "@novnc/novnc/core/rfb" {
    * a WebSocket that must provide a standard NoVncClient protocol stream.
    */
   export default class NoVncClient extends NoVncEventTarget {
+    readonly _rfbConnectionState: string;
     readonly _target: Element;
     readonly _url: string | null;
 

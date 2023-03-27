@@ -1118,13 +1118,6 @@ export default class Xapi extends XapiBase {
       vhdResult = await this.VDI_exportContent(vdi.$ref, params)
       return vhdResult
     })
-    // callers expect the stream to be an HTTP response.
-    vmdkStream.headers = {
-      ...vhdResult.headers,
-      'content-type': 'application/x-vmdk',
-    }
-    vmdkStream.statusCode = vhdResult.statusCode
-    vmdkStream.statusMessage = vhdResult.statusMessage
     return vmdkStream
   }
 
@@ -1135,7 +1128,7 @@ export default class Xapi extends XapiBase {
     const networkRef = await this.call('network.create', {
       name_label: name,
       name_description: description,
-      MTU: asInteger(mtu),
+      MTU: mtu,
       // Set automatic to false so XenCenter does not get confused
       // https://citrix.github.io/xenserver-sdk/#network
       other_config: { automatic: 'false' },

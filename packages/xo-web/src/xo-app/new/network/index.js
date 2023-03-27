@@ -192,7 +192,6 @@ const NewNetwork = decorate([
         description,
         encapsulation,
         encrypted,
-        mtu,
         name,
         nbd,
         networks,
@@ -200,6 +199,10 @@ const NewNetwork = decorate([
         pifs,
         vlan,
       } = state
+
+      let { mtu } = state
+      mtu = mtu === '' ? undefined : +mtu
+
       return bonded
         ? createBondedNetwork({
             bondMode: bondMode.value,
@@ -224,7 +227,7 @@ const NewNetwork = decorate([
               description,
               encapsulation,
               encrypted,
-              mtu: mtu !== '' ? +mtu : undefined,
+              mtu,
               preferredCenter: networkCenter,
             })
           })()

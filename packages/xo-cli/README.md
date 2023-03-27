@@ -20,15 +20,19 @@ npm install --global xo-cli
 > xo-cli --help
 Usage:
 
-  xo-cli --register [--allowUnauthorized] [--expiresIn duration] <XO-Server URL> <username> [<password>]
+  xo-cli --register [--allowUnauthorized] [--expiresIn <duration>] <XO-Server URL> <username> [<password>]
+  xo-cli --register [--allowUnauthorized] [--expiresIn <duration>] --token <token> <XO-Server URL>
     Registers the XO instance to use.
 
     --allowUnauthorized, --au
       Accept invalid certificate (e.g. self-signed).
 
-    --expiresIn duration
+    --expiresIn <duration>
       Can be used to change the validity duration of the
       authorization token (default: one month).
+
+    --token <token>
+      An authentication token to use instead of username/password.
 
   xo-cli --createToken <params>…
     Create an authentication token for XO API.
@@ -53,8 +57,11 @@ Usage:
     <property>=<value>
       Restricted displayed objects to those matching the patterns.
 
-  xo-cli <command> [<name>=<value>]...
+  xo-cli <command> [--json] [<name>=<value>]...
     Executes a command on the current XO instance.
+
+    --json
+      Prints the result in JSON format.
 ```
 
 #### Register your XO instance

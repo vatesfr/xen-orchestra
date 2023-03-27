@@ -4,22 +4,31 @@ import { invalidCredentials, noSuchObject } from 'xo-common/api-errors.js'
 import { pipeline } from 'stream'
 import { json, Router } from 'express'
 import createNdJsonStream from '../_createNdJsonStream.mjs'
+import path from 'node:path'
 import pick from 'lodash/pick.js'
 import map from 'lodash/map.js'
 import * as CM from 'complex-matcher'
 import fromCallback from 'promise-toolbox/fromCallback'
 import { VDI_FORMAT_RAW, VDI_FORMAT_VHD } from '@xen-orchestra/xapi'
 
+const { join } = path.posix
 const noop = Function.prototype
 
 function sendObjects(objects, req, res, path = req.path) {
   const { query } = req
-  const basePath = req.baseUrl + path
-  const makeUrl = object => basePath + '/' + object.id
+  const basePath = join(req.baseUrl, path)
+  const makeUrl = object => join(basePath, object.id)
 
   let { fields } = query
   let results
-  if (fields !== undefined) {
+  if (fields === undefined) {
+    results = map(objects, makeUrl)
+  } else if (fields === '*') {
+    results = map(objects, object => ({
+      ...object,
+      href: makeUrl(object),
+    }))
+  } else if (fields) {
     fields = fields.split(',')
     results = map(objects, object => {
       const url = makeUrl(object)
@@ -27,8 +36,6 @@ function sendObjects(objects, req, res, path = req.path) {
       object.href = url
       return object
     })
-  } else {
-    results = map(objects, makeUrl)
   }
 
   if (query.ndjson !== undefined) {
@@ -46,7 +53,7 @@ function sendObjects(objects, req, res, path = req.path) {
 const handleOptionalUserFilter = filter => filter && CM.parse(filter).createPredicate()
 
 const subRouter = (app, path) => {
-  const router = Router({ strict: true })
+  const router = Router({ strict: false })
   app.use(path, router)
   return router
 }
@@ -112,6 +119,9 @@ export default class RestApi {
       })
     )
 
+    collections.backups = { id: 'backups' }
+    collections.restore = { id: 'restore' }
+
     collections.vms.actions = {
       __proto__: null,
 
@@ -152,6 +162,49 @@ export default class RestApi {
     })
 
     api.get('/', (req, res) => sendObjects(collections, req, res))
+
+    api
+      .get('/backups', (req, res) => {
+        sendObjects([{ id: 'jobs' }, { id: 'logs' }], req, res)
+      })
+      .get(
+        '/backups/jobs',
+        wrap(async (req, res) => {
+          sendObjects(await app.getAllJobs('backup'), req, res)
+        })
+      )
+      .get(
+        '/backups/jobs/:id',
+        wrap(async (req, res) => {
+          res.json(await app.getJob(req.params.id, 'backup'))
+        })
+      )
+      .get(
+        '/backups/logs',
+        wrap(async (req, res) => {
+          const logs = await app.getBackupNgLogsSorted({
+            filter: ({ message: m }) => m === 'backup' || m === 'metadata',
+          })
+          sendObjects(logs, req, res)
+        })
+      )
+      .get('/restore', (req, res) => {
+        sendObjects([{ id: 'logs' }], req, res)
+      })
+      .get(
+        '/restore/logs',
+        wrap(async (req, res) => {
+          const logs = await app.getBackupNgLogsSorted({ filter: _ => _.message === 'restore' })
+          sendObjects(logs, req, res)
+        })
+      )
+      .get(
+        ['/backups/logs/:id', '/restore/logs/:id'],
+        wrap(async (req, res) => {
+          res.json(await app.getBackupNgLogs(req.params.id))
+        })
+      )
+
     api.get(
       '/:collection',
       wrap(async (req, res) => {

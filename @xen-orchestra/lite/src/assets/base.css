@@ -16,12 +16,28 @@ a {
   color: var(--color-extra-blue-base);
 }
 
-code, code * {
-  font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+code,
+code * {
+  font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
+    "Courier New", monospace;
 }
 
 .card-view {
   padding: 1.2rem;
   display: flex;
   gap: 2rem;
+}
+
+.link {
+  text-decoration: underline;
+  color: var(--color-extra-blue-base);
+  cursor: pointer;
+}
+
+.link:hover {
+  color: var(--color-extra-blue-d20);
+}
+
+.link:active {
+  color: var(--color-extra-blue-d40);
 }

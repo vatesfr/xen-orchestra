@@ -66,6 +66,9 @@ class Vdi {
       vdi: ref,
     }
     if (baseRef !== undefined) {
+      // delta is not compatible with raw export
+      assert.equal(format, 'vhd')
+
       query.base = baseRef
     }
     try {
