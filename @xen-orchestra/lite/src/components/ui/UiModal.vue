@@ -146,7 +146,7 @@ const className = computed(() => {
 
 .content {
   overflow: auto;
-  min-height: 23rem;
+  font-size: 1.6rem;
   max-height: calc(100vh - 40rem);
   margin-top: 2rem;
 }
