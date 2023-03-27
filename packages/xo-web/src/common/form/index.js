@@ -292,7 +292,6 @@ export class SizeInput extends BaseComponent {
             {map(UNITS, unit => (
               <MenuItem key={unit} onClick={() => this._updateUnit(unit)}>
                 {unit.concat(suffix)}
-                {}
               </MenuItem>
             ))}
           </DropdownButton>
