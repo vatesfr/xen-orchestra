@@ -340,20 +340,20 @@ For example, you could have a regular backup job with 10 VMs configured with Nor
 
 ## Retention and Scheduling
 
-Just a refresher/summary: You can select select multiple backup methods for the same job;
+Just a refresher/summary: You can select multiple backup methods for the same job:
 
 - Full: 'Backup' and 'Disaster Recovery' (DR)
-- Deltas" 'Delta Backup' and 'Continuous Replication' (CR)
+- Deltas: 'Delta Backup' and 'Continuous Replication' (CR)
 
-The Full and Deltas options are mutually exclusive; Rolling Snapshots are compatible with both. The Backup and Delta Backup go to a remote Target (e.g, NFS); DR and CR back up to another XCP-ng storage repository (i.e., not the one on which the VM's being backed up reside). In the Schedule configuration, you will have the option to select the number of "Backup Retention" if your backup includes a Backup (or Delta Backup); you will have the option to select the number "Replication Retention" if you have selected 'DR' or 'CR' in the backup configuration.
+The Full and Delta options are mutually exclusive; Rolling Snapshots are compatible with both. The Backup and Delta Backup go to a remote Target (e.g, NFS); DR and CR back up to another XCP-ng storage repository (i.e., not the one on which the VM's being backed up reside). In the Schedule configuration, you will have the option to select the number of "Backup Retention" if your backup includes a Backup (or Delta Backup); you will have the option to select the number "Replication Retention" if you have selected 'DR' or 'CR' in the backup configuration.
 
 ### Rolling Snapshots
 
-Vates recommends keeping Rolling Snapshots retention to a minimum; if you check Dashboard>Health, you'll see a table for 'Too Many Snapshots,' which shows VMs that have more than 5 snapshots saved; this includes the snapshots used for any kind of backup, not simply the rolling snapshots.
+Vates recommends keeping the Rolling Snapshots retention to a minimum; if you check Dashboard>Health, you'll see a table for 'Too Many Snapshots,' which shows VMs that have more than 5 snapshots saved; this includes the snapshots used for any kind of backup, not simply the rolling snapshots.
 
 ### Retention of Backups and CR/DR
 
-If your backup includes both a (Delta) Backup _and_ a CR/DR, you will have the option to select the number you wish for both "Backup retention" and "Replication retention" n the Schedule configuration; make sure to assign the number you want to the correct retention.
+If your backup includes both a (Delta) Backup _and_ a CR/DR, you will have the option to select the number you wish for both "Backup retention" and "Replication retention" in the Schedule configuration; make sure to assign the number you want to the correct retention.
 
 If you need to restore a (Delta) Backup (or clone and spin up a VM from CR/DR), you will be able to select all the available backups or VMs, regardless of the retention or delta scheme. If you have multiple backup jobs backing up the same VM, you'll see all the backups in the restore list, sorted by date.
 
