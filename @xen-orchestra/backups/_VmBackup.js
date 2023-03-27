@@ -245,6 +245,11 @@ class VmBackup {
     const deltaExport = await exportDeltaVm(exportedVm, baseVm, {
       fullVdisRequired,
     })
+    // since NBD is network based, if one disk use nbd , all the disk use them
+    // except the suspended VDI
+    if (Object.values(deltaExport.streams).some(({ _nbd }) => _nbd)) {
+      Task.info('Transfer data using NBD')
+    }
     const sizeContainers = mapValues(deltaExport.streams, stream => watchStreamSize(stream))
     deltaExport.streams = mapValues(deltaExport.streams, this._throttleStream)
 

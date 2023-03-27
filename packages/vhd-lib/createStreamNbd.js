@@ -105,6 +105,7 @@ exports.createNbdVhdStream = async function createVhdStream(nbdClient, sourceStr
 
   const stream = Readable.from(iterator())
   stream.length = (offsetSector + blockSizeInSectors + 1) /* end footer */ * SECTOR_SIZE
+  stream._nbd = true
   stream.on('error', () => nbdClient.disconnect())
   stream.on('end', () => nbdClient.disconnect())
   return stream
