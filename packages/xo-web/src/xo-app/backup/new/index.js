@@ -1019,6 +1019,7 @@ const New = decorate([
                         <SizeInput
                           id={state.inputMaxExportRate}
                           onChange={effects.setMaxExportRate}
+                          suffix={formatMessage(messages['/s'])}
                           value={maxExportRate}
                         />
                       </FormGroup>

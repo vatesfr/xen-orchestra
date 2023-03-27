@@ -152,6 +152,7 @@ export class SizeInput extends BaseComponent {
     readOnly: PropTypes.bool,
     required: PropTypes.bool,
     style: PropTypes.object,
+    suffix: PropTypes.string,
     value: PropTypes.oneOfType([PropTypes.number, PropTypes.oneOf([null])]),
   }
 
@@ -266,7 +267,7 @@ export class SizeInput extends BaseComponent {
   }
 
   render() {
-    const { autoFocus, className, readOnly, placeholder, required, style } = this.props
+    const { autoFocus, className, readOnly, placeholder, required, style, suffix } = this.props
 
     return (
       <span className={classNames('input-group', className)} style={style}>
@@ -281,10 +282,17 @@ export class SizeInput extends BaseComponent {
           value={this.state.input}
         />
         <span className='input-group-btn'>
-          <DropdownButton bsStyle='secondary' id='size' pullRight disabled={readOnly} title={this.state.unit}>
+          <DropdownButton
+            bsStyle='secondary'
+            id='size'
+            pullRight
+            disabled={readOnly}
+            title={this.state.unit.concat(suffix)}
+          >
             {map(UNITS, unit => (
               <MenuItem key={unit} onClick={() => this._updateUnit(unit)}>
-                {unit}
+                {unit.concat(suffix)}
+                {}
               </MenuItem>
             ))}
           </DropdownButton>

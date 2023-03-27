@@ -583,6 +583,7 @@ const messages = {
     'Are you sure you want to delete {nJobs, number} backup job{nJobs, plural, one {} other {s}}?',
   runBackupJob: 'Run backup job once',
   speedLimit: 'Speed limit',
+  '/s': '/s', // Per secondes
 
   // ------ Remote -----
   remoteName: 'Name',
