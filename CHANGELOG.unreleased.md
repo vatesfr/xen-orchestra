@@ -7,6 +7,10 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [VM] Show distro icon for opensuse-microos [Forum#6965](https://xcp-ng.org/forum/topic/6965) (PR [#6746](https://github.com/vatesfr/xen-orchestra/pull/6746))
+- [Backup] Display the VM name label in the log even if the VM is not currently connected
+- [Backup] Display the SR name label in the log even if the SR is not currently connected
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -38,7 +42,6 @@
 - @xen-orchestra/backups minor
 - xo-cli patch
 - xo-server minor
-- xo-server-auth-oidc minor
-- xo-web patch
+- xo-web minor
 
 <!--packages-end-->
