@@ -94,7 +94,7 @@ In case any incoherence is detected, the file is deleted so it will be fully gen
 job.start(data: { mode: Mode, reportWhen: ReportWhen })
 ├─ task.info(message: 'vms', data: { vms: string[] })
 ├─ task.warning(message: string)
-├─ task.start(data: { type: 'VM', id: string })
+├─ task.start(data: { type: 'VM', id: string, name_label?: string })
 │  ├─ task.warning(message: string)
 |  ├─ task.start(message: 'clean-vm')
 │  │  └─ task.end
