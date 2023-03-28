@@ -38,8 +38,8 @@ const makeOptionList = options => {
 export const parse = string => {
   let object = {}
   let [type, rest] = string.split('://')
-  if (type === 'file') {
-    object.type = 'file'
+  if (type === 'file' || type === 'null') {
+    object.type = type
     let optionList
     ;[rest, optionList] = rest.split('?')
     object.path = `/${trimStart(rest, '/')}` // the leading slash has been forgotten on client side first implementation
