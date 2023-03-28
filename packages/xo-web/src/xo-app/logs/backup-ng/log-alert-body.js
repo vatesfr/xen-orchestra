@@ -210,7 +210,7 @@ TaskInfos.propTypes = {
 
 const VmTask = ({ children, className, restartVmJob, task }) => (
   <li className={className}>
-    <Vm id={task.data.id} link newTab /> <TaskStateInfos status={task.status} />{' '}
+    <Vm id={task.data.id} name={task.data.name_label} link newTab /> <TaskStateInfos status={task.status} />{' '}
     {restartVmJob !== undefined && hasTaskFailed(task) && (
       <ButtonGroup>
         <ActionButton
