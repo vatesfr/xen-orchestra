@@ -1335,7 +1335,7 @@ importFromEsxi.params = {
  * property listing the VM properly imported and a 'errors' property with all the errors collected
  */
 export async function importMultipleFromEsxi({
-  concurrency = 2,
+  concurrency,
   host,
   network,
   password,
