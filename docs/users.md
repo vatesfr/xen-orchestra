@@ -111,7 +111,7 @@ Save the configuration and then activate the plugin (button on top).
 
 ### GitHub
 
-This plugin allows GitHub users to authenticate to Xen-Orchestra.
+This plugin allows any GitHub user to authenticate to Xen-Orchestra.
 
 The first time a user signs in, XO will create a new XO user with the same identifier (i.e. GitHub name), with *user* permissions. An existing admin will need to apply the appropriate permissions for your environment.
 
