@@ -1,5 +1,6 @@
 <template>
   <ComponentStory
+    v-slot="{ properties, settings }"
     :params="[
       prop('type').enum('submit', 'button', 'reset').default('button'),
       prop('busy').bool().widget(),
@@ -31,23 +32,16 @@
         },
       },
     }"
-    v-slot="{ properties, settings }"
   >
     <UiButton v-bind="properties">{{ settings.label }}</UiButton>
   </ComponentStory>
 </template>
 
 <script lang="ts" setup>
-import { faFloppyDisk, faTrash } from "@fortawesome/free-solid-svg-icons";
 import ComponentStory from "@/components/component-story/ComponentStory.vue";
 import UiButton from "@/components/ui/UiButton.vue";
-import {
-  colorProp,
-  event,
-  iconProp,
-  prop,
-  setting,
-} from "@/libs/story/story-param";
+import { colorProp, iconProp, prop, setting } from "@/libs/story/story-param";
+import { faFloppyDisk, faTrash } from "@fortawesome/free-solid-svg-icons";
 </script>
 
 <style lang="postcss" scoped></style>
