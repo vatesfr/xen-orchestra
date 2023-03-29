@@ -584,6 +584,7 @@ const messages = {
   confirmDeleteBackupJobsBody:
     'Are you sure you want to delete {nJobs, number} backup job{nJobs, plural, one {} other {s}}?',
   runBackupJob: 'Run backup job once',
+  speedLimit: 'Speed limit (in MiB/s)',
 
   // ------ Remote -----
   remoteName: 'Name',

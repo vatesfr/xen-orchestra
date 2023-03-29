@@ -17,6 +17,11 @@ const SCHEMA_SETTINGS = {
           minimum: 0,
           optional: true,
         },
+        maxExportRate: {
+          type: 'number',
+          minimum: 0,
+          optional: true,
+        },
       },
       additionalProperties: true,
     },

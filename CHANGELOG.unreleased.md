@@ -11,6 +11,7 @@
 - [Backup] Display the VM name label in the log even if the VM is not currently connected
 - [Backup] Display the SR name label in the log even if the SR is not currently connected
 - [Import VM] Ability to import multiple VMs from ESXi (PR [#6718](https://github.com/vatesfr/xen-orchestra/pull/6718))
+- [Backup/Advanced setting] Ability to add transfer limit per job (PRs [#6737](https://github.com/vatesfr/xen-orchestra/pull/6737), [#6728](https://github.com/vatesfr/xen-orchestra/pull/6728))
 
 ### Bug fixes
 
