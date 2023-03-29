@@ -21,7 +21,7 @@
 - [ESXI import] Fix failing imports when using non default datacenter name [Forum#59543](https://xcp-ng.org/forum/post/59543) PR [#6729](https://github.com/vatesfr/xen-orchestra/pull/6729)
 - [Backup] Fix backup worker consuming too much memory and being killed by system during full VM backup to S3 compatible remote PR [#6732](https://github.com/vatesfr/xen-orchestra/pull/6732)
 - [REST API] Backup jobs are now available at `/rest/v0/backups/jobs`
-- [Plugin/perf-alert] Ignore special SRs (e.g. _XCP-ng Tools_, _DVD drives_, etc) as their usage is always 100% (PR [#6755](https://github.com/vatesfr/xen-orchestra/pull/6755))
+- [Plugin/perf-alert] Ignore special SRs (e.g. *XCP-ng Tools*, *DVD drives*, etc) as their usage is always 100% (PR [#6755](https://github.com/vatesfr/xen-orchestra/pull/6755))
 
 ### Packages to release
 
