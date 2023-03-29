@@ -1,7 +1,13 @@
 <template>
   <div class="legend">
-    <span class="circle" />
-    <slot name="label">{{ label }}</slot>
+    <template v-if="$slots.label || label">
+      <span class="circle" />
+      <div class="label-container">
+        <div ref="labelElement" v-tooltip="isTooltipEnabled" class="label">
+          <slot name="label">{{ label }}</slot>
+        </div>
+      </div>
+    </template>
     <UiBadge class="badge">
       <slot name="value">{{ value }}</slot>
     </UiBadge>
@@ -10,14 +16,23 @@
 
 <script lang="ts" setup>
 import UiBadge from "@/components/ui/UiBadge.vue";
+import { vTooltip } from "@/directives/tooltip.directive";
+import { hasEllipsis } from "@/libs/utils";
+import { computed, ref } from "vue";
 
 defineProps<{
   label?: string;
   value?: string;
 }>();
+
+const labelElement = ref<HTMLElement>();
+
+const isTooltipEnabled = computed(() =>
+  hasEllipsis(labelElement.value, { vertical: true })
+);
 </script>
 
-<style scoped lang="postcss">
+<style lang="postcss" scoped>
 .badge {
   font-size: 0.9em;
   font-weight: 700;
@@ -25,8 +40,8 @@ defineProps<{
 
 .circle {
   display: inline-block;
-  width: 1rem;
-  height: 1rem;
+  min-width: 1rem;
+  min-height: 1rem;
   border-radius: 0.5rem;
   background-color: var(--progress-bar-color);
 }
@@ -37,5 +52,15 @@ defineProps<{
   justify-content: flex-end;
   gap: 0.5rem;
   margin: 1.6em 0;
+}
+
+.label-container {
+  overflow: hidden;
+}
+
+.label {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 </style>
