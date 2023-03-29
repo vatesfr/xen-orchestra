@@ -19,6 +19,7 @@
           class="preset-tab"
           @click="open"
         >
+          <UiIcon :icon="faSliders" />
           Presets
         </UiTab>
       </template>
@@ -105,6 +106,7 @@ import UiButton from "@/components/ui/UiButton.vue";
 import UiCard from "@/components/ui/UiCard.vue";
 import UiCardTitle from "@/components/ui/UiCardTitle.vue";
 import UiCounter from "@/components/ui/UiCounter.vue";
+import UiIcon from "@/components/ui/icon/UiIcon.vue";
 import UiTab from "@/components/ui/UiTab.vue";
 import UiTabBar from "@/components/ui/UiTabBar.vue";
 import {
@@ -116,6 +118,7 @@ import {
   ModelParam,
   type Param,
 } from "@/libs/story/story-param";
+import { faSliders } from "@fortawesome/free-solid-svg-icons";
 import "highlight.js/styles/github-dark.css";
 import { uniqueId, upperFirst } from "lodash-es";
 import { computed, reactive, ref, watch, watchEffect } from "vue";
