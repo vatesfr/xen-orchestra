@@ -10,7 +10,7 @@
 - [VM] Show distro icon for opensuse-microos [Forum#6965](https://xcp-ng.org/forum/topic/6965) (PR [#6746](https://github.com/vatesfr/xen-orchestra/pull/6746))
 - [Backup] Display the VM name label in the log even if the VM is not currently connected
 - [Backup] Display the SR name label in the log even if the SR is not currently connected
-- [Import VM] Ability to improt multiple VMs from ESXi (PR [#6718](https://github.com/vatesfr/xen-orchestra/pull/6718))
+- [Import VM] Ability to import multiple VMs from ESXi (PR [#6718](https://github.com/vatesfr/xen-orchestra/pull/6718))
 
 ### Bug fixes
 
