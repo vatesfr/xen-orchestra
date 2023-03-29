@@ -1,12 +1,5 @@
 <template>
-  <li
-    v-if="host"
-    class="infra-host-item"
-    v-tooltip="{
-      content: host.name_label,
-      disabled: isTooltipDisabled,
-    }"
-  >
+  <li v-if="host" class="infra-host-item">
     <InfraItemLabel
       :active="isCurrentHost"
       :icon="faServer"
@@ -44,7 +37,6 @@ import { useToggle } from "@vueuse/core";
 import InfraAction from "@/components/infra/InfraAction.vue";
 import InfraItemLabel from "@/components/infra/InfraItemLabel.vue";
 import InfraVmList from "@/components/infra/InfraVmList.vue";
-import { hasEllipsis } from "@/libs/utils";
 import { useHostStore } from "@/stores/host.store";
 import { usePoolStore } from "@/stores/pool.store";
 import { useUiStore } from "@/stores/ui.store";
@@ -67,9 +59,6 @@ const isCurrentHost = computed(
   () => props.hostOpaqueRef === uiStore.currentHostOpaqueRef
 );
 const [isExpanded, toggle] = useToggle(true);
-
-const isTooltipDisabled = (target: HTMLElement) =>
-  !hasEllipsis(target.querySelector(".text"));
 </script>
 
 <style lang="postcss" scoped>

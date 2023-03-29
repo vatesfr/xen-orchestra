@@ -1,8 +1,36 @@
-import type { Directive } from "vue";
 import type { TooltipEvents, TooltipOptions } from "@/stores/tooltip.store";
 import { useTooltipStore } from "@/stores/tooltip.store";
+import { isObject } from "lodash-es";
+import type { Options } from "placement.js";
+import type { Directive } from "vue";
 
-export const vTooltip: Directive<HTMLElement, TooltipOptions> = {
+type TooltipDirectiveContent = undefined | boolean | string;
+
+type TooltipDirectiveOptions =
+  | TooltipDirectiveContent
+  | {
+      content?: TooltipDirectiveContent;
+      placement?: Options["placement"];
+    };
+
+const parseOptions = (
+  options: TooltipDirectiveOptions,
+  target: HTMLElement
+): TooltipOptions => {
+  const { placement, content } = isObject(options)
+    ? options
+    : { placement: undefined, content: options };
+
+  return {
+    placement,
+    content:
+      content === true || content === undefined
+        ? target.innerText.trim()
+        : content,
+  };
+};
+
+export const vTooltip: Directive<HTMLElement, TooltipDirectiveOptions> = {
   mounted(target, binding) {
     const store = useTooltipStore();
 
@@ -10,11 +38,11 @@ export const vTooltip: Directive<HTMLElement, TooltipOptions> = {
       ? { on: "focusin", off: "focusout" }
       : { on: "mouseenter", off: "mouseleave" };
 
-    store.register(target, binding.value, events);
+    store.register(target, parseOptions(binding.value, target), events);
   },
   updated(target, binding) {
     const store = useTooltipStore();
-    store.updateOptions(target, binding.value);
+    store.updateOptions(target, parseOptions(binding.value, target));
   },
   beforeUnmount(target) {
     const store = useTooltipStore();
