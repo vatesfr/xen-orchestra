@@ -412,7 +412,7 @@ export default class NewVm extends BaseComponent {
     const { VIFs } = state
     const _VIFs = map(VIFs, vif => {
       const _vif = { ...vif }
-      if (_vif.mac === '') {
+      if (_vif.mac?.trim() === '') {
         delete _vif.mac
       }
       delete _vif.addresses
