@@ -19,7 +19,7 @@ const STORES_BY_OBJECT_TYPE = {
 export type Stat<T> = {
   id: string;
   name: string;
-  stats?: T;
+  stats?: T | null;
   pausable: Pausable;
 };
 
@@ -29,7 +29,7 @@ export type FetchedStats<
 > = {
   register: (object: T) => void;
   unregister: (object: T) => void;
-  stats?: ComputedRef<Stat<S>[]>;
+  stats?: ComputedRef<Stat<S>[] | null>;
   timestampStart?: ComputedRef<number>;
   timestampEnd?: ComputedRef<number>;
 };
@@ -54,7 +54,14 @@ export default function useFetchStats<
           return;
         }
 
-        const newStats = (await STORES_BY_OBJECT_TYPE[type]().getStats(
+        const objectStore = STORES_BY_OBJECT_TYPE[type]();
+
+        if (objectStore.hasError) {
+          stats.value.get(mapKey)!.stats = null;
+          return;
+        }
+
+        const newStats = (await objectStore.getStats(
           object.uuid,
           granularity
         )) as XapiStatsResponse<S>;

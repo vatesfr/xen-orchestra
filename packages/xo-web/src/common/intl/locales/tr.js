@@ -3244,8 +3244,8 @@ export default {
   // Original text: "Export starting…"
   startVmExport: 'Dışa aktarma başlatılıyor...',
 
-  // Original text: "N CPUs"
-  nCpus: 'N CPU',
+  // Original text: 'Number of CPUs'
+  nCpus: undefined,
 
   // Original text: "Memory"
   vmMemory: 'Bellek',

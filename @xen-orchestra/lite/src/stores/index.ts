@@ -12,7 +12,8 @@ export function createRecordContext<T extends XenApiRecord>(
   options: Options<T> = {}
 ) {
   let isInitialized = false;
-  const isReady = ref(false);
+  const isLoading = ref(true);
+  const hasError = ref(false);
 
   async function init() {
     if (isInitialized) {
@@ -22,8 +23,14 @@ export function createRecordContext<T extends XenApiRecord>(
     isInitialized = true;
 
     const xapiRecordsStore = useRecordsStore();
-    await xapiRecordsStore.loadRecords(objectType);
-    isReady.value = true;
+    try {
+      await xapiRecordsStore.loadRecords(objectType);
+    } catch (error) {
+      hasError.value = true;
+      console.error("stores#createRecordContext", error);
+    } finally {
+      isLoading.value = false;
+    }
   }
 
   const opaqueRefs = computed<string[]>(() => {
@@ -70,7 +77,9 @@ export function createRecordContext<T extends XenApiRecord>(
     opaqueRefs,
     getRecord,
     getRecordByUuid,
-    isReady,
+    isLoading,
+    isReady: computed(() => !isLoading.value && !hasError.value),
+    hasError,
     allRecords,
     hasRecordByUuid,
   };

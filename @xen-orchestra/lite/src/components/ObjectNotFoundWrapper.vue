@@ -1,5 +1,5 @@
 <template>
-  <div class="wrapper-spinner" v-if="!store.isReady">
+  <div class="wrapper-spinner" v-if="store.isLoading">
     <UiSpinner class="spinner" />
   </div>
   <ObjectNotFoundView :id="id" v-else-if="isRecordNotFound" />

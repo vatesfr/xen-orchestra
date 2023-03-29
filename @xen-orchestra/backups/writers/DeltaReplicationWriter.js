@@ -45,6 +45,7 @@ exports.DeltaReplicationWriter = class DeltaReplicationWriter extends MixinRepli
       data: {
         id: this._sr.uuid,
         isFull,
+        name_label: this._sr.name_label,
         type: 'SR',
       },
     })

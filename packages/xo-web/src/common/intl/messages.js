@@ -19,7 +19,9 @@ const messages = {
   esxiImportStopSource: 'Stop the source VM',
   esxiImportStopSourceDescription:
     'Source VM stopped before the last delta transfer (after final snapshot). Needed to fully transfer a running VM',
-
+  esxiImportStopOnErrorDescription: 'Stop on the first error when importing VMs',
+  nImportVmsInParallel: 'Number of VMs to import in parallel',
+  stopOnError: 'Stop on error',
   vmSrUsage: 'Storage: {used} used of {total} ({free} free)',
 
   notDefined: 'Not defined',
@@ -582,6 +584,7 @@ const messages = {
   confirmDeleteBackupJobsBody:
     'Are you sure you want to delete {nJobs, number} backup job{nJobs, plural, one {} other {s}}?',
   runBackupJob: 'Run backup job once',
+  speedLimit: 'Speed limit (in MiB/s)',
 
   // ------ Remote -----
   remoteName: 'Name',
@@ -1649,7 +1652,7 @@ const messages = {
   startVdiImport: 'VDI import starting…',
   startVmExport: 'Export starting…',
   startVdiExport: 'VDI export starting…',
-  nCpus: 'N CPUs',
+  nCpus: 'Number of CPUs',
   vmMemory: 'Memory',
   diskInfo: 'Disk {position} ({capacity})',
   diskDescription: 'Disk description',
