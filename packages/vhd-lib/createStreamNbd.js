@@ -1,5 +1,5 @@
 'use strict'
-const { readChunkStrict, skipChunk } = require('@vates/read-chunk')
+const { readChunkStrict, skipStrict } = require('@vates/read-chunk')
 const { Readable } = require('node:stream')
 const { unpackHeader } = require('./Vhd/_utils')
 const {
@@ -28,7 +28,7 @@ exports.createNbdVhdStream = async function createVhdStream(nbdClient, sourceStr
   const header = unpackHeader(await readChunkStrict(sourceStream, HEADER_SIZE))
   // compute BAT in order
   const batSize = Math.ceil((header.maxTableEntries * 4) / SECTOR_SIZE) * SECTOR_SIZE
-  await skipChunk(sourceStream, header.tableOffset - (FOOTER_SIZE + HEADER_SIZE))
+  await skipStrict(sourceStream, header.tableOffset - (FOOTER_SIZE + HEADER_SIZE))
   const streamBat = await readChunkStrict(sourceStream, batSize)
   let offset = FOOTER_SIZE + HEADER_SIZE + batSize
   // check if parentlocator are ordered
@@ -79,7 +79,7 @@ exports.createNbdVhdStream = async function createVhdStream(nbdClient, sourceStr
       const parentLocatorOffset = header.parentLocatorEntry[i].platformDataOffset
       const space = header.parentLocatorEntry[i].platformDataSpace * SECTOR_SIZE
       if (space > 0) {
-        await skipChunk(sourceStream, parentLocatorOffset - precBlocOffset)
+        await skipStrict(sourceStream, parentLocatorOffset - precBlocOffset)
         const data = await readChunkStrict(sourceStream, space)
         precBlocOffset = parentLocatorOffset + space
         yield data

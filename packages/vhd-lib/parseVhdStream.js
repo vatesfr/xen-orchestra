@@ -1,7 +1,7 @@
 'use strict'
 
 const { BLOCK_UNUSED, FOOTER_SIZE, HEADER_SIZE, SECTOR_SIZE } = require('./_constants')
-const { readChunkStrict, skipChunk } = require('@vates/read-chunk')
+const { readChunkStrict, skipStrict } = require('@vates/read-chunk')
 const assert = require('assert')
 const { unpackFooter, unpackHeader, computeFullBlockSize } = require('./Vhd/_utils')
 
@@ -41,7 +41,7 @@ class StreamParser {
     assert(this._bytesRead <= offset, `offset is ${offset} but we already read ${this._bytesRead} bytes`)
     if (this._bytesRead < offset) {
       // empty spaces
-      await skipChunk(this._stream, offset - this._bytesRead)
+      await skipStrict(this._stream, offset - this._bytesRead)
     }
 
     try {
