@@ -610,7 +610,7 @@ const New = decorate([
       },
       setMaxExportRate({ setGlobalSettings }, rate) {
         setGlobalSettings({
-          maxExportRate: rate,
+          maxExportRate: rate * (1024 * 1024),
         })
       },
       setOfflineBackup:
@@ -1020,7 +1020,7 @@ const New = decorate([
                           id={state.inputMaxExportRate}
                           min={0}
                           onChange={effects.setMaxExportRate}
-                          value={maxExportRate}
+                          value={maxExportRate / (1024 * 1024)}
                         />
                       </FormGroup>
                       {state.isFull && (
