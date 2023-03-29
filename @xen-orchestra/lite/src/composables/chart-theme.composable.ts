@@ -28,7 +28,7 @@ export const useChartTheme = () => {
       backgroundColor: colors.value.background,
       textStyle: {},
       grid: {
-        top: 80,
+        top: 40,
         left: 80,
         right: 20,
       },

@@ -1,6 +1,6 @@
 <template>
   <UiCardTitle
-    subtitle
+    :level="HEADING_LEVEL.SUBTITLE_WITH_UNERLINE"
     :left="$t('vms')"
     :right="$t('top-#', { n: N_ITEMS })"
   />
@@ -9,14 +9,25 @@
 </template>
 
 <script lang="ts" setup>
+<<<<<<< HEAD
 import NoDataError from "@/components/NoDataError.vue";
 import UiCardTitle from "@/components/ui/UiCardTitle.vue";
 import UsageBar from "@/components/UsageBar.vue";
 import { useVmCollection } from "@/stores/xen-api/vm.store";
 import { formatSize, parseRamUsage } from "@/libs/utils";
+=======
+import { computed, inject, type ComputedRef } from "vue";
+import { formatSize, parseRamUsage } from "@/libs/utils";
+import { HEADING_LEVEL } from "@/components/enums";
+>>>>>>> 9684aa20e (fixes)
 import { IK_VM_STATS } from "@/types/injection-keys";
 import { N_ITEMS } from "@/views/pool/PoolDashboardView.vue";
-import { computed, type ComputedRef, inject } from "vue";
+import { Stat } from "@/composables/fetch-stats.composable";
+import UiCardTitle from "@/components/ui/UiCardTitle.vue";
+import UsageBar from "@/components/UsageBar.vue";
+import { useVmStore } from "@/stores/vm.store";
+import { VmStats } from "@/libs/xapi-stats";
+import NoDataError from "@/components/NoDataError.vue";
 
 const { hasError } = useVmCollection();
 

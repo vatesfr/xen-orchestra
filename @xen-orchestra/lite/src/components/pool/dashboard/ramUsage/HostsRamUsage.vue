@@ -1,6 +1,6 @@
 <template>
   <UiCardTitle
-    subtitle
+    :level="HEADING_LEVEL.SUBTITLE_WITH_UNERLINE"
     :left="$t('hosts')"
     :right="$t('top-#', { n: N_ITEMS })"
   />

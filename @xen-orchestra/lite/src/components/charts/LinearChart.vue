@@ -1,12 +1,8 @@
 <template>
-  <UiCard class="linear-chart">
-    <VueCharts :option="option" autoresize class="chart" />
-    <slot name="summary" />
-  </UiCard>
+  <VueCharts :option="option" autoresize class="chart" />
 </template>
 
 <script lang="ts" setup>
-import UiCard from "@/components/ui/UiCard.vue";
 import type { LinearChartData, ValueFormatter } from "@/types/chart";
 import { IK_CHART_VALUE_FORMATTER } from "@/types/injection-keys";
 import { utcFormat } from "d3-time-format";

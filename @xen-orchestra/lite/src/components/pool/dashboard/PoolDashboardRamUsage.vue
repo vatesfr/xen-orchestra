@@ -6,6 +6,7 @@
         <UiSpinner v-tooltip="$t('fetching-fresh-data')" />
       </template>
     </UiCardTitle>
+    <UiCardTitle>{{ $t("ram-usage") }}</UiCardTitle>
     <HostsRamUsage />
     <VmsRamUsage />
   </UiCard>
@@ -24,6 +25,7 @@ import type { ComputedRef } from "vue";
 import type { HostStats, VmStats } from "@/libs/xapi-stats";
 import type { Stat } from "@/composables/fetch-stats.composable";
 import UiSpinner from "@/components/ui/UiSpinner.vue";
+import VmsRamUsage from "@/components/pool/dashboard/ramUsage/VmsRamUsage.vue";
 
 const { hasError: hasVmError } = useVmCollection();
 const { hasError: hasHostError } = useHostCollection();

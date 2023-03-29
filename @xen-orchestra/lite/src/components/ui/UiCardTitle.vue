@@ -1,7 +1,21 @@
 <template>
-  <div :class="{ subtitle }" class="ui-section-title">
+  <div
+    :class="[
+      'ui-section-title',
+      level === UI_CARD_TITLE_LEVEL.SUBTITLE ? 'subtitle' : '',
+      level === UI_CARD_TITLE_LEVEL.SUBTITLE_WITH_UNDERLINE
+        ? 'subtitle-with-underline'
+        : '',
+    ]"
+  >
     <component
-      :is="subtitle ? 'h5' : 'h4'"
+      :is="
+        level === UI_CARD_TITLE_LEVEL.TITLE
+          ? 'h4'
+          : UI_CARD_TITLE_LEVEL.SUBTITLE_WITH_UNDERLINE
+          ? 'h5'
+          : 'h6'
+      "
       v-if="$slots.default || left"
       class="left"
     >
@@ -9,7 +23,7 @@
       <UiCounter class="count" v-if="count > 0" :value="count" color="info" />
     </component>
     <component
-      :is="subtitle ? 'h6' : 'h5'"
+      :is="level === UI_CARD_TITLE_LEVEL.TITLE ? 'h5' : 'h6'"
       v-if="$slots.right || right"
       class="right"
     >
@@ -20,6 +34,8 @@
 
 <script lang="ts" setup>
 import UiCounter from "@/components/ui/UiCounter.vue";
+import { UI_CARD_TITLE_LEVEL } from "@/components/enums";
+
 
 withDefaults(
   defineProps<{
@@ -29,6 +45,14 @@ withDefaults(
     count?: number;
   }>(),
   { count: 0 }
+
+withDefaults(
+  defineProps<{
+    level?: UI_CARD_TITLE_LEVEL;
+    left?: string;
+    right?: string;
+  }>(),
+  { level: UI_CARD_TITLE_LEVEL.TITLE }
 );
 </script>
 
@@ -37,7 +61,6 @@ withDefaults(
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 2rem;
 
   --section-title-left-size: 2rem;
   --section-title-left-color: var(--color-blue-scale-100);
@@ -47,8 +70,16 @@ withDefaults(
   --section-title-right-weight: 700;
 
   &.subtitle {
-    border-bottom: 1px solid var(--color-extra-blue-base);
+    margin-bottom: 1rem;
+    --section-title-left-size: 1.5rem;
+    --section-title-left-color: var(--color-blue-scale-300);
+    --section-title-left-weight: 400;
+  }
 
+  &.subtitle-with-underline {
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid var(--color-extra-blue-base);
     --section-title-left-size: 1.6rem;
     --section-title-left-color: var(--color-extra-blue-base);
     --section-title-left-weight: 700;
