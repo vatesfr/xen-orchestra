@@ -14,7 +14,7 @@ import { DropdownButton, MenuItem } from 'react-bootstrap-4/lib'
 import Button from '../button'
 import Component from '../base-component'
 import getEventValue from '../get-event-value'
-import { formatSizeRaw, formatSpeed, parseSize } from '../utils'
+import { formatSizeRaw, parseSize } from '../utils'
 
 export Number from './number'
 export Select from './select'
@@ -139,16 +139,14 @@ export class Range extends Component {
 export Toggle from './toggle'
 
 const UNITS = ['kiB', 'MiB', 'GiB']
-const UNITS_SPEED = ['KiB/s', 'MiB/s', 'GiB/s']
 const DEFAULT_UNIT = 'GiB'
 
 export class SizeInput extends BaseComponent {
   static propTypes = {
     autoFocus: PropTypes.bool,
     className: PropTypes.string,
-    defaultUnit: PropTypes.oneOf([...UNITS, ...UNITS_SPEED]),
+    defaultUnit: PropTypes.oneOf(UNITS),
     defaultValue: PropTypes.number,
-    isSpeed: PropTypes.bool,
     onChange: PropTypes.func,
     placeholder: PropTypes.string,
     readOnly: PropTypes.bool,
@@ -185,20 +183,10 @@ export class SizeInput extends BaseComponent {
       }
     }
 
-    const { isSpeed } = this.props
-    let bytesFormat = isSpeed ? formatSpeed(bytes, 1000) : formatSizeRaw(bytes)
-    if (isSpeed) {
-      const [value, prefix] = bytesFormat.split(' ')
-      bytesFormat = {
-        value,
-        prefix,
-      }
-    }
-
-    const { prefix, value } = bytesFormat
+    const { prefix, value } = formatSizeRaw(bytes)
     return {
       input: String(round(value, 2)),
-      unit: prefix.concat(!isSpeed ? 'B' : ''),
+      unit: `${prefix}B`,
     }
   }
 
@@ -220,10 +208,9 @@ export class SizeInput extends BaseComponent {
   }
 
   _onChange(input, unit) {
-    const { onChange, isSpeed } = this.props
-    const _unit = isSpeed ? unit.split('/')[0] : unit
+    const { onChange } = this.props
     // Empty input equals null.
-    const bytes = input ? parseSize(`${+input} ${_unit}`) : null
+    const bytes = input ? parseSize(`${+input} ${unit}`) : null
 
     const isControlled = this.props.value !== undefined
     if (isControlled) {
@@ -278,7 +265,7 @@ export class SizeInput extends BaseComponent {
   }
 
   render() {
-    const { autoFocus, className, readOnly, placeholder, required, style, isSpeed } = this.props
+    const { autoFocus, className, readOnly, placeholder, required, style } = this.props
 
     return (
       <span className={classNames('input-group', className)} style={style}>
@@ -294,7 +281,7 @@ export class SizeInput extends BaseComponent {
         />
         <span className='input-group-btn'>
           <DropdownButton bsStyle='secondary' id='size' pullRight disabled={readOnly} title={this.state.unit}>
-            {(isSpeed ? UNITS_SPEED : UNITS).map(unit => (
+            {map(UNITS, unit => (
               <MenuItem key={unit} onClick={() => this._updateUnit(unit)}>
                 {unit}
               </MenuItem>

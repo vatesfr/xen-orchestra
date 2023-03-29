@@ -1016,10 +1016,9 @@ const New = decorate([
                         <label htmlFor={state.inputMaxExportRate}>
                           <strong>{_('speedLimit')}</strong>
                         </label>
-                        <SizeInput
-                          defaultUnit='MiB/s'
+                        <Number
                           id={state.inputMaxExportRate}
-                          isSpeed
+                          min={0}
                           onChange={effects.setMaxExportRate}
                           value={maxExportRate}
                         />
