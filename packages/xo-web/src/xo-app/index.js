@@ -187,7 +187,7 @@ export const ICON_POOL_LICENSE = {
         if (getXoaPlan() === SOURCES.name) {
           poolLicenseInfoByPoolId[poolId] = {
             nHostsUnderLicense,
-            icon: () => <Icon icon='unknown-status' className='text-danger' />,
+            icon: () => <Icon icon='unknown-status' className='text-warning' />,
             nHosts,
           }
           return

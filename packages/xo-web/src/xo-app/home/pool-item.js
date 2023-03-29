@@ -110,7 +110,7 @@ export default class PoolItem extends Component {
       if (isAdmin && this._isXcpngPool()) {
         const { icon, supportLevel } = poolLicenseInfo
         if (supportLevel !== 'total') {
-          const level = supportLevel === 'partial' ? 'warning' : 'danger'
+          const level = supportLevel === 'partial' || getXoaPlan() === SOURCES ? 'warning' : 'danger'
           alerts.push({
             level,
             render: (

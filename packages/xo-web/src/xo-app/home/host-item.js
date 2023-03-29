@@ -36,6 +36,7 @@ import styles from './index.css'
 
 import BulkIcons from '../../common/bulk-icons'
 import { LICENSE_WARNING_BODY } from '../host/license-warning'
+import { getXoaPlan, SOURCES } from '../../common/xoa-plans'
 
 @addSubscriptions({
   hvSupportedVersions: subscribeHvSupportedVersions,
@@ -91,6 +92,11 @@ export default class HostItem extends Component {
 
     let level = 'warning'
     let message = 'hostNoSupport'
+
+    if (getXoaPlan() === SOURCES) {
+      message = 'poolSupportSourceUsers'
+      level = 'warning'
+    }
 
     if (supportLevel === 'total') {
       message = 'hostSupportEnabled'
