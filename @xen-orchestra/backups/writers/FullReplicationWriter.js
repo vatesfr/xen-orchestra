@@ -21,6 +21,7 @@ exports.FullReplicationWriter = class FullReplicationWriter extends MixinReplica
         name: 'export',
         data: {
           id: props.sr.uuid,
+          name_label: this._sr.name_label,
           type: 'SR',
 
           // necessary?
