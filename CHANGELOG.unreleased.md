@@ -20,6 +20,7 @@
 - [ESXI import] Fix failing imports when using non default datacenter name [Forum#59543](https://xcp-ng.org/forum/post/59543) PR [#6729](https://github.com/vatesfr/xen-orchestra/pull/6729)
 - [Backup] Fix backup worker consuming too much memory and being killed by system during full VM backup to S3 compatible remote PR [#6732](https://github.com/vatesfr/xen-orchestra/pull/6732)
 - [REST API] Backup jobs are now available at `/rest/v0/backups/jobs`
+- [S3 remote] Relax bucket checks in browser to improve experience on S3 compatible remote [Forum#60426](https://xcp-ng.org/forum/post/60426) PR [#6757](https://github.com/vatesfr/xen-orchestra/pull/6757)
 
 ### Packages to release
 
