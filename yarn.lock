@@ -11289,6 +11289,11 @@ human-format@^1.0.0:
   resolved "https://registry.yarnpkg.com/human-format/-/human-format-1.0.0.tgz#bb5ecc618062581f0442769529c553367507e8fe"
   integrity sha512-ZfSxF/LHVDb5Un52AguYkZArbiuMbJQwpOpZ0MBuj3pYDmLt7pkCEws9L8xKbgnaKrfMgGd6qc+PHBbKO97AaA==
 
+human-format@^1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/human-format/-/human-format-1.1.0.tgz#ec824d3a69b9b76f4a63bdee2ef3a5cb9e6715f1"
+  integrity sha512-JziwtFgWPm2bhC/DNYDUOE7qQRgkpkWuUAGMCm3bWVOYX2m/MaMiRMwI4XLxZxvsz1Et/6tyvt6x0nHi2D/BOw==
+
 human-signals@^1.1.1:
   version "1.1.1"
   resolved "https://registry.yarnpkg.com/human-signals/-/human-signals-1.1.1.tgz#c5b1cd14f50aeae09ab6c59fe63ba3395fe4dfa3"
