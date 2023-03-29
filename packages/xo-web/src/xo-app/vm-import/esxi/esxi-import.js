@@ -1,11 +1,12 @@
 import _, { messages } from 'intl'
 import ActionButton from 'action-button'
 import Button from 'button'
+import Collapse from 'collapse'
 import Component from 'base-component'
 import React from 'react'
 import { connectStore, resolveId } from 'utils'
 import { createGetObjectsOfType, createSelector } from 'selectors'
-import { esxiListVms, importVmFromEsxi, isSrWritable } from 'xo'
+import { esxiListVms, importVmsFromEsxi, isSrWritable } from 'xo'
 import { find, isEmpty, keyBy, map, pick } from 'lodash'
 import { injectIntl } from 'react-intl'
 import { Input } from 'debounce-input-decorator'
@@ -14,8 +15,9 @@ import { Password, Select, Toggle } from 'form'
 import { SelectNetwork, SelectPool, SelectSr } from 'select-objects'
 
 import VmData from './vm-data'
+import { getRedirectionUrl } from '../utils'
 
-const getRedirectUrl = vmId => `/vms/${vmId}`
+const N_IMPORT_VMS_IN_PARALLEL = 2
 
 @injectIntl
 @connectStore({
@@ -24,12 +26,14 @@ const getRedirectUrl = vmId => `/vms/${vmId}`
 })
 class EsxiImport extends Component {
   state = {
-    skipSslVerify: false,
-    thin: false,
-    stopSource: false,
+    concurrency: N_IMPORT_VMS_IN_PARALLEL,
     hostIp: '',
     isConnected: false,
     password: '',
+    thin: false,
+    skipSslVerify: false,
+    stopSource: false,
+    stopOnError: true,
     user: '',
   }
 
@@ -60,18 +64,21 @@ class EsxiImport extends Component {
     poolId => (poolId === undefined ? undefined : sr => isSrWritable(sr) && sr.$poolId === poolId)
   )
 
-  _importVm = () => {
-    const { hostIp, network, password, skipSslVerify, sr, stopSource, thin, user, vm } = this.state
-    return importVmFromEsxi({
+  _importVms = () => {
+    const { concurrency, hostIp, network, password, skipSslVerify, sr, stopSource, stopOnError, thin, user, vms } =
+      this.state
+    return importVmsFromEsxi({
+      concurrency: +concurrency,
       host: hostIp,
       network: network?.id ?? this._getDefaultNetwork(),
       password,
       sr: resolveId(sr),
       sslVerify: !skipSslVerify,
+      stopOnError,
       stopSource,
       thin,
       user,
-      vm: vm.value,
+      vms: vms.map(vm => vm.value),
     })
   }
 
@@ -92,8 +99,6 @@ class EsxiImport extends Component {
   _resetConnectForm = () => {
     this.setState({
       skipSslVerify: false,
-      thin: false,
-      stopSource: false,
       hostIp: '',
       isConnected: false,
       password: '',
@@ -103,18 +108,21 @@ class EsxiImport extends Component {
 
   _resetImportForm = () => {
     this.setState({
+      concurrency: N_IMPORT_VMS_IN_PARALLEL,
       network: undefined,
       pool: undefined,
       sr: undefined,
-      vm: undefined,
+      stopSource: false,
+      stopOnError: true,
+      thin: false,
+      vms: undefined,
     })
   }
 
   render() {
     const { intl } = this.props
     const {
-      thin,
-      stopSource,
+      concurrency,
       hostIp,
       isConnected,
       network = this._getDefaultNetwork(),
@@ -122,8 +130,11 @@ class EsxiImport extends Component {
       pool,
       skipSslVerify,
       sr,
+      stopSource,
+      stopOnError,
+      thin,
       user,
-      vm,
+      vms,
       vmsById,
     } = this.state
 
@@ -184,14 +195,26 @@ class EsxiImport extends Component {
     return (
       <form>
         <Row>
-          <LabelCol>{_('vm')}</LabelCol>
+          <LabelCol>{_('nImportVmsInParallel')}</LabelCol>
+          <InputCol>
+            <input
+              className='form-control'
+              onChange={this.linkState('concurrency')}
+              type='number'
+              value={concurrency}
+            />
+          </InputCol>
+        </Row>
+        <Row>
+          <LabelCol>{_('vms')}</LabelCol>
           <InputCol>
             <Select
               disabled={isEmpty(vmsById)}
-              onChange={this.linkState('vm')}
+              multi
+              onChange={this.linkState('vms')}
               options={this._getSelectVmOptions()}
               required
-              value={vm}
+              value={vms}
             />
           </InputCol>
         </Row>
@@ -239,21 +262,35 @@ class EsxiImport extends Component {
             <small className='form-text text-muted'>{_('esxiImportStopSourceDescription')}</small>
           </InputCol>
         </Row>
-        {vm !== undefined && (
+        <Row>
+          <LabelCol>{_('stopOnError')}</LabelCol>
+          <InputCol>
+            <Toggle onChange={this.toggleState('stopOnError')} value={stopOnError} />
+            <small className='form-text text-muted'>{_('esxiImportStopOnErrorDescription')}</small>
+          </InputCol>
+        </Row>
+
+        {!isEmpty(vms) && (
           <div>
             <hr />
-            <h5>{_('vmsToImport', { nVms: 1 })}</h5>
-            <VmData data={vmsById[vm.value]} />
+            <h5>{_('vmsToImport', { nVms: vms.length })}</h5>
+            {vms.map(vm => (
+              <Collapse className='mt-1 mb-1' buttonText={vm.label} key={vm.value} size='small'>
+                <div className='mt-1'>
+                  <VmData data={vmsById[vm.value]} />
+                </div>
+              </Collapse>
+            ))}
           </div>
         )}
         <div className='form-group pull-right'>
           <ActionButton
             btnStyle='primary'
             className='mr-1'
-            disabled={vm === undefined}
-            handler={this._importVm}
+            disabled={isEmpty(vms)}
+            handler={this._importVms}
             icon='import'
-            redirectOnSuccess={getRedirectUrl}
+            redirectOnSuccess={getRedirectionUrl}
             type='submit'
           >
             {_('newImport')}
