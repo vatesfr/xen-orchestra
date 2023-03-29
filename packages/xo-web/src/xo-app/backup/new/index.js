@@ -1017,9 +1017,10 @@ const New = decorate([
                           <strong>{_('speedLimit')}</strong>
                         </label>
                         <SizeInput
+                          defaultUnit='MiB/s'
                           id={state.inputMaxExportRate}
+                          isSpeed
                           onChange={effects.setMaxExportRate}
-                          suffix={formatMessage(messages['/s'])}
                           value={maxExportRate}
                         />
                       </FormGroup>
