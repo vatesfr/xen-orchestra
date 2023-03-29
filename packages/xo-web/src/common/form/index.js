@@ -209,6 +209,7 @@ export class SizeInput extends BaseComponent {
 
   _onChange(input, unit) {
     const { onChange } = this.props
+
     // Empty input equals null.
     const bytes = input ? parseSize(`${+input} ${unit}`) : null
 
