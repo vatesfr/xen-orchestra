@@ -78,7 +78,7 @@ class EsxiImport extends Component {
       stopSource,
       thin,
       user,
-      vms: vms.map(vm => +vm.value),
+      vms: vms.map(vm => vm.value),
     })
   }
 
