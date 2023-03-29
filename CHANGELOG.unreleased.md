@@ -22,6 +22,7 @@
 - [Backup] Fix backup worker consuming too much memory and being killed by system during full VM backup to S3 compatible remote PR [#6732](https://github.com/vatesfr/xen-orchestra/pull/6732)
 - [REST API] Backup jobs are now available at `/rest/v0/backups/jobs`
 - [Plugin/perf-alert] Ignore special SRs (e.g. *XCP-ng Tools*, *DVD drives*, etc) as their usage is always 100% (PR [#6755](https://github.com/vatesfr/xen-orchestra/pull/6755))
+- [S3 remote] Relax bucket checks in browser to improve experience on S3 compatible remote [Forum#60426](https://xcp-ng.org/forum/post/60426) (PR [#6757](https://github.com/vatesfr/xen-orchestra/pull/6757))
 
 ### Packages to release
 
