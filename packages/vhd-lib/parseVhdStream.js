@@ -42,6 +42,7 @@ class StreamParser {
     if (this._bytesRead < offset) {
       // empty spaces
       await skipStrict(this._stream, offset - this._bytesRead)
+      this._bytesRead += offset - this._bytesRead
     }
 
     try {
