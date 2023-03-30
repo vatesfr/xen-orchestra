@@ -64,6 +64,7 @@
   "login": "Login",
   "migrate": "Migrate",
   "n-missing": "{n} missing",
+  "n-hosts-awaiting-patch": "{n} host is awaiting this patch | {n} hosts are awaiting this patch",
   "name": "Name",
   "network": "Network",
   "network-download": "Download",

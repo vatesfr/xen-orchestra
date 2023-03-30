@@ -64,6 +64,7 @@
   "login": "Connexion",
   "migrate": "Migrer",
   "n-missing": "{n} manquant | {n} manquants",
+  "n-hosts-awaiting-patch": "{n} hôte attend ce patch | {n} hôtes attendent ce patch",
   "name": "Nom",
   "network": "Réseau",
   "network-download": "Descendant",
