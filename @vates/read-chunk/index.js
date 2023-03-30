@@ -89,3 +89,67 @@ exports.readChunkStrict = async function readChunkStrict(stream, size) {
 
   return chunk
 }
+
+/**
+ * Skips a given number of bytes from a readable stream.
+ *
+ * @param {Readable} stream - A readable stream to skip bytes from.
+ * @param {number} size - The number of bytes to skip.
+ * @returns {Promise<number>} A Promise that resolves to the number of bytes actually skipped. If the end of the stream is reached before all bytes are skipped, the Promise resolves to the number of bytes that were skipped before the end of the stream was reached. The Promise is rejected if there is an error while reading from the stream.
+ */
+async function skip(stream, size) {
+  return size === 0 || stream.closed || stream.readableEnded
+    ? Promise.resolve(0)
+    : new Promise((resolve, reject) => {
+        let left = size
+        function onEnd() {
+          resolve(size - left)
+          removeListeners()
+        }
+        function onError(error) {
+          reject(error)
+          removeListeners()
+        }
+        function onReadable() {
+          const data = stream.read()
+          left -= data === null ? 0 : data.length
+          if (left > 0) {
+            // continue to read
+          } else {
+            // if more than wanted has been read, push back the rest
+            if (left < 0) {
+              stream.unshift(data.slice(left))
+            }
+
+            resolve(size)
+            removeListeners()
+          }
+        }
+        function removeListeners() {
+          stream.removeListener('end', onEnd)
+          stream.removeListener('error', onError)
+          stream.removeListener('readable', onReadable)
+        }
+        stream.on('end', onEnd)
+        stream.on('error', onError)
+        stream.on('readable', onReadable)
+        onReadable()
+      })
+}
+exports.skip = skip
+
+/**
+ * Skips a given number of bytes from a stream.
+ *
+ * @param {Readable} stream - A readable stream to skip bytes from.
+ * @param {number} size - The number of bytes to skip.
+ * @returns {Promise<void>} - A Promise that resolves when the exact number of bytes have been skipped. The Promise is rejected if there is an error while reading from the stream or the stream ends before the exact number of bytes have been skipped.
+ */
+exports.skipStrict = async function skipStrict(stream, size) {
+  const bytesSkipped = await skip(stream, size)
+  if (bytesSkipped !== size) {
+    const error = new Error('stream has ended with not enough data')
+    error.bytesSkipped = bytesSkipped
+    throw error
+  }
+}

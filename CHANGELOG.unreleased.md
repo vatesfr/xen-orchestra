@@ -27,6 +27,6 @@
 
 <!--packages-start-->
 
-- @vates/read-chunk patch
+- @vates/read-chunk minor
 
 <!--packages-end-->
