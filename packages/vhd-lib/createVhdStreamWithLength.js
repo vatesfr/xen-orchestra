@@ -41,10 +41,12 @@ module.exports = async function createVhdStreamWithLength(stream) {
   let streamPosition = 0
 
   async function readStream(length) {
-    const chunk = await readChunkStrict(stream, length)
-    streamPosition += length
-    readBuffers.push(chunk)
-    return chunk
+    if (length !== 0) {
+      const chunk = await readChunkStrict(stream, length)
+      streamPosition += length
+      readBuffers.push(chunk)
+      return chunk
+    }
   }
 
   const footerBuffer = await readStream(FOOTER_SIZE)
