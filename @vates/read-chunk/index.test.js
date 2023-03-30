@@ -19,6 +19,11 @@ const rejectionOf = promise =>
   )
 
 describe('readChunk', () => {
+  it('rejects if size is less than or equal to 0', async () => {
+    const error = await rejectionOf(readChunk(makeStream([]), 0))
+    assert.strictEqual(error.code, 'ERR_ASSERTION')
+  })
+
   it('rejects if size is greater than or equal to 1 GiB', async () => {
     const error = await rejectionOf(readChunk(makeStream([]), 1024 * 1024 * 1024))
     assert.strictEqual(error.code, 'ERR_ASSERTION')
@@ -50,10 +55,6 @@ describe('readChunk', () => {
 
     it('returns less data if stream ends', async () => {
       assert.deepEqual(await readChunk(makeStream(['foo', 'bar']), 10), Buffer.from('foobar'))
-    })
-
-    it('returns an empty buffer if the specified size is 0', async () => {
-      assert.deepEqual(await readChunk(makeStream(['foo', 'bar']), 0), Buffer.alloc(0))
     })
   })
 

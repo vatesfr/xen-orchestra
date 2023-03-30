@@ -20,10 +20,10 @@ const assert = require('assert')
 const readChunk = (stream, size) =>
   stream.closed || stream.readableEnded
     ? Promise.resolve(null)
-    : size === 0
-    ? Promise.resolve(Buffer.alloc(0))
     : new Promise((resolve, reject) => {
         if (size !== undefined) {
+          assert(size > 0)
+
           // per Node documentation:
           // > The size argument must be less than or equal to 1 GiB.
           assert(size < 1073741824)
