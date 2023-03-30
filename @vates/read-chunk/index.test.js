@@ -10,7 +10,20 @@ const { readChunk, readChunkStrict } = require('./')
 const makeStream = it => Readable.from(it, { objectMode: false })
 makeStream.obj = Readable.from
 
+const rejectionOf = promise =>
+  promise.then(
+    value => {
+      throw value
+    },
+    error => error
+  )
+
 describe('readChunk', () => {
+  it('rejects if size is greater than or equal to 1 GiB', async () => {
+    const error = await rejectionOf(readChunk(makeStream([]), 1024 * 1024 * 1024))
+    assert.strictEqual(error.code, 'ERR_ASSERTION')
+  })
+
   it('returns null if stream is empty', async () => {
     assert.strictEqual(await readChunk(makeStream([])), null)
   })
@@ -51,14 +64,6 @@ describe('readChunk', () => {
     })
   })
 })
-
-const rejectionOf = promise =>
-  promise.then(
-    value => {
-      throw value
-    },
-    error => error
-  )
 
 describe('readChunkStrict', function () {
   it('throws if stream is empty', async () => {

@@ -1,5 +1,7 @@
 'use strict'
 
+const assert = require('assert')
+
 /**
  * Read a chunk of data from a stream.
  *
@@ -21,6 +23,12 @@ const readChunk = (stream, size) =>
     : size === 0
     ? Promise.resolve(Buffer.alloc(0))
     : new Promise((resolve, reject) => {
+        if (size !== undefined) {
+          // per Node documentation:
+          // > The size argument must be less than or equal to 1 GiB.
+          assert(size < 1073741824)
+        }
+
         function onEnd() {
           resolve(null)
           removeListeners()
