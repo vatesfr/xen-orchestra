@@ -666,7 +666,7 @@ class RemoteAdapter {
     return path
   }
 
-  async writeVhd(path, input, { checksum = true, validator = noop, writeBlockConcurrency, nbdClient } = {}) {
+  async writeVhd(path, input, { checksum = true, validator = noop, writeBlockConcurrency } = {}) {
     const handler = this._handler
     if (this.useVhdDirectory()) {
       const dataPath = `${dirname(path)}/data/${uuidv4()}.vhd`
@@ -677,7 +677,6 @@ class RemoteAdapter {
           await input.task
           return validator.apply(this, arguments)
         },
-        nbdClient,
       })
       await VhdAbstract.createAlias(handler, path, dataPath)
       return size

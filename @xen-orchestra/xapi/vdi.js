@@ -7,6 +7,10 @@ const pRetry = require('promise-toolbox/retry')
 const { decorateClass } = require('@vates/decorate-with')
 
 const extractOpaqueRef = require('./_extractOpaqueRef.js')
+const NbdClient = require('@vates/nbd-client')
+const { createNbdRawStream, createNbdVhdStream } = require('vhd-lib/createStreamNbd.js')
+const { VDI_FORMAT_RAW, VDI_FORMAT_VHD } = require('./index.js')
+const { warn } = require('@xen-orchestra/log').createLogger('xo:xapi:vdi')
 
 const noop = Function.prototype
 
@@ -60,6 +64,25 @@ class Vdi {
     })
   }
 
+  async _getNbdClient(ref) {
+    const nbdInfos = await this.call('VDI.get_nbd_info', ref)
+    if (nbdInfos.length > 0) {
+      // a little bit of randomization to spread the load
+      const nbdInfo = nbdInfos[Math.floor(Math.random() * nbdInfos.length)]
+      try {
+        const nbdClient = new NbdClient(nbdInfo)
+        await nbdClient.connect()
+        return nbdClient
+      } catch (err) {
+        warn(`can't connect to nbd server `, {
+          err,
+          nbdInfo,
+          nbdInfos,
+        })
+      }
+    }
+  }
+
   async exportContent(ref, { baseRef, cancelToken = CancelToken.none, format }) {
     const query = {
       format,
@@ -71,11 +94,25 @@ class Vdi {
 
       query.base = baseRef
     }
+    let nbdClient, stream
     try {
-      return await this.getResource(cancelToken, '/export_raw_vdi/', {
-        query,
-        task: await this.task_create(`Exporting content of VDI ${await this.getField('VDI', ref, 'name_label')}`),
-      })
+      if (this._preferNbd) {
+        nbdClient = await this._getNbdClient(ref)
+      }
+      // the raw nbd export does not need to peek ath the vhd source
+      if (nbdClient !== undefined && format === VDI_FORMAT_RAW) {
+        stream = createNbdRawStream(nbdClient)
+      } else {
+        // raw export without nbd or vhd exports needs a resource stream
+        stream = await this.getResource(cancelToken, '/export_raw_vdi/', {
+          query,
+          task: await this.task_create(`Exporting content of VDI ${await this.getField('VDI', ref, 'name_label')}`),
+        })
+        if (nbdClient !== undefined && format === VDI_FORMAT_VHD) {
+          stream = await createNbdVhdStream(nbdClient, stream)
+        }
+      }
+      return stream
     } catch (error) {
       // augment the error with as much relevant info as possible
       const [poolMaster, vdi] = await Promise.all([
@@ -85,6 +122,8 @@ class Vdi {
       error.pool_master = poolMaster
       error.SR = await this.getRecord('SR', vdi.SR)
       error.VDI = vdi
+      error.nbdClient = nbdClient
+      nbdClient?.disconnect()
       throw error
     }
   }
