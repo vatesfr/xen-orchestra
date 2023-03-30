@@ -27,6 +27,10 @@
 
 <!--packages-start-->
 
+- @vates/nbd-client minor
 - @vates/read-chunk minor
+- @xen-orchestra/backups minor
+- @xen-orchestra/xapi minor
+- vhd-lib minor
 
 <!--packages-end-->
