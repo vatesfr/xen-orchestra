@@ -342,7 +342,7 @@ For example, you could have a regular backup job with 10 VMs configured with Nor
 
 Just a refresher/summary: You can select multiple backup methods for the same job:
 
-- Full: 'Backup' and 'Disaster Recovery' (DR)
+- Full: *Backup* and *Disaster Recovery* (DR)
 - Deltas: 'Delta Backup' and 'Continuous Replication' (CR)
 
 The Full and Delta options are mutually exclusive; Rolling Snapshots are compatible with both. The Backup and Delta Backup go to a remote Target (e.g, NFS); DR and CR back up to another XCP-ng storage repository (i.e., not the one on which the VM's being backed up reside). In the Schedule configuration, you will have the option to select the number of "Backup Retention" if your backup includes a Backup (or Delta Backup); you will have the option to select the number "Replication Retention" if you have selected 'DR' or 'CR' in the backup configuration.
