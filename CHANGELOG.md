@@ -18,18 +18,22 @@
 - [ESXI import] Fix failing imports when using non default datacenter name [Forum#59543](https://xcp-ng.org/forum/post/59543) PR [#6729](https://github.com/vatesfr/xen-orchestra/pull/6729)
 - [Backup] Fix backup worker consuming too much memory and being killed by system during full VM backup to S3 compatible remote PR [#6732](https://github.com/vatesfr/xen-orchestra/pull/6732)
 - [REST API] Backup jobs are now available at `/rest/v0/backups/jobs`
-- [Plugin/perf-alert] Ignore special SRs (e.g. *XCP-ng Tools*, *DVD drives*, etc) as their usage is always 100% (PR [#6755](https://github.com/vatesfr/xen-orchestra/pull/6755))
+- [Plugin/perf-alert] Ignore special SRs (e.g. _XCP-ng Tools_, _DVD drives_, etc) as their usage is always 100% (PR [#6755](https://github.com/vatesfr/xen-orchestra/pull/6755))
 - [S3 remote] Relax bucket checks in browser to improve experience on S3 compatible remote [Forum#60426](https://xcp-ng.org/forum/post/60426) (PR [#6757](https://github.com/vatesfr/xen-orchestra/pull/6757))
 
 ### Released packages
 
-- @xen-orchestra/fs 3.3.3
-- @xen-orchestra/backups 0.33.0
-- @xen-orchestra/backups-cli 1.0.3
-- @xen-orchestra/proxy 0.26.18
+- @vates/nbd-client 1.1.0
+- @vates/read-chunk 1.1.0
+- @xen-orchestra/fs 3.3.4
+- @xen-orchestra/backups 0.34.0
+- @xen-orchestra/backups-cli 1.0.4
+- @xen-orchestra/proxy 0.26.19
 - @xen-orchestra/vmware-explorer 0.2.1
+- @xen-orchestra/xapi 2.1.0
+- vhd-lib 4.3.0
 - xo-cli 0.17.1
-- xo-server 5.111.0
+- xo-server 5.111.1
 - xo-server-perf-alert 0.3.5
 - xo-web 5.114.0
 
