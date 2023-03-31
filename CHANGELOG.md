@@ -23,14 +23,17 @@
 
 ### Released packages
 
+- @vates/nbd-client 1.1.0
 - @vates/read-chunk 1.1.0
-- @xen-orchestra/fs 3.3.3
-- @xen-orchestra/backups 0.33.0
-- @xen-orchestra/backups-cli 1.0.3
-- @xen-orchestra/proxy 0.26.18
+- @xen-orchestra/fs 3.3.4
+- @xen-orchestra/backups 0.34.0
+- @xen-orchestra/backups-cli 1.0.4
+- @xen-orchestra/proxy 0.26.19
 - @xen-orchestra/vmware-explorer 0.2.1
+- @xen-orchestra/xapi 2.1.0
+- vhd-lib 4.3.0
 - xo-cli 0.17.1
-- xo-server 5.111.0
+- xo-server 5.111.1
 - xo-server-perf-alert 0.3.5
 - xo-web 5.114.0
 
