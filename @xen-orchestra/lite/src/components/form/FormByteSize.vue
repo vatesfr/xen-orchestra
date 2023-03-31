@@ -17,7 +17,7 @@
 import FormInput from "@/components/form/FormInput.vue";
 import FormInputGroup from "@/components/form/FormInputGroup.vue";
 import FormSelect from "@/components/form/FormSelect.vue";
-import humanFormat, { type BinaryPrefix } from "human-format";
+import humanFormat, { type Prefix } from "human-format";
 import { ref, watch } from "vue";
 
 const props = defineProps<{
@@ -28,24 +28,27 @@ const emit = defineEmits<{
   (event: "update:modelValue", value: number): number;
 }>();
 
+const clampPrefix = (value: number) => {
+  if (value < 1024) {
+    return "Ki";
+  }
+
+  if (value >= 1024 ** 4) {
+    return "Gi";
+  }
+};
+
 const { value: initialSize, prefix: initialPrefix } = humanFormat.raw(
   props.modelValue,
-  { scale: "binary" }
+  {
+    scale: "binary",
+    prefix: clampPrefix(props.modelValue),
+  }
 );
 
 const size = ref<number>(initialSize);
-const prefix = ref<BinaryPrefix>(initialPrefix);
-const availablePrefixes: BinaryPrefix[] = [
-  "",
-  "Ki",
-  "Mi",
-  "Gi",
-  "Ti",
-  "Pi",
-  "Ei",
-  "Zi",
-  "Yi",
-];
+const prefix = ref<Prefix<"binary">>(initialPrefix || "Ki");
+const availablePrefixes: Prefix<"binary">[] = ["Ki", "Mi", "Gi"];
 
 watch([size, prefix], ([nextSize, nextPrefix]) => {
   const byteSize = humanFormat.parse(`${nextSize || 0} ${nextPrefix}`, {
@@ -60,13 +63,12 @@ watch([size, prefix], ([nextSize, nextPrefix]) => {
 watch(
   () => props.modelValue,
   (modelValue) => {
-    const { value: newSize, prefix: newPrefix } = humanFormat.raw(modelValue, {
+    const { value: newSize } = humanFormat.raw(modelValue, {
       scale: "binary",
       prefix: prefix.value,
     });
 
     size.value = newSize;
-    prefix.value = newPrefix;
   }
 );
 </script>
