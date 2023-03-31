@@ -1,8 +1,10 @@
 # ChangeLog
 
-## **next**
+## **5.81** (2023-03-31)
 
-### Enhancements
+<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
+### Highlights
 
 - [VM] Show distro icon for opensuse-microos [Forum#6965](https://xcp-ng.org/forum/topic/6965) (PR [#6746](https://github.com/vatesfr/xen-orchestra/pull/6746))
 - [Backup] Display the VM name label in the log even if the VM is not currently connected
@@ -39,7 +41,7 @@
 
 ## **5.80.2** (2023-03-16)
 
-<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Enhancements
 
@@ -218,8 +220,6 @@
 - xo-web 5.111.0
 
 ## **5.78.0** (2022-12-20)
-
-<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Highlights
 
