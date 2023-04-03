@@ -39,7 +39,7 @@ exports.set = async function set({ $type, $ref, $xapi, uuid }, data) {
   const key = 'xo:' + uuid.slice(0, 8)
 
   if (data === null) {
-    await $xapi.setFieldEntry($type, $ref, 'other_config', key)
+    await $xapi.setFieldEntry($type, $ref, 'other_config', key, null)
     return
   }
 
