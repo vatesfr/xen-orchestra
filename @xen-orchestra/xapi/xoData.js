@@ -11,8 +11,9 @@ const assert = require('node:assert/strict')
 /**
  * Gets XO data associated with an object.
  *
- * @param {string} other_config - The other_config of the object.
- * @param {string} uuid - The UUID of the object.
+ * @param {object} params
+ * @param {object} params.other_config - The other_config of the object.
+ * @param {string} params.uuid - The UUID of the object.
  * @returns {Promise<object|undefined>} A Promise that resolves to the parsed data object, or undefined if there is no data.
  */
 exports.extract = function extract({ other_config, uuid }) {
