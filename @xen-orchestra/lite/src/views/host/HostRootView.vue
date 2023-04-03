@@ -16,7 +16,8 @@ const hostStore = useHostStore();
 const uiStore = useUiStore();
 
 watchEffect(() => {
-  const host = hostStore.getRecordByUuid(route.params.uuid as string);
-  uiStore.currentHostOpaqueRef = host?.$ref;
+  uiStore.currentHostOpaqueRef = hostStore.getRecordByUuid(
+    route.params.uuid as string
+  )?.$ref;
 });
 </script>
