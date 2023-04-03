@@ -36,7 +36,7 @@ const hostMetricsStore = useHostMetricsStore();
 const hasError = computed(() => vmStore.hasError || hostMetricsStore.hasError);
 
 const isLoading = computed(
-  () => vmStore.isLoading && hostMetricsStore.isLoading
+  () => vmStore.isLoading || hostMetricsStore.isLoading
 );
 
 const totalHostsCount = computed(() => hostMetricsStore.opaqueRefs.length);
