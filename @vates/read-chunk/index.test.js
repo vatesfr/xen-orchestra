@@ -5,12 +5,30 @@ const assert = require('node:assert').strict
 
 const { Readable } = require('stream')
 
-const { readChunk, readChunkStrict } = require('./')
+const { readChunk, readChunkStrict, skip, skipStrict } = require('./')
 
 const makeStream = it => Readable.from(it, { objectMode: false })
 makeStream.obj = Readable.from
 
+const rejectionOf = promise =>
+  promise.then(
+    value => {
+      throw value
+    },
+    error => error
+  )
+
 describe('readChunk', () => {
+  it('rejects if size is less than or equal to 0', async () => {
+    const error = await rejectionOf(readChunk(makeStream([]), 0))
+    assert.strictEqual(error.code, 'ERR_ASSERTION')
+  })
+
+  it('rejects if size is greater than or equal to 1 GiB', async () => {
+    const error = await rejectionOf(readChunk(makeStream([]), 1024 * 1024 * 1024))
+    assert.strictEqual(error.code, 'ERR_ASSERTION')
+  })
+
   it('returns null if stream is empty', async () => {
     assert.strictEqual(await readChunk(makeStream([])), null)
   })
@@ -38,10 +56,6 @@ describe('readChunk', () => {
     it('returns less data if stream ends', async () => {
       assert.deepEqual(await readChunk(makeStream(['foo', 'bar']), 10), Buffer.from('foobar'))
     })
-
-    it('returns an empty buffer if the specified size is 0', async () => {
-      assert.deepEqual(await readChunk(makeStream(['foo', 'bar']), 0), Buffer.alloc(0))
-    })
   })
 
   describe('with object stream', () => {
@@ -51,14 +65,6 @@ describe('readChunk', () => {
     })
   })
 })
-
-const rejectionOf = promise =>
-  promise.then(
-    value => {
-      throw value
-    },
-    error => error
-  )
 
 describe('readChunkStrict', function () {
   it('throws if stream is empty', async () => {
@@ -73,5 +79,39 @@ describe('readChunkStrict', function () {
     assert(error instanceof Error)
     assert.strictEqual(error.message, 'stream has ended with not enough data')
     assert.deepEqual(error.chunk, Buffer.from('foobar'))
+  })
+})
+
+describe('skip', function () {
+  it('returns 0 if size is 0', async () => {
+    assert.strictEqual(await skip(makeStream(['foo']), 0), 0)
+  })
+
+  it('returns 0 if the stream is already ended', async () => {
+    const stream = await makeStream([])
+    await readChunk(stream)
+
+    assert.strictEqual(await skip(stream, 10), 0)
+  })
+
+  it('skips a number of bytes', async () => {
+    const stream = makeStream('foo bar')
+
+    assert.strictEqual(await skip(stream, 4), 4)
+    assert.deepEqual(await readChunk(stream, 4), Buffer.from('bar'))
+  })
+
+  it('returns less size if stream ends', async () => {
+    assert.deepEqual(await skip(makeStream('foo bar'), 10), 7)
+  })
+})
+
+describe('skipStrict', function () {
+  it('throws if stream ends with not enough data', async () => {
+    const error = await rejectionOf(skipStrict(makeStream('foo bar'), 10))
+
+    assert(error instanceof Error)
+    assert.strictEqual(error.message, 'stream has ended with not enough data')
+    assert.deepEqual(error.bytesSkipped, 7)
   })
 })

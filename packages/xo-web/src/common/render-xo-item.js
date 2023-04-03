@@ -217,9 +217,9 @@ export const Sr = decorate([
       container: getContainer(state, props),
     })
   }),
-  ({ id, sr, container, link, newTab, spaceLeft, self }) => {
+  ({ id, sr, container, link, newTab, spaceLeft, self, name }) => {
     if (sr === undefined) {
-      return unknowItem(id, 'SR')
+      return unknowItem(id, 'SR', name)
     }
 
     return (
@@ -241,6 +241,7 @@ Sr.propTypes = {
   container: PropTypes.bool,
   id: PropTypes.string.isRequired,
   link: PropTypes.bool,
+  name: PropTypes.string,
   newTab: PropTypes.bool,
   self: PropTypes.bool,
   spaceLeft: PropTypes.bool,

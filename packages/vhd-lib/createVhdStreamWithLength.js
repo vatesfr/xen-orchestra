@@ -41,6 +41,10 @@ module.exports = async function createVhdStreamWithLength(stream) {
   let streamPosition = 0
 
   async function readStream(length) {
+    if (length === 0) {
+      return Buffer.alloc(0)
+    }
+
     const chunk = await readChunkStrict(stream, length)
     streamPosition += length
     readBuffers.push(chunk)

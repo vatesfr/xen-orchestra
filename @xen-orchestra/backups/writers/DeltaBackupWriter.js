@@ -20,9 +20,8 @@ const { AbstractDeltaWriter } = require('./_AbstractDeltaWriter.js')
 const { checkVhd } = require('./_checkVhd.js')
 const { packUuid } = require('./_packUuid.js')
 const { Disposable } = require('promise-toolbox')
-const NbdClient = require('@vates/nbd-client')
 
-const { debug, warn, info } = createLogger('xo:backups:DeltaBackupWriter')
+const { warn } = createLogger('xo:backups:DeltaBackupWriter')
 
 class DeltaBackupWriter extends MixinBackupWriter(AbstractDeltaWriter) {
   async checkBaseVdis(baseUuidToSrcVdi) {
@@ -200,41 +199,12 @@ class DeltaBackupWriter extends MixinBackupWriter(AbstractDeltaWriter) {
             await checkVhd(handler, parentPath)
           }
 
-          const vdiRef = vm.$xapi.getObject(vdi.uuid).$ref
-
-          let nbdClient
-          if (this._backup.config.useNbd && adapter.useVhdDirectory()) {
-            debug('useNbd is enabled', { vdi: id, path })
-            // get nbd if possible
-            try {
-              // this will always take the first host in the list
-              const [nbdInfo] = await vm.$xapi.call('VDI.get_nbd_info', vdiRef)
-              debug('got NBD info', { nbdInfo, vdi: id, path })
-              nbdClient = new NbdClient(nbdInfo)
-              await nbdClient.connect()
-
-              // this will inform the xapi that we don't need this anymore
-              // and will detach the vdi from dom0
-              $defer(() => nbdClient.disconnect())
-
-              info('NBD client ready', { vdi: id, path })
-              Task.info('NBD used')
-            } catch (error) {
-              Task.warning('NBD configured but unusable', { error })
-              nbdClient = undefined
-              warn('error connecting to NBD server', { error, vdi: id, path })
-            }
-          } else {
-            debug('useNbd is disabled', { vdi: id, path })
-          }
-
           transferSize += await adapter.writeVhd(path, deltaExport.streams[`${id}.vhd`], {
             // no checksum for VHDs, because they will be invalidated by
             // merges and chainings
             checksum: false,
             validator: tmpPath => checkVhd(handler, tmpPath),
             writeBlockConcurrency: this._backup.config.writeBlockConcurrency,
-            nbdClient,
           })
 
           if (isDelta) {

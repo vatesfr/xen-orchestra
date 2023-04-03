@@ -269,24 +269,35 @@ exports.Backup = class Backup {
         const allSettings = this._job.settings
         const baseSettings = this._baseSettings
 
-        const handleVm = vmUuid =>
-          runTask({ name: 'backup VM', data: { type: 'VM', id: vmUuid } }, () =>
-            Disposable.use(this._getRecord('VM', vmUuid), vm =>
-              new VmBackup({
-                baseSettings,
-                config,
-                getSnapshotNameLabel,
-                healthCheckSr,
-                job,
-                remoteAdapters,
-                schedule,
-                settings: { ...settings, ...allSettings[vm.uuid] },
-                srs,
-                throttleStream,
-                vm,
-              }).run()
-            )
+        const handleVm = vmUuid => {
+          const taskStart = { name: 'backup VM', data: { type: 'VM', id: vmUuid } }
+
+          return this._getRecord('VM', vmUuid).then(
+            disposableVm =>
+              Disposable.use(disposableVm, vm => {
+                taskStart.data.name_label = vm.name_label
+                return runTask(taskStart, () =>
+                  new VmBackup({
+                    baseSettings,
+                    config,
+                    getSnapshotNameLabel,
+                    healthCheckSr,
+                    job,
+                    remoteAdapters,
+                    schedule,
+                    settings: { ...settings, ...allSettings[vm.uuid] },
+                    srs,
+                    throttleStream,
+                    vm,
+                  }).run()
+                )
+              }),
+            error =>
+              runTask(taskStart, () => {
+                throw error
+              })
           )
+        }
         const { concurrency } = settings
         await asyncMapSettled(vmIds, concurrency === 0 ? handleVm : limitConcurrency(concurrency)(handleVm))
       }

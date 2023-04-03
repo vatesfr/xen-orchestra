@@ -11,10 +11,6 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [Backup/Restore] Fix restore via a proxy showing as interupted (PR [#6702](https://github.com/vatesfr/xen-orchestra/pull/6702))
-- [REST API] Backup logs are now available at `/rest/v0/backups/logs`
-- [ESXI import] Fix failing imports when using non default datacenter name [Forum#59543](https://xcp-ng.org/forum/post/59543) PR [#6729](https://github.com/vatesfr/xen-orchestra/pull/6729)
-
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -30,10 +26,5 @@
 > Keep this list alphabetically ordered to avoid merge conflicts
 
 <!--packages-start-->
-
-- @xen-orchestra/vmware-explorer patch
-- @xen-orchestra/backups minor
-- xo-cli patch
-- xo-server minor
 
 <!--packages-end-->

@@ -7,8 +7,8 @@ const VmData = ({ data }) => (
   <div>
     <Row>
       <Col mediumSize={6}>
-        <div className='form-group'>{_('keyValue', { key: _('vmNameLabel'), value: data.nameLabel })}</div>
-        <div className='form-group'>
+        <div>{_('keyValue', { key: _('vmNameLabel'), value: data.nameLabel })}</div>
+        <div>
           {_('keyValue', {
             key: _('powerState'),
             value: data.powerState === 'poweredOn' ? _('powerStateRunning') : _('powerStateHalted'),
@@ -16,16 +16,16 @@ const VmData = ({ data }) => (
         </div>
       </Col>
       <Col mediumSize={6}>
-        <div className='form-group'>{_('keyValue', { key: _('nCpus'), value: data.nCpus })}</div>
-        <div className='form-group'>{_('keyValue', { key: _('vmMemory'), value: formatSize(data.memory) })}</div>
+        <div>{_('keyValue', { key: _('nCpus'), value: data.nCpus })}</div>
+        <div>{_('keyValue', { key: _('vmMemory'), value: formatSize(data.memory) })}</div>
       </Col>
     </Row>
     <Row>
       <Col mediumSize={6}>
-        <div className='form-group'>{_('keyValue', { key: _('firmware'), value: data.firmware })}</div>
+        <div>{_('keyValue', { key: _('firmware'), value: data.firmware })}</div>
       </Col>
       <Col mediumSize={6}>
-        <div className='form-group'>
+        <div>
           {_('keyValue', {
             key: _('guestToolStatus'),
             value: data.guestToolsInstalled ? _('noToolsInstalled') : _('toolsInstalled'),
@@ -35,7 +35,7 @@ const VmData = ({ data }) => (
     </Row>
     <Row>
       <Col mediumSize={12}>
-        <div className='form-group'>
+        <div>
           <span>
             {_('vmSrUsage', {
               free: formatSize(data.storage.free),

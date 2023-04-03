@@ -29,12 +29,14 @@ import {
   createGetObjectsOfType,
   createSelector,
 } from 'selectors'
+import { injectState } from 'reaclette'
 
 import MiniStats from './mini-stats'
 import styles from './index.css'
 
 import BulkIcons from '../../common/bulk-icons'
 import { LICENSE_WARNING_BODY } from '../host/license-warning'
+import { getXoaPlan, SOURCES } from '../../common/xoa-plans'
 
 @addSubscriptions({
   hvSupportedVersions: subscribeHvSupportedVersions,
@@ -48,8 +50,9 @@ import { LICENSE_WARNING_BODY } from '../host/license-warning'
       hostId => obj => obj.$container === hostId
     )
   ),
-  state: createGetHostState((_, props) => props.item),
+  hostState: createGetHostState((_, props) => props.item),
 }))
+@injectState
 export default class HostItem extends Component {
   get _isRunning() {
     const host = this.props.item
@@ -75,6 +78,42 @@ export default class HostItem extends Component {
   _stop = () => stopHost(this.props.item)
   _toggleExpanded = () => this.setState({ expanded: !this.state.expanded })
   _onSelect = () => this.props.onSelect(this.props.item.id)
+  _getProSupportStatus = () => {
+    const { state: reacletteState, item: host } = this.props
+    if (host.productBrand !== 'XCP-ng') {
+      return
+    }
+
+    const { supportLevel } = reacletteState.poolLicenseInfoByPoolId[host.$poolId]
+    const license = reacletteState.xcpngLicenseByBoundObjectId[host.id]
+    if (license !== undefined) {
+      license.expires = license.expires ?? Infinity
+    }
+
+    let level = 'warning'
+    let message = 'hostNoSupport'
+
+    if (getXoaPlan() === SOURCES) {
+      message = 'poolSupportSourceUsers'
+      level = 'warning'
+    }
+
+    if (supportLevel === 'total') {
+      message = 'hostSupportEnabled'
+      level = 'success'
+    }
+
+    if (supportLevel === 'partial' && (license === undefined || license.expires < Date.now())) {
+      message = 'hostNoLicensePartialProSupport'
+      level = 'danger'
+    }
+
+    return {
+      level,
+      icon: <Icon icon='menu-support' className={`text-${level}`} />,
+      message,
+    }
+  }
 
   _getAlerts = createSelector(
     () => this.props.needsRestart,
@@ -126,13 +165,25 @@ export default class HostItem extends Component {
           ),
         })
       }
+
+      const proSupportStatus = this._getProSupportStatus()
+      if (proSupportStatus !== undefined && proSupportStatus.level !== 'success') {
+        alerts.push({
+          level: proSupportStatus.level,
+          render: (
+            <span>
+              {proSupportStatus.icon} {_(proSupportStatus.message)}
+            </span>
+          ),
+        })
+      }
       return alerts
     }
   )
 
   render() {
-    const { container, expandAll, item: host, nVms, selected, state } = this.props
-
+    const { container, expandAll, item: host, nVms, selected, hostState } = this.props
+    const proSupportStatus = this._getProSupportStatus()
     return (
       <div className={styles.item}>
         <BlockLink to={`/hosts/${host.id}`}>
@@ -144,8 +195,8 @@ export default class HostItem extends Component {
                 <Tooltip
                   content={
                     <span>
-                      {_(`powerState${state}`)}
-                      {state === 'Busy' && (
+                      {_(`powerState${hostState}`)}
+                      {hostState === 'Busy' && (
                         <span>
                           {' ('}
                           {map(host.current_operations)[0]}
@@ -155,7 +206,7 @@ export default class HostItem extends Component {
                     </span>
                   }
                 >
-                  <Icon icon={state.toLowerCase()} />
+                  <Icon icon={hostState.toLowerCase()} />
                 </Tooltip>
                 &nbsp;&nbsp;
                 <Ellipsis>
@@ -167,6 +218,10 @@ export default class HostItem extends Component {
                 )}
                 &nbsp;
                 <BulkIcons alerts={this._getAlerts()} />
+                &nbsp;
+                {proSupportStatus?.level === 'success' && (
+                  <Tooltip content={_(proSupportStatus.message)}>{proSupportStatus.icon}</Tooltip>
+                )}
               </EllipsisContainer>
             </Col>
             <Col mediumSize={3} className='hidden-lg-down'>

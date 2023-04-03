@@ -210,7 +210,7 @@ TaskInfos.propTypes = {
 
 const VmTask = ({ children, className, restartVmJob, task }) => (
   <li className={className}>
-    <Vm id={task.data.id} link newTab /> <TaskStateInfos status={task.status} />{' '}
+    <Vm id={task.data.id} name={task.data.name_label} link newTab /> <TaskStateInfos status={task.status} />{' '}
     {restartVmJob !== undefined && hasTaskFailed(task) && (
       <ButtonGroup>
         <ActionButton
@@ -339,7 +339,7 @@ const RemoteTask = ({ children, className, task }) => (
 
 const SrTask = ({ children, className, task }) => (
   <li className={className}>
-    <Sr id={task.data.id} link newTab /> <TaskStateInfos status={task.status} />
+    <Sr id={task.data.id} name={task.data.name_label} link newTab /> <TaskStateInfos status={task.status} />
     <TaskWarnings warnings={task.warnings} />
     <TaskInfos infos={task.infos} />
     {children}
