@@ -26,10 +26,11 @@ exports.extract = function extract({ other_config, uuid }) {
 /**
  * Updates the XO data for an object.
  *
- * @param {string} $type - The type of the object.
- * @param {string} $ref - The reference of the object.
- * @param {string} $xapi - The XAPI connection to the pool this object belongs to.
- * @param {string} uuid - The UUID of the object.
+ * @param {object} obj
+ * @param {string} obj.$type - The type of the object.
+ * @param {string} obj.$ref - The reference of the object.
+ * @param {Xapi} obj.$xapi - The XAPI connection to the pool this object belongs to.
+ * @param {string} obj.uuid - The UUID of the object.
  * @param {object|null} data - The data to merge with the XO data associated with the object. If null, the XO data for the object will be cleared.
  * @returns {Promise<object|undefined>} A Promise that resolves to the updated XO data object, or undefined if the XO data for the given object is cleared.
  */
