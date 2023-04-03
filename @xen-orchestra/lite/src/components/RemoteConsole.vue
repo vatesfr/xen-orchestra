@@ -7,6 +7,7 @@ import { fibonacci } from "iterable-backoff";
 import { computed, onBeforeUnmount, ref, watch, watchEffect } from "vue";
 import VncClient from "@novnc/novnc/core/rfb";
 import { useXenApiStore } from "@/stores/xen-api.store";
+import { promiseTimeout } from "@vueuse/shared";
 
 const N_TOTAL_TRIES = 8;
 const FIBONACCI_MS_ARRAY: number[] = Array.from(
@@ -74,9 +75,7 @@ const clearVncClient = () => {
 
 const createVncConnection = async () => {
   if (nConnectionAttempts !== 0) {
-    await new Promise((resolve) =>
-      setTimeout(resolve, FIBONACCI_MS_ARRAY[nConnectionAttempts - 1])
-    );
+    await promiseTimeout(FIBONACCI_MS_ARRAY[nConnectionAttempts - 1]);
   }
 
   vncClient = new VncClient(vmConsoleContainer.value!, url.value!.toString(), {
