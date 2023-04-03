@@ -11,7 +11,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [Backup] Fix `Invalid parameters` when deleting `speed limit` value
+- [Backup] Fix `Invalid parameters` when deleting `speed limit` value (PR [#6768](https://github.com/vatesfr/xen-orchestra/pull/6768))
 
 ### Packages to release
 
