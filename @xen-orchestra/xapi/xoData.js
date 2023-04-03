@@ -33,8 +33,7 @@ exports.extract = function extract({ other_config, uuid }) {
  * @returns {Promise<object|undefined>} A Promise that resolves to the updated XO data object, or undefined if the XO data for the given object is cleared.
  */
 exports.set = async function set({ $type, $ref, $xapi, uuid }, data) {
-  assert.notEqual(data, null)
-  assert.equal(typeof data, 'object')
+  assert.equal(typeof data, 'object') // includes null
   assert(!Array.isArray(data))
 
   const key = 'xo:' + uuid.slice(0, 8)
