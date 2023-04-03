@@ -3,9 +3,16 @@
 </template>
 
 <script lang="ts" setup>
-import { onBeforeUnmount, ref, watchEffect } from "vue";
+import { fibonacci } from "iterable-backoff";
+import { computed, onBeforeUnmount, ref, watch, watchEffect } from "vue";
 import VncClient from "@novnc/novnc/core/rfb";
 import { useXenApiStore } from "@/stores/xen-api.store";
+import { promiseTimeout } from "@vueuse/shared";
+
+const N_TOTAL_TRIES = 8;
+const FIBONACCI_MS_ARRAY: number[] = Array.from(
+  fibonacci().toMs().take(N_TOTAL_TRIES)
+);
 
 const props = defineProps<{
   location: string;
@@ -14,37 +21,84 @@ const props = defineProps<{
 
 const vmConsoleContainer = ref<HTMLDivElement>();
 const xenApiStore = useXenApiStore();
-let vncClient: VncClient | undefined;
+const url = computed(() => {
+  if (xenApiStore.currentSessionId === null) {
+    return;
+  }
+  const _url = new URL(props.location);
+  _url.protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+  _url.searchParams.set("session_id", xenApiStore.currentSessionId);
+  return _url;
+});
 
-const clearVncClient = () => {
-  if (vncClient !== undefined) {
-    if (vncClient._rfbConnectionState !== "disconnected") {
-      vncClient.disconnect();
+let vncClient: VncClient | undefined;
+let nConnectionAttempts = 0;
+
+const handleDisconnectionEvent = () => {
+  clearVncClient();
+
+  if (props.isConsoleAvailable) {
+    nConnectionAttempts++;
+
+    if (nConnectionAttempts > N_TOTAL_TRIES) {
+      console.error(
+        "The number of reconnection attempts has been exceeded for:",
+        props.location
+      );
+      return;
     }
-    vncClient = undefined;
+
+    console.error(
+      `Connection lost for the remote console: ${
+        props.location
+      }. New attempt in ${FIBONACCI_MS_ARRAY[nConnectionAttempts - 1]}ms`
+    );
+    createVncConnection();
   }
 };
+const handleConnectionEvent = () => (nConnectionAttempts = 0);
 
+const clearVncClient = () => {
+  if (vncClient === undefined) {
+    return;
+  }
+
+  vncClient.removeEventListener("disconnect", handleDisconnectionEvent);
+  vncClient.removeEventListener("connect", handleConnectionEvent);
+
+  if (vncClient._rfbConnectionState !== "disconnected") {
+    vncClient.disconnect();
+  }
+
+  vncClient = undefined;
+};
+
+const createVncConnection = async () => {
+  if (nConnectionAttempts !== 0) {
+    await promiseTimeout(FIBONACCI_MS_ARRAY[nConnectionAttempts - 1]);
+  }
+
+  vncClient = new VncClient(vmConsoleContainer.value!, url.value!.toString(), {
+    wsProtocols: ["binary"],
+  });
+  vncClient.scaleViewport = true;
+
+  vncClient.addEventListener("disconnect", handleDisconnectionEvent);
+  vncClient.addEventListener("connect", handleConnectionEvent);
+};
+
+watch(url, clearVncClient);
 watchEffect(() => {
   if (
-    !vmConsoleContainer.value ||
-    !xenApiStore.currentSessionId ||
+    url.value === undefined ||
+    vmConsoleContainer.value === undefined ||
     !props.isConsoleAvailable
   ) {
     return;
   }
 
-  clearVncClient();
-
-  const url = new URL(props.location);
-  url.protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-  url.searchParams.set("session_id", xenApiStore.currentSessionId);
-
-  vncClient = new VncClient(vmConsoleContainer.value, url.toString(), {
-    wsProtocols: ["binary"],
-  });
-
-  vncClient.scaleViewport = true;
+  nConnectionAttempts = 0;
+  createVncConnection();
 });
 
 onBeforeUnmount(() => {
