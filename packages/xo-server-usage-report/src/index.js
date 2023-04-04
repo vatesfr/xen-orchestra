@@ -269,19 +269,13 @@ const METRICS_MEAN = {
   ram: value => computeMean(value) / gibPower,
 }
 
+const DAYS_TO_KEEP = {
+  daily: 1,
+  weekly: 7,
+  monthly: 30,
+}
 function getLastDays(data, periodicity) {
-  let daysToKeep
-  switch (periodicity) {
-    case 'daily':
-      daysToKeep = 1
-      break
-    case 'weekly':
-      daysToKeep = 7
-      break
-    case 'monthly':
-      daysToKeep = 30
-      break
-  }
+  const daysToKeep = DAYS_TO_KEEP[periodicity]
   const expectedData = {}
   for (const [key, value] of Object.entries(data)) {
     if (Array.isArray(value)) {
