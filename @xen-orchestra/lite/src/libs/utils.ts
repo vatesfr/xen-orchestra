@@ -71,8 +71,20 @@ export function parseDateTime(dateTime: string) {
   return date.getTime();
 }
 
-export const hasEllipsis = (target: Element | undefined | null) =>
-  target != undefined && target.clientWidth < target.scrollWidth;
+export const hasEllipsis = (
+  target: Element | undefined | null,
+  { vertical = false }: { vertical?: boolean } = {}
+) => {
+  if (target == null) {
+    return false;
+  }
+
+  if (vertical) {
+    return target.clientHeight < target.scrollHeight;
+  }
+
+  return target.clientWidth < target.scrollWidth;
+};
 
 export function percent(currentValue: number, maxValue: number, precision = 2) {
   return round((currentValue / maxValue) * 100, precision);
