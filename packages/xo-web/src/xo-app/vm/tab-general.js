@@ -116,10 +116,9 @@ const GeneralTab = decorate([
         const vmTaskIds = Object.keys(vm.current_operations)
         return resolvedPendingTasks.filter(task => vmTaskIds.includes(task.id))
       },
-      vmCreationInfo: (_, { vm }) => JSON.parse(vm.other['xo:' + vm.id.slice(0, 8) ?? '{}']).creation,
-      vmCreator: ({ vmCreationInfo }, { users }) => users?.[vmCreationInfo?.user],
-      vmTemplate: ({ vmCreationInfo }, { templates, pool }) =>
-        templates[vmCreationInfo?.template].find(template => template.$poolId === pool.id),
+      vmCreator: (_, { users, vm }) => users?.[vm.creation?.user],
+      vmTemplate: (_, { pool, templates, vm }) =>
+        templates[vm.creation?.template].find(template => template.$poolId === pool.id),
     },
   }),
   injectState,
@@ -194,11 +193,7 @@ const GeneralTab = decorate([
                 })}
               </div>
             )}
-            {vmCreator !== undefined && (
-              <div>
-                {_('by')} {vmCreator.email}
-              </div>
-            )}
+            {vmCreator !== undefined && <div>{_('createdBy', { user: vmCreator.email })}</div>}
             {vmTemplate !== undefined && (
               <div>
                 {_('originalTemplate')} {vmTemplate.name_label}
