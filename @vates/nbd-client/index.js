@@ -98,6 +98,11 @@ module.exports = class NbdClient {
     await this.#serverSocket.destroy()
   }
 
+  async reconnect() {
+    await this.disconnect().catch(() => {})
+    await this.connect
+  }
+
   // we can use individual read/write from the socket here since there is no concurrency
   async #sendOption(option, buffer = Buffer.alloc(0)) {
     await this.#write(OPTS_MAGIC)
