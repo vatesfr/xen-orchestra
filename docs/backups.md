@@ -296,9 +296,8 @@ When it's done exporting, we'll remove the snapshot. Note: this operation will t
 Concurrency is a parameter that let you define how many VMs your backup job will manage simultaneously.
 
 :::tip
-
 - Default concurrency value is 2 if left empty.
-  :::
+:::
 
 Let's say you want to backup 50 VMs (each with 1x disk) at 3:00 AM. There are **2 different strategies**:
 

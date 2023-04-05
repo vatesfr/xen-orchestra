@@ -18,10 +18,9 @@ Once you have started the VM, you can access the web UI by putting the IP you co
 - Check your router's DHCP leases for an `xoa` lease
 
 :::tip
-
 - Default Web UI credentials are `admin@admin.net` / `admin`
 - Default console/SSH credentials are not set, you need to set them [as described here](troubleshooting.md#set-or-recover-xoa-vm-password).
-  :::
+:::
 
 ### Registration
 

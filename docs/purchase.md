@@ -40,10 +40,9 @@ The second step is to select your purchase option:
 - Paid period: **check or wire transfer only**. This purchase allows you to subscribe for a one, two or three year period
 
 :::tip
-
 - A 2 year subscription period grants you 1 month discounted
 - A 3 year subscription period grants you 2 months discounted
-  :::
+:::
 
 Then you need to fill in your information and select **"Buy for my own use"** (direct purchase)
 
