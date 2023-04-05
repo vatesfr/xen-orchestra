@@ -26,14 +26,14 @@ test('parseDateTime()', function () {
   }
 })
 
-test('failing parseDateTime()' , function(){
-    for (const [input, error] of [
+test('failing parseDateTime()', function () {
+  for (const [input, error] of [
     // object
     [{}, TypeError],
     [undefined, TypeError],
 
     // string
-    ['XXX 03/10/2010', RangeError]
+    ['XXX 03/10/2010', RangeError],
   ]) {
     assert.throws(() => parseDateTime(input), error)
   }

@@ -296,9 +296,8 @@ When it's done exporting, we'll remove the snapshot. Note: this operation will t
 Concurrency is a parameter that let you define how many VMs your backup job will manage simultaneously.
 
 :::tip
-
 - Default concurrency value is 2 if left empty.
-  :::
+:::
 
 Let's say you want to backup 50 VMs (each with 1x disk) at 3:00 AM. There are **2 different strategies**:
 
@@ -338,3 +337,32 @@ When a backup job is configured using Normal snapshot mode, it's possible to use
 - **xo-memory-backup** to apply RAM-enabled snapshotting
 
 For example, you could have a regular backup job with 10 VMs configured with Normal snapshotting, including two which are database servers. Since database servers are generally more sensitive to being restored from snapshots, you could apply the **xo-memory-backup** tag to those two VMs and only those will be backed up in RAM-enabled mode. This will avoid the need to manage a separate backup job and schedule.
+
+## Retention and Scheduling
+
+Just a refresher/summary: You can select multiple backup methods for the same job:
+
+- Full: *Backup* and *Disaster Recovery* (DR)
+- Deltas: *Delta Backup* and *Continuous Replication* (CR)
+
+The Full and Delta options are mutually exclusive; Rolling Snapshots are compatible with both. The Backup and Delta Backup go to a remote Target (e.g, NFS); DR and CR back up to another XCP-ng storage repository (i.e., not the one on which the VM's being backed up reside). In the Schedule configuration, you will have the option to select the number of "Backup Retention" if your backup includes a *Backup* (or *Delta Backup*); you will have the option to select the number "Replication Retention" if you have selected *DR* or *CR* in the backup configuration.
+
+### Rolling Snapshots
+
+Vates recommends keeping the Rolling Snapshots retention to a minimum; if you check Dashboard>Health, you'll see a table for 'Too Many Snapshots,' which shows VMs that have more than 5 snapshots saved; this includes the snapshots used for any kind of backup, not simply the rolling snapshots.
+
+### Retention of Backups and CR/DR
+
+If your backup includes both a (Delta) Backup _and_ a CR/DR, you will have the option to select the number you wish for both "Backup retention" and "Replication retention" in the Schedule configuration; make sure to assign the number you want to the correct retention.
+
+If you need to restore a (Delta) Backup (or clone and spin up a VM from CR/DR), you will be able to select all the available backups or VMs, regardless of the retention or delta scheme. If you have multiple backup jobs backing up the same VM, you'll see all the backups in the restore list, sorted by date.
+
+### Decreasing Retention Frequency with Age
+
+It is often a good idea to configure retention of older backups with decreasing frequency. For example, you may want a nightly backup, but you don't want 365 backups to be able to restore from a year ago. The solution is to set several different schedules/retention policies for the same backup job. A reasonable approach might be to schedule...
+
+- a nightly backup, except on Sunday (retaining 6)
+- a weekly backup on Sunday (retaining 4)
+- a monthly backup (retaining 12)
+
+Again, all of these can be assigned to the same backup job. Note that if you do a weekly and a monthly backup, at some point, these will fall on the same day. Xen Orchestra is designed to fail gracefully (with an error message) if a backup job for a VM is already running. For this reason, you will want to set the time on the monthly job to run before the weekly job so that if one fails, it will be the weekly rather than the monthly one; if the weekly one fails, the monthly will be there for that spot in the retention plan; if the monthly one fails, the weekly one will only be retained for 4 weeks, and then there will be a gap in the monthly retention.

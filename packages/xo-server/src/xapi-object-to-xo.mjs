@@ -3,6 +3,7 @@ import { isDefaultTemplate, parseDateTime } from '@xen-orchestra/xapi'
 import * as sensitiveValues from './sensitive-values.mjs'
 import ensureArray from './_ensureArray.mjs'
 import normalizeVmNetworks from './_normalizeVmNetworks.mjs'
+import xoData from '@xen-orchestra/xapi/xoData.js'
 import { createLogger } from '@xen-orchestra/log'
 import { extractIpFromVmNetworks } from './_extractIpFromVmNetworks.mjs'
 import { extractProperty, forEach, isEmpty, mapFilter, parseXml } from './utils.mjs'
@@ -323,6 +324,8 @@ const TRANSFORMS = {
       }
     })
 
+    const { creation } = xoData.extract(obj) ?? {}
+
     const vm = {
       // type is redefined after for controllers/, templates &
       // snapshots.
@@ -338,6 +341,7 @@ const TRANSFORMS = {
         max: +obj.VCPUs_max,
         number: isRunning && metrics && xenTools ? +metrics.VCPUs_number : +obj.VCPUs_at_startup,
       },
+      creation,
       current_operations: currentOperations,
       docker: (function () {
         const monitor = otherConfig['xscontainer-monitor']
