@@ -149,8 +149,8 @@ Handlebars.registerHelper(
     new Handlebars.SafeString(
       isFinite((value = round(value, 2))) && value !== 0
         ? value > 0
-          ? `(<b style="color: green;">&#x25B2; ${value}%</b>)`
-          : `(<b style="color: red;">&#x25BC; ${String(value).slice(1)}%</b>)`
+          ? `(<b style="color: green;">▲ ${value}%</b>)`
+          : `(<b style="color: red;">▼ ${String(value).slice(1)}%</b>)`
         : ''
     )
 )
