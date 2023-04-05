@@ -187,7 +187,7 @@ exports.importDeltaVm = defer(async function importDeltaVm(
 
   // 0. Create suspend_VDI
   let suspendVdi
-  if (vmRecord.power_state === 'Suspended') {
+  if (vmRecord.suspend_VDI !== undefined) {
     const vdi = vdiRecords[vmRecord.suspend_VDI]
     if (vdi === undefined) {
       Task.warning('Suspend VDI not available for this suspended VM', {
