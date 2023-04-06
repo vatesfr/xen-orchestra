@@ -878,7 +878,7 @@ export async function convertToTemplate({ vm }) {
   // Attempts to eject all removable media
   const ignoreNotRemovable = error => {
     if (error.code !== 'VBD_NOT_REMOVABLE_MEDIA') {
-      console.warn('convertToTemplate(%s)', xapiVm.uuid, error)
+      throw error
     }
   }
   await asyncEach(xapiVm.VBDs, ref => xapi.callAsync('VBD.eject', ref).catch(ignoreNotRemovable))
