@@ -1,6 +1,5 @@
 'use strict'
 const { readChunkStrict, skipStrict } = require('@vates/read-chunk')
-const { createLogger } = require('@xen-orchestra/log')
 const { Readable } = require('node:stream')
 const { unpackHeader } = require('./Vhd/_utils')
 const {
@@ -14,8 +13,6 @@ const {
 } = require('./_constants')
 const { fuHeader, checksumStruct } = require('./_structs')
 const assert = require('node:assert')
-
-const { warn } = createLogger('vhd-lib:createStreamNbd')
 
 exports.createNbdRawStream = async function createRawStream(nbdClient) {
   const stream = Readable.from(nbdClient.readBlocks())
@@ -93,41 +90,17 @@ exports.createNbdVhdStream = async function createVhdStream(nbdClient, sourceStr
     sourceStream.destroy()
 
     const bitmap = Buffer.alloc(SECTOR_SIZE, 255)
-    let retry = 0
-    let done = false
-    let currentIndex = 0
-    do {
-      const nbdIterator = nbdClient.readBlocks(function* () {
-        for (const pos in entries) {
-          // don't yield again block that have already been yielded
-          if (pos < currentIndex) {
-            continue
-          }
-          const entry = entries[pos]
-          yield { index: entry, size: DEFAULT_BLOCK_SIZE }
-        }
-      })
-
-      try {
-        for await (const block of nbdIterator) {
-          retry = 0 // got a block, can reset the retry counter
-          currentIndex++
-          yield bitmap // don't forget the bitmap before the block
-          yield block
-        }
-
-        done = true
-      } catch (error) {
-        retry++
-        if (retry >= 5) {
-          throw error
-        }
-
-        warn('retry reading block', { currentIndex, retry, error })
-        await nbdClient.reconnect()
-        warn('reconnected to NBD server', { currentIndex, retry, nbdClient })
+    const nbdIterator = nbdClient.readBlocks(function* () {
+      for (const pos in entries) {
+        const entry = entries[pos]
+        yield { index: entry, size: DEFAULT_BLOCK_SIZE }
       }
-    } while (!done)
+    })
+
+    for await (const block of nbdIterator) {
+      yield bitmap // don't forget the bitmap before the block
+      yield block
+    }
 
     yield bufFooter
   }

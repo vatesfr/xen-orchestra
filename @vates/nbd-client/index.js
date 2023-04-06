@@ -18,7 +18,7 @@ const {
   OPTS_MAGIC,
   NBD_CMD_DISC,
 } = require('./constants.js')
-const { fromCallback } = require('promise-toolbox')
+const { fromCallback, pRetry } = require('promise-toolbox')
 const { readChunkStrict } = require('@vates/read-chunk')
 
 // documentation is here : https://github.com/NetworkBlockDevice/nbd/blob/master/doc/proto.md
@@ -38,6 +38,7 @@ module.exports = class NbdClient {
   #waitingForResponse // there is already a listenner waiting for a response
   #nextCommandQueryId = BigInt(0)
   #commandQueryBacklog // map of command waiting for an response queryId => { size/*in byte*/, resolve, reject}
+  #disconnected = false
 
   constructor({ address, port = NBD_DEFAULT_PORT, exportname, cert }) {
     this.#serverAddress = address
@@ -79,6 +80,7 @@ module.exports = class NbdClient {
   }
 
   async connect() {
+    this.#disconnected = false
     // first we connect to the serve without tls, and then we upgrade the connection
     // to tls during the handshake
     await this.#unsecureConnect()
@@ -90,6 +92,10 @@ module.exports = class NbdClient {
   }
 
   async disconnect() {
+    if (this.#disconnected) {
+      return
+    }
+    this.#disconnected = true
     const buffer = Buffer.alloc(28)
     buffer.writeInt32BE(NBD_REQUEST_MAGIC, 0) // it is a nbd request
     buffer.writeInt16BE(0, 4) // no command flags for a disconnect
@@ -186,7 +192,9 @@ module.exports = class NbdClient {
     if (this.#waitingForResponse) {
       return
     }
-
+    if (this.#disconnected) {
+      return
+    }
     try {
       this.#waitingForResponse = true
       const magic = await this.#readInt32()
@@ -282,7 +290,12 @@ module.exports = class NbdClient {
       }
 
       // error is handled during unshift
-      const promise = this.readBlock(index, size)
+      const promise = pRetry(() => this.readBlock(index, size), {
+        tries: 5,
+        onRetry: err => {
+          console.warn('will retry reading block ', index, err)
+        },
+      })
       promise.catch(() => {})
       readAhead.push(promise)
     }
