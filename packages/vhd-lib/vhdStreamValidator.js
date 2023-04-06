@@ -57,9 +57,7 @@ module.exports = async function* vhdStreamValidator(source) {
     // offset is the position at which the footer was read, not the position after
     offset -= last.length
 
-    last[0] = 127
-
-    assert.deepEqual(last, footer1)
+    assert.equal(last.String('hex'), footer1.String('hex'))
   } catch (error) {
     error.offset = offset
     throw error
