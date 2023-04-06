@@ -1,8 +1,8 @@
 <template>
-  <UiCard>
+  <UiCard :color="hasError ? 'error' : undefined">
     <UiTitle class="title-with-counter" type="h4">
       {{ $t("tasks") }}
-      <UiCounter :value="pendingTasks.length" color="info" />
+      <UiCounter :value="pendingTasks?.length ?? 0" color="info" />
     </UiTitle>
 
     <TasksTable :finished-tasks="finishedTasks" :pending-tasks="pendingTasks" />
@@ -30,33 +30,34 @@ import { useI18n } from "vue-i18n";
 const { records, isReady } = useTaskStore().subscribe();
 const { t } = useI18n();
 
-const { compareFn } = useCollectionSorter<XenApiTask>({
-  initialSorts: ["-created"],
-});
+let pendingTasks: ComputedRef<XenApiTask[]> | undefined,
+  finishedTasks: Ref | undefined;
 
 const allTasks = useSortedCollection(records, compareFn);
 
+const allTasks = useSortedCollection(allRecords, compareFn);
 const { predicate } = useCollectionFilter({
   initialFilters: ["!name_label:|(SR.scan host.call_plugin)", "status:pending"],
 });
 
-const pendingTasks = useFilteredCollection<XenApiTask>(allTasks, predicate);
+pendingTasks = useFilteredCollection<XenApiTask>(allTasks, predicate);
 
-const finishedTasks = useArrayRemovedItemsHistory(
-  allTasks,
-  (task) => task.uuid,
-  {
-    limit: 50,
-    onRemove: (tasks) =>
-      tasks.map((task) => ({
-        ...task,
-        finished: new Date().toISOString(),
-      })),
-  }
-);
+finishedTasks = useArrayRemovedItemsHistory(allTasks, (task) => task.uuid, {
+  limit: 50,
+  onRemove: (tasks) =>
+    tasks.map((task) => ({
+      ...task,
+      finished: new Date().toISOString(),
+    })),
+});
 
 useTitle(
-  computed(() => t("task.page-title", { n: pendingTasks.value.length }))
+  computed(() => {
+    const tasks = pendingTasks?.value;
+    return t("task.page-title", {
+      n: tasks === undefined ? 0 : tasks.length,
+    });
+  })
 );
 </script>
 
