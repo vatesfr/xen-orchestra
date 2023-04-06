@@ -196,6 +196,10 @@ module.exports = class NbdClient {
       return
     }
     try {
+      if (Math.random() > 0.9) {
+        console.log('nope')
+        throw new Error('nope')
+      }
       this.#waitingForResponse = true
       const magic = await this.#readInt32()
 
