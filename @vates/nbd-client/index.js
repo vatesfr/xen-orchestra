@@ -18,7 +18,7 @@ const {
   OPTS_MAGIC,
   NBD_CMD_DISC,
 } = require('./constants.js')
-const { fromCallback, pRetry } = require('promise-toolbox')
+const { fromCallback, pRetry, pDelay } = require('promise-toolbox')
 const { readChunkStrict } = require('@vates/read-chunk')
 
 // documentation is here : https://github.com/NetworkBlockDevice/nbd/blob/master/doc/proto.md
@@ -40,6 +40,7 @@ module.exports = class NbdClient {
   #commandQueryBacklog // map of command waiting for an response queryId => { size/*in byte*/, resolve, reject}
   #disconnected = false
 
+  #reconnectingPromise
   constructor({ address, port = NBD_DEFAULT_PORT, exportname, cert }) {
     this.#serverAddress = address
     this.#serverPort = port
@@ -80,12 +81,11 @@ module.exports = class NbdClient {
   }
 
   async connect() {
-    this.#disconnected = false
     // first we connect to the serve without tls, and then we upgrade the connection
     // to tls during the handshake
     await this.#unsecureConnect()
     await this.#handshake()
-
+    this.#disconnected = false
     // reset internal state if we reconnected a nbd client
     this.#commandQueryBacklog = new Map()
     this.#waitingForResponse = false
@@ -95,18 +95,36 @@ module.exports = class NbdClient {
     if (this.#disconnected) {
       return
     }
-    this.#disconnected = true
+
     const buffer = Buffer.alloc(28)
     buffer.writeInt32BE(NBD_REQUEST_MAGIC, 0) // it is a nbd request
     buffer.writeInt16BE(0, 4) // no command flags for a disconnect
     buffer.writeInt16BE(NBD_CMD_DISC, 6) // we want to disconnect from nbd server
     await this.#write(buffer)
     await this.#serverSocket.destroy()
+    this.#serverSocket = undefined
+    this.#disconnected = true
   }
 
   async reconnect() {
-    await this.disconnect().catch(() => {})
-    await this.connect
+    if (this.#reconnectingPromise) {
+      return this.#reconnectingPromise
+    }
+    let resolveReconnect, rejectReconnect
+    this.#reconnectingPromise = new Promise((resolve, reject) => {
+      resolveReconnect = resolve
+      rejectReconnect = reject
+    })
+    try {
+      await this.disconnect().catch(() => {})
+      await pDelay(1000) // nneed to let the xapi clean things on its side
+      await this.connect()
+      this.#reconnectingPromise = undefined
+      resolveReconnect()
+    } catch (err) {
+      rejectReconnect(err)
+      throw err
+    }
   }
 
   // we can use individual read/write from the socket here since there is no concurrency
@@ -184,7 +202,6 @@ module.exports = class NbdClient {
     this.#commandQueryBacklog.forEach(({ reject }) => {
       reject(error)
     })
-    await this.disconnect()
   }
 
   async #readBlockResponse() {
@@ -192,14 +209,7 @@ module.exports = class NbdClient {
     if (this.#waitingForResponse) {
       return
     }
-    if (this.#disconnected) {
-      return
-    }
     try {
-      if (Math.random() > 0.9) {
-        console.log('nope')
-        throw new Error('nope')
-      }
       this.#waitingForResponse = true
       const magic = await this.#readInt32()
 
@@ -223,7 +233,8 @@ module.exports = class NbdClient {
       query.resolve(data)
       this.#waitingForResponse = false
       if (this.#commandQueryBacklog.size > 0) {
-        await this.#readBlockResponse()
+        // it doesn't throw directly but will throw all relevant promise on failure
+        this.#readBlockResponse()
       }
     } catch (error) {
       // reject all the promises
@@ -234,6 +245,11 @@ module.exports = class NbdClient {
   }
 
   async readBlock(index, size = NBD_DEFAULT_BLOCK_SIZE) {
+    // we don't want to add anything in backlog while reconnecting
+    if (this.#reconnectingPromise) {
+      await this.#reconnectingPromise
+    }
+
     const queryId = this.#nextCommandQueryId
     this.#nextCommandQueryId++
 
@@ -284,24 +300,28 @@ module.exports = class NbdClient {
     }
     const readAhead = []
     const readAheadMaxLength = 10
+    const makeReadBlockPromise = (index, size) => {
+      const promise = pRetry(() => this.readBlock(index, size), {
+        tries: 5,
+        onRetry: async err => {
+          console.warn('will retry reading block ', index, err)
+          await this.reconnect()
+        },
+      })
+      // error is handled during unshift
+      promise.catch(() => {})
+      return promise
+    }
 
     // read all blocks, but try to keep readAheadMaxLength promise waiting ahead
     for (const { index, size } of indexGenerator()) {
-      // stack readAheadMaxLengthpromise before starting to handle the results
+      // stack readAheadMaxLength promises before starting to handle the results
       if (readAhead.length === readAheadMaxLength) {
         // any error will stop reading blocks
         yield readAhead.shift()
       }
 
-      // error is handled during unshift
-      const promise = pRetry(() => this.readBlock(index, size), {
-        tries: 5,
-        onRetry: err => {
-          console.warn('will retry reading block ', index, err)
-        },
-      })
-      promise.catch(() => {})
-      readAhead.push(promise)
+      readAhead.push(makeReadBlockPromise(index, size))
     }
     while (readAhead.length > 0) {
       yield readAhead.shift()

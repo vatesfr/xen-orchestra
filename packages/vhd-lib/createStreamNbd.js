@@ -89,19 +89,17 @@ exports.createNbdVhdStream = async function createVhdStream(nbdClient, sourceStr
     // close export stream we won't use it anymore
     sourceStream.destroy()
 
-    const bitmap = Buffer.alloc(SECTOR_SIZE, 255)
+    // yield  blocks from nbd
     const nbdIterator = nbdClient.readBlocks(function* () {
-      for (const pos in entries) {
-        const entry = entries[pos]
+      for (const entry of entries) {
         yield { index: entry, size: DEFAULT_BLOCK_SIZE }
       }
     })
-
+    const bitmap = Buffer.alloc(SECTOR_SIZE, 255)
     for await (const block of nbdIterator) {
       yield bitmap // don't forget the bitmap before the block
       yield block
     }
-
     yield bufFooter
   }
 
