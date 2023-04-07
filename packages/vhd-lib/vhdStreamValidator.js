@@ -1,10 +1,11 @@
 'use strict'
 
-const assert = require('node:assert').strict
-
+const diff = require('./_diff.js')
 const StreamReader = require('./_StreamReader.js')
 const { FOOTER_SIZE, HEADER_SIZE } = require('./_constants.js')
 const { unpackFooter, unpackHeader } = require('./Vhd/_utils.js')
+
+const toHex = buf => buf.toString('hex')
 
 // Async generator that can be in a pipeline to check the header and footers of a VHD stream.
 //
@@ -57,7 +58,18 @@ module.exports = async function* vhdStreamValidator(source) {
     // offset is the position at which the footer was read, not the position after
     offset -= last.length
 
-    assert.equal(last.String('hex'), footer1.String('hex'))
+    // do not use `assert.strictDeepEqual` as it does not provide a compact (for buffers) or complete (for strings) result
+    //
+    //  - save only expected data and diff
+    // - save expected buffer as hex string for compacity and readability
+    // - save diff as an array of differences represented as hex strings
+    if (!last.equals(footer1)) {
+      const error = new Error('footer1 !== footer2')
+      error.diff = diff(footer1, last, toHex)
+      error.expected = toHex(footer1)
+
+      throw error
+    }
   } catch (error) {
     error.offset = offset
     throw error
