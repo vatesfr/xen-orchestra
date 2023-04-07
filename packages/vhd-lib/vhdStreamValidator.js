@@ -1,11 +1,10 @@
 'use strict'
 
-const diff = require('./_diff.js')
-const StreamReader = require('./_StreamReader.js')
+const diff = require('@vates/diff')
+const StreamReader = require('@vates/stream-reader')
+
 const { FOOTER_SIZE, HEADER_SIZE } = require('./_constants.js')
 const { unpackFooter, unpackHeader } = require('./Vhd/_utils.js')
-
-const toHex = buf => buf.toString('hex')
 
 // Async generator that can be in a pipeline to check the header and footers of a VHD stream.
 //
@@ -65,8 +64,11 @@ module.exports = async function* vhdStreamValidator(source) {
     // - save diff as an array of differences represented as hex strings
     if (!last.equals(footer1)) {
       const error = new Error('footer1 !== footer2')
-      error.diff = diff(footer1, last, toHex)
-      error.expected = toHex(footer1)
+      error.diff = []
+      diff(footer1, last, (i, buf) => {
+        error.diff.push(i, buf.toString('hex'))
+      })
+      error.expected = footer1.toString('hex')
 
       throw error
     }

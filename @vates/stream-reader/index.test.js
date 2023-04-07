@@ -5,7 +5,7 @@ const assert = require('node:assert').strict
 
 const { Readable } = require('stream')
 
-const StreamReader = require('./_StreamReader.js')
+const StreamReader = require('./index.js')
 
 const makeStream = it => Readable.from(it, { objectMode: false })
 makeStream.obj = Readable.from

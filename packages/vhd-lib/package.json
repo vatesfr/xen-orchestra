@@ -16,7 +16,9 @@
   },
   "dependencies": {
     "@vates/async-each": "^1.0.0",
+    "@vates/diff": "^0.0.0",
     "@vates/read-chunk": "^1.1.0",
+    "@vates/stream-reader": "^0.0.0",
     "@xen-orchestra/async-map": "^0.1.2",
     "@xen-orchestra/fs": "^3.3.4",
     "@xen-orchestra/log": "^0.6.0",
@@ -28,7 +30,6 @@
     "promise-toolbox": "^0.21.0",
     "readable-stream": "^4.1.0",
     "struct-fu": "^1.2.0",
-    "test": "^3.3.0",
     "uuid": "^9.0.0"
   },
   "devDependencies": {
@@ -39,8 +40,7 @@
     "tmp": "^0.2.1"
   },
   "scripts": {
-    "postversion": "npm publish",
-    "test": "node--test"
+    "postversion": "npm publish"
   },
   "author": {
     "name": "Vates SAS",
