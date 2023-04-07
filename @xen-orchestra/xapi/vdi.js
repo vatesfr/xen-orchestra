@@ -70,7 +70,7 @@ class Vdi {
       // a little bit of randomization to spread the load
       const nbdInfo = nbdInfos[Math.floor(Math.random() * nbdInfos.length)]
       try {
-        const nbdClient = new NbdClient(nbdInfo)
+        const nbdClient = new NbdClient(nbdInfo, this._nbdOptions)
         await nbdClient.connect()
         return nbdClient
       } catch (err) {

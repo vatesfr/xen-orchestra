@@ -32,6 +32,10 @@ module.exports = class NbdClient {
   #exportName
   #exportSize
 
+  #waitBeforeReconnect
+  #readAhead
+  #readBlockRetries
+
   // AFAIK, there is no guaranty the server answers in the same order as the queries
   // so we handle a backlog of command waiting for response and handle concurrency manually
 
@@ -41,11 +45,17 @@ module.exports = class NbdClient {
   #disconnected = false
 
   #reconnectingPromise
-  constructor({ address, port = NBD_DEFAULT_PORT, exportname, cert }) {
+  constructor(
+    { address, port = NBD_DEFAULT_PORT, exportname, cert },
+    { waitBeforeReconnect = 1000, readAhead = 10, readBlockRetries = 5 } = {}
+  ) {
     this.#serverAddress = address
     this.#serverPort = port
     this.#exportName = exportname
     this.#serverCert = cert
+    this.#waitBeforeReconnect = waitBeforeReconnect
+    this.#readAhead = readAhead
+    this.#readBlockRetries = readBlockRetries
   }
 
   get exportSize() {
@@ -117,7 +127,7 @@ module.exports = class NbdClient {
     })
     try {
       await this.disconnect().catch(() => {})
-      await pDelay(1000) // nneed to let the xapi clean things on its side
+      await pDelay(this.#waitBeforeReconnect) // nneed to let the xapi clean things on its side
       await this.connect()
       this.#reconnectingPromise = undefined
       resolveReconnect()
@@ -299,10 +309,10 @@ module.exports = class NbdClient {
       }
     }
     const readAhead = []
-    const readAheadMaxLength = 10
+    const readAheadMaxLength = this.#readAhead
     const makeReadBlockPromise = (index, size) => {
       const promise = pRetry(() => this.readBlock(index, size), {
-        tries: 5,
+        tries: this.#readBlockRetries,
         onRetry: async err => {
           console.warn('will retry reading block ', index, err)
           await this.reconnect()
