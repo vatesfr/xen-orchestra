@@ -58,7 +58,7 @@ class StreamReader {
     }
 
     if (size !== undefined && chunk.length !== size) {
-      const error = new Error('stream has ended with not enough data')
+      const error = new Error(`stream has ended with not enough data (actual: ${chunk.length}, expected: ${size})`)
       Object.defineProperties(error, {
         chunk: {
           value: chunk,
@@ -106,7 +106,7 @@ class StreamReader {
   async skipStrict(size) {
     const bytesSkipped = await this.skip(size)
     if (bytesSkipped !== size) {
-      const error = new Error('stream has ended with not enough data')
+      const error = new Error(`stream has ended with not enough data (actual: ${bytesSkipped}, expected: ${size})`)
       error.bytesSkipped = bytesSkipped
       throw error
     }
