@@ -610,7 +610,7 @@ const New = decorate([
       },
       setMaxExportRate({ setGlobalSettings }, rate) {
         setGlobalSettings({
-          maxExportRate: rate * (1024 * 1024),
+          maxExportRate: rate !== undefined ? rate * (1024 * 1024) : undefined,
         })
       },
       setOfflineBackup:

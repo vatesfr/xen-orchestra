@@ -130,7 +130,7 @@ exports.Task = class Task {
       return true
     }
 
-    return false;
+    return false
   }
 
   async run(fn) {

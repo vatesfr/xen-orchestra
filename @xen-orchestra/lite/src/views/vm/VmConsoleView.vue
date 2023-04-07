@@ -30,7 +30,7 @@ const route = useRoute();
 const vmStore = useVmStore();
 const consoleStore = useConsoleStore();
 
-const isLoading = computed(() => vmStore.isLoading && consoleStore.isLoading);
+const isLoading = computed(() => vmStore.isLoading || consoleStore.isLoading);
 
 const vm = computed(
   () => vmStore.getRecordByUuid(route.params.uuid as string)!
