@@ -18,7 +18,9 @@ const assert = require('assert')
  * @returns {Promise<Buffer|string|unknown|null>} - A Promise that resolves to the read chunk if available, or null if end of stream is reached.
  */
 const readChunk = (stream, size) =>
-  stream.closed || stream.readableEnded
+  stream.errored != null
+    ? Promise.reject(stream.errored)
+    : stream.closed || stream.readableEnded
     ? Promise.resolve(null)
     : new Promise((resolve, reject) => {
         if (size !== undefined) {
@@ -98,7 +100,9 @@ exports.readChunkStrict = async function readChunkStrict(stream, size) {
  * @returns {Promise<number>} A Promise that resolves to the number of bytes actually skipped. If the end of the stream is reached before all bytes are skipped, the Promise resolves to the number of bytes that were skipped before the end of the stream was reached. The Promise is rejected if there is an error while reading from the stream.
  */
 async function skip(stream, size) {
-  return size === 0 || stream.closed || stream.readableEnded
+  return stream.errored != null
+    ? Promise.reject(stream.errored)
+    : size === 0 || stream.closed || stream.readableEnded
     ? Promise.resolve(0)
     : new Promise((resolve, reject) => {
         let left = size

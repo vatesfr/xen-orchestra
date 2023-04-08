@@ -18,6 +18,32 @@ const rejectionOf = promise =>
     error => error
   )
 
+const makeErrorTests = fn => {
+  it('rejects if the stream errors', async () => {
+    const error = new Error()
+    const stream = makeStream([])
+
+    const pError = rejectionOf(fn(stream, 10))
+    stream.destroy(error)
+
+    assert.strict(await pError, error)
+  })
+
+  // only supported for Node >= 18
+  if (process.versions.node.split('.')[0] >= 18) {
+    it('rejects if the stream has already errored', async () => {
+      const error = new Error()
+      const stream = makeStream([])
+
+      await new Promise(resolve => {
+        stream.once('error', resolve).destroy(error)
+      })
+
+      assert.strict(await rejectionOf(fn(stream, 10)), error)
+    })
+  }
+}
+
 describe('readChunk', () => {
   it('rejects if size is less than or equal to 0', async () => {
     const error = await rejectionOf(readChunk(makeStream([]), 0))
@@ -28,6 +54,8 @@ describe('readChunk', () => {
     const error = await rejectionOf(readChunk(makeStream([]), 1024 * 1024 * 1024))
     assert.strictEqual(error.code, 'ERR_ASSERTION')
   })
+
+  makeErrorTests(readChunk)
 
   it('returns null if stream is empty', async () => {
     assert.strictEqual(await readChunk(makeStream([])), null)
@@ -83,6 +111,8 @@ describe('readChunkStrict', function () {
 })
 
 describe('skip', function () {
+  makeErrorTests(skip)
+
   it('returns 0 if size is 0', async () => {
     assert.strictEqual(await skip(makeStream(['foo']), 0), 0)
   })

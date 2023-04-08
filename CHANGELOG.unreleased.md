@@ -16,6 +16,7 @@
 - [Plugins/usage-report] Compute stats on configured period instead of the whole year (PR [#6723](https://github.com/vatesfr/xen-orchestra/pull/6723))
 - [Backup] Fix `Invalid parameters` when deleting `speed limit` value (PR [#6768](https://github.com/vatesfr/xen-orchestra/pull/6768))
 - [Delta Backup] Restoring a backup with memory must create a suspended VM [#5061](https://github.com/vatesfr/xen-orchestra/issues/5061) (PR [#6774](https://github.com/vatesfr/xen-orchestra/pull/6774))
+- [Backup] Show original error instead of `stream has ended without data`
 
 ### Packages to release
 
@@ -33,6 +34,7 @@
 
 <!--packages-start-->
 
+- @vates/read-chunk patch
 - xo-web patch
 - xo-server minor
 - xo-server-usage-report patch
