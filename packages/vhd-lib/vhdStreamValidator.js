@@ -14,9 +14,9 @@ const { unpackFooter, unpackHeader } = require('./Vhd/_utils.js')
 module.exports = async function* vhdStreamValidator(source) {
   let offset = 0
   try {
-    const it = new StreamReader(source)
+    const reader = new StreamReader(source)
 
-    const footer1 = await it.readStrict(FOOTER_SIZE)
+    const footer1 = await reader.readStrict(FOOTER_SIZE)
     yield footer1
 
     // unpack and validate footer
@@ -24,7 +24,7 @@ module.exports = async function* vhdStreamValidator(source) {
 
     offset += footer1.length
 
-    const header = await it.readStrict(HEADER_SIZE)
+    const header = await reader.readStrict(HEADER_SIZE)
     yield header
 
     // unpack and validate header
@@ -34,7 +34,7 @@ module.exports = async function* vhdStreamValidator(source) {
 
     let last
     while (true) {
-      const chunk = await it.read(FOOTER_SIZE)
+      const chunk = await reader.read(FOOTER_SIZE)
 
       if (chunk === null) {
         // the end has been reached, `last` contains the footer
