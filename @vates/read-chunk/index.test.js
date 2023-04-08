@@ -105,7 +105,7 @@ describe('readChunkStrict', function () {
   it('throws if stream ends with not enough data', async () => {
     const error = await rejectionOf(readChunkStrict(makeStream(['foo', 'bar']), 10))
     assert(error instanceof Error)
-    assert.strictEqual(error.message, 'stream has ended with not enough data')
+    assert.strictEqual(error.message, 'stream has ended with not enough data (actual: 6, expected: 10)')
     assert.deepEqual(error.chunk, Buffer.from('foobar'))
   })
 })
@@ -141,7 +141,7 @@ describe('skipStrict', function () {
     const error = await rejectionOf(skipStrict(makeStream('foo bar'), 10))
 
     assert(error instanceof Error)
-    assert.strictEqual(error.message, 'stream has ended with not enough data')
+    assert.strictEqual(error.message, 'stream has ended with not enough data (actual: 7, expected: 10)')
     assert.deepEqual(error.bytesSkipped, 7)
   })
 })
