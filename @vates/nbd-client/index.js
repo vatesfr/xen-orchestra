@@ -42,7 +42,7 @@ module.exports = class NbdClient {
   #waitingForResponse // there is already a listenner waiting for a response
   #nextCommandQueryId = BigInt(0)
   #commandQueryBacklog // map of command waiting for an response queryId => { size/*in byte*/, resolve, reject}
-  #disconnected = false
+  #connected = false
 
   #reconnectingPromise
   constructor(
@@ -95,14 +95,14 @@ module.exports = class NbdClient {
     // to tls during the handshake
     await this.#unsecureConnect()
     await this.#handshake()
-    this.#disconnected = false
+    this.#connected = true
     // reset internal state if we reconnected a nbd client
     this.#commandQueryBacklog = new Map()
     this.#waitingForResponse = false
   }
 
   async disconnect() {
-    if (this.#disconnected) {
+    if (!this.#connected) {
       return
     }
 
@@ -113,7 +113,7 @@ module.exports = class NbdClient {
     await this.#write(buffer)
     await this.#serverSocket.destroy()
     this.#serverSocket = undefined
-    this.#disconnected = true
+    this.#connected = false
   }
 
   async reconnect() {
