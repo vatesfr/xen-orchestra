@@ -748,7 +748,7 @@ class RemoteAdapter {
     // it's enumerable to make it cacheable
     const metadata = { ...JSON.parse(await this._handler.readFile(path)), _filename: path }
     // older xenserver version store boolean as int, and it breaks on restore
-    if (metadata.vm.is_a_template === 0 || metadata.vm.is_a_template === 1) {
+    if (typeof metadata.vm.is_a_template === 'number') {
       const properties = {
         vbds: ['bootable', 'unpluggable', 'storage_lock', 'empty', 'currently_attached'],
         vdis: [
