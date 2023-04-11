@@ -768,7 +768,7 @@ class RemoteAdapter {
 
       function clean(obj, properties) {}
 
-      for (const [key, propertiesInKey] in Object.entries(properties)) {
+      for (const [key, propertiesInKey] of Object.entries(properties)) {
         if (metadata[key] === undefined) {
           continue
         }
