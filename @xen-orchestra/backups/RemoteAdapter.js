@@ -747,6 +747,7 @@ class RemoteAdapter {
     //
     // it's enumerable to make it cacheable
     const metadata = { ...JSON.parse(await this._handler.readFile(path)), _filename: path }
+
     // older xenserver version store boolean as int, and it breaks on restore
     if (typeof metadata.vm.is_a_template === 'number') {
       const properties = {
@@ -766,19 +767,23 @@ class RemoteAdapter {
         vmSnapshot: ['is_a_template', 'is_control_domain', 'ha_always_run', 'is_snapshot_from_vmpp'],
       }
 
-      function clean(obj, properties) {}
+      function clean(obj, properties) {
+        properties.forEach(key => {
+          if (typeof obj[key] === 'number') {
+            obj[key] = obj[key] === 1
+          }
+        })
+      }
 
       for (const [key, propertiesInKey] of Object.entries(properties)) {
-        if (metadata[key] === undefined) {
-          continue
+        if (metadata[key] !== undefined) {
+          const value = metadata[key]
+          const isCollection = Object.keys(value).some(subKey => subKey.startsWith('OpaqueRef:'))
+          isCollection
+            ? Object.keys(metadata[key]).forEach(subKey => clean(metadata[key][subKey], propertiesInKey))
+            : clean(metadata[key], propertiesInKey)
         }
-        metadata[key] = Array.isArray(metadata[key])
-          ? metadata[key].map(obj => clean(obj, propertiesInKey))
-          : clean(metadata[key], propertiesInKey)
       }
-      Object.keys(metadata.vbds).forEach(opaqueRef => {
-        metadata.vbds[opaqueRef].bootable = metadata.vbds[opaqueRef].bootable === 1
-      })
     }
     return metadata
   }
