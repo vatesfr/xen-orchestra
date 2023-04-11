@@ -1,6 +1,15 @@
 {
   "private": false,
   "name": "@vates/diff",
+  "description": "Computes differences between two arrays, buffers or strings",
+  "keywords": [
+    "array",
+    "binary",
+    "buffer",
+    "diff",
+    "differences",
+    "string"
+  ],
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@vates/diff",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "repository": {

@@ -1,6 +1,18 @@
 {
   "private": false,
   "name": "@vates/stream-reader",
+  "description": "Efficiently reads and skips chunks of a given size in a stream",
+  "keywords": [
+    "async",
+    "chunk",
+    "data",
+    "node",
+    "promise",
+    "read",
+    "reader",
+    "skip",
+    "stream"
+  ],
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@vates/stream-reader",
   "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
   "repository": {
