@@ -119,25 +119,24 @@ module.exports = class NbdClient {
     this.#connected = false
   }
 
+  #clearReconnectPromise() {
+    this.#reconnectingPromise = undefined
+  }
+
+  async #reconnect() {
+    await this.disconnect().catch(() => {})
+    await pDelay(this.#waitBeforeReconnect) // need to let the xapi clean things on its side
+    await this.connect()
+  }
+
   async reconnect() {
-    if (this.#reconnectingPromise) {
-      return this.#reconnectingPromise
+    // we need to ensure reconnections do not occur in parallel
+    if (this.#reconnectingPromise === undefined) {
+      this.#reconnectingPromise = this.#reconnect()
+      this.#reconnectingPromise.then(this.#clearReconnectPromise, this.#clearReconnectPromise)
     }
-    let resolveReconnect, rejectReconnect
-    this.#reconnectingPromise = new Promise((resolve, reject) => {
-      resolveReconnect = resolve
-      rejectReconnect = reject
-    })
-    try {
-      await this.disconnect().catch(() => {})
-      await pDelay(this.#waitBeforeReconnect) // nneed to let the xapi clean things on its side
-      await this.connect()
-      this.#reconnectingPromise = undefined
-      resolveReconnect()
-    } catch (err) {
-      rejectReconnect(err)
-      throw err
-    }
+
+    return this.#reconnectingPromise
   }
 
   // we can use individual read/write from the socket here since there is no concurrency
