@@ -259,8 +259,11 @@ const help = wrap(
     <property>=<value>
       Restricted displayed objects to those matching the patterns.
 
-  $name <command> [<name>=<value>]...
+  $name <command> [--json] [<name>=<value>]...
     Executes a command on the current XO instance.
+
+    --json
+      Prints the result in JSON format.
 
 $name v$version`.replace(/<([^>]+)>|\$(\w+)/g, function (_, arg, key) {
       if (arg) {
@@ -449,6 +452,11 @@ function ensurePathParam(method, value) {
 }
 
 async function call(args) {
+  const jsonOutput = args[1] === '--json'
+  if (jsonOutput) {
+    args.splice(1, 1)
+  }
+
   if (!args.length) {
     throw new Error('missing command name')
   }
@@ -518,7 +526,7 @@ async function call(args) {
       }
     }
 
-    return result
+    return jsonOutput ? JSON.stringify(result, null, 2) : result
   } finally {
     await xo.close()
   }
@@ -539,7 +547,7 @@ main(process.argv.slice(2)).then(
           typeof result === 'string'
             ? result
             : inspect(result, {
-                colors: true,
+                colors: Boolean(stdout.isTTY),
                 depth: null,
                 sorted: true,
               })
@@ -556,7 +564,7 @@ main(process.argv.slice(2)).then(
       typeof error === 'string'
         ? error
         : inspect(error, {
-            colors: true,
+            colors: Boolean(stderr.isTTY),
             depth: null,
             sorted: true,
           })

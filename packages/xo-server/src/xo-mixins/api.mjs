@@ -56,7 +56,7 @@ const XAPI_ERROR_TO_XO_ERROR = {
 
 const hasPermission = (actual, expected) => PERMISSIONS[actual] >= PERMISSIONS[expected]
 
-const ajv = new Ajv({ allErrors: true, allowUnionTypes: true })
+const ajv = new Ajv({ allErrors: true, allowUnionTypes: true, useDefaults: true })
 
 function checkParams(method, params) {
   const { validate } = method

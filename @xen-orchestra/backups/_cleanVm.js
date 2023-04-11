@@ -541,7 +541,8 @@ exports.cleanVm = async function cleanVm(
 
         // don't warn if the size has changed after a merge
         if (!merged && fileSystemSize !== size) {
-          logWarn('incorrect backup size in metadata', {
+          // FIXME: figure out why it occurs so often and, once fixed, log the real problems with `logWarn`
+          console.warn('cleanVm: incorrect backup size in metadata', {
             path: metadataPath,
             actual: size ?? 'none',
             expected: fileSystemSize,

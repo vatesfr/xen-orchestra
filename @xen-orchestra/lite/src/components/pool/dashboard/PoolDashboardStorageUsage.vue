@@ -1,10 +1,15 @@
 <template>
-  <UiCard>
+  <UiCard :color="hasError ? 'error' : undefined">
     <UiCardTitle
       :left="$t('storage-usage')"
       :right="$t('top-#', { n: N_ITEMS })"
     />
-    <UsageBar :data="isReady ? data.result : undefined" :nItems="N_ITEMS">
+    <NoDataError v-if="hasError" />
+    <UsageBar
+      v-else
+      :data="isReady ? data.result : undefined"
+      :nItems="N_ITEMS"
+    >
       <template #footer>
         <SizeStatsSummary :size="data.maxSize" :usage="data.usedSize" />
       </template>
@@ -13,6 +18,7 @@
 </template>
 
 <script lang="ts" setup>
+import NoDataError from "@/components/NoDataError.vue";
 import SizeStatsSummary from "@/components/ui/SizeStatsSummary.vue";
 import UiCard from "@/components/ui/UiCard.vue";
 import UiCardTitle from "@/components/ui/UiCardTitle.vue";
@@ -21,7 +27,7 @@ import { useSrStore } from "@/stores/storage.store";
 import { N_ITEMS } from "@/views/pool/PoolDashboardView.vue";
 import { computed } from "vue";
 
-const { records: srs, isReady } = useSrStore().subscribe();
+const { records: srs, isReady, hasError } = useSrStore().subscribe();
 
 const data = computed<{
   result: { id: string; label: string; value: number }[];

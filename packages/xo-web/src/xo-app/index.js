@@ -187,7 +187,7 @@ export const ICON_POOL_LICENSE = {
         if (getXoaPlan() === SOURCES.name) {
           poolLicenseInfoByPoolId[poolId] = {
             nHostsUnderLicense,
-            icon: () => <Icon icon='unknown-status' className='text-danger' />,
+            icon: () => <Icon icon='unknown-status' className='text-warning' />,
             nHosts,
           }
           return
@@ -195,7 +195,12 @@ export const ICON_POOL_LICENSE = {
 
         for (const host of hosts) {
           const license = xcpngLicenseByBoundObjectId[host.id]
-          if (license !== undefined && license.expires > Date.now()) {
+          if (license === undefined) {
+            continue
+          }
+          license.expires = license.expires ?? Infinity
+
+          if (license.expires > Date.now()) {
             nHostsUnderLicense++
             if (earliestExpirationDate === undefined || license.expires < earliestExpirationDate) {
               earliestExpirationDate = license.expires

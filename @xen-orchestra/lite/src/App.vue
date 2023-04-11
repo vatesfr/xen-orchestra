@@ -20,15 +20,13 @@
       <UiButton @click="clearUnreachableHostsUrls">{{ $t("cancel") }}</UiButton>
     </template>
   </UiModal>
-  <div v-if="!xenApiStore.isConnected">
+  <div v-if="!$route.meta.hasStoryNav && !xenApiStore.isConnected">
     <AppLogin />
   </div>
   <div v-else>
     <AppHeader />
     <div style="display: flex">
-      <transition name="slide">
-        <AppNavigation />
-      </transition>
+      <AppNavigation />
       <main class="main">
         <RouterView />
       </main>
@@ -59,7 +57,9 @@ import { computed, ref, watch } from "vue";
 const unreachableHostsUrls = ref<URL[]>([]);
 const clearUnreachableHostsUrls = () => (unreachableHostsUrls.value = []);
 
-let link: HTMLLinkElement | null = document.querySelector("link[rel~='icon']");
+let link = document.querySelector(
+  "link[rel~='icon']"
+) as HTMLLinkElement | null;
 if (link == null) {
   link = document.createElement("link");
   link.rel = "icon";
@@ -119,17 +119,9 @@ const reload = () => window.location.reload();
 
 <style lang="postcss">
 @import "@/assets/base.css";
+</style>
 
-.slide-enter-active,
-.slide-leave-active {
-  transition: transform 0.3s ease;
-}
-
-.slide-enter-from,
-.slide-leave-to {
-  transform: translateX(-37rem);
-}
-
+<style lang="postcss" scoped>
 .main {
   overflow: auto;
   flex: 1;

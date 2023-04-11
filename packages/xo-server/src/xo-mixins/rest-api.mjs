@@ -164,9 +164,21 @@ export default class RestApi {
     api.get('/', (req, res) => sendObjects(collections, req, res))
 
     api
-      .get(['/backups', '/restore'], (req, res) => {
-        sendObjects([{ id: 'logs' }], req, res)
+      .get('/backups', (req, res) => {
+        sendObjects([{ id: 'jobs' }, { id: 'logs' }], req, res)
       })
+      .get(
+        '/backups/jobs',
+        wrap(async (req, res) => {
+          sendObjects(await app.getAllJobs('backup'), req, res)
+        })
+      )
+      .get(
+        '/backups/jobs/:id',
+        wrap(async (req, res) => {
+          res.json(await app.getJob(req.params.id, 'backup'))
+        })
+      )
       .get(
         '/backups/logs',
         wrap(async (req, res) => {
@@ -176,6 +188,9 @@ export default class RestApi {
           sendObjects(logs, req, res)
         })
       )
+      .get('/restore', (req, res) => {
+        sendObjects([{ id: 'logs' }], req, res)
+      })
       .get(
         '/restore/logs',
         wrap(async (req, res) => {

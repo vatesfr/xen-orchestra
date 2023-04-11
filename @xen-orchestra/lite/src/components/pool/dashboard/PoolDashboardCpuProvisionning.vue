@@ -35,7 +35,7 @@ import UiCard from "@/components/ui/UiCard.vue";
 import UiCardFooter from "@/components/ui/UiCardFooter.vue";
 import UiCardTitle from "@/components/ui/UiCardTitle.vue";
 import UiSpinner from "@/components/ui/UiSpinner.vue";
-import { isHostRunning, percent } from "@/libs/utils";
+import { percent } from "@/libs/utils";
 import { useHostMetricsStore } from "@/stores/host-metrics.store";
 import { useHostStore } from "@/stores/host.store";
 import { useVmMetricsStore } from "@/stores/vm-metrics.store";
@@ -45,34 +45,35 @@ import { computed } from "vue";
 
 const ACTIVE_STATES = new Set(["Running", "Paused"]);
 
-const { records: hosts, isReady: isHostStoreReady } =
-  useHostStore().subscribe();
+const { isReady: isHostStoreReady, runningHosts } = useHostStore().subscribe({
+  hostMetricsSubscription: useHostMetricsStore().subscribe(),
+});
 
 const { records: vms, isReady: isVmStoreReady } = useVmStore().subscribe();
 
 const { getByOpaqueRef: getVmMetrics, isReady: isVmMetricsStoreReady } =
   useVmMetricsStore().subscribe();
 
-const hostMetricsSubscription = useHostMetricsStore().subscribe();
-
 const nPCpu = computed(() =>
-  hosts.value.reduce(
-    (total, host) =>
-      isHostRunning(host, hostMetricsSubscription)
-        ? total + Number(host.cpu_info.cpu_count)
-        : total,
+  runningHosts.value.reduce(
+    (total, host) => total + Number(host.cpu_info.cpu_count),
     0
   )
 );
-const nVCpuInUse = computed(() =>
-  vms.value.reduce(
+
+const nVCpuInUse = computed(() => {
+  if (!isReady.value) {
+    return 0;
+  }
+
+  return vms.value.reduce(
     (total, vm) =>
       ACTIVE_STATES.has(vm.power_state)
         ? total + getVmMetrics(vm.metrics)!.VCPUs_number
         : total,
     0
-  )
-);
+  );
+});
 const value = computed(() =>
   Math.round(percent(nVCpuInUse.value, nPCpu.value))
 );

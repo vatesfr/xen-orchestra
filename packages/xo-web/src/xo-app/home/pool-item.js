@@ -84,7 +84,10 @@ export default class PoolItem extends Component {
       tooltip = _('poolSupportSourceUsers')
     }
     if (supportLevel === 'total') {
-      tooltip = _('earliestExpirationDate', { dateString: <ShortDate timestamp={earliestExpirationDate} /> })
+      tooltip = _('earliestExpirationDate', {
+        dateString:
+          earliestExpirationDate === Infinity ? _('noExpiration') : <ShortDate timestamp={earliestExpirationDate} />,
+      })
     }
     if (supportLevel === 'partial') {
       tooltip = _('poolPartialSupport', { nHostsLicense: nHostsUnderLicense, nHosts })
@@ -107,7 +110,7 @@ export default class PoolItem extends Component {
       if (isAdmin && this._isXcpngPool()) {
         const { icon, supportLevel } = poolLicenseInfo
         if (supportLevel !== 'total') {
-          const level = supportLevel === 'partial' ? 'warning' : 'danger'
+          const level = supportLevel === 'partial' || getXoaPlan() === SOURCES ? 'warning' : 'danger'
           alerts.push({
             level,
             render: (

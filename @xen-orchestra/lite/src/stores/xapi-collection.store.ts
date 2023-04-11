@@ -14,7 +14,7 @@ import type {
 import { useXenApiStore } from "@/stores/xen-api.store";
 import { tryOnUnmounted, whenever } from "@vueuse/core";
 import { defineStore } from "pinia";
-import { computed, type ComputedRef, type Ref, ref } from "vue";
+import { computed, type ComputedRef, readonly, type Ref, ref } from "vue";
 
 export const useXapiCollectionStore = defineStore("xapiCollection", () => {
   const collections = ref(
@@ -40,11 +40,19 @@ export interface CollectionSubscription<T extends XenApiRecord> {
   getByOpaqueRef: (opaqueRef: string) => T | undefined;
   getByUuid: (uuid: string) => T | undefined;
   hasUuid: (uuid: string) => boolean;
-  isReady: Ref<boolean>;
+  isReady: Readonly<Ref<boolean>>;
+  isFetching: Readonly<Ref<boolean>>;
+  isReloading: ComputedRef<boolean>;
+  hasError: ComputedRef<boolean>;
+  lastError: Readonly<Ref<string | undefined>>;
 }
 
 const createXapiCollection = <T extends XenApiRecord>(type: RawObjectType) => {
   const isReady = ref(false);
+  const isFetching = ref(false);
+  const isReloading = computed(() => isReady.value && isFetching.value);
+  const lastError = ref<string>();
+  const hasError = computed(() => lastError.value !== undefined);
   const subscriptions = ref(new Set<symbol>());
   const recordsByOpaqueRef = ref(new Map<string, T>());
   const recordsByUuid = ref(new Map<string, T>());
@@ -75,11 +83,19 @@ const createXapiCollection = <T extends XenApiRecord>(type: RawObjectType) => {
   const hasSubscriptions = computed(() => subscriptions.value.size > 0);
 
   const fetchAll = async () => {
-    const records = await xenApiStore.getXapi().loadRecords<T>(type);
-    recordsByOpaqueRef.value.clear();
-    recordsByUuid.value.clear();
-    records.forEach(add);
-    isReady.value = true;
+    try {
+      isFetching.value = true;
+      lastError.value = undefined;
+      const records = await xenApiStore.getXapi().loadRecords<T>(type);
+      recordsByOpaqueRef.value.clear();
+      recordsByUuid.value.clear();
+      records.forEach(add);
+      isReady.value = true;
+    } catch (e) {
+      lastError.value = `[${type}] Failed to fetch records`;
+    } finally {
+      isFetching.value = false;
+    }
   };
 
   const add = (record: T) => {
@@ -107,7 +123,7 @@ const createXapiCollection = <T extends XenApiRecord>(type: RawObjectType) => {
     () => fetchAll()
   );
 
-  const subscribe = (): CollectionSubscription<T> => {
+  const subscribe = () => {
     const id = Symbol();
 
     subscriptions.value.add(id);
@@ -121,7 +137,11 @@ const createXapiCollection = <T extends XenApiRecord>(type: RawObjectType) => {
       getByOpaqueRef,
       getByUuid,
       hasUuid,
-      isReady,
+      isReady: readonly(isReady),
+      isFetching: readonly(isFetching),
+      isReloading: isReloading,
+      hasError,
+      lastError: readonly(lastError),
     };
   };
 

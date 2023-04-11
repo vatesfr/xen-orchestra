@@ -5,6 +5,7 @@
   <ObjectNotFoundView v-else-if="isRecordNotFound" :id="id" />
   <slot v-else />
 </template>
+
 <script lang="ts" setup>
 import UiSpinner from "@/components/ui/UiSpinner.vue";
 import ObjectNotFoundView from "@/views/ObjectNotFoundView.vue";

@@ -1,9 +1,10 @@
-import type { RawObjectType } from "@/libs/xen-api";
 import type {
+  RawObjectType,
   RawXenApiRecord,
   XenApiHost,
   XenApiHostMetrics,
   XenApiRecord,
+  XenApiVm,
 } from "@/libs/xen-api";
 import type { CollectionSubscription } from "@/stores/xapi-collection.store";
 import type { Filter } from "@/types/filter";
@@ -11,7 +12,7 @@ import { faSquareCheck } from "@fortawesome/free-regular-svg-icons";
 import { faFont, faHashtag, faList } from "@fortawesome/free-solid-svg-icons";
 import { utcParse } from "d3-time-format";
 import humanFormat from "human-format";
-import { find, forEach, round, size, sum } from "lodash-es";
+import { castArray, find, forEach, round, size, sum } from "lodash-es";
 
 export function sortRecordsByNameLabel(
   record1: { name_label: string },
@@ -178,3 +179,13 @@ export function requireSubscription<T>(
     throw new Error(`You need to provide a ${type} subscription`);
   }
 }
+
+export const isOperationsPending = (
+  obj: XenApiVm,
+  operations: string[] | string
+) => {
+  const currentOperations = Object.values(obj.current_operations);
+  return castArray(operations).some((operation) =>
+    currentOperations.includes(operation)
+  );
+};

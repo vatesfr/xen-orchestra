@@ -12,6 +12,7 @@ const { PoolMetadataBackup } = require('./_PoolMetadataBackup.js')
 const { Task } = require('./Task.js')
 const { VmBackup } = require('./_VmBackup.js')
 const { XoMetadataBackup } = require('./_XoMetadataBackup.js')
+const createStreamThrottle = require('./_createStreamThrottle.js')
 
 const noop = Function.prototype
 
@@ -40,6 +41,7 @@ const DEFAULT_VM_SETTINGS = {
   fullInterval: 0,
   healthCheckSr: undefined,
   healthCheckVmsWithTags: [],
+  maxExportRate: 0,
   maxMergedDeltasPerRun: Infinity,
   offlineBackup: false,
   offlineSnapshot: false,
@@ -226,9 +228,11 @@ exports.Backup = class Backup {
     // FIXME: proper SimpleIdPattern handling
     const getSnapshotNameLabel = this._getSnapshotNameLabel
     const schedule = this._schedule
+    const settings = this._settings
+
+    const throttleStream = createStreamThrottle(settings.maxExportRate)
 
     const config = this._config
-    const settings = this._settings
     await Disposable.use(
       Disposable.all(
         extractIdsFromSimplePattern(job.srs).map(id =>
@@ -265,23 +269,35 @@ exports.Backup = class Backup {
         const allSettings = this._job.settings
         const baseSettings = this._baseSettings
 
-        const handleVm = vmUuid =>
-          runTask({ name: 'backup VM', data: { type: 'VM', id: vmUuid } }, () =>
-            Disposable.use(this._getRecord('VM', vmUuid), vm =>
-              new VmBackup({
-                baseSettings,
-                config,
-                getSnapshotNameLabel,
-                healthCheckSr,
-                job,
-                remoteAdapters,
-                schedule,
-                settings: { ...settings, ...allSettings[vm.uuid] },
-                srs,
-                vm,
-              }).run()
-            )
+        const handleVm = vmUuid => {
+          const taskStart = { name: 'backup VM', data: { type: 'VM', id: vmUuid } }
+
+          return this._getRecord('VM', vmUuid).then(
+            disposableVm =>
+              Disposable.use(disposableVm, vm => {
+                taskStart.data.name_label = vm.name_label
+                return runTask(taskStart, () =>
+                  new VmBackup({
+                    baseSettings,
+                    config,
+                    getSnapshotNameLabel,
+                    healthCheckSr,
+                    job,
+                    remoteAdapters,
+                    schedule,
+                    settings: { ...settings, ...allSettings[vm.uuid] },
+                    srs,
+                    throttleStream,
+                    vm,
+                  }).run()
+                )
+              }),
+            error =>
+              runTask(taskStart, () => {
+                throw error
+              })
           )
+        }
         const { concurrency } = settings
         await asyncMapSettled(vmIds, concurrency === 0 ? handleVm : limitConcurrency(concurrency)(handleVm))
       }

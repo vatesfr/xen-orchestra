@@ -231,19 +231,58 @@ module.exports = class NbdClient {
     buffer.writeInt32BE(size, 24)
 
     return new Promise((resolve, reject) => {
+      function decoratedReject(error) {
+        error.index = index
+        error.size = size
+        reject(error)
+      }
+
       // this will handle one block response, but it can be another block
       // since server does not guaranty to handle query in order
       this.#commandQueryBacklog.set(queryId, {
         size,
         resolve,
-        reject,
+        reject: decoratedReject,
       })
       // really send the command to the server
-      this.#write(buffer).catch(reject)
+      this.#write(buffer).catch(decoratedReject)
 
       // #readBlockResponse never throws directly
       // but if it fails it will reject all the promises in the backlog
       this.#readBlockResponse()
     })
+  }
+
+  async *readBlocks(indexGenerator) {
+    // default : read all blocks
+    if (indexGenerator === undefined) {
+      const exportSize = this.#exportSize
+      const chunkSize = 2 * 1024 * 1024
+      indexGenerator = function* () {
+        const nbBlocks = Math.ceil(exportSize / chunkSize)
+        for (let index = 0; index < nbBlocks; index++) {
+          yield { index, size: chunkSize }
+        }
+      }
+    }
+    const readAhead = []
+    const readAheadMaxLength = 10
+
+    // read all blocks, but try to keep readAheadMaxLength promise waiting ahead
+    for (const { index, size } of indexGenerator()) {
+      // stack readAheadMaxLengthpromise before starting to handle the results
+      if (readAhead.length === readAheadMaxLength) {
+        // any error will stop reading blocks
+        yield readAhead.shift()
+      }
+
+      // error is handled during unshift
+      const promise = this.readBlock(index, size)
+      promise.catch(() => {})
+      readAhead.push(promise)
+    }
+    while (readAhead.length > 0) {
+      yield readAhead.shift()
+    }
   }
 }

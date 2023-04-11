@@ -55,6 +55,7 @@ class VmBackup {
     schedule,
     settings,
     srs,
+    throttleStream,
     vm,
   }) {
     if (vm.other_config['xo:backup:job'] === job.id && 'start' in vm.blocked_operations) {
@@ -82,6 +83,7 @@ class VmBackup {
     this._healthCheckSr = healthCheckSr
     this._jobId = job.id
     this._jobSnapshots = undefined
+    this._throttleStream = throttleStream
     this._xapi = vm.$xapi
 
     // Base VM for the export
@@ -243,7 +245,13 @@ class VmBackup {
     const deltaExport = await exportDeltaVm(exportedVm, baseVm, {
       fullVdisRequired,
     })
+    // since NBD is network based, if one disk use nbd , all the disk use them
+    // except the suspended VDI
+    if (Object.values(deltaExport.streams).some(({ _nbd }) => _nbd)) {
+      Task.info('Transfer data using NBD')
+    }
     const sizeContainers = mapValues(deltaExport.streams, stream => watchStreamSize(stream))
+    deltaExport.streams = mapValues(deltaExport.streams, this._throttleStream)
 
     const timestamp = Date.now()
 
@@ -285,10 +293,12 @@ class VmBackup {
 
   async _copyFull() {
     const { compression } = this.job
-    const stream = await this._xapi.VM_export(this.exportedVm.$ref, {
-      compress: Boolean(compression) && (compression === 'native' ? 'gzip' : 'zstd'),
-      useSnapshot: false,
-    })
+    const stream = this._throttleStream(
+      await this._xapi.VM_export(this.exportedVm.$ref, {
+        compress: Boolean(compression) && (compression === 'native' ? 'gzip' : 'zstd'),
+        useSnapshot: false,
+      })
+    )
     const sizeContainer = watchStreamSize(stream)
 
     const timestamp = Date.now()
