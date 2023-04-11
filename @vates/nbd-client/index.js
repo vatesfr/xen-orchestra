@@ -20,6 +20,9 @@ const {
 } = require('./constants.js')
 const { fromCallback, pRetry, pDelay } = require('promise-toolbox')
 const { readChunkStrict } = require('@vates/read-chunk')
+const { createLogger } = require('@xen-orchestra/log')
+
+const { warn } = createLogger('vates:nbd-client')
 
 // documentation is here : https://github.com/NetworkBlockDevice/nbd/blob/master/doc/proto.md
 
@@ -314,7 +317,7 @@ module.exports = class NbdClient {
       const promise = pRetry(() => this.readBlock(index, size), {
         tries: this.#readBlockRetries,
         onRetry: async err => {
-          console.warn('will retry reading block ', index, err)
+          warn('will retry reading block ', index, err)
           await this.reconnect()
         },
       })
