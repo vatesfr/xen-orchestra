@@ -21,7 +21,7 @@
 - [Ova import] Fix Ova import error `No user expected grain marker, received [object Object]` [Forum#60648](https://xcp-ng.org/forum/post/60648) (PR [#6779](https://github.com/vatesfr/xen-orchestra/pull/6779))
 - [Continuous Replication] Remove irrelevant _Suspend VDI not available for this suspended VM_ error [Forum#61169](https://xcp-ng.org/forum/post/61169)
 - [Kubernetes recipe] Add DNS configuration (PR [#6678](https://github.com/vatesfr/xen-orchestra/pull/6678))
-- [Backup] Fix `INTERNAL_ERROR, (Failure \"Expected bool, got 'I(0)'\")"` restoring a VM extracted from an older xenserver (PR [#6772](https://github.com/vatesfr/xen-orchestra/pull/6772))
+- [Backup] Fix `INTERNAL_ERROR, (Failure \"Expected bool, got 'I(0)'\")"` restoring a VM extracted from an older XenServer (PR [#6772](https://github.com/vatesfr/xen-orchestra/pull/6772))
 
 ### Packages to release
 
