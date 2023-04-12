@@ -34,7 +34,11 @@
 
 <!--packages-start-->
 
+- @vates/diff minor
 - @vates/read-chunk patch
+- @vates/stream-reader minor
+- @xen-orchestra/backups minor
+- vhd-lib minor
 - xo-web patch
 - xo-server minor
 - xo-server-usage-report patch
