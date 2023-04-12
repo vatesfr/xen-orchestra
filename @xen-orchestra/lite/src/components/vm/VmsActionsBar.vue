@@ -14,14 +14,14 @@
       <template #submenu>
         <MenuItem
           @click="xenApi.vm.start({ vmsRef: selectedRefs })"
-          :busy="vms.every((vm) => isOperationsPending(vm, 'start'))"
+          :busy="areVmsBusyToStart"
           :disabled="!areVmsHalted"
           :icon="faPlay"
         >
           {{ $t("start") }}
         </MenuItem>
         <MenuItem
-          :busy="vms.every((vm) => isOperationsPending(vm, 'start_on'))"
+          :busy="areVmsBusyToStartOnHost"
           :disabled="!areVmsHalted"
           :icon="faServer"
         >
@@ -54,7 +54,7 @@
         </MenuItem>
         <MenuItem
           @click="xenApi.vm.pause({ vmsRef: selectedRefs })"
-          :busy="vms.every((vm) => isOperationsPending(vm, 'pause'))"
+          :busy="areVmsBusyToPause"
           :disabled="!areVmsRunning"
           :icon="faPause"
         >
@@ -62,7 +62,7 @@
         </MenuItem>
         <MenuItem
           @click="xenApi.vm.suspend({ vmsRef: selectedRefs })"
-          :busy="vms.every((vm) => isOperationsPending(vm, 'suspend'))"
+          :busy="areVmsBusyToSuspend"
           :disabled="!areVmsRunning"
           :icon="faMoon"
         >
@@ -74,9 +74,7 @@
               vmsRef: selectedRefs,
             })
           "
-          :busy="
-            vms.every((vm) => isOperationsPending(vm, ['unpause', 'resume']))
-          "
+          :busy="areVmsBusyToResume"
           :disabled="!areVmsSuspended && !areVmsPaused"
           :icon="faCirclePlay"
         >
@@ -84,7 +82,7 @@
         </MenuItem>
         <MenuItem
           @click="xenApi.vm.reboot({ vmsRef: selectedRefs })"
-          :busy="vms.every((vm) => isOperationsPending(vm, 'clean_reboot'))"
+          :busy="areVmsBusyToReboot"
           :disabled="!areVmsRunning"
           :icon="faRotateLeft"
         >
@@ -92,7 +90,7 @@
         </MenuItem>
         <MenuItem
           @click="xenApi.vm.reboot({ vmsRef: selectedRefs, force: true })"
-          :busy="vms.every((vm) => isOperationsPending(vm, 'hard_reboot'))"
+          :busy="areVmsBusyToForceReboot"
           :disabled="!areVmsRunning && !areVmsPaused"
           :icon="faRepeat"
         >
@@ -100,7 +98,7 @@
         </MenuItem>
         <MenuItem
           @click="xenApi.vm.shutdown({ vmsRef: selectedRefs })"
-          :busy="vms.every((vm) => isOperationsPending(vm, 'clean_shutdown'))"
+          :busy="areVmsBusyToShutdown"
           :disabled="!areVmsRunning"
           :icon="faPowerOff"
         >
@@ -108,7 +106,7 @@
         </MenuItem>
         <MenuItem
           @click="xenApi.vm.shutdown({ vmsRef: selectedRefs, force: true })"
-          :busy="vms.every((vm) => isOperationsPending(vm, 'hard_shutdown'))"
+          :busy="areVmsBusyToForceShutdown"
           :disabled="!areVmsRunning && !areVmsSuspended && !areVmsPaused"
           :icon="faPlug"
         >
@@ -223,6 +221,29 @@ const areVmsSuspended = computed(() =>
 );
 const areVmsPaused = computed(() =>
   vms.value.every((vm) => vm.power_state === "Paused")
+);
+
+const areOperationsPending = (operation: string | string[]) =>
+  vms.value.every((vm) => isOperationsPending(vm, operation));
+
+const areVmsBusyToStart = computed(() => areOperationsPending("start"));
+const areVmsBusyToStartOnHost = computed(() =>
+  areOperationsPending("start_on")
+);
+const areVmsBusyToPause = computed(() => areOperationsPending("pause"));
+const areVmsBusyToSuspend = computed(() => areOperationsPending("suspend"));
+const areVmsBusyToResume = computed(() =>
+  areOperationsPending(["unpause", "resume"])
+);
+const areVmsBusyToReboot = computed(() => areOperationsPending("clean_reboot"));
+const areVmsBusyToForceReboot = computed(() =>
+  areOperationsPending("hard_reboot")
+);
+const areVmsBusyToShutdown = computed(() =>
+  areOperationsPending("clean_shutdown")
+);
+const areVmsBusyToForceShutdown = computed(() =>
+  areOperationsPending("hard_shutdown")
 );
 </script>
 
