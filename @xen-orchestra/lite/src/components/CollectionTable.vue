@@ -18,24 +18,27 @@
     />
   </div>
 
-  <UiTable>
-    <template #header>
-      <td v-if="isSelectable">
-        <input v-model="areAllSelected" type="checkbox" />
-      </td>
-      <slot name="header" />
-    </template>
-
-    <tr v-for="item in filteredAndSortedCollection" :key="item[idProperty]">
-      <td v-if="isSelectable">
-        <input
-          v-model="selected"
-          :value="item[props.idProperty]"
-          type="checkbox"
-        />
-      </td>
-      <slot :item="item" name="row" />
-    </tr>
+  <UiTable vertical-border>
+    <thead>
+      <tr>
+        <td v-if="isSelectable">
+          <input v-model="areAllSelected" type="checkbox" />
+        </td>
+        <slot name="head-row" />
+      </tr>
+    </thead>
+    <tbody>
+      <tr v-for="item in filteredAndSortedCollection" :key="item[idProperty]">
+        <td v-if="isSelectable">
+          <input
+            v-model="selected"
+            :value="item[props.idProperty]"
+            type="checkbox"
+          />
+        </td>
+        <slot :item="item" name="body-row" />
+      </tr>
+    </tbody>
   </UiTable>
 </template>
 

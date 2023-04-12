@@ -14,12 +14,12 @@
       :collection="vms"
       id-property="$ref"
     >
-      <template #header>
+      <template #head-row>
         <ColumnHeader :icon="faPowerOff" />
         <ColumnHeader>{{ $t("name") }}</ColumnHeader>
         <ColumnHeader>{{ $t("description") }}</ColumnHeader>
       </template>
-      <template #row="{ item: vm }">
+      <template #body-row="{ item: vm }">
         <td>
           <PowerStateIcon :state="vm.power_state" />
         </td>
