@@ -748,7 +748,7 @@ class RemoteAdapter {
     // it's enumerable to make it cacheable
     const metadata = { ...JSON.parse(await this._handler.readFile(path)), _filename: path }
 
-    // older xenserver version store boolean as int, and it breaks on restore
+    // backups created on XenServer < 7.1 via JSON in XML-RPC transports have boolean values encoded as integers, which make them unusable with more recent XAPIs
     if (typeof metadata.vm.is_a_template === 'number') {
       const properties = {
         vbds: ['bootable', 'unpluggable', 'storage_lock', 'empty', 'currently_attached'],
@@ -767,21 +767,24 @@ class RemoteAdapter {
         vmSnapshot: ['is_a_template', 'is_control_domain', 'ha_always_run', 'is_snapshot_from_vmpp'],
       }
 
-      function clean(obj, properties) {
-        properties.forEach(key => {
-          if (typeof obj[key] === 'number') {
-            obj[key] = obj[key] === 1
+      function fixBooleans(obj, properties) {
+        properties.forEach(property => {
+          if (typeof obj[property] === 'number') {
+            obj[property] = obj[property] === 1
           }
         })
       }
 
       for (const [key, propertiesInKey] of Object.entries(properties)) {
-        if (metadata[key] !== undefined) {
-          const value = metadata[key]
+        const value = metadata[key]
+        if (value !== undefined) {
+          // some properties of the metadata are collections indexed by the opaqueRef
           const isCollection = Object.keys(value).some(subKey => subKey.startsWith('OpaqueRef:'))
-          isCollection
-            ? Object.keys(metadata[key]).forEach(subKey => clean(metadata[key][subKey], propertiesInKey))
-            : clean(metadata[key], propertiesInKey)
+          if (isCollection) {
+            Object.keys(value).forEach(subKey => fixBooleans(value[subKey], propertiesInKey))
+          } else {
+            fixBooleans(value, propertiesInKey)
+          }
         }
       }
     }
