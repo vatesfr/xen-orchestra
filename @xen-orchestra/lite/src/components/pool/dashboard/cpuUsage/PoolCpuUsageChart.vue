@@ -1,5 +1,6 @@
 <template>
   <!-- TODO: add a loader when data is not fully loaded or undefined -->
+  <!-- TODO: add small loader with tooltips when stats can be expired -->
   <!-- TODO: Display the NoDataError component in case of a data recovery error -->
   <LinearChart
     :data="data"

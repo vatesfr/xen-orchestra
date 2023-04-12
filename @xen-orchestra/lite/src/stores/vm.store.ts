@@ -59,7 +59,12 @@ export const useVmStore = defineStore("vm", () => {
     };
 
     const hostSubscription = options?.hostSubscription;
-
+    const getStats = (
+      id: string,
+      granularity: GRANULARITY,
+      ignoreExpired = false,
+      { abortSignal }: { abortSignal?: AbortSignal }
+    ) => {
     const getStatsSubscription = hostSubscription !== undefined && {
       getStats: (vmUuid: XenApiVm["uuid"], granularity: GRANULARITY) => {
         const xenApiStore = useXenApiStore();
@@ -80,12 +85,13 @@ export const useVmStore = defineStore("vm", () => {
           throw new Error(`VM ${vmUuid} is halted or host could not be found.`);
         }
 
-        return xenApiStore.getXapiStats()._getAndUpdateStats({
-          host,
-          uuid: vm.uuid,
-          granularity,
-        });
-      },
+      return xenApiStore.getXapiStats()._getAndUpdateStats({
+        abortSignal,
+        host,
+        ignoreExpired,
+        uuid: vm.uuid,
+        granularity,
+      });
     };
 
     return {

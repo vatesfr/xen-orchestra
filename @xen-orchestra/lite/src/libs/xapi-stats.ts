@@ -295,18 +295,22 @@ export type HostStats = {
 };
 
 export type XapiStatsResponse<T> = {
+  canBeExpired: boolean;
   endTimestamp: number;
   interval: number;
   stats: T;
 };
 
+type StatsByObject = {
+  [uuid: string]: {
+    [step: string]: XapiStatsResponse<HostStats | VmStats>;
+  };
+};
+
 export default class XapiStats {
   #xapi;
-  #statsByObject: {
-    [uuid: string]: {
-      [step: string]: XapiStatsResponse<HostStats | any>;
-    };
-  } = {};
+  #statsByObject: StatsByObject = {};
+  #cachedStatsByObject: StatsByObject = {};
   constructor(xapi: XenApi) {
     this.#xapi = xapi;
   }
@@ -314,7 +318,12 @@ export default class XapiStats {
   // Execute one http request on a XenServer for get stats
   // Return stats (Json format) or throws got exception
   @limitConcurrency(3)
-  async _getJson(host: XenApiHost, timestamp: any, step: any) {
+  async _getJson(
+    host: XenApiHost,
+    timestamp: number,
+    step: RRD_STEP,
+    { abortSignal }: { abortSignal?: AbortSignal } = {}
+  ) {
     const resp = await this.#xapi.getResource("/rrd_updates", {
       host,
       query: {
@@ -324,13 +333,23 @@ export default class XapiStats {
         json: "true",
         start: timestamp,
       },
+      abortSignal,
     });
     return JSON5.parse(await resp.text());
   }
 
   // To avoid multiple requests, we keep a cache for the stats and
   // only return it if we not exceed a step
-  #getCachedStats(uuid: any, step: any, currentTimeStamp: any) {
+  #getCachedStats(
+    uuid: string,
+    step: RRD_STEP,
+    currentTimeStamp: number,
+    ignoreExpired = false
+  ) {
+    if (ignoreExpired) {
+      return this.#cachedStatsByObject[uuid]?.[step];
+    }
+
     const statsByObject = this.#statsByObject;
 
     const stats = statsByObject[uuid]?.[step];
@@ -348,11 +367,15 @@ export default class XapiStats {
 
   @synchronized.withKey(({ host }: { host: XenApiHost }) => host.uuid)
   async _getAndUpdateStats({
+    abortSignal,
     host,
+    ignoreExpired = false,
     uuid,
     granularity,
   }: {
+    abortSignal?: AbortSignal;
     host: XenApiHost;
+    ignoreExpired?: boolean;
     uuid: any;
     granularity: GRANULARITY;
   }) {
@@ -367,7 +390,13 @@ export default class XapiStats {
     }
     const currentTimeStamp = Math.floor(new Date().getTime() / 1000);
 
-    const stats = this.#getCachedStats(uuid, step, currentTimeStamp);
+    const stats = this.#getCachedStats(
+      uuid,
+      step,
+      currentTimeStamp,
+      ignoreExpired
+    );
+
     if (stats !== undefined) {
       return stats;
     }
@@ -376,67 +405,107 @@ export default class XapiStats {
 
     // To avoid crossing over the boundary, we ask for one less step
     const optimumTimestamp = currentTimeStamp - maxDuration + step;
-    const json = await this._getJson(host, optimumTimestamp, step);
 
-    const actualStep = json.meta.step as number;
+    try {
+      const json = await this._getJson(host, optimumTimestamp, step, {
+        abortSignal,
+      });
 
-    if (json.data.length > 0) {
-      // fetched data is organized from the newest to the oldest
-      // but this implementation requires it in the other direction
-      json.data.reverse();
-      json.meta.legend.forEach((legend: any, index: number) => {
-        const [, type, uuid, metricType] = /^AVERAGE:([^:]+):(.+):(.+)$/.exec(
-          legend
-        ) as any;
+      const actualStep = json.meta.step as number;
 
-        const metrics = STATS[type] as any;
-        if (metrics === undefined) {
-          return;
-        }
+      if (json.data.length > 0) {
+        // fetched data is organized from the newest to the oldest
+        // but this implementation requires it in the other direction
+        json.data.reverse();
+        json.meta.legend.forEach((legend: any, index: number) => {
+          const [, type, uuid, metricType] = /^AVERAGE:([^:]+):(.+):(.+)$/.exec(
+            legend
+          ) as any;
 
-        const { metric, testResult } = findMetric(metrics, metricType) as any;
-        if (metric === undefined) {
-          return;
-        }
-
-        const xoObjectStats = createGetProperty(this.#statsByObject, uuid, {});
-        let stepStats = xoObjectStats[actualStep];
-        if (
-          stepStats === undefined ||
-          stepStats.endTimestamp !== json.meta.end
-        ) {
-          stepStats = xoObjectStats[actualStep] = {
-            endTimestamp: json.meta.end,
-            interval: actualStep,
-          };
-        }
-
-        const path =
-          metric.getPath !== undefined
-            ? metric.getPath(testResult)
-            : [findKey(metrics, metric)];
-
-        const lastKey = path.length - 1;
-        let metricStats = createGetProperty(stepStats, "stats", {});
-        path.forEach((property: any, key: number) => {
-          if (key === lastKey) {
-            metricStats[property] = computeValues(
-              json.data,
-              index,
-              metric.transformValue
-            );
+          const metrics = STATS[type] as any;
+          if (metrics === undefined) {
             return;
           }
 
-          metricStats = createGetProperty(metricStats, property, {});
-        });
-      });
-    }
+          const { metric, testResult } = findMetric(metrics, metricType) as any;
+          if (metric === undefined) {
+            return;
+          }
 
-    if (actualStep !== step) {
-      throw new FaultyGranularity(
-        `Unable to get the true granularity: ${actualStep}`
-      );
+          const xoObjectStats = createGetProperty(
+            this.#statsByObject,
+            uuid,
+            {}
+          );
+          const cacheXoObjectStats = createGetProperty(
+            this.#cachedStatsByObject,
+            uuid,
+            {}
+          );
+
+          let stepStats = xoObjectStats[actualStep];
+          let cacheStepStats = cacheXoObjectStats[actualStep];
+          if (
+            stepStats === undefined ||
+            stepStats.endTimestamp !== json.meta.end
+          ) {
+            stepStats = xoObjectStats[actualStep] = {
+              endTimestamp: json.meta.end,
+              interval: actualStep,
+              canBeExpired: false,
+            };
+            cacheStepStats = cacheXoObjectStats[actualStep] = {
+              endTimestamp: json.meta.end,
+              interval: actualStep,
+              canBeExpired: true,
+            };
+          }
+
+          const path =
+            metric.getPath !== undefined
+              ? metric.getPath(testResult)
+              : [findKey(metrics, metric)];
+
+          const lastKey = path.length - 1;
+          let metricStats = createGetProperty(stepStats, "stats", {});
+          let cacheMetricStats = createGetProperty(cacheStepStats, "stats", {});
+
+          path.forEach((property: any, key: number) => {
+            if (key === lastKey) {
+              metricStats[property] = computeValues(
+                json.data,
+                index,
+                metric.transformValue
+              );
+              cacheMetricStats[property] = computeValues(
+                json.data,
+                index,
+                metric.transformValue
+              );
+              return;
+            }
+
+            metricStats = createGetProperty(metricStats, property, {});
+            cacheMetricStats = createGetProperty(
+              cacheMetricStats,
+              property,
+              {}
+            );
+          });
+        });
+      }
+
+      if (actualStep !== step) {
+        throw new FaultyGranularity(
+          `Unable to get the true granularity: ${actualStep}`
+        );
+      }
+    } catch (error) {
+      if (error instanceof Error && error.name === "AbortError") {
+        return;
+      }
+
+      throw error;
     }
 
     return (

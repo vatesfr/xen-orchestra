@@ -32,8 +32,10 @@ export const useHostStore = defineStore("host", () => {
     const originalSubscription = hostCollection.subscribe(options);
 
     const getStats = (
-      hostUuid: XenApiHost["uuid"],
-      granularity: GRANULARITY
+      hostUuid: string,
+      granularity: GRANULARITY,
+      ignoreExpired = false,
+      { abortSignal }: { abortSignal?: AbortSignal }
     ) => {
       const host = originalSubscription.getByUuid(hostUuid);
 
@@ -46,7 +48,9 @@ export const useHostStore = defineStore("host", () => {
         : undefined;
 
       return xapiStats?._getAndUpdateStats({
+        abortSignal,
         host,
+        ignoreExpired,
         uuid: host.uuid,
         granularity,
       });

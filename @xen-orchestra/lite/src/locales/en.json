@@ -36,6 +36,7 @@
   "export": "Export",
   "export-table-to": "Export table to {type}",
   "export-vms": "Export VMs",
+  "fetching-fresh-data": "Fetching fresh data",
   "filter": {
     "comparison": {
       "contains": "Contains",
