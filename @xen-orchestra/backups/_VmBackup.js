@@ -6,11 +6,13 @@ const groupBy = require('lodash/groupBy.js')
 const ignoreErrors = require('promise-toolbox/ignoreErrors')
 const keyBy = require('lodash/keyBy.js')
 const mapValues = require('lodash/mapValues.js')
+const vhdStreamValidator = require('vhd-lib/vhdStreamValidator.js')
 const { asyncMap } = require('@xen-orchestra/async-map')
 const { createLogger } = require('@xen-orchestra/log')
 const { decorateMethodsWith } = require('@vates/decorate-with')
 const { defer } = require('golike-defer')
 const { formatDateTime } = require('@xen-orchestra/xapi')
+const { pipeline } = require('node:stream')
 
 const { DeltaBackupWriter } = require('./writers/DeltaBackupWriter.js')
 const { DeltaReplicationWriter } = require('./writers/DeltaReplicationWriter.js')
@@ -43,6 +45,8 @@ const forkDeltaExport = deltaExport =>
       value: mapValues(deltaExport.streams, forkStreamUnpipe),
     },
   })
+
+const noop = Function.prototype
 
 class VmBackup {
   constructor({
@@ -251,6 +255,11 @@ class VmBackup {
       Task.info('Transfer data using NBD')
     }
     const sizeContainers = mapValues(deltaExport.streams, stream => watchStreamSize(stream))
+
+    if (this._settings.validateVhdStreams) {
+      deltaExport.streams = mapValues(deltaExport.streams, stream => pipeline(stream, vhdStreamValidator, noop))
+    }
+
     deltaExport.streams = mapValues(deltaExport.streams, this._throttleStream)
 
     const timestamp = Date.now()
