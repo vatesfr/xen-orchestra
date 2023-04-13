@@ -7,7 +7,11 @@
       </template>
     </UiCardTitle>
     <div class="table-container">
-      <HostPatches :hosts-loaded-status="loadedStatus" :patches="patches" />
+      <HostPatches
+        ref="patchesTable"
+        :hosts-loaded-status="loadedStatus"
+        :patches="patches"
+      />
     </div>
   </UiCard>
 </template>
@@ -18,7 +22,7 @@ import UiCard from "@/components/ui/UiCard.vue";
 import UiCardTitle from "@/components/ui/UiCardTitle.vue";
 import { useHostPatches } from "@/composables/host-patches.composable";
 import { useHostStore } from "@/stores/host.store";
-import { computed } from "vue";
+import { computed, ref } from "vue";
 
 const { records: hosts } = useHostStore().subscribe();
 
@@ -26,9 +30,9 @@ const { loadedStatus, count, patches } = useHostPatches(() =>
   hosts.value.map((host) => host.$ref)
 );
 
-const areAllLoaded = computed(() =>
-  [...loadedStatus.value.values()].every((isReady) => isReady)
-);
+const patchesTable = ref<InstanceType<typeof HostPatches>>();
+
+const areAllLoaded = computed(() => patchesTable.value?.areAllLoaded === true);
 </script>
 
 <style lang="postcss" scoped>

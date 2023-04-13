@@ -45,6 +45,10 @@ const areAllLoaded = computed(() =>
   [...props.hostsLoadedStatus.values()].every((isReady) => isReady)
 );
 
+defineExpose({
+  areAllLoaded,
+});
+
 const areSomeLoaded = computed(
   () =>
     areAllLoaded.value ||
