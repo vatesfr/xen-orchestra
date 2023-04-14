@@ -747,7 +747,7 @@ class RemoteAdapter {
 
   async readDeltaVmBackup(metadata, ignoredVdis) {
     const handler = this._handler
-    const { vbds, vhds, vifs, vm } = metadata
+    const { vbds, vhds, vifs, vm, vmSnapshot } = metadata
     const dir = dirname(metadata._filename)
     const vdis = ignoredVdis === undefined ? metadata.vdis : pickBy(metadata.vdis, vdi => !ignoredVdis.has(vdi.uuid))
 
@@ -762,7 +762,7 @@ class RemoteAdapter {
       vdis,
       version: '1.0.0',
       vifs,
-      vm,
+      vm: { ...vm, suspend_VDI: vmSnapshot.suspend_VDI },
     }
   }
 
