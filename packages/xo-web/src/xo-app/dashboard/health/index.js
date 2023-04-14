@@ -148,6 +148,11 @@ const SR_COLUMNS = [
     sortCriteria: sr => sr.SR_type,
   },
   {
+    name: <span className='text-capitalize'>{_('srFree')}</span>,
+    itemRenderer: sr => formatSize(sr.size - sr.physical_usage),
+    sortCriteria: sr => sr.size - sr.physical_usage,
+  },
+  {
     name: _('srSize'),
     itemRenderer: sr => formatSize(sr.size),
     sortCriteria: sr => sr.size,
