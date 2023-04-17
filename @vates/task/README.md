@@ -18,7 +18,12 @@ npm install --save @vates/task
 import { Task } from '@vates/task'
 
 const task = new Task({
-  name: 'my task',
+  // data in this object will be sent along the *start* event
+  //
+  // property names should be chosen as not to clash with properties used by `Task` or `combineEvents`
+  data: {
+    name: 'my task',
+  },
 
   // if defined, a new detached task is created
   //
