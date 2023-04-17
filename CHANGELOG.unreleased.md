@@ -39,7 +39,7 @@
 - @vates/diff minor
 - @vates/read-chunk patch
 - @vates/stream-reader minor
-- @vates/task patch
+- @vates/task minor
 - @xen-orchestra/backups minor
 - @xen-orchestra/mixins minor
 - vhd-lib minor
