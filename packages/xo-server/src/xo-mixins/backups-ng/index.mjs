@@ -592,7 +592,7 @@ export default class BackupNg {
     return backupsByVmByRemote
   }
 
-  async checkVmBackupNg(backupId, srId, settings) {
+  async checkVmBackupNg(backupId, srId, settings, waitForStartupScript) {
     await Task.run(
       {
         name: 'health check',
@@ -606,6 +606,7 @@ export default class BackupNg {
         try {
           await new HealthCheckVmBackup({
             restoredVm,
+            waitForStartupScript,
             xapi,
           }).run()
         } finally {

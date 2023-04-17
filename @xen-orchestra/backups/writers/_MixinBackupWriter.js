@@ -76,7 +76,7 @@ exports.MixinBackupWriter = (BaseClass = Object) =>
       }
     }
 
-    healthCheck(sr) {
+    healthCheck(sr, waitForStartupScript) {
       assert.notStrictEqual(
         this._metadataFileName,
         undefined,
@@ -101,6 +101,7 @@ exports.MixinBackupWriter = (BaseClass = Object) =>
           try {
             await new HealthCheckVmBackup({
               restoredVm,
+              waitForStartupScript,
               xapi,
             }).run()
           } finally {
