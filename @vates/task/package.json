@@ -19,5 +19,9 @@
   },
   "scripts": {
     "postversion": "npm publish --access public"
+  },
+  "exports": {
+    ".": "./index.js",
+    "./combineEvents": "./combineEvents.js"
   }
 }
