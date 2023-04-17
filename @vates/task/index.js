@@ -17,7 +17,10 @@ const PENDING = 'pending'
 const SUCCESS = 'success'
 exports.STATUS = { ABORTED, ABORTING, FAILURE, PENDING, SUCCESS }
 
-const asyncStorage = new AsyncLocalStorage()
+// stored in the global context so that various versions of the library can interact.
+const asyncStorageKey = '@vates/task@0'
+const asyncStorage = global[asyncStorageKey] ?? (global[asyncStorageKey] = new AsyncLocalStorage())
+
 const getTask = () => asyncStorage.getStore()
 
 exports.Task = class Task {
