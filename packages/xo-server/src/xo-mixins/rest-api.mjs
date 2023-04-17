@@ -267,10 +267,18 @@ export default class RestApi {
       })
     )
 
-    api.get('/:collection/:object/tasks', (req, res) => {
-      const tasks = app.tasks.getByObject(req.xoObject.id)
-      sendObjects(tasks === undefined ? [] : Array.from(tasks.values()), req, res, '/tasks')
-    })
+    api.get(
+      '/:collection/:object/tasks',
+      wrap(async (req, res) => {
+        const { query } = req
+        const objectId = req.xoObject.id
+        const tasks = app.tasks.list({
+          filter: every(_ => _.status === 'pending' && _.objectId === objectId, handleOptionalUserFilter(query.filter)),
+          limit: ifDef(query.limit, Number),
+        })
+        sendObjects(await asyncIteratorToArray(tasks), req, res, req.baseUrl + '/tasks')
+      })
+    )
 
     api.get('/:collection/:object/actions', (req, res) => {
       const { actions } = req.collection
@@ -289,6 +297,7 @@ export default class RestApi {
         pResult.then(result => res.json(result), next)
       } else {
         pResult.catch(noop)
+        res.statusCode = 202
         res.end(req.baseUrl + '/tasks/' + task.id)
       }
     })
