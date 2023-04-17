@@ -11,11 +11,10 @@ function define(object, property, value) {
 const noop = Function.prototype
 
 const ABORTED = 'aborted'
-const ABORTING = 'aborting'
 const FAILURE = 'failure'
 const PENDING = 'pending'
 const SUCCESS = 'success'
-exports.STATUS = { ABORTED, ABORTING, FAILURE, PENDING, SUCCESS }
+exports.STATUS = { ABORTED, FAILURE, PENDING, SUCCESS }
 
 // stored in the global context so that various versions of the library can interact.
 const asyncStorageKey = '@vates/task@0'
@@ -106,8 +105,10 @@ exports.Task = class Task {
 
     const { signal } = this.#abortController
     signal.addEventListener('abort', () => {
-      if (this.status === PENDING) {
-        this.#status = this.#running ? ABORTING : ABORTED
+      if (this.status === PENDING && !this.#running) {
+        const status = ABORTED
+        this.#status = status
+        this.#emit('end', { result: signal.reason, status })
       }
     })
   }
@@ -117,20 +118,16 @@ exports.Task = class Task {
   }
 
   #emit(type, data) {
+    const startData = this.#startData
+    if (startData !== undefined) {
+      this.#startData = undefined
+      this.#emit('start', startData)
+    }
+
     data.id = this.id
     data.timestamp = Date.now()
     data.type = type
     this.#onProgress(data)
-  }
-
-  #handleMaybeAbortion(result) {
-    if (this.status === ABORTING) {
-      this.#status = ABORTED
-      this.#emit('end', { status: ABORTED, result })
-      return true
-    }
-
-    return false
   }
 
   async run(fn) {
@@ -148,22 +145,17 @@ exports.Task = class Task {
     assert.equal(this.#running, false)
     this.#running = true
 
-    const startData = this.#startData
-    if (startData !== undefined) {
-      this.#startData = undefined
-      this.#emit('start', startData)
-    }
-
     try {
       const result = await asyncStorage.run(this, fn)
-      this.#handleMaybeAbortion(result)
       this.#running = false
       return result
     } catch (result) {
-      if (!this.#handleMaybeAbortion(result)) {
-        this.#status = FAILURE
-        this.#emit('end', { status: FAILURE, result })
-      }
+      const { signal } = this.#abortController
+      const aborted = signal.aborted && result === signal.reason
+      const status = aborted ? ABORTED : FAILURE
+
+      this.#status = status
+      this.#emit('end', { status, result })
       throw result
     }
   }
