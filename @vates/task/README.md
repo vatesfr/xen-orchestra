@@ -89,6 +89,46 @@ Task.warning(message, data)
 Task.set(property, value)
 ```
 
+### `combineEvents`
+
+Create a consolidated log from individual events.
+
+It can be used directly as an `onProgress` callback:
+
+```js
+import { makeOnProgress } from '@vates/task/combineEvents'
+
+const onProgress = makeOnProgress({
+  // This function is called each time a root task starts.
+  //
+  // It will be called for as many times as there are tasks created with this `onProgress` function.
+  onRootTaskStart(taskLog) {
+    // `taskLog` is an object reflecting the state of this task and all its subtasks,
+    // and will be mutated in real-time to reflect the changes of the task.
+  },
+
+  // This function is called each time a root task ends.
+  onRootTaskEnd(taskLog) {},
+
+  // This function is called each time a root task or a subtask is updated.
+  //
+  // `taskLog.$root` can be used to uncondionally access the root task.
+  onTaskUpdate(taskLog) {},
+})
+
+Task.run({ data: { name: 'my task' }, onProgress }, asyncFn)
+```
+
+It can also be fed event logs directly:
+
+```js
+import { makeOnProgress } from '@vates/task/combineEvents'
+
+const onProgress = makeOnProgress({ onRootTaskStart, onRootTaskEnd, onTaskUpdate })
+
+eventLogs.forEach(onProgress)
+```
+
 ## Contributions
 
 Contributions are _very_ welcomed, either on the documentation or on
