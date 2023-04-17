@@ -14,6 +14,14 @@ import { VDI_FORMAT_RAW, VDI_FORMAT_VHD } from '@xen-orchestra/xapi'
 const { join } = path.posix
 const noop = Function.prototype
 
+async function asyncIteratorToArray(it) {
+  const res = []
+  for await (const entry of it) {
+    res.push(entry)
+  }
+  return res
+}
+
 function sendObjects(objects, req, res, path = req.path) {
   const { query } = req
   const basePath = join(req.baseUrl, path)
@@ -59,12 +67,16 @@ const subRouter = (app, path) => {
 }
 
 // wraps an async middleware
-function wrap(middleware) {
+function wrap(middleware, handleNoSuchObject = false) {
   return async function asyncMiddlewareWrapped(req, res, next) {
     try {
       await middleware.apply(this, arguments)
     } catch (error) {
-      next(error)
+      if (handleNoSuchObject && noSuchObject.is(error)) {
+        res.sendStatus(404)
+      } else {
+        next(error)
+      }
     }
   }
 }
@@ -203,6 +215,70 @@ export default class RestApi {
         wrap(async (req, res) => {
           res.json(await app.getBackupNgLogs(req.params.id))
         })
+      )
+
+    api
+      .get(
+        '/tasks',
+        wrap(async (req, res) => {
+          const { filter, limit } = req.query
+          const tasks = app.tasks.list({
+            filter: handleOptionalUserFilter(filter),
+            limit: ifDef(limit, Number),
+          })
+          sendObjects(await asyncIteratorToArray(tasks), req, res)
+        })
+      )
+      .delete(
+        '/tasks',
+        wrap(async (req, res) => {
+          await app.tasks.clearLogs()
+          res.sendStatus(200)
+        })
+      )
+      .get(
+        '/tasks/:id',
+        wrap(async (req, res) => {
+          const {
+            params: { id },
+            query: { wait },
+          } = req
+          if (wait !== undefined) {
+            const stopWatch = await app.tasks.watch(id, task => {
+              if (wait !== 'result' || task.status !== 'pending') {
+                stopWatch()
+                res.json(task)
+              }
+            })
+            req.on('close', stopWatch)
+          } else {
+            res.json(await app.tasks.get(id))
+          }
+        }, true)
+      )
+      .delete(
+        '/tasks/:id',
+        wrap(async (req, res) => {
+          await app.tasks.deleteLog(req.params.id)
+          res.sendStatus(200)
+        })
+      )
+      .get(
+        '/tasks/:id/actions',
+        wrap(async (req, res) => {
+          const task = await app.tasks.get(req.params.id)
+
+          sendObjects(task.status === 'pending' ? [{ id: 'abort' }] : [], req, res)
+        })
+      )
+      .post(
+        '/tasks/:id/actions/abort',
+        wrap(async (req, res) => {
+          const { id } = req.params
+          await app.tasks.abort(id)
+          res.status = 202
+          res.end(req.baseUrl + '/tasks/' + id)
+        }, true)
       )
 
     api.get(
