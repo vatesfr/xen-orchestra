@@ -66,7 +66,6 @@ exports.Task = class Task {
 
   #abortController = new AbortController()
   #onProgress
-  #parent
 
   get id() {
     return (this.id = Math.random().toString(36).slice(2))
@@ -90,8 +89,6 @@ exports.Task = class Task {
     } else {
       const parent = getTask()
       if (parent !== undefined) {
-        this.#parent = parent
-
         const { signal } = parent.#abortController
         signal.addEventListener('abort', () => {
           this.#abortController.abort(signal.reason)
