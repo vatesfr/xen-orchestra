@@ -18,7 +18,7 @@ const {
   OPTS_MAGIC,
   NBD_CMD_DISC,
 } = require('./constants.js')
-const { fromCallback, pRetry, pDelay } = require('promise-toolbox')
+const { fromCallback, pRetry, pDelay, pTimeout } = require('promise-toolbox')
 const { readChunkStrict } = require('@vates/read-chunk')
 const { createLogger } = require('@xen-orchestra/log')
 
@@ -38,6 +38,8 @@ module.exports = class NbdClient {
   #waitBeforeReconnect
   #readAhead
   #readBlockRetries
+  #reconnectRetry
+  #connectTimeout
 
   // AFAIK, there is no guaranty the server answers in the same order as the queries
   // so we handle a backlog of command waiting for response and handle concurrency manually
@@ -50,7 +52,7 @@ module.exports = class NbdClient {
   #reconnectingPromise
   constructor(
     { address, port = NBD_DEFAULT_PORT, exportname, cert },
-    { waitBeforeReconnect = 1000, readAhead = 10, readBlockRetries = 5 } = {}
+    { connectTimeout = 6e4, waitBeforeReconnect = 1e3, readAhead = 10, readBlockRetries = 5, reconnectRetry = 5 } = {}
   ) {
     this.#serverAddress = address
     this.#serverPort = port
@@ -59,6 +61,8 @@ module.exports = class NbdClient {
     this.#waitBeforeReconnect = waitBeforeReconnect
     this.#readAhead = readAhead
     this.#readBlockRetries = readBlockRetries
+    this.#reconnectRetry = reconnectRetry
+    this.#connectTimeout = connectTimeout
   }
 
   get exportSize() {
@@ -94,14 +98,16 @@ module.exports = class NbdClient {
   }
 
   async connect() {
-    // first we connect to the serve without tls, and then we upgrade the connection
-    // to tls during the handshake
-    await this.#unsecureConnect()
-    await this.#handshake()
-    this.#connected = true
-    // reset internal state if we reconnected a nbd client
-    this.#commandQueryBacklog = new Map()
-    this.#waitingForResponse = false
+    return pTimeout.call(async () => {
+      // first we connect to the serve without tls, and then we upgrade the connection
+      // to tls during the handshake
+      await this.#unsecureConnect()
+      await this.#handshake()
+      this.#connected = true
+      // reset internal state if we reconnected a nbd client
+      this.#commandQueryBacklog = new Map()
+      this.#waitingForResponse = false
+    }, this.#connectTimeout)
   }
 
   async disconnect() {
@@ -132,7 +138,9 @@ module.exports = class NbdClient {
   async reconnect() {
     // we need to ensure reconnections do not occur in parallel
     if (this.#reconnectingPromise === undefined) {
-      this.#reconnectingPromise = this.#reconnect()
+      this.#reconnectingPromise = pRetry(() => this.#reconnect(), {
+        tries: this.#reconnectRetry,
+      })
       this.#reconnectingPromise.then(this.#clearReconnectPromise, this.#clearReconnectPromise)
     }
 
