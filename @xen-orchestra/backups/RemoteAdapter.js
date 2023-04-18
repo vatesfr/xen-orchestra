@@ -781,7 +781,7 @@ class RemoteAdapter {
           // some properties of the metadata are collections indexed by the opaqueRef
           const isCollection = Object.keys(value).some(subKey => subKey.startsWith('OpaqueRef:'))
           if (isCollection) {
-            Object.keys(value).forEach(subKey => fixBooleans(value[subKey], propertiesInKey))
+            Object.values(value).forEach(subValue => fixBooleans(subValue, propertiesInKey))
           } else {
             fixBooleans(value, propertiesInKey)
           }
