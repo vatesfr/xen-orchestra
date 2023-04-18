@@ -97,17 +97,18 @@ module.exports = class NbdClient {
     })
   }
 
+  async #connect() {
+    // first we connect to the server without tls, and then we upgrade the connection
+    // to tls during the handshake
+    await this.#unsecureConnect()
+    await this.#handshake()
+    this.#connected = true
+    // reset internal state if we reconnected a nbd client
+    this.#commandQueryBacklog = new Map()
+    this.#waitingForResponse = false
+  }
   async connect() {
-    return pTimeout.call(async () => {
-      // first we connect to the serve without tls, and then we upgrade the connection
-      // to tls during the handshake
-      await this.#unsecureConnect()
-      await this.#handshake()
-      this.#connected = true
-      // reset internal state if we reconnected a nbd client
-      this.#commandQueryBacklog = new Map()
-      this.#waitingForResponse = false
-    }, this.#connectTimeout)
+    return pTimeout.call(this.#connect(), this.#connectTimeout)
   }
 
   async disconnect() {
@@ -125,7 +126,7 @@ module.exports = class NbdClient {
     this.#connected = false
   }
 
-  #clearReconnectPromise() {
+  #clearReconnectPromise = () => {
     this.#reconnectingPromise = undefined
   }
 
