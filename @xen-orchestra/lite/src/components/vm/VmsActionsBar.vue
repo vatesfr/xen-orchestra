@@ -224,7 +224,7 @@ const areVmsPaused = computed(() =>
 );
 
 const areOperationsPending = (operation: string | string[]) =>
-  vms.value.every((vm) => isOperationsPending(vm, operation));
+  vms.value.some((vm) => isOperationsPending(vm, operation));
 
 const areVmsBusyToStart = computed(() => areOperationsPending("start"));
 const areVmsBusyToStartOnHost = computed(() =>
