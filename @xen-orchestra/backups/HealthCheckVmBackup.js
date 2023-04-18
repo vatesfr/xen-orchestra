@@ -28,7 +28,7 @@ exports.HealthCheckVmBackup = class HealthCheckVmBackup {
         const waitForScript = restoredVm.tags.includes('xo:backup:healthcheck:xenstore')
         if (waitForScript) {
           await restoredVm.set_xenstore_data({
-            'vm-data/health-check': 'planned',
+            'vm-data/xo-backup-health-check': 'planned',
           })
         }
         const start = new Date()
@@ -77,8 +77,8 @@ exports.HealthCheckVmBackup = class HealthCheckVmBackup {
             restoredVm.$ref,
             vm =>
               vm?.xenstore_data !== undefined &&
-              (vm.xenstore_data['vm-data/health-check'] === 'success' ||
-                vm.xenstore_data['vm-data/health-check'] === 'failure'),
+              (vm.xenstore_data['vm-data/xo-backup-health-check'] === 'success' ||
+                vm.xenstore_data['vm-data/xo-backup-health-check'] === 'failure'),
             {
               timeout: remainingTimeout,
             }
@@ -87,25 +87,25 @@ exports.HealthCheckVmBackup = class HealthCheckVmBackup {
           remainingTimeout -= scriptOk - guestToolsReady
           if (remainingTimeout < 0) {
             throw new Error(
-              `Backup health check script did not update vm-data/health-check of ${restoredId} after ${
+              `Backup health check script did not update vm-data/xo-backup-health-check of ${restoredId} after ${
                 timeout / 1000
               } second, got ${
-                startedRestoredVm.xenstore_data['vm-data/health-check']
+                startedRestoredVm.xenstore_data['vm-data/xo-backup-health-check']
               } instead of 'success' or 'failure'`
             )
           }
 
-          if (startedRestoredVm.xenstore_data['vm-data/health-check'] !== 'success') {
-            const message = startedRestoredVm.xenstore_data['vm-data/health-check-error']
+          if (startedRestoredVm.xenstore_data['vm-data/xo-backup-health-check'] !== 'success') {
+            const message = startedRestoredVm.xenstore_data['vm-data/xo-backup-health-check-error']
             if (message) {
               throw new Error(
-                `Backup health check script failed with message ${startedRestoredVm.xenstore_data['vm-data/health-check-error']} for VM ${restoredId} `
+                `Backup health check script failed with message ${startedRestoredVm.xenstore_data['vm-data/xo-backup-health-check-error']} for VM ${restoredId} `
               )
             } else {
               throw new Error(`Backup health check script failed with for VM ${restoredId} `)
             }
           }
-          Task.info('Heath check script successfully executed')
+          Task.info('Backup health check script successfully executed')
         }
       }
     )
