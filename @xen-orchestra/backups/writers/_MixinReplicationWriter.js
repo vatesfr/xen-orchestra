@@ -20,7 +20,7 @@ exports.MixinReplicationWriter = (BaseClass = Object) =>
       this._sr = sr
     }
 
-    healthCheck(sr, waitForStartupScript) {
+    healthCheck(sr) {
       assert.notEqual(this._targetVmRef, undefined, 'A vm should have been transfered to be health checked')
       // copy VM
       return Task.run(
@@ -39,7 +39,6 @@ exports.MixinReplicationWriter = (BaseClass = Object) =>
 
             await new HealthCheckVmBackup({
               restoredVm: clonedVm,
-              waitForStartupScript,
               xapi,
             }).run()
           } finally {

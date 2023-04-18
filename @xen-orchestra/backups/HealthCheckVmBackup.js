@@ -5,14 +5,12 @@ const { Task } = require('./Task')
 exports.HealthCheckVmBackup = class HealthCheckVmBackup {
   #restoredVm
   #timeout
-  #waitForStartupScript
   #xapi
 
-  constructor({ restoredVm, timeout = 10 * 60 * 1000, waitForStartupScript = false, xapi }) {
+  constructor({ restoredVm, timeout = 10 * 60 * 1000, xapi }) {
     this.#restoredVm = restoredVm
     this.#xapi = xapi
     this.#timeout = timeout
-    this.#waitForStartupScript = waitForStartupScript
   }
 
   async run() {
@@ -27,8 +25,8 @@ exports.HealthCheckVmBackup = class HealthCheckVmBackup {
 
         // remove vifs
         await Promise.all(restoredVm.$VIFs.map(vif => xapi.callAsync('VIF.destroy', vif.$ref)))
-
-        if (this.#waitForStartupScript) {
+        const waitForScript = restoredVm.tags.includes('xo:backup:healthcheck:xenstore')
+        if (waitForScript) {
           await restoredVm.set_xenstore_data({
             'vm-data/health-check': 'planned',
           })
@@ -74,7 +72,7 @@ exports.HealthCheckVmBackup = class HealthCheckVmBackup {
           throw new Error(`local xapi  did not get he guest tools check ${restoredId} after ${timeout / 1000} second`)
         }
 
-        if (this.#waitForStartupScript) {
+        if (waitForScript) {
           const startedRestoredVm = await xapi.waitObjectState(
             restoredVm.$ref,
             vm =>
@@ -89,16 +87,23 @@ exports.HealthCheckVmBackup = class HealthCheckVmBackup {
           remainingTimeout -= scriptOk - guestToolsReady
           if (remainingTimeout < 0) {
             throw new Error(
-              `script did not update vm-data/health-check of ${restoredId} after ${timeout / 1000} second, got ${
+              `Backup health check script did not update vm-data/health-check of ${restoredId} after ${
+                timeout / 1000
+              } second, got ${
                 startedRestoredVm.xenstore_data['vm-data/health-check']
-              }`
+              } instead of 'success' or 'failure'`
             )
           }
 
           if (startedRestoredVm.xenstore_data['vm-data/health-check'] !== 'success') {
-            throw new Error(
-              `script failed with message  ${startedRestoredVm.xenstore_data['vm-data/health-check-error']} for VM ${restoredId} `
-            )
+            const message = startedRestoredVm.xenstore_data['vm-data/health-check-error']
+            if (message) {
+              throw new Error(
+                `Backup health check script failed with message ${startedRestoredVm.xenstore_data['vm-data/health-check-error']} for VM ${restoredId} `
+              )
+            } else {
+              throw new Error(`Backup health check script failed with for VM ${restoredId} `)
+            }
           }
           Task.info('Heath check script successfully executed')
         }

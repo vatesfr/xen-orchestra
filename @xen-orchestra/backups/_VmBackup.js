@@ -455,10 +455,7 @@ class VmBackup {
       return
     }
 
-    await this._callWriters(
-      writer => writer.healthCheck(this._healthCheckSr, settings.waitForStartupScript),
-      'writer.healthCheck()'
-    )
+    await this._callWriters(writer => writer.healthCheck(this._healthCheckSr), 'writer.healthCheck()')
   }
 
   async run($defer) {
