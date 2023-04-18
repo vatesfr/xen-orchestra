@@ -9,7 +9,7 @@
 
 - [VM/Advanced] Automatically eject removable medias when converting a VM to a template [#6752](https://github.com/vatesfr/xen-orchestra/issues/6752) (PR [#6769](https://github.com/vatesfr/xen-orchestra/pull/6769))
 - [Dashboard/Health] Add free space column for storage state table (PR [#6778](https://github.com/vatesfr/xen-orchestra/pull/6778))
-- [Backup/exports] Retry reading a block during delta backup, vhd, ova and vmdk exports (PR [#6763](https://github.com/vatesfr/xen-orchestra/pull/6763))
+- [Backup/exports] Retry on when failing to read a data block during Delta Backup, Continuous Replication, disk and Ova export when NBD is enabled [PR #6763](https://github.com/vatesfr/xen-orchestra/pull/6763)
 
 ### Bug fixes
 
