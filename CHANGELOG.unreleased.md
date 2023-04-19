@@ -19,6 +19,7 @@
 - [Delta Backup] Restoring a backup with memory must create a suspended VM [#5061](https://github.com/vatesfr/xen-orchestra/issues/5061) (PR [#6774](https://github.com/vatesfr/xen-orchestra/pull/6774))
 - [Backup] Show original error instead of `stream has ended without data`
 - [Ova import] Fix Ova import error `No user expected grain marker, received [object Object]` [Forum#60648](https://xcp-ng.org/forum/post/60648) (PR [#6779](https://github.com/vatesfr/xen-orchestra/pull/6779))
+- [Continuous Replication] Remove irrelevant _Suspend VDI not available for this suspended VM_ error [Forum#61169](https://xcp-ng.org/forum/post/61169)
 
 ### Packages to release
 
