@@ -25,7 +25,7 @@ import {
 import { addSubscriptions, connectStore, formatSizeShort, getVirtualizationModeLabel, osFamily } from 'utils'
 import { CpuSparkLines, MemorySparkLines, NetworkSparkLines, XvdSparkLines } from 'xo-sparklines'
 import { injectState, provideState } from 'reaclette'
-import { keyBy } from 'lodash'
+import { find } from 'lodash'
 
 const GuestToolsDetection = ({ vm }) => {
   if (vm.power_state !== 'Running' || vm.pvDriversDetected === undefined) {
@@ -96,18 +96,22 @@ const GeneralTab = decorate([
 
     return (state, props) => ({
       isAdmin,
-      templates: createGetObjectsOfType('VM-template').groupBy('uuid')(state, props),
       lastShutdownTime: createGetVmLastShutdownTime()(state, props),
       // true: useResourceSet to bypass permissions
       resolvedPendingTasks: getResolvedPendingTasks(state, props, true),
       vgpu: getAttachedVgpu(state, props),
       vgpuTypes: getVgpuTypes(state, props),
+      vmTemplate: createGetObjectsOfType('VM-template').find(
+        (_, { pool, vm }) =>
+          template =>
+            template.$poolId === pool.id && template.uuid === vm.creation?.template
+      )(state, props),
     })
   }),
   addSubscriptions(
-    ({ isAdmin }) =>
+    ({ isAdmin, vm }) =>
       isAdmin && {
-        users: cb => subscribeUsers(users => cb(keyBy(users, 'id'))),
+        vmCreator: cb => subscribeUsers(users => cb(find(users, user => user.id === vm.creation?.user))),
       }
   ),
   provideState({
@@ -116,19 +120,18 @@ const GeneralTab = decorate([
         const vmTaskIds = Object.keys(vm.current_operations)
         return resolvedPendingTasks.filter(task => vmTaskIds.includes(task.id))
       },
-      vmCreator: (_, { users, vm }) => users?.[vm.creation?.user],
-      vmTemplate: (_, { pool, templates, vm }) =>
-        templates[vm.creation?.template].find(template => template.$poolId === pool.id),
     },
   }),
   injectState,
   ({
-    state: { vmCreator, vmResolvedPendingTasks, vmTemplate },
+    state: { vmResolvedPendingTasks },
     lastShutdownTime,
     statsOverview,
     vgpu,
     vgpuTypes,
     vm,
+    vmCreator,
+    vmTemplate,
     vmTotalDiskSpace,
   }) => {
     const {
@@ -193,11 +196,11 @@ const GeneralTab = decorate([
                 })}
               </div>
             )}
-            {vmCreator !== undefined && <div>{_('createdBy', { user: vmCreator.email })}</div>}
+            {vmCreator !== undefined && <p className='mb-0'>{_('createdBy', { user: vmCreator.email })}</p>}
             {vmTemplate !== undefined && (
-              <div>
+              <p className='mb-0'>
                 {_('originalTemplate')} {vmTemplate.name_label}
-              </div>
+              </p>
             )}
             {powerState === 'Running' || powerState === 'Paused' ? (
               <div>

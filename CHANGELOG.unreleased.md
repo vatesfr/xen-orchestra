@@ -7,7 +7,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [VM/General] Displays the name of the template used to create the VM, and for admins only, the email of the VM creator (PR [#6771](https://github.com/vatesfr/xen-orchestra/pull/6771))
+- [VM/General] Displays the template name used to create the VM, as well as the email address of the VM creator for admin users (PR [#6771](https://github.com/vatesfr/xen-orchestra/pull/6771))
 
 ### Bug fixes
 
