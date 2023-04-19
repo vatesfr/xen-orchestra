@@ -1,4 +1,5 @@
 import _ from 'intl'
+import Icon from 'icon'
 import React from 'react'
 import ChooseSrForEachVdisModal from 'xo/choose-sr-for-each-vdis-modal'
 import Component from 'base-component'
@@ -33,6 +34,11 @@ export default class RestoreBackupsModalBody extends Component {
   render() {
     return (
       <div>
+        {this.props.backupHealthCheck && (
+          <em>
+            <Icon icon='info' /> {_('healthCheckXenstore')}
+          </em>
+        )}
         <div className='mb-1'>
           <Select
             optionRenderer={BACKUP_RENDERER}
@@ -77,6 +83,7 @@ export default class RestoreBackupsModalBody extends Component {
 RestoreBackupsModalBody.defaultProps = {
   showGenerateNewMacAddress: true,
   showStartAfterBackup: true,
+  backupHealthCheck: false,
 }
 
 export class RestoreBackupsBulkModalBody extends Component {

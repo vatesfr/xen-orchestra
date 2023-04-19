@@ -146,6 +146,10 @@ const New = decorate([
               />,
               getXoaPlan().value < ENTERPRISE.value ? _('healthCheckAvailableEnterpriseUser') : undefined
             )}
+            <br />
+            <em>
+              <Icon icon='info' /> {_('healthCheckXenstore')}
+            </em>
           </label>
           {schedule.healthCheckVmsWithTags !== undefined && (
             <div className='mb-2'>
@@ -157,7 +161,7 @@ const New = decorate([
               <p className='h2'>
                 <Tags labels={schedule.healthCheckVmsWithTags} onChange={effects.setHealthCheckTags} />
               </p>
-              <strong>{_('sr')}</strong>
+              <strong>{_('healthCheckChooseSr')}</strong>
               <SelectSr
                 onChange={effects.setHealthCheckSr}
                 placeholder={_('healthCheckChooseSr')}
