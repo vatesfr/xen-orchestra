@@ -13,7 +13,6 @@ import { Index } from 'xo-collection/index'
 import { cancelable, defer, fromCallback, ignoreErrors, pDelay, pRetry, pTimeout } from 'promise-toolbox'
 import { limitConcurrency } from 'limit-concurrency-decorator'
 
-import autoTransport from './transports/auto'
 import debug from './_debug'
 import getTaskResult from './_getTaskResult'
 import isGetAllRecordsMethod from './_isGetAllRecordsMethod'
@@ -22,6 +21,7 @@ import makeCallSetting from './_makeCallSetting'
 import parseUrl from './_parseUrl'
 import Ref from './_Ref'
 import replaceSensitiveValues from './_replaceSensitiveValues'
+import transports from './transports'
 
 // ===================================================================
 
@@ -89,6 +89,13 @@ const addSyncStackTrace = async promise => {
 export class Xapi extends EventEmitter {
   constructor(opts) {
     super()
+
+    const { transport = 'auto' } = opts
+    const createTransport = transports[transport]
+    if (createTransport === undefined) {
+      throw new Error('invalid transport: ' + transport)
+    }
+    this._createTransport = createTransport
 
     this._addSyncStackTrace =
       opts.syncStackTraces ?? process.env.NODE_ENV === 'development' ? addSyncStackTrace : identity
@@ -939,7 +946,7 @@ export class Xapi extends EventEmitter {
 
   _setUrl(url) {
     this._humanId = `${this._auth.user ?? 'unknown'}@${url.hostname}`
-    this._transport = autoTransport({
+    this._transport = this._createTransport({
       secureOptions: {
         minVersion: 'TLSv1',
         rejectUnauthorized: !this._allowUnauthorized,
