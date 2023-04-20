@@ -39,7 +39,7 @@
 /* Bulleted list */
 
 .bullet {
-  position:relative;
+  position: relative;
   margin-bottom: 0;
 }
 .bullet:after {

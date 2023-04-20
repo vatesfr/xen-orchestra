@@ -7,7 +7,7 @@ import React from 'react'
 import Tooltip from 'tooltip'
 import { generateId } from 'reaclette-utils'
 import { injectState, provideState } from 'reaclette'
-import { keyBy } from 'lodash'
+import keyBy from 'lodash/keyBy.js'
 import { SelectProxy } from 'select-objects'
 import { subscribeRemotes } from 'xo'
 

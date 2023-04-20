@@ -5,7 +5,7 @@ import React from 'react'
 import Tooltip from 'tooltip'
 import { Container, Row, Col } from 'grid'
 import { DEFAULT_GRANULARITY, fetchStats, SelectGranularity } from 'stats'
-import { get } from 'lodash'
+import get from 'lodash/get.js'
 import { Toggle } from 'form'
 import { IopsLineChart, IoThroughputChart, IowaitChart, LatencyChart } from 'xo-line-chart'
 

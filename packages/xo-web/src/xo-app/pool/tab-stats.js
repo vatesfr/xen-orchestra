@@ -7,7 +7,7 @@ import { connectStore } from 'utils'
 import { Container, Row, Col } from 'grid'
 import { createGetObjectsOfType, createSelector } from 'selectors'
 import { DEFAULT_GRANULARITY, fetchStats, SelectGranularity } from 'stats'
-import { map } from 'lodash'
+import map from 'lodash/map.js'
 import { Toggle } from 'form'
 import { PoolCpuLineChart, PoolMemoryLineChart, PoolPifLineChart, PoolLoadLineChart } from 'xo-line-chart'
 

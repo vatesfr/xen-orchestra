@@ -2276,7 +2276,7 @@ export default {
   // Original text: 'To SR:'
   vmImportToSr: undefined,
 
-  // Original text: 'VMs to import'
+  // Original text: 'VM{nVms, plural, one {} other {s}} to import'
   vmsToImport: undefined,
 
   // Original text: 'Reset'
@@ -2294,7 +2294,7 @@ export default {
   // Original text: 'Export starting…'
   startVmExport: undefined,
 
-  // Original text: 'N CPUs'
+  // Original text: 'Number of CPUs'
   nCpus: undefined,
 
   // Original text: 'Memory'

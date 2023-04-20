@@ -1,6 +1,5 @@
 import _ from 'intl'
 import Component from 'base-component'
-import InconsistentHostTimeWarning from 'inconsistent-host-time-warning'
 import Ellipsis, { EllipsisContainer } from 'ellipsis'
 import Icon from 'icon'
 import Link, { BlockLink } from 'link'
@@ -12,7 +11,16 @@ import HomeTags from 'home-tags'
 import Tooltip from 'tooltip'
 import { Row, Col } from 'grid'
 import { Text } from 'editable'
-import { addTag, editHost, fetchHostStats, removeTag, startHost, stopHost, subscribeHvSupportedVersions } from 'xo'
+import {
+  addTag,
+  editHost,
+  fetchHostStats,
+  isHostTimeConsistentWithXoaTime,
+  removeTag,
+  startHost,
+  stopHost,
+  subscribeHvSupportedVersions,
+} from 'xo'
 import { addSubscriptions, connectStore, formatSizeShort, hasLicenseRestrictions, osFamily } from 'utils'
 import {
   createDoesHostNeedRestart,
@@ -21,10 +29,14 @@ import {
   createGetObjectsOfType,
   createSelector,
 } from 'selectors'
+import { injectState } from 'reaclette'
 
 import MiniStats from './mini-stats'
-import LicenseWarning from '../host/license-warning'
 import styles from './index.css'
+
+import BulkIcons from '../../common/bulk-icons'
+import { LICENSE_WARNING_BODY } from '../host/license-warning'
+import { getXoaPlan, SOURCES } from '../../common/xoa-plans'
 
 @addSubscriptions({
   hvSupportedVersions: subscribeHvSupportedVersions,
@@ -38,8 +50,9 @@ import styles from './index.css'
       hostId => obj => obj.$container === hostId
     )
   ),
-  state: createGetHostState((_, props) => props.item),
+  hostState: createGetHostState((_, props) => props.item),
 }))
+@injectState
 export default class HostItem extends Component {
   get _isRunning() {
     const host = this.props.item
@@ -65,10 +78,112 @@ export default class HostItem extends Component {
   _stop = () => stopHost(this.props.item)
   _toggleExpanded = () => this.setState({ expanded: !this.state.expanded })
   _onSelect = () => this.props.onSelect(this.props.item.id)
+  _getProSupportStatus = () => {
+    const { state: reacletteState, item: host } = this.props
+    if (host.productBrand !== 'XCP-ng') {
+      return
+    }
+
+    const { supportLevel } = reacletteState.poolLicenseInfoByPoolId[host.$poolId]
+    const license = reacletteState.xcpngLicenseByBoundObjectId[host.id]
+    if (license !== undefined) {
+      license.expires = license.expires ?? Infinity
+    }
+
+    let level = 'warning'
+    let message = 'hostNoSupport'
+
+    if (getXoaPlan() === SOURCES) {
+      message = 'poolSupportSourceUsers'
+      level = 'warning'
+    }
+
+    if (supportLevel === 'total') {
+      message = 'hostSupportEnabled'
+      level = 'success'
+    }
+
+    if (supportLevel === 'partial' && (license === undefined || license.expires < Date.now())) {
+      message = 'hostNoLicensePartialProSupport'
+      level = 'danger'
+    }
+
+    return {
+      level,
+      icon: <Icon icon='menu-support' className={`text-${level}`} />,
+      message,
+    }
+  }
+
+  _getAlerts = createSelector(
+    () => this.props.needsRestart,
+    () => this.props.item,
+    this._isMaintained,
+    (needsRestart, host, isMaintained) => {
+      const alerts = []
+
+      if (needsRestart) {
+        alerts.push({
+          level: 'warning',
+          render: (
+            <Link className='text-warning' to={`/hosts/${host.id}/patches`}>
+              <Icon icon='alarm' /> {_('rebootUpdateHostLabel')}
+            </Link>
+          ),
+        })
+      }
+
+      if (!isMaintained) {
+        alerts.push({
+          level: 'warning',
+          render: (
+            <p>
+              <Icon icon='alarm' /> {_('noMoreMaintained')}
+            </p>
+          ),
+        })
+      }
+
+      if (!isHostTimeConsistentWithXoaTime(host)) {
+        alerts.push({
+          level: 'danger',
+          render: (
+            <p>
+              <Icon icon='alarm' /> {_('warningHostTimeTooltip')}
+            </p>
+          ),
+        })
+      }
+
+      if (hasLicenseRestrictions(host)) {
+        alerts.push({
+          level: 'danger',
+          render: (
+            <span>
+              <Icon icon='alarm' /> {_('licenseRestrictionsModalTitle')} {LICENSE_WARNING_BODY}
+            </span>
+          ),
+        })
+      }
+
+      const proSupportStatus = this._getProSupportStatus()
+      if (proSupportStatus !== undefined && proSupportStatus.level !== 'success') {
+        alerts.push({
+          level: proSupportStatus.level,
+          render: (
+            <span>
+              {proSupportStatus.icon} {_(proSupportStatus.message)}
+            </span>
+          ),
+        })
+      }
+      return alerts
+    }
+  )
 
   render() {
-    const { container, expandAll, item: host, nVms, selected, state } = this.props
-
+    const { container, expandAll, item: host, nVms, selected, hostState } = this.props
+    const proSupportStatus = this._getProSupportStatus()
     return (
       <div className={styles.item}>
         <BlockLink to={`/hosts/${host.id}`}>
@@ -80,8 +195,8 @@ export default class HostItem extends Component {
                 <Tooltip
                   content={
                     <span>
-                      {_(`powerState${state}`)}
-                      {state === 'Busy' && (
+                      {_(`powerState${hostState}`)}
+                      {hostState === 'Busy' && (
                         <span>
                           {' ('}
                           {map(host.current_operations)[0]}
@@ -91,7 +206,7 @@ export default class HostItem extends Component {
                     </span>
                   }
                 >
-                  <Icon icon={state.toLowerCase()} />
+                  <Icon icon={hostState.toLowerCase()} />
                 </Tooltip>
                 &nbsp;&nbsp;
                 <Ellipsis>
@@ -102,23 +217,11 @@ export default class HostItem extends Component {
                   <span className='tag tag-pill tag-info'>{_('pillMaster')}</span>
                 )}
                 &nbsp;
-                {this.props.needsRestart && (
-                  <Tooltip content={_('rebootUpdateHostLabel')}>
-                    <Link to={`/hosts/${host.id}/patches`}>
-                      <Icon icon='alarm' />
-                    </Link>
-                  </Tooltip>
+                <BulkIcons alerts={this._getAlerts()} />
+                &nbsp;
+                {proSupportStatus?.level === 'success' && (
+                  <Tooltip content={_(proSupportStatus.message)}>{proSupportStatus.icon}</Tooltip>
                 )}
-                &nbsp;
-                {!this._isMaintained() && (
-                  <Tooltip content={_('noMoreMaintained')}>
-                    <Icon className='text-warning' icon='alarm' />
-                  </Tooltip>
-                )}
-                &nbsp;
-                <InconsistentHostTimeWarning host={host} />
-                &nbsp;
-                {hasLicenseRestrictions(host) && <LicenseWarning />}
               </EllipsisContainer>
             </Col>
             <Col mediumSize={3} className='hidden-lg-down'>

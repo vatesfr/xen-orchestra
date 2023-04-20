@@ -45,6 +45,7 @@ set.params = {
   },
   name_description: {
     type: 'string',
+    minLength: 0,
     optional: true,
   },
   backupNetwork: {

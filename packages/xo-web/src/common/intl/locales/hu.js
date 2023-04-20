@@ -2490,7 +2490,7 @@ export default {
   // Original text: "To SR:"
   vmImportToSr: 'Adattárolóra:',
 
-  // Original text: "VMs to import"
+  // Original text: "VM{nVms, plural, one {} other {s}} to import"
   vmsToImport: 'Importálandó VPS-el',
 
   // Original text: "Reset"
@@ -2508,8 +2508,8 @@ export default {
   // Original text: "Export starting…"
   startVmExport: 'Exportálás indul…',
 
-  // Original text: "N CPUs"
-  nCpus: 'N CPUs',
+  // Original text: "Number of CPUs"
+  nCpus: undefined,
 
   // Original text: "Memory"
   vmMemory: 'Memória',

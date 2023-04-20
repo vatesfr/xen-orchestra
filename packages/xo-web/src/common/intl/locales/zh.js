@@ -1739,7 +1739,7 @@ export default {
   // Original text: "To SR:"
   vmImportToSr: '到存储库',
 
-  // Original text: "VMs to import"
+  // Original text: "VM{nVms, plural, one {} other {s}} to import"
   vmsToImport: '导入虚拟机',
 
   // Original text: "Reset"

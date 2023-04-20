@@ -1,10 +1,9 @@
 'use strict'
 
 const { BLOCK_UNUSED, FOOTER_SIZE, HEADER_SIZE, SECTOR_SIZE } = require('./_constants')
-const { readChunk } = require('@vates/read-chunk')
+const { readChunkStrict, skipStrict } = require('@vates/read-chunk')
 const assert = require('assert')
 const { unpackFooter, unpackHeader, computeFullBlockSize } = require('./Vhd/_utils')
-const { asyncEach } = require('@vates/async-each')
 
 const cappedBufferConcat = (buffers, maxSize) => {
   let buffer = Buffer.concat(buffers)
@@ -42,12 +41,19 @@ class StreamParser {
     assert(this._bytesRead <= offset, `offset is ${offset} but we already read ${this._bytesRead} bytes`)
     if (this._bytesRead < offset) {
       // empty spaces
-      await this._read(this._bytesRead, offset - this._bytesRead)
+      await skipStrict(this._stream, offset - this._bytesRead)
+      this._bytesRead += offset - this._bytesRead
     }
-    const buf = await readChunk(this._stream, size)
-    assert.strictEqual(buf.length, size, `read ${buf.length} instead of ${size}`)
-    this._bytesRead += size
-    return buf
+
+    try {
+      const buf = await readChunkStrict(this._stream, size)
+      this._bytesRead += size
+      return buf
+    } catch (err) {
+      err._bytesRead = this._bytesRead
+      err.size = size
+      throw err
+    }
   }
 
   async *headers() {
@@ -154,111 +160,7 @@ class StreamParser {
     yield* this.blocks()
   }
 }
-
-// hybrid mode : read the headers from the vhd stream, and read the blocks from nbd
-class StreamNbdParser extends StreamParser {
-  #nbdClient = null
-  #concurrency = 16
-
-  constructor(stream, nbdClient = {}) {
-    super(stream)
-    this.#nbdClient = nbdClient
-  }
-
-  async _readBlockData(item) {
-    const SECTOR_BITMAP = Buffer.alloc(512, 255)
-    const client = this.#nbdClient
-    // we read in a raw file, so the block position is id x length, and have nothing to do with the offset
-    // in the vhd stream
-    const rawDataLength = item.size - SECTOR_BITMAP.length
-    const data = await client.readBlock(item.id, rawDataLength)
-
-    // end of file , non aligned vhd block
-    const buffer = Buffer.concat([SECTOR_BITMAP, data])
-    const block = {
-      ...item,
-      size: rawDataLength,
-      bitmap: SECTOR_BITMAP,
-      data,
-      buffer,
-    }
-    return block
-  }
-
-  async *blocks() {
-    // at most this array will be this.#concurrency long
-    const blocksReady = []
-    let waitingForBlock
-    let done = false
-    let error
-
-    function waitForYield(block) {
-      return new Promise(resolve => {
-        blocksReady.push({
-          block,
-          yielded: resolve,
-        })
-        if (waitingForBlock !== undefined) {
-          const resolver = waitingForBlock
-          waitingForBlock = undefined
-          resolver()
-        }
-      })
-    }
-
-    asyncEach(
-      this._index,
-      async blockId => {
-        const block = await this._readBlockData(blockId)
-        await waitForYield(block)
-      },
-      { concurrency: this.#concurrency }
-    )
-      .then(() => {
-        done = true
-        waitingForBlock?.()
-      })
-      .catch(err => {
-        // will keep only the last error if multiple throws
-        error = err
-        waitingForBlock?.()
-      })
-    // eslint-disable-next-line no-unmodified-loop-condition
-    while (!done) {
-      if (error) {
-        throw error
-      }
-      if (blocksReady.length > 0) {
-        const { block, yielded } = blocksReady.shift()
-        yielded()
-        yield block
-      } else {
-        await new Promise(resolve => {
-          waitingForBlock = resolve
-        })
-      }
-    }
-  }
-
-  async *parse() {
-    yield* this.headers()
-
-    // the VHD stream is no longer necessary, destroy it
-    //
-    // - not destroying it would leave other writers stuck
-    // - resuming it would download the whole stream unnecessarily if not other writers
-    this._stream.destroy()
-
-    yield* this.blocks()
-  }
-}
-
-exports.parseVhdStream = async function* parseVhdStream(stream, nbdClient) {
-  let parser
-  if (nbdClient) {
-    parser = new StreamNbdParser(stream, nbdClient)
-  } else {
-    parser = new StreamParser(stream)
-  }
+exports.parseVhdStream = async function* parseVhdStream(stream) {
+  const parser = new StreamParser(stream)
   yield* parser.parse()
 }

@@ -70,6 +70,9 @@ export interface XenApiRecord {
 export type RawXenApiRecord<T extends XenApiRecord> = Omit<T, "$ref">;
 
 export interface XenApiPool extends XenApiRecord {
+  cpu_info: {
+    cpu_count: string;
+  };
   master: string;
   name_label: string;
 }
@@ -80,6 +83,7 @@ export interface XenApiHost extends XenApiRecord {
   metrics: string;
   resident_VMs: string[];
   cpu_info: { cpu_count: string };
+  software_version: { product_version: string };
 }
 
 export interface XenApiSr extends XenApiRecord {
@@ -90,6 +94,8 @@ export interface XenApiSr extends XenApiRecord {
 
 export interface XenApiVm extends XenApiRecord {
   current_operations: Record<string, string>;
+  guest_metrics: string;
+  metrics: string;
   name_label: string;
   name_description: string;
   power_state: PowerState;
@@ -98,6 +104,7 @@ export interface XenApiVm extends XenApiRecord {
   is_control_domain: boolean;
   is_a_snapshot: boolean;
   is_a_template: boolean;
+  VCPUs_at_startup: number;
 }
 
 export interface XenApiConsole extends XenApiRecord {
@@ -111,7 +118,9 @@ export interface XenApiHostMetrics extends XenApiRecord {
   memory_total: number;
 }
 
-export type XenApiVmMetrics = XenApiRecord;
+export interface XenApiVmMetrics extends XenApiRecord {
+  VCPUs_number: number;
+}
 
 export type XenApiVmGuestMetrics = XenApiRecord;
 

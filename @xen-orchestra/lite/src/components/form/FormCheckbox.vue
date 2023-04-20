@@ -6,6 +6,7 @@
   >
     <input
       v-model="value"
+      :class="{ indeterminate: type === 'checkbox' && value === undefined }"
       :disabled="isLabelDisabled || disabled"
       :type="type === 'radio' ? 'radio' : 'checkbox'"
       class="input"
@@ -32,9 +33,9 @@ import {
   inject,
   ref,
 } from "vue";
-import { faCheck, faCircle } from "@fortawesome/free-solid-svg-icons";
+import { faCheck, faCircle, faMinus } from "@fortawesome/free-solid-svg-icons";
 import { useVModel } from "@vueuse/core";
-import UiIcon from "@/components/ui/UiIcon.vue";
+import UiIcon from "@/components/ui/icon/UiIcon.vue";
 
 // Temporary workaround for https://github.com/vuejs/core/issues/4294
 interface Props extends Omit<InputHTMLAttributes, ""> {
@@ -53,7 +54,17 @@ const value = useVModel(props, "modelValue", emit);
 const type = inject<"checkbox" | "radio" | "toggle">("inputType", "checkbox");
 const hasLabel = inject("hasLabel", false);
 const isLabelDisabled = inject("isLabelDisabled", ref(false));
-const icon = computed(() => (type === "checkbox" ? faCheck : faCircle));
+const icon = computed(() => {
+  if (type !== "checkbox") {
+    return faCircle;
+  }
+
+  if (value.value === undefined) {
+    return faMinus;
+  }
+
+  return faCheck;
+});
 </script>
 
 <style lang="postcss" scoped>
@@ -74,6 +85,11 @@ const icon = computed(() => (type === "checkbox" ? faCheck : faCircle));
 .form-checkbox {
   --checkbox-border-radius: 0.25em;
   --checkbox-icon-size: 1em;
+
+  .input.indeterminate + .fake-checkbox > .icon {
+    opacity: 1;
+    color: var(--color-blue-scale-300);
+  }
 }
 
 .form-checkbox,
@@ -109,8 +125,8 @@ const icon = computed(() => (type === "checkbox" ? faCheck : faCircle));
   }
 
   .icon {
-    transform: translateX(-0.7em);
     transition: transform 0.125s ease-in-out;
+    transform: translateX(-0.7em);
   }
 
   .input:checked + .fake-checkbox > .icon {
@@ -140,12 +156,12 @@ const icon = computed(() => (type === "checkbox" ? faCheck : faCircle));
   align-items: center;
   justify-content: center;
   height: 1.25em;
+  transition: background-color 0.125s ease-in-out,
+    border-color 0.125s ease-in-out;
   border: var(--checkbox-border-width) solid var(--border-color);
   border-radius: var(--checkbox-border-radius);
   background-color: var(--background-color);
   box-shadow: var(--shadow-100);
-  transition: background-color 0.125s ease-in-out,
-    border-color 0.125s ease-in-out;
 
   --border-color: var(--color-blue-scale-400);
 }

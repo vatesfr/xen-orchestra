@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types'
 import React from 'react'
-import { forOwn } from 'lodash'
+import forOwn from 'lodash/forOwn.js'
 
 import _ from './intl'
 import { fetchHostStats, fetchSrStats, fetchVmStats } from './xo'

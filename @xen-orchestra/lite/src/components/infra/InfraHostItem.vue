@@ -15,6 +15,12 @@
       {{ host.name_label || "(Host)" }}
       <template #actions>
         <InfraAction
+          :icon="faStar"
+          class="master-icon"
+          v-if="isPoolMaster"
+          v-tooltip="'Master'"
+        />
+        <InfraAction
           :icon="isExpanded ? faAngleDown : faAngleUp"
           @click="toggle()"
         />
@@ -32,6 +38,7 @@ import {
   faAngleDown,
   faAngleUp,
   faServer,
+  faStar,
 } from "@fortawesome/free-solid-svg-icons";
 import { useToggle } from "@vueuse/core";
 import InfraAction from "@/components/infra/InfraAction.vue";
@@ -39,6 +46,7 @@ import InfraItemLabel from "@/components/infra/InfraItemLabel.vue";
 import InfraVmList from "@/components/infra/InfraVmList.vue";
 import { hasEllipsis } from "@/libs/utils";
 import { useHostStore } from "@/stores/host.store";
+import { usePoolStore } from "@/stores/pool.store";
 import { useUiStore } from "@/stores/ui.store";
 
 const props = defineProps<{
@@ -47,6 +55,11 @@ const props = defineProps<{
 
 const hostStore = useHostStore();
 const host = computed(() => hostStore.getRecord(props.hostOpaqueRef));
+
+const poolStore = usePoolStore();
+const isPoolMaster = computed(
+  () => poolStore.pool?.master === props.hostOpaqueRef
+);
 
 const uiStore = useUiStore();
 
@@ -66,5 +79,9 @@ const isTooltipDisabled = (target: HTMLElement) =>
 
 .infra-vm-list:deep(.link) {
   padding-left: 4.5rem;
+}
+
+.master-icon {
+  color: var(--color-orange-world-base);
 }
 </style>

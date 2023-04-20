@@ -93,10 +93,18 @@ async function handleExportContent(req, res, { filename, format, vdi }) {
       : await vdi.$exportContent({ format: VDI_FORMAT_VHD })
   req.on('close', () => stream.destroy())
 
-  // Remove the filename as it is already part of the URL.
-  stream.headers['content-disposition'] = 'attachment'
+  // stream can be an HTTP response, in this case, extract interesting data
+  const { headers = {}, length, statusCode = 200, statusMessage = 'OK' } = stream
 
-  res.writeHead(stream.statusCode, stream.statusMessage != null ? stream.statusMessage : '', stream.headers)
+  // Set the correct disposition
+  headers['content-disposition'] = 'attachment'
+
+  // expose the stream length if known
+  if (headers['content-length'] === undefined && length !== undefined) {
+    headers['content-length'] = length
+  }
+
+  res.writeHead(statusCode, statusMessage != null ? statusMessage : '', headers)
   pipeline(stream, res, error => {
     if (error != null) {
       log.warn('disk.exportContent', { error })
@@ -232,7 +240,7 @@ async function handleImport(req, res, { type, name, description, vmdkData, srId,
             // didn't succeed to ensure the stream is completly consumed with resume/finished
             do {
               buffer = await readChunk(part, CHUNK_SIZE)
-            } while (buffer.length === CHUNK_SIZE)
+            } while (buffer?.length === CHUNK_SIZE)
 
             res.end(format.response(0, vdi.$id))
           } catch (e) {
@@ -270,7 +278,7 @@ async function importDisk({ sr, type, name, description, vmdkData }) {
 export { importDisk as import }
 
 importDisk.params = {
-  description: { type: 'string', optional: true },
+  description: { type: 'string', minLength: 0, optional: true },
   name: { type: 'string' },
   sr: { type: 'string' },
   type: { type: 'string' },

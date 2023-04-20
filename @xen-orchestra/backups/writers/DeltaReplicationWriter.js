@@ -45,6 +45,7 @@ exports.DeltaReplicationWriter = class DeltaReplicationWriter extends MixinRepli
       data: {
         id: this._sr.uuid,
         isFull,
+        name_label: this._sr.name_label,
         type: 'SR',
       },
     })
@@ -80,6 +81,7 @@ exports.DeltaReplicationWriter = class DeltaReplicationWriter extends MixinRepli
   }
 
   async _transfer({ timestamp, deltaExport, sizeContainers }) {
+    const { _warmMigration } = this._settings
     const sr = this._sr
     const { job, scheduleId, vm } = this._backup
 
@@ -92,7 +94,7 @@ exports.DeltaReplicationWriter = class DeltaReplicationWriter extends MixinRepli
           __proto__: deltaExport,
           vm: {
             ...deltaExport.vm,
-            tags: [...deltaExport.vm.tags, 'Continuous Replication'],
+            tags: _warmMigration ? deltaExport.vm.tags : [...deltaExport.vm.tags, 'Continuous Replication'],
           },
         },
         sr
@@ -101,11 +103,13 @@ exports.DeltaReplicationWriter = class DeltaReplicationWriter extends MixinRepli
         size: Object.values(sizeContainers).reduce((sum, { size }) => sum + size, 0),
       }
     })
-
+    this._targetVmRef = targetVmRef
     const targetVm = await xapi.getRecord('VM', targetVmRef)
 
     await Promise.all([
-      targetVm.ha_restart_priority !== '' &&
+      // warm migration does not disable HA , since the goal is to start the new VM in production
+      !_warmMigration &&
+        targetVm.ha_restart_priority !== '' &&
         Promise.all([targetVm.set_ha_restart_priority(''), targetVm.add_tags('HA disabled')]),
       targetVm.set_name_label(`${vm.name_label} - ${job.name} - (${formatFilenameDate(timestamp)})`),
       asyncMap(['start', 'start_on'], op =>

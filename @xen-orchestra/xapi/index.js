@@ -18,15 +18,47 @@ exports.VDI_FORMAT_VHD = 'vhd'
 exports.formatDateTime = utcFormat('%Y%m%dT%H:%M:%SZ')
 
 const parseDateTimeHelper = utcParse('%Y%m%dT%H:%M:%SZ')
-exports.parseDateTime = function (str, defaultValue) {
-  const date = parseDateTimeHelper(str)
-  if (date === null) {
-    if (arguments.length > 1) {
-      return defaultValue
-    }
-    throw new RangeError(`unable to parse XAPI datetime ${JSON.stringify(str)}`)
+
+/**
+ * Parses a date and time input and returns a Unix timestamp in seconds.
+ *
+ * @param {string|number|Date} input - The input to parse.
+ * @returns {number|null} A Unix timestamp in seconds, or null if the field is empty (as encoded by XAPI).
+ * @throws {TypeError} If the input is not a string, number or Date object.
+ */
+exports.parseDateTime = function parseDateTime(input) {
+  const type = typeof input
+
+  // If the value is a number, it is assumed to be a timestamp in seconds
+  if (type === 'number') {
+    return input || null
   }
-  return date.getTime()
+
+  if (typeof input === 'string') {
+    let date
+
+    // Some dates like host.other_config.{agent_start_time,boot_time,rpm_patch_installation_time}
+    // are already timestamps
+    date = +input
+    if (!Number.isNaN(date)) {
+      return date || null
+    }
+
+    // This is the case when the date has been retrieved via the JSON-RPC or JSON in XML-RPC APIs.
+    date = parseDateTimeHelper(input)
+    if (date === null) {
+      throw new RangeError(`unable to parse XAPI datetime ${JSON.stringify(input)}`)
+    }
+    input = date
+  }
+
+  // This is the case when the date has been retrieved using the XML-RPC API or parsed by the block above.
+  if (input instanceof Date) {
+    const msTimestamp = input.getTime()
+    return msTimestamp === 0 ? null : Math.floor(msTimestamp / 1e3)
+  }
+
+  throw new TypeError('unsupported input ' + input)
 }
 
 const hasProps = o => {
@@ -102,6 +134,7 @@ class Xapi extends Base {
   constructor({
     callRetryWhenTooManyPendingTasks = { delay: 5e3, tries: 10 },
     maxUncoalescedVdis,
+    preferNbd = false,
     syncHookSecret,
     syncHookTimeout,
     vdiDestroyRetryWhenInUse = { delay: 5e3, tries: 10 },
@@ -114,6 +147,7 @@ class Xapi extends Base {
       when: { code: 'TOO_MANY_PENDING_TASKS' },
     }
     this._maxUncoalescedVdis = maxUncoalescedVdis
+    this._preferNbd = preferNbd
     this._syncHookSecret = syncHookSecret
     this._syncHookTimeout = syncHookTimeout
     this._vdiDestroyRetryWhenInUse = {

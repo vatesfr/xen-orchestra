@@ -7,6 +7,7 @@ import { NavLink, NavTabs } from 'nav'
 import { routes } from 'utils'
 
 import DiskImport from '../disk-import'
+import EsxiImport from '../vm-import/esxi/esxi-import'
 import VmImport from '../vm-import'
 
 const HEADER = (
@@ -25,6 +26,9 @@ const HEADER = (
           <NavLink to='/import/disk'>
             <Icon icon='disk' /> {_('labelDisk')}
           </NavLink>
+          <NavLink to='/import/vmware'>
+            <Icon icon='vm' /> {_('fromVmware')}
+          </NavLink>
         </NavTabs>
       </Col>
     </Row>
@@ -34,6 +38,7 @@ const HEADER = (
 const Import = routes('vm', {
   disk: DiskImport,
   vm: VmImport,
+  vmware: EsxiImport,
 })(({ children }) => (
   <Page header={HEADER} title='newImport' formatTitle>
     {children}

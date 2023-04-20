@@ -12,7 +12,7 @@ const { defer } = require('golike-defer')
 
 const { cancelableMap } = require('./_cancelableMap.js')
 const { Task } = require('./Task.js')
-const { pick } = require('lodash')
+const pick = require('lodash/pick.js')
 
 const TAG_BASE_DELTA = 'xo:base_delta'
 exports.TAG_BASE_DELTA = TAG_BASE_DELTA
@@ -187,11 +187,11 @@ exports.importDeltaVm = defer(async function importDeltaVm(
 
   // 0. Create suspend_VDI
   let suspendVdi
-  if (vmRecord.power_state === 'Suspended') {
+  if (vmRecord.suspend_VDI !== undefined && vmRecord.suspend_VDI !== 'OpaqueRef:NULL') {
     const vdi = vdiRecords[vmRecord.suspend_VDI]
     if (vdi === undefined) {
       Task.warning('Suspend VDI not available for this suspended VM', {
-        vm: pick(vmRecord, 'uuid', 'name_label'),
+        vm: pick(vmRecord, 'uuid', 'name_label', 'suspend_VDI'),
       })
     } else {
       suspendVdi = await xapi.getRecord(

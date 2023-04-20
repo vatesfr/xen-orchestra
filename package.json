@@ -3,6 +3,8 @@
     "@babel/core": "^7.0.0",
     "@babel/eslint-parser": "^7.13.8",
     "@babel/register": "^7.0.0",
+    "@commitlint/cli": "^17.4.4",
+    "@commitlint/config-conventional": "^17.4.4",
     "@vates/async-each": "^1.0.0",
     "babel-jest": "^29.0.3",
     "benchmark": "^2.1.4",
@@ -78,7 +80,8 @@
     "*.{{{,c,m}j,t}s{,x},vue}": [
       "eslint --ignore-pattern '!*'",
       "jest --testRegex='^(?!.*.integ.spec.js$).*.spec.js$' --findRelatedTests --passWithNoTests"
-    ]
+    ],
+    "./CHANGELOG.unreleased.md": "sh -c scripts/gen-deps-list.js --"
   },
   "private": true,
   "scripts": {
@@ -91,7 +94,7 @@
     "docs:dev": "NODE_OPTIONS=--openssl-legacy-provider vuepress dev docs",
     "docs:build": "NODE_OPTIONS=--openssl-legacy-provider vuepress build docs",
     "prepare": "husky install",
-    "prettify": "prettier --ignore-path .gitignore --write '**/*.{cjs,js,jsx,md,mjs,ts,tsx}'",
+    "prettify": "prettier --ignore-path .gitignore --ignore-unknown --write .",
     "test": "npm run test-lint && npm run test-unit",
     "test-integration": "jest \".integ\\.spec\\.js$\"",
     "test-lint": "eslint --ignore-path .gitignore --ignore-pattern packages/xo-web .",

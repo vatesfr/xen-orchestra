@@ -4,7 +4,7 @@
 
 .itemContainer {
   border: 1px solid #eee;
-  border-radius: .3em;
+  border-radius: 0.3em;
 }
 
 .itemContainerHeader {
@@ -42,7 +42,7 @@
   color: #999;
   font-size: 1em;
   text-overflow: ellipsis;
-  white-space:nowrap;
+  white-space: nowrap;
 }
 
 .itemExpandButton {

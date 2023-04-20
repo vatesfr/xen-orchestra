@@ -11,9 +11,8 @@ import uniq from 'lodash/uniq.js'
 import zipWith from 'lodash/zipWith.js'
 import { BaseError } from 'make-error'
 import { limitConcurrency } from 'limit-concurrency-decorator'
+import { parseDateTime } from '@xen-orchestra/xapi'
 import { synchronized } from 'decorator-synchronized'
-
-import { parseDateTime } from './xapi/index.mjs'
 
 export class FaultyGranularity extends BaseError {}
 
@@ -54,8 +53,7 @@ function convertNanToNull(value) {
 }
 
 async function getServerTimestamp(xapi, hostRef) {
-  const serverLocalTime = await xapi.call('host.get_servertime', hostRef)
-  return Math.floor(parseDateTime(serverLocalTime) / 1e3)
+  return parseDateTime(await xapi.call('host.get_servertime', hostRef))
 }
 
 // -------------------------------------------------------------------
@@ -263,7 +261,7 @@ export default class XapiStats {
           start: timestamp,
         },
       })
-      .then(response => response.readAll().then(JSON5.parse))
+      .then(response => response.text().then(JSON5.parse))
   }
 
   // To avoid multiple requests, we keep a cash for the stats and

@@ -10,21 +10,43 @@
       <UiButton :active="isOpen" :icon="faEllipsis" transparent @click="open" />
     </template>
 
-    <MenuItem :icon="faPowerOff">{{ $t("change-power-state") }}</MenuItem>
-    <MenuItem :icon="faRoute">{{ $t("migrate") }}</MenuItem>
-    <MenuItem :icon="faCopy">{{ $t("copy") }}</MenuItem>
-    <MenuItem :icon="faEdit">{{ $t("edit-config") }}</MenuItem>
-    <MenuItem :icon="faCamera">{{ $t("snapshot") }}</MenuItem>
-    <MenuItem :icon="faBox">{{ $t("backup") }}</MenuItem>
-    <MenuItem :icon="faTrashCan">{{ $t("delete") }}</MenuItem>
+    <MenuItem :icon="faPowerOff" v-tooltip="$t('coming-soon')">
+      {{ $t("change-power-state") }}
+    </MenuItem>
+    <MenuItem :icon="faRoute" v-tooltip="$t('coming-soon')">{{
+      $t("migrate")
+    }}</MenuItem>
+    <MenuItem :icon="faCopy" v-tooltip="$t('coming-soon')">{{
+      $t("copy")
+    }}</MenuItem>
+    <MenuItem :icon="faEdit" v-tooltip="$t('coming-soon')">{{
+      $t("edit-config")
+    }}</MenuItem>
+    <MenuItem :icon="faCamera" v-tooltip="$t('coming-soon')">{{
+      $t("snapshot")
+    }}</MenuItem>
+    <MenuItem :icon="faTrashCan" v-tooltip="$t('coming-soon')">{{
+      $t("delete")
+    }}</MenuItem>
     <MenuItem :icon="faFileExport">
       {{ $t("export") }}
       <template #submenu>
-        <MenuItem :icon="faDisplay">{{ $t("export-vms") }}</MenuItem>
-        <MenuItem :icon="faCode">
+        <MenuItem
+          :icon="faDisplay"
+          v-tooltip="{ content: $t('coming-soon'), placement: 'left' }"
+        >
+          {{ $t("export-vms") }}
+        </MenuItem>
+        <MenuItem
+          :icon="faCode"
+          v-tooltip="{ content: $t('coming-soon'), placement: 'left' }"
+        >
           {{ $t("export-table-to", { type: ".json" }) }}
         </MenuItem>
-        <MenuItem :icon="faFileCsv">
+        <MenuItem
+          :icon="faFileCsv"
+          v-tooltip="{ content: $t('coming-soon'), placement: 'left' }"
+        >
           {{ $t("export-table-to", { type: ".csv" }) }}
         </MenuItem>
       </template>
@@ -38,7 +60,6 @@ import MenuItem from "@/components/menu/MenuItem.vue";
 import UiButton from "@/components/ui/UiButton.vue";
 import { useUiStore } from "@/stores/ui.store";
 import {
-  faBox,
   faCamera,
   faCode,
   faCopy,
@@ -52,6 +73,7 @@ import {
   faTrashCan,
 } from "@fortawesome/free-solid-svg-icons";
 import { storeToRefs } from "pinia";
+import { vTooltip } from "@/directives/tooltip.directive";
 
 defineProps<{
   disabled?: boolean;

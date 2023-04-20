@@ -1,7 +1,7 @@
 'use strict'
 
 const { BaseError } = require('make-error')
-const { iteratee } = require('lodash')
+const iteratee = require('lodash/iteratee.js')
 
 class XoError extends BaseError {
   constructor({ code, message, data }) {

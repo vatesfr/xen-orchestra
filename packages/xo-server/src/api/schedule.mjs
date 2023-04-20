@@ -34,7 +34,7 @@ create.params = {
   cron: { type: 'string' },
   enabled: { type: 'boolean', optional: true },
   jobId: { type: 'string' },
-  name: { type: 'string', optional: true },
+  name: { type: 'string', minLength: 0, optional: true },
   timezone: { type: 'string', optional: true },
 }
 
@@ -49,7 +49,7 @@ set.params = {
   enabled: { type: 'boolean', optional: true },
   id: { type: 'string' },
   jobId: { type: 'string', optional: true },
-  name: { type: ['string', 'null'], optional: true },
+  name: { type: ['string', 'null'], minLength: 0, optional: true },
   timezone: { type: 'string', optional: true },
 }
 

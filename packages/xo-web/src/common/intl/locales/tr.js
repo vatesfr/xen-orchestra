@@ -3223,7 +3223,7 @@ export default {
   // Original text: "To SR:"
   vmImportToSr: 'SR:',
 
-  // Original text: "VMs to import"
+  // Original text: "VM{nVms, plural, one {} other {s}} to import"
   vmsToImport: "içe aktarılacak VM'ler",
 
   // Original text: "Reset"
@@ -3244,8 +3244,8 @@ export default {
   // Original text: "Export starting…"
   startVmExport: 'Dışa aktarma başlatılıyor...',
 
-  // Original text: "N CPUs"
-  nCpus: 'N CPU',
+  // Original text: 'Number of CPUs'
+  nCpus: undefined,
 
   // Original text: "Memory"
   vmMemory: 'Bellek',

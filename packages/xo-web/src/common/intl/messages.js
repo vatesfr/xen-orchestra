@@ -5,11 +5,24 @@ const forEach = require('lodash/forEach')
 
 const messages = {
   alpha: 'Alpha',
+  alerts: 'Alerts',
   creation: 'Creation',
   description: 'Description',
   deleteSourceVm: 'Delete source VM',
   expiration: 'Expiration',
+  hostIp: 'Host IP',
   keyValue: '{key}: {value}',
+  esxiImportSslCertificate: 'Skip SSL check',
+  esxiImportThin: 'Thin mode',
+  esxiImportThinDescription:
+    'Disk created in thin mode (less space used). Data is read twice, no visible task or progress at first',
+  esxiImportStopSource: 'Stop the source VM',
+  esxiImportStopSourceDescription:
+    'Source VM stopped before the last delta transfer (after final snapshot). Needed to fully transfer a running VM',
+  esxiImportStopOnErrorDescription: 'Stop on the first error when importing VMs',
+  nImportVmsInParallel: 'Number of VMs to import in parallel',
+  stopOnError: 'Stop on error',
+  vmSrUsage: 'Storage: {used} used of {total} ({free} free)',
 
   notDefined: 'Not defined',
   statusConnecting: 'Connecting',
@@ -41,6 +54,7 @@ const messages = {
   browseFiles: 'Browse files',
   showLogs: 'Show logs',
   noValue: 'None',
+  noExpiration: 'No expiration',
   compression: 'Compression',
   core: 'Core',
   cpu: 'CPU',
@@ -570,6 +584,7 @@ const messages = {
   confirmDeleteBackupJobsBody:
     'Are you sure you want to delete {nJobs, number} backup job{nJobs, plural, one {} other {s}}?',
   runBackupJob: 'Run backup job once',
+  speedLimit: 'Speed limit (in MiB/s)',
 
   // ------ Remote -----
   remoteName: 'Name',
@@ -902,6 +917,10 @@ const messages = {
 
   // ----- Host item ------
   host: 'Host',
+  hostNoLicensePartialProSupport:
+    'This host does not have an active license, even though it is in a pool with licensed hosts. In order for XCP-ng Pro Support to be enabled on a pool, all hosts within the pool must have an active license',
+  hostNoSupport: 'No XCP-ng Pro Support enabled on this host',
+  hostSupportEnabled: 'XCP-ng Pro Support enabled on this host',
   noMoreMaintained: 'This host version is no longer maintained',
 
   // ----- Host actions ------
@@ -1107,6 +1126,11 @@ const messages = {
   hvmModeWithPvDriversEnabled: 'Hardware virtualization with paravirtualization drivers enabled (PVHVM)',
   pvInPvhMode: 'PV inside a PVH container (PV in PVH)',
   windowsUpdateTools: 'Manage Citrix PV drivers via Windows Update',
+  windowsToolsModalTitle: 'Windows Update Tools',
+  windowsToolsModalMessage:
+    'Enabling this will allow the VM to automatically install Citrix PV drivers from Windows Update. This only includes drivers, the Citrix management agent must still be separately installed.',
+  windowsToolsModalWarning:
+    'If you have previously installed XCP-ng tools instead of Citrix tools, this option will break your VM.',
 
   // ----- VM stat tab -----
   statsCpu: 'CPU usage',
@@ -1608,13 +1632,16 @@ const messages = {
 
   // ---- VM import ---
   fileType: 'File type:',
+  firmware: 'Firmware',
   fromUrl: 'From URL',
+  fromVmware: 'From VMware',
   importVmsList: 'Drop OVA or XVA files here to import Virtual Machines.',
   noSelectedVms: 'No selected VMs.',
+  noToolsInstalled: 'No tools installed',
   url: 'URL:',
   vmImportToPool: 'To Pool:',
   vmImportToSr: 'To SR:',
-  vmsToImport: 'VMs to import',
+  vmsToImport: 'VM{nVms, plural, one {} other {s}} to import',
   importVmsCleanList: 'Reset',
   vmImportSuccess: 'VM import success',
   vmImportFailed: 'VM import failed',
@@ -1625,7 +1652,7 @@ const messages = {
   startVdiImport: 'VDI import starting…',
   startVmExport: 'Export starting…',
   startVdiExport: 'VDI export starting…',
-  nCpus: 'N CPUs',
+  nCpus: 'Number of CPUs',
   vmMemory: 'Memory',
   diskInfo: 'Disk {position} ({capacity})',
   diskDescription: 'Disk description',
@@ -1636,6 +1663,7 @@ const messages = {
   vmImportError: 'Error:',
   vmImportFileType: '{type} file:',
   vmImportConfigAlert: 'Please check and/or modify the VM configuration.',
+  toolsInstalled: 'The tools are installed',
 
   // ---- Disk import ---
   diskImportFailed: 'Disk import failed',

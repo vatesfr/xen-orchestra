@@ -22,7 +22,6 @@
     "@vates/event-listeners-manager": "^1.0.1",
     "@vates/parse-duration": "^0.1.1",
     "@vates/task": "^0.0.1",
-    "@xen-orchestra/emit-async": "^1.0.0",
     "@xen-orchestra/log": "^0.6.0",
     "acme-client": "^5.0.0",
     "app-conf": "^2.3.0",
@@ -31,6 +30,10 @@
     "xo-common": "^0.8.0"
   },
   "scripts": {
-    "postversion": "npm publish --access public"
+    "postversion": "npm publish --access public",
+    "test": "node--test"
+  },
+  "devDependencies": {
+    "test": "^3.2.1"
   }
 }

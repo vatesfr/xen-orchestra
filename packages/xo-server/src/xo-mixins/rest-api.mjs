@@ -4,20 +4,39 @@ import { invalidCredentials, noSuchObject } from 'xo-common/api-errors.js'
 import { pipeline } from 'stream'
 import { json, Router } from 'express'
 import createNdJsonStream from '../_createNdJsonStream.mjs'
+import path from 'node:path'
 import pick from 'lodash/pick.js'
 import map from 'lodash/map.js'
 import * as CM from 'complex-matcher'
 import fromCallback from 'promise-toolbox/fromCallback'
 import { VDI_FORMAT_RAW, VDI_FORMAT_VHD } from '@xen-orchestra/xapi'
 
-function sendObjects(objects, req, res) {
+const { join } = path.posix
+const noop = Function.prototype
+
+async function asyncIteratorToArray(it) {
+  const res = []
+  for await (const entry of it) {
+    res.push(entry)
+  }
+  return res
+}
+
+function sendObjects(objects, req, res, path = req.path) {
   const { query } = req
-  const basePath = req.baseUrl + req.path
-  const makeUrl = object => basePath + '/' + object.id
+  const basePath = join(req.baseUrl, path)
+  const makeUrl = object => join(basePath, object.id)
 
   let { fields } = query
   let results
-  if (fields !== undefined) {
+  if (fields === undefined) {
+    results = map(objects, makeUrl)
+  } else if (fields === '*') {
+    results = map(objects, object => ({
+      ...object,
+      href: makeUrl(object),
+    }))
+  } else if (fields) {
     fields = fields.split(',')
     results = map(objects, object => {
       const url = makeUrl(object)
@@ -25,8 +44,6 @@ function sendObjects(objects, req, res) {
       object.href = url
       return object
     })
-  } else {
-    results = map(objects, makeUrl)
   }
 
   if (query.ndjson !== undefined) {
@@ -44,18 +61,22 @@ function sendObjects(objects, req, res) {
 const handleOptionalUserFilter = filter => filter && CM.parse(filter).createPredicate()
 
 const subRouter = (app, path) => {
-  const router = Router({ strict: true })
+  const router = Router({ strict: false })
   app.use(path, router)
   return router
 }
 
 // wraps an async middleware
-function wrap(middleware) {
+function wrap(middleware, handleNoSuchObject = false) {
   return async function asyncMiddlewareWrapped(req, res, next) {
     try {
       await middleware.apply(this, arguments)
     } catch (error) {
-      next(error)
+      if (handleNoSuchObject && noSuchObject.is(error)) {
+        res.sendStatus(404)
+      } else {
+        next(error)
+      }
     }
   }
 }
@@ -110,6 +131,23 @@ export default class RestApi {
       })
     )
 
+    collections.backups = { id: 'backups' }
+    collections.restore = { id: 'restore' }
+
+    collections.vms.actions = {
+      __proto__: null,
+
+      clean_reboot: vm => vm.$callAsync('clean_reboot').then(noop),
+      clean_shutdown: vm => vm.$callAsync('clean_shutdown').then(noop),
+      hard_reboot: vm => vm.$callAsync('hard_reboot').then(noop),
+      hard_shutdown: vm => vm.$callAsync('hard_shutdown').then(noop),
+      snapshot: async (vm, { name_label }) => {
+        const ref = await vm.$snapshot({ name_label })
+        return vm.$xapi.getField('VM', ref, 'uuid')
+      },
+      start: vm => vm.$callAsync('start', false, false).then(noop),
+    }
+
     api.param('collection', (req, res, next) => {
       const id = req.params.collection
       const collection = collections[id]
@@ -136,6 +174,113 @@ export default class RestApi {
     })
 
     api.get('/', (req, res) => sendObjects(collections, req, res))
+
+    api
+      .get('/backups', (req, res) => {
+        sendObjects([{ id: 'jobs' }, { id: 'logs' }], req, res)
+      })
+      .get(
+        '/backups/jobs',
+        wrap(async (req, res) => {
+          sendObjects(await app.getAllJobs('backup'), req, res)
+        })
+      )
+      .get(
+        '/backups/jobs/:id',
+        wrap(async (req, res) => {
+          res.json(await app.getJob(req.params.id, 'backup'))
+        })
+      )
+      .get(
+        '/backups/logs',
+        wrap(async (req, res) => {
+          const logs = await app.getBackupNgLogsSorted({
+            filter: ({ message: m }) => m === 'backup' || m === 'metadata',
+          })
+          sendObjects(logs, req, res)
+        })
+      )
+      .get('/restore', (req, res) => {
+        sendObjects([{ id: 'logs' }], req, res)
+      })
+      .get(
+        '/restore/logs',
+        wrap(async (req, res) => {
+          const logs = await app.getBackupNgLogsSorted({ filter: _ => _.message === 'restore' })
+          sendObjects(logs, req, res)
+        })
+      )
+      .get(
+        ['/backups/logs/:id', '/restore/logs/:id'],
+        wrap(async (req, res) => {
+          res.json(await app.getBackupNgLogs(req.params.id))
+        })
+      )
+
+    api
+      .get(
+        '/tasks',
+        wrap(async (req, res) => {
+          const { filter, limit } = req.query
+          const tasks = app.tasks.list({
+            filter: handleOptionalUserFilter(filter),
+            limit: ifDef(limit, Number),
+          })
+          sendObjects(await asyncIteratorToArray(tasks), req, res)
+        })
+      )
+      .delete(
+        '/tasks',
+        wrap(async (req, res) => {
+          await app.tasks.clearLogs()
+          res.sendStatus(200)
+        })
+      )
+      .get(
+        '/tasks/:id',
+        wrap(async (req, res) => {
+          const {
+            params: { id },
+            query: { wait },
+          } = req
+          if (wait !== undefined) {
+            const stopWatch = await app.tasks.watch(id, task => {
+              if (wait !== 'result' || task.status !== 'pending') {
+                stopWatch()
+                res.json(task)
+              }
+            })
+            req.on('close', stopWatch)
+          } else {
+            res.json(await app.tasks.get(id))
+          }
+        }, true)
+      )
+      .delete(
+        '/tasks/:id',
+        wrap(async (req, res) => {
+          await app.tasks.deleteLog(req.params.id)
+          res.sendStatus(200)
+        })
+      )
+      .get(
+        '/tasks/:id/actions',
+        wrap(async (req, res) => {
+          const task = await app.tasks.get(req.params.id)
+
+          sendObjects(task.status === 'pending' ? [{ id: 'abort' }] : [], req, res)
+        })
+      )
+      .post(
+        '/tasks/:id/actions/abort',
+        wrap(async (req, res) => {
+          const { id } = req.params
+          await app.tasks.abort(id)
+          res.status = 202
+          res.end(req.baseUrl + '/tasks/' + id)
+        }, true)
+      )
+
     api.get(
       '/:collection',
       wrap(async (req, res) => {
@@ -197,6 +342,41 @@ export default class RestApi {
         res.sendStatus(200)
       })
     )
+
+    api.get(
+      '/:collection/:object/tasks',
+      wrap(async (req, res) => {
+        const { query } = req
+        const objectId = req.xoObject.id
+        const tasks = app.tasks.list({
+          filter: every(_ => _.status === 'pending' && _.objectId === objectId, handleOptionalUserFilter(query.filter)),
+          limit: ifDef(query.limit, Number),
+        })
+        sendObjects(await asyncIteratorToArray(tasks), req, res, req.baseUrl + '/tasks')
+      })
+    )
+
+    api.get('/:collection/:object/actions', (req, res) => {
+      const { actions } = req.collection
+      sendObjects(actions === undefined ? [] : Array.from(Object.keys(actions), id => ({ id })), req, res)
+    })
+    api.post('/:collection/:object/actions/:action', json(), (req, res, next) => {
+      const { action } = req.params
+      const fn = req.collection.actions?.[action]
+      if (fn === undefined) {
+        return next()
+      }
+
+      const task = app.tasks.create({ name: `REST: ${action} ${req.collection.type}`, objectId: req.xoObject.id })
+      const pResult = task.run(() => fn(req.xapiObject, req.body))
+      if (Object.hasOwn(req.query, 'sync')) {
+        pResult.then(result => res.json(result), next)
+      } else {
+        pResult.catch(noop)
+        res.statusCode = 202
+        res.end(req.baseUrl + '/tasks/' + task.id)
+      }
+    })
 
     api.post(
       '/:collection(srs)/:object/vdis',

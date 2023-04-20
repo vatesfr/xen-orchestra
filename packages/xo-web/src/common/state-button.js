@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types'
 import React from 'react'
 import styled from 'styled-components'
-import { omit } from 'lodash'
+import omit from 'lodash/omit.js'
 
 import ActionButton from './action-button'
 

@@ -1,6 +1,8 @@
 import * as multiparty from 'multiparty'
 import assignWith from 'lodash/assignWith.js'
+import { asyncEach } from '@vates/async-each'
 import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
+import { Task } from '@xen-orchestra/mixins/Tasks.mjs'
 import concat from 'lodash/concat.js'
 import getStream from 'get-stream'
 import hrp from 'http-request-plus'
@@ -184,7 +186,7 @@ export const create = defer(async function ($defer, params) {
     }
   }
 
-  const xapiVm = await xapi.createVm(template._xapiId, params, checkLimits)
+  const xapiVm = await xapi.createVm(template._xapiId, params, checkLimits, user.id)
   $defer.onFailure(() => xapi.VM_destroy(xapiVm.$ref, { deleteDisks: true, force: true }))
 
   const vm = xapi.xo.addObject(xapiVm)
@@ -300,7 +302,7 @@ create.params = {
 
   // Name/description of the new VM.
   name_label: { type: 'string' },
-  name_description: { type: 'string', optional: true },
+  name_description: { type: 'string', minLength: 0, optional: true },
 
   // PV Args
   pv_args: { type: 'string', optional: true },
@@ -668,7 +670,7 @@ set.params = {
 
   name_label: { type: 'string', optional: true },
 
-  name_description: { type: 'string', optional: true },
+  name_description: { type: 'string', minLength: 0, optional: true },
 
   high_availability: {
     optional: true,
@@ -870,7 +872,18 @@ export async function convertToTemplate({ vm }) {
   // Convert to a template requires pool admin permission.
   await this.checkPermissions([[vm.$pool, 'administrate']])
 
-  await this.getXapiObject(vm).set_is_a_template(true)
+  const xapi = this.getXapi(vm)
+  const xapiVm = xapi.getObjectByRef(vm._xapiRef)
+
+  // Attempts to eject all removable media
+  const ignoreNotRemovable = error => {
+    if (error.code !== 'VBD_NOT_REMOVABLE_MEDIA') {
+      throw error
+    }
+  }
+  await asyncEach(xapiVm.VBDs, ref => xapi.callAsync('VBD.eject', ref).catch(ignoreNotRemovable))
+
+  await xapiVm.set_is_a_template(true)
 }
 
 convertToTemplate.params = {
@@ -954,7 +967,7 @@ export const snapshot = defer(async function (
 })
 
 snapshot.params = {
-  description: { type: 'string', optional: true },
+  description: { type: 'string', minLength: 0, optional: true },
   id: { type: 'string' },
   name: { type: 'string', optional: true },
   saveMemory: { type: 'boolean', optional: true },
@@ -1133,7 +1146,7 @@ async function handleExport(req, res, { xapi, vmRef, compress, format = 'xva' })
   const stream =
     format === 'ova' ? await xapi.exportVmOva(vmRef) : await xapi.VM_export(FAIL_ON_QUEUE, vmRef, { compress })
 
-  res.on('close', () => stream.cancel())
+  res.on('close', () => stream.destroy())
   // Remove the filename as it is already part of the URL.
   stream.headers['content-disposition'] = 'attachment'
 
@@ -1263,14 +1276,14 @@ import_.params = {
     type: 'object',
     optional: true,
     properties: {
-      descriptionLabel: { type: 'string' },
+      descriptionLabel: { type: 'string', minLength: 0 },
       disks: {
         type: 'array',
         items: {
           type: 'object',
           properties: {
             capacity: { type: 'integer' },
-            descriptionLabel: { type: 'string' },
+            descriptionLabel: { type: 'string', minLength: 0 },
             nameLabel: { type: 'string' },
             path: { type: 'string' },
             position: { type: 'integer' },
@@ -1325,6 +1338,107 @@ importFromEsxi.params = {
   thin: { type: 'boolean', optional: true },
   user: { type: 'string' },
   vm: { type: 'string' },
+}
+
+/**
+ * on success:  returns an object, the keys are the esxi id, and the values are the created vm uuid
+ * On error: throw an error. If stopOnError is false, continue when an error occurs, throws an error at the end with a 'succeeded'
+ * property listing the VM properly imported and a 'errors' property with all the errors collected
+ */
+export async function importMultipleFromEsxi({
+  concurrency,
+  host,
+  network,
+  password,
+  sr,
+  sslVerify,
+  stopSource,
+  stopOnError,
+  thin,
+  user,
+  vms,
+}) {
+  const task = await this.tasks.create({ name: `importing vms ${vms.join(',')}` })
+  let done = 0
+  return task.run(async () => {
+    Task.set('total', vms.length)
+    Task.set('done', 0)
+    Task.set('progress', 0)
+    const result = {}
+    try {
+      await asyncEach(
+        vms,
+        async vm => {
+          await new Task({ name: `importing vm ${vm}` }).run(async () => {
+            try {
+              const vmUuid = await this.migrationfromEsxi({
+                host,
+                user,
+                password,
+                sslVerify,
+                thin,
+                vm,
+                sr,
+                network,
+                stopSource,
+              })
+              result[vm] = vmUuid
+            } finally {
+              done++
+              Task.set('done', done)
+              Task.set('progress', Math.round((done * 100) / vms.length))
+            }
+          })
+        },
+        {
+          concurrency,
+          stopOnError,
+        }
+      )
+      return result
+    } catch (error) {
+      // if stopOnError is true :
+      //   error is the original error , `suceeded` property {[esxi vm id]: xen vm id} contains only the VMs migrated before the error.
+      //   VMs started before the error and finished migration after won't be in
+      // else
+      //    error is an AggregatedError with an `errors` property containing all the errors
+      //    and a `succeeded` property  {[esxi vm id]: xen vm id} containing all the migrated VMs
+      error.succeeded = result
+      throw error
+    }
+  })
+}
+
+importMultipleFromEsxi.params = {
+  concurrency: {
+    type: 'number',
+    optional: true,
+    default: 2,
+    description: 'number of VM imports in parallel (the disks are imported in parallel in each VM import)',
+  },
+  host: { type: 'string' },
+  network: { type: 'string' },
+  password: { type: 'string' },
+  sr: { type: 'string' },
+  sslVerify: { type: 'boolean', optional: true, default: true },
+  stopSource: { type: 'boolean', optional: true, default: false },
+  stopOnError: {
+    type: 'boolean',
+    optional: true,
+    default: false,
+    description: 'should the import stop on the first error , default true . Warning, change the response format',
+  },
+  thin: { type: 'boolean', optional: true, default: false },
+  user: { type: 'string' },
+  vms: {
+    items: {
+      type: 'string',
+      description: 'VM id to be imported, if used from cli use this syntax :  vms=json:\'["2","9","18"]\'',
+    },
+    minItems: 1,
+    type: 'array',
+    uniqueItems: true,
+  },
 }
 
 // -------------------------------------------------------------------

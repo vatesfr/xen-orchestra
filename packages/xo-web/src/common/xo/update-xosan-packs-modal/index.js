@@ -2,7 +2,7 @@ import _ from 'intl'
 import React from 'react'
 import Component from 'base-component'
 import { createGetObjectsOfType, createSelector } from 'selectors'
-import { map } from 'lodash'
+import map from 'lodash/map.js'
 import { subscribeResourceCatalog } from 'xo'
 import { isLatestXosanPackInstalled, connectStore, findLatestPack } from 'utils'
 

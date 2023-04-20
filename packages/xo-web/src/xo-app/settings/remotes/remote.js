@@ -436,8 +436,6 @@ export default decorate([
                   className='form-control'
                   name='bucket'
                   onChange={effects.linkState}
-                  // https://stackoverflow.com/a/58248645/72637
-                  pattern='(?!^(\d{1,3}\.){3}\d{1,3}$)(^[a-z0-9]([a-z0-9-]*(\.[a-z0-9])?)*$)'
                   placeholder={formatMessage(messages.remoteS3PlaceHolderBucket)}
                   required
                   type='text'

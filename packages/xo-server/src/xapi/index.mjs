@@ -24,24 +24,17 @@ import { limitConcurrency } from 'limit-concurrency-decorator'
 import { parseDuration } from '@vates/parse-duration'
 import { PassThrough } from 'stream'
 import { forbiddenOperation, operationFailed } from 'xo-common/api-errors.js'
-import { Xapi as XapiBase } from '@xen-orchestra/xapi'
+import { parseDateTime, Xapi as XapiBase } from '@xen-orchestra/xapi'
 import { Ref } from 'xen-api'
 import { synchronized } from 'decorator-synchronized'
 
 import fatfsBuffer, { init as fatfsBufferInit } from '../fatfs-buffer.mjs'
 import { camelToSnakeCase, forEach, map, pDelay, promisifyAll } from '../utils.mjs'
+import { debounceWithKey } from '../_pDebounceWithKey.mjs'
 
 import mixins from './mixins/index.mjs'
 import OTHER_CONFIG_TEMPLATE from './other-config-template.mjs'
-import {
-  asInteger,
-  extractOpaqueRef,
-  canSrHaveNewVdiOfSize,
-  isVmHvm,
-  isVmRunning,
-  parseDateTime,
-  prepareXapiParam,
-} from './utils.mjs'
+import { asInteger, extractOpaqueRef, canSrHaveNewVdiOfSize, isVmHvm, isVmRunning, prepareXapiParam } from './utils.mjs'
 
 const log = createLogger('xo:xapi')
 
@@ -1125,13 +1118,6 @@ export default class Xapi extends XapiBase {
       vhdResult = await this.VDI_exportContent(vdi.$ref, params)
       return vhdResult
     })
-    // callers expect the stream to be an HTTP response.
-    vmdkStream.headers = {
-      ...vhdResult.headers,
-      'content-type': 'application/x-vmdk',
-    }
-    vmdkStream.statusCode = vhdResult.statusCode
-    vmdkStream.statusMessage = vhdResult.statusMessage
     return vmdkStream
   }
 
@@ -1142,7 +1128,7 @@ export default class Xapi extends XapiBase {
     const networkRef = await this.call('network.create', {
       name_label: name,
       name_description: description,
-      MTU: asInteger(mtu),
+      MTU: mtu,
       // Set automatic to false so XenCenter does not get confused
       // https://citrix.github.io/xenserver-sdk/#network
       other_config: { automatic: 'false' },
@@ -1390,8 +1376,9 @@ export default class Xapi extends XapiBase {
     return find(this.objects.all, obj => obj.$type === 'SR' && canSrHaveNewVdiOfSize(obj, minSize))
   }
 
+  @decorateWith(debounceWithKey, 60e3, hostRef => hostRef)
   async _getHostServerTimeShift(hostRef) {
-    return Math.abs(parseDateTime(await this.call('host.get_servertime', hostRef)) - Date.now())
+    return Math.abs(parseDateTime(await this.call('host.get_servertime', hostRef)) * 1e3 - Date.now())
   }
 
   async isHostServerTimeConsistent(hostRef) {

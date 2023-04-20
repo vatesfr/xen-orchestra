@@ -121,7 +121,7 @@ class XoServerIcinga2 {
           exit_status: icinga2Status,
         }),
       })
-      .readAll()
+      .then(response => response.text())
   }
 }
 

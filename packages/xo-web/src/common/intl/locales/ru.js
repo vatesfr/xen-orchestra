@@ -2600,7 +2600,7 @@ export default {
   // Original text: "To SR:"
   vmImportToSr: 'В SR:',
 
-  // Original text: "VMs to import"
+  // Original text: "VM{nVms, plural, one {} other {s}} to import"
   vmsToImport: 'ВМ для импорта',
 
   // Original text: "Reset"
@@ -2618,7 +2618,7 @@ export default {
   // Original text: "Export starting…"
   startVmExport: 'Начало экспорта…',
 
-  // Original text: 'N CPUs'
+  // Original text: 'Number of CPUs'
   nCpus: undefined,
 
   // Original text: 'Memory'

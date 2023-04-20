@@ -4,17 +4,24 @@ export type FilterType = "string" | "boolean" | "number" | "enum";
 
 export type FilterComparisonType =
   | "stringContains"
+  | "stringDoesNotContains"
   | "stringEquals"
+  | "stringDoesNotEqual"
   | "stringStartsWith"
+  | "stringDoesNotStartWith"
   | "stringEndsWith"
+  | "stringDoesNotEndWith"
   | "stringMatchesRegex"
+  | "stringDoesNotMatchRegex"
   | "numberLessThan"
   | "numberLessThanOrEquals"
   | "numberEquals"
   | "numberGreaterThanOrEquals"
   | "numberGreaterThan"
   | "booleanTrue"
-  | "booleanFalse";
+  | "booleanFalse"
+  | "enumIs"
+  | "enumIsNot";
 
 export type FilterComparisons = {
   [key in FilterComparisonType]?: string;

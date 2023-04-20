@@ -12,8 +12,8 @@ import assert from 'node:assert'
 // create a thin VHD from a raw disk
 const VHD_BLOCK_LENGTH = 2 * 1024 * 1024
 export default class VhdEsxiRaw extends VhdAbstract {
-  #esxi
   #datastore
+  #esxi
   #path
   #thin
 

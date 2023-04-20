@@ -26,13 +26,11 @@ export default class Http {
     })
   }
 
-  httpRequest(...args) {
-    return hrp(
-      {
-        agent: this._agent,
-      },
-      ...args
-    )
+  httpRequest(url, opts) {
+    return hrp(url, {
+      ...opts,
+      agent: this._agent,
+    })
   }
 
   // Inject the proxy into the environnement, it will be automatically used by `_agent` and by most libs (e.g `axios`)

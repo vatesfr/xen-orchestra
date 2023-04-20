@@ -612,8 +612,8 @@ export const addServer = (host, username, password, label, allowUnauthorized, ht
   _call('server.add', {
     allowUnauthorized,
     host,
-    httpProxy,
-    label,
+    httpProxy: httpProxy || undefined,
+    label: label || undefined,
     password,
     username,
   })::tap(subscribeServers.forceRefresh, () => error(_('serverError'), _('serverAddFailed')))
@@ -1674,12 +1674,35 @@ export const revertSnapshot = snapshot =>
     success(_('vmRevertSuccessfulTitle'), _('vmRevertSuccessfulMessage'))
   }, noop)
 
-export const editVm = (vm, props) =>
-  _call('vm.set', { ...props, id: resolveId(vm) })
+export const editVm = async (vm, props) => {
+  if (props.hasVendorDevice) {
+    try {
+      await confirm({
+        title: _('windowsToolsModalTitle'),
+        body: (
+          <div>
+            <p>{_('windowsToolsModalMessage')}</p>
+            <p className='text-warning'>
+              <Icon icon='alarm' />
+              &nbsp;
+              {_('windowsToolsModalWarning')}
+            </p>
+          </div>
+        ),
+      })
+    } catch (err) {
+      if (err !== undefined) {
+        throw err
+      }
+      return
+    }
+  }
+  await _call('vm.set', { ...props, id: resolveId(vm) })
     .catch(err => {
       error(_('setVmFailed', { vm: renderXoItemFromId(resolveId(vm)) }), err.message)
     })
     ::tap(subscribeResourceSets.forceRefresh)
+}
 
 export const fetchVmStats = (vm, granularity) => _call('vm.stats', { id: resolveId(vm), granularity })
 
@@ -2423,9 +2446,10 @@ export const runMetadataBackupJob = params => _call('metadataBackup.runJob', par
 
 export const listMetadataBackups = remotes => _call('metadataBackup.list', { remotes: resolveIds(remotes) })
 
-export const restoreMetadataBackup = backup =>
+export const restoreMetadataBackup = data =>
   _call('metadataBackup.restore', {
-    id: resolveId(backup),
+    id: resolveId(data.backup),
+    pool: data.pool,
   })::tap(subscribeBackupNgLogs.forceRefresh)
 
 export const deleteMetadataBackup = backup =>
@@ -3468,3 +3492,10 @@ export const synchronizeNetbox = pools =>
     body: _('syncNetboxWarning'),
     icon: 'refresh',
   }).then(() => _call('netbox.synchronize', { pools: resolveIds(pools) }))
+
+// ESXi import ---------------------------------------------------------------
+
+export const esxiListVms = (host, user, password, sslVerify) =>
+  _call('esxi.listVms', { host, user, password, sslVerify })
+
+export const importVmsFromEsxi = params => _call('vm.importMultipleFromEsxi', params)

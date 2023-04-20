@@ -5,7 +5,7 @@ import { compileTemplate } from '@xen-orchestra/template'
 import { connectStore } from 'utils'
 import { Container, Col, Row } from 'grid'
 import { createGetObjectsOfType } from 'selectors'
-import { forEach } from 'lodash'
+import forEach from 'lodash/forEach.js'
 
 const RULES = {
   '{date}': () => new Date().toISOString(),

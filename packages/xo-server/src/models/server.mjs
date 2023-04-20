@@ -29,6 +29,11 @@ export class Servers extends Collection {
         delete server.error
       }
       server.readOnly = server.readOnly === 'true'
+
+      // see https://github.com/vatesfr/xen-orchestra/issues/6656
+      if (server.httpProxy === '') {
+        delete server.httpProxy
+      }
     })
 
     return servers

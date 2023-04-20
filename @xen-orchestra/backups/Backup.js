@@ -3,6 +3,7 @@
 const { asyncMap, asyncMapSettled } = require('@xen-orchestra/async-map')
 const Disposable = require('promise-toolbox/Disposable')
 const ignoreErrors = require('promise-toolbox/ignoreErrors')
+const pTimeout = require('promise-toolbox/timeout')
 const { compileTemplate } = require('@xen-orchestra/template')
 const { limitConcurrency } = require('limit-concurrency-decorator')
 
@@ -11,6 +12,7 @@ const { PoolMetadataBackup } = require('./_PoolMetadataBackup.js')
 const { Task } = require('./Task.js')
 const { VmBackup } = require('./_VmBackup.js')
 const { XoMetadataBackup } = require('./_XoMetadataBackup.js')
+const createStreamThrottle = require('./_createStreamThrottle.js')
 
 const noop = Function.prototype
 
@@ -25,6 +27,7 @@ const getAdaptersByRemote = adapters => {
 const runTask = (...args) => Task.run(...args).catch(noop) // errors are handled by logs
 
 const DEFAULT_SETTINGS = {
+  getRemoteTimeout: 300e3,
   reportWhen: 'failure',
 }
 
@@ -38,6 +41,7 @@ const DEFAULT_VM_SETTINGS = {
   fullInterval: 0,
   healthCheckSr: undefined,
   healthCheckVmsWithTags: [],
+  maxExportRate: 0,
   maxMergedDeltasPerRun: Infinity,
   offlineBackup: false,
   offlineSnapshot: false,
@@ -45,6 +49,7 @@ const DEFAULT_VM_SETTINGS = {
   timeout: 0,
   useNbd: false,
   unconditionalSnapshot: false,
+  validateVhdStreams: true,
   vmTimeout: 0,
 }
 
@@ -53,19 +58,19 @@ const DEFAULT_METADATA_SETTINGS = {
   retentionXoMetadata: 0,
 }
 
+class RemoteTimeoutError extends Error {
+  constructor(remoteId) {
+    super('timeout while getting the remote ' + remoteId)
+    this.remoteId = remoteId
+  }
+}
+
 exports.Backup = class Backup {
   constructor({ config, getAdapter, getConnectedRecord, job, schedule }) {
     this._config = config
     this._getRecord = getConnectedRecord
     this._job = job
     this._schedule = schedule
-
-    this._getAdapter = Disposable.factory(function* (remoteId) {
-      return {
-        adapter: yield getAdapter(remoteId),
-        remoteId,
-      }
-    })
 
     this._getSnapshotNameLabel = compileTemplate(config.snapshotNameLabelTpl, {
       '{job.name}': job.name,
@@ -87,6 +92,27 @@ exports.Backup = class Backup {
 
     this._baseSettings = baseSettings
     this._settings = { ...baseSettings, ...job.settings[schedule.id] }
+
+    const { getRemoteTimeout } = this._settings
+    this._getAdapter = async function (remoteId) {
+      try {
+        const disposable = await pTimeout.call(getAdapter(remoteId), getRemoteTimeout, new RemoteTimeoutError(remoteId))
+
+        return new Disposable(() => disposable.dispose(), {
+          adapter: disposable.value,
+          remoteId,
+        })
+      } catch (error) {
+        // See https://github.com/vatesfr/xen-orchestra/commit/6aa6cfba8ec939c0288f0fa740f6dfad98c43cbb
+        runTask(
+          {
+            name: 'get remote adapter',
+            data: { type: 'remote', id: remoteId },
+          },
+          () => Promise.reject(error)
+        )
+      }
+    }
   }
 
   async _runMetadataBackup() {
@@ -132,20 +158,7 @@ exports.Backup = class Backup {
           })
         )
       ),
-      Disposable.all(
-        remoteIds.map(id =>
-          this._getAdapter(id).catch(error => {
-            // See https://github.com/vatesfr/xen-orchestra/commit/6aa6cfba8ec939c0288f0fa740f6dfad98c43cbb
-            runTask(
-              {
-                name: 'get remote adapter',
-                data: { type: 'remote', id },
-              },
-              () => Promise.reject(error)
-            )
-          })
-        )
-      ),
+      Disposable.all(remoteIds.map(id => this._getAdapter(id))),
       async (pools, remoteAdapters) => {
         // remove adapters that failed (already handled)
         remoteAdapters = remoteAdapters.filter(_ => _ !== undefined)
@@ -216,9 +229,11 @@ exports.Backup = class Backup {
     // FIXME: proper SimpleIdPattern handling
     const getSnapshotNameLabel = this._getSnapshotNameLabel
     const schedule = this._schedule
+    const settings = this._settings
+
+    const throttleStream = createStreamThrottle(settings.maxExportRate)
 
     const config = this._config
-    const settings = this._settings
     await Disposable.use(
       Disposable.all(
         extractIdsFromSimplePattern(job.srs).map(id =>
@@ -233,19 +248,7 @@ exports.Backup = class Backup {
           })
         )
       ),
-      Disposable.all(
-        extractIdsFromSimplePattern(job.remotes).map(id =>
-          this._getAdapter(id).catch(error => {
-            runTask(
-              {
-                name: 'get remote adapter',
-                data: { type: 'remote', id },
-              },
-              () => Promise.reject(error)
-            )
-          })
-        )
-      ),
+      Disposable.all(extractIdsFromSimplePattern(job.remotes).map(id => this._getAdapter(id))),
       () => (settings.healthCheckSr !== undefined ? this._getRecord('SR', settings.healthCheckSr) : undefined),
       async (srs, remoteAdapters, healthCheckSr) => {
         // remove adapters that failed (already handled)
@@ -267,23 +270,35 @@ exports.Backup = class Backup {
         const allSettings = this._job.settings
         const baseSettings = this._baseSettings
 
-        const handleVm = vmUuid =>
-          runTask({ name: 'backup VM', data: { type: 'VM', id: vmUuid } }, () =>
-            Disposable.use(this._getRecord('VM', vmUuid), vm =>
-              new VmBackup({
-                baseSettings,
-                config,
-                getSnapshotNameLabel,
-                healthCheckSr,
-                job,
-                remoteAdapters,
-                schedule,
-                settings: { ...settings, ...allSettings[vm.uuid] },
-                srs,
-                vm,
-              }).run()
-            )
+        const handleVm = vmUuid => {
+          const taskStart = { name: 'backup VM', data: { type: 'VM', id: vmUuid } }
+
+          return this._getRecord('VM', vmUuid).then(
+            disposableVm =>
+              Disposable.use(disposableVm, vm => {
+                taskStart.data.name_label = vm.name_label
+                return runTask(taskStart, () =>
+                  new VmBackup({
+                    baseSettings,
+                    config,
+                    getSnapshotNameLabel,
+                    healthCheckSr,
+                    job,
+                    remoteAdapters,
+                    schedule,
+                    settings: { ...settings, ...allSettings[vm.uuid] },
+                    srs,
+                    throttleStream,
+                    vm,
+                  }).run()
+                )
+              }),
+            error =>
+              runTask(taskStart, () => {
+                throw error
+              })
           )
+        }
         const { concurrency } = settings
         await asyncMapSettled(vmIds, concurrency === 0 ? handleVm : limitConcurrency(concurrency)(handleVm))
       }

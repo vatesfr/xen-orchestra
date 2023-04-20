@@ -11,14 +11,14 @@
         </template>
         <MenuItem
           @click="xenApi.vm.start({ vmRef: vm.$ref })"
-          :busy="isOperationsPending('start')"
+          :busy="isOperationsPending(vm, 'start')"
           :disabled="!isHalted"
           :icon="faPlay"
         >
           {{ $t("start") }}
         </MenuItem>
         <MenuItem
-          :busy="isOperationsPending('start_on')"
+          :busy="isOperationsPending(vm, 'start_on')"
           :disabled="!isHalted"
           :icon="faServer"
         >
@@ -49,7 +49,7 @@
         </MenuItem>
         <MenuItem
           @click="xenApi.vm.pause({ vmRef: vm.$ref })"
-          :busy="isOperationsPending('pause')"
+          :busy="isOperationsPending(vm, 'pause')"
           :disabled="!isRunning"
           :icon="faPause"
         >
@@ -57,7 +57,7 @@
         </MenuItem>
         <MenuItem
           @click="xenApi.vm.suspend({ vmRef: vm.$ref })"
-          :busy="isOperationsPending('suspend')"
+          :busy="isOperationsPending(vm, 'suspend')"
           :disabled="!isRunning"
           :icon="faMoon"
         >
@@ -70,7 +70,7 @@
               vmRef: vm.$ref,
             })
           "
-          :busy="isOperationsPending(['unpause', 'resume'])"
+          :busy="isOperationsPending(vm, ['unpause', 'resume'])"
           :disabled="!isSuspended && !isPaused"
           :icon="faCirclePlay"
         >
@@ -78,7 +78,7 @@
         </MenuItem>
         <MenuItem
           @click="xenApi.vm.reboot({ vmRef: vm.$ref })"
-          :busy="isOperationsPending('clean_reboot')"
+          :busy="isOperationsPending(vm, 'clean_reboot')"
           :disabled="!isRunning"
           :icon="faRotateLeft"
         >
@@ -86,7 +86,7 @@
         </MenuItem>
         <MenuItem
           @click="xenApi.vm.reboot({ vmRef: vm.$ref, force: true })"
-          :busy="isOperationsPending('hard_reboot')"
+          :busy="isOperationsPending(vm, 'hard_reboot')"
           :disabled="!isRunning && !isPaused"
           :icon="faRepeat"
         >
@@ -94,7 +94,7 @@
         </MenuItem>
         <MenuItem
           @click="xenApi.vm.shutdown({ vmRef: vm.$ref })"
-          :busy="isOperationsPending('clean_shutdown')"
+          :busy="isOperationsPending(vm, 'clean_shutdown')"
           :disabled="!isRunning"
           :icon="faPowerOff"
         >
@@ -102,7 +102,7 @@
         </MenuItem>
         <MenuItem
           @click="xenApi.vm.shutdown({ vmRef: vm.$ref, force: true })"
-          :busy="isOperationsPending('hard_shutdown')"
+          :busy="isOperationsPending(vm, 'hard_shutdown')"
           :disabled="!isRunning && !isSuspended && !isPaused"
           :icon="faPlug"
         >
@@ -118,8 +118,8 @@ import MenuItem from "@/components/menu/MenuItem.vue";
 import PowerStateIcon from "@/components/PowerStateIcon.vue";
 import TitleBar from "@/components/TitleBar.vue";
 import UiButton from "@/components/ui/UiButton.vue";
-import UiIcon from "@/components/ui/UiIcon.vue";
-import { isHostRunning } from "@/libs/utils";
+import UiIcon from "@/components/ui/icon/UiIcon.vue";
+import { isHostRunning, isOperationsPending } from "@/libs/utils";
 import { useHostStore } from "@/stores/host.store";
 import { usePoolStore } from "@/stores/pool.store";
 import { useVmStore } from "@/stores/vm.store";
@@ -141,20 +141,11 @@ import {
 import { computed } from "vue";
 import { useRouter } from "vue-router";
 import { computedAsync } from "@vueuse/core";
-import { difference } from "lodash";
 
 const vmStore = useVmStore();
 const hostStore = useHostStore();
 const poolStore = usePoolStore();
 const { currentRoute } = useRouter();
-
-const isOperationsPending = (operations: string[] | string) => {
-  const _operations = Array.isArray(operations) ? operations : [operations];
-  return (
-    difference(_operations, vmOperations.value).length < _operations.length
-  );
-};
-const vmOperations = computed(() => Object.values(vm.value.current_operations));
 
 const vm = computed(
   () => vmStore.getRecordByUuid(currentRoute.value.params.uuid as string)!

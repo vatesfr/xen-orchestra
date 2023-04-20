@@ -1,7 +1,7 @@
 /* eslint-env jest */
 
 import React from 'react'
-import { forEach } from 'lodash'
+import forEach from 'lodash/forEach.js'
 import { shallow } from 'enzyme'
 
 import * as grid from './grid'

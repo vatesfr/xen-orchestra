@@ -9,13 +9,14 @@ import { createLogger } from '@xen-orchestra/log'
 import { decorateWith } from '@vates/decorate-with'
 import { defer as deferrable } from 'golike-defer'
 import { incorrectState } from 'xo-common/api-errors.js'
+import { parseDateTime } from '@xen-orchestra/xapi'
 import { timeout } from 'promise-toolbox'
 
 import ensureArray from '../../_ensureArray.mjs'
 import { debounceWithKey } from '../../_pDebounceWithKey.mjs'
 import { forEach, mapFilter, parseXml } from '../../utils.mjs'
 
-import { extractOpaqueRef, isHostRunning, parseDateTime, useUpdateSystem } from '../utils.mjs'
+import { extractOpaqueRef, isHostRunning, useUpdateSystem } from '../utils.mjs'
 
 // TOC -------------------------------------------------------------------------
 
@@ -63,13 +64,9 @@ export default {
     return this
   })
   async _getXenUpdates() {
-    const response = await this.xo.httpRequest('http://updates.xensource.com/XenServer/updates.xml')
+    const response = await this.xo.httpRequest('https://updates.xensource.com/XenServer/updates.xml')
 
-    if (response.statusCode !== 200) {
-      throw new Error('cannot fetch patches list from Citrix')
-    }
-
-    const data = parseXml(await response.readAll()).patchdata
+    const data = parseXml(await response.buffer()).patchdata
 
     const patches = { __proto__: null }
     forEach(data.patches.patch, patch => {
@@ -552,7 +549,7 @@ export default {
       await this.barrier(metricsRef)
       await this._waitObjectState(metricsRef, metrics => metrics.live)
 
-      const getServerTime = async () => parseDateTime(await this.call('host.get_servertime', host.$ref))
+      const getServerTime = async () => parseDateTime(await this.call('host.get_servertime', host.$ref)) * 1e3
       let rebootTime
       if (isXcp) {
         // On XCP-ng, install patches on each host one by one instead of all at once

@@ -5,7 +5,6 @@ import ms from 'ms'
 import httpRequest from 'http-request-plus'
 import map from 'lodash/map'
 import noop from 'lodash/noop'
-import omit from 'lodash/omit'
 import ProxyAgent from 'proxy-agent'
 import { coalesceCalls } from '@vates/coalesce-calls'
 import { Collection } from 'xo-collection'
@@ -75,7 +74,12 @@ const addSyncStackTrace = async promise => {
   try {
     return await promise
   } catch (error) {
-    error.stack = stackContainer.stack
+    let { stack } = stackContainer
+
+    // remove first line which does not contain stack information, simply `Error`
+    stack = stack.slice(stack.indexOf('\n') + 1)
+
+    error.stack = [error.stack, 'From:', stack].join('\n')
     throw error
   }
 }
@@ -91,6 +95,7 @@ export class Xapi extends EventEmitter {
     this._callTimeout = makeCallSetting(opts.callTimeout, 60 * 60 * 1e3) // 1 hour but will be reduced in the future
     this._httpInactivityTimeout = opts.httpInactivityTimeout ?? 5 * 60 * 1e3 // 5 mins
     this._eventPollDelay = opts.eventPollDelay ?? 60 * 1e3 // 1 min
+    this._ignorePrematureClose = opts.ignorePrematureClose ?? true
     this._pool = null
     this._readOnly = Boolean(opts.readOnly)
     this._RecordsByType = { __proto__: null }
@@ -392,7 +397,7 @@ export class Xapi extends EventEmitter {
     const response = await this._addSyncStackTrace(
       pRetry(
         async () =>
-          httpRequest($cancelToken, url.href, {
+          httpRequest(url, {
             rejectUnauthorized: !this._allowUnauthorized,
 
             // this is an inactivity timeout (unclear in Node doc)
@@ -403,15 +408,17 @@ export class Xapi extends EventEmitter {
             // Support XS <= 6.5 with Node => 12
             minVersion: 'TLSv1',
             agent: this.httpAgent,
+
+            signal: $cancelToken,
           }),
         {
-          when: { code: 302 },
+          when: error => error.response.statusCode === 302,
           onRetry: async error => {
             const response = error.response
             if (response === undefined) {
               throw error
             }
-            response.cancel()
+            response.destroy()
             url = await this._replaceHostAddressInUrl(new URL(response.headers.location, url))
           },
         }
@@ -467,40 +474,45 @@ export class Xapi extends EventEmitter {
     url.search = new URLSearchParams(query)
     await this._setHostAddressInUrl(url, host)
 
-    const doRequest = httpRequest.put.bind(undefined, $cancelToken, {
-      agent: this.httpAgent,
+    const doRequest = (url, opts) =>
+      httpRequest(url, {
+        agent: this.httpAgent,
 
-      body,
-      headers,
-      rejectUnauthorized: !this._allowUnauthorized,
+        body,
+        headers,
+        method: 'PUT',
+        rejectUnauthorized: !this._allowUnauthorized,
+        signal: $cancelToken,
 
-      // this is an inactivity timeout (unclear in Node doc)
-      timeout: this._httpInactivityTimeout,
+        // this is an inactivity timeout (unclear in Node doc)
+        timeout: this._httpInactivityTimeout,
 
-      // Support XS <= 6.5 with Node => 12
-      minVersion: 'TLSv1',
-    })
+        // Support XS <= 6.5 with Node => 12
+        minVersion: 'TLSv1',
+
+        ...opts,
+      })
+
+    const dummyUrl = new URL(url)
+    dummyUrl.searchParams.delete('task_id')
 
     // if body is a stream, sends a dummy request to probe for a redirection
     // before consuming body
     const response = await this._addSyncStackTrace(
       isStream
-        ? doRequest(url.href, {
+        ? doRequest(dummyUrl, {
             body: '',
-
-            // omit task_id because this request will fail on purpose
-            query: 'task_id' in query ? omit(query, 'task_id') : query,
 
             maxRedirects: 0,
           }).then(
             response => {
-              response.cancel()
-              return doRequest(url.href)
+              response.destroy()
+              return doRequest(url)
             },
             async error => {
               let response
               if (error != null && (response = error.response) != null) {
-                response.cancel()
+                response.destroy()
 
                 const {
                   headers: { location },
@@ -510,14 +522,14 @@ export class Xapi extends EventEmitter {
                   // ensure the original query is sent
                   const newUrl = new URL(location, url)
                   newUrl.searchParams.set('task_id', query.task_id)
-                  return doRequest((await this._replaceHostAddressInUrl(newUrl)).href)
+                  return doRequest(await this._replaceHostAddressInUrl(newUrl))
                 }
               }
 
               throw error
             }
           )
-        : doRequest(url.href)
+        : doRequest(url)
     )
 
     if (pTaskResult !== undefined) {
@@ -537,22 +549,30 @@ export class Xapi extends EventEmitter {
       }
     }
 
-    const { req } = response
-    if (!req.finished) {
-      await new Promise((resolve, reject) => {
-        req.on('finish', resolve).on('error', reject)
-        response.on('error', reject)
-      })
-    }
+    try {
+      const { req } = response
+      if (!req.finished) {
+        await new Promise((resolve, reject) => {
+          req.on('finish', resolve)
+          response.on('error', reject)
+        })
+      }
 
-    if (useHack) {
-      response.cancel()
-    } else {
-      // consume the response
-      response.resume()
-      await new Promise((resolve, reject) => {
-        response.on('end', resolve).on('error', reject)
-      })
+      if (useHack) {
+        response.destroy()
+      } else {
+        // consume the response
+        response.resume()
+        await new Promise((resolve, reject) => {
+          response.on('end', resolve).on('error', reject)
+        })
+      }
+    } catch (error) {
+      if (this._ignorePrematureClose && error.code === 'ERR_STREAM_PREMATURE_CLOSE') {
+        console.warn(this._humanId, 'Xapi#putResource', pathname, error)
+      } else {
+        throw error
+      }
     }
 
     return pTaskResult
@@ -708,7 +728,7 @@ export class Xapi extends EventEmitter {
   // Private
   // ===========================================================================
 
-  async _call(method, args, timeout = this._callTimeout(method, args)) {
+  async _call(method, args = [], timeout = this._callTimeout(method, args)) {
     const startTime = Date.now()
     try {
       const result = await pTimeout.call(this._addSyncStackTrace(this._transport(method, args)), timeout)

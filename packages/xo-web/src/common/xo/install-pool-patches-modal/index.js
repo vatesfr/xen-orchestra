@@ -14,7 +14,7 @@ import {
   createGetObjectsOfType,
   createSelector,
 } from 'selectors'
-import { forEach } from 'lodash'
+import forEach from 'lodash/forEach.js'
 import { SelectSr } from 'select-objects'
 import { Vm } from 'render-xo-item'
 import { ejectCd, isSrWritable, setDefaultSr } from 'xo'

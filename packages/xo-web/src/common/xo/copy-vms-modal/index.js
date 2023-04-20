@@ -4,7 +4,7 @@ import map from 'lodash/map'
 import PropTypes from 'prop-types'
 import React from 'react'
 import { compileTemplate } from '@xen-orchestra/template'
-import { every } from 'lodash'
+import every from 'lodash/every.js'
 import { injectIntl } from 'react-intl'
 
 import BaseComponent from 'base-component'

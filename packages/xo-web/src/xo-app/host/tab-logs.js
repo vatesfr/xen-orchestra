@@ -8,7 +8,7 @@ import { Row, Col } from 'grid'
 import { deleteMessage, deleteMessages } from 'xo'
 import { formatLogs } from 'utils'
 import { FormattedRelative, FormattedTime } from 'react-intl'
-import { map } from 'lodash'
+import map from 'lodash/map.js'
 
 const LOG_BODY_STYLE = {
   whiteSpace: 'pre-wrap',

@@ -1,7 +1,7 @@
 import kindOf from 'kindof'
 import { BaseError } from 'make-error'
 import { EventEmitter } from 'events'
-import { forOwn } from 'lodash'
+import forOwn from 'lodash/forOwn.js'
 
 import isEmpty from './is-empty'
 import isObject from './is-object'

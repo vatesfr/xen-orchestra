@@ -1,4 +1,3 @@
-
 // CHARTIST  ===================================================================
 
 $ct-series-colors: (
@@ -19,8 +18,8 @@ $ct-series-colors: (
   #a748ca
 ) !default;
 
-@import "../../../node_modules/chartist/dist/scss/settings/_chartist-settings";
-@import "../../../node_modules/chartist/dist/scss/chartist";
+@import '../../../node_modules/chartist/dist/scss/settings/_chartist-settings';
+@import '../../../node_modules/chartist/dist/scss/chartist';
 
 .ct-chart {
   display: flex;
@@ -45,11 +44,11 @@ $ct-series-colors: (
 
 .ct-point {
   stroke-width: 30px;
-  stroke-opacity: 0!important;
+  stroke-opacity: 0 !important;
 }
 
 .ct-point:hover {
-  stroke-opacity: 0.2!important;
+  stroke-opacity: 0.2 !important;
   stroke-width: 20px;
 }
 

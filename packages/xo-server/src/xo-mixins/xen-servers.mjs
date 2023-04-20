@@ -114,7 +114,7 @@ export default class {
       enabled: true,
       host,
       httpProxy,
-      label: label || undefined,
+      label,
       password,
       readOnly,
       username,

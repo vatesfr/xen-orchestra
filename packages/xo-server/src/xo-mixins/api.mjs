@@ -56,7 +56,7 @@ const XAPI_ERROR_TO_XO_ERROR = {
 
 const hasPermission = (actual, expected) => PERMISSIONS[actual] >= PERMISSIONS[expected]
 
-const ajv = new Ajv({ allErrors: true, allowUnionTypes: true })
+const ajv = new Ajv({ allErrors: true, allowUnionTypes: true, useDefaults: true })
 
 function checkParams(method, params) {
   const { validate } = method
@@ -153,6 +153,13 @@ function adaptJsonSchema(schema) {
     }
   }
 
+  if (is('string')) {
+    // we want strings to be not empty by default
+    if (schema.minLength === undefined && schema.format === undefined && schema.pattern === undefined) {
+      schema.minLength = 1
+    }
+  }
+
   return schema
 }
 
@@ -229,7 +236,16 @@ export default class Api {
     return this._methods
   }
 
-  addApiMethod(name, method) {
+  addApiMethod(
+    name,
+    method,
+    {
+      description = method.description,
+      params = method.params,
+      permission = method.permission,
+      resolve = method.resolve,
+    } = {}
+  ) {
     const methods = this._methods
 
     if (name in methods) {
@@ -252,12 +268,12 @@ export default class Api {
         }
       })
 
-      const { params } = method
+      let validate
       if (params !== undefined) {
         let schema = { type: 'object', properties: cloneDeep(params) }
         try {
           schema = adaptJsonSchema(schema)
-          method.validate = ajv.compile(schema)
+          validate = ajv.compile(schema)
         } catch (error) {
           log.warn('failed to compile method params schema', {
             error,
@@ -268,7 +284,12 @@ export default class Api {
         }
       }
 
-      methods[name] = method
+      methods[name] = Object.assign(
+        function apiWrapper() {
+          return method.apply(this, arguments)
+        },
+        { description, params, permission, resolve, validate }
+      )
     }
 
     let remove = () => {
@@ -290,6 +311,8 @@ export default class Api {
         removes.push(this.addApiMethod(name, base + method))
       } else if (type === 'function') {
         removes.push(this.addApiMethod(name, method))
+      } else if (Array.isArray(method)) {
+        removes.push(this.addApiMethod(name, ...method))
       } else {
         const oldBase = base
         base = name + '.'

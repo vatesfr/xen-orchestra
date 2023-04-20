@@ -1,13 +1,13 @@
 .cell {
-    border-radius: 4px;
-    height: 2em;
-    padding: 1px;
-    transition: background-color 300ms linear;
+  border-radius: 4px;
+  height: 2em;
+  padding: 1px;
+  transition: background-color 300ms linear;
 }
 
 .table {
-    border-spacing: 2px;
-    border-collapse: separate;
-    table-layout: fixed;
-    width: 100%;
+  border-spacing: 2px;
+  border-collapse: separate;
+  table-layout: fixed;
+  width: 100%;
 }

@@ -1,0 +1,35 @@
+{
+  "private": true,
+  "name": "xo-server-auth-oidc",
+  "description": "OpenID Connect authentication plugin for XO-Server",
+  "keywords": [
+    "authentication",
+    "connect",
+    "oauth",
+    "oidc",
+    "opendid",
+    "orchestra",
+    "xen-orchestra",
+    "xen",
+    "xo-server"
+  ],
+  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/packages/xo-server-auth-oidc",
+  "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
+  "repository": {
+    "directory": "packages/xo-server-auth-oidc",
+    "type": "git",
+    "url": "https://github.com/vatesfr/xen-orchestra.git"
+  },
+  "author": {
+    "name": "Vates SAS",
+    "url": "https://vates.fr"
+  },
+  "license": "AGPL-3.0-or-later",
+  "version": "0.2.0",
+  "engines": {
+    "node": ">=12"
+  },
+  "dependencies": {
+    "passport-openidconnect": "^0.1.1"
+  }
+}

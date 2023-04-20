@@ -4,7 +4,7 @@ import CopyToClipboard from 'react-copy-to-clipboard'
 import PropTypes from 'prop-types'
 import React from 'react'
 import { get } from '@xen-orchestra/defined'
-import { find } from 'lodash'
+import find from 'lodash/find.js'
 
 import decorate from './apply-decorators'
 import Icon from './icon'
@@ -102,7 +102,7 @@ export const Host = decorate([
             {_('memoryFree', {
               memoryFree: formatSize(host.memory.size - host.memory.usage),
             })}
-            {')'}
+            )
           </span>
         )}
         {pool !== undefined && <span>{` - ${pool.name_label}`}</span>}
@@ -217,9 +217,9 @@ export const Sr = decorate([
       container: getContainer(state, props),
     })
   }),
-  ({ id, sr, container, link, newTab, spaceLeft, self }) => {
+  ({ id, sr, container, link, newTab, spaceLeft, self, name }) => {
     if (sr === undefined) {
-      return unknowItem(id, 'SR')
+      return unknowItem(id, 'SR', name)
     }
 
     return (
@@ -241,6 +241,7 @@ Sr.propTypes = {
   container: PropTypes.bool,
   id: PropTypes.string.isRequired,
   link: PropTypes.bool,
+  name: PropTypes.string,
   newTab: PropTypes.bool,
   self: PropTypes.bool,
   spaceLeft: PropTypes.bool,
@@ -556,12 +557,18 @@ const xoItemToRender = {
   ),
 
   // PIF.
-  PIF: pif => (
+  PIF: ({ carrier, device, deviceName, vlan }) => (
     <span>
-      <Icon icon='network' color={pif.carrier ? 'text-success' : 'text-danger'} /> {pif.device} ({pif.deviceName})
+      <Icon icon='network' color={carrier ? 'text-success' : 'text-danger'} /> {device} ({deviceName}
+      {deviceName !== '' && vlan !== -1 && ' - '}
+      {vlan !== -1 &&
+        _('keyValue', {
+          key: _('pifVlanLabel'),
+          value: vlan,
+        })}
+      )
     </span>
   ),
-
   // Tags.
   tag: tag => (
     <span>

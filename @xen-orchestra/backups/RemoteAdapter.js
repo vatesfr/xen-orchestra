@@ -209,8 +209,8 @@ class RemoteAdapter {
 
       const isVhdDirectory = vhd instanceof VhdDirectory
       return isVhdDirectory
-        ? this.#useVhdDirectory() && this.#getCompressionType() === vhd.compressionType
-        : !this.#useVhdDirectory()
+        ? this.useVhdDirectory() && this.#getCompressionType() === vhd.compressionType
+        : !this.useVhdDirectory()
     })
   }
 
@@ -321,12 +321,12 @@ class RemoteAdapter {
     return this._vhdDirectoryCompression
   }
 
-  #useVhdDirectory() {
+  useVhdDirectory() {
     return this.handler.useVhdDirectory()
   }
 
   #useAlias() {
-    return this.#useVhdDirectory()
+    return this.useVhdDirectory()
   }
 
   async *#getDiskLegacy(diskId) {
@@ -658,9 +658,9 @@ class RemoteAdapter {
     return path
   }
 
-  async writeVhd(path, input, { checksum = true, validator = noop, writeBlockConcurrency, nbdClient } = {}) {
+  async writeVhd(path, input, { checksum = true, validator = noop, writeBlockConcurrency } = {}) {
     const handler = this._handler
-    if (this.#useVhdDirectory()) {
+    if (this.useVhdDirectory()) {
       const dataPath = `${dirname(path)}/data/${uuidv4()}.vhd`
       const size = await createVhdDirectoryFromStream(handler, dataPath, input, {
         concurrency: writeBlockConcurrency,
@@ -669,7 +669,6 @@ class RemoteAdapter {
           await input.task
           return validator.apply(this, arguments)
         },
-        nbdClient,
       })
       await VhdAbstract.createAlias(handler, path, dataPath)
       return size
@@ -720,7 +719,7 @@ class RemoteAdapter {
 
   async readDeltaVmBackup(metadata, ignoredVdis) {
     const handler = this._handler
-    const { vbds, vhds, vifs, vm } = metadata
+    const { vbds, vhds, vifs, vm, vmSnapshot } = metadata
     const dir = dirname(metadata._filename)
     const vdis = ignoredVdis === undefined ? metadata.vdis : pickBy(metadata.vdis, vdi => !ignoredVdis.has(vdi.uuid))
 
@@ -735,7 +734,7 @@ class RemoteAdapter {
       vdis,
       version: '1.0.0',
       vifs,
-      vm,
+      vm: { ...vm, suspend_VDI: vmSnapshot.suspend_VDI },
     }
   }
 

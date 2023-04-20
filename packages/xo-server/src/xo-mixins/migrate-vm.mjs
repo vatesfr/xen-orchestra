@@ -33,6 +33,8 @@ export default class MigrateVm {
         '': {
           // mandatory for delta replication writer
           copyRetention: 1,
+          // by default continuous replication add some tags
+          _warmMigration: true,
         },
       },
     }
@@ -101,7 +103,7 @@ export default class MigrateVm {
     const targetVm = app.getXapiObject(targets[0])
 
     // new vm is ready to start
-    // delta replication writer as set this as blocked
+    // delta replication writer has set this as blocked=
     await targetVm.update_blocked_operations({ start: null, start_on: null })
 
     if (startDestVm) {
@@ -151,12 +153,17 @@ export default class MigrateVm {
     return chainsByNodes
   }
 
-  #connectToEsxi(host, user, password, sslVerify = true) {
+  #connectToEsxi(host, user, password, sslVerify) {
     return new Task({ name: `connecting to ${host}` }).run(async () => {
       const esxi = new Esxi(host, user, password, sslVerify)
       await fromEvent(esxi, 'ready')
       return esxi
     })
+  }
+
+  async connectToEsxiAndList({ host, user, password, sslVerify }) {
+    const esxi = await this.#connectToEsxi(host, user, password, sslVerify)
+    return esxi.getAllVmMetadata()
   }
 
   @decorateWith(deferrable)
@@ -171,7 +178,7 @@ export default class MigrateVm {
       return esxi.getTransferableVmMetadata(vmId)
     })
 
-    const { disks, firmware, memory, name_label, networks, numCpu, powerState, snapshots } = esxiVmMetadata
+    const { disks, firmware, memory, name_label, networks, nCpus, powerState, snapshots } = esxiVmMetadata
     const isRunning = powerState !== 'poweredOff'
 
     const chainsByNodes = await new Task({ name: `build disks and snapshots chains for ${vmId}` }).run(async () => {
@@ -192,8 +199,8 @@ export default class MigrateVm {
           memory_static_min: memory,
           name_description: 'from esxi',
           name_label,
-          VCPUs_at_startup: numCpu,
-          VCPUs_max: numCpu,
+          VCPUs_at_startup: nCpus,
+          VCPUs_max: nCpus,
         })
       )
       await Promise.all([

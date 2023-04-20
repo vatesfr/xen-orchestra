@@ -17,8 +17,10 @@ import { injectState } from 'reaclette'
 
 import styles from './index.css'
 
+import BulkIcons from '../../common/bulk-icons'
 import { isAdmin } from '../../common/selectors'
 import { ShortDate } from '../../common/utils'
+import { getXoaPlan, SOURCES } from '../../common/xoa-plans'
 
 @connectStore(() => {
   const getPoolHosts = createGetObjectsOfType('host').filter(
@@ -72,28 +74,61 @@ export default class PoolItem extends Component {
     this.props.missingPatches.then(patches => this.setState({ missingPatchCount: size(patches) }))
   }
 
-  _getPoolLicenseIcon() {
+  _getPoolLicenseIconTooltip() {
     const { state: reacletteState, item: pool } = this.props
-    let tooltip
-    const { icon, earliestExpirationDate, nHostsUnderLicense, nHosts, supportLevel } =
+    const { earliestExpirationDate, nHostsUnderLicense, nHosts, supportLevel } =
       reacletteState.poolLicenseInfoByPoolId[pool.id]
+    let tooltip = _('poolNoSupport')
 
+    if (getXoaPlan() === SOURCES) {
+      tooltip = _('poolSupportSourceUsers')
+    }
     if (supportLevel === 'total') {
-      tooltip = _('earliestExpirationDate', { dateString: <ShortDate timestamp={earliestExpirationDate} /> })
+      tooltip = _('earliestExpirationDate', {
+        dateString:
+          earliestExpirationDate === Infinity ? _('noExpiration') : <ShortDate timestamp={earliestExpirationDate} />,
+      })
     }
     if (supportLevel === 'partial') {
       tooltip = _('poolPartialSupport', { nHostsLicense: nHostsUnderLicense, nHosts })
     }
-    return icon(tooltip)
+    return tooltip
   }
 
   _isXcpngPool() {
     return Object.values(this.props.poolHosts)[0].productBrand === 'XCP-ng'
   }
 
+  _getPoolLicenseInfo = () => this.props.state.poolLicenseInfoByPoolId[this.props.item.id]
+
+  _getAlerts = createSelector(
+    () => this.props.isAdmin,
+    this._getPoolLicenseInfo,
+    (isAdmin, poolLicenseInfo) => {
+      const alerts = []
+
+      if (isAdmin && this._isXcpngPool()) {
+        const { icon, supportLevel } = poolLicenseInfo
+        if (supportLevel !== 'total') {
+          const level = supportLevel === 'partial' || getXoaPlan() === SOURCES ? 'warning' : 'danger'
+          alerts.push({
+            level,
+            render: (
+              <p>
+                {icon()} {this._getPoolLicenseIconTooltip()}
+              </p>
+            ),
+          })
+        }
+      }
+      return alerts
+    }
+  )
+
   render() {
-    const { item: pool, expandAll, isAdmin, selected, hostMetrics, poolHosts, nSrs, nVms } = this.props
+    const { item: pool, expandAll, selected, hostMetrics, poolHosts, nSrs, nVms } = this.props
     const { missingPatchCount } = this.state
+    const { icon, supportLevel } = this._getPoolLicenseInfo()
 
     return (
       <div className={styles.item}>
@@ -106,16 +141,19 @@ export default class PoolItem extends Component {
                 <Ellipsis>
                   <Text value={pool.name_label} onChange={this._setNameLabel} useLongClick />
                 </Ellipsis>
-                {isAdmin && this._isXcpngPool() && <span className='ml-1'>{this._getPoolLicenseIcon()}</span>}
-                &nbsp;&nbsp;
+                &nbsp;
+                <BulkIcons alerts={this._getAlerts()} />
+                &nbsp;
                 {missingPatchCount > 0 && (
                   <span>
-                    &nbsp;&nbsp;
                     <Tooltip content={_('homeMissingPatches')}>
                       <span className='tag tag-pill tag-danger'>{missingPatchCount}</span>
                     </Tooltip>
                   </span>
                 )}
+                &nbsp;
+                {isAdmin && this._isXcpngPool() && supportLevel === 'total' && icon(this._getPoolLicenseIconTooltip())}
+                &nbsp;
                 {pool.HA_enabled && (
                   <span>
                     &nbsp;&nbsp;

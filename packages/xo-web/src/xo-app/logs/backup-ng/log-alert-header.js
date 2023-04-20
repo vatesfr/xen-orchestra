@@ -13,7 +13,7 @@ import Tooltip from 'tooltip'
 import { createBlobFromString, downloadLog, safeDateFormat } from 'utils'
 import { get, ifDef } from '@xen-orchestra/defined'
 import { injectState, provideState } from 'reaclette'
-import { keyBy } from 'lodash'
+import keyBy from 'lodash/keyBy.js'
 import { runBackupNgJob, subscribeBackupNgJobs, subscribeBackupNgLogs, subscribeSchedules } from 'xo'
 
 export default decorate([

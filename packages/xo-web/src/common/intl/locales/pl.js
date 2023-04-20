@@ -2280,8 +2280,8 @@ export default {
   // Original text: "To SR:"
   vmImportToSr: 'To SR:',
 
-  // Original text: "VMs to import"
-  vmsToImport: 'VMs to import',
+  // Original text: "VM{nVms, plural, one {} other {s}} to import"
+  vmsToImport: 'VM{nVms, plural, one {} other {s}} to import',
 
   // Original text: "Reset"
   importVmsCleanList: 'Reset',
@@ -2298,8 +2298,8 @@ export default {
   // Original text: "Export starting…"
   startVmExport: 'Eksport rozpoczęty…',
 
-  // Original text: "N CPUs"
-  nCpus: 'N CPUs',
+  // Original text: "Number of CPUs"
+  nCpus: undefined,
 
   // Original text: "Memory"
   vmMemory: 'Pamieć',

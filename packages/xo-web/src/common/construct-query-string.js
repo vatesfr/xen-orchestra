@@ -1,5 +1,5 @@
 import * as CM from 'complex-matcher'
-import { escapeRegExp } from 'lodash'
+import escapeRegExp from 'lodash/escapeRegExp.js'
 
 const valueToComplexMatcher = pattern => {
   if (typeof pattern === 'string') {

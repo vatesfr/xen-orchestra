@@ -589,6 +589,8 @@ ${monitorBodies.join('\n')}`
 
       const entriesWithMissingStats = []
       for (const entry of snapshot) {
+        // Ignore special SRs (e.g. *XCP-ng Tools*, *DVD drives*, etc) as their usage is always 100%
+        if (entry.object.physical_size <= 0 && entry.object.content_type === 'iso') continue
         if (entry.value === undefined) {
           entriesWithMissingStats.push(entry)
           continue
@@ -689,7 +691,7 @@ ${entriesWithMissingStats.map(({ listItem }) => listItem).join('\n')}`
       payload.vm_uuid = xapiObject.uuid
     }
     // JSON is not well formed, can't use the default node parser
-    return JSON5.parse(await (await xapi.getResource('/rrd_updates', payload)).readAll())
+    return JSON5.parse(await (await xapi.getResource('/rrd_updates', payload)).text())
   }
 }
 

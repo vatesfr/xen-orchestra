@@ -24,6 +24,7 @@ import XoLib from 'xo-lib'
 
 import * as config from './config.mjs'
 import { inspect } from 'util'
+import { rest } from './rest.mjs'
 
 const Xo = XoLib.default
 
@@ -46,34 +47,47 @@ async function connect() {
   return xo
 }
 
-async function parseRegisterArgs(args) {
+async function parseRegisterArgs(args, tokenDescription, acceptToken = false) {
   const {
     allowUnauthorized,
     expiresIn,
-    _: [
-      url,
+    token,
+    _: opts,
+  } = getopts(args, {
+    alias: {
+      allowUnauthorized: 'au',
+      token: 't',
+    },
+    boolean: ['allowUnauthorized'],
+    stopEarly: true,
+    string: ['expiresIn', 'token'],
+  })
+
+  const result = {
+    allowUnauthorized,
+    expiresIn: expiresIn || undefined,
+    url: opts[0],
+  }
+
+  if (token !== '') {
+    if (!acceptToken) {
+      // eslint-disable-next-line no-throw-literal
+      throw '`token` option is not accepted by this command'
+    }
+    result.token = token
+  } else {
+    const [
+      ,
       email,
       password = await new Promise(function (resolve) {
         process.stdout.write('Password: ')
         pw(resolve)
       }),
-    ],
-  } = getopts(args, {
-    alias: {
-      allowUnauthorized: 'au',
-    },
-    boolean: ['allowUnauthorized'],
-    stopEarly: true,
-    string: ['expiresIn'],
-  })
-
-  return {
-    allowUnauthorized,
-    email,
-    expiresIn: expiresIn || undefined,
-    password,
-    url,
+    ] = opts
+    result.token = await _createToken({ ...result, description: tokenDescription, email, password })
   }
+
+  return result
 }
 
 async function _createToken({ allowUnauthorized, description, email, expiresIn, password, url }) {
@@ -105,6 +119,22 @@ function createOutputStream(path) {
   stream.pipe(process.stdout)
   return stream
 }
+
+// patch stdout and stderr to stop writing after an EPIPE error
+//
+// See https://github.com/vatesfr/xen-orchestra/issues/6680
+;[process.stdout, process.stderr].forEach(stream => {
+  let write = stream.write
+  stream.on('error', function onError(error) {
+    if (error.code === 'EPIPE') {
+      stream.off('error', onError)
+      write = noop
+    }
+  })
+  stream.write = function () {
+    return write.apply(this, arguments)
+  }
+})
 
 const FLAG_RE = /^--([^=]+)(?:=([^]*))?$/
 function extractFlags(args) {
@@ -193,15 +223,19 @@ const help = wrap(
   (function (pkg) {
     return `Usage:
 
-  $name --register [--allowUnauthorized] [--expiresIn duration] <XO-Server URL> <username> [<password>]
+  $name --register [--allowUnauthorized] [--expiresIn <duration>] <XO-Server URL> <username> [<password>]
+  $name --register [--allowUnauthorized] [--expiresIn <duration>] --token <token> <XO-Server URL>
     Registers the XO instance to use.
 
     --allowUnauthorized, --au
       Accept invalid certificate (e.g. self-signed).
 
-    --expiresIn duration
+    --expiresIn <duration>
       Can be used to change the validity duration of the
       authorization token (default: one month).
+
+    --token <token>
+      An authentication token to use instead of username/password.
 
   $name --createToken <params>…
     Create an authentication token for XO API.
@@ -226,8 +260,71 @@ const help = wrap(
     <property>=<value>
       Restricted displayed objects to those matching the patterns.
 
-  $name <command> [<name>=<value>]...
+  $name <command> [--json] [<name>=<value>]...
     Executes a command on the current XO instance.
+
+    --json
+      Prints the result in JSON format.
+
+  $name rest del <resource>
+    Delete the resource.
+
+    Examples:
+      $name rest del tasks/<task id>
+
+  $name rest get <collection> [fields=<fields>] [filter=<filter>] [limit=<limit>]
+    List objects in a REST API collection.
+
+    <collection>
+      Full path of the collection to list
+
+    fields=<fields>
+      When provided, returns a collection of objects containing the requested
+      fields instead of the simply the objects' paths.
+
+      The field names must be separated by commas.
+
+    filter=<filter>
+      List only objects that match the filter
+
+      Syntax: https://xen-orchestra.com/docs/manage_infrastructure.html#filter-syntax
+
+    limit=<limit>
+      Maximum number of objects to list, e.g. \`limit=10\`
+
+    Examples:
+      $name rest get
+      $name rest get tasks filter='status:pending'
+      $name rest get vms fields=name_label,power_state
+
+  $name rest get <object> [wait | wait=result]
+    Show an object from the REST API.
+
+    <object>
+      Full path of the object to show
+
+    wait
+      If the object is a task, waits for it to be updated before returning.
+
+    wait=result
+      If the object is a task, waits for it to be finished before returning.
+
+    Examples:
+      $name rest get vms/<VM UUID>
+      $name rest get tasks/<task id>/actions wait=result
+
+  $name rest post <action> <name>=<value>...
+    Execute an action.
+
+    <action>
+      Full path of the action to execute
+
+    <name>=<value>...
+      Paramaters to pass to the action
+
+    Examples:
+      $name rest post tasks/<task id>/actions/abort
+      $name rest post vms/<VM UUID>/actions/snapshot name_label='My snapshot'
 
 $name v$version`.replace(/<([^>]+)>|\$(\w+)/g, function (_, arg, key) {
       if (arg) {
@@ -291,13 +388,15 @@ async function main(args) {
 
 // -------------------------------------------------------------------
 
+COMMANDS.rest = rest
+
+// -------------------------------------------------------------------
+
 COMMANDS.help = help
 
 async function createToken(args) {
-  const opts = await parseRegisterArgs(args)
-  opts.description = 'xo-cli --createToken'
+  const { token } = await parseRegisterArgs(args, 'xo-cli --createToken')
 
-  const token = await _createToken(opts)
   console.warn('Authentication token created')
   console.warn()
   console.log(token)
@@ -305,13 +404,11 @@ async function createToken(args) {
 COMMANDS.createToken = createToken
 
 async function register(args) {
-  const opts = await parseRegisterArgs(args)
-  opts.description = 'xo-cli --register'
-
+  const opts = await parseRegisterArgs(args, 'xo-cli --register', true)
   await config.set({
     allowUnauthorized: opts.allowUnauthorized,
     server: opts.url,
-    token: await _createToken(opts),
+    token: opts.token,
   })
 }
 COMMANDS.register = register
@@ -323,60 +420,64 @@ COMMANDS.unregister = unregister
 
 async function listCommands(args) {
   const xo = await connect()
-  let methods = await xo.call('system.getMethodsInfo')
+  try {
+    let methods = await xo.call('system.getMethodsInfo')
 
-  let json = false
-  const patterns = []
-  forEach(args, function (arg) {
-    if (arg === '--json') {
-      json = true
-    } else {
-      patterns.push(arg)
-    }
-  })
-
-  if (patterns.length) {
-    methods = pick(methods, micromatch(Object.keys(methods), patterns))
-  }
-
-  if (json) {
-    return methods
-  }
-
-  methods = pairs(methods)
-  methods.sort(function (a, b) {
-    a = a[0]
-    b = b[0]
-    if (a < b) {
-      return -1
-    }
-    return +(a > b)
-  })
-
-  const str = []
-  forEach(methods, function (method) {
-    const name = method[0]
-    const info = method[1]
-    str.push(chalk.bold.blue(name))
-    forEach(info.params || [], function (info, name) {
-      str.push(' ')
-      if (info.optional) {
-        str.push('[')
-      }
-
-      const type = info.type
-      str.push(name, '=<', type == null ? 'unknown type' : Array.isArray(type) ? type.join('|') : type, '>')
-
-      if (info.optional) {
-        str.push(']')
+    let json = false
+    const patterns = []
+    forEach(args, function (arg) {
+      if (arg === '--json') {
+        json = true
+      } else {
+        patterns.push(arg)
       }
     })
-    str.push('\n')
-    if (info.description) {
-      str.push('  ', info.description, '\n')
+
+    if (patterns.length) {
+      methods = pick(methods, micromatch(Object.keys(methods), patterns))
     }
-  })
-  return str.join('')
+
+    if (json) {
+      return methods
+    }
+
+    methods = pairs(methods)
+    methods.sort(function (a, b) {
+      a = a[0]
+      b = b[0]
+      if (a < b) {
+        return -1
+      }
+      return +(a > b)
+    })
+
+    const str = []
+    forEach(methods, function (method) {
+      const name = method[0]
+      const info = method[1]
+      str.push(chalk.bold.blue(name))
+      forEach(info.params || [], function (info, name) {
+        str.push(' ')
+        if (info.optional) {
+          str.push('[')
+        }
+
+        const type = info.type
+        str.push(name, '=<', type == null ? 'unknown type' : Array.isArray(type) ? type.join('|') : type, '>')
+
+        if (info.optional) {
+          str.push(']')
+        }
+      })
+      str.push('\n')
+      if (info.description) {
+        str.push('  ', info.description, '\n')
+      }
+    })
+    return str.join('')
+  } finally {
+    await xo.close()
+  }
 }
 COMMANDS.listCommands = listCommands
 
@@ -416,6 +517,11 @@ function ensurePathParam(method, value) {
 }
 
 async function call(args) {
+  const jsonOutput = args[1] === '--json'
+  if (jsonOutput) {
+    args.splice(1, 1)
+  }
+
   if (!args.length) {
     throw new Error('missing command name')
   }
@@ -473,18 +579,19 @@ async function call(args) {
           noop
         )
 
-        return hrp
-          .post(url, httpOptions, {
-            body: input,
-            headers: {
-              'content-length': length,
-            },
-          })
-          .readAll('utf-8')
+        const response = await hrp(url, {
+          ...httpOptions,
+          body: input,
+          headers: {
+            'content-length': length,
+          },
+          method: 'POST',
+        })
+        return response.text()
       }
     }
 
-    return result
+    return jsonOutput ? JSON.stringify(result, null, 2) : result
   } finally {
     await xo.close()
   }
@@ -501,7 +608,15 @@ main(process.argv.slice(2)).then(
         process.exitCode = result
       } else {
         const { stdout } = process
-        stdout.write(typeof result === 'string' ? result : inspect(result))
+        stdout.write(
+          typeof result === 'string'
+            ? result
+            : inspect(result, {
+                colors: Boolean(stdout.isTTY),
+                depth: null,
+                sorted: true,
+              })
+        )
         stdout.write('\n')
       }
     }
@@ -510,7 +625,15 @@ main(process.argv.slice(2)).then(
     const { stderr } = process
     stderr.write(chalk.bold.red('✖'))
     stderr.write(' ')
-    stderr.write(typeof error === 'string' ? error : inspect(error))
+    stderr.write(
+      typeof error === 'string'
+        ? error
+        : inspect(error, {
+            colors: Boolean(stderr.isTTY),
+            depth: null,
+            sorted: true,
+          })
+    )
     stderr.write('\n')
     process.exitCode = 1
   }
