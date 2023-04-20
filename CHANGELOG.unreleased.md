@@ -44,6 +44,7 @@
 - @vates/task minor
 - @xen-orchestra/backups minor
 - @xen-orchestra/mixins minor
+- @xen-orchestra/xapi minor
 - vhd-lib minor
 - xo-cli minor
 - xo-server minor
