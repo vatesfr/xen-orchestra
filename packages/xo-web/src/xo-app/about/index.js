@@ -19,7 +19,7 @@ const HEADER = (
     <Row>
       <Col mediumSize={12}>
         <h2>
-          <Icon icon='menu-about' /> {_('aboutXoaPlan', { xoaPlan: getXoaPlan() })}
+          <Icon icon='menu-about' /> About Xen Orchestra CE
         </h2>
       </Col>
     </Row>
@@ -75,15 +75,12 @@ export default class About extends Component {
             <div>
               <Row>
                 <Col>
-                  <h2 className='text-info'>{_('productionUse')}</h2>
+                  <h2 className='text-info'>Xen Orchestra Supported by Prime Support Technology Consulting</h2>
                   <h4 className='text-info'>
-                    {_('getSupport', {
-                      website: (
-                        <a href='https://xen-orchestra.com/#!/pricing?pk_campaign=xoa_source_upgrade&pk_kwd=about'>
-                          https://xen-orchestra.com
-                        </a>
-                      ),
-                    })}
+For support, please contact us at 231-683-1400. This custom build is not maintained or supported by Vates and is intended only for Prime Support's existing clients.
+                   <br/>     <a href='https://primesupport.net'>
+                          https://primesupport.net
+                        </a><br/>Source code for this build derived from <a href="https://github.com/SchmalzTech/xen-orchestra" target=_blank> here</a>
                   </h4>
                 </Col>
               </Row>
