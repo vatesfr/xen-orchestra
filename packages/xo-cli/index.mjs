@@ -567,9 +567,9 @@ async function call(args) {
         ensurePathParam(method, file)
         url = new URL(result[key], baseUrl)
 
-        const { size: length } = await stat(file)
+        const length = file === '-' ? undefined : (await stat(file)).size
         const input = pipeline(
-          createReadStream(file),
+          file === '-' ? process.stdin : createReadStream(file),
           progressStream(
             {
               length,
@@ -583,7 +583,7 @@ async function call(args) {
         const response = await hrp(url, {
           ...httpOptions,
           body: input,
-          headers: {
+          headers: length && {
             'content-length': length,
           },
           method: 'POST',
