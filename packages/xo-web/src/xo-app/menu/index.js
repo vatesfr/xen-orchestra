@@ -328,39 +328,6 @@ export default class Menu extends Component {
           },
         ],
       },
-      {
-        to: isAdmin ? 'xoa/update' : 'xoa/notifications',
-        icon: 'menu-xoa',
-        label: 'xoa',
-        extra: [
-          !isAdmin || xoaState === 'upToDate' ? null : <UpdateTag key='update' />,
-          noNotifications ? null : <NotificationTag key='notification' />,
-        ],
-        subMenu: [
-          isAdmin && {
-            to: 'xoa/update',
-            icon: 'menu-update',
-            label: 'updatePage',
-            extra: <UpdateTag />,
-          },
-          isAdmin && {
-            to: 'xoa/licenses',
-            icon: 'menu-license',
-            label: 'licensesPage',
-          },
-          {
-            to: 'xoa/notifications',
-            icon: 'menu-notification',
-            label: 'notificationsPage',
-            extra: <NotificationTag />,
-          },
-          isAdmin && {
-            to: 'xoa/support',
-            icon: 'menu-support',
-            label: 'supportPage',
-          },
-        ],
-      },
       isAdmin && {
         to: '/settings/servers',
         icon: 'menu-settings',
@@ -478,7 +445,6 @@ export default class Menu extends Component {
         label: 'taskMenu',
         pill: nResolvedTasks,
       },
-      isAdmin && { to: '/xosan', icon: 'menu-xosan', label: 'xosan' },
       !noOperatablePools && {
         to: '/import/vm',
         icon: 'menu-new-import',
@@ -560,14 +526,14 @@ export default class Menu extends Component {
           )}
           {(isAdmin || +process.env.XOA_PLAN === 5) && (
             <li className='nav-item xo-menu-item'>
-              <Link className='nav-link' style={{ display: 'flex' }} to='/about'>
+              <Link className='nav-link' style={LINK_STYLE} to='/about'>
                 {+process.env.XOA_PLAN === 5 ? (
                   <span>
                     <span className={classNames(styles.hiddenCollapsed, 'text-warning')}>
-                      <Icon icon='alarm' size='lg' fixedWidth /> {_('noSupport')}
+                      <Icon icon='diagnosis' size='lg' fixedWidth /> Support
                     </span>
                     <span className={classNames(styles.hiddenUncollapsed, 'text-warning')}>
-                      <Icon icon='alarm' size='lg' fixedWidth />
+                      <Icon icon='diagnosis' size='lg' fixedWidth />
                     </span>
                   </span>
                 ) : +process.env.XOA_PLAN === 1 ? (
