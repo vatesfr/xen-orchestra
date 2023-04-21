@@ -458,14 +458,15 @@ async function listCommands(args) {
       str.push(chalk.bold.blue(name))
       forEach(info.params || [], function (info, name) {
         str.push(' ')
-        if (info.optional) {
+        const { optional = Object.hasOwn(info, 'default') } = info
+        if (optional) {
           str.push('[')
         }
 
         const type = info.type
         str.push(name, '=<', type == null ? 'unknown type' : Array.isArray(type) ? type.join('|') : type, '>')
 
-        if (info.optional) {
+        if (optional) {
           str.push(']')
         }
       })
