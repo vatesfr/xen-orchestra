@@ -37,17 +37,21 @@ import PowerStateIcon from "@/components/PowerStateIcon.vue";
 import UiCard from "@/components/ui/UiCard.vue";
 import UiCardTitle from "@/components/ui/UiCardTitle.vue";
 import VmsActionsBar from "@/components/vm/VmsActionsBar.vue";
+import type { XoLiteTitleComposable } from "@/composables/xo-lite-title.composable";
 import { useUiStore } from "@/stores/ui.store";
 import { useVmStore } from "@/stores/vm.store";
 import type { Filters } from "@/types/filter";
 import { faPowerOff } from "@fortawesome/free-solid-svg-icons";
 import { storeToRefs } from "pinia";
+import { inject, watchEffect } from "vue";
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 
 const { allRecords: vms } = storeToRefs(useVmStore());
 const { isMobile, isDesktop } = storeToRefs(useUiStore());
 const { t } = useI18n();
+
+const xoLiteTitle = inject<XoLiteTitleComposable>("xoLiteTitle");
 
 const filters: Filters = {
   name_label: { label: t("name"), type: "string" },
@@ -61,6 +65,10 @@ const filters: Filters = {
 };
 
 const selectedVmsRefs = ref([]);
+
+watchEffect(() => {
+  xoLiteTitle?.setComplementary(selectedVmsRefs.value.length);
+});
 </script>
 
 <style lang="postcss" scoped>

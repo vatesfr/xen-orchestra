@@ -21,15 +21,15 @@ import useCollectionFilter from "@/composables/collection-filter.composable";
 import useCollectionSorter from "@/composables/collection-sorter.composable";
 import useFilteredCollection from "@/composables/filtered-collection.composable";
 import useSortedCollection from "@/composables/sorted-collection.composable";
+import type { XoLiteTitleComposable } from "@/composables/xo-lite-title.composable";
 import type { XenApiTask } from "@/libs/xen-api";
 import { useTaskStore } from "@/stores/task.store";
-import { useTitle } from "@vueuse/core";
 import { storeToRefs } from "pinia";
-import { computed } from "vue";
-import { useI18n } from "vue-i18n";
+import { inject, watchEffect } from "vue";
+
+const xoLiteTitle = inject<XoLiteTitleComposable>("xoLiteTitle");
 
 const { allRecords, isReady } = storeToRefs(useTaskStore());
-const { t } = useI18n();
 
 const { compareFn } = useCollectionSorter<XenApiTask>({
   initialSorts: ["-created"],
@@ -56,9 +56,9 @@ const finishedTasks = useArrayRemovedItemsHistory(
   }
 );
 
-useTitle(
-  computed(() => t("task.page-title", { n: pendingTasks.value.length }))
-);
+watchEffect(() => {
+  xoLiteTitle?.setComplementary(pendingTasks.value.length);
+});
 </script>
 
 <style lang="postcss" scoped>
