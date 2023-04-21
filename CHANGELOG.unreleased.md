@@ -45,6 +45,7 @@
 - @xen-orchestra/backups minor
 - @xen-orchestra/mixins minor
 - vhd-lib minor
+- xen-api minor
 - xo-cli minor
 - xo-server minor
 - xo-server-usage-report patch
