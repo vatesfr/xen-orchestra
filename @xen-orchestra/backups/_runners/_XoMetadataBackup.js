@@ -1,6 +1,7 @@
 'use strict'
 
 const { asyncMap } = require('@xen-orchestra/async-map')
+const { join } = require('@xen-orchestra/fs/path')
 
 const { DIR_XO_CONFIG_BACKUPS } = require('../RemoteAdapter.js')
 const { formatFilenameDate } = require('../_filenameDate.js')
@@ -23,10 +24,11 @@ exports.XoMetadataBackup = class XoMetadataBackup {
     const dir = `${scheduleDir}/${formatFilenameDate(timestamp)}`
 
     const data = job.xoMetadata
-    const fileName = `${dir}/data.json`
+    const dataBaseName = './data.json'
 
     const metadata = JSON.stringify(
       {
+        data: dataBaseName,
         jobId: job.id,
         jobName: job.name,
         scheduleId: schedule.id,
@@ -36,6 +38,8 @@ exports.XoMetadataBackup = class XoMetadataBackup {
       null,
       2
     )
+
+    const dataFileName = join(dir, dataBaseName)
     const metaDataFileName = `${dir}/metadata.json`
 
     await asyncMap(
@@ -52,7 +56,7 @@ exports.XoMetadataBackup = class XoMetadataBackup {
           async () => {
             const handler = adapter.handler
             const dirMode = this._config.dirMode
-            await handler.outputFile(fileName, data, { dirMode })
+            await handler.outputFile(dataFileName, data, { dirMode })
             await handler.outputFile(metaDataFileName, metadata, {
               dirMode,
             })
