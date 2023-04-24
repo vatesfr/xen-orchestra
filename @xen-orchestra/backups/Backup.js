@@ -49,7 +49,7 @@ const DEFAULT_VM_SETTINGS = {
   timeout: 0,
   useNbd: false,
   unconditionalSnapshot: false,
-  validateVhdStreams: true,
+  validateVhdStreams: false,
   vmTimeout: 0,
 }
 
