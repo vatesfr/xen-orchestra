@@ -7,6 +7,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [Kubernetes] Give the possibility to create a high availability cluster (PR [#6794](https://github.com/vatesfr/xen-orchestra/pull/6794))
 - [VM/Advanced] Automatically eject removable medias when converting a VM to a template [#6752](https://github.com/vatesfr/xen-orchestra/issues/6752) (PR [#6769](https://github.com/vatesfr/xen-orchestra/pull/6769))
 - [Dashboard/Health] Add free space column for storage state table (PR [#6778](https://github.com/vatesfr/xen-orchestra/pull/6778))
 - [VM/General] Displays the template name used to create the VM, as well as the email address of the VM creator for admin users (PR [#6771](https://github.com/vatesfr/xen-orchestra/pull/6771))
