@@ -25,7 +25,7 @@ exports.HealthCheckVmBackup = class HealthCheckVmBackup {
 
         // remove vifs
         await Promise.all(restoredVm.$VIFs.map(vif => xapi.callAsync('VIF.destroy', vif.$ref)))
-        const waitForScript = restoredVm.tags.includes('xo:backup:healthcheck:xenstore')
+        const waitForScript = restoredVm.tags.includes('xo-backup-healthcheck-xenstore')
         if (waitForScript) {
           await restoredVm.set_xenstore_data({
             'vm-data/xo-backup-health-check': 'planned',

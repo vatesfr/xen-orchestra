@@ -35,9 +35,14 @@ export default class RestoreBackupsModalBody extends Component {
     return (
       <div>
         {this.props.backupHealthCheck && (
-          <em>
-            <Icon icon='info' /> {_('healthCheckXenstore')}
-          </em>
+          <a
+            className='text-info'
+            rel='noreferrer'
+            href='https://xen-orchestra.com/docs/backup.html#backup-health-check'
+            target='_blank'
+          >
+            <Icon icon='info' />
+          </a>
         )}
         <div className='mb-1'>
           <Select

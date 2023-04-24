@@ -1747,8 +1747,6 @@ const messages = {
   bulkDeleteMetadataBackupsConfirmText:
     'delete {nMetadataBackups} metadata backup{nMetadataBackups, plural, one {} other {s}}',
   healthCheck: 'Health check',
-  healthCheckXenstore:
-    'If the VM has the tag `xo:backup:healthcheck:xenstore`, health check will wait for the value `success` or `failure` in the key `vm-data/xo-backup-health-check` of the xenstore of the restored VM, allowing you to define script that will do additionnal check. If not, it will only wait for the VM to boot and load the guest tools.',
   healthCheckChooseSr: 'Choose SR used for VMs restoration',
   healthCheckTagsInfo: 'If no tags are specified, all VMs in the backup will be tested.',
   healthCheckAvailableEnterpriseUser: 'Only available to enterprise users',

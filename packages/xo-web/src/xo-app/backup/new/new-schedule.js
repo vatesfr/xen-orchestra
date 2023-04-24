@@ -136,7 +136,17 @@ const New = decorate([
         )}
         <FormGroup>
           <label>
-            <strong>{_('healthCheck')}</strong>{' '}
+            <strong>
+              <a
+                className='text-info'
+                rel='noreferrer'
+                href='https://xen-orchestra.com/docs/backup.html#backup-health-check'
+                target='_blank'
+              >
+                <Icon icon='info' />
+              </a>{' '}
+              {_('healthCheck')}
+            </strong>{' '}
             {conditionalTooltip(
               <input
                 checked={schedule.healthCheckVmsWithTags !== undefined}
@@ -146,10 +156,6 @@ const New = decorate([
               />,
               getXoaPlan().value < ENTERPRISE.value ? _('healthCheckAvailableEnterpriseUser') : undefined
             )}
-            <br />
-            <em>
-              <Icon icon='info' /> {_('healthCheckXenstore')}
-            </em>
           </label>
           {schedule.healthCheckVmsWithTags !== undefined && (
             <div className='mb-2'>
