@@ -915,10 +915,6 @@ export default class TabAdvanced extends Component {
             <table className='table table-hover'>
               <tbody>
                 <tr>
-                  <th>{_('originalTemplate')}</th>
-                  <td>{vm.other.base_template_name ? vm.other.base_template_name : _('unknownOriginalTemplate')}</td>
-                </tr>
-                <tr>
                   <th>{_('resourceSet')}</th>
                   <td>
                     <ResourceSet vm={vm} />

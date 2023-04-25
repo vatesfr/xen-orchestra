@@ -25,7 +25,7 @@
     "xo-server-recover-account": "dist/recover-account-cli.mjs"
   },
   "engines": {
-    "node": ">=14.17"
+    "node": ">=14.18"
   },
   "dependencies": {
     "@iarna/toml": "^2.2.1",

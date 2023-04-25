@@ -26,7 +26,7 @@
     "xo-cli": "./index.mjs"
   },
   "engines": {
-    "node": ">=14.13"
+    "node": ">=15.3"
   },
   "dependencies": {
     "chalk": "^5.0.1",

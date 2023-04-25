@@ -1,5 +1,6 @@
 import assert from 'assert'
 import { fromEvent } from 'promise-toolbox'
+import { Task } from '@xen-orchestra/mixins/Tasks.mjs'
 
 export function getPermissionsForUser({ userId }) {
   return this.getPermissionsForUser(userId)
@@ -106,4 +107,40 @@ changeConnectedXapiHostname.params = {
   hostname: { type: 'string' },
   newObject: { type: 'string', description: "new connection's XO object" },
   oldObject: { type: 'string', description: "current connection's XO object" },
+}
+
+// -------------------------------------------------------------------
+
+export async function createTask({ name, objectId, result, duration }) {
+  const task = this.tasks.create({ name, objectId })
+  task
+    .run(async () => {
+      const { abortSignal } = Task
+
+      let i = 0
+      const handle = setInterval(() => {
+        Task.set('i', i++)
+      }, 5e3)
+      try {
+        await new Promise((resolve, reject) => {
+          setTimeout(resolve, duration)
+
+          abortSignal.addEventListener('abort', () => reject(abortSignal.reason))
+        })
+        return result
+      } finally {
+        clearInterval(handle)
+      }
+    })
+    .catch(Function.prototype)
+  return task.id
+}
+
+createTask.permission = 'admin'
+
+createTask.params = {
+  name: { type: 'string', default: 'xo task' },
+  objectId: { type: 'string', optional: true },
+  result: { optional: true },
+  duration: { type: 'number', default: 600e3 },
 }

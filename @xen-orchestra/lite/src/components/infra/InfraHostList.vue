@@ -1,26 +1,24 @@
 <template>
   <ul class="infra-host-list">
-    <li v-if="isLoading">{{ $t("loading-hosts") }}</li>
-    <li v-else-if="hasError" class="text-error">
+    <li v-if="hasError" class="text-error">
       {{ $t("error-no-data") }}
     </li>
+    <li v-else-if="!isReady">{{ $t("loading-hosts") }}</li>
     <template v-else>
       <InfraHostItem
-        v-for="opaqueRef in opaqueRefs"
-        :key="opaqueRef"
-        :host-opaque-ref="opaqueRef"
+        v-for="host in hosts"
+        :key="host.$ref"
+        :host-opaque-ref="host.$ref"
       />
     </template>
   </ul>
 </template>
 
 <script lang="ts" setup>
-import { storeToRefs } from "pinia";
 import InfraHostItem from "@/components/infra/InfraHostItem.vue";
 import { useHostStore } from "@/stores/host.store";
 
-const hostStore = useHostStore();
-const { hasError, isLoading, opaqueRefs } = storeToRefs(hostStore);
+const { records: hosts, isReady, hasError } = useHostStore().subscribe();
 </script>
 
 <style lang="postcss" scoped>

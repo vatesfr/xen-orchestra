@@ -1,38 +1,32 @@
 <template>
   <ul class="infra-vm-list">
-    <template v-if="isLoading">
-      <InfraLoadingItem v-for="i in 3" :icon="faDisplay" :key="i" />
+    <li v-if="hasError" class="text-error">{{ $t("error-no-data") }}</li>
+    <template v-else-if="!isReady">
+      <InfraLoadingItem v-for="i in 3" :key="i" :icon="faDisplay" />
     </template>
-    <p class="text-error" v-else-if="hasError">{{ $t("error-no-data") }}</p>
-    <InfraVmItem
-      v-else
-      v-for="vmOpaqueRef in vmOpaqueRefs"
-      :key="vmOpaqueRef"
-      :vm-opaque-ref="vmOpaqueRef"
-    />
+    <InfraVmItem v-for="vm in vms" :key="vm.$ref" :vm-opaque-ref="vm.$ref" />
   </ul>
 </template>
 
 <script lang="ts" setup>
-import { storeToRefs } from "pinia";
-import { computed } from "vue";
-import { faDisplay } from "@fortawesome/free-solid-svg-icons";
 import InfraLoadingItem from "@/components/infra/InfraLoadingItem.vue";
 import InfraVmItem from "@/components/infra/InfraVmItem.vue";
 import { useVmStore } from "@/stores/vm.store";
+import { faDisplay } from "@fortawesome/free-solid-svg-icons";
+import { computed } from "vue";
 
 const props = defineProps<{
   hostOpaqueRef?: string;
 }>();
 
-const vmStore = useVmStore();
-const { hasError, isLoading, opaqueRefsByHostRef } = storeToRefs(vmStore);
-const vmOpaqueRefs = computed(() =>
-  opaqueRefsByHostRef.value.get(props.hostOpaqueRef ?? "OpaqueRef:NULL")
+const { isReady, recordsByHostRef, hasError } = useVmStore().subscribe();
+
+const vms = computed(() =>
+  recordsByHostRef.value.get(props.hostOpaqueRef ?? "OpaqueRef:NULL")
 );
 </script>
 
-<style scoped lang="postcss">
+<style lang="postcss" scoped>
 .text-error {
   padding-left: 3rem;
   font-weight: 700;

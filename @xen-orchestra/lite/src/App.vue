@@ -45,14 +45,14 @@ import UiButton from "@/components/ui/UiButton.vue";
 import UiModal from "@/components/ui/UiModal.vue";
 import { useChartTheme } from "@/composables/chart-theme.composable";
 import { useHostStore } from "@/stores/host.store";
+import { usePoolStore } from "@/stores/pool.store";
 import { useUiStore } from "@/stores/ui.store";
 import { useXenApiStore } from "@/stores/xen-api.store";
 import { faServer } from "@fortawesome/free-solid-svg-icons";
 import { useActiveElement, useMagicKeys, whenever } from "@vueuse/core";
 import { logicAnd } from "@vueuse/math";
-import { difference } from "lodash";
-import { computed, ref, watch, watchEffect } from "vue";
-import { useRoute } from "vue-router";
+import { difference } from "lodash-es";
+import { computed, ref, watch } from "vue";
 
 const unreachableHostsUrls = ref<URL[]>([]);
 const clearUnreachableHostsUrls = () => (unreachableHostsUrls.value = []);
@@ -70,7 +70,8 @@ link.href = favicon;
 document.title = "XO Lite";
 
 const xenApiStore = useXenApiStore();
-const hostStore = useHostStore();
+const { records: hosts } = useHostStore().subscribe();
+const { pool } = usePoolStore().subscribe();
 useChartTheme();
 const uiStore = useUiStore();
 
@@ -92,29 +93,23 @@ if (import.meta.env.DEV) {
   );
 }
 
-const route = useRoute();
-
-watchEffect(() => {
-  if (route.meta.hasStoryNav) {
-    return;
-  }
-
-  if (xenApiStore.isConnected) {
-    xenApiStore.init();
-  }
+watch(hosts, (hosts, previousHosts) => {
+  difference(hosts, previousHosts).forEach((host) => {
+    const url = new URL("http://localhost");
+    url.protocol = window.location.protocol;
+    url.hostname = host.address;
+    fetch(url, { mode: "no-cors" }).catch(() =>
+      unreachableHostsUrls.value.push(url)
+    );
+  });
 });
 
-watch(
-  () => hostStore.allRecords,
-  (hosts, previousHosts) => {
-    difference(hosts, previousHosts).forEach((host) => {
-      const url = new URL("http://localhost");
-      url.protocol = window.location.protocol;
-      url.hostname = host.address;
-      fetch(url, { mode: "no-cors" }).catch(() =>
-        unreachableHostsUrls.value.push(url)
-      );
-    });
+whenever(
+  () => pool.value?.$ref,
+  async (poolRef) => {
+    const xenApi = xenApiStore.getXapi();
+    await xenApi.injectWatchEvent(poolRef);
+    await xenApi.startWatch();
   }
 );
 
