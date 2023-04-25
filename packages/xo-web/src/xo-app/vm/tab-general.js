@@ -7,7 +7,7 @@ import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import React from 'react'
 import HomeTags from 'home-tags'
-import renderXoItem from 'render-xo-item'
+import renderXoItem, { VmTemplate } from 'render-xo-item'
 import Tooltip from 'tooltip'
 import { addTag, editVm, removeTag, subscribeUsers } from 'xo'
 import { BlockLink } from 'link'
@@ -95,7 +95,7 @@ const GeneralTab = decorate([
     )
 
     return (state, props) => ({
-      isAdmin,
+      isAdmin: isAdmin(state, props),
       lastShutdownTime: createGetVmLastShutdownTime()(state, props),
       // true: useResourceSet to bypass permissions
       resolvedPendingTasks: getResolvedPendingTasks(state, props, true),
@@ -124,6 +124,7 @@ const GeneralTab = decorate([
   }),
   injectState,
   ({
+    isAdmin,
     state: { vmResolvedPendingTasks },
     lastShutdownTime,
     statsOverview,
@@ -196,12 +197,15 @@ const GeneralTab = decorate([
                 })}
               </div>
             )}
-            {vmCreator !== undefined && <p className='mb-0'>{_('createdBy', { user: vmCreator.email })}</p>}
-            {vmTemplate !== undefined && (
-              <p className='mb-0'>
-                {_('originalTemplate')} {vmTemplate.name_label}
-              </p>
-            )}
+            {isAdmin && <p className='mb-0'>{_('createdBy', { user: vmCreator?.email ?? _('unknown') })}</p>}
+            <p className='mb-0'>
+              {_('originalTemplate')}{' '}
+              {vmTemplate !== undefined ? (
+                <VmTemplate id={vmTemplate.id} />
+              ) : (
+                vm.other.base_template_name ?? _('unknown')
+              )}
+            </p>
             {powerState === 'Running' || powerState === 'Paused' ? (
               <div>
                 <p className='text-xs-center'>
