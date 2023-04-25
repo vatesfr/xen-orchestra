@@ -387,7 +387,7 @@ The restored VM is then deleted.
 
 If a VM has the tag **xo-backup-healthcheck-xenstore** during a backup health check, then XO will wait for a script to change the value of the xenstore `vm-data/xo-backup-health-check` key to be either `success` or `failure`.
 
-In case of `failure`it will mark the health check as failed, and will show the (optionnal) message contained in `vm-data/xo-backup-health-check-error`
+In case of `failure`, it will mark the health check as failed, and will show the (optional) message contained in `vm-data/xo-backup-health-check-error`
 
 The script needs to be planned on boot. It can check if the record `vm-data/xo-backup-health-check` of the local xenstore contains `planned`
 to differenciate a normal boot and a boot during health check.
