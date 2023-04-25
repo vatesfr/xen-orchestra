@@ -420,4 +420,4 @@ Then edit the schedule and check the healthcheck box.
 
 You will then need to select the SR used, which must have enough space to restore the VMs. Healthcheck will be done after each VM backup, before starting the next one.
 
-You can filter the VMs list by providing tags, only the VMs with these tags will be checked
+You can filter the VMs list by providing tags, only the VMs with these tags will be checked.
