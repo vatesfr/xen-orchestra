@@ -14,7 +14,7 @@ if [[ $IS_HEALTHCHECK == "planned" ]]; then
   # execute your check here, remember that there is no network on this VM
   sleep 30
 
-  # mandatory to infom XO everything is ok
+  # mandatory to inform XO everything is ok
   xenstore-write vm-data/xo-backup-health-check success
 
 
