@@ -18,17 +18,11 @@ const props = defineProps<{
 
 const tooltipElement = ref<HTMLElement>();
 
-const isDisabled = computed(() => {
-  if (props.options.content === false) {
-    return true;
-  }
-
-  if (isString(props.options.content)) {
-    return props.options.content.trim() === "";
-  }
-
-  return false;
-});
+const isDisabled = computed(() =>
+  isString(props.options.content)
+    ? props.options.content.trim() === ""
+    : props.options.content === false
+);
 
 const placement = computed(() => props.options.placement ?? "top");
 
