@@ -5,8 +5,8 @@
       <UiCounter :value="pendingTasks.length" color="info" />
     </UiTitle>
 
-    <TasksTable :pending-tasks="pendingTasks" :finished-tasks="finishedTasks" />
-    <UiSpinner class="loader" v-if="!isReady" />
+    <TasksTable :finished-tasks="finishedTasks" :pending-tasks="pendingTasks" />
+    <UiSpinner v-if="!isReady" class="loader" />
   </UiCard>
 </template>
 
@@ -24,18 +24,17 @@ import useSortedCollection from "@/composables/sorted-collection.composable";
 import type { XenApiTask } from "@/libs/xen-api";
 import { useTaskStore } from "@/stores/task.store";
 import { useTitle } from "@vueuse/core";
-import { storeToRefs } from "pinia";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
-const { allRecords, isReady } = storeToRefs(useTaskStore());
+const { records, isReady } = useTaskStore().subscribe();
 const { t } = useI18n();
 
 const { compareFn } = useCollectionSorter<XenApiTask>({
   initialSorts: ["-created"],
 });
 
-const allTasks = useSortedCollection(allRecords, compareFn);
+const allTasks = useSortedCollection(records, compareFn);
 
 const { predicate } = useCollectionFilter({
   initialFilters: ["!name_label:|(SR.scan host.call_plugin)", "status:pending"],

@@ -1,18 +1,18 @@
-import { utcParse } from "d3-time-format";
-import humanFormat from "human-format";
-import { castArray, round } from "lodash-es";
-import { find, forEach, isEqual, size, sum } from "lodash-es";
-import { type ComputedGetter, type Ref, computed, ref, watchEffect } from "vue";
-import type { Filter } from "@/types/filter";
-import { faSquareCheck } from "@fortawesome/free-regular-svg-icons";
-import { faFont, faHashtag, faList } from "@fortawesome/free-solid-svg-icons";
 import type {
+  RawObjectType,
   RawXenApiRecord,
   XenApiHost,
+  XenApiHostMetrics,
   XenApiRecord,
   XenApiVm,
 } from "@/libs/xen-api";
-import { useHostMetricsStore } from "@/stores/host-metrics.store";
+import type { CollectionSubscription } from "@/stores/xapi-collection.store";
+import type { Filter } from "@/types/filter";
+import { faSquareCheck } from "@fortawesome/free-regular-svg-icons";
+import { faFont, faHashtag, faList } from "@fortawesome/free-solid-svg-icons";
+import { utcParse } from "d3-time-format";
+import humanFormat from "human-format";
+import { castArray, find, forEach, round, size, sum } from "lodash-es";
 
 export function sortRecordsByNameLabel(
   record1: { name_label: string },
@@ -77,6 +77,7 @@ export const hasEllipsis = (target: Element | undefined | null) =>
 export function percent(currentValue: number, maxValue: number, precision = 2) {
   return round((currentValue / maxValue) * 100, precision);
 }
+
 export function getAvgCpuUsage(cpus?: object | any[], { nSequence = 4 } = {}) {
   const statsLength = getStatsLength(cpus);
   if (statsLength === undefined) {
@@ -101,48 +102,37 @@ export function getStatsLength(stats?: object | any[]) {
   return size(find(stats, (stat) => stat != null));
 }
 
-export function deepComputed<T>(getter: ComputedGetter<T>) {
-  const value = computed(getter);
-  const cache = ref<T>(value.value) as Ref<T>;
-  watchEffect(() => {
-    if (!isEqual(cache.value, value.value)) {
-      cache.value = value.value;
-    }
-  });
-
-  return cache;
+export function isHostRunning(
+  host: XenApiHost,
+  hostMetricsSubscription: CollectionSubscription<XenApiHostMetrics>
+) {
+  return hostMetricsSubscription.getByOpaqueRef(host.metrics)?.live === true;
 }
 
-export function isHostRunning(host: XenApiHost) {
-  const store = useHostMetricsStore();
-  try {
-    return store.getRecord(host.metrics).live;
-  } catch (_) {
-    return undefined;
-  }
-}
+export function getHostMemory(
+  host: XenApiHost,
+  hostMetricsSubscription: CollectionSubscription<XenApiHostMetrics>
+) {
+  const hostMetrics = hostMetricsSubscription.getByOpaqueRef(host.metrics);
 
-export function getHostMemory(host: XenApiHost) {
-  try {
-    const metrics = useHostMetricsStore().getRecord(host.metrics);
-    const total = +metrics.memory_total;
+  if (hostMetrics !== undefined) {
+    const total = +hostMetrics.memory_total;
     return {
-      usage: total - +metrics.memory_free,
+      usage: total - +hostMetrics.memory_free,
       size: total,
     };
-  } catch (error) {
-    console.error("getHostMemory function:", error);
-    return undefined;
   }
 }
 
-export const buildXoObject = (
-  record: RawXenApiRecord<XenApiRecord>,
+export const buildXoObject = <T extends XenApiRecord>(
+  record: RawXenApiRecord<T>,
   params: { opaqueRef: string }
-) => ({
-  ...record,
-  $ref: params.opaqueRef,
-});
+) => {
+  return {
+    ...record,
+    $ref: params.opaqueRef,
+  } as T;
+};
 
 export function parseRamUsage(
   {
@@ -180,6 +170,15 @@ export function parseRamUsage(
 
 export const getFirst = <T>(value: T | T[]): T | undefined =>
   Array.isArray(value) ? value[0] : value;
+
+export function requireSubscription<T>(
+  subscription: T | undefined,
+  type: RawObjectType
+): asserts subscription is T {
+  if (subscription === undefined) {
+    throw new Error(`You need to provide a ${type} subscription`);
+  }
+}
 
 export const isOperationsPending = (
   obj: XenApiVm,

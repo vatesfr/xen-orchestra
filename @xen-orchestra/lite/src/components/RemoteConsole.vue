@@ -22,7 +22,7 @@ const props = defineProps<{
 const vmConsoleContainer = ref<HTMLDivElement>();
 const xenApiStore = useXenApiStore();
 const url = computed(() => {
-  if (xenApiStore.currentSessionId === null) {
+  if (xenApiStore.currentSessionId == null) {
     return;
   }
   const _url = new URL(props.location);

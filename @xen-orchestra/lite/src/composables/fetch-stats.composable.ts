@@ -1,5 +1,3 @@
-import { computed, onUnmounted, ref, type ComputedRef } from "vue";
-import { type Pausable, promiseTimeout, useTimeoutPoll } from "@vueuse/core";
 import {
   type GRANULARITY,
   type HostStats,
@@ -8,20 +6,20 @@ import {
   type XapiStatsResponse,
 } from "@/libs/xapi-stats";
 import type { XenApiHost, XenApiVm } from "@/libs/xen-api";
-import { useHostStore } from "@/stores/host.store";
-import { useVmStore } from "@/stores/vm.store";
-
-const STORES_BY_OBJECT_TYPE = {
-  host: useHostStore,
-  vm: useVmStore,
-};
+import { type Pausable, promiseTimeout, useTimeoutPoll } from "@vueuse/core";
+import { computed, type ComputedRef, onUnmounted, ref } from "vue";
 
 export type Stat<T> = {
   id: string;
   name: string;
-  stats?: T | null;
+  stats: T | undefined;
   pausable: Pausable;
 };
+
+type GetStats<T extends HostStats | VmStats> = (
+  uuid: string,
+  granularity: GRANULARITY
+) => Promise<XapiStatsResponse<T>> | undefined;
 
 export type FetchedStats<
   T extends XenApiHost | XenApiVm,
@@ -29,15 +27,15 @@ export type FetchedStats<
 > = {
   register: (object: T) => void;
   unregister: (object: T) => void;
-  stats?: ComputedRef<Stat<S>[] | null>;
-  timestampStart?: ComputedRef<number>;
-  timestampEnd?: ComputedRef<number>;
+  stats: ComputedRef<Stat<S>[]>;
+  timestampStart: ComputedRef<number>;
+  timestampEnd: ComputedRef<number>;
 };
 
 export default function useFetchStats<
   T extends XenApiHost | XenApiVm,
   S extends HostStats | VmStats
->(type: "host" | "vm", granularity: GRANULARITY) {
+>(getStats: GetStats<S>, granularity: GRANULARITY): FetchedStats<T, S> {
   const stats = ref<Map<string, Stat<S>>>(new Map());
   const timestamp = ref<number[]>([0, 0]);
 
@@ -54,17 +52,11 @@ export default function useFetchStats<
           return;
         }
 
-        const objectStore = STORES_BY_OBJECT_TYPE[type]();
+        const newStats = await getStats(object.uuid, granularity);
 
-        if (objectStore.hasError) {
-          stats.value.get(mapKey)!.stats = null;
+        if (newStats === undefined) {
           return;
         }
-
-        const newStats = (await objectStore.getStats(
-          object.uuid,
-          granularity
-        )) as XapiStatsResponse<S>;
 
         timestamp.value = [
           newStats.endTimestamp -

@@ -1,8 +1,8 @@
 <template>
   <UiCard :color="hasError ? 'error' : undefined">
     <UiCardTitle>{{ $t("status") }}</UiCardTitle>
-    <UiSpinner v-if="isLoading" class="spinner" />
-    <NoDataError v-else-if="hasError" />
+    <NoDataError v-if="hasError" />
+    <UiSpinner v-else-if="!isReady" class="spinner" />
     <template v-else>
       <PoolDashboardStatusItem
         :active="activeHostsCount"
@@ -20,6 +20,7 @@
 </template>
 
 <script lang="ts" setup>
+import NoDataError from "@/components/NoDataError.vue";
 import PoolDashboardStatusItem from "@/components/pool/dashboard/PoolDashboardStatusItem.vue";
 import UiCard from "@/components/ui/UiCard.vue";
 import UiCardTitle from "@/components/ui/UiCardTitle.vue";
@@ -28,30 +29,33 @@ import UiSpinner from "@/components/ui/UiSpinner.vue";
 import { useHostMetricsStore } from "@/stores/host-metrics.store";
 import { useVmStore } from "@/stores/vm.store";
 import { computed } from "vue";
-import NoDataError from "@/components/NoDataError.vue";
 
-const vmStore = useVmStore();
-const hostMetricsStore = useHostMetricsStore();
+const {
+  isReady: isVmReady,
+  records: vms,
+  hasError: hasVmError,
+  runningVms,
+} = useVmStore().subscribe();
 
-const hasError = computed(() => vmStore.hasError || hostMetricsStore.hasError);
+const {
+  isReady: isHostMetricsReady,
+  records: hostMetrics,
+  hasError: hasHostMetricsError,
+} = useHostMetricsStore().subscribe();
 
-const isLoading = computed(
-  () => vmStore.isLoading || hostMetricsStore.isLoading
+const hasError = computed(() => hasVmError.value || hasHostMetricsError.value);
+
+const isReady = computed(() => isVmReady.value && isHostMetricsReady.value);
+
+const totalHostsCount = computed(() => hostMetrics.value.length);
+
+const activeHostsCount = computed(
+  () => hostMetrics.value.filter((hostMetrics) => hostMetrics.live).length
 );
 
-const totalHostsCount = computed(() => hostMetricsStore.opaqueRefs.length);
-const activeHostsCount = computed(() => {
-  return hostMetricsStore.opaqueRefs.filter(
-    (opaqueRef) => hostMetricsStore.getRecord(opaqueRef)?.live
-  ).length;
-});
+const totalVmsCount = computed(() => vms.value.length);
 
-const totalVmsCount = computed(() => vmStore.opaqueRefs.length);
-const activeVmsCount = computed(() => {
-  return vmStore.opaqueRefs.filter(
-    (opaqueRef) => vmStore.getRecord(opaqueRef)?.power_state === "Running"
-  ).length;
-});
+const activeVmsCount = computed(() => runningVms.value.length);
 </script>
 
 <style lang="postcss" scoped>

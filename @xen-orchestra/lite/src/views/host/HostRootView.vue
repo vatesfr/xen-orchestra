@@ -1,23 +1,21 @@
 <template>
-  <ObjectNotFoundWrapper object-type="host">
+  <ObjectNotFoundWrapper :is-ready="isReady" :uuid-checker="hasUuid">
     <RouterView />
   </ObjectNotFoundWrapper>
 </template>
 
 <script lang="ts" setup>
 import ObjectNotFoundWrapper from "@/components/ObjectNotFoundWrapper.vue";
-import { useRoute } from "vue-router";
-import { watchEffect } from "vue";
 import { useHostStore } from "@/stores/host.store";
 import { useUiStore } from "@/stores/ui.store";
+import { watchEffect } from "vue";
+import { useRoute } from "vue-router";
 
+const { hasUuid, isReady, getByUuid } = useHostStore().subscribe();
 const route = useRoute();
-const hostStore = useHostStore();
 const uiStore = useUiStore();
 
 watchEffect(() => {
-  uiStore.currentHostOpaqueRef = hostStore.getRecordByUuid(
-    route.params.uuid as string
-  )?.$ref;
+  uiStore.currentHostOpaqueRef = getByUuid(route.params.uuid as string)?.$ref;
 });
 </script>

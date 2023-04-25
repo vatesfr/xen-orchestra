@@ -1,6 +1,6 @@
 <template>
   <UiCard class="pool-vms-view">
-    <UiCardTitle>
+    <UiCardTitle subtitle>
       VMs
       <template v-if="isMobile" #right>
         <VmsActionsBar :selected-refs="selectedVmsRefs" />
@@ -45,7 +45,7 @@ import { storeToRefs } from "pinia";
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
 
-const { allRecords: vms } = storeToRefs(useVmStore());
+const { records: vms } = useVmStore().subscribe();
 const { isMobile, isDesktop } = storeToRefs(useUiStore());
 const { t } = useI18n();
 

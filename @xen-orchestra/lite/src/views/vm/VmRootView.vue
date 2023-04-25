@@ -1,5 +1,5 @@
 <template>
-  <ObjectNotFoundWrapper object-type="vm">
+  <ObjectNotFoundWrapper :is-ready="isReady" :uuid-checker="hasUuid">
     <VmHeader />
     <RouterView />
   </ObjectNotFoundWrapper>
@@ -8,17 +8,18 @@
 <script lang="ts" setup>
 import ObjectNotFoundWrapper from "@/components/ObjectNotFoundWrapper.vue";
 import VmHeader from "@/components/vm/VmHeader.vue";
-import { watchEffect } from "vue";
-import { useRoute } from "vue-router";
 import { useUiStore } from "@/stores/ui.store";
 import { useVmStore } from "@/stores/vm.store";
+import { watchEffect } from "vue";
+import { useRoute } from "vue-router";
 
 const route = useRoute();
-const vmStore = useVmStore();
+const { getByUuid, hasUuid, isReady } = useVmStore().subscribe();
 const uiStore = useUiStore();
 
 watchEffect(() => {
-  const vm = vmStore.getRecordByUuid(route.params.uuid as string);
-  uiStore.currentHostOpaqueRef = vm?.resident_on;
+  uiStore.currentHostOpaqueRef = getByUuid(
+    route.params.uuid as string
+  )?.resident_on;
 });
 </script>

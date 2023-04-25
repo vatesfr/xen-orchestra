@@ -1,11 +1,11 @@
 <template>
   <li
-    v-if="host"
-    class="infra-host-item"
+    v-if="host !== undefined"
     v-tooltip="{
       content: host.name_label,
       disabled: isTooltipDisabled,
     }"
+    class="infra-host-item"
   >
     <InfraItemLabel
       :active="isCurrentHost"
@@ -15,10 +15,10 @@
       {{ host.name_label || "(Host)" }}
       <template #actions>
         <InfraAction
-          :icon="faStar"
-          class="master-icon"
           v-if="isPoolMaster"
           v-tooltip="'Master'"
+          :icon="faStar"
+          class="master-icon"
         />
         <InfraAction
           :icon="isExpanded ? faAngleDown : faAngleUp"
@@ -32,8 +32,14 @@
 </template>
 
 <script lang="ts" setup>
-import { computed } from "vue";
+import InfraAction from "@/components/infra/InfraAction.vue";
+import InfraItemLabel from "@/components/infra/InfraItemLabel.vue";
+import InfraVmList from "@/components/infra/InfraVmList.vue";
 import { vTooltip } from "@/directives/tooltip.directive";
+import { hasEllipsis } from "@/libs/utils";
+import { useHostStore } from "@/stores/host.store";
+import { usePoolStore } from "@/stores/pool.store";
+import { useUiStore } from "@/stores/ui.store";
 import {
   faAngleDown,
   faAngleUp,
@@ -41,25 +47,18 @@ import {
   faStar,
 } from "@fortawesome/free-solid-svg-icons";
 import { useToggle } from "@vueuse/core";
-import InfraAction from "@/components/infra/InfraAction.vue";
-import InfraItemLabel from "@/components/infra/InfraItemLabel.vue";
-import InfraVmList from "@/components/infra/InfraVmList.vue";
-import { hasEllipsis } from "@/libs/utils";
-import { useHostStore } from "@/stores/host.store";
-import { usePoolStore } from "@/stores/pool.store";
-import { useUiStore } from "@/stores/ui.store";
+import { computed } from "vue";
 
 const props = defineProps<{
   hostOpaqueRef: string;
 }>();
 
-const hostStore = useHostStore();
-const host = computed(() => hostStore.getRecord(props.hostOpaqueRef));
+const { getByOpaqueRef } = useHostStore().subscribe();
+const host = computed(() => getByOpaqueRef(props.hostOpaqueRef));
 
-const poolStore = usePoolStore();
-const isPoolMaster = computed(
-  () => poolStore.pool?.master === props.hostOpaqueRef
-);
+const { pool } = usePoolStore().subscribe();
+
+const isPoolMaster = computed(() => pool.value?.master === props.hostOpaqueRef);
 
 const uiStore = useUiStore();
 
@@ -73,11 +72,13 @@ const isTooltipDisabled = (target: HTMLElement) =>
 </script>
 
 <style lang="postcss" scoped>
-.infra-host-item:deep(.link) {
+.infra-host-item:deep(.link),
+.infra-host-item:deep(.link-placeholder) {
   padding-left: 3rem;
 }
 
-.infra-vm-list:deep(.link) {
+.infra-vm-list:deep(.link),
+.infra-vm-list:deep(.link-placeholder) {
   padding-left: 4.5rem;
 }
 

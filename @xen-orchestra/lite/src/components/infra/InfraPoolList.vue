@@ -1,12 +1,12 @@
 <template>
   <ul class="infra-pool-list">
-    <InfraLoadingItem
-      v-if="isLoading || pool === undefined"
-      :icon="faBuilding"
-    />
-    <li v-else-if="hasError" class="text-error">
+    <li v-if="hasError" class="text-error">
       {{ $t("error-no-data") }}
     </li>
+    <InfraLoadingItem
+      v-else-if="!isReady || pool === undefined"
+      :icon="faBuilding"
+    />
     <li v-else class="infra-pool-item">
       <InfraItemLabel
         :icon="faBuilding"
@@ -24,16 +24,14 @@
 </template>
 
 <script lang="ts" setup>
-import { storeToRefs } from "pinia";
-import { faBuilding } from "@fortawesome/free-regular-svg-icons";
 import InfraHostList from "@/components/infra/InfraHostList.vue";
 import InfraItemLabel from "@/components/infra/InfraItemLabel.vue";
 import InfraLoadingItem from "@/components/infra/InfraLoadingItem.vue";
 import InfraVmList from "@/components/infra/InfraVmList.vue";
 import { usePoolStore } from "@/stores/pool.store";
+import { faBuilding } from "@fortawesome/free-regular-svg-icons";
 
-const poolStore = usePoolStore();
-const { hasError, isLoading, pool } = storeToRefs(poolStore);
+const { isReady, hasError, pool } = usePoolStore().subscribe();
 </script>
 
 <style lang="postcss" scoped>
@@ -42,7 +40,8 @@ const { hasError, isLoading, pool } = storeToRefs(poolStore);
   font-weight: 500;
 }
 
-.infra-vm-list:deep(.link) {
+.infra-vm-list:deep(.link),
+.infra-vm-list:deep(.link-placeholder) {
   padding-left: 3rem;
 }
 
