@@ -147,6 +147,22 @@ const GeneralTab = decorate([
       tags,
       VIFs: vifs,
     } = vm
+
+    const vmCreatedStyles = {
+      whiteSpace: 'pre-line',
+    }
+    const vmCreatedI18nArgs = {
+      user: vmCreator?.email ?? _('unknown'),
+      date:
+        installTime !== null ? (
+          <FormattedDate day='2-digit' month='long' value={installTime * 1000} year='numeric' />
+        ) : (
+          _('unknown')
+        ),
+      template:
+        vmTemplate !== undefined ? <VmTemplate id={vmTemplate.id} /> : vm.other.base_template_name ?? _('unknown'),
+    }
+
     return (
       <Container>
         {/* TODO: use CSS style */}
@@ -190,22 +206,7 @@ const GeneralTab = decorate([
         <br />
         <Row className='text-xs-center'>
           <Col mediumSize={3}>
-            {installTime !== null && (
-              <div className='text-xs-center'>
-                {_('created', {
-                  date: <FormattedDate day='2-digit' month='long' value={installTime * 1000} year='numeric' />,
-                })}
-              </div>
-            )}
-            {isAdmin && <p className='mb-0'>{_('createdBy', { user: vmCreator?.email ?? _('unknown') })}</p>}
-            <p className='mb-0'>
-              {_('originalTemplate')}{' '}
-              {vmTemplate !== undefined ? (
-                <VmTemplate id={vmTemplate.id} />
-              ) : (
-                vm.other.base_template_name ?? _('unknown')
-              )}
-            </p>
+            <p style={vmCreatedStyles}>{_(isAdmin ? 'vmCreatedAdmin' : 'vmCreatedNonAdmin', vmCreatedI18nArgs)}</p>
             {powerState === 'Running' || powerState === 'Paused' ? (
               <div>
                 <p className='text-xs-center'>
