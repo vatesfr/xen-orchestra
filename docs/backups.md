@@ -416,7 +416,7 @@ Go to Backup > overview > edit.
 
 Then edit the schedule and check the healthcheck box.
 
-![](./assets/restorehealthcheck.png)
+![](./assets/scheduled_healthcheck.png)
 
 You will then need to select the SR used, which must have enough space to restore the VMs. Healthcheck will be done after each VM backup, before starting the next one.
 
