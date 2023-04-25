@@ -7,6 +7,7 @@
 
 <script lang="ts" setup>
 import type { TooltipOptions } from "@/stores/tooltip.store";
+import { isString } from "lodash-es";
 import place from "placement.js";
 import { computed, ref, watchEffect } from "vue";
 
@@ -17,9 +18,17 @@ const props = defineProps<{
 
 const tooltipElement = ref<HTMLElement>();
 
-const isDisabled = computed(
-  () => props.options.content === "" || props.options.content === false
-);
+const isDisabled = computed(() => {
+  if (props.options.content === false) {
+    return true;
+  }
+
+  if (isString(props.options.content)) {
+    return props.options.content.trim() === "";
+  }
+
+  return false;
+});
 
 const placement = computed(() => props.options.placement ?? "top");
 
