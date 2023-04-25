@@ -414,7 +414,7 @@ Then, you will select the backup to be checked and a destination SR, which must 
 
 Go to Backup > overview > edit.
 
-Then edit the schedule and check the healtcheck box.
+Then edit the schedule and check the healthcheck box.
 
 ![](./assets/restorehealthcheck.png)
 
