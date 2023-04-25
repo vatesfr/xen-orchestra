@@ -53,6 +53,24 @@ export default decorate([
           workerNodeIpAddresses,
         })
       },
+      onChangeNameserver(__, ev) {
+        const { value } = ev.target
+        const { onChange, value: prevValue } = this.props
+        const nameservers = value.split(',').map(nameserver => nameserver.trim())
+        onChange({
+          ...prevValue,
+          nameservers,
+        })
+      },
+      onChangeSearch(__, ev) {
+        const { value } = ev.target
+        const { onChange, value: prevValue } = this.props
+        const searches = value.split(',').map(search => search.trim())
+        onChange({
+          ...prevValue,
+          searches,
+        })
+      },
       toggleStaticIpAddress(__, ev) {
         const { name } = ev.target
         const { onChange, value: prevValue } = this.props
@@ -146,18 +164,6 @@ export default decorate([
               value={value.masterIpAddress}
             />
           </FormGrid.Row>,
-          <FormGrid.Row key='netmaskRow'>
-            <label>{_('recipeNetworkMask')}</label>
-            <input
-              className='form-control'
-              name='networkMask'
-              onChange={effects.onChangeValue}
-              placeholder={formatMessage(messages.recipeNetworkMask)}
-              required
-              type='text'
-              value={value.networkMask}
-            />
-          </FormGrid.Row>,
           <FormGrid.Row key='gatewayRow'>
             <label>{_('recipeGatewayIpAddress')}</label>
             <input
@@ -168,6 +174,30 @@ export default decorate([
               required
               type='text'
               value={value.gatewayIpAddress}
+            />
+          </FormGrid.Row>,
+          <FormGrid.Row key='nameserverRow'>
+            <label>{_('recipeNameserverAddresses')}</label>
+            <input
+              className='form-control'
+              name='nameservers'
+              onChange={effects.onChangeNameserver}
+              placeholder={formatMessage(messages.recipeNameserverAddressesExample)}
+              required
+              type='text'
+              value={value.nameservers}
+            />
+          </FormGrid.Row>,
+          <FormGrid.Row key='searchRow'>
+            <label>{_('recipeSearches')}</label>
+            <input
+              className='form-control'
+              name='search'
+              onChange={effects.onChangeSearch}
+              placeholder={formatMessage(messages.recipeSearchesExample)}
+              required
+              type='text'
+              value={value.search}
             />
           </FormGrid.Row>,
           [...Array(+value.nbNodes)].map((v, i) => (

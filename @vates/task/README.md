@@ -18,7 +18,12 @@ npm install --save @vates/task
 import { Task } from '@vates/task'
 
 const task = new Task({
-  name: 'my task',
+  // data in this object will be sent along the *start* event
+  //
+  // property names should be chosen as not to clash with properties used by `Task` or `combineEvents`
+  data: {
+    name: 'my task',
+  },
 
   // if defined, a new detached task is created
   //
@@ -41,8 +46,19 @@ const task = new Task({
 // this field is settable once before being observed
 task.id
 
+// contains the current status of the task
+//
+// possible statuses are:
+// - pending
+// - success
+// - failure
+// - aborted
 task.status
-await task.abort()
+
+// Triggers the abort signal associated to the task.
+//
+// This simply requests the task to abort, it will be up to the task to handle or not this signal.
+task.abort(reason)
 
 // if fn rejects, the task will be marked as failed
 const result = await task.runInside(fn)
@@ -50,7 +66,11 @@ const result = await task.runInside(fn)
 // if fn rejects, the task will be marked as failed
 // if fn resolves, the task will be marked as succeeded
 const result = await task.run(fn)
+```
 
+Inside a task:
+
+```js
 // the abort signal of the current task if any, otherwise is `undefined`
 Task.abortSignal
 
@@ -67,6 +87,46 @@ Task.warning(message, data)
 // examples:
 // - progress
 Task.set(property, value)
+```
+
+### `combineEvents`
+
+Create a consolidated log from individual events.
+
+It can be used directly as an `onProgress` callback:
+
+```js
+import { makeOnProgress } from '@vates/task/combineEvents'
+
+const onProgress = makeOnProgress({
+  // This function is called each time a root task starts.
+  //
+  // It will be called for as many times as there are tasks created with this `onProgress` function.
+  onRootTaskStart(taskLog) {
+    // `taskLog` is an object reflecting the state of this task and all its subtasks,
+    // and will be mutated in real-time to reflect the changes of the task.
+  },
+
+  // This function is called each time a root task ends.
+  onRootTaskEnd(taskLog) {},
+
+  // This function is called each time a root task or a subtask is updated.
+  //
+  // `taskLog.$root` can be used to uncondionally access the root task.
+  onTaskUpdate(taskLog) {},
+})
+
+Task.run({ data: { name: 'my task' }, onProgress }, asyncFn)
+```
+
+It can also be fed event logs directly:
+
+```js
+import { makeOnProgress } from '@vates/task/combineEvents'
+
+const onProgress = makeOnProgress({ onRootTaskStart, onRootTaskEnd, onTaskUpdate })
+
+eventLogs.forEach(onProgress)
 ```
 
 ## Contributions

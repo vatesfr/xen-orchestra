@@ -266,12 +266,31 @@ const METRICS_MEAN = {
   iops: value => computeDoubleMean(values(value)),
   load: computeMean,
   net: value => computeDoubleMean(value) / kibPower,
-  ram: stats => computeMean(getMemoryUsedMetric(stats)) / gibPower,
+  ram: value => computeMean(value) / gibPower,
+}
+
+const DAYS_TO_KEEP = {
+  daily: 1,
+  weekly: 7,
+  monthly: 30,
+}
+function getLastDays(data, periodicity) {
+  const daysToKeep = DAYS_TO_KEEP[periodicity]
+  const expectedData = {}
+  for (const [key, value] of Object.entries(data)) {
+    if (Array.isArray(value)) {
+      // slice only applies to array
+      expectedData[key] = value.slice(-daysToKeep)
+    } else {
+      expectedData[key] = value
+    }
+  }
+  return expectedData
 }
 
 // ===================================================================
 
-async function getVmsStats({ runningVms, xo }) {
+async function getVmsStats({ runningVms, periodicity, xo }) {
   return orderBy(
     await Promise.all(
       map(runningVms, async vm => {
@@ -285,21 +304,21 @@ async function getVmsStats({ runningVms, xo }) {
           }
         })
 
-        const iopsRead = METRICS_MEAN.iops(get(stats.iops, 'r'))
-        const iopsWrite = METRICS_MEAN.iops(get(stats.iops, 'w'))
+        const iopsRead = METRICS_MEAN.iops(getLastDays(get(stats.iops, 'r'), periodicity))
+        const iopsWrite = METRICS_MEAN.iops(getLastDays(get(stats.iops, 'w'), periodicity))
         return {
           uuid: vm.uuid,
           name: vm.name_label,
           addresses: Object.values(vm.addresses),
-          cpu: METRICS_MEAN.cpu(stats.cpus),
-          ram: METRICS_MEAN.ram(stats),
-          diskRead: METRICS_MEAN.disk(get(stats.xvds, 'r')),
-          diskWrite: METRICS_MEAN.disk(get(stats.xvds, 'w')),
+          cpu: METRICS_MEAN.cpu(getLastDays(stats.cpus, periodicity)),
+          ram: METRICS_MEAN.ram(getLastDays(getMemoryUsedMetric(stats), periodicity)),
+          diskRead: METRICS_MEAN.disk(getLastDays(get(stats.xvds, 'r'), periodicity)),
+          diskWrite: METRICS_MEAN.disk(getLastDays(get(stats.xvds, 'w'), periodicity)),
           iopsRead,
           iopsWrite,
           iopsTotal: iopsRead + iopsWrite,
-          netReception: METRICS_MEAN.net(get(stats.vifs, 'rx')),
-          netTransmission: METRICS_MEAN.net(get(stats.vifs, 'tx')),
+          netReception: METRICS_MEAN.net(getLastDays(get(stats.vifs, 'rx'), periodicity)),
+          netTransmission: METRICS_MEAN.net(getLastDays(get(stats.vifs, 'tx'), periodicity)),
         }
       })
     ),
@@ -308,7 +327,7 @@ async function getVmsStats({ runningVms, xo }) {
   )
 }
 
-async function getHostsStats({ runningHosts, xo }) {
+async function getHostsStats({ runningHosts, periodicity, xo }) {
   return orderBy(
     await Promise.all(
       map(runningHosts, async host => {
@@ -325,11 +344,11 @@ async function getHostsStats({ runningHosts, xo }) {
         return {
           uuid: host.uuid,
           name: host.name_label,
-          cpu: METRICS_MEAN.cpu(stats.cpus),
-          ram: METRICS_MEAN.ram(stats),
-          load: METRICS_MEAN.load(stats.load),
-          netReception: METRICS_MEAN.net(get(stats.pifs, 'rx')),
-          netTransmission: METRICS_MEAN.net(get(stats.pifs, 'tx')),
+          cpu: METRICS_MEAN.cpu(getLastDays(stats.cpus, periodicity)),
+          ram: METRICS_MEAN.ram(getLastDays(getMemoryUsedMetric(stats), periodicity)),
+          load: METRICS_MEAN.load(getLastDays(stats.load, periodicity)),
+          netReception: METRICS_MEAN.net(getLastDays(get(stats.pifs, 'rx'), periodicity)),
+          netTransmission: METRICS_MEAN.net(getLastDays(get(stats.pifs, 'tx'), periodicity)),
         }
       })
     ),
@@ -338,7 +357,7 @@ async function getHostsStats({ runningHosts, xo }) {
   )
 }
 
-async function getSrsStats({ xo, xoObjects }) {
+async function getSrsStats({ periodicity, xo, xoObjects }) {
   return orderBy(
     await asyncMapSettled(
       filter(xoObjects, obj => obj.type === 'SR' && obj.size > 0 && obj.$PBDs.length > 0),
@@ -362,8 +381,8 @@ async function getSrsStats({ xo, xoObjects }) {
           }
         })
 
-        const iopsRead = computeMean(get(stats.iops, 'r'))
-        const iopsWrite = computeMean(get(stats.iops, 'w'))
+        const iopsRead = computeMean(getLastDays(get(stats.iops, 'r'), periodicity))
+        const iopsWrite = computeMean(getLastDays(get(stats.iops, 'w'), periodicity))
 
         return {
           uuid: sr.uuid,
@@ -562,7 +581,7 @@ async function computeEvolution({ storedStatsPath, ...newStats }) {
   }
 }
 
-async function dataBuilder({ currDate, xo, storedStatsPath, all }) {
+async function dataBuilder({ currDate, periodicity, xo, storedStatsPath, all }) {
   const xoObjects = values(xo.getObjects())
   const runningVms = filter(xoObjects, { type: 'VM', power_state: 'Running' })
   const haltedVms = filter(xoObjects, { type: 'VM', power_state: 'Halted' })
@@ -573,9 +592,9 @@ async function dataBuilder({ currDate, xo, storedStatsPath, all }) {
   const haltedHosts = filter(xoObjects, { type: 'host', power_state: 'Halted' })
   const [users, vmsStats, hostsStats, srsStats, hostsMissingPatches] = await Promise.all([
     xo.getAllUsers(),
-    getVmsStats({ xo, runningVms }),
-    getHostsStats({ xo, runningHosts }),
-    getSrsStats({ xo, xoObjects }),
+    getVmsStats({ xo, runningVms, periodicity }),
+    getHostsStats({ xo, runningHosts, periodicity }),
+    getSrsStats({ xo, xoObjects, periodicity }),
     getHostsMissingPatches({ xo, runningHosts }),
   ])
 
@@ -756,6 +775,7 @@ class UsageReportPlugin {
     const currDate = new Date().toISOString().slice(0, 10)
     const data = await dataBuilder({
       currDate,
+      periodicity: this._conf.periodicity,
       xo,
       storedStatsPath: this._storedStatsPath,
       all: this._conf.all,

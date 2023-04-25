@@ -25,7 +25,7 @@
     "xo-server-recover-account": "dist/recover-account-cli.mjs"
   },
   "engines": {
-    "node": ">=14.17"
+    "node": ">=14.18"
   },
   "dependencies": {
     "@iarna/toml": "^2.2.1",
@@ -123,7 +123,7 @@
     "stoppable": "^1.0.5",
     "subleveldown": "^6.0.1",
     "syslog-client": "^1.1.1",
-    "tar-stream": "^3.0.0",
+    "tar-stream": "^2.0.1",
     "tmp": "^0.2.1",
     "unzipper": "^0.10.5",
     "uuid": "^9.0.0",

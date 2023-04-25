@@ -187,11 +187,11 @@ exports.importDeltaVm = defer(async function importDeltaVm(
 
   // 0. Create suspend_VDI
   let suspendVdi
-  if (vmRecord.power_state === 'Suspended') {
+  if (vmRecord.suspend_VDI !== undefined && vmRecord.suspend_VDI !== 'OpaqueRef:NULL') {
     const vdi = vdiRecords[vmRecord.suspend_VDI]
     if (vdi === undefined) {
       Task.warning('Suspend VDI not available for this suspended VM', {
-        vm: pick(vmRecord, 'uuid', 'name_label'),
+        vm: pick(vmRecord, 'uuid', 'name_label', 'suspend_VDI'),
       })
     } else {
       suspendVdi = await xapi.getRecord(
