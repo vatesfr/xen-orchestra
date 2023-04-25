@@ -1120,11 +1120,12 @@ const messages = {
   noIpv4Record: 'No IPv4 record',
   noIpRecord: 'No IP record',
   started: 'Started {ago}',
-  created: 'Created on {date}',
   paraVirtualizedMode: 'Paravirtualization (PV)',
   hardwareVirtualizedMode: 'Hardware virtualization (HVM)',
   hvmModeWithPvDriversEnabled: 'Hardware virtualization with paravirtualization drivers enabled (PVHVM)',
   pvInPvhMode: 'PV inside a PVH container (PV in PVH)',
+  vmCreatedAdmin: 'Created by {user}\non {date}\nwith template {template}',
+  vmCreatedNonAdmin: 'Created on {date}\nwith template {template}',
   windowsUpdateTools: 'Manage Citrix PV drivers via Windows Update',
   windowsToolsModalTitle: 'Windows Update Tools',
   windowsToolsModalMessage:
