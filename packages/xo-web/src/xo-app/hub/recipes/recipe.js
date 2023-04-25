@@ -21,8 +21,7 @@ import RecipeForm from './recipe-form'
 const RECIPE_INFO = {
   id: '05abc8a8-ebf4-41a6-b1ed-efcb2dbf893d',
   name: 'Kubernetes cluster',
-  description:
-    'Creates a Kubernetes cluster composed of 1 master and a configurable number of nodes working for the master.',
+  description: 'Creates a Kubernetes cluster composed of 1 control plane and a configurable number of worker nodes.',
 }
 
 export default decorate([
@@ -52,9 +51,9 @@ export default decorate([
         })
 
         const {
+          clusterName,
+          controlPlaneIpAddress,
           gatewayIpAddress,
-          masterIpAddress,
-          masterName,
           nameservers,
           nbNodes,
           network,
@@ -66,9 +65,9 @@ export default decorate([
 
         markRecipeAsCreating(RECIPE_INFO.id)
         const tag = await createKubernetesCluster({
+          clusterName,
+          controlPlaneIpAddress,
           gatewayIpAddress,
-          masterIpAddress,
-          masterName,
           nameservers,
           nbNodes: +nbNodes,
           network: network.id,

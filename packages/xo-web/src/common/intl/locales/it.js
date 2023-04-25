@@ -5662,8 +5662,8 @@ export default {
   // Original text: 'Network'
   network: 'Rete',
 
-  // Original text: 'Master name'
-  recipeMasterNameLabel: 'Nome Master',
+  // Original text: 'Cluster name'
+  recipeClusterNameLabel: 'Nome cluster',
 
   // Original text: 'Number of nodes'
   recipeNumberOfNodesLabel: 'Numero di nodi',
