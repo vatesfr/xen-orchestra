@@ -27,6 +27,10 @@ import { CpuSparkLines, MemorySparkLines, NetworkSparkLines, XvdSparkLines } fro
 import { injectState, provideState } from 'reaclette'
 import { find } from 'lodash'
 
+const CREATED_VM_STYLES = {
+  whiteSpace: 'pre-line',
+}
+
 const GuestToolsDetection = ({ vm }) => {
   if (vm.power_state !== 'Running' || vm.pvDriversDetected === undefined) {
     return null
@@ -148,21 +152,6 @@ const GeneralTab = decorate([
       VIFs: vifs,
     } = vm
 
-    const vmCreatedStyles = {
-      whiteSpace: 'pre-line',
-    }
-    const vmCreatedI18nArgs = {
-      user: vmCreator?.email ?? _('unknown'),
-      date:
-        installTime !== null ? (
-          <FormattedDate day='2-digit' month='long' value={installTime * 1000} year='numeric' />
-        ) : (
-          _('unknown')
-        ),
-      template:
-        vmTemplate !== undefined ? <VmTemplate id={vmTemplate.id} /> : vm.other.base_template_name ?? _('unknown'),
-    }
-
     return (
       <Container>
         {/* TODO: use CSS style */}
@@ -206,7 +195,23 @@ const GeneralTab = decorate([
         <br />
         <Row className='text-xs-center'>
           <Col mediumSize={3}>
-            <p style={vmCreatedStyles}>{_(isAdmin ? 'vmCreatedAdmin' : 'vmCreatedNonAdmin', vmCreatedI18nArgs)}</p>
+            <p style={CREATED_VM_STYLES}>
+              {_(isAdmin ? 'vmCreatedAdmin' : 'vmCreatedNonAdmin', {
+                user: vmCreator?.email ?? _('unknown'),
+                date:
+                  installTime !== null ? (
+                    <FormattedDate day='2-digit' month='long' value={installTime * 1000} year='numeric' />
+                  ) : (
+                    _('unknown')
+                  ),
+                template:
+                  vmTemplate !== undefined ? (
+                    <VmTemplate id={vmTemplate.id} />
+                  ) : (
+                    vm.other.base_template_name ?? _('unknown')
+                  ),
+              })}
+            </p>
             {powerState === 'Running' || powerState === 'Paused' ? (
               <div>
                 <p className='text-xs-center'>
