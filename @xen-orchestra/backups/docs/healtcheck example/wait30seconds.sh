@@ -20,7 +20,7 @@ if [[ $IS_HEALTHCHECK == "planned" ]]; then
 
 else
   # in case of error , you can write a message to `vm-data/health-check-error`
-  # that will show in the health check log on XO
+  # that will show in the health check log in XO
   xenstore-write vm-data/xo-backup-health-check failure
   xenstore-write vm-data/xo-backup-health-check-error "$IS_HEALTHCHECK"
 fi
