@@ -2433,7 +2433,6 @@ const messages = {
   recipeStaticIpAddresses: 'Static IP addresses',
   recipeHighAvailability: 'High Availability Cluster',
   recipeHaControPlaneIpAddress: 'Control plane { i, number } node IP address/subnet mask',
-  recipeLoadBalancerIpAddress: 'Load balancer { i, number } IP address/subnet mask',
   recipeVip: 'VIP address',
   recipeControlPlaneIpAddress: 'Control plane node IP address/subnet mask',
   recipeWorkerIpAddress: 'Worker node { i, number } IP address/subnet mask',
