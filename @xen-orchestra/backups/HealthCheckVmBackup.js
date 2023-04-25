@@ -102,7 +102,7 @@ exports.HealthCheckVmBackup = class HealthCheckVmBackup {
                 `Backup health check script failed with message ${startedRestoredVm.xenstore_data['vm-data/xo-backup-health-check-error']} for VM ${restoredId} `
               )
             } else {
-              throw new Error(`Backup health check script failed with for VM ${restoredId} `)
+              throw new Error(`Backup health check script failed for VM ${restoredId} `)
             }
           }
           Task.info('Backup health check script successfully executed')
