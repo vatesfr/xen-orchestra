@@ -140,7 +140,7 @@ const New = decorate([
               <a
                 className='text-info'
                 rel='noreferrer'
-                href='https://xen-orchestra.com/docs/backup.html#backup-health-check'
+                href='https://xen-orchestra.com/docs/backups.html#backup-health-check'
                 target='_blank'
               >
                 <Icon icon='info' />
