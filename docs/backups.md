@@ -394,7 +394,7 @@ to differenciate a normal boot and a boot during health check.
 On success it must write `success`in `vm-data/xo-backup-health-check`.
 On failure it must write `failure` in `vm-data/xo-backup-health-check`, and may optionally add details in `vm-data/xo-backup-health-check-error` .
 
-The total timeout of a backup health check ( boot + guest tools + scripts ) is 10mn
+The total timeout of a backup health check (boot + guest tools + scripts) is 10min.
 
 The restored VM is then deleted.
 
