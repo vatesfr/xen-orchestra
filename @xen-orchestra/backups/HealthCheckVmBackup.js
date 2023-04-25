@@ -99,7 +99,7 @@ exports.HealthCheckVmBackup = class HealthCheckVmBackup {
             const message = startedRestoredVm.xenstore_data['vm-data/xo-backup-health-check-error']
             if (message) {
               throw new Error(
-                `Backup health check script failed with message ${startedRestoredVm.xenstore_data['vm-data/xo-backup-health-check-error']} for VM ${restoredId} `
+                `Backup health check script failed with message ${message} for VM ${restoredId} `
               )
             } else {
               throw new Error(`Backup health check script failed for VM ${restoredId} `)
