@@ -51,8 +51,8 @@ export default decorate([
         })
 
         const {
+          clusterName,
           controlPlaneIpAddress,
-          controlPlaneName,
           gatewayIpAddress,
           nameservers,
           nbNodes,
@@ -65,8 +65,8 @@ export default decorate([
 
         markRecipeAsCreating(RECIPE_INFO.id)
         const tag = await createKubernetesCluster({
+          clusterName,
           controlPlaneIpAddress,
-          controlPlaneName,
           gatewayIpAddress,
           nameservers,
           nbNodes: +nbNodes,

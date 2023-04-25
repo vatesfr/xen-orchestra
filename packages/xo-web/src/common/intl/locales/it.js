@@ -5662,8 +5662,8 @@ export default {
   // Original text: 'Network'
   network: 'Rete',
 
-  // Original text: 'Control plane name'
-  recipeControlPlaneNameLabel: 'Nome control plane',
+  // Original text: 'Cluster name'
+  recipeClusterNameLabel: 'Nome cluster',
 
   // Original text: 'Number of nodes'
   recipeNumberOfNodesLabel: 'Numero di nodi',

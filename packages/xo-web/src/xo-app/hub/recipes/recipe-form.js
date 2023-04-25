@@ -113,15 +113,15 @@ export default decorate([
         />
       </FormGrid.Row>
       <FormGrid.Row>
-        <label>{_('recipeControlPlaneNameLabel')}</label>
+        <label>{_('recipeClusterNameLabel')}</label>
         <input
           className='form-control'
-          name='controlPlaneName'
+          name='clusterName'
           onChange={effects.onChangeValue}
-          placeholder={formatMessage(messages.recipeControlPlaneNameLabel)}
+          placeholder={formatMessage(messages.recipeClusterNameLabel)}
           required
           type='text'
-          value={value.controlPlaneName}
+          value={value.clusterName}
         />
       </FormGrid.Row>
       <FormGrid.Row>
