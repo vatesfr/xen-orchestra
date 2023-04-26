@@ -18,9 +18,8 @@ import type { HostStats } from "@/libs/xapi-stats";
 import { N_ITEMS } from "@/views/pool/PoolDashboardView.vue";
 import NoDataError from "@/components/NoDataError.vue";
 import { useHostStore } from "@/stores/host.store";
-import { storeToRefs } from "pinia";
 
-const { hasError } = storeToRefs(useHostStore());
+const { hasError } = useHostStore().subscribe();
 
 const stats = inject<ComputedRef<Stat<HostStats>[]>>(
   "hostStats",

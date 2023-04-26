@@ -18,18 +18,16 @@
 </template>
 
 <script lang="ts" setup>
-import { storeToRefs } from "pinia";
-import UiCardTitle from "@/components/ui/UiCardTitle.vue";
-import { computed } from "vue";
+import NoDataError from "@/components/NoDataError.vue";
 import SizeStatsSummary from "@/components/ui/SizeStatsSummary.vue";
-import UsageBar from "@/components/UsageBar.vue";
 import UiCard from "@/components/ui/UiCard.vue";
+import UiCardTitle from "@/components/ui/UiCardTitle.vue";
+import UsageBar from "@/components/UsageBar.vue";
 import { useSrStore } from "@/stores/storage.store";
 import { N_ITEMS } from "@/views/pool/PoolDashboardView.vue";
-import NoDataError from "@/components/NoDataError.vue";
+import { computed } from "vue";
 
-const srStore = useSrStore();
-const { hasError, isReady } = storeToRefs(srStore);
+const { records: srs, isReady, hasError } = useSrStore().subscribe();
 
 const data = computed<{
   result: { id: string; label: string; value: number }[];
@@ -40,7 +38,7 @@ const data = computed<{
   let maxSize = 0;
   let usedSize = 0;
 
-  srStore.allRecords.forEach(
+  srs.value.forEach(
     ({ name_label, physical_size, physical_utilisation, uuid }) => {
       if (physical_size < 0 || physical_utilisation < 0) {
         return;

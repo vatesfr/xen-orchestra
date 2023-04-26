@@ -1,60 +1,86 @@
-import { sortRecordsByNameLabel } from "@/libs/utils";
+import { requireSubscription, sortRecordsByNameLabel } from "@/libs/utils";
 import type { GRANULARITY } from "@/libs/xapi-stats";
-import type { XenApiVm } from "@/libs/xen-api";
-import { useHostStore } from "@/stores/host.store";
-import { createRecordContext } from "@/stores/index";
+import type { XenApiHost, XenApiVm } from "@/libs/xen-api";
+import {
+  type CollectionSubscription,
+  useXapiCollectionStore,
+} from "@/stores/xapi-collection.store";
 import { useXenApiStore } from "@/stores/xen-api.store";
 import { defineStore } from "pinia";
 import { computed } from "vue";
 
+type SubscribeOptions = {
+  hostSubscription?: CollectionSubscription<XenApiHost>;
+};
+
 export const useVmStore = defineStore("vm", () => {
-  const xenApiStore = useXenApiStore();
-  const hostStore = useHostStore();
-  const xapiStats = computed(() =>
-    xenApiStore.isConnected ? xenApiStore.getXapiStats() : undefined
+  const vmCollection = useXapiCollectionStore().get("VM");
+
+  vmCollection.setFilter(
+    (vm) => !vm.is_a_snapshot && !vm.is_a_template && !vm.is_control_domain
   );
-  const baseVmContext = createRecordContext<XenApiVm>("VM", {
-    filter: (vm) =>
-      !vm.is_a_snapshot && !vm.is_a_template && !vm.is_control_domain,
-    sort: sortRecordsByNameLabel,
-  });
 
-  const opaqueRefsByHostRef = computed(() => {
-    const vmsOpaqueRefsByHostOpaqueRef = new Map<string, string[]>();
+  vmCollection.setSort(sortRecordsByNameLabel);
 
-    baseVmContext.opaqueRefs.value.forEach((opaqueRef) => {
-      const vm = baseVmContext.getRecord(opaqueRef);
+  const subscribe = ({ hostSubscription }: SubscribeOptions = {}) => {
+    const vmSubscription = vmCollection.subscribe();
 
-      if (!vmsOpaqueRefsByHostOpaqueRef.has(vm.resident_on)) {
-        vmsOpaqueRefsByHostOpaqueRef.set(vm.resident_on, []);
+    const recordsByHostRef = computed(() => {
+      const vmsByHostOpaqueRef = new Map<string, XenApiVm[]>();
+
+      vmSubscription.records.value.forEach((vm) => {
+        if (!vmsByHostOpaqueRef.has(vm.resident_on)) {
+          vmsByHostOpaqueRef.set(vm.resident_on, []);
+        }
+
+        vmsByHostOpaqueRef.get(vm.resident_on)?.push(vm);
+      });
+
+      return vmsByHostOpaqueRef;
+    });
+
+    const runningVms = computed(() =>
+      vmSubscription.records.value.filter((vm) => vm.power_state === "Running")
+    );
+
+    const getStats = (id: string, granularity: GRANULARITY) => {
+      requireSubscription(hostSubscription, "host");
+
+      const xenApiStore = useXenApiStore();
+
+      if (!xenApiStore.isConnected) {
+        return undefined;
       }
 
-      vmsOpaqueRefsByHostOpaqueRef.get(vm.resident_on)?.push(opaqueRef);
-    });
+      const vm = vmSubscription.getByUuid(id);
 
-    return vmsOpaqueRefsByHostOpaqueRef;
-  });
+      if (vm === undefined) {
+        throw new Error(`VM ${id} could not be found.`);
+      }
 
-  async function getStats(id: string, granularity: GRANULARITY) {
-    const vm = baseVmContext.getRecordByUuid(id);
-    if (vm === undefined) {
-      throw new Error(`VM ${id} could not be found.`);
-    }
-    const host = hostStore.getRecord(vm.resident_on);
-    if (host === undefined) {
-      throw new Error(`VM ${id} is halted or host could not be found.`);
-    }
+      const host = hostSubscription.getByOpaqueRef(vm.resident_on);
 
-    return xapiStats.value?._getAndUpdateStats({
-      host,
-      uuid: vm.uuid,
-      granularity,
-    });
-  }
+      if (host === undefined) {
+        throw new Error(`VM ${id} is halted or host could not be found.`);
+      }
+
+      return xenApiStore.getXapiStats()._getAndUpdateStats({
+        host,
+        uuid: vm.uuid,
+        granularity,
+      });
+    };
+
+    return {
+      ...vmSubscription,
+      recordsByHostRef,
+      getStats,
+      runningVms,
+    };
+  };
 
   return {
-    ...baseVmContext,
-    getStats,
-    opaqueRefsByHostRef,
+    ...vmCollection,
+    subscribe,
   };
 });

@@ -1,8 +1,9 @@
 <template>
-  <tr class="finished-task-row" :class="{ finished: !isPending }">
+  <tr :class="{ finished: !isPending }" class="finished-task-row">
     <td>{{ task.name_label }}</td>
     <td>
       <RouterLink
+        v-if="host !== undefined"
         :to="{
           name: 'host.dashboard',
           params: { uuid: host.uuid },
@@ -43,7 +44,7 @@ const props = defineProps<{
   task: XenApiTask;
 }>();
 
-const { getRecord: getHost } = useHostStore();
+const { getByOpaqueRef: getHost } = useHostStore().subscribe();
 
 const createdAt = computed(() => parseDateTime(props.task.created));
 

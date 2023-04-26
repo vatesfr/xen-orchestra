@@ -18,9 +18,8 @@ import type { VmStats } from "@/libs/xapi-stats";
 import { N_ITEMS } from "@/views/pool/PoolDashboardView.vue";
 import NoDataError from "@/components/NoDataError.vue";
 import { useVmStore } from "@/stores/vm.store";
-import { storeToRefs } from "pinia";
 
-const { hasError } = storeToRefs(useVmStore());
+const { hasError } = useVmStore().subscribe();
 
 const stats = inject<ComputedRef<Stat<VmStats>[]>>(
   "vmStats",

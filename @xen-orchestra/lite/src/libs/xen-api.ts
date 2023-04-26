@@ -1,66 +1,71 @@
-import { JSONRPCClient } from "json-rpc-2.0";
 import { buildXoObject, parseDateTime } from "@/libs/utils";
-import { useVmStore } from "@/stores/vm.store";
+import { JSONRPCClient } from "json-rpc-2.0";
+import { castArray } from "lodash-es";
 
-export type RawObjectType =
-  | "Bond"
-  | "Certificate"
-  | "Cluster"
-  | "Cluster_host"
-  | "DR_task"
-  | "Feature"
-  | "GPU_group"
-  | "PBD"
-  | "PCI"
-  | "PGPU"
-  | "PIF"
-  | "PIF_metrics"
-  | "PUSB"
-  | "PVS_cache_storage"
-  | "PVS_proxy"
-  | "PVS_server"
-  | "PVS_site"
-  | "SDN_controller"
-  | "SM"
-  | "SR"
-  | "USB_group"
-  | "VBD"
-  | "VBD_metrics"
-  | "VDI"
-  | "VGPU"
-  | "VGPU_type"
-  | "VIF"
-  | "VIF_metrics"
-  | "VLAN"
-  | "VM"
-  | "VMPP"
-  | "VMSS"
-  | "VM_appliance"
-  | "VM_guest_metrics"
-  | "VM_metrics"
-  | "VUSB"
-  | "blob"
-  | "console"
-  | "crashdump"
-  | "host"
-  | "host_cpu"
-  | "host_crashdump"
-  | "host_metrics"
-  | "host_patch"
-  | "network"
-  | "network_sriov"
-  | "pool"
-  | "pool_patch"
-  | "pool_update"
-  | "role"
-  | "secret"
-  | "subject"
-  | "task"
-  | "tunnel";
+const OBJECT_TYPES = {
+  bond: "Bond",
+  certificate: "Certificate",
+  cluster: "Cluster",
+  cluster_host: "Cluster_host",
+  dr_task: "DR_task",
+  feature: "Feature",
+  gpu_group: "GPU_group",
+  pbd: "PBD",
+  pci: "PCI",
+  pgpu: "PGPU",
+  pif: "PIF",
+  pif_metrics: "PIF_metrics",
+  pusb: "PUSB",
+  pvs_cache_storage: "PVS_cache_storage",
+  pvs_proxy: "PVS_proxy",
+  pvs_server: "PVS_server",
+  pvs_site: "PVS_site",
+  sdn_controller: "SDN_controller",
+  sm: "SM",
+  sr: "SR",
+  usb_group: "USB_group",
+  vbd: "VBD",
+  vbd_metrics: "VBD_metrics",
+  vdi: "VDI",
+  vgpu: "VGPU",
+  vgpu_type: "VGPU_type",
+  vif: "VIF",
+  vif_metrics: "VIF_metrics",
+  vlan: "VLAN",
+  vm: "VM",
+  vmpp: "VMPP",
+  vmss: "VMSS",
+  vm_guest_metrics: "VM_guest_metrics",
+  vm_metrics: "VM_metrics",
+  vusb: "VUSB",
+  blob: "blob",
+  console: "console",
+  crashdump: "crashdump",
+  host: "host",
+  host_cpu: "host_cpu",
+  host_crashdump: "host_crashdump",
+  host_metrics: "host_metrics",
+  host_patch: "host_patch",
+  network: "network",
+  network_sriov: "network_sriov",
+  pool: "pool",
+  pool_patch: "pool_patch",
+  pool_update: "pool_update",
+  role: "role",
+  secret: "secret",
+  subject: "subject",
+  task: "task",
+  tunnel: "tunnel",
+} as const;
+
+export type ObjectType = keyof typeof OBJECT_TYPES;
+export type RawObjectType = (typeof OBJECT_TYPES)[ObjectType];
+
+export const getRawObjectType = (type: ObjectType): RawObjectType => {
+  return OBJECT_TYPES[type];
+};
 
 export type PowerState = "Running" | "Paused" | "Halted" | "Suspended";
-
-export type ObjectType = Lowercase<RawObjectType>;
 
 export interface XenApiRecord {
   $ref: string;
@@ -138,7 +143,7 @@ type WatchCallbackResult = {
   class: ObjectType;
   operation: "add" | "mod" | "del";
   ref: string;
-  snapshot: object;
+  snapshot: RawXenApiRecord<XenApiRecord>;
 };
 
 type WatchCallback = (results: WatchCallbackResult[]) => void;
@@ -200,8 +205,8 @@ export default class XenApi {
     }
   }
 
-  disconnect() {
-    this.#call("session.logout", [this.#sessionId]);
+  async disconnect() {
+    await this.#call("session.logout", [this.#sessionId]);
     this.stopWatch();
     this.#sessionId = undefined;
   }
@@ -248,20 +253,15 @@ export default class XenApi {
     return fetch(url);
   }
 
-  async loadRecords<T extends XenApiRecord>(
-    type: RawObjectType
-  ): Promise<Map<string, T>> {
+  async loadRecords<T extends XenApiRecord>(type: RawObjectType): Promise<T[]> {
     const result = await this.#call<{ [key: string]: RawXenApiRecord<T> }>(
       `${type}.get_all_records`,
       [this.sessionId]
     );
 
-    const entries = Object.entries(result).map<[string, T]>(([key, entry]) => [
-      key,
-      buildXoObject(entry, { opaqueRef: key }) as T,
-    ]);
-
-    return new Map(entries);
+    return Object.entries(result).map(([opaqueRef, record]) =>
+      buildXoObject(record, { opaqueRef })
+    );
   }
 
   async #watch() {
@@ -287,7 +287,7 @@ export default class XenApi {
 
   startWatch() {
     this.#watching = true;
-    this.#watch();
+    return this.#watch();
   }
 
   stopWatch() {
@@ -308,77 +308,57 @@ export default class XenApi {
   }
 
   get vm() {
-    type VmsRef =
-      | {
-          vmRef: XenApiVm["$ref"];
-          vmsRef?: undefined;
-        }
-      | {
-          vmRef?: undefined;
-          vmsRef: XenApiVm["$ref"][];
-        };
+    type VmRefs = XenApiVm["$ref"] | XenApiVm["$ref"][];
+    type VmRefsWithPowerState = Record<
+      XenApiVm["$ref"],
+      XenApiVm["power_state"]
+    >;
 
     return {
-      start: ({ vmRef, vmsRef }: VmsRef) => {
-        const _vmsRef = vmsRef ?? [vmRef];
-        return Promise.all(
-          _vmsRef.map((vmRef) => this._call("VM.start", [vmRef, false, false]))
-        );
-      },
-      startOn: ({ vmRef, vmsRef, hostRef }: VmsRef & { hostRef: string }) => {
-        const _vmsRef = vmsRef ?? [vmRef];
-        return Promise.all(
-          _vmsRef.map((vmRef) =>
+      start: (vmRefs: VmRefs) =>
+        Promise.all(
+          castArray(vmRefs).map((vmRef) =>
+            this._call("VM.start", [vmRef, false, false])
+          )
+        ),
+      startOn: (vmRefs: VmRefs, hostRef: XenApiHost["$ref"]) =>
+        Promise.all(
+          castArray(vmRefs).map((vmRef) =>
             this._call("VM.start_on", [vmRef, hostRef, false, false])
           )
+        ),
+      pause: (vmRefs: VmRefs) =>
+        Promise.all(
+          castArray(vmRefs).map((vmRef) => this._call("VM.pause", [vmRef]))
+        ),
+      suspend: (vmRefs: VmRefs) => {
+        return Promise.all(
+          castArray(vmRefs).map((vmRef) => this._call("VM.suspend", [vmRef]))
         );
       },
-      pause: ({ vmRef, vmsRef }: VmsRef) => {
-        const _vmsRef = vmsRef ?? [vmRef];
+      resume: (vmRefsWithPowerState: VmRefsWithPowerState) => {
+        const vmRefs = Object.keys(vmRefsWithPowerState);
+
         return Promise.all(
-          _vmsRef.map((vmRef) => this._call("VM.pause", [vmRef]))
-        );
-      },
-      suspend: ({ vmRef, vmsRef }: VmsRef) => {
-        const _vmsRef = vmsRef ?? [vmRef];
-        return Promise.all(
-          _vmsRef.map((vmRef) => this._call("VM.suspend", [vmRef]))
-        );
-      },
-      resume: ({ vmRef, vmsRef }: VmsRef) => {
-        const _vmsRef = vmsRef ?? [vmRef];
-        const vmStore = useVmStore();
-        return Promise.all(
-          _vmsRef.map((ref) => {
-            const isSuspended =
-              vmStore.getRecord(ref).power_state === "Suspended";
-            return this._call(
-              `VM.${isSuspended ? "resume" : "unpause"}`,
-              isSuspended ? [ref, false, false] : [ref]
-            );
+          vmRefs.map((vmRef) => {
+            if (vmRefsWithPowerState[vmRef] === "Suspended") {
+              return this._call("VM.resume", [vmRef, false, false]);
+            }
+
+            return this._call("VM.unpause", [vmRef]);
           })
         );
       },
-      reboot: ({
-        vmRef,
-        vmsRef,
-        force = false,
-      }: VmsRef & { force?: boolean }) => {
-        const _vmsRef = vmsRef ?? [vmRef];
+      reboot: (vmRefs: VmRefs, force = false) => {
         return Promise.all(
-          _vmsRef.map((vmRef) =>
+          castArray(vmRefs).map((vmRef) =>
             this._call(`VM.${force ? "hard" : "clean"}_reboot`, [vmRef])
           )
         );
       },
-      shutdown: ({
-        vmRef,
-        vmsRef,
-        force = false,
-      }: VmsRef & { force?: boolean }) => {
-        const _vmsRef = vmsRef ?? [vmRef];
+      shutdown: (vmRefs: VmRefs, force = false) => {
         return Promise.all(
-          _vmsRef.map((vmRef) =>
+          castArray(vmRefs).map((vmRef) =>
             this._call(`VM.${force ? "hard" : "clean"}_shutdown`, [vmRef])
           )
         );

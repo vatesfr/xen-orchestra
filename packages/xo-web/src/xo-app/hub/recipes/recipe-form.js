@@ -113,15 +113,15 @@ export default decorate([
         />
       </FormGrid.Row>
       <FormGrid.Row>
-        <label>{_('recipeMasterNameLabel')}</label>
+        <label>{_('recipeClusterNameLabel')}</label>
         <input
           className='form-control'
-          name='masterName'
+          name='clusterName'
           onChange={effects.onChangeValue}
-          placeholder={formatMessage(messages.recipeMasterNameLabel)}
+          placeholder={formatMessage(messages.recipeClusterNameLabel)}
           required
           type='text'
-          value={value.masterName}
+          value={value.clusterName}
         />
       </FormGrid.Row>
       <FormGrid.Row>
@@ -152,16 +152,16 @@ export default decorate([
       </FormGrid.Row>
       {value.nbNodes > 0 &&
         value.staticIpAddress && [
-          <FormGrid.Row key='masterIpAddrRow'>
-            <label>{_('recipeMasterIpAddress')}</label>
+          <FormGrid.Row key='controlPlaneIpAddrRow'>
+            <label>{_('recipeControlPlaneIpAddress')}</label>
             <input
               className='form-control'
-              name='masterIpAddress'
+              name='controlPlaneIpAddress'
               onChange={effects.onChangeValue}
-              placeholder={formatMessage(messages.recipeMasterIpAddress)}
+              placeholder={formatMessage(messages.recipeControlPlaneIpAddress)}
               required
               type='text'
-              value={value.masterIpAddress}
+              value={value.controlPlaneIpAddress}
             />
           </FormGrid.Row>,
           <FormGrid.Row key='gatewayRow'>

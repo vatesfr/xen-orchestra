@@ -1,8 +1,8 @@
 <template>
-  <div v-if="isLoading">Loading...</div>
+  <div v-if="!isReady">Loading...</div>
   <div v-else-if="!isVmRunning">Console is only available for running VMs.</div>
   <RemoteConsole
-    v-else-if="vmConsole"
+    v-else-if="vm && vmConsole"
     :location="vmConsole.location"
     :is-console-available="!isOperationsPending(vm, STOP_OPERATIONS)"
   />
@@ -27,23 +27,25 @@ const STOP_OPERATIONS = [
 ];
 
 const route = useRoute();
-const vmStore = useVmStore();
-const consoleStore = useConsoleStore();
 
-const isLoading = computed(() => vmStore.isLoading || consoleStore.isLoading);
+const { isReady: isVmReady, getByUuid: getVmByUuid } = useVmStore().subscribe();
 
-const vm = computed(
-  () => vmStore.getRecordByUuid(route.params.uuid as string)!
-);
+const { isReady: isConsoleReady, getByOpaqueRef: getConsoleByOpaqueRef } =
+  useConsoleStore().subscribe();
+
+const isReady = computed(() => isVmReady.value && isConsoleReady.value);
+
+const vm = computed(() => getVmByUuid(route.params.uuid as string));
+
 const isVmRunning = computed(() => vm.value?.power_state === "Running");
 
 const vmConsole = computed(() => {
   const consoleOpaqueRef = vm.value?.consoles[0];
 
-  if (!consoleOpaqueRef) {
+  if (consoleOpaqueRef === undefined) {
     return;
   }
 
-  return consoleStore.getRecord(consoleOpaqueRef);
+  return getConsoleByOpaqueRef(consoleOpaqueRef);
 });
 </script>
