@@ -177,8 +177,8 @@ export default decorate([
       {value.nbNodes > 0 &&
         value.staticIpAddress && [
           value.highAvailability && [
-            Array.from({length: 3}).map((v, i) => (
-              <FormGrid.Row key={v}>
+            Array.from({ length: 3 }).map((v, i) => (
+              <FormGrid.Row key={i}>
                 <label>{_('recipeHaControPlaneIpAddress', { i: i + 1 })}</label>
                 <input
                   className='form-control'
