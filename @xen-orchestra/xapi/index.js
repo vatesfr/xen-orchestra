@@ -135,6 +135,7 @@ class Xapi extends Base {
     callRetryWhenTooManyPendingTasks = { delay: 5e3, tries: 10 },
     maxUncoalescedVdis,
     preferNbd = false,
+    nbdOptions,
     syncHookSecret,
     syncHookTimeout,
     vdiDestroyRetryWhenInUse = { delay: 5e3, tries: 10 },
@@ -148,6 +149,7 @@ class Xapi extends Base {
     }
     this._maxUncoalescedVdis = maxUncoalescedVdis
     this._preferNbd = preferNbd
+    this._nbdOptions = nbdOptions
     this._syncHookSecret = syncHookSecret
     this._syncHookTimeout = syncHookTimeout
     this._vdiDestroyRetryWhenInUse = {

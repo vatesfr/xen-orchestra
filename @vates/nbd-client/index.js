@@ -18,8 +18,11 @@ const {
   OPTS_MAGIC,
   NBD_CMD_DISC,
 } = require('./constants.js')
-const { fromCallback } = require('promise-toolbox')
+const { fromCallback, pRetry, pDelay, pTimeout } = require('promise-toolbox')
 const { readChunkStrict } = require('@vates/read-chunk')
+const { createLogger } = require('@xen-orchestra/log')
+
+const { warn } = createLogger('vates:nbd-client')
 
 // documentation is here : https://github.com/NetworkBlockDevice/nbd/blob/master/doc/proto.md
 
@@ -32,18 +35,34 @@ module.exports = class NbdClient {
   #exportName
   #exportSize
 
+  #waitBeforeReconnect
+  #readAhead
+  #readBlockRetries
+  #reconnectRetry
+  #connectTimeout
+
   // AFAIK, there is no guaranty the server answers in the same order as the queries
   // so we handle a backlog of command waiting for response and handle concurrency manually
 
   #waitingForResponse // there is already a listenner waiting for a response
   #nextCommandQueryId = BigInt(0)
   #commandQueryBacklog // map of command waiting for an response queryId => { size/*in byte*/, resolve, reject}
+  #connected = false
 
-  constructor({ address, port = NBD_DEFAULT_PORT, exportname, cert }) {
+  #reconnectingPromise
+  constructor(
+    { address, port = NBD_DEFAULT_PORT, exportname, cert },
+    { connectTimeout = 6e4, waitBeforeReconnect = 1e3, readAhead = 10, readBlockRetries = 5, reconnectRetry = 5 } = {}
+  ) {
     this.#serverAddress = address
     this.#serverPort = port
     this.#exportName = exportname
     this.#serverCert = cert
+    this.#waitBeforeReconnect = waitBeforeReconnect
+    this.#readAhead = readAhead
+    this.#readBlockRetries = readBlockRetries
+    this.#reconnectRetry = reconnectRetry
+    this.#connectTimeout = connectTimeout
   }
 
   get exportSize() {
@@ -78,24 +97,55 @@ module.exports = class NbdClient {
     })
   }
 
-  async connect() {
-    // first we connect to the serve without tls, and then we upgrade the connection
+  async #connect() {
+    // first we connect to the server without tls, and then we upgrade the connection
     // to tls during the handshake
     await this.#unsecureConnect()
     await this.#handshake()
-
+    this.#connected = true
     // reset internal state if we reconnected a nbd client
     this.#commandQueryBacklog = new Map()
     this.#waitingForResponse = false
   }
+  async connect() {
+    return pTimeout.call(this.#connect(), this.#connectTimeout)
+  }
 
   async disconnect() {
+    if (!this.#connected) {
+      return
+    }
+
     const buffer = Buffer.alloc(28)
     buffer.writeInt32BE(NBD_REQUEST_MAGIC, 0) // it is a nbd request
     buffer.writeInt16BE(0, 4) // no command flags for a disconnect
     buffer.writeInt16BE(NBD_CMD_DISC, 6) // we want to disconnect from nbd server
     await this.#write(buffer)
     await this.#serverSocket.destroy()
+    this.#serverSocket = undefined
+    this.#connected = false
+  }
+
+  #clearReconnectPromise = () => {
+    this.#reconnectingPromise = undefined
+  }
+
+  async #reconnect() {
+    await this.disconnect().catch(() => {})
+    await pDelay(this.#waitBeforeReconnect) // need to let the xapi clean things on its side
+    await this.connect()
+  }
+
+  async reconnect() {
+    // we need to ensure reconnections do not occur in parallel
+    if (this.#reconnectingPromise === undefined) {
+      this.#reconnectingPromise = pRetry(() => this.#reconnect(), {
+        tries: this.#reconnectRetry,
+      })
+      this.#reconnectingPromise.then(this.#clearReconnectPromise, this.#clearReconnectPromise)
+    }
+
+    return this.#reconnectingPromise
   }
 
   // we can use individual read/write from the socket here since there is no concurrency
@@ -173,7 +223,6 @@ module.exports = class NbdClient {
     this.#commandQueryBacklog.forEach(({ reject }) => {
       reject(error)
     })
-    await this.disconnect()
   }
 
   async #readBlockResponse() {
@@ -181,7 +230,6 @@ module.exports = class NbdClient {
     if (this.#waitingForResponse) {
       return
     }
-
     try {
       this.#waitingForResponse = true
       const magic = await this.#readInt32()
@@ -206,7 +254,8 @@ module.exports = class NbdClient {
       query.resolve(data)
       this.#waitingForResponse = false
       if (this.#commandQueryBacklog.size > 0) {
-        await this.#readBlockResponse()
+        // it doesn't throw directly but will throw all relevant promise on failure
+        this.#readBlockResponse()
       }
     } catch (error) {
       // reject all the promises
@@ -217,6 +266,11 @@ module.exports = class NbdClient {
   }
 
   async readBlock(index, size = NBD_DEFAULT_BLOCK_SIZE) {
+    // we don't want to add anything in backlog while reconnecting
+    if (this.#reconnectingPromise) {
+      await this.#reconnectingPromise
+    }
+
     const queryId = this.#nextCommandQueryId
     this.#nextCommandQueryId++
 
@@ -266,20 +320,29 @@ module.exports = class NbdClient {
       }
     }
     const readAhead = []
-    const readAheadMaxLength = 10
+    const readAheadMaxLength = this.#readAhead
+    const makeReadBlockPromise = (index, size) => {
+      const promise = pRetry(() => this.readBlock(index, size), {
+        tries: this.#readBlockRetries,
+        onRetry: async err => {
+          warn('will retry reading block ', index, err)
+          await this.reconnect()
+        },
+      })
+      // error is handled during unshift
+      promise.catch(() => {})
+      return promise
+    }
 
     // read all blocks, but try to keep readAheadMaxLength promise waiting ahead
     for (const { index, size } of indexGenerator()) {
-      // stack readAheadMaxLengthpromise before starting to handle the results
+      // stack readAheadMaxLength promises before starting to handle the results
       if (readAhead.length === readAheadMaxLength) {
         // any error will stop reading blocks
         yield readAhead.shift()
       }
 
-      // error is handled during unshift
-      const promise = this.readBlock(index, size)
-      promise.catch(() => {})
-      readAhead.push(promise)
+      readAhead.push(makeReadBlockPromise(index, size))
     }
     while (readAhead.length > 0) {
       yield readAhead.shift()

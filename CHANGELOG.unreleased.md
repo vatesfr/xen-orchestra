@@ -10,6 +10,7 @@
 - [VM/Advanced] Automatically eject removable medias when converting a VM to a template [#6752](https://github.com/vatesfr/xen-orchestra/issues/6752) (PR [#6769](https://github.com/vatesfr/xen-orchestra/pull/6769))
 - [Dashboard/Health] Add free space column for storage state table (PR [#6778](https://github.com/vatesfr/xen-orchestra/pull/6778))
 - [VM/General] Displays the template name used to create the VM, as well as the email address of the VM creator for admin users (PR [#6771](https://github.com/vatesfr/xen-orchestra/pull/6771))
+- [Backup/exports] Retry when failing to read a data block during Delta Backup, Continuous Replication, disk and OVA export when NBD is enabled [PR #6763](https://github.com/vatesfr/xen-orchestra/pull/6763)
 
 ### Bug fixes
 
@@ -41,6 +42,7 @@
 <!--packages-start-->
 
 - @vates/diff minor
+- @vates/nbd-client minor
 - @vates/read-chunk patch
 - @vates/stream-reader minor
 - @vates/task minor
