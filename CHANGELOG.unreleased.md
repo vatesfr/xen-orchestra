@@ -11,6 +11,7 @@
 - [Dashboard/Health] Add free space column for storage state table (PR [#6778](https://github.com/vatesfr/xen-orchestra/pull/6778))
 - [VM/General] Displays the template name used to create the VM, as well as the email address of the VM creator for admin users (PR [#6771](https://github.com/vatesfr/xen-orchestra/pull/6771))
 - [Backup/exports] Retry when failing to read a data block during Delta Backup, Continuous Replication, disk and OVA export when NBD is enabled [PR #6763](https://github.com/vatesfr/xen-orchestra/pull/6763)
+- [Host] Smart reboot: suspend resident VMs, restart host and resume VMs [#6750](https://github.com/vatesfr/xen-orchestra/issues/6750) (PR [#6795](https://github.com/vatesfr/xen-orchestra/pull/6795))
 
 ### Bug fixes
 

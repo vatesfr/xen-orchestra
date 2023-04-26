@@ -181,6 +181,10 @@
     @extend .fa;
     @extend .fa-play;
   }
+  &-freeze {
+    @extend .fa;
+    @extend .fa-snowflake-o;
+  }
   &-forget {
     @extend .fa;
     @extend .fa-ban;
