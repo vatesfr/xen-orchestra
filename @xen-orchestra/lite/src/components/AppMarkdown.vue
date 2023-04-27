@@ -3,10 +3,10 @@
 </template>
 
 <script lang="ts" setup>
-import { type Ref, computed, ref } from "vue";
+import markdown from "@/libs/markdown";
 import { useEventListener } from "@vueuse/core";
 import "highlight.js/styles/github-dark.css";
-import { markdown } from "@/libs/markdown";
+import { computed, type Ref, ref } from "vue";
 
 const rootElement = ref() as Ref<HTMLElement>;
 
@@ -14,7 +14,7 @@ const props = defineProps<{
   content: string;
 }>();
 
-const html = computed(() => markdown.render(props.content ?? ""));
+const html = computed(() => markdown.parse(props.content ?? ""));
 
 useEventListener(
   rootElement,
@@ -96,6 +96,7 @@ useEventListener(
       position: absolute;
       z-index: 1;
       right: 1rem;
+      top: 0.4rem;
       cursor: pointer;
       color: white;
       border: none;

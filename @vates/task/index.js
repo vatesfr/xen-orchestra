@@ -11,13 +11,15 @@ function define(object, property, value) {
 const noop = Function.prototype
 
 const ABORTED = 'aborted'
-const ABORTING = 'aborting'
 const FAILURE = 'failure'
 const PENDING = 'pending'
 const SUCCESS = 'success'
-exports.STATUS = { ABORTED, ABORTING, FAILURE, PENDING, SUCCESS }
+exports.STATUS = { ABORTED, FAILURE, PENDING, SUCCESS }
 
-const asyncStorage = new AsyncLocalStorage()
+// stored in the global context so that various versions of the library can interact.
+const asyncStorageKey = '@vates/task@0'
+const asyncStorage = global[asyncStorageKey] ?? (global[asyncStorageKey] = new AsyncLocalStorage())
+
 const getTask = () => asyncStorage.getStore()
 
 exports.Task = class Task {
@@ -66,7 +68,6 @@ exports.Task = class Task {
 
   #abortController = new AbortController()
   #onProgress
-  #parent
 
   get id() {
     return (this.id = Math.random().toString(36).slice(2))
@@ -82,16 +83,14 @@ exports.Task = class Task {
     return this.#status
   }
 
-  constructor({ name, onProgress }) {
-    this.#startData = { name }
+  constructor({ data = {}, onProgress } = {}) {
+    this.#startData = data
 
     if (onProgress !== undefined) {
       this.#onProgress = onProgress
     } else {
       const parent = getTask()
       if (parent !== undefined) {
-        this.#parent = parent
-
         const { signal } = parent.#abortController
         signal.addEventListener('abort', () => {
           this.#abortController.abort(signal.reason)
@@ -106,8 +105,12 @@ exports.Task = class Task {
 
     const { signal } = this.#abortController
     signal.addEventListener('abort', () => {
-      if (this.status === PENDING) {
-        this.#status = this.#running ? ABORTING : ABORTED
+      if (this.status === PENDING && !this.#running) {
+        this.#maybeStart()
+
+        const status = ABORTED
+        this.#status = status
+        this.#emit('end', { result: signal.reason, status })
       }
     })
   }
@@ -123,14 +126,12 @@ exports.Task = class Task {
     this.#onProgress(data)
   }
 
-  #handleMaybeAbortion(result) {
-    if (this.status === ABORTING) {
-      this.#status = ABORTED
-      this.#emit('end', { status: ABORTED, result })
-      return true
+  #maybeStart() {
+    const startData = this.#startData
+    if (startData !== undefined) {
+      this.#startData = undefined
+      this.#emit('start', startData)
     }
-
-    return false
   }
 
   async run(fn) {
@@ -148,22 +149,19 @@ exports.Task = class Task {
     assert.equal(this.#running, false)
     this.#running = true
 
-    const startData = this.#startData
-    if (startData !== undefined) {
-      this.#startData = undefined
-      this.#emit('start', startData)
-    }
+    this.#maybeStart()
 
     try {
       const result = await asyncStorage.run(this, fn)
-      this.#handleMaybeAbortion(result)
       this.#running = false
       return result
     } catch (result) {
-      if (!this.#handleMaybeAbortion(result)) {
-        this.#status = FAILURE
-        this.#emit('end', { status: FAILURE, result })
-      }
+      const { signal } = this.#abortController
+      const aborted = signal.aborted && result === signal.reason
+      const status = aborted ? ABORTED : FAILURE
+
+      this.#status = status
+      this.#emit('end', { status, result })
       throw result
     }
   }

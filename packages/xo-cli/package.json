@@ -1,7 +1,7 @@
 {
   "private": false,
   "name": "xo-cli",
-  "version": "0.17.1",
+  "version": "0.18.0",
   "license": "AGPL-3.0-or-later",
   "description": "Basic CLI for Xen-Orchestra",
   "keywords": [
@@ -26,7 +26,7 @@
     "xo-cli": "./index.mjs"
   },
   "engines": {
-    "node": ">=14.13"
+    "node": ">=15.3"
   },
   "dependencies": {
     "chalk": "^5.0.1",

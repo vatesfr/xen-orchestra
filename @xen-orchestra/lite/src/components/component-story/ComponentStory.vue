@@ -177,8 +177,8 @@ if (propParams.value.length !== 0) {
   selectedTab.value = TAB.SETTINGS;
 }
 
-const propValues = reactive<Record<string, any>>({});
-const settingValues = reactive<Record<string, any>>({});
+const propValues = ref<Record<string, any>>({});
+const settingValues = ref<Record<string, any>>({});
 const eventsLog = ref<
   { id: string; name: string; args: { name: string; value: any }[] }[]
 >([]);
@@ -186,13 +186,13 @@ const unreadEventsCount = ref(0);
 
 const resetProps = () => {
   propParams.value.forEach((param) => {
-    propValues[param.name] = param.getPresetValue();
+    propValues.value[param.name] = param.getPresetValue();
   });
 };
 
 const resetSettings = () => {
   settingParams.value.forEach((param) => {
-    settingValues[param.name] = param.getPresetValue();
+    settingValues.value[param.name] = param.getPresetValue();
   });
 };
 
@@ -237,13 +237,13 @@ const slotProperties = computed(() => {
   const properties: Record<string, any> = {};
 
   propParams.value.forEach(({ name }) => {
-    properties[name] = propValues[name];
+    properties[name] = propValues.value[name];
   });
 
   eventParams.value.forEach((eventParam) => {
     properties[`on${upperFirst(eventParam.name)}`] = (...args: any[]) => {
       if (eventParam.isVModel()) {
-        propValues[eventParam.rawName] = args[0];
+        propValues.value[eventParam.rawName] = args[0];
       }
       const logArgs = Object.keys(eventParam.getArguments()).map(
         (argName, index) => ({
@@ -263,7 +263,7 @@ const slotSettings = computed(() => {
   const result: Record<string, any> = {};
 
   settingParams.value.forEach(({ name }) => {
-    result[name] = settingValues[name];
+    result[name] = settingValues.value[name];
   });
 
   return result;
@@ -287,13 +287,13 @@ const applyPreset = (preset: {
 }) => {
   if (preset.props !== undefined) {
     Object.entries(preset.props).forEach(([name, value]) => {
-      propValues[name] = value;
+      propValues.value[name] = value;
     });
   }
 
   if (preset.settings !== undefined) {
     Object.entries(preset.settings).forEach(([name, value]) => {
-      settingValues[name] = value;
+      settingValues.value[name] = value;
     });
   }
 };

@@ -53,6 +53,24 @@ export default decorate([
           workerNodeIpAddresses,
         })
       },
+      onChangeNameserver(__, ev) {
+        const { value } = ev.target
+        const { onChange, value: prevValue } = this.props
+        const nameservers = value.split(',').map(nameserver => nameserver.trim())
+        onChange({
+          ...prevValue,
+          nameservers,
+        })
+      },
+      onChangeSearch(__, ev) {
+        const { value } = ev.target
+        const { onChange, value: prevValue } = this.props
+        const searches = value.split(',').map(search => search.trim())
+        onChange({
+          ...prevValue,
+          searches,
+        })
+      },
       toggleStaticIpAddress(__, ev) {
         const { name } = ev.target
         const { onChange, value: prevValue } = this.props
@@ -95,15 +113,15 @@ export default decorate([
         />
       </FormGrid.Row>
       <FormGrid.Row>
-        <label>{_('recipeMasterNameLabel')}</label>
+        <label>{_('recipeClusterNameLabel')}</label>
         <input
           className='form-control'
-          name='masterName'
+          name='clusterName'
           onChange={effects.onChangeValue}
-          placeholder={formatMessage(messages.recipeMasterNameLabel)}
+          placeholder={formatMessage(messages.recipeClusterNameLabel)}
           required
           type='text'
-          value={value.masterName}
+          value={value.clusterName}
         />
       </FormGrid.Row>
       <FormGrid.Row>
@@ -134,28 +152,16 @@ export default decorate([
       </FormGrid.Row>
       {value.nbNodes > 0 &&
         value.staticIpAddress && [
-          <FormGrid.Row key='masterIpAddrRow'>
-            <label>{_('recipeMasterIpAddress')}</label>
+          <FormGrid.Row key='controlPlaneIpAddrRow'>
+            <label>{_('recipeControlPlaneIpAddress')}</label>
             <input
               className='form-control'
-              name='masterIpAddress'
+              name='controlPlaneIpAddress'
               onChange={effects.onChangeValue}
-              placeholder={formatMessage(messages.recipeMasterIpAddress)}
+              placeholder={formatMessage(messages.recipeControlPlaneIpAddress)}
               required
               type='text'
-              value={value.masterIpAddress}
-            />
-          </FormGrid.Row>,
-          <FormGrid.Row key='netmaskRow'>
-            <label>{_('recipeNetworkMask')}</label>
-            <input
-              className='form-control'
-              name='networkMask'
-              onChange={effects.onChangeValue}
-              placeholder={formatMessage(messages.recipeNetworkMask)}
-              required
-              type='text'
-              value={value.networkMask}
+              value={value.controlPlaneIpAddress}
             />
           </FormGrid.Row>,
           <FormGrid.Row key='gatewayRow'>
@@ -168,6 +174,30 @@ export default decorate([
               required
               type='text'
               value={value.gatewayIpAddress}
+            />
+          </FormGrid.Row>,
+          <FormGrid.Row key='nameserverRow'>
+            <label>{_('recipeNameserverAddresses')}</label>
+            <input
+              className='form-control'
+              name='nameservers'
+              onChange={effects.onChangeNameserver}
+              placeholder={formatMessage(messages.recipeNameserverAddressesExample)}
+              required
+              type='text'
+              value={value.nameservers}
+            />
+          </FormGrid.Row>,
+          <FormGrid.Row key='searchRow'>
+            <label>{_('recipeSearches')}</label>
+            <input
+              className='form-control'
+              name='search'
+              onChange={effects.onChangeSearch}
+              placeholder={formatMessage(messages.recipeSearchesExample)}
+              required
+              type='text'
+              value={value.search}
             />
           </FormGrid.Row>,
           [...Array(+value.nbNodes)].map((v, i) => (

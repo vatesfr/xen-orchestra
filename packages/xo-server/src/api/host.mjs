@@ -119,13 +119,15 @@ set.resolve = {
 
 // FIXME: set force to false per default when correctly implemented in
 // UI.
-export async function restart({ bypassBackupCheck = false, host, force = true }) {
+export async function restart({ bypassBackupCheck = false, host, force = true, suspendResidentVms }) {
   if (bypassBackupCheck) {
     log.warn('host.restart with argument "bypassBackupCheck" set to true', { hostId: host.id })
   } else {
     await backupGuard.call(this, host.$poolId)
   }
-  return this.getXapi(host).rebootHost(host._xapiId, force)
+
+  const xapi = this.getXapi(host)
+  return suspendResidentVms ? xapi.host_smartReboot(host._xapiRef) : xapi.rebootHost(host._xapiId, force)
 }
 
 restart.description = 'restart the host'
@@ -139,6 +141,10 @@ restart.params = {
   force: {
     type: 'boolean',
     optional: true,
+  },
+  suspendResidentVms: {
+    type: 'boolean',
+    default: false,
   },
 }
 

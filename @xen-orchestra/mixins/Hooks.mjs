@@ -1,18 +1,22 @@
 import assert from 'assert'
-import emitAsync from '@xen-orchestra/emit-async'
 import EventEmitter from 'events'
 import { createLogger } from '@xen-orchestra/log'
 
 const { debug, warn } = createLogger('xo:mixins:hooks')
 
-const runHook = async (emitter, hook) => {
+const noop = Function.prototype
+
+const runHook = async (emitter, hook, onResult = noop) => {
   debug(`${hook} start…`)
-  await emitAsync.call(
-    emitter,
-    {
-      onError: error => warn(`${hook} failure`, { error }),
-    },
-    hook
+  const listeners = emitter.listeners(hook)
+  await Promise.all(
+    listeners.map(async listener => {
+      try {
+        onResult(await listener.call(emitter))
+      } catch (error) {
+        warn(`${hook} failure`, { error })
+      }
+    })
   )
   debug(`${hook} finished`)
 }
@@ -31,6 +35,9 @@ export default class Hooks extends EventEmitter {
   //
   // They initialize the application.
   //
+  // A *start* listener can return a teardown function which will be added as a
+  // one-time listener for the *stop* event.
+  //
   // *startCore* is automatically called if necessary.
   async start() {
     if (this._status === 'stopped') {
@@ -39,7 +46,11 @@ export default class Hooks extends EventEmitter {
       assert.strictEqual(this._status, 'core started')
     }
     this._status = 'starting'
-    await runHook(this, 'start')
+    await runHook(this, 'start', result => {
+      if (typeof result === 'function') {
+        this.once('stop', result)
+      }
+    })
     this.emit((this._status = 'started'))
   }
 
@@ -47,10 +58,17 @@ export default class Hooks extends EventEmitter {
   //
   // They initialize core features of the application (connect to databases,
   // etc.) and should be fast and side-effects free.
+  //
+  // A *start core* listener can return a teardown function which will be added
+  // as a one-time listener for the *stop core* event.
   async startCore() {
     assert.strictEqual(this._status, 'stopped')
     this._status = 'starting core'
-    await runHook(this, 'start core')
+    await runHook(this, 'start core', result => {
+      if (typeof result === 'function') {
+        this.once('stop core', result)
+      }
+    })
     this.emit((this._status = 'core started'))
   }
 
