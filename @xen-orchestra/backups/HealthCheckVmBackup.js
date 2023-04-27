@@ -25,7 +25,7 @@ exports.HealthCheckVmBackup = class HealthCheckVmBackup {
 
         // remove vifs
         await Promise.all(restoredVm.$VIFs.map(vif => xapi.callAsync('VIF.destroy', vif.$ref)))
-        const waitForScript = restoredVm.tags.includes('xo-backup-healthcheck-xenstore')
+        const waitForScript = restoredVm.tags.includes('xo-backup-health-check-xenstore')
         if (waitForScript) {
           await restoredVm.set_xenstore_data({
             'vm-data/xo-backup-health-check': 'planned',
@@ -98,9 +98,7 @@ exports.HealthCheckVmBackup = class HealthCheckVmBackup {
           if (startedRestoredVm.xenstore_data['vm-data/xo-backup-health-check'] !== 'success') {
             const message = startedRestoredVm.xenstore_data['vm-data/xo-backup-health-check-error']
             if (message) {
-              throw new Error(
-                `Backup health check script failed with message ${message} for VM ${restoredId} `
-              )
+              throw new Error(`Backup health check script failed with message ${message} for VM ${restoredId} `)
             } else {
               throw new Error(`Backup health check script failed for VM ${restoredId} `)
             }
