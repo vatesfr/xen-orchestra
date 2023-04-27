@@ -296,8 +296,9 @@ When it's done exporting, we'll remove the snapshot. Note: this operation will t
 Concurrency is a parameter that let you define how many VMs your backup job will manage simultaneously.
 
 :::tip
+
 - Default concurrency value is 2 if left empty.
-:::
+  :::
 
 Let's say you want to backup 50 VMs (each with 1x disk) at 3:00 AM. There are **2 different strategies**:
 
@@ -335,6 +336,7 @@ When a backup job is configured using Normal snapshot mode, it's possible to use
 
 - **xo-offline-backup** to apply offline snapshotting mode (VM with be shut down prior to snapshot)
 - **xo-memory-backup** to apply RAM-enabled snapshotting
+- **xo-backup-healthcheck-xenstore** to use a script during [backup healthcheck](#backup-health-check)
 
 For example, you could have a regular backup job with 10 VMs configured with Normal snapshotting, including two which are database servers. Since database servers are generally more sensitive to being restored from snapshots, you could apply the **xo-memory-backup** tag to those two VMs and only those will be backed up in RAM-enabled mode. This will avoid the need to manage a separate backup job and schedule.
 
@@ -342,10 +344,10 @@ For example, you could have a regular backup job with 10 VMs configured with Nor
 
 Just a refresher/summary: You can select multiple backup methods for the same job:
 
-- Full: *Backup* and *Disaster Recovery* (DR)
-- Deltas: *Delta Backup* and *Continuous Replication* (CR)
+- Full: _Backup_ and _Disaster Recovery_ (DR)
+- Deltas: _Delta Backup_ and _Continuous Replication_ (CR)
 
-The Full and Delta options are mutually exclusive; Rolling Snapshots are compatible with both. The Backup and Delta Backup go to a remote Target (e.g, NFS); DR and CR back up to another XCP-ng storage repository (i.e., not the one on which the VM's being backed up reside). In the Schedule configuration, you will have the option to select the number of "Backup Retention" if your backup includes a *Backup* (or *Delta Backup*); you will have the option to select the number "Replication Retention" if you have selected *DR* or *CR* in the backup configuration.
+The Full and Delta options are mutually exclusive; Rolling Snapshots are compatible with both. The Backup and Delta Backup go to a remote Target (e.g, NFS); DR and CR back up to another XCP-ng storage repository (i.e., not the one on which the VM's being backed up reside). In the Schedule configuration, you will have the option to select the number of "Backup Retention" if your backup includes a _Backup_ (or _Delta Backup_); you will have the option to select the number "Replication Retention" if you have selected _DR_ or _CR_ in the backup configuration.
 
 ### Rolling Snapshots
 
@@ -366,3 +368,56 @@ It is often a good idea to configure retention of older backups with decreasing 
 - a monthly backup (retaining 12)
 
 Again, all of these can be assigned to the same backup job. Note that if you do a weekly and a monthly backup, at some point, these will fall on the same day. Xen Orchestra is designed to fail gracefully (with an error message) if a backup job for a VM is already running. For this reason, you will want to set the time on the monthly job to run before the weekly job so that if one fails, it will be the weekly rather than the monthly one; if the weekly one fails, the monthly will be there for that spot in the retention plan; if the monthly one fails, the weekly one will only be retained for 4 weeks, and then there will be a gap in the monthly retention.
+
+## Backup Health Check
+
+Backup health check ensures the backups are ready to be restored.
+
+### Different level of checking
+
+#### Check for boot
+
+XO will restore the VM, either by downloading it for a delta/full backup or by cloning it for a disaster recovery of continous replication and then wait for the guest tools to be loaded before the end of a timeout of 10 minutes (boot + guest tools).
+
+A VM without guest tools will fail its health check.
+
+The restored VM is then deleted.
+
+#### Execute a script
+
+If a VM has the tag **xo-backup-healthcheck-xenstore** during a backup health check, then XO will wait for a script to change the value of the xenstore `vm-data/xo-backup-health-check` key to be either `success` or `failure`.
+
+In case of `failure`, it will mark the health check as failed, and will show the (optional) message contained in `vm-data/xo-backup-health-check-error`
+
+The script needs to be planned on boot. It can check if the record `vm-data/xo-backup-health-check` of the local xenstore contains `planned`
+to differenciate a normal boot and a boot during health check.
+On success it must write `success`in `vm-data/xo-backup-health-check`.
+On failure it must write `failure` in `vm-data/xo-backup-health-check`, and may optionally add details in `vm-data/xo-backup-health-check-error` .
+
+The total timeout of a backup health check (boot + guest tools + scripts) is 10min.
+
+The restored VM is then deleted.
+
+An example in bash is shown in `@xen-orchestra/backups/docs/healtcheck example/wait30seconds.sh`
+
+### Running Health checks
+
+#### Checking a backup
+
+Go to backup > restore and click on the tick to launch a health check.
+
+![](./assets/restorehealthcheck.png)
+
+Then, you will select the backup to be checked and a destination SR, which must have enough space for the full restore.
+
+#### Scheduling health check after backups
+
+Go to Backup > overview > edit.
+
+Then edit the schedule and check the healthcheck box.
+
+![](./assets/scheduled_healthcheck.png)
+
+You will then need to select the SR used, which must have enough space to restore the VMs. Healthcheck will be done after each VM backup, before starting the next one.
+
+You can filter the VMs list by providing tags, only the VMs with these tags will be checked.

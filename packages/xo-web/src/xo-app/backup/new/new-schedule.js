@@ -136,7 +136,17 @@ const New = decorate([
         )}
         <FormGroup>
           <label>
-            <strong>{_('healthCheck')}</strong>{' '}
+            <strong>
+              <a
+                className='text-info'
+                rel='noreferrer'
+                href='https://xen-orchestra.com/docs/backups.html#backup-health-check'
+                target='_blank'
+              >
+                <Icon icon='info' />
+              </a>{' '}
+              {_('healthCheck')}
+            </strong>{' '}
             {conditionalTooltip(
               <input
                 checked={schedule.healthCheckVmsWithTags !== undefined}
@@ -157,7 +167,7 @@ const New = decorate([
               <p className='h2'>
                 <Tags labels={schedule.healthCheckVmsWithTags} onChange={effects.setHealthCheckTags} />
               </p>
-              <strong>{_('sr')}</strong>
+              <strong>{_('healthCheckChooseSr')}</strong>
               <SelectSr
                 onChange={effects.setHealthCheckSr}
                 placeholder={_('healthCheckChooseSr')}
