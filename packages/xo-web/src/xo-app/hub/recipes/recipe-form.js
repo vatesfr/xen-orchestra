@@ -53,6 +53,17 @@ export default decorate([
           workerNodeIpAddresses,
         })
       },
+      onChangeCpIp(__, ev) {
+        const { name, value } = ev.target
+        const { onChange, value: prevValue } = this.props
+        const controlPlaneIpAddresses = prevValue.controlPlaneIpAddresses ?? []
+
+        controlPlaneIpAddresses[name.split('.')[1]] = value
+        onChange({
+          ...prevValue,
+          controlPlaneIpAddresses,
+        })
+      },
       onChangeNameserver(__, ev) {
         const { value } = ev.target
         const { onChange, value: prevValue } = this.props
@@ -141,6 +152,19 @@ export default decorate([
         <label>
           <input
             className='mt-1'
+            name='highAvailability'
+            onChange={effects.toggleStaticIpAddress}
+            type='checkbox'
+            value={value.highAvailability}
+          />
+          &nbsp;
+          {_('recipeHighAvailability')}
+        </label>
+      </FormGrid.Row>
+      <FormGrid.Row>
+        <label>
+          <input
+            className='mt-1'
             name='staticIpAddress'
             onChange={effects.toggleStaticIpAddress}
             type='checkbox'
@@ -152,18 +176,48 @@ export default decorate([
       </FormGrid.Row>
       {value.nbNodes > 0 &&
         value.staticIpAddress && [
-          <FormGrid.Row key='controlPlaneIpAddrRow'>
-            <label>{_('recipeControlPlaneIpAddress')}</label>
-            <input
-              className='form-control'
-              name='controlPlaneIpAddress'
-              onChange={effects.onChangeValue}
-              placeholder={formatMessage(messages.recipeControlPlaneIpAddress)}
-              required
-              type='text'
-              value={value.controlPlaneIpAddress}
-            />
-          </FormGrid.Row>,
+          value.highAvailability && [
+            Array.from({ length: 3 }).map((v, i) => (
+              <FormGrid.Row key={i}>
+                <label>{_('recipeHaControPlaneIpAddress', { i: i + 1 })}</label>
+                <input
+                  className='form-control'
+                  name={`controlPlaneIpAddress.${i}`}
+                  onChange={effects.onChangeCpIp}
+                  placeholder={formatMessage(messages.recipeHaControPlaneIpAddress, { i: i + 1 })}
+                  required
+                  type='text'
+                  value={value[`controlPlaneIpAddress.${i}`]}
+                />
+              </FormGrid.Row>
+            )),
+            <FormGrid.Row key='vipAddrRow'>
+              <label>{_('recipeVip')}</label>
+              <input
+                className='form-control'
+                name='vipAddress'
+                onChange={effects.onChangeValue}
+                placeholder={formatMessage(messages.recipeVip)}
+                required
+                type='text'
+                value={value.vipAddress}
+              />
+            </FormGrid.Row>,
+          ],
+          !value.highAvailability && [
+            <FormGrid.Row key='controlPlaneIpAddrRow'>
+              <label>{_('recipeControlPlaneIpAddress')}</label>
+              <input
+                className='form-control'
+                name='controlPlaneIpAddress'
+                onChange={effects.onChangeValue}
+                placeholder={formatMessage(messages.recipeControlPlaneIpAddress)}
+                required
+                type='text'
+                value={value.controlPlaneIpAddress}
+              />
+            </FormGrid.Row>,
+          ],
           <FormGrid.Row key='gatewayRow'>
             <label>{_('recipeGatewayIpAddress')}</label>
             <input

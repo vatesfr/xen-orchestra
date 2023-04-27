@@ -53,27 +53,34 @@ export default decorate([
         const {
           clusterName,
           controlPlaneIpAddress,
+          controlPlaneIpAddresses,
           gatewayIpAddress,
+          highAvailability,
           nameservers,
           nbNodes,
           network,
           searches,
           sr,
           sshKey,
+          vipAddress,
           workerNodeIpAddresses,
         } = recipeParams
 
         markRecipeAsCreating(RECIPE_INFO.id)
         const tag = await createKubernetesCluster({
           clusterName,
+          clusterName,
           controlPlaneIpAddress,
+          controlPlaneIpAddresses,
           gatewayIpAddress,
+          highAvailability,
           nameservers,
           nbNodes: +nbNodes,
           network: network.id,
           searches,
           sr: sr.id,
           sshKey,
+          vipAddress,
           workerNodeIpAddresses,
         })
         markRecipeAsDone(RECIPE_INFO.id)
