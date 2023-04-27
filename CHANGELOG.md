@@ -9,6 +9,8 @@
 - [VM/General] Displays the template name used to create the VM, as well as the email address of the VM creator for admin users (PR [#6771](https://github.com/vatesfr/xen-orchestra/pull/6771))
 - [Backup/exports] Retry when failing to read a data block during Delta Backup, Continuous Replication, disk and OVA export when NBD is enabled [PR #6763](https://github.com/vatesfr/xen-orchestra/pull/6763)
 - [Host] Smart reboot: suspend resident VMs, restart host and resume VMs [#6750](https://github.com/vatesfr/xen-orchestra/issues/6750) (PR [#6795](https://github.com/vatesfr/xen-orchestra/pull/6795))
+- [Backup/Health check] [Opt-in XenStore API](https://xen-orchestra.com/docs/backups.html#backup-health-check) to execute custom checks inside the VM (PR [#6784](https://github.com/vatesfr/xen-orchestra/pull/6784))
+- [Kubernetes] Give the possibility to create an high availability cluster (PR [#6794](https://github.com/vatesfr/xen-orchestra/pull/6794))
 
 ### Bug fixes
 
@@ -29,17 +31,17 @@
 - vhd-lib 4.4.0
 - xen-api 1.3.0
 - @vates/nbd-client 1.2.0
-- @vates/task 0.1.0
 - @xen-orchestra/xapi 2.2.0
-- @xen-orchestra/backups 0.35.0
-- @xen-orchestra/backups-cli 1.0.5
 - @xen-orchestra/mixins 0.10.0
-- @xen-orchestra/proxy 0.26.20
 - @xen-orchestra/vmware-explorer 0.2.2
 - xo-cli 0.18.0
-- xo-server 5.112.0
 - xo-server-usage-report 0.10.4
-- xo-web 5.115.0
+- @vates/task 0.1.1
+- @xen-orchestra/backups 0.36.0
+- @xen-orchestra/backups-cli 1.0.6
+- @xen-orchestra/proxy 0.26.21
+- xo-server 5.113.0
+- xo-web 5.116.0
 
 ## **5.81** (2023-03-31)
 
