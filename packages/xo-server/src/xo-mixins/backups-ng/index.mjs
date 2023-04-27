@@ -191,7 +191,7 @@ export default class BackupNg {
           vmIds.forEach(handleRecord)
           unboxIdsFromPattern(job.srs).forEach(handleRecord)
 
-          // add xapi specific to the healthcheck SR if needed
+          // add xapi specific to the health check SR if needed
           if (job.settings[schedule.id].healthCheckSr !== undefined) {
             handleRecord(job.settings[schedule.id].healthCheckSr)
           }

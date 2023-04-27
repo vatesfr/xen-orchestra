@@ -319,6 +319,7 @@ const HealthCheckTask = ({ children, className, task }) => (
 const HealthCheckVmStartTask = ({ children, className, task }) => (
   <li className={className}>
     <Icon icon='run' /> {task.message} <TaskStateInfos status={task.status} />
+    <TaskInfos infos={task.infos} />
     <TaskStart task={task} />
     <TaskEnd task={task} />
     <TaskError task={task} />

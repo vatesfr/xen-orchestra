@@ -83,7 +83,7 @@ exports.Task = class Task {
     return this.#status
   }
 
-  constructor({ data = {}, onProgress }) {
+  constructor({ data = {}, onProgress } = {}) {
     this.#startData = data
 
     if (onProgress !== undefined) {
@@ -106,6 +106,8 @@ exports.Task = class Task {
     const { signal } = this.#abortController
     signal.addEventListener('abort', () => {
       if (this.status === PENDING && !this.#running) {
+        this.#maybeStart()
+
         const status = ABORTED
         this.#status = status
         this.#emit('end', { result: signal.reason, status })
@@ -118,16 +120,18 @@ exports.Task = class Task {
   }
 
   #emit(type, data) {
+    data.id = this.id
+    data.timestamp = Date.now()
+    data.type = type
+    this.#onProgress(data)
+  }
+
+  #maybeStart() {
     const startData = this.#startData
     if (startData !== undefined) {
       this.#startData = undefined
       this.#emit('start', startData)
     }
-
-    data.id = this.id
-    data.timestamp = Date.now()
-    data.type = type
-    this.#onProgress(data)
   }
 
   async run(fn) {
@@ -144,6 +148,8 @@ exports.Task = class Task {
     assert.equal(this.status, PENDING)
     assert.equal(this.#running, false)
     this.#running = true
+
+    this.#maybeStart()
 
     try {
       const result = await asyncStorage.run(this, fn)

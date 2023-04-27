@@ -785,13 +785,13 @@ export const setRemoteSyslogHost = (host, syslogDestination) =>
 export const setRemoteSyslogHosts = (hosts, syslogDestination) =>
   Promise.all(map(hosts, host => setRemoteSyslogHost(host, syslogDestination)))
 
-export const restartHost = (host, force = false) =>
+export const restartHost = (host, force = false, suspendResidentVms = false) =>
   confirm({
     title: _('restartHostModalTitle'),
     body: _('restartHostModalMessage'),
   }).then(
     () =>
-      _call('host.restart', { id: resolveId(host), force })
+      _call('host.restart', { id: resolveId(host), force, suspendResidentVms })
         .catch(async error => {
           if (
             forbiddenOperation.is(error, {
@@ -809,7 +809,7 @@ export const restartHost = (host, force = false) =>
               ),
               title: _('restartHostModalTitle'),
             })
-            return _call('host.restart', { id: resolveId(host), force, bypassBackupCheck: true })
+            return _call('host.restart', { id: resolveId(host), force, suspendResidentVms, bypassBackupCheck: true })
           }
           throw error
         })

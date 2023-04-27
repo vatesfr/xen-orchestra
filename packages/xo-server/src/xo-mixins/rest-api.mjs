@@ -149,6 +149,7 @@ export default class RestApi {
 
     collections.backups = { id: 'backups' }
     collections.restore = { id: 'restore' }
+    collections.tasks = { id: 'tasks' }
 
     collections.vms.actions = {
       __proto__: null,

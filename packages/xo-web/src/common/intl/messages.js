@@ -931,6 +931,8 @@ const messages = {
   enableHostLabel: 'Enable',
   disableHostLabel: 'Disable',
   restartHostAgent: 'Restart toolstack',
+  smartRebootHostLabel: 'Smart reboot',
+  smartRebootHostTooltip: 'Suspend resident VMs, reboot host and resume VMs automatically',
   forceRebootHostLabel: 'Force reboot',
   rebootHostLabel: 'Reboot',
   noHostsAvailableErrorTitle: 'Error while restarting host',
