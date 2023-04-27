@@ -10,7 +10,7 @@
           </UiButton>
         </template>
         <MenuItem
-          :busy="isOperationsPending('start')"
+          :busy="isOperationsPending(vm, 'start')"
           :disabled="!isHalted"
           :icon="faPlay"
           @click="xenApi.vm.start(vm!.$ref)"
@@ -18,7 +18,7 @@
           {{ $t("start") }}
         </MenuItem>
         <MenuItem
-          :busy="isOperationsPending('start_on')"
+          :busy="isOperationsPending(vm, 'start_on')"
           :disabled="!isHalted"
           :icon="faServer"
         >
@@ -50,7 +50,7 @@
           </template>
         </MenuItem>
         <MenuItem
-          :busy="isOperationsPending('pause')"
+          :busy="isOperationsPending(vm, 'pause')"
           :disabled="!isRunning"
           :icon="faPause"
           @click="xenApi.vm.pause(vm!.$ref)"
@@ -58,7 +58,7 @@
           {{ $t("pause") }}
         </MenuItem>
         <MenuItem
-          :busy="isOperationsPending('suspend')"
+          :busy="isOperationsPending(vm, 'suspend')"
           :disabled="!isRunning"
           :icon="faMoon"
           @click="xenApi.vm.suspend(vm!.$ref)"
@@ -67,7 +67,7 @@
         </MenuItem>
         <!-- TODO: update the icon once Clémence has integrated the action into figma -->
         <MenuItem
-          :busy="isOperationsPending(['unpause', 'resume'])"
+          :busy="isOperationsPending(vm, ['unpause', 'resume'])"
           :disabled="!isSuspended && !isPaused"
           :icon="faCirclePlay"
           @click="xenApi.vm.resume({ [vm!.$ref]: vm!.power_state })"
@@ -75,7 +75,7 @@
           {{ $t("resume") }}
         </MenuItem>
         <MenuItem
-          :busy="isOperationsPending('clean_reboot')"
+          :busy="isOperationsPending(vm, 'clean_reboot')"
           :disabled="!isRunning"
           :icon="faRotateLeft"
           @click="xenApi.vm.reboot(vm!.$ref)"
@@ -83,7 +83,7 @@
           {{ $t("reboot") }}
         </MenuItem>
         <MenuItem
-          :busy="isOperationsPending('hard_reboot')"
+          :busy="isOperationsPending(vm, 'hard_reboot')"
           :disabled="!isRunning && !isPaused"
           :icon="faRepeat"
           @click="xenApi.vm.reboot(vm!.$ref, true)"
@@ -91,7 +91,7 @@
           {{ $t("force-reboot") }}
         </MenuItem>
         <MenuItem
-          :busy="isOperationsPending('clean_shutdown')"
+          :busy="isOperationsPending(vm, 'clean_shutdown')"
           :disabled="!isRunning"
           :icon="faPowerOff"
           @click="xenApi.vm.shutdown(vm!.$ref)"
@@ -99,7 +99,7 @@
           {{ $t("shutdown") }}
         </MenuItem>
         <MenuItem
-          :busy="isOperationsPending('hard_shutdown')"
+          :busy="isOperationsPending(vm, 'hard_shutdown')"
           :disabled="!isRunning && !isSuspended && !isPaused"
           :icon="faPlug"
           @click="xenApi.vm.shutdown(vm!.$ref, true)"
@@ -116,9 +116,9 @@ import AppMenu from "@/components/menu/AppMenu.vue";
 import MenuItem from "@/components/menu/MenuItem.vue";
 import PowerStateIcon from "@/components/PowerStateIcon.vue";
 import TitleBar from "@/components/TitleBar.vue";
-import UiButton from "@/components/ui/UiButton.vue";
 import UiIcon from "@/components/ui/icon/UiIcon.vue";
-import { isHostRunning } from "@/libs/utils";
+import UiButton from "@/components/ui/UiButton.vue";
+import { isHostRunning, isOperationsPending } from "@/libs/utils";
 import type { XenApiHost } from "@/libs/xen-api";
 import { useHostMetricsStore } from "@/stores/host-metrics.store";
 import { useHostStore } from "@/stores/host.store";
@@ -139,7 +139,6 @@ import {
   faServer,
   faStar,
 } from "@fortawesome/free-solid-svg-icons";
-import { difference } from "lodash";
 import { computed } from "vue";
 import { useRouter } from "vue-router";
 
@@ -149,17 +148,6 @@ const { pool } = usePoolStore().subscribe();
 const hostMetricsSubscription = useHostMetricsStore().subscribe();
 const xenApi = useXenApiStore().getXapi();
 const { currentRoute } = useRouter();
-
-const isOperationsPending = (operations: string[] | string) => {
-  const _operations = Array.isArray(operations) ? operations : [operations];
-  return (
-    difference(_operations, vmOperations.value).length < _operations.length
-  );
-};
-
-const vmOperations = computed(() =>
-  vm.value === undefined ? [] : Object.values(vm.value.current_operations)
-);
 
 const vm = computed(() =>
   getVmByUuid(currentRoute.value.params.uuid as string)

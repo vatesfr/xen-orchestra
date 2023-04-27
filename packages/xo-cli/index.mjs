@@ -24,6 +24,7 @@ import XoLib from 'xo-lib'
 
 import * as config from './config.mjs'
 import { inspect } from 'util'
+import { rest } from './rest.mjs'
 
 const Xo = XoLib.default
 
@@ -259,8 +260,71 @@ const help = wrap(
     <property>=<value>
       Restricted displayed objects to those matching the patterns.
 
-  $name <command> [<name>=<value>]...
+  $name <command> [--json] [<name>=<value>]...
     Executes a command on the current XO instance.
+
+    --json
+      Prints the result in JSON format.
+
+  $name rest del <resource>
+    Delete the resource.
+
+    Examples:
+      $name rest del tasks/<task id>
+
+  $name rest get <collection> [fields=<fields>] [filter=<filter>] [limit=<limit>]
+    List objects in a REST API collection.
+
+    <collection>
+      Full path of the collection to list
+
+    fields=<fields>
+      When provided, returns a collection of objects containing the requested
+      fields instead of the simply the objects' paths.
+
+      The field names must be separated by commas.
+
+    filter=<filter>
+      List only objects that match the filter
+
+      Syntax: https://xen-orchestra.com/docs/manage_infrastructure.html#filter-syntax
+
+    limit=<limit>
+      Maximum number of objects to list, e.g. \`limit=10\`
+
+    Examples:
+      $name rest get
+      $name rest get tasks filter='status:pending'
+      $name rest get vms fields=name_label,power_state
+
+  $name rest get <object> [wait | wait=result]
+    Show an object from the REST API.
+
+    <object>
+      Full path of the object to show
+
+    wait
+      If the object is a task, waits for it to be updated before returning.
+
+    wait=result
+      If the object is a task, waits for it to be finished before returning.
+
+    Examples:
+      $name rest get vms/<VM UUID>
+      $name rest get tasks/<task id>/actions wait=result
+
+  $name rest post <action> <name>=<value>...
+    Execute an action.
+
+    <action>
+      Full path of the action to execute
+
+    <name>=<value>...
+      Paramaters to pass to the action
+
+    Examples:
+      $name rest post tasks/<task id>/actions/abort
+      $name rest post vms/<VM UUID>/actions/snapshot name_label='My snapshot'
 
 $name v$version`.replace(/<([^>]+)>|\$(\w+)/g, function (_, arg, key) {
       if (arg) {
@@ -321,6 +385,10 @@ async function main(args) {
     throw typeof error === 'object' && 'error' in error ? error.error : error
   }
 }
+
+// -------------------------------------------------------------------
+
+COMMANDS.rest = rest
 
 // -------------------------------------------------------------------
 
@@ -390,14 +458,15 @@ async function listCommands(args) {
       str.push(chalk.bold.blue(name))
       forEach(info.params || [], function (info, name) {
         str.push(' ')
-        if (info.optional) {
+        const { optional = Object.hasOwn(info, 'default') } = info
+        if (optional) {
           str.push('[')
         }
 
         const type = info.type
         str.push(name, '=<', type == null ? 'unknown type' : Array.isArray(type) ? type.join('|') : type, '>')
 
-        if (info.optional) {
+        if (optional) {
           str.push(']')
         }
       })
@@ -449,6 +518,11 @@ function ensurePathParam(method, value) {
 }
 
 async function call(args) {
+  const jsonOutput = args[1] === '--json'
+  if (jsonOutput) {
+    args.splice(1, 1)
+  }
+
   if (!args.length) {
     throw new Error('missing command name')
   }
@@ -493,9 +567,9 @@ async function call(args) {
         ensurePathParam(method, file)
         url = new URL(result[key], baseUrl)
 
-        const { size: length } = await stat(file)
+        const length = file === '-' ? undefined : (await stat(file)).size
         const input = pipeline(
-          createReadStream(file),
+          file === '-' ? process.stdin : createReadStream(file),
           progressStream(
             {
               length,
@@ -509,7 +583,7 @@ async function call(args) {
         const response = await hrp(url, {
           ...httpOptions,
           body: input,
-          headers: {
+          headers: length && {
             'content-length': length,
           },
           method: 'POST',
@@ -518,7 +592,7 @@ async function call(args) {
       }
     }
 
-    return result
+    return jsonOutput ? JSON.stringify(result, null, 2) : result
   } finally {
     await xo.close()
   }
@@ -539,7 +613,7 @@ main(process.argv.slice(2)).then(
           typeof result === 'string'
             ? result
             : inspect(result, {
-                colors: true,
+                colors: Boolean(stdout.isTTY),
                 depth: null,
                 sorted: true,
               })
@@ -556,7 +630,7 @@ main(process.argv.slice(2)).then(
       typeof error === 'string'
         ? error
         : inspect(error, {
-            colors: true,
+            colors: Boolean(stderr.isTTY),
             depth: null,
             sorted: true,
           })

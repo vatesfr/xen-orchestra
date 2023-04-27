@@ -1,8 +1,107 @@
 # ChangeLog
 
-## **5.80.1** (2023-03-07)
+## **next**
+
+### Enhancements
+
+- [VM/Advanced] Automatically eject removable medias when converting a VM to a template [#6752](https://github.com/vatesfr/xen-orchestra/issues/6752) (PR [#6769](https://github.com/vatesfr/xen-orchestra/pull/6769))
+- [Dashboard/Health] Add free space column for storage state table (PR [#6778](https://github.com/vatesfr/xen-orchestra/pull/6778))
+- [VM/General] Displays the template name used to create the VM, as well as the email address of the VM creator for admin users (PR [#6771](https://github.com/vatesfr/xen-orchestra/pull/6771))
+- [Backup/exports] Retry when failing to read a data block during Delta Backup, Continuous Replication, disk and OVA export when NBD is enabled [PR #6763](https://github.com/vatesfr/xen-orchestra/pull/6763)
+- [Host] Smart reboot: suspend resident VMs, restart host and resume VMs [#6750](https://github.com/vatesfr/xen-orchestra/issues/6750) (PR [#6795](https://github.com/vatesfr/xen-orchestra/pull/6795))
+
+### Bug fixes
+
+- [Plugins/usage-report] Compute stats on configured period instead of the whole year (PR [#6723](https://github.com/vatesfr/xen-orchestra/pull/6723))
+- [Backup] Fix `Invalid parameters` when deleting `speed limit` value (PR [#6768](https://github.com/vatesfr/xen-orchestra/pull/6768))
+- [Delta Backup] Restoring a backup with memory must create a suspended VM [#5061](https://github.com/vatesfr/xen-orchestra/issues/5061) (PR [#6774](https://github.com/vatesfr/xen-orchestra/pull/6774))
+- [Backup] Show original error instead of `stream has ended without data`
+- [Ova import] Fix Ova import error `No user expected grain marker, received [object Object]` [Forum#60648](https://xcp-ng.org/forum/post/60648) (PR [#6779](https://github.com/vatesfr/xen-orchestra/pull/6779))
+- [Continuous Replication] Remove irrelevant _Suspend VDI not available for this suspended VM_ error [Forum#61169](https://xcp-ng.org/forum/post/61169)
+- [Kubernetes recipe] Add DNS configuration (PR [#6678](https://github.com/vatesfr/xen-orchestra/pull/6678))
+- [Backup] Fix `INTERNAL_ERROR, (Failure \"Expected bool, got 'I(0)'\")"` restoring a VM extracted from an XenServer < 7.1(PR [#6772](https://github.com/vatesfr/xen-orchestra/pull/6772))
+
+### Released packages
+
+- @vates/diff 0.1.0
+- @vates/read-chunk 1.1.1
+- @vates/stream-reader 0.1.0
+- vhd-lib 4.4.0
+- xen-api 1.3.0
+- @vates/nbd-client 1.2.0
+- @vates/task 0.1.0
+- @xen-orchestra/xapi 2.2.0
+- @xen-orchestra/backups 0.35.0
+- @xen-orchestra/backups-cli 1.0.5
+- @xen-orchestra/mixins 0.10.0
+- @xen-orchestra/proxy 0.26.20
+- @xen-orchestra/vmware-explorer 0.2.2
+- xo-cli 0.18.0
+- xo-server 5.112.0
+- xo-server-usage-report 0.10.4
+- xo-web 5.115.0
+
+## **5.81** (2023-03-31)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
+### Highlights
+
+- [VM] Show distro icon for opensuse-microos [Forum#6965](https://xcp-ng.org/forum/topic/6965) (PR [#6746](https://github.com/vatesfr/xen-orchestra/pull/6746))
+- [Backup] Display the VM name label in the log even if the VM is not currently connected
+- [Backup] Display the SR name label in the log even if the SR is not currently connected
+- [Import VM] Ability to import multiple VMs from ESXi (PR [#6718](https://github.com/vatesfr/xen-orchestra/pull/6718))
+- [Backup/Advanced setting] Ability to add transfer limit per job (PRs [#6737](https://github.com/vatesfr/xen-orchestra/pull/6737), [#6728](https://github.com/vatesfr/xen-orchestra/pull/6728))
+- [License] Show Pro Support status icon at host level (PR [#6633](https://github.com/vatesfr/xen-orchestra/pull/6633))
+- [REST API] Backup logs are now available at `/rest/v0/backups/logs` and `/rest/v0/restore/logs`
+- [REST API] Backup jobs are now available at `/rest/v0/backups/jobs`
+
+### Bug fixes
+
+- [Backup/Restore] Fix restore via a proxy showing as interupted (PR [#6702](https://github.com/vatesfr/xen-orchestra/pull/6702))
+- [ESXI import] Fix failing imports when using non default datacenter name [Forum#59543](https://xcp-ng.org/forum/post/59543) PR [#6729](https://github.com/vatesfr/xen-orchestra/pull/6729)
+- [Backup] Fix backup worker consuming too much memory and being killed by system during full VM backup to S3 compatible remote PR [#6732](https://github.com/vatesfr/xen-orchestra/pull/6732)
+- [Plugin/perf-alert] Ignore special SRs (e.g. _XCP-ng Tools_, _DVD drives_, etc) as their usage is always 100% (PR [#6755](https://github.com/vatesfr/xen-orchestra/pull/6755))
+- [S3 remote] Relax bucket checks in browser to improve experience on S3 compatible remote [Forum#60426](https://xcp-ng.org/forum/post/60426) (PR [#6757](https://github.com/vatesfr/xen-orchestra/pull/6757))
+
+### Released packages
+
+- @vates/nbd-client 1.1.0
+- @vates/read-chunk 1.1.0
+- @xen-orchestra/fs 3.3.4
+- @xen-orchestra/backups 0.34.0
+- @xen-orchestra/backups-cli 1.0.4
+- @xen-orchestra/proxy 0.26.19
+- @xen-orchestra/vmware-explorer 0.2.1
+- @xen-orchestra/xapi 2.1.0
+- vhd-lib 4.3.0
+- xo-cli 0.17.1
+- xo-server 5.111.1
+- xo-server-perf-alert 0.3.5
+- xo-web 5.114.0
+
+## **5.80.2** (2023-03-16)
+
+<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
+
+### Enhancements
+
+- [Plugin/auth-oidc] Support `email` for _username field_ setting [Forum#59587](https://xcp-ng.org/forum/post/59587)
+- [Plugin/auth-oidc] Well-known suffix is now optional in _auto-discovery URL_
+- [PIF selector] Display the VLAN number when displaying a VLAN PIF [#4697](https://github.com/vatesfr/xen-orchestra/issues/4697) (PR [#6714](https://github.com/vatesfr/xen-orchestra/pull/6714))
+- [Home/pool, host] Grouping of alert icons (PR [#6655](https://github.com/vatesfr/xen-orchestra/pull/6655))
+
+### Bug fixes
+
+- [Plugin/auth-oidc] Fix empty user names when using default config [Forum#59587](https://xcp-ng.org/forum/post/59587)
+- [Pool/Pro License] Fix handling of licenses with no expiration date (PR [#6730](https://github.com/vatesfr/xen-orchestra/pull/6730))
+
+### Released packages
+
+- xo-server-auth-oidc 0.2.0
+- xo-web 5.113.0
+
+## **5.80.1** (2023-03-07)
 
 ### Bug fixes
 
@@ -162,8 +261,6 @@
 - xo-web 5.111.0
 
 ## **5.78.0** (2022-12-20)
-
-<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Highlights
 

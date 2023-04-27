@@ -1,12 +1,12 @@
 import HLJS from "highlight.js";
-import MarkdownIt from "markdown-it";
+import { marked } from "marked";
 
-export const markdown = new MarkdownIt();
-
-markdown.set({
-  highlight: (str: string, lang: string) => {
-    const code = highlight(str, lang);
-    return `<pre class="hljs"><button class="copy-button" type="button">Copy</button><code class="hljs-code">${code}</code></pre>`;
+marked.use({
+  renderer: {
+    code(str: string, lang: string) {
+      const code = highlight(str, HLJS.getLanguage(lang) ? lang : "plaintext");
+      return `<pre class="hljs"><button class="copy-button" type="button">Copy</button><code class="hljs-code">${code}</code></pre>`;
+    },
   },
 });
 
@@ -25,11 +25,7 @@ function highlight(str: string, lang: string) {
     case "vue-style":
       return wrap(str.trim(), "style");
     default: {
-      if (HLJS.getLanguage(lang) !== undefined) {
-        return copyable(HLJS.highlight(str, { language: lang }).value);
-      }
-
-      return copyable(markdown.utils.escapeHtml(str));
+      return copyable(HLJS.highlight(str, { language: lang }).value);
     }
   }
 }
@@ -62,3 +58,5 @@ function wrap(str: string, tag: "template" | "script" | "style") {
 function copyable(code: string) {
   return `<div class="copyable">${code}</div>`;
 }
+
+export default marked;

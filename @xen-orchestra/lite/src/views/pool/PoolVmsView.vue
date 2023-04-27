@@ -14,12 +14,12 @@
       :collection="vms"
       id-property="$ref"
     >
-      <template #header>
+      <template #head-row>
         <ColumnHeader :icon="faPowerOff" />
-        <ColumnHeader>Name</ColumnHeader>
-        <ColumnHeader>Description</ColumnHeader>
+        <ColumnHeader>{{ $t("name") }}</ColumnHeader>
+        <ColumnHeader>{{ $t("description") }}</ColumnHeader>
       </template>
-      <template #row="{ item: vm }">
+      <template #body-row="{ item: vm }">
         <td>
           <PowerStateIcon :state="vm.power_state" />
         </td>
@@ -43,18 +43,20 @@ import type { Filters } from "@/types/filter";
 import { faPowerOff } from "@fortawesome/free-solid-svg-icons";
 import { storeToRefs } from "pinia";
 import { ref } from "vue";
+import { useI18n } from "vue-i18n";
 
 const { records: vms } = useVmStore().subscribe();
 const { isMobile, isDesktop } = storeToRefs(useUiStore());
+const { t } = useI18n();
 
 const filters: Filters = {
-  name_label: { label: "VM Name", type: "string" },
-  name_description: { label: "VM Description", type: "string" },
+  name_label: { label: t("name"), type: "string" },
+  name_description: { label: t("description"), type: "string" },
   power_state: {
-    label: "VM State",
+    label: t("power-state"),
     icon: faPowerOff,
     type: "enum",
-    choices: ["Running", "Halted", "Paused"],
+    choices: ["Running", "Halted", "Paused", "Suspended"],
   },
 };
 

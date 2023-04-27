@@ -62,6 +62,8 @@ const SCHED_GRAN_TYPE_OPTIONS = [
 
 const forceReboot = host => restartHost(host, true)
 
+const smartReboot = host => restartHost(host, false, true) // don't force, suspend resident VMs
+
 const formatPack = ({ name, author, description, version }, key) => (
   <tr key={key}>
     <th>{_('supplementalPackTitle', { author, name })}</th>
@@ -253,15 +255,25 @@ export default class extends Component {
             ) : (
               telemetryButton
             )}
-            {host.power_state === 'Running' && (
+            {host.power_state === 'Running' && [
               <TabButton
+                key='smart-reboot'
+                btnStyle='warning'
+                handler={smartReboot}
+                handlerParam={host}
+                icon='freeze'
+                labelId='smartRebootHostLabel'
+                tooltip={_('smartRebootHostTooltip')}
+              />,
+              <TabButton
+                key='force-reboot'
                 btnStyle='warning'
                 handler={forceReboot}
                 handlerParam={host}
                 icon='host-force-reboot'
                 labelId='forceRebootHostLabel'
-              />
-            )}
+              />,
+            ]}
             {host.enabled ? (
               <TabButton
                 btnStyle='warning'

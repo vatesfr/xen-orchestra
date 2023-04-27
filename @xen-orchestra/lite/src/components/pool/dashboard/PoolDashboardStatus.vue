@@ -1,7 +1,9 @@
 <template>
-  <UiCard>
+  <UiCard :color="hasError ? 'error' : undefined">
     <UiCardTitle>{{ $t("status") }}</UiCardTitle>
-    <template v-if="isReady">
+    <NoDataError v-if="hasError" />
+    <UiSpinner v-else-if="!isReady" class="spinner" />
+    <template v-else>
       <PoolDashboardStatusItem
         :active="activeHostsCount"
         :label="$t('hosts')"
@@ -14,11 +16,11 @@
         :total="totalVmsCount"
       />
     </template>
-    <UiSpinner v-else class="spinner" />
   </UiCard>
 </template>
 
 <script lang="ts" setup>
+import NoDataError from "@/components/NoDataError.vue";
 import PoolDashboardStatusItem from "@/components/pool/dashboard/PoolDashboardStatusItem.vue";
 import UiCard from "@/components/ui/UiCard.vue";
 import UiCardTitle from "@/components/ui/UiCardTitle.vue";
@@ -28,10 +30,20 @@ import { useHostMetricsStore } from "@/stores/host-metrics.store";
 import { useVmStore } from "@/stores/vm.store";
 import { computed } from "vue";
 
-const { isReady: isVmReady, records: vms } = useVmStore().subscribe();
+const {
+  isReady: isVmReady,
+  records: vms,
+  hasError: hasVmError,
+  runningVms,
+} = useVmStore().subscribe();
 
-const { isReady: isHostMetricsReady, records: hostMetrics } =
-  useHostMetricsStore().subscribe();
+const {
+  isReady: isHostMetricsReady,
+  records: hostMetrics,
+  hasError: hasHostMetricsError,
+} = useHostMetricsStore().subscribe();
+
+const hasError = computed(() => hasVmError.value || hasHostMetricsError.value);
 
 const isReady = computed(() => isVmReady.value && isHostMetricsReady.value);
 
@@ -43,9 +55,7 @@ const activeHostsCount = computed(
 
 const totalVmsCount = computed(() => vms.value.length);
 
-const activeVmsCount = computed(
-  () => vms.value.filter((vm) => vm.power_state === "Running").length
-);
+const activeVmsCount = computed(() => runningVms.value.length);
 </script>
 
 <style lang="postcss" scoped>

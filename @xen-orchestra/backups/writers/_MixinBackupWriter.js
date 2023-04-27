@@ -80,7 +80,7 @@ exports.MixinBackupWriter = (BaseClass = Object) =>
       assert.notStrictEqual(
         this._metadataFileName,
         undefined,
-        'Metadata file name should be defined before making a healthcheck'
+        'Metadata file name should be defined before making a health check'
       )
       return Task.run(
         {

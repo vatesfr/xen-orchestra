@@ -1,6 +1,9 @@
 <template>
   <ul class="infra-host-list">
-    <li v-if="!isReady">{{ $t("loading-hosts") }}</li>
+    <li v-if="hasError" class="text-error">
+      {{ $t("error-no-data") }}
+    </li>
+    <li v-else-if="!isReady">{{ $t("loading-hosts") }}</li>
     <template v-else>
       <InfraHostItem
         v-for="host in hosts"
@@ -15,5 +18,15 @@
 import InfraHostItem from "@/components/infra/InfraHostItem.vue";
 import { useHostStore } from "@/stores/host.store";
 
-const { records: hosts, isReady } = useHostStore().subscribe();
+const { records: hosts, isReady, hasError } = useHostStore().subscribe();
 </script>
+
+<style lang="postcss" scoped>
+.text-error {
+  padding-left: 3rem;
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 150%;
+  color: var(--color-red-vates-base);
+}
+</style>

@@ -7,9 +7,9 @@ import isEmpty from 'lodash/isEmpty'
 import map from 'lodash/map'
 import React from 'react'
 import HomeTags from 'home-tags'
-import renderXoItem from 'render-xo-item'
+import renderXoItem, { VmTemplate } from 'render-xo-item'
 import Tooltip from 'tooltip'
-import { addTag, editVm, removeTag } from 'xo'
+import { addTag, editVm, removeTag, subscribeUsers } from 'xo'
 import { BlockLink } from 'link'
 import { FormattedRelative, FormattedDate } from 'react-intl'
 import { Container, Row, Col } from 'grid'
@@ -20,10 +20,16 @@ import {
   createGetVmLastShutdownTime,
   createSelector,
   getResolvedPendingTasks,
+  isAdmin,
 } from 'selectors'
-import { connectStore, formatSizeShort, getVirtualizationModeLabel, osFamily } from 'utils'
+import { addSubscriptions, connectStore, formatSizeShort, getVirtualizationModeLabel, osFamily } from 'utils'
 import { CpuSparkLines, MemorySparkLines, NetworkSparkLines, XvdSparkLines } from 'xo-sparklines'
 import { injectState, provideState } from 'reaclette'
+import { find } from 'lodash'
+
+const CREATED_VM_STYLES = {
+  whiteSpace: 'pre-line',
+}
 
 const GuestToolsDetection = ({ vm }) => {
   if (vm.power_state !== 'Running' || vm.pvDriversDetected === undefined) {
@@ -93,13 +99,25 @@ const GeneralTab = decorate([
     )
 
     return (state, props) => ({
+      isAdmin: isAdmin(state, props),
       lastShutdownTime: createGetVmLastShutdownTime()(state, props),
       // true: useResourceSet to bypass permissions
       resolvedPendingTasks: getResolvedPendingTasks(state, props, true),
       vgpu: getAttachedVgpu(state, props),
       vgpuTypes: getVgpuTypes(state, props),
+      vmTemplate: createGetObjectsOfType('VM-template').find(
+        (_, { pool, vm }) =>
+          template =>
+            template.$poolId === pool.id && template.uuid === vm.creation?.template
+      )(state, props),
     })
   }),
+  addSubscriptions(
+    ({ isAdmin, vm }) =>
+      isAdmin && {
+        vmCreator: cb => subscribeUsers(users => cb(find(users, user => user.id === vm.creation?.user))),
+      }
+  ),
   provideState({
     computed: {
       vmResolvedPendingTasks: (_, { resolvedPendingTasks, vm }) => {
@@ -109,7 +127,18 @@ const GeneralTab = decorate([
     },
   }),
   injectState,
-  ({ state: { vmResolvedPendingTasks }, lastShutdownTime, statsOverview, vgpu, vgpuTypes, vm, vmTotalDiskSpace }) => {
+  ({
+    isAdmin,
+    state: { vmResolvedPendingTasks },
+    lastShutdownTime,
+    statsOverview,
+    vgpu,
+    vgpuTypes,
+    vm,
+    vmCreator,
+    vmTemplate,
+    vmTotalDiskSpace,
+  }) => {
     const {
       CPUs: cpus,
       id,
@@ -122,6 +151,7 @@ const GeneralTab = decorate([
       tags,
       VIFs: vifs,
     } = vm
+
     return (
       <Container>
         {/* TODO: use CSS style */}
@@ -165,13 +195,23 @@ const GeneralTab = decorate([
         <br />
         <Row className='text-xs-center'>
           <Col mediumSize={3}>
-            {installTime !== null && (
-              <div className='text-xs-center'>
-                {_('created', {
-                  date: <FormattedDate day='2-digit' month='long' value={installTime * 1000} year='numeric' />,
-                })}
-              </div>
-            )}
+            <p style={CREATED_VM_STYLES}>
+              {_(isAdmin ? 'vmCreatedAdmin' : 'vmCreatedNonAdmin', {
+                user: vmCreator?.email ?? _('unknown'),
+                date:
+                  installTime !== null ? (
+                    <FormattedDate day='2-digit' month='long' value={installTime * 1000} year='numeric' />
+                  ) : (
+                    _('unknown')
+                  ),
+                template:
+                  vmTemplate !== undefined ? (
+                    <VmTemplate id={vmTemplate.id} />
+                  ) : (
+                    vm.other.base_template_name ?? _('unknown')
+                  ),
+              })}
+            </p>
             {powerState === 'Running' || powerState === 'Paused' ? (
               <div>
                 <p className='text-xs-center'>

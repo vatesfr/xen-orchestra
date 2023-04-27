@@ -2,6 +2,7 @@
   opacity: 0.5;
 }
 
-tr:hover .button, tr:focus .button {
+tr:hover .button,
+tr:focus .button {
   opacity: 1;
 }

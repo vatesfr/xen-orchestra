@@ -45,10 +45,12 @@ exports.DeltaReplicationWriter = class DeltaReplicationWriter extends MixinRepli
       data: {
         id: this._sr.uuid,
         isFull,
+        name_label: this._sr.name_label,
         type: 'SR',
       },
     })
     this.transfer = task.wrapFn(this.transfer)
+    this.healthCheck = task.wrapFn(this.healthCheck)
     this.cleanup = task.wrapFn(this.cleanup, true)
 
     return task.run(() => this._prepare())

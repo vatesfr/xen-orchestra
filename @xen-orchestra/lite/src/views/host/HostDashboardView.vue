@@ -1,4 +1,7 @@
 <template>
-  Host dashboard (coming soon)
-  <RouterView />
+  <PageUnderConstruction />
 </template>
+
+<script lang="ts" setup>
+import PageUnderConstruction from "@/components/PageUnderConstruction.vue";
+</script>

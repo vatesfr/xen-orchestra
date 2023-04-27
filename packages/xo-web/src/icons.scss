@@ -181,6 +181,10 @@
     @extend .fa;
     @extend .fa-play;
   }
+  &-freeze {
+    @extend .fa;
+    @extend .fa-snowflake-o;
+  }
   &-forget {
     @extend .fa;
     @extend .fa-ban;
@@ -346,7 +350,6 @@
     @extend .fa;
     @extend .fa-circle-thin;
   }
-
 
   // Backups
   &-backup {
@@ -684,7 +687,6 @@
       @extend .fa-times;
     }
   }
-
 
   // Host and VM actions
   &-host,

@@ -1,6 +1,5 @@
 import { buildXoObject } from "@/libs/utils";
 import XapiStats from "@/libs/xapi-stats";
-import type { XenApiRecord } from "@/libs/xen-api";
 import XenApi, { getRawObjectType } from "@/libs/xen-api";
 import { useXapiCollectionStore } from "@/stores/xapi-collection.store";
 import { useLocalStorage } from "@vueuse/core";

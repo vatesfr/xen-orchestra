@@ -19,7 +19,9 @@ const messages = {
   esxiImportStopSource: 'Stop the source VM',
   esxiImportStopSourceDescription:
     'Source VM stopped before the last delta transfer (after final snapshot). Needed to fully transfer a running VM',
-
+  esxiImportStopOnErrorDescription: 'Stop on the first error when importing VMs',
+  nImportVmsInParallel: 'Number of VMs to import in parallel',
+  stopOnError: 'Stop on error',
   vmSrUsage: 'Storage: {used} used of {total} ({free} free)',
 
   notDefined: 'Not defined',
@@ -52,6 +54,7 @@ const messages = {
   browseFiles: 'Browse files',
   showLogs: 'Show logs',
   noValue: 'None',
+  noExpiration: 'No expiration',
   compression: 'Compression',
   core: 'Core',
   cpu: 'CPU',
@@ -581,6 +584,7 @@ const messages = {
   confirmDeleteBackupJobsBody:
     'Are you sure you want to delete {nJobs, number} backup job{nJobs, plural, one {} other {s}}?',
   runBackupJob: 'Run backup job once',
+  speedLimit: 'Speed limit (in MiB/s)',
 
   // ------ Remote -----
   remoteName: 'Name',
@@ -913,6 +917,10 @@ const messages = {
 
   // ----- Host item ------
   host: 'Host',
+  hostNoLicensePartialProSupport:
+    'This host does not have an active license, even though it is in a pool with licensed hosts. In order for XCP-ng Pro Support to be enabled on a pool, all hosts within the pool must have an active license',
+  hostNoSupport: 'No XCP-ng Pro Support enabled on this host',
+  hostSupportEnabled: 'XCP-ng Pro Support enabled on this host',
   noMoreMaintained: 'This host version is no longer maintained',
 
   // ----- Host actions ------
@@ -923,6 +931,8 @@ const messages = {
   enableHostLabel: 'Enable',
   disableHostLabel: 'Disable',
   restartHostAgent: 'Restart toolstack',
+  smartRebootHostLabel: 'Smart reboot',
+  smartRebootHostTooltip: 'Suspend resident VMs, reboot host and resume VMs automatically',
   forceRebootHostLabel: 'Force reboot',
   rebootHostLabel: 'Reboot',
   noHostsAvailableErrorTitle: 'Error while restarting host',
@@ -1112,11 +1122,12 @@ const messages = {
   noIpv4Record: 'No IPv4 record',
   noIpRecord: 'No IP record',
   started: 'Started {ago}',
-  created: 'Created on {date}',
   paraVirtualizedMode: 'Paravirtualization (PV)',
   hardwareVirtualizedMode: 'Hardware virtualization (HVM)',
   hvmModeWithPvDriversEnabled: 'Hardware virtualization with paravirtualization drivers enabled (PVHVM)',
   pvInPvhMode: 'PV inside a PVH container (PV in PVH)',
+  vmCreatedAdmin: 'Created by {user}\non {date}\nwith template {template}',
+  vmCreatedNonAdmin: 'Created on {date}\nwith template {template}',
   windowsUpdateTools: 'Manage Citrix PV drivers via Windows Update',
   windowsToolsModalTitle: 'Windows Update Tools',
   windowsToolsModalMessage:
@@ -1644,7 +1655,7 @@ const messages = {
   startVdiImport: 'VDI import starting…',
   startVmExport: 'Export starting…',
   startVdiExport: 'VDI export starting…',
-  nCpus: 'N CPUs',
+  nCpus: 'Number of CPUs',
   vmMemory: 'Memory',
   diskInfo: 'Disk {position} ({capacity})',
   diskDescription: 'Disk description',
@@ -2418,14 +2429,17 @@ const messages = {
   templatesLabel: 'Templates',
   recipesLabel: 'Recipes',
   network: 'Network',
-  recipeMasterNameLabel: 'Master node name',
+  recipeClusterNameLabel: 'Cluster name',
   recipeNumberOfNodesLabel: 'Number of worker nodes',
   recipeSshKeyLabel: 'SSH key',
   recipeStaticIpAddresses: 'Static IP addresses',
-  recipeMasterIpAddress: 'Master node IP address',
-  recipeWorkerIpAddress: 'Worker node { i } IP address',
-  recipeNetworkMask: 'Network Mask',
+  recipeControlPlaneIpAddress: 'Control plane node IP address/subnet mask',
+  recipeWorkerIpAddress: 'Worker node { i, number } IP address/subnet mask',
   recipeGatewayIpAddress: 'Gateway IP address',
+  recipeNameserverAddresses: 'Nameserver IP addresses',
+  recipeNameserverAddressesExample: '192.168.1.0,172.16.1.0',
+  recipeSearches: 'Search domains',
+  recipeSearchesExample: 'domain.com,search.org',
 
   // Audit
   auditActionEvent: 'Action/Event',
