@@ -10,12 +10,12 @@
 - `is_protected`: The TPM is encrypted whenever it's transferred or at stored to disk (and exported)
 - `is_unique`: The TPM contents are exclusive to that VM, that means it has never been cloned (and maybe never exported nor imported)
 
-vTPM features are only enabled if XAPI is recent enough (check for `pool.restrict` or version (>= 8.3)). _((Samuel: exact check to be defined))_
+vTPM features are only enabled if XAPI is recent enough (check for `pool.restrict` or version (>= 8.3)).
 
 - vTPM
   - At VM creation
-    - A toggle will be displayed in advanced settings under `boot firmware`. _((Samuel: TODO define label of this toggle. Something like "Attach a vTPM to the VM", or just "vTPM"? We also probably need to define a tooltip for this label - or other means through which you provide explanations to users in XO - to explain what it is))_
-    - The default value is `false`, except for Windows >= W11. \*((Samuel: we now know what the exact check is. It's defined in the template: ))
+    - A toggle will be displayed in advanced settings under `boot firmware`.
+    - The default value is `false`, except for Windows >= W11.
       - A message will be displayed below the toggle if:
         - The value is `true`: _Please note that once the vTPM is used, its deletion is strongly discouraged as it will lead to data loss._
         - The value is `false` and the VM is a Windows 11 or later: _VMs under Windows 11 or later cannot be created without vTPM_
