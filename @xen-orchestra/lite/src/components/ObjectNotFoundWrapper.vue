@@ -12,13 +12,9 @@ import { useHostStore } from "@/stores/host.store";
 import { useVmStore } from "@/stores/vm.store";
 import { computed } from "vue";
 import { useRouter } from "vue-router";
-import { inject } from "vue";
-import {
-  XOLITE_SUFFIX,
-  type XoLiteTitleComposable,
-} from "@/composables/xo-lite-title.composable";
 import { whenever } from "@vueuse/core";
 import { useI18n } from "vue-i18n";
+import { useTitleStore } from "@/stores/title.store";
 
 const storeByType = {
   vm: useVmStore,
@@ -30,8 +26,7 @@ const props = defineProps<{ objectType: "vm" | "host"; id?: string }>();
 const store = storeByType[props.objectType]();
 const { currentRoute } = useRouter();
 const { t } = useI18n();
-
-const xoLiteTitle = inject<XoLiteTitleComposable>("xoLiteTitle");
+const title = useTitleStore();
 
 const id = computed(
   () => props.id ?? (currentRoute.value.params.uuid as string)
@@ -41,7 +36,7 @@ const isRecordNotFound = computed(
 );
 
 whenever(isRecordNotFound, () => {
-  xoLiteTitle?.setTitle(t("not-found").concat(XOLITE_SUFFIX));
+  title.customTitle = t("not-found");
 });
 </script>
 

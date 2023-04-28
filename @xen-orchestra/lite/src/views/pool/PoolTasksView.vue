@@ -21,13 +21,13 @@ import useCollectionFilter from "@/composables/collection-filter.composable";
 import useCollectionSorter from "@/composables/collection-sorter.composable";
 import useFilteredCollection from "@/composables/filtered-collection.composable";
 import useSortedCollection from "@/composables/sorted-collection.composable";
-import type { XoLiteTitleComposable } from "@/composables/xo-lite-title.composable";
 import type { XenApiTask } from "@/libs/xen-api";
 import { useTaskStore } from "@/stores/task.store";
+import { useTitleStore } from "@/stores/title.store";
 import { storeToRefs } from "pinia";
-import { inject, watchEffect } from "vue";
+import { watchEffect } from "vue";
 
-const xoLiteTitle = inject<XoLiteTitleComposable>("xoLiteTitle");
+const titleStore = useTitleStore();
 
 const { allRecords, isReady } = storeToRefs(useTaskStore());
 
@@ -57,7 +57,7 @@ const finishedTasks = useArrayRemovedItemsHistory(
 );
 
 watchEffect(() => {
-  xoLiteTitle?.setComplementary(pendingTasks.value.length);
+  titleStore.complementary = pendingTasks.value.length;
 });
 </script>
 

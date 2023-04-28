@@ -12,8 +12,14 @@
 <script setup lang="ts">
 import { useRouter } from "vue-router";
 import UiButton from "@/components/ui/UiButton.vue";
+import { useTitleStore } from "@/stores/title.store";
+import { useI18n } from "vue-i18n";
 
 const router = useRouter();
+const titleStore = useTitleStore();
+const { t } = useI18n();
+
+titleStore.customTitle = t("not-found");
 </script>
 
 <style lang="postcss" scoped>

@@ -43,20 +43,17 @@ import AppNavigation from "@/components/AppNavigation.vue";
 import AppTooltips from "@/components/AppTooltips.vue";
 import UiButton from "@/components/ui/UiButton.vue";
 import UiModal from "@/components/ui/UiModal.vue";
-import useXoLiteTitle from "@/composables/xo-lite-title.composable";
 import { useChartTheme } from "@/composables/chart-theme.composable";
 import { useHostStore } from "@/stores/host.store";
+import { useTitleStore } from "@/stores/title.store";
 import { useUiStore } from "@/stores/ui.store";
 import { useXenApiStore } from "@/stores/xen-api.store";
 import { faServer } from "@fortawesome/free-solid-svg-icons";
 import { useActiveElement, useMagicKeys, whenever } from "@vueuse/core";
 import { logicAnd } from "@vueuse/math";
 import { difference } from "lodash";
-import { computed, provide, ref, watch, watchEffect } from "vue";
+import { computed, ref, watch, watchEffect } from "vue";
 import { useRoute } from "vue-router";
-
-const xoLiteTitle = useXoLiteTitle();
-provide("xoLiteTitle", xoLiteTitle);
 
 const unreachableHostsUrls = ref<URL[]>([]);
 const clearUnreachableHostsUrls = () => (unreachableHostsUrls.value = []);
@@ -75,6 +72,9 @@ const xenApiStore = useXenApiStore();
 const hostStore = useHostStore();
 useChartTheme();
 const uiStore = useUiStore();
+const titleStore = useTitleStore();
+
+titleStore.init();
 
 if (import.meta.env.DEV) {
   const activeElement = useActiveElement();

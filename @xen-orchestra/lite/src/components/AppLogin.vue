@@ -28,19 +28,18 @@
 
 <script lang="ts" setup>
 import { storeToRefs } from "pinia";
-import { inject, onMounted, ref, watch } from "vue";
+import { onMounted, onUnmounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import FormInput from "@/components/form/FormInput.vue";
 import FormInputWrapper from "@/components/form/FormInputWrapper.vue";
 import UiButton from "@/components/ui/UiButton.vue";
 import { useXenApiStore } from "@/stores/xen-api.store";
-import type { XoLiteTitleComposable } from "@/composables/xo-lite-title.composable";
-import { XOLITE_SUFFIX } from "@/composables/xo-lite-title.composable";
 import { useRouter } from "vue-router";
-import { whenever } from "@vueuse/core";
+import { useTitleStore } from "@/stores/title.store";
 
 const { t } = useI18n();
 const { currentRoute } = useRouter();
+const titleStore = useTitleStore();
 const xenApiStore = useXenApiStore();
 const { isConnecting } = storeToRefs(xenApiStore);
 const login = ref("root");
@@ -49,8 +48,6 @@ const error = ref<string>();
 const passwordRef = ref<InstanceType<typeof FormInput>>();
 const isInvalidPassword = ref(false);
 
-const xoLiteTitle = inject<XoLiteTitleComposable>("xoLiteTitle");
-
 const focusPasswordInput = () => passwordRef.value?.focus();
 
 onMounted(() => {
@@ -58,12 +55,14 @@ onMounted(() => {
   focusPasswordInput();
 });
 
-whenever(
-  () => currentRoute.value.name === "home",
-  () => {
-    xoLiteTitle?.setTitle(t("login").concat(XOLITE_SUFFIX));
-  }
-);
+// Need to force and manually clean up the `customTitle`
+// because `<AppLogin />` can be displayed between routes. for example route.name: pool.dashboard
+watch(currentRoute, () => {
+  titleStore.customTitle = t("login");
+});
+onUnmounted(() => {
+  titleStore.customTitle = undefined;
+});
 
 watch(password, () => {
   isInvalidPassword.value = false;
