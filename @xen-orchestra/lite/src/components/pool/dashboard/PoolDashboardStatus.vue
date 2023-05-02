@@ -2,7 +2,7 @@
   <UiCard :color="hasError ? 'error' : undefined">
     <UiCardTitle>{{ $t("status") }}</UiCardTitle>
     <NoDataError v-if="hasError" />
-    <UiSpinner v-else-if="!isReady" class="spinner" />
+    <UiCardSpinner v-else-if="!isReady" />
     <template v-else>
       <PoolDashboardStatusItem
         :active="activeHostsCount"
@@ -23,9 +23,9 @@
 import NoDataError from "@/components/NoDataError.vue";
 import PoolDashboardStatusItem from "@/components/pool/dashboard/PoolDashboardStatusItem.vue";
 import UiCard from "@/components/ui/UiCard.vue";
+import UiCardSpinner from "@/components/ui/UiCardSpinner.vue";
 import UiCardTitle from "@/components/ui/UiCardTitle.vue";
 import UiSeparator from "@/components/ui/UiSeparator.vue";
-import UiSpinner from "@/components/ui/UiSpinner.vue";
 import { useHostMetricsStore } from "@/stores/host-metrics.store";
 import { useVmStore } from "@/stores/vm.store";
 import { computed } from "vue";
@@ -57,13 +57,3 @@ const totalVmsCount = computed(() => vms.value.length);
 
 const activeVmsCount = computed(() => runningVms.value.length);
 </script>
-
-<style lang="postcss" scoped>
-.spinner {
-  color: var(--color-extra-blue-base);
-  display: flex;
-  margin: auto;
-  width: 40px;
-  height: 40px;
-}
-</style>
