@@ -7,7 +7,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [Kubernetes] Add the possibility to choose the number of fault tolerance for the control planes
+- [Kubernetes] Add the possibility to choose the number of fault tolerance for the control planes (PR [#6809](https://github.com/vatesfr/xen-orchestra/pull/6809))
 
 ### Bug fixes
 
