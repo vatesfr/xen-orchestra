@@ -8,6 +8,26 @@ import { injectIntl } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
 import { isSrWritable } from 'xo'
 import { SelectPool, SelectNetwork, SelectSr } from 'select-objects'
+import { Select } from 'form'
+
+const FAULT_TOLERANCE = [
+  {
+    label: _('recipeNoneFaultTolerance'),
+    value: 0,
+  },
+  {
+    label: _('recipeOneFaultTolerance'),
+    value: 1,
+  },
+  {
+    label: _('recipeTwoFaultTolerance'),
+    value: 2,
+  },
+  {
+    label: _('recipeThreeFaultTolerance'),
+    value: 3,
+  },
+]
 
 export default decorate([
   injectIntl,
@@ -40,6 +60,13 @@ export default decorate([
         onChange({
           ...prevValue,
           [name]: value,
+        })
+      },
+      onChangeFaultTolerance(__, faultTolerance) {
+        const { onChange, value } = this.props
+        onChange({
+          ...value,
+          faultTolerance: faultTolerance.value,
         })
       },
       onChangeWorkerIp(__, ev) {
@@ -149,17 +176,15 @@ export default decorate([
         />
       </FormGrid.Row>
       <FormGrid.Row>
-        <label>
-          <input
-            className='mt-1'
-            name='highAvailability'
-            onChange={effects.toggleStaticIpAddress}
-            type='checkbox'
-            value={value.highAvailability}
-          />
-          &nbsp;
-          {_('recipeHighAvailability')}
-        </label>
+        <label>{_('recipeFaultTolerance')}</label>
+        <Select
+          className='mb-1'
+          name='faultTolerance'
+          onChange={effects.onChangeFaultTolerance}
+          options={FAULT_TOLERANCE}
+          required
+          value={value.faultTolerance}
+        />
       </FormGrid.Row>
       <FormGrid.Row>
         <label>
@@ -176,8 +201,8 @@ export default decorate([
       </FormGrid.Row>
       {value.nbNodes > 0 &&
         value.staticIpAddress && [
-          value.highAvailability && [
-            Array.from({ length: 3 }).map((v, i) => (
+          value.faultTolerance > 0 && [
+            Array.from({ length: value.faultTolerance * 2 + 1 }).map((v, i) => (
               <FormGrid.Row key={i}>
                 <label>{_('recipeHaControPlaneIpAddress', { i: i + 1 })}</label>
                 <input
@@ -204,7 +229,7 @@ export default decorate([
               />
             </FormGrid.Row>,
           ],
-          !value.highAvailability && [
+          value.faultTolerance === 0 && [
             <FormGrid.Row key='controlPlaneIpAddrRow'>
               <label>{_('recipeControlPlaneIpAddress')}</label>
               <input
