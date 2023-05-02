@@ -877,7 +877,8 @@ export async function convertToTemplate({ vm }) {
 
   // Attempts to eject all removable media
   const ignoreNotRemovable = error => {
-    if (error.code !== 'VBD_NOT_REMOVABLE_MEDIA') {
+    const { code } = error
+    if (code === 'VBD_IS_EMPTY' && code !== 'VBD_NOT_REMOVABLE_MEDIA') {
       throw error
     }
   }
