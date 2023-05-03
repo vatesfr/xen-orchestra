@@ -1615,6 +1615,7 @@ const messages = {
   saveResourceSet: 'Save',
   resetResourceSet: 'Reset',
   editResourceSet: 'Edit',
+  defaultTags: 'Default tags',
   deleteResourceSet: 'Delete',
   deleteResourceSetWarning: 'Delete resource set',
   deleteResourceSetQuestion: 'Are you sure you want to delete this resource set?',

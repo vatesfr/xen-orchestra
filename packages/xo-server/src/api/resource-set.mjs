@@ -1,5 +1,5 @@
-export function create({ name, shareByDefault, subjects, objects, limits }) {
-  return this.createResourceSet(name, subjects, objects, limits, shareByDefault)
+export function create({ name, shareByDefault, subjects, objects, tags, limits }) {
+  return this.createResourceSet(name, subjects, objects, limits, shareByDefault, tags)
 }
 
 create.permission = 'admin'
@@ -8,13 +8,6 @@ create.params = {
   name: {
     type: 'string',
   },
-  subjects: {
-    type: 'array',
-    items: {
-      type: 'string',
-    },
-    optional: true,
-  },
   objects: {
     type: 'array',
     items: {
@@ -22,8 +15,18 @@ create.params = {
     },
     optional: true,
   },
-  limits: {
-    type: 'object',
+  subjects: {
+    type: 'array',
+    items: {
+      type: 'string',
+    },
+    optional: true,
+  },
+  tags: {
+    type: 'array',
+    items: {
+      type: 'string',
+    },
     optional: true,
   },
   shareByDefault: {
@@ -49,11 +52,12 @@ delete_.params = {
 
 // -------------------------------------------------------------------
 
-export function set({ id, name, shareByDefault, subjects, objects, ipPools, limits }) {
+export function set({ id, name, shareByDefault, subjects, objects, tags, ipPools, limits }) {
   return this.updateResourceSet(id, {
     limits,
     name,
     objects,
+    tags,
     ipPools,
     shareByDefault,
     subjects,
@@ -72,7 +76,7 @@ set.params = {
   },
   shareByDefault: {
     type: 'boolean',
-    optional: true
+    optional: true,
   },
   subjects: {
     type: 'array',
@@ -95,8 +99,11 @@ set.params = {
     },
     optional: true,
   },
-  limits: {
-    type: 'object',
+  tags: {
+    type: 'array',
+    items: {
+      type: 'string',
+    },
     optional: true,
   },
 }
