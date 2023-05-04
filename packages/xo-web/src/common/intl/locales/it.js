@@ -680,6 +680,9 @@ export default {
   // Original text: 'Resource set: {resourceSet}'
   homeResourceSet: 'Set di risorse: {resourceSet}',
 
+  // Original text: 'High Availability'
+  highAvailability: 'Alta disponibilità',
+
   // Original text: 'Control plane fault tolerance'
   recipeFaultTolerance: 'Tolleranza ai guasti del piano di controllo',
 
