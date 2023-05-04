@@ -20,6 +20,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Backups] Fix incremental replication with multiple SRs (PR [#6811](https://github.com/vatesfr/xen-orchestra/pull/6811))
 - [Incremental Backup & Replication] Attempt to work around HVM multiplier issues when creating VMs on older XAPIs (PR [#6866](https://github.com/vatesfr/xen-orchestra/pull/6866))
 - [REST API] Fix VDI export when NBD is enabled
 - [XO Config Cloud Backup] Improve wording about passphrase (PR [#6938](https://github.com/vatesfr/xen-orchestra/pull/6938))

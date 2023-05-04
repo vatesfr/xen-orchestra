@@ -16,6 +16,8 @@ export const TAG_BASE_DELTA = 'xo:base_delta'
 
 export const TAG_COPY_SRC = 'xo:copy_of'
 
+const TAG_BACKUP_SR = 'xo:backup:sr'
+
 const ensureArray = value => (value === undefined ? [] : Array.isArray(value) ? value : [value])
 const resolveUuid = async (xapi, cache, uuid, type) => {
   if (uuid == null) {
@@ -157,7 +159,10 @@ export const importIncrementalVm = defer(async function importIncrementalVm(
   if (detectBase) {
     const remoteBaseVmUuid = vmRecord.other_config[TAG_BASE_DELTA]
     if (remoteBaseVmUuid) {
-      baseVm = find(xapi.objects.all, obj => (obj = obj.other_config) && obj[TAG_COPY_SRC] === remoteBaseVmUuid)
+      baseVm = find(
+        xapi.objects.all,
+        obj => (obj = obj.other_config) && obj[TAG_COPY_SRC] === remoteBaseVmUuid && obj[TAG_BACKUP_SR] === sr.$id
+      )
 
       if (!baseVm) {
         throw new Error(`could not find the base VM (copy of ${remoteBaseVmUuid})`)
