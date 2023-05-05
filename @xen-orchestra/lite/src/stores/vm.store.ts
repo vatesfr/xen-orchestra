@@ -1,17 +1,29 @@
-import { requireSubscription, sortRecordsByNameLabel } from "@/libs/utils";
-import type { GRANULARITY } from "@/libs/xapi-stats";
+import { sortRecordsByNameLabel } from "@/libs/utils";
+import type { GRANULARITY, XapiStatsResponse } from "@/libs/xapi-stats";
 import type { XenApiHost, XenApiVm } from "@/libs/xen-api";
-import {
-  type CollectionSubscription,
-  useXapiCollectionStore,
-} from "@/stores/xapi-collection.store";
+import { useXapiCollectionStore } from "@/stores/xapi-collection.store";
 import { useXenApiStore } from "@/stores/xen-api.store";
+import type { CollectionSubscription } from "@/types/xapi-collection";
 import { defineStore } from "pinia";
-import { computed } from "vue";
+import { computed, type ComputedRef } from "vue";
 
-type SubscribeOptions = {
-  hostSubscription?: CollectionSubscription<XenApiHost>;
+type HostSubscription = CollectionSubscription<XenApiHost>;
+
+type VmSubscribeOptions<H extends undefined | HostSubscription> = {
+  hostSubscription?: H;
 };
+
+interface VmSubscription extends CollectionSubscription<XenApiVm> {
+  recordsByHostRef: ComputedRef<Map<string, XenApiVm[]>>;
+  runningVms: ComputedRef<XenApiVm[]>;
+}
+
+interface VmSubscriptionWithGetStats extends VmSubscription {
+  getStats: (
+    id: string,
+    granularity: GRANULARITY
+  ) => Promise<XapiStatsResponse<any>>;
+}
 
 export const useVmStore = defineStore("vm", () => {
   const vmCollection = useXapiCollectionStore().get("VM");
@@ -22,7 +34,15 @@ export const useVmStore = defineStore("vm", () => {
 
   vmCollection.setSort(sortRecordsByNameLabel);
 
-  const subscribe = ({ hostSubscription }: SubscribeOptions = {}) => {
+  function subscribe(options?: VmSubscribeOptions<undefined>): VmSubscription;
+
+  function subscribe(
+    options?: VmSubscribeOptions<HostSubscription>
+  ): VmSubscriptionWithGetStats;
+
+  function subscribe({
+    hostSubscription,
+  }: VmSubscribeOptions<undefined | HostSubscription> = {}) {
     const vmSubscription = vmCollection.subscribe();
 
     const recordsByHostRef = computed(() => {
@@ -43,9 +63,17 @@ export const useVmStore = defineStore("vm", () => {
       vmSubscription.records.value.filter((vm) => vm.power_state === "Running")
     );
 
-    const getStats = (id: string, granularity: GRANULARITY) => {
-      requireSubscription(hostSubscription, "host");
+    const subscription = {
+      ...vmSubscription,
+      recordsByHostRef,
+      runningVms,
+    };
 
+    if (hostSubscription === undefined) {
+      return subscription;
+    }
+
+    const getStats = (id: string, granularity: GRANULARITY) => {
       const xenApiStore = useXenApiStore();
 
       if (!xenApiStore.isConnected) {
@@ -72,12 +100,10 @@ export const useVmStore = defineStore("vm", () => {
     };
 
     return {
-      ...vmSubscription,
-      recordsByHostRef,
+      ...subscription,
       getStats,
-      runningVms,
     };
-  };
+  }
 
   return {
     ...vmCollection,

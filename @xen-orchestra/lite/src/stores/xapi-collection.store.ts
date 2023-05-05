@@ -1,20 +1,14 @@
-import type {
-  RawObjectType,
-  XenApiConsole,
-  XenApiHost,
-  XenApiHostMetrics,
-  XenApiPool,
-  XenApiRecord,
-  XenApiSr,
-  XenApiTask,
-  XenApiVm,
-  XenApiVmGuestMetrics,
-  XenApiVmMetrics,
-} from "@/libs/xen-api";
+import type { RawObjectType, XenApiRecord } from "@/libs/xen-api";
 import { useXenApiStore } from "@/stores/xen-api.store";
+import type {
+  CollectionSubscription,
+  DeferredCollectionSubscription,
+  RawTypeToObject,
+  SubscribeOptions,
+} from "@/types/xapi-collection";
 import { tryOnUnmounted, whenever } from "@vueuse/core";
 import { defineStore } from "pinia";
-import { computed, type ComputedRef, readonly, type Ref, ref } from "vue";
+import { computed, readonly, ref } from "vue";
 
 export const useXapiCollectionStore = defineStore("xapiCollection", () => {
   const collections = ref(
@@ -34,18 +28,6 @@ export const useXapiCollectionStore = defineStore("xapiCollection", () => {
 
   return { get };
 });
-
-export interface CollectionSubscription<T extends XenApiRecord> {
-  records: ComputedRef<T[]>;
-  getByOpaqueRef: (opaqueRef: string) => T | undefined;
-  getByUuid: (uuid: string) => T | undefined;
-  hasUuid: (uuid: string) => boolean;
-  isReady: Readonly<Ref<boolean>>;
-  isFetching: Readonly<Ref<boolean>>;
-  isReloading: ComputedRef<boolean>;
-  hasError: ComputedRef<boolean>;
-  lastError: Readonly<Ref<string | undefined>>;
-}
 
 const createXapiCollection = <T extends XenApiRecord>(type: RawObjectType) => {
   const isReady = ref(false);
@@ -123,16 +105,30 @@ const createXapiCollection = <T extends XenApiRecord>(type: RawObjectType) => {
     () => fetchAll()
   );
 
-  const subscribe = () => {
+  function subscribe(
+    options?: SubscribeOptions<true>
+  ): CollectionSubscription<T>;
+
+  function subscribe(
+    options: SubscribeOptions<false>
+  ): DeferredCollectionSubscription<T>;
+
+  function subscribe(
+    options: SubscribeOptions<boolean>
+  ): CollectionSubscription<T> | DeferredCollectionSubscription<T>;
+
+  function subscribe({ immediate = true }: SubscribeOptions<boolean> = {}) {
     const id = Symbol();
 
-    subscriptions.value.add(id);
+    if (immediate) {
+      subscriptions.value.add(id);
+    }
 
     tryOnUnmounted(() => {
       unsubscribe(id);
     });
 
-    return {
+    const subscription = {
       records,
       getByOpaqueRef,
       getByUuid,
@@ -143,7 +139,17 @@ const createXapiCollection = <T extends XenApiRecord>(type: RawObjectType) => {
       hasError,
       lastError: readonly(lastError),
     };
-  };
+
+    if (immediate) {
+      return subscription;
+    }
+
+    return {
+      ...subscription,
+      start: () => subscriptions.value.add(id),
+      isStarted: computed(() => subscriptions.value.has(id)),
+    };
+  }
 
   const unsubscribe = (id: symbol) => subscriptions.value.delete(id);
 
@@ -157,60 +163,4 @@ const createXapiCollection = <T extends XenApiRecord>(type: RawObjectType) => {
     setFilter,
     setSort,
   };
-};
-
-type RawTypeToObject = {
-  Bond: never;
-  Certificate: never;
-  Cluster: never;
-  Cluster_host: never;
-  DR_task: never;
-  Feature: never;
-  GPU_group: never;
-  PBD: never;
-  PCI: never;
-  PGPU: never;
-  PIF: never;
-  PIF_metrics: never;
-  PUSB: never;
-  PVS_cache_storage: never;
-  PVS_proxy: never;
-  PVS_server: never;
-  PVS_site: never;
-  SDN_controller: never;
-  SM: never;
-  SR: XenApiSr;
-  USB_group: never;
-  VBD: never;
-  VBD_metrics: never;
-  VDI: never;
-  VGPU: never;
-  VGPU_type: never;
-  VIF: never;
-  VIF_metrics: never;
-  VLAN: never;
-  VM: XenApiVm;
-  VMPP: never;
-  VMSS: never;
-  VM_guest_metrics: XenApiVmGuestMetrics;
-  VM_metrics: XenApiVmMetrics;
-  VUSB: never;
-  blob: never;
-  console: XenApiConsole;
-  crashdump: never;
-  host: XenApiHost;
-  host_cpu: never;
-  host_crashdump: never;
-  host_metrics: XenApiHostMetrics;
-  host_patch: never;
-  network: never;
-  network_sriov: never;
-  pool: XenApiPool;
-  pool_patch: never;
-  pool_update: never;
-  role: never;
-  secret: never;
-  subject: never;
-  task: XenApiTask;
-  tunnel: never;
 };

@@ -1,21 +1,28 @@
-import {
-  isHostRunning,
-  requireSubscription,
-  sortRecordsByNameLabel,
-} from "@/libs/utils";
-import type { GRANULARITY } from "@/libs/xapi-stats";
-import type { XenApiHostMetrics } from "@/libs/xen-api";
-import {
-  type CollectionSubscription,
-  useXapiCollectionStore,
-} from "@/stores/xapi-collection.store";
+import { isHostRunning, sortRecordsByNameLabel } from "@/libs/utils";
+import type { GRANULARITY, XapiStatsResponse } from "@/libs/xapi-stats";
+import type { XenApiHost, XenApiHostMetrics } from "@/libs/xen-api";
+import { useXapiCollectionStore } from "@/stores/xapi-collection.store";
 import { useXenApiStore } from "@/stores/xen-api.store";
+import type { CollectionSubscription } from "@/types/xapi-collection";
 import { defineStore } from "pinia";
-import { computed } from "vue";
+import { computed, type ComputedRef } from "vue";
 
-type SubscribeOptions = {
-  hostMetricsSubscription?: CollectionSubscription<XenApiHostMetrics>;
-};
+type MetricsSubscription = CollectionSubscription<XenApiHostMetrics>;
+
+interface HostSubscribeOptions<M extends undefined | MetricsSubscription> {
+  hostMetricsSubscription?: M;
+}
+
+interface HostSubscription extends CollectionSubscription<XenApiHost> {
+  getStats: (
+    hostUuid: string,
+    granularity: GRANULARITY
+  ) => Promise<XapiStatsResponse<any>>;
+}
+
+interface HostSubscriptionWithRunningHosts extends HostSubscription {
+  runningHosts: ComputedRef<XenApiHost[]>;
+}
 
 export const useHostStore = defineStore("host", () => {
   const xenApiStore = useXenApiStore();
@@ -23,16 +30,18 @@ export const useHostStore = defineStore("host", () => {
 
   hostCollection.setSort(sortRecordsByNameLabel);
 
-  const subscribe = ({ hostMetricsSubscription }: SubscribeOptions = {}) => {
+  function subscribe(
+    options?: HostSubscribeOptions<undefined>
+  ): HostSubscription;
+
+  function subscribe(
+    options?: HostSubscribeOptions<MetricsSubscription>
+  ): HostSubscriptionWithRunningHosts;
+
+  function subscribe({
+    hostMetricsSubscription,
+  }: HostSubscribeOptions<undefined | MetricsSubscription> = {}) {
     const hostSubscription = hostCollection.subscribe();
-
-    const runningHosts = computed(() => {
-      requireSubscription(hostMetricsSubscription, "host_metrics");
-
-      return hostSubscription.records.value.filter((host) =>
-        isHostRunning(host, hostMetricsSubscription)
-      );
-    });
 
     const getStats = (hostUuid: string, granularity: GRANULARITY) => {
       const host = hostSubscription.getByUuid(hostUuid);
@@ -52,12 +61,26 @@ export const useHostStore = defineStore("host", () => {
       });
     };
 
-    return {
+    const subscription = {
       ...hostSubscription,
-      runningHosts,
       getStats,
     };
-  };
+
+    if (hostMetricsSubscription === undefined) {
+      return subscription;
+    }
+
+    const runningHosts = computed(() =>
+      hostSubscription.records.value.filter((host) =>
+        isHostRunning(host, hostMetricsSubscription)
+      )
+    );
+
+    return {
+      ...subscription,
+      runningHosts,
+    };
+  }
 
   return {
     ...hostCollection,

@@ -1,13 +1,12 @@
 import type {
-  RawObjectType,
   RawXenApiRecord,
   XenApiHost,
   XenApiHostMetrics,
   XenApiRecord,
   XenApiVm,
 } from "@/libs/xen-api";
-import type { CollectionSubscription } from "@/stores/xapi-collection.store";
 import type { Filter } from "@/types/filter";
+import type { CollectionSubscription } from "@/types/xapi-collection";
 import { faSquareCheck } from "@fortawesome/free-regular-svg-icons";
 import { faFont, faHashtag, faList } from "@fortawesome/free-solid-svg-icons";
 import { utcParse } from "d3-time-format";
@@ -182,15 +181,6 @@ export function parseRamUsage(
 
 export const getFirst = <T>(value: T | T[]): T | undefined =>
   Array.isArray(value) ? value[0] : value;
-
-export function requireSubscription<T>(
-  subscription: T | undefined,
-  type: RawObjectType
-): asserts subscription is T {
-  if (subscription === undefined) {
-    throw new Error(`You need to provide a ${type} subscription`);
-  }
-}
 
 export const isOperationsPending = (
   obj: XenApiVm,
