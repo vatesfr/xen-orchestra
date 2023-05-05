@@ -1,28 +1,27 @@
 <template>
   <div class="pool-dashboard-view">
-    <div class="item">
+    <div class="row first-row">
       <PoolDashboardStatus />
+      <PoolDashboardComingSoon title="Alarms" class="alarms" />
+      <PoolDashboardComingSoon title="Patches" />
     </div>
-    <div class="item">
-      <PoolDashboardStorageUsage />
+    <div class="row">
+      <div class="column">
+        <PoolDashboardStorageUsage />
+        <PoolDashboardNetworkChart />
+      </div>
+      <div class="column">
+        <PoolDashboardRamUsage />
+        <PoolDashboardRamUsageChart />
+      </div>
+      <div class="column">
+        <PoolDashboardCpuProvisioning />
+        <PoolDashboardCpuUsage />
+        <PoolCpuUsageChart />
+      </div>
     </div>
-    <div class="item">
-      <PoolDashboardCpuUsage />
-    </div>
-    <div class="item">
-      <PoolDashboardRamUsage />
-    </div>
-    <div class="item">
-      <PoolDashboardCpuProvisioning />
-    </div>
-    <div class="item">
-      <PoolDashboardNetworkChart />
-    </div>
-    <div class="item">
-      <PoolDashboardRamUsageChart />
-    </div>
-    <div class="item">
-      <PoolCpuUsageChart />
+    <div class="row">
+      <PoolDashboardComingSoon title="Tasks" class="tasks" />
     </div>
   </div>
 </template>
@@ -35,6 +34,7 @@ export const N_ITEMS = 5;
 import { useHostMetricsStore } from "@/stores/host-metrics.store";
 import { differenceBy } from "lodash-es";
 import { provide, watch } from "vue";
+import PoolDashboardComingSoon from "@/components/pool/dashboard/PoolDashboardComingSoon.vue";
 import PoolCpuUsageChart from "@/components/pool/dashboard/cpuUsage/PoolCpuUsageChart.vue";
 import PoolDashboardCpuUsage from "@/components/pool/dashboard/PoolDashboardCpuUsage.vue";
 import PoolDashboardNetworkChart from "@/components/pool/dashboard/PoolDashboardNetworkChart.vue";
@@ -112,32 +112,33 @@ runningVms.value.forEach((vm) => vmRegister(vm));
 
 <style lang="postcss" scoped>
 .pool-dashboard-view {
-  column-gap: 0;
-  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem;
 }
 
-@media (min-width: 768px) {
-  .pool-dashboard-view {
-    column-count: 2;
-  }
+.row {
+  display: flex;
+  gap: 1rem;
+  flex-direction: column;
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  flex: 1;
+}
+
+.alarms,
+.tasks {
+  flex: 1;
 }
 
 @media (min-width: 1500px) {
-  .pool-dashboard-view {
-    column-count: 3;
-  }
-}
-
-.item {
-  margin: 0;
-  padding: 0.5rem;
-  overflow: hidden;
-}
-
-@media (min-width: 768px) {
-  .item {
-    page-break-inside: avoid;
-    break-inside: avoid;
+  .row {
+    flex-direction: row;
   }
 }
 </style>
