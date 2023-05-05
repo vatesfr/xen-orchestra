@@ -39,6 +39,8 @@ import { getXoaPlan, SOURCES } from '../../common/xoa-plans'
 
 const _editProxy = (value, { name, proxy }) => editProxyAppliance(proxy, { [name]: value })
 
+const _editProxyAddress = (value, props) => _editProxy(value.trim() === '' ? null : value, props)
+
 const HEADER = (
   <h2>
     <Icon icon='proxy' /> {_('proxies')}
@@ -142,6 +144,12 @@ const COLUMNS = [
   {
     itemRenderer: proxy => <Vm id={proxy.vmUuid} link />,
     name: _('vm'),
+  },
+  {
+    itemRenderer: proxy => (
+      <Text data-name='address' data-proxy={proxy} value={proxy.address ?? ''} onChange={_editProxyAddress} />
+    ),
+    name: _('address'),
   },
   {
     name: _('license'),
