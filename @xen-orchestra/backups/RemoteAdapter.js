@@ -717,7 +717,7 @@ class RemoteAdapter {
     return stream
   }
 
-  async readDeltaVmBackup(metadata, ignoredVdis) {
+  async readIncrementalVmBackup(metadata, ignoredVdis, { useSynthetic = true } = {}) {
     const handler = this._handler
     const { vbds, vhds, vifs, vm, vmSnapshot } = metadata
     const dir = dirname(metadata._filename)
@@ -725,7 +725,9 @@ class RemoteAdapter {
 
     const streams = {}
     await asyncMapSettled(Object.keys(vdis), async ref => {
-      streams[`${ref}.vhd`] = await this._createSyntheticStream(handler, join(dir, vhds[ref]))
+      streams[`${ref}.vhd`] = useSynthetic
+        ? await this._createSyntheticStream(handler, join(dir, vhds[ref]))
+        : await this._handler.createReadStream(join(dir, vhds[ref]))
     })
 
     return {

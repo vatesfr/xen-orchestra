@@ -146,6 +146,9 @@ export default class BackupNg {
         const proxyId = job.proxy
         const useXoProxy = proxyId !== undefined
         const remoteIds = unboxIdsFromPattern(job.remotes)
+        if (job.sourceRemote) {
+          remoteIds.push(job.sourceRemote)
+        }
         try {
           if (!useXoProxy && backupsConfig.disableWorkers) {
             const localTaskIds = { __proto__: null }

@@ -136,7 +136,7 @@ task.start(message: 'restore', data: { jobId: string, srId: string, time: number
 
 ## API
 
-### Run description object
+### Run description object Metadata / Pool backup
 
 This is a JavaScript object containing all the information necessary to run a backup job.
 
@@ -150,11 +150,65 @@ job:
   # Human readable identifier
   name: string
 
-  # Whether this job is doing Full Backup / Disaster Recovery or
-  # Delta Backup / Continuous Replication
+  # which pools to saved, can be undefined
+  pools : IdPattern
+
+  # which remotes to use
+  remotes: IdPattern
+
+  settings:
+
+    # Used for the whole job
+    '': Settings
+
+    # Used for a specific schedule
+    [ScheduleId]: Settings
+
+    # Used for a specific VM
+    [VmId]: Settings
+  # if defined : backup the xo metadata
+  xoMetadata : string
+
+  type: 'metadataBackup'
+
+# Information necessary to connect to each remote
+remotes:
+  [RemoteId]:
+    url: string
+
+# Indicates which schedule is used for this run
+schedule:
+  id: ScheduleId
+
+# Information necessary to connect to each XAPI
+xapis:
+  [XapiId]:
+    allowUnauthorized: boolean
+    credentials:
+      password: string
+      username: string
+    url: string
+```
+
+### Run description object Vms Xapi to remote and/or Xapi to Xapi
+
+This is a JavaScript object containing all the information necessary to run a backup job.
+
+```coffee
+# Information about the job itself
+job:
+
+  # Unique identifier
+  id: string
+
+  # Human readable identifier
+  name: string
+
+  # Whether this job is doing Full Backup / Full Replication or
+  # Incremental Backup / Incremental Replication
   mode: 'full' | 'delta'
 
-  # For backup jobs, indicates which remotes to use
+  # indicates which remotes used to writes. Can be empty.
   remotes: IdPattern
 
   settings:
@@ -168,10 +222,10 @@ job:
     # Used for a specific VM
     [VmId]: Settings
 
-  # For replication jobs, indicates which SRs to use
+  # indicates which SRs to use for replication jobs. Can be empty.
   srs: IdPattern
 
-  # Here for historical reasons
+  # Here for historical reasons, xapi to remote or xapi to xapi
   type: 'backup'
 
   # Indicates which VMs to backup/replicate
@@ -198,6 +252,62 @@ xapis:
       password: string
       username: string
     url: string
+```
+
+### Run description object Vms remote to remote
+
+This is a JavaScript object containing all the information necessary to run a backup job.
+
+```coffee
+# Information about the job itself
+job:
+
+  # Unique identifier
+  id: string
+
+  # Human readable identifier
+  name: string
+
+  # Whether this job is doing Full Backup / Full Replication or
+  # Incremental Backup / Incremental Replication
+  mode: 'full' | 'delta'
+
+  # Indicates which remotes to write VMs
+  remotes: IdPattern
+
+  settings:
+
+    # Used for the whole job
+    '': Settings
+
+    # Used for a specific schedule
+    [ScheduleId]: Settings
+
+    # Used for a specific VM
+    [VmId]: Settings
+
+  # only transfer data saved by one of theses Job
+  # transfer all if empty
+  sourceJobIds: IdPattern
+
+  # Here for historical reasons, xapi to remote or xapi to xapi
+  type: 'remote-to-remote'
+
+  # Indicates which VMs to backup/replicate
+  vms: IdPattern
+
+# Indicate the remote used to read Vms
+sourceRemote:
+  [ObjectId]: XapiId
+
+# Information necessary to connect to each remote (read or write)
+remotes:
+  [RemoteId]:
+    url: string
+
+# Indicates which schedule is used for this run
+schedule:
+  id: ScheduleId
 ```
 
 ### `IdPattern`
