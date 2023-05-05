@@ -39,7 +39,10 @@ import { getXoaPlan, SOURCES } from '../../common/xoa-plans'
 
 const _editProxy = (value, { name, proxy }) => editProxyAppliance(proxy, { [name]: value })
 
-const _editProxyAddress = (value, props) => _editProxy(value.trim() === '' ? null : value, props)
+const _editProxyAddress = (value, props) => {
+  value = value.trim()
+  return _editProxy(value === '' ? null : value, props)
+}
 
 const HEADER = (
   <h2>
