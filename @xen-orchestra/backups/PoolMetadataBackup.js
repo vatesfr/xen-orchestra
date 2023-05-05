@@ -3,9 +3,9 @@
 const { asyncMap } = require('@xen-orchestra/async-map')
 
 const { DIR_XO_POOL_METADATA_BACKUPS } = require('./RemoteAdapter.js')
-const { forkStreamUnpipe } = require('./_forkStreamUnpipe.js')
 const { formatFilenameDate } = require('./_filenameDate.js')
 const { Task } = require('./Task.js')
+const { forkStreamUnpipe } = require('./_backupJob/forkStreamUnpipe.js')
 
 const PATH_DB_DUMP = '/pool/xmldbdump'
 exports.PATH_DB_DUMP = PATH_DB_DUMP

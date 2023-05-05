@@ -1,8 +1,8 @@
 import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
 import cloneDeep from 'lodash/cloneDeep.js'
 import Disposable from 'promise-toolbox/Disposable'
-import { Backup } from '@xen-orchestra/backups/Backup.js'
 import { createLogger } from '@xen-orchestra/log'
+import { instantiateBackupJob } from '@xen-orchestra/backups/backupJob.js'
 import { parseMetadataBackupId } from '@xen-orchestra/backups/parseMetadataBackupId.js'
 import { RestoreMetadataBackup } from '@xen-orchestra/backups/RestoreMetadataBackup.js'
 import { Task } from '@xen-orchestra/backups/Task.js'
@@ -129,7 +129,7 @@ export default class metadataBackup {
               }),
           },
           () =>
-            new Backup({
+            instantiateBackupJob({
               config: this._app.config.get('backups'),
               getAdapter: async remoteId => app.getBackupsRemoteAdapter(await app.getRemoteWithCredentials(remoteId)),
 

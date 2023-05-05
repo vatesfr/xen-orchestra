@@ -16,7 +16,7 @@ const { getHandler } = require('@xen-orchestra/fs')
 const { parseDuration } = require('@vates/parse-duration')
 const { Xapi } = require('@xen-orchestra/xapi')
 
-const { Backup } = require('./Backup.js')
+const { instantiateBackupJob } = require('./backupJob.js')
 const { RemoteAdapter } = require('./RemoteAdapter.js')
 const { Task } = require('./Task.js')
 
@@ -48,7 +48,7 @@ class BackupWorker {
   }
 
   run() {
-    return new Backup({
+    return instantiateBackupJob({
       config: this.#config,
       getAdapter: remoteId => this.getAdapter(this.#remotes[remoteId]),
       getConnectedRecord: Disposable.factory(async function* getConnectedRecord(type, uuid) {

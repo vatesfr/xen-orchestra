@@ -11,19 +11,19 @@ const { decorateClass } = require('@vates/decorate-with')
 const { defer } = require('golike-defer')
 const { dirname } = require('path')
 
-const { formatFilenameDate } = require('../_filenameDate.js')
-const { getOldEntries } = require('../_getOldEntries.js')
-const { Task } = require('../Task.js')
+const { formatFilenameDate } = require('../../../_filenameDate.js')
+const { getOldEntries } = require('./_getOldEntries.js')
+const { Task } = require('../../../Task.js')
 
-const { MixinBackupWriter } = require('./_MixinBackupWriter.js')
-const { AbstractDeltaWriter } = require('./_AbstractDeltaWriter.js')
+const { MixinRemoteWriter } = require('./_MixinRemoteWriter.js')
+const { AbstractIncrementalWriter } = require('./_AbstractIncrementalWriter.js')
 const { checkVhd } = require('./_checkVhd.js')
 const { packUuid } = require('./_packUuid.js')
 const { Disposable } = require('promise-toolbox')
 
-const { warn } = createLogger('xo:backups:DeltaBackupWriter')
+const { warn } = createLogger('xo:backups:IncrementalRemoteWriter')
 
-class DeltaBackupWriter extends MixinBackupWriter(AbstractDeltaWriter) {
+class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrementalWriter) {
   async checkBaseVdis(baseUuidToSrcVdi) {
     const { handler } = this._adapter
     const backup = this._backup
@@ -70,13 +70,13 @@ class DeltaBackupWriter extends MixinBackupWriter(AbstractDeltaWriter) {
     return this._cleanVm({ merge: true })
   }
 
-  prepare({ isFull }) {
+  prepare({ isBase }) {
     // create the task related to this export and ensure all methods are called in this context
     const task = new Task({
       name: 'export',
       data: {
         id: this._remoteId,
-        isFull,
+        isBase,
         type: 'remote',
       },
     })
@@ -130,7 +130,7 @@ class DeltaBackupWriter extends MixinBackupWriter(AbstractDeltaWriter) {
 
     // delete sequentially from newest to oldest to avoid unnecessary merges
     for (let i = oldEntries.length; i-- > 0; ) {
-      await adapter.deleteDeltaVmBackups([oldEntries[i]])
+      await adapter.deleteIncrementalVmBackups([oldEntries[i]])
     }
   }
 
@@ -208,7 +208,14 @@ class DeltaBackupWriter extends MixinBackupWriter(AbstractDeltaWriter) {
           })
 
           if (isDelta) {
-            await chainVhd(handler, parentPath, handler, path)
+            try {
+              await chainVhd(handler, parentPath, handler, path)
+            } catch (err) {
+              // @todo : check why if chains with full disk
+              if (err.message !== 'cannot chain disk of type 3') {
+                throw err
+              }
+            }
           }
 
           // set the correct UUID in the VHD
@@ -223,10 +230,9 @@ class DeltaBackupWriter extends MixinBackupWriter(AbstractDeltaWriter) {
     })
     metadataContent.size = size
     this._metadataFileName = await adapter.writeVmBackupMetadata(vm.uuid, metadataContent)
-
     // TODO: run cleanup?
   }
 }
-exports.DeltaBackupWriter = decorateClass(DeltaBackupWriter, {
+exports.IncrementalRemoteWriter = decorateClass(IncrementalRemoteWriter, {
   _transfer: defer,
 })

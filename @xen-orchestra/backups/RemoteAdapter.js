@@ -252,7 +252,7 @@ class RemoteAdapter {
     )
   }
 
-  async deleteDeltaVmBackups(backups) {
+  async deleteIncrementalVmBackups(backups) {
     const handler = this._handler
 
     // this will delete the json, unused VHDs will be detected by `cleanVm`
@@ -304,7 +304,7 @@ class RemoteAdapter {
     }
 
     await Promise.all([
-      delta !== undefined && this.deleteDeltaVmBackups(delta),
+      delta !== undefined && this.deleteIncrementalVmBackups(delta),
       full !== undefined && this.deleteFullVmBackups(full),
     ])
 

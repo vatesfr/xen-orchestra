@@ -3,7 +3,6 @@ import Disposable from 'promise-toolbox/Disposable'
 import forOwn from 'lodash/forOwn.js'
 import groupBy from 'lodash/groupBy.js'
 import merge from 'lodash/merge.js'
-import { Backup } from '@xen-orchestra/backups/Backup.js'
 import { createLogger } from '@xen-orchestra/log'
 import { createPredicate } from 'value-matcher'
 import { decorateWith } from '@vates/decorate-with'
@@ -18,6 +17,7 @@ import { debounceWithKey, REMOVE_CACHE_ENTRY } from '../../_pDebounceWithKey.mjs
 import { handleBackupLog } from '../../_handleBackupLog.mjs'
 import { serializeError, unboxIdsFromPattern } from '../../utils.mjs'
 import { waitAll } from '../../_waitAll.mjs'
+import { instantiateBackupJob } from '@xen-orchestra/backups/backupJob.js'
 
 const log = createLogger('xo:xo-mixins:backups-ng')
 
@@ -164,7 +164,7 @@ export default class BackupNg {
                   }),
               },
               () =>
-                new Backup({
+                instantiateBackupJob({
                   config: backupsConfig,
                   getAdapter: async remoteId =>
                     app.getBackupsRemoteAdapter(await app.getRemoteWithCredentials(remoteId)),

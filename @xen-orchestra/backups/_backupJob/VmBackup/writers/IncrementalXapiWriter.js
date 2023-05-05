@@ -4,16 +4,16 @@ const { asyncMap, asyncMapSettled } = require('@xen-orchestra/async-map')
 const ignoreErrors = require('promise-toolbox/ignoreErrors')
 const { formatDateTime } = require('@xen-orchestra/xapi')
 
-const { formatFilenameDate } = require('../_filenameDate.js')
-const { getOldEntries } = require('../_getOldEntries.js')
-const { importDeltaVm, TAG_COPY_SRC } = require('../_deltaVm.js')
-const { Task } = require('../Task.js')
+const { formatFilenameDate } = require('../../../_filenameDate.js')
+const { getOldEntries } = require('./_getOldEntries.js')
+const { importIncrementalVm, TAG_COPY_SRC } = require('../../../_incrementalVm.js')
+const { Task } = require('../../../Task.js')
 
-const { AbstractDeltaWriter } = require('./_AbstractDeltaWriter.js')
-const { MixinReplicationWriter } = require('./_MixinReplicationWriter.js')
+const { AbstractIncrementalWriter } = require('./_AbstractIncrementalWriter.js')
+const { MixinXapiWriter } = require('./_MixinXapiWriter.js')
 const { listReplicatedVms } = require('./_listReplicatedVms.js')
 
-exports.DeltaReplicationWriter = class DeltaReplicationWriter extends MixinReplicationWriter(AbstractDeltaWriter) {
+exports.IncrementalXapiWriter = class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWriter) {
   async checkBaseVdis(baseUuidToSrcVdi, baseVm) {
     const sr = this._sr
     const replicatedVm = listReplicatedVms(sr.$xapi, this._backup.job.id, sr.uuid, this._backup.vm.uuid).find(
@@ -38,13 +38,13 @@ exports.DeltaReplicationWriter = class DeltaReplicationWriter extends MixinRepli
     }
   }
 
-  prepare({ isFull }) {
+  prepare({ isBase }) {
     // create the task related to this export and ensure all methods are called in this context
     const task = new Task({
       name: 'export',
       data: {
         id: this._sr.uuid,
-        isFull,
+        isBase,
         name_label: this._sr.name_label,
         type: 'SR',
       },
@@ -90,7 +90,7 @@ exports.DeltaReplicationWriter = class DeltaReplicationWriter extends MixinRepli
 
     let targetVmRef
     await Task.run({ name: 'transfer' }, async () => {
-      targetVmRef = await importDeltaVm(
+      targetVmRef = await importIncrementalVm(
         {
           __proto__: deltaExport,
           vm: {

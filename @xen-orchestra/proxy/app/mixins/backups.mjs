@@ -1,7 +1,6 @@
 import Disposable from 'promise-toolbox/Disposable'
 import fromCallback from 'promise-toolbox/fromCallback'
 import { asyncMap } from '@xen-orchestra/async-map'
-import { Backup } from '@xen-orchestra/backups/Backup.js'
 import { compose } from '@vates/compose'
 import { createLogger } from '@xen-orchestra/log'
 import { decorateMethodsWith } from '@vates/decorate-with'
@@ -18,6 +17,7 @@ import { RestoreMetadataBackup } from '@xen-orchestra/backups/RestoreMetadataBac
 import { runBackupWorker } from '@xen-orchestra/backups/runBackupWorker.js'
 import { Task } from '@xen-orchestra/backups/Task.js'
 import { Xapi } from '@xen-orchestra/xapi'
+import { instantiateBackupJob } from '@xen-orchestra/backups/backupJob.js'
 
 const noop = Function.prototype
 
@@ -52,7 +52,7 @@ export default class Backups {
       const config = app.config.get('backups')
       if (config.disableWorkers) {
         const { recordToXapi, remotes, xapis, ...rest } = params
-        return new Backup({
+        return instantiateBackupJob({
           ...rest,
 
           config,

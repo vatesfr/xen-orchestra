@@ -177,7 +177,7 @@ const New = decorate([
             </div>
           )}
         </FormGroup>
-        {modes.isDelta && (
+        {modes.isIncremental && (
           <FormGroup>
             <label>
               <strong>{_('forceFullBackup')}</strong>{' '}

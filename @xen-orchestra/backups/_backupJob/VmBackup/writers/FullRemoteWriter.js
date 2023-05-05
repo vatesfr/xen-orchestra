@@ -1,13 +1,13 @@
 'use strict'
 
-const { formatFilenameDate } = require('../_filenameDate.js')
-const { getOldEntries } = require('../_getOldEntries.js')
-const { Task } = require('../Task.js')
+const { formatFilenameDate } = require('../../../_filenameDate.js')
+const { getOldEntries } = require('./_getOldEntries.js')
+const { Task } = require('../../../Task.js')
 
-const { MixinBackupWriter } = require('./_MixinBackupWriter.js')
+const { MixinRemoteWriter } = require('./_MixinRemoteWriter.js')
 const { AbstractFullWriter } = require('./_AbstractFullWriter.js')
 
-exports.FullBackupWriter = class FullBackupWriter extends MixinBackupWriter(AbstractFullWriter) {
+exports.FullRemoteWriter = class FullRemoteWriter extends MixinRemoteWriter(AbstractFullWriter) {
   constructor(props) {
     super(props)
 
@@ -67,9 +67,9 @@ exports.FullBackupWriter = class FullBackupWriter extends MixinBackupWriter(Abst
       await adapter.outputStream(dataFilename, stream, {
         validator: tmpPath => adapter.isValidXva(tmpPath),
       })
-      return { size: sizeContainer.size }
+      return { size: sizeContainer?.size }
     })
-    metadata.size = sizeContainer.size
+    metadata.size = sizeContainer?.size ?? 0
     this._metadataFileName = await adapter.writeVmBackupMetadata(vm.uuid, metadata)
 
     if (!deleteFirst) {

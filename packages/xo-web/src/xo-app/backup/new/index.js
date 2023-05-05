@@ -268,7 +268,7 @@ const New = decorate([
 
         await createBackupNgJob({
           name: state.name,
-          mode: state.isDelta ? 'delta' : 'full',
+          mode: state.isIncremental ? 'delta' : 'full',
           compression: state.compression,
           proxy: state.proxyId === null ? undefined : state.proxyId,
           schedules,
@@ -335,7 +335,7 @@ const New = decorate([
         await editBackupNgJob({
           id: props.job.id,
           name: state.name,
-          mode: state.isDelta ? 'delta' : 'full',
+          mode: state.isIncremental ? 'delta' : 'full',
           compression: state.compression,
           proxy: state.proxyId,
           settings: normalizeSettings({
@@ -435,10 +435,10 @@ const New = decorate([
       showScheduleModal:
         ({ saveSchedule }, storedSchedule = DEFAULT_SCHEDULE) =>
         async (
-          { copyMode, exportMode, deltaMode, isDelta, propSettings, settings = propSettings, snapshotMode },
+          { copyMode, exportMode, deltaMode, isIncremental, propSettings, settings = propSettings, snapshotMode },
           { intl: { formatMessage } }
         ) => {
-          const modes = { copyMode, isDelta, exportMode, snapshotMode }
+          const modes = { copyMode, isIncremental, exportMode, snapshotMode }
           const schedule = await form({
             defaultValue: storedSchedule,
             render: props => (
@@ -650,7 +650,7 @@ const New = decorate([
         state.missingSnapshotRetention,
       missingName: state => state.name.trim() === '',
       missingVms: state => isEmpty(state.vms) && !state.smartMode,
-      missingBackupMode: state => !state.isDelta && !state.isFull && !state.snapshotMode,
+      missingBackupMode: state => !state.isIncremental && !state.isFull && !state.snapshotMode,
       missingRemotes: state => (state.backupMode || state.deltaMode) && isEmpty(state.remotes),
       missingSrs: state => (state.drMode || state.crMode) && isEmpty(state.srs),
       missingSchedules: (state, { job }) => job !== undefined && isEmpty(state.schedules),
@@ -663,16 +663,16 @@ const New = decorate([
       exportRetentionExists: createDoesRetentionExist('exportRetention'),
       copyRetentionExists: createDoesRetentionExist('copyRetention'),
       snapshotRetentionExists: createDoesRetentionExist('snapshotRetention'),
-      isDelta: state => state.deltaMode || state.crMode,
+      isIncremental: state => state.deltaMode || state.crMode,
       isFull: state => state.backupMode || state.drMode,
       vmsSmartPattern: ({ tags, vmsPattern }) => ({
         ...vmsPattern,
         tags: constructSmartPattern(tags, normalizeTagValues),
       }),
       vmPredicate:
-        ({ isDelta }, { hostsById, poolsById }) =>
+        ({ isIncremental }, { hostsById, poolsById }) =>
         ({ $container }) =>
-          !isDelta ||
+          !isIncremental ||
           canDeltaBackup(
             get(() => hostsById[$container].version) || get(() => hostsById[poolsById[$container].master].version)
           ),
@@ -781,7 +781,7 @@ const New = decorate([
                     <ActionButton
                       active={state.backupMode}
                       data-mode='backupMode'
-                      disabled={state.isDelta}
+                      disabled={state.isIncremental}
                       handler={effects.toggleMode}
                       icon='backup'
                     >
@@ -799,7 +799,7 @@ const New = decorate([
                     <ActionButton
                       active={state.drMode}
                       data-mode='drMode'
-                      disabled={state.isDelta || (!state.drMode && process.env.XOA_PLAN < 3)}
+                      disabled={state.isIncremental || (!state.drMode && process.env.XOA_PLAN < 3)}
                       handler={effects.toggleMode}
                       icon='disaster-recovery'
                     >
@@ -985,7 +985,7 @@ const New = decorate([
                           placeholder={formatMessage(messages.timeoutUnit)}
                         />
                       </FormGroup>
-                      {state.isDelta && (
+                      {state.isIncremental && (
                         <FormGroup>
                           <label htmlFor={state.inputFullIntervalId}>
                             <strong>{_('fullBackupInterval')}</strong>
@@ -1078,7 +1078,7 @@ const New = decorate([
                   </ActionButton>
                 </CardHeader>
                 <CardBlock>
-                  {state.isDelta && (
+                  {state.isIncremental && (
                     <span className='text-muted'>
                       <Icon icon='info' /> {_('deltaBackupOnOutdatedXenServerWarning')}
                     </span>
@@ -1087,7 +1087,7 @@ const New = decorate([
                   {state.smartMode ? (
                     <Upgrade place='newBackup' required={3}>
                       <SmartBackup
-                        deltaMode={state.isDelta}
+                        deltaMode={state.isIncremental}
                         onChange={effects.onVmsPatternChange}
                         pattern={state.vmsPattern}
                       />

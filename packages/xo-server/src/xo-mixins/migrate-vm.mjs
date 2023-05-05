@@ -1,4 +1,3 @@
-import { Backup } from '@xen-orchestra/backups/Backup.js'
 import { decorateWith } from '@vates/decorate-with'
 import { defer as deferrable } from 'golike-defer'
 import { fromEvent } from 'promise-toolbox'
@@ -10,6 +9,7 @@ import Esxi from '@xen-orchestra/vmware-explorer/esxi.mjs'
 import openDeltaVmdkasVhd from '@xen-orchestra/vmware-explorer/openDeltaVmdkAsVhd.mjs'
 import OTHER_CONFIG_TEMPLATE from '../xapi/other-config-template.mjs'
 import VhdEsxiRaw from '@xen-orchestra/vmware-explorer/VhdEsxiRaw.mjs'
+import { instantiateBackupJob } from '@xen-orchestra/backups/backupJob.js'
 
 export default class MigrateVm {
   constructor(app) {
@@ -41,7 +41,7 @@ export default class MigrateVm {
     const schedule = { id: 'one-time' }
 
     // for now we only support this from the main OA, no proxy
-    return new Backup({
+    return instantiateBackupJob({
       config,
       job,
       schedule,

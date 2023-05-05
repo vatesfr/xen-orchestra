@@ -252,7 +252,8 @@ const VmTask = ({ children, className, restartVmJob, task }) => (
         {_.keyValue(_('taskMergedDataSpeed'), formatSpeed(task.merge.size, task.merge.duration))}
       </div>
     )}
-    {task.isFull !== undefined && _.keyValue(_('exportType'), task.isFull ? 'full' : 'delta')}
+    {(task.isBase !== undefined || task.isFull !== undefined) &&
+      _.keyValue(_('exportType'), task.isBase || task.isFull /* legacy */ ? 'base' : 'delta')}
   </li>
 )
 
@@ -501,8 +502,10 @@ export default decorate([
               : 'xo'
 
           if (task.tasks !== undefined) {
-            const subTaskWithIsFull = task.tasks.find(({ data = {} }) => data.isFull !== undefined)
-            task.isFull = get(() => subTaskWithIsFull.data.isFull)
+            const subTaskWithIsBase = task.tasks.find(
+              ({ data = {} }) => data.isBase !== undefined || data.isFUll !== undefined
+            )
+            task.isBase = get(() => subTaskWithIsBase.data.isFull || subTaskWithIsBase.data.isBase)
           }
         })
 

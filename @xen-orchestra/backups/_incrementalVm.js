@@ -33,9 +33,9 @@ const resolveUuid = async (xapi, cache, uuid, type) => {
   return ref
 }
 
-exports.exportDeltaVm = async function exportDeltaVm(
+exports.exportIncrementalVm = async function exportIncrementalVm(
   vm,
-  baseVm,
+  vmComparisonBasis,
   {
     cancelToken = CancelToken.none,
 
@@ -46,12 +46,12 @@ exports.exportDeltaVm = async function exportDeltaVm(
   } = {}
 ) {
   // refs of VM's VDIs → base's VDIs.
-  const baseVdis = {}
-  baseVm &&
-    baseVm.$VBDs.forEach(vbd => {
+  const vdisCompaisonBasis = {}
+  vmComparisonBasis &&
+    vmComparisonBasis.$VBDs.forEach(vbd => {
       let vdi, snapshotOf
       if ((vdi = vbd.$VDI) && (snapshotOf = vdi.$snapshot_of) && !fullVdisRequired.has(snapshotOf.uuid)) {
-        baseVdis[vdi.snapshot_of] = vdi
+        vdisCompaisonBasis[vdi.snapshot_of] = vdi
       }
     })
 
@@ -74,20 +74,20 @@ exports.exportDeltaVm = async function exportDeltaVm(
     }
 
     // Look for a snapshot of this vdi in the base VM.
-    const baseVdi = baseVdis[vdi.snapshot_of]
+    const vdiComparisonBasis = vdisCompaisonBasis[vdi.snapshot_of]
 
     vdis[vdiRef] = {
       ...vdi,
       other_config: {
         ...vdi.other_config,
-        [TAG_BASE_DELTA]: baseVdi && !disableBaseTags ? baseVdi.uuid : undefined,
+        [TAG_BASE_DELTA]: vdiComparisonBasis && !disableBaseTags ? vdiComparisonBasis.uuid : undefined,
       },
       $snapshot_of$uuid: vdi.$snapshot_of?.uuid,
       $SR$uuid: vdi.$SR.uuid,
     }
 
     streams[`${vdiRef}.vhd`] = await vdi.$exportContent({
-      baseRef: baseVdi?.$ref,
+      baseRef: vdiComparisonBasis?.$ref,
       cancelToken,
       format: 'vhd',
     })
@@ -126,10 +126,10 @@ exports.exportDeltaVm = async function exportDeltaVm(
       vm: {
         ...vm,
         other_config:
-          baseVm && !disableBaseTags
+          vmComparisonBasis && !disableBaseTags
             ? {
                 ...vm.other_config,
-                [TAG_BASE_DELTA]: baseVm.uuid,
+                [TAG_BASE_DELTA]: vmComparisonBasis.uuid,
               }
             : omit(vm.other_config, TAG_BASE_DELTA),
       },
@@ -143,18 +143,18 @@ exports.exportDeltaVm = async function exportDeltaVm(
   )
 }
 
-exports.importDeltaVm = defer(async function importDeltaVm(
+exports.importIncrementalVm = defer(async function importIncrementalVm(
   $defer,
-  deltaVm,
+  incrementalVm,
   sr,
   { cancelToken = CancelToken.none, detectBase = true, mapVdisSrs = {}, newMacAddresses = false } = {}
 ) {
-  const { version } = deltaVm
+  const { version } = incrementalVm
   if (compareVersions(version, '1.0.0') < 0) {
     throw new Error(`Unsupported delta backup version: ${version}`)
   }
 
-  const vmRecord = deltaVm.vm
+  const vmRecord = incrementalVm.vm
   const xapi = sr.$xapi
 
   let baseVm
@@ -183,7 +183,7 @@ exports.importDeltaVm = defer(async function importDeltaVm(
         baseVdis[vbd.VDI] = vbd.$VDI
       }
     })
-  const vdiRecords = deltaVm.vdis
+  const vdiRecords = incrementalVm.vdis
 
   // 0. Create suspend_VDI
   let suspendVdi
@@ -240,7 +240,7 @@ exports.importDeltaVm = defer(async function importDeltaVm(
   await asyncMap(await xapi.getField('VM', vmRef, 'VBDs'), ref => ignoreErrors.call(xapi.call('VBD.destroy', ref)))
 
   // 3. Create VDIs & VBDs.
-  const vbdRecords = deltaVm.vbds
+  const vbdRecords = incrementalVm.vbds
   const vbds = groupBy(vbdRecords, 'VDI')
   const newVdis = {}
   await asyncMap(Object.keys(vdiRecords), async vdiRef => {
@@ -309,7 +309,7 @@ exports.importDeltaVm = defer(async function importDeltaVm(
     }
   })
 
-  const { streams } = deltaVm
+  const { streams } = incrementalVm
 
   await Promise.all([
     // Import VDI contents.
@@ -326,7 +326,7 @@ exports.importDeltaVm = defer(async function importDeltaVm(
     }),
 
     // Create VIFs.
-    asyncMap(Object.values(deltaVm.vifs), vif => {
+    asyncMap(Object.values(incrementalVm.vifs), vif => {
       let network = vif.$network$uuid && xapi.getObjectByUuid(vif.$network$uuid, undefined)
 
       if (network === undefined) {
@@ -358,8 +358,8 @@ exports.importDeltaVm = defer(async function importDeltaVm(
   ])
 
   await Promise.all([
-    deltaVm.vm.ha_always_run && xapi.setField('VM', vmRef, 'ha_always_run', true),
-    xapi.setField('VM', vmRef, 'name_label', deltaVm.vm.name_label),
+    incrementalVm.vm.ha_always_run && xapi.setField('VM', vmRef, 'ha_always_run', true),
+    xapi.setField('VM', vmRef, 'name_label', incrementalVm.vm.name_label),
   ])
 
   return vmRef

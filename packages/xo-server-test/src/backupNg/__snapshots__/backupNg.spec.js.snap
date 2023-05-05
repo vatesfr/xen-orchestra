@@ -134,7 +134,7 @@ exports[`backupNg execute three times a delta backup with 2 remotes, 2 as retent
 Object {
   "data": Object {
     "id": Any<String>,
-    "isFull": true,
+    "isBase": true,
     "type": "remote",
   },
   "end": Any<Number>,
@@ -175,7 +175,7 @@ exports[`backupNg execute three times a delta backup with 2 remotes, 2 as retent
 Object {
   "data": Object {
     "id": Any<String>,
-    "isFull": true,
+    "isBase": true,
     "type": "remote",
   },
   "end": Any<Number>,
@@ -241,7 +241,7 @@ exports[`backupNg execute three times a delta backup with 2 remotes, 2 as retent
 Object {
   "data": Object {
     "id": Any<String>,
-    "isFull": false,
+    "isBase": false,
     "type": "remote",
   },
   "end": Any<Number>,
@@ -282,7 +282,7 @@ exports[`backupNg execute three times a delta backup with 2 remotes, 2 as retent
 Object {
   "data": Object {
     "id": Any<String>,
-    "isFull": false,
+    "isBase": false,
     "type": "remote",
   },
   "end": Any<Number>,
@@ -348,7 +348,7 @@ exports[`backupNg execute three times a delta backup with 2 remotes, 2 as retent
 Object {
   "data": Object {
     "id": Any<String>,
-    "isFull": true,
+    "isBase": true,
     "type": "remote",
   },
   "end": Any<Number>,
@@ -389,7 +389,7 @@ exports[`backupNg execute three times a delta backup with 2 remotes, 2 as retent
 Object {
   "data": Object {
     "id": Any<String>,
-    "isFull": true,
+    "isBase": true,
     "type": "remote",
   },
   "end": Any<Number>,

@@ -80,7 +80,7 @@ export default decorate([
           },
         ]
 
-        if (state.isDelta) {
+        if (state.isIncremental) {
           columns.push({
             itemRenderer: schedule => (schedule.fullInterval === 1 ? _('stateEnabled') : _('stateDisabled')),
             sortCriteria: 'fullInterval',
