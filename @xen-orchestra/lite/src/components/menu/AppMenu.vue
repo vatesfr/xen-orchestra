@@ -1,6 +1,6 @@
 <template>
   <slot :is-open="isOpen" :open="open" name="trigger" />
-  <Teleport to="body" :disabled="!isRoot || !slots.trigger">
+  <Teleport :disabled="!slots.trigger" to="body">
     <ul
       v-if="!$slots.trigger || isOpen"
       ref="menu"
@@ -13,6 +13,12 @@
   </Teleport>
 </template>
 
+<script lang="ts">
+export default {
+  inheritAttrs: false,
+};
+</script>
+
 <script lang="ts" setup>
 import placement, { type Options } from "placement.js";
 import { inject, nextTick, provide, ref, toRef, unref, useSlots } from "vue";
@@ -24,8 +30,6 @@ const props = defineProps<{
   disabled?: boolean;
   placement?: Options["placement"];
 }>();
-const isRoot = inject("isMenuRoot", true);
-provide("isMenuRoot", false);
 const slots = useSlots();
 const isOpen = ref(false);
 const menu = ref();
