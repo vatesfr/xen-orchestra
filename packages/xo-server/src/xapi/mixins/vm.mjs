@@ -44,8 +44,6 @@ export default {
 
       copyHostBiosStrings = false,
 
-      tags = [],
-
       ...props
     } = {},
     checkLimits,
@@ -83,8 +81,6 @@ export default {
         this.getObject(props.affinityHost ?? this.getObject(template.$pool).master).$ref
       )
     }
-
-    await Promise.all(tags.map(tag => this.call('VM.add_tags', vmRef, tag)))
 
     // Removes disks from the provision XML, we will create them by
     // ourselves.
