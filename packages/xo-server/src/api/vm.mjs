@@ -186,6 +186,12 @@ export const create = defer(async function ($defer, params) {
     }
   }
 
+  const resourceSetTags = resourceSet !== undefined ? (await this.getResourceSet(resourceSet)).tags : undefined
+  const paramsTags = params.tags
+  if (resourceSetTags !== undefined) {
+    params.tags = paramsTags !== undefined ? paramsTags.concat(resourceSetTags) : resourceSetTags
+  }
+
   const xapiVm = await xapi.createVm(template._xapiId, params, checkLimits, user.id)
   $defer.onFailure(() => xapi.VM_destroy(xapiVm.$ref, { deleteDisks: true, force: true }))
 
