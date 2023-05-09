@@ -44,6 +44,8 @@ class IncrementalRemoteVmBackup extends AbstractRemoteVmBackup {
             writer.transfer({
               deltaExport: forkDeltaExport(incrementalExport),
               timestamp: metadata.timestamp,
+              vm: metadata.vm,
+              vmSnapshot: metadata.vmSnapshot,
             }),
           'writer.transfer()'
         )

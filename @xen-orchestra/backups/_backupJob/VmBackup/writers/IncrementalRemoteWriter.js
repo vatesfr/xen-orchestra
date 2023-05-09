@@ -134,11 +134,11 @@ class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrementalWrite
     }
   }
 
-  async _transfer($defer, { timestamp, deltaExport }) {
+  async _transfer($defer, { timestamp, deltaExport, vm = this._backup.vm, vmSnapshot = this._backup.exportedVm }) {
     const adapter = this._adapter
     const backup = this._backup
 
-    const { job, scheduleId, vm } = backup
+    const { job, scheduleId } = backup
 
     const jobId = job.id
     const handler = adapter.handler
@@ -169,7 +169,7 @@ class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrementalWrite
       vifs: deltaExport.vifs,
       vhds,
       vm,
-      vmSnapshot: this._backup.exportedVm,
+      vmSnapshot,
     }
 
     const { size } = await Task.run({ name: 'transfer' }, async () => {

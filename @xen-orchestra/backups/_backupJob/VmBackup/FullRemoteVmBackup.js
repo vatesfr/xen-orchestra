@@ -28,6 +28,8 @@ const FullRemoteVmBackup = class FullRemoteVmBackup extends AbstractRemoteVmBack
           writer.run({
             stream: forkStreamUnpipe(stream),
             timestamp: metadata.timestamp,
+            vm: metadata.vm,
+            vmSnapshot: metadata.vmSnapshot,
           }),
         'writer.run()'
       )
