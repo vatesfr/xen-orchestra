@@ -11,6 +11,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Import/VM/From VMware] Fix `Property description must be an object: undefined` [Forum#61834](https://xcp-ng.org/forum/post/61834) [Forum#61900](https://xcp-ng.org/forum/post/61900)
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -27,6 +29,7 @@
 
 <!--packages-start-->
 
+- @vates/task patch
 - xo-server minor
 
 <!--packages-end-->
