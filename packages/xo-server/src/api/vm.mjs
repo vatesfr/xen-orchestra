@@ -187,10 +187,9 @@ export const create = defer(async function ($defer, params) {
   }
 
   const resourceSetTags = resourceSet !== undefined ? (await this.getResourceSet(resourceSet)).tags : undefined
-  if (resourceSetTags !== undefined && params.tags !== undefined) {
-    params.tags.concat(resourceSetTags)
-  } else if (resourceSetTags !== undefined) {
-    params.tags = resourceSetTags
+  const paramsTags = params.tags
+  if (resourceSetTags !== undefined) {
+    params.tags = paramsTags !== undefined ? paramsTags.concat(resourceSetTags) : resourceSetTags
   }
 
   const xapiVm = await xapi.createVm(template._xapiId, params, checkLimits, user.id)
