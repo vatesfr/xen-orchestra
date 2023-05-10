@@ -268,9 +268,11 @@ export default class MigrateVm {
             }
             parentVhd = vhd
           }
-
-          const stream = vhd.stream()
-          await vdi.$importContent(stream, { format: VDI_FORMAT_VHD })
+          if (vhd !== undefined) {
+            // it can be empty if the VM don't have a snapshot and is running
+            const stream = vhd.stream()
+            await vdi.$importContent(stream, { format: VDI_FORMAT_VHD })
+          }
           return { vdi, vhd }
         })
       )
@@ -288,10 +290,16 @@ export default class MigrateVm {
             const { fileName, path, datastore, isFull } = disk
             const { vdi, vhd: parentVhd } = vhds[userdevice]
             let vhd
+            if (vdi === undefined) {
+              throw new Error(`Can't import delta of a running VM without its parent vdi`)
+            }
             if (isFull) {
               vhd = await VhdEsxiRaw.open(esxi, datastore, path + '/' + fileName, { thin })
               await vhd.readBlockAllocationTable()
             } else {
+              if (parentVhd === undefined) {
+                throw new Error(`Can't import delta of a running VM without its parent VHD`)
+              }
               // we only want to transfer blocks present in the delta vhd, not the full vhd chain
               vhd = await openDeltaVmdkasVhd(esxi, datastore, path + '/' + fileName, parentVhd, {
                 lookMissingBlockInParent: false,
