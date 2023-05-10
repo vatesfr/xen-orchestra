@@ -268,7 +268,7 @@ export default class MigrateVm {
             }
             parentVhd = vhd
           }
-          if (vhd) {
+          if (vhd !== undefined) {
             // it can be empty if the VM don't have a snapshot and is running
             const stream = vhd.stream()
             await vdi.$importContent(stream, { format: VDI_FORMAT_VHD })
