@@ -84,10 +84,10 @@ export async function reconfigureIp({ pif, mode = 'DHCP', ip = '', netmask = '',
 reconfigureIp.params = {
   id: { type: 'string', optional: true },
   mode: { type: 'string', optional: true },
-  ip: { type: 'string', optional: true },
-  netmask: { type: 'string', optional: true },
-  gateway: { type: 'string', optional: true },
-  dns: { type: 'string', optional: true },
+  ip: { type: 'string', minLength: 0, optional: true },
+  netmask: { type: 'string', minLength: 0, optional: true },
+  gateway: { type: 'string', minLength: 0, optional: true },
+  dns: { type: 'string', minLength: 0, optional: true },
 }
 
 reconfigureIp.resolve = {
