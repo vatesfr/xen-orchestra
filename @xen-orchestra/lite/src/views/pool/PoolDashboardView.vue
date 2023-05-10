@@ -13,7 +13,7 @@
       <PoolDashboardRamUsage />
     </div>
     <div class="item">
-      <PoolDashboardCpuProvisionning />
+      <PoolDashboardCpuProvisioning />
     </div>
     <div class="item">
       <PoolDashboardNetworkChart />
@@ -38,7 +38,7 @@ import { provide, watch } from "vue";
 import PoolCpuUsageChart from "@/components/pool/dashboard/cpuUsage/PoolCpuUsageChart.vue";
 import PoolDashboardCpuUsage from "@/components/pool/dashboard/PoolDashboardCpuUsage.vue";
 import PoolDashboardNetworkChart from "@/components/pool/dashboard/PoolDashboardNetworkChart.vue";
-import PoolDashboardCpuProvisionning from "@/components/pool/dashboard/PoolDashboardCpuProvisionning.vue";
+import PoolDashboardCpuProvisioning from "@/components/pool/dashboard/PoolDashboardCpuProvisioning.vue";
 import PoolDashboardRamUsage from "@/components/pool/dashboard/PoolDashboardRamUsage.vue";
 import PoolDashboardRamUsageChart from "@/components/pool/dashboard/ramUsage/PoolRamUsage.vue";
 import PoolDashboardStatus from "@/components/pool/dashboard/PoolDashboardStatus.vue";
