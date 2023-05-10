@@ -7,6 +7,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [Plugins] Clicking on a plugin name now filters out other plugins
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -31,5 +33,6 @@
 
 - @vates/task patch
 - xo-server minor
+- xo-web minor
 
 <!--packages-end-->
