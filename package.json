@@ -96,7 +96,7 @@
     "prepare": "husky install",
     "prettify": "prettier --ignore-path .gitignore --ignore-unknown --write .",
     "test": "npm run test-lint && npm run test-unit",
-    "test-integration": "scripts/run-script.js --parallel test-integration",
+    "test-integration": "jest \".integ\\.spec\\.js$\" && scripts/run-script.js --parallel test-integration",
     "test-lint": "eslint --ignore-path .gitignore --ignore-pattern packages/xo-web .",
     "test-unit": "jest \"^(?!.*\\.integ\\.spec\\.js$)\" && scripts/run-script.js --bail test"
   },
