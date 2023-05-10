@@ -14,7 +14,7 @@
   },
   "scripts": {
     "postversion": "npm publish --access public",
-    "test": "node--test"
+    "integration-test": "node--test"
   },
   "dependencies": {
     "@kldzj/stream-throttle": "^1.1.1",

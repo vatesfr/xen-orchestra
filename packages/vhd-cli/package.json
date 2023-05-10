@@ -35,7 +35,7 @@
   },
   "scripts": {
     "postversion": "npm publish",
-    "test": "node--test"
+    "integration-test": "node--test"
   },
   "devDependencies": {
     "execa": "^4.0.0",
