@@ -1,28 +1,28 @@
 <template>
   <div class="pool-dashboard-view">
-    <div class="row first-row">
+    <UiCardGroup>
       <PoolDashboardStatus />
-      <PoolDashboardComingSoon title="Alarms" class="alarms" />
-      <PoolDashboardComingSoon title="Patches" />
-    </div>
-    <div class="row">
-      <div class="column">
+      <UiCardComingSoon class="alarms" title="Alarms" />
+      <UiCardComingSoon title="Patches" />
+    </UiCardGroup>
+    <UiCardGroup>
+      <UiCardGroup vertical>
         <PoolDashboardStorageUsage />
         <PoolDashboardNetworkChart />
-      </div>
-      <div class="column">
+      </UiCardGroup>
+      <UiCardGroup vertical>
         <PoolDashboardRamUsage />
         <PoolDashboardRamUsageChart />
-      </div>
-      <div class="column">
+      </UiCardGroup>
+      <UiCardGroup vertical>
         <PoolDashboardCpuProvisioning />
         <PoolDashboardCpuUsage />
         <PoolCpuUsageChart />
-      </div>
-    </div>
-    <div class="row">
-      <PoolDashboardComingSoon title="Tasks" class="tasks" />
-    </div>
+      </UiCardGroup>
+    </UiCardGroup>
+    <UiCardGroup>
+      <UiCardComingSoon class="tasks" title="Tasks" />
+    </UiCardGroup>
   </div>
 </template>
 
@@ -31,10 +31,11 @@ export const N_ITEMS = 5;
 </script>
 
 <script lang="ts" setup>
+import UiCardGroup from "@/components/ui/UiCardGroup.vue";
 import { useHostMetricsStore } from "@/stores/host-metrics.store";
 import { differenceBy } from "lodash-es";
 import { provide, watch } from "vue";
-import PoolDashboardComingSoon from "@/components/pool/dashboard/PoolDashboardComingSoon.vue";
+import UiCardComingSoon from "@/components/ui/UiCardComingSoon.vue";
 import PoolCpuUsageChart from "@/components/pool/dashboard/cpuUsage/PoolCpuUsageChart.vue";
 import PoolDashboardCpuUsage from "@/components/pool/dashboard/PoolDashboardCpuUsage.vue";
 import PoolDashboardNetworkChart from "@/components/pool/dashboard/PoolDashboardNetworkChart.vue";
@@ -118,27 +119,8 @@ runningVms.value.forEach((vm) => vmRegister(vm));
   padding: 1rem;
 }
 
-.row {
-  display: flex;
-  gap: 1rem;
-  flex-direction: column;
-}
-
-.column {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  flex: 1;
-}
-
 .alarms,
 .tasks {
   flex: 1;
-}
-
-@media (min-width: 1500px) {
-  .row {
-    flex-direction: row;
-  }
 }
 </style>

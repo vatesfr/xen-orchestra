@@ -1,8 +1,8 @@
 <template>
-  <UiCard class="pool-dashboard-coming-soon">
+  <UiCard class="ui-card-coming-soon">
     <UiCardTitle>{{ title }}</UiCardTitle>
     <div class="content">
-      <img alt="Under construction" src="@/assets/under-construction.svg" />
+      <img alt="" src="@/assets/under-construction.svg" />
     </div>
     <div class="content">Coming soon</div>
   </UiCard>
@@ -18,7 +18,7 @@ defineProps<{
 </script>
 
 <style scoped lang="postcss">
-.pool-dashboard-coming-soon {
+.ui-card-coming-soon {
   display: flex;
   flex-direction: column;
 }
