@@ -6,15 +6,15 @@
       <UiCardComingSoon title="Patches" />
     </UiCardGroup>
     <UiCardGroup>
-      <UiCardGroup vertical>
+      <UiCardGroup>
         <PoolDashboardStorageUsage />
         <PoolDashboardNetworkChart />
       </UiCardGroup>
-      <UiCardGroup vertical>
+      <UiCardGroup>
         <PoolDashboardRamUsage />
         <PoolDashboardRamUsageChart />
       </UiCardGroup>
-      <UiCardGroup vertical>
+      <UiCardGroup>
         <PoolDashboardCpuProvisioning />
         <PoolDashboardCpuUsage />
         <PoolCpuUsageChart />

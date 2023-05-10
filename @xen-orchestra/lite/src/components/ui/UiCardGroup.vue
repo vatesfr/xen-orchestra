@@ -5,9 +5,11 @@
 </template>
 
 <script lang="ts" setup>
-defineProps<{
-  vertical?: boolean;
-}>();
+import { inject, provide } from "vue";
+
+const vertical = inject("isCardGroupVertical", false);
+
+provide("isCardGroupVertical", !vertical);
 </script>
 
 <style lang="postcss" scoped>
