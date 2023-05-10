@@ -67,10 +67,6 @@ require('exec-promise')(args => {
           }),
         }
         return forEach.call([`pre${script}`, script, `post${script}`], script => {
-          if (script === 'test') {
-            if (scripts['integration-test'] !== undefined) script = 'integration-test'
-          }
-
           const command = scripts[script]
           if (command !== undefined) {
             console.log(`* ${name}:${script} −`, command)
