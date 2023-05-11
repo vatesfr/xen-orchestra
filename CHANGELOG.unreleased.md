@@ -11,7 +11,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [OVA exports] fix race condition leading to memory leak during ova exports [Forum#56051](https://xcp-ng.org/forum/post/56051) (PR [#6800](https://github.com/vatesfr/xen-orchestra/pull/6800))
+- [OVA export] Fix major memory leak which may lead to xo-server crash [Forum#56051](https://xcp-ng.org/forum/post/56051) (PR [#6800](https://github.com/vatesfr/xen-orchestra/pull/6800))
 
 ### Packages to release
 
