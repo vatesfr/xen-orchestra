@@ -7,6 +7,7 @@
 - @vates/task 0.1.2
 - xo-vmdk-to-vhd 2.5.4
 - xo-server 5.114.0
+- xo-web 5.117.0
 
 ## **5.82.0** (2023-04-28)
 
