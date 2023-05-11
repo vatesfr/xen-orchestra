@@ -16,6 +16,7 @@
 - [Host/Network] Fix IP configuration not working with empty fields
 - [Import/VM/From VMware] Fix `Property description must be an object: undefined` [Forum#61834](https://xcp-ng.org/forum/post/61834) [Forum#61900](https://xcp-ng.org/forum/post/61900)
 - [Import/VM/From VMware] Fix `Cannot read properties of undefined (reading 'stream')` [Forum#59879](https://xcp-ng.org/forum/post/59879) (PR [#6825](https://github.com/vatesfr/xen-orchestra/pull/6825))
+- [OVA export] Fix major memory leak which may lead to xo-server crash [Forum#56051](https://xcp-ng.org/forum/post/56051) (PR [#6800](https://github.com/vatesfr/xen-orchestra/pull/6800))
 
 ### Packages to release
 
@@ -35,6 +36,7 @@
 
 - @vates/task patch
 - xo-server minor
+- xo-vmdk-to-vhd patch
 - xo-web minor
 
 <!--packages-end-->
