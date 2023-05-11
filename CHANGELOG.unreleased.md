@@ -35,7 +35,6 @@
 <!--packages-start-->
 
 - xo-server minor
-- xo-vmdk-to-vhd patch
 - xo-web minor
 
 <!--packages-end-->

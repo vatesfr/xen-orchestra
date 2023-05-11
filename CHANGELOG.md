@@ -5,6 +5,7 @@
 ### Released packages
 
 - @vates/task 0.1.2
+- xo-vmdk-to-vhd 2.5.4
 
 ## **5.82.0** (2023-04-28)
 
