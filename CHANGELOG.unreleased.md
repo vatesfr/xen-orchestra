@@ -34,7 +34,6 @@
 
 <!--packages-start-->
 
-- @vates/task patch
 - xo-server minor
 - xo-vmdk-to-vhd patch
 - xo-web minor
