@@ -48,7 +48,7 @@ exports.makeOnProgress = function ({ onRootTaskEnd = noop, onRootTaskStart = noo
         assert.notEqual(parent, undefined)
 
         // inject a (non-enumerable) reference to the parent and the root task
-        Object.defineProperty(taskLog, { $parent: { value: parent }, $root: { value: parent.$root } })
+        Object.defineProperties(taskLog, { $parent: { value: parent }, $root: { value: parent.$root } })
         ;(parent.tasks ?? (parent.tasks = [])).push(taskLog)
       }
     } else {

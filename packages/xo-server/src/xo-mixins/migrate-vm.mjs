@@ -154,7 +154,7 @@ export default class MigrateVm {
   }
 
   #connectToEsxi(host, user, password, sslVerify) {
-    return new Task({ name: `connecting to ${host}` }).run(async () => {
+    return Task.run({ data: { name: `connecting to ${host}` } }, async () => {
       const esxi = new Esxi(host, user, password, sslVerify)
       await fromEvent(esxi, 'ready')
       return esxi
@@ -174,21 +174,24 @@ export default class MigrateVm {
     const app = this._app
     const esxi = await this.#connectToEsxi(host, user, password, sslVerify)
 
-    const esxiVmMetadata = await new Task({ name: `get metadata of ${vmId}` }).run(async () => {
+    const esxiVmMetadata = await Task.run({ data: { name: `get metadata of ${vmId}` } }, async () => {
       return esxi.getTransferableVmMetadata(vmId)
     })
 
     const { disks, firmware, memory, name_label, networks, nCpus, powerState, snapshots } = esxiVmMetadata
     const isRunning = powerState !== 'poweredOff'
 
-    const chainsByNodes = await new Task({ name: `build disks and snapshots chains for ${vmId}` }).run(async () => {
-      return this.#buildDiskChainByNode(disks, snapshots)
-    })
+    const chainsByNodes = await Task.run(
+      { data: { name: `build disks and snapshots chains for ${vmId}` } },
+      async () => {
+        return this.#buildDiskChainByNode(disks, snapshots)
+      }
+    )
 
     const sr = app.getXapiObject(srId)
     const xapi = sr.$xapi
 
-    const vm = await new Task({ name: 'creating MV on XCP side ' }).run(async () => {
+    const vm = await Task.run({ data: { name: 'creating MV on XCP side' } }, async () => {
       // got data, ready to start creating
       const vm = await xapi._getOrWaitObject(
         await xapi.VM_create({
@@ -233,7 +236,7 @@ export default class MigrateVm {
 
     const vhds = await Promise.all(
       Object.keys(chainsByNodes).map(async (node, userdevice) =>
-        new Task({ name: `Cold import of disks ${node}  ` }).run(async () => {
+        Task.run({ data: { name: `Cold import of disks ${node}` } }, async () => {
           const chainByNode = chainsByNodes[node]
           const vdi = await xapi._getOrWaitObject(
             await xapi.VDI_create({
@@ -268,9 +271,11 @@ export default class MigrateVm {
             }
             parentVhd = vhd
           }
-
-          const stream = vhd.stream()
-          await vdi.$importContent(stream, { format: VDI_FORMAT_VHD })
+          if (vhd !== undefined) {
+            // it can be empty if the VM don't have a snapshot and is running
+            const stream = vhd.stream()
+            await vdi.$importContent(stream, { format: VDI_FORMAT_VHD })
+          }
           return { vdi, vhd }
         })
       )
@@ -278,20 +283,26 @@ export default class MigrateVm {
 
     if (isRunning && stopSource) {
       // it the vm was running, we stop it and transfer the data in the active disk
-      await new Task({ name: 'powering down source VM' }).run(() => esxi.powerOff(vmId))
+      await Task.run({ data: { name: 'powering down source VM' } }, () => esxi.powerOff(vmId))
 
       await Promise.all(
         Object.keys(chainsByNodes).map(async (node, userdevice) => {
-          await new Task({ name: `Transfering deltas of ${userdevice}` }).run(async () => {
+          await Task.run({ data: { name: `Transfering deltas of ${userdevice}` } }, async () => {
             const chainByNode = chainsByNodes[node]
             const disk = chainByNode[chainByNode.length - 1]
             const { fileName, path, datastore, isFull } = disk
             const { vdi, vhd: parentVhd } = vhds[userdevice]
             let vhd
+            if (vdi === undefined) {
+              throw new Error(`Can't import delta of a running VM without its parent vdi`)
+            }
             if (isFull) {
               vhd = await VhdEsxiRaw.open(esxi, datastore, path + '/' + fileName, { thin })
               await vhd.readBlockAllocationTable()
             } else {
+              if (parentVhd === undefined) {
+                throw new Error(`Can't import delta of a running VM without its parent VHD`)
+              }
               // we only want to transfer blocks present in the delta vhd, not the full vhd chain
               vhd = await openDeltaVmdkasVhd(esxi, datastore, path + '/' + fileName, parentVhd, {
                 lookMissingBlockInParent: false,
@@ -305,7 +316,7 @@ export default class MigrateVm {
       )
     }
 
-    await new Task({ name: 'Finishing transfer' }).run(async () => {
+    await Task.run({ data: { name: 'Finishing transfer' } }, async () => {
       // remove the importing in label
       await vm.set_name_label(esxiVmMetadata.name_label)
 

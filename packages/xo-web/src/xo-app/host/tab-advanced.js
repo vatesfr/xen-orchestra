@@ -21,6 +21,7 @@ import { FormattedRelative, FormattedTime } from 'react-intl'
 import { Sr } from 'render-xo-item'
 import { Text } from 'editable'
 import { Toggle, Select, SizeInput } from 'form'
+import * as xoaPlans from 'xoa-plans'
 import {
   detachHost,
   disableHost,
@@ -44,6 +45,7 @@ import {
 import { installCertificate } from './install-certificate'
 
 const ALLOW_INSTALL_SUPP_PACK = process.env.XOA_PLAN > 1
+const ALLOW_SMART_REBOOT = xoaPlans.CURRENT.value >= xoaPlans.PREMIUM.value
 
 const SCHED_GRAN_TYPE_OPTIONS = [
   {
@@ -62,7 +64,9 @@ const SCHED_GRAN_TYPE_OPTIONS = [
 
 const forceReboot = host => restartHost(host, true)
 
-const smartReboot = host => restartHost(host, false, true) // don't force, suspend resident VMs
+const smartReboot = ALLOW_SMART_REBOOT
+  ? host => restartHost(host, false, true) // don't force, suspend resident VMs
+  : () => {}
 
 const formatPack = ({ name, author, description, version }, key) => (
   <tr key={key}>
@@ -259,11 +263,12 @@ export default class extends Component {
               <TabButton
                 key='smart-reboot'
                 btnStyle='warning'
+                disabled={!ALLOW_SMART_REBOOT}
                 handler={smartReboot}
                 handlerParam={host}
                 icon='freeze'
                 labelId='smartRebootHostLabel'
-                tooltip={_('smartRebootHostTooltip')}
+                tooltip={ALLOW_SMART_REBOOT ? _('smartRebootHostTooltip') : _('availableXoaPremium')}
               />,
               <TabButton
                 key='force-reboot'
