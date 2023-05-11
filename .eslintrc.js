@@ -28,7 +28,7 @@ module.exports = {
       },
     },
     {
-      files: ['*.{spec,test}.{,c,m}js'],
+      files: ['*.{integ,spec,test}.{,c,m}js'],
       rules: {
         'n/no-unpublished-require': 'off',
         'n/no-unpublished-import': 'off',
