@@ -1,7 +1,6 @@
 import Disposable from 'promise-toolbox/Disposable'
 import fromCallback from 'promise-toolbox/fromCallback'
 import { asyncMap } from '@xen-orchestra/async-map'
-import { Backup } from '@xen-orchestra/backups/Backup.js'
 import { compose } from '@vates/compose'
 import { createLogger } from '@xen-orchestra/log'
 import { decorateMethodsWith } from '@vates/decorate-with'
@@ -10,6 +9,7 @@ import { defer } from 'golike-defer'
 import { DurablePartition } from '@xen-orchestra/backups/DurablePartition.js'
 import { execFile } from 'child_process'
 import { formatVmBackups } from '@xen-orchestra/backups/formatVmBackups.js'
+import { instantiateBackupJob } from '@xen-orchestra/backups/backupJob.js'
 import { ImportVmBackup } from '@xen-orchestra/backups/ImportVmBackup.js'
 import { JsonRpcError } from 'json-rpc-protocol'
 import { Readable } from 'stream'
@@ -52,7 +52,7 @@ export default class Backups {
       const config = app.config.get('backups')
       if (config.disableWorkers) {
         const { recordToXapi, remotes, xapis, ...rest } = params
-        return new Backup({
+        return instantiateBackupJob({
           ...rest,
 
           config,
