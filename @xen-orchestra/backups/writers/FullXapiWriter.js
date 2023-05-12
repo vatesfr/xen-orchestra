@@ -9,10 +9,10 @@ const { getOldEntries } = require('../_getOldEntries.js')
 const { Task } = require('../Task.js')
 
 const { AbstractFullWriter } = require('./_AbstractFullWriter.js')
-const { MixinReplicationWriter } = require('./_MixinReplicationWriter.js')
+const { MixinXapiWriter } = require('./_MixinXapiWriter.js')
 const { listReplicatedVms } = require('./_listReplicatedVms.js')
 
-exports.FullReplicationWriter = class FullReplicationWriter extends MixinReplicationWriter(AbstractFullWriter) {
+exports.FullXapiWriter = class FullXapiWriter extends MixinXapiWriter(AbstractFullWriter) {
   constructor(props) {
     super(props)
 
