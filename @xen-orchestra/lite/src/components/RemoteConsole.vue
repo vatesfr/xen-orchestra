@@ -1,5 +1,5 @@
 <template>
-  <div ref="vmConsoleContainer" class="vm-console" />
+  <div ref="consoleContainer" class="remote-console" />
 </template>
 
 <script lang="ts" setup>
@@ -19,7 +19,7 @@ const props = defineProps<{
   isConsoleAvailable: boolean;
 }>();
 
-const vmConsoleContainer = ref<HTMLDivElement>();
+const consoleContainer = ref<HTMLDivElement>();
 const xenApiStore = useXenApiStore();
 const url = computed(() => {
   if (xenApiStore.currentSessionId == null) {
@@ -78,7 +78,7 @@ const createVncConnection = async () => {
     await promiseTimeout(FIBONACCI_MS_ARRAY[nConnectionAttempts - 1]);
   }
 
-  vncClient = new VncClient(vmConsoleContainer.value!, url.value!.toString(), {
+  vncClient = new VncClient(consoleContainer.value!, url.value!.toString(), {
     wsProtocols: ["binary"],
   });
   vncClient.scaleViewport = true;
@@ -91,7 +91,7 @@ watch(url, clearVncClient);
 watchEffect(() => {
   if (
     url.value === undefined ||
-    vmConsoleContainer.value === undefined ||
+    consoleContainer.value === undefined ||
     !props.isConsoleAvailable
   ) {
     return;
@@ -107,8 +107,8 @@ onBeforeUnmount(() => {
 </script>
 
 <style lang="postcss" scoped>
-.vm-console {
-  height: 80rem;
+.remote-console {
+  height: 100%;
 
   & > :deep(div) {
     background-color: transparent !important;

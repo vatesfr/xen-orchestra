@@ -1,6 +1,6 @@
 <template>
   <ObjectNotFoundWrapper :is-ready="isReady" :uuid-checker="hasUuid">
-    <VmHeader />
+    <VmHeader v-if="uiStore.hasUi" />
     <RouterView />
   </ObjectNotFoundWrapper>
 </template>

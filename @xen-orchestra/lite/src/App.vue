@@ -24,9 +24,9 @@
     <AppLogin />
   </div>
   <div v-else>
-    <AppHeader />
+    <AppHeader v-if="uiStore.hasUi" />
     <div style="display: flex">
-      <AppNavigation />
+      <AppNavigation v-if="uiStore.hasUi" />
       <main class="main">
         <RouterView />
       </main>
