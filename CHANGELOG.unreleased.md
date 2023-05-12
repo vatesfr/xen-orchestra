@@ -12,7 +12,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [Import/VM/From VMware] Fix `Property description must be an object: undefined` [Forum#61834](https://xcp-ng.org/forum/post/61834) [Forum#61900](https://xcp-ng.org/forum/post/61900)
-- [Sorted table] In collapsed actions, a spinner is displayed during the action time
+- [Sorted table] In collapsed actions, a spinner is displayed during the action time (PR [#6831](https://github.com/vatesfr/xen-orchestra/pull/6831))
 
 ### Packages to release
 
