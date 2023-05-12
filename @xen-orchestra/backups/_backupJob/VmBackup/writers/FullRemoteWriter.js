@@ -4,10 +4,10 @@ const { formatFilenameDate } = require('../../../_filenameDate.js')
 const { getOldEntries } = require('../../../_getOldEntries.js')
 const { Task } = require('../../../Task.js')
 
-const { MixinBackupWriter } = require('./_MixinBackupWriter.js')
+const { MixinRemoteWriter } = require('./_MixinRemoteWriter.js')
 const { AbstractFullWriter } = require('./_AbstractFullWriter.js')
 
-exports.FullBackupWriter = class FullBackupWriter extends MixinBackupWriter(AbstractFullWriter) {
+exports.FullRemoteWriter = class FullRemoteWriter extends MixinRemoteWriter(AbstractFullWriter) {
   constructor(props) {
     super(props)
 

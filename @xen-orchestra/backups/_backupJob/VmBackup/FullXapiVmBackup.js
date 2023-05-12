@@ -3,7 +3,7 @@
 const { createLogger } = require('@xen-orchestra/log')
 
 const { forkStreamUnpipe } = require('../forkStreamUnpipe.js')
-const { FullBackupWriter } = require('./writers/FullBackupWriter.js')
+const { FullRemoteWriter } = require('./writers/FullRemoteWriter.js')
 const { FullReplicationWriter } = require('./writers/FullReplicationWriter.js')
 const { watchStreamSize } = require('../../_watchStreamSize.js')
 const { AbstractXapiVmBackup } = require('./AbstractXapiVmBackup.js')
@@ -12,7 +12,7 @@ const { debug } = createLogger('xo:backups:FullXapiVmBackup')
 
 exports.FullXapiVmBackup = class FullXapiVmBackup extends AbstractXapiVmBackup {
   _getWriters() {
-    return [FullBackupWriter, FullReplicationWriter]
+    return [FullRemoteWriter, FullReplicationWriter]
   }
 
   _mustDoSnapshot() {

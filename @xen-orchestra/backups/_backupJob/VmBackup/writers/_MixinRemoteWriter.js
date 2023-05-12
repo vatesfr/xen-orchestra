@@ -13,8 +13,8 @@ const MergeWorker = require('../../../merge-worker/index.js')
 
 const { info, warn } = createLogger('xo:backups:MixinBackupWriter')
 
-exports.MixinBackupWriter = (BaseClass = Object) =>
-  class MixinBackupWriter extends BaseClass {
+exports.MixinRemoteWriter = (BaseClass = Object) =>
+  class MixinRemoteWriter extends BaseClass {
     #lock
 
     constructor({ remoteId, ...rest }) {
