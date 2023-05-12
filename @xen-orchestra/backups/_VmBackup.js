@@ -83,7 +83,7 @@ class VmBackup {
 
     this._fullVdisRequired = undefined
     this._getSnapshotNameLabel = getSnapshotNameLabel
-    this._isDelta = job.mode === 'delta'
+    this._isIncremental = job.mode === 'delta'
     this._healthCheckSr = healthCheckSr
     this._jobId = job.id
     this._jobSnapshots = undefined
@@ -107,7 +107,7 @@ class VmBackup {
       const writers = new Set()
       this._writers = writers
 
-      const [BackupWriter, ReplicationWriter] = this._isDelta
+      const [BackupWriter, ReplicationWriter] = this._isIncremental
         ? [DeltaBackupWriter, DeltaReplicationWriter]
         : [FullBackupWriter, FullReplicationWriter]
 
@@ -204,7 +204,7 @@ class VmBackup {
 
     const doSnapshot =
       settings.unconditionalSnapshot ||
-      this._isDelta ||
+      this._isIncremental ||
       (!settings.offlineBackup && vm.power_state === 'Running') ||
       settings.snapshotRetention !== 0
     if (doSnapshot) {
@@ -237,7 +237,7 @@ class VmBackup {
     }
   }
 
-  async _copyDelta() {
+  async _copyIncremental() {
     const { exportedVm } = this
     const baseVm = this._baseVm
     const fullVdisRequired = this._fullVdisRequired
@@ -474,7 +474,7 @@ class VmBackup {
 
     await this._fetchJobSnapshots()
 
-    if (this._isDelta) {
+    if (this._isIncremental) {
       await this._selectBaseVm()
     }
 
@@ -495,7 +495,7 @@ class VmBackup {
       }
 
       if (this._writers.size !== 0) {
-        await (this._isDelta ? this._copyDelta() : this._copyFull())
+        await (this._isIncremental ? this._copyIncremental() : this._copyFull())
       }
     } finally {
       if (startAfter) {
