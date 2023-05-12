@@ -3,7 +3,7 @@
 const assert = require('assert')
 
 const { formatFilenameDate } = require('./_filenameDate.js')
-const { importDeltaVm } = require('./_incrementalVm.js')
+const { importIncrementalVm } = require('./_incrementalVm.js')
 const { Task } = require('./Task.js')
 const { watchStreamSize } = require('./_watchStreamSize.js')
 
@@ -49,7 +49,7 @@ exports.ImportVmBackup = class ImportVmBackup {
 
         const vmRef = isFull
           ? await xapi.VM_import(backup, srRef)
-          : await importDeltaVm(backup, await xapi.getRecord('SR', srRef), {
+          : await importIncrementalVm(backup, await xapi.getRecord('SR', srRef), {
               ...this._importDeltaVmSettings,
               detectBase: false,
             })
