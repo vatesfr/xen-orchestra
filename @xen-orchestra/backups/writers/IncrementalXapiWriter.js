@@ -6,7 +6,7 @@ const { formatDateTime } = require('@xen-orchestra/xapi')
 
 const { formatFilenameDate } = require('../_filenameDate.js')
 const { getOldEntries } = require('../_getOldEntries.js')
-const { importDeltaVm, TAG_COPY_SRC } = require('../_incrementalVm.js')
+const { importIncrementalVm, TAG_COPY_SRC } = require('../_incrementalVm.js')
 const { Task } = require('../Task.js')
 
 const { AbstractIncrementalWriter } = require('./_AbstractIncrementalWriter.js')
@@ -90,7 +90,7 @@ exports.IncrementalXapiWriter = class IncrementalXapiWriter extends MixinXapiWri
 
     let targetVmRef
     await Task.run({ name: 'transfer' }, async () => {
-      targetVmRef = await importDeltaVm(
+      targetVmRef = await importIncrementalVm(
         {
           __proto__: deltaExport,
           vm: {
