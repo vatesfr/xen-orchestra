@@ -50,8 +50,8 @@ exports.DeltaReplicationWriter = class DeltaReplicationWriter extends MixinRepli
       },
     })
     this.transfer = task.wrapFn(this.transfer)
-    this.healthCheck = task.wrapFn(this.healthCheck)
-    this.cleanup = task.wrapFn(this.cleanup, true)
+    this.cleanup = task.wrapFn(this.cleanup)
+    this.healthCheck = task.wrapFn(this.healthCheck, true)
 
     return task.run(() => this._prepare())
   }
