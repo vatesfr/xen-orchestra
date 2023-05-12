@@ -6,7 +6,7 @@ const { formatDateTime } = require('@xen-orchestra/xapi')
 
 const { formatFilenameDate } = require('../_filenameDate.js')
 const { getOldEntries } = require('../_getOldEntries.js')
-const { importDeltaVm, TAG_COPY_SRC } = require('../_deltaVm.js')
+const { importDeltaVm, TAG_COPY_SRC } = require('../_incrementalVm.js')
 const { Task } = require('../Task.js')
 
 const { AbstractIncrementalWriter } = require('./_AbstractIncrementalWriter.js')
