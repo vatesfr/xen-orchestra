@@ -15,11 +15,11 @@ const { formatDateTime } = require('@xen-orchestra/xapi')
 const { pipeline } = require('node:stream')
 
 const { IncrementalRemoteWriter } = require('./writers/IncrementalRemoteWriter.js')
-const { IncrementalReplicationWriter } = require('./writers/IncrementalReplicationWriter.js')
+const { IncrementalXapiWriter } = require('./writers/IncrementalXapiWriter.js')
 const { exportDeltaVm } = require('./_deltaVm.js')
 const { forkStreamUnpipe } = require('./_forkStreamUnpipe.js')
 const { FullRemoteWriter } = require('./writers/FullRemoteWriter.js')
-const { FullReplicationWriter } = require('./writers/FullReplicationWriter.js')
+const { FullXapiWriter } = require('./writers/FullXapiWriter.js')
 const { getOldEntries } = require('./_getOldEntries.js')
 const { Task } = require('./Task.js')
 const { watchStreamSize } = require('./_watchStreamSize.js')
@@ -107,9 +107,9 @@ class VmBackup {
       const writers = new Set()
       this._writers = writers
 
-      const [RemoteWriter, ReplicationWriter] = this._isIncremental
-        ? [IncrementalRemoteWriter, IncrementalReplicationWriter]
-        : [FullRemoteWriter, FullReplicationWriter]
+      const [RemoteWriter, XapiWriter] = this._isIncremental
+        ? [IncrementalRemoteWriter, IncrementalXapiWriter]
+        : [FullRemoteWriter, FullXapiWriter]
 
       const allSettings = job.settings
       Object.keys(remoteAdapters).forEach(remoteId => {
@@ -127,7 +127,7 @@ class VmBackup {
           ...allSettings[sr.uuid],
         }
         if (targetSettings.copyRetention !== 0) {
-          writers.add(new ReplicationWriter({ backup: this, sr, settings: targetSettings }))
+          writers.add(new XapiWriter({ backup: this, sr, settings: targetSettings }))
         }
       })
     }
