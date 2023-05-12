@@ -3,13 +3,13 @@ import Disposable from 'promise-toolbox/Disposable'
 import forOwn from 'lodash/forOwn.js'
 import groupBy from 'lodash/groupBy.js'
 import merge from 'lodash/merge.js'
-import { Backup } from '@xen-orchestra/backups/Backup.js'
 import { createLogger } from '@xen-orchestra/log'
 import { createPredicate } from 'value-matcher'
 import { decorateWith } from '@vates/decorate-with'
 import { formatVmBackups } from '@xen-orchestra/backups/formatVmBackups.js'
 import { HealthCheckVmBackup } from '@xen-orchestra/backups/HealthCheckVmBackup.js'
 import { ImportVmBackup } from '@xen-orchestra/backups/ImportVmBackup.js'
+import { createRunner } from '@xen-orchestra/backups/Backup.js'
 import { invalidParameters } from 'xo-common/api-errors.js'
 import { runBackupWorker } from '@xen-orchestra/backups/runBackupWorker.js'
 import { Task } from '@xen-orchestra/backups/Task.js'
@@ -164,7 +164,7 @@ export default class BackupNg {
                   }),
               },
               () =>
-                new Backup({
+                createRunner({
                   config: backupsConfig,
                   getAdapter: async remoteId =>
                     app.getBackupsRemoteAdapter(await app.getRemoteWithCredentials(remoteId)),
