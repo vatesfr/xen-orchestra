@@ -16,7 +16,7 @@ const { pipeline } = require('node:stream')
 
 const { IncrementalRemoteWriter } = require('./writers/IncrementalRemoteWriter.js')
 const { IncrementalXapiWriter } = require('./writers/IncrementalXapiWriter.js')
-const { exportDeltaVm } = require('./_incrementalVm.js')
+const { exportIncrementalVm } = require('./_incrementalVm.js')
 const { forkStreamUnpipe } = require('./_forkStreamUnpipe.js')
 const { FullRemoteWriter } = require('./writers/FullRemoteWriter.js')
 const { FullXapiWriter } = require('./writers/FullXapiWriter.js')
@@ -246,7 +246,7 @@ class VmBackup {
 
     await this._callWriters(writer => writer.prepare({ isFull }), 'writer.prepare()')
 
-    const deltaExport = await exportDeltaVm(exportedVm, baseVm, {
+    const deltaExport = await exportIncrementalVm(exportedVm, baseVm, {
       fullVdisRequired,
     })
     // since NBD is network based, if one disk use nbd , all the disk use them
