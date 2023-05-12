@@ -13,18 +13,9 @@ const { Task } = require('./Task.js')
 const { VmBackup } = require('./_VmBackup.js')
 const { XoMetadataBackup } = require('./_XoMetadataBackup.js')
 const createStreamThrottle = require('./_createStreamThrottle.js')
-
-const noop = Function.prototype
-
-const getAdaptersByRemote = adapters => {
-  const adaptersByRemote = {}
-  adapters.forEach(({ adapter, remoteId }) => {
-    adaptersByRemote[remoteId] = adapter
-  })
-  return adaptersByRemote
-}
-
-const runTask = (...args) => Task.run(...args).catch(noop) // errors are handled by logs
+const { runTask } = require('./runTask.js')
+const { getAdaptersByRemote } = require('./getAdaptersByRemote.js')
+const { RemoteTimeoutError } = require('./RemoteTimeoutError.js')
 
 const DEFAULT_SETTINGS = {
   getRemoteTimeout: 300e3,
@@ -56,13 +47,6 @@ const DEFAULT_VM_SETTINGS = {
 const DEFAULT_METADATA_SETTINGS = {
   retentionPoolMetadata: 0,
   retentionXoMetadata: 0,
-}
-
-class RemoteTimeoutError extends Error {
-  constructor(remoteId) {
-    super('timeout while getting the remote ' + remoteId)
-    this.remoteId = remoteId
-  }
 }
 
 exports.Backup = class Backup {
