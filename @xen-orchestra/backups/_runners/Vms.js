@@ -7,10 +7,11 @@ const { limitConcurrency } = require('limit-concurrency-decorator')
 const { extractIdsFromSimplePattern } = require('../extractIdsFromSimplePattern.js')
 const { Task } = require('../Task.js')
 const createStreamThrottle = require('./_createStreamThrottle.js')
-const { DEFAULT_SETTINGS, AbstractRunner } = require('./_Abstract.js')
+const { DEFAULT_SETTINGS, Abstract } = require('./_Abstract.js')
 const { runTask } = require('./_runTask.js')
-const { VmBackup } = require('./_VmBackup.js')
 const { getAdaptersByRemote } = require('./_getAdaptersByRemote.js')
+const { IncrementalXapi } = require('./_vmRunners/IncrementalXapi.js')
+const { FullXapi } = require('./_vmRunners/FullXapi.js')
 
 const DEFAULT_XAPI_VM_SETTINGS = {
   bypassVdiChainsCheck: false,
@@ -34,7 +35,7 @@ const DEFAULT_XAPI_VM_SETTINGS = {
   vmTimeout: 0,
 }
 
-exports.Vms = class VmsBackupRunner extends AbstractRunner {
+exports.Vms = class VmsBackupRunner extends Abstract {
   _computeBaseSettings(config, job) {
     const baseSettings = { ...DEFAULT_SETTINGS }
     Object.assign(baseSettings, DEFAULT_XAPI_VM_SETTINGS, config.defaultSettings, config.vm?.defaultSettings)
@@ -96,8 +97,8 @@ exports.Vms = class VmsBackupRunner extends AbstractRunner {
             disposableVm =>
               Disposable.use(disposableVm, vm => {
                 taskStart.data.name_label = vm.name_label
-                return runTask(taskStart, () =>
-                  new VmBackup({
+                return runTask(taskStart, () => {
+                  const opts = {
                     baseSettings,
                     config,
                     getSnapshotNameLabel,
@@ -109,8 +110,19 @@ exports.Vms = class VmsBackupRunner extends AbstractRunner {
                     srs,
                     throttleStream,
                     vm,
-                  }).run()
-                )
+                  }
+                  let vmBackup
+                  if (job.mode === 'delta') {
+                    vmBackup = new IncrementalXapi(opts)
+                  } else {
+                    if (job.mode === 'full') {
+                      vmBackup = new FullXapi(opts)
+                    } else {
+                      throw new Error(`Job mode ${job.mode} not implemented`)
+                    }
+                  }
+                  return vmBackup.run()
+                })
               }),
             error =>
               runTask(taskStart, () => {
