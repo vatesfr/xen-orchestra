@@ -14,8 +14,8 @@ const { defer } = require('golike-defer')
 const { formatDateTime } = require('@xen-orchestra/xapi')
 const { pipeline } = require('node:stream')
 
-const { DeltaBackupWriter } = require('./writers/DeltaBackupWriter.js')
-const { DeltaReplicationWriter } = require('./writers/DeltaReplicationWriter.js')
+const { IncrementalBackupWriter } = require('./writers/IncrementalBackupWriter.js')
+const { IncrementalReplicationWriter } = require('./writers/IncrementalReplicationWriter.js')
 const { exportDeltaVm } = require('./_deltaVm.js')
 const { forkStreamUnpipe } = require('./_forkStreamUnpipe.js')
 const { FullBackupWriter } = require('./writers/FullBackupWriter.js')
@@ -108,7 +108,7 @@ class VmBackup {
       this._writers = writers
 
       const [BackupWriter, ReplicationWriter] = this._isIncremental
-        ? [DeltaBackupWriter, DeltaReplicationWriter]
+        ? [IncrementalBackupWriter, IncrementalReplicationWriter]
         : [FullBackupWriter, FullReplicationWriter]
 
       const allSettings = job.settings

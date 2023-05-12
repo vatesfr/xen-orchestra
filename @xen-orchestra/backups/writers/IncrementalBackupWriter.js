@@ -16,14 +16,14 @@ const { getOldEntries } = require('../_getOldEntries.js')
 const { Task } = require('../Task.js')
 
 const { MixinBackupWriter } = require('./_MixinBackupWriter.js')
-const { AbstractDeltaWriter } = require('./_AbstractDeltaWriter.js')
+const { AbstractIncrementalWriter } = require('./_AbstractIncrementalWriter.js')
 const { checkVhd } = require('./_checkVhd.js')
 const { packUuid } = require('./_packUuid.js')
 const { Disposable } = require('promise-toolbox')
 
 const { warn } = createLogger('xo:backups:DeltaBackupWriter')
 
-class DeltaBackupWriter extends MixinBackupWriter(AbstractDeltaWriter) {
+class IncrementalBackupWriter extends MixinBackupWriter(AbstractIncrementalWriter) {
   async checkBaseVdis(baseUuidToSrcVdi) {
     const { handler } = this._adapter
     const backup = this._backup
@@ -227,6 +227,6 @@ class DeltaBackupWriter extends MixinBackupWriter(AbstractDeltaWriter) {
     // TODO: run cleanup?
   }
 }
-exports.DeltaBackupWriter = decorateClass(DeltaBackupWriter, {
+exports.IncrementalBackupWriter = decorateClass(IncrementalBackupWriter, {
   _transfer: defer,
 })

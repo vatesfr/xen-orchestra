@@ -9,11 +9,13 @@ const { getOldEntries } = require('../_getOldEntries.js')
 const { importDeltaVm, TAG_COPY_SRC } = require('../_deltaVm.js')
 const { Task } = require('../Task.js')
 
-const { AbstractDeltaWriter } = require('./_AbstractDeltaWriter.js')
+const { AbstractIncrementalWriter } = require('./_AbstractIncrementalWriter.js')
 const { MixinReplicationWriter } = require('./_MixinReplicationWriter.js')
 const { listReplicatedVms } = require('./_listReplicatedVms.js')
 
-exports.DeltaReplicationWriter = class DeltaReplicationWriter extends MixinReplicationWriter(AbstractDeltaWriter) {
+exports.IncrementalReplicationWriter = class IncrementalReplicationWriter extends (
+  MixinReplicationWriter(AbstractIncrementalWriter)
+) {
   async checkBaseVdis(baseUuidToSrcVdi, baseVm) {
     const sr = this._sr
     const replicatedVm = listReplicatedVms(sr.$xapi, this._backup.job.id, sr.uuid, this._backup.vm.uuid).find(
