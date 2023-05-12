@@ -3,7 +3,7 @@
 const assert = require('assert')
 
 const { formatFilenameDate } = require('./_filenameDate.js')
-const { importDeltaVm } = require('./_deltaVm.js')
+const { importDeltaVm } = require('./_incrementalVm.js')
 const { Task } = require('./Task.js')
 const { watchStreamSize } = require('./_watchStreamSize.js')
 

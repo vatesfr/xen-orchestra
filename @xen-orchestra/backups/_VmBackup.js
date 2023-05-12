@@ -16,7 +16,7 @@ const { pipeline } = require('node:stream')
 
 const { IncrementalRemoteWriter } = require('./writers/IncrementalRemoteWriter.js')
 const { IncrementalXapiWriter } = require('./writers/IncrementalXapiWriter.js')
-const { exportDeltaVm } = require('./_deltaVm.js')
+const { exportDeltaVm } = require('./_incrementalVm.js')
 const { forkStreamUnpipe } = require('./_forkStreamUnpipe.js')
 const { FullRemoteWriter } = require('./writers/FullRemoteWriter.js')
 const { FullXapiWriter } = require('./writers/FullXapiWriter.js')
