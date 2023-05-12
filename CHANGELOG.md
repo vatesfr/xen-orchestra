@@ -12,6 +12,9 @@
 - [Import/VM/From VMware] Fix `Property description must be an object: undefined` [Forum#61834](https://xcp-ng.org/forum/post/61834) [Forum#61900](https://xcp-ng.org/forum/post/61900)
 - [Import/VM/From VMware] Fix `Cannot read properties of undefined (reading 'stream')` [Forum#59879](https://xcp-ng.org/forum/post/59879) (PR [#6825](https://github.com/vatesfr/xen-orchestra/pull/6825))
 - [OVA export] Fix major memory leak which may lead to xo-server crash [Forum#56051](https://xcp-ng.org/forum/post/56051) (PR [#6800](https://github.com/vatesfr/xen-orchestra/pull/6800))
+- [VM] Fix `VBD_IS_EMPTY` error when converting to template [Forum#61653](https://xcp-ng.org/forum/post/61653) (PR [#6808](https://github.com/vatesfr/xen-orchestra/pull/6808))
+- [New/Network] Fix `invalid parameter error` when not providing a VLAN [Forum#62090](https://xcp-ng.org/forum/post/62090) (PR [#6829](https://github.com/vatesfr/xen-orchestra/pull/6829))
+- [Backup/Health check] Fix `task has already ended` error during a healthcheck in continous replication [Forum#62073](https://xcp-ng.org/forum/post/62073) (PR [#6830](https://github.com/vatesfr/xen-orchestra/pull/6830))
 
 ### Released packages
 

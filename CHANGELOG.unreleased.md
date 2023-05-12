@@ -11,10 +11,6 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [VM] Fix `VBD_IS_EMPTY` error when converting to template [Forum#61653](https://xcp-ng.org/forum/post/61653) (PR [#6808](https://github.com/vatesfr/xen-orchestra/pull/6808))
-- [New/Network] Fix `invalid parameter error` when not providing a VLAN [Forum#62090](https://xcp-ng.org/forum/post/62090) (PR [#6829](https://github.com/vatesfr/xen-orchestra/pull/6829))
-- [Backup/Health check] Fix `task has already ended` error during a healthcheck in continous replication [Forum#62073](https://xcp-ng.org/forum/post/62073) (PR [#6830](https://github.com/vatesfr/xen-orchestra/pull/6830))
-
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
