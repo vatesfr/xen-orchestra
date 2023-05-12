@@ -7,7 +7,7 @@ const ignoreErrors = require('promise-toolbox/ignoreErrors')
 const { extractIdsFromSimplePattern } = require('../extractIdsFromSimplePattern.js')
 const { PoolMetadataBackup } = require('./_PoolMetadataBackup.js')
 const { XoMetadataBackup } = require('./_XoMetadataBackup.js')
-const { DEFAULT_SETTINGS, AbstractRunner } = require('./_Abstract.js')
+const { DEFAULT_SETTINGS, Abstract } = require('./_Abstract.js')
 const { runTask } = require('./_runTask.js')
 const { getAdaptersByRemote } = require('./_getAdaptersByRemote.js')
 
@@ -16,7 +16,7 @@ const DEFAULT_METADATA_SETTINGS = {
   retentionXoMetadata: 0,
 }
 
-exports.Metadata = class MetadataBackupRunner extends AbstractRunner {
+exports.Metadata = class MetadataBackupRunner extends Abstract {
   _computeBaseSettings(config, job) {
     const baseSettings = { ...DEFAULT_SETTINGS }
     Object.assign(baseSettings, DEFAULT_METADATA_SETTINGS, config.defaultSettings, config.metadata?.defaultSettings)

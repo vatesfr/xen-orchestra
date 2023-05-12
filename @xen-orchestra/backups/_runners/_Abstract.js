@@ -11,7 +11,7 @@ exports.DEFAULT_SETTINGS = {
   reportWhen: 'failure',
 }
 
-exports.AbstractRunner = class AbstractRunner {
+exports.Abstract = class AbstractRunner {
   constructor({ config, getAdapter, getConnectedRecord, job, schedule }) {
     this._config = config
     this._getRecord = getConnectedRecord
