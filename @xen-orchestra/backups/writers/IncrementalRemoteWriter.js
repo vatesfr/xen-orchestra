@@ -15,7 +15,7 @@ const { formatFilenameDate } = require('../_filenameDate.js')
 const { getOldEntries } = require('../_getOldEntries.js')
 const { Task } = require('../Task.js')
 
-const { MixinBackupWriter } = require('./_MixinBackupWriter.js')
+const { MixinRemoteWriter } = require('./_MixinRemoteWriter.js')
 const { AbstractIncrementalWriter } = require('./_AbstractIncrementalWriter.js')
 const { checkVhd } = require('./_checkVhd.js')
 const { packUuid } = require('./_packUuid.js')
@@ -23,7 +23,7 @@ const { Disposable } = require('promise-toolbox')
 
 const { warn } = createLogger('xo:backups:DeltaBackupWriter')
 
-class IncrementalBackupWriter extends MixinBackupWriter(AbstractIncrementalWriter) {
+class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrementalWriter) {
   async checkBaseVdis(baseUuidToSrcVdi) {
     const { handler } = this._adapter
     const backup = this._backup
@@ -227,6 +227,6 @@ class IncrementalBackupWriter extends MixinBackupWriter(AbstractIncrementalWrite
     // TODO: run cleanup?
   }
 }
-exports.IncrementalBackupWriter = decorateClass(IncrementalBackupWriter, {
+exports.IncrementalRemoteWriter = decorateClass(IncrementalRemoteWriter, {
   _transfer: defer,
 })
