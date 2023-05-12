@@ -9,8 +9,9 @@ const { Task } = require('../Task.js')
 const { createStreamThrottle } = require('./createStreamThrottle.js')
 const { DEFAULT_SETTINGS, AbstractBackupJob } = require('./AbstractBackupJob.js')
 const { runTask } = require('./runTask.js')
-const { VmBackup } = require('./VmBackup/VmBackup.js')
 const { getAdaptersByRemote } = require('./getAdaptersByRemote.js')
+const { IncrementalXapiVmBackup } = require('./VmBackup/IncrementalXapiVmBackup.js')
+const { FullXapiVmBackup } = require('./VmBackup/FullXapiVmBackup.js')
 
 const DEFAULT_XAPI_VM_SETTINGS = {
   bypassVdiChainsCheck: false,
@@ -96,8 +97,8 @@ exports.XapiVmBackupJob = class XapiVmBackupJob extends AbstractBackupJob {
             disposableVm =>
               Disposable.use(disposableVm, vm => {
                 taskStart.data.name_label = vm.name_label
-                return runTask(taskStart, () =>
-                  new VmBackup({
+                return runTask(taskStart, () => {
+                  const opts = {
                     baseSettings,
                     config,
                     getSnapshotNameLabel,
@@ -109,8 +110,19 @@ exports.XapiVmBackupJob = class XapiVmBackupJob extends AbstractBackupJob {
                     srs,
                     throttleStream,
                     vm,
-                  }).run()
-                )
+                  }
+                  let vmBackup
+                  if (job.mode === 'delta') {
+                    vmBackup = new IncrementalXapiVmBackup(opts)
+                  } else {
+                    if (job.mode === 'full') {
+                      vmBackup = new FullXapiVmBackup(opts)
+                    } else {
+                      throw new Error(`Job mode ${job.mode} not implemented`)
+                    }
+                  }
+                  return vmBackup.run()
+                })
               }),
             error =>
               runTask(taskStart, () => {
