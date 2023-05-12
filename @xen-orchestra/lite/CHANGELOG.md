@@ -1,5 +1,9 @@
 # ChangeLog
 
+## **next**
+
+- Add ability to open VM console in new window (PR [#6827](https://github.com/vatesfr/xen-orchestra/pull/6827))
+
 ## **0.2.0**
 
 - Invalidate sessionId token after logout (PR [#6480](https://github.com/vatesfr/xen-orchestra/pull/6480))
