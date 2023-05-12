@@ -193,12 +193,11 @@ const CollapsedActions = decorate([
       },
     },
     computed: {
-      wrappedActions: ({ runningActions }, { actions }) => {
-        actions.forEach((action, index) => {
-          actions[index].isRunning = runningActions.includes(action.label)
-        })
-        return [...actions]
-      },
+      wrappedActions: ({ runningActions }, { actions }) =>
+        actions.map(action => {
+          action.isRunning = runningActions.includes(action.label)
+          return action
+        }),
       dropdownId: generateId,
       actions: ({ wrappedActions: actions }, { items, userData }) =>
         actions.map(({ disabled, grouped, handler, icon, isRunning, label, level, redirectOnSuccess }) => {
