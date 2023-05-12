@@ -17,10 +17,10 @@
 
 - @vates/task 0.1.2
 - xo-vmdk-to-vhd 2.5.4
-- xo-web 5.117.0
 - @xen-orchestra/backups 0.36.1
 - @xen-orchestra/proxy 0.26.22
 - xo-server 5.114.1
+- xo-web 5.117.1
 
 ## **5.82.0** (2023-04-28)
 
