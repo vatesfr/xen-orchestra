@@ -9,7 +9,7 @@ const { createLogger } = require('@xen-orchestra/log')
 const { pipeline } = require('node:stream')
 
 const { IncrementalRemoteWriter } = require('./writers/IncrementalRemoteWriter.js')
-const { IncrementalReplicationWriter } = require('./writers/IncrementalReplicationWriter.js')
+const { IncrementalXapiWriter } = require('./writers/IncrementalXapiWriter.js')
 const { exportDeltaVm } = require('../../_deltaVm.js')
 const { forkStreamUnpipe } = require('../forkStreamUnpipe.js')
 const { Task } = require('../../Task.js')
@@ -29,7 +29,7 @@ const noop = Function.prototype
 
 exports.IncrementalXapiVmBackup = class IncrementalXapiVmBackup extends AbstractXapiVmBackup {
   _getWriters() {
-    return [IncrementalRemoteWriter, IncrementalReplicationWriter]
+    return [IncrementalRemoteWriter, IncrementalXapiWriter]
   }
 
   _mustDoSnapshot() {

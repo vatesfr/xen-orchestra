@@ -12,8 +12,8 @@ function extractOpaqueRef(str) {
   }
   return matches[0]
 }
-exports.MixinReplicationWriter = (BaseClass = Object) =>
-  class MixinReplicationWriter extends BaseClass {
+exports.MixinXapiWriter = (BaseClass = Object) =>
+  class MixinXapiWriter extends BaseClass {
     constructor({ sr, ...rest }) {
       super(rest)
 
