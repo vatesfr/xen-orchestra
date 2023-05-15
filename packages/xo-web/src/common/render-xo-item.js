@@ -531,28 +531,28 @@ const xoItemToRender = {
   },
 
   // XO objects.
-  pool: ({ id }) => <Pool id={id} />,
+  pool: props => <Pool {...props} />,
 
-  VDI: ({ id }) => <Vdi id={id} showSr />,
-  'VDI-resourceSet': ({ id }) => <Vdi id={id} self showSr />,
+  VDI: props => <Vdi {...props} showSr />,
+  'VDI-resourceSet': props => <Vdi {...props} self showSr />,
 
   // Pool objects.
-  'VM-template': ({ id }) => <VmTemplate id={id} />,
-  'VM-template-resourceSet': ({ id }) => <VmTemplate id={id} self />,
-  host: ({ id, memoryFree }) => <Host id={id} memoryFree={memoryFree} />,
-  network: ({ id }) => <Network id={id} />,
-  'network-resourceSet': ({ id }) => <Network id={id} self />,
+  'VM-template': props => <VmTemplate {...props} />,
+  'VM-template-resourceSet': props => <VmTemplate {...props} self />,
+  host: props => <Host {...props} />,
+  network: props => <Network {...props} />,
+  'network-resourceSet': props => <Network {...props} self />,
 
   // SR.
-  SR: ({ id }) => <Sr id={id} />,
-  'SR-resourceSet': ({ id }) => <Sr id={id} self />,
+  SR: props => <Sr {...props} />,
+  'SR-resourceSet': props => <Sr {...props} self />,
 
   // VM.
-  VM: ({ id }) => <Vm id={id} />,
-  'VM-snapshot': ({ id }) => <Vm id={id} />,
-  'VM-controller': ({ id }) => (
+  VM: props => <Vm {...props} />,
+  'VM-snapshot': props => <Vm {...props} />,
+  'VM-controller': props => (
     <span>
-      <Icon icon='host' /> <Vm id={id} />
+      <Icon icon='host' /> <Vm {...props} />
     </span>
   ),
 

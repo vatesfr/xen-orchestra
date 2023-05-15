@@ -564,6 +564,30 @@ export const createSrUnhealthyVdiChainsLengthSubscription = sr => {
 
 export const subscribeUserAuthTokens = createSubscription(() => _call('user.getAuthenticationTokens'))
 
+export const subscribeXoTasks = createSubscription(async previousTasks => {
+  let filter = ''
+  // Deduplicate previous tasks and new tasks with a Map
+  const tasks = new Map()
+  if (previousTasks !== undefined) {
+    let lastUpdate = 0
+    previousTasks.forEach(task => {
+      if (task.updatedAt > lastUpdate) {
+        lastUpdate = task.updatedAt
+      }
+      tasks.set(task.id, task)
+    })
+    filter = `&filter=updatedAt%3A%3E${lastUpdate}`
+  }
+
+  // Fetch new and updated tasks
+  ;(await fetch('/rest/v0/tasks?fields=*' + filter)).json().forEach(task => {
+    tasks.set(task.id, task)
+  })
+
+  // Sort dates by start time
+  return Array.from(tasks.values()).sort(({ start: start1 }, { start: start2 }) => start1 - start2)
+})
+
 // System ============================================================
 
 export const apiMethods = _call('system.getMethodsInfo')

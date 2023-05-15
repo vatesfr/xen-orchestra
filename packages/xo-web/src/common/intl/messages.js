@@ -25,6 +25,7 @@ const messages = {
   vmSrUsage: 'Storage: {used} used of {total} ({free} free)',
 
   notDefined: 'Not defined',
+  status: 'Status',
   statusConnecting: 'Connecting',
   statusDisconnected: 'Disconnected',
   statusLoading: 'Loading…',
@@ -449,6 +450,8 @@ const messages = {
   taskSkipped: 'Skipped',
   taskStarted: 'Started',
   taskInterrupted: 'Interrupted',
+  taskEnded: 'Ended',
+  taskAborted: 'Aborted',
   taskTransferredDataSize: 'Transfer size',
   taskTransferredDataSpeed: 'Transfer speed',
   taskMergedDataSize: 'Merge size',
@@ -1677,10 +1680,13 @@ const messages = {
   importToSr: 'To SR',
 
   // ---- Tasks ---
+  poolTasks: 'Pool tasks',
+  xoTasks: 'XO tasks',
   cancelTask: 'Cancel',
   destroyTask: 'Destroy',
   cancelTasks: 'Cancel selected tasks',
   destroyTasks: 'Destroy selected tasks',
+  object: 'Object',
   objects: 'Objects',
   pool: 'Pool',
   task: 'Task',

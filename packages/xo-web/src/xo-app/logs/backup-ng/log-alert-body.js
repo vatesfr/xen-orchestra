@@ -10,6 +10,7 @@ import PropTypes from 'prop-types'
 import React from 'react'
 import SearchBar from 'search-bar'
 import Select from 'form/select'
+import TASK_STATUS from 'task-status'
 import Tooltip from 'tooltip'
 import { addSubscriptions, connectStore, formatSize, formatSpeed } from 'utils'
 import { countBy, cloneDeep, filter, map } from 'lodash'
@@ -21,29 +22,6 @@ import { Vm, Sr, Remote, Pool } from 'render-xo-item'
 import BaseComponent from 'base-component'
 
 const hasTaskFailed = ({ status }) => status !== 'success' && status !== 'pending'
-
-const TASK_STATUS = {
-  failure: {
-    icon: 'halted',
-    label: 'taskFailed',
-  },
-  skipped: {
-    icon: 'skipped',
-    label: 'taskSkipped',
-  },
-  success: {
-    icon: 'running',
-    label: 'taskSuccess',
-  },
-  pending: {
-    icon: 'busy',
-    label: 'taskStarted',
-  },
-  interrupted: {
-    icon: 'halted',
-    label: 'taskInterrupted',
-  },
-}
 
 const TaskStateInfos = ({ status }) => {
   const { icon, label } = TASK_STATUS[status]
