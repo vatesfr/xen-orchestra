@@ -1,5 +1,5 @@
 <template>
-  <li v-if="host" class="infra-host-item">
+  <li v-if="host !== undefined" class="infra-host-item">
     <InfraItemLabel
       :active="isCurrentHost"
       :icon="faServer"

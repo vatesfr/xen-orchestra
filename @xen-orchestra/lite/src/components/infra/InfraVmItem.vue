@@ -1,5 +1,5 @@
 <template>
-  <li ref="rootElement" class="infra-vm-item">
+  <li v-if="vm !== undefined" ref="rootElement" class="infra-vm-item">
     <InfraItemLabel
       v-if="isVisible"
       :icon="faDisplay"
