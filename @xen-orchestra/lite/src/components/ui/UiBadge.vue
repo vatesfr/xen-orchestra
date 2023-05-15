@@ -16,6 +16,7 @@ defineProps<{
 
 <style lang="postcss" scoped>
 .ui-badge {
+  white-space: nowrap;
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
