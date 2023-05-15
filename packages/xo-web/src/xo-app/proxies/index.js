@@ -37,11 +37,12 @@ import { updateApplianceSettings } from './update-appliance-settings'
 import Tooltip from '../../common/tooltip'
 import { getXoaPlan, SOURCES } from '../../common/xoa-plans'
 
-const _editProxy = (value, { name, proxy }) => editProxyAppliance(proxy, { [name]: value })
-
-const _editProxyAddress = (value, props) => {
-  value = value.trim()
-  return _editProxy(value === '' ? null : value, props)
+const _editProxy = (value, { name, proxy }) => {
+  if (typeof value === 'string') {
+    value = value.trim()
+    value = value === '' ? null : value
+  }
+  return editProxyAppliance(proxy, { [name]: value })
 }
 
 const HEADER = (
@@ -150,7 +151,7 @@ const COLUMNS = [
   },
   {
     itemRenderer: proxy => (
-      <Text data-name='address' data-proxy={proxy} value={proxy.address ?? ''} onChange={_editProxyAddress} />
+      <Text data-name='address' data-proxy={proxy} value={proxy.address ?? ''} onChange={_editProxy} />
     ),
     name: _('address'),
   },
