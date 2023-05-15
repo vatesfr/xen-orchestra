@@ -11236,10 +11236,10 @@ http-request-plus@^1.0.0:
   dependencies:
     "@xen-orchestra/log" "^0.6.0"
 
-http-request-plus@^1.0.1:
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/http-request-plus/-/http-request-plus-1.0.1.tgz#6fd75ab4b61a20c9294a02c0e11f340ceb9ff6cb"
-  integrity sha512-9AZQn4u4bVBEsdyRmbvTPZoHnK2zXlgf1bssedRlEowKyCtTOU7GrA+xRrzpPPnozVxF5THJzwnub694AtOGng==
+http-request-plus@^1.0.2:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/http-request-plus/-/http-request-plus-1.0.2.tgz#e0d6b4fa79c82f1f9df7dcd1ce62c26934fa20ca"
+  integrity sha512-no2XjPTwCGwzgF+abs3o76e+J2Fm2w9xnUu/nlMbOIPrqooHGPKfpM7uv+QsGMKilFrchJQpvc1NLBfb9VI14Q==
   dependencies:
     "@xen-orchestra/log" "^0.6.0"
 
