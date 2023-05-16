@@ -2,6 +2,10 @@
 
 ## **next**
 
+### Bug fixes
+
+- [New/VM] Fix stuck Cloud Config import ([GitHub comment](https://github.com/vatesfr/xen-orchestra/issues/5896#issuecomment-1465253774))
+
 ### Released packages
 
 - xen-api 1.3.1
