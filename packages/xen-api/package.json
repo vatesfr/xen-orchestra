@@ -35,7 +35,7 @@
     "bind-property-descriptor": "^2.0.0",
     "blocked": "^1.2.1",
     "debug": "^4.0.1",
-    "http-request-plus": "^1.0.0",
+    "http-request-plus": "^1.0.2",
     "jest-diff": "^29.0.3",
     "json-rpc-protocol": "^0.13.1",
     "kindof": "^2.0.0",

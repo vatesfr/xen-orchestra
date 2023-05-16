@@ -4,13 +4,10 @@ import type { Options } from "placement.js";
 import { type EffectScope, computed, effectScope, ref } from "vue";
 import { type WindowEventName, useEventListener } from "@vueuse/core";
 
-export type TooltipOptions =
-  | string
-  | {
-      content: string;
-      placement?: Options["placement"];
-      disabled?: boolean | ((target: HTMLElement) => boolean);
-    };
+export type TooltipOptions = {
+  content: string | false;
+  placement: Options["placement"];
+};
 
 export type TooltipEvents = { on: WindowEventName; off: WindowEventName };
 
