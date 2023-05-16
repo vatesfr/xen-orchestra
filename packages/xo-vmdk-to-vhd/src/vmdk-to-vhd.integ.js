@@ -1,4 +1,6 @@
-/* eslint-env jest */
+import { afterEach, beforeEach, test } from 'test'
+import { strict as assert } from 'assert'
+import sinon from 'sinon'
 
 import execa from 'execa'
 import fromEvent from 'promise-toolbox/fromEvent'
@@ -15,7 +17,8 @@ import asyncIteratorToStream from 'async-iterator-to-stream'
 import fs from 'fs'
 
 const initialDir = process.cwd()
-jest.setTimeout(100000)
+const clock = sinon.useFakeTimers()
+clock.tick(100000)
 
 beforeEach(async () => {
   const dir = await pFromCallback(cb => tmp.dir(cb))
@@ -124,7 +127,7 @@ test('Can generate a small VMDK file', async () => {
     }
   }
   const data = await readVmdkGrainTable(createFileAccessor(fileName))
-  expect(bufferToArray(data.grainLogicalAddressList)).toEqual(expectedLBAs)
+  assert.deepEqual(bufferToArray(data.grainLogicalAddressList), expectedLBAs)
   const grainFileOffsetList = bufferToArray(data.grainFileOffsetList)
   const parser = new VMDKDirectParser(
     createReadStream(fileName),
@@ -142,8 +145,8 @@ test('Can generate a small VMDK file', async () => {
   }
   const resultBuffer = Buffer.concat(resBuffers)
   const startingBuffer = Buffer.concat([b1, b2])
-  expect(resultBuffer).toEqual(startingBuffer)
-  expect(resLbas).toEqual(expectedLBAs)
+  assert.deepEqual(resultBuffer, startingBuffer)
+  assert.deepEqual(resLbas, expectedLBAs)
 
   await execa('qemu-img', ['check', 'result.vmdk'])
 })

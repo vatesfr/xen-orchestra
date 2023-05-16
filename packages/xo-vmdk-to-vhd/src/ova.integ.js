@@ -1,4 +1,5 @@
-/* eslint-env jest */
+import { afterEach, beforeEach, test } from 'test'
+import { strict as assert } from 'assert'
 
 import { exec } from 'child-process-promise'
 import { createReadStream } from 'fs'
@@ -66,14 +67,14 @@ test('An ova file is parsed correctly', async () => {
   const directGrainTableFetch = await readVmdkGrainTable(async (start, end) =>
     vmdkParsableFile.slice(start, end).read()
   )
-  expect(directGrainTableFetch).toEqual(expectedResult.tables[vmdkFileName])
+  assert.deepEqual(directGrainTableFetch, expectedResult.tables[vmdkFileName])
   const data = await parseOVAFile(new NodeParsableFile(ovaName), (buffer, encoder) => {
     return Buffer.from(buffer).toString(encoder)
   })
   for (const fileName in data.tables) {
     data.tables[fileName] = await data.tables[fileName]
   }
-  expect(data).toEqual(expectedResult)
+  assert.deepEqual(data, expectedResult)
 })
 
 function arrayToBuffer(array) {

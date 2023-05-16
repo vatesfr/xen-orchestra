@@ -1,4 +1,6 @@
-/* eslint-env jest */
+import { afterEach, beforeEach, test } from 'test'
+import sinon from 'sinon'
+
 import { spawn } from 'child_process'
 import { createReadStream, createWriteStream, readFile } from 'fs-extra'
 import execa from 'execa'
@@ -10,7 +12,8 @@ import { writeOvaOn } from './ova-generate'
 import { parseOVF } from './ova-read'
 
 const initialDir = process.cwd()
-jest.setTimeout(100000)
+const clock = sinon.useFakeTimers()
+clock.tick(100000)
 beforeEach(async () => {
   const dir = await pFromCallback(cb => tmp.dir(cb))
   process.chdir(dir)

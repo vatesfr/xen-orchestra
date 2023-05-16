@@ -1,4 +1,5 @@
-/* eslint-env jest */
+import { afterEach, beforeEach, test } from 'test'
+import { strict as assert } from 'assert'
 
 import { createReadStream, readFile } from 'fs-extra'
 import { exec } from 'child-process-promise'
@@ -28,5 +29,5 @@ test('Virtual Buffer can read a file correctly', async () => {
   const part1 = await buffer.readChunk(10)
   const part2 = await buffer.readChunk(1038)
   const original = await readFile(rawFileName)
-  expect(Buffer.concat([part1, part2]).toString('ascii')).toEqual(original.toString('ascii'))
+  assert.equal(Buffer.concat([part1, part2]).toString('ascii'), original.toString('ascii'))
 })

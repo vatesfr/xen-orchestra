@@ -1,4 +1,6 @@
-/* eslint-env jest */
+import { afterEach, beforeEach, test } from 'test'
+import { strict as assert } from 'assert'
+import sinon from 'sinon'
 
 import { createReadStream, stat } from 'fs-extra'
 import { exec } from 'child-process-promise'
@@ -34,7 +36,8 @@ function bufferToArray(buffer) {
   return res
 }
 
-jest.setTimeout(10000)
+const clock = sinon.useFakeTimers()
+clock.tick(10000)
 
 const initialDir = process.cwd()
 
@@ -67,8 +70,8 @@ test('VMDKDirectParser reads OK', async () => {
   for await (const res of parser.blockIterator()) {
     harvested.push(res)
   }
-  expect(harvested.length).toEqual(2)
-  expect(harvested[0].logicalAddressBytes).toEqual(0)
-  expect(harvested[0].data.length).toEqual(header.grainSizeSectors * 512)
-  expect(harvested[1].logicalAddressBytes).toEqual(header.grainSizeSectors * 512)
+  assert.equal(harvested.length, 2)
+  assert.equal(harvested[0].logicalAddressBytes, 0)
+  assert.equal(harvested[0].data.length, header.grainSizeSectors * 512)
+  assert.equal(harvested[1].logicalAddressBytes, header.grainSizeSectors * 512)
 })

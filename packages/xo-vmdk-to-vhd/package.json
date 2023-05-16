@@ -39,6 +39,8 @@
     "fs-extra": "^11.1.1",
     "get-stream": "^6.0.0",
     "rimraf": "^4.1.1",
+    "sinon": "^15.0.4",
+    "test": "^3.3.0",
     "tmp": "^0.2.1"
   },
   "scripts": {
@@ -48,7 +50,9 @@
     "prebuild": "yarn run clean",
     "predev": "yarn run clean",
     "prepublishOnly": "yarn run build",
-    "postversion": "npm publish"
+    "pretest-integration": "yarn run build",
+    "postversion": "npm publish",
+    "test-integration": "node--test ./dist/*.integ.js"
   },
   "author": {
     "name": "Vates SAS",
