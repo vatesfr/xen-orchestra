@@ -5,6 +5,7 @@
 ### Released packages
 
 - xen-api 1.3.1
+- @xen-orchestra/proxy 0.26.23
 
 ## **5.82.1** (2023-05-12)
 
