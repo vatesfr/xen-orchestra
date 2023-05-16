@@ -7,6 +7,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [Proxy] Make proxy address editable (PR [#6816](https://github.com/vatesfr/xen-orchestra/pull/6816))
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -31,6 +33,6 @@
 <!--packages-start-->
 
 - xen-api patch
-- xo-web patch
+- xo-web minor
 
 <!--packages-end-->
