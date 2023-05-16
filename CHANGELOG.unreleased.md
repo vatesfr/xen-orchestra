@@ -33,7 +33,6 @@
 
 <!--packages-start-->
 
-- xen-api patch
 - xo-web minor
 
 <!--packages-end-->
