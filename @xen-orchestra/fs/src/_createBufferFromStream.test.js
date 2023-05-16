@@ -1,4 +1,5 @@
-/* eslint-env jest */
+import { describe, it } from 'test'
+import { strict as assert } from 'assert'
 
 import { Readable } from 'readable-stream'
 import createBufferFromStream from './_createBufferFromStream.js'
@@ -14,6 +15,6 @@ describe('createBufferFromStream', () => {
 
     const buffer = await createBufferFromStream(stream)
 
-    expect(buffer.toString()).toBe('hello')
+    assert.equal(buffer.toString(), 'hello')
   })
 })
