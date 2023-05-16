@@ -7,11 +7,15 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [Proxy] Make proxy address editable (PR [#6816](https://github.com/vatesfr/xen-orchestra/pull/6816))
 - [Home/Host] Displays a warning for hosts with HVM disabled [#6823](https://github.com/vatesfr/xen-orchestra/issues/6823) (PR [#6834](https://github.com/vatesfr/xen-orchestra/pull/6834))
 
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
+
+- [Sorted table] In collapsed actions, a spinner is displayed during the action time (PR [#6831](https://github.com/vatesfr/xen-orchestra/pull/6831))
+- [New/VM] Fix stuck Cloud Config import ([GitHub comment](https://github.com/vatesfr/xen-orchestra/issues/5896#issuecomment-1465253774))
 
 ### Packages to release
 
@@ -29,6 +33,7 @@
 
 <!--packages-start-->
 
+- xen-api patch
 - xo-web minor
 
 <!--packages-end-->

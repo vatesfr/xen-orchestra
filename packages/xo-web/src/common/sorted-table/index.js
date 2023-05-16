@@ -168,8 +168,12 @@ const handleFnProps = (prop, items, userData) => (typeof prop === 'function' ? p
 const CollapsedActions = decorate([
   withRouter,
   provideState({
+    initialState: () => ({
+      runningActions: [],
+    }),
     effects: {
       async execute(state, { handler, label, redirectOnSuccess }) {
+        this.state.runningActions = [...this.state.runningActions, label]
         try {
           await handler()
           ifDef(redirectOnSuccess, this.props.router.push)
@@ -183,18 +187,25 @@ const CollapsedActions = decorate([
               _error(label, defined(error.message, String(error)))
             }
           }
+        } finally {
+          this.state.runningActions = this.state.runningActions.filter(action => action !== label)
         }
       },
     },
     computed: {
+      wrappedActions: ({ runningActions }, { actions }) =>
+        actions.map(action => {
+          action.isRunning = runningActions.includes(action.label)
+          return action
+        }),
       dropdownId: generateId,
-      actions: (_, { actions, items, userData }) =>
-        actions.map(({ disabled, grouped, handler, icon, label, level, redirectOnSuccess }) => {
+      actions: ({ wrappedActions: actions }, { items, userData }) =>
+        actions.map(({ disabled, grouped, handler, icon, isRunning, label, level, redirectOnSuccess }) => {
           const actionItems = Array.isArray(items) || !grouped ? items : [items]
           return {
-            disabled: handleFnProps(disabled, actionItems, userData),
+            disabled: isRunning || handleFnProps(disabled, actionItems, userData),
             handler: () => handler(actionItems, userData),
-            icon: handleFnProps(icon, actionItems, userData),
+            icon: isRunning ? 'loading' : handleFnProps(icon, actionItems, userData),
             label: handleFnProps(label, actionItems, userData),
             level: handleFnProps(level, actionItems, userData),
             redirectOnSuccess: handleFnProps(redirectOnSuccess, actionItems, userData),
