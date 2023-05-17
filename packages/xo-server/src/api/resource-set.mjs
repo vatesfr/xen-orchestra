@@ -8,6 +8,13 @@ create.params = {
   name: {
     type: 'string',
   },
+  subjects: {
+    type: 'array',
+    items: {
+      type: 'string',
+    },
+    optional: true,
+  },
   objects: {
     type: 'array',
     items: {
@@ -15,11 +22,8 @@ create.params = {
     },
     optional: true,
   },
-  subjects: {
-    type: 'array',
-    items: {
-      type: 'string',
-    },
+  limits: {
+    type: 'object',
     optional: true,
   },
   tags: {
@@ -97,6 +101,10 @@ set.params = {
     items: {
       type: 'string',
     },
+    optional: true,
+  },
+  limits: {
+    type: 'object',
     optional: true,
   },
   tags: {
