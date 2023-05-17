@@ -501,7 +501,7 @@ export class Edit extends Component {
             <div className='mt-1'>
               <input checked={state.share} type='checkbox' onChange={this.toggleState('share')} />{' '}
               <label>
-                <strong>{_('shareVmByDefault')}</strong>
+                <strong>{_('shareVmsByDefault')}</strong>
               </label>
             </div>
             <hr />
