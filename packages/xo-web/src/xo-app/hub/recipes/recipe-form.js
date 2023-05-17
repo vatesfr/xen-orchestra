@@ -201,48 +201,50 @@ export default decorate([
       </FormGrid.Row>
       {value.nbNodes > 0 &&
         value.staticIpAddress && [
-          value.faultTolerance > 0 && [
-            Array.from({ length: value.faultTolerance * 2 + 1 }).map((v, i) => (
-              <FormGrid.Row key={i}>
-                <label>{_('recipeHaControPlaneIpAddress', { i: i + 1 })}</label>
-                <input
-                  className='form-control'
-                  name={`controlPlaneIpAddress.${i}`}
-                  onChange={effects.onChangeCpIp}
-                  placeholder={formatMessage(messages.recipeHaControPlaneIpAddress, { i: i + 1 })}
-                  required
-                  type='text'
-                  value={value[`controlPlaneIpAddress.${i}`]}
-                />
-              </FormGrid.Row>
-            )),
-            <FormGrid.Row key='vipAddrRow'>
-              <label>{_('recipeVip')}</label>
-              <input
-                className='form-control'
-                name='vipAddress'
-                onChange={effects.onChangeValue}
-                placeholder={formatMessage(messages.recipeVip)}
-                required
-                type='text'
-                value={value.vipAddress}
-              />
-            </FormGrid.Row>,
-          ],
-          value.faultTolerance === 0 && [
-            <FormGrid.Row key='controlPlaneIpAddrRow'>
-              <label>{_('recipeControlPlaneIpAddress')}</label>
-              <input
-                className='form-control'
-                name='controlPlaneIpAddress'
-                onChange={effects.onChangeValue}
-                placeholder={formatMessage(messages.recipeControlPlaneIpAddress)}
-                required
-                type='text'
-                value={value.controlPlaneIpAddress}
-              />
-            </FormGrid.Row>,
-          ],
+          value.faultTolerance > 0
+            ? [
+                // n * 2 + 1 is the formula to meet the quorum of RAFT consensus algorithm
+                Array.from({ length: value.faultTolerance * 2 + 1 }).map((v, i) => (
+                  <FormGrid.Row key={i}>
+                    <label>{_('recipeHaControPlaneIpAddress', { i: i + 1 })}</label>
+                    <input
+                      className='form-control'
+                      name={`controlPlaneIpAddress.${i}`}
+                      onChange={effects.onChangeCpIp}
+                      placeholder={formatMessage(messages.recipeHaControPlaneIpAddress, { i: i + 1 })}
+                      required
+                      type='text'
+                      value={value[`controlPlaneIpAddress.${i}`]}
+                    />
+                  </FormGrid.Row>
+                )),
+                <FormGrid.Row key='vipAddrRow'>
+                  <label>{_('recipeVip')}</label>
+                  <input
+                    className='form-control'
+                    name='vipAddress'
+                    onChange={effects.onChangeValue}
+                    placeholder={formatMessage(messages.recipeVip)}
+                    required
+                    type='text'
+                    value={value.vipAddress}
+                  />
+                </FormGrid.Row>,
+              ]
+            : [
+                <FormGrid.Row key='controlPlaneIpAddrRow'>
+                  <label>{_('recipeControlPlaneIpAddress')}</label>
+                  <input
+                    className='form-control'
+                    name='controlPlaneIpAddress'
+                    onChange={effects.onChangeValue}
+                    placeholder={formatMessage(messages.recipeControlPlaneIpAddress)}
+                    required
+                    type='text'
+                    value={value.controlPlaneIpAddress}
+                  />
+                </FormGrid.Row>,
+              ],
           <FormGrid.Row key='gatewayRow'>
             <label>{_('recipeGatewayIpAddress')}</label>
             <input
