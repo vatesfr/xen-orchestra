@@ -151,6 +151,11 @@ export default class RestApi {
     collections.restore = { id: 'restore' }
     collections.tasks = { id: 'tasks' }
 
+    collections.pools.actions = {
+      __proto__: null,
+
+      rolling_update: ({ xoObject }) => app.rollingPoolUpdate(xoObject).then(noop),
+    }
     collections.vms.actions = {
       __proto__: null,
 
