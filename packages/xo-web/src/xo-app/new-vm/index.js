@@ -28,7 +28,22 @@ import {
 } from 'cloud-config'
 import { Input as DebounceInput, Textarea as DebounceTextarea } from 'debounce-input-decorator'
 import { Limits } from 'usage'
-import { clamp, every, filter, find, forEach, includes, isEmpty, join, map, size, slice, sum, sumBy } from 'lodash'
+import {
+  clamp,
+  every,
+  filter,
+  find,
+  forEach,
+  includes,
+  isEmpty,
+  isEqual,
+  join,
+  map,
+  size,
+  slice,
+  sum,
+  sumBy,
+} from 'lodash'
 import {
   addSshKey,
   createVm,
@@ -253,7 +268,16 @@ export default class NewVm extends BaseComponent {
 
   componentDidUpdate(prevProps) {
     if (get(() => prevProps.template.id) !== get(() => this.props.template.id)) {
-      this._reset(() => this._initTemplate(this.props.template))
+      this._initTemplate(this.props.template)
+    }
+
+    if (
+      !isEqual(prevProps.resourceSets, this.props.resourceSets) ||
+      prevProps.location.query.resourceSet !== this.props.location.query.resourceSet
+    ) {
+      this._setState({
+        share: this._getResourceSet()?.share ?? false,
+      })
     }
   }
 
@@ -297,7 +321,7 @@ export default class NewVm extends BaseComponent {
 
   _reset = callback => {
     const resourceSet = this._getResourceSet()
-    const share = resourceSet !== undefined ? resourceSet.share : false
+    const share = resourceSet?.share !== undefined ? resourceSet.share : false
     this._replaceState(
       {
         bootAfterCreate: true,
