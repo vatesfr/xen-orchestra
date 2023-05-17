@@ -1,6 +1,6 @@
-# Continuous Replication
+# Incremental Replication (formerly : Continuous Replication)
 
-This feature is a continuous replication system for your XenServer VMs **without any storage vendor lock-in**. You can replicate a VM every _X_ minutes/hours to any storage repository. It could be to a distant XenServer host or just another local storage target.
+This feature is a incremental replication system for your XenServer VMs **without any storage vendor lock-in**. You can replicate a VM every _X_ minutes/hours to any storage repository. It could be to a distant XenServer host or just another local storage target.
 
 This feature covers multiple objectives:
 
@@ -24,7 +24,7 @@ This also affects VMs with "Auto Power On" enabled, because of our protections y
 
 ## Configure it
 
-As you'll see, it is trivial to configure. Inside the "Backup/new" section, select "Continuous Replication".
+As you'll see, it is trivial to configure. Inside the "Backup/new" section, select "Incremental replication".
 
 Then:
 
@@ -46,7 +46,7 @@ This is **only** if you need to make the initial copy without making the whole t
 
 ### Job creation
 
-Create the Continuous Replication backup job, and leave it disabled for now. On the main Backup-NG page, copy the job's `backupJobId` by hovering to the left of the shortened ID and clicking the copy to clipboard button:
+Create the Incremental Replication backup job, and leave it disabled for now. On the main Backup-NG page, copy the job's `backupJobId` by hovering to the left of the shortened ID and clicking the copy to clipboard button:
 
 ![](./assets/cr-seed-1.png)
 
@@ -73,7 +73,7 @@ We need to copy the UUID of this newly created VM as well, `targetVmUuid`:
 ![](./assets/cr-seed-4.png)
 
 :::warning
-DO not start this VM or it will break the Continuous Replication job! You can rename this VM to more easily remember this.
+DO not start this VM or it will break the Incremental Replication job! You can rename this VM to more easily remember this.
 :::
 
 ### Set up metadata
