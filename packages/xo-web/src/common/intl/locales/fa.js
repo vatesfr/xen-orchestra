@@ -4,7 +4,7 @@ import 'moment/locale/fa'
 import reactIntlData from 'react-intl/locale-data/fa'
 import { addLocaleData } from 'react-intl'
 addLocaleData(reactIntlData)
-
+document.body.style.direction = 'rtl'
 // ===================================================================
 
 export default {
@@ -15,10 +15,10 @@ export default {
   statusConnecting: 'در حال اتصال',
 
   // Original text: 'Disconnected'
-  statusDisconnected: 'قطع شد',
+  statusDisconnected: 'قطع شده است',
 
   // Original text: 'Loading…'
-  statusLoading: 'در حال بارگذاری...',
+  statusLoading: 'در حال بارگذاری…',
 
   // Original text: 'Page not found'
   errorPageNotFound: 'صفحه پیدا نشد',
@@ -75,16 +75,16 @@ export default {
   filterOnlyUnmanaged: 'دیسک های مدیریت نشده',
 
   // Original text: 'Save…'
-  filterSaveAs: 'ذخیره...',
+  filterSaveAs: 'ذخیره…',
 
   // Original text: 'Explore the search syntax in the documentation'
   filterSyntaxLinkTooltip: 'نحوه جستجو در اسناد را کاوش کنید',
 
   // Original text: 'Connected VIFs'
-  filterVifsOnlyConnected: 'VIF متصل شده',
+  filterVifsOnlyConnected: 'VIFهای متصل شده',
 
   // Original text: 'Disconnected VIFs'
-  filterVifsOnlyDisconnected: 'VIF قطع شده',
+  filterVifsOnlyDisconnected: 'VIFهای قطع شده',
 
   // Original text: 'Connected remotes'
   filterRemotesOnlyConnected: 'از راه دور وصل شده',
@@ -96,7 +96,7 @@ export default {
   copyToClipboard: 'کپی در حافظه',
 
   // Original text: 'Copy {uuid}'
-  copyUuid: 'کپی uuid',
+  copyUuid: 'کپی {uuid}',
 
   // Original text: 'Master'
   pillMaster: 'اصلی',
@@ -111,7 +111,7 @@ export default {
   homeHostPage: 'میزبان ها',
 
   // Original text: 'Pools'
-  homePoolPage: 'انبار',
+  homePoolPage: 'استخرها',
 
   // Original text: 'Templates'
   homeTemplatePage: 'قالب ها',
@@ -150,7 +150,7 @@ export default {
   updatePage: 'به روز رسانی ها',
 
   // Original text: 'Licenses'
-  licensesPage: 'مجوزها',
+  licensesPage: 'لایسنس ها',
 
   // Original text: 'Settings'
   settingsPage: 'تنظیمات',
@@ -186,7 +186,7 @@ export default {
   aboutPage: 'درباره',
 
   // Original text: 'About XO {xoaPlan}'
-  aboutXoaPlan: 'درباره XO',
+  aboutXoaPlan: 'درباره XO {xoaPlan}',
 
   // Original text: 'New'
   newMenu: 'جدید',
@@ -213,14 +213,13 @@ export default {
   xosan: 'XOSAN',
 
   // Original text: 'Warning: Backup is deprecated, use Backup NG instead.'
-  backupDeprecatedMessage:
-    'هشدار: پشتیبان گیری منسوخ شده است، به جای آن Backup NG استفاده کنید.',
+  backupDeprecatedMessage: 'هشدار: پشتیبان گیری منسوخ شده است، به جای آن از Backup NG استفاده کنید.',
 
   // Original text: 'How to migrate to Backup NG'
   backupMigrationLink: 'چگونه به Backup NG مهاجرت کنیم',
 
   // Original text: 'Create a new backup with Backup NG'
-  backupNgNewPage: 'ساخت یک پشتبان گیری جدید با Backup NG',
+  backupNgNewPage: 'ساخت یک پشتیبان گیری جدید با Backup NG',
 
   // Original text: 'Overview'
   backupOverviewPage: 'مرور کلی',
@@ -229,7 +228,7 @@ export default {
   backupNewPage: 'جدید',
 
   // Original text: 'Remotes'
-  backupRemotesPage: 'از راه دور',
+  backupRemotesPage: 'ریموت ها',
 
   // Original text: 'Restore'
   backupRestorePage: 'بازیابی',
@@ -283,25 +282,25 @@ export default {
   noSupport: 'بدون پشتیبانی',
 
   // Original text: 'Free upgrade!'
-  freeUpgrade: 'ارتقاء رایگان',
+  freeUpgrade: '!ارتقاء رایگان',
 
   // Original text: 'Sign out'
   signOut: 'خروج',
 
   // Original text: 'Edit my settings {username}'
-  editUserProfile: 'ویرایش تنظیمات من {نام کاربری}',
+  editUserProfile: 'ویرایش تنظیمات من {username}',
 
   // Original text: 'Fetching data…'
-  homeFetchingData: 'واکشی داده...',
+  homeFetchingData: 'واکشی داده…',
 
   // Original text: 'Welcome to Xen Orchestra!'
   homeWelcome: 'به Xen Orchestra خوش آمدید!',
 
   // Original text: 'Add your XenServer hosts or pools'
-  homeWelcomeText: 'میزبان های XenServer یا انبارها را اضافه کنید',
+  homeWelcomeText: 'میزبان ها یا استخرهای XenServer خود را اضافه کنید',
 
   // Original text: 'Some XenServers have been registered but are not connected'
-  homeConnectServerText: 'بر خی از XenServer رجیستر شده اند اما متصل نیستند',
+  homeConnectServerText: 'برخی از XenServer ها ثبت شده اند اما متصل نشده اند',
 
   // Original text: 'Want some help?'
   homeHelp: 'احتیاج به کمک دارید؟',
@@ -310,7 +309,7 @@ export default {
   homeAddServer: 'اضافه کردن سرور',
 
   // Original text: 'Connect servers'
-  homeConnectServer: 'وصل شدن به سرورها',
+  homeConnectServer: 'اتصال سرورها',
 
   // Original text: 'Online Doc'
   homeOnlineDoc: 'اسناد آنلاین',
@@ -322,7 +321,7 @@ export default {
   homeNoVms: 'هیچ ماشین مجازی وجود ندارد!',
 
   // Original text: 'Or…'
-  homeNoVmsOr: 'یا...',
+  homeNoVmsOr: 'یا…',
 
   // Original text: 'Import VM'
   homeImportVm: 'وارد کردن ماشین مجازی',
@@ -346,7 +345,7 @@ export default {
   homeNoMatches: 'بدون نتیجه! برای ریست کردن فیلترهایتان اینجا کلیک کنید',
 
   // Original text: 'Pool'
-  homeTypePool: 'انبار',
+  homeTypePool: 'استخر',
 
   // Original text: 'Host'
   homeTypeHost: 'میزبان',
@@ -355,7 +354,7 @@ export default {
   homeTypeVm: 'ماشین مجازی',
 
   // Original text: 'SR'
-  homeTypeSr: 'SR',
+  homeTypeSr: 'مخزن ذخیره سازی (SR)',
 
   // Original text: 'Template'
   homeTypeVmTemplate: 'قالب',
@@ -364,7 +363,7 @@ export default {
   homeSort: 'مرتب سازی',
 
   // Original text: 'Pools'
-  homeAllPools: 'انبارها',
+  homeAllPools: 'استخرها',
 
   // Original text: 'Hosts'
   homeAllHosts: 'میزبان ها',
@@ -397,7 +396,7 @@ export default {
   homeFilterPendingVms: 'ماشین های مجازی معلق',
 
   // Original text: 'HVM guests'
-  homeFilterHvmGuests: 'مهمان های HVM',
+  homeFilterHvmGuests: ' HVM مهمان های',
 
   // Original text: 'Tags'
   homeFilterTags: 'برچسب ها',
@@ -412,13 +411,13 @@ export default {
   homeSortByName: 'نام',
 
   // Original text: 'Power state'
-  homeSortByPowerstate: 'حالت نیرو',
+  homeSortByPowerstate: 'وضعیت نیرو',
 
   // Original text: 'RAM'
   homeSortByRAM: 'حافظه',
 
   // Original text: 'Shared/Not shared'
-  homeSortByShared: 'به اشتراک گذاشته شده/ به اشتراک گذاشته نشده',
+  homeSortByShared: 'به اشتراک گذاشته شده/به اشتراک گذاشته نشده',
 
   // Original text: 'Size'
   homeSortBySize: 'اندازه',
@@ -439,7 +438,7 @@ export default {
   homeSortByContainer: 'کانتینر',
 
   // Original text: 'Pool'
-  homeSortByPool: 'انبار',
+  homeSortByPool: 'استخر',
 
   // Original text: '{displayed, number}x {icon} (on {total, number})'
   homeDisplayedItems: undefined,
@@ -457,13 +456,13 @@ export default {
   homeMissingPaths: 'وصله هایی که موجود نیستند',
 
   // Original text: 'Master:'
-  homePoolMaster: 'اصلی',
+  homePoolMaster: ':اصلی',
 
   // Original text: 'Resource set: {resourceSet}'
-  homeResourceSet: 'مجموعه منابع : }resourceSet{',
+  homeResourceSet: 'مجموعه منابع: {resourceSet}',
 
   // Original text: 'High Availability'
-  highAvailability: 'قابلیت دسترسی بالا (HA)',
+  highAvailability: '(HA) دسترسی در سطح بالا',
 
   // Original text: 'Shared {type}'
   srSharedType: 'به اشتراک گذاشته شده {type}',
@@ -529,7 +528,7 @@ export default {
   selectAll: 'انتخاب همه',
 
   // Original text: 'Remove'
-  remove: 'حذف',
+  remove: 'حذف کردن',
 
   // Original text: 'Preview'
   preview: 'پیش نمایش',
@@ -547,4499 +546,4571 @@ export default {
   selectSubjects: 'کاربر(ها) و/یا گروه(ها) را انتخاب کنید',
 
   // Original text: 'Select Object(s)…'
-  selectObjects: 'انتخاب شی(ها)',
+  selectObjects: '…انتخاب شی(ها)',
 
   // Original text: 'Choose a role'
   selectRole: 'یک رل را انتخاب کنید',
 
   // Original text: 'Select Host(s)…'
-  selectHosts: 'انتخاب میزبان(ها)...',
+  selectHosts: 'انتخاب میزبان(ها)…',
 
   // Original text: 'Select object(s)…'
-  selectHostsVms: 'انتخاب شی(ها)...',
+  selectHostsVms: 'انتخاب شی(ها)…',
 
   // Original text: 'Select Network(s)…'
-  selectNetworks: 'انتخاب شبکه(ها)...',
+  selectNetworks: 'انتخاب شبکه(ها)…',
 
   // Original text: 'Select PIF(s)…'
-  selectPifs: 'انتخاب کارت (های) شبکه',
+  selectPifs: 'انتخاب کارت(های) شبکه',
 
   // Original text: 'Select Pool(s)…'
-  selectPools: 'انتخاب انبار (ها)...',
+  selectPools: 'انتخاب استخر(ها)…',
 
   // Original text: 'Select Remote(s)…'
-  selectRemotes: 'انتخاب ریموت...',
+  selectRemotes: '(ها)انتخاب ریموت…',
 
   // Original text: 'Select resource set(s)…'
-  selectResourceSets: 'انتخاب مجموعه منابع...',
+  selectResourceSets: 'انتخاب مجموعه منابع…',
 
   // Original text: 'Select template(s)…'
-  selectResourceSetsVmTemplate: 'انتخاب قالب(ها)...',
+  selectResourceSetsVmTemplate: 'انتخاب قالب(ها)…',
 
   // Original text: 'Select SR(s)…'
-  selectResourceSetsSr: 'انتخاب مخزن(های) ذخیره سازی...',
+  selectResourceSetsSr: 'انتخاب مخزن(های) ذخیره سازی…',
 
   // Original text: 'Select network(s)…'
-  selectResourceSetsNetwork: 'انتخاب شبکه(ها)...',
+  selectResourceSetsNetwork: 'انتخاب شبکه(ها)…',
 
   // Original text: 'Select disk(s)…'
-  selectResourceSetsVdi: 'انتخاب دیسک(ها)...',
+  selectResourceSetsVdi: 'انتخاب دیسک(ها)…',
 
   // Original text: 'Select SSH key(s)…'
-  selectSshKey: 'انتخاب کلید(های) SSH',
+  selectSshKey: 'SSH انتخاب کلید(های)',
 
   // Original text: 'Select SR(s)…'
-  selectSrs: 'انتخاب مخزن(های) ذخیره سازی...',
+  selectSrs: 'انتخاب مخزن(های) ذخیره سازی…',
 
   // Original text: 'Select VM(s)…'
-  selectVms: 'انتخاب ماشین(های) مجازی...',
+  selectVms: 'انتخاب ماشین(های) مجازی…',
 
   // Original text: 'Select snapshot(s)…'
-  selectVmSnapshots: 'انتخاب اسنپ شات(ها)...',
+  selectVmSnapshots: 'انتخاب اسنپ شات(ها)…',
 
   // Original text: 'Select VM template(s)…'
-  selectVmTemplates: 'انتخاب قالب(های) ماشین مجازی...',
+  selectVmTemplates: 'انتخاب قالب(های) ماشین مجازی…',
 
   // Original text: 'Select tag(s)…'
-  selectTags: 'انتخاب برچسب(ها)...',
+  selectTags: 'انتخاب برچسب(ها)…',
 
   // Original text: 'Select disk(s)…'
   selectVdis: 'انتخاب دیسک(ها)',
 
   // Original text: 'Select timezone…'
-  selectTimezone: 'انتخاب منطقه زمانی...',
+  selectTimezone: 'انتخاب منطقه زمانی…',
 
   // Original text: 'Select IP(s)…'
-  selectIp: 'انتخاب آدرس(های) آی پی...',
+  selectIp: 'انتخاب آدرس(های) آی پی…',
 
   // Original text: 'Select IP pool(s)…'
-  selectIpPool: undefined,
+  selectIpPool: 'انتخاب استخر(های) IP',
 
   // Original text: 'Select VGPU type(s)…'
-  selectVgpuType: undefined,
+  selectVgpuType: 'انتخاب نوع GPUهای مجازی',
 
   // Original text: 'Fill required information.'
-  fillRequiredInformations: undefined,
+  fillRequiredInformations: 'اطلاعات مورد نیاز را پر کنید.',
 
   // Original text: 'Fill information (optional)'
-  fillOptionalInformations: undefined,
+  fillOptionalInformations: 'اطلاعات را پر کنید (اختیاری)',
 
   // Original text: 'Reset'
-  selectTableReset: undefined,
+  selectTableReset: 'ریست',
 
   // Original text: 'Select Cloud Config(s)…'
-  selectCloudConfigs: undefined,
+  selectCloudConfigs: 'پیکربندی (های) فضای ابری را انتخاب کنید',
 
   // Original text: 'Month'
-  schedulingMonth: undefined,
+  schedulingMonth: 'ماه',
 
   // Original text: 'Every N month'
-  schedulingEveryNMonth: undefined,
+  schedulingEveryNMonth: 'هر N ماه',
 
   // Original text: 'Each selected month'
-  schedulingEachSelectedMonth: undefined,
+  schedulingEachSelectedMonth: 'هر ماه انتخاب شده',
 
   // Original text: 'Day'
-  schedulingDay: undefined,
+  schedulingDay: 'روز',
 
   // Original text: 'Every N day'
-  schedulingEveryNDay: undefined,
+  schedulingEveryNDay: 'هر N روز',
 
   // Original text: 'Each selected day'
-  schedulingEachSelectedDay: undefined,
+  schedulingEachSelectedDay: 'هر روز انتخاب شده',
 
   // Original text: 'Switch to week days'
-  schedulingSetWeekDayMode: undefined,
+  schedulingSetWeekDayMode: 'تغییر به روزهای هفته',
 
   // Original text: 'Switch to month days'
-  schedulingSetMonthDayMode: undefined,
+  schedulingSetMonthDayMode: 'تغییر به روزهای ماه',
 
   // Original text: 'Hour'
-  schedulingHour: undefined,
+  schedulingHour: 'ساعت',
 
   // Original text: 'Each selected hour'
-  schedulingEachSelectedHour: undefined,
+  schedulingEachSelectedHour: 'هر ساعت انتخاب شده',
 
   // Original text: 'Every N hour'
-  schedulingEveryNHour: undefined,
+  schedulingEveryNHour: 'هر N ساعت',
 
   // Original text: 'Minute'
-  schedulingMinute: undefined,
+  schedulingMinute: 'دقیقه',
 
   // Original text: 'Each selected minute'
-  schedulingEachSelectedMinute: undefined,
+  schedulingEachSelectedMinute: 'هر دقیقه انتخاب شده',
 
   // Original text: 'Every N minute'
-  schedulingEveryNMinute: undefined,
+  schedulingEveryNMinute: 'هر N دقیقه',
 
   // Original text: 'Every month'
-  selectTableAllMonth: undefined,
+  selectTableAllMonth: 'هر ماه',
 
   // Original text: 'Every day'
-  selectTableAllDay: undefined,
+  selectTableAllDay: 'هر روز',
 
   // Original text: 'Every hour'
-  selectTableAllHour: undefined,
+  selectTableAllHour: 'هر ساعت',
 
   // Original text: 'Every minute'
-  selectTableAllMinute: undefined,
+  selectTableAllMinute: 'هر دقیقه',
 
   // Original text: 'Reset'
-  schedulingReset: undefined,
+  schedulingReset: 'ریست',
 
   // Original text: 'Unknown'
-  unknownSchedule: undefined,
+  unknownSchedule: 'ناشناخته',
 
   // Original text: 'Web browser timezone'
-  timezonePickerUseLocalTime: undefined,
+  timezonePickerUseLocalTime: 'منطقه زمانی تحت مرورگر وب',
 
   // Original text: 'Server timezone ({value})'
-  serverTimezoneOption: undefined,
+  serverTimezoneOption: 'سرور منطقه زمانی ({value})',
 
   // Original text: 'Cron Pattern:'
-  cronPattern: undefined,
+  cronPattern: 'الگوی Cron:',
 
   // Original text: 'Cannot edit backup'
-  backupEditNotFoundTitle: undefined,
+  backupEditNotFoundTitle: 'امکان ویرایش نسخه پشتیبان وجود ندارد',
 
   // Original text: 'Missing required info for edition'
-  backupEditNotFoundMessage: undefined,
+  backupEditNotFoundMessage: 'اطلاعات لازم برای ویرایش وجود ندارد',
 
   // Original text: 'Successful'
-  successfulJobCall: undefined,
+  successfulJobCall: 'موفقیت آمیز',
 
   // Original text: 'Failed'
-  failedJobCall: undefined,
+  failedJobCall: 'ناموفق',
 
   // Original text: 'Skipped'
-  jobCallSkipped: undefined,
+  jobCallSkipped: 'رد شدن',
 
   // Original text: 'In progress'
-  jobCallInProgess: undefined,
+  jobCallInProgess: 'در حال انجام',
 
   // Original text: 'Transfer size:'
-  jobTransferredDataSize: undefined,
+  jobTransferredDataSize: 'اندازه انتقال:',
 
   // Original text: 'Transfer speed:'
-  jobTransferredDataSpeed: undefined,
+  jobTransferredDataSpeed: 'سرعت انتقال:',
 
   // Original text: 'Size'
-  operationSize: undefined,
+  operationSize: 'اندازه',
 
   // Original text: 'Speed'
-  operationSpeed: undefined,
+  operationSpeed: 'سرعت',
 
   // Original text: 'Type'
-  exportType: undefined,
+  exportType: 'نوع',
 
   // Original text: 'Merge size:'
-  jobMergedDataSize: undefined,
+  jobMergedDataSize: 'اندازه ادغام:',
 
   // Original text: 'Merge speed:'
-  jobMergedDataSpeed: undefined,
+  jobMergedDataSpeed: 'سرعت ادغام:',
 
   // Original text: 'All'
-  allJobCalls: undefined,
+  allJobCalls: 'همه',
 
   // Original text: 'Job'
-  job: undefined,
+  job: 'کار',
 
   // Original text: 'Job {job}'
-  jobModalTitle: undefined,
+  jobModalTitle: 'کار {job}',
 
   // Original text: 'ID'
-  jobId: undefined,
+  jobId: 'شناسه',
 
   // Original text: 'Type'
-  jobType: undefined,
+  jobType: 'نوع',
 
   // Original text: 'Name'
-  jobName: undefined,
+  jobName: 'نام',
 
   // Original text: 'Mode'
-  jobMode: undefined,
+  jobMode: 'حالت',
 
   // Original text: 'Name of your job (forbidden: "_")'
-  jobNamePlaceholder: undefined,
+  jobNamePlaceholder: 'نام کار شما (ممنوع: "_"(',
 
   // Original text: 'Start'
-  jobStart: undefined,
+  jobStart: 'شروع',
 
   // Original text: 'End'
-  jobEnd: undefined,
+  jobEnd: 'پایان',
 
   // Original text: 'Duration'
-  jobDuration: undefined,
+  jobDuration: 'مدت زمان',
 
   // Original text: 'Status'
-  jobStatus: undefined,
+  jobStatus: 'وضعیت',
 
   // Original text: 'Action'
-  jobAction: undefined,
+  jobAction: 'عمل',
 
   // Original text: 'Tag'
-  jobTag: undefined,
+  jobTag: 'برچسب',
 
   // Original text: 'Scheduling'
-  jobScheduling: undefined,
+  jobScheduling: 'زمان بندی',
 
   // Original text: 'Timezone'
-  jobTimezone: undefined,
+  jobTimezone: 'منطقه زمانی',
 
   // Original text: 'Server'
-  jobServerTimezone: undefined,
+  jobServerTimezone: 'سرور',
 
   // Original text: 'Run job'
-  runJob: undefined,
+  runJob: 'اجرای کار',
 
   // Original text: 'Cancel job'
-  cancelJob: undefined,
+  cancelJob: 'لغو کار',
 
   // Original text: 'Are you sure you want to run {backupType} {id} ({tag})?'
-  runJobConfirm: undefined,
+  runJobConfirm: 'آیا مطمئن هستید که می خواهید {backupType} {id} ({tag}) را اجرا کنید؟',
 
   // Original text: 'One shot running started. See overview for logs.'
   runJobVerbose: undefined,
 
   // Original text: 'Edit job'
-  jobEdit: undefined,
+  jobEdit: 'ویرایش کار',
 
   // Original text: 'Delete'
-  jobDelete: undefined,
+  jobDelete: 'حذف کردن',
 
   // Original text: 'Finished'
-  jobFinished: undefined,
+  jobFinished: 'تمام شده',
 
   // Original text: 'Interrupted'
-  jobInterrupted: undefined,
+  jobInterrupted: 'وقفه دار',
 
   // Original text: 'Started'
-  jobStarted: undefined,
+  jobStarted: 'شروع شده',
 
   // Original text: 'Failed'
-  jobFailed: undefined,
+  jobFailed: 'ناموفق',
 
   // Original text: 'Skipped'
-  jobSkipped: undefined,
+  jobSkipped: 'رد شده',
 
   // Original text: 'Successful'
-  jobSuccess: undefined,
+  jobSuccess: 'موفقیت آمیز',
 
   // Original text: 'All'
-  allTasks: undefined,
+  allTasks: 'همه',
 
   // Original text: 'Start'
-  taskStart: undefined,
+  taskStart: 'شروع',
 
   // Original text: 'End'
-  taskEnd: undefined,
+  taskEnd: 'پایان',
 
   // Original text: 'Duration'
-  taskDuration: undefined,
+  taskDuration: 'مدت زمان',
 
   // Original text: 'Successful'
-  taskSuccess: undefined,
+  taskSuccess: 'موفقیت آمیز',
 
   // Original text: 'Failed'
-  taskFailed: undefined,
+  taskFailed: 'ناموفق',
 
   // Original text: 'Skipped'
-  taskSkipped: undefined,
+  taskSkipped: 'رد شده',
 
   // Original text: 'Started'
-  taskStarted: undefined,
+  taskStarted: 'شروع شده',
 
   // Original text: 'Interrupted'
-  taskInterrupted: undefined,
+  taskInterrupted: 'وقفه دار',
 
   // Original text: 'Transfer size'
-  taskTransferredDataSize: undefined,
+  taskTransferredDataSize: 'اندازه انتقال',
 
   // Original text: 'Transfer speed'
-  taskTransferredDataSpeed: undefined,
+  taskTransferredDataSpeed: 'سرعت انتقال',
 
   // Original text: 'Merge size'
-  taskMergedDataSize: undefined,
+  taskMergedDataSize: 'اندازه ادغام',
 
   // Original text: 'Merge speed'
-  taskMergedDataSpeed: undefined,
+  taskMergedDataSpeed: 'سرعت ادغام',
 
   // Original text: 'Error'
-  taskError: undefined,
+  taskError: 'خطا',
 
   // Original text: 'Reason'
-  taskReason: undefined,
+  taskReason: 'دلیل',
 
   // Original text: 'Save'
-  saveBackupJob: undefined,
+  saveBackupJob: 'ذخیره',
 
   // Original text: 'Remove backup job'
-  deleteBackupSchedule: undefined,
+  deleteBackupSchedule: 'حذف کار مربوط به پشتیبان گیری',
 
   // Original text: 'Are you sure you want to delete this backup job?'
-  deleteBackupScheduleQuestion: undefined,
+  deleteBackupScheduleQuestion: 'آیا مطمئن هستید که می خواهید این کار مربوط به پشتیبان گیری را حذف کنید؟',
 
   // Original text: 'Delete selected jobs'
-  deleteSelectedJobs: undefined,
+  deleteSelectedJobs: 'حذف کارهای انتخاب شده',
 
   // Original text: 'Enable immediately after creation'
-  scheduleEnableAfterCreation: undefined,
+  scheduleEnableAfterCreation: 'بلافاصله پس از ایجاد فعال شود',
 
   // Original text: 'You are editing Schedule {name} ({id}). Saving will override previous schedule state.'
-  scheduleEditMessage: undefined,
+  scheduleEditMessage: 'شما در حال ویرایش زمانبندی {name} ({id}) هستید. ذخیره کردن وضعیت زمان بندی قبلی را لغو می کند.',
 
   // Original text: 'You are editing job {name} ({id}). Saving will override previous job state.'
-  jobEditMessage: undefined,
+  jobEditMessage: 'شما در حال ویرایش شغل {name} ({id}) هستید. ذخیره کردن وضعیت کار قبلی را لغو می کند.',
 
   // Original text: 'Edit schedule'
-  scheduleEdit: undefined,
+  scheduleEdit: 'ویرایش زمان بندی',
 
   // Original text: "A name is required to create the backup's job!"
-  missingBackupName: undefined,
+  missingBackupName: 'برای ایجاد کار پشتیبان گیری یک نام مورد نیاز است!',
 
   // Original text: 'Missing VMs!'
-  missingVms: undefined,
+  missingVms: 'ماشین های مجازی که وجود ندارند!',
 
   // Original text: 'You need to choose a backup mode!'
-  missingBackupMode: undefined,
+  missingBackupMode: 'شما باید یک حالت پشتیبان را انتخاب کنید!',
 
   // Original text: 'Missing remotes!'
-  missingRemotes: undefined,
+  missingRemotes: 'ریموت هایی که وجود ندارند!',
 
   // Original text: 'Missing SRs!'
-  missingSrs: undefined,
+  missingSrs: 'مخازن ذخیره سازی که وجود ندارند!',
 
   // Original text: 'Missing schedules!'
-  missingSchedules: undefined,
+  missingSchedules: 'زمان بندی هایی که وجود ندارند!',
 
   // Original text: 'The Backup mode and The Delta Backup mode require export retention to be higher than 0!'
-  missingExportRetention: undefined,
+  missingExportRetention: 'حالت پشتیبان گیری و حالت پشتیبان گیری دلتا نیاز به Export Retention بالاتر از 0 دارند!',
 
   // Original text: 'The CR mode and The DR mode require copy retention to be higher than 0!'
-  missingCopyRetention: undefined,
+  missingCopyRetention: 'حالت CR و حالت DR نیاز به Copy Retention بالاتر از 0 دارند!',
 
   // Original text: 'The Rolling Snapshot mode requires snapshot retention to be higher than 0!'
-  missingSnapshotRetention: undefined,
+  missingSnapshotRetention: 'حالت Rolling Snapshot نیاز به Snapshot Retention دارد که بالاتر از 0 باشد!',
 
   // Original text: 'One of the retentions needs to be higher than 0!'
-  retentionNeeded: undefined,
+  retentionNeeded: 'یکی از Retention ها باید بالاتر از 0 باشد!',
 
   // Original text: 'No remotes found, please click on the remotes settings button to create one!'
-  createRemoteMessage: undefined,
+  createRemoteMessage: 'هیچ ریموتی پیدا نشد، لطفاً روی دکمه تنظیمات ریموت کلیک کنید تا یکی بسازید!',
 
   // Original text: 'Remotes settings'
-  remotesSettings: undefined,
+  remotesSettings: 'تنظیمات ریموت ها',
 
   // Original text: 'Add a schedule'
-  scheduleAdd: undefined,
+  scheduleAdd: 'ایجاد یک زمان بندی',
 
   // Original text: 'Delete'
-  scheduleDelete: undefined,
+  scheduleDelete: 'حذف',
 
   // Original text: 'Run schedule'
-  scheduleRun: undefined,
+  scheduleRun: 'اجرای زمان بندی',
 
   // Original text: 'Delete selected schedules'
-  deleteSelectedSchedules: undefined,
+  deleteSelectedSchedules: 'حذف زمان بندی های انتخاب شده',
 
   // Original text: 'No scheduled jobs.'
-  noScheduledJobs: undefined,
+  noScheduledJobs: 'کار زمان بندی شده وجود نداد.',
 
   // Original text: 'You can delete all your legacy backup snapshots.'
-  legacySnapshotsLink: undefined,
+  legacySnapshotsLink: 'می‌توانید تمام اسنپ شات های قدیمی مربوط به نسخه پشتیبان خود را حذف کنید.',
 
   // Original text: 'New schedule'
-  newSchedule: undefined,
+  newSchedule: 'زمان بندی جدید',
 
   // Original text: 'No jobs found.'
-  noJobs: undefined,
+  noJobs: 'هیچ کاری پیدا نشد.',
 
   // Original text: 'No schedules found'
-  noSchedules: undefined,
+  noSchedules: 'هیچ زمان بندی پیدا نشد',
 
   // Original text: 'Select a xo-server API command'
-  jobActionPlaceHolder: undefined,
+  jobActionPlaceHolder: 'یک دستور API مربوط به xo-server را انتخاب کنید',
 
   // Original text: 'Timeout (number of seconds after which a VM is considered failed)'
-  jobTimeoutPlaceHolder: undefined,
+  jobTimeoutPlaceHolder: 'وقفه (تعداد ثانیه هایی که پس از آن یک ماشین مجازی ناموفق در نظر گرفته می شود)',
 
   // Original text: 'Schedules'
-  jobSchedules: undefined,
+  jobSchedules: 'زمان بندی ها',
 
   // Original text: 'Name of your schedule'
-  jobScheduleNamePlaceHolder: undefined,
+  jobScheduleNamePlaceHolder: 'نام زمان بندی شما',
 
   // Original text: 'Select a Job'
-  jobScheduleJobPlaceHolder: undefined,
+  jobScheduleJobPlaceHolder: 'یک کار را انتخاب کنید',
 
   // Original text: 'Job owner'
-  jobOwnerPlaceholder: undefined,
+  jobOwnerPlaceholder: 'صاحب کار',
 
   // Original text: "This job's creator no longer exists"
-  jobUserNotFound: undefined,
+  jobUserNotFound: 'سازنده این کار دیگر وجود ندارد',
 
   // Original text: "This backup's creator no longer exists"
-  backupUserNotFound: undefined,
+  backupUserNotFound: 'سازنده این نسخه پشتیبان دیگر وجود ندارد',
 
   // Original text: 'Click here to see the matching VMs'
-  redirectToMatchingVms: undefined,
+  redirectToMatchingVms: 'برای دیدن ماشین های مجازی منطبق اینجا کلیک کنید',
 
   // Original text: 'Migrate to backup NG'
-  migrateToBackupNg: undefined,
+  migrateToBackupNg: 'مهاجرت به backup NG',
 
   // Original text: 'There are no matching VMs!'
-  noMatchingVms: undefined,
+  noMatchingVms: 'هیچ ماشین مجازی منطبقی وجود ندارد!',
 
   // Original text: '{icon} See the matching VMs ({nMatchingVms, number})'
-  allMatchingVms: undefined,
+  allMatchingVms: '{icon} ماشین‌های مجازی منطبق را ببینید ({nMatchingVms, number})',
 
   // Original text: 'Backup owner'
-  backupOwner: undefined,
+  backupOwner: 'صاحب نسخه پشتیبان',
 
   // Original text: 'Migrate to backup NG'
-  migrateBackupSchedule: undefined,
+  migrateBackupSchedule: 'مهاجرت به backup NG',
 
   // Original text: 'This will migrate this backup to a backup NG. This operation is not reversible. Do you want to continue?'
-  migrateBackupScheduleMessage: undefined,
+  migrateBackupScheduleMessage:
+    'این کار نسخه پشتیبان را به یک backup NG مهاجرت خواهد داد. این عملیات قابل برگشت نیست. آیا می خواهید ادامه دهید؟',
 
   // Original text: 'Are you sure you want to run {name} ({id})?'
-  runBackupNgJobConfirm: undefined,
+  runBackupNgJobConfirm: 'آیا مطمئن هستید که می خواهید {name} ({id}) را اجرا کنید؟',
 
   // Original text: 'Are you sure you want to cancel {name} ({id})?'
-  cancelJobConfirm: undefined,
+  cancelJobConfirm: 'آیا مطمئنید که می‌خواهید {name} ({id}) را لغو کنید؟',
 
   // Original text: 'Advanced settings'
-  newBackupAdvancedSettings: undefined,
+  newBackupAdvancedSettings: 'تنظیمات پیشرفته',
 
   // Original text: 'Always'
-  reportWhenAlways: undefined,
+  reportWhenAlways: 'همیشه',
 
   // Original text: 'Failure'
-  reportWhenFailure: undefined,
+  reportWhenFailure: 'شکست',
 
   // Original text: 'Never'
-  reportWhenNever: undefined,
+  reportWhenNever: 'هرگز',
 
   // Original text: 'Report when'
   reportWhen: undefined,
 
   // Original text: 'Concurrency'
-  concurrency: undefined,
+  concurrency: 'همزمانی',
 
   // Original text: 'Select your backup type:'
-  newBackupSelection: undefined,
+  newBackupSelection: 'نوع نسخه پشتیبان خود را انتخاب کنید:',
 
   // Original text: 'Select backup mode:'
-  smartBackupModeSelection: undefined,
+  smartBackupModeSelection: 'حالت نسخه پشتیبان را انتخاب کنید:',
 
   // Original text: 'Normal backup'
-  normalBackup: undefined,
+  normalBackup: 'پشتیبان گیری معمولی',
 
   // Original text: 'Smart backup'
-  smartBackup: undefined,
+  smartBackup: 'پشتیبان گیری هوشمند',
 
   // Original text: 'Export retention'
-  exportRetention: undefined,
+  exportRetention: 'نگهداری صدور',
 
   // Original text: 'Copy retention'
-  copyRetention: undefined,
+  copyRetention: 'نگهداری کپی',
 
   // Original text: 'Snapshot retention'
-  snapshotRetention: undefined,
+  snapshotRetention: 'نگهداری اسنپ شات',
 
   // Original text: 'Name'
-  backupName: undefined,
+  backupName: 'نام',
 
   // Original text: 'Use delta'
-  useDelta: undefined,
+  useDelta: 'استفاده از دلتا',
 
   // Original text: 'Use compression'
-  useCompression: undefined,
+  useCompression: 'استفاده از فشرده سازی',
 
   // Original text: 'Offline snapshot'
-  offlineSnapshot: undefined,
+  offlineSnapshot: 'اسنپ شات آفلاین',
 
   // Original text: 'Shutdown VMs before snapshotting them'
-  offlineSnapshotInfo: undefined,
+  offlineSnapshotInfo: 'ماشین های مجازی را قبل از گرفتن اسنپ شات خاموش کنید',
 
   // Original text: 'Timeout'
-  timeout: undefined,
+  timeout: 'وقفه',
 
   // Original text: 'Number of seconds after which a job is considered failed'
-  timeoutInfo: undefined,
+  timeoutInfo: 'تعداد ثانیه هایی که پس از آن یک کار شکست خورده در نظر گرفته می شود',
 
   // Original text: 'Delta Backup and DR require Entreprise plan'
-  dbAndDrRequireEntreprisePlan: undefined,
+  dbAndDrRequireEntreprisePlan: 'پشتیبان گیری دلتا و DR به طرح سازمانی نیاز دارند',
 
   // Original text: 'CR requires Premium plan'
-  crRequiresPremiumPlan: undefined,
+  crRequiresPremiumPlan: 'CR به طرح Premium نیاز دارد',
 
   // Original text: 'Smart mode'
-  smartBackupModeTitle: undefined,
+  smartBackupModeTitle: 'حالت هوشمند',
 
   // Original text: 'Target remotes (for Export)'
-  backupTargetRemotes: undefined,
+  backupTargetRemotes: 'هدف راه دور (برای صادر کردن)',
 
   // Original text: 'Target SRs (for Replication)'
-  backupTargetSrs: undefined,
+  backupTargetSrs: 'مخازن ذخیره سازی هدف (برای تکرار)',
 
   // Original text: 'Local remote selected'
-  localRemoteWarningTitle: undefined,
+  localRemoteWarningTitle: 'ریموت محلی انتخاب شده است',
 
   // Original text: 'Warning: local remotes will use limited XOA disk space. Only for advanced users.'
-  localRemoteWarningMessage: undefined,
+  localRemoteWarningMessage: 'هشدار: ریموت‌های محلی از فضای محدود دیسک XOA استفاده می‌کنند. فقط برای کاربران حرفه ای.',
 
   // Original text: 'Warning: this feature works only with XenServer 6.5 or newer.'
-  backupVersionWarning: undefined,
+  backupVersionWarning: 'هشدار: این ویژگی فقط با XenServer 6.5 یا جدیدتر کار می کند.',
 
   // Original text: 'VMs'
-  editBackupVmsTitle: undefined,
+  editBackupVmsTitle: 'ماشین های مجازی',
 
   // Original text: 'VMs statuses'
-  editBackupSmartStatusTitle: undefined,
+  editBackupSmartStatusTitle: 'وضعیت ماشین های مجازی',
 
   // Original text: 'Resident on'
-  editBackupSmartResidentOn: undefined,
+  editBackupSmartResidentOn: 'ساکن در',
 
   // Original text: 'Not resident on'
-  editBackupSmartNotResidentOn: undefined,
+  editBackupSmartNotResidentOn: 'ساکن نیست',
 
   // Original text: 'Pools'
-  editBackupSmartPools: undefined,
+  editBackupSmartPools: 'استخرها',
 
   // Original text: 'Tags'
-  editBackupSmartTags: undefined,
+  editBackupSmartTags: 'برچسب ها',
 
   // Original text: 'Sample of matching Vms'
-  sampleOfMatchingVms: undefined,
+  sampleOfMatchingVms: 'نمونه ای از ماشین های مجازی منطبق',
 
   // Original text: 'VMs Tags'
-  editBackupSmartTagsTitle: undefined,
+  editBackupSmartTagsTitle: 'برچسب های مربوط به ماشین های مجازی',
 
   // Original text: 'Excluded VMs tags'
-  editBackupSmartExcludedTagsTitle: undefined,
+  editBackupSmartExcludedTagsTitle: 'برچسب های حذف شده مربوط به ماشین های مجازی',
 
   // Original text: 'Reverse'
-  editBackupNot: undefined,
+  editBackupNot: 'معکوس',
 
   // Original text: 'Tag'
-  editBackupTagTitle: undefined,
+  editBackupTagTitle: 'برچسب',
 
   // Original text: 'Report'
-  editBackupReportTitle: undefined,
+  editBackupReportTitle: 'گزارش',
 
   // Original text: 'Automatically run as scheduled'
-  editBackupScheduleEnabled: undefined,
+  editBackupScheduleEnabled: 'طبق برنامه به صورت خودکار اجرا شود',
 
   // Original text: 'Retention'
-  editBackupRetentionTitle: undefined,
+  editBackupRetentionTitle: 'حفظ',
 
   // Original text: 'Remote'
-  editBackupRemoteTitle: undefined,
+  editBackupRemoteTitle: 'ریموت',
 
   // Original text: 'Delete the old backups first'
-  deleteOldBackupsFirst: undefined,
+  deleteOldBackupsFirst: 'ابتدا نسخه های پشتیبان قدیمی را حذف کنید',
 
   // Original text: 'Remote stores for backup'
-  remoteList: undefined,
+  remoteList: 'ذخیره‌سازی از راه دور برای پشتیبان‌گیری',
 
   // Original text: 'New File System Remote'
-  newRemote: undefined,
+  newRemote: 'سیستم فایل جدید از راه دور',
 
   // Original text: 'Local'
-  remoteTypeLocal: undefined,
+  remoteTypeLocal: 'محلی',
 
   // Original text: 'NFS'
-  remoteTypeNfs: undefined,
+  remoteTypeNfs: 'NFS',
 
   // Original text: 'SMB'
-  remoteTypeSmb: undefined,
+  remoteTypeSmb: 'SMB',
 
   // Original text: 'Type'
-  remoteType: undefined,
+  remoteType: 'نوع',
 
   // Original text: 'SMB remotes are meant to work on Windows Server. For other systems (Linux Samba, which means almost all NAS), please use NFS.'
-  remoteSmbWarningMessage: undefined,
+  remoteSmbWarningMessage:
+    'ریموت های SMB برای کار روی ویندوز سرور طراحی شده اند. برای سیستم های دیگر (Linux Samba، که به معنای تقریباً تمام NAS ها است)، لطفاً از NFS استفاده کنید.',
 
   // Original text: 'Test your remote'
-  remoteTestTip: undefined,
+  remoteTestTip: 'ریموت خود را تست کنید',
 
   // Original text: 'Test Remote'
-  testRemote: undefined,
+  testRemote: 'تست ریموت',
 
   // Original text: 'Test failed for {name}'
-  remoteTestFailure: undefined,
+  remoteTestFailure: 'تست ناموفق بودن برای {name}',
 
   // Original text: 'Test passed for {name}'
-  remoteTestSuccess: undefined,
+  remoteTestSuccess: 'تست موفق بودن برای {name}',
 
   // Original text: 'Error'
-  remoteTestError: undefined,
+  remoteTestError: 'خطا',
 
   // Original text: 'Test Step'
-  remoteTestStep: undefined,
+  remoteTestStep: 'مرحله تست',
 
   // Original text: 'Test file'
-  remoteTestFile: undefined,
+  remoteTestFile: 'فایل تست',
 
   // Original text: 'Test name'
-  remoteTestName: undefined,
+  remoteTestName: 'نام تست',
 
   // Original text: 'Remote name already exists!'
-  remoteTestNameFailure: undefined,
+  remoteTestNameFailure: 'نام ریموت از قبل وجود دارد!',
 
   // Original text: 'The remote appears to work correctly'
-  remoteTestSuccessMessage: undefined,
+  remoteTestSuccessMessage: 'به نظر می رسد ریموت به درستی کار می کند',
 
   // Original text: 'Connection failed'
-  remoteConnectionFailed: undefined,
+  remoteConnectionFailed: 'ارتباط ناموفق بود',
 
   // Original text: 'Delete backup job{nJobs, plural, one {} other {s}}'
-  confirmDeleteBackupJobsTitle: undefined,
+  confirmDeleteBackupJobsTitle: 'حذف کار پشتیبان{nJobs, plural, one {} other {s}}',
 
   // Original text: 'Are you sure you want to delete {nJobs, number} backup job{nJobs, plural, one {} other {s}}?'
-  confirmDeleteBackupJobsBody: undefined,
+  confirmDeleteBackupJobsBody:
+    'آیا مطمئن هستید که می‌خواهید {nJobs, number} کار پشتیبان{nJobs، plural، one {} other {s}} را حذف کنید؟',
 
   // Original text: 'Name'
-  remoteName: undefined,
+  remoteName: 'نام',
 
   // Original text: 'Path'
-  remotePath: undefined,
+  remotePath: 'مسیر',
 
   // Original text: 'State'
-  remoteState: undefined,
+  remoteState: 'وضعیت',
 
   // Original text: 'Device'
-  remoteDevice: undefined,
+  remoteDevice: 'دستگاه',
 
   // Original text: 'Share'
-  remoteShare: undefined,
+  remoteShare: 'اشتراک گذاری',
 
   // Original text: 'Action'
-  remoteAction: undefined,
+  remoteAction: 'عمل',
 
   // Original text: 'Auth'
-  remoteAuth: undefined,
+  remoteAuth: 'احراز هویت',
 
   // Original text: 'Mounted'
-  remoteMounted: undefined,
+  remoteMounted: 'نصب شده است',
 
   // Original text: 'Unmounted'
-  remoteUnmounted: undefined,
+  remoteUnmounted: 'نصب نشده است',
 
   // Original text: 'Connect'
-  remoteConnectTip: undefined,
+  remoteConnectTip: 'اتصال',
 
   // Original text: 'Disconnect'
-  remoteDisconnectTip: undefined,
+  remoteDisconnectTip: 'قطع شدن',
 
   // Original text: 'Connected'
-  remoteConnected: undefined,
+  remoteConnected: 'متصل شده است',
 
   // Original text: 'Disconnected'
-  remoteDisconnected: undefined,
+  remoteDisconnected: 'قطع شده است',
 
   // Original text: 'Delete'
-  remoteDeleteTip: undefined,
+  remoteDeleteTip: 'حذف',
 
   // Original text: 'Delete selected remotes'
-  remoteDeleteSelected: undefined,
+  remoteDeleteSelected: 'ریموت های انتخاب شده را حذف کنید',
 
   // Original text: 'remote name *'
-  remoteNamePlaceHolder: undefined,
+  remoteNamePlaceHolder: 'نام ریموت *',
 
   // Original text: 'Name *'
-  remoteMyNamePlaceHolder: undefined,
+  remoteMyNamePlaceHolder: 'نام *',
 
   // Original text: '/path/to/backup'
-  remoteLocalPlaceHolderPath: undefined,
+  remoteLocalPlaceHolderPath: '/مسیر/برای/نسخه پشتیبان',
 
   // Original text: 'host *'
-  remoteNfsPlaceHolderHost: undefined,
+  remoteNfsPlaceHolderHost: 'میزبان *',
 
   // Original text: 'Port'
-  remoteNfsPlaceHolderPort: undefined,
+  remoteNfsPlaceHolderPort: 'پورت',
 
   // Original text: 'path/to/backup'
-  remoteNfsPlaceHolderPath: undefined,
+  remoteNfsPlaceHolderPath: '/مسیر/برای/نسخه پشتیبان',
 
   // Original text: 'subfolder [path\\\\to\\\\backup]'
-  remoteSmbPlaceHolderRemotePath: undefined,
+  remoteSmbPlaceHolderRemotePath: '[مسیر\\\\برای\\\\نسخه پشتیبان]',
 
   // Original text: 'Username'
-  remoteSmbPlaceHolderUsername: undefined,
+  remoteSmbPlaceHolderUsername: 'نام کاربری',
 
   // Original text: 'Password'
-  remoteSmbPlaceHolderPassword: undefined,
+  remoteSmbPlaceHolderPassword: 'کلمه عبور',
 
   // Original text: 'Domain'
-  remoteSmbPlaceHolderDomain: undefined,
+  remoteSmbPlaceHolderDomain: 'دامنه',
 
   // Original text: '<address>\\\\<share> *'
-  remoteSmbPlaceHolderAddressShare: undefined,
+  remoteSmbPlaceHolderAddressShare: '<آدرس>\\\\<اشتراک گذاری> *',
 
   // Original text: 'password(fill to edit)'
-  remotePlaceHolderPassword: undefined,
+  remotePlaceHolderPassword: 'کلمه عبور (برای ویرایش پر کنید)',
 
   // Original text: 'Create a new SR'
-  newSrTitle: undefined,
+  newSrTitle: 'یک مخزن ذخیره سازی (SR) جدید ایجاد کنید',
 
   // Original text: 'General'
-  newSrGeneral: undefined,
+  newSrGeneral: 'عمومی',
 
   // Original text: 'Select Storage Type:'
-  newSrTypeSelection: undefined,
+  newSrTypeSelection: 'انتخاب نوع ذخیره سازی:',
 
   // Original text: 'Settings'
-  newSrSettings: undefined,
+  newSrSettings: 'تنظیمات',
 
   // Original text: 'Storage Usage'
-  newSrUsage: undefined,
+  newSrUsage: 'استفاده از فضای ذخیره سازی',
 
   // Original text: 'Summary'
-  newSrSummary: undefined,
+  newSrSummary: 'خلاصه',
 
   // Original text: 'Host'
-  newSrHost: undefined,
+  newSrHost: 'میزبان',
 
   // Original text: 'Type'
-  newSrType: undefined,
+  newSrType: 'نوع',
 
   // Original text: 'Name'
-  newSrName: undefined,
+  newSrName: 'نام',
 
   // Original text: 'Description'
-  newSrDescription: undefined,
+  newSrDescription: 'شرح',
 
   // Original text: 'Server'
-  newSrServer: undefined,
+  newSrServer: 'سرور',
 
   // Original text: 'Path'
-  newSrPath: undefined,
+  newSrPath: 'مسیر',
 
   // Original text: 'IQN'
-  newSrIqn: undefined,
+  newSrIqn: 'IQN',
 
   // Original text: 'LUN'
-  newSrLun: undefined,
+  newSrLun: 'LUN',
 
   // Original text: 'No HBA devices'
-  newSrNoHba: undefined,
+  newSrNoHba: 'دستگاه HBA وجود ندارد',
 
   // Original text: 'with auth.'
-  newSrAuth: undefined,
+  newSrAuth: 'با اعتبار.',
 
   // Original text: 'User Name'
-  newSrUsername: undefined,
+  newSrUsername: 'نام کاربری',
 
   // Original text: 'Password'
-  newSrPassword: undefined,
+  newSrPassword: 'کلمه عبور',
 
   // Original text: 'Device'
-  newSrDevice: undefined,
+  newSrDevice: 'دستگاه',
 
   // Original text: 'in use'
-  newSrInUse: undefined,
+  newSrInUse: 'در حال استفاده',
 
   // Original text: 'Size'
-  newSrSize: undefined,
+  newSrSize: 'اندازه',
 
   // Original text: 'Create'
-  newSrCreate: undefined,
+  newSrCreate: 'ایجاد',
 
   // Original text: 'Storage name'
-  newSrNamePlaceHolder: undefined,
+  newSrNamePlaceHolder: 'نام فضای ذخیره سازی',
 
   // Original text: 'Storage description'
-  newSrDescPlaceHolder: undefined,
+  newSrDescPlaceHolder: 'شرح فضای ذخیره سازی',
 
   // Original text: 'Address'
-  newSrAddressPlaceHolder: undefined,
+  newSrAddressPlaceHolder: 'آدرس',
 
   // Original text: '[port]'
-  newSrPortPlaceHolder: undefined,
+  newSrPortPlaceHolder: '[پورت]',
 
   // Original text: 'Username'
-  newSrUsernamePlaceHolder: undefined,
+  newSrUsernamePlaceHolder: 'نام کاربری',
 
   // Original text: 'Password'
-  newSrPasswordPlaceHolder: undefined,
+  newSrPasswordPlaceHolder: 'کلمه عبور',
 
   // Original text: 'Device, e.g /dev/sda…'
-  newSrLvmDevicePlaceHolder: undefined,
+  newSrLvmDevicePlaceHolder: 'دستگاه, برای مثال /dev/sda…',
 
   // Original text: '/path/to/directory'
-  newSrLocalPathPlaceHolder: undefined,
+  newSrLocalPathPlaceHolder: '/مسیر/برای/دایرکتوری',
 
   // Original text: 'Use NFSv4'
-  newSrUseNfs4: undefined,
+  newSrUseNfs4: 'استفاده از NFSv4',
 
   // Original text: 'Comma delimited NFS options'
-  newSrNfsOptions: undefined,
+  newSrNfsOptions: 'گزینه های NFS با ویرگول محدود شده است',
 
   // Original text: 'Users/Groups'
-  subjectName: undefined,
+  subjectName: 'کاربران/گروه ها',
 
   // Original text: 'Object'
-  objectName: undefined,
+  objectName: 'شی',
 
   // Original text: 'No acls found'
-  aclNoneFound: undefined,
+  aclNoneFound: 'acl پیدا نشد',
 
   // Original text: 'Role'
-  roleName: undefined,
+  roleName: 'نقش',
 
   // Original text: 'Create'
-  aclCreate: undefined,
+  aclCreate: 'ایجاد',
 
   // Original text: 'New Group Name'
-  newGroupName: undefined,
+  newGroupName: 'نام گروه جدید',
 
   // Original text: 'Create Group'
-  createGroup: undefined,
+  createGroup: 'ایجاد گروه',
 
   // Original text: 'Create'
-  createGroupButton: undefined,
+  createGroupButton: 'ایجاد',
 
   // Original text: 'Delete Group'
-  deleteGroup: undefined,
+  deleteGroup: 'حذف گروه',
 
   // Original text: 'Are you sure you want to delete this group?'
-  deleteGroupConfirm: undefined,
+  deleteGroupConfirm: 'آیا مطمئن هستید که می خواهید این گروه را حذف کنید؟',
 
   // Original text: 'Remove user from Group'
-  removeUserFromGroup: undefined,
+  removeUserFromGroup: 'حذف کاربر از گروه',
 
   // Original text: 'Are you sure you want to delete this user?'
-  deleteUserConfirm: undefined,
+  deleteUserConfirm: 'آیا مطمئن هستید که می خواهید این کاربر را حذف کنید؟',
 
   // Original text: 'Delete User'
-  deleteUser: undefined,
+  deleteUser: 'حذف کاربر',
 
   // Original text: 'no user'
-  noUser: undefined,
+  noUser: 'بدون کاربر',
 
   // Original text: 'unknown user'
-  unknownUser: undefined,
+  unknownUser: 'کاربر ناشناس',
 
   // Original text: 'No group found'
-  noGroupFound: undefined,
+  noGroupFound: 'گروهی پیدا نشد',
 
   // Original text: 'Name'
-  groupNameColumn: undefined,
+  groupNameColumn: 'نام',
 
   // Original text: 'Users'
-  groupUsersColumn: undefined,
+  groupUsersColumn: 'کاربران',
 
   // Original text: 'Add User'
-  addUserToGroupColumn: undefined,
+  addUserToGroupColumn: 'اضافه کردن کاربر',
 
   // Original text: 'Username'
-  userNameColumn: undefined,
+  userNameColumn: 'نام کاربری',
 
   // Original text: 'Permissions'
-  userPermissionColumn: undefined,
+  userPermissionColumn: 'مجوزها',
 
   // Original text: 'Password'
-  userPasswordColumn: undefined,
+  userPasswordColumn: 'کلمه عبور',
 
   // Original text: 'Username'
-  userName: undefined,
+  userName: 'نام کاربری',
 
   // Original text: 'Password'
-  userPassword: undefined,
+  userPassword: 'کلمه عبور',
 
   // Original text: 'Create'
-  createUserButton: undefined,
+  createUserButton: 'ایجاد',
 
   // Original text: 'No user found'
-  noUserFound: undefined,
+  noUserFound: 'کاربری پیدا نشد',
 
   // Original text: 'User'
-  userLabel: undefined,
+  userLabel: 'کاربر',
 
   // Original text: 'Admin'
-  adminLabel: undefined,
+  adminLabel: 'مدیر',
 
   // Original text: 'No user in group'
-  noUserInGroup: undefined,
+  noUserInGroup: 'کاربری در گروه وجود ندارد',
 
   // Original text: '{users, number} user{users, plural, one {} other {s}}'
-  countUsers: undefined,
+  countUsers: '{users, number} user{users, plural, one {} other {s}}',
 
   // Original text: 'Select Permission'
-  selectPermission: undefined,
+  selectPermission: 'مجوز را انتخاب کنید',
 
   // Original text: 'No plugins found'
-  noPlugins: undefined,
+  noPlugins: 'هیچ افزونه ای پیدا نشد',
 
   // Original text: 'Auto-load at server start'
-  autoloadPlugin: undefined,
+  autoloadPlugin: 'بارگیری خودکار در سرور شروع شد',
 
   // Original text: 'Save configuration'
-  savePluginConfiguration: undefined,
+  savePluginConfiguration: 'ذخیره کردن پیکربندی',
 
   // Original text: 'Delete configuration'
-  deletePluginConfiguration: undefined,
+  deletePluginConfiguration: 'حذف کردن پیکربندی',
 
   // Original text: 'Plugin error'
-  pluginError: undefined,
+  pluginError: 'خطای افزونه',
 
   // Original text: 'Unknown error'
-  unknownPluginError: undefined,
+  unknownPluginError: 'خطای ناشناخته',
 
   // Original text: 'Purge plugin configuration'
-  purgePluginConfiguration: undefined,
+  purgePluginConfiguration: 'پاکسازی پیکربندی افزونه',
 
   // Original text: 'Are you sure you want to purge this configuration ?'
-  purgePluginConfigurationQuestion: undefined,
+  purgePluginConfigurationQuestion: 'آیا مطمئن هستید که می خواهید این پیکربندی را پاک کنید؟',
 
   // Original text: 'Edit'
-  editPluginConfiguration: undefined,
+  editPluginConfiguration: 'ویرایش',
 
   // Original text: 'Cancel'
-  cancelPluginEdition: undefined,
+  cancelPluginEdition: 'لغو کردن',
 
   // Original text: 'Plugin configuration'
-  pluginConfigurationSuccess: undefined,
+  pluginConfigurationSuccess: 'پیکربندی افزونه',
 
   // Original text: 'Plugin configuration successfully saved!'
-  pluginConfigurationChanges: undefined,
+  pluginConfigurationChanges: 'پیکربندی افزونه با موفقیت ذخیره شد!',
 
   // Original text: 'Predefined configuration'
-  pluginConfigurationPresetTitle: undefined,
+  pluginConfigurationPresetTitle: 'پیکربندی از پیش تعریف شده',
 
   // Original text: 'Choose a predefined configuration.'
-  pluginConfigurationChoosePreset: undefined,
+  pluginConfigurationChoosePreset: 'یک پیکربندی از پیش تعریف شده را انتخاب کنید.',
 
   // Original text: 'Apply'
-  applyPluginPreset: undefined,
+  applyPluginPreset: 'اعمال کردن',
 
   // Original text: 'Save filter error'
-  saveNewUserFilterErrorTitle: undefined,
+  saveNewUserFilterErrorTitle: 'خطا در ذخیره کردن فیلتر',
 
   // Original text: 'Bad parameter: name must be given.'
-  saveNewUserFilterErrorBody: undefined,
+  saveNewUserFilterErrorBody: 'پارامتر بد: نام باید داده شود.',
 
   // Original text: 'Name:'
-  filterName: undefined,
+  filterName: 'نام:',
 
   // Original text: 'Value:'
-  filterValue: undefined,
+  filterValue: 'مقدار:',
 
   // Original text: 'Save new filter'
-  saveNewFilterTitle: undefined,
+  saveNewFilterTitle: 'ذخیره کردن فیلتر جدید',
 
   // Original text: 'Set custom filters'
-  setUserFiltersTitle: undefined,
+  setUserFiltersTitle: 'تنظیم فیلترهای سفارشی',
 
   // Original text: 'Are you sure you want to set custom filters?'
-  setUserFiltersBody: undefined,
+  setUserFiltersBody: 'آیا مطمئن هستید که می خواهید فیلترهای سفارشی را تنظیم کنید؟',
 
   // Original text: 'Remove custom filter'
-  removeUserFilterTitle: undefined,
+  removeUserFilterTitle: 'حذف فیلتر سفارشی',
 
   // Original text: 'Are you sure you want to remove custom filter?'
-  removeUserFilterBody: undefined,
+  removeUserFilterBody: 'آیا مطمئن هستید که می خواهید فیلتر سفارشی را حذف کنید؟',
 
   // Original text: 'Default filter'
-  defaultFilter: undefined,
+  defaultFilter: 'فیلتر پیش فرض',
 
   // Original text: 'Default filters'
-  defaultFilters: undefined,
+  defaultFilters: 'فیلتر های پیش فرض',
 
   // Original text: 'Custom filters'
-  customFilters: undefined,
+  customFilters: 'فیلتر های سفارشی',
 
   // Original text: 'Customize filters'
-  customizeFilters: undefined,
+  customizeFilters: 'سفارشی کردن فیلترها',
 
   // Original text: 'Save custom filters'
-  saveCustomFilters: undefined,
+  saveCustomFilters: 'ذخیره کردن فیلترهای سفارشی',
 
   // Original text: 'Start'
-  startVmLabel: undefined,
+  startVmLabel: 'شروع',
 
   // Original text: 'Recovery start'
-  recoveryModeLabel: undefined,
+  recoveryModeLabel: 'شروع بازیابی',
 
   // Original text: 'Suspend'
-  suspendVmLabel: undefined,
+  suspendVmLabel: 'تعلیق',
 
   // Original text: 'Stop'
-  stopVmLabel: undefined,
+  stopVmLabel: 'توقف',
 
   // Original text: 'Force shutdown'
-  forceShutdownVmLabel: undefined,
+  forceShutdownVmLabel: 'خاموش شدن اجباری',
 
   // Original text: 'Reboot'
-  rebootVmLabel: undefined,
+  rebootVmLabel: 'راه اندازی مجدد',
 
   // Original text: 'Force reboot'
-  forceRebootVmLabel: undefined,
+  forceRebootVmLabel: 'راه اندازی مجدد اجباری',
 
   // Original text: 'Delete'
-  deleteVmLabel: undefined,
+  deleteVmLabel: 'حذف کردن',
 
   // Original text: 'Migrate'
-  migrateVmLabel: undefined,
+  migrateVmLabel: 'مهاجرت',
 
   // Original text: 'Snapshot'
-  snapshotVmLabel: undefined,
+  snapshotVmLabel: 'اسنپ شات',
 
   // Original text: 'Export'
-  exportVmLabel: undefined,
+  exportVmLabel: 'صادر کردن',
 
   // Original text: 'Resume'
-  resumeVmLabel: undefined,
+  resumeVmLabel: 'از سرگیری',
 
   // Original text: 'Copy'
-  copyVmLabel: undefined,
+  copyVmLabel: 'کپی',
 
   // Original text: 'Clone'
-  cloneVmLabel: undefined,
+  cloneVmLabel: 'شبیه سازی',
 
   // Original text: 'Fast clone'
-  fastCloneVmLabel: undefined,
+  fastCloneVmLabel: 'شبیه سازی سریع',
 
   // Original text: 'Convert to template'
-  convertVmToTemplateLabel: undefined,
+  convertVmToTemplateLabel: 'تبدیل به قالب',
 
   // Original text: 'Console'
-  vmConsoleLabel: undefined,
+  vmConsoleLabel: 'کنسول',
 
   // Original text: 'Depth'
-  srUnhealthyVdiDepth: undefined,
+  srUnhealthyVdiDepth: 'عمق',
 
   // Original text: 'Name'
-  srUnhealthyVdiNameLabel: undefined,
+  srUnhealthyVdiNameLabel: 'نام',
 
   // Original text: 'Size'
-  srUnhealthyVdiSize: undefined,
+  srUnhealthyVdiSize: 'اندازه',
 
   // Original text: 'VDI to coalesce ({total, number})'
-  srUnhealthyVdiTitle: undefined,
+  srUnhealthyVdiTitle: 'VDI برای ادغام ({total, number})',
 
   // Original text: 'UUID'
-  srUnhealthyVdiUuid: undefined,
+  srUnhealthyVdiUuid: 'UUID',
 
   // Original text: 'No stats'
-  srNoStats: undefined,
+  srNoStats: 'هیچ آماری وجود ندارد',
 
   // Original text: 'IOPS'
-  statsIops: undefined,
+  statsIops: 'IOPS',
 
   // Original text: 'IO throughput'
-  statsIoThroughput: undefined,
+  statsIoThroughput: 'توان عملیاتی IO',
 
   // Original text: 'Latency'
-  statsLatency: undefined,
+  statsLatency: 'تاخیر',
 
   // Original text: 'IOwait'
-  statsIowait: undefined,
+  statsIowait: 'IOwait',
 
   // Original text: 'Rescan all disks'
-  srRescan: undefined,
+  srRescan: 'همه دیسک ها را دوباره اسکن کنید',
 
   // Original text: 'Connect to all hosts'
-  srReconnectAll: undefined,
+  srReconnectAll: 'به همه میزبان ها متصل شوید',
 
   // Original text: 'Disconnect from all hosts'
-  srDisconnectAll: undefined,
+  srDisconnectAll: 'از همه میزبان ها جدا شوید',
 
   // Original text: 'Forget this SR'
-  srForget: undefined,
+  srForget: 'صرف نظر کردن از این مخزن ذخیره سازی (SR)',
 
   // Original text: 'Forget SRs'
-  srsForget: undefined,
+  srsForget: 'صرف نظر کردن از مخزن های ذخیره سازی',
 
   // Original text: 'Remove this SR'
-  srRemoveButton: undefined,
+  srRemoveButton: 'حذف کردن این مخزن ذخیره سازی (SR)',
 
   // Original text: 'No VDIs in this storage'
-  srNoVdis: undefined,
+  srNoVdis: 'هیچ VDI در این فضای ذخیره سازی وجود ندارد',
 
   // Original text: 'Pool RAM usage:'
-  poolTitleRamUsage: undefined,
+  poolTitleRamUsage: 'میزان مصرف رم استخر:',
 
   // Original text: '{used} used on {total} ({free} free)'
-  poolRamUsage: undefined,
+  poolRamUsage: '{used} استفاده شده در {total} ({free} free)',
 
   // Original text: 'Master:'
-  poolMaster: undefined,
+  poolMaster: 'ارشد:',
 
   // Original text: 'Display all hosts of this pool'
-  displayAllHosts: undefined,
+  displayAllHosts: 'نمایش تمام میزبان های این استخر',
 
   // Original text: 'Display all storages of this pool'
-  displayAllStorages: undefined,
+  displayAllStorages: 'نمایش تمام مخزن های این استخر',
 
   // Original text: 'Display all VMs of this pool'
-  displayAllVMs: undefined,
+  displayAllVMs: 'نمایش تمام ماشین های مجازی این استخر',
 
   // Original text: 'Hosts'
-  hostsTabName: undefined,
+  hostsTabName: 'میزبان ها',
 
   // Original text: 'Vms'
-  vmsTabName: undefined,
+  vmsTabName: 'ماشین های مجازی',
 
   // Original text: 'Srs'
-  srsTabName: undefined,
+  srsTabName: 'مخزن های ذخیره سازی',
 
   // Original text: 'Edit all'
-  poolEditAll: undefined,
+  poolEditAll: 'ویرایش همه',
 
   // Original text: 'Edit remote syslog for all hosts'
-  poolEditRemoteSyslog: undefined,
+  poolEditRemoteSyslog: 'ویرایش syslog راه دور برای تمام میزبان ها',
 
   // Original text: 'High Availability'
-  poolHaStatus: undefined,
+  poolHaStatus: 'در دسترس بودن بالا',
 
   // Original text: 'Enabled'
-  poolHaEnabled: undefined,
+  poolHaEnabled: 'فعال شده',
 
   // Original text: 'Disabled'
-  poolHaDisabled: undefined,
+  poolHaDisabled: 'غیرفعال شده',
 
   // Original text: 'GPU groups'
-  poolGpuGroups: undefined,
+  poolGpuGroups: 'گروه های GPU',
 
   // Original text: 'Logging host'
-  poolRemoteSyslogPlaceHolder: undefined,
+  poolRemoteSyslogPlaceHolder: 'ورود به میزبان',
 
   // Original text: 'Master'
-  setpoolMaster: undefined,
+  setpoolMaster: 'ارشد',
 
   // Original text: 'Remote syslog host'
-  syslogRemoteHost: undefined,
+  syslogRemoteHost: 'میزبان syslog راه دور',
 
   // Original text: 'Name'
-  hostNameLabel: undefined,
+  hostNameLabel: 'نام',
 
   // Original text: 'Description'
-  hostDescription: undefined,
+  hostDescription: 'شرح',
 
   // Original text: 'Memory'
-  hostMemory: undefined,
+  hostMemory: 'حافظه',
 
   // Original text: 'No hosts'
-  noHost: undefined,
+  noHost: 'بدون میزبان',
 
   // Original text: '{used}% used ({free} free)'
-  memoryLeftTooltip: undefined,
+  memoryLeftTooltip: '{used}% استفاده شده ({free} free)',
 
   // Original text: 'PIF'
-  pif: undefined,
+  pif: 'کارت شبکه',
 
   // Original text: 'Name'
-  poolNetworkNameLabel: undefined,
+  poolNetworkNameLabel: 'نام',
 
   // Original text: 'Description'
-  poolNetworkDescription: undefined,
+  poolNetworkDescription: 'شرح',
 
   // Original text: 'PIFs'
-  poolNetworkPif: undefined,
+  poolNetworkPif: 'کارت های شبکه',
 
   // Original text: 'No networks'
-  poolNoNetwork: undefined,
+  poolNoNetwork: 'بدون شبکه',
 
   // Original text: 'MTU'
-  poolNetworkMTU: undefined,
+  poolNetworkMTU: 'حداکثر واحد انتقال',
 
   // Original text: 'Connected'
-  poolNetworkPifAttached: undefined,
+  poolNetworkPifAttached: 'متصل شده است',
 
   // Original text: 'Disconnected'
-  poolNetworkPifDetached: undefined,
+  poolNetworkPifDetached: 'قطع شده است',
 
   // Original text: 'Show PIFs'
   showPifs: undefined,
 
   // Original text: 'Hide PIFs'
-  hidePifs: undefined,
+  hidePifs: 'نمایش کارت های شبکه',
 
   // Original text: 'Show details'
-  showDetails: undefined,
+  showDetails: 'نمایش جزئیات',
 
   // Original text: 'Hide details'
-  hideDetails: undefined,
+  hideDetails: 'پنهان کردن جزئیات',
 
   // Original text: 'No stats'
-  poolNoStats: undefined,
+  poolNoStats: 'هیچ آماری وجود ندارد',
 
   // Original text: 'All hosts'
-  poolAllHosts: undefined,
+  poolAllHosts: 'تمام میزبان ها',
 
   // Original text: 'Add SR'
-  addSrLabel: undefined,
+  addSrLabel: 'اضافه کردن مخزن ذخیره سازی (SR)',
 
   // Original text: 'Add VM'
-  addVmLabel: undefined,
+  addVmLabel: 'اضافه کردن ماشین مجازی',
 
   // Original text: 'Add Host'
-  addHostLabel: undefined,
+  addHostLabel: 'اضافه کردن میزبان',
 
   // Original text: 'This host needs to install {patches, number} patch{patches, plural, one {} other {es}} before it can be added to the pool. This operation may be long.'
-  hostNeedsPatchUpdate: undefined,
+  hostNeedsPatchUpdate:
+    'این میزبان قبل از اینکه بتواند به استخر اضافه شود نیاز به نصب {patches, number} وصله {patches, plural, one {} other {es}} دارد. این عملیات ممکن است طولانی باشد.',
 
   // Original text: "This host cannot be added to the pool because it's missing some patches."
-  hostNeedsPatchUpdateNoInstall: undefined,
+  hostNeedsPatchUpdateNoInstall: '.این میزبان نمی تواند به استخر اضافه شود زیرا برخی از وصله ها را ندارد.',
 
   // Original text: 'Adding host failed'
-  addHostErrorTitle: undefined,
+  addHostErrorTitle: 'افزودن میزبان ناموفق بود',
 
   // Original text: 'Host patches could not be homogenized.'
-  addHostNotHomogeneousErrorMessage: undefined,
+  addHostNotHomogeneousErrorMessage: 'وصله های میزبان نمی توانند همگن شوند.',
 
   // Original text: 'Disconnect'
-  disconnectServer: undefined,
+  disconnectServer: 'قطع شدن',
 
   // Original text: 'Start'
-  startHostLabel: undefined,
+  startHostLabel: 'شروع',
 
   // Original text: 'Stop'
-  stopHostLabel: undefined,
+  stopHostLabel: 'توقف',
 
   // Original text: 'Enable'
-  enableHostLabel: undefined,
+  enableHostLabel: 'فعال کردن',
 
   // Original text: 'Disable'
-  disableHostLabel: undefined,
+  disableHostLabel: 'غیرفعال کردن',
 
   // Original text: 'Restart toolstack'
-  restartHostAgent: undefined,
+  restartHostAgent: 'ریست کردن toolstack',
 
   // Original text: 'Force reboot'
-  forceRebootHostLabel: undefined,
+  forceRebootHostLabel: 'راه اندازی مجدد اجباری',
 
   // Original text: 'Reboot'
-  rebootHostLabel: undefined,
+  rebootHostLabel: 'راه اندازی مجدد',
 
   // Original text: 'Error while restarting host'
-  noHostsAvailableErrorTitle: undefined,
+  noHostsAvailableErrorTitle: 'خطا هنگام راه اندازی مجدد میزبان',
 
   // Original text: 'Some VMs cannot be migrated before restarting this host. Please try force reboot.'
-  noHostsAvailableErrorMessage: undefined,
+  noHostsAvailableErrorMessage:
+    'برخی از ماشین های مجازی را نمی توان قبل از راه اندازی مجدد این میزبان منتقل کرد. لطفاً راه اندازی مجدد اجباری را امتحان کنید.',
 
   // Original text: 'Error while restarting hosts'
-  failHostBulkRestartTitle: undefined,
+  failHostBulkRestartTitle: 'خطا هنگام راه اندازی مجدد میزبان ها',
 
   // Original text: '{failedHosts, number}/{totalHosts, number} host{failedHosts, plural, one {} other {s}} could not be restarted.'
-  failHostBulkRestartMessage: undefined,
+  failHostBulkRestartMessage:
+    '{failedHosts, number}/{totalHosts, number} میزبان{failedHosts, plural, one {} other {s}} نمی توان راه اندازی مجدد کرد.',
 
   // Original text: 'Reboot to apply updates'
-  rebootUpdateHostLabel: undefined,
+  rebootUpdateHostLabel: 'راه اندازی مجدد برای اعمال به روز رسانی',
 
   // Original text: 'Emergency mode'
-  emergencyModeLabel: undefined,
+  emergencyModeLabel: 'حالت اضطراری',
 
   // Original text: 'Storage'
-  storageTabName: undefined,
+  storageTabName: 'ذخیره سازی',
 
   // Original text: 'Patches'
-  patchesTabName: undefined,
+  patchesTabName: 'وصله ها',
 
   // Original text: 'Load average'
-  statLoad: undefined,
+  statLoad: 'متوسط ​​بار',
 
   // Original text: 'Host RAM usage:'
-  hostTitleRamUsage: undefined,
+  hostTitleRamUsage: 'مصرف حافظه میزبان:',
 
   // Original text: 'RAM: {memoryUsed} used on {memoryTotal} ({memoryFree} free)'
-  memoryHostState: undefined,
+  memoryHostState: 'حافظه: {memoryUsed} استفاده شده در {memoryTotal} ({memoryFree} free)',
 
   // Original text: 'Hardware'
-  hardwareHostSettingsLabel: undefined,
+  hardwareHostSettingsLabel: 'سخت افزار',
 
   // Original text: 'Address'
-  hostAddress: undefined,
+  hostAddress: 'آدرس',
 
   // Original text: 'Status'
-  hostStatus: undefined,
+  hostStatus: 'وضعیت',
 
   // Original text: 'Build number'
-  hostBuildNumber: undefined,
+  hostBuildNumber: 'شماره ساخت',
 
   // Original text: 'iSCSI name'
-  hostIscsiName: undefined,
+  hostIscsiName: 'نام iSCSI',
 
   // Original text: 'Version'
-  hostXenServerVersion: undefined,
+  hostXenServerVersion: 'نسخه',
 
   // Original text: 'Enabled'
-  hostStatusEnabled: undefined,
+  hostStatusEnabled: 'فعال شده',
 
   // Original text: 'Disabled'
-  hostStatusDisabled: undefined,
+  hostStatusDisabled: 'غیر فعال شده',
 
   // Original text: 'Power on mode'
-  hostPowerOnMode: undefined,
+  hostPowerOnMode: 'حالت روشن',
 
   // Original text: 'Host uptime'
-  hostStartedSince: undefined,
+  hostStartedSince: 'آپ تایم میزبان',
 
   // Original text: 'Toolstack uptime'
-  hostStackStartedSince: undefined,
+  hostStackStartedSince: 'آپ تایم Toolstack',
 
   // Original text: 'CPU model'
-  hostCpusModel: undefined,
+  hostCpusModel: 'مدل پردازنده',
 
   // Original text: 'GPUs'
-  hostGpus: undefined,
+  hostGpus: 'GPUها',
 
   // Original text: 'Core (socket)'
-  hostCpusNumber: undefined,
+  hostCpusNumber: 'هسته (سوکت)',
 
   // Original text: 'Manufacturer info'
-  hostManufacturerinfo: undefined,
+  hostManufacturerinfo: 'اطلاعات تولید کننده',
 
   // Original text: 'BIOS info'
-  hostBiosinfo: undefined,
+  hostBiosinfo: 'اطلاعات BIOS',
 
   // Original text: 'License'
-  licenseHostSettingsLabel: undefined,
+  licenseHostSettingsLabel: 'مجوز',
 
   // Original text: 'Type'
-  hostLicenseType: undefined,
+  hostLicenseType: 'نوع',
 
   // Original text: 'Socket'
-  hostLicenseSocket: undefined,
+  hostLicenseSocket: 'سوکت',
 
   // Original text: 'Expiry'
-  hostLicenseExpiry: undefined,
+  hostLicenseExpiry: 'انقضا',
 
   // Original text: 'Remote syslog'
-  hostRemoteSyslog: undefined,
+  hostRemoteSyslog: 'Syslog راه دور',
 
   // Original text: 'Installed supplemental packs'
-  supplementalPacks: undefined,
+  supplementalPacks: 'بسته های تکمیلی نصب شده',
 
   // Original text: 'Install new supplemental pack'
-  supplementalPackNew: undefined,
+  supplementalPackNew: 'نصب بسته تکمیلی جدید',
 
   // Original text: 'Install supplemental pack on every host'
-  supplementalPackPoolNew: undefined,
+  supplementalPackPoolNew: 'بسته تکمیلی را روی هر میزبان نصب کنید',
 
   // Original text: '{name} (by {author})'
-  supplementalPackTitle: undefined,
+  supplementalPackTitle: '{name} (توسط {author})',
 
   // Original text: 'Installation started'
-  supplementalPackInstallStartedTitle: undefined,
+  supplementalPackInstallStartedTitle: 'نصب شروع شد',
 
   // Original text: 'Installing new supplemental pack…'
-  supplementalPackInstallStartedMessage: undefined,
+  supplementalPackInstallStartedMessage: 'در حال نصب بسته تکمیلی جدید…',
 
   // Original text: 'Installation error'
-  supplementalPackInstallErrorTitle: undefined,
+  supplementalPackInstallErrorTitle: 'خطای نصب',
 
   // Original text: 'The installation of the supplemental pack failed.'
-  supplementalPackInstallErrorMessage: undefined,
+  supplementalPackInstallErrorMessage: 'نصب بسته مکمل ناموفق بود.',
 
   // Original text: 'Installation success'
-  supplementalPackInstallSuccessTitle: undefined,
+  supplementalPackInstallSuccessTitle: 'نصب موفقیت آمیز بود',
 
   // Original text: 'Supplemental pack successfully installed.'
-  supplementalPackInstallSuccessMessage: undefined,
+  supplementalPackInstallSuccessMessage: 'بسته تکمیلی با موفقیت نصب شد.',
 
   // Original text: 'Add a network'
-  networkCreateButton: undefined,
+  networkCreateButton: 'اضافه کردن یک شبکه',
 
   // Original text: 'Add a bonded network'
-  networkCreateBondedButton: undefined,
+  networkCreateBondedButton: 'یک شبکه پیوندی اضافه کنید',
 
   // Original text: 'Device'
-  pifDeviceLabel: undefined,
+  pifDeviceLabel: 'دستگاه',
 
   // Original text: 'Network'
-  pifNetworkLabel: undefined,
+  pifNetworkLabel: 'شبکه',
 
   // Original text: 'VLAN'
-  pifVlanLabel: undefined,
+  pifVlanLabel: 'شبکه محلی مجازی',
 
   // Original text: 'Address'
-  pifAddressLabel: undefined,
+  pifAddressLabel: 'آدرس',
 
   // Original text: 'Mode'
-  pifModeLabel: undefined,
+  pifModeLabel: 'حالت',
 
   // Original text: 'MAC'
-  pifMacLabel: undefined,
+  pifMacLabel: 'آدرس MAC',
 
   // Original text: 'MTU'
-  pifMtuLabel: undefined,
+  pifMtuLabel: 'حداکثر واحد انتقال',
 
   // Original text: 'Status'
-  pifStatusLabel: undefined,
+  pifStatusLabel: 'وضعیت',
 
   // Original text: 'Connected'
-  pifStatusConnected: undefined,
+  pifStatusConnected: 'متصل شده است',
 
   // Original text: 'Disconnected'
-  pifStatusDisconnected: undefined,
+  pifStatusDisconnected: 'قطع شده است',
 
   // Original text: 'No physical interface detected'
-  pifNoInterface: undefined,
+  pifNoInterface: 'هیچ رابط فیزیکی شناسایی نشد',
 
   // Original text: 'This interface is currently in use'
-  pifInUse: undefined,
+  pifInUse: 'این رابط در حال حاضر در حال استفاده است',
 
   // Original text: 'Action'
-  pifAction: undefined,
+  pifAction: 'عمل',
 
   // Original text: 'Default locking mode'
-  defaultLockingMode: undefined,
+  defaultLockingMode: 'حالت قفل پیش فرض',
 
   // Original text: 'Configure IP address'
-  pifConfigureIp: undefined,
+  pifConfigureIp: 'پیکربندی آدرس IP',
 
   // Original text: 'Invalid parameters'
-  configIpErrorTitle: undefined,
+  configIpErrorTitle: 'پارامترهای نامعتبر',
 
   // Original text: 'IP address and netmask required'
-  configIpErrorMessage: undefined,
+  configIpErrorMessage: 'آدرس IP و netmask مورد نیاز است',
 
   // Original text: 'Static IP address'
-  staticIp: undefined,
+  staticIp: 'آدرس IP استاتیک',
 
   // Original text: 'Netmask'
-  netmask: undefined,
+  netmask: 'Netmask',
 
   // Original text: 'DNS'
-  dns: undefined,
+  dns: 'DNS',
 
   // Original text: 'Gateway'
-  gateway: undefined,
+  gateway: 'Gateway',
 
   // Original text: 'Add a storage'
-  addSrDeviceButton: undefined,
+  addSrDeviceButton: 'یک فضای ذخیره سازی اضافه کنید',
 
   // Original text: 'Name'
-  srNameLabel: undefined,
+  srNameLabel: 'نام',
 
   // Original text: 'Type'
-  srType: undefined,
+  srType: 'نوع',
 
   // Original text: 'Action'
-  pbdAction: undefined,
+  pbdAction: 'عمل',
 
   // Original text: 'Status'
-  pbdStatus: undefined,
+  pbdStatus: 'وضعیت',
 
   // Original text: 'Connected'
-  pbdStatusConnected: undefined,
+  pbdStatusConnected: 'متصل شده است',
 
   // Original text: 'Disconnected'
-  pbdStatusDisconnected: undefined,
+  pbdStatusDisconnected: 'قطع شده است',
 
   // Original text: 'Connect'
-  pbdConnect: undefined,
+  pbdConnect: 'اتصال',
 
   // Original text: 'Disconnect'
-  pbdDisconnect: undefined,
+  pbdDisconnect: 'قطع شدن',
 
   // Original text: 'Forget'
-  pbdForget: undefined,
+  pbdForget: 'صرف نظر کردن',
 
   // Original text: 'Shared'
-  srShared: undefined,
+  srShared: 'به اشتراک گذاشته شده است',
 
   // Original text: 'Not shared'
-  srNotShared: undefined,
+  srNotShared: 'به اشتراک گذاشته نشده است',
 
   // Original text: 'No storage detected'
-  pbdNoSr: undefined,
+  pbdNoSr: 'فضای ذخیره‌سازی شناسایی نشد',
 
   // Original text: 'Name'
-  patchNameLabel: undefined,
+  patchNameLabel: 'نام',
 
   // Original text: 'Install all patches'
-  patchUpdateButton: undefined,
+  patchUpdateButton: 'نصب تمام وصله ها',
 
   // Original text: 'Description'
-  patchDescription: undefined,
+  patchDescription: 'شرح',
 
   // Original text: 'Version'
-  patchVersion: undefined,
+  patchVersion: 'نسخه',
 
   // Original text: 'Applied date'
-  patchApplied: undefined,
+  patchApplied: 'تاریخ اعمال شده',
 
   // Original text: 'Size'
-  patchSize: undefined,
+  patchSize: 'اندازه',
 
   // Original text: 'Status'
-  patchStatus: undefined,
+  patchStatus: 'وضعیت',
 
   // Original text: 'Applied'
-  patchStatusApplied: undefined,
+  patchStatusApplied: 'اعمال شده',
 
   // Original text: 'Missing patches'
-  patchStatusNotApplied: undefined,
+  patchStatusNotApplied: 'وصله های نصب نشده',
 
   // Original text: 'No patches detected'
-  patchNothing: undefined,
+  patchNothing: 'هیچ وصله ای شناسایی نشد',
 
   // Original text: 'Release date'
-  patchReleaseDate: undefined,
+  patchReleaseDate: 'تاریخ انتشار',
 
   // Original text: 'Guidance'
-  patchGuidance: undefined,
+  patchGuidance: 'راهنمایی',
 
   // Original text: 'Action'
-  patchAction: undefined,
+  patchAction: 'عمل',
 
   // Original text: 'Applied patches'
-  hostAppliedPatches: undefined,
+  hostAppliedPatches: 'وصله های اعمال شده',
 
   // Original text: 'Missing patches'
-  hostMissingPatches: undefined,
+  hostMissingPatches: 'وصله های نصب نشده',
 
   // Original text: 'Host up-to-date!'
-  hostUpToDate: undefined,
+  hostUpToDate: 'میزبان به روز است!',
 
   // Original text: 'Non-recommended patch install'
-  installPatchWarningTitle: undefined,
+  installPatchWarningTitle: 'نصب وصله توصیه نشده',
 
   // Original text: 'This will install a patch only on this host. This is NOT the recommended way: please go into the Pool patch view and follow instructions there. If you are sure about this, you can continue anyway'
-  installPatchWarningContent: undefined,
+  installPatchWarningContent:
+    'این کار فقط یک وصله را بر روی این میزبان نصب می کند. این روش توصیه‌شده نیست: لطفاً به نمای وصله استخر بروید و دستورالعمل‌های آنجا را دنبال کنید. اگر در این مورد مطمئن هستید، به هر حال می توانید ادامه دهید',
 
   // Original text: 'Go to pool'
-  installPatchWarningReject: undefined,
+  installPatchWarningReject: 'رفتن به استخر',
 
   // Original text: 'Install'
-  installPatchWarningResolve: undefined,
+  installPatchWarningResolve: 'نصب',
 
   // Original text: 'Release'
-  patchRelease: undefined,
+  patchRelease: 'انتشار',
 
   // Original text: 'Update plugin is not installed on this host. Please run `yum install xcp-ng-updater` first.'
-  updatePluginNotInstalled: undefined,
+  updatePluginNotInstalled:
+    'افزونه آپدیت روی این میزبان نصب نیست. لطفا ابتدا دستور yum install xcp-ng-updater را اجرا کنید.',
 
   // Original text: 'Show changelog'
-  showChangelog: undefined,
+  showChangelog: 'نمایش تغییرات',
 
   // Original text: 'Changelog'
-  changelog: undefined,
+  changelog: 'تغییرات',
 
   // Original text: 'Patch'
-  changelogPatch: undefined,
+  changelogPatch: 'وصله',
 
   // Original text: 'Author'
-  changelogAuthor: undefined,
+  changelogAuthor: 'سازنده',
 
   // Original text: 'Date'
-  changelogDate: undefined,
+  changelogDate: 'تاریخ',
 
   // Original text: 'Description'
-  changelogDescription: undefined,
+  changelogDescription: 'شرح',
 
   // Original text: 'Refresh patches'
-  refreshPatches: undefined,
+  refreshPatches: 'به روز کردن وصله ها',
 
   // Original text: 'Install pool patches'
-  installPoolPatches: undefined,
+  installPoolPatches: 'نصب وصله های استخر',
 
   // Original text: 'Default SR'
-  defaultSr: undefined,
+  defaultSr: 'مخزن ذخیره سازی (SR) پیش فرض',
 
   // Original text: 'Set as default SR'
-  setAsDefaultSr: undefined,
+  setAsDefaultSr: 'تنظیم کردن به عنوان مخزن ذخیره سازی (SR) پیش فرض',
 
   // Original text: 'General'
-  generalTabName: undefined,
+  generalTabName: 'عمومی',
 
   // Original text: 'Stats'
-  statsTabName: undefined,
+  statsTabName: 'آمار',
 
   // Original text: 'Console'
-  consoleTabName: undefined,
+  consoleTabName: 'کنسول',
 
   // Original text: 'Container'
-  containersTabName: undefined,
+  containersTabName: 'کانتینر',
 
   // Original text: 'Snapshots'
-  snapshotsTabName: undefined,
+  snapshotsTabName: 'اسنپ شات ها',
 
   // Original text: 'Logs'
-  logsTabName: undefined,
+  logsTabName: 'گزارش ها',
 
   // Original text: 'Advanced'
-  advancedTabName: undefined,
+  advancedTabName: 'پیشرفته',
 
   // Original text: 'Network'
-  networkTabName: undefined,
+  networkTabName: 'شبکه',
 
   // Original text: 'Disk{disks, plural, one {} other {s}}'
-  disksTabName: undefined,
+  disksTabName: 'دیسک{disks, plural, one {} other {s}}',
 
   // Original text: 'halted'
-  powerStateHalted: undefined,
+  powerStateHalted: 'متوقف شده',
 
   // Original text: 'running'
-  powerStateRunning: undefined,
+  powerStateRunning: 'در حال اجرا',
 
   // Original text: 'suspended'
-  powerStateSuspended: undefined,
+  powerStateSuspended: 'معلق شده',
 
   // Original text: 'Current status:'
-  vmCurrentStatus: undefined,
+  vmCurrentStatus: 'وضعیت فعلی:',
 
   // Original text: 'Not running'
-  vmNotRunning: undefined,
+  vmNotRunning: 'در حال اجرا نیست',
 
   // Original text: 'Halted {ago}'
-  vmHaltedSince: undefined,
+  vmHaltedSince: 'متوقف شده {ago}',
 
   // Original text: 'No Xen tools detected'
-  noToolsDetected: undefined,
+  noToolsDetected: 'Xen tools شناسایی نشد',
 
   // Original text: 'No IPv4 record'
-  noIpv4Record: undefined,
+  noIpv4Record: 'رکورد IPv4 وجود ندارد',
 
   // Original text: 'No IP record'
-  noIpRecord: undefined,
+  noIpRecord: 'رکورد IP وجود ندارد',
 
   // Original text: 'Started {ago}'
-  started: undefined,
+  started: 'شروع شده {ago}',
 
   // Original text: 'Paravirtualization (PV)'
-  paraVirtualizedMode: undefined,
+  paraVirtualizedMode: 'Paravirtualization (PV)',
 
   // Original text: 'Hardware virtualization (HVM)'
-  hardwareVirtualizedMode: undefined,
+  hardwareVirtualizedMode: 'مجازی سازی سخت افزاری (HVM)',
 
   // Original text: 'Windows Update tools'
-  windowsUpdateTools: undefined,
+  windowsUpdateTools: 'ابزارهای به روز رسانی ویندوز',
 
   // Original text: 'CPU usage'
-  statsCpu: undefined,
+  statsCpu: 'میزان استفاده از CPU',
 
   // Original text: 'Memory usage'
-  statsMemory: undefined,
+  statsMemory: 'میزان استفاده از حافظه',
 
   // Original text: 'Network throughput'
-  statsNetwork: undefined,
+  statsNetwork: 'توان عملیاتی شبکه',
 
   // Original text: 'Stacked values'
-  useStackedValuesOnStats: undefined,
+  useStackedValuesOnStats: 'مقادیر انباشته شده',
 
   // Original text: 'Disk throughput'
-  statDisk: undefined,
+  statDisk: 'توان عملیاتی دیسک',
 
   // Original text: 'Last 10 minutes'
-  statLastTenMinutes: undefined,
+  statLastTenMinutes: '10 دقیقه گذشته',
 
   // Original text: 'Last 2 hours'
-  statLastTwoHours: undefined,
+  statLastTwoHours: '2 ساعت گذشته',
 
   // Original text: 'Last week'
-  statLastWeek: undefined,
+  statLastWeek: 'هفته گذشته',
 
   // Original text: 'Last year'
-  statLastYear: undefined,
+  statLastYear: 'سال گذشته',
 
   // Original text: 'Copy'
-  copyToClipboardLabel: undefined,
+  copyToClipboardLabel: 'کپی',
 
   // Original text: 'Ctrl+Alt+Del'
-  ctrlAltDelButtonLabel: undefined,
+  ctrlAltDelButtonLabel: 'Ctrl+Alt+Del',
 
   // Original text: 'Tip:'
-  tipLabel: undefined,
+  tipLabel: 'نکته:',
 
   // Original text: 'Hide infos'
-  hideHeaderTooltip: undefined,
+  hideHeaderTooltip: 'مخفی کردن اطلاعات',
 
   // Original text: 'Show infos'
-  showHeaderTooltip: undefined,
+  showHeaderTooltip: 'نمایش اطلاعات',
 
   // Original text: 'Name'
-  containerName: undefined,
+  containerName: 'نام',
 
   // Original text: 'Command'
-  containerCommand: undefined,
+  containerCommand: 'دستور',
 
   // Original text: 'Creation date'
-  containerCreated: undefined,
+  containerCreated: 'تاریخ ایجاد',
 
   // Original text: 'Status'
-  containerStatus: undefined,
+  containerStatus: 'وضعیت',
 
   // Original text: 'Action'
-  containerAction: undefined,
+  containerAction: 'عمل',
 
   // Original text: 'No existing containers'
-  noContainers: undefined,
+  noContainers: 'هیچ کانتینری وجود ندارد',
 
   // Original text: 'Stop this container'
-  containerStop: undefined,
+  containerStop: 'متوقف کردن این کانتینر',
 
   // Original text: 'Start this container'
-  containerStart: undefined,
+  containerStart: 'اجرا کردن این کانتینر',
 
   // Original text: 'Pause this container'
-  containerPause: undefined,
+  containerPause: 'مکث کردن این کانتینر',
 
   // Original text: 'Resume this container'
-  containerResume: undefined,
+  containerResume: 'از سرگیری این کانتینر',
 
   // Original text: 'Restart this container'
-  containerRestart: undefined,
+  containerRestart: 'راه اندازی مجدد این کانتینر',
 
   // Original text: 'Action'
-  vdiAction: undefined,
+  vdiAction: 'عمل',
 
   // Original text: 'Attach disk'
-  vdiAttachDeviceButton: undefined,
+  vdiAttachDeviceButton: 'وصل کردن دیسک',
 
   // Original text: 'New disk'
-  vbdCreateDeviceButton: undefined,
+  vbdCreateDeviceButton: 'دیسک جدید',
 
   // Original text: 'Boot order'
-  vdiBootOrder: undefined,
+  vdiBootOrder: 'ترتیب بوت',
 
   // Original text: 'Name'
-  vdiNameLabel: undefined,
+  vdiNameLabel: 'نام',
 
   // Original text: 'Description'
-  vdiNameDescription: undefined,
+  vdiNameDescription: 'شرح',
 
   // Original text: 'Pool'
-  vdiPool: undefined,
+  vdiPool: 'استخر',
 
   // Original text: 'Disconnect'
-  vdiDisconnect: undefined,
+  vdiDisconnect: 'قطع شدن',
 
   // Original text: 'Tags'
-  vdiTags: undefined,
+  vdiTags: 'برچسب ها',
 
   // Original text: 'Size'
-  vdiSize: undefined,
+  vdiSize: 'اندازه',
 
   // Original text: 'SR'
-  vdiSr: undefined,
+  vdiSr: 'مخزن ذخیره سازی (SR)',
 
   // Original text: 'VMs'
-  vdiVms: undefined,
+  vdiVms: 'ماشین های مجازی',
 
   // Original text: 'Migrate VDI'
-  vdiMigrate: undefined,
+  vdiMigrate: 'انتقال VDI',
 
   // Original text: 'Destination SR:'
-  vdiMigrateSelectSr: undefined,
+  vdiMigrateSelectSr: 'مقصد مخزن ذخیره سازی (SR):',
 
   // Original text: 'Migrate all VDIs'
-  vdiMigrateAll: undefined,
+  vdiMigrateAll: 'انتقال تمام VDIها',
 
   // Original text: 'No SR'
-  vdiMigrateNoSr: undefined,
+  vdiMigrateNoSr: 'مخزن ذخیره سازی (SR) وجود ندارد',
 
   // Original text: 'A target SR is required to migrate a VDI'
-  vdiMigrateNoSrMessage: undefined,
+  vdiMigrateNoSrMessage: 'یک مخزن ذهیره سازی هدف برای انتقال VDI مورد نیاز است',
 
   // Original text: 'Forget'
-  vdiForget: undefined,
+  vdiForget: 'صرف نظر کردن',
 
   // Original text: 'Remove VDI'
-  vdiRemove: undefined,
+  vdiRemove: 'حذف کردن VDI',
 
   // Original text: 'No VDIs attached to Control Domain'
-  noControlDomainVdis: undefined,
+  noControlDomainVdis: 'هیچ VDI به کنترل دامنه متصل نشده است',
 
   // Original text: 'Boot flag'
-  vbdBootableStatus: undefined,
+  vbdBootableStatus: 'پرچم بوت',
 
   // Original text: 'Status'
-  vbdStatus: undefined,
+  vbdStatus: 'وضعیت',
 
   // Original text: 'Connected'
-  vbdStatusConnected: undefined,
+  vbdStatusConnected: 'متصل شده است',
 
   // Original text: 'Disconnected'
-  vbdStatusDisconnected: undefined,
+  vbdStatusDisconnected: 'قطع شده است',
 
   // Original text: 'No disks'
-  vbdNoVbd: undefined,
+  vbdNoVbd: 'دیسکی وجود ندارد',
 
   // Original text: 'Connect VBD'
-  vbdConnect: undefined,
+  vbdConnect: 'متصل کردن VBD',
 
   // Original text: 'Disconnect VBD'
-  vbdDisconnect: undefined,
+  vbdDisconnect: 'قطع کردن VBD',
 
   // Original text: 'Bootable'
-  vbdBootable: undefined,
+  vbdBootable: 'قابل بوت شدن',
 
   // Original text: 'Readonly'
-  vbdReadonly: undefined,
+  vbdReadonly: 'فقط خواندنی',
 
   // Original text: 'Action'
-  vbdAction: undefined,
+  vbdAction: 'عمل',
 
   // Original text: 'Create'
-  vbdCreate: undefined,
+  vbdCreate: 'ایجاد',
 
   // Original text: 'Attach'
-  vbdAttach: undefined,
+  vbdAttach: 'متصل کردن',
 
   // Original text: 'Disk name'
-  vbdNamePlaceHolder: undefined,
+  vbdNamePlaceHolder: 'نام دیسک',
 
   // Original text: 'Size'
-  vbdSizePlaceHolder: undefined,
+  vbdSizePlaceHolder: 'اندازه',
 
   // Original text: 'CD drive not completely installed'
-  cdDriveNotInstalled: undefined,
+  cdDriveNotInstalled: 'درایو CD به طور کامل نصب نشده است',
 
   // Original text: 'Stop and start the VM to install the CD drive'
-  cdDriveInstallation: undefined,
+  cdDriveInstallation: 'برای نصب CD درایو، ماشین مجازی را متوقف و اجرا کنید.',
 
   // Original text: 'Save'
-  saveBootOption: undefined,
+  saveBootOption: 'ذخیره کردن',
 
   // Original text: 'Reset'
-  resetBootOption: undefined,
+  resetBootOption: 'ریست کردن',
 
   // Original text: 'Delete selected VDIs'
-  deleteSelectedVdis: undefined,
+  deleteSelectedVdis: 'حذف VDIهای انتخاب شده',
 
   // Original text: 'Delete selected VDI'
-  deleteSelectedVdi: undefined,
+  deleteSelectedVdi: 'حذف VDI انتخاب شده',
 
   // Original text: 'Export VDI content'
-  exportVdi: undefined,
+  exportVdi: 'صدور محتوای VDI',
 
   // Original text: 'Import VDI content'
-  importVdi: undefined,
+  importVdi: 'وارد کردن محتوای VDI',
 
   // Original text: 'No file selected'
-  importVdiNoFile: undefined,
+  importVdiNoFile: 'هیچ فایلی انتخاب نشده است',
 
   // Original text: 'Drop VHD file here'
-  selectVdiMessage: undefined,
+  selectVdiMessage: 'فایل VHD را اینجا رها کنید',
 
   // Original text: 'Creating this disk will use the disk space quota from the resource set {resourceSet} ({spaceLeft} left)'
-  useQuotaWarning: undefined,
+  useQuotaWarning:
+    'ایجاد این دیسک از سهمیه فضای دیسک از مجموعه منابع {resourceSet} ({spaceLeft} left) استفاده خواهد کرد',
 
   // Original text: 'Not enough space in resource set {resourceSet} ({spaceLeft} left)'
-  notEnoughSpaceInResourceSet: undefined,
+  notEnoughSpaceInResourceSet: 'فضای کافی در مجموعه منابع {resourceSet} ({spaceLeft} left) وجود ندارد',
 
   // Original text: 'New device'
-  vifCreateDeviceButton: undefined,
+  vifCreateDeviceButton: 'دستگاه جدید',
 
   // Original text: 'No interface'
-  vifNoInterface: undefined,
+  vifNoInterface: 'بدون رابط',
 
   // Original text: 'Device'
-  vifDeviceLabel: undefined,
+  vifDeviceLabel: 'دستگاه',
 
   // Original text: 'MAC address'
-  vifMacLabel: undefined,
+  vifMacLabel: 'آدرس MAC',
 
   // Original text: 'MTU'
-  vifMtuLabel: undefined,
+  vifMtuLabel: 'حداکثر واحد انتقال',
 
   // Original text: 'Network'
-  vifNetworkLabel: undefined,
+  vifNetworkLabel: 'شبکه',
 
   // Original text: 'Status'
-  vifStatusLabel: undefined,
+  vifStatusLabel: 'وضعیت',
 
   // Original text: 'Connected'
-  vifStatusConnected: undefined,
+  vifStatusConnected: 'متصل شده است',
 
   // Original text: 'Disconnected'
-  vifStatusDisconnected: undefined,
+  vifStatusDisconnected: 'قطع شده است',
 
   // Original text: 'Connect'
-  vifConnect: undefined,
+  vifConnect: 'اتصال',
 
   // Original text: 'Disconnect'
-  vifDisconnect: undefined,
+  vifDisconnect: 'قطع شدن',
 
   // Original text: 'Remove'
-  vifRemove: undefined,
+  vifRemove: 'حذف کردن',
 
   // Original text: 'Remove selected VIFs'
-  vifsRemove: undefined,
+  vifsRemove: 'حذف VIFهای انتخاب شده',
 
   // Original text: 'IP addresses'
-  vifIpAddresses: undefined,
+  vifIpAddresses: 'آدرس های IP',
 
   // Original text: 'Auto-generated if empty'
-  vifMacAutoGenerate: undefined,
+  vifMacAutoGenerate: 'در صورت خالی بودن به صورت خودکار تولید می شود',
 
   // Original text: 'Allowed IPs'
-  vifAllowedIps: undefined,
+  vifAllowedIps: 'IP های مجاز',
 
   // Original text: 'No IPs'
-  vifNoIps: undefined,
+  vifNoIps: 'بدون IP',
 
   // Original text: 'Network locked'
-  vifLockedNetwork: undefined,
+  vifLockedNetwork: 'شبکه قفل شده است',
 
   // Original text: 'Network locked and no IPs are allowed for this interface'
-  vifLockedNetworkNoIps: undefined,
+  vifLockedNetworkNoIps: 'شبکه قفل شده است و هیچ IP برای این رابط مجاز نیست',
 
   // Original text: 'Network not locked'
-  vifUnLockedNetwork: undefined,
+  vifUnLockedNetwork: 'شبکه قفل نیست',
 
   // Original text: 'Unknown network'
-  vifUnknownNetwork: undefined,
+  vifUnknownNetwork: 'شبکه ناشناس',
 
   // Original text: 'Action'
-  vifAction: undefined,
+  vifAction: 'عمل',
 
   // Original text: 'Create'
-  vifCreate: undefined,
+  vifCreate: 'ایجاد',
 
   // Original text: 'No snapshots'
-  noSnapshots: undefined,
+  noSnapshots: 'بدون snapshot',
 
   // Original text: 'New snapshot'
-  snapshotCreateButton: undefined,
+  snapshotCreateButton: 'snapshot جدید',
 
   // Original text: 'Just click on the snapshot button to create one!'
-  tipCreateSnapshotLabel: undefined,
+  tipCreateSnapshotLabel: 'فقط روی دکمه snapshot کلیک کنید تا یکی بسازید!',
 
   // Original text: 'Revert VM to this snapshot'
-  revertSnapshot: undefined,
+  revertSnapshot: 'ماشین مجازی را به این snapshot برگردانید',
 
   // Original text: 'Remove this snapshot'
-  deleteSnapshot: undefined,
+  deleteSnapshot: 'حذف این snapshot',
 
   // Original text: 'Remove selected snapshots'
-  deleteSnapshots: undefined,
+  deleteSnapshots: 'حذف snapshotهای انتخاب شده',
 
   // Original text: 'Create a VM from this snapshot'
-  copySnapshot: undefined,
+  copySnapshot: 'ایجاد یک ماشین مجازی از این snapshot',
 
   // Original text: 'Export this snapshot'
-  exportSnapshot: undefined,
+  exportSnapshot: 'صدور این snapshot',
 
   // Original text: 'Creation date'
-  snapshotDate: undefined,
+  snapshotDate: 'تاریخ ایجاد',
 
   // Original text: 'Name'
-  snapshotName: undefined,
+  snapshotName: 'نام',
 
   // Original text: 'Description'
-  snapshotDescription: undefined,
+  snapshotDescription: 'شرح',
 
   // Original text: 'Action'
-  snapshotAction: undefined,
+  snapshotAction: 'عمل',
 
   // Original text: 'Quiesced snapshot'
-  snapshotQuiesce: undefined,
+  snapshotQuiesce: 'خاموش کردن snapshot',
 
   // Original text: 'Revert successful'
-  vmRevertSuccessfulTitle: undefined,
+  vmRevertSuccessfulTitle: 'برگرداندن با موفقیت انجام شد',
 
   // Original text: 'VM successfully reverted'
-  vmRevertSuccessfulMessage: undefined,
+  vmRevertSuccessfulMessage: 'ماشین مجازی با موفقیت برگردانده شد',
 
   // Original text: 'Remove all logs'
-  logRemoveAll: undefined,
+  logRemoveAll: 'حذف کردن تمام گزارش ها',
 
   // Original text: 'No logs so far'
-  noLogs: undefined,
+  noLogs: 'هیچ گزارشی تا کنون وجود ندارد',
 
   // Original text: 'Creation date'
-  logDate: undefined,
+  logDate: 'تاریخ ایجاد',
 
   // Original text: 'Name'
-  logName: undefined,
+  logName: 'نام',
 
   // Original text: 'Content'
-  logContent: undefined,
+  logContent: 'محتوا',
 
   // Original text: 'Action'
-  logAction: undefined,
+  logAction: 'عمل',
 
   // Original text: 'Remove'
-  vmRemoveButton: undefined,
+  vmRemoveButton: 'حذف کردن',
 
   // Original text: 'Convert'
-  vmConvertButton: undefined,
+  vmConvertButton: 'تبدیل کردن',
 
   // Original text: 'Share'
-  vmShareButton: undefined,
+  vmShareButton: 'اشتراک گذاری',
 
   // Original text: 'Xen settings'
-  xenSettingsLabel: undefined,
+  xenSettingsLabel: 'تنظیمات Xen',
 
   // Original text: 'Guest OS'
-  guestOsLabel: undefined,
+  guestOsLabel: 'سیستم عامل مهمان',
 
   // Original text: 'Misc'
-  miscLabel: undefined,
+  miscLabel: 'متفرقه',
 
   // Original text: 'UUID'
-  uuid: undefined,
+  uuid: 'UUID',
 
   // Original text: 'Virtualization mode'
-  virtualizationMode: undefined,
+  virtualizationMode: 'حالت مجازی سازی',
 
   // Original text: 'CPU weight'
-  cpuWeightLabel: undefined,
+  cpuWeightLabel: 'زمان CPU در میزبان که برای اجرای CPUهای مجازی در دسترس است',
 
   // Original text: 'Default ({value, number})'
-  defaultCpuWeight: undefined,
+  defaultCpuWeight: 'پیش فرض ({value, number})',
 
   // Original text: 'CPU cap'
-  cpuCapLabel: undefined,
+  cpuCapLabel: 'محدودیت های کاملا دقیق در میزان منابع CPU که می تواند توسط یک پروژه یا یک منطقه مصرف شود',
 
   // Original text: 'Default ({value, number})'
-  defaultCpuCap: undefined,
+  defaultCpuCap: 'پیش فرض ({value, number})',
 
   // Original text: 'PV args'
-  pvArgsLabel: undefined,
+  pvArgsLabel: 'آرگومان های PV',
 
   // Original text: 'Xen tools version'
-  xenToolsStatus: undefined,
+  xenToolsStatus: 'نسخه Xen tools',
 
   // Original text: 'Not installed'
-  xenToolsNotInstalled: undefined,
+  xenToolsNotInstalled: 'نصب نشده',
 
   // Original text: 'OS name'
-  osName: undefined,
+  osName: 'نام سیستم عامل',
 
   // Original text: 'OS kernel'
-  osKernel: undefined,
+  osKernel: 'هسته سیستم عامل',
 
   // Original text: 'Auto power on'
-  autoPowerOn: undefined,
+  autoPowerOn: 'روشن شدن خودکار',
 
   // Original text: 'HA'
-  ha: undefined,
+  ha: '(HA) دسترسی در سطح بالا',
 
   // Original text: 'Affinity host'
-  vmAffinityHost: undefined,
+  vmAffinityHost: 'وابستگی میزبان',
 
   // Original text: 'VGA'
-  vmVga: undefined,
+  vmVga: 'کارت گرافیک',
 
   // Original text: 'Video RAM'
-  vmVideoram: undefined,
+  vmVideoram: 'حافظه کارت گرافیک',
 
   // Original text: 'None'
-  noAffinityHost: undefined,
+  noAffinityHost: 'هیچ یک',
 
   // Original text: 'Original template'
-  originalTemplate: undefined,
+  originalTemplate: 'قالب اصلی',
 
   // Original text: 'Unknown'
-  unknownOsName: undefined,
+  unknownOsName: 'ناشناخته',
 
   // Original text: 'Unknown'
-  unknownOsKernel: undefined,
+  unknownOsKernel: 'ناشناخته',
 
   // Original text: 'Unknown'
-  unknownOriginalTemplate: undefined,
+  unknownOriginalTemplate: 'ناشناخته',
 
   // Original text: 'VM limits'
-  vmLimitsLabel: undefined,
+  vmLimitsLabel: 'محدودیت های ماشین مجازی',
 
   // Original text: 'Resource set'
-  resourceSet: undefined,
+  resourceSet: 'مجموعه منابع',
 
   // Original text: 'None'
-  resourceSetNone: undefined,
+  resourceSetNone: 'هیچ یک',
 
   // Original text: 'CPU limits'
-  vmCpuLimitsLabel: undefined,
+  vmCpuLimitsLabel: 'محدودیت های CPU',
 
   // Original text: 'Topology'
-  vmCpuTopology: undefined,
+  vmCpuTopology: 'توپولوژی',
 
   // Original text: 'Default behavior'
-  vmChooseCoresPerSocket: undefined,
+  vmChooseCoresPerSocket: 'رفتار پیش فرض',
 
   // Original text: '{nSockets, number} socket{nSockets, plural, one {} other {s}} with {nCores, number} core{nCores, plural, one {} other {s}} per socket'
-  vmCoresPerSocket: undefined,
+  vmCoresPerSocket:
+    '{nSockets, number} سوکت{nSockets, plural, one {} other {s}} با {nCores, number} هسته{nCores, plural, one {} other {s}} در هر سوکت',
 
   // Original text: 'None'
-  vmCoresPerSocketNone: undefined,
+  vmCoresPerSocketNone: 'هیچ یک',
 
   // Original text: 'Incorrect cores per socket value'
-  vmCoresPerSocketIncorrectValue: undefined,
+  vmCoresPerSocketIncorrectValue: 'مقدار نادرست برای cores per socket',
 
   // Original text: 'Please change the selected value to fix it.'
-  vmCoresPerSocketIncorrectValueSolution: undefined,
+  vmCoresPerSocketIncorrectValueSolution: 'لطفاً مقدار انتخاب شده را برای درست کردن آن تغییر دهید.',
 
   // Original text: 'disabled'
-  vmHaDisabled: undefined,
+  vmHaDisabled: 'غیرفعال شده',
 
   // Original text: 'Memory limits (min/max)'
-  vmMemoryLimitsLabel: undefined,
+  vmMemoryLimitsLabel: 'محدودیت حافظه (حداقل/حداکثر)',
 
   // Original text: 'vCPUs max:'
-  vmMaxVcpus: undefined,
+  vmMaxVcpus: 'حداکثر پردارنده های مجازی:',
 
   // Original text: 'Memory max:'
-  vmMaxRam: undefined,
+  vmMaxRam: 'حداکثر حافظه:',
 
   // Original text: 'vGPU'
-  vmVgpu: undefined,
+  vmVgpu: 'GPU مجازی',
 
   // Original text: 'GPUs'
-  vmVgpus: undefined,
+  vmVgpus: 'GPUها',
 
   // Original text: 'None'
-  vmVgpuNone: undefined,
+  vmVgpuNone: 'هیچ یک',
 
   // Original text: 'Add vGPU'
-  vmAddVgpu: undefined,
+  vmAddVgpu: 'اضافه کردن GPU مجازی',
 
   // Original text: 'Select vGPU type'
-  vmSelectVgpuType: undefined,
+  vmSelectVgpuType: 'انتخاب نوع GPU مجازی',
 
   // Original text: 'Long click to add a name'
-  vmHomeNamePlaceholder: undefined,
+  vmHomeNamePlaceholder: 'برای افزودن نام کلیک کرده و نگه دارید',
 
   // Original text: 'Long click to add a description'
-  vmHomeDescriptionPlaceholder: undefined,
+  vmHomeDescriptionPlaceholder: 'برای افزودن توضیحات کلیک کرده و نگه دارید',
 
   // Original text: 'Click to add a name'
-  vmViewNamePlaceholder: undefined,
+  vmViewNamePlaceholder: 'برای افزودن نام کلیک کنید',
 
   // Original text: 'Click to add a description'
-  vmViewDescriptionPlaceholder: undefined,
+  vmViewDescriptionPlaceholder: 'برای افزودن توضیحات کلیک کنید',
 
   // Original text: 'Click to add a name'
-  templateHomeNamePlaceholder: undefined,
+  templateHomeNamePlaceholder: 'برای افزودن نام کلیک کنید',
 
   // Original text: 'Click to add a description'
-  templateHomeDescriptionPlaceholder: undefined,
+  templateHomeDescriptionPlaceholder: 'برای افزودن توضیحات کلیک کنید',
 
   // Original text: 'Delete template'
-  templateDelete: undefined,
+  templateDelete: 'حذف قالب',
 
   // Original text: 'Delete VM template{templates, plural, one {} other {s}}'
-  templateDeleteModalTitle: undefined,
+  templateDeleteModalTitle: 'حذف قالب ماشین مجازی{templates, plural, one {} other {s}}',
 
   // Original text: 'Are you sure you want to delete {templates, plural, one {this} other {these}} template{templates, plural, one {} other {s}}?'
-  templateDeleteModalBody: undefined,
+  templateDeleteModalBody:
+    'آیا مطمئنید که میخواهید {templates, plural, one {this} other {these}} قالب {templates, plural, one {} other {s}} را حذف کنید؟',
 
   // Original text: 'Delete template{nTemplates, plural, one {} other {s}} failed'
-  failedToDeleteTemplatesTitle: undefined,
+  failedToDeleteTemplatesTitle: 'حذف قالب {nTemplates, plural, one {} other {s}} انجام نشد',
 
   // Original text: 'Failed to delete {nTemplates, number} template{nTemplates, plural, one {} other {s}}.'
-  failedToDeleteTemplatesMessage: undefined,
+  failedToDeleteTemplatesMessage: '{nTemplates, number} قالب {nTemplates, plural, one {} other {s}} حذف نشد.',
 
   // Original text: 'Delete default template{nDefaultTemplates, plural, one {} other {s}}'
-  deleteDefaultTemplatesTitle: undefined,
+  deleteDefaultTemplatesTitle: 'حذف قالب پیش فرض {nDefaultTemplates, plural, one {} other {s}}',
 
   // Original text: 'You are attempting to delete {nDefaultTemplates, number} default template{nDefaultTemplates, plural, one {} other {s}}. Do you want to continue?'
-  deleteDefaultTemplatesMessage: undefined,
+  deleteDefaultTemplatesMessage:
+    'شما در حال تلاش برای حذف کردن {nDefaultTemplates, number} default template{nDefaultTemplates, plural, one {} other {s}} هستید. آیا میخواهید ادامه بدهید؟',
 
   // Original text: 'Pool{pools, plural, one {} other {s}}'
-  poolPanel: undefined,
+  poolPanel: 'استخر{pools, plural, one {} other {s}}',
 
   // Original text: 'Host{hosts, plural, one {} other {s}}'
-  hostPanel: undefined,
+  hostPanel: 'میزبان{hosts, plural, one {} other {s}}',
 
   // Original text: 'VM{vms, plural, one {} other {s}}'
-  vmPanel: undefined,
+  vmPanel: 'ماشین مجازی{vms, plural, one {} other {s}}',
 
   // Original text: 'RAM Usage:'
-  memoryStatePanel: undefined,
+  memoryStatePanel: 'میزان استفاده از حافظه:',
 
   // Original text: 'Used Memory'
-  usedMemory: undefined,
+  usedMemory: 'حافظه استفاده شده',
 
   // Original text: 'Total Memory'
-  totalMemory: undefined,
+  totalMemory: 'مجموع حافظه',
 
   // Original text: 'CPUs Total'
-  totalCpus: undefined,
+  totalCpus: 'مجموع پردازنده ها',
 
   // Original text: 'Used vCPUs'
-  usedVCpus: undefined,
+  usedVCpus: 'پردازنده های مجازی استفاده شده',
 
   // Original text: 'Used Space'
-  usedSpace: undefined,
+  usedSpace: 'فضای استفاده شده',
 
   // Original text: 'Total Space'
-  totalSpace: undefined,
+  totalSpace: 'مجموع فضا',
 
   // Original text: 'CPUs Usage'
-  cpuStatePanel: undefined,
+  cpuStatePanel: 'میزان استفاده از پردازنده ها',
 
   // Original text: 'VMs Power state'
-  vmStatePanel: undefined,
+  vmStatePanel: 'وضعیت خاموش یا روشن بودن ماشین های مجازی',
 
   // Original text: 'Halted'
-  vmStateHalted: undefined,
+  vmStateHalted: 'متوقف شده',
 
   // Original text: 'Other'
-  vmStateOther: undefined,
+  vmStateOther: 'دیگر',
 
   // Original text: 'Running'
-  vmStateRunning: undefined,
+  vmStateRunning: 'در حال اجرا',
 
   // Original text: 'All'
-  vmStateAll: undefined,
+  vmStateAll: 'همه',
 
   // Original text: 'Pending tasks'
-  taskStatePanel: undefined,
+  taskStatePanel: 'وظایف در حال انتظار',
 
   // Original text: 'Users'
-  usersStatePanel: undefined,
+  usersStatePanel: 'کاربران',
 
   // Original text: 'Storage state'
-  srStatePanel: undefined,
+  srStatePanel: 'وضعیت ذخیره سازی',
 
   // Original text: '{usage} (of {total})'
-  ofUsage: undefined,
+  ofUsage: '{usage} (of {total})',
 
   // Original text: '{nVcpus, number} vCPU{nVcpus, plural, one {} other {s}} (of {nCpus, number} CPU{nCpus, plural, one {} other {s}})'
-  ofCpusUsage: undefined,
+  ofCpusUsage:
+    '{nVcpus, number} vCPU{nVcpus, plural, one {} other {s}} (of {nCpus, number} CPU{nCpus, plural, one {} other {s}})',
 
   // Original text: 'No storage'
-  noSrs: undefined,
+  noSrs: 'ذخیره ساز وجود ندارد',
 
   // Original text: 'Name'
-  srName: undefined,
+  srName: 'نام',
 
   // Original text: 'Pool'
-  srPool: undefined,
+  srPool: 'استخر',
 
   // Original text: 'Host'
-  srHost: undefined,
+  srHost: 'میزبان',
 
   // Original text: 'Type'
-  srFormat: undefined,
+  srFormat: 'نوع',
 
   // Original text: 'Size'
-  srSize: undefined,
+  srSize: 'اندازه',
 
   // Original text: 'Usage'
-  srUsage: undefined,
+  srUsage: 'استفاده',
 
   // Original text: 'used'
-  srUsed: undefined,
+  srUsed: 'استفاده شده',
 
   // Original text: 'free'
-  srFree: undefined,
+  srFree: 'آزاد',
 
   // Original text: 'Storage Usage'
-  srUsageStatePanel: undefined,
+  srUsageStatePanel: 'میزان استفاده از فضای ذخیره سازی',
 
   // Original text: 'Top 5 SR Usage (in %)'
-  srTopUsageStatePanel: undefined,
+  srTopUsageStatePanel: '۵ مورد از مخزن های ذخیره سازی که بیشترین استفاده را دارند (به ٪)',
 
   // Original text: 'Not enough permissions!'
-  notEnoughPermissionsError: undefined,
+  notEnoughPermissionsError: 'مجوز کافی نیست!',
 
   // Original text: '{running, number} running ({halted, number} halted)'
-  vmsStates: undefined,
+  vmsStates: '{running, number} در حال اجرای ({halted, number} halted)',
 
   // Original text: 'Clear selection'
-  dashboardStatsButtonRemoveAll: undefined,
+  dashboardStatsButtonRemoveAll: 'پاک کردن انتخاب',
 
   // Original text: 'Add all hosts'
-  dashboardStatsButtonAddAllHost: undefined,
+  dashboardStatsButtonAddAllHost: 'اضافه کردن تمام میزبان ها',
 
   // Original text: 'Add all VMs'
-  dashboardStatsButtonAddAllVM: undefined,
+  dashboardStatsButtonAddAllVM: 'اضافه کردن تمام ماشین های مجازی',
 
   // Original text: 'Send report'
-  dashboardSendReport: undefined,
+  dashboardSendReport: 'ارسال گزارش',
 
   // Original text: 'Report'
-  dashboardReport: undefined,
+  dashboardReport: 'گزارش',
 
   // Original text: 'This will send a usage report to your configured emails.'
-  dashboardSendReportMessage: undefined,
+  dashboardSendReportMessage: 'با این کار یک گزارش استفاده به ایمیل های پیکربندی شده شما ارسال می شود.',
 
   // Original text: 'The usage report and transport email plugins need to be loaded!'
-  dashboardSendReportInfo: undefined,
+  dashboardSendReportInfo: 'افزونه های مربوط به گزارش استفاده و ایمیل باید بارگیری شوند!',
 
   // Original text: '{value} {date, date, medium}'
-  weekHeatmapData: undefined,
+  weekHeatmapData: '{value} {date, date, medium}',
 
   // Original text: 'No data.'
-  weekHeatmapNoData: undefined,
+  weekHeatmapNoData: 'بدون اطلاعات.',
 
   // Original text: 'Weekly Heatmap'
-  weeklyHeatmap: undefined,
+  weeklyHeatmap: 'نقشه حرارتی هفتگی',
 
   // Original text: 'Weekly Charts'
-  weeklyCharts: undefined,
+  weeklyCharts: 'نمودارهای هفتگی',
 
   // Original text: 'Synchronize scale:'
-  weeklyChartsScaleInfo: undefined,
+  weeklyChartsScaleInfo: 'مقیاس همگام سازی:',
 
   // Original text: 'Stats error'
-  statsDashboardGenericErrorTitle: undefined,
+  statsDashboardGenericErrorTitle: 'خطای آماری',
 
   // Original text: 'There is no stats available for:'
-  statsDashboardGenericErrorMessage: undefined,
+  statsDashboardGenericErrorMessage: 'هیچ آماری برای مورد روبرو در دسترس نیست:',
 
   // Original text: 'No selected metric'
-  noSelectedMetric: undefined,
+  noSelectedMetric: 'معیار انتخاب شده وجود ندارد',
 
   // Original text: 'Select'
-  statsDashboardSelectObjects: undefined,
+  statsDashboardSelectObjects: 'انتخاب',
 
   // Original text: 'Loading…'
-  metricsLoading: undefined,
+  metricsLoading: 'بارگذاری…',
 
   // Original text: 'Coming soon!'
-  comingSoon: undefined,
+  comingSoon: 'به زودی!',
 
   // Original text: 'Orphaned snapshot VDIs'
-  orphanedVdis: undefined,
+  orphanedVdis: 'اسنپ شات VDIهای بی سرپرست',
 
   // Original text: 'Orphaned VMs snapshot'
-  orphanedVms: undefined,
+  orphanedVms: 'اسنپ شات ماشین های مجازی بی سرپرست',
 
   // Original text: 'No orphans'
-  noOrphanedObject: undefined,
+  noOrphanedObject: 'بی سرپرست وجود ندارد',
 
   // Original text: 'Remove all orphaned snapshot VDIs'
-  removeAllOrphanedObject: undefined,
+  removeAllOrphanedObject: 'حذف کردن تمام اسنپ شات VDIهای بی سرپرست',
 
   // Original text: 'VDIs attached to Control Domain'
-  vdisOnControlDomain: undefined,
+  vdisOnControlDomain: 'VDIهای متصل شده به کنترل دامنه',
 
   // Original text: 'Name'
-  vmNameLabel: undefined,
+  vmNameLabel: 'نام',
 
   // Original text: 'Description'
-  vmNameDescription: undefined,
+  vmNameDescription: 'شرح',
 
   // Original text: 'Resident on'
-  vmContainer: undefined,
+  vmContainer: 'ساکن در',
 
   // Original text: 'VM snapshots related to non-existent backups'
-  vmSnapshotsRelatedToNonExistentBackups: undefined,
+  vmSnapshotsRelatedToNonExistentBackups: 'اسنپ شات های ماشین مجازی مربوط به پشتیبان گیری ناموجود',
 
   // Original text: 'Snapshot of'
-  snapshotOf: undefined,
+  snapshotOf: 'اسنپ شات از',
 
   // Original text: 'Legacy backups snapshots'
-  legacySnapshots: undefined,
+  legacySnapshots: 'نسخه پشتیبان قدیمی از اسنپ شات ها',
 
   // Original text: 'Alarms'
-  alarmMessage: undefined,
+  alarmMessage: 'هشدارها',
 
   // Original text: 'No alarms'
-  noAlarms: undefined,
+  noAlarms: 'هشداری وجود ندارد',
 
   // Original text: 'Date'
-  alarmDate: undefined,
+  alarmDate: 'تاریخ',
 
   // Original text: 'Content'
-  alarmContent: undefined,
+  alarmContent: 'محتوا',
 
   // Original text: 'Issue on'
-  alarmObject: undefined,
+  alarmObject: 'موضوع درباره',
 
   // Original text: 'Pool'
-  alarmPool: undefined,
+  alarmPool: 'استخر',
 
   // Original text: 'Remove all alarms'
-  alarmRemoveAll: undefined,
+  alarmRemoveAll: 'حذف کردن تمام هشدارها',
 
   // Original text: '{used}% used ({free} left)'
-  spaceLeftTooltip: undefined,
+  spaceLeftTooltip: '{used}% استفاده شده ({free} left)',
 
   // Original text: 'Create a new VM on {select}'
-  newVmCreateNewVmOn: undefined,
+  newVmCreateNewVmOn: 'ایجاد یک ماشین مجازی جدید در {select}',
 
   // Original text: 'You have no permission to create a VM'
-  newVmCreateNewVmNoPermission: undefined,
+  newVmCreateNewVmNoPermission: 'شما اجازه ایجاد ماشین مجازی را ندارید',
 
   // Original text: 'Infos'
-  newVmInfoPanel: undefined,
+  newVmInfoPanel: 'اطلاعات',
 
   // Original text: 'Name'
-  newVmNameLabel: undefined,
+  newVmNameLabel: 'نام',
 
   // Original text: 'Template'
-  newVmTemplateLabel: undefined,
+  newVmTemplateLabel: 'قالب',
 
   // Original text: 'Description'
-  newVmDescriptionLabel: undefined,
+  newVmDescriptionLabel: 'شرح',
 
   // Original text: 'Performances'
-  newVmPerfPanel: undefined,
+  newVmPerfPanel: 'کارایی',
 
   // Original text: 'vCPUs'
-  newVmVcpusLabel: undefined,
+  newVmVcpusLabel: 'پردازنده های مجازی',
 
   // Original text: 'RAM'
-  newVmRamLabel: undefined,
+  newVmRamLabel: 'حافظه',
 
   // Original text: 'Static memory max'
-  newVmStaticMaxLabel: undefined,
+  newVmStaticMaxLabel: 'حداکثر حافظه ایستا',
 
   // Original text: 'Dynamic memory min'
-  newVmDynamicMinLabel: undefined,
+  newVmDynamicMinLabel: 'حداقل حافظه پویا',
 
   // Original text: 'Dynamic memory max'
-  newVmDynamicMaxLabel: undefined,
+  newVmDynamicMaxLabel: 'حداکثر حافظه پویا',
 
   // Original text: 'Install settings'
-  newVmInstallSettingsPanel: undefined,
+  newVmInstallSettingsPanel: 'تنظیمات مربوط به نصب',
 
   // Original text: 'ISO/DVD'
-  newVmIsoDvdLabel: undefined,
+  newVmIsoDvdLabel: 'ISO/DVD',
 
   // Original text: 'Network'
-  newVmNetworkLabel: undefined,
+  newVmNetworkLabel: 'شبکه',
 
   // Original text: 'e.g: http://httpredir.debian.org/debian'
-  newVmInstallNetworkPlaceHolder: undefined,
+  newVmInstallNetworkPlaceHolder: 'به عنوان مثال: http://httpredir.debian.org/debian',
 
   // Original text: 'PV Args'
-  newVmPvArgsLabel: undefined,
+  newVmPvArgsLabel: 'آرگومان های PV',
 
   // Original text: 'PXE'
-  newVmPxeLabel: undefined,
+  newVmPxeLabel: 'بوت از طریق شبکه (PXE)',
 
   // Original text: 'Interfaces'
-  newVmInterfacesPanel: undefined,
+  newVmInterfacesPanel: 'رابط ها',
 
   // Original text: 'MAC'
-  newVmMacLabel: undefined,
+  newVmMacLabel: 'آدرس MAC',
 
   // Original text: 'Add interface'
-  newVmAddInterface: undefined,
+  newVmAddInterface: 'اضافه کردن رابط',
 
   // Original text: 'Disks'
-  newVmDisksPanel: undefined,
+  newVmDisksPanel: 'دیسک ها',
 
   // Original text: 'SR'
-  newVmSrLabel: undefined,
+  newVmSrLabel: 'مخزن ذخیره سازی',
 
   // Original text: 'Size'
-  newVmSizeLabel: undefined,
+  newVmSizeLabel: 'اندازه',
 
   // Original text: 'Add disk'
-  newVmAddDisk: undefined,
+  newVmAddDisk: 'اضافه کردن دیسک',
 
   // Original text: 'Summary'
-  newVmSummaryPanel: undefined,
+  newVmSummaryPanel: 'خلاصه',
 
   // Original text: 'Create'
-  newVmCreate: undefined,
+  newVmCreate: 'ایجاد',
 
   // Original text: 'Reset'
-  newVmReset: undefined,
+  newVmReset: 'ریست',
 
   // Original text: 'Select template'
-  newVmSelectTemplate: undefined,
+  newVmSelectTemplate: 'انتخاب قالب',
 
   // Original text: 'SSH key'
-  newVmSshKey: undefined,
+  newVmSshKey: 'کلید SSH',
 
   // Original text: 'No config drive'
-  noConfigDrive: undefined,
+  noConfigDrive: 'درایو پیکربندی وجود ندارد',
 
   // Original text: 'Custom config'
-  newVmCustomConfig: undefined,
+  newVmCustomConfig: 'پیکربندی سفارشی',
 
   // Original text: 'Click here to see the available template variables'
-  availableTemplateVarsInfo: undefined,
+  availableTemplateVarsInfo: 'برای مشاهده متغیرهای قالب موجود اینجت کلیک کنید',
 
   // Original text: 'Available template variables'
-  availableTemplateVarsTitle: undefined,
+  availableTemplateVarsTitle: 'متغیرهای قالب موجود',
 
   // Original text: 'the VM\'s name. It must not contain "_"'
-  templateNameInfo: undefined,
+  templateNameInfo: 'نام ماشین (های) مجازی نباید شامل کاراکتر "_" باشد.',
 
   // Original text: "the VM's index, it will take 0 in case of single VM"
-  templateIndexInfo: undefined,
+  templateIndexInfo: 'در مورد تنها یک ماشین مجازی، شاخص ماشین مجازی مقدار 0 را خواهد گرفت',
 
   // Original text: 'Boot VM after creation'
-  newVmBootAfterCreate: undefined,
+  newVmBootAfterCreate: 'پس از ایجاد ماشین مجازی را بوت کنید',
 
   // Original text: 'Auto-generated if empty'
-  newVmMacPlaceholder: undefined,
+  newVmMacPlaceholder: 'در صورت خالی بودن به صورت خودکار تولید می شود',
 
   // Original text: 'CPU weight'
-  newVmCpuWeightLabel: undefined,
+  newVmCpuWeightLabel: 'زمان CPU در میزبان که برای اجرای CPUهای مجازی در دسترس است',
 
   // Original text: 'Default: {value, number}'
-  newVmDefaultCpuWeight: undefined,
+  newVmDefaultCpuWeight: 'پیش فرض: {value, number}',
 
   // Original text: 'CPU cap'
-  newVmCpuCapLabel: undefined,
+  newVmCpuCapLabel: 'محدودیت های کاملا دقیق در میزان منابع CPU که می تواند توسط یک پروژه یا یک منطقه مصرف شود',
 
   // Original text: 'Default: {value, number}'
-  newVmDefaultCpuCap: undefined,
+  newVmDefaultCpuCap: 'پیش فرض: {value, number}',
 
   // Original text: 'Cloud config'
-  newVmCloudConfig: undefined,
+  newVmCloudConfig: 'تنظیمات ابر',
 
   // Original text: 'Create VMs'
-  newVmCreateVms: undefined,
+  newVmCreateVms: 'ایجاد ماشین مجازی',
 
   // Original text: 'Are you sure you want to create {nbVms, number} VMs?'
-  newVmCreateVmsConfirm: undefined,
+  newVmCreateVmsConfirm: 'آیا مطمئن هستید که می خواهید ماشین های مجازی {nbVms, number} ایجاد کنید؟',
 
   // Original text: 'Multiple VMs:'
-  newVmMultipleVms: undefined,
+  newVmMultipleVms: 'ماشین های مجازی چندگانه:',
 
   // Original text: 'Select a resource set:'
-  newVmSelectResourceSet: undefined,
+  newVmSelectResourceSet: 'یک مجموعه منابع انتخاب کنید:',
 
   // Original text: 'Name pattern:'
-  newVmMultipleVmsPattern: undefined,
+  newVmMultipleVmsPattern: 'نام الگو:',
 
   // Original text: 'e.g.: \\{name\\}_%'
-  newVmMultipleVmsPatternPlaceholder: undefined,
+  newVmMultipleVmsPatternPlaceholder: 'به عنوان مثال: \\{name\\}_%',
 
   // Original text: 'First index:'
-  newVmFirstIndex: undefined,
+  newVmFirstIndex: 'اولین شاخص:',
 
   // Original text: 'Recalculate VMs number'
-  newVmNumberRecalculate: undefined,
+  newVmNumberRecalculate: 'محاسبه مجدد تعداد ماشین های مجازی',
 
   // Original text: 'Refresh VMs name'
-  newVmNameRefresh: undefined,
+  newVmNameRefresh: 'تازه کردن نام ماشین های مجازی',
 
   // Original text: 'Affinity host'
-  newVmAffinityHost: undefined,
+  newVmAffinityHost: 'وابستگی میزبان',
 
   // Original text: 'Advanced'
-  newVmAdvancedPanel: undefined,
+  newVmAdvancedPanel: 'پیشرفته',
 
   // Original text: 'Show advanced settings'
-  newVmShowAdvanced: undefined,
+  newVmShowAdvanced: 'نمایش تنظیمات پیشرفته',
 
   // Original text: 'Hide advanced settings'
-  newVmHideAdvanced: undefined,
+  newVmHideAdvanced: 'مخفی کردن تنظیمات پیشرفته',
 
   // Original text: 'Share this VM'
-  newVmShare: undefined,
+  newVmShare: 'به اشتراک گذاشتن این ماشین مجازی',
 
   // Original text: 'Resource sets'
-  resourceSets: undefined,
+  resourceSets: 'مجموعه منابع',
 
   // Original text: 'No resource sets.'
-  noResourceSets: undefined,
+  noResourceSets: 'بدون مجموعه منابع',
 
   // Original text: 'Loading resource sets'
-  loadingResourceSets: undefined,
+  loadingResourceSets: 'بارگذاری مجموعه منابع',
 
   // Original text: 'Resource set name'
-  resourceSetName: undefined,
+  resourceSetName: 'نام مجموعه منابع',
 
   // Original text: 'Users'
-  resourceSetUsers: undefined,
+  resourceSetUsers: 'کاربران',
 
   // Original text: 'Pools'
-  resourceSetPools: undefined,
+  resourceSetPools: 'استخرها',
 
   // Original text: 'Templates'
-  resourceSetTemplates: undefined,
+  resourceSetTemplates: 'قالب ها',
 
   // Original text: 'SRs'
-  resourceSetSrs: undefined,
+  resourceSetSrs: 'مخزن های ذخیره سازی',
 
   // Original text: 'Networks'
-  resourceSetNetworks: undefined,
+  resourceSetNetworks: 'شبکه ها',
 
   // Original text: 'Recompute all limits'
-  recomputeResourceSets: undefined,
+  recomputeResourceSets: 'محاسبه مجدد تمام محدودیت ها',
 
   // Original text: 'Save'
-  saveResourceSet: undefined,
+  saveResourceSet: 'ذخیره',
 
   // Original text: 'Reset'
-  resetResourceSet: undefined,
+  resetResourceSet: 'ریست',
 
   // Original text: 'Edit'
-  editResourceSet: undefined,
+  editResourceSet: 'ویرایش',
 
   // Original text: 'Delete'
-  deleteResourceSet: undefined,
+  deleteResourceSet: 'حذف کردن',
 
   // Original text: 'Delete resource set'
-  deleteResourceSetWarning: undefined,
+  deleteResourceSetWarning: 'حذف کردن مجموعه منابع',
 
   // Original text: 'Are you sure you want to delete this resource set?'
-  deleteResourceSetQuestion: undefined,
+  deleteResourceSetQuestion: 'آیا مطمئن هستید که می خواهید این مجموعه منابع را حذف کنید؟',
 
   // Original text: 'Missing objects:'
-  resourceSetMissingObjects: undefined,
+  resourceSetMissingObjects: 'اشیاء گم شده:',
 
   // Original text: 'vCPUs'
-  resourceSetVcpus: undefined,
+  resourceSetVcpus: 'پردازنده های مجازی',
 
   // Original text: 'Memory'
-  resourceSetMemory: undefined,
+  resourceSetMemory: 'حافظه',
 
   // Original text: 'Storage'
-  resourceSetStorage: undefined,
+  resourceSetStorage: 'ذخیره ساز',
 
   // Original text: 'Unknown'
-  unknownResourceSetValue: undefined,
+  unknownResourceSetValue: 'ناشناخته',
 
   // Original text: 'Available hosts'
-  availableHosts: undefined,
+  availableHosts: 'میزبان های موجود',
 
   // Original text: 'Excluded hosts'
-  excludedHosts: undefined,
+  excludedHosts: 'میزبان های مستثنی شده',
 
   // Original text: 'No hosts available.'
-  noHostsAvailable: undefined,
+  noHostsAvailable: 'هیچ میزبانی در دسترس نیست.',
 
   // Original text: 'VMs created from this resource set shall run on the following hosts.'
-  availableHostsDescription: undefined,
+  availableHostsDescription: 'ماشین های مجازی ایجاد شده از این مجموعه منابع باید روی میزبان های زیر اجرا شوند.',
 
   // Original text: 'Maximum CPUs'
-  maxCpus: undefined,
+  maxCpus: 'حداکثر پردازنده ها',
 
   // Original text: 'Maximum RAM'
-  maxRam: undefined,
+  maxRam: 'حداکثر حافظه',
 
   // Original text: 'Maximum disk space'
-  maxDiskSpace: undefined,
+  maxDiskSpace: 'حداکثر فضای دیسک',
 
   // Original text: 'IP pool'
-  ipPool: undefined,
+  ipPool: 'استخر IP',
 
   // Original text: 'Quantity'
-  quantity: undefined,
+  quantity: 'تعداد',
 
   // Original text: 'No limits.'
-  noResourceSetLimits: undefined,
+  noResourceSetLimits: 'بدون محدودیت.',
 
   // Original text: 'Remaining:'
-  remainingResource: undefined,
+  remainingResource: 'باقی مانده:',
 
   // Original text: 'Used'
-  usedResourceLabel: undefined,
+  usedResourceLabel: 'استفاده شده',
 
   // Original text: 'Available'
-  availableResourceLabel: undefined,
+  availableResourceLabel: 'در دسترس',
 
   // Original text: 'Used: {usage} (Total: {total})'
-  resourceSetQuota: undefined,
+  resourceSetQuota: 'استفاده شده: {usage} (Total: {total})',
 
   // Original text: 'New'
-  resourceSetNew: undefined,
+  resourceSetNew: 'جدید',
 
   // Original text: 'Try dropping some VMs files here, or click to select VMs to upload. Accept only .xva/.ova files.'
-  importVmsList: undefined,
+  importVmsList:
+    'سعی کنید برخی از فایل های ماشین مجازی را در اینجا رها کنید یا برای انتخاب ماشین های مجازی برای بارگذاری کلیک کنید. فقط فایل‌های xva/.ova قابل قبول است.',
 
   // Original text: 'No selected VMs.'
-  noSelectedVms: undefined,
+  noSelectedVms: 'هیچ ماشین مجازی انتخاب شده ای وجود ندارد.',
 
   // Original text: 'To Pool:'
-  vmImportToPool: undefined,
+  vmImportToPool: 'به استخر:',
 
   // Original text: 'To SR:'
-  vmImportToSr: undefined,
+  vmImportToSr: 'به مخزن ذخیره سازی:',
 
   // Original text: 'VMs to import'
-  vmsToImport: undefined,
+  vmsToImport: 'ماشین های مجازی برای وارد کردن',
 
   // Original text: 'Reset'
-  importVmsCleanList: undefined,
+  importVmsCleanList: 'ریست',
 
   // Original text: 'VM import success'
-  vmImportSuccess: undefined,
+  vmImportSuccess: 'ماشین مجازی با موفقیت وارد شد',
 
   // Original text: 'VM import failed'
-  vmImportFailed: undefined,
+  vmImportFailed: 'وارد کردن ماشین مجازی انجام نشد',
 
   // Original text: 'VDI import success'
-  vdiImportSuccess: undefined,
+  vdiImportSuccess: 'VDI با موفقیت وارد شد',
 
   // Original text: 'VDI import failed'
-  vdiImportFailed: undefined,
+  vdiImportFailed: 'وارد کردن VDI انجام نشد',
 
   // Original text: 'Error on setting the VM: {vm}'
-  setVmFailed: undefined,
+  setVmFailed: 'خطا در تنظیم ماشین مجازی: {vm}',
 
   // Original text: 'Import starting…'
-  startVmImport: undefined,
+  startVmImport: 'شروع وارد کردن…',
 
   // Original text: 'VDI import starting…'
-  startVdiImport: undefined,
+  startVdiImport: 'شروع وارد کردن VDI…',
 
   // Original text: 'Export starting…'
-  startVmExport: undefined,
+  startVmExport: 'شروع صادر کردن…',
 
   // Original text: 'VDI export starting…'
-  startVdiExport: undefined,
+  startVdiExport: 'شروع صادر کردن VDI…',
 
   // Original text: 'N CPUs'
-  nCpus: undefined,
+  nCpus: 'N پردازنده',
 
   // Original text: 'Memory'
-  vmMemory: undefined,
+  vmMemory: 'حافظه',
 
   // Original text: 'Disk {position} ({capacity})'
-  diskInfo: undefined,
+  diskInfo: 'دیسک {position} ({capacity})',
 
   // Original text: 'Disk description'
-  diskDescription: undefined,
+  diskDescription: 'توضیحات دیسک',
 
   // Original text: 'No disks.'
-  noDisks: undefined,
+  noDisks: 'بدون دیسک.',
 
   // Original text: 'No networks.'
-  noNetworks: undefined,
+  noNetworks: 'بدون شبکه.',
 
   // Original text: 'Network {name}'
-  networkInfo: undefined,
+  networkInfo: 'شبکه {name}',
 
   // Original text: 'No description available'
-  noVmImportErrorDescription: undefined,
+  noVmImportErrorDescription: 'توضیحی در دسترس نیست',
 
   // Original text: 'Error:'
-  vmImportError: undefined,
+  vmImportError: 'خطا:',
 
   // Original text: '{type} file:'
-  vmImportFileType: undefined,
+  vmImportFileType: '{type} فایل:',
 
   // Original text: 'Please check and/or modify the VM configuration.'
-  vmImportConfigAlert: undefined,
+  vmImportConfigAlert: 'لطفاً پیکربندی ماشین مجازی را بررسی و/یا تغییر دهید.',
 
   // Original text: 'No pending tasks'
-  noTasks: undefined,
+  noTasks: 'هیچ کار در حال انتظاری وجود ندارد',
 
   // Original text: 'Currently, there are not any pending XenServer tasks'
-  xsTasks: undefined,
+  xsTasks: 'در حال حاضر، هیچ کار در حال انتظاری برای XenServer وجود ندارد',
 
   // Original text: 'Cancel'
-  cancelTask: undefined,
+  cancelTask: 'لغو کردن',
 
   // Original text: 'Destroy'
-  destroyTask: undefined,
+  destroyTask: 'از بین بردن',
 
   // Original text: 'Cancel selected tasks'
-  cancelTasks: undefined,
+  cancelTasks: 'لغو کردن کارهای انتخاب شده',
 
   // Original text: 'Destroy selected tasks'
-  destroyTasks: undefined,
+  destroyTasks: 'از بین بردن کارهای انتخاب شده',
 
   // Original text: 'Pool'
-  pool: undefined,
+  pool: 'استخر',
 
   // Original text: 'Task'
-  task: undefined,
+  task: 'کار',
 
   // Original text: 'Progress'
-  progress: undefined,
+  progress: 'پیشرفت',
 
   // Original text: 'Schedules'
-  backupSchedules: undefined,
+  backupSchedules: 'زمان بندی',
 
   // Original text: 'Cron pattern'
-  scheduleCron: undefined,
+  scheduleCron: 'الگوی Cron',
 
   // Original text: 'Name'
-  scheduleName: undefined,
+  scheduleName: 'نام',
 
   // Original text: 'Timezone'
-  scheduleTimezone: undefined,
+  scheduleTimezone: 'منطقه زمانی',
 
   // Original text: 'Export ret.'
-  scheduleExportRetention: undefined,
+  scheduleExportRetention: 'صدور ret',
 
   // Original text: 'Copy ret.'
-  scheduleCopyRetention: undefined,
+  scheduleCopyRetention: 'کپی ret',
 
   // Original text: 'Snapshot ret.'
-  scheduleSnapshotRetention: undefined,
+  scheduleSnapshotRetention: 'اسنپ شات ret',
 
   // Original text: 'Get remote'
-  getRemote: undefined,
+  getRemote: 'گرفتن ریموت',
 
   // Original text: 'List Remote'
-  listRemote: undefined,
+  listRemote: 'لیست کردن ریموت',
 
   // Original text: 'simple'
-  simpleBackup: undefined,
+  simpleBackup: 'ساده',
 
   // Original text: 'delta'
-  delta: undefined,
+  delta: 'دلتا',
 
   // Original text: 'Restore Backups'
-  restoreBackups: undefined,
+  restoreBackups: 'بازیابی نسخه های پشتیبان',
 
   // Original text: 'Click on a VM to display restore options'
-  restoreBackupsInfo: undefined,
+  restoreBackupsInfo: 'برای نمایش گزینه های بازیابی روی ماشین مجازی کلیک کنید',
 
   // Original text: 'Only the files of Delta Backup which are not on a SMB remote can be restored'
-  restoreDeltaBackupsInfo: undefined,
+  restoreDeltaBackupsInfo: 'فقط فایل‌های پشتیبان دلتا که روی ریموت SMB نیستند قابل بازیابی هستند',
 
   // Original text: 'Enabled'
-  remoteEnabled: undefined,
+  remoteEnabled: 'فعال شد',
 
   // Original text: 'Error'
-  remoteError: undefined,
+  remoteError: 'خطا',
 
   // Original text: 'The URL ({url}) is invalid (colon in path). Click this button to change the URL to {newUrl}.'
-  remoteErrorMessage: undefined,
+  remoteErrorMessage: 'آدرس ({url}) نامعتبر است (دونقطه در مسیر). برای تغییر آدرس به {newUrl} روی این دکمه کلیک کنید.',
 
   // Original text: 'No backup available'
-  noBackup: undefined,
+  noBackup: 'هیچ نسخه پشتیبانی در دسترس نیست',
 
   // Original text: 'VM Name'
-  backupVmNameColumn: undefined,
+  backupVmNameColumn: 'نام ماشین مجازی',
 
   // Original text: 'VM Description'
-  backupVmDescriptionColumn: undefined,
+  backupVmDescriptionColumn: 'توضیحات ماشین مجازی',
 
   // Original text: 'Tags'
-  backupTags: undefined,
+  backupTags: 'برچسب ها',
 
   // Original text: 'Oldest backup'
-  firstBackupColumn: undefined,
+  firstBackupColumn: 'قدیمی ترین نسخه پشتیبان',
 
   // Original text: 'Latest backup'
-  lastBackupColumn: undefined,
+  lastBackupColumn: 'آخرین نسخه پشتیبان',
 
   // Original text: 'Available Backups'
-  availableBackupsColumn: undefined,
+  availableBackupsColumn: 'نسخه های پشتیبان موجود',
 
   // Original text: 'Missing parameters'
-  backupRestoreErrorTitle: undefined,
+  backupRestoreErrorTitle: 'پارامترهای گم شده',
 
   // Original text: 'Choose a SR and a backup'
-  backupRestoreErrorMessage: undefined,
+  backupRestoreErrorMessage: 'یک مخزن ذخیره سازی (SR) و یک نسخه پشتیبان انتخاب کنید',
 
   // Original text: 'Select default SR…'
-  backupRestoreSelectDefaultSr: undefined,
+  backupRestoreSelectDefaultSr: 'مخزن ذخیره سازی (SR) پیش فرض را انتخاب کنید…',
 
   // Original text: 'Choose a SR for each VDI'
-  backupRestoreChooseSrForEachVdis: undefined,
+  backupRestoreChooseSrForEachVdis: 'برای هر VDI یک مخزن ذخیره سازی (SR) انتخاب کنید',
 
   // Original text: 'VDI'
-  backupRestoreVdiLabel: undefined,
+  backupRestoreVdiLabel: 'VDI',
 
   // Original text: 'SR'
-  backupRestoreSrLabel: undefined,
+  backupRestoreSrLabel: 'مخزن ذخیره سازی (SR)',
 
   // Original text: 'Display backups'
-  displayBackup: undefined,
+  displayBackup: 'نمایش نسخه های پشتیبان',
 
   // Original text: 'Import VM'
-  importBackupTitle: undefined,
+  importBackupTitle: 'وارد کردن ماشین مجازی',
 
   // Original text: 'Starting your backup import'
-  importBackupMessage: undefined,
+  importBackupMessage: 'شروع وارد کردن نسخه پشتیبان',
 
   // Original text: 'VMs to backup'
-  vmsToBackup: undefined,
+  vmsToBackup: 'ماشین های مجازی برای پشتیبان گیری',
 
   // Original text: 'Refresh backup list'
-  restoreResfreshList: undefined,
+  restoreResfreshList: 'تازه کردن لیست نسخه پشتیبان',
 
   // Original text: 'Restore'
-  restoreVmBackups: undefined,
+  restoreVmBackups: 'بازیابی',
 
   // Original text: 'Restore {vm}'
-  restoreVmBackupsTitle: undefined,
+  restoreVmBackupsTitle: 'بازیابی {vm}',
 
   // Original text: 'Restore {nVms, number} VM{nVms, plural, one {} other {s}}'
-  restoreVmBackupsBulkTitle: undefined,
+  restoreVmBackupsBulkTitle: 'بازیابی {nVms, number} VM{nVms, plural, one {} other {s}}',
 
   // Original text: 'Restore {nVms, number} VM{nVms, plural, one {} other {s}} from {nVms, plural, one {its} other {their}} {oldestOrLatest} backup.'
-  restoreVmBackupsBulkMessage: undefined,
+  restoreVmBackupsBulkMessage:
+    'بازیابی {nVms, number} ماشین مجازی{nVms, plural, one {} other {s}} از {nVms, plural, one {its} other {their}} {oldestOrLatest} نسخه پشتیبان.',
 
   // Original text: 'oldest'
-  oldest: undefined,
+  oldest: 'قدیمی ترین',
 
   // Original text: 'latest'
-  latest: undefined,
+  latest: 'آخرین',
 
   // Original text: 'Start VM{nVms, plural, one {} other {s}} after restore'
-  restoreVmBackupsStart: undefined,
+  restoreVmBackupsStart: 'ماشین مجازی{nVms, plural, one {} other {s}} را بعد از بازیابی اجرا کنید',
 
   // Original text: 'Multi-restore error'
-  restoreVmBackupsBulkErrorTitle: undefined,
+  restoreVmBackupsBulkErrorTitle: 'خطای بازیابی چندگانه',
 
   // Original text: 'You need to select a destination SR'
-  restoreVmBackupsBulkErrorMessage: undefined,
+  restoreVmBackupsBulkErrorMessage: 'شما باید یک مخزن ذخیره سازی (SR) مقصد را انتخاب کنید',
 
   // Original text: 'Delete backups…'
-  deleteVmBackups: undefined,
+  deleteVmBackups: 'حذف نسخه پشتیبان…',
 
   // Original text: 'Delete {vm} backups'
-  deleteVmBackupsTitle: undefined,
+  deleteVmBackupsTitle: 'حذف نسخه پشتیبان {vm}',
 
   // Original text: 'Select backups to delete:'
-  deleteVmBackupsSelect: undefined,
+  deleteVmBackupsSelect: 'انتخاب نسخه های پشتیبان برای حذف:',
 
   // Original text: 'All'
-  deleteVmBackupsSelectAll: undefined,
+  deleteVmBackupsSelectAll: 'همه',
 
   // Original text: 'Delete backups'
-  deleteVmBackupsBulkTitle: undefined,
+  deleteVmBackupsBulkTitle: 'حذف کردن نسخه های پشتیبان',
 
   // Original text: 'Are you sure you want to delete all the backups from {nVms, number} VM{nVms, plural, one {} other {s}}?'
-  deleteVmBackupsBulkMessage: undefined,
+  deleteVmBackupsBulkMessage:
+    'آیا مطمئن هستید که می‌خواهید همه نسخه‌های پشتیبان را از {nVms, number} ماشین مجازی{nVms, plural, one {} other {s}} حذف کنید؟',
 
   // Original text: 'delete {nBackups} backup{nBackups, plural, one {} other {s}}'
-  deleteVmBackupsBulkConfirmText: undefined,
+  deleteVmBackupsBulkConfirmText: 'حذف {nBackups} نسخه پشتیبان{nBackups, plural, one {} other {s}}',
 
   // Original text: 'List remote backups'
-  listRemoteBackups: undefined,
+  listRemoteBackups: 'لیست نسخه های پشتیبان راه دور',
 
   // Original text: 'Restore backup files'
-  restoreFiles: undefined,
+  restoreFiles: 'بازیابی فایل های پشتیبان',
 
   // Original text: 'Invalid options'
-  restoreFilesError: undefined,
+  restoreFilesError: 'گزینه های نامعتبر',
 
   // Original text: 'Restore file from {name}'
-  restoreFilesFromBackup: undefined,
+  restoreFilesFromBackup: 'بازیابی فایل از {name}',
 
   // Original text: 'Select a backup…'
-  restoreFilesSelectBackup: undefined,
+  restoreFilesSelectBackup: 'انتخاب یک نسخه پشتیبان…',
 
   // Original text: 'Select a disk…'
-  restoreFilesSelectDisk: undefined,
+  restoreFilesSelectDisk: 'انتخاب یک دیسک…',
 
   // Original text: 'Select a partition…'
-  restoreFilesSelectPartition: undefined,
+  restoreFilesSelectPartition: 'انتخاب یک پارتیشن…',
 
   // Original text: 'Folder path'
-  restoreFilesSelectFolderPath: undefined,
+  restoreFilesSelectFolderPath: 'مسیر پوشه',
 
   // Original text: 'Select a file…'
-  restoreFilesSelectFiles: undefined,
+  restoreFilesSelectFiles: 'انتخاب یک فایل…',
 
   // Original text: 'Content not found'
-  restoreFileContentNotFound: undefined,
+  restoreFileContentNotFound: 'محتوا یافت نشد',
 
   // Original text: 'No files selected'
-  restoreFilesNoFilesSelected: undefined,
+  restoreFilesNoFilesSelected: 'هیچ فایلی انتخاب نشده است',
 
   // Original text: 'Selected files ({files}):'
-  restoreFilesSelectedFiles: undefined,
+  restoreFilesSelectedFiles: 'فایل های انتخاب شده ({files}):',
 
   // Original text: 'Error while scanning disk'
-  restoreFilesDiskError: undefined,
+  restoreFilesDiskError: 'خطا هنگام اسکن کردن دیسک',
 
   // Original text: "Select all this folder's files"
-  restoreFilesSelectAllFiles: undefined,
+  restoreFilesSelectAllFiles: 'انتخاب تمام فایل های این پوشه',
 
   // Original text: 'Unselect all files'
-  restoreFilesUnselectAll: undefined,
+  restoreFilesUnselectAll: 'از حالت انتخاب خارج کردن تمام فایل ها',
 
   // Original text: 'Emergency shutdown Host'
-  emergencyShutdownHostModalTitle: undefined,
+  emergencyShutdownHostModalTitle: 'خاموش کردن اضطراری میزبان',
 
   // Original text: 'Are you sure you want to shutdown {host}?'
-  emergencyShutdownHostModalMessage: undefined,
+  emergencyShutdownHostModalMessage: 'آیا مطمئن هستید که می خواهید {host} را خاموش کنید؟',
 
   // Original text: 'Emergency shutdown Host{nHosts, plural, one {} other {s}}'
-  emergencyShutdownHostsModalTitle: undefined,
+  emergencyShutdownHostsModalTitle: 'خاموش کردن اضطراری میزبان{nHosts, plural, one {} other {s}}',
 
   // Original text: 'Are you sure you want to shutdown {nHosts, number} Host{nHosts, plural, one {} other {s}}?'
-  emergencyShutdownHostsModalMessage: undefined,
+  emergencyShutdownHostsModalMessage:
+    'آیا مطمئن هستید که می‌خواهید {nHosts, number} میزبان {nHosts, plural, one {} other {s}} را خاموش کنید؟',
 
   // Original text: 'Shutdown host'
-  stopHostModalTitle: undefined,
+  stopHostModalTitle: 'خاموش کردن میزبان',
 
   // Original text: "This will shutdown your host. Do you want to continue? If it's the pool master, your connection to the pool will be lost"
-  stopHostModalMessage: undefined,
+  stopHostModalMessage:
+    'با این کار میزبان شما خاموش می شود. می خواهید ادامه دهید؟ اگر استخر اصلی باشد، ارتباط شما با استخر قطع خواهد شد',
 
   // Original text: 'Add host'
-  addHostModalTitle: undefined,
+  addHostModalTitle: 'اضافه کردن میزبان',
 
   // Original text: 'Are you sure you want to add {host} to {pool}?'
-  addHostModalMessage: undefined,
+  addHostModalMessage: 'آیا مطمئن هستید که می خواهید {host} را به {pool} اضافه کنید؟',
 
   // Original text: 'Restart host'
-  restartHostModalTitle: undefined,
+  restartHostModalTitle: 'راه اندازی مجدد میزبان',
 
   // Original text: 'This will restart your host. Do you want to continue?'
-  restartHostModalMessage: undefined,
+  restartHostModalMessage: 'با این کار میزبان شما راه اندازی مجدد می شود. می خواهید ادامه دهید؟',
 
   // Original text: 'Restart Host{nHosts, plural, one {} other {s}} agent{nHosts, plural, one {} other {s}}'
-  restartHostsAgentsModalTitle: undefined,
+  restartHostsAgentsModalTitle:
+    'راه اندازی مجدد میزبان{nHosts, plural, one {} other {s}} agent{nHosts, plural, one {} other {s}}',
 
   // Original text: 'Are you sure you want to restart {nHosts, number} Host{nHosts, plural, one {} other {s}} agent{nHosts, plural, one {} other {s}}?'
-  restartHostsAgentsModalMessage: undefined,
+  restartHostsAgentsModalMessage:
+    'آیا مطمئن هستید که می‌خواهید {nHosts, number} از میزبان {nHosts, plural, one {} other {s}} agent{nHosts, plural, one {} other {s}} را راه اندازی مجدد کنید؟',
 
   // Original text: 'Restart Host{nHosts, plural, one {} other {s}}'
-  restartHostsModalTitle: undefined,
+  restartHostsModalTitle: 'راه اندازی مجدد میزبان{nHosts, plural, one {} other {s}}',
 
   // Original text: 'Are you sure you want to restart {nHosts, number} Host{nHosts, plural, one {} other {s}}?'
-  restartHostsModalMessage: undefined,
+  restartHostsModalMessage:
+    'آیا مطمئن هستید که می خواهید {nHosts, number} از میزبان {nHosts, plural, one {} other {s}} را راه اندازی مجدد کنید؟',
 
   // Original text: 'Start VM{vms, plural, one {} other {s}}'
-  startVmsModalTitle: undefined,
+  startVmsModalTitle: 'اجرای ماشین مجازی{vms, plural, one {} other {s}}',
 
   // Original text: 'Start a copy'
-  cloneAndStartVM: undefined,
+  cloneAndStartVM: 'شروع یک کپی',
 
   // Original text: 'Force start'
-  forceStartVm: undefined,
+  forceStartVm: 'شروع اجباری',
 
   // Original text: 'Forbidden operation'
-  forceStartVmModalTitle: undefined,
+  forceStartVmModalTitle: 'عملیات ممنوع',
 
   // Original text: 'Start operation for this vm is blocked.'
-  blockedStartVmModalMessage: undefined,
+  blockedStartVmModalMessage: 'عملیات شروع برای این ماشین مجازی مسدود شده است.',
 
   // Original text: 'Forbidden operation start for {nVms, number} vm{nVms, plural, one {} other {s}}.'
-  blockedStartVmsModalMessage: undefined,
+  blockedStartVmsModalMessage: 'عملیات شروع برای {nVms, number} ماشین مجازی{nVms, plural, one {} other {s}} ممنوع است.',
 
   // Original text: 'Are you sure you want to start {vms, number} VM{vms, plural, one {} other {s}}?'
-  startVmsModalMessage: undefined,
+  startVmsModalMessage:
+    'آیا مطمئن هستید که می خواهید {vms, number} ماشین مجازی {vms, plural, one {} other {s}} را اجرا کنید؟',
 
   // Original text: '{nVms, number} vm{nVms, plural, one {} other {s}} are failed. Please see your logs to get more information'
-  failedVmsErrorMessage: undefined,
+  failedVmsErrorMessage:
+    '{nVms, number} ماشین مجازی{nVms, plural, one {} other {s}} ناموفق بوده اند.لطفا برای دریافت اطلاعات بیشتر گزارش های خود را بررسی کنید.',
 
   // Original text: 'Start failed'
-  failedVmsErrorTitle: undefined,
+  failedVmsErrorTitle: 'شروع ناموفق بود',
 
   // Original text: 'Stop Host{nHosts, plural, one {} other {s}}'
-  stopHostsModalTitle: undefined,
+  stopHostsModalTitle: 'توقف میزبان{nHosts, plural, one {} other {s}}',
 
   // Original text: 'Are you sure you want to stop {nHosts, number} Host{nHosts, plural, one {} other {s}}?'
-  stopHostsModalMessage: undefined,
+  stopHostsModalMessage:
+    'آیا مطمئن هستید که می‌خواهید {nHosts, number} از میزبان{nHosts, plural, one {} other {s}} را متوقف کنید؟',
 
   // Original text: 'Stop VM{vms, plural, one {} other {s}}'
-  stopVmsModalTitle: undefined,
+  stopVmsModalTitle: 'متوقف کردن ماشین مجازی{vms, plural, one {} other {s}}',
 
   // Original text: 'Are you sure you want to stop {vms, number} VM{vms, plural, one {} other {s}}?'
-  stopVmsModalMessage: undefined,
+  stopVmsModalMessage:
+    'آیا مطمئن هستید که می خواهید {vms, number} ماشین مجازی{vms, plural, one {} other {s}} را متوقف کنید؟',
 
   // Original text: 'Restart VM'
-  restartVmModalTitle: undefined,
+  restartVmModalTitle: 'راه اندازی مجدد ماشین مجازی',
 
   // Original text: 'Are you sure you want to restart {name}?'
-  restartVmModalMessage: undefined,
+  restartVmModalMessage: 'آیا مطمئن هستید که می خواهید {name} را راه اندازی مجدد کنید؟',
 
   // Original text: 'Stop VM'
-  stopVmModalTitle: undefined,
+  stopVmModalTitle: 'متوقف کردن ماشین مجازی',
 
   // Original text: 'Are you sure you want to stop {name}?'
-  stopVmModalMessage: undefined,
+  stopVmModalMessage: 'آیا مطمئن هستید که می خواهید {name} را متوقف کنید؟',
 
   // Original text: 'Suspend VM{vms, plural, one {} other {s}}'
-  suspendVmsModalTitle: undefined,
+  suspendVmsModalTitle: 'ماشین مجازی{vms, plural, one {} other {s}} معلق شده است',
 
   // Original text: 'Are you sure you want to suspend {vms, number} VM{vms, plural, one {} other {s}}?'
-  suspendVmsModalMessage: undefined,
+  suspendVmsModalMessage:
+    'آیا مطمئن هستید که می‌خواهید {vms, number} ماشین مجازی{vms, plural, one {} other {s}} را به حالت تعلیق درآورید؟',
 
   // Original text: 'Restart VM{vms, plural, one {} other {s}}'
-  restartVmsModalTitle: undefined,
+  restartVmsModalTitle: 'راه اندازی مجدد ماشین مجازی{vms, plural, one {} other {s}}',
 
   // Original text: 'Are you sure you want to restart {vms, number} VM{vms, plural, one {} other {s}}?'
-  restartVmsModalMessage: undefined,
+  restartVmsModalMessage:
+    'آیا مطمئن هستید که می خواهید {vms, number} ماشین مجازی{vms, plural, one {} other {s}} را راه اندازی مجدد کنید؟',
 
   // Original text: 'Snapshot VM{vms, plural, one {} other {s}}'
-  snapshotVmsModalTitle: undefined,
+  snapshotVmsModalTitle: 'اسنپ شات ماشین مجازی{vms, plural, one {} other {s}}',
 
   // Original text: 'Are you sure you want to snapshot {vms, number} VM{vms, plural, one {} other {s}}?'
-  snapshotVmsModalMessage: undefined,
+  snapshotVmsModalMessage:
+    'آیا مطمئن هستید که می‌خواهید {vms, number} ماشین مجازی{vms, plural, one {} other {s}} را اسنپ شات کنید؟',
 
   // Original text: 'Delete VM{vms, plural, one {} other {s}}'
-  deleteVmsModalTitle: undefined,
+  deleteVmsModalTitle: 'حذف ماشین مجازی{vms, plural, one {} other {s}}',
 
   // Original text: 'Are you sure you want to delete {vms, number} VM{vms, plural, one {} other {s}}? ALL VM DISKS WILL BE REMOVED'
-  deleteVmsModalMessage: undefined,
+  deleteVmsModalMessage:
+    'آیا مطمئنید که می خواهید {vms, number} ماشین مجازی{vms, plural, one {} other {s}} را حذف کنید؟ همه دیسک های ماشین مجازی حذف خواهند شد',
 
   // Original text: 'delete {nVms, number} vm{nVms, plural, one {} other {s}}'
-  deleteVmsConfirmText: undefined,
+  deleteVmsConfirmText: 'حذف {nVms, number} ماشین مجازی{nVms, plural, one {} other {s}}',
 
   // Original text: 'Delete VM'
-  deleteVmModalTitle: undefined,
+  deleteVmModalTitle: 'حذف ماشین مجازی',
 
   // Original text: 'Are you sure you want to delete this VM? ALL VM DISKS WILL BE REMOVED'
-  deleteVmModalMessage: undefined,
+  deleteVmModalMessage:
+    'آیا مطمئن هستید که می خواهید این ماشین مجازی را حذف کنید؟ همه دیسک های ماشین مجازی حذف خواهند شد',
 
   // Original text: 'Blocked operation'
-  deleteVmBlockedModalTitle: undefined,
+  deleteVmBlockedModalTitle: 'عملیات مسدود شده است',
 
   // Original text: 'Removing the VM is a blocked operation. Would you like to remove it anyway?'
-  deleteVmBlockedModalMessage: undefined,
+  deleteVmBlockedModalMessage: 'حذف ماشین مجازی یک عملیات مسدود شده است. آیا می خواهید در هر صورت آن را حذف کنید؟',
 
   // Original text: 'Migrate VM'
-  migrateVmModalTitle: undefined,
+  migrateVmModalTitle: 'مهاجرت ماشین مجازی',
 
   // Original text: 'Select a destination host:'
-  migrateVmSelectHost: undefined,
+  migrateVmSelectHost: 'انتخاب یک میزبان مقصد:',
 
   // Original text: 'Select a migration network:'
-  migrateVmSelectMigrationNetwork: undefined,
+  migrateVmSelectMigrationNetwork: 'انتخاب یک شبکه مهاجرت:',
 
   // Original text: 'For each VIF, select a network:'
-  migrateVmSelectNetworks: undefined,
+  migrateVmSelectNetworks: 'برای هر VIF یک شبکه انتخاب کنید:',
 
   // Original text: 'Select a destination SR:'
-  migrateVmsSelectSr: undefined,
+  migrateVmsSelectSr: 'انتخاب یک مخزن ذخیره سازی (SR) مقصد',
 
   // Original text: 'Select a destination SR for local disks:'
-  migrateVmsSelectSrIntraPool: undefined,
+  migrateVmsSelectSrIntraPool: 'برای دیسک های محلی یک مخزن ذخیره سازی مقصد (SR) انتخاب کنید:',
 
   // Original text: 'Select a network on which to connect each VIF:'
-  migrateVmsSelectNetwork: undefined,
+  migrateVmsSelectNetwork: 'شبکه ای را برای اتصال هر VIF انتخاب کنید:',
 
   // Original text: 'Smart mapping'
-  migrateVmsSmartMapping: undefined,
+  migrateVmsSmartMapping: 'نقشه برداری هوشمند',
 
   // Original text: 'VIF'
-  migrateVmVif: undefined,
+  migrateVmVif: 'VIF',
 
   // Original text: 'Network'
-  migrateVmNetwork: undefined,
+  migrateVmNetwork: 'شبکه',
 
   // Original text: 'No target host'
-  migrateVmNoTargetHost: undefined,
+  migrateVmNoTargetHost: 'میزبان هدف وجود ندارد',
 
   // Original text: 'A target host is required to migrate a VM'
-  migrateVmNoTargetHostMessage: undefined,
+  migrateVmNoTargetHostMessage: 'برای مهاجرت یک ماشین مجازی یک میزبان هدف مورد نیاز است',
 
   // Original text: 'No default SR'
-  migrateVmNoDefaultSrError: undefined,
+  migrateVmNoDefaultSrError: 'مخزن ذخیره سازی (SR) وجود ندارد',
 
   // Original text: 'Default SR not connected to host'
-  migrateVmNotConnectedDefaultSrError: undefined,
+  migrateVmNotConnectedDefaultSrError: 'مخزن ذخیره سازی (SR) پیش‌فرض به میزبان متصل نیست',
 
   // Original text: 'For each VDI, select an SR:'
-  chooseSrForEachVdisModalSelectSr: undefined,
+  chooseSrForEachVdisModalSelectSr: 'برای هر VDI یک مخزن ذخیره سازی (SR) انتخاب کنید',
 
   // Original text: 'Select main SR…'
-  chooseSrForEachVdisModalMainSr: undefined,
+  chooseSrForEachVdisModalMainSr: 'انتخاب مخزن ذخیره سازی (SR) اصلی…',
 
   // Original text: 'VDI'
-  chooseSrForEachVdisModalVdiLabel: undefined,
+  chooseSrForEachVdisModalVdiLabel: 'VDI',
 
   // Original text: 'SR*'
-  chooseSrForEachVdisModalSrLabel: undefined,
+  chooseSrForEachVdisModalSrLabel: 'مخزن های ذخیره سازی* (SR)',
 
   // Original text: '* optional'
-  chooseSrForEachVdisModalOptionalEntry: undefined,
+  chooseSrForEachVdisModalOptionalEntry: '* اختیاری',
 
   // Original text: 'Delete job{nJobs, plural, one {} other {s}}'
-  deleteJobsModalTitle: undefined,
+  deleteJobsModalTitle: 'حذف کار{nJobs, plural, one {} other {s}}',
 
   // Original text: 'Are you sure you want to delete {nJobs, number} job{nJobs, plural, one {} other {s}}?'
-  deleteJobsModalMessage: undefined,
+  deleteJobsModalMessage:
+    'آیا مطمئن هستید که می خواهید {nJobs, number} کار{nJobs, plural, one {} other {s}} را حذف کنید؟',
 
   // Original text: 'Delete VBD{nVbds, plural, one {} other {s}}'
-  deleteVbdsModalTitle: undefined,
+  deleteVbdsModalTitle: 'حذف VBD{nVbds, plural, one {} other {s}}',
 
   // Original text: 'Are you sure you want to delete {nVbds, number} VBD{nVbds, plural, one {} other {s}}?'
-  deleteVbdsModalMessage: undefined,
+  deleteVbdsModalMessage:
+    'آیا مطمئن هستید که می خواهید {nVbds, number} از VBD{nVbds, plural, one {} other {s}} را حذف کنید؟',
 
   // Original text: 'Delete VDI'
-  deleteVdiModalTitle: undefined,
+  deleteVdiModalTitle: 'حذف VDI',
 
   // Original text: 'Are you sure you want to delete this disk? ALL DATA ON THIS DISK WILL BE LOST'
-  deleteVdiModalMessage: undefined,
+  deleteVdiModalMessage:
+    'آیا مطمئن هستید که می خواهید این دیسک را حذف کنید؟ تمام داده های روی این دیسک از بین خواهد رفت',
 
   // Original text: 'Delete VDI{nVdis, plural, one {} other {s}}'
-  deleteVdisModalTitle: undefined,
+  deleteVdisModalTitle: 'حذف VDI{nVdis, plural, one {} other {s}}',
 
   // Original text: 'Are you sure you want to delete {nVdis, number} disk{nVdis, plural, one {} other {s}}? ALL DATA ON THESE DISKS WILL BE LOST'
-  deleteVdisModalMessage: undefined,
+  deleteVdisModalMessage:
+    'آیا مطمئن هستید که می خواهید {nVdis, number} از دیسک{nVdis, plural, one {} other {s}} را حذف کنید؟ تمام داده های روی این دیسک ها از بین خواهند رفت',
 
   // Original text: 'Delete schedule{nSchedules, plural, one {} other {s}}'
-  deleteSchedulesModalTitle: undefined,
+  deleteSchedulesModalTitle: 'حذف زمان بندی{nSchedules, plural, one {} other {s}}',
 
   // Original text: 'Are you sure you want to delete {nSchedules, number} schedule{nSchedules, plural, one {} other {s}}?'
-  deleteSchedulesModalMessage: undefined,
+  deleteSchedulesModalMessage:
+    'آیا مطمئن هستید که می خواهید {nSchedules, number} از زمان بندی{nSchedules, plural, one {} other {s}} را حذف کنید؟',
 
   // Original text: 'Delete remote{nRemotes, plural, one {} other {s}}'
-  deleteRemotesModalTitle: undefined,
+  deleteRemotesModalTitle: 'حذف ریموت{nRemotes, plural, one {} other {s}}',
 
   // Original text: 'Are you sure you want to delete {nRemotes, number} remote{nRemotes, plural, one {} other {s}}?'
-  deleteRemotesModalMessage: undefined,
+  deleteRemotesModalMessage:
+    'آیا مطمئن هستید که می خواهید {nRemotes, number} از ریموت{nRemotes, plural, one {} other {s}} را حذف کنید؟',
 
   // Original text: 'Revert your VM'
-  revertVmModalTitle: undefined,
+  revertVmModalTitle: 'ماشین مجازی خود را برگردانید',
 
   // Original text: 'Share your VM'
-  shareVmInResourceSetModalTitle: undefined,
+  shareVmInResourceSetModalTitle: 'ماشین مجازی خود را به اشتراک بگذارید',
 
   // Original text: 'This VM will be shared with all the members of the self-service {self}. Are you sure?'
-  shareVmInResourceSetModalMessage: undefined,
+  shareVmInResourceSetModalMessage:
+    'این ماشین مجازی با همه اعضای سلف سرویس {self} به اشتراک گذاشته خواهد شد. آیا مطمئن هستید؟',
 
   // Original text: 'Delete VIF{nVifs, plural, one {} other {s}}'
-  deleteVifsModalTitle: undefined,
+  deleteVifsModalTitle: 'حذف VIF{nVifs, plural, one {} other {s}}',
 
   // Original text: 'Are you sure you want to delete {nVifs, number} VIF{nVifs, plural, one {} other {s}}?'
-  deleteVifsModalMessage: undefined,
+  deleteVifsModalMessage:
+    'آیا مطمئن هستید که می خواهید {nVifs, number} از VIF{nVifs, plural, one {} other {s}} را حذف کنید؟',
 
   // Original text: 'Delete snapshot'
-  deleteSnapshotModalTitle: undefined,
+  deleteSnapshotModalTitle: 'حذف اسنپ شات',
 
   // Original text: 'Are you sure you want to delete this snapshot?'
-  deleteSnapshotModalMessage: undefined,
+  deleteSnapshotModalMessage: 'آیا مطمئن هستید که می خواهید این اسنپ شات را حذف کنید؟',
 
   // Original text: 'Delete snapshot{nVms, plural, one {} other {s}}'
-  deleteSnapshotsModalTitle: undefined,
+  deleteSnapshotsModalTitle: 'حذف اسنپ شات{nVms, plural, one {} other {s}}',
 
   // Original text: 'Are you sure you want to delete {nVms, number} snapshot{nVms, plural, one {} other {s}}?'
-  deleteSnapshotsModalMessage: undefined,
+  deleteSnapshotsModalMessage:
+    'آیا مطمئن هستید که می خواهید {nVms, number} از اسنپ شات{nVms, plural, one {} other {s}} را حذف کنید؟',
 
   // Original text: 'Disconnect VBD{nVbds, plural, one {} other {s}}'
-  disconnectVbdsModalTitle: undefined,
+  disconnectVbdsModalTitle: 'قطع کردن VBD{nVbds, plural, one {} other {s}}',
 
   // Original text: 'Are you sure you want to disconnect {nVbds, number} VBD{nVbds, plural, one {} other {s}}?'
-  disconnectVbdsModalMessage: undefined,
+  disconnectVbdsModalMessage:
+    'آیا مطمئن هستید که می خواهید {nVbds, number} از VBD{nVbds, plural, one {} other {s}} را قطع کنید؟',
 
   // Original text: 'Are you sure you want to revert this VM to the snapshot state? This operation is irreversible.'
-  revertVmModalMessage: undefined,
+  revertVmModalMessage:
+    'آیا مطمئن هستید که می خواهید این ماشین مجازی را به حالت اسنپ شات برگردانید؟ این عمل غیر قابل برگشت است.',
 
   // Original text: 'Snapshot before'
-  revertVmModalSnapshotBefore: undefined,
+  revertVmModalSnapshotBefore: 'اسنپ شات قبل',
 
   // Original text: 'Import a {name} Backup'
-  importBackupModalTitle: undefined,
+  importBackupModalTitle: 'وارد کردن یک نسخه پشتیبان {name}',
 
   // Original text: 'Start VM after restore'
-  importBackupModalStart: undefined,
+  importBackupModalStart: 'اجرای ماشین مجازی بعد از بازیابی',
 
   // Original text: 'Select your backup…'
-  importBackupModalSelectBackup: undefined,
+  importBackupModalSelectBackup: 'نسخه پشتیبان خود را انتخاب کنید…',
 
   // Original text: 'Select a destination SR…'
-  importBackupModalSelectSr: undefined,
+  importBackupModalSelectSr: 'انتخاب مخزن ذخیره سازی (SR) مقصد…',
 
   // Original text: 'Are you sure you want to remove all orphaned snapshot VDIs?'
-  removeAllOrphanedModalWarning: undefined,
+  removeAllOrphanedModalWarning: 'آیا مطمئن هستید که می خواهید تمام اسنپ شات VDIهای بدون سرپرست را حذف کنید؟',
 
   // Original text: 'Remove all logs'
-  removeAllLogsModalTitle: undefined,
+  removeAllLogsModalTitle: 'حذف تمام گزارش ها',
 
   // Original text: 'Are you sure you want to remove all logs?'
-  removeAllLogsModalWarning: undefined,
+  removeAllLogsModalWarning: 'آیا مطمئن هستید که می خواهید تمام گزارش ها را حذف کنید؟',
 
   // Original text: 'This operation is definitive.'
-  definitiveMessageModal: undefined,
+  definitiveMessageModal: 'این عملیات قطعی است.',
 
   // Original text: 'Previous SR Usage'
-  existingSrModalTitle: undefined,
+  existingSrModalTitle: 'استفاده قبلی از مخزن ذخیره سازی (SR)',
 
   // Original text: 'This path has been previously used as a Storage by a XenServer host. All data will be lost if you choose to continue the SR creation.'
-  existingSrModalText: undefined,
+  existingSrModalText:
+    'این مسیر قبلاً به عنوان یک ذخیره ساز توسط یک میزبان XenServer استفاده شده است. اگر ادامه ایجاد مخزن ذخیره سازی (SR) را انتخاب کنید، همه داده ها از بین خواهند رفت.',
 
   // Original text: 'Previous LUN Usage'
-  existingLunModalTitle: undefined,
+  existingLunModalTitle: 'استفاده قبلی از LUN',
 
   // Original text: 'This LUN has been previously used as a Storage by a XenServer host. All data will be lost if you choose to continue the SR creation.'
-  existingLunModalText: undefined,
+  existingLunModalText:
+    'این LUN قبلاً به عنوان یک ذخیره ساز توسط یک میزبان XenServer استفاده شده است. اگر ادامه ایجاد مخزن ذخیره سازی (SR) را انتخاب کنید، همه داده ها از بین خواهند رفت.',
 
   // Original text: 'Replace current registration?'
-  alreadyRegisteredModal: undefined,
+  alreadyRegisteredModal: 'ثبت نام فعلی جایگزین شود؟',
 
-  // Original text: 'Your XO appliance is already registered to {email}, do you want to forget and replace this registration ?'
-  alreadyRegisteredModalText: undefined,
+  // Original text: 'Your XO appliance is already registered to {email}, do you want to forget and replace this registration?'
+  alreadyRegisteredModalText:
+    'دستگاه XO شما قبلاً با {email} ثبت شده است، آیا می خواهید این ثبت نام را فراموش کرده و جایگزین کنید؟',
 
   // Original text: 'Ready for trial?'
-  trialReadyModal: undefined,
+  trialReadyModal: 'آماده برای آزمایش؟',
 
   // Original text: 'During the trial period, XOA need to have a working internet connection. This limitation does not apply for our paid plans!'
-  trialReadyModalText: undefined,
+  trialReadyModalText:
+    'در طول دوره آزمایشی، XOA باید یک اتصال اینترنتی فعال داشته باشد. این محدودیت برای طرح های پولی ما اعمال نمی شود!',
 
   // Original text: 'Cancel task{nTasks, plural, one {} other {s}}'
-  cancelTasksModalTitle: undefined,
+  cancelTasksModalTitle: 'لغو کار{nTasks, plural, one {} other {s}}',
 
   // Original text: 'Are you sure you want to cancel {nTasks, number} task{nTasks, plural, one {} other {s}}?'
-  cancelTasksModalMessage: undefined,
+  cancelTasksModalMessage:
+    'آیا مطمئن هستید که می‌خواهید {nTasks, number} کار{nTasks, plural, one {} other {s}} را لغو کنید؟',
 
   // Original text: 'Destroy task{nTasks, plural, one {} other {s}}'
-  destroyTasksModalTitle: undefined,
+  destroyTasksModalTitle: 'از بین بردن کار{nTasks, plural, one {} other {s}}',
 
   // Original text: 'Are you sure you want to destroy {nTasks, number} task{nTasks, plural, one {} other {s}}?'
-  destroyTasksModalMessage: undefined,
+  destroyTasksModalMessage:
+    'آیا مطمئن هستید که می خواهید {nTasks, number} کار{nTasks, plural, one {} other {s}} را از بین ببرید؟',
 
   // Original text: 'Label'
-  serverLabel: undefined,
+  serverLabel: 'برچسب',
 
   // Original text: 'Host'
-  serverHost: undefined,
+  serverHost: 'میزبان',
 
   // Original text: 'Username'
-  serverUsername: undefined,
+  serverUsername: 'نام کاربری',
 
   // Original text: 'Password'
-  serverPassword: undefined,
+  serverPassword: 'کلمه عبور',
 
   // Original text: 'Action'
-  serverAction: undefined,
+  serverAction: 'عمل',
 
   // Original text: 'Read Only'
-  serverReadOnly: undefined,
+  serverReadOnly: 'فقط خواندنی',
 
   // Original text: 'Unauthorized Certificates'
-  serverUnauthorizedCertificates: undefined,
+  serverUnauthorizedCertificates: 'گواهینامه های غیر مجاز',
 
   // Original text: 'Allow Unauthorized Certificates'
-  serverAllowUnauthorizedCertificates: undefined,
+  serverAllowUnauthorizedCertificates: 'اجازه دادن به گواهینامه های غیرمجاز',
 
   // Original text: "Enable it if your certificate is rejected, but it's not recommended because your connection will not be secured."
-  serverUnauthorizedCertificatesInfo: undefined,
+  serverUnauthorizedCertificatesInfo:
+    'اگر گواهی شما رد شد، آن را فعال کنید، اما این کار توصیه نمی شود زیرا اتصال شما ایمن نخواهد بود.',
 
   // Original text: 'Disconnect server'
-  serverDisconnect: undefined,
+  serverDisconnect: 'قطع کردن سرور',
 
   // Original text: 'username'
-  serverPlaceHolderUser: undefined,
+  serverPlaceHolderUser: 'نام کاربری',
 
   // Original text: 'password'
-  serverPlaceHolderPassword: undefined,
+  serverPlaceHolderPassword: 'کلمه عبور',
 
   // Original text: 'address[:port]'
-  serverPlaceHolderAddress: undefined,
+  serverPlaceHolderAddress: 'آدرس[:پورت]',
 
   // Original text: 'label'
-  serverPlaceHolderLabel: undefined,
+  serverPlaceHolderLabel: 'برچسب',
 
   // Original text: 'Connect'
-  serverConnect: undefined,
+  serverConnect: 'اتصال',
 
   // Original text: 'Error'
-  serverError: undefined,
+  serverError: 'خطا',
 
   // Original text: 'Adding server failed'
-  serverAddFailed: undefined,
+  serverAddFailed: 'افزودن سرور انجام نشد',
 
   // Original text: 'Status'
-  serverStatus: undefined,
+  serverStatus: 'وضعیت',
 
   // Original text: 'Connection failed. Click for more information.'
-  serverConnectionFailed: undefined,
+  serverConnectionFailed: 'ارتباط ناموفق بود. برای اطلاعات بیشتر کلیک کنید.',
 
   // Original text: 'Connecting…'
-  serverConnecting: undefined,
+  serverConnecting: 'در حال اتصال…',
 
   // Original text: 'Connected'
-  serverConnected: undefined,
+  serverConnected: 'متصل شده است',
 
   // Original text: 'Disconnected'
-  serverDisconnected: undefined,
+  serverDisconnected: 'قطع شده است',
 
   // Original text: 'Authentication error'
-  serverAuthFailed: undefined,
+  serverAuthFailed: 'خطای احراز هویت',
 
   // Original text: 'Unknown error'
-  serverUnknownError: undefined,
+  serverUnknownError: 'خطای ناشناخته',
 
   // Original text: 'Invalid self-signed certificate'
-  serverSelfSignedCertError: undefined,
+  serverSelfSignedCertError: 'گواهینامه self-signed نامعتبر است',
 
   // Original text: 'Do you want to accept self-signed certificate for this server even though it would decrease security?'
-  serverSelfSignedCertQuestion: undefined,
+  serverSelfSignedCertQuestion:
+    'آیا می خواهید گواهینامه self-signed را برای این سرور بپذیرید حتی اگر امنیت را کاهش دهد؟',
 
   // Original text: 'Copy VM'
-  copyVm: undefined,
+  copyVm: 'کپی کردن ماشین مجازی',
 
   // Original text: 'Are you sure you want to copy this VM to {SR}?'
-  copyVmConfirm: undefined,
+  copyVmConfirm: 'آیا مطمئن هستید که می‌خواهید این ماشین مجازی را در {SR} کپی کنید؟',
 
   // Original text: 'Name'
-  copyVmName: undefined,
+  copyVmName: 'نام',
 
   // Original text: 'Name pattern'
-  copyVmNamePattern: undefined,
+  copyVmNamePattern: 'نام الگو',
 
   // Original text: 'If empty: name of the copied VM'
-  copyVmNamePlaceholder: undefined,
+  copyVmNamePlaceholder: 'اگر خالی باشد: نام ماشین مجازی کپی شده',
 
   // Original text: 'e.g.: "\\{name\\}_COPY"'
-  copyVmNamePatternPlaceholder: undefined,
+  copyVmNamePatternPlaceholder: 'به عنوان مثال: "\\{name\\}_COPY"',
 
   // Original text: 'Select SR'
-  copyVmSelectSr: undefined,
+  copyVmSelectSr: 'انتخاب مخزن ذخیره سازی (SR)',
 
   // Original text: 'Use compression'
-  copyVmCompress: undefined,
+  copyVmCompress: 'استفاده از فشرده سازی',
 
   // Original text: 'No target SR'
-  copyVmsNoTargetSr: undefined,
+  copyVmsNoTargetSr: 'مخزن ذخیره سازی (SR) هدف وجود ندارد',
 
   // Original text: 'A target SR is required to copy a VM'
-  copyVmsNoTargetSrMessage: undefined,
+  copyVmsNoTargetSrMessage: 'برای کپی کردن یک ماشین مجازی یک مخزن ذخیره سازی (SR) هدف مورد نیاز است',
 
   // Original text: 'Fast clone'
-  fastCloneMode: undefined,
+  fastCloneMode: 'کلون کردن سریع',
 
   // Original text: 'Full copy'
-  fullCopyMode: undefined,
+  fullCopyMode: 'کپی کامل',
 
   // Original text: 'Detach host'
-  detachHostModalTitle: undefined,
+  detachHostModalTitle: 'جدا کردن میزبان',
 
   // Original text: 'Are you sure you want to detach {host} from its pool? THIS WILL REMOVE ALL VMs ON ITS LOCAL STORAGE AND REBOOT THE HOST.'
-  detachHostModalMessage: undefined,
+  detachHostModalMessage:
+    'آیا مطمئن هستید که می خواهید {host} را از استخر آن جدا کنید؟ این کار تمام ماشین های مجازی در ذخیره ساز محلی را از بین خواهد برد و میزبان راه اندازی مجدد می شود.',
 
   // Original text: 'Detach'
-  detachHost: undefined,
+  detachHost: 'جدا کردن',
 
   // Original text: 'Forget host'
-  forgetHostModalTitle: undefined,
+  forgetHostModalTitle: 'فراموش کردن میزبان',
 
   // Original text: "Are you sure you want to forget {host} from its pool? Be sure this host can't be back online, or use detach instead."
-  forgetHostModalMessage: undefined,
+  forgetHostModalMessage:
+    'آیا مطمئن هستید که می‌خواهید {host} را از استخر آن فراموش کنید؟ مطمئن باشید که این میزبان نمی تواند دوباره آنلاین شود یا به جای آن از جدا کردن استفاده کنید.',
 
   // Original text: 'Forget'
-  forgetHost: undefined,
+  forgetHost: 'فراموش کردن',
 
   // Original text: 'Designate a new master'
-  setPoolMasterModalTitle: undefined,
+  setPoolMasterModalTitle: 'تعیین یک مستر جدید',
 
   // Original text: 'This operation may take several minutes. Do you want to continue?'
-  setPoolMasterModalMessage: undefined,
+  setPoolMasterModalMessage: 'این عملیات ممکن است چند دقیقه طول بکشد. می خواهید ادامه دهید؟',
 
   // Original text: 'Create network'
-  newNetworkCreate: undefined,
+  newNetworkCreate: 'ایجاد شبکه',
 
   // Original text: 'Create bonded network'
-  newBondedNetworkCreate: undefined,
+  newBondedNetworkCreate: 'ایجاد شبکه پیوندی',
 
   // Original text: 'Interface'
-  newNetworkInterface: undefined,
+  newNetworkInterface: 'رابط',
 
   // Original text: 'Name'
-  newNetworkName: undefined,
+  newNetworkName: 'نام',
 
   // Original text: 'Description'
-  newNetworkDescription: undefined,
+  newNetworkDescription: 'سرح',
 
   // Original text: 'VLAN'
-  newNetworkVlan: undefined,
+  newNetworkVlan: 'شبکه محلی مجازی',
 
   // Original text: 'No VLAN if empty'
-  newNetworkDefaultVlan: undefined,
+  newNetworkDefaultVlan: 'اگر خالی باشد بدون شبکه محلی مجازی',
 
   // Original text: 'MTU'
-  newNetworkMtu: undefined,
+  newNetworkMtu: 'حداکثر واحد انتقال',
 
   // Original text: 'Default: 1500'
-  newNetworkDefaultMtu: undefined,
+  newNetworkDefaultMtu: 'پیش فرض: 1500',
 
   // Original text: 'Name required'
-  newNetworkNoNameErrorTitle: undefined,
+  newNetworkNoNameErrorTitle: 'نام مورد نیاز است',
 
   // Original text: 'A name is required to create a network'
-  newNetworkNoNameErrorMessage: undefined,
+  newNetworkNoNameErrorMessage: 'برای ایجاد یک شبکه یک نام مورد نیاز است',
 
   // Original text: 'Bond mode'
-  newNetworkBondMode: undefined,
+  newNetworkBondMode: 'حالت پیوند',
 
   // Original text: 'Delete network'
-  deleteNetwork: undefined,
+  deleteNetwork: 'حذف شبکه',
 
   // Original text: 'Are you sure you want to delete this network?'
-  deleteNetworkConfirm: undefined,
+  deleteNetworkConfirm: 'آیا مطمئن هستید که می خواهید این شبکه را حذف کنید؟',
 
   // Original text: 'This network is currently in use'
-  networkInUse: undefined,
+  networkInUse: 'در حال حاضر این شبکه در حال استفاده است',
 
   // Original text: 'Bonded'
-  pillBonded: undefined,
+  pillBonded: 'پیوند خورده',
 
   // Original text: 'Host'
-  addHostSelectHost: undefined,
+  addHostSelectHost: 'میزبان',
 
   // Original text: 'No host'
-  addHostNoHost: undefined,
+  addHostNoHost: 'بدون میزبان',
 
   // Original text: 'No host selected to be added'
-  addHostNoHostMessage: undefined,
+  addHostNoHostMessage: 'هیچ میزبانی برای اضافه شدن انتخاب نشده است',
 
   // Original text: 'Xen Orchestra'
-  xenOrchestra: undefined,
+  xenOrchestra: 'Xen Orchestra',
 
   // Original text: 'Xen Orchestra server'
-  xenOrchestraServer: undefined,
+  xenOrchestraServer: 'سرور Xen Orchestra',
 
   // Original text: 'Xen Orchestra web client'
-  xenOrchestraWeb: undefined,
+  xenOrchestraWeb: 'سرویس گیرنده وب Xen Orchestra',
 
   // Original text: 'No pro support provided!'
-  noProSupport: undefined,
+  noProSupport: 'هیچ پشتیبانی حرفه ای ارائه نمی شود!',
 
   // Original text: 'Use in production at your own risks'
-  noProductionUse: undefined,
+  noProductionUse: 'استفاده در محیط تولید با ریسک خودتان',
 
   // Original text: 'You can download our turnkey appliance at {website}'
-  downloadXoaFromWebsite: undefined,
+  downloadXoaFromWebsite: 'می توانید برنامه های ما که برای استفاده فوری آماده شده است را از {website} دانلود کنید',
 
   // Original text: 'Bug Tracker'
-  bugTracker: undefined,
+  bugTracker: 'ردیاب اشکال',
 
   // Original text: 'Issues? Report it!'
-  bugTrackerText: undefined,
+  bugTrackerText: 'مشکلات؟ آنرا گزارش کن!',
 
   // Original text: 'Community'
-  community: undefined,
+  community: 'انجمن',
 
   // Original text: 'Join our community forum!'
-  communityText: undefined,
+  communityText: 'به اجتماع ما بپیوندید!',
 
   // Original text: 'Free Trial for Premium Edition!'
-  freeTrial: undefined,
+  freeTrial: 'نسخه آزمایشی رایگان برای نسخه پرمیوم!',
 
   // Original text: 'Request your trial now!'
-  freeTrialNow: undefined,
+  freeTrialNow: 'اکنون نسخه آزمایشی خود را درخواست کنید!',
 
   // Original text: 'Any issue?'
-  issues: undefined,
+  issues: 'مشکلی وجود دارد؟',
 
   // Original text: 'Problem? Contact us!'
-  issuesText: undefined,
+  issuesText: 'مشکل؟ با ما تماس بگیرید!',
 
   // Original text: 'Documentation'
-  documentation: undefined,
+  documentation: 'مستندات',
 
   // Original text: 'Read our official doc'
-  documentationText: undefined,
+  documentationText: 'سند رسمی ما را مطالعه کنید',
 
   // Original text: 'Pro support included'
-  proSupportIncluded: undefined,
+  proSupportIncluded: 'شامل پشتیبانی حرفه ای',
 
   // Original text: 'Access your XO Account'
-  xoAccount: undefined,
+  xoAccount: 'به حساب XO خود دسترسی پیدا کنید',
 
   // Original text: 'Report a problem'
-  openTicket: undefined,
+  openTicket: 'گزارش یک مشکل',
 
   // Original text: 'Problem? Open a ticket!'
-  openTicketText: undefined,
+  openTicketText: 'مشکل؟ یک تیکت پشتیبانی باز کن!',
 
   // Original text: 'Upgrade needed'
-  upgradeNeeded: undefined,
+  upgradeNeeded: 'ارتقاء مورد نیاز است',
 
   // Original text: 'Upgrade now!'
-  upgradeNow: undefined,
+  upgradeNow: 'اکنون ارتقا دهید!',
 
   // Original text: 'Or'
-  or: undefined,
+  or: 'یا',
 
   // Original text: 'Try it for free!'
-  tryIt: undefined,
+  tryIt: 'به صورت رایگان امتحان کنید!',
 
   // Original text: 'This feature is available starting from {plan} Edition'
-  availableIn: undefined,
+  availableIn: 'این ویژگی از نسخه {plan} در دسترس است',
 
   // Original text: 'This feature is not available in your version, contact your administrator to know more.'
-  notAvailable: undefined,
+  notAvailable: 'این ویژگی در نسخه شما موجود نیست، برای اطلاعات بیشتر با مدیر خود تماس بگیرید.',
 
   // Original text: 'Updates'
-  updateTitle: undefined,
+  updateTitle: 'به روزرسانی ها',
 
   // Original text: 'Registration'
-  registration: undefined,
+  registration: 'ثبت نام',
 
   // Original text: 'Trial'
-  trial: undefined,
+  trial: 'آزمایشی',
 
   // Original text: 'Settings'
-  settings: undefined,
+  settings: 'تنظیمات',
 
   // Original text: 'Proxy settings'
-  proxySettings: undefined,
+  proxySettings: 'تنظیمات پروکسی',
 
   // Original text: 'Host (myproxy.example.org)'
-  proxySettingsHostPlaceHolder: undefined,
+  proxySettingsHostPlaceHolder: 'میزبان (myproxy.example.org)',
 
   // Original text: 'Port (eg: 3128)'
-  proxySettingsPortPlaceHolder: undefined,
+  proxySettingsPortPlaceHolder: 'پورت (به عنوان مثال: 3128)',
 
   // Original text: 'Username'
-  proxySettingsUsernamePlaceHolder: undefined,
+  proxySettingsUsernamePlaceHolder: 'نام کاربری',
 
   // Original text: 'Password'
-  proxySettingsPasswordPlaceHolder: undefined,
+  proxySettingsPasswordPlaceHolder: 'کلمه عبور',
 
   // Original text: 'Your email account'
-  updateRegistrationEmailPlaceHolder: undefined,
+  updateRegistrationEmailPlaceHolder: 'حساب ایمیل شما',
 
   // Original text: 'Your password'
-  updateRegistrationPasswordPlaceHolder: undefined,
+  updateRegistrationPasswordPlaceHolder: 'کلمه عبور شما',
 
   // Original text: 'Troubleshooting documentation'
-  updaterTroubleshootingLink: undefined,
+  updaterTroubleshootingLink: 'مستندات عیب یابی',
 
   // Original text: 'Update'
-  update: undefined,
+  update: 'به روز رسانی',
 
   // Original text: 'Refresh'
-  refresh: undefined,
+  refresh: 'تاره کردن',
 
   // Original text: 'Upgrade'
-  upgrade: undefined,
+  upgrade: 'ارتقا دادن',
 
   // Original text: 'Downgrade'
-  downgrade: undefined,
+  downgrade: 'تنزل دادن',
 
   // Original text: 'No updater available for Community Edition'
-  noUpdaterCommunity: undefined,
+  noUpdaterCommunity: 'هیچ به‌روزرسانی‌کننده‌ای برای نسخه عمومی در دسترس نیست',
 
   // Original text: 'Please consider subscribing and trying it with all the features for free during 15 days on {link}.'
-  considerSubscribe: undefined,
+  considerSubscribe:
+    'لطفاً مشترک شدن را در نظر داشته باشید و این محصول را با تمام ویژگی های آن به صورت رایگان در مدت 15 روز در {link} امتحان کنید.',
 
   // Original text: 'Manual update could break your current installation due to dependencies issues, do it with caution'
-  noUpdaterWarning: undefined,
+  noUpdaterWarning:
+    'به‌روزرسانی دستی می‌تواند نصب فعلی شما را به دلیل مشکلات وابستگی خراب کند، این کار را با احتیاط انجام دهید',
 
   // Original text: 'Current version:'
-  currentVersion: undefined,
+  currentVersion: 'نسخه فعلی:',
 
   // Original text: 'Register'
-  register: undefined,
+  register: 'ثبت نام',
 
   // Original text: 'Edit registration'
-  editRegistration: undefined,
+  editRegistration: 'ویرایش ثبت نام',
 
   // Original text: 'Please, take time to register in order to enjoy your trial.'
-  trialRegistration: undefined,
+  trialRegistration: 'لطفاً برای ثبت نام وقت بگذارید تا از نسخه آزمایشی خود لذت ببرید.',
 
   // Original text: 'Start trial'
-  trialStartButton: undefined,
+  trialStartButton: 'اجرای نسخه آزمایشی',
 
   // Original text: 'You can use a trial version until {date, date, medium}. Upgrade your appliance to get it.'
-  trialAvailableUntil: undefined,
+  trialAvailableUntil:
+    'می توانید از نسخه آزمایشی تا {date, date, medium} استفاده کنید. برای دریافت آن، دستگاه خود را ارتقا دهید.',
 
   // Original text: 'Your trial has been ended. Contact us or downgrade to Free version'
-  trialConsumed: undefined,
+  trialConsumed: 'نسخه آزمایشی شما به پایان رسیده است. با ما تماس بگیرید یا به نسخه رایگان برگردید',
 
   // Original text: 'Your xoa-updater service appears to be down. Your XOA cannot run fully without reaching this service.'
-  trialLocked: undefined,
+  trialLocked:
+    'به نظر می رسد سرویس xoa-updater شما از کار افتاده است. XOA شما بدون دسترسی به این سرویس نمی تواند به طور کامل اجرا شود.',
 
   // Original text: 'No update information available'
-  noUpdateInfo: undefined,
+  noUpdateInfo: 'اطلاعات به روز رسانی در دسترس نیست',
 
   // Original text: 'Update information may be available'
-  waitingUpdateInfo: undefined,
+  waitingUpdateInfo: 'اطلاعات به روز رسانی ممکن است در دسترس باشد',
 
   // Original text: 'Your XOA is up-to-date'
-  upToDate: undefined,
+  upToDate: 'XOA شما به روز است',
 
   // Original text: 'You need to update your XOA (new version is available)'
-  mustUpgrade: undefined,
+  mustUpgrade: 'شما باید XOA خود را به روز کنید (نسخه جدید در دسترس است)',
 
   // Original text: 'Your XOA is not registered for updates'
-  registerNeeded: undefined,
+  registerNeeded: 'XOA شما برای به‌روزرسانی‌ها ثبت نشده است',
 
   // Original text: "Can't fetch update information"
-  updaterError: undefined,
+  updaterError: 'نمی توان اطلاعات به روز رسانی را دریافت کرد',
 
   // Original text: 'Upgrade successful'
-  promptUpgradeReloadTitle: undefined,
+  promptUpgradeReloadTitle: 'ارتقا با موفقیت انجام شد',
 
-  // Original text: 'Your XOA has successfully upgraded, and your browser must reload the application. Do you want to reload now ?'
-  promptUpgradeReloadMessage: undefined,
+  // Original text: 'Your XOA has successfully upgraded, and your browser must reload the application. Do you want to reload now?'
+  promptUpgradeReloadMessage:
+    'XOA شما با موفقیت ارتقا یافته است و مرورگر شما باید برنامه را دوباره بارگیری کند. آیا می خواهید اکنون بارگیری مجدد را انجام دهید؟',
 
   // Original text: 'Upgrade warning'
-  upgradeWarningTitle: undefined,
+  upgradeWarningTitle: 'هشدار ارتقا',
 
   // Original text: 'You have some backup jobs in progress. If you upgrade now, these jobs will be interrupted! Are you sure you want to continue?'
-  upgradeWarningMessage: undefined,
+  upgradeWarningMessage:
+    'شما چند کار پشتیبان گیری در حال انجام دارید. اگر همین الان ارتقا دهید، این کارها قطع می شود! آیا مطمئن هستید که میخواهید ادامه دهید؟',
 
   // Original text: 'Xen Orchestra from the sources'
-  disclaimerTitle: undefined,
+  disclaimerTitle: 'Xen Orchestra از منابع',
 
   // Original text: "You are using XO from the sources! That's great for a personal/non-profit usage."
-  disclaimerText1: undefined,
+  disclaimerText1: 'شما از XO از منابع استفاده می کنید! این برای استفاده شخصی/غیرانتفاعی عالی است.',
 
   // Original text: "If you are a company, it's better to use it with our appliance + pro support included:"
-  disclaimerText2: undefined,
+  disclaimerText2:
+    'اگر یک شرکت هستید، بهتر است از آن با برنامه های ما که برای استفاده فوری آماده شده است + پشتیبانی حرفه ای که گنجانده شده است استفاده کنید:',
 
   // Original text: 'This version is not bundled with any support nor updates. Use it with caution for critical tasks.'
-  disclaimerText3: undefined,
+  disclaimerText3: 'این نسخه با هیچ پشتیبانی و به روز رسانی همراه نیست. برای کارهای مهم با احتیاط از آن استفاده کنید.',
 
   // Original text: 'Connect PIF'
-  connectPif: undefined,
+  connectPif: 'PIF وصل کردن',
 
   // Original text: 'Are you sure you want to connect this PIF?'
-  connectPifConfirm: undefined,
+  connectPifConfirm: 'آیا مطمئن هستید که می خواهید این PIF را وصل کنید؟',
 
   // Original text: 'Disconnect PIF'
-  disconnectPif: undefined,
+  disconnectPif: 'قطع کردن PIF',
 
   // Original text: 'Are you sure you want to disconnect this PIF?'
-  disconnectPifConfirm: undefined,
+  disconnectPifConfirm: 'آیا مطمئن هستید که می خواهید این PIF را قطع کنید؟',
 
   // Original text: 'Delete PIF'
-  deletePif: undefined,
+  deletePif: 'حذف کردن PIF',
 
   // Original text: 'Are you sure you want to delete this PIF?'
-  deletePifConfirm: undefined,
+  deletePifConfirm: 'آیا مطمئن هستید که می خواهید این PIF را حذف کنید؟',
 
   // Original text: 'Delete PIFs'
-  deletePifs: undefined,
+  deletePifs: 'حذف کردن PIFها',
 
   // Original text: 'Are you sure you want to delete {nPifs, number} PIF{nPifs, plural, one {} other {s}}?'
-  deletePifsConfirm: undefined,
+  deletePifsConfirm: 'آیا مطمئن هستید که می‌خواهید {nPifs, number} PIF{nPifs, plural, one {} other {s}} را حذف کنید؟',
 
   // Original text: 'Connected'
-  pifConnected: undefined,
+  pifConnected: 'متصل شده است',
 
   // Original text: 'Disconnected'
-  pifDisconnected: undefined,
+  pifDisconnected: 'قطع شده است',
 
   // Original text: 'Physically connected'
-  pifPhysicallyConnected: undefined,
+  pifPhysicallyConnected: 'به صورت فیزیکی متصل شده است',
 
   // Original text: 'Physically disconnected'
-  pifPhysicallyDisconnected: undefined,
+  pifPhysicallyDisconnected: 'به صورت فیزیکی قطع شده است',
 
   // Original text: 'Username'
-  username: undefined,
+  username: 'نام کاربری',
 
   // Original text: 'Password'
-  password: undefined,
+  password: 'کلمه عبور',
 
   // Original text: 'Language'
-  language: undefined,
+  language: 'زبان',
 
   // Original text: 'Old password'
-  oldPasswordPlaceholder: undefined,
+  oldPasswordPlaceholder: 'کلمه عبور قدیمی',
 
   // Original text: 'New password'
-  newPasswordPlaceholder: undefined,
+  newPasswordPlaceholder: 'کلمه عبور جدید',
 
   // Original text: 'Confirm new password'
-  confirmPasswordPlaceholder: undefined,
+  confirmPasswordPlaceholder: 'تاییدیه کلمه عبور جدید',
 
   // Original text: 'Confirmation password incorrect'
-  confirmationPasswordError: undefined,
+  confirmationPasswordError: 'تاییدیه کلمه عبور اشتباه است',
 
   // Original text: 'Password does not match the confirm password.'
-  confirmationPasswordErrorBody: undefined,
+  confirmationPasswordErrorBody: 'کلمه عبور با تاییدیه کلمه عبور مطابقت ندارد',
 
   // Original text: 'Password changed'
-  pwdChangeSuccess: undefined,
+  pwdChangeSuccess: 'کلمه عبور تغییر کرد',
 
   // Original text: 'Your password has been successfully changed.'
-  pwdChangeSuccessBody: undefined,
+  pwdChangeSuccessBody: 'کلمه عبور شما با موفقیت تغییر کرد.',
 
   // Original text: 'Incorrect password'
-  pwdChangeError: undefined,
+  pwdChangeError: 'کلمه عبور اشتباه است',
 
   // Original text: 'The old password provided is incorrect. Your password has not been changed.'
-  pwdChangeErrorBody: undefined,
+  pwdChangeErrorBody: 'کلمه عبور قدیمی ارائه شده نادرست است. کلمه عبور شما تغییر نکرده است.',
 
   // Original text: 'OK'
-  changePasswordOk: undefined,
+  changePasswordOk: 'اوکی',
 
   // Original text: 'SSH keys'
-  sshKeys: undefined,
+  sshKeys: 'کلیدهای SSH',
 
   // Original text: 'New SSH key'
-  newSshKey: undefined,
+  newSshKey: 'کلید جدید SSH',
 
   // Original text: 'Delete'
-  deleteSshKey: undefined,
+  deleteSshKey: 'حذف کردن',
 
   // Original text: 'Delete selected SSH keys'
-  deleteSshKeys: undefined,
+  deleteSshKeys: 'حذف کلیدهای SSH انتخاب شده',
 
   // Original text: 'No SSH keys'
-  noSshKeys: undefined,
+  noSshKeys: 'کلیدهای SSH وجود ندارند',
 
   // Original text: 'New SSH key'
-  newSshKeyModalTitle: undefined,
+  newSshKeyModalTitle: 'کلید جدید SSH',
 
   // Original text: 'Invalid key'
-  sshKeyErrorTitle: undefined,
+  sshKeyErrorTitle: 'کلید نامعتبر',
 
   // Original text: 'An SSH key requires both a title and a key.'
-  sshKeyErrorMessage: undefined,
+  sshKeyErrorMessage: 'یک کلید SSH هم به یک عنوان و هم به یک کلید نیاز دارد.',
 
   // Original text: 'Title'
-  title: undefined,
+  title: 'عنوان',
 
   // Original text: 'Key'
-  key: undefined,
+  key: 'کلید',
 
   // Original text: 'Delete SSH key'
-  deleteSshKeyConfirm: undefined,
+  deleteSshKeyConfirm: 'حذف کلید SSH',
 
   // Original text: 'Are you sure you want to delete the SSH key {title}?'
-  deleteSshKeyConfirmMessage: undefined,
+  deleteSshKeyConfirmMessage: 'آیا مطمئن هستید که می خواهید کلید SSH {title} را حذف کنید؟',
 
   // Original text: 'Delete SSH key{nKeys, plural, one {} other {s}}'
-  deleteSshKeysConfirm: undefined,
+  deleteSshKeysConfirm: 'حذف کلید SSH{nKeys, plural, one {} other {s}}',
 
   // Original text: 'Are you sure you want to delete {nKeys, number} SSH key{nKeys, plural, one {} other {s}}?'
-  deleteSshKeysConfirmMessage: undefined,
+  deleteSshKeysConfirmMessage:
+    'آیا مطمئن هستید که می خواهید {nKeys, number} کلید SSH{nKeys, plural, one {} other {s}} را حذف کنید؟',
 
   // Original text: 'Others'
-  others: undefined,
+  others: 'دیگران',
 
   // Original text: 'Loading logs…'
-  loadingLogs: undefined,
+  loadingLogs: 'در حال بارگیری گزارش‌ها…',
 
   // Original text: 'User'
-  logUser: undefined,
+  logUser: 'نام کاربری',
 
   // Original text: 'Method'
-  logMethod: undefined,
+  logMethod: 'روش',
 
   // Original text: 'Params'
-  logParams: undefined,
+  logParams: 'پارامترها',
 
   // Original text: 'Message'
-  logMessage: undefined,
+  logMessage: 'پیام',
 
   // Original text: 'Error'
-  logError: undefined,
+  logError: 'خطا',
 
   // Original text: 'Logs'
-  logTitle: undefined,
+  logTitle: 'گزارش ها',
 
   // Original text: 'Display details'
-  logDisplayDetails: undefined,
+  logDisplayDetails: 'نمایش جزئیات',
 
   // Original text: 'Date'
-  logTime: undefined,
+  logTime: 'تاریخ',
 
   // Original text: 'No stack trace'
-  logNoStackTrace: undefined,
+  logNoStackTrace: 'بدون ردیابی پشته',
 
   // Original text: 'No params'
-  logNoParams: undefined,
+  logNoParams: 'بدون پارامتر',
 
   // Original text: 'Delete log'
-  logDelete: undefined,
+  logDelete: 'حذف گزارش',
 
   // Original text: 'Delete logs'
-  logsDelete: undefined,
+  logsDelete: 'حذف گزارش ها',
 
   // Original text: 'Delete log{nLogs, plural, one {} other {s}}'
-  logDeleteMultiple: undefined,
+  logDeleteMultiple: 'حذف گزارش{nLogs, plural, one {} other {s}}',
 
   // Original text: 'Are you sure you want to delete {nLogs, number} log{nLogs, plural, one {} other {s}}?'
-  logDeleteMultipleMessage: undefined,
+  logDeleteMultipleMessage:
+    'آیا مطمئن هستید که می خواهید {nLogs, number} گزارش{nLogs, plural, one {} other {s}} را حذف کنید؟',
 
   // Original text: 'Delete all logs'
-  logDeleteAll: undefined,
+  logDeleteAll: 'حذف کردن تمام گزارش ها',
 
   // Original text: 'Delete all logs'
-  logDeleteAllTitle: undefined,
+  logDeleteAllTitle: 'حذف کردن تمام گزارش ها',
 
   // Original text: 'Are you sure you want to delete all the logs?'
-  logDeleteAllMessage: undefined,
+  logDeleteAllMessage: 'آیا مطمئن هستید که می خواهید همه گزارش ها را حذف کنید؟',
 
   // Original text: 'Click to enable'
-  logIndicationToEnable: undefined,
+  logIndicationToEnable: 'برای فعال کردن کلیک کنید',
 
   // Original text: 'Click to disable'
-  logIndicationToDisable: undefined,
+  logIndicationToDisable: 'برای غیر فعال کردن کلیک کنید',
 
   // Original text: 'Report a bug'
-  reportBug: undefined,
+  reportBug: 'گزارش یک اشکال',
 
   // Original text: 'Job canceled to protect the VDI chain'
-  unhealthyVdiChainError: undefined,
+  unhealthyVdiChainError: 'برای محافظت از زنجیره VDI، کار لغو شد',
 
   // Original text: "Restart VM's backup"
-  backupRestartVm: undefined,
+  backupRestartVm: 'نسخه پشتیبان ماشین مجازی را راه اندازی مجدد کنید',
 
   // Original text: 'Click for more information'
-  clickForMoreInformation: undefined,
+  clickForMoreInformation: 'برای اطلاعات بیشتر کلیک کنید',
 
   // Original text: 'Name'
-  ipPoolName: undefined,
+  ipPoolName: 'نام',
 
   // Original text: 'IPs'
-  ipPoolIps: undefined,
+  ipPoolIps: 'آدرس های IP',
 
   // Original text: 'IPs (e.g.: 1.0.0.12-1.0.0.17;1.0.0.23)'
-  ipPoolIpsPlaceholder: undefined,
+  ipPoolIpsPlaceholder: 'آدرس های IP (به عنوان مثال: 1.0.0.12-1.0.0.17;1.0.0.23)',
 
   // Original text: 'Networks'
-  ipPoolNetworks: undefined,
+  ipPoolNetworks: 'شبکه ها',
 
   // Original text: 'No IP pools'
-  ipsNoIpPool: undefined,
+  ipsNoIpPool: 'بدون استخر IP',
 
   // Original text: 'Create'
-  ipsCreate: undefined,
+  ipsCreate: 'ایجاد',
 
   // Original text: 'Delete all IP pools'
-  ipsDeleteAllTitle: undefined,
+  ipsDeleteAllTitle: 'حذف تمام استخرهای IP',
 
   // Original text: 'Are you sure you want to delete all the IP pools?'
-  ipsDeleteAllMessage: undefined,
+  ipsDeleteAllMessage: 'آیا مطمئن هستید که می خواهید تمام استخرهای IP را حذف کنید؟',
 
   // Original text: 'VIFs'
-  ipsVifs: undefined,
+  ipsVifs: 'VIFها',
 
   // Original text: 'Not used'
-  ipsNotUsed: undefined,
+  ipsNotUsed: 'استفاده نشده',
 
   // Original text: 'unknown VIF'
-  ipPoolUnknownVif: undefined,
+  ipPoolUnknownVif: 'VIF ناشناس',
 
   // Original text: 'Name already exists'
-  ipPoolNameAlreadyExists: undefined,
+  ipPoolNameAlreadyExists: 'نام از قبل وجود دارد',
 
   // Original text: 'Keyboard shortcuts'
-  shortcutModalTitle: undefined,
+  shortcutModalTitle: 'میانبرهای صفحه کلید',
 
   // Original text: 'Global'
-  shortcut_XoApp: undefined,
+  shortcut_XoApp: 'سراسری',
 
   // Original text: 'Go to hosts list'
-  shortcut_XoApp_GO_TO_HOSTS: undefined,
+  shortcut_XoApp_GO_TO_HOSTS: 'رفتن به لیست میزبان ها',
 
   // Original text: 'Go to pools list'
-  shortcut_XoApp_GO_TO_POOLS: undefined,
+  shortcut_XoApp_GO_TO_POOLS: 'رفتن به لیست استخرها',
 
   // Original text: 'Go to VMs list'
-  shortcut_XoApp_GO_TO_VMS: undefined,
+  shortcut_XoApp_GO_TO_VMS: 'رفتن به لیست ماشین های مجازی',
 
   // Original text: 'Go to SRs list'
-  shortcut_XoApp_GO_TO_SRS: undefined,
+  shortcut_XoApp_GO_TO_SRS: 'رفتن به لیست مخزن های ذخیره سازی (SR)',
 
   // Original text: 'Create a new VM'
-  shortcut_XoApp_CREATE_VM: undefined,
+  shortcut_XoApp_CREATE_VM: 'ایجاد یک ماشین مجازی جدید',
 
   // Original text: 'Unfocus field'
-  shortcut_XoApp_UNFOCUS: undefined,
+  shortcut_XoApp_UNFOCUS: 'فیلد عدم تمرکز',
 
   // Original text: 'Show shortcuts key bindings'
-  shortcut_XoApp_HELP: undefined,
+  shortcut_XoApp_HELP: 'نمایش اتصالات کلید میانبرها',
 
   // Original text: 'Home'
-  shortcut_Home: undefined,
+  shortcut_Home: 'خانه',
 
   // Original text: 'Focus search bar'
-  shortcut_Home_SEARCH: undefined,
+  shortcut_Home_SEARCH: 'نوار جستجوی فوکوس',
 
   // Original text: 'Next item'
-  shortcut_Home_NAV_DOWN: undefined,
+  shortcut_Home_NAV_DOWN: 'مورد بعدی',
 
   // Original text: 'Previous item'
-  shortcut_Home_NAV_UP: undefined,
+  shortcut_Home_NAV_UP: 'مورد قبلی',
 
   // Original text: 'Select item'
-  shortcut_Home_SELECT: undefined,
+  shortcut_Home_SELECT: 'انتخاب مورد',
 
   // Original text: 'Open'
-  shortcut_Home_JUMP_INTO: undefined,
+  shortcut_Home_JUMP_INTO: 'باز کردن',
 
   // Original text: 'Supported tables'
-  shortcut_SortedTable: undefined,
+  shortcut_SortedTable: 'جداول پشتیبانی شده',
 
   // Original text: 'Focus the table search bar'
-  shortcut_SortedTable_SEARCH: undefined,
+  shortcut_SortedTable_SEARCH: 'روی نوار جستجوی جدول تمرکز کنید',
 
   // Original text: 'Next item'
-  shortcut_SortedTable_NAV_DOWN: undefined,
+  shortcut_SortedTable_NAV_DOWN: 'مورد بعدی',
 
   // Original text: 'Previous item'
-  shortcut_SortedTable_NAV_UP: undefined,
+  shortcut_SortedTable_NAV_UP: 'مورد قبلی',
 
   // Original text: 'Select item'
-  shortcut_SortedTable_SELECT: undefined,
+  shortcut_SortedTable_SELECT: 'انتخاب مورد',
 
   // Original text: 'Action'
-  shortcut_SortedTable_ROW_ACTION: undefined,
+  shortcut_SortedTable_ROW_ACTION: 'عمل',
 
   // Original text: 'VM'
-  settingsAclsButtonTooltipVM: undefined,
+  settingsAclsButtonTooltipVM: 'ماشین مجازی',
 
   // Original text: 'Hosts'
-  settingsAclsButtonTooltiphost: undefined,
+  settingsAclsButtonTooltiphost: 'میزبان ها',
 
   // Original text: 'Pool'
-  settingsAclsButtonTooltippool: undefined,
+  settingsAclsButtonTooltippool: 'استخر',
 
   // Original text: 'SR'
-  settingsAclsButtonTooltipSR: undefined,
+  settingsAclsButtonTooltipSR: 'مخزن ذخیره سازی (SR)',
 
   // Original text: 'Network'
-  settingsAclsButtonTooltipnetwork: undefined,
+  settingsAclsButtonTooltipnetwork: 'شبکه',
 
   // Original text: 'Template'
-  settingsCloudConfigTemplate: undefined,
+  settingsCloudConfigTemplate: 'قالب',
 
   // Original text: 'Delete cloud config{nCloudConfigs, plural, one {} other {s}}'
-  confirmDeleteCloudConfigsTitle: undefined,
+  confirmDeleteCloudConfigsTitle: 'حذف پیکربندی ابری{nCloudConfigs, plural, one {} other {s}}',
 
   // Original text: 'Are you sure you want to delete {nCloudConfigs, number} cloud config{nCloudConfigs, plural, one {} other {s}}?'
-  confirmDeleteCloudConfigsBody: undefined,
+  confirmDeleteCloudConfigsBody:
+    'آیا مطمئن هستید که می‌خواهید {nCloudConfigs, number} پیکربندی ابری{nCloudConfigs, plural, one {} other {s}} را حذف کنید؟',
 
   // Original text: 'Delete cloud config'
-  deleteCloudConfig: undefined,
+  deleteCloudConfig: 'حذف پیکربندی ابری',
 
   // Original text: 'Edit cloud config'
-  editCloudConfig: undefined,
+  editCloudConfig: 'ویرایش پیکربندی ابری',
 
   // Original text: 'Delete selected cloud configs'
-  deleteSelectedCloudConfigs: undefined,
+  deleteSelectedCloudConfigs: 'حذف پیکربندی ابری انتخاب شده',
 
   // Original text: 'No config file selected'
-  noConfigFile: undefined,
+  noConfigFile: 'هیچ فایل پیکربندی انتخاب نشده است',
 
   // Original text: 'Try dropping a config file here, or click to select a config file to upload.'
-  importTip: undefined,
+  importTip: 'سعی کنید یک فایل پیکربندی را در اینجا رها کنید یا برای انتخاب یک فایل پیکربندی برای آپلود کلیک کنید.',
 
   // Original text: 'Config'
-  config: undefined,
+  config: 'پیکربندی',
 
   // Original text: 'Import'
-  importConfig: undefined,
+  importConfig: 'وارد کردن',
 
   // Original text: 'Config file successfully imported'
-  importConfigSuccess: undefined,
+  importConfigSuccess: 'فایل پیکربندی با موفقیت وارد شد',
 
   // Original text: 'Error while importing config file'
-  importConfigError: undefined,
+  importConfigError: 'خطا هنگام وارد کردن فایل پیکربندی',
 
   // Original text: 'Export'
-  exportConfig: undefined,
+  exportConfig: 'صادر کردن',
 
   // Original text: 'Download current config'
-  downloadConfig: undefined,
+  downloadConfig: 'پیکربندی فعلی را دانلود کنید',
 
   // Original text: 'No config import available for Community Edition'
-  noConfigImportCommunity: undefined,
+  noConfigImportCommunity: 'هیچ پیکربندی وارد شده ای برای نسخه عمومی موجود نیست',
 
   // Original text: 'Reconnect all hosts'
-  srReconnectAllModalTitle: undefined,
+  srReconnectAllModalTitle: 'وصل دوباره همه میزبان ها',
 
   // Original text: 'This will reconnect this SR to all its hosts.'
-  srReconnectAllModalMessage: undefined,
+  srReconnectAllModalMessage: 'این کار این مخزن ذخیره سازی (SR) را دوباره به همه میزبان هایش متصل می کند.',
 
   // Original text: 'This will reconnect each selected SR to its host (local SR) or to every hosts of its pool (shared SR).'
-  srsReconnectAllModalMessage: undefined,
+  srsReconnectAllModalMessage:
+    'این کار هر مخزن ذخیره سازی (SR) انتخاب شده را به میزبان خود (مخزن ذخیره سازی محلی) یا به هر میزبان از استخر خود (مخزن ذخیره سازی مشترک) دوباره متصل می کند.',
 
   // Original text: 'Disconnect all hosts'
-  srDisconnectAllModalTitle: undefined,
+  srDisconnectAllModalTitle: 'قطع کردن تمام میزبان ها',
 
   // Original text: 'This will disconnect this SR from all its hosts.'
-  srDisconnectAllModalMessage: undefined,
+  srDisconnectAllModalMessage: 'این کار مخزن ذخیره سازی (SR) را از همه میزبان هایش جدا می کند.',
 
   // Original text: 'This will disconnect each selected SR from its host (local SR) or from every hosts of its pool (shared SR).'
-  srsDisconnectAllModalMessage: undefined,
+  srsDisconnectAllModalMessage:
+    'این کار هر مخزن ذخیره سازی (SR) انتخاب شده را از میزبان خود (مخزن ذخیره سازی محلی) یا از هر میزبان از استخر خود (مخزن ذخیره سازی مشترک) جدا می کند.',
 
   // Original text: 'Forget SR'
-  srForgetModalTitle: undefined,
+  srForgetModalTitle: 'فراموش کردن مخزن ذخیره سازی (SR)',
 
   // Original text: 'Forget selected SRs'
-  srsForgetModalTitle: undefined,
+  srsForgetModalTitle: 'فراموش کردن مخزن های ذخیره سازی (SR) انتخاب شده',
 
   // Original text: "Are you sure you want to forget this SR? VDIs on this storage won't be removed."
-  srForgetModalMessage: undefined,
+  srForgetModalMessage:
+    'آیا مطمئن هستید که می خواهید این مخزن ذخیره سازی (SR) را فراموش کنید؟ VDIها روی این ذخیره ساز حذف نمی شوند.',
 
   // Original text: "Are you sure you want to forget all the selected SRs? VDIs on these storages won't be removed."
-  srsForgetModalMessage: undefined,
+  srsForgetModalMessage:
+    'آیا مطمئن هستید که می خواهید همه مخزن های ذخیره سازی (SR) انتخاب شده را فراموش کنید؟ VDIهای موجود در این ذخیره سازها حذف نمی شوند.',
 
   // Original text: 'Disconnected'
-  srAllDisconnected: undefined,
+  srAllDisconnected: 'قطع شده است',
 
   // Original text: 'Partially connected'
-  srSomeConnected: undefined,
+  srSomeConnected: 'تا حدی متصل است',
 
   // Original text: 'Connected'
-  srAllConnected: undefined,
+  srAllConnected: 'متصل شده است',
 
   // Original text: 'XOSAN'
-  xosanTitle: undefined,
+  xosanTitle: 'XOSAN',
 
   // Original text: 'Xen Orchestra SAN SR'
-  xosanSrTitle: undefined,
+  xosanSrTitle: 'مخزن ذخیره سازی (SR) از نوع SAN برای Xen Orchestra',
 
   // Original text: 'Select local SRs (lvm)'
-  xosanAvailableSrsTitle: undefined,
+  xosanAvailableSrsTitle: 'انتخاب مخزن های ذخیره سازی (SR) محلی (lvm)',
 
   // Original text: 'Suggestions'
-  xosanSuggestions: undefined,
+  xosanSuggestions: 'پیشنهادها',
 
   // Original text: 'Warning: using disperse layout is not recommended right now. Please read {link}.'
-  xosanDisperseWarning: undefined,
+  xosanDisperseWarning: 'هشدار: در حال حاضر استفاده از طرح پراکنده توصیه نمی شود. لطفاً {link} را بخوانید.',
 
   // Original text: 'Name'
-  xosanName: undefined,
+  xosanName: 'نام',
 
   // Original text: 'Host'
-  xosanHost: undefined,
+  xosanHost: 'میزبان',
 
   // Original text: 'Connected Hosts'
-  xosanHosts: undefined,
+  xosanHosts: 'میزبان های متصل',
 
   // Original text: 'Pool'
-  xosanPool: undefined,
+  xosanPool: 'استخر',
 
   // Original text: 'Volume ID'
-  xosanVolumeId: undefined,
+  xosanVolumeId: 'شناسه حجم (Volume ID)',
 
   // Original text: 'Size'
-  xosanSize: undefined,
+  xosanSize: 'اندازه',
 
   // Original text: 'Used space'
-  xosanUsedSpace: undefined,
+  xosanUsedSpace: 'فضای استفاده شده',
 
   // Original text: 'License'
-  xosanLicense: undefined,
+  xosanLicense: 'مجوز',
 
   // Original text: 'This XOSAN has more than 1 license!'
-  xosanMultipleLicenses: undefined,
+  xosanMultipleLicenses: 'این XOSAN بیش از 1 لایسنس دارد!',
 
   // Original text: 'XOSAN pack needs to be installed and up to date on each host of the pool.'
-  xosanNeedPack: undefined,
+  xosanNeedPack: 'بسته XOSAN باید بر روی هر میزبان از استخر نصب و به روز رسانی شود.',
 
   // Original text: 'Install it now!'
-  xosanInstallIt: undefined,
+  xosanInstallIt: 'اکنون آن را نصب کنید!',
 
   // Original text: 'Some hosts need their toolstack to be restarted before you can create an XOSAN'
-  xosanNeedRestart: undefined,
+  xosanNeedRestart:
+    'برخی از هاست ها قبل از اینکه بتوانید یک XOSAN ایجاد کنید، نیاز به راه اندازی مجدد toolstack خود دارند',
 
   // Original text: 'Restart toolstacks'
-  xosanRestartAgents: undefined,
+  xosanRestartAgents: 'راه اندازی مجدد toolstackها',
 
   // Original text: 'Pool master is not running'
-  xosanMasterOffline: undefined,
+  xosanMasterOffline: 'استخر اصلی در حال اجرا نیست',
 
   // Original text: 'Install XOSAN pack on {pool}'
-  xosanInstallPackTitle: undefined,
+  xosanInstallPackTitle: 'نصب بسته XOSAN بر روی {pool}',
 
   // Original text: 'Select at least 2 SRs'
-  xosanSelect2Srs: undefined,
+  xosanSelect2Srs: 'حداقل دو مخزن ذخیره سازی (SR) را انتخاب کنید',
 
   // Original text: 'Layout'
-  xosanLayout: undefined,
+  xosanLayout: 'چیدمان',
 
   // Original text: 'Redundancy'
-  xosanRedundancy: undefined,
+  xosanRedundancy: 'افزونگی',
 
   // Original text: 'Capacity'
-  xosanCapacity: undefined,
+  xosanCapacity: 'ظرفیت',
 
   // Original text: 'Available space'
-  xosanAvailableSpace: undefined,
+  xosanAvailableSpace: 'فضای موجود',
 
   // Original text: '* Can fail without data loss'
-  xosanDiskLossLegend: undefined,
+  xosanDiskLossLegend: '* می تواند بدون از دست دادن داده ها شکست بخورد',
 
   // Original text: 'Create'
-  xosanCreate: undefined,
+  xosanCreate: 'ایجاد',
 
   // Original text: 'Add'
-  xosanAdd: undefined,
+  xosanAdd: 'اضافه کردن',
 
   // Original text: 'Installing XOSAN. Please wait…'
-  xosanInstalling: undefined,
+  xosanInstalling: 'نصب XOSAN. لطفا صبر کنید…',
 
   // Original text: 'No XOSAN available for Community Edition'
-  xosanCommunity: undefined,
+  xosanCommunity: 'XOSAN برای نسخه عمومی موجود نیست',
 
   // Original text: 'New'
-  xosanNew: undefined,
+  xosanNew: 'جدید',
 
   // Original text: 'Advanced'
-  xosanAdvanced: undefined,
+  xosanAdvanced: 'پیشرفته',
 
   // Original text: 'Remove subvolumes'
-  xosanRemoveSubvolumes: undefined,
+  xosanRemoveSubvolumes: 'حذف حجم های فرعی (subvolume)',
 
   // Original text: 'Add subvolume…'
-  xosanAddSubvolume: undefined,
+  xosanAddSubvolume: 'افزودن حجم فرعی…',
 
   // Original text: "This version of XOSAN SR is from the first beta phase. You can keep using it, but to modify it you'll have to save your disks and re-create it."
-  xosanWarning: undefined,
+  xosanWarning:
+    'این نسخه از مخزن ذخیره سازی (SR) XOSAN از اولین فاز بتا است. می توانید به استفاده از آن ادامه دهید، اما برای تغییر آن باید دیسک های خود را ذخیره کرده و دوباره آن را ایجاد کنید.',
 
   // Original text: 'VLAN'
-  xosanVlan: undefined,
+  xosanVlan: 'شبکه مجازی محلی',
 
   // Original text: 'No XOSAN found'
-  xosanNoSrs: undefined,
+  xosanNoSrs: 'XOSAN پیدا نشد',
 
   // Original text: 'Some SRs are detached from the XOSAN'
-  xosanPbdsDetached: undefined,
+  xosanPbdsDetached: 'برخی از مخزن های ذخیره سازی (SR) از XOSAN جدا شده اند',
 
   // Original text: 'Something is wrong with: {badStatuses}'
-  xosanBadStatus: undefined,
+  xosanBadStatus: 'مشکلی در این مورد وجود دارد: {badStatuses}',
 
   // Original text: 'Running'
-  xosanRunning: undefined,
+  xosanRunning: 'در حال اجرا',
 
   // Original text: 'Update packs'
-  xosanUpdatePacks: undefined,
+  xosanUpdatePacks: 'به روز رسانی بسته ها',
 
   // Original text: 'Checking for updates'
-  xosanPackUpdateChecking: undefined,
+  xosanPackUpdateChecking: 'در حال بررسی برای روز رسانی',
 
   // Original text: 'Error while checking XOSAN packs. Please make sure that the Cloud plugin is installed and loaded and that the updater is reachable.'
-  xosanPackUpdateError: undefined,
+  xosanPackUpdateError:
+    'خطا هنگام بررسی بسته های XOSAN. لطفاً مطمئن شوید که افزونه Cloud نصب و بارگذاری شده است و به‌روزرسانی‌کننده قابل دسترسی است.',
 
   // Original text: 'XOSAN resources are unavailable'
-  xosanPackUpdateUnavailable: undefined,
+  xosanPackUpdateUnavailable: 'منابع XOSAN در دسترس نیستند',
 
   // Original text: 'Not registered for XOSAN resources'
-  xosanPackUpdateUnregistered: undefined,
+  xosanPackUpdateUnregistered: 'برای منابع XOSAN ثبت نشده است',
 
   // Original text: "✓ This pool's XOSAN packs are up to date!"
-  xosanPackUpdateUpToDate: undefined,
+  xosanPackUpdateUpToDate: '✓ بسته های XOSAN این استخر به روز هستند!',
 
   // Original text: 'Update pool with latest pack v{version}'
-  xosanPackUpdateVersion: undefined,
+  xosanPackUpdateVersion: 'به روز رسانی استخر با آخرین پک v{version}',
 
   // Original text: 'Delete XOSAN'
-  xosanDelete: undefined,
+  xosanDelete: 'حذف XOSAN',
 
   // Original text: 'Fix'
-  xosanFixIssue: undefined,
+  xosanFixIssue: 'تعمیر',
 
   // Original text: 'Creating XOSAN on {pool}'
-  xosanCreatingOn: undefined,
+  xosanCreatingOn: 'ایجاد XOSAN در {pool}',
 
   // Original text: 'Configuring network…'
-  xosanState_configuringNetwork: undefined,
+  xosanState_configuringNetwork: 'در حال پیکربندی شبکه…',
 
   // Original text: 'Importing VM…'
-  xosanState_importingVm: undefined,
+  xosanState_importingVm: 'در حال وارد کردن ماشین مجازی…',
 
   // Original text: 'Copying VMs…'
-  xosanState_copyingVms: undefined,
+  xosanState_copyingVms: 'در حال کپی کردن ماشین های مجازی…',
 
   // Original text: 'Configuring VMs…'
-  xosanState_configuringVms: undefined,
+  xosanState_configuringVms: 'در حال پیکربندی ماشین های مجازی',
 
   // Original text: 'Configuring gluster…'
-  xosanState_configuringGluster: undefined,
+  xosanState_configuringGluster: 'در حال پیکربندی گلاستر…',
 
   // Original text: 'Creating SR…'
-  xosanState_creatingSr: undefined,
+  xosanState_creatingSr: 'در حال ایجاد کردن مخزن ذخیره سازی (SR)…',
 
   // Original text: 'Scanning SR…'
-  xosanState_scanningSr: undefined,
+  xosanState_scanningSr: 'در حال اسکن کردن مخزن ذخیره سازی (SR)…',
 
   // Original text: 'Install cloud plugin first'
-  xosanInstallCloudPlugin: undefined,
+  xosanInstallCloudPlugin: 'ابتدا افزونه ابری را نصب کنید',
 
   // Original text: 'Load cloud plugin first'
-  xosanLoadCloudPlugin: undefined,
+  xosanLoadCloudPlugin: 'ابتدا افزونه ابری را بارگیری کنید',
 
   // Original text: 'Register your appliance first'
-  xosanRegister: undefined,
+  xosanRegister: 'ابتدا دستگاه خود را ثبت کنید',
 
   // Original text: 'Loading…'
-  xosanLoading: undefined,
+  xosanLoading: 'بارگذاری…',
 
   // Original text: 'XOSAN is not available at the moment'
-  xosanNotAvailable: undefined,
+  xosanNotAvailable: 'در حال حاضر XOSAN در دسترس نیست',
 
   // Original text: 'No compatible XOSAN pack found for your XenServer versions.'
-  xosanNoPackFound: undefined,
+  xosanNoPackFound: 'هیچ بسته XOSAN سازگاری برای نسخه‌های XenServer شما یافت نشد.',
 
   // Original text: 'Some XOSAN Virtual Machines are not running'
-  xosanVmsNotRunning: undefined,
+  xosanVmsNotRunning: 'برخی از ماشین های مجازی XOSAN در حال اجرا نیستند',
 
   // Original text: 'Some XOSAN Virtual Machines could not be found'
-  xosanVmsNotFound: undefined,
+  xosanVmsNotFound: 'برخی از ماشین های مجازی XOSAN یافت نشد',
 
   // Original text: 'Files needing healing'
-  xosanFilesNeedingHealing: undefined,
+  xosanFilesNeedingHealing: 'فایل هایی که نیاز به تعمیر کردن دارند',
 
   // Original text: 'Some XOSAN Virtual Machines have files needing healing'
-  xosanFilesNeedHealing: undefined,
+  xosanFilesNeedHealing: 'برخی از ماشین‌های مجازی XOSAN دارای فایل‌هایی هستند که نیاز به تعمیر کردن دارند',
 
   // Original text: 'Host {hostName} is not in XOSAN network'
-  xosanHostNotInNetwork: undefined,
+  xosanHostNotInNetwork: 'میزبان {hostName} در شبکه XOSAN نیست',
 
   // Original text: 'VM controller'
-  xosanVm: undefined,
+  xosanVm: 'کنترلر ماشین مجازی',
 
   // Original text: 'SR'
-  xosanUnderlyingStorage: undefined,
+  xosanUnderlyingStorage: 'مخزن ذخیره سازی (SR)',
 
   // Original text: 'Replace…'
-  xosanReplace: undefined,
+  xosanReplace: 'جایگزین کردن…',
 
   // Original text: 'On same VM'
-  xosanOnSameVm: undefined,
+  xosanOnSameVm: 'در همان ماشین مجازی',
 
   // Original text: 'Brick name'
-  xosanBrickName: undefined,
+  xosanBrickName: 'نام برک',
 
   // Original text: 'Brick UUID'
-  xosanBrickUuid: undefined,
+  xosanBrickUuid: 'UUID برک',
 
   // Original text: 'Brick size'
-  xosanBrickSize: undefined,
+  xosanBrickSize: 'اندازه برک',
 
   // Original text: 'Memory size'
-  xosanMemorySize: undefined,
+  xosanMemorySize: 'اندازه حافظه',
 
   // Original text: 'Status'
-  xosanStatus: undefined,
+  xosanStatus: 'وضعیت',
 
   // Original text: 'Arbiter'
-  xosanArbiter: undefined,
+  xosanArbiter: 'میانجی',
 
   // Original text: 'Used Inodes'
-  xosanUsedInodes: undefined,
+  xosanUsedInodes: 'اینودهای (Inode) استفاده شده',
 
   // Original text: 'Block size'
-  xosanBlockSize: undefined,
+  xosanBlockSize: 'اندازه بلوک',
 
   // Original text: 'Device'
-  xosanDevice: undefined,
+  xosanDevice: 'دستگاه',
 
   // Original text: 'FS name'
-  xosanFsName: undefined,
+  xosanFsName: 'نام سیستم فایل',
 
   // Original text: 'Mount options'
-  xosanMountOptions: undefined,
+  xosanMountOptions: 'گزینه های نصب',
 
   // Original text: 'Path'
-  xosanPath: undefined,
+  xosanPath: 'مسیر',
 
   // Original text: 'Job'
-  xosanJob: undefined,
+  xosanJob: 'کار',
 
   // Original text: 'PID'
-  xosanPid: undefined,
+  xosanPid: 'شماره شناسایی فرآیند (PID)',
 
   // Original text: 'Port'
-  xosanPort: undefined,
+  xosanPort: 'پورت',
 
   // Original text: 'Missing values'
-  xosanReplaceBrickErrorTitle: undefined,
+  xosanReplaceBrickErrorTitle: 'مقادیر از دست رفته',
 
   // Original text: 'You need to select a SR and a size'
-  xosanReplaceBrickErrorMessage: undefined,
+  xosanReplaceBrickErrorMessage: 'شما باید یک مخزن ذخیره سازی (SR) و یک اندازه را انتخاب کنید',
 
   // Original text: 'Bad values'
-  xosanAddSubvolumeErrorTitle: undefined,
+  xosanAddSubvolumeErrorTitle: 'مقادیر بد',
 
   // Original text: 'You need to select {nSrs, number} and a size'
-  xosanAddSubvolumeErrorMessage: undefined,
+  xosanAddSubvolumeErrorMessage: 'شما باید {nSrs, number} و یک اندازه را انتخاب کنید',
 
   // Original text: 'Select {nSrs, number} SRs'
-  xosanSelectNSrs: undefined,
+  xosanSelectNSrs: 'مخزن های ذخیره سازی (SR) {nSrs, number} را انتخاب کنید',
 
   // Original text: 'Run'
-  xosanRun: undefined,
+  xosanRun: 'اجرا',
 
   // Original text: 'Remove'
-  xosanRemove: undefined,
+  xosanRemove: 'حذف کردن',
 
   // Original text: 'Volume'
-  xosanVolume: undefined,
+  xosanVolume: 'حجم',
 
   // Original text: 'Volume options'
-  xosanVolumeOptions: undefined,
+  xosanVolumeOptions: 'گزینه های حجم',
 
   // Original text: 'Could not find VM'
-  xosanCouldNotFindVm: undefined,
+  xosanCouldNotFindVm: 'ماشین مجازی پیدا نشد',
 
   // Original text: 'Using {usage}'
-  xosanUnderlyingStorageUsage: undefined,
+  xosanUnderlyingStorageUsage: 'استفاده از {usage}',
 
   // Original text: 'Custom IP network (/24)'
-  xosanCustomIpNetwork: undefined,
+  xosanCustomIpNetwork: 'شبکه IP سفارشی (/24)',
 
   // Original text: 'Will configure the host xosan network device with a static IP address and plug it in.'
-  xosanIssueHostNotInNetwork: undefined,
+  xosanIssueHostNotInNetwork: 'دستگاه شبکه میزبان xosan رابا یک آدرس IP ثابت پیکربندی و آن را وصل خواهد کرد.',
 
   // Original text: 'Licenses'
-  licensesTitle: undefined,
+  licensesTitle: 'لایسنس ها',
 
   // Original text: 'You are not registered and therefore will not be able to create or manage your XOSAN SRs. {link}'
-  xosanUnregisteredDisclaimer: undefined,
+  xosanUnregisteredDisclaimer:
+    'شما ثبت نام نکرده اید و بنابراین نمی توانید مخزن های ذخیره سازی (SR) XOSAN خود را ایجاد یا مدیریت کنید. {link}',
 
   // Original text: 'In order to create a XOSAN SR, you need to use the Xen Orchestra Appliance and buy a XOSAN license on {link}.'
-  xosanSourcesDisclaimer: undefined,
+  xosanSourcesDisclaimer:
+    'برای ایجاد یک مخزن ذخیره سازی (SR) XOSAN باید از دستگاه Xen Orchestra استفاده کنید و یک مجوز XOSAN در {link} خریداری کنید.',
 
   // Original text: 'Register now!'
-  registerNow: undefined,
+  registerNow: 'اکنون ثبت نام کنید!',
 
   // Original text: 'You need to register your appliance to manage your licenses.'
-  licensesUnregisteredDisclaimer: undefined,
+  licensesUnregisteredDisclaimer: 'برای مدیریت لایسنس های خود باید دستگاه خود را ثبت کنید.',
 
   // Original text: 'Product'
-  licenseProduct: undefined,
+  licenseProduct: 'محصول',
 
   // Original text: 'Attached to'
-  licenseBoundObject: undefined,
+  licenseBoundObject: 'پیوست به',
 
   // Original text: 'Purchaser'
-  licensePurchaser: undefined,
+  licensePurchaser: 'خریدار',
 
   // Original text: 'Expires'
-  licenseExpires: undefined,
+  licenseExpires: 'انقضا',
 
   // Original text: 'You'
-  licensePurchaserYou: undefined,
+  licensePurchaserYou: 'شما',
 
   // Original text: 'Support'
-  productSupport: undefined,
+  productSupport: 'پشتیبانی',
 
   // Original text: 'No XOSAN attached'
-  licenseNotBoundXosan: undefined,
+  licenseNotBoundXosan: 'XOSAN متصل نشده است',
 
   // Original text: 'License attached to an unknown XOSAN'
-  licenseBoundUnknownXosan: undefined,
+  licenseBoundUnknownXosan: 'لایسنس به یک XOSAN ناشناخته متصل شده است',
 
   // Original text: 'Manage the licenses'
-  licensesManage: undefined,
+  licensesManage: 'مدیریت لایسنس ها',
 
   // Original text: 'New license'
-  newLicense: undefined,
+  newLicense: 'لایسنس جدید',
 
   // Original text: 'Refresh'
-  refreshLicenses: undefined,
+  refreshLicenses: 'تازه کردن',
 
   // Original text: 'Limited size because XOSAN is in trial'
-  xosanLicenseRestricted: undefined,
+  xosanLicenseRestricted: 'اندازه محدود زیرا XOSAN در حال آزمایشی است',
 
   // Original text: 'You need a license on this SR to manage the XOSAN.'
-  xosanAdminNoLicenseDisclaimer: undefined,
+  xosanAdminNoLicenseDisclaimer: 'برای مدیریت XOSAN به یک لایسنس در این مخزن ذخیره سازی (SR) نیاز دارید.',
 
   // Original text: 'Your XOSAN license has expired. You can still use the SR but cannot administrate it anymore.'
-  xosanAdminExpiredLicenseDisclaimer: undefined,
+  xosanAdminExpiredLicenseDisclaimer:
+    'لایسنس XOSAN شما منقضی شده است. شما همچنان می توانید از مخزن ذخیره سازی (SR) استفاده کنید اما دیگر نمی توانید آن را مدیریت کنید.',
 
   // Original text: 'Could not check the license on this XOSAN SR'
-  xosanCheckLicenseError: undefined,
+  xosanCheckLicenseError: 'نمی‌توان لایسنس را بر روی این مخزن ذخیره سازی (SR) XOSAN بررسی کرد',
 
   // Original text: 'Could not fetch licenses'
-  xosanGetLicensesError: undefined,
+  xosanGetLicensesError: 'لایسنس ها دریافت نشدند',
 
   // Original text: 'License has expired.'
-  xosanLicenseHasExpired: undefined,
+  xosanLicenseHasExpired: 'لایسنس منقضی شده است.',
 
   // Original text: 'License expires on {date}.'
-  xosanLicenseExpiresDate: undefined,
+  xosanLicenseExpiresDate: 'لایسنس در {date} منقضی می شود.',
 
   // Original text: 'Update the license now!'
-  xosanUpdateLicenseMessage: undefined,
+  xosanUpdateLicenseMessage: 'اکنون لایسنس را به روز رسانی کنید!',
 
   // Original text: 'Unknown XOSAN SR.'
-  xosanUnknownSr: undefined,
+  xosanUnknownSr: 'مخزن ذخیره سازی (SR) ناشناس XOSAN.',
 
   // Original text: 'Contact us!'
-  contactUs: undefined,
+  contactUs: 'با ما تماس بگیرید!',
 
   // Original text: 'No license.'
-  xosanNoLicense: undefined,
+  xosanNoLicense: 'بدون لایسنس.',
 
   // Original text: 'Unlock now!'
-  xosanUnlockNow: undefined,
+  xosanUnlockNow: 'اکنون قفل را باز کنید!',
 
   // Original text: 'Select a license'
-  selectLicense: undefined,
+  selectLicense: 'انتخاب یک لایسنس',
 
   // Original text: 'Bind license'
-  bindLicense: undefined,
+  bindLicense: 'بستن لایسنس',
 
   // Original text: 'expires on {date}'
-  expiresOn: undefined,
+  expiresOn: 'در {date} منقضی می شود',
 
   // Original text: 'Install XOA plugin first'
-  xosanInstallXoaPlugin: undefined,
+  xosanInstallXoaPlugin: 'ابتدا افزونه XOA را نصب کنید',
 
   // Original text: 'Load XOA plugin first'
-  xosanLoadXoaPlugin: undefined,
+  xosanLoadXoaPlugin: 'ابتدا افزونه XOA را بارگیری کنید',
 
   // Original text: '{seconds, plural, one {# second} other {# seconds}}'
-  secondsFormat: undefined,
+  secondsFormat: '{seconds, plural, one {# second} other {# seconds}}',
 
   // Original text: '{days, plural, =0 {} one {# day } other {# days }}{hours, plural, =0 {} one {# hour } other {# hours }}{minutes, plural, =0 {} one {# minute } other {# minutes }}{seconds, plural, =0 {} one {# second} other {# seconds}}'
-  durationFormat: undefined,
+  durationFormat:
+    '{days, plural, =0 {} one {# day } other {# days }}{hours, plural, =0 {} one {# hour } other {# hours }}{minutes, plural, =0 {} one {# minute } other {# minutes }}{seconds, plural, =0 {} one {# second} other {# seconds}}',
 }
