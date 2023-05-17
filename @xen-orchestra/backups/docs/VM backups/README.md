@@ -174,10 +174,14 @@ job:
   # Here for historical reasons
   type: 'backup'
 
-  # Indicates which VMs to backup/replicate
+  # Indicates which VMs to backup/replicate for a xapi to remote backup job
   vms: IdPattern
 
+  # Indicates which VMs to backup/replicate for a remote to remote backup job
+  sourceRemote: IdPattern
+
 # Indicates which XAPI to use to connect to a specific VM or SR
+# for remote to remote backup job,this is only needed if there is healtcheck
 recordToXapi:
   [ObjectId]: XapiId
 
