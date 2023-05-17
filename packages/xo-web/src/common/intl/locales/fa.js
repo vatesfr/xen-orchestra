@@ -4,7 +4,7 @@ import 'moment/locale/fa'
 import reactIntlData from 'react-intl/locale-data/fa'
 import { addLocaleData } from 'react-intl'
 addLocaleData(reactIntlData)
-document.body.style.direction = 'rtl'
+
 // ===================================================================
 
 export default {
