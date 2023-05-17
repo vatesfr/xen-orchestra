@@ -160,7 +160,12 @@ class StreamParser {
     yield* this.blocks()
   }
 }
+
 exports.parseVhdStream = async function* parseVhdStream(stream) {
-  const parser = new StreamParser(stream)
-  yield* parser.parse()
+  if (stream._iterator) {
+    yield* stream._iterator()
+  } else {
+    const parser = new StreamParser(stream)
+    yield* parser.parse()
+  }
 }

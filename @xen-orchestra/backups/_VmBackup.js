@@ -267,7 +267,7 @@ class VmBackup {
     await this._callWriters(
       writer =>
         writer.transfer({
-          deltaExport: forkDeltaExport(deltaExport),
+          deltaExport: this._writers.size > 1 ? forkDeltaExport(deltaExport) : deltaExport,
           sizeContainers,
           timestamp,
         }),
