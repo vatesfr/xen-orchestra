@@ -253,7 +253,7 @@ export default class NewVm extends BaseComponent {
 
   componentDidUpdate(prevProps) {
     if (get(() => prevProps.template.id) !== get(() => this.props.template.id)) {
-      this._initTemplate(this.props.template)
+      this._reset(() => this._initTemplate(this.props.template))
     }
   }
 
@@ -296,6 +296,8 @@ export default class NewVm extends BaseComponent {
   // Actions ---------------------------------------------------------------------
 
   _reset = callback => {
+    const resourceSet = this._getResourceSet()
+    const share = resourceSet !== undefined ? resourceSet.share : false
     this._replaceState(
       {
         bootAfterCreate: true,
@@ -320,7 +322,7 @@ export default class NewVm extends BaseComponent {
         VIFs: [],
         secureBoot: false,
         seqStart: 1,
-        share: false,
+        share,
         tags: [],
       },
       callback

@@ -1632,7 +1632,7 @@ const messages = {
   availableResourceLabel: 'Available',
   resourceSetQuota: 'Used: {usage} (Total: {total})',
   resourceSetNew: 'New',
-
+  shareVmByDefault: 'Share VM by default',
   // ---- VM import ---
   fileType: 'File type:',
   firmware: 'Firmware',
