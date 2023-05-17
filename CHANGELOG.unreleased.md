@@ -32,6 +32,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/mixins patch
 - xo-cli minor
 - xo-web minor
 
