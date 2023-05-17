@@ -1,4 +1,5 @@
-/* eslint-env jest */
+import { describe, it } from 'test'
+import { strict as assert } from 'assert'
 
 import { Readable } from 'readable-stream'
 import copyStreamToBuffer from './_copyStreamToBuffer.js'
@@ -16,6 +17,6 @@ describe('copyStreamToBuffer', () => {
 
     await copyStreamToBuffer(stream, buffer)
 
-    expect(buffer.toString()).toBe('hel')
+    assert.equal(buffer.toString(), 'hel')
   })
 })

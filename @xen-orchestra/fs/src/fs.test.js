@@ -1,4 +1,5 @@
-/* eslint-env jest */
+import { after, afterEach, before, beforeEach, describe, it } from 'test'
+import { strict as assert } from 'assert'
 
 import 'dotenv/config'
 import { forOwn, random } from 'lodash'
@@ -53,11 +54,11 @@ handlers.forEach(url => {
       })
     }
 
-    beforeAll(async () => {
+    before(async () => {
       handler = getHandler({ url }).addPrefix(`xo-fs-tests-${Date.now()}`)
       await handler.sync()
     })
-    afterAll(async () => {
+    after(async () => {
       await handler.forget()
       handler = undefined
     })
@@ -72,67 +73,63 @@ handlers.forEach(url => {
 
     describe('#type', () => {
       it('returns the type of the remote', () => {
-        expect(typeof handler.type).toBe('string')
+        assert.equal(typeof handler.type, 'string')
       })
     })
 
     describe('#getInfo()', () => {
       let info
-      beforeAll(async () => {
+      before(async () => {
         info = await handler.getInfo()
       })
 
       it('should return an object with info', async () => {
-        expect(typeof info).toBe('object')
+        assert.equal(typeof info, 'object')
       })
 
       it('should return correct type of attribute', async () => {
         if (info.size !== undefined) {
-          expect(typeof info.size).toBe('number')
+          assert.equal(typeof info.size, 'number')
         }
         if (info.used !== undefined) {
-          expect(typeof info.used).toBe('number')
+          assert.equal(typeof info.used, 'number')
         }
       })
     })
 
     describe('#getSize()', () => {
-      beforeEach(() => handler.outputFile('file', TEST_DATA))
+      before(() => handler.outputFile('file', TEST_DATA))
 
       testWithFileDescriptor('file', 'r', async () => {
-        expect(await handler.getSize('file')).toEqual(TEST_DATA_LEN)
+        assert.equal(await handler.getSize('file'), TEST_DATA_LEN)
       })
     })
 
     describe('#list()', () => {
       it(`should list the content of folder`, async () => {
         await handler.outputFile('file', TEST_DATA)
-        await expect(await handler.list('.')).toEqual(['file'])
+        assert.deepEqual(await handler.list('.'), ['file'])
       })
 
       it('can prepend the directory to entries', async () => {
         await handler.outputFile('dir/file', '')
-        expect(await handler.list('dir', { prependDir: true })).toEqual(['/dir/file'])
-      })
-
-      it('can prepend the directory to entries', async () => {
-        await handler.outputFile('dir/file', '')
-        expect(await handler.list('dir', { prependDir: true })).toEqual(['/dir/file'])
+        assert.deepEqual(await handler.list('dir', { prependDir: true }), ['/dir/file'])
       })
 
       it('throws ENOENT if no such directory', async () => {
-        expect((await rejectionOf(handler.list('dir'))).code).toBe('ENOENT')
+        await handler.rmtree('dir')
+        assert.equal((await rejectionOf(handler.list('dir'))).code, 'ENOENT')
       })
 
       it('can returns empty for missing directory', async () => {
-        expect(await handler.list('dir', { ignoreMissing: true })).toEqual([])
+        assert.deepEqual(await handler.list('dir', { ignoreMissing: true }), [])
       })
     })
 
     describe('#mkdir()', () => {
       it('creates a directory', async () => {
         await handler.mkdir('dir')
-        await expect(await handler.list('.')).toEqual(['dir'])
+        assert.deepEqual(await handler.list('.'), ['dir'])
       })
 
       it('does not throw on existing directory', async () => {
@@ -143,15 +140,15 @@ handlers.forEach(url => {
       it('throws ENOTDIR on existing file', async () => {
         await handler.outputFile('file', '')
         const error = await rejectionOf(handler.mkdir('file'))
-        expect(error.code).toBe('ENOTDIR')
+        assert.equal(error.code, 'ENOTDIR')
       })
     })
 
     describe('#mktree()', () => {
       it('creates a tree of directories', async () => {
         await handler.mktree('dir/dir')
-        await expect(await handler.list('.')).toEqual(['dir'])
-        await expect(await handler.list('dir')).toEqual(['dir'])
+        assert.deepEqual(await handler.list('.'), ['dir'])
+        assert.deepEqual(await handler.list('dir'), ['dir'])
       })
 
       it('does not throw on existing directory', async () => {
@@ -162,26 +159,27 @@ handlers.forEach(url => {
       it('throws ENOTDIR on existing file', async () => {
         await handler.outputFile('dir/file', '')
         const error = await rejectionOf(handler.mktree('dir/file'))
-        expect(error.code).toBe('ENOTDIR')
+        assert.equal(error.code, 'ENOTDIR')
       })
 
       it('throws ENOTDIR on existing file in path', async () => {
         await handler.outputFile('file', '')
         const error = await rejectionOf(handler.mktree('file/dir'))
-        expect(error.code).toBe('ENOTDIR')
+        assert.equal(error.code, 'ENOTDIR')
       })
     })
 
     describe('#outputFile()', () => {
       it('writes data to a file', async () => {
         await handler.outputFile('file', TEST_DATA)
-        expect(await handler.readFile('file')).toEqual(TEST_DATA)
+        assert.deepEqual(await handler.readFile('file'), TEST_DATA)
       })
 
       it('throws on existing files', async () => {
+        await handler.unlink('file')
         await handler.outputFile('file', '')
         const error = await rejectionOf(handler.outputFile('file', ''))
-        expect(error.code).toBe('EEXIST')
+        assert.equal(error.code, 'EEXIST')
       })
 
       it("shouldn't timeout in case of the respect of the parallel execution restriction", async () => {
@@ -192,7 +190,7 @@ handlers.forEach(url => {
     })
 
     describe('#read()', () => {
-      beforeEach(() => handler.outputFile('file', TEST_DATA))
+      before(() => handler.outputFile('file', TEST_DATA))
 
       const start = random(TEST_DATA_LEN)
       const size = random(TEST_DATA_LEN)
@@ -200,8 +198,8 @@ handlers.forEach(url => {
       testWithFileDescriptor('file', 'r', async ({ file }) => {
         const buffer = Buffer.alloc(size)
         const result = await handler.read(file, buffer, start)
-        expect(result.buffer).toBe(buffer)
-        expect(result).toEqual({
+        assert.deepEqual(result.buffer, buffer)
+        assert.deepEqual(result, {
           buffer,
           bytesRead: Math.min(size, TEST_DATA_LEN - start),
         })
@@ -211,12 +209,13 @@ handlers.forEach(url => {
     describe('#readFile', () => {
       it('returns a buffer containing the contents of the file', async () => {
         await handler.outputFile('file', TEST_DATA)
-        expect(await handler.readFile('file')).toEqual(TEST_DATA)
+        assert.deepEqual(await handler.readFile('file'), TEST_DATA)
       })
 
       it('throws on missing file', async () => {
+        await handler.unlink('file')
         const error = await rejectionOf(handler.readFile('file'))
-        expect(error.code).toBe('ENOENT')
+        assert.equal(error.code, 'ENOENT')
       })
     })
 
@@ -225,19 +224,19 @@ handlers.forEach(url => {
         await handler.outputFile('file', TEST_DATA)
         await handler.rename('file', `file2`)
 
-        expect(await handler.list('.')).toEqual(['file2'])
-        expect(await handler.readFile(`file2`)).toEqual(TEST_DATA)
+        assert.deepEqual(await handler.list('.'), ['file2'])
+        assert.deepEqual(await handler.readFile(`file2`), TEST_DATA)
       })
       it(`should rename the file and create dest directory`, async () => {
         await handler.outputFile('file', TEST_DATA)
         await handler.rename('file', `sub/file2`)
 
-        expect(await handler.list('sub')).toEqual(['file2'])
-        expect(await handler.readFile(`sub/file2`)).toEqual(TEST_DATA)
+        assert.deepEqual(await handler.list('sub'), ['file2'])
+        assert.deepEqual(await handler.readFile(`sub/file2`), TEST_DATA)
       })
       it(`should fail with enoent if source file is missing`, async () => {
         const error = await rejectionOf(handler.rename('file', `sub/file2`))
-        expect(error.code).toBe('ENOENT')
+        assert.equal(error.code, 'ENOENT')
       })
     })
 
@@ -245,14 +244,15 @@ handlers.forEach(url => {
       it('should remove an empty directory', async () => {
         await handler.mkdir('dir')
         await handler.rmdir('dir')
-        expect(await handler.list('.')).toEqual([])
+        assert.deepEqual(await handler.list('.'), [])
       })
 
       it(`should throw on non-empty directory`, async () => {
         await handler.outputFile('dir/file', '')
 
         const error = await rejectionOf(handler.rmdir('.'))
-        await expect(error.code).toEqual('ENOTEMPTY')
+        assert.equal(error.code, 'ENOTEMPTY')
+        await handler.unlink('dir/file')
       })
 
       it('does not throw on missing directory', async () => {
@@ -265,7 +265,7 @@ handlers.forEach(url => {
         await handler.outputFile('dir/file', '')
         await handler.rmtree('dir')
 
-        expect(await handler.list('.')).toEqual([])
+        assert.deepEqual(await handler.list('.'), [])
       })
     })
 
@@ -273,9 +273,9 @@ handlers.forEach(url => {
       it('tests the remote appears to be working', async () => {
         const answer = await handler.test()
 
-        expect(answer.success).toBe(true)
-        expect(typeof answer.writeRate).toBe('number')
-        expect(typeof answer.readRate).toBe('number')
+        assert.equal(answer.success, true)
+        assert.equal(typeof answer.writeRate, 'number')
+        assert.equal(typeof answer.readRate, 'number')
       })
     })
 
@@ -284,7 +284,7 @@ handlers.forEach(url => {
         await handler.outputFile('file', TEST_DATA)
         await handler.unlink('file')
 
-        await expect(await handler.list('.')).toEqual([])
+        assert.deepEqual(await handler.list('.'), [])
       })
 
       it('does not throw on missing file', async () => {
@@ -294,6 +294,7 @@ handlers.forEach(url => {
 
     describe('#write()', () => {
       beforeEach(() => handler.outputFile('file', TEST_DATA))
+      afterEach(() => handler.unlink('file'))
 
       const PATCH_DATA_LEN = Math.ceil(TEST_DATA_LEN / 2)
       const PATCH_DATA = unsecureRandomBytes(PATCH_DATA_LEN)
@@ -322,7 +323,7 @@ handlers.forEach(url => {
           describe(title, () => {
             testWithFileDescriptor('file', 'r+', async ({ file }) => {
               await handler.write(file, PATCH_DATA, offset)
-              await expect(await handler.readFile('file')).toEqual(expected)
+              assert.deepEqual(await handler.readFile('file'), expected)
             })
           })
         }
@@ -330,6 +331,7 @@ handlers.forEach(url => {
     })
 
     describe('#truncate()', () => {
+      afterEach(() => handler.unlink('file'))
       forOwn(
         {
           'shrinks file': (() => {
@@ -348,7 +350,7 @@ handlers.forEach(url => {
           it(title, async () => {
             await handler.outputFile('file', TEST_DATA)
             await handler.truncate('file', length)
-            await expect(await handler.readFile('file')).toEqual(expected)
+            assert.deepEqual(await handler.readFile('file'), expected)
           })
         }
       )
