@@ -32,6 +32,7 @@
 
 <!--packages-start-->
 
+- xo-cli minor
 - xo-web minor
 
 <!--packages-end-->
