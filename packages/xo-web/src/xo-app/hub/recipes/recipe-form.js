@@ -67,6 +67,8 @@ export default decorate([
         onChange({
           ...value,
           faultTolerance: faultTolerance.value,
+          // n * 2 + 1 is the formula to meet the quorum of RAFT consensus algorithm
+          controlPlanePoolSize: faultTolerance.value * 2 + 1,
         })
       },
       onChangeWorkerIp(__, ev) {
@@ -203,8 +205,7 @@ export default decorate([
         value.staticIpAddress && [
           value.faultTolerance > 0
             ? [
-                // n * 2 + 1 is the formula to meet the quorum of RAFT consensus algorithm
-                Array.from({ length: value.faultTolerance * 2 + 1 }).map((v, i) => (
+                Array.from({ length: value.controlPlanePoolSize }).map((v, i) => (
                   <FormGrid.Row key={i}>
                     <label>{_('recipeHaControPlaneIpAddress', { i: i + 1 })}</label>
                     <input
