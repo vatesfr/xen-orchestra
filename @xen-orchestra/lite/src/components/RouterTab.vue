@@ -11,10 +11,15 @@
 </template>
 
 <script lang="ts" setup>
+import UiTab from "@/components/ui/UiTab.vue";
+import type { SlotDefinition } from "@/types";
 import { IK_TAB_BAR_DISABLED } from "@/types/injection-keys";
 import { computed, inject } from "vue";
 import type { RouteLocationRaw } from "vue-router";
-import UiTab from "@/components/ui/UiTab.vue";
+
+defineSlots<{
+  default: SlotDefinition;
+}>();
 
 defineProps<{
   to: RouteLocationRaw;

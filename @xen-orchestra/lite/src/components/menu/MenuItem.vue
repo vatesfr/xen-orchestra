@@ -36,6 +36,7 @@
 import AppMenu from "@/components/menu/AppMenu.vue";
 import MenuTrigger from "@/components/menu/MenuTrigger.vue";
 import UiIcon from "@/components/ui/icon/UiIcon.vue";
+import type { SlotDefinition } from "@/types";
 import {
   IK_CLOSE_MENU,
   IK_MENU_DISABLED,
@@ -44,6 +45,11 @@ import {
 import type { IconDefinition } from "@fortawesome/fontawesome-common-types";
 import { faAngleDown, faAngleRight } from "@fortawesome/free-solid-svg-icons";
 import { computed, inject, ref } from "vue";
+
+defineSlots<{
+  default: SlotDefinition;
+  submenu?: SlotDefinition;
+}>();
 
 const props = defineProps<{
   icon?: IconDefinition;

@@ -13,9 +13,14 @@
 >
 import UiSpinner from "@/components/ui/UiSpinner.vue";
 import type { XenApiRecord } from "@/libs/xen-api";
+import type { SlotDefinition } from "@/types";
 import ObjectNotFoundView from "@/views/ObjectNotFoundView.vue";
 import { computed } from "vue";
 import { useRouter } from "vue-router";
+
+defineSlots<{
+  default: SlotDefinition;
+}>();
 
 const props = defineProps<{
   isReady: boolean;

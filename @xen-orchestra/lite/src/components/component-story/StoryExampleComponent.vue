@@ -41,7 +41,17 @@
 </template>
 
 <script lang="ts" setup>
+import type { SlotDefinition } from "@/types";
+
 const moonDistance = 384400;
+
+defineSlots<{
+  default: SlotDefinition;
+  "named-slot": SlotDefinition;
+  "named-scoped-slot": SlotDefinition<{
+    moonDistance: number;
+  }>;
+}>();
 
 withDefaults(
   defineProps<{

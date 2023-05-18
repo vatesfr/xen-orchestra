@@ -26,7 +26,12 @@
 import UiProgressBar from "@/components/ui/progress/UiProgressBar.vue";
 import UiProgressLegend from "@/components/ui/progress/UiProgressLegend.vue";
 import UiCardSpinner from "@/components/ui/UiCardSpinner.vue";
+import type { SlotDefinition } from "@/types";
 import { computed } from "vue";
+
+defineSlots<{
+  footer: SlotDefinition<{ totalPercent: number }>;
+}>();
 
 interface Data {
   id: string;

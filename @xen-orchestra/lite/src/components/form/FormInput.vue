@@ -52,7 +52,7 @@
 
 <script lang="ts" setup>
 import UiIcon from "@/components/ui/icon/UiIcon.vue";
-import type { Color } from "@/types";
+import type { Color, SlotDefinition } from "@/types";
 import {
   IK_FORM_INPUT_COLOR,
   IK_FORM_LABEL_DISABLED,
@@ -72,6 +72,10 @@ import {
 } from "vue";
 
 defineOptions({ inheritAttrs: false });
+
+defineSlots<{
+  default: SlotDefinition;
+}>();
 
 const props = withDefaults(
   defineProps<{

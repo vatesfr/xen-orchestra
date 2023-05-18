@@ -24,9 +24,15 @@
 import UiIcon from "@/components/ui/icon/UiIcon.vue";
 import { vTooltip } from "@/directives/tooltip.directive";
 import { hasEllipsis } from "@/libs/utils";
+import type { SlotDefinition } from "@/types";
 import type { IconDefinition } from "@fortawesome/fontawesome-common-types";
 import { computed, ref } from "vue";
 import type { RouteLocationRaw } from "vue-router";
+
+defineSlots<{
+  default: SlotDefinition;
+  actions: SlotDefinition;
+}>();
 
 defineProps<{
   icon: IconDefinition;

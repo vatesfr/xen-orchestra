@@ -118,11 +118,19 @@ import {
   ModelParam,
   type Param,
 } from "@/libs/story/story-param";
+import type { SlotDefinition } from "@/types";
 import { faSliders } from "@fortawesome/free-solid-svg-icons";
 import "highlight.js/styles/github-dark.css";
 import { uniqueId, upperFirst } from "lodash-es";
 import { computed, reactive, ref, watch, watchEffect } from "vue";
 import { useRoute } from "vue-router";
+
+defineSlots<{
+  default: SlotDefinition<{
+    properties: Record<string, any>;
+    settings: Record<string, any>;
+  }>;
+}>();
 
 const tab = (tab: TAB, params: Param[]) =>
   reactive({

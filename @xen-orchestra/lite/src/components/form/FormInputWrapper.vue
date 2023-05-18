@@ -39,7 +39,6 @@
 import UiIcon from "@/components/ui/icon/UiIcon.vue";
 import type { Color } from "@/types";
 import {
-  IK_FORM_HAS_LABEL,
   IK_FORM_INPUT_COLOR,
   IK_FORM_LABEL_DISABLED,
   IK_INPUT_ID,
@@ -47,9 +46,7 @@ import {
 import type { IconDefinition } from "@fortawesome/fontawesome-common-types";
 import { faInfoCircle } from "@fortawesome/free-solid-svg-icons";
 import { uniqueId } from "lodash-es";
-import { computed, provide, useSlots } from "vue";
-
-const slots = useSlots();
+import { computed, provide } from "vue";
 
 const props = defineProps<{
   label?: string;
@@ -78,11 +75,6 @@ const color = computed<Color | undefined>(() => {
 });
 
 provide(IK_FORM_INPUT_COLOR, color);
-
-provide(
-  IK_FORM_HAS_LABEL,
-  computed(() => slots.label !== undefined)
-);
 
 provide(
   IK_FORM_LABEL_DISABLED,

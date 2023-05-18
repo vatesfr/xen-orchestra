@@ -8,7 +8,12 @@
 
 <script lang="ts" setup>
 import UiIcon from "@/components/ui/icon/UiIcon.vue";
+import type { SlotDefinition } from "@/types";
 import type { IconDefinition } from "@fortawesome/fontawesome-common-types";
+
+defineSlots<{
+  default: SlotDefinition;
+}>();
 
 defineProps<{
   icon?: IconDefinition;

@@ -5,7 +5,7 @@
 </template>
 
 <script lang="ts" setup>
-import type { Color } from "@/types";
+import type { Color, SlotDefinition } from "@/types";
 import {
   IK_BUTTON_GROUP_BUSY,
   IK_BUTTON_GROUP_COLOR,
@@ -15,6 +15,9 @@ import {
 } from "@/types/injection-keys";
 import { computed, provide } from "vue";
 
+defineSlots<{
+  default: SlotDefinition;
+}>();
 const props = defineProps<{
   busy?: boolean;
   disabled?: boolean;

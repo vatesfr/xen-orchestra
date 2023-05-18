@@ -6,8 +6,13 @@
 
 <script lang="ts" setup>
 import FormInput from "@/components/form/FormInput.vue";
+import type { SlotDefinition } from "@/types";
 import { IK_INPUT_TYPE } from "@/types/injection-keys";
 import { provide } from "vue";
+
+defineSlots<{
+  default: SlotDefinition;
+}>();
 
 provide(IK_INPUT_TYPE, "select");
 </script>

@@ -1,6 +1,6 @@
 <template>
   <slot :is-open="isOpen" :open="open" name="trigger" />
-  <Teleport to="body" :disabled="!shouldTeleport">
+  <Teleport :disabled="!shouldTeleport" to="body">
     <ul
       v-if="!hasTrigger || isOpen"
       ref="menu"
@@ -14,15 +14,24 @@
 </template>
 
 <script lang="ts" setup>
+import type { SlotDefinition } from "@/types";
 import {
   IK_CLOSE_MENU,
   IK_MENU_DISABLED,
   IK_MENU_HORIZONTAL,
   IK_MENU_TELEPORTED,
 } from "@/types/injection-keys";
+import { onClickOutside, unrefElement, whenever } from "@vueuse/core";
 import placementJs, { type Options } from "placement.js";
 import { computed, inject, nextTick, provide, ref, useSlots } from "vue";
-import { onClickOutside, unrefElement, whenever } from "@vueuse/core";
+
+defineSlots<{
+  default: SlotDefinition;
+  trigger: SlotDefinition<{
+    isOpen: boolean;
+    open: (event: MouseEvent) => void;
+  }>;
+}>();
 
 const props = defineProps<{
   horizontal?: boolean;

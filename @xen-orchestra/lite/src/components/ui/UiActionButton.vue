@@ -7,8 +7,8 @@
       'has-icon': icon !== undefined,
     }"
     :disabled="isBusy || isDisabled"
-    type="button"
     class="ui-action-button"
+    type="button"
   >
     <UiIcon :busy="isBusy" :icon="icon" />
     <slot />
@@ -17,12 +17,17 @@
 
 <script lang="ts" setup>
 import UiIcon from "@/components/ui/icon/UiIcon.vue";
+import type { SlotDefinition } from "@/types";
 import {
   IK_BUTTON_GROUP_BUSY,
   IK_BUTTON_GROUP_DISABLED,
 } from "@/types/injection-keys";
 import type { IconDefinition } from "@fortawesome/fontawesome-common-types";
 import { computed, inject } from "vue";
+
+defineSlots<{
+  default: SlotDefinition;
+}>();
 
 const props = withDefaults(
   defineProps<{

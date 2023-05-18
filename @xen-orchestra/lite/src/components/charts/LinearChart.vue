@@ -7,6 +7,7 @@
 
 <script lang="ts" setup>
 import UiCard from "@/components/ui/UiCard.vue";
+import type { SlotDefinition } from "@/types";
 import type { LinearChartData, ValueFormatter } from "@/types/chart";
 import { IK_CHART_VALUE_FORMATTER } from "@/types/injection-keys";
 import { utcFormat } from "d3-time-format";
@@ -24,6 +25,10 @@ import { computed, provide } from "vue";
 import VueCharts from "vue-echarts";
 
 const Y_AXIS_MAX_VALUE = 200;
+
+defineSlots<{
+  summary: SlotDefinition;
+}>();
 
 const props = defineProps<{
   title?: string;

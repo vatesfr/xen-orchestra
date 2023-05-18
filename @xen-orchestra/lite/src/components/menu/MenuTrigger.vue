@@ -6,8 +6,13 @@
 </template>
 
 <script lang="ts" setup>
+import type { SlotDefinition } from "@/types";
 import type { IconDefinition } from "@fortawesome/fontawesome-common-types";
 import UiIcon from "@/components/ui/icon/UiIcon.vue";
+
+defineSlots<{
+  default: SlotDefinition;
+}>();
 
 defineProps<{
   active?: boolean;

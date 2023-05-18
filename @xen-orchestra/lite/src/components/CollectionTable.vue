@@ -43,6 +43,7 @@
 </template>
 
 <script lang="ts" setup>
+import type { SlotDefinition } from "@/types";
 import { computed, toRef, watch } from "vue";
 import type { Filters } from "@/types/filter";
 import type { Sorts } from "@/types/sort";
@@ -54,6 +55,11 @@ import useCollectionSorter from "@/composables/collection-sorter.composable";
 import useFilteredCollection from "@/composables/filtered-collection.composable";
 import useMultiSelect from "@/composables/multi-select.composable";
 import useSortedCollection from "@/composables/sorted-collection.composable";
+
+defineSlots<{
+  "head-row": SlotDefinition;
+  "body-row": SlotDefinition<{ item: any }>;
+}>();
 
 const props = defineProps<{
   modelValue?: string[];

@@ -14,7 +14,9 @@
 </template>
 
 <script lang="ts" setup>
+import UiIcon from "@/components/ui/icon/UiIcon.vue";
 import UiSpinner from "@/components/ui/UiSpinner.vue";
+import type { Color, SlotDefinition } from "@/types";
 import {
   IK_BUTTON_GROUP_BUSY,
   IK_BUTTON_GROUP_COLOR,
@@ -22,10 +24,12 @@ import {
   IK_BUTTON_GROUP_OUTLINED,
   IK_BUTTON_GROUP_TRANSPARENT,
 } from "@/types/injection-keys";
-import { computed, inject } from "vue";
-import type { Color } from "@/types";
 import type { IconDefinition } from "@fortawesome/fontawesome-common-types";
-import UiIcon from "@/components/ui/icon/UiIcon.vue";
+import { computed, inject } from "vue";
+
+defineSlots<{
+  default: SlotDefinition;
+}>();
 
 const props = withDefaults(
   defineProps<{

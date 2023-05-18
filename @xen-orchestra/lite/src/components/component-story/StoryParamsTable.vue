@@ -4,7 +4,13 @@
   </table>
 </template>
 
-<script lang="ts" setup></script>
+<script lang="ts" setup>
+import type { SlotDefinition } from "@/types";
+
+defineSlots<{
+  default: SlotDefinition;
+}>();
+</script>
 
 <style lang="postcss" scoped>
 .story-params-table {
