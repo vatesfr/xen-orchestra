@@ -2,9 +2,9 @@
   <ComponentStory
     :params="[
       prop('state')
-        .enum('Running', 'Suspended', 'Halted', 'Paused')
+        .enum(...Object.values(POWER_STATE))
         .required()
-        .preset('Running')
+        .preset(POWER_STATE.RUNNING)
         .widget(),
     ]"
     v-slot="{ properties }"
@@ -17,6 +17,7 @@
 import PowerStateIcon from "@/components/PowerStateIcon.vue";
 import ComponentStory from "@/components/component-story/ComponentStory.vue";
 import { prop } from "@/libs/story/story-param";
+import { POWER_STATE } from "@/libs/xen-api";
 </script>
 
 <style lang="postcss" scoped></style>

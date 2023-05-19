@@ -38,6 +38,7 @@ import UiCardFooter from "@/components/ui/UiCardFooter.vue";
 import UiCardSpinner from "@/components/ui/UiCardSpinner.vue";
 import UiCardTitle from "@/components/ui/UiCardTitle.vue";
 import { percent } from "@/libs/utils";
+import { POWER_STATE } from "@/libs/xen-api";
 import { useHostMetricsStore } from "@/stores/host-metrics.store";
 import { useHostStore } from "@/stores/host.store";
 import { useVmMetricsStore } from "@/stores/vm-metrics.store";
@@ -45,7 +46,7 @@ import { useVmStore } from "@/stores/vm.store";
 import { logicAnd } from "@vueuse/math";
 import { computed } from "vue";
 
-const ACTIVE_STATES = new Set(["Running", "Paused"]);
+const ACTIVE_STATES = new Set([POWER_STATE.RUNNING, POWER_STATE.PAUSED]);
 
 const {
   hasError: hostStoreHasError,

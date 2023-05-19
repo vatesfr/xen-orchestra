@@ -65,7 +65,27 @@ export const getRawObjectType = (type: ObjectType): RawObjectType => {
   return OBJECT_TYPES[type];
 };
 
-export type PowerState = "Running" | "Paused" | "Halted" | "Suspended";
+export enum POWER_STATE {
+  RUNNING = "Running",
+  PAUSED = "Paused",
+  HALTED = "Halted",
+  SUSPENDED = "Suspended",
+}
+
+export enum VM_OPERATION {
+  START = "start",
+  START_ON = "start_on",
+  RESUME = "resume",
+  UNPAUSE = "unpause",
+  CLONE = "clone",
+  SHUTDOWN = "shutdown",
+  CLEAN_SHUTDOWN = "clean_shutdown",
+  HARD_SHUTDOWN = "hard_shutdown",
+  CLEAN_REBOOT = "clean_reboot",
+  HARD_REBOOT = "hard_reboot",
+  PAUSE = "pause",
+  SUSPEND = "suspend",
+}
 
 export interface XenApiRecord {
   $ref: string;
@@ -98,12 +118,12 @@ export interface XenApiSr extends XenApiRecord {
 }
 
 export interface XenApiVm extends XenApiRecord {
-  current_operations: Record<string, string>;
+  current_operations: Record<string, VM_OPERATION>;
   guest_metrics: string;
   metrics: string;
   name_label: string;
   name_description: string;
-  power_state: PowerState;
+  power_state: POWER_STATE;
   resident_on: string;
   consoles: string[];
   is_control_domain: boolean;
