@@ -6,7 +6,7 @@ const identity = require('lodash/identity.js')
 
 const noop = Function.prototype
 
-module.exports = function createStreamThrottle(rate) {
+exports.createStreamThrottle = function createStreamThrottle(rate) {
   if (rate === 0) {
     return identity
   }

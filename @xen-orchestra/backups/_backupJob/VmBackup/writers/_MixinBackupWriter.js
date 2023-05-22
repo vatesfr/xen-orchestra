@@ -4,12 +4,12 @@ const { createLogger } = require('@xen-orchestra/log')
 const { join } = require('path')
 
 const assert = require('assert')
-const { formatFilenameDate } = require('../_filenameDate.js')
-const { getVmBackupDir } = require('../_getVmBackupDir.js')
-const { HealthCheckVmBackup } = require('../HealthCheckVmBackup.js')
-const { ImportVmBackup } = require('../ImportVmBackup.js')
-const { Task } = require('../Task.js')
-const MergeWorker = require('../merge-worker/index.js')
+const { formatFilenameDate } = require('../../../_filenameDate.js')
+const { getVmBackupDir } = require('../../../_getVmBackupDir.js')
+const { HealthCheckVmBackup } = require('../../../HealthCheckVmBackup.js')
+const { ImportVmBackup } = require('../../../ImportVmBackup.js')
+const { Task } = require('../../../Task.js')
+const MergeWorker = require('../../../merge-worker/index.js')
 
 const { info, warn } = createLogger('xo:backups:MixinBackupWriter')
 

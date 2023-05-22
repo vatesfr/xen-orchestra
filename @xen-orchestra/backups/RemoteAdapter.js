@@ -28,7 +28,7 @@ const { isMetadataFile } = require('./_backupType.js')
 const { isValidXva } = require('./_isValidXva.js')
 const { listPartitions, LVM_PARTITION_TYPE } = require('./_listPartitions.js')
 const { lvs, pvs } = require('./_lvm.js')
-const { watchStreamSize } = require('./_watchStreamSize')
+const { watchStreamSize } = require('./_watchStreamSize.js')
 // @todo : this import is marked extraneous , sould be fixed when lib is published
 const { mount } = require('@vates/fuse-vhd')
 const { asyncEach } = require('@vates/async-each')

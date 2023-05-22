@@ -1,6 +1,6 @@
 'use strict'
 
-const { Backup } = require('./Backup.js')
+const { Backup } = require('./_backupJob/Backup.js')
 
 exports.instantiateBackupJob = function instantiateBackupJob({
   config,

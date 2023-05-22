@@ -7,15 +7,15 @@ const pTimeout = require('promise-toolbox/timeout')
 const { compileTemplate } = require('@xen-orchestra/template')
 const { limitConcurrency } = require('limit-concurrency-decorator')
 
-const { extractIdsFromSimplePattern } = require('./extractIdsFromSimplePattern.js')
-const { PoolMetadataBackup } = require('./_PoolMetadataBackup.js')
-const { Task } = require('./Task.js')
-const { VmBackup } = require('./_VmBackup.js')
-const { XoMetadataBackup } = require('./_XoMetadataBackup.js')
-const createStreamThrottle = require('./_createStreamThrottle.js')
+const { extractIdsFromSimplePattern } = require('../extractIdsFromSimplePattern.js')
+const { PoolMetadataBackup } = require('./PoolMetadataBackup.js')
+const { Task } = require('../Task.js')
+const { XoMetadataBackup } = require('./XoMetadataBackup.js')
 const { runTask } = require('./runTask.js')
 const { getAdaptersByRemote } = require('./getAdaptersByRemote.js')
 const { RemoteTimeoutError } = require('./RemoteTimeoutError.js')
+const { VmBackup } = require('./VmBackup/VmBackup.js')
+const { createStreamThrottle } = require('./createStreamThrottle.js')
 
 const DEFAULT_SETTINGS = {
   getRemoteTimeout: 300e3,
