@@ -1,14 +1,15 @@
 'use strict'
 
-const { Runner } = require('./_runners/Runner.js')
+const { Metadata } = require('./_runners/Metadata.js')
+const { Vms } = require('./_runners/Vms.js')
 
 exports.createRunner = function createRunner(opts) {
   const { type } = opts.job
   switch (type) {
     case 'backup':
-      return new Runner(opts)
+      return new Vms(opts)
     case 'metadataBackup':
-      return new Runner(opts)
+      return new Metadata(opts)
     default:
       throw new Error(`No runner for the backup type ${type}`)
   }
