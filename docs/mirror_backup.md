@@ -1,4 +1,4 @@
-# Secondary Backups
+# Mirror Backups
 
 the goal is to replicate a backup from one remote to another. For example you make your backup to a NFS in house and then replicate to a bigger, slower and cheaper storage with a longer retention.
 The source and destination can have different settings, for encryption, vhd storage mode, rentention, or compression.
