@@ -1,6 +1,7 @@
 'use strict'
 
-const { Backup } = require('./_backupJob/Backup.js')
+const { MetadatasBackupJob } = require('./_backupJob/MetadatasBackupJob.js')
+const { XapiVmBackupJob } = require('./_backupJob/XapiVMBackupJobs.js')
 
 exports.instantiateBackupJob = function instantiateBackupJob({
   config,
@@ -11,9 +12,9 @@ exports.instantiateBackupJob = function instantiateBackupJob({
 }) {
   switch (job.type) {
     case 'backup':
-      return new Backup({ config, getAdapter, getConnectedRecord, job, schedule })
+      return new XapiVmBackupJob({ config, getAdapter, getConnectedRecord, job, schedule })
     case 'metadataBackup':
-      return new Backup({ config, getAdapter, getConnectedRecord, job, schedule })
+      return new MetadatasBackupJob({ config, getAdapter, getConnectedRecord, job, schedule })
     default:
       throw new Error(`No runner for the backup type ${job.type}`)
   }
