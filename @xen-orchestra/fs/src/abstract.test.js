@@ -5,9 +5,9 @@ import sinon from 'sinon'
 import { DEFAULT_ENCRYPTION_ALGORITHM, _getEncryptor } from './_encryptor'
 import { Disposable, pFromCallback, TimeoutError } from 'promise-toolbox'
 import { getSyncedHandler } from '.'
+import { rimraf } from 'rimraf'
 import AbstractHandler from './abstract'
 import fs from 'fs-extra'
-import rimraf from 'rimraf'
 import tmp from 'tmp'
 
 const TIMEOUT = 10e3

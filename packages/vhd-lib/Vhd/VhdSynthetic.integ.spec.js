@@ -2,10 +2,10 @@
 
 /* eslint-env jest */
 
-const rimraf = require('rimraf')
 const tmp = require('tmp')
 const { Disposable, pFromCallback } = require('promise-toolbox')
 const { getSyncedHandler } = require('@xen-orchestra/fs')
+const { rimraf } = require('rimraf')
 
 const { SECTOR_SIZE, PLATFORMS } = require('../_constants')
 const { createRandomFile, convertFromRawToVhd } = require('../tests/utils')

@@ -5,11 +5,11 @@
 const execa = require('execa')
 const fs = require('fs-extra')
 const getStream = require('get-stream')
-const rimraf = require('rimraf')
 const tmp = require('tmp')
 const { getSyncedHandler } = require('@xen-orchestra/fs')
 const { Disposable, pFromCallback } = require('promise-toolbox')
 const { randomBytes } = require('crypto')
+const { rimraf } = require('rimraf')
 
 const { VhdFile } = require('./VhdFile')
 const { openVhd } = require('../openVhd')

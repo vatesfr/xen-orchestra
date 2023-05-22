@@ -3,10 +3,10 @@
 /* eslint-env jest */
 
 const fs = require('fs-extra')
-const rimraf = require('rimraf')
 const tmp = require('tmp')
 const { getSyncedHandler } = require('@xen-orchestra/fs')
 const { pFromCallback, Disposable } = require('promise-toolbox')
+const { rimraf } = require('rimraf')
 
 const { VhdFile, chainVhd, openVhd, VhdAbstract } = require('./index')
 const { mergeVhdChain } = require('./merge')

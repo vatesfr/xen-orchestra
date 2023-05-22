@@ -27,7 +27,7 @@
     "@babel/core": "^7.7.4",
     "@babel/preset-env": "^7.7.4",
     "cross-env": "^7.0.2",
-    "rimraf": "^4.1.1"
+    "rimraf": "^5.0.1"
   },
   "dependencies": {
     "@vates/read-chunk": "^1.1.1"
