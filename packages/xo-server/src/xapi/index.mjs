@@ -711,30 +711,12 @@ export default class Xapi extends XapiBase {
       throw operationFailed({ objectId: vm.id, code: 'TOO_MANY_VIFs' })
     }
     await Promise.all(
-      map(disks, async disk => {
-        const vdi = (vdis[disk.path] = await this._getOrWaitObject(
-          await this.VDI_create({
-            name_description: disk.descriptionLabel,
-            name_label: disk.nameLabel,
-            SR: sr.$ref,
-            virtual_size: disk.capacity,
-          })
-        ))
-        $defer.onFailure(() => vdi.$destroy())
-        compression[disk.path] = disk.compression
-        return this.VBD_create({
-          userdevice: String(disk.position),
-          VDI: vdi.$ref,
+      map(networks, (networkId, i) =>
+        this.VIF_create({
+          device: vifDevices[i],
+          network: this.getObject(networkId).$ref,
           VM: vm.$ref,
         })
-      }).concat(
-        map(networks, (networkId, i) =>
-          this.VIF_create({
-            device: vifDevices[i],
-            network: this.getObject(networkId).$ref,
-            VM: vm.$ref,
-          })
-        )
       )
     )
 
@@ -747,9 +729,9 @@ export default class Xapi extends XapiBase {
       extract.on('finish', resolve)
       extract.on('error', reject)
       extract.on('entry', async (entry, stream, cb) => {
-        // Not a disk to import.
-        const vdi = vdis[entry.name]
-        if (!vdi) {
+        const diskMetadata = disks.find(({ path }) => path === entry.name)
+        // Not a disk to import
+        if (!diskMetadata) {
           stream.on('end', cb)
           stream.resume()
           return
@@ -762,7 +744,26 @@ export default class Xapi extends XapiBase {
           compression[entry.name] === 'gzip',
           entry.size
         )
+
         try {
+          // vmdk size can be wrong in ova
+          // we use the size ine the vmdk descriptor to create the vdi
+          const vdi = (vdis[diskMetadata.path] = await this._getOrWaitObject(
+            await this.VDI_create({
+              name_description: diskMetadata.descriptionLabel,
+              name_label: diskMetadata.nameLabel,
+              SR: sr.$ref,
+              virtual_size: vhdStream._rawLength,
+            })
+          ))
+          $defer.onFailure(() => vdi.$destroy())
+          compression[diskMetadata.path] = diskMetadata.compression
+          await this.VBD_create({
+            userdevice: String(diskMetadata.position),
+            VDI: vdi.$ref,
+            VM: vm.$ref,
+          })
+
           await vdi.$importContent(vhdStream, { format: VDI_FORMAT_VHD })
           // See: https://github.com/mafintosh/tar-stream#extracting
           // No import parallelization.
