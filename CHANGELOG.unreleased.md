@@ -36,6 +36,7 @@
 - xo-vmdk-to-vhd patch
 - @xen-orchestra/mixins patch
 - xo-cli minor
+- xo-server minor
 - xo-web minor
 
 <!--packages-end-->
