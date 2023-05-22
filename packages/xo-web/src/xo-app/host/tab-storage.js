@@ -10,7 +10,7 @@ import { connectPbd, disconnectPbd, deletePbd, deletePbds, editSr, isSrShared } 
 import { connectStore, formatSize, noop } from 'utils'
 import { Container, Row, Col } from 'grid'
 import { createGetObjectsOfType, createSelector } from 'selectors'
-import { isEmpty, some } from 'lodash'
+import { filter, isEmpty, some } from 'lodash'
 import { TabButtonLink } from 'tab-button'
 import { Text } from 'editable'
 
@@ -115,23 +115,26 @@ export default connectStore(() => {
   const srs = createGetObjectsOfType('SR').pick(createSelector(pbds, pbds => map(pbds, pbd => pbd.SR)))
 
   const storages = createSelector(pbds, srs, (pbds, srs) =>
-    map(pbds, pbd => {
-      const sr = srs[pbd.SR]
-      const { physical_usage: usage, size } = sr
+    map(
+      filter(pbds, pbd => srs[pbd.SR] !== undefined),
+      pbd => {
+        const sr = srs[pbd.SR]
+        const { physical_usage: usage, size } = sr
 
-      return {
-        attached: pbd.attached,
-        pbdDeviceConfig: pbd.device_config,
-        format: sr.SR_type,
-        free: size > 0 ? size - usage : 0,
-        id: sr.id,
-        nameLabel: sr.name_label,
-        pbdId: pbd.id,
-        shared: isSrShared(sr),
-        size: size > 0 ? size : 0,
-        usagePercentage: size > 0 && Math.round((100 * usage) / size),
+        return {
+          attached: pbd.attached,
+          pbdDeviceConfig: pbd.device_config,
+          format: sr.SR_type,
+          free: size > 0 ? size - usage : 0,
+          id: sr.id,
+          nameLabel: sr.name_label,
+          pbdId: pbd.id,
+          shared: isSrShared(sr),
+          size: size > 0 ? size : 0,
+          usagePercentage: size > 0 && Math.round((100 * usage) / size),
+        }
       }
-    })
+    )
   )
 
   return { storages }
