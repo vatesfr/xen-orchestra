@@ -7,6 +7,7 @@ const tmp = require('tmp')
 const { pFromCallback } = require('promise-toolbox')
 const { Socket } = require('node:net')
 const { NBD_DEFAULT_PORT } = require('./constants.js')
+const assert = require('node:assert')
 
 const FILE_SIZE = 10 * 1024 * 1024
 
@@ -158,13 +159,7 @@ CYu1Xn/FVPx1HoRgWc7E8wFhDcA/P3SJtfIQWHB9FzSaBflKGR4t8WCE2eE8+cTB
   }
 
   tap.equal(nb, 5)
-
-  try {
-    await client.readBlock(100, CHUNK_SIZE)
-    tap.ok(false, `should throw error if read out of bounds`)
-  } catch (error) {
-    tap.ok(true, `should throw error if read out of bounds`)
-  }
+  assert.rejects(() => client.readBlock(100, CHUNK_SIZE))
 
   await client.disconnect()
   // double disconnection shouldn't pose any problem
