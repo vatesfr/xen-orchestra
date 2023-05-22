@@ -87,7 +87,6 @@ const createVncConnection = async () => {
   vncClient.addEventListener("connect", handleConnectionEvent);
 };
 
-watch(url, clearVncClient);
 watchEffect(() => {
   if (
     url.value === undefined ||
@@ -98,6 +97,8 @@ watchEffect(() => {
   }
 
   nConnectionAttempts = 0;
+
+  clearVncClient();
   createVncConnection();
 });
 
