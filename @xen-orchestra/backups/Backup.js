@@ -1,6 +1,6 @@
 'use strict'
 
-const { Runner } = require('./_Runner.js')
+const { Runner } = require('./_runners/Runner.js')
 
 exports.createRunner = function createRunner(opts) {
   const { type } = opts.job
