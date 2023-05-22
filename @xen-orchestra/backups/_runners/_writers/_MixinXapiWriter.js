@@ -1,8 +1,8 @@
 'use strict'
 
-const { Task } = require('../Task')
+const { Task } = require('../../Task')
 const assert = require('node:assert/strict')
-const { HealthCheckVmBackup } = require('../HealthCheckVmBackup')
+const { HealthCheckVmBackup } = require('../../HealthCheckVmBackup')
 
 function extractOpaqueRef(str) {
   const OPAQUE_REF_RE = /OpaqueRef:[0-9a-z-]+/

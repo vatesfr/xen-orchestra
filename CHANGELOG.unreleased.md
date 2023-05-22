@@ -34,6 +34,7 @@
 <!--packages-start-->
 
 - xo-vmdk-to-vhd patch
+- @xen-orchestra/backups minor
 - @xen-orchestra/mixins patch
 - xo-cli minor
 - xo-server minor

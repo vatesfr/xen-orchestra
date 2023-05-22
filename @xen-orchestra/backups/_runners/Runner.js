@@ -7,15 +7,15 @@ const pTimeout = require('promise-toolbox/timeout')
 const { compileTemplate } = require('@xen-orchestra/template')
 const { limitConcurrency } = require('limit-concurrency-decorator')
 
-const { extractIdsFromSimplePattern } = require('./extractIdsFromSimplePattern.js')
+const { extractIdsFromSimplePattern } = require('../extractIdsFromSimplePattern.js')
 const { PoolMetadataBackup } = require('./_PoolMetadataBackup.js')
-const { Task } = require('./Task.js')
+const { Task } = require('../Task.js')
 const { VmBackup } = require('./_VmBackup.js')
 const { XoMetadataBackup } = require('./_XoMetadataBackup.js')
 const createStreamThrottle = require('./_createStreamThrottle.js')
-const { runTask } = require('./runTask.js')
-const { getAdaptersByRemote } = require('./getAdaptersByRemote.js')
-const { RemoteTimeoutError } = require('./RemoteTimeoutError.js')
+const { runTask } = require('./_runTask.js')
+const { getAdaptersByRemote } = require('./_getAdaptersByRemote.js')
+const { RemoteTimeoutError } = require('./_RemoteTimeoutError.js')
 
 const DEFAULT_SETTINGS = {
   getRemoteTimeout: 300e3,
@@ -49,7 +49,7 @@ const DEFAULT_METADATA_SETTINGS = {
   retentionXoMetadata: 0,
 }
 
-exports.Runner = class Runner {
+exports.Runner = class BackupRunner {
   constructor({ config, getAdapter, getConnectedRecord, job, schedule }) {
     this._config = config
     this._getRecord = getConnectedRecord
