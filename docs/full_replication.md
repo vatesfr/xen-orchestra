@@ -1,6 +1,6 @@
 # Full Replication (formerly: Disaster recovery)
 
-Full Replication (DR) encompasses all the ways to recover after losing hosts or storage repositories.
+Full Replication (FR) encompasses all the ways to recover after losing hosts or storage repositories.
 
 In this guide we'll only see the technical aspect of DR, which is a small part of this vast topic.
 
