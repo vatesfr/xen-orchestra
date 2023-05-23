@@ -30,8 +30,9 @@ exports.IncrementalXapi = class IncrementalXapiVmBackupRunner extends AbstractXa
   }
 
   async _copy() {
-    const { exportedVm } = this
     const baseVm = this._baseVm
+    const vm = this._vm
+    const exportedVm = this._exportedVm
     const fullVdisRequired = this._fullVdisRequired
 
     const isFull = fullVdisRequired === undefined || fullVdisRequired.size !== 0
@@ -62,6 +63,8 @@ exports.IncrementalXapi = class IncrementalXapiVmBackupRunner extends AbstractXa
           deltaExport: forkDeltaExport(deltaExport),
           sizeContainers,
           timestamp,
+          vm,
+          vmSnapshot: exportedVm,
         }),
       'writer.transfer()'
     )
@@ -108,7 +111,7 @@ exports.IncrementalXapi = class IncrementalXapiVmBackupRunner extends AbstractXa
       return
     }
 
-    const srcVdis = keyBy(await xapi.getRecords('VDI', await this.vm.$getDisks()), '$ref')
+    const srcVdis = keyBy(await xapi.getRecords('VDI', await this._vm.$getDisks()), '$ref')
 
     // resolve full record
     baseVm = await xapi.getRecord('VM', baseVm.$ref)

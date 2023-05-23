@@ -16,7 +16,7 @@ exports.FullXapi = class FullXapiVmBackupRunner extends AbstractXapi {
   }
 
   _mustDoSnapshot() {
-    const { vm } = this
+    const vm = this._vm
 
     const settings = this._settings
     return (
@@ -29,8 +29,10 @@ exports.FullXapi = class FullXapiVmBackupRunner extends AbstractXapi {
 
   async _copy() {
     const { compression } = this.job
+    const vm = this._vm
+    const exportedVm = this._exportedVm
     const stream = this._throttleStream(
-      await this._xapi.VM_export(this.exportedVm.$ref, {
+      await this._xapi.VM_export(exportedVm.$ref, {
         compress: Boolean(compression) && (compression === 'native' ? 'gzip' : 'zstd'),
         useSnapshot: false,
       })
@@ -45,6 +47,8 @@ exports.FullXapi = class FullXapiVmBackupRunner extends AbstractXapi {
           sizeContainer,
           stream: forkStreamUnpipe(stream),
           timestamp,
+          vm,
+          vmSnapshot: exportedVm,
         }),
       'writer.run()'
     )

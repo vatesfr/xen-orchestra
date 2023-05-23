@@ -32,10 +32,11 @@ exports.FullXapiWriter = class FullXapiWriter extends MixinXapiWriter(AbstractFu
     )
   }
 
-  async _run({ timestamp, sizeContainer, stream }) {
+  async _run({ timestamp, sizeContainer, stream, vm }) {
     const sr = this._sr
     const settings = this._settings
-    const { job, scheduleId, vm } = this._backup
+    const job = this._job
+    const scheduleId = this.scheduleId
 
     const { uuid: srUuid, $xapi: xapi } = sr
 
