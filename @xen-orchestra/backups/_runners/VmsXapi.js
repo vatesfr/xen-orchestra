@@ -35,7 +35,7 @@ const DEFAULT_XAPI_VM_SETTINGS = {
   vmTimeout: 0,
 }
 
-exports.Vms = class VmsBackupRunner extends Abstract {
+exports.VmsXapi = class VmsXapiBackupRunner extends Abstract {
   _computeBaseSettings(config, job) {
     const baseSettings = { ...DEFAULT_SETTINGS }
     Object.assign(baseSettings, DEFAULT_XAPI_VM_SETTINGS, config.defaultSettings, config.vm?.defaultSettings)

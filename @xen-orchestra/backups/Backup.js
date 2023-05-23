@@ -1,13 +1,13 @@
 'use strict'
 
 const { Metadata } = require('./_runners/Metadata.js')
-const { Vms } = require('./_runners/Vms.js')
+const { VmsXapi } = require('./_runners/VmsXapi.js')
 
 exports.createRunner = function createRunner(opts) {
   const { type } = opts.job
   switch (type) {
     case 'backup':
-      return new Vms(opts)
+      return new VmsXapi(opts)
     case 'metadataBackup':
       return new Metadata(opts)
     default:
