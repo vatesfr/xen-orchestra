@@ -1,13 +1,14 @@
 <template>
-  <UiCard>
+  <UiCard :color="hasError ? 'error' : undefined">
     <UiCardTitle>
       {{ $t("cpu-provisioning") }}
-      <template #right>
+      <template v-if="!hasError" #right>
         <!-- TODO: add a tooltip for the warning icon -->
         <UiStatusIcon v-if="state !== 'success'" :state="state" />
       </template>
     </UiCardTitle>
-    <div v-if="isReady" :class="state" class="progress-item">
+    <NoDataError v-if="hasError" />
+    <div v-else-if="isReady" :class="state" class="progress-item">
       <UiProgressBar :max-value="maxValue" :value="value" color="custom" />
       <UiProgressScale :max-value="maxValue" :steps="1" unit="%" />
       <UiProgressLegend :label="$t('vcpus')" :value="`${value}%`" />
@@ -27,29 +28,38 @@
 </template>
 
 <script lang="ts" setup>
-import UiStatusIcon from "@/components/ui/icon/UiStatusIcon.vue";
-import UiProgressBar from "@/components/ui/progress/UiProgressBar.vue";
-import UiProgressLegend from "@/components/ui/progress/UiProgressLegend.vue";
-import UiProgressScale from "@/components/ui/progress/UiProgressScale.vue";
+import { computed } from "vue";
+import NoDataError from "@/components/NoDataError.vue";
 import UiCard from "@/components/ui/UiCard.vue";
 import UiCardFooter from "@/components/ui/UiCardFooter.vue";
 import UiCardTitle from "@/components/ui/UiCardTitle.vue";
+import UiProgressBar from "@/components/ui/progress/UiProgressBar.vue";
+import UiProgressLegend from "@/components/ui/progress/UiProgressLegend.vue";
+import UiProgressScale from "@/components/ui/progress/UiProgressScale.vue";
 import UiSpinner from "@/components/ui/UiSpinner.vue";
+import UiStatusIcon from "@/components/ui/icon/UiStatusIcon.vue";
 import { percent } from "@/libs/utils";
 import { useHostMetricsStore } from "@/stores/host-metrics.store";
 import { useHostStore } from "@/stores/host.store";
 import { useVmMetricsStore } from "@/stores/vm-metrics.store";
 import { useVmStore } from "@/stores/vm.store";
 import { logicAnd } from "@vueuse/math";
-import { computed } from "vue";
 
 const ACTIVE_STATES = new Set(["Running", "Paused"]);
 
-const { isReady: isHostStoreReady, runningHosts } = useHostStore().subscribe({
+const {
+  hasError: hostStoreHasError,
+  isReady: isHostStoreReady,
+  runningHosts,
+} = useHostStore().subscribe({
   hostMetricsSubscription: useHostMetricsStore().subscribe(),
 });
 
-const { records: vms, isReady: isVmStoreReady } = useVmStore().subscribe();
+const {
+  hasError: vmStoreHasError,
+  isReady: isVmStoreReady,
+  records: vms,
+} = useVmStore().subscribe();
 
 const { getByOpaqueRef: getVmMetrics, isReady: isVmMetricsStoreReady } =
   useVmMetricsStore().subscribe();
@@ -83,6 +93,9 @@ const isReady = logicAnd(
   isVmStoreReady,
   isHostStoreReady,
   isVmMetricsStoreReady
+);
+const hasError = computed(
+  () => hostStoreHasError.value || vmStoreHasError.value
 );
 </script>
 
