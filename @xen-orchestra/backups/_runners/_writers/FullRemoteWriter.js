@@ -26,11 +26,10 @@ exports.FullRemoteWriter = class FullRemoteWriter extends MixinRemoteWriter(Abst
     )
   }
 
-  async _run({ timestamp, sizeContainer, stream }) {
-    const backup = this._backup
+  async _run({ timestamp, sizeContainer, stream, vm, vmSnapshot }) {
     const settings = this._settings
-
-    const { job, scheduleId, vm } = backup
+    const job = this._job
+    const scheduleId = this._scheduleId
 
     const adapter = this._adapter
 
@@ -54,7 +53,7 @@ exports.FullRemoteWriter = class FullRemoteWriter extends MixinRemoteWriter(Abst
       timestamp,
       version: '2.0.0',
       vm,
-      vmSnapshot: this._backup.exportedVm,
+      vmSnapshot,
       xva: './' + dataBasename,
     }
 

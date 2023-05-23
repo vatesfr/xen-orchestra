@@ -40,11 +40,11 @@ class AbstractXapiVmBackupRunner extends Abstract {
     this.timestamp = undefined
 
     // VM currently backed up
-    this.vm = vm
-    const { tags } = this.vm
+    const tags = (this._tags = vm.tags)
 
     // VM (snapshot) that is really exported
-    this.exportedVm = undefined
+    this._exportedVm = undefined
+    this._vm = vm
 
     this._fullVdisRequired = undefined
     this._getSnapshotNameLabel = getSnapshotNameLabel
@@ -66,7 +66,6 @@ class AbstractXapiVmBackupRunner extends Abstract {
       settings.offlineSnapshot = true
     }
     this._settings = settings
-
     // Create writers
     {
       const writers = new Set()
@@ -75,13 +74,13 @@ class AbstractXapiVmBackupRunner extends Abstract {
       const [BackupWriter, ReplicationWriter] = this._getWriters()
 
       const allSettings = job.settings
-      Object.keys(remoteAdapters).forEach(remoteId => {
+      Object.entries(remoteAdapters).forEach(([remoteId, adapter]) => {
         const targetSettings = {
           ...settings,
           ...allSettings[remoteId],
         }
         if (targetSettings.exportRetention !== 0) {
-          writers.add(new BackupWriter({ backup: this, remoteId, settings: targetSettings }))
+          writers.add(new BackupWriter({ adapter, config, job, vmUuid: vm.uuid, remoteId, settings: targetSettings }))
         }
       })
       srs.forEach(sr => {
@@ -90,7 +89,7 @@ class AbstractXapiVmBackupRunner extends Abstract {
           ...allSettings[sr.uuid],
         }
         if (targetSettings.copyRetention !== 0) {
-          writers.add(new ReplicationWriter({ backup: this, sr, settings: targetSettings }))
+          writers.add(new ReplicationWriter({ config, job, vmUuid: vm.uuid, sr, settings: targetSettings }))
         }
       })
     }
@@ -99,7 +98,7 @@ class AbstractXapiVmBackupRunner extends Abstract {
   // ensure the VM itself does not have any backup metadata which would be
   // copied on manual snapshots and interfere with the backup jobs
   async _cleanMetadata() {
-    const { vm } = this
+    const vm = this._vm
     if ('xo:backup:job' in vm.other_config) {
       await vm.update_other_config({
         'xo:backup:datetime': null,
@@ -113,7 +112,7 @@ class AbstractXapiVmBackupRunner extends Abstract {
   }
 
   async _snapshot() {
-    const { vm } = this
+    const vm = this._vm
     const xapi = this._xapi
 
     const settings = this._settings
@@ -138,19 +137,19 @@ class AbstractXapiVmBackupRunner extends Abstract {
           'xo:backup:vm': vm.uuid,
         })
 
-        this.exportedVm = await xapi.getRecord('VM', snapshotRef)
+        this._exportedVm = await xapi.getRecord('VM', snapshotRef)
 
-        return this.exportedVm.uuid
+        return this._exportedVm.uuid
       })
     } else {
-      this.exportedVm = vm
+      this._exportedVm = vm
       this.timestamp = Date.now()
     }
   }
 
   async _fetchJobSnapshots() {
     const jobId = this._jobId
-    const vmRef = this.vm.$ref
+    const vmRef = this._vm.$ref
     const xapi = this._xapi
 
     const snapshotsRef = await xapi.getField('VM', vmRef, 'snapshots')
@@ -177,7 +176,7 @@ class AbstractXapiVmBackupRunner extends Abstract {
       const settings = {
         ...baseSettings,
         ...allSettings[scheduleId],
-        ...allSettings[this.vm.uuid],
+        ...allSettings[this._vm.uuid],
       }
       return asyncMap(getOldEntries(settings.snapshotRetention, snapshots), ({ $ref }) => {
         if ($ref !== baseVmRef) {
@@ -224,7 +223,7 @@ class AbstractXapiVmBackupRunner extends Abstract {
     await this._cleanMetadata()
     await this._removeUnusedSnapshots()
 
-    const { vm } = this
+    const vm = this._vm
     const isRunning = vm.power_state === 'Running'
     const startAfter = isRunning && (settings.offlineBackup ? 'backup' : settings.offlineSnapshot && 'snapshot')
     if (startAfter) {

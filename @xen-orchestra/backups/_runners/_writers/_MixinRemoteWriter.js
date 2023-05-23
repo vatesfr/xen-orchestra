@@ -17,13 +17,13 @@ exports.MixinRemoteWriter = (BaseClass = Object) =>
   class MixinRemoteWriter extends BaseClass {
     #lock
 
-    constructor({ remoteId, ...rest }) {
+    constructor({ remoteId, adapter, ...rest }) {
       super(rest)
 
-      this._adapter = rest.backup.remoteAdapters[remoteId]
+      this._adapter = adapter
       this._remoteId = remoteId
 
-      this._vmBackupDir = getVmBackupDir(this._backup.vm.uuid)
+      this._vmBackupDir = getVmBackupDir(rest.vmUuid)
     }
 
     async _cleanVm(options) {
@@ -38,7 +38,7 @@ exports.MixinRemoteWriter = (BaseClass = Object) =>
               Task.warning(message, data)
             },
             lock: false,
-            mergeBlockConcurrency: this._backup.config.mergeBlockConcurrency,
+            mergeBlockConcurrency: this._config.mergeBlockConcurrency,
           })
         })
       } catch (error) {
@@ -55,7 +55,7 @@ exports.MixinRemoteWriter = (BaseClass = Object) =>
     }
 
     async afterBackup() {
-      const { disableMergeWorker } = this._backup.config
+      const { disableMergeWorker } = this._config
       // merge worker only compatible with local remotes
       const { handler } = this._adapter
       const willMergeInWorker = !disableMergeWorker && typeof handler.getRealPath === 'function'

@@ -75,7 +75,7 @@ exports.Abstract = class AbstractVmBackupRunner {
     }
 
     // check if current VM has tags
-    const { tags } = this.vm
+    const tags = this._tags
     const intersect = settings.healthCheckVmsWithTags.some(t => tags.includes(t))
 
     if (settings.healthCheckVmsWithTags.length !== 0 && !intersect) {

@@ -26,10 +26,9 @@ const { warn } = createLogger('xo:backups:DeltaBackupWriter')
 class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrementalWriter) {
   async checkBaseVdis(baseUuidToSrcVdi) {
     const { handler } = this._adapter
-    const backup = this._backup
     const adapter = this._adapter
 
-    const vdisDir = `${this._vmBackupDir}/vdis/${backup.job.id}`
+    const vdisDir = `${this._vmBackupDir}/vdis/${this._job.id}`
 
     await asyncMap(baseUuidToSrcVdi, async ([baseUuid, srcVdi]) => {
       let found = false
@@ -91,11 +90,12 @@ class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrementalWrite
   async _prepare() {
     const adapter = this._adapter
     const settings = this._settings
-    const { scheduleId, vm } = this._backup
+    const scheduleId = this._scheduleId
+    const vmUuid = this._vmUuid
 
     const oldEntries = getOldEntries(
       settings.exportRetention - 1,
-      await adapter.listVmBackups(vm.uuid, _ => _.mode === 'delta' && _.scheduleId === scheduleId)
+      await adapter.listVmBackups(vmUuid, _ => _.mode === 'delta' && _.scheduleId === scheduleId)
     )
     this._oldEntries = oldEntries
 
@@ -134,11 +134,10 @@ class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrementalWrite
     }
   }
 
-  async _transfer($defer, { timestamp, deltaExport }) {
+  async _transfer($defer, { timestamp, deltaExport, vm, vmSnapshot }) {
     const adapter = this._adapter
-    const backup = this._backup
-
-    const { job, scheduleId, vm } = backup
+    const job = this._job
+    const scheduleId = this._scheduleId
 
     const jobId = job.id
     const handler = adapter.handler
@@ -169,7 +168,7 @@ class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrementalWrite
       vifs: deltaExport.vifs,
       vhds,
       vm,
-      vmSnapshot: this._backup.exportedVm,
+      vmSnapshot,
     }
 
     const { size } = await Task.run({ name: 'transfer' }, async () => {
@@ -204,7 +203,7 @@ class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrementalWrite
             // merges and chainings
             checksum: false,
             validator: tmpPath => checkVhd(handler, tmpPath),
-            writeBlockConcurrency: this._backup.config.writeBlockConcurrency,
+            writeBlockConcurrency: this._config.writeBlockConcurrency,
           })
 
           if (isDelta) {
