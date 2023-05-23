@@ -1,11 +1,15 @@
 <template>
-  <table :class="{ 'vertical-border': verticalBorder }" class="ui-table">
+  <table
+    :class="{ 'vertical-border': verticalBorder, error: color === 'error' }"
+    class="ui-table"
+  >
     <slot />
   </table>
 </template>
 
 <script lang="ts" setup>
 defineProps<{
+  color?: "error";
   verticalBorder?: boolean;
 }>();
 </script>
@@ -51,5 +55,9 @@ defineProps<{
       }
     }
   }
+}
+
+.error {
+  background-color: var(--background-color-red-vates);
 }
 </style>

@@ -1,5 +1,5 @@
 <template>
-  <UiTable class="tasks-table">
+  <UiTable class="tasks-table" :color="hasError ? 'error' : undefined">
     <thead>
       <tr>
         <th>{{ $t("name") }}</th>
@@ -15,7 +15,7 @@
           <span class="text-error">{{ $t("error-no-data") }}</span>
         </td>
       </tr>
-      <tr v-else-if="areTasksLoading">
+      <tr v-else-if="isFetching">
         <td colspan="5">
           <UiSpinner class="loader" />
         </td>
@@ -34,23 +34,18 @@
 </template>
 
 <script lang="ts" setup>
-import { computed } from "vue";
-import { storeToRefs } from "pinia";
 import TaskRow from "@/components/tasks/TaskRow.vue";
 import UiTable from "@/components/ui/UiTable.vue";
 import UiSpinner from "@/components/ui/UiSpinner.vue";
 import { useTaskStore } from "@/stores/task.store";
 import type { XenApiTask } from "@/libs/xen-api";
 
-const props = defineProps<{
-  pendingTasks?: XenApiTask[];
-  finishedTasks?: XenApiTask[];
+defineProps<{
+  pendingTasks: XenApiTask[];
+  finishedTasks: XenApiTask[];
 }>();
 
-const { hasError, isLoading: isStoreLoading } = storeToRefs(useTaskStore());
-const areTasksLoading = computed(
-  () => isStoreLoading.value || props.pendingTasks === undefined
-);
+const { hasError, isFetching } = useTaskStore().subscribe();
 </script>
 
 <style lang="postcss" scoped>
