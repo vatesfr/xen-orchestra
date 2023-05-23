@@ -1,3 +1,4 @@
+import { asyncEach } from '@vates/async-each'
 import { every } from '@vates/predicates'
 import { ifDef } from '@xen-orchestra/defined'
 import { invalidCredentials, noSuchObject } from 'xo-common/api-errors.js'
@@ -150,6 +151,35 @@ export default class RestApi {
     collections.backups = { id: 'backups' }
     collections.restore = { id: 'restore' }
     collections.tasks = { id: 'tasks' }
+
+    collections.hosts.routes = {
+      __proto__: null,
+
+      async missing_patches(req, res) {
+        const host = req.xapiObject
+        res.json(await host.$xapi.listMissingPatches(host))
+      },
+    }
+
+    collections.pools.routes = {
+      __proto__: null,
+
+      async missing_patches(req, res) {
+        const xapi = req.xapiObject.$xapi
+        const missingPatches = new Map()
+        await asyncEach(Object.values(xapi.objects.indexes.type.host ?? {}), async host => {
+          try {
+            for (const patch of await xapi.listMissingPatches(host)) {
+              const { uuid: key = `${patch.name}-${patch.version}-${patch.release}` } = patch
+              missingPatches.set(key, patch)
+            }
+          } catch (error) {
+            console.warn(host.uuid, error)
+          }
+        })
+        res.json(Array.from(missingPatches.values()))
+      },
+    }
 
     collections.pools.actions = {
       __proto__: null,
@@ -347,7 +377,18 @@ export default class RestApi {
     )
 
     api.get('/:collection/:object', (req, res) => {
-      res.json(req.xoObject)
+      let result = req.xoObject
+
+      // add locations of sub-routes for discoverability
+      const { routes } = req.collection
+      if (routes !== undefined) {
+        result = { ...result }
+        for (const route of Object.keys(routes)) {
+          result[route + '_href'] = join(req.baseUrl, req.path, route)
+        }
+      }
+
+      res.json(result)
     })
     api.patch(
       '/:collection/:object',
@@ -406,6 +447,17 @@ export default class RestApi {
         res.end(req.baseUrl + '/tasks/' + task.id)
       }
     })
+
+    api.get(
+      '/:collection/:object/:route',
+      wrap((req, res, next) => {
+        const handler = req.collection.routes?.[req.params.route]
+        if (handler !== undefined) {
+          return handler(req, res, next)
+        }
+        return next()
+      })
+    )
 
     api.post(
       '/:collection(srs)/:object/vdis',
