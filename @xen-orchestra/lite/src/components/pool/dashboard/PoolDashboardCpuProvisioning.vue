@@ -29,7 +29,6 @@
 
 <script lang="ts" setup>
 import { computed } from "vue";
-import { storeToRefs } from "pinia";
 import NoDataError from "@/components/NoDataError.vue";
 import UiCard from "@/components/ui/UiCard.vue";
 import UiCardFooter from "@/components/ui/UiCardFooter.vue";
