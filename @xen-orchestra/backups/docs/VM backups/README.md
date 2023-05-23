@@ -171,7 +171,7 @@ job:
   # For replication jobs, indicates which SRs to use
   srs: IdPattern
 
-  type: 'backup' | 'mirror-backup'
+  type: 'backup' | 'mirrorBackup'
 
   # Indicates which VMs to backup/replicate for a xapi to remote backup job
   vms: IdPattern
