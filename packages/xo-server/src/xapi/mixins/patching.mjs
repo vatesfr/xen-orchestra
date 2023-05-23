@@ -1,6 +1,7 @@
 import filter from 'lodash/filter.js'
 import find from 'lodash/find.js'
 import groupBy from 'lodash/groupBy.js'
+import isEmpty from 'lodash/isEmpty.js'
 import mapValues from 'lodash/mapValues.js'
 import pickBy from 'lodash/pickBy.js'
 import some from 'lodash/some.js'
@@ -312,7 +313,11 @@ export default {
     // XCP-ng hosts need to be updated one at a time starting with the pool master
     // https://github.com/vatesfr/xen-orchestra/issues/4468
     hosts = hosts.sort(({ $ref }) => ($ref === this.pool.master ? -1 : 1))
+    const updatedHosts = []
     for (const host of hosts) {
+      if (isEmpty(await this._listXcpUpdates(host))) {
+        continue
+      }
       // With throw in case of error with XCP-ng>=8.2.1
       const result = JSON.parse(await this.call('host.call_plugin', host.$ref, 'updater.py', 'update', {}))
 
@@ -323,8 +328,11 @@ export default {
       }
 
       log.debug(result.stdout)
+      updatedHosts.push(host)
       await host.update_other_config('rpm_patch_installation_time', String(Date.now() / 1000))
     }
+
+    return updatedHosts
   },
 
   // Legacy XS patches: upload a patch on a pool before installing it
@@ -461,12 +469,19 @@ export default {
       log.debug('patches that were requested to be installed', patches)
       const installablePatches = await this._listInstallablePatches(this.pool.$master, patches)
 
+      if (isEmpty(installablePatches)) {
+        log.debug('no patches to install')
+        return []
+      }
+
       log.debug(
         'patches that will actually be installed',
         installablePatches.map(patch => patch.uuid)
       )
 
-      return this._poolWideInstall(installablePatches)
+      await this._poolWideInstall(installablePatches)
+
+      return Object.values(this.objects.indexes.type.host)
     }
 
     // for each host
@@ -488,7 +503,7 @@ export default {
       $defer(() => this.call('pool.enable_ha', haSrs, haConfig))
     }
 
-    const hosts = filter(this.objects.all, { $type: 'host' })
+    let hosts = filter(this.objects.all, { $type: 'host' })
 
     {
       const deadHost = hosts.find(_ => !isHostRunning(_))
@@ -508,7 +523,10 @@ export default {
     // On XS/CH, start by installing patches on all hosts
     if (!isXcp) {
       log.debug('Install patches')
-      await this.installPatches()
+      hosts = await this.installPatches()
+      if (isEmpty(hosts)) {
+        return
+      }
     }
 
     // Remember on which hosts the running VMs are
@@ -539,8 +557,14 @@ export default {
     }
     ;[hosts[0], hosts[indexOfMaster]] = [hosts[indexOfMaster], hosts[0]]
 
-    // Restart all the hosts one by one
+    // XS/CH: restart all the hosts one by one
+    // XCP: update and restart all the hosts one by one
     for (const host of hosts) {
+      // Skip XCP-ng hosts that don't need to be updated
+      if (isXcp && isEmpty(await this._listXcpUpdates(host))) {
+        continue
+      }
+
       const hostId = host.uuid
       // This is an old metrics reference from before the pool master restart.
       // The references don't seem to change but it's not guaranteed.
