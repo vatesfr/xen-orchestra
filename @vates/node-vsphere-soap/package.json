@@ -1,0 +1,38 @@
+{
+  "name": "@vates/node-vsphere-soap",
+  "version": "0.0.3",
+  "description": "interface to vSphere SOAP/WSDL from node for interfacing with vCenter or ESXi, forked from node-vsphere-soap",
+  "main": "lib/client.js",
+  "author": "reedog117",
+  "scripts": {
+    "test": "lab"
+  },
+  "repository": {
+    "directory": "@vates/node-vsphere-soap",
+    "type": "git",
+    "url": "https://github.com/vatesfr/xen-orchestra.git"
+  },
+  "bugs": "https://github.com/vatesfr/xen-orchestra/issues",
+  "dependencies": {
+    "soap": "^1.0.0",
+    "soap-cookie": "^0.10.1"
+  },
+  "devDependencies": {
+    "code": "1.x.x",
+    "lab": "5.x.x"
+  },
+  "keywords": [
+    "vsphere",
+    "vcenter",
+    "api",
+    "soap",
+    "wsdl"
+  ],
+  "preferGlobal": false,
+  "license": "MIT",
+  "private": true,
+  "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@vates/node-vsphere-soap",
+  "engines": {
+    "node": ">=8.10"
+  }
+}
