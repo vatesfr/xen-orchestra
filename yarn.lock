@@ -10151,11 +10151,6 @@ fined@^1.0.1:
     object.pick "^1.2.0"
     parse-filepath "^1.0.1"
 
-first-chunk-stream@^0.1.0:
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/first-chunk-stream/-/first-chunk-stream-0.1.0.tgz#755d3ec14d49a86e3d2fcc08beead5c0ca2b9c0a"
-  integrity sha512-o7kVqimu9cl+XNeEGqDPI8Ms4IViicBnjIDZ5uU+7aegfDhJJiU1Da9y52Qt0TfBO3rpKA5hW2cqwp4EkCfl9w==
-
 first-chunk-stream@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/first-chunk-stream/-/first-chunk-stream-2.0.0.tgz#1bdecdb8e083c0664b91945581577a43a9f31d70"
@@ -14440,7 +14435,7 @@ lodash.upperfirst@^4.3.1:
   resolved "https://registry.yarnpkg.com/lodash.upperfirst/-/lodash.upperfirst-4.3.1.tgz#1365edf431480481ef0d1c68957a5ed99d49f7ce"
   integrity sha512-sReKOYJIJf74dhJONhU4e0/shzi1trVbSWDOhKYE5XV2O+H7Sb2Dihwuc7xWxVl+DgFPyTqIN3zMfT9cq5iWDg==
 
-lodash@3.x.x, lodash@^3.3.1:
+lodash@^3.3.1:
   version "3.10.1"
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-3.10.1.tgz#5bf45e8e49ba4189e17d482789dfd15bd140b7b6"
   integrity sha512-9mDDwqVIma6OZX79ZlDACZl8sBm0TEnkf99zV3iMA4GzkIT/9hiqP5mY0HoT1iNLCrKc/R1HByV+yJfRWVJryQ==
@@ -14449,11 +14444,6 @@ lodash@^4.13.1, lodash@^4.15.0, lodash@^4.16.2, lodash@^4.16.6, lodash@^4.17.10,
   version "4.17.21"
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.21.tgz#679591c564c3bffaae8454cf0b3df370c3d6911c"
   integrity sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==
-
-lodash@~2.4.1:
-  version "2.4.2"
-  resolved "https://registry.yarnpkg.com/lodash/-/lodash-2.4.2.tgz#fadd834b9683073da179b3eae6d9c0d15053f73e"
-  integrity sha512-Kak1hi6/hYHGVPmdyiZijoQyz5x2iGVzs6w9GYB/HiXEtylY7tIoYEROMjvM1d9nXJqPOrG2MNPMn01bJ+S0Rw==
 
 log-symbols@^1.0.2:
   version "1.0.2"
@@ -15474,15 +15464,6 @@ node-version@^1.0.0:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/node-version/-/node-version-1.2.0.tgz#34fde3ffa8e1149bd323983479dda620e1b5060d"
   integrity sha512-ma6oU4Sk0qOoKEAymVoTvk8EdXEobdS7m/mAGhDJ8Rouugho48crHBORAmy5BoOcv8wraPM6xumapQp5hl4iIQ==
-
-node-vsphere-soap@^0.0.2-5:
-  version "0.0.2-5"
-  resolved "https://registry.yarnpkg.com/node-vsphere-soap/-/node-vsphere-soap-0.0.2-5.tgz#e055a17d23452276b0755949b163e16b4214755c"
-  integrity sha512-FC0QHZMV1QWuCPKdUmYWAX2yVnHNybEGblKOwkFow6DS6xAejIAqRn+hd5imK+VLt2yBT+0XprP44zl2+eTfzw==
-  dependencies:
-    lodash "3.x.x"
-    soap "0.8.0"
-    soap-cookie "0.10.x"
 
 node-xmpp-client@^3.0.0:
   version "3.2.0"
@@ -18511,7 +18492,7 @@ replace-homedir@^1.0.0:
     is-absolute "^1.0.0"
     remove-trailing-separator "^1.1.0"
 
-request@>=2.9.0, request@^2.65.0, request@^2.74.0, request@^2.87.0:
+request@^2.65.0, request@^2.74.0, request@^2.87.0:
   version "2.88.2"
   resolved "https://registry.yarnpkg.com/request/-/request-2.88.2.tgz#d73c918731cb5a87da047e207234146f664d12b3"
   integrity sha512-MsvtOrfG9ZcrOwAW+Qi+F6HbD0CWXEh9ou77uOb7FM2WPhwT7smM833PzanhJLsgXjN89Ir6V2PczXNnMpwKhw==
@@ -19284,20 +19265,10 @@ snapdragon@^0.8.1:
     source-map-resolve "^0.5.0"
     use "^3.1.0"
 
-soap-cookie@0.10.x, soap-cookie@^0.10.1:
+soap-cookie@^0.10.1:
   version "0.10.1"
   resolved "https://registry.yarnpkg.com/soap-cookie/-/soap-cookie-0.10.1.tgz#7c7e62f3779b3e42e6b584d35ecabee92121a23f"
   integrity sha512-lG3/Vozl7otPEFbEWLIDOyArDMAUZBJhMQBXW/L5cfGh88GMBtBItOw28zcMLO0o6Y7RC2vkUtZ7CWauTv0a7w==
-
-soap@0.8.0:
-  version "0.8.0"
-  resolved "https://registry.yarnpkg.com/soap/-/soap-0.8.0.tgz#ab2766a7515fa5069f264a094e087e3fe74e2a78"
-  integrity sha512-rQpzOrol1pQpvhn9CdxDJg/D0scOwlr+DcdMFMAm/Q1cWbjaYKEMCl1dcfW5JjMFdf5esKUqGplDPEEB0Z2RZA==
-  dependencies:
-    lodash "~2.4.1"
-    request ">=2.9.0"
-    sax ">=0.6"
-    strip-bom "~0.3.1"
 
 soap@^1.0.0:
   version "1.0.0"
@@ -19920,14 +19891,6 @@ strip-bom@^4.0.0:
   version "4.0.0"
   resolved "https://registry.yarnpkg.com/strip-bom/-/strip-bom-4.0.0.tgz#9c3505c1db45bcedca3d9cf7a16f5c5aa3901878"
   integrity sha512-3xurFv5tEgii33Zi8Jtp55wEIILR9eh34FAW00PZf+JnSsTmV/ioewSgQl97JHvgjoRGwPShsWm+IdrxB35d0w==
-
-strip-bom@~0.3.1:
-  version "0.3.1"
-  resolved "https://registry.yarnpkg.com/strip-bom/-/strip-bom-0.3.1.tgz#9e8a39eff456ff9abc2f059f5f2225bb0f3f7ca5"
-  integrity sha512-8m24eJUyKXllSCydAwFVbr4QRZrRb82T2QfwtbO9gTLWhWIOxoDEZESzCGMgperFNyLhly6SDOs+LPH6/seBfw==
-  dependencies:
-    first-chunk-stream "^0.1.0"
-    is-utf8 "^0.2.0"
 
 strip-eof@^1.0.0:
   version "1.0.0"

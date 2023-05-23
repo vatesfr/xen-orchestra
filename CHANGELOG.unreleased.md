@@ -17,6 +17,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [Home/Host] Fix "isHostTimeConsistentWithXoaTime.then is not a function" (PR [#6896](https://github.com/vatesfr/xen-orchestra/pull/6896))
+- [ESXi Import] was depending on an older unmaintened library that was downgrading the global security level of XO (PR [#6859](https://github.com/vatesfr/xen-orchestra/pull/6859))
 
 ### Packages to release
 
@@ -38,6 +39,7 @@
 - @vates/task minor
 - @xen-orchestra/backups minor
 - @vates/node-vsphere-soap major
+- @xen-orchestra/vmware-explorer
 - xo-server-auth-oidc minor
 - xo-web minor
 
