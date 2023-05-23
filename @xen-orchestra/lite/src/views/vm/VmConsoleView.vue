@@ -3,19 +3,21 @@
   <div v-else-if="!isVmRunning">Console is only available for running VMs.</div>
   <RemoteConsole
     v-else-if="vm && vmConsole"
-    :location="vmConsole.location"
     :is-console-available="!isOperationsPending(vm, STOP_OPERATIONS)"
+    :location="vmConsole.location"
   />
 </template>
 
 <script lang="ts" setup>
-import { POWER_STATE, VM_OPERATION, type XenApiVm } from "@/libs/xen-api";
-import { computed } from "vue";
-import { useRoute } from "vue-router";
 import RemoteConsole from "@/components/RemoteConsole.vue";
-import { useConsoleStore } from "@/stores/console.store";
-import { useVmStore } from "@/stores/vm.store";
 import { isOperationsPending } from "@/libs/utils";
+import { POWER_STATE, VM_OPERATION, type XenApiVm } from "@/libs/xen-api";
+import { useConsoleStore } from "@/stores/console.store";
+import { usePageTitleStore } from "@/stores/page-title.store";
+import { useVmStore } from "@/stores/vm.store";
+import { computed } from "vue";
+import { useI18n } from "vue-i18n";
+import { useRoute } from "vue-router";
 
 const STOP_OPERATIONS = [
   VM_OPERATION.SHUTDOWN,
@@ -26,6 +28,8 @@ const STOP_OPERATIONS = [
   VM_OPERATION.PAUSE,
   VM_OPERATION.SUSPEND,
 ];
+
+usePageTitleStore().setTitle(useI18n().t("console"));
 
 const route = useRoute();
 

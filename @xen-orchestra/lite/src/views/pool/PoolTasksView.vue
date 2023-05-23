@@ -21,8 +21,7 @@ import useFilteredCollection from "@/composables/filtered-collection.composable"
 import useSortedCollection from "@/composables/sorted-collection.composable";
 import type { XenApiTask } from "@/libs/xen-api";
 import { useTaskStore } from "@/stores/task.store";
-import { useTitle } from "@vueuse/core";
-import { computed } from "vue";
+import { usePageTitleStore } from "@/stores/page-title.store";
 import { useI18n } from "vue-i18n";
 
 const { records, hasError } = useTaskStore().subscribe();
@@ -53,9 +52,9 @@ const finishedTasks = useArrayRemovedItemsHistory(
   }
 );
 
-useTitle(
-  computed(() => t("task.page-title", { n: pendingTasks.value.length }))
-);
+const titleStore = usePageTitleStore();
+titleStore.setTitle(t("tasks"));
+titleStore.setCount(() => pendingTasks.value.length);
 </script>
 
 <style lang="postcss" scoped>

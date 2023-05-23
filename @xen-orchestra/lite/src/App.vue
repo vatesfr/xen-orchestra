@@ -41,8 +41,6 @@ if (link == null) {
 }
 link.href = favicon;
 
-document.title = "XO Lite";
-
 const xenApiStore = useXenApiStore();
 const { pool } = usePoolStore().subscribe();
 useChartTheme();
