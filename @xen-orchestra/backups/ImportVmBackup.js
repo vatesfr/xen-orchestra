@@ -35,7 +35,7 @@ exports.ImportVmBackup = class ImportVmBackup {
           .filter(([_, srUuid]) => srUuid === null)
           .map(([vdiUuid]) => vdiUuid)
       )
-      backup = await adapter.readDeltaVmBackup(metadata, ignoredVdis)
+      backup = await adapter.readIncrementalVmBackup(metadata, ignoredVdis)
       Object.values(backup.streams).forEach(stream => watchStreamSize(stream, sizeContainer))
     }
 

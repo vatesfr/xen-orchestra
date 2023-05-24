@@ -717,7 +717,7 @@ class RemoteAdapter {
     return stream
   }
 
-  async readDeltaVmBackup(metadata, ignoredVdis) {
+  async readIncrementalVmBackup(metadata, ignoredVdis) {
     const handler = this._handler
     const { vbds, vhds, vifs, vm, vmSnapshot } = metadata
     const dir = dirname(metadata._filename)
