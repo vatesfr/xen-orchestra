@@ -37,6 +37,7 @@
 - @vates/nbd-client patch
 - @vates/task minor
 - @xen-orchestra/backups minor
+- @vates/node-vsphere-soap major
 - xo-server-auth-oidc minor
 - xo-web minor
 
