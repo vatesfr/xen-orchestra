@@ -691,8 +691,8 @@ class RemoteAdapter {
   }
 
   // open the  hierarchy of ancestors until we find a full one
-  async _createSyntheticStream(handler, path) {
-    const disposableSynthetic = await VhdSynthetic.fromVhdChain(handler, path)
+  async _createVhdStream(handler, path, { useChain }) {
+    const disposableSynthetic = useChain ? await VhdSynthetic.fromVhdChain(handler, path) : await openVhd(handler, path)
     // I don't want the vhds to be disposed on return
     // but only when the stream is done ( or failed )
 
@@ -717,7 +717,7 @@ class RemoteAdapter {
     return stream
   }
 
-  async readIncrementalVmBackup(metadata, ignoredVdis) {
+  async readIncrementalVmBackup(metadata, ignoredVdis, { useChain = true } = {}) {
     const handler = this._handler
     const { vbds, vhds, vifs, vm, vmSnapshot } = metadata
     const dir = dirname(metadata._filename)
@@ -725,7 +725,7 @@ class RemoteAdapter {
 
     const streams = {}
     await asyncMapSettled(Object.keys(vdis), async ref => {
-      streams[`${ref}.vhd`] = await this._createSyntheticStream(handler, join(dir, vhds[ref]))
+      streams[`${ref}.vhd`] = await this._createVhdStream(handler, join(dir, vhds[ref]), { useChain })
     })
 
     return {
