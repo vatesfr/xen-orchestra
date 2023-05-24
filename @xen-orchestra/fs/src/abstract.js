@@ -37,8 +37,13 @@ const ignoreEnoent = error => {
 const noop = Function.prototype
 
 class PrefixWrapper {
+  #prefix
+
   constructor(handler, prefix) {
-    this._prefix = prefix
+    this.#prefix = prefix
+
+    // cannot be a private field because used by methods dynamically added
+    // outside of the class
     this._handler = handler
   }
 
@@ -50,7 +55,7 @@ class PrefixWrapper {
   async list(dir, opts) {
     const entries = await this._handler.list(this._resolve(dir), opts)
     if (opts != null && opts.prependDir) {
-      const n = this._prefix.length
+      const n = this.#prefix.length
       entries.forEach((entry, i, entries) => {
         entries[i] = entry.slice(n)
       })
@@ -62,19 +67,21 @@ class PrefixWrapper {
     return this._handler.rename(this._resolve(oldPath), this._resolve(newPath))
   }
 
+  // cannot be a private method because used by methods dynamically added
+  // outside of the class
   _resolve(path) {
-    return this._prefix + normalizePath(path)
+    return this.#prefix + normalizePath(path)
   }
 }
 
 export default class RemoteHandlerAbstract {
-  #encryptor
+  #rawEncryptor
 
-  get _encryptor() {
-    if (this.#encryptor === undefined) {
+  get #encryptor() {
+    if (this.#rawEncryptor === undefined) {
       throw new Error(`Can't access to encryptor before remote synchronization`)
     }
-    return this.#encryptor
+    return this.#rawEncryptor
   }
 
   constructor(remote, options = {}) {
@@ -157,7 +164,7 @@ export default class RemoteHandlerAbstract {
     }
 
     if (this.isEncrypted) {
-      stream = this._encryptor.decryptStream(stream)
+      stream = this.#encryptor.decryptStream(stream)
     } else {
       // try to add the length prop if missing and not a range stream
       if (stream.length === undefined && options.end === undefined && options.start === undefined) {
@@ -186,7 +193,7 @@ export default class RemoteHandlerAbstract {
     path = normalizePath(path)
     let checksumStream
 
-    input = this._encryptor.encryptStream(input)
+    input = this.#encryptor.encryptStream(input)
     if (checksum) {
       checksumStream = createChecksumStream()
       pipeline(input, checksumStream, noop)
@@ -224,7 +231,7 @@ export default class RemoteHandlerAbstract {
     assert.strictEqual(this.isEncrypted, false, `Can't compute size of an encrypted file ${file}`)
 
     const size = await timeout.call(this._getSize(typeof file === 'string' ? normalizePath(file) : file), this._timeout)
-    return size - this._encryptor.ivLength
+    return size - this.#encryptor.ivLength
   }
 
   async list(dir, { filter, ignoreMissing = false, prependDir = false } = {}) {
@@ -270,7 +277,7 @@ export default class RemoteHandlerAbstract {
   }
 
   async outputFile(file, data, { dirMode, flags = 'wx' } = {}) {
-    const encryptedData = this._encryptor.encryptData(data)
+    const encryptedData = this.#encryptor.encryptData(data)
     await this._outputFile(normalizePath(file), encryptedData, { dirMode, flags })
   }
 
@@ -281,7 +288,7 @@ export default class RemoteHandlerAbstract {
 
   async readFile(file, { flags = 'r' } = {}) {
     const data = await this._readFile(normalizePath(file), { flags })
-    return this._encryptor.decryptData(data)
+    return this.#encryptor.decryptData(data)
   }
 
   async #rename(oldPath, newPath, { checksum }, createTree = true) {
@@ -332,23 +339,23 @@ export default class RemoteHandlerAbstract {
   async sync() {
     await this._sync()
     try {
-      await this._checkMetadata()
+      await this.#checkMetadata()
     } catch (error) {
       await this._forget()
       throw error
     }
   }
 
-  async _canWriteMetadata() {
+  async #canWriteMetadata() {
     const list = await this.list('/', {
       filter: e => !e.startsWith('.') && e !== ENCRYPTION_DESC_FILENAME && e !== ENCRYPTION_METADATA_FILENAME,
     })
     return list.length === 0
   }
 
-  async _createMetadata() {
+  async #createMetadata() {
     const encryptionAlgorithm = this._remote.encryptionKey === undefined ? 'none' : DEFAULT_ENCRYPTION_ALGORITHM
-    this.#encryptor = _getEncryptor(encryptionAlgorithm, this._remote.encryptionKey)
+    this.#rawEncryptor = _getEncryptor(encryptionAlgorithm, this._remote.encryptionKey)
 
     await Promise.all([
       this._writeFile(normalizePath(ENCRYPTION_DESC_FILENAME), JSON.stringify({ algorithm: encryptionAlgorithm }), {
@@ -358,7 +365,7 @@ export default class RemoteHandlerAbstract {
     ])
   }
 
-  async _checkMetadata() {
+  async #checkMetadata() {
     let encryptionAlgorithm = 'none'
     let data
     try {
@@ -374,18 +381,18 @@ export default class RemoteHandlerAbstract {
     }
 
     try {
-      this.#encryptor = _getEncryptor(encryptionAlgorithm, this._remote.encryptionKey)
+      this.#rawEncryptor = _getEncryptor(encryptionAlgorithm, this._remote.encryptionKey)
       // this file is encrypted
       const data = await this.readFile(ENCRYPTION_METADATA_FILENAME, 'utf-8')
       JSON.parse(data)
     } catch (error) {
       // can be enoent, bad algorithm, or broeken json ( bad key or algorithm)
       if (encryptionAlgorithm !== 'none') {
-        if (await this._canWriteMetadata()) {
+        if (await this.#canWriteMetadata()) {
           // any other error , but on empty remote => update with remote settings
 
           info('will update metadata of this remote')
-          return this._createMetadata()
+          return this.#createMetadata()
         } else {
           warn(
             `The encryptionKey settings of this remote does not match the key used to create it. You won't be able to read any data from this remote`,
@@ -454,7 +461,7 @@ export default class RemoteHandlerAbstract {
   }
 
   async writeFile(file, data, { flags = 'wx' } = {}) {
-    const encryptedData = this._encryptor.encryptData(data)
+    const encryptedData = this.#encryptor.encryptData(data)
     await this._writeFile(normalizePath(file), encryptedData, { flags })
   }
 
@@ -665,7 +672,7 @@ export default class RemoteHandlerAbstract {
   }
 
   get isEncrypted() {
-    return this._encryptor.id !== 'NULL_ENCRYPTOR'
+    return this.#encryptor.id !== 'NULL_ENCRYPTOR'
   }
 }
 
