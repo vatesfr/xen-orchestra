@@ -23,20 +23,19 @@ export default class {
   constructor(app) {
     this._app = app
 
-    const redis = app._redis
-
-    const groupsDb = (this._groups = new Groups({
-      connection: redis,
-      namespace: 'group',
-    }))
-    const usersDb = (this._users = new Users({
-      connection: redis,
-      namespace: 'user',
-      indexes: ['email'],
-    }))
-
-    app.hooks.on('clean', () => Promise.all([groupsDb.rebuildIndexes(), usersDb.rebuildIndexes()]))
+    app.hooks.on('clean', () => Promise.all([this._groups.rebuildIndexes(), this._users.rebuildIndexes()]))
     app.hooks.on('start', async () => {
+      const redis = app._redis
+      const groupsDb = (this._groups = new Groups({
+        connection: redis,
+        namespace: 'group',
+      }))
+      const usersDb = (this._users = new Users({
+        connection: redis,
+        namespace: 'user',
+        indexes: ['email'],
+      }))
+
       app.addConfigManager(
         'groups',
         () => groupsDb.get(),

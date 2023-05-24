@@ -46,11 +46,6 @@ const log = createLogger('xo:xo-mixins:xen-servers')
 export default class XenServers {
   constructor(app, { safeMode }) {
     this._objectConflicts = { __proto__: null } // TODO: clean when a server is disconnected.
-    const serversDb = (this._servers = new Servers({
-      connection: app._redis,
-      namespace: 'server',
-      indexes: ['host'],
-    }))
     this._serverIdsByPool = { __proto__: null }
     this._stats = new XapiStats()
     this._xapis = { __proto__: null }
@@ -60,8 +55,14 @@ export default class XenServers {
       this._xapiMarkDisconnectedDelay = xapiMarkDisconnectedDelay
     })
 
-    app.hooks.on('clean', () => serversDb.rebuildIndexes())
+    app.hooks.on('clean', () => this._servers.rebuildIndexes())
     app.hooks.on('start', async () => {
+      const serversDb = (this._servers = new Servers({
+        connection: app._redis,
+        namespace: 'server',
+        indexes: ['host'],
+      }))
+
       const connectServers = async () => {
         // Connects to existing servers.
         for (const server of await serversDb.get()) {
