@@ -20,7 +20,9 @@ _key backup(full) are in upper case, delta backup are in lowercase_ . _Source ha
 - destination: empty
 ```
 
-will transfer, ni order A , then B, and C. Destination will contains ABC
+will transfer in order A , then B, and C. Destination will contains ABC
+
+> **Limitation:** if the mirror retention is lower than the backup retention on the source remote, more data than necessary may be transferred during the first run, since all the backups of the source will be transfered to the destinations. Then the older backups will be purged on the destinations.
 
 ### second transfer
 
@@ -62,7 +64,9 @@ _key backup(full) are in upper case, delta backup are in lowercase_ . _Source ha
 - destination: empty
 ```
 
-will transfer, ni order A , then b, and c. Destination will contains Abc
+will transfer in order A , then b, and c. Destination will contains Abc
+
+> **Limitation:** if the mirror retention is lower than the backup retention on the source remote, more data than necessary may be transferred during the first run, since all the backups of the source will be transfered to the destinations. Then the older backups will be purged on the destinations.
 
 ### second transfer
 
