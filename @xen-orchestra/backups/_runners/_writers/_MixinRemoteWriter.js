@@ -58,7 +58,7 @@ exports.MixinRemoteWriter = (BaseClass = Object) =>
       const { disableMergeWorker } = this._backup.config
       // merge worker only compatible with local remotes
       const { handler } = this._adapter
-      const willMergeInWorker = !disableMergeWorker && typeof handler._getRealPath === 'function'
+      const willMergeInWorker = !disableMergeWorker && typeof handler.getRealPath === 'function'
 
       const { merge } = await this._cleanVm({ remove: true, merge: !willMergeInWorker })
       await this.#lock.dispose()
@@ -71,7 +71,7 @@ exports.MixinRemoteWriter = (BaseClass = Object) =>
           Math.random().toString(36).slice(2)
 
         await handler.outputFile(taskFile, this._backup.vm.uuid)
-        const remotePath = handler._getRealPath()
+        const remotePath = handler.getRealPath()
         await MergeWorker.run(remotePath)
       }
     }

@@ -333,7 +333,7 @@ class RemoteAdapter {
     const RE_VHDI = /^vhdi(\d+)$/
     const handler = this._handler
 
-    const diskPath = handler._getFilePath('/' + diskId)
+    const diskPath = handler.getFilePath('/' + diskId)
     const mountDir = yield getTmpDir()
     await fromCallback(execFile, 'vhdimount', [diskPath, mountDir])
     try {
