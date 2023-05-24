@@ -44,6 +44,10 @@ import Page from '../page'
 
 // ===================================================================
 
+const TAGS_WRAPPER_STYLES = { fontSize: '1.4em' }
+
+// ===================================================================
+
 const HEADER = (
   <Container>
     <Row>
@@ -318,13 +322,9 @@ export class Edit extends Component {
   // -----------------------------------------------------------------------------
 
   _onRemoveTag = tag =>
-    this.setState(prevState => {
-      const tags = [...prevState.tags]
-      remove(tags, _tag => tag === _tag)
-      return {
-        tags,
-      }
-    })
+    this.setState(prevState => ({
+      tags: prevState.tags.filter(_tag => tag === _tag),
+    }))
 
   _onAddTag = tag =>
     this.setState(prevState => ({
@@ -525,7 +525,7 @@ export class Edit extends Component {
                   </Row>
                   <Row>
                     <Col>
-                      <span style={{ fontSize: '1.4em' }}>
+                      <span style={TAGS_WRAPPER_STYLES}>
                         <Tags labels={state.tags} onAdd={this._onAddTag} onDelete={this._onRemoveTag} />
                       </span>
                     </Col>
@@ -611,13 +611,7 @@ class ResourceSet extends Component {
         </li>
       ),
       <li key='tags' className='list-group-item'>
-        <Icon icon='tags' />{' '}
-        {tags.map((tag, i) => (
-          <span key={tag}>
-            {i !== 0 && ', '}
-            {tag}
-          </span>
-        ))}
+        <Icon icon='tags' /> {tags.join(', ')}
       </li>,
       <li key='graphs' className='list-group-item'>
         <ResourceSetQuotas limits={limits} />
