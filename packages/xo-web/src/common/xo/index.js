@@ -2490,6 +2490,10 @@ export const deleteMetadataBackups = async (backups = []) => {
   }
 }
 
+// Mirror backup ---------------------------------------------------------
+
+export const createMirrorBackupJob = props => _call('mirrorBackup.createJob', props) // @TODO: refresh subscriptions
+
 // Plugins -----------------------------------------------------------
 
 export const loadPlugin = async id =>

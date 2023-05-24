@@ -106,7 +106,9 @@ const Schedules = decorate([
             ...newSetting
           } = await form({
             defaultValue: setDefaultRetentions({ cron, name, timezone, ...setting }, state.retentions),
-            render: props => <NewSchedule retentions={state.retentions} {...props} />,
+            render: _props => (
+              <NewSchedule retentions={state.retentions} withHealthCheck={props.withHealthCheck} {..._props} />
+            ),
             header: (
               <span>
                 <Icon icon='schedule' /> {_('schedule')}

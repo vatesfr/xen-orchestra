@@ -47,6 +47,7 @@ import getSettingsWithNonDefaultValue from '../_getSettingsWithNonDefaultValue'
 import { canDeltaBackup, constructPattern, destructPattern, FormFeedback, FormGroup, Input, Li, Ul } from './../utils'
 
 export NewMetadataBackup from './metadata'
+export NewMirrorBackup from './mirror'
 
 // ===================================================================
 
@@ -60,7 +61,7 @@ const DEFAULT_SCHEDULE = {
 }
 const RETENTION_LIMIT = 50
 
-const ReportRecipients = decorate([
+export const ReportRecipients = decorate([
   provideState({
     initialState: () => ({
       recipient: '',
@@ -127,7 +128,7 @@ const ReportRecipients = decorate([
 
 const SR_BACKEND_FAILURE_LINK = 'https://xen-orchestra.com/docs/backup_troubleshooting.html#sr-backend-failure-44'
 
-const BACKUP_NG_DOC_LINK = 'https://xen-orchestra.com/docs/backup.html'
+export const BACKUP_NG_DOC_LINK = 'https://xen-orchestra.com/docs/backup.html'
 
 const ThinProvisionedTip = ({ label }) => (
   <Tooltip content={_(label)}>
@@ -198,7 +199,7 @@ const getInitialState = ({ preSelectedVmIds, setHomeVmIdsSelection, suggestedExc
   }
 }
 
-const DeleteOldBackupsFirst = ({ handler, handlerParam, value }) => (
+export const DeleteOldBackupsFirst = ({ handler, handlerParam, value }) => (
   <ActionButton
     handler={handler}
     handlerParam={handlerParam}
