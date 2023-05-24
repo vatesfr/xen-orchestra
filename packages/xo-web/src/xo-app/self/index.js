@@ -137,7 +137,7 @@ export class Edit extends Component {
       name: '',
       networks: [],
       pools: [],
-      share: false,
+      shareByDefault: false,
       srs: [],
       subjects: [],
       templates: [],
@@ -176,7 +176,7 @@ export class Edit extends Component {
         ipPools,
         memory: get(limits, 'memory.total', null),
         name: resourceSet.name,
-        share: resourceSet.share || false,
+        shareByDefault: resourceSet.shareByDefault || false,
         subjects: resourceSet.subjects,
         templates: objectsByType['VM-template'] || [],
       })
@@ -184,7 +184,7 @@ export class Edit extends Component {
   }
 
   _save = async () => {
-    const { cpus, disk, ipPools, memory, name, networks, share, srs, subjects, templates } = this.state
+    const { cpus, disk, ipPools, memory, name, networks, shareByDefault, srs, subjects, templates } = this.state
 
     const set = this.props.resourceSet || (await createResourceSet(name))
     const objects = [...templates, ...srs, ...networks]
@@ -205,7 +205,7 @@ export class Edit extends Component {
         ...ipPoolsLimits,
       },
       objects: resolveIds(objects),
-      share,
+      shareByDefault,
       subjects: resolveIds(subjects),
       ipPools: resolveIds(ipPools),
     })
@@ -223,7 +223,7 @@ export class Edit extends Component {
       memory: null,
       newIpPool: undefined,
       newIpPoolQuantity: '',
-      share: false,
+      shareByDefault: false,
       subjects: [],
     })
   }
@@ -499,8 +499,9 @@ export class Edit extends Component {
               </Row>
             </div>
             <div className='mt-1'>
-              <input checked={state.share} type='checkbox' onChange={this.toggleState('share')} />{' '}
               <label>
+                <input checked={state.shareByDefault} type='checkbox' onChange={this.toggleState('shareByDefault')} />
+                &nbsp;
                 <strong>{_('shareVmsByDefault')}</strong>
               </label>
             </div>

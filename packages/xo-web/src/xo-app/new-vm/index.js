@@ -276,7 +276,7 @@ export default class NewVm extends BaseComponent {
       prevProps.location.query.resourceSet !== this.props.location.query.resourceSet
     ) {
       this._setState({
-        share: this._getResourceSet()?.share ?? false,
+        share: this._getResourceSet()?.shareByDefault ?? false,
       })
     }
   }
@@ -320,8 +320,6 @@ export default class NewVm extends BaseComponent {
   // Actions ---------------------------------------------------------------------
 
   _reset = callback => {
-    const resourceSet = this._getResourceSet()
-    const share = resourceSet?.share !== undefined ? resourceSet.share : false
     this._replaceState(
       {
         bootAfterCreate: true,
@@ -346,7 +344,7 @@ export default class NewVm extends BaseComponent {
         VIFs: [],
         secureBoot: false,
         seqStart: 1,
-        share,
+        share: this._getResourceSet()?.shareByDefault ?? false,
         tags: [],
       },
       callback

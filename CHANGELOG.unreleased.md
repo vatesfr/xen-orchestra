@@ -8,7 +8,7 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [Proxy] Make proxy address editable (PR [#6816](https://github.com/vatesfr/xen-orchestra/pull/6816))
-- [Self service] Ability to set a default value for the "Share VM" feature for self-service users during creation/editing (PR [#6838](https://github.com/vatesfr/xen-orchestra/pull/6838))
+- [Self Service] Ability to set a default value for the "Share VM" feature for Self Service users during creation/edition (PR [#6838](https://github.com/vatesfr/xen-orchestra/pull/6838))
 
 ### Bug fixes
 

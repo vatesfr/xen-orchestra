@@ -2513,14 +2513,14 @@ export const sendUsageReport = () => _call('plugin.usageReport.send')
 
 // Resource set ------------------------------------------------------
 
-export const createResourceSet = (name, { share, subjects, objects, limits } = {}) =>
-  _call('resourceSet.create', { name, share, subjects, objects, limits })::tap(subscribeResourceSets.forceRefresh)
+export const createResourceSet = (name, { shareByDefault, subjects, objects, limits } = {}) =>
+  _call('resourceSet.create', { name, shareByDefault, subjects, objects, limits })::tap(subscribeResourceSets.forceRefresh)
 
-export const editResourceSet = (id, { name, share, subjects, objects, limits, ipPools } = {}) =>
+export const editResourceSet = (id, { name, shareByDefault, subjects, objects, limits, ipPools } = {}) =>
   _call('resourceSet.set', {
     id,
     name,
-    share,
+    shareByDefault,
     subjects,
     objects,
     limits,
