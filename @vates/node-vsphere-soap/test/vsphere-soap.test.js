@@ -1,44 +1,38 @@
+'use strict'
+
 /*
   vsphere-soap.test.js
 
   tests for the vCenterConnectionInstance class
 */
 
-var Code = require('code')
-var Lab = require('lab')
-var util = require('util')
-var lab = (exports.lab = Lab.script())
-var vc = require('../lib/client')
-var TestCreds = require('../config-test.js').vCenterTestCreds
-var _ = require('lodash')
+const Code = require('code')
+const Lab = require('lab')
+const lab = (exports.lab = Lab.script())
+const vc = require('../lib/client')
 
-var describe = lab.describe
-var it = lab.it
-var before = lab.before
-var after = lab.after
-var expect = Code.expect
+// eslint-disable-next-line n/no-missing-require
+const TestCreds = require('../config-test.js').vCenterTestCreds
 
-var VItest = new vc.Client(TestCreds.vCenterIP, TestCreds.vCenterUser, TestCreds.vCenterPassword, false)
+const describe = lab.describe
+const it = lab.it
+const expect = Code.expect
+
+const VItest = new vc.Client(TestCreds.vCenterIP, TestCreds.vCenterUser, TestCreds.vCenterPassword, false)
 
 describe('Client object initialization:', function () {
   it('provides a successful login', { timeout: 5000 }, function (done) {
     VItest.once('ready', function () {
       expect(VItest.userName).to.exist()
-      //console.log('logged in user : ' + VItest.userName);
       expect(VItest.fullName).to.exist()
-      //console.log('logged in user fullname : ' + VItest.fullName);
       expect(VItest.serviceContent).to.exist()
-      //console.log(VItest.serviceContent);
       done()
     }).once('error', function (err) {
       console.error(err)
       // this should fail if there's a problem
       expect(VItest.userName).to.exist()
-      //console.log('logged in user : ' + VItest.userName);
       expect(VItest.fullName).to.exist()
-      //console.log('logged in user fullname : ' + VItest.fullName);
       expect(VItest.serviceContent).to.exist()
-      //console.log(VItest.serviceContent);
       done()
     })
   })
@@ -82,13 +76,13 @@ describe('Client tests - query commands:', function () {
 
   it('can obtain the names of all Virtual Machines in the inventory', { timeout: 20000 }, function (done) {
     // get property collector
-    var propertyCollector = VItest.serviceContent.propertyCollector
+    const propertyCollector = VItest.serviceContent.propertyCollector
     // get view manager
-    var viewManager = VItest.serviceContent.viewManager
+    const viewManager = VItest.serviceContent.viewManager
     // get root folder
-    var rootFolder = VItest.serviceContent.rootFolder
+    const rootFolder = VItest.serviceContent.rootFolder
 
-    var containerView, objectSpec, traversalSpec, propertySpec, propertyFilterSpec
+    let containerView, objectSpec, traversalSpec, propertySpec, propertyFilterSpec
     // this is the equivalent to
     VItest.runCommand('CreateContainerView', {
       _this: viewManager,
@@ -113,7 +107,7 @@ describe('Client tests - query commands:', function () {
         skip: false,
       }
 
-      objectSpec = _.assign(objectSpec, { selectSet: [traversalSpec] })
+      objectSpec = { ...objectSpec, selectSet: [traversalSpec] }
 
       propertySpec = {
         attributes: { 'xsi:type': 'PropertySpec' },
@@ -135,15 +129,15 @@ describe('Client tests - query commands:', function () {
       })
         .once('result', function (result, raw) {
           expect(result.returnval.objects).to.exist()
-          if (_.isArray(result.returnval.objects)) {
-            expect(_.sample(result.returnval.objects).obj.attributes.type).to.be.equal('VirtualMachine')
+          if (Array.isArray(result.returnval.objects)) {
+            expect(result.returnval.objects[0].obj.attributes.type).to.be.equal('VirtualMachine')
           } else {
             expect(result.returnval.objects.obj.attributes.type).to.be.equal('VirtualMachine')
           }
           done()
         })
         .once('error', function (err) {
-          console.log('\n\nlast request : ' + VItest.client.lastRequest)
+          console.error('\n\nlast request : ' + VItest.client.lastRequest, err)
         })
     })
   })

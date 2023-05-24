@@ -1,3 +1,4 @@
+'use strict'
 /*
 
   node-vsphere-soap
@@ -11,12 +12,11 @@
 
 */
 
-var EventEmitter = require('events').EventEmitter,
-  util = require('util'),
-  soap = require('soap'),
-  cookie = require('soap-cookie'), // required for session persistence
-  constants = require('constants'),
-  _ = require('lodash')
+const EventEmitter = require('events').EventEmitter
+const util = require('util')
+const soap = require('soap')
+const Cookie = require('soap-cookie') // required for session persistence
+const { SSL_OP_NO_TLSv1_2 } = require('crypto').constants
 
 // Client class
 // inherits from EventEmitter
@@ -28,8 +28,6 @@ function Client(vCenterHostname, username, password, sslVerify) {
 
   sslVerify = typeof sslVerify !== 'undefined' ? sslVerify : false
 
-  var self = this
-
   EventEmitter.call(this)
 
   // sslVerify argument handling
@@ -39,7 +37,7 @@ function Client(vCenterHostname, username, password, sslVerify) {
     this.clientopts = {
       rejectUnauthorized: false,
       strictSSL: false,
-      secureOptions: constants.SSL_OP_NO_TLSv1_2, // likely needed for node >= 10.0
+      secureOptions: SSL_OP_NO_TLSv1_2, // likely needed for node >= 10.0
     } // recommended options by node-soap authors
     process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0' // need for self-signed certs
   }
@@ -47,8 +45,8 @@ function Client(vCenterHostname, username, password, sslVerify) {
   this.connectionInfo = {
     host: vCenterHostname,
     user: username,
-    password: password,
-    sslVerify: sslVerify,
+    password,
+    sslVerify,
   }
 
   this._loginArgs = {
@@ -70,24 +68,24 @@ function Client(vCenterHostname, username, password, sslVerify) {
 
 util.inherits(Client, EventEmitter)
 
-Client.prototype.runCommand = function (command, arguments) {
-  var self = this
-  var cmdargs
-  if (!arguments || arguments == null) {
+Client.prototype.runCommand = function (command, args) {
+  const self = this
+  let cmdargs
+  if (!args || args === null) {
     cmdargs = {}
   } else {
-    cmdargs = arguments
+    cmdargs = args
   }
 
-  var emitter = new EventEmitter()
+  const emitter = new EventEmitter()
 
   // check if client has successfully connected
-  if (self.status == 'ready' || self.status == 'connecting') {
+  if (self.status === 'ready' || self.status === 'connecting') {
     self.client.VimService.VimPort[command](cmdargs, function (err, result, raw, soapHeader) {
       if (err) {
         _soapErrorHandler(self, emitter, command, cmdargs, err)
       }
-      if (command == 'Logout') {
+      if (command === 'Logout') {
         self.status = 'disconnected'
         process.removeAllListeners('beforeExit')
       }
@@ -95,7 +93,7 @@ Client.prototype.runCommand = function (command, arguments) {
     })
   } else {
     // if connection not ready or connecting, reconnect to instance
-    if (self.status == 'disconnected') {
+    if (self.status === 'disconnected') {
       self.emit('connect')
     }
     self.once('ready', function () {
@@ -103,7 +101,7 @@ Client.prototype.runCommand = function (command, arguments) {
         if (err) {
           _soapErrorHandler(self, emitter, command, cmdargs, err)
         }
-        if (command == 'Logout') {
+        if (command === 'Logout') {
           self.status = 'disconnected'
           process.removeAllListeners('beforeExit')
         }
@@ -116,15 +114,15 @@ Client.prototype.runCommand = function (command, arguments) {
 }
 
 Client.prototype.close = function () {
-  var self = this
+  const self = this
 
   self.emit('close')
 }
 
 Client.prototype._connect = function () {
-  var self = this
+  const self = this
 
-  if (self.status != 'disconnected') {
+  if (self.status !== 'disconnected') {
     return
   }
 
@@ -152,12 +150,12 @@ Client.prototype._connect = function () {
 
           self.serviceContent = result.returnval
           self.sessionManager = result.returnval.sessionManager
-          var loginArgs = _.assign({ _this: self.sessionManager }, self._loginArgs)
+          const loginArgs = { _this: self.sessionManager, ...self._loginArgs }
 
           self
             .runCommand('Login', loginArgs)
             .once('result', function (result, raw, soapHeader) {
-              self.authCookie = new cookie(client.lastResponseHeaders)
+              self.authCookie = new Cookie(client.lastResponseHeaders)
               self.client.setSecurity(self.authCookie) // needed since vSphere SOAP WS uses cookies
 
               self.userName = result.returnval.userName
@@ -183,39 +181,34 @@ Client.prototype._connect = function () {
 }
 
 Client.prototype._close = function () {
-  var self = this
+  const self = this
 
-  if (self.status == 'ready') {
+  if (self.status === 'ready') {
     self
       .runCommand('Logout', { _this: self.sessionManager })
-      .once('result', function (result) {
+      .once('result', function () {
         self.status = 'disconnected'
-        //console.log(result);
       })
-      .once('error', function (err) {
-        console.error(err)
+      .once('error', function () {
+        /* don't care of error during disconnection */
+        self.status = 'disconnected'
       })
   } else {
     self.status = 'disconnected'
   }
 }
 
-function _soapErrorHandler(self, emitter, command, arguments, err) {
-  if (err) {
-    console.error('error contents : ' + err.body)
-  } else {
-    err = { body: 'general error' }
-  }
+function _soapErrorHandler(self, emitter, command, args, err) {
+  err = err || { body: 'general error' }
 
   if (err.body.match(/session is not authenticated/)) {
-    console.log('authorization token expired! reconnecting...')
     self.status = 'disconnected'
     process.removeAllListeners('beforeExit')
 
     if (self.reconnectCount < 10) {
       self.reconnectCount += 1
       self
-        .runCommand(command, arguments)
+        .runCommand(command, args)
         .once('result', function (result, raw, soapHeader) {
           emitter.emit('result', result, raw, soapHeader)
         })
