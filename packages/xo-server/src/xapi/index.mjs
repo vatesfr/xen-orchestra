@@ -24,7 +24,7 @@ import { limitConcurrency } from 'limit-concurrency-decorator'
 import { parseDuration } from '@vates/parse-duration'
 import { PassThrough } from 'stream'
 import { forbiddenOperation, operationFailed } from 'xo-common/api-errors.js'
-import { parseDateTime, Xapi as XapiBase } from '@xen-orchestra/xapi'
+import { extractOpaqueRef, parseDateTime, Xapi as XapiBase } from '@xen-orchestra/xapi'
 import { Ref } from 'xen-api'
 import { synchronized } from 'decorator-synchronized'
 
@@ -34,7 +34,7 @@ import { debounceWithKey } from '../_pDebounceWithKey.mjs'
 
 import mixins from './mixins/index.mjs'
 import OTHER_CONFIG_TEMPLATE from './other-config-template.mjs'
-import { asInteger, extractOpaqueRef, canSrHaveNewVdiOfSize, isVmHvm, isVmRunning, prepareXapiParam } from './utils.mjs'
+import { asInteger, canSrHaveNewVdiOfSize, isVmHvm, isVmRunning, prepareXapiParam } from './utils.mjs'
 
 const log = createLogger('xo:xapi')
 

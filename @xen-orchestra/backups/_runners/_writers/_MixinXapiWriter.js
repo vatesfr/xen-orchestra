@@ -1,17 +1,11 @@
 'use strict'
 
+const { extractOpaqueRef } = require('@xen-orchestra/xapi')
+
 const { Task } = require('../../Task')
 const assert = require('node:assert/strict')
 const { HealthCheckVmBackup } = require('../../HealthCheckVmBackup')
 
-function extractOpaqueRef(str) {
-  const OPAQUE_REF_RE = /OpaqueRef:[0-9a-z-]+/
-  const matches = OPAQUE_REF_RE.exec(str)
-  if (!matches) {
-    throw new Error('no opaque ref found')
-  }
-  return matches[0]
-}
 exports.MixinXapiWriter = (BaseClass = Object) =>
   class MixinXapiWriter extends BaseClass {
     constructor({ sr, ...rest }) {
