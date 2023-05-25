@@ -29,6 +29,9 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/backups minor
+- vhd-lib minor
+- xo-server minor
 - xo-web minor
 
 <!--packages-end-->

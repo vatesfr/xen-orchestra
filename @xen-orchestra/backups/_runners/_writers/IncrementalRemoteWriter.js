@@ -134,7 +134,7 @@ class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrementalWrite
     }
   }
 
-  async _transfer($defer, { timestamp, deltaExport, vm, vmSnapshot }) {
+  async _transfer($defer, { differentialVhds, timestamp, deltaExport, vm, vmSnapshot }) {
     const adapter = this._adapter
     const job = this._job
     const scheduleId = this._scheduleId
@@ -142,7 +142,11 @@ class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrementalWrite
     const jobId = job.id
     const handler = adapter.handler
 
-    // TODO: clean VM backup directory
+    let metadataContent = await this._isAlreadyTransferred(timestamp)
+    if (metadataContent !== undefined) {
+      // @todo : should skip backup while being vigilant to not stuck the forked stream
+      Task.info('This backup has already been transfered')
+    }
 
     const basename = formatFilenameDate(timestamp)
     const vhds = mapValues(
@@ -157,7 +161,7 @@ class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrementalWrite
         }/${adapter.getVhdFileName(basename)}`
     )
 
-    const metadataContent = {
+    metadataContent = {
       jobId,
       mode: job.mode,
       scheduleId,
@@ -170,14 +174,13 @@ class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrementalWrite
       vm,
       vmSnapshot,
     }
-
     const { size } = await Task.run({ name: 'transfer' }, async () => {
       let transferSize = 0
       await Promise.all(
         map(deltaExport.vdis, async (vdi, id) => {
           const path = `${this._vmBackupDir}/${vhds[id]}`
 
-          const isDelta = vdi.other_config['xo:base_delta'] !== undefined
+          const isDelta = differentialVhds[`${id}.vhd`]
           let parentPath
           if (isDelta) {
             const vdiDir = dirname(path)
@@ -190,7 +193,11 @@ class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrementalWrite
               .sort()
               .pop()
 
-            assert.notStrictEqual(parentPath, undefined, `missing parent of ${id}`)
+            assert.notStrictEqual(
+              parentPath,
+              undefined,
+              `missing parent of ${id} in ${dirname(path)}, looking for ${vdi.other_config['xo:base_delta']}`
+            )
 
             parentPath = parentPath.slice(1) // remove leading slash
 
