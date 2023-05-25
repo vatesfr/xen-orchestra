@@ -28,7 +28,22 @@ import {
 } from 'cloud-config'
 import { Input as DebounceInput, Textarea as DebounceTextarea } from 'debounce-input-decorator'
 import { Limits } from 'usage'
-import { clamp, every, filter, find, forEach, includes, isEmpty, join, map, size, slice, sum, sumBy } from 'lodash'
+import {
+  clamp,
+  every,
+  filter,
+  find,
+  forEach,
+  includes,
+  isEmpty,
+  isEqual,
+  join,
+  map,
+  size,
+  slice,
+  sum,
+  sumBy,
+} from 'lodash'
 import {
   addSshKey,
   createVm,
@@ -255,6 +270,15 @@ export default class NewVm extends BaseComponent {
     if (get(() => prevProps.template.id) !== get(() => this.props.template.id)) {
       this._initTemplate(this.props.template)
     }
+
+    if (
+      !isEqual(prevProps.resourceSets, this.props.resourceSets) ||
+      prevProps.location.query.resourceSet !== this.props.location.query.resourceSet
+    ) {
+      this._setState({
+        share: this._getResourceSet()?.shareByDefault ?? false,
+      })
+    }
   }
 
   _getResourceSet = createFinder(
@@ -320,7 +344,7 @@ export default class NewVm extends BaseComponent {
         VIFs: [],
         secureBoot: false,
         seqStart: 1,
-        share: false,
+        share: this._getResourceSet()?.shareByDefault ?? false,
         tags: [],
       },
       callback
