@@ -118,6 +118,10 @@ export default class RemoteHandlerAbstract {
   }
 
   // Public members
+  //
+  // Should not be called directly because:
+  // - some concurrency limits may be applied which may lead to deadlocks
+  // - some preprocessing may be applied on parameters that should not be done multiple times (e.g. prefixing paths)
 
   get type() {
     throw new Error('Not implemented')
@@ -126,10 +130,6 @@ export default class RemoteHandlerAbstract {
   addPrefix(prefix) {
     prefix = normalizePath(prefix)
     return prefix === '/' ? this : new PrefixWrapper(this, prefix)
-  }
-
-  async closeFile(fd) {
-    await this.__closeFile(fd)
   }
 
   async createReadStream(file, { checksum = false, ignoreMissingChecksum = false, ...options } = {}) {
@@ -234,7 +234,7 @@ export default class RemoteHandlerAbstract {
     return size - this.#encryptor.ivLength
   }
 
-  async list(dir, { filter, ignoreMissing = false, prependDir = false } = {}) {
+  async __list(dir, { filter, ignoreMissing = false, prependDir = false } = {}) {
     try {
       const virtualDir = normalizePath(dir)
       dir = normalizePath(dir)
@@ -264,16 +264,8 @@ export default class RemoteHandlerAbstract {
     return { dispose: await this._lock(path) }
   }
 
-  async mkdir(dir, { mode } = {}) {
-    await this.__mkdir(normalizePath(dir), { mode })
-  }
-
   async mktree(dir, { mode } = {}) {
     await this._mktree(normalizePath(dir), { mode })
-  }
-
-  openFile(path, flags) {
-    return this.__openFile(path, flags)
   }
 
   async outputFile(file, data, { dirMode, flags = 'wx' } = {}) {
@@ -286,7 +278,7 @@ export default class RemoteHandlerAbstract {
     return this._read(typeof file === 'string' ? normalizePath(file) : file, buffer, position)
   }
 
-  async readFile(file, { flags = 'r' } = {}) {
+  async __readFile(file, { flags = 'r' } = {}) {
     const data = await this._readFile(normalizePath(file), { flags })
     return this.#encryptor.decryptData(data)
   }
@@ -308,11 +300,11 @@ export default class RemoteHandlerAbstract {
     }
   }
 
-  rename(oldPath, newPath, { checksum = false } = {}) {
+  __rename(oldPath, newPath, { checksum = false } = {}) {
     return this.#rename(normalizePath(oldPath), normalizePath(newPath), { checksum })
   }
 
-  async copy(oldPath, newPath, { checksum = false } = {}) {
+  async __copy(oldPath, newPath, { checksum = false } = {}) {
     oldPath = normalizePath(oldPath)
     newPath = normalizePath(newPath)
 
@@ -347,7 +339,7 @@ export default class RemoteHandlerAbstract {
   }
 
   async #canWriteMetadata() {
-    const list = await this.list('/', {
+    const list = await this.__list('/', {
       filter: e => !e.startsWith('.') && e !== ENCRYPTION_DESC_FILENAME && e !== ENCRYPTION_METADATA_FILENAME,
     })
     return list.length === 0
@@ -361,7 +353,7 @@ export default class RemoteHandlerAbstract {
       this._writeFile(normalizePath(ENCRYPTION_DESC_FILENAME), JSON.stringify({ algorithm: encryptionAlgorithm }), {
         flags: 'w',
       }), // not encrypted
-      this.writeFile(ENCRYPTION_METADATA_FILENAME, `{"random":"${randomUUID()}"}`, { flags: 'w' }), // encrypted
+      this.__writeFile(ENCRYPTION_METADATA_FILENAME, `{"random":"${randomUUID()}"}`, { flags: 'w' }), // encrypted
     ])
   }
 
@@ -383,7 +375,7 @@ export default class RemoteHandlerAbstract {
     try {
       this.#rawEncryptor = _getEncryptor(encryptionAlgorithm, this._remote.encryptionKey)
       // this file is encrypted
-      const data = await this.readFile(ENCRYPTION_METADATA_FILENAME, 'utf-8')
+      const data = await this.__readFile(ENCRYPTION_METADATA_FILENAME, 'utf-8')
       JSON.parse(data)
     } catch (error) {
       // can be enoent, bad algorithm, or broeken json ( bad key or algorithm)
@@ -445,7 +437,7 @@ export default class RemoteHandlerAbstract {
     await this._truncate(file, len)
   }
 
-  async unlink(file, { checksum = true } = {}) {
+  async __unlink(file, { checksum = true } = {}) {
     file = normalizePath(file)
 
     if (checksum) {
@@ -460,7 +452,7 @@ export default class RemoteHandlerAbstract {
     await this._write(typeof file === 'string' ? normalizePath(file) : file, buffer, position)
   }
 
-  async writeFile(file, data, { flags = 'wx' } = {}) {
+  async __writeFile(file, data, { flags = 'wx' } = {}) {
     const encryptedData = this.#encryptor.encryptData(data)
     await this._writeFile(normalizePath(file), encryptedData, { flags })
   }
@@ -472,6 +464,8 @@ export default class RemoteHandlerAbstract {
   }
 
   async __mkdir(dir, { mode } = {}) {
+    dir = normalizePath(dir)
+
     try {
       await this._mkdir(dir, { mode })
     } catch (error) {
@@ -593,9 +587,9 @@ export default class RemoteHandlerAbstract {
       if (validator !== undefined) {
         await validator.call(this, tmpPath)
       }
-      await this.rename(tmpPath, path)
+      await this.__rename(tmpPath, path)
     } catch (error) {
-      await this.unlink(tmpPath)
+      await this.__unlink(tmpPath)
       throw error
     }
   }
@@ -673,6 +667,21 @@ export default class RemoteHandlerAbstract {
 
   get isEncrypted() {
     return this.#encryptor.id !== 'NULL_ENCRYPTOR'
+  }
+}
+
+// from implementation methods, which names start with `__`, create public
+// accessors on which external behaviors can be added (e.g. concurrency limits, path rewriting)
+{
+  const proto = RemoteHandlerAbstract.prototype
+  for (const method of Object.getOwnPropertyNames(proto)) {
+    if (method.startsWith('__')) {
+      const publicName = method.slice(2)
+
+      assert(!Object.hasOwn(proto, publicName))
+
+      Object.defineProperty(proto, publicName, Object.getOwnPropertyDescriptor(proto, method))
+    }
   }
 }
 

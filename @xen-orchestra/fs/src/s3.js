@@ -206,7 +206,7 @@ export default class S3Handler extends RemoteHandlerAbstract {
       try {
         await validator.call(this, path)
       } catch (error) {
-        await this.unlink(path)
+        await this.__unlink(path)
         throw error
       }
     }
@@ -310,7 +310,7 @@ export default class S3Handler extends RemoteHandlerAbstract {
 
   // s3 doesn't have a rename operation, so copy + delete source
   async _rename(oldPath, newPath) {
-    await this.copy(oldPath, newPath)
+    await this.__copy(oldPath, newPath)
     await this.#s3.send(new DeleteObjectCommand(this.#createParams(oldPath)))
   }
 
