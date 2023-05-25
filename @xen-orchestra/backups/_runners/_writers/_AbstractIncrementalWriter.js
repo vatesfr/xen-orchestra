@@ -15,7 +15,7 @@ exports.AbstractIncrementalWriter = class AbstractIncrementalWriter extends Abst
     throw new Error('Not implemented')
   }
 
-  async transfer({ deltaExport, ...other }, ...other2) {
+  async transfer({ deltaExport, ...other }) {
     try {
       return await this._transfer({ deltaExport, ...other })
     } finally {

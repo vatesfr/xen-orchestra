@@ -32,8 +32,11 @@ exports.FullRemoteWriter = class FullRemoteWriter extends MixinRemoteWriter(Abst
     const scheduleId = this._scheduleId
 
     const adapter = this._adapter
-
-    // TODO: clean VM backup directory
+    let metadata = await this._isAlreadyTransferred(timestamp)
+    if (metadata !== undefined) {
+      // @todo : should skip backup while being vigilant to not stuck the forked stream
+      Task.info('This backup has already been transfered')
+    }
 
     const oldBackups = getOldEntries(
       settings.exportRetention - 1,
@@ -46,7 +49,7 @@ exports.FullRemoteWriter = class FullRemoteWriter extends MixinRemoteWriter(Abst
     const dataBasename = basename + '.xva'
     const dataFilename = this._vmBackupDir + '/' + dataBasename
 
-    const metadata = {
+    metadata = {
       jobId: job.id,
       mode: job.mode,
       scheduleId,

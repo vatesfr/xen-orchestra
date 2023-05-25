@@ -30,8 +30,7 @@ const SCHEMA_SETTINGS = {
 }
 
 export function createJob({ schedules, ...job }) {
-  job.userId = this.apiContext.user.id
-  return this.createBackupNgJob(job, schedules).then(({ id }) => id)
+  return this.createBackupNgJob('backup', job, schedules).then(({ id }) => id)
 }
 
 createJob.permission = 'admin'
@@ -74,7 +73,7 @@ export function getSuggestedExcludedTags() {
 }
 
 export function deleteJob({ id }) {
-  return this.deleteBackupNgJob(id)
+  return this.deleteBackupNgJob(id, 'backup')
 }
 deleteJob.permission = 'admin'
 deleteJob.params = {
