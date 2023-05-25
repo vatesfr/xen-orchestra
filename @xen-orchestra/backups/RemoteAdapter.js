@@ -404,20 +404,27 @@ class RemoteAdapter {
     return `${baseName}.vhd`
   }
 
-  async listAllVmBackups() {
+  async listAllVms() {
     const handler = this._handler
-
-    const backups = { __proto__: null }
-    await asyncMap(await handler.list(BACKUP_DIR), async entry => {
+    const vmsUuids = []
+    await asyncEach(await handler.list(BACKUP_DIR), async entry => {
       // ignore hidden and lock files
       if (entry[0] !== '.' && !entry.endsWith('.lock')) {
-        const vmBackups = await this.listVmBackups(entry)
-        if (vmBackups.length !== 0) {
-          backups[entry] = vmBackups
-        }
+        vmsUuids.push(entry)
       }
     })
+    return vmsUuids
+  }
 
+  async listAllVmBackups() {
+    const vmsUuids = await this.listAllVms()
+    const backups = { __proto__: null }
+    await asyncEach(vmsUuids, async vmUuid => {
+      const vmBackups = await this.listVmBackups(vmUuid)
+      if (vmBackups.length !== 0) {
+        backups[vmUuid] = vmBackups
+      }
+    })
     return backups
   }
 
