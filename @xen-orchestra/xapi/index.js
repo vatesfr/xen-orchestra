@@ -7,6 +7,7 @@ const { Xapi: Base } = require('xen-api')
 
 const { warn } = require('@xen-orchestra/log').createLogger('xo:xapi')
 
+exports.extractOpaqueRef = require('./_extractOpaqueRef.js')
 exports.isDefaultTemplate = require('./isDefaultTemplate.js')
 
 // VDI formats. (Raw is not available for delta vdi.)

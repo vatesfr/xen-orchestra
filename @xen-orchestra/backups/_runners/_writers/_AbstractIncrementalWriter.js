@@ -2,7 +2,7 @@
 
 const { AbstractWriter } = require('./_AbstractWriter.js')
 
-exports.AbstractDeltaWriter = class AbstractDeltaWriter extends AbstractWriter {
+exports.AbstractIncrementalWriter = class AbstractIncrementalWriter extends AbstractWriter {
   checkBaseVdis(baseUuidToSrcVdi, baseVm) {
     throw new Error('Not implemented')
   }

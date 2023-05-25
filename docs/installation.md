@@ -336,5 +336,5 @@ useSudo = true
 You need to configure `sudo` to allow the user of your choice to run mount/umount commands without asking for a password. Depending on your operating system / sudo version, the location of this configuration may change. Regardless, you can use:
 
 ```
-username ALL=(root)NOPASSWD: /bin/mount, /bin/umount
+username ALL=(root)NOPASSWD: /bin/mount, /bin/umount, /bin/findmnt
 ```

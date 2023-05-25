@@ -73,19 +73,20 @@ export default class Jobs {
   constructor(app) {
     this._app = app
     const executors = (this._executors = { __proto__: null })
-    const jobsDb = (this._jobs = new JobsDb({
-      connection: app._redis,
-      namespace: 'job',
-      indexes: ['user_id', 'key'],
-    }))
     this._logger = undefined
     this._runningJobs = { __proto__: null }
     this._runs = { __proto__: null }
 
     executors.call = executeCall
 
-    app.hooks.on('clean', () => jobsDb.rebuildIndexes())
+    app.hooks.on('clean', () => this._jobs.rebuildIndexes())
     app.hooks.on('start', async () => {
+      const jobsDb = (this._jobs = new JobsDb({
+        connection: app._redis,
+        namespace: 'job',
+        indexes: ['user_id', 'key'],
+      }))
+
       this._logger = await app.getLogger('jobs')
 
       app.addConfigManager(

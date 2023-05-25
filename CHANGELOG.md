@@ -1,8 +1,20 @@
 # ChangeLog
 
-## **5.82.1** (2023-05-12)
+## **5.82.2** (2023-05-17)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
+### Bug fixes
+
+- [New/VM] Fix stuck Cloud Config import ([GitHub comment](https://github.com/vatesfr/xen-orchestra/issues/5896#issuecomment-1465253774))
+
+### Released packages
+
+- xen-api 1.3.1
+- @xen-orchestra/proxy 0.26.23
+- xo-server 5.114.2
+
+## **5.82.1** (2023-05-12)
 
 ### Enhancements
 

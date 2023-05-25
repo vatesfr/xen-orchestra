@@ -3,7 +3,7 @@
 import { createReadStream, stat } from 'fs-extra'
 import { exec } from 'child-process-promise'
 import { pFromCallback } from 'promise-toolbox'
-import rimraf from 'rimraf'
+import { rimraf } from 'rimraf'
 import tmp from 'tmp'
 
 import VMDKDirectParser from './vmdk-read'

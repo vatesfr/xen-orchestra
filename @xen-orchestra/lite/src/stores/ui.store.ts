@@ -5,7 +5,7 @@ import { computed, ref } from "vue";
 export const useUiStore = defineStore("ui", () => {
   const currentHostOpaqueRef = ref();
 
-  const colorMode = useColorMode({ emitAuto: true, initialValue: "dark" });
+  const { store: colorMode } = useColorMode({ initialValue: "dark" });
 
   const { desktop: isDesktop } = useBreakpoints({
     desktop: 1024,

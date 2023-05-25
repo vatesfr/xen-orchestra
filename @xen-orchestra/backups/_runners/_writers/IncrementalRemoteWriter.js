@@ -11,19 +11,19 @@ const { decorateClass } = require('@vates/decorate-with')
 const { defer } = require('golike-defer')
 const { dirname } = require('path')
 
-const { formatFilenameDate } = require('../_filenameDate.js')
-const { getOldEntries } = require('../_getOldEntries.js')
-const { Task } = require('../Task.js')
+const { formatFilenameDate } = require('../../_filenameDate.js')
+const { getOldEntries } = require('../../_getOldEntries.js')
+const { Task } = require('../../Task.js')
 
-const { MixinBackupWriter } = require('./_MixinBackupWriter.js')
-const { AbstractDeltaWriter } = require('./_AbstractDeltaWriter.js')
+const { MixinRemoteWriter } = require('./_MixinRemoteWriter.js')
+const { AbstractIncrementalWriter } = require('./_AbstractIncrementalWriter.js')
 const { checkVhd } = require('./_checkVhd.js')
 const { packUuid } = require('./_packUuid.js')
 const { Disposable } = require('promise-toolbox')
 
 const { warn } = createLogger('xo:backups:DeltaBackupWriter')
 
-class DeltaBackupWriter extends MixinBackupWriter(AbstractDeltaWriter) {
+class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrementalWriter) {
   async checkBaseVdis(baseUuidToSrcVdi) {
     const { handler } = this._adapter
     const backup = this._backup
@@ -227,6 +227,6 @@ class DeltaBackupWriter extends MixinBackupWriter(AbstractDeltaWriter) {
     // TODO: run cleanup?
   }
 }
-exports.DeltaBackupWriter = decorateClass(DeltaBackupWriter, {
+exports.IncrementalRemoteWriter = decorateClass(IncrementalRemoteWriter, {
   _transfer: defer,
 })

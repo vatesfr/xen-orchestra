@@ -36,13 +36,6 @@ export default class {
     // attacks).
     this._failures = { __proto__: null }
 
-    // Creates persistent collections.
-    const tokensDb = (this._tokens = new Tokens({
-      connection: app._redis,
-      namespace: 'token',
-      indexes: ['user_id'],
-    }))
-
     // Password authentication provider.
     this.registerAuthenticationProvider(async ({ username, password }, { ip } = {}) => {
       if (username === undefined || password === undefined) {
@@ -74,6 +67,7 @@ export default class {
     })
 
     app.hooks.on('clean', async () => {
+      const tokensDb = this._tokens
       const tokens = await tokensDb.get()
       const toRemove = []
       const now = Date.now()
@@ -87,6 +81,13 @@ export default class {
     })
 
     app.hooks.on('start', () => {
+      // Creates persistent collections.
+      const tokensDb = (this._tokens = new Tokens({
+        connection: app._redis,
+        namespace: 'token',
+        indexes: ['user_id'],
+      }))
+
       app.addConfigManager(
         'authTokens',
         () => tokensDb.get(),

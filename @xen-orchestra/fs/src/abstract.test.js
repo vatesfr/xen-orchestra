@@ -1,11 +1,13 @@
-/* eslint-env jest */
+import { after, beforeEach, describe, it } from 'test'
+import { strict as assert } from 'assert'
+import sinon from 'sinon'
 
 import { DEFAULT_ENCRYPTION_ALGORITHM, _getEncryptor } from './_encryptor'
 import { Disposable, pFromCallback, TimeoutError } from 'promise-toolbox'
 import { getSyncedHandler } from '.'
+import { rimraf } from 'rimraf'
 import AbstractHandler from './abstract'
 import fs from 'fs-extra'
-import rimraf from 'rimraf'
 import tmp from 'tmp'
 
 const TIMEOUT = 10e3
@@ -24,7 +26,7 @@ class TestHandler extends AbstractHandler {
 
 const noop = Function.prototype
 
-jest.useFakeTimers()
+const clock = sinon.useFakeTimers()
 
 describe('closeFile()', () => {
   it(`throws in case of timeout`, async () => {
@@ -33,8 +35,8 @@ describe('closeFile()', () => {
     })
 
     const promise = testHandler.closeFile({ fd: undefined, path: '' })
-    jest.advanceTimersByTime(TIMEOUT)
-    await expect(promise).rejects.toThrowError(TimeoutError)
+    clock.tick(TIMEOUT)
+    await assert.rejects(promise, TimeoutError)
   })
 })
 
@@ -45,8 +47,8 @@ describe('getInfo()', () => {
     })
 
     const promise = testHandler.getInfo()
-    jest.advanceTimersByTime(TIMEOUT)
-    await expect(promise).rejects.toThrowError(TimeoutError)
+    clock.tick(TIMEOUT)
+    await assert.rejects(promise, TimeoutError)
   })
 })
 
@@ -57,8 +59,8 @@ describe('getSize()', () => {
     })
 
     const promise = testHandler.getSize('')
-    jest.advanceTimersByTime(TIMEOUT)
-    await expect(promise).rejects.toThrowError(TimeoutError)
+    clock.tick(TIMEOUT)
+    await assert.rejects(promise, TimeoutError)
   })
 })
 
@@ -69,8 +71,8 @@ describe('list()', () => {
     })
 
     const promise = testHandler.list('.')
-    jest.advanceTimersByTime(TIMEOUT)
-    await expect(promise).rejects.toThrowError(TimeoutError)
+    clock.tick(TIMEOUT)
+    await assert.rejects(promise, TimeoutError)
   })
 })
 
@@ -81,8 +83,8 @@ describe('openFile()', () => {
     })
 
     const promise = testHandler.openFile('path')
-    jest.advanceTimersByTime(TIMEOUT)
-    await expect(promise).rejects.toThrowError(TimeoutError)
+    clock.tick(TIMEOUT)
+    await assert.rejects(promise, TimeoutError)
   })
 })
 
@@ -93,8 +95,8 @@ describe('rename()', () => {
     })
 
     const promise = testHandler.rename('oldPath', 'newPath')
-    jest.advanceTimersByTime(TIMEOUT)
-    await expect(promise).rejects.toThrowError(TimeoutError)
+    clock.tick(TIMEOUT)
+    await assert.rejects(promise, TimeoutError)
   })
 })
 
@@ -105,8 +107,8 @@ describe('rmdir()', () => {
     })
 
     const promise = testHandler.rmdir('dir')
-    jest.advanceTimersByTime(TIMEOUT)
-    await expect(promise).rejects.toThrowError(TimeoutError)
+    clock.tick(TIMEOUT)
+    await assert.rejects(promise, TimeoutError)
   })
 })
 
@@ -115,14 +117,14 @@ describe('encryption', () => {
   beforeEach(async () => {
     dir = await pFromCallback(cb => tmp.dir(cb))
   })
-  afterAll(async () => {
+  after(async () => {
     await rimraf(dir)
   })
 
   it('sync should NOT create metadata if missing (not encrypted)', async () => {
     await Disposable.use(getSyncedHandler({ url: `file://${dir}` }), noop)
 
-    expect(await fs.readdir(dir)).toEqual([])
+    assert.deepEqual(await fs.readdir(dir), [])
   })
 
   it('sync should create metadata if missing (encrypted)', async () => {
@@ -131,12 +133,12 @@ describe('encryption', () => {
       noop
     )
 
-    expect(await fs.readdir(dir)).toEqual(['encryption.json', 'metadata.json'])
+    assert.deepEqual(await fs.readdir(dir), ['encryption.json', 'metadata.json'])
 
     const encryption = JSON.parse(await fs.readFile(`${dir}/encryption.json`, 'utf-8'))
-    expect(encryption.algorithm).toEqual(DEFAULT_ENCRYPTION_ALGORITHM)
+    assert.equal(encryption.algorithm, DEFAULT_ENCRYPTION_ALGORITHM)
     // encrypted , should not be parsable
-    expect(async () => JSON.parse(await fs.readFile(`${dir}/metadata.json`))).rejects.toThrowError()
+    assert.rejects(async () => JSON.parse(await fs.readFile(`${dir}/metadata.json`)))
   })
 
   it('sync should not modify existing metadata', async () => {
@@ -146,9 +148,9 @@ describe('encryption', () => {
     await Disposable.use(await getSyncedHandler({ url: `file://${dir}` }), noop)
 
     const encryption = JSON.parse(await fs.readFile(`${dir}/encryption.json`, 'utf-8'))
-    expect(encryption.algorithm).toEqual('none')
+    assert.equal(encryption.algorithm, 'none')
     const metadata = JSON.parse(await fs.readFile(`${dir}/metadata.json`, 'utf-8'))
-    expect(metadata.random).toEqual('NOTSORANDOM')
+    assert.equal(metadata.random, 'NOTSORANDOM')
   })
 
   it('should modify metadata if empty', async () => {
@@ -160,11 +162,11 @@ describe('encryption', () => {
       noop
     )
     let encryption = JSON.parse(await fs.readFile(`${dir}/encryption.json`, 'utf-8'))
-    expect(encryption.algorithm).toEqual(DEFAULT_ENCRYPTION_ALGORITHM)
+    assert.equal(encryption.algorithm, DEFAULT_ENCRYPTION_ALGORITHM)
 
     await Disposable.use(getSyncedHandler({ url: `file://${dir}` }), noop)
     encryption = JSON.parse(await fs.readFile(`${dir}/encryption.json`, 'utf-8'))
-    expect(encryption.algorithm).toEqual('none')
+    assert.equal(encryption.algorithm, 'none')
   })
 
   it(
@@ -178,9 +180,9 @@ describe('encryption', () => {
       const handler = yield getSyncedHandler({ url: `file://${dir}?encryptionKey="73c1838d7d8a6088ca2317fb5f29cd91"` })
 
       const encryption = JSON.parse(await fs.readFile(`${dir}/encryption.json`, 'utf-8'))
-      expect(encryption.algorithm).toEqual(DEFAULT_ENCRYPTION_ALGORITHM)
+      assert.equal(encryption.algorithm, DEFAULT_ENCRYPTION_ALGORITHM)
       const metadata = JSON.parse(await handler.readFile(`./metadata.json`))
-      expect(metadata.random).toEqual('NOTSORANDOM')
+      assert.equal(metadata.random, 'NOTSORANDOM')
     })
   )
 
@@ -198,9 +200,9 @@ describe('encryption', () => {
 
     // remote is now non empty : can't modify key anymore
     await fs.writeFile(`${dir}/nonempty.json`, 'content')
-    await expect(
+    await assert.rejects(
       Disposable.use(getSyncedHandler({ url: `file://${dir}?encryptionKey="73c1838d7d8a6088ca2317fb5f29cd10"` }), noop)
-    ).rejects.toThrowError()
+    )
   })
 
   it('sync should fail when changing algorithm', async () => {
@@ -213,8 +215,8 @@ describe('encryption', () => {
     // remote is now non empty : can't modify key anymore
     await fs.writeFile(`${dir}/nonempty.json`, 'content')
 
-    await expect(
+    await assert.rejects(
       Disposable.use(getSyncedHandler({ url: `file://${dir}?encryptionKey="73c1838d7d8a6088ca2317fb5f29cd91"` }), noop)
-    ).rejects.toThrowError()
+    )
   })
 })

@@ -917,6 +917,7 @@ const messages = {
 
   // ----- Host item ------
   host: 'Host',
+  hostHvmDisabled: 'Hardware-assisted virtualization is not enabled on this host',
   hostNoLicensePartialProSupport:
     'This host does not have an active license, even though it is in a pool with licensed hosts. In order for XCP-ng Pro Support to be enabled on a pool, all hosts within the pool must have an active license',
   hostNoSupport: 'No XCP-ng Pro Support enabled on this host',

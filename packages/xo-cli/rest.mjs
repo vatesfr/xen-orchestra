@@ -98,12 +98,23 @@ export async function rest(args) {
     {
       exec(path, { query = {}, ...opts } = {}) {
         const url = new URL(baseUrl)
-        url.pathname = addPrefix(path)
+
+        const i = path.indexOf('?')
+        let pathname
+        if (i === -1) {
+          pathname = path
+        } else {
+          pathname = path.slice(0, i)
+          url.search = path.slice(i)
+        }
+        url.pathname = addPrefix(pathname)
+
         for (const [name, value] of Object.entries(query)) {
           if (value !== undefined) {
             url.searchParams.set(name, value)
           }
         }
+
         return hrp(url, merge({}, baseOpts, opts))
       },
       json,

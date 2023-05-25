@@ -3,7 +3,6 @@
 const { beforeEach, afterEach, test, describe } = require('test')
 const assert = require('assert').strict
 
-const rimraf = require('rimraf')
 const tmp = require('tmp')
 const fs = require('fs-extra')
 const uuid = require('uuid')
@@ -14,6 +13,7 @@ const { VHDFOOTER, VHDHEADER } = require('./tests.fixtures.js')
 const { VhdFile, Constants, VhdDirectory, VhdAbstract } = require('vhd-lib')
 const { checkAliases } = require('./_cleanVm')
 const { dirname, basename } = require('path')
+const { rimraf } = require('rimraf')
 
 let tempDir, adapter, handler, jobId, vdiId, basePath, relativePath
 const rootPath = 'xo-vm-backups/VMUUID/'

@@ -68,20 +68,21 @@ export default class Proxy {
       this._generateDefaultProxyName = compileTemplate(xoProxyConf.proxyName, rules)
       this._generateDefaultVmName = compileTemplate(xoProxyConf.vmName, rules)
     })
-    const db = (this._db = new Collection({
-      connection: app._redis,
-      indexes: ['address', 'vmUuid'],
-      namespace: 'proxy',
-    }))
 
-    app.hooks.on('clean', () => db.rebuildIndexes())
-    app.hooks.on('start', () =>
-      app.addConfigManager(
+    app.hooks.on('clean', () => this._db.rebuildIndexes())
+    app.hooks.on('start', () => {
+      const db = (this._db = new Collection({
+        connection: app._redis,
+        indexes: ['address', 'vmUuid'],
+        namespace: 'proxy',
+      }))
+
+      return app.addConfigManager(
         'proxies',
         () => db.get(),
         proxies => db.update(proxies)
       )
-    )
+    })
   }
 
   async _getChannel() {

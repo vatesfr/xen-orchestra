@@ -46,7 +46,7 @@
     "yazl": "^2.5.1"
   },
   "devDependencies": {
-    "rimraf": "^4.1.1",
+    "rimraf": "^5.0.1",
     "sinon": "^15.0.1",
     "test": "^3.2.1",
     "tmp": "^0.2.1"
