@@ -66,6 +66,7 @@ export default class Tasks extends EventEmitter {
 
         for await (const taskLog of this.list({ filter: _ => _.status === 'pending' })) {
           taskLog.status = 'interrupted'
+          taskLog.updatedAt = Date.now()
           await this.#store.put(taskLog.id, taskLog)
         }
 
