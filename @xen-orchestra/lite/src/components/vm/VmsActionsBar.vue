@@ -25,9 +25,9 @@
     <MenuItem v-tooltip="$t('coming-soon')" :icon="faCamera">
       {{ $t("snapshot") }}
     </MenuItem>
-    <MenuItem v-tooltip="$t('coming-soon')" :icon="faTrashCan">
-      {{ $t("delete") }}
-    </MenuItem>
+    <MenuItem :icon="faTrashCan" @click="openDeleteModal">{{
+      $t("delete")
+    }}</MenuItem>
     <MenuItem :icon="faFileExport">
       {{ $t("export") }}
       <template #submenu>
@@ -52,16 +52,37 @@
       </template>
     </MenuItem>
   </AppMenu>
+  <UiModal v-if="isDeleteModalOpen" :icon="faSatellite">
+    <template #title>
+      {{ $t("confirm-delete-vms", { nVms: selectedRefs.length }) }}</template
+    >
+    <template #subtitle>
+      {{ $t("please-confirm") }}
+    </template>
+    <template #goBackButton>
+      <UiButton @click="closeDeletModal">
+        {{ $t("go-back") }}
+      </UiButton>
+    </template>
+    <template #buttons>
+      <UiButton @click="xenApi.vm.delete(selectedRefs, true)">
+        {{ $t("delete-vms", { nVms: selectedRefs.length }) }}
+      </UiButton>
+    </template>
+  </UiModal>
 </template>
 
 <script lang="ts" setup>
 import AppMenu from "@/components/menu/AppMenu.vue";
 import MenuItem from "@/components/menu/MenuItem.vue";
 import UiButton from "@/components/ui/UiButton.vue";
-import VmActionCopyItem from "@/components/vm/VmActionItems/VmActionCopyItem.vue";
+import UiModal from "@/components/ui/UiModal.vue";
+import useModal from "@/composables/modal.composable";
 import { useUiStore } from "@/stores/ui.store";
 import VmActionPowerStateItems from "@/components/vm/VmActionItems/VmActionPowerStateItems.vue";
+import VmActionCopyItem from "@/components/vm/VmActionItems/VmActionCopyItem.vue";
 import { vTooltip } from "@/directives/tooltip.directive";
+import { useXenApiStore } from "@/stores/xen-api.store";
 import {
   faCamera,
   faCode,
@@ -72,6 +93,7 @@ import {
   faFileExport,
   faPowerOff,
   faRoute,
+  faSatellite,
   faTrashCan,
 } from "@fortawesome/free-solid-svg-icons";
 import { storeToRefs } from "pinia";
@@ -82,6 +104,12 @@ defineProps<{
 }>();
 
 const { isMobile } = storeToRefs(useUiStore());
+const {
+  open: openDeleteModal,
+  close: closeDeletModal,
+  isOpen: isDeleteModalOpen,
+} = useModal();
+const xenApi = useXenApiStore().getXapi();
 </script>
 
 <style lang="postcss" scoped>
