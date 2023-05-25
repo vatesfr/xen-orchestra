@@ -167,7 +167,7 @@ const XO_TASKS_COLUMNS = [
       const progress = task.properties?.progress
 
       return progress === undefined ? null : (
-        <progress style={TASK_ITEM_STYLE} className='progress' value={progress * 100} max='100' />
+        <progress style={TASK_ITEM_STYLE} className='progress' value={progress} max='100' />
       )
     },
     name: _('progress'),
