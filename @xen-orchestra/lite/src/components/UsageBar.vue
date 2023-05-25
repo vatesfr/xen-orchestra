@@ -4,11 +4,11 @@
       <div
         v-for="item in computedData.sortedArray"
         :key="item.id"
-        class="progress-item"
         :class="{
           warning: item.value > MIN_WARNING_VALUE,
           error: item.value > MIN_DANGEROUS_VALUE,
         }"
+        class="progress-item"
       >
         <UiProgressBar :value="item.value" color="custom" />
         <UiProgressLegend
@@ -18,15 +18,15 @@
       </div>
       <slot :total-percent="computedData.totalPercentUsage" name="footer" />
     </template>
-    <UiSpinner v-else class="spinner" />
+    <UiCardSpinner v-else />
   </div>
 </template>
 
 <script lang="ts" setup>
-import { computed } from "vue";
 import UiProgressBar from "@/components/ui/progress/UiProgressBar.vue";
 import UiProgressLegend from "@/components/ui/progress/UiProgressLegend.vue";
-import UiSpinner from "@/components/ui/UiSpinner.vue";
+import UiCardSpinner from "@/components/ui/UiCardSpinner.vue";
+import { computed } from "vue";
 
 interface Data {
   id: string;
@@ -67,14 +67,6 @@ const computedData = computed(() => {
 </script>
 
 <style lang="postcss" scoped>
-.spinner {
-  color: var(--color-extra-blue-base);
-  display: flex;
-  margin: auto;
-  width: 40px;
-  height: 40px;
-}
-
 .progress-item:nth-child(1) {
   --progress-bar-color: var(--color-extra-blue-d60);
 }
@@ -91,9 +83,11 @@ const computedData = computed(() => {
   --progress-bar-height: 1.2rem;
   --progress-bar-color: var(--color-extra-blue-l20);
   --progress-bar-background-color: var(--color-blue-scale-400);
+
   &.warning {
     --progress-bar-color: var(--color-orange-world-base);
   }
+
   &.error {
     --progress-bar-color: var(--color-red-vates-base);
   }
