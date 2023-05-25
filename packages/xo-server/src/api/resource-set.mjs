@@ -80,7 +80,7 @@ set.params = {
   },
   shareByDefault: {
     type: 'boolean',
-    optional: true,
+    optional: true
   },
   subjects: {
     type: 'array',
