@@ -11,19 +11,12 @@ const { pipeline } = require('node:stream')
 const { IncrementalRemoteWriter } = require('../_writers/IncrementalRemoteWriter.js')
 const { IncrementalXapiWriter } = require('../_writers/IncrementalXapiWriter.js')
 const { exportIncrementalVm } = require('../../_incrementalVm.js')
-const { forkStreamUnpipe } = require('../_forkStreamUnpipe.js')
 const { Task } = require('../../Task.js')
 const { watchStreamSize } = require('../../_watchStreamSize.js')
 const { AbstractXapi } = require('./_AbstractXapi.js')
+const { forkDeltaExport } = require('./_forkDeltaExport.js')
 
 const { debug } = createLogger('xo:backups:IncrementalXapiVmBackup')
-
-const forkDeltaExport = deltaExport =>
-  Object.create(deltaExport, {
-    streams: {
-      value: mapValues(deltaExport.streams, forkStreamUnpipe),
-    },
-  })
 
 const noop = Function.prototype
 
