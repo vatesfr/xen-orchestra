@@ -232,7 +232,7 @@ const createSubscription = (cb, { polling = 5e3 } = {}) => {
 
     running = true
     _signIn
-      .then(() => cb())
+      .then(() => cb(cache))
       .then(
         result => {
           running = false
