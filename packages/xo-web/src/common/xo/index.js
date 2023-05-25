@@ -580,9 +580,10 @@ export const subscribeXoTasks = createSubscription(async previousTasks => {
   }
 
   // Fetch new and updated tasks
-  ;(await fetch('/rest/v0/tasks?fields=*' + filter)).json().forEach(task => {
+  const response = await fetch('./rest/v0/tasks?fields=end,id,name,objectId,properties,start,status,updatedAt' + filter)
+  for (const task of await response.json()) {
     tasks.set(task.id, task)
-  })
+  }
 
   // Sort dates by start time
   return Array.from(tasks.values()).sort(({ start: start1 }, { start: start2 }) => start1 - start2)
