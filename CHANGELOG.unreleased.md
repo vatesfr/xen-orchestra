@@ -13,6 +13,7 @@
 - [REST API] _Rolling Pool Update_ action available `pools/<uuid>/actions/rolling_update`
 - [Self Service] Ability to set a default value for the "Share VM" feature for Self Service users during creation/edition (PR [#6838](https://github.com/vatesfr/xen-orchestra/pull/6838))
 - [Self service] Add default tags to all VMs that will be created by a Self Service (PRs [#6810](https://github.com/vatesfr/xen-orchestra/pull/6810), [#6812](https://github.com/vatesfr/xen-orchestra/pull/6812))
+- [Kubernetes] Add the possibility to choose the number of fault tolerance for the control planes (PR [#6809](https://github.com/vatesfr/xen-orchestra/pull/6809))
 
 ### Bug fixes
 
