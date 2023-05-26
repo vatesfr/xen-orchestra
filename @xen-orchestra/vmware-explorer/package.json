@@ -4,7 +4,7 @@
   "version": "0.2.2",
   "name": "@xen-orchestra/vmware-explorer",
   "dependencies": {
-    "@vates/task": "^0.1.1",
+    "@vates/task": "^0.1.2",
     "@vates/read-chunk": "^1.1.1",
     "lodash": "^4.17.21",
     "node-fetch": "^3.3.0",

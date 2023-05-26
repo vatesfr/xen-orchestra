@@ -1,8 +1,45 @@
 # ChangeLog
 
-## **5.82.0** (2023-04-28)
+## **5.82.2** (2023-05-17)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
+### Bug fixes
+
+- [New/VM] Fix stuck Cloud Config import ([GitHub comment](https://github.com/vatesfr/xen-orchestra/issues/5896#issuecomment-1465253774))
+
+### Released packages
+
+- xen-api 1.3.1
+- @xen-orchestra/proxy 0.26.23
+- xo-server 5.114.2
+
+## **5.82.1** (2023-05-12)
+
+### Enhancements
+
+- [Plugins] Clicking on a plugin name now filters out other plugins
+
+### Bug fixes
+
+- [Host/Network] Fix IP configuration not working with empty fields
+- [Import/VM/From VMware] Fix `Property description must be an object: undefined` [Forum#61834](https://xcp-ng.org/forum/post/61834) [Forum#61900](https://xcp-ng.org/forum/post/61900)
+- [Import/VM/From VMware] Fix `Cannot read properties of undefined (reading 'stream')` [Forum#59879](https://xcp-ng.org/forum/post/59879) (PR [#6825](https://github.com/vatesfr/xen-orchestra/pull/6825))
+- [OVA export] Fix major memory leak which may lead to xo-server crash [Forum#56051](https://xcp-ng.org/forum/post/56051) (PR [#6800](https://github.com/vatesfr/xen-orchestra/pull/6800))
+- [VM] Fix `VBD_IS_EMPTY` error when converting to template [Forum#61653](https://xcp-ng.org/forum/post/61653) (PR [#6808](https://github.com/vatesfr/xen-orchestra/pull/6808))
+- [New/Network] Fix `invalid parameter error` when not providing a VLAN [Forum#62090](https://xcp-ng.org/forum/post/62090) (PR [#6829](https://github.com/vatesfr/xen-orchestra/pull/6829))
+- [Backup/Health check] Fix `task has already ended` error during a healthcheck in continous replication [Forum#62073](https://xcp-ng.org/forum/post/62073) (PR [#6830](https://github.com/vatesfr/xen-orchestra/pull/6830))
+
+### Released packages
+
+- @vates/task 0.1.2
+- xo-vmdk-to-vhd 2.5.4
+- @xen-orchestra/backups 0.36.1
+- @xen-orchestra/proxy 0.26.22
+- xo-server 5.114.1
+- xo-web 5.117.1
+
+## **5.82.0** (2023-04-28)
 
 ### Highlights
 
@@ -141,7 +178,7 @@
 ### Bug fixes
 
 - [xo-cli] Fix `write EPIPE` error when used with piped output is closed (e.g. like `| head`) [#6680](https://github.com/vatesfr/xen-orchestra/issues/6680)
-- [VM] Show distro icon for openSUSE [Forum#6965](https://xcp-ng.org/forum/topic/6965)
+- [VM] Show distro icon for openSUSE [Forum#6965](https://xcp-ng.org/forum/topic/6965) (PR [#6676](https://github.com/vatesfr/xen-orchestra/pull/6676))
 - [ESXI import] Handle listing more than 100 VMs
 
 ### Released packages

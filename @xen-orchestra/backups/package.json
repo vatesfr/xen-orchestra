@@ -8,13 +8,13 @@
     "type": "git",
     "url": "https://github.com/vatesfr/xen-orchestra.git"
   },
-  "version": "0.36.0",
+  "version": "0.36.1",
   "engines": {
     "node": ">=14.6"
   },
   "scripts": {
     "postversion": "npm publish --access public",
-    "test": "node--test"
+    "test-integration": "node--test *.integ.js"
   },
   "dependencies": {
     "@kldzj/stream-throttle": "^1.1.1",
@@ -46,7 +46,7 @@
     "yazl": "^2.5.1"
   },
   "devDependencies": {
-    "rimraf": "^4.1.1",
+    "rimraf": "^5.0.1",
     "sinon": "^15.0.1",
     "test": "^3.2.1",
     "tmp": "^0.2.1"

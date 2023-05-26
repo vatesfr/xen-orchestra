@@ -40,7 +40,7 @@
     "xo-lib": "^0.11.1"
   },
   "devDependencies": {
-    "@types/node": "^18.0.1",
+    "@types/node": "^20.2.3",
     "@types/through2": "^2.0.31",
     "typescript": "^5.0.3"
   },

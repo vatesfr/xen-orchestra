@@ -151,18 +151,23 @@ export default class RestApi {
     collections.restore = { id: 'restore' }
     collections.tasks = { id: 'tasks' }
 
+    collections.pools.actions = {
+      __proto__: null,
+
+      rolling_update: ({ xoObject }) => app.rollingPoolUpdate(xoObject).then(noop),
+    }
     collections.vms.actions = {
       __proto__: null,
 
-      clean_reboot: vm => vm.$callAsync('clean_reboot').then(noop),
-      clean_shutdown: vm => vm.$callAsync('clean_shutdown').then(noop),
-      hard_reboot: vm => vm.$callAsync('hard_reboot').then(noop),
-      hard_shutdown: vm => vm.$callAsync('hard_shutdown').then(noop),
-      snapshot: async (vm, { name_label }) => {
+      clean_reboot: ({ xapiObject: vm }) => vm.$callAsync('clean_reboot').then(noop),
+      clean_shutdown: ({ xapiObject: vm }) => vm.$callAsync('clean_shutdown').then(noop),
+      hard_reboot: ({ xapiObject: vm }) => vm.$callAsync('hard_reboot').then(noop),
+      hard_shutdown: ({ xapiObject: vm }) => vm.$callAsync('hard_shutdown').then(noop),
+      snapshot: async ({ xapiObject: vm }, { name_label }) => {
         const ref = await vm.$snapshot({ name_label })
         return vm.$xapi.getField('VM', ref, 'uuid')
       },
-      start: vm => vm.$callAsync('start', false, false).then(noop),
+      start: ({ xapiObject: vm }) => vm.$callAsync('start', false, false).then(noop),
     }
 
     api.param('collection', (req, res, next) => {
@@ -390,8 +395,9 @@ export default class RestApi {
         return next()
       }
 
-      const task = app.tasks.create({ name: `REST: ${action} ${req.collection.type}`, objectId: req.xoObject.id })
-      const pResult = task.run(() => fn(req.xapiObject, req.body))
+      const { xapiObject, xoObject } = req
+      const task = app.tasks.create({ name: `REST: ${action} ${req.collection.type}`, objectId: xoObject.id })
+      const pResult = task.run(() => fn({ xapiObject, xoObject }, req.body))
       if (Object.hasOwn(req.query, 'sync')) {
         pResult.then(result => res.json(result), next)
       } else {

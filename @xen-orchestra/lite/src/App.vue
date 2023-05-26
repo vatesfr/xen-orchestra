@@ -1,25 +1,5 @@
 <template>
-  <UiModal
-    v-if="isSslModalOpen"
-    :icon="faServer"
-    color="error"
-    @close="clearUnreachableHostsUrls"
-  >
-    <template #title>{{ $t("unreachable-hosts") }}</template>
-    <template #subtitle>{{ $t("following-hosts-unreachable") }}</template>
-    <p>{{ $t("allow-self-signed-ssl") }}</p>
-    <ul>
-      <li v-for="url in unreachableHostsUrls" :key="url.hostname">
-        <a :href="url.href" rel="noopener" target="_blank">{{ url.href }}</a>
-      </li>
-    </ul>
-    <template #buttons>
-      <UiButton color="success" @click="reload">
-        {{ $t("unreachable-hosts-reload-page") }}
-      </UiButton>
-      <UiButton @click="clearUnreachableHostsUrls">{{ $t("cancel") }}</UiButton>
-    </template>
-  </UiModal>
+  <UnreachableHostsModal />
   <div v-if="!$route.meta.hasStoryNav && !xenApiStore.isConnected">
     <AppLogin />
   </div>
@@ -41,21 +21,14 @@ import AppHeader from "@/components/AppHeader.vue";
 import AppLogin from "@/components/AppLogin.vue";
 import AppNavigation from "@/components/AppNavigation.vue";
 import AppTooltips from "@/components/AppTooltips.vue";
-import UiButton from "@/components/ui/UiButton.vue";
-import UiModal from "@/components/ui/UiModal.vue";
+import UnreachableHostsModal from "@/components/UnreachableHostsModal.vue";
 import { useChartTheme } from "@/composables/chart-theme.composable";
-import { useHostStore } from "@/stores/host.store";
 import { usePoolStore } from "@/stores/pool.store";
 import { useUiStore } from "@/stores/ui.store";
 import { useXenApiStore } from "@/stores/xen-api.store";
-import { faServer } from "@fortawesome/free-solid-svg-icons";
 import { useActiveElement, useMagicKeys, whenever } from "@vueuse/core";
 import { logicAnd } from "@vueuse/math";
-import { difference } from "lodash-es";
-import { computed, ref, watch } from "vue";
-
-const unreachableHostsUrls = ref<URL[]>([]);
-const clearUnreachableHostsUrls = () => (unreachableHostsUrls.value = []);
+import { computed } from "vue";
 
 let link = document.querySelector(
   "link[rel~='icon']"
@@ -70,7 +43,6 @@ link.href = favicon;
 document.title = "XO Lite";
 
 const xenApiStore = useXenApiStore();
-const { records: hosts } = useHostStore().subscribe();
 const { pool } = usePoolStore().subscribe();
 useChartTheme();
 const uiStore = useUiStore();
@@ -93,17 +65,6 @@ if (import.meta.env.DEV) {
   );
 }
 
-watch(hosts, (hosts, previousHosts) => {
-  difference(hosts, previousHosts).forEach((host) => {
-    const url = new URL("http://localhost");
-    url.protocol = window.location.protocol;
-    url.hostname = host.address;
-    fetch(url, { mode: "no-cors" }).catch(() =>
-      unreachableHostsUrls.value.push(url)
-    );
-  });
-});
-
 whenever(
   () => pool.value?.$ref,
   async (poolRef) => {
@@ -112,9 +73,6 @@ whenever(
     await xenApi.startWatch();
   }
 );
-
-const isSslModalOpen = computed(() => unreachableHostsUrls.value.length > 0);
-const reload = () => window.location.reload();
 </script>
 
 <style lang="postcss">

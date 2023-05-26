@@ -33,16 +33,17 @@ function validatePath(url) {
 export default class {
   constructor(app) {
     this._handlers = { __proto__: null }
-    this._remotes = new Remotes({
-      connection: app._redis,
-      namespace: 'remote',
-      indexes: ['enabled'],
-    })
     this._remotesInfo = {}
     this._app = app
 
     app.hooks.on('clean', () => this._remotes.rebuildIndexes())
     app.hooks.on('start', async () => {
+      this._remotes = new Remotes({
+        connection: app._redis,
+        namespace: 'remote',
+        indexes: ['enabled'],
+      })
+
       app.addConfigManager(
         'remotes',
         () => this._remotes.get(),
