@@ -41,7 +41,6 @@
 
 <!--packages-start-->
 
-- xo-cli minor
 - xo-server minor
 - xo-web minor
 
