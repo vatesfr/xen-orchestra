@@ -32,6 +32,7 @@ import {
   subscribeBackupNgJobs,
   subscribeBackupNgLogs,
   subscribeMetadataBackupJobs,
+  subscribeMirrorBackupJobs,
   subscribeSchedules,
 } from 'xo'
 
@@ -50,6 +51,10 @@ const Li = props => (
 )
 
 const MODES = [
+  {
+    label: 'mirrorBackup',
+    test: job => job?.type === 'mirrorBackup',
+  },
   {
     label: 'rollingSnapshot',
     test: job => some(job.settings, ({ snapshotRetention }) => snapshotRetention > 0),
@@ -235,6 +240,7 @@ const SchedulePreviewBody = decorate([
 @addSubscriptions({
   jobs: subscribeBackupNgJobs,
   metadataJobs: subscribeMetadataBackupJobs,
+  mirrorBackupJobs: subscribeMirrorBackupJobs,
   schedulesByJob: cb =>
     subscribeSchedules(schedules => {
       cb(groupBy(schedules, 'jobId'))
@@ -307,7 +313,7 @@ class JobsTable extends React.Component {
           } = getSettingsWithNonDefaultValue(job.mode, {
             compression: job.compression,
             proxyId: job.proxy,
-            ...job.settings[''],
+            ...job.settings?.[''],
           })
 
           return (
@@ -382,7 +388,8 @@ class JobsTable extends React.Component {
     createSelector(
       () => this.props.jobs,
       () => this.props.metadataJobs,
-      (jobs = [], metadataJobs = []) => [...jobs, ...metadataJobs]
+      () => this.props.mirrorBackupJobs,
+      (jobs = [], metadataJobs = [], mirrorJobs = []) => [...jobs, ...metadataJobs, ...mirrorJobs]
     ),
     () => this.props.predicate
   )

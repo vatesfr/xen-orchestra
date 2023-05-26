@@ -220,6 +220,7 @@ const messages = {
   xoConfig: 'XO config',
   backupVms: 'Backup VMs',
   backupMetadata: 'Backup metadata',
+  mirrorBackup: 'Mirror backup',
   mirrorBackupVms: 'Mirror Backup VMs',
   jobsOverviewPage: 'Overview',
   jobsNewPage: 'New',
