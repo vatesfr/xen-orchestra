@@ -88,6 +88,7 @@
   "please-confirm": "Veuillez confirmer",
   "pool-cpu-usage": "Utilisation CPU du Pool",
   "pool-ram-usage": "Utilisation RAM du Pool",
+  "power-on-for-console": "Allumez votre VM pour accéder à sa console",
   "power-state": "État d'alimentation",
   "property": "Propriété",
   "ram-usage": "Utilisation de la RAM",
