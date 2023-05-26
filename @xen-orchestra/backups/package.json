@@ -42,7 +42,7 @@
     "promise-toolbox": "^0.21.0",
     "proper-lockfile": "^4.1.2",
     "uuid": "^9.0.0",
-    "vhd-lib": "^4.4.0",
+    "vhd-lib": "^4.4.1",
     "yazl": "^2.5.1"
   },
   "devDependencies": {
