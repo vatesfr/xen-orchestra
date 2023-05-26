@@ -11,6 +11,7 @@
 - @xen-orchestra/backups-cli 1.0.7
 - @xen-orchestra/mixins 0.10.1
 - @xen-orchestra/proxy 0.26.24
+- xo-vmdk-to-vhd 2.5.5
 
 ## **5.82.2** (2023-05-17)
 

@@ -41,7 +41,6 @@
 
 <!--packages-start-->
 
-- xo-vmdk-to-vhd patch
 - xo-cli minor
 - xo-server minor
 - xo-web minor
