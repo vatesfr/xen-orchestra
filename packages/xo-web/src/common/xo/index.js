@@ -2506,6 +2506,8 @@ export const createMirrorBackupJob = props =>
 
 export const runMirrorBackupJob = props => _call('mirrorBackup.runJob', props)
 
+export const editMirrorBackupJob = props => _call('mirrorBackup.editJob', props)
+
 // Plugins -----------------------------------------------------------
 
 export const loadPlugin = async id =>

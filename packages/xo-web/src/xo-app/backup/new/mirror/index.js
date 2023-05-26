@@ -8,8 +8,8 @@ import React from 'react'
 import Tooltip from 'tooltip'
 import { Card, CardBlock, CardHeader } from 'card'
 import { Container, Col, Row } from 'grid'
-import { createMirrorBackupJob } from 'xo'
-import { every, isEmpty, mapValues } from 'lodash'
+import { createMirrorBackupJob, createSchedule, deleteSchedule, editSchedule, editMirrorBackupJob } from 'xo'
+import { every, isEmpty, map, mapValues } from 'lodash'
 import { generateId, linkState } from 'reaclette-utils'
 import { injectIntl } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
@@ -24,7 +24,7 @@ import ReportWhen from '../_reportWhen'
 import Schedules from '../_schedules'
 import { RemoteProxy, RemoteProxyWarning } from '../_remoteProxy'
 
-import { FormFeedback, FormGroup, Input, Li, Ul, constructPattern } from '../../utils'
+import { destructPattern, FormFeedback, FormGroup, Input, Li, Ul, constructPattern } from '../../utils'
 
 const DEFAULT_RETENTIONS = [
   {
@@ -34,25 +34,64 @@ const DEFAULT_RETENTIONS = [
   },
 ]
 
-const getInitialState = () => ({
-  retentions: DEFAULT_RETENTIONS,
-  showErrors: false,
-  displayAdvancedSettings: false,
+const getInitialState = ({ job = {}, schedules = {} }) => {
+  const targetRemoteIds = job.remotes !== undefined ? destructPattern(job.remotes) : []
+  const { '': { reportWhen, reportRecipients, ...advancedSettings } = {}, ...settings } = job.settings ?? {}
 
-  mode: '',
-  name: '',
-  schedules: {},
-  settings: {},
+  return {
+    edition: !isEmpty(job),
+    retentions: DEFAULT_RETENTIONS,
+    showErrors: false,
+    displayAdvancedSettings: advancedSettings !== undefined && !isEmpty(advancedSettings),
 
-  sourceRemote: {},
-  targetRemoteIds: [],
+    mode: (job.mode === 'delta' ? 'incremental' : job.mode) ?? '',
+    name: job.name ?? '',
+    schedules: schedules ?? {},
+    settings: settings ?? {},
 
-  advancedSettings: {},
-  proxyId: undefined,
-  reportWhen: 'failure',
-  reportRecipient: '',
-  reportRecipients: [],
-})
+    sourceRemote: job.sourceRemote ?? {},
+    targetRemoteIds,
+    deleteFirstRemoteIds: [],
+
+    advancedSettings: advancedSettings ?? {},
+    proxyId: job.proxy ?? undefined,
+    reportWhen: reportWhen ?? 'failure',
+    reportRecipient: '',
+    reportRecipients: reportRecipients ?? [],
+  }
+}
+
+const normalize = state => {
+  const {
+    name,
+    proxyId,
+    sourceRemote,
+    targetRemoteIds,
+    settings,
+    advancedSettings,
+    reportWhen,
+    reportRecipients,
+  } = state
+  let { schedules, mode } = state
+
+  schedules = mapValues(schedules, ({ id, ...schedule }) => schedule)
+  mode = state.isIncremental ? 'delta' : mode
+  settings[''] = {
+    ...advancedSettings,
+    reportWhen: reportWhen.value,
+    reportRecipients: reportRecipients.length !== 0 ? reportRecipients : undefined,
+  }
+  const remotes = constructPattern(targetRemoteIds)
+  return {
+    name,
+    mode,
+    proxy: proxyId,
+    sourceRemote: resolveId(sourceRemote),
+    remotes,
+    schedules,
+    settings,
+  }
+}
 
 const NewMirrorBackup = decorate([
   injectIntl,
@@ -120,38 +159,55 @@ const NewMirrorBackup = decorate([
           }
         }
 
-        const {
-          name,
-          proxyId,
-          sourceRemote,
-          targetRemoteIds,
-          settings,
-          advancedSettings,
-          reportWhen,
-          reportRecipients,
-        } = state
-        let { schedules, mode } = state
-
-        schedules = mapValues(schedules, ({ id, ...schedule }) => schedule)
-        mode = state.isIncremental ? 'delta' : mode
-        settings[''] = {
-          ...advancedSettings,
-          reportWhen: reportWhen.value,
-          reportRecipients: reportRecipients.length !== 0 ? reportRecipients : undefined,
+        await createMirrorBackupJob(normalize(state))
+      },
+      editMirrorBackup: () => async (state, props) => {
+        if (state.isBackupInvalid) {
+          return {
+            ...state,
+            showErrors: true,
+          }
         }
-        const remotes = constructPattern(targetRemoteIds)
 
-        await createMirrorBackupJob({
-          name,
-          mode,
-          proxy: proxyId,
-          sourceRemote: resolveId(sourceRemote),
-          remotes,
-          schedules,
-          settings,
+        const settings = { ...state.settings }
+        const schedules = { ...state.schedules }
+        await Promise.all([
+          ...map(props.schedules, ({ id }) => {
+            const schedule = state.schedules[id]
+            if (schedule === undefined) {
+              return deleteSchedule(id)
+            }
+
+            return editSchedule({
+              id,
+              cron: schedule.cron,
+              name: schedule.name,
+              timezone: schedule.timezone,
+              enabled: schedule.enabled,
+            })
+          }),
+          ...map(state.schedules, async schedule => {
+            if (props.schedules[schedule.id] === undefined) {
+              const newSchedule = await createSchedule(props.job.id, {
+                cron: schedule.cron,
+                name: schedule.name,
+                timezone: schedule.timezone,
+                enabled: schedule.enabled,
+              })
+              settings[newSchedule.id] = settings[schedule.id]
+              schedules[newSchedule.id] = newSchedule
+              delete settings[schedule.id]
+              delete schedules[schedule.id]
+            }
+          }),
+        ])
+
+        await editMirrorBackupJob({
+          id: props.job.id,
+          ...normalize({ ...state, settings, schedules, isIncremental: state.isIncremental }),
         })
       },
-      resetMirrorBackup: () => () => getInitialState(),
+      resetMirrorBackup: () => (_, props) => getInitialState(props),
       linkState,
       toggleMode: (_, { mode }) => ({ mode }),
     },
@@ -381,16 +437,29 @@ const NewMirrorBackup = decorate([
           <Row>
             <Card>
               <CardBlock>
-                <ActionButton
-                  btnStyle='primary'
-                  form={state.formId}
-                  redirectOnSuccess={state.isBackupInvalid ? undefined : '/backup'}
-                  handler={effects.createMirrorBackup}
-                  icon='save'
-                  size='large'
-                >
-                  {_('create')}
-                </ActionButton>
+                {state.edition ? (
+                  <ActionButton
+                    btnStyle='primary'
+                    form={state.formId}
+                    redirectOnSuccess={state.isBackupInvalid ? undefined : ActionButton.GO_BACK}
+                    handler={effects.editMirrorBackup}
+                    icon='save'
+                    size='large'
+                  >
+                    {_('formEdit')}
+                  </ActionButton>
+                ) : (
+                  <ActionButton
+                    btnStyle='primary'
+                    form={state.formId}
+                    redirectOnSuccess={state.isBackupInvalid ? undefined : '/backup'}
+                    handler={effects.createMirrorBackup}
+                    icon='save'
+                    size='large'
+                  >
+                    {_('create')}
+                  </ActionButton>
+                )}
                 <ActionButton handler={effects.resetMirrorBackup} icon='undo' className='pull-right' size='large'>
                   {_('formReset')}
                 </ActionButton>
