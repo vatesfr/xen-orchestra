@@ -66,6 +66,7 @@ const normalize = set => ({
   objects: set.objects || [],
   subjects: set.subjects || [],
   shareByDefault: set.shareByDefault || false,
+  tags: set.tags || [],
 })
 
 // ===================================================================
@@ -134,13 +135,21 @@ export default class {
     return vm.type === 'VM-snapshot' ? this.computeVmSnapshotResourcesUsage(vm) : this.computeVmResourcesUsage(vm)
   }
 
-  async createResourceSet(name, subjects = undefined, objects = undefined, limits = undefined, shareByDefault = false) {
+  async createResourceSet(
+    name,
+    subjects = undefined,
+    objects = undefined,
+    limits = undefined,
+    shareByDefault = false,
+    tags = undefined
+  ) {
     const id = await this._generateId()
     const set = normalize({
       id,
       name,
       objects,
       subjects,
+      tags,
       limits,
       shareByDefault,
     })
@@ -174,6 +183,7 @@ export default class {
       shareByDefault = undefined,
       subjects = undefined,
       objects = undefined,
+      tags = undefined,
       limits = undefined,
       ipPools = undefined,
     }
@@ -230,6 +240,9 @@ export default class {
     }
     if (ipPools) {
       set.ipPools = ipPools
+    }
+    if (tags !== undefined) {
+      set.tags = tags
     }
 
     if (shareByDefault !== undefined && shareByDefault !== set.shareByDefault) {
