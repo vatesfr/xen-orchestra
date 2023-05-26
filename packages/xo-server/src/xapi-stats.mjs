@@ -14,6 +14,9 @@ import { limitConcurrency } from 'limit-concurrency-decorator'
 import { parseDateTime } from '@xen-orchestra/xapi'
 import { synchronized } from 'decorator-synchronized'
 
+import humanFormat from 'human-format'
+import ms from 'ms'
+
 export class FaultyGranularity extends BaseError {}
 
 // -------------------------------------------------------------------
@@ -261,7 +264,24 @@ export default class XapiStats {
           start: timestamp,
         },
       })
-      .then(response => response.text().then(JSON5.parse))
+      .then(response =>
+        response.text().then(data => {
+          const start = Date.now()
+          const result = JSON5.parse(data)
+          const duration = Date.now() - start
+
+          // eslint-disable-next-line no-console
+          console.log(
+            'parsing stats from host %s (timestamp=%s step=%s): %s in %s ',
+            host.name_label,
+            timestamp,
+            step,
+            humanFormat.bytes(Buffer.byteLength(data)),
+            ms(duration)
+          )
+          return result
+        })
+      )
   }
 
   // To avoid multiple requests, we keep a cash for the stats and
