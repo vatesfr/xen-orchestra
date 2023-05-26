@@ -8,6 +8,7 @@
 - vhd-lib 4.4.1
 - @xen-orchestra/xapi 2.2.1
 - @xen-orchestra/backups 0.37.0
+- @xen-orchestra/backups-cli 1.0.7
 
 ## **5.82.2** (2023-05-17)
 
