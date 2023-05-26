@@ -917,6 +917,7 @@ const messages = {
 
   // ----- Host item ------
   host: 'Host',
+  hostHvmDisabled: 'Hardware-assisted virtualization is not enabled on this host',
   hostNoLicensePartialProSupport:
     'This host does not have an active license, even though it is in a pool with licensed hosts. In order for XCP-ng Pro Support to be enabled on a pool, all hosts within the pool must have an active license',
   hostNoSupport: 'No XCP-ng Pro Support enabled on this host',
@@ -1614,6 +1615,7 @@ const messages = {
   saveResourceSet: 'Save',
   resetResourceSet: 'Reset',
   editResourceSet: 'Edit',
+  defaultTags: 'Default tags',
   deleteResourceSet: 'Delete',
   deleteResourceSetWarning: 'Delete resource set',
   deleteResourceSetQuestion: 'Are you sure you want to delete this resource set?',
@@ -1632,6 +1634,7 @@ const messages = {
   availableResourceLabel: 'Available',
   resourceSetQuota: 'Used: {usage} (Total: {total})',
   resourceSetNew: 'New',
+  shareVmsByDefault: 'Share VMs by default',
 
   // ---- VM import ---
   fileType: 'File type:',
@@ -2433,7 +2436,11 @@ const messages = {
   recipeNumberOfNodesLabel: 'Number of worker nodes',
   recipeSshKeyLabel: 'SSH key',
   recipeStaticIpAddresses: 'Static IP addresses',
-  recipeHighAvailability: 'High Availability Cluster',
+  recipeFaultTolerance: 'Control plane fault tolerance',
+  recipeNoneFaultTolerance: 'No fault tolerance (one control plane)',
+  recipeOneFaultTolerance: 'One fault tolerance (three control planes)',
+  recipeTwoFaultTolerance: 'Two fault tolerances (five control planes)',
+  recipeThreeFaultTolerance: 'Three fault tolerances (seven control planes)',
   recipeHaControPlaneIpAddress: 'Control plane { i, number } node IP address/subnet mask',
   recipeVip: 'VIP address',
   recipeControlPlaneIpAddress: 'Control plane node IP address/subnet mask',

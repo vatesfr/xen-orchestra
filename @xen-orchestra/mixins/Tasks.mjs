@@ -14,6 +14,15 @@ const formatId = timestamp => timestamp.toString(36).padStart(9, '0')
 
 const noop = Function.prototype
 
+// Create a serializable object from an error.
+const serializeError = error => ({
+  ...error, // Copy enumerable properties.
+  code: error.code,
+  message: error.message,
+  name: error.name,
+  stack: error.stack,
+})
+
 export default class Tasks extends EventEmitter {
   // contains consolidated logs of all live and finished tasks
   #store
@@ -27,6 +36,12 @@ export default class Tasks extends EventEmitter {
       this.#tasks.delete(id)
     },
     onTaskUpdate: async taskLog => {
+      // Error objects are not JSON-ifiable by default
+      const { result } = taskLog
+      if (result instanceof Error && result.toJSON === undefined) {
+        taskLog.result = serializeError(result)
+      }
+
       try {
         const { $root } = taskLog
 
@@ -51,6 +66,7 @@ export default class Tasks extends EventEmitter {
 
         for await (const taskLog of this.list({ filter: _ => _.status === 'pending' })) {
           taskLog.status = 'interrupted'
+          taskLog.updatedAt = Date.now()
           await this.#store.put(taskLog.id, taskLog)
         }
 

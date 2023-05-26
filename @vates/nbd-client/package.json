@@ -23,7 +23,7 @@
     "@xen-orchestra/async-map": "^0.1.2",
     "@xen-orchestra/log": "^0.6.0",
     "promise-toolbox": "^0.21.0",
-    "xen-api": "^1.3.0"
+    "xen-api": "^1.3.1"
   },
   "devDependencies": {
     "tap": "^16.3.0",
@@ -31,6 +31,6 @@
   },
   "scripts": {
     "postversion": "npm publish --access public",
-    "test-integration": "tap *.integ.js"
+    "test-integration": "tap --lines 70 --functions 36 --branches 54 --statements 69 *.integ.js"
   }
 }

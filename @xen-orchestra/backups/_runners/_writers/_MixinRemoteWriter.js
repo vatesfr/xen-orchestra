@@ -4,17 +4,17 @@ const { createLogger } = require('@xen-orchestra/log')
 const { join } = require('path')
 
 const assert = require('assert')
-const { formatFilenameDate } = require('../_filenameDate.js')
-const { getVmBackupDir } = require('../_getVmBackupDir.js')
-const { HealthCheckVmBackup } = require('../HealthCheckVmBackup.js')
-const { ImportVmBackup } = require('../ImportVmBackup.js')
-const { Task } = require('../Task.js')
-const MergeWorker = require('../merge-worker/index.js')
+const { formatFilenameDate } = require('../../_filenameDate.js')
+const { getVmBackupDir } = require('../../_getVmBackupDir.js')
+const { HealthCheckVmBackup } = require('../../HealthCheckVmBackup.js')
+const { ImportVmBackup } = require('../../ImportVmBackup.js')
+const { Task } = require('../../Task.js')
+const MergeWorker = require('../../merge-worker/index.js')
 
 const { info, warn } = createLogger('xo:backups:MixinBackupWriter')
 
-exports.MixinBackupWriter = (BaseClass = Object) =>
-  class MixinBackupWriter extends BaseClass {
+exports.MixinRemoteWriter = (BaseClass = Object) =>
+  class MixinRemoteWriter extends BaseClass {
     #lock
 
     constructor({ remoteId, ...rest }) {
@@ -58,7 +58,7 @@ exports.MixinBackupWriter = (BaseClass = Object) =>
       const { disableMergeWorker } = this._backup.config
       // merge worker only compatible with local remotes
       const { handler } = this._adapter
-      const willMergeInWorker = !disableMergeWorker && typeof handler._getRealPath === 'function'
+      const willMergeInWorker = !disableMergeWorker && typeof handler.getRealPath === 'function'
 
       const { merge } = await this._cleanVm({ remove: true, merge: !willMergeInWorker })
       await this.#lock.dispose()
@@ -71,7 +71,7 @@ exports.MixinBackupWriter = (BaseClass = Object) =>
           Math.random().toString(36).slice(2)
 
         await handler.outputFile(taskFile, this._backup.vm.uuid)
-        const remotePath = handler._getRealPath()
+        const remotePath = handler.getRealPath()
         await MergeWorker.run(remotePath)
       }
     }

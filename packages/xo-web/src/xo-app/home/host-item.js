@@ -190,6 +190,17 @@ export default class HostItem extends Component {
           ),
         })
       }
+
+      if (!host.hvmCapable) {
+        alerts.push({
+          level: 'warning',
+          render: (
+            <span>
+              <Icon icon='alarm' /> {_('hostHvmDisabled')}
+            </span>
+          ),
+        })
+      }
       return alerts
     }
   )

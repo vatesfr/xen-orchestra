@@ -1,6 +1,6 @@
-import vueI18n from "@intlify/vite-plugin-vue-i18n";
+import vueI18n from "@intlify/unplugin-vue-i18n/vite";
 import vue from "@vitejs/plugin-vue";
-import { basename } from "path";
+import { basename, resolve } from "path";
 import { fileURLToPath, URL } from "url";
 import { defineConfig } from "vite";
 import pages from "vite-plugin-pages";
@@ -13,7 +13,9 @@ export default defineConfig({
   },
   plugins: [
     vue(),
-    vueI18n(),
+    vueI18n({
+      include: resolve(__dirname, "src/locales/**"),
+    }),
     pages({
       moduleId: "virtual:stories",
       dirs: [{ dir: "src/stories", baseRoute: "story" }],

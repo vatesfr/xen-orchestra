@@ -1,3 +1,4 @@
+import { asyncEach } from '@vates/async-each'
 import { every } from '@vates/predicates'
 import { ifDef } from '@xen-orchestra/defined'
 import { invalidCredentials, noSuchObject } from 'xo-common/api-errors.js'
@@ -151,18 +152,52 @@ export default class RestApi {
     collections.restore = { id: 'restore' }
     collections.tasks = { id: 'tasks' }
 
+    collections.hosts.routes = {
+      __proto__: null,
+
+      async missing_patches(req, res) {
+        const host = req.xapiObject
+        res.json(await host.$xapi.listMissingPatches(host))
+      },
+    }
+
+    collections.pools.routes = {
+      __proto__: null,
+
+      async missing_patches(req, res) {
+        const xapi = req.xapiObject.$xapi
+        const missingPatches = new Map()
+        await asyncEach(Object.values(xapi.objects.indexes.type.host ?? {}), async host => {
+          try {
+            for (const patch of await xapi.listMissingPatches(host)) {
+              const { uuid: key = `${patch.name}-${patch.version}-${patch.release}` } = patch
+              missingPatches.set(key, patch)
+            }
+          } catch (error) {
+            console.warn(host.uuid, error)
+          }
+        })
+        res.json(Array.from(missingPatches.values()))
+      },
+    }
+
+    collections.pools.actions = {
+      __proto__: null,
+
+      rolling_update: ({ xoObject }) => app.rollingPoolUpdate(xoObject).then(noop),
+    }
     collections.vms.actions = {
       __proto__: null,
 
-      clean_reboot: vm => vm.$callAsync('clean_reboot').then(noop),
-      clean_shutdown: vm => vm.$callAsync('clean_shutdown').then(noop),
-      hard_reboot: vm => vm.$callAsync('hard_reboot').then(noop),
-      hard_shutdown: vm => vm.$callAsync('hard_shutdown').then(noop),
-      snapshot: async (vm, { name_label }) => {
+      clean_reboot: ({ xapiObject: vm }) => vm.$callAsync('clean_reboot').then(noop),
+      clean_shutdown: ({ xapiObject: vm }) => vm.$callAsync('clean_shutdown').then(noop),
+      hard_reboot: ({ xapiObject: vm }) => vm.$callAsync('hard_reboot').then(noop),
+      hard_shutdown: ({ xapiObject: vm }) => vm.$callAsync('hard_shutdown').then(noop),
+      snapshot: async ({ xapiObject: vm }, { name_label }) => {
         const ref = await vm.$snapshot({ name_label })
         return vm.$xapi.getField('VM', ref, 'uuid')
       },
-      start: vm => vm.$callAsync('start', false, false).then(noop),
+      start: ({ xapiObject: vm }) => vm.$callAsync('start', false, false).then(noop),
     }
 
     api.param('collection', (req, res, next) => {
@@ -342,7 +377,18 @@ export default class RestApi {
     )
 
     api.get('/:collection/:object', (req, res) => {
-      res.json(req.xoObject)
+      let result = req.xoObject
+
+      // add locations of sub-routes for discoverability
+      const { routes } = req.collection
+      if (routes !== undefined) {
+        result = { ...result }
+        for (const route of Object.keys(routes)) {
+          result[route + '_href'] = join(req.baseUrl, req.path, route)
+        }
+      }
+
+      res.json(result)
     })
     api.patch(
       '/:collection/:object',
@@ -390,8 +436,9 @@ export default class RestApi {
         return next()
       }
 
-      const task = app.tasks.create({ name: `REST: ${action} ${req.collection.type}`, objectId: req.xoObject.id })
-      const pResult = task.run(() => fn(req.xapiObject, req.body))
+      const { xapiObject, xoObject } = req
+      const task = app.tasks.create({ name: `REST: ${action} ${req.collection.type}`, objectId: xoObject.id })
+      const pResult = task.run(() => fn({ xapiObject, xoObject }, req.body))
       if (Object.hasOwn(req.query, 'sync')) {
         pResult.then(result => res.json(result), next)
       } else {
@@ -400,6 +447,17 @@ export default class RestApi {
         res.end(req.baseUrl + '/tasks/' + task.id)
       }
     })
+
+    api.get(
+      '/:collection/:object/:route',
+      wrap((req, res, next) => {
+        const handler = req.collection.routes?.[req.params.route]
+        if (handler !== undefined) {
+          return handler(req, res, next)
+        }
+        return next()
+      })
+    )
 
     api.post(
       '/:collection(srs)/:object/vdis',

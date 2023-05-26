@@ -163,12 +163,12 @@ class XcpPatches extends Component {
               />
             )}
             <TabButton
-              disabled={!hasMissingPatches || pool.HA_enabled}
+              disabled={!hasMissingPatches || pool?.HA_enabled}
               btnStyle={hasMissingPatches ? 'primary' : undefined}
               handler={installAllPatches}
               icon={hasMissingPatches ? 'host-patch-update' : 'success'}
               labelId={hasMissingPatches ? 'patchUpdateButton' : 'hostUpToDate'}
-              tooltip={pool.HA_enabled ? _('highAvailabilityNotDisabledTooltip') : undefined}
+              tooltip={pool?.HA_enabled ? _('highAvailabilityNotDisabledTooltip') : undefined}
             />
           </Col>
         </Row>

@@ -1,6 +1,5 @@
 import { createI18n } from "vue-i18n";
-import en from "@/locales/en.json";
-import fr from "@/locales/fr.json";
+import messages from "@intlify/unplugin-vue-i18n/messages";
 
 interface Locales {
   [key: string]: {
@@ -20,13 +19,10 @@ export const locales: Locales = {
   },
 };
 
-export default createI18n<[typeof en], "en" | "fr">({
+export default createI18n({
   locale: localStorage.getItem("lang") ?? "en",
   fallbackLocale: "en",
-  messages: {
-    en,
-    fr,
-  },
+  messages,
   datetimeFormats: {
     en: {
       date_short: {
