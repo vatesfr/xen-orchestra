@@ -44,7 +44,6 @@
 - xo-vmdk-to-vhd patch
 - @xen-orchestra/backups minor
 - @xen-orchestra/mixins patch
-- @xen-orchestra/xapi patch
 - xo-cli minor
 - xo-server minor
 - xo-web minor

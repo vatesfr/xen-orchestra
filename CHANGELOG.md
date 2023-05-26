@@ -6,6 +6,7 @@
 
 - @xen-orchestra/fs 4.0.0
 - vhd-lib 4.4.1
+- @xen-orchestra/xapi 2.2.1
 
 ## **5.82.2** (2023-05-17)
 
