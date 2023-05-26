@@ -3,9 +3,9 @@
 const { beforeEach, afterEach, test } = require('test')
 
 const execa = require('execa')
-const rimraf = require('rimraf')
 const tmp = require('tmp')
 const { pFromCallback } = require('promise-toolbox')
+const { rimraf } = require('rimraf')
 
 const command = require('./commands/info')
 

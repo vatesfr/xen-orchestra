@@ -1,4 +1,6 @@
-/* eslint-env jest */
+import { describe, it } from 'test'
+import { strict as assert } from 'assert'
+
 import { Readable } from 'node:stream'
 import { _getEncryptor } from './_encryptor'
 import crypto from 'crypto'
@@ -25,13 +27,13 @@ algorithms.forEach(algorithm => {
     it('handle buffer', () => {
       const encrypted = encryptor.encryptData(buffer)
       if (algorithm !== 'none') {
-        expect(encrypted.equals(buffer)).toEqual(false) // encrypted should be different
+        assert.equal(encrypted.equals(buffer), false) // encrypted should be different
         // ivlength, auth tag, padding
-        expect(encrypted.length).not.toEqual(buffer.length)
+        assert.notEqual(encrypted.length, buffer.length)
       }
 
       const decrypted = encryptor.decryptData(encrypted)
-      expect(decrypted.equals(buffer)).toEqual(true)
+      assert.equal(decrypted.equals(buffer), true)
     })
 
     it('handle stream', async () => {
@@ -39,12 +41,12 @@ algorithms.forEach(algorithm => {
       stream.length = buffer.length
       const encrypted = encryptor.encryptStream(stream)
       if (algorithm !== 'none') {
-        expect(encrypted.length).toEqual(undefined)
+        assert.equal(encrypted.length, undefined)
       }
 
       const decrypted = encryptor.decryptStream(encrypted)
       const decryptedBuffer = await streamToBuffer(decrypted)
-      expect(decryptedBuffer.equals(buffer)).toEqual(true)
+      assert.equal(decryptedBuffer.equals(buffer), true)
     })
   })
 })

@@ -18,33 +18,19 @@
   </component>
 </template>
 
-<script lang="ts">
-export default {
-  name: "FormCheckbox",
-  inheritAttrs: false,
-};
-</script>
-
 <script lang="ts" setup>
-import {
-  type HTMLAttributes,
-  type InputHTMLAttributes,
-  computed,
-  inject,
-  ref,
-} from "vue";
+import { type HTMLAttributes, computed, inject, ref } from "vue";
 import { faCheck, faCircle, faMinus } from "@fortawesome/free-solid-svg-icons";
 import { useVModel } from "@vueuse/core";
 import UiIcon from "@/components/ui/icon/UiIcon.vue";
 
-// Temporary workaround for https://github.com/vuejs/core/issues/4294
-interface Props extends Omit<InputHTMLAttributes, ""> {
+defineOptions({ inheritAttrs: false });
+
+const props = defineProps<{
   modelValue?: unknown;
   disabled?: boolean;
   wrapperAttrs?: HTMLAttributes;
-}
-
-const props = defineProps<Props>();
+}>();
 
 const emit = defineEmits<{
   (event: "update:modelValue", value: boolean): void;

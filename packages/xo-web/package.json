@@ -121,7 +121,7 @@
     "redux": "^4.0.0",
     "redux-thunk": "^2.0.1",
     "reselect": "^2.5.4",
-    "rimraf": "^4.1.1",
+    "rimraf": "^5.0.1",
     "sass": "^1.38.1",
     "semver": "^6.0.0",
     "strip-ansi": "^5.2.0",

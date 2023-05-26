@@ -404,20 +404,27 @@ class RemoteAdapter {
     return `${baseName}.vhd`
   }
 
-  async listAllVmBackups() {
+  async listAllVms() {
     const handler = this._handler
-
-    const backups = { __proto__: null }
-    await asyncMap(await handler.list(BACKUP_DIR), async entry => {
+    const vmsUuids = []
+    await asyncEach(await handler.list(BACKUP_DIR), async entry => {
       // ignore hidden and lock files
       if (entry[0] !== '.' && !entry.endsWith('.lock')) {
-        const vmBackups = await this.listVmBackups(entry)
-        if (vmBackups.length !== 0) {
-          backups[entry] = vmBackups
-        }
+        vmsUuids.push(entry)
       }
     })
+    return vmsUuids
+  }
 
+  async listAllVmBackups() {
+    const vmsUuids = await this.listAllVms()
+    const backups = { __proto__: null }
+    await asyncEach(vmsUuids, async vmUuid => {
+      const vmBackups = await this.listVmBackups(vmUuid)
+      if (vmBackups.length !== 0) {
+        backups[vmUuid] = vmBackups
+      }
+    })
     return backups
   }
 
@@ -691,8 +698,8 @@ class RemoteAdapter {
   }
 
   // open the  hierarchy of ancestors until we find a full one
-  async _createSyntheticStream(handler, path) {
-    const disposableSynthetic = await VhdSynthetic.fromVhdChain(handler, path)
+  async _createVhdStream(handler, path, { useChain }) {
+    const disposableSynthetic = useChain ? await VhdSynthetic.fromVhdChain(handler, path) : await openVhd(handler, path)
     // I don't want the vhds to be disposed on return
     // but only when the stream is done ( or failed )
 
@@ -717,7 +724,7 @@ class RemoteAdapter {
     return stream
   }
 
-  async readDeltaVmBackup(metadata, ignoredVdis) {
+  async readIncrementalVmBackup(metadata, ignoredVdis, { useChain = true } = {}) {
     const handler = this._handler
     const { vbds, vhds, vifs, vm, vmSnapshot } = metadata
     const dir = dirname(metadata._filename)
@@ -725,7 +732,7 @@ class RemoteAdapter {
 
     const streams = {}
     await asyncMapSettled(Object.keys(vdis), async ref => {
-      streams[`${ref}.vhd`] = await this._createSyntheticStream(handler, join(dir, vhds[ref]))
+      streams[`${ref}.vhd`] = await this._createVhdStream(handler, join(dir, vhds[ref]), { useChain })
     })
 
     return {
