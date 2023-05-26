@@ -29,6 +29,7 @@ import {
   enableSchedule,
   runBackupNgJob,
   runMetadataBackupJob,
+  runMirrorBackupJob,
   subscribeBackupNgJobs,
   subscribeBackupNgLogs,
   subscribeMetadataBackupJobs,
@@ -50,10 +51,12 @@ const Li = props => (
   />
 )
 
+const isMirrorBackup = item => item?.type === 'mirrorBackup'
+
 const MODES = [
   {
     label: 'mirrorBackup',
-    test: job => job?.type === 'mirrorBackup',
+    test: isMirrorBackup,
   },
   {
     label: 'rollingSnapshot',
@@ -86,8 +89,8 @@ const MODES = [
 ]
 
 const _deleteBackupJobs = items => {
-  const { backup: backupIds, metadataBackup: metadataBackupIds } = groupBy(items, 'type')
-  return deleteBackupJobs({ backupIds, metadataBackupIds })
+  const { backup: backupIds, metadataBackup: metadataBackupIds, mirrorBackup: mirrorBackupIds } = groupBy(items, 'type')
+  return deleteBackupJobs({ backupIds, metadataBackupIds, mirrorBackupIds })
 }
 
 const _runBackupJob = ({ id, name, nVms, schedule, type }) =>
@@ -104,7 +107,13 @@ const _runBackupJob = ({ id, name, nVms, schedule, type }) =>
         })}
       </span>
     ),
-  }).then(() => (type === 'backup' ? runBackupNgJob({ id, schedule }) : runMetadataBackupJob({ id, schedule })))
+  }).then(() =>
+    type === 'backup'
+      ? runBackupNgJob({ id, schedule })
+      : isMirrorBackup({ type })
+      ? runMirrorBackupJob({ id, schedule })
+      : runMetadataBackupJob({ id, schedule })
+  )
 
 const CURSOR_POINTER_STYLE = { cursor: 'pointer' }
 const GoToLogs = decorate([
