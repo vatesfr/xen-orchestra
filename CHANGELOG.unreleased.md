@@ -15,7 +15,7 @@
 
 - [Sorted table] In collapsed actions, a spinner is displayed during the action time (PR [#6831](https://github.com/vatesfr/xen-orchestra/pull/6831))
 - [New/VM] Fix stuck Cloud Config import ([GitHub comment](https://github.com/vatesfr/xen-orchestra/issues/5896#issuecomment-1465253774))
-- [ACL] Fix various `an error has occured` due to ACLs (PR [#6848](https://github.com/vatesfr/xen-orchestra/pull/6848))
+- [ACL] Fix various `an error has occurred` due to ACLs (PR [#6848](https://github.com/vatesfr/xen-orchestra/pull/6848))
 
 ### Packages to release
 

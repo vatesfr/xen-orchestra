@@ -21,7 +21,7 @@ import styles from './index.css'
   isHa: createSelector(
     (_, props) => props.item,
     createGetObject((_, props) => props.item.$poolId),
-    (sr, pool) => pool?.haSrs.includes(sr.id)
+    (sr, pool) => pool?.haSrs.includes(sr.id) ?? false
   ),
   isDefaultSr: createSelector(
     createGetObjectsOfType('pool').find((_, props) => pool => props.item.$pool === pool.id),
