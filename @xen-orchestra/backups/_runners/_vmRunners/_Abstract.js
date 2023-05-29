@@ -79,9 +79,17 @@ exports.Abstract = class AbstractVmBackupRunner {
     const intersect = settings.healthCheckVmsWithTags.some(t => tags.includes(t))
 
     if (settings.healthCheckVmsWithTags.length !== 0 && !intersect) {
-      return
+      // create a task to have an info in the logs and reports
+      return Task.run(
+        {
+          name: 'health check',
+        },
+        () => {
+          Task.info(`This VM doesn't match the healthcheck's tags for this schedule`)
+        }
+      )
     }
 
-    await this._callWriters(writer => writer.healthCheck(this._healthCheckSr), 'writer.healthCheck()')
+    await this._callWriters(writer => writer.healthCheck(), 'writer.healthCheck()')
   }
 }
