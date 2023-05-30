@@ -39,7 +39,7 @@ exports.AbstractRemote = class AbstractRemoteVmBackupRunner extends Abstract {
         ...settings,
         ...allSettings[remoteId],
       }
-      writers.add(new RemoteWriter({ adapter, config, job, vmUuid, remoteId, settings: targetSettings }))
+      writers.add(new RemoteWriter({ adapter, config, healthCheckSr, job, vmUuid, remoteId, settings: targetSettings }))
     })
   }
 
