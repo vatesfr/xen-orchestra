@@ -1392,10 +1392,10 @@ export async function importMultipleFromEsxi({
               result[vm] = vmUuid
             } finally {
               done++
-              Task.set('done', done)
-              Task.set('progress', Math.round((done * 100) / vms.length))
             }
           })
+          Task.set('done', done)
+          Task.set('progress', Math.round((done * 100) / vms.length))
         },
         {
           concurrency,
