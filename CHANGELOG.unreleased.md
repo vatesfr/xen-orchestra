@@ -13,6 +13,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Incremental Replication] was shown as interrupted if there wasn't a health check after [Forum#62669](https://xcp-ng.org/forum/post/62669) (PR [#6866](https://github.com/vatesfr/xen-orchestra/pull/6866))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
