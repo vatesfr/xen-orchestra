@@ -85,7 +85,7 @@ exports.Abstract = class AbstractVmBackupRunner {
           name: 'health check',
         },
         () => {
-          Task.info(`This VM doesn't match the healthcheck's tags for this schedule`)
+          Task.info(`This VM doesn't match the health check's tags for this schedule`)
         }
       )
     }
