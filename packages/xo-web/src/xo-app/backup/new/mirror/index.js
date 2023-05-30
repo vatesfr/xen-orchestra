@@ -51,7 +51,6 @@ const getInitialState = ({ job = {}, schedules = {} }) => {
 
     sourceRemote: job.sourceRemote ?? {},
     targetRemoteIds,
-    deleteFirstRemoteIds: [],
 
     advancedSettings: advancedSettings ?? {},
     proxyId: job.proxy ?? undefined,
@@ -62,32 +61,22 @@ const getInitialState = ({ job = {}, schedules = {} }) => {
 }
 
 const normalize = state => {
-  const {
-    name,
-    proxyId,
-    sourceRemote,
-    targetRemoteIds,
-    settings,
-    advancedSettings,
-    reportWhen,
-    reportRecipients,
-  } = state
+  const { name, proxyId, sourceRemote, targetRemoteIds, settings, advancedSettings, reportWhen, reportRecipients } =
+    state
   let { schedules, mode } = state
 
   schedules = mapValues(schedules, ({ id, ...schedule }) => schedule)
-  mode = state.isIncremental ? 'delta' : mode
   settings[''] = {
     ...advancedSettings,
     reportWhen: reportWhen.value,
     reportRecipients: reportRecipients.length !== 0 ? reportRecipients : undefined,
   }
-  const remotes = constructPattern(targetRemoteIds)
   return {
     name,
-    mode,
+    mode: state.isIncremental ? 'delta' : mode,
     proxy: proxyId,
     sourceRemote: resolveId(sourceRemote),
-    remotes,
+    remotes: constructPattern(targetRemoteIds),
     schedules,
     settings,
   }
@@ -103,7 +92,6 @@ const NewMirrorBackup = decorate([
       }),
       deleteTargetRemoteId: (_, id) => state => ({
         targetRemoteIds: state.targetRemoteIds.filter(remoteId => remoteId !== id),
-        deleteFirstRemoteIds: state.deleteFirstRemoteIds.filter(_id => id !== _id),
       }),
       setTargetDeleteFirst: (_, id) => state => ({
         settings: {
@@ -119,7 +107,7 @@ const NewMirrorBackup = decorate([
       setProxy: (_, id) => () => ({
         proxyId: id,
       }),
-      setReportWhen: (_, _reportWhen) => () => ({ reportWhen: _reportWhen === 'Never' ? 'never' : _reportWhen }),
+      setReportWhen: (_, reportWhen) => () => ({ reportWhen }),
       addReportRecipient: (_, recipient) => state => ({
         reportRecipients: !state.reportRecipients.includes(recipient)
           ? [...state.reportRecipients, recipient]
@@ -132,7 +120,7 @@ const NewMirrorBackup = decorate([
         }
       },
       setConcurrency: ({ setAdvancedSettings }, concurrency) => setAdvancedSettings({ concurrency }),
-      setTimout: ({ setAdvancedSettings }, timeout) =>
+      setTimeout: ({ setAdvancedSettings }, timeout) =>
         setAdvancedSettings({ timeout: timeout !== undefined ? timeout * 3600e3 : undefined }),
       setMaxExportRate: ({ setAdvancedSettings }, rate) =>
         setAdvancedSettings({ maxExportRate: rate !== undefined ? rate * (1024 * 1024) : undefined }),
@@ -214,7 +202,7 @@ const NewMirrorBackup = decorate([
     computed: {
       formId: generateId,
       inputConcurrencyId: generateId,
-      inputTimoutId: generateId,
+      inputTimeoutId: generateId,
       inputMaxExportRateId: generateId,
       isBackupInvalid: state =>
         state.isMissingName || state.isMissingBackupMode || state.isMissingSchedules || state.isMissingRetention,
@@ -286,13 +274,77 @@ const NewMirrorBackup = decorate([
                       {_('mirrorFullBackup')}
                     </ActionButton>{' '}
                     <br />
-                    {/* @TODO Mirror doc backup? */}
                     <a className='text-muted' href={BACKUP_NG_DOC_LINK} rel='noopener noreferrer' target='_blank'>
                       <Icon icon='info' /> {_('backupNgLinkToDocumentationMessage')}
                     </a>
                   </div>
                 </CardBlock>
               </FormFeedback>
+              <Card>
+                <CardHeader>
+                  {_('newBackupSettings')}
+                  <ActionButton
+                    className='pull-right'
+                    handler={effects.toggleAdvancedSettings}
+                    icon={state.displayAdvancedSettings ? 'toggle-on' : 'toggle-off'}
+                    iconColor={state.displayAdvancedSettings ? 'text-success' : undefined}
+                    size='small'
+                  >
+                    {_('newBackupAdvancedSettings')}
+                  </ActionButton>
+                </CardHeader>
+                <CardBlock>
+                  <RemoteProxy onChange={effects.setProxy} value={state.proxyId} />
+                  <ReportWhen value={state.reportWhen} required onChange={effects.setReportWhen} />
+                  <ReportRecipients
+                    recipients={state.reportRecipients}
+                    add={effects.addReportRecipient}
+                    remove={effects.removeReportRecipient}
+                  />
+                  {state.displayAdvancedSettings && (
+                    <div>
+                      <FormGroup>
+                        <label htmlFor={state.inputConcurrencyId}>
+                          <strong>{_('concurrency')}</strong>
+                        </label>
+                        <Number
+                          id={state.inputConcurrencyId}
+                          min={1}
+                          onChange={effects.setConcurrency}
+                          value={concurrency}
+                        />
+                      </FormGroup>
+                      <FormGroup>
+                        <label htmlFor={state.inputTimeoutId}>
+                          <strong>{_('timeout')}</strong>
+                        </label>{' '}
+                        <Tooltip content={_('timeoutInfo')}>
+                          <Icon icon='info' />
+                        </Tooltip>
+                        <Number
+                          id={state.inputTimeoutId}
+                          onChange={effects.setTimeout}
+                          value={timeout ? timeout / 3600e3 : undefined}
+                          placeholder={formatMessage(messages.timeoutUnit)}
+                        />
+                      </FormGroup>
+                      <FormGroup>
+                        <label htmlFor={state.inputMaxExportRateId}>
+                          <strong>{_('speedLimit')}</strong>
+                        </label>
+                        <Number
+                          id={state.inputMaxExportRateId}
+                          min={0}
+                          onChange={effects.setMaxExportRate}
+                          value={maxExportRate / (1024 * 1024)}
+                        />
+                      </FormGroup>
+                    </div>
+                  )}
+                </CardBlock>
+              </Card>
+            </Col>
+            <Col mediumSize={6}>
               <Card>
                 <CardHeader>
                   {_(
@@ -357,8 +409,6 @@ const NewMirrorBackup = decorate([
                   </FormGroup>
                 </CardBlock>
               </Card>
-            </Col>
-            <Col mediumSize={6}>
               <Schedules
                 handlerSchedules={effects.setSchedules}
                 handlerSettings={effects.setSettings}
@@ -369,69 +419,6 @@ const NewMirrorBackup = decorate([
                 settings={state.settings}
                 withHealthCheck
               />
-              <Card>
-                <CardHeader>
-                  {_('newBackupSettings')}
-                  <ActionButton
-                    className='pull-right'
-                    handler={effects.toggleAdvancedSettings}
-                    icon={state.displayAdvancedSettings ? 'toggle-on' : 'toggle-off'}
-                    iconColor={state.displayAdvancedSettings ? 'text-success' : undefined}
-                    size='small'
-                  >
-                    {_('newBackupAdvancedSettings')}
-                  </ActionButton>
-                </CardHeader>
-                <CardBlock>
-                  <RemoteProxy onChange={effects.setProxy} value={state.proxyId} />
-                  <ReportWhen value={state.reportWhen} required onChange={effects.setReportWhen} />
-                  <ReportRecipients
-                    recipients={state.reportRecipients}
-                    add={effects.addReportRecipient}
-                    remove={effects.removeReportRecipient}
-                  />
-                  {state.displayAdvancedSettings && (
-                    <div>
-                      <FormGroup>
-                        <label htmlFor={state.inputConcurrencyId}>
-                          <strong>{_('concurrency')}</strong>
-                        </label>
-                        <Number
-                          id={state.inputConcurrencyId}
-                          min={1}
-                          onChange={effects.setConcurrency}
-                          value={concurrency}
-                        />
-                      </FormGroup>
-                      <FormGroup>
-                        <label htmlFor={state.inputTimoutId}>
-                          <strong>{_('timeout')}</strong>
-                        </label>{' '}
-                        <Tooltip content={_('timeoutInfo')}>
-                          <Icon icon='info' />
-                        </Tooltip>
-                        <Number
-                          id={state.inputTimoutId}
-                          onChange={effects.setTimout}
-                          value={timeout ? timeout / 3600e3 : undefined}
-                          placeholder={formatMessage(messages.timeoutUnit)}
-                        />
-                      </FormGroup>
-                      <FormGroup>
-                        <label htmlFor={state.inputMaxExportRateId}>
-                          <strong>{_('speedLimit')}</strong>
-                        </label>
-                        <Number
-                          id={state.inputMaxExportRateId}
-                          min={0}
-                          onChange={effects.setMaxExportRate}
-                          value={maxExportRate / (1024 * 1024)}
-                        />
-                      </FormGroup>
-                    </div>
-                  )}
-                </CardBlock>
-              </Card>
             </Col>
           </Row>
           <Row>

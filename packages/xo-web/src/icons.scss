@@ -364,10 +364,9 @@
     @extend .fa;
     @extend .fa-check;
   }
-  // @TODO: Check for another icon
   &-mirror-backup {
     @extend .fa;
-    @extend .fa-files-o
+    @extend .fa-files-o;
   }
   &-restore {
     @extend .fa;

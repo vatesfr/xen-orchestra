@@ -221,7 +221,7 @@ const messages = {
   backupVms: 'Backup VMs',
   backupMetadata: 'Backup metadata',
   mirrorBackup: 'Mirror backup',
-  mirrorBackupVms: 'Mirror Backup VMs',
+  mirrorBackupVms: 'Mirror backup VMs',
   jobsOverviewPage: 'Overview',
   jobsNewPage: 'New',
   jobsSchedulingPage: 'Scheduling',

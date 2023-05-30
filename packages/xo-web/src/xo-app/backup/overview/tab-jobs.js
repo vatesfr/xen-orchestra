@@ -102,18 +102,17 @@ const _runBackupJob = ({ id, name, nVms, schedule, type }) =>
           id: id.slice(0, 5),
           name: <strong>{name}</strong>,
         })}{' '}
-        {_('runBackupJobWarningNVms', {
-          nVms,
-        })}
+        {type === 'backup' &&
+          _('runBackupJobWarningNVms', {
+            nVms,
+          })}
       </span>
     ),
-  }).then(() =>
-    type === 'backup'
-      ? runBackupNgJob({ id, schedule })
-      : isMirrorBackup({ type })
-      ? runMirrorBackupJob({ id, schedule })
-      : runMetadataBackupJob({ id, schedule })
-  )
+  }).then(() => {
+    const method =
+      type === 'backup' ? runBackupNgJob : isMirrorBackup({ type }) ? runMirrorBackupJob : runMetadataBackupJob
+    return method({ id, schedule })
+  })
 
 const CURSOR_POINTER_STYLE = { cursor: 'pointer' }
 const GoToLogs = decorate([

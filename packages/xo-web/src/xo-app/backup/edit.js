@@ -16,7 +16,7 @@ export default decorate([
   addSubscriptions({
     jobs: subscribeBackupNgJobs,
     metadataJobs: subscribeMetadataBackupJobs,
-    mirrorBackupJob: subscribeMirrorBackupJobs,
+    mirrorBackupJobs: subscribeMirrorBackupJobs,
     schedulesByJob: cb =>
       subscribeSchedules(schedules => {
         cb(groupBy(schedules, 'jobId'))
@@ -24,8 +24,8 @@ export default decorate([
   }),
   provideState({
     computed: {
-      job: (_, { jobs, metadataJobs, mirrorBackupJob, routeParams: { id } }) =>
-        defined(find(jobs, { id }), find(metadataJobs, { id }), find(mirrorBackupJob, { id })),
+      job: (_, { jobs, metadataJobs, mirrorBackupJobs, routeParams: { id } }) =>
+        defined(find(jobs, { id }), find(metadataJobs, { id }), find(mirrorBackupJobs, { id })),
       schedules: (_, { schedulesByJob, routeParams: { id } }) => schedulesByJob && keyBy(schedulesByJob[id], 'id'),
       loading: (_, props) =>
         props.jobs === undefined || props.metadataJobs === undefined || props.schedulesByJob === undefined,
