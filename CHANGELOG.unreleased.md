@@ -13,7 +13,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [Incremental Replication] Fix task showing as *interrupted* when running without health check [Forum#62669](https://xcp-ng.org/forum/post/62669) (PR [#6866](https://github.com/vatesfr/xen-orchestra/pull/6866))
+- [Incremental Replication] Fix task showing as _interrupted_ when running without health check [Forum#62669](https://xcp-ng.org/forum/post/62669) (PR [#6866](https://github.com/vatesfr/xen-orchestra/pull/6866))
+- [Host evacuation] Better error message when migration network no longer exists
 
 ### Packages to release
 
