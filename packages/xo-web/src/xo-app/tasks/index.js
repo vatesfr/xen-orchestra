@@ -4,8 +4,10 @@ import Component from 'base-component'
 import Icon from 'icon'
 import Link from 'link'
 import React from 'react'
-import renderXoItem, { Pool } from 'render-xo-item'
+import renderXoItem, { Pool, renderXoItemFromId } from 'render-xo-item'
 import SortedTable from 'sorted-table'
+import TASK_STATUS from 'task-status'
+import Tooltip from 'tooltip'
 import { addSubscriptions, connectStore, resolveIds } from 'utils'
 import { FormattedDate, FormattedRelative, injectIntl } from 'react-intl'
 import { SelectPool } from 'select-objects'
@@ -19,7 +21,7 @@ import {
   getResolvedPendingTasks,
   isAdmin,
 } from 'selectors'
-import { cancelTask, cancelTasks, destroyTask, destroyTasks, subscribePermissions } from 'xo'
+import { cancelTask, cancelTasks, destroyTask, destroyTasks, subscribePermissions, subscribeXoTasks } from 'xo'
 
 import Page from '../page'
 
@@ -151,6 +153,53 @@ const FINISHED_TASKS_COLUMNS = [
   },
 ]
 
+const XO_TASKS_COLUMNS = [
+  {
+    itemRenderer: task => task.name,
+    name: _('name'),
+  },
+  {
+    itemRenderer: task => (task.objectId === undefined ? null : renderXoItemFromId(task.objectId, { link: true })),
+    name: _('object'),
+  },
+  {
+    itemRenderer: task => {
+      const progress = task.properties?.progress
+
+      return progress === undefined ? null : (
+        <progress style={TASK_ITEM_STYLE} className='progress' value={progress} max='100' />
+      )
+    },
+    name: _('progress'),
+    sortCriteria: 'progress',
+  },
+  {
+    default: true,
+    itemRenderer: task => (task.start === undefined ? null : <FormattedRelative value={task.start} />),
+    name: _('taskStarted'),
+    sortCriteria: 'start',
+    sortOrder: 'desc',
+  },
+  {
+    itemRenderer: task => (task.end === undefined ? null : <FormattedRelative value={task.end} />),
+    name: _('taskEnded'),
+    sortCriteria: 'end',
+    sortOrder: 'desc',
+  },
+  {
+    itemRenderer: task => {
+      const { icon, label } = TASK_STATUS[task.status] ?? TASK_STATUS.unknown
+      return (
+        <Tooltip content={_(label)}>
+          <Icon icon={icon} />
+        </Tooltip>
+      )
+    },
+    name: _('status'),
+    sortCriteria: 'status',
+  },
+]
+
 const isNotCancelable = task => !task.allowedOperations.includes('cancel')
 const isNotDestroyable = task => !task.allowedOperations.includes('destroy')
 
@@ -190,6 +239,7 @@ const GROUPED_ACTIONS = [
 
 @addSubscriptions({
   permissions: subscribePermissions,
+  xoTasks: subscribeXoTasks,
 })
 @connectStore(() => {
   const getPools = createGetObjectsOfType('pool').pick(
@@ -235,8 +285,6 @@ export default class Tasks extends Component {
 
   _getItemsPerPageContainer = () => this.state.itemsPerPageContainer
 
-  _setItemsPerPageContainer = itemsPerPageContainer => this.setState({ itemsPerPageContainer })
-
   render() {
     const { props } = this
     const { intl, nResolvedTasks, pools } = props
@@ -244,16 +292,17 @@ export default class Tasks extends Component {
 
     return (
       <Page header={HEADER} title={`(${nResolvedTasks}) ${formatMessage(messages.taskPage)}`}>
+        <h2>{_('poolTasks')}</h2>
         <Container>
           <Row className='mb-1'>
             <Col mediumSize={7}>
               <SelectPool multi onChange={this.linkState('pools')} />
             </Col>
             <Col mediumSize={4}>
-              <div ref={container => this.setState({ container })} />
+              <div ref={container => this.setState({ filterContainer: container })} />
             </Col>
             <Col mediumSize={1}>
-              <div ref={this._setItemsPerPageContainer} />
+              <div ref={container => this.setState({ itemsPerPageContainer: container })} />
             </Col>
           </Row>
           <Row>
@@ -262,9 +311,9 @@ export default class Tasks extends Component {
                 collection={this._getTasks()}
                 columns={COLUMNS}
                 defaultFilter='filterOutShortTasks'
-                filterContainer={() => this.state.container}
+                filterContainer={() => this.state.filterContainer}
                 filters={FILTERS}
-                itemsPerPageContainer={this._getItemsPerPageContainer}
+                itemsPerPageContainer={() => this.state.itemsPerPageContainer}
                 groupedActions={GROUPED_ACTIONS}
                 individualActions={INDIVIDUAL_ACTIONS}
                 stateUrlParam='s'
@@ -276,12 +325,21 @@ export default class Tasks extends Component {
             <Col>
               <Collapse buttonText={_('previousTasks')}>
                 <SortedTable
+                  className='mt-1'
                   collection={this._getFinishedTasks()}
                   columns={FINISHED_TASKS_COLUMNS}
                   filters={FILTERS}
                   stateUrlParam='s_previous'
                 />
               </Collapse>
+            </Col>
+          </Row>
+        </Container>
+        <h2 className='mt-2'>{_('xoTasks')}</h2>
+        <Container>
+          <Row>
+            <Col>
+              <SortedTable collection={props.xoTasks} columns={XO_TASKS_COLUMNS} stateUrlParam='s_xo' />
             </Col>
           </Row>
         </Container>

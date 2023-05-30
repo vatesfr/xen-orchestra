@@ -232,7 +232,7 @@ const createSubscription = (cb, { polling = 5e3 } = {}) => {
 
     running = true
     _signIn
-      .then(() => cb())
+      .then(() => cb(cache))
       .then(
         result => {
           running = false
@@ -563,6 +563,31 @@ export const createSrUnhealthyVdiChainsLengthSubscription = sr => {
 }
 
 export const subscribeUserAuthTokens = createSubscription(() => _call('user.getAuthenticationTokens'))
+
+export const subscribeXoTasks = createSubscription(async previousTasks => {
+  let filter = ''
+  // Deduplicate previous tasks and new tasks with a Map
+  const tasks = new Map()
+  if (previousTasks !== undefined) {
+    let lastUpdate = 0
+    previousTasks.forEach(task => {
+      if (task.updatedAt > lastUpdate) {
+        lastUpdate = task.updatedAt
+      }
+      tasks.set(task.id, task)
+    })
+    filter = `&filter=updatedAt%3A%3E${lastUpdate}`
+  }
+
+  // Fetch new and updated tasks
+  const response = await fetch('./rest/v0/tasks?fields=end,id,name,objectId,properties,start,status,updatedAt' + filter)
+  for (const task of await response.json()) {
+    tasks.set(task.id, task)
+  }
+
+  // Sort dates by start time
+  return Array.from(tasks.values()).sort(({ start: start1 }, { start: start2 }) => start1 - start2)
+})
 
 // System ============================================================
 
