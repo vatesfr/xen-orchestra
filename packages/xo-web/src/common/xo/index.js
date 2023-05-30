@@ -580,7 +580,7 @@ export const subscribeXoTasks = createSubscription(async previousTasks => {
   }
 
   // Fetch new and updated tasks
-  const response = await fetch('./rest/v0/tasks?fields=end,id,name,objectId,properties,start,status,updatedAt' + filter)
+  const response = await fetch('./rest/v0/tasks?fields=end,id,name,objectId,properties,start,status,updatedAt,href' + filter)
   for (const task of await response.json()) {
     tasks.set(task.id, task)
   }

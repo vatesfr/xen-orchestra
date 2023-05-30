@@ -220,6 +220,14 @@ const INDIVIDUAL_ACTIONS = [
   },
 ]
 
+const XO_TASKS_INDIVIDUAL_ACTIONS = [
+  {
+    handler: task => window.open(task.href),
+    icon: 'api',
+    label: _('taskOpenApi'),
+  },
+]
+
 const GROUPED_ACTIONS = [
   {
     disabled: tasks => some(tasks, isNotCancelable),
@@ -339,7 +347,12 @@ export default class Tasks extends Component {
         <Container>
           <Row>
             <Col>
-              <SortedTable collection={props.xoTasks} columns={XO_TASKS_COLUMNS} stateUrlParam='s_xo' />
+              <SortedTable
+                collection={props.xoTasks}
+                columns={XO_TASKS_COLUMNS}
+                individualActions={XO_TASKS_INDIVIDUAL_ACTIONS}
+                stateUrlParam='s_xo'
+              />
             </Col>
           </Row>
         </Container>
