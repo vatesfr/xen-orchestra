@@ -4,8 +4,9 @@ const { formatFilenameDate } = require('../../_filenameDate')
 const { getVmBackupDir } = require('../../_getVmBackupDir')
 
 exports.AbstractWriter = class AbstractWriter {
-  constructor({ config, job, vmUuid, scheduleId, settings }) {
+  constructor({ config, healthCheckSr, job, vmUuid, scheduleId, settings }) {
     this._config = config
+    this._healthCheckSr = healthCheckSr
     this._job = job
     this._scheduleId = scheduleId
     this._settings = settings

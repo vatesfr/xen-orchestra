@@ -78,20 +78,18 @@ class AbstractXapiVmBackupRunner extends Abstract {
         const targetSettings = {
           ...settings,
           ...allSettings[remoteId],
-          healthCheckSr,
         }
         if (targetSettings.exportRetention !== 0) {
-          writers.add(new BackupWriter({ adapter, config, job, vmUuid: vm.uuid, remoteId, settings: targetSettings }))
+          writers.add(new BackupWriter({ adapter, config, healthCheckSr, job, vmUuid: vm.uuid, remoteId, settings: targetSettings }))
         }
       })
       srs.forEach(sr => {
         const targetSettings = {
           ...settings,
           ...allSettings[sr.uuid],
-          healthCheckSr,
         }
         if (targetSettings.copyRetention !== 0) {
-          writers.add(new ReplicationWriter({ config, job, vmUuid: vm.uuid, sr, settings: targetSettings }))
+          writers.add(new ReplicationWriter({  config, healthCheckSr, job, vmUuid: vm.uuid, sr, settings: targetSettings}))
         }
       })
     }

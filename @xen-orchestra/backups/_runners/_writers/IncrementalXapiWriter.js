@@ -49,7 +49,7 @@ exports.IncrementalXapiWriter = class IncrementalXapiWriter extends MixinXapiWri
         type: 'SR',
       },
     })
-    const hasHealthCheckSr = this._settings.healthCheckSr !== undefined
+    const hasHealthCheckSr = this._healthCheckSr !== undefined
     this.transfer = task.wrapFn(this.transfer)
     this.cleanup = task.wrapFn(this.cleanup, !hasHealthCheckSr)
     this.healthCheck = task.wrapFn(this.healthCheck, hasHealthCheckSr)
