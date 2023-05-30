@@ -224,7 +224,7 @@ const XO_TASKS_INDIVIDUAL_ACTIONS = [
   {
     handler: task => window.open(task.href),
     icon: 'api',
-    label: _('taskOpenApi'),
+    label: _('taskOpenRawLog'),
   },
 ]
 

@@ -459,7 +459,7 @@ const messages = {
   taskError: 'Error',
   taskEstimatedEnd: 'Estimated end',
   taskReason: 'Reason',
-  taskOpenApi: "Open task's REST API URL",
+  taskOpenRawLog: 'Open raw log',
   saveBackupJob: 'Save',
   deleteBackupSchedule: 'Remove backup job',
   deleteBackupScheduleQuestion: 'Are you sure you want to delete this backup job?',
