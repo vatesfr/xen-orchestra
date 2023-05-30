@@ -76,7 +76,9 @@ exports.MixinRemoteWriter = (BaseClass = Object) =>
       }
     }
 
-    healthCheck(sr) {
+    healthCheck() {
+      const sr = this._healthCheckSr
+      assert.notStrictEqual(sr, undefined, 'SR should be defined before making a health check')
       assert.notStrictEqual(
         this._metadataFileName,
         undefined,
