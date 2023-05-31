@@ -17,13 +17,13 @@ exports.MixinRemoteWriter = (BaseClass = Object) =>
   class MixinRemoteWriter extends BaseClass {
     #lock
 
-    constructor({ remoteId, ...rest }) {
+    constructor({ remoteId, adapter, ...rest }) {
       super(rest)
 
-      this._adapter = rest.backup.remoteAdapters[remoteId]
+      this._adapter = adapter
       this._remoteId = remoteId
 
-      this._vmBackupDir = getVmBackupDir(this._backup.vm.uuid)
+      this._vmBackupDir = getVmBackupDir(rest.vmUuid)
     }
 
     async _cleanVm(options) {
@@ -38,7 +38,7 @@ exports.MixinRemoteWriter = (BaseClass = Object) =>
               Task.warning(message, data)
             },
             lock: false,
-            mergeBlockConcurrency: this._backup.config.mergeBlockConcurrency,
+            mergeBlockConcurrency: this._config.mergeBlockConcurrency,
           })
         })
       } catch (error) {
@@ -55,7 +55,7 @@ exports.MixinRemoteWriter = (BaseClass = Object) =>
     }
 
     async afterBackup() {
-      const { disableMergeWorker } = this._backup.config
+      const { disableMergeWorker } = this._config
       // merge worker only compatible with local remotes
       const { handler } = this._adapter
       const willMergeInWorker = !disableMergeWorker && typeof handler.getRealPath === 'function'
@@ -76,7 +76,9 @@ exports.MixinRemoteWriter = (BaseClass = Object) =>
       }
     }
 
-    healthCheck(sr) {
+    healthCheck() {
+      const sr = this._healthCheckSr
+      assert.notStrictEqual(sr, undefined, 'SR should be defined before making a health check')
       assert.notStrictEqual(
         this._metadataFileName,
         undefined,
@@ -108,5 +110,17 @@ exports.MixinRemoteWriter = (BaseClass = Object) =>
           }
         }
       )
+    }
+
+    _isAlreadyTransferred(timestamp) {
+      const vmUuid = this._vmUuid
+      const adapter = this._adapter
+      const backupDir = getVmBackupDir(vmUuid)
+      try {
+        const actualMetadata = JSON.parse(
+          adapter._handler.readFile(`${backupDir}/${formatFilenameDate(timestamp)}.json`)
+        )
+        return actualMetadata
+      } catch (error) {}
     }
   }

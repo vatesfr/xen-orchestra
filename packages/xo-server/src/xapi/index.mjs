@@ -182,8 +182,15 @@ export default class Xapi extends XapiBase {
   async clearHost({ $ref: hostRef, $pool: pool }, force) {
     await this.call('host.disable', hostRef)
 
-    const migrationNetworkId = pool.other_config['xo:migrationNetwork']
-    const migrationNetworkRef = migrationNetworkId && this.getObject(migrationNetworkId).$ref
+    const migrationNetworkRef = (id => {
+      if (id !== undefined) {
+        const network = this.getObject(id, undefined)
+        if (network === undefined) {
+          throw new Error('could not find migration network ' + id)
+        }
+        return network.$ref
+      }
+    })(pool.other_config['xo:migrationNetwork'])
     try {
       try {
         await (migrationNetworkRef === undefined

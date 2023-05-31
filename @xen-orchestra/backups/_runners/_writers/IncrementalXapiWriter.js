@@ -16,7 +16,7 @@ const { listReplicatedVms } = require('./_listReplicatedVms.js')
 exports.IncrementalXapiWriter = class IncrementalXapiWriter extends MixinXapiWriter(AbstractIncrementalWriter) {
   async checkBaseVdis(baseUuidToSrcVdi, baseVm) {
     const sr = this._sr
-    const replicatedVm = listReplicatedVms(sr.$xapi, this._backup.job.id, sr.uuid, this._backup.vm.uuid).find(
+    const replicatedVm = listReplicatedVms(sr.$xapi, this._job.id, sr.uuid, this._vmUuid).find(
       vm => vm.other_config[TAG_COPY_SRC] === baseVm.uuid
     )
     if (replicatedVm === undefined) {
@@ -49,9 +49,10 @@ exports.IncrementalXapiWriter = class IncrementalXapiWriter extends MixinXapiWri
         type: 'SR',
       },
     })
+    const hasHealthCheckSr = this._healthCheckSr !== undefined
     this.transfer = task.wrapFn(this.transfer)
-    this.cleanup = task.wrapFn(this.cleanup)
-    this.healthCheck = task.wrapFn(this.healthCheck, true)
+    this.cleanup = task.wrapFn(this.cleanup, !hasHealthCheckSr)
+    this.healthCheck = task.wrapFn(this.healthCheck, hasHealthCheckSr)
 
     return task.run(() => this._prepare())
   }
@@ -59,12 +60,13 @@ exports.IncrementalXapiWriter = class IncrementalXapiWriter extends MixinXapiWri
   async _prepare() {
     const settings = this._settings
     const { uuid: srUuid, $xapi: xapi } = this._sr
-    const { scheduleId, vm } = this._backup
+    const vmUuid = this._vmUuid
+    const scheduleId = this._scheduleId
 
     // delete previous interrupted copies
-    ignoreErrors.call(asyncMapSettled(listReplicatedVms(xapi, scheduleId, undefined, vm.uuid), vm => vm.$destroy))
+    ignoreErrors.call(asyncMapSettled(listReplicatedVms(xapi, scheduleId, undefined, vmUuid), vm => vm.$destroy))
 
-    this._oldEntries = getOldEntries(settings.copyRetention - 1, listReplicatedVms(xapi, scheduleId, srUuid, vm.uuid))
+    this._oldEntries = getOldEntries(settings.copyRetention - 1, listReplicatedVms(xapi, scheduleId, srUuid, vmUuid))
 
     if (settings.deleteFirst) {
       await this._deleteOldEntries()
@@ -81,10 +83,11 @@ exports.IncrementalXapiWriter = class IncrementalXapiWriter extends MixinXapiWri
     return asyncMapSettled(this._oldEntries, vm => vm.$destroy())
   }
 
-  async _transfer({ timestamp, deltaExport, sizeContainers }) {
+  async _transfer({ timestamp, deltaExport, sizeContainers, vm }) {
     const { _warmMigration } = this._settings
     const sr = this._sr
-    const { job, scheduleId, vm } = this._backup
+    const job = this._job
+    const scheduleId = this._scheduleId
 
     const { uuid: srUuid, $xapi: xapi } = sr
 

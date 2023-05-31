@@ -15,9 +15,9 @@ exports.AbstractIncrementalWriter = class AbstractIncrementalWriter extends Abst
     throw new Error('Not implemented')
   }
 
-  async transfer({ timestamp, deltaExport, sizeContainers }) {
+  async transfer({ deltaExport, ...other }) {
     try {
-      return await this._transfer({ timestamp, deltaExport, sizeContainers })
+      return await this._transfer({ deltaExport, ...other })
     } finally {
       // ensure all streams are properly closed
       for (const stream of Object.values(deltaExport.streams)) {

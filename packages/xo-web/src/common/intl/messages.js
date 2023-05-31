@@ -25,6 +25,7 @@ const messages = {
   vmSrUsage: 'Storage: {used} used of {total} ({free} free)',
 
   notDefined: 'Not defined',
+  status: 'Status',
   statusConnecting: 'Connecting',
   statusDisconnected: 'Disconnected',
   statusLoading: 'Loading…',
@@ -449,6 +450,8 @@ const messages = {
   taskSkipped: 'Skipped',
   taskStarted: 'Started',
   taskInterrupted: 'Interrupted',
+  taskEnded: 'Ended',
+  taskAborted: 'Aborted',
   taskTransferredDataSize: 'Transfer size',
   taskTransferredDataSpeed: 'Transfer speed',
   taskMergedDataSize: 'Merge size',
@@ -456,6 +459,7 @@ const messages = {
   taskError: 'Error',
   taskEstimatedEnd: 'Estimated end',
   taskReason: 'Reason',
+  taskOpenRawLog: 'Open raw log',
   saveBackupJob: 'Save',
   deleteBackupSchedule: 'Remove backup job',
   deleteBackupScheduleQuestion: 'Are you sure you want to delete this backup job?',
@@ -624,9 +628,9 @@ const messages = {
   remoteS3TooltipAcceptInsecure: 'Check if you want to accept self signed certificates',
   remotePlaceHolderPassword: 'Password(fill to edit)',
   remoteUseVhdDirectory:
-    'Store backup as multiple data blocks instead of a whole VHD file. (creates 500-1000 files per backed up TB but allows faster merge)',
+    'Store backup as multiple data blocks instead of a whole VHD file. (creates 500-1000 files per backed up GB but allows faster merge)',
   remoteUseVhdDirectoryTooltip:
-    'Your remote must be able to handle parallel access (up to 16 write processes per backup) and the number of files (500 files per GB of backed up data)',
+    'Your remote must be able to handle parallel access (up to 16 write processes per backup) and the number of files (500-1000 files per GB of backed up data)',
   remoteEncryptionBackupSize: 'Size of backup is not updated when using encryption.',
   remoteEncryptionEncryptedfiles:
     'All the files of the remote except the encryption.json are encrypted, that means you can only activate encryption or change key on an empty remote.',
@@ -1678,10 +1682,13 @@ const messages = {
   importToSr: 'To SR',
 
   // ---- Tasks ---
+  poolTasks: 'Pool tasks',
+  xoTasks: 'XO tasks',
   cancelTask: 'Cancel',
   destroyTask: 'Destroy',
   cancelTasks: 'Cancel selected tasks',
   destroyTasks: 'Destroy selected tasks',
+  object: 'Object',
   objects: 'Objects',
   pool: 'Pool',
   task: 'Task',

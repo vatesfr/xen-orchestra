@@ -15,6 +15,8 @@ const { Task } = require('../../Task.js')
 const { watchStreamSize } = require('../../_watchStreamSize.js')
 const { AbstractXapi } = require('./_AbstractXapi.js')
 const { forkDeltaExport } = require('./_forkDeltaExport.js')
+const isVhdDifferencingDisk = require('vhd-lib/isVhdDifferencingDisk')
+const { asyncEach } = require('@vates/async-each')
 
 const { debug } = createLogger('xo:backups:IncrementalXapiVmBackup')
 
@@ -30,8 +32,9 @@ exports.IncrementalXapi = class IncrementalXapiVmBackupRunner extends AbstractXa
   }
 
   async _copy() {
-    const { exportedVm } = this
     const baseVm = this._baseVm
+    const vm = this._vm
+    const exportedVm = this._exportedVm
     const fullVdisRequired = this._fullVdisRequired
 
     const isFull = fullVdisRequired === undefined || fullVdisRequired.size !== 0
@@ -46,12 +49,18 @@ exports.IncrementalXapi = class IncrementalXapiVmBackupRunner extends AbstractXa
     if (Object.values(deltaExport.streams).some(({ _nbd }) => _nbd)) {
       Task.info('Transfer data using NBD')
     }
+
+    const differentialVhds = {}
+    // since isVhdDifferencingDisk is reading and unshifting data in stream
+    // it should be done BEFORE any other stream transform
+    await asyncEach(Object.entries(deltaExport.streams), async ([key, stream]) => {
+      differentialVhds[key] = await isVhdDifferencingDisk(stream)
+    })
     const sizeContainers = mapValues(deltaExport.streams, stream => watchStreamSize(stream))
 
     if (this._settings.validateVhdStreams) {
       deltaExport.streams = mapValues(deltaExport.streams, stream => pipeline(stream, vhdStreamValidator, noop))
     }
-
     deltaExport.streams = mapValues(deltaExport.streams, this._throttleStream)
 
     const timestamp = Date.now()
@@ -60,8 +69,11 @@ exports.IncrementalXapi = class IncrementalXapiVmBackupRunner extends AbstractXa
       writer =>
         writer.transfer({
           deltaExport: forkDeltaExport(deltaExport),
+          differentialVhds,
           sizeContainers,
           timestamp,
+          vm,
+          vmSnapshot: exportedVm,
         }),
       'writer.transfer()'
     )
@@ -108,7 +120,7 @@ exports.IncrementalXapi = class IncrementalXapiVmBackupRunner extends AbstractXa
       return
     }
 
-    const srcVdis = keyBy(await xapi.getRecords('VDI', await this.vm.$getDisks()), '$ref')
+    const srcVdis = keyBy(await xapi.getRecords('VDI', await this._vm.$getDisks()), '$ref')
 
     // resolve full record
     baseVm = await xapi.getRecord('VM', baseVm.$ref)
