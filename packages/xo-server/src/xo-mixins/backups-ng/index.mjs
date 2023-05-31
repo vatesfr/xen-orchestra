@@ -604,11 +604,13 @@ export default class BackupNg {
   }
 
   async checkVmBackupNg(backupId, srId, settings) {
-    await Task.run(
-      {
-        name: 'health check',
-      },
-      async () => {
+    await this._app.tasks
+      .create({
+        name: 'VM Backup Health Check',
+        objectId: backupId,
+        type: 'backup.vm.healthCheck',
+      })
+      .run(async () => {
         const app = this._app
         const xapi = app.getXapi(srId)
         const restoredId = await this.importVmBackupNg(backupId, srId, settings)
@@ -622,7 +624,6 @@ export default class BackupNg {
         } finally {
           await xapi.VM_destroy(restoredVm.$ref)
         }
-      }
-    )
+      })
   }
 }
