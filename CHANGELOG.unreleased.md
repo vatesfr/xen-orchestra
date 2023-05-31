@@ -34,7 +34,6 @@
 
 <!--packages-start-->
 
-- @xen-orchestra/backups minor
 - xo-server minor
 - xo-web minor
 
