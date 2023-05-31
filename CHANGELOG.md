@@ -38,7 +38,7 @@
 - @xen-orchestra/backups-cli 1.0.8
 - @xen-orchestra/proxy 0.26.25
 - xo-server 5.116.0
-- xo-web 5.119.0
+- xo-web 5.119.1
 
 ## **5.82.2** (2023-05-17)
 
