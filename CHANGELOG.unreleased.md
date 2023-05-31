@@ -9,6 +9,7 @@
 
 - [Tasks] New type of tasks created by XO ("XO Tasks" section) (PRs [#6861](https://github.com/vatesfr/xen-orchestra/pull/6861) [#6869](https://github.com/vatesfr/xen-orchestra/pull/6869))
 - [Backup/Health check] Add basic XO task for manual health check
+- [Backup] Implementation of mirror backup (Entreprise plan) (PRs [#6858](https://github.com/vatesfr/xen-orchestra/pull/6858), [#6854](https://github.com/vatesfr/xen-orchestra/pull/6854))
 
 ### Bug fixes
 

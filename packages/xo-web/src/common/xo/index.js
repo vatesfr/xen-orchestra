@@ -2375,8 +2375,8 @@ export const createBackupNgJob = props => _call('backupNg.createJob', props)::ta
 
 export const getSuggestedExcludedTags = () => _call('backupNg.getSuggestedExcludedTags')
 
-export const deleteBackupJobs = async ({ backupIds = [], metadataBackupIds = [] }) => {
-  const nJobs = backupIds.length + metadataBackupIds.length
+export const deleteBackupJobs = async ({ backupIds = [], metadataBackupIds = [], mirrorBackupIds = [] }) => {
+  const nJobs = backupIds.length + metadataBackupIds.length + mirrorBackupIds.length
   if (nJobs === 0) {
     return
   }
@@ -2402,6 +2402,13 @@ export const deleteBackupJobs = async ({ backupIds = [], metadataBackupIds = [] 
     promises.push(
       Promise.all(metadataBackupIds.map(id => _call('metadataBackup.deleteJob', { id: resolveId(id) })))::tap(
         subscribeMetadataBackupJobs.forceRefresh
+      )
+    )
+  }
+  if (mirrorBackupIds.length !== 0) {
+    promises.push(
+      Promise.all(mirrorBackupIds.map(id => _call('mirrorBackup.deleteJob', { id: resolveId(id) })))::tap(
+        subscribeMirrorBackupJobs.forceRefresh
       )
     )
   }
@@ -2489,6 +2496,17 @@ export const deleteMetadataBackups = async (backups = []) => {
     await deleteMetadataBackup(backups[i])
   }
 }
+
+// Mirror backup ---------------------------------------------------------
+
+export const subscribeMirrorBackupJobs = createSubscription(() => _call('mirrorBackup.getAllJobs'))
+
+export const createMirrorBackupJob = props =>
+  _call('mirrorBackup.createJob', props)::tap(subscribeMirrorBackupJobs.forceRefresh)
+
+export const runMirrorBackupJob = props => _call('mirrorBackup.runJob', props)
+
+export const editMirrorBackupJob = props => _call('mirrorBackup.editJob', props)
 
 // Plugins -----------------------------------------------------------
 

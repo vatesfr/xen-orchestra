@@ -220,6 +220,8 @@ const messages = {
   xoConfig: 'XO config',
   backupVms: 'Backup VMs',
   backupMetadata: 'Backup metadata',
+  mirrorBackup: 'Mirror backup',
+  mirrorBackupVms: 'Mirror backup VMs',
   jobsOverviewPage: 'Overview',
   jobsNewPage: 'New',
   jobsSchedulingPage: 'Scheduling',
@@ -471,6 +473,7 @@ const messages = {
   missingBackupName: "A name is required to create the backup's job!",
   missingVms: 'Missing VMs!',
   missingBackupMode: 'You need to choose a backup mode!',
+  missingRemote: 'Missing remote!',
   missingRemotes: 'Missing remotes!',
   missingSrs: 'Missing SRs!',
   missingPools: 'Missing pools!',
@@ -587,8 +590,12 @@ const messages = {
   confirmDeleteBackupJobsTitle: 'Delete backup job{nJobs, plural, one {} other {s}}',
   confirmDeleteBackupJobsBody:
     'Are you sure you want to delete {nJobs, number} backup job{nJobs, plural, one {} other {s}}?',
+  mirrorFullBackup: 'Mirror full backup',
+  mirrorIncrementalBackup: 'Mirror incremental backup',
   runBackupJob: 'Run backup job once',
   speedLimit: 'Speed limit (in MiB/s)',
+  sourceRemote: 'Source remote',
+  targetRemotes: 'Target remotes',
 
   // ------ Remote -----
   remoteName: 'Name',

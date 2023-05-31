@@ -364,6 +364,10 @@
     @extend .fa;
     @extend .fa-check;
   }
+  &-mirror-backup {
+    @extend .fa;
+    @extend .fa-files-o;
+  }
   &-restore {
     @extend .fa;
     @extend .fa-upload;
