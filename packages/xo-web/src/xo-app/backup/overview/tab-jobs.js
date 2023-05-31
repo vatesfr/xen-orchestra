@@ -116,7 +116,7 @@ const _runBackupJob = ({ id, name, nVms, schedule, type }) =>
     ),
   }).then(() => {
     const method =
-      type === 'backup' ? runBackupNgJob : isMirrorBackup({ type }) ? runMirrorBackupJob : runMetadataBackupJob
+      type === 'backup' ? runBackupNgJob : isMirrorBackupType({ type }) ? runMirrorBackupJob : runMetadataBackupJob
     return method({ id, schedule })
   })
 
