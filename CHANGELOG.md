@@ -28,12 +28,12 @@
 - xo-vmdk-to-vhd 2.5.5
 - vhd-cli 0.9.3
 - xo-cli 0.19.0
-- xo-server 5.115.0
 - xo-web 5.118.0
 - vhd-lib 4.5.0
 - @xen-orchestra/backups 0.38.0
 - @xen-orchestra/backups-cli 1.0.8
 - @xen-orchestra/proxy 0.26.25
+- xo-server 5.116.0
 
 ## **5.82.2** (2023-05-17)
 
