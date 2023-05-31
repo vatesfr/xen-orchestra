@@ -24,7 +24,6 @@
 
 - @xen-orchestra/fs 4.0.0
 - @xen-orchestra/xapi 2.2.1
-- @xen-orchestra/backups-cli 1.0.7
 - @xen-orchestra/mixins 0.10.1
 - @xen-orchestra/proxy 0.26.24
 - xo-vmdk-to-vhd 2.5.5
@@ -34,6 +33,7 @@
 - xo-web 5.118.0
 - vhd-lib 4.5.0
 - @xen-orchestra/backups 0.38.0
+- @xen-orchestra/backups-cli 1.0.8
 
 ## **5.82.2** (2023-05-17)
 
