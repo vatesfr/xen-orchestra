@@ -23,7 +23,6 @@
 ### Released packages
 
 - @xen-orchestra/fs 4.0.0
-- vhd-lib 4.4.1
 - @xen-orchestra/xapi 2.2.1
 - @xen-orchestra/backups 0.37.0
 - @xen-orchestra/backups-cli 1.0.7
@@ -34,6 +33,7 @@
 - xo-cli 0.19.0
 - xo-server 5.115.0
 - xo-web 5.118.0
+- vhd-lib 4.5.0
 
 ## **5.82.2** (2023-05-17)
 
