@@ -30,6 +30,8 @@ const AUTHORIZATIONS = {
   EXPORT: {
     XVA: STARTER, // @todo handleExport in xen-orchestra/packages/xo-server/src/api/vm.mjs
   },
+  LIST_MISSING_PATCHES: STARTER,
+  ROLLING_POOL_UPDATE: ENTERPRISE,
 }
 
 export default class Authorization {

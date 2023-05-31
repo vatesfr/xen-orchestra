@@ -1,7 +1,7 @@
 import { asyncEach } from '@vates/async-each'
 import { every } from '@vates/predicates'
 import { ifDef } from '@xen-orchestra/defined'
-import { invalidCredentials, noSuchObject } from 'xo-common/api-errors.js'
+import { featureUnauthorized, invalidCredentials, noSuchObject } from 'xo-common/api-errors.js'
 import { pipeline } from 'node:stream/promises'
 import { json, Router } from 'express'
 import path from 'node:path'
@@ -89,7 +89,9 @@ function wrap(middleware, handleNoSuchObject = false) {
     try {
       await middleware.apply(this, arguments)
     } catch (error) {
-      if (handleNoSuchObject && noSuchObject.is(error)) {
+      if (featureUnauthorized.is(error)) {
+        res.sendStatus(403)
+      } else if (handleNoSuchObject && noSuchObject.is(error)) {
         res.sendStatus(404)
       } else {
         next(error)
@@ -156,6 +158,8 @@ export default class RestApi {
       __proto__: null,
 
       async missing_patches(req, res) {
+        await app.checkFeatureAuthorization('LIST_MISSING_PATCHES')
+
         const host = req.xapiObject
         res.json(await host.$xapi.listMissingPatches(host))
       },
@@ -165,6 +169,8 @@ export default class RestApi {
       __proto__: null,
 
       async missing_patches(req, res) {
+        await app.checkFeatureAuthorization('LIST_MISSING_PATCHES')
+
         const xapi = req.xapiObject.$xapi
         const missingPatches = new Map()
         await asyncEach(Object.values(xapi.objects.indexes.type.host ?? {}), async host => {
@@ -184,7 +190,11 @@ export default class RestApi {
     collections.pools.actions = {
       __proto__: null,
 
-      rolling_update: ({ xoObject }) => app.rollingPoolUpdate(xoObject).then(noop),
+      rolling_update: async ({ xoObject }) => {
+        await app.checkFeatureAuthorization('ROLLING_POOL_UPDATE')
+
+        await app.rollingPoolUpdate(xoObject)
+      },
     }
     collections.vms.actions = {
       __proto__: null,
