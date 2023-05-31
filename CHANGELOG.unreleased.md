@@ -7,16 +7,9 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [Tasks] New type of tasks created by XO ("XO Tasks" section) (PRs [#6861](https://github.com/vatesfr/xen-orchestra/pull/6861) [#6869](https://github.com/vatesfr/xen-orchestra/pull/6869))
-- [Backup/Health check] Add basic XO task for manual health check
-- [Backup] Implementation of mirror backup (Entreprise plan) (PRs [#6858](https://github.com/vatesfr/xen-orchestra/pull/6858), [#6854](https://github.com/vatesfr/xen-orchestra/pull/6854))
-
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
-
-- [Incremental Replication] Fix task showing as _interrupted_ when running without health check [Forum#62669](https://xcp-ng.org/forum/post/62669) (PR [#6866](https://github.com/vatesfr/xen-orchestra/pull/6866))
-- [Host evacuation] Better error message when migration network no longer exists
 
 ### Packages to release
 

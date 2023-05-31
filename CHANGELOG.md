@@ -12,6 +12,9 @@
 - [Self service] Add default tags to all VMs that will be created by a Self Service (PRs [#6810](https://github.com/vatesfr/xen-orchestra/pull/6810), [#6812](https://github.com/vatesfr/xen-orchestra/pull/6812))
 - [Kubernetes] Add the possibility to choose the number of fault tolerance for the control planes (PR [#6809](https://github.com/vatesfr/xen-orchestra/pull/6809))
 - [REST API] Add endpoints to display missing patches for pools and hosts (PR [#6855](https://github.com/vatesfr/xen-orchestra/pull/6855))
+- [Tasks] New type of tasks created by XO ("XO Tasks" section) (PRs [#6861](https://github.com/vatesfr/xen-orchestra/pull/6861) [#6869](https://github.com/vatesfr/xen-orchestra/pull/6869))
+- [Backup/Health check] Add basic XO task for manual health check
+- [Backup] Implementation of mirror backup (Entreprise plan) (PRs [#6858](https://github.com/vatesfr/xen-orchestra/pull/6858), [#6854](https://github.com/vatesfr/xen-orchestra/pull/6854))
 
 ### Bug fixes
 
@@ -19,6 +22,8 @@
 - [VM] Show SUSE icon when distro name is `opensuse` (PR [#6852](https://github.com/vatesfr/xen-orchestra/pull/6852))
 - [ACL] Fix various `an error has occurred` due to ACLs (PR [#6848](https://github.com/vatesfr/xen-orchestra/pull/6848))
 - [Home/host] When ahost has an inconsistent time with XOA, an alert is displayed (PR [#6833](https://github.com/vatesfr/xen-orchestra/pull/6833))
+- [Incremental Replication] Fix task showing as _interrupted_ when running without health check [Forum#62669](https://xcp-ng.org/forum/post/62669) (PR [#6866](https://github.com/vatesfr/xen-orchestra/pull/6866))
+- [Host evacuation] Better error message when migration network no longer exists
 
 ### Released packages
 
