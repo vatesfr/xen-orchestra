@@ -2,6 +2,10 @@
 
 ## **next**
 
+## Bug fixes
+
+- [Backup] Fix `Cannot read properties of undefined (reading 'vm')` (PR [#6873](https://github.com/vatesfr/xen-orchestra/pull/6873))
+
 ### Released packages
 
 - @xen-orchestra/backups 0.38.2
