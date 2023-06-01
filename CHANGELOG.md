@@ -2,6 +2,8 @@
 
 ## **5.83.1** (2023-06-01)
 
+<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
 ### Bug fixes
 
 - [Delta Replication] Fix not deleting older replications [Forum#62783](https://xcp-ng.org/forum/post/62783) (PR [#6871](https://github.com/vatesfr/xen-orchestra/pull/6871))
@@ -13,8 +15,6 @@
 - xo-server 5.116.2
 
 ## **5.83.0** (2023-05-31)
-
-<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
 
 ### Highlights
 
