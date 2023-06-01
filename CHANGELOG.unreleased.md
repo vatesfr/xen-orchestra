@@ -11,7 +11,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [Backup] fix CR not deleting older backups [Forum#62783](https://xcp-ng.org/forum/post/62783) (PR [#6871](https://github.com/vatesfr/xen-orchestra/pull/6871))
+- [Delta Replication] Fix not deleting older replications [Forum#62783](https://xcp-ng.org/forum/post/62783) (PR [#6871](https://github.com/vatesfr/xen-orchestra/pull/6871))
 
 ### Packages to release
 
