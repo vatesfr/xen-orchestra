@@ -366,7 +366,7 @@ export default class XapiStats {
   }
 
   @synchronized.withKey(({ host }: { host: XenApiHost }) => host.uuid)
-  async _getAndUpdateStats({
+  async _getAndUpdateStats<T extends VmStats | HostStats>({
     abortSignal,
     host,
     ignoreExpired = false,
@@ -395,7 +395,7 @@ export default class XapiStats {
       step,
       currentTimeStamp,
       ignoreExpired
-    );
+    ) as XapiStatsResponse<T>;
 
     if (stats !== undefined) {
       return stats;
@@ -508,12 +508,10 @@ export default class XapiStats {
       throw error;
     }
 
-    return (
-      this.#statsByObject[uuid]?.[step] ?? {
-        endTimestamp: currentTimeStamp,
-        interval: step,
-        stats: {},
-      }
-    );
+    return (this.#statsByObject[uuid]?.[step] ?? {
+      endTimestamp: currentTimeStamp,
+      interval: step,
+      stats: {},
+    }) as XapiStatsResponse<T>;
   }
 }

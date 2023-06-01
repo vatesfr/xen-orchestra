@@ -1,5 +1,5 @@
 import { sortRecordsByNameLabel } from "@/libs/utils";
-import type { GRANULARITY, XapiStatsResponse } from "@/libs/xapi-stats";
+import type { VmStats, GRANULARITY, XapiStatsResponse} from "@/libs/xapi-stats";
 import type { XenApiHost, XenApiVm } from "@/libs/xen-api";
 import { POWER_STATE } from "@/libs/xen-api";
 import { useXapiCollectionStore } from "@/stores/xapi-collection.store";
@@ -85,7 +85,7 @@ export const useVmStore = defineStore("vm", () => {
           throw new Error(`VM ${vmUuid} is halted or host could not be found.`);
         }
 
-      return xenApiStore.getXapiStats()._getAndUpdateStats({
+      return xenApiStore.getXapiStats()._getAndUpdateStats<VmStats>({
         abortSignal,
         host,
         ignoreExpired,

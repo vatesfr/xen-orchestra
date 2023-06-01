@@ -1,5 +1,9 @@
 import { isHostRunning, sortRecordsByNameLabel } from "@/libs/utils";
-import type { GRANULARITY, XapiStatsResponse } from "@/libs/xapi-stats";
+import type {
+  GRANULARITY,
+  HostStats,
+  XapiStatsResponse,
+} from "@/libs/xapi-stats";
 import type { XenApiHost, XenApiHostMetrics } from "@/libs/xen-api";
 import { useXapiCollectionStore } from "@/stores/xapi-collection.store";
 import { useXenApiStore } from "@/stores/xen-api.store";
@@ -47,7 +51,7 @@ export const useHostStore = defineStore("host", () => {
         ? xenApiStore.getXapiStats()
         : undefined;
 
-      return xapiStats?._getAndUpdateStats({
+      return xapiStats?._getAndUpdateStats<HostStats>({
         abortSignal,
         host,
         ignoreExpired,

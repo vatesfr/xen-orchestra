@@ -25,7 +25,7 @@ type GetStats<
   granularity: GRANULARITY,
   ignoreExpired: boolean,
   opts: { abortSignal?: AbortSignal }
-) => Promise<XapiStatsResponse<S>> | undefined;
+) => Promise<XapiStatsResponse<S> | undefined> | undefined;
 
 export type FetchedStats<
   T extends XenApiHost | XenApiVm,
