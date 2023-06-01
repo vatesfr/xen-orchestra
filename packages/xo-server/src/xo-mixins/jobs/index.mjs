@@ -80,14 +80,12 @@ export default class Jobs {
     executors.call = executeCall
 
     app.hooks.on('clean', () => this._jobs.rebuildIndexes())
-    app.hooks.on('start', async () => {
+    app.hooks.on('core started', () => {
       const jobsDb = (this._jobs = new JobsDb({
         connection: app._redis,
         namespace: 'job',
         indexes: ['user_id', 'key'],
       }))
-
-      this._logger = await app.getLogger('jobs')
 
       app.addConfigManager(
         'jobs',
@@ -95,6 +93,9 @@ export default class Jobs {
         jobs => Promise.all(jobs.map(job => jobsDb.save(job))),
         ['users']
       )
+    })
+    app.hooks.on('start', async () => {
+      this._logger = await app.getLogger('jobs')
     })
     // it sends a report for the interrupted backup jobs
     app.on('plugins:registered', () =>

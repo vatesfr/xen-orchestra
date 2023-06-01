@@ -12,7 +12,7 @@ export default class {
   constructor(app) {
     this._app = app
 
-    app.hooks.on('start', () => {
+    app.hooks.on('core started', () => {
       const aclsDb = (this._acls = new Acls({
         connection: app._redis,
         namespace: 'acl',

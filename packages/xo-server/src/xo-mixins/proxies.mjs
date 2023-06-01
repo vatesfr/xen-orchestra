@@ -70,7 +70,7 @@ export default class Proxy {
     })
 
     app.hooks.on('clean', () => this._db.rebuildIndexes())
-    app.hooks.on('start', () => {
+    app.hooks.on('core started', () => {
       const db = (this._db = new Collection({
         connection: app._redis,
         indexes: ['address', 'vmUuid'],

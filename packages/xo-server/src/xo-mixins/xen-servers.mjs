@@ -56,35 +56,36 @@ export default class XenServers {
     })
 
     app.hooks.on('clean', () => this._servers.rebuildIndexes())
-    app.hooks.on('start', async () => {
+
+    const connectServers = async () => {
+      // Connects to existing servers.
+      for (const server of await this._servers.get()) {
+        if (server.enabled) {
+          this.connectXenServer(server.id).catch(error => {
+            log.warn('failed to connect to XenServer', {
+              host: server.host,
+              error,
+            })
+          })
+        }
+      }
+    }
+    app.hooks.on('core started', () => {
       const serversDb = (this._servers = new Servers({
         connection: app._redis,
         namespace: 'server',
         indexes: ['host'],
       }))
 
-      const connectServers = async () => {
-        // Connects to existing servers.
-        for (const server of await serversDb.get()) {
-          if (server.enabled) {
-            this.connectXenServer(server.id).catch(error => {
-              log.warn('failed to connect to XenServer', {
-                host: server.host,
-                error,
-              })
-            })
-          }
-        }
-      }
-
       app.addConfigManager(
         'xenServers',
         () => serversDb.get(),
         servers => serversDb.update(servers).then(connectServers)
       )
-
+    })
+    app.hooks.on('start', async () => {
       // Add servers in XenStore
-      if (!(await serversDb.exists())) {
+      if (!(await this._servers.exists())) {
         const key = 'vm-data/xen-servers'
         const xenStoreServers = await XenStore.read(key)
           .then(JSON.parse)
