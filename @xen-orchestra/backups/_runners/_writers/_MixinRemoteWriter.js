@@ -70,7 +70,7 @@ exports.MixinRemoteWriter = (BaseClass = Object) =>
           // add a random suffix to avoid collision in case multiple tasks are created at the same second
           Math.random().toString(36).slice(2)
 
-        await handler.outputFile(taskFile, this._backup.vm.uuid)
+        await handler.outputFile(taskFile, this._vmUuid)
         const remotePath = handler.getRealPath()
         await MergeWorker.run(remotePath)
       }
