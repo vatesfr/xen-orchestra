@@ -11,6 +11,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Backup] Fix `Cannot read properties of undefined (reading 'vm')` (PR [#6873](https://github.com/vatesfr/xen-orchestra/pull/6873))
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
