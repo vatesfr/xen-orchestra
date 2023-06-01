@@ -44,7 +44,7 @@ export default class Scheduling {
       await db.remove(schedules.filter(_ => !(_.jobId in jobsById)).map(_ => _.id))
       await db.rebuildIndexes()
     })
-    app.hooks.on('start', async () => {
+    app.hooks.on('core started', () => {
       const db = (this._db = new Schedules({
         connection: app._redis,
         namespace: 'schedule',
@@ -60,7 +60,8 @@ export default class Scheduling {
           }),
         ['jobs']
       )
-
+    })
+    app.hooks.on('start', async () => {
       const schedules = await this.getAllSchedules()
       schedules.forEach(schedule => this._start(schedule))
     })

@@ -24,7 +24,7 @@ export default class {
     this._app = app
 
     app.hooks.on('clean', () => Promise.all([this._groups.rebuildIndexes(), this._users.rebuildIndexes()]))
-    app.hooks.on('start', async () => {
+    app.hooks.on('core started', () => {
       const redis = app._redis
       const groupsDb = (this._groups = new Groups({
         connection: redis,
@@ -57,8 +57,9 @@ export default class {
             })
           )
       )
-
-      if (!(await usersDb.exists())) {
+    })
+    app.hooks.on('start', async () => {
+      if (!(await this._users.exists())) {
         const key = 'vm-data/admin-account'
         const { email = 'admin@admin.net', password = 'admin' } = await XenStore.read(key)
           .then(JSON.parse)
