@@ -80,7 +80,7 @@ export default class {
       return tokensDb.rebuildIndexes()
     })
 
-    app.hooks.on('start', () => {
+    app.hooks.on('core started', () => {
       // Creates persistent collections.
       const tokensDb = (this._tokens = new Tokens({
         connection: app._redis,

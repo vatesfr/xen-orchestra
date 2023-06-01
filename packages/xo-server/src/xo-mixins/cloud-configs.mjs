@@ -14,7 +14,7 @@ export default class {
     this._app = app
 
     app.hooks.on('clean', () => this._db.rebuildIndexes())
-    app.hooks.on('start', () => {
+    app.hooks.on('core started', () => {
       const db = (this._db = new CloudConfigs({
         connection: app._redis,
         namespace: 'cloudConfig',

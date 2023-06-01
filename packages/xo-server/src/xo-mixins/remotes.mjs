@@ -37,7 +37,7 @@ export default class {
     this._app = app
 
     app.hooks.on('clean', () => this._remotes.rebuildIndexes())
-    app.hooks.on('start', async () => {
+    app.hooks.on('core started', () => {
       this._remotes = new Remotes({
         connection: app._redis,
         namespace: 'remote',
@@ -49,7 +49,8 @@ export default class {
         () => this._remotes.get(),
         remotes => Promise.all(remotes.map(remote => this._remotes.update(remote)))
       )
-
+    })
+    app.hooks.on('start', async () => {
       const remotes = await this._remotes.get()
       remotes.forEach(remote => {
         ignoreErrors.call(this.updateRemote(remote.id, {}))
