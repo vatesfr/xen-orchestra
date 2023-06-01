@@ -11,8 +11,6 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
-- [Delta Replication] Fix not deleting older replications [Forum#62783](https://xcp-ng.org/forum/post/62783) (PR [#6871](https://github.com/vatesfr/xen-orchestra/pull/6871))
-
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -29,7 +27,6 @@
 
 <!--packages-start-->
 
-- @xen-orchestra/backups patch
 - xo-server patch
 
 <!--packages-end-->

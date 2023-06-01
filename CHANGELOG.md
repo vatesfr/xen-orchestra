@@ -1,5 +1,15 @@
 # ChangeLog
 
+## **5.83.1** (2023-06-01)
+
+### Bug fixes
+
+- [Delta Replication] Fix not deleting older replications [Forum#62783](https://xcp-ng.org/forum/post/62783) (PR [#6871](https://github.com/vatesfr/xen-orchestra/pull/6871))
+
+### Released packages
+
+- @xen-orchestra/backups 0.38.1
+
 ## **5.83.0** (2023-05-31)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
