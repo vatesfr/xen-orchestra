@@ -100,12 +100,25 @@ const DiskImport = decorate([
       onChangeSr: (_, sr) => ({ sr }),
       reset: getInitialState,
     },
+    computed: {
+      isSrIso: ({ sr }) => sr.content_type === 'iso',
+    },
   }),
   injectIntl,
   injectState,
-  ({ effects, state: { disks, loadingDisks, mapDescriptions, mapNames, sr } }) => (
+  ({ effects, state: { disks, loadingDisks, mapDescriptions, mapNames, sr, isSrIso } }) => (
     <Container>
       <form id='import-form'>
+        <div className='mb-1'>
+          <a
+            className='text-info'
+            href='https://xcp-ng.org/blog/2022/05/05/how-to-create-a-local-iso-repository-in-xcp-ng/'
+            rel='noreferrer'
+            target='_blank'
+          >
+            <Icon icon='info' /> {_('isoImportRequirement')}
+          </a>
+        </div>
         <Row>
           <LabelCol>{_('importToSr')}</LabelCol>
           <InputCol>
@@ -116,8 +129,8 @@ const DiskImport = decorate([
           <div>
             <Dropzone
               onDrop={effects.handleDrop}
-              message={_('dropDisksFiles')}
-              accept={sr.content_type === 'iso' ? '.iso' : ['.vhd', '.vmdk']}
+              message={_('dropDisksFiles', { types: isSrIso ? 'ISO' : ['VHD', 'VMDK'] })}
+              accept={isSrIso ? '.iso' : ['.vhd', '.vmdk']}
             />
             {loadingDisks && <Icon icon='loading' />}
             {disks.length > 0 && (

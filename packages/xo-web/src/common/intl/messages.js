@@ -1685,8 +1685,9 @@ const messages = {
   // ---- Disk import ---
   diskImportFailed: 'Disk import failed',
   diskImportSuccess: 'Disk import success',
-  dropDisksFiles: 'Drop ISO, VMDK or VHD files here to import disks.',
+  dropDisksFiles: 'Drop {types} files here to import disks.',
   importToSr: 'To SR',
+  isoImportRequirement: 'In order to import ISO files, an ISO repository is required',
 
   // ---- Tasks ---
   poolTasks: 'Pool tasks',
