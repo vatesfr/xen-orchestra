@@ -53,13 +53,18 @@ describe('makeOnProgress()', function () {
       assert.equal(events[i++], 'onTaskUpdate')
       assert.deepEqual(log.infos, [{ data: {}, message: 'foo' }])
 
-      await Task.run({ properties: { name: 'subtask' } }, () => {
+      const subtask = new Task({ properties: { name: 'subtask' } })
+      await subtask.run(() => {
         assert.equal(events[i++], 'onTaskUpdate')
         assert.equal(log.tasks[0].properties.name, 'subtask')
 
         Task.warning('bar', {})
         assert.equal(events[i++], 'onTaskUpdate')
         assert.deepEqual(log.tasks[0].warnings, [{ data: {}, message: 'bar' }])
+
+        subtask.abort()
+        assert.equal(events[i++], 'onTaskUpdate')
+        assert(Math.abs(log.tasks[0].abortionRequestedAt - Date.now()) < 10)
       })
       assert.equal(events[i++], 'onTaskUpdate')
       assert.equal(log.tasks[0].status, 'success')

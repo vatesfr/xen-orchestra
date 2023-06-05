@@ -47,6 +47,8 @@ exports.makeOnProgress = function ({ onRootTaskEnd = noop, onRootTaskStart = noo
         taskLog.end = event.timestamp
         taskLog.result = event.result
         taskLog.status = event.status
+      } else if (type === 'abortionRequested') {
+        taskLog.abortionRequestedAt = event.timestamp
       }
 
       if (type === 'end' && taskLog.$root === taskLog) {

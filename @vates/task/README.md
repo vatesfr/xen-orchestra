@@ -37,6 +37,8 @@ const task = new Task({
       const { data, message } = event
     } else if (type === 'property') {
       const { name, value } = event
+    } else if (type === 'abortionRequested') {
+      const { reason } = event
     }
   },
 })
@@ -50,7 +52,6 @@ task.id
 // - pending
 // - success
 // - failure
-// - aborted
 task.status
 
 // Triggers the abort signal associated to the task.
