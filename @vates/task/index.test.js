@@ -79,20 +79,22 @@ describe('Task', function () {
         })
         .catch(noop)
 
-      assert.equal(task.status, 'aborted')
+      assert.equal(task.status, 'failure')
 
-      assert.equal(task.$events.length, 2)
+      assert.equal(task.$events.length, 3)
       assertEvent(task, { type: 'start' }, 0)
-      assertEvent(task, { type: 'end', status: 'aborted', result: reason }, 1)
+      assertEvent(task, { type: 'abortionRequested', reason }, 1)
+      assertEvent(task, { type: 'end', status: 'failure', result: reason }, 2)
     })
 
     it('does not abort if the task fails without the abort reason', async function () {
       const task = createTask()
+      const reason = {}
       const result = new Error()
 
       await task
         .run(() => {
-          task.abort({})
+          task.abort(reason)
 
           throw result
         })
@@ -100,18 +102,20 @@ describe('Task', function () {
 
       assert.equal(task.status, 'failure')
 
-      assert.equal(task.$events.length, 2)
+      assert.equal(task.$events.length, 3)
       assertEvent(task, { type: 'start' }, 0)
-      assertEvent(task, { type: 'end', status: 'failure', result }, 1)
+      assertEvent(task, { type: 'abortionRequested', reason }, 1)
+      assertEvent(task, { type: 'end', status: 'failure', result }, 2)
     })
 
     it('does not abort if the task succeed', async function () {
       const task = createTask()
+      const reason = {}
       const result = {}
 
       await task
         .run(() => {
-          task.abort({})
+          task.abort(reason)
 
           return result
         })
@@ -119,9 +123,10 @@ describe('Task', function () {
 
       assert.equal(task.status, 'success')
 
-      assert.equal(task.$events.length, 2)
+      assert.equal(task.$events.length, 3)
       assertEvent(task, { type: 'start' }, 0)
-      assertEvent(task, { type: 'end', status: 'success', result }, 1)
+      assertEvent(task, { type: 'abortionRequested', reason }, 1)
+      assertEvent(task, { type: 'end', status: 'success', result }, 2)
     })
 
     it('aborts before task is running', function () {
@@ -130,11 +135,12 @@ describe('Task', function () {
 
       task.abort(reason)
 
-      assert.equal(task.status, 'aborted')
+      assert.equal(task.status, 'failure')
 
-      assert.equal(task.$events.length, 2)
+      assert.equal(task.$events.length, 3)
       assertEvent(task, { type: 'start' }, 0)
-      assertEvent(task, { type: 'end', status: 'aborted', result: reason }, 1)
+      assertEvent(task, { type: 'abortionRequested', reason }, 1)
+      assertEvent(task, { type: 'end', status: 'failure', result: reason }, 2)
     })
   })
 
@@ -243,7 +249,7 @@ describe('Task', function () {
       assert.equal(task.status, 'failure')
     })
 
-    it('changes to aborted after run is complete', async function () {
+    it('changes to failure if aborted  after run is complete', async function () {
       const task = createTask()
       await task
         .run(() => {
@@ -252,13 +258,13 @@ describe('Task', function () {
           Task.abortSignal.throwIfAborted()
         })
         .catch(noop)
-      assert.equal(task.status, 'aborted')
+      assert.equal(task.status, 'failure')
     })
 
-    it('changes to aborted if aborted when not running', async function () {
+    it('changes to failure if aborted when not running', function () {
       const task = createTask()
       task.abort()
-      assert.equal(task.status, 'aborted')
+      assert.equal(task.status, 'failure')
     })
   })
 

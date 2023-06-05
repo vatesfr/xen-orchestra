@@ -10,11 +10,10 @@ function define(object, property, value) {
 
 const noop = Function.prototype
 
-const ABORTED = 'aborted'
 const FAILURE = 'failure'
 const PENDING = 'pending'
 const SUCCESS = 'success'
-exports.STATUS = { ABORTED, FAILURE, PENDING, SUCCESS }
+exports.STATUS = { FAILURE, PENDING, SUCCESS }
 
 // stored in the global context so that various versions of the library can interact.
 const asyncStorageKey = '@vates/task@0'
@@ -105,12 +104,16 @@ exports.Task = class Task {
 
     const { signal } = this.#abortController
     signal.addEventListener('abort', () => {
-      if (this.status === PENDING && !this.#running) {
+      if (this.status === PENDING) {
         this.#maybeStart()
 
-        const status = ABORTED
-        this.#status = status
-        this.#emit('end', { result: signal.reason, status })
+        this.#emit('abortionRequested', { reason: signal.reason })
+
+        if (!this.#running) {
+          const status = FAILURE
+          this.#status = status
+          this.#emit('end', { result: signal.reason, status })
+        }
       }
     })
   }
@@ -156,9 +159,7 @@ exports.Task = class Task {
       this.#running = false
       return result
     } catch (result) {
-      const { signal } = this.#abortController
-      const aborted = signal.aborted && result === signal.reason
-      const status = aborted ? ABORTED : FAILURE
+      const status = FAILURE
 
       this.#status = status
       this.#emit('end', { status, result })
