@@ -118,8 +118,13 @@ export async function createTask({ name, objectId, result, duration }) {
       const { abortSignal } = Task
 
       let i = 0
+      let progress = 0
       const handle = setInterval(() => {
-        Task.set('i', i++)
+        progress += (100 - progress) * 0.1
+        Task.set('progress', progress)
+
+        ++i
+        Task.set(`name (step ${name + ' ' + i})`)
       }, 5e3)
       try {
         await new Promise((resolve, reject) => {
