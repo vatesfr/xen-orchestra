@@ -15,7 +15,7 @@ function assertEvent(task, expected, eventIndex = -1) {
   assert.equal(typeof actual.id, 'string')
   assert.equal(typeof actual.timestamp, 'number')
   for (const keys of Object.keys(expected)) {
-    assert.equal(actual[keys], expected[keys])
+    assert.deepEqual(actual[keys], expected[keys])
   }
 }
 
@@ -30,10 +30,10 @@ function createTask(opts) {
 describe('Task', function () {
   describe('contructor', function () {
     it('data properties are passed to the start event', async function () {
-      const data = { foo: 0, bar: 1 }
-      const task = createTask({ data })
+      const properties = { foo: 0, bar: 1 }
+      const task = createTask({ properties })
       await task.run(noop)
-      assertEvent(task, { ...data, type: 'start' }, 0)
+      assertEvent(task, { type: 'start', properties }, 0)
     })
   })
 
