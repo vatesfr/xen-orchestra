@@ -35,7 +35,8 @@ describe('makeOnProgress()', function () {
     await task.run(async () => {
       assert.equal(events[0], 'onRootTaskStart')
       assert.equal(events[1], 'onTaskUpdate')
-      assert.equal(log.name, 'task')
+      assert.equal(log.id, task.id)
+      assert(Math.abs(log.start - Date.now()) < 10)
 
       Task.set('progress', 0)
       assert.equal(events[2], 'onTaskUpdate')
@@ -62,6 +63,7 @@ describe('makeOnProgress()', function () {
     })
     assert.equal(events[8], 'onRootTaskEnd')
     assert.equal(events[9], 'onTaskUpdate')
+    assert(Math.abs(log.end - Date.now()) < 10)
     assert.equal(log.status, 'success')
   })
 })
