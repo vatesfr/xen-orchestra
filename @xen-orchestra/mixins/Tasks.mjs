@@ -134,7 +134,7 @@ export default class Tasks extends EventEmitter {
   create({ name, objectId, type }) {
     const tasks = this.#tasks
 
-    const task = new Task({ data: { name, objectId, type }, onProgress: this.#onProgress })
+    const task = new Task({ properties: { name, objectId, type }, onProgress: this.#onProgress })
 
     // Use a compact, sortable, string representation of the creation date
     //

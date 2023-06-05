@@ -155,11 +155,14 @@ const FINISHED_TASKS_COLUMNS = [
 
 const XO_TASKS_COLUMNS = [
   {
-    itemRenderer: task => task.name,
+    itemRenderer: task => task.properties?.name ?? task.name,
     name: _('name'),
   },
   {
-    itemRenderer: task => (task.objectId === undefined ? null : renderXoItemFromId(task.objectId, { link: true })),
+    itemRenderer: task => {
+      const { objectId } = task.properties ?? task
+      return objectId === undefined ? null : renderXoItemFromId(task.objectId, { link: true })
+    },
     name: _('object'),
   },
   {

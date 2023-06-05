@@ -4,36 +4,18 @@ const assert = require('node:assert').strict
 
 const noop = Function.prototype
 
-function omit(source, keys, target = { __proto__: null }) {
-  for (const key of Object.keys(source)) {
-    if (!keys.has(key)) {
-      target[key] = source[key]
-    }
-  }
-  return target
-}
-
-const IGNORED_START_PROPS = new Set([
-  'end',
-  'infos',
-  'properties',
-  'result',
-  'status',
-  'tasks',
-  'timestamp',
-  'type',
-  'warnings',
-])
-
 exports.makeOnProgress = function ({ onRootTaskEnd = noop, onRootTaskStart = noop, onTaskUpdate = noop }) {
   const taskLogs = new Map()
   return function onProgress(event) {
     const { id, type } = event
     let taskLog
     if (type === 'start') {
-      taskLog = omit(event, IGNORED_START_PROPS)
-      taskLog.start = event.timestamp
-      taskLog.status = 'pending'
+      taskLog = {
+        id,
+        properties: { __proto__: null, ...event.properties },
+        start: event.timestamp,
+        status: 'pending',
+      }
       taskLogs.set(id, taskLog)
 
       const { parentId } = event

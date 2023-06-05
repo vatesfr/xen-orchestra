@@ -28,5 +28,6 @@
 <!--packages-start-->
 
 - @vates/nbd-client patch
+- @vates/task minor
 
 <!--packages-end-->

@@ -83,8 +83,8 @@ exports.Task = class Task {
     return this.#status
   }
 
-  constructor({ data = {}, onProgress } = {}) {
-    this.#startData = data
+  constructor({ properties, onProgress } = {}) {
+    this.#startData = { properties }
 
     if (onProgress !== undefined) {
       this.#onProgress = onProgress

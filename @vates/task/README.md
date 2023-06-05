@@ -18,10 +18,8 @@ npm install --save @vates/task
 import { Task } from '@vates/task'
 
 const task = new Task({
-  // data in this object will be sent along the *start* event
-  //
-  // property names should be chosen as not to clash with properties used by `Task` or `combineEvents`
-  data: {
+  // this object will be sent in the *start* event
+  properties: {
     name: 'my task',
   },
 
@@ -32,7 +30,7 @@ const task = new Task({
     // this function is called each time this task or one of it's subtasks change state
     const { id, timestamp, type } = event
     if (type === 'start') {
-      const { name, parentId } = event
+      const { name, parentId, properties } = event
     } else if (type === 'end') {
       const { result, status } = event
     } else if (type === 'info' || type === 'warning') {
