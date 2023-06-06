@@ -9,43 +9,45 @@
     <template v-if="isMobile" #trigger="{ isOpen, open }">
       <UiButton :active="isOpen" :icon="faEllipsis" transparent @click="open" />
     </template>
-
-    <MenuItem :icon="faPowerOff" v-tooltip="$t('coming-soon')">
+    <MenuItem :icon="faPowerOff">
       {{ $t("change-power-state") }}
+      <template #submenu>
+        <VmsPowerActionsMenu :vm-refs="selectedRefs" />
+      </template>
     </MenuItem>
-    <MenuItem :icon="faRoute" v-tooltip="$t('coming-soon')">{{
-      $t("migrate")
-    }}</MenuItem>
-    <MenuItem :icon="faCopy" v-tooltip="$t('coming-soon')">{{
-      $t("copy")
-    }}</MenuItem>
-    <MenuItem :icon="faEdit" v-tooltip="$t('coming-soon')">{{
-      $t("edit-config")
-    }}</MenuItem>
-    <MenuItem :icon="faCamera" v-tooltip="$t('coming-soon')">{{
-      $t("snapshot")
-    }}</MenuItem>
-    <MenuItem :icon="faTrashCan" v-tooltip="$t('coming-soon')">{{
-      $t("delete")
-    }}</MenuItem>
+    <MenuItem v-tooltip="$t('coming-soon')" :icon="faRoute">
+      {{ $t("migrate") }}
+    </MenuItem>
+    <MenuItem v-tooltip="$t('coming-soon')" :icon="faCopy">
+      {{ $t("copy") }}
+    </MenuItem>
+    <MenuItem v-tooltip="$t('coming-soon')" :icon="faEdit">
+      {{ $t("edit-config") }}
+    </MenuItem>
+    <MenuItem v-tooltip="$t('coming-soon')" :icon="faCamera">
+      {{ $t("snapshot") }}
+    </MenuItem>
+    <MenuItem v-tooltip="$t('coming-soon')" :icon="faTrashCan">
+      {{ $t("delete") }}
+    </MenuItem>
     <MenuItem :icon="faFileExport">
       {{ $t("export") }}
       <template #submenu>
         <MenuItem
-          :icon="faDisplay"
           v-tooltip="{ content: $t('coming-soon'), placement: 'left' }"
+          :icon="faDisplay"
         >
           {{ $t("export-vms") }}
         </MenuItem>
         <MenuItem
-          :icon="faCode"
           v-tooltip="{ content: $t('coming-soon'), placement: 'left' }"
+          :icon="faCode"
         >
           {{ $t("export-table-to", { type: ".json" }) }}
         </MenuItem>
         <MenuItem
-          :icon="faFileCsv"
           v-tooltip="{ content: $t('coming-soon'), placement: 'left' }"
+          :icon="faFileCsv"
         >
           {{ $t("export-table-to", { type: ".csv" }) }}
         </MenuItem>
@@ -59,6 +61,8 @@ import AppMenu from "@/components/menu/AppMenu.vue";
 import MenuItem from "@/components/menu/MenuItem.vue";
 import UiButton from "@/components/ui/UiButton.vue";
 import { useUiStore } from "@/stores/ui.store";
+import VmsPowerActionsMenu from "@/components/vm/VmsPowerActionsMenu.vue";
+import { vTooltip } from "@/directives/tooltip.directive";
 import {
   faCamera,
   faCode,
@@ -73,7 +77,6 @@ import {
   faTrashCan,
 } from "@fortawesome/free-solid-svg-icons";
 import { storeToRefs } from "pinia";
-import { vTooltip } from "@/directives/tooltip.directive";
 
 defineProps<{
   disabled?: boolean;
