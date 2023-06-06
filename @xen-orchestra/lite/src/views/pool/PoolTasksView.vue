@@ -25,7 +25,7 @@ import { useTitle } from "@vueuse/core";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
-const { records, isReady, hasError } = useTaskStore().subscribe();
+const { records, hasError } = useTaskStore().subscribe();
 const { t } = useI18n();
 
 const { compareFn } = useCollectionSorter<XenApiTask>({
