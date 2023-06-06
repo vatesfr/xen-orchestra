@@ -7,6 +7,8 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [XO Tasks] Abortion can now be requested, note that not all tasks will respond to it
+
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
@@ -29,5 +31,6 @@
 
 - @vates/nbd-client patch
 - @vates/task minor
+- xo-web minor
 
 <!--packages-end-->

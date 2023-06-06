@@ -580,7 +580,9 @@ export const subscribeXoTasks = createSubscription(async previousTasks => {
   }
 
   // Fetch new and updated tasks
-  const response = await fetch('./rest/v0/tasks?fields=end,id,name,objectId,properties,start,status,updatedAt,href' + filter)
+  const response = await fetch(
+    './rest/v0/tasks?fields=abortionRequestedAt,end,id,name,objectId,properties,start,status,updatedAt,href' + filter
+  )
   for (const task of await response.json()) {
     tasks.set(task.id, task)
   }
@@ -2278,6 +2280,17 @@ export const destroyTasks = tasks =>
     title: _('destroyTasksModalTitle', { nTasks: tasks.length }),
     body: _('destroyTasksModalMessage', { nTasks: tasks.length }),
   }).then(() => Promise.all(map(tasks, task => _call('task.destroy', { id: resolveId(task) }))), noop)
+
+// XO Tasks --------------------------------------------------------------
+
+export const abortXoTask = async task => {
+  const response = await fetch(`./rest/v0/tasks/${task.id}/actions/abort`, { method: 'POST' })
+  if (response.ok) {
+    subscribeXoTasks.forceRefresh()
+  } else {
+    throw new Error(await response.text())
+  }
+}
 
 // Jobs -------------------------------------------------------------
 
