@@ -126,9 +126,7 @@ const { pool } = usePoolStore().subscribe();
 const hostMetricsSubscription = useHostMetricsStore().subscribe();
 
 const vms = computed<XenApiVm[]>(() =>
-  props.vmRefs
-    .map((opaqueRef) => getVm(opaqueRef))
-    .filter((vm): vm is XenApiVm => vm !== undefined)
+  props.vmRefs.map(getVm).filter((vm): vm is XenApiVm => vm !== undefined)
 );
 
 const vmRefsWithPowerState = computed(() =>
