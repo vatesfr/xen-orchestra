@@ -4,6 +4,10 @@ import pick from 'lodash/pick.js'
 import { asyncEach } from '@vates/async-each'
 import { BaseError } from 'make-error'
 import { createLogger } from '@xen-orchestra/log'
+import { createPredicate } from 'value-matcher'
+import { decorateClass } from '@vates/decorate-with'
+import { defer } from 'golike-defer'
+import { extractIdsFromSimplePattern } from '@xen-orchestra/backups/extractIdsFromSimplePattern.js'
 import { fibonacci } from 'iterable-backoff'
 import { networkInterfaces } from 'os'
 import { noSuchObject } from 'xo-common/api-errors.js'
@@ -39,14 +43,9 @@ const log = createLogger('xo:xo-mixins:xen-servers')
 // Server is connected:
 // - _xapis[server.id] id defined
 // - _serverIdsByPool[xapi.pool.$id] is server.id
-export default class {
+export default class XenServers {
   constructor(app, { safeMode }) {
     this._objectConflicts = { __proto__: null } // TODO: clean when a server is disconnected.
-    const serversDb = (this._servers = new Servers({
-      connection: app._redis,
-      namespace: 'server',
-      indexes: ['host'],
-    }))
     this._serverIdsByPool = { __proto__: null }
     this._stats = new XapiStats()
     this._xapis = { __proto__: null }
@@ -56,30 +55,37 @@ export default class {
       this._xapiMarkDisconnectedDelay = xapiMarkDisconnectedDelay
     })
 
-    app.hooks.on('clean', () => serversDb.rebuildIndexes())
-    app.hooks.on('start', async () => {
-      const connectServers = async () => {
-        // Connects to existing servers.
-        for (const server of await serversDb.get()) {
-          if (server.enabled) {
-            this.connectXenServer(server.id).catch(error => {
-              log.warn('failed to connect to XenServer', {
-                host: server.host,
-                error,
-              })
+    app.hooks.on('clean', () => this._servers.rebuildIndexes())
+
+    const connectServers = async () => {
+      // Connects to existing servers.
+      for (const server of await this._servers.get()) {
+        if (server.enabled) {
+          this.connectXenServer(server.id).catch(error => {
+            log.warn('failed to connect to XenServer', {
+              host: server.host,
+              error,
             })
-          }
+          })
         }
       }
+    }
+    app.hooks.on('core started', () => {
+      const serversDb = (this._servers = new Servers({
+        connection: app._redis,
+        namespace: 'server',
+        indexes: ['host'],
+      }))
 
       app.addConfigManager(
         'xenServers',
         () => serversDb.get(),
         servers => serversDb.update(servers).then(connectServers)
       )
-
+    })
+    app.hooks.on('start', async () => {
       // Add servers in XenStore
-      if (!(await serversDb.exists())) {
+      if (!(await this._servers.exists())) {
         const key = 'vm-data/xen-servers'
         const xenStoreServers = await XenStore.read(key)
           .then(JSON.parse)
@@ -632,4 +638,58 @@ export default class {
       })
       ::ignoreErrors()
   }
+
+  async rollingPoolUpdate($defer, pool) {
+    const app = this._app
+
+    const [schedules, jobs] = await Promise.all([app.getAllSchedules(), app.getAllJobs('backup')])
+
+    const poolId = pool.id
+
+    const jobsOfthePool = []
+    jobs.forEach(({ id: jobId, vms }) => {
+      if (vms.id !== undefined) {
+        for (const vmId of extractIdsFromSimplePattern(vms)) {
+          // try/catch to avoid `no such object`
+          try {
+            if (app.getObject(vmId).$poolId === poolId) {
+              jobsOfthePool.push(jobId)
+              break
+            }
+          } catch {}
+        }
+      } else {
+        // Smart mode
+        // For smart mode, we take a simplified approach:
+        // - if smart mode is explicitly 'resident' or 'not resident' on pools, we
+        //   check if it concerns this pool
+        // - if not, the job may concern this pool so we add it to `jobsOfThePool`
+        if (vms.$pool === undefined || createPredicate(vms.$pool)(poolId)) {
+          jobsOfthePool.push(jobId)
+        }
+      }
+    })
+
+    // Disable schedules
+    await Promise.all(
+      schedules
+        .filter(schedule => jobsOfthePool.includes(schedule.jobId) && schedule.enabled)
+        .map(async schedule => {
+          await app.updateSchedule({ ...schedule, enabled: false })
+          $defer(() => app.updateSchedule({ ...schedule, enabled: true }))
+        })
+    )
+
+    // Disable load balancer
+    if ((await app.getOptionalPlugin('load-balancer'))?.loaded) {
+      await app.unloadPlugin('load-balancer')
+      $defer(() => app.loadPlugin('load-balancer'))
+    }
+
+    await this.getXapi(pool).rollingPoolUpdate()
+  }
 }
+
+decorateClass(XenServers, {
+  rollingPoolUpdate: defer,
+})

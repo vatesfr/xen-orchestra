@@ -1,7 +1,7 @@
 {
   "private": true,
   "name": "xo-web",
-  "version": "5.116.1",
+  "version": "5.119.1",
   "license": "AGPL-3.0-or-later",
   "description": "Web interface client for Xen-Orchestra",
   "keywords": [
@@ -121,7 +121,7 @@
     "redux": "^4.0.0",
     "redux-thunk": "^2.0.1",
     "reselect": "^2.5.4",
-    "rimraf": "^4.1.1",
+    "rimraf": "^5.0.1",
     "sass": "^1.38.1",
     "semver": "^6.0.0",
     "strip-ansi": "^5.2.0",
@@ -137,7 +137,7 @@
     "xo-common": "^0.8.0",
     "xo-lib": "^0.11.1",
     "xo-remote-parser": "^0.9.2",
-    "xo-vmdk-to-vhd": "^2.5.3"
+    "xo-vmdk-to-vhd": "^2.5.5"
   },
   "scripts": {
     "build": "GIT_HEAD=$(git rev-parse HEAD) NODE_ENV=production gulp build",

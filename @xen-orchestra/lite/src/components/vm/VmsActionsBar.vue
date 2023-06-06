@@ -60,9 +60,9 @@
 import AppMenu from "@/components/menu/AppMenu.vue";
 import MenuItem from "@/components/menu/MenuItem.vue";
 import UiButton from "@/components/ui/UiButton.vue";
+import { useUiStore } from "@/stores/ui.store";
 import VmsPowerActionsMenu from "@/components/vm/VmsPowerActionsMenu.vue";
 import { vTooltip } from "@/directives/tooltip.directive";
-import { useUiStore } from "@/stores/ui.store";
 import {
   faCamera,
   faCode,

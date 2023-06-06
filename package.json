@@ -14,7 +14,7 @@
     "eslint-config-standard-jsx": "^11.0.0-1",
     "eslint-plugin-eslint-comments": "^3.2.0",
     "eslint-plugin-import": "^2.22.1",
-    "eslint-plugin-n": "^15.1.0",
+    "eslint-plugin-n": "^16.0.0",
     "eslint-plugin-promise": "^6.0.0",
     "eslint-plugin-react": "^7.21.5",
     "exec-promise": "^0.7.0",
@@ -96,7 +96,7 @@
     "prepare": "husky install",
     "prettify": "prettier --ignore-path .gitignore --ignore-unknown --write .",
     "test": "npm run test-lint && npm run test-unit",
-    "test-integration": "jest \".integ\\.spec\\.js$\"",
+    "test-integration": "jest \".integ\\.spec\\.js$\" && scripts/run-script.js --parallel test-integration",
     "test-lint": "eslint --ignore-path .gitignore --ignore-pattern packages/xo-web .",
     "test-unit": "jest \"^(?!.*\\.integ\\.spec\\.js$)\" && scripts/run-script.js --bail test"
   },

@@ -2,10 +2,10 @@
 
 import { exec } from 'child-process-promise'
 import { createReadStream } from 'fs'
+import { rimraf } from 'rimraf'
 import { stat, writeFile } from 'fs-extra'
 import getStream from 'get-stream'
 import { pFromCallback } from 'promise-toolbox'
-import rimraf from 'rimraf'
 import tmp from 'tmp'
 
 import { ParsableFile, parseOVAFile } from './ova-read'

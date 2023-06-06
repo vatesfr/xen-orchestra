@@ -2,11 +2,11 @@
 
 /* eslint-env jest */
 
-const rimraf = require('rimraf')
 const tmp = require('tmp')
 const fs = require('node:fs/promises')
 const { getSyncedHandler } = require('@xen-orchestra/fs')
 const { Disposable, pFromCallback } = require('promise-toolbox')
+const { rimraf } = require('rimraf')
 
 const { openVhd } = require('./index')
 const { createRandomFile, convertFromRawToVhd, createRandomVhdDirectory } = require('./tests/utils')

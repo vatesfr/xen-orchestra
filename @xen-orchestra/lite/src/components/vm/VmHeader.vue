@@ -20,8 +20,8 @@ import AppMenu from "@/components/menu/AppMenu.vue";
 import TitleBar from "@/components/TitleBar.vue";
 import UiIcon from "@/components/ui/icon/UiIcon.vue";
 import UiButton from "@/components/ui/UiButton.vue";
-import VmsPowerActionsMenu from "@/components/vm/VmsPowerActionsMenu.vue";
 import { useVmStore } from "@/stores/vm.store";
+import VmsPowerActionsMenu from "@/components/vm/VmsPowerActionsMenu.vue";
 import {
   faAngleDown,
   faDisplay,

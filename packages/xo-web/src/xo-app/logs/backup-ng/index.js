@@ -17,7 +17,12 @@ import { get } from '@xen-orchestra/defined'
 import { injectState, provideState } from 'reaclette'
 import { isEmpty, filter, map, keyBy } from 'lodash'
 import { withRouter } from 'react-router'
-import { subscribeBackupNgJobs, subscribeBackupNgLogs, subscribeMetadataBackupJobs } from 'xo'
+import {
+  subscribeBackupNgJobs,
+  subscribeBackupNgLogs,
+  subscribeMetadataBackupJobs,
+  subscribeMirrorBackupJobs,
+} from 'xo'
 
 import LogAlertBody from './log-alert-body'
 import LogAlertHeader from './log-alert-header'
@@ -169,6 +174,7 @@ export default decorate([
     logs: cb => subscribeBackupNgLogs(logs => cb(logs && filter(logs, log => log.message === 'backup'))),
     jobs: cb => subscribeBackupNgJobs(jobs => cb(keyBy(jobs, 'id'))),
     metadataJobs: cb => subscribeMetadataBackupJobs(jobs => cb(keyBy(jobs, 'id'))),
+    mirrorBackupJobs: cb => subscribeMirrorBackupJobs(jobs => cb(keyBy(jobs, 'id'))),
   }),
   provideState({
     computed: {
@@ -183,7 +189,7 @@ export default decorate([
               }
             : log
         ),
-      jobs: (_, { jobs, metadataJobs }) => ({ ...jobs, ...metadataJobs }),
+      jobs: (_, { jobs, metadataJobs, mirrorBackupJobs }) => ({ ...jobs, ...metadataJobs, ...mirrorBackupJobs }),
     },
   }),
   injectState,

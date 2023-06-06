@@ -350,6 +350,10 @@
     @extend .fa;
     @extend .fa-circle-thin;
   }
+  &-api {
+    @extend .fa;
+    @extend .fa-code;
+  }
 
   // Backups
   &-backup {
@@ -359,6 +363,10 @@
   &-check {
     @extend .fa;
     @extend .fa-check;
+  }
+  &-mirror-backup {
+    @extend .fa;
+    @extend .fa-files-o;
   }
   &-restore {
     @extend .fa;

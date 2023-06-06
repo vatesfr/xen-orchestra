@@ -119,17 +119,22 @@ import { computed } from "vue";
 const props = defineProps<{
   vmRefs: string[];
 }>();
+
 const { getByOpaqueRef: getVm } = useVmStore().subscribe();
 const { records: hosts } = useHostStore().subscribe();
 const { pool } = usePoolStore().subscribe();
 const hostMetricsSubscription = useHostMetricsStore().subscribe();
+
 const vms = computed<XenApiVm[]>(() =>
   props.vmRefs.map(getVm).filter((vm): vm is XenApiVm => vm !== undefined)
 );
+
 const vmRefsWithPowerState = computed(() =>
   vms.value.reduce((acc, vm) => ({ ...acc, [vm.$ref]: vm.power_state }), {})
 );
+
 const xenApi = useXenApiStore().getXapi();
+
 const areVmsRunning = computed(() =>
   vms.value.every((vm) => vm.power_state === "Running")
 );
@@ -142,8 +147,10 @@ const areVmsSuspended = computed(() =>
 const areVmsPaused = computed(() =>
   vms.value.every((vm) => vm.power_state === "Paused")
 );
+
 const areOperationsPending = (operation: string | string[]) =>
   vms.value.some((vm) => isOperationsPending(vm, operation));
+
 const areVmsBusyToStart = computed(() => areOperationsPending("start"));
 const areVmsBusyToStartOnHost = computed(() =>
   areOperationsPending("start_on")

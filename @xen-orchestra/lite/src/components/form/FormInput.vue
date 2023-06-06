@@ -44,17 +44,9 @@
   </span>
 </template>
 
-<script lang="ts">
-export default {
-  name: "FormInput",
-  inheritAttrs: false,
-};
-</script>
-
 <script lang="ts" setup>
 import {
   type HTMLAttributes,
-  type InputHTMLAttributes,
   computed,
   inject,
   nextTick,
@@ -67,20 +59,22 @@ import { faAngleDown } from "@fortawesome/free-solid-svg-icons";
 import { useTextareaAutosize, useVModel } from "@vueuse/core";
 import UiIcon from "@/components/ui/icon/UiIcon.vue";
 
-// Temporary workaround for https://github.com/vuejs/core/issues/4294
-interface Props extends Omit<InputHTMLAttributes, ""> {
-  modelValue?: unknown;
-  color?: Color;
-  before?: Omit<IconDefinition, ""> | string;
-  after?: Omit<IconDefinition, ""> | string;
-  beforeWidth?: string;
-  afterWidth?: string;
-  disabled?: boolean;
-  right?: boolean;
-  wrapperAttrs?: HTMLAttributes;
-}
+defineOptions({ inheritAttrs: false });
 
-const props = withDefaults(defineProps<Props>(), { color: "info" });
+const props = withDefaults(
+  defineProps<{
+    modelValue?: any;
+    color?: Color;
+    before?: IconDefinition | string;
+    after?: IconDefinition | string;
+    beforeWidth?: string;
+    afterWidth?: string;
+    disabled?: boolean;
+    right?: boolean;
+    wrapperAttrs?: HTMLAttributes;
+  }>(),
+  { color: "info" }
+);
 
 const inputElement = ref();
 

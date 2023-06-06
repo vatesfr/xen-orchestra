@@ -2,10 +2,10 @@
 
 /* eslint-env jest */
 
-const rimraf = require('rimraf')
 const tmp = require('tmp')
 const { getSyncedHandler } = require('@xen-orchestra/fs')
 const { Disposable, pFromCallback } = require('promise-toolbox')
+const { rimraf } = require('rimraf')
 
 const { isVhdAlias, resolveVhdAlias } = require('./aliases')
 const { ALIAS_MAX_PATH_LENGTH } = require('./_constants')

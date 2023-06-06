@@ -5,9 +5,11 @@ import ActionToggle from 'action-toggle'
 import Button from 'button'
 import Component from 'base-component'
 import decorate from 'apply-decorators'
+import escapeRegExp from 'lodash/escapeRegExp'
 import GenericInput from 'json-schema-input'
 import Icon from 'icon'
 import isEmpty from 'lodash/isEmpty'
+import Link from 'link'
 import map from 'lodash/map'
 import orderBy from 'lodash/orderBy'
 import pFinally from 'promise-toolbox/finally'
@@ -38,6 +40,17 @@ class Plugin extends Component {
     this.configFormId = `form-config-${props.id}`
     this.testFormId = `form-test-${props.id}`
   }
+
+  _getPluginLink = createSelector(
+    () => this.props.name,
+    name => {
+      const s = new ComplexMatcher.Property(
+        'name',
+        new ComplexMatcher.RegExp('^' + escapeRegExp(name) + '$', 'i')
+      ).toString()
+      return location => ({ ...location, query: { ...location.query, s } })
+    }
+  )
 
   _getUiSchema = createSelector(() => this.props.configurationSchema, generateUiSchema)
 
@@ -125,9 +138,8 @@ class Plugin extends Component {
         <Row>
           <Col mediumSize={8}>
             <h5 className='form-inline clearfix'>
-              <ActionToggle disabled={loaded && props.unloadable === false} handler={this._updateLoad} value={loaded} />
-              <span className='text-primary'>{` ${props.name} `}</span>
-              <span>{`(v${props.version}) `}</span>
+              <ActionToggle disabled={loaded && props.unloadable === false} handler={this._updateLoad} value={loaded} />{' '}
+              <Link to={this._getPluginLink()}>{props.name}</Link> <span>{`(v${props.version}) `}</span>
               {description !== undefined && description !== '' && (
                 <span className='text-muted small'> - {description}</span>
               )}

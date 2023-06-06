@@ -10,7 +10,7 @@ export async function create({ pool, name, description, pif, mtu = 1500, vlan = 
     description,
     pifId: pif && this.getObject(pif, 'PIF')._xapiId,
     mtu: +mtu,
-    vlan: +vlan,
+    vlan,
   })
 
   if (nbd) {
@@ -27,7 +27,7 @@ create.params = {
   description: { type: 'string', minLength: 0, optional: true },
   pif: { type: 'string', optional: true },
   mtu: { type: 'integer', optional: true },
-  vlan: { type: ['integer', 'string'], optional: true },
+  vlan: { type: 'integer', optional: true },
 }
 
 create.resolve = {
