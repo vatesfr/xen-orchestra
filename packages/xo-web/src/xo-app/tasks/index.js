@@ -21,7 +21,15 @@ import {
   getResolvedPendingTasks,
   isAdmin,
 } from 'selectors'
-import { cancelTask, cancelTasks, destroyTask, destroyTasks, subscribePermissions, subscribeXoTasks } from 'xo'
+import {
+  abortXoTask,
+  cancelTask,
+  cancelTasks,
+  destroyTask,
+  destroyTasks,
+  subscribePermissions,
+  subscribeXoTasks,
+} from 'xo'
 
 import Page from '../page'
 
@@ -228,6 +236,13 @@ const XO_TASKS_INDIVIDUAL_ACTIONS = [
     handler: task => window.open(task.href),
     icon: 'api',
     label: _('taskOpenRawLog'),
+  },
+  {
+    disabled: task => !(task.status === 'pending' && task.abortionRequestedAt === undefined),
+    handler: abortXoTask,
+    icon: 'task-cancel',
+    label: _('cancelTask'),
+    level: 'danger',
   },
 ]
 
