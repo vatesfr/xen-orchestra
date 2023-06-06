@@ -25,7 +25,6 @@
           <slot />
         </div>
         <UiButtonGroup :color="color">
-          <slot name="goBackButton" class="go-back-button" />
           <slot name="buttons" />
         </UiButtonGroup>
       </div>
@@ -79,32 +78,23 @@ const className = computed(() => {
 }
 
 .color-success {
-  --go-back-button-border-color: var(--color-extra-green-base);
   --modal-color: var(--color-green-infra-base);
   --modal-background-color: var(--background-color-green-infra);
 }
 
 .color-info {
-  --go-back-button-border-color: var(--color-extra-blue-base);
   --modal-color: var(--color-extra-blue-base);
   --modal-background-color: var(--background-color-extra-blue);
 }
 
 .color-warning {
-  --go-back-button-border-color: var(--color-extra-orange-base);
   --modal-color: var(--color-orange-world-base);
   --modal-background-color: var(--background-color-orange-world);
 }
 
 .color-error {
-  --go-back-button-border-color: var(--color-extra-red-base);
   --modal-color: var(--color-red-vates-base);
   --modal-background-color: var(--background-color-red-vates);
-}
-
-.go-back-button {
-  background-color: var(--background-color-primary);
-  border: 1px solid var(--go-back-button-border-color);
 }
 
 .container {

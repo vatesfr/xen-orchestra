@@ -59,12 +59,10 @@
     <template #subtitle>
       {{ $t("please-confirm") }}
     </template>
-    <template #goBackButton>
-      <UiButton @click="closeDeletModal">
+    <template #buttons>
+      <UiButton @click="closeDeletModal" outlined>
         {{ $t("go-back") }}
       </UiButton>
-    </template>
-    <template #buttons>
       <UiButton @click="xenApi.vm.delete(selectedRefs, true)">
         {{ $t("delete-vms", { nVms: selectedRefs.length }) }}
       </UiButton>
