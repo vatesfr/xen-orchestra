@@ -5,6 +5,7 @@ import type {
   XenApiHostMetrics,
   XenApiRecord,
   XenApiVm,
+  VM_OPERATION,
 } from "@/libs/xen-api";
 import type { CollectionSubscription } from "@/stores/xapi-collection.store";
 import type { Filter } from "@/types/filter";
@@ -194,7 +195,7 @@ export function requireSubscription<T>(
 
 export const isOperationsPending = (
   obj: XenApiVm,
-  operations: string[] | string
+  operations: VM_OPERATION[] | VM_OPERATION
 ) => {
   const currentOperations = Object.values(obj.current_operations);
   return castArray(operations).some((operation) =>
