@@ -1,29 +1,28 @@
 <template>
   <div class="pool-dashboard-view">
-    <div class="item">
+    <UiCardGroup>
       <PoolDashboardStatus />
-    </div>
-    <div class="item">
-      <PoolDashboardStorageUsage />
-    </div>
-    <div class="item">
-      <PoolDashboardCpuUsage />
-    </div>
-    <div class="item">
-      <PoolDashboardRamUsage />
-    </div>
-    <div class="item">
-      <PoolDashboardCpuProvisioning />
-    </div>
-    <div class="item">
-      <PoolDashboardNetworkChart />
-    </div>
-    <div class="item">
-      <PoolDashboardRamUsageChart />
-    </div>
-    <div class="item">
-      <PoolCpuUsageChart />
-    </div>
+      <UiCardComingSoon class="alarms" title="Alarms" />
+      <UiCardComingSoon title="Patches" />
+    </UiCardGroup>
+    <UiCardGroup>
+      <UiCardGroup>
+        <PoolDashboardStorageUsage />
+        <PoolDashboardNetworkChart />
+      </UiCardGroup>
+      <UiCardGroup>
+        <PoolDashboardRamUsage />
+        <PoolDashboardRamUsageChart />
+      </UiCardGroup>
+      <UiCardGroup>
+        <PoolDashboardCpuProvisioning />
+        <PoolDashboardCpuUsage />
+        <PoolCpuUsageChart />
+      </UiCardGroup>
+    </UiCardGroup>
+    <UiCardGroup>
+      <UiCardComingSoon class="tasks" title="Tasks" />
+    </UiCardGroup>
   </div>
 </template>
 
@@ -32,9 +31,11 @@ export const N_ITEMS = 5;
 </script>
 
 <script lang="ts" setup>
+import UiCardGroup from "@/components/ui/UiCardGroup.vue";
 import { useHostMetricsStore } from "@/stores/host-metrics.store";
 import { differenceBy } from "lodash-es";
 import { provide, watch } from "vue";
+import UiCardComingSoon from "@/components/ui/UiCardComingSoon.vue";
 import PoolCpuUsageChart from "@/components/pool/dashboard/cpuUsage/PoolCpuUsageChart.vue";
 import PoolDashboardCpuUsage from "@/components/pool/dashboard/PoolDashboardCpuUsage.vue";
 import PoolDashboardNetworkChart from "@/components/pool/dashboard/PoolDashboardNetworkChart.vue";
@@ -112,32 +113,14 @@ runningVms.value.forEach((vm) => vmRegister(vm));
 
 <style lang="postcss" scoped>
 .pool-dashboard-view {
-  column-gap: 0;
-  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem;
 }
 
-@media (min-width: 768px) {
-  .pool-dashboard-view {
-    column-count: 2;
-  }
-}
-
-@media (min-width: 1500px) {
-  .pool-dashboard-view {
-    column-count: 3;
-  }
-}
-
-.item {
-  margin: 0;
-  padding: 0.5rem;
-  overflow: hidden;
-}
-
-@media (min-width: 768px) {
-  .item {
-    page-break-inside: avoid;
-    break-inside: avoid;
-  }
+.alarms,
+.tasks {
+  flex: 1;
 }
 </style>
