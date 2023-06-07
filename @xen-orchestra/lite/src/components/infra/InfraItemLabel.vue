@@ -7,9 +7,9 @@
       class="infra-item-label"
       v-bind="$attrs"
     >
-      <a :href="href" class="link" @click="navigate">
+      <a :href="href" class="link" @click="navigate" v-tooltip="hasTooltip">
         <UiIcon :icon="icon" class="icon" />
-        <div class="text">
+        <div ref="textElement" class="text">
           <slot />
         </div>
       </a>
@@ -22,7 +22,10 @@
 
 <script lang="ts" setup>
 import UiIcon from "@/components/ui/icon/UiIcon.vue";
+import { vTooltip } from "@/directives/tooltip.directive";
+import { hasEllipsis } from "@/libs/utils";
 import type { IconDefinition } from "@fortawesome/fontawesome-common-types";
+import { computed, ref } from "vue";
 import type { RouteLocationRaw } from "vue-router";
 
 defineProps<{
@@ -30,6 +33,9 @@ defineProps<{
   route: RouteLocationRaw;
   active?: boolean;
 }>();
+
+const textElement = ref<HTMLElement>();
+const hasTooltip = computed(() => hasEllipsis(textElement.value));
 </script>
 
 <style lang="postcss" scoped>

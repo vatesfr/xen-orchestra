@@ -17,7 +17,12 @@
     </UiActionButton>
   </UiFilterGroup>
 
-  <UiModal v-if="isOpen" :icon="faSort" @submit.prevent="handleSubmit">
+  <UiModal
+    v-if="isOpen"
+    :icon="faSort"
+    @submit.prevent="handleSubmit"
+    @close="handleCancel"
+  >
     <div class="form-widgets">
       <FormWidget :label="$t('sort-by')">
         <select v-model="newSortProperty">

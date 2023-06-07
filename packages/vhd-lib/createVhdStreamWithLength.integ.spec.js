@@ -4,12 +4,12 @@
 
 const execa = require('execa')
 const fs = require('fs-extra')
-const rimraf = require('rimraf')
 const getStream = require('get-stream')
 const tmp = require('tmp')
 const { createReadStream, createWriteStream } = require('fs')
 const { pFromCallback } = require('promise-toolbox')
 const { pipeline } = require('readable-stream')
+const { rimraf } = require('rimraf')
 
 const createVhdStreamWithLength = require('./createVhdStreamWithLength.js')
 const { FOOTER_SIZE } = require('./_constants')

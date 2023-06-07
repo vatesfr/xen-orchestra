@@ -4,16 +4,15 @@ import Icon from 'icon'
 import PropTypes from 'prop-types'
 import React from 'react'
 import Scheduler, { SchedulePreview } from 'scheduling'
-import Tooltip, { conditionalTooltip } from 'tooltip'
+import Tooltip from 'tooltip'
 import { Card, CardBlock } from 'card'
 import { generateId } from 'reaclette-utils'
 import { injectState, provideState } from 'reaclette'
 import { Number } from 'form'
 
+import ScheduleHealthCheck from './healthCheck/ScheduleHealthCheck'
+
 import { FormGroup, Input } from './../utils'
-import Tags from '../../../common/tags'
-import { ENTERPRISE, getXoaPlan } from '../../../common/xoa-plans'
-import { SelectSr } from '../../../common/select-objects'
 
 const New = decorate([
   provideState({
@@ -134,39 +133,12 @@ const New = decorate([
             <Number min='0' onChange={effects.setSnapshotRetention} value={schedule.snapshotRetention} required />
           </FormGroup>
         )}
-        <FormGroup>
-          <label>
-            <strong>{_('healthCheck')}</strong>{' '}
-            {conditionalTooltip(
-              <input
-                checked={schedule.healthCheckVmsWithTags !== undefined}
-                disabled={getXoaPlan().value < ENTERPRISE.value}
-                onChange={effects.toggleHealthCheck}
-                type='checkbox'
-              />,
-              getXoaPlan().value < ENTERPRISE.value ? _('healthCheckAvailableEnterpriseUser') : undefined
-            )}
-          </label>
-          {schedule.healthCheckVmsWithTags !== undefined && (
-            <div className='mb-2'>
-              <strong>{_('vmsTags')}</strong>
-              <br />
-              <em>
-                <Icon icon='info' /> {_('healthCheckTagsInfo')}
-              </em>
-              <p className='h2'>
-                <Tags labels={schedule.healthCheckVmsWithTags} onChange={effects.setHealthCheckTags} />
-              </p>
-              <strong>{_('sr')}</strong>
-              <SelectSr
-                onChange={effects.setHealthCheckSr}
-                placeholder={_('healthCheckChooseSr')}
-                required
-                value={schedule.healthCheckSr}
-              />
-            </div>
-          )}
-        </FormGroup>
+        <ScheduleHealthCheck
+          schedule={schedule}
+          toggleHealthCheck={effects.toggleHealthCheck}
+          setHealthCheckSr={effects.setHealthCheckSr}
+          setHealthCheckTags={effects.setHealthCheckTags}
+        />
         {modes.isDelta && (
           <FormGroup>
             <label>

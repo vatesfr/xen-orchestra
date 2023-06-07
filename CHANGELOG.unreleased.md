@@ -27,6 +27,4 @@
 
 <!--packages-start-->
 
-- @vates/task patch
-
 <!--packages-end-->

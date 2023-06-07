@@ -3,13 +3,13 @@ import Disposable from 'promise-toolbox/Disposable'
 import forOwn from 'lodash/forOwn.js'
 import groupBy from 'lodash/groupBy.js'
 import merge from 'lodash/merge.js'
-import { Backup } from '@xen-orchestra/backups/Backup.js'
 import { createLogger } from '@xen-orchestra/log'
 import { createPredicate } from 'value-matcher'
 import { decorateWith } from '@vates/decorate-with'
 import { formatVmBackups } from '@xen-orchestra/backups/formatVmBackups.js'
 import { HealthCheckVmBackup } from '@xen-orchestra/backups/HealthCheckVmBackup.js'
 import { ImportVmBackup } from '@xen-orchestra/backups/ImportVmBackup.js'
+import { createRunner } from '@xen-orchestra/backups/Backup.js'
 import { invalidParameters } from 'xo-common/api-errors.js'
 import { runBackupWorker } from '@xen-orchestra/backups/runBackupWorker.js'
 import { Task } from '@xen-orchestra/backups/Task.js'
@@ -75,77 +75,83 @@ export default class BackupNg {
         const backupsConfig = app.config.get('backups')
 
         let job = job_
+        let vmIds
 
-        const vmsPattern = job.vms
+        if (job.type === 'backup') {
+          const vmsPattern = job.vms
 
-        // Make sure we are passing only the VM to run which can be
-        // different than the VMs in the job itself.
-        let vmIds = data?.vms ?? extractIdsFromSimplePattern(vmsPattern)
+          // Make sure we are passing only the VM to run which can be
+          // different than the VMs in the job itself.
+          vmIds = data?.vms ?? extractIdsFromSimplePattern(vmsPattern)
 
-        await this._checkAuthorizations({ job, schedule, useSmartBackup: vmIds === undefined })
-        if (vmIds === undefined) {
-          const poolPattern = vmsPattern.$pool
+          await this._checkAuthorizations({ job, schedule, useSmartBackup: vmIds === undefined })
+          if (vmIds === undefined) {
+            const poolPattern = vmsPattern.$pool
 
-          // Log a failure task when a pool contained in the smart backup
-          // pattern doesn't exist
-          if (poolPattern !== undefined) {
-            const poolIds =
-              extractIdsFromSimplePattern({ id: poolPattern }) ??
-              poolPattern.__and?.flatMap?.(pattern => extractIdsFromSimplePattern({ id: pattern }) ?? []) ??
-              []
-            poolIds.forEach(id => {
-              try {
-                app.getObject(id)
-              } catch (error) {
-                const taskId = logger.notice('missing pool', {
-                  data: {
-                    type: 'pool',
-                    id,
-                  },
-                  event: 'task.start',
-                  parentId: runJobId,
-                })
-                logger.error('missing pool', {
-                  event: 'task.end',
-                  result: serializeError(error),
-                  status: 'failure',
-                  taskId,
-                })
-              }
-            })
+            // Log a failure task when a pool contained in the smart backup
+            // pattern doesn't exist
+            if (poolPattern !== undefined) {
+              const poolIds =
+                extractIdsFromSimplePattern({ id: poolPattern }) ??
+                poolPattern.__and?.flatMap?.(pattern => extractIdsFromSimplePattern({ id: pattern }) ?? []) ??
+                []
+              poolIds.forEach(id => {
+                try {
+                  app.getObject(id)
+                } catch (error) {
+                  const taskId = logger.notice('missing pool', {
+                    data: {
+                      type: 'pool',
+                      id,
+                    },
+                    event: 'task.start',
+                    parentId: runJobId,
+                  })
+                  logger.error('missing pool', {
+                    event: 'task.end',
+                    result: serializeError(error),
+                    status: 'failure',
+                    taskId,
+                  })
+                }
+              })
+            }
+
+            vmIds = Object.keys(
+              app.getObjects({
+                filter: (() => {
+                  const isMatchingVm = createPredicate({
+                    type: 'VM',
+                    ...vmsPattern,
+                  })
+
+                  return obj =>
+                    isMatchingVm(obj) &&
+                    // don't match replicated VMs created by this very job otherwise
+                    // they will be replicated again and again
+                    !('start' in obj.blockedOperations && obj.other['xo:backup:job'] === job.id)
+                })(),
+              })
+            )
+            if (vmIds.length === 0) {
+              throw new Error('no VMs match this pattern')
+            }
           }
 
-          vmIds = Object.keys(
-            app.getObjects({
-              filter: (() => {
-                const isMatchingVm = createPredicate({
-                  type: 'VM',
-                  ...vmsPattern,
-                })
+          job = {
+            ...job,
 
-                return obj =>
-                  isMatchingVm(obj) &&
-                  // don't match replicated VMs created by this very job otherwise
-                  // they will be replicated again and again
-                  !('start' in obj.blockedOperations && obj.other['xo:backup:job'] === job.id)
-              })(),
-            })
-          )
-          if (vmIds.length === 0) {
-            throw new Error('no VMs match this pattern')
+            vms: { id: { __or: vmIds } },
+            settings: merge(job.settings, data?.settings),
           }
-        }
-
-        job = {
-          ...job,
-
-          vms: { id: { __or: vmIds } },
-          settings: merge(job.settings, data?.settings),
         }
 
         const proxyId = job.proxy
         const useXoProxy = proxyId !== undefined
         const remoteIds = unboxIdsFromPattern(job.remotes)
+        if (job.sourceRemote !== undefined) {
+          remoteIds.push(job.sourceRemote)
+        }
         try {
           if (!useXoProxy && backupsConfig.disableWorkers) {
             const localTaskIds = { __proto__: null }
@@ -164,7 +170,7 @@ export default class BackupNg {
                   }),
               },
               () =>
-                new Backup({
+                createRunner({
                   config: backupsConfig,
                   getAdapter: async remoteId =>
                     app.getBackupsRemoteAdapter(await app.getRemoteWithCredentials(remoteId)),
@@ -188,10 +194,11 @@ export default class BackupNg {
               log.warn(error)
             }
           }
-          vmIds.forEach(handleRecord)
+          // can be empty for mirror backup job
+          vmIds?.forEach(handleRecord)
           unboxIdsFromPattern(job.srs).forEach(handleRecord)
 
-          // add xapi specific to the healthcheck SR if needed
+          // add xapi specific to the health check SR if needed
           if (job.settings[schedule.id].healthCheckSr !== undefined) {
             handleRecord(job.settings[schedule.id].healthCheckSr)
           }
@@ -329,13 +336,13 @@ export default class BackupNg {
         }
       }
       app.registerJobExecutor('backup', executor)
+      app.registerJobExecutor('mirrorBackup', executor)
     })
   }
 
-  async createBackupNgJob(props, schedules) {
+  async createBackupNgJob(type, props, schedules) {
     const app = this._app
-    props.type = 'backup'
-    const job = await app.createJob(props)
+    const job = await app.createJob({ ...props, type, userId: this.apiContext?.user?.id })
 
     if (schedules !== undefined) {
       const { id, settings } = job
@@ -359,6 +366,10 @@ export default class BackupNg {
       await app.checkFeatureAuthorization('BACKUP.METADATA')
       // the other checks does not apply to metadata backups
       return
+    }
+
+    if (job.type === 'mirrorBackup') {
+      await app.checkFeatureAuthorization('BACKUP.MIRROR')
     }
 
     if (job.mode === 'full') {
@@ -395,9 +406,9 @@ export default class BackupNg {
     }
   }
 
-  async deleteBackupNgJob(id) {
+  async deleteBackupNgJob(id, type) {
     const app = this._app
-    const [schedules] = await Promise.all([app.getAllSchedules(), app.getJob(id, 'backup')])
+    const [schedules] = await Promise.all([app.getAllSchedules(), app.getJob(id, type)])
     await Promise.all([
       app.removeJob(id),
       asyncMapSettled(schedules, schedule => {
@@ -593,11 +604,13 @@ export default class BackupNg {
   }
 
   async checkVmBackupNg(backupId, srId, settings) {
-    await Task.run(
-      {
-        name: 'health check',
-      },
-      async () => {
+    await this._app.tasks
+      .create({
+        name: 'VM Backup Health Check',
+        objectId: backupId,
+        type: 'backup.vm.healthCheck',
+      })
+      .run(async () => {
         const app = this._app
         const xapi = app.getXapi(srId)
         const restoredId = await this.importVmBackupNg(backupId, srId, settings)
@@ -611,7 +624,6 @@ export default class BackupNg {
         } finally {
           await xapi.VM_destroy(restoredVm.$ref)
         }
-      }
-    )
+      })
   }
 }

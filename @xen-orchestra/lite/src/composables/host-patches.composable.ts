@@ -1,83 +1,94 @@
 import type { XenApiHost, XenApiPatch } from "@/libs/xen-api";
 import { useXenApiStore } from "@/stores/xen-api.store";
-import {
-  type MaybeComputedRef,
-  type Pausable,
-  useTimeoutPoll,
-  watchArray,
-} from "@vueuse/core";
-import { computed, ref } from "vue";
+import { type Pausable, useTimeoutPoll, watchArray } from "@vueuse/core";
+import { computed, type MaybeRefOrGetter, reactive, toValue } from "vue";
 
-export const useHostPatches = (hostRefs: MaybeComputedRef<string[]>) => {
+export type XenApiPatchWithHostRefs = XenApiPatch & { $hostRefs: Set<string> };
+
+type HostConfig = {
+  timeoutPoll: Pausable;
+  patches: XenApiPatch[];
+  isLoaded: boolean;
+};
+
+export const useHostPatches = (hosts: MaybeRefOrGetter<XenApiHost[]>) => {
   const xapiStore = useXenApiStore();
 
-  const timeoutPolls = new Map<string, Pausable>();
-
-  const patchesByHost = ref(new Map<XenApiHost["$ref"], Set<XenApiPatch>>());
-
-  const loadedStatus = ref(new Map<XenApiHost["$ref"], boolean>());
-
-  const patches = computed(() => {
-    const records = new Map<string, XenApiPatch & { $hostRefs: string[] }>();
-
-    patchesByHost.value.forEach((patches, hostRef) => {
-      patches.forEach((patch) => {
-        const id = `${patch.name}@${patch.version}`;
-        const record = records.get(id);
-
-        if (record === undefined) {
-          records.set(id, {
-            ...patch,
-            $hostRefs: [hostRef],
-          });
-        } else {
-          record.$hostRefs.push(hostRef);
-        }
-      });
-    });
-
-    return records;
-  });
-
-  const count = computed(() => patches.value.size);
+  const configByHost = reactive(new Map<string, HostConfig>());
 
   const fetchHostPatches = async (hostRef: string) => {
-    const patches = await xapiStore.getXapi().getMissingPatches(hostRef);
+    if (!configByHost.has(hostRef)) {
+      return;
+    }
 
-    patchesByHost.value.set(hostRef, new Set<XenApiPatch>(patches));
-    loadedStatus.value.set(hostRef, true);
+    const config = configByHost.get(hostRef)!;
+
+    config.patches = await xapiStore.getXapi().getMissingPatches(hostRef);
+    config.isLoaded = true;
   };
 
   const registerHost = (hostRef: string) => {
-    loadedStatus.value.set(hostRef, false);
-
-    if (timeoutPolls.has(hostRef)) {
-      return timeoutPolls.get(hostRef)!.resume();
+    if (configByHost.has(hostRef)) {
+      return;
     }
 
-    timeoutPolls.set(
-      hostRef,
-      useTimeoutPoll(() => fetchHostPatches(hostRef), 10000, {
-        immediate: true,
-      })
-    );
+    const timeoutPoll = useTimeoutPoll(() => fetchHostPatches(hostRef), 10000, {
+      immediate: true,
+    });
+
+    configByHost.set(hostRef, {
+      timeoutPoll,
+      patches: [],
+      isLoaded: false,
+    });
   };
 
   const unregisterHost = (hostRef: string) => {
-    loadedStatus.value.delete(hostRef);
-    timeoutPolls.get(hostRef)?.pause();
-    timeoutPolls.delete(hostRef);
-    patchesByHost.value.delete(hostRef);
+    configByHost.get(hostRef)?.timeoutPoll.pause();
+    configByHost.delete(hostRef);
   };
 
   watchArray(
-    hostRefs,
+    () => toValue(hosts).map((host) => host.$ref),
     (n, p, addedRefs, removedRefs) => {
-      addedRefs.forEach(registerHost);
-      removedRefs?.forEach(unregisterHost);
+      addedRefs.forEach((ref) => registerHost(ref));
+      removedRefs?.forEach((ref) => unregisterHost(ref));
     },
     { immediate: true }
   );
 
-  return { loadedStatus, patches, count };
+  const patches = computed(() => {
+    const records = new Map<string, XenApiPatchWithHostRefs>();
+
+    configByHost.forEach(({ patches }, hostRef) => {
+      patches.forEach((patch) => {
+        const record = records.get(patch.$id);
+
+        if (record !== undefined) {
+          return record.$hostRefs.add(hostRef);
+        }
+
+        records.set(patch.$id, {
+          ...patch,
+          $hostRefs: new Set([hostRef]),
+        });
+      });
+    });
+
+    return Array.from(records.values());
+  });
+
+  const count = computed(() => patches.value.length);
+
+  const areAllLoaded = computed(() =>
+    Array.from(configByHost.values()).every((config) => config.isLoaded)
+  );
+
+  const areSomeLoaded = computed(
+    () =>
+      areAllLoaded.value ||
+      Array.from(configByHost.values()).some((config) => config.isLoaded)
+  );
+
+  return { patches, count, areAllLoaded, areSomeLoaded };
 };

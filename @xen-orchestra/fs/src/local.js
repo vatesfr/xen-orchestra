@@ -34,11 +34,14 @@ function dontAddSyncStackTrace(fn, ...args) {
 }
 
 export default class LocalHandler extends RemoteHandlerAbstract {
+  #addSyncStackTrace
+  #retriesOnEagain
+
   constructor(remote, opts = {}) {
     super(remote)
 
-    this._addSyncStackTrace = opts.syncStackTraces ?? true ? addSyncStackTrace : dontAddSyncStackTrace
-    this._retriesOnEagain = {
+    this.#addSyncStackTrace = opts.syncStackTraces ?? true ? addSyncStackTrace : dontAddSyncStackTrace
+    this.#retriesOnEagain = {
       delay: 1e3,
       retries: 9,
       ...opts.retriesOnEagain,
@@ -51,26 +54,26 @@ export default class LocalHandler extends RemoteHandlerAbstract {
     return 'file'
   }
 
-  _getRealPath() {
+  getRealPath() {
     return this._remote.path
   }
 
-  _getFilePath(file) {
-    return this._getRealPath() + file
+  getFilePath(file) {
+    return this.getRealPath() + file
   }
 
   async _closeFile(fd) {
-    return this._addSyncStackTrace(fs.close, fd)
+    return this.#addSyncStackTrace(fs.close, fd)
   }
 
   async _copy(oldPath, newPath) {
-    return this._addSyncStackTrace(fs.copy, this._getFilePath(oldPath), this._getFilePath(newPath))
+    return this.#addSyncStackTrace(fs.copy, this.getFilePath(oldPath), this.getFilePath(newPath))
   }
 
   async _createReadStream(file, options) {
     if (typeof file === 'string') {
-      const stream = fs.createReadStream(this._getFilePath(file), options)
-      await this._addSyncStackTrace(fromEvent, stream, 'open')
+      const stream = fs.createReadStream(this.getFilePath(file), options)
+      await this.#addSyncStackTrace(fromEvent, stream, 'open')
       return stream
     }
     return fs.createReadStream('', {
@@ -82,8 +85,8 @@ export default class LocalHandler extends RemoteHandlerAbstract {
 
   async _createWriteStream(file, options) {
     if (typeof file === 'string') {
-      const stream = fs.createWriteStream(this._getFilePath(file), options)
-      await this._addSyncStackTrace(fromEvent, stream, 'open')
+      const stream = fs.createWriteStream(this.getFilePath(file), options)
+      await this.#addSyncStackTrace(fromEvent, stream, 'open')
       return stream
     }
     return fs.createWriteStream('', {
@@ -98,7 +101,7 @@ export default class LocalHandler extends RemoteHandlerAbstract {
     // filesystem, type, size, used, available, capacity and mountpoint.
     // size, used, available and capacity may be `NaN` so we remove any `NaN`
     // value from the object.
-    const info = await df.file(this._getFilePath('/'))
+    const info = await df.file(this.getFilePath('/'))
     Object.keys(info).forEach(key => {
       if (Number.isNaN(info[key])) {
         delete info[key]
@@ -109,16 +112,16 @@ export default class LocalHandler extends RemoteHandlerAbstract {
   }
 
   async _getSize(file) {
-    const stats = await this._addSyncStackTrace(fs.stat, this._getFilePath(typeof file === 'string' ? file : file.path))
+    const stats = await this.#addSyncStackTrace(fs.stat, this.getFilePath(typeof file === 'string' ? file : file.path))
     return stats.size
   }
 
   async _list(dir) {
-    return this._addSyncStackTrace(fs.readdir, this._getFilePath(dir))
+    return this.#addSyncStackTrace(fs.readdir, this.getFilePath(dir))
   }
 
   async _lock(path) {
-    const acquire = lockfile.lock.bind(undefined, this._getFilePath(path), {
+    const acquire = lockfile.lock.bind(undefined, this.getFilePath(path), {
       async onCompromised(error) {
         warn('lock compromised', { error })
         try {
@@ -130,11 +133,11 @@ export default class LocalHandler extends RemoteHandlerAbstract {
       },
     })
 
-    let release = await this._addSyncStackTrace(acquire)
+    let release = await this.#addSyncStackTrace(acquire)
 
     return async () => {
       try {
-        await this._addSyncStackTrace(release)
+        await this.#addSyncStackTrace(release)
       } catch (error) {
         warn('lock could not be released', { error })
       }
@@ -142,18 +145,18 @@ export default class LocalHandler extends RemoteHandlerAbstract {
   }
 
   _mkdir(dir, { mode }) {
-    return this._addSyncStackTrace(fs.mkdir, this._getFilePath(dir), { mode })
+    return this.#addSyncStackTrace(fs.mkdir, this.getFilePath(dir), { mode })
   }
 
   async _openFile(path, flags) {
-    return this._addSyncStackTrace(fs.open, this._getFilePath(path), flags)
+    return this.#addSyncStackTrace(fs.open, this.getFilePath(path), flags)
   }
 
   async _read(file, buffer, position) {
     const needsClose = typeof file === 'string'
-    file = needsClose ? await this._addSyncStackTrace(fs.open, this._getFilePath(file), 'r') : file.fd
+    file = needsClose ? await this.#addSyncStackTrace(fs.open, this.getFilePath(file), 'r') : file.fd
     try {
-      return await this._addSyncStackTrace(
+      return await this.#addSyncStackTrace(
         fs.read,
         file,
         buffer,
@@ -163,44 +166,44 @@ export default class LocalHandler extends RemoteHandlerAbstract {
       )
     } finally {
       if (needsClose) {
-        await this._addSyncStackTrace(fs.close, file)
+        await this.#addSyncStackTrace(fs.close, file)
       }
     }
   }
 
   async _readFile(file, options) {
-    const filePath = this._getFilePath(file)
-    return await this._addSyncStackTrace(retry, () => fs.readFile(filePath, options), this._retriesOnEagain)
+    const filePath = this.getFilePath(file)
+    return await this.#addSyncStackTrace(retry, () => fs.readFile(filePath, options), this.#retriesOnEagain)
   }
 
   async _rename(oldPath, newPath) {
-    return this._addSyncStackTrace(fs.rename, this._getFilePath(oldPath), this._getFilePath(newPath))
+    return this.#addSyncStackTrace(fs.rename, this.getFilePath(oldPath), this.getFilePath(newPath))
   }
 
   async _rmdir(dir) {
-    return this._addSyncStackTrace(fs.rmdir, this._getFilePath(dir))
+    return this.#addSyncStackTrace(fs.rmdir, this.getFilePath(dir))
   }
 
   async _sync() {
-    const path = this._getRealPath('/')
-    await this._addSyncStackTrace(fs.ensureDir, path)
-    await this._addSyncStackTrace(fs.access, path, fs.R_OK | fs.W_OK)
+    const path = this.getRealPath('/')
+    await this.#addSyncStackTrace(fs.ensureDir, path)
+    await this.#addSyncStackTrace(fs.access, path, fs.R_OK | fs.W_OK)
   }
 
   _truncate(file, len) {
-    return this._addSyncStackTrace(fs.truncate, this._getFilePath(file), len)
+    return this.#addSyncStackTrace(fs.truncate, this.getFilePath(file), len)
   }
 
   async _unlink(file) {
-    const filePath = this._getFilePath(file)
-    return await this._addSyncStackTrace(retry, () => fs.unlink(filePath), this._retriesOnEagain)
+    const filePath = this.getFilePath(file)
+    return await this.#addSyncStackTrace(retry, () => fs.unlink(filePath), this.#retriesOnEagain)
   }
 
   _writeFd(file, buffer, position) {
-    return this._addSyncStackTrace(fs.write, file.fd, buffer, 0, buffer.length, position)
+    return this.#addSyncStackTrace(fs.write, file.fd, buffer, 0, buffer.length, position)
   }
 
   _writeFile(file, data, { flags }) {
-    return this._addSyncStackTrace(fs.writeFile, this._getFilePath(file), data, { flag: flags })
+    return this.#addSyncStackTrace(fs.writeFile, this.getFilePath(file), data, { flag: flags })
   }
 }

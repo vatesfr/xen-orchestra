@@ -32,43 +32,21 @@ import UiCardSpinner from "@/components/ui/UiCardSpinner.vue";
 import UiCounter from "@/components/ui/UiCounter.vue";
 import UiSpinner from "@/components/ui/UiSpinner.vue";
 import UiTable from "@/components/ui/UiTable.vue";
+import type { XenApiPatchWithHostRefs } from "@/composables/host-patches.composable";
 import { vTooltip } from "@/directives/tooltip.directive";
-import type { XenApiHost, XenApiPatch } from "@/libs/xen-api";
 import { computed } from "vue";
 
 const props = defineProps<{
-  hostsLoadedStatus: Map<XenApiHost["$ref"], boolean>;
-  patches: Map<string, XenApiPatch & { $hostRefs: XenApiHost["$ref"][] }>;
+  patches: XenApiPatchWithHostRefs[];
+  hasMultipleHosts: boolean;
+  areAllLoaded: boolean;
+  areSomeLoaded: boolean;
 }>();
 
-const areAllLoaded = computed(() =>
-  [...props.hostsLoadedStatus.values()].every((isReady) => isReady)
-);
-
-defineExpose({
-  areAllLoaded,
-});
-
-const areSomeLoaded = computed(
-  () =>
-    areAllLoaded.value ||
-    [...props.hostsLoadedStatus.values()].some((isReady) => isReady)
-);
-
-const hasMultipleHosts = computed(() => props.hostsLoadedStatus.size > 1);
-
-const sortedPatches = computed<
-  (XenApiPatch & { $hostRefs: XenApiHost["$ref"][]; $id: string })[]
->(() =>
-  Array.from(props.patches.entries())
-    .map(([$id, patch]) => ({
-      $id,
-      ...patch,
-    }))
-    .sort(
-      (leftPatch, rightPatch) =>
-        leftPatch.changelog.date - rightPatch.changelog.date
-    )
+const sortedPatches = computed(() =>
+  [...props.patches].sort(
+    (patch1, patch2) => patch1.changelog.date - patch2.changelog.date
+  )
 );
 </script>
 

@@ -1,6 +1,6 @@
 <template>
   <div class="ui-card-spinner">
-    <UiSpinner />
+    <UiSpinner class="spinner" />
   </div>
 </template>
 
@@ -10,10 +10,14 @@ import UiSpinner from "@/components/ui/UiSpinner.vue";
 
 <style lang="postcss" scoped>
 .ui-card-spinner {
-  font-size: 5rem;
   display: flex;
+  align-items: center;
   justify-content: center;
-  margin: 4rem 0 2rem;
+  padding: 4rem 0;
+}
+
+.spinner {
   color: var(--color-extra-blue-base);
+  font-size: 4rem;
 }
 </style>

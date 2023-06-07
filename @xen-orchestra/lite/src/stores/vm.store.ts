@@ -1,5 +1,6 @@
 import { requireSubscription, sortRecordsByNameLabel } from "@/libs/utils";
 import type { GRANULARITY } from "@/libs/xapi-stats";
+import { POWER_STATE } from "@/libs/xen-api";
 import type { XenApiHost, XenApiVm } from "@/libs/xen-api";
 import {
   type CollectionSubscription,
@@ -40,7 +41,9 @@ export const useVmStore = defineStore("vm", () => {
     });
 
     const runningVms = computed(() =>
-      vmSubscription.records.value.filter((vm) => vm.power_state === "Running")
+      vmSubscription.records.value.filter(
+        (vm) => vm.power_state === POWER_STATE.RUNNING
+      )
     );
 
     const getStats = (id: string, granularity: GRANULARITY) => {

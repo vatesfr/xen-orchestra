@@ -108,7 +108,7 @@ const GeneralTab = decorate([
       vmTemplate: createGetObjectsOfType('VM-template').find(
         (_, { pool, vm }) =>
           template =>
-            template.$poolId === pool.id && template.uuid === vm.creation?.template
+            template.$poolId === pool?.id && template.uuid === vm.creation?.template
       )(state, props),
     })
   }),

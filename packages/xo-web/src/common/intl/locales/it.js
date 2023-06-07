@@ -683,6 +683,21 @@ export default {
   // Original text: 'High Availability'
   highAvailability: 'Alta disponibilità',
 
+  // Original text: 'Control plane fault tolerance'
+  recipeFaultTolerance: 'Tolleranza ai guasti del piano di controllo',
+
+  // Original text: 'No fault tolerance (one control plane)'
+  recipeNoneFaultTolerance: 'No fault tolerance (one control plane)',
+
+  // Original text: 'One fault tolerance (three control planes)'
+  recipeOneFaultTolerance: 'Una tolleranza ai guasti (tre piani di controllo)',
+
+  // Original text: 'Two fault tolerances (five control planes)'
+  recipeTwoFaultTolerance: 'Due tolleranze di errore (cinque piani di controllo)',
+
+  // Original text: 'Three fault tolerances (seven control planes)'
+  recipeThreeFaultTolerance: 'Tre tolleranze di errore (sette piani di controllo)',
+
   // Original text: 'Shared {type}'
   srSharedType: 'Condiviso {type}',
 

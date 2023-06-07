@@ -21,6 +21,7 @@ import remove from 'lodash/remove'
 import renderXoItem from 'render-xo-item'
 import ResourceSetQuotas from 'resource-set-quotas'
 import some from 'lodash/some'
+import Tags from 'tags'
 import Upgrade from 'xoa-upgrade'
 import { Container, Row, Col } from 'grid'
 import { injectIntl } from 'react-intl'
@@ -40,6 +41,10 @@ import { SelectIpPool, SelectNetwork, SelectPool, SelectSr, SelectSubject, Selec
 import { computeAvailableHosts, Subjects } from './helpers'
 
 import Page from '../page'
+
+// ===================================================================
+
+const TAGS_WRAPPER_STYLES = { fontSize: '1.4em' }
 
 // ===================================================================
 
@@ -137,9 +142,11 @@ export class Edit extends Component {
       name: '',
       networks: [],
       pools: [],
+      shareByDefault: false,
       srs: [],
       subjects: [],
       templates: [],
+      tags: [],
     }
   }
 
@@ -175,14 +182,16 @@ export class Edit extends Component {
         ipPools,
         memory: get(limits, 'memory.total', null),
         name: resourceSet.name,
+        shareByDefault: resourceSet.shareByDefault || false,
         subjects: resourceSet.subjects,
+        tags: resourceSet.tags || [],
         templates: objectsByType['VM-template'] || [],
       })
     }
   }
 
   _save = async () => {
-    const { cpus, disk, ipPools, memory, name, networks, srs, subjects, templates } = this.state
+    const { cpus, disk, ipPools, memory, name, networks, shareByDefault, srs, subjects, tags, templates } = this.state
 
     const set = this.props.resourceSet || (await createResourceSet(name))
     const objects = [...templates, ...srs, ...networks]
@@ -203,7 +212,9 @@ export class Edit extends Component {
         ...ipPoolsLimits,
       },
       objects: resolveIds(objects),
+      shareByDefault,
       subjects: resolveIds(subjects),
+      tags,
       ipPools: resolveIds(ipPools),
     })
 
@@ -220,7 +231,9 @@ export class Edit extends Component {
       memory: null,
       newIpPool: undefined,
       newIpPoolQuantity: '',
+      shareByDefault: false,
       subjects: [],
+      tags: [],
     })
   }
 
@@ -305,6 +318,18 @@ export class Edit extends Component {
       return ipPool => !hasOwnProperty.call(ipPoolsById, ipPool.id)
     }
   )
+
+  // -----------------------------------------------------------------------------
+
+  _onRemoveTag = tag =>
+    this.setState(prevState => ({
+      tags: prevState.tags.filter(_tag => tag === _tag),
+    }))
+
+  _onAddTag = tag =>
+    this.setState(prevState => ({
+      tags: prevState.tags.concat(tag),
+    }))
 
   // -----------------------------------------------------------------------------
 
@@ -492,7 +517,28 @@ export class Edit extends Component {
                     </Col>
                   </Row>
                 </Col>
+                <Col mediumSize={4}>
+                  <Row>
+                    <Col>
+                      <strong>{_('defaultTags')}</strong>
+                    </Col>
+                  </Row>
+                  <Row>
+                    <Col>
+                      <span style={TAGS_WRAPPER_STYLES}>
+                        <Tags labels={state.tags} onAdd={this._onAddTag} onDelete={this._onRemoveTag} />
+                      </span>
+                    </Col>
+                  </Row>
+                </Col>
               </Row>
+            </div>
+            <div className='mt-1'>
+              <label>
+                <input checked={state.shareByDefault} type='checkbox' onChange={this.toggleState('shareByDefault')} />
+                &nbsp;
+                <strong>{_('shareVmsByDefault')}</strong>
+              </label>
             </div>
             <hr />
             <Hosts excludedHosts={state.excludedHosts} eligibleHosts={state.eligibleHosts} />
@@ -529,7 +575,7 @@ class ResourceSet extends Component {
   _renderDisplay = () => {
     const { resourceSet } = this.props
     const resolvedIpPools = mapKeys(this.props.ipPools, 'id')
-    const { limits, ipPools, subjects, objectsByType } = resourceSet
+    const { limits, ipPools, subjects, objectsByType, tags } = resourceSet
 
     return [
       <li key='subjects' className='list-group-item'>
@@ -564,6 +610,9 @@ class ResourceSet extends Component {
           })}
         </li>
       ),
+      <li key='tags' className='list-group-item'>
+        <Icon icon='tags' /> {tags.join(', ')}
+      </li>,
       <li key='graphs' className='list-group-item'>
         <ResourceSetQuotas limits={limits} />
       </li>,

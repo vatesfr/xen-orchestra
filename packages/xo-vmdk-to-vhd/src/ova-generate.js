@@ -26,7 +26,7 @@ export async function writeOvaOn(
 
   async function writeDisk(entry, blockIterator) {
     for await (const block of blockIterator) {
-      entry.write(block)
+      await fromCallback.call(entry, entry.write, block)
     }
   }
 

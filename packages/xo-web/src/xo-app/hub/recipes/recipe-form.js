@@ -8,6 +8,26 @@ import { injectIntl } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
 import { isSrWritable } from 'xo'
 import { SelectPool, SelectNetwork, SelectSr } from 'select-objects'
+import { Select } from 'form'
+
+const FAULT_TOLERANCE = [
+  {
+    label: _('recipeNoneFaultTolerance'),
+    value: 0,
+  },
+  {
+    label: _('recipeOneFaultTolerance'),
+    value: 1,
+  },
+  {
+    label: _('recipeTwoFaultTolerance'),
+    value: 2,
+  },
+  {
+    label: _('recipeThreeFaultTolerance'),
+    value: 3,
+  },
+]
 
 export default decorate([
   injectIntl,
@@ -42,6 +62,15 @@ export default decorate([
           [name]: value,
         })
       },
+      onChangeFaultTolerance(__, faultTolerance) {
+        const { onChange, value } = this.props
+        onChange({
+          ...value,
+          faultTolerance: faultTolerance.value,
+          // n * 2 + 1 is the formula to meet the quorum of RAFT consensus algorithm
+          controlPlanePoolSize: faultTolerance.value * 2 + 1,
+        })
+      },
       onChangeWorkerIp(__, ev) {
         const { name, value } = ev.target
         const { onChange, value: prevValue } = this.props
@@ -51,6 +80,17 @@ export default decorate([
         onChange({
           ...prevValue,
           workerNodeIpAddresses,
+        })
+      },
+      onChangeCpIp(__, ev) {
+        const { name, value } = ev.target
+        const { onChange, value: prevValue } = this.props
+        const controlPlaneIpAddresses = prevValue.controlPlaneIpAddresses ?? []
+
+        controlPlaneIpAddresses[name.split('.')[1]] = value
+        onChange({
+          ...prevValue,
+          controlPlaneIpAddresses,
         })
       },
       onChangeNameserver(__, ev) {
@@ -138,6 +178,17 @@ export default decorate([
         />
       </FormGrid.Row>
       <FormGrid.Row>
+        <label>{_('recipeFaultTolerance')}</label>
+        <Select
+          className='mb-1'
+          name='faultTolerance'
+          onChange={effects.onChangeFaultTolerance}
+          options={FAULT_TOLERANCE}
+          required
+          value={value.faultTolerance}
+        />
+      </FormGrid.Row>
+      <FormGrid.Row>
         <label>
           <input
             className='mt-1'
@@ -152,18 +203,49 @@ export default decorate([
       </FormGrid.Row>
       {value.nbNodes > 0 &&
         value.staticIpAddress && [
-          <FormGrid.Row key='controlPlaneIpAddrRow'>
-            <label>{_('recipeControlPlaneIpAddress')}</label>
-            <input
-              className='form-control'
-              name='controlPlaneIpAddress'
-              onChange={effects.onChangeValue}
-              placeholder={formatMessage(messages.recipeControlPlaneIpAddress)}
-              required
-              type='text'
-              value={value.controlPlaneIpAddress}
-            />
-          </FormGrid.Row>,
+          value.faultTolerance > 0
+            ? [
+                Array.from({ length: value.controlPlanePoolSize }).map((v, i) => (
+                  <FormGrid.Row key={i}>
+                    <label>{_('recipeHaControPlaneIpAddress', { i: i + 1 })}</label>
+                    <input
+                      className='form-control'
+                      name={`controlPlaneIpAddress.${i}`}
+                      onChange={effects.onChangeCpIp}
+                      placeholder={formatMessage(messages.recipeHaControPlaneIpAddress, { i: i + 1 })}
+                      required
+                      type='text'
+                      value={value[`controlPlaneIpAddress.${i}`]}
+                    />
+                  </FormGrid.Row>
+                )),
+                <FormGrid.Row key='vipAddrRow'>
+                  <label>{_('recipeVip')}</label>
+                  <input
+                    className='form-control'
+                    name='vipAddress'
+                    onChange={effects.onChangeValue}
+                    placeholder={formatMessage(messages.recipeVip)}
+                    required
+                    type='text'
+                    value={value.vipAddress}
+                  />
+                </FormGrid.Row>,
+              ]
+            : [
+                <FormGrid.Row key='controlPlaneIpAddrRow'>
+                  <label>{_('recipeControlPlaneIpAddress')}</label>
+                  <input
+                    className='form-control'
+                    name='controlPlaneIpAddress'
+                    onChange={effects.onChangeValue}
+                    placeholder={formatMessage(messages.recipeControlPlaneIpAddress)}
+                    required
+                    type='text'
+                    value={value.controlPlaneIpAddress}
+                  />
+                </FormGrid.Row>,
+              ],
           <FormGrid.Row key='gatewayRow'>
             <label>{_('recipeGatewayIpAddress')}</label>
             <input

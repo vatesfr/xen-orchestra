@@ -11,6 +11,8 @@ import { FormGroup, Input } from '../../utils'
 
 import { areRetentionsMissing } from '.'
 
+import ScheduleHealthCheck from '../healthCheck/ScheduleHealthCheck'
+
 export default decorate([
   provideState({
     effects: {
@@ -42,6 +44,18 @@ export default decorate([
           [name]: value,
         })
       },
+      toggleHealthCheck:
+        ({ setSchedule }, { target: { checked } }) =>
+        state =>
+          setSchedule({
+            healthCheckVmsWithTags: checked ? [] : undefined,
+            healthCheckSr: checked ? state.healthCheckSr : undefined,
+          }),
+      setHealthCheckSr: ({ setSchedule }, sr) => setSchedule({ healthCheckSr: sr.id }),
+      setHealthCheckTags: ({ setSchedule }, tags) =>
+        setSchedule({
+          healthCheckVmsWithTags: tags,
+        }),
     },
     computed: {
       idInputName: generateId,
@@ -50,7 +64,7 @@ export default decorate([
     },
   }),
   injectState,
-  ({ effects, state, retentions, value: schedule }) => (
+  ({ effects, state, retentions, value: schedule, withHealthCheck = false }) => (
     <div>
       {state.missingRetentions && (
         <div className='text-danger text-md-center'>
@@ -71,6 +85,14 @@ export default decorate([
           <Number data-name={valuePath} min='0' onChange={effects.setRetention} required value={schedule[valuePath]} />
         </FormGroup>
       ))}
+      {withHealthCheck && (
+        <ScheduleHealthCheck
+          setHealthCheckSr={effects.setHealthCheckSr}
+          setHealthCheckTags={effects.setHealthCheckTags}
+          schedule={schedule}
+          toggleHealthCheck={effects.toggleHealthCheck}
+        />
+      )}
       <Scheduler onChange={effects.setCronTimezone} cronPattern={schedule.cron} timezone={schedule.timezone} />
       <SchedulePreview cronPattern={schedule.cron} timezone={schedule.timezone} />
     </div>

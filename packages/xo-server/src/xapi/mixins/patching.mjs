@@ -9,14 +9,14 @@ import { createLogger } from '@xen-orchestra/log'
 import { decorateWith } from '@vates/decorate-with'
 import { defer as deferrable } from 'golike-defer'
 import { incorrectState } from 'xo-common/api-errors.js'
-import { parseDateTime } from '@xen-orchestra/xapi'
+import { extractOpaqueRef, parseDateTime } from '@xen-orchestra/xapi'
 import { timeout } from 'promise-toolbox'
 
 import ensureArray from '../../_ensureArray.mjs'
 import { debounceWithKey } from '../../_pDebounceWithKey.mjs'
 import { forEach, mapFilter, parseXml } from '../../utils.mjs'
 
-import { extractOpaqueRef, isHostRunning, useUpdateSystem } from '../utils.mjs'
+import { isHostRunning, useUpdateSystem } from '../utils.mjs'
 
 // TOC -------------------------------------------------------------------------
 

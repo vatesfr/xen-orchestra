@@ -186,6 +186,12 @@ export const create = defer(async function ($defer, params) {
     }
   }
 
+  const resourceSetTags = resourceSet !== undefined ? (await this.getResourceSet(resourceSet)).tags : undefined
+  const paramsTags = params.tags
+  if (resourceSetTags !== undefined) {
+    params.tags = paramsTags !== undefined ? paramsTags.concat(resourceSetTags) : resourceSetTags
+  }
+
   const xapiVm = await xapi.createVm(template._xapiId, params, checkLimits, user.id)
   $defer.onFailure(() => xapi.VM_destroy(xapiVm.$ref, { deleteDisks: true, force: true }))
 
@@ -877,7 +883,8 @@ export async function convertToTemplate({ vm }) {
 
   // Attempts to eject all removable media
   const ignoreNotRemovable = error => {
-    if (error.code !== 'VBD_NOT_REMOVABLE_MEDIA') {
+    const { code } = error
+    if (code !== 'VBD_IS_EMPTY' && code !== 'VBD_NOT_REMOVABLE_MEDIA') {
       throw error
     }
   }
@@ -1369,7 +1376,7 @@ export async function importMultipleFromEsxi({
       await asyncEach(
         vms,
         async vm => {
-          await new Task({ name: `importing vm ${vm}` }).run(async () => {
+          await Task.run({ data: { name: `importing vm ${vm}` } }, async () => {
             try {
               const vmUuid = await this.migrationfromEsxi({
                 host,

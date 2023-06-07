@@ -12,19 +12,20 @@ class CloudConfigs extends Collection {
 export default class {
   constructor(app) {
     this._app = app
-    const db = (this._db = new CloudConfigs({
-      connection: app._redis,
-      namespace: 'cloudConfig',
-    }))
 
-    app.hooks.on('clean', () => db.rebuildIndexes())
-    app.hooks.on('start', () =>
-      app.addConfigManager(
+    app.hooks.on('clean', () => this._db.rebuildIndexes())
+    app.hooks.on('core started', () => {
+      const db = (this._db = new CloudConfigs({
+        connection: app._redis,
+        namespace: 'cloudConfig',
+      }))
+
+      return app.addConfigManager(
         'cloudConfigs',
         () => db.get(),
         cloudConfigs => db.update(cloudConfigs)
       )
-    )
+    })
   }
 
   createCloudConfig(cloudConfig) {

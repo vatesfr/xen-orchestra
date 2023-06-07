@@ -14,7 +14,12 @@
     </UiActionButton>
   </UiFilterGroup>
 
-  <UiModal v-if="isOpen" :icon="faFilter" @submit.prevent="handleSubmit">
+  <UiModal
+    v-if="isOpen"
+    :icon="faFilter"
+    @submit.prevent="handleSubmit"
+    @close="handleCancel"
+  >
     <div class="rows">
       <CollectionFilterRow
         v-for="(newFilter, index) in newFilters"

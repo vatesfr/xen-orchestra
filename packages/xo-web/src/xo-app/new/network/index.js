@@ -197,11 +197,11 @@ const NewNetwork = decorate([
         networks,
         pif,
         pifs,
-        vlan,
       } = state
 
-      let { mtu } = state
+      let { mtu, vlan } = state
       mtu = mtu === '' ? undefined : +mtu
+      vlan = vlan === '' ? undefined : +vlan
 
       return bonded
         ? createBondedNetwork({

@@ -1,12 +1,11 @@
 import pool from "@/router/pool";
+import vm from "@/router/vm";
 import HomeView from "@/views/HomeView.vue";
 import HostDashboardView from "@/views/host/HostDashboardView.vue";
 import HostRootView from "@/views/host/HostRootView.vue";
 import PageNotFoundView from "@/views/PageNotFoundView.vue";
 import SettingsView from "@/views/settings/SettingsView.vue";
 import StoryView from "@/views/StoryView.vue";
-import VmConsoleView from "@/views/vm/VmConsoleView.vue";
-import VmRootView from "@/views/vm/VmRootView.vue";
 import storiesRoutes from "virtual:stories";
 import { createRouter, createWebHashHistory } from "vue-router";
 
@@ -31,6 +30,7 @@ const router = createRouter({
       component: SettingsView,
     },
     pool,
+    vm,
     {
       path: "/host/:uuid",
       component: HostRootView,
@@ -39,17 +39,6 @@ const router = createRouter({
           path: "",
           name: "host.dashboard",
           component: HostDashboardView,
-        },
-      ],
-    },
-    {
-      path: "/vm/:uuid",
-      component: VmRootView,
-      children: [
-        {
-          path: "console",
-          name: "vm.console",
-          component: VmConsoleView,
         },
       ],
     },
