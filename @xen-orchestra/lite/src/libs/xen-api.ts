@@ -341,12 +341,9 @@ export default class XenApi {
     type VmRefsToClone = Record<XenApiVm["$ref"], /* Cloned VM name */ string>;
 
     return {
-      delete: (vmRefs: VmRefs, force = false) =>
+      delete: (vmRefs: VmRefs) =>
         Promise.all(
-          castArray(vmRefs).map(async (vmRef) => {
-            await this._call(`VM.${force ? "hard" : "clean"}_shutdown`, [
-              vmRef,
-            ]);
+          castArray(vmRefs).map((vmRef) => {
             return this._call("VM.destroy", [vmRef]);
           })
         ),

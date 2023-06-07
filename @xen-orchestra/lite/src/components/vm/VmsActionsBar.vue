@@ -25,9 +25,12 @@
     <MenuItem v-tooltip="$t('coming-soon')" :icon="faCamera">
       {{ $t("snapshot") }}
     </MenuItem>
-    <MenuItem :icon="faTrashCan" @click="openDeleteModal">{{
-      $t("delete")
-    }}</MenuItem>
+    <MenuItem
+      :disabled="areVmsInExecution"
+      :icon="faTrashCan"
+      @click="openDeleteModal"
+      >{{ $t("delete") }}</MenuItem
+    >
     <MenuItem :icon="faFileExport">
       {{ $t("export") }}
       <template #submenu>
@@ -54,17 +57,20 @@
   </AppMenu>
   <UiModal v-if="isDeleteModalOpen" :icon="faSatellite">
     <template #title>
-      {{ $t("confirm-delete-vms", { nVms: selectedRefs.length }) }}</template
-    >
+      {{ $t("confirm-delete") }}
+      <span class="n-vms-text">
+        {{ $t("n-vms", { n: selectedRefs.length }) }}
+      </span>
+    </template>
     <template #subtitle>
       {{ $t("please-confirm") }}
     </template>
     <template #buttons>
-      <UiButton @click="closeDeletModal" outlined>
+      <UiButton outlined @click="closeDeletModal">
         {{ $t("go-back") }}
       </UiButton>
-      <UiButton @click="xenApi.vm.delete(selectedRefs, true)">
-        {{ $t("delete-vms", { nVms: selectedRefs.length }) }}
+      <UiButton @click="deleteVms">
+        {{ $t("delete-vms", { n: selectedRefs.length }) }}
       </UiButton>
     </template>
   </UiModal>
@@ -76,10 +82,11 @@ import MenuItem from "@/components/menu/MenuItem.vue";
 import UiButton from "@/components/ui/UiButton.vue";
 import UiModal from "@/components/ui/UiModal.vue";
 import useModal from "@/composables/modal.composable";
+import { useVmStore } from "@/stores/vm.store";
 import { useUiStore } from "@/stores/ui.store";
 import VmActionPowerStateItems from "@/components/vm/VmActionItems/VmActionPowerStateItems.vue";
 import VmActionCopyItem from "@/components/vm/VmActionItems/VmActionCopyItem.vue";
-import { vTooltip } from "@/directives/tooltip.directive";
+import VmsPowerActionsMenu from "@/components/vm/VmsPowerActionsMenu.vue";
 import { useXenApiStore } from "@/stores/xen-api.store";
 import {
   faCamera,
@@ -94,20 +101,37 @@ import {
   faSatellite,
   faTrashCan,
 } from "@fortawesome/free-solid-svg-icons";
+import { computed } from "vue";
 import { storeToRefs } from "pinia";
+import { vTooltip } from "@/directives/tooltip.directive";
+import type { XenApiVm } from "@/libs/xen-api";
 
-defineProps<{
+const props = defineProps<{
   disabled?: boolean;
   selectedRefs: string[];
 }>();
 
 const { isMobile } = storeToRefs(useUiStore());
+const xenApi = useXenApiStore().getXapi();
+const { getByOpaqueRef: getVm } = useVmStore().subscribe();
 const {
   open: openDeleteModal,
   close: closeDeletModal,
   isOpen: isDeleteModalOpen,
 } = useModal();
-const xenApi = useXenApiStore().getXapi();
+
+const vms = computed<XenApiVm[]>(() =>
+  props.selectedRefs.map(getVm).filter((vm): vm is XenApiVm => vm !== undefined)
+);
+
+const areVmsInExecution = computed(() =>
+  vms.value.every((vm) => vm.power_state !== "Halted")
+);
+
+const deleteVms = async () => {
+  await xenApi.vm.delete(props.selectedRefs);
+  closeDeletModal();
+};
 </script>
 
 <style lang="postcss" scoped>
@@ -115,5 +139,8 @@ const xenApi = useXenApiStore().getXapi();
   padding-bottom: 1rem;
   border-bottom: 1px solid var(--color-blue-scale-400);
   background-color: var(--background-color-primary);
+}
+.n-vms-text {
+  color: var(--color-extra-blue-base);
 }
 </style>
