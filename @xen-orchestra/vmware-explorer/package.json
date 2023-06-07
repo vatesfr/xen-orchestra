@@ -4,12 +4,12 @@
   "version": "0.2.2",
   "name": "@xen-orchestra/vmware-explorer",
   "dependencies": {
-    "@vates/task": "^0.1.1",
+    "@vates/task": "^0.1.2",
     "@vates/read-chunk": "^1.1.1",
     "lodash": "^4.17.21",
     "node-fetch": "^3.3.0",
     "node-vsphere-soap": "^0.0.2-5",
-    "vhd-lib": "^4.4.0"
+    "vhd-lib": "^4.5.0"
   },
   "engines": {
     "node": ">=14"

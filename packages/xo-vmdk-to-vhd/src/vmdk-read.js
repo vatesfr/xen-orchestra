@@ -25,6 +25,7 @@ function parseDescriptor(descriptorSlice) {
       extentList.push({
         access: items[0],
         sizeSectors: items[1],
+        size: items[1] * 512,
         type: items[2],
         name: items[3],
         offset: items.length > 4 ? items[4] : 0,

@@ -1,15 +1,15 @@
 <template>
   <div v-if="!isDisabled" ref="tooltipElement" class="app-tooltip">
     <span class="triangle" />
-    <span class="label">{{ content }}</span>
+    <span class="label">{{ options.content }}</span>
   </div>
 </template>
 
 <script lang="ts" setup>
-import { isEmpty, isFunction, isString } from "lodash-es";
+import type { TooltipOptions } from "@/stores/tooltip.store";
+import { isString } from "lodash-es";
 import place from "placement.js";
 import { computed, ref, watchEffect } from "vue";
-import type { TooltipOptions } from "@/stores/tooltip.store";
 
 const props = defineProps<{
   target: HTMLElement;
@@ -18,29 +18,13 @@ const props = defineProps<{
 
 const tooltipElement = ref<HTMLElement>();
 
-const content = computed(() =>
-  isString(props.options) ? props.options : props.options.content
+const isDisabled = computed(() =>
+  isString(props.options.content)
+    ? props.options.content.trim() === ""
+    : props.options.content === false
 );
 
-const isDisabled = computed(() => {
-  if (isEmpty(content.value)) {
-    return true;
-  }
-
-  if (isString(props.options)) {
-    return false;
-  }
-
-  if (isFunction(props.options.disabled)) {
-    return props.options.disabled(props.target);
-  }
-
-  return props.options.disabled ?? false;
-});
-
-const placement = computed(() =>
-  isString(props.options) ? "top" : props.options.placement ?? "top"
-);
+const placement = computed(() => props.options.placement ?? "top");
 
 watchEffect(() => {
   if (tooltipElement.value) {

@@ -6,15 +6,15 @@
     </UiTitle>
 
     <TasksTable :finished-tasks="finishedTasks" :pending-tasks="pendingTasks" />
-    <UiSpinner v-if="!isReady" class="loader" />
+    <UiCardSpinner v-if="!isReady" />
   </UiCard>
 </template>
 
 <script lang="ts" setup>
 import TasksTable from "@/components/tasks/TasksTable.vue";
 import UiCard from "@/components/ui/UiCard.vue";
+import UiCardSpinner from "@/components/ui/UiCardSpinner.vue";
 import UiCounter from "@/components/ui/UiCounter.vue";
-import UiSpinner from "@/components/ui/UiSpinner.vue";
 import UiTitle from "@/components/ui/UiTitle.vue";
 import useArrayRemovedItemsHistory from "@/composables/array-removed-items-history.composable";
 import useCollectionFilter from "@/composables/collection-filter.composable";
@@ -70,12 +70,5 @@ useTitle(
   .ui-counter {
     font-size: 1.4rem;
   }
-}
-
-.loader {
-  color: var(--color-extra-blue-base);
-  display: block;
-  font-size: 4rem;
-  margin: 2rem auto 0;
 }
 </style>

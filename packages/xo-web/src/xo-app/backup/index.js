@@ -15,7 +15,7 @@ import { subscribeBackupNgJobs, subscribeSchedules } from 'xo'
 import Edit from './edit'
 import FileRestore from './file-restore'
 import Health from './health'
-import NewVmBackup, { NewMetadataBackup } from './new'
+import NewVmBackup, { NewMetadataBackup, NewMirrorBackup } from './new'
 import Overview from './overview'
 import Restore, { RestoreMetadata } from './restore'
 
@@ -81,6 +81,9 @@ const ChooseBackupType = () => (
             <ButtonLink to='backup/new/vms'>
               <Icon icon='backup' /> {_('backupVms')}
             </ButtonLink>{' '}
+            <ButtonLink to='backup/new/mirror'>
+              <Icon icon='mirror-backup' /> {_('mirrorBackupVms')}
+            </ButtonLink>{' '}
             <ButtonLink to='backup/new/metadata'>
               <Icon icon='database' /> {_('backupMetadata')}
             </ButtonLink>
@@ -95,6 +98,7 @@ export default routes('overview', {
   ':id/edit': Edit,
   new: ChooseBackupType,
   'new/vms': NewVmBackup,
+  'new/mirror': NewMirrorBackup,
   'new/metadata': NewMetadataBackup,
   overview: Overview,
   restore: Restore,

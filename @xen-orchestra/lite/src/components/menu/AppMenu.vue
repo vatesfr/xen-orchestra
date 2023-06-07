@@ -1,6 +1,6 @@
 <template>
   <slot :is-open="isOpen" :open="open" name="trigger" />
-  <Teleport to="body" :disabled="!isRoot || !slots.trigger">
+  <Teleport to="body" :disabled="!slots.trigger">
     <ul
       v-if="!$slots.trigger || isOpen"
       ref="menu"
@@ -24,8 +24,11 @@ const props = defineProps<{
   disabled?: boolean;
   placement?: Options["placement"];
 }>();
-const isRoot = inject("isMenuRoot", true);
-provide("isMenuRoot", false);
+
+defineOptions({
+  inheritAttrs: false,
+});
+
 const slots = useSlots();
 const isOpen = ref(false);
 const menu = ref();

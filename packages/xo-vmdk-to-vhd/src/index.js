@@ -19,12 +19,14 @@ export { default as readVmdkGrainTable, readCapacityAndGrainTable } from './vmdk
 async function vmdkToVhd(vmdkReadStream, grainLogicalAddressList, grainFileOffsetList, gzipped = false, length) {
   const parser = new VMDKDirectParser(vmdkReadStream, grainLogicalAddressList, grainFileOffsetList, gzipped, length)
   const header = await parser.readHeader()
-  return createReadableSparseStream(
+  const vhdStream = await createReadableSparseStream(
     header.capacitySectors * 512,
     header.grainSizeSectors * 512,
     grainLogicalAddressList,
     parser.blockIterator()
   )
+  vhdStream._rawLength = parser.descriptor.extents[0].size
+  return vhdStream
 }
 
 export async function computeVmdkLength(diskName, vhdReadStream) {

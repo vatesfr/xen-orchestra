@@ -228,7 +228,7 @@ Settings are described in [`@xen-orchestra/backups/Backup.js](https://github.com
     - `prepare({ isFull })`
     - `transfer({ timestamp, deltaExport, sizeContainers })`
     - `cleanup()`
-    - `healthCheck(sr)`
+    - `healthCheck()` // is not executed if no health check sr or tag doesn't match
   - **Full**
     - `run({ timestamp, sizeContainer, stream })`
 - `afterBackup()`

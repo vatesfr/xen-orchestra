@@ -5,6 +5,7 @@ import type {
   XenApiHostMetrics,
   XenApiRecord,
   XenApiVm,
+  VM_OPERATION,
 } from "@/libs/xen-api";
 import type { CollectionSubscription } from "@/stores/xapi-collection.store";
 import type { Filter } from "@/types/filter";
@@ -71,8 +72,20 @@ export function parseDateTime(dateTime: string) {
   return date.getTime();
 }
 
-export const hasEllipsis = (target: Element | undefined | null) =>
-  target != undefined && target.clientWidth < target.scrollWidth;
+export const hasEllipsis = (
+  target: Element | undefined | null,
+  { vertical = false }: { vertical?: boolean } = {}
+) => {
+  if (target == null) {
+    return false;
+  }
+
+  if (vertical) {
+    return target.clientHeight < target.scrollHeight;
+  }
+
+  return target.clientWidth < target.scrollWidth;
+};
 
 export function percent(currentValue: number, maxValue: number, precision = 2) {
   return round((currentValue / maxValue) * 100, precision);
@@ -182,7 +195,7 @@ export function requireSubscription<T>(
 
 export const isOperationsPending = (
   obj: XenApiVm,
-  operations: string[] | string
+  operations: VM_OPERATION[] | VM_OPERATION
 ) => {
   const currentOperations = Object.values(obj.current_operations);
   return castArray(operations).some((operation) =>
