@@ -27,4 +27,6 @@
 
 <!--packages-start-->
 
+- @vates/nbd-client patch
+
 <!--packages-end-->
