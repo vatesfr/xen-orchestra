@@ -66,7 +66,7 @@
       {{ $t("please-confirm") }}
     </template>
     <template #buttons>
-      <UiButton outlined @click="closeDeletModal">
+      <UiButton outlined @click="closeDeleteModal">
         {{ $t("go-back") }}
       </UiButton>
       <UiButton @click="deleteVms">
@@ -116,7 +116,7 @@ const xenApi = useXenApiStore().getXapi();
 const { getByOpaqueRef: getVm } = useVmStore().subscribe();
 const {
   open: openDeleteModal,
-  close: closeDeletModal,
+  close: closeDeleteModal,
   isOpen: isDeleteModalOpen,
 } = useModal();
 
@@ -130,7 +130,7 @@ const areVmsInExecution = computed(() =>
 
 const deleteVms = async () => {
   await xenApi.vm.delete(props.selectedRefs);
-  closeDeletModal();
+  closeDeleteModal();
 };
 </script>
 
