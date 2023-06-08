@@ -29,8 +29,9 @@
       :disabled="areVmsInExecution"
       :icon="faTrashCan"
       @click="openDeleteModal"
-      >{{ $t("delete") }}</MenuItem
     >
+      {{ $t("delete") }}
+    </MenuItem>
     <MenuItem :icon="faFileExport">
       {{ $t("export") }}
       <template #submenu>
