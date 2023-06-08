@@ -109,6 +109,7 @@
   "settings": "Paramètres",
   "shutdown": "Arrêter",
   "snapshot": "Instantané",
+  "selected-vms-in-execution": "Certaines VMs sélectionnées sont en cours d'exécution",
   "sort-by": "Trier par",
   "stacked-cpu-usage": "Utilisation CPU empilée",
   "stacked-ram-usage": "Utilisation RAM empilée",

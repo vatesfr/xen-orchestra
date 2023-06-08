@@ -109,6 +109,7 @@
   "settings": "Settings",
   "shutdown": "Shutdown",
   "snapshot": "Snapshot",
+  "selected-vms-in-execution": "Some selected VMs are running",
   "sort-by": "Sort by",
   "stacked-cpu-usage": "Stacked CPU usage",
   "stacked-ram-usage": "Stacked RAM usage",

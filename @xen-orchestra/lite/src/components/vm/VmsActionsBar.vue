@@ -26,8 +26,9 @@
       {{ $t("snapshot") }}
     </MenuItem>
     <MenuItem
-      :disabled="areVmsInExecution"
+      :disabled="areSomeVmsInExecution"
       :icon="faTrashCan"
+      v-tooltip="areSomeVmsInExecution && $t('selected-vms-in-execution')"
       @click="openDeleteModal"
     >
       {{ $t("delete") }}
@@ -84,6 +85,7 @@
 <script lang="ts" setup>
 import AppMenu from "@/components/menu/AppMenu.vue";
 import MenuItem from "@/components/menu/MenuItem.vue";
+import { POWER_STATE } from "@/libs/xen-api";
 import UiButton from "@/components/ui/UiButton.vue";
 import UiModal from "@/components/ui/UiModal.vue";
 import useModal from "@/composables/modal.composable";
