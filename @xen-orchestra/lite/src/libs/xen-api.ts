@@ -343,9 +343,7 @@ export default class XenApi {
     return {
       delete: (vmRefs: VmRefs) =>
         Promise.all(
-          castArray(vmRefs).map((vmRef) => {
-            return this._call("VM.destroy", [vmRef]);
-          })
+          castArray(vmRefs).map((vmRef) => this._call("VM.destroy", [vmRef]))
         ),
       start: (vmRefs: VmRefs) =>
         Promise.all(
