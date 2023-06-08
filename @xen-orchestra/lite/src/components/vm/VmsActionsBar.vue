@@ -129,8 +129,8 @@ const vms = computed<XenApiVm[]>(() =>
   props.selectedRefs.map(getVm).filter((vm): vm is XenApiVm => vm !== undefined)
 );
 
-const areVmsInExecution = computed(() =>
-  vms.value.every((vm) => vm.power_state !== "Halted")
+const areSomeVmsInExecution = computed(() =>
+  vms.value.some((vm) => vm.power_state !== POWER_STATE.HALTED)
 );
 
 const deleteVms = async () => {
