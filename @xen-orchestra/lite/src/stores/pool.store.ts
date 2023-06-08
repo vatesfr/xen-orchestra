@@ -9,12 +9,12 @@ type PoolExtension = {
   pool: ComputedRef<XenApiPool | undefined>;
 };
 
-type Config = [PoolExtension];
+type Extensions = [PoolExtension];
 
 export const usePoolStore = defineStore("pool", () => {
   const poolCollection = useXapiCollectionStore().get("pool");
 
-  const subscribe = createSubscribe<XenApiPool, Config>((options) => {
+  const subscribe = createSubscribe<XenApiPool, Extensions>((options) => {
     const originalSubscription = poolCollection.subscribe(options);
 
     const extendedSubscription = {

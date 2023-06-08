@@ -125,14 +125,16 @@ const createXapiCollection = <T extends XenApiRecord>(type: RawObjectType) => {
       lastError: readonly(lastError),
     };
 
-    if (options?.immediate === false) {
-      subscriptions.value.add(id);
+    const start = () => subscriptions.value.add(id);
+
+    if (options?.immediate !== false) {
+      start();
       return subscription as Subscription<T, O>;
     }
 
     return {
       ...subscription,
-      start: () => subscriptions.value.add(id),
+      start,
       isStarted: computed(() => subscriptions.value.has(id)),
     } as unknown as Subscription<T, O>;
   }

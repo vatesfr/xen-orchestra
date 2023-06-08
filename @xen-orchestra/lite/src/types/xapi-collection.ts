@@ -54,12 +54,12 @@ export type SubscribeOptions<Extensions extends any[]> = Partial<
 type GenerateSubscription<
   Options extends object,
   Extensions extends any[]
-> = Extensions extends [infer FirstConfig, ...infer RestConfig]
-  ? FirstConfig extends [infer FirstObject, infer FirstCondition]
+> = Extensions extends [infer FirstExtension, ...infer RestExtension]
+  ? FirstExtension extends [infer FirstObject, infer FirstCondition]
     ? Options extends FirstCondition
-      ? FirstObject & GenerateSubscription<Options, RestConfig>
-      : GenerateSubscription<Options, RestConfig>
-    : FirstConfig & GenerateSubscription<Options, RestConfig>
+      ? FirstObject & GenerateSubscription<Options, RestExtension>
+      : GenerateSubscription<Options, RestExtension>
+    : FirstExtension & GenerateSubscription<Options, RestExtension>
   : object;
 
 export type Subscription<
@@ -72,9 +72,9 @@ export type Subscription<
 export function createSubscribe<
   T extends XenApiRecord,
   Extensions extends any[],
-  GenOptions extends object = SubscribeOptions<Extensions>
->(builder: (options?: GenOptions) => Subscription<T, GenOptions, Extensions>) {
-  return function subscribe<O extends GenOptions>(
+  Options extends object = SubscribeOptions<Extensions>
+>(builder: (options?: Options) => Subscription<T, Options, Extensions>) {
+  return function subscribe<O extends Options>(
     options?: O
   ): Subscription<T, O, Extensions> {
     return builder(options);
