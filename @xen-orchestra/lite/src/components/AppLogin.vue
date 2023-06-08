@@ -29,7 +29,6 @@ import { onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import FormInput from "@/components/form/FormInput.vue";
 import FormInputWrapper from "@/components/form/FormInputWrapper.vue";
-import { POWER_STATE } from "@/libs/xen-api";
 import UiButton from "@/components/ui/UiButton.vue";
 import { useXenApiStore } from "@/stores/xen-api.store";
 
