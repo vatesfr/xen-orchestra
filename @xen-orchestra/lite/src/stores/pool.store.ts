@@ -1,21 +1,31 @@
 import { getFirst } from "@/libs/utils";
+import type { XenApiPool } from "@/libs/xen-api";
 import { useXapiCollectionStore } from "@/stores/xapi-collection.store";
+import { createSubscribe } from "@/types/xapi-collection";
 import { defineStore } from "pinia";
-import { computed } from "vue";
+import { computed, type ComputedRef } from "vue";
+
+type PoolExtension = {
+  pool: ComputedRef<XenApiPool | undefined>;
+};
+
+type Extensions = [PoolExtension];
 
 export const usePoolStore = defineStore("pool", () => {
   const poolCollection = useXapiCollectionStore().get("pool");
 
-  const subscribe = () => {
-    const subscription = poolCollection.subscribe();
+  const subscribe = createSubscribe<XenApiPool, Extensions>((options) => {
+    const originalSubscription = poolCollection.subscribe(options);
 
-    const pool = computed(() => getFirst(subscription.records.value));
+    const extendedSubscription = {
+      pool: computed(() => getFirst(originalSubscription.records.value)),
+    };
 
     return {
-      ...subscription,
-      pool,
+      ...originalSubscription,
+      ...extendedSubscription,
     };
-  };
+  });
 
   return {
     ...poolCollection,
