@@ -56,7 +56,11 @@
       </template>
     </MenuItem>
   </AppMenu>
-  <UiModal v-if="isDeleteModalOpen" :icon="faSatellite">
+  <UiModal
+    v-if="isDeleteModalOpen"
+    :icon="faSatellite"
+    @close="closeDeleteModal"
+  >
     <template #title>
       {{ $t("confirm-delete") }}
       <span class="n-vms-text">
