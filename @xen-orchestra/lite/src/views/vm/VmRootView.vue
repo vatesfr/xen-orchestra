@@ -10,6 +10,7 @@
 import ObjectNotFoundWrapper from "@/components/ObjectNotFoundWrapper.vue";
 import VmHeader from "@/components/vm/VmHeader.vue";
 import VmTabBar from "@/components/vm/VmTabBar.vue";
+import type { XenApiVm } from "@/libs/xen-api";
 import { useUiStore } from "@/stores/ui.store";
 import { useVmStore } from "@/stores/vm.store";
 import { whenever } from "@vueuse/core";
@@ -19,6 +20,6 @@ import { useRoute } from "vue-router";
 const route = useRoute();
 const { getByUuid, hasUuid, isReady } = useVmStore().subscribe();
 const uiStore = useUiStore();
-const vm = computed(() => getByUuid(route.params.uuid as string));
+const vm = computed(() => getByUuid(route.params.uuid as XenApiVm["uuid"]));
 whenever(vm, (vm) => (uiStore.currentHostOpaqueRef = vm.resident_on));
 </script>

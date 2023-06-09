@@ -136,9 +136,9 @@ export function getHostMemory(
   }
 }
 
-export const buildXoObject = <T extends XenApiRecord>(
+export const buildXoObject = <T extends XenApiRecord<string>>(
   record: RawXenApiRecord<T>,
-  params: { opaqueRef: string }
+  params: { opaqueRef: T["$ref"] }
 ) => {
   return {
     ...record,
