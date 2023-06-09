@@ -12,7 +12,7 @@
     <MenuItem :icon="faPowerOff">
       {{ $t("change-power-state") }}
       <template #submenu>
-        <VmsPowerActionsMenu :vm-refs="selectedRefs" />
+        <VmActionPowerStateItems :vm-refs="selectedRefs" />
       </template>
     </MenuItem>
     <MenuItem v-tooltip="$t('coming-soon')" :icon="faRoute">
@@ -60,7 +60,7 @@ import MenuItem from "@/components/menu/MenuItem.vue";
 import UiButton from "@/components/ui/UiButton.vue";
 import VmActionCopyItem from "@/components/vm/VmActionItems/VmActionCopyItem.vue";
 import { useUiStore } from "@/stores/ui.store";
-import VmsPowerActionsMenu from "@/components/vm/VmsPowerActionsMenu.vue";
+import VmActionPowerStateItems from "@/components/vm/VmActionItems/VmActionPowerStateItems.vue";
 import { vTooltip } from "@/directives/tooltip.directive";
 import {
   faCamera,

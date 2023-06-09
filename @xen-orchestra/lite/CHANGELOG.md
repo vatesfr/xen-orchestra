@@ -1,9 +1,5 @@
 # ChangeLog
 
-## **next**
-
-- Add the "Copy" VM bulk action (PR [#6847](https://github.com/vatesfr/xen-orchestra/pull/6847))
-
 ## **0.2.0**
 
 - Invalidate sessionId token after logout (PR [#6480](https://github.com/vatesfr/xen-orchestra/pull/6480))
@@ -20,6 +16,7 @@
 - Display an error message if the data cannot be fetched (PR [#6525](https://github.com/vatesfr/xen-orchestra/pull/6525))
 - Add "Under Construction" views (PR [#6673](https://github.com/vatesfr/xen-orchestra/pull/6673))
 - Ability to change the state of selected VMs from the pool's list of VMs (PR [#6782](https://github.com/vatesfr/xen-orchestra/pull/6782))
+- Ability to copy the selected VMs from the pool's list of VMs (PR [#6847](https://github.com/vatesfr/xen-orchestra/pull/6847))
 
 ## **0.1.0**
 

@@ -9,7 +9,7 @@
             <UiIcon :icon="faAngleDown" />
           </UiButton>
         </template>
-        <VmsPowerActionsMenu :vm-refs="[vm.$ref]" />
+        <VmActionPowerStateItems :vm-refs="[vm.$ref]" />
       </AppMenu>
     </template>
   </TitleBar>
@@ -21,7 +21,7 @@ import TitleBar from "@/components/TitleBar.vue";
 import UiIcon from "@/components/ui/icon/UiIcon.vue";
 import UiButton from "@/components/ui/UiButton.vue";
 import { useVmStore } from "@/stores/vm.store";
-import VmsPowerActionsMenu from "@/components/vm/VmsPowerActionsMenu.vue";
+import VmActionPowerStateItems from "@/components/vm/VmActionItems/VmActionPowerStateItems.vue";
 import {
   faAngleDown,
   faDisplay,
