@@ -388,7 +388,7 @@ export default class XenApi {
         const vmRefs = Object.keys(vmRefsToClone);
 
         return Promise.all(
-          castArray(vmRefs).map((vmRef) =>
+          vmRefs.map((vmRef) =>
             this._call("VM.clone", [vmRef, vmRefsToClone[vmRef]])
           )
         );
