@@ -1,16 +1,18 @@
 <template>
   <MenuItem
-    :icon="faCopy"
-    :disabled="!areAllSelectedVmsHalted"
+    v-tooltip="!areAllSelectedVmsHalted && $t('selected-vms-in-execution')"
     :busy="areSomeSelectedVmsCloning"
+    :disabled="!areAllSelectedVmsHalted"
+    :icon="faCopy"
     @click="handleCopy"
   >
     {{ $t("copy") }}
   </MenuItem>
 </template>
 
-<script setup lang="ts">
+<script lang="ts" setup>
 import MenuItem from "@/components/menu/MenuItem.vue";
+import { vTooltip } from "@/directives/tooltip.directive";
 import { isOperationsPending } from "@/libs/utils";
 import { POWER_STATE, VM_OPERATION, type XenApiVm } from "@/libs/xen-api";
 import { useVmStore } from "@/stores/vm.store";
@@ -51,4 +53,4 @@ const handleCopy = async () => {
 };
 </script>
 
-<style scoped lang="postcss"></style>
+<style lang="postcss" scoped></style>
