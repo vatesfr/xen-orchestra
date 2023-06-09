@@ -99,6 +99,7 @@
   },
   "resume": "Resume",
   "save": "Save",
+  "selected-vms-in-execution": "Some selected VMs are running",
   "send-us-feedback": "Send us feedback",
   "settings": "Settings",
   "shutdown": "Shutdown",

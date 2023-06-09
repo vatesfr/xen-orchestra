@@ -333,6 +333,7 @@ export default class XenApi {
       XenApiVm["$ref"],
       XenApiVm["power_state"]
     >;
+    type VmRefsToClone = Record<XenApiVm["$ref"], /* Cloned VM name */ string>;
 
     return {
       start: (vmRefs: VmRefs) =>
@@ -380,6 +381,15 @@ export default class XenApi {
         return Promise.all(
           castArray(vmRefs).map((vmRef) =>
             this._call(`VM.${force ? "hard" : "clean"}_shutdown`, [vmRef])
+          )
+        );
+      },
+      clone: (vmRefsToClone: VmRefsToClone) => {
+        const vmRefs = Object.keys(vmRefsToClone);
+
+        return Promise.all(
+          vmRefs.map((vmRef) =>
+            this._call("VM.clone", [vmRef, vmRefsToClone[vmRef]])
           )
         );
       },

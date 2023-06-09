@@ -99,6 +99,7 @@
   },
   "resume": "Reprendre",
   "save": "Enregistrer",
+  "selected-vms-in-execution": "Certaines VMs sélectionnées sont en cours d'exécution",
   "send-us-feedback": "Envoyez-nous vos commentaires",
   "settings": "Paramètres",
   "shutdown": "Arrêter",
