@@ -8,8 +8,9 @@ const { asyncEach } = require('@vates/async-each')
 
 const { warn } = createLogger('vhd-lib:createVhdDirectoryFromStream')
 
-const buildVhd = Disposable.wrap(async function* (handler, path, inputStream, { concurrency, compression }) {
+const buildVhd = Disposable.wrap(async function* (handler, path, inputStream, { concurrency, compression, isDelta }) {
   const vhd = yield VhdDirectory.create(handler, path, { compression })
+  const emptyBlock = Buffer.alloc(2 * 1024 * 1024, 0)
   await asyncEach(
     parseVhdStream(inputStream),
     async function (item) {
@@ -24,7 +25,11 @@ const buildVhd = Disposable.wrap(async function* (handler, path, inputStream, { 
           await vhd.writeParentLocator({ ...item, data: item.buffer })
           break
         case 'block':
-          await vhd.writeEntireBlock(item)
+          // automatically thin blocks of key backup
+          // we can't thin block of  delta backup since it can be an empty block whom parent block contains data
+          if (isDelta || !emptyBlock.equals(item.buffer)) {
+            await vhd.writeEntireBlock(item)
+          }
           break
         case 'bat':
           // it exists but  I don't care
@@ -45,10 +50,10 @@ exports.createVhdDirectoryFromStream = async function createVhdDirectoryFromStre
   handler,
   path,
   inputStream,
-  { validator, concurrency = 16, compression } = {}
+  { validator, concurrency = 16, compression, isDelta } = {}
 ) {
   try {
-    const size = await buildVhd(handler, path, inputStream, { concurrency, compression })
+    const size = await buildVhd(handler, path, inputStream, { concurrency, compression, isDelta })
     if (validator !== undefined) {
       await validator.call(this, path)
     }

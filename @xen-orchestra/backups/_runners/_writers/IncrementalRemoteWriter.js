@@ -211,6 +211,7 @@ class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrementalWrite
             checksum: false,
             validator: tmpPath => checkVhd(handler, tmpPath),
             writeBlockConcurrency: this._config.writeBlockConcurrency,
+            isDelta,
           })
 
           if (isDelta) {
