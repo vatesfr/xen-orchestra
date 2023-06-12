@@ -10,6 +10,7 @@
 - [XO Tasks] Abortion can now be requested, note that not all tasks will respond to it
 - [Home/Pool] `No XCP-ng Pro support enabled on this pool` alert is considered a warning instead of an error (PR [#6849](https://github.com/vatesfr/xen-orchestra/pull/6849))
 - [Plugin/auth-iodc] OpenID Connect scopes are now configurable and `profile` is included by default
+- [Cloud init] cloud init drives are now bootable in a Windows VM (PR [#6889](https://github.com/vatesfr/xen-orchestra/pull/6889))
 
 ### Bug fixes
 
@@ -34,6 +35,7 @@
 - @vates/nbd-client patch
 - @vates/task minor
 - xo-server-auth-oidc minor
+- xo-server minor
 - xo-web minor
 
 <!--packages-end-->
