@@ -103,7 +103,7 @@ export const ICON_POOL_LICENSE = {
   ),
   any: () => (
     <WrapperIconPoolLicense>
-      <Icon icon='alarm' className='text-danger' />
+      <Icon icon='alarm' className='text-warning' />
     </WrapperIconPoolLicense>
   ),
 }
