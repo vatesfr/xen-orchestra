@@ -20,12 +20,12 @@ export default class {
     }).addVocabulary(['$multiline', '$type', 'enumNames'])
     this._plugins = { __proto__: null }
 
-    this._pluginsMetadata = new PluginsMetadata({
-      connection: app._redis,
-      namespace: 'plugin-metadata',
-    })
+    app.hooks.on('core started', () => {
+      this._pluginsMetadata = new PluginsMetadata({
+        connection: app._redis,
+        namespace: 'plugin-metadata',
+      })
 
-    app.hooks.on('start', () => {
       app.addConfigManager(
         'plugins',
         () => this._pluginsMetadata.get(),

@@ -802,7 +802,7 @@ class SortedTable extends Component {
     const userData = this._getUserData()
 
     return (
-      <div>
+      <div className={props.className}>
         {shortcutsTarget !== undefined && (
           <Shortcuts
             handler={this._getShortcutsHandler()}

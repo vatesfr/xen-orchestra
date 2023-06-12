@@ -66,6 +66,7 @@ export default class Tasks extends EventEmitter {
 
         for await (const taskLog of this.list({ filter: _ => _.status === 'pending' })) {
           taskLog.status = 'interrupted'
+          taskLog.updatedAt = Date.now()
           await this.#store.put(taskLog.id, taskLog)
         }
 
@@ -133,7 +134,7 @@ export default class Tasks extends EventEmitter {
   create({ name, objectId, type }) {
     const tasks = this.#tasks
 
-    const task = new Task({ data: { name, objectId, type }, onProgress: this.#onProgress })
+    const task = new Task({ properties: { name, objectId, type }, onProgress: this.#onProgress })
 
     // Use a compact, sortable, string representation of the creation date
     //

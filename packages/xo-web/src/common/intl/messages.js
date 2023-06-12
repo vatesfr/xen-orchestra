@@ -25,6 +25,7 @@ const messages = {
   vmSrUsage: 'Storage: {used} used of {total} ({free} free)',
 
   notDefined: 'Not defined',
+  status: 'Status',
   statusConnecting: 'Connecting',
   statusDisconnected: 'Disconnected',
   statusLoading: 'Loading…',
@@ -219,6 +220,8 @@ const messages = {
   xoConfig: 'XO config',
   backupVms: 'Backup VMs',
   backupMetadata: 'Backup metadata',
+  mirrorBackup: 'Mirror backup',
+  mirrorBackupVms: 'Mirror backup VMs',
   jobsOverviewPage: 'Overview',
   jobsNewPage: 'New',
   jobsSchedulingPage: 'Scheduling',
@@ -449,6 +452,8 @@ const messages = {
   taskSkipped: 'Skipped',
   taskStarted: 'Started',
   taskInterrupted: 'Interrupted',
+  taskEnded: 'Ended',
+  taskAborted: 'Aborted',
   taskTransferredDataSize: 'Transfer size',
   taskTransferredDataSpeed: 'Transfer speed',
   taskMergedDataSize: 'Merge size',
@@ -456,6 +461,7 @@ const messages = {
   taskError: 'Error',
   taskEstimatedEnd: 'Estimated end',
   taskReason: 'Reason',
+  taskOpenRawLog: 'Open raw log',
   saveBackupJob: 'Save',
   deleteBackupSchedule: 'Remove backup job',
   deleteBackupScheduleQuestion: 'Are you sure you want to delete this backup job?',
@@ -467,6 +473,7 @@ const messages = {
   missingBackupName: "A name is required to create the backup's job!",
   missingVms: 'Missing VMs!',
   missingBackupMode: 'You need to choose a backup mode!',
+  missingRemote: 'Missing remote!',
   missingRemotes: 'Missing remotes!',
   missingSrs: 'Missing SRs!',
   missingPools: 'Missing pools!',
@@ -583,8 +590,12 @@ const messages = {
   confirmDeleteBackupJobsTitle: 'Delete backup job{nJobs, plural, one {} other {s}}',
   confirmDeleteBackupJobsBody:
     'Are you sure you want to delete {nJobs, number} backup job{nJobs, plural, one {} other {s}}?',
+  mirrorFullBackup: 'Mirror full backup',
+  mirrorIncrementalBackup: 'Mirror incremental backup',
   runBackupJob: 'Run backup job once',
   speedLimit: 'Speed limit (in MiB/s)',
+  sourceRemote: 'Source remote',
+  targetRemotes: 'Target remotes',
 
   // ------ Remote -----
   remoteName: 'Name',
@@ -624,9 +635,9 @@ const messages = {
   remoteS3TooltipAcceptInsecure: 'Check if you want to accept self signed certificates',
   remotePlaceHolderPassword: 'Password(fill to edit)',
   remoteUseVhdDirectory:
-    'Store backup as multiple data blocks instead of a whole VHD file. (creates 500-1000 files per backed up TB but allows faster merge)',
+    'Store backup as multiple data blocks instead of a whole VHD file. (creates 500-1000 files per backed up GB but allows faster merge)',
   remoteUseVhdDirectoryTooltip:
-    'Your remote must be able to handle parallel access (up to 16 write processes per backup) and the number of files (500 files per GB of backed up data)',
+    'Your remote must be able to handle parallel access (up to 16 write processes per backup) and the number of files (500-1000 files per GB of backed up data)',
   remoteEncryptionBackupSize: 'Size of backup is not updated when using encryption.',
   remoteEncryptionEncryptedfiles:
     'All the files of the remote except the encryption.json are encrypted, that means you can only activate encryption or change key on an empty remote.',
@@ -1615,6 +1626,7 @@ const messages = {
   saveResourceSet: 'Save',
   resetResourceSet: 'Reset',
   editResourceSet: 'Edit',
+  defaultTags: 'Default tags',
   deleteResourceSet: 'Delete',
   deleteResourceSetWarning: 'Delete resource set',
   deleteResourceSetQuestion: 'Are you sure you want to delete this resource set?',
@@ -1633,6 +1645,7 @@ const messages = {
   availableResourceLabel: 'Available',
   resourceSetQuota: 'Used: {usage} (Total: {total})',
   resourceSetNew: 'New',
+  shareVmsByDefault: 'Share VMs by default',
 
   // ---- VM import ---
   fileType: 'File type:',
@@ -1676,10 +1689,13 @@ const messages = {
   importToSr: 'To SR',
 
   // ---- Tasks ---
+  poolTasks: 'Pool tasks',
+  xoTasks: 'XO tasks',
   cancelTask: 'Cancel',
   destroyTask: 'Destroy',
   cancelTasks: 'Cancel selected tasks',
   destroyTasks: 'Destroy selected tasks',
+  object: 'Object',
   objects: 'Objects',
   pool: 'Pool',
   task: 'Task',
@@ -2434,7 +2450,11 @@ const messages = {
   recipeNumberOfNodesLabel: 'Number of worker nodes',
   recipeSshKeyLabel: 'SSH key',
   recipeStaticIpAddresses: 'Static IP addresses',
-  recipeHighAvailability: 'High Availability Cluster',
+  recipeFaultTolerance: 'Control plane fault tolerance',
+  recipeNoneFaultTolerance: 'No fault tolerance (one control plane)',
+  recipeOneFaultTolerance: 'One fault tolerance (three control planes)',
+  recipeTwoFaultTolerance: 'Two fault tolerances (five control planes)',
+  recipeThreeFaultTolerance: 'Three fault tolerances (seven control planes)',
   recipeHaControPlaneIpAddress: 'Control plane { i, number } node IP address/subnet mask',
   recipeVip: 'VIP address',
   recipeControlPlaneIpAddress: 'Control plane node IP address/subnet mask',

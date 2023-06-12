@@ -1,11 +1,11 @@
 /* eslint-env jest */
 import { spawn } from 'child_process'
 import { createReadStream, createWriteStream, readFile } from 'fs-extra'
+import { rimraf } from 'rimraf'
 import execa from 'execa'
 import path from 'path'
 import { pFromCallback, fromEvent } from 'promise-toolbox'
 import tmp from 'tmp'
-import rimraf from 'rimraf'
 import { writeOvaOn } from './ova-generate'
 import { parseOVF } from './ova-read'
 

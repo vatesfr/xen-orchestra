@@ -12,13 +12,13 @@ export default class {
   constructor(app) {
     this._app = app
 
-    const aclsDb = (this._acls = new Acls({
-      connection: app._redis,
-      namespace: 'acl',
-      indexes: ['subject', 'object'],
-    }))
+    app.hooks.on('core started', () => {
+      const aclsDb = (this._acls = new Acls({
+        connection: app._redis,
+        namespace: 'acl',
+        indexes: ['subject', 'object'],
+      }))
 
-    app.hooks.on('start', () => {
       app.addConfigManager(
         'acls',
         () => aclsDb.get(),
@@ -28,6 +28,7 @@ export default class {
     })
 
     app.hooks.on('clean', async () => {
+      const aclsDb = this._acls
       const acls = await aclsDb.get()
       const toRemove = []
       forEach(acls, ({ subject, object, action, id }) => {

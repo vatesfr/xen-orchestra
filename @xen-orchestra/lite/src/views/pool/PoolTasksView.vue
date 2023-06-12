@@ -1,12 +1,11 @@
 <template>
-  <UiCard>
+  <UiCard :color="hasError ? 'error' : undefined">
     <UiTitle class="title-with-counter" type="h4">
       {{ $t("tasks") }}
       <UiCounter :value="pendingTasks.length" color="info" />
     </UiTitle>
 
     <TasksTable :finished-tasks="finishedTasks" :pending-tasks="pendingTasks" />
-    <UiSpinner v-if="!isReady" class="loader" />
   </UiCard>
 </template>
 
@@ -14,7 +13,6 @@
 import TasksTable from "@/components/tasks/TasksTable.vue";
 import UiCard from "@/components/ui/UiCard.vue";
 import UiCounter from "@/components/ui/UiCounter.vue";
-import UiSpinner from "@/components/ui/UiSpinner.vue";
 import UiTitle from "@/components/ui/UiTitle.vue";
 import useArrayRemovedItemsHistory from "@/composables/array-removed-items-history.composable";
 import useCollectionFilter from "@/composables/collection-filter.composable";
@@ -27,7 +25,7 @@ import { useTitle } from "@vueuse/core";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
-const { records, isReady } = useTaskStore().subscribe();
+const { records, hasError } = useTaskStore().subscribe();
 const { t } = useI18n();
 
 const { compareFn } = useCollectionSorter<XenApiTask>({
@@ -70,12 +68,5 @@ useTitle(
   .ui-counter {
     font-size: 1.4rem;
   }
-}
-
-.loader {
-  color: var(--color-extra-blue-base);
-  display: block;
-  font-size: 4rem;
-  margin: 2rem auto 0;
 }
 </style>

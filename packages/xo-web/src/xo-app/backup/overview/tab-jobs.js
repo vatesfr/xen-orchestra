@@ -29,9 +29,11 @@ import {
   enableSchedule,
   runBackupNgJob,
   runMetadataBackupJob,
+  runMirrorBackupJob,
   subscribeBackupNgJobs,
   subscribeBackupNgLogs,
   subscribeMetadataBackupJobs,
+  subscribeMirrorBackupJobs,
   subscribeSchedules,
 } from 'xo'
 
@@ -49,26 +51,38 @@ const Li = props => (
   />
 )
 
+const isMirrorBackupType = item => item?.type === 'mirrorBackup'
+
+const isBackupType = item => item?.type === 'backup'
+
 const MODES = [
   {
+    label: 'mirrorFullBackup',
+    test: job => isMirrorBackupType(job) && job.mode === 'full',
+  },
+  {
+    label: 'mirrorIncrementalBackup',
+    test: job => isMirrorBackupType(job) && job.mode === 'delta',
+  },
+  {
     label: 'rollingSnapshot',
-    test: job => some(job.settings, ({ snapshotRetention }) => snapshotRetention > 0),
+    test: job => isBackupType(job) && some(job.settings, ({ snapshotRetention }) => snapshotRetention > 0),
   },
   {
     label: 'backup',
-    test: job => job.mode === 'full' && !isEmpty(get(() => destructPattern(job.remotes))),
+    test: job => isBackupType(job) && job.mode === 'full' && !isEmpty(get(() => destructPattern(job.remotes))),
   },
   {
     label: 'deltaBackup',
-    test: job => job.mode === 'delta' && !isEmpty(get(() => destructPattern(job.remotes))),
+    test: job => isBackupType(job) && job.mode === 'delta' && !isEmpty(get(() => destructPattern(job.remotes))),
   },
   {
     label: 'continuousReplication',
-    test: job => job.mode === 'delta' && !isEmpty(get(() => destructPattern(job.srs))),
+    test: job => isBackupType(job) && job.mode === 'delta' && !isEmpty(get(() => destructPattern(job.srs))),
   },
   {
     label: 'disasterRecovery',
-    test: job => job.mode === 'full' && !isEmpty(get(() => destructPattern(job.srs))),
+    test: job => isBackupType(job) && job.mode === 'full' && !isEmpty(get(() => destructPattern(job.srs))),
   },
   {
     label: 'poolMetadata',
@@ -81,8 +95,8 @@ const MODES = [
 ]
 
 const _deleteBackupJobs = items => {
-  const { backup: backupIds, metadataBackup: metadataBackupIds } = groupBy(items, 'type')
-  return deleteBackupJobs({ backupIds, metadataBackupIds })
+  const { backup: backupIds, metadataBackup: metadataBackupIds, mirrorBackup: mirrorBackupIds } = groupBy(items, 'type')
+  return deleteBackupJobs({ backupIds, metadataBackupIds, mirrorBackupIds })
 }
 
 const _runBackupJob = ({ id, name, nVms, schedule, type }) =>
@@ -94,12 +108,17 @@ const _runBackupJob = ({ id, name, nVms, schedule, type }) =>
           id: id.slice(0, 5),
           name: <strong>{name}</strong>,
         })}{' '}
-        {_('runBackupJobWarningNVms', {
-          nVms,
-        })}
+        {type === 'backup' &&
+          _('runBackupJobWarningNVms', {
+            nVms,
+          })}
       </span>
     ),
-  }).then(() => (type === 'backup' ? runBackupNgJob({ id, schedule }) : runMetadataBackupJob({ id, schedule })))
+  }).then(() => {
+    const method =
+      type === 'backup' ? runBackupNgJob : isMirrorBackupType({ type }) ? runMirrorBackupJob : runMetadataBackupJob
+    return method({ id, schedule })
+  })
 
 const CURSOR_POINTER_STYLE = { cursor: 'pointer' }
 const GoToLogs = decorate([
@@ -235,6 +254,7 @@ const SchedulePreviewBody = decorate([
 @addSubscriptions({
   jobs: subscribeBackupNgJobs,
   metadataJobs: subscribeMetadataBackupJobs,
+  mirrorBackupJobs: subscribeMirrorBackupJobs,
   schedulesByJob: cb =>
     subscribeSchedules(schedules => {
       cb(groupBy(schedules, 'jobId'))
@@ -307,7 +327,7 @@ class JobsTable extends React.Component {
           } = getSettingsWithNonDefaultValue(job.mode, {
             compression: job.compression,
             proxyId: job.proxy,
-            ...job.settings[''],
+            ...job.settings?.[''],
           })
 
           return (
@@ -382,7 +402,8 @@ class JobsTable extends React.Component {
     createSelector(
       () => this.props.jobs,
       () => this.props.metadataJobs,
-      (jobs = [], metadataJobs = []) => [...jobs, ...metadataJobs]
+      () => this.props.mirrorBackupJobs,
+      (jobs = [], metadataJobs = [], mirrorJobs = []) => [...jobs, ...metadataJobs, ...mirrorJobs]
     ),
     () => this.props.predicate
   )

@@ -31,6 +31,6 @@
   },
   "scripts": {
     "postversion": "npm publish --access public",
-    "test-integration": "tap --lines 70 --functions 36 --branches 54 --statements 69 *.integ.js"
+    "test-integration": "tap --lines 97 --functions 95 --branches 74 --statements 97 tests/*.integ.js"
   }
 }

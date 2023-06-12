@@ -37,6 +37,7 @@ import PowerStateIcon from "@/components/PowerStateIcon.vue";
 import UiCard from "@/components/ui/UiCard.vue";
 import UiCardTitle from "@/components/ui/UiCardTitle.vue";
 import VmsActionsBar from "@/components/vm/VmsActionsBar.vue";
+import { POWER_STATE } from "@/libs/xen-api";
 import { useUiStore } from "@/stores/ui.store";
 import { useVmStore } from "@/stores/vm.store";
 import type { Filters } from "@/types/filter";
@@ -56,7 +57,7 @@ const filters: Filters = {
     label: t("power-state"),
     icon: faPowerOff,
     type: "enum",
-    choices: ["Running", "Halted", "Paused", "Suspended"],
+    choices: Object.values(POWER_STATE),
   },
 };
 

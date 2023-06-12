@@ -4,7 +4,7 @@
 
 <script lang="ts" setup>
 import { fibonacci } from "iterable-backoff";
-import { computed, onBeforeUnmount, ref, watch, watchEffect } from "vue";
+import { computed, onBeforeUnmount, ref, watchEffect } from "vue";
 import VncClient from "@novnc/novnc/core/rfb";
 import { useXenApiStore } from "@/stores/xen-api.store";
 import { promiseTimeout } from "@vueuse/shared";
@@ -87,7 +87,6 @@ const createVncConnection = async () => {
   vncClient.addEventListener("connect", handleConnectionEvent);
 };
 
-watch(url, clearVncClient);
 watchEffect(() => {
   if (
     url.value === undefined ||
@@ -98,6 +97,8 @@ watchEffect(() => {
   }
 
   nConnectionAttempts = 0;
+
+  clearVncClient();
   createVncConnection();
 });
 

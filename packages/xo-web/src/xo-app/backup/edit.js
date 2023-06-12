@@ -6,15 +6,17 @@ import Icon from 'icon'
 import React from 'react'
 import { injectState, provideState } from 'reaclette'
 import { find, groupBy, keyBy } from 'lodash'
-import { subscribeBackupNgJobs, subscribeMetadataBackupJobs, subscribeSchedules } from 'xo'
+import { subscribeBackupNgJobs, subscribeMetadataBackupJobs, subscribeMirrorBackupJobs, subscribeSchedules } from 'xo'
 
 import Metadata from './new/metadata'
 import New from './new'
+import NewMirrorBackup from './new/mirror'
 
 export default decorate([
   addSubscriptions({
     jobs: subscribeBackupNgJobs,
     metadataJobs: subscribeMetadataBackupJobs,
+    mirrorBackupJobs: subscribeMirrorBackupJobs,
     schedulesByJob: cb =>
       subscribeSchedules(schedules => {
         cb(groupBy(schedules, 'jobId'))
@@ -22,7 +24,8 @@ export default decorate([
   }),
   provideState({
     computed: {
-      job: (_, { jobs, metadataJobs, routeParams: { id } }) => defined(find(jobs, { id }), find(metadataJobs, { id })),
+      job: (_, { jobs, metadataJobs, mirrorBackupJobs, routeParams: { id } }) =>
+        defined(find(jobs, { id }), find(metadataJobs, { id }), find(mirrorBackupJobs, { id })),
       schedules: (_, { schedulesByJob, routeParams: { id } }) => schedulesByJob && keyBy(schedulesByJob[id], 'id'),
       loading: (_, props) =>
         props.jobs === undefined || props.metadataJobs === undefined || props.schedulesByJob === undefined,
@@ -38,6 +41,8 @@ export default decorate([
       </span>
     ) : job.type === 'backup' ? (
       <New job={job} schedules={schedules} />
+    ) : job.type === 'mirrorBackup' ? (
+      <NewMirrorBackup job={job} schedules={schedules} />
     ) : (
       <Metadata job={job} schedules={schedules} />
     ),

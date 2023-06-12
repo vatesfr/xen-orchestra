@@ -7,15 +7,12 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [Proxy] Make proxy address editable (PR [#6816](https://github.com/vatesfr/xen-orchestra/pull/6816))
-- [Home/Host] Displays a warning for hosts with HVM disabled [#6823](https://github.com/vatesfr/xen-orchestra/issues/6823) (PR [#6834](https://github.com/vatesfr/xen-orchestra/pull/6834))
+- [XO Tasks] Abortion can now be requested, note that not all tasks will respond to it
 - [Home/Pool] `No XCP-ng Pro support enabled on this pool` alert is considered a warning instead of an error (PR [#6849](https://github.com/vatesfr/xen-orchestra/pull/6849))
 
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
-
-- [Sorted table] In collapsed actions, a spinner is displayed during the action time (PR [#6831](https://github.com/vatesfr/xen-orchestra/pull/6831))
 
 ### Packages to release
 
@@ -33,8 +30,8 @@
 
 <!--packages-start-->
 
-- @xen-orchestra/mixins patch
-- xo-cli minor
+- @vates/nbd-client patch
+- @vates/task minor
 - xo-web minor
 
 <!--packages-end-->

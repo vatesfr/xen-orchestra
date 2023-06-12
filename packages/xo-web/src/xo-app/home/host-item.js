@@ -54,6 +54,18 @@ import { getXoaPlan, SOURCES } from '../../common/xoa-plans'
 }))
 @injectState
 export default class HostItem extends Component {
+  state = {
+    isHostTimeConsistentWithXoaTime: true,
+  }
+
+  componentWillMount() {
+    isHostTimeConsistentWithXoaTime(this.props.item).then(value =>
+      this.setState({
+        isHostTimeConsistentWithXoaTime: value,
+      })
+    )
+  }
+
   get _isRunning() {
     const host = this.props.item
     return host && host.power_state === 'Running'
@@ -119,7 +131,8 @@ export default class HostItem extends Component {
     () => this.props.needsRestart,
     () => this.props.item,
     this._isMaintained,
-    (needsRestart, host, isMaintained) => {
+    () => this.state.isHostTimeConsistentWithXoaTime,
+    (needsRestart, host, isMaintained, isHostTimeConsistentWithXoaTime) => {
       const alerts = []
 
       if (needsRestart) {
@@ -144,7 +157,7 @@ export default class HostItem extends Component {
         })
       }
 
-      if (!isHostTimeConsistentWithXoaTime(host)) {
+      if (!isHostTimeConsistentWithXoaTime) {
         alerts.push({
           level: 'danger',
           render: (

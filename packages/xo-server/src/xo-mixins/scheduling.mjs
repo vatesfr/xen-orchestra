@@ -31,11 +31,6 @@ export default class Scheduling {
   constructor(app) {
     this._app = app
 
-    const db = (this._db = new Schedules({
-      connection: app._redis,
-      namespace: 'schedule',
-    }))
-
     this._runs = { __proto__: null }
 
     app.hooks.on('clean', async () => {
@@ -44,11 +39,17 @@ export default class Scheduling {
         app.getAllSchedules(),
       ])
 
-      await db.remove(schedules.filter(_ => !(_.jobId in jobsById)).map(_ => _.id))
+      const db = this._db
 
-      return db.rebuildIndexes()
+      await db.remove(schedules.filter(_ => !(_.jobId in jobsById)).map(_ => _.id))
+      await db.rebuildIndexes()
     })
-    app.hooks.on('start', async () => {
+    app.hooks.on('core started', () => {
+      const db = (this._db = new Schedules({
+        connection: app._redis,
+        namespace: 'schedule',
+      }))
+
       app.addConfigManager(
         'schedules',
         () => db.get(),
@@ -59,7 +60,8 @@ export default class Scheduling {
           }),
         ['jobs']
       )
-
+    })
+    app.hooks.on('start', async () => {
       const schedules = await this.getAllSchedules()
       schedules.forEach(schedule => this._start(schedule))
     })

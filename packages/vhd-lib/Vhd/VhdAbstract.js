@@ -267,11 +267,8 @@ exports.VhdAbstract = class VhdAbstract {
 
     // update them in header
     // update checksum in header
-
+    header.tableOffset = FOOTER_SIZE + HEADER_SIZE
     let offset = FOOTER_SIZE + HEADER_SIZE + batSize
-
-    const rawHeader = fuHeader.pack(header)
-    checksumStruct(rawHeader, fuHeader)
 
     // add parentlocator size
     for (let i = 0; i < PARENT_LOCATOR_ENTRIES; i++) {
@@ -281,6 +278,9 @@ exports.VhdAbstract = class VhdAbstract {
       }
       offset += header.parentLocatorEntry[i].platformDataSpace * SECTOR_SIZE
     }
+
+    const rawHeader = fuHeader.pack(header)
+    checksumStruct(rawHeader, fuHeader)
 
     assert.strictEqual(offset % SECTOR_SIZE, 0)
 
@@ -299,6 +299,7 @@ exports.VhdAbstract = class VhdAbstract {
       }
     }
 
+    assert.strictEqual(offset % SECTOR_SIZE, 0)
     const self = this
     async function* iterator() {
       yield rawFooter

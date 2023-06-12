@@ -46,6 +46,7 @@ const OBJECT_TYPES = {
   host_crashdump: "host_crashdump",
   host_metrics: "host_metrics",
   host_patch: "host_patch",
+  message: "message",
   network: "network",
   network_sriov: "network_sriov",
   pool: "pool",
@@ -65,7 +66,27 @@ export const getRawObjectType = (type: ObjectType): RawObjectType => {
   return OBJECT_TYPES[type];
 };
 
-export type PowerState = "Running" | "Paused" | "Halted" | "Suspended";
+export enum POWER_STATE {
+  RUNNING = "Running",
+  PAUSED = "Paused",
+  HALTED = "Halted",
+  SUSPENDED = "Suspended",
+}
+
+export enum VM_OPERATION {
+  START = "start",
+  START_ON = "start_on",
+  RESUME = "resume",
+  UNPAUSE = "unpause",
+  CLONE = "clone",
+  SHUTDOWN = "shutdown",
+  CLEAN_SHUTDOWN = "clean_shutdown",
+  HARD_SHUTDOWN = "hard_shutdown",
+  CLEAN_REBOOT = "clean_reboot",
+  HARD_REBOOT = "hard_reboot",
+  PAUSE = "pause",
+  SUSPEND = "suspend",
+}
 
 export interface XenApiRecord {
   $ref: string;
@@ -98,12 +119,12 @@ export interface XenApiSr extends XenApiRecord {
 }
 
 export interface XenApiVm extends XenApiRecord {
-  current_operations: Record<string, string>;
+  current_operations: Record<string, VM_OPERATION>;
   guest_metrics: string;
   metrics: string;
   name_label: string;
   name_description: string;
-  power_state: PowerState;
+  power_state: POWER_STATE;
   resident_on: string;
   consoles: string[];
   is_control_domain: boolean;
@@ -136,6 +157,11 @@ export interface XenApiTask extends XenApiRecord {
   finished: string;
   status: string;
   progress: number;
+}
+
+export interface XenApiMessage extends XenApiRecord {
+  name: string;
+  cls: RawObjectType;
 }
 
 type WatchCallbackResult = {
@@ -214,8 +240,7 @@ export default class XenApi {
   async loadTypes() {
     this.#types = (await this.#call<string[]>("system.listMethods"))
       .filter((method: string) => method.endsWith(".get_all_records"))
-      .map((method: string) => method.slice(0, method.indexOf(".")))
-      .filter((type: string) => type !== "message");
+      .map((method: string) => method.slice(0, method.indexOf(".")));
   }
 
   get sessionId() {
@@ -313,6 +338,7 @@ export default class XenApi {
       XenApiVm["$ref"],
       XenApiVm["power_state"]
     >;
+    type VmRefsToClone = Record<XenApiVm["$ref"], /* Cloned VM name */ string>;
 
     return {
       start: (vmRefs: VmRefs) =>
@@ -360,6 +386,15 @@ export default class XenApi {
         return Promise.all(
           castArray(vmRefs).map((vmRef) =>
             this._call(`VM.${force ? "hard" : "clean"}_shutdown`, [vmRef])
+          )
+        );
+      },
+      clone: (vmRefsToClone: VmRefsToClone) => {
+        const vmRefs = Object.keys(vmRefsToClone);
+
+        return Promise.all(
+          vmRefs.map((vmRef) =>
+            this._call("VM.clone", [vmRef, vmRefsToClone[vmRef]])
           )
         );
       },

@@ -1,9 +1,9 @@
 /* eslint-env jest */
 
+import { rimraf } from 'rimraf'
 import execa from 'execa'
 import fromEvent from 'promise-toolbox/fromEvent'
 import getStream from 'get-stream'
-import rimraf from 'rimraf'
 import tmp from 'tmp'
 
 import { createReadStream, createWriteStream, stat } from 'fs-extra'

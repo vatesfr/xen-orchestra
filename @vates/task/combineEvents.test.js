@@ -11,7 +11,7 @@ describe('makeOnProgress()', function () {
     const events = []
     let log
     const task = new Task({
-      data: { name: 'task' },
+      properties: { name: 'task' },
       onProgress: makeOnProgress({
         onRootTaskStart(log_) {
           assert.equal(log, undefined)
@@ -32,36 +32,50 @@ describe('makeOnProgress()', function () {
 
     assert.equal(events.length, 0)
 
+    let i = 0
+
     await task.run(async () => {
-      assert.equal(events[0], 'onRootTaskStart')
-      assert.equal(events[1], 'onTaskUpdate')
-      assert.equal(log.name, 'task')
+      assert.equal(events[i++], 'onRootTaskStart')
+      assert.equal(events[i++], 'onTaskUpdate')
+      assert.equal(log.id, task.id)
+      assert.equal(log.properties.name, 'task')
+      assert(Math.abs(log.start - Date.now()) < 10)
+
+      Task.set('name', 'new name')
+      assert.equal(events[i++], 'onTaskUpdate')
+      assert.equal(log.properties.name, 'new name')
 
       Task.set('progress', 0)
-      assert.equal(events[2], 'onTaskUpdate')
+      assert.equal(events[i++], 'onTaskUpdate')
       assert.equal(log.properties.progress, 0)
 
       Task.info('foo', {})
-      assert.equal(events[3], 'onTaskUpdate')
+      assert.equal(events[i++], 'onTaskUpdate')
       assert.deepEqual(log.infos, [{ data: {}, message: 'foo' }])
 
-      await Task.run({ data: { name: 'subtask' } }, () => {
-        assert.equal(events[4], 'onTaskUpdate')
-        assert.equal(log.tasks[0].name, 'subtask')
+      const subtask = new Task({ properties: { name: 'subtask' } })
+      await subtask.run(() => {
+        assert.equal(events[i++], 'onTaskUpdate')
+        assert.equal(log.tasks[0].properties.name, 'subtask')
 
         Task.warning('bar', {})
-        assert.equal(events[5], 'onTaskUpdate')
+        assert.equal(events[i++], 'onTaskUpdate')
         assert.deepEqual(log.tasks[0].warnings, [{ data: {}, message: 'bar' }])
+
+        subtask.abort()
+        assert.equal(events[i++], 'onTaskUpdate')
+        assert(Math.abs(log.tasks[0].abortionRequestedAt - Date.now()) < 10)
       })
-      assert.equal(events[6], 'onTaskUpdate')
+      assert.equal(events[i++], 'onTaskUpdate')
       assert.equal(log.tasks[0].status, 'success')
 
       Task.set('progress', 100)
-      assert.equal(events[7], 'onTaskUpdate')
+      assert.equal(events[i++], 'onTaskUpdate')
       assert.equal(log.properties.progress, 100)
     })
-    assert.equal(events[8], 'onRootTaskEnd')
-    assert.equal(events[9], 'onTaskUpdate')
+    assert.equal(events[i++], 'onRootTaskEnd')
+    assert.equal(events[i++], 'onTaskUpdate')
+    assert(Math.abs(log.end - Date.now()) < 10)
     assert.equal(log.status, 'success')
   })
 })

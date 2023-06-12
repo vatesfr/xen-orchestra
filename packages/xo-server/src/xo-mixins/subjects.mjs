@@ -23,20 +23,19 @@ export default class {
   constructor(app) {
     this._app = app
 
-    const redis = app._redis
+    app.hooks.on('clean', () => Promise.all([this._groups.rebuildIndexes(), this._users.rebuildIndexes()]))
+    app.hooks.on('core started', () => {
+      const redis = app._redis
+      const groupsDb = (this._groups = new Groups({
+        connection: redis,
+        namespace: 'group',
+      }))
+      const usersDb = (this._users = new Users({
+        connection: redis,
+        namespace: 'user',
+        indexes: ['email'],
+      }))
 
-    const groupsDb = (this._groups = new Groups({
-      connection: redis,
-      namespace: 'group',
-    }))
-    const usersDb = (this._users = new Users({
-      connection: redis,
-      namespace: 'user',
-      indexes: ['email'],
-    }))
-
-    app.hooks.on('clean', () => Promise.all([groupsDb.rebuildIndexes(), usersDb.rebuildIndexes()]))
-    app.hooks.on('start', async () => {
       app.addConfigManager(
         'groups',
         () => groupsDb.get(),
@@ -58,8 +57,9 @@ export default class {
             })
           )
       )
-
-      if (!(await usersDb.exists())) {
+    })
+    app.hooks.on('start', async () => {
+      if (!(await this._users.exists())) {
         const key = 'vm-data/admin-account'
         const { email = 'admin@admin.net', password = 'admin' } = await XenStore.read(key)
           .then(JSON.parse)

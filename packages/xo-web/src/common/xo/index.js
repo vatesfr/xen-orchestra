@@ -232,7 +232,7 @@ const createSubscription = (cb, { polling = 5e3 } = {}) => {
 
     running = true
     _signIn
-      .then(() => cb())
+      .then(() => cb(cache))
       .then(
         result => {
           running = false
@@ -563,6 +563,33 @@ export const createSrUnhealthyVdiChainsLengthSubscription = sr => {
 }
 
 export const subscribeUserAuthTokens = createSubscription(() => _call('user.getAuthenticationTokens'))
+
+export const subscribeXoTasks = createSubscription(async previousTasks => {
+  let filter = ''
+  // Deduplicate previous tasks and new tasks with a Map
+  const tasks = new Map()
+  if (previousTasks !== undefined) {
+    let lastUpdate = 0
+    previousTasks.forEach(task => {
+      if (task.updatedAt > lastUpdate) {
+        lastUpdate = task.updatedAt
+      }
+      tasks.set(task.id, task)
+    })
+    filter = `&filter=updatedAt%3A%3E${lastUpdate}`
+  }
+
+  // Fetch new and updated tasks
+  const response = await fetch(
+    './rest/v0/tasks?fields=abortionRequestedAt,end,id,name,objectId,properties,start,status,updatedAt,href' + filter
+  )
+  for (const task of await response.json()) {
+    tasks.set(task.id, task)
+  }
+
+  // Sort dates by start time
+  return Array.from(tasks.values()).sort(({ start: start1 }, { start: start2 }) => start1 - start2)
+})
 
 // System ============================================================
 
@@ -2254,6 +2281,17 @@ export const destroyTasks = tasks =>
     body: _('destroyTasksModalMessage', { nTasks: tasks.length }),
   }).then(() => Promise.all(map(tasks, task => _call('task.destroy', { id: resolveId(task) }))), noop)
 
+// XO Tasks --------------------------------------------------------------
+
+export const abortXoTask = async task => {
+  const response = await fetch(`./rest/v0/tasks/${task.id}/actions/abort`, { method: 'POST' })
+  if (response.ok) {
+    subscribeXoTasks.forceRefresh()
+  } else {
+    throw new Error(await response.text())
+  }
+}
+
 // Jobs -------------------------------------------------------------
 
 export const createJob = job => _call('job.create', { job })::tap(subscribeJobs.forceRefresh)
@@ -2350,8 +2388,8 @@ export const createBackupNgJob = props => _call('backupNg.createJob', props)::ta
 
 export const getSuggestedExcludedTags = () => _call('backupNg.getSuggestedExcludedTags')
 
-export const deleteBackupJobs = async ({ backupIds = [], metadataBackupIds = [] }) => {
-  const nJobs = backupIds.length + metadataBackupIds.length
+export const deleteBackupJobs = async ({ backupIds = [], metadataBackupIds = [], mirrorBackupIds = [] }) => {
+  const nJobs = backupIds.length + metadataBackupIds.length + mirrorBackupIds.length
   if (nJobs === 0) {
     return
   }
@@ -2377,6 +2415,13 @@ export const deleteBackupJobs = async ({ backupIds = [], metadataBackupIds = [] 
     promises.push(
       Promise.all(metadataBackupIds.map(id => _call('metadataBackup.deleteJob', { id: resolveId(id) })))::tap(
         subscribeMetadataBackupJobs.forceRefresh
+      )
+    )
+  }
+  if (mirrorBackupIds.length !== 0) {
+    promises.push(
+      Promise.all(mirrorBackupIds.map(id => _call('mirrorBackup.deleteJob', { id: resolveId(id) })))::tap(
+        subscribeMirrorBackupJobs.forceRefresh
       )
     )
   }
@@ -2465,6 +2510,17 @@ export const deleteMetadataBackups = async (backups = []) => {
   }
 }
 
+// Mirror backup ---------------------------------------------------------
+
+export const subscribeMirrorBackupJobs = createSubscription(() => _call('mirrorBackup.getAllJobs'))
+
+export const createMirrorBackupJob = props =>
+  _call('mirrorBackup.createJob', props)::tap(subscribeMirrorBackupJobs.forceRefresh)
+
+export const runMirrorBackupJob = props => _call('mirrorBackup.runJob', props)
+
+export const editMirrorBackupJob = props => _call('mirrorBackup.editJob', props)
+
 // Plugins -----------------------------------------------------------
 
 export const loadPlugin = async id =>
@@ -2513,15 +2569,19 @@ export const sendUsageReport = () => _call('plugin.usageReport.send')
 
 // Resource set ------------------------------------------------------
 
-export const createResourceSet = (name, { subjects, objects, limits } = {}) =>
-  _call('resourceSet.create', { name, subjects, objects, limits })::tap(subscribeResourceSets.forceRefresh)
+export const createResourceSet = (name, { shareByDefault, subjects, objects, tags, limits } = {}) =>
+  _call('resourceSet.create', { name, shareByDefault, subjects, objects, tags, limits })::tap(
+    subscribeResourceSets.forceRefresh
+  )
 
-export const editResourceSet = (id, { name, subjects, objects, limits, ipPools } = {}) =>
+export const editResourceSet = (id, { name, shareByDefault, subjects, objects, tags, limits, ipPools } = {}) =>
   _call('resourceSet.set', {
     id,
     name,
+    shareByDefault,
     subjects,
     objects,
+    tags,
     limits,
     ipPools,
   })::tap(subscribeResourceSets.forceRefresh)
