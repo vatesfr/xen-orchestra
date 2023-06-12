@@ -2,6 +2,7 @@ import type {
   XenApiConsole,
   XenApiHost,
   XenApiHostMetrics,
+  XenApiMessage,
   XenApiPool,
   XenApiRecord,
   XenApiSr,
@@ -125,6 +126,7 @@ export type RawTypeToObject = {
   host_crashdump: never;
   host_metrics: XenApiHostMetrics;
   host_patch: never;
+  message: XenApiMessage;
   network: never;
   network_sriov: never;
   pool: XenApiPool;

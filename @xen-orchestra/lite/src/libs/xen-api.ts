@@ -46,6 +46,7 @@ const OBJECT_TYPES = {
   host_crashdump: "host_crashdump",
   host_metrics: "host_metrics",
   host_patch: "host_patch",
+  message: "message",
   network: "network",
   network_sriov: "network_sriov",
   pool: "pool",
@@ -158,6 +159,11 @@ export interface XenApiTask extends XenApiRecord {
   progress: number;
 }
 
+export interface XenApiMessage extends XenApiRecord {
+  name: string;
+  cls: RawObjectType;
+}
+
 type WatchCallbackResult = {
   id: string;
   class: ObjectType;
@@ -234,8 +240,7 @@ export default class XenApi {
   async loadTypes() {
     this.#types = (await this.#call<string[]>("system.listMethods"))
       .filter((method: string) => method.endsWith(".get_all_records"))
-      .map((method: string) => method.slice(0, method.indexOf(".")))
-      .filter((type: string) => type !== "message");
+      .map((method: string) => method.slice(0, method.indexOf(".")));
   }
 
   get sessionId() {
