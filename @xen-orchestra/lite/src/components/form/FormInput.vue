@@ -5,6 +5,7 @@
         v-model="value"
         :class="inputClass"
         :disabled="disabled || isLabelDisabled"
+        :required="required"
         class="select"
         ref="inputElement"
         v-bind="$attrs"
@@ -21,6 +22,7 @@
       v-model="value"
       :class="inputClass"
       :disabled="disabled || isLabelDisabled"
+      :required="required"
       class="textarea"
       v-bind="$attrs"
     />
@@ -29,6 +31,7 @@
       v-model="value"
       :class="inputClass"
       :disabled="disabled || isLabelDisabled"
+      :required="required"
       class="input"
       ref="inputElement"
       v-bind="$attrs"
@@ -70,6 +73,7 @@ const props = withDefaults(
     beforeWidth?: string;
     afterWidth?: string;
     disabled?: boolean;
+    required?: boolean;
     right?: boolean;
     wrapperAttrs?: HTMLAttributes;
   }>(),
