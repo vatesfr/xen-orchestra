@@ -1,20 +1,28 @@
+import type { XenApiMessage } from "@/libs/xen-api";
 import { useXapiCollectionStore } from "@/stores/xapi-collection.store";
+import { createSubscribe } from "@/types/xapi-collection";
 import { defineStore } from "pinia";
 import { computed } from "vue";
 
 export const useAlarmStore = defineStore("alarm", () => {
   const messageCollection = useXapiCollectionStore().get("message");
 
-  function subscribe() {
-    const subscription = messageCollection.subscribe({ immediate: false });
+  const subscribe = createSubscribe<XenApiMessage, []>((options) => {
+    const originalSubscription = messageCollection.subscribe(options);
 
-    return {
-      ...subscription,
+    const extendedSubscription = {
       records: computed(() =>
-        subscription.records.value.filter((record) => record.name === "alarm")
+        originalSubscription.records.value.filter(
+          (record) => record.name === "alarm"
+        )
       ),
     };
-  }
+
+    return {
+      ...originalSubscription,
+      ...extendedSubscription,
+    };
+  });
 
   return {
     ...messageCollection,
