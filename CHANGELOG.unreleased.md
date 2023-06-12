@@ -9,7 +9,7 @@
 
 - [Proxy] Make proxy address editable (PR [#6816](https://github.com/vatesfr/xen-orchestra/pull/6816))
 - [Home/Host] Displays a warning for hosts with HVM disabled [#6823](https://github.com/vatesfr/xen-orchestra/issues/6823) (PR [#6834](https://github.com/vatesfr/xen-orchestra/pull/6834))
-- [Home/Pool] `No XCP-ng Pro support enabled on this pool` alert is considered as warning instead of an error (PR [#6849](https://github.com/vatesfr/xen-orchestra/pull/6849))
+- [Home/Pool] `No XCP-ng Pro support enabled on this pool` alert is considered a warning instead of an error (PR [#6849](https://github.com/vatesfr/xen-orchestra/pull/6849))
 
 ### Bug fixes
 
