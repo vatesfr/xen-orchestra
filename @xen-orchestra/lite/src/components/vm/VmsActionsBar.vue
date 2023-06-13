@@ -63,10 +63,11 @@
     @close="closeDeleteModal"
   >
     <template #title>
-      {{ $t("confirm-delete") }}
-      <span class="n-vms-text">
-        {{ $t("n-vms", { n: selectedRefs.length }) }}
-      </span>
+      <i18n-t keypath="confirm-delete" tag="div">
+        <span class="accent">{{
+          $t("n-vms", { n: selectedRefs.length })
+        }}</span>
+      </i18n-t>
     </template>
     <template #subtitle>
       {{ $t("please-confirm") }}
@@ -146,8 +147,5 @@ const deleteVms = async () => {
   padding-bottom: 1rem;
   border-bottom: 1px solid var(--color-blue-scale-400);
   background-color: var(--background-color-primary);
-}
-.n-vms-text {
-  color: var(--color-extra-blue-base);
 }
 </style>
