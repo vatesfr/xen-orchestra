@@ -5,7 +5,7 @@ import {
   type VmStats,
   type XapiStatsResponse,
 } from "@/libs/xapi-stats";
-import type { XenApiHost, XenApiRecord, XenApiVm } from "@/libs/xen-api";
+import type { XenApiHost, XenApiVm } from "@/libs/xen-api";
 import { type Pausable, promiseTimeout, useTimeoutPoll } from "@vueuse/core";
 import { computed, type ComputedRef, onUnmounted, ref } from "vue";
 
