@@ -32,10 +32,11 @@ export function addMbr(buf) {
   // 0 - 446 is bootstrap code , keep it empty
 
   // entry
-  mbr[446] = 0x08 // entry is bootable
-  mbr[450] = 0x04 // MBR bootable , less than 32MB
-  mbr[454] = 1 // LBA address of first sector
-  mbr[455] = TEN_MIB / SECTOR_SIZE // LBA address of last sector
+  mbr[446] = 0x80 // entry is bootable
+  mbr[450] = 0x0e // FAT16 LBA
+  mbr.writeInt32LE(1, 454) // LBA address of first sector
+  assert.strictEqual(buf.length % SECTOR_SIZE, 0, 'buffer  length must be aligned to sector size')
+  mbr.writeInt32LE(buf.length / SECTOR_SIZE + 1, 458) // LBA address of last sector
 
   // 3 more 16 bytes entry we don't need
 
