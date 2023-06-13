@@ -25,14 +25,7 @@
     <MenuItem v-tooltip="$t('coming-soon')" :icon="faCamera">
       {{ $t("snapshot") }}
     </MenuItem>
-    <MenuItem
-      :disabled="areSomeVmsInExecution"
-      :icon="faTrashCan"
-      v-tooltip="areSomeVmsInExecution && $t('selected-vms-in-execution')"
-      @click="openDeleteModal"
-    >
-      {{ $t("delete") }}
-    </MenuItem>
+    <VmActionDeleteItems :vm-refs="selectedRefs" />
     <MenuItem :icon="faFileExport">
       {{ $t("export") }}
       <template #submenu>
@@ -57,45 +50,18 @@
       </template>
     </MenuItem>
   </AppMenu>
-  <UiModal
-    v-if="isDeleteModalOpen"
-    :icon="faSatellite"
-    @close="closeDeleteModal"
-  >
-    <template #title>
-      <i18n-t keypath="confirm-delete" tag="div">
-        <span class="accent">
-          {{ $t("n-vms", { n: selectedRefs.length }) }}
-        </span>
-      </i18n-t>
-    </template>
-    <template #subtitle>
-      {{ $t("please-confirm") }}
-    </template>
-    <template #buttons>
-      <UiButton outlined @click="closeDeleteModal">
-        {{ $t("go-back") }}
-      </UiButton>
-      <UiButton @click="deleteVms">
-        {{ $t("delete-vms", { n: selectedRefs.length }) }}
-      </UiButton>
-    </template>
-  </UiModal>
 </template>
 
 <script lang="ts" setup>
 import AppMenu from "@/components/menu/AppMenu.vue";
 import MenuItem from "@/components/menu/MenuItem.vue";
-import { POWER_STATE } from "@/libs/xen-api";
 import UiButton from "@/components/ui/UiButton.vue";
 import UiModal from "@/components/ui/UiModal.vue";
-import useModal from "@/composables/modal.composable";
-import { useVmStore } from "@/stores/vm.store";
 import { useUiStore } from "@/stores/ui.store";
 import VmActionPowerStateItems from "@/components/vm/VmActionItems/VmActionPowerStateItems.vue";
 import VmActionCopyItem from "@/components/vm/VmActionItems/VmActionCopyItem.vue";
 import VmsPowerActionsMenu from "@/components/vm/VmsPowerActionsMenu.vue";
-import { useXenApiStore } from "@/stores/xen-api.store";
+import VmActionDeleteItems from "@/components/vm/vmActionItems/VmActionDeleteItems.vue";
 import {
   faCamera,
   faCode,
@@ -106,40 +72,16 @@ import {
   faFileExport,
   faPowerOff,
   faRoute,
-  faSatellite,
-  faTrashCan,
 } from "@fortawesome/free-solid-svg-icons";
-import { computed } from "vue";
 import { storeToRefs } from "pinia";
 import { vTooltip } from "@/directives/tooltip.directive";
-import type { XenApiVm } from "@/libs/xen-api";
 
-const props = defineProps<{
+defineProps<{
   disabled?: boolean;
   selectedRefs: string[];
 }>();
 
 const { isMobile } = storeToRefs(useUiStore());
-const xenApi = useXenApiStore().getXapi();
-const { getByOpaqueRef: getVm } = useVmStore().subscribe();
-const {
-  open: openDeleteModal,
-  close: closeDeleteModal,
-  isOpen: isDeleteModalOpen,
-} = useModal();
-
-const vms = computed<XenApiVm[]>(() =>
-  props.selectedRefs.map(getVm).filter((vm): vm is XenApiVm => vm !== undefined)
-);
-
-const areSomeVmsInExecution = computed(() =>
-  vms.value.some((vm) => vm.power_state !== POWER_STATE.HALTED)
-);
-
-const deleteVms = async () => {
-  await xenApi.vm.delete(props.selectedRefs);
-  closeDeleteModal();
-};
 </script>
 
 <style lang="postcss" scoped>
