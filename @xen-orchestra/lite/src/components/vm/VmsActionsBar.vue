@@ -25,7 +25,7 @@
     <MenuItem v-tooltip="$t('coming-soon')" :icon="faCamera">
       {{ $t("snapshot") }}
     </MenuItem>
-    <VmActionDeleteItems :vm-refs="selectedRefs" />
+    <VmActionDeleteItem :vm-refs="selectedRefs" />
     <MenuItem :icon="faFileExport">
       {{ $t("export") }}
       <template #submenu>
@@ -60,8 +60,7 @@ import UiModal from "@/components/ui/UiModal.vue";
 import { useUiStore } from "@/stores/ui.store";
 import VmActionPowerStateItems from "@/components/vm/VmActionItems/VmActionPowerStateItems.vue";
 import VmActionCopyItem from "@/components/vm/VmActionItems/VmActionCopyItem.vue";
-import VmsPowerActionsMenu from "@/components/vm/VmsPowerActionsMenu.vue";
-import VmActionDeleteItems from "@/components/vm/VmActionItems/VmActionDeleteItem.vue";
+import VmActionDeleteItem from "@/components/vm/VmActionItems/VmActionDeleteItem.vue";
 import {
   faCamera,
   faCode,
