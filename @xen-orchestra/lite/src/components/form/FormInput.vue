@@ -92,7 +92,7 @@ const isEmpty = computed(
 );
 const inputType = inject("inputType", "input");
 const isLabelDisabled = inject("isLabelDisabled", ref(false));
-const color = inject(
+const parentColor = inject(
   "color",
   computed(() => undefined)
 );
@@ -106,7 +106,7 @@ const wrapperClass = computed(() => [
 ]);
 
 const inputClass = computed(() => [
-  color.value ?? props.color,
+  parentColor.value ?? props.color,
   {
     right: props.right,
     "has-before": props.before !== undefined,
