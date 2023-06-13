@@ -13,7 +13,7 @@
     @close="closeDeleteModal"
   >
     <template #title>
-      <i18n-t keypath="confirm-delete" tag="div">
+      <i18n-t keypath="confirm-delete" scope="global" tag="div">
         <span class="accent">
           {{ $t("n-vms", { n: vmRefs.length }) }}
         </span>

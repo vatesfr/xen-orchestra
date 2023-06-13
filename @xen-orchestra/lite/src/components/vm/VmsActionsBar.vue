@@ -61,7 +61,7 @@ import { useUiStore } from "@/stores/ui.store";
 import VmActionPowerStateItems from "@/components/vm/VmActionItems/VmActionPowerStateItems.vue";
 import VmActionCopyItem from "@/components/vm/VmActionItems/VmActionCopyItem.vue";
 import VmsPowerActionsMenu from "@/components/vm/VmsPowerActionsMenu.vue";
-import VmActionDeleteItems from "@/components/vm/vmActionItems/VmActionDeleteItems.vue";
+import VmActionDeleteItems from "@/components/vm/VmActionItems/VmActionDeleteItem.vue";
 import {
   faCamera,
   faCode,
