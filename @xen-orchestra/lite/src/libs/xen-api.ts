@@ -161,7 +161,7 @@ export interface XenApiTask extends XenApiRecord<"Task"> {
   progress: number;
 }
 
-export interface XenApiMessage extends XenApiRecord {
+export interface XenApiMessage extends XenApiRecord<"Message"> {
   name: string;
   cls: RawObjectType;
 }
@@ -398,7 +398,7 @@ export default class XenApi {
         );
       },
       clone: (vmRefsToClone: VmRefsToClone) => {
-        const vmRefs = Object.keys(vmRefsToClone);
+        const vmRefs = Object.keys(vmRefsToClone) as XenApiVm["$ref"][];
 
         return Promise.all(
           vmRefs.map((vmRef) =>
