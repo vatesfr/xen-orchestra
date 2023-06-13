@@ -64,9 +64,9 @@
   >
     <template #title>
       <i18n-t keypath="confirm-delete" tag="div">
-        <span class="accent">{{
-          $t("n-vms", { n: selectedRefs.length })
-        }}</span>
+        <span class="accent">
+          {{ $t("n-vms", { n: selectedRefs.length }) }}
+        </span>
       </i18n-t>
     </template>
     <template #subtitle>
