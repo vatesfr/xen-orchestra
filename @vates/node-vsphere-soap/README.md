@@ -6,13 +6,14 @@ forked from https://github.com/reedog117/node-vsphere-soap
 
 This is a Node.js module to connect to VMware vCenter servers and/or ESXi hosts and perform operations using the [vSphere Web Services API]. If you're feeling really adventurous, you can use this module to port vSphere operations from other languages (such as the Perl, Python, and Go libraries that exist) and have fully native Node.js code controlling your VMware virtual infrastructure!
 
-This is very much in alpha. 
+This is very much in alpha.
 
 ## Authors
 
-  - Patrick C - [@reedog117]
+- Patrick C - [@reedog117]
 
 ## Version
+
 0.0.2-5
 
 ## Installation
@@ -35,21 +36,23 @@ $ npm install node-vsphere-soap --save
     });
 
 #### Arguments
-  - host = hostname or IP of vCenter/ESX/ESXi server
-  - user = username
-  - password = password
-  - sslVerify = true|false  - set to false if you have self-signed/unverified certificates
+
+- host = hostname or IP of vCenter/ESX/ESXi server
+- user = username
+- password = password
+- sslVerify = true|false - set to false if you have self-signed/unverified certificates
 
 #### Events
-  - ready = emits when session authenticated with server
-  - error = emits when there's an error
-    - *err* contains the error
+
+- ready = emits when session authenticated with server
+- error = emits when there's an error
+  - _err_ contains the error
 
 #### Client instance variables
 
-  - serviceContent - ServiceContent object retrieved by RetrieveServiceContent API call
-  - userName - username of authenticated user
-  - fullName - full name of authenticated user
+- serviceContent - ServiceContent object retrieved by RetrieveServiceContent API call
+- userName - username of authenticated user
+- fullName - full name of authenticated user
 
 ### To run a command:
 
@@ -59,19 +62,21 @@ $ npm install node-vsphere-soap --save
     });
     vcCmd.once('error', function( err) {
       // handle errors
-    });    
+    });
 
 #### Arguments
-  - commandToRun = Method from the vSphere API
-  - arguments = JSON document containing arguments to send
+
+- commandToRun = Method from the vSphere API
+- arguments = JSON document containing arguments to send
 
 #### Events
-  - result = emits when session authenticated with server
-    - *result* contains the JSON-formatted result from the server
-    - *raw* contains the raw SOAP XML response from the server
-    - *soapHeader* contains any soapHeaders from the server
-  - error = emits when there's an error
-    - *err* contains the error
+
+- result = emits when session authenticated with server
+  - _result_ contains the JSON-formatted result from the server
+  - _raw_ contains the raw SOAP XML response from the server
+  - _soapHeader_ contains any soapHeaders from the server
+- error = emits when there's an error
+  - _err_ contains the error
 
 Make sure you check out tests/vsphere-soap.test.js for examples on how to create commands to run
 
@@ -79,20 +84,20 @@ Make sure you check out tests/vsphere-soap.test.js for examples on how to create
 
 node-vsphere-soap uses a number of open source projects to work properly:
 
-* [node.js] - evented I/O for the backend
-* [node-soap] - SOAP client for Node.js
-* [soap-cookie] - cookie authentication for the node-soap module
-* [lodash] - for quickly manipulating JSON
-* [lab] - testing engine
-* [code] - assertion engine used with lab
+- [node.js] - evented I/O for the backend
+- [node-soap] - SOAP client for Node.js
+- [soap-cookie] - cookie authentication for the node-soap module
+- [lodash] - for quickly manipulating JSON
+- [lab] - testing engine
+- [code] - assertion engine used with lab
 
 Want to contribute? Great!
 
 ### Todo's
 
- - Write More Tests
- - Create Travis CI test harness with a fake vCenter Instance
- - Add Code Comments
+- Write More Tests
+- Create Travis CI test harness with a fake vCenter Instance
+- Add Code Comments
 
 ### Testing
 
@@ -108,19 +113,15 @@ To run test scripts:
 $ npm test
 ```
 
-
-License
-----
+## License
 
 MIT
 
-
-[vSphere Web Services API]:http://pubs.vmware.com/vsphere-55/topic/com.vmware.wssdk.apiref.doc/right-pane.html
-[node-soap]:https://github.com/vpulim/node-soap
-[node.js]:http://nodejs.org/
-[soap-cookie]:https://github.com/shanestillwell/soap-cookie
-[code]:https://github.com/hapijs/code
-[lab]:https://github.com/hapijs/lab
-[lodash]:https://lodash.com/
-[@reedog117]:http://www.twitter.com/reedog117
-
+[vSphere Web Services API]: http://pubs.vmware.com/vsphere-55/topic/com.vmware.wssdk.apiref.doc/right-pane.html
+[node-soap]: https://github.com/vpulim/node-soap
+[node.js]: http://nodejs.org/
+[soap-cookie]: https://github.com/shanestillwell/soap-cookie
+[code]: https://github.com/hapijs/code
+[lab]: https://github.com/hapijs/lab
+[lodash]: https://lodash.com/
+[@reedog117]: http://www.twitter.com/reedog117

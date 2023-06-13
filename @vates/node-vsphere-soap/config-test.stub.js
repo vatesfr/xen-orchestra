@@ -4,11 +4,10 @@
 // name the file config-test.js
 
 var vCenterTestCreds = {
-	'vCenterIP' : 'vcsa',
-	'vCenterUser' : 'vcuser',
-	'vCenterPassword' : 'vcpw',
-	'vCenter' : true
-};
+  vCenterIP: 'vcsa',
+  vCenterUser: 'vcuser',
+  vCenterPassword: 'vcpw',
+  vCenter: true,
+}
 
-
-exports.vCenterTestCreds = vCenterTestCreds;
+exports.vCenterTestCreds = vCenterTestCreds
