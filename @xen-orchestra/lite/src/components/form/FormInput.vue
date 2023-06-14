@@ -48,19 +48,24 @@
 </template>
 
 <script lang="ts" setup>
+import UiIcon from "@/components/ui/icon/UiIcon.vue";
+import type { Color } from "@/types";
 import {
-  type HTMLAttributes,
+  IK_FORM_INPUT_COLOR,
+  IK_FORM_LABEL_DISABLED,
+  IK_INPUT_TYPE,
+} from "@/types/injection-keys";
+import type { IconDefinition } from "@fortawesome/fontawesome-common-types";
+import { faAngleDown } from "@fortawesome/free-solid-svg-icons";
+import { useTextareaAutosize, useVModel } from "@vueuse/core";
+import {
   computed,
+  type HTMLAttributes,
   inject,
   nextTick,
   ref,
   watch,
 } from "vue";
-import type { Color } from "@/types";
-import type { IconDefinition } from "@fortawesome/fontawesome-common-types";
-import { faAngleDown } from "@fortawesome/free-solid-svg-icons";
-import { useTextareaAutosize, useVModel } from "@vueuse/core";
-import UiIcon from "@/components/ui/icon/UiIcon.vue";
 
 defineOptions({ inheritAttrs: false });
 
@@ -90,17 +95,20 @@ const value = useVModel(props, "modelValue", emit);
 const isEmpty = computed(
   () => props.modelValue == null || String(props.modelValue).trim() === ""
 );
-const inputType = inject("inputType", "input");
-const isLabelDisabled = inject("isLabelDisabled", ref(false));
+const inputType = inject(IK_INPUT_TYPE, "input");
+const isLabelDisabled = inject(
+  IK_FORM_LABEL_DISABLED,
+  computed(() => false)
+);
 const parentColor = inject(
-  "color",
+  IK_FORM_INPUT_COLOR,
   computed(() => undefined)
 );
 
 const wrapperClass = computed(() => [
   `form-${inputType}`,
   {
-    disabled: props.disabled || isLabelDisabled.value,
+    disabled: props.disabled === true || isLabelDisabled.value,
     empty: isEmpty.value,
   },
 ]);

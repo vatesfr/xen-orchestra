@@ -6,11 +6,11 @@
 </template>
 
 <script lang="ts" setup>
+import UiCard from "@/components/ui/UiCard.vue";
+import type { LinearChartData, ValueFormatter } from "@/types/chart";
+import { IK_CHART_VALUE_FORMATTER } from "@/types/injection-keys";
 import { utcFormat } from "d3-time-format";
 import type { EChartsOption } from "echarts";
-import { computed, provide } from "vue";
-import VueCharts from "vue-echarts";
-import type { LinearChartData } from "@/types/chart";
 import { LineChart } from "echarts/charts";
 import {
   GridComponent,
@@ -20,8 +20,8 @@ import {
 } from "echarts/components";
 import { use } from "echarts/core";
 import { CanvasRenderer } from "echarts/renderers";
-import type { OptionDataValue } from "echarts/types/src/util/types";
-import UiCard from "@/components/ui/UiCard.vue";
+import { computed, provide } from "vue";
+import VueCharts from "vue-echarts";
 
 const Y_AXIS_MAX_VALUE = 200;
 
@@ -29,23 +29,23 @@ const props = defineProps<{
   title?: string;
   subtitle?: string;
   data: LinearChartData;
-  valueFormatter?: (value: number) => string;
+  valueFormatter?: ValueFormatter;
   maxValue?: number;
 }>();
 
-const valueFormatter = computed(() => {
+const valueFormatter = computed<ValueFormatter>(() => {
   const formatter = props.valueFormatter;
 
-  return (value: OptionDataValue | OptionDataValue[]) => {
-    if (formatter) {
-      return formatter(value as number);
+  return (value) => {
+    if (formatter === undefined) {
+      return value.toString();
     }
 
-    return value.toString();
+    return formatter(value);
   };
 });
 
-provide("valueFormatter", valueFormatter);
+provide(IK_CHART_VALUE_FORMATTER, valueFormatter);
 
 use([
   CanvasRenderer,
@@ -65,7 +65,7 @@ const option = computed<EChartsOption>(() => ({
     data: props.data.map((series) => series.label),
   },
   tooltip: {
-    valueFormatter: valueFormatter.value,
+    valueFormatter: (v) => valueFormatter.value(v as number),
   },
   xAxis: {
     type: "time",

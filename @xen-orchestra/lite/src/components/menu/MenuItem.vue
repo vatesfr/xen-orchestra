@@ -10,7 +10,7 @@
     >
       <slot />
     </MenuTrigger>
-    <AppMenu v-else shadow :disabled="isDisabled">
+    <AppMenu v-else :disabled="isDisabled" shadow>
       <template #trigger="{ open, isOpen }">
         <MenuTrigger
           :active="isOpen"
@@ -33,13 +33,17 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, inject, ref, unref } from "vue";
-import type { IconDefinition } from "@fortawesome/fontawesome-common-types";
-import { faAngleDown, faAngleRight } from "@fortawesome/free-solid-svg-icons";
-import { noop } from "@vueuse/core";
 import AppMenu from "@/components/menu/AppMenu.vue";
 import MenuTrigger from "@/components/menu/MenuTrigger.vue";
 import UiIcon from "@/components/ui/icon/UiIcon.vue";
+import {
+  IK_CLOSE_MENU,
+  IK_MENU_DISABLED,
+  IK_MENU_HORIZONTAL,
+} from "@/types/injection-keys";
+import type { IconDefinition } from "@fortawesome/fontawesome-common-types";
+import { faAngleDown, faAngleRight } from "@fortawesome/free-solid-svg-icons";
+import { computed, inject, ref } from "vue";
 
 const props = defineProps<{
   icon?: IconDefinition;
@@ -48,17 +52,25 @@ const props = defineProps<{
   busy?: boolean;
 }>();
 
-const isParentHorizontal = inject("isMenuHorizontal", false);
-const isMenuDisabled = inject("isMenuDisabled", false);
-const isDisabled = computed(() => props.disabled || unref(isMenuDisabled));
+const isParentHorizontal = inject(
+  IK_MENU_HORIZONTAL,
+  computed(() => false)
+);
+const isMenuDisabled = inject(
+  IK_MENU_DISABLED,
+  computed(() => false)
+);
+const isDisabled = computed(
+  () => props.disabled === true || isMenuDisabled.value
+);
 
 const submenuIcon = computed(() =>
-  unref(isParentHorizontal) ? faAngleDown : faAngleRight
+  isParentHorizontal.value ? faAngleDown : faAngleRight
 );
 
 const isHandlingClick = ref(false);
-const isBusy = computed(() => isHandlingClick.value || props.busy);
-const closeMenu = inject("closeMenu", noop);
+const isBusy = computed(() => isHandlingClick.value || props.busy === true);
+const closeMenu = inject(IK_CLOSE_MENU, undefined);
 
 const handleClick = async () => {
   if (isDisabled.value || isBusy.value) {
@@ -68,7 +80,7 @@ const handleClick = async () => {
   isHandlingClick.value = true;
   try {
     await props.onClick?.();
-    closeMenu();
+    closeMenu?.();
   } finally {
     isHandlingClick.value = false;
   }

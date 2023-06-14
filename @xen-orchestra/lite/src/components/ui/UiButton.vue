@@ -15,7 +15,14 @@
 
 <script lang="ts" setup>
 import UiSpinner from "@/components/ui/UiSpinner.vue";
-import { computed, inject, unref } from "vue";
+import {
+  IK_BUTTON_GROUP_BUSY,
+  IK_BUTTON_GROUP_COLOR,
+  IK_BUTTON_GROUP_DISABLED,
+  IK_BUTTON_GROUP_OUTLINED,
+  IK_BUTTON_GROUP_TRANSPARENT,
+} from "@/types/injection-keys";
+import { computed, inject } from "vue";
 import type { Color } from "@/types";
 import type { IconDefinition } from "@fortawesome/fontawesome-common-types";
 import UiIcon from "@/components/ui/icon/UiIcon.vue";
@@ -39,17 +46,32 @@ const props = withDefaults(
   }
 );
 
-const isGroupBusy = inject("isButtonGroupBusy", false);
-const isBusy = computed(() => props.busy ?? unref(isGroupBusy));
+const isGroupBusy = inject(
+  IK_BUTTON_GROUP_BUSY,
+  computed(() => false)
+);
+const isBusy = computed(() => props.busy ?? isGroupBusy.value);
 
-const isGroupDisabled = inject("isButtonGroupDisabled", false);
-const isDisabled = computed(() => props.disabled ?? unref(isGroupDisabled));
+const isGroupDisabled = inject(
+  IK_BUTTON_GROUP_DISABLED,
+  computed(() => false)
+);
+const isDisabled = computed(() => props.disabled ?? isGroupDisabled.value);
 
-const isGroupOutlined = inject("isButtonGroupOutlined", false);
-const isGroupTransparent = inject("isButtonGroupTransparent", false);
+const isGroupOutlined = inject(
+  IK_BUTTON_GROUP_OUTLINED,
+  computed(() => false)
+);
+const isGroupTransparent = inject(
+  IK_BUTTON_GROUP_TRANSPARENT,
+  computed(() => false)
+);
 
-const buttonGroupColor = inject("buttonGroupColor", "info");
-const buttonColor = computed(() => props.color ?? unref(buttonGroupColor));
+const buttonGroupColor = inject(
+  IK_BUTTON_GROUP_COLOR,
+  computed(() => "info")
+);
+const buttonColor = computed(() => props.color ?? buttonGroupColor.value);
 
 const className = computed(() => {
   return [
@@ -58,8 +80,8 @@ const className = computed(() => {
       busy: isBusy.value,
       active: props.active,
       disabled: isDisabled.value,
-      outlined: props.outlined ?? unref(isGroupOutlined),
-      transparent: props.transparent ?? unref(isGroupTransparent),
+      outlined: props.outlined ?? isGroupOutlined.value,
+      transparent: props.transparent ?? isGroupTransparent.value,
     },
   ];
 });
