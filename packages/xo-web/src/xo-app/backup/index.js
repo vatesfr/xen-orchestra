@@ -78,15 +78,19 @@ const ChooseBackupType = () => (
         <Card>
           <CardHeader>{_('backupType')}</CardHeader>
           <CardBlock className='text-md-center'>
-            <ButtonLink to='backup/new/vms'>
-              <Icon icon='backup' /> {_('backupVms')}
-            </ButtonLink>{' '}
-            <ButtonLink to='backup/new/mirror'>
-              <Icon icon='mirror-backup' /> {_('mirrorBackupVms')}
-            </ButtonLink>{' '}
-            <ButtonLink to='backup/new/metadata'>
-              <Icon icon='database' /> {_('backupMetadata')}
-            </ButtonLink>
+            <p>
+              <ButtonLink to='backup/new/vms'>
+                <Icon icon='backup' /> {_('backupVms')}
+              </ButtonLink>{' '}
+              <ButtonLink to='backup/new/mirror'>
+                <Icon icon='mirror-backup' /> {_('mirrorBackupVms')}
+              </ButtonLink>
+            </p>
+            <p>
+              <ButtonLink to='backup/new/metadata'>
+                <Icon icon='database' /> {_('backupMetadata')}
+              </ButtonLink>
+            </p>
           </CardBlock>
         </Card>
       </Col>
