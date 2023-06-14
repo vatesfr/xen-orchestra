@@ -25,9 +25,7 @@
     <MenuItem v-tooltip="$t('coming-soon')" :icon="faCamera">
       {{ $t("snapshot") }}
     </MenuItem>
-    <MenuItem v-tooltip="$t('coming-soon')" :icon="faTrashCan">
-      {{ $t("delete") }}
-    </MenuItem>
+    <VmActionDeleteItem :vm-refs="selectedRefs" />
     <MenuItem :icon="faFileExport">
       {{ $t("export") }}
       <template #submenu>
@@ -58,10 +56,10 @@
 import AppMenu from "@/components/menu/AppMenu.vue";
 import MenuItem from "@/components/menu/MenuItem.vue";
 import UiButton from "@/components/ui/UiButton.vue";
-import VmActionCopyItem from "@/components/vm/VmActionItems/VmActionCopyItem.vue";
 import { useUiStore } from "@/stores/ui.store";
 import VmActionPowerStateItems from "@/components/vm/VmActionItems/VmActionPowerStateItems.vue";
-import { vTooltip } from "@/directives/tooltip.directive";
+import VmActionCopyItem from "@/components/vm/VmActionItems/VmActionCopyItem.vue";
+import VmActionDeleteItem from "@/components/vm/VmActionItems/VmActionDeleteItem.vue";
 import {
   faCamera,
   faCode,
@@ -72,9 +70,9 @@ import {
   faFileExport,
   faPowerOff,
   faRoute,
-  faTrashCan,
 } from "@fortawesome/free-solid-svg-icons";
 import { storeToRefs } from "pinia";
+import { vTooltip } from "@/directives/tooltip.directive";
 
 defineProps<{
   disabled?: boolean;
