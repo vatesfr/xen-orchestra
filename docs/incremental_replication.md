@@ -1,6 +1,6 @@
 # Incremental Replication (formerly : Continuous Replication)
 
-This feature is a incremental replication system for your XenServer VMs **without any storage vendor lock-in**. You can replicate a VM every _X_ minutes/hours to any storage repository. It could be to a distant XenServer host or just another local storage target.
+This feature is an incremental replication system for your XCP-ng or Xenserver VMs **without any storage vendor lock-in**. You can replicate a VM every _X_ minutes/hours to any storage repository. It could be to a distant XCP-ng or XenServer host or just another local storage target.
 
 This feature covers multiple objectives:
 
@@ -30,7 +30,7 @@ Then:
 
 1. Select the VMs you want to protect
 1. Schedule the replication interval
-1. Select the destination storage (could be any storage connected to any XenServer host!)
+1. Select the destination storage (could be any storage connected to any host!)
 
 That's it! Your VMs are protected and replicated as requested.
 
@@ -41,12 +41,12 @@ To protect the replication, we removed the possibility to boot your copied VM di
 **If you can't transfer the first backup through your network because it's too large**, you can make a seed locally. In order to do this, follow this procedure (until we make it accessible directly in XO).
 
 :::tip
-This is **only** if you need to make the initial copy without making the whole transfer through your network. Otherwise, **you don't need this**. These instructions are for Backup-NG jobs, and will not work to seed a legacy backup job. Please migrate any legacy jobs to Backup-NG!
+This is **only** if you need to make the initial copy without making the whole transfer through your network. Otherwise, **you don't need this**.
 :::
 
 ### Job creation
 
-Create the Incremental Replication backup job, and leave it disabled for now. On the main Backup-NG page, copy the job's `backupJobId` by hovering to the left of the shortened ID and clicking the copy to clipboard button:
+Create the Incremental Replication backup job, and leave it disabled for now. On the main Backup page, copy the job's `backupJobId` by hovering to the left of the shortened ID and clicking the copy to clipboard button:
 
 ![](./assets/cr-seed-1.png)
 
@@ -115,7 +115,7 @@ password%20with%20special%20chars%20%3A%23%40
 
 ### Finished
 
-Your backup job should now be working correctly! Manually run the job the first time to check if everything is OK. Then, enable the job. **Now, only the deltas are sent, your initial seed saved you a LOT of time if you have a slow network.**
+Your backup job should now be working correctly! Manually run the job the first time to check if everything is OK. Then, enable the job. **Now only the deltas are sent, your initial seed saved you a LOT of time if you have a slow network.**
 
 ### Failover process
 
