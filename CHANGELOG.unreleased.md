@@ -17,6 +17,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [Home/Host] Fix "isHostTimeConsistentWithXoaTime.then is not a function" (PR [#6896](https://github.com/vatesfr/xen-orchestra/pull/6896))
+- [Vm/Restore] Better error message when importing a Vm to a disabled Sr (PR [#6901](https://github.com/vatesfr/xen-orchestra/pull/6901))
 
 ### Packages to release
 
@@ -36,6 +37,7 @@
 
 - @vates/nbd-client patch
 - @vates/task minor
+- @xen-orchestra/backups patch
 - xo-server-auth-oidc minor
 - xo-web minor
 
