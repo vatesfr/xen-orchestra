@@ -589,6 +589,7 @@ ${monitorBodies.join('\n')}`
 
       const entriesWithMissingStats = []
       for (const entry of snapshot) {
+        //  can happen when the user forgets to remove an element that doesn't exist anymore from the list of the monitored machines
         if (entry.object === null) continue
         if (entry.value === undefined) {
           entriesWithMissingStats.push(entry)
