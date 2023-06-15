@@ -16,10 +16,13 @@ export type Stat<T> = {
   pausable: Pausable;
 };
 
-type GetStats<T extends HostStats | VmStats> = (
-  uuid: string,
+type GetStats<
+  T extends XenApiHost | XenApiVm,
+  S extends HostStats | VmStats
+> = (
+  uuid: T["uuid"],
   granularity: GRANULARITY
-) => Promise<XapiStatsResponse<T>> | undefined;
+) => Promise<XapiStatsResponse<S>> | undefined;
 
 export type FetchedStats<
   T extends XenApiHost | XenApiVm,
@@ -35,7 +38,7 @@ export type FetchedStats<
 export default function useFetchStats<
   T extends XenApiHost | XenApiVm,
   S extends HostStats | VmStats
->(getStats: GetStats<S>, granularity: GRANULARITY): FetchedStats<T, S> {
+>(getStats: GetStats<T, S>, granularity: GRANULARITY): FetchedStats<T, S> {
   const stats = ref<Map<string, Stat<S>>>(new Map());
   const timestamp = ref<number[]>([0, 0]);
 

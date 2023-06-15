@@ -22,6 +22,7 @@ import UiIcon from "@/components/ui/icon/UiIcon.vue";
 import UiButton from "@/components/ui/UiButton.vue";
 import { useVmStore } from "@/stores/vm.store";
 import VmActionPowerStateItems from "@/components/vm/VmActionItems/VmActionPowerStateItems.vue";
+import type { XenApiVm } from "@/libs/xen-api";
 import {
   faAngleDown,
   faDisplay,
@@ -34,7 +35,7 @@ const { getByUuid: getVmByUuid } = useVmStore().subscribe();
 const { currentRoute } = useRouter();
 
 const vm = computed(() =>
-  getVmByUuid(currentRoute.value.params.uuid as string)
+  getVmByUuid(currentRoute.value.params.uuid as XenApiVm["uuid"])
 );
 
 const name = computed(() => vm.value?.name_label);

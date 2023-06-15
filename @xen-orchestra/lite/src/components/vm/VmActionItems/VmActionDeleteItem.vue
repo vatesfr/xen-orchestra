@@ -47,7 +47,7 @@ import { vTooltip } from "@/directives/tooltip.directive";
 import type { XenApiVm } from "@/libs/xen-api";
 
 const props = defineProps<{
-  vmRefs: string[];
+  vmRefs: XenApiVm["$ref"][];
 }>();
 
 const xenApi = useXenApiStore().getXapi();
