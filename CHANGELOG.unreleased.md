@@ -19,6 +19,7 @@
 - [Home/Host] Fix "isHostTimeConsistentWithXoaTime.then is not a function" (PR [#6896](https://github.com/vatesfr/xen-orchestra/pull/6896))
 - [ESXi Import] was depending on an older unmaintened library that was downgrading the global security level of XO (PR [#6859](https://github.com/vatesfr/xen-orchestra/pull/6859))
 - [Backup] Fix memory consumption when deleting _VHD directory_ incremental backups
+- [Backups/Health check] Use the right Sr for health check during replication job (PR [#6902](https://github.com/vatesfr/xen-orchestra/pull/6902))
 
 ### Packages to release
 

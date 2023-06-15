@@ -5,6 +5,7 @@ const { extractOpaqueRef } = require('@xen-orchestra/xapi')
 const { Task } = require('../../Task')
 const assert = require('node:assert/strict')
 const { HealthCheckVmBackup } = require('../../HealthCheckVmBackup')
+const { Ref } = require('xen-api')
 
 exports.MixinXapiWriter = (BaseClass = Object) =>
   class MixinXapiWriter extends BaseClass {
@@ -12,6 +13,20 @@ exports.MixinXapiWriter = (BaseClass = Object) =>
       super(rest)
 
       this._sr = sr
+    }
+
+    // check if the base Vm has all its disk on health check sr
+    async #isAlreadyOnHealthCheckSr(baseVm) {
+      const xapi = baseVm.$xapi
+      let onSameSr = true
+      for (const vbdRef of baseVm.VBDs) {
+        const vbd = await xapi.getRecord('VBD', vbdRef)
+        if (vbd.type === 'Disk' && Ref.isNotEmpty(vbd.VDI)) {
+          const vdi = await xapi.getRecord('VDI', vbd.VDI)
+          onSameSr = onSameSr && vdi.$SR.uuid === this._healthCheckSr.uuid
+        }
+      }
+      return onSameSr
     }
 
     healthCheck() {
@@ -28,9 +43,23 @@ exports.MixinXapiWriter = (BaseClass = Object) =>
           let clonedVm
           try {
             const baseVm = xapi.getObject(this._targetVmRef) ?? (await xapi.waitObject(this._targetVmRef))
-            const clonedRef = await xapi
-              .callAsync('VM.clone', this._targetVmRef, `Health Check - ${baseVm.name_label}`)
-              .then(extractOpaqueRef)
+            let clonedRef
+
+            if (await this.#isAlreadyOnHealthCheckSr(baseVm)) {
+              Task.info('Use a clone rather than a copy for health check')
+              clonedRef = await xapi
+                .callAsync('VM.clone', this._targetVmRef, `Health Check - ${baseVm.name_label}`)
+                .then(extractOpaqueRef)
+            } else {
+              clonedRef = await xapi
+                .callAsync(
+                  'VM.copy',
+                  this._targetVmRef,
+                  `Health Check - ${baseVm.name_label}`,
+                  this._healthCheckSr.uuid
+                )
+                .then(extractOpaqueRef)
+            }
             clonedVm = xapi.getObject(clonedRef) ?? (await xapi.waitObject(clonedRef))
 
             await new HealthCheckVmBackup({
