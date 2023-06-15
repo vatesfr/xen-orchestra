@@ -37,6 +37,7 @@
 - @vates/nbd-client patch
 - @vates/task minor
 - xo-server-auth-oidc minor
+- xo-server-perf-alert patch
 - xo-web minor
 
 <!--packages-end-->
