@@ -47,12 +47,26 @@ exports.ImportVmBackup = class ImportVmBackup {
         const xapi = this._xapi
         const srRef = await xapi.call('SR.get_by_uuid', this._srUuid)
 
-        const vmRef = isFull
+        let vmRef
+        
+        try {
+          vmRef = isFull
           ? await xapi.VM_import(backup, srRef)
           : await importIncrementalVm(backup, await xapi.getRecord('SR', srRef), {
               ...this._importIncrementalVmSettings,
               detectBase: false,
             })
+        }
+        catch(err){
+          if(err.code === 'SR_HAS_NO_PBDS'){
+            const error = new Error('SR used for VM import is missing (not connected or removed)')
+            error.cause = err
+            error.code = err.code
+            throw error
+          }
+          throw err
+        } 
+        
 
         await Promise.all([
           xapi.call('VM.add_tags', vmRef, 'restored from backup'),
