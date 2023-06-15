@@ -1,7 +1,8 @@
 # Mirror Backups
 
 The goal is to replicate a backup from one remote to another. For instance, you make your backup to an in-house NFS, and then replicate to a bigger, slower and cheaper storage with a longer retention.
-The source and destination can have different settings, for encryption, vhd storage mode, rentention, or compression.
+
+The source and destination can have different settings, for encryption, VHD storage mode, retention, or compression.
 
 ## creation
 
