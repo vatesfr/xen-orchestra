@@ -10,11 +10,14 @@
 - [XO Tasks] Abortion can now be requested, note that not all tasks will respond to it
 - [Home/Pool] `No XCP-ng Pro support enabled on this pool` alert is considered a warning instead of an error (PR [#6849](https://github.com/vatesfr/xen-orchestra/pull/6849))
 - [Plugin/auth-iodc] OpenID Connect scopes are now configurable and `profile` is included by default
+- [Dashboard/Health] Button to copy UUID of an orphan VDI to the clipboard (PR [#6893](https://github.com/vatesfr/xen-orchestra/pull/6893))
 - [Home/Host, Pool] Add tooltip on alert icons (PR [#6895](https://github.com/vatesfr/xen-orchestra/pull/6895))
 
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
+
+- [Home/Host] Fix "isHostTimeConsistentWithXoaTime.then is not a function" (PR [#6896](https://github.com/vatesfr/xen-orchestra/pull/6896))
 
 ### Packages to release
 
