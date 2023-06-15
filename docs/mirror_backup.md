@@ -1,16 +1,16 @@
 # Mirror Backups
 
-The goal is to replicate a backup from one remote to another. For instance, you make your backup to an in-house NFS, and then replicate to a bigger, slower and cheaper storage with a longer retention.
+The goal is to replicate a backup from one remote to another. For instance, you make your backup to in-house NFS storage, and then replicate to bigger, slower and cheaper storage with a longer retention.
 
-The source and destination can have different settings, for encryption, VHD storage mode, retention, or compression.
+The source and destination can have different settings for encryption, VHD storage mode, retention, or compression.
 
-## creation
+## Creation
 
 Todo : when front is done
 
 ## synchronizing algorithm for full backups
 
-Any new backup on source is transfered on remote
+Any new backup on the source is transfered to the remote
 
 _key backup(full) are in upper case, delta backup are in lowercase_ . _Source has a retention of 3, destination has 4_
 
@@ -52,7 +52,7 @@ will transfer E and delete A from remote. Destination will contains BCDE
 
 will transfer in order IJK and delete BCD from remote. Destination will contains EIJK
 
-## synchronizing algorithm for Incremental backups
+## Synchronizing algorithm for incremental backups
 
 this will only transfer new backups, and then run the same merge algorithm than in [Incremental Backups](incremental_backups.md).
 
