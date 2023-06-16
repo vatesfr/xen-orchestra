@@ -245,43 +245,48 @@ const STATS = {
 //   }
 // }
 export default class XapiStats {
+  // hostCache => host uid => granularity =>  {
+    // timestamp (exactly one)
+    // value : promise or value
+  // }
+  #hostCache = {}
   constructor() {
     this._statsByObject = {}
   }
 
   // Execute one http request on a XenServer for get stats
   // Return stats (Json format) or throws got exception
-  @limitConcurrency(3)
+  // @limitConcurrency(3)
   _getJson(xapi, host, timestamp, step) {
-    return xapi
-      .getResource('/rrd_updates', {
-        host,
-        query: {
-          cf: 'AVERAGE',
-          host: 'true',
-          interval: step,
-          json: 'true',
-          start: timestamp,
-        },
-      })
-      .then(response =>
-        response.text().then(data => {
-          const start = Date.now()
-          const result = JSON5.parse(data)
-          const duration = Date.now() - start
+    const byHost = this.#hostCache[host.uuid]?.[step]
+    if(byHost !== undefined){
+      if(byHost.timestamp +step > timestamp){
+        console.log(host.uuid,'from cache',timestamp, step, byHost.timestamp )
+        return byHost.value
+      } else {
+        console.log(host.uuid,'outdated cache',timestamp, step, byHost.timestamp )
+      }
+    }
+    console.log(host.uuid,'really make query', timestamp, step)
+    this.#hostCache[host.uuid] = this.#hostCache[host.uuid] ?? {}
+    const promise = xapi
+    .getResource('/rrd_updates', {
+      host,
+      query: {
+        cf: 'AVERAGE',
+        host: 'true',
+        interval: step,
+        json: 'true',
+        start: timestamp,
+      },
+    })
+    .then(response => response.text().then(JSON5.parse))
 
-          // eslint-disable-next-line no-console
-          console.log(
-            'parsing stats from host %s (timestamp=%s step=%s): %s in %s ',
-            host.name_label,
-            timestamp,
-            step,
-            humanFormat.bytes(Buffer.byteLength(data)),
-            ms(duration)
-          )
-          return result
-        })
-      )
+    this.#hostCache[host.uuid][step] = {
+      timestamp,
+      value : promise
+    }
+    return promise
   }
 
   // To avoid multiple requests, we keep a cash for the stats and
