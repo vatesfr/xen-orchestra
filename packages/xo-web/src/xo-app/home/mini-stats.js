@@ -21,16 +21,15 @@ export default class MiniStats extends Component {
   _fetch = () => {
     this.props.fetch().then(stats => {
       this.setState({ stats })
-      this._timeout = setTimeout(this._fetch, 5e3)
     })
   }
 
   componentWillMount() {
-    this._fetch()
+    this._interval = setInterval(this._fetch, 5e3)
   }
 
   componentWillUnmount() {
-    clearTimeout(this._timeout)
+    clearInterval(this._interval)
   }
 
   render() {
