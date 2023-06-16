@@ -1,13 +1,13 @@
 import type {
-  RawObjectType,
   RawXenApiRecord,
   XenApiHost,
   XenApiHostMetrics,
   XenApiRecord,
   XenApiVm,
+  VM_OPERATION,
 } from "@/libs/xen-api";
-import type { CollectionSubscription } from "@/stores/xapi-collection.store";
 import type { Filter } from "@/types/filter";
+import type { Subscription } from "@/types/xapi-collection";
 import { faSquareCheck } from "@fortawesome/free-regular-svg-icons";
 import { faFont, faHashtag, faList } from "@fortawesome/free-solid-svg-icons";
 import { utcParse } from "d3-time-format";
@@ -116,14 +116,14 @@ export function getStatsLength(stats?: object | any[]) {
 
 export function isHostRunning(
   host: XenApiHost,
-  hostMetricsSubscription: CollectionSubscription<XenApiHostMetrics>
+  hostMetricsSubscription: Subscription<XenApiHostMetrics, object>
 ) {
   return hostMetricsSubscription.getByOpaqueRef(host.metrics)?.live === true;
 }
 
 export function getHostMemory(
   host: XenApiHost,
-  hostMetricsSubscription: CollectionSubscription<XenApiHostMetrics>
+  hostMetricsSubscription: Subscription<XenApiHostMetrics, object>
 ) {
   const hostMetrics = hostMetricsSubscription.getByOpaqueRef(host.metrics);
 
@@ -136,9 +136,9 @@ export function getHostMemory(
   }
 }
 
-export const buildXoObject = <T extends XenApiRecord>(
+export const buildXoObject = <T extends XenApiRecord<string>>(
   record: RawXenApiRecord<T>,
-  params: { opaqueRef: string }
+  params: { opaqueRef: T["$ref"] }
 ) => {
   return {
     ...record,
@@ -183,18 +183,9 @@ export function parseRamUsage(
 export const getFirst = <T>(value: T | T[]): T | undefined =>
   Array.isArray(value) ? value[0] : value;
 
-export function requireSubscription<T>(
-  subscription: T | undefined,
-  type: RawObjectType
-): asserts subscription is T {
-  if (subscription === undefined) {
-    throw new Error(`You need to provide a ${type} subscription`);
-  }
-}
-
 export const isOperationsPending = (
   obj: XenApiVm,
-  operations: string[] | string
+  operations: VM_OPERATION[] | VM_OPERATION
 ) => {
   const currentOperations = Object.values(obj.current_operations);
   return castArray(operations).some((operation) =>

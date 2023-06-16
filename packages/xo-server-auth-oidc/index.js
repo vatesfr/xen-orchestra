@@ -38,6 +38,17 @@ exports.configurationSchema = {
           title: 'Username field',
           type: 'string',
         },
+        scope: {
+          description: `List of scopes from which to request profile information.
+
+Scopes should be listed separated by a single whitespace.
+
+Note: The \`openid\` scope is implicitely included.
+`,
+          default: 'profile',
+          title: 'Scopes',
+          type: 'string',
+        },
       },
     },
   },

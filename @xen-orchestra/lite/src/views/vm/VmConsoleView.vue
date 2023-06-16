@@ -9,6 +9,7 @@
 </template>
 
 <script lang="ts" setup>
+import { POWER_STATE, VM_OPERATION, type XenApiVm } from "@/libs/xen-api";
 import { computed } from "vue";
 import { useRoute } from "vue-router";
 import RemoteConsole from "@/components/RemoteConsole.vue";
@@ -17,13 +18,13 @@ import { useVmStore } from "@/stores/vm.store";
 import { isOperationsPending } from "@/libs/utils";
 
 const STOP_OPERATIONS = [
-  "shutdown",
-  "clean_shutdown",
-  "hard_shutdown",
-  "clean_reboot",
-  "hard_reboot",
-  "pause",
-  "suspend",
+  VM_OPERATION.SHUTDOWN,
+  VM_OPERATION.CLEAN_SHUTDOWN,
+  VM_OPERATION.HARD_SHUTDOWN,
+  VM_OPERATION.CLEAN_REBOOT,
+  VM_OPERATION.HARD_REBOOT,
+  VM_OPERATION.PAUSE,
+  VM_OPERATION.SUSPEND,
 ];
 
 const route = useRoute();
@@ -35,9 +36,11 @@ const { isReady: isConsoleReady, getByOpaqueRef: getConsoleByOpaqueRef } =
 
 const isReady = computed(() => isVmReady.value && isConsoleReady.value);
 
-const vm = computed(() => getVmByUuid(route.params.uuid as string));
+const vm = computed(() => getVmByUuid(route.params.uuid as XenApiVm["uuid"]));
 
-const isVmRunning = computed(() => vm.value?.power_state === "Running");
+const isVmRunning = computed(
+  () => vm.value?.power_state === POWER_STATE.RUNNING
+);
 
 const vmConsole = computed(() => {
   const consoleOpaqueRef = vm.value?.consoles[0];

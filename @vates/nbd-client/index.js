@@ -313,8 +313,8 @@ module.exports = class NbdClient {
       const exportSize = this.#exportSize
       const chunkSize = 2 * 1024 * 1024
       indexGenerator = function* () {
-        const nbBlocks = Math.ceil(exportSize / chunkSize)
-        for (let index = 0; index < nbBlocks; index++) {
+        const nbBlocks = Math.ceil(Number(exportSize / BigInt(chunkSize)))
+        for (let index = 0; BigInt(index) < nbBlocks; index++) {
           yield { index, size: chunkSize }
         }
       }

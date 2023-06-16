@@ -19,10 +19,6 @@ export default {
     icon: 'halted',
     label: 'taskInterrupted',
   },
-  aborted: {
-    icon: 'skipped',
-    label: 'taskAborted',
-  },
   unknown: {
     icon: 'unknown',
     label: 'unknown',
