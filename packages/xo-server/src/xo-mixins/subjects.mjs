@@ -117,6 +117,12 @@ export default class {
         .then(group => this._removeUserFromGroup(id, group))
         ::ignoreErrors()
     })
+
+    for (const connection of this._app.apiConnections) {
+      if (connection.get('user_id', undefined) === id) {
+        connection.close()
+      }
+    }
   }
 
   doesUserExist(id) {
