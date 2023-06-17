@@ -119,6 +119,10 @@ export default class {
     })
   }
 
+  doesUserExist(id) {
+    return this._users.exists(id)
+  }
+
   async updateUser(
     id,
     {

@@ -42,6 +42,7 @@
 - @xen-orchestra/fs patch
 - @vates/node-vsphere-soap major
 - @xen-orchestra/vmware-explorer patch
+- xo-server patch
 - xo-server-auth-oidc minor
 - xo-web minor
 
