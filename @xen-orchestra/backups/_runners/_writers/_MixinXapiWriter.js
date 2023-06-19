@@ -5,7 +5,6 @@ const { extractOpaqueRef } = require('@xen-orchestra/xapi')
 const { Task } = require('../../Task')
 const assert = require('node:assert/strict')
 const { HealthCheckVmBackup } = require('../../HealthCheckVmBackup')
-const { Ref } = require('xen-api')
 
 exports.MixinXapiWriter = (BaseClass = Object) =>
   class MixinXapiWriter extends BaseClass {
@@ -19,12 +18,11 @@ exports.MixinXapiWriter = (BaseClass = Object) =>
     async #isAlreadyOnHealthCheckSr(baseVm) {
       const xapi = baseVm.$xapi
       let onSameSr = true
-      for (const vbdRef of baseVm.VBDs) {
-        const vbd = await xapi.getRecord('VBD', vbdRef)
-        if (vbd.type === 'Disk' && Ref.isNotEmpty(vbd.VDI)) {
-          const vdi = await xapi.getRecord('VDI', vbd.VDI)
-          onSameSr = onSameSr && vdi.$SR.uuid === this._healthCheckSr.uuid
-        }
+      const vdiRefs = await xapi.VM_getDisks(baseVm.$ref)
+
+      for (const vdiRef of vdiRefs) {
+        const vdi = xapi.getObject(vdiRef)
+        onSameSr = onSameSr && vdi.$SR.uuid === this._healthCheckSr.uuid
       }
       return onSameSr
     }
@@ -40,34 +38,40 @@ exports.MixinXapiWriter = (BaseClass = Object) =>
         },
         async () => {
           const { $xapi: xapi } = sr
-          let clonedVm
+          let healthCheckVmRef
           try {
             const baseVm = xapi.getObject(this._targetVmRef) ?? (await xapi.waitObject(this._targetVmRef))
-            let clonedRef
 
             if (await this.#isAlreadyOnHealthCheckSr(baseVm)) {
-              Task.info('Use a clone rather than a copy for health check')
-              clonedRef = await xapi
-                .callAsync('VM.clone', this._targetVmRef, `Health Check - ${baseVm.name_label}`)
-                .then(extractOpaqueRef)
+              healthCheckVmRef = await Task.run(
+                { name: 'cloning-vm' },
+                async () =>
+                  await xapi
+                    .callAsync('VM.clone', this._targetVmRef, `Health Check - ${baseVm.name_label}`)
+                    .then(extractOpaqueRef)
+              )
             } else {
-              clonedRef = await xapi
-                .callAsync(
-                  'VM.copy',
-                  this._targetVmRef,
-                  `Health Check - ${baseVm.name_label}`,
-                  this._healthCheckSr.uuid
-                )
-                .then(extractOpaqueRef)
+              healthCheckVmRef = await Task.run(
+                { name: 'copying-vm' },
+                async () =>
+                  await xapi
+                    .callAsync(
+                      'VM.copy',
+                      this._targetVmRef,
+                      `Health Check - ${baseVm.name_label}`,
+                      this._healthCheckSr.uuid
+                    )
+                    .then(extractOpaqueRef)
+              )
             }
-            clonedVm = xapi.getObject(clonedRef) ?? (await xapi.waitObject(clonedRef))
+            const healthCheckVm = xapi.getObject(healthCheckVmRef) ?? (await xapi.waitObject(healthCheckVmRef))
 
             await new HealthCheckVmBackup({
-              restoredVm: clonedVm,
+              restoredVm: healthCheckVm,
               xapi,
             }).run()
           } finally {
-            clonedVm && (await xapi.VM_destroy(clonedVm.$ref))
+            healthCheckVmRef && (await xapi.VM_destroy(healthCheckVmRef))
           }
         }
       )
