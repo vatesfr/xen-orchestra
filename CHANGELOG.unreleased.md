@@ -39,7 +39,7 @@
 - @vates/task minor
 - @xen-orchestra/backups minor
 - @vates/node-vsphere-soap major
-- @xen-orchestra/vmware-explorer
+- @xen-orchestra/vmware-explorer patch
 - xo-server-auth-oidc minor
 - xo-web minor
 
