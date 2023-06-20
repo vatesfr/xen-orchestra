@@ -17,14 +17,14 @@ exports.MixinXapiWriter = (BaseClass = Object) =>
     // check if the base Vm has all its disk on health check sr
     async #isAlreadyOnHealthCheckSr(baseVm) {
       const xapi = baseVm.$xapi
-      let onSameSr = true
       const vdiRefs = await xapi.VM_getDisks(baseVm.$ref)
-
       for (const vdiRef of vdiRefs) {
         const vdi = xapi.getObject(vdiRef)
-        onSameSr = onSameSr && vdi.$SR.uuid === this._healthCheckSr.uuid
+        if (vdi.$SR.uuid !== this._heathCheckSr.uuid) {
+          return false
+        }
       }
-      return onSameSr
+      return true
     }
 
     healthCheck() {
