@@ -6,7 +6,15 @@ The source and destination can have different settings for encryption, VHD stora
 
 ## Creation
 
-Todo : when front is done
+Just go into your "Backup" view, and select Vm Mirror Backup.
+Then, select if you want to mirror incremental backups or full backups.
+You must have exactly one source remote, you must have one or more destinations. The mirroring speed will be limited by the slower remote.
+
+Most options of the full/incremental backups applies here, like concurrency (number of VM transferred in parallel), report, proxy and speed limit. You can also add a health check on schedules.
+
+:::tip
+If you have full and incremental backups on a remote, you must configure 2 mirror backup jobs, one full and one incremental.
+:::
 
 ## synchronizing algorithm for full backups
 
