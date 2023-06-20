@@ -55,12 +55,7 @@ exports.MixinXapiWriter = (BaseClass = Object) =>
                 { name: 'copying-vm' },
                 async () =>
                   await xapi
-                    .callAsync(
-                      'VM.copy',
-                      this._targetVmRef,
-                      `Health Check - ${baseVm.name_label}`,
-                      this._healthCheckSr.uuid
-                    )
+                    .callAsync('VM.copy', this._targetVmRef, `Health Check - ${baseVm.name_label}`, sr.$ref)
                     .then(extractOpaqueRef)
               )
             }
