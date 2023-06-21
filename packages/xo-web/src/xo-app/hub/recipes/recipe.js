@@ -21,7 +21,7 @@ import RecipeForm from './recipe-form'
 const RECIPE_INFO = {
   id: '05abc8a8-ebf4-41a6-b1ed-efcb2dbf893d',
   name: 'Kubernetes cluster',
-  description: 'Creates a Kubernetes cluster composed of 1 control plane and a configurable number of worker nodes.',
+  description: 'Creates a Kubernetes cluster composed of a configurable number of control planes and worker nodes.',
 }
 
 export default decorate([

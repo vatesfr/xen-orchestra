@@ -1,5 +1,6 @@
 import _ from 'intl'
 import Component from 'base-component'
+import copy from 'copy-to-clipboard'
 import decorate from 'apply-decorators'
 import { get as getDefined } from '@xen-orchestra/defined'
 import Icon from 'icon'
@@ -246,6 +247,14 @@ const ORPHANED_VDI_ACTIONS = [
     icon: 'delete',
     label: _('deleteSelectedOrphanedVdis'),
     level: 'danger',
+  },
+]
+
+const ORPHANED_VDI_INDIVIDUAL_ACTIONS = [
+  {
+    handler: vdi => copy(vdi.uuid),
+    icon: 'clipboard',
+    label: vdi => _('copyUuid', { uuid: vdi.uuid }),
   },
 ]
 
@@ -806,6 +815,7 @@ export default class Health extends Component {
                       collection={orphanVdis}
                       columns={ORPHANED_VDI_COLUMNS}
                       filters={ORPHAN_VDI_FILTERS}
+                      individualActions={ORPHANED_VDI_INDIVIDUAL_ACTIONS}
                       stateUrlParam='s_vdis'
                     />
                   )}

@@ -1,5 +1,7 @@
 'use strict'
 
+const { join, resolve } = require('node:path/posix')
+
 const { DIR_XO_POOL_METADATA_BACKUPS } = require('./RemoteAdapter.js')
 const { PATH_DB_DUMP } = require('./_runners/_PoolMetadataBackup.js')
 
@@ -20,7 +22,8 @@ exports.RestoreMetadataBackup = class RestoreMetadataBackup {
         task: xapi.task_create('Import pool metadata'),
       })
     } else {
-      return String(await handler.readFile(`${backupId}/data.json`))
+      const metadata = JSON.parse(await handler.readFile(join(backupId, 'metadata.json')))
+      return String(await handler.readFile(resolve(backupId, metadata.data ?? 'data.json')))
     }
   }
 }

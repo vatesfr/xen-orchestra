@@ -1,4 +1,4 @@
-import { Client } from 'node-vsphere-soap'
+import { Client } from '@vates/node-vsphere-soap'
 import { dirname } from 'node:path'
 import { EventEmitter } from 'node:events'
 import { strictEqual, notStrictEqual } from 'node:assert'

@@ -7,11 +7,19 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
+- [XO Tasks] Abortion can now be requested, note that not all tasks will respond to it
+- [Home/Pool] `No XCP-ng Pro support enabled on this pool` alert is considered a warning instead of an error (PR [#6849](https://github.com/vatesfr/xen-orchestra/pull/6849))
+- [Plugin/auth-iodc] OpenID Connect scopes are now configurable and `profile` is included by default
+- [Dashboard/Health] Button to copy UUID of an orphan VDI to the clipboard (PR [#6893](https://github.com/vatesfr/xen-orchestra/pull/6893))
 - [Kubernetes recipe] Add the possibility to choose the version for the cluster [#6842](https://github.com/vatesfr/xen-orchestra/issues/6842) (PR [#6880](https://github.com/vatesfr/xen-orchestra/pull/6880))
 
 ### Bug fixes
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
+
+- [Home/Host] Fix "isHostTimeConsistentWithXoaTime.then is not a function" (PR [#6896](https://github.com/vatesfr/xen-orchestra/pull/6896))
+- [ESXi Import] was depending on an older unmaintened library that was downgrading the global security level of XO (PR [#6859](https://github.com/vatesfr/xen-orchestra/pull/6859))
+- [Backup] Fix memory consumption when deleting _VHD directory_ incremental backups
 
 ### Packages to release
 
@@ -30,6 +38,13 @@
 <!--packages-start-->
 
 - @vates/nbd-client patch
+- @vates/task minor
+- @xen-orchestra/backups minor
+- @xen-orchestra/fs patch
+- @vates/node-vsphere-soap major
+- @xen-orchestra/vmware-explorer patch
+- xo-server patch
+- xo-server-auth-oidc minor
 - xo-web minor
 
 <!--packages-end-->

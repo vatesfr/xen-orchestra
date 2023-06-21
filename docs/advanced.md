@@ -373,6 +373,10 @@ In Netbox 2.x, custom fields can be created from the Admin panel > Custom fields
 - Load the plugin (button next to the plugin's name)
 - Manual synchronization: if you correctly configured and loaded the plugin, a "Synchronize with Netbox" button will appear in every pool's Advanced tab, which allows you to manually synchronize it with Netbox
 
+:::tip
+If you get a `403 Forbidden` error when testing the plugin, make sure you correctly configured the "Allowed IPs" for the token you are using.
+:::
+
 ## Recipes
 
 :::tip

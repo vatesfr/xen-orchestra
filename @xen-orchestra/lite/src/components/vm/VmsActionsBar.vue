@@ -12,24 +12,20 @@
     <MenuItem :icon="faPowerOff">
       {{ $t("change-power-state") }}
       <template #submenu>
-        <VmsPowerActionsMenu :vm-refs="selectedRefs" />
+        <VmActionPowerStateItems :vm-refs="selectedRefs" />
       </template>
     </MenuItem>
     <MenuItem v-tooltip="$t('coming-soon')" :icon="faRoute">
       {{ $t("migrate") }}
     </MenuItem>
-    <MenuItem v-tooltip="$t('coming-soon')" :icon="faCopy">
-      {{ $t("copy") }}
-    </MenuItem>
+    <VmActionCopyItem :selected-refs="selectedRefs" />
     <MenuItem v-tooltip="$t('coming-soon')" :icon="faEdit">
       {{ $t("edit-config") }}
     </MenuItem>
     <MenuItem v-tooltip="$t('coming-soon')" :icon="faCamera">
       {{ $t("snapshot") }}
     </MenuItem>
-    <MenuItem v-tooltip="$t('coming-soon')" :icon="faTrashCan">
-      {{ $t("delete") }}
-    </MenuItem>
+    <VmActionDeleteItem :vm-refs="selectedRefs" />
     <MenuItem :icon="faFileExport">
       {{ $t("export") }}
       <template #submenu>
@@ -60,13 +56,15 @@
 import AppMenu from "@/components/menu/AppMenu.vue";
 import MenuItem from "@/components/menu/MenuItem.vue";
 import UiButton from "@/components/ui/UiButton.vue";
-import { useUiStore } from "@/stores/ui.store";
-import VmsPowerActionsMenu from "@/components/vm/VmsPowerActionsMenu.vue";
+import VmActionCopyItem from "@/components/vm/VmActionItems/VmActionCopyItem.vue";
+import VmActionDeleteItem from "@/components/vm/VmActionItems/VmActionDeleteItem.vue";
+import VmActionPowerStateItems from "@/components/vm/VmActionItems/VmActionPowerStateItems.vue";
 import { vTooltip } from "@/directives/tooltip.directive";
+import type { XenApiVm } from "@/libs/xen-api";
+import { useUiStore } from "@/stores/ui.store";
 import {
   faCamera,
   faCode,
-  faCopy,
   faDisplay,
   faEdit,
   faEllipsis,
@@ -74,13 +72,12 @@ import {
   faFileExport,
   faPowerOff,
   faRoute,
-  faTrashCan,
 } from "@fortawesome/free-solid-svg-icons";
 import { storeToRefs } from "pinia";
 
 defineProps<{
   disabled?: boolean;
-  selectedRefs: string[];
+  selectedRefs: XenApiVm["$ref"][];
 }>();
 
 const { isMobile } = storeToRefs(useUiStore());

@@ -157,35 +157,6 @@ export const useFoobarStore = defineStore("foobar", () => {
 });
 ```
 
-#### Xen Api Collection Stores
-
-When creating a store for a Xen Api objects collection, use the `createXenApiCollectionStoreContext` helper.
-
-```typescript
-export const useConsoleStore = defineStore("console", () =>
-  createXenApiCollectionStoreContext("console")
-);
-```
-
-##### Extending the base context
-
-Here is how to extend the base context:
-
-```typescript
-import { computed } from "vue";
-
-export const useFoobarStore = defineStore("foobar", () => {
-  const baseContext = createXenApiCollectionStoreContext("foobar");
-
-  const myCustomGetter = computed(() => baseContext.ids.reverse());
-
-  return {
-    ...baseContext,
-    myCustomGetter,
-  };
-});
-```
-
 ### I18n
 
 Internationalization of the app is done with [Vue-i18n](https://vue-i18n.intlify.dev/).

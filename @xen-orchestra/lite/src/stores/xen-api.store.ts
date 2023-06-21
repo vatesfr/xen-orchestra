@@ -39,17 +39,16 @@ export const useXenApiStore = defineStore("xen-api", () => {
         return;
       }
 
+      const buildObject = () =>
+        buildXoObject(result.snapshot, { opaqueRef: result.ref }) as any;
+
       switch (result.operation) {
         case "add":
-          return collection.add(
-            buildXoObject(result.snapshot, { opaqueRef: result.ref })
-          );
+          return collection.add(buildObject());
         case "mod":
-          return collection.update(
-            buildXoObject(result.snapshot, { opaqueRef: result.ref })
-          );
+          return collection.update(buildObject());
         case "del":
-          return collection.remove(result.ref);
+          return collection.remove(result.ref as any);
       }
     });
   });

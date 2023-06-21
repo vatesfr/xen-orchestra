@@ -120,7 +120,7 @@ const className = computed(() => {
   color: var(--modal-color);
 }
 
-.container :slotted(.accent) {
+.container :deep(.accent) {
   color: var(--modal-color);
 }
 

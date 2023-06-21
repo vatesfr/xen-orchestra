@@ -14,7 +14,7 @@
 </template>
 
 <script lang="ts" setup>
-import placement, { type Options } from "placement.js";
+import placementJs, { type Options } from "placement.js";
 import { inject, nextTick, provide, ref, toRef, unref, useSlots } from "vue";
 import { onClickOutside, unrefElement, whenever } from "@vueuse/core";
 
@@ -62,7 +62,7 @@ const open = (event: MouseEvent) => {
       }
     );
 
-    placement(event.currentTarget as HTMLElement, unrefElement(menu), {
+    placementJs(event.currentTarget as HTMLElement, unrefElement(menu), {
       placement:
         props.placement ??
         (unref(isParentHorizontal) !== false ? "bottom-start" : "right-start"),

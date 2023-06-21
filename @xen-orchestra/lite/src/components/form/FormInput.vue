@@ -5,6 +5,7 @@
         v-model="value"
         :class="inputClass"
         :disabled="disabled || isLabelDisabled"
+        :required="required"
         class="select"
         ref="inputElement"
         v-bind="$attrs"
@@ -21,6 +22,7 @@
       v-model="value"
       :class="inputClass"
       :disabled="disabled || isLabelDisabled"
+      :required="required"
       class="textarea"
       v-bind="$attrs"
     />
@@ -29,6 +31,7 @@
       v-model="value"
       :class="inputClass"
       :disabled="disabled || isLabelDisabled"
+      :required="required"
       class="input"
       ref="inputElement"
       v-bind="$attrs"
@@ -70,6 +73,7 @@ const props = withDefaults(
     beforeWidth?: string;
     afterWidth?: string;
     disabled?: boolean;
+    required?: boolean;
     right?: boolean;
     wrapperAttrs?: HTMLAttributes;
   }>(),
@@ -88,7 +92,7 @@ const isEmpty = computed(
 );
 const inputType = inject("inputType", "input");
 const isLabelDisabled = inject("isLabelDisabled", ref(false));
-const color = inject(
+const parentColor = inject(
   "color",
   computed(() => undefined)
 );
@@ -102,7 +106,7 @@ const wrapperClass = computed(() => [
 ]);
 
 const inputClass = computed(() => [
-  color.value ?? props.color,
+  parentColor.value ?? props.color,
   {
     right: props.right,
     "has-before": props.before !== undefined,

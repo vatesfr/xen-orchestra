@@ -18,10 +18,8 @@ npm install --save @vates/task
 import { Task } from '@vates/task'
 
 const task = new Task({
-  // data in this object will be sent along the *start* event
-  //
-  // property names should be chosen as not to clash with properties used by `Task` or `combineEvents`
-  data: {
+  // this object will be sent in the *start* event
+  properties: {
     name: 'my task',
   },
 
@@ -32,13 +30,15 @@ const task = new Task({
     // this function is called each time this task or one of it's subtasks change state
     const { id, timestamp, type } = event
     if (type === 'start') {
-      const { name, parentId } = event
+      const { name, parentId, properties } = event
     } else if (type === 'end') {
       const { result, status } = event
     } else if (type === 'info' || type === 'warning') {
       const { data, message } = event
     } else if (type === 'property') {
       const { name, value } = event
+    } else if (type === 'abortionRequested') {
+      const { reason } = event
     }
   },
 })
@@ -52,7 +52,6 @@ task.id
 // - pending
 // - success
 // - failure
-// - aborted
 task.status
 
 // Triggers the abort signal associated to the task.
@@ -105,6 +104,30 @@ const onProgress = makeOnProgress({
   onRootTaskStart(taskLog) {
     // `taskLog` is an object reflecting the state of this task and all its subtasks,
     // and will be mutated in real-time to reflect the changes of the task.
+
+    // timestamp at which the task started
+    taskLog.start
+
+    // current status of the task as described in the previous section
+    taskLog.status
+
+    // undefined or a dictionnary of properties attached to the task
+    taskLog.properties
+
+    // timestamp at which the abortion was requested, undefined otherwise
+    taskLog.abortionRequestedAt
+
+    // undefined or an array of infos emitted on the task
+    taskLog.infos
+
+    // undefined or an array of warnings emitted on the task
+    taskLog.warnings
+
+    // timestamp at which the task ended, undefined otherwise
+    taskLog.end
+
+    // undefined or the result value of the task
+    taskLog.result
   },
 
   // This function is called each time a root task ends.
