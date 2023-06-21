@@ -273,13 +273,9 @@ const documentation = ref();
 
 const route = useRoute();
 
-const mdPaths = import.meta.glob("../../stories/*.md", { as: "raw" });
-
-if (route.meta.storyMdPath !== undefined && route.meta.storyMdPath in mdPaths) {
-  mdPaths[route.meta.storyMdPath]().then((md) => {
-    documentation.value = md;
-  });
-}
+route.meta.storyMdLoader?.().then((md) => {
+  documentation.value = md;
+});
 
 const applyPreset = (preset: {
   props?: Record<string, any>;

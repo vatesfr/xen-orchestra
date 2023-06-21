@@ -31,7 +31,7 @@ import { faServer } from "@fortawesome/free-solid-svg-icons";
 import UiModal from "@/components/ui/UiModal.vue";
 import UiButton from "@/components/ui/UiButton.vue";
 import { computed, ref, watch } from "vue";
-import { difference } from "lodash";
+import { difference } from "lodash-es";
 import { useHostStore } from "@/stores/host.store";
 
 const { records: hosts } = useHostStore().subscribe();

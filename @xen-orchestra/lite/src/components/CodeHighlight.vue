@@ -3,14 +3,13 @@
 </template>
 
 <script lang="ts" setup>
-import HLJS from "highlight.js";
+import { type AcceptedLanguage, highlight } from "@/libs/highlight";
 import { computed } from "vue";
-import "highlight.js/styles/github-dark.css";
 
 const props = withDefaults(
   defineProps<{
     code?: any;
-    lang?: string;
+    lang?: AcceptedLanguage;
   }>(),
   { lang: "typescript" }
 );
@@ -27,7 +26,7 @@ const codeAsText = computed(() => {
 });
 
 const codeAsHtml = computed(
-  () => HLJS.highlight(codeAsText.value, { language: props.lang }).value
+  () => highlight(codeAsText.value, { language: props.lang }).value
 );
 </script>
 

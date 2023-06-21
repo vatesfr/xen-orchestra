@@ -5,7 +5,6 @@
 <script lang="ts" setup>
 import markdown from "@/libs/markdown";
 import { useEventListener } from "@vueuse/core";
-import "highlight.js/styles/github-dark.css";
 import { computed, type Ref, ref } from "vue";
 
 const rootElement = ref() as Ref<HTMLElement>;

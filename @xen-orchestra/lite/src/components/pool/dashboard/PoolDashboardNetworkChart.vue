@@ -12,14 +12,17 @@
 
 <script lang="ts" setup>
 import { IK_HOST_LAST_WEEK_STATS } from "@/types/injection-keys";
-import { computed, inject } from "vue";
+import { computed, defineAsyncComponent, inject } from "vue";
 import { map } from "lodash-es";
 import { useI18n } from "vue-i18n";
-import LinearChart from "@/components/charts/LinearChart.vue";
 import { formatSize } from "@/libs/utils";
 import type { HostStats } from "@/libs/xapi-stats";
 import type { LinearChartData } from "@/types/chart";
 import { RRD_STEP_FROM_STRING } from "@/libs/xapi-stats";
+
+const LinearChart = defineAsyncComponent(
+  () => import("@/components/charts/LinearChart.vue")
+);
 
 const { t } = useI18n();
 

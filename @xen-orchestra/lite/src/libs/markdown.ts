@@ -1,4 +1,8 @@
-import HLJS from "highlight.js";
+import {
+  type AcceptedLanguage,
+  getLanguage,
+  highlight,
+} from "@/libs/highlight";
 import { marked } from "marked";
 
 enum VUE_TAG {
@@ -9,11 +13,10 @@ enum VUE_TAG {
 
 marked.use({
   renderer: {
-    code(str: string, lang: string) {
-      const code = highlight(
+    code(str: string, lang: AcceptedLanguage) {
+      const code = customHighlight(
         str,
-        Object.values(VUE_TAG).includes(lang as VUE_TAG) ||
-          HLJS.getLanguage(lang)
+        Object.values(VUE_TAG).includes(lang as VUE_TAG) || getLanguage(lang)
           ? lang
           : "plaintext"
       );
@@ -22,7 +25,7 @@ marked.use({
   },
 });
 
-function highlight(str: string, lang: string) {
+function customHighlight(str: string, lang: AcceptedLanguage | VUE_TAG) {
   switch (lang) {
     case VUE_TAG.TEMPLATE: {
       const indented = str
@@ -36,7 +39,7 @@ function highlight(str: string, lang: string) {
     case VUE_TAG.STYLE:
       return wrap(str.trim(), lang);
     default: {
-      return copyable(HLJS.highlight(str, { language: lang }).value);
+      return copyable(highlight(str, { language: lang }).value);
     }
   }
 }
@@ -50,22 +53,22 @@ function wrap(str: string, lang: VUE_TAG) {
     case VUE_TAG.TEMPLATE:
       openTag = "<template>";
       closeTag = "</template>";
-      code = HLJS.highlight(str, { language: "xml" }).value;
+      code = highlight(str, { language: "xml" }).value;
       break;
     case VUE_TAG.SCRIPT:
       openTag = '<script lang="ts" setup>';
       closeTag = "</script>";
-      code = HLJS.highlight(str, { language: "typescript" }).value;
+      code = highlight(str, { language: "typescript" }).value;
       break;
     case VUE_TAG.STYLE:
       openTag = '<style lang="postcss" scoped>';
       closeTag = "</style>";
-      code = HLJS.highlight(str, { language: "scss" }).value;
+      code = highlight(str, { language: "css" }).value;
       break;
   }
 
-  const openTagHtml = HLJS.highlight(openTag, { language: "xml" }).value;
-  const closeTagHtml = HLJS.highlight(closeTag, { language: "xml" }).value;
+  const openTagHtml = highlight(openTag, { language: "xml" }).value;
+  const closeTagHtml = highlight(closeTag, { language: "xml" }).value;
 
   return `${openTagHtml}${copyable(code)}${closeTagHtml}`;
 }

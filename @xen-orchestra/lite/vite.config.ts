@@ -1,9 +1,8 @@
 import vueI18n from "@intlify/unplugin-vue-i18n/vite";
 import vue from "@vitejs/plugin-vue";
-import { basename, resolve } from "path";
+import { resolve } from "path";
 import { fileURLToPath, URL } from "url";
 import { defineConfig } from "vite";
-import pages from "vite-plugin-pages";
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -15,23 +14,6 @@ export default defineConfig({
     vue(),
     vueI18n({
       include: resolve(__dirname, "src/locales/**"),
-    }),
-    pages({
-      moduleId: "virtual:stories",
-      dirs: [{ dir: "src/stories", baseRoute: "story" }],
-      extensions: ["story.vue"],
-      extendRoute: (route) => {
-        const storyBaseName = basename(route.component as string, ".vue");
-        return {
-          ...route,
-          path: route.path.replace(".story", ""),
-          meta: {
-            isStory: true,
-            storyTitle: routeNameToStoryTitle(route.name),
-            storyMdPath: `../../stories/${storyBaseName}.md`,
-          },
-        };
-      },
     }),
   ],
   define: {
@@ -46,6 +28,25 @@ export default defineConfig({
 
   // https://vitejs.dev/guide/dep-pre-bundling.html#monorepos-and-linked-dependencies
   build: {
+    rollupOptions: {
+      output: {
+        manualChunks: (id) => {
+          if (id.includes("node_modules")) {
+            if (id.includes("vue") || id.includes("pinia")) {
+              return "vue";
+            }
+
+            if (id.includes("lodash-es")) {
+              return "lodash-es";
+            }
+
+            if (id.includes("echarts")) {
+              return "charts";
+            }
+          }
+        },
+      },
+    },
     commonjsOptions: {
       include: [/complex-matcher/, /node_modules/],
     },
