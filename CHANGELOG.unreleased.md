@@ -11,6 +11,7 @@
 - [Home/Pool] `No XCP-ng Pro support enabled on this pool` alert is considered a warning instead of an error (PR [#6849](https://github.com/vatesfr/xen-orchestra/pull/6849))
 - [Plugin/auth-iodc] OpenID Connect scopes are now configurable and `profile` is included by default
 - [Dashboard/Health] Button to copy UUID of an orphan VDI to the clipboard (PR [#6893](https://github.com/vatesfr/xen-orchestra/pull/6893))
+- [Kubernetes recipe] Add the possibility to choose the version for the cluster [#6842](https://github.com/vatesfr/xen-orchestra/issues/6842) (PR [#6880](https://github.com/vatesfr/xen-orchestra/pull/6880))
 
 ### Bug fixes
 
