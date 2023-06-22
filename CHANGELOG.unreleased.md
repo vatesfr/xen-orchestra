@@ -21,6 +21,7 @@
 - [ESXi Import] was depending on an older unmaintened library that was downgrading the global security level of XO (PR [#6859](https://github.com/vatesfr/xen-orchestra/pull/6859))
 - [Backup] Fix memory consumption when deleting _VHD directory_ incremental backups
 - [Remote] Fix `remote is disabled` error when editing a disabled remote
+- [Settings/Servers] Fix connectiong using an explicit IPv6 address
 
 ### Packages to release
 
@@ -44,6 +45,7 @@
 - @xen-orchestra/fs patch
 - @vates/node-vsphere-soap major
 - @xen-orchestra/vmware-explorer patch
+- xen-api patch
 - xo-server patch
 - xo-server-auth-oidc minor
 - xo-web minor
