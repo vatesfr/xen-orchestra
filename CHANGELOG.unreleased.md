@@ -11,6 +11,7 @@
 - [Home/Pool] `No XCP-ng Pro support enabled on this pool` alert is considered a warning instead of an error (PR [#6849](https://github.com/vatesfr/xen-orchestra/pull/6849))
 - [Plugin/auth-iodc] OpenID Connect scopes are now configurable and `profile` is included by default
 - [Dashboard/Health] Button to copy UUID of an orphan VDI to the clipboard (PR [#6893](https://github.com/vatesfr/xen-orchestra/pull/6893))
+- [Kubernetes recipe] Add the possibility to choose the version for the cluster [#6842](https://github.com/vatesfr/xen-orchestra/issues/6842) (PR [#6880](https://github.com/vatesfr/xen-orchestra/pull/6880))
 
 ### Bug fixes
 
@@ -19,7 +20,9 @@
 - [Home/Host] Fix "isHostTimeConsistentWithXoaTime.then is not a function" (PR [#6896](https://github.com/vatesfr/xen-orchestra/pull/6896))
 - [ESXi Import] was depending on an older unmaintened library that was downgrading the global security level of XO (PR [#6859](https://github.com/vatesfr/xen-orchestra/pull/6859))
 - [Backup] Fix memory consumption when deleting _VHD directory_ incremental backups
-- [Backups/Health check] Use the right Sr for health check during replication job (PR [#6902](https://github.com/vatesfr/xen-orchestra/pull/6902))
+- [Remote] Fix `remote is disabled` error when editing a disabled remote
+- [Settings/Servers] Fix connectiong using an explicit IPv6 address
+- [Backups/Health check] Use the right SR for health check during replication job (PR [#6902](https://github.com/vatesfr/xen-orchestra/pull/6902))
 
 ### Packages to release
 
@@ -43,6 +46,8 @@
 - @xen-orchestra/fs patch
 - @vates/node-vsphere-soap major
 - @xen-orchestra/vmware-explorer patch
+- xen-api patch
+- xo-server patch
 - xo-server-auth-oidc minor
 - xo-web minor
 

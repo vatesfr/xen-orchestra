@@ -2446,6 +2446,7 @@ const messages = {
   templatesLabel: 'Templates',
   recipesLabel: 'Recipes',
   network: 'Network',
+  recipeSelectK8sVersion: 'Select Kubernetes version',
   recipeClusterNameLabel: 'Cluster name',
   recipeNumberOfNodesLabel: 'Number of worker nodes',
   recipeSshKeyLabel: 'SSH key',
