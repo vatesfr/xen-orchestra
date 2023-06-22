@@ -11,7 +11,7 @@ const data = {
     protocol: 'https:',
   },
   '[::1]': {
-    hostname: '::1',
+    hostname: '[::1]',
     pathname: '/',
     protocol: 'https:',
   },
