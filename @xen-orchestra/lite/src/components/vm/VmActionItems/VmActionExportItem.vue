@@ -8,10 +8,7 @@
       >
         {{ $t("export-vms") }}
       </MenuItem>
-      <MenuItem
-        v-tooltip="{ content: $t('coming-soon'), placement: 'left' }"
-        :icon="faCode"
-      >
+      <MenuItem :icon="faCode" @click="exportVmsAsJsonFile(vmRefs, 'vms.json')">
         {{ $t("export-table-to", { type: ".json" }) }}
       </MenuItem>
       <MenuItem
@@ -26,7 +23,7 @@
 
 <script lang="ts" setup>
 import { computed } from "vue";
-import { exportVmsAsCsvFile } from "@/libs/vm";
+import { exportVmsAsCsvFile, exportVmsAsJsonFile } from "@/libs/vm";
 import MenuItem from "@/components/menu/MenuItem.vue";
 import {
   faCode,

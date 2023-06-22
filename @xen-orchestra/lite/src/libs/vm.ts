@@ -30,3 +30,12 @@ export function exportVmsAsCsvFile(vms: XenApiVm[], fileName: string) {
     fileName
   );
 }
+
+export function exportVmsAsJsonFile(vms: XenApiVm[], fileName: string) {
+  saveAs(
+    new Blob([JSON.stringify(vms, null, 2)], {
+      type: "application/json",
+    }),
+    fileName
+  );
+}
