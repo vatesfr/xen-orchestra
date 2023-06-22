@@ -22,6 +22,7 @@
 - [Backup] Fix memory consumption when deleting _VHD directory_ incremental backups
 - [Remote] Fix `remote is disabled` error when editing a disabled remote
 - [Settings/Servers] Fix connectiong using an explicit IPv6 address
+- [Backups/Health check] Use the right SR for health check during replication job (PR [#6902](https://github.com/vatesfr/xen-orchestra/pull/6902))
 
 ### Packages to release
 

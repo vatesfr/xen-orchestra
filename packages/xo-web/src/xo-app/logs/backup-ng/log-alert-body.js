@@ -365,6 +365,36 @@ const TransferMergeTask = ({ className, task }) => {
   )
 }
 
+const CloningVmTask = ({ className, task }) => {
+  return (
+    <li className={className}>
+      Cloning Vm
+      <TaskStateInfos status={task.status} />
+      <TaskWarnings warnings={task.warnings} />
+      <TaskInfos infos={task.infos} />
+      <TaskStart task={task} />
+      <TaskEnd task={task} />
+      <TaskDuration task={task} />
+      <TaskError task={task} />
+    </li>
+  )
+}
+
+const CopyingVmTask = ({ className, task }) => {
+  return (
+    <li className={className}>
+      Copying Vm
+      <TaskStateInfos status={task.status} />
+      <TaskWarnings warnings={task.warnings} />
+      <TaskInfos infos={task.infos} />
+      <TaskStart task={task} />
+      <TaskEnd task={task} />
+      <TaskDuration task={task} />
+      <TaskError task={task} />
+    </li>
+  )
+}
+
 const COMPONENT_BY_TYPE = {
   vm: VmTask,
   remote: RemoteTask,
@@ -380,6 +410,8 @@ const COMPONENT_BY_MESSAGE = {
   'health check': HealthCheckTask,
   vmstart: HealthCheckVmStartTask,
   'clean-vm': CleanVmTask,
+  'cloning-vm': CloningVmTask,
+  'copying-vm': CopyingVmTask,
 }
 
 const TaskLi = ({ task, ...props }) => {
