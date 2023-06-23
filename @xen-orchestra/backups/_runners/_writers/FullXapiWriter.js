@@ -36,7 +36,7 @@ exports.FullXapiWriter = class FullXapiWriter extends MixinXapiWriter(AbstractFu
     const sr = this._sr
     const settings = this._settings
     const job = this._job
-    const scheduleId = this.scheduleId
+    const scheduleId = this._scheduleId
 
     const { uuid: srUuid, $xapi: xapi } = sr
 

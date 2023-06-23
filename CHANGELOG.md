@@ -1,8 +1,22 @@
 # ChangeLog
 
-## **5.83.2** (2023-06-01)
+## **5.83.4** (2023-06-23)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+
+### Bug fixes
+
+- [Settings/Servers] Fix connecting using an explicit IPv6 address
+- [Full Replication] Fix garbage collecting previous replications
+
+### Released packages
+
+- xen-api 1.3.2
+- @xen-orchestra/backups 0.38.3
+- @xen-orchestra/proxy 0.26.28
+- xo-server 5.116.4
+
+## **5.83.2** (2023-06-01)
 
 ## Bug fixes
 
