@@ -11,6 +11,7 @@
 
 - xen-api 1.3.2
 - @xen-orchestra/backups 0.38.3
+- @xen-orchestra/proxy 0.26.28
 
 ## **5.83.2** (2023-06-01)
 
