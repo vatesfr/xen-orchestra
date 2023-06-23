@@ -5,10 +5,12 @@
 ### Bug fixes
 
 - [Settings/Servers] Fix connecting using an explicit IPv6 address
+- [Full Replication] Fix garbage collecting previous replications
 
 ### Released packages
 
 - xen-api 1.3.2
+- @xen-orchestra/backups 0.38.3
 
 ## **5.83.2** (2023-06-01)
 
