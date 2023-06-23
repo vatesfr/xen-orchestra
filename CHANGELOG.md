@@ -1,5 +1,15 @@
 # ChangeLog
 
+## **next**
+
+### Bug fixes
+
+- [Settings/Servers] Fix connecting using an explicit IPv6 address
+
+### Released packages
+
+- xen-api 1.3.2
+
 ## **5.83.2** (2023-06-01)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
