@@ -12,6 +12,7 @@
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
 - [Settings/Servers] Fix connecting using an explicit IPv6 address
+- [Full Replication] Fix garbage collecting previous replications
 
 ### Packages to release
 
@@ -29,6 +30,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/backups patch
 - xen-api patch
 
 <!--packages-end-->
