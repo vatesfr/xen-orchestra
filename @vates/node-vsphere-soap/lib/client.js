@@ -18,7 +18,6 @@ const https = require('node:https')
 const util = require('util')
 const soap = require('soap')
 const Cookie = require('soap-cookie') // required for session persistence
-const constants = require('crypto').constants
 // Client class
 // inherits from EventEmitter
 // possible events: connect, error, ready
@@ -39,8 +38,6 @@ function Client(vCenterHostname, username, password, sslVerify) {
       request: axios.create({
         httpsAgent: new https.Agent({
           rejectUnauthorized: false,
-
-          secureOptions: constants.SSL_OP_NO_TLSv1_2, // likely needed for node >= 10.0
         }),
       }),
     }
