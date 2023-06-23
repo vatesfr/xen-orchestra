@@ -49,6 +49,7 @@
 - xen-api patch
 - xo-server patch
 - xo-server-auth-oidc minor
+- xo-server-perf-alert patch
 - xo-web minor
 
 <!--packages-end-->
