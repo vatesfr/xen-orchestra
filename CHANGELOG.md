@@ -1,6 +1,8 @@
 # ChangeLog
 
-## **next**
+## **5.83.4** (2023-06-23)
+
+<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
 
 ### Bug fixes
 
@@ -15,8 +17,6 @@
 - xo-server 5.116.4
 
 ## **5.83.2** (2023-06-01)
-
-<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
 
 ## Bug fixes
 
