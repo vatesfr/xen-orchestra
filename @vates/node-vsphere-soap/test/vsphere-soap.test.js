@@ -6,7 +6,7 @@
   tests for the vCenterConnectionInstance class
 */
 
-const Code = require('code')
+const assert = require('assert')
 const Lab = require('lab')
 const lab = (exports.lab = Lab.script())
 const vc = require('../lib/client')
@@ -16,23 +16,22 @@ const TestCreds = require('../config-test.js').vCenterTestCreds
 
 const describe = lab.describe
 const it = lab.it
-const expect = Code.expect
 
 const VItest = new vc.Client(TestCreds.vCenterIP, TestCreds.vCenterUser, TestCreds.vCenterPassword, false)
 
 describe('Client object initialization:', function () {
   it('provides a successful login', { timeout: 5000 }, function (done) {
     VItest.once('ready', function () {
-      expect(VItest.userName).to.exist()
-      expect(VItest.fullName).to.exist()
-      expect(VItest.serviceContent).to.exist()
+      assert.notEqual(VItest.userName, null)
+      assert.notEqual(VItest.fullName, null)
+      assert.notEqual(VItest.serviceContent, null)
       done()
     }).once('error', function (err) {
       console.error(err)
       // this should fail if there's a problem
-      expect(VItest.userName).to.exist()
-      expect(VItest.fullName).to.exist()
-      expect(VItest.serviceContent).to.exist()
+      assert.notEqual(VItest.userName, null)
+      assert.notEqual(VItest.fullName, null)
+      assert.notEqual(VItest.serviceContent, null)
       done()
     })
   })
@@ -45,7 +44,7 @@ describe('Client reconnection test:', function () {
         // now we're logged out, so let's try running a command to test automatic re-login
         VItest.runCommand('CurrentTime', { _this: 'ServiceInstance' })
           .once('result', function (result) {
-            expect(result.returnval).to.be.a.date()
+            assert(result.returnval instanceof Date)
             done()
           })
           .once('error', function (err) {
@@ -62,14 +61,14 @@ describe('Client reconnection test:', function () {
 describe('Client tests - query commands:', function () {
   it('retrieves current time', { timeout: 5000 }, function (done) {
     VItest.runCommand('CurrentTime', { _this: 'ServiceInstance' }).once('result', function (result) {
-      expect(result.returnval).to.be.a.date()
+      assert(result.returnval instanceof Date)
       done()
     })
   })
 
   it('retrieves current time 2 (check for event clobbering)', { timeout: 5000 }, function (done) {
     VItest.runCommand('CurrentTime', { _this: 'ServiceInstance' }).once('result', function (result) {
-      expect(result.returnval).to.be.a.date()
+      assert(result.returnval instanceof Date)
       done()
     })
   })
@@ -128,11 +127,11 @@ describe('Client tests - query commands:', function () {
         options: { attributes: { type: 'RetrieveOptions' } },
       })
         .once('result', function (result, raw) {
-          expect(result.returnval.objects).to.exist()
+          assert.notEqual(result.returnval.objects, null)
           if (Array.isArray(result.returnval.objects)) {
-            expect(result.returnval.objects[0].obj.attributes.type).to.be.equal('VirtualMachine')
+            assert.strictEqual(result.returnval.objects[0].obj.attributes.type, 'VirtualMachine')
           } else {
-            expect(result.returnval.objects.obj.attributes.type).to.be.equal('VirtualMachine')
+            assert.strictEqual(result.returnval.objects.obj.attributes.type, 'VirtualMachine')
           }
           done()
         })
