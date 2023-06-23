@@ -7,20 +7,17 @@
 */
 
 const assert = require('assert')
-const Lab = require('lab')
-const lab = (exports.lab = Lab.script())
+const { describe, it } = require('test')
+
 const vc = require('../lib/client')
 
 // eslint-disable-next-line n/no-missing-require
 const TestCreds = require('../config-test.js').vCenterTestCreds
 
-const describe = lab.describe
-const it = lab.it
-
 const VItest = new vc.Client(TestCreds.vCenterIP, TestCreds.vCenterUser, TestCreds.vCenterPassword, false)
 
 describe('Client object initialization:', function () {
-  it('provides a successful login', { timeout: 5000 }, function (done) {
+  it('provides a successful login', { timeout: 5000 }, function (t, done) {
     VItest.once('ready', function () {
       assert.notEqual(VItest.userName, null)
       assert.notEqual(VItest.fullName, null)
@@ -38,7 +35,7 @@ describe('Client object initialization:', function () {
 })
 
 describe('Client reconnection test:', function () {
-  it('can successfully reconnect', { timeout: 5000 }, function (done) {
+  it('can successfully reconnect', { timeout: 5000 }, function (t, done) {
     VItest.runCommand('Logout', { _this: VItest.serviceContent.sessionManager })
       .once('result', function (result) {
         // now we're logged out, so let's try running a command to test automatic re-login
@@ -59,21 +56,21 @@ describe('Client reconnection test:', function () {
 
 // these tests don't work yet
 describe('Client tests - query commands:', function () {
-  it('retrieves current time', { timeout: 5000 }, function (done) {
+  it('retrieves current time', { timeout: 5000 }, function (t, done) {
     VItest.runCommand('CurrentTime', { _this: 'ServiceInstance' }).once('result', function (result) {
       assert(result.returnval instanceof Date)
       done()
     })
   })
 
-  it('retrieves current time 2 (check for event clobbering)', { timeout: 5000 }, function (done) {
+  it('retrieves current time 2 (check for event clobbering)', { timeout: 5000 }, function (t, done) {
     VItest.runCommand('CurrentTime', { _this: 'ServiceInstance' }).once('result', function (result) {
       assert(result.returnval instanceof Date)
       done()
     })
   })
 
-  it('can obtain the names of all Virtual Machines in the inventory', { timeout: 20000 }, function (done) {
+  it('can obtain the names of all Virtual Machines in the inventory', { timeout: 20000 }, function (t, done) {
     // get property collector
     const propertyCollector = VItest.serviceContent.propertyCollector
     // get view manager

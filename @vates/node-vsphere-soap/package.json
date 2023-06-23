@@ -16,7 +16,7 @@
     "soap-cookie": "^0.10.1"
   },
   "devDependencies": {
-    "lab": "5.x.x"
+    "test": "^3.3.0"
   },
   "keywords": [
     "vsphere",
