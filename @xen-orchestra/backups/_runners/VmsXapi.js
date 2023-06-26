@@ -19,7 +19,7 @@ const DEFAULT_XAPI_VM_SETTINGS = {
   concurrency: 2,
   copyRetention: 0,
   deleteFirst: false,
-  diskPerVmConcurrency: 2,
+  diskPerVmConcurrency: 99,
   exportRetention: 0,
   fullInterval: 0,
   healthCheckSr: undefined,

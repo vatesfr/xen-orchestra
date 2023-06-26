@@ -3,6 +3,7 @@
 const assert = require('assert')
 const mapValues = require('lodash/mapValues.js')
 const ignoreErrors = require('promise-toolbox/ignoreErrors')
+const { asyncEach } = require('@vates/async-each')
 const { asyncMap } = require('@xen-orchestra/async-map')
 const { chainVhd, checkVhdChain, openVhd, VhdAbstract } = require('vhd-lib')
 const { createLogger } = require('@xen-orchestra/log')
@@ -19,7 +20,6 @@ const { AbstractIncrementalWriter } = require('./_AbstractIncrementalWriter.js')
 const { checkVhd } = require('./_checkVhd.js')
 const { packUuid } = require('./_packUuid.js')
 const { Disposable } = require('promise-toolbox')
-const { asyncEach } = require('@vates/async-each')
 
 const { warn } = createLogger('xo:backups:DeltaBackupWriter')
 
