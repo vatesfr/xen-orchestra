@@ -179,9 +179,6 @@ export default {
   // Original text: "IPs"
   settingsIpsPage: "IP'ler",
 
-  // Original text: "Config"
-  settingsConfigPage: 'Yapılandırma',
-
   // Original text: "About"
   aboutPage: 'Hakkında',
 

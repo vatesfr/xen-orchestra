@@ -10,7 +10,7 @@ import decorate from './apply-decorators'
 import Icon from './icon'
 import Link from './link'
 import Tooltip from './tooltip'
-import { addSubscriptions, connectStore, formatSize } from './utils'
+import { addSubscriptions, connectStore, formatSize, ShortDate } from './utils'
 import { createGetObject, createSelector } from './selectors'
 import { FormattedDate } from 'react-intl'
 import { isSrWritable, subscribeBackupNgJobs, subscribeProxies, subscribeRemotes, subscribeUsers } from './xo'
@@ -529,7 +529,12 @@ const xoItemToRender = {
     }
     return <span>{label}</span>
   },
-
+  xoConfig: ({ createdAt }) => (
+    <span>
+      <Icon icon='xo-cloud-config' /> <ShortDate timestamp={createdAt} />
+    </span>
+  )
+  ,
   // XO objects.
   pool: props => <Pool {...props} />,
 

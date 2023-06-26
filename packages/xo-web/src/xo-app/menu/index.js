@@ -415,7 +415,7 @@ export default class Menu extends Component {
           {
             to: '/settings/config',
             icon: 'menu-settings-config',
-            label: 'settingsConfigPage',
+            label: 'xoConfig',
           },
         ],
       },

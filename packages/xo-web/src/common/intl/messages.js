@@ -9,6 +9,9 @@ const messages = {
   creation: 'Creation',
   description: 'Description',
   deleteSourceVm: 'Delete source VM',
+  disable: 'Disable',
+  download: 'Download',
+  enable: 'Enable',
   expiration: 'Expiration',
   hostIp: 'Host IP',
   keyValue: '{key}: {value}',
@@ -192,7 +195,6 @@ const messages = {
   settingsLogsPage: 'Logs',
   settingsCloudConfigsPage: 'Cloud configs',
   settingsIpsPage: 'IPs',
-  settingsConfigPage: 'Config',
   aboutPage: 'About',
   aboutXoaPlan: 'About XO {xoaPlan}',
   newMenu: 'New',
@@ -2330,6 +2332,16 @@ const messages = {
   migrateSelectedVdis: 'Migrate selected VDIs',
   migrateVdiMessage:
     'All the VDIs attached to a VM must either be on a shared SR or on the same host (local SR) for the VM to be able to start.',
+
+  // ----- XO cloud config -----
+  backedUpXoConfigs: 'Backed up XO Configs',
+  manageXoConfigCloudBackup: 'Manage XO Config Cloud Backup',
+  selectXoConfig: 'Select XO config',
+  xoConfigCloudBackup: 'XO Config Cloud Backup',
+  xoConfigCloudBackupTips:
+    'Your encrypted configuration is securely stored inside your Vates account and backed up once a day',
+  xoCloudConfigEnterPassphrase: 'If you want to encrypt backups, please enter a passphrase:',
+  xoCloudConfigRestoreEnterPassphrase: 'If the config is encrypted, please enter the passphrase:',
 
   // ----- XOSAN -----
   xosanTitle: 'XOSAN',

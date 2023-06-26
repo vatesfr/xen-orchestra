@@ -1231,6 +1231,10 @@
     @extend .fa;
     @extend .fa-arrows-h;
   }
+  &-xo-cloud-config {
+    @extend .fa;
+    @extend .fa-cloud-upload;
+  }
 
   // XOSAN related
 

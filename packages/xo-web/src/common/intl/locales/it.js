@@ -365,9 +365,6 @@ export default {
   // Original text: 'IPs'
   settingsIpsPage: 'IPs',
 
-  // Original text: 'Config'
-  settingsConfigPage: 'Configurazione',
-
   // Original text: 'About'
   aboutPage: 'Informazioni',
 

@@ -591,6 +591,15 @@ export const subscribeXoTasks = createSubscription(async previousTasks => {
   return Array.from(tasks.values()).sort(({ start: start1 }, { start: start2 }) => start1 - start2)
 })
 
+export const subscribeCloudXoConfigBackups = createSubscription(
+  () => fetch('./rest/v0/cloud/xo-config/backups?fields=xoaId,createdAt,id,content_href').then(resp => resp.json()),
+  { polling: 6e4 }
+)
+
+export const subscribeCloudXoConfig = createSubscription(() =>
+  fetch('./rest/v0/cloud/xo-config').then(resp => resp.json())
+)
+
 // System ============================================================
 
 export const apiMethods = _call('system.getMethodsInfo')
@@ -3410,6 +3419,8 @@ export const openTunnel = () =>
 export const subscribeTunnelState = createSubscription(() => _call('xoa.supportTunnel.getState'))
 
 export const getApplianceInfo = () => _call('xoa.getApplianceInfo')
+
+export const getApiApplianceInfo = () => fetch('./rest/v0/appliance').then(resp => resp.json())
 
 // Proxy --------------------------------------------------------------------
 

@@ -42,6 +42,7 @@ import { addSubscriptions, connectStore, resolveResourceSets } from './utils'
 import {
   isSrWritable,
   subscribeCloudConfigs,
+  subscribeCloudXoConfigBackups,
   subscribeCurrentUser,
   subscribeGroups,
   subscribeIpPools,
@@ -1076,4 +1077,21 @@ export const SelectNetworkConfig = makeSubscriptionSelect(
       })
     }),
   { placeholder: _('selectNetworkConfigs') }
+)
+
+// ===================================================================
+
+export const SelectXoCloudConfig = makeSubscriptionSelect(
+  subscriber =>
+    subscribeCloudXoConfigBackups(configs => {
+      const xoObjects = groupBy(
+        map(configs, config => ({ ...config, type: 'xoConfig' })),
+        'xoaId'
+      )
+      subscriber({
+        xoObjects,
+        xoContainers: map(xoObjects, (configs, id) => ({ ...configs, id, type: 'VM' })),
+      })
+    }),
+  { placeholder: _('selectXoConfig') }
 )

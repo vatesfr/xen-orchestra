@@ -137,9 +137,6 @@ export default {
   // Original text: 'IPs'
   settingsIpsPage: 'IP адреса',
 
-  // Original text: 'Config'
-  settingsConfigPage: 'Когфигурация',
-
   // Original text: "About"
   aboutPage: 'О программе',
 

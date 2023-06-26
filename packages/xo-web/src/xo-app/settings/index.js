@@ -59,7 +59,7 @@ const HEADER = (
             <Icon icon='template' /> {_('settingsCloudConfigsPage')}
           </NavLink>
           <NavLink to='/settings/config'>
-            <Icon icon='menu-settings-config' /> {_('settingsConfigPage')}
+            <Icon icon='menu-settings-config' /> {_('xoConfig')}
           </NavLink>
         </NavTabs>
       </Col>
