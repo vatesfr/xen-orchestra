@@ -22,7 +22,8 @@ function parseParams(args) {
     if (i === -1) {
       params[arg] = ''
     } else {
-      params[arg.slice(0, i)] = arg.slice(i + 1)
+      const value = arg.slice(i + 1)
+      params[arg.slice(0, i)] = value.startsWith('json:') ? JSON.parse(value.slice(5)) : value
     }
   }
   return params
