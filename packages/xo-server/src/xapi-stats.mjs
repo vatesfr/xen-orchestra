@@ -1,4 +1,3 @@
-import defaults from 'lodash/defaults.js'
 import findKey from 'lodash/findKey.js'
 import forEach from 'lodash/forEach.js'
 import identity from 'lodash/identity.js'
@@ -10,7 +9,7 @@ import sum from 'lodash/sum.js'
 import uniq from 'lodash/uniq.js'
 import zipWith from 'lodash/zipWith.js'
 import { BaseError } from 'make-error'
-import { parseDateTime } from '@xen-orchestra/xapi' 
+import { parseDateTime } from '@xen-orchestra/xapi'
 
 export class FaultyGranularity extends BaseError {}
 
@@ -222,11 +221,10 @@ const STATS = {
 //   data: Item[columns] // Item = { t: Number, values: Number[rows] }
 // }
 
-
 export default class XapiStats {
   // hostCache => host uid => granularity =>  {
-    // timestamp
-    // value : promise or value
+  //  timestamp
+  //  value : promise or value
   // }
   #hostCache = {}
   constructor() {
@@ -235,42 +233,33 @@ export default class XapiStats {
 
   // Execute one http request on a XenServer for get stats
   // Return stats (Json format) or throws got exception
-  // @limitConcurrency(3)
   _getJson(xapi, host, timestamp, step) {
     const byHost = this.#hostCache[host.uuid]?.[step]
-    if(byHost !== undefined){
-      if(byHost.timestamp +step > timestamp){
-        console.log(host.uuid,'from cache',timestamp, step, byHost.timestamp )
-        return byHost.value
-      } else {
-        console.log(host.uuid,'outdated cache',timestamp, step, byHost.timestamp )
-      }
+    if (byHost !== undefined && byHost.timestamp + step > timestamp) {
+      return byHost.value
     }
-    console.log(host.uuid,'really make query', timestamp, step)
     this.#hostCache[host.uuid] = this.#hostCache[host.uuid] ?? {}
     const promise = xapi
-    .getResource('/rrd_updates', {
-      host,
-      query: {
-        cf: 'AVERAGE',
-        host: 'true',
-        interval: step,
-        json: 'true',
-        start: timestamp,
-      },
-    })
-    .then(response => response.text().then(JSON5.parse))
-    promise.then(()=>console.log('GOT ANSWER ',timestamp, step))
+      .getResource('/rrd_updates', {
+        host,
+        query: {
+          cf: 'AVERAGE',
+          host: 'true',
+          interval: step,
+          json: 'true',
+          start: timestamp,
+        },
+      })
+      .then(response => response.text().then(JSON5.parse))
 
     this.#hostCache[host.uuid][step] = {
       timestamp,
-      value : promise
+      value: promise,
     }
     return promise
   }
 
   async _getAndUpdateStats(xapi, { host, uuid, granularity }) {
-    console.log('_getAndUpdateStats')
     const step = granularity === undefined ? RRD_STEP_SECONDS : RRD_STEP_FROM_STRING[granularity]
 
     if (step === undefined) {
@@ -304,8 +293,8 @@ export default class XapiStats {
         if (metrics === undefined) {
           return
         }
-        if(uuidInStat !== uuid){
-          return 
+        if (uuidInStat !== uuid) {
+          return
         }
 
         const { metric, testResult } = findMetric(metrics, metricType)
@@ -314,17 +303,17 @@ export default class XapiStats {
         }
 
         if (stepStats === undefined || stepStats.endTimestamp !== json.meta.end) {
-          stepStats =  {
+          stepStats = {
             endTimestamp: json.meta.end,
             interval: actualStep,
-            stats:{}
+            stats: {},
           }
         }
 
         const path = metric.getPath !== undefined ? metric.getPath(testResult) : [findKey(metrics, metric)]
 
-        const lastKey = path.length - 1 
-        let metricStats =  stepStats.stats
+        const lastKey = path.length - 1
+        let metricStats = stepStats.stats
         path.forEach((property, key) => {
           if (key === lastKey) {
             metricStats[property] = computeValues(data, index, metric.transformValue)

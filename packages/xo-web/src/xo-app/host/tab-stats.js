@@ -31,7 +31,6 @@ export default class HostStats extends Component {
     }
 
     if (this.props.statsOverview?.interval === INTERVAL_BY_GRANULARITY[this.state.granularity.granularity]) {
-      console.log('get stats from parent component. granularity: %s', this.state.granularity.granularity)
       this.setState({
         stats: this.props.statsOverview,
         selectStatsLoading: false,
@@ -39,7 +38,6 @@ export default class HostStats extends Component {
       return
     }
 
-    console.log('get stats from xo-server. granularity: %s', this.state.granularity.granularity)
     this.setState({
       statsIsPending: true,
     })
