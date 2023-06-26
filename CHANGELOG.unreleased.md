@@ -48,6 +48,7 @@
 - @vates/node-vsphere-soap major
 - @xen-orchestra/vmware-explorer patch
 - xen-api patch
+- xo-cli minor
 - xo-server patch
 - xo-server-auth-oidc minor
 - xo-server-perf-alert patch

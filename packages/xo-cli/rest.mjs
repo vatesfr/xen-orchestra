@@ -61,6 +61,18 @@ const COMMANDS = {
     return this.json ? JSON.stringify(result, null, 2) : result
   },
 
+  async patch([path, ...params]) {
+    const response = await this.exec(path, {
+      body: JSON.stringify(parseParams(params)),
+      headers: {
+        'content-type': 'application/json',
+      },
+      method: 'PATCH',
+    })
+
+    return await response.text()
+  },
+
   async post([path, ...params]) {
     const response = await this.exec(path, {
       body: JSON.stringify(parseParams(params)),

@@ -313,6 +313,18 @@ const help = wrap(
       $name rest get vms/<VM UUID>
       $name rest get tasks/<task id>/actions wait=result
 
+  $name rest patch <object> <name>=<value>...
+    Update properties of an object (not all properties are writable).
+
+    <object>
+      Full path of the object to update
+
+    <name>=<value>...
+      Properties to update on the object
+
+    Examples:
+      $name rest patch vms/<VM UUID> name_label='My VM' name_description='Its description
+
   $name rest post <action> <name>=<value>...
     Execute an action.
 
