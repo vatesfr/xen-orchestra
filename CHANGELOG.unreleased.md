@@ -24,6 +24,7 @@
 - [Remote] Fix `remote is disabled` error when editing a disabled remote
 - [Settings/Servers] Fix connectiong using an explicit IPv6 address
 - [Backups/Health check] Use the right SR for health check during replication job (PR [#6902](https://github.com/vatesfr/xen-orchestra/pull/6902))
+- [RRD stats] Improve RRD stats performance (PR [#6903](https://github.com/vatesfr/xen-orchestra/pull/6903))
 
 ### Packages to release
 
