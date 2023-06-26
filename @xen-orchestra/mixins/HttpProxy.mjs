@@ -91,6 +91,9 @@ export default class HttpProxy {
 
     try {
       await this.#handleAuthentication(req, res, async () => {
+        // ServerResponse is no longer necessary
+        res.detachSocket(clientSocket)
+
         const { port, hostname } = new URL('http://' + req.url)
         const serverSocket = net.connect(port || 80, hostname)
 

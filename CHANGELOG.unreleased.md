@@ -44,6 +44,7 @@
 - @vates/task minor
 - @xen-orchestra/backups minor
 - @xen-orchestra/fs patch
+- @xen-orchestra/mixins patch
 - @vates/node-vsphere-soap major
 - @xen-orchestra/vmware-explorer patch
 - xen-api patch
