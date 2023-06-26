@@ -45,6 +45,7 @@ export default class HttpProxy {
       if (enabled) {
         events.add('connect', this.#handleConnect.bind(this)).add('request', this.#handleRequest.bind(this))
       }
+      debug(enabled ? 'enabled' : 'disabled')
     })
   }
 
