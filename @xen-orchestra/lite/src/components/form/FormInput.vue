@@ -1,13 +1,14 @@
 <template>
-  <span :class="wrapperClass" v-bind="wrapperAttrs">
+  <span :class="wrapperClass" class="container" v-bind="wrapperAttrs">
     <template v-if="inputType === 'select'">
       <select
+        :id="id"
+        ref="inputElement"
         v-model="value"
         :class="inputClass"
         :disabled="disabled || isLabelDisabled"
         :required="required"
         class="select"
-        ref="inputElement"
         v-bind="$attrs"
       >
         <slot />
@@ -18,6 +19,7 @@
     </template>
     <textarea
       v-else-if="inputType === 'textarea'"
+      :id="id"
       ref="textarea"
       v-model="value"
       :class="inputClass"
@@ -28,12 +30,13 @@
     />
     <input
       v-else
+      :id="id"
+      ref="inputElement"
       v-model="value"
       :class="inputClass"
       :disabled="disabled || isLabelDisabled"
       :required="required"
       class="input"
-      ref="inputElement"
       v-bind="$attrs"
     />
     <span v-if="before !== undefined" class="before">
@@ -53,6 +56,7 @@ import type { Color } from "@/types";
 import {
   IK_FORM_INPUT_COLOR,
   IK_FORM_LABEL_DISABLED,
+  IK_INPUT_ID,
   IK_INPUT_TYPE,
 } from "@/types/injection-keys";
 import type { IconDefinition } from "@fortawesome/fontawesome-common-types";
@@ -71,6 +75,7 @@ defineOptions({ inheritAttrs: false });
 
 const props = withDefaults(
   defineProps<{
+    id?: string;
     modelValue?: any;
     color?: Color;
     before?: IconDefinition | string;
@@ -122,6 +127,10 @@ const inputClass = computed(() => [
   },
 ]);
 
+const parentId = inject(IK_INPUT_ID, undefined);
+
+const id = computed(() => props.id ?? parentId?.value);
+
 const { textarea, triggerResize } = useTextareaAutosize();
 
 watch(value, () => nextTick(() => triggerResize()), {
@@ -136,11 +145,16 @@ defineExpose({
 </script>
 
 <style lang="postcss" scoped>
+.container {
+  font-size: 2rem;
+}
+
 .form-input,
 .form-select,
 .form-textarea {
-  display: inline-grid;
+  display: grid;
   align-items: stretch;
+  max-width: 30em;
 
   --before-width: v-bind('beforeWidth || "1.75em"');
   --after-width: v-bind('afterWidth || "1.625em"');
@@ -175,11 +189,11 @@ defineExpose({
 .select {
   font-size: 1em;
   width: 100%;
-  height: 2em;
+  height: 3em;
   margin: 0;
   color: var(--text-color);
-  border: 0.0625em solid var(--border-color);
-  border-radius: 0.5em;
+  border: 0.05em solid var(--border-color);
+  border-radius: 0.4em;
   outline: none;
   background-color: var(--background-color);
   box-shadow: var(--shadow-100);

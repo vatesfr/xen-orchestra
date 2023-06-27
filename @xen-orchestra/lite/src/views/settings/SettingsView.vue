@@ -135,21 +135,19 @@
     </UiCard>
     <UiCard class="group">
       <UiCardTitle>{{ $t("language") }}</UiCardTitle>
-      <UiKeyValueList>
+      <UiKeyValueList class="full-length">
         <UiKeyValueRow>
           <template #value>
-            <FormWidget class="full-length" :before="faEarthAmericas">
-              <select v-model="$i18n.locale">
-                <option
-                  :value="locale"
-                  v-for="locale in $i18n.availableLocales"
-                  :key="locale"
-                >
-                  {{ locales[locale].name ?? locale }}
-                </option>
-              </select>
-            </FormWidget></template
-          >
+            <FormSelect v-model="$i18n.locale" :before="faEarthAmericas">
+              <option
+                :value="locale"
+                v-for="locale in $i18n.availableLocales"
+                :key="locale"
+              >
+                {{ locales[locale].name ?? locale }}
+              </option>
+            </FormSelect>
+          </template>
         </UiKeyValueRow>
       </UiKeyValueList>
     </UiCard>
@@ -178,6 +176,7 @@ import TitleBar from "@/components/TitleBar.vue";
 import UiCard from "@/components/ui/UiCard.vue";
 import UiKeyValueList from "@/components/ui/UiKeyValueList.vue";
 import UiKeyValueRow from "@/components/ui/UiKeyValueRow.vue";
+import FormSelect from "@/components/form/FormSelect.vue";
 
 const xoLiteVersion = XO_LITE_VERSION;
 const xoLiteGitHead = XO_LITE_GIT_HEAD;
