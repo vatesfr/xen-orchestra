@@ -297,8 +297,14 @@ const help = wrap(
       $name rest get tasks filter='status:pending'
       $name rest get vms fields=name_label,power_state
 
-  $name rest get <object> [wait | wait=result]
+  $name rest get [--output <file>] <object> [wait | wait=result]
     Show an object from the REST API.
+
+    --output <file>
+      If specified, the response will be saved in <file> instead of being parsed.
+
+      If <file> ends with \`/\`, it will be considered as the directory in which
+      to save the response, and the filename will be last part of the <object> path.
 
     <object>
       Full path of the object to show
