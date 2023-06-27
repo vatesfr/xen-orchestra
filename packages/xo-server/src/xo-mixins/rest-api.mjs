@@ -415,7 +415,7 @@ export default class RestApi {
           }
         }
         await promises
-        res.sendStatus(200)
+        res.sendStatus(204)
       })
     )
 
