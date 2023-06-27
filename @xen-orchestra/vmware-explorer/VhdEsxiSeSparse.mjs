@@ -1,6 +1,6 @@
 // from https://github.com/qemu/qemu/commit/98eb9733f4cf2eeab6d12db7e758665d2fd5367b#
 
-import { notEqual, ok, strictEqual } from 'node:assert'
+import { deepEqual, notEqual, ok, strictEqual } from 'node:assert'
 import { VhdAbstract } from 'vhd-lib'
 import _computeGeometryForSize from 'vhd-lib/_computeGeometryForSize.js'
 import { DEFAULT_BLOCK_SIZE as VHD_BLOCK_SIZE_BYTES, DISK_TYPES, FOOTER_SIZE } from 'vhd-lib/_constants.js'
@@ -138,7 +138,7 @@ class CompressedTable {
       return {type: SE_SPARSE_GRAIN_ZERO, grainIndex: NaN}
     }
     const index = this.#findPredecessorIndex(grainId)
-    if (index > 0) {
+    if (index >= 0) {
       this.lastIndex = index
       const distanceFromPredecessor = grainId - this.allocatedGrains[index]
       const isAllocated = distanceFromPredecessor <= this.allocatedGrainsFollowers[index]
@@ -192,6 +192,7 @@ export default class VhdEsxiSeSparse extends VhdAbstract {
   #parentVhd
   #path
   #lookMissingBlockInParent
+  #slowAsserts = false
 
   #header
   #footer
@@ -224,13 +225,14 @@ export default class VhdEsxiSeSparse extends VhdAbstract {
   readCount = 0
   extraBytesDownloaded = 0
 
-  constructor (esxi, datastore, path, parentVhd, {lookMissingBlockInParent = true} = {}) {
+  constructor (esxi, datastore, path, parentVhd, {lookMissingBlockInParent = true, slowAsserts = false} = {}) {
     super()
     this.#esxi = esxi
     this.#path = path
     this.#datastore = datastore
     this.#parentVhd = parentVhd
     this.#lookMissingBlockInParent = lookMissingBlockInParent
+    this.#slowAsserts = slowAsserts
   }
 
   get header () {
@@ -337,12 +339,12 @@ export default class VhdEsxiSeSparse extends VhdAbstract {
 
   async readBlockAllocationTable () { 
     const MAX_TABLES_MEMORY = 2 * 1024 ** 2 // how much memory we can use to read the tables before compression
-    const grainDirectory = (await this.#readPages(this.grainDirOffsetBytes, this.grainDirOffsetBytes + this.grainDirSizeBytes, this.grainDirSizeBytes))[0]
+    this.grainDirectory = (await this.#readPages(this.grainDirOffsetBytes, this.grainDirOffsetBytes + this.grainDirSizeBytes, this.grainDirSizeBytes))[0]
     const compressor = new TableCompressor()
     const tablesEntries = []
     const tableMemorySize = this.grainTableBucketSize * this.grainTableCount
     for (let i = 0; i < this.grainDirCount; i++) {
-      const dirEntry = readSeSparseDir(grainDirectory, i)
+      const dirEntry = readSeSparseDir(this.grainDirectory, i)
       if (dirEntry.type === SE_SPARSE_DIR_ALLOCATED)
         tablesEntries.push({
           address: this.grainTableOffsetBytes + dirEntry.tableIndex * tableMemorySize,
@@ -405,13 +407,30 @@ export default class VhdEsxiSeSparse extends VhdAbstract {
     return {buffer, data, bitmap}
   }
 
+  async readTableForBlock (blockId) {
+    ok(this.#slowAsserts)
+    const grainId = blockId * this.grainsPerBlock
+    const dirEntry = readSeSparseDir(this.grainDirectory, Math.floor(grainId / this.grainTableCount))
+    if (dirEntry.type === SE_SPARSE_DIR_ALLOCATED) {
+      const tableMemorySize = this.grainTableBucketSize * this.grainTableCount
+      const tableAddress = this.grainTableOffsetBytes + dirEntry.tableIndex * tableMemorySize
+      return (await this.#readPages(tableAddress, tableAddress + tableMemorySize, tableMemorySize))[0]
+    }
+    return null
+  }
+
   async readBlock (blockId) {
     notEqual(this.compressedTable, undefined, 'compressedTable is not loaded')
     const logicalStartGrainIndex = blockId * this.grainsPerBlock
     const grainsAddresses = []
     const grainEntries = []
-    if (!this.blocksInFile.has(blockId))
+    const tableForAssert = this.#slowAsserts ? await this.readTableForBlock(blockId) : null
+    if (!this.blocksInFile.has(blockId)) {
+      if (this.#slowAsserts && tableForAssert !== null)
+        for (let i = 0; i < this.grainsPerBlock; i++)
+          strictEqual(readSeSparseTable(tableForAssert, logicalStartGrainIndex % this.grainTableCount + i).type, SE_SPARSE_GRAIN_NON_ALLOCATED)
       return this.#lookMissingBlockInParent ? await this.#parentVhd.readBlock(blockId) : this.zeroBlock
+    }
 
     for (let i = 0; i < this.grainsPerBlock; i++) {
       const grainId = logicalStartGrainIndex + i
@@ -421,6 +440,16 @@ export default class VhdEsxiSeSparse extends VhdAbstract {
       if (res.type === SE_SPARSE_GRAIN_ALLOCATED) {
         res.readObject = {grainId, address: res.grainIndex * this.grainSizeBytes + this.grainOffsetBytes}
         grainsAddresses.push(res.readObject)
+      }
+    }
+    if (this.#slowAsserts) {
+      if (tableForAssert === null) {
+        strictEqual(res.type, SE_SPARSE_GRAIN_NON_ALLOCATED, `expected non allocated grain, found ${JSON.stringify(res)} at grain ${grainId}`)
+      } else {
+        const entry = readSeSparseTable(tableForAssert, grainId % this.grainTableCount)
+        if (entry.type === SE_SPARSE_GRAIN_ALLOCATED)
+          strictEqual(entry.grainIndex, res.grainIndex)
+        ok(entry.type === res.type, `expected same type, found ${JSON.stringify(entry)}, ${JSON.stringify(res)} at grain ${grainId}`)
       }
     }
     await this.#bulkReadChunks(grainsAddresses, this.grainSizeBytes)
