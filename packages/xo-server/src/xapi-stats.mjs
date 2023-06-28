@@ -1,3 +1,4 @@
+import defaults from 'lodash/defaults.js'
 import findKey from 'lodash/findKey.js'
 import forEach from 'lodash/forEach.js'
 import identity from 'lodash/identity.js'
@@ -9,7 +10,9 @@ import sum from 'lodash/sum.js'
 import uniq from 'lodash/uniq.js'
 import zipWith from 'lodash/zipWith.js'
 import { BaseError } from 'make-error'
+import { limitConcurrency } from 'limit-concurrency-decorator'
 import { parseDateTime } from '@xen-orchestra/xapi'
+import { synchronized } from 'decorator-synchronized'
 
 export class FaultyGranularity extends BaseError {}
 
@@ -61,6 +64,8 @@ const computeValues = (dataRow, legendIndex, transformValue = identity) =>
   map(dataRow, ({ values }) => transformValue(convertNanToNull(values[legendIndex])))
 
 const combineStats = (stats, path, combineValues) => zipWith(...map(stats, path), (...values) => combineValues(values))
+
+const createGetProperty = (obj, property, defaultValue) => defaults(obj, { [property]: defaultValue })[property]
 
 const testMetric = (test, type) =>
   typeof test === 'string' ? test === type : typeof test === 'function' ? test(type) : test.exec(type)
@@ -221,25 +226,31 @@ const STATS = {
 //   data: Item[columns] // Item = { t: Number, values: Number[rows] }
 // }
 
+// Local cache
+// _statsByObject : {
+//   [uuid]: {
+//     [step]: {
+//       endTimestamp: Number, // the timestamp of the last statistic point
+//       interval: Number, // step
+//       stats: {
+//         [metric1]: Number[],
+//         [metric2]: {
+//           [subMetric]: Number[],
+//         }
+//       }
+//     }
+//   }
+// }
 export default class XapiStats {
-  // hostCache => host uid => granularity =>  {
-  //  timestamp
-  //  value : promise or value
-  // }
-  #hostCache = {}
   constructor() {
     this._statsByObject = {}
   }
 
   // Execute one http request on a XenServer for get stats
   // Return stats (Json format) or throws got exception
+  @limitConcurrency(3)
   _getJson(xapi, host, timestamp, step) {
-    const byHost = this.#hostCache[host.uuid]?.[step]
-    if (byHost !== undefined && byHost.timestamp + step > timestamp) {
-      return byHost.value
-    }
-    this.#hostCache[host.uuid] = this.#hostCache[host.uuid] ?? {}
-    const promise = xapi
+    return xapi
       .getResource('/rrd_updates', {
         host,
         query: {
@@ -251,14 +262,27 @@ export default class XapiStats {
         },
       })
       .then(response => response.text().then(JSON5.parse))
-
-    this.#hostCache[host.uuid][step] = {
-      timestamp,
-      value: promise,
-    }
-    return promise
   }
 
+  // To avoid multiple requests, we keep a cash for the stats and
+  // only return it if we not exceed a step
+  _getCachedStats(uuid, step, currentTimeStamp) {
+    const statsByObject = this._statsByObject
+
+    const stats = statsByObject[uuid]?.[step]
+    if (stats === undefined) {
+      return
+    }
+
+    if (stats.endTimestamp + step < currentTimeStamp) {
+      delete statsByObject[uuid][step]
+      return
+    }
+
+    return stats
+  }
+
+  @synchronized.withKey((_, { host }) => host.uuid)
   async _getAndUpdateStats(xapi, { host, uuid, granularity }) {
     const step = granularity === undefined ? RRD_STEP_SECONDS : RRD_STEP_FROM_STRING[granularity]
 
@@ -270,30 +294,27 @@ export default class XapiStats {
 
     const currentTimeStamp = await getServerTimestamp(xapi, host.$ref)
 
+    const stats = this._getCachedStats(uuid, step, currentTimeStamp)
+    if (stats !== undefined) {
+      return stats
+    }
+
     const maxDuration = step * RRD_POINTS_PER_STEP[step]
 
     // To avoid crossing over the boundary, we ask for one less step
     const optimumTimestamp = currentTimeStamp - maxDuration + step
     const json = await this._getJson(xapi, host, optimumTimestamp, step)
-    const actualStep = json.meta.step
 
-    if (actualStep !== step) {
-      throw new FaultyGranularity(`Unable to get the true granularity: ${actualStep}`)
-    }
-    let stepStats
+    const actualStep = json.meta.step
     if (json.data.length > 0) {
       // fetched data is organized from the newest to the oldest
       // but this implementation requires it in the other direction
-      const data = [...json.data]
-      data.reverse()
+      json.data.reverse()
       json.meta.legend.forEach((legend, index) => {
-        const [, type, uuidInStat, metricType] = /^AVERAGE:([^:]+):(.+):(.+)$/.exec(legend)
+        const [, type, uuid, metricType] = /^AVERAGE:([^:]+):(.+):(.+)$/.exec(legend)
 
         const metrics = STATS[type]
         if (metrics === undefined) {
-          return
-        }
-        if (uuidInStat !== uuid) {
           return
         }
 
@@ -302,29 +323,36 @@ export default class XapiStats {
           return
         }
 
+        const xoObjectStats = createGetProperty(this._statsByObject, uuid, {})
+        let stepStats = xoObjectStats[actualStep]
         if (stepStats === undefined || stepStats.endTimestamp !== json.meta.end) {
-          stepStats = {
+          stepStats = xoObjectStats[actualStep] = {
             endTimestamp: json.meta.end,
             interval: actualStep,
-            stats: {},
           }
         }
 
         const path = metric.getPath !== undefined ? metric.getPath(testResult) : [findKey(metrics, metric)]
 
         const lastKey = path.length - 1
-        let metricStats = stepStats.stats
+        let metricStats = createGetProperty(stepStats, 'stats', {})
         path.forEach((property, key) => {
           if (key === lastKey) {
-            metricStats[property] = computeValues(data, index, metric.transformValue)
+            metricStats[property] = computeValues(json.data, index, metric.transformValue)
             return
           }
-          metricStats = metricStats[property] = metricStats[property] ?? {}
+
+          metricStats = createGetProperty(metricStats, property, {})
         })
       })
     }
+
+    if (actualStep !== step) {
+      throw new FaultyGranularity(`Unable to get the true granularity: ${actualStep}`)
+    }
+
     return (
-      stepStats ?? {
+      this._statsByObject[uuid]?.[step] ?? {
         endTimestamp: currentTimeStamp,
         interval: step,
         stats: {},
