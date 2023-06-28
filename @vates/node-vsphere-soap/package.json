@@ -1,6 +1,6 @@
 {
   "name": "@vates/node-vsphere-soap",
-  "version": "0.0.3",
+  "version": "1.0.0",
   "description": "interface to vSphere SOAP/WSDL from node for interfacing with vCenter or ESXi, forked from node-vsphere-soap",
   "main": "lib/client.js",
   "author": "reedog117",
