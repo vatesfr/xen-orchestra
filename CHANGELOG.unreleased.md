@@ -7,7 +7,7 @@
 
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
-- [Import/Disk] Explicit how to import ISO files [Forum#7243](https://xcp-ng.org/forum/topic/7243/can-t-import-iso-through-ova-not-a-supported-filetype?_=1685710667937) (PR [#6874](https://github.com/vatesfr/xen-orchestra/pull/6874))
+- [Import/Disk] Enhance clarity for importing ISO files [Forum#7243](https://xcp-ng.org/forum/topic/7243/can-t-import-iso-through-ova-not-a-supported-filetype?_=1685710667937) (PR [#6874](https://github.com/vatesfr/xen-orchestra/pull/6874))
 
 ### Bug fixes
 
