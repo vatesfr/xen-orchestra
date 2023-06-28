@@ -27,7 +27,7 @@
     "@vates/nbd-client": "^1.2.0",
     "@vates/parse-duration": "^0.1.1",
     "@xen-orchestra/async-map": "^0.1.2",
-    "@xen-orchestra/fs": "^4.0.0",
+    "@xen-orchestra/fs": "^4.0.1",
     "@xen-orchestra/log": "^0.6.0",
     "@xen-orchestra/template": "^0.1.0",
     "compare-versions": "^5.0.1",
