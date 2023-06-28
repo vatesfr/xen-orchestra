@@ -13,13 +13,10 @@
           v-model="password"
           :placeholder="$t('password')"
           :readonly="isConnecting"
+          required
         />
       </FormInputWrapper>
-      <UiButton
-        type="submit"
-        :busy="isConnecting"
-        :disabled="password.trim().length < 1"
-      >
+      <UiButton type="submit" :busy="isConnecting">
         {{ $t("login") }}
       </UiButton>
     </form>

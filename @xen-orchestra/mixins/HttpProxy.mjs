@@ -45,6 +45,7 @@ export default class HttpProxy {
       if (enabled) {
         events.add('connect', this.#handleConnect.bind(this)).add('request', this.#handleRequest.bind(this))
       }
+      debug(enabled ? 'enabled' : 'disabled')
     })
   }
 
@@ -90,6 +91,9 @@ export default class HttpProxy {
 
     try {
       await this.#handleAuthentication(req, res, async () => {
+        // ServerResponse is no longer necessary
+        res.detachSocket(clientSocket)
+
         const { port, hostname } = new URL('http://' + req.url)
         const serverSocket = net.connect(port || 80, hostname)
 
@@ -97,12 +101,15 @@ export default class HttpProxy {
 
         clientSocket.write('HTTP/1.1 200 Connection Established\r\n\r\n')
         serverSocket.write(head)
-        fromCallback(pipeline, clientSocket, serverSocket).catch(warn)
-        fromCallback(pipeline, serverSocket, clientSocket).catch(warn)
+
+        await fromCallback(pipeline, serverSocket, clientSocket, serverSocket)
       })
     } catch (error) {
-      warn(error)
-      clientSocket.end()
+      // Ignore premature close errors, which simply means that either the client or server
+      // socket has closed the connection without waiting proper connection termination
+      if (error.code !== 'ERR_STREAM_PREMATURE_CLOSE') {
+        warn(error)
+      }
     }
   }
 

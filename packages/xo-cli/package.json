@@ -30,6 +30,7 @@
   },
   "dependencies": {
     "chalk": "^5.0.1",
+    "content-type": "^1.0.5",
     "fs-extra": "^11.1.0",
     "getopts": "^2.3.0",
     "http-request-plus": "^1.0.0",

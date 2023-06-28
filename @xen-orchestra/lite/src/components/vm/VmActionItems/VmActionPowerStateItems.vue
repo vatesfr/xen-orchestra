@@ -118,7 +118,7 @@ import {
 import { computed } from "vue";
 
 const props = defineProps<{
-  vmRefs: string[];
+  vmRefs: XenApiVm["$ref"][];
 }>();
 
 const { getByOpaqueRef: getVm } = useVmStore().subscribe();

@@ -1,6 +1,7 @@
 'use strict'
 
-/* eslint-env jest */
+const { test } = require('test')
+
 const { createFooter } = require('./_createFooterHeader')
 
 test('createFooter() does not crash', () => {

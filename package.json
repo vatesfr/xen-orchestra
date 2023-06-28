@@ -62,6 +62,7 @@
       "/@vates/decorate-with/",
       "/@vates/event-listeners-manager/",
       "/@vates/nbd-client/",
+      "/@vates/node-vsphere-soap/",
       "/@vates/predicates/",
       "/@xen-orchestra/audit-core/",
       "/dist/",

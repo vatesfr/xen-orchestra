@@ -1,6 +1,7 @@
 'use strict'
 
-/* eslint-env jest */
+const { beforeEach, afterEach, test } = require('test')
+const { strict: assert } = require('assert')
 
 const fs = require('fs-extra')
 const tmp = require('tmp')
@@ -36,5 +37,5 @@ test('checkFile fails with unvalid VHD file', async () => {
 
   const sizeToTruncateInByte = 250000
   await fs.truncate(vhdFileName, sizeToTruncateInByte)
-  await expect(async () => await checkFile(vhdFileName)).rejects.toThrow()
+  await assert.rejects(async () => await checkFile(vhdFileName))
 })

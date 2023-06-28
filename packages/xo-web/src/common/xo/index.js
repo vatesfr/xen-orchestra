@@ -580,7 +580,9 @@ export const subscribeXoTasks = createSubscription(async previousTasks => {
   }
 
   // Fetch new and updated tasks
-  const response = await fetch('./rest/v0/tasks?fields=end,id,name,objectId,properties,start,status,updatedAt,href' + filter)
+  const response = await fetch(
+    './rest/v0/tasks?fields=abortionRequestedAt,end,id,name,objectId,properties,start,status,updatedAt,href' + filter
+  )
   for (const task of await response.json()) {
     tasks.set(task.id, task)
   }
@@ -2279,6 +2281,17 @@ export const destroyTasks = tasks =>
     body: _('destroyTasksModalMessage', { nTasks: tasks.length }),
   }).then(() => Promise.all(map(tasks, task => _call('task.destroy', { id: resolveId(task) }))), noop)
 
+// XO Tasks --------------------------------------------------------------
+
+export const abortXoTask = async task => {
+  const response = await fetch(`./rest/v0/tasks/${task.id}/actions/abort`, { method: 'POST' })
+  if (response.ok) {
+    subscribeXoTasks.forceRefresh()
+  } else {
+    throw new Error(await response.text())
+  }
+}
+
 // Jobs -------------------------------------------------------------
 
 export const createJob = job => _call('job.create', { job })::tap(subscribeJobs.forceRefresh)
@@ -2628,14 +2641,16 @@ export const disableRemote = remote =>
 
 export const editRemote = (remote, { name, options, proxy, url }) =>
   _call('remote.set', {
-    id: resolveId(remote),
+    id: remote.id,
     name,
     options,
     proxy: resolveId(proxy),
     url,
   })::tap(() => {
     subscribeRemotes.forceRefresh()
-    testRemote(remote).catch(noop)
+    if (remote.enabled) {
+      testRemote(remote).catch(noop)
+    }
   })
 
 export const testRemote = remote =>

@@ -1,32 +1,28 @@
 <template>
   <div class="pool-dashboard-view">
-    <div class="item">
+    <UiCardGroup>
       <PoolDashboardStatus />
-    </div>
-    <div class="item">
-      <PoolDashboardStorageUsage />
-    </div>
-    <div class="item">
-      <PoolDashboardCpuUsage />
-    </div>
-    <div class="item">
-      <PoolDashboardRamUsage />
-    </div>
-    <div class="item">
-      <PoolDashboardCpuProvisioning />
-    </div>
-    <div class="item">
-      <PoolDashboardNetworkChart />
-    </div>
-    <div class="item">
-      <PoolDashboardRamUsageChart />
-    </div>
-    <div class="item">
-      <PoolCpuUsageChart />
-    </div>
-    <div class="item">
+      <UiCardComingSoon class="alarms" title="Alarms" />
       <PoolDashboardHostsPatches />
-    </div>
+    </UiCardGroup>
+    <UiCardGroup>
+      <UiCardGroup>
+        <PoolDashboardStorageUsage />
+        <PoolDashboardNetworkChart />
+      </UiCardGroup>
+      <UiCardGroup>
+        <PoolDashboardRamUsage />
+        <PoolDashboardRamUsageChart />
+      </UiCardGroup>
+      <UiCardGroup>
+        <PoolDashboardCpuProvisioning />
+        <PoolDashboardCpuUsage />
+        <PoolCpuUsageChart />
+      </UiCardGroup>
+    </UiCardGroup>
+    <UiCardGroup>
+      <UiCardComingSoon class="tasks" title="Tasks" />
+    </UiCardGroup>
   </div>
 </template>
 
@@ -35,23 +31,25 @@ export const N_ITEMS = 5;
 </script>
 
 <script lang="ts" setup>
-import PoolDashboardHostsPatches from "@/components/pool/dashboard/PoolDashboardHostsPatches.vue";
-import { useHostMetricsStore } from "@/stores/host-metrics.store";
-import { differenceBy } from "lodash-es";
-import { provide, watch } from "vue";
 import PoolCpuUsageChart from "@/components/pool/dashboard/cpuUsage/PoolCpuUsageChart.vue";
-import PoolDashboardCpuUsage from "@/components/pool/dashboard/PoolDashboardCpuUsage.vue";
-import PoolDashboardNetworkChart from "@/components/pool/dashboard/PoolDashboardNetworkChart.vue";
 import PoolDashboardCpuProvisioning from "@/components/pool/dashboard/PoolDashboardCpuProvisioning.vue";
+import PoolDashboardCpuUsage from "@/components/pool/dashboard/PoolDashboardCpuUsage.vue";
+import PoolDashboardHostsPatches from "@/components/pool/dashboard/PoolDashboardHostsPatches.vue";
+import PoolDashboardNetworkChart from "@/components/pool/dashboard/PoolDashboardNetworkChart.vue";
 import PoolDashboardRamUsage from "@/components/pool/dashboard/PoolDashboardRamUsage.vue";
-import PoolDashboardRamUsageChart from "@/components/pool/dashboard/ramUsage/PoolRamUsage.vue";
 import PoolDashboardStatus from "@/components/pool/dashboard/PoolDashboardStatus.vue";
 import PoolDashboardStorageUsage from "@/components/pool/dashboard/PoolDashboardStorageUsage.vue";
+import PoolDashboardRamUsageChart from "@/components/pool/dashboard/ramUsage/PoolRamUsage.vue";
+import UiCardComingSoon from "@/components/ui/UiCardComingSoon.vue";
+import UiCardGroup from "@/components/ui/UiCardGroup.vue";
 import useFetchStats from "@/composables/fetch-stats.composable";
 import { GRANULARITY, type HostStats, type VmStats } from "@/libs/xapi-stats";
 import type { XenApiHost, XenApiVm } from "@/libs/xen-api";
+import { useHostMetricsStore } from "@/stores/host-metrics.store";
 import { useHostStore } from "@/stores/host.store";
 import { useVmStore } from "@/stores/vm.store";
+import { differenceBy } from "lodash-es";
+import { provide, watch } from "vue";
 
 const hostMetricsSubscription = useHostMetricsStore().subscribe();
 
@@ -116,32 +114,14 @@ runningVms.value.forEach((vm) => vmRegister(vm));
 
 <style lang="postcss" scoped>
 .pool-dashboard-view {
-  column-gap: 0;
-  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem;
 }
 
-@media (min-width: 768px) {
-  .pool-dashboard-view {
-    column-count: 2;
-  }
-}
-
-@media (min-width: 1500px) {
-  .pool-dashboard-view {
-    column-count: 3;
-  }
-}
-
-.item {
-  margin: 0;
-  padding: 0.5rem;
-  overflow: hidden;
-}
-
-@media (min-width: 768px) {
-  .item {
-    page-break-inside: avoid;
-    break-inside: avoid;
-  }
+.alarms,
+.tasks {
+  flex: 1;
 }
 </style>

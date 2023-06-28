@@ -8,11 +8,12 @@ Alternatively, here is a video recap on different backup capabilities:
 
 - [Rolling Snapshots](rolling_snapshots.md)
 - [Full Backups](full_backups.md)
-- [Delta Backups](delta_backups.md)
-- [Disaster Recovery](disaster_recovery.md)
+- [Incremental Backups](incremental_backups.md)
+- [Full Replication](full_replication.md)
 - [Metadata Backups](metadata_backup.md)
-- [Continuous Replication](continuous_replication.md)
+- [Incremental Replication](incremental_replication.md)
 - [File Level Restore](file_level_restore.md)
+- [Mirror backup](mirror_backup.md)
 
 :::tip
 Don't forget to take a look at the [backup troubleshooting](backup_troubleshooting.md) section. You can also take a look at the [backup reports](backup_reports.md) section for configuring notifications.

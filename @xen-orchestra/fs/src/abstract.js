@@ -1,6 +1,6 @@
-import asyncMapSettled from '@xen-orchestra/async-map/legacy'
 import assert from 'assert'
 import getStream from 'get-stream'
+import { asyncEach } from '@vates/async-each'
 import { coalesceCalls } from '@vates/coalesce-calls'
 import { createLogger } from '@xen-orchestra/log'
 import { fromCallback, fromEvent, ignoreErrors, timeout } from 'promise-toolbox'
@@ -623,7 +623,7 @@ export default class RemoteHandlerAbstract {
     }
 
     const files = await this._list(dir)
-    await asyncMapSettled(files, file =>
+    await asyncEach(files, file =>
       this._unlink(`${dir}/${file}`).catch(error => {
         // Unlink dir behavior is not consistent across platforms
         // https://github.com/nodejs/node-v0.x-archive/issues/5791

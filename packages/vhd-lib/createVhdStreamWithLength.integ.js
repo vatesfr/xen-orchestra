@@ -1,6 +1,7 @@
 'use strict'
 
-/* eslint-env jest */
+const { beforeEach, afterEach, describe, it } = require('test')
+const { strict: assert } = require('assert')
 
 const execa = require('execa')
 const fs = require('fs-extra')
@@ -12,22 +13,22 @@ const { pipeline } = require('readable-stream')
 const { rimraf } = require('rimraf')
 
 const createVhdStreamWithLength = require('./createVhdStreamWithLength.js')
-const { FOOTER_SIZE } = require('./_constants')
-const { createRandomFile, convertFromRawToVhd, convertFromVhdToRaw } = require('./tests/utils')
-
-let tempDir = null
-
-beforeEach(async () => {
-  tempDir = await pFromCallback(cb => tmp.dir(cb))
-})
-
-afterEach(async () => {
-  await rimraf(tempDir)
-})
+const { FOOTER_SIZE } = require('./_constants.js')
+const { createRandomFile, convertFromRawToVhd, convertFromVhdToRaw } = require('./tests/utils.js')
 
 const forOwn = (object, cb) => Object.keys(object).forEach(key => cb(object[key], key, object))
 
 describe('createVhdStreamWithLength', () => {
+  let tempDir = null
+
+  beforeEach(async () => {
+    tempDir = await pFromCallback(cb => tmp.dir(cb))
+  })
+
+  afterEach(async () => {
+    await rimraf(tempDir)
+  })
+
   forOwn(
     {
       // qemu-img requires this length or it fill with null bytes which breaks
@@ -52,7 +53,7 @@ describe('createVhdStreamWithLength', () => {
 
         // ensure the guessed length correspond to the stream length
         const { size: outputSize } = await fs.stat(outputVhd)
-        expect(length).toEqual(outputSize)
+        assert.equal(length, outputSize)
 
         // ensure the generated VHD is correct and contains the same data
         const outputRaw = `${tempDir}/output.raw`
@@ -83,14 +84,14 @@ describe('createVhdStreamWithLength', () => {
     await pFromCallback(cb => endOfFile.end(footer, cb))
     const { size: longerSize } = await fs.stat(vhdName)
     // check input file has been lengthened
-    expect(longerSize).toEqual(vhdSize + FOOTER_SIZE)
+    assert.equal(longerSize, vhdSize + FOOTER_SIZE)
     const result = await createVhdStreamWithLength(await createReadStream(vhdName))
-    expect(result.length).toEqual(vhdSize)
+    assert.equal(result.length, vhdSize)
     const outputFileStream = await createWriteStream(outputVhdName)
     await pFromCallback(cb => pipeline(result, outputFileStream, cb))
     const { size: outputSize } = await fs.stat(outputVhdName)
     // check out file has been shortened again
-    expect(outputSize).toEqual(vhdSize)
+    assert.equal(outputSize, vhdSize)
     await execa('qemu-img', ['compare', outputVhdName, vhdName])
   })
 })
