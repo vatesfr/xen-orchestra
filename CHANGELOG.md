@@ -1,5 +1,45 @@
 # ChangeLog
 
+## **next**
+
+### Enhancements
+
+- [XO Tasks] Abortion can now be requested, note that not all tasks will respond to it
+- [Home/Pool] `No XCP-ng Pro support enabled on this pool` alert is considered a warning instead of an error (PR [#6849](https://github.com/vatesfr/xen-orchestra/pull/6849))
+- [Plugin/auth-iodc] OpenID Connect scopes are now configurable and `profile` is included by default
+- [Dashboard/Health] Button to copy UUID of an orphan VDI to the clipboard (PR [#6893](https://github.com/vatesfr/xen-orchestra/pull/6893))
+- [Kubernetes recipe] Add the possibility to choose the version for the cluster [#6842](https://github.com/vatesfr/xen-orchestra/issues/6842) (PR [#6880](https://github.com/vatesfr/xen-orchestra/pull/6880))
+- [New VM] cloud-init drives are now bootable in a Windows VM (PR [#6889](https://github.com/vatesfr/xen-orchestra/pull/6889))
+- [Backups] Add setting `backups.metadata.defaultSettings.diskPerVmConcurrency` in xo-server's configuration file to limit the number of disks transferred in parallel per VM, this is useful to avoid transfer overloading remote and Sr (PR [#6787](https://github.com/vatesfr/xen-orchestra/pull/6787))
+
+### Bug fixes
+
+- [Home/Host] Fix "isHostTimeConsistentWithXoaTime.then is not a function" (PR [#6896](https://github.com/vatesfr/xen-orchestra/pull/6896))
+- [ESXi Import] was depending on an older unmaintened library that was downgrading the global security level of XO (PR [#6859](https://github.com/vatesfr/xen-orchestra/pull/6859))
+- [Backup] Fix memory consumption when deleting _VHD directory_ incremental backups
+- [Remote] Fix `remote is disabled` error when editing a disabled remote
+- [Settings/Servers] Fix connectiong using an explicit IPv6 address
+- [Backups/Health check] Use the right SR for health check during replication job (PR [#6902](https://github.com/vatesfr/xen-orchestra/pull/6902))
+- [RRD stats] Improve RRD stats performance (PR [#6903](https://github.com/vatesfr/xen-orchestra/pull/6903))
+
+### Released packages
+
+- @xen-orchestra/fs 4.0.1
+- xen-api 1.3.3
+- @vates/nbd-client 1.2.1
+- @vates/node-vsphere-soap 1.0.0
+- @vates/task 0.2.0
+- @xen-orchestra/backups 0.39.0
+- @xen-orchestra/backups-cli 1.0.9
+- @xen-orchestra/mixins 0.10.2
+- @xen-orchestra/proxy 0.26.29
+- @xen-orchestra/vmware-explorer 0.2.3
+- xo-cli 0.20.0
+- xo-server 5.117.0
+- xo-server-auth-oidc 0.3.0
+- xo-server-perf-alert 0.3.6
+- xo-web 5.120.0
+
 ## **5.83.3** (2023-06-23)
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
