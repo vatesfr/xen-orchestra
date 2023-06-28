@@ -1,9 +1,9 @@
 'use strict'
 
 const assert = require('assert')
-const map = require('lodash/map.js')
 const mapValues = require('lodash/mapValues.js')
 const ignoreErrors = require('promise-toolbox/ignoreErrors')
+const { asyncEach } = require('@vates/async-each')
 const { asyncMap } = require('@xen-orchestra/async-map')
 const { chainVhd, checkVhdChain, openVhd, VhdAbstract } = require('vhd-lib')
 const { createLogger } = require('@xen-orchestra/log')
@@ -138,7 +138,7 @@ class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrementalWrite
     const adapter = this._adapter
     const job = this._job
     const scheduleId = this._scheduleId
-
+    const settings = this._settings
     const jobId = job.id
     const handler = adapter.handler
 
@@ -176,8 +176,9 @@ class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrementalWrite
     }
     const { size } = await Task.run({ name: 'transfer' }, async () => {
       let transferSize = 0
-      await Promise.all(
-        map(deltaExport.vdis, async (vdi, id) => {
+      await asyncEach(
+        Object.entries(deltaExport.vdis),
+        async ([id, vdi]) => {
           const path = `${this._vmBackupDir}/${vhds[id]}`
 
           const isDelta = differentialVhds[`${id}.vhd`]
@@ -223,8 +224,12 @@ class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrementalWrite
             await vhd.readBlockAllocationTable() // required by writeFooter()
             await vhd.writeFooter()
           })
-        })
+        },
+        {
+          concurrency: settings.diskPerVmConcurrency,
+        }
       )
+
       return { size: transferSize }
     })
     metadataContent.size = size
