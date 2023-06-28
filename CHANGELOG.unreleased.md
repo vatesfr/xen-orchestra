@@ -12,6 +12,7 @@
 - [Plugin/auth-iodc] OpenID Connect scopes are now configurable and `profile` is included by default
 - [Dashboard/Health] Button to copy UUID of an orphan VDI to the clipboard (PR [#6893](https://github.com/vatesfr/xen-orchestra/pull/6893))
 - [Kubernetes recipe] Add the possibility to choose the version for the cluster [#6842](https://github.com/vatesfr/xen-orchestra/issues/6842) (PR [#6880](https://github.com/vatesfr/xen-orchestra/pull/6880))
+- [New VM] cloud-init drives are now bootable in a Windows VM (PR [#6889](https://github.com/vatesfr/xen-orchestra/pull/6889))
 
 ### Bug fixes
 
@@ -49,7 +50,7 @@
 - @xen-orchestra/vmware-explorer patch
 - xen-api patch
 - xo-cli minor
-- xo-server patch
+- xo-server minor
 - xo-server-auth-oidc minor
 - xo-server-perf-alert patch
 - xo-web minor

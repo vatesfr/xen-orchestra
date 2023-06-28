@@ -28,7 +28,7 @@ import { extractOpaqueRef, parseDateTime, Xapi as XapiBase } from '@xen-orchestr
 import { Ref } from 'xen-api'
 import { synchronized } from 'decorator-synchronized'
 
-import fatfsBuffer, { init as fatfsBufferInit } from '../fatfs-buffer.mjs'
+import fatfsBuffer, { addMbr, init as fatfsBufferInit } from '../fatfs-buffer.mjs'
 import { camelToSnakeCase, forEach, map, pDelay, promisifyAll } from '../utils.mjs'
 import { debounceWithKey } from '../_pDebounceWithKey.mjs'
 
@@ -1301,15 +1301,7 @@ export default class Xapi extends XapiBase {
     const sr = this.getObject(srId)
 
     // First, create a small VDI (10MB) which will become the ConfigDrive
-    const buffer = fatfsBufferInit({ label: 'cidata     ' })
-    const vdi = await this._getOrWaitObject(
-      await this.VDI_create({
-        name_label: 'XO CloudConfigDrive',
-        SR: sr.$ref,
-        virtual_size: buffer.length,
-      })
-    )
-    $defer.onFailure(() => vdi.$destroy())
+    let buffer = fatfsBufferInit({ label: 'cidata     ' })
 
     // Then, generate a FAT fs
     const { mkdir, writeFile } = promisifyAll(fatfs.createFileSystem(fatfsBuffer(buffer)))
@@ -1334,6 +1326,15 @@ export default class Xapi extends XapiBase {
         )
       ),
     ])
+    buffer = addMbr(buffer)
+    const vdi = await this._getOrWaitObject(
+      await this.VDI_create({
+        name_label: 'XO CloudConfigDrive',
+        SR: sr.$ref,
+        virtual_size: buffer.length,
+      })
+    )
+    $defer.onFailure(() => vdi.$destroy())
 
     // ignore errors, I (JFT) don't understand why they are emitted
     // because it works
