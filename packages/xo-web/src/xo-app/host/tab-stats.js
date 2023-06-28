@@ -4,7 +4,7 @@ import Icon from 'icon'
 import React from 'react'
 import Tooltip from 'tooltip'
 import { Container, Row, Col } from 'grid'
-import { DEFAULT_GRANULARITY, fetchStats, SelectGranularity } from 'stats'
+import { DEFAULT_GRANULARITY, fetchStats, SelectGranularity, INTERVAL_BY_GRANULARITY } from 'stats'
 import { Toggle } from 'form'
 import { CpuLineChart, MemoryLineChart, PifLineChart, LoadLineChart } from 'xo-line-chart'
 
@@ -12,48 +12,52 @@ export default class HostStats extends Component {
   state = {
     granularity: DEFAULT_GRANULARITY,
     useCombinedValues: false,
+    statsIsPending: false,
   }
 
-  loop(host = this.props.host) {
-    if (this.cancel) {
-      this.cancel()
+  fetchHostStats = () => {
+    if (this.state.statsIsPending) {
+      return
     }
+
+    const host = this.props.host
 
     if (host.power_state !== 'Running') {
       return
     }
 
-    let cancelled = false
-    this.cancel = () => {
-      cancelled = true
+    if (this.props.statsOverview?.interval === INTERVAL_BY_GRANULARITY[this.state.granularity.granularity]) {
+      this.setState({
+        stats: this.props.statsOverview,
+        selectStatsLoading: false,
+      })
+      return
     }
 
+    this.setState({
+      statsIsPending: true,
+    })
     fetchStats(host, 'host', this.state.granularity).then(stats => {
-      if (cancelled) {
-        return
-      }
-      this.cancel = null
-
-      clearTimeout(this.timeout)
-      this.setState(
-        {
-          stats,
-          selectStatsLoading: false,
-        },
-        () => {
-          this.timeout = setTimeout(this.loop, stats.interval * 1000)
-        }
-      )
+      this.setState({
+        stats,
+        selectStatsLoading: false,
+        statsIsPending: false,
+      })
     })
   }
-  loop = ::this.loop
+
+  initFetchHostStats() {
+    this.fetchHostStats()
+    this.interval = setInterval(this.fetchHostStats, INTERVAL_BY_GRANULARITY[this.state.granularity.granularity] * 1000)
+  }
+  initFetchHostStats = ::this.initFetchHostStats
 
   componentWillMount() {
-    this.loop()
+    this.initFetchHostStats()
   }
 
   componentWillUnmount() {
-    clearTimeout(this.timeout)
+    clearInterval(this.interval)
   }
 
   componentWillReceiveProps(props) {
@@ -61,7 +65,7 @@ export default class HostStats extends Component {
     const hostNext = props.host
 
     if (hostCur.power_state !== 'Running' && hostNext.power_state === 'Running') {
-      this.loop(hostNext)
+      this.initFetchHostStats(hostNext)
     } else if (hostCur.power_state === 'Running' && hostNext.power_state !== 'Running') {
       this.setState({
         stats: undefined,
@@ -70,14 +74,14 @@ export default class HostStats extends Component {
   }
 
   handleSelectStats(granularity) {
-    clearTimeout(this.timeout)
+    clearInterval(this.interval)
 
     this.setState(
       {
         granularity,
         selectStatsLoading: true,
       },
-      this.loop
+      this.initFetchHostStats
     )
   }
   handleSelectStats = ::this.handleSelectStats
