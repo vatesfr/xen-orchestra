@@ -1687,7 +1687,7 @@ const messages = {
   diskImportSuccess: 'Disk import success',
   dropDisksFiles: 'Drop {types} files here to import disks.',
   importToSr: 'To SR',
-  isoImportRequirement: 'In order to import ISO files, an ISO repository is required',
+  isoImportRequirement: 'To import ISO files, an ISO repository is required',
 
   // ---- Tasks ---
   poolTasks: 'Pool tasks',
