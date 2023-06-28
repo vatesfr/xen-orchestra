@@ -297,8 +297,14 @@ const help = wrap(
       $name rest get tasks filter='status:pending'
       $name rest get vms fields=name_label,power_state
 
-  $name rest get <object> [wait | wait=result]
+  $name rest get [--output <file>] <object> [wait | wait=result]
     Show an object from the REST API.
+
+    --output <file>
+      If specified, the response will be saved in <file> instead of being parsed.
+
+      If <file> ends with \`/\`, it will be considered as the directory in which
+      to save the response, and the filename will be last part of the <object> path.
 
     <object>
       Full path of the object to show
@@ -312,6 +318,18 @@ const help = wrap(
     Examples:
       $name rest get vms/<VM UUID>
       $name rest get tasks/<task id>/actions wait=result
+
+  $name rest patch <object> <name>=<value>...
+    Update properties of an object (not all properties are writable).
+
+    <object>
+      Full path of the object to update
+
+    <name>=<value>...
+      Properties to update on the object
+
+    Examples:
+      $name rest patch vms/<VM UUID> name_label='My VM' name_description='Its description
 
   $name rest post <action> <name>=<value>...
     Execute an action.

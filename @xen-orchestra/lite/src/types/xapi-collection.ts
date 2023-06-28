@@ -13,11 +13,11 @@ import type {
 } from "@/libs/xen-api";
 import type { ComputedRef, Ref } from "vue";
 
-type DefaultExtension<T extends XenApiRecord> = {
+type DefaultExtension<T extends XenApiRecord<string>> = {
   records: ComputedRef<T[]>;
-  getByOpaqueRef: (opaqueRef: string) => T | undefined;
-  getByUuid: (uuid: string) => T | undefined;
-  hasUuid: (uuid: string) => boolean;
+  getByOpaqueRef: (opaqueRef: T["$ref"]) => T | undefined;
+  getByUuid: (uuid: T["uuid"]) => T | undefined;
+  hasUuid: (uuid: T["uuid"]) => boolean;
   isReady: Readonly<Ref<boolean>>;
   isFetching: Readonly<Ref<boolean>>;
   isReloading: ComputedRef<boolean>;
@@ -33,7 +33,7 @@ type DeferExtension = [
   { immediate: false }
 ];
 
-type DefaultExtensions<T extends XenApiRecord> = [
+type DefaultExtensions<T extends XenApiRecord<string>> = [
   DefaultExtension<T>,
   DeferExtension
 ];
@@ -64,14 +64,14 @@ type GenerateSubscription<
   : object;
 
 export type Subscription<
-  T extends XenApiRecord,
+  T extends XenApiRecord<string>,
   Options extends object,
   Extensions extends any[] = []
 > = GenerateSubscription<Options, Extensions> &
   GenerateSubscription<Options, DefaultExtensions<T>>;
 
 export function createSubscribe<
-  T extends XenApiRecord,
+  T extends XenApiRecord<string>,
   Extensions extends any[],
   Options extends object = SubscribeOptions<Extensions>
 >(builder: (options?: Options) => Subscription<T, Options, Extensions>) {

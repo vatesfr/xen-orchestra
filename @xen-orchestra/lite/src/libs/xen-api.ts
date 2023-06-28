@@ -88,78 +88,80 @@ export enum VM_OPERATION {
   SUSPEND = "suspend",
 }
 
-export interface XenApiRecord {
-  $ref: string;
-  uuid: string;
+declare const __brand: unique symbol;
+
+export interface XenApiRecord<Name extends string> {
+  $ref: string & { [__brand]: `${Name}Ref` };
+  uuid: string & { [__brand]: `${Name}Uuid` };
 }
 
-export type RawXenApiRecord<T extends XenApiRecord> = Omit<T, "$ref">;
+export type RawXenApiRecord<T extends XenApiRecord<string>> = Omit<T, "$ref">;
 
-export interface XenApiPool extends XenApiRecord {
+export interface XenApiPool extends XenApiRecord<"Pool"> {
   cpu_info: {
     cpu_count: string;
   };
-  master: string;
+  master: XenApiHost["$ref"];
   name_label: string;
 }
 
-export interface XenApiHost extends XenApiRecord {
+export interface XenApiHost extends XenApiRecord<"Host"> {
   address: string;
   name_label: string;
-  metrics: string;
-  resident_VMs: string[];
+  metrics: XenApiHostMetrics["$ref"];
+  resident_VMs: XenApiVm["$ref"][];
   cpu_info: { cpu_count: string };
   software_version: { product_version: string };
 }
 
-export interface XenApiSr extends XenApiRecord {
+export interface XenApiSr extends XenApiRecord<"Sr"> {
   name_label: string;
   physical_size: number;
   physical_utilisation: number;
 }
 
-export interface XenApiVm extends XenApiRecord {
+export interface XenApiVm extends XenApiRecord<"Vm"> {
   current_operations: Record<string, VM_OPERATION>;
   guest_metrics: string;
-  metrics: string;
+  metrics: XenApiVmMetrics["$ref"];
   name_label: string;
   name_description: string;
   power_state: POWER_STATE;
-  resident_on: string;
-  consoles: string[];
+  resident_on: XenApiHost["$ref"];
+  consoles: XenApiConsole["$ref"][];
   is_control_domain: boolean;
   is_a_snapshot: boolean;
   is_a_template: boolean;
   VCPUs_at_startup: number;
 }
 
-export interface XenApiConsole extends XenApiRecord {
+export interface XenApiConsole extends XenApiRecord<"Console"> {
   protocol: string;
   location: string;
 }
 
-export interface XenApiHostMetrics extends XenApiRecord {
+export interface XenApiHostMetrics extends XenApiRecord<"HostMetrics"> {
   live: boolean;
   memory_free: number;
   memory_total: number;
 }
 
-export interface XenApiVmMetrics extends XenApiRecord {
+export interface XenApiVmMetrics extends XenApiRecord<"VmMetrics"> {
   VCPUs_number: number;
 }
 
-export type XenApiVmGuestMetrics = XenApiRecord;
+export type XenApiVmGuestMetrics = XenApiRecord<"VmGuestMetrics">;
 
-export interface XenApiTask extends XenApiRecord {
+export interface XenApiTask extends XenApiRecord<"Task"> {
   name_label: string;
-  resident_on: string;
+  resident_on: XenApiHost["$ref"];
   created: string;
   finished: string;
   status: string;
   progress: number;
 }
 
-export interface XenApiMessage extends XenApiRecord {
+export interface XenApiMessage extends XenApiRecord<"Message"> {
   name: string;
   cls: RawObjectType;
 }
@@ -168,8 +170,8 @@ type WatchCallbackResult = {
   id: string;
   class: ObjectType;
   operation: "add" | "mod" | "del";
-  ref: string;
-  snapshot: RawXenApiRecord<XenApiRecord>;
+  ref: XenApiRecord<string>["$ref"];
+  snapshot: RawXenApiRecord<XenApiRecord<string>>;
 };
 
 type WatchCallback = (results: WatchCallbackResult[]) => void;
@@ -278,14 +280,16 @@ export default class XenApi {
     return fetch(url);
   }
 
-  async loadRecords<T extends XenApiRecord>(type: RawObjectType): Promise<T[]> {
+  async loadRecords<T extends XenApiRecord<string>>(
+    type: RawObjectType
+  ): Promise<T[]> {
     const result = await this.#call<{ [key: string]: RawXenApiRecord<T> }>(
       `${type}.get_all_records`,
       [this.sessionId]
     );
 
     return Object.entries(result).map(([opaqueRef, record]) =>
-      buildXoObject(record, { opaqueRef })
+      buildXoObject(record, { opaqueRef: opaqueRef as T["$ref"] })
     );
   }
 
@@ -324,7 +328,7 @@ export default class XenApi {
     this.#watchCallBack = callback;
   }
 
-  async injectWatchEvent(poolRef: string) {
+  async injectWatchEvent(poolRef: XenApiPool["$ref"]) {
     this.#fromToken = await this.#call("event.inject", [
       this.sessionId,
       "pool",
@@ -367,7 +371,7 @@ export default class XenApi {
         );
       },
       resume: (vmRefsWithPowerState: VmRefsWithPowerState) => {
-        const vmRefs = Object.keys(vmRefsWithPowerState);
+        const vmRefs = Object.keys(vmRefsWithPowerState) as XenApiVm["$ref"][];
 
         return Promise.all(
           vmRefs.map((vmRef) => {
@@ -394,7 +398,7 @@ export default class XenApi {
         );
       },
       clone: (vmRefsToClone: VmRefsToClone) => {
-        const vmRefs = Object.keys(vmRefsToClone);
+        const vmRefs = Object.keys(vmRefsToClone) as XenApiVm["$ref"][];
 
         return Promise.all(
           vmRefs.map((vmRef) =>

@@ -3,12 +3,15 @@ import _, { messages } from 'intl'
 import decorate from 'apply-decorators'
 import React from 'react'
 import { Container } from 'grid'
+import { createLogger } from '@xen-orchestra/log'
 import { get } from '@xen-orchestra/defined'
 import { injectIntl } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
 import { isSrWritable } from 'xo'
 import { SelectPool, SelectNetwork, SelectSr } from 'select-objects'
 import { Select } from 'form'
+
+const logger = createLogger('kubernetes-recipe')
 
 const FAULT_TOLERANCE = [
   {
@@ -71,6 +74,13 @@ export default decorate([
           controlPlanePoolSize: faultTolerance.value * 2 + 1,
         })
       },
+      onChangeK8sVersion(__, k8sVersion) {
+        const { onChange, value } = this.props
+        onChange({
+          ...value,
+          k8sVersion: k8sVersion.value,
+        })
+      },
       onChangeWorkerIp(__, ev) {
         const { name, value } = ev.target
         const { onChange, value: prevValue } = this.props
@@ -129,6 +139,21 @@ export default decorate([
         (_, { value }) =>
         sr =>
           sr.$pool === get(() => value.pool.id) && isSrWritable(sr),
+      versionList: async () => {
+        const res = await fetch('https://api.github.com/repos/kubernetes/kubernetes/releases')
+        if (res.ok) {
+          const rawList = await res.json()
+          const versionList = rawList
+            .filter(version => !version.prerelease)
+            .map(({ tag_name }) => ({
+              label: tag_name,
+              value: tag_name.slice(1) + '-00', // Add this suffix to the version number to respect the required format for installation
+            }))
+          return versionList
+        } else {
+          logger.error('HTTP response: ' + res.status)
+        }
+      },
     },
   }),
   injectState,
@@ -150,6 +175,17 @@ export default decorate([
           required
           value={value.network}
           predicate={state.networkPredicate}
+        />
+      </FormGrid.Row>
+      <FormGrid.Row>
+        <label>{_('recipeSelectK8sVersion')}</label>
+        <Select
+          className='mb-1'
+          name='k8sVersion'
+          onChange={effects.onChangeK8sVersion}
+          options={state.versionList}
+          required
+          value={value.k8sVersion}
         />
       </FormGrid.Row>
       <FormGrid.Row>

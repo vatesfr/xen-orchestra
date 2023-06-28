@@ -683,6 +683,9 @@ export default {
   // Original text: 'High Availability'
   highAvailability: 'Alta disponibilità',
 
+  // Original text: 'Select Kubernetes version'
+  recipeSelectK8sVersion: 'Selezionare la versione di Kubernetes',
+
   // Original text: 'Control plane fault tolerance'
   recipeFaultTolerance: 'Tolleranza ai guasti del piano di controllo',
 

@@ -56,10 +56,12 @@
 import AppMenu from "@/components/menu/AppMenu.vue";
 import MenuItem from "@/components/menu/MenuItem.vue";
 import UiButton from "@/components/ui/UiButton.vue";
-import { useUiStore } from "@/stores/ui.store";
-import VmActionPowerStateItems from "@/components/vm/VmActionItems/VmActionPowerStateItems.vue";
 import VmActionCopyItem from "@/components/vm/VmActionItems/VmActionCopyItem.vue";
 import VmActionDeleteItem from "@/components/vm/VmActionItems/VmActionDeleteItem.vue";
+import VmActionPowerStateItems from "@/components/vm/VmActionItems/VmActionPowerStateItems.vue";
+import { vTooltip } from "@/directives/tooltip.directive";
+import type { XenApiVm } from "@/libs/xen-api";
+import { useUiStore } from "@/stores/ui.store";
 import {
   faCamera,
   faCode,
@@ -72,11 +74,10 @@ import {
   faRoute,
 } from "@fortawesome/free-solid-svg-icons";
 import { storeToRefs } from "pinia";
-import { vTooltip } from "@/directives/tooltip.directive";
 
 defineProps<{
   disabled?: boolean;
-  selectedRefs: string[];
+  selectedRefs: XenApiVm["$ref"][];
 }>();
 
 const { isMobile } = storeToRefs(useUiStore());

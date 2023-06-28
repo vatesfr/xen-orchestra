@@ -44,7 +44,7 @@ const usage = 'Usage: xen-api <url> [<user> [<password>]]'
 
 async function main(createClient) {
   const opts = minimist(process.argv.slice(2), {
-    string: ['proxy', 'session-id'],
+    string: ['proxy', 'session-id', 'transport'],
     boolean: ['allow-unauthorized', 'help', 'read-only', 'verbose'],
 
     alias: {
@@ -54,6 +54,7 @@ async function main(createClient) {
       proxy: 'p',
       'read-only': 'ro',
       verbose: 'v',
+      transport: 't',
     },
   })
 
@@ -91,6 +92,7 @@ async function main(createClient) {
     httpProxy: opts.proxy,
     readOnly: opts.ro,
     syncStackTraces: true,
+    transport: opts.transport || undefined,
   })
   await xapi.connect()
 

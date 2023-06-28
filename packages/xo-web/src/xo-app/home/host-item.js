@@ -59,7 +59,7 @@ export default class HostItem extends Component {
   }
 
   componentWillMount() {
-    isHostTimeConsistentWithXoaTime(this.props.item).then(value =>
+    Promise.resolve(isHostTimeConsistentWithXoaTime(this.props.item)).then(value =>
       this.setState({
         isHostTimeConsistentWithXoaTime: value,
       })

@@ -110,6 +110,18 @@ Usage:
       xo-cli rest get vms/<VM UUID>
       xo-cli rest get tasks/<task id>/actions wait=result
 
+  xo-cli rest patch <object> <name>=<value>...
+    Update properties of an object (not all properties are writable).
+
+    <object>
+      Full path of the object to update
+
+    <name>=<value>...
+      Properties to update on the object
+
+    Examples:
+      xo-cli rest patch vms/<VM UUID> name_label='My VM' name_description='Its description
+
   xo-cli rest post <action> <name>=<value>...
     Execute an action.
 

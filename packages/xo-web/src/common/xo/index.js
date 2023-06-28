@@ -2641,14 +2641,16 @@ export const disableRemote = remote =>
 
 export const editRemote = (remote, { name, options, proxy, url }) =>
   _call('remote.set', {
-    id: resolveId(remote),
+    id: remote.id,
     name,
     options,
     proxy: resolveId(proxy),
     url,
   })::tap(() => {
     subscribeRemotes.forceRefresh()
-    testRemote(remote).catch(noop)
+    if (remote.enabled) {
+      testRemote(remote).catch(noop)
+    }
   })
 
 export const testRemote = remote =>

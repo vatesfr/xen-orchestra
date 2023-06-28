@@ -11,18 +11,21 @@
 <script lang="ts" setup>
 import InfraLoadingItem from "@/components/infra/InfraLoadingItem.vue";
 import InfraVmItem from "@/components/infra/InfraVmItem.vue";
+import type { XenApiHost } from "@/libs/xen-api";
 import { useVmStore } from "@/stores/vm.store";
 import { faDisplay } from "@fortawesome/free-solid-svg-icons";
 import { computed } from "vue";
 
 const props = defineProps<{
-  hostOpaqueRef?: string;
+  hostOpaqueRef?: XenApiHost["$ref"];
 }>();
 
 const { isReady, recordsByHostRef, hasError } = useVmStore().subscribe();
 
 const vms = computed(() =>
-  recordsByHostRef.value.get(props.hostOpaqueRef ?? "OpaqueRef:NULL")
+  recordsByHostRef.value.get(
+    props.hostOpaqueRef ?? ("OpaqueRef:NULL" as XenApiHost["$ref"])
+  )
 );
 </script>
 

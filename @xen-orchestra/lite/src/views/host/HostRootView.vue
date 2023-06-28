@@ -6,6 +6,7 @@
 
 <script lang="ts" setup>
 import ObjectNotFoundWrapper from "@/components/ObjectNotFoundWrapper.vue";
+import type { XenApiHost } from "@/libs/xen-api";
 import { useHostStore } from "@/stores/host.store";
 import { useUiStore } from "@/stores/ui.store";
 import { watchEffect } from "vue";
@@ -16,6 +17,8 @@ const route = useRoute();
 const uiStore = useUiStore();
 
 watchEffect(() => {
-  uiStore.currentHostOpaqueRef = getByUuid(route.params.uuid as string)?.$ref;
+  uiStore.currentHostOpaqueRef = getByUuid(
+    route.params.uuid as XenApiHost["uuid"]
+  )?.$ref;
 });
 </script>

@@ -267,7 +267,8 @@ export default class {
   }
 
   async isValidAuthenticationToken(id) {
-    return (await this._getAuthenticationToken(id)) !== undefined
+    const token = await this._getAuthenticationToken(id)
+    return token !== undefined && (await this._app.doesUserExist(token.user_id))
   }
 
   async updateAuthenticationToken(properties, { description }) {
