@@ -22,10 +22,6 @@ export default class HostStats extends Component {
 
     const host = this.props.host
 
-    if (this.cancel) {
-      return
-    }
-
     if (host.power_state !== 'Running') {
       return
     }
@@ -50,14 +46,14 @@ export default class HostStats extends Component {
     })
   }
 
-  loop() {
+  initFetchHostStats() {
     this.fetchHostStats()
     this.interval = setInterval(this.fetchHostStats, INTERVAL_BY_GRANULARITY[this.state.granularity.granularity] * 1000)
   }
-  loop = ::this.loop
+  initFetchHostStats = ::this.initFetchHostStats
 
   componentWillMount() {
-    this.loop()
+    this.initFetchHostStats()
   }
 
   componentWillUnmount() {
@@ -69,7 +65,7 @@ export default class HostStats extends Component {
     const hostNext = props.host
 
     if (hostCur.power_state !== 'Running' && hostNext.power_state === 'Running') {
-      this.loop(hostNext)
+      this.initFetchHostStats(hostNext)
     } else if (hostCur.power_state === 'Running' && hostNext.power_state !== 'Running') {
       this.setState({
         stats: undefined,
@@ -85,7 +81,7 @@ export default class HostStats extends Component {
         granularity,
         selectStatsLoading: true,
       },
-      this.loop
+      this.initFetchHostStats
     )
   }
   handleSelectStats = ::this.handleSelectStats

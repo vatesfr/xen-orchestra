@@ -22,10 +22,6 @@ export default class VmStats extends Component {
 
     const vm = this.props.vm
 
-    if (this.cancel) {
-      return
-    }
-
     if (vm.power_state !== 'Running') {
       return
     }
@@ -50,14 +46,14 @@ export default class VmStats extends Component {
     })
   }
 
-  loop() {
+  initFetchVmStats() {
     this.fetchVmStats()
     this.interval = setInterval(this.fetchVmStats, INTERVAL_BY_GRANULARITY[this.state.granularity.granularity] * 1000)
   }
-  loop = ::this.loop
+  initFetchVmStats = ::this.initFetchVmStats
 
   componentWillMount() {
-    this.loop()
+    this.initFetchVmStats()
   }
 
   componentWillUnmount() {
@@ -69,7 +65,7 @@ export default class VmStats extends Component {
     const vmNext = props.vm
 
     if (vmCur.power_state !== 'Running' && vmNext.power_state === 'Running') {
-      this.loop(vmNext)
+      this.initFetchVmStats(vmNext)
     } else if (vmCur.power_state === 'Running' && vmNext.power_state !== 'Running') {
       this.setState({
         stats: undefined,
@@ -85,7 +81,7 @@ export default class VmStats extends Component {
         granularity,
         selectStatsLoading: true,
       },
-      this.loop
+      this.initFetchVmStats
     )
   }
   handleSelectStats = ::this.handleSelectStats
