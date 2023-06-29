@@ -117,6 +117,7 @@ const DiskImport = decorate([
           mapDescriptions[name] = value
           return { mapDescriptions }
         },
+      onChangeFileType: (_, fileType) => ({ fileType }),
       onChangeName:
         (_, { target: { name, value } }) =>
         ({ mapNames }) => {
@@ -196,7 +197,12 @@ const DiskImport = decorate([
                 <Row>
                   <LabelCol>{_('fileType')}</LabelCol>
                   <InputCol>
-                    <Select onChange={() => {}} options={FROM_URL_FILE_TYPES} required value={fileType} />
+                    <Select
+                      onChange={effects.onChangeFileType}
+                      options={FROM_URL_FILE_TYPES}
+                      required
+                      value={fileType}
+                    />
                   </InputCol>
                 </Row>
                 <Row>
