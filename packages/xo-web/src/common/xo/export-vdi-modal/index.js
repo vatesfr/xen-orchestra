@@ -14,6 +14,10 @@ const OPTIONS = [
     label: _('vmdk'),
     value: 'vmdk',
   },
+  {
+    label: _('raw'),
+    value: 'raw',
+  },
 ]
 export default class ExportVdiModalBody extends BaseComponent {
   state = {

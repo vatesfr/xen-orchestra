@@ -43,6 +43,11 @@ const getInitialState = () => ({
   loadingDisks: false,
 })
 
+const FILE_GROUP_TYPE = {
+  raw: ['.iso', '.vdi', '.img'],
+  other: ['.vmdk', '.vhd'],
+}
+
 const DiskImport = decorate([
   provideState({
     initialState: getInitialState,
@@ -53,14 +58,11 @@ const DiskImport = decorate([
           map(files, async file => {
             const { name } = file
             const extIndex = name.lastIndexOf('.')
-            let type
-            if (
-              extIndex >= 0 &&
-              (type = name.slice(extIndex + 1).toLowerCase()) &&
-              (type === 'vmdk' || type === 'vhd' || type === 'iso')
-            ) {
+            const fileExtension = extIndex >= 0 ? name.slice(extIndex).toLowerCase() : undefined
+
+            if (FILE_GROUP_TYPE.other.includes(fileExtension) || FILE_GROUP_TYPE.raw.includes(fileExtension)) {
               let vmdkData
-              if (type === 'vmdk') {
+              if (fileExtension === '.vmdk') {
                 const parsed = await readCapacityAndGrainTable(async (start, end) => {
                   /* global FileReader */
                   const reader = new FileReader()
@@ -80,7 +82,7 @@ const DiskImport = decorate([
                 file,
                 name,
                 sr: this.state.sr,
-                type,
+                type: fileExtension === '.vdi' || fileExtension === '.img' ? 'raw' : fileExtension.slice(1),
                 vmdkData,
               }
             }
@@ -230,8 +232,8 @@ const DiskImport = decorate([
             ) : (
               <Dropzone
                 onDrop={effects.handleDrop}
-                message={_('dropDisksFiles', { types: isSrIso ? 'ISO' : ['VHD', 'VMDK'] })}
-                accept={isSrIso ? '.iso' : ['.vhd', '.vmdk']}
+                message={_('dropDisksFiles', { types: isSrIso ? ['ISO', 'RAW'] : ['VHD', 'VMDK'] })}
+                accept={isSrIso ? FILE_GROUP_TYPE.raw : FILE_GROUP_TYPE.other}
               />
             )}
             {loadingDisks && <Icon icon='loading' />}
