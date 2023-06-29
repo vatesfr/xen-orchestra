@@ -231,14 +231,9 @@ export default class XapiStats {
     this._statsByObject = {}
   }
 
-  // Execute one http request on a XenServer for get stats
-  // Return stats (Json format) or throws got exception
-  _getJson(xapi, host, timestamp, step) {
-    const byHost = this.#hostCache[host.uuid]?.[step]
-    if (byHost !== undefined && byHost.timestamp + step > timestamp) {
-      return byHost.value
-    }
-    this.#hostCache[host.uuid] = this.#hostCache[host.uuid] ?? {}
+  _updateJsonCache(xapi, host, step, timestamp) {
+    const hostUuid = host.uuid
+    this.#hostCache[hostUuid] = this.#hostCache[hostUuid] ?? {}
     const promise = xapi
       .getResource('/rrd_updates', {
         host,
@@ -251,12 +246,38 @@ export default class XapiStats {
         },
       })
       .then(response => response.text().then(JSON5.parse))
+      .catch(err => {
+        delete this.#hostCache[hostUuid][step]
+        throw err
+      })
 
-    this.#hostCache[host.uuid][step] = {
+    // clear cache when too old
+    setTimeout(() => {
+      // only if it has not been updated
+      if (this.#hostCache[hostUuid]?.[step]?.timestamp === timestamp) {
+        delete this.#hostCache[hostUuid][step]
+      }
+    }, (step + 1) * 1000)
+
+    this.#hostCache[hostUuid][step] = {
       timestamp,
       value: promise,
     }
-    return promise
+  }
+
+  _isCacheStale(hostUuid, step, timestamp) {
+    const byHost = this.#hostCache[hostUuid]?.[step]
+    // cache is empty or too old
+    return byHost === undefined || byHost.timestamp + step < timestamp
+  }
+
+  // Execute one http request on a XenServer for get stats
+  // Return stats (Json format) or throws got exception
+  _getJson(xapi, host, timestamp, step) {
+    if (this._isCacheStale(host.uuid, step, timestamp)) {
+      this._updateJsonCache(xapi, host, step, timestamp)
+    }
+    return this.#hostCache[host.uuid][step].value
   }
 
   async _getAndUpdateStats(xapi, { host, uuid, granularity }) {
