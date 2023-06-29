@@ -42,7 +42,7 @@ class BulkIcons extends BaseComponent {
       length !== 0 && (
         <Tooltip content={_('clickForMoreInformation')}>
           {/* <a> in order to bypass the BlockLink component */}
-          {/* TOFIX: Tooltip doesn't work with "style" attribute */}
+          {/* FIXME: Tooltip doesn't work with "style" attribute */}
           <a className={`fa-stack ${styles.bulkIconsScale}`} onClick={this.onClick}>
             <Icon icon='alarm' color={`text-${level}`} className='fa-stack-2x' />
             {/* `fa-triangle` does not exist on FontAwesome4.`l` is used to fill the `!` of the `alarm` icon */}
