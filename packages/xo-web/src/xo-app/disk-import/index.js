@@ -94,7 +94,7 @@ const DiskImport = decorate([
           await importDisks(
             [
               {
-                description: mapDescriptions.urlDescription.trim(),
+                description: mapDescriptions.urlDescription?.trim(),
                 name: mapNames.urlName.trim(),
                 type: fileType.value,
                 url,
