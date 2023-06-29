@@ -36,8 +36,9 @@ import {
   faFileExport,
 } from "@fortawesome/free-solid-svg-icons";
 import { vTooltip } from "@/directives/tooltip.directive";
+import type { XenApiVm } from "@/libs/xen-api";
 
 defineProps<{
-  vmRefs: string[];
+  vmRefs: XenApiVm["$ref"][];
 }>();
 </script>

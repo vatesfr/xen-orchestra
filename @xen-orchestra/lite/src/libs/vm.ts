@@ -14,7 +14,10 @@ function stringifyCsvValue(value: any) {
   return `"${res.replace(/"/g, '""')}"`;
 }
 
-export function exportVmsAsCsvFile(vmRefs: string[], fileName: string) {
+export function exportVmsAsCsvFile(
+  vmRefs: XenApiVm["$ref"][],
+  fileName: string
+) {
   const { getByOpaqueRef: getVm } = useVmStore().subscribe();
   const vms = vmRefs
     .map(getVm)
