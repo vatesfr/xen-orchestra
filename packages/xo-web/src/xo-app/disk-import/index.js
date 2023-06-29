@@ -13,17 +13,35 @@ import { generateId, linkState } from 'reaclette-utils'
 import { importDisks } from 'xo'
 import { injectIntl } from 'react-intl'
 import { injectState, provideState } from 'reaclette'
+import { Input } from 'debounce-input-decorator'
 import { InputCol, LabelCol, Row } from 'form-grid'
+import { Select, Toggle } from 'form'
 import map from 'lodash/map.js'
 import { readCapacityAndGrainTable } from 'xo-vmdk-to-vhd'
 import { SelectSr } from 'select-objects'
 import { isSrWritableOrIso } from '../../common/xo'
 
+// ===================================================================
+
+const FROM_URL_FILE_TYPES = [
+  {
+    label: 'ISO',
+    value: 'iso',
+  },
+]
+
+// ===================================================================
+
 const getInitialState = () => ({
   disks: [],
+  fileType: FROM_URL_FILE_TYPES[0],
+  fromUrlDescription: '',
+  fromUrlName: '',
+  isFromUrl: false,
   mapDescriptions: {},
   mapNames: {},
   sr: undefined,
+  url: '',
   loadingDisks: false,
 })
 
@@ -72,6 +90,14 @@ const DiskImport = decorate([
         )
         return { disks: disks.filter(disk => disk !== undefined), loadingDisks: false }
       },
+      importFromUrl:
+        () =>
+        async ({ fileType, fromUrlDescription, fromUrlName, sr, url }) => {
+          await importDisks(
+            [{ description: fromUrlDescription.trim(), name: fromUrlName.trim(), type: fileType.value, url }],
+            sr
+          )
+        },
       import:
         () =>
         async ({ disks, mapDescriptions, mapNames, sr }) => {
@@ -98,6 +124,11 @@ const DiskImport = decorate([
           return { mapNames }
         },
       onChangeSr: (_, sr) => ({ sr }),
+      onChangeUrl: (_, { target: { value } }) => ({
+        url: value,
+        fromUrlName: decodeURIComponent(value.slice(value.lastIndexOf('/') + 1)),
+      }),
+      toggleIsFromUrl: (_, isFromUrl) => ({ isFromUrl }),
       reset: getInitialState,
     },
     computed: {
@@ -106,7 +137,22 @@ const DiskImport = decorate([
   }),
   injectIntl,
   injectState,
-  ({ effects, state: { disks, loadingDisks, mapDescriptions, mapNames, sr, isSrIso } }) => (
+  ({
+    effects,
+    state: {
+      disks,
+      fileType,
+      fromUrlName,
+      fromUrlDescription,
+      loadingDisks,
+      mapDescriptions,
+      mapNames,
+      sr,
+      isFromUrl,
+      isSrIso,
+      url,
+    },
+  }) => (
     <Container>
       <form id='import-form'>
         <div className='mb-1'>
@@ -127,13 +173,66 @@ const DiskImport = decorate([
         </Row>
         {sr !== undefined && (
           <div>
-            <Dropzone
-              onDrop={effects.handleDrop}
-              message={_('dropDisksFiles', { types: isSrIso ? 'ISO' : ['VHD', 'VMDK'] })}
-              accept={isSrIso ? '.iso' : ['.vhd', '.vmdk']}
-            />
+            {isSrIso && (
+              <p>
+                <Toggle value={isFromUrl} onChange={effects.toggleIsFromUrl} /> {_('fromUrl')}
+              </p>
+            )}
+            {isFromUrl ? (
+              <div>
+                <Row>
+                  <LabelCol>{_('url')}</LabelCol>
+                  <InputCol>
+                    <Input
+                      className='form-control'
+                      name='url'
+                      onChange={effects.onChangeUrl}
+                      placeholder='https://my-company.net/vdi.iso'
+                      type='url'
+                      value={url}
+                    />
+                  </InputCol>
+                </Row>
+                <Row>
+                  <LabelCol>{_('fileType')}</LabelCol>
+                  <InputCol>
+                    <Select onChange={() => {}} options={FROM_URL_FILE_TYPES} required value={fileType} />
+                  </InputCol>
+                </Row>
+                <Row>
+                  <LabelCol>{_('name')}</LabelCol>
+                  <InputCol>
+                    <Input
+                      className='form-control'
+                      name='fromUrlName'
+                      onChange={effects.linkState}
+                      type='text'
+                      value={fromUrlName}
+                    />
+                  </InputCol>
+                </Row>
+                <Row>
+                  <LabelCol>{_('description')}</LabelCol>
+                  <InputCol>
+                    <Input
+                      className='form-control'
+                      name='fromUrlDescription'
+                      onChange={effects.linkState}
+                      type='text'
+                      value={fromUrlDescription}
+                    />
+                  </InputCol>
+                </Row>
+              </div>
+            ) : (
+              <Dropzone
+                onDrop={effects.handleDrop}
+                message={_('dropDisksFiles', { types: isSrIso ? 'ISO' : ['VHD', 'VMDK'] })}
+                accept={isSrIso ? '.iso' : ['.vhd', '.vmdk']}
+              />
+            )}
             {loadingDisks && <Icon icon='loading' />}
-            {disks.length > 0 && (
+            {(disks.length > 0 || url.trim() !== '') && (
               <div>
                 <div>
                   {disks.map(({ file: { name, size }, id }) => (
@@ -173,7 +272,7 @@ const DiskImport = decorate([
                     btnStyle='primary'
                     className='mr-1'
                     form='import-form'
-                    handler={effects.import}
+                    handler={isFromUrl ? effects.importFromUrl : effects.import}
                     icon='import'
                     redirectOnSuccess={`/srs/${sr.id}/disks`}
                     type='submit'

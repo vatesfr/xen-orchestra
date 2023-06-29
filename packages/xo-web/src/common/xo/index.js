@@ -1809,7 +1809,7 @@ export const importVms = (vms, sr) =>
     )
   ).then(ids => ids.filter(_ => _ !== undefined))
 
-const importDisk = async ({ description, file, name, type, vmdkData }, sr) => {
+const importDisk = async ({ description, file, name, type, vmdkData, url = undefined }, sr) => {
   // eslint-disable-next-line no-undef
   const formData = new FormData()
   if (vmdkData !== undefined) {
@@ -1827,7 +1827,14 @@ const importDisk = async ({ description, file, name, type, vmdkData }, sr) => {
     sr: resolveId(sr),
     type,
     vmdkData,
+    url,
   })
+
+  if (url !== undefined) {
+    success(_('vdiImportSuccess'), name)
+    return [res]
+  }
+
   formData.append('file', file)
   const result = await post(res.$sendTo, formData)
   const text = await result.text()
