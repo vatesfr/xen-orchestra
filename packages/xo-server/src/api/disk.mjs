@@ -282,7 +282,6 @@ async function importDisk({ sr, type, name, description, url, vmdkData }) {
       format: isRaw ? VDI_FORMAT_RAW : VDI_FORMAT_VHD,
       name_label: name,
       name_description: description,
-      virtual_size: length,
     })
 
     return await sr.$xapi.getField('VDI', vdiRef, 'uuid')
