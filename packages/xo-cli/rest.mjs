@@ -1,4 +1,8 @@
+import { basename, join } from 'node:path'
+import { createWriteStream } from 'node:fs'
 import { normalize } from 'node:path/posix'
+import { parse as parseContentType } from 'content-type'
+import { pipeline } from 'node:stream/promises'
 import getopts from 'getopts'
 import hrp from 'http-request-plus'
 import merge from 'lodash/merge.js'
@@ -22,7 +26,8 @@ function parseParams(args) {
     if (i === -1) {
       params[arg] = ''
     } else {
-      params[arg.slice(0, i)] = arg.slice(i + 1)
+      const value = arg.slice(i + 1)
+      params[arg.slice(0, i)] = value.startsWith('json:') ? JSON.parse(value.slice(5)) : value
     }
   }
   return params
@@ -42,23 +47,58 @@ const COMMANDS = {
     return await response.text()
   },
 
-  async get([path, ...args]) {
-    const response = await this.exec(path, { query: parseParams(args) })
+  async get(args) {
+    const {
+      _: [path, ...rest],
+      output,
+    } = getopts(args, {
+      alias: { output: 'o' },
+      string: 'output',
+      stopEarly: true,
+    })
 
-    const result = await response.json()
+    const response = await this.exec(path, { query: parseParams(rest) })
 
-    if (Array.isArray(result)) {
-      for (let i = 0, n = result.length; i < n; ++i) {
-        const value = result[i]
-        if (typeof value === 'string') {
-          result[i] = stripPrefix(value)
-        } else if (value != null && typeof value.href === 'string') {
-          value.href = stripPrefix(value.href)
-        }
-      }
+    if (output !== '') {
+      return pipeline(
+        response,
+        output === '-'
+          ? process.stdout
+          : createWriteStream(output.endsWith('/') ? join(output, basename(path)) : output, { flags: 'wx' })
+      )
     }
 
-    return this.json ? JSON.stringify(result, null, 2) : result
+    const { type } = parseContentType(response)
+    if (type === 'application/json') {
+      const result = await response.json()
+
+      if (Array.isArray(result)) {
+        for (let i = 0, n = result.length; i < n; ++i) {
+          const value = result[i]
+          if (typeof value === 'string') {
+            result[i] = stripPrefix(value)
+          } else if (value != null && typeof value.href === 'string') {
+            value.href = stripPrefix(value.href)
+          }
+        }
+      }
+
+      return this.json ? JSON.stringify(result, null, 2) : result
+    } else {
+      throw new Error('unsupported content-type ' + type)
+    }
+  },
+
+  async patch([path, ...params]) {
+    const response = await this.exec(path, {
+      body: JSON.stringify(parseParams(params)),
+      headers: {
+        'content-type': 'application/json',
+      },
+      method: 'PATCH',
+    })
+
+    return await response.text()
   },
 
   async post([path, ...params]) {

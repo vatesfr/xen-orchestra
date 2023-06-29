@@ -29,6 +29,7 @@ import InfraAction from "@/components/infra/InfraAction.vue";
 import InfraItemLabel from "@/components/infra/InfraItemLabel.vue";
 import InfraVmList from "@/components/infra/InfraVmList.vue";
 import { vTooltip } from "@/directives/tooltip.directive";
+import type { XenApiHost } from "@/libs/xen-api";
 import { useHostStore } from "@/stores/host.store";
 import { usePoolStore } from "@/stores/pool.store";
 import { useUiStore } from "@/stores/ui.store";
@@ -42,7 +43,7 @@ import { useToggle } from "@vueuse/core";
 import { computed } from "vue";
 
 const props = defineProps<{
-  hostOpaqueRef: string;
+  hostOpaqueRef: XenApiHost["$ref"];
 }>();
 
 const { getByOpaqueRef } = useHostStore().subscribe();

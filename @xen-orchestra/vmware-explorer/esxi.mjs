@@ -1,8 +1,9 @@
-import { Client } from 'node-vsphere-soap'
+import { Client } from '@vates/node-vsphere-soap'
 import { dirname } from 'node:path'
 import { EventEmitter } from 'node:events'
 import { strictEqual, notStrictEqual } from 'node:assert'
 import fetch from 'node-fetch'
+import https from 'https'
 
 import parseVmdk from './parsers/vmdk.mjs'
 import parseVmsd from './parsers/vmsd.mjs'
@@ -13,6 +14,7 @@ export default class Esxi extends EventEmitter {
   #cookies
   #dcPath
   #host
+  #httpsAgent
   #user
   #password
   #ready = false
@@ -22,9 +24,12 @@ export default class Esxi extends EventEmitter {
     this.#host = host
     this.#user = user
     this.#password = password
-    // @FIXME this module inject NODE_TLS_REJECT_UNAUTHORIZED into the process env, which is problematic because it disables globally SSL certificate verification
-    //
-    // we need to find a fix for this, maybe forking the library
+    if (!sslVerify) {
+      this.#httpsAgent = new https.Agent({
+        rejectUnauthorized: false,
+      })
+    }
+
     this.#client = new Client(host, user, password, sslVerify)
     this.#client.once('ready', async () => {
       try {
@@ -78,6 +83,7 @@ export default class Esxi extends EventEmitter {
       headers.Range = 'bytes=' + range
     }
     const res = await fetch(url, {
+      agent: this.#httpsAgent,
       method: 'GET',
       headers,
       highWaterMark: 10 * 1024 * 1024,

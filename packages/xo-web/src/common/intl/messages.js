@@ -1685,8 +1685,9 @@ const messages = {
   // ---- Disk import ---
   diskImportFailed: 'Disk import failed',
   diskImportSuccess: 'Disk import success',
-  dropDisksFiles: 'Drop ISO, VMDK or VHD files here to import disks.',
+  dropDisksFiles: 'Drop {types} files here to import disks.',
   importToSr: 'To SR',
+  isoImportRequirement: 'To import ISO files, an ISO repository is required',
 
   // ---- Tasks ---
   poolTasks: 'Pool tasks',
@@ -2446,6 +2447,7 @@ const messages = {
   templatesLabel: 'Templates',
   recipesLabel: 'Recipes',
   network: 'Network',
+  recipeSelectK8sVersion: 'Select Kubernetes version',
   recipeClusterNameLabel: 'Cluster name',
   recipeNumberOfNodesLabel: 'Number of worker nodes',
   recipeSshKeyLabel: 'SSH key',

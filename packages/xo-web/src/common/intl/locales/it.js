@@ -683,6 +683,9 @@ export default {
   // Original text: 'High Availability'
   highAvailability: 'Alta disponibilità',
 
+  // Original text: 'Select Kubernetes version'
+  recipeSelectK8sVersion: 'Selezionare la versione di Kubernetes',
+
   // Original text: 'Control plane fault tolerance'
   recipeFaultTolerance: 'Tolleranza ai guasti del piano di controllo',
 
@@ -3833,8 +3836,8 @@ export default {
   // Original text: 'Disk import success'
   diskImportSuccess: 'Importazione del disco riuscita',
 
-  // Original text: 'Drop VMDK or VHD files here to import disks.'
-  dropDisksFiles: 'Rilascia qui i file ISO, VMDK o VHD per importare i dischi.',
+  // Original text: 'Drop {types} files here to import disks.'
+  dropDisksFiles: 'Rilascia qui i file {types} per importare i dischi.',
 
   // Original text: 'To SR'
   importToSr: 'A SR',

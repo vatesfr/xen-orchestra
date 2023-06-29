@@ -4,7 +4,7 @@ import Icon from 'icon'
 import React from 'react'
 import Tooltip from 'tooltip'
 import { Container, Row, Col } from 'grid'
-import { DEFAULT_GRANULARITY, fetchStats, SelectGranularity } from 'stats'
+import { DEFAULT_GRANULARITY, fetchStats, INTERVAL_BY_GRANULARITY, SelectGranularity } from 'stats'
 import { Toggle } from 'form'
 import { CpuLineChart, MemoryLineChart, VifLineChart, XvdLineChart } from 'xo-line-chart'
 
@@ -12,48 +12,52 @@ export default class VmStats extends Component {
   state = {
     granularity: DEFAULT_GRANULARITY,
     useCombinedValues: false,
+    statsIsPending: false,
   }
 
-  loop(vm = this.props.vm) {
-    if (this.cancel) {
-      this.cancel()
+  fetchVmStats = () => {
+    if (this.state.statsIsPending) {
+      return
     }
+
+    const vm = this.props.vm
 
     if (vm.power_state !== 'Running') {
       return
     }
 
-    let cancelled = false
-    this.cancel = () => {
-      cancelled = true
+    if (this.props.statsOverview?.interval === INTERVAL_BY_GRANULARITY[this.state.granularity.granularity]) {
+      this.setState({
+        stats: this.props.statsOverview,
+        selectStatsLoading: false,
+      })
+      return
     }
 
+    this.setState({
+      statsIsPending: true,
+    })
     fetchStats(vm, 'vm', this.state.granularity).then(stats => {
-      if (cancelled) {
-        return
-      }
-      this.cancel = null
-
-      clearTimeout(this.timeout)
-      this.setState(
-        {
-          stats,
-          selectStatsLoading: false,
-        },
-        () => {
-          this.timeout = setTimeout(this.loop, stats.interval * 1000)
-        }
-      )
+      this.setState({
+        stats,
+        selectStatsLoading: false,
+        statsIsPending: false,
+      })
     })
   }
-  loop = ::this.loop
+
+  initFetchVmStats() {
+    this.fetchVmStats()
+    this.interval = setInterval(this.fetchVmStats, INTERVAL_BY_GRANULARITY[this.state.granularity.granularity] * 1000)
+  }
+  initFetchVmStats = ::this.initFetchVmStats
 
   componentWillMount() {
-    this.loop()
+    this.initFetchVmStats()
   }
 
   componentWillUnmount() {
-    clearTimeout(this.timeout)
+    clearInterval(this.interval)
   }
 
   componentWillReceiveProps(props) {
@@ -61,7 +65,7 @@ export default class VmStats extends Component {
     const vmNext = props.vm
 
     if (vmCur.power_state !== 'Running' && vmNext.power_state === 'Running') {
-      this.loop(vmNext)
+      this.initFetchVmStats(vmNext)
     } else if (vmCur.power_state === 'Running' && vmNext.power_state !== 'Running') {
       this.setState({
         stats: undefined,
@@ -70,14 +74,14 @@ export default class VmStats extends Component {
   }
 
   handleSelectStats(granularity) {
-    clearTimeout(this.timeout)
+    clearInterval(this.interval)
 
     this.setState(
       {
         granularity,
         selectStatsLoading: true,
       },
-      this.loop
+      this.initFetchVmStats
     )
   }
   handleSelectStats = ::this.handleSelectStats

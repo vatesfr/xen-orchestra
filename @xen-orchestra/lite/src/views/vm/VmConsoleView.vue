@@ -9,7 +9,7 @@
 </template>
 
 <script lang="ts" setup>
-import { POWER_STATE, VM_OPERATION } from "@/libs/xen-api";
+import { POWER_STATE, VM_OPERATION, type XenApiVm } from "@/libs/xen-api";
 import { computed } from "vue";
 import { useRoute } from "vue-router";
 import RemoteConsole from "@/components/RemoteConsole.vue";
@@ -36,7 +36,7 @@ const { isReady: isConsoleReady, getByOpaqueRef: getConsoleByOpaqueRef } =
 
 const isReady = computed(() => isVmReady.value && isConsoleReady.value);
 
-const vm = computed(() => getVmByUuid(route.params.uuid as string));
+const vm = computed(() => getVmByUuid(route.params.uuid as XenApiVm["uuid"]));
 
 const isVmRunning = computed(
   () => vm.value?.power_state === POWER_STATE.RUNNING

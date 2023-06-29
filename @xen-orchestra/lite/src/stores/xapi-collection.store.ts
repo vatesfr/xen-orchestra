@@ -16,7 +16,7 @@ export const useXapiCollectionStore = defineStore("xapiCollection", () => {
 
   function get<
     T extends RawObjectType,
-    S extends XenApiRecord = RawTypeToObject[T]
+    S extends XenApiRecord<string> = RawTypeToObject[T]
   >(type: T): ReturnType<typeof createXapiCollection<S>> {
     if (!collections.value.has(type)) {
       collections.value.set(type, createXapiCollection<S>(type));
@@ -28,15 +28,17 @@ export const useXapiCollectionStore = defineStore("xapiCollection", () => {
   return { get };
 });
 
-const createXapiCollection = <T extends XenApiRecord>(type: RawObjectType) => {
+const createXapiCollection = <T extends XenApiRecord<string>>(
+  type: RawObjectType
+) => {
   const isReady = ref(false);
   const isFetching = ref(false);
   const isReloading = computed(() => isReady.value && isFetching.value);
   const lastError = ref<string>();
   const hasError = computed(() => lastError.value !== undefined);
   const subscriptions = ref(new Set<symbol>());
-  const recordsByOpaqueRef = ref(new Map<string, T>());
-  const recordsByUuid = ref(new Map<string, T>());
+  const recordsByOpaqueRef = ref(new Map<T["$ref"], T>());
+  const recordsByUuid = ref(new Map<T["uuid"], T>());
   const filter = ref<(record: T) => boolean>();
   const sort = ref<(record1: T, record2: T) => 1 | 0 | -1>();
   const xenApiStore = useXenApiStore();
@@ -54,12 +56,12 @@ const createXapiCollection = <T extends XenApiRecord>(type: RawObjectType) => {
     return filter.value !== undefined ? records.filter(filter.value) : records;
   });
 
-  const getByOpaqueRef = (opaqueRef: string) =>
+  const getByOpaqueRef = (opaqueRef: T["$ref"]) =>
     recordsByOpaqueRef.value.get(opaqueRef);
 
-  const getByUuid = (uuid: string) => recordsByUuid.value.get(uuid);
+  const getByUuid = (uuid: T["uuid"]) => recordsByUuid.value.get(uuid);
 
-  const hasUuid = (uuid: string) => recordsByUuid.value.has(uuid);
+  const hasUuid = (uuid: T["uuid"]) => recordsByUuid.value.has(uuid);
 
   const hasSubscriptions = computed(() => subscriptions.value.size > 0);
 
@@ -89,7 +91,7 @@ const createXapiCollection = <T extends XenApiRecord>(type: RawObjectType) => {
     recordsByUuid.value.set(record.uuid, record);
   };
 
-  const remove = (opaqueRef: string) => {
+  const remove = (opaqueRef: T["$ref"]) => {
     if (!recordsByOpaqueRef.value.has(opaqueRef)) {
       return;
     }
@@ -129,7 +131,7 @@ const createXapiCollection = <T extends XenApiRecord>(type: RawObjectType) => {
 
     if (options?.immediate !== false) {
       start();
-      return subscription as Subscription<T, O>;
+      return subscription as unknown as Subscription<T, O>;
     }
 
     return {

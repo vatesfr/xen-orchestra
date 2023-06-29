@@ -23,6 +23,29 @@ const SECTOR_SIZE = 512
 
 const TEN_MIB = 10 * 1024 * 1024
 
+// https://en.wikipedia.org/wiki/Master_boot_record
+// we'll add a classical generic mbr
+// with one FAT16 partition addressed by LBA
+
+export function addMbr(buf) {
+  const mbr = Buffer.alloc(SECTOR_SIZE, 0)
+  // 0 - 446 is bootstrap code , keep it empty
+
+  // entry
+  mbr[446] = 0x80 // entry is bootable
+  mbr[450] = 0x0e // FAT16 LBA
+  mbr.writeInt32LE(1, 454) // LBA address of first sector
+  assert.strictEqual(buf.length % SECTOR_SIZE, 0, 'buffer  length must be aligned to sector size')
+  mbr.writeInt32LE(buf.length / SECTOR_SIZE + 1, 458) // LBA address of last sector
+
+  // 3 more 16 bytes entry we don't need
+
+  // boot signature
+  mbr[510] = 0x55
+  mbr[511] = 0xaa
+  return Buffer.concat([mbr, buf])
+}
+
 // Creates a 10MB buffer and initializes it as a FAT 16 volume.
 export function init({ label = 'NO LABEL   ' } = {}) {
   assert.strictEqual(typeof label, 'string')

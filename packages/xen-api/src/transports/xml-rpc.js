@@ -30,12 +30,14 @@ const parseResult = result => {
   return result.Value
 }
 
+const removeBrackets = hostname => (hostname[0] === '[' ? hostname.slice(1, -1) : hostname)
+
 export default ({ secureOptions, url: { hostname, pathname, port, protocol }, agent }) => {
   const secure = protocol === 'https:'
   const client = (secure ? createSecureClient : createClient)({
     ...(secure ? secureOptions : undefined),
     agent,
-    host: hostname,
+    host: removeBrackets(hostname),
     pathname,
     port,
   })

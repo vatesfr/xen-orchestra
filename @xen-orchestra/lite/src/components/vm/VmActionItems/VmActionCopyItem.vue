@@ -21,7 +21,7 @@ import { faCopy } from "@fortawesome/free-solid-svg-icons";
 import { computed } from "vue";
 
 const props = defineProps<{
-  selectedRefs: string[];
+  selectedRefs: XenApiVm["$ref"][];
 }>();
 
 const { getByOpaqueRef } = useVmStore().subscribe();

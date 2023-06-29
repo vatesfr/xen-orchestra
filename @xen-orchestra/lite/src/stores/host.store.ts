@@ -10,7 +10,7 @@ import { computed, type ComputedRef } from "vue";
 
 type GetStatsExtension = {
   getStats: (
-    hostUuid: string,
+    hostUuid: XenApiHost["uuid"],
     granularity: GRANULARITY
   ) => Promise<XapiStatsResponse<any>> | undefined;
 };
@@ -31,7 +31,10 @@ export const useHostStore = defineStore("host", () => {
   const subscribe = createSubscribe<XenApiHost, Extensions>((options) => {
     const originalSubscription = hostCollection.subscribe(options);
 
-    const getStats = (hostUuid: string, granularity: GRANULARITY) => {
+    const getStats = (
+      hostUuid: XenApiHost["uuid"],
+      granularity: GRANULARITY
+    ) => {
       const host = originalSubscription.getByUuid(hostUuid);
 
       if (host === undefined) {
