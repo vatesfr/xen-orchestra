@@ -27,9 +27,12 @@
   ],
   "preferGlobal": false,
   "license": "MIT",
-  "private": true,
+  "private": false,
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@vates/node-vsphere-soap",
   "engines": {
     "node": ">=8.10"
+  },
+  "scripts": {
+    "postversion": "npm publish --access public"
   }
 }
