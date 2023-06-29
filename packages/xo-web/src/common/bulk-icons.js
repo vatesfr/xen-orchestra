@@ -4,8 +4,11 @@ import React from 'react'
 
 import BaseComponent from './base-component'
 import Icon from './icon'
+import Tooltip from './tooltip'
 import { alert } from './modal'
 import { createSelector } from './selectors'
+
+import styles from './bulk-icons.css'
 
 const ICON_WARNING_MODAL_LEVEL = {
   danger: 1,
@@ -37,15 +40,18 @@ class BulkIcons extends BaseComponent {
 
     return (
       length !== 0 && (
-        // <a> in order to bypass the BlockLink component
-        <a className='fa-stack' onClick={this.onClick} style={{ transform: 'scale(0.8)' }}>
-          <Icon icon='alarm' color={`text-${level}`} className='fa-stack-2x' />
-          {/* `fa-triangle` does not exist on FontAwesome4.`l` is used to fill the `!` of the `alarm` icon */}
-          <span className={`fa-stack-2x font-weight-bold text-${level}`} style={{ fontSize: '2.3em' }}>
-            l
-          </span>
-          <span className='fa-stack-1x text-white font-weight-bold'>{length}</span>
-        </a>
+        <Tooltip content={_('clickForMoreInformation')}>
+          {/* <a> in order to bypass the BlockLink component */}
+          {/* FIXME: Tooltip doesn't work with "style" attribute */}
+          <a className={`fa-stack ${styles.bulkIconsScale}`} onClick={this.onClick}>
+            <Icon icon='alarm' color={`text-${level}`} className='fa-stack-2x' />
+            {/* `fa-triangle` does not exist on FontAwesome4.`l` is used to fill the `!` of the `alarm` icon */}
+            <span className={`fa-stack-2x font-weight-bold text-${level}`} style={{ fontSize: '2.3em' }}>
+              l
+            </span>
+            <span className='fa-stack-1x text-white font-weight-bold'>{length}</span>
+          </a>
+        </Tooltip>
       )
     )
   }
