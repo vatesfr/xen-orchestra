@@ -10,7 +10,7 @@
       <UiButton :active="isOpen" :icon="faEllipsis" transparent @click="open" />
     </template>
     <MenuItem :icon="faPowerOff">
-      {{ $t("change-power-state") }}
+      {{ $t("change-state") }}
       <template #submenu>
         <VmActionPowerStateItems :vm-refs="selectedRefs" />
       </template>
