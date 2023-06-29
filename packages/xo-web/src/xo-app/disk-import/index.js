@@ -35,8 +35,6 @@ const FROM_URL_FILE_TYPES = [
 const getInitialState = () => ({
   disks: [],
   fileType: FROM_URL_FILE_TYPES[0],
-  fromUrlDescription: '',
-  fromUrlName: '',
   isFromUrl: false,
   mapDescriptions: {},
   mapNames: {},
@@ -92,9 +90,16 @@ const DiskImport = decorate([
       },
       importFromUrl:
         () =>
-        async ({ fileType, fromUrlDescription, fromUrlName, sr, url }) => {
+        async ({ fileType, mapDescriptions, mapNames, sr, url }) => {
           await importDisks(
-            [{ description: fromUrlDescription.trim(), name: fromUrlName.trim(), type: fileType.value, url }],
+            [
+              {
+                description: mapDescriptions.urlDescription.trim(),
+                name: mapNames.urlName.trim(),
+                type: fileType.value,
+                url,
+              },
+            ],
             sr
           )
         },
@@ -125,10 +130,15 @@ const DiskImport = decorate([
           return { mapNames }
         },
       onChangeSr: (_, sr) => ({ sr }),
-      onChangeUrl: (_, { target: { value } }) => ({
-        url: value,
-        fromUrlName: decodeURIComponent(value.slice(value.lastIndexOf('/') + 1)),
-      }),
+      onChangeUrl:
+        (_, { target: { value } }) =>
+        ({ mapNames }) => {
+          mapNames.urlName = decodeURIComponent(value.slice(value.lastIndexOf('/') + 1))
+          return {
+            url: value,
+            mapNames,
+          }
+        },
       toggleIsFromUrl: (_, isFromUrl) => ({ isFromUrl }),
       reset: getInitialState,
     },
@@ -138,22 +148,7 @@ const DiskImport = decorate([
   }),
   injectIntl,
   injectState,
-  ({
-    effects,
-    state: {
-      disks,
-      fileType,
-      fromUrlName,
-      fromUrlDescription,
-      loadingDisks,
-      mapDescriptions,
-      mapNames,
-      sr,
-      isFromUrl,
-      isSrIso,
-      url,
-    },
-  }) => (
+  ({ effects, state: { disks, fileType, loadingDisks, mapDescriptions, mapNames, sr, isFromUrl, isSrIso, url } }) => (
     <Container>
       <form id='import-form'>
         <div className='mb-1'>
@@ -210,10 +205,10 @@ const DiskImport = decorate([
                   <InputCol>
                     <Input
                       className='form-control'
-                      name='fromUrlName'
-                      onChange={effects.linkState}
+                      name='urlName'
+                      onChange={effects.onChangeName}
                       type='text'
-                      value={fromUrlName}
+                      value={mapNames.urlName}
                     />
                   </InputCol>
                 </Row>
@@ -222,10 +217,10 @@ const DiskImport = decorate([
                   <InputCol>
                     <Input
                       className='form-control'
-                      name='fromUrlDescription'
-                      onChange={effects.linkState}
+                      name='urlDescription'
+                      onChange={effects.onChangeDescription}
                       type='text'
-                      value={fromUrlDescription}
+                      value={mapDescriptions.urlDescription}
                     />
                   </InputCol>
                 </Row>
