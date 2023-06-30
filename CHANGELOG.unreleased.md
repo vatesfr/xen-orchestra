@@ -38,6 +38,7 @@
 - @vates/nbd-client major
 - @vates/node-vsphere-soap major
 - @xen-orchestra/backups minor
+- @xen-orchestra/vmware-explorer minor
 - @xen-orchestra/xapi major
 - complex-matcher patch
 - xen-api patch
