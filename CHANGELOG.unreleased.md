@@ -10,7 +10,6 @@
 - [Import/Disk] Enhance clarity for importing ISO files [Forum#7243](https://xcp-ng.org/forum/topic/7243/can-t-import-iso-through-ova-not-a-supported-filetype?_=1685710667937) (PR [#6874](https://github.com/vatesfr/xen-orchestra/pull/6874))
 - [Import/Disk] Ability to import ISO from a URL (PR [#6924](https://github.com/vatesfr/xen-orchestra/pull/6924))
 - [Import/export VDI] Ability to export/import disks in RAW format (PR [#6925](https://github.com/vatesfr/xen-orchestra/pull/6925))
-- [XO config] Add the possibility to backup/import/download XO config from/to the XO cloud (PR [#6917](https://github.com/vatesfr/xen-orchestra/pull/6917))
 
 ### Bug fixes
 
@@ -32,7 +31,6 @@
 
 <!--packages-start-->
 
-- xo-server minor
 - xo-web minor
 
 <!--packages-end-->

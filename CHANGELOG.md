@@ -11,6 +11,7 @@
 - [Kubernetes recipe] Add the possibility to choose the version for the cluster [#6842](https://github.com/vatesfr/xen-orchestra/issues/6842) (PR [#6880](https://github.com/vatesfr/xen-orchestra/pull/6880))
 - [New VM] cloud-init drives are now bootable in a Windows VM (PR [#6889](https://github.com/vatesfr/xen-orchestra/pull/6889))
 - [Backups] Add setting `backups.metadata.defaultSettings.diskPerVmConcurrency` in xo-server's configuration file to limit the number of disks transferred in parallel per VM, this is useful to avoid transfer overloading remote and Sr (PR [#6787](https://github.com/vatesfr/xen-orchestra/pull/6787))
+- [Settings/Config] Add the possibility to backup/import/download XO config from/to the XO cloud (PR [#6917](https://github.com/vatesfr/xen-orchestra/pull/6917))
 
 ### Bug fixes
 
@@ -35,10 +36,10 @@
 - @xen-orchestra/proxy 0.26.29
 - @xen-orchestra/vmware-explorer 0.2.3
 - xo-cli 0.20.0
-- xo-server 5.117.0
 - xo-server-auth-oidc 0.3.0
 - xo-server-perf-alert 0.3.6
 - xo-web 5.120.0
+- xo-server 5.118.0
 
 ## **5.83.3** (2023-06-23)
 
