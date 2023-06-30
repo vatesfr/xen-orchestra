@@ -1,8 +1,8 @@
 <template>
   <slot :is-open="isOpen" :open="open" name="trigger" />
-  <Teleport to="body" :disabled="!slots.trigger">
+  <Teleport to="body" :disabled="!shouldTeleport">
     <ul
-      v-if="!$slots.trigger || isOpen"
+      v-if="!hasTrigger || isOpen"
       ref="menu"
       :class="{ horizontal, shadow }"
       class="app-menu"
@@ -14,6 +14,7 @@
 </template>
 
 <script lang="ts" setup>
+import { IK_MENU_TELEPORTED } from "@/types/injection-keys";
 import placementJs, { type Options } from "placement.js";
 import { inject, nextTick, provide, ref, toRef, unref, useSlots } from "vue";
 import { onClickOutside, unrefElement, whenever } from "@vueuse/core";
@@ -36,6 +37,14 @@ const isParentHorizontal = inject("isMenuHorizontal", undefined);
 provide("isMenuHorizontal", toRef(props, "horizontal"));
 provide("isMenuDisabled", toRef(props, "disabled"));
 let clearClickOutsideEvent: (() => void) | undefined;
+
+const hasTrigger = useSlots().trigger !== undefined;
+
+const shouldTeleport = hasTrigger && !inject(IK_MENU_TELEPORTED, false);
+
+if (shouldTeleport) {
+  provide(IK_MENU_TELEPORTED, true);
+}
 
 whenever(
   () => !isOpen.value,
