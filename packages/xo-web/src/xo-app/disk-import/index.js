@@ -43,6 +43,12 @@ const getInitialState = () => ({
   loadingDisks: false,
 })
 
+const FILE_GROUP_TYPE = {
+  // .raw is supported for all types of SRs
+  raw: ['.iso', '.raw'],
+  other: ['.vmdk', '.vhd', '.raw'],
+}
+
 const DiskImport = decorate([
   provideState({
     initialState: getInitialState,
@@ -53,14 +59,12 @@ const DiskImport = decorate([
           map(files, async file => {
             const { name } = file
             const extIndex = name.lastIndexOf('.')
-            let type
-            if (
-              extIndex >= 0 &&
-              (type = name.slice(extIndex + 1).toLowerCase()) &&
-              (type === 'vmdk' || type === 'vhd' || type === 'iso')
-            ) {
+            const fileExtension = extIndex >= 0 ? name.slice(extIndex).toLowerCase() : undefined
+            const isRaw = FILE_GROUP_TYPE.raw.includes(fileExtension)
+
+            if (isRaw || FILE_GROUP_TYPE.other.includes(fileExtension)) {
               let vmdkData
-              if (type === 'vmdk') {
+              if (fileExtension === '.vmdk') {
                 const parsed = await readCapacityAndGrainTable(async (start, end) => {
                   /* global FileReader */
                   const reader = new FileReader()
@@ -80,7 +84,7 @@ const DiskImport = decorate([
                 file,
                 name,
                 sr: this.state.sr,
-                type,
+                type: isRaw ? 'iso' : fileExtension.slice(1),
                 vmdkData,
               }
             }
@@ -230,8 +234,8 @@ const DiskImport = decorate([
             ) : (
               <Dropzone
                 onDrop={effects.handleDrop}
-                message={_('dropDisksFiles', { types: isSrIso ? 'ISO' : ['VHD', 'VMDK'] })}
-                accept={isSrIso ? '.iso' : ['.vhd', '.vmdk']}
+                message={_('dropDisksFiles', { types: isSrIso ? ['ISO', 'RAW'] : ['VHD', 'VMDK', 'RAW'] })}
+                accept={isSrIso ? FILE_GROUP_TYPE.raw : FILE_GROUP_TYPE.other}
               />
             )}
             {loadingDisks && <Icon icon='loading' />}

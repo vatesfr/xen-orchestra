@@ -1241,6 +1241,7 @@ const messages = {
   removeVdiFromVm: 'Remove VDI from this VM',
   vhd: 'VHD',
   vmdk: 'VMDK',
+  raw: 'RAW',
 
   // ----- VM network tab -----
 
