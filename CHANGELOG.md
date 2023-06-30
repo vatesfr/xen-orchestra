@@ -1,6 +1,8 @@
 # ChangeLog
 
-## **next**
+## **5.84.0** (2023-06-30)
+
+<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
 
 ### Enhancements
 
@@ -46,7 +48,7 @@
 
 ## **5.83.3** (2023-06-23)
 
-<img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
+<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Bug fixes
 
@@ -128,8 +130,6 @@
 - xo-web 5.119.1
 
 ## **5.82.2** (2023-05-17)
-
-<img id="stable" src="https://badgen.net/badge/channel/stable/green" alt="Channel: stable" />
 
 ### Bug fixes
 
