@@ -101,6 +101,8 @@ function wrap(middleware, handleNoSuchObject = false) {
 }
 
 export default class RestApi {
+  #api
+
   constructor(app, { express }) {
     // don't setup the API if express is not present
     //
@@ -110,6 +112,7 @@ export default class RestApi {
     }
 
     const api = subRouter(express, '/rest/v0')
+    this.#api = api
 
     api.use(({ cookies }, res, next) => {
       app.authenticateUser({ token: cookies.authenticationToken ?? cookies.token }).then(
@@ -493,5 +496,34 @@ export default class RestApi {
         res.sendStatus(200)
       })
     )
+  }
+
+  registerRestApi(spec, base = '/') {
+    for (const path of Object.keys(spec)) {
+      if (path[0] === '_') {
+        const handler = spec[path]
+        this.#api[path.slice(1)](base, json(), async (req, res, next) => {
+          try {
+            const result = await handler(req, res, next)
+            if (result !== undefined) {
+              const isIterable =
+                result !== null && typeof (result[Symbol.iterator] ?? result[Symbol.asyncIterator]) === 'function'
+              if (isIterable) {
+                await sendObjects(result, req, res)
+              } else {
+                res.json(result)
+              }
+            }
+          } catch (error) {
+            next(error)
+          }
+        })
+      } else {
+        this.registerRestApi(spec[path], join(base, path))
+      }
+    }
+    return () => {
+      throw new Error('not implemented')
+    }
   }
 }
