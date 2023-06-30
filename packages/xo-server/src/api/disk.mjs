@@ -1,10 +1,11 @@
 import * as multiparty from 'multiparty'
 import assert from 'assert'
 import getStream from 'get-stream'
+import hrp from 'http-request-plus'
 import { createLogger } from '@xen-orchestra/log'
 import { defer } from 'golike-defer'
 import { format, JsonRpcError } from 'json-rpc-peer'
-import { noSuchObject } from 'xo-common/api-errors.js'
+import { invalidParameters, noSuchObject } from 'xo-common/api-errors.js'
 import { pipeline } from 'stream'
 import { peekFooterFromVhdStream } from 'vhd-lib'
 import { vmdkToVhd } from 'xo-vmdk-to-vhd'
@@ -261,8 +262,31 @@ async function handleImport(req, res, { type, name, description, vmdkData, srId,
   })
 }
 
-// type is 'vhd' or 'vmdk'
-async function importDisk({ sr, type, name, description, vmdkData }) {
+// type is 'vhd', 'vmdk', 'raw' or 'iso'
+async function importDisk({ sr, type, name, description, url, vmdkData }) {
+  if (url !== undefined) {
+    const isRaw = type === 'raw' || type === 'iso'
+    if (!(isRaw || type === 'vhd')) {
+      throw invalidParameters('URL import is only compatible with VHD and raw formats')
+    }
+
+    const stream = await hrp(url)
+    const length = stream.headers['content-length']
+    if (length !== undefined) {
+      stream.length = length
+    }
+
+    sr = this.getXapiObject(sr)
+
+    const vdiRef = await sr.$importVdi(stream, {
+      format: isRaw ? VDI_FORMAT_RAW : VDI_FORMAT_VHD,
+      name_label: name,
+      name_description: description,
+    })
+
+    return await sr.$xapi.getField('VDI', vdiRef, 'uuid')
+  }
+
   return {
     $sendTo: await this.registerHttpRequest(handleImport, {
       description,
@@ -281,6 +305,7 @@ importDisk.params = {
   description: { type: 'string', minLength: 0, optional: true },
   name: { type: 'string' },
   sr: { type: 'string' },
+  url: { type: 'string', optional: true },
   type: { type: 'string' },
   vmdkData: {
     type: 'object',

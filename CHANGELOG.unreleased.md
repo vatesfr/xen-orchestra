@@ -8,6 +8,7 @@
 > Users must be able to say: “Nice enhancement, I'm eager to test it”
 
 - [Import/Disk] Enhance clarity for importing ISO files [Forum#7243](https://xcp-ng.org/forum/topic/7243/can-t-import-iso-through-ova-not-a-supported-filetype?_=1685710667937) (PR [#6874](https://github.com/vatesfr/xen-orchestra/pull/6874))
+- [Import/Disk] Ability to import ISO from a URL (PR [#6924](https://github.com/vatesfr/xen-orchestra/pull/6924))
 
 ### Bug fixes
 
@@ -29,6 +30,7 @@
 
 <!--packages-start-->
 
+- xo-server minor
 - xo-web minor
 
 <!--packages-end-->
