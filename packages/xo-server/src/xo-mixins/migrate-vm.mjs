@@ -4,7 +4,7 @@ import { fromEvent } from 'promise-toolbox'
 import { createRunner } from '@xen-orchestra/backups/Backup.mjs'
 import { Task } from '@xen-orchestra/mixins/Tasks.mjs'
 import { v4 as generateUuid } from 'uuid'
-import { VDI_FORMAT_VHD } from '@xen-orchestra/xapi'
+import { VDI_FORMAT_RAW, VDI_FORMAT_VHD } from '@xen-orchestra/xapi'
 import asyncMapSettled from '@xen-orchestra/async-map/legacy.js'
 import Esxi from '@xen-orchestra/vmware-explorer/esxi.mjs'
 import openDeltaVmdkasVhd from '@xen-orchestra/vmware-explorer/openDeltaVmdkAsVhd.mjs'
@@ -271,10 +271,16 @@ export default class MigrateVm {
             }
             parentVhd = vhd
           }
+          // it can be empty if the VM don't have a snapshot and is running
           if (vhd !== undefined) {
-            // it can be empty if the VM don't have a snapshot and is running
-            const stream = vhd.stream()
-            await vdi.$importContent(stream, { format: VDI_FORMAT_VHD })
+            if (thin) {
+              const stream = vhd.stream()
+              await vdi.$importContent(stream, { format: VDI_FORMAT_VHD })
+            } else {
+              // no transformation when there is no snapshot in thick mode
+              const stream = await vhd.rawContent()
+              await vdi.$importContent(stream, { format: VDI_FORMAT_RAW })
+            }
           }
           return { vdi, vhd }
         })

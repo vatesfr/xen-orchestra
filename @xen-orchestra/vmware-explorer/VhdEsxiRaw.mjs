@@ -199,6 +199,14 @@ export default class VhdEsxiRaw extends VhdAbstract {
     )
     clearInterval(progress)
   }
+
+  rawContent() {
+    return this.#esxi.download(this.#datastore, this.#path).then(res => {
+      const stream = res.body
+      stream.length = this.footer.currentSize
+      return stream
+    })
+  }
 }
 
 /* eslint-enable no-console */
