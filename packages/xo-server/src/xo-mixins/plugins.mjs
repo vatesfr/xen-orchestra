@@ -1,6 +1,7 @@
 import Ajv from 'ajv'
 import cloneDeep from 'lodash/cloneDeep.js'
 import mapToArray from 'lodash/map.js'
+import merge from 'lodash/merge.js'
 import noop from 'lodash/noop.js'
 import { createLogger } from '@xen-orchestra/log'
 import { invalidParameters, noSuchObject } from 'xo-common/api-errors.js'
@@ -183,11 +184,15 @@ export default class {
 
   // Validate the configuration, configure the plugin instance and
   // save the new configuration.
-  async configurePlugin(id, configuration) {
+  async configurePlugin(id, configuration, mergeWithExisting = false) {
     const plugin = this._getRawPlugin(id)
     const metadata = await this._getPluginMetadata(id)
 
     if (metadata !== undefined) {
+      if (mergeWithExisting) {
+        configuration = merge({}, metadata.configuration, configuration)
+      }
+
       configuration = sensitiveValues.merge(configuration, metadata.configuration)
     }
 
