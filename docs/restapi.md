@@ -1,7 +1,7 @@
 # REST API
 
-:::warning ⚠️ Alpha feature
-This is an alpha feature that may change significantly in the coming months - do not use this feature in a production environment. The fully up-to-date README [is available here](https://github.com/vatesfr/xen-orchestra/blob/master/packages/xo-server/docs/rest-api.md). This page is only here to explain how it works, it's not intended to be used as an accurate guide.
+:::warning ⚠️ Beta feature
+This is a beta feature that may see some changes in the future. The fully up-to-date README [is available here](https://github.com/vatesfr/xen-orchestra/blob/master/packages/xo-server/docs/rest-api.md). This page is only here to explain how it works, it's not intended to be used as an accurate guide.
 :::
 
 We originally developed [our existing API](architecture.html#api) to be used between the Web UI `xo-web` and the server backend, `xo-server`. That's why it's a JSON-RPC API connected via websockets, allowing us to update objects live in the browser. This is perfect for our usage, but a bit complicated for others.
