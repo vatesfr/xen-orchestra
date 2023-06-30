@@ -1832,7 +1832,7 @@ const importDisk = async ({ description, file, name, type, vmdkData, url = undef
 
   if (url !== undefined) {
     success(_('vdiImportSuccess'), name)
-    return [res]
+    return res
   }
 
   formData.append('file', file)

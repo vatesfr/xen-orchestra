@@ -1651,7 +1651,7 @@ const messages = {
   fileType: 'File type:',
   firmware: 'Firmware',
   fromUrl: 'From URL',
-  URLImportSrsCompatible: 'URL import is only compatible with ISO SRs',
+  UrlImportSrsCompatible: 'URL import is only compatible with ISO SRs',
   fromVmware: 'From VMware',
   importVmsList: 'Drop OVA or XVA files here to import Virtual Machines.',
   noSelectedVms: 'No selected VMs.',

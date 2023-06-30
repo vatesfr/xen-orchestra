@@ -143,7 +143,7 @@ const DiskImport = decorate([
       reset: getInitialState,
     },
     computed: {
-      isSrIso: ({ sr }) => sr.content_type === 'iso',
+      isSrIso: ({ sr }) => sr?.content_type === 'iso',
     },
   }),
   injectIntl,
@@ -162,7 +162,7 @@ const DiskImport = decorate([
           </a>
         </div>
         <Row>
-          <Toggle value={isFromUrl} onChange={effects.toggleIsFromUrl} /> {_('fromUrl')}
+          <Toggle className='align-middle' value={isFromUrl} onChange={effects.toggleIsFromUrl} /> {_('fromUrl')}
         </Row>
         <Row>
           <LabelCol>{_('importToSr')}</LabelCol>
@@ -174,7 +174,7 @@ const DiskImport = decorate([
           <div>
             {isFromUrl ? (
               !isSrIso ? (
-                <p className='text-danger'>{_('URLImportSrsCompatible')}</p>
+                <p className='text-danger'>{_('UrlImportSrsCompatible')}</p>
               ) : (
                 <div>
                   <Row>
