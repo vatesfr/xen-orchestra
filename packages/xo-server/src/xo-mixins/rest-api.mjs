@@ -48,7 +48,7 @@ async function sendObjects(iterable, req, res, path = req.path) {
   const { query } = req
 
   const basePath = join(req.baseUrl, path)
-  const makeUrl = object => join(basePath, object.id)
+  const makeUrl = ({ id }) => join(basePath, typeof id === 'number' ? String(id) : id)
 
   let makeResult
   let { fields } = query
