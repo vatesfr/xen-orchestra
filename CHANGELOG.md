@@ -12,6 +12,9 @@
 - [New VM] cloud-init drives are now bootable in a Windows VM (PR [#6889](https://github.com/vatesfr/xen-orchestra/pull/6889))
 - [Backups] Add setting `backups.metadata.defaultSettings.diskPerVmConcurrency` in xo-server's configuration file to limit the number of disks transferred in parallel per VM, this is useful to avoid transfer overloading remote and Sr (PR [#6787](https://github.com/vatesfr/xen-orchestra/pull/6787))
 - [Settings/Config] Add the possibility to backup/import/download XO config from/to the XO cloud (PR [#6917](https://github.com/vatesfr/xen-orchestra/pull/6917))
+- [Import/Disk] Enhance clarity for importing ISO files [Forum#61480](https://xcp-ng.org/forum/post/61480) (PR [#6874](https://github.com/vatesfr/xen-orchestra/pull/6874))
+- [Import/Disk] Ability to import ISO from a URL (PR [#6924](https://github.com/vatesfr/xen-orchestra/pull/6924))
+- [Import/export VDI] Ability to export/import disks in RAW format (PR [#6925](https://github.com/vatesfr/xen-orchestra/pull/6925))
 
 ### Bug fixes
 
@@ -38,8 +41,8 @@
 - xo-cli 0.20.0
 - xo-server-auth-oidc 0.3.0
 - xo-server-perf-alert 0.3.6
-- xo-web 5.120.0
 - xo-server 5.118.0
+- xo-web 5.121.0
 
 ## **5.83.3** (2023-06-23)
 
