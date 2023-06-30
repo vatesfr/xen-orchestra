@@ -262,7 +262,7 @@ async function handleImport(req, res, { type, name, description, vmdkData, srId,
   })
 }
 
-// type is 'vhd' or 'vmdk'
+// type is 'vhd', 'vmdk', 'raw' or 'iso'
 async function importDisk({ sr, type, name, description, url, vmdkData }) {
   if (url !== undefined) {
     const isRaw = type === 'raw' || type === 'iso'

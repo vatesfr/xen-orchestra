@@ -162,6 +162,9 @@ const DiskImport = decorate([
           </a>
         </div>
         <Row>
+          <Toggle value={isFromUrl} onChange={effects.toggleIsFromUrl} /> {_('fromUrl')}
+        </Row>
+        <Row>
           <LabelCol>{_('importToSr')}</LabelCol>
           <InputCol>
             <SelectSr onChange={effects.onChangeSr} required value={sr} predicate={isSrWritableOrIso} />
@@ -169,62 +172,61 @@ const DiskImport = decorate([
         </Row>
         {sr !== undefined && (
           <div>
-            {isSrIso && (
-              <p>
-                <Toggle value={isFromUrl} onChange={effects.toggleIsFromUrl} /> {_('fromUrl')}
-              </p>
-            )}
             {isFromUrl ? (
-              <div>
-                <Row>
-                  <LabelCol>{_('url')}</LabelCol>
-                  <InputCol>
-                    <Input
-                      className='form-control'
-                      name='url'
-                      onChange={effects.onChangeUrl}
-                      placeholder='https://my-company.net/vdi.iso'
-                      type='url'
-                      value={url}
-                    />
-                  </InputCol>
-                </Row>
-                <Row>
-                  <LabelCol>{_('fileType')}</LabelCol>
-                  <InputCol>
-                    <Select
-                      onChange={effects.onChangeFileType}
-                      options={FROM_URL_FILE_TYPES}
-                      required
-                      value={fileType}
-                    />
-                  </InputCol>
-                </Row>
-                <Row>
-                  <LabelCol>{_('name')}</LabelCol>
-                  <InputCol>
-                    <Input
-                      className='form-control'
-                      name='urlName'
-                      onChange={effects.onChangeName}
-                      type='text'
-                      value={mapNames.urlName}
-                    />
-                  </InputCol>
-                </Row>
-                <Row>
-                  <LabelCol>{_('description')}</LabelCol>
-                  <InputCol>
-                    <Input
-                      className='form-control'
-                      name='urlDescription'
-                      onChange={effects.onChangeDescription}
-                      type='text'
-                      value={mapDescriptions.urlDescription}
-                    />
-                  </InputCol>
-                </Row>
-              </div>
+              !isSrIso ? (
+                <p className='text-danger'>{_('URLImportSrsCompatible')}</p>
+              ) : (
+                <div>
+                  <Row>
+                    <LabelCol>{_('url')}</LabelCol>
+                    <InputCol>
+                      <Input
+                        className='form-control'
+                        name='url'
+                        onChange={effects.onChangeUrl}
+                        placeholder='https://my-company.net/vdi.iso'
+                        type='url'
+                        value={url}
+                      />
+                    </InputCol>
+                  </Row>
+                  <Row>
+                    <LabelCol>{_('fileType')}</LabelCol>
+                    <InputCol>
+                      <Select
+                        onChange={effects.onChangeFileType}
+                        options={FROM_URL_FILE_TYPES}
+                        required
+                        value={fileType}
+                      />
+                    </InputCol>
+                  </Row>
+                  <Row>
+                    <LabelCol>{_('name')}</LabelCol>
+                    <InputCol>
+                      <Input
+                        className='form-control'
+                        name='urlName'
+                        onChange={effects.onChangeName}
+                        type='text'
+                        value={mapNames.urlName}
+                      />
+                    </InputCol>
+                  </Row>
+                  <Row>
+                    <LabelCol>{_('description')}</LabelCol>
+                    <InputCol>
+                      <Input
+                        className='form-control'
+                        name='urlDescription'
+                        onChange={effects.onChangeDescription}
+                        type='text'
+                        value={mapDescriptions.urlDescription}
+                      />
+                    </InputCol>
+                  </Row>
+                </div>
+              )
             ) : (
               <Dropzone
                 onDrop={effects.handleDrop}
