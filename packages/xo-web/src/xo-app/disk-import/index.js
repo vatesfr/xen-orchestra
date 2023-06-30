@@ -44,8 +44,9 @@ const getInitialState = () => ({
 })
 
 const FILE_GROUP_TYPE = {
-  raw: ['.iso', '.vdi', '.img'],
-  other: ['.vmdk', '.vhd'],
+  // .raw is supported for all types of SRs
+  raw: ['.iso', '.raw'],
+  other: ['.vmdk', '.vhd', '.raw'],
 }
 
 const DiskImport = decorate([
@@ -82,7 +83,7 @@ const DiskImport = decorate([
                 file,
                 name,
                 sr: this.state.sr,
-                type: fileExtension === '.vdi' || fileExtension === '.img' ? 'raw' : fileExtension.slice(1),
+                type: fileExtension.slice(1),
                 vmdkData,
               }
             }
@@ -232,7 +233,7 @@ const DiskImport = decorate([
             ) : (
               <Dropzone
                 onDrop={effects.handleDrop}
-                message={_('dropDisksFiles', { types: isSrIso ? ['ISO', 'RAW'] : ['VHD', 'VMDK'] })}
+                message={_('dropDisksFiles', { types: isSrIso ? ['ISO', 'RAW'] : ['VHD', 'VMDK', 'RAW'] })}
                 accept={isSrIso ? FILE_GROUP_TYPE.raw : FILE_GROUP_TYPE.other}
               />
             )}
