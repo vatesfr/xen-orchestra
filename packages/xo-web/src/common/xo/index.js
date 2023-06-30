@@ -1902,10 +1902,7 @@ export const exportVdi = async vdi => {
   info(_('startVdiExport'), vdi.id)
 
   if (format === 'raw') {
-    const url = `./rest/v0/vdis/${resolveId(vdi)}.raw`
-    return fetch(url).then(() => {
-      window.open(url)
-    })
+    return window.open(`./rest/v0/vdis/${resolveId(vdi)}.raw`)
   }
 
   return _call('disk.exportContent', { id: resolveId(vdi), format }).then(({ $getFrom: url }) => {
