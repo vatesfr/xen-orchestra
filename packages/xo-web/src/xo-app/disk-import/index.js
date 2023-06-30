@@ -83,7 +83,7 @@ const DiskImport = decorate([
                 file,
                 name,
                 sr: this.state.sr,
-                type: fileExtension.slice(1),
+                type: FILE_GROUP_TYPE.raw.includes(fileExtension) ? 'iso' : fileExtension.slice(1),
                 vmdkData,
               }
             }
