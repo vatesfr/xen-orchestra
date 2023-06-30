@@ -49,10 +49,10 @@ export default class VhdEsxiRaw extends VhdAbstract {
 
     this.#header = unpackHeader(createHeader(length / VHD_BLOCK_LENGTH))
     const geometry = _computeGeometryForSize(length)
-    const actualSize = geometry.actualSize
 
     this.#footer = unpackFooter(
-      createFooter(actualSize, Math.floor(Date.now() / 1000), geometry, FOOTER_SIZE, DISK_TYPES.DYNAMIC)
+      // length can be smaller than disk capacity due to alignment to head/cylinder/sector
+      createFooter(length, Math.floor(Date.now() / 1000), geometry, FOOTER_SIZE, DISK_TYPES.DYNAMIC)
     )
   }
 
