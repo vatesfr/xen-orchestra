@@ -60,8 +60,9 @@ const DiskImport = decorate([
             const { name } = file
             const extIndex = name.lastIndexOf('.')
             const fileExtension = extIndex >= 0 ? name.slice(extIndex).toLowerCase() : undefined
+            const isRaw = FILE_GROUP_TYPE.raw.includes(fileExtension)
 
-            if (FILE_GROUP_TYPE.other.includes(fileExtension) || FILE_GROUP_TYPE.raw.includes(fileExtension)) {
+            if (isRaw || FILE_GROUP_TYPE.other.includes(fileExtension)) {
               let vmdkData
               if (fileExtension === '.vmdk') {
                 const parsed = await readCapacityAndGrainTable(async (start, end) => {
@@ -83,7 +84,7 @@ const DiskImport = decorate([
                 file,
                 name,
                 sr: this.state.sr,
-                type: FILE_GROUP_TYPE.raw.includes(fileExtension) ? 'iso' : fileExtension.slice(1),
+                type: isRaw ? 'iso' : fileExtension.slice(1),
                 vmdkData,
               }
             }
