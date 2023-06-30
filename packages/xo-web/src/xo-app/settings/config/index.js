@@ -6,7 +6,10 @@ import Dropzone from 'dropzone'
 import Icon from 'icon'
 import React from 'react'
 import { formatSize } from 'utils'
+import { getXoaPlan, SOURCES } from 'xoa-plans'
 import { importConfig, exportConfig } from 'xo'
+
+import CloudConfig from './xo-cloud-config'
 
 // ===================================================================
 
@@ -60,7 +63,8 @@ export default class Config extends Component {
 
     return (
       <div>
-        <div className='mb-1'>
+        {getXoaPlan() !== SOURCES && <CloudConfig />}
+        <div className='mb-1 mt-1'>
           <h2>
             <Icon icon='import' /> {_('importConfig')}
           </h2>

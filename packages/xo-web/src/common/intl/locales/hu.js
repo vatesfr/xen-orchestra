@@ -122,9 +122,6 @@ export default {
   // Original text: "IPs"
   settingsIpsPage: 'IP Címek',
 
-  // Original text: "Config"
-  settingsConfigPage: 'Beállítás',
-
   // Original text: "About"
   aboutPage: 'Információ',
 
