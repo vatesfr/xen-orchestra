@@ -101,9 +101,23 @@ abstract class BaseParam {
 export class PropParam extends mixin(BaseParam, WithWidget, WithType) {
   #isRequired = false;
   #defaultValue: any;
+  #isVModel: boolean;
+
+  constructor(name: string, isVModel = false) {
+    super(name);
+    this.#isVModel = isVModel;
+  }
 
   isRequired() {
     return this.#isRequired;
+  }
+
+  isVModel() {
+    return this.#isVModel;
+  }
+
+  getVModelDirective() {
+    return this.name === "modelValue" ? "v-model" : `v-model:${this.name}`;
   }
 
   getNamePrefix() {
@@ -337,7 +351,7 @@ export class ModelParam extends BaseParam {
 
   constructor(name: string) {
     super(name);
-    this.#prop = new PropParam(name);
+    this.#prop = new PropParam(name, true);
     this.#event = new EventParam(name, true).args({
       value: "unknown",
     });
