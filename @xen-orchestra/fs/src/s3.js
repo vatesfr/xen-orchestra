@@ -276,6 +276,11 @@ export default class S3Handler extends RemoteHandlerAbstract {
   }
 
   async _writeFile(file, data, options) {
+    if (options?.dedup ?? false) {
+      throw new Error(
+        "S3 remotes don't support deduplication from XO, please use the deduplication of your S3 provider if any"
+      )
+    }
     return this.#s3.send(
       new PutObjectCommand({
         ...this.#createParams(file),

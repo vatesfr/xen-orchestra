@@ -270,9 +270,9 @@ export default class RemoteHandlerAbstract {
     await this._mktree(normalizePath(dir), { mode })
   }
 
-  async outputFile(file, data, { dirMode, flags = 'wx' } = {}) {
+  async outputFile(file, data, { dedup = false, dirMode, flags = 'wx' } = {}) {
     const encryptedData = this.#encryptor.encryptData(data)
-    await this._outputFile(normalizePath(file), encryptedData, { dirMode, flags })
+    await this._outputFile(normalizePath(file), encryptedData, { dedup, dirMode, flags })
   }
 
   async read(file, buffer, position) {
@@ -321,8 +321,8 @@ export default class RemoteHandlerAbstract {
     await timeout.call(this._rmdir(normalizePath(dir)).catch(ignoreEnoent), this._timeout)
   }
 
-  async rmtree(dir) {
-    await this._rmtree(normalizePath(dir))
+  async rmtree(dir, { dedup } = {}) {
+    await this._rmtree(normalizePath(dir), { dedup })
   }
 
   // Asks the handler to sync the state of the effective remote with its'
@@ -404,6 +404,10 @@ export default class RemoteHandlerAbstract {
     }
   }
 
+  async checkSupport() {
+    return {}
+  }
+
   async test() {
     const SIZE = 1024 * 1024 * 10
     const testFileName = normalizePath(`${Date.now()}.test`)
@@ -444,14 +448,14 @@ export default class RemoteHandlerAbstract {
     await this._truncate(file, len)
   }
 
-  async __unlink(file, { checksum = true } = {}) {
+  async __unlink(file, { checksum = true, dedup = false } = {}) {
     file = normalizePath(file)
 
     if (checksum) {
       ignoreErrors.call(this._unlink(checksumFile(file)))
     }
 
-    await this._unlink(file).catch(ignoreEnoent)
+    await this._unlink(file, { dedup }).catch(ignoreEnoent)
   }
 
   async write(file, buffer, position) {
@@ -567,17 +571,16 @@ export default class RemoteHandlerAbstract {
     throw new Error('Not implemented')
   }
 
-  async _outputFile(file, data, { dirMode, flags }) {
+  async _outputFile(file, data, { dirMode, flags, dedup = false }) {
     try {
-      return await this._writeFile(file, data, { flags })
+      return await this._writeFile(file, data, { dedup, flags })
     } catch (error) {
       if (error.code !== 'ENOENT') {
         throw error
       }
     }
-
     await this._mktree(dirname(file), { mode: dirMode })
-    return this._outputFile(file, data, { flags })
+    return this._outputFile(file, data, { dedup, flags })
   }
 
   async _outputStream(path, input, { dirMode, validator }) {
@@ -620,7 +623,7 @@ export default class RemoteHandlerAbstract {
     throw new Error('Not implemented')
   }
 
-  async _rmtree(dir) {
+  async _rmtree(dir, { dedup } = {}) {
     try {
       return await this._rmdir(dir)
     } catch (error) {
@@ -631,7 +634,7 @@ export default class RemoteHandlerAbstract {
 
     const files = await this._list(dir)
     await asyncEach(files, file =>
-      this._unlink(`${dir}/${file}`).catch(
+      this._unlink(`${dir}/${file}`, { dedup }).catch(
         error => {
           // Unlink dir behavior is not consistent across platforms
           // https://github.com/nodejs/node-v0.x-archive/issues/5791
@@ -644,13 +647,13 @@ export default class RemoteHandlerAbstract {
         { concurrency: 2 }
       )
     )
-    return this._rmtree(dir)
+    return this._rmtree(dir, { dedup })
   }
 
   // called to initialize the remote
   async _sync() {}
 
-  async _unlink(file) {
+  async _unlink(file, opts) {
     throw new Error('Not implemented')
   }
 

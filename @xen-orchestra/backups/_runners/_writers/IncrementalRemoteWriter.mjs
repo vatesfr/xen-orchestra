@@ -235,6 +235,7 @@ export class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrement
             // no checksum for VHDs, because they will be invalidated by
             // merges and chainings
             checksum: false,
+            dedup: settings.dedup,
             validator: tmpPath => checkVhd(handler, tmpPath),
             writeBlockConcurrency: this._config.writeBlockConcurrency,
           })

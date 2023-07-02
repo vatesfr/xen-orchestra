@@ -19,7 +19,8 @@ try {
 } catch (_) {}
 
 export const getHandler = (remote, ...rest) => {
-  const Handler = HANDLERS[parse(remote.url).type]
+  const { type  }  = parse(remote.url)
+  const Handler = HANDLERS[type]
   if (!Handler) {
     throw new Error('Unhandled remote type')
   }

@@ -45,6 +45,34 @@ When `useVhdDirectory` is enabled on the remote, the directory containing the VH
     └─ <uuid>.vhd
 ```
 
+#### vhd directory with deduplication
+
+the difference with non dedup mode is that a hash is computed of each vhd block. The hash is splited in 4 chars token and the data are stored  in xo-block-store/{token1}/.../{token7}/{token8}.source.
+Then a hard link is made from this source to the destination folder in <vdis>/<job UUID>/<VDI UUID>/blocks/{number}/{number}
+
+
+```
+<remote>
+└─ xo-block-store
+  └─ {4 char}
+    └─  ...
+        └─ {char.source} 
+└─ xo-vm-backups
+  ├─ index.json // TODO
+  └─ <VM UUID>
+     ├─ cache.json.gz
+     ├─ vdis
+     │  └─ <job UUID>
+     │     └─ <VDI UUID>
+     │        ├─ index.json // TODO
+     │        ├─ <YYYYMMDD>T<HHmmss>.alias.vhd // contains the relative path to a VHD directory
+     |        └─ data
+     |          ├─ <uuid>.vhd // VHD directory format is described in vhd-lib/Vhd/VhdDirectory.js
+     ├─ <YYYYMMDD>T<HHmmss>.json // backup metadata
+     ├─ <YYYYMMDD>T<HHmmss>.xva
+     └─ <YYYYMMDD>T<HHmmss>.xva.checksum
+```
+
 ## Cache for a VM
 
 In a VM directory, if the file `cache.json.gz` exists, it contains the metadata for all the backups for this VM.
