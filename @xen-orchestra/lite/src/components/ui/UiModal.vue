@@ -1,12 +1,13 @@
 <template>
-  <Teleport to="body">
-    <form
+  <Teleport :disabled="isNested" to="body">
+    <component
+      :is="isNested ? 'div' : 'form'"
       :class="className"
       class="ui-modal"
       v-bind="$attrs"
-      @click.self="emit('close')"
+      @click.self="!isNested && emit('close')"
     >
-      <div class="container">
+      <div :class="{ nested: isNested }" class="container">
         <span v-if="onClose" class="close-icon" @click="emit('close')">
           <UiIcon :icon="faXmark" />
         </span>
@@ -24,22 +25,23 @@
         <div v-if="$slots.default" class="content">
           <slot />
         </div>
-        <UiButtonGroup :color="color">
+        <UiButtonGroup v-if="!isNested" :color="color">
           <slot name="buttons" />
         </UiButtonGroup>
       </div>
-    </form>
+    </component>
   </Teleport>
 </template>
 
 <script lang="ts" setup>
-import UiButtonGroup from "@/components/ui/UiButtonGroup.vue";
 import UiIcon from "@/components/ui/icon/UiIcon.vue";
+import UiButtonGroup from "@/components/ui/UiButtonGroup.vue";
 import UiTitle from "@/components/ui/UiTitle.vue";
+import { IK_MODAL_NESTED } from "@/types/injection-keys";
 import type { IconDefinition } from "@fortawesome/fontawesome-common-types";
 import { faXmark } from "@fortawesome/free-solid-svg-icons";
 import { useMagicKeys, whenever } from "@vueuse/core";
-import { computed } from "vue";
+import { computed, inject, provide } from "vue";
 
 const props = withDefaults(
   defineProps<{
@@ -54,27 +56,39 @@ const emit = defineEmits<{
   (event: "close"): void;
 }>();
 
+const isNested = inject(IK_MODAL_NESTED, false);
+provide(IK_MODAL_NESTED, true);
+
 const { escape } = useMagicKeys();
 whenever(escape, () => emit("close"));
 
 const className = computed(() => {
-  return [`color-${props.color}`, { "has-icon": props.icon !== undefined }];
+  return [
+    `color-${props.color}`,
+    {
+      "has-icon": props.icon !== undefined,
+      nested: isNested,
+    },
+  ];
 });
 </script>
 
 <style lang="postcss" scoped>
 .ui-modal {
-  position: fixed;
-  z-index: 2;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
   display: flex;
   overflow: auto;
   align-items: center;
   justify-content: center;
-  background-color: #00000080;
+
+  &:not(.nested) {
+    background-color: #00000080;
+    position: fixed;
+    z-index: 2;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+  }
 }
 
 .color-success {
@@ -103,11 +117,23 @@ const className = computed(() => {
   flex-direction: column;
   justify-content: center;
   min-width: 40rem;
-  padding: 4.2rem;
   text-align: center;
   border-radius: 1rem;
   background-color: var(--modal-background-color);
-  box-shadow: var(--shadow-400);
+  margin: 1rem 2rem;
+
+  &.nested {
+    width: 100%;
+  }
+
+  &:not(.nested) {
+    box-shadow: var(--shadow-400);
+    padding: 4.2rem;
+  }
+}
+
+.container > div:last-child {
+  padding-bottom: 1rem;
 }
 
 .close-icon {
