@@ -669,7 +669,7 @@ class RemoteAdapter {
     const handler = this._handler
     if (this.useVhdDirectory()) {
       const dataPath = `${dirname(path)}/data/${uuidv4()}.vhd`
-      const size = await createVhdDirectoryFromStream(handler, dataPath, input, {
+      const sizes = await createVhdDirectoryFromStream(handler, dataPath, input, {
         concurrency: writeBlockConcurrency,
         compression: this.#getCompressionType(),
         async validator() {
@@ -678,9 +678,14 @@ class RemoteAdapter {
         },
       })
       await VhdAbstract.createAlias(handler, path, dataPath)
-      return size
+      return sizes
     } else {
-      return this.outputStream(path, input, { checksum, validator })
+      const size = this.outputStream(path, input, { checksum, validator })
+      return {
+        compressedSize: size,
+        sourceSize: size,
+        writtenSize: size,
+      }
     }
   }
 

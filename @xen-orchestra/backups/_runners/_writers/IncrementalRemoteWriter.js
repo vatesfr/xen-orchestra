@@ -205,7 +205,7 @@ class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrementalWrite
             // TODO remove when this has been done before the export
             await checkVhd(handler, parentPath)
           }
-
+          // @todo : sum per property
           transferSize += await adapter.writeVhd(path, deltaExport.streams[`${id}.vhd`], {
             // no checksum for VHDs, because they will be invalidated by
             // merges and chainings
@@ -232,7 +232,7 @@ class IncrementalRemoteWriter extends MixinRemoteWriter(AbstractIncrementalWrite
 
       return { size: transferSize }
     })
-    metadataContent.size = size
+    metadataContent.size = size // @todo: transferSize
     this._metadataFileName = await adapter.writeVmBackupMetadata(vm.uuid, metadataContent)
 
     // TODO: run cleanup?

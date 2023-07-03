@@ -330,6 +330,7 @@ const SrTask = ({ children, className, task }) => (
 )
 
 const TransferMergeTask = ({ className, task }) => {
+  // @todo : handle case when size is an object
   const size = defined(() => task.result.size, 0)
   if (task.status === 'success' && size === 0 && task.warnings?.length === 0) {
     return null

@@ -10,6 +10,16 @@ const { warn } = createLogger('vhd-lib:createVhdDirectoryFromStream')
 
 const buildVhd = Disposable.wrap(async function* (handler, path, inputStream, { concurrency, compression }) {
   const vhd = yield VhdDirectory.create(handler, path, { compression })
+  const sizes = {
+    compressedSize: 0,
+    sourceSize: 0,
+    writtenSize: 0,
+  }
+  const updateSums = ({ writtenSize, compressedSize, sourceSize }) => {
+    sizes.writtenSize += writtenSize ?? 0
+    sizes.compressedSize += compressedSize ?? 0
+    sizes.sourceSize += sourceSize ?? 0
+  }
   await asyncEach(
     parseVhdStream(inputStream),
     async function (item) {
@@ -21,10 +31,10 @@ const buildVhd = Disposable.wrap(async function* (handler, path, inputStream, { 
           vhd.header = item.header
           break
         case 'parentLocator':
-          await vhd.writeParentLocator({ ...item, data: item.buffer })
+          updateSums(await vhd.writeParentLocator({ ...item, data: item.buffer }))
           break
         case 'block':
-          await vhd.writeEntireBlock(item)
+          updateSums(await vhd.writeEntireBlock(item))
           break
         case 'bat':
           // it exists but  I don't care
@@ -36,9 +46,18 @@ const buildVhd = Disposable.wrap(async function* (handler, path, inputStream, { 
     {
       concurrency,
     }
+  )(await Promise.all([vhd.writeFooter(), vhd.writeHeader(), vhd.writeBlockAllocationTable()])).forEach(
+    ([footer, header, bat]) => {
+      updateSums(footer)
+      updateSums(header)
+      updateSums(bat)
+    }
   )
-  await Promise.all([vhd.writeFooter(), vhd.writeHeader(), vhd.writeBlockAllocationTable()])
-  return vhd.streamSize()
+  const vhdSize = vhd.streamSize()
+  return {
+    ...sizes,
+    vhdSize,
+  }
 })
 
 exports.createVhdDirectoryFromStream = async function createVhdDirectoryFromStream(
@@ -48,11 +67,11 @@ exports.createVhdDirectoryFromStream = async function createVhdDirectoryFromStre
   { validator, concurrency = 16, compression } = {}
 ) {
   try {
-    const size = await buildVhd(handler, path, inputStream, { concurrency, compression })
+    const sizes = await buildVhd(handler, path, inputStream, { concurrency, compression })
     if (validator !== undefined) {
       await validator.call(this, path)
     }
-    return size
+    return sizes
   } catch (error) {
     // cleanup on error
     await handler.rmtree(path).catch(warn)

@@ -168,7 +168,12 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
     // in case of VhdDirectory, we want to create the file if it does not exists
     const flags = this._opts?.flags === 'r+' ? 'w' : this._opts?.flags
     const compressed = await this.#compressor.compress(buffer)
-    return this._handler.outputFile(this.#getChunkPath(partName), compressed, { flags })
+    const writtenSize = await this._handler.outputFile(this.#getChunkPath(partName), compressed, { flags })
+    return {
+      size: buffer.length,
+      compressedSize: compressed.length,
+      writtenSize,
+    }
   }
 
   // put block in subdirectories to limit impact when doing directory listing
@@ -228,7 +233,7 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
     footer.checksum = checksumStruct(rawFooter, fuFooter)
     debug(`Write footer  (checksum=${footer.checksum}). (data=${rawFooter.toString('hex')})`)
 
-    await this._writeChunk('footer', rawFooter)
+    return await this._writeChunk('footer', rawFooter)
   }
 
   async writeHeader() {
@@ -236,8 +241,9 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
     const rawHeader = fuHeader.pack(header)
     header.checksum = checksumStruct(rawHeader, fuHeader)
     debug(`Write header  (checksum=${header.checksum}). (data=${rawHeader.toString('hex')})`)
-    await this._writeChunk('header', rawHeader)
+    const sizes = await this._writeChunk('header', rawHeader)
     await this.#writeChunkFilters()
+    return sizes
   }
 
   writeBlockAllocationTable() {
@@ -285,8 +291,9 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
   }
 
   async writeEntireBlock(block) {
-    await this._writeChunk(this.#getBlockPath(block.id), block.buffer)
+    const sizes = await this._writeChunk(this.#getBlockPath(block.id), block.buffer)
     setBitmap(this.#blockTable, block.id)
+    return sizes
   }
 
   async _readParentLocatorData(id) {
@@ -294,8 +301,9 @@ exports.VhdDirectory = class VhdDirectory extends VhdAbstract {
   }
 
   async _writeParentLocatorData(id, data) {
-    await this._writeChunk('parentLocatorEntry' + id, data)
+    const sizes = await this._writeChunk('parentLocatorEntry' + id, data)
     this.header.parentLocatorEntry[id].platformDataOffset = 0
+    return sizes
   }
 
   async #writeChunkFilters() {

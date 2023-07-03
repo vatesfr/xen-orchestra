@@ -142,9 +142,11 @@ const COLUMNS = [
               return
             }
             if (operationTask.message === 'transfer' && vmTransferSize === undefined) {
+              // @todo handle if size is an object
               vmTransferSize = operationTask.result?.size
             }
             if (operationTask.message === 'merge' && vmMergeSize === undefined) {
+              // @todo handle if size is an object
               vmMergeSize = operationTask.result?.size
             }
 
