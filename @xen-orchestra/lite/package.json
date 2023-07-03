@@ -1,6 +1,6 @@
 {
   "name": "@xen-orchestra/lite",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "scripts": {
     "dev": "GIT_HEAD=$(git rev-parse HEAD) vite",
     "build": "run-p type-check build-only",
