@@ -26,7 +26,7 @@ export function exportVmsAsCsvFile(
   const csvHeaders = Object.keys(vms[0]);
 
   const csvRows = vms.map((vm) =>
-    csvHeaders.map((header) => stringifyCsvValue(vm[header]))
+    csvHeaders.map((header) => stringifyCsvValue(vm[header as keyof XenApiVm]))
   );
 
   saveAs(

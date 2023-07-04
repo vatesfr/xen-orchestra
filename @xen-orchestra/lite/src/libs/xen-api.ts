@@ -121,13 +121,6 @@ export interface XenApiSr extends XenApiRecord<"Sr"> {
 }
 
 export interface XenApiVm extends XenApiRecord<"Vm"> {
-  [key: string]:
-    | string
-    | number
-    | boolean
-    | string[]
-    | POWER_STATE
-    | Record<string, VM_OPERATION>;
   current_operations: Record<string, VM_OPERATION>;
   guest_metrics: string;
   metrics: XenApiVmMetrics["$ref"];
