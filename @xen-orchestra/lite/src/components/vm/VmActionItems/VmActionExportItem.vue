@@ -8,7 +8,12 @@
       >
         {{ $t("export-vms") }}
       </MenuItem>
-      <MenuItem :icon="faCode" @click="exportVmsAsJsonFile(vmRefs, 'vms.json')">
+      <MenuItem
+        :icon="faCode"
+        @click="
+          exportVmsAsJsonFile(vmRefs, `vms_${new Date().toISOString()}.json`)
+        "
+      >
         {{ $t("export-table-to", { type: ".json" }) }}
       </MenuItem>
       <MenuItem
