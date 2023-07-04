@@ -43,12 +43,8 @@ import type { XenApiVm } from "@/libs/xen-api";
 import { useUiStore } from "@/stores/ui.store";
 import {
   faCamera,
-  faCode,
-  faDisplay,
   faEdit,
   faEllipsis,
-  faFileCsv,
-  faFileExport,
   faPowerOff,
   faRoute,
 } from "@fortawesome/free-solid-svg-icons";
