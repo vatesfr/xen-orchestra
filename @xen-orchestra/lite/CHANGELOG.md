@@ -2,6 +2,8 @@
 
 ## **next**
 
+- Ability to export selected VMs as CSV file (PR [#6915](https://github.com/vatesfr/xen-orchestra/pull/6915))
+
 ## **0.1.1** (2023-07-03)
 
 - Invalidate sessionId token after logout (PR [#6480](https://github.com/vatesfr/xen-orchestra/pull/6480))
