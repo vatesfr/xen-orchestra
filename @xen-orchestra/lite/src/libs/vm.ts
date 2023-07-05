@@ -1,5 +1,4 @@
 import { saveAs } from "file-saver";
-import { useVmStore } from "@/stores/vm.store";
 import type { XenApiVm } from "@/libs/xen-api";
 
 function stringifyCsvValue(value: any) {
@@ -14,15 +13,7 @@ function stringifyCsvValue(value: any) {
   return `"${res.replace(/"/g, '""')}"`;
 }
 
-export function exportVmsAsCsvFile(
-  vmRefs: XenApiVm["$ref"][],
-  fileName: string
-) {
-  const { getByOpaqueRef: getVm } = useVmStore().subscribe();
-  const vms = vmRefs
-    .map(getVm)
-    .filter((vm): vm is XenApiVm => vm !== undefined);
-
+export function exportVmsAsCsvFile(vms: XenApiVm[], fileName: string) {
   const csvHeaders = Object.keys(vms[0]);
 
   const csvRows = vms.map((vm) =>
