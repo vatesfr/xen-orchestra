@@ -11,7 +11,7 @@
       <MenuItem
         :icon="faCode"
         @click="
-          exportVmsAsJsonFile(vmRefs, `vms_${new Date().toISOString()}.json`)
+          exportVmsAsJsonFile(vms, `vms_${new Date().toISOString()}.json`)
         "
       >
         {{ $t("export-table-to", { type: ".json" }) }}
