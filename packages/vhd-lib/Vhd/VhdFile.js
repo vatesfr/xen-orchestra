@@ -463,7 +463,7 @@ exports.VhdFile = class VhdFile extends VhdAbstract {
     }
   }
 
-  async getSize() {
+  async streamSize() {
     return await this._handler.getSize(this._path)
   }
 }

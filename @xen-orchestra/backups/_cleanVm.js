@@ -3,7 +3,7 @@
 const sum = require('lodash/sum')
 const UUID = require('uuid')
 const { asyncMap } = require('@xen-orchestra/async-map')
-const { Constants, openVhd, VhdAbstract, VhdFile } = require('vhd-lib')
+const { Constants, openVhd, VhdAbstract } = require('vhd-lib')
 const { isVhdAlias, resolveVhdAlias } = require('vhd-lib/aliases')
 const { dirname, resolve } = require('path')
 const { DISK_TYPES } = Constants
@@ -15,24 +15,14 @@ const { Task } = require('./Task.js')
 const { Disposable } = require('promise-toolbox')
 const handlerPath = require('@xen-orchestra/fs/path')
 
-// checking the size of a vhd directory is costly
-// 1 Http Query per 1000 blocks
-// we only check size of all the vhd are VhdFiles
-function shouldComputeVhdsSize(handler, vhds) {
-  if (handler.isEncrypted) {
-    return false
-  }
-  return vhds.every(vhd => vhd instanceof VhdFile)
-}
-
 const computeVhdsSize = (handler, vhdPaths) =>
   Disposable.use(
     vhdPaths.map(vhdPath => openVhd(handler, vhdPath)),
     async vhds => {
-      if (shouldComputeVhdsSize(handler, vhds)) {
-        const sizes = await asyncMap(vhds, vhd => vhd.getSize())
-        return sum(sizes)
-      }
+      await Promise.all(vhds.map(vhd => vhd.readBlockAllocationTable()))
+      // get file size for vhdfile, computed size from bat for vhd directory
+      const sizes = await asyncMap(vhds, vhd => vhd.streamSize())
+      return sum(sizes)
     }
   )
 
@@ -534,11 +524,6 @@ exports.cleanVm = async function cleanVm(
         const linkedVhds = Object.keys(vhds).map(key => resolve('/', vmDir, vhds[key]))
         fileSystemSize = await computeVhdsSize(handler, linkedVhds)
 
-        // the size is not computed in some cases (e.g. VhdDirectory)
-        if (fileSystemSize === undefined) {
-          return
-        }
-
         // don't warn if the size has changed after a merge
         if (!merged && fileSystemSize !== size) {
           // FIXME: figure out why it occurs so often and, once fixed, log the real problems with `logWarn`
@@ -556,6 +541,8 @@ exports.cleanVm = async function cleanVm(
 
     // systematically update size after a merge
     if ((merged || fixMetadata) && size !== fileSystemSize) {
+      // @todo add a cumulatedTransferSize property ?
+      // @todo update writtenSize, compressedSize
       metadata.size = fileSystemSize
       mustRegenerateCache = true
       try {
