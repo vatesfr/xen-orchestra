@@ -26,7 +26,7 @@ Xen Orchestra and XCP-ng are mainly edited by the same company ([Vates](https://
 - XCP-ng 7.5 ✅ ❗
 - XCP-ng 7.4 ✅ ❗
 
-## Citrix Hypervisor (formerly XenServer)
+## XenServer (formerly Citrix Hypervisor)
 
 - Citrix Hypervisor 8.2 LTS ✅
 - Citrix Hypervisor 8.1 ✅
