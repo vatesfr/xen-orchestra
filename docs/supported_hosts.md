@@ -36,7 +36,8 @@ Xen Orchestra and XCP-ng are mainly edited by the same company ([Vates](https://
   - [VDI I/O error](https://bugs.xenserver.org/browse/XSO-873), waiting for Citrix to release our fix
 - XenServer 7.4 ✅ ❗
 - XenServer 7.3 ✅ ❗
-- XenServer 7.2 ✅ ❗
+- XenServer 7.2 ❎ ❗
+  - Issues with JSON-RPC which may leads to `INTERNAL_ERROR((Failure "Expected float, got 'I(1)'"))` during _Incremental Replication_ and _Incremental Backup_ restorations
 - XenServer 7.1 LTS ✅
 - XenServer 7.0 ✅ ❗
 - XenServer 6.5 ✅ ❗
