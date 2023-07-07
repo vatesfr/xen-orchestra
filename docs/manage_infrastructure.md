@@ -448,6 +448,14 @@ It's perfect if you want to shutdown the host for hardware replacement, or if yo
 
 Note that maintenance mode will be **automatically exited after a host reboot**.
 
+### Modify Dom0 memory
+
+You can easily adjust the control domain memory under the Advanced tab. Enable the maintenance mode on the host and click on the pen icon to edit the value:
+
+![](./assets/dom0memory.png)
+
+There is more information about Dom0 memory management in the [XCP-ng Documentation](https://docs.xcp-ng.org/guides/dom0-memory/)
+
 ## Pool and host updates
 
 Xen Orchestra is here to help you to manage all your pools and hosts updates. Note there's a difference on updates between XCP-ng and Citrix Hypervisor, since they are not using the same mechanism. However, the view on available updates and updating is very similar.
