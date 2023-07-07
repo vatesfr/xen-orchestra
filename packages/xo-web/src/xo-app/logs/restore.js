@@ -117,6 +117,14 @@ const COLUMNS = [
   },
 ]
 
+const INDIVIDUAL_ACTIONS = [
+  {
+    handler: task => window.open('./rest/v0/restore/logs/' + task.id),
+    icon: 'api',
+    label: _('taskOpenRawLog'),
+  },
+]
+
 const ROW_TRANSFORM = (task, { vms }) => {
   let vm, dataSize
   if (task.status === 'success') {
@@ -156,6 +164,7 @@ export default decorate([
           data-vms={vms}
           emptyMessage={_('noLogs')}
           filters={LOG_FILTERS}
+          individualActions={INDIVIDUAL_ACTIONS}
           rowTransform={ROW_TRANSFORM}
           stateUrlParam='s_logs'
         />
