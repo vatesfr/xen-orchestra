@@ -1,6 +1,8 @@
 'use strict'
 
-const { escapeRegExp, isPlainObject, some } = require('lodash')
+const escapeRegExp = require('lodash/escapeRegExp.js')
+const isPlainObject = require('lodash/isPlainObject.js')
+const some = require('lodash/some.js')
 
 // ===================================================================
 

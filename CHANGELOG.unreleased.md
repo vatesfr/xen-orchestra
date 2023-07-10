@@ -29,6 +29,7 @@
 
 <!--packages-start-->
 
+- complex-matcher patch
 - xo-web minor
 
 <!--packages-end-->
