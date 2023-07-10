@@ -1,22 +1,23 @@
-'use strict'
+import assert from 'assert'
+import pRetry from 'promise-toolbox/retry'
+import { utcFormat, utcParse } from 'd3-time-format'
+import { Xapi as Base } from 'xen-api'
+import { createLogger } from '@xen-orchestra/log'
 
-const assert = require('assert')
-const pRetry = require('promise-toolbox/retry')
-const { utcFormat, utcParse } = require('d3-time-format')
-const { Xapi: Base } = require('xen-api')
+import * as Mixins from './_Mixins.mjs'
 
-const { warn } = require('@xen-orchestra/log').createLogger('xo:xapi')
+const { warn } = createLogger('xo:xapi')
 
-exports.extractOpaqueRef = require('./_extractOpaqueRef.js')
-exports.isDefaultTemplate = require('./isDefaultTemplate.js')
+export { default as extractOpaqueRef } from './_extractOpaqueRef.mjs'
+export { default as isDefaultTemplate } from './isDefaultTemplate.mjs'
 
 // VDI formats. (Raw is not available for delta vdi.)
-exports.VDI_FORMAT_RAW = 'raw'
-exports.VDI_FORMAT_VHD = 'vhd'
+export const VDI_FORMAT_RAW = 'raw'
+export const VDI_FORMAT_VHD = 'vhd'
 
 // Format a date (pseudo ISO 8601) from one XenServer get by
 // xapi.call('host.get_servertime', host.$ref) for example
-exports.formatDateTime = utcFormat('%Y%m%dT%H:%M:%SZ')
+export const formatDateTime = utcFormat('%Y%m%dT%H:%M:%SZ')
 
 const parseDateTimeHelper = utcParse('%Y%m%dT%H:%M:%SZ')
 
@@ -27,7 +28,7 @@ const parseDateTimeHelper = utcParse('%Y%m%dT%H:%M:%SZ')
  * @returns {number|null} A Unix timestamp in seconds, or null if the field is empty (as encoded by XAPI).
  * @throws {TypeError} If the input is not a string, number or Date object.
  */
-exports.parseDateTime = function parseDateTime(input) {
+export function parseDateTime(input) {
   const type = typeof input
 
   // If the value is a number, it is assumed to be a timestamp in seconds
@@ -131,7 +132,7 @@ function removeWatcher(predicate, cb) {
   }
 }
 
-class Xapi extends Base {
+export class Xapi extends Base {
   constructor({
     callRetryWhenTooManyPendingTasks = { delay: 5e3, tries: 10 },
     maxUncoalescedVdis,
@@ -276,16 +277,8 @@ function mixin(mixins) {
   })
   defineProperties(xapiProto, descriptors)
 }
-mixin({
-  host: require('./host.js'),
-  SR: require('./sr.js'),
-  task: require('./task.js'),
-  VBD: require('./vbd.js'),
-  VDI: require('./vdi.js'),
-  VIF: require('./vif.js'),
-  VM: require('./vm.js'),
-})
-exports.Xapi = Xapi
+
+mixin(Mixins)
 
 function getCallRetryOpts() {
   return this._callRetryWhenTooManyPendingTasks

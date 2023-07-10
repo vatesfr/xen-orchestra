@@ -1,9 +1,7 @@
-'use strict'
+import { strict as assert } from 'node:assert'
+import test from 'test'
 
-const assert = require('node:assert/strict')
-const test = require('test')
-
-const { parseDateTime } = require('./')
+import { parseDateTime } from './index.mjs'
 
 test('parseDateTime()', function () {
   for (const [input, output] of [

@@ -1,16 +1,16 @@
-'use strict'
+import CancelToken from 'promise-toolbox/CancelToken'
+import pCatch from 'promise-toolbox/catch'
+import pRetry from 'promise-toolbox/retry'
+import { createLogger } from '@xen-orchestra/log'
+import { decorateClass } from '@vates/decorate-with'
+import { strict as assert } from 'node:assert'
 
-const assert = require('node:assert').strict
-const CancelToken = require('promise-toolbox/CancelToken')
-const pCatch = require('promise-toolbox/catch')
-const pRetry = require('promise-toolbox/retry')
-const { decorateClass } = require('@vates/decorate-with')
+import extractOpaqueRef from './_extractOpaqueRef.mjs'
+import NbdClient from '@vates/nbd-client'
+import { createNbdRawStream, createNbdVhdStream } from 'vhd-lib/createStreamNbd.js'
+import { VDI_FORMAT_RAW, VDI_FORMAT_VHD } from './index.mjs'
 
-const extractOpaqueRef = require('./_extractOpaqueRef.js')
-const NbdClient = require('@vates/nbd-client')
-const { createNbdRawStream, createNbdVhdStream } = require('vhd-lib/createStreamNbd.js')
-const { VDI_FORMAT_RAW, VDI_FORMAT_VHD } = require('./index.js')
-const { warn } = require('@xen-orchestra/log').createLogger('xo:xapi:vdi')
+const { warn } = createLogger('xo:xapi:vdi')
 
 const noop = Function.prototype
 
@@ -155,7 +155,7 @@ class Vdi {
     }
   }
 }
-module.exports = Vdi
+export default Vdi
 
 decorateClass(Vdi, {
   // work around a race condition in XCP-ng/XenServer where the disk is not fully unmounted yet

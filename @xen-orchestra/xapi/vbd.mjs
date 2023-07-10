@@ -1,16 +1,15 @@
-'use strict'
+import identity from 'lodash/identity.js'
+import ignoreErrors from 'promise-toolbox/ignoreErrors'
+import { createLogger } from '@xen-orchestra/log'
+import { Ref } from 'xen-api'
 
-const identity = require('lodash/identity.js')
-const ignoreErrors = require('promise-toolbox/ignoreErrors')
-const { Ref } = require('xen-api')
+import isVmRunning from './_isVmRunning.mjs'
 
-const isVmRunning = require('./_isVmRunning.js')
-
-const { warn } = require('@xen-orchestra/log').createLogger('xo:xapi:vbd')
+const { warn } = createLogger('xo:xapi:vbd')
 
 const noop = Function.prototype
 
-module.exports = class Vbd {
+export default class Vbd {
   async create({
     bootable = false,
     currently_attached = false,

@@ -1,8 +1,6 @@
-'use strict'
+import isVmRunning from './_isVmRunning.mjs'
 
-const isVmRunning = require('./_isVmRunning.js')
-
-module.exports = class Vif {
+export default class Vif {
   async create(
     {
       currently_attached = true,

@@ -1,9 +1,7 @@
-'use strict'
+import fromCallback from 'promise-toolbox/fromCallback'
+import { execFile } from 'node:child_process'
 
-const fromCallback = require('promise-toolbox/fromCallback')
-const { execFile } = require('node:child_process')
-
-exports.getCurrentVmUuid = async function getCurrentVmUuid() {
+export async function getCurrentVmUuid() {
   const vm = (await read('vm')).trim()
   const i = vm.lastIndexOf('/')
   if (i === -1) {

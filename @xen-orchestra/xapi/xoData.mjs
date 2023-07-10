@@ -1,6 +1,4 @@
-'use strict'
-
-const assert = require('node:assert/strict')
+import assert from 'node:assert/strict'
 
 // This module provides a way to associate data with a XAPI object.
 //
@@ -16,7 +14,7 @@ const assert = require('node:assert/strict')
  * @param {string} params.uuid - The UUID of the object.
  * @returns {object|undefined} The parsed data object, or undefined if there is no data.
  */
-exports.extract = function extract({ other_config, uuid }) {
+export function extract({ other_config, uuid }) {
   const json = other_config['xo:' + uuid.slice(0, 8)]
   if (json !== undefined) {
     return JSON.parse(json)
@@ -34,7 +32,7 @@ exports.extract = function extract({ other_config, uuid }) {
  * @param {object|null} data - The data to merge with the XO data associated with the object. If null, the XO data for the object will be cleared.
  * @returns {Promise<object|undefined>} A Promise that resolves to the updated XO data object, or undefined if the XO data for the given object is cleared.
  */
-exports.set = async function set({ $type, $ref, $xapi, uuid }, data) {
+export async function set({ $type, $ref, $xapi, uuid }, data) {
   assert.equal(typeof data, 'object') // includes null
   assert(!Array.isArray(data))
 

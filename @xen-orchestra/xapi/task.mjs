@@ -1,8 +1,6 @@
-'use strict'
+import ignoreErrors from 'promise-toolbox/ignoreErrors'
 
-const ignoreErrors = require('promise-toolbox/ignoreErrors')
-
-module.exports = class Task {
+export default class Task {
   create(name = 'untitled task', description) {
     return this.createTask(`[XO] ${name}`, description)
   }

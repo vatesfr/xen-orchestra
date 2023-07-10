@@ -1,8 +1,6 @@
-'use strict'
-
 const OPAQUE_REF_RE = /OpaqueRef:[0-9a-z-]+/
 
-module.exports = function extractOpaqueRef(str) {
+export default function extractOpaqueRef(str) {
   const matches = OPAQUE_REF_RE.exec(str)
   if (!matches) {
     const error = new Error('no opaque ref found')

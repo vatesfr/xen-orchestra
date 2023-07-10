@@ -1,16 +1,15 @@
-'use strict'
+import { asyncMap, asyncMapSettled } from '@xen-orchestra/async-map'
+import { createLogger } from '@xen-orchestra/log'
+import { decorateClass } from '@vates/decorate-with'
+import { defer } from 'golike-defer'
+import { incorrectState } from 'xo-common/api-errors.js'
+import { VDI_FORMAT_VHD } from './index.mjs'
+import { strict as assert } from 'node:assert'
+import peekFooterFromStream from 'vhd-lib/peekFooterFromVhdStream.js'
 
-const { asyncMap, asyncMapSettled } = require('@xen-orchestra/async-map')
-const { decorateClass } = require('@vates/decorate-with')
-const { defer } = require('golike-defer')
-const { incorrectState } = require('xo-common/api-errors')
-const { VDI_FORMAT_VHD } = require('./index.js')
-const assert = require('node:assert').strict
-const peekFooterFromStream = require('vhd-lib/peekFooterFromVhdStream')
+import AggregateError from './_AggregateError.mjs'
 
-const AggregateError = require('./_AggregateError.js')
-
-const { warn } = require('@xen-orchestra/log').createLogger('xo:xapi:sr')
+const { warn } = createLogger('xo:xapi:sr')
 
 const OC_MAINTENANCE = 'xo:maintenanceState'
 
@@ -174,6 +173,6 @@ class Sr {
     return vdiRef
   }
 }
-module.exports = Sr
+export default Sr
 
 decorateClass(Sr, { enableMaintenanceMode: defer, importVdi: defer })

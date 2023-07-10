@@ -1,10 +1,8 @@
-'use strict'
+import { asyncEach } from '@vates/async-each'
+import { decorateClass } from '@vates/decorate-with'
+import { defer } from 'golike-defer'
 
-const { asyncEach } = require('@vates/async-each')
-const { decorateClass } = require('@vates/decorate-with')
-const { defer } = require('golike-defer')
-
-const { getCurrentVmUuid } = require('./_XenStore.js')
+import { getCurrentVmUuid } from './_XenStore.mjs'
 
 const waitAgentRestart = (xapi, hostRef, prevAgentStartTime) =>
   new Promise(resolve => {
@@ -84,7 +82,7 @@ class Host {
     await waitAgentRestart(this, ref, agentStartTime)
   }
 }
-module.exports = Host
+export default Host
 
 decorateClass(Host, {
   smartReboot: defer,

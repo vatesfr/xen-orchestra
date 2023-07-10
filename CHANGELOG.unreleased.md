@@ -30,6 +30,7 @@
 <!--packages-start-->
 
 - @xen-orchestra/backups minor
+- @xen-orchestra/xapi major
 - complex-matcher patch
 - xo-web minor
 

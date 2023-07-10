@@ -1,23 +1,21 @@
-'use strict'
+import CancelToken from 'promise-toolbox/CancelToken'
+import groupBy from 'lodash/groupBy.js'
+import hrp from 'http-request-plus'
+import ignoreErrors from 'promise-toolbox/ignoreErrors'
+import pickBy from 'lodash/pickBy.js'
+import omit from 'lodash/omit.js'
+import pCatch from 'promise-toolbox/catch'
+import { asyncMap } from '@xen-orchestra/async-map'
+import { createLogger } from '@xen-orchestra/log'
+import { decorateClass } from '@vates/decorate-with'
+import { defer } from 'golike-defer'
+import { incorrectState, forbiddenOperation } from 'xo-common/api-errors.js'
+import { JsonRpcError } from 'json-rpc-protocol'
+import { Ref } from 'xen-api'
 
-const CancelToken = require('promise-toolbox/CancelToken')
-const groupBy = require('lodash/groupBy.js')
-const hrp = require('http-request-plus')
-const ignoreErrors = require('promise-toolbox/ignoreErrors')
-const pickBy = require('lodash/pickBy.js')
-const omit = require('lodash/omit.js')
-const pCatch = require('promise-toolbox/catch')
-const { asyncMap } = require('@xen-orchestra/async-map')
-const { createLogger } = require('@xen-orchestra/log')
-const { decorateClass } = require('@vates/decorate-with')
-const { defer } = require('golike-defer')
-const { incorrectState, forbiddenOperation } = require('xo-common/api-errors.js')
-const { JsonRpcError } = require('json-rpc-protocol')
-const { Ref } = require('xen-api')
-
-const extractOpaqueRef = require('./_extractOpaqueRef.js')
-const isDefaultTemplate = require('./isDefaultTemplate.js')
-const isVmRunning = require('./_isVmRunning.js')
+import extractOpaqueRef from './_extractOpaqueRef.mjs'
+import isDefaultTemplate from './isDefaultTemplate.mjs'
+import isVmRunning from './_isVmRunning.mjs'
 
 const { warn } = createLogger('xo:xapi:vm')
 
@@ -689,7 +687,7 @@ class Vm {
     return ref
   }
 }
-module.exports = Vm
+export default Vm
 
 decorateClass(Vm, {
   checkpoint: defer,
