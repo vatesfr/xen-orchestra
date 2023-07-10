@@ -33,7 +33,6 @@
     "compare-versions": "^5.0.1",
     "d3-time-format": "^3.0.0",
     "decorator-synchronized": "^0.6.0",
-    "fs-extra": "^11.1.0",
     "golike-defer": "^0.5.1",
     "limit-concurrency-decorator": "^0.5.0",
     "lodash": "^4.17.20",
@@ -47,6 +46,7 @@
     "yazl": "^2.5.1"
   },
   "devDependencies": {
+    "fs-extra": "^11.1.0",
     "rimraf": "^5.0.1",
     "sinon": "^15.0.1",
     "test": "^3.2.1",

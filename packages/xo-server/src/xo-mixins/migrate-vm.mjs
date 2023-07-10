@@ -1,7 +1,7 @@
 import { decorateWith } from '@vates/decorate-with'
 import { defer as deferrable } from 'golike-defer'
 import { fromEvent } from 'promise-toolbox'
-import { createRunner } from '@xen-orchestra/backups/Backup.js'
+import { createRunner } from '@xen-orchestra/backups/Backup.mjs'
 import { Task } from '@xen-orchestra/mixins/Tasks.mjs'
 import { v4 as generateUuid } from 'uuid'
 import { VDI_FORMAT_VHD } from '@xen-orchestra/xapi'

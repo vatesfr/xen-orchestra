@@ -29,6 +29,7 @@
 
 <!--packages-start-->
 
+- @xen-orchestra/backups minor
 - complex-matcher patch
 - xo-web minor
 
