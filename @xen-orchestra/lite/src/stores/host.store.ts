@@ -12,11 +12,15 @@ import { createSubscribe } from "@/types/xapi-collection";
 import { defineStore } from "pinia";
 import { computed, type ComputedRef } from "vue";
 
+type GetStats = (
+  hostUuid: XenApiHost["uuid"],
+  granularity: GRANULARITY,
+  ignoreExpired: boolean,
+  opts: { abortSignal?: AbortSignal }
+) => Promise<XapiStatsResponse<HostStats> | undefined> | undefined;
+
 type GetStatsExtension = {
-  getStats: (
-    hostUuid: XenApiHost["uuid"],
-    granularity: GRANULARITY
-  ) => Promise<XapiStatsResponse<any>> | undefined;
+  getStats: GetStats;
 };
 
 type RunningHostsExtension = [
@@ -35,11 +39,11 @@ export const useHostStore = defineStore("host", () => {
   const subscribe = createSubscribe<XenApiHost, Extensions>((options) => {
     const originalSubscription = hostCollection.subscribe(options);
 
-    const getStats = (
-      hostUuid: string,
-      granularity: GRANULARITY,
+    const getStats: GetStats = (
+      hostUuid,
+      granularity,
       ignoreExpired = false,
-      { abortSignal }: { abortSignal?: AbortSignal }
+      { abortSignal }
     ) => {
       const host = originalSubscription.getByUuid(hostUuid);
 

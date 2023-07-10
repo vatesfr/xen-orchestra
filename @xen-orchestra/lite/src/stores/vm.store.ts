@@ -1,5 +1,9 @@
 import { sortRecordsByNameLabel } from "@/libs/utils";
-import type { VmStats, GRANULARITY, XapiStatsResponse} from "@/libs/xapi-stats";
+import type {
+  GRANULARITY,
+  VmStats,
+  XapiStatsResponse,
+} from "@/libs/xapi-stats";
 import type { XenApiHost, XenApiVm } from "@/libs/xen-api";
 import { POWER_STATE } from "@/libs/xen-api";
 import { useXapiCollectionStore } from "@/stores/xapi-collection.store";
@@ -8,6 +12,12 @@ import { createSubscribe, type Subscription } from "@/types/xapi-collection";
 import { defineStore } from "pinia";
 import { computed, type ComputedRef } from "vue";
 
+type GetStats = (
+  id: XenApiVm["uuid"],
+  granularity: GRANULARITY,
+  ignoreExpired: boolean,
+  opts: { abortSignal?: AbortSignal }
+) => Promise<XapiStatsResponse<VmStats> | undefined> | undefined;
 type DefaultExtension = {
   recordsByHostRef: ComputedRef<Map<XenApiHost["$ref"], XenApiVm[]>>;
   runningVms: ComputedRef<XenApiVm[]>;
@@ -15,10 +25,7 @@ type DefaultExtension = {
 
 type GetStatsExtension = [
   {
-    getStats: (
-      id: XenApiVm["uuid"],
-      granularity: GRANULARITY
-    ) => Promise<XapiStatsResponse<any>>;
+    getStats: GetStats;
   },
   { hostSubscription: Subscription<XenApiHost, object> }
 ];
@@ -59,40 +66,50 @@ export const useVmStore = defineStore("vm", () => {
     };
 
     const hostSubscription = options?.hostSubscription;
-    const getStats = (
-      id: string,
-      granularity: GRANULARITY,
-      ignoreExpired = false,
-      { abortSignal }: { abortSignal?: AbortSignal }
-    ) => {
-    const getStatsSubscription = hostSubscription !== undefined && {
-      getStats: (vmUuid: XenApiVm["uuid"], granularity: GRANULARITY) => {
-        const xenApiStore = useXenApiStore();
 
-        if (!xenApiStore.isConnected) {
-          return undefined;
+    const getStatsSubscription:
+      | {
+          getStats: GetStats;
         }
+      | undefined =
+      hostSubscription !== undefined
+        ? {
+            getStats: (
+              id,
+              granularity,
+              ignoreExpired = false,
+              { abortSignal }
+            ) => {
+              const xenApiStore = useXenApiStore();
 
-        const vm = originalSubscription.getByUuid(vmUuid);
+              if (!xenApiStore.isConnected) {
+                return undefined;
+              }
 
-        if (vm === undefined) {
-          throw new Error(`VM ${vmUuid} could not be found.`);
-        }
+              const vm = originalSubscription.getByUuid(id);
 
-        const host = hostSubscription.getByOpaqueRef(vm.resident_on);
+              if (vm === undefined) {
+                throw new Error(`VM ${id} could not be found.`);
+              }
 
-        if (host === undefined) {
-          throw new Error(`VM ${vmUuid} is halted or host could not be found.`);
-        }
+              const host = hostSubscription.getByOpaqueRef(vm.resident_on);
 
-      return xenApiStore.getXapiStats()._getAndUpdateStats<VmStats>({
-        abortSignal,
-        host,
-        ignoreExpired,
-        uuid: vm.uuid,
-        granularity,
-      });
-    };
+              if (host === undefined) {
+                throw new Error(
+                  `VM ${id} is halted or host could not be found.`
+                );
+              }
+
+              return xenApiStore.getXapiStats()._getAndUpdateStats<VmStats>({
+                abortSignal,
+                host,
+                ignoreExpired,
+                uuid: vm.uuid,
+                granularity,
+              });
+            },
+          }
+        : undefined;
 
     return {
       ...originalSubscription,
