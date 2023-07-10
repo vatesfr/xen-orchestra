@@ -1,9 +1,9 @@
-import { beforeEach, afterEach, test, describe } from 'test'
+import test from 'test'
 import { strict as assert } from 'node:assert'
 
 import tmp from 'tmp'
 import fs from 'fs-extra'
-import uuid from 'uuid'
+import * as uuid from 'uuid'
 import { getHandler } from '@xen-orchestra/fs'
 import { pFromCallback } from 'promise-toolbox'
 import { RemoteAdapter } from './RemoteAdapter.mjs'
@@ -12,6 +12,8 @@ import { VhdFile, Constants, VhdDirectory, VhdAbstract } from 'vhd-lib'
 import { checkAliases } from './_cleanVm.mjs'
 import { dirname, basename } from 'node:path'
 import { rimraf } from 'rimraf'
+
+const { beforeEach, afterEach, describe } = test
 
 let tempDir, adapter, handler, jobId, vdiId, basePath, relativePath
 const rootPath = 'xo-vm-backups/VMUUID/'
