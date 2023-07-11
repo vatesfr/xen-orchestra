@@ -33,6 +33,11 @@ export const N_ITEMS = 5;
 <script lang="ts" setup>
 import UiCardGroup from "@/components/ui/UiCardGroup.vue";
 import { useHostMetricsStore } from "@/stores/host-metrics.store";
+import {
+  IK_HOST_LAST_WEEK_STATS,
+  IK_HOST_STATS,
+  IK_VM_STATS,
+} from "@/types/injection-keys";
 import { differenceBy } from "lodash-es";
 import { provide, watch } from "vue";
 import UiCardComingSoon from "@/components/ui/UiCardComingSoon.vue";
@@ -77,9 +82,9 @@ const hostLastWeekStats = useFetchStats<XenApiHost, HostStats>(
   GRANULARITY.Hours
 );
 
-provide("hostStats", hostStats);
-provide("vmStats", vmStats);
-provide("hostLastWeekStats", hostLastWeekStats);
+provide(IK_HOST_STATS, hostStats);
+provide(IK_VM_STATS, vmStats);
+provide(IK_HOST_LAST_WEEK_STATS, hostLastWeekStats);
 
 watch(runningHosts, (hosts, previousHosts) => {
   // turned On

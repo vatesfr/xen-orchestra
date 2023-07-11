@@ -19,7 +19,12 @@
 </template>
 
 <script lang="ts" setup>
-import { type HTMLAttributes, computed, inject, ref } from "vue";
+import {
+  IK_FORM_HAS_LABEL,
+  IK_FORM_LABEL_DISABLED,
+  IK_CHECKBOX_TYPE,
+} from "@/types/injection-keys";
+import { type HTMLAttributes, computed, inject } from "vue";
 import { faCheck, faCircle, faMinus } from "@fortawesome/free-solid-svg-icons";
 import { useVModel } from "@vueuse/core";
 import UiIcon from "@/components/ui/icon/UiIcon.vue";
@@ -37,9 +42,15 @@ const emit = defineEmits<{
 }>();
 
 const value = useVModel(props, "modelValue", emit);
-const type = inject<"checkbox" | "radio" | "toggle">("inputType", "checkbox");
-const hasLabel = inject("hasLabel", false);
-const isLabelDisabled = inject("isLabelDisabled", ref(false));
+const type = inject(IK_CHECKBOX_TYPE, "checkbox");
+const hasLabel = inject(
+  IK_FORM_HAS_LABEL,
+  computed(() => false)
+);
+const isLabelDisabled = inject(
+  IK_FORM_LABEL_DISABLED,
+  computed(() => false)
+);
 const icon = computed(() => {
   if (type !== "checkbox") {
     return faCircle;

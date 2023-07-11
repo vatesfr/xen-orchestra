@@ -21,7 +21,8 @@
 
 <script lang="ts" setup>
 import { percent } from "@/libs/utils";
-import { computed, type ComputedRef, inject } from "vue";
+import { IK_CHART_VALUE_FORMATTER } from "@/types/injection-keys";
+import { computed, inject } from "vue";
 
 const props = defineProps<{
   total: number;
@@ -34,9 +35,10 @@ const freePercent = computed(() =>
   percent(props.total - props.used, props.total)
 );
 
-const valueFormatter = inject("valueFormatter") as ComputedRef<
-  (value: number) => string
->;
+const valueFormatter = inject(
+  IK_CHART_VALUE_FORMATTER,
+  computed(() => (value) => value.toString())
+);
 </script>
 
 <style lang="postcss" scoped>

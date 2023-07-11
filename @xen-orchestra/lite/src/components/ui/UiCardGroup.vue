@@ -5,11 +5,12 @@
 </template>
 
 <script lang="ts" setup>
+import { IK_CARD_GROUP_VERTICAL } from "@/types/injection-keys";
 import { inject, provide } from "vue";
 
-const vertical = inject("isCardGroupVertical", false);
+const vertical = inject(IK_CARD_GROUP_VERTICAL, false);
 
-provide("isCardGroupVertical", !vertical);
+provide(IK_CARD_GROUP_VERTICAL, !vertical);
 </script>
 
 <style lang="postcss" scoped>

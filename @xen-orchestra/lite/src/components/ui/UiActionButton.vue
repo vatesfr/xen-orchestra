@@ -16,9 +16,13 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, inject, unref } from "vue";
-import type { IconDefinition } from "@fortawesome/fontawesome-common-types";
 import UiIcon from "@/components/ui/icon/UiIcon.vue";
+import {
+  IK_BUTTON_GROUP_BUSY,
+  IK_BUTTON_GROUP_DISABLED,
+} from "@/types/injection-keys";
+import type { IconDefinition } from "@fortawesome/fontawesome-common-types";
+import { computed, inject } from "vue";
 
 const props = withDefaults(
   defineProps<{
@@ -30,11 +34,17 @@ const props = withDefaults(
   { busy: undefined, disabled: undefined }
 );
 
-const isGroupBusy = inject("isButtonGroupBusy", false);
-const isBusy = computed(() => props.busy ?? unref(isGroupBusy));
+const isGroupBusy = inject(
+  IK_BUTTON_GROUP_BUSY,
+  computed(() => false)
+);
+const isBusy = computed(() => props.busy ?? isGroupBusy.value);
 
-const isGroupDisabled = inject("isButtonGroupDisabled", false);
-const isDisabled = computed(() => props.disabled ?? unref(isGroupDisabled));
+const isGroupDisabled = inject(
+  IK_BUTTON_GROUP_DISABLED,
+  computed(() => false)
+);
+const isDisabled = computed(() => props.disabled ?? isGroupDisabled.value);
 </script>
 
 <style lang="postcss" scoped>

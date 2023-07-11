@@ -17,9 +17,14 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, provide, useSlots } from "vue";
-import { faCircleExclamation } from "@fortawesome/free-solid-svg-icons";
 import UiIcon from "@/components/ui/icon/UiIcon.vue";
+import {
+  IK_FORM_HAS_LABEL,
+  IK_FORM_INPUT_COLOR,
+  IK_FORM_LABEL_DISABLED,
+} from "@/types/injection-keys";
+import { faCircleExclamation } from "@fortawesome/free-solid-svg-icons";
+import { computed, provide, useSlots } from "vue";
 
 const slots = useSlots();
 
@@ -29,10 +34,14 @@ const props = defineProps<{
   warning?: string;
 }>();
 
-provide("hasLabel", slots.label !== undefined);
 provide(
-  "isLabelDisabled",
-  computed(() => props.disabled)
+  IK_FORM_HAS_LABEL,
+  computed(() => slots.label !== undefined)
+);
+
+provide(
+  IK_FORM_LABEL_DISABLED,
+  computed(() => props.disabled ?? false)
 );
 
 const hasError = computed(
@@ -43,7 +52,7 @@ const hasWarning = computed(
 );
 
 provide(
-  "color",
+  IK_FORM_INPUT_COLOR,
   computed(() =>
     hasError.value ? "error" : hasWarning.value ? "warning" : undefined
   )

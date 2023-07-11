@@ -5,8 +5,15 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, provide } from "vue";
 import type { Color } from "@/types";
+import {
+  IK_BUTTON_GROUP_BUSY,
+  IK_BUTTON_GROUP_COLOR,
+  IK_BUTTON_GROUP_DISABLED,
+  IK_BUTTON_GROUP_OUTLINED,
+  IK_BUTTON_GROUP_TRANSPARENT,
+} from "@/types/injection-keys";
+import { computed, provide } from "vue";
 
 const props = defineProps<{
   busy?: boolean;
@@ -17,23 +24,23 @@ const props = defineProps<{
   merge?: boolean;
 }>();
 provide(
-  "isButtonGroupBusy",
+  IK_BUTTON_GROUP_BUSY,
   computed(() => props.busy ?? false)
 );
 provide(
-  "isButtonGroupDisabled",
+  IK_BUTTON_GROUP_DISABLED,
   computed(() => props.disabled ?? false)
 );
 provide(
-  "buttonGroupColor",
+  IK_BUTTON_GROUP_COLOR,
   computed(() => props.color ?? "info")
 );
 provide(
-  "isButtonGroupOutlined",
+  IK_BUTTON_GROUP_OUTLINED,
   computed(() => props.outlined ?? false)
 );
 provide(
-  "isButtonGroupTransparent",
+  IK_BUTTON_GROUP_TRANSPARENT,
   computed(() => props.transparent ?? false)
 );
 </script>
