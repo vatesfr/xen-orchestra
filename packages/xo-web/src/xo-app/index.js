@@ -47,6 +47,7 @@ import Vm from './vm'
 import Xoa from './xoa'
 import XoaUpdates from './xoa/update'
 import Xosan from './xosan'
+import Xostor from './xostor'
 import Import from './import'
 
 import keymap, { help } from '../keymap'
@@ -129,6 +130,7 @@ export const ICON_POOL_LICENSE = {
   'vms/:id': Vm,
   xoa: Xoa,
   xosan: Xosan,
+  xostor: Xostor,
   import: Import,
   hub: Hub,
   proxies: Proxies,
