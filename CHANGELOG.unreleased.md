@@ -13,6 +13,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [XO Config Cloud Backup] Wording correction about passphrase [PR [#6938](https://github.com/vatesfr/xen-orchestra/pull/6938)]
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
