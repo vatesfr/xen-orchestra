@@ -15,7 +15,7 @@
         target="_blank"
       >
         <UiIcon :icon="faInfoCircle" />
-        <span>Learn more</span>
+        <span>{{ $t("learn-more") }}</span>
       </a>
     </div>
     <div class="input-container">
