@@ -360,7 +360,6 @@ class Vm {
       ha_restart_priority,
       hardware_platform_version,
       has_vendor_device,
-      HVM_shadow_multiplier,
       is_vmss_snapshot,
       name_description,
       name_label,
@@ -374,6 +373,14 @@ class Vm {
       tags,
       version,
       xenstore_data,
+
+      // this field is a float, and float values without a decimal parts are incorrectly handled in some cases:
+      // - the JSON-RPC implementation of XenServer 7.2
+      // - the XML-RPC implementation used by the `xen-api` library
+      //
+      // because this field is optional, it can simply not be passed when equal to its default value of `1` which is
+      // almost always the case.
+      HVM_shadow_multiplier: HVM_shadow_multiplier === 1 ? undefined : HVM_shadow_multiplier,
 
       // VM created Suspended
       last_boot_CPU_flags,

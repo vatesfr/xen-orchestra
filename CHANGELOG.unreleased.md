@@ -13,6 +13,7 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [Incremental Backup & Replication] Attempt to work around HVM multiplier issues when creating VMs on older XAPIs (PR [#6866](https://github.com/vatesfr/xen-orchestra/pull/6866))
 - [REST API] Fix VDI export when NBD is enabled
 
 ### Packages to release
