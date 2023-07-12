@@ -303,7 +303,7 @@ export default class VhdEsxiSeSparse extends VhdAbstract {
     this.grainDirLogicalSpanBytes = this.grainTableCount * this.grainSizeBytes
     debug('grainDirLogicalSpanBytes', this.grainDirLogicalSpanBytes)
 
-    this.grainOffsetBytes = readInt64(buffer, 4) * 512
+    this.grainOffsetBytes = readInt64(buffer, 24) * 512
 
     const sizeBytes = readInt64(buffer, 2) * this.grainSizeBytes
     this.#header = unpackHeader(createHeader(Math.ceil(sizeBytes / VHD_BLOCK_SIZE_BYTES)))
