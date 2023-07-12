@@ -1,5 +1,9 @@
 import { isHostRunning, sortRecordsByNameLabel } from "@/libs/utils";
-import type { GRANULARITY, XapiStatsResponse } from "@/libs/xapi-stats";
+import type {
+  GRANULARITY,
+  HostStats,
+  XapiStatsResponse,
+} from "@/libs/xapi-stats";
 import type { XenApiHost, XenApiHostMetrics } from "@/libs/xen-api";
 import { useXapiCollectionStore } from "@/stores/xapi-collection.store";
 import { useXenApiStore } from "@/stores/xen-api.store";
@@ -8,11 +12,15 @@ import { createSubscribe } from "@/types/xapi-collection";
 import { defineStore } from "pinia";
 import { computed, type ComputedRef } from "vue";
 
+type GetStats = (
+  hostUuid: XenApiHost["uuid"],
+  granularity: GRANULARITY,
+  ignoreExpired: boolean,
+  opts: { abortSignal?: AbortSignal }
+) => Promise<XapiStatsResponse<HostStats> | undefined> | undefined;
+
 type GetStatsExtension = {
-  getStats: (
-    hostUuid: XenApiHost["uuid"],
-    granularity: GRANULARITY
-  ) => Promise<XapiStatsResponse<any>> | undefined;
+  getStats: GetStats;
 };
 
 type RunningHostsExtension = [
@@ -31,9 +39,11 @@ export const useHostStore = defineStore("host", () => {
   const subscribe = createSubscribe<XenApiHost, Extensions>((options) => {
     const originalSubscription = hostCollection.subscribe(options);
 
-    const getStats = (
-      hostUuid: XenApiHost["uuid"],
-      granularity: GRANULARITY
+    const getStats: GetStats = (
+      hostUuid,
+      granularity,
+      ignoreExpired = false,
+      { abortSignal }
     ) => {
       const host = originalSubscription.getByUuid(hostUuid);
 
@@ -45,8 +55,10 @@ export const useHostStore = defineStore("host", () => {
         ? xenApiStore.getXapiStats()
         : undefined;
 
-      return xapiStats?._getAndUpdateStats({
+      return xapiStats?._getAndUpdateStats<HostStats>({
+        abortSignal,
         host,
+        ignoreExpired,
         uuid: host.uuid,
         granularity,
       });
