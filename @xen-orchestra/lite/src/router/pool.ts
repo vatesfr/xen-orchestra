@@ -1,13 +1,5 @@
-import PoolAlarmsView from "@/views/pool/PoolAlarmsView.vue";
 import PoolDashboardView from "@/views/pool/PoolDashboardView.vue";
-import PoolHostsView from "@/views/pool/PoolHostsView.vue";
-import PoolNetworkView from "@/views/pool/PoolNetworkView.vue";
 import PoolRootView from "@/views/pool/PoolRootView.vue";
-import PoolStatsView from "@/views/pool/PoolStatsView.vue";
-import PoolStorageView from "@/views/pool/PoolStorageView.vue";
-import PoolSystemView from "@/views/pool/PoolSystemView.vue";
-import PoolTasksView from "@/views/pool/PoolTasksView.vue";
-import PoolVmsView from "@/views/pool/PoolVmsView.vue";
 
 export default {
   path: "/pool/:uuid",
@@ -22,42 +14,42 @@ export default {
     {
       path: "alarms",
       name: "pool.alarms",
-      component: PoolAlarmsView,
+      component: () => import("@/views/pool/PoolAlarmsView.vue"),
     },
     {
       path: "stats",
       name: "pool.stats",
-      component: PoolStatsView,
+      component: () => import("@/views/pool/PoolStatsView.vue"),
     },
     {
       path: "system",
       name: "pool.system",
-      component: PoolSystemView,
+      component: () => import("@/views/pool/PoolSystemView.vue"),
     },
     {
       path: "network",
       name: "pool.network",
-      component: PoolNetworkView,
+      component: () => import("@/views/pool/PoolNetworkView.vue"),
     },
     {
       path: "storage",
       name: "pool.storage",
-      component: PoolStorageView,
+      component: () => import("@/views/pool/PoolStorageView.vue"),
     },
     {
       path: "tasks",
       name: "pool.tasks",
-      component: PoolTasksView,
+      component: () => import("@/views/pool/PoolTasksView.vue"),
     },
     {
       path: "hosts",
       name: "pool.hosts",
-      component: PoolHostsView,
+      component: () => import("@/views/pool/PoolHostsView.vue"),
     },
     {
       path: "vms",
       name: "pool.vms",
-      component: PoolVmsView,
+      component: () => import("@/views/pool/PoolVmsView.vue"),
     },
   ],
 };
