@@ -31,6 +31,7 @@ const DEFAULT_BLOCKED_LIST = {
   'job.getAll': true,
   'log.get': true,
   'metadataBackup.getAllJobs': true,
+  'mirrorBackup.getAllJobs': true,
   'network.getBondModes': true,
   'pif.getIpv4ConfigurationModes': true,
   'plugin.get': true,

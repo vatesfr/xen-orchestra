@@ -36,6 +36,7 @@
 - @xen-orchestra/xapi major
 - complex-matcher patch
 - xo-server patch
+- xo-server-audit patch
 - xo-web minor
 
 <!--packages-end-->
