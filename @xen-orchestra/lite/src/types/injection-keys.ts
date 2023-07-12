@@ -5,6 +5,7 @@ import type { ValueFormatter } from "@/types/chart";
 import type { ComputedRef, InjectionKey } from "vue";
 
 export const IK_MENU_TELEPORTED = Symbol() as InjectionKey<boolean>;
+
 export const IK_TAB_BAR_DISABLED = Symbol() as InjectionKey<
   ComputedRef<boolean>
 >;
@@ -70,3 +71,5 @@ export const IK_BUTTON_GROUP_COLOR = Symbol() as InjectionKey<
 >;
 
 export const IK_CARD_GROUP_VERTICAL = Symbol() as InjectionKey<boolean>;
+
+export const IK_INPUT_ID = Symbol() as InjectionKey<ComputedRef<string>>;
