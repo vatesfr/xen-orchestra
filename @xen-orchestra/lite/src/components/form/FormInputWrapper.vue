@@ -1,38 +1,83 @@
 <template>
-  <div class="wrapper">
-    <label
-      v-if="$slots.label"
-      class="form-label"
-      :class="{ disabled, ...formInputWrapperClass }"
+  <div class="form-input-wrapper">
+    <div
+      v-if="label !== undefined || learnMoreUrl !== undefined"
+      class="label-container"
     >
+      <label :for="id" class="label">
+        <UiIcon :icon="icon" />
+        {{ label }}
+      </label>
+      <a
+        v-if="learnMoreUrl !== undefined"
+        :href="learnMoreUrl"
+        class="learn-more-url"
+        target="_blank"
+      >
+        <UiIcon :icon="faInfoCircle" />
+        <span>{{ $t("learn-more") }}</span>
+      </a>
+    </div>
+    <div class="input-container">
       <slot />
-    </label>
-    <slot />
-    <p v-if="hasError || hasWarning" :class="formInputWrapperClass">
-      <UiIcon :icon="faCircleExclamation" v-if="hasError" />{{
-        error ?? warning
-      }}
-    </p>
+    </div>
+    <div class="messages-container">
+      <div v-if="warning !== undefined" class="warning">
+        {{ warning }}
+      </div>
+      <div v-if="error !== undefined" class="error">
+        {{ error }}
+      </div>
+      <div v-if="help !== undefined" class="help">
+        {{ help }}
+      </div>
+    </div>
   </div>
 </template>
 
 <script lang="ts" setup>
 import UiIcon from "@/components/ui/icon/UiIcon.vue";
+import type { Color } from "@/types";
 import {
   IK_FORM_HAS_LABEL,
   IK_FORM_INPUT_COLOR,
   IK_FORM_LABEL_DISABLED,
+  IK_INPUT_ID,
 } from "@/types/injection-keys";
-import { faCircleExclamation } from "@fortawesome/free-solid-svg-icons";
+import type { IconDefinition } from "@fortawesome/fontawesome-common-types";
+import { faInfoCircle } from "@fortawesome/free-solid-svg-icons";
+import { uniqueId } from "lodash-es";
 import { computed, provide, useSlots } from "vue";
 
 const slots = useSlots();
 
 const props = defineProps<{
-  disabled?: boolean;
-  error?: string;
+  label?: string;
+  id?: string;
+  icon?: IconDefinition;
+  learnMoreUrl?: string;
   warning?: string;
+  error?: string;
+  help?: string;
+  disabled?: boolean;
 }>();
+
+const id = computed(() => props.id ?? uniqueId("form-input-"));
+provide(IK_INPUT_ID, id);
+
+const color = computed<Color | undefined>(() => {
+  if (props.error !== undefined && props.error.trim() !== "") {
+    return "error";
+  }
+
+  if (props.warning !== undefined && props.warning.trim() !== "") {
+    return "warning";
+  }
+
+  return undefined;
+});
+
+provide(IK_FORM_INPUT_COLOR, color);
 
 provide(
   IK_FORM_HAS_LABEL,
@@ -43,63 +88,61 @@ provide(
   IK_FORM_LABEL_DISABLED,
   computed(() => props.disabled ?? false)
 );
-
-const hasError = computed(
-  () => props.error !== undefined && props.error.trim() !== ""
-);
-const hasWarning = computed(
-  () => props.warning !== undefined && props.warning.trim() !== ""
-);
-
-provide(
-  IK_FORM_INPUT_COLOR,
-  computed(() =>
-    hasError.value ? "error" : hasWarning.value ? "warning" : undefined
-  )
-);
-
-const formInputWrapperClass = computed(() => ({
-  error: hasError.value,
-  warning: !hasError.value && hasWarning.value,
-}));
 </script>
 
 <style lang="postcss" scoped>
-.wrapper {
+.form-input-wrapper {
+  max-width: 60rem;
+}
+
+.label-container {
   display: flex;
-  flex-direction: column;
-}
-
-.wrapper :deep(.input) {
-  margin-bottom: 1rem;
-}
-
-.form-label {
-  font-size: 1.6rem;
-  display: inline-flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 0.625em;
+}
 
-  &.disabled {
-    cursor: not-allowed;
-    color: var(--color-blue-scale-300);
+.label {
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--color-blue-scale-100);
+  font-size: 1.4rem;
+  padding: 1rem 0;
+}
+
+.messages-container {
+  margin-top: 1rem;
+}
+
+.warning,
+.error,
+.help,
+.learn-more-url {
+  font-size: 1.3rem;
+  line-height: 150%;
+  margin: 0.5rem 0;
+}
+
+.learn-more-url {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  color: var(--color-extra-blue-base);
+
+  & > span {
+    text-decoration: underline;
   }
-}
-p.error,
-p.warning {
-  font-size: 0.65em;
-  margin-bottom: 1rem;
-}
-
-.error {
-  color: var(--color-red-vates-base);
 }
 
 .warning {
   color: var(--color-orange-world-base);
 }
 
-p svg {
-  margin-right: 0.4em;
+.error {
+  color: var(--color-red-vates-base);
+}
+
+.help {
+  color: var(--color-blue-scale-300);
 }
 </style>

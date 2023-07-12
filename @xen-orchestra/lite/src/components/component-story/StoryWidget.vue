@@ -81,4 +81,10 @@ const model = useVModel(props, "modelValue", emit);
   display: flex;
   gap: 1rem;
 }
+
+.form-select,
+.form-input,
+.form-json {
+  font-size: 1.4rem;
+}
 </style>

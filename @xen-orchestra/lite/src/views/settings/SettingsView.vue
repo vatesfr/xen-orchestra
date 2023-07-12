@@ -148,8 +148,8 @@
                   {{ locales[locale].name ?? locale }}
                 </option>
               </select>
-            </FormWidget></template
-          >
+            </FormWidget>
+          </template>
         </UiKeyValueRow>
       </UiKeyValueList>
     </UiCard>
