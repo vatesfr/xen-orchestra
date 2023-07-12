@@ -13,6 +13,8 @@
 
 > Users must be able to say: “I had this issue, happy to know it's fixed”
 
+- [REST API] Fix VDI export when NBD is enabled
+
 ### Packages to release
 
 > When modifying a package, add it here with its release type.
@@ -32,6 +34,7 @@
 - @xen-orchestra/backups minor
 - @xen-orchestra/xapi major
 - complex-matcher patch
+- xo-server patch
 - xo-web minor
 
 <!--packages-end-->
