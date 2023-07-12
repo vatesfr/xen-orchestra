@@ -15,6 +15,7 @@
 
 - [Incremental Backup & Replication] Attempt to work around HVM multiplier issues when creating VMs on older XAPIs (PR [#6866](https://github.com/vatesfr/xen-orchestra/pull/6866))
 - [REST API] Fix VDI export when NBD is enabled
+- [Backup/exports] Show more information on error ` stream has ended with not enough data (actual: xxx, expected: 512)` (PR [#6940](https://github.com/vatesfr/xen-orchestra/pull/6940))
 
 ### Packages to release
 
@@ -34,6 +35,7 @@
 
 - @xen-orchestra/backups minor
 - @xen-orchestra/xapi major
+- @vates/read-chunk minor
 - complex-matcher patch
 - xo-server patch
 - xo-web minor

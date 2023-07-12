@@ -102,11 +102,38 @@ describe('readChunkStrict', function () {
     assert.strictEqual(error.chunk, undefined)
   })
 
-  it('throws if stream ends with not enough data', async () => {
+  it('throws if stream ends with not enough data, utf8', async () => {
     const error = await rejectionOf(readChunkStrict(makeStream(['foo', 'bar']), 10))
     assert(error instanceof Error)
-    assert.strictEqual(error.message, 'stream has ended with not enough data (actual: 6, expected: 10)')
+    assert.strictEqual(
+      error.message,
+      'stream has ended with not enough data (actual: 6, expected: 10). Received: foobar'
+    )
     assert.deepEqual(error.chunk, Buffer.from('foobar'))
+  })
+
+  it('throws if stream ends with not enough data, non utf8 ', async () => {
+    const source = [Buffer.alloc(10, 128), Buffer.alloc(10, 128)]
+    const error = await rejectionOf(readChunkStrict(makeStream(source), 30))
+    assert(error instanceof Error)
+    assert.strictEqual(
+      error.message,
+      'stream has ended with not enough data (actual: 20, expected: 30). Received: gICAgICAgICAgICAgICAgICAgIA='
+    )
+    assert.deepEqual(error.chunk, Buffer.concat(source))
+  })
+
+  it('throws if stream ends with not enough data, non utf8 , long data', async () => {
+    const source = Buffer.alloc(256, 128)
+    const error = await rejectionOf(readChunkStrict(makeStream([source]), 512))
+    assert(error instanceof Error)
+    assert.strictEqual(
+      error.message,
+      `stream has ended with not enough data (actual: 256, expected: 512). Received: ${source
+        .subarray(128)
+        .toString('base64')}`
+    )
+    assert.deepEqual(error.chunk, source)
   })
 })
 
