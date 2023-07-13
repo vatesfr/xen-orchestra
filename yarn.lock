@@ -3969,6 +3969,11 @@
     "@volar/typescript" "1.7.8"
     "@vue/language-core" "1.8.1"
 
+"@vueform/multiselect@^2.6.2":
+  version "2.6.2"
+  resolved "https://registry.yarnpkg.com/@vueform/multiselect/-/multiselect-2.6.2.tgz#2a14c5f7d9cf4ea07853b7f9b491c039bbfadf40"
+  integrity sha512-4BFvXyzyi0Pqi/lsYdGwONsQy+ypiVzuQbmoDUlttTxuoujFtf9AdeHi1ZhfIorXG9BiysK1HcQSfYB6USgwfQ==
+
 "@vuepress/core@1.9.9":
   version "1.9.9"
   resolved "https://registry.yarnpkg.com/@vuepress/core/-/core-1.9.9.tgz#aa8bc4497fcbb6aab9c1e290944d422edeb20495"

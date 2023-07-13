@@ -121,7 +121,15 @@ import {
 import { faSliders } from "@fortawesome/free-solid-svg-icons";
 import "highlight.js/styles/github-dark.css";
 import { uniqueId, upperFirst } from "lodash-es";
-import { computed, reactive, ref, watch, watchEffect } from "vue";
+import {
+  computed,
+  effectScope,
+  onBeforeUnmount,
+  reactive,
+  ref,
+  watch,
+  watchEffect,
+} from "vue";
 import { useRoute } from "vue-router";
 
 const tab = (tab: TAB, params: Param[]) =>
@@ -178,6 +186,24 @@ if (propParams.value.length !== 0) {
 }
 
 const propValues = ref<Record<string, any>>({});
+
+const scope = effectScope();
+
+scope.run(() => {
+  for (const param of props.params) {
+    if (!isPropParam(param) || !param.hasChangeHandler()) {
+      continue;
+    }
+
+    watch(
+      () => propValues.value[param.name],
+      (value) => param.getOnChangeHandler()?.(value, propValues.value)
+    );
+  }
+});
+
+onBeforeUnmount(() => scope.stop());
+
 const settingValues = ref<Record<string, any>>({});
 const eventsLog = ref<
   { id: string; name: string; args: { name: string; value: any }[] }[]
@@ -236,8 +262,12 @@ const eventLogRows = computed(() => {
 const slotProperties = computed(() => {
   const properties: Record<string, any> = {};
 
-  propParams.value.forEach(({ name }) => {
-    properties[name] = propValues.value[name];
+  propParams.value.forEach((param) => {
+    const value = propValues.value[param.name];
+
+    if (param.isRequired() || value !== undefined) {
+      properties[param.name] = value;
+    }
   });
 
   eventParams.value.forEach((eventParam) => {

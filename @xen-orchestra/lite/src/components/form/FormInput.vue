@@ -157,7 +157,7 @@ defineExpose({
   max-width: 30em;
 
   --before-width: v-bind('beforeWidth || "1.75em"');
-  --after-width: v-bind('afterWidth || "1.625em"');
+  --after-width: v-bind('afterWidth || "1.75em"');
   --caret-width: 1.5em;
 
   --text-color: var(--color-blue-scale-100);
@@ -187,9 +187,9 @@ defineExpose({
 .input,
 .textarea,
 .select {
-  font-size: 1em;
+  font-size: 0.8em;
   width: 100%;
-  height: 3em;
+  height: 3.5em;
   margin: 0;
   color: var(--text-color);
   border: 0.05em solid var(--border-color);
@@ -292,11 +292,11 @@ defineExpose({
   padding-left: 0.625em;
 
   &.has-before {
-    padding-left: calc(var(--before-width) + 0.25em);
+    padding-left: calc(var(--before-width) + 0.6em);
   }
 
   &.has-after {
-    padding-right: calc(var(--after-width) + 0.25em);
+    padding-right: calc(var(--after-width) + 0.6em);
   }
 }
 

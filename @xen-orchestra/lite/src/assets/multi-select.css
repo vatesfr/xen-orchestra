@@ -1,0 +1,164 @@
+@import "@vueform/multiselect/themes/default.css";
+
+:root {
+  --ms-font-size: 0.8em;
+  --ms-line-height: 1.375;
+  --ms-bg: var(--background-color-primary);
+  --ms-bg-disabled: var(--background-color-secondary);
+  --ms-border-color: var(--color-blue-scale-400);
+  --ms-border-width: 0.1rem;
+  --ms-border-color-active: var(--color-extra-blue-base);
+  --ms-border-width-active: 0.1rem;
+  --ms-radius: 0.4em;
+  --ms-py: 1.08em;
+  --ms-px: 0.625em;
+  --ms-ring-width: 0;
+  --ms-ring-color: transparent;
+  --ms-placeholder-color: var(--color-blue-scale-100);
+  --ms-max-height: 35rem;
+
+  --ms-spinner-color: var(--color-green-infra-base);
+  --ms-caret-color: var(--color-blue-scale-300);
+  --ms-clear-color: var(--color-blue-scale-300);
+  --ms-clear-color-hover: var(--color-blue-scale-100);
+
+  --ms-tag-font-size: 1em;
+  --ms-tag-line-height: 150%;
+  --ms-tag-font-weight: 400;
+  --ms-tag-bg: var(--background-color-secondary);
+  --ms-tag-bg-disabled: var(--color-grayscale-200);
+  --ms-tag-color: var(--color-blue-scale-200);
+  --ms-tag-color-disabled: var(--color-blue-scale-500);
+  --ms-tag-radius: 0.4em;
+  --ms-tag-py: 0.4rem;
+  --ms-tag-px: 1.2rem;
+  --ms-tag-my: 0.25rem;
+  --ms-tag-mx: 0.5rem;
+
+  --ms-tag-remove-radius: 4rem;
+  --ms-tag-remove-py: 0.5rem;
+  --ms-tag-remove-px: 0.5rem;
+  --ms-tag-remove-my: 0rem;
+  --ms-tag-remove-mx: 0.5rem;
+
+  --ms-dropdown-bg: var(--background-color-primary);
+  --ms-dropdown-border-color: var(--color-extra-blue-base);
+  --ms-dropdown-border-width: 0.1rem;
+  --ms-dropdown-radius: 0.8rem;
+
+  --ms-group-label-py: 0.5rem;
+  --ms-group-label-px: 2rem;
+  --ms-group-label-line-height: 1.375;
+  --ms-group-label-bg: var(--background-color-secondary);
+  --ms-group-label-color: var(--color-blue-scale-100);
+  --ms-group-label-bg-pointed: var(--color-blue-scale-400);
+  --ms-group-label-color-pointed: var(--color-blue-scale-200);
+  --ms-group-label-bg-disabled: var(--color-blue-scale-200);
+  --ms-group-label-color-disabled: var(--color-blue-scale-500);
+  --ms-group-label-bg-selected: var(--color-green-infra-base);
+  --ms-group-label-color-selected: var(--color-blue-scale-500);
+  --ms-group-label-bg-selected-pointed: var(--color-green-infra-d20);
+  --ms-group-label-color-selected-pointed: var(--color-blue-scale-500);
+  --ms-group-label-bg-selected-disabled: var(--color-blue-scale-200);
+  --ms-group-label-color-selected-disabled: var(--color-green-infra-base);
+
+  --ms-option-font-size: 1em;
+  --ms-option-line-height: 1.375;
+  --ms-option-bg-pointed: var(--background-color-secondary);
+  --ms-option-color-pointed: var(--color-blue-scale-200);
+  --ms-option-bg-selected: var(--background-color-primary);
+  --ms-option-color-selected: var(--color-green-infra-base);
+  --ms-option-bg-disabled: var(--background-color-primary);
+  --ms-option-color-disabled: var(--color-blue-scale-400);
+  --ms-option-bg-selected-pointed: var(--background-color-secondary);
+  --ms-option-color-selected-pointed: var(--color-green-infra-base);
+  --ms-option-bg-selected-disabled: var(--background-color-primary);
+  --ms-option-color-selected-disabled: var(--color-blue-scale-300);
+  --ms-option-py: 1rem;
+  --ms-option-px: 2rem;
+
+  --ms-empty-color: var(--color-grayscale-200);
+}
+
+.multiselect {
+  min-width: 15rem;
+  box-shadow: var(--shadow-100);
+
+  &:not(.is-disabled) {
+    &.color-info {
+      --ms-border-color: var(--color-blue-scale-400);
+      --ms-border-color-active: var(--color-extra-blue-l40);
+
+      &:hover {
+        --ms-border-color: var(--color-extra-blue-l60);
+      }
+    }
+
+    &.color-success {
+      --ms-border-color: var(--color-green-infra-base);
+      --ms-border-color-active: var(--color-green-infra-l40);
+
+      &:hover {
+        --ms-border-color: var(--color-green-infra-l60);
+      }
+    }
+
+    &.color-warning {
+      --ms-border-color: var(--color-orange-world-base);
+      --ms-border-color-active: var(--color-orange-world-l40);
+
+      &:hover {
+        --ms-border-color: var(--color-orange-world-l60);
+      }
+    }
+
+    &.color-error {
+      --ms-border-color: var(--color-red-vates-base);
+      --ms-border-color-active: var(--color-red-vates-l40);
+
+      &:hover {
+        --ms-border-color: var(--color-red-vates-l60);
+      }
+    }
+  }
+
+  & .multiselect-group-label {
+    font-size: 1.2rem;
+    text-transform: uppercase;
+  }
+
+  & .caret-icon {
+    flex-grow: 0;
+    flex-shrink: 0;
+    margin: 0 var(--ms-px, 0.875rem) 0 0;
+    pointer-events: none;
+    position: relative;
+    transform: rotateX(0deg);
+    z-index: 10;
+    color: var(--ms-caret-color);
+  }
+
+  &.is-open .caret-icon {
+    transform: rotateX(180deg);
+  }
+
+  & .multiselect-tag-remove {
+    color: var(--background-color-secondary);
+    background-color: var(--color-blue-scale-200);
+  }
+
+  & .multiselect-tag-remove:hover {
+    background-color: var(--color-red-vates-l40);
+  }
+
+  & .multiselect-tag-remove-icon {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  & .multiselect-search,
+  & .multiselect-tags-search {
+    color: var(--color-blue-scale-100);
+    background-color: transparent;
+  }
+}
