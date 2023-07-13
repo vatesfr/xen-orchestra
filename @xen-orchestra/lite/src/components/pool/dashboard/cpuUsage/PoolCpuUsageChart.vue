@@ -1,5 +1,6 @@
 <template>
   <!-- TODO: add a loader when data is not fully loaded or undefined -->
+  <!-- TODO: add small loader with tooltips when stats can be expired -->
   <!-- TODO: Display the NoDataError component in case of a data recovery error -->
   <LinearChart
     :data="data"
@@ -11,21 +12,22 @@
 </template>
 
 <script lang="ts" setup>
-import LinearChart from "@/components/charts/LinearChart.vue";
-import type { FetchedStats } from "@/composables/fetch-stats.composable";
 import type { HostStats } from "@/libs/xapi-stats";
 import { RRD_STEP_FROM_STRING } from "@/libs/xapi-stats";
-import type { XenApiHost } from "@/libs/xen-api";
 import { useHostStore } from "@/stores/host.store";
-import type { LinearChartData } from "@/types/chart";
+import type { LinearChartData, ValueFormatter } from "@/types/chart";
+import { IK_HOST_LAST_WEEK_STATS } from "@/types/injection-keys";
 import { sumBy } from "lodash-es";
-import { computed, inject } from "vue";
+import { computed, defineAsyncComponent, inject } from "vue";
 import { useI18n } from "vue-i18n";
+
+const LinearChart = defineAsyncComponent(
+  () => import("@/components/charts/LinearChart.vue")
+);
 
 const { t } = useI18n();
 
-const hostLastWeekStats =
-  inject<FetchedStats<XenApiHost, HostStats>>("hostLastWeekStats");
+const hostLastWeekStats = inject(IK_HOST_LAST_WEEK_STATS);
 
 const { records: hosts } = useHostStore().subscribe();
 
@@ -78,5 +80,5 @@ const data = computed<LinearChartData>(() => {
   ];
 });
 
-const customValueFormatter = (value: number) => `${value}%`;
+const customValueFormatter: ValueFormatter = (value) => `${value}%`;
 </script>

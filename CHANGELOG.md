@@ -4,6 +4,13 @@
 
 <img id="latest" src="https://badgen.net/badge/channel/latest/yellow" alt="Channel: latest" />
 
+### Highlights
+
+- [Settings/Config] Add the possibility to backup/import/download XO config from/to the XO cloud (PR [#6917](https://github.com/vatesfr/xen-orchestra/pull/6917))
+- [Import/Disk] Ability to import ISO from a URL (PR [#6924](https://github.com/vatesfr/xen-orchestra/pull/6924))
+- [Import/export VDI] Ability to export/import disks in RAW format (PR [#6925](https://github.com/vatesfr/xen-orchestra/pull/6925))
+- [RRD stats] Improve RRD stats performance (PR [#6903](https://github.com/vatesfr/xen-orchestra/pull/6903))
+
 ### Enhancements
 
 - [XO Tasks] Abortion can now be requested, note that not all tasks will respond to it
@@ -13,10 +20,7 @@
 - [Kubernetes recipe] Add the possibility to choose the version for the cluster [#6842](https://github.com/vatesfr/xen-orchestra/issues/6842) (PR [#6880](https://github.com/vatesfr/xen-orchestra/pull/6880))
 - [New VM] cloud-init drives are now bootable in a Windows VM (PR [#6889](https://github.com/vatesfr/xen-orchestra/pull/6889))
 - [Backups] Add setting `backups.metadata.defaultSettings.diskPerVmConcurrency` in xo-server's configuration file to limit the number of disks transferred in parallel per VM, this is useful to avoid transfer overloading remote and Sr (PR [#6787](https://github.com/vatesfr/xen-orchestra/pull/6787))
-- [Settings/Config] Add the possibility to backup/import/download XO config from/to the XO cloud (PR [#6917](https://github.com/vatesfr/xen-orchestra/pull/6917))
 - [Import/Disk] Enhance clarity for importing ISO files [Forum#61480](https://xcp-ng.org/forum/post/61480) (PR [#6874](https://github.com/vatesfr/xen-orchestra/pull/6874))
-- [Import/Disk] Ability to import ISO from a URL (PR [#6924](https://github.com/vatesfr/xen-orchestra/pull/6924))
-- [Import/export VDI] Ability to export/import disks in RAW format (PR [#6925](https://github.com/vatesfr/xen-orchestra/pull/6925))
 
 ### Bug fixes
 
@@ -26,7 +30,6 @@
 - [Remote] Fix `remote is disabled` error when editing a disabled remote
 - [Settings/Servers] Fix connectiong using an explicit IPv6 address
 - [Backups/Health check] Use the right SR for health check during replication job (PR [#6902](https://github.com/vatesfr/xen-orchestra/pull/6902))
-- [RRD stats] Improve RRD stats performance (PR [#6903](https://github.com/vatesfr/xen-orchestra/pull/6903))
 
 ### Released packages
 

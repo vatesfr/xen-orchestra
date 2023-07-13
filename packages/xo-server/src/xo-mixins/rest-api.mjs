@@ -371,9 +371,18 @@ export default class RestApi {
       wrap(async (req, res) => {
         const stream = await req.xapiObject.$exportContent({ format: req.params.format })
 
-        stream.headers['content-disposition'] = 'attachment'
-        res.writeHead(stream.statusCode, stream.statusMessage != null ? stream.statusMessage : '', stream.headers)
+        // stream can be an HTTP response, in this case, extract interesting data
+        const { headers = {}, length, statusCode = 200, statusMessage = 'OK' } = stream
 
+        // Set the correct disposition
+        headers['content-disposition'] = 'attachment'
+
+        // expose the stream length if known
+        if (headers['content-length'] === undefined && length !== undefined) {
+          headers['content-length'] = length
+        }
+
+        res.writeHead(statusCode, statusMessage, headers)
         await pipeline(stream, res)
       })
     )

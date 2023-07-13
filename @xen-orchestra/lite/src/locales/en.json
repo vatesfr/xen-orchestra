@@ -36,6 +36,7 @@
   "export": "Export",
   "export-table-to": "Export table to {type}",
   "export-vms": "Export VMs",
+  "fetching-fresh-data": "Fetching fresh data",
   "filter": {
     "comparison": {
       "contains": "Contains",
@@ -62,6 +63,7 @@
   "hosts": "Hosts",
   "language": "Language",
   "last-week": "Last week",
+  "learn-more": "Learn more",
   "loading-hosts": "Loading hosts…",
   "log-out": "Log out",
   "login": "Login",

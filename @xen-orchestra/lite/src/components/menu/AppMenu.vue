@@ -14,9 +14,14 @@
 </template>
 
 <script lang="ts" setup>
-import { IK_MENU_TELEPORTED } from "@/types/injection-keys";
+import {
+  IK_CLOSE_MENU,
+  IK_MENU_DISABLED,
+  IK_MENU_HORIZONTAL,
+  IK_MENU_TELEPORTED,
+} from "@/types/injection-keys";
 import placementJs, { type Options } from "placement.js";
-import { inject, nextTick, provide, ref, toRef, unref, useSlots } from "vue";
+import { computed, inject, nextTick, provide, ref, useSlots } from "vue";
 import { onClickOutside, unrefElement, whenever } from "@vueuse/core";
 
 const props = defineProps<{
@@ -33,9 +38,18 @@ defineOptions({
 const slots = useSlots();
 const isOpen = ref(false);
 const menu = ref();
-const isParentHorizontal = inject("isMenuHorizontal", undefined);
-provide("isMenuHorizontal", toRef(props, "horizontal"));
-provide("isMenuDisabled", toRef(props, "disabled"));
+const isParentHorizontal = inject(
+  IK_MENU_HORIZONTAL,
+  computed(() => false)
+);
+provide(
+  IK_MENU_HORIZONTAL,
+  computed(() => props.horizontal ?? false)
+);
+provide(
+  IK_MENU_DISABLED,
+  computed(() => props.disabled ?? false)
+);
 let clearClickOutsideEvent: (() => void) | undefined;
 
 const hasTrigger = useSlots().trigger !== undefined;
@@ -50,9 +64,8 @@ whenever(
   () => !isOpen.value,
   () => clearClickOutsideEvent?.()
 );
-
-if (slots.trigger && !inject("closeMenu", false)) {
-  provide("closeMenu", () => (isOpen.value = false));
+if (slots.trigger && inject(IK_CLOSE_MENU, undefined) === undefined) {
+  provide(IK_CLOSE_MENU, () => (isOpen.value = false));
 }
 
 const open = (event: MouseEvent) => {
@@ -74,7 +87,7 @@ const open = (event: MouseEvent) => {
     placementJs(event.currentTarget as HTMLElement, unrefElement(menu), {
       placement:
         props.placement ??
-        (unref(isParentHorizontal) !== false ? "bottom-start" : "right-start"),
+        (isParentHorizontal.value ? "bottom-start" : "right-start"),
     });
   });
 };

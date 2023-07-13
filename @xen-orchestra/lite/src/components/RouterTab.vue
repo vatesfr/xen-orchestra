@@ -11,7 +11,8 @@
 </template>
 
 <script lang="ts" setup>
-import { type ComputedRef, computed, inject } from "vue";
+import { IK_TAB_BAR_DISABLED } from "@/types/injection-keys";
+import { computed, inject } from "vue";
 import type { RouteLocationRaw } from "vue-router";
 import UiTab from "@/components/ui/UiTab.vue";
 
@@ -20,8 +21,8 @@ defineProps<{
   disabled?: boolean;
 }>();
 
-const isTabBarDisabled = inject<ComputedRef<boolean>>(
-  "isTabBarDisabled",
+const isTabBarDisabled = inject(
+  IK_TAB_BAR_DISABLED,
   computed(() => false)
 );
 </script>
