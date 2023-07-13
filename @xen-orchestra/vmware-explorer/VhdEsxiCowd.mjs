@@ -48,7 +48,7 @@ export default class VhdEsxiCowd extends VhdAbstract {
 
     // depending on the paramters we also look into the parent data
     return (
-      this.#grainDirectory.readInt32LE(blockId * 4) !== 0 ||
+      this.#grainDirectory.readUInt32LE(blockId * 4) !== 0 ||
       (this.#lookMissingBlockInParent && this.#parentVhd.containsBlock(blockId))
     )
   }
@@ -61,14 +61,14 @@ export default class VhdEsxiCowd extends VhdAbstract {
     const buffer = await this.#read(0, 2048)
 
     strictEqual(buffer.slice(0, 4).toString('ascii'), 'COWD')
-    strictEqual(buffer.readInt32LE(4), 1) // version
-    strictEqual(buffer.readInt32LE(8), 3) // flags
-    const numSectors = buffer.readInt32LE(12)
-    const grainSize = buffer.readInt32LE(16)
+    strictEqual(buffer.readUInt32LE(4), 1) // version
+    strictEqual(buffer.readUInt32LE(8), 3) // flags
+    const numSectors = buffer.readUInt32LE(12)
+    const grainSize = buffer.readUInt32LE(16)
     strictEqual(grainSize, 1) // 1 grain should be 1 sector long
-    strictEqual(buffer.readInt32LE(20), 4) // grain directory position in sectors
+    strictEqual(buffer.readUInt32LE(20), 4) // grain directory position in sectors
 
-    const nbGrainDirectoryEntries = buffer.readInt32LE(24)
+    const nbGrainDirectoryEntries = buffer.readUInt32LE(24)
     strictEqual(nbGrainDirectoryEntries, Math.ceil(numSectors / 4096))
     const size = numSectors * 512
     // a grain directory entry contains the address of a grain table
@@ -90,7 +90,7 @@ export default class VhdEsxiCowd extends VhdAbstract {
   // we're lucky : a grain address can address exacty a full block
   async readBlock(blockId) {
     notEqual(this.#grainDirectory, undefined, 'grainDirectory is not loaded')
-    const sectorOffset = this.#grainDirectory.readInt32LE(blockId * 4)
+    const sectorOffset = this.#grainDirectory.readUInt32LE(blockId * 4)
 
     const buffer = (await this.#parentVhd.readBlock(blockId)).buffer
 
@@ -137,7 +137,7 @@ export default class VhdEsxiCowd extends VhdAbstract {
     }
 
     for (let i = 0; i < graintable.length / 4; i++) {
-      const grainOffset = graintable.readInt32LE(i * 4)
+      const grainOffset = graintable.readUInt32LE(i * 4)
       if (grainOffset === 0) {
         // the content from parent : it is already in buffer
         await changeRange()
