@@ -81,15 +81,14 @@ exports.readChunkStrict = async function readChunkStrict(stream, size) {
   }
 
   if (size !== undefined && chunk.length !== size) {
+    const error = new Error(`stream has ended with not enough data (actual: ${chunk.length}, expected: ${size})`)
+
     // Buffer.isUtf8 is too recent for now
     // @todo : replace external package by Buffer.isUtf8 when the supported version of node reach 18
 
-    // cut the message to a sane length and make it usable
-    const content = chunk.subarray(0, 128).toString(isUtf8(chunk) ? 'utf-8' : 'base64')
-
-    const error = new Error(
-      `stream has ended with not enough data (actual: ${chunk.length}, expected: ${size}). Received: ${content}`
-    )
+    if (chunk.length < 1024 && isUtf8(chunk)) {
+      error.text = chunk.toString('utf8')
+    }
     Object.defineProperties(error, {
       chunk: {
         value: chunk,
