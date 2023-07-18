@@ -16,6 +16,7 @@
 - [Incremental Backup & Replication] Attempt to work around HVM multiplier issues when creating VMs on older XAPIs (PR [#6866](https://github.com/vatesfr/xen-orchestra/pull/6866))
 - [REST API] Fix VDI export when NBD is enabled
 - [XO Config Cloud Backup] Improve wording about passphrase (PR [#6938](https://github.com/vatesfr/xen-orchestra/pull/6938))
+- [Pool] Fix IPv6 handling when adding hosts
 
 ### Packages to release
 
