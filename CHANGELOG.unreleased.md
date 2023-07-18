@@ -17,6 +17,7 @@
 - [REST API] Fix VDI export when NBD is enabled
 - [XO Config Cloud Backup] Improve wording about passphrase (PR [#6938](https://github.com/vatesfr/xen-orchestra/pull/6938))
 - [Pool] Fix IPv6 handling when adding hosts
+- [Build] Fix yarn.lock integrity issue
 
 ### Packages to release
 
