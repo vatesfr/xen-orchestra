@@ -34,6 +34,7 @@
 
 <!--packages-start-->
 
+- @vates/fuse-vhd major
 - @xen-orchestra/backups minor
 - @xen-orchestra/xapi major
 - complex-matcher patch

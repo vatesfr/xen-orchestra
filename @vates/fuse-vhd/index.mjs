@@ -1,9 +1,7 @@
-'use strict'
-
-const LRU = require('lru-cache')
-const Fuse = require('fuse-native')
-const { VhdSynthetic } = require('vhd-lib')
-const { Disposable, fromCallback } = require('promise-toolbox')
+import LRU from 'lru-cache'
+import Fuse from 'fuse-native'
+import { VhdSynthetic } from 'vhd-lib'
+import { Disposable, fromCallback } from 'promise-toolbox'
 
 // build a s stat object from https://github.com/fuse-friends/fuse-native/blob/master/test/fixtures/stat.js
 const stat = st => ({
@@ -16,7 +14,7 @@ const stat = st => ({
   gid: st.gid !== undefined ? st.gid : process.getgid(),
 })
 
-exports.mount = Disposable.factory(async function* mount(handler, diskPath, mountDir) {
+export const mount = Disposable.factory(async function* mount(handler, diskPath, mountDir) {
   const vhd = yield VhdSynthetic.fromVhdChain(handler, diskPath)
 
   const cache = new LRU({
