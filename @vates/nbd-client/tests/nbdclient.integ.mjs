@@ -1,13 +1,12 @@
-'use strict'
-const NbdClient = require('../index.js')
-const { spawn, exec } = require('node:child_process')
-const fs = require('node:fs/promises')
-const { test } = require('tap')
-const tmp = require('tmp')
-const { pFromCallback } = require('promise-toolbox')
-const { Socket } = require('node:net')
-const { NBD_DEFAULT_PORT } = require('../constants.js')
-const assert = require('node:assert')
+import NbdClient from '../index.mjs'
+import { spawn, exec } from 'node:child_process'
+import fs from 'node:fs/promises'
+import { test } from 'tap'
+import tmp from 'tmp'
+import { pFromCallback } from 'promise-toolbox'
+import { Socket } from 'node:net'
+import { NBD_DEFAULT_PORT } from '../constants.mjs'
+import assert from 'node:assert'
 
 const FILE_SIZE = 10 * 1024 * 1024
 
