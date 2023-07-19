@@ -2,7 +2,7 @@
   "name": "@vates/node-vsphere-soap",
   "version": "1.0.0",
   "description": "interface to vSphere SOAP/WSDL from node for interfacing with vCenter or ESXi, forked from node-vsphere-soap",
-  "main": "lib/client.js",
+  "main": "lib/client.mjs",
   "author": "reedog117",
   "repository": {
     "directory": "@vates/node-vsphere-soap",
@@ -30,7 +30,7 @@
   "private": false,
   "homepage": "https://github.com/vatesfr/xen-orchestra/tree/master/@vates/node-vsphere-soap",
   "engines": {
-    "node": ">=8.10"
+    "node": ">=14"
   },
   "scripts": {
     "postversion": "npm publish --access public"

@@ -36,6 +36,7 @@
 
 - @vates/fuse-vhd major
 - @vates/nbd-client major
+- @vates/node-vsphere-soap major
 - @xen-orchestra/backups minor
 - @xen-orchestra/xapi major
 - complex-matcher patch
