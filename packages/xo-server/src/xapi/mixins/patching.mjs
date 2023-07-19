@@ -508,8 +508,8 @@ export default {
     const hasMissingPatchesByHost = {}
     for (const host of hosts) {
       const hostUuid = host.uuid
-      const result = await this.listMissingPatches(hostUuid)
-      hasMissingPatchesByHost[hostUuid] = result.length > 0
+      const missingPatches = await this.listMissingPatches(hostUuid)
+      hasMissingPatchesByHost[hostUuid] = missingPatches.length > 0
     }
 
     // On XS/CH, start by installing patches on all hosts
