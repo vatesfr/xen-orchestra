@@ -17,6 +17,7 @@
   "engines": {
     "node": ">=14.0"
   },
+  "main": "./index.mjs",
   "dependencies": {
     "@vates/async-each": "^1.0.0",
     "@vates/read-chunk": "^1.1.1",
