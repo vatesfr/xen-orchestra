@@ -1,6 +1,7 @@
 'use strict'
 
 const assert = require('assert')
+const isUtf8 = require('isutf8')
 
 /**
  * Read a chunk of data from a stream.
@@ -81,6 +82,13 @@ exports.readChunkStrict = async function readChunkStrict(stream, size) {
 
   if (size !== undefined && chunk.length !== size) {
     const error = new Error(`stream has ended with not enough data (actual: ${chunk.length}, expected: ${size})`)
+
+    // Buffer.isUtf8 is too recent for now
+    // @todo : replace external package by Buffer.isUtf8 when the supported version of node reach 18
+
+    if (chunk.length < 1024 && isUtf8(chunk)) {
+      error.text = chunk.toString('utf8')
+    }
     Object.defineProperties(error, {
       chunk: {
         value: chunk,
