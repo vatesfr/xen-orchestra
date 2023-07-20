@@ -1,4 +1,3 @@
-'use strict'
 /*
 
   node-vsphere-soap
@@ -12,17 +11,18 @@
 
 */
 
-const EventEmitter = require('events').EventEmitter
-const axios = require('axios')
-const https = require('node:https')
-const util = require('util')
-const soap = require('soap')
-const Cookie = require('soap-cookie') // required for session persistence
+import { EventEmitter } from 'events'
+import axios from 'axios'
+import https from 'node:https'
+import util from 'util'
+import soap from 'soap'
+import Cookie from 'soap-cookie' // required for session persistence
+
 // Client class
 // inherits from EventEmitter
 // possible events: connect, error, ready
 
-function Client(vCenterHostname, username, password, sslVerify) {
+export function Client(vCenterHostname, username, password, sslVerify) {
   this.status = 'disconnected'
   this.reconnectCount = 0
 
@@ -228,4 +228,3 @@ function _soapErrorHandler(self, emitter, command, args, err) {
 }
 
 // end
-exports.Client = Client

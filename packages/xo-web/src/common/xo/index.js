@@ -2693,9 +2693,10 @@ export const fetchFiles = (remote, disk, partition, paths) =>
 
 // -------------------------------------------------------------------
 
-export const probeSrNfs = (host, server) => _call('sr.probeNfs', { host, server })
+export const probeSrNfs = (host, server, nfsVersion) => _call('sr.probeNfs', { host, nfsVersion, server })
 
-export const probeSrNfsExists = (host, server, serverPath) => _call('sr.probeNfsExists', { host, server, serverPath })
+export const probeSrNfsExists = (host, server, serverPath, nfsVersion) =>
+  _call('sr.probeNfsExists', { host, nfsVersion, server, serverPath })
 
 export const probeSrIscsiIqns = (host, target, port = undefined, chapUser = undefined, chapPassword) => {
   const params = { host, target }

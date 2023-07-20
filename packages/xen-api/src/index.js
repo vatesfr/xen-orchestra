@@ -954,6 +954,8 @@ export class Xapi extends EventEmitter {
       url,
       agent: this.httpAgent,
     })
+    const { hostname } = url
+    url.hostnameRaw = hostname[0] === '[' ? hostname.slice(1, -1) : hostname
     this._url = url
   }
 

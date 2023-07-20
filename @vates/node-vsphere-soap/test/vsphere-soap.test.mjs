@@ -1,18 +1,16 @@
-'use strict'
-
 /*
   vsphere-soap.test.js
 
   tests for the vCenterConnectionInstance class
 */
 
-const assert = require('assert')
-const { describe, it } = require('test')
+import assert from 'assert'
+import { describe, it } from 'test'
 
-const vc = require('../lib/client')
+import * as vc from '../lib/client.mjs'
 
-// eslint-disable-next-line n/no-missing-require
-const TestCreds = require('../config-test.js').vCenterTestCreds
+// eslint-disable-next-line n/no-missing-import
+import { vCenterTestCreds as TestCreds } from '../config-test.mjs'
 
 const VItest = new vc.Client(TestCreds.vCenterIP, TestCreds.vCenterUser, TestCreds.vCenterPassword, false)
 

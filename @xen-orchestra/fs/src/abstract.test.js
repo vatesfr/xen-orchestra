@@ -209,7 +209,7 @@ describe('encryption', () => {
     // encrypt with a non default algorithm
     const encryptor = _getEncryptor('aes-256-cbc', '73c1838d7d8a6088ca2317fb5f29cd91')
 
-    await fs.writeFile(`${dir}/encryption.json`, `{"algorithm": "aes-256-gmc"}`)
+    await fs.writeFile(`${dir}/encryption.json`, `{"algorithm": "aes-256-gcm"}`)
     await fs.writeFile(`${dir}/metadata.json`, encryptor.encryptData(`{"random": "NOTSORANDOM"}`))
 
     // remote is now non empty : can't modify key anymore

@@ -467,11 +467,11 @@ export default class New extends Component {
   _handleSearchServer = async () => {
     const { password, port, server, username } = this.refs
 
-    const { host, type } = this.state
+    const { host, nfsVersion, type } = this.state
 
     try {
       if (type === 'nfs' || type === 'nfsiso') {
-        const paths = await probeSrNfs(host.id, server.value)
+        const paths = await probeSrNfs(host.id, server.value, nfsVersion !== '' ? nfsVersion : undefined)
         this.setState({
           usage: undefined,
           paths,
@@ -500,12 +500,12 @@ export default class New extends Component {
 
   _handleSrPathSelection = async path => {
     const { server } = this.refs
-    const { host } = this.state
+    const { host, nfsVersion } = this.state
 
     try {
       this.setState(({ loading }) => ({ loading: loading + 1 }))
       this.setState({
-        existingSrs: await probeSrNfsExists(host.id, server.value, path),
+        existingSrs: await probeSrNfsExists(host.id, server.value, path, nfsVersion !== '' ? nfsVersion : undefined),
         path,
         usage: true,
         summary: true,

@@ -467,10 +467,11 @@ createZfs.resolve = {
 // This function helps to detect all NFS shares (exports) on a NFS server
 // Return a table of exports with their paths and ACLs
 
-export async function probeNfs({ host, server }) {
+export async function probeNfs({ host, nfsVersion, server }) {
   const xapi = this.getXapi(host)
 
   const deviceConfig = {
+    nfsversion: nfsVersion,
     server,
   }
 
@@ -501,6 +502,7 @@ export async function probeNfs({ host, server }) {
 
 probeNfs.params = {
   host: { type: 'string' },
+  nfsVersion: { type: 'string', optional: true },
   server: { type: 'string' },
 }
 
@@ -837,10 +839,11 @@ probeHbaExists.resolve = {
 // This function helps to detect if this NFS SR already exists in XAPI
 // It returns a table of SR UUID, empty if no existing connections
 
-export async function probeNfsExists({ host, server, serverPath }) {
+export async function probeNfsExists({ host, nfsVersion, server, serverPath }) {
   const xapi = this.getXapi(host)
 
   const deviceConfig = {
+    nfsversion: nfsVersion,
     server,
     serverpath: serverPath,
   }
@@ -859,6 +862,7 @@ export async function probeNfsExists({ host, server, serverPath }) {
 
 probeNfsExists.params = {
   host: { type: 'string' },
+  nfsVersion: { type: 'string', optional: true },
   server: { type: 'string' },
   serverPath: { type: 'string' },
 }

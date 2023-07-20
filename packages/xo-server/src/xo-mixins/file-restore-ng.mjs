@@ -24,7 +24,6 @@ import { execa } from 'execa'
 export default class BackupNgFileRestore {
   constructor(app) {
     this._app = app
-    this._mounts = { __proto__: null }
 
     // clean any LVM volumes that might have not been properly
     // unmounted

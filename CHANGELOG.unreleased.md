@@ -15,6 +15,9 @@
 
 - [Incremental Backup & Replication] Attempt to work around HVM multiplier issues when creating VMs on older XAPIs (PR [#6866](https://github.com/vatesfr/xen-orchestra/pull/6866))
 - [REST API] Fix VDI export when NBD is enabled
+- [XO Config Cloud Backup] Improve wording about passphrase (PR [#6938](https://github.com/vatesfr/xen-orchestra/pull/6938))
+- [Pool] Fix IPv6 handling when adding hosts
+- [New SR] Send provided NFS version to XAPI when probing a share
 - [Backup/exports] Show more information on error ` stream has ended with not enough data (actual: xxx, expected: 512)` (PR [#6940](https://github.com/vatesfr/xen-orchestra/pull/6940))
 
 ### Packages to release
@@ -33,11 +36,18 @@
 
 <!--packages-start-->
 
+- @vates/fuse-vhd major
+- @vates/nbd-client major
+- @vates/node-vsphere-soap major
 - @xen-orchestra/backups minor
+- @xen-orchestra/vmware-explorer minor
 - @xen-orchestra/xapi major
 - @vates/read-chunk minor
 - complex-matcher patch
+- xen-api patch
 - xo-server patch
+- xo-server-transport-xmpp patch
+- xo-server-audit patch
 - xo-web minor
 
 <!--packages-end-->

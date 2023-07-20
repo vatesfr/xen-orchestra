@@ -1,8 +1,11 @@
-'use strict'
-const assert = require('node:assert')
-const { Socket } = require('node:net')
-const { connect } = require('node:tls')
-const {
+import assert from 'node:assert'
+import { Socket } from 'node:net'
+import { connect } from 'node:tls'
+import { fromCallback, pRetry, pDelay, pTimeout } from 'promise-toolbox'
+import { readChunkStrict } from '@vates/read-chunk'
+import { createLogger } from '@xen-orchestra/log'
+
+import {
   INIT_PASSWD,
   NBD_CMD_READ,
   NBD_DEFAULT_BLOCK_SIZE,
@@ -17,16 +20,13 @@ const {
   NBD_REQUEST_MAGIC,
   OPTS_MAGIC,
   NBD_CMD_DISC,
-} = require('./constants.js')
-const { fromCallback, pRetry, pDelay, pTimeout } = require('promise-toolbox')
-const { readChunkStrict } = require('@vates/read-chunk')
-const { createLogger } = require('@xen-orchestra/log')
+} from './constants.mjs'
 
 const { warn } = createLogger('vates:nbd-client')
 
 // documentation is here : https://github.com/NetworkBlockDevice/nbd/blob/master/doc/proto.md
 
-module.exports = class NbdClient {
+export default class NbdClient {
   #serverAddress
   #serverCert
   #serverPort

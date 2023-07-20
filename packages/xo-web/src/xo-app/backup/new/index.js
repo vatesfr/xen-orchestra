@@ -999,7 +999,7 @@ const New = decorate([
                           <Tooltip content={_('clickForMoreInformation')}>
                             <a
                               className='text-info'
-                              href='https://xen-orchestra.com/docs/delta_backups.html#full-backup-interval'
+                              href='https://xen-orchestra.com/docs/incremental_backups.html#key-backup-interval'
                               rel='noopener noreferrer'
                               target='_blank'
                             >
