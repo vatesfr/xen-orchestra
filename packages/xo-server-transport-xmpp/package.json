@@ -26,10 +26,10 @@
   "preferGlobal": false,
   "main": "dist/",
   "engines": {
-    "node": ">=6"
+    "node": ">=10"
   },
   "dependencies": {
-    "node-xmpp-client": "^3.0.0",
+    "@xmpp/client": "^0.13.1",
     "promise-toolbox": "^0.21.0"
   },
   "devDependencies": {

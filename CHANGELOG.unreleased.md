@@ -43,6 +43,7 @@
 - complex-matcher patch
 - xen-api patch
 - xo-server patch
+- xo-server-transport-xmpp patch
 - xo-server-audit patch
 - xo-web minor
 
