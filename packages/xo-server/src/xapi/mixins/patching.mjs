@@ -5,6 +5,7 @@ import mapValues from 'lodash/mapValues.js'
 import pickBy from 'lodash/pickBy.js'
 import some from 'lodash/some.js'
 import unzip from 'unzipper'
+import { asyncEach } from '@vates/async-each'
 import { createLogger } from '@xen-orchestra/log'
 import { decorateWith } from '@vates/decorate-with'
 import { defer as deferrable } from 'golike-defer'
@@ -506,11 +507,11 @@ export default {
     await Promise.all(hosts.map(host => host.$call('assert_can_evacuate')))
 
     const hasMissingPatchesByHost = {}
-    for (const host of hosts) {
+    await asyncEach(hosts, async host => {
       const hostUuid = host.uuid
       const missingPatches = await this.listMissingPatches(hostUuid)
       hasMissingPatchesByHost[hostUuid] = missingPatches.length > 0
-    }
+    })
 
     // On XS/CH, start by installing patches on all hosts
     if (!isXcp) {
@@ -593,7 +594,7 @@ export default {
       log.debug(`Host ${hostId} is up`)
     }
 
-    if (some(hasMissingPatchesByHost, hasMissingPatches => hasMissingPatches)) {
+    if (some(hasMissingPatchesByHost)) {
       log.debug('Migrate VMs back to where they were')
     }
 
