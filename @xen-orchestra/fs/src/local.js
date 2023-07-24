@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import fs from 'fs-extra'
-import fsx from 'fs-extended-attributes'
+// import fsx from 'fs-extended-attributes'
 import lockfile from 'proper-lockfile'
 import { createLogger } from '@xen-orchestra/log'
 import { execFile } from 'node:child_process'
@@ -248,6 +248,7 @@ export default class LocalHandler extends RemoteHandlerAbstract {
     // implies we are on a deduplicated file
     if (hash !== undefined) {
       const dedupPath = this.getFilePath(this.#computeDeduplicationPath(hash))
+      await this.#removeExtendedAttribute(file, this.#attributeKey)
       try {
         const { nlink } = await fs.stat(dedupPath)
         // get the number of copy still using these data
@@ -296,7 +297,24 @@ export default class LocalHandler extends RemoteHandlerAbstract {
   #hash(data) {
     return createHash(this.#hashMethod).update(data).digest('hex')
   }
+  async #getExtendedAttribute(file, attributeName) {
+    try{
+      return this._readFile(file+attributeName)
+    }catch(err){
+      if(err.code === 'ENOENT'){
+        return 
+      }
+      throw err
+    }
+  }
+  async #setExtendedAttribute(file, attributeName, value) {
+    return  this._writeFile(file+attributeName, value)
+  }
 
+  async #removeExtendedAttribute(file, attributeName){
+    return  this._unlink(file+attributeName)
+  }
+/*
   async #getExtendedAttribute(file, attributeName) {
     return new Promise((resolve, reject) => {
       fsx.get(this.getFilePath(file), attributeName, (err, res) => {
@@ -324,6 +342,11 @@ export default class LocalHandler extends RemoteHandlerAbstract {
       })
     })
   }
+
+  async #removeExtendedAttribute(file, attributeName){
+    
+  }
+  */
 
   // create a hard link between to files
   #link(source, dest) {
@@ -454,7 +477,9 @@ export default class LocalHandler extends RemoteHandlerAbstract {
       await this.#setExtendedAttribute(sourceFileName, this.#attributeKey, hash)
       await this.#link(sourceFileName, destFileName)
       const linkedData = await this._readFile(destFileName)
-      supported.hardLink = linkedData.equals(data)
+      const { nlink } = await fs.stat(this.getFilePath(destFileName))
+      // contains the right data and the link counter
+      supported.hardLink = nlink === 2 && linkedData.equals(data)
       supported.extendedAttributes = hash === (await this.#getExtendedAttribute(sourceFileName, this.#attributeKey))
     } catch (error) {
       warn(`error while testing the dedup`, { error })

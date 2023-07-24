@@ -207,7 +207,7 @@ exports.VhdAbstract = class VhdAbstract {
     } catch (err) {
       if (err.code === 'EISDIR') {
         // @todo : should we open it ?
-        const chunkFilters = await handler.readFile(path + '/chunk-filters.json').then(JSON.parse, error => {
+        const chunkFilters = await handler.readFile(resolved + '/chunk-filters.json').then(JSON.parse, error => {
           if (error.code === 'ENOENT') {
             return []
           }
