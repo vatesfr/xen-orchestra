@@ -263,7 +263,7 @@ class Netbox {
         // `type` needs to be flattened so we can compare the 2 objects
         const patch = diff(updatedCluster, { ...cluster, type: cluster.type.id })
         if (patch !== undefined) {
-          clustersToUpdate.push({ ...patch, id: cluster.id })
+          clustersToUpdate.push(patch)
         }
       }
       // FIXME: Should we deduplicate cluster names even though it also fails
@@ -353,7 +353,6 @@ class Netbox {
           // VM found in Netbox: update VM (I.1)
           const patch = diff(updatedVm, flattenNested(netboxVm))
           if (patch !== undefined) {
-            patch.id = netboxVm.id // Add the ID so that Netbox updates the VM
             vmsToUpdate.push(patch)
           } else {
             // The VM is up to date, just store its name as being used
@@ -382,7 +381,6 @@ class Netbox {
             continue
           }
 
-          patch.id = netboxVm.id // Add the ID so that Netbox updates the VM
           vmsToUpdate.push(patch)
         } else {
           // Otherwise, delete it from Netbox (II.2)
@@ -476,7 +474,6 @@ class Netbox {
           // `virtual_machine` needs to be flattened so we can compare the 2 objects
           const patch = diff(updatedIf, { ...netboxIf, virtual_machine: netboxIf.virtual_machine.id })
           if (patch !== undefined) {
-            patch.id = netboxIf.id // Add the ID so that Netbox updates the interface
             ifsToUpdate.push(patch)
           }
         }

@@ -18,5 +18,9 @@ export default function diff(newer, older) {
     }
   })
 
-  return isEmpty(newer) ? undefined : newer
+  if (isEmpty(newer)) {
+    return
+  }
+
+  return { ...newer, id: older.id }
 }
