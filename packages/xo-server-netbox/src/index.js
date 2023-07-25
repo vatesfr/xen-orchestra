@@ -235,6 +235,12 @@ class Netbox {
 
     log.info('Synchronizing clusters')
 
+    const createCluster = (pool, clusterType) => ({
+      custom_fields: { uuid: pool.uuid },
+      name: pool.name_label.slice(0, NAME_MAX_LENGTH),
+      type: clusterType.id,
+    })
+
     // { Pool UUID → cluster }
     const clusters = keyBy(
       await this.#request(`/virtualization/clusters/?type_id=${clusterType.id}`),
@@ -251,11 +257,7 @@ class Netbox {
       }
       const cluster = clusters[pool.uuid]
 
-      const updatedCluster = {
-        custom_fields: { uuid: pool.uuid },
-        name: pool.name_label.slice(0, NAME_MAX_LENGTH),
-        type: clusterType.id,
-      }
+      const updatedCluster = createCluster(pool, clusterType)
 
       if (cluster === undefined) {
         clustersToCreate.push(updatedCluster)
