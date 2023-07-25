@@ -1,4 +1,4 @@
-const configurationSchema = ({ xo: { apiMethods } }) => ({
+const configurationSchema = {
   description:
     'Synchronize pools managed by Xen Orchestra with Netbox. Configuration steps: https://xen-orchestra.com/docs/advanced.html#netbox.',
   type: 'object',
@@ -34,6 +34,6 @@ const configurationSchema = ({ xo: { apiMethods } }) => ({
     },
   },
   required: ['endpoint', 'token', 'pools'],
-})
+}
 
 export { configurationSchema as default }
